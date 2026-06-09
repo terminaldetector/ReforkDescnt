@@ -42,10 +42,10 @@ local function ShootAng(ply)
     return Angle(a.p, a.y, 0)
 end
 
--- Дула двух nosegun — синхронизированы с d6_wepview.lua (inner rgt ±28)
+-- Дула двух nosegun — ряд 1, нижние углы (синхр. с d6_wepview.lua)
 local MUZZLES = {
-    { fwd=48, rgt=-28, up=-21 },
-    { fwd=48, rgt= 28, up=-21 },
+    { fwd=48, rgt=-46, up=-20 },
+    { fwd=48, rgt= 46, up=-20 },
 }
 
 local function MuzzleWorld(ply, off)

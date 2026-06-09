@@ -20,36 +20,35 @@ local MDL_GRAVGUN = "models/weapons/w_physics.mdl"
 -- ── Конфигурация слотов по классу оружия ─────────────────
 -- fwd/rgt/up — смещение от камеры; pitch/yaw/roll — поворот;
 -- scale — масштаб модели. Правь числа для тонкой настройки.
--- Пушки разведены к краям экрана (outer rgt ±63, inner rgt ±30).
--- weapon_d6_rockets не отображается (ракеты спрятаны на крыше).
+--
+-- Компоновка по концепту:
+--   РЯД 1 — нижние углы экрана   (rgt ±46, up −20)
+--   РЯД 2 — верхние края экрана  (rgt ±50, up +16)
+--   ГРАВИЦАПА — низ по центру (up −18), не выше нижней четверти
+--   РАКЕТНЫЙ БЛОК — спрятан на крыше, видимых моделей нет
+-- Ряды и гравицапа НЕ исчезают при переключении на
+-- гравирельсу или ракеты — меняется только центральный слот.
+local function Layout(row1Mdl, row1Scale, row2Mdl, row2Scale, center)
+    local t = {
+        { mdl=row1Mdl, fwd=30, rgt=-46, up=-20, pitch=0, yaw=-9, scale=row1Scale },
+        { mdl=row1Mdl, fwd=30, rgt= 46, up=-20, pitch=0, yaw= 9, scale=row1Scale },
+        { mdl=row2Mdl, fwd=30, rgt=-50, up= 16, pitch=0, yaw=-9, scale=row2Scale },
+        { mdl=row2Mdl, fwd=30, rgt= 50, up= 16, pitch=0, yaw= 9, scale=row2Scale },
+    }
+    if center then t[#t+1] = center end
+    return t
+end
+
+local GRAV_CENTER = { mdl=MDL_GRAVGUN, fwd=24, rgt=0, up=-18, pitch=6, yaw=0, scale=1.20 }
+
 local CFG = {
-    ["weapon_d6_pulse"] = {
-        { mdl=MDL_AIRBOAT, fwd=32, rgt=-63, up=-18, pitch=0, yaw=-8, scale=1.00 },
-        { mdl=MDL_AIRBOAT, fwd=30, rgt=-30, up=-22, pitch=0, yaw=-3, scale=0.85 },
-        { mdl=MDL_AIRBOAT, fwd=30, rgt= 30, up=-22, pitch=0, yaw= 3, scale=0.85 },
-        { mdl=MDL_AIRBOAT, fwd=32, rgt= 63, up=-18, pitch=0, yaw= 8, scale=1.00 },
-        { mdl=MDL_GRAVGUN, fwd=24, rgt=  0, up=-14, pitch=6, yaw= 0, scale=1.20 },
-    },
-    ["weapon_d6_plasma"] = {
-        { mdl=MDL_AIRBOAT, fwd=32, rgt=-63, up=-18, pitch=0, yaw=-8, scale=1.00 },
-        { mdl=MDL_NOSEGUN, fwd=30, rgt=-28, up=-21, pitch=0, yaw=-3, scale=1.55 },
-        { mdl=MDL_NOSEGUN, fwd=30, rgt= 28, up=-21, pitch=0, yaw= 3, scale=1.55 },
-        { mdl=MDL_AIRBOAT, fwd=32, rgt= 63, up=-18, pitch=0, yaw= 8, scale=1.00 },
-        { mdl=MDL_GRAVGUN, fwd=24, rgt=  0, up=-14, pitch=6, yaw= 0, scale=1.20 },
-    },
-    ["weapon_d6_heavy"] = {
-        { mdl=MDL_AIRBOAT, fwd=32, rgt=-64, up=-17, pitch=0, yaw=-9, scale=1.05 },
-        { mdl=MDL_NOSEGUN, fwd=30, rgt=-30, up=-20, pitch=2, yaw=-3, scale=1.65 },
-        { mdl=MDL_NOSEGUN, fwd=30, rgt= 30, up=-20, pitch=2, yaw= 3, scale=1.65 },
-        { mdl=MDL_AIRBOAT, fwd=32, rgt= 64, up=-17, pitch=0, yaw= 9, scale=1.05 },
-        { mdl=MDL_GRAVGUN, fwd=23, rgt=  0, up=-13, pitch=8, yaw= 0, scale=1.25 },
-    },
-    ["weapon_d6_laser"] = {
-        { mdl=MDL_STRIDER, fwd=42, rgt=0, up=-20, pitch=0, yaw=0, scale=0.55 },
-    },
-    ["weapon_d6_gravy_railgun"] = {
-        { mdl=MDL_GRAVGUN, fwd=24, rgt=0, up=-14, pitch=6, yaw=0, scale=1.40 },
-    },
+    ["weapon_d6_pulse"]  = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00, GRAV_CENTER),
+    ["weapon_d6_plasma"] = Layout(MDL_NOSEGUN, 1.55, MDL_AIRBOAT, 1.00, GRAV_CENTER),
+    ["weapon_d6_heavy"]  = Layout(MDL_NOSEGUN, 1.70, MDL_AIRBOAT, 1.05, GRAV_CENTER),
+    ["weapon_d6_laser"]  = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00,
+        { mdl=MDL_STRIDER, fwd=42, rgt=0, up=-20, pitch=0, yaw=0, scale=0.55 }),
+    ["weapon_d6_rockets"]       = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00, GRAV_CENTER),
+    ["weapon_d6_gravy_railgun"] = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00, GRAV_CENTER),
 }
 
 local curClass = nil

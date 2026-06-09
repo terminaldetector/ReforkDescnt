@@ -36,12 +36,13 @@ local function ShootAng(ply)
     return Angle(a.p, a.y, 0)
 end
 
--- Позиции дул — синхронизированы с d6_wepview.lua CFG (outer ±63, inner ±30)
+-- Позиции дул — синхронизированы с d6_wepview.lua:
+-- ряд 1 — нижние углы (±46, −20), ряд 2 — верхние края (±50, +16)
 local MUZZLES = {
-    { fwd=50, rgt=-63, up=-18 },
-    { fwd=48, rgt=-30, up=-22 },
-    { fwd=48, rgt= 30, up=-22 },
-    { fwd=50, rgt= 63, up=-18 },
+    { fwd=50, rgt=-46, up=-20 },
+    { fwd=50, rgt= 46, up=-20 },
+    { fwd=50, rgt=-50, up= 16 },
+    { fwd=50, rgt= 50, up= 16 },
 }
 
 local function MuzzleWorld(ply, off)
