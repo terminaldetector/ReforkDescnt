@@ -19,14 +19,19 @@ local D6_SPAWNERS = {
 
 local D6_SPAWNER_SET = {}
 for _, v in ipairs(D6_SPAWNERS) do D6_SPAWNER_SET[v] = true end
+D6_SPAWNER_SET["weapon_d6_omni"] = true  -- устарело, заменено отдельными SWEP
 
 if SERVER then
     for _, w in ipairs(D6_SPAWNERS) do
         AddCSLuaFile("weapons/" .. w .. ".lua")
     end
-    -- Грависарельса теперь weapon_d6_gravy_railgun.lua
+    -- Боевые оружия (отдельные SWEP вместо монолитного омни)
     AddCSLuaFile("weapons/weapon_d6_gravy_railgun.lua")
-    AddCSLuaFile("weapons/weapon_d6_omni.lua")
+    AddCSLuaFile("weapons/weapon_d6_pulse.lua")
+    AddCSLuaFile("weapons/weapon_d6_plasma.lua")
+    AddCSLuaFile("weapons/weapon_d6_heavy.lua")
+    AddCSLuaFile("weapons/weapon_d6_laser.lua")
+    AddCSLuaFile("weapons/weapon_d6_rockets.lua")
     AddCSLuaFile("d6_core.lua")
     AddCSLuaFile("d6_client.lua")
     AddCSLuaFile("d6_cockpit.lua")   -- новый кокпит-HUD

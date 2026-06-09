@@ -34,7 +34,9 @@ if SERVER then
     util.AddNetworkString("D6_AngSync")
     util.AddNetworkString("D6_Toggle")
     util.AddNetworkString("D6_AlwaysRunSync")
-    util.AddNetworkString("D6_DashDir")   -- клиент→сервер: направление рывка от X-клавиши
+    util.AddNetworkString("D6_DashDir")    -- клиент→сервер: направление рывка от X-клавиши
+    util.AddNetworkString("D6_WeaponSwitch")   -- клиент→сервер: смена оружия колесом
+    util.AddNetworkString("D6_RocketSubNext")  -- клиент→сервер: следующий сабрежим ракет
 end
 
 local function ShootAng(ply)
@@ -196,6 +198,31 @@ if SERVER then
         net.Broadcast()
 
         ply:EmitSound("ambient/machines/thumper_top.wav", 75, 160)
+    end)
+
+    -- Смена оружия колесом мыши (клиент отправляет classname)
+    local _D6_WHEEL_WEPS = {
+        ["weapon_d6_pulse"]=true, ["weapon_d6_plasma"]=true,
+        ["weapon_d6_heavy"]=true, ["weapon_d6_laser"]=true,
+        ["weapon_d6_rockets"]=true,
+    }
+    net.Receive("D6_WeaponSwitch", function(_, ply)
+        if not IsValid(ply) then return end
+        local class = net.ReadString()
+        if not _D6_WHEEL_WEPS[class] then return end
+        if IsValid(ply:GetWeapon(class)) then
+            ply:SelectWeapon(class)
+        end
+    end)
+
+    net.Receive("D6_RocketSubNext", function(_, ply)
+        if not IsValid(ply) then return end
+        local w = ply:GetActiveWeapon()
+        if not IsValid(w) or w:GetClass() ~= "weapon_d6_rockets" then return end
+        local sub = (ply:GetNWInt("D6_RktSub", 0) + 1) % 4
+        ply:SetNWInt("D6_RktSub", sub)
+        w:SetNWInt("D6_RktSub", sub)
+        ply:EmitSound("buttons/blip1.wav", 65, 120)
     end)
 
     concommand.Add("d6_set", function(ply, _, args)

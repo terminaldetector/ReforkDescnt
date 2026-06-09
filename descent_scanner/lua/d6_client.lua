@@ -282,9 +282,16 @@ hook.Add("HUDPaint", "D6_HUD", function()
     local sw, sh = ScrW(), ScrH()
 
     local wep  = ply:GetActiveWeapon()
-    local mode = IsValid(wep) and wep:GetClass()=="weapon_d6_omni" and (wep.Mode or 0) or 0
-    local MCOL = {[0]=Color(255,80,80),[1]=Color(80,200,255),[2]=Color(255,150,0),[3]=Color(0,220,120)}
-    local MNAM = {[0]="ПУШКИ",[1]="ЛАЗЕРЫ",[2]="БОМБЫ",[3]="ЭЛ.КРЮК"}
+    local mode = 0
+    if IsValid(wep) then
+        local c = wep:GetClass()
+        if     c == "weapon_d6_plasma"  then mode = 1
+        elseif c == "weapon_d6_heavy"   then mode = 2
+        elseif c == "weapon_d6_laser"   then mode = 3
+        elseif c == "weapon_d6_rockets" then mode = 4 end
+    end
+    local MCOL = {[0]=Color(255,80,80),[1]=Color(80,200,255),[2]=Color(255,150,0),[3]=Color(0,220,120),[4]=Color(255,230,0)}
+    local MNAM = {[0]="ПУЛЬСАР",[1]="ПЛАЗМА",[2]="ТЯЖЁЛЫЙ",[3]="ЛАЗЕР",[4]="РАКЕТЫ"}
     local col  = MCOL[mode] or color_white
 
     draw.SimpleTextOutlined("[ "..(MNAM[mode] or "?").." ]",
@@ -344,8 +351,15 @@ hook.Add("DrawCrosshair", "D6_Crosshair", function()
     local ply = LocalPlayer()
     if not IsValid(ply) or not ply:GetNWBool("D6On", false) then return end
     local wep  = ply:GetActiveWeapon()
-    local mode = IsValid(wep) and wep:GetClass()=="weapon_d6_omni" and (wep.Mode or 0) or 0
-    local MCOL = {[0]=Color(255,80,80),[1]=Color(80,200,255),[2]=Color(255,150,0),[3]=Color(0,220,120)}
+    local mode = 0
+    if IsValid(wep) then
+        local wc = wep:GetClass()
+        if     wc == "weapon_d6_plasma"  then mode = 1
+        elseif wc == "weapon_d6_heavy"   then mode = 2
+        elseif wc == "weapon_d6_laser"   then mode = 3
+        elseif wc == "weapon_d6_rockets" then mode = 4 end
+    end
+    local MCOL = {[0]=Color(255,80,80),[1]=Color(80,200,255),[2]=Color(255,150,0),[3]=Color(0,220,120),[4]=Color(255,230,0)}
     local c    = MCOL[mode] or Color(255,80,80)
     local cx, cy = ScrW()/2, ScrH()/2
     local r1 = 18
@@ -378,6 +392,37 @@ hook.Add("DrawCrosshair", "D6_Crosshair", function()
     -- Центральная точка
     surface.SetDrawColor(255,255,255,255); surface.DrawRect(cx-1,cy-1,3,3)
     return true
+end)
+
+-- =========================================================
+-- КОЛЕСО МЫШИ: вниз→ракеты, вверх→боевые
+-- =========================================================
+local _D6_COMBAT = { "weapon_d6_pulse", "weapon_d6_plasma", "weapon_d6_heavy", "weapon_d6_laser" }
+local _D6_ROCKET = "weapon_d6_rockets"
+
+hook.Add("PlayerBindPress", "D6_WeaponWheel", function(ply, bind, pressed)
+    if not pressed then return end
+    local lp = LocalPlayer()
+    if not IsValid(lp) or not lp:GetNWBool("D6On", false) then return end
+
+    if bind == "invnext" then   -- колесо вниз → ракеты / сабрежим
+        local cur = lp:GetActiveWeapon()
+        if IsValid(cur) and cur:GetClass() == _D6_ROCKET then
+            net.Start("D6_RocketSubNext"); net.SendToServer()
+        else
+            net.Start("D6_WeaponSwitch"); net.WriteString(_D6_ROCKET); net.SendToServer()
+        end
+        return true
+
+    elseif bind == "invprev" then  -- колесо вверх → боевые (цикл)
+        local cur = IsValid(lp:GetActiveWeapon()) and lp:GetActiveWeapon():GetClass() or ""
+        local idx = 0
+        for i, w in ipairs(_D6_COMBAT) do if w == cur then idx = i; break end end
+        net.Start("D6_WeaponSwitch")
+            net.WriteString(_D6_COMBAT[(idx % #_D6_COMBAT) + 1])
+        net.SendToServer()
+        return true
+    end
 end)
 
 print("[D6] d6_client.lua OK")
