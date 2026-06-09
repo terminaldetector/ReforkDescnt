@@ -29,14 +29,15 @@ SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic   = false
 SWEP.Secondary.Ammo        = "none"
 
--- Ракета: w_missile_closed.mdl — модель ракеты RPG из HL2
--- (это модель патрона item_rpg_round, у неё есть .phy).
--- w_rocket.mdl НЕ СУЩЕСТВУЕТ — была причина "Model missing".
-local MDL_ROCKET = "models/weapons/w_missile_closed.mdl"
+-- Ракета: w_missile.mdl — настоящий RPG-снаряд HL2
+-- Атомка: flakshell_big.mdl — кассетный заряд
+local MDL_ROCKET = "models/weapons/w_missile.mdl"
 local MDL_ATOMIC = "models/props_phx/misc/flakshell_big.mdl"
 if SERVER then
     util.PrecacheModel(MDL_ROCKET)
     util.PrecacheModel(MDL_ATOMIC)
+    util.PrecacheSound("weapons/rpg/rocketfire1.wav")
+    util.PrecacheSound("weapons/rpg/rocket_explode.wav")
 end
 
 local ROCKET_NAMES = { [0]="×1 ПРЯМАЯ", [1]="×3 ЗАЛП", [2]="×6 НАВЕДЕНИЕ", [3]="☢ АТОМКА" }
@@ -72,7 +73,12 @@ local function D6_ExplodeRocket(rkt)
 
     local ef = EffectData(); ef:SetOrigin(pos); ef:SetScale(radius/50); ef:SetMagnitude(dmg)
     util.Effect("Explosion", ef)
-    if dmg > 150 then util.Effect("HelicopterMegaBomb", ef) end
+    if dmg > 150 then
+        util.Effect("HelicopterMegaBomb", ef)
+        rkt:EmitSound("npc/combine_gunship/explosion1.wav", 110, 90)
+    else
+        rkt:EmitSound("weapons/rpg/rocket_explode.wav", 100, 100)
+    end
 
     for _, e in ipairs(ents.FindInSphere(pos, radius)) do
         if not IsValid(e) then continue end
@@ -229,7 +235,9 @@ function SWEP:PrimaryAttack()
         SpawnRocket(owner, pos, dir, 1200, 300, 500, false, true)
     end
 
-    owner:EmitSound("weapons/rpg/rocket1.wav", 80, 100)
+    local efShot = EffectData(); efShot:SetOrigin(pos); efShot:SetNormal(dir)
+    util.Effect("RPGShot", efShot)
+    owner:EmitSound("weapons/rpg/rocketfire1.wav", 80, 100)
 end
 
 if CLIENT then

@@ -27,9 +27,12 @@ SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic   = false
 SWEP.Secondary.Ammo        = "none"
 
--- Снаряд: граната SMG из HL2 (есть .phy, гарантированно в базе)
-local MDL_BOLT = "models/items/ar2_grenade.mdl"
-if SERVER then util.PrecacheModel(MDL_BOLT) end
+-- Снаряд: энергетический шар AR2 — официальный ресурс HL2
+local MDL_BOLT = "models/weapons/w_irifle_ball.mdl"
+if SERVER then
+    util.PrecacheModel(MDL_BOLT)
+    util.PrecacheSound("weapons/irifle/irifle_fire2.wav")
+end
 
 local ENERGY_MAX   = 100
 local ENERGY_COST  = 5
@@ -74,13 +77,14 @@ local function SpawnPlasmaBolt(owner, pos, dir)
     bolt:SetOwner(owner)
     bolt:Spawn()
     bolt:SetCollisionGroup(COLLISION_GROUP_PROJECTILE)
-    bolt:SetColor(Color(0, 240, 255, 255))
+    -- AR2 energy ball: циановый, светящийся
+    bolt:SetColor(Color(0, 240, 200, 255))
     bolt:SetRenderMode(RENDERMODE_TRANSADD)
-    bolt:SetModelScale(1.6, 0)
+    bolt:SetModelScale(2.0, 0)
 
-    -- Двойной след: широкий синий + яркое ядро
-    util.SpriteTrail(bolt, 0, Color(0,  200, 255), false, 22, 2, 0.30, 1/23*0.5, "trails/laser.vmt")
-    util.SpriteTrail(bolt, 1, Color(180, 240, 255), false,  8, 0, 0.20, 1/9 *0.5, "trails/laser.vmt")
+    -- Двойной след AR2: широкий зелёно-синий + яркое ядро
+    util.SpriteTrail(bolt, 0, Color(0,  210, 180), false, 24, 2, 0.30, 1/25*0.5, "trails/laser.vmt")
+    util.SpriteTrail(bolt, 1, Color(200, 255, 240), false,  8, 0, 0.18, 1/9 *0.5, "trails/laser.vmt")
 
     local phys = EnsurePhys(bolt)
     if IsValid(phys) then
@@ -108,9 +112,9 @@ local function SpawnPlasmaBolt(owner, pos, dir)
 
         local p = bolt:GetPos()
         local ef = EffectData(); ef:SetOrigin(p); ef:SetNormal(-dir); ef:SetScale(3); ef:SetMagnitude(2)
-        util.Effect("cball_bounce", ef)
-        local ef2 = EffectData(); ef2:SetOrigin(p); ef2:SetScale(1.4)
-        util.Effect("ElectricSpark", ef2)
+        util.Effect("cball_explode", ef)
+        local ef2 = EffectData(); ef2:SetOrigin(p); ef2:SetNormal(-dir); ef2:SetScale(1.2)
+        util.Effect("AR2Impact", ef2)
 
         hook.Remove("EntityCollision", "D6_Bolt_"..idx)
         timer.Remove("D6_Bolt_"..idx)
@@ -163,7 +167,7 @@ function SWEP:PrimaryAttack()
         util.Effect("MuzzleFlash", mf)
     end
 
-    owner:EmitSound("weapons/physcannon/energy_sing_flyby.wav", 70, 140)
+    owner:EmitSound("weapons/irifle/irifle_fire2.wav", 70, 130)
 end
 
 function SWEP:SecondaryAttack()

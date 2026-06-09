@@ -20,6 +20,18 @@ local D6_SPAWNERS = {
 local D6_SPAWNER_SET = {}
 for _, v in ipairs(D6_SPAWNERS) do D6_SPAWNER_SET[v] = true end
 
+-- Боевые оружия Descent — явный список для надёжной выдачи при спавне
+local D6_COMBAT = {
+    "weapon_d6_pulse",
+    "weapon_d6_plasma",
+    "weapon_d6_heavy",
+    "weapon_d6_laser",
+    "weapon_d6_rockets",
+    "weapon_d6_gravy_railgun",
+}
+local D6_COMBAT_SET = {}
+for _, v in ipairs(D6_COMBAT) do D6_COMBAT_SET[v] = true end
+
 if SERVER then
     for _, w in ipairs(D6_SPAWNERS) do
         AddCSLuaFile("weapons/" .. w .. ".lua")
@@ -106,17 +118,20 @@ if SERVER then
     local function GiveAllWeapons(ply)
         if not IsValid(ply) then return end
         local given = {}
-        for _, class in ipairs(D6_SPAWNERS) do
+        local function TryGive(class)
             if not IsValid(ply:GetWeapon(class)) then
                 local ok = pcall(function() ply:Give(class) end)
                 if ok then given[#given+1] = class end
             end
         end
-        local all = GetAllWeaponClasses()
-        for _, class in ipairs(all) do
-            if not D6_SPAWNER_SET[class] and not IsValid(ply:GetWeapon(class)) then
-                local ok = pcall(function() ply:Give(class) end)
-                if ok then given[#given+1] = class end
+        -- Спавнеры NPC
+        for _, class in ipairs(D6_SPAWNERS) do TryGive(class) end
+        -- Боевые оружия Descent — явный список, не зависит от weapons.Get()
+        for _, class in ipairs(D6_COMBAT)   do TryGive(class) end
+        -- Внешние оружия Workshop (autoGive=true через D6_RegisterWeapon)
+        for _, class in ipairs(GetAllWeaponClasses()) do
+            if not D6_SPAWNER_SET[class] and not D6_COMBAT_SET[class] then
+                TryGive(class)
             end
         end
         return given

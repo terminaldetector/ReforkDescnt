@@ -27,8 +27,12 @@ SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic   = false
 SWEP.Secondary.Ammo        = "none"
 
-local MDL_ORB = "models/items/ar2_grenade.mdl"
-if SERVER then util.PrecacheModel(MDL_ORB) end
+-- Снаряд: граната HL2 (w_grenade.mdl) — тяжёлый AoE-заряд
+local MDL_ORB = "models/weapons/w_grenade.mdl"
+if SERVER then
+    util.PrecacheModel(MDL_ORB)
+    util.PrecacheSound("weapons/grenade/grenade_explode.wav")
+end
 
 local ENERGY_MAX   = 100
 local ENERGY_COST  = 15
@@ -86,6 +90,8 @@ local function SpawnHeavyOrb(owner, pos, dir)
 
         local ef = EffectData(); ef:SetOrigin(hitPos); ef:SetScale(4); ef:SetMagnitude(ORB_DMG)
         util.Effect("Explosion", ef)
+        util.Effect("HelicopterMegaBomb", ef)
+        orb:EmitSound("weapons/grenade/grenade_explode.wav", 100, 95)
 
         for _, e in ipairs(ents.FindInSphere(hitPos, ORB_RADIUS)) do
             if not IsValid(e) then continue end
