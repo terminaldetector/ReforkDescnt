@@ -125,7 +125,14 @@ function SWEP:Think()
     end
 end
 
-function SWEP:SecondaryAttack() end
+function SWEP:SecondaryAttack()
+    if not SERVER then return end
+    local owner = self:GetOwner()
+    if not IsValid(owner) then return end
+    self:SetNextSecondaryFire(CurTime() + 0.8)
+    local rkt = owner:GetWeapon("weapon_d6_rockets")
+    if IsValid(rkt) then rkt:PrimaryAttack() end
+end
 
 if CLIENT then
 

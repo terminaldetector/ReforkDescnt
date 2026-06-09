@@ -36,12 +36,12 @@ local function ShootAng(ply)
     return Angle(a.p, a.y, 0)
 end
 
--- Позиции дул — соответствуют слотам airboatgun в d6_wepview.lua
+-- Позиции дул — синхронизированы с d6_wepview.lua CFG (outer ±63, inner ±30)
 local MUZZLES = {
-    { fwd=50, rgt=-32, up=-20 },
-    { fwd=48, rgt=-16, up=-24 },
-    { fwd=48, rgt= 16, up=-24 },
-    { fwd=50, rgt= 32, up=-20 },
+    { fwd=50, rgt=-63, up=-18 },
+    { fwd=48, rgt=-30, up=-22 },
+    { fwd=48, rgt= 30, up=-22 },
+    { fwd=50, rgt= 63, up=-18 },
 }
 
 local function MuzzleWorld(ply, off)
@@ -94,13 +94,22 @@ function SWEP:PrimaryAttack()
             Spread=Vector(0.02, 0.02, 0), Tracer=1, TracerName="Tracer",
             Force=200, Num=1, AmmoType="Pistol", AttackPos=src,
         })
-        local ef = EffectData(); ef:SetOrigin(src); ef:SetNormal(dir); ef:SetScale(0.8)
+        local ef = EffectData(); ef:SetOrigin(src); ef:SetNormal(dir); ef:SetScale(1.2)
         util.Effect("MuzzleFlash", ef)
+        local ef2 = EffectData(); ef2:SetOrigin(src); ef2:SetNormal(dir); ef2:SetScale(0.5)
+        util.Effect("ManhackSparks", ef2)
     end
     owner:EmitSound("weapons/airboat/airboat_gun_energy1.wav", 65, 115 + math.random(-6, 6))
 end
 
-function SWEP:SecondaryAttack() end
+function SWEP:SecondaryAttack()
+    if not SERVER then return end
+    local owner = self:GetOwner()
+    if not IsValid(owner) then return end
+    self:SetNextSecondaryFire(CurTime() + 0.8)
+    local rkt = owner:GetWeapon("weapon_d6_rockets")
+    if IsValid(rkt) then rkt:PrimaryAttack() end
+end
 
 if CLIENT then
     function SWEP:DrawHUD()

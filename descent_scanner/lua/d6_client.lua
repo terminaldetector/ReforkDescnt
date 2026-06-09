@@ -32,8 +32,9 @@ local ThirdPerson = false
 
 local Remote = {}  -- Remote[ply] = { ang, angLerp, hookOn, hookPos, ramOn }
 
--- X-клавиша: рывок в направлении WASD с детектом на клиенте
+-- X-клавиша: рывок; Q-клавиша: быстрый выбор грависрельсы
 local XKeyDown = false
+local QKeyDown = false
 
 -- =========================================================
 -- NET RECEIVES
@@ -151,6 +152,13 @@ hook.Add("CreateMove", "D6_Cam_CM", function(cmd)
         net.SendToServer()
     end
     XKeyDown = xDown
+
+    -- Q-клавиша: быстрый выбор грависрельсы (центральное оружие)
+    local qDown = input.IsKeyDown(KEY_Q)
+    if qDown and not QKeyDown then
+        net.Start("D6_WeaponSwitch"); net.WriteString("weapon_d6_gravy_railgun"); net.SendToServer()
+    end
+    QKeyDown = qDown
 
     local now = RealTime()
     if now - LastSendT >= 1 / ANG_HZ then

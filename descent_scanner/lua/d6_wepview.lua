@@ -15,40 +15,40 @@ if not CLIENT then return end
 local MDL_AIRBOAT = "models/airboatgun.mdl"
 local MDL_NOSEGUN = "models/gibs/gunship_gibs_nosegun.mdl"
 local MDL_STRIDER = "models/gibs/strider_weapon.mdl"
-local MDL_BOMB    = "models/props_phx/ww2bomb.mdl"
 local MDL_GRAVGUN = "models/weapons/w_physics.mdl"
 
 -- ── Конфигурация слотов по классу оружия ─────────────────
 -- fwd/rgt/up — смещение от камеры; pitch/yaw/roll — поворот;
 -- scale — масштаб модели. Правь числа для тонкой настройки.
+-- Пушки разведены к краям экрана (outer rgt ±63, inner rgt ±30).
+-- weapon_d6_rockets не отображается (ракеты спрятаны на крыше).
 local CFG = {
     ["weapon_d6_pulse"] = {
-        { mdl=MDL_AIRBOAT, fwd=38, rgt=-32, up=-20, pitch=0, yaw=-4, scale=0.60 },
-        { mdl=MDL_AIRBOAT, fwd=36, rgt=-16, up=-24, pitch=0, yaw=-2, scale=0.60 },
-        { mdl=MDL_AIRBOAT, fwd=36, rgt= 16, up=-24, pitch=0, yaw= 2, scale=0.60 },
-        { mdl=MDL_AIRBOAT, fwd=38, rgt= 32, up=-20, pitch=0, yaw= 4, scale=0.60 },
-        { mdl=MDL_GRAVGUN, fwd=26, rgt=  0, up=-17, pitch=8, yaw= 0, scale=1.00 },
+        { mdl=MDL_AIRBOAT, fwd=32, rgt=-63, up=-18, pitch=0, yaw=-8, scale=1.00 },
+        { mdl=MDL_AIRBOAT, fwd=30, rgt=-30, up=-22, pitch=0, yaw=-3, scale=0.85 },
+        { mdl=MDL_AIRBOAT, fwd=30, rgt= 30, up=-22, pitch=0, yaw= 3, scale=0.85 },
+        { mdl=MDL_AIRBOAT, fwd=32, rgt= 63, up=-18, pitch=0, yaw= 8, scale=1.00 },
+        { mdl=MDL_GRAVGUN, fwd=24, rgt=  0, up=-14, pitch=6, yaw= 0, scale=1.20 },
     },
     ["weapon_d6_plasma"] = {
-        { mdl=MDL_AIRBOAT, fwd=38, rgt=-32, up=-20, pitch=0, yaw=-4, scale=0.60 },
-        { mdl=MDL_NOSEGUN, fwd=34, rgt=-15, up=-23, pitch=0, yaw=-2, scale=1.10 },
-        { mdl=MDL_NOSEGUN, fwd=34, rgt= 15, up=-23, pitch=0, yaw= 2, scale=1.10 },
-        { mdl=MDL_AIRBOAT, fwd=38, rgt= 32, up=-20, pitch=0, yaw= 4, scale=0.60 },
-        { mdl=MDL_GRAVGUN, fwd=26, rgt=  0, up=-17, pitch=8, yaw= 0, scale=1.00 },
+        { mdl=MDL_AIRBOAT, fwd=32, rgt=-63, up=-18, pitch=0, yaw=-8, scale=1.00 },
+        { mdl=MDL_NOSEGUN, fwd=30, rgt=-28, up=-21, pitch=0, yaw=-3, scale=1.55 },
+        { mdl=MDL_NOSEGUN, fwd=30, rgt= 28, up=-21, pitch=0, yaw= 3, scale=1.55 },
+        { mdl=MDL_AIRBOAT, fwd=32, rgt= 63, up=-18, pitch=0, yaw= 8, scale=1.00 },
+        { mdl=MDL_GRAVGUN, fwd=24, rgt=  0, up=-14, pitch=6, yaw= 0, scale=1.20 },
     },
     ["weapon_d6_heavy"] = {
-        { mdl=MDL_AIRBOAT, fwd=38, rgt=-33, up=-19, pitch=0,  yaw=-5, scale=0.65 },
-        { mdl=MDL_NOSEGUN, fwd=34, rgt=-16, up=-22, pitch=2,  yaw=-2, scale=1.20 },
-        { mdl=MDL_NOSEGUN, fwd=34, rgt= 16, up=-22, pitch=2,  yaw= 2, scale=1.20 },
-        { mdl=MDL_AIRBOAT, fwd=38, rgt= 33, up=-19, pitch=0,  yaw= 5, scale=0.65 },
-        { mdl=MDL_GRAVGUN, fwd=25, rgt=  0, up=-16, pitch=10, yaw= 0, scale=1.05 },
+        { mdl=MDL_AIRBOAT, fwd=32, rgt=-64, up=-17, pitch=0, yaw=-9, scale=1.05 },
+        { mdl=MDL_NOSEGUN, fwd=30, rgt=-30, up=-20, pitch=2, yaw=-3, scale=1.65 },
+        { mdl=MDL_NOSEGUN, fwd=30, rgt= 30, up=-20, pitch=2, yaw= 3, scale=1.65 },
+        { mdl=MDL_AIRBOAT, fwd=32, rgt= 64, up=-17, pitch=0, yaw= 9, scale=1.05 },
+        { mdl=MDL_GRAVGUN, fwd=23, rgt=  0, up=-13, pitch=8, yaw= 0, scale=1.25 },
     },
     ["weapon_d6_laser"] = {
-        { mdl=MDL_STRIDER, fwd=42, rgt=0, up=-20, pitch=0, yaw=0, scale=0.50 },
+        { mdl=MDL_STRIDER, fwd=42, rgt=0, up=-20, pitch=0, yaw=0, scale=0.55 },
     },
-    ["weapon_d6_rockets"] = {
-        { mdl=MDL_BOMB, fwd=34, rgt=-18, up=-19, pitch=0, yaw=0, scale=0.45 },
-        { mdl=MDL_BOMB, fwd=34, rgt= 18, up=-19, pitch=0, yaw=0, scale=0.45 },
+    ["weapon_d6_gravy_railgun"] = {
+        { mdl=MDL_GRAVGUN, fwd=24, rgt=0, up=-14, pitch=6, yaw=0, scale=1.40 },
     },
 }
 

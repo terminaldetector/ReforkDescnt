@@ -23,7 +23,7 @@ local DASH_DUR  = 0.18   -- секунды действия рывка
 local DASH_CD   = 1.8    -- кулдаун (секунды)
 
 local HOOK_DIST = 2500
-local HOOK_PULL = 1800
+local HOOK_PULL = 3800
 
 local DRONE_SCALE = 2.5
 local ANG_RATE    = 0.1
@@ -204,7 +204,7 @@ if SERVER then
     local _D6_WHEEL_WEPS = {
         ["weapon_d6_pulse"]=true, ["weapon_d6_plasma"]=true,
         ["weapon_d6_heavy"]=true, ["weapon_d6_laser"]=true,
-        ["weapon_d6_rockets"]=true,
+        ["weapon_d6_rockets"]=true, ["weapon_d6_gravy_railgun"]=true,
     }
     net.Receive("D6_WeaponSwitch", function(_, ply)
         if not IsValid(ply) then return end

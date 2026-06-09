@@ -60,12 +60,13 @@ local function SpawnHeavyOrb(owner, pos, dir)
     orb:SetOwner(owner)
     orb:Spawn()
     orb:SetCollisionGroup(COLLISION_GROUP_PROJECTILE)
-    orb:SetColor(Color(255, 130, 20, 255))
+    orb:SetColor(Color(255, 120, 0, 255))
     orb:SetRenderMode(RENDERMODE_TRANSADD)
-    orb:SetModelScale(1.8, 0)
+    orb:SetModelScale(2.2, 0)
 
-    -- Толстый оранжевый след
-    util.SpriteTrail(orb, 0, Color(255, 130, 20), false, 26, 2, 0.5, 1/28*0.5, "trails/laser.vmt")
+    -- Широкий огненный след + яркое ядро
+    util.SpriteTrail(orb, 0, Color(255, 100,   0), false, 36, 3, 0.55, 1/37*0.5, "trails/laser.vmt")
+    util.SpriteTrail(orb, 1, Color(255, 220, 120), false, 14, 1, 0.35, 1/15*0.5, "trails/laser.vmt")
 
     local phys = EnsurePhys(orb)
     if IsValid(phys) then
@@ -155,7 +156,14 @@ function SWEP:PrimaryAttack()
     owner:EmitSound("weapons/physcannon/superphys_launch1.wav", 80, 75)
 end
 
-function SWEP:SecondaryAttack() end
+function SWEP:SecondaryAttack()
+    if not SERVER then return end
+    local owner = self:GetOwner()
+    if not IsValid(owner) then return end
+    self:SetNextSecondaryFire(CurTime() + 0.8)
+    local rkt = owner:GetWeapon("weapon_d6_rockets")
+    if IsValid(rkt) then rkt:PrimaryAttack() end
+end
 
 if CLIENT then
     function SWEP:DrawHUD()

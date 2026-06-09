@@ -34,7 +34,7 @@ if SERVER then util.PrecacheModel(MDL_BOLT) end
 local ENERGY_MAX   = 100
 local ENERGY_COST  = 5
 local ENERGY_REGEN = 8
-local BOLT_SPEED   = 2200
+local BOLT_SPEED   = 3800
 local BOLT_DMG     = 28
 
 local function ShootAng(ply)
@@ -42,10 +42,10 @@ local function ShootAng(ply)
     return Angle(a.p, a.y, 0)
 end
 
--- Дула двух nosegun (соответствуют d6_wepview.lua)
+-- Дула двух nosegun — синхронизированы с d6_wepview.lua (inner rgt ±28)
 local MUZZLES = {
-    { fwd=46, rgt=-15, up=-23 },
-    { fwd=46, rgt= 15, up=-23 },
+    { fwd=48, rgt=-28, up=-21 },
+    { fwd=48, rgt= 28, up=-21 },
 }
 
 local function MuzzleWorld(ply, off)
@@ -74,11 +74,13 @@ local function SpawnPlasmaBolt(owner, pos, dir)
     bolt:SetOwner(owner)
     bolt:Spawn()
     bolt:SetCollisionGroup(COLLISION_GROUP_PROJECTILE)
-    bolt:SetColor(Color(80, 200, 255, 255))
+    bolt:SetColor(Color(0, 240, 255, 255))
     bolt:SetRenderMode(RENDERMODE_TRANSADD)
+    bolt:SetModelScale(1.6, 0)
 
-    -- Светящийся след — главный визуал снаряда
-    util.SpriteTrail(bolt, 0, Color(80, 200, 255), false, 14, 1, 0.35, 1/15*0.5, "trails/laser.vmt")
+    -- Двойной след: широкий синий + яркое ядро
+    util.SpriteTrail(bolt, 0, Color(0,  200, 255), false, 22, 2, 0.30, 1/23*0.5, "trails/laser.vmt")
+    util.SpriteTrail(bolt, 1, Color(180, 240, 255), false,  8, 0, 0.20, 1/9 *0.5, "trails/laser.vmt")
 
     local phys = EnsurePhys(bolt)
     if IsValid(phys) then
@@ -104,8 +106,11 @@ local function SpawnPlasmaBolt(owner, pos, dir)
             data.HitEntity:TakeDamageInfo(di)
         end
 
-        local ef = EffectData(); ef:SetOrigin(bolt:GetPos()); ef:SetNormal(-dir); ef:SetScale(2)
+        local p = bolt:GetPos()
+        local ef = EffectData(); ef:SetOrigin(p); ef:SetNormal(-dir); ef:SetScale(3); ef:SetMagnitude(2)
         util.Effect("cball_bounce", ef)
+        local ef2 = EffectData(); ef2:SetOrigin(p); ef2:SetScale(1.4)
+        util.Effect("ElectricSpark", ef2)
 
         hook.Remove("EntityCollision", "D6_Bolt_"..idx)
         timer.Remove("D6_Bolt_"..idx)
@@ -161,7 +166,14 @@ function SWEP:PrimaryAttack()
     owner:EmitSound("weapons/physcannon/energy_sing_flyby.wav", 70, 140)
 end
 
-function SWEP:SecondaryAttack() end
+function SWEP:SecondaryAttack()
+    if not SERVER then return end
+    local owner = self:GetOwner()
+    if not IsValid(owner) then return end
+    self:SetNextSecondaryFire(CurTime() + 0.8)
+    local rkt = owner:GetWeapon("weapon_d6_rockets")
+    if IsValid(rkt) then rkt:PrimaryAttack() end
+end
 
 if CLIENT then
     function SWEP:DrawHUD()
