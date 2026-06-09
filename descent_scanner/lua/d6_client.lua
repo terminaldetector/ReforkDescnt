@@ -59,7 +59,7 @@ net.Receive("D6_AngSync", function()
     Remote[ply] = Remote[ply] or {}
     Remote[ply].ang = ang
     Remote[ply].angLerp = Remote[ply].angLerp or ang
-    -- Сохраняем на энтити для weapon_d6_omni
+    -- Сохраняем на энтити для D6-оружий
     ply._D6AngLerp = Remote[ply].angLerp
 end)
 

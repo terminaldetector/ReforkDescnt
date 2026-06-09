@@ -19,7 +19,6 @@ local D6_SPAWNERS = {
 
 local D6_SPAWNER_SET = {}
 for _, v in ipairs(D6_SPAWNERS) do D6_SPAWNER_SET[v] = true end
-D6_SPAWNER_SET["weapon_d6_omni"] = true  -- устарело, заменено отдельными SWEP
 
 if SERVER then
     for _, w in ipairs(D6_SPAWNERS) do
@@ -35,6 +34,7 @@ if SERVER then
     AddCSLuaFile("d6_core.lua")
     AddCSLuaFile("d6_client.lua")
     AddCSLuaFile("d6_cockpit.lua")   -- новый кокпит-HUD
+    AddCSLuaFile("d6_wepview.lua")   -- DOOM-стиль рендер оружий
     AddCSLuaFile("d6_menu.lua")
     AddCSLuaFile("d6_ang_patch.lua")
     AddCSLuaFile("d6_weapon_registry.lua")
@@ -61,6 +61,7 @@ if CLIENT then
     include("d6_core.lua")
     include("d6_client.lua")
     include("d6_cockpit.lua")        -- кокпит-HUD (не SWEP)
+    include("d6_wepview.lua")        -- рендер оружий от 1-го лица
     include("d6_menu.lua")
     include("d6_ang_patch.lua")
     include("d6_weapon_registry.lua")

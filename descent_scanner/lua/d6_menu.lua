@@ -322,8 +322,13 @@ local function DrawMenu()
     local ply  = LocalPlayer()
     local d6   = IsValid(ply) and ply:GetNWBool("D6On", false)
     local wep  = IsValid(ply) and ply:GetActiveWeapon()
-    local mode = IsValid(wep) and wep:GetClass()=="weapon_d6_omni" and (wep.Mode or 0) or -1
-    local modeNames = {[0]="ПУШКИ",[1]="БОМБЫ",[2]="ПОРТАЛЫ",[3]="ЭЛ.КРЮК"}
+    local D6_WEP_MODE = {
+        ["weapon_d6_pulse"]=0, ["weapon_d6_plasma"]=1,
+        ["weapon_d6_heavy"]=2, ["weapon_d6_laser"]=3,
+        ["weapon_d6_rockets"]=4,
+    }
+    local mode = IsValid(wep) and D6_WEP_MODE[wep:GetClass()] or -1
+    local modeNames = {[0]="ПУЛЬСАР",[1]="ПЛАЗМА",[2]="ТЯЖЁЛЫЙ",[3]="ЛАЗЕР",[4]="РАКЕТЫ"}
     DrawTextShadow(
         string.format("6DOF: %s  |  Режим: %s  |  [1]Команды [2]Настройки [3]Моды",
             d6 and "ON" or "OFF",

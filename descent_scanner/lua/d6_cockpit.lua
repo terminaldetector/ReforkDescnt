@@ -31,14 +31,14 @@ local COL = {
     shLow    = Color(255, 60,  40,  255),
     energy   = Color(0,   200, 255, 255),
     speed    = Color(180, 255, 100, 255),
-    mode     = {[0]=Color(255,80,80),[1]=Color(80,200,255),[2]=Color(255,150,0),[3]=Color(0,220,120)},
+    mode     = {[0]=Color(255,140,0),[1]=Color(80,200,255),[2]=Color(220,40,40),[3]=Color(50,255,80),[4]=Color(255,230,0)},
     text     = Color(160, 255, 140, 230),
     dim      = Color(80,  140, 80,  180),
     black    = Color(0,   0,   0,   220),
     white    = Color(255, 255, 255, 220),
 }
 
-local MNAM = {[0]="ПУШКИ",[1]="ЛАЗЕРЫ",[2]="БОМБЫ",[3]="ЭЛ.КРЮК"}
+local MNAM = {[0]="ПУЛЬСАР",[1]="ПЛАЗМА",[2]="ТЯЖЁЛЫЙ",[3]="ЛАЗЕР",[4]="РАКЕТЫ"}
 
 -- ── Вспомогательные ──────────────────────────────────────
 local function Bar(x, y, w, h, frac, col, bgCol, border)
@@ -161,8 +161,12 @@ hook.Add("HUDPaint", "D6_Cockpit", function()
 
     -- ===== СЕКЦИЯ 3: Оружие / Режим =====
     local s3x = math.floor(sectionW * 2) + 8
-    local mode = IsValid(wep) and wep:GetClass() == "weapon_d6_omni"
-                 and (wep.Mode or 0) or -1
+    local D6_WEP_MODE = {
+        ["weapon_d6_pulse"]=0, ["weapon_d6_plasma"]=1,
+        ["weapon_d6_heavy"]=2, ["weapon_d6_laser"]=3,
+        ["weapon_d6_rockets"]=4,
+    }
+    local mode = IsValid(wep) and D6_WEP_MODE[wep:GetClass()] or -1
     local modeCol  = COL.mode[mode] or COL.text
     local modeName = MNAM[mode] or (IsValid(wep) and wep:GetPrintName() or "—")
 
