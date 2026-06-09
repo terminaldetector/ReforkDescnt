@@ -26,6 +26,7 @@ if SERVER then
     end
     -- Грависарельса теперь weapon_d6_gravy_railgun.lua
     AddCSLuaFile("weapons/weapon_d6_gravy_railgun.lua")
+    AddCSLuaFile("weapons/weapon_d6_omni.lua")
     AddCSLuaFile("d6_core.lua")
     AddCSLuaFile("d6_client.lua")
     AddCSLuaFile("d6_cockpit.lua")   -- новый кокпит-HUD

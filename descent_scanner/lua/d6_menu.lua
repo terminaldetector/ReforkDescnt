@@ -394,12 +394,19 @@ end)
 -- =========================================================
 -- КЛАВИАТУРА
 -- =========================================================
+-- ── TAB → D6 меню вместо скорборда ──────────────────────
+-- ScoreboardShow/ScoreboardHide перехватывают нажатие TAB на C++ уровне.
+-- Возвращаем false = не показывать стандартный скорборд.
+hook.Add("ScoreboardShow", "D6Menu_TAB_Open", function()
+    if Menu.open then CloseMenu() else OpenMenu() end
+    return false  -- suppress scoreboard
+end)
+
+hook.Add("ScoreboardHide", "D6Menu_TAB_Suppress", function()
+    return false  -- prevent scoreboard hide (it was never shown)
+end)
+
 hook.Add("PlayerButtonDown", "D6Menu_Keys", function(key)
-    if key == KEY_TAB then
-        -- Меню открывается всегда (не только в D6 режиме)
-        if Menu.open then CloseMenu() else OpenMenu() end
-        return true
-    end
     if not Menu.open then return end
 
     if key == KEY_1 then Menu.tab=1; return true end
@@ -701,46 +708,77 @@ hook.Add("HUDPaint","D6_RadarDraw",function()
     end
 
     local ang = ply.D6Ang or ply:GetAngles()
-    local da  = math.rad(ang.y)
+    -- Корректная формула направления: forward вектор в 2D
+    local ang_flat = Angle(0, ang.y, 0)
+    local fwdV = ang_flat:Forward()  -- (cos(yaw), sin(yaw), 0) в мировых коорд
+    local rgtV = ang_flat:Right()    -- перпендикуляр вправо
+
+    -- Стрелка направления взгляда (forward = UP на экране)
     surface.SetDrawColor(0,220,120,180)
-    surface.DrawLine(cx,cy, cx+math.sin(da)*(RADAR_R-8), cy-math.cos(da)*(RADAR_R-8))
+    surface.DrawLine(cx, cy,
+        cx + fwdV.y * (RADAR_R-8),
+        cy - fwdV.x * (RADAR_R-8))
 
     local myPos = ply:GetPos()
+    local scale = RADAR_R / RADAR_RANGE
 
+    -- DrawBlip: правильные оси — forward→UP, right→RIGHT
     local function DrawBlip(entPos, col, sz, label)
-        local delta = entPos-myPos
-        if delta:Length() > RADAR_RANGE then return end
-        local yaw = math.rad(-ang.y)
-        local rx  = delta.x*math.cos(yaw) - delta.y*math.sin(yaw)
-        local ry  = delta.x*math.sin(yaw) + delta.y*math.cos(yaw)
-        local scale = RADAR_R/RADAR_RANGE
-        local bx = cx+rx*scale; local by = cy-ry*scale
-        local bdist = math.sqrt((bx-cx)^2+(by-cy)^2)
-        if bdist > RADAR_R-sz then
-            local ang2=math.atan2(by-cy,bx-cx)
-            bx=cx+math.cos(ang2)*(RADAR_R-sz-1)
-            by=cy+math.sin(ang2)*(RADAR_R-sz-1)
+        local delta = entPos - myPos
+        local dist  = delta:Length()
+        if dist > RADAR_RANGE then return end
+
+        -- Проекция delta на оси камеры (2D, Z игнорируем)
+        local fwd_comp = delta.x * fwdV.x + delta.y * fwdV.y  -- сколько "вперёд"
+        local rgt_comp = delta.x * rgtV.x + delta.y * rgtV.y  -- сколько "вправо"
+
+        local bx = cx + rgt_comp * scale
+        local by = cy - fwd_comp * scale  -- вперёд = выше на экране
+
+        -- Клип к краю круга
+        local bdist = math.sqrt((bx-cx)^2 + (by-cy)^2)
+        if bdist > RADAR_R - sz then
+            local a2 = math.atan2(by-cy, bx-cx)
+            bx = cx + math.cos(a2) * (RADAR_R - sz - 1)
+            by = cy + math.sin(a2) * (RADAR_R - sz - 1)
         end
-        surface.SetDrawColor(col.r,col.g,col.b,220)
-        surface.DrawRect(bx-sz*.5,by-sz*.5,sz,sz)
-        if label and delta:Length() < RADAR_RANGE*0.5 then
-            draw.SimpleText(label,"DermaDefault",bx,by-10,col,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
+
+        surface.SetDrawColor(col.r, col.g, col.b, 220)
+        surface.DrawRect(bx - sz*0.5, by - sz*0.5, sz, sz)
+        if label and dist < RADAR_RANGE * 0.5 then
+            draw.SimpleText(label, "DermaDefault", bx, by-10,
+                col, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
         end
     end
 
-    for _,p in ipairs(player.GetAll()) do
-        if p~=ply and IsValid(p) and p:Alive() then DrawBlip(p:GetPos(),Color(80,150,255),6,p:Nick()) end
-    end
-    for _,npc in ipairs(ents.FindByClass("npc_cscanner")) do
-        if IsValid(npc) and npc.D6_Variant then
-            local vCol={mine=Color(255,200,0),mg=Color(255,60,60),rpg=Color(255,100,40),
-                grav=Color(160,40,255),laser=Color(0,220,255),heavy=Color(120,120,120),
-                seeker=Color(200,0,255),wheatley=Color(200,220,255),chopper=Color(80,80,80)}
-            DrawBlip(npc:GetPos(), vCol[npc.D6_Variant] or Color(255,60,60), 5)
+    -- Игроки (синие)
+    for _, p in ipairs(player.GetAll()) do
+        if p ~= ply and IsValid(p) and p:Alive() then
+            DrawBlip(p:GetPos(), Color(80,150,255), 6, p:Nick())
         end
     end
-    for _,e in ipairs(ents.FindByClass("prop_physics")) do
-        if IsValid(e) and e.IsAirMine then DrawBlip(e:GetPos(),Color(255,220,0),5,"☠") end
+
+    -- Все NPC (цвет по типу D6_Variant или красный по умолчанию)
+    local D6_COLS = {
+        mine=Color(255,200,0), mg=Color(255,60,60),
+        rpg=Color(255,100,40), grav=Color(160,40,255),
+        laser=Color(0,220,255), heavy=Color(120,120,120),
+        seeker=Color(200,0,255), wheatley=Color(200,220,255),
+        chopper=Color(80,80,80),
+    }
+    for _, npc in ipairs(ents.GetAll()) do
+        if IsValid(npc) and npc:IsNPC() and npc:Health() > 0 then
+            local col = (npc.D6_Variant and D6_COLS[npc.D6_Variant]) or Color(255,60,60)
+            local sz  = npc.D6_Variant and 5 or 4
+            DrawBlip(npc:GetPos(), col, sz)
+        end
+    end
+
+    -- Воздушные мины (жёлтые)
+    for _, e in ipairs(ents.FindByClass("prop_physics")) do
+        if IsValid(e) and e.IsAirMine then
+            DrawBlip(e:GetPos(), Color(255,220,0), 5, "☠")
+        end
     end
 
     draw.SimpleText("◉ СКАН ["..math.floor(RADAR_RANGE/52).."м]","DermaDefault",

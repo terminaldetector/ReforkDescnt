@@ -30,10 +30,11 @@ local ANG_RATE    = 0.1
 
 if SERVER then
     util.AddNetworkString("D6_HookSync")
-    util.AddNetworkString("D6_DashSync")   -- заменяет RamSync
+    util.AddNetworkString("D6_DashSync")
     util.AddNetworkString("D6_AngSync")
     util.AddNetworkString("D6_Toggle")
     util.AddNetworkString("D6_AlwaysRunSync")
+    util.AddNetworkString("D6_DashDir")   -- клиент→сервер: направление рывка от X-клавиши
 end
 
 local function ShootAng(ply)
@@ -149,6 +150,39 @@ if SERVER then
             dir = sa:Forward()
         else
             dir = (dir.x * sa:Forward() + dir.y * sa:Right() + dir.z * sa:Up()):GetNormalized()
+        end
+
+        ply.D6DashDir = dir
+        ply.D6DashOn  = true
+        ply.D6DashEnd = ct + DASH_DUR
+        ply.D6DashCD  = ct + DASH_CD
+        ply:SetNWFloat("D6DashCD", ply.D6DashCD)
+
+        net.Start("D6_DashSync")
+            net.WriteEntity(ply); net.WriteBool(true); net.WriteVector(dir)
+        net.Broadcast()
+
+        ply:EmitSound("ambient/machines/thumper_top.wav", 75, 160)
+    end)
+
+    -- X-клавиша: клиент отправляет направление рывка через net (надёжнее concommand)
+    net.Receive("D6_DashDir", function(_, ply)
+        if not IsValid(ply) or not ply.D6On then return end
+        local ct = CurTime()
+        ply.D6DashCD = ply.D6DashCD or 0
+        if ct < ply.D6DashCD or ply.D6DashOn then return end
+
+        -- Направление закодировано как три int (-1/0/1) для fwd/right/up
+        local fx = net.ReadInt(4)
+        local fy = net.ReadInt(4)
+        local fz = net.ReadInt(4)
+
+        local sa  = ShootAng(ply)
+        local dir
+        if fx == 0 and fy == 0 and fz == 0 then
+            dir = sa:Forward()
+        else
+            dir = (fx * sa:Forward() + fy * sa:Right() + fz * sa:Up()):GetNormalized()
         end
 
         ply.D6DashDir = dir

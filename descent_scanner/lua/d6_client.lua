@@ -32,6 +32,9 @@ local ThirdPerson = false
 
 local Remote = {}  -- Remote[ply] = { ang, angLerp, hookOn, hookPos, ramOn }
 
+-- X-клавиша: рывок в направлении WASD с детектом на клиенте
+local XKeyDown = false
+
 -- =========================================================
 -- NET RECEIVES
 -- =========================================================
@@ -131,6 +134,23 @@ hook.Add("CreateMove", "D6_Cam_CM", function(cmd)
 
     cmd:SetViewAngles(Ang)
     ply.D6Ang = Ang
+
+    -- ─── X-клавиша: рывок ───────────────────────────────────
+    -- Читаем направление из текущего cmd (точные данные клиента).
+    -- Отправляем только на переднем фронте нажатия.
+    local xDown = input.IsKeyDown(KEY_X)
+    if xDown and not XKeyDown then
+        -- Компоненты направления: -1 / 0 / 1
+        local fx = (cmd:KeyDown(IN_FORWARD)   and 1 or 0) - (cmd:KeyDown(IN_BACK)      and 1 or 0)
+        local fy = (cmd:KeyDown(IN_MOVERIGHT)  and 1 or 0) - (cmd:KeyDown(IN_MOVELEFT)  and 1 or 0)
+        local fz = (cmd:KeyDown(IN_JUMP)       and 1 or 0) - (cmd:KeyDown(IN_DUCK)      and 1 or 0)
+        net.Start("D6_DashDir")
+            net.WriteInt(fx, 4)
+            net.WriteInt(fy, 4)
+            net.WriteInt(fz, 4)
+        net.SendToServer()
+    end
+    XKeyDown = xDown
 
     local now = RealTime()
     if now - LastSendT >= 1 / ANG_HZ then
