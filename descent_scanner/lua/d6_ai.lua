@@ -290,13 +290,26 @@ hook.Add("Think", "D6_AI_Core", function()
             local tr = util.TraceLine({ start = myPos, endpos = targetPos, filter = npc })
 
             if v == "laser" and tr.Entity == enemy and dist < 2000 then
-                npc.D6_NextAttack = ct + 0.12
+                npc.D6_NextAttack = ct + 0.10
                 npc:FireBullets({
-                    Num = 1, Src = myPos, Dir = dirToEnemy,
-                    Spread = Vector(0,0,0), Tracer = 1, TracerName = "ToolTracer",
-                    Force = 4, Damage = 7, Attacker = npc
+                    Num        = 1,
+                    Src        = myPos,
+                    Dir        = dirToEnemy,
+                    Spread     = Vector(0, 0, 0),
+                    Tracer     = 1,
+                    TracerName = "GlowTracer",
+                    Force      = 5,
+                    Damage     = 9,
+                    Attacker   = npc,
+                    Callback   = function(_, tr, _)
+                        if tr.Hit then
+                            local ef = EffectData()
+                            ef:SetOrigin(tr.HitPos); ef:SetNormal(tr.HitNormal); ef:SetScale(1.0)
+                            util.Effect("AR2Impact", ef)
+                        end
+                    end,
                 })
-                npc:EmitSound("weapons/physcannon/superphys_small_zap1.wav", 70, 160)
+                npc:EmitSound("weapons/irifle/irifle_fire2.wav", 72, 140)
 
             elseif v == "heavy" and tr.Entity == enemy and dist < 1600 then
                 npc.D6_NextAttack = ct + 2.2
@@ -355,11 +368,24 @@ hook.Add("Think", "D6_AI_Core", function()
             elseif v == "mg" and dist < 1400 then
                 npc.D6_NextAttack = ct + 0.08
                 npc:FireBullets({
-                    Num = 2, Src = myPos, Dir = dirToEnemy,
-                    Spread = Vector(0.03, 0.03, 0), Tracer = 1, TracerName = "Tracer",
-                    Force = 6, Damage = 9, Attacker = npc
+                    Num        = 2,
+                    Src        = myPos,
+                    Dir        = dirToEnemy,
+                    Spread     = Vector(0.03, 0.03, 0),
+                    Tracer     = 1,
+                    TracerName = "GlowTracer",
+                    Force      = 6,
+                    Damage     = 9,
+                    Attacker   = npc,
+                    Callback   = function(_, tr, _)
+                        if tr.Hit then
+                            local ef = EffectData()
+                            ef:SetOrigin(tr.HitPos); ef:SetNormal(tr.HitNormal); ef:SetScale(0.6)
+                            util.Effect("AR2Impact", ef)
+                        end
+                    end,
                 })
-                npc:EmitSound("weapons/ar2/fire1.wav", 68, math.random(110, 125))
+                npc:EmitSound("weapons/ar2/ar2_fire1.wav", 68, math.random(110, 125))
             end
         end
 

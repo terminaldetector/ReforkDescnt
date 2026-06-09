@@ -151,8 +151,8 @@ function SWEP:PrimaryAttack()
 
     local sa  = ShootAng(owner)
     local fwd = sa:Forward()
-    -- Орб вылетает из центральной гравипушки
-    local src = owner:GetShootPos() + fwd * 40 + sa:Up() * -14
+    -- Орб из ствола гравипушки (центр, fwd≈24+tip, up=-18 — совпадает с wepview GRAV_CENTER)
+    local src = owner:GetShootPos() + fwd * 45 + sa:Up() * -18
 
     SpawnHeavyOrb(owner, src, fwd)
 

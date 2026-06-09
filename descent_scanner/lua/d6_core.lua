@@ -34,9 +34,12 @@ if SERVER then
     util.AddNetworkString("D6_AngSync")
     util.AddNetworkString("D6_Toggle")
     util.AddNetworkString("D6_AlwaysRunSync")
-    util.AddNetworkString("D6_DashDir")    -- клиент→сервер: направление рывка от X-клавиши
-    util.AddNetworkString("D6_WeaponSwitch")   -- клиент→сервер: смена оружия колесом
-    util.AddNetworkString("D6_RocketSubNext")  -- клиент→сервер: следующий сабрежим ракет
+    util.AddNetworkString("D6_DashDir")
+    util.AddNetworkString("D6_WeaponSwitch")
+    util.AddNetworkString("D6_RocketSubNext")
+    -- Боевые оружия: регистрируем заранее при загрузке карты
+    util.AddNetworkString("D6_LaserBeam")   -- weapon_d6_laser: серверный луч
+    util.AddNetworkString("D6_RailFire")    -- weapon_d6_gravy_railgun: трассер выстрела
 end
 
 local function ShootAng(ply)

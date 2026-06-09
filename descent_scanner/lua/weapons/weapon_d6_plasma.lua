@@ -46,9 +46,10 @@ local function ShootAng(ply)
 end
 
 -- Дула двух nosegun — ряд 1, нижние углы (синхр. с d6_wepview.lua)
+-- nosegun scale=1.55, модель ~9 юнитов длиной → tip ≈ fwd 30+14=44
 local MUZZLES = {
-    { fwd=48, rgt=-46, up=-20 },
-    { fwd=48, rgt= 46, up=-20 },
+    { fwd=44, rgt=-46, up=-20 },
+    { fwd=44, rgt= 46, up=-20 },
 }
 
 local function MuzzleWorld(ply, off)

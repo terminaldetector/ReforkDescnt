@@ -89,18 +89,31 @@ function SWEP:PrimaryAttack()
 
     for _, off in ipairs(MUZZLES) do
         local src = MuzzleWorld(owner, off)
-        local dir = (fwd + rgt * math.Rand(-0.02, 0.02) + up * math.Rand(-0.02, 0.02)):GetNormalized()
+        local dir = (fwd + rgt * math.Rand(-0.015, 0.015) + up * math.Rand(-0.015, 0.015)):GetNormalized()
         owner:FireBullets({
-            Src=src, Dir=dir, Damage=8, Distance=8000,
-            Spread=Vector(0.02, 0.02, 0), Tracer=1, TracerName="Tracer",
-            Force=200, Num=1, AmmoType="Pistol", AttackPos=src,
+            Src       = src,
+            Dir       = dir,
+            Damage    = 12,
+            Distance  = 9000,
+            Spread    = Vector(0.015, 0.015, 0),
+            Tracer    = 1,
+            TracerName = "GlowTracer",
+            Force     = 350,
+            Num       = 1,
+            AmmoType  = "AR2",
+            AttackPos = src,
+            Callback  = function(_, tr, _)
+                if tr.Hit then
+                    local ef = EffectData()
+                    ef:SetOrigin(tr.HitPos); ef:SetNormal(tr.HitNormal); ef:SetScale(0.8)
+                    util.Effect("AR2Impact", ef)
+                end
+            end,
         })
-        local ef = EffectData(); ef:SetOrigin(src); ef:SetNormal(dir); ef:SetScale(1.2)
+        local ef = EffectData(); ef:SetOrigin(src); ef:SetNormal(dir); ef:SetScale(1.0)
         util.Effect("MuzzleFlash", ef)
-        local ef2 = EffectData(); ef2:SetOrigin(src); ef2:SetNormal(dir); ef2:SetScale(0.5)
-        util.Effect("ManhackSparks", ef2)
     end
-    owner:EmitSound("weapons/airboat/airboat_gun_energy1.wav", 65, 115 + math.random(-6, 6))
+    owner:EmitSound("weapons/ar2/ar2_fire1.wav", 68, 110 + math.random(-8, 8))
 end
 
 function SWEP:SecondaryAttack()
