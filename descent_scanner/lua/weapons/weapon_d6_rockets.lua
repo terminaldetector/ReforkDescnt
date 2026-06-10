@@ -2,7 +2,8 @@
 -- weapon_d6_rockets.lua — РАКЕТЫ, 4 сабрежима
 --   0 = ×1 ПРЯМАЯ   1 = ×3 ЗАЛП
 --   2 = ×6 НАВЕДЕНИЕ   3 = ☢ АТОМКА
--- Рендер моделей (ww2bomb пилоны) — в d6_wepview.lua.
+--   Умное наведение: 60% вероятность на цель с наибольшим HP,
+--   ×6 режим — распределяет цели между ракетами.
 -- ═══════════════════════════════════════════════════════════
 AddCSLuaFile()
 
@@ -29,9 +30,6 @@ SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic   = false
 SWEP.Secondary.Ammo        = "none"
 
--- Снаряд: СТОКОВАЯ ракета РПГ — ents.Create("rpg_missile").
--- Своя дым-трасса, взрыв при касании, урон (sk_plr_dmg_rpg_round)
--- и звук — всё как у настоящего HL2 RPG (Способ 1 из списка).
 local MDL_ROCKET = "models/weapons/w_missile.mdl"
 if SERVER then
     util.PrecacheModel(MDL_ROCKET)
@@ -50,19 +48,55 @@ local function ShootAng(ply)
     return Angle(a.p, a.y, 0)
 end
 
--- ── Запуск стоковой ракеты РПГ ───────────────────────────
--- speed    — стартовая скорость (стоковый think далее держит RPG_SPEED)
--- homing   — наведение на ближайшего врага (override velocity каждый тик)
--- isAtomic — после гибели ракеты добавляем мегавзрыв на её позиции
-local function SpawnRPGMissile(owner, pos, dir, speed, homing, isAtomic)
+-- ── Умный выбор цели ────────────────────────────────────────
+-- Возвращает список врагов, отсортированных по HP (убывание).
+local function GatherTargets(origin, range, owner)
+    local out = {}
+    for _, e in ipairs(ents.FindInSphere(origin, range)) do
+        if IsValid(e) and (e:IsNPC() or e:IsPlayer()) and e ~= owner then
+            out[#out + 1] = { ent = e, hp = e:Health() }
+        end
+    end
+    table.sort(out, function(a, b) return a.hp > b.hp end)
+    return out
+end
+
+-- 60% на наибольший HP, 40% равномерно по остальным
+local function SelectTarget(targets)
+    if #targets == 0 then return nil end
+    if math.random() < 0.6 then return targets[1].ent end
+    return targets[math.random(1, #targets)].ent
+end
+
+-- Для залпа из N ракет: распределяем цели циклически
+local function AssignTargets(targets, count)
+    local out = {}
+    if #targets == 0 then
+        for i = 1, count do out[i] = nil end
+        return out
+    end
+    -- Первая цель — высокоприоритетная (60% берут её)
+    for i = 1, count do
+        if math.random() < 0.6 then
+            out[i] = targets[1].ent
+        else
+            out[i] = targets[((i - 1) % #targets) + 1].ent
+        end
+    end
+    return out
+end
+
+-- ── Запуск ракеты РПГ ───────────────────────────────────────
+local function SpawnRPGMissile(owner, pos, dir, speed, homingTarget, isAtomic)
     local m = ents.Create("rpg_missile")
     if not IsValid(m) then return end
     m:SetPos(pos)
     m:SetAngles(dir:Angle())
-    m:SetOwner(owner)            -- стоковый RocketTouch игнорирует владельца
+    m:SetOwner(owner)
     m:Spawn()
     m:Activate()
-    if isAtomic then m:SetModelScale(2.0, 0) end
+
+    if isAtomic then m:SetModelScale(2.8, 0) end
 
     local ph = m:GetPhysicsObject()
     if IsValid(ph) then
@@ -72,30 +106,40 @@ local function SpawnRPGMissile(owner, pos, dir, speed, homing, isAtomic)
 
     local idx = m:EntIndex()
 
-    -- Наведение: каждые 0.05с доворачиваем к ближайшему врагу
-    if homing then
+    -- Наведение на конкретную (или ближайшую) цель
+    if homingTarget ~= false then
         local tid = "D6_RPGHome_" .. idx
         timer.Create(tid, 0.05, 0, function()
             if not IsValid(m) then timer.Remove(tid); return end
             local p2 = m:GetPhysicsObject()
             if not IsValid(p2) then return end
-            local nearest, nd = nil, 2200
-            for _, e in ipairs(ents.FindInSphere(m:GetPos(), 2200)) do
-                if IsValid(e) and (e:IsNPC() or e:IsPlayer()) and e ~= owner then
-                    local d = m:GetPos():Distance(e:GetPos())
-                    if d < nd then nd = d; nearest = e end
+
+            -- Если назначенная цель недоступна — переключиться на ближайшую
+            local target = (IsValid(homingTarget) and homingTarget) or nil
+            if not target then
+                local nd = 2400
+                for _, e in ipairs(ents.FindInSphere(m:GetPos(), 2400)) do
+                    if IsValid(e) and (e:IsNPC() or e:IsPlayer()) and e ~= owner then
+                        local d = m:GetPos():Distance(e:GetPos())
+                        if d < nd then nd = d; target = e end
+                    end
                 end
             end
-            if nearest then
-                local want = (nearest:WorldSpaceCenter() - m:GetPos()):GetNormalized()
-                local nv   = LerpVector(0.2, p2:GetVelocity():GetNormalized(), want):GetNormalized()
+
+            if target then
+                local dist   = m:GetPos():Distance(target:WorldSpaceCenter())
+                -- Наводимость растёт по мере сближения (резче в конце)
+                local steer  = math.Clamp(0.12 + (1 - dist / 2400) * 0.25, 0.12, 0.35)
+                local want   = (target:WorldSpaceCenter() - m:GetPos()):GetNormalized()
+                local curVel = p2:GetVelocity():GetNormalized()
+                local nv     = LerpVector(steer, curVel, want):GetNormalized()
                 p2:SetVelocity(nv * speed)
                 m:SetAngles(nv:Angle())
             end
         end)
     end
 
-    -- Атомка: ловим момент взрыва (ent invalid) → мегавзрыв на последней позиции
+    -- Атомный взрыв при гибели ракеты
     if isAtomic then
         local lastPos = m:GetPos()
         local aid = "D6_Atomic_" .. idx
@@ -103,17 +147,16 @@ local function SpawnRPGMissile(owner, pos, dir, speed, homing, isAtomic)
             if IsValid(m) then lastPos = m:GetPos(); return end
             timer.Remove(aid)
             local atk = IsValid(owner) and owner or game.GetWorld()
-            local ef  = EffectData(); ef:SetOrigin(lastPos); ef:SetScale(6); ef:SetMagnitude(300)
+            local ef  = EffectData(); ef:SetOrigin(lastPos); ef:SetScale(8); ef:SetMagnitude(400)
             util.Effect("HelicopterMegaBomb", ef)
             util.Effect("Explosion", ef)
-            util.BlastDamage(atk, atk, lastPos, 500, 250)
-            sound.Play("npc/combine_gunship/explosion1.wav", lastPos, 120, 85)
+            util.BlastDamage(atk, atk, lastPos, 650, 350)
+            sound.Play("npc/combine_gunship/explosion1.wav", lastPos, 125, 80)
         end)
-        timer.Simple(2.5, function() if IsValid(m) then m:Remove() end end)
+        timer.Simple(3.0, function() if IsValid(m) then m:Remove() end end)
     end
 
-    -- Общий лимит жизни + очистка таймера наведения
-    timer.Simple(8, function()
+    timer.Simple(9, function()
         timer.Remove("D6_RPGHome_" .. idx)
         if IsValid(m) then m:Remove() end
     end)
@@ -137,7 +180,6 @@ function SWEP:Think()
     end
 end
 
--- ПКМ = следующий сабрежим (дублируется колесом вниз)
 function SWEP:SecondaryAttack()
     if not SERVER then return end
     local now = CurTime()
@@ -163,35 +205,36 @@ function SWEP:PrimaryAttack()
 
     local sa  = ShootAng(owner)
     local dir = sa:Forward()
-    -- Спавн с большим отступом — дрон крупный (scale 2.5), чтобы
-    -- стоковая ракета не коснулась собственной модели при запуске.
+    local full = owner.D6AngSynced or owner.D6Ang or owner:EyeAngles()
     local pos = owner:GetShootPos() + dir * 60
     local sub = self:GetNWInt("D6_RktSub", 0)
 
     if sub == 0 then
-        SpawnRPGMissile(owner, pos, dir, 2600, false, false)
+        SpawnRPGMissile(owner, pos, dir, 2800, false, false)
 
     elseif sub == 1 then
         for i = -1, 1 do
             local sp = Angle(sa.p, sa.y + i*5, 0):Forward()
-            SpawnRPGMissile(owner, pos + sa:Right() * i * 14, sp, 2400, false, false)
+            SpawnRPGMissile(owner, pos + full:Right() * i * 14, sp, 2600, false, false)
         end
 
     elseif sub == 2 then
+        local targets = GatherTargets(pos, 2600, owner)
+        local assigned = AssignTargets(targets, 6)
         for i = 1, 6 do
             local yOff   = (i - 3.5) * 7
             local sp     = Angle(sa.p + math.random(-3, 3), sa.y + yOff, 0):Forward()
-            local rktPos = pos + sa:Right() * (i - 3.5) * 12
-            SpawnRPGMissile(owner, rktPos, sp, 2000, true, false)
+            local rktPos = pos + full:Right() * (i - 3.5) * 12
+            SpawnRPGMissile(owner, rktPos, sp, 2200, assigned[i] or false, false)
         end
 
     elseif sub == 3 then
-        SpawnRPGMissile(owner, pos, dir, 1800, false, true)
+        SpawnRPGMissile(owner, pos, dir, 2000, false, true)
     end
 
     local efShot = EffectData(); efShot:SetOrigin(pos); efShot:SetNormal(dir)
     util.Effect("RPGShot", efShot)
-    owner:EmitSound("weapons/rpg/rocketfire1.wav", 80, 100)
+    owner:EmitSound("weapons/rpg/rocketfire1.wav", 85, 100)
 end
 
 if CLIENT then

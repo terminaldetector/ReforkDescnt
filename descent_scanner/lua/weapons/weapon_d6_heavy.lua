@@ -1,6 +1,7 @@
 -- ═══════════════════════════════════════════════════════════
--- weapon_d6_heavy.lua — ТЯЖЁЛЫЙ, медленный орб + AoE взрыв
--- Рендер моделей — в d6_wepview.lua (центральный хук).
+-- weapon_d6_heavy.lua — ТЯЖЁЛЫЙ
+--   Снаряд: красный плазменный шар (combineball.mdl)
+--   Поведение: cball_explode — AoE взрыв при касании
 -- ═══════════════════════════════════════════════════════════
 AddCSLuaFile()
 
@@ -27,30 +28,39 @@ SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic   = false
 SWEP.Secondary.Ammo        = "none"
 
--- Снаряд: граната HL2 (w_grenade.mdl) — тяжёлый AoE-заряд
-local MDL_ORB = "models/weapons/w_grenade.mdl"
+local MDL_ORB = "models/effects/combineball.mdl"
 if SERVER then
     util.PrecacheModel(MDL_ORB)
-    util.PrecacheSound("weapons/grenade/grenade_explode.wav")
+    util.PrecacheSound("weapons/physcannon/energy_sing_explosion2.wav")
+    util.PrecacheSound("weapons/physcannon/superphys_launch1.wav")
 end
 
 local ENERGY_MAX   = 100
-local ENERGY_COST  = 15
+local ENERGY_COST  = 18
 local ENERGY_REGEN = 8
-local ORB_SPEED    = 900
-local ORB_DMG      = 70
-local ORB_RADIUS   = 180
-local AOE_DMG      = 50
+local ORB_SPEED    = 1100
+local ORB_DMG      = 80
+local ORB_RADIUS   = 220
+local AOE_DMG      = 60
 
 local function ShootAng(ply)
     local a = ply.D6AngSynced or ply.D6Ang or ply:EyeAngles()
     return Angle(a.p, a.y, 0)
 end
 
+local function MuzzleWorld(ply, off)
+    local noRoll = ShootAng(ply)
+    local full   = ply.D6AngSynced or ply.D6Ang or ply:EyeAngles()
+    return ply:GetShootPos()
+        + noRoll:Forward() * off.fwd
+        + full:Right()     * off.rgt
+        + full:Up()        * off.up
+end
+
 local function EnsurePhys(ent)
     local ph = ent:GetPhysicsObject()
     if IsValid(ph) then return ph end
-    ent:PhysicsInitSphere(8, "metal")
+    ent:PhysicsInitSphere(10, "metal")
     ent:SetMoveType(MOVETYPE_VPHYSICS)
     return ent:GetPhysicsObject()
 end
@@ -64,13 +74,13 @@ local function SpawnHeavyOrb(owner, pos, dir)
     orb:SetOwner(owner)
     orb:Spawn()
     orb:SetCollisionGroup(COLLISION_GROUP_PROJECTILE)
-    orb:SetColor(Color(255, 120, 0, 255))
+    -- Красный плазменный шар
+    orb:SetColor(Color(255, 30, 30, 255))
     orb:SetRenderMode(RENDERMODE_TRANSADD)
-    orb:SetModelScale(2.2, 0)
+    orb:SetModelScale(2.8, 0)
 
-    -- Широкий огненный след + яркое ядро
-    util.SpriteTrail(orb, 0, Color(255, 100,   0), false, 36, 3, 0.55, 1/37*0.5, "trails/laser.vmt")
-    util.SpriteTrail(orb, 1, Color(255, 220, 120), false, 14, 1, 0.35, 1/15*0.5, "trails/laser.vmt")
+    util.SpriteTrail(orb, 0, Color(255,  40,  20), false, 44, 5, 0.65, 1/45*0.5, "trails/laser.vmt")
+    util.SpriteTrail(orb, 1, Color(255, 180, 100), false, 18, 1, 0.40, 1/19*0.5, "trails/laser.vmt")
 
     local phys = EnsurePhys(orb)
     if IsValid(phys) then
@@ -88,23 +98,24 @@ local function SpawnHeavyOrb(owner, pos, dir)
         timer.Remove("D6_Orb_"..idx)
         local hitPos = orb:GetPos()
 
-        local ef = EffectData(); ef:SetOrigin(hitPos); ef:SetScale(4); ef:SetMagnitude(ORB_DMG)
-        util.Effect("Explosion", ef)
+        local ef = EffectData(); ef:SetOrigin(hitPos); ef:SetScale(5); ef:SetMagnitude(ORB_DMG)
+        util.Effect("cball_explode", ef)
         util.Effect("HelicopterMegaBomb", ef)
-        orb:EmitSound("weapons/grenade/grenade_explode.wav", 100, 95)
+        orb:EmitSound("weapons/physcannon/energy_sing_explosion2.wav", 105, 90)
 
+        local atk = IsValid(orb.D6_Owner) and orb.D6_Owner or game.GetWorld()
         for _, e in ipairs(ents.FindInSphere(hitPos, ORB_RADIUS)) do
             if not IsValid(e) then continue end
             if not (e:IsNPC() or e:IsPlayer()) then continue end
             if e == orb.D6_Owner then continue end
             local dist = e:GetPos():Distance(hitPos)
-            local dmg  = ORB_DMG + AOE_DMG * (1 - dist / ORB_RADIUS)
+            local dmg  = ORB_DMG + AOE_DMG * math.max(0, 1 - dist / ORB_RADIUS)
             local di   = DamageInfo()
-            di:SetAttacker(IsValid(orb.D6_Owner) and orb.D6_Owner or game.GetWorld())
+            di:SetAttacker(atk)
             di:SetInflictor(orb)
             di:SetDamage(dmg)
             di:SetDamageType(DMG_BLAST + DMG_ENERGYBEAM)
-            di:SetDamageForce((e:GetPos() - hitPos):GetNormalized() * 6000)
+            di:SetDamageForce((e:GetPos() - hitPos):GetNormalized() * 8000)
             e:TakeDamageInfo(di)
         end
 
@@ -117,7 +128,7 @@ local function SpawnHeavyOrb(owner, pos, dir)
         Explode()
     end)
 
-    timer.Create("D6_Orb_"..idx, 5, 1, function() Explode() end)
+    timer.Create("D6_Orb_"..idx, 6, 1, function() Explode() end)
 end
 
 function SWEP:Initialize()
@@ -147,19 +158,19 @@ function SWEP:PrimaryAttack()
         owner:EmitSound("buttons/button10.wav", 65, 100); return
     end
     owner:SetNWFloat("D6_WepEnergy", energy - ENERGY_COST)
-    self:SetNextPrimaryFire(CurTime() + 1.0)
+    self:SetNextPrimaryFire(CurTime() + 1.1)
 
     local sa  = ShootAng(owner)
     local fwd = sa:Forward()
-    -- Орб из ствола гравипушки (центр, fwd≈24+tip, up=-18 — совпадает с wepview GRAV_CENTER)
-    local src = owner:GetShootPos() + fwd * 45 + sa:Up() * -18
+    -- Центральный ствол гравипушки
+    local src = MuzzleWorld(owner, { fwd=45, rgt=0, up=-18 })
 
     SpawnHeavyOrb(owner, src, fwd)
 
-    local mf = EffectData(); mf:SetOrigin(src); mf:SetNormal(fwd); mf:SetScale(3)
+    local mf = EffectData(); mf:SetOrigin(src); mf:SetNormal(fwd); mf:SetScale(4)
     util.Effect("cball_explode", mf)
 
-    owner:EmitSound("weapons/physcannon/superphys_launch1.wav", 80, 75)
+    owner:EmitSound("weapons/physcannon/superphys_launch1.wav", 85, 70)
 end
 
 function SWEP:SecondaryAttack()
@@ -184,7 +195,7 @@ if CLIENT then
         surface.SetDrawColor(col.r, col.g, col.b, 200)
         surface.DrawRect(bx, by, bw * (energy/ENERGY_MAX), bh)
         draw.SimpleText("ТЯЖЁЛЫЙ  ⚡ "..math.floor(energy), "DermaDefault",
-            sw/2, sh-90, Color(220,80,40), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+            sw/2, sh-90, Color(255,80,50), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 end
 

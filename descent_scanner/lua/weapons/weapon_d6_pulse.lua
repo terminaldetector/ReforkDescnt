@@ -1,6 +1,7 @@
 -- ═══════════════════════════════════════════════════════════
--- weapon_d6_pulse.lua — ПУЛЬСАР, 4-ствольный пулемёт
--- Рендер моделей — в d6_wepview.lua (центральный хук).
+-- weapon_d6_pulse.lua — ПУЛЬСАР, 4-ствольный метатель стержней
+--   Снаряд: crossbow_bolt / w_crossbow_bolt.mdl
+--   Скорость: ~4500 (Quake 1 nailgun), никакого хитскана.
 -- ═══════════════════════════════════════════════════════════
 AddCSLuaFile()
 
@@ -27,17 +28,27 @@ SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic   = false
 SWEP.Secondary.Ammo        = "none"
 
-local ENERGY_MAX   = 100
-local ENERGY_COST  = 1
-local ENERGY_REGEN = 8
+local MDL_BOLT = "models/weapons/w_crossbow_bolt.mdl"
+if SERVER then
+    util.PrecacheModel(MDL_BOLT)
+    util.PrecacheSound("weapons/crossbow/bolt1.wav")
+    util.PrecacheSound("weapons/crossbow/hit1.wav")
+end
 
+local ENERGY_MAX   = 100
+local ENERGY_COST  = 2
+local ENERGY_REGEN = 8
+local BOLT_SPEED   = 4500
+local BOLT_DMG     = 30
+
+-- dir = ShootAng (pitch+yaw, no roll) — только направление стрельбы
 local function ShootAng(ply)
     local a = ply.D6AngSynced or ply.D6Ang or ply:EyeAngles()
     return Angle(a.p, a.y, 0)
 end
 
--- Позиции дул — синхронизированы с d6_wepview.lua:
--- ряд 1 — нижние углы (±46, −20), ряд 2 — верхние края (±50, +16)
+-- Позиции дул — синхронизированы с d6_wepview.lua Layout()
+-- fwd — через ShootAng (без крена), rgt/up — через полный D6Ang с кренем
 local MUZZLES = {
     { fwd=50, rgt=-46, up=-20 },
     { fwd=50, rgt= 46, up=-20 },
@@ -46,11 +57,76 @@ local MUZZLES = {
 }
 
 local function MuzzleWorld(ply, off)
-    local ang = ShootAng(ply)
+    local noRoll = ShootAng(ply)
+    local full   = ply.D6AngSynced or ply.D6Ang or ply:EyeAngles()
     return ply:GetShootPos()
-        + ang:Forward() * off.fwd
-        + ang:Right()   * off.rgt
-        + ang:Up()      * off.up
+        + noRoll:Forward() * off.fwd
+        + full:Right()     * off.rgt
+        + full:Up()        * off.up
+end
+
+local function EnsurePhys(ent)
+    local ph = ent:GetPhysicsObject()
+    if IsValid(ph) then return ph end
+    ent:PhysicsInitSphere(3, "metal")
+    ent:SetMoveType(MOVETYPE_VPHYSICS)
+    return ent:GetPhysicsObject()
+end
+
+local function SpawnBolt(owner, pos, dir)
+    local bolt = ents.Create("prop_physics")
+    if not IsValid(bolt) then return end
+    bolt:SetModel(MDL_BOLT)
+    bolt:SetPos(pos)
+    bolt:SetAngles(dir:Angle())
+    bolt:SetOwner(owner)
+    bolt:Spawn()
+    bolt:SetCollisionGroup(COLLISION_GROUP_PROJECTILE)
+    bolt:SetColor(Color(200, 240, 255, 255))
+    bolt:SetRenderMode(RENDERMODE_TRANSADD)
+    bolt:SetModelScale(1.6, 0)
+
+    util.SpriteTrail(bolt, 0, Color(140, 200, 255), false, 12, 1, 0.15, 1/13*0.5, "trails/laser.vmt")
+    util.SpriteTrail(bolt, 1, Color(255, 255, 255), false,  4, 0, 0.08, 1/5 *0.5, "trails/laser.vmt")
+
+    local ph = EnsurePhys(bolt)
+    if IsValid(ph) then
+        ph:SetVelocity(dir * BOLT_SPEED)
+        ph:EnableGravity(false)
+        ph:EnableDrag(false)
+    end
+
+    bolt.D6_Owner = owner
+    local idx = tostring(bolt:EntIndex())
+
+    hook.Add("EntityCollision", "D6_Bolt_"..idx, function(ent, data)
+        if ent ~= bolt then return end
+        if IsValid(data.HitEntity) and data.HitEntity == bolt.D6_Owner then return end
+
+        if IsValid(data.HitEntity) and (data.HitEntity:IsNPC() or data.HitEntity:IsPlayer()) then
+            local di = DamageInfo()
+            di:SetAttacker(IsValid(bolt.D6_Owner) and bolt.D6_Owner or game.GetWorld())
+            di:SetInflictor(bolt)
+            di:SetDamage(BOLT_DMG)
+            di:SetDamageType(DMG_BULLET)
+            di:SetDamageForce(dir * 2000)
+            data.HitEntity:TakeDamageInfo(di)
+        end
+
+        local p = bolt:GetPos()
+        local ef = EffectData(); ef:SetOrigin(p); ef:SetNormal(-dir); ef:SetScale(1.5)
+        util.Effect("AR2Impact", ef)
+        bolt:EmitSound("weapons/crossbow/hit1.wav", 60, 120)
+
+        hook.Remove("EntityCollision", "D6_Bolt_"..idx)
+        timer.Remove("D6_Bolt_"..idx)
+        if IsValid(bolt) then bolt:Remove() end
+    end)
+
+    timer.Create("D6_Bolt_"..idx, 5, 1, function()
+        hook.Remove("EntityCollision", "D6_Bolt_"..idx)
+        if IsValid(bolt) then bolt:Remove() end
+    end)
 end
 
 function SWEP:Initialize()
@@ -80,40 +156,21 @@ function SWEP:PrimaryAttack()
         owner:EmitSound("buttons/button10.wav", 65, 100); return
     end
     owner:SetNWFloat("D6_WepEnergy", energy - ENERGY_COST)
-    self:SetNextPrimaryFire(CurTime() + 0.08)
+    self:SetNextPrimaryFire(CurTime() + 0.10)
 
     local sa  = ShootAng(owner)
     local fwd = sa:Forward()
-    local rgt = sa:Right()
-    local up  = sa:Up()
 
     for _, off in ipairs(MUZZLES) do
         local src = MuzzleWorld(owner, off)
-        local dir = (fwd + rgt * math.Rand(-0.015, 0.015) + up * math.Rand(-0.015, 0.015)):GetNormalized()
-        owner:FireBullets({
-            Src       = src,
-            Dir       = dir,
-            Damage    = 12,
-            Distance  = 9000,
-            Spread    = Vector(0.015, 0.015, 0),
-            Tracer    = 1,
-            TracerName = "GlowTracer",
-            Force     = 350,
-            Num       = 1,
-            AmmoType  = "AR2",
-            AttackPos = src,
-            Callback  = function(_, tr, _)
-                if tr.Hit then
-                    local ef = EffectData()
-                    ef:SetOrigin(tr.HitPos); ef:SetNormal(tr.HitNormal); ef:SetScale(0.8)
-                    util.Effect("AR2Impact", ef)
-                end
-            end,
-        })
-        local ef = EffectData(); ef:SetOrigin(src); ef:SetNormal(dir); ef:SetScale(1.0)
+        local aim = src + fwd * 5000
+        local dir = (aim - src):GetNormalized()
+        SpawnBolt(owner, src, dir)
+        local ef = EffectData(); ef:SetOrigin(src); ef:SetNormal(dir); ef:SetScale(0.7)
         util.Effect("MuzzleFlash", ef)
     end
-    owner:EmitSound("weapons/ar2/ar2_fire1.wav", 68, 110 + math.random(-8, 8))
+
+    owner:EmitSound("weapons/crossbow/bolt1.wav", 68, 105 + math.random(-6, 6))
 end
 
 function SWEP:SecondaryAttack()

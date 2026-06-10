@@ -34,7 +34,7 @@ end
 
 local ENERGY_MAX   = 100
 local ENERGY_REGEN = 8
-local LASER_DRAIN  = 30    -- энергии в секунду при стрельбе
+local LASER_DRAIN  = 12    -- энергии в секунду при стрельбе
 local LASER_DPS    = 200   -- урона в секунду
 
 local function ShootAng(ply)

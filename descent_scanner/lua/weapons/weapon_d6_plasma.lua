@@ -1,6 +1,8 @@
 -- ═══════════════════════════════════════════════════════════
--- weapon_d6_plasma.lua — ПЛАЗМА, видимые болты со светящимся следом
--- Рендер моделей — в d6_wepview.lua (центральный хук).
+-- weapon_d6_plasma.lua — ПЛАЗМА
+--   Две параллельные пушки страйдера, стреляют одновременно.
+--   Снаряд: combineball.mdl — циановый, поведение cball_explode.
+--   Звук: npc/strider/fire.wav (плазмопушка страйдера).
 -- ═══════════════════════════════════════════════════════════
 AddCSLuaFile()
 
@@ -27,44 +29,45 @@ SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic   = false
 SWEP.Secondary.Ammo        = "none"
 
--- Снаряд: энергетический шар AR2 — официальный ресурс HL2
-local MDL_BOLT = "models/weapons/w_irifle_ball.mdl"
+local MDL_BOLT = "models/effects/combineball.mdl"
 if SERVER then
     util.PrecacheModel(MDL_BOLT)
-    util.PrecacheSound("weapons/irifle/irifle_fire2.wav")
+    util.PrecacheSound("npc/strider/fire.wav")
+    util.PrecacheSound("weapons/physcannon/energy_sing_explosion2.wav")
 end
 
 local ENERGY_MAX   = 100
-local ENERGY_COST  = 5
+local ENERGY_COST  = 8
 local ENERGY_REGEN = 8
-local BOLT_SPEED   = 3800
-local BOLT_DMG     = 28
+local BOLT_SPEED   = 3200
+local BOLT_DMG     = 45
+local SPLASH_DMG   = 25
+local SPLASH_RAD   = 120
 
 local function ShootAng(ply)
     local a = ply.D6AngSynced or ply.D6Ang or ply:EyeAngles()
     return Angle(a.p, a.y, 0)
 end
 
--- Дула двух nosegun — ряд 1, нижние углы (синхр. с d6_wepview.lua)
--- nosegun scale=1.55, модель ~9 юнитов длиной → tip ≈ fwd 30+14=44
+-- Два дула row 1 — совпадают с nosegun в d6_wepview.lua (rgt ±46, up -20)
 local MUZZLES = {
     { fwd=44, rgt=-46, up=-20 },
     { fwd=44, rgt= 46, up=-20 },
 }
 
 local function MuzzleWorld(ply, off)
-    local ang = ShootAng(ply)
+    local noRoll = ShootAng(ply)
+    local full   = ply.D6AngSynced or ply.D6Ang or ply:EyeAngles()
     return ply:GetShootPos()
-        + ang:Forward() * off.fwd
-        + ang:Right()   * off.rgt
-        + ang:Up()      * off.up
+        + noRoll:Forward() * off.fwd
+        + full:Right()     * off.rgt
+        + full:Up()        * off.up
 end
 
--- Гарантированная физика: если у модели нет .phy — сферический фолбэк
 local function EnsurePhys(ent)
     local ph = ent:GetPhysicsObject()
     if IsValid(ph) then return ph end
-    ent:PhysicsInitSphere(5, "metal")
+    ent:PhysicsInitSphere(8, "metal")
     ent:SetMoveType(MOVETYPE_VPHYSICS)
     return ent:GetPhysicsObject()
 end
@@ -78,14 +81,13 @@ local function SpawnPlasmaBolt(owner, pos, dir)
     bolt:SetOwner(owner)
     bolt:Spawn()
     bolt:SetCollisionGroup(COLLISION_GROUP_PROJECTILE)
-    -- AR2 energy ball: циановый, светящийся
-    bolt:SetColor(Color(0, 240, 200, 255))
+    -- Страйдер-циановый плазменный цвет
+    bolt:SetColor(Color(0, 220, 255, 255))
     bolt:SetRenderMode(RENDERMODE_TRANSADD)
-    bolt:SetModelScale(2.0, 0)
+    bolt:SetModelScale(2.2, 0)
 
-    -- Двойной след AR2: широкий зелёно-синий + яркое ядро
-    util.SpriteTrail(bolt, 0, Color(0,  210, 180), false, 24, 2, 0.30, 1/25*0.5, "trails/laser.vmt")
-    util.SpriteTrail(bolt, 1, Color(200, 255, 240), false,  8, 0, 0.18, 1/9 *0.5, "trails/laser.vmt")
+    util.SpriteTrail(bolt, 0, Color(0,  200, 240), false, 30, 3, 0.40, 1/31*0.5, "trails/laser.vmt")
+    util.SpriteTrail(bolt, 1, Color(180, 255, 255), false, 10, 0, 0.22, 1/11*0.5, "trails/laser.vmt")
 
     local phys = EnsurePhys(bolt)
     if IsValid(phys) then
@@ -97,35 +99,42 @@ local function SpawnPlasmaBolt(owner, pos, dir)
     bolt.D6_Owner = owner
     local idx = tostring(bolt:EntIndex())
 
-    hook.Add("EntityCollision", "D6_Bolt_"..idx, function(ent, data)
-        if ent ~= bolt then return end
-        if IsValid(data.HitEntity) and data.HitEntity == bolt.D6_Owner then return end
+    local function Explode()
+        if not IsValid(bolt) then return end
+        hook.Remove("EntityCollision", "D6_Plasma_"..idx)
+        timer.Remove("D6_Plasma_"..idx)
+        local hitPos = bolt:GetPos()
 
-        if IsValid(data.HitEntity) and (data.HitEntity:IsNPC() or data.HitEntity:IsPlayer()) then
-            local di = DamageInfo()
-            di:SetAttacker(IsValid(bolt.D6_Owner) and bolt.D6_Owner or game.GetWorld())
+        local ef = EffectData(); ef:SetOrigin(hitPos); ef:SetScale(3); ef:SetMagnitude(BOLT_DMG)
+        util.Effect("cball_explode", ef)
+        bolt:EmitSound("weapons/physcannon/energy_sing_explosion2.wav", 80, 120)
+
+        local atk = IsValid(bolt.D6_Owner) and bolt.D6_Owner or game.GetWorld()
+        for _, e in ipairs(ents.FindInSphere(hitPos, SPLASH_RAD)) do
+            if not IsValid(e) then continue end
+            if not (e:IsNPC() or e:IsPlayer()) then continue end
+            if e == bolt.D6_Owner then continue end
+            local dist = e:GetPos():Distance(hitPos)
+            local dmg  = BOLT_DMG + SPLASH_DMG * math.max(0, 1 - dist / SPLASH_RAD)
+            local di   = DamageInfo()
+            di:SetAttacker(atk)
             di:SetInflictor(bolt)
-            di:SetDamage(BOLT_DMG)
-            di:SetDamageType(DMG_ENERGYBEAM)
-            di:SetDamageForce(dir * 1500)
-            data.HitEntity:TakeDamageInfo(di)
+            di:SetDamage(dmg)
+            di:SetDamageType(DMG_ENERGYBEAM + DMG_BLAST)
+            di:SetDamageForce((e:GetPos() - hitPos):GetNormalized() * 4000)
+            e:TakeDamageInfo(di)
         end
 
-        local p = bolt:GetPos()
-        local ef = EffectData(); ef:SetOrigin(p); ef:SetNormal(-dir); ef:SetScale(3); ef:SetMagnitude(2)
-        util.Effect("cball_explode", ef)
-        local ef2 = EffectData(); ef2:SetOrigin(p); ef2:SetNormal(-dir); ef2:SetScale(1.2)
-        util.Effect("AR2Impact", ef2)
+        bolt:Remove()
+    end
 
-        hook.Remove("EntityCollision", "D6_Bolt_"..idx)
-        timer.Remove("D6_Bolt_"..idx)
-        if IsValid(bolt) then bolt:Remove() end
+    hook.Add("EntityCollision", "D6_Plasma_"..idx, function(ent, data)
+        if ent ~= bolt then return end
+        if IsValid(data.HitEntity) and data.HitEntity == bolt.D6_Owner then return end
+        Explode()
     end)
 
-    timer.Create("D6_Bolt_"..idx, 4, 1, function()
-        hook.Remove("EntityCollision", "D6_Bolt_"..idx)
-        if IsValid(bolt) then bolt:Remove() end
-    end)
+    timer.Create("D6_Plasma_"..idx, 5, 1, function() Explode() end)
 end
 
 function SWEP:Initialize()
@@ -155,20 +164,20 @@ function SWEP:PrimaryAttack()
         owner:EmitSound("buttons/button10.wav", 65, 100); return
     end
     owner:SetNWFloat("D6_WepEnergy", energy - ENERGY_COST)
-    self:SetNextPrimaryFire(CurTime() + 0.35)
+    self:SetNextPrimaryFire(CurTime() + 0.45)
 
     local sa  = ShootAng(owner)
-    local aim = owner:GetShootPos() + sa:Forward() * 4000
+    local aim = owner:GetShootPos() + sa:Forward() * 5000
 
     for _, off in ipairs(MUZZLES) do
         local src = MuzzleWorld(owner, off)
         local dir = (aim - src):GetNormalized()
         SpawnPlasmaBolt(owner, src, dir)
-        local mf = EffectData(); mf:SetOrigin(src); mf:SetNormal(dir); mf:SetScale(1)
-        util.Effect("MuzzleFlash", mf)
+        local mf = EffectData(); mf:SetOrigin(src); mf:SetNormal(dir); mf:SetScale(2)
+        util.Effect("cball_explode", mf)
     end
 
-    owner:EmitSound("weapons/irifle/irifle_fire2.wav", 70, 130)
+    owner:EmitSound("npc/strider/fire.wav", 85, 110)
 end
 
 function SWEP:SecondaryAttack()

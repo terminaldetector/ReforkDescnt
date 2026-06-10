@@ -49,17 +49,32 @@ local ENERGY_REGEN    = 10          -- в секунду
 local ENERGY_RAIL     = 20
 local ENERGY_FAN      = 30
 local RAIL_RANGE      = 1500
-local RAIL_FIRE_SPEED = 13000       -- увеличено с 4000
+local RAIL_FIRE_SPEED = 18000       -- увеличено
 local RAIL_MAX_MASS   = 300
 local FAN_CONE        = 15          -- градусов
 local FAN_RANGE       = 500
 local FAN_MAX_MASS    = 50
 local FAN_MAX_COUNT   = 8
-local FAN_FIRE_SPEED  = 9000        -- увеличено с 3000
+local FAN_FIRE_SPEED  = 12000       -- увеличено
 local FAN_SPREAD      = 20          -- градусов
 local FIRE_COOLDOWN   = 0.3
+local MAX_RICOCHETS   = 4           -- рикошеты для невзрывных пропов
 local TINT            = Color(0, 255, 0)
 local TINT_INNER      = Color(180, 255, 180)
+
+-- Определяет, взрывчатый ли проп (по модели/классу)
+local function IsExplosiveProp(ent)
+    if not IsValid(ent) then return false end
+    local mdl = string.lower(ent:GetModel() or "")
+    if mdl:find("barrel")   then return true end
+    if mdl:find("gascan")   then return true end
+    if mdl:find("propane")  then return true end
+    if mdl:find("explosive") then return true end
+    if mdl:find("oxygen")   then return true end
+    local cls = ent:GetClass()
+    if cls == "prop_physics_multiplayer" then return true end
+    return false
+end
 
 -- ─── Сетевые строки ─────────────────────────────────────
 if SERVER and not _D6_RAIL_NET then
@@ -304,55 +319,93 @@ function SWEP:FireRail()
     self:SendWeaponAnim(ACT_VM_SECONDARYATTACK)
 end
 
--- ── Отслеживание снаряда и урон по НПС/игрокам ──────────
+-- ── Отслеживание снаряда: взрыв, рикошет, урон ──────────
 function SWEP:HookRailProjectile(ent)
     if not IsValid(ent) then return end
-    local idx     = ent:EntIndex()
-    local timerID = "D6_Rail_Proj_" .. idx
+    local idx      = ent:EntIndex()
+    local timerID  = "D6_Rail_Proj_" .. idx
+    local hookID   = "D6_Rail_Col_"  .. idx
+    local bounces  = 0
+    local isExpl   = IsExplosiveProp(ent)
 
-    -- Используем timer.Create, не hook (нет утечки хуков)
-    timer.Create(timerID, 0.05, 0, function()
-        if not IsValid(ent) or CurTime() > (ent.D6_RailUntil or 0) then
-            timer.Remove(timerID); return
-        end
-        if ent.D6_RailHit then
-            timer.Remove(timerID); return
-        end
+    local function Cleanup()
+        timer.Remove(timerID)
+        hook.Remove("EntityCollision", hookID)
+    end
 
-        local owner = ent.D6_RailOwner
-        if not IsValid(owner) then return end
+    local function DoExplode(pos, atk)
+        local ef = EffectData(); ef:SetOrigin(pos); ef:SetScale(4); ef:SetMagnitude(180)
+        util.Effect("Explosion", ef)
+        util.Effect("HelicopterMegaBomb", ef)
+        util.BlastDamage(atk, atk, pos, 250, 180)
+        sound.Play("weapon_RPG.Single", pos, 100, 100)
+    end
 
-        local pos = ent:GetPos()
-        local tr  = util.TraceLine({
-            start  = pos,
-            endpos = pos + ent:GetVelocity() * 0.06,
-            filter = { ent, owner },   -- владелец защищён от урона
-            mask   = MASK_SHOT,
-        })
+    hook.Add("EntityCollision", hookID, function(e, data)
+        if e ~= ent then return end
+        if not IsValid(ent) then Cleanup(); return end
 
-        if IsValid(tr.Entity) and (tr.Entity:IsNPC() or tr.Entity:IsPlayer()) then
-            ent.D6_RailHit = true
+        local hitEnt = data.HitEntity
+        local owner  = ent.D6_RailOwner
+
+        -- Не бьём владельца
+        if IsValid(hitEnt) and IsValid(owner) and hitEnt == owner then return end
+
+        local ph = ent:GetPhysicsObject()
+
+        -- Попадание в живую цель → урон
+        if IsValid(hitEnt) and (hitEnt:IsNPC() or hitEnt:IsPlayer()) then
             local di = DamageInfo()
-            di:SetAttacker(owner)
+            di:SetAttacker(IsValid(owner) and owner or game.GetWorld())
             di:SetInflictor(ent)
             di:SetDamage(ent.D6_RailDmg or 50)
             di:SetDamageType(DMG_CRUSH)
-            di:SetDamageForce((tr.Entity:GetPos()-owner:GetPos()):GetNormalized() * 8000)
-            tr.Entity:TakeDamageInfo(di)
-
-            local push = (tr.Entity:GetPos()-owner:GetPos()):GetNormalized() * 700
-            push.z = push.z + 200
-            if tr.Entity:IsPlayer() then tr.Entity:SetVelocity(push)
-            elseif tr.Entity:IsNPC() then
-                local nph = tr.Entity:GetPhysicsObject()
-                if IsValid(nph) then nph:SetVelocity(push) end
-            end
-
-            local ef = EffectData()
-            ef:SetOrigin(tr.HitPos); ef:SetNormal(tr.HitNormal); ef:SetMagnitude(3)
+            di:SetDamageForce((hitEnt:GetPos() - ent:GetPos()):GetNormalized() * 10000)
+            hitEnt:TakeDamageInfo(di)
+            local ef = EffectData(); ef:SetOrigin(data.HitPos or ent:GetPos()); ef:SetNormal(data.HitNormal or vector_up); ef:SetMagnitude(3)
             util.Effect("Sparks", ef)
-            timer.Remove(timerID)
+            if isExpl then
+                DoExplode(ent:GetPos(), IsValid(owner) and owner or game.GetWorld())
+                SafeRemoveEntity(ent)
+            end
+            Cleanup()
+            return
         end
+
+        -- Взрывной проп → взорваться при любом касании с миром/пропом
+        if isExpl then
+            local pos = ent:GetPos()
+            local atk = IsValid(owner) and owner or game.GetWorld()
+            DoExplode(pos, atk)
+            SafeRemoveEntity(ent)
+            Cleanup()
+            return
+        end
+
+        -- Невзрывной проп → рикошет (до MAX_RICOCHETS раз)
+        if IsValid(ph) and bounces < MAX_RICOCHETS then
+            bounces = bounces + 1
+            local vel    = ph:GetVelocity()
+            local normal = data.HitNormal
+            if normal and normal:Length() > 0.01 then
+                local reflected = vel - 2 * vel:Dot(normal) * normal
+                ph:SetVelocity(reflected * 0.78)
+                local ef = EffectData()
+                ef:SetOrigin(data.HitPos or ent:GetPos())
+                ef:SetNormal(normal)
+                ef:SetMagnitude(2)
+                util.Effect("ManhackSparks", ef)
+                -- Продлеваем таймер жизни снаряда
+                ent.D6_RailUntil = CurTime() + 3
+            end
+        elseif bounces >= MAX_RICOCHETS then
+            -- Израсходованы все рикошеты
+            Cleanup()
+        end
+    end)
+
+    timer.Create(timerID, 5, 1, function()
+        Cleanup()
     end)
 end
 
