@@ -240,3 +240,32 @@ tbody td a:hover { text-decoration: underline; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* ── WEIGHT SLIDER ── */
+.slider {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+  background: var(--border); border-radius: 3px; outline: none; padding: 0;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--cyan); cursor: pointer; border: none;
+}
+.slider::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%; background: var(--cyan);
+  cursor: pointer; border: none;
+}
+
+/* ── MODE / DELETE conditional blocks ── */
+.mode-block { display: contents; }
+
+/* ── MOBILE (Firefox Android) — larger touch targets ── */
+body.mobile { width: 100%; min-width: 320px; font-size: 15px; }
+body.mobile .btn { padding: 13px 14px; font-size: 13px; }
+body.mobile .tab { padding: 13px 8px; font-size: 13px; }
+body.mobile input, body.mobile select, body.mobile textarea { font-size: 15px; padding: 11px 12px; }
+body.mobile .slider { height: 10px; }
+body.mobile .slider::-webkit-slider-thumb { width: 26px; height: 26px; }
+body.mobile .checkbox-row input { width: 20px; height: 20px; }
+@media (max-width: 420px) {
+  body { width: 100%; }
+}

@@ -6,7 +6,7 @@
  * DOM, so it sees JS-inserted content and links hidden in Shadow DOM.
  *
  * It only GATHERS — it does not classify or store. It collects every place a
- * Telegram link can hide into one text blob; the shared link-extractor then
+ * Telegram link can hide into one text blob; the background's parser-core then
  * runs the regex sweep, keeping a single source of truth for detection.
  *
  * Exposes `window.TGHarvest.harvestBlob()`. It does NOT auto-run, so it can be
