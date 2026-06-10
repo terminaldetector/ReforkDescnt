@@ -8,7 +8,9 @@ local CFG = {
     drag         = 1.8,    -- unified drag (A1)
     maxSpeed     = 2200,
     inertia      = 0.96,   -- palpable coasting (A1)
-    brakeMult    = 0.04,   -- linear brake when assist ON + no input
+    brakeMult    = 0.025,  -- linear brake when assist ON + no input (P5: momentum)
+    spoolUp      = 20,     -- thrust ramp-IN  (~50ms to 63% — near-instant, responsive)
+    spoolDown    = 5,      -- thrust ramp-OUT (~200ms — slow wind-down = weight on reversals)
     strafeMult   = 0.8,    -- [Descent] боковая тяга 80% от forward
     vertMult     = 0.8,    -- [Descent] вертикальная тяга 80% от forward
     wallBounce   = 0.5,    -- [Descent] упругость стен 50%
@@ -139,6 +141,7 @@ local function D6_Activate(ply)
     ply.D6On        = true
     ply.D6OldModel  = ply:GetModel()
     ply.D6Vel       = Vector(0, 0, 0)
+    ply.D6ThrustCur = Vector(0, 0, 0)
     ply.D6HookOn    = false
     ply.D6DashOn    = false
     ply.D6DashDir   = nil
@@ -166,6 +169,7 @@ local function D6_Deactivate(ply)
     ply.D6HookOn    = false
     ply.D6DashOn    = false
     ply.D6Vel       = Vector(0, 0, 0)
+    ply.D6ThrustCur = Vector(0, 0, 0)
     ply.D6AlwaysRun = false
     ply:SetNWBool("D6On", false)
     ply:SetNWBool("D6AlwaysRun", false)
@@ -348,6 +352,7 @@ if SERVER then
         timer.Simple(0.3, function()
             if not IsValid(ply) then return end
             ply.D6On    = false; ply.D6Vel = Vector(0, 0, 0)
+            ply.D6ThrustCur = Vector(0, 0, 0)
             ply.D6HookOn = false; ply.D6DashOn = false
             ply.D6AlwaysRun = false
             ply:SetNWBool("D6On", false)
@@ -499,7 +504,8 @@ hook.Add("SetupMove", "D6_Flight_Move", function(ply, mvd, cmd)
     if not ply.D6On then return end
     local ft = FrameTime()
     if ft <= 0 or ft > 0.1 then return end
-    ply.D6Vel = ply.D6Vel or Vector(0, 0, 0)
+    ply.D6Vel       = ply.D6Vel or Vector(0, 0, 0)
+    ply.D6ThrustCur = ply.D6ThrustCur or Vector(0, 0, 0)
 
     local params      = ply.D6_Params or {}
     local gravity     = params.gravity  or CFG.gravity
@@ -541,7 +547,7 @@ hook.Add("SetupMove", "D6_Flight_Move", function(ply, mvd, cmd)
     local ang    = cmd:GetViewAngles()
 
     -- ─── [Descent] асимметричная тяга: strafe 80%, vert 80% ───
-    local thrust = (
+    local thrustTarget = (
         inp.x * ang:Forward()
       + inp.y * ang:Right() * strafeMult
       + inp.z * ang:Up()    * vertMult
@@ -556,7 +562,18 @@ hook.Add("SetupMove", "D6_Flight_Move", function(ply, mvd, cmd)
     local MICRO_GRAV = 20
     ply.D6Vel.z = ply.D6Vel.z - (MICRO_GRAV + gravity * gravFactor) * ft
 
-    ply.D6Vel = ply.D6Vel * math.pow(inertia, ft * 60) + thrust * ft
+    -- ─── [Descent] раскрутка тяги: двигатель набирает/сбрасывает тягу ───
+    -- Асимметрия (быстрый набор / медленный спад) даёт ощущение массы
+    -- без вялости управления. Рывок владеет D6Vel сам — тогда только
+    -- отслеживаем цель, чтобы на выходе из рывка не было задержки набора.
+    if ply.D6DashOn then
+        ply.D6ThrustCur = thrustTarget
+    else
+        local spool = (thrustTarget:LengthSqr() >= ply.D6ThrustCur:LengthSqr())
+                      and CFG.spoolUp or CFG.spoolDown
+        ply.D6ThrustCur = LerpVector(ft * spool, ply.D6ThrustCur, thrustTarget)
+        ply.D6Vel = ply.D6Vel * math.pow(inertia, ft * 60) + ply.D6ThrustCur * ft
+    end
 
     local sq  = ply.D6Vel:LengthSqr()
     local spd = math.sqrt(sq)

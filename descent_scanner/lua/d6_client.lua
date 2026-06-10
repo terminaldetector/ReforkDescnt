@@ -31,6 +31,7 @@ local RamLightT     = 0
 local ThirdPerson   = false
 local ThrusterLightT = 0
 local CamLag        = Vector(0, 0, 0)
+local RollVel       = 0
 
 local Remote = {}  -- Remote[ply] = { ang, angLerp, hookOn, hookPos, ramOn }
 
@@ -128,16 +129,21 @@ hook.Add("CreateMove", "D6_Cam_CM", function(cmd)
     Ang:RotateAroundAxis(Ang:Right(), ply._D6AngVel.pitch)
     Ang:RotateAroundAxis(Ang:Up(),    ply._D6AngVel.yaw)
 
-    local roll = 0
-    if input.IsKeyDown(KEY_LSHIFT) then roll = roll - 1 end
-    if input.IsKeyDown(KEY_F)      then roll = roll + 1 end
-    if roll ~= 0 then Ang:RotateAroundAxis(Ang:Forward(), roll * ROLL_SPEED * ft) end
+    -- ─── [Descent] инерция крена: плавная раскрутка/останов ───
+    local rollIn = 0
+    if input.IsKeyDown(KEY_LSHIFT) then rollIn = rollIn - 1 end
+    if input.IsKeyDown(KEY_F)      then rollIn = rollIn + 1 end
+    RollVel = Lerp(ft * 8, RollVel, rollIn * ROLL_SPEED)
+    Ang:RotateAroundAxis(Ang:Forward(), RollVel * ft)
 
     Ang.r = math.Clamp(((Ang.r + 180) % 360) - 180, -ROLL_LIMIT, ROLL_LIMIT)
 
     if input.IsKeyDown(KEY_R) then
         local now = CurTime()
-        if now - LastRTap < DBL_TAP_WIN then Ang.r = Lerp(ft * 12, Ang.r, 0) end
+        if now - LastRTap < DBL_TAP_WIN then
+            Ang.r   = Lerp(ft * 12, Ang.r, 0)
+            RollVel = Lerp(ft * 12, RollVel, 0)  -- момент крена не мешает выравниванию
+        end
         LastRTap = now
     end
 
@@ -189,6 +195,18 @@ hook.Add("CalcView", "D6_Cam_CV", function(ply, pos, _, fov)
     if Dashing then lagTarget = lagTarget - DashDir * 8 end
     CamLag = LerpVector(FrameTime() * 10, CamLag, lagTarget)
     local origin = pos + CamLag
+    -- ─── Вибрация двигателя: едва заметная дрожь под тягой ───
+    -- Чисто видовое смещение (≤0.6 ед.), не входит в физику/предсказание.
+    local arOn   = ply:GetNWBool("D6AlwaysRun", false)
+    local spd    = ply:GetVelocity():Length()
+    local vibAmp = (arOn and 0.6 or 0.25) * math.Clamp(spd / 900, 0, 1)
+    if vibAmp > 0.01 then
+        local t   = CurTime()
+        local vib = Ang:Right()   * math.sin(t * 61)
+                  + Ang:Up()      * math.sin(t * 67)
+                  + Ang:Forward() * math.sin(t * 53)
+        origin = origin + vib * vibAmp
+    end
     if ThirdPerson then
         local back = Ang:Forward() * -100 + Ang:Up() * 22
         local tr   = util.TraceLine({ start=origin, endpos=origin+back, filter=ply })
