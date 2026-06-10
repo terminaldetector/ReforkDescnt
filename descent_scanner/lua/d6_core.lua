@@ -40,6 +40,26 @@ if SERVER then
     -- Боевые оружия: регистрируем заранее при загрузке карты
     util.AddNetworkString("D6_LaserBeam")   -- weapon_d6_laser: серверный луч
     util.AddNetworkString("D6_RailFire")    -- weapon_d6_gravy_railgun: трассер выстрела
+
+    -- ── Центральный прекеш ресурсов снарядов (внедрено в автолоад) ──
+    -- Внутренние ресурсы HL2 для проджектайлов всех боевых оружий D6.
+    local D6_PRECACHE_MDL = {
+        "models/weapons/w_missile.mdl",          -- РАКЕТЫ (rpg_missile)
+        "models/weapons/w_irifle_ball.mdl",      -- ПЛАЗМА (энергошар AR2)
+        "models/weapons/w_grenade.mdl",          -- ТЯЖЁЛЫЙ (граната)
+        "models/weapons/w_crossbow_bolt.mdl",    -- резерв (арбалетный болт)
+        "models/weapons/shell.mdl",              -- ПУЛЬСАР (гильза)
+        "models/effects/combineball.mdl",        -- AI heavy (combine ball)
+    }
+    for _, m in ipairs(D6_PRECACHE_MDL) do util.PrecacheModel(m) end
+
+    local D6_PRECACHE_SND = {
+        "weapons/rpg/rocketfire1.wav", "weapons/rpg/rocket_explode.wav",
+        "weapons/irifle/irifle_fire2.wav", "weapons/ar2/ar2_fire1.wav",
+        "weapons/grenade/grenade_explode.wav", "weapons/crossbow/fire1.wav",
+        "weapons/shotgun/shotgun_fire6.wav",
+    }
+    for _, s in ipairs(D6_PRECACHE_SND) do util.PrecacheSound(s) end
 end
 
 local function ShootAng(ply)
