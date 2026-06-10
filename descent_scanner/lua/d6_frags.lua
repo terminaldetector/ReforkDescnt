@@ -129,7 +129,7 @@ end
 -- =========================================================
 -- ВСПОМОГАТЕЛЬНАЯ: безопасный взрыв + визуальный эффект
 -- =========================================================
-local function D6_Explode(attacker, pos, radius, damage)
+function D6_Explode(attacker, pos, radius, damage)
     util.BlastDamage(attacker, attacker, pos, radius, damage)
 
     local ef = EffectData()

@@ -164,10 +164,27 @@ end
 -- =========================================================
 -- ЭНЕРГИЯ
 -- =========================================================
-function SWEP:GetEnergy()   return self:GetNWInt("D6_RailEnergy", ENERGY_MAX) end
+-- Энергия рельсы теперь черпается из общего резерва игрока (d6_energy.lua).
+-- D6_RailEnergy сохраняется как зеркало NWInt для кокпит-HUD (Section 2).
+function SWEP:GetEnergy()
+    local owner = self:GetOwner()
+    if IsValid(owner) and D6_Energy then return math.floor(D6_Energy.Get(owner)) end
+    return self:GetNWInt("D6_RailEnergy", ENERGY_MAX)
+end
 function SWEP:SetEnergy(v)
     if not SERVER then return end
-    self:SetNWInt("D6_RailEnergy", math.Clamp(math.floor(v), 0, ENERGY_MAX))
+    v = math.Clamp(math.floor(v), 0, ENERGY_MAX)
+    local owner = self:GetOwner()
+    if IsValid(owner) and D6_Energy then
+        -- расход идёт через SetEnergy(GetEnergy()-COST): переводим абсолют в дельту пула
+        local cur = D6_Energy.Get(owner)
+        if v < cur then
+            D6_Energy.TryConsume(owner, "weapons", cur - v)
+        elseif v > cur then
+            D6_Energy.Add(owner, v - cur)
+        end
+    end
+    self:SetNWInt("D6_RailEnergy", v)  -- зеркало для cockpit
 end
 function SWEP:HasEnergy(cost) return self:GetEnergy() >= cost end
 
@@ -184,15 +201,10 @@ end
 -- =========================================================
 function SWEP:Think()
     if SERVER then
-        -- Регенерация
-        local now = CurTime()
-        local dt  = now - (self.LastRegenT or now)
-        if dt >= 0.1 then
-            self.LastRegenT = now
-            local cur = self:GetEnergy()
-            if cur < ENERGY_MAX then
-                self:SetEnergy(cur + ENERGY_REGEN * dt)
-            end
+        -- Реген централизован в d6_energy.lua; держим зеркало D6_RailEnergy для cockpit
+        local owner = self:GetOwner()
+        if IsValid(owner) and D6_Energy then
+            self:SetNWInt("D6_RailEnergy", math.floor(D6_Energy.Get(owner)))
         end
 
         -- Удержание пропа перед стволом

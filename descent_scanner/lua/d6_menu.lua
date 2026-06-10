@@ -211,7 +211,7 @@ local function DrawMenu()
         px+pw*0.5, py+titleH*0.5, C.textDim, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
     local tabY = py+titleH; local tabH = 28
-    local tabs  = {"◉ КОМАНДЫ","⚙ НАСТРОЙКИ","⌨ МОДИФИКАЦИИ"}
+    local tabs  = {"◉ КОМАНДЫ","⚙ НАСТРОЙКИ","⌨ МОДИФИКАЦИИ","⚡ ЭНЕРГИЯ"}
     local tabW  = pw/#tabs
     for i, name in ipairs(tabs) do
         local tx  = px+(i-1)*tabW
@@ -314,6 +314,52 @@ local function DrawMenu()
         end
         DrawTextShadow("Печатай команду ▸ F9=применить ▸ F10=очистить",
             "D6Menu_Small", px+pw*0.5, py+ph-14, C.textDim, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+    -- ══ Вкладка 4: ЭНЕРГИЯ ════════════════════════════════
+    elseif Menu.tab == 4 then
+        local ply2      = LocalPlayer()
+        local allocW    = math.Round(ply2:GetNWFloat("D6_AllocWeapons", 34))
+        local allocS    = math.Round(ply2:GetNWFloat("D6_AllocShields", 33))
+        local allocE    = math.Round(ply2:GetNWFloat("D6_AllocEngines", 33))
+        local presetName = ply2:GetNWString("D6_EnergyPreset", "balanced")
+        local energy    = ply2:GetNWFloat("D6_Energy",    100)
+        local energyMax = ply2:GetNWFloat("D6_EnergyMax", 100)
+
+        DrawTextShadow("── Распределение энергии ──", "D6Menu_Small", cx+4, cy+4, C.textDim)
+
+        local rowY = cy + 26
+        DrawTextShadow(string.format("ОРУЖИЕ:   %d%%", allocW), "D6Menu_Item",
+            cx+10, rowY,     Color(255,200,80,255))
+        DrawTextShadow(string.format("ЩИТЫ:     %d%%", allocS), "D6Menu_Item",
+            cx+10, rowY+24,  Color(0,200,255,255))
+        DrawTextShadow(string.format("ДВИЖКИ:   %d%%", allocE), "D6Menu_Item",
+            cx+10, rowY+48,  Color(100,255,100,255))
+
+        DrawTextShadow("Пресет: " .. string.upper(presetName), "D6Menu_Item",
+            cx+10, rowY+80, C.text)
+        DrawTextShadow(string.format("Энергия: %d / %d", math.floor(energy), math.floor(energyMax)),
+            "D6Menu_Item", cx+10, rowY+104, Color(0,180,255,255))
+
+        -- Кнопки пресетов
+        local presets = (D6_Energy and D6_Energy.PresetOrder)
+                     or {"balanced","assault","interceptor","siege"}
+        local btnCount = #presets
+        local btnW  = (cw-8) / btnCount
+        local btnH  = 34
+        local btnY  = cy + 160
+        for i, pname in ipairs(presets) do
+            local bx      = cx + (i-1)*btnW
+            local isActive = (presetName == pname)
+            DrawPanel(bx, btnY, btnW-4, btnH,
+                isActive and C.tabAct or C.btn,
+                isActive and C.border  or C.border2, 1)
+            DrawTextShadow(string.upper(pname), "D6Menu_Item",
+                bx + (btnW-4)*0.5, btnY + btnH*0.5,
+                isActive and C.hot or C.textDim, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        end
+
+        DrawTextShadow("Клик или [1-4] для смены пресета",
+            "D6Menu_Small", px+pw*0.5, py+ph-14, C.textDim, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
 
     -- Нижняя строка статуса
@@ -330,7 +376,7 @@ local function DrawMenu()
     local mode = IsValid(wep) and D6_WEP_MODE[wep:GetClass()] or -1
     local modeNames = {[0]="ПУЛЬСАР",[1]="ПЛАЗМА",[2]="ТЯЖЁЛЫЙ",[3]="ЛАЗЕР",[4]="РАКЕТЫ"}
     DrawTextShadow(
-        string.format("6DOF: %s  |  Режим: %s  |  [1]Команды [2]Настройки [3]Моды",
+        string.format("6DOF: %s  |  Режим: %s  |  [1]Команды [2]Настройки [3]Моды [4]Энергия",
             d6 and "ON" or "OFF",
             mode >= 0 and (modeNames[mode] or "?") or "—"),
         "D6Menu_Small", px+pw*0.5, statusY+11, C.textDim, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
@@ -417,6 +463,7 @@ hook.Add("PlayerButtonDown", "D6Menu_Keys", function(key)
     if key == KEY_1 then Menu.tab=1; return true end
     if key == KEY_2 then Menu.tab=2; return true end
     if key == KEY_3 then Menu.tab=3; return true end
+    if key == KEY_4 then Menu.tab=4; return true end
 
     if Menu.tab == 1 then
         if key==KEY_UP    then Menu.hotCmd=math.max(1,(Menu.hotCmd or 1)-1)
@@ -477,9 +524,9 @@ hook.Add("GUI.MousePressed", "D6Menu_Click", function(btn)
     local mx,my = gui.MousePos()
     local px,py,pw,ph = GetMenuLayout()
 
-    local tabY=py+36; local tabH=28; local tabW=pw/3
+    local tabY=py+36; local tabH=28; local tabW=pw/4
     if my>=tabY and my<=tabY+tabH then
-        for i=1,3 do
+        for i=1,4 do
             local tx=px+(i-1)*tabW
             if mx>=tx and mx<=tx+tabW then Menu.tab=i; return end
         end
@@ -532,6 +579,21 @@ hook.Add("GUI.MousePressed", "D6Menu_Click", function(btn)
             Menu.modText=""; Menu.modCursor=0; return end
         if mx>=cx+226 and mx<=cx+366 and my>=btnY and my<=btnY+26 then
             showExamples=not showExamples; return end
+    end
+
+    if Menu.tab==4 then
+        local presets  = (D6_Energy and D6_Energy.PresetOrder)
+                      or {"balanced","assault","interceptor","siege"}
+        local btnCount = #presets
+        local btnW     = (cw-8) / btnCount
+        local btnH     = 34
+        local btnY     = cy + 160
+        for i, pname in ipairs(presets) do
+            local bx = cx+(i-1)*btnW
+            if mx>=bx and mx<=bx+btnW-4 and my>=btnY and my<=btnY+btnH then
+                RunConsoleCommand("d6_energy_preset", pname); return
+            end
+        end
     end
 end)
 

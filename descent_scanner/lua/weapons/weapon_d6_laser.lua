@@ -77,14 +77,12 @@ function SWEP:Think()
         self:SetNWBool("D6_LaserOn", false); laserOn = false
     end
 
-    local e  = owner:GetNWFloat("D6_WepEnergy", ENERGY_MAX)
     local ft = FrameTime()
 
     if laserOn then
-        if e <= 0 then
+        if not D6_Energy.TryConsume(owner, "weapons", LASER_DRAIN * ft) then
             self:SetNWBool("D6_LaserOn", false); laserOn = false
         else
-            owner:SetNWFloat("D6_WepEnergy", math.max(0, e - LASER_DRAIN * ft))
 
             local sa  = ShootAng(owner)
             local src = owner:GetShootPos()
@@ -112,9 +110,7 @@ function SWEP:Think()
     end
 
     if not laserOn then
-        if e < ENERGY_MAX then
-            owner:SetNWFloat("D6_WepEnergy", math.min(ENERGY_MAX, e + ENERGY_REGEN * ft))
-        end
+        -- реген теперь централизован в d6_energy.lua (D6_Energy.RegenTick)
         -- "выключен" шлём один раз, не каждый тик
         if self._BeamWasOn then
             self._BeamWasOn = false

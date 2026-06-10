@@ -51,6 +51,8 @@ if SERVER then
     AddCSLuaFile("d6_ang_patch.lua")
     AddCSLuaFile("d6_weapon_registry.lua")
     AddCSLuaFile("d6_nav.lua")       -- nav graph debug overlay
+    AddCSLuaFile("d6_energy.lua")    -- энергорезерв (Stage 6)
+    AddCSLuaFile("d6_shield.lua")    -- щиты/урон (Stage 7)
 end
 
 local function TryInclude(path)
@@ -63,12 +65,15 @@ end
 
 if SERVER then
     TryInclude("d6_core.lua")
+    TryInclude("d6_energy.lua")      -- Stage 6: до оружий/щитов/модулей
     TryInclude("d6_ai.lua")
-    TryInclude("d6_frags.lua")
+    TryInclude("d6_frags.lua")       -- экспортирует глобальный D6_Explode
+    TryInclude("d6_shield.lua")      -- Stage 7: после frags (нужен D6_Explode) и energy
     TryInclude("d6_ang_patch.lua")
     TryInclude("d6_weapon_registry.lua")
     TryInclude("d6_nav.lua")
-    TryInclude("d6_ai_roles.lua")
+    TryInclude("d6_modules.lua")     -- Stage 8: регистрирует модули + диспетчер
+    TryInclude("d6_ai_roles.lua")    -- тонкий: LOADOUTS + SpawnD6Role-обёртка
     TryInclude("d6_encounter.lua")
     -- Меню — только клиент, но включаем чтобы сработал SERVER-раздел в других файлах
 end
@@ -82,6 +87,8 @@ if CLIENT then
     include("d6_ang_patch.lua")
     include("d6_weapon_registry.lua")
     include("d6_nav.lua")            -- nav graph client debug
+    include("d6_energy.lua")         -- энергорезерв (геттеры для HUD/меню)
+    include("d6_shield.lua")         -- щиты (геттеры для cockpit)
 end
 
 -- ── Биндинги — подсказка при входе ───────────────────────

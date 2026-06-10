@@ -97,8 +97,16 @@ hook.Add("HUDPaint", "D6_Cockpit", function()
         surface.DrawLine(lx, PY + 4, lx, PY + PH - 4)
     end
 
-    -- ===== СЕКЦИЯ 1: ХП / Щиты =====
+    -- ===== СЕКЦИЯ 1: ЩИТ / КОРПУС =====
     local s1x = 8
+    local barW = sectionW - 16
+
+    local shield    = ply:GetNWFloat("D6_Shield", 100)
+    local shieldMax = ply:GetNWFloat("D6_ShieldMax", 100)
+    if shieldMax <= 0 then shieldMax = 100 end
+    local shFrac = math.Clamp(shield / shieldMax, 0, 1)
+    local shCol  = Color(0, 210, 255, 255)
+
     local hp    = ply:Health()
     local hpMax = ply:GetMaxHealth()
     if hpMax <= 0 then hpMax = 100 end
@@ -107,16 +115,19 @@ hook.Add("HUDPaint", "D6_Cockpit", function()
                  or hpFrac > 0.3 and COL.shMid
                  or COL.shLow
 
-    Label("ЩИТЫ", "D6_CockSmall", s1x, PY + 6, COL.dim)
-    Bar(s1x, PY + 20, sectionW - 16, 14, hpFrac, hpColor, Color(10,20,10,200), true)
-    Label(tostring(hp) .. " / " .. tostring(hpMax), "D6_CockSmall",
-        s1x + (sectionW-16)*0.5, PY + 22, COL.white,
-        TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+    Label("ЩИТ", "D6_CockSmall", s1x, PY + 5, COL.dim)
+    Bar(s1x, PY + 16, barW, 8, shFrac, shCol, Color(10,20,30,200), true)
+    Label(tostring(math.floor(shield)) .. " / " .. tostring(math.floor(shieldMax)),
+        "D6_CockSmall", s1x + barW*0.5, PY + 17, COL.white, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
 
-    -- Число HP крупно
-    Label(tostring(hp), "D6_CockBig",
-        s1x + (sectionW-16)*0.5, PY + 38, hpColor,
-        TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+    Label("КОРПУС", "D6_CockSmall", s1x, PY + 28, COL.dim)
+    Bar(s1x, PY + 39, barW, 8, hpFrac, hpColor, Color(10,20,10,200), true)
+    Label(tostring(hp) .. " / " .. tostring(hpMax),
+        "D6_CockSmall", s1x + barW*0.5, PY + 40, COL.white, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+
+    -- Число щита крупно
+    Label(tostring(math.floor(shield)), "D6_CockBig",
+        s1x + barW*0.5, PY + 52, shCol, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
 
     -- Вспышка повреждения: красная рамка экрана
     if CurTime() < DmgFlash then

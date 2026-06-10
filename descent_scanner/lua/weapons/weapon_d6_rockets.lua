@@ -170,15 +170,7 @@ end
 function SWEP:Deploy()  return true end
 function SWEP:Holster() return true end
 
-function SWEP:Think()
-    if not SERVER then return end
-    local owner = self:GetOwner()
-    if not IsValid(owner) then return end
-    local e = owner:GetNWFloat("D6_WepEnergy", ENERGY_MAX)
-    if e < ENERGY_MAX then
-        owner:SetNWFloat("D6_WepEnergy", math.min(ENERGY_MAX, e + ENERGY_REGEN * FrameTime()))
-    end
-end
+-- Реген энергии теперь централизован в d6_energy.lua (D6_Energy.RegenTick).
 
 function SWEP:SecondaryAttack()
     if not SERVER then return end
@@ -196,11 +188,9 @@ function SWEP:PrimaryAttack()
     local owner = self:GetOwner()
     if not IsValid(owner) then return end
 
-    local energy = owner:GetNWFloat("D6_WepEnergy", ENERGY_MAX)
-    if energy < ENERGY_COST then
+    if not D6_Energy.TryConsume(owner, "weapons", ENERGY_COST) then
         owner:EmitSound("buttons/button10.wav", 65, 100); return
     end
-    owner:SetNWFloat("D6_WepEnergy", energy - ENERGY_COST)
     self:SetNextPrimaryFire(CurTime() + 0.8)
 
     local sa  = ShootAng(owner)

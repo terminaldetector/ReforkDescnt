@@ -208,6 +208,9 @@ if SERVER then
         ply.D6DashCD = ply.D6DashCD or 0
         if ct < ply.D6DashCD then return end
         if ply.D6DashOn then return end
+        if not D6_Energy.TryConsume(ply, "engines", 15) then
+            ply:EmitSound("buttons/button10.wav", 65, 100); return
+        end
 
         local sa  = ShootAng(ply)
         local cmd = ply:GetCurrentCommand()
@@ -242,6 +245,9 @@ if SERVER then
         local ct = CurTime()
         ply.D6DashCD = ply.D6DashCD or 0
         if ct < ply.D6DashCD or ply.D6DashOn then return end
+        if not D6_Energy.TryConsume(ply, "engines", 15) then
+            ply:EmitSound("buttons/button10.wav", 65, 100); return
+        end
 
         -- Направление закодировано как три int (-1/0/1) для fwd/right/up
         local fx = net.ReadInt(4)
@@ -508,7 +514,18 @@ hook.Add("SetupMove", "D6_Flight_Move", function(ply, mvd, cmd)
     if hasInput then ply.D6LastInput = CurTime() end
     if SERVER then ply:SetNWFloat("D6LastInput", ply.D6LastInput or CurTime()) end
 
-    local arMult = (ply.D6AlwaysRun and 1.9 or 1.0)
+    if SERVER and ply.D6AlwaysRun and hasInput then
+        if not D6_Energy.TryConsume(ply, "engines", 6 * ft) then
+            ply.D6AlwaysRun = false
+            ply:SetNWBool("D6AlwaysRun", false)
+            net.Start("D6_AlwaysRunSync")
+                net.WriteEntity(ply); net.WriteBool(false)
+            net.Broadcast()
+        end
+    end
+
+    local eng    = D6_Energy.GetAlloc(ply, "engines")
+    local arMult = ply.D6AlwaysRun and Lerp(eng, 1.3, 1.9) or 1.0
     local ang    = cmd:GetViewAngles()
 
     -- ─── [Descent] асимметричная тяга: strafe 80%, vert 80% ───
@@ -539,7 +556,7 @@ hook.Add("SetupMove", "D6_Flight_Move", function(ply, mvd, cmd)
     end
 
     local spd = ply.D6Vel:Length()
-    local cap = maxSpeed * (ply.D6AlwaysRun and 1.8 or 1.0)
+    local cap = maxSpeed * (ply.D6AlwaysRun and Lerp(eng, 1.3, 1.8) or 1.0)
     if spd > cap then ply.D6Vel = ply.D6Vel * (cap / spd) end
 
     if SERVER then
