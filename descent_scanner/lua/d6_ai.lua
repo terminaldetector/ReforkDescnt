@@ -695,7 +695,8 @@ local function GetSwarmNeighbors(drone)
         if IsValid(ent) and ent ~= drone
         and ent:GetClass() == "npc_cscanner"
         and ent.D6_Variant
-        and not BOIDS_EXCLUDED[ent.D6_Variant] then
+        and not BOIDS_EXCLUDED[ent.D6_Variant]
+        and not (D6_FragsBoidsExclude and D6_FragsBoidsExclude[ent.D6_Variant]) then
             table.insert(neighbors, ent)
         end
     end
@@ -707,6 +708,7 @@ hook.Add("Think", "D6_Swarm_AI_Core", function()
         if not IsValid(drone) then continue end
         if not drone.D6_Variant then continue end
         if BOIDS_EXCLUDED[drone.D6_Variant] then continue end
+        if D6_FragsBoidsExclude and D6_FragsBoidsExclude[drone.D6_Variant] then continue end
         if drone.D6_Variant == "grav" then continue end
 
         local phys = SafeGetPhys(drone)

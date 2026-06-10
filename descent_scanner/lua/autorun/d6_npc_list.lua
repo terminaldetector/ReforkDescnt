@@ -45,6 +45,22 @@ if CLIENT then
     RegNPC("d6_npc_bestiary",  "D6: Весь бестиарий",     "npc_headcrab",
         "models/headcrab.mdl",                      "Descent 6DOF / Группы")
 
+    -- Role variants
+    RegNPC("d6_npc_assault",     "D6: Штурмовик",         "npc_cscanner",
+        "models/combine_scanner.mdl",               "Descent 6DOF / Роли")
+
+    RegNPC("d6_npc_interceptor", "D6: Перехватчик",       "npc_cscanner",
+        "models/combine_scanner.mdl",               "Descent 6DOF / Роли")
+
+    RegNPC("d6_npc_artillery",   "D6: Артиллерия",        "npc_cscanner",
+        "models/combine_scanner.mdl",               "Descent 6DOF / Роли")
+
+    RegNPC("d6_npc_support",     "D6: Саппорт",           "npc_cscanner",
+        "models/combine_scanner.mdl",               "Descent 6DOF / Роли")
+
+    RegNPC("d6_npc_heavy_elite", "D6: Тяжёлая элита",     "npc_cscanner",
+        "models/combine_scanner.mdl",               "Descent 6DOF / Роли")
+
 end
 
 if SERVER then
@@ -172,6 +188,47 @@ if SERVER then
 
         d6_npc_bestiary = function(ply)
             if IsValid(ply) then ply:ConCommand("6dof_spawn_bestiary") end
+        end,
+
+        -- Role variants
+        d6_npc_assault = function(ply)
+            if not IsValid(ply) then return end
+            if SpawnD6Role then
+                local tr = ply:GetEyeTrace()
+                SpawnD6Role("assault", tr.HitPos + tr.HitNormal * 50, ply)
+            end
+        end,
+
+        d6_npc_interceptor = function(ply)
+            if not IsValid(ply) then return end
+            if SpawnD6Role then
+                local tr = ply:GetEyeTrace()
+                SpawnD6Role("interceptor", tr.HitPos + tr.HitNormal * 50, ply)
+            end
+        end,
+
+        d6_npc_artillery = function(ply)
+            if not IsValid(ply) then return end
+            if SpawnD6Role then
+                local tr = ply:GetEyeTrace()
+                SpawnD6Role("artillery", tr.HitPos + tr.HitNormal * 50, ply)
+            end
+        end,
+
+        d6_npc_support = function(ply)
+            if not IsValid(ply) then return end
+            if SpawnD6Role then
+                local tr = ply:GetEyeTrace()
+                SpawnD6Role("support", tr.HitPos + tr.HitNormal * 50, ply)
+            end
+        end,
+
+        d6_npc_heavy_elite = function(ply)
+            if not IsValid(ply) then return end
+            if SpawnD6Role then
+                local tr = ply:GetEyeTrace()
+                SpawnD6Role("heavy_elite", tr.HitPos + tr.HitNormal * 50, ply)
+            end
         end,
     }
 

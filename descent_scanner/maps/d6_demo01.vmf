@@ -1,0 +1,377 @@
+versioninfo
+{
+	"editorversion" "400"
+	"editorbuild"   "8075"
+	"mapversion"    "1"
+	"formatversion" "100"
+	"prefab"        "0"
+}
+visgroups
+{
+}
+viewsettings
+{
+	"bSnapToGrid"  "1"
+	"bShowGrid"    "1"
+	"nGridSpacing" "64"
+	"bShow3DGrid"  "0"
+}
+world
+{
+	"id"           "1"
+	"mapversion"   "1"
+	"classname"    "worldspawn"
+	"skyname"      "sky_black_nofog"
+	"detailmaterial" "detail/detailsprites"
+	"detailvbsp"   "detail.vbsp"
+
+	// ── SECTOR 1: HANGAR ─── X:0-1024, Y:0-1024, Z:0-512 ──────────────────
+	// Floor
+	solid { "id" "10"
+		side { "id" "100" "plane" "(0 1024 0) (1024 1024 0) (1024 0 0)" "material" "DEV/DEV_MEASUREGENERIC01" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 -1 0 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "101" "plane" "(0 0 -16) (1024 0 -16) (1024 1024 -16)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 -1 0 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "102" "plane" "(0 1024 -16) (0 1024 0) (1024 1024 0)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "103" "plane" "(1024 0 -16) (1024 0 0) (0 0 0)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "104" "plane" "(1024 1024 -16) (1024 1024 0) (1024 0 0)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "105" "plane" "(0 0 -16) (0 0 0) (0 1024 0)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		editor { "color" "180 180 220" "visgroupshown" "1" "visgroupautoshown" "1" }
+	}
+	// Ceiling
+	solid { "id" "11"
+		side { "id" "110" "plane" "(0 1024 528) (1024 1024 528) (1024 0 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 -1 0 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "111" "plane" "(0 0 512) (1024 0 512) (1024 1024 512)" "material" "DEV/DEV_MEASUREGENERIC01" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 -1 0 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "112" "plane" "(0 1024 512) (0 1024 528) (1024 1024 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "113" "plane" "(1024 0 512) (1024 0 528) (0 0 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "114" "plane" "(1024 1024 512) (1024 1024 528) (1024 0 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "115" "plane" "(0 0 512) (0 0 528) (0 1024 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		editor { "color" "180 180 220" "visgroupshown" "1" "visgroupautoshown" "1" }
+	}
+	// Wall West
+	solid { "id" "12"
+		side { "id" "120" "plane" "(-16 1040 528) (0 1040 528) (0 -16 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "121" "plane" "(-16 -16 -16) (0 -16 -16) (0 1040 -16)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "122" "plane" "(-16 1040 -16) (-16 1040 528) (0 1040 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "123" "plane" "(0 -16 -16) (0 -16 528) (-16 -16 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "124" "plane" "(0 1040 -16) (0 1040 528) (0 -16 528)" "material" "DEV/DEV_MEASUREGENERIC01B" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "125" "plane" "(-16 -16 -16) (-16 -16 528) (-16 1040 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		editor { "color" "180 180 220" "visgroupshown" "1" "visgroupautoshown" "1" }
+	}
+	// Wall East (with doorway gap 448-576 Y, 0-256 Z — just close off 0-448 and 576-1024)
+	solid { "id" "13"
+		side { "id" "130" "plane" "(1024 448 256) (1040 448 256) (1040 0 256)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "131" "plane" "(1024 0 -16) (1040 0 -16) (1040 448 -16)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "132" "plane" "(1024 448 -16) (1024 448 256) (1040 448 256)" "material" "DEV/DEV_MEASUREGENERIC01B" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "133" "plane" "(1040 0 -16) (1040 0 256) (1024 0 256)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "134" "plane" "(1040 448 -16) (1040 448 256) (1040 0 256)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "135" "plane" "(1024 0 -16) (1024 0 256) (1024 448 256)" "material" "DEV/DEV_MEASUREGENERIC01B" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		editor { "color" "180 180 220" "visgroupshown" "1" "visgroupautoshown" "1" }
+	}
+	solid { "id" "14"
+		side { "id" "140" "plane" "(1024 1040 528) (1040 1040 528) (1040 576 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "141" "plane" "(1024 576 -16) (1040 576 -16) (1040 1040 -16)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "142" "plane" "(1024 1040 -16) (1024 1040 528) (1040 1040 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "143" "plane" "(1040 576 -16) (1040 576 528) (1024 576 528)" "material" "DEV/DEV_MEASUREGENERIC01B" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "144" "plane" "(1040 1040 -16) (1040 1040 528) (1040 576 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "145" "plane" "(1024 576 -16) (1024 576 528) (1024 1040 528)" "material" "DEV/DEV_MEASUREGENERIC01B" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		editor { "color" "180 180 220" "visgroupshown" "1" "visgroupautoshown" "1" }
+	}
+	// Upper east wall (above doorway)
+	solid { "id" "15"
+		side { "id" "150" "plane" "(1024 1040 528) (1040 1040 528) (1040 0 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "151" "plane" "(1024 0 256) (1040 0 256) (1040 1040 256)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "152" "plane" "(1024 1040 256) (1024 1040 528) (1040 1040 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "153" "plane" "(1040 0 256) (1040 0 528) (1024 0 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "154" "plane" "(1040 1040 256) (1040 1040 528) (1040 0 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "155" "plane" "(1024 0 256) (1024 0 528) (1024 1040 528)" "material" "DEV/DEV_MEASUREGENERIC01B" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		editor { "color" "180 180 220" "visgroupshown" "1" "visgroupautoshown" "1" }
+	}
+	// Wall South
+	solid { "id" "16"
+		side { "id" "160" "plane" "(-16 0 528) (1040 0 528) (1040 -16 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "161" "plane" "(-16 -16 -16) (1040 -16 -16) (1040 0 -16)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "162" "plane" "(-16 0 -16) (-16 0 528) (1040 0 528)" "material" "DEV/DEV_MEASUREGENERIC01B" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "163" "plane" "(1040 -16 -16) (1040 -16 528) (-16 -16 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "164" "plane" "(1040 0 -16) (1040 0 528) (1040 -16 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "165" "plane" "(-16 -16 -16) (-16 -16 528) (-16 0 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		editor { "color" "180 180 220" "visgroupshown" "1" "visgroupautoshown" "1" }
+	}
+	// Wall North
+	solid { "id" "17"
+		side { "id" "170" "plane" "(-16 1040 528) (1040 1040 528) (1040 1024 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "171" "plane" "(-16 1024 -16) (1040 1024 -16) (1040 1040 -16)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "172" "plane" "(-16 1040 -16) (-16 1040 528) (1040 1040 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "173" "plane" "(1040 1024 -16) (1040 1024 528) (-16 1024 528)" "material" "DEV/DEV_MEASUREGENERIC01B" "uaxis" "[1 0 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "174" "plane" "(1040 1040 -16) (1040 1040 528) (1040 1024 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		side { "id" "175" "plane" "(-16 1024 -16) (-16 1024 528) (-16 1040 528)" "material" "TOOLS/TOOLSNODRAW" "uaxis" "[0 1 0 0] 0.25" "vaxis" "[0 0 -1 0] 0.25" "rotation" "0" "lightmapscale" "16" "smoothing_groups" "0" }
+		editor { "color" "180 180 220" "visgroupshown" "1" "visgroupautoshown" "1" }
+	}
+}
+
+// ─── ENTITIES ─────────────────────────────────────────────────────────────
+
+// ── Player spawn
+entity { "id" "200" "classname" "info_player_start" "origin" "256 256 128" "angles" "0 0 0" }
+
+// ── Sky / lighting
+entity
+{
+	"id" "201"
+	"classname" "light_environment"
+	"origin" "512 512 400"
+	"angles" "0 45 0"
+	"pitch" "-60"
+	"_light" "200 200 180 400"
+	"_ambient" "80 90 100 200"
+}
+
+entity
+{
+	"id" "202"
+	"classname" "env_fog_controller"
+	"origin" "512 512 256"
+	"fogstart" "512"
+	"fogend"   "3000"
+	"fogmaxdensity" "0.9"
+	"fogcolor" "10 10 30"
+	"use_angles" "0"
+	"fogenable" "1"
+}
+
+// ── SECTOR 1: HANGAR ─────────────────────────────────────
+
+// Dock
+entity
+{
+	"id" "210"
+	"classname" "d6_dock"
+	"origin" "150 512 80"
+	"targetname" "dock_hangar"
+	"heal_amount" "20"
+	"energy_amount" "15"
+	"radius" "220"
+	"enabled" "1"
+}
+
+// Checkpoint
+entity
+{
+	"id" "211"
+	"classname" "d6_checkpoint"
+	"origin" "512 512 64"
+	"targetname" "cp_hangar"
+	"radius" "150"
+	"single_use" "0"
+}
+
+// Nav nodes (Hangar — patrol group "hangar")
+entity { "id" "220" "classname" "d6_nav_node" "origin" "256 256 200" "radius" "80" "patrol_group" "hangar" }
+entity { "id" "221" "classname" "d6_nav_node" "origin" "768 256 200" "radius" "80" "patrol_group" "hangar" }
+entity { "id" "222" "classname" "d6_nav_node" "origin" "512 512 300" "radius" "80" "patrol_group" "hangar" }
+entity { "id" "223" "classname" "d6_nav_node" "origin" "256 768 200" "radius" "80" "patrol_group" "hangar" }
+entity { "id" "224" "classname" "d6_nav_node" "origin" "768 768 200" "radius" "80" "patrol_group" "hangar" }
+
+// Teleport destination back into Sector 1
+entity { "id" "231" "classname" "info_teleport_destination" "targetname" "tp_dest_s1" "origin" "64 512 128" "angles" "0 90 0" }
+// NOTE: Add trigger_teleport brush in Hammer from X:960-1024, Y:448-576, Z:0-256
+//       targeting "tp_dest_s2" to link Sector 1 → Sector 2.
+
+// ── SECTOR 2: TRAINING ZONE ──────────────────────────────
+// (rooms in separate X offsets — described via entities only, use simple walls)
+
+// This map uses trigger_teleport for sector transitions.
+// The sectors beyond Sector 1 are defined entirely by entities placed
+// in 3D space. Mappers should build the room geometry around them in Hammer.
+// Entity positions assume sectors start at X offsets:
+//   S2: X+2000, S3: X+4000, S4: X+6000 (shaft), S5: X+8000, S6: X+10000, S7: X+12000
+
+// Nav nodes (Training)
+entity { "id" "300" "classname" "d6_nav_node" "origin" "2256 256 200" "radius" "80" "patrol_group" "training" }
+entity { "id" "301" "classname" "d6_nav_node" "origin" "2512 512 280" "radius" "80" "patrol_group" "training" }
+entity { "id" "302" "classname" "d6_nav_node" "origin" "2768 256 200" "radius" "80" "patrol_group" "training" }
+entity { "id" "303" "classname" "d6_nav_node" "origin" "2512 768 200" "radius" "80" "patrol_group" "training" }
+
+// NPC Spawners (Training)
+entity
+{
+	"id" "310"
+	"classname" "d6_npc_spawner"
+	"origin" "2200 300 200"
+	"targetname" "spawner_t1"
+	"variant" "assault"
+	"spawn_count" "2"
+	"respawn" "0"
+	"enabled" "1"
+}
+entity
+{
+	"id" "311"
+	"classname" "d6_npc_spawner"
+	"origin" "2800 700 200"
+	"targetname" "spawner_t2"
+	"variant" "interceptor"
+	"spawn_count" "2"
+	"respawn" "0"
+	"enabled" "1"
+}
+
+// Teleport destinations
+entity { "id" "320" "classname" "info_teleport_destination" "targetname" "tp_dest_s2" "origin" "2050 512 128" "angles" "0 90 0" }
+entity { "id" "321" "classname" "info_teleport_destination" "targetname" "tp_dest_s3" "origin" "4050 512 128" "angles" "0 90 0" }
+
+// ── SECTOR 3: REACTOR ────────────────────────────────────
+
+// Nav nodes (Reactor)
+entity { "id" "400" "classname" "d6_nav_node" "origin" "4256 256 250" "radius" "80" "patrol_group" "reactor" }
+entity { "id" "401" "classname" "d6_nav_node" "origin" "4512 512 350" "radius" "80" "patrol_group" "reactor" }
+entity { "id" "402" "classname" "d6_nav_node" "origin" "4768 256 250" "radius" "80" "patrol_group" "reactor" }
+entity { "id" "403" "classname" "d6_nav_node" "origin" "4512 768 250" "radius" "80" "patrol_group" "reactor" }
+
+// Encounter controller (Reactor — wave 1)
+entity
+{
+	"id" "410"
+	"classname" "d6_encounter_controller"
+	"origin" "4512 512 256"
+	"targetname" "enc_reactor"
+	"waves" "mg:2,rpg:1|laser:2,rpg:1"
+	"auto_start" "1"
+	"trigger_radius" "900"
+	"spawn_delay" "2.0"
+	"wave_delay" "5.0"
+	"boss_wave" "0"
+}
+
+// Teleport destinations
+entity { "id" "420" "classname" "info_teleport_destination" "targetname" "tp_dest_s4" "origin" "6050 128 128" "angles" "0 90 0" }
+
+// ── SECTOR 4: VERTICAL SHAFT ─────────────────────────────
+// Narrow 256×256 column, 2048 units tall — key 6DOF test area
+
+// Nav nodes (Shaft — vertical chain)
+entity { "id" "500" "classname" "d6_nav_node" "origin" "6128 128 100"  "radius" "80" "patrol_group" "shaft" }
+entity { "id" "501" "classname" "d6_nav_node" "origin" "6128 128 400"  "radius" "80" "patrol_group" "shaft" }
+entity { "id" "502" "classname" "d6_nav_node" "origin" "6128 128 700"  "radius" "80" "patrol_group" "shaft" }
+entity { "id" "503" "classname" "d6_nav_node" "origin" "6128 128 1000" "radius" "80" "patrol_group" "shaft" }
+entity { "id" "504" "classname" "d6_nav_node" "origin" "6128 128 1300" "radius" "80" "patrol_group" "shaft" }
+entity { "id" "505" "classname" "d6_nav_node" "origin" "6128 128 1600" "radius" "80" "patrol_group" "shaft" }
+entity { "id" "506" "classname" "d6_nav_node" "origin" "6128 128 1900" "radius" "80" "patrol_group" "shaft" }
+
+// Interceptor spawner in shaft
+entity
+{
+	"id" "510"
+	"classname" "d6_npc_spawner"
+	"origin" "6128 128 1000"
+	"targetname" "spawner_shaft"
+	"variant" "interceptor"
+	"spawn_count" "1"
+	"respawn" "1"
+	"respawn_delay" "20"
+	"enabled" "1"
+}
+
+// Teleport destinations
+entity { "id" "520" "classname" "info_teleport_destination" "targetname" "tp_dest_s5" "origin" "8050 512 128" "angles" "0 90 0" }
+
+// ── SECTOR 5: COMBAT ARENA ───────────────────────────────
+
+// Nav nodes (Arena)
+entity { "id" "600" "classname" "d6_nav_node" "origin" "8256 256 250"  "radius" "100" "patrol_group" "arena" }
+entity { "id" "601" "classname" "d6_nav_node" "origin" "8512 512 400"  "radius" "100" "patrol_group" "arena" }
+entity { "id" "602" "classname" "d6_nav_node" "origin" "8768 256 250"  "radius" "100" "patrol_group" "arena" }
+entity { "id" "603" "classname" "d6_nav_node" "origin" "8512 768 250"  "radius" "100" "patrol_group" "arena" }
+entity { "id" "604" "classname" "d6_nav_node" "origin" "8256 768 400"  "radius" "100" "patrol_group" "arena" }
+entity { "id" "605" "classname" "d6_nav_node" "origin" "8768 768 400"  "radius" "100" "patrol_group" "arena" }
+
+// Encounter controller (Arena — wave 2-3, boss on wave 3)
+entity
+{
+	"id" "610"
+	"classname" "d6_encounter_controller"
+	"origin" "8512 512 300"
+	"targetname" "enc_arena"
+	"waves" "assault:2,interceptor:1|artillery:2,support:1|heavy_elite:1,assault:2"
+	"auto_start" "1"
+	"trigger_radius" "1100"
+	"spawn_delay" "3.0"
+	"wave_delay" "6.0"
+	"boss_wave" "3"
+	"boss_variant" "heavy_elite"
+}
+
+// Checkpoint
+entity
+{
+	"id" "611"
+	"classname" "d6_checkpoint"
+	"origin" "8100 512 80"
+	"targetname" "cp_arena"
+	"radius" "150"
+	"single_use" "1"
+}
+
+// Teleport destinations
+entity { "id" "620" "classname" "info_teleport_destination" "targetname" "tp_dest_s6" "origin" "10050 256 128" "angles" "0 90 0" }
+
+// ── SECTOR 6: BOSS ROOM ──────────────────────────────────
+
+// Nav nodes (Boss)
+entity { "id" "700" "classname" "d6_nav_node" "origin" "10256 256 200" "radius" "80" "patrol_group" "boss" }
+entity { "id" "701" "classname" "d6_nav_node" "origin" "10512 256 300" "radius" "80" "patrol_group" "boss" }
+
+// Heavy elite spawner
+entity
+{
+	"id" "710"
+	"classname" "d6_npc_spawner"
+	"origin" "10384 256 200"
+	"targetname" "spawner_boss"
+	"variant" "heavy_elite"
+	"spawn_count" "1"
+	"respawn" "0"
+	"enabled" "1"
+}
+
+// Teleport destinations
+entity { "id" "720" "classname" "info_teleport_destination" "targetname" "tp_dest_s7" "origin" "12050 256 80" "angles" "0 90 0" }
+
+// ── SECTOR 7: SERVICE DOCK ───────────────────────────────
+
+// Nav nodes (Dock)
+entity { "id" "800" "classname" "d6_nav_node" "origin" "12256 256 100" "radius" "80" "patrol_group" "dock" }
+entity { "id" "801" "classname" "d6_nav_node" "origin" "12512 256 100" "radius" "80" "patrol_group" "dock" }
+
+// Repair dock
+entity
+{
+	"id" "810"
+	"classname" "d6_dock"
+	"origin" "12384 256 80"
+	"targetname" "dock_service"
+	"heal_amount" "30"
+	"energy_amount" "30"
+	"radius" "280"
+	"enabled" "1"
+}
+
+// Final objective
+entity
+{
+	"id" "820"
+	"classname" "d6_objective"
+	"origin" "12512 256 100"
+	"targetname" "obj_reach_dock"
+	"objective_type" "reach"
+	"touch_radius" "150"
+}
+
+// Secondary spawn
+entity { "id" "830" "classname" "info_player_start" "origin" "12128 256 80" "angles" "0 90 0" }
+
+cameras { "activecamera" "-1" }
+cordon
+{
+	"mins" "(-16 -16 -16)"
+	"maxs" "(13000 1100 2100)"
+	"active" "0"
+}

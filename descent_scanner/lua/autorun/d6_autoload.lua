@@ -50,6 +50,7 @@ if SERVER then
     AddCSLuaFile("d6_menu.lua")
     AddCSLuaFile("d6_ang_patch.lua")
     AddCSLuaFile("d6_weapon_registry.lua")
+    AddCSLuaFile("d6_nav.lua")       -- nav graph debug overlay
 end
 
 local function TryInclude(path)
@@ -66,6 +67,9 @@ if SERVER then
     TryInclude("d6_frags.lua")
     TryInclude("d6_ang_patch.lua")
     TryInclude("d6_weapon_registry.lua")
+    TryInclude("d6_nav.lua")
+    TryInclude("d6_ai_roles.lua")
+    TryInclude("d6_encounter.lua")
     -- Меню — только клиент, но включаем чтобы сработал SERVER-раздел в других файлах
 end
 
@@ -77,6 +81,7 @@ if CLIENT then
     include("d6_menu.lua")
     include("d6_ang_patch.lua")
     include("d6_weapon_registry.lua")
+    include("d6_nav.lua")            -- nav graph client debug
 end
 
 -- ── Биндинги — подсказка при входе ───────────────────────
