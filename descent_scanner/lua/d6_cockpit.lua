@@ -235,6 +235,24 @@ hook.Add("HUDPaint", "D6_Cockpit", function()
     surface.SetDrawColor(COL.border2)
     surface.DrawLine(mid, rollBarY - 1, mid, rollBarY + 6)  -- центральная метка
 
+    -- Маркер сноса: куда дрон фактически летит vs. куда смотрит
+    if speed > 80 and D6Ang then
+        local velDir = D6Vel:GetNormalized()
+        local driftR = velDir:Dot(D6Ang:Right())
+        local driftU = velDir:Dot(D6Ang:Up())
+        local cx2, cy2 = sw * 0.5, sh * 0.5
+        local scale = 60
+        local mx = cx2 + driftR * scale
+        local my = cy2 - driftU * scale
+        local alpha = math.Clamp((speed - 80) / 200, 0, 1) * 200
+        surface.SetDrawColor(0, 255, 180, alpha)
+        surface.DrawLine(mx - 5, my - 5, mx + 5, my - 5)
+        surface.DrawLine(mx + 5, my - 5, mx + 5, my + 5)
+        surface.DrawLine(mx + 5, my + 5, mx - 5, my + 5)
+        surface.DrawLine(mx - 5, my + 5, mx - 5, my - 5)
+        surface.DrawLine(cx2, cy2, mx, my)
+    end
+
     -- ── Верхняя тонкая полоска-граница ───────────────────
     surface.SetDrawColor(COL.border)
     surface.DrawLine(0, PY, PW, PY)
@@ -245,6 +263,18 @@ hook.Add("HUDPaint", "D6_Cockpit", function()
         Label("▶▶ ALWAYS-RUN", "D6_CockSmall",
             sw * 0.5, ci_y, Color(255, 200, 0, 220),
             TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    end
+
+    -- Виньетка перегрузки: тёмные края при высокой скорости
+    local vignAlpha = math.Clamp((speed - 1400) / 800, 0, 1) * 55
+    if ply:GetNWBool("D6AlwaysRun", false) then vignAlpha = vignAlpha + 20 end
+    if vignAlpha > 2 then
+        surface.SetDrawColor(0, 0, 0, vignAlpha)
+        local thick = math.floor(sw * 0.08)
+        surface.DrawRect(0,      0,      thick,          sh)
+        surface.DrawRect(sw - thick, 0,  thick,          sh)
+        surface.DrawRect(thick,  0,      sw - thick * 2, thick)
+        surface.DrawRect(thick,  sh - thick, sw - thick * 2, thick)
     end
 end)
 

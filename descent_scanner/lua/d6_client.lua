@@ -26,9 +26,11 @@ local CamReady   = false
 local Hook       = { on=false, pos=Vector() }
 local Dashing    = false
 local DashDir    = Vector(0,0,0)
-local HookLightT = 0
-local RamLightT  = 0
-local ThirdPerson = false
+local HookLightT    = 0
+local RamLightT     = 0
+local ThirdPerson   = false
+local ThrusterLightT = 0
+local CamLag        = Vector(0, 0, 0)
 
 local Remote = {}  -- Remote[ply] = { ang, angLerp, hookOn, hookPos, ramOn }
 
@@ -72,9 +74,11 @@ net.Receive("D6_HookSync", function()
 end)
 
 net.Receive("D6_DashSync", function()
-    local ply = net.ReadEntity(); local on = net.ReadBool()
+    local ply = net.ReadEntity(); local on = net.ReadBool(); local dir = net.ReadVector()
     if not IsValid(ply) then return end
-    if ply == LocalPlayer() then Dashing = on
+    if ply == LocalPlayer() then
+        Dashing = on
+        if on then DashDir = dir end
     else Remote[ply] = Remote[ply] or {}; Remote[ply].dashOn = on end
 end)
 
@@ -113,12 +117,16 @@ hook.Add("CreateMove", "D6_Cam_CM", function(cmd)
     -- Целевое вращение фильтруется через Lerp с коэффициентом 12.
     -- При резком движении мыши камера слегка отстаёт, потом догоняет.
     ply.D6TurnVel = ply.D6TurnVel or { pitch = 0, yaw = 0 }
+    ply._D6AngVel = ply._D6AngVel or { pitch = 0, yaw = 0 }
     local targetPitch =  cmd:GetMouseY() * 0.015
     local targetYaw   = -cmd:GetMouseX() * 0.015
     ply.D6TurnVel.pitch = Lerp(ft * 12, ply.D6TurnVel.pitch, targetPitch)
     ply.D6TurnVel.yaw   = Lerp(ft * 12, ply.D6TurnVel.yaw,   targetYaw)
-    Ang:RotateAroundAxis(Ang:Right(), ply.D6TurnVel.pitch)
-    Ang:RotateAroundAxis(Ang:Up(),    ply.D6TurnVel.yaw)
+    local angDamp = ply:GetNWBool("D6_FlightAssist", true) and 6 or 2.5
+    ply._D6AngVel.pitch = Lerp(ft * angDamp, ply._D6AngVel.pitch, ply.D6TurnVel.pitch)
+    ply._D6AngVel.yaw   = Lerp(ft * angDamp, ply._D6AngVel.yaw,   ply.D6TurnVel.yaw)
+    Ang:RotateAroundAxis(Ang:Right(), ply._D6AngVel.pitch)
+    Ang:RotateAroundAxis(Ang:Up(),    ply._D6AngVel.yaw)
 
     local roll = 0
     if input.IsKeyDown(KEY_LSHIFT) then roll = roll - 1 end
@@ -173,12 +181,20 @@ end)
 
 hook.Add("CalcView", "D6_Cam_CV", function(ply, pos, _, fov)
     if not IsValid(ply) or not ply:GetNWBool("D6On", false) or not Ang then return end
+    local lagTarget = Vector(0, 0, 0)
+    if ply:GetNWBool("D6AlwaysRun", false) then
+        local fwdSpd = ply:GetVelocity():Dot(Ang:Forward())
+        lagTarget = -Ang:Forward() * math.Clamp(fwdSpd / 800, 0, 5)
+    end
+    if Dashing then lagTarget = lagTarget - DashDir * 8 end
+    CamLag = LerpVector(FrameTime() * 10, CamLag, lagTarget)
+    local origin = pos + CamLag
     if ThirdPerson then
         local back = Ang:Forward() * -100 + Ang:Up() * 22
-        local tr   = util.TraceLine({ start=pos, endpos=pos+back, filter=ply })
+        local tr   = util.TraceLine({ start=origin, endpos=origin+back, filter=ply })
         return { origin=tr.HitPos + tr.HitNormal*3, angles=Ang, fov=fov, drawviewer=true }
     end
-    return { origin=pos, angles=Ang, fov=fov, drawviewer=false }
+    return { origin=origin, angles=Ang, fov=fov, drawviewer=false }
 end)
 
 hook.Add("PlayerButtonDown", "D6_CamSwitch", function(key)
@@ -234,6 +250,29 @@ hook.Add("PostPlayerDraw", "D6_DrawDash", function(ply)
             dl.Size       = 300
             dl.DieTime    = CurTime() + 0.12
         end
+    end
+end)
+
+-- =========================================================
+-- СВЕЧЕНИЕ ДВИЖИТЕЛЕЙ
+-- =========================================================
+hook.Add("PostPlayerDraw", "D6_ThrusterGlow", function(ply)
+    if not IsValid(ply) or not ply:GetNWBool("D6On", false) then return end
+    local vel = ply:GetVelocity(); local spd = vel:Length()
+    if spd < 80 then return end
+    local now = RealTime()
+    if now - ThrusterLightT < 0.06 then return end
+    ThrusterLightT = now
+    local ar = ply:GetNWBool("D6AlwaysRun", false)
+    local dl = DynamicLight(ply:EntIndex() + 700)
+    if dl then
+        dl.pos        = ply:GetPos() - vel:GetNormalized() * 22
+        dl.r          = 60  + (ar and 80 or 0)
+        dl.g          = 180 - (ar and 30 or 0)
+        dl.b          = 255
+        dl.brightness = 2 + math.min(spd / 1000, 3) + (ar and 2 or 0)
+        dl.Size       = 100 + spd * 0.06 + (ar and 120 or 0)
+        dl.DieTime    = CurTime() + 0.10
     end
 end)
 

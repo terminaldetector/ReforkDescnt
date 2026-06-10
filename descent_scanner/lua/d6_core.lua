@@ -5,9 +5,10 @@
 local CFG = {
     gravity      = 200,    -- максимальная гравитация (после idle)
     accel        = 3600,
-    drag         = 2.5,    -- [Descent] было 3.2 — снижено до 2.5
+    drag         = 1.8,    -- unified drag (A1)
     maxSpeed     = 2200,
-    inertia      = 0.88,
+    inertia      = 0.96,   -- palpable coasting (A1)
+    brakeMult    = 0.04,   -- linear brake when assist ON + no input
     strafeMult   = 0.8,    -- [Descent] боковая тяга 80% от forward
     vertMult     = 0.8,    -- [Descent] вертикальная тяга 80% от forward
     wallBounce   = 0.5,    -- [Descent] упругость стен 50%
@@ -198,6 +199,14 @@ if SERVER then
         net.Broadcast()
         ply:PrintMessage(HUD_PRINTTALK,
             "[6DOF] Always-Run: " .. (ply.D6AlwaysRun and "ON ▶▶" or "OFF"))
+    end)
+
+    concommand.Add("6dof_flightassist", function(ply)
+        if not IsValid(ply) or not ply.D6On then return end
+        ply.D6_FlightAssist = not (ply.D6_FlightAssist == true)
+        ply:SetNWBool("D6_FlightAssist", ply.D6_FlightAssist)
+        ply:PrintMessage(HUD_PRINTTALK, "[6DOF] Flight Assist: "
+            .. (ply.D6_FlightAssist and "ON" or "OFF (Ньютон)"))
     end)
 
     -- ── Рывок: concommand — биндится игроком на любую клавишу ──
@@ -461,8 +470,12 @@ if SERVER then
         end
 
         local dir = ply.D6DashDir or ShootAng(ply):Forward()
-        -- Рывок: полная скорость, без физики flight на этот тик
-        ply.D6Vel = dir * DASH_VEL
+        ply.D6Vel = ply.D6Vel or Vector(0, 0, 0)
+        local parallel = ply.D6Vel:Dot(dir)
+        local lateral  = ply.D6Vel - dir * parallel
+        ply.D6Vel = lateral + dir * DASH_VEL
+        local newSpd = ply.D6Vel:Length()
+        if newSpd > DASH_VEL * 1.3 then ply.D6Vel = ply.D6Vel * (DASH_VEL * 1.3 / newSpd) end
         mvd:SetVelocity(ply.D6Vel)
     end)
 end
@@ -486,8 +499,6 @@ hook.Add("SetupMove", "D6_Flight_Move", function(ply, mvd, cmd)
     if not ply.D6On then return end
     local ft = FrameTime()
     if ft <= 0 or ft > 0.1 then return end
-    if ply.D6DashOn then return end
-
     ply.D6Vel = ply.D6Vel or Vector(0, 0, 0)
 
     local params      = ply.D6_Params or {}
@@ -498,7 +509,8 @@ hook.Add("SetupMove", "D6_Flight_Move", function(ply, mvd, cmd)
     local inertia     = CFG.inertia
     local strafeMult  = CFG.strafeMult
     local vertMult    = CFG.vertMult
-    local wallBounce  = CFG.wallBounce
+    local wallBounce   = CFG.wallBounce
+    local flightAssist = ply.D6_FlightAssist ~= false
 
     local fwd  = (cmd:KeyDown(IN_FORWARD)   and 1 or 0) - (cmd:KeyDown(IN_BACK)      and 1 or 0)
     local side = (cmd:KeyDown(IN_MOVERIGHT)  and 1 or 0) - (cmd:KeyDown(IN_MOVELEFT)  and 1 or 0)
@@ -541,18 +553,24 @@ hook.Add("SetupMove", "D6_Flight_Move", function(ply, mvd, cmd)
     if idle > CFG.idleGravSec then
         gravFactor = math.Clamp((idle - CFG.idleGravSec) / CFG.idleGravRamp, 0, 1)
     end
-    ply.D6Vel.z = ply.D6Vel.z - gravity * gravFactor * ft
+    local MICRO_GRAV = 20
+    ply.D6Vel.z = ply.D6Vel.z - (MICRO_GRAV + gravity * gravFactor) * ft
 
     ply.D6Vel = ply.D6Vel * math.pow(inertia, ft * 60) + thrust * ft
 
-    if inp:LengthSqr() < 0.01 then
-        ply.D6Vel = LerpVector(ft * 4, ply.D6Vel, Vector(0, 0, 0))
-        if ply.D6Vel:LengthSqr() < 8 then ply.D6Vel = Vector(0, 0, 0) end
-    else
-        local sq = ply.D6Vel:LengthSqr()
+    local sq  = ply.D6Vel:LengthSqr()
+    local spd = math.sqrt(sq)
+    if not flightAssist then
         if sq > 0 then
             ply.D6Vel = ply.D6Vel - ply.D6Vel:GetNormalized() * (sq * 0.000020 * drag * ft)
         end
+    else
+        if sq > 0 then
+            local quadDrag    = sq * 0.000020 * drag * ft
+            local linearBrake = (not hasInput) and (spd * CFG.brakeMult * ft) or 0
+            ply.D6Vel = ply.D6Vel - ply.D6Vel:GetNormalized() * math.min(spd, quadDrag + linearBrake)
+        end
+        if ply.D6Vel:LengthSqr() < 4 and not hasInput then ply.D6Vel = Vector(0, 0, 0) end
     end
 
     local spd = ply.D6Vel:Length()

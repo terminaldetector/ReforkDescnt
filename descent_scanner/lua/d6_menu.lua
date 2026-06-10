@@ -126,6 +126,7 @@ local COMMANDS = {
     { key="F6", label="Дать патроны (x30)",         cmd="6dof_give_ammo all 30",desc="Пополнить боеприпасы" },
     { key="F7", label="Сброс крена",                cmd="d6_reset_roll",        desc="Выровнять дрон" },
     { key="F8", label="Убить всех NPC",             cmd="d6_kill_npcs",         desc="Очистить карту от врагов" },
+    { key="F9", label="Flight Assist ON/OFF",        cmd="6dof_flightassist",    desc="стабилизация / Ньютон" },
 }
 
 local SETTINGS = {

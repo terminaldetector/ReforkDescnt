@@ -109,15 +109,17 @@ hook.Add("PostDrawTranslucentRenderables", "D6_WepView", function(bDepth, bSky)
     local rgt = ea:Right()
     local up  = ea:Up()
 
-    -- Лёгкое покачивание от скорости полёта
-    local spd  = ply:GetVelocity():Length()
-    local sway = math.sin(RealTime() * 4) * math.min(spd / 2200, 1) * 0.8
+    -- Покачивание от скорости + боковой наклон при повороте
+    local spd   = ply:GetVelocity():Length()
+    local sway  = math.sin(RealTime() * 4) * math.min(spd / 2200, 1) * 0.8
+    local tv    = ply._D6AngVel or ply.D6TurnVel or { pitch = 0, yaw = 0 }
+    local xsway = tv.yaw * 18
 
     render.DepthRange(0, 0.1)
     for i, m in ipairs(Models) do
         local s = cfg[i]
         if IsValid(m) and s then
-            m:SetPos(ep + fwd * s.fwd + rgt * s.rgt + up * (s.up + sway))
+            m:SetPos(ep + fwd * s.fwd + rgt * (s.rgt + xsway) + up * (s.up + sway))
             local a = Angle(ea.p, ea.y, ea.r)
             a:RotateAroundAxis(up,  s.yaw   or 0)
             a:RotateAroundAxis(rgt, s.pitch or 0)
