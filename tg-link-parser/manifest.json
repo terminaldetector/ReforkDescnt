@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "TG Link Harvester — Telegram Channel Parser (JP/KR/CN)",
+  "version": "1.0.0",
+  "description": "Scans a list of URLs or regional search results (JP/KR/CN) and harvests unique Telegram channel, group and invite links. Exports to CSV/JSON.",
+  "default_locale": "en",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs",
+    "scripting",
+    "unlimitedStorage"
+  ],
+  "host_permissions": [
+    "*://*/*",
+    "https://t.me/*",
+    "https://telegram.me/*",
+    "https://telegram.dog/*",
+    "https://www.google.com/*",
+    "https://www.google.co.jp/*",
+    "https://www.google.co.kr/*",
+    "https://www.bing.com/*",
+    "https://search.yahoo.co.jp/*",
+    "https://search.naver.com/*",
+    "https://www.baidu.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "TG Link Harvester",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

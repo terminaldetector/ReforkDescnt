@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TG Link Harvester</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- ── HEADER ── -->
+  <div class="header">
+    <div>
+      <div class="header-logo">TG·HARVESTER</div>
+      <div class="header-sub">Telegram link parser · JP / KR / CN</div>
+    </div>
+    <div class="header-spacer"></div>
+    <button class="theme-btn" id="themeBtn" title="Toggle theme">🌓</button>
+    <div class="status-dot" id="statusDot"></div>
+  </div>
+
+  <!-- ── PROGRESS BAR ── -->
+  <div class="scan-bar"><div class="scan-bar-fill" id="scanFill"></div></div>
+
+  <!-- ── ETHICS NOTICE ── -->
+  <div class="notice">
+    <b>⚠ For collecting public data only.</b> Respect the Terms of Service of
+    Telegram and the search engines. CAPTCHAs are never bypassed automatically.
+  </div>
+
+  <!-- ── TOP TABS ── -->
+  <div class="tabs">
+    <div class="tab active" data-panel="list">URL List</div>
+    <div class="tab" data-panel="search">Keyword Search</div>
+    <div class="tab" data-panel="results">Results <span id="tabCount"></span></div>
+  </div>
+
+  <!-- ════════════════ PANEL 1 — URL LIST ════════════════ -->
+  <div class="panel active" data-panel="list">
+    <div class="input-group">
+      <label class="input-label" for="urlList">Source URLs (one per line)</label>
+      <textarea id="urlList" placeholder="https://example.com/jp-forum&#10;https://some-aggregator.com/channels&#10;example.org/page"></textarea>
+    </div>
+
+    <details class="options" id="optionsBox">
+      <summary>⚙ Options</summary>
+      <div class="opt-grid">
+        <div class="input-group">
+          <label class="input-label" for="optDelay">Delay (ms)</label>
+          <input type="number" id="optDelay" value="800" min="0" max="60000">
+        </div>
+        <div class="input-group">
+          <label class="input-label" for="optTimeout">Timeout (ms)</label>
+          <input type="number" id="optTimeout" value="15000" min="1000" max="120000">
+        </div>
+        <div class="input-group">
+          <label class="input-label" for="optRetries">Retries</label>
+          <input type="number" id="optRetries" value="1" min="0" max="5">
+        </div>
+        <div class="input-group">
+          <label class="input-label" for="optMaxDomain">Max links / domain (0 = ∞)</label>
+          <input type="number" id="optMaxDomain" value="0" min="0">
+        </div>
+      </div>
+      <div class="input-group" style="margin-top:8px">
+        <label class="input-label" for="optStopList">Stop-list (comma separated, ignored substrings)</label>
+        <input type="text" id="optStopList" placeholder="t.me/myownchannel, t.me/durov">
+      </div>
+      <label class="checkbox-row" style="margin-top:8px">
+        <input type="checkbox" id="optOpenTab">
+        Open each page in a background tab (reads rendered DOM + Shadow DOM, slower)
+      </label>
+    </details>
+
+    <div class="btn-row">
+      <button class="btn btn-start" id="btnStartList">▶ START</button>
+      <button class="btn btn-stop" id="btnStopList" disabled>■ STOP</button>
+    </div>
+    <div class="statusline" id="statusList">Idle. Paste URLs and press Start.</div>
+  </div>
+
+  <!-- ════════════════ PANEL 2 — KEYWORD SEARCH ════════════════ -->
+  <div class="panel" data-panel="search">
+    <div class="input-group">
+      <label class="input-label" for="keywords">Keywords (one per line · JP / KR / CN supported)</label>
+      <textarea id="keywords" placeholder="東京 アニメ チャンネル&#10;한국 텔레그램 채널&#10;电报 频道"></textarea>
+    </div>
+
+    <div class="col-2">
+      <div class="input-group">
+        <label class="input-label" for="engine">Search engine</label>
+        <select id="engine">
+          <option value="auto">Auto (by language)</option>
+          <option value="google">Google (.com)</option>
+          <option value="google_jp">Google Japan (.co.jp)</option>
+          <option value="google_kr">Google Korea (.co.kr)</option>
+          <option value="bing">Bing</option>
+          <option value="yahoo_jp">Yahoo! Japan 🇯🇵</option>
+          <option value="naver">Naver 🇰🇷</option>
+          <option value="baidu">Baidu 🇨🇳</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="srEngineHint">&nbsp;</label>
+        <div class="statusline" id="srEngineHint" style="min-height:0;padding:8px 10px">Auto picks engine per keyword.</div>
+      </div>
+    </div>
+
+    <div class="col-2">
+      <div class="input-group">
+        <label class="input-label" for="resCount">Results per keyword</label>
+        <input type="number" id="resCount" value="10" min="1" max="100">
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="pageDepth">Pagination depth</label>
+        <input type="number" id="pageDepth" value="2" min="1" max="20">
+      </div>
+    </div>
+
+    <div class="notice" style="border:1px solid var(--border);border-radius:8px;padding:8px 10px">
+      Search engines may serve a <b>CAPTCHA</b> to extension requests. If a
+      keyword returns nothing, a warning appears in Results — solve it in a
+      normal tab or raise the delay. Options above (delay/timeout/tab mode)
+      apply here too.
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-start" id="btnStartSearch">▶ SEARCH &amp; HARVEST</button>
+      <button class="btn btn-stop" id="btnStopSearch" disabled>■ STOP</button>
+    </div>
+    <div class="statusline" id="statusSearch">Idle. Enter keywords and press Search.</div>
+  </div>
+
+  <!-- ════════════════ PANEL 3 — RESULTS ════════════════ -->
+  <div class="panel" data-panel="results">
+    <div class="results-toolbar">
+      <select id="filterType">
+        <option value="all">All types</option>
+        <option value="channel">Channel</option>
+        <option value="group">Group</option>
+        <option value="invite">Invite</option>
+        <option value="other">Other</option>
+      </select>
+      <input type="text" id="filterText" placeholder="filter…" style="flex:1;min-width:90px">
+      <span class="count-pill" id="resCountPill">0</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort="telegram_link">Telegram link</th>
+            <th data-sort="link_type">Type</th>
+            <th data-sort="source_url">Source</th>
+            <th data-sort="parsed_at">Parsed</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody">
+          <tr><td colspan="4" class="empty">No links yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="btnCsv">⬇ CSV</button>
+      <button class="btn btn-ghost" id="btnJson">⬇ JSON</button>
+      <button class="btn btn-muted" id="btnCopy">⧉ Copy</button>
+      <button class="btn btn-muted" id="btnClear">✕ Clear</button>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Warnings &amp; errors</label>
+      <div class="log" id="logBox">—</div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
