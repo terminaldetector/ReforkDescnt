@@ -89,46 +89,30 @@ local function SpawnHeavyOrb(owner, pos, dir)
         phys:EnableDrag(false)
     end
 
-    orb.D6_Owner = owner
-    local idx = tostring(orb:EntIndex())
-
-    local function Explode()
-        if not IsValid(orb) then return end
-        hook.Remove("EntityCollision", "D6_Orb_"..idx)
-        timer.Remove("D6_Orb_"..idx)
-        local hitPos = orb:GetPos()
-
-        local ef = EffectData(); ef:SetOrigin(hitPos); ef:SetScale(5); ef:SetMagnitude(ORB_DMG)
+    -- Надёжная детекция (PhysicsCollide) → cball_explode + AoE взрыв
+    D6_TrackProjectile(orb, owner, function(b, hitEnt, hitPos, hitNormal)
+        local center = b:GetPos()
+        local ef = EffectData(); ef:SetOrigin(center); ef:SetScale(5); ef:SetMagnitude(ORB_DMG)
         util.Effect("cball_explode", ef)
         util.Effect("HelicopterMegaBomb", ef)
-        orb:EmitSound("weapons/physcannon/energy_sing_explosion2.wav", 105, 90)
+        b:EmitSound("weapons/physcannon/energy_sing_explosion2.wav", 105, 90)
 
-        local atk = IsValid(orb.D6_Owner) and orb.D6_Owner or game.GetWorld()
-        for _, e in ipairs(ents.FindInSphere(hitPos, ORB_RADIUS)) do
+        local atk = IsValid(owner) and owner or game.GetWorld()
+        for _, e in ipairs(ents.FindInSphere(center, ORB_RADIUS)) do
             if not IsValid(e) then continue end
             if not (e:IsNPC() or e:IsPlayer()) then continue end
-            if e == orb.D6_Owner then continue end
-            local dist = e:GetPos():Distance(hitPos)
+            if e == owner then continue end
+            local dist = e:GetPos():Distance(center)
             local dmg  = ORB_DMG + AOE_DMG * math.max(0, 1 - dist / ORB_RADIUS)
             local di   = DamageInfo()
             di:SetAttacker(atk)
-            di:SetInflictor(orb)
+            di:SetInflictor(b)
             di:SetDamage(dmg)
             di:SetDamageType(DMG_BLAST + DMG_ENERGYBEAM)
-            di:SetDamageForce((e:GetPos() - hitPos):GetNormalized() * 8000)
+            di:SetDamageForce((e:GetPos() - center):GetNormalized() * 8000)
             e:TakeDamageInfo(di)
         end
-
-        orb:Remove()
-    end
-
-    hook.Add("EntityCollision", "D6_Orb_"..idx, function(ent, data)
-        if ent ~= orb then return end
-        if IsValid(data.HitEntity) and data.HitEntity == orb.D6_Owner then return end
-        Explode()
-    end)
-
-    timer.Create("D6_Orb_"..idx, 6, 1, function() Explode() end)
+    end, 6)
 end
 
 function SWEP:Initialize()

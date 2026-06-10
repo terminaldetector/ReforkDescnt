@@ -62,6 +62,52 @@ if SERVER then
     for _, s in ipairs(D6_PRECACHE_SND) do util.PrecacheSound(s) end
 end
 
+-- ═══════════════════════════════════════════════════════════
+-- D6_TrackProjectile — надёжная детекция столкновений снаряда
+-- ───────────────────────────────────────────────────────────
+-- ВАЖНО: хука "EntityCollision" в GMod НЕ существует — старый код
+-- на нём не детектил НИ ОДНОГО попадания. Реальный физический
+-- контакт ловится через Entity:AddCallback("PhysicsCollide").
+-- Внутри колбэка НЕЛЬЗЯ удалять энтить или спавнить эффекты —
+-- вся реакция переносится в timer.Simple(0, ...).
+--
+--   ent   — снаряд (prop_physics с валидным физтелом)
+--   owner — стрелок (контакт с ним игнорируется)
+--   onHit(ent, hitEnt, hitPos, hitNormal) — реакция на удар;
+--           hitEnt == nil при истечении времени жизни
+--   life  — секунд до самоликвидации (по умолчанию 5)
+-- ═══════════════════════════════════════════════════════════
+if SERVER then
+    function D6_TrackProjectile(ent, owner, onHit, life)
+        if not IsValid(ent) then return end
+        ent.D6_IsProjectile = true
+        local handled = false
+
+        local function Fire(hitEnt, hitPos, hitNormal)
+            if handled then return end
+            handled = true
+            local he, hp, hn = hitEnt, hitPos, hitNormal
+            timer.Simple(0, function()
+                if onHit and IsValid(ent) then onHit(ent, he, hp, hn) end
+                if IsValid(ent) then ent:Remove() end
+            end)
+        end
+
+        ent:AddCallback("PhysicsCollide", function(e, data)
+            local hitEnt = data.HitEntity
+            if IsValid(hitEnt) then
+                if hitEnt == owner then return end
+                if hitEnt.D6_IsProjectile then return end
+            end
+            Fire(hitEnt, data.HitPos, data.HitNormal)
+        end)
+
+        timer.Simple(life or 5, function()
+            Fire(nil, IsValid(ent) and ent:GetPos() or vector_origin, vector_up)
+        end)
+    end
+end
+
 local function ShootAng(ply)
     local a = ply.D6AngSynced or ply.D6Ang or ply:EyeAngles()
     return Angle(a.p, a.y, 0)

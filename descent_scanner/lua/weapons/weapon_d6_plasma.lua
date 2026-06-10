@@ -96,45 +96,29 @@ local function SpawnPlasmaBolt(owner, pos, dir)
         phys:EnableDrag(false)
     end
 
-    bolt.D6_Owner = owner
-    local idx = tostring(bolt:EntIndex())
-
-    local function Explode()
-        if not IsValid(bolt) then return end
-        hook.Remove("EntityCollision", "D6_Plasma_"..idx)
-        timer.Remove("D6_Plasma_"..idx)
-        local hitPos = bolt:GetPos()
-
-        local ef = EffectData(); ef:SetOrigin(hitPos); ef:SetScale(3); ef:SetMagnitude(BOLT_DMG)
+    -- Надёжная детекция (PhysicsCollide) → cball_explode + splash AoE
+    D6_TrackProjectile(bolt, owner, function(b, hitEnt, hitPos, hitNormal)
+        local center = b:GetPos()
+        local ef = EffectData(); ef:SetOrigin(center); ef:SetScale(3); ef:SetMagnitude(BOLT_DMG)
         util.Effect("cball_explode", ef)
-        bolt:EmitSound("weapons/physcannon/energy_sing_explosion2.wav", 80, 120)
+        b:EmitSound("weapons/physcannon/energy_sing_explosion2.wav", 80, 120)
 
-        local atk = IsValid(bolt.D6_Owner) and bolt.D6_Owner or game.GetWorld()
-        for _, e in ipairs(ents.FindInSphere(hitPos, SPLASH_RAD)) do
+        local atk = IsValid(owner) and owner or game.GetWorld()
+        for _, e in ipairs(ents.FindInSphere(center, SPLASH_RAD)) do
             if not IsValid(e) then continue end
             if not (e:IsNPC() or e:IsPlayer()) then continue end
-            if e == bolt.D6_Owner then continue end
-            local dist = e:GetPos():Distance(hitPos)
+            if e == owner then continue end
+            local dist = e:GetPos():Distance(center)
             local dmg  = BOLT_DMG + SPLASH_DMG * math.max(0, 1 - dist / SPLASH_RAD)
             local di   = DamageInfo()
             di:SetAttacker(atk)
-            di:SetInflictor(bolt)
+            di:SetInflictor(b)
             di:SetDamage(dmg)
             di:SetDamageType(DMG_ENERGYBEAM + DMG_BLAST)
-            di:SetDamageForce((e:GetPos() - hitPos):GetNormalized() * 4000)
+            di:SetDamageForce((e:GetPos() - center):GetNormalized() * 4000)
             e:TakeDamageInfo(di)
         end
-
-        bolt:Remove()
-    end
-
-    hook.Add("EntityCollision", "D6_Plasma_"..idx, function(ent, data)
-        if ent ~= bolt then return end
-        if IsValid(data.HitEntity) and data.HitEntity == bolt.D6_Owner then return end
-        Explode()
-    end)
-
-    timer.Create("D6_Plasma_"..idx, 5, 1, function() Explode() end)
+    end, 5)
 end
 
 function SWEP:Initialize()

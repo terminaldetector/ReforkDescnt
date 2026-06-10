@@ -62,18 +62,15 @@ local MAX_RICOCHETS   = 4           -- рикошеты для невзрывн�
 local TINT            = Color(0, 255, 0)
 local TINT_INNER      = Color(180, 255, 180)
 
--- Определяет, взрывчатый ли проп (по модели/классу)
+-- Определяет, взрывчатый ли проп по имени модели.
+-- Совпадает с детекцией в d6_ai.lua (explosive/gascan/canister).
 local function IsExplosiveProp(ent)
     if not IsValid(ent) then return false end
     local mdl = string.lower(ent:GetModel() or "")
-    if mdl:find("barrel")   then return true end
-    if mdl:find("gascan")   then return true end
-    if mdl:find("propane")  then return true end
-    if mdl:find("explosive") then return true end
-    if mdl:find("oxygen")   then return true end
-    local cls = ent:GetClass()
-    if cls == "prop_physics_multiplayer" then return true end
-    return false
+    return mdl:find("explosive") ~= nil
+        or mdl:find("gascan")    ~= nil
+        or mdl:find("canister")  ~= nil
+        or mdl:find("propane")   ~= nil
 end
 
 -- ─── Сетевые строки ─────────────────────────────────────
@@ -320,92 +317,92 @@ function SWEP:FireRail()
 end
 
 -- ── Отслеживание снаряда: взрыв, рикошет, урон ──────────
+-- Детекция контакта — через PhysicsCollide (реальный физконтакт).
+-- Внутри колбэка нельзя удалять энтить/спавнить эффекты — переносим
+-- всё в timer.Simple(0, ...). Для отражения берём OurOldVelocity
+-- (скорость ДО столкновения), иначе физика уже погасит импульс.
 function SWEP:HookRailProjectile(ent)
     if not IsValid(ent) then return end
-    local idx      = ent:EntIndex()
-    local timerID  = "D6_Rail_Proj_" .. idx
-    local hookID   = "D6_Rail_Col_"  .. idx
-    local bounces  = 0
-    local isExpl   = IsExplosiveProp(ent)
+    ent.D6_IsProjectile = true
+    local owner   = ent.D6_RailOwner
+    local isExpl  = IsExplosiveProp(ent)
+    local bounces = 0
+    local done    = false
 
-    local function Cleanup()
-        timer.Remove(timerID)
-        hook.Remove("EntityCollision", hookID)
-    end
-
-    local function DoExplode(pos, atk)
+    local function DoExplode(pos)
+        local atk = IsValid(owner) and owner or game.GetWorld()
         local ef = EffectData(); ef:SetOrigin(pos); ef:SetScale(4); ef:SetMagnitude(180)
         util.Effect("Explosion", ef)
         util.Effect("HelicopterMegaBomb", ef)
         util.BlastDamage(atk, atk, pos, 250, 180)
-        sound.Play("weapon_RPG.Single", pos, 100, 100)
+        sound.Play("weapons/rpg/rocket_explode.wav", pos, 100, 100)
     end
 
-    hook.Add("EntityCollision", hookID, function(e, data)
-        if e ~= ent then return end
-        if not IsValid(ent) then Cleanup(); return end
+    ent:AddCallback("PhysicsCollide", function(e, data)
+        if done then return end
+        local hitEnt  = data.HitEntity
+        local hitPos  = data.HitPos
+        local hitNorm = data.HitNormal
+        local oldVel  = data.OurOldVelocity or vector_origin
 
-        local hitEnt = data.HitEntity
-        local owner  = ent.D6_RailOwner
+        -- Игнорируем владельца и другие снаряды D6
+        if IsValid(hitEnt) then
+            if IsValid(owner) and hitEnt == owner then return end
+            if hitEnt.D6_IsProjectile then return end
+        end
 
-        -- Не бьём владельца
-        if IsValid(hitEnt) and IsValid(owner) and hitEnt == owner then return end
-
-        local ph = ent:GetPhysicsObject()
-
-        -- Попадание в живую цель → урон
+        -- Живая цель → урон (+детонация, если снаряд взрывной)
         if IsValid(hitEnt) and (hitEnt:IsNPC() or hitEnt:IsPlayer()) then
-            local di = DamageInfo()
-            di:SetAttacker(IsValid(owner) and owner or game.GetWorld())
-            di:SetInflictor(ent)
-            di:SetDamage(ent.D6_RailDmg or 50)
-            di:SetDamageType(DMG_CRUSH)
-            di:SetDamageForce((hitEnt:GetPos() - ent:GetPos()):GetNormalized() * 10000)
-            hitEnt:TakeDamageInfo(di)
-            local ef = EffectData(); ef:SetOrigin(data.HitPos or ent:GetPos()); ef:SetNormal(data.HitNormal or vector_up); ef:SetMagnitude(3)
-            util.Effect("Sparks", ef)
-            if isExpl then
-                DoExplode(ent:GetPos(), IsValid(owner) and owner or game.GetWorld())
-                SafeRemoveEntity(ent)
-            end
-            Cleanup()
+            done = true
+            timer.Simple(0, function()
+                if IsValid(hitEnt) then
+                    local di = DamageInfo()
+                    di:SetAttacker(IsValid(owner) and owner or game.GetWorld())
+                    di:SetInflictor(IsValid(e) and e or game.GetWorld())
+                    di:SetDamage(ent.D6_RailDmg or 50)
+                    di:SetDamageType(DMG_CRUSH)
+                    di:SetDamageForce(oldVel:GetNormalized() * 10000)
+                    hitEnt:TakeDamageInfo(di)
+                end
+                local ef = EffectData(); ef:SetOrigin(hitPos); ef:SetNormal(hitNorm); ef:SetMagnitude(3)
+                util.Effect("Sparks", ef)
+                if isExpl then
+                    DoExplode(IsValid(e) and e:GetPos() or hitPos)
+                    if IsValid(e) then e:Remove() end
+                end
+            end)
             return
         end
 
-        -- Взрывной проп → взорваться при любом касании с миром/пропом
+        -- Взрывной проп → детонация при любом касании мира/пропа
         if isExpl then
-            local pos = ent:GetPos()
-            local atk = IsValid(owner) and owner or game.GetWorld()
-            DoExplode(pos, atk)
-            SafeRemoveEntity(ent)
-            Cleanup()
+            done = true
+            timer.Simple(0, function()
+                DoExplode(IsValid(e) and e:GetPos() or hitPos)
+                if IsValid(e) then e:Remove() end
+            end)
             return
         end
 
         -- Невзрывной проп → рикошет (до MAX_RICOCHETS раз)
-        if IsValid(ph) and bounces < MAX_RICOCHETS then
-            bounces = bounces + 1
-            local vel    = ph:GetVelocity()
-            local normal = data.HitNormal
-            if normal and normal:Length() > 0.01 then
-                local reflected = vel - 2 * vel:Dot(normal) * normal
-                ph:SetVelocity(reflected * 0.78)
-                local ef = EffectData()
-                ef:SetOrigin(data.HitPos or ent:GetPos())
-                ef:SetNormal(normal)
-                ef:SetMagnitude(2)
+        bounces = bounces + 1
+        if bounces > MAX_RICOCHETS then return end   -- импульс исчерпан, летит по физике
+        if hitNorm and hitNorm:LengthSqr() > 0.0001 then
+            local reflected = oldVel - 2 * oldVel:Dot(hitNorm) * hitNorm
+            timer.Simple(0, function()
+                if not IsValid(e) then return end
+                local ph = e:GetPhysicsObject()
+                if IsValid(ph) then ph:SetVelocity(reflected * 0.8) end
+                local ef = EffectData(); ef:SetOrigin(hitPos); ef:SetNormal(hitNorm); ef:SetMagnitude(2)
                 util.Effect("ManhackSparks", ef)
-                -- Продлеваем таймер жизни снаряда
-                ent.D6_RailUntil = CurTime() + 3
-            end
-        elseif bounces >= MAX_RICOCHETS then
-            -- Израсходованы все рикошеты
-            Cleanup()
+            end)
         end
     end)
 
-    timer.Create(timerID, 5, 1, function()
-        Cleanup()
+    -- По истечении жизни прекращаем обработку (проп остаётся как мусор)
+    timer.Simple(6, function()
+        done = true
+        if IsValid(ent) then ent.D6_IsProjectile = nil end
     end)
 end
 

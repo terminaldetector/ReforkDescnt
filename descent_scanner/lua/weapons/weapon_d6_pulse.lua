@@ -96,37 +96,23 @@ local function SpawnBolt(owner, pos, dir)
         ph:EnableDrag(false)
     end
 
-    bolt.D6_Owner = owner
-    local idx = tostring(bolt:EntIndex())
-
-    hook.Add("EntityCollision", "D6_Bolt_"..idx, function(ent, data)
-        if ent ~= bolt then return end
-        if IsValid(data.HitEntity) and data.HitEntity == bolt.D6_Owner then return end
-
-        if IsValid(data.HitEntity) and (data.HitEntity:IsNPC() or data.HitEntity:IsPlayer()) then
+    -- Надёжная детекция удара (PhysicsCollide) — helper из d6_core.lua
+    D6_TrackProjectile(bolt, owner, function(b, hitEnt, hitPos, hitNormal)
+        if IsValid(hitEnt) and (hitEnt:IsNPC() or hitEnt:IsPlayer()) then
             local di = DamageInfo()
-            di:SetAttacker(IsValid(bolt.D6_Owner) and bolt.D6_Owner or game.GetWorld())
-            di:SetInflictor(bolt)
+            di:SetAttacker(IsValid(owner) and owner or game.GetWorld())
+            di:SetInflictor(b)
             di:SetDamage(BOLT_DMG)
             di:SetDamageType(DMG_BULLET)
             di:SetDamageForce(dir * 2000)
-            data.HitEntity:TakeDamageInfo(di)
+            hitEnt:TakeDamageInfo(di)
         end
-
-        local p = bolt:GetPos()
-        local ef = EffectData(); ef:SetOrigin(p); ef:SetNormal(-dir); ef:SetScale(1.5)
-        util.Effect("AR2Impact", ef)
-        bolt:EmitSound("weapons/crossbow/hit1.wav", 60, 120)
-
-        hook.Remove("EntityCollision", "D6_Bolt_"..idx)
-        timer.Remove("D6_Bolt_"..idx)
-        if IsValid(bolt) then bolt:Remove() end
-    end)
-
-    timer.Create("D6_Bolt_"..idx, 5, 1, function()
-        hook.Remove("EntityCollision", "D6_Bolt_"..idx)
-        if IsValid(bolt) then bolt:Remove() end
-    end)
+        if IsValid(hitEnt) then
+            local ef = EffectData(); ef:SetOrigin(hitPos); ef:SetNormal(hitNormal); ef:SetScale(1.5)
+            util.Effect("AR2Impact", ef)
+            b:EmitSound("weapons/crossbow/hit1.wav", 60, 120)
+        end
+    end, 5)
 end
 
 function SWEP:Initialize()
