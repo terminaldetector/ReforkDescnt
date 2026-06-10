@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>TG Harvester</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- ── HEADER ── -->
+  <div class="header">
+    <div>
+      <div class="header-logo">TG·HARVESTER</div>
+      <div class="header-sub" id="platformSub">Parser · Arsenal · Warner</div>
+    </div>
+    <div class="header-spacer"></div>
+    <button class="theme-btn" id="themeBtn" title="Toggle theme">🌓</button>
+    <div class="status-dot" id="statusDot"></div>
+  </div>
+
+  <div class="scan-bar"><div class="scan-bar-fill" id="scanFill"></div></div>
+
+  <div class="notice">
+    <b>⚠ Public data &amp; your own account only.</b> Deletion is irreversible
+    and runs through your local Telethon backend. CAPTCHAs are never bypassed.
+  </div>
+
+  <!-- ── TABS ── -->
+  <div class="tabs" role="tablist">
+    <div class="tab active" role="tab" data-panel="parser">Parser</div>
+    <div class="tab" role="tab" data-panel="arsenal">Arsenal</div>
+    <div class="tab" role="tab" data-panel="results">Results <span id="tabCount"></span></div>
+    <div class="tab" role="tab" data-panel="settings">⚙</div>
+  </div>
+
+  <!-- ════════════ PARSER ════════════ -->
+  <div class="panel active" role="tabpanel" data-panel="parser">
+    <div class="input-group">
+      <label class="input-label" for="parseMode">Mode</label>
+      <select id="parseMode">
+        <option value="list">URL list — fetch pages</option>
+        <option value="search">Keyword search (JP/KR/CN)</option>
+        <option value="personal">Personal pages — scroll feeds</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label" id="parseInputLabel" for="parseInput">Source URLs (one per line)</label>
+      <textarea id="parseInput" placeholder="https://example.com/forum&#10;example.org/page"></textarea>
+    </div>
+
+    <!-- Search-only options -->
+    <div data-mode="search" class="mode-block">
+      <div class="col-2">
+        <div class="input-group">
+          <label class="input-label" for="engine">Engine</label>
+          <select id="engine">
+            <option value="auto">Auto (by language)</option>
+            <option value="google">Google</option>
+            <option value="google_jp">Google JP</option>
+            <option value="google_kr">Google KR</option>
+            <option value="bing">Bing</option>
+            <option value="yahoo_jp">Yahoo! Japan 🇯🇵</option>
+            <option value="naver">Naver 🇰🇷</option>
+            <option value="baidu">Baidu 🇨🇳</option>
+          </select>
+        </div>
+        <div class="col-2" style="grid-template-columns:1fr 1fr">
+          <div class="input-group">
+            <label class="input-label" for="resCount">Results</label>
+            <input type="number" id="resCount" value="10" min="1" max="100">
+          </div>
+          <div class="input-group">
+            <label class="input-label" for="pageDepth">Depth</label>
+            <input type="number" id="pageDepth" value="2" min="1" max="20">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scroll options (search + personal; personal forces it on) -->
+    <label class="checkbox-row" data-mode="list search">
+      <input type="checkbox" id="parseScroll">
+      Deep scan — open in tab &amp; auto-scroll (dynamic content)
+    </label>
+    <div class="col-2" data-mode="search personal list" id="scrollOpts">
+      <div class="input-group">
+        <label class="input-label" for="maxScrolls">Max scrolls</label>
+        <input type="number" id="maxScrolls" value="5" min="0" max="200">
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="scrollInterval">Scroll interval (ms)</label>
+        <input type="number" id="scrollInterval" value="1200" min="100" max="30000">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-start" id="btnStart">▶ START</button>
+      <button class="btn btn-stop" id="btnStop" disabled>■ STOP</button>
+    </div>
+    <div class="statusline" id="statusParser">Idle. Choose a mode and press Start.</div>
+  </div>
+
+  <!-- ════════════ ARSENAL ════════════ -->
+  <div class="panel" role="tabpanel" data-panel="arsenal">
+    <div class="statusline" id="cleanerStatus">Backend: unknown. Tap “Check backend”.</div>
+    <button class="btn btn-ghost" id="btnPing">⇆ Check backend</button>
+
+    <div class="section-label">💾 Backup (Bastion)</div>
+    <div class="input-group">
+      <label class="input-label" for="bkDialog">Dialog (username / id / blank = all)</label>
+      <input type="text" id="bkDialog" placeholder="@my_saved_messages or blank">
+    </div>
+    <label class="checkbox-row"><input type="checkbox" id="bkMedia" checked> Download media</label>
+    <label class="checkbox-row"><input type="checkbox" id="bkSkipDup" checked> Skip duplicate media</label>
+    <div class="input-group">
+      <label class="input-label">Load weight <span id="bkWeightLabel" class="hl">medium</span></label>
+      <input type="range" id="bkWeight" min="0" max="2" step="1" value="1" class="slider">
+    </div>
+    <button class="btn btn-ghost" id="btnBackup">▶ Start backup</button>
+
+    <div class="section-label">🧹 Cleaner (irreversible)</div>
+    <div class="input-group">
+      <label class="input-label" for="delScope">Delete scope</label>
+      <select id="delScope">
+        <option value="dialog">A specific dialog</option>
+        <option value="older-than">Older than N days</option>
+        <option value="media-type">By media type</option>
+        <option value="wipe-everything">Wipe everything (all my messages)</option>
+      </select>
+    </div>
+    <div class="input-group" data-del="dialog older-than media-type">
+      <label class="input-label" for="delDialog">Target dialog (username / id)</label>
+      <input type="text" id="delDialog" placeholder="@channel_or_chat">
+    </div>
+    <div class="col-2">
+      <div class="input-group" data-del="older-than">
+        <label class="input-label" for="delOlderThan">Older than (days)</label>
+        <input type="number" id="delOlderThan" value="365" min="0">
+      </div>
+      <div class="input-group" data-del="media-type">
+        <label class="input-label" for="delMediaType">Media type</label>
+        <select id="delMediaType">
+          <option value="photo">Photo</option>
+          <option value="video">Video</option>
+          <option value="document">Document</option>
+          <option value="voice">Voice</option>
+        </select>
+      </div>
+    </div>
+    <div class="input-group">
+      <label class="input-label" for="delWhitelist">Whitelist (never delete — one dialog per line)</label>
+      <textarea id="delWhitelist" style="min-height:50px" placeholder="@important_chat&#10;@family"></textarea>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Load weight <span id="delWeightLabel" class="hl">light</span></label>
+      <input type="range" id="delWeight" min="0" max="2" step="1" value="0" class="slider">
+    </div>
+    <label class="checkbox-row"><input type="checkbox" id="delDryRun" checked> Dry run (preview counts, delete nothing)</label>
+    <div class="input-group">
+      <label class="input-label" for="delConfirm">Type <b>DELETE</b> to confirm a real run</label>
+      <input type="text" id="delConfirm" placeholder="DELETE">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-stop" id="btnDelete">🧹 Run cleaner</button>
+      <button class="btn btn-muted" id="btnAbortJob" disabled>■ Abort</button>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Operation log</label>
+      <div class="log" id="cleanerLog">—</div>
+    </div>
+  </div>
+
+  <!-- ════════════ RESULTS ════════════ -->
+  <div class="panel" role="tabpanel" data-panel="results">
+    <div class="results-toolbar">
+      <select id="filterType">
+        <option value="all">All</option>
+        <option value="channel">Channel</option>
+        <option value="group">Group</option>
+        <option value="invite">Invite</option>
+        <option value="bot">Bot</option>
+        <option value="other">Other</option>
+      </select>
+      <input type="text" id="filterText" placeholder="filter…" style="flex:1;min-width:70px">
+      <span class="count-pill" id="resCountPill">0</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th data-sort="telegram_link">Link</th>
+          <th data-sort="link_type">Type</th>
+          <th data-sort="source_url">Source</th>
+          <th data-sort="detected_at">Detected</th>
+        </tr></thead>
+        <tbody id="resultsBody"><tr><td colspan="4" class="empty">No links yet.</td></tr></tbody>
+      </table>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="btnCsv">⬇ CSV</button>
+      <button class="btn btn-ghost" id="btnJson">⬇ JSON</button>
+      <button class="btn btn-muted" id="btnCopy">⧉ Copy</button>
+      <button class="btn btn-muted" id="btnClear">✕ Clear</button>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Warnings &amp; errors</label>
+      <div class="log" id="logBox">—</div>
+    </div>
+  </div>
+
+  <!-- ════════════ SETTINGS ════════════ -->
+  <div class="panel" role="tabpanel" data-panel="settings">
+    <div class="section-label">Network</div>
+    <div class="opt-grid">
+      <div class="input-group">
+        <label class="input-label" for="setDelay">Delay (s)</label>
+        <input type="number" id="setDelay" value="0.8" min="0" max="60" step="0.1">
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="setTimeout">Timeout (s)</label>
+        <input type="number" id="setTimeout" value="15" min="1" max="180">
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="setRetries">Retries</label>
+        <input type="number" id="setRetries" value="1" min="0" max="5">
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="setMaxDomain">Max / domain</label>
+        <input type="number" id="setMaxDomain" value="0" min="0">
+      </div>
+    </div>
+
+    <div class="section-label">Filtering</div>
+    <div class="input-group">
+      <label class="input-label" for="setExclude">Exclude domains (comma separated)</label>
+      <input type="text" id="setExclude" placeholder="youtube.com, facebook.com">
+    </div>
+    <div class="input-group">
+      <label class="input-label" for="setStopList">Stop-list (ignored link substrings)</label>
+      <input type="text" id="setStopList" placeholder="t.me/myownchannel">
+    </div>
+    <label class="checkbox-row"><input type="checkbox" id="setSkipKnown" checked> Skip links saved in previous sessions</label>
+
+    <div class="section-label">Periodic monitor</div>
+    <label class="checkbox-row"><input type="checkbox" id="monEnabled"> Re-scan the Parser URLs &amp; notify on new links</label>
+    <div class="input-group">
+      <label class="input-label" for="monInterval">Interval (minutes)</label>
+      <input type="number" id="monInterval" value="60" min="1" max="1440">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="btnSaveMonitor">💾 Save monitor</button>
+      <button class="btn btn-muted" id="btnRunMonitor">▶ Run now</button>
+    </div>
+
+    <div class="section-label">Telethon backend (Arsenal)</div>
+    <div class="input-group">
+      <label class="input-label" for="setBackend">Backend URL</label>
+      <input type="text" id="setBackend" value="http://127.0.0.1:8787">
+    </div>
+    <div class="col-2">
+      <div class="input-group">
+        <label class="input-label" for="setApiId">api_id</label>
+        <input type="text" id="setApiId" placeholder="123456">
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="setApiHash">api_hash</label>
+        <input type="password" id="setApiHash" placeholder="stored locally only">
+      </div>
+    </div>
+    <button class="btn btn-ghost" id="btnSaveCreds">💾 Save &amp; send to backend</button>
+    <div class="statusline" id="statusSettings">Settings auto-save as you type. Credentials stay on this device.</div>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
