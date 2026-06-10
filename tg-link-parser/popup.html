@@ -22,55 +22,41 @@
   <div class="scan-bar"><div class="scan-bar-fill" id="scanFill"></div></div>
 
   <!-- ── ETHICS NOTICE ── -->
-  <div class="notice">
+  <div class="notice" id="ethicsNotice">
     <b>⚠ For collecting public data only.</b> Respect the Terms of Service of
-    Telegram and the search engines. CAPTCHAs are never bypassed automatically.
+    Telegram and the search engines. Invite links are never auto-followed and
+    CAPTCHAs are never bypassed.
   </div>
 
   <!-- ── TOP TABS ── -->
   <div class="tabs">
-    <div class="tab active" data-panel="list">URL List</div>
-    <div class="tab" data-panel="search">Keyword Search</div>
+    <div class="tab active" data-panel="list">List</div>
+    <div class="tab" data-panel="search">Search</div>
+    <div class="tab" data-panel="personal">Personal</div>
     <div class="tab" data-panel="results">Results <span id="tabCount"></span></div>
+    <div class="tab" data-panel="settings">⚙</div>
   </div>
 
-  <!-- ════════════════ PANEL 1 — URL LIST ════════════════ -->
+  <!-- ════════════ PANEL 1 — URL LIST ════════════ -->
   <div class="panel active" data-panel="list">
     <div class="input-group">
       <label class="input-label" for="urlList">Source URLs (one per line)</label>
       <textarea id="urlList" placeholder="https://example.com/jp-forum&#10;https://some-aggregator.com/channels&#10;example.org/page"></textarea>
     </div>
-
-    <details class="options" id="optionsBox">
-      <summary>⚙ Options</summary>
-      <div class="opt-grid">
-        <div class="input-group">
-          <label class="input-label" for="optDelay">Delay (ms)</label>
-          <input type="number" id="optDelay" value="800" min="0" max="60000">
-        </div>
-        <div class="input-group">
-          <label class="input-label" for="optTimeout">Timeout (ms)</label>
-          <input type="number" id="optTimeout" value="15000" min="1000" max="120000">
-        </div>
-        <div class="input-group">
-          <label class="input-label" for="optRetries">Retries</label>
-          <input type="number" id="optRetries" value="1" min="0" max="5">
-        </div>
-        <div class="input-group">
-          <label class="input-label" for="optMaxDomain">Max links / domain (0 = ∞)</label>
-          <input type="number" id="optMaxDomain" value="0" min="0">
-        </div>
+    <label class="checkbox-row">
+      <input type="checkbox" id="listScroll">
+      Deep scan — open in a tab &amp; auto-scroll (loads dynamic content)
+    </label>
+    <div class="col-2">
+      <div class="input-group">
+        <label class="input-label" for="listMaxScrolls">Max scrolls</label>
+        <input type="number" id="listMaxScrolls" value="5" min="0" max="200">
       </div>
-      <div class="input-group" style="margin-top:8px">
-        <label class="input-label" for="optStopList">Stop-list (comma separated, ignored substrings)</label>
-        <input type="text" id="optStopList" placeholder="t.me/myownchannel, t.me/durov">
+      <div class="input-group">
+        <label class="input-label" for="listInterval">Scroll interval (ms)</label>
+        <input type="number" id="listInterval" value="1200" min="100" max="30000">
       </div>
-      <label class="checkbox-row" style="margin-top:8px">
-        <input type="checkbox" id="optOpenTab">
-        Open each page in a background tab (reads rendered DOM + Shadow DOM, slower)
-      </label>
-    </details>
-
+    </div>
     <div class="btn-row">
       <button class="btn btn-start" id="btnStartList">▶ START</button>
       <button class="btn btn-stop" id="btnStopList" disabled>■ STOP</button>
@@ -78,13 +64,12 @@
     <div class="statusline" id="statusList">Idle. Paste URLs and press Start.</div>
   </div>
 
-  <!-- ════════════════ PANEL 2 — KEYWORD SEARCH ════════════════ -->
+  <!-- ════════════ PANEL 2 — KEYWORD SEARCH ════════════ -->
   <div class="panel" data-panel="search">
     <div class="input-group">
       <label class="input-label" for="keywords">Keywords (one per line · JP / KR / CN supported)</label>
       <textarea id="keywords" placeholder="東京 アニメ チャンネル&#10;한국 텔레그램 채널&#10;电报 频道"></textarea>
     </div>
-
     <div class="col-2">
       <div class="input-group">
         <label class="input-label" for="engine">Search engine</label>
@@ -100,14 +85,13 @@
         </select>
       </div>
       <div class="input-group">
-        <label class="input-label" for="srEngineHint">&nbsp;</label>
+        <label class="input-label">&nbsp;</label>
         <div class="statusline" id="srEngineHint" style="min-height:0;padding:8px 10px">Auto picks engine per keyword.</div>
       </div>
     </div>
-
     <div class="col-2">
       <div class="input-group">
-        <label class="input-label" for="resCount">Results per keyword</label>
+        <label class="input-label" for="resCount">Results / keyword</label>
         <input type="number" id="resCount" value="10" min="1" max="100">
       </div>
       <div class="input-group">
@@ -115,14 +99,10 @@
         <input type="number" id="pageDepth" value="2" min="1" max="20">
       </div>
     </div>
-
-    <div class="notice" style="border:1px solid var(--border);border-radius:8px;padding:8px 10px">
-      Search engines may serve a <b>CAPTCHA</b> to extension requests. If a
-      keyword returns nothing, a warning appears in Results — solve it in a
-      normal tab or raise the delay. Options above (delay/timeout/tab mode)
-      apply here too.
-    </div>
-
+    <label class="checkbox-row">
+      <input type="checkbox" id="searchScroll">
+      Auto-scroll on each target page (deep scan)
+    </label>
     <div class="btn-row">
       <button class="btn btn-start" id="btnStartSearch">▶ SEARCH &amp; HARVEST</button>
       <button class="btn btn-stop" id="btnStopSearch" disabled>■ STOP</button>
@@ -130,7 +110,35 @@
     <div class="statusline" id="statusSearch">Idle. Enter keywords and press Search.</div>
   </div>
 
-  <!-- ════════════════ PANEL 3 — RESULTS ════════════════ -->
+  <!-- ════════════ PANEL 3 — PERSONAL PAGES ════════════ -->
+  <div class="panel" data-panel="personal">
+    <div class="input-group">
+      <label class="input-label" for="personalUrls">Profile / feed URLs (one per line)</label>
+      <textarea id="personalUrls" placeholder="https://twitter.com/SomeUser&#10;https://www.instagram.com/someuser/&#10;https://blog.naver.com/someuser&#10;https://weibo.com/someuser"></textarea>
+    </div>
+    <div class="notice" style="border:1px solid var(--border);border-radius:8px;padding:8px 10px">
+      Opens each page in a background tab and <b>scrolls</b> it to load posts /
+      comments, harvesting after every scroll (handles virtualized feeds). Log
+      into the site first so the extension sees the same public content you do.
+    </div>
+    <div class="col-2">
+      <div class="input-group">
+        <label class="input-label" for="personalScrolls">Scroll depth (count)</label>
+        <input type="number" id="personalScrolls" value="10" min="1" max="200">
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="personalInterval">Interval between scrolls (ms)</label>
+        <input type="number" id="personalInterval" value="1500" min="200" max="30000">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-start" id="btnStartPersonal">▶ SCAN</button>
+      <button class="btn btn-stop" id="btnStopPersonal" disabled>■ STOP</button>
+    </div>
+    <div class="statusline" id="statusPersonal">Idle. Enter profile URLs and press Scan.</div>
+  </div>
+
+  <!-- ════════════ PANEL 4 — RESULTS ════════════ -->
   <div class="panel" data-panel="results">
     <div class="results-toolbar">
       <select id="filterType">
@@ -138,12 +146,12 @@
         <option value="channel">Channel</option>
         <option value="group">Group</option>
         <option value="invite">Invite</option>
+        <option value="bot">Bot</option>
         <option value="other">Other</option>
       </select>
-      <input type="text" id="filterText" placeholder="filter…" style="flex:1;min-width:90px">
+      <input type="text" id="filterText" placeholder="filter…" style="flex:1;min-width:80px">
       <span class="count-pill" id="resCountPill">0</span>
     </div>
-
     <div class="table-wrap">
       <table>
         <thead>
@@ -151,7 +159,7 @@
             <th data-sort="telegram_link">Telegram link</th>
             <th data-sort="link_type">Type</th>
             <th data-sort="source_url">Source</th>
-            <th data-sort="parsed_at">Parsed</th>
+            <th data-sort="detected_at">Detected</th>
           </tr>
         </thead>
         <tbody id="resultsBody">
@@ -159,18 +167,68 @@
         </tbody>
       </table>
     </div>
-
     <div class="btn-row">
       <button class="btn btn-ghost" id="btnCsv">⬇ CSV</button>
       <button class="btn btn-ghost" id="btnJson">⬇ JSON</button>
       <button class="btn btn-muted" id="btnCopy">⧉ Copy</button>
       <button class="btn btn-muted" id="btnClear">✕ Clear</button>
     </div>
-
     <div class="input-group">
       <label class="input-label">Warnings &amp; errors</label>
       <div class="log" id="logBox">—</div>
     </div>
+  </div>
+
+  <!-- ════════════ PANEL 5 — SETTINGS ════════════ -->
+  <div class="panel" data-panel="settings">
+    <div class="section-label">Network</div>
+    <div class="opt-grid">
+      <div class="input-group">
+        <label class="input-label" for="setDelay">Delay between requests (s)</label>
+        <input type="number" id="setDelay" value="0.8" min="0" max="60" step="0.1">
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="setTimeout">Page load timeout (s)</label>
+        <input type="number" id="setTimeout" value="15" min="1" max="180">
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="setRetries">Retries per URL</label>
+        <input type="number" id="setRetries" value="1" min="0" max="5">
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="setMaxDomain">Max links / domain (0 = ∞)</label>
+        <input type="number" id="setMaxDomain" value="0" min="0">
+      </div>
+    </div>
+
+    <div class="section-label">Filtering</div>
+    <div class="input-group">
+      <label class="input-label" for="setExclude">Exclude domains (comma separated)</label>
+      <input type="text" id="setExclude" placeholder="youtube.com, facebook.com">
+    </div>
+    <div class="input-group">
+      <label class="input-label" for="setStopList">Stop-list (ignored link substrings)</label>
+      <input type="text" id="setStopList" placeholder="t.me/myownchannel, t.me/durov">
+    </div>
+    <label class="checkbox-row">
+      <input type="checkbox" id="setSkipKnown" checked>
+      Skip links already saved in previous sessions
+    </label>
+
+    <div class="section-label">Periodic monitor</div>
+    <label class="checkbox-row">
+      <input type="checkbox" id="monEnabled">
+      Re-scan the <b>List</b> URLs automatically and notify on new links
+    </label>
+    <div class="input-group">
+      <label class="input-label" for="monInterval">Interval (minutes)</label>
+      <input type="number" id="monInterval" value="60" min="1" max="1440">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="btnSaveMonitor">💾 Save monitor</button>
+      <button class="btn btn-muted" id="btnRunMonitor">▶ Run now</button>
+    </div>
+    <div class="statusline" id="statusSettings">Settings auto-save as you type.</div>
   </div>
 
   <script src="popup.js"></script>

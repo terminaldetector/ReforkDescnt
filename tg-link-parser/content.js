@@ -1,78 +1,75 @@
 /**
- * TG LINK HARVESTER — CONTENT SCRIPT
+ * TG LINK HARVESTER — CONTENT / PAGE HARVESTER
  * ---------------------------------------------------------------------------
- * Injected on-demand (chrome.scripting.executeScript) into a target tab ONLY
- * when the user enables "open pages in a tab" mode. Unlike the background's
- * raw-HTML fetch, this runs against the fully *rendered* DOM, so it can reach
- * content added by JavaScript and links hidden inside Shadow DOM.
+ * Injected into the target PAGE (via chrome.scripting) for "tab" / deep-scroll
+ * modes. Unlike the background's raw-HTML fetch, this reads the fully RENDERED
+ * DOM, so it sees JS-inserted content and links hidden in Shadow DOM.
  *
- * It does not classify or store anything itself — it just gathers every place
- * a Telegram link could hide into one big text blob and returns it. The
- * background's extractor then does the regex sweep, keeping a single source of
- * truth for link detection.
+ * It only GATHERS — it does not classify or store. It collects every place a
+ * Telegram link can hide into one text blob; the shared link-extractor then
+ * runs the regex sweep, keeping a single source of truth for detection.
  *
- * The trailing IIFE expression's value becomes `result` in executeScript().
+ * Exposes `window.TGHarvest.harvestBlob()`. It does NOT auto-run, so it can be
+ * injected once and called repeatedly between scroll steps.
  * ---------------------------------------------------------------------------
  */
-(function harvestPageBlob() {
-  /** Attribute names that frequently carry URLs in apps/forums. */
+(function (root) {
+  /** Attribute names that frequently carry URLs on apps/forums/socials. */
   const URL_ATTRS = [
-    "href",
-    "src",
-    "data-href",
-    "data-url",
-    "data-link",
-    "data-redirect",
-    "onclick",
-    "title",
-    "alt",
-    "content", // <meta content="...">
-    "value",
+    "href", "src",
+    "data-url", "data-href", "data-link", "data-uri", "data-target",
+    "data-redirect", "data-clipboard-text", "data-expanded-url",
+    "onclick", "title", "alt", "content", "value",
   ];
 
-  const parts = [];
-
   /**
-   * Recursively walk a root node (document or shadow root), pulling out:
+   * Recursively walk a root node (document or shadow root), collecting:
    *   - URL-ish attribute values from every element
-   *   - the text content of every text node (catches "bare" links)
-   *   - and descending into any open Shadow DOM roots.
-   * @param {Node} root
+   *   - the body text of <script> tags (links embedded in JS objects)
+   *   - the text content of every text node (bare links written as plain text)
+   * descending into any open Shadow DOM along the way.
+   * @param {Node} node
+   * @param {string[]} parts accumulator
    */
-  function walk(root) {
-    // Collect interesting attribute values.
-    const els = root.querySelectorAll ? root.querySelectorAll("*") : [];
+  function walk(node, parts) {
+    const els = node.querySelectorAll ? node.querySelectorAll("*") : [];
     for (const el of els) {
       for (const attr of URL_ATTRS) {
         const v = el.getAttribute && el.getAttribute(attr);
         if (v) parts.push(v);
       }
+      // <script> bodies: scan as TEXT, never execute.
+      if (el.tagName === "SCRIPT" && el.textContent) parts.push(el.textContent);
       // Descend into open shadow roots.
-      if (el.shadowRoot) walk(el.shadowRoot);
+      if (el.shadowRoot) walk(el.shadowRoot, parts);
     }
 
-    // Collect raw text nodes (bare links written as plain text).
+    // Raw text nodes (bare links).
     try {
-      const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
-      let node;
-      while ((node = tw.nextNode())) {
-        const t = node.nodeValue;
-        if (t && t.length > 3) parts.push(t);
+      const tw = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null);
+      let t;
+      while ((t = tw.nextNode())) {
+        const v = t.nodeValue;
+        if (v && v.length > 3) parts.push(v);
       }
     } catch (_) {
-      /* TreeWalker may reject some shadow roots; ignore. */
+      /* Some shadow roots reject TreeWalker; ignore. */
     }
   }
 
-  try {
-    walk(document);
-  } catch (_) {}
+  /**
+   * Build a single text blob from the current rendered DOM.
+   * @returns {string}
+   */
+  function harvestBlob() {
+    const parts = [];
+    try { walk(document, parts); } catch (_) {}
+    let html = "";
+    try {
+      html = document.documentElement ? document.documentElement.innerHTML : "";
+    } catch (_) {}
+    return parts.join("\n") + "\n" + html;
+  }
 
-  // Also include the full serialized HTML as a safety net.
-  let html = "";
-  try {
-    html = document.documentElement ? document.documentElement.innerHTML : "";
-  } catch (_) {}
-
-  return parts.join("\n") + "\n" + html;
-})();
+  root.TGHarvest = { harvestBlob };
+})(typeof window !== "undefined" ? window : globalThis);
