@@ -61,11 +61,14 @@ end
 -- Default physics profile (fallback when LOADOUT has no phys={} table).
 -- Phase C: promoted legacy→physics (Stage 9-12 is now the default path),
 -- + angMax clamp (Stage 10 stability).
+-- Phase F: rollMul (per-axis roll authority), bankGain/bankMax (how hard the
+-- class banks into turns) carry movement identity. All optional → defaults here.
 local D6_DEFAULT_PHYS = {
     mass       = 80,
     spoolUp    = 8,   spoolDown = 3,
     velLerp    = 5,   maxSpeed  = 700,
     angPower   = 220, angInertia = 0.88, angSpinSup = 0.20, angMax = 400,
+    rollMul    = 1.0, bankGain = 1.0, bankMax = 50,
     flightMode = "physics",
 }
 
@@ -77,6 +80,10 @@ local function D6_ResolveOrientation(npc, target)
     local des    = npc.D6_DesiredAng
     local vel    = npc.D6_Vel
     local moving = vel:Length() > 50
+    -- Phase F: per-class bank authority — how hard this drone rolls into turns.
+    local fp     = npc.D6_PhysProfile or D6_DEFAULT_PHYS
+    local bankG  = fp.bankGain or 1
+    local bankM  = fp.bankMax  or 50
 
     if IsValid(target) then
         local toTarget = target:GetPos() - npc:GetPos()
@@ -87,13 +94,13 @@ local function D6_ResolveOrientation(npc, target)
         -- Roll: bank into yaw rate (mirrors d6_ai.lua:274 proven formula)
         des.p = desPitch
         des.y = desYaw
-        des.r = math.Clamp(npc.D6_AngVel.y * -0.4, -50, 50)
+        des.r = math.Clamp(npc.D6_AngVel.y * -0.4 * bankG, -bankM, bankM)
     elseif moving then
         -- No target: face direction of travel, gentle bank, level wings.
         local va = vel:Angle()
         des.y = va.y
         des.p = va.p
-        des.r = math.Clamp(npc.D6_AngVel.y * -0.4, -30, 30)
+        des.r = math.Clamp(npc.D6_AngVel.y * -0.4 * bankG, -bankM * 0.6, bankM * 0.6)
     else
         -- Idle: hold heading, level out pitch/roll.
         des.p = des.p * 0.9
@@ -117,7 +124,9 @@ local function D6_StepAngular(npc, fp, ft)
     av.p  = math.Clamp(av.p * ai + math.NormalizeAngle(des.p - body.p) * ap * ft, -maxAV, maxAV)
     body.p = math.Clamp(body.p + av.p * ft, -89, 89)
 
-    av.r  = math.Clamp(av.r * ai + math.NormalizeAngle(des.r - body.r) * ap * ft, -maxAV, maxAV)
+    -- Roll axis can have its own authority (fp.rollMul) for class identity.
+    local rp = ap * (fp.rollMul or 1)
+    av.r  = math.Clamp(av.r * ai + math.NormalizeAngle(des.r - body.r) * rp * ft, -maxAV, maxAV)
     body.r = math.NormalizeAngle(body.r + av.r * ft)
 
     npc:SetAngles(body)
@@ -246,15 +255,15 @@ local D6_COMBAT_STYLE = {
     -- assault: aggressive diver — tight orbit, frequent diving runs
     pressure = { orbitR=480, orbitMin=0.8, orbitMax=1.6, runMin=0.8, runMax=1.4,
                  breakMin=0.7, breakMax=1.1, breakIn=220, vbias=0.55, aggression=0.85, spdMul=1.0 },
-    -- interceptor: fast circler — longer orbits, quick strafing runs
-    flank    = { orbitR=380, orbitMin=1.4, orbitMax=3.0, runMin=0.6, runMax=1.0,
-                 breakMin=0.6, breakMax=1.0, breakIn=200, vbias=0.7,  aggression=0.6,  spdMul=1.05 },
+    -- interceptor: fast aggressive circler — quick diving strafing runs
+    flank    = { orbitR=380, orbitMin=1.2, orbitMax=2.6, runMin=0.6, runMax=1.0,
+                 breakMin=0.6, breakMax=1.0, breakIn=200, vbias=0.7,  aggression=0.75, spdMul=1.12 },
     -- artillery: long lazy orbit while shelling, never closes
     standoff = { orbitR=2000, orbitZ=160, orbitMin=3.0, orbitMax=5.0, runMin=0, runMax=0,
                  breakMin=1.0, breakMax=1.6, breakIn=600, vbias=0.2,  aggression=0.0,  spdMul=0.95 },
-    -- support: kiting orbit, evasive, no runs
-    support  = { orbitR=650, orbitMin=2.0, orbitMax=4.0, runMin=0, runMax=0,
-                 breakMin=1.0, breakMax=1.5, breakIn=400, vbias=0.3,  aggression=0.0,  spdMul=1.0 },
+    -- support: high-strafe kiting orbit, evasive, no runs
+    support  = { orbitR=650, orbitMin=1.6, orbitMax=3.2, runMin=0, runMax=0,
+                 breakMin=1.0, breakMax=1.5, breakIn=400, vbias=0.3,  aggression=0.0,  spdMul=1.15 },
     -- heavy_elite: slow orbit + diving charge-runs (charge owned by behavior)
     anchor   = { orbitR=550, orbitMin=1.2, orbitMax=2.2, runMin=1.0, runMax=1.6,
                  breakMin=0.6, breakMax=1.0, breakIn=200, vbias=0.45, aggression=0.7, spdMul=1.0 },

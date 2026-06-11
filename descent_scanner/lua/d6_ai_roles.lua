@@ -23,54 +23,62 @@ local LOADOUTS = {
         ai    = "pressure",
         slots = { primaryL = "Pulsar", primaryR = "Pulsar" },
         hp = 200, scale = 1.2, color = Color(255, 80, 80),
-        speed = 520, rangeMin = 400, rangeMax = 600,
+        speed = 540, rangeMin = 400, rangeMax = 600,
         retreatHP = 0.30,
         shield = 50, shieldMax = 50, armor = 0, armorMax = 0,
         resist = { kinetic = 0, energy = 0.1, explosive = 0 },
         phys = {
             flightMode = "physics",
-            mass = 80,   spoolUp = 8,  spoolDown = 3, velLerp = 5,  maxSpeed = 700,
-            angPower = 220, angInertia = 0.88, angSpinSup = 0.20,
+            -- balanced baseline — moderate speed, turn and bank
+            mass = 80,   spoolUp = 9,  spoolDown = 3, velLerp = 5,  maxSpeed = 780,
+            angPower = 240, angInertia = 0.87, angSpinSup = 0.18, angMax = 400,
+            rollMul = 1.0, bankGain = 1.1, bankMax = 50,
         },
     },
     interceptor = {
         ai    = "flank",
         slots = { primaryL = "Laser", primaryR = "Laser" },
         hp = 150, scale = 1.0, color = Color(80, 255, 200),
-        speed = 750, rangeMin = 250, rangeMax = 500,
+        speed = 860, rangeMin = 250, rangeMax = 500,
         shield = 30, shieldMax = 30, armor = 0, armorMax = 0,
         resist = { kinetic = 0, energy = 0, explosive = 0 },
         phys = {
             flightMode = "physics",
-            mass = 55,   spoolUp = 10, spoolDown = 2, velLerp = 6,  maxSpeed = 950,
-            angPower = 320, angInertia = 0.82, angSpinSup = 0.15,
+            -- fast, aggressive, HIGH ROLL AUTHORITY — darts and banks hard
+            mass = 45,   spoolUp = 14, spoolDown = 2, velLerp = 7,  maxSpeed = 1100,
+            angPower = 380, angInertia = 0.80, angSpinSup = 0.12, angMax = 520,
+            rollMul = 2.2, bankGain = 1.8, bankMax = 78,
         },
     },
     artillery = {
         ai    = "standoff",
         slots = { primaryR = "Missile" },
         hp = 180, scale = 1.3, color = Color(255, 200, 0),
-        speed = 220, rangeMin = 1500, rangeMax = 2500,
+        speed = 240, rangeMin = 1500, rangeMax = 2500,
         retreatDist = 800,
         shield = 0, shieldMax = 0, armor = 60, armorMax = 60,
         resist = { kinetic = 0.2, energy = 0, explosive = 0.1 },
         phys = {
             flightMode = "physics",
-            mass = 140,  spoolUp = 5,  spoolDown = 2, velLerp = 3,  maxSpeed = 500,
-            angPower = 120, angInertia = 0.93, angSpinSup = 0.25,
+            -- distance-focused — slow, stable gun platform, barely banks
+            mass = 150,  spoolUp = 4,  spoolDown = 2, velLerp = 3,  maxSpeed = 460,
+            angPower = 130, angInertia = 0.93, angSpinSup = 0.25, angMax = 240,
+            rollMul = 0.7, bankGain = 0.5, bankMax = 22,
         },
     },
     support = {
         ai    = "support",
         slots = { utility = "RepairBeam" },
         hp = 220, scale = 1.1, color = Color(100, 255, 100),
-        speed = 280, healRadius = 300, healAmt = 4, healInterval = 0.5,
+        speed = 600, healRadius = 300, healAmt = 4, healInterval = 0.5,
         shield = 40, shieldMax = 40, armor = 20, armorMax = 20,
         resist = { kinetic = 0, energy = 0.15, explosive = 0 },
         phys = {
             flightMode = "physics",
-            mass = 70,   spoolUp = 8,  spoolDown = 3, velLerp = 5,  maxSpeed = 750,
-            angPower = 250, angInertia = 0.86, angSpinSup = 0.18,
+            -- high strafe capability — darts sideways fast, stays flat (utility)
+            mass = 58,   spoolUp = 13, spoolDown = 4, velLerp = 8,  maxSpeed = 840,
+            angPower = 200, angInertia = 0.84, angSpinSup = 0.16, angMax = 420,
+            rollMul = 1.0, bankGain = 0.8, bankMax = 38,
         },
     },
     heavy_elite = {
@@ -83,8 +91,10 @@ local LOADOUTS = {
         resist = { kinetic = 0.2, energy = 0.2, explosive = 0.3 },
         phys = {
             flightMode = "physics",
-            mass = 200,  spoolUp = 3,  spoolDown = 1, velLerp = 2,  maxSpeed = 420,
-            angPower = 90,  angInertia = 0.96, angSpinSup = 0.28,
+            -- massive, deliberate, threatening — turns like a capital ship
+            mass = 260,  spoolUp = 2.5, spoolDown = 1, velLerp = 1.6, maxSpeed = 440,
+            angPower = 75,  angInertia = 0.97, angSpinSup = 0.30, angMax = 160,
+            rollMul = 0.4, bankGain = 0.3, bankMax = 14,
         },
     },
 }
