@@ -1,18 +1,19 @@
 -- ═══════════════════════════════════════════════════════════
--- weapon_d6_concussion.lua — КС-РАКЕТА (тяжёлая ударная ракета)
+-- weapon_d6_mega_missile.lua — МЕГА-РАКЕТА
 --
 --   Cat B: LIMITED AMMO. Без расхода энергии.
---   Медленная (1600 u/s), большой взрыв 280u. Тяжёлая отдача 200.
---   Разрушение комнат. Добивание тяжёлых целей.
---   Отличие от Homing/Smart: прямолётная, наибольший урон/взрыв.
+--   Тупая, медленная (800 u/s). Нет самонаведения.
+--   Огромный взрыв 500u, 350+200 урона. Отдача 500.
+--   Нанесение: влётная траектория, потом детонация.
+--   Одиночный выстрел, 8 с КД. Запас: 1 шт.
 -- ═══════════════════════════════════════════════════════════
 AddCSLuaFile()
 
-SWEP.PrintName      = "КС-РАКЕТА"
+SWEP.PrintName      = "МЕГА-РАКЕТА"
 SWEP.Author         = "Descent 6DOF"
 SWEP.Category       = "Descent"
 SWEP.Slot           = 4
-SWEP.SlotPos        = 3
+SWEP.SlotPos        = 6
 SWEP.Spawnable      = true
 SWEP.AdminSpawnable = true
 SWEP.Base           = "weapon_base"
@@ -25,7 +26,7 @@ SWEP.DrawCrosshair  = false
 SWEP.Primary.ClipSize      = -1
 SWEP.Primary.DefaultClip   = 0
 SWEP.Primary.Automatic     = false
-SWEP.Primary.Ammo          = "d6_concussion"
+SWEP.Primary.Ammo          = "d6_mega"
 SWEP.Secondary.ClipSize    = -1
 SWEP.Secondary.DefaultClip = 0
 SWEP.Secondary.Automatic   = false
@@ -36,17 +37,19 @@ if SERVER then
     util.PrecacheModel(MDL_MISSILE)
     util.PrecacheSound("weapons/rpg/rocketfire1.wav")
     util.PrecacheSound("weapons/rpg/rocket_explode.wav")
+    util.PrecacheSound("ambient/explosions/explode_4.wav")
 end
 
-local AMMO_TYPE  = "d6_concussion"
-local MAX_AMMO   = 6
-local FIRE_RATE  = 2.0
-local PROJ_SPEED = 1600
-local DIRECT_DMG = 120
-local SPLASH_DMG = 90
-local SPLASH_RAD = 280
-local RECOIL     = 200
-local MUZZLE     = { fwd = 32, rgt = 0, up = -10 }
+local AMMO_TYPE    = "d6_mega"
+local MAX_AMMO     = 2
+local FIRE_RATE    = 8.0
+local PROJ_SPEED   = 800
+local DIRECT_DMG   = 350
+local SPLASH_DMG   = 200
+local SPLASH_RAD   = 500
+local RECOIL       = 500
+local MISSILE_LIFE = 20
+local MUZZLE       = { fwd = 36, rgt = 0, up = -12 }
 
 function SWEP:Initialize()
     self:SetWeaponHoldType(self.HoldType)
@@ -76,16 +79,17 @@ function SWEP:PrimaryAttack()
         dir        = dir,
         speed      = PROJ_SPEED,
         model      = MDL_MISSILE,
-        scale      = 1.6,
-        color      = Color(255, 100, 20, 255),
+        scale      = 3.5,
+        color      = Color(255, 60, 0, 255),
         dmgClass   = "explosive",
-        physRadius = 8,
-        mass       = 8,
+        physRadius = 20,
+        mass       = 40,
         recoil     = RECOIL,
-        life       = 8,
+        life       = MISSILE_LIFE,
         trails     = {
-            { col = Color(255, 100, 20),  sw = 60, ew = 8, life = 0.8 },
-            { col = Color(255, 220, 160), sw = 20, ew = 2, life = 0.5 },
+            { col = Color(255,  60,  0),  sw = 120, ew = 20, life = 1.4 },
+            { col = Color(255, 160, 50),  sw =  60, ew =  8, life = 0.9 },
+            { col = Color(255, 240, 200), sw =  24, ew =  2, life = 0.5 },
         },
         onHit = function(b, hitEnt, hitPos, hitNormal)
             if not hitPos then return end
@@ -93,23 +97,29 @@ function SWEP:PrimaryAttack()
 
             if IsValid(hitEnt) and (hitEnt:IsNPC() or hitEnt:IsPlayer()) then
                 D6_Wep.DirectDamage(owner, b, hitEnt, DIRECT_DMG, DMG_BLAST,
-                    (hitNormal or -dir) * 7000)
+                    (hitNormal or -dir) * 12000)
             end
-            D6_Wep.SplashDamage(owner, b, pos, 0, SPLASH_DMG, SPLASH_RAD, DMG_BLAST, 6000, hitEnt)
+            D6_Wep.SplashDamage(owner, b, pos, 0, SPLASH_DMG, SPLASH_RAD, DMG_BLAST, 10000, hitEnt)
 
+            -- Layered explosion effects for nuke scale
             local ef = EffectData()
-            ef:SetOrigin(pos); ef:SetScale(3); ef:SetMagnitude(SPLASH_RAD)
+            ef:SetOrigin(pos); ef:SetScale(12); ef:SetMagnitude(SPLASH_RAD)
             util.Effect("HelicopterMegaBomb", ef)
             local ef2 = EffectData()
-            ef2:SetOrigin(pos); ef2:SetScale(3)
-            util.Effect("cball_explode", ef2)
-            sound.Play("weapons/rpg/rocket_explode.wav", pos, 100, 80)
+            ef2:SetOrigin(pos); ef2:SetScale(12); ef2:SetMagnitude(SPLASH_RAD)
+            util.Effect("Explosion", ef2)
+            local ef3 = EffectData()
+            ef3:SetOrigin(pos); ef3:SetScale(6)
+            util.Effect("cball_explode", ef3)
+
+            sound.Play("weapons/rpg/rocket_explode.wav", pos, 120, 60)
+            sound.Play("ambient/explosions/explode_4.wav", pos, 120, 70)
         end,
     })
 
     local ef = EffectData(); ef:SetOrigin(src); ef:SetNormal(dir)
     util.Effect("RPGShot", ef)
-    owner:EmitSound("weapons/rpg/rocketfire1.wav", 90, 85)
+    owner:EmitSound("weapons/rpg/rocketfire1.wav", 100, 70)
 end
 
 function SWEP:SecondaryAttack()
@@ -118,12 +128,12 @@ end
 
 if CLIENT then
     function SWEP:DrawHUD()
-        D6_Wep.DrawAmmoHUD(self:GetOwner(), "КС-РАКЕТА", AMMO_TYPE, MAX_AMMO,
-            Color(255, 100, 20))
+        D6_Wep.DrawAmmoHUD(self:GetOwner(), "МЕГА-РАКЕТА", AMMO_TYPE, MAX_AMMO,
+            Color(255, 60, 0))
     end
 end
 
 function SWEP:DrawWorldModel()            end
 function SWEP:DrawWorldModelTranslucent() end
 
-print("[D6] weapon_d6_concussion.lua loaded")
+print("[D6] weapon_d6_mega_missile.lua loaded")

@@ -32,6 +32,8 @@ local D6_COMBAT = {
     "weapon_d6_railmk2",
     "weapon_d6_concussion",
     "weapon_d6_homing",
+    "weapon_d6_smart_missile",
+    "weapon_d6_mega_missile",
 }
 local D6_COMBAT_SET = {}
 for _, v in ipairs(D6_COMBAT) do D6_COMBAT_SET[v] = true end
@@ -52,6 +54,8 @@ if SERVER then
     AddCSLuaFile("weapons/weapon_d6_rockets.lua")
     AddCSLuaFile("weapons/weapon_d6_concussion.lua")
     AddCSLuaFile("weapons/weapon_d6_homing.lua")
+    AddCSLuaFile("weapons/weapon_d6_smart_missile.lua")
+    AddCSLuaFile("weapons/weapon_d6_mega_missile.lua")
     AddCSLuaFile("d6_core.lua")
     AddCSLuaFile("d6_weapon_core.lua")  -- единый фреймворк оружия (Phase B)
     AddCSLuaFile("d6_client.lua")
@@ -126,6 +130,12 @@ end
 -- =========================================================
 if SERVER then
 
+    -- Cat B: limited-ammo secondary weapons
+    game.AddAmmoType({ name = "d6_concussion", dmgtype = DMG_BLAST, maxcarry = 6  })
+    game.AddAmmoType({ name = "d6_homing",     dmgtype = DMG_BLAST, maxcarry = 8  })
+    game.AddAmmoType({ name = "d6_smart",      dmgtype = DMG_BLAST, maxcarry = 4  })
+    game.AddAmmoType({ name = "d6_mega",       dmgtype = DMG_BLAST, maxcarry = 2  })
+
     local function GetAllWeaponClasses()
         local result = {}
         local files  = file.Find("lua/weapons/weapon_*.lua", "GAME")
@@ -165,12 +175,21 @@ if SERVER then
         timer.Simple(1.5, function()
             if not IsValid(ply) then return end
             GiveAllWeapons(ply)
+            -- Starting ammo for Cat B secondaries
+            ply:GiveAmmo(4, "d6_concussion")
+            ply:GiveAmmo(6, "d6_homing")
+            ply:GiveAmmo(2, "d6_smart")
+            ply:GiveAmmo(1, "d6_mega")
         end)
     end)
 
     concommand.Add("d6_give_weapons", function(ply)
         if not IsValid(ply) then return end
         local given = GiveAllWeapons(ply)
+        ply:GiveAmmo(4, "d6_concussion")
+        ply:GiveAmmo(6, "d6_homing")
+        ply:GiveAmmo(2, "d6_smart")
+        ply:GiveAmmo(1, "d6_mega")
         ply:PrintMessage(HUD_PRINTTALK,
             "[D6] Выдано оружия: " .. (given and #given or 0))
     end)

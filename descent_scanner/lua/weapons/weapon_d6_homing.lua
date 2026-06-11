@@ -1,6 +1,7 @@
 -- ═══════════════════════════════════════════════════════════
 -- weapon_d6_homing.lua — ГСН-РАКЕТА (самонаводящаяся ракета)
 --
+--   Cat B: LIMITED AMMO. Без расхода энергии.
 --   Один снаряд. Упреждающее наведение каждые 0.04 с.
 --   Скорость поворота растёт при сближении (0.15 → 0.45).
 --   Время жизни 15 с. ПКМ = ручная детонация.
@@ -23,11 +24,11 @@ SWEP.UseHands       = false
 SWEP.DrawAmmo       = false
 SWEP.DrawCrosshair  = false
 SWEP.Primary.ClipSize      = -1
-SWEP.Primary.DefaultClip   = -1
+SWEP.Primary.DefaultClip   = 0
 SWEP.Primary.Automatic     = false
-SWEP.Primary.Ammo          = "none"
+SWEP.Primary.Ammo          = "d6_homing"
 SWEP.Secondary.ClipSize    = -1
-SWEP.Secondary.DefaultClip = -1
+SWEP.Secondary.DefaultClip = 0
 SWEP.Secondary.Automatic   = false
 SWEP.Secondary.Ammo        = "none"
 
@@ -38,7 +39,8 @@ if SERVER then
     util.PrecacheSound("weapons/rpg/rocket_explode.wav")
 end
 
-local ENERGY_COST = 28
+local AMMO_TYPE   = "d6_homing"
+local MAX_AMMO    = 8
 local FIRE_RATE   = 3.5
 local PROJ_SPEED  = 1400
 local DIRECT_DMG  = 90
@@ -67,9 +69,10 @@ function SWEP:PrimaryAttack()
     local owner = self:GetOwner()
     if not IsValid(owner) then return end
 
-    if not D6_Energy.TryConsume(owner, "weapons", ENERGY_COST) then
+    if owner:GetAmmoCount(AMMO_TYPE) <= 0 then
         owner:EmitSound("buttons/button10.wav", 65, 100); return
     end
+    owner:RemoveAmmo(1, AMMO_TYPE)
     self:SetNextPrimaryFire(CurTime() + FIRE_RATE)
 
     local sa   = D6_Wep.ShootAng(owner)
@@ -189,7 +192,7 @@ if CLIENT then
     function SWEP:DrawHUD()
         local ply = self:GetOwner()
         if not (IsValid(ply) and ply == LocalPlayer()) then return end
-        D6_Wep.DrawEnergyHUD(ply, "ГСН-РАКЕТА", Color(255, 220, 80))
+        D6_Wep.DrawAmmoHUD(ply, "ГСН-РАКЕТА", AMMO_TYPE, MAX_AMMO, Color(255, 220, 80))
 
         if self:GetNWBool("D6_HomingActive", false) then
             local sw, sh = ScrW(), ScrH()

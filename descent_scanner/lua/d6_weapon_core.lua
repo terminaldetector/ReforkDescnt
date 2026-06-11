@@ -238,6 +238,32 @@ if CLIENT then
             sw / 2, sh - 90, labelCol or Color(180, 220, 255),
             TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
+
+    -- Ammo pip bar for Category B weapons (limited-ammo missiles).
+    -- Shows individual missile pips so remaining count reads at a glance.
+    function D6_Wep.DrawAmmoHUD(ply, label, ammoType, maxAmmo, col)
+        if not (IsValid(ply) and ply == LocalPlayer()) then return end
+        local count = ply:GetAmmoCount(ammoType)
+        local sw, sh = ScrW(), ScrH()
+        local bw, bh = 140, 8
+        local bx    = sw / 2 - bw / 2
+        local by    = sh - 74
+        local pip   = math.max(4, math.floor((bw - (maxAmmo - 1) * 3) / maxAmmo))
+        for i = 1, maxAmmo do
+            local x = bx + (i - 1) * (pip + 3)
+            surface.SetDrawColor(30, 30, 30, 180)
+            surface.DrawRect(x - 1, by - 1, pip + 2, bh + 2)
+            if i <= count then
+                surface.SetDrawColor(col.r, col.g, col.b, 220)
+            else
+                surface.SetDrawColor(50, 50, 50, 120)
+            end
+            surface.DrawRect(x, by, pip, bh)
+        end
+        local labelCol = count > 0 and col or Color(255, 60, 60)
+        draw.SimpleText(label .. "   " .. count .. " / " .. maxAmmo, "DermaDefault",
+            sw / 2, sh - 90, labelCol, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    end
 end
 
 print("[D6] d6_weapon_core.lua OK")
