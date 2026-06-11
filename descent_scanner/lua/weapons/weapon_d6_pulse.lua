@@ -50,10 +50,10 @@ end
 -- Позиции дул — синхронизированы с d6_wepview.lua Layout()
 -- fwd — через ShootAng (без крена), rgt/up — через полный D6Ang с кренем
 local MUZZLES = {
-    { fwd=50, rgt=-46, up=-20 },
-    { fwd=50, rgt= 46, up=-20 },
-    { fwd=50, rgt=-50, up= 16 },
-    { fwd=50, rgt= 50, up= 16 },
+    { fwd=32, rgt=-29, up=-13 },
+    { fwd=32, rgt= 29, up=-13 },
+    { fwd=32, rgt=-32, up= 10 },
+    { fwd=32, rgt= 32, up= 10 },
 }
 
 local function MuzzleWorld(ply, off)
@@ -91,9 +91,11 @@ local function SpawnBolt(owner, pos, dir)
 
     local ph = EnsurePhys(bolt)
     if IsValid(ph) then
-        ph:SetVelocity(dir * BOLT_SPEED)
         ph:EnableGravity(false)
         ph:EnableDrag(false)
+        ph:SetMass(1)
+        ph:SetVelocity(dir * BOLT_SPEED)
+        ph:Wake()
     end
 
     -- Надёжная детекция удара (PhysicsCollide) — helper из d6_core.lua

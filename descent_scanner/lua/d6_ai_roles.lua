@@ -76,7 +76,7 @@ local LOADOUTS = {
     heavy_elite = {
         ai    = "anchor",
         slots = { primaryR = "ComBall", core = "ShieldGenerator" },
-        hp = 800, scale = 2.0, color = Color(40, 40, 40),
+        hp = 800, scale = 1.5, color = Color(40, 40, 40),
         speed = 200, rangeMin = 500, rangeMax = 900,
         chargeDist = 600, chargeCD = 8, chargeDur = 0.4, chargeSpeed = 900,
         shield = 150, shieldMax = 150, armor = 100, armorMax = 100,

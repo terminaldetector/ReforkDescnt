@@ -304,6 +304,8 @@ function D6_BuildDrone(loadout, pos, targetPly)
     npc:SetRenderMode(RENDERMODE_TRANSCOLOR)
     npc:SetColor(loadout.color or Color(200, 200, 200))
     npc:SetModelScale(loadout.scale or 1.0, 0)
+    local _cb = math.floor(12 * (loadout.scale or 1.0))
+    npc:SetCollisionBounds(Vector(-_cb, -_cb, math.floor(-_cb * 0.8)), Vector(_cb, _cb, math.floor(_cb * 1.4)))
     npc:SetMaxHealth(loadout.hp or 100)
     npc:SetHealth(loadout.hp or 100)
 

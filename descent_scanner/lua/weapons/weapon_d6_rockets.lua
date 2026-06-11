@@ -94,15 +94,18 @@ local function SpawnRPGMissile(owner, pos, dir, speed, homingTarget, isAtomic)
     m:SetAngles(dir:Angle())
     m:SetOwner(owner)
     m:Spawn()
-    m:Activate()
 
     if isAtomic then m:SetModelScale(2.8, 0) end
 
     local ph = m:GetPhysicsObject()
     if IsValid(ph) then
         ph:EnableGravity(false)
+        ph:EnableDrag(false)
+        ph:SetMass(5)
         ph:SetVelocity(dir * speed)
+        ph:Wake()
     end
+    m:Activate()
 
     local idx = m:EntIndex()
 

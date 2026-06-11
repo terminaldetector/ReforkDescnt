@@ -84,9 +84,11 @@ local function SpawnHeavyOrb(owner, pos, dir)
 
     local phys = EnsurePhys(orb)
     if IsValid(phys) then
-        phys:SetVelocity(dir * ORB_SPEED)
         phys:EnableGravity(false)
         phys:EnableDrag(false)
+        phys:SetMass(1)
+        phys:SetVelocity(dir * ORB_SPEED)
+        phys:Wake()
     end
 
     -- Надёжная детекция (PhysicsCollide) → cball_explode + AoE взрыв
@@ -137,7 +139,7 @@ function SWEP:PrimaryAttack()
     local sa  = ShootAng(owner)
     local fwd = sa:Forward()
     -- Центральный ствол гравипушки
-    local src = MuzzleWorld(owner, { fwd=45, rgt=0, up=-18 })
+    local src = MuzzleWorld(owner, { fwd=29, rgt=0, up=-12 })
 
     SpawnHeavyOrb(owner, src, fwd)
 

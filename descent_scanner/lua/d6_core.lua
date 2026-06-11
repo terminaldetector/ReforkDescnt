@@ -15,14 +15,15 @@
 -- strafeMult=0.65, vertMult=0.58: контраст осей усилен (синт-машина, не мяч).
 -- Sprint 1: inertia 0.975→0.968 (коастинг −1.5с), brakeMult 0.012→0.020 (+67% FA),
 --           spoolDown 3→4, strafeMult 0.65→0.72, vertMult 0.58→0.65.
+-- Phase A: spoolUp 10→15 (отклик двигателя +50%), drag 2.4→2.1 (−13% пассивного сопр.).
 local CFG = {
     gravity      = 200,
     accel        = 4200,
-    drag         = 2.4,
+    drag         = 2.1,
     maxSpeed     = 2200,
     inertia      = 0.968,
     brakeMult    = 0.020,
-    spoolUp      = 10,
+    spoolUp      = 15,
     spoolDown    = 4,
     strafeMult   = 0.72,
     vertMult     = 0.65,
@@ -41,7 +42,7 @@ local DASH_CD   = 1.8    -- кулдаун (секунды)
 local HOOK_DIST = 2500
 local HOOK_PULL = 3800
 
-local DRONE_SCALE = 2.5
+local DRONE_SCALE = 1.6
 local ANG_RATE    = 0.1
 
 if SERVER then

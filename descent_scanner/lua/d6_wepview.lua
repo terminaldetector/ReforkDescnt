@@ -30,23 +30,23 @@ local MDL_GRAVGUN = "models/weapons/w_physics.mdl"
 -- гравирельсу или ракеты — меняется только центральный слот.
 local function Layout(row1Mdl, row1Scale, row2Mdl, row2Scale, center)
     local t = {
-        { mdl=row1Mdl, fwd=30, rgt=-46, up=-20, pitch=0, yaw=-9, scale=row1Scale },
-        { mdl=row1Mdl, fwd=30, rgt= 46, up=-20, pitch=0, yaw= 9, scale=row1Scale },
-        { mdl=row2Mdl, fwd=30, rgt=-50, up= 16, pitch=0, yaw=-9, scale=row2Scale },
-        { mdl=row2Mdl, fwd=30, rgt= 50, up= 16, pitch=0, yaw= 9, scale=row2Scale },
+        { mdl=row1Mdl, fwd=19, rgt=-29, up=-13, pitch=0, yaw=-9, scale=row1Scale },
+        { mdl=row1Mdl, fwd=19, rgt= 29, up=-13, pitch=0, yaw= 9, scale=row1Scale },
+        { mdl=row2Mdl, fwd=19, rgt=-32, up= 10, pitch=0, yaw=-9, scale=row2Scale },
+        { mdl=row2Mdl, fwd=19, rgt= 32, up= 10, pitch=0, yaw= 9, scale=row2Scale },
     }
     if center then t[#t+1] = center end
     return t
 end
 
-local GRAV_CENTER = { mdl=MDL_GRAVGUN, fwd=24, rgt=0, up=-18, pitch=6, yaw=0, scale=1.20 }
+local GRAV_CENTER = { mdl=MDL_GRAVGUN, fwd=15, rgt=0, up=-12, pitch=6, yaw=0, scale=1.20 }
 
 local CFG = {
     ["weapon_d6_pulse"]  = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00, GRAV_CENTER),
     ["weapon_d6_plasma"] = Layout(MDL_NOSEGUN, 1.55, MDL_AIRBOAT, 1.00, GRAV_CENTER),
     ["weapon_d6_heavy"]  = Layout(MDL_NOSEGUN, 1.70, MDL_AIRBOAT, 1.05, GRAV_CENTER),
     ["weapon_d6_laser"]  = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00,
-        { mdl=MDL_STRIDER, fwd=42, rgt=0, up=-20, pitch=0, yaw=0, scale=0.55 }),
+        { mdl=MDL_STRIDER, fwd=27, rgt=0, up=-13, pitch=0, yaw=0, scale=0.55 }),
     ["weapon_d6_rockets"]       = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00, GRAV_CENTER),
     ["weapon_d6_gravy_railgun"] = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00, GRAV_CENTER),
 }

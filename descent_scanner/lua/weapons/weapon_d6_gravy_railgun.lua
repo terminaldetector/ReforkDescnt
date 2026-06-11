@@ -89,7 +89,7 @@ end
 
 local function MuzzlePos(ply)
     local ang = ShootAng(ply)
-    return ply:GetShootPos() + ang:Forward() * 20, ang
+    return ply:GetShootPos() + ang:Forward() * 13, ang
 end
 
 local function CanHold(ent)
@@ -596,7 +596,7 @@ if CLIENT then
             else
                 a = ply:EyeAngles()
             end
-            local muz = ply:GetShootPos() + Angle(a.p, a.y, 0):Forward() * 20
+            local muz = ply:GetShootPos() + Angle(a.p, a.y, 0):Forward() * 13
 
             render.SetMaterial(BEAM)
             render.DrawBeam(muz, held:GetPos() + held:OBBCenter(), 4,   0, 1, TINT)

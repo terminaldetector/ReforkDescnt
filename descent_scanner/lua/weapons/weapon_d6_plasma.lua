@@ -51,8 +51,8 @@ end
 
 -- Два дула row 1 — совпадают с nosegun в d6_wepview.lua (rgt ±46, up -20)
 local MUZZLES = {
-    { fwd=44, rgt=-46, up=-20 },
-    { fwd=44, rgt= 46, up=-20 },
+    { fwd=28, rgt=-29, up=-13 },
+    { fwd=28, rgt= 29, up=-13 },
 }
 
 local function MuzzleWorld(ply, off)
@@ -91,9 +91,11 @@ local function SpawnPlasmaBolt(owner, pos, dir)
 
     local phys = EnsurePhys(bolt)
     if IsValid(phys) then
-        phys:SetVelocity(dir * BOLT_SPEED)
         phys:EnableGravity(false)
         phys:EnableDrag(false)
+        phys:SetMass(1)
+        phys:SetVelocity(dir * BOLT_SPEED)
+        phys:Wake()
     end
 
     -- Надёжная детекция (PhysicsCollide) → cball_explode + splash AoE
