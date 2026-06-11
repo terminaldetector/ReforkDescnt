@@ -230,40 +230,98 @@ local function D6_StepManeuver(npc, ct)
 end
 
 -- ═══════════════════════════════════════════════════════════
--- Stage 13 — Combat Motion (attack-run rhythm)
--- Overlay for mobile attackers while engaging: APPROACH → PASS (strafing
--- firing run) → BREAK (peel off, maybe a maneuver) → re-engage. Overrides
--- D6_DesiredVel only during the attack phase, so non-attack states
--- (retreat/patrol/charge) keep the behavior's own intent.
+-- Phase D — Combat Motion (fight through movement)
+-- A per-role pattern state machine that NEVER lets a drone sit still
+-- while engaged. Three phases compose the six requested motions:
+--   ORBIT  → orbit attack (circle-strafe at preferred radius, firing)
+--   RUN    → attack run; vertical bias = dive attack (from above) or
+--            climb attack (from below)
+--   BREAK  → break-away maneuver (peel off + altitude swing, maybe flair)
+--   loop ORBIT→RUN→BREAK→ORBIT = re-engagement loop
+-- Per-role style decides preferred radius, how often it commits to a run
+-- (aggression), and vertical aggressiveness (vbias). Ranged/support roles
+-- (aggression 0, no runs) orbit perpetually instead of hovering.
 -- ═══════════════════════════════════════════════════════════
-local D6_ATTACK_RUNNERS = { pressure = true, flank = true }
+local D6_COMBAT_STYLE = {
+    -- assault: aggressive diver — tight orbit, frequent diving runs
+    pressure = { orbitR=480, orbitMin=0.8, orbitMax=1.6, runMin=0.8, runMax=1.4,
+                 breakMin=0.7, breakMax=1.1, breakIn=220, vbias=0.55, aggression=0.85, spdMul=1.0 },
+    -- interceptor: fast circler — longer orbits, quick strafing runs
+    flank    = { orbitR=380, orbitMin=1.4, orbitMax=3.0, runMin=0.6, runMax=1.0,
+                 breakMin=0.6, breakMax=1.0, breakIn=200, vbias=0.7,  aggression=0.6,  spdMul=1.05 },
+    -- artillery: long lazy orbit while shelling, never closes
+    standoff = { orbitR=2000, orbitZ=160, orbitMin=3.0, orbitMax=5.0, runMin=0, runMax=0,
+                 breakMin=1.0, breakMax=1.6, breakIn=600, vbias=0.2,  aggression=0.0,  spdMul=0.95 },
+    -- support: kiting orbit, evasive, no runs
+    support  = { orbitR=650, orbitMin=2.0, orbitMax=4.0, runMin=0, runMax=0,
+                 breakMin=1.0, breakMax=1.5, breakIn=400, vbias=0.3,  aggression=0.0,  spdMul=1.0 },
+    -- heavy_elite: slow orbit + diving charge-runs (charge owned by behavior)
+    anchor   = { orbitR=550, orbitMin=1.2, orbitMax=2.2, runMin=1.0, runMax=1.6,
+                 breakMin=0.6, breakMax=1.0, breakIn=200, vbias=0.45, aggression=0.7, spdMul=1.0 },
+}
 
-local RUN_APPROACH, RUN_PASS, RUN_BREAK = 1, 2, 3
-local function D6_CombatMotion(npc, loadout, target, dist, ct)
-    if not IsValid(target) then npc.D6_RunPhase = nil; return end
+local _UP = Vector(0, 0, 1)
 
-    local spd  = loadout.speed    or 500
-    local rMax = loadout.rangeMax  or 600
-    local dir  = (target:GetPos() - npc:GetPos()):GetNormalized()
-    local perp = dir:Cross(Vector(0, 0, 1)):GetNormalized()
-    local phase = npc.D6_RunPhase or RUN_APPROACH
+-- Dive when above the target, climb when below, else set up a vertical pass.
+local function D6_PickRunType(npc, target)
+    local dz = npc:GetPos().z - target:GetPos().z
+    if dz > 120 then return "dive"
+    elseif dz < -120 then return "climb"
+    else return (math.random() < 0.5) and "dive" or "climb" end
+end
 
-    if phase == RUN_APPROACH then
-        -- Close to firing range with a slight bank-in offset.
-        npc.D6_DesiredVel = (dir * 0.85 + perp * 0.15):GetNormalized() * spd
-        if dist < rMax then
-            phase = RUN_PASS
-            npc.D6_RunEnd  = ct + math.Rand(0.8, 1.4)
-            npc.D6_RunSign = (math.random() < 0.5) and 1 or -1
+-- Combat motion drives whenever engaged, EXCEPT during behavior-owned
+-- special movement (retreat / charge) — those keep the behavior's intent.
+local function D6_ShouldFightMoving(npc, target, dist, loadout)
+    if not IsValid(target) then return false end
+    if dist > (loadout.rangeMax or 800) * 2.4 then return false end  -- still approaching: let behavior run
+    local ai, st = npc.D6_AI, npc.D6_RoleState
+    if (ai == "pressure" or ai == "standoff") and st == 4 then return false end  -- retreat
+    if ai == "anchor" and st == 4 then return false end                          -- charge
+    return true
+end
+
+local function D6_CombatMotion(npc, loadout, target, dist, ct, style)
+    local spd  = (loadout.speed or 500) * (style.spdMul or 1)
+    local tpos = target:GetPos()
+    local mpos = npc:GetPos()
+    local to   = tpos - mpos
+    local flat = Vector(to.x, to.y, 0)
+    local fd   = flat:Length()
+    local flatDir = fd > 1 and (flat / fd) or npc:GetForward()
+    local tangent = flatDir:Cross(_UP):GetNormalized()
+
+    local phase = npc.D6_CMPhase or 1   -- 1=ORBIT 2=RUN 3=BREAK
+    if not npc.D6_CMSign or npc.D6_CMSign == 0 then
+        npc.D6_CMSign = (math.random() < 0.5) and 1 or -1
+    end
+
+    if phase == 1 then
+        -- ORBIT ATTACK: circle at preferred radius, hold altitude near target.
+        local R   = style.orbitR or 500
+        local rad = math.Clamp((fd - R) * 0.008, -1, 1)
+        local vz  = math.Clamp((tpos.z + (style.orbitZ or 0) - mpos.z) * 0.01, -0.6, 0.6)
+        npc.D6_DesiredVel = (tangent * npc.D6_CMSign + flatDir * rad + _UP * vz):GetNormalized() * spd
+        if ct > (npc.D6_CMEnd or 0) then
+            if (style.runMax or 0) > 0 and math.random() < (style.aggression or 0.5) then
+                phase = 2
+                npc.D6_CMRunType = D6_PickRunType(npc, target)
+                npc.D6_CMEnd = ct + math.Rand(style.runMin or 0.8, style.runMax or 1.4)
+            else
+                npc.D6_CMEnd = ct + math.Rand(style.orbitMin or 1.5, style.orbitMax or 3.0)
+                if math.random() < 0.3 then npc.D6_CMSign = -npc.D6_CMSign end  -- reverse circle
+            end
         end
 
-    elseif phase == RUN_PASS then
-        -- Strafing firing pass across the target.
-        npc.D6_DesiredVel = (perp * (npc.D6_RunSign or 1) * 0.8 + dir * 0.2):GetNormalized() * spd
-        if ct > (npc.D6_RunEnd or 0) or dist < rMax * 0.4 then
-            phase = RUN_BREAK
-            npc.D6_RunEnd = ct + math.Rand(0.7, 1.2)
-            -- Occasional flair maneuver on disengage.
+    elseif phase == 2 then
+        -- ATTACK RUN: drive at the target; vertical bias = dive or climb.
+        local vb   = style.vbias or 0.4
+        local vert = (npc.D6_CMRunType == "dive") and -vb
+                  or  (npc.D6_CMRunType == "climb") and vb or 0
+        npc.D6_DesiredVel = (flatDir + _UP * vert):GetNormalized() * spd
+        if ct > (npc.D6_CMEnd or 0) or dist < (style.breakIn or 250) then
+            phase = 3
+            npc.D6_CMEnd = ct + math.Rand(style.breakMin or 0.7, style.breakMax or 1.1)
             if ct > (npc.D6_ManeuverCD or 0) and math.random() < 0.5 then
                 local kinds = { "barrel", "split_s", "immelmann" }
                 D6_StartManeuver(npc, kinds[math.random(#kinds)], ct)
@@ -271,14 +329,18 @@ local function D6_CombatMotion(npc, loadout, target, dist, ct)
             end
         end
 
-    elseif phase == RUN_BREAK then
-        -- Peel off and away, then re-engage.
-        npc.D6_DesiredVel = (-dir * 0.5 + perp * (npc.D6_RunSign or 1) * 0.7
-            + Vector(0, 0, math.Rand(-0.2, 0.3))):GetNormalized() * spd
-        if ct > (npc.D6_RunEnd or 0) then phase = RUN_APPROACH end
+    else
+        -- BREAK-AWAY: peel past + away, swing altitude opposite the run, re-engage.
+        local swing = (npc.D6_CMRunType == "climb") and -0.4 or 0.5  -- climb out of a dive
+        npc.D6_DesiredVel = (-flatDir * 0.4 + tangent * npc.D6_CMSign * 0.7 + _UP * swing):GetNormalized() * spd
+        if ct > (npc.D6_CMEnd or 0) then
+            phase = 1
+            npc.D6_CMEnd = ct + math.Rand(style.orbitMin or 1.0, style.orbitMax or 2.0)
+            if math.random() < 0.4 then npc.D6_CMSign = -npc.D6_CMSign end
+        end
     end
 
-    npc.D6_RunPhase = phase
+    npc.D6_CMPhase = phase
 end
 
 -- ─── Модули ───────────────────────────────────────────────
@@ -500,8 +562,10 @@ function D6_BuildDrone(loadout, pos, targetPly)
     npc.D6_ThrustCur      = Vector(0, 0, 0)
     npc.D6_DesiredVel     = nil
     npc.D6_DesiredVelRate = 5
-    -- Phase C: combat-motion + maneuver state (Stages 13/14)
-    npc.D6_RunPhase       = nil
+    -- Combat-motion + maneuver state (Phase C/D)
+    npc.D6_CMPhase        = nil
+    npc.D6_CMSign         = 0
+    npc.D6_CMRunType      = nil
     npc.D6_Maneuver       = nil
     npc.D6_ManeuverCD     = 0
     local bp = RolePhys(npc)
@@ -709,9 +773,11 @@ hook.Add("Think", "D6_RoleDispatch", function()
 
         local fp = npc.D6_PhysProfile or D6_DEFAULT_PHYS
 
-        -- Stage 13: combat-motion overlay for mobile attackers while engaging
-        if inAttack and D6_ATTACK_RUNNERS[npc.D6_AI] then
-            D6_CombatMotion(npc, loadout, target, dist, ct)
+        -- Phase D: combat motion drives every engaged drone (fight through
+        -- movement). Retreat/charge stay with the behavior's own intent.
+        local style = D6_COMBAT_STYLE[npc.D6_AI]
+        if style and D6_ShouldFightMoving(npc, target, dist, loadout) then
+            D6_CombatMotion(npc, loadout, target, dist, ct, style)
         end
 
         -- Stage 15: collision avoidance bends DesiredVel before integration
