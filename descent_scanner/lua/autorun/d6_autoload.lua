@@ -26,8 +26,11 @@ local D6_COMBAT = {
     "weapon_d6_plasma",
     "weapon_d6_heavy",
     "weapon_d6_laser",
+    "weapon_d6_vulcan",
     "weapon_d6_rockets",
-    "weapon_d6_gravy_railgun",
+    "weapon_d6_railmk2",
+    "weapon_d6_concussion",
+    "weapon_d6_homing",
 }
 local D6_COMBAT_SET = {}
 for _, v in ipairs(D6_COMBAT) do D6_COMBAT_SET[v] = true end
@@ -37,12 +40,16 @@ if SERVER then
         AddCSLuaFile("weapons/" .. w .. ".lua")
     end
     -- Боевые оружия (отдельные SWEP вместо монолитного омни)
-    AddCSLuaFile("weapons/weapon_d6_gravy_railgun.lua")
+    AddCSLuaFile("weapons/weapon_d6_gravy_railgun.lua")   -- legacy NPC-спавнер "grav"
+    AddCSLuaFile("weapons/weapon_d6_railmk2.lua")
     AddCSLuaFile("weapons/weapon_d6_mg.lua")
     AddCSLuaFile("weapons/weapon_d6_plasma.lua")
     AddCSLuaFile("weapons/weapon_d6_heavy.lua")
     AddCSLuaFile("weapons/weapon_d6_laser.lua")
+    AddCSLuaFile("weapons/weapon_d6_vulcan.lua")
     AddCSLuaFile("weapons/weapon_d6_rockets.lua")
+    AddCSLuaFile("weapons/weapon_d6_concussion.lua")
+    AddCSLuaFile("weapons/weapon_d6_homing.lua")
     AddCSLuaFile("d6_core.lua")
     AddCSLuaFile("d6_weapon_core.lua")  -- единый фреймворк оружия (Phase B)
     AddCSLuaFile("d6_client.lua")
