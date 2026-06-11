@@ -186,7 +186,16 @@ local function D6_AvoidObstacles(npc, fp, ft)
         local tr = util.TraceLine({ start = pos, endpos = pos + d * look, filter = npc, mask = _AVOID_MASK })
         if tr.Hit and tr.Fraction < 1 then
             hit = true
-            steer = steer + tr.HitNormal * (1 - tr.Fraction) * weight
+            -- Slide component: project d onto the wall plane (parallel to wall = safe direction).
+            -- This avoids the anti-parallel cancellation when d ≈ -HitNormal (head-on approach):
+            -- the slide is the part of d that runs along the wall, not into it.
+            local slide = d - tr.HitNormal * d:Dot(tr.HitNormal)
+            if slide:LengthSqr() < 0.01 then
+                -- Perfectly head-on: no slide direction. Pick an arbitrary tangent.
+                slide = tr.HitNormal:Cross(Vector(0, 0, 1))
+                if slide:LengthSqr() < 0.01 then slide = tr.HitNormal:Cross(Vector(1, 0, 0)) end
+            end
+            steer = steer + slide:GetNormalized() * (1 - tr.Fraction) * weight
         end
     end
 
@@ -197,6 +206,12 @@ local function D6_AvoidObstacles(npc, fp, ft)
     if hit then
         local strength = fp.avoid or 1.3
         npc.D6_DesiredVel = (dir + steer * strength):GetNormalized() * speed
+        -- Proximity brake: strong steer = close to geometry = reduce velocity so
+        -- the drone has time/space to execute the turn. Caps at 60% speed reduction.
+        local sl = steer:Length()
+        if sl > 0.4 then
+            npc.D6_Vel = npc.D6_Vel * math.max(0.4, 1 - (sl - 0.4) * 0.6)
+        end
     end
 end
 
@@ -258,8 +273,9 @@ local D6_COMBAT_STYLE = {
     -- interceptor: fast aggressive circler — quick diving strafing runs
     flank    = { orbitR=380, orbitMin=1.2, orbitMax=2.6, runMin=0.6, runMax=1.0,
                  breakMin=0.6, breakMax=1.0, breakIn=200, vbias=0.7,  aggression=0.75, spdMul=1.12 },
-    -- artillery: long lazy orbit while shelling, never closes
-    standoff = { orbitR=2000, orbitZ=160, orbitMin=3.0, orbitMax=5.0, runMin=0, runMax=0,
+    -- artillery: wide orbit while shelling, never closes. orbitR matches HL2
+    -- outdoor areas (courtyards, streets, canals) — 720u achievable at speed 240.
+    standoff = { orbitR=720, orbitZ=160, orbitMin=3.0, orbitMax=5.0, runMin=0, runMax=0,
                  breakMin=1.0, breakMax=1.6, breakIn=600, vbias=0.2,  aggression=0.0,  spdMul=0.95 },
     -- support: high-strafe kiting orbit, evasive, no runs
     support  = { orbitR=650, orbitMin=1.6, orbitMax=3.2, runMin=0, runMax=0,
