@@ -58,49 +58,66 @@ end
 
 -- ─── Act 3: Flight Evolution — Stage 9-12 helpers ────────
 
--- Default physics profile (fallback when LOADOUT has no phys={} table)
+-- Default physics profile (fallback when LOADOUT has no phys={} table).
+-- Phase C: promoted legacy→physics (Stage 9-12 is now the default path),
+-- + angMax clamp (Stage 10 stability).
 local D6_DEFAULT_PHYS = {
     mass       = 80,
     spoolUp    = 8,   spoolDown = 3,
     velLerp    = 5,   maxSpeed  = 700,
-    angPower   = 220, angInertia = 0.88, angSpinSup = 0.20,
-    flightMode = "legacy",
+    angPower   = 220, angInertia = 0.88, angSpinSup = 0.20, angMax = 400,
+    flightMode = "physics",
 }
 
 -- Stage 9: Orientation policy
--- Yaw → face target; Pitch → blend velocity/target; Roll → emergent bank
+-- Yaw → face target; Pitch → blend velocity/target; Roll → emergent bank.
+-- Phase C: no-target fallback (orient to travel + auto-level) so patrolling
+-- and idle drones no longer freeze their facing.
 local function D6_ResolveOrientation(npc, target)
-    if not IsValid(target) then return end
-    local toTarget = target:GetPos() - npc:GetPos()
-    local vel      = npc.D6_Vel
+    local des    = npc.D6_DesiredAng
+    local vel    = npc.D6_Vel
+    local moving = vel:Length() > 50
 
-    local desYaw   = toTarget:Angle().y
-    local tgtPitch = toTarget:Angle().p
-    local velPitch = vel:Length() > 50 and vel:Angle().p or tgtPitch
-    local desPitch = tgtPitch + (velPitch - tgtPitch) * 0.6
-    -- Roll: bank into yaw rate (mirrors d6_ai.lua:274 proven formula)
-    local desRoll  = math.Clamp(npc.D6_AngVel.y * -0.4, -50, 50)
-
-    npc.D6_DesiredAng.p = desPitch
-    npc.D6_DesiredAng.y = desYaw
-    npc.D6_DesiredAng.r = desRoll
+    if IsValid(target) then
+        local toTarget = target:GetPos() - npc:GetPos()
+        local desYaw   = toTarget:Angle().y
+        local tgtPitch = toTarget:Angle().p
+        local velPitch = moving and vel:Angle().p or tgtPitch
+        local desPitch = tgtPitch + (velPitch - tgtPitch) * 0.6
+        -- Roll: bank into yaw rate (mirrors d6_ai.lua:274 proven formula)
+        des.p = desPitch
+        des.y = desYaw
+        des.r = math.Clamp(npc.D6_AngVel.y * -0.4, -50, 50)
+    elseif moving then
+        -- No target: face direction of travel, gentle bank, level wings.
+        local va = vel:Angle()
+        des.y = va.y
+        des.p = va.p
+        des.r = math.Clamp(npc.D6_AngVel.y * -0.4, -30, 30)
+    else
+        -- Idle: hold heading, level out pitch/roll.
+        des.p = des.p * 0.9
+        des.r = des.r * 0.8
+    end
 end
 
--- Stage 10: Angular spring-damper — moves D6_BodyAng toward D6_DesiredAng
+-- Stage 10: Angular spring-damper — moves D6_BodyAng toward D6_DesiredAng.
+-- Phase C: per-axis angular-velocity clamp (fp.angMax) prevents over-rotation.
 local function D6_StepAngular(npc, fp, ft)
-    local av   = npc.D6_AngVel
-    local body = npc.D6_BodyAng
-    local des  = npc.D6_DesiredAng
-    local ai   = math.pow(fp.angInertia, ft * 60)
-    local ap   = fp.angPower
+    local av    = npc.D6_AngVel
+    local body  = npc.D6_BodyAng
+    local des   = npc.D6_DesiredAng
+    local ai    = math.pow(fp.angInertia, ft * 60)
+    local ap    = fp.angPower
+    local maxAV = fp.angMax or 400
 
-    av.y  = av.y  * ai + math.NormalizeAngle(des.y - body.y) * ap * ft
+    av.y  = math.Clamp(av.y * ai + math.NormalizeAngle(des.y - body.y) * ap * ft, -maxAV, maxAV)
     body.y = math.NormalizeAngle(body.y + av.y * ft)
 
-    av.p  = av.p  * ai + math.NormalizeAngle(des.p - body.p) * ap * ft
+    av.p  = math.Clamp(av.p * ai + math.NormalizeAngle(des.p - body.p) * ap * ft, -maxAV, maxAV)
     body.p = math.Clamp(body.p + av.p * ft, -89, 89)
 
-    av.r  = av.r  * ai + math.NormalizeAngle(des.r - body.r) * ap * ft
+    av.r  = math.Clamp(av.r * ai + math.NormalizeAngle(des.r - body.r) * ap * ft, -maxAV, maxAV)
     body.r = math.NormalizeAngle(body.r + av.r * ft)
 
     npc:SetAngles(body)
@@ -133,6 +150,135 @@ local function D6_FlightControl(npc, fp, phys, ft)
     local speed = npc.D6_Vel:Length()
     if speed > fp.maxSpeed then npc.D6_Vel = npc.D6_Vel * (fp.maxSpeed / speed) end
     if speed > 0.5 then phys:SetVelocity(npc.D6_Vel) end
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- Stage 15 — Collision Avoidance
+-- Bends D6_DesiredVel away from world geometry BEFORE the flight
+-- controller integrates it. Forward + horizontal whiskers; steer along
+-- hit normals weighted by closeness. World brushes only (cheap), so it
+-- never fights props/other drones. Additive — DesiredVel still owned by
+-- the behavior; we only rotate it.
+-- ═══════════════════════════════════════════════════════════
+local _AVOID_MASK = MASK_SOLID_BRUSHONLY
+local function D6_AvoidObstacles(npc, fp, ft)
+    local dv = npc.D6_DesiredVel
+    if dv == nil then return end
+    local speed = dv:Length()
+    if speed < 1 then return end
+
+    local dir   = dv / speed
+    local pos   = npc:GetPos()
+    local look  = math.Clamp(speed * 0.45, 90, 420)  -- lookahead scales with speed
+    local right = dir:Cross(Vector(0, 0, 1)):GetNormalized()
+
+    local steer, hit = Vector(0, 0, 0), false
+    local function probe(d, weight)
+        local tr = util.TraceLine({ start = pos, endpos = pos + d * look, filter = npc, mask = _AVOID_MASK })
+        if tr.Hit and tr.Fraction < 1 then
+            hit = true
+            steer = steer + tr.HitNormal * (1 - tr.Fraction) * weight
+        end
+    end
+
+    probe(dir, 1.0)
+    probe((dir + right * 0.6):GetNormalized(), 0.6)
+    probe((dir - right * 0.6):GetNormalized(), 0.6)
+
+    if hit then
+        local strength = fp.avoid or 1.3
+        npc.D6_DesiredVel = (dir + steer * strength):GetNormalized() * speed
+    end
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- Stage 14 — Advanced Maneuvers (orientation-only flair)
+-- Barrel Roll / Split-S / Immelmann driven on D6_BodyAng directly (no
+-- position teleports; velocity keeps flowing from combat motion). Module
+-- fire stays angle-independent, so accuracy is never degraded.
+-- ═══════════════════════════════════════════════════════════
+local function D6_StartManeuver(npc, kind, ct)
+    local body = npc.D6_BodyAng
+    npc.D6_Maneuver = {
+        kind = kind, t0 = ct,
+        dur  = (kind == "barrel") and 0.7 or 1.0,
+        r0   = body.r, p0 = body.p,
+    }
+end
+
+-- Returns true while a maneuver controls orientation this tick.
+local function D6_StepManeuver(npc, ct)
+    local m = npc.D6_Maneuver
+    if not m then return false end
+    local frac = (ct - m.t0) / m.dur
+    if frac >= 1 then npc.D6_Maneuver = nil; return false end
+
+    local body = npc.D6_BodyAng
+    if m.kind == "barrel" then
+        body.r = math.NormalizeAngle(m.r0 + frac * 360)
+    elseif m.kind == "split_s" then
+        body.r = math.NormalizeAngle(m.r0 + math.min(1, frac * 2) * 180)
+        body.p = math.Clamp(m.p0 + math.max(0, frac - 0.5) * 2 * -100, -89, 89)
+    elseif m.kind == "immelmann" then
+        body.p = math.Clamp(m.p0 + math.min(1, frac * 1.6) * 70, -89, 89)
+        body.r = math.NormalizeAngle(m.r0 + math.max(0, frac - 0.6) * 2.5 * 180)
+    end
+
+    npc.D6_AngVel.r = 0
+    npc:SetAngles(body)
+    return true
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- Stage 13 — Combat Motion (attack-run rhythm)
+-- Overlay for mobile attackers while engaging: APPROACH → PASS (strafing
+-- firing run) → BREAK (peel off, maybe a maneuver) → re-engage. Overrides
+-- D6_DesiredVel only during the attack phase, so non-attack states
+-- (retreat/patrol/charge) keep the behavior's own intent.
+-- ═══════════════════════════════════════════════════════════
+local D6_ATTACK_RUNNERS = { pressure = true, flank = true }
+
+local RUN_APPROACH, RUN_PASS, RUN_BREAK = 1, 2, 3
+local function D6_CombatMotion(npc, loadout, target, dist, ct)
+    if not IsValid(target) then npc.D6_RunPhase = nil; return end
+
+    local spd  = loadout.speed    or 500
+    local rMax = loadout.rangeMax  or 600
+    local dir  = (target:GetPos() - npc:GetPos()):GetNormalized()
+    local perp = dir:Cross(Vector(0, 0, 1)):GetNormalized()
+    local phase = npc.D6_RunPhase or RUN_APPROACH
+
+    if phase == RUN_APPROACH then
+        -- Close to firing range with a slight bank-in offset.
+        npc.D6_DesiredVel = (dir * 0.85 + perp * 0.15):GetNormalized() * spd
+        if dist < rMax then
+            phase = RUN_PASS
+            npc.D6_RunEnd  = ct + math.Rand(0.8, 1.4)
+            npc.D6_RunSign = (math.random() < 0.5) and 1 or -1
+        end
+
+    elseif phase == RUN_PASS then
+        -- Strafing firing pass across the target.
+        npc.D6_DesiredVel = (perp * (npc.D6_RunSign or 1) * 0.8 + dir * 0.2):GetNormalized() * spd
+        if ct > (npc.D6_RunEnd or 0) or dist < rMax * 0.4 then
+            phase = RUN_BREAK
+            npc.D6_RunEnd = ct + math.Rand(0.7, 1.2)
+            -- Occasional flair maneuver on disengage.
+            if ct > (npc.D6_ManeuverCD or 0) and math.random() < 0.5 then
+                local kinds = { "barrel", "split_s", "immelmann" }
+                D6_StartManeuver(npc, kinds[math.random(#kinds)], ct)
+                npc.D6_ManeuverCD = ct + math.Rand(4, 7)
+            end
+        end
+
+    elseif phase == RUN_BREAK then
+        -- Peel off and away, then re-engage.
+        npc.D6_DesiredVel = (-dir * 0.5 + perp * (npc.D6_RunSign or 1) * 0.7
+            + Vector(0, 0, math.Rand(-0.2, 0.3))):GetNormalized() * spd
+        if ct > (npc.D6_RunEnd or 0) then phase = RUN_APPROACH end
+    end
+
+    npc.D6_RunPhase = phase
 end
 
 -- ─── Модули ───────────────────────────────────────────────
@@ -354,6 +500,10 @@ function D6_BuildDrone(loadout, pos, targetPly)
     npc.D6_ThrustCur      = Vector(0, 0, 0)
     npc.D6_DesiredVel     = nil
     npc.D6_DesiredVelRate = 5
+    -- Phase C: combat-motion + maneuver state (Stages 13/14)
+    npc.D6_RunPhase       = nil
+    npc.D6_Maneuver       = nil
+    npc.D6_ManeuverCD     = 0
     local bp = RolePhys(npc)
     if bp then
         bp:SetMass(fp.mass or D6_DEFAULT_PHYS.mass)
@@ -557,10 +707,23 @@ hook.Add("Think", "D6_RoleDispatch", function()
         local behavior = D6_RunBehavior[npc.D6_AI]
         local inAttack = behavior and behavior(npc, phys, loadout, target, dist, ct) or false
 
-        -- Act 3: Orientation → Angular → Flight (Stages 9-12)
         local fp = npc.D6_PhysProfile or D6_DEFAULT_PHYS
-        if IsValid(target) then D6_ResolveOrientation(npc, target) end
-        D6_StepAngular(npc, fp, ft)
+
+        -- Stage 13: combat-motion overlay for mobile attackers while engaging
+        if inAttack and D6_ATTACK_RUNNERS[npc.D6_AI] then
+            D6_CombatMotion(npc, loadout, target, dist, ct)
+        end
+
+        -- Stage 15: collision avoidance bends DesiredVel before integration
+        D6_AvoidObstacles(npc, fp, ft)
+
+        -- Stages 9/10/14: orientation (maneuver override → else target/travel) → angular
+        if not D6_StepManeuver(npc, ct) then
+            D6_ResolveOrientation(npc, IsValid(target) and target or nil)
+            D6_StepAngular(npc, fp, ft)
+        end
+
+        -- Stages 11/12: flight controller integrates D6_Vel → physics
         D6_FlightControl(npc, fp, phys, ft)
 
         -- Модульный огонь и Think
