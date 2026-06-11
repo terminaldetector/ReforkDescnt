@@ -38,7 +38,7 @@ local COL = {
     white    = Color(255, 255, 255, 220),
 }
 
-local MNAM = {[0]="ПУЛЬСАР",[1]="ПЛАЗМА",[2]="ТЯЖЁЛЫЙ",[3]="ЛАЗЕР",[4]="РАКЕТЫ"}
+local MNAM = {[0]="ПУЛЕМЁТ",[1]="ПЛАЗМА",[2]="ТЯЖЁЛЫЙ",[3]="ЛАЗЕР",[4]="РАКЕТЫ"}
 
 -- ── Вспомогательные ──────────────────────────────────────
 local function Bar(x, y, w, h, frac, col, bgCol, border)
@@ -173,7 +173,7 @@ hook.Add("HUDPaint", "D6_Cockpit", function()
     -- ===== СЕКЦИЯ 3: Оружие / Режим =====
     local s3x = math.floor(sectionW * 2) + 8
     local D6_WEP_MODE = {
-        ["weapon_d6_pulse"]=0, ["weapon_d6_plasma"]=1,
+        ["weapon_d6_mg"]=0, ["weapon_d6_plasma"]=1,
         ["weapon_d6_heavy"]=2, ["weapon_d6_laser"]=3,
         ["weapon_d6_rockets"]=4,
     }

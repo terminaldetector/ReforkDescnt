@@ -42,7 +42,7 @@ end
 local GRAV_CENTER = { mdl=MDL_GRAVGUN, fwd=15, rgt=0, up=-12, pitch=6, yaw=0, scale=1.20 }
 
 local CFG = {
-    ["weapon_d6_pulse"]  = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00, GRAV_CENTER),
+    ["weapon_d6_mg"]     = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00, GRAV_CENTER),
     ["weapon_d6_plasma"] = Layout(MDL_NOSEGUN, 1.55, MDL_AIRBOAT, 1.00, GRAV_CENTER),
     ["weapon_d6_heavy"]  = Layout(MDL_NOSEGUN, 1.70, MDL_AIRBOAT, 1.05, GRAV_CENTER),
     ["weapon_d6_laser"]  = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00,

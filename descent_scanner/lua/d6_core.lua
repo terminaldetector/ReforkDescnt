@@ -304,7 +304,7 @@ if SERVER then
 
     -- Смена оружия колесом мыши (клиент отправляет classname)
     local _D6_WHEEL_WEPS = {
-        ["weapon_d6_pulse"]=true, ["weapon_d6_plasma"]=true,
+        ["weapon_d6_mg"]=true, ["weapon_d6_plasma"]=true,
         ["weapon_d6_heavy"]=true, ["weapon_d6_laser"]=true,
         ["weapon_d6_rockets"]=true, ["weapon_d6_gravy_railgun"]=true,
     }

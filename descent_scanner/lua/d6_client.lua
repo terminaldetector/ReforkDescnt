@@ -372,7 +372,7 @@ hook.Add("HUDPaint", "D6_HUD", function()
         elseif c == "weapon_d6_rockets" then mode = 4 end
     end
     local MCOL = {[0]=Color(255,80,80),[1]=Color(80,200,255),[2]=Color(255,150,0),[3]=Color(0,220,120),[4]=Color(255,230,0)}
-    local MNAM = {[0]="ПУЛЬСАР",[1]="ПЛАЗМА",[2]="ТЯЖЁЛЫЙ",[3]="ЛАЗЕР",[4]="РАКЕТЫ"}
+    local MNAM = {[0]="ПУЛЕМЁТ",[1]="ПЛАЗМА",[2]="ТЯЖЁЛЫЙ",[3]="ЛАЗЕР",[4]="РАКЕТЫ"}
     local col  = MCOL[mode] or color_white
 
     draw.SimpleTextOutlined("[ "..(MNAM[mode] or "?").." ]",
@@ -478,7 +478,7 @@ end)
 -- =========================================================
 -- КОЛЕСО МЫШИ: вниз→ракеты, вверх→боевые
 -- =========================================================
-local _D6_COMBAT = { "weapon_d6_pulse", "weapon_d6_plasma", "weapon_d6_heavy", "weapon_d6_laser" }
+local _D6_COMBAT = { "weapon_d6_mg", "weapon_d6_plasma", "weapon_d6_heavy", "weapon_d6_laser" }
 local _D6_ROCKET = "weapon_d6_rockets"
 
 hook.Add("PlayerBindPress", "D6_WeaponWheel", function(ply, bind, pressed)

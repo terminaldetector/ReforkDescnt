@@ -22,7 +22,7 @@ for _, v in ipairs(D6_SPAWNERS) do D6_SPAWNER_SET[v] = true end
 
 -- Боевые оружия Descent — явный список для надёжной выдачи при спавне
 local D6_COMBAT = {
-    "weapon_d6_pulse",
+    "weapon_d6_mg",
     "weapon_d6_plasma",
     "weapon_d6_heavy",
     "weapon_d6_laser",
@@ -38,12 +38,13 @@ if SERVER then
     end
     -- Боевые оружия (отдельные SWEP вместо монолитного омни)
     AddCSLuaFile("weapons/weapon_d6_gravy_railgun.lua")
-    AddCSLuaFile("weapons/weapon_d6_pulse.lua")
+    AddCSLuaFile("weapons/weapon_d6_mg.lua")
     AddCSLuaFile("weapons/weapon_d6_plasma.lua")
     AddCSLuaFile("weapons/weapon_d6_heavy.lua")
     AddCSLuaFile("weapons/weapon_d6_laser.lua")
     AddCSLuaFile("weapons/weapon_d6_rockets.lua")
     AddCSLuaFile("d6_core.lua")
+    AddCSLuaFile("d6_weapon_core.lua")  -- единый фреймворк оружия (Phase B)
     AddCSLuaFile("d6_client.lua")
     AddCSLuaFile("d6_cockpit.lua")   -- новый кокпит-HUD
     AddCSLuaFile("d6_wepview.lua")   -- DOOM-стиль рендер оружий
@@ -65,6 +66,7 @@ end
 
 if SERVER then
     TryInclude("d6_core.lua")
+    TryInclude("d6_weapon_core.lua") -- Phase B: фреймворк оружия (после core, до оружий)
     TryInclude("d6_energy.lua")      -- Stage 6: до оружий/щитов/модулей
     TryInclude("d6_ai.lua")
     TryInclude("d6_frags.lua")       -- экспортирует глобальный D6_Explode
@@ -80,6 +82,7 @@ end
 
 if CLIENT then
     include("d6_core.lua")
+    include("d6_weapon_core.lua")    -- Phase B: фреймворк оружия (HUD-хелперы, таксономия)
     include("d6_client.lua")
     include("d6_cockpit.lua")        -- кокпит-HUD (не SWEP)
     include("d6_wepview.lua")        -- рендер оружий от 1-го лица

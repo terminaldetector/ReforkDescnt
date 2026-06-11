@@ -102,7 +102,8 @@ local function SpawnRPGMissile(owner, pos, dir, speed, homingTarget, isAtomic)
         ph:EnableGravity(false)
         ph:EnableDrag(false)
         ph:SetMass(5)
-        ph:SetVelocity(dir * speed)
+        -- Наследование импульса корабля при пуске (связь с движением)
+        ph:SetVelocity(dir * speed + D6_Wep.ShipVel(owner) * D6_Wep.Inherit())
         ph:Wake()
     end
     m:Activate()
@@ -224,6 +225,10 @@ function SWEP:PrimaryAttack()
     elseif sub == 3 then
         SpawnRPGMissile(owner, pos, dir, 2000, false, true)
     end
+
+    -- Отдача пуска толкает корабль назад (атомка — сильнее всего)
+    local RECOIL = { [0] = 120, [1] = 150, [2] = 130, [3] = 220 }
+    D6_Wep.ApplyRecoil(owner, dir, RECOIL[sub] or 120)
 
     local efShot = EffectData(); efShot:SetOrigin(pos); efShot:SetNormal(dir)
     util.Effect("RPGShot", efShot)

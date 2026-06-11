@@ -296,12 +296,15 @@ function SWEP:FireRail()
     UnlockCollision(ent)
     self:ReleaseHeld()
 
+    -- Наследование импульса корабля + отдача (связь с движением)
+    local inherit = D6_Wep and (D6_Wep.ShipVel(ply) * D6_Wep.Inherit()) or Vector(0, 0, 0)
     if IsValid(ph) then
         ph:EnableGravity(true)
         ph:EnableMotion(true)
         ph:Wake()
-        ph:SetVelocity(dir * RAIL_FIRE_SPEED)
+        ph:SetVelocity(dir * RAIL_FIRE_SPEED + inherit)
     end
+    if D6_Wep then D6_Wep.ApplyRecoil(ply, dir, 90) end
 
     -- Метки снаряда для детекции урона
     ent.D6_RailOwner = ply
@@ -537,6 +540,7 @@ function SWEP:FireFan()
 
     ply:EmitSound("weapons/physcannon/physcannon_shoot.wav", 80, 105)
     self:SendWeaponAnim(ACT_VM_SECONDARYATTACK)
+    if D6_Wep then D6_Wep.ApplyRecoil(ply, fwd, 55) end
 
     net.Start("D6_RailFire")
         net.WriteEntity(ply)

@@ -1,8 +1,9 @@
 -- ═══════════════════════════════════════════════════════════
--- weapon_d6_plasma.lua — ПЛАЗМА
+-- weapon_d6_plasma.lua — ПЛАЗМА (экзотика → энергоканал)
 --   Две параллельные пушки страйдера, стреляют одновременно.
---   Снаряд: combineball.mdl — циановый, поведение cball_explode.
---   Звук: npc/strider/fire.wav (плазмопушка страйдера).
+--   Снаряд: combineball.mdl — циановый плазмошар, splash AoE.
+--   НАВЫК: средняя скорость снаряда + наследование импульса —
+--   по движущейся цели нужно упреждение. Заметная отдача.
 -- ═══════════════════════════════════════════════════════════
 AddCSLuaFile()
 
@@ -36,92 +37,18 @@ if SERVER then
     util.PrecacheSound("weapons/physcannon/energy_sing_explosion2.wav")
 end
 
-local ENERGY_MAX   = 100
 local ENERGY_COST  = 8
-local ENERGY_REGEN = 8
+local FIRE_RATE    = 0.45
 local BOLT_SPEED   = 3200
 local BOLT_DMG     = 45
 local SPLASH_DMG   = 25
 local SPLASH_RAD   = 120
-
-local function ShootAng(ply)
-    local a = ply.D6AngSynced or ply.D6Ang or ply:EyeAngles()
-    return Angle(a.p, a.y, 0)
-end
-
--- Два дула row 1 — совпадают с nosegun в d6_wepview.lua (rgt ±46, up -20)
+local RECOIL       = 40
+-- Два дула row 1 — совпадают с nosegun в d6_wepview.lua
 local MUZZLES = {
     { fwd=28, rgt=-29, up=-13 },
     { fwd=28, rgt= 29, up=-13 },
 }
-
-local function MuzzleWorld(ply, off)
-    local noRoll = ShootAng(ply)
-    local full   = ply.D6AngSynced or ply.D6Ang or ply:EyeAngles()
-    return ply:GetShootPos()
-        + noRoll:Forward() * off.fwd
-        + full:Right()     * off.rgt
-        + full:Up()        * off.up
-end
-
-local function EnsurePhys(ent)
-    local ph = ent:GetPhysicsObject()
-    if IsValid(ph) then return ph end
-    ent:PhysicsInitSphere(8, "metal")
-    ent:SetMoveType(MOVETYPE_VPHYSICS)
-    return ent:GetPhysicsObject()
-end
-
-local function SpawnPlasmaBolt(owner, pos, dir)
-    local bolt = ents.Create("prop_physics")
-    if not IsValid(bolt) then return end
-    bolt:SetModel(MDL_BOLT)
-    bolt:SetPos(pos)
-    bolt:SetAngles(dir:Angle())
-    bolt:SetOwner(owner)
-    bolt:Spawn()
-    bolt:SetCollisionGroup(COLLISION_GROUP_PROJECTILE)
-    -- Страйдер-циановый плазменный цвет
-    bolt:SetColor(Color(0, 220, 255, 255))
-    bolt:SetRenderMode(RENDERMODE_TRANSADD)
-    bolt:SetModelScale(2.2, 0)
-
-    util.SpriteTrail(bolt, 0, Color(0,  200, 240), false, 30, 3, 0.40, 1/31*0.5, "trails/laser.vmt")
-    util.SpriteTrail(bolt, 1, Color(180, 255, 255), false, 10, 0, 0.22, 1/11*0.5, "trails/laser.vmt")
-
-    local phys = EnsurePhys(bolt)
-    if IsValid(phys) then
-        phys:EnableGravity(false)
-        phys:EnableDrag(false)
-        phys:SetMass(1)
-        phys:SetVelocity(dir * BOLT_SPEED)
-        phys:Wake()
-    end
-
-    -- Надёжная детекция (PhysicsCollide) → cball_explode + splash AoE
-    D6_TrackProjectile(bolt, owner, function(b, hitEnt, hitPos, hitNormal)
-        local center = b:GetPos()
-        local ef = EffectData(); ef:SetOrigin(center); ef:SetScale(3); ef:SetMagnitude(BOLT_DMG)
-        util.Effect("cball_explode", ef)
-        b:EmitSound("weapons/physcannon/energy_sing_explosion2.wav", 80, 120)
-
-        local atk = IsValid(owner) and owner or game.GetWorld()
-        for _, e in ipairs(ents.FindInSphere(center, SPLASH_RAD)) do
-            if not IsValid(e) then continue end
-            if not (e:IsNPC() or e:IsPlayer()) then continue end
-            if e == owner then continue end
-            local dist = e:GetPos():Distance(center)
-            local dmg  = BOLT_DMG + SPLASH_DMG * math.max(0, 1 - dist / SPLASH_RAD)
-            local di   = DamageInfo()
-            di:SetAttacker(atk)
-            di:SetInflictor(b)
-            di:SetDamage(dmg)
-            di:SetDamageType(DMG_ENERGYBEAM + DMG_BLAST)
-            di:SetDamageForce((e:GetPos() - center):GetNormalized() * 4000)
-            e:TakeDamageInfo(di)
-        end
-    end, 5)
-end
 
 function SWEP:Initialize()
     self:SetWeaponHoldType(self.HoldType)
@@ -130,7 +57,15 @@ end
 function SWEP:Deploy()  return true end
 function SWEP:Holster() return true end
 
--- Реген энергии теперь централизован в d6_energy.lua (D6_Energy.RegenTick).
+local function OnHit(owner, b, hitEnt, hitPos, hitNormal)
+    local center = b:GetPos()
+    local ef = EffectData(); ef:SetOrigin(center); ef:SetScale(3); ef:SetMagnitude(BOLT_DMG)
+    util.Effect("cball_explode", ef)
+    b:EmitSound("weapons/physcannon/energy_sing_explosion2.wav", 80, 120)
+    -- Экзотика → канал energy (DMG_SHOCK+EBEAM), splash AoE
+    D6_Wep.SplashDamage(owner, b, center, BOLT_DMG, SPLASH_DMG, SPLASH_RAD,
+        D6_DAMAGE.exotic.dmgType, 4000, owner)
+end
 
 function SWEP:PrimaryAttack()
     if not SERVER then return end
@@ -140,15 +75,34 @@ function SWEP:PrimaryAttack()
     if not D6_Energy.TryConsume(owner, "weapons", ENERGY_COST) then
         owner:EmitSound("buttons/button10.wav", 65, 100); return
     end
-    self:SetNextPrimaryFire(CurTime() + 0.45)
+    self:SetNextPrimaryFire(CurTime() + FIRE_RATE)
 
-    local sa  = ShootAng(owner)
-    local aim = owner:GetShootPos() + sa:Forward() * 5000
+    -- Параллельные стволы: оба дула бьют по борсайту (без схождения).
+    local dir = D6_Wep.ShootAng(owner):Forward()
 
     for _, off in ipairs(MUZZLES) do
-        local src = MuzzleWorld(owner, off)
-        local dir = (aim - src):GetNormalized()
-        SpawnPlasmaBolt(owner, src, dir)
+        local src = D6_Wep.Muzzle(owner, off)
+        D6_Wep.FireProjectile({
+            owner    = owner,
+            pos      = src,
+            dir      = dir,
+            speed    = BOLT_SPEED,
+            model    = MDL_BOLT,
+            scale    = 2.2,
+            color    = Color(0, 220, 255, 255),
+            dmgClass = "exotic",
+            physRadius = 8,
+            mass     = 1,
+            recoil   = RECOIL,
+            life     = 5,
+            trails   = {
+                { col = Color(0,   200, 240), sw = 30, ew = 3, life = 0.40 },
+                { col = Color(180, 255, 255), sw = 10, ew = 0, life = 0.22 },
+            },
+            onHit = function(b, hitEnt, hitPos, hitNormal)
+                OnHit(owner, b, hitEnt, hitPos, hitNormal)
+            end,
+        })
         local mf = EffectData(); mf:SetOrigin(src); mf:SetNormal(dir); mf:SetScale(2)
         util.Effect("cball_explode", mf)
     end
@@ -158,27 +112,13 @@ end
 
 function SWEP:SecondaryAttack()
     if not SERVER then return end
-    local owner = self:GetOwner()
-    if not IsValid(owner) then return end
     self:SetNextSecondaryFire(CurTime() + 0.8)
-    local rkt = owner:GetWeapon("weapon_d6_rockets")
-    if IsValid(rkt) then rkt:PrimaryAttack() end
+    D6_Wep.DelegateSecondary(self:GetOwner())
 end
 
 if CLIENT then
     function SWEP:DrawHUD()
-        local ply = self:GetOwner()
-        if not (IsValid(ply) and ply == LocalPlayer()) then return end
-        local energy = ply:GetNWFloat("D6_WepEnergy", ENERGY_MAX)
-        local sw, sh = ScrW(), ScrH()
-        local bw, bh = 140, 6
-        local bx, by = sw/2 - bw/2, sh - 72
-        surface.SetDrawColor(30, 30, 30, 180); surface.DrawRect(bx-1, by-1, bw+2, bh+2)
-        local col = energy > 30 and Color(0,180,255) or Color(255,60,60)
-        surface.SetDrawColor(col.r, col.g, col.b, 200)
-        surface.DrawRect(bx, by, bw * (energy/ENERGY_MAX), bh)
-        draw.SimpleText("ПЛАЗМА  ⚡ "..math.floor(energy), "DermaDefault",
-            sw/2, sh-90, Color(0,220,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        D6_Wep.DrawEnergyHUD(self:GetOwner(), "ПЛАЗМА", Color(0, 220, 255))
     end
 end
 
