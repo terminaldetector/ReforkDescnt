@@ -34,6 +34,24 @@ local D6_COMBAT = {
     "weapon_d6_homing",
     "weapon_d6_smart_missile",
     "weapon_d6_mega_missile",
+    -- Cat D — Anti-Swarm
+    "weapon_d6_bfg",
+    "weapon_d6_flak",
+    "weapon_d6_frag",
+    "weapon_d6_shockwave",
+    -- Cat E — Area Control
+    "weapon_d6_plasmamine",
+    "weapon_d6_gravmine",
+    "weapon_d6_energytrap",
+    "weapon_d6_darkfield",
+    -- Cat F — Mobility
+    "weapon_d6_telefrag",
+    "weapon_d6_whiplash",
+    "weapon_d6_warp",
+    -- Cat G — Ultimate
+    "weapon_d6_overdrive",
+    "weapon_d6_reactor",
+    "weapon_d6_darklance",
 }
 local D6_COMBAT_SET = {}
 for _, v in ipairs(D6_COMBAT) do D6_COMBAT_SET[v] = true end
@@ -56,6 +74,24 @@ if SERVER then
     AddCSLuaFile("weapons/weapon_d6_homing.lua")
     AddCSLuaFile("weapons/weapon_d6_smart_missile.lua")
     AddCSLuaFile("weapons/weapon_d6_mega_missile.lua")
+    -- Cat D — Anti-Swarm
+    AddCSLuaFile("weapons/weapon_d6_bfg.lua")
+    AddCSLuaFile("weapons/weapon_d6_flak.lua")
+    AddCSLuaFile("weapons/weapon_d6_frag.lua")
+    AddCSLuaFile("weapons/weapon_d6_shockwave.lua")
+    -- Cat E — Area Control
+    AddCSLuaFile("weapons/weapon_d6_plasmamine.lua")
+    AddCSLuaFile("weapons/weapon_d6_gravmine.lua")
+    AddCSLuaFile("weapons/weapon_d6_energytrap.lua")
+    AddCSLuaFile("weapons/weapon_d6_darkfield.lua")
+    -- Cat F — Mobility
+    AddCSLuaFile("weapons/weapon_d6_telefrag.lua")
+    AddCSLuaFile("weapons/weapon_d6_whiplash.lua")
+    AddCSLuaFile("weapons/weapon_d6_warp.lua")
+    -- Cat G — Ultimate
+    AddCSLuaFile("weapons/weapon_d6_overdrive.lua")
+    AddCSLuaFile("weapons/weapon_d6_reactor.lua")
+    AddCSLuaFile("weapons/weapon_d6_darklance.lua")
     AddCSLuaFile("d6_core.lua")
     AddCSLuaFile("d6_weapon_core.lua")  -- единый фреймворк оружия (Phase B)
     AddCSLuaFile("d6_client.lua")
@@ -105,6 +141,32 @@ if CLIENT then
     include("d6_nav.lua")            -- nav graph client debug
     include("d6_energy.lua")         -- энергорезерв (геттеры для HUD/меню)
     include("d6_shield.lua")         -- щиты (геттеры для cockpit)
+end
+
+-- ── Реестр: категории оружий Descent (Waves D–G) ─────────
+-- Регистрируем явные категории ДО авто-детекта (InitPostEntity),
+-- чтобы реестр/TAB-меню показывали правильные группы, а не
+-- «Auto-detected». autoGive=false — выдача идёт через D6_COMBAT.
+if D6_RegisterWeapon then
+    local function reg(class, cat) D6_RegisterWeapon(class, { category = cat, autoGive = false }) end
+    -- Cat D — Anti-Swarm
+    reg("weapon_d6_bfg",        "Anti-Swarm")
+    reg("weapon_d6_flak",       "Anti-Swarm")
+    reg("weapon_d6_frag",       "Anti-Swarm")
+    reg("weapon_d6_shockwave",  "Anti-Swarm")
+    -- Cat E — Area Control
+    reg("weapon_d6_plasmamine", "Area Control")
+    reg("weapon_d6_gravmine",   "Area Control")
+    reg("weapon_d6_energytrap", "Area Control")
+    reg("weapon_d6_darkfield",  "Area Control")
+    -- Cat F — Mobility
+    reg("weapon_d6_telefrag",   "Mobility")
+    reg("weapon_d6_whiplash",   "Mobility")
+    reg("weapon_d6_warp",       "Mobility")
+    -- Cat G — Ultimate
+    reg("weapon_d6_overdrive",  "Ultimate")
+    reg("weapon_d6_reactor",    "Ultimate")
+    reg("weapon_d6_darklance",  "Ultimate")
 end
 
 -- ── Биндинги — подсказка при входе ───────────────────────

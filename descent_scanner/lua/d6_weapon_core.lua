@@ -264,6 +264,26 @@ if CLIENT then
         draw.SimpleText(label .. "   " .. count .. " / " .. maxAmmo, "DermaDefault",
             sw / 2, sh - 90, labelCol, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
     end
+
+    -- Energy bar + cooldown/ready indicator for high-cooldown weapons
+    -- (BFG, ultimates, deployables). cooldown = total seconds for the bar fill.
+    function D6_Wep.DrawReadyHUD(ply, wep, label, col, cooldown)
+        if not (IsValid(ply) and ply == LocalPlayer()) then return end
+        D6_Wep.DrawEnergyHUD(ply, label, col)
+        if not IsValid(wep) then return end
+        local sw, sh = ScrW(), ScrH()
+        local rem = wep:GetNextPrimaryFire() - CurTime()
+        if rem > 0 and cooldown and cooldown > 0 then
+            local frac   = 1 - math.Clamp(rem / cooldown, 0, 1)
+            local bw, bh = 140, 4
+            local bx, by = sw / 2 - bw / 2, sh - 80
+            surface.SetDrawColor(20, 20, 20, 180); surface.DrawRect(bx - 1, by - 1, bw + 2, bh + 2)
+            surface.SetDrawColor(col.r, col.g, col.b, 210); surface.DrawRect(bx, by, bw * frac, bh)
+        else
+            draw.SimpleText("● ГОТОВ", "DermaDefault", sw / 2, sh - 80,
+                col, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+        end
+    end
 end
 
 print("[D6] d6_weapon_core.lua OK")
