@@ -202,6 +202,11 @@ local function D6_AvoidObstacles(npc, fp, ft)
     probe(dir, 1.0)
     probe((dir + right * 0.6):GetNormalized(), 0.6)
     probe((dir - right * 0.6):GetNormalized(), 0.6)
+    -- Vertical probes: detect floor and ceiling obstacles.
+    -- Critical for tunnels, vertical shafts, and diving/climbing attack runs.
+    local up = right:Cross(dir):GetNormalized()
+    probe((dir + up * 0.6):GetNormalized(), 0.4)  -- ceiling
+    probe((dir - up * 0.6):GetNormalized(), 0.4)  -- floor
 
     if hit then
         local strength = fp.avoid or 1.3
@@ -267,21 +272,20 @@ end
 -- (aggression 0, no runs) orbit perpetually instead of hovering.
 -- ═══════════════════════════════════════════════════════════
 local D6_COMBAT_STYLE = {
-    -- assault: aggressive diver — tight orbit, frequent diving runs
-    pressure = { orbitR=480, orbitMin=0.8, orbitMax=1.6, runMin=0.8, runMax=1.4,
+    -- assault: aggressive diver — tight orbit, frequent diving runs. 30° max orbital tilt.
+    pressure = { orbitR=480, inclMax=0.52, orbitMin=0.8, orbitMax=1.6, runMin=0.8, runMax=1.4,
                  breakMin=0.7, breakMax=1.1, breakIn=220, vbias=0.55, aggression=0.85, spdMul=1.0 },
-    -- interceptor: fast aggressive circler — quick diving strafing runs
-    flank    = { orbitR=380, orbitMin=1.2, orbitMax=2.6, runMin=0.6, runMax=1.0,
+    -- interceptor: fast aggressive circler — tilted orbits up to 60°, true overhead dives.
+    flank    = { orbitR=380, inclMax=1.05, orbitMin=1.2, orbitMax=2.6, runMin=0.6, runMax=1.0,
                  breakMin=0.6, breakMax=1.0, breakIn=200, vbias=0.7,  aggression=0.75, spdMul=1.12 },
-    -- artillery: wide orbit while shelling, never closes. orbitR matches HL2
-    -- outdoor areas (courtyards, streets, canals) — 720u achievable at speed 240.
-    standoff = { orbitR=720, orbitZ=160, orbitMin=3.0, orbitMax=5.0, runMin=0, runMax=0,
+    -- artillery: near-flat orbit (10° max) — deliberate shell platform silhouette.
+    standoff = { orbitR=720, inclMax=0.17, orbitMin=3.0, orbitMax=5.0, runMin=0, runMax=0,
                  breakMin=1.0, breakMax=1.6, breakIn=600, vbias=0.2,  aggression=0.0,  spdMul=0.95 },
-    -- support: high-strafe kiting orbit, evasive, no runs
-    support  = { orbitR=650, orbitMin=1.6, orbitMax=3.2, runMin=0, runMax=0,
+    -- support: high-strafe kiting orbit, evasive, 40° max tilt for vertical variance.
+    support  = { orbitR=650, inclMax=0.70, orbitMin=1.6, orbitMax=3.2, runMin=0, runMax=0,
                  breakMin=1.0, breakMax=1.5, breakIn=400, vbias=0.3,  aggression=0.0,  spdMul=1.15 },
-    -- heavy_elite: slow orbit + diving charge-runs (charge owned by behavior)
-    anchor   = { orbitR=550, orbitMin=1.2, orbitMax=2.2, runMin=1.0, runMax=1.6,
+    -- heavy_elite: slow orbit, 20° max tilt — massive but not flat.
+    anchor   = { orbitR=550, inclMax=0.35, orbitMin=1.2, orbitMax=2.2, runMin=1.0, runMax=1.6,
                  breakMin=0.6, breakMax=1.0, breakIn=200, vbias=0.45, aggression=0.7, spdMul=1.0 },
 }
 
@@ -306,27 +310,54 @@ local function D6_ShouldFightMoving(npc, target, dist, loadout)
     return true
 end
 
+-- Build a new randomised orbital-plane normal within inclMax radians of world-UP.
+-- Each orbit phase entry re-randomises so every engagement sweep uses a fresh tilt,
+-- giving drones varied vertical attack geometry across encounters.
+local function D6_RollOrbitalNormal(style)
+    local inclMax = style.inclMax or 0.35
+    local yr  = math.Rand(0, 360)
+    local pr  = math.Rand(0, inclMax) * 57.296  -- radians → degrees for Angle()
+    local tf  = Angle(pr, yr, 0):Forward()
+    local cand = Vector(0, 0, 1):Cross(tf)
+    return (cand:LengthSqr() > 0.01) and cand:GetNormalized() or Vector(0, 1, 0)
+end
+
 local function D6_CombatMotion(npc, loadout, target, dist, ct, style)
     local spd  = (loadout.speed or 500) * (style.spdMul or 1)
     local tpos = target:GetPos()
     local mpos = npc:GetPos()
-    local to   = tpos - mpos
-    local flat = Vector(to.x, to.y, 0)
-    local fd   = flat:Length()
-    local flatDir = fd > 1 and (flat / fd) or npc:GetForward()
-    local tangent = flatDir:Cross(_UP):GetNormalized()
 
-    local phase = npc.D6_CMPhase or 1   -- 1=ORBIT 2=RUN 3=BREAK
+    local prevPhase = npc.D6_CMPhase or 1
+    local phase     = prevPhase
     if not npc.D6_CMSign or npc.D6_CMSign == 0 then
         npc.D6_CMSign = (math.random() < 0.5) and 1 or -1
     end
 
     if phase == 1 then
-        -- ORBIT ATTACK: circle at preferred radius, hold altitude near target.
-        local R   = style.orbitR or 500
-        local rad = math.Clamp((fd - R) * 0.008, -1, 1)
-        local vz  = math.Clamp((tpos.z + (style.orbitZ or 0) - mpos.z) * 0.01, -0.6, 0.6)
-        npc.D6_DesiredVel = (tangent * npc.D6_CMSign + flatDir * rad + _UP * vz):GetNormalized() * spd
+        -- ── ORBIT ATTACK ───────────────────────────────────────
+        -- True 3D sphere orbit on a tilted orbital plane (D6_CMNormal).
+        -- Re-randomise the plane on every phase-1 entry so vertical geometry varies
+        -- across combat cycles. Radial correction maintains preferred orbit radius.
+        if prevPhase ~= 1 then  -- entering orbit from break or fresh start
+            npc.D6_CMNormal = D6_RollOrbitalNormal(style)
+        end
+        local orbitNormal = npc.D6_CMNormal or _UP
+
+        local R    = style.orbitR or 500
+        local r    = mpos - tpos               -- radial vector: target → drone
+        local rLen = r:Length()
+        local rHat = rLen > 1 and (r / rLen) or npc:GetForward()
+
+        -- Tangent lies on the orbital plane at the drone's current sphere position.
+        local tangent3D = rHat:Cross(orbitNormal):GetNormalized()
+        if tangent3D:LengthSqr() < 0.01 then
+            tangent3D = orbitNormal:Cross(Vector(1, 0, 0)):GetNormalized()
+        end
+
+        -- Radial correction steers toward preferred orbit radius.
+        local radErr = math.Clamp((rLen - R) / math.max(R, 1), -1, 1)
+        npc.D6_DesiredVel = (tangent3D * npc.D6_CMSign - rHat * radErr * 0.5):GetNormalized() * spd
+
         if ct > (npc.D6_CMEnd or 0) then
             if (style.runMax or 0) > 0 and math.random() < (style.aggression or 0.5) then
                 phase = 2
@@ -334,16 +365,25 @@ local function D6_CombatMotion(npc, loadout, target, dist, ct, style)
                 npc.D6_CMEnd = ct + math.Rand(style.runMin or 0.8, style.runMax or 1.4)
             else
                 npc.D6_CMEnd = ct + math.Rand(style.orbitMin or 1.5, style.orbitMax or 3.0)
-                if math.random() < 0.3 then npc.D6_CMSign = -npc.D6_CMSign end  -- reverse circle
+                if math.random() < 0.3 then npc.D6_CMSign = -npc.D6_CMSign end
             end
         end
 
     elseif phase == 2 then
-        -- ATTACK RUN: drive at the target; vertical bias = dive or climb.
+        -- ── ATTACK RUN ─────────────────────────────────────────
+        -- Full 3D approach; dive/climb uses the orbital-plane "up" axis so runs
+        -- tilt through vertical space rather than just adding a Z scalar.
+        local orbitNormal = npc.D6_CMNormal or _UP
+        local to3D = (tpos - mpos):GetNormalized()
+        -- In-plane perpendicular to approach direction = the vertical axis for bias.
+        local perpUp = to3D:Cross(orbitNormal):Cross(to3D):GetNormalized()
+        if perpUp:LengthSqr() < 0.01 then perpUp = orbitNormal end
+
         local vb   = style.vbias or 0.4
         local vert = (npc.D6_CMRunType == "dive") and -vb
-                  or  (npc.D6_CMRunType == "climb") and vb or 0
-        npc.D6_DesiredVel = (flatDir + _UP * vert):GetNormalized() * spd
+                  or (npc.D6_CMRunType == "climb") and  vb or 0
+        npc.D6_DesiredVel = (to3D + perpUp * vert):GetNormalized() * spd
+
         if ct > (npc.D6_CMEnd or 0) or dist < (style.breakIn or 250) then
             phase = 3
             npc.D6_CMEnd = ct + math.Rand(style.breakMin or 0.7, style.breakMax or 1.1)
@@ -355,9 +395,19 @@ local function D6_CombatMotion(npc, loadout, target, dist, ct, style)
         end
 
     else
-        -- BREAK-AWAY: peel past + away, swing altitude opposite the run, re-engage.
-        local swing = (npc.D6_CMRunType == "climb") and -0.4 or 0.5  -- climb out of a dive
-        npc.D6_DesiredVel = (-flatDir * 0.4 + tangent * npc.D6_CMSign * 0.7 + _UP * swing):GetNormalized() * spd
+        -- ── BREAK-AWAY ─────────────────────────────────────────
+        -- Peel off in 3D: reverse approach + orbital-plane cross-tangent + orbital
+        -- normal swing (opposite of the run vertical bias) for altitude recovery.
+        local orbitNormal = npc.D6_CMNormal or _UP
+        local backDir = -(tpos - mpos):GetNormalized()
+        local crossTangent = backDir:Cross(orbitNormal):GetNormalized()
+        if crossTangent:LengthSqr() < 0.01 then
+            crossTangent = orbitNormal:Cross(Vector(0, 0, 1)):GetNormalized()
+        end
+        local swing = (npc.D6_CMRunType == "climb") and -0.4 or 0.5
+        npc.D6_DesiredVel = (backDir * 0.4 + crossTangent * npc.D6_CMSign * 0.7
+                           + orbitNormal * swing):GetNormalized() * spd
+
         if ct > (npc.D6_CMEnd or 0) then
             phase = 1
             npc.D6_CMEnd = ct + math.Rand(style.orbitMin or 1.0, style.orbitMax or 2.0)
@@ -587,12 +637,16 @@ function D6_BuildDrone(loadout, pos, targetPly)
     npc.D6_ThrustCur      = Vector(0, 0, 0)
     npc.D6_DesiredVel     = nil
     npc.D6_DesiredVelRate = 5
-    -- Combat-motion + maneuver state (Phase C/D)
+    -- Combat-motion + maneuver state (Phase C/D/Act3)
     npc.D6_CMPhase        = nil
     npc.D6_CMSign         = 0
     npc.D6_CMRunType      = nil
+    npc.D6_CMNormal       = nil   -- tilted orbital-plane normal; re-rolled each orbit entry
     npc.D6_Maneuver       = nil
     npc.D6_ManeuverCD     = 0
+    -- Stage 12.7: nav-graph patrol state
+    npc.D6_NavPath        = nil
+    npc.D6_PathIdx        = nil
     local bp = RolePhys(npc)
     if bp then
         bp:SetMass(fp.mass or D6_DEFAULT_PHYS.mass)
@@ -797,6 +851,29 @@ hook.Add("Think", "D6_RoleDispatch", function()
         local inAttack = behavior and behavior(npc, phys, loadout, target, dist, ct) or false
 
         local fp = npc.D6_PhysProfile or D6_DEFAULT_PHYS
+
+        -- Stage 12.7: nav-graph patrol when idle (state 1, no player in range).
+        -- Uses D6_NavFindPath / D6_PathFollow from d6_nav.lua; both are safe no-ops
+        -- when D6_NavGraph has no nodes (map has no d6_nav_node entities).
+        if npc.D6_RoleState == 1 and not IsValid(target) then
+            if not npc.D6_NavPath then
+                if table.Count(D6_NavGraph.nodes) >= 2 then
+                    local wander = myPos + Vector(
+                        math.Rand(-800, 800), math.Rand(-800, 800), math.Rand(-200, 200))
+                    local path = D6_NavFindPath(myPos, wander)
+                    if path then
+                        npc.D6_NavPath = path
+                        npc.D6_PathIdx = 1
+                    end
+                end
+            end
+            if npc.D6_NavPath then
+                local done = D6_PathFollow(npc, npc.D6_NavPath, loadout.speed or 400)
+                if done then npc.D6_NavPath = nil end
+            end
+        elseif npc.D6_NavPath then
+            npc.D6_NavPath = nil; npc.D6_PathIdx = nil  -- engaged: abandon patrol path
+        end
 
         -- Phase D: combat motion drives every engaged drone (fight through
         -- movement). Retreat/charge stay with the behavior's own intent.

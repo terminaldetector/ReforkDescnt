@@ -178,11 +178,11 @@ function D6_PathFollow(npc, path, speed)
         wp = path[npc.D6_PathIdx]
     end
 
-    local ph = npc:GetPhysicsObject()
-    if IsValid(ph) then
-        local dir = (wp.pos - myPos):GetNormalized()
-        ph:SetVelocity(LerpVector(FrameTime() * 5, ph:GetVelocity(), dir * (speed or 320)))
-    end
+    -- Write intent into D6_DesiredVel so D6_FlightControl handles velocity
+    -- integration (inertia, speed cap, physics write). Direct ph:SetVelocity would
+    -- bypass the flight controller and fight it in the same tick.
+    local dir = (wp.pos - myPos):GetNormalized()
+    npc.D6_DesiredVel = dir * (speed or 320)
     return false
 end
 
