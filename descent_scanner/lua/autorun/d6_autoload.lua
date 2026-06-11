@@ -27,6 +27,7 @@ local D6_COMBAT = {
     "weapon_d6_heavy",
     "weapon_d6_laser",
     "weapon_d6_vulcan",
+    "weapon_d6_quad_laser",
     "weapon_d6_rockets",
     "weapon_d6_railmk2",
     "weapon_d6_concussion",
@@ -47,6 +48,7 @@ if SERVER then
     AddCSLuaFile("weapons/weapon_d6_heavy.lua")
     AddCSLuaFile("weapons/weapon_d6_laser.lua")
     AddCSLuaFile("weapons/weapon_d6_vulcan.lua")
+    AddCSLuaFile("weapons/weapon_d6_quad_laser.lua")
     AddCSLuaFile("weapons/weapon_d6_rockets.lua")
     AddCSLuaFile("weapons/weapon_d6_concussion.lua")
     AddCSLuaFile("weapons/weapon_d6_homing.lua")
