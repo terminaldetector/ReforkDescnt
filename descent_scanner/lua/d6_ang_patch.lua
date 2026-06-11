@@ -65,29 +65,6 @@ if SERVER then
 
 end
 
--- ── Клиентский патч: CreateMove ───────────────────────────
--- Гарантирует что cmd:GetViewAngles() совпадает с D6Ang
--- (d6_client.lua уже ставит cmd:SetViewAngles(Ang), но
---  некоторые SWEPы читают угол через input.GetCursorPos
---  или LocalPlayer():EyeAngles() напрямую — патчим и это)
-if CLIENT then
-
-    hook.Add("CreateMove", "D6_AngPatch_Client", function(cmd)
-        local ply = LocalPlayer()
-        if not IsValid(ply) then return end
-        if not ply:GetNWBool("D6On", false) then return end
-
-        -- ply.D6Ang устанавливается в d6_client.lua CreateMove
-        local ang = ply.D6Ang
-        if not ang then return end
-
-        -- Форсируем угол в cmd — это читается большинством SWEPов
-        -- через SWEP:GetOwner():EyeAngles() на клиенте
-        cmd:SetViewAngles(ang)
-    end)
-
-end
-
 -- ── SWEP-хук: перехват PrimaryAttack / SecondaryAttack ────
 -- Самый надёжный способ — оборачиваем вызов атаки.
 -- До вызова: подменяем GetOwner():EyeAngles() временно.

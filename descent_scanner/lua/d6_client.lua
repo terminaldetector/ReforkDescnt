@@ -114,16 +114,18 @@ hook.Add("CreateMove", "D6_Cam_CM", function(cmd)
     local ft = FrameTime()
     if ft <= 0 then return end
 
-    -- ─── [Descent] инерция вращения камеры ───
-    -- Целевое вращение фильтруется через Lerp с коэффициентом 12.
-    -- При резком движении мыши камера слегка отстаёт, потом догоняет.
+    -- ── [Descent] угловая инерция камеры ────────────────────────────
+    -- TurnVel: первый слой фильтра — сглаживает мышиный ввод (75ms до 50%).
+    --          было ft*12 (60ms) — слишком быстро, нет ощущения массы.
+    --          стало ft*8  (75ms) — отклик 75ms, угасание 240ms.
+    -- _D6AngVel: второй слой — угловая инерция тела (FA=ON 135ms, FA=OFF 330ms).
     ply.D6TurnVel = ply.D6TurnVel or { pitch = 0, yaw = 0 }
     ply._D6AngVel = ply._D6AngVel or { pitch = 0, yaw = 0 }
     local targetPitch =  cmd:GetMouseY() * 0.015
     local targetYaw   = -cmd:GetMouseX() * 0.015
-    ply.D6TurnVel.pitch = Lerp(ft * 12, ply.D6TurnVel.pitch, targetPitch)
-    ply.D6TurnVel.yaw   = Lerp(ft * 12, ply.D6TurnVel.yaw,   targetYaw)
-    local angDamp = ply:GetNWBool("D6_FlightAssist", true) and 6 or 2.5
+    ply.D6TurnVel.pitch = Lerp(ft * 8, ply.D6TurnVel.pitch, targetPitch)
+    ply.D6TurnVel.yaw   = Lerp(ft * 8, ply.D6TurnVel.yaw,   targetYaw)
+    local angDamp = ply:GetNWBool("D6_FlightAssist", true) and 5 or 2.0
     ply._D6AngVel.pitch = Lerp(ft * angDamp, ply._D6AngVel.pitch, ply.D6TurnVel.pitch)
     ply._D6AngVel.yaw   = Lerp(ft * angDamp, ply._D6AngVel.yaw,   ply.D6TurnVel.yaw)
     Ang:RotateAroundAxis(Ang:Right(), ply._D6AngVel.pitch)
@@ -133,7 +135,7 @@ hook.Add("CreateMove", "D6_Cam_CM", function(cmd)
     local rollIn = 0
     if input.IsKeyDown(KEY_LSHIFT) then rollIn = rollIn - 1 end
     if input.IsKeyDown(KEY_F)      then rollIn = rollIn + 1 end
-    RollVel = Lerp(ft * 8, RollVel, rollIn * ROLL_SPEED)
+    RollVel = Lerp(ft * 5, RollVel, rollIn * ROLL_SPEED) -- было ft*8: крен инерционнее
     Ang:RotateAroundAxis(Ang:Forward(), RollVel * ft)
 
     Ang.r = math.Clamp(((Ang.r + 180) % 360) - 180, -ROLL_LIMIT, ROLL_LIMIT)
@@ -195,8 +197,22 @@ hook.Add("CalcView", "D6_Cam_CV", function(ply, pos, _, fov)
     if Dashing then lagTarget = lagTarget - DashDir * 8 end
     CamLag = LerpVector(FrameTime() * 10, CamLag, lagTarget)
     local origin = pos + CamLag
-    -- ─── Вибрация двигателя: едва заметная дрожь под тягой ───
-    -- Чисто видовое смещение (≤0.6 ед.), не входит в физику/предсказание.
+
+    -- ── Micro-motion: реакторное покачивание корпуса ─────────────────
+    -- Двухчастотное смещение ПОЗИЦИИ (не угла, не camera shake).
+    -- Амплитуда пропорциональна скорости: ноль при стоянии, макс ~1.4ед на топ-скорости.
+    -- Две частоты (8.3Hz + 11.7Hz) создают биение — ощущение работающего реактора.
+    -- Направление смещения привязано к осям КОРПУСА, не мировым координатам.
+    local spd_mm = ply:GetVelocity():Length()
+    local mm_amp = math.Clamp(spd_mm / 1800, 0, 1) * 1.4
+    if mm_amp > 0.05 then
+        local t_mm  = CurTime() + ply:EntIndex() * 0.37   -- фаза уникальна для каждого игрока
+        local drift = Ang:Right()   * math.sin(t_mm * 8.3)  * mm_amp
+                    + Ang:Up()      * math.sin(t_mm * 11.7) * mm_amp * 0.55
+        origin = origin + drift
+    end
+
+    -- ── Engine vibration (уже было, оставлено без изменений) ─────────
     local arOn   = ply:GetNWBool("D6AlwaysRun", false)
     local spd    = ply:GetVelocity():Length()
     local vibAmp = (arOn and 0.6 or 0.25) * math.Clamp(spd / 900, 0, 1)

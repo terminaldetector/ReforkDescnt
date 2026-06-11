@@ -27,6 +27,11 @@ local LOADOUTS = {
         retreatHP = 0.30,
         shield = 50, shieldMax = 50, armor = 0, armorMax = 0,
         resist = { kinetic = 0, energy = 0.1, explosive = 0 },
+        phys = {
+            flightMode = "physics",
+            mass = 80,   spoolUp = 8,  spoolDown = 3, velLerp = 5,  maxSpeed = 700,
+            angPower = 220, angInertia = 0.88, angSpinSup = 0.20,
+        },
     },
     interceptor = {
         ai    = "flank",
@@ -35,6 +40,11 @@ local LOADOUTS = {
         speed = 750, rangeMin = 250, rangeMax = 500,
         shield = 30, shieldMax = 30, armor = 0, armorMax = 0,
         resist = { kinetic = 0, energy = 0, explosive = 0 },
+        phys = {
+            flightMode = "physics",
+            mass = 55,   spoolUp = 10, spoolDown = 2, velLerp = 6,  maxSpeed = 950,
+            angPower = 320, angInertia = 0.82, angSpinSup = 0.15,
+        },
     },
     artillery = {
         ai    = "standoff",
@@ -44,6 +54,11 @@ local LOADOUTS = {
         retreatDist = 800,
         shield = 0, shieldMax = 0, armor = 60, armorMax = 60,
         resist = { kinetic = 0.2, energy = 0, explosive = 0.1 },
+        phys = {
+            flightMode = "physics",
+            mass = 140,  spoolUp = 5,  spoolDown = 2, velLerp = 3,  maxSpeed = 500,
+            angPower = 120, angInertia = 0.93, angSpinSup = 0.25,
+        },
     },
     support = {
         ai    = "support",
@@ -52,6 +67,11 @@ local LOADOUTS = {
         speed = 280, healRadius = 300, healAmt = 4, healInterval = 0.5,
         shield = 40, shieldMax = 40, armor = 20, armorMax = 20,
         resist = { kinetic = 0, energy = 0.15, explosive = 0 },
+        phys = {
+            flightMode = "physics",
+            mass = 70,   spoolUp = 8,  spoolDown = 3, velLerp = 5,  maxSpeed = 750,
+            angPower = 250, angInertia = 0.86, angSpinSup = 0.18,
+        },
     },
     heavy_elite = {
         ai    = "anchor",
@@ -61,6 +81,11 @@ local LOADOUTS = {
         chargeDist = 600, chargeCD = 8, chargeDur = 0.4, chargeSpeed = 900,
         shield = 150, shieldMax = 150, armor = 100, armorMax = 100,
         resist = { kinetic = 0.2, energy = 0.2, explosive = 0.3 },
+        phys = {
+            flightMode = "physics",
+            mass = 200,  spoolUp = 3,  spoolDown = 1, velLerp = 2,  maxSpeed = 420,
+            angPower = 90,  angInertia = 0.96, angSpinSup = 0.28,
+        },
     },
 }
 

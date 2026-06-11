@@ -43,9 +43,10 @@ local function NearestPlayer(pos, maxDist)
     return best, bestD
 end
 
-local function Lerp6(phys, target)
-    phys:SetVelocity(LerpVector(FrameTime() * 5, phys:GetVelocity(), target))
-end
+-- Lerp6 replaced by D6_FlightControl below; kept for reference only.
+-- local function Lerp6(phys, target)
+--     phys:SetVelocity(LerpVector(FrameTime() * 5, phys:GetVelocity(), target))
+-- end
 
 local function BulletHit(_, tr, _)
     if tr.Hit then
@@ -53,6 +54,85 @@ local function BulletHit(_, tr, _)
         ef:SetOrigin(tr.HitPos); ef:SetNormal(tr.HitNormal); ef:SetScale(0.7)
         util.Effect("AR2Impact", ef)
     end
+end
+
+-- ─── Act 3: Flight Evolution — Stage 9-12 helpers ────────
+
+-- Default physics profile (fallback when LOADOUT has no phys={} table)
+local D6_DEFAULT_PHYS = {
+    mass       = 80,
+    spoolUp    = 8,   spoolDown = 3,
+    velLerp    = 5,   maxSpeed  = 700,
+    angPower   = 220, angInertia = 0.88, angSpinSup = 0.20,
+    flightMode = "legacy",
+}
+
+-- Stage 9: Orientation policy
+-- Yaw → face target; Pitch → blend velocity/target; Roll → emergent bank
+local function D6_ResolveOrientation(npc, target)
+    if not IsValid(target) then return end
+    local toTarget = target:GetPos() - npc:GetPos()
+    local vel      = npc.D6_Vel
+
+    local desYaw   = toTarget:Angle().y
+    local tgtPitch = toTarget:Angle().p
+    local velPitch = vel:Length() > 50 and vel:Angle().p or tgtPitch
+    local desPitch = tgtPitch + (velPitch - tgtPitch) * 0.6
+    -- Roll: bank into yaw rate (mirrors d6_ai.lua:274 proven formula)
+    local desRoll  = math.Clamp(npc.D6_AngVel.y * -0.4, -50, 50)
+
+    npc.D6_DesiredAng.p = desPitch
+    npc.D6_DesiredAng.y = desYaw
+    npc.D6_DesiredAng.r = desRoll
+end
+
+-- Stage 10: Angular spring-damper — moves D6_BodyAng toward D6_DesiredAng
+local function D6_StepAngular(npc, fp, ft)
+    local av   = npc.D6_AngVel
+    local body = npc.D6_BodyAng
+    local des  = npc.D6_DesiredAng
+    local ai   = math.pow(fp.angInertia, ft * 60)
+    local ap   = fp.angPower
+
+    av.y  = av.y  * ai + math.NormalizeAngle(des.y - body.y) * ap * ft
+    body.y = math.NormalizeAngle(body.y + av.y * ft)
+
+    av.p  = av.p  * ai + math.NormalizeAngle(des.p - body.p) * ap * ft
+    body.p = math.Clamp(body.p + av.p * ft, -89, 89)
+
+    av.r  = av.r  * ai + math.NormalizeAngle(des.r - body.r) * ap * ft
+    body.r = math.NormalizeAngle(body.r + av.r * ft)
+
+    npc:SetAngles(body)
+    local ph = RolePhys(npc)
+    if ph then ph:AddAngleVelocity(-ph:GetAngleVelocity() * fp.angSpinSup) end
+end
+
+-- Stage 11/12: Flight controller
+-- legacy mode: bit-identical Lerp6 reproduction (Phase-0 non-breaking migration)
+-- physics mode: two-stage spool (ThrustCur → DesiredVel) + inertia (Vel → ThrustCur)
+local function D6_FlightControl(npc, fp, phys, ft)
+    if fp.flightMode == "legacy" then
+        if npc.D6_DesiredVel == nil then return end
+        local rate = npc.D6_DesiredVelRate or 5
+        phys:SetVelocity(LerpVector(ft * rate, phys:GetVelocity(), npc.D6_DesiredVel))
+        return
+    end
+
+    -- Physics mode: spool ThrustCur, apply inertia via velLerp
+    if npc.D6_DesiredVel ~= nil then
+        local sp = (npc.D6_DesiredVel:LengthSqr() >= npc.D6_ThrustCur:LengthSqr())
+                   and fp.spoolUp or fp.spoolDown
+        npc.D6_ThrustCur = LerpVector(ft * sp, npc.D6_ThrustCur, npc.D6_DesiredVel)
+    else
+        -- Coast: engine winds down
+        npc.D6_ThrustCur = LerpVector(ft * fp.spoolDown, npc.D6_ThrustCur, Vector(0,0,0))
+    end
+
+    npc.D6_Vel = LerpVector(ft * fp.velLerp, npc.D6_Vel, npc.D6_ThrustCur)
+    local speed = npc.D6_Vel:Length()
+    if speed > fp.maxSpeed then npc.D6_Vel = npc.D6_Vel * (fp.maxSpeed / speed) end
+    if speed > 0.5 then phys:SetVelocity(npc.D6_Vel) end
 end
 
 -- ─── Модули ───────────────────────────────────────────────
@@ -262,6 +342,22 @@ function D6_BuildDrone(loadout, pos, targetPly)
         end
     end
 
+    -- ── Act 3: Flight Evolution fields ───────────────────────
+    local fp = loadout.phys or D6_DEFAULT_PHYS
+    npc.D6_PhysProfile    = fp
+    npc.D6_BodyAng        = Angle(npc:GetAngles())
+    npc.D6_DesiredAng     = Angle(npc:GetAngles())
+    npc.D6_AngVel         = { p=0, y=0, r=0 }
+    npc.D6_Vel            = Vector(0, 0, 0)
+    npc.D6_ThrustCur      = Vector(0, 0, 0)
+    npc.D6_DesiredVel     = nil
+    npc.D6_DesiredVelRate = 5
+    local bp = RolePhys(npc)
+    if bp then
+        bp:SetMass(fp.mass or D6_DEFAULT_PHYS.mass)
+        bp:EnableGravity(false)
+    end
+
     return npc
 end
 
@@ -293,11 +389,13 @@ D6_RunBehavior["pressure"] = function(npc, phys, loadout, target, dist, ct)
 
     if IsValid(target) then
         local dir  = (target:GetPos() - npc:GetPos()):GetNormalized()
-        if state == 2 then Lerp6(phys, dir * spd)
+        if state == 2 then
+            npc.D6_DesiredVel = dir * spd
         elseif state == 3 then
             local perp = dir:Cross(Vector(0, 0, 1)):GetNormalized()
-            Lerp6(phys, (dir * 0.3 + perp * 0.7):GetNormalized() * spd)
-        elseif state == 4 then Lerp6(phys, -dir * spd)
+            npc.D6_DesiredVel = (dir * 0.3 + perp * 0.7):GetNormalized() * spd
+        elseif state == 4 then
+            npc.D6_DesiredVel = -dir * spd
         end
     end
     return state == 3
@@ -324,9 +422,9 @@ D6_RunBehavior["flank"] = function(npc, phys, loadout, target, dist, ct)
         local dir  = (target:GetPos() - npc:GetPos()):GetNormalized()
         local perp = dir:Cross(Vector(0, 0, 1)):GetNormalized()
         if state == 2 then
-            Lerp6(phys, (dir * 0.5 + perp * 0.5):GetNormalized() * spd)
+            npc.D6_DesiredVel = (dir * 0.5 + perp * 0.5):GetNormalized() * spd
         elseif state == 3 then
-            Lerp6(phys, perp * spd)
+            npc.D6_DesiredVel = perp * spd
         end
     end
     return state == 3
@@ -359,12 +457,12 @@ D6_RunBehavior["standoff"] = function(npc, phys, loadout, target, dist, ct)
     if IsValid(target) then
         local dir  = (target:GetPos() - npc:GetPos()):GetNormalized()
         if state == 2 then
-            if dist > rMax then Lerp6(phys, dir * spd) else Lerp6(phys, Vector(0,0,0)) end
+            npc.D6_DesiredVel = dist > rMax and dir * spd or Vector(0,0,0)
         elseif state == 3 then
             local perp = dir:Cross(Vector(0, 0, 1)):GetNormalized()
-            Lerp6(phys, perp * (spd * 0.4))
+            npc.D6_DesiredVel = perp * (spd * 0.4)
         elseif state == 4 then
-            Lerp6(phys, -dir * spd * 1.5)
+            npc.D6_DesiredVel = -dir * spd * 1.5
         end
     end
     return state == 3
@@ -374,7 +472,7 @@ end
 D6_RunBehavior["support"] = function(npc, phys, loadout, target, dist, ct)
     if IsValid(target) and dist < 600 then
         local dir = (target:GetPos() - npc:GetPos()):GetNormalized()
-        Lerp6(phys, -dir * (loadout.speed or 280))
+        npc.D6_DesiredVel = -dir * (loadout.speed or 280)
     end
     return IsValid(target) and dist < 400  -- слабая самозащита в ближнем бою
 end
@@ -420,13 +518,14 @@ D6_RunBehavior["anchor"] = function(npc, phys, loadout, target, dist, ct)
 
     if IsValid(target) then
         local dir = (target:GetPos() - npc:GetPos()):GetNormalized()
-        if state == 2 then Lerp6(phys, dir * spd)
+        if state == 2 then
+            npc.D6_DesiredVel = dir * spd
         elseif state == 3 then
             local perp = dir:Cross(Vector(0, 0, 1)):GetNormalized()
-            Lerp6(phys, (dir * 0.5 + perp * 0.5):GetNormalized() * spd)
+            npc.D6_DesiredVel = (dir * 0.5 + perp * 0.5):GetNormalized() * spd
         elseif state == 4 then
-            phys:SetVelocity(LerpVector(FrameTime() * 8, phys:GetVelocity(),
-                dir * (loadout.chargeSpeed or 900)))
+            npc.D6_DesiredVelRate = 8  -- charge uses faster lerp rate in legacy mode
+            npc.D6_DesiredVel = dir * (loadout.chargeSpeed or 900)
         end
     end
     return state == 3
@@ -449,8 +548,18 @@ hook.Add("Think", "D6_RoleDispatch", function()
         local scanDist = math.max(loadout.rangeMax or 900, 900) * 2
         local target, dist = NearestPlayer(myPos, scanDist)
 
+        -- Reset per-tick movement intent (behavior will set if actively moving)
+        npc.D6_DesiredVel     = nil
+        npc.D6_DesiredVelRate = 5
+
         local behavior = D6_RunBehavior[npc.D6_AI]
         local inAttack = behavior and behavior(npc, phys, loadout, target, dist, ct) or false
+
+        -- Act 3: Orientation → Angular → Flight (Stages 9-12)
+        local fp = npc.D6_PhysProfile or D6_DEFAULT_PHYS
+        if IsValid(target) then D6_ResolveOrientation(npc, target) end
+        D6_StepAngular(npc, fp, ft)
+        D6_FlightControl(npc, fp, phys, ft)
 
         -- Модульный огонь и Think
         if npc.D6_Modules and IsValid(target) then
