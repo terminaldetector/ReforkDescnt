@@ -93,6 +93,18 @@ function D6_Wep.Muzzle(ply, off)
         + full:Up()        * (off.up  or 0)
 end
 
+-- Дуло с учётом визуального переопределения (d6_sck_bridge):
+-- точки attach{muzzle=true, idx} из редактора кластеров SCK
+-- перекрывают захардкоженный off оружия. Без переопределения
+-- (или без моста) поведение идентично D6_Wep.Muzzle(ply, defaultOff).
+function D6_Wep.MuzzleFor(ply, class, idx, defaultOff)
+    local off = defaultOff or {}
+    if D6_SCKBridge and D6_SCKBridge.GetMuzzle then
+        off = D6_SCKBridge.GetMuzzle(class, idx) or off
+    end
+    return D6_Wep.Muzzle(ply, off)
+end
+
 -- ═══════════════════════════════════════════════════════════
 -- СВЯЗЬ С ДВИЖЕНИЕМ
 -- ═══════════════════════════════════════════════════════════

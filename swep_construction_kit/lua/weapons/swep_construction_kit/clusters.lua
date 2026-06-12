@@ -13,6 +13,28 @@
 
 if not CLIENT then return end
 
+-- table.FullCopy задаётся в base_code.lua, но тот файл исполняется
+-- только в экспортированных SWEP. В контексте редактора (shared.lua →
+-- clusters.lua → client.lua → menu/*) определяем его здесь, guarded.
+if not table.FullCopy then
+    function table.FullCopy(tab)
+        if not tab then return nil end
+        local res = {}
+        for k, v in pairs(tab) do
+            if type(v) == "table" then
+                res[k] = table.FullCopy(v)
+            elseif type(v) == "Vector" then
+                res[k] = Vector(v.x, v.y, v.z)
+            elseif type(v) == "Angle" then
+                res[k] = Angle(v.p, v.y, v.r)
+            else
+                res[k] = v
+            end
+        end
+        return res
+    end
+end
+
 -- ── Public constants ─────────────────────────────────────────
 
 SCK_CLUSTER_ORDER = { "Center", "Upper", "SideLeft", "SideRight", "Lower" }
@@ -84,6 +106,9 @@ function SCK_ExpandClusters(swep)
                 material          = mod.material or "",
                 skin              = mod.skin or 0,
                 bodygroup         = mod.bodygroup or {},
+                -- Optional extensions (animator.lua / attachment points)
+                anim              = mod.anim   and table.Copy(mod.anim)   or nil,
+                attach            = mod.attach and table.Copy(mod.attach) or nil,
                 -- Metadata preserved for editor round-trips
                 _cluster          = cname,
                 _slot             = mod.slot or 0,
@@ -161,6 +186,27 @@ function SCK_GetClustersText(clusters)
             if mod.skin and mod.skin ~= 0 then
                 parts[#parts+1] = "skin = " .. mod.skin
             end
+            if istable(mod.anim) then
+                local ap = {}
+                for _, k in ipairs({ "spin", "spinAxis", "bobAmp", "bobFreq",
+                                     "swayMult", "kick", "kickRecover" }) do
+                    local val = mod.anim[k]
+                    if val ~= nil then
+                        if type(val) == "string" then
+                            ap[#ap+1] = k .. ' = "' .. val .. '"'
+                        else
+                            ap[#ap+1] = k .. " = " .. tostring(val)
+                        end
+                    end
+                end
+                if #ap > 0 then
+                    parts[#parts+1] = "anim = { " .. table.concat(ap, ", ") .. " }"
+                end
+            end
+            if istable(mod.attach) and mod.attach.muzzle then
+                parts[#parts+1] = "attach = { muzzle = true, idx = "
+                    .. (mod.attach.idx or 1) .. " }"
+            end
 
             table.insert(out, "\t\t{ " .. table.concat(parts, ", ") .. " },")
         end
@@ -206,6 +252,8 @@ function SCK_VElementsToClusters(v_models)
                     material = v.material or "",
                     skin     = v.skin or 0,
                     bodygroup = v.bodygroup or {},
+                    anim     = v.anim   and table.Copy(v.anim)   or nil,
+                    attach   = v.attach and table.Copy(v.attach) or nil,
                 })
                 placed = true
                 break

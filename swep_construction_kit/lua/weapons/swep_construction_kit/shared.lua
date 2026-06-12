@@ -3,6 +3,7 @@ if SERVER then
 	AddCSLuaFile("client.lua")
 	AddCSLuaFile("glon.lua")
 	AddCSLuaFile("clusters.lua")
+	AddCSLuaFile("animator.lua")
 	AddCSLuaFile("schema.lua")
 	AddCSLuaFile("config.lua")
 	AddCSLuaFile("ui_schema.lua")
@@ -22,6 +23,7 @@ end
 
 if CLIENT then
 	include("clusters.lua")
+	include("animator.lua")
 	include("schema.lua")
 
 	SWEP.PrintName		= "SWEP Construction Kit"

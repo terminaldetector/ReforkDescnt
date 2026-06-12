@@ -51,6 +51,9 @@ local CFG = {
     ["weapon_d6_gravy_railgun"] = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00, GRAV_CENTER),
 }
 
+-- Экспорт для d6_sck_bridge.lua («Загрузить вид в редактор SCK»)
+D6_WEPVIEW_CFG = CFG
+
 local curClass = nil
 local Models   = {}
 
@@ -83,14 +86,18 @@ hook.Add("PostDrawTranslucentRenderables", "D6_WepView", function(bDepth, bSky)
     local class = IsValid(wep) and wep:GetClass() or ""
     local cfg   = CFG[class]
 
+    -- Класс с визуальным переопределением рендерит d6_sck_bridge
+    -- (конвейер VElements) — здесь только прячем viewmodel.
+    local override = D6_SCKBridge and D6_SCKBridge.Has and D6_SCKBridge.Has(class) or false
+
     -- Скрыть/показать стандартный viewmodel (v_physics.mdl)
     local vm = ply:GetViewModel()
     if IsValid(vm) then
-        local wantHide = (cfg ~= nil)
+        local wantHide = (cfg ~= nil) or override
         if vm:GetNoDraw() ~= wantHide then vm:SetNoDraw(wantHide) end
     end
 
-    if not cfg then
+    if override or not cfg then
         if curClass then DestroyModels(); curClass = nil end
         return
     end

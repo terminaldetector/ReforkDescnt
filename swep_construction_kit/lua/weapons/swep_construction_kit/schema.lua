@@ -63,6 +63,14 @@ SCK_SCHEMA.projectile = {
 	{ key="ClusterSpread",    label="Cluster Spread °",  type="float",  min=0,   max=90,    decimals=1, default=15,      section="Cluster" },
 	{ key="ClusterDelay",     label="Cluster Delay (s)", type="float",  min=0,   max=5,     decimals=2, default=0,       section="Cluster" },
 	{ key="SubmunitionEntity",label="Submunition Entity",type="string", default="",                                      section="Cluster" },
+	-- section: Spawn (режим огня и точка появления снаряда)
+	{ key="FireMode",         label="Fire Mode",         type="enum",   default="single",
+	  choices={"single","burst","volley"}, section="Spawn" },
+	{ key="BurstCount",       label="Burst Count",       type="int",    min=2,   max=20,    decimals=0, default=3,       section="Spawn" },
+	{ key="BurstDelay",       label="Burst Delay (s)",   type="float",  min=0.02,max=1,     decimals=2, default=0.08,    section="Spawn" },
+	{ key="VolleyCount",      label="Volley Count",      type="int",    min=2,   max=12,    decimals=0, default=3,       section="Spawn" },
+	{ key="VolleySpread",     label="Volley Spread °",   type="float",  min=0,   max=45,    decimals=1, default=6,       section="Spawn" },
+	{ key="MuzzleIndex",      label="Muzzle Index (0 = eye)", type="int", min=0, max=8,     decimals=0, default=0,       section="Spawn" },
 }
 
 SCK_SCHEMA.flak = {

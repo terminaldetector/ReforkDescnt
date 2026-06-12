@@ -256,6 +256,54 @@ local function CreateModPanel(cluster, idx)
     MakeSlider("Size Z:", function() return (mod.size or Vector(1,1,1)).z end,
         function(v) if not mod.size then mod.size = Vector(1,1,1) end mod.size.z = v end, 0.01, 5)
 
+    local function MakeHeader(text)
+        local hdr = vgui.Create("DLabel", plist)
+            hdr:SetText(text)
+            hdr:SetFont("DermaDefaultBold")
+            hdr:SetColor(Color(180, 200, 240, 255))
+            hdr:SetTall(20)
+        plist:AddItem(hdr)
+    end
+
+    -- ── Attachment: точка выстрела (D6_Wep.MuzzleFor / generator) ──
+    MakeHeader("── Attachment ──")
+
+    local muzzleBox = vgui.Create("DCheckBoxLabel")
+        muzzleBox:SetText("Muzzle point (projectile spawn)")
+        muzzleBox:SetTall(20)
+        muzzleBox:SetValue(mod.attach and mod.attach.muzzle and 1 or 0)
+        muzzleBox.OnChange = function(_, checked)
+            if not mod.attach then mod.attach = { idx = 1 } end
+            mod.attach.muzzle = checked
+        end
+    AddRow("", muzzleBox)
+
+    MakeSlider("Muzzle idx:", function() return (mod.attach and mod.attach.idx) or 1 end,
+        function(v)
+            if not mod.attach then mod.attach = {} end
+            mod.attach.idx = math.floor((tonumber(v) or 1) + 0.5)
+        end, 1, 8)
+
+    -- ── Animation: поля animator.lua (anim = {...}) ──────────────
+    MakeHeader("── Animation ──")
+
+    local function AnimSet(field)
+        return function(v)
+            if not mod.anim then mod.anim = {} end
+            mod.anim[field] = tonumber(v) or 0
+        end
+    end
+    local function AnimGet(field, default)
+        return function() return (mod.anim and mod.anim[field]) or default end
+    end
+
+    MakeSlider("Spin °/s:",    AnimGet("spin", 0),        AnimSet("spin"),       -720, 720)
+    MakeSlider("Bob amp:",     AnimGet("bobAmp", 0),      AnimSet("bobAmp"),     0,    10)
+    MakeSlider("Bob freq:",    AnimGet("bobFreq", 2),     AnimSet("bobFreq"),    0,    10)
+    MakeSlider("Sway mult:",   AnimGet("swayMult", 1),    AnimSet("swayMult"),   0,    3)
+    MakeSlider("Kick:",        AnimGet("kick", 0),        AnimSet("kick"),       0,    20)
+    MakeSlider("Kick recov:",  AnimGet("kickRecover", 6), AnimSet("kickRecover"),0.5,  20)
+
     wep.clusterPanels[key] = plist
     return plist
 end
