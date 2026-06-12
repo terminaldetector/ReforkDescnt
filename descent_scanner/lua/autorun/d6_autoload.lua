@@ -173,12 +173,13 @@ end
 if CLIENT then
     hook.Add("InitPostEntity", "D6_BindHint", function()
         timer.Simple(2, function()
-            chat.AddText(Color(80,200,80), "[Descent 6DOF] ", color_white, "Привяжи клавиши:")
+            chat.AddText(Color(80,200,80), "[Descent 6DOF] ", color_white,
+                "Меню мода: Q → вкладка «DRMD 6DOF»")
+            chat.AddText(Color(200,200,200), "Полезные бинды:")
             chat.AddText(Color(200,200,200), "  bind KP_0      6dof_toggle")
             chat.AddText(Color(200,200,200), "  bind KP_ENTER  6dof_alwaysrun")
             chat.AddText(Color(200,200,200), "  bind SHIFT     6dof_dash")
             chat.AddText(Color(200,200,200), "  bind T         d6_radar_toggle")
-            chat.AddText(Color(200,200,200), "  bind TAB       d6_menu_open")
         end)
     end)
 

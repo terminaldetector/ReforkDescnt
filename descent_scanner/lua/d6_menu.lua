@@ -75,6 +75,18 @@ local Cfg = {
     ramDamage   = 240,
 }
 
+-- Заводские значения (используются кнопками «Сброс» здесь и в Q-меню)
+local DEFAULTS = {
+    gravity   = 500,  accel     = 3000, maxSpeed = 1800,
+    rollSpeed = 175,  fov       = 90,
+    gunDamage = 12,   gunBurst  = 8,
+    ramSpeed  = 3400, ramDamage = 240,
+}
+
+local function ResetCfg()
+    for k, v in pairs(DEFAULTS) do Cfg[k] = v end
+end
+
 local CFG_FILE = "d6_config.txt"
 
 local function SaveCfg()
@@ -140,6 +152,15 @@ local SETTINGS = {
     { key="ramSpeed",  label="Скорость тарана",  min=500, max=6000, step=100, fmt="%d" },
     { key="ramDamage", label="Урон тарана",       min=50,  max=500,  step=10,  fmt="%d" },
 }
+
+-- ── Экспорт для Q-меню (d6_qmenu.lua) ────────────────────
+-- Встроенное меню GMod использует ту же конфигурацию,
+-- применение и сохранение, что и это legacy-меню.
+D6Menu.Settings = SETTINGS
+D6Menu.Defaults = DEFAULTS
+D6Menu.Apply    = ApplyCfg
+D6Menu.Save     = SaveCfg
+D6Menu.Reset    = ResetCfg
 
 -- =========================================================
 -- ВСПОМОГАТЕЛЬНЫЙ РЕНДЕР
@@ -208,7 +229,7 @@ local function DrawMenu()
         px+14, py+titleH*0.5, C.title, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
     DrawTextShadow("v5.1", "D6Menu_Small",
         px+pw-10, py+titleH*0.5, C.textDim, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
-    DrawTextShadow("[TAB] закрыть", "D6Menu_Small",
+    DrawTextShadow("[KP0] закрыть", "D6Menu_Small",
         px+pw*0.5, py+titleH*0.5, C.textDim, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
     local tabY = py+titleH; local tabH = 28
@@ -446,17 +467,9 @@ end)
 -- =========================================================
 -- КЛАВИАТУРА
 -- =========================================================
--- ── TAB → D6 меню вместо скорборда ──────────────────────
--- ScoreboardShow/ScoreboardHide перехватывают нажатие TAB на C++ уровне.
--- Возвращаем false = не показывать стандартный скорборд.
-hook.Add("ScoreboardShow", "D6Menu_TAB_Open", function()
-    if Menu.open then CloseMenu() else OpenMenu() end
-    return false  -- suppress scoreboard
-end)
-
-hook.Add("ScoreboardHide", "D6Menu_TAB_Suppress", function()
-    return false  -- prevent scoreboard hide (it was never shown)
-end)
+-- TAB больше не перехватывается: все функции перенесены во
+-- встроенное меню GMod (Q → вкладка «DRMD 6DOF», d6_qmenu.lua).
+-- Legacy-меню осталось доступно через d6_menu_open и Numpad 0.
 
 hook.Add("PlayerButtonDown", "D6Menu_Keys", function(key)
     if not Menu.open then return end
@@ -484,9 +497,7 @@ hook.Add("PlayerButtonDown", "D6Menu_Keys", function(key)
                 Cfg[s.key]=math.min(s.max, Cfg[s.key]+s.step) end
         elseif key==KEY_ENTER  then ApplyCfg(); SaveCfg(); chat.AddText(Color(80,200,80),"[D6] Настройки применены.")
         elseif key==KEY_DELETE then
-            Cfg.gravity=500;Cfg.accel=3000;Cfg.maxSpeed=1800
-            Cfg.rollSpeed=175;Cfg.fov=90;Cfg.gunDamage=12
-            Cfg.gunBurst=8;Cfg.ramSpeed=3400;Cfg.ramDamage=240
+            ResetCfg()
             chat.AddText(Color(255,150,80),"[D6] Настройки сброшены.")
         end
 
@@ -566,9 +577,7 @@ hook.Add("GUI.MousePressed", "D6Menu_Click", function(btn)
         end
         local rx=cx+(cw-8)*0.5+8
         if mx>=rx and mx<=rx+(cw-8)*0.5 and my>=btnY and my<=btnY+28 then
-            Cfg.gravity=500;Cfg.accel=3000;Cfg.maxSpeed=1800
-            Cfg.rollSpeed=175;Cfg.fov=90;Cfg.gunDamage=12
-            Cfg.gunBurst=8;Cfg.ramSpeed=3400;Cfg.ramDamage=240
+            ResetCfg()
             chat.AddText(Color(255,150,80),"[D6] Сброс."); return
         end
     end
@@ -671,7 +680,7 @@ hook.Add("HUDPaint", "D6Menu_Hint", function()
     if Menu.open then return end
     local ply = LocalPlayer()
     if not IsValid(ply) then return end
-    draw.SimpleText("[TAB] Меню", "D6Menu_Small",
+    draw.SimpleText("[Q] Меню → DRMD 6DOF", "D6Menu_Small",
         ScrW()-8, ScrH()-36,
         ply:GetNWBool("D6On",false) and Color(80,200,80,180) or Color(80,80,80,120),
         TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
