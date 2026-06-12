@@ -123,6 +123,7 @@ local psettings = SimplePanel(ptool)
 				save_data.ShowWorldModel = wep.ShowWorldModel
 				save_data.UseHands = wep.UseHands
 				save_data.clusters = table.FullCopy(wep.clusters)
+				save_data.weaponconfig = table.FullCopy(wep.weaponconfig or {})
 
 				local filename = "swep_construction_kit/"..text..".txt"
 				

@@ -3,16 +3,26 @@ if SERVER then
 	AddCSLuaFile("client.lua")
 	AddCSLuaFile("glon.lua")
 	AddCSLuaFile("clusters.lua")
+	AddCSLuaFile("schema.lua")
+	AddCSLuaFile("config.lua")
+	AddCSLuaFile("ui_schema.lua")
+	AddCSLuaFile("generator.lua")
 	AddCSLuaFile("menu/tool.lua")
 	AddCSLuaFile("menu/weapon.lua")
 	AddCSLuaFile("menu/ironsights.lua")
 	AddCSLuaFile("menu/models.lua")
 	AddCSLuaFile("menu/clusters.lua")
+	AddCSLuaFile("menu/weaponparams.lua")
+	AddCSLuaFile("menu/projectile.lua")
+	AddCSLuaFile("menu/flak.lua")
+	AddCSLuaFile("menu/guidance.lua")
 	AddCSLuaFile("base_code.lua")
+	include("config.lua") -- register server-side net handlers
 end
 
 if CLIENT then
 	include("clusters.lua")
+	include("schema.lua")
 
 	SWEP.PrintName		= "SWEP Construction Kit"
 	SWEP.Author			= "Clavus"

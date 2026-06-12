@@ -1,5 +1,8 @@
 
 include('glon.lua')
+include('config.lua')
+include('ui_schema.lua')
+include('generator.lua')
 
 surface.CreateFont("12ptFont", {font = "Arial", size = 12, width = 500, antialias = true, additive = false})
 surface.CreateFont("24ptFont", {font = "Arial", size = 24, width = 500, antialias = true, additive = false})
@@ -1045,6 +1048,24 @@ local function CreateMenu( preset )
 		end
 	end
 
+	// Initialize weaponconfig from preset or schema defaults
+	local _wc = wep.save_data.weaponconfig
+	wep.weaponconfig = _wc and table.FullCopy(_wc) or {}
+	if not wep.weaponconfig.weapon     then wep.weaponconfig.weapon     = {} end
+	if not wep.weaponconfig.projectile then wep.weaponconfig.projectile = {} end
+	if not wep.weaponconfig.flak       then wep.weaponconfig.flak       = {} end
+	if not wep.weaponconfig.guidance   then wep.weaponconfig.guidance   = {} end
+	if SCK_SCHEMA then
+		for sname, schema in pairs(SCK_SCHEMA) do
+			local sec = wep.weaponconfig[sname]
+			if sec then
+				for _, field in ipairs(schema) do
+					if sec[field.key] == nil then sec[field.key] = field.default end
+				end
+			end
+		end
+	end
+
 	// Now for the actual menu:		
 	local f = vgui.Create("DFrame")
 	f:SetSize( 480, ScrH()*0.8 )
@@ -1102,6 +1123,14 @@ local function CreateMenu( preset )
 		wep.pwmodels.Paint = function() surface.SetDrawColor(70,70,70,255) surface.DrawRect(0,0,wep.pwmodels:GetWide(),wep.pwmodels:GetTall()) end
 		wep.pclusters = vgui.Create("DPanel", tab)
 		wep.pclusters.Paint = function() surface.SetDrawColor(40,40,55,255) surface.DrawRect(0,0,wep.pclusters:GetWide(),wep.pclusters:GetTall()) end
+		wep.pstats = vgui.Create("DPanel", tab)
+		wep.pstats.Paint = function() surface.SetDrawColor(30,30,50,255) surface.DrawRect(0,0,wep.pstats:GetWide(),wep.pstats:GetTall()) end
+		wep.pprojectile = vgui.Create("DPanel", tab)
+		wep.pprojectile.Paint = function() surface.SetDrawColor(30,50,30,255) surface.DrawRect(0,0,wep.pprojectile:GetWide(),wep.pprojectile:GetTall()) end
+		wep.pflak = vgui.Create("DPanel", tab)
+		wep.pflak.Paint = function() surface.SetDrawColor(50,35,30,255) surface.DrawRect(0,0,wep.pflak:GetWide(),wep.pflak:GetTall()) end
+		wep.pguidance = vgui.Create("DPanel", tab)
+		wep.pguidance.Paint = function() surface.SetDrawColor(35,30,50,255) surface.DrawRect(0,0,wep.pguidance:GetWide(),wep.pguidance:GetTall()) end
 
 		tab:AddSheet( "Tool", wep.ptool, nil, false, false, "Modify tool settings" )
 		tab:AddSheet( "Weapon", wep.pweapon, nil, false, false, "Modify weapon settings" )
@@ -1109,6 +1138,10 @@ local function CreateMenu( preset )
 		tab:AddSheet( "View Models", wep.pmodels, nil, false, false, "Modify view models" )
 		tab:AddSheet( "World Models", wep.pwmodels, nil, false, false, "Modify world models" )
 		tab:AddSheet( "Clusters", wep.pclusters, nil, false, false, "Weapon cluster constructor" )
+		tab:AddSheet( "Stats", wep.pstats, nil, false, false, "Weapon game parameters" )
+		tab:AddSheet( "Projectile", wep.pprojectile, nil, false, false, "Projectile configuration" )
+		tab:AddSheet( "Flak", wep.pflak, nil, false, false, "Flak / cassette systems" )
+		tab:AddSheet( "Guidance", wep.pguidance, nil, false, false, "Guidance systems" )
 
 		wep.ptool:DockPadding(5, 5, 5, 5)
 		wep.pweapon:DockPadding(5, 5, 5, 5)
@@ -1116,6 +1149,10 @@ local function CreateMenu( preset )
 		wep.pmodels:DockPadding(5, 5, 5, 5)
 		wep.pwmodels:DockPadding(5, 5, 5, 5)
 		wep.pclusters:DockPadding(5, 5, 5, 5)
+		wep.pstats:DockPadding(5, 5, 5, 5)
+		wep.pprojectile:DockPadding(5, 5, 5, 5)
+		wep.pflak:DockPadding(5, 5, 5, 5)
+		wep.pguidance:DockPadding(5, 5, 5, 5)
 		
 	tab:Dock(FILL)
 	
@@ -1143,6 +1180,14 @@ local function CreateMenu( preset )
 		Clusters page
 	**********************/
 	include("weapons/"..wep:GetClass().."/menu/clusters.lua")
+
+	/*****************************
+		Stats / Projectile / Flak / Guidance pages
+	*****************************/
+	include("weapons/"..wep:GetClass().."/menu/weaponparams.lua")
+	include("weapons/"..wep:GetClass().."/menu/projectile.lua")
+	include("weapons/"..wep:GetClass().."/menu/flak.lua")
+	include("weapons/"..wep:GetClass().."/menu/guidance.lua")
 
 	// finally, return the frame!
 	return f

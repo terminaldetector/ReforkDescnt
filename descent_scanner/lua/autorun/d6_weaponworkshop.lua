@@ -98,6 +98,7 @@ end)
 hook.Add("AddToolMenuCategories", "D6_WeaponWorkshop", function()
     spawnmenu.AddToolCategory("DRMD Workshop", "WeaponConstructor", "Weapon Constructor")
     spawnmenu.AddToolCategory("DRMD Workshop", "Archetypes",        "Weapon Archetypes")
+    spawnmenu.AddToolCategory("DRMD Workshop", "WeaponConfigs",     "Generated Weapons")
 end)
 
 hook.Add("PopulateToolMenu", "D6_WeaponWorkshop", function()
@@ -226,6 +227,52 @@ hook.Add("PopulateToolMenu", "D6_WeaponWorkshop", function()
                 chat.AddText(Color(255,220,40), "[DRMD Workshop] Loaded archetype: " .. archCopy.label)
             end
             panel:Help(" ")
+        end
+    end)
+
+    -- ── Generated Weapons panel ──────────────────────────────
+    spawnmenu.AddToolMenuOption("DRMD Workshop", "WeaponConfigs",
+        "d6_weapon_configs", "Generated Weapons", "", "", function(panel)
+        panel:ClearControls()
+
+        if not SCKPresent() then
+            panel:Help("SWEP Construction Kit is not installed.")
+            return
+        end
+
+        panel:Help("Generated SWEP files  (DATA/drmd_weapons/generated/)")
+        panel:Help("Open SCK Slot 6 → Stats tab → 'Copy SWEP Lua' to generate one.")
+        panel:Help(" ")
+
+        local genFiles = file.Find("drmd_weapons/generated/*.lua", "DATA")
+        if genFiles and #genFiles > 0 then
+            for _, fname in ipairs(genFiles) do
+                panel:Help("• " .. fname:gsub("%.lua$", ""))
+            end
+        else
+            panel:Help("No generated weapons yet.")
+        end
+
+        panel:Help(" ")
+        panel:Help("Live Configs  (DATA/drmd_weapons/)")
+
+        local cfgFiles = file.Find("drmd_weapons/*.txt", "DATA")
+        if cfgFiles and #cfgFiles > 0 then
+            for _, fname in ipairs(cfgFiles) do
+                local class = fname:gsub("%.txt$", "")
+                local btn = panel:Button("Load config: " .. class)
+                btn.DoClick = function()
+                    if not SCK_Config then
+                        chat.AddText(Color(255,60,60), "[DRMD Workshop] SCK_Config not available.")
+                        return
+                    end
+                    SCK_Config.LoadForClass(class)
+                    chat.AddText(Color(80,255,80), "[DRMD Workshop] Loaded config: " .. class)
+                end
+            end
+        else
+            panel:Help("No saved configs yet.")
+            panel:Help("Edit values in SCK Stats/Projectile/Flak/Guidance tabs to create one.")
         end
     end)
 
