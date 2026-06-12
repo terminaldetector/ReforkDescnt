@@ -388,9 +388,18 @@ local function D6_CombatMotion(npc, loadout, target, dist, ct, style)
             phase = 3
             npc.D6_CMEnd = ct + math.Rand(style.breakMin or 0.7, style.breakMax or 1.1)
             if ct > (npc.D6_ManeuverCD or 0) and math.random() < 0.5 then
+                -- NPC Workshop: npc.D6_Maneuvers фильтрует доступные манёвры
                 local kinds = { "barrel", "split_s", "immelmann" }
-                D6_StartManeuver(npc, kinds[math.random(#kinds)], ct)
-                npc.D6_ManeuverCD = ct + math.Rand(4, 7)
+                if istable(npc.D6_Maneuvers) then
+                    kinds = {}
+                    for _, k in ipairs({ "barrel", "split_s", "immelmann" }) do
+                        if npc.D6_Maneuvers[k] then kinds[#kinds + 1] = k end
+                    end
+                end
+                if #kinds > 0 then
+                    D6_StartManeuver(npc, kinds[math.random(#kinds)], ct)
+                    npc.D6_ManeuverCD = ct + math.Rand(4, 7)
+                end
             end
         end
 
@@ -566,12 +575,25 @@ D6_RegisterModule("GravityUnit", {
 --   shield, shieldMax, armor, armorMax, resist={kinetic,energy,explosive}
 -- }
 function D6_BuildDrone(loadout, pos, targetPly)
-    local npc = ents.Create("npc_cscanner")
+    -- NPC Workshop: базовая сущность настраивается профилем
+    local npc = ents.Create(loadout.entity or "npc_cscanner")
     if not IsValid(npc) then return nil end
 
     npc:SetPos(pos)
     npc:Spawn()
     npc:Activate()
+
+    -- NPC Workshop: кастомная модель/скин/бодигруппы (опционально)
+    if loadout.model and loadout.model ~= ""
+        and util.IsValidModel(loadout.model) then
+        npc:SetModel(loadout.model)
+    end
+    if loadout.skin then npc:SetSkin(loadout.skin) end
+    if istable(loadout.bodygroups) then
+        for grp, val in pairs(loadout.bodygroups) do
+            npc:SetBodygroup(tonumber(grp) or 0, val)
+        end
+    end
 
     -- Поведение и состояние
     npc.D6_AI        = loadout.ai
@@ -587,10 +609,19 @@ function D6_BuildDrone(loadout, pos, targetPly)
     npc:SetRenderMode(RENDERMODE_TRANSCOLOR)
     npc:SetColor(loadout.color or Color(200, 200, 200))
     npc:SetModelScale(loadout.scale or 1.0, 0)
-    local _cb = math.floor(12 * (loadout.scale or 1.0))
+    -- NPC Workshop: collisionScale масштабирует хитбокс отдельно от модели
+    local _cb = math.floor(12 * (loadout.scale or 1.0) * (loadout.collisionScale or 1.0))
     npc:SetCollisionBounds(Vector(-_cb, -_cb, math.floor(-_cb * 0.8)), Vector(_cb, _cb, math.floor(_cb * 1.4)))
     npc:SetMaxHealth(loadout.hp or 100)
     npc:SetHealth(loadout.hp or 100)
+
+    -- NPC Workshop: персональные переопределения (фолбэк — прежние
+    -- константы; без профиля поведение байт-в-байт прежнее)
+    npc.D6_CombatStyle = loadout.combat      -- → диспетчер вместо D6_COMBAT_STYLE[ai]
+    npc.D6_Maneuvers   = loadout.maneuvers   -- → фильтр barrel/split_s/immelmann
+    npc.D6_Swarm       = loadout.swarm       -- → веса boids (d6_ai.lua)
+    npc.D6_SwarmExclude = istable(loadout.swarm) and loadout.swarm.exclude or nil
+    npc.D6_NavGroups   = loadout.nav         -- → группы маршрутов nav-графа
 
     -- Враждебность
     if IsValid(targetPly) then
@@ -858,7 +889,18 @@ hook.Add("Think", "D6_RoleDispatch", function()
         if npc.D6_RoleState == 1 and not IsValid(target) then
             if not npc.D6_NavPath then
                 if table.Count(D6_NavGraph.nodes) >= 2 then
-                    local wander = myPos + Vector(
+                    local wander
+                    -- NPC Workshop: патрульный маршрут профиля — случайный
+                    -- узел из группы nav.patrol; иначе прежнее блуждание.
+                    local pgroup = istable(npc.D6_NavGroups) and npc.D6_NavGroups.patrol
+                    if pgroup and pgroup ~= "" then
+                        local pool = {}
+                        for _, node in pairs(D6_NavGraph.nodes) do
+                            if node.group == pgroup then pool[#pool + 1] = node.pos end
+                        end
+                        if #pool > 0 then wander = pool[math.random(#pool)] end
+                    end
+                    wander = wander or myPos + Vector(
                         math.Rand(-800, 800), math.Rand(-800, 800), math.Rand(-200, 200))
                     local path = D6_NavFindPath(myPos, wander)
                     if path then
@@ -877,7 +919,8 @@ hook.Add("Think", "D6_RoleDispatch", function()
 
         -- Phase D: combat motion drives every engaged drone (fight through
         -- movement). Retreat/charge stay with the behavior's own intent.
-        local style = D6_COMBAT_STYLE[npc.D6_AI]
+        -- NPC Workshop: персональный стиль профиля приоритетнее ролевого.
+        local style = npc.D6_CombatStyle or D6_COMBAT_STYLE[npc.D6_AI]
         if style and D6_ShouldFightMoving(npc, target, dist, loadout) then
             D6_CombatMotion(npc, loadout, target, dist, ct, style)
         end

@@ -689,14 +689,15 @@ end)
 -- =========================================================
 -- BOIDS: роевое поведение для mg, rpg, laser, seeker
 -- =========================================================
-local function GetSwarmNeighbors(drone)
+local function GetSwarmNeighbors(drone, radius)
     local neighbors = {}
-    for _, ent in ipairs(ents.FindInSphere(drone:GetPos(), SWARM_RADIUS)) do
+    for _, ent in ipairs(ents.FindInSphere(drone:GetPos(), radius or SWARM_RADIUS)) do
         if IsValid(ent) and ent ~= drone
         and ent:GetClass() == "npc_cscanner"
         and ent.D6_Variant
         and not BOIDS_EXCLUDED[ent.D6_Variant]
-        and not (D6_FragsBoidsExclude and D6_FragsBoidsExclude[ent.D6_Variant]) then
+        and not (D6_FragsBoidsExclude and D6_FragsBoidsExclude[ent.D6_Variant])
+        and not ent.D6_SwarmExclude then
             table.insert(neighbors, ent)
         end
     end
@@ -710,12 +711,23 @@ hook.Add("Think", "D6_Swarm_AI_Core", function()
         if BOIDS_EXCLUDED[drone.D6_Variant] then continue end
         if D6_FragsBoidsExclude and D6_FragsBoidsExclude[drone.D6_Variant] then continue end
         if drone.D6_Variant == "grav" then continue end
+        if drone.D6_SwarmExclude then continue end  -- NPC Workshop: профиль вне роя
 
         local phys = SafeGetPhys(drone)
         if not phys then continue end
 
+        -- NPC Workshop: персональные веса роя; фолбэк — прежние константы
+        local sw = istable(drone.D6_Swarm) and drone.D6_Swarm or nil
+        local wSep    = sw and sw.separation or WEIGHT_SEPARATION
+        local wCoh    = sw and sw.cohesion   or WEIGHT_COHESION
+        local wAli    = sw and sw.alignment  or WEIGHT_ALIGNMENT
+        local wTgt    = sw and sw.target     or WEIGHT_TARGET
+        local swRad   = sw and sw.radius     or SWARM_RADIUS
+        local swMax   = sw and sw.maxSpeed   or SWARM_MAX_SPEED
+        local sepDist = sw and sw.sepDist    or SEPARATION_DIST
+
         local myPos     = drone:GetPos()
-        local neighbors = GetSwarmNeighbors(drone)
+        local neighbors = GetSwarmNeighbors(drone, swRad)
         local count     = #neighbors
 
         local separation = Vector(0, 0, 0)
@@ -737,7 +749,7 @@ hook.Add("Think", "D6_Swarm_AI_Core", function()
             for _, neighbor in ipairs(neighbors) do
                 local nPos = neighbor:GetPos()
                 local d    = myPos:Distance(nPos)
-                if d < SEPARATION_DIST and d > 0 then
+                if d < sepDist and d > 0 then
                     separation = separation + (myPos - nPos):GetNormalized() / d
                 end
                 centerOfMass = centerOfMass + nPos
@@ -756,14 +768,14 @@ hook.Add("Think", "D6_Swarm_AI_Core", function()
         end
 
         local jitter   = VectorRand() * 0.1
-        local finalVel = (separation * WEIGHT_SEPARATION)
-                       + (cohesion   * WEIGHT_COHESION)
-                       + (alignment  * WEIGHT_ALIGNMENT)
-                       + (targetDir  * WEIGHT_TARGET)
+        local finalVel = (separation * wSep)
+                       + (cohesion   * wCoh)
+                       + (alignment  * wAli)
+                       + (targetDir  * wTgt)
                        + jitter
         finalVel:Normalize()
 
-        local newVel = LerpVector(FrameTime() * 3, phys:GetVelocity(), finalVel * SWARM_MAX_SPEED)
+        local newVel = LerpVector(FrameTime() * 3, phys:GetVelocity(), finalVel * swMax)
         phys:SetVelocity(newVel)
 
         if IsValid(targetPlayer) then

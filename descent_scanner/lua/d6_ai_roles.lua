@@ -100,8 +100,25 @@ local LOADOUTS = {
 }
 
 -- ─── Public API — thin wrapper over D6_BuildDrone ─────────
+-- Доступ к стоковым ролям для NPC Workshop (клонирование в профили).
+function D6_GetRoleLoadout(variant)
+    return LOADOUTS[variant]
+end
+
+function D6_GetRoleNames()
+    local names = {}
+    for name in pairs(LOADOUTS) do names[#names + 1] = name end
+    table.sort(names)
+    return names
+end
+
 function SpawnD6Role(variant, pos, targetPly)
     local lo = LOADOUTS[variant]
+    -- NPC Workshop: кастомные профили (DATA/drmd_npcs) как фолбэк —
+    -- энкаунтеры, волны и d6_npc_spawner понимают их без изменений.
+    if not lo and D6_NPCWorkshop and D6_NPCWorkshop.ToLoadout then
+        lo = D6_NPCWorkshop.ToLoadout(variant)
+    end
     if not lo then
         MsgC(Color(255, 100, 0), "[D6 Roles] Unknown variant: " .. tostring(variant) .. "\n")
         return nil
