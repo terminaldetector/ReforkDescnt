@@ -346,11 +346,21 @@ function SWEP:FireRail()
 
     -- Наследование импульса корабля + отдача (связь с движением)
     local inherit = D6_Wep and (D6_Wep.ShipVel(ply) * D6_Wep.Inherit()) or Vector(0, 0, 0)
+    local fireVel = dir * RAIL_FIRE_SPEED + inherit
     if IsValid(ph) then
         ph:EnableGravity(true)
+        ph:EnableDrag(false)    -- гасим аэродинамику: Havok иначе замедляет проп
         ph:EnableMotion(true)
         ph:Wake()
-        ph:SetVelocity(dir * RAIL_FIRE_SPEED + inherit)
+        ph:SetVelocity(fireVel)
+        -- Re-apply на следующем тике: первый физический шаг может урезать скорость
+        -- до sv_maxvelocity старого кадра. Повторная установка гарантирует заявленную скорость.
+        timer.Simple(0, function()
+            if IsValid(ent) then
+                local p2 = ent:GetPhysicsObject()
+                if IsValid(p2) then p2:SetVelocity(fireVel) end
+            end
+        end)
     end
     if D6_Wep then D6_Wep.ApplyRecoil(ply, dir, 90) end
 
@@ -646,6 +656,7 @@ function SWEP:FireFan()
         UnlockCollision(e)         -- после выстрела коллизии возвращаем
         e.D6_RailFanLocked = false
         ph:EnableGravity(true)
+        ph:EnableDrag(false)       -- гасим аэродинамику чтобы скорость не упала
         ph:Wake()
         ph:SetVelocity(dir * FAN_FIRE_SPEED)
 
