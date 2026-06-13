@@ -206,8 +206,9 @@ hook.Add("PopulateToolMenu", "D6_WeaponWorkshop", function()
         end
 
         local function SelectedClass()
-            local sel = wepList:GetSelectedLine()
-            return sel and sel._class or nil
+            local sel = wepList:GetSelected()
+            local line = sel and sel[1]
+            return line and line._class or nil
         end
 
         -- Кнопки управления
