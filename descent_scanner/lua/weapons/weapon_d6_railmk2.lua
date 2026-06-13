@@ -49,7 +49,24 @@ local LURE_MAX_MASS = 400
 local LURE_COOLDOWN = 1.2
 local MUZZLE        = { fwd = 15, rgt = 0, up = -5 }
 
+-- ── Живая настройка через D6_GravCfg (Q-меню) ───────────
+-- Без D6_GravCfg — ранний выход, локалы сохраняют дефолты.
+local function RefreshGravCfg()
+    if not D6_GravCfg then return end
+    local c = "weapon_d6_railmk2"
+    ENERGY_QUICK  = D6_GravCfg.Get(c, "ENERGY_QUICK",  ENERGY_QUICK)
+    ENERGY_CHARGE = D6_GravCfg.Get(c, "ENERGY_CHARGE", ENERGY_CHARGE)
+    ENERGY_LURE   = D6_GravCfg.Get(c, "ENERGY_LURE",   ENERGY_LURE)
+    CHARGE_TIME   = D6_GravCfg.Get(c, "CHARGE_TIME",   CHARGE_TIME)
+    RAIL_RANGE    = D6_GravCfg.Get(c, "RAIL_RANGE",    RAIL_RANGE)
+    LURE_RANGE    = D6_GravCfg.Get(c, "LURE_RANGE",    LURE_RANGE)
+    LURE_SPEED    = D6_GravCfg.Get(c, "LURE_SPEED",    LURE_SPEED)
+    LURE_MAX_MASS = D6_GravCfg.Get(c, "LURE_MAX_MASS", LURE_MAX_MASS)
+    LURE_COOLDOWN = D6_GravCfg.Get(c, "LURE_COOLDOWN", LURE_COOLDOWN)
+end
+
 function SWEP:Initialize()
+    RefreshGravCfg()
     self:SetWeaponHoldType(self.HoldType)
     self._ChargeStart = nil
     self._ChargeFired = false
@@ -74,6 +91,7 @@ function SWEP:PrimaryAttack()
     if self._ChargeStart then return end
     local owner = self:GetOwner()
     if not IsValid(owner) then return end
+    RefreshGravCfg()
     self._ChargeStart = CurTime()
     self._ChargeFired = false
     self:SetNextPrimaryFire(CurTime() + 10)
@@ -86,6 +104,7 @@ function SWEP:Think()
     if not self._ChargeStart then return end
     local owner = self:GetOwner()
     if not IsValid(owner) then return end
+    RefreshGravCfg()
 
     local ct   = CurTime()
     local held = ct - self._ChargeStart
@@ -230,6 +249,7 @@ function SWEP:SecondaryAttack()
     if ct < (self._NextLure or 0) then return end
     local owner = self:GetOwner()
     if not IsValid(owner) then return end
+    RefreshGravCfg()
 
     if not D6_Energy.TryConsume(owner, "weapons", ENERGY_LURE) then
         owner:EmitSound("buttons/button10.wav", 60, 100); return

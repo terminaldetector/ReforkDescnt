@@ -62,6 +62,27 @@ local MAX_RICOCHETS   = 4           -- рикошеты для невзрывн�
 local TINT            = Color(0, 255, 0)
 local TINT_INNER      = Color(180, 255, 180)
 
+-- ── Живая настройка через D6_GravCfg (Q-меню) ───────────
+-- Переписывает локалы-параметры действующими значениями.
+-- Без D6_GravCfg — ранний выход, локалы сохраняют дефолты.
+local function RefreshGravCfg()
+    if not D6_GravCfg then return end
+    local c = "weapon_d6_gravy_railgun"
+    ENERGY_RAIL     = D6_GravCfg.Get(c, "ENERGY_RAIL",     ENERGY_RAIL)
+    ENERGY_FAN      = D6_GravCfg.Get(c, "ENERGY_FAN",      ENERGY_FAN)
+    RAIL_RANGE      = D6_GravCfg.Get(c, "RAIL_RANGE",      RAIL_RANGE)
+    RAIL_FIRE_SPEED = D6_GravCfg.Get(c, "RAIL_FIRE_SPEED", RAIL_FIRE_SPEED)
+    RAIL_MAX_MASS   = D6_GravCfg.Get(c, "RAIL_MAX_MASS",   RAIL_MAX_MASS)
+    FAN_CONE        = D6_GravCfg.Get(c, "FAN_CONE",        FAN_CONE)
+    FAN_RANGE       = D6_GravCfg.Get(c, "FAN_RANGE",       FAN_RANGE)
+    FAN_MAX_MASS    = D6_GravCfg.Get(c, "FAN_MAX_MASS",    FAN_MAX_MASS)
+    FAN_MAX_COUNT   = math.floor(D6_GravCfg.Get(c, "FAN_MAX_COUNT", FAN_MAX_COUNT) + 0.5)
+    FAN_FIRE_SPEED  = D6_GravCfg.Get(c, "FAN_FIRE_SPEED",  FAN_FIRE_SPEED)
+    FAN_SPREAD      = D6_GravCfg.Get(c, "FAN_SPREAD",      FAN_SPREAD)
+    FIRE_COOLDOWN   = D6_GravCfg.Get(c, "FIRE_COOLDOWN",   FIRE_COOLDOWN)
+    MAX_RICOCHETS   = math.floor(D6_GravCfg.Get(c, "MAX_RICOCHETS", MAX_RICOCHETS) + 0.5)
+end
+
 -- Определяет, взрывчатый ли проп по имени модели.
 -- Совпадает с детекцией в d6_ai.lua (explosive/gascan/canister).
 local function IsExplosiveProp(ent)
@@ -120,6 +141,7 @@ end
 -- ИНИЦИАЛИЗАЦИЯ
 -- =========================================================
 function SWEP:Initialize()
+    RefreshGravCfg()
     self:SetHoldType("physgun")
     self.NextFire    = 0
     self.HeldEnt     = NULL
@@ -237,6 +259,7 @@ end
 -- ЛКМ — РЕЛЬСА (захват ↔ выстрел)
 -- =========================================================
 function SWEP:PrimaryAttack()
+    RefreshGravCfg()
     if CurTime() < (self.NextFire or 0) then return end
     self.NextFire = CurTime() + FIRE_COOLDOWN
 
@@ -425,6 +448,7 @@ end
 -- ПКМ — ДРОБОВИК (пылесос ↔ веер)
 -- =========================================================
 function SWEP:SecondaryAttack()
+    RefreshGravCfg()
     if CurTime() < (self.NextFire or 0) then return end
     self.NextFire = CurTime() + FIRE_COOLDOWN
 

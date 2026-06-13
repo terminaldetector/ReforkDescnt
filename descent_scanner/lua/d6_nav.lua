@@ -191,9 +191,6 @@ if CLIENT then
     local cvar = CreateClientConVar("d6_nav_debug", "0", true, false,
         "Show D6 navigation graph (0/1)")
 
-    -- Sync graph to client via net message
-    util.AddNetworkString and nil  -- server only
-
     hook.Add("PostDrawTranslucentRenderables", "D6_NavDebugDraw", function(depth, sky)
         if depth or sky then return end
         if not cvar:GetBool() then return end

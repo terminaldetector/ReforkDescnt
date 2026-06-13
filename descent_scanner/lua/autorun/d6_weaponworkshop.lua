@@ -7,6 +7,9 @@
 --     SCK Конструктор  — сохранённые пресеты SCK + экспорт
 --     Архетипы         — готовые шаблоны кластеров
 --     Генерация SWEP   — список сгенерированных файлов + конфиги
+--     Грави-пушки      — живая настройка weapon_d6_gravy_railgun /
+--                        weapon_d6_railmk2 (через D6_GravCfg) +
+--                        быстрое сохранение пресета-«оружия»
 --
 --   Q → DRMD Workshop → NPC Constructor — регистрируется
 --   отдельно в d6_npc_workshop_ui.lua (не трогаем).
@@ -452,6 +455,100 @@ hook.Add("PopulateToolMenu", "D6_WeaponWorkshop", function()
         else
             panel:Help("Нет сохранённых конфигов.")
             panel:Help("Правь Stats/Projectile/Flak/Guidance в SCK для создания.")
+        end
+    end)
+
+    -- ═════ 5. ГРАВИ-ПУШКИ ══════
+    spawnmenu.AddToolMenuOption("DRMD Workshop", "WeaponEditor",
+        "d6_wep_gravcfg", "Грави-пушки", "", "", function(panel)
+        panel:ClearControls()
+
+        if not D6_GravCfg then
+            panel:Help("Система настройки грави-пушек не загружена (d6_gravgun_cfg.lua).")
+            return
+        end
+
+        panel:Help("Живая настройка грави-оружия — дальность, скорость, масса, "
+            .. "энергия, перезарядка. Меняй ползунки: применяется сразу всем (нужен admin).")
+
+        -- ── Быстрое сохранение / загрузка пресета ────────────
+        panel:Help(" ")
+        local presetCombo
+        local function ReloadPresetCombo()
+            if not IsValid(presetCombo) then return end
+            presetCombo:Clear()
+            for _, n in ipairs(D6_GravCfg.ListPresets()) do
+                presetCombo:AddChoice(n)
+            end
+        end
+
+        local nameEntry = panel:TextEntry("Имя оружия:")
+        nameEntry:SetValue("my_gravgun")
+
+        local saveBtn = panel:Button("⚡ Быстрое сохранение оружия")
+        saveBtn.DoClick = function()
+            local ok, res = D6_GravCfg.SavePreset(nameEntry:GetValue())
+            if ok then
+                chat.AddText(Color(80, 255, 80), "[D6 Грави] Сохранено как «" .. res .. "».")
+                ReloadPresetCombo()
+                presetCombo:SetValue(res)
+            else
+                chat.AddText(Color(255, 80, 80), "[D6 Грави] Ошибка сохранения: " .. tostring(res))
+            end
+        end
+        panel:ControlHelp("Снимок текущей настройки всех грави-пушек → DATA/drmd_gravcfg/presets/.")
+
+        presetCombo = panel:ComboBox("Пресет:")
+        ReloadPresetCombo()
+
+        local loadBtn = panel:Button("Загрузить пресет")
+        loadBtn.DoClick = function()
+            local n = presetCombo:GetValue()
+            if n and n ~= "" and D6_GravCfg.LoadPreset(n) then
+                chat.AddText(Color(80, 255, 80), "[D6 Грави] Применяю пресет «" .. n .. "».")
+            else
+                chat.AddText(Color(255, 80, 80), "[D6 Грави] Выбери пресет в списке.")
+            end
+        end
+
+        local delBtn = panel:Button("Удалить пресет")
+        delBtn.DoClick = function()
+            local n = presetCombo:GetValue()
+            if n and n ~= "" then
+                D6_GravCfg.DeletePreset(n)
+                ReloadPresetCombo()
+                chat.AddText(Color(255, 200, 80), "[D6 Грави] Удалён пресет «" .. n .. "».")
+            end
+        end
+
+        -- ── Ползунки по каждому грави-классу ─────────────────
+        for _, class in ipairs(D6_GravCfg.Order) do
+            local sch = D6_GravCfg.Schema[class]
+            if sch then
+                panel:Help(" ")
+                panel:Help("──  " .. (D6_GravCfg.Names[class] or class) .. "  ──")
+
+                for _, field in ipairs(sch) do
+                    local sl = panel:NumSlider(field.label, nil, field.min, field.max, field.dec or 0)
+                    sl:SetValue(D6_GravCfg.Get(class, field.key))
+                    -- Дебаунс: один net-сабмит через 0.15с после последнего движения
+                    local tname = "D6GravSubmit_" .. class .. "_" .. field.key
+                    sl.OnValueChanged = function(_, v)
+                        if field.int then v = math.floor(v + 0.5) end
+                        timer.Create(tname, 0.15, 1, function()
+                            D6_GravCfg.Submit(class, field.key, v)
+                        end)
+                    end
+                end
+
+                local resetBtn = panel:Button("Сбросить «" .. (D6_GravCfg.Names[class] or class) .. "» к умолчанию")
+                resetBtn.DoClick = function()
+                    D6_GravCfg.ResetClass(class)
+                    chat.AddText(Color(255, 200, 80),
+                        "[D6 Грави] «" .. (D6_GravCfg.Names[class] or class) ..
+                        "» сброшено. Переоткрой вкладку для обновления ползунков.")
+                end
+            end
         end
     end)
 
