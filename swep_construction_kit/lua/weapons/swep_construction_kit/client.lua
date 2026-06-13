@@ -1108,7 +1108,50 @@ local function CreateMenu( preset )
 		end
 		
 	tbtn:Dock(FILL)
-	
+
+	// ── Панель быстрого сохранения оружия (видна со всех вкладок) ──
+	local qbar = vgui.Create( "DPanel", f )
+		qbar:SetTall(26)
+		qbar.Paint = function(s, w, h)
+			surface.SetDrawColor(45, 60, 80, 255)
+			surface.DrawRect(0, 0, w, h)
+		end
+	qbar:DockMargin(0, 0, 0, 5)
+	qbar:Dock(TOP)
+
+		local qlabel = vgui.Create( "DLabel", qbar )
+			qlabel:SetText("  Оружие:")
+			qlabel:SetWide(58)
+		qlabel:Dock(LEFT)
+
+		local qname = vgui.Create( "DTextEntry", qbar )
+			qname:SetWide(150)
+			qname:SetValue(wep.save_data._savename or "my_weapon")
+			qname:SetTooltip("Имя пресета и класса генерируемого SWEP")
+		qname:DockMargin(2, 3, 2, 3)
+		qname:Dock(LEFT)
+
+		local function DoQuickSave()
+			local ok, res, cls = wep:SCK_QuickSave( qname:GetValue() )
+			if ok then
+				qname:SetValue(res)
+				local msg = "[SCK] Быстрое сохранение: " .. res .. ".txt"
+				if cls then msg = msg .. "  →  SWEP " .. cls .. ".lua" end
+				LocalPlayer():ChatPrint(msg)
+				surface.PlaySound("buttons/button9.wav")
+			else
+				LocalPlayer():ChatPrint("[SCK] Ошибка сохранения: " .. tostring(res))
+			end
+		end
+		qname.OnEnter = DoQuickSave
+
+		local qsave = vgui.Create( "DButton", qbar )
+			qsave:SetText("⚡ Быстрое сохранение")
+			qsave:SetTooltip("Сохранить пресет (.txt) + сгенерировать готовый SWEP (.lua) в один клик")
+			qsave.DoClick = DoQuickSave
+		qsave:DockMargin(2, 3, 6, 3)
+		qsave:Dock(FILL)
+
 	local tab = vgui.Create( "DPropertySheet", f )
 	
 		wep.ptool = vgui.Create("DPanel", tab)
@@ -1197,6 +1240,89 @@ local function CreateMenu( preset )
 	// finally, return the frame!
 	return f
 
+end
+
+// ─── Quick Save: единая сборка save_data + генерация SWEP ───
+// Собирает полный снимок текущего оружия (модели, кластеры,
+// игровой конфиг). Канонический сборщик — переиспользуется
+// вкладками Tool/Stats и панелью быстрого сохранения.
+function SWEP:SCK_CollectSaveData( name )
+	local sd = self.save_data
+	if !sd then return nil end
+
+	sd.v_models   = table.Copy(self.v_models   or {})
+	sd.w_models   = table.Copy(self.w_models   or {})
+	sd.v_bonemods = table.Copy(self.v_bonemods or {})
+	for _, v in pairs(sd.v_models) do v.createdModel = nil v.createdSprite = nil end
+	for _, v in pairs(sd.w_models) do v.createdModel = nil v.createdSprite = nil end
+
+	sd.ViewModelFlip     = self.ViewModelFlip
+	sd.ViewModel         = self.ViewModel
+	sd.CurWorldModel     = self.CurWorldModel
+	sd.ViewModelFOV      = self.ViewModelFOV
+	sd.HoldType          = self.HoldType
+	sd.IronSightsEnabled = self:GetIronSights()
+	sd.IronSightsPos, sd.IronSightsAng = self:GetIronSightCoordination()
+	sd.ShowViewModel     = self.ShowViewModel
+	sd.ShowWorldModel    = self.ShowWorldModel
+	sd.UseHands          = self.UseHands
+	sd.clusters          = table.FullCopy(self.clusters    or {})
+	sd.weaponconfig      = table.FullCopy(self.weaponconfig or {})
+	if name then sd._savename = name end
+
+	return sd
+end
+
+// Один клик: пресет (.txt, перезагружаемый в SCK) +
+// сгенерированный SWEP (.lua, готовое оружие). Возвращает
+// ok, имя_или_ошибка, класс_сгенерированного_файла.
+function SWEP:SCK_QuickSave( name )
+	name = string.Trim(name or "")
+	if name == "" then
+		name = (self.save_data and self.save_data._savename) or "my_weapon"
+	end
+	// нормализуем имя файла
+	local fname = string.lower(name):gsub("[^%w_%-]", "_")
+	if fname == "" then fname = "my_weapon" end
+
+	// если у конфига нет класса (или он — дефолтная заглушка) —
+	// выводим класс из имени, чтобы генерируемый SWEP назывался
+	// как введённое оружие, а не weapon_d6_custom.
+	self.weaponconfig        = self.weaponconfig or {}
+	self.weaponconfig.weapon = self.weaponconfig.weapon or {}
+	local W   = self.weaponconfig.weapon
+	local cls = W.ClassName
+	if !cls or cls == "" or cls == "weapon_d6_custom" then
+		cls = fname
+		if !string.match(cls, "^weapon_") then cls = "weapon_" .. cls end
+		W.ClassName = cls
+	end
+	// заодно подставим читаемое имя, если оно ещё дефолтное
+	if !W.PrintName or W.PrintName == "" or W.PrintName == "Custom Weapon" then
+		W.PrintName = name
+	end
+
+	// 1) пресет
+	local sd = self:SCK_CollectSaveData(fname)
+	if !sd then return false, "no save_data" end
+	local ok, enc = pcall(glon.encode, sd)
+	if !ok or !enc then return false, "encode failed" end
+	if !file.IsDir("swep_construction_kit", "DATA") then
+		file.CreateDir("swep_construction_kit")
+	end
+	file.Write("swep_construction_kit/" .. fname .. ".txt", enc)
+
+	// 2) генерация SWEP .lua (если генератор доступен)
+	local genClass
+	if SCK_GenerateSWEP then
+		local cfg = table.FullCopy(self.weaponconfig)
+		cfg.class    = self.weaponconfig.weapon.ClassName
+		cfg.clusters = table.FullCopy(self.clusters or {})
+		pcall(SCK_GenerateSWEP, cfg)
+		genClass = cfg.class
+	end
+
+	return true, fname, genClass
 end
 
 function SWEP:OpenMenu( preset )

@@ -42,24 +42,8 @@ nameEntry:SetWide(100)
 nameEntry:Dock(LEFT)
 
 local function SavePreset(name)
-	local sd = wep.save_data
-	sd.v_models   = table.Copy(wep.v_models)
-	sd.w_models   = table.Copy(wep.w_models)
-	sd.v_bonemods = table.Copy(wep.v_bonemods)
-	for _, v in pairs(sd.v_models) do v.createdModel = nil v.createdSprite = nil end
-	for _, v in pairs(sd.w_models) do v.createdModel = nil v.createdSprite = nil end
-	sd.ViewModelFlip    = wep.ViewModelFlip
-	sd.ViewModel        = wep.ViewModel
-	sd.CurWorldModel    = wep.CurWorldModel
-	sd.ViewModelFOV     = wep.ViewModelFOV
-	sd.HoldType         = wep.HoldType
-	sd.IronSightsEnabled = wep:GetIronSights()
-	sd.IronSightsPos, sd.IronSightsAng = wep:GetIronSightCoordination()
-	sd.ShowViewModel    = wep.ShowViewModel
-	sd.ShowWorldModel   = wep.ShowWorldModel
-	sd.clusters         = table.FullCopy(wep.clusters or {})
-	sd.weaponconfig     = table.FullCopy(wep.weaponconfig)
-	sd._savename        = name
+	local sd = wep:SCK_CollectSaveData(name)
+	if not sd then return end
 	local ok, encoded = pcall(glon.encode, sd)
 	if ok and encoded then
 		file.Write("swep_construction_kit/" .. name .. ".txt", encoded)
