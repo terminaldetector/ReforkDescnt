@@ -118,7 +118,8 @@ if SERVER then
     TryInclude("d6_weapon_core.lua") -- Phase B: фреймворк оружия (после core, до оружий)
     TryInclude("d6_energy.lua")      -- Stage 6: до оружий/щитов/модулей
     TryInclude("d6_ai.lua")
-    TryInclude("d6_frags.lua")       -- экспортирует глобальный D6_Explode
+    TryInclude("d6_frags.lua")        -- экспортирует глобальный D6_Explode
+    TryInclude("d6_frags2.lua")      -- волна 2: ракетные элиты + страйдеры
     TryInclude("d6_shield.lua")      -- Stage 7: после frags (нужен D6_Explode) и energy
     TryInclude("d6_ang_patch.lua")
     TryInclude("d6_weapon_registry.lua")
