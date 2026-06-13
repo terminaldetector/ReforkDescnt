@@ -30,6 +30,8 @@ local MDL_GRAVGUN = "models/weapons/w_physics.mdl"
 
 -- Центральные пушки
 local GRAV_CENTER    = { mdl=MDL_GRAVGUN, fwd=15, rgt=0, up=-12, pitch=6, yaw=0, scale=1.20 }
+-- Гравицапа грави-рельсы — опущена ниже обычной (по просьбе: «гравипукалку ниже»)
+local GRAV_CENTER_RAIL = { mdl=MDL_GRAVGUN, fwd=15, rgt=0, up=-24, pitch=6, yaw=0, scale=1.20 }
 local STRIDER_CENTER = { mdl=MDL_STRIDER, fwd=27, rgt=0, up=-13, pitch=0, yaw=0, scale=0.55 }
 local STRIDER_BIG    = { mdl=MDL_STRIDER, fwd=25, rgt=0, up=-13, pitch=0, yaw=0, scale=0.75 }
 
@@ -78,8 +80,8 @@ local CFG = {
     -- Rockets: airboat + гравицапа
     ["weapon_d6_rockets"]       = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00, GRAV_CENTER),
 
-    -- Grav Railgun: airboat + гравицапа
-    ["weapon_d6_gravy_railgun"] = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00, GRAV_CENTER),
+    -- Grav Railgun: airboat + гравицапа (опущена ниже)
+    ["weapon_d6_gravy_railgun"] = Layout(MDL_AIRBOAT, 1.00, MDL_AIRBOAT, 1.00, GRAV_CENTER_RAIL),
 
     -- Rail Mk2: nosegun + стридер-пушка центр, ГРАВИЦАПЫ НЕТ
     ["weapon_d6_railmk2"] = Layout(MDL_NOSEGUN, 1.40, MDL_AIRBOAT, 1.00,

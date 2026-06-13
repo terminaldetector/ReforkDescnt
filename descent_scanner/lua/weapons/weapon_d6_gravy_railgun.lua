@@ -99,6 +99,7 @@ end
 -- ─── Сетевые строки ─────────────────────────────────────
 if SERVER and not _D6_RAIL_NET then
     util.AddNetworkString("D6_RailFire")
+    util.AddNetworkString("D6_RailGlow")   -- ореол/свет разогнанного пропа
     _D6_RAIL_NET = true
 end
 
@@ -375,7 +376,40 @@ function SWEP:FireRail()
     net.Broadcast()
 
     self:HookRailProjectile(ent)
+    -- Визуальная подпись рельсотрона: жёлто-белый шлейф + ореол.
+    -- Скорость запуска (вплоть до гиперзвука) задаёт размер шлейфа.
+    self:AttachRailVisual(ent, (dir * RAIL_FIRE_SPEED + inherit):Length())
     self:SendWeaponAnim(ACT_VM_SECONDARYATTACK)
+end
+
+-- ── Рельсовый визуальный след: жёлто-белый хвост + ореол ──
+-- Хвост (env_spritetrail) сервер-сторонний — реплицируется сам.
+-- Ореол + динамический свет рисует клиент по net D6_RailGlow.
+-- Ширина/яркость растут со скоростью: гиперзвуковой проп тянет
+-- огромный светящийся шлейф — однозначная подпись рельсотрона.
+function SWEP:AttachRailVisual(ent, speed)
+    if not SERVER or not IsValid(ent) then return end
+    local base = 12000   -- ниже этой скорости заметного шлейфа нет
+    local frac = math.Clamp((speed - base) / (KIN_IMPACT_REF - base), 0, 1)
+
+    local w = Lerp(frac, 26, 120)
+    -- Внешний жёлто-белый светящийся шлейф
+    local t1 = util.SpriteTrail(ent, 0, Color(255, 236, 140), true,
+        w, 0, Lerp(frac, 0.45, 1.0), 1 / (w * 0.7 + 1), "trails/laser.vmt")
+    -- Внутренний яркий белый сердечник
+    local t2 = util.SpriteTrail(ent, 0, Color(255, 255, 255), true,
+        w * 0.4, 0, Lerp(frac, 0.3, 0.6), 1 / (w * 0.4 + 1), "trails/laser.vmt")
+
+    -- Снимаем шлейф, когда снаряд отработал (проп оседает как мусор)
+    timer.Simple(4.5, function()
+        if IsValid(t1) then t1:Remove() end
+        if IsValid(t2) then t2:Remove() end
+    end)
+
+    net.Start("D6_RailGlow")
+        net.WriteEntity(ent)
+        net.WriteFloat(frac)
+    net.Broadcast()
 end
 
 -- ── Отслеживание снаряда: взрыв, рикошет, урон ──────────
@@ -621,6 +655,10 @@ function SWEP:FireFan()
         e.D6_RailHit   = false
         e.D6_RailUntil = CurTime() + 2.5
         self:HookRailProjectile(e)
+        -- Разогнанная до гиперзвука дробь тоже получает рельсовый шлейф
+        if FAN_FIRE_SPEED >= KIN_IMPACT_MIN then
+            self:AttachRailVisual(e, FAN_FIRE_SPEED)
+        end
     end
 
     ply:EmitSound("weapons/physcannon/physcannon_shoot.wav", 80, 105)
@@ -663,7 +701,72 @@ end
 -- =========================================================
 if CLIENT then
     local BEAM = Material("cable/redlaser")
+    local GLOW_MAT = Material("sprites/light_glow02_add")
     local _flashIdx = 0
+
+    -- Разогнанные рельсой пропы: ореол + динамический свет.
+    -- [ent] = { ed = время_снятия, frac = интенсивность 0..1 }
+    local D6_RailGlowProps = {}
+
+    net.Receive("D6_RailGlow", function()
+        local ent  = net.ReadEntity()
+        local frac = net.ReadFloat()
+        if IsValid(ent) then
+            D6_RailGlowProps[ent] = { ed = CurTime() + 4.5, frac = frac }
+        end
+    end)
+
+    -- Ореол: жёлто-белое свечение вокруг летящего пропа + яркий сердечник
+    hook.Add("PostDrawTranslucentRenderables", "D6_RailPropGlow", function(depth, sky)
+        if depth or sky then return end
+        local now = CurTime()
+        render.SetMaterial(GLOW_MAT)
+        for ent, d in pairs(D6_RailGlowProps) do
+            if IsValid(ent) and now < d.ed then
+                local pos   = ent:GetPos() + ent:OBBCenter()
+                local pulse = 1 + math.sin(now * 30) * 0.12
+                local sz    = (60 + d.frac * 150) * pulse
+                render.DrawSprite(pos, sz, sz, Color(255, 236, 140, 235))
+                render.DrawSprite(pos, sz * 0.5, sz * 0.5, Color(255, 255, 255, 255))
+            end
+        end
+    end)
+
+    -- Контурный ореол (halo) — обводит модель пропа сиянием
+    hook.Add("PreDrawHalos", "D6_RailPropHalo", function()
+        local now  = CurTime()
+        local list = {}
+        for ent, d in pairs(D6_RailGlowProps) do
+            if IsValid(ent) and now < d.ed then
+                list[#list + 1] = ent
+            end
+        end
+        if #list > 0 then
+            halo.Add(list, Color(255, 240, 160), 6, 6, 2, true, true)
+        end
+    end)
+
+    -- Динамический жёлто-белый свет от снаряда + очистка таблицы
+    hook.Add("Think", "D6_RailPropLight", function()
+        local now = CurTime()
+        for ent, d in pairs(D6_RailGlowProps) do
+            if not IsValid(ent) or now >= d.ed then
+                D6_RailGlowProps[ent] = nil
+            else
+                local dl = DynamicLight(ent:EntIndex())
+                if dl then
+                    dl.pos        = ent:GetPos()
+                    dl.r          = 255
+                    dl.g          = 236
+                    dl.b          = 150
+                    dl.brightness = 2 + d.frac * 4
+                    dl.size       = 160 + d.frac * 320
+                    dl.decay      = 1000
+                    dl.dietime    = now + 0.06
+                end
+            end
+        end
+    end)
 
     -- Зелёная перекраска модели мира
     function SWEP:DrawWorldModel()
