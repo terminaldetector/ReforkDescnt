@@ -59,6 +59,8 @@ local FAN_FIRE_SPEED  = 12000       -- увеличено
 local FAN_SPREAD      = 20          -- градусов
 local FIRE_COOLDOWN   = 0.3
 local MAX_RICOCHETS   = 4           -- рикошеты для невзрывных пропов
+local KIN_IMPACT_MIN  = 28000       -- порог кинетического взрыва (выше дефолтных скоростей)
+local KIN_IMPACT_REF  = 90000       -- гиперзвук: полная мощность импакта
 local TINT            = Color(0, 255, 0)
 local TINT_INNER      = Color(180, 255, 180)
 
@@ -98,6 +100,20 @@ end
 if SERVER and not _D6_RAIL_NET then
     util.AddNetworkString("D6_RailFire")
     _D6_RAIL_NET = true
+end
+
+-- ─── Защита удерживаемых пропов от детонации ─────────────
+-- Пока проп держится рельсой (D6_RailNoBoom) или подтянут пылесосом
+-- (D6_RailFanLocked), он не получает урон → взрывные бочки и т.п. НЕ
+-- взрываются в захвате. Флаги снимаются при выстреле/сбросе, после чего
+-- проп снова уязвим и детонирует от удара как снаряд.
+if SERVER and not _D6_RAIL_DMGHOOK then
+    _D6_RAIL_DMGHOOK = true
+    hook.Add("EntityTakeDamage", "D6_RailHeldNoBoom", function(ent)
+        if IsValid(ent) and (ent.D6_RailNoBoom or ent.D6_RailFanLocked) then
+            return true   -- поглощаем урон целиком
+        end
+    end)
 end
 
 -- =========================================================
@@ -149,6 +165,7 @@ function SWEP:Initialize()
     self.FanProps    = {}
     self.LastRegenT  = CurTime()
     self:SetNWInt("D6_RailEnergy", ENERGY_MAX)
+    self:SetNWInt("D6_RailFanCount", 0)
     self:SetNWEntity("D6_RailHeld", NULL)
 end
 
@@ -178,6 +195,7 @@ function SWEP:ReleaseHeld()
             ph:Wake()
         end
         UnlockCollision(self.HeldEnt)
+        self.HeldEnt.D6_RailNoBoom = nil
     end
     self.HeldEnt = NULL
     if SERVER then self:SetNWEntity("D6_RailHeld", NULL) end
@@ -244,6 +262,10 @@ function SWEP:Think()
                 local vel = (target - self.HeldEnt:GetPos()) * 12
                 ph:SetVelocity(vel)
                 ph:SetAngleDragCoefficient(8000)
+                -- Физическая стабилизация: гасим вращение, чтобы модель
+                -- захваченного пропа не кувыркалась, а держалась ровно.
+                local av = ph:GetAngleVelocity()
+                if av:LengthSqr() > 0.01 then ph:AddAngleVelocity(-av) end
                 -- Коллизия задана при захвате (LockCollision)
             else
                 self:ReleaseHeld()
@@ -289,6 +311,7 @@ function SWEP:PrimaryAttack()
         self.HeldEnt   = tr.Entity
         self.HeldGrabT = CurTime()
         LockCollision(tr.Entity)
+        tr.Entity.D6_RailNoBoom = true   -- взрывной проп не детонирует в захвате
         self:SetNWEntity("D6_RailHeld", tr.Entity)
         ply:EmitSound("weapons/physcannon/physcannon_pickup.wav", 75, 130)
         self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
@@ -317,6 +340,7 @@ function SWEP:FireRail()
 
     -- Снять блокировку коллизий ПЕРЕД выстрелом
     UnlockCollision(ent)
+    ent.D6_RailNoBoom = nil      -- выпущенный проп снова может детонировать
     self:ReleaseHeld()
 
     -- Наследование импульса корабля + отдача (связь с движением)
@@ -376,6 +400,27 @@ function SWEP:HookRailProjectile(ent)
         sound.Play("weapons/rpg/rocket_explode.wav", pos, 100, 100)
     end
 
+    -- Кинетический импакт (масштаб от скорости): взрыв + дым на
+    -- местности + урон по площади. Вызывается при ударе разогнанного
+    -- (вплоть до гиперзвука) НЕвзрывного пропа — о мир/проп/НПС.
+    local function DoKineticImpact(pos, nrm, speed)
+        local t   = math.Clamp((speed - KIN_IMPACT_MIN) / (KIN_IMPACT_REF - KIN_IMPACT_MIN), 0, 1)
+        local rad = Lerp(t, 120, 600)
+        local dm  = Lerp(t, 30, 220)
+        local atk = IsValid(owner) and owner or game.GetWorld()
+        nrm = (nrm and nrm:LengthSqr() > 0.0001) and nrm or Vector(0, 0, 1)
+        local ef = EffectData()
+        ef:SetOrigin(pos); ef:SetNormal(nrm); ef:SetScale(1 + t * 3); ef:SetMagnitude(60 + t * 180)
+        util.Effect("Explosion", ef)
+        if t > 0.35 then util.Effect("HelicopterMegaBomb", ef) end
+        local sef = EffectData(); sef:SetOrigin(pos); sef:SetNormal(nrm); sef:SetScale(1 + t * 2); sef:SetMagnitude(1)
+        util.Effect("WheelDust", sef)   -- дым/пыль на местности
+        util.Decal("Scorch", pos + nrm * 8, pos - nrm * 8)
+        util.BlastDamage(IsValid(ent) and ent or atk, atk, pos, rad, dm)
+        sound.Play("ambient/explosions/explode_" .. math.random(2, 4) .. ".wav",
+            pos, 100, math.random(85, 105))
+    end
+
     ent:AddCallback("PhysicsCollide", function(e, data)
         if done then return end
         local hitEnt  = data.HitEntity
@@ -407,6 +452,9 @@ function SWEP:HookRailProjectile(ent)
                 if isExpl then
                     DoExplode(IsValid(e) and e:GetPos() or hitPos)
                     if IsValid(e) then e:Remove() end
+                elseif oldVel:Length() >= KIN_IMPACT_MIN then
+                    -- прямое попадание разогнанного пропа → импакт по площади
+                    DoKineticImpact(IsValid(e) and e:GetPos() or hitPos, hitNorm, oldVel:Length())
                 end
             end)
             return
@@ -419,6 +467,17 @@ function SWEP:HookRailProjectile(ent)
                 DoExplode(IsValid(e) and e:GetPos() or hitPos)
                 if IsValid(e) then e:Remove() end
             end)
+            return
+        end
+
+        -- Кинетический импакт: на высокой скорости (вплоть до гиперзвука)
+        -- удар невзрывного пропа о мир/проп = взрыв + дым + урон по площади.
+        -- Ниже порога — обычный рикошет (дефолтные скорости не меняются).
+        local impactSpeed = oldVel:Length()
+        if impactSpeed >= KIN_IMPACT_MIN then
+            done = true
+            local pos = (IsValid(e) and e:GetPos()) or hitPos
+            timer.Simple(0, function() DoKineticImpact(pos, hitNorm, impactSpeed) end)
             return
         end
 
@@ -493,6 +552,7 @@ function SWEP:SecondaryAttack()
     end
 
     self.FanProps = collected
+    self:SetNWInt("D6_RailFanCount", #collected)
     ply:EmitSound("weapons/physcannon/physcannon_pickup.wav", 60, 100)
     self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
 
@@ -518,6 +578,7 @@ function SWEP:SecondaryAttack()
                 end
             end
         end
+        self:SetNWInt("D6_RailFanCount", #self.FanProps)
     end)
 end
 
@@ -574,6 +635,7 @@ function SWEP:FireFan()
     net.Broadcast()
 
     self.FanProps = {}
+    self:SetNWInt("D6_RailFanCount", 0)
 end
 
 -- ── Полный сброс пылесоса ─────────────────────────────────
@@ -588,6 +650,7 @@ function SWEP:ReleaseFan()
         end
     end
     self.FanProps = {}
+    self:SetNWInt("D6_RailFanCount", 0)
 end
 
 function SWEP:Reload()
@@ -629,6 +692,46 @@ if CLIENT then
             render.SetMaterial(BEAM)
             render.DrawBeam(muz, held:GetPos() + held:OBBCenter(), 4,   0, 1, TINT)
             render.DrawBeam(muz, held:GetPos() + held:OBBCenter(), 1.5, 0, 1, TINT_INNER)
+        end
+    end)
+
+    -- Конус кучности дроби — визуализация разброса (FAN_SPREAD) от
+    -- ствола для LocalPlayer. Полуугол = текущий разброс из D6_GravCfg
+    -- (синхронизирован), длина — превью. Помогает целиться дробовиком.
+    hook.Add("PostDrawTranslucentRenderables", "D6_RailSpreadCone", function(depth, sky)
+        if depth or sky then return end
+        local ply = LocalPlayer()
+        if not IsValid(ply) or ply:ShouldDrawLocalPlayer() then return end
+        local wep = ply:GetActiveWeapon()
+        if not IsValid(wep) or wep:GetClass() ~= "weapon_d6_gravy_railgun" then return end
+
+        local spread = (D6_GravCfg and D6_GravCfg.Get("weapon_d6_gravy_railgun", "FAN_SPREAD", 20)) or 20
+        if spread <= 0 then return end
+
+        local a    = ply.D6AngSynced or ply.D6Ang or ply:EyeAngles()
+        local ang  = Angle(a.p, a.y, 0)
+        local fwd  = ang:Forward()
+        local rgt  = ang:Right()
+        local up   = ang:Up()
+        local apex = ply:GetShootPos() + fwd * 13
+
+        local len    = 380
+        local rad    = math.tan(math.rad(spread)) * len
+        local center = apex + fwd * len
+
+        -- ярче, когда дробовик заряжен пропами (готов к выстрелу)
+        local loaded = wep:GetNWInt("D6_RailFanCount", 0) > 0
+        local col    = loaded and Color(120, 255, 150, 200) or Color(0, 255, 0, 70)
+        local bw     = loaded and 2 or 1
+
+        render.SetMaterial(BEAM)
+        local seg, prev = 28, nil
+        for i = 0, seg do
+            local th = (i / seg) * math.pi * 2
+            local pt = center + (rgt * math.cos(th) + up * math.sin(th)) * rad
+            if prev then render.DrawBeam(prev, pt, bw, 0, 1, col) end   -- кольцо
+            if i % 7 == 0 then render.DrawBeam(apex, pt, bw, 0, 1, col) end  -- спицы
+            prev = pt
         end
     end)
 

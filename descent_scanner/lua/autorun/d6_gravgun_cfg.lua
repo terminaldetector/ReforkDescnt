@@ -36,13 +36,13 @@ D6_GravCfg.Schema = {
         { key="ENERGY_RAIL",     label="Энергия рельсы",     min=0,    max=100,   def=20,    dec=0 },
         { key="ENERGY_FAN",      label="Энергия дробовика",  min=0,    max=100,   def=30,    dec=0 },
         { key="RAIL_RANGE",      label="Дальн. захвата",     min=200,  max=4000,  def=1500,  dec=0 },
-        { key="RAIL_FIRE_SPEED", label="Скор. рельсы",       min=2000, max=30000, def=18000, dec=0 },
+        { key="RAIL_FIRE_SPEED", label="Скор. рельсы (гиперзвук)", min=2000, max=100000, def=18000, dec=0 },
         { key="RAIL_MAX_MASS",   label="Макс. масса рельсы", min=10,   max=1000,  def=300,   dec=0 },
         { key="FAN_CONE",        label="Конус пылесоса °",   min=2,    max=60,    def=15,    dec=0 },
         { key="FAN_RANGE",       label="Дальн. пылесоса",    min=100,  max=2000,  def=500,   dec=0 },
         { key="FAN_MAX_MASS",    label="Масса пропа",        min=5,    max=300,   def=50,    dec=0 },
         { key="FAN_MAX_COUNT",   label="Кол-во пропов",      min=1,    max=20,    def=8,     dec=0, int=true },
-        { key="FAN_FIRE_SPEED",  label="Скор. дробовика",    min=2000, max=30000, def=12000, dec=0 },
+        { key="FAN_FIRE_SPEED",  label="Скор. дроби (гиперзвук)", min=2000, max=100000, def=12000, dec=0 },
         { key="FAN_SPREAD",      label="Разброс дроби °",    min=0,    max=45,    def=20,    dec=0 },
         { key="FIRE_COOLDOWN",   label="Перезарядка, с",     min=0.05, max=2,     def=0.3,   dec=2 },
         { key="MAX_RICOCHETS",   label="Рикошеты",           min=0,    max=10,    def=4,     dec=0, int=true },
@@ -122,6 +122,18 @@ if SERVER then
     util.AddNetworkString("D6_GravCfg_Set")    -- клиент → сервер (одно значение)
     util.AddNetworkString("D6_GravCfg_Sync")   -- сервер → клиенты (весь Values JSON)
     util.AddNetworkString("D6_GravCfg_Preset") -- клиент → сервер (загрузка пресета целиком)
+
+    -- Гиперзвук недостижим при дефолтном sv_maxvelocity (3500): движок
+    -- обрежет скорость пропа. Поднимаем лимит, чтобы настройка «скорость
+    -- движения пропов вплоть до гиперзвука» реально работала. Корабль и
+    -- прочая физика разгоняются собственными силами — потолок лишь снимает
+    -- ограничение для разогнанных рельсой пропов.
+    hook.Add("InitPostEntity", "D6_GravCfg_MaxVel", function()
+        local cv = GetConVar("sv_maxvelocity")
+        if cv and cv:GetInt() < 100000 then
+            RunConsoleCommand("sv_maxvelocity", "100000")
+        end
+    end)
 
     local function SaveLive()
         if not file.IsDir(DIR, "DATA") then file.CreateDir(DIR) end
