@@ -203,6 +203,15 @@ local function CreateModPanel(cluster, idx)
         end
     AddRow("Model:", modelEntry)
 
+    -- Weapon Role (связь визуального модуля с игровой ролью)
+    local ROLES_CLU = { "—", "Primary L", "Primary R", "Secondary", "Utility", "Passive" }
+    local roleBox = vgui.Create("DComboBox")
+        roleBox:SetTall(22)
+        for _, r in ipairs(ROLES_CLU) do roleBox:AddChoice(r) end
+        roleBox:SetValue(mod.role or "—")
+        roleBox.OnSelect = function(_, _, val) mod.role = (val == "—") and nil or val end
+    AddRow("Role:", roleBox)
+
     -- Bone
     local boneEntry = vgui.Create("DTextEntry")
         boneEntry:SetText(mod.bone or "ValveBiped.Bip01_R_Hand")

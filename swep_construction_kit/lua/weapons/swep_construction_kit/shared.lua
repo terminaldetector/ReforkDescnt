@@ -17,6 +17,7 @@ if SERVER then
 	AddCSLuaFile("menu/projectile.lua")
 	AddCSLuaFile("menu/flak.lua")
 	AddCSLuaFile("menu/guidance.lua")
+	AddCSLuaFile("menu/workshop.lua")
 	AddCSLuaFile("base_code.lua")
 	include("config.lua") -- register server-side net handlers
 end

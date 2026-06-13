@@ -1131,6 +1131,8 @@ local function CreateMenu( preset )
 		wep.pflak.Paint = function() surface.SetDrawColor(50,35,30,255) surface.DrawRect(0,0,wep.pflak:GetWide(),wep.pflak:GetTall()) end
 		wep.pguidance = vgui.Create("DPanel", tab)
 		wep.pguidance.Paint = function() surface.SetDrawColor(35,30,50,255) surface.DrawRect(0,0,wep.pguidance:GetWide(),wep.pguidance:GetTall()) end
+		wep.pworkshop = vgui.Create("DPanel", tab)
+		wep.pworkshop.Paint = function() surface.SetDrawColor(25,35,45,255) surface.DrawRect(0,0,wep.pworkshop:GetWide(),wep.pworkshop:GetTall()) end
 
 		tab:AddSheet( "Tool", wep.ptool, nil, false, false, "Modify tool settings" )
 		tab:AddSheet( "Weapon", wep.pweapon, nil, false, false, "Modify weapon settings" )
@@ -1142,6 +1144,7 @@ local function CreateMenu( preset )
 		tab:AddSheet( "Projectile", wep.pprojectile, nil, false, false, "Projectile configuration" )
 		tab:AddSheet( "Flak", wep.pflak, nil, false, false, "Flak / cassette systems" )
 		tab:AddSheet( "Guidance", wep.pguidance, nil, false, false, "Guidance systems" )
+		tab:AddSheet( "Workshop", wep.pworkshop, nil, false, false, "Unified module & weapon workshop" )
 
 		wep.ptool:DockPadding(5, 5, 5, 5)
 		wep.pweapon:DockPadding(5, 5, 5, 5)
@@ -1153,7 +1156,8 @@ local function CreateMenu( preset )
 		wep.pprojectile:DockPadding(5, 5, 5, 5)
 		wep.pflak:DockPadding(5, 5, 5, 5)
 		wep.pguidance:DockPadding(5, 5, 5, 5)
-		
+		wep.pworkshop:DockPadding(5, 5, 5, 5)
+
 	tab:Dock(FILL)
 	
 	/*****************
@@ -1188,6 +1192,7 @@ local function CreateMenu( preset )
 	include("weapons/"..wep:GetClass().."/menu/projectile.lua")
 	include("weapons/"..wep:GetClass().."/menu/flak.lua")
 	include("weapons/"..wep:GetClass().."/menu/guidance.lua")
+	include("weapons/"..wep:GetClass().."/menu/workshop.lua")
 
 	// finally, return the frame!
 	return f
