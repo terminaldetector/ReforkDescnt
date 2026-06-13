@@ -85,6 +85,16 @@ local function RefreshGravCfg()
     MAX_RICOCHETS   = math.floor(D6_GravCfg.Get(c, "MAX_RICOCHETS", MAX_RICOCHETS) + 0.5)
 end
 
+-- Коробки/ящики — кассетные контейнеры при гиперзвуковом ударе.
+local function IsBoxProp(ent)
+    if not IsValid(ent) then return false end
+    local mdl = string.lower(ent:GetModel() or "")
+    return mdl:find("cardboard") ~= nil
+        or mdl:find("carton")    ~= nil
+        or mdl:find("crate")     ~= nil
+        or (mdl:find("box") ~= nil and not mdl:find("ammo") and not mdl:find("speaker"))
+end
+
 -- Определяет, взрывчатый ли проп по имени модели.
 -- Совпадает с детекцией в d6_ai.lua (explosive/gascan/canister).
 local function IsExplosiveProp(ent)
@@ -99,7 +109,8 @@ end
 -- ─── Сетевые строки ─────────────────────────────────────
 if SERVER and not _D6_RAIL_NET then
     util.AddNetworkString("D6_RailFire")
-    util.AddNetworkString("D6_RailGlow")   -- ореол/свет разогнанного пропа
+    util.AddNetworkString("D6_RailGlow")         -- ореол/свет разогнанного пропа
+    util.AddNetworkString("D6_RailHyperImpact")  -- ударная волна + вспышка клиенту
     _D6_RAIL_NET = true
 end
 
@@ -444,25 +455,86 @@ function SWEP:HookRailProjectile(ent)
         sound.Play("weapons/rpg/rocket_explode.wav", pos, 100, 100)
     end
 
-    -- Кинетический импакт (масштаб от скорости): взрыв + дым на
-    -- местности + урон по площади. Вызывается при ударе разогнанного
-    -- (вплоть до гиперзвука) НЕвзрывного пропа — о мир/проп/НПС.
+    -- Кинетический импакт (масштаб от скорости):
+    --   • Основной взрыв + многослойный серый дым
+    --   • Кассетный рассев для коробок/ящиков (IsBoxProp)
+    --   • Ударная волна клиенту (D6_RailHyperImpact)
     local function DoKineticImpact(pos, nrm, speed)
         local t   = math.Clamp((speed - KIN_IMPACT_MIN) / (KIN_IMPACT_REF - KIN_IMPACT_MIN), 0, 1)
         local rad = Lerp(t, 120, 600)
         local dm  = Lerp(t, 30, 220)
         local atk = IsValid(owner) and owner or game.GetWorld()
         nrm = (nrm and nrm:LengthSqr() > 0.0001) and nrm or Vector(0, 0, 1)
+
+        -- Основной взрыв
         local ef = EffectData()
-        ef:SetOrigin(pos); ef:SetNormal(nrm); ef:SetScale(1 + t * 3); ef:SetMagnitude(60 + t * 180)
+        ef:SetOrigin(pos); ef:SetNormal(nrm)
+        ef:SetScale(1 + t * 3); ef:SetMagnitude(60 + t * 180)
         util.Effect("Explosion", ef)
-        if t > 0.35 then util.Effect("HelicopterMegaBomb", ef) end
-        local sef = EffectData(); sef:SetOrigin(pos); sef:SetNormal(nrm); sef:SetScale(1 + t * 2); sef:SetMagnitude(1)
-        util.Effect("WheelDust", sef)   -- дым/пыль на местности
+        if t > 0.2 then util.Effect("HelicopterMegaBomb", ef) end
+
+        -- Послойный серый дым: клубы вокруг эпицентра
+        local smokeLayers = 1 + math.floor(t * 4)
+        for i = 1, smokeLayers do
+            local sof = EffectData()
+            local ang  = (i / smokeLayers) * math.pi * 2
+            local dist = (i - 1) * Lerp(t, 28, 75)
+            sof:SetOrigin(pos + Vector(math.cos(ang)*dist, math.sin(ang)*dist, dist*0.25))
+            sof:SetNormal(nrm); sof:SetScale(1 + t * (1.4 + i * 0.25)); sof:SetMagnitude(1)
+            util.Effect("WheelDust", sof)
+        end
+
         util.Decal("Scorch", pos + nrm * 8, pos - nrm * 8)
         util.BlastDamage(IsValid(ent) and ent or atk, atk, pos, rad, dm)
         sound.Play("ambient/explosions/explode_" .. math.random(2, 4) .. ".wav",
-            pos, 100, math.random(85, 105))
+            pos, 100, math.random(80, 110))
+
+        -- ── Кассетные боеприпасы: картонные коробки → рассеянный залп ──
+        local isBox = IsBoxProp(ent)
+        if isBox and t > 0.05 then
+            local count  = math.floor(Lerp(t, 8, 22))
+            local sDmg   = Lerp(t, 22, 80)
+            local sRad   = Lerp(t, 65, 175)
+            local sRange = Lerp(t, 180, 530)
+            -- Перпендикулярный базис для равномерного рассева
+            local tmp2 = math.abs(nrm.z) < 0.9 and Vector(0,0,1) or Vector(1,0,0)
+            local cr2  = nrm:Cross(tmp2):GetNormalized()
+            local cu2  = nrm:Cross(cr2):GetNormalized()
+
+            sound.Play("npc/attack_helicopter/aheli_strafe1.wav", pos, 92, 88)
+            -- Вспышка при «вскрытии контейнера»
+            local ef2 = EffectData(); ef2:SetOrigin(pos + Vector(0,0,25))
+            ef2:SetScale(3 + t * 5); ef2:SetMagnitude(240)
+            util.Effect("HelicopterMegaBomb", ef2)
+
+            for j = 1, count do
+                timer.Simple(j * Lerp(t, 0.038, 0.018), function()
+                    local angle  = j * 2.39996  -- золотое сечение → плотный равномерный веер
+                    local dist2  = math.Rand(45, sRange)
+                    local rise2  = math.Rand(0, dist2 * 0.38)
+                    local sPos   = pos
+                        + cr2 * math.cos(angle) * dist2
+                        + cu2 * math.sin(angle) * dist2
+                        + Vector(0, 0, rise2)
+                    util.BlastDamage(atk, atk, sPos, sRad, sDmg)
+                    local sfe = EffectData(); sfe:SetOrigin(sPos)
+                    sfe:SetScale(1.1 + t * 0.9)
+                    util.Effect("Explosion", sfe)
+                    local sf2 = EffectData(); sf2:SetOrigin(sPos); sf2:SetScale(0.7 + t)
+                    util.Effect("WheelDust", sf2)
+                    sound.Play("ambient/explosions/explode_" .. math.random(1, 4) .. ".wav",
+                        sPos, 68, math.random(128, 165))
+                end)
+            end
+        end
+
+        -- Ударная волна на клиентах: расширяющееся кольцо + вспышка
+        net.Start("D6_RailHyperImpact")
+            net.WriteVector(pos)
+            net.WriteVector(nrm)
+            net.WriteFloat(t)
+            net.WriteBool(isBox)
+        net.Broadcast()
     end
 
     ent:AddCallback("PhysicsCollide", function(e, data)
@@ -727,18 +799,51 @@ if CLIENT then
         end
     end)
 
-    -- Ореол: жёлто-белое свечение вокруг летящего пропа + яркий сердечник
+    -- Ореол + конус Маха летящего пропа
     hook.Add("PostDrawTranslucentRenderables", "D6_RailPropGlow", function(depth, sky)
         if depth or sky then return end
         local now = CurTime()
         render.SetMaterial(GLOW_MAT)
         for ent, d in pairs(D6_RailGlowProps) do
-            if IsValid(ent) and now < d.ed then
-                local pos   = ent:GetPos() + ent:OBBCenter()
-                local pulse = 1 + math.sin(now * 30) * 0.12
-                local sz    = (60 + d.frac * 150) * pulse
-                render.DrawSprite(pos, sz, sz, Color(255, 236, 140, 235))
-                render.DrawSprite(pos, sz * 0.5, sz * 0.5, Color(255, 255, 255, 255))
+            if not IsValid(ent) or now >= d.ed then continue end
+
+            local pos   = ent:GetPos() + ent:OBBCenter()
+            local pulse = 1 + math.sin(now * 30) * 0.12
+            local sz    = (60 + d.frac * 150) * pulse
+            render.DrawSprite(pos, sz, sz, Color(255, 236, 140, 235))
+            render.DrawSprite(pos, sz * 0.5, sz * 0.5, Color(255, 255, 255, 255))
+
+            -- Конус Маха: серо-белый конус ударной волны позади пропа
+            if d.frac > 0.04 then
+                local vel = ent:GetVelocity()
+                local spd = vel:Length()
+                if spd > 5000 then
+                    local vdir = vel:GetNormalized()
+                    local spdF = math.min(spd / 14000, 1)
+                    local cLen = (45 + d.frac * 270) * spdF
+                    local cRad = math.tan(math.rad(Lerp(d.frac, 52, 13))) * cLen
+                    local cBase = pos - vdir * cLen
+                    local tmp  = math.abs(vdir.z) < 0.9 and Vector(0,0,1) or Vector(1,0,0)
+                    local cr   = vdir:Cross(tmp):GetNormalized()
+                    local cu   = vdir:Cross(cr):GetNormalized()
+                    local ca   = math.Clamp(d.frac * 155 * spdF, 18, 135)
+                    render.SetMaterial(BEAM)
+                    local prev = nil
+                    for j = 0, 18 do
+                        local th = (j / 18) * math.pi * 2
+                        local pt = cBase + (cr * math.cos(th) + cu * math.sin(th)) * cRad
+                        if prev then
+                            render.DrawBeam(prev, pt, 1.4 + d.frac * 3.2, 0, 1,
+                                Color(210, 215, 225, ca))
+                        end
+                        if j % 6 == 0 then
+                            render.DrawBeam(pos, pt, 0.6, 0, 1,
+                                Color(245, 248, 255, ca * 0.38))
+                        end
+                        prev = pt
+                    end
+                    render.SetMaterial(GLOW_MAT)
+                end
             end
         end
     end)
@@ -775,6 +880,126 @@ if CLIENT then
                     dl.decay      = 1000
                     dl.dietime    = now + 0.06
                 end
+            end
+        end
+    end)
+
+    -- ── Ударные волны + вспышки + кассетные засветки ────────
+    -- Клиент получает позицию, нормаль, интенсивность и флаг кассеты.
+    -- Рисуем: яркая вспышка → расширяющееся кольцо ударной волны →
+    -- вторичное серое кольцо дыма → (кассета) веер засвечивающих точек.
+    local D6_HyperImpacts = {}
+    local RING_MAT = Material("cable/redlaser")
+
+    net.Receive("D6_RailHyperImpact", function()
+        local pos     = net.ReadVector()
+        local nrm     = net.ReadVector()
+        local frac    = net.ReadFloat()
+        local cluster = net.ReadBool()
+        table.insert(D6_HyperImpacts, {
+            pos = pos, nrm = nrm, frac = frac, cluster = cluster,
+            t0  = CurTime(),
+            dur = 0.55 + frac * 0.65,
+        })
+    end)
+
+    hook.Add("PostDrawTranslucentRenderables", "D6_RailHyperImpactFX", function(depth, sky)
+        if depth or sky then return end
+        local now = CurTime()
+        render.SetMaterial(RING_MAT)
+        for i = #D6_HyperImpacts, 1, -1 do
+            local h = D6_HyperImpacts[i]
+            local p = (now - h.t0) / h.dur
+            if p >= 1 then table.remove(D6_HyperImpacts, i); continue end
+
+            local pos  = h.pos
+            local nrm  = h.nrm
+            local frac = h.frac
+
+            -- Перпендикулярный базис кольца в плоскости нормали удара
+            local tmp = math.abs(nrm.z) < 0.9 and Vector(0,0,1) or Vector(1,0,0)
+            local cr  = nrm:Cross(tmp):GetNormalized()
+            local cu  = nrm:Cross(cr):GetNormalized()
+
+            -- 1. Яркая белая вспышка в эпицентре (0.0..0.25)
+            if p < 0.25 then
+                local fp  = 1 - p / 0.25
+                local fsz = (120 + frac * 480) * fp
+                render.SetMaterial(GLOW_MAT)
+                render.DrawSprite(pos, fsz,       fsz,       Color(255, 248, 230, fp * 240))
+                render.DrawSprite(pos, fsz * 0.4, fsz * 0.4, Color(255, 255, 255, fp * 255))
+                render.SetMaterial(RING_MAT)
+            end
+
+            -- 2. Расширяющееся кольцо ударной волны (серо-белое)
+            local rRad = (80 + frac * 480) * math.sqrt(p)
+            local rAlp = (1 - p) * (75 + frac * 130)
+            local rBw  = 2.5 + frac * 7
+            local rCol = Color(210, 215, 225, rAlp)
+            local prev = nil
+            for j = 0, 24 do
+                local th = (j / 24) * math.pi * 2
+                local pt = pos + (cr * math.cos(th) + cu * math.sin(th)) * rRad
+                if prev then render.DrawBeam(prev, pt, rBw, 0, 1, rCol) end
+                prev = pt
+            end
+
+            -- 3. Второе (медленное) серое кольцо дыма
+            if frac > 0.15 then
+                local r2   = (40 + frac * 190) * p
+                local a2   = (1 - p) * 85
+                local col2 = Color(145, 145, 155, a2)
+                local prev2 = nil
+                for j = 0, 20 do
+                    local th = (j / 20) * math.pi * 2
+                    local pt = pos
+                        + (cr * math.cos(th) + cu * math.sin(th)) * r2
+                        + nrm * r2 * 0.22
+                    if prev2 then render.DrawBeam(prev2, pt, 1.8, 0, 1, col2) end
+                    prev2 = pt
+                end
+            end
+
+            -- 4. Кассетные засветки: мерцающие вспышки в ореоле рассева
+            if h.cluster and p < 0.65 then
+                render.SetMaterial(GLOW_MAT)
+                local count = math.floor(3 + frac * 9)
+                for k = 1, count do
+                    local fp2 = k / count  -- равномерное распределение во времени
+                    local lo  = fp2 * 0.5
+                    local hi  = lo + 0.18
+                    if p >= lo and p < hi then
+                        local angle = k * 2.39996
+                        local dist2 = (55 + frac * 210) * (k / count)
+                        local cPos  = pos
+                            + cr * math.cos(angle) * dist2
+                            + cu * math.sin(angle) * dist2
+                            + nrm * dist2 * 0.18
+                        local bf = 1 - (p - lo) / 0.18
+                        local bsz = (35 + frac * 90) * bf
+                        render.DrawSprite(cPos, bsz, bsz,
+                            Color(255, 230, 170, bf * 210))
+                    end
+                end
+                render.SetMaterial(RING_MAT)
+            end
+        end
+    end)
+
+    -- DynamicLight в эпицентре удара (вспышка освещает окружение)
+    hook.Add("Think", "D6_RailImpactLight", function()
+        for _, h in ipairs(D6_HyperImpacts) do
+            local p = (CurTime() - h.t0) / h.dur
+            if p >= 0.3 then continue end  -- только в начале
+            local bright = (1 - p / 0.3) * (1 + h.frac * 4)
+            local dl = DynamicLight(1234567 + math.floor(h.t0 * 100) % 1000)
+            if dl then
+                dl.pos        = h.pos
+                dl.r          = 255; dl.g = 245; dl.b = 200
+                dl.brightness = bright
+                dl.size       = 200 + h.frac * 600
+                dl.decay      = 800
+                dl.dietime    = CurTime() + 0.12
             end
         end
     end)
