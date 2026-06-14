@@ -768,6 +768,7 @@ function SWEP:HookRailProjectile(ent)
     local isExpl  = IsExplosiveProp(ent)
     local bounces = 0
     local done    = false
+    local scanId  = "D6_RailNPCScan_" .. ent:EntIndex()
 
     local function DoExplode(pos)
         local atk = IsValid(owner) and owner or game.GetWorld()
@@ -860,6 +861,80 @@ function SWEP:HookRailProjectile(ent)
         net.Broadcast()
     end
 
+    -- PhysicsCollide не срабатывает для воздушных NPC (npc_cscanner и др.) —
+    -- у них нет физического тела, доступного для контакта с пропами.
+    -- Решение: каждые 0.05 с трассируем путь пропа от предыдущей до текущей
+    -- позиции. Попадание в NPC/игрока обрабатывается напрямую с DMG_BLAST
+    -- (DMG_CRUSH не работает для большинства воздушных НПС).
+    local scanLastPos = ent:GetPos()
+    timer.Create(scanId, 0.05, 0, function()
+        if not IsValid(ent) or done then timer.Remove(scanId); return end
+        local ph = ent:GetPhysicsObject()
+        if not IsValid(ph) then timer.Remove(scanId); return end
+        local vel = ph:GetVelocity()
+        local spd = vel:Length()
+        if spd < 150 then timer.Remove(scanId); return end
+
+        local curPos = ent:GetPos()
+        local dir    = vel:GetNormalized()
+
+        -- Трасса от прошлой до текущей позиции ловит быстрые снаряды,
+        -- которые пролетают сквозь NPC между тиками
+        local traceFilter = { ent }
+        if IsValid(owner) then traceFilter[2] = owner end
+        local tr = util.TraceLine({
+            start  = scanLastPos,
+            endpos = curPos,
+            filter = traceFilter,
+            mask   = MASK_SHOT_HULL,
+        })
+        scanLastPos = curPos
+
+        local scanTarget = nil
+        if IsValid(tr.Entity) and not tr.Entity.D6_IsProjectile then
+            if tr.Entity:IsNPC() or tr.Entity:IsPlayer() then
+                scanTarget = tr.Entity
+            end
+        end
+
+        -- Сфера-проверка для медленных/зависших пропов
+        if not scanTarget then
+            for _, e2 in ipairs(ents.FindInSphere(curPos, 80)) do
+                if not IsValid(e2) or e2 == ent or e2.D6_IsProjectile then continue end
+                if IsValid(owner) and e2 == owner then continue end
+                if e2:IsNPC() or e2:IsPlayer() then
+                    scanTarget = e2; break
+                end
+            end
+        end
+
+        if not scanTarget then return end
+
+        done = true
+        ent.D6_RailHit = true
+        timer.Remove(scanId)
+
+        local hitPos = IsValid(scanTarget) and scanTarget:GetPos() or curPos
+        local di = DamageInfo()
+        di:SetAttacker(IsValid(owner) and owner or game.GetWorld())
+        di:SetInflictor(IsValid(ent) and ent or game.GetWorld())
+        di:SetDamage(ent.D6_RailDmg or 50)
+        di:SetDamageType(DMG_BLAST)
+        di:SetDamageForce(dir * 15000)
+        scanTarget:TakeDamageInfo(di)
+
+        local ef = EffectData()
+        ef:SetOrigin(hitPos); ef:SetNormal(-dir); ef:SetMagnitude(3)
+        util.Effect("Sparks", ef)
+
+        if isExpl then
+            DoExplode(curPos)
+            if IsValid(ent) then SafeRemoveEntity(ent) end
+        elseif spd >= KIN_IMPACT_MIN then
+            DoKineticImpact(curPos, -dir, spd)
+        end
+    end)
+
     ent:AddCallback("PhysicsCollide", function(e, data)
         if done then return end
         local hitEnt  = data.HitEntity
@@ -877,13 +952,14 @@ function SWEP:HookRailProjectile(ent)
         if IsValid(hitEnt) and (hitEnt:IsNPC() or hitEnt:IsPlayer()) then
             done = true
             ent.D6_RailHit = true
+            timer.Remove(scanId)
             timer.Simple(0, function()
                 if IsValid(hitEnt) then
                     local di = DamageInfo()
                     di:SetAttacker(IsValid(owner) and owner or game.GetWorld())
                     di:SetInflictor(IsValid(e) and e or game.GetWorld())
                     di:SetDamage(ent.D6_RailDmg or 50)
-                    di:SetDamageType(DMG_CRUSH)
+                    di:SetDamageType(DMG_BLAST)
                     di:SetDamageForce(oldVel:GetNormalized() * 10000)
                     hitEnt:TakeDamageInfo(di)
                 end
@@ -904,6 +980,7 @@ function SWEP:HookRailProjectile(ent)
         if isExpl then
             done = true
             ent.D6_RailHit = true
+            timer.Remove(scanId)
             timer.Simple(0, function()
                 DoExplode(IsValid(e) and e:GetPos() or hitPos)
                 if IsValid(e) then e:Remove() end
@@ -918,6 +995,7 @@ function SWEP:HookRailProjectile(ent)
         if impactSpeed >= KIN_IMPACT_MIN then
             done = true
             ent.D6_RailHit = true
+            timer.Remove(scanId)
             local pos = (IsValid(e) and e:GetPos()) or hitPos
             timer.Simple(0, function() DoKineticImpact(pos, hitNorm, impactSpeed) end)
             return
@@ -941,6 +1019,7 @@ function SWEP:HookRailProjectile(ent)
     -- По истечении жизни прекращаем обработку (проп остаётся как мусор)
     timer.Simple(6, function()
         done = true
+        timer.Remove(scanId)
         if IsValid(ent) then ent.D6_IsProjectile = nil end
     end)
 end
@@ -1070,6 +1149,7 @@ function SWEP:FireFan()
                    + up  * math.tan(math.rad(sy))):GetNormalized()
 
         UnlockCollision(e)         -- после выстрела коллизии возвращаем
+        e:CollisionRulesChanged()  -- уведомляем физику о смене группы коллизий
         e.D6_RailFanLocked = false
         e.D6_FanHoldDX     = nil
         e.D6_FanHoldDY     = nil
