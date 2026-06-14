@@ -149,6 +149,34 @@ local function MuzzlePos(ply)
     return ply:GetShootPos() + ang:Forward() * 13, ang
 end
 
+-- Длинная (главная) ось пропа в его локальной системе: "x"|"y"|"z".
+-- Берётся по наибольшему измерению OBB — для баллона/бочки это "z".
+local function PropLongAxis(ent)
+    if not IsValid(ent) then return "x" end
+    local s  = ent:OBBMaxs() - ent:OBBMins()
+    local ax, ay, az = math.abs(s.x), math.abs(s.y), math.abs(s.z)
+    if az >= ax and az >= ay then return "z" end
+    if ay >= ax and ay >= az then return "y" end
+    return "x"
+end
+
+-- Мировой угол, при котором длинная ось пропа смотрит ВДОЛЬ прицела (fwd) —
+-- ровный «дротик по прицелу», как на референс-скрине с баллонами. Не путать
+-- с фиксированным вертикальным положением: проп всегда указывает туда, куда
+-- целится игрок (вверх смотришь — баллон смотрит вверх, и т.д.).
+local function AimLongAngle(longAxis, fwd)
+    local fa = fwd:Angle()
+    if longAxis == "z" then
+        -- локальный +Z (стоячий баллон/бочка) → направление прицела
+        return Angle(fa.p + 90, fa.y, 0)
+    elseif longAxis == "y" then
+        -- локальный +Y (вбок) → направление прицела
+        return Angle(fa.p, fa.y - 90, 0)
+    end
+    -- локальный +X (вперёд) → направление прицела (по умолчанию)
+    return Angle(fa.p, fa.y, 0)
+end
+
 local function CanHold(ent)
     if not IsValid(ent) then return false end
     if ent:IsPlayer() or ent:IsNPC() then return false end
@@ -218,7 +246,7 @@ function SWEP:ReleaseHeld()
         self.HeldEnt.D6_RailNoBoom = nil
     end
     self.HeldEnt = NULL
-    self.HeldLocalAng = nil
+    self.HeldLongAxis = nil
     if SERVER then self:SetNWEntity("D6_RailHeld", NULL) end
 end
 
@@ -281,14 +309,9 @@ function SWEP:Think()
                 ph:Wake()
                 ph:EnableGravity(false)
 
-                -- Желаемая ориентация: поза, в которой проп был схвачен,
-                -- повёрнутая вслед за прицелом (стабильное удержание).
-                local holdAng = ang
-                if self.HeldLocalAng then
-                    local _, wAng = LocalToWorld(vector_origin, self.HeldLocalAng,
-                                                 vector_origin, ang)
-                    holdAng = wAng
-                end
+                -- Желаемая ориентация: длинная ось пропа смотрит вдоль
+                -- прицела (ровный «дротик»), а не в исходную позу.
+                local holdAng = AimLongAngle(self.HeldLongAxis or "x", ang:Forward())
 
                 -- ComputeShadowControl — тот же контроллер, что у физгана HL2:
                 -- плавно ведёт проп к позиции И ориентации, полностью гася
@@ -349,11 +372,9 @@ function SWEP:PrimaryAttack()
     if CanHold(tr.Entity) then
         self.HeldEnt   = tr.Entity
         self.HeldGrabT = CurTime()
-        -- Запоминаем позу пропа в системе прицела — держим её ровно,
-        -- поворачивая проп вслед за взглядом (стабилизация ориентации).
-        local _, locAng = WorldToLocal(vector_origin, tr.Entity:GetAngles(),
-                                       vector_origin, ang)
-        self.HeldLocalAng = locAng
+        -- Длинная ось пропа смотрит вдоль прицела (ровный «дротик»),
+        -- единое поведение со стоком/дробовиком.
+        self.HeldLongAxis = PropLongAxis(tr.Entity)
         LockCollision(tr.Entity)
         tr.Entity.D6_RailNoBoom = true   -- взрывной проп не детонирует в захвате
         self:SetNWEntity("D6_RailHeld", tr.Entity)
@@ -877,8 +898,9 @@ function SWEP:SecondaryAttack()
         -- Стабильное смещение от точки удержания в системе координат прицела
         local h0  = muz + fwd * 70
         local raw = e:GetPos() - h0
-        e.D6_FanHoldDX = math.Clamp(raw:Dot(ang:Right()), -30, 30)
-        e.D6_FanHoldDY = math.Clamp(raw:Dot(ang:Up()),    -25, 25)
+        e.D6_FanHoldDX  = math.Clamp(raw:Dot(ang:Right()), -30, 30)
+        e.D6_FanHoldDY  = math.Clamp(raw:Dot(ang:Up()),    -25, 25)
+        e.D6_FanLongAxis = PropLongAxis(e)   -- длинная ось → вдоль прицела
     end
 
     if #collected == 0 then
@@ -906,14 +928,14 @@ function SWEP:SecondaryAttack()
             else
                 local ph = e:GetPhysicsObject()
                 if IsValid(ph) then
-                    -- Стабилизация пропа: позиция в aim-пространстве + вертикальная ориентация
+                    -- Стабилизация: позиция в aim-пространстве + длинная ось вдоль прицела
                     local holdPos = hold
                         + a:Right() * (e.D6_FanHoldDX or 0)
                         + a:Up()    * (e.D6_FanHoldDY or 0)
                     ph:ComputeShadowControl({
                         secondstoarrive  = 0.05,
                         pos              = holdPos,
-                        angle            = Angle(0, 0, 0),
+                        angle            = AimLongAngle(e.D6_FanLongAxis or "x", a:Forward()),
                         maxangular       = 5000,
                         maxangulardamp   = 20000,
                         maxspeed         = 100000,
@@ -959,6 +981,7 @@ function SWEP:FireFan()
         e.D6_RailFanLocked = false
         e.D6_FanHoldDX     = nil
         e.D6_FanHoldDY     = nil
+        e.D6_FanLongAxis   = nil
         ph:EnableDrag(false)       -- гасим аэродинамику чтобы скорость не упала
         if PROP_MODE == 1 then
             -- Унгравити: пропы летят идеально прямо, без гравитации и затухания
@@ -1020,6 +1043,7 @@ function SWEP:ReleaseFan()
             e.D6_RailFanLocked = false
             e.D6_FanHoldDX     = nil
             e.D6_FanHoldDY     = nil
+            e.D6_FanLongAxis   = nil
             UnlockCollision(e)
             local ph = e:GetPhysicsObject()
             if IsValid(ph) then ph:EnableGravity(true) end
