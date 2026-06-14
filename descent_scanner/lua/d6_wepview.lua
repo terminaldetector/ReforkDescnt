@@ -160,6 +160,7 @@ end
 
 hook.Add("PostDrawTranslucentRenderables", "D6_WepView", function(bDepth, bSky)
     if bDepth or bSky then return end
+    if D6_RearViewPass then return end   -- не рендерить оружие в виде сзади
 
     local ply = LocalPlayer()
     if not IsValid(ply) then return end

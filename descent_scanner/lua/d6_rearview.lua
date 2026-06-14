@@ -82,6 +82,7 @@ hook.Add("PreDrawEffects", "D6_RearView_Render", function()
     local rearAng = Angle(eyeAng.p, eyeAng.y + 180, eyeAng.r)
 
     rv_busy = true
+    D6_RearViewPass = true   -- d6_wepview.lua пропустит рендер оружий
     render.PushRenderTarget(rv_rt)
         render.Clear(0, 0, 0, 255, true, true)
         render.RenderView({
@@ -95,6 +96,7 @@ hook.Add("PreDrawEffects", "D6_RearView_Render", function()
             drawhud       = false,
         })
     render.PopRenderTarget()
+    D6_RearViewPass = false
     rv_busy = false
 end)
 
