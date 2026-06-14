@@ -45,6 +45,22 @@ if CLIENT then
     RegNPC("d6_npc_bestiary",  "D6: Весь бестиарий",     "npc_headcrab",
         "models/headcrab.mdl",                      "Descent 6DOF / Группы")
 
+    -- Wave 2
+    RegNPC("d6_npc_rocket_elite_homing", "D6: Ракетная элита (самонаведение)", "npc_cscanner",
+        "models/combine_scanner.mdl",               "Descent 6DOF / Волна 2")
+
+    RegNPC("d6_npc_rocket_elite_aa", "D6: Ракетная элита (зенитная)", "npc_cscanner",
+        "models/combine_scanner.mdl",               "Descent 6DOF / Волна 2")
+
+    RegNPC("d6_npc_rocket_strider", "D6: Ракетный страйдер", "npc_cscanner",
+        "models/combine_scanner.mdl",               "Descent 6DOF / Волна 2")
+
+    RegNPC("d6_npc_plasma_strider", "D6: Плазменный страйдер", "npc_cscanner",
+        "models/combine_scanner.mdl",               "Descent 6DOF / Волна 2")
+
+    RegNPC("d6_npc_wave2",  "D6: Волна 2 (все элиты)", "npc_cscanner",
+        "models/combine_scanner.mdl",               "Descent 6DOF / Волна 2")
+
     -- Role variants
     RegNPC("d6_npc_assault",     "D6: Штурмовик",         "npc_cscanner",
         "models/combine_scanner.mdl",               "Descent 6DOF / Роли")
@@ -229,6 +245,32 @@ if SERVER then
                 local tr = ply:GetEyeTrace()
                 SpawnD6Role("heavy_elite", tr.HitPos + tr.HitNormal * 50, ply)
             end
+        end,
+
+        -- Wave 2 (d6_frags2.lua)
+        d6_npc_rocket_elite_homing = function(ply)
+            if not IsValid(ply) then return end
+            ply:ConCommand("6dof_spawn_rocket_elite_homing")
+        end,
+
+        d6_npc_rocket_elite_aa = function(ply)
+            if not IsValid(ply) then return end
+            ply:ConCommand("6dof_spawn_rocket_elite_aa")
+        end,
+
+        d6_npc_rocket_strider = function(ply)
+            if not IsValid(ply) then return end
+            ply:ConCommand("6dof_spawn_rocket_strider")
+        end,
+
+        d6_npc_plasma_strider = function(ply)
+            if not IsValid(ply) then return end
+            ply:ConCommand("6dof_spawn_plasma_strider")
+        end,
+
+        d6_npc_wave2 = function(ply)
+            if not IsValid(ply) then return end
+            ply:ConCommand("6dof_spawn_wave2")
         end,
     }
 

@@ -396,20 +396,26 @@ hook.Add("PopulateToolMenu", "D6_NPCWS_UI", function()
 
         local MODULES = {
             [""] = "— пусто —",
-            Pulsar = "Pulse (Pulsar — очередь)",
-            Laser  = "Laser (лучемёт)",
-            Plasma = "Plasma (сгустки, exotic)",
-            Rail   = "Rail (рельса, kinetic)",
+            Pulsar  = "Pulse (Pulsar — очередь)",
+            Laser   = "Laser (лучемёт)",
+            Plasma  = "Plasma (сгустки, exotic)",
+            Rail    = "Rail (рельса, kinetic)",
             Missile = "Rocket (Missile — самонаведение)",
-            Flak   = "Flak (осколочный конус)",
+            Flak    = "Flak (осколочный конус)",
             ComBall = "Heavy (ComBall)",
-            GravityUnit = "Gravity (отталкивание)",
-            RepairBeam = "Repair (лечение союзников)",
+            GravityUnit     = "Gravity (отталкивание)",
+            RepairBeam      = "Repair (лечение союзников)",
             ShieldGenerator = "Shield (реген щита)",
+            -- Wave 2
+            VulcanMod      = "Vulcan (очередь ближнего боя, ×2)",
+            ConcussionMod  = "Concussion (тяжёлая ракета, AoE 280)",
+            HomingMod      = "Homing (самонаведение 15 с)",
+            GravRailMod    = "GravRail (кинетический рельс, 22000 u/s)",
         }
         local SLOT_OPTS = {
-            primaryL = { "", "Pulsar", "Laser", "Plasma" },
-            primaryR = { "", "Missile", "Rail", "Flak", "ComBall" },
+            primaryL = { "", "Pulsar", "Laser", "Plasma", "VulcanMod" },
+            primaryR = { "", "Missile", "Rail", "Flak", "ComBall",
+                         "ConcussionMod", "HomingMod", "GravRailMod" },
             utility  = { "", "RepairBeam", "GravityUnit" },
             core     = { "", "ShieldGenerator" },
         }

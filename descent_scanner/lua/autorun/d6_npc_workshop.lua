@@ -404,6 +404,168 @@ if SERVER then
                 end
             end,
         })
+
+        -- ── Wave 2 NPC модули (зеркало новых оружий игрока) ──
+
+        -- VULCANMOD — пулемёт ближнего боя, пиковая скорострельность сразу
+        D6_RegisterModule("VulcanMod", {
+            slot = "primaryL", cooldown = 0.065, range = 600, energyCost = 2,
+            OnFire = function(npc, target)
+                local dir, from = LeadDir(npc, target, 4800)
+                npc:EmitSound("weapons/pistol/pistol_fire2.wav", 65, 130)
+                D6_Wep.FireProjectile({
+                    owner = npc, pos = from, dir = dir, speed = 4800,
+                    model = "models/weapons/w_crossbow_bolt.mdl", scale = 0.5,
+                    color = Color(140, 190, 255), dmgClass = "kinetic",
+                    mass = 0.3, life = 0.25,
+                    trails = {
+                        { col = Color(140, 190, 255), sw = 12, ew = 0, life = 0.14 },
+                        { col = Color(220, 240, 255), sw = 4,  ew = 0, life = 0.08 },
+                    },
+                    onHit = function(proj, hitEnt, hitPos, hitNormal)
+                        if IsValid(hitEnt) then
+                            D6_Wep.DirectDamage(npc, proj, hitEnt, 15,
+                                D6_DAMAGE and D6_DAMAGE.kinetic or DMG_BULLET,
+                                (hitNormal or Vector(0, 0, 1)) * -120)
+                        end
+                    end,
+                })
+            end,
+        })
+
+        -- CONCUSSIONMOD — тяжёлая ракета, большой радиус взрыва + отдача
+        D6_RegisterModule("ConcussionMod", {
+            slot = "primaryR", cooldown = 2.0, range = 800, energyCost = 35,
+            OnFire = function(npc, target)
+                local dir, from = LeadDir(npc, target, 1600)
+                npc:EmitSound("weapons/rpg/rocketfire1.wav", 90, 70)
+                D6_Wep.FireProjectile({
+                    owner = npc, pos = from, dir = dir, speed = 1600,
+                    model = "models/weapons/w_missile.mdl", scale = 1.6,
+                    color = Color(255, 100, 20), dmgClass = "explosive",
+                    mass = 3, life = 4,
+                    trails = {
+                        { col = Color(255, 100, 20),  sw = 55, ew = 7, life = 0.8 },
+                        { col = Color(255, 220, 160), sw = 18, ew = 2, life = 0.5 },
+                    },
+                    onHit = function(proj, hitEnt, hitPos, hitNormal)
+                        if IsValid(hitEnt) then
+                            D6_Wep.DirectDamage(npc, proj, hitEnt, 120,
+                                D6_DAMAGE and D6_DAMAGE.explosive or DMG_BLAST,
+                                (hitNormal or Vector(0, 0, 1)) * -1000)
+                        end
+                        local hPos = hitPos or (IsValid(proj) and proj:GetPos() or npc:GetPos())
+                        local ef = EffectData(); ef:SetOrigin(hPos)
+                        ef:SetScale(4); ef:SetMagnitude(240)
+                        util.Effect("HelicopterMegaBomb", ef)
+                        util.BlastDamage(npc, npc, hPos, 280, 90)
+                    end,
+                })
+            end,
+        })
+
+        -- HOMINGMOD — самонаводящаяся ракета с упреждением (15 с)
+        D6_RegisterModule("HomingMod", {
+            slot = "primaryR", cooldown = 3.5, range = 2400, energyCost = 28,
+            OnFire = function(npc, target)
+                local dir, from = LeadDir(npc, target, 1400)
+                npc:EmitSound("weapons/rpg/rocketfire1.wav", 80, 90)
+                local missile = ents.Create("prop_physics")
+                if not IsValid(missile) then return end
+                missile:SetModel("models/weapons/w_missile.mdl")
+                missile:SetModelScale(1.2)
+                missile:SetColor(Color(255, 240, 100, 255))
+                missile:SetPos(from)
+                missile:SetAngles(dir:Angle())
+                missile:SetOwner(npc)
+                missile:Spawn()
+                local mp = missile:GetPhysicsObject()
+                if IsValid(mp) then
+                    mp:EnableGravity(false); mp:EnableDrag(false)
+                    mp:SetMass(2); mp:SetVelocity(dir * 1400); mp:Wake()
+                end
+                -- Жёлтый трейл
+                util.SpriteTrail(missile, 0, Color(255, 220, 80, 200), false, 26, 2, 0.5, 1/(26-2+0.001), "trails/laser")
+
+                local tgtRef = target   -- ссылка для closure
+                local speed  = 1400
+                local timerKey = "D6_HomingMod_" .. missile:EntIndex()
+
+                timer.Create(timerKey, 0.04, 0, function()
+                    if not IsValid(missile) then timer.Remove(timerKey); return end
+                    if not IsValid(tgtRef)  then timer.Remove(timerKey); return end
+                    local mPos = missile:GetPos()
+                    local dist = mPos:Distance(tgtRef:GetPos())
+                    local pred = tgtRef:GetPos() + tgtRef:GetVelocity() * (dist / speed) * 0.8
+                    local steerDir = (pred - mPos):GetNormalized()
+                    local ph2 = missile:GetPhysicsObject()
+                    if IsValid(ph2) then
+                        local turn = Lerp(math.Clamp(dist / 1000, 0, 1), 0.45, 0.15)
+                        local newVel = LerpVector(turn * FrameTime() * 25,
+                            ph2:GetVelocity(), steerDir * speed)
+                        ph2:SetVelocity(newVel)
+                        missile:SetAngles(newVel:Angle())
+                    end
+                end)
+
+                missile:AddCallback("PhysicsCollide", function(m2, data, _p2)
+                    if data.Speed < 40 then return end
+                    timer.Remove(timerKey)
+                    timer.Simple(0, function()
+                        if not IsValid(m2) then return end
+                        local mPos2 = m2:GetPos()
+                        local ef = EffectData(); ef:SetOrigin(mPos2)
+                        ef:SetScale(2); ef:SetMagnitude(120)
+                        util.Effect("Explosion", ef)
+                        util.BlastDamage(npc, npc, mPos2, 160, 40)
+                        if IsValid(data.HitEntity) then
+                            D6_Wep.DirectDamage(npc, m2, data.HitEntity, 90,
+                                D6_DAMAGE and D6_DAMAGE.explosive or DMG_BLAST,
+                                data.HitNormal * -600)
+                        end
+                        m2:Remove()
+                    end)
+                end)
+
+                timer.Simple(15, function()
+                    timer.Remove(timerKey)
+                    if IsValid(missile) then missile:Remove() end
+                end)
+            end,
+        })
+
+        -- GRAVRAILMOD — кинетический рельс быстрого выстрела (высокая пробиваемость)
+        D6_RegisterModule("GravRailMod", {
+            slot = "primaryR", cooldown = 3.0, range = 4000, energyCost = 18,
+            OnFire = function(npc, target)
+                local dir, from = LeadDir(npc, target, 22000)
+                npc:EmitSound("weapons/gauss/fire1.wav", 90, 100)
+                -- Массо-зависимый урон (для NPC цели массы нет — используем базовый)
+                local hitMass = 0
+                if IsValid(target) then
+                    local tp = target:GetPhysicsObject()
+                    if IsValid(tp) then hitMass = tp:GetMass() end
+                end
+                local dmg = math.Clamp(50 + hitMass * 0.7, 50, 120)
+                D6_Wep.FireProjectile({
+                    owner = npc, pos = from, dir = dir, speed = 22000,
+                    model = "models/weapons/w_crossbow_bolt.mdl", scale = 2.0,
+                    color = Color(140, 255, 180), dmgClass = "kinetic",
+                    mass = 8, life = 1,
+                    trails = {
+                        { col = Color(140, 255, 180), sw = 28, ew = 0, life = 0.4 },
+                        { col = Color(220, 255, 235), sw = 10, ew = 0, life = 0.2 },
+                    },
+                    onHit = function(proj, hitEnt, hitPos, hitNormal)
+                        if IsValid(hitEnt) then
+                            D6_Wep.DirectDamage(npc, proj, hitEnt, dmg,
+                                D6_DAMAGE and D6_DAMAGE.kinetic or DMG_BULLET,
+                                (hitNormal or Vector(0, 0, 1)) * -1200)
+                        end
+                    end,
+                })
+            end,
+        })
     end
 
     -- d6_autoload (autorun, по алфавиту раньше) уже включил d6_modules
