@@ -212,6 +212,7 @@ function SWEP:ReleaseHeld()
         self.HeldEnt.D6_RailNoBoom = nil
     end
     self.HeldEnt = NULL
+    self.HeldLocalAng = nil
     if SERVER then self:SetNWEntity("D6_RailHeld", NULL) end
 end
 
@@ -273,13 +274,31 @@ function SWEP:Think()
             if IsValid(ph) then
                 ph:Wake()
                 ph:EnableGravity(false)
-                local vel = (target - self.HeldEnt:GetPos()) * 12
-                ph:SetVelocity(vel)
-                ph:SetAngleDragCoefficient(8000)
-                -- Физическая стабилизация: гасим вращение, чтобы модель
-                -- захваченного пропа не кувыркалась, а держалась ровно.
-                local av = ph:GetAngleVelocity()
-                if av:LengthSqr() > 0.01 then ph:AddAngleVelocity(-av) end
+
+                -- Желаемая ориентация: поза, в которой проп был схвачен,
+                -- повёрнутая вслед за прицелом (стабильное удержание).
+                local holdAng = ang
+                if self.HeldLocalAng then
+                    local _, wAng = LocalToWorld(vector_origin, self.HeldLocalAng,
+                                                 vector_origin, ang)
+                    holdAng = wAng
+                end
+
+                -- ComputeShadowControl — тот же контроллер, что у физгана HL2:
+                -- плавно ведёт проп к позиции И ориентации, полностью гася
+                -- кувыркание. Критически задемпфирован (dampfactor≈1) — без
+                -- перелёта даже для тяжёлых пропов.
+                ph:ComputeShadowControl({
+                    secondstoarrive  = 0.05,
+                    pos              = target,
+                    angle            = holdAng,
+                    maxangular       = 5000,
+                    maxangulardamp   = 20000,
+                    maxspeed         = 100000,
+                    maxspeeddamp     = 200000,
+                    dampfactor       = 1.0,
+                    teleportdistance = 0,
+                })
                 -- Коллизия задана при захвате (LockCollision)
             else
                 self:ReleaseHeld()
@@ -324,6 +343,11 @@ function SWEP:PrimaryAttack()
     if CanHold(tr.Entity) then
         self.HeldEnt   = tr.Entity
         self.HeldGrabT = CurTime()
+        -- Запоминаем позу пропа в системе прицела — держим её ровно,
+        -- поворачивая проп вслед за взглядом (стабилизация ориентации).
+        local _, locAng = WorldToLocal(vector_origin, tr.Entity:GetAngles(),
+                                       vector_origin, ang)
+        self.HeldLocalAng = locAng
         LockCollision(tr.Entity)
         tr.Entity.D6_RailNoBoom = true   -- взрывной проп не детонирует в захвате
         self:SetNWEntity("D6_RailHeld", tr.Entity)
