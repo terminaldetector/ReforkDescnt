@@ -691,6 +691,11 @@ function SWEP:SecondaryAttack()
         e.D6_RailFanLocked = true
         LockCollision(e)           -- не бьют игрока при подтягивании
         ph:EnableGravity(false)
+        -- Стабильное смещение от точки удержания в системе координат прицела
+        local h0  = muz + fwd * 70
+        local raw = e:GetPos() - h0
+        e.D6_FanHoldDX = math.Clamp(raw:Dot(ang:Right()), -30, 30)
+        e.D6_FanHoldDY = math.Clamp(raw:Dot(ang:Up()),    -25, 25)
     end
 
     if #collected == 0 then
@@ -718,9 +723,21 @@ function SWEP:SecondaryAttack()
             else
                 local ph = e:GetPhysicsObject()
                 if IsValid(ph) then
-                    local offs = Vector(math.random(-15,15), math.random(-15,15), math.random(-15,15))
-                    ph:SetVelocity((hold + offs - e:GetPos()) * 10)
-                    ph:Wake()
+                    -- Стабилизация пропа: позиция в aim-пространстве + вертикальная ориентация
+                    local holdPos = hold
+                        + a:Right() * (e.D6_FanHoldDX or 0)
+                        + a:Up()    * (e.D6_FanHoldDY or 0)
+                    ph:ComputeShadowControl({
+                        secondstoarrive  = 0.05,
+                        pos              = holdPos,
+                        angle            = Angle(0, 0, 0),
+                        maxangular       = 5000,
+                        maxangulardamp   = 20000,
+                        maxspeed         = 100000,
+                        maxspeeddamp     = 200000,
+                        dampfactor       = 1.0,
+                        teleportdistance = 0,
+                    })
                 end
             end
         end
@@ -757,6 +774,8 @@ function SWEP:FireFan()
 
         UnlockCollision(e)         -- после выстрела коллизии возвращаем
         e.D6_RailFanLocked = false
+        e.D6_FanHoldDX     = nil
+        e.D6_FanHoldDY     = nil
         ph:EnableDrag(false)       -- гасим аэродинамику чтобы скорость не упала
         if PROP_MODE == 1 then
             -- Унгравити: пропы летят идеально прямо, без гравитации и затухания
@@ -811,6 +830,8 @@ function SWEP:ReleaseFan()
     for _, e in ipairs(self.FanProps or {}) do
         if IsValid(e) then
             e.D6_RailFanLocked = false
+            e.D6_FanHoldDX     = nil
+            e.D6_FanHoldDY     = nil
             UnlockCollision(e)
             local ph = e:GetPhysicsObject()
             if IsValid(ph) then ph:EnableGravity(true) end
