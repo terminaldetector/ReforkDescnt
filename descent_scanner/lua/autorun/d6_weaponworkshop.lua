@@ -529,15 +529,35 @@ hook.Add("PopulateToolMenu", "D6_WeaponWorkshop", function()
                 panel:Help("──  " .. (D6_GravCfg.Names[class] or class) .. "  ──")
 
                 for _, field in ipairs(sch) do
-                    local sl = panel:NumSlider(field.label, nil, field.min, field.max, field.dec or 0)
-                    sl:SetValue(D6_GravCfg.Get(class, field.key))
-                    -- Дебаунс: один net-сабмит через 0.15с после последнего движения
-                    local tname = "D6GravSubmit_" .. class .. "_" .. field.key
-                    sl.OnValueChanged = function(_, v)
-                        if field.int then v = math.floor(v + 0.5) end
-                        timer.Create(tname, 0.15, 1, function()
-                            D6_GravCfg.Submit(class, field.key, v)
-                        end)
+                    if field.choices then
+                        -- Поле-перечисление: ComboBox вместо слайдера
+                        local cur = math.floor(D6_GravCfg.Get(class, field.key) + 0.5)
+                        local cb  = panel:ComboBox(field.label)
+                        for idx, choiceLabel in ipairs(field.choices) do
+                            cb:AddChoice(choiceLabel, idx - 1, cur == idx - 1)
+                        end
+                        cb.OnSelect = function(_, _, _, data)
+                            D6_GravCfg.Submit(class, field.key, data)
+                        end
+                    else
+                        local sl = panel:NumSlider(field.label, nil, field.min, field.max, field.dec or 0)
+                        sl:SetValue(D6_GravCfg.Get(class, field.key))
+                        -- Дебаунс: один net-сабмит через 0.15с после последнего движения
+                        local tname = "D6GravSubmit_" .. class .. "_" .. field.key
+                        sl.OnValueChanged = function(_, v)
+                            if field.int then v = math.floor(v + 0.5) end
+                            timer.Create(tname, 0.15, 1, function()
+                                D6_GravCfg.Submit(class, field.key, v)
+                            end)
+                        end
+                        -- Быстрая кнопка «Макс.» для счётчика пропов
+                        if field.key == "FAN_MAX_COUNT" then
+                            local maxBtn = panel:Button("⚡ Максимум пропов (" .. field.max .. ")")
+                            maxBtn.DoClick = function()
+                                sl:SetValue(field.max)
+                                D6_GravCfg.Submit(class, field.key, field.max)
+                            end
+                        end
                     end
                 end
 

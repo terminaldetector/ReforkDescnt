@@ -59,6 +59,7 @@ local FAN_FIRE_SPEED  = 12000       -- увеличено
 local FAN_SPREAD      = 20          -- градусов
 local FIRE_COOLDOWN   = 0.3
 local MAX_RICOCHETS   = 4           -- рикошеты для невзрывных пропов
+local PROP_MODE       = 0           -- 0=гравити (Havok+gravity), 1=унгравити (глайдер)
 local KIN_IMPACT_MIN  = 28000       -- порог кинетического взрыва (выше дефолтных скоростей)
 local KIN_IMPACT_REF  = 90000       -- гиперзвук: полная мощность импакта
 local TINT            = Color(0, 255, 0)
@@ -83,6 +84,7 @@ local function RefreshGravCfg()
     FAN_SPREAD      = D6_GravCfg.Get(c, "FAN_SPREAD",      FAN_SPREAD)
     FIRE_COOLDOWN   = D6_GravCfg.Get(c, "FIRE_COOLDOWN",   FIRE_COOLDOWN)
     MAX_RICOCHETS   = math.floor(D6_GravCfg.Get(c, "MAX_RICOCHETS", MAX_RICOCHETS) + 0.5)
+    PROP_MODE       = math.floor(D6_GravCfg.Get(c, "PROP_MODE",     PROP_MODE)     + 0.5)
 end
 
 -- Коробки/ящики — кассетные контейнеры при гиперзвуковом ударе.
@@ -359,13 +361,17 @@ function SWEP:FireRail()
     local inherit = D6_Wep and (D6_Wep.ShipVel(ply) * D6_Wep.Inherit()) or Vector(0, 0, 0)
     local fireVel = dir * RAIL_FIRE_SPEED + inherit
     if IsValid(ph) then
-        ph:EnableGravity(true)
-        ph:EnableDrag(false)    -- гасим аэродинамику: Havok иначе замедляет проп
         ph:EnableMotion(true)
+        ph:EnableDrag(false)    -- гасим аэродинамику: Havok иначе замедляет проп
+        if PROP_MODE == 1 then
+            -- Унгравити: полное снятие Havok-сил → чистый гиперзвуковой глайдер
+            ph:EnableGravity(false)
+            ph:SetDamping(0, 0)  -- убрать линейное и угловое затухание
+        else
+            ph:EnableGravity(true)
+        end
         ph:Wake()
         ph:SetVelocity(fireVel)
-        -- Re-apply на следующем тике: первый физический шаг может урезать скорость
-        -- до sv_maxvelocity старого кадра. Повторная установка гарантирует заявленную скорость.
         timer.Simple(0, function()
             if IsValid(ent) then
                 local p2 = ent:GetPhysicsObject()
@@ -727,10 +733,26 @@ function SWEP:FireFan()
 
         UnlockCollision(e)         -- после выстрела коллизии возвращаем
         e.D6_RailFanLocked = false
-        ph:EnableGravity(true)
         ph:EnableDrag(false)       -- гасим аэродинамику чтобы скорость не упала
-        ph:Wake()
-        ph:SetVelocity(dir * FAN_FIRE_SPEED)
+        if PROP_MODE == 1 then
+            -- Унгравити: пропы летят идеально прямо, без гравитации и затухания
+            ph:EnableGravity(false)
+            ph:SetDamping(0, 0)
+            local pelletVel = dir * FAN_FIRE_SPEED
+            ph:Wake()
+            ph:SetVelocity(pelletVel)
+            local eRef = e
+            timer.Simple(0, function()
+                if IsValid(eRef) then
+                    local pp = eRef:GetPhysicsObject()
+                    if IsValid(pp) then pp:SetVelocity(pelletVel) end
+                end
+            end)
+        else
+            ph:EnableGravity(true)
+            ph:Wake()
+            ph:SetVelocity(dir * FAN_FIRE_SPEED)
+        end
 
         -- Снаряды дробовика могут наносить урон врагам
         e.D6_RailOwner = ply

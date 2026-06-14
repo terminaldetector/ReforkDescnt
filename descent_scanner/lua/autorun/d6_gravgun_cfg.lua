@@ -46,6 +46,10 @@ D6_GravCfg.Schema = {
         { key="FAN_SPREAD",      label="Разброс дроби °",    min=0,    max=45,    def=20,    dec=0 },
         { key="FIRE_COOLDOWN",   label="Перезарядка, с",     min=0.05, max=2,     def=0.3,   dec=2 },
         { key="MAX_RICOCHETS",   label="Рикошеты",           min=0,    max=10,    def=4,     dec=0, int=true },
+        -- Режим физики пропов: 0=Гравити (Havok+gravity), 1=Унгравити (гиперзвуковой глайдер)
+        { key="PROP_MODE",       label="Режим физики пропов", min=0,   max=1,     def=0,     dec=0, int=true,
+          choices={"⬇  Гравити  — Havok + гравитация",
+                   "⚡ Унгравити — гиперзвуковой глайдер"} },
     },
     weapon_d6_railmk2 = {
         { key="ENERGY_QUICK",  label="Энергия щелчка",   min=0,    max=100,   def=18,   dec=0 },
