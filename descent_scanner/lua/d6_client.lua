@@ -420,7 +420,7 @@ hook.Add("HUDPaint", "D6_HUD", function()
     end
 
     draw.SimpleTextOutlined(
-        "WASD Пробел/Ctrl LShift/F=крен  Z=крюк  d6_dash=рывок  KP0=6DOF  TAB=меню",
+        "WASD Пробел/Ctrl LShift/F=крен  Z=крюк  X=рывок  V=вид сзади  KP0=6DOF  TAB=меню",
         "DermaDefault", sw*.5, sh-18,
         Color(150,150,150,130), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, Color(0,0,0,80))
 end)

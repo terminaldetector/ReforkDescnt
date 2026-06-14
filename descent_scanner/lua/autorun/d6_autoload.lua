@@ -103,6 +103,7 @@ if SERVER then
     AddCSLuaFile("d6_nav.lua")       -- nav graph debug overlay
     AddCSLuaFile("d6_energy.lua")    -- энергорезерв (Stage 6)
     AddCSLuaFile("d6_shield.lua")    -- щиты/урон (Stage 7)
+    AddCSLuaFile("d6_rearview.lua")  -- вид сзади (Descent-стиль)
 end
 
 local function TryInclude(path)
@@ -142,6 +143,7 @@ if CLIENT then
     include("d6_nav.lua")            -- nav graph client debug
     include("d6_energy.lua")         -- энергорезерв (геттеры для HUD/меню)
     include("d6_shield.lua")         -- щиты (геттеры для cockpit)
+    include("d6_rearview.lua")       -- вид сзади (Descent-стиль)
 end
 
 -- ── Реестр: категории оружий Descent (Waves D–G) ─────────
