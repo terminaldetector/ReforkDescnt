@@ -50,6 +50,12 @@ D6_GravCfg.Schema = {
         { key="PROP_MODE",       label="Режим физики пропов", min=0,   max=1,     def=0,     dec=0, int=true,
           choices={"⬇  Гравити  — Havok + гравитация",
                    "⚡ Унгравити — гиперзвуковой глайдер"} },
+        -- Разрушение пропа в полёте (дым/осколки/распад «глайдера»)
+        { key="HYPER_ABLATION",  label="Разрушение в полёте", min=0,   max=1,     def=1,     dec=0, int=true,
+          choices={"✖  Выкл — проп летит целым",
+                   "🔥 Вкл — дым, осколки, распад"} },
+        { key="HYPER_FLIGHT_MIN", label="Порог разруш., скор.", min=5000, max=999999, def=20000, dec=0 },
+        { key="HYPER_FRAG_MUL",  label="Сила осколков ×",     min=0.1,  max=5,     def=1.0,   dec=2 },
     },
     weapon_d6_railmk2 = {
         { key="ENERGY_QUICK",  label="Энергия щелчка",   min=0,    max=100,   def=18,   dec=0 },

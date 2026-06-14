@@ -62,6 +62,9 @@ local MAX_RICOCHETS   = 4           -- рикошеты для невзрывн�
 local PROP_MODE       = 0           -- 0=гравити (Havok+gravity), 1=унгравити (глайдер)
 local KIN_IMPACT_MIN  = 28000       -- порог кинетического взрыва (выше дефолтных скоростей)
 local KIN_IMPACT_REF  = 90000       -- гиперзвук: полная мощность импакта
+local HYPER_FLIGHT_MIN = 20000      -- скорость, при которой проп рвётся в полёте (глайдер)
+local HYPER_ABLATION   = 1          -- 0=выкл, 1=вкл дым/осколки/распад в полёте
+local HYPER_FRAG_MUL   = 1.0        -- множитель числа и урона осколков
 local TINT            = Color(0, 255, 0)
 local TINT_INNER      = Color(180, 255, 180)
 
@@ -85,6 +88,9 @@ local function RefreshGravCfg()
     FIRE_COOLDOWN   = D6_GravCfg.Get(c, "FIRE_COOLDOWN",   FIRE_COOLDOWN)
     MAX_RICOCHETS   = math.floor(D6_GravCfg.Get(c, "MAX_RICOCHETS", MAX_RICOCHETS) + 0.5)
     PROP_MODE       = math.floor(D6_GravCfg.Get(c, "PROP_MODE",     PROP_MODE)     + 0.5)
+    HYPER_FLIGHT_MIN = D6_GravCfg.Get(c, "HYPER_FLIGHT_MIN", HYPER_FLIGHT_MIN)
+    HYPER_ABLATION   = math.floor(D6_GravCfg.Get(c, "HYPER_ABLATION", HYPER_ABLATION) + 0.5)
+    HYPER_FRAG_MUL   = D6_GravCfg.Get(c, "HYPER_FRAG_MUL", HYPER_FRAG_MUL)
 end
 
 -- Коробки/ящики — кассетные контейнеры при гиперзвуковом ударе.
@@ -430,6 +436,11 @@ function SWEP:FireRail()
     -- Визуальная подпись рельсотрона: жёлто-белый шлейф + ореол.
     -- Скорость запуска (вплоть до гиперзвука) задаёт размер шлейфа.
     self:AttachRailVisual(ent, (dir * RAIL_FIRE_SPEED + inherit):Length())
+    -- Разрушение пропа в полёте: дым, осколки, распад «глайдера».
+    -- Только если запуск действительно гиперзвуковой (иначе поведение прежнее).
+    if fireVel:Length() >= HYPER_FLIGHT_MIN then
+        self:AttachHyperFlight(ent, mass)
+    end
     self:SendWeaponAnim(ACT_VM_SECONDARYATTACK)
 end
 
@@ -461,6 +472,175 @@ function SWEP:AttachRailVisual(ent, speed)
         net.WriteEntity(ent)
         net.WriteFloat(frac)
     net.Broadcast()
+end
+
+-- ── Воздушный кассетный залп: коробка распадается в полёте ──
+-- Распад «глайдера» прямо в воздухе → веер мелких детонаций по
+-- ходу движения. Геометрия залпа привязана к направлению полёта,
+-- мощность/число — к скорости (t) и массе (massF).
+function SWEP:HyperClusterBurst(atk, pos, dir, t, massF)
+    local count  = math.floor(Lerp(t, 6, 18) * (0.7 + massF * 0.3))
+    local sDmg   = Lerp(t, 20, 70) * HYPER_FRAG_MUL
+    local sRad   = Lerp(t, 60, 160)
+    local sRange = Lerp(t, 140, 420)
+
+    -- Ортонормированный базис вокруг направления полёта
+    local up = math.abs(dir.z) < 0.9 and Vector(0, 0, 1) or Vector(1, 0, 0)
+    local cr = dir:Cross(up):GetNormalized()
+    local cu = dir:Cross(cr):GetNormalized()
+
+    local ef = EffectData()
+    ef:SetOrigin(pos); ef:SetScale(2 + t * 4); ef:SetMagnitude(200)
+    util.Effect("HelicopterMegaBomb", ef)
+    sound.Play("npc/attack_helicopter/aheli_strafe1.wav", pos, 92, 90)
+
+    for j = 1, count do
+        timer.Simple(j * Lerp(t, 0.035, 0.016), function()
+            local a   = j * 2.39996                -- золотое сечение → плотный веер
+            local d   = math.Rand(40, sRange)
+            local fwd = math.Rand(0, d * 0.6)      -- осколки идут преимущественно вперёд
+            local sp  = pos + cr * math.cos(a) * d + cu * math.sin(a) * d + dir * fwd
+            util.BlastDamage(atk, atk, sp, sRad, sDmg)
+            local e1 = EffectData(); e1:SetOrigin(sp); e1:SetScale(1 + t * 0.8)
+            util.Effect("Explosion", e1)
+            local e2 = EffectData(); e2:SetOrigin(sp); e2:SetScale(0.6 + t)
+            util.Effect("WheelDust", e2)
+            sound.Play("ambient/explosions/explode_" .. math.random(1, 4) .. ".wav",
+                sp, 66, math.random(125, 160))
+        end)
+    end
+
+    net.Start("D6_RailHyperImpact")
+        net.WriteVector(pos); net.WriteVector(dir); net.WriteFloat(t); net.WriteBool(true)
+    net.Broadcast()
+end
+
+-- ── Разрушение пропа в полёте: «глайдер-лаунчер» ────────────
+-- Пока запущенный проп идёт на гиперзвуке, набегающий поток рвёт его
+-- на части: он тянет дымовой шлейф (сприте-лента + клубы) и сбрасывает
+-- горящие осколки-взрывчатку. Картон/коробки распадаются полностью в
+-- кассетный залп ещё в воздухе; взрывной баллон вскрывается и детонирует
+-- в полёте; прочный проп лишь дымит и сыплет искрами до удара.
+-- Всё масштабируется: скорость × масса × характеристика пропа.
+function SWEP:AttachHyperFlight(ent, mass)
+    if not SERVER or not IsValid(ent) then return end
+    if HYPER_ABLATION ~= 1 then return end
+
+    local owner  = ent.D6_RailOwner
+    local isBox  = IsBoxProp(ent)
+    local isExpl = IsExplosiveProp(ent)
+    local massF  = math.Clamp((mass or 50) / 100, 0.35, 2.5)
+    local mNorm  = (massF - 0.35) / 2.15            -- 0..1 по массе
+    local id     = "D6_HyperFlight_" .. ent:EntIndex()
+
+    -- Прочность: сколько гиперзвукового напора проп держит до распада.
+    -- Картон рвётся быстро, баллон — средне, прочный проп не распадается
+    -- (math.huge) и доживает до удара, где работает DoKineticImpact.
+    local integ = isBox  and (70  + mass * 0.6)
+               or isExpl and (130 + mass * 1.0)
+               or            math.huge
+    local broken = false
+
+    -- Дымовой «снаряд»: серая лента, тянущаяся за пропом всю трассу.
+    local smokeW = Lerp(mNorm, 26, 96)
+    local strail = util.SpriteTrail(ent, 0, Color(46, 42, 38), true,
+        smokeW, 4, 0.95, 1 / (smokeW + 1), "trails/smoke.vmt")
+    local function CleanTrail()
+        if IsValid(strail) then
+            local s = strail
+            timer.Simple(1.2, function() if IsValid(s) then s:Remove() end end)
+        end
+    end
+
+    local smokeInt        = Lerp(mNorm, 0.10, 0.045)   -- тяжёлый проп дымит гуще
+    local smokeAcc, fragAcc = 0, 0
+    local dt              = 0.045
+
+    timer.Create(id, dt, 0, function()
+        if not IsValid(ent) or ent.D6_RailHit or broken then
+            timer.Remove(id); CleanTrail(); return
+        end
+        local ph = ent:GetPhysicsObject()
+        if not IsValid(ph) then timer.Remove(id); CleanTrail(); return end
+
+        local vel = ph:GetVelocity()
+        local spd = vel:Length()
+        local pos = ent:GetPos()
+
+        -- Ниже порога — поток уже не разрушает проп; гасим, когда совсем сбросил.
+        if spd < HYPER_FLIGHT_MIN then
+            if spd < HYPER_FLIGHT_MIN * 0.7 then timer.Remove(id); CleanTrail() end
+            return
+        end
+
+        local t   = math.Clamp((spd - HYPER_FLIGHT_MIN) / (KIN_IMPACT_REF - HYPER_FLIGHT_MIN), 0, 1)
+        local dir = vel:GetNormalized()
+        local atk = IsValid(owner) and owner or game.GetWorld()
+
+        -- ── Дымовые клубы вдоль трассы ────────────────────────
+        smokeAcc = smokeAcc + dt
+        if smokeAcc >= smokeInt then
+            smokeAcc = 0
+            local sm = EffectData()
+            sm:SetOrigin(pos - dir * Lerp(t, 20, 60))
+            sm:SetNormal(-dir)
+            sm:SetScale(0.5 + t * (0.8 + massF * 0.7))
+            sm:SetMagnitude(1)
+            util.Effect("WheelDust", sm)
+        end
+
+        -- ── Сброс осколков ────────────────────────────────────
+        fragAcc = fragAcc + dt
+        if fragAcc >= Lerp(t, 0.16, 0.06) then
+            fragAcc = 0
+            local side = (dir:Cross(VectorRand())):GetNormalized()
+            local fpos = pos - dir * math.Rand(10, 50)
+                       + side * math.Rand(6, 24 + t * 40)
+            if isBox or isExpl then
+                -- осколок-взрывчатка: маленькая детонация + урон по площади
+                local fr = EffectData(); fr:SetOrigin(fpos); fr:SetScale(0.6 + t * 0.9)
+                util.Effect("Explosion", fr)
+                local fd = EffectData(); fd:SetOrigin(fpos); fd:SetScale(0.6 + t)
+                util.Effect("WheelDust", fd)
+                util.BlastDamage(IsValid(ent) and ent or atk, atk, fpos,
+                    Lerp(t, 50, 130) * (0.7 + massF * 0.3),
+                    Lerp(t, 12, 48) * HYPER_FRAG_MUL)
+                if math.random() < 0.4 then
+                    sound.Play("ambient/explosions/explode_" .. math.random(1, 4) .. ".wav",
+                        fpos, 70, math.random(120, 160))
+                end
+            else
+                -- прочный проп: только искры абляции, без урона
+                local sp = EffectData()
+                sp:SetOrigin(fpos); sp:SetNormal(-dir); sp:SetMagnitude(1 + t * 2)
+                util.Effect("ManhackSparks", sp)
+            end
+        end
+
+        -- ── Расход прочности → распад в воздухе ───────────────
+        if integ ~= math.huge then
+            integ = integ - spd * dt * 0.012 * HYPER_FRAG_MUL
+            if integ <= 0 then
+                broken = true
+                ent.D6_RailHit = true
+                timer.Remove(id)
+                CleanTrail()
+                local bpos = pos
+                if isExpl then
+                    -- баллон вскрывается и детонирует в полёте
+                    local ef = EffectData(); ef:SetOrigin(bpos)
+                    ef:SetScale(3); ef:SetMagnitude(180)
+                    util.Effect("Explosion", ef); util.Effect("HelicopterMegaBomb", ef)
+                    util.BlastDamage(atk, atk, bpos, 250, 200)
+                    sound.Play("weapons/rpg/rocket_explode.wav", bpos, 100, 100)
+                else
+                    -- коробка распадается в кассетный залп прямо в воздухе
+                    self:HyperClusterBurst(atk, bpos, dir, t, massF)
+                end
+                if IsValid(ent) then SafeRemoveEntity(ent) end
+            end
+        end
+    end)
 end
 
 -- ── Отслеживание снаряда: взрыв, рикошет, урон ──────────
@@ -583,6 +763,7 @@ function SWEP:HookRailProjectile(ent)
         -- Живая цель → урон (+детонация, если снаряд взрывной)
         if IsValid(hitEnt) and (hitEnt:IsNPC() or hitEnt:IsPlayer()) then
             done = true
+            ent.D6_RailHit = true
             timer.Simple(0, function()
                 if IsValid(hitEnt) then
                     local di = DamageInfo()
@@ -609,6 +790,7 @@ function SWEP:HookRailProjectile(ent)
         -- Взрывной проп → детонация при любом касании мира/пропа
         if isExpl then
             done = true
+            ent.D6_RailHit = true
             timer.Simple(0, function()
                 DoExplode(IsValid(e) and e:GetPos() or hitPos)
                 if IsValid(e) then e:Remove() end
@@ -622,6 +804,7 @@ function SWEP:HookRailProjectile(ent)
         local impactSpeed = oldVel:Length()
         if impactSpeed >= KIN_IMPACT_MIN then
             done = true
+            ent.D6_RailHit = true
             local pos = (IsValid(e) and e:GetPos()) or hitPos
             timer.Simple(0, function() DoKineticImpact(pos, hitNorm, impactSpeed) end)
             return
@@ -806,6 +989,11 @@ function SWEP:FireFan()
         -- Разогнанная до гиперзвука дробь тоже получает рельсовый шлейф
         if FAN_FIRE_SPEED >= KIN_IMPACT_MIN then
             self:AttachRailVisual(e, FAN_FIRE_SPEED)
+        end
+        -- Дробь тоже рвётся в полёте (дым/осколки по массе пеллета),
+        -- только когда дробь разогнана до гиперзвука.
+        if FAN_FIRE_SPEED >= HYPER_FLIGHT_MIN then
+            self:AttachHyperFlight(e, ph:GetMass())
         end
     end
 
