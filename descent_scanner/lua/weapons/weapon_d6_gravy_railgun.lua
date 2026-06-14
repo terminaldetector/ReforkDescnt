@@ -454,11 +454,10 @@ function SWEP:FireRail()
     net.Broadcast()
 
     self:HookRailProjectile(ent)
+    self:AttachAerodynamics(ent, fireVel, mass)
     -- Визуальная подпись рельсотрона: жёлто-белый шлейф + ореол.
-    -- Скорость запуска (вплоть до гиперзвука) задаёт размер шлейфа.
-    self:AttachRailVisual(ent, (dir * RAIL_FIRE_SPEED + inherit):Length())
+    self:AttachRailVisual(ent, fireVel:Length())
     -- Разрушение пропа в полёте: дым, осколки, распад «глайдера».
-    -- Только если запуск действительно гиперзвуковой (иначе поведение прежнее).
     if fireVel:Length() >= HYPER_FLIGHT_MIN then
         self:AttachHyperFlight(ent, mass)
     end
@@ -661,6 +660,99 @@ function SWEP:AttachHyperFlight(ent, mass)
                 if IsValid(ent) then SafeRemoveEntity(ent) end
             end
         end
+    end)
+end
+
+-- ── Аэродинамика: вращение пропа по физическим свойствам ──────
+-- Соотношение сторон AABB определяет аэро-класс:
+--   aspect ≥ 1.6 → «ракета»: длинная ось выравнивается по скорости,
+--                   добавляется малое биение (нутация), вращение гасится.
+--   aspect < 1.6 → «обломок»: хаотичный кувырок, нет коррекции.
+-- Параметры (сила гашения, частота/амплитуда биения) привязаны к массе
+-- и форме — лёгкий тонкий баллон бьётся быстрее, тяжёлый бочонок медленнее.
+function SWEP:AttachAerodynamics(ent, fireVel, mass)
+    if not SERVER or not IsValid(ent) then return end
+    local ph = ent:GetPhysicsObject()
+    if not IsValid(ph) then return end
+
+    -- Соотношение длинной оси к среднему короткому измерению
+    local mn, mx = ent:OBBMins(), ent:OBBMaxs()
+    local s      = mx - mn
+    local ax, ay, az = math.abs(s.x), math.abs(s.y), math.abs(s.z)
+    local dims   = { ax, ay, az }
+    table.sort(dims)   -- dims[3] = самая длинная
+    local aspect = dims[3] / math.max((dims[1] + dims[2]) * 0.5, 1)
+
+    local longAxis = PropLongAxis(ent)   -- "x"|"y"|"z"
+    local fireDir  = fireVel:GetNormalized()
+    local isRocket = aspect >= 1.6
+
+    -- Гашение угловой скорости за тик (0.05 с):
+    --   ракета → сильное (0.82), обломок → почти нет (0.98)
+    local angDamp = isRocket and (0.82 + math.Clamp(1 / aspect * 0.06, 0, 0.10))
+                              or 0.98
+
+    -- Сила выравнивания: растёт с aspect
+    local aeroStr = math.Clamp((aspect - 1.0) * 0.55, 0, 0.95)
+
+    -- Параметры биения (нутация, как у реальной ракеты):
+    --   частота: лёгкий → быстрее, тяжёлый → медленнее
+    --   амплитуда: elongated → малая, приземистый → 0
+    local beatFreq = 2.0 + 3.5 / math.max(mass * 0.1, 0.5)   -- Гц
+    local beatAmp  = isRocket and math.Clamp(38 / aspect, 4, 20) or 0  -- °/с
+
+    -- Начальный импульс: ракета — маленькое возмущение, обломок — хаос
+    local up0   = math.abs(fireDir.z) < 0.9 and Vector(0,0,1) or Vector(1,0,0)
+    local perpA0 = fireDir:Cross(up0):GetNormalized()
+    if isRocket then
+        ph:SetAngleVelocity(perpA0 * math.Rand(10, 24))
+    else
+        ph:SetAngleVelocity(VectorRand():GetNormalized() * math.Rand(45, 120))
+    end
+
+    local id = "D6_Aero_" .. ent:EntIndex()
+    timer.Create(id, 0.05, 0, function()
+        if not IsValid(ent) or ent.D6_RailHit or not ent.D6_IsProjectile then
+            timer.Remove(id); return
+        end
+        local p = ent:GetPhysicsObject()
+        if not IsValid(p) then timer.Remove(id); return end
+
+        local vel = p:GetVelocity()
+        local spd = vel:Length()
+        -- Проп остановился → аэро не нужна, освобождаем тимер
+        if spd < 300 then timer.Remove(id); return end
+
+        local velDir = vel:GetNormalized()
+        local ct     = CurTime()
+        local nv     = p:GetAngleVelocity() * angDamp   -- 1. гашение
+
+        -- 2. Выравнивание длинной оси вдоль скорости (только для «ракет»)
+        if aeroStr > 0.05 then
+            local ang = ent:GetAngles()
+            local ld  = longAxis == "z" and ang:Up()
+                     or longAxis == "y" and ang:Right()
+                     or ang:Forward()
+            if ld:Dot(velDir) < 0 then ld = -ld end
+            local cross    = ld:Cross(velDir)
+            local crossLen = cross:Length()
+            if crossLen > 0.001 then
+                -- Сила пропорциональна угловому рассогласованию и скорости
+                local mag = math.min(crossLen * spd * 0.00007 * aeroStr * 57.296, 90)
+                nv = nv + cross:GetNormalized() * mag
+            end
+        end
+
+        -- 3. Биение (нутация): постоянная малая синусоида ⊥ скорости
+        if beatAmp > 0 then
+            local up2  = math.abs(velDir.z) < 0.9 and Vector(0,0,1) or Vector(1,0,0)
+            local pA   = velDir:Cross(up2):GetNormalized()
+            local pB   = velDir:Cross(pA):GetNormalized()
+            local phi  = ct * beatFreq * math.pi * 2
+            nv = nv + pA * (math.sin(phi) * beatAmp) + pB * (math.cos(phi) * beatAmp)
+        end
+
+        p:SetAngleVelocity(nv)
     end)
 end
 
@@ -1009,12 +1101,13 @@ function SWEP:FireFan()
         e.D6_RailHit   = false
         e.D6_RailUntil = CurTime() + 2.5
         self:HookRailProjectile(e)
-        -- Разогнанная до гиперзвука дробь тоже получает рельсовый шлейф
+        -- Аэродинамика: баллон летит как ракета, ящик кувыркается
+        self:AttachAerodynamics(e, dir * FAN_FIRE_SPEED, ph:GetMass())
+        -- Разогнанная до гиперзвука дробь получает рельсовый шлейф
         if FAN_FIRE_SPEED >= KIN_IMPACT_MIN then
             self:AttachRailVisual(e, FAN_FIRE_SPEED)
         end
-        -- Дробь тоже рвётся в полёте (дым/осколки по массе пеллета),
-        -- только когда дробь разогнана до гиперзвука.
+        -- Распад «глайдера» только при гиперзвуке
         if FAN_FIRE_SPEED >= HYPER_FLIGHT_MIN then
             self:AttachHyperFlight(e, ph:GetMass())
         end
