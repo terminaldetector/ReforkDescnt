@@ -93,10 +93,11 @@ public final class ReactorRoomStarter {
 
 		giveKit(player);
 		player.sendMessage(Text.literal("§bDRMD §fReactor Room online. §7Board the Pyro ship (ПКМ) or fly free (H)."), false);
-		player.sendMessage(Text.literal("§7Weapons in inventory · M = Workshop · /6dof_spawn assault for more drones"), false);
+		player.sendMessage(Text.literal("§7Weapons in inventory · M = Workshop · creative tab §fDRMD 6DOF §7for drones"), false);
 	}
 
-	private static void giveKit(ServerPlayerEntity player) {
+	/** Starter loadout — also used by creative Starter Kit item (no console). */
+	public static void giveKit(ServerPlayerEntity player) {
 		player.giveItemStack(new ItemStack(ModItems.PYRO_GX));
 		player.giveItemStack(new ItemStack(ModItems.MG));
 		player.giveItemStack(new ItemStack(ModItems.PLASMA));

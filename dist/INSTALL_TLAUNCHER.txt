@@ -1,0 +1,19 @@
+DRMD 6DOF — ПК TLauncher Fabric 1.21.1
+=======================================
+Jar: drmd-6dof-1.0.0-fabric-1.21.1.jar
+Also: drmd-6dof-1.0.0.jar
+
+Установка (ПК / TLauncher)
+  1. Версии → Fabric Loader для Minecraft 1.21.1
+  2. Java 21+ в настройках лаунчера
+  3. В mods/: этот jar + Fabric API 1.21.1
+  4. Запуск Fabric 1.21.1 → креатив / новый мир
+
+Без консоли
+  Креатив → вкладка «DRMD 6DOF» → сверху:
+    Запуск реактора / Ядро 6DoF / Стартовый набор / Лифт / Стройка / Энергия
+  Или ПКМ по предметам, выданным при входе в креатив.
+
+Не класть *-sources.jar / *-dev.jar в mods.
+
+Сборка: ./gradlew build packageTlauncher --no-daemon

@@ -71,6 +71,12 @@ public final class ModItems {
 	public static Item EGG_SCANNER;
 	public static Item EGG_SPIDER_TURRET;
 
+	public static Item EGG_MEGA_WORM;
+	public static Item EGG_DRONE_SWARM;
+	public static Item EGG_REACTOR_KEEPER;
+	public static Item EGG_SKY_UFO;
+	public static Item EGG_AIR_MINE;
+
 	public static final RegistryKey<ItemGroup> GROUP_KEY = RegistryKey.of(RegistryKeys.ITEM_GROUP, Identifier.of(DescentMod.MOD_ID, "weapons"));
 
 	private ModItems() {}
@@ -198,10 +204,30 @@ public final class ModItems {
 		EGG_SPIDER_TURRET = register("spawn_egg_spider_turret", new net.minecraft.item.SpawnEggItem(
 				com.terminaldetector.drmd.entity.ModEntities.SPIDER_TURRET, 0x2A3038, 0xFFC24D, new Item.Settings()));
 
+		EGG_MEGA_WORM = register("spawn_egg_mega_worm", new net.minecraft.item.SpawnEggItem(
+				com.terminaldetector.drmd.entity.ModEntities.MEGA_WORM, 0x6B3A2A, 0xE8C070, new Item.Settings()));
+		EGG_DRONE_SWARM = register("spawn_egg_drone_swarm", new com.terminaldetector.drmd.entity.SimpleSpawnItem(
+				com.terminaldetector.drmd.entity.ModEntities.DRONE_SWARM, 10.0, new Item.Settings()));
+		EGG_REACTOR_KEEPER = register("spawn_egg_reactor_keeper", new net.minecraft.item.SpawnEggItem(
+				com.terminaldetector.drmd.entity.ModEntities.REACTOR_KEEPER, 0x2A1840, 0xFF55AA, new Item.Settings()));
+		EGG_SKY_UFO = register("spawn_egg_sky_ufo", new com.terminaldetector.drmd.entity.SimpleSpawnItem(
+				com.terminaldetector.drmd.entity.ModEntities.SKY_UFO, 12.0, new Item.Settings()));
+		EGG_AIR_MINE = register("spawn_egg_air_mine", new net.minecraft.item.SpawnEggItem(
+				com.terminaldetector.drmd.entity.ModEntities.AIR_MINE, 0x442222, 0xFF4422, new Item.Settings()));
+
+		SessionControlItems.register();
+
 		Registry.register(Registries.ITEM_GROUP, GROUP_KEY, FabricItemGroup.builder()
-				.icon(() -> new ItemStack(PYRO_GX))
+				.icon(() -> new ItemStack(SessionControlItems.REACTOR_STARTER))
 				.displayName(Text.translatable("itemGroup.drmd.weapons"))
 				.entries((ctx, entries) -> {
+					// Session — enable / start without console
+					entries.add(SessionControlItems.REACTOR_STARTER);
+					entries.add(SessionControlItems.SIXDOF_CORE);
+					entries.add(SessionControlItems.STARTER_KIT);
+					entries.add(SessionControlItems.LEVEL_LIFT);
+					entries.add(SessionControlItems.CONSTRUCTION_PAD);
+					entries.add(SessionControlItems.ENERGY_DIAL);
 					entries.add(PYRO_GX);
 					entries.add(ALLOY_PLATE);
 					entries.add(ENERGY_CELL);
@@ -219,6 +245,11 @@ public final class ModItems {
 					entries.add(EGG_TRIPOD);
 					entries.add(EGG_SCANNER);
 					entries.add(EGG_SPIDER_TURRET);
+					entries.add(EGG_MEGA_WORM);
+					entries.add(EGG_DRONE_SWARM);
+					entries.add(EGG_REACTOR_KEEPER);
+					entries.add(EGG_SKY_UFO);
+					entries.add(EGG_AIR_MINE);
 					entries.add(BOMB_TNT);
 					entries.add(BOMB_CLUSTER);
 					entries.add(BOMB_INCENDIARY);
@@ -254,7 +285,7 @@ public final class ModItems {
 				})
 				.build());
 
-		DescentMod.LOGGER.info("Registered DRMD weapons + Pyro GX + drones + aerial ordnance");
+		DescentMod.LOGGER.info("Registered DRMD weapons + session tools + Pyro GX + drones + aerial ordnance");
 	}
 
 	private static Item egg(String id, com.terminaldetector.drmd.ai.AiRole role, int primary, int secondary) {

@@ -36,6 +36,14 @@ public final class ModBlocks {
 	}
 
 	public static void register() {
+		net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents.modifyEntriesEvent(
+				com.terminaldetector.drmd.weapon.items.ModItems.GROUP_KEY).register(entries -> {
+			entries.add(CHECKPOINT);
+			entries.add(DOCK);
+			entries.add(COMBAT_ZONE);
+			entries.add(NAV_NODE);
+			entries.add(OBJECTIVE);
+		});
 		DescentMod.LOGGER.info("Registered DRMD map blocks");
 	}
 }

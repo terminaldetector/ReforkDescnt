@@ -3,7 +3,7 @@
   "id": "drmd",
   "version": "${version}",
   "name": "DRMD 6DOF",
-  "description": "Descent-like 6DoF Minecraft: inertial flight, Pyro GX, industrial biomes, sky megastructures, mega fauna, LLOD. Ready for survival and creative.",
+  "description": "Descent-like 6DoF for Fabric 1.21.1 (TLauncher / PC / mobile Java). Inertial flight, Pyro GX, megastructures, LLOD. Needs Fabric API + Java 21.",
   "authors": ["Terminal", "DRMD Team"],
   "contact": {
     "homepage": "https://github.com/terminaldetector/ReforkDescnt",

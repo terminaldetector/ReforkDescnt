@@ -116,7 +116,7 @@ public class DrillRigBlock extends Block {
 	}
 
 	@Override
-	protected void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
+	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
 		if (!state.get(ACTIVE)) return;
 		world.addParticle(ParticleTypes.FLAME,
 				pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.3,

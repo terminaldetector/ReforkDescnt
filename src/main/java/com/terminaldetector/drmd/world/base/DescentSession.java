@@ -65,12 +65,16 @@ public final class DescentSession {
 			player.sendMessage(Text.literal(
 					"§bDRMD 6DOF §f— Descent session is part of this world."), false);
 			player.sendMessage(Text.literal(
-					"§7Fly with §fH§7 · craft §fPyro GX§7 · lunar base / sky UFO / crashed saucer nearby"), false);
+					"§7Fly with §fH§7 · creative tab §fDRMD 6DOF§7 · Pyro GX / lunar base / sky UFO nearby"), false);
 			player.sendMessage(Text.literal(
 					"§8Crashed UFO is trap-dense — bring Pyro GX before clearing."), false);
 			if (player.isCreative()) {
+				player.giveItemStack(new ItemStack(com.terminaldetector.drmd.weapon.items.SessionControlItems.REACTOR_STARTER));
+				player.giveItemStack(new ItemStack(com.terminaldetector.drmd.weapon.items.SessionControlItems.SIXDOF_CORE));
+				player.giveItemStack(new ItemStack(com.terminaldetector.drmd.weapon.items.SessionControlItems.STARTER_KIT));
 				player.giveItemStack(new ItemStack(ModItems.PYRO_GX));
-				player.sendMessage(Text.literal("§aCreative: Pyro GX given — right-click to deploy."), false);
+				player.sendMessage(Text.literal(
+						"§aCreative: session tools + Pyro GX — ПКМ на «Запуск реактора» без консоли."), false);
 			}
 		}
 	}

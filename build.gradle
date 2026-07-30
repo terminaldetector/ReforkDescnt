@@ -22,6 +22,7 @@ dependencies {
 
 processResources {
 	inputs.property "version", project.version
+	inputs.property "minecraft_version", project.minecraft_version
 	filesMatching("fabric.mod.json") {
 		expand "version": project.version
 	}
@@ -29,6 +30,7 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 21
+	it.options.encoding = 'UTF-8'
 }
 
 java {
@@ -42,6 +44,57 @@ jar {
 		rename { "${it}_${project.base.archivesName.get()}" }
 	}
 }
+
+/**
+ * TLauncher / mobile Fabric (Pojav, FCL, Zalith, …) package:
+ * remapped production jar only — drop into mods/ with Fabric API 1.21.1.
+ * Does not publish; local artifact under dist/.
+ */
+tasks.register('packageTlauncher') {
+	group = 'distribution'
+	description = 'Copy remapped Fabric jar for TLauncher / mobile Fabric loaders'
+	dependsOn remapJar
+	doLast {
+		def distDir = file('dist')
+		distDir.mkdirs()
+		def remapped = remapJar.archiveFile.get().asFile
+		def outName = "${project.archives_base_name}-${project.version}-fabric-1.21.1.jar"
+		def out = new File(distDir, outName)
+		remapped.withInputStream { inp ->
+			out.withOutputStream { outp -> outp << inp }
+		}
+		// Stable alias for evening / TL drop-in
+		copy {
+			from remapped
+			into distDir
+			rename { "${project.archives_base_name}-${project.version}.jar" }
+		}
+		def guide = new File(distDir, 'INSTALL_TLAUNCHER.txt')
+		guide.text = """DRMD 6DOF — ПК TLauncher Fabric 1.21.1
+=======================================
+Jar: ${outName}
+Also: ${project.archives_base_name}-${project.version}.jar
+
+Установка (ПК / TLauncher)
+  1. Версии → Fabric Loader для Minecraft 1.21.1
+  2. Java 21+ в настройках лаунчера
+  3. В mods/: этот jar + Fabric API 1.21.1
+  4. Запуск Fabric 1.21.1 → креатив / новый мир
+
+Без консоли
+  Креатив → вкладка «DRMD 6DOF» → сверху:
+    Запуск реактора / Ядро 6DoF / Стартовый набор / Лифт / Стройка / Энергия
+  Или ПКМ по предметам, выданным при входе в креатив.
+
+Не класть *-sources.jar / *-dev.jar в mods.
+
+Сборка: ./gradlew build packageTlauncher --no-daemon
+"""
+		println "TLauncher package → ${out.absolutePath} (${out.length()} bytes)"
+	}
+}
+
+build.finalizedBy(packageTlauncher)
 
 publishing {
 	publications {

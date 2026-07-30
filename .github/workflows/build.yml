@@ -25,17 +25,17 @@ jobs:
         uses: gradle/actions/wrapper-validation@v4
 
       - name: Grant execute permission for gradlew
-        run: chmod +x gradlew scripts/package_mcpe.sh scripts/package_mcpe_master.sh
+        run: chmod +x gradlew scripts/package_mcpe.sh scripts/package_mcpe_master.sh scripts/package_tlauncher.sh || true
 
-      - name: Build Fabric mod
-        run: ./gradlew build --no-daemon --stacktrace
+      - name: Build Fabric mod (TLauncher package)
+        run: ./gradlew build packageTlauncher --no-daemon --stacktrace
 
       - name: Stage PC jar into dist/
         run: |
           mkdir -p dist
-          cp build/libs/drmd-6dof-*.jar dist/
+          cp -f build/libs/drmd-6dof-*.jar dist/ || true
           rm -f dist/*-sources.jar dist/*-dev.jar dist/*-dev-shadow.jar || true
-          ls -lh dist/
+          ls -lh dist/drmd-6dof*.jar dist/INSTALL_TLAUNCHER.txt || ls -lh dist/
 
       - name: Upload Fabric PC mod
         uses: actions/upload-artifact@v4
@@ -43,6 +43,7 @@ jobs:
           name: drmd-6dof-pc
           path: |
             dist/drmd-6dof-*.jar
+            dist/INSTALL_TLAUNCHER.txt
             !dist/*-sources.jar
           if-no-files-found: error
           retention-days: 30
@@ -103,10 +104,11 @@ jobs:
           DRMD 6DOF — evening test pack
           =============================
 
-          PC (Java / Fabric 1.21.1)
-            1. Install Fabric Loader 1.21.1 + Fabric API
-            2. Copy pc/drmd-6dof-1.0.0.jar into .minecraft/mods/
-            3. Launch, join world — 6DoF is native. Craft/use Pyro GX.
+          PC (Java / Fabric 1.21.1 / TLauncher)
+            1. Install Fabric Loader 1.21.1 + Fabric API + Java 21
+            2. Copy pc/drmd-6dof-*-fabric-1.21.1.jar (or drmd-6dof-1.0.0.jar) into mods/
+            3. Creative → tab DRMD 6DOF → Reactor Starter / 6DoF Core (no console)
+            4. Or press H to fly / place Pyro GX
 
           MCPE Master / Bedrock
             A) Open mcpe/drmd-6dof-mcpe-master-1.0.3.mcaddon
