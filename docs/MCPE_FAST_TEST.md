@@ -9,10 +9,12 @@
 ## Scope (in)
 
 - 6DoF flight feel (упрощённая инерция)
+- **Touch control buttons**: roll L/R, ascend/descend, strafe, dash, brake, afterburner, reset roll
+- **Control Panel** ActionForm (`drmd:ctrl_panel`)
 - Construction Mode без абсолютного up
 - Gravity Torch-эквивалент (script entity / block)
-- Минимальный HUD (speed / shield / mode)
-- 1–2 drone roles
+- Минимальный HUD (speed / roll / mode)
+- Hotbar hold = continuous input (адаптация под MCPE)
 
 ## Scope (out)
 

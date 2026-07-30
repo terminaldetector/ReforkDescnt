@@ -4,20 +4,20 @@
     "name": "DRMD 6DOF Fast Test",
     "description": "Phase 3 UX sandbox — 6DoF feel, construction tips, gravity torch. Not the full Fabric mod.",
     "uuid": "9a1d85ab-093b-4f19-a8e5-93d075e6f703",
-    "version": [1, 0, 0],
+    "version": [1, 0, 1],
     "min_engine_version": [1, 21, 0]
   },
   "modules": [
     {
       "type": "data",
       "uuid": "172c72b2-e232-441c-893a-5dbc2fba3d5b",
-      "version": [1, 0, 0]
+      "version": [1, 0, 1]
     },
     {
       "type": "script",
       "language": "javascript",
       "uuid": "768fb92c-cd17-4c69-b48e-f62cdf5ea55e",
-      "version": [1, 0, 0],
+      "version": [1, 0, 1],
       "entry": "scripts/main.js"
     }
   ],
