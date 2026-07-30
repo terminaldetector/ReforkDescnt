@@ -1,0 +1,154 @@
+// =========================================================
+// d6_entities.fgd — Descent 6DOF Hammer Entity Definitions
+//
+// Install: add this file in Hammer → Tools → Options →
+//   Game Configurations → FGD files.
+// =========================================================
+
+// ─── d6_nav_node ─────────────────────────────────────────
+@PointClass base(Targetname) size(-8 -8 -8, 8 8 8) color(80 200 80)
+	= d6_nav_node : "D6 Navigation Node — placed by mapper, auto-connects on map load."
+[
+	radius(integer)        : "Connection radius (units)"    : 64
+	patrol_group(string)   : "Patrol group name (optional)" : ""
+]
+
+// ─── d6_npc_spawner ──────────────────────────────────────
+@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) color(200 80 80)
+	= d6_npc_spawner : "D6 NPC Spawner — spawns role-variant drones on activation."
+[
+	variant(choices) : "Drone variant" : "mg" =
+	[
+		"mg"          : "MG Scanner (базовый)"
+		"rpg"         : "RPG Scanner"
+		"laser"       : "Лазерный сканер"
+		"heavy"       : "Тяжёлый сканер"
+		"grav"        : "Грави-мастер"
+		"assault"     : "Штурмовик (роль)"
+		"interceptor" : "Перехватчик (роль)"
+		"artillery"   : "Артиллерия (роль)"
+		"support"     : "Саппорт (роль)"
+		"heavy_elite" : "Тяжёлая элита (роль)"
+		"seeker"      : "Ракетный сикер"
+		"wheatley"    : "Уитли-камикадзе"
+		"chopper"     : "Вертушка-пулемёт"
+	]
+	spawn_count(integer)    : "NPCs per spawn"              : 1
+	respawn(choices)        : "Respawn when all dead"       : 0 = [ 0:"No" 1:"Yes" ]
+	respawn_delay(integer)  : "Respawn delay (seconds)"     : 30
+	enabled(choices)        : "Start enabled"               : 1 = [ 0:"No" 1:"Yes" ]
+
+	// Inputs
+	input StartSpawning(void) : "Begin spawning drones"
+	input StopSpawning(void)  : "Stop spawning (no kill)"
+
+	// Outputs
+	output OnSpawned(void)    : "Fired when drones are spawned"
+	output OnKilled(void)     : "Fired when all spawned drones are dead"
+]
+
+// ─── d6_encounter_controller ─────────────────────────────
+@PointClass base(Targetname) size(-20 -20 -20, 20 20 20) color(220 160 0)
+	= d6_encounter_controller : "D6 Encounter Controller — manages wave-based combat."
+[
+	waves(string)           : "Wave string (see format below)"  : "assault:2,interceptor:1|artillery:2"
+	// Format: type:count,type:count|next_wave_type:count
+	// | separates waves, , separates types within a wave
+
+	auto_start(choices)     : "Auto-start on player enter"  : 0 = [ 0:"No" 1:"Yes" ]
+	trigger_radius(integer) : "Auto-start trigger radius"   : 1000
+	spawn_delay(string)     : "Delay before wave 1 (sec)"   : "2.0"
+	wave_delay(string)      : "Delay between waves (sec)"   : "4.0"
+	boss_wave(integer)      : "Wave to inject boss (0=none)": 0
+	boss_variant(choices)   : "Boss variant"                : "heavy_elite" =
+	[
+		"heavy_elite" : "Тяжёлая элита"
+		"artillery"   : "Артиллерия"
+		"chopper"     : "Вертушка"
+	]
+
+	// Inputs
+	input StartEncounter(void) : "Begin the encounter (wave 1)"
+	input StopEncounter(void)  : "Abort all waves"
+	input NextWave(void)       : "Skip to next wave immediately"
+
+	// Outputs
+	output OnWaveStart(string)        : "Fired when a wave begins — value is wave index"
+	output OnWaveComplete(string)     : "Fired when all NPCs in wave die — value is wave index"
+	output OnEncounterComplete(void)  : "Fired when all waves complete"
+	output OnBossSpawn(void)          : "Fired when boss variant spawns"
+]
+
+// ─── d6_combat_zone ──────────────────────────────────────
+@SolidClass base(Targetname) color(160 80 0)
+	= d6_combat_zone : "D6 Combat Zone — brush trigger, fires on player entry/exit."
+[
+	// Outputs
+	output OnPlayerEnter(void) : "Any player entered the zone"
+	output OnPlayerExit(void)  : "Any player exited the zone"
+]
+
+// ─── d6_objective ────────────────────────────────────────
+@PointClass base(Targetname) size(-12 -12 -12, 12 12 12) color(80 200 255)
+	= d6_objective : "D6 Objective marker."
+[
+	objective_type(choices)  : "Objective type"             : "reach" =
+	[
+		"reach"    : "Reach this point"
+		"kill_all" : "Kill all enemies (manual Complete)"
+		"survive"  : "Survive N seconds (time_limit)"
+	]
+	time_limit(string)       : "Time limit (0=none, sec)"   : "0"
+	touch_radius(integer)    : "Reach detection radius"     : 80
+
+	// Inputs
+	input Start(void)    : "Activate objective"
+	input Complete(void) : "Force complete"
+	input Fail(void)     : "Force fail"
+
+	// Outputs
+	output OnStart(void)    : "Objective activated"
+	output OnComplete(void) : "Objective completed"
+	output OnFail(void)     : "Objective failed"
+]
+
+// ─── d6_checkpoint ───────────────────────────────────────
+@PointClass base(Targetname) size(-10 -10 -10, 10 10 10) color(0 200 100)
+	= d6_checkpoint : "D6 Checkpoint — saves respawn position when player enters radius."
+[
+	radius(integer)          : "Activation radius"          : 120
+	single_use(choices)      : "Activate once per player"   : 1 = [ 0:"No" 1:"Yes" ]
+
+	// Inputs
+	input Activate(void)   : "Enable the checkpoint"
+	input Deactivate(void) : "Disable the checkpoint"
+
+	// Outputs
+	output OnActivated(void) : "Player activated this checkpoint"
+]
+
+// ─── d6_dock ─────────────────────────────────────────────
+@PointClass base(Targetname) size(-16 -16 0, 16 16 64) color(0 160 160)
+	= d6_dock : "D6 Repair Dock — periodically heals HP and restores weapon energy."
+[
+	heal_amount(integer)    : "HP healed per 0.5s tick"     : 25
+	energy_amount(integer)  : "Energy restored per 0.5s tick" : 20
+	radius(integer)         : "Heal radius (units)"         : 200
+	enabled(choices)        : "Start enabled"               : 1 = [ 0:"No" 1:"Yes" ]
+
+	// Inputs
+	input Enable(void)  : "Enable healing"
+	input Disable(void) : "Disable healing"
+
+	// Outputs
+	output OnUse(void) : "Fired each time a player is healed (0.5s throttle)"
+]
+
+// ─── d6_trigger_volume ───────────────────────────────────
+@SolidClass base(Targetname) color(80 80 200)
+	= d6_trigger_volume : "D6 Trigger Volume — only fires for players in 6DOF mode (D6On)."
+[
+	// Outputs
+	output OnD6Enter(void) : "6DOF player entered the volume"
+	output OnD6Exit(void)  : "6DOF player exited the volume"
+]

@@ -1,7 +1,0 @@
-{
-    "title":       "Descent 6DOF",
-    "description": "6DOF drone flight mode with helicopter guns, bombs, portal gun and hook. Press H to activate.",
-    "type":        "weapon",
-    "tags":        ["fun", "realism"],
-    "ignore": []
-}

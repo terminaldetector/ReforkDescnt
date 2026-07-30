@@ -1,0 +1,1096 @@
+-- =========================================================
+-- DESCENT 6DOF — d6_menu.lua
+-- Меню в стиле CS 1.6: клавиша TAB открывает/закрывает.
+-- Состоит из трёх панелей:
+--   1. КОМАНДЫ    — кнопки управления модом (F1-F8)
+--   2. НАСТРОЙКИ  — ползунки физики, камеры, оружия
+--   3. МОДИФИКАЦИИ — поле для ввода Lua-кода и применения
+-- =========================================================
+
+if not CLIENT then return end
+
+-- ── Сетевые строки (нужны для Modfield → сервер) ──────────
+-- Регистрируются в autoload на сервере, получаются здесь
+-- [FIX-6] D6_MenuCmd зарегистрирован для будущего использования
+
+-- =========================================================
+-- КОНСТАНТЫ СТИЛЯ  (палитра CS 1.6)
+-- =========================================================
+local C = {
+    bg       = Color(0,   0,   0,   210),   -- фон панели
+    bgDark   = Color(0,   0,   0,   240),   -- тёмный фон
+    border   = Color(80,  200, 80,  255),   -- зелёная рамка CS
+    border2  = Color(40,  120, 40,  180),   -- вторичная рамка
+    title    = Color(80,  200, 80,  255),   -- заголовок
+    text     = Color(200, 200, 200, 255),   -- обычный текст
+    textDim  = Color(140, 140, 140, 200),   -- серый текст
+    hot      = Color(255, 255, 80,  255),   -- выделенный пункт
+    hotBg    = Color(60,  60,  0,   180),   -- фон выделения
+    btn      = Color(20,  60,  20,  220),   -- фон кнопки
+    btnHover = Color(40,  100, 40,  240),   -- ховер кнопки
+    btnPress = Color(80,  180, 80,  255),   -- нажатая кнопка
+    sliderBg = Color(20,  40,  20,  200),   -- фон ползунка
+    sliderFg = Color(80,  200, 80,  255),   -- заливка ползунка
+    modBg    = Color(10,  20,  10,  230),   -- фон кода
+    modText  = Color(160, 255, 120, 255),   -- текст кода
+    warn     = Color(255, 80,  80,  255),   -- предупреждение
+    ok       = Color(80,  255, 80,  255),   -- успех
+    tab      = Color(0,   0,   0,   200),   -- фон таба
+    tabAct   = Color(20,  60,  20,  240),   -- активный таб
+}
+
+-- Шрифт в стиле CS 1.6 (Tahoma/Courier)
+surface.CreateFont("D6Menu_Title", {
+    font   = "Courier New",
+    size   = 18,
+    weight = 800,
+    antialias = false,
+})
+surface.CreateFont("D6Menu_Item", {
+    font   = "Courier New",
+    size   = 14,
+    weight = 400,
+    antialias = false,
+})
+surface.CreateFont("D6Menu_Small", {
+    font   = "Courier New",
+    size   = 12,
+    weight = 400,
+    antialias = false,
+})
+surface.CreateFont("D6Menu_Code", {
+    font   = "Courier New",
+    size   = 13,
+    weight = 400,
+    antialias = false,
+})
+
+-- =========================================================
+-- СОСТОЯНИЕ МЕНЮ
+-- =========================================================
+local Menu = {
+    open    = false,
+    tab     = 1,        -- 1=Команды 2=Настройки 3=Модификации
+    hotCmd  = 0,        -- выделенная команда
+    hotSet  = 0,        -- выделенная настройка
+    drag    = nil,      -- { idx, x0, v0 } активный ползунок
+    modText = "",       -- текст поля модификаций
+    modCursor = 0,
+    modMsg  = "",       -- статус применения мода
+    modMsgTimer = 0,
+    modMsgOk = true,
+}
+
+-- ── Сохраняемые настройки ─────────────────────────────────
+local Cfg = {
+    gravity     = 500,
+    accel       = 3000,
+    maxSpeed    = 1800,
+    rollSpeed   = 175,
+    fov         = 90,
+    thirdPerson = false,
+    gunDamage   = 12,
+    gunBurst    = 8,
+    ramSpeed    = 3400,
+    ramDamage   = 240,
+}
+
+-- Сохранение/загрузка через файловую систему
+local CFG_FILE = "d6_config.txt"
+
+local function SaveCfg()
+    local lines = {}
+    for k, v in pairs(Cfg) do
+        table.insert(lines, k .. "=" .. tostring(v))
+    end
+    file.Write(CFG_FILE, table.concat(lines, "\n"))
+end
+
+local function LoadCfg()
+    if not file.Exists(CFG_FILE, "DATA") then return end
+    local data = file.Read(CFG_FILE, "DATA")
+    for line in data:gmatch("[^\n]+") do
+        local k, v = line:match("^(.-)=(.+)$")
+        if k and Cfg[k] ~= nil then
+            local n = tonumber(v)
+            if n ~= nil then
+                Cfg[k] = n
+            elseif v == "true" then
+                Cfg[k] = true
+            elseif v == "false" then
+                Cfg[k] = false
+            end
+        end
+    end
+end
+
+LoadCfg()
+
+-- ── Синхронизация Cfg → ConVar / локальные переменные ─────
+local function ApplyCfg()
+    -- Отправляем настройки на сервер через команды
+    RunConsoleCommand("d6_set", "gravity",   tostring(Cfg.gravity))
+    RunConsoleCommand("d6_set", "accel",     tostring(Cfg.accel))
+    RunConsoleCommand("d6_set", "maxSpeed",  tostring(Cfg.maxSpeed))
+    RunConsoleCommand("d6_set", "ramSpeed",  tostring(Cfg.ramSpeed))
+    RunConsoleCommand("d6_set", "ramDamage", tostring(Cfg.ramDamage))
+    RunConsoleCommand("d6_set", "gunDamage", tostring(Cfg.gunDamage))
+    RunConsoleCommand("d6_set", "gunBurst",  tostring(Cfg.gunBurst))
+    -- Крен-скорость применяется локально
+    -- (d6_client.lua читает через D6Menu.Cfg.rollSpeed)
+    D6Menu = D6Menu or {}
+    D6Menu.Cfg = Cfg
+end
+
+D6Menu = { Cfg = Cfg }
+
+-- =========================================================
+-- КОМАНДЫ (панель 1) — стиль Buy Menu CS 1.6
+-- =========================================================
+local COMMANDS = {
+    { key="F1", label="Включить/Выключить 6DOF",   cmd="6dof_toggle",       desc="Активировать режим дрона" },
+    { key="F2", label="Дать омни-пушку",            cmd="d6_give_omni",      desc="Выдать оружие в инвентарь" },
+    { key="F3", label="Камера 1-е/3-е лицо",        cmd="d6_cam_toggle",     desc="Переключить вид (F5)" },
+    { key="F4", label="Спавн: Боевой отряд",        cmd="6dof_spawn_squad",  desc="Полный отряд врагов" },
+    { key="F5", label="Спавн: Рой сканеров",        cmd="6dof_spawn_bestiary",desc="Все виды врагов" },
+    { key="F6", label="Дать патроны (x30)",         cmd="6dof_give_ammo all 30", desc="Пополнить боеприпасы" },
+    { key="F7", label="Сброс крена",                cmd="d6_reset_roll",     desc="Выровнять дрон" },
+    { key="F8", label="Убить всех NPC",             cmd="d6_kill_npcs",      desc="Очистить карту от врагов" },
+}
+
+-- =========================================================
+-- НАСТРОЙКИ (панель 2) — слайдеры
+-- =========================================================
+local SETTINGS = {
+    { key="gravity",     label="Гравитация",      min=0,    max=1200,  step=10,  fmt="%d" },
+    { key="accel",       label="Ускорение",        min=500,  max=6000,  step=50,  fmt="%d" },
+    { key="maxSpeed",    label="Макс. скорость",   min=500,  max=4000,  step=50,  fmt="%d" },
+    { key="rollSpeed",   label="Скорость крена",   min=30,   max=360,   step=5,   fmt="%d°/с" },
+    { key="fov",         label="FOV камеры",       min=60,   max=130,   step=5,   fmt="%d°" },
+    { key="gunDamage",   label="Урон пушки",       min=1,    max=100,   step=1,   fmt="%d" },
+    { key="gunBurst",    label="Очередь пушки",    min=1,    max=20,    step=1,   fmt="%d пуль" },
+    { key="ramSpeed",    label="Скорость тарана",  min=500,  max=6000,  step=100, fmt="%d" },
+    { key="ramDamage",   label="Урон тарана",      min=50,   max=500,   step=10,  fmt="%d" },
+}
+
+-- =========================================================
+-- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ РЕНДЕРА
+-- =========================================================
+
+-- Прямоугольник с рамкой в стиле CS
+local function DrawPanel(x, y, w, h, bgCol, borderCol, bw)
+    bw = bw or 1
+    draw.RoundedBox(0, x, y, w, h, bgCol or C.bg)
+    surface.SetDrawColor(borderCol or C.border)
+    surface.DrawOutlinedRect(x, y, w, h, bw)
+end
+
+-- Текст с тенью
+local function DrawTextShadow(txt, font, x, y, col, alignH, alignV)
+    alignH = alignH or TEXT_ALIGN_LEFT
+    alignV = alignV or TEXT_ALIGN_TOP
+    draw.SimpleText(txt, font, x+1, y+1, Color(0,0,0,200), alignH, alignV)
+    draw.SimpleText(txt, font, x,   y,   col,               alignH, alignV)
+end
+
+-- Кнопка в стиле CS 1.6
+local function DrawButton(x, y, w, h, keyStr, labelStr, hot)
+    local bg = hot and C.btnHover or C.btn
+    DrawPanel(x, y, w, h, bg, hot and C.border or C.border2, 1)
+
+    -- Клавиша слева
+    surface.SetDrawColor(C.border2)
+    surface.DrawRect(x, y, 36, h)
+    surface.SetDrawColor(C.border)
+    surface.DrawLine(x+36, y, x+36, y+h)
+
+    DrawTextShadow(keyStr, "D6Menu_Item",
+        x + 18, y + h*0.5, C.border, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    DrawTextShadow(labelStr, "D6Menu_Item",
+        x + 44, y + h*0.5, hot and C.hot or C.text,
+        TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+end
+
+-- Ползунок
+local function DrawSlider(x, y, w, h, setting, hot)
+    local val  = Cfg[setting.key]
+    local frac = (val - setting.min) / (setting.max - setting.min)
+    frac = math.Clamp(frac, 0, 1)
+
+    DrawPanel(x, y, w, h, hot and C.btnHover or C.btn, hot and C.border or C.border2)
+
+    -- Метка
+    DrawTextShadow(setting.label, "D6Menu_Item",
+        x + 6, y + h*0.5, hot and C.hot or C.text,
+        TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+
+    -- Значение
+    local valStr = string.format(setting.fmt or "%s", val)
+    DrawTextShadow(valStr, "D6Menu_Item",
+        x + w - 6, y + h*0.5, C.hot, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+
+    -- Трек ползунка
+    local trackX = x + 160
+    local trackW = w - 200
+    local trackH = 8
+    local trackY = y + (h - trackH) * 0.5
+
+    surface.SetDrawColor(C.sliderBg)
+    surface.DrawRect(trackX, trackY, trackW, trackH)
+    surface.SetDrawColor(C.sliderFg)
+    surface.DrawRect(trackX, trackY, trackW * frac, trackH)
+
+    -- Ручка
+    local hx = trackX + trackW * frac - 4
+    surface.SetDrawColor(C.border)
+    surface.DrawRect(hx, trackY - 3, 8, trackH + 6)
+    surface.SetDrawColor(hot and C.hot or C.text)
+    surface.DrawOutlinedRect(hx, trackY - 3, 8, trackH + 6, 1)
+
+    return trackX, trackY, trackW, trackH  -- для hit-теста
+end
+
+-- =========================================================
+-- ГЛАВНАЯ ОТРИСОВКА МЕНЮ
+-- =========================================================
+local function DrawMenu()
+    if not Menu.open then return end
+
+    local sw, sh = ScrW(), ScrH()
+    local pw = 620   -- ширина панели
+    local ph = 520   -- высота панели
+    local px = (sw - pw) * 0.5
+    local py = (sh - ph) * 0.5
+
+    -- ── Полупрозрачный фон всего экрана ───────────────────
+    surface.SetDrawColor(0, 0, 0, 120)
+    surface.DrawRect(0, 0, sw, sh)
+
+    -- ── Главная панель ─────────────────────────────────────
+    DrawPanel(px, py, pw, ph, C.bgDark, C.border, 2)
+
+    -- Вертикальные декоративные линии (стиль CS)
+    surface.SetDrawColor(C.border2)
+    surface.DrawLine(px+3, py+3, px+3, py+ph-3)
+    surface.DrawLine(px+pw-4, py+3, px+pw-4, py+ph-3)
+
+    -- ── Заголовок ─────────────────────────────────────────
+    local titleH = 36
+    DrawPanel(px, py, pw, titleH, Color(0,30,0,255), C.border, 2)
+
+    -- Логотип слева
+    DrawTextShadow("▸ DESCENT 6DOF", "D6Menu_Title",
+        px + 14, py + titleH*0.5, C.title,
+        TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+
+    -- Версия справа
+    DrawTextShadow("v5.0", "D6Menu_Small",
+        px + pw - 10, py + titleH*0.5, C.textDim,
+        TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+
+    -- Закрыть [TAB]
+    DrawTextShadow("[TAB] закрыть", "D6Menu_Small",
+        px + pw*0.5, py + titleH*0.5, C.textDim,
+        TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+    -- ── Вкладки ───────────────────────────────────────────
+    local tabY   = py + titleH
+    local tabH   = 28
+    local tabs   = {"◉ КОМАНДЫ", "⚙ НАСТРОЙКИ", "⌨ МОДИФИКАЦИИ"}
+    local tabW   = pw / #tabs
+
+    for i, name in ipairs(tabs) do
+        local tx   = px + (i-1) * tabW
+        local act  = (i == Menu.tab)
+        local bgC  = act and C.tabAct or C.tab
+        local borC = act and C.border or C.border2
+
+        DrawPanel(tx, tabY, tabW, tabH, bgC, borC, 1)
+        DrawTextShadow(name, "D6Menu_Item",
+            tx + tabW*0.5, tabY + tabH*0.5,
+            act and C.hot or C.textDim,
+            TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    end
+
+    -- ── Контент-область ───────────────────────────────────
+    local cx  = px + 4
+    local cy  = tabY + tabH + 4
+    local cw  = pw - 8
+    local ch  = ph - titleH - tabH - 28   -- 28 = нижняя строка
+
+    -- ══════════════════════════════════════════════════════
+    -- ВКЛАДКА 1: КОМАНДЫ
+    -- ══════════════════════════════════════════════════════
+    if Menu.tab == 1 then
+        local itemH  = 38
+        local gap    = 4
+        local visN   = math.floor(ch / (itemH + gap))
+
+        for i, cmd in ipairs(COMMANDS) do
+            if i > visN then break end
+            local iy  = cy + (i-1) * (itemH + gap)
+            local hot = (Menu.hotCmd == i)
+
+            DrawButton(cx, iy, cw - 4, itemH, cmd.key, cmd.label, hot)
+
+            -- Описание правее если есть место
+            if cmd.desc then
+                DrawTextShadow(cmd.desc, "D6Menu_Small",
+                    cx + cw - 8, iy + itemH*0.5,
+                    C.textDim, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+            end
+        end
+
+        -- Подсказка внизу
+        DrawTextShadow("↑↓ навигация  Enter выполнить  Fn-клавиши напрямую",
+            "D6Menu_Small",
+            px + pw*0.5, py + ph - 14,
+            C.textDim, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+    -- ══════════════════════════════════════════════════════
+    -- ВКЛАДКА 2: НАСТРОЙКИ
+    -- ══════════════════════════════════════════════════════
+    elseif Menu.tab == 2 then
+        local itemH = 36
+        local gap   = 3
+
+        for i, s in ipairs(SETTINGS) do
+            local iy  = cy + (i-1) * (itemH + gap)
+            local hot = (Menu.hotSet == i)
+            DrawSlider(cx, iy, cw - 4, itemH, s, hot)
+        end
+
+        -- Кнопки применить / сброс
+        local btnY = cy + #SETTINGS * (itemH + gap) + 6
+        DrawPanel(cx, btnY, (cw-8)*0.5, 28, C.btn, C.border, 1)
+        DrawTextShadow("  ПРИМЕНИТЬ [Enter]", "D6Menu_Item",
+            cx + 4, btnY + 14, C.ok, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+
+        DrawPanel(cx + (cw-8)*0.5 + 8, btnY, (cw-8)*0.5, 28, C.btn, C.border2, 1)
+        DrawTextShadow("  СБРОС [Delete]", "D6Menu_Item",
+            cx + (cw-8)*0.5 + 12, btnY + 14, C.warn, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+
+        DrawTextShadow("← → изменить  Enter применить  Del сброс",
+            "D6Menu_Small",
+            px + pw*0.5, py + ph - 14,
+            C.textDim, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+    -- ══════════════════════════════════════════════════════
+    -- ВКЛАДКА 3: МОДИФИКАЦИИ
+    -- ══════════════════════════════════════════════════════
+    elseif Menu.tab == 3 then
+        -- Заголовок поля
+        DrawTextShadow("── Lua-модификация (выполняется на клиенте) ──",
+            "D6Menu_Small", cx+4, cy+4, C.textDim)
+
+        -- Поле ввода кода
+        local edY = cy + 22
+        local edH = ch - 80
+        DrawPanel(cx, edY, cw-4, edH, C.modBg, C.border2, 1)
+
+        -- Нумерация строк
+        local lines    = {}
+        local curLine  = ""
+        for c in Menu.modText:gmatch(".") do
+            if c == "\n" then
+                table.insert(lines, curLine); curLine = ""
+            else
+                curLine = curLine .. c
+            end
+        end
+        table.insert(lines, curLine)
+
+        local lineH   = 16
+        local visLines = math.floor((edH - 8) / lineH)
+
+        for ln, line in ipairs(lines) do
+            if ln > visLines then break end
+            local ly = edY + 4 + (ln-1) * lineH
+            -- Номер строки
+            DrawTextShadow(string.format("%3d", ln), "D6Menu_Code",
+                cx + 2, ly, C.textDim)
+            -- Код
+            DrawTextShadow(line, "D6Menu_Code",
+                cx + 34, ly, C.modText)
+        end
+
+        -- Курсор мигающий (каждые 0.5 сек)
+        if math.floor(CurTime() * 2) % 2 == 0 then
+            local cursorLine = 1
+            local tmp = Menu.modText:sub(1, Menu.modCursor)
+            for _ in tmp:gmatch("\n") do cursorLine = cursorLine + 1 end
+            local lastNL   = tmp:find("\n[^\n]*$") or 0
+            local cursorCol = #tmp - lastNL
+            local cursorX   = cx + 34 + cursorCol * 8
+            local cursorY   = edY + 4 + (cursorLine-1) * lineH
+
+            surface.SetDrawColor(C.border)
+            surface.DrawRect(cursorX, cursorY, 2, lineH)
+        end
+
+        -- Кнопки под полем
+        local btnY = edY + edH + 4
+        DrawPanel(cx, btnY, 120, 26, C.btn, C.border, 1)
+        DrawTextShadow(" ▶ ПРИМЕНИТЬ", "D6Menu_Item",
+            cx+6, btnY+13, C.ok, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+
+        DrawPanel(cx+128, btnY, 90, 26, C.btn, C.border2, 1)
+        DrawTextShadow(" ОЧИСТИТЬ", "D6Menu_Item",
+            cx+134, btnY+13, C.warn, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+
+        DrawPanel(cx+226, btnY, 140, 26, C.btn, C.border2, 1)
+        DrawTextShadow(" ПРИМЕРЫ ▾", "D6Menu_Item",
+            cx+232, btnY+13, C.textDim, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+
+        -- Статус применения
+        if CurTime() < Menu.modMsgTimer then
+            DrawTextShadow(Menu.modMsg, "D6Menu_Item",
+                cx + cw - 8, btnY + 13,
+                Menu.modMsgOk and C.ok or C.warn,
+                TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+        end
+
+        -- Подсказка
+        DrawTextShadow("Печатай код ▸ Enter=новая строка ▸ F9=применить ▸ F10=очистить",
+            "D6Menu_Small",
+            px + pw*0.5, py + ph - 14,
+            C.textDim, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+    end
+
+    -- ── Нижняя строка статуса (как в CS 1.6) ──────────────
+    local statusY = py + ph - 22
+    surface.SetDrawColor(C.border2)
+    surface.DrawLine(px+4, statusY, px+pw-4, statusY)
+
+    local ply = LocalPlayer()
+    local d6  = IsValid(ply) and ply:GetNWBool("D6On", false)
+    local wep = IsValid(ply) and ply:GetActiveWeapon()
+    local mode= IsValid(wep) and wep:GetClass()=="weapon_d6_omni" and (wep.Mode or 0) or -1
+    local modeNames = {[0]="ПУШКИ",[1]="БОМБЫ",[2]="ПОРТАЛЫ",[3]="ЭЛ.КРЮК"}
+
+    local statusStr = string.format(
+        "6DOF: %s  |  Режим: %s  |  [1]Команды [2]Настройки [3]Моды",
+        d6 and "ON" or "OFF",
+        mode >= 0 and (modeNames[mode] or "?") or "—"
+    )
+    DrawTextShadow(statusStr, "D6Menu_Small",
+        px + pw*0.5, statusY + 11,
+        C.textDim, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+end
+
+-- =========================================================
+-- ПРЕСЕТЫ КОДА ДЛЯ ВКЛАДКИ МОДИФИКАЦИЙ
+-- =========================================================
+local MOD_EXAMPLES = {
+    {
+        name = "Сверх-скорость",
+        code = [[-- Увеличить скорость дрона
+RunConsoleCommand("d6_set", "maxSpeed", "4000")
+RunConsoleCommand("d6_set", "accel", "6000")
+print("[MOD] Сверх-скорость активирована!")]]
+    },
+    {
+        name = "Тихий режим",
+        code = [[-- Убрать гравитацию и замедлить
+RunConsoleCommand("d6_set", "gravity", "0")
+RunConsoleCommand("d6_set", "maxSpeed", "600")
+print("[MOD] Тихий режим активирован!")]]
+    },
+    {
+        name = "Боевые настройки",
+        code = [[-- Максимальный урон оружия
+RunConsoleCommand("d6_set", "gunDamage", "60")
+RunConsoleCommand("d6_set", "ramDamage", "500")
+RunConsoleCommand("d6_set", "gunBurst", "16")
+print("[MOD] Боевые настройки применены!")]]
+    },
+    {
+        name = "Сброс всего",
+        code = [[-- Вернуть стандартные значения
+RunConsoleCommand("d6_set", "gravity", "500")
+RunConsoleCommand("d6_set", "accel", "3000")
+RunConsoleCommand("d6_set", "maxSpeed", "1800")
+RunConsoleCommand("d6_set", "gunDamage", "12")
+RunConsoleCommand("d6_set", "ramDamage", "240")
+print("[MOD] Сброс выполнен!")]]
+    },
+}
+
+local showExamples = false
+
+-- =========================================================
+-- ПРИМЕНИТЬ МОДИФИКАЦИЮ
+-- =========================================================
+local function ApplyMod()
+    if Menu.modText == "" then
+        Menu.modMsg      = "✗ Поле пустое"
+        Menu.modMsgOk    = false
+        Menu.modMsgTimer = CurTime() + 3
+        return
+    end
+
+    -- [FIX-1] Вместо произвольного loadstring — только белый список ConCommand
+-- Прямое исполнение Lua из текстового поля небезопасно на публичных серверах.
+-- Поле «Модификации» теперь принимает только консольные команды (одна строка).
+local cmd = Menu.modText:match("^%s*(.-)%s*$")  -- trim
+if cmd == "" then
+    Menu.modMsg="✗ Поле пустое"; Menu.modMsgOk=false; Menu.modMsgTimer=CurTime()+3; return
+end
+-- Разрешаем только безопасные d6_* и 6dof_* команды
+local allowed = cmd:match("^d6_") or cmd:match("^6dof_")
+if not allowed then
+    Menu.modMsg="✗ Разрешены только d6_* и 6dof_* команды"
+    Menu.modMsgOk=false; Menu.modMsgTimer=CurTime()+4; return
+end
+-- Разбиваем на команду + аргументы и выполняем безопасно
+local parts={}; for p in cmd:gmatch("%S+") do parts[#parts+1]=p end
+if #parts>=3 then RunConsoleCommand(parts[1],parts[2],parts[3])
+elseif #parts==2 then RunConsoleCommand(parts[1],parts[2])
+elseif #parts==1 then RunConsoleCommand(parts[1]) end
+Menu.modMsg="✓ Команда отправлена: "..cmd
+Menu.modMsgOk=true; Menu.modMsgTimer=CurTime()+3
+end
+
+-- =========================================================
+-- ВЫПОЛНИТЬ КОМАНДУ (вкладка 1)
+-- =========================================================
+local function ExecCommand(idx)
+    local cmd = COMMANDS[idx]
+    if not cmd then return end
+
+    -- Разбиваем команду на части (команда + аргументы)
+    local parts = {}
+    for p in cmd.cmd:gmatch("%S+") do table.insert(parts, p) end
+
+    if #parts == 1 then
+        RunConsoleCommand(parts[1])
+    elseif #parts == 2 then
+        RunConsoleCommand(parts[1], parts[2])
+    elseif #parts >= 3 then
+        RunConsoleCommand(parts[1], parts[2], parts[3])
+    end
+
+    -- Вспышка
+    Menu.modMsg      = "► " .. cmd.label
+    Menu.modMsgOk    = true
+    Menu.modMsgTimer = CurTime() + 1.5
+    chat.AddText(Color(80,200,80), "[D6] ", color_white, cmd.label)
+end
+
+-- =========================================================
+-- ВВОД С КЛАВИАТУРЫ
+-- =========================================================
+concommand.Add("d6_menu_open", function()
+    Menu.open = not Menu.open
+    if Menu.open then
+        gui.EnableScreenClicker(true)
+    else
+        gui.EnableScreenClicker(false)
+        showExamples = false
+    end
+end)
+
+hook.Add("PlayerButtonDown", "D6Menu_Keys", function(key)
+    if key == KEY_TAB then
+        local ply = LocalPlayer()
+        if IsValid(ply) and ply:GetNWBool("D6On", false) then
+            Menu.open = not Menu.open
+            if Menu.open then
+                gui.EnableScreenClicker(true)
+            else
+                gui.EnableScreenClicker(false)
+                showExamples = false
+            end
+            return true
+        end
+        return
+    end
+
+    if not Menu.open then return end
+
+    -- Цифры 1/2/3 — переключить вкладку
+    if key == KEY_1 then Menu.tab = 1; return true end
+    if key == KEY_2 then Menu.tab = 2; return true end
+    if key == KEY_3 then Menu.tab = 3; return true end
+
+    -- Вкладка 1: навигация и выполнение команд
+    if Menu.tab == 1 then
+        if key == KEY_UP then
+            Menu.hotCmd = math.max(1, (Menu.hotCmd or 1) - 1)
+        elseif key == KEY_DOWN then
+            Menu.hotCmd = math.min(#COMMANDS, (Menu.hotCmd or 0) + 1)
+        elseif key == KEY_ENTER then
+            if Menu.hotCmd > 0 then ExecCommand(Menu.hotCmd) end
+        end
+        -- F1-F8 напрямую
+        local fkeys = {KEY_F1,KEY_F2,KEY_F3,KEY_F4,KEY_F5,KEY_F6,KEY_F7,KEY_F8}
+        for i, fk in ipairs(fkeys) do
+            if key == fk then ExecCommand(i); return true end
+        end
+
+    -- Вкладка 2: настройки
+    elseif Menu.tab == 2 then
+        if key == KEY_UP then
+            Menu.hotSet = math.max(1, (Menu.hotSet or 1) - 1)
+        elseif key == KEY_DOWN then
+            Menu.hotSet = math.min(#SETTINGS, (Menu.hotSet or 0) + 1)
+        elseif key == KEY_LEFT and Menu.hotSet > 0 then
+            local s   = SETTINGS[Menu.hotSet]
+            local cur = Cfg[s.key]
+            if type(cur) == "number" then
+                Cfg[s.key] = math.max(s.min, cur - s.step)
+            end
+        elseif key == KEY_RIGHT and Menu.hotSet > 0 then
+            local s   = SETTINGS[Menu.hotSet]
+            local cur = Cfg[s.key]
+            if type(cur) == "number" then
+                Cfg[s.key] = math.min(s.max, cur + s.step)
+            end
+        elseif key == KEY_ENTER then
+            ApplyCfg(); SaveCfg()
+            chat.AddText(Color(80,200,80),"[D6] Настройки применены.")
+        elseif key == KEY_DELETE then
+            -- Сброс всех к значениям по умолчанию
+            Cfg.gravity=500; Cfg.accel=3000; Cfg.maxSpeed=1800
+            Cfg.rollSpeed=175; Cfg.fov=90; Cfg.gunDamage=12
+            Cfg.gunBurst=8; Cfg.ramSpeed=3400; Cfg.ramDamage=240
+            chat.AddText(Color(255,150,80),"[D6] Настройки сброшены.")
+        end
+
+    -- Вкладка 3: ввод кода
+    elseif Menu.tab == 3 then
+        if key == KEY_F9 then
+            ApplyMod(); return true
+        elseif key == KEY_F10 then
+            Menu.modText = ""; Menu.modCursor = 0; return true
+        end
+    end
+
+    return true  -- поглощаем все клавиши пока меню открыто
+end)
+
+-- =========================================================
+-- ВВОД ТЕКСТА (вкладка 3)
+-- =========================================================
+hook.Add("GUI.KeyCodeTyped", "D6Menu_Type", function(key)
+    if not Menu.open or Menu.tab ~= 3 then return end
+
+    -- Получаем символ
+    local ch = input.GetKeyName(key)
+    if not ch then return end
+
+    if key == KEY_ENTER then
+        Menu.modText   = Menu.modText .. "\n"
+        Menu.modCursor = #Menu.modText
+    elseif key == KEY_BACKSPACE then
+        if #Menu.modText > 0 then
+            Menu.modText   = Menu.modText:sub(1, -2)
+            Menu.modCursor = #Menu.modText
+        end
+    elseif #ch == 1 then
+        Menu.modText   = Menu.modText .. ch
+        Menu.modCursor = #Menu.modText
+    end
+end)
+
+-- =========================================================
+-- КЛИК МЫШИ — вкладки и кнопки
+-- =========================================================
+hook.Add("GUI.MousePressed", "D6Menu_Click", function(btn)
+    if not Menu.open then return end
+    if btn ~= MOUSE_LEFT then return end
+
+    local mx, my = gui.MousePos()
+    local sw, sh = ScrW(), ScrH()
+    local pw, ph = 620, 520
+    local px = (sw - pw) * 0.5
+    local py = (sh - ph) * 0.5
+
+    -- Клик по вкладкам
+    local tabY = py + 36
+    local tabH = 28
+    local tabW = pw / 3
+    if my >= tabY and my <= tabY + tabH then
+        for i = 1, 3 do
+            local tx = px + (i-1)*tabW
+            if mx >= tx and mx <= tx + tabW then
+                Menu.tab = i
+                return
+            end
+        end
+    end
+
+    local cy = tabY + tabH + 4
+    local cx = px + 4
+    local cw = pw - 8
+    local itemH = 38
+    local gap   = 4
+
+    -- Клик по командам (вкладка 1)
+    if Menu.tab == 1 then
+        for i, _ in ipairs(COMMANDS) do
+            local iy = cy + (i-1)*(itemH+gap)
+            if mx >= cx and mx <= cx+cw-4 and my >= iy and my <= iy+itemH then
+                Menu.hotCmd = i
+                ExecCommand(i)
+                return
+            end
+        end
+    end
+
+    -- Клик по слайдерам (вкладка 2)
+    if Menu.tab == 2 then
+        local sItemH = 36
+        local sGap   = 3
+        for i, s in ipairs(SETTINGS) do
+            local iy = cy + (i-1)*(sItemH+sGap)
+            if mx >= cx and mx <= cx+cw-4 and my >= iy and my <= iy+sItemH then
+                Menu.hotSet = i
+                -- Вычисляем позицию клика на треке
+                local trackX = cx + 160
+                local trackW = cw - 204
+                if mx >= trackX and mx <= trackX+trackW then
+                    local frac = (mx - trackX) / trackW
+                    frac = math.Clamp(frac, 0, 1)
+                    local raw = s.min + (s.max - s.min) * frac
+                    -- Округляем до шага
+                    Cfg[s.key] = math.floor(raw / s.step + 0.5) * s.step
+                    Cfg[s.key] = math.Clamp(Cfg[s.key], s.min, s.max)
+                end
+                return
+            end
+        end
+
+        -- Кнопка "Применить"
+        local btnY = cy + #SETTINGS*(sItemH+sGap) + 6
+        if mx >= cx and mx <= cx+(cw-8)*0.5 and my >= btnY and my <= btnY+28 then
+            ApplyCfg(); SaveCfg()
+            chat.AddText(Color(80,200,80),"[D6] Настройки применены.")
+            return
+        end
+        -- Кнопка "Сброс"
+        local rx = cx+(cw-8)*0.5+8
+        if mx >= rx and mx <= rx+(cw-8)*0.5 and my >= btnY and my <= btnY+28 then
+            Cfg.gravity=500; Cfg.accel=3000; Cfg.maxSpeed=1800
+            Cfg.rollSpeed=175; Cfg.fov=90; Cfg.gunDamage=12
+            Cfg.gunBurst=8; Cfg.ramSpeed=3400; Cfg.ramDamage=240
+            chat.AddText(Color(255,150,80),"[D6] Сброс.")
+            return
+        end
+    end
+
+    -- Клик по кнопкам модификаций (вкладка 3)
+    if Menu.tab == 3 then
+        local edH  = (ph - 36 - 28 - 4) - 80
+        local edY  = cy + 22
+        local btnY = edY + edH + 4
+
+        -- Применить
+        if mx >= cx and mx <= cx+120 and my >= btnY and my <= btnY+26 then
+            ApplyMod(); return
+        end
+        -- Очистить
+        if mx >= cx+128 and mx <= cx+218 and my >= btnY and my <= btnY+26 then
+            Menu.modText = ""; Menu.modCursor = 0; return
+        end
+        -- Примеры
+        if mx >= cx+226 and mx <= cx+366 and my >= btnY and my <= btnY+26 then
+            showExamples = not showExamples; return
+        end
+    end
+end)
+
+-- =========================================================
+-- ВЫПАДАЮЩИЙ СПИСОК ПРИМЕРОВ (поверх основного HUD)
+-- =========================================================
+local function DrawExamples()
+    if not showExamples or Menu.tab ~= 3 then return end
+
+    local sw, sh = ScrW(), ScrH()
+    local pw, ph = 620, 520
+    local px = (sw-pw)*0.5
+    local py = (sh-ph)*0.5
+    local cx = px + 4
+    local exY = py + ph - 120  -- над нижней частью
+    local exW = 240
+    local exH = #MOD_EXAMPLES * 26 + 4
+
+    DrawPanel(cx+226, exY - exH, exW, exH, C.bgDark, C.border, 1)
+
+    for i, ex in ipairs(MOD_EXAMPLES) do
+        local iy = exY - exH + 2 + (i-1)*26
+
+        local mx, my = gui.MousePos()
+        local hot = mx >= cx+226 and mx <= cx+226+exW
+                and my >= iy     and my <= iy+24
+
+        if hot then
+            surface.SetDrawColor(C.btnHover)
+            surface.DrawRect(cx+226, iy, exW, 24)
+        end
+
+        DrawTextShadow("  "..ex.name, "D6Menu_Item",
+            cx+228, iy+12, hot and C.hot or C.text,
+            TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+    end
+end
+
+-- Клик по примерам
+hook.Add("GUI.MousePressed", "D6Menu_ExamplesClick", function(btn)
+    if not showExamples or not Menu.open or Menu.tab ~= 3 then return end
+    if btn ~= MOUSE_LEFT then return end
+
+    local mx, my = gui.MousePos()
+    local sw, sh = ScrW(), ScrH()
+    local pw, ph = 620, 520
+    local px = (sw-pw)*0.5
+    local py = (sh-ph)*0.5
+    local cx = px + 4
+    local exY = py + ph - 120
+    local exW = 240
+    local exH = #MOD_EXAMPLES * 26 + 4
+
+    for i, ex in ipairs(MOD_EXAMPLES) do
+        local iy = exY - exH + 2 + (i-1)*26
+        if mx >= cx+226 and mx <= cx+226+exW and my >= iy and my <= iy+24 then
+            Menu.modText   = ex.code
+            Menu.modCursor = #ex.code
+            showExamples   = false
+            return
+        end
+    end
+end)
+
+-- =========================================================
+-- РЕГИСТРАЦИЯ В HUDPaint
+-- =========================================================
+hook.Add("HUDPaint", "D6Menu_Draw", function()
+    DrawMenu()
+    DrawExamples()
+end)
+
+-- ── Подсказка «TAB» в основном HUD (когда меню закрыто) ──
+hook.Add("HUDPaint", "D6Menu_Hint", function()
+    if Menu.open then return end
+    local ply = LocalPlayer()
+    if not IsValid(ply) or not ply:GetNWBool("D6On",false) then return end
+
+    draw.SimpleText("[TAB] Меню", "D6Menu_Small",
+        ScrW()-8, ScrH()-36,
+        Color(80,200,80,180), TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+end)
+
+-- =========================================================
+-- СЕРВЕРНАЯ ЧАСТЬ: обработка команд меню
+-- =========================================================
+if SERVER then
+    -- [FIX-6] D6_MenuCmd убран: не используется ни на клиенте, ни на сервере
+
+    -- Команда d6_set для изменения параметров с клиента
+    concommand.Add("d6_set", function(ply, _, args)
+        if not IsValid(ply) then return end
+        local param = args[1]
+        local value = tonumber(args[2])
+        if not param or not value then return end
+
+        -- Применяем к физике игрока
+        ply.D6_Params = ply.D6_Params or {}
+        ply.D6_Params[param] = value
+        -- d6_core.lua будет читать D6_Params если они есть
+    end)
+    -- [FIX-3] d6_kill_npcs определён в d6_core.lua
+
+    -- Сброс крена
+end
+
+print("[D6] d6_menu.lua загружен")
+
+-- =========================================================
+-- [APDT-MENU] ДОПОЛНЕНИЕ: нампад-навигация + сканер врагов
+-- =========================================================
+
+-- ── Нампад-клавиши для меню ───────────────────────────────
+-- KP_0 = открыть/закрыть меню (уже в биндах autoload)
+-- KP_1/2/3 = переключить вкладку
+-- KP_8/2 = навигация вверх/вниз
+-- KP_Enter = выполнить/применить
+if CLIENT then
+    hook.Add("PlayerButtonDown","D6Menu_Numpad",function(key)
+        if key == KEY_PAD_0 then
+            Menu.open = not Menu.open
+            gui.EnableScreenClicker(Menu.open)
+            return true
+        end
+        if not Menu.open then return end
+        if key == KEY_PAD_1 then Menu.tab=1; return true end
+        if key == KEY_PAD_2 then
+            if Menu.tab==1 then Menu.hotCmd=math.min(#COMMANDS,(Menu.hotCmd or 0)+1)
+            elseif Menu.tab==2 then Menu.hotSet=math.min(#SETTINGS,(Menu.hotSet or 0)+1) end
+            return true
+        end
+        if key == KEY_PAD_3 then Menu.tab=3; return true end
+        if key == KEY_PAD_4 then
+            if Menu.tab==2 and Menu.hotSet>0 then
+                local s=SETTINGS[Menu.hotSet]; if type(Cfg[s.key])=="number" then
+                    Cfg[s.key]=math.max(s.min,Cfg[s.key]-s.step) end
+            end; return true
+        end
+        if key == KEY_PAD_5 then Menu.tab=2; return true end
+        if key == KEY_PAD_6 then
+            if Menu.tab==2 and Menu.hotSet>0 then
+                local s=SETTINGS[Menu.hotSet]; if type(Cfg[s.key])=="number" then
+                    Cfg[s.key]=math.min(s.max,Cfg[s.key]+s.step) end
+            end; return true
+        end
+        if key == KEY_PAD_7 then Menu.tab=1; return true end
+        if key == KEY_PAD_8 then
+            if Menu.tab==1 then Menu.hotCmd=math.max(1,(Menu.hotCmd or 1)-1)
+            elseif Menu.tab==2 then Menu.hotSet=math.max(1,(Menu.hotSet or 1)-1) end
+            return true
+        end
+        if key == KEY_PAD_9 then Menu.tab=3; return true end
+    end)
+end
+
+-- =========================================================
+-- [APDT-RADAR] СКАНЕР ВРАГОВ (как в CS: список + минимапа)
+-- Команда: KP_. (нампад точка) или через меню
+-- =========================================================
+if CLIENT then
+    local RadarOn     = false
+    local RADAR_RANGE = 2500  -- дальность сканирования
+    local RADAR_R     = 120   -- радиус круга радара на экране
+
+    -- Переключение радара
+    hook.Add("PlayerButtonDown","D6_RadarToggle",function(key)
+        if key ~= KEY_PAD_DECIMAL then return end  -- KP_.
+        local ply = LocalPlayer()
+        if not IsValid(ply) or not ply:GetNWBool("D6On",false) then return end
+        RadarOn = not RadarOn
+        chat.AddText(Color(0,220,120),"[6DOF] Сканер: ",(RadarOn and Color(0,255,0) or Color(255,80,80)),
+            RadarOn and "АКТИВЕН" or "ВЫКЛ")
+    end)
+
+    hook.Add("HUDPaint","D6_RadarDraw",function()
+        local ply = LocalPlayer()
+        if not IsValid(ply) or not ply:GetNWBool("D6On",false) then return end
+        if not RadarOn then
+            -- Маленький индикатор что радар выкл
+            draw.SimpleText("◌ СКАН","DermaDefault",
+                ScrW()-8,ScrH()-52,Color(80,80,80,120),TEXT_ALIGN_RIGHT,TEXT_ALIGN_CENTER)
+            return
+        end
+
+        local sw,sh = ScrW(),ScrH()
+        local cx,cy = sw-RADAR_R-16, sh-RADAR_R-16  -- правый нижний угол
+
+        -- Фон радара
+        draw.NoTexture()
+        surface.SetDrawColor(0,0,0,160)
+        -- Рисуем круг заливкой (полигон)
+        local segs=32
+        local verts={}
+        for i=0,segs do
+            local a=i/segs*2*math.pi
+            table.insert(verts,{x=cx+math.cos(a)*RADAR_R, y=cy+math.sin(a)*RADAR_R})
+        end
+        surface.DrawPoly(verts)
+
+        -- Рамка
+        surface.SetDrawColor(0,220,120,200)
+        for i=0,segs-1 do
+            local a1=i/segs*2*math.pi; local a2=(i+1)/segs*2*math.pi
+            surface.DrawLine(
+                cx+math.cos(a1)*RADAR_R, cy+math.sin(a1)*RADAR_R,
+                cx+math.cos(a2)*RADAR_R, cy+math.sin(a2)*RADAR_R)
+        end
+
+        -- Крестик центра
+        surface.SetDrawColor(0,220,120,120)
+        surface.DrawLine(cx-6,cy,cx+6,cy); surface.DrawLine(cx,cy-6,cx,cy+6)
+
+        -- Концентрические кольца (дистанция)
+        surface.SetDrawColor(0,100,60,60)
+        for r=RADAR_R/3,RADAR_R,RADAR_R/3 do
+            for i=0,segs-1 do
+                local a1=i/segs*2*math.pi; local a2=(i+1)/segs*2*math.pi
+                surface.DrawLine(cx+math.cos(a1)*r,cy+math.sin(a1)*r,cx+math.cos(a2)*r,cy+math.sin(a2)*r)
+            end
+        end
+
+        -- Линия направления взгляда
+        local ang = ply.D6Ang or ply:GetAngles()
+        local da  = math.rad(ang.y)
+        surface.SetDrawColor(0,220,120,180)
+        surface.DrawLine(cx,cy, cx+math.sin(da)*(RADAR_R-8), cy-math.cos(da)*(RADAR_R-8))
+
+        local myPos = ply:GetPos()
+
+        -- ── Отрисовка сущностей ────────────────────────────
+        local function DrawBlip(entPos, col, sz, label)
+            -- Вектор от меня к цели в мировых координатах
+            local delta = entPos - myPos
+            local dist  = delta:Length()
+            if dist > RADAR_RANGE then return end
+
+            -- Поворачиваем в систему координат камеры
+            local yaw     = math.rad(-ang.y)
+            local rx = delta.x * math.cos(yaw) - delta.y * math.sin(yaw)
+            local ry = delta.x * math.sin(yaw) + delta.y * math.cos(yaw)
+
+            -- Масштабируем в радиус радара
+            local scale = RADAR_R / RADAR_RANGE
+            local bx = cx + rx * scale
+            local by = cy - ry * scale  -- Y перевёрнут
+
+            -- Клипируем к кругу
+            local bdist = math.sqrt((bx-cx)^2+(by-cy)^2)
+            if bdist > RADAR_R-sz then
+                local ang2 = math.atan2(by-cy,bx-cx)
+                bx = cx + math.cos(ang2)*(RADAR_R-sz-1)
+                by = cy + math.sin(ang2)*(RADAR_R-sz-1)
+            end
+
+            surface.SetDrawColor(col.r,col.g,col.b,220)
+            surface.DrawRect(bx-sz*.5,by-sz*.5,sz,sz)
+
+            if label and dist < RADAR_RANGE*0.5 then
+                draw.SimpleText(label,"DermaDefault",bx,by-10,col,TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
+            end
+        end
+
+        -- Игроки (синие)
+        for _, p in ipairs(player.GetAll()) do
+            if p~=ply and IsValid(p) and p:Alive() then
+                DrawBlip(p:GetPos(),Color(80,150,255),6,p:Nick())
+            end
+        end
+
+        -- NPC-враги (красные)
+        for _, npc in ipairs(ents.FindByClass("npc_cscanner")) do
+            if IsValid(npc) and npc.D6_Variant then
+                local vCol={
+                    mine=Color(255,200,0), mg=Color(255,60,60),
+                    rpg=Color(255,100,40), grav=Color(160,40,255),
+                    laser=Color(0,220,255), heavy=Color(120,120,120),
+                    seeker=Color(200,0,255), wheatley=Color(200,220,255),
+                    chopper=Color(80,80,80),
+                }
+                DrawBlip(npc:GetPos(), vCol[npc.D6_Variant] or Color(255,60,60), 5)
+            end
+        end
+
+        -- prop_physics воздушных мин (жёлтые)
+        for _, e in ipairs(ents.FindByClass("prop_physics")) do
+            if IsValid(e) and e.IsAirMine then
+                DrawBlip(e:GetPos(),Color(255,220,0),5,"☠")
+            end
+        end
+
+        -- Заголовок радара
+        draw.SimpleText("◉ СКАН ["..math.floor(RADAR_RANGE/52).."м]","DermaDefault",
+            cx, cy-RADAR_R-12, Color(0,220,120,200),TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
+        draw.SimpleText("KP. выкл","DermaDefault",
+            cx, cy+RADAR_R+8, Color(80,80,80,150),TEXT_ALIGN_CENTER,TEXT_ALIGN_CENTER)
+    end)
+end

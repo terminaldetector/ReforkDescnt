@@ -1,0 +1,17 @@
+{
+  "key.category.drmd": "DRMD 6DOF",
+  "key.drmd.toggle": "Переключить 6DOF",
+  "key.drmd.dash": "Рывок",
+  "key.drmd.alwaysrun": "Форсаж",
+  "key.drmd.flightassist": "Помощник полёта",
+  "key.drmd.radar": "Радар",
+  "key.drmd.roll_left": "Крен влево",
+  "key.drmd.roll_right": "Крен вправо",
+  "key.drmd.ascend": "Вверх",
+  "key.drmd.descend": "Вниз",
+  "key.drmd.hook": "Крюк",
+  "key.drmd.workshop": "Оружейная мастерская",
+  "key.drmd.rocket_mode": "Режим ракет",
+  "key.drmd.reset_roll": "Сброс крена",
+  "itemGroup.drmd.weapons": "Оружие DRMD"
+}

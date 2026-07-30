@@ -1,0 +1,34 @@
+{
+  "mappings": {
+    "com/terminaldetector/drmd/mixin/LivingEntityMixin": {
+      "damage": "Lnet/minecraft/class_1309;method_5643(Lnet/minecraft/class_1282;F)Z"
+    },
+    "com/terminaldetector/drmd/mixin/PlayerEntityMixin": {
+      "readCustomDataFromNbt": "Lnet/minecraft/class_1657;method_5749(Lnet/minecraft/class_2487;)V",
+      "writeCustomDataToNbt": "Lnet/minecraft/class_1657;method_5652(Lnet/minecraft/class_2487;)V"
+    },
+    "com/terminaldetector/drmd/mixin/client/GameRendererMixin": {
+      "bobView": "Lnet/minecraft/class_757;method_3186(Lnet/minecraft/class_4587;F)V"
+    },
+    "com/terminaldetector/drmd/mixin/client/InGameHudMixin": {
+      "render": "Lnet/minecraft/class_329;method_1753(Lnet/minecraft/class_332;Lnet/minecraft/class_9779;)V"
+    }
+  },
+  "data": {
+    "named:intermediary": {
+      "com/terminaldetector/drmd/mixin/LivingEntityMixin": {
+        "damage": "Lnet/minecraft/class_1309;method_5643(Lnet/minecraft/class_1282;F)Z"
+      },
+      "com/terminaldetector/drmd/mixin/PlayerEntityMixin": {
+        "readCustomDataFromNbt": "Lnet/minecraft/class_1657;method_5749(Lnet/minecraft/class_2487;)V",
+        "writeCustomDataToNbt": "Lnet/minecraft/class_1657;method_5652(Lnet/minecraft/class_2487;)V"
+      },
+      "com/terminaldetector/drmd/mixin/client/GameRendererMixin": {
+        "bobView": "Lnet/minecraft/class_757;method_3186(Lnet/minecraft/class_4587;F)V"
+      },
+      "com/terminaldetector/drmd/mixin/client/InGameHudMixin": {
+        "render": "Lnet/minecraft/class_329;method_1753(Lnet/minecraft/class_332;Lnet/minecraft/class_9779;)V"
+      }
+    }
+  }
+}
