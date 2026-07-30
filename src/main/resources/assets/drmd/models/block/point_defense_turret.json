@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "drmd:block/volume_turret"
+    "all": "drmd:block/point_defense_turret"
   }
 }

@@ -24,5 +24,6 @@ public final class ModEntityRenderers {
 		EntityRendererRegistry.register(ModEntities.DRONE_SWARM, DroneSwarmRenderer::new);
 		EntityRendererRegistry.register(ModEntities.REACTOR_KEEPER, ReactorKeeperRenderer::new);
 		EntityRendererRegistry.register(ModEntities.AERIAL_BOMB, AerialBombRenderer::new);
+		EntityRendererRegistry.register(ModEntities.END_REACTOR_BOSS, EndReactorBossRenderer::new);
 	}
 }

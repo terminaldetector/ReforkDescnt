@@ -118,10 +118,15 @@ public final class FlightSystem {
 		float accelMult = data.isAlwaysRun() ? MathHelper.lerp(engAlloc, 1.3f, 1.9f) : 1f;
 		float speedMult = data.isAlwaysRun() ? MathHelper.lerp(engAlloc, 1.3f, 1.8f) : 1f;
 
-		// Atmospheric bands: thin air / near-space → less drag, more thrust reliance
-		AtmosphereBand band = AtmosphereBand.at(player.getY());
+		// Atmospheric bands: thin air / near-space / End vacuum → less drag, more thrust
+		boolean endVacuum = player.getWorld().getRegistryKey() == net.minecraft.world.World.END;
+		AtmosphereBand band = AtmosphereBand.at(player.getWorld(), player.getY());
 		accelMult *= band.thrustScale;
 		speedMult *= MathHelper.lerp(1f - band.airDrag, 1f, 1.15f);
+		if (endVacuum) {
+			// No idle gravity sink in End — thrusters only
+			data.setGravityFactor(0f);
+		}
 
 		double accel = DescentMod.su(data.getAccel()) * accelMult * spool;
 		Vec3d wish = look.multiply(in.forward)
@@ -134,7 +139,8 @@ public final class FlightSystem {
 		// Micro gravity + idle gravity + local GravityFields (generators / torches / stations)
 		GravityFields.Sample field = GravityFields.sample(player.getWorld(), player.getPos());
 		Vec3d gravDir;
-		double g = DescentMod.su(MICRO_GRAV) + DescentMod.su(data.getGravity()) * data.getGravityFactor();
+		double g = endVacuum ? 0.0
+				: DescentMod.su(MICRO_GRAV) + DescentMod.su(data.getGravity()) * data.getGravityFactor();
 		if (field != null) {
 			gravDir = field.downDir();
 			g += DescentMod.su(data.getGravity()) * field.strength() * 0.55;
@@ -143,7 +149,7 @@ public final class FlightSystem {
 		} else {
 			gravDir = com.terminaldetector.drmd.world.LocalOrientation.gravityDir(player.getUuid());
 		}
-		vel = vel.add(gravDir.multiply(g * dt));
+		if (g > 0) vel = vel.add(gravDir.multiply(g * dt));
 
 		// Dash
 		if (in.dash && data.getDashCooldown() <= 0 && EnergySystem.tryConsume(data, "engines", EnergySystem.DASH_COST)) {

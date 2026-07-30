@@ -55,11 +55,15 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.clear();
 			com.terminaldetector.drmd.world.fire.FireSystem.clear();
 			server.execute(() -> com.terminaldetector.drmd.world.base.DescentSession.seedWorld(server));
+			com.terminaldetector.drmd.world.end.EndReactorSession.onServerStarted(server);
 		});
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			int tick = server.getTicks();
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.tick();
+			if (tick % 40 == 0) {
+				com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);
+			}
 			server.getWorlds().forEach(world -> {
 				if (tick % 5 == 0) {
 					com.terminaldetector.drmd.world.fire.FireSystem.tick(world);

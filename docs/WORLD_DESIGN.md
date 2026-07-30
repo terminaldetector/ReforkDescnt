@@ -89,17 +89,31 @@ Stock seed при старте мира ставит ориентиры во **�
 | Volume Turret | турель, контролирующая объём |
 | Magnetic Anomaly | меняет Local UP игрока |
 | Unstable Reactor | нестабильная зона / knockback |
+| Laser / Plasma / Point-Defense Turret | активная ПВО базы (End giga-reactor + kit) |
 
 ## 8. Бой и мобы
 
 Существующие DRMD-дроны уже летают в 3D (orbit / run / break). Гравитация idle/micro следует Local UP — магнитные аномалии меняют ориентацию полёта.
 
+### End: Giga-Reactor (вместо дракона)
+
+Ванильный `EnderDragonFight` глушится (`EnderDragonFightMixin`). На острове у `(0, surface, 0)` строится база с гигареактором:
+
+1. **SHIELDED** — 4 End-кристалла на пилонах; ядро неуязвимо.
+2. **EXPOSED** — кристаллы сбиты; ядро принимает урон, бьёт beams / pulse.
+3. **CRITICAL** — HP &lt; 35%; ускоренный огонь.
+4. **DEFEATED** — яйцо + 4 `END_GATEWAY` на Overworld spawn.
+
+ПВО: laser / plasma / point-defense / volume turrets на пилонах и кольце. Pyro GX в End / near-space **висит в невесомости** после высадки (без floor-lock).
+
 ## 9. Команды
 
 ```
-/d6 kit                 # build tool + soil + traps
+/d6 kit                 # build tool + soil + traps + turrets
 /d6 worldgen industrial # комплекс у игрока
 /d6 orient reset        # сброс Local UP
+/d6 endreactor          # force-regen End giga-reactor base
+/d6 ship                # spawn Pyro GX
 ```
 
 ---

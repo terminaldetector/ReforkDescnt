@@ -14,5 +14,11 @@
   "key.drmd.rocket_mode": "Режим ракет",
   "key.drmd.reset_roll": "Сброс крена",
   "hud.drmd.terrain_map": "Pyro GX · 3D карта (Tab+H)",
-  "itemGroup.drmd.weapons": "Оружие DRMD"
+  "itemGroup.drmd.weapons": "Оружие DRMD",
+  "block.drmd.laser_turret": "Лазерная турель",
+  "block.drmd.plasma_turret": "Плазменная турель",
+  "block.drmd.point_defense_turret": "Точечная ПВО-турель",
+  "block.drmd.volume_turret": "Объёмная турель",
+  "entity.drmd.end_reactor_boss": "Гигареактор Энда",
+  "entity.drmd.pyro_ship": "Pyro GX"
 }

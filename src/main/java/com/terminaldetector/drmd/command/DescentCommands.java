@@ -177,10 +177,13 @@ public final class DescentCommands {
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH, 16));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.MAGNETIC_ANOMALY));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.VOLUME_TURRET));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.LASER_TURRET));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.PLASMA_TURRET));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.POINT_DEFENSE_TURRET));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.LASER_BARRIER));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.HERMETIC_GATE));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR));
-								ctx.getSource().sendFeedback(() -> Text.literal("Gave Phase 3 engineer / gravity kit"), false);
+								ctx.getSource().sendFeedback(() -> Text.literal("Gave Phase 3 engineer / gravity / turret kit"), false);
 								return 1;
 							}))
 					.then(CommandManager.literal("start")
@@ -314,14 +317,33 @@ public final class DescentCommands {
 					.then(CommandManager.literal("atmosphere")
 							.executes(ctx -> {
 								ServerPlayerEntity p = ctx.getSource().getPlayer();
-								var band = com.terminaldetector.drmd.world.atmosphere.AtmosphereBand.at(p.getY());
+								var band = com.terminaldetector.drmd.world.atmosphere.AtmosphereBand.at(p.getWorld(), p.getY());
 								ctx.getSource().sendFeedback(() -> Text.literal(
 										"Atmosphere: " + band.label
+												+ (p.getWorld().getRegistryKey() == net.minecraft.world.World.END ? " [END vacuum]" : "")
 												+ " | drag=" + band.airDrag
 												+ " thrust×" + band.thrustScale
 												+ " blast×" + band.blastScale
 												+ " | smoke=" + com.terminaldetector.drmd.world.smoke.SmokeSystem.all().size()
 												+ " fire=" + com.terminaldetector.drmd.world.fire.FireSystem.focusCount()), false);
+								return 1;
+							}))
+					.then(CommandManager.literal("endreactor")
+							.requires(s -> s.hasPermissionLevel(2))
+							.executes(ctx -> {
+								var server = ctx.getSource().getServer();
+								var end = server.getWorld(net.minecraft.world.World.END);
+								if (end == null) {
+									ctx.getSource().sendError(Text.literal("End dimension unavailable"));
+									return 0;
+								}
+								com.terminaldetector.drmd.world.end.EndReactorState st =
+										com.terminaldetector.drmd.world.end.EndReactorState.get(end);
+								st.setBaseGenerated(false);
+								st.setPhase(com.terminaldetector.drmd.world.end.EndReactorState.Phase.SHIELDED);
+								com.terminaldetector.drmd.world.end.EndReactorSession.ensureBase(end);
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"End giga-reactor base forced — phase " + st.getPhase()), true);
 								return 1;
 							}))
 			);

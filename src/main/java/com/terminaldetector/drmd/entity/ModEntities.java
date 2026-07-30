@@ -100,6 +100,17 @@ public final class ModEntities {
 					.build()
 	);
 
+	public static final EntityType<com.terminaldetector.drmd.world.end.EndReactorBossEntity> END_REACTOR_BOSS = Registry.register(
+			Registries.ENTITY_TYPE,
+			Identifier.of(DescentMod.MOD_ID, "end_reactor_boss"),
+			EntityType.Builder.<com.terminaldetector.drmd.world.end.EndReactorBossEntity>create(
+							com.terminaldetector.drmd.world.end.EndReactorBossEntity::new, SpawnGroup.MONSTER)
+					.dimensions(3.5f, 3.5f)
+					.maxTrackingRange(160)
+					.trackingTickInterval(2)
+					.build()
+	);
+
 	private ModEntities() {}
 
 	public static void register() {
@@ -108,6 +119,8 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(PYRO_SHIP, PyroShipEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(MEGA_WORM, MegaWormEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(REACTOR_KEEPER, ReactorKeeperEntity.createAttributes());
-		DescentMod.LOGGER.info("Registered DRMD entities (drones, mines, pyro, reactor, mega fauna, aerial bomb)");
+		FabricDefaultAttributeRegistry.register(END_REACTOR_BOSS,
+				com.terminaldetector.drmd.world.end.EndReactorBossEntity.createAttributes());
+		DescentMod.LOGGER.info("Registered DRMD entities (incl. End giga-reactor boss)");
 	}
 }

@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.weapon.items.ModItems;
 import com.terminaldetector.drmd.world.build.BuildToolItem;
 import com.terminaldetector.drmd.world.soil.SixDSoilBlock;
+import com.terminaldetector.drmd.world.trap.DefenseTurrets;
 import com.terminaldetector.drmd.world.trap.TrapBlocks;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.AbstractBlock;
@@ -30,7 +31,16 @@ public final class ModWorldBlocks {
 			new TrapBlocks.LaserBarrierBlock(AbstractBlock.Settings.copy(Blocks.GLASS).ticksRandomly().luminance(s -> 10)));
 
 	public static final Block VOLUME_TURRET = registerBlock("volume_turret",
-			new TrapBlocks.VolumeTurretBlock(AbstractBlock.Settings.copy(Blocks.DISPENSER).ticksRandomly()));
+			new TrapBlocks.VolumeTurretBlock(AbstractBlock.Settings.copy(Blocks.DISPENSER).ticksRandomly().luminance(s -> 6)));
+
+	public static final Block LASER_TURRET = registerBlock("laser_turret",
+			new DefenseTurrets.LaserTurretBlock(AbstractBlock.Settings.copy(Blocks.DISPENSER).ticksRandomly().luminance(s -> 8).strength(4f)));
+
+	public static final Block PLASMA_TURRET = registerBlock("plasma_turret",
+			new DefenseTurrets.PlasmaTurretBlock(AbstractBlock.Settings.copy(Blocks.DISPENSER).ticksRandomly().luminance(s -> 9).strength(4f)));
+
+	public static final Block POINT_DEFENSE_TURRET = registerBlock("point_defense_turret",
+			new DefenseTurrets.PointDefenseTurretBlock(AbstractBlock.Settings.copy(Blocks.DISPENSER).ticksRandomly().luminance(s -> 7).strength(3.5f)));
 
 	public static final Block MAGNETIC_ANOMALY = registerBlock("magnetic_anomaly",
 			new TrapBlocks.MagneticAnomalyBlock(AbstractBlock.Settings.copy(Blocks.LODESTONE).ticksRandomly()));
@@ -83,6 +93,9 @@ public final class ModWorldBlocks {
 			entries.add(HERMETIC_GATE);
 			entries.add(LASER_BARRIER);
 			entries.add(VOLUME_TURRET);
+			entries.add(LASER_TURRET);
+			entries.add(PLASMA_TURRET);
+			entries.add(POINT_DEFENSE_TURRET);
 			entries.add(MAGNETIC_ANOMALY);
 			entries.add(UNSTABLE_REACTOR);
 			entries.add(GRAVITY_GENERATOR);

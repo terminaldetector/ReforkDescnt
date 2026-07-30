@@ -67,6 +67,14 @@ public enum AtmosphereBand {
 		return NEAR_SPACE;
 	}
 
+	/** Dimension-aware: true End vacuum uses near-space flight rules. */
+	public static AtmosphereBand at(net.minecraft.world.World world, double y) {
+		if (world != null && world.getRegistryKey() == net.minecraft.world.World.END) {
+			return NEAR_SPACE;
+		}
+		return at(y);
+	}
+
 	/** Smoke particle lifetime multiplier. */
 	public float smokeLifeScale() {
 		return switch (this) {

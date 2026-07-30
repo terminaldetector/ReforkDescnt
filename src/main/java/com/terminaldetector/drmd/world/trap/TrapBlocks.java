@@ -109,11 +109,28 @@ public final class TrapBlocks {
 		protected boolean hasRandomTicks(BlockState state) { return true; }
 
 		@Override
+		protected void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
+			super.onBlockAdded(state, world, pos, oldState, notify);
+			if (!world.isClient) world.scheduleBlockTick(pos, this, 14);
+		}
+
+		@Override
+		protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+			fireVolume(world, pos);
+			world.scheduleBlockTick(pos, this, 14);
+		}
+
+		@Override
 		protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+			fireVolume(world, pos);
+			world.scheduleBlockTick(pos, this, 14);
+		}
+
+		private static void fireVolume(ServerWorld world, BlockPos pos) {
 			Box volume = new Box(pos).expand(12);
 			LivingEntity target = null;
 			double best = Double.MAX_VALUE;
-			for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, volume, LivingEntity::isAlive)) {
+			for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, volume, TrapBlocks::isVolumeTarget)) {
 				double d = e.squaredDistanceTo(Vec3d.ofCenter(pos));
 				if (d < best) { best = d; target = e; }
 			}
@@ -128,6 +145,15 @@ public final class TrapBlocks {
 						8, 0.2, 0.2, 0.2, 0.02);
 			}
 		}
+	}
+
+	private static boolean isVolumeTarget(LivingEntity e) {
+		if (!e.isAlive()) return false;
+		if (e instanceof com.terminaldetector.drmd.entity.PyroShipEntity) return false;
+		if (e instanceof com.terminaldetector.drmd.world.end.EndReactorBossEntity) return false;
+		if (e instanceof com.terminaldetector.drmd.world.mega.ReactorKeeperEntity) return false;
+		if (e instanceof PlayerEntity p && (p.isCreative() || p.isSpectator())) return false;
+		return true;
 	}
 
 	/**

@@ -2,6 +2,8 @@ package com.terminaldetector.drmd.entity;
 
 import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.world.LocalOrientation;
+import com.terminaldetector.drmd.world.WorldRules;
+import com.terminaldetector.drmd.world.atmosphere.AtmosphereBand;
 import com.terminaldetector.drmd.world.build.ConstructionMode;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -20,7 +22,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 /**
- * Pyro GX transport — 6DoF while piloted; landing / dismount enters Construction Mode.
+ * Pyro GX transport — 6DoF while piloted; zero-g hang in End / near-space when empty.
  */
 public class PyroShipEntity extends PathAwareEntity {
 	private boolean wasPiloted;
@@ -37,6 +39,14 @@ public class PyroShipEntity extends PathAwareEntity {
 				.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.8)
 				.add(EntityAttributes.GENERIC_FLYING_SPEED, 1.2)
 				.add(EntityAttributes.GENERIC_FOLLOW_RANGE, 32);
+	}
+
+	/** End dimension or near-space / end-space altitude bands. */
+	public boolean isZeroGZone() {
+		if (getWorld().getRegistryKey() == World.END) return true;
+		AtmosphereBand band = AtmosphereBand.at(getY());
+		if (band == AtmosphereBand.NEAR_SPACE) return true;
+		return WorldRules.practicalLayer(getY()) == WorldRules.Layer.END_SPACE;
 	}
 
 	@Override
@@ -59,6 +69,12 @@ public class PyroShipEntity extends PathAwareEntity {
 			this.setYaw(pilot.getYaw());
 			this.setPitch(pilot.getPitch());
 			this.bodyYaw = pilot.getYaw();
+		} else if (isZeroGZone()) {
+			// Hang in weightlessness — tiny damp so it drifts, never "lands"
+			this.setVelocity(getVelocity().multiply(0.997));
+			this.velocityModified = true;
+			wasPiloted = false;
+			landTicks = 0;
 		} else {
 			this.setVelocity(getVelocity().multiply(0.88));
 			if (wasPiloted && getVelocity().lengthSquared() < 0.04) {
@@ -72,17 +88,30 @@ public class PyroShipEntity extends PathAwareEntity {
 	protected void removePassenger(Entity passenger) {
 		super.removePassenger(passenger);
 		if (!getWorld().isClient && passenger instanceof ServerPlayerEntity sp) {
+			if (isZeroGZone()) {
+				// Soft local up — no forced floor lock in End vacuum
+				LocalOrientation.setUp(sp.getUuid(), new Vec3d(0, 1, 0));
+				ConstructionMode.set(sp, false);
+				sp.sendMessage(Text.literal("§bPyro GX §7hangs in zero-g — board again anytime."), false);
+				return;
+			}
 			Direction floor = Direction.UP;
+			boolean found = false;
 			for (Direction d : Direction.values()) {
 				BlockPos p = getBlockPos().offset(d.getOpposite());
 				if (getWorld().getBlockState(p).isSolidBlock(getWorld(), p)) {
 					floor = d;
+					found = true;
 					break;
 				}
 			}
-			LocalOrientation.setFromDirection(sp.getUuid(), floor);
-			ConstructionMode.onShipLanded(sp);
-			sp.sendMessage(Text.literal("§7Local floor locked to §f" + floor.asString()), false);
+			if (found) {
+				LocalOrientation.setFromDirection(sp.getUuid(), floor);
+				ConstructionMode.onShipLanded(sp);
+				sp.sendMessage(Text.literal("§7Local floor locked to §f" + floor.asString()), false);
+			} else {
+				sp.sendMessage(Text.literal("§7Pyro GX drifting — no surface lock."), false);
+			}
 		}
 	}
 
@@ -91,12 +120,12 @@ public class PyroShipEntity extends PathAwareEntity {
 		if (!getWorld().isClient && !hasPassengers()) {
 			player.startRiding(this);
 			if (player instanceof ServerPlayerEntity sp) {
-			DescentPlayerData data = DescentPlayerData.get(sp);
-			data.setEnabled(true);
-			data.ensureInit();
-			ConstructionMode.set(sp, false);
-			sp.sendMessage(Text.literal("§bPyro GX §7— Tab+H · 3D terrain map"), false);
-		}
+				DescentPlayerData data = DescentPlayerData.get(sp);
+				data.setEnabled(true);
+				data.ensureInit();
+				ConstructionMode.set(sp, false);
+				sp.sendMessage(Text.literal("§bPyro GX §7— Tab+H · 3D terrain map"), false);
+			}
 			return ActionResult.SUCCESS;
 		}
 		return ActionResult.SUCCESS;
