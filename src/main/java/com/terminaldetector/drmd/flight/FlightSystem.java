@@ -136,18 +136,27 @@ public final class FlightSystem {
 
 		Vec3d vel = data.getFlightVelocity().add(wish);
 
-		// Micro gravity + idle gravity + local GravityFields (generators / torches / stations)
-		GravityFields.Sample field = GravityFields.sample(player.getWorld(), player.getPos());
+		// Micro gravity + idle gravity — NEVER from station torches while piloting Pyro GX
+		boolean onPyro = player.getVehicle() instanceof com.terminaldetector.drmd.entity.PyroShipEntity;
+		GravityFields.Sample field = null;
 		Vec3d gravDir;
 		double g = endVacuum ? 0.0
 				: DescentMod.su(MICRO_GRAV) + DescentMod.su(data.getGravity()) * data.getGravityFactor();
+		if (!onPyro && !endVacuum) {
+			field = GravityFields.sample(player.getWorld(), player.getPos());
+		}
 		if (field != null) {
 			gravDir = field.downDir();
 			g += DescentMod.su(data.getGravity()) * field.strength() * 0.55;
-			// Smoothly adopt field UP for construction / station sections
 			com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), field.upDir());
 		} else {
-			gravDir = com.terminaldetector.drmd.world.LocalOrientation.gravityDir(player.getUuid());
+			gravDir = onPyro
+					? new Vec3d(0, -1, 0) // ship ignores local station UP
+					: com.terminaldetector.drmd.world.LocalOrientation.gravityDir(player.getUuid());
+			if (onPyro) {
+				// Keep micro-g along world down only; no torch reorientation
+				g = endVacuum ? 0.0 : DescentMod.su(MICRO_GRAV) * 0.25;
+			}
 		}
 		if (g > 0) vel = vel.add(gravDir.multiply(g * dt));
 
@@ -242,18 +251,27 @@ public final class FlightSystem {
 		data.clearShipAttitude();
 		data.setRoll(0);
 		data.setRollVel(0);
-		player.setNoGravity(false);
 		data.setFlightVelocity(Vec3d.ZERO);
 		data.setHookActive(false);
+		// Foot gravity may immediately reclaim noGravity; default to vanilla until then
+		if (!com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player.getUuid())) {
+			player.setNoGravity(false);
+		}
 		ModNetworking.syncPlayer(player, data);
 	}
 
 	public static void toggle(ServerPlayerEntity player) {
 		DescentPlayerData data = DescentPlayerData.get(player);
-		if (data.isEnabled()) disable(player, data);
-		else {
+		if (data.isEnabled()) {
+			disable(player, data);
+			// Re-enter foot gravity if standing in a torch/generator field
+			com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptAt(player, player.getPos());
+			com.terminaldetector.drmd.world.gravity.FootGravitySystem.tick(player);
+		} else {
+			com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
 			data.setEnabled(true);
 			data.ensureInit();
+			player.setNoGravity(true);
 			ModNetworking.syncPlayer(player, data);
 		}
 	}

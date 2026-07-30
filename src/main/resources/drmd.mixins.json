@@ -12,6 +12,7 @@
     "client.CameraMixin",
     "client.GameRendererMixin",
     "client.InGameHudMixin",
+    "client.LivingEntityRendererMixin",
     "client.MouseMixin"
   ],
   "injectors": {

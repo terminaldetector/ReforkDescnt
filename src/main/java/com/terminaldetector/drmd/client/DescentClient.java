@@ -47,12 +47,28 @@ public class DescentClient implements ClientModInitializer {
 			DescentClientState.alwaysRun = payload.alwaysRun();
 			DescentClientState.flightAssist = payload.flightAssist();
 			DescentClientState.radar = payload.radar();
+			DescentClientState.footGravity = payload.footGravity();
+			DescentClientState.localUx = payload.localUx();
+			DescentClientState.localUy = payload.localUy();
+			DescentClientState.localUz = payload.localUz();
+			var player = context.client().player;
+			if (player != null) {
+				com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),
+						new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));
+				if (payload.footGravity()) {
+					com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptClient(
+							player.getUuid(),
+							new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));
+				} else {
+					com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
+				}
+			}
 			// Prime Descent attitude when 6DoF turns on from server (/d6 / join).
 			if (payload.enabled() && !wasEnabled) {
-				var player = context.client().player;
 				if (player != null) {
 					com.terminaldetector.drmd.client.flight.ShipAttitudeClient.resetFromPlayer(player);
 				}
+				com.terminaldetector.drmd.client.gravity.FootGravityCamera.reset();
 			}
 			if (!payload.enabled()) {
 				DescentClientState.attitudeValid = false;
@@ -100,6 +116,7 @@ public class DescentClient implements ClientModInitializer {
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null || client.getNetworkHandler() == null) return;
 			DescentKeybinds.tick(client);
+			com.terminaldetector.drmd.client.gravity.FootGravityCamera.tickClient();
 			if (DescentClientState.enabled) {
 				DescentKeybinds.sendInput(client);
 			}

@@ -47,8 +47,10 @@ LASER · PLASMA · KINETIC · ROCKET · GRAVITY_SPHERE · ENERGY_ORB · DRILL_CH
 
 - **Gravity Generator** — BE с radius / power / shape (`SPHERE|CYLINDER|PLANE`), facing = down.
   - ПКМ: power · Shift+ПКМ: shape
-- **Gravity Torch** — компактное поле (~8 блоков); мобы и игроки воспринимают ось факела как низ.
-- **GravityFields** — runtime-каталог; `FlightSystem` блендит downDir + силу → плавная смена ориентации между зонами станции.
+- **Gravity Torch** — компактное поле (~8 блоков). Поверхность крепления = пол (FACING наружу).
+  - **Pyro GX / пилот** — не затрагиваются (корабль на тяге).
+  - **Пешком** (6DoF выкл, в т.ч. после высадки с Pyro): `FootGravitySystem` — ходьба по стене/потолку, камера стабилизируется под local UP.
+- **GravityFields** — runtime-каталог; на ногах блендится в FootGravity; в полёте без Pyro — в FlightSystem.
 
 Spawn-хаб ставит generator + два torch с разными направлениями (демо независимых зон).
 

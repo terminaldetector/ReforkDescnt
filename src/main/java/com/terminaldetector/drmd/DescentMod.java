@@ -76,6 +76,8 @@ public class DescentMod implements ModInitializer {
 					EnergySystem.regenTick(player, data);
 					ShieldSystem.regenTick(player, data);
 					com.terminaldetector.drmd.physics.GravyPhysics.tick(player);
+				} else {
+					com.terminaldetector.drmd.world.gravity.FootGravitySystem.tick(player);
 				}
 				if (tick % 20 == player.getId() % 20) {
 					var pos = player.getBlockPos();

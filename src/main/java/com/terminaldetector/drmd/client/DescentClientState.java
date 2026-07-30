@@ -21,6 +21,9 @@ public final class DescentClientState {
 	public static float pitch;
 	public static boolean attitudeValid;
 	public static float attFx, attFy, attFz, attUx, attUy, attUz;
+	/** On-foot local gravity (torch / generator) — camera + travel. */
+	public static boolean footGravity;
+	public static float localUx = 0f, localUy = 1f, localUz = 0f;
 
 	private DescentClientState() {}
 }

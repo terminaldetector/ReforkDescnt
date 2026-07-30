@@ -55,7 +55,8 @@ public final class ModNetworking {
 	public record SyncPayload(boolean enabled, float energy, float energyMax, float shield, float shieldMax,
 							  float roll, float speed, int rocketSub, String preset, float gravy,
 							  float dashCd, float gravityFactor, boolean alwaysRun, boolean flightAssist,
-							  boolean radar) implements CustomPayload {
+							  boolean radar, boolean footGravity, float localUx, float localUy, float localUz
+	) implements CustomPayload {
 		public static final Id<SyncPayload> ID = new Id<>(SYNC_ID);
 		public static final PacketCodec<RegistryByteBuf, SyncPayload> CODEC = PacketCodec.of(
 				(payload, buf) -> {
@@ -74,6 +75,10 @@ public final class ModNetworking {
 					buf.writeBoolean(payload.alwaysRun);
 					buf.writeBoolean(payload.flightAssist);
 					buf.writeBoolean(payload.radar);
+					buf.writeBoolean(payload.footGravity);
+					buf.writeFloat(payload.localUx);
+					buf.writeFloat(payload.localUy);
+					buf.writeFloat(payload.localUz);
 				},
 				buf -> new SyncPayload(
 						buf.readBoolean(),
@@ -90,7 +95,11 @@ public final class ModNetworking {
 						buf.readFloat(),
 						buf.readBoolean(),
 						buf.readBoolean(),
-						buf.readBoolean()
+						buf.readBoolean(),
+						buf.readBoolean(),
+						buf.readFloat(),
+						buf.readFloat(),
+						buf.readFloat()
 				)
 		);
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
@@ -240,6 +249,11 @@ public final class ModNetworking {
 
 	public static void syncPlayer(ServerPlayerEntity player, DescentPlayerData data) {
 		float speed = (float) data.getFlightVelocity().length();
+		var up = com.terminaldetector.drmd.world.LocalOrientation.getUp(player.getUuid());
+		boolean foot = com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player.getUuid());
+		if (foot) {
+			up = com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(player.getUuid());
+		}
 		ServerPlayNetworking.send(player, new SyncPayload(
 				data.isEnabled(),
 				data.getEnergy(), data.getEnergyMax(),
@@ -252,7 +266,9 @@ public final class ModNetworking {
 				data.getGravityFactor(),
 				data.isAlwaysRun(),
 				data.isFlightAssist(),
-				data.isRadarEnabled()
+				data.isRadarEnabled(),
+				foot,
+				(float) up.x, (float) up.y, (float) up.z
 		));
 	}
 

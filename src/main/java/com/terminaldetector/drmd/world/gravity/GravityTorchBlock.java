@@ -1,9 +1,10 @@
 package com.terminaldetector.drmd.world.gravity;
 
 import com.mojang.serialization.MapCodec;
+import com.terminaldetector.drmd.entity.PyroShipEntity;
+import com.terminaldetector.drmd.world.LocalOrientation;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -29,14 +30,15 @@ import org.joml.Vector3f;
 import java.util.UUID;
 
 /**
- * Gravity Torch — compact local gravity source (green torch).
- * Anyone in its zone treats the torch facing as "down".
+ * Gravity Torch — compact local gravity source.
+ * Mount face becomes the floor: FACING points out from the surface, gravity pulls into the wall/ceiling/floor.
+ * Does not affect Pyro GX (ship or pilot).
  */
 public class GravityTorchBlock extends Block {
 	public static final DirectionProperty FACING = Properties.FACING;
 	public static final MapCodec<GravityTorchBlock> CODEC = createCodec(GravityTorchBlock::new);
-	private static final float RADIUS = 8f;
-	private static final float POWER = 0.85f;
+	public static final float RADIUS = 8f;
+	public static final float POWER = 0.85f;
 
 	public GravityTorchBlock(Settings settings) {
 		super(settings);
@@ -56,7 +58,7 @@ public class GravityTorchBlock extends Block {
 	@Nullable
 	@Override
 	public BlockState getPlacementState(ItemPlacementContext ctx) {
-		// Place so the "flame" points opposite the clicked face → that axis becomes down for zones
+		// Stem points away from the clicked face → that face is the floor (UP = FACING)
 		return getDefaultState().with(FACING, ctx.getSide());
 	}
 
@@ -69,6 +71,9 @@ public class GravityTorchBlock extends Block {
 	protected void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
 		super.onBlockAdded(state, world, pos, oldState, notify);
 		register(world, pos, state);
+		if (!world.isClient) {
+			world.scheduleBlockTick(pos, this, 10);
+		}
 	}
 
 	@Override
@@ -78,39 +83,71 @@ public class GravityTorchBlock extends Block {
 	}
 
 	@Override
+	protected boolean hasRandomTicks(BlockState state) {
+		return true;
+	}
+
+	@Override
+	protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+		register(world, pos, state);
+		applyToNearby(world, pos, state);
+		world.scheduleBlockTick(pos, this, 10);
+	}
+
+	@Override
 	protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
 		register(world, pos, state);
-		// Soft-apply UP to nearby living entities (mobs + players)
+		applyToNearby(world, pos, state);
+		world.scheduleBlockTick(pos, this, 10);
+	}
+
+	private static void applyToNearby(ServerWorld world, BlockPos pos, BlockState state) {
 		Direction face = state.get(FACING);
-		Vec3d down = Vec3d.of(face.getOpposite().getVector());
-		Vec3d up = down.negate();
+		Vec3d up = Vec3d.of(face.getVector()); // floor normal = FACING
 		for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class,
 				new net.minecraft.util.math.Box(pos).expand(RADIUS), LivingEntity::isAlive)) {
+			if (e.getVehicle() instanceof PyroShipEntity) continue;
+			if (e instanceof PyroShipEntity) continue;
 			if (e instanceof ServerPlayerEntity sp) {
-				com.terminaldetector.drmd.world.LocalOrientation.setUp(sp.getUuid(), up);
+				com.terminaldetector.drmd.DescentPlayerData data =
+						com.terminaldetector.drmd.DescentPlayerData.get(sp);
+				// Only reorient walkers — thruster mode keeps ship UP
+				if (data.isEnabled()) continue;
+				LocalOrientation.setUp(sp.getUuid(), up);
+				FootGravitySystem.adoptClient(sp.getUuid(), up);
+				sp.setNoGravity(true);
 			} else {
-				// Nudge mobs toward local down
-				e.addVelocity(down.x * 0.04, down.y * 0.04, down.z * 0.04);
+				Vec3d down = up.negate();
+				e.addVelocity(down.x * 0.05, down.y * 0.05, down.z * 0.05);
 				e.velocityModified = true;
 			}
 		}
 		world.spawnParticles(new DustParticleEffect(new Vector3f(0.2f, 1f, 0.45f), 1.0f),
-				pos.getX() + 0.5, pos.getY() + 0.7, pos.getZ() + 0.5, 4, 0.15, 0.15, 0.15, 0.01);
+				pos.getX() + 0.5, pos.getY() + 0.7, pos.getZ() + 0.5, 3, 0.15, 0.15, 0.15, 0.01);
 	}
 
 	@Override
 	protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
 		if (world.isClient) return;
+		if (entity instanceof PyroShipEntity) return;
+		if (entity.getVehicle() instanceof PyroShipEntity) return;
+		if (!(entity instanceof PlayerEntity p)) return;
+		if (p instanceof ServerPlayerEntity sp
+				&& com.terminaldetector.drmd.DescentPlayerData.get(sp).isEnabled()) {
+			return;
+		}
 		Direction face = state.get(FACING);
 		Vec3d up = Vec3d.of(face.getVector());
-		if (entity instanceof PlayerEntity p) {
-			com.terminaldetector.drmd.world.LocalOrientation.setUp(p.getUuid(), up);
+		LocalOrientation.setUp(p.getUuid(), up);
+		if (p instanceof ServerPlayerEntity sp) {
+			FootGravitySystem.adoptClient(sp.getUuid(), up);
+			sp.setNoGravity(true);
 		}
 	}
 
 	private static void register(World world, BlockPos pos, BlockState state) {
 		Direction face = state.get(FACING);
-		// Torch stem points along FACING; gravity pulls opposite (toward the mount surface)
+		// Gravity pulls into the mount surface (opposite of outward FACING)
 		Vec3d down = Vec3d.of(face.getOpposite().getVector());
 		GravityFields.put(new GravityFields.Field(
 				torchId(pos), pos, down, RADIUS, POWER, FieldShape.SPHERE, "Gravity Torch"));
