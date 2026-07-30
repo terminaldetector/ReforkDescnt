@@ -21,8 +21,11 @@ public final class ModBlocks {
 			new DockBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).mapColor(MapColor.DIAMOND_BLUE)));
 	public static final Block COMBAT_ZONE = register("combat_zone",
 			new MarkerBlock(AbstractBlock.Settings.copy(Blocks.GLASS).nonOpaque().mapColor(MapColor.RED)));
+	// Do NOT Settings.copy(Blocks.LIGHT): LightBlock luminance reads LEVEL property and
+	// crashes mod init with IllegalArgumentException on MarkerBlock (unregistered state).
 	public static final Block NAV_NODE = register("nav_node",
-			new MarkerBlock(AbstractBlock.Settings.copy(Blocks.LIGHT).mapColor(MapColor.YELLOW)));
+			new MarkerBlock(AbstractBlock.Settings.copy(Blocks.GLASS).nonOpaque()
+					.luminance(state -> 12).mapColor(MapColor.YELLOW)));
 	public static final Block OBJECTIVE = register("objective",
 			new MarkerBlock(AbstractBlock.Settings.copy(Blocks.GOLD_BLOCK).mapColor(MapColor.GOLD)));
 

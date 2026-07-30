@@ -45,10 +45,25 @@ public final class DescentSession {
 			DescentMod.LOGGER.info("Descent spawn hub generated at {}", hub.toShortString());
 		}
 
-		seedStockMegastructures(world, spawn);
-		seedLayerBiomes(world, spawn);
+		// Keep SERVER_STARTED seeding tiny — bulk megastructures used to block the server
+		// thread for >60s (Watchdog / "crash on join"). Distant landmarks come from
+		// CHUNK_LOAD worldgen after live generation is enabled.
+		BlockPos under = new BlockPos(spawn.getX(), WorldRules.INDUSTRIAL_Y_MIN + 30, spawn.getZ());
+		IndustrialComplexGenerator.generateAt(world, under, WorldRules.ComplexStyle.CRYSTAL_REACTOR, world.getRandom());
+		var ufo = ModEntities.SKY_UFO.create(world);
+		if (ufo != null) {
+			ufo.refreshPositionAndAngles(spawn.getX() + 100.5, WorldRules.SKY_PRACTICAL_MIN + 48,
+					spawn.getZ() + 40.5, 0, 0);
+			world.spawnEntity(ufo);
+		}
+
 		state.setStockSeeded(true);
-		DescentMod.LOGGER.info("Descent stock worldgen seeded (all practical biome layers)");
+		DescentMod.LOGGER.info("Descent stock seed complete (hub + under-spawn complex + sky UFO)");
+	}
+
+	private static void giveIfPresent(ServerPlayerEntity player, net.minecraft.item.Item item) {
+		if (item == null) return;
+		player.giveItemStack(new ItemStack(item));
 	}
 
 	/** Soft player onboarding — 6DoF on, tip message, creative gets Pyro GX. */
@@ -69,10 +84,10 @@ public final class DescentSession {
 			player.sendMessage(Text.literal(
 					"§8Crashed UFO is trap-dense — bring Pyro GX before clearing."), false);
 			if (player.isCreative()) {
-				player.giveItemStack(new ItemStack(com.terminaldetector.drmd.weapon.items.SessionControlItems.REACTOR_STARTER));
-				player.giveItemStack(new ItemStack(com.terminaldetector.drmd.weapon.items.SessionControlItems.SIXDOF_CORE));
-				player.giveItemStack(new ItemStack(com.terminaldetector.drmd.weapon.items.SessionControlItems.STARTER_KIT));
-				player.giveItemStack(new ItemStack(ModItems.PYRO_GX));
+				giveIfPresent(player, com.terminaldetector.drmd.weapon.items.SessionControlItems.REACTOR_STARTER);
+				giveIfPresent(player, com.terminaldetector.drmd.weapon.items.SessionControlItems.SIXDOF_CORE);
+				giveIfPresent(player, com.terminaldetector.drmd.weapon.items.SessionControlItems.STARTER_KIT);
+				giveIfPresent(player, ModItems.PYRO_GX);
 				player.sendMessage(Text.literal(
 						"§aCreative: session tools + Pyro GX — ПКМ на «Запуск реактора» без консоли."), false);
 			}

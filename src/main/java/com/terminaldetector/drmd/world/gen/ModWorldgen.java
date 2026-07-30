@@ -32,7 +32,14 @@ public final class ModWorldgen {
 			AiRole.ARTILLERY, AiRole.SUPPORT, AiRole.HEAVY, AiRole.SEEKER, AiRole.HEAVY_ELITE
 	};
 
+	/** False until the server finishes spawn prep — CHUNK_LOAD during "Preparing spawn" must stay cheap. */
+	private static volatile boolean worldgenLive = false;
+
 	private ModWorldgen() {}
+
+	public static void enableLiveGeneration() {
+		worldgenLive = true;
+	}
 
 	public static void register() {
 		Registry.register(Registries.FEATURE, Identifier.of(DescentMod.MOD_ID, "industrial_underground"), INDUSTRIAL);
@@ -41,6 +48,7 @@ public final class ModWorldgen {
 	}
 
 	private static void onChunkLoad(ServerWorld world, WorldChunk chunk) {
+		if (!worldgenLive) return;
 		if (world.getRegistryKey() != ServerWorld.OVERWORLD) return;
 		ChunkPos cp = chunk.getPos();
 		long seed = world.getSeed() ^ (((long) cp.x) << 32) ^ cp.z;
@@ -48,8 +56,11 @@ public final class ModWorldgen {
 		if (Math.floorMod(seed * 31L, 12L) != 0L) return;
 		int y = WorldRules.INDUSTRIAL_Y_MIN + 24 + (int) Math.floorMod(seed, 16L);
 		BlockPos center = new BlockPos(cp.getStartX() + 8, y, cp.getStartZ() + 8);
-		if (world.getBlockState(center).isOf(net.minecraft.block.Blocks.BEACON)) return;
-		if (!world.getBlockState(center).isAir() && world.getBlockState(center).isSolidBlock(world, center)) {
+		// Read from the already-loaded chunk only — world.getBlockState can force-load
+		// neighbors and re-enter CHUNK_LOAD while a generator is writing (Watchdog).
+		var local = chunk.getBlockState(center);
+		if (local.isOf(net.minecraft.block.Blocks.BEACON)) return;
+		if (!local.isAir() && local.isSolidBlock(world, center)) {
 			WorldRules.ComplexStyle[] styles = WorldRules.ComplexStyle.values();
 			WorldRules.ComplexStyle style = styles[(int) Math.floorMod(seed, styles.length)];
 			world.getServer().execute(() -> forceGenerate(world, center, style));

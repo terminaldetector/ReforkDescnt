@@ -55,7 +55,17 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.gravity.GravityFields.clear();
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.clear();
 			com.terminaldetector.drmd.world.fire.FireSystem.clear();
-			server.execute(() -> com.terminaldetector.drmd.world.base.DescentSession.seedWorld(server));
+			// Light hub seed first; unlock CHUNK_LOAD generators only after it finishes so
+			// nested chunk loads during MegaStructure writes cannot re-enter worldgen (Watchdog).
+			server.execute(() -> {
+				try {
+					com.terminaldetector.drmd.world.base.DescentSession.seedWorld(server);
+				} catch (Exception e) {
+					LOGGER.error("Descent stock seed failed — world still playable", e);
+				}
+				com.terminaldetector.drmd.world.gen.ModWorldgen.enableLiveGeneration();
+				com.terminaldetector.drmd.world.gen2.ModWorldgen2.enableLiveGeneration();
+			});
 			com.terminaldetector.drmd.world.end.EndReactorSession.onServerStarted(server);
 		});
 

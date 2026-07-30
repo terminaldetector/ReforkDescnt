@@ -88,6 +88,10 @@ Also: ${project.archives_base_name}-${project.version}.jar
 
 Не класть *-sources.jar / *-dev.jar в mods.
 
+Если краш при заходе / Preparing spawn:
+  - поставь свежий jar (фиксы nav_node + overworld.json)
+  - создай НОВЫЙ мир
+
 Сборка: ./gradlew build packageTlauncher --no-daemon
 """
 		println "TLauncher package → ${out.absolutePath} (${out.length()} bytes)"

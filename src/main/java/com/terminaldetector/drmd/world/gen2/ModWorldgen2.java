@@ -19,7 +19,13 @@ import net.minecraft.world.chunk.WorldChunk;
  * World Generation 2.0 — celestial / rift megastructures, lunar base, UFOs, mega fauna.
  */
 public final class ModWorldgen2 {
+	private static volatile boolean worldgenLive = false;
+
 	private ModWorldgen2() {}
+
+	public static void enableLiveGeneration() {
+		worldgenLive = true;
+	}
 
 	public static void register() {
 		ServerChunkEvents.CHUNK_LOAD.register(ModWorldgen2::onChunkLoad);
@@ -27,6 +33,7 @@ public final class ModWorldgen2 {
 	}
 
 	private static void onChunkLoad(ServerWorld world, WorldChunk chunk) {
+		if (!worldgenLive) return;
 		if (world.getRegistryKey() != ServerWorld.OVERWORLD) return;
 		ChunkPos cp = chunk.getPos();
 		long seed = world.getSeed() ^ (((long) cp.x) * 341873128712L) ^ (((long) cp.z) * 132897987541L);
