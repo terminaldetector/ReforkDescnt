@@ -115,8 +115,9 @@ public class DrillRigBlock extends Block {
 		return null;
 	}
 
+	// Block declares this one public, unlike its other protected callbacks.
 	@Override
-	protected void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
+	public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
 		if (!state.get(ACTIVE)) return;
 		world.addParticle(ParticleTypes.FLAME,
 				pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.3,
