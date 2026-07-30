@@ -10,25 +10,25 @@ public enum AtmosphereBand {
 	DEEP_PRESSURE(
 			"Deep Pressure",
 			-50_000, -20_000,
-			-64, -20,
+			-512, -20,
 			1.35f, 1.6f, 0.55f, true, false),
 	/** Classic physics — water/lava as players expect. */
 	CLASSIC(
 			"Classic Atmosphere",
 			0, 10_000,
-			-20, 120,
+			-20, 200,
 			1.0f, 1.0f, 1.0f, false, false),
 	/** 10k–30k — thin air; water slows/droplets; smoke lasts; bombs accelerate. */
 	THIN(
 			"Thin Atmosphere",
 			10_000, 30_000,
-			120, 200,
+			200, 420,
 			0.45f, 0.7f, 1.35f, false, true),
 	/** 30k+ — near-space; no free water sources; thrusters primary; full 6DoF combat. */
 	NEAR_SPACE(
 			"Near Space",
 			30_000, 120_000,
-			200, 320,
+			420, 1024,
 			0.05f, 0.35f, 1.8f, false, true);
 
 	public final String label;

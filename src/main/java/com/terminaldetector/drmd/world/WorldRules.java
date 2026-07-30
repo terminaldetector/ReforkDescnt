@@ -16,13 +16,18 @@ public final class WorldRules {
 	public static final int Y_ORBITAL_MAX = 60_000;
 	public static final int Y_END_SPACE = 100_000;
 
-	/** Practical Overworld band until custom dimension height is enabled. */
-	public static final int GEN_Y_MIN = -64;
-	public static final int GEN_Y_MAX = 320;
+	/**
+	 * Practical build band. The custom dimension height <em>is</em> enabled now
+	 * ({@code data/minecraft/dimension_type/overworld.json}), so these mirror
+	 * {@link com.terminaldetector.drmd.world.level.WorldLevels} rather than vanilla's −64…320.
+	 */
+	public static final int GEN_Y_MIN = com.terminaldetector.drmd.world.level.WorldLevels.WORLD_BOTTOM;
+	public static final int GEN_Y_MAX = com.terminaldetector.drmd.world.level.WorldLevels.WORLD_TOP;
+	/** Industrial complexes stay inside the vanilla stone shell so they cut into real terrain. */
 	public static final int INDUSTRIAL_Y_MIN = -56;
-	public static final int INDUSTRIAL_Y_MAX = 40;
-	public static final int SKY_PRACTICAL_MIN = 180;
-	public static final int SKY_PRACTICAL_MAX = 300;
+	public static final int INDUSTRIAL_Y_MAX = com.terminaldetector.drmd.world.level.WorldLevels.INDUSTRIAL_TOP;
+	public static final int SKY_PRACTICAL_MIN = com.terminaldetector.drmd.world.level.WorldLevels.SURFACE_TOP;
+	public static final int SKY_PRACTICAL_MAX = com.terminaldetector.drmd.world.level.WorldLevels.ORBITAL_TOP;
 
 	public enum Layer {
 		DEPTH_REACTORS("Depth Reactors / Nether-analog", Y_DEPTH_REACTORS, Y_SURFACE - 1),
@@ -81,9 +86,11 @@ public final class WorldRules {
 		return switch (layer) {
 			case DEPTH_REACTORS -> INDUSTRIAL_Y_MIN + Math.floorMod(seedMod, 20);
 			case SURFACE -> 64 + Math.floorMod(seedMod, 40);
-			case SKY_ARCHIPELAGO -> SKY_PRACTICAL_MIN + Math.floorMod(seedMod, 80);
-			case ORBITAL -> SKY_PRACTICAL_MAX - 20 + Math.floorMod(seedMod, 15);
-			case END_SPACE -> SKY_PRACTICAL_MAX - 5;
+			case SKY_ARCHIPELAGO -> SKY_PRACTICAL_MIN + Math.floorMod(seedMod, 240);
+			case ORBITAL -> com.terminaldetector.drmd.world.level.WorldLevels.SKY_TOP
+					+ Math.floorMod(seedMod, 200);
+			case END_SPACE -> com.terminaldetector.drmd.world.level.WorldLevels.END_ISLAND_MIN
+					+ Math.floorMod(seedMod, 80);
 		};
 	}
 
@@ -92,11 +99,13 @@ public final class WorldRules {
 	 * (atmosphere bands + industrial / sky generation bands).
 	 */
 	public static Layer practicalLayer(double y) {
-		if (y < INDUSTRIAL_Y_MAX) return Layer.DEPTH_REACTORS;
-		if (y < SKY_PRACTICAL_MIN) return Layer.SURFACE;
-		if (y < SKY_PRACTICAL_MAX - 15) return Layer.SKY_ARCHIPELAGO;
-		if (y < SKY_PRACTICAL_MAX - 2) return Layer.ORBITAL;
-		return Layer.END_SPACE;
+		return switch (com.terminaldetector.drmd.world.level.WorldLevels.at(y)) {
+			case NETHER, ABYSS, INDUSTRIAL -> Layer.DEPTH_REACTORS;
+			case SURFACE -> Layer.SURFACE;
+			case SKY -> Layer.SKY_ARCHIPELAGO;
+			case ORBITAL -> Layer.ORBITAL;
+			case END -> Layer.END_SPACE;
+		};
 	}
 
 	/** Short HUD / biome label for a practical layer. */

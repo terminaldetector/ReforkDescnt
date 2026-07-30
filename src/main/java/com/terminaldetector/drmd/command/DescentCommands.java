@@ -136,6 +136,27 @@ public final class DescentCommands {
 								com.terminaldetector.drmd.world.build.ConstructionMode.toggle(p);
 								return 1;
 							}))
+					// The Nether and the End are bands of this world, so travel is a lift, not a portal.
+					.then(CommandManager.literal("level")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								var level = com.terminaldetector.drmd.world.level.WorldLevels.at(p.getY());
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Level: " + level.label + " (" + level.yMin + " … " + level.yMax + ")"
+												+ " | column " + p.getWorld().getBottomY()
+												+ " … " + (p.getWorld().getBottomY() + p.getWorld().getHeight())), false);
+								return 1;
+							})
+							.then(CommandManager.argument("name", StringArgumentType.word())
+									.executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										var level = com.terminaldetector.drmd.world.level.WorldLevels
+												.byName(StringArgumentType.getString(ctx, "name"));
+										p.requestTeleport(p.getX(), level.travelY(), p.getZ());
+										ctx.getSource().sendFeedback(() -> Text.literal(
+												"Ascending to " + level.label + " @ y=" + level.travelY()), false);
+										return 1;
+									})))
 					.then(CommandManager.literal("worldgen")
 							.requires(s -> s.hasPermissionLevel(2))
 							.then(CommandManager.literal("industrial")

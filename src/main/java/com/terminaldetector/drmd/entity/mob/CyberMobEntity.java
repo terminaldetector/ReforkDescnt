@@ -75,10 +75,12 @@ public abstract class CyberMobEntity extends HostileEntity {
 		builder.add(ALERT, false);
 	}
 
-	public float getShield() { return dataTracker.get(SHIELD); }
-	public float getArmor() { return dataTracker.get(ARMOR); }
-	public float getShieldMax() { return shieldMax; }
-	public float getArmorMax() { return armorMax; }
+	// Named away from LivingEntity#getShield / #getArmor: the vanilla armour accessor is an int
+	// attribute value, and DRMD plating is a separate float pool in front of the hull.
+	public float getShieldCharge() { return dataTracker.get(SHIELD); }
+	public float getArmorPlating() { return dataTracker.get(ARMOR); }
+	public float getShieldChargeMax() { return shieldMax; }
+	public float getArmorPlatingMax() { return armorMax; }
 	public float getFlightRoll() { return dataTracker.get(ROLL); }
 	public boolean isAlert() { return dataTracker.get(ALERT); }
 

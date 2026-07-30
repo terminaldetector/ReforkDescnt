@@ -111,7 +111,7 @@ public class ScannerEntity extends CyberMobEntity {
 				cfg.colorR = 90; cfg.colorG = 255; cfg.colorB = 200;
 				cfg.pierceCount = 1;
 				fire(cfg);
-				playSound(SoundEvents.BLOCK_BEACON_POWER_SELECT, 0.6f, 1.8f);
+				emitSound(SoundEvents.BLOCK_BEACON_POWER_SELECT, 0.6f, 1.8f);
 				fire = Fire.ROCKET_A;
 				fireTimer = 0.7f;
 			}
@@ -159,10 +159,10 @@ public class ScannerEntity extends CyberMobEntity {
 		cfg.visualScale = 0.9f;
 		cfg.colorR = 255; cfg.colorG = 120; cfg.colorB = 60;
 		fire(cfg);
-		playSound(SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, 0.7f, 1.3f);
+		emitSound(SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, 0.7f, 1.3f);
 	}
 
-	private void playSound(net.minecraft.sound.SoundEvent event, float volume, float pitch) {
+	private void emitSound(net.minecraft.sound.SoundEvent event, float volume, float pitch) {
 		getWorld().playSound(null, getX(), getY(), getZ(), event, SoundCategory.HOSTILE, volume, pitch);
 	}
 
