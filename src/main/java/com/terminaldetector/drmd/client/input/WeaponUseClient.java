@@ -40,10 +40,10 @@ public final class WeaponUseClient {
 		if (pulseCooldown > 0) pulseCooldown--;
 		boolean held = DescentClientState.weaponUseHeld || DescentClientState.weaponAltHeld;
 		if (!held) return;
-		// Re-send every tick while held — server enforces fireRate / item cooldown.
+		// Hold-fire pulse — not every tick (avoids packet spam lagging flight).
 		if (pulseCooldown <= 0) {
 			sendNow(DescentClientState.weaponAltHeld);
-			pulseCooldown = 0; // every tick; CD is server-side
+			pulseCooldown = 2;
 		}
 	}
 

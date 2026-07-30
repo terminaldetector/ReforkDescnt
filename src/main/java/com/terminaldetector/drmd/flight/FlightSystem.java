@@ -19,8 +19,8 @@ public final class FlightSystem {
 	public static final float BRAKE_MULT = 0.020f;
 	public static final float SPOOL_UP = 15f;
 	public static final float SPOOL_DOWN = 4f;
-	public static final float STRAFE_MULT = 0.72f;
-	public static final float VERT_MULT = 0.65f;
+	public static final float STRAFE_MULT = 0.80f; // GMod CFG.strafeMult
+	public static final float VERT_MULT = 0.80f;   // GMod CFG.vertMult — Space/Ctrl ship-up
 	public static final float WALL_BOUNCE = 0.5f;
 	public static final float IDLE_GRAV_SEC = 45f;
 	public static final float IDLE_GRAV_RAMP = 5f;
@@ -140,10 +140,13 @@ public final class FlightSystem {
 		boolean onPyro = player.getVehicle() instanceof com.terminaldetector.drmd.entity.PyroShipEntity;
 		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
 		com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
+		// World-down sink only while idle (GMod). While thrusting — pure free flight, no pull.
 		Vec3d gravDir = new Vec3d(0, -1, 0);
-		double g = endVacuum ? 0.0
-				: DescentMod.su(MICRO_GRAV) * (onPyro ? 0.25 : 1.0)
-				+ DescentMod.su(data.getGravity()) * data.getGravityFactor() * (onPyro ? 0.0 : 1.0);
+		double g = 0.0;
+		if (!endVacuum && !thrusting) {
+			g = DescentMod.su(MICRO_GRAV) * (onPyro ? 0.25 : 1.0)
+					+ DescentMod.su(data.getGravity()) * data.getGravityFactor() * (onPyro ? 0.0 : 1.0);
+		}
 		if (g > 0) vel = vel.add(gravDir.multiply(g * dt));
 
 		// Dash
@@ -209,27 +212,29 @@ public final class FlightSystem {
 		double maxSpd = DescentMod.su(data.getMaxSpeed()) * speedMult;
 		if (vel.length() > maxSpd) vel = vel.normalize().multiply(maxSpd);
 
-		data.setFlightVelocity(vel);
+		// Wall bounce from last move (LivingEntityMixin applies move during travel)
+		if (player.horizontalCollision || player.verticalCollision) {
+			Vec3d bounced = vel.multiply(-WALL_BOUNCE);
+			if (player.horizontalCollision) {
+				bounced = new Vec3d(bounced.x, vel.y * WALL_BOUNCE, bounced.z);
+			}
+			if (player.verticalCollision) {
+				bounced = new Vec3d(vel.x * WALL_BOUNCE, -Math.abs(vel.y) * WALL_BOUNCE, vel.z * WALL_BOUNCE);
+			}
+			vel = vel.multiply(WALL_BOUNCE).add(bounced).multiply(0.5);
+		}
 
-		// Apply to player — disable vanilla gravity while 6DOF on
+		data.setFlightVelocity(vel);
+		// Apply to player — LivingEntityMixin.travel moves with this vector (no vanilla air-strafe).
 		player.setNoGravity(true);
 		player.setVelocity(vel);
 		player.velocityModified = true;
 		player.fallDistance = 0f;
 
-		// Simple wall bounce
-		if (player.horizontalCollision || player.verticalCollision) {
-			Vec3d bounced = data.getFlightVelocity().multiply(-WALL_BOUNCE);
-			if (player.horizontalCollision) {
-				bounced = new Vec3d(bounced.x, data.getFlightVelocity().y * WALL_BOUNCE, bounced.z);
-			}
-			if (player.verticalCollision) {
-				bounced = new Vec3d(data.getFlightVelocity().x * WALL_BOUNCE, -Math.abs(data.getFlightVelocity().y) * WALL_BOUNCE, data.getFlightVelocity().z * WALL_BOUNCE);
-			}
-			data.setFlightVelocity(data.getFlightVelocity().multiply(WALL_BOUNCE).add(bounced).multiply(0.5));
+		// HUD sync every other tick — every-tick sync was lagging attitude / flight feel.
+		if (player.age % 2 == 0) {
+			ModNetworking.syncPlayer(player, data);
 		}
-
-		ModNetworking.syncPlayer(player, data);
 	}
 
 	/** Full thruster arming — use everywhere instead of bare setEnabled(true). */

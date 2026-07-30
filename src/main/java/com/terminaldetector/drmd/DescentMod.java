@@ -69,6 +69,16 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.end.EndReactorSession.onServerStarted(server);
 		});
 
+		// Integrate thrusters BEFORE player travel so Space/Ctrl vertical is in velocity this tick.
+		ServerTickEvents.START_SERVER_TICK.register(server -> {
+			server.getPlayerManager().getPlayerList().forEach(player -> {
+				DescentPlayerData data = DescentPlayerData.get(player);
+				if (data.isEnabled()) {
+					FlightSystem.tick(player, data);
+				}
+			});
+		});
+
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			int tick = server.getTicks();
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.tick();
@@ -83,7 +93,6 @@ public class DescentMod implements ModInitializer {
 			server.getPlayerManager().getPlayerList().forEach(player -> {
 				DescentPlayerData data = DescentPlayerData.get(player);
 				if (data.isEnabled()) {
-					FlightSystem.tick(player, data);
 					EnergySystem.regenTick(player, data);
 					ShieldSystem.regenTick(player, data);
 					com.terminaldetector.drmd.physics.GravyPhysics.tick(player);

@@ -61,22 +61,28 @@ public final class ShipAttitudeClient {
 	public static void applyMouse(ClientPlayerEntity player, double cursorDeltaX, double cursorDeltaY) {
 		if (!primed) resetFromPlayer(player);
 		float dt = frameDt();
-		// Accumulate impulses (degrees this frame)
+		// Accumulate impulses (degrees this frame) — preserved total rotation.
 		turnYaw += (float) (-cursorDeltaX * 0.15);
 		turnPitch += (float) (-cursorDeltaY * 0.15);
 
-		// TurnVel drain → body (FA on = heavier hull lag)
-		float turnRate = DescentClientState.flightAssist ? 10f : 18f;
+		// Snappy Descent feel: drain most of the buffer each frame (FA keeps a little hull lag).
+		float turnRate = DescentClientState.flightAssist ? 22f : 40f;
 		float turnK = MathHelper.clamp(turnRate * dt, 0f, 1f);
 		float stepYaw = turnYaw * turnK;
 		float stepPitch = turnPitch * turnK;
 		turnYaw -= stepYaw;
 		turnPitch -= stepPitch;
 
-		float angDamp = DescentClientState.flightAssist ? 8f : 16f;
+		// Light body lag only — do not re-filter into a sticky angVel that keeps spinning.
+		float angDamp = DescentClientState.flightAssist ? 18f : 36f;
 		float angK = MathHelper.clamp(angDamp * dt, 0f, 1f);
-		angYaw += (stepYaw - angYaw) * angK;
-		angPitch += (stepPitch - angPitch) * angK;
+		angYaw = MathHelper.lerp(angK, angYaw, stepYaw);
+		angPitch = MathHelper.lerp(angK, angPitch, stepPitch);
+		// Decay leftover when mouse stops so the ship does not keep drifting.
+		if (Math.abs(stepYaw) < 1e-4f && Math.abs(stepPitch) < 1e-4f) {
+			angYaw *= (1f - angK);
+			angPitch *= (1f - angK);
+		}
 
 		// Local-axis yaw then pitch: no world-up reference — nose crosses poles without gimbal lock.
 		ATT.yawLocal(angYaw);

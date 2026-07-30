@@ -122,8 +122,16 @@ public final class DescentKeybinds {
 		if (client.options.backKey.isPressed()) forward -= 1;
 		if (client.options.leftKey.isPressed()) strafe += 1;
 		if (client.options.rightKey.isPressed()) strafe -= 1;
-		if (ascend.isPressed()) vertical += 1;
+		// GMod IN_JUMP / IN_DUCK → ship local up/down (not world Y).
+		// Jump key shares Space with ascend; do NOT use sneakKey (Shift = dash).
+		if (ascend.isPressed() || client.options.jumpKey.isPressed()) vertical += 1;
 		if (descend.isPressed()) vertical -= 1;
+		long win = client.getWindow().getHandle();
+		if (InputUtil.isKeyPressed(win, GLFW.GLFW_KEY_LEFT_CONTROL)
+				|| InputUtil.isKeyPressed(win, GLFW.GLFW_KEY_RIGHT_CONTROL)) {
+			vertical -= 1;
+		}
+		vertical = Math.max(-1f, Math.min(1f, vertical));
 		if (rollLeft.isPressed()) roll -= 1;
 		if (rollRight.isPressed()) roll += 1;
 

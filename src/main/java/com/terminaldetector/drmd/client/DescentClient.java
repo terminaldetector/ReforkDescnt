@@ -58,7 +58,15 @@ public class DescentClient implements ClientModInitializer {
 			DescentClientState.localUz = payload.enabled() ? 0f : payload.localUz();
 			var player = context.client().player;
 			if (player != null) {
+				// Keep DescentPlayerData.enabled in sync so LivingEntityMixin cancels vanilla travel.
+				var data = com.terminaldetector.drmd.DescentPlayerData.get(player);
+				data.setEnabled(payload.enabled());
+				data.setFlightAssist(payload.flightAssist());
+				data.setAlwaysRun(payload.alwaysRun());
+				data.setRadarEnabled(payload.radar());
+				data.setGravityFactor(payload.gravityFactor());
 				if (payload.enabled()) {
+					player.setNoGravity(true);
 					com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
 					com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
 				} else {
