@@ -78,7 +78,7 @@ CI: **Actions → Build DRMD 6DOF → Artifacts → drmd-6dof** (`workflow_dispa
 - Descent-сессия **нативная**: spawn-хаб + 6DoF при входе
 - **Industrial Underground** ~1/12 чанков + гарнизон дронов
 - **WG 2.0** мегаструктуры ~1/18 чанков + сид вокруг спавна
-- Mega fauna, LLOD-силуэты
+- **LLOD** — Voxel LLOD0→1→2→Chunk (`docs/VOXEL_LLOD.md`)
 - Спеки: `docs/WORLD_DESIGN.md`, `docs/WORLD_GEN_2.md`
 
 ### Pyro GX
@@ -169,9 +169,7 @@ legacy/                               # исходный GMod-аддон
 
 ## Блог / концепт
 
-- Презент-лог: [`docs/BLOG_PRESENT.md`](docs/BLOG_PRESENT.md) — что это вообще  
-- Дорожная карта: [`docs/ROADMAP.md`](docs/ROADMAP.md) — Havok-lite гравипушка, стволы, HUD  
-- HUD — emerald tactical cockpit по концепт-арту (радар, LOCK, weapons, shield/armor, combat log)
+- Блог / концепт: `docs/BLOG_PRESENT.md` · Roadmap: `docs/ROADMAP.md` · Voxel LLOD: `docs/VOXEL_LLOD.md`
 
 ---
 

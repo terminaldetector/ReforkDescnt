@@ -87,16 +87,17 @@ public final class ModNetworking {
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
 	}
 
-	/** Server → client LLOD silhouette catalogue for distant megastructures. */
+	/** Server → client Voxel LLOD catalogue (compact; client expands LLOD0/1/2 meshes). */
 	public record LlodPayload(java.util.List<LlodEntry> entries) implements CustomPayload {
-		public record LlodEntry(String kind, double x, double y, double z,
-								float rx, float ry, float rz, String level, int color, String label) {}
+		public record LlodEntry(java.util.UUID id, String kind, double x, double y, double z,
+								float rx, float ry, float rz, String level, int color, String label, long seed) {}
 
 		public static final Id<LlodPayload> ID = new Id<>(LLOD_ID);
 		public static final PacketCodec<RegistryByteBuf, LlodPayload> CODEC = PacketCodec.of(
 				(payload, buf) -> {
 					buf.writeVarInt(payload.entries.size());
 					for (LlodEntry e : payload.entries) {
+						buf.writeUuid(e.id);
 						buf.writeString(e.kind);
 						buf.writeDouble(e.x);
 						buf.writeDouble(e.y);
@@ -107,6 +108,7 @@ public final class ModNetworking {
 						buf.writeString(e.level);
 						buf.writeInt(e.color);
 						buf.writeString(e.label);
+						buf.writeLong(e.seed);
 					}
 				},
 				buf -> {
@@ -114,12 +116,14 @@ public final class ModNetworking {
 					java.util.ArrayList<LlodEntry> list = new java.util.ArrayList<>(n);
 					for (int i = 0; i < n; i++) {
 						list.add(new LlodEntry(
+								buf.readUuid(),
 								buf.readString(),
 								buf.readDouble(), buf.readDouble(), buf.readDouble(),
 								buf.readFloat(), buf.readFloat(), buf.readFloat(),
 								buf.readString(),
 								buf.readInt(),
-								buf.readString()
+								buf.readString(),
+								buf.readLong()
 						));
 					}
 					return new LlodPayload(list);
@@ -226,16 +230,18 @@ public final class ModNetworking {
 	}
 
 	public static void syncLlod(ServerPlayerEntity player) {
-		var silhouettes = com.terminaldetector.drmd.world.llod.LlodRegistry.queryVisible(player.getBlockPos(), 48);
+		var silhouettes = com.terminaldetector.drmd.world.llod.LlodRegistry.queryVisible(player.getBlockPos(), 64);
 		java.util.ArrayList<LlodPayload.LlodEntry> entries = new java.util.ArrayList<>(silhouettes.size());
 		for (var s : silhouettes) {
 			entries.add(new LlodPayload.LlodEntry(
+					s.id(),
 					s.kind().name(),
 					s.center().x, s.center().y, s.center().z,
 					s.radiusX(), s.radiusY(), s.radiusZ(),
 					s.level().name(),
 					s.colorRgb(),
-					s.label()
+					s.label(),
+					s.seed()
 			));
 		}
 		ServerPlayNetworking.send(player, new LlodPayload(entries));

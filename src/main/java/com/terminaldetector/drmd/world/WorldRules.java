@@ -49,12 +49,13 @@ public final class WorldRules {
 		}
 	}
 
-	/** Streaming representation levels. */
+	/** Streaming / Voxel LLOD bands aligned with LlodLevel. */
 	public enum StreamLevel {
-		MACROWORLD,  // tens of km — silhouette only
-		REGION,      // km-scale intermediate geometry
-		CHUNK,       // vanilla chunk blocks
-		LOCAL        // full detail around player
+		LLOD0,   // far silhouette — thousands of voxels
+		LLOD1,   // large forms
+		LLOD2,   // region proxies
+		CHUNK,   // vanilla blocks
+		LOCAL    // full local detail
 	}
 
 	public enum Architecture {

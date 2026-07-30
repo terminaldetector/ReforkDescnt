@@ -6,15 +6,17 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Client cache of distant megastructure silhouettes for LLOD rendering.
+ * Client cache of macro descriptors for Voxel LLOD expansion.
  */
 public final class LlodClientState {
 	public static final LlodClientState INSTANCE = new LlodClientState();
 
 	public record Entry(
+		UUID id,
 		MacroEntry.Kind kind,
 		Vec3d center,
 		float radiusX,
@@ -22,7 +24,8 @@ public final class LlodClientState {
 		float radiusZ,
 		LlodLevel level,
 		int colorRgb,
-		String label
+		String label,
+		long seed
 	) {}
 
 	private final CopyOnWriteArrayList<Entry> entries = new CopyOnWriteArrayList<>();

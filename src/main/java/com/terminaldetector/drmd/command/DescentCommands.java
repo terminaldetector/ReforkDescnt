@@ -256,8 +256,13 @@ public final class DescentCommands {
 								ServerPlayerEntity p = ctx.getSource().getPlayer();
 								ModNetworking.syncLlod(p);
 								int n = com.terminaldetector.drmd.world.gen2.MacroWorld.size();
+								var bands = com.terminaldetector.drmd.world.llod.LlodRegistry.queryVisible(p.getBlockPos(), 64);
+								long c0 = bands.stream().filter(s -> s.level() == com.terminaldetector.drmd.world.llod.LlodLevel.LLOD0).count();
+								long c1 = bands.stream().filter(s -> s.level() == com.terminaldetector.drmd.world.llod.LlodLevel.LLOD1).count();
+								long c2 = bands.stream().filter(s -> s.level() == com.terminaldetector.drmd.world.llod.LlodLevel.LLOD2).count();
 								ctx.getSource().sendFeedback(() -> Text.literal(
-										"LLOD sync — macro catalogue size: " + n), false);
+										"Voxel LLOD sync — macros=" + n
+												+ " visible LLOD0=" + c0 + " LLOD1=" + c1 + " LLOD2=" + c2), false);
 								return 1;
 							}))
 			);

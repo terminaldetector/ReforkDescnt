@@ -47,11 +47,16 @@ public final class MacroEntry {
 		return center.getSquaredDistance(from);
 	}
 
-	/** Which stream/LLOD band this entry should use at a given distance. */
+	/** Which Voxel LLOD band this entry should use at a given distance. */
 	public WorldRules.StreamLevel lodAt(double distance) {
-		if (distance > 2048) return WorldRules.StreamLevel.MACROWORLD;
-		if (distance > 512) return WorldRules.StreamLevel.REGION;
-		if (distance > 128) return WorldRules.StreamLevel.CHUNK;
-		return WorldRules.StreamLevel.LOCAL;
+		com.terminaldetector.drmd.world.llod.LlodLevel band =
+				com.terminaldetector.drmd.world.llod.LlodLevel.of(distance);
+		return switch (band) {
+			case LLOD0 -> WorldRules.StreamLevel.LLOD0;
+			case LLOD1 -> WorldRules.StreamLevel.LLOD1;
+			case LLOD2 -> WorldRules.StreamLevel.LLOD2;
+			case CHUNK -> WorldRules.StreamLevel.CHUNK;
+			case NONE -> WorldRules.StreamLevel.LLOD0;
+		};
 	}
 }

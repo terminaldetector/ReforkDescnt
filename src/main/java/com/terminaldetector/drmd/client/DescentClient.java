@@ -67,11 +67,17 @@ public class DescentClient implements ClientModInitializer {
 				try {
 					level = LlodLevel.valueOf(e.level());
 				} catch (Exception ex) {
-					level = LlodLevel.SILHOUETTE;
+					// Legacy packet names
+					level = switch (e.level()) {
+						case "SILHOUETTE", "MEDIUM" -> LlodLevel.LLOD0;
+						case "FULL" -> LlodLevel.CHUNK;
+						default -> LlodLevel.LLOD1;
+					};
 				}
 				next.add(new LlodClientState.Entry(
+						e.id(),
 						kind, new Vec3d(e.x(), e.y(), e.z()),
-						e.rx(), e.ry(), e.rz(), level, e.color(), e.label()));
+						e.rx(), e.ry(), e.rz(), level, e.color(), e.label(), e.seed()));
 			}
 			LlodClientState.INSTANCE.set(next);
 		});
