@@ -10,9 +10,13 @@ import com.terminaldetector.drmd.network.ModNetworking;
 import com.terminaldetector.drmd.shield.ShieldSystem;
 import com.terminaldetector.drmd.weapon.items.ModItems;
 import com.terminaldetector.drmd.weapon.registry.WeaponRegistry;
+import com.terminaldetector.drmd.workshop.ClusterModule;
+import com.terminaldetector.drmd.workshop.ConstructionRegistry;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +44,8 @@ public class DescentMod implements ModInitializer {
 		DescentCommands.register();
 		AiCommands.register();
 
+		ServerLifecycleEvents.SERVER_STARTED.register(ConstructionRegistry::bootstrap);
+
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			server.getPlayerManager().getPlayerList().forEach(player -> {
 				DescentPlayerData data = DescentPlayerData.get(player);
@@ -54,6 +60,11 @@ public class DescentMod implements ModInitializer {
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			DescentPlayerData data = DescentPlayerData.get(handler.player);
 			data.ensureInit();
+			// Sync all construction overrides to joining client
+			ConstructionRegistry.allOverrides().forEach((id, mods) -> {
+				ServerPlayNetworking.send(handler.player,
+						new ModNetworking.ConstructionPayload(id, ClusterModule.listToNbt(mods)));
+			});
 			// Auto-activate 6DOF shortly after join (matches GMod 0.5s spawn delay)
 			server.execute(() -> {
 				if (!data.isEnabled()) {

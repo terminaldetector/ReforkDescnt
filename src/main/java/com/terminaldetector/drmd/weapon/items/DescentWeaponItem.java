@@ -85,29 +85,56 @@ public class DescentWeaponItem extends Item {
 
 	protected boolean fireBasic(PlayerEntity user, DescentPlayerData data) {
 		if (!consumeEnergy(data, def.energyCost)) return false;
-		WeaponCore.FireConfig cfg = baseCfg(user);
-		cfg.directDamage = def.damage;
-		cfg.splashDamage = def.splashDamage;
-		cfg.splashRadius = def.splashRadius;
-		cfg.speed = def.speed;
-		cfg.recoil = def.recoil;
-		cfg.dmgClass = def.dmgClass;
-		WeaponCore.fireProjectile(cfg);
+		// Single-barrel weapons (mg/heavy/basic): primary muzzle only
+		// Vulcan: all construction muzzles
+		if ("vulcan".equals(def.behavior)) {
+			fireFromAllMuzzles(user, cfg -> {
+				cfg.directDamage = def.damage;
+				cfg.speed = def.speed;
+				cfg.recoil = def.recoil;
+				cfg.dmgClass = def.dmgClass;
+			});
+		} else {
+			WeaponCore.FireConfig cfg = baseCfg(user);
+			cfg.directDamage = def.damage;
+			cfg.splashDamage = def.splashDamage;
+			cfg.splashRadius = def.splashRadius;
+			cfg.speed = def.speed;
+			cfg.recoil = def.recoil;
+			cfg.dmgClass = def.dmgClass;
+			WeaponCore.fireProjectile(cfg);
+		}
 		return true;
 	}
 
 	protected boolean firePlasma(PlayerEntity user, DescentPlayerData data) {
 		if (!consumeEnergy(data, def.energyCost)) return false;
-		for (float side : new float[]{-0.25f, 0.25f}) {
-			WeaponCore.FireConfig cfg = baseCfg(user);
-			cfg.pos = WeaponCore.muzzle(user, 0.8f, side, -0.1f);
-			cfg.directDamage = def.damage;
-			cfg.splashDamage = def.splashDamage;
-			cfg.splashRadius = def.splashRadius;
-			cfg.speed = def.speed;
-			cfg.recoil = def.recoil * 0.5f;
-			cfg.dmgClass = DamageClass.EXOTIC;
-			WeaponCore.fireProjectile(cfg);
+		// Prefer construction muzzles 1+2 (SideLeft/SideRight); fallback dual offset
+		var muzzles = WeaponCore.allMuzzles(user, def.id);
+		if (muzzles.size() >= 2) {
+			for (int i = 0; i < 2; i++) {
+				WeaponCore.FireConfig cfg = baseCfg(user);
+				cfg.pos = muzzles.get(i);
+				cfg.directDamage = def.damage;
+				cfg.splashDamage = def.splashDamage;
+				cfg.splashRadius = def.splashRadius;
+				cfg.speed = def.speed;
+				cfg.recoil = i == 0 ? def.recoil : 0;
+				cfg.dmgClass = DamageClass.EXOTIC;
+				WeaponCore.fireProjectile(cfg);
+			}
+		} else {
+			for (float side : new float[]{-0.25f, 0.25f}) {
+				WeaponCore.FireConfig cfg = baseCfg(user);
+				cfg.pos = WeaponCore.muzzle(user, 0.8f, side, -0.1f);
+				cfg.directDamage = def.damage;
+				cfg.splashDamage = def.splashDamage;
+				cfg.splashRadius = def.splashRadius;
+				cfg.speed = def.speed;
+				cfg.recoil = def.recoil * 0.5f;
+				cfg.dmgClass = DamageClass.EXOTIC;
+				WeaponCore.fireProjectile(cfg);
+			}
 		}
 		return true;
 	}
@@ -197,9 +224,16 @@ public class DescentWeaponItem extends Item {
 
 	protected boolean fireQuadLaser(PlayerEntity user, DescentPlayerData data) {
 		if (!consumeEnergy(data, def.energyCost)) return false;
-		for (float[] off : new float[][]{{-0.2f,0.1f},{0.2f,0.1f},{-0.2f,-0.1f},{0.2f,-0.1f}}) {
-			Vec3d start = WeaponCore.muzzle(user, 0.5f, off[0], off[1]);
-			WeaponCore.hitscan(user, start, WeaponCore.aimDir(user), 8000f, def.damage, DamageClass.ENERGY, null);
+		var muzzles = WeaponCore.allMuzzles(user, def.id);
+		if (muzzles.size() >= 4) {
+			for (int i = 0; i < 4; i++) {
+				WeaponCore.hitscan(user, muzzles.get(i), WeaponCore.aimDir(user), 8000f, def.damage, DamageClass.ENERGY, null);
+			}
+		} else {
+			for (float[] off : new float[][]{{-0.2f,0.1f},{0.2f,0.1f},{-0.2f,-0.1f},{0.2f,-0.1f}}) {
+				Vec3d start = WeaponCore.muzzle(user, 0.5f, off[0], off[1]);
+				WeaponCore.hitscan(user, start, WeaponCore.aimDir(user), 8000f, def.damage, DamageClass.ENERGY, null);
+			}
 		}
 		WeaponCore.applyRecoil(user, WeaponCore.aimDir(user), def.recoil);
 		return true;
@@ -375,11 +409,25 @@ public class DescentWeaponItem extends Item {
 	protected WeaponCore.FireConfig baseCfg(PlayerEntity user) {
 		WeaponCore.FireConfig cfg = new WeaponCore.FireConfig();
 		cfg.owner = user;
-		cfg.pos = WeaponCore.muzzle(user, 0.9f, 0.15f, -0.1f);
+		cfg.pos = WeaponCore.muzzleFor(user, def.id, 1);
 		cfg.dir = WeaponCore.aimDir(user);
 		cfg.dmgClass = def.dmgClass;
 		cfg.life = 5f;
 		return cfg;
+	}
+
+	/** Fire one projectile per construction muzzle (multi-barrel layouts). */
+	protected void fireFromAllMuzzles(PlayerEntity user, java.util.function.Consumer<WeaponCore.FireConfig> tune) {
+		var muzzles = WeaponCore.allMuzzles(user, def.id);
+		int i = 0;
+		for (Vec3d pos : muzzles) {
+			WeaponCore.FireConfig cfg = baseCfg(user);
+			cfg.pos = pos;
+			tune.accept(cfg);
+			if (i > 0) cfg.recoil = 0; // only first barrel applies ship recoil
+			WeaponCore.fireProjectile(cfg);
+			i++;
+		}
 	}
 
 	protected static Vec3d spread(Vec3d dir, float degrees, net.minecraft.util.math.random.Random random) {

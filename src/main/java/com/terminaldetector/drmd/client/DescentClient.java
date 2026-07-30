@@ -1,9 +1,11 @@
 package com.terminaldetector.drmd.client;
 
-import com.terminaldetector.drmd.client.hud.DescentHud;
 import com.terminaldetector.drmd.client.input.DescentKeybinds;
 import com.terminaldetector.drmd.client.render.ModEntityRenderers;
+import com.terminaldetector.drmd.client.render.WeaponViewRenderer;
 import com.terminaldetector.drmd.network.ModNetworking;
+import com.terminaldetector.drmd.workshop.ClusterModule;
+import com.terminaldetector.drmd.workshop.ConstructionRegistry;
 import com.terminaldetector.drmd.workshop.WorkshopScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -15,6 +17,7 @@ public class DescentClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		DescentKeybinds.register();
 		ModEntityRenderers.register();
+		WeaponViewRenderer.register();
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SyncPayload.ID, (payload, context) -> {
 			DescentClientState.enabled = payload.enabled();
@@ -32,6 +35,15 @@ public class DescentClient implements ClientModInitializer {
 			DescentClientState.alwaysRun = payload.alwaysRun();
 			DescentClientState.flightAssist = payload.flightAssist();
 			DescentClientState.radar = payload.radar();
+		});
+
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ConstructionPayload.ID, (payload, context) -> {
+			String id = ConstructionRegistry.normalize(payload.weaponId());
+			if (payload.modules() == null || payload.modules().isEmpty()) {
+				ConstructionRegistry.clearOverride(id);
+			} else {
+				ConstructionRegistry.setOverride(id, ClusterModule.listFromNbt(payload.modules()));
+			}
 		});
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {

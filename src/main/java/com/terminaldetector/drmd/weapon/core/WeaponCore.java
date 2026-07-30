@@ -195,6 +195,33 @@ public final class WeaponCore {
 				.add(uu.multiply(up));
 	}
 
+	/**
+	 * Muzzle from construction clusters — port of D6_Wep.MuzzleFor / D6_SCKBridge.GetMuzzle.
+	 * Offsets are Source inches converted to blocks via /16.
+	 */
+	public static Vec3d muzzleFor(PlayerEntity player, String weaponId, int idx) {
+		var off = com.terminaldetector.drmd.workshop.ConstructionRegistry.getMuzzle(weaponId, idx);
+		return muzzle(player, off.mcFwd(), off.mcRgt(), off.mcUp());
+	}
+
+	/** All construction muzzle world positions for multi-barrel fire. */
+	public static java.util.List<Vec3d> allMuzzles(PlayerEntity player, String weaponId) {
+		java.util.Map<Integer, com.terminaldetector.drmd.workshop.WeaponClusters.MuzzleOffset> map =
+				com.terminaldetector.drmd.workshop.ConstructionRegistry.getMuzzles(weaponId);
+		java.util.ArrayList<Vec3d> out = new java.util.ArrayList<>();
+		if (map.isEmpty()) {
+			out.add(muzzle(player, 0.9f, 0.15f, -0.1f));
+			return out;
+		}
+		java.util.TreeMap<Integer, com.terminaldetector.drmd.workshop.WeaponClusters.MuzzleOffset> sorted =
+				new java.util.TreeMap<>(map);
+		for (var e : sorted.entrySet()) {
+			var o = e.getValue();
+			out.add(muzzle(player, o.mcFwd(), o.mcRgt(), o.mcUp()));
+		}
+		return out;
+	}
+
 	public static Vec3d aimDir(PlayerEntity player) {
 		return player.getRotationVec(1f);
 	}

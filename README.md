@@ -133,7 +133,19 @@ legacy/                      # оригинальный GMod аддон
 
 ## Оружейная Мастерская
 
-Клавиша **M** — вкладки Stats / Projectile / Flak / Guidance, шаблоны Cannon/Missile/Flak/Seeker, экспорт Java `WeaponDef` в буфер обмена (порт SCK generator).
+Клавиша **M** — вкладки **Stats / Projectile / Flak / Guidance / Clusters**.
+
+### Clusters (строительство)
+Порт SCK WeaponClusters + `D6_SCKBridge`:
+- Зоны: **Center → Upper → SideLeft → SideRight → Lower**
+- Модули: `barrel` / `nosegun` / `strider` / `gravy` с позицией, scale, muzzle idx
+- Дефолтные компоновки всех 27 оружий из `d6_wepview.lua`
+- **Load Held** — загрузить construction текущего оружия
+- **Apply Build** — применить маззлы/вид к оружию (сервер + клиенты)
+- **Reset Layout** — вернуть Doom-стиль по умолчанию
+- Экспорт Java включает блок `WeaponClusters` + `ConstructionRegistry.setOverride`
+
+Точки выстрела из construction кормят `WeaponCore.muzzleFor` (плазма/quad/vulcan стреляют из нескольких стволов).
 
 ---
 

@@ -86,12 +86,33 @@ public final class ModNetworking {
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
 	}
 
+	/** Client → server construction apply (empty modules list = clear override). */
+	public record ConstructionPayload(String weaponId, net.minecraft.nbt.NbtList modules) implements CustomPayload {
+		public static final Identifier CONSTRUCTION_ID = Identifier.of(DescentMod.MOD_ID, "construction");
+		public static final Id<ConstructionPayload> ID = new Id<>(CONSTRUCTION_ID);
+		public static final PacketCodec<RegistryByteBuf, ConstructionPayload> CODEC = PacketCodec.of(
+				(payload, buf) -> {
+					buf.writeString(payload.weaponId);
+					buf.writeNbt(payload.modules);
+				},
+				buf -> {
+					String id = buf.readString();
+					net.minecraft.nbt.NbtElement el = buf.readNbt();
+					net.minecraft.nbt.NbtList list = el instanceof net.minecraft.nbt.NbtList l ? l : new net.minecraft.nbt.NbtList();
+					return new ConstructionPayload(id, list);
+				}
+		);
+		@Override public Id<? extends CustomPayload> getId() { return ID; }
+	}
+
 	private ModNetworking() {}
 
 	public static void register() {
 		PayloadTypeRegistry.playC2S().register(InputPayload.ID, InputPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(ActionPayload.ID, ActionPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(ConstructionPayload.ID, ConstructionPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(SyncPayload.ID, SyncPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(ConstructionPayload.ID, ConstructionPayload.CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(InputPayload.ID, (payload, context) -> {
 			ServerPlayerEntity player = context.player();
@@ -122,6 +143,24 @@ public final class ModNetworking {
 				default -> {}
 			}
 			syncPlayer(player, data);
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(ConstructionPayload.ID, (payload, context) -> {
+			ServerPlayerEntity player = context.player();
+			if (!player.hasPermissionLevel(2) && !player.getServer().isSingleplayer()) {
+				return; // only ops / SP can publish constructions
+			}
+			String id = com.terminaldetector.drmd.workshop.ConstructionRegistry.normalize(payload.weaponId());
+			if (payload.modules() == null || payload.modules().isEmpty()) {
+				com.terminaldetector.drmd.workshop.ConstructionRegistry.clearOverride(id);
+			} else {
+				var mods = com.terminaldetector.drmd.workshop.ClusterModule.listFromNbt(payload.modules());
+				com.terminaldetector.drmd.workshop.ConstructionRegistry.setOverride(id, mods);
+			}
+			// Broadcast to all players so clients update FP view + muzzles
+			for (ServerPlayerEntity p : player.getServer().getPlayerManager().getPlayerList()) {
+				ServerPlayNetworking.send(p, payload);
+			}
 		});
 	}
 
