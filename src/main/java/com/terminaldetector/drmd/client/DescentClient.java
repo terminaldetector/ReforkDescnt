@@ -69,9 +69,18 @@ public class DescentClient implements ClientModInitializer {
 				data.setGravityFactor(payload.gravityFactor());
 				if (payload.enabled()) {
 					Vec3d flight = new Vec3d(payload.vx(), payload.vy(), payload.vz());
-					data.setFlightVelocity(flight);
-					player.setVelocity(flight);
+					// Soft correct — hard overwrite every sync made client prediction hitch/freeze.
+					Vec3d local = data.getFlightVelocity();
+					if (local.lengthSquared() < 1e-6 || local.subtract(flight).lengthSquared() > 4.0) {
+						data.setFlightVelocity(flight);
+						player.setVelocity(flight);
+					} else {
+						Vec3d blended = local.multiply(0.65).add(flight.multiply(0.35));
+						data.setFlightVelocity(blended);
+						player.setVelocity(blended);
+					}
 					player.setNoGravity(true);
+					com.terminaldetector.drmd.flight.FlightMotion.suppressCreativeFly(player);
 					com.terminaldetector.drmd.world.LocalOrientation.setUp(player, new Vec3d(0, 1, 0));
 					com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player);
 					com.terminaldetector.drmd.client.gravity.FootGravityCamera.reset();
@@ -147,16 +156,24 @@ public class DescentClient implements ClientModInitializer {
 			com.terminaldetector.drmd.client.gravity.FootGravityCamera.reset();
 		});
 
+		// Predict thrust BEFORE entity travel so creative/SP is not one tick behind (feels frozen).
+		ClientTickEvents.START_CLIENT_TICK.register(client -> {
+			if (client.player == null || client.getNetworkHandler() == null) return;
+			if (!DescentClientState.enabled) return;
+			com.terminaldetector.drmd.flight.FlightMotion.suppressCreativeFly(client.player);
+			if (!DescentClientState.attitudeValid
+					|| !com.terminaldetector.drmd.client.flight.ShipAttitudeClient.isPrimed()) {
+				com.terminaldetector.drmd.client.flight.ShipAttitudeClient.resetFromPlayer(client.player);
+			}
+			DescentKeybinds.sendInput(client);
+		});
+
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null || client.getNetworkHandler() == null) return;
 			DescentKeybinds.tick(client);
 			com.terminaldetector.drmd.client.gravity.FootGravityCamera.tickClient();
 			if (DescentClientState.enabled) {
-				if (!DescentClientState.attitudeValid
-						|| !com.terminaldetector.drmd.client.flight.ShipAttitudeClient.isPrimed()) {
-					com.terminaldetector.drmd.client.flight.ShipAttitudeClient.resetFromPlayer(client.player);
-				}
-				DescentKeybinds.sendInput(client);
+				com.terminaldetector.drmd.flight.FlightMotion.suppressCreativeFly(client.player);
 			}
 			// Age client-only smoke on dedicated clients; integrated SP uses server tick
 			if (client.world != null && client.world.getTime() % 2 == 0

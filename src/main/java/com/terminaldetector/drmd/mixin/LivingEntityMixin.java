@@ -6,7 +6,6 @@ import com.terminaldetector.drmd.shield.ShieldSystem;
 import com.terminaldetector.drmd.weapon.core.DamageClass;
 import com.terminaldetector.drmd.world.gravity.FootGravitySystem;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MovementType;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Vec3d;
@@ -32,32 +31,21 @@ public class LivingEntityMixin {
 	}
 
 	/**
-	 * Free 6DoF must fully replace vanilla travel.
-	 * Vanilla {@code travel} keeps mostly horizontal air-strafe and eats ship-up thrust
-	 * (Space/Ctrl), which felt like “only horizontal flight works”.
+	 * Foot-gravity only. 6DoF is applied in {@link PlayerEntityMixin} so creative
+	 * {@code abilities.flying} cannot rewrite velocity after {@code super.travel}.
 	 */
 	@Inject(method = "travel", at = @At("HEAD"), cancellable = true)
-	private void drmd$flightOrFootTravel(Vec3d movementInput, CallbackInfo ci) {
+	private void drmd$footTravel(Vec3d movementInput, CallbackInfo ci) {
 		LivingEntity self = (LivingEntity) (Object) this;
 		if (!(self instanceof PlayerEntity player)) return;
 		if (player.getVehicle() instanceof PyroShipEntity) return;
 
 		DescentPlayerData data = DescentPlayerData.get(player);
-		// Side-local data: flight and foot-gravity are mutually exclusive.
 		if (data.isEnabled()) {
-			if (FootGravitySystem.isActive(player)) {
-				FootGravitySystem.clear(player);
+			// Safety net if PlayerEntity.travel was skipped — still own the tick.
+			if (com.terminaldetector.drmd.flight.FlightMotion.applyTravel(player)) {
+				ci.cancel();
 			}
-			player.setNoGravity(true);
-			Vec3d vel = data.getFlightVelocity();
-			if (player.getWorld().isClient && vel.lengthSquared() < 1e-12) {
-				vel = player.getVelocity();
-			}
-			player.setVelocity(vel);
-			player.move(MovementType.SELF, vel);
-			player.fallDistance = 0f;
-			player.velocityDirty = true;
-			ci.cancel();
 			return;
 		}
 

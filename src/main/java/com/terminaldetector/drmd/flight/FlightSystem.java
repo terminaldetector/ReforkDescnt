@@ -52,6 +52,9 @@ public final class FlightSystem {
 	}
 
 	public static void tick(ServerPlayerEntity player, DescentPlayerData data) {
+		// Creative double-tap fly must stay OFF or PlayerEntity.travel kills thrusters.
+		FlightMotion.suppressCreativeFly(player);
+
 		float dt = 1f / 20f;
 		InputState in = input(player);
 
@@ -245,10 +248,12 @@ public final class FlightSystem {
 		data.setGravityFactor(0f);
 		data.setHookActive(false);
 		rescueIntoColumn(player);
-		player.setNoGravity(true);
+		FlightMotion.suppressCreativeFly(player);
 		player.fallDistance = 0f;
 		player.velocityModified = true;
 		ModNetworking.syncPlayer(player, data);
+		player.sendMessage(net.minecraft.text.Text.literal(
+				"§b6DoF §aON §7— creative-fly off · WASD+Space/Ctrl · Q/E roll · H = пеший"), true);
 	}
 
 	/**
@@ -269,12 +274,12 @@ public final class FlightSystem {
 			data.levelShipAttitude(player);
 		}
 		rescueIntoColumn(player);
-		player.setNoGravity(true);
+		FlightMotion.suppressCreativeFly(player);
 		player.fallDistance = 0f;
 		player.velocityModified = true;
 		ModNetworking.syncPlayer(player, data);
 		player.sendMessage(net.minecraft.text.Text.literal(
-				"§b6DoF §arepaired §7— thrusters ON, attitude sync, WASD+Space/Ctrl, Q/E roll"), false);
+				"§b6DoF §arepaired §7— creative-fly OFF, thrusters ON, WASD+Space/Ctrl, Q/E roll"), false);
 	}
 
 	public static void disable(ServerPlayerEntity player, DescentPlayerData data) {
