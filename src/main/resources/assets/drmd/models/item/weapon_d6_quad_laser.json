@@ -1,4 +1,6 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": { "layer0": "minecraft:item/fire_charge" }
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "drmd:item/weapon_d6_quad_laser"
+  }
 }

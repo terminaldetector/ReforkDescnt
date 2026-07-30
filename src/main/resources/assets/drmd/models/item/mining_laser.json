@@ -1,4 +1,6 @@
 {
   "parent": "minecraft:item/handheld",
-  "textures": { "layer0": "drmd:item/mining_laser" }
+  "textures": {
+    "layer0": "drmd:item/mining_laser"
+  }
 }

@@ -1,4 +1,6 @@
 {
   "parent": "minecraft:item/handheld",
-  "textures": { "layer0": "drmd:item/gravity_scanner" }
+  "textures": {
+    "layer0": "drmd:item/gravity_scanner"
+  }
 }

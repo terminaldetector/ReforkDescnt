@@ -1,4 +1,6 @@
 {
   "parent": "minecraft:item/handheld",
-  "textures": { "layer0": "minecraft:item/iron_pickaxe" }
+  "textures": {
+    "layer0": "drmd:item/build_tool"
+  }
 }
