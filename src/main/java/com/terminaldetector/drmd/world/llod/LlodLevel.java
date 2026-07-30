@@ -20,13 +20,13 @@ package com.terminaldetector.drmd.world.llod;
  */
 public enum LlodLevel {
 	/** Vanilla chunk blocks — player neighbourhood. No LLOD draw. */
-	CHUNK(0, 96, 0),
-	/** Region proxies — few large AABBs / mega-voxels. */
-	LLOD2(96, 384, 12),
+	CHUNK(0, 64, 0),
+	/** Region proxies — start right outside typical short view-distance. */
+	LLOD2(64, 256, 16),
 	/** Large forms — thick structural voxels. */
-	LLOD1(384, 1280, 256),
+	LLOD1(256, 960, 320),
 	/** Far silhouette — dense voxel cloud (fog disabled on draw pass). */
-	LLOD0(1280, 48_000, 2800),
+	LLOD0(960, 48_000, 3200),
 	/** Beyond draw budget. */
 	NONE(48_000, Double.POSITIVE_INFINITY, 0);
 

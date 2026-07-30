@@ -20,10 +20,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * never faces an empty void.
  */
 public final class MacroCatalogue {
-	/** Cell size in blocks (XZ). */
-	public static final int CELL = 384;
+	/** Cell size in blocks (XZ) — denser so LLOD fills past the small loaded chunk square. */
+	public static final int CELL = 192;
 	/** How many cells around the viewer (and look-ahead) to ensure. */
-	public static final int RADIUS_CELLS = 5;
+	public static final int RADIUS_CELLS = 8;
 	/** Prune ghosts beyond this multiple of CELL from the viewer. */
 	public static final double PRUNE_CELLS = RADIUS_CELLS + 2.5;
 
@@ -56,9 +56,10 @@ public final class MacroCatalogue {
 			for (int dz = -RADIUS_CELLS; dz <= RADIUS_CELLS; dz++) {
 				int gx = cx + dx;
 				int gz = cz + dz;
-				// Two vertical bands per cell: industrial + sky (inside real world column)
+				// Industrial + surface ridge + sky — fills horizon past the loaded chunk square
 				ensureCell(seed, gx, gz, 0, bot, top);
 				ensureCell(seed, gx, gz, 1, bot, top);
+				ensureCell(seed, gx, gz, 2, bot, top);
 			}
 		}
 		pruneFar(viewer, CELL * PRUNE_CELLS);
@@ -83,29 +84,33 @@ public final class MacroCatalogue {
 		if (MacroWorld.get(id) != null) return;
 
 		long h = mix(worldSeed, gx, gz, band);
-		// Sparse: ~45% of cells get a ghost so the sky isn't solid noise
-		if ((h & 0xFF) > 115) return;
+		// Denser fill (~70%) so the void beyond chunks is not empty like the cockpit photo
+		if ((h & 0xFF) > 180) return;
 
 		MacroEntry.Kind kind = KINDS[(int) Math.floorMod(h >> 8, KINDS.length)];
-		int x = gx * CELL + 64 + (int) Math.floorMod(h >> 16, CELL - 128);
-		int z = gz * CELL + 64 + (int) Math.floorMod(h >> 24, CELL - 128);
+		int pad = Math.max(16, CELL / 6);
+		int x = gx * CELL + pad + (int) Math.floorMod(h >> 16, Math.max(1, CELL - pad * 2));
+		int z = gz * CELL + pad + (int) Math.floorMod(h >> 24, Math.max(1, CELL - pad * 2));
 		int y;
 		WorldRules.Layer layer;
 		if (band == 0) {
-			// Industrial / cave band
 			y = MathHelper.clamp(WorldRules.INDUSTRIAL_Y_MIN + 20 + (int) Math.floorMod(h >> 32, 28), bot + 8, top - 8);
 			layer = WorldRules.Layer.DEPTH_REACTORS;
+		} else if (band == 1) {
+			// Surface-ridge proxies — read as distant terrain past the chunk square
+			y = MathHelper.clamp(64 + (int) Math.floorMod(h >> 32, 40), bot + 16, top - 24);
+			layer = WorldRules.Layer.SURFACE;
+			kind = ((h >> 9) & 1) == 0 ? MacroEntry.Kind.CANYON : MacroEntry.Kind.SPIRAL_RANGE;
 		} else {
-			// High-altitude band inside the real world column (not past topY)
 			int skyLo = Math.min(top - 40, Math.max(bot + 80, 180));
 			int skyHi = Math.max(skyLo + 8, top - 12);
 			y = skyLo + (int) Math.floorMod(h >> 40, Math.max(1, skyHi - skyLo));
 			layer = WorldRules.Layer.SKY_ARCHIPELAGO;
 		}
 
-		int sx = 48 + (int) Math.floorMod(h >> 4, 80);
-		int sy = 28 + (int) Math.floorMod(h >> 12, 60);
-		int sz = 48 + (int) Math.floorMod(h >> 20, 80);
+		int sx = band == 1 ? 64 + (int) Math.floorMod(h >> 4, 96) : 40 + (int) Math.floorMod(h >> 4, 72);
+		int sy = band == 1 ? 18 + (int) Math.floorMod(h >> 12, 28) : 24 + (int) Math.floorMod(h >> 12, 56);
+		int sz = band == 1 ? 64 + (int) Math.floorMod(h >> 20, 96) : 40 + (int) Math.floorMod(h >> 20, 72);
 		int color = colorFor(kind, h);
 		String label = kind.name().charAt(0) + kind.name().substring(1).toLowerCase().replace('_', ' ');
 

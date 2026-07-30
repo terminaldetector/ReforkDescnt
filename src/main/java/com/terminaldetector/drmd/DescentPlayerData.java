@@ -56,9 +56,10 @@ public class DescentPlayerData {
 
 	// Tunable physics (admin d6_set) — Source units, scaled at runtime
 	private float gravity = 200f;
-	private float accel = 4200f;
+	/** Legacy Source-unit fields — live caps are {@link com.terminaldetector.drmd.flight.FlightSpeeds}. */
+	private float accel = 900f;
 	private float drag = 2.1f;
-	private float maxSpeed = 2200f;
+	private float maxSpeed = 140f;
 
 	// --- Energy (d6_energy.lua) ---
 	private float energy = 100f;
@@ -91,6 +92,9 @@ public class DescentPlayerData {
 		if (shieldMax <= 0) shieldMax = 100f;
 		if (energy <= 0 && !enabled) energy = energyMax;
 		if (shield <= 0 && !enabled) shield = shieldMax;
+		// Migrate old saves that stored insane Source-unit speeds (caused no-clip tunneling).
+		if (maxSpeed > 400f || maxSpeed < 20f) maxSpeed = 140f;
+		if (accel > 2000f || accel < 50f) accel = 900f;
 	}
 
 	public void writeNbt(NbtCompound nbt) {

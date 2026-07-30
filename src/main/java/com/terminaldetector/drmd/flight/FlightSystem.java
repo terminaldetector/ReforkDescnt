@@ -25,6 +25,8 @@ public final class FlightSystem {
 	public static final float IDLE_GRAV_SEC = 45f;
 	public static final float IDLE_GRAV_RAMP = 5f;
 	public static final float MICRO_GRAV = 20f;
+	/** @deprecated use {@link FlightSpeeds#DASH_IMPULSE} (blocks/tick). */
+	@Deprecated
 	public static final float DASH_VEL = 3200f;
 	public static final float DASH_DUR = 0.18f;
 	public static final float DASH_CD = 1.8f;
@@ -119,23 +121,17 @@ public final class FlightSystem {
 		else spool = Math.max(0f, spool - SPOOL_DOWN * dt);
 		data.setThrustSpool(spool);
 
-		float engAlloc = data.getAllocEngines();
-		float accelMult = data.isAlwaysRun() ? MathHelper.lerp(engAlloc, 1.3f, 1.9f) : 1f;
-		float speedMult = data.isAlwaysRun() ? MathHelper.lerp(engAlloc, 1.3f, 1.8f) : 1f;
-
-		// Atmospheric bands: thin air / near-space / End vacuum → less drag, more thrust
+		boolean afterburn = data.isAlwaysRun();
+		// Atmospheric bands: mild feel only — never blow past elytra envelope (no-clip risk).
 		boolean endVacuum = player.getWorld().getRegistryKey() == net.minecraft.world.World.END;
 		AtmosphereBand band = AtmosphereBand.at(player.getWorld(), player.getY());
-		accelMult *= band.thrustScale;
-		speedMult *= MathHelper.lerp(1f - band.airDrag, 1f, 1.15f);
+		float atmos = MathHelper.clamp(band.thrustScale, 0.85f, 1.2f);
 		if (endVacuum) {
-			// No idle gravity sink in End — thrusters only
 			data.setGravityFactor(0f);
 		}
 
-		// Per-axis thrust like Descent/GMod — do NOT normalize the sum.
-		// Normalizing made W+Space steal nose thrust; pure W must be full nose accel.
-		double a = DescentMod.su(data.getAccel()) * accelMult * spool * dt;
+		// Per-axis thrust like Descent — caps in FlightSpeeds (~1.2× elytra, форсаж 4×).
+		double a = FlightSpeeds.accelBlocksPerSec2(afterburn) * atmos * spool * dt;
 		Vec3d vel = data.getFlightVelocity()
 				.add(look.multiply(in.forward * a))
 				.add(rolledRight.multiply(in.strafe * STRAFE_MULT * a))
@@ -165,7 +161,7 @@ public final class FlightSystem {
 				if (dashDir.lengthSquared() > 1e-8) dashDir = dashDir.normalize();
 				else dashDir = look;
 			}
-			vel = vel.add(dashDir.multiply(DescentMod.su(DASH_VEL)));
+			vel = vel.add(dashDir.multiply(FlightSpeeds.DASH_IMPULSE));
 			data.setDashCooldown(DASH_CD);
 			data.setDashTimer(DASH_DUR);
 			in.dash = false;
@@ -221,21 +217,19 @@ public final class FlightSystem {
 		double inertiaKeep = Math.pow(INERTIA, dt * 60.0);
 		vel = vel.multiply(inertiaKeep);
 
-		// Soft speed cap
-		double maxSpd = DescentMod.su(data.getMaxSpeed()) * speedMult;
+		// Soft speed cap — cruise ≈ 1.2× elytra, форсаж = 4× elytra; spool makes it dynamic.
+		double maxSpd = FlightSpeeds.maxBlocksPerTick(afterburn, spool) * atmos;
 		if (vel.length() > maxSpd) vel = vel.normalize().multiply(maxSpd);
 
 		// Soft world-column walls — stop silent void flight past min_y / topY
-		// (Overworld datapack is still −64…320; speculative WorldLevels are not live yet).
 		vel = applyColumnSoftWall(player, vel);
 
-		// Collision: axis-aware. NEVER zero upward thrust while standing on ground —
-		// the old "bounce every verticalCollision tick" made takeoff impossible.
+		// Pre-move collision damping from last tick flags (takeoff-safe).
 		vel = applyCollisionResponse(player, vel, thrusting);
 
 		data.setFlightVelocity(vel);
-		// Apply to player — LivingEntityMixin.travel moves with this vector (no vanilla air-strafe).
 		player.setNoGravity(true);
+		player.noClip = false;
 		player.setVelocity(vel);
 		player.velocityModified = true;
 		player.fallDistance = 0f;
@@ -254,11 +248,13 @@ public final class FlightSystem {
 		com.terminaldetector.drmd.world.LocalOrientation.setUp(player, new Vec3d(0, 1, 0));
 		data.setEnabled(true);
 		data.ensureInit();
+		data.setFlightVelocity(Vec3d.ZERO); // drop any legacy tunnel-speed vector
 		data.setIdleTimer(0f);
 		data.setGravityFactor(0f);
 		data.setHookActive(false);
 		rescueIntoColumn(player);
 		FlightMotion.suppressCreativeFly(player);
+		player.noClip = false;
 		player.fallDistance = 0f;
 		player.velocityModified = true;
 		ModNetworking.syncPlayer(player, data);
