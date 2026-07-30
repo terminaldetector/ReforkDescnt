@@ -22,23 +22,23 @@ public class PyroShipModel<T extends Entity> extends EntityModel<T> {
 
 		root.addChild("fuselage", ModelPartBuilder.create()
 						.uv(0, 0).cuboid(-2f, -2f, -10f, 4f, 4f, 16f)
-						.uv(0, 20).cuboid(-1.5f, -1.5f, -12f, 3f, 3f, 3f),
+						.uv(40, 0).cuboid(-1.5f, -1.5f, -12f, 3f, 3f, 3f),
 				ModelTransform.pivot(0, 0, 0));
 
 		root.addChild("wing_l", ModelPartBuilder.create()
-						.uv(24, 0).cuboid(-10f, -0.5f, -2f, 8f, 1f, 6f),
+						.uv(0, 20).cuboid(-10f, -0.5f, -2f, 8f, 1f, 6f),
 				ModelTransform.pivot(0, 0, 0));
 
 		root.addChild("wing_r", ModelPartBuilder.create()
-						.uv(24, 8).cuboid(2f, -0.5f, -2f, 8f, 1f, 6f),
+						.uv(0, 27).cuboid(2f, -0.5f, -2f, 8f, 1f, 6f),
 				ModelTransform.pivot(0, 0, 0));
 
 		root.addChild("fin", ModelPartBuilder.create()
-						.uv(40, 20).cuboid(-0.5f, -6f, 2f, 1f, 5f, 4f),
+						.uv(28, 20).cuboid(-0.5f, -6f, 2f, 1f, 5f, 4f),
 				ModelTransform.pivot(0, 0, 0));
 
 		root.addChild("thruster", ModelPartBuilder.create()
-						.uv(0, 28).cuboid(-1.5f, -1.5f, 6f, 3f, 3f, 3f),
+						.uv(40, 7).cuboid(-1.5f, -1.5f, 6f, 3f, 3f, 3f),
 				ModelTransform.pivot(0, 0, 0));
 
 		return TexturedModelData.of(data, 64, 64);

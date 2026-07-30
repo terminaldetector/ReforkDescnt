@@ -100,10 +100,29 @@ public class DescentMod implements ModInitializer {
 			server.execute(() -> {
 				com.terminaldetector.drmd.world.base.DescentSession.onPlayerJoin(handler.player);
 				ModNetworking.syncPlayer(handler.player, DescentPlayerData.get(handler.player));
+				unlockDrmdRecipes(handler.player);
 			});
 		});
 
 		LOGGER.info("DRMD 6DOF ready — Descent session is native to this Minecraft world");
+	}
+
+	/**
+	 * Put the whole DRMD tree in the recipe book on join.
+	 *
+	 * <p>Survival crafting works either way, but without this the recipes never surface: none of
+	 * them is gated behind an advancement, so the book would stay empty and players would have to
+	 * look the patterns up externally.
+	 */
+	private static void unlockDrmdRecipes(net.minecraft.server.network.ServerPlayerEntity player) {
+		var server = player.getServer();
+		if (server == null) return;
+		var recipes = server.getRecipeManager().values().stream()
+				.filter(entry -> entry.id().getNamespace().equals(MOD_ID))
+				.toList();
+		if (!recipes.isEmpty()) {
+			player.unlockRecipes(recipes);
+		}
 	}
 
 	public static double su(double sourceUnits) {

@@ -1,3 +1,6 @@
 {
-  "parent": "minecraft:block/glass"
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "drmd:block/combat_zone"
+  }
 }

@@ -1,4 +1,6 @@
 {
   "parent": "minecraft:block/template_torch",
-  "textures": { "torch": "drmd:block/reactor_core_block" }
+  "textures": {
+    "torch": "drmd:block/gravity_torch"
+  }
 }

@@ -46,7 +46,11 @@ public final class WeaponViewRenderer {
 			Vec3d cam = context.camera().getPos();
 			float yaw = context.camera().getYaw();
 			float pitch = context.camera().getPitch();
-			float roll = com.terminaldetector.drmd.client.flight.DescentCamera.viewRoll();
+			// Hull bank, not screen bank: these barrels live in world space, so the F5 front-view
+			// mirroring that viewRoll() applies must not leak in here.
+			float roll = DescentClientState.attitudeValid
+					? com.terminaldetector.drmd.client.flight.ShipAttitudeClient.get().bankDegrees()
+					: 0f;
 
 			Vec3d look;
 			Vec3d right;

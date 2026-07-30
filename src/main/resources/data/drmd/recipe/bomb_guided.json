@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "ATA",
+    " C "
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "T": {
+      "item": "minecraft:tnt"
+    },
+    "C": {
+      "item": "drmd:targeting_core"
+    }
+  },
+  "result": {
+    "id": "drmd:bomb_guided",
+    "count": 1
+  }
+}

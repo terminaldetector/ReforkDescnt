@@ -27,6 +27,7 @@ public class DescentClient implements ClientModInitializer {
 		WeaponViewRenderer.register();
 		LlodSilhouetteRenderer.register();
 		com.terminaldetector.drmd.client.smoke.SmokeRenderer.register();
+		registerRenderLayers();
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SyncPayload.ID, (payload, context) -> {
 			boolean wasEnabled = DescentClientState.enabled;
@@ -133,6 +134,17 @@ public class DescentClient implements ClientModInitializer {
 						pos.x, pos.y, pos.z, 0, 0.01, 0);
 			}
 		});
+	}
+
+	/** Alpha-bearing DRMD blocks need a non-solid layer or their textures render opaque. */
+	private static void registerRenderLayers() {
+		net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlocks(
+				net.minecraft.client.render.RenderLayer.getTranslucent(),
+				com.terminaldetector.drmd.entity.ModWorldBlocks.LASER_BARRIER,
+				com.terminaldetector.drmd.entity.ModBlocks.COMBAT_ZONE);
+		net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap.INSTANCE.putBlocks(
+				net.minecraft.client.render.RenderLayer.getCutout(),
+				com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH);
 	}
 
 	public static void openWorkshop() {

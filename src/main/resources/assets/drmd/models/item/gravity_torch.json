@@ -1,1 +1,6 @@
-{ "parent": "drmd:block/gravity_torch" }
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "drmd:block/gravity_torch"
+  }
+}

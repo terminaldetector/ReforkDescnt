@@ -33,6 +33,6 @@ public class CameraMixin {
 			public void drmd$setRotation(float yaw, float pitch) {
 				acc.drmd$invokeSetRotation(yaw, pitch);
 			}
-		}, thirdPerson || inverseView, tickDelta);
+		}, thirdPerson, inverseView, tickDelta);
 	}
 }

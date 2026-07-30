@@ -1,3 +1,6 @@
 {
-  "parent": "minecraft:block/gold_block"
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "drmd:block/objective"
+  }
 }

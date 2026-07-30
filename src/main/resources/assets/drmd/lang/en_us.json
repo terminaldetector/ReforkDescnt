@@ -89,5 +89,8 @@
   "item.drmd.bomb_cluster": "Cluster Bomb Bay",
   "item.drmd.bomb_incendiary": "Incendiary Bomb Bay",
   "item.drmd.bomb_guided": "Laser-Guided Bomb",
-  "item.drmd.laser_designator": "Laser Designator"
+  "item.drmd.laser_designator": "Laser Designator",
+  "item.drmd.alloy_plate": "DRMD Alloy Plate",
+  "item.drmd.energy_cell": "Energy Cell",
+  "item.drmd.targeting_core": "Targeting Core"
 }

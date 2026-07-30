@@ -17,7 +17,6 @@ import net.minecraft.util.math.MathHelper;
 public final class ShipAttitudeClient {
 	private static final ShipAttitude ATT = new ShipAttitude();
 	private static final float ROLL_SPEED = 175f;
-	private static final float ROLL_LIMIT = 180f;
 
 	private static boolean primed;
 	private static float turnPitch;
@@ -71,9 +70,10 @@ public final class ShipAttitudeClient {
 		angYaw = MathHelper.lerp(angK, angYaw, turnYaw);
 		angPitch = MathHelper.lerp(angK, angPitch, turnPitch);
 
+		// Local-axis yaw then pitch: no world-up reference anywhere in the input path, so the nose
+		// crosses straight up / straight down without gimbal lock, exactly like Descent.
 		ATT.yawLocal(angYaw);
 		ATT.pitchLocal(angPitch);
-		clampBank();
 		applyToPlayer(player);
 	}
 
@@ -83,8 +83,8 @@ public final class ShipAttitudeClient {
 		float target = rollInput * ROLL_SPEED;
 		rollVel = MathHelper.lerp(MathHelper.clamp(5f * dt, 0f, 1f), rollVel, target);
 		if (Math.abs(rollVel) > 0.01f) {
+			// Unbounded: a Pyro can keep barrel-rolling in one direction forever.
 			ATT.rollLocal(rollVel * dt);
-			clampBank();
 		}
 		applyToPlayer(player);
 	}
@@ -117,12 +117,7 @@ public final class ShipAttitudeClient {
 		DescentClientState.attitudeValid = true;
 	}
 
-	private static void clampBank() {
-		float bank = ATT.bankDegrees();
-		if (bank > ROLL_LIMIT) ATT.rollLocal(-(bank - ROLL_LIMIT));
-		else if (bank < -ROLL_LIMIT) ATT.rollLocal(-(bank + ROLL_LIMIT));
-	}
-
+	/** Entity pitch is a network-encoded byte angle; the camera keeps the unclamped value. */
 	private static float clampPitch(float p) {
 		return MathHelper.clamp(p, -90f, 90f);
 	}

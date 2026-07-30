@@ -1,4 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
-  "textures": { "all": "minecraft:block/moss_block" }
+  "textures": {
+    "all": "drmd:block/six_d_soil"
+  }
 }

@@ -30,16 +30,18 @@ public final class DescentCamera {
 
 	private static Vec3d camLag = Vec3d.ZERO;
 	private static Vec3d dashKick = Vec3d.ZERO;
-	private static float smoothedRoll;
+	private static float hudRoll;
 	private static boolean leveling;
 	private static long lastDashPulseMs;
+	/** F5 front view mirrors the camera, so the bank has to be mirrored with it. */
+	private static boolean mirroredView;
 
 	private DescentCamera() {}
 
 	public static void clear() {
 		camLag = Vec3d.ZERO;
 		dashKick = Vec3d.ZERO;
-		smoothedRoll = 0;
+		hudRoll = 0;
 		leveling = false;
 	}
 
@@ -60,8 +62,22 @@ public final class DescentCamera {
 		return leveling;
 	}
 
+	/**
+	 * Screen-space bank the world is rendered with, in degrees.
+	 *
+	 * <p>Exact — never smoothed. Together with the camera's yaw/pitch it has to reconstruct the ship
+	 * basis bit for bit; any lag here would decouple the horizon from the hull, and near the poles
+	 * (where yaw swings fast) it would read as the camera spinning on its own.
+	 */
 	public static float viewRoll() {
-		return smoothedRoll;
+		if (!DescentClientState.enabled || !DescentClientState.attitudeValid) return 0f;
+		float bank = ShipAttitudeClient.get().bankDegrees();
+		return mirroredView ? -bank : bank;
+	}
+
+	/** Smoothed, wrap-safe bank for HUD gauges only. */
+	public static float hudRoll() {
+		return hudRoll;
 	}
 
 	/**
@@ -99,16 +115,19 @@ public final class DescentCamera {
 			ShipAttitudeClient.applyToPlayer(player);
 		}
 
-		smoothedRoll = MathHelper.lerp(MathHelper.clamp(14f * dt, 0f, 1f), smoothedRoll, att.bankDegrees());
+		// Lerp along the shortest arc so a barrel roll past ±180 does not whip the gauge around.
+		float delta = MathHelper.wrapDegrees(att.bankDegrees() - hudRoll);
+		hudRoll = MathHelper.wrapDegrees(hudRoll + delta * MathHelper.clamp(14f * dt, 0f, 1f));
 	}
 
 	/**
 	 * Apply to Minecraft Camera after vanilla {@code Camera.update}.
 	 * First person: eye + CamLag + micro + vib. Third person: ship-relative chase with clip.
 	 */
-	public static void apply(Camera camera, CameraAccess access, boolean thirdPerson, float tickDelta) {
+	public static void apply(Camera camera, CameraAccess access, boolean thirdPerson, boolean inverseView, float tickDelta) {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		ClientPlayerEntity player = mc.player;
+		mirroredView = false;
 		if (player == null || !DescentClientState.enabled || !DescentClientState.attitudeValid) return;
 
 		ShipAttitude att = ShipAttitudeClient.get();
@@ -116,10 +135,14 @@ public final class DescentCamera {
 		Vec3d up = att.up();
 		Vec3d right = att.right();
 
-		// Drive yaw/pitch from full ship attitude (entity pitch still clamped for net)
-		float yaw = att.yawDegrees();
-		float pitch = MathHelper.clamp(att.pitchDegrees(), -89.9f, 89.9f);
-		access.drmd$setRotation(yaw, pitch);
+		// Drive yaw/pitch from full ship attitude. No clamp: pitchDegrees() is an asin, already in
+		// [-90, 90], and the residual bank from viewRoll() restores the remaining 360° of freedom.
+		mirroredView = inverseView;
+		if (inverseView) {
+			access.drmd$setRotation(att.yawDegrees() + 180f, -att.pitchDegrees());
+		} else {
+			access.drmd$setRotation(att.yawDegrees(), att.pitchDegrees());
+		}
 
 		Vec3d eye = player.getLerpedPos(tickDelta).add(0, player.getStandingEyeHeight(), 0);
 		double t = (player.getWorld().getTime() + tickDelta) + player.getId() * 0.37;
@@ -143,8 +166,10 @@ public final class DescentCamera {
 							.add(forward.multiply(Math.sin(t * 53) * vibAmp)));
 		}
 
-		if (thirdPerson) {
-			Vec3d back = forward.multiply(-TP_BACK).add(up.multiply(TP_UP));
+		if (thirdPerson || inverseView) {
+			// F5 front view sits ahead of the nose instead of behind the thruster.
+			double along = inverseView ? TP_BACK : -TP_BACK;
+			Vec3d back = forward.multiply(along).add(up.multiply(TP_UP));
 			Vec3d want = origin.add(back);
 			var hit = player.getWorld().raycast(new RaycastContext(
 					origin, want,

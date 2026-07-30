@@ -62,6 +62,11 @@ public final class ModItems {
 	public static Item BOMB_GUIDED;
 	public static Item LASER_DESIGNATOR;
 
+	/** Survival crafting intermediates — every DRMD device is built from these three. */
+	public static Item ALLOY_PLATE;
+	public static Item ENERGY_CELL;
+	public static Item TARGETING_CORE;
+
 	public static final RegistryKey<ItemGroup> GROUP_KEY = RegistryKey.of(RegistryKeys.ITEM_GROUP, Identifier.of(DescentMod.MOD_ID, "weapons"));
 
 	private ModItems() {}
@@ -178,11 +183,18 @@ public final class ModItems {
 		LASER_DESIGNATOR = register("laser_designator",
 				new com.terminaldetector.drmd.world.bombardment.BombardmentItems.LaserDesignatorItem(new Item.Settings()));
 
+		ALLOY_PLATE = register("alloy_plate", new Item(new Item.Settings()));
+		ENERGY_CELL = register("energy_cell", new Item(new Item.Settings()));
+		TARGETING_CORE = register("targeting_core", new Item(new Item.Settings()));
+
 		Registry.register(Registries.ITEM_GROUP, GROUP_KEY, FabricItemGroup.builder()
 				.icon(() -> new ItemStack(PYRO_GX))
 				.displayName(Text.translatable("itemGroup.drmd.weapons"))
 				.entries((ctx, entries) -> {
 					entries.add(PYRO_GX);
+					entries.add(ALLOY_PLATE);
+					entries.add(ENERGY_CELL);
+					entries.add(TARGETING_CORE);
 					entries.add(EGG_ASSAULT);
 					entries.add(EGG_INTERCEPTOR);
 					entries.add(EGG_ARTILLERY);

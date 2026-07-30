@@ -35,10 +35,8 @@ public final class ShipAttitude {
 
 	public void fromLook(Vec3d look) {
 		Vec3d f = look.normalize();
-		Vec3d r = f.crossProduct(new Vec3d(0, 1, 0));
-		if (r.lengthSquared() < 1e-8) r = new Vec3d(1, 0, 0);
-		r = r.normalize();
-		setForwardUp(f, r.crossProduct(f).normalize());
+		fx = f.x; fy = f.y; fz = f.z;
+		setForwardUp(f, levelUp());
 	}
 
 	/** Pitch: rotate around local Right (nose up = negative Minecraft pitch). */
@@ -61,11 +59,7 @@ public final class ShipAttitude {
 
 	/** Level bank while keeping nose direction. */
 	public void levelRoll() {
-		Vec3d f = forward();
-		Vec3d r = f.crossProduct(new Vec3d(0, 1, 0));
-		if (r.lengthSquared() < 1e-8) r = new Vec3d(1, 0, 0);
-		r = r.normalize();
-		setForwardUp(f, r.crossProduct(f).normalize());
+		setForwardUp(forward(), levelUp());
 	}
 
 	public float pitchDegrees() {
@@ -73,20 +67,43 @@ public final class ShipAttitude {
 	}
 
 	public float yawDegrees() {
-		return (float) Math.toDegrees(Math.atan2(-fx, fz));
+		return (float) Math.toDegrees(yawRadians());
 	}
 
-	/** Bank angle vs world-level horizon. */
+	private double yawRadians() {
+		// atan2(0, 0) == 0, so a nose pointing exactly at a pole still yields a defined yaw.
+		return Math.atan2(-fx, fz);
+	}
+
+	/**
+	 * Right vector of a zero-roll camera at this basis' yaw — matches {@code Camera.diagonalPlane}
+	 * negated, i.e. the pilot's right when bank is 0.
+	 *
+	 * <p>Derived from yaw alone, so unlike {@code forward × worldUp} it never degenerates when the
+	 * nose points straight up or down. That is what keeps 6DoF looking continuous through the poles.
+	 */
+	public Vec3d levelRight() {
+		double yaw = yawRadians();
+		return new Vec3d(-Math.cos(yaw), 0, -Math.sin(yaw));
+	}
+
+	/** Up vector of a zero-roll camera at this basis' yaw/pitch — matches {@code Camera.verticalPlane}. */
+	public Vec3d levelUp() {
+		Vec3d u = levelRight().crossProduct(forward());
+		if (u.lengthSquared() < 1e-12) return new Vec3d(0, 1, 0);
+		return u.normalize();
+	}
+
+	/**
+	 * Bank angle against the zero-roll camera frame, in (-180, 180].
+	 *
+	 * <p>Feeding this straight into a screen-space Z rotation reproduces the ship basis exactly,
+	 * because (yaw, pitch, bank) is a faithful decomposition of it — including at the poles, where
+	 * yaw swings fast and bank cancels the swing.
+	 */
 	public float bankDegrees() {
-		Vec3d f = forward();
 		Vec3d u = up();
-		Vec3d worldUp = Math.abs(f.y) > 0.95 ? new Vec3d(0, 0, 1) : new Vec3d(0, 1, 0);
-		Vec3d levelRight = f.crossProduct(worldUp);
-		if (levelRight.lengthSquared() < 1e-8) return 0;
-		levelRight = levelRight.normalize();
-		Vec3d levelUp = levelRight.crossProduct(f).normalize();
-		Vec3d r = right();
-		return (float) Math.toDegrees(Math.atan2(u.dotProduct(levelRight), u.dotProduct(levelUp)));
+		return (float) Math.toDegrees(Math.atan2(u.dotProduct(levelRight()), u.dotProduct(levelUp())));
 	}
 
 	public static Vec3d rotate(Vec3d v, Vec3d axis, double deg) {

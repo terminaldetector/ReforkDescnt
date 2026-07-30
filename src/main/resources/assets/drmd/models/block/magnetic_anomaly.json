@@ -1,4 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
-  "textures": { "all": "minecraft:block/lodestone_side" }
+  "textures": {
+    "all": "drmd:block/magnetic_anomaly"
+  }
 }
