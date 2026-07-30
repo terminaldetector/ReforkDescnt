@@ -32,6 +32,40 @@ public final class ProjectileFramework {
 				cfg.directDamage = 18;
 				cfg.life = 1.2f;
 				cfg.pierceCount = 2;
+				// Combat laser is a burner: what it punches through catches fire.
+				cfg.igniteOnHit = true;
+			}
+			case BURN_LANCE -> {
+				cfg.speed = 4200;
+				cfg.directDamage = 24;
+				cfg.life = 2.2f;
+				cfg.pierceCount = 1;
+				cfg.igniteOnHit = true;
+				cfg.visualScale = 1.15f;
+			}
+			case PROXIMITY_MINE -> {
+				cfg.speed = 900;
+				cfg.directDamage = 0;
+				cfg.splashDamage = 70;
+				cfg.splashRadius = 220;
+				cfg.life = 45f;
+				cfg.fuse = FuseType.PROXIMITY;
+				cfg.armSeconds = 0.8f;
+				cfg.proximityRadius = 3.5f;
+				cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_MINE;
+				cfg.visualScale = 1.1f;
+				cfg.worldBlast = true;
+			}
+			case AIRBURST -> {
+				cfg.speed = 3400;
+				cfg.directDamage = 12;
+				cfg.splashDamage = 45;
+				cfg.splashRadius = 160;
+				cfg.life = 4f;
+				cfg.fuse = FuseType.TIMED;
+				cfg.fuseSeconds = 0.75f;
+				cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ORB;
+				cfg.visualScale = 0.9f;
 			}
 			case PLASMA -> {
 				cfg.speed = 3200;
@@ -61,6 +95,9 @@ public final class ProjectileFramework {
 				cfg.life = 5f;
 				cfg.turnRate = 70f;
 				cfg.worldBlast = true;
+				// Arms clear of the launcher so a point-blank shot does not kill the shooter.
+				cfg.fuse = FuseType.DELAYED_IMPACT;
+				cfg.armSeconds = 0.12f;
 				cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ROCKET;
 				cfg.visualScale = 1.2f;
 			}
@@ -122,6 +159,38 @@ public final class ProjectileFramework {
 					WeaponFx.explode(own, sw, ctx.hitPos(), 80f, 2.5f, kind.damageClass, true);
 				}
 			}
+			case AIRBURST -> {
+				// Shrapnel cone: short kinetic slivers thrown out of the burst point.
+				LivingEntity own = ctx.projectile().getOwnerLiving();
+				Vec3d at = ctx.hitPos();
+				if (own != null) {
+					for (int i = 0; i < 8; i++) {
+						Vec3d spread = new Vec3d(
+								sw.getRandom().nextDouble() - 0.5,
+								sw.getRandom().nextDouble() - 0.5,
+								sw.getRandom().nextDouble() - 0.5);
+						if (spread.lengthSquared() < 1e-6) continue;
+						WeaponCore.FireConfig frag = config(ProjectileKind.KINETIC, own, at, spread.normalize());
+						frag.directDamage = 9;
+						frag.life = 0.7f;
+						frag.speed = 2600;
+						frag.visualScale = 0.6f;
+						frag.onHit = null;
+						WeaponCore.fireProjectile(frag);
+					}
+				}
+				com.terminaldetector.drmd.world.smoke.SmokeSystem.emitExplosion(at, 1.4f);
+			}
+			case PROXIMITY_MINE -> {
+				LivingEntity own = ctx.projectile().getOwnerLiving();
+				if (own != null) {
+					WeaponFx.explode(own, sw, ctx.hitPos(), 70f, 3.0f, kind.damageClass, true);
+				}
+				com.terminaldetector.drmd.world.fire.FireSystem.igniteBlast(
+						sw, BlockPos.ofFloored(ctx.hitPos()), 3, 2);
+			}
+			case BURN_LANCE -> com.terminaldetector.drmd.world.fire.FireSystem.igniteBlast(
+					sw, BlockPos.ofFloored(ctx.hitPos()), 2, 1);
 			default -> {}
 		}
 	}
@@ -135,7 +204,9 @@ public final class ProjectileFramework {
 			case "rockets", "homing", "smart_missile", "mega_missile", "concussion" -> ProjectileKind.ROCKET;
 			case "gravy" -> ProjectileKind.GRAVITY_SPHERE;
 			case "bfg", "darklance" -> ProjectileKind.ENERGY_ORB;
-			case "frag", "flak" -> ProjectileKind.DRILL_CHARGE;
+			case "deploy" -> ProjectileKind.PROXIMITY_MINE;
+			case "flak" -> ProjectileKind.AIRBURST;
+			case "frag" -> ProjectileKind.DRILL_CHARGE;
 			default -> ProjectileKind.KINETIC;
 		};
 	}

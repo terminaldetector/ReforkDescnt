@@ -37,6 +37,7 @@ public class ProjectileEntity extends Entity {
 	public static final int MESH_ROCKET = 1;
 	public static final int MESH_ORB = 2;
 	public static final int MESH_DRILL = 3;
+	public static final int MESH_MINE = 4;
 
 	private static final TrackedData<Integer> COLOR = DataTracker.registerData(ProjectileEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	private static final TrackedData<Float> SCALE = DataTracker.registerData(ProjectileEntity.class, TrackedDataHandlerRegistry.FLOAT);
@@ -59,6 +60,14 @@ public class ProjectileEntity extends Entity {
 	private boolean drillCarve;
 	private Consumer<WeaponCore.HitContext> onHit;
 	private final Set<Integer> pierced = new HashSet<>();
+
+	private com.terminaldetector.drmd.weapon.projectile.FuseType fuse =
+			com.terminaldetector.drmd.weapon.projectile.FuseType.IMPACT;
+	private int fuseTicks;
+	private int armTicks;
+	private float proximityRadius;
+	private int ageTicks;
+	private boolean igniteOnHit;
 
 	public ProjectileEntity(EntityType<? extends ProjectileEntity> type, World world) {
 		super(type, world);
@@ -99,6 +108,31 @@ public class ProjectileEntity extends Entity {
 	public void setWorldBlast(boolean v) { this.worldBlast = v; }
 	public void setDrillCarve(boolean v) { this.drillCarve = v; }
 
+	/**
+	 * Arm the fuse.
+	 *
+	 * @param fuse       trigger condition
+	 * @param fuseSecs   burn time for {@link com.terminaldetector.drmd.weapon.projectile.FuseType#TIMED}
+	 * @param armSecs    dead time after launch during which no fuse can trigger
+	 * @param proxRadius trigger radius in blocks for
+	 *                   {@link com.terminaldetector.drmd.weapon.projectile.FuseType#PROXIMITY}
+	 */
+	public void setFuse(com.terminaldetector.drmd.weapon.projectile.FuseType fuse,
+						float fuseSecs, float armSecs, float proxRadius) {
+		this.fuse = fuse == null ? com.terminaldetector.drmd.weapon.projectile.FuseType.IMPACT : fuse;
+		this.fuseTicks = Math.max(0, (int) (fuseSecs * 20));
+		this.armTicks = Math.max(0, (int) (armSecs * 20));
+		this.proximityRadius = Math.max(0f, proxRadius);
+	}
+
+	/** Energy weapons that burn: block hits start a fire focus, entity hits catch light. */
+	public void setIgniteOnHit(boolean v) { this.igniteOnHit = v; }
+
+	public com.terminaldetector.drmd.weapon.projectile.FuseType getFuse() { return fuse; }
+
+	/** False while the arming delay is still running — contact and proximity are inert. */
+	public boolean isArmed() { return ageTicks >= armTicks; }
+
 	public void setColorRgb(int r, int g, int b) {
 		dataTracker.set(COLOR, ((r & 255) << 16) | ((g & 255) << 8) | (b & 255));
 	}
@@ -128,6 +162,21 @@ public class ProjectileEntity extends Entity {
 		if (lifeTicks <= 0) {
 			discard();
 			return;
+		}
+		ageTicks++;
+
+		// Fuses that do not need contact get their chance before the movement trace.
+		if (isArmed()) {
+			if (fuse == com.terminaldetector.drmd.weapon.projectile.FuseType.TIMED
+					&& ageTicks >= armTicks + fuseTicks) {
+				detonateInPlace();
+				return;
+			}
+			if (fuse == com.terminaldetector.drmd.weapon.projectile.FuseType.PROXIMITY
+					&& proximityRadius > 0 && nearestTriggerWithin(proximityRadius) != null) {
+				detonateInPlace();
+				return;
+			}
 		}
 
 		Vec3d vel = getVelocity();
@@ -165,16 +214,57 @@ public class ProjectileEntity extends Entity {
 				net.minecraft.world.RaycastContext.ShapeType.COLLIDER,
 				net.minecraft.world.RaycastContext.FluidHandling.NONE, this));
 
-		EntityHitResult eHit = raycastEntity(getPos(), next);
-		if (eHit != null && (hit.getType() == HitResult.Type.MISS || eHit.getPos().squaredDistanceTo(getPos()) < hit.getPos().squaredDistanceTo(getPos()))) {
-			onEntityHit(eHit);
-			return;
-		}
-		if (hit.getType() == HitResult.Type.BLOCK) {
-			onBlockHit((BlockHitResult) hit);
+		// A mine or an unarmed shell coasts through everything instead of striking it.
+		boolean contactLive = isArmed()
+				&& fuse != com.terminaldetector.drmd.weapon.projectile.FuseType.PROXIMITY
+				&& fuse != com.terminaldetector.drmd.weapon.projectile.FuseType.TIMED;
+		if (contactLive) {
+			EntityHitResult eHit = raycastEntity(getPos(), next);
+			if (eHit != null && (hit.getType() == HitResult.Type.MISS
+					|| eHit.getPos().squaredDistanceTo(getPos()) < hit.getPos().squaredDistanceTo(getPos()))) {
+				onEntityHit(eHit);
+				return;
+			}
+			if (hit.getType() == HitResult.Type.BLOCK) {
+				onBlockHit((BlockHitResult) hit);
+				return;
+			}
+		} else if (hit.getType() == HitResult.Type.BLOCK
+				&& fuse == com.terminaldetector.drmd.weapon.projectile.FuseType.PROXIMITY) {
+			// Mines settle where they land and wait for a customer.
+			setPosition(hit.getPos().subtract(getVelocity().normalize().multiply(0.15)));
+			setVelocity(Vec3d.ZERO);
 			return;
 		}
 		setPosition(next);
+	}
+
+	/** Closest thing the fuse would consider worth going off for, or null. */
+	private Entity nearestTriggerWithin(double radius) {
+		LivingEntity own = getOwnerLiving();
+		Entity best = null;
+		double bestDist = radius * radius;
+		for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(radius),
+				ent -> ent instanceof LivingEntity && ent.isAlive() && ent != own)) {
+			double d = e.squaredDistanceTo(this);
+			if (d < bestDist) {
+				bestDist = d;
+				best = e;
+			}
+		}
+		return best;
+	}
+
+	/** Go off where it sits — timed air-burst and proximity trigger both land here. */
+	private void detonateInPlace() {
+		LivingEntity own = getOwnerLiving();
+		if (own != null) {
+			detonate(own, getPos());
+		}
+		if (onHit != null) {
+			onHit.accept(new WeaponCore.HitContext(this, null, getPos(), new Vec3d(0, 1, 0), false));
+		}
+		discard();
 	}
 
 	private Entity findTarget() {
@@ -213,6 +303,9 @@ public class ProjectileEntity extends Entity {
 			WeaponCore.directDamage(own, hit.getEntity(), directDamage, dmgClass);
 			detonate(own, hit.getPos());
 		}
+		if (igniteOnHit) {
+			hit.getEntity().setOnFireFor(4);
+		}
 		if (onHit != null) onHit.accept(new WeaponCore.HitContext(this, hit.getEntity(), hit.getPos(), getVelocity().negate().normalize(), false));
 		pierced.add(hit.getEntity().getId());
 		if (pierceCount > 0) {
@@ -231,6 +324,11 @@ public class ProjectileEntity extends Entity {
 				WeaponFx.drillCarve(sw, hit.getBlockPos(), own);
 			} else if (dmgClass == DamageClass.ENERGY || dmgClass == DamageClass.EXOTIC) {
 				WeaponFx.melt(sw, hit.getBlockPos(), splashRadius > 1.5f ? 2 : 1, own);
+			}
+			if (igniteOnHit) {
+				// Seed the shared fire sim on the struck face; it handles spread and smoke.
+				BlockPos face = hit.getBlockPos().offset(hit.getSide());
+				com.terminaldetector.drmd.world.fire.FireSystem.ignite(sw, face, 3);
 			}
 		}
 		if (onHit != null) onHit.accept(new WeaponCore.HitContext(this, null, hit.getPos(), Vec3d.of(hit.getSide().getVector()), true));

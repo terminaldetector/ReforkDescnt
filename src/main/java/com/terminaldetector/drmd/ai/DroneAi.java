@@ -91,25 +91,18 @@ public final class DroneAi {
 			}
 		}
 
-		/** Velocity-aligned yaw/pitch + bank roll — 6DoF feel without per-mob special cases. */
+		/**
+		 * Velocity-aligned yaw/pitch + bank roll, on the shared 6DoF rules.
+		 *
+		 * <p>Turning is eased along the shortest arc and the bank is measured against the pole-safe
+		 * level frame, so a drone chasing straight up or down keeps rolling smoothly instead of
+		 * snapping when its heading passes vertical.
+		 */
 		private static void alignAttitude(DroneEntity drone, Vec3d vel, Vec3d desire, float dt) {
 			if (vel.lengthSquared() < 1e-6) return;
-			Vec3d dir = vel.normalize();
-			float yaw = (float) (MathHelper.atan2(-dir.x, dir.z) * (180.0 / Math.PI));
-			float pitch = (float) (MathHelper.atan2(-dir.y, Math.sqrt(dir.x * dir.x + dir.z * dir.z)) * (180.0 / Math.PI));
-			drone.setYaw(yaw);
-			drone.setPitch(pitch);
-			drone.bodyYaw = yaw;
-
-			// Bank into turn: lateral desire vs current right vector
-			Vec3d forward = dir;
-			Vec3d worldUp = new Vec3d(0, 1, 0);
-			Vec3d right = forward.crossProduct(worldUp);
-			if (right.lengthSquared() < 1e-4) right = new Vec3d(1, 0, 0);
-			right = right.normalize();
-			float bank = (float) MathHelper.clamp(desire.dotProduct(right) * 55.0, -55.0, 55.0);
-			float roll = MathHelper.lerp(1f - (float) Math.exp(-6f * dt), drone.getFlightRoll(), bank);
-			drone.setFlightRoll(roll);
+			FlightAttitude.steer(drone, vel, 9f, dt);
+			float bank = FlightAttitude.bankTarget(vel, desire, 55f);
+			drone.setFlightRoll(FlightAttitude.approachAngle(drone.getFlightRoll(), bank, 6f, dt));
 		}
 	}
 }

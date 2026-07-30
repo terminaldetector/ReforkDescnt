@@ -65,9 +65,37 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 				drawBox(matrices, consumers, 0xFFFFAA33);
 				matrices.pop();
 			}
+			case ProjectileEntity.MESH_MINE -> {
+				// Faceted shell plus a pulsing core; the pulse rate reads as "armed".
+				matrices.push();
+				matrices.scale(s * 1.5f, s * 1.5f, s * 1.5f);
+				drawBox(matrices, consumers, argb);
+				matrices.pop();
+				float pulse = 0.55f + 0.45f * MathHelper.sin((entity.age + tickDelta) * 0.45f);
+				matrices.push();
+				matrices.scale(s * 2.1f * pulse, s * 0.35f, s * 0.35f);
+				drawBox(matrices, consumers, brighten(argb));
+				matrices.pop();
+				matrices.push();
+				matrices.scale(s * 0.35f, s * 2.1f * pulse, s * 0.35f);
+				drawBox(matrices, consumers, brighten(argb));
+				matrices.pop();
+				matrices.push();
+				matrices.scale(s * 0.35f, s * 0.35f, s * 2.1f * pulse);
+				drawBox(matrices, consumers, brighten(argb));
+				matrices.pop();
+			}
 			default -> {
+				// Bolt: a lance body with a brighter leading tip so travel direction reads.
+				matrices.push();
 				matrices.scale(s * 0.45f, s * 0.45f, s * 1.6f);
 				drawBox(matrices, consumers, argb);
+				matrices.pop();
+				matrices.push();
+				matrices.translate(0, 0, -s * 0.9f);
+				matrices.scale(s * 0.62f, s * 0.62f, s * 0.5f);
+				drawBox(matrices, consumers, brighten(argb));
+				matrices.pop();
 			}
 		}
 		matrices.pop();

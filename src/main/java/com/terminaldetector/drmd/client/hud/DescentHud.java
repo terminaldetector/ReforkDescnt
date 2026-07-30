@@ -727,8 +727,10 @@ public final class DescentHud {
 	}
 
 	private static int countAll(MinecraftClient mc, Item[] items) {
+		var inv = mc.player.getInventory();
 		int n = 0;
-		for (ItemStack stack : mc.player.getInventory().main) {
+		for (int i = 0; i < inv.size(); i++) {
+			ItemStack stack = inv.getStack(i);
 			for (Item item : items) {
 				if (item != null && stack.isOf(item)) {
 					n += stack.getCount();

@@ -15,7 +15,7 @@ import org.joml.Matrix4f;
  * Airborne XCOM-style saucer — procedural disc + dome for LLOD-scale presence.
  */
 public class SkyUfoRenderer extends EntityRenderer<SkyUfoEntity> {
-	private static final Identifier TEXTURE = Identifier.of("minecraft", "textures/block/oxidized_copper.png");
+	private static final Identifier TEXTURE = Identifier.of(com.terminaldetector.drmd.DescentMod.MOD_ID, "textures/entity/sky_ufo.png");
 
 	public SkyUfoRenderer(EntityRendererFactory.Context ctx) {
 		super(ctx);

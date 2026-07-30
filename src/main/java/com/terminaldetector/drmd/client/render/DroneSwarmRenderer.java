@@ -14,7 +14,7 @@ import org.joml.Matrix4f;
  * Swarm anchor — translucent cloud silhouette; actual drones are separate entities.
  */
 public class DroneSwarmRenderer extends EntityRenderer<DroneSwarmEntity> {
-	private static final Identifier TEXTURE = Identifier.of("minecraft", "textures/block/redstone_block.png");
+	private static final Identifier TEXTURE = Identifier.of(com.terminaldetector.drmd.DescentMod.MOD_ID, "textures/entity/drone_swarm.png");
 
 	public DroneSwarmRenderer(EntityRendererFactory.Context ctx) {
 		super(ctx);

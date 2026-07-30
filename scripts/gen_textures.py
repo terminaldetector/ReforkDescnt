@@ -421,7 +421,10 @@ EGGS = {
     "spawn_egg_laser":       ((0xFF, 0x55, 0x55), (0x55, 0x11, 0x11)),
     "spawn_egg_rpg":         ((0xCC, 0x77, 0x33), (0x44, 0x22, 0x11)),
     "spawn_egg_heavy":       ((0x55, 0x55, 0x77), (0x22, 0x22, 0x33)),
-    "spawn_egg_seeker":      ((0x55, 0xFF, 0xAA), (0x11, 0x55, 0x33)),
+    "spawn_egg_seeker":       ((0x55, 0xFF, 0xAA), (0x11, 0x55, 0x33)),
+    "spawn_egg_tripod":       ((0x3A, 0x44, 0x50), (0xFF, 0x33, 0x66)),
+    "spawn_egg_scanner":      ((0x1E, 0x2A, 0x38), (0x35, 0xE0, 0xFF)),
+    "spawn_egg_spider_turret": ((0x2A, 0x30, 0x38), (0xFF, 0xC2, 0x4D)),
 }
 
 
@@ -798,10 +801,186 @@ def ent_reactor_core():
     return im
 
 
+def hazard(im, x0, y0, x1, y1, a, b):
+    """Diagonal warning stripes — the roster's shared 'this thing shoots' cue."""
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            px(im, x, y, a if ((x + y) // 2) % 2 == 0 else b)
+
+
+def ent_tripod():
+    """128×128 — cubic hull, sensor turret, plasma lance, one shared leg." """
+    im = img(128, 128)
+    box(im, 0, 0, 18, 18, 18, HULL_D, accent=PINK, stripe=True)     # hull
+    box(im, 72, 0, 10, 7, 10, HULL_M, accent=CYAN)                  # sensor turret
+    box(im, 72, 17, 3, 3, 12, (58, 44, 74, 255), accent=VIOLET)     # plasma lance
+    box(im, 0, 36, 5, 26, 5, HULL_M, accent=PINK)                   # leg
+    box(im, 20, 36, 7, 3, 7, HULL_L, accent=AMBER)                  # hip / foot pad
+    # Hull front face: armoured plate with a neon core slit and hazard banding.
+    for x in range(18, 36):
+        for y in range(18, 36):
+            px(im, x, y, shade(HULL_D, 0.92))
+    hazard(im, 18, 19, 36, 22, PINK, shade(HULL_D, 0.7))
+    for x in range(22, 32):
+        for y in range(26, 30):
+            px(im, x, y, shade(VIOLET, 1.0))
+    px(im, 26, 27, WHITE)
+    px(im, 27, 27, WHITE)
+    # Sensor eye on the turret's front face.
+    for x in range(82, 92):
+        for y in range(10, 17):
+            px(im, x, y, shade(CYAN, 0.55))
+    for x in range(85, 89):
+        px(im, x, 13, CYAN_L)
+    # Lance muzzle glows.
+    for x in range(75, 78):
+        for y in range(29, 32):
+            px(im, x, y, VIOLET)
+    return im
+
+
+def ent_scanner():
+    """64×64 — sensor core, detector ring, three rocket pods."""
+    im = img(64, 64)
+    box(im, 0, 0, 8, 8, 8, HULL_D, accent=CYAN, stripe=True)        # core
+    box(im, 32, 0, 4, 4, 2, (24, 46, 58, 255), accent=CYAN_L)       # eye
+    box(im, 0, 16, 16, 2, 16, HULL_M, accent=CYAN)                  # ring
+    box(im, 0, 34, 3, 3, 6, (56, 34, 26, 255), accent=ORANGE)       # rocket pod
+    box(im, 18, 34, 1, 5, 1, HULL_L, accent=CYAN)                   # antenna
+    # Big single lens on the eye's front face.
+    for x in range(34, 38):
+        for y in range(2, 6):
+            px(im, x, y, CYAN_L)
+    px(im, 35, 3, WHITE)
+    # Ring top face gets scan segments so the spin reads.
+    for x in range(16, 32):
+        if x % 3 == 0:
+            for y in range(16, 32):
+                if (x + y) % 5 == 0:
+                    px(im, x, y, shade(CYAN, 0.9))
+    # Pod nose is the warhead.
+    for x in range(6, 9):
+        for y in range(40, 43):
+            px(im, x, y, ORANGE)
+    return im
+
+
+def ent_spider_turret():
+    """64×64 — chassis, tracking head, MG barrel, laser emitter, one shared leg."""
+    im = img(64, 64)
+    box(im, 0, 0, 10, 4, 10, HULL_D, accent=AMBER, stripe=True)     # base
+    box(im, 0, 14, 8, 6, 8, HULL_M, accent=AMBER)                   # head
+    box(im, 0, 28, 2, 2, 8, (46, 40, 34, 255), accent=AMBER)        # MG barrel
+    box(im, 20, 28, 3, 3, 4, (26, 46, 52, 255), accent=CYAN)        # laser emitter
+    box(im, 0, 38, 2, 10, 2, HULL_M, accent=AMBER)                  # leg
+    box(im, 8, 38, 3, 3, 3, HULL_L, accent=AMBER)                   # knee
+    # Head front face: optics band.
+    for x in range(8, 16):
+        for y in range(22, 28):
+            px(im, x, y, shade(HULL_D, 1.0))
+    for x in range(9, 15):
+        px(im, x, 24, AMBER)
+        px(im, x, 25, shade(AMBER, 0.55))
+    hazard(im, 10, 0, 20, 2, AMBER, shade(HULL_D, 0.7))
+    # Muzzle + emitter lens.
+    for y in range(30, 32):
+        px(im, 2, y, AMBER)
+        px(im, 3, y, shade(AMBER, 0.8))
+    for x in range(23, 26):
+        for y in range(31, 34):
+            px(im, x, y, CYAN_L)
+    return im
+
+
+def panel_skin(size, base, seam, accent, rivets=True, glow_rows=()):
+    """
+    Square skin for the procedurally-built giants.
+
+    Their renderers stretch (0,0)-(1,1) over every face and multiply by a vertex tint, so this
+    stays close to neutral value and lets the tint carry the hue.
+    """
+    im = img(size, size)
+    for y in range(size):
+        for x in range(size):
+            k = 1.0 + ((x * 7 + y * 13) % 5 - 2) * 0.03
+            px(im, x, y, shade(base, k))
+    step = size // 4
+    for i in range(0, size, step):
+        for x in range(size):
+            px(im, x, i, seam)
+            px(im, i, x, seam)
+    if rivets:
+        for gy in range(step // 2, size, step):
+            for gx in range(step // 2, size, step):
+                px(im, gx, gy, accent)
+    for row in glow_rows:
+        y = int(row * size)
+        for x in range(size):
+            if (x // 2) % 2 == 0:
+                px(im, x, y, accent)
+                if y + 1 < size:
+                    px(im, x, y + 1, shade(accent, 0.5))
+    return im
+
+
+def ent_mega_worm():
+    """Segmented chitin plating with magenta seam glow."""
+    im = panel_skin(32, (54, 46, 44, 255), (28, 22, 22, 255), PINK, glow_rows=(0.45,))
+    for x in range(32):
+        for y in range(32):
+            if (x + y) % 9 == 0:
+                px(im, x, y, shade(RUST, 1.0))
+    return im
+
+
+def ent_drone_swarm():
+    """Translucent haze so the swarm anchor reads as a cloud, not a solid block."""
+    im = img(32, 32)
+    for y in range(32):
+        for x in range(32):
+            d = ((x - 16) ** 2 + (y - 16) ** 2) ** 0.5
+            a = max(0, int(150 - d * 7))
+            px(im, x, y, (200, 60, 70, a))
+    for i in range(0, 32, 5):
+        for j in range(0, 32, 5):
+            px(im, (i * 3 + j) % 32, (j * 2 + i) % 32, (255, 120, 120, 220))
+    return im
+
+
+def ent_reactor_keeper():
+    return panel_skin(32, (86, 104, 110, 255), (34, 46, 52, 255), CYAN, glow_rows=(0.25, 0.75))
+
+
+def ent_end_reactor_boss():
+    return panel_skin(32, (52, 42, 74, 255), (24, 18, 36, 255), VIOLET, glow_rows=(0.5,))
+
+
+def ent_sky_ufo():
+    return panel_skin(32, (74, 110, 106, 255), (30, 48, 46, 255), CYAN, glow_rows=(0.35, 0.65))
+
+
+def ent_air_mine():
+    """Mine casing: hazard banding over a dark shell."""
+    im = panel_skin(16, (44, 40, 38, 255), (22, 18, 18, 255), AMBER, rivets=False)
+    hazard(im, 0, 6, 16, 10, AMBER, (30, 24, 22, 255))
+    for x, y in ((3, 3), (12, 3), (3, 12), (12, 12)):
+        px(im, x, y, RED_L)
+    return im
+
+
 ENTITIES = {
     "pyro_ship": ent_pyro_ship,
     "drone": ent_drone,
     "reactor_core": ent_reactor_core,
+    "tripod": ent_tripod,
+    "scanner": ent_scanner,
+    "spider_turret": ent_spider_turret,
+    "mega_worm": ent_mega_worm,
+    "drone_swarm": ent_drone_swarm,
+    "reactor_keeper": ent_reactor_keeper,
+    "end_reactor_boss": ent_end_reactor_boss,
+    "sky_ufo": ent_sky_ufo,
+    "air_mine": ent_air_mine,
 }
 
 

@@ -48,5 +48,11 @@
   "block.drmd.dock": "Док DRMD",
   "block.drmd.combat_zone": "Боевая зона DRMD",
   "block.drmd.nav_node": "Нав-узел DRMD",
-  "block.drmd.objective": "Цель DRMD"
+  "block.drmd.objective": "Цель DRMD",
+  "entity.drmd.tripod": "Треножник-страйдер",
+  "entity.drmd.scanner": "Летающий сканер",
+  "entity.drmd.spider_turret": "Паук-турель",
+  "item.drmd.spawn_egg_tripod": "Яйцо призыва: треножник",
+  "item.drmd.spawn_egg_scanner": "Яйцо призыва: сканер",
+  "item.drmd.spawn_egg_spider_turret": "Яйцо призыва: паук-турель"
 }

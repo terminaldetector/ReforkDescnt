@@ -15,7 +15,7 @@ import org.joml.Matrix4f;
  * Procedural multi-segment sky worm — landscape-scale body the player can fly along.
  */
 public class MegaWormRenderer extends EntityRenderer<MegaWormEntity> {
-	private static final Identifier TEXTURE = Identifier.of("minecraft", "textures/block/magma.png");
+	private static final Identifier TEXTURE = Identifier.of(com.terminaldetector.drmd.DescentMod.MOD_ID, "textures/entity/mega_worm.png");
 
 	public MegaWormRenderer(EntityRendererFactory.Context ctx) {
 		super(ctx);

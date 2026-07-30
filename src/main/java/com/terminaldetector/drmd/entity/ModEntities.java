@@ -122,10 +122,49 @@ public final class ModEntities {
 					.build()
 	);
 
+	// --- hybrid-cyberpunk ground & sentry roster ---
+
+	public static final EntityType<com.terminaldetector.drmd.entity.mob.TripodEntity> TRIPOD = Registry.register(
+			Registries.ENTITY_TYPE,
+			Identifier.of(DescentMod.MOD_ID, "tripod"),
+			EntityType.Builder.<com.terminaldetector.drmd.entity.mob.TripodEntity>create(
+							com.terminaldetector.drmd.entity.mob.TripodEntity::new, SpawnGroup.MONSTER)
+					.dimensions(2.0f, 3.4f)
+					.maxTrackingRange(96)
+					.build()
+	);
+
+	public static final EntityType<com.terminaldetector.drmd.entity.mob.ScannerEntity> SCANNER = Registry.register(
+			Registries.ENTITY_TYPE,
+			Identifier.of(DescentMod.MOD_ID, "scanner"),
+			EntityType.Builder.<com.terminaldetector.drmd.entity.mob.ScannerEntity>create(
+							com.terminaldetector.drmd.entity.mob.ScannerEntity::new, SpawnGroup.MONSTER)
+					.dimensions(1.0f, 1.0f)
+					.maxTrackingRange(96)
+					.trackingTickInterval(2)
+					.build()
+	);
+
+	public static final EntityType<com.terminaldetector.drmd.entity.mob.SpiderTurretEntity> SPIDER_TURRET = Registry.register(
+			Registries.ENTITY_TYPE,
+			Identifier.of(DescentMod.MOD_ID, "spider_turret"),
+			EntityType.Builder.<com.terminaldetector.drmd.entity.mob.SpiderTurretEntity>create(
+							com.terminaldetector.drmd.entity.mob.SpiderTurretEntity::new, SpawnGroup.MONSTER)
+					.dimensions(1.6f, 1.4f)
+					.maxTrackingRange(96)
+					.build()
+	);
+
 	private ModEntities() {}
 
 	public static void register() {
 		FabricDefaultAttributeRegistry.register(DRONE, DroneEntity.createDroneAttributes());
+		FabricDefaultAttributeRegistry.register(TRIPOD,
+				com.terminaldetector.drmd.entity.mob.TripodEntity.createTripodAttributes());
+		FabricDefaultAttributeRegistry.register(SCANNER,
+				com.terminaldetector.drmd.entity.mob.ScannerEntity.createScannerAttributes());
+		FabricDefaultAttributeRegistry.register(SPIDER_TURRET,
+				com.terminaldetector.drmd.entity.mob.SpiderTurretEntity.createSpiderTurretAttributes());
 		FabricDefaultAttributeRegistry.register(AIR_MINE, AirMineEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(PYRO_SHIP, PyroShipEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(MEGA_WORM, MegaWormEntity.createAttributes());

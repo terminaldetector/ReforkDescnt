@@ -14,6 +14,12 @@ public final class ModEntityRenderers {
 		EntityModelLayerRegistry.registerModelLayer(PyroShipRenderer.LAYER, PyroShipModel::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(DroneRenderer.LAYER, DescentDroneModel::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(ReactorDisplayRenderer.LAYER, ReactorCoreModel::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(TripodRenderer.LAYER,
+				com.terminaldetector.drmd.entity.model.TripodModel::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(ScannerRenderer.LAYER,
+				com.terminaldetector.drmd.entity.model.ScannerModel::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(SpiderTurretRenderer.LAYER,
+				com.terminaldetector.drmd.entity.model.SpiderTurretModel::getTexturedModelData);
 
 		EntityRendererRegistry.register(ModEntities.PROJECTILE, ProjectileRenderer::new);
 		EntityRendererRegistry.register(ModEntities.DRONE, DroneRenderer::new);
@@ -26,5 +32,8 @@ public final class ModEntityRenderers {
 		EntityRendererRegistry.register(ModEntities.AERIAL_BOMB, AerialBombRenderer::new);
 		EntityRendererRegistry.register(ModEntities.END_REACTOR_BOSS, EndReactorBossRenderer::new);
 		EntityRendererRegistry.register(ModEntities.SKY_UFO, SkyUfoRenderer::new);
+		EntityRendererRegistry.register(ModEntities.TRIPOD, TripodRenderer::new);
+		EntityRendererRegistry.register(ModEntities.SCANNER, ScannerRenderer::new);
+		EntityRendererRegistry.register(ModEntities.SPIDER_TURRET, SpiderTurretRenderer::new);
 	}
 }

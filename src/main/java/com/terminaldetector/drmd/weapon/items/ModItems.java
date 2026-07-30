@@ -67,6 +67,10 @@ public final class ModItems {
 	public static Item ENERGY_CELL;
 	public static Item TARGETING_CORE;
 
+	public static Item EGG_TRIPOD;
+	public static Item EGG_SCANNER;
+	public static Item EGG_SPIDER_TURRET;
+
 	public static final RegistryKey<ItemGroup> GROUP_KEY = RegistryKey.of(RegistryKeys.ITEM_GROUP, Identifier.of(DescentMod.MOD_ID, "weapons"));
 
 	private ModItems() {}
@@ -187,6 +191,13 @@ public final class ModItems {
 		ENERGY_CELL = register("energy_cell", new Item(new Item.Settings()));
 		TARGETING_CORE = register("targeting_core", new Item(new Item.Settings()));
 
+		EGG_TRIPOD = register("spawn_egg_tripod", new net.minecraft.item.SpawnEggItem(
+				com.terminaldetector.drmd.entity.ModEntities.TRIPOD, 0x3A4450, 0xFF3366, new Item.Settings()));
+		EGG_SCANNER = register("spawn_egg_scanner", new net.minecraft.item.SpawnEggItem(
+				com.terminaldetector.drmd.entity.ModEntities.SCANNER, 0x1E2A38, 0x35E0FF, new Item.Settings()));
+		EGG_SPIDER_TURRET = register("spawn_egg_spider_turret", new net.minecraft.item.SpawnEggItem(
+				com.terminaldetector.drmd.entity.ModEntities.SPIDER_TURRET, 0x2A3038, 0xFFC24D, new Item.Settings()));
+
 		Registry.register(Registries.ITEM_GROUP, GROUP_KEY, FabricItemGroup.builder()
 				.icon(() -> new ItemStack(PYRO_GX))
 				.displayName(Text.translatable("itemGroup.drmd.weapons"))
@@ -205,6 +216,9 @@ public final class ModItems {
 					entries.add(EGG_RPG);
 					entries.add(EGG_HEAVY);
 					entries.add(EGG_SEEKER);
+					entries.add(EGG_TRIPOD);
+					entries.add(EGG_SCANNER);
+					entries.add(EGG_SPIDER_TURRET);
 					entries.add(BOMB_TNT);
 					entries.add(BOMB_CLUSTER);
 					entries.add(BOMB_INCENDIARY);

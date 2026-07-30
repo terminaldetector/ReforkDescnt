@@ -14,7 +14,7 @@ import org.joml.Matrix4f;
  * Reactor Keeper — procedural sentinel silhouette (placeholder mega-mob).
  */
 public class ReactorKeeperRenderer extends EntityRenderer<ReactorKeeperEntity> {
-	private static final Identifier TEXTURE = Identifier.of("minecraft", "textures/block/sea_lantern.png");
+	private static final Identifier TEXTURE = Identifier.of(com.terminaldetector.drmd.DescentMod.MOD_ID, "textures/entity/reactor_keeper.png");
 
 	public ReactorKeeperRenderer(EntityRendererFactory.Context ctx) {
 		super(ctx);

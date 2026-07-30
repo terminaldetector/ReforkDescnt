@@ -83,13 +83,26 @@ public final class ShipAttitude {
 	 * nose points straight up or down. That is what keeps 6DoF looking continuous through the poles.
 	 */
 	public Vec3d levelRight() {
-		double yaw = yawRadians();
-		return new Vec3d(-Math.cos(yaw), 0, -Math.sin(yaw));
+		return levelRightOf(forward());
 	}
 
 	/** Up vector of a zero-roll camera at this basis' yaw/pitch — matches {@code Camera.verticalPlane}. */
 	public Vec3d levelUp() {
-		Vec3d u = levelRight().crossProduct(forward());
+		return levelUpOf(forward());
+	}
+
+	/**
+	 * Pole-safe zero-roll right vector for any heading — the reference frame flying mobs bank
+	 * against, so a drone climbing straight up does not snap when its heading passes vertical.
+	 */
+	public static Vec3d levelRightOf(Vec3d forward) {
+		double yaw = Math.atan2(-forward.x, forward.z);
+		return new Vec3d(-Math.cos(yaw), 0, -Math.sin(yaw));
+	}
+
+	/** Pole-safe zero-roll up vector for any heading. */
+	public static Vec3d levelUpOf(Vec3d forward) {
+		Vec3d u = levelRightOf(forward).crossProduct(forward);
 		if (u.lengthSquared() < 1e-12) return new Vec3d(0, 1, 0);
 		return u.normalize();
 	}

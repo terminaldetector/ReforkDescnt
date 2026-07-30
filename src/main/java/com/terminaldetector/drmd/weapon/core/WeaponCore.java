@@ -58,6 +58,17 @@ public final class WeaponCore {
 		public boolean worldBlast = false;
 		/** True → 3×3 soft carve on block hit (drill charge). */
 		public boolean drillCarve = false;
+		/** Fuse: when the warhead is allowed to go off. */
+		public com.terminaldetector.drmd.weapon.projectile.FuseType fuse =
+				com.terminaldetector.drmd.weapon.projectile.FuseType.IMPACT;
+		/** Burn time for a TIMED fuse, seconds. */
+		public float fuseSeconds = 0f;
+		/** Dead time after launch before any fuse can trigger, seconds. */
+		public float armSeconds = 0f;
+		/** Trigger radius for a PROXIMITY fuse, blocks. */
+		public float proximityRadius = 0f;
+		/** True → an energy hit sets fire to what it burns through. */
+		public boolean igniteOnHit = false;
 	}
 
 	public record HitContext(ProjectileEntity projectile, Entity hitEntity, Vec3d hitPos, Vec3d hitNormal, boolean isBlock) {}
@@ -106,6 +117,8 @@ public final class WeaponCore {
 		proj.setMeshKind(cfg.meshKind);
 		proj.setWorldBlast(cfg.worldBlast);
 		proj.setDrillCarve(cfg.drillCarve);
+		proj.setFuse(cfg.fuse, cfg.fuseSeconds, cfg.armSeconds, cfg.proximityRadius);
+		proj.setIgniteOnHit(cfg.igniteOnHit);
 		world.spawnEntity(proj);
 
 		applyRecoil(cfg.owner, dir, recoilFactor);

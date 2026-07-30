@@ -15,7 +15,7 @@ import org.joml.Matrix4f;
  * End giga-reactor core — procedural orb + ring silhouette.
  */
 public class EndReactorBossRenderer extends EntityRenderer<EndReactorBossEntity> {
-	private static final Identifier TEXTURE = Identifier.of("minecraft", "textures/block/crying_obsidian.png");
+	private static final Identifier TEXTURE = Identifier.of(com.terminaldetector.drmd.DescentMod.MOD_ID, "textures/entity/end_reactor_boss.png");
 
 	public EndReactorBossRenderer(EntityRendererFactory.Context ctx) {
 		super(ctx);
