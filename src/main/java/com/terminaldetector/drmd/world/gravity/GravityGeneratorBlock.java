@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.world.gravity;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.entity.BlockEntity;
@@ -14,7 +15,6 @@ import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -36,6 +36,12 @@ public class GravityGeneratorBlock extends BlockWithEntity {
 	@Override
 	protected MapCodec<? extends BlockWithEntity> getCodec() {
 		return CODEC;
+	}
+
+	/** BlockWithEntity defaults to INVISIBLE — without this the placed generator vanishes. */
+	@Override
+	protected BlockRenderType getRenderType(BlockState state) {
+		return BlockRenderType.MODEL;
 	}
 
 	@Override

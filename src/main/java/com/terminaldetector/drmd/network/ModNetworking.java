@@ -55,7 +55,8 @@ public final class ModNetworking {
 	public record SyncPayload(boolean enabled, float energy, float energyMax, float shield, float shieldMax,
 							  float roll, float speed, int rocketSub, String preset, float gravy,
 							  float dashCd, float gravityFactor, boolean alwaysRun, boolean flightAssist,
-							  boolean radar, boolean footGravity, float localUx, float localUy, float localUz
+							  boolean radar, boolean footGravity, float localUx, float localUy, float localUz,
+							  boolean construction
 	) implements CustomPayload {
 		public static final Id<SyncPayload> ID = new Id<>(SYNC_ID);
 		public static final PacketCodec<RegistryByteBuf, SyncPayload> CODEC = PacketCodec.of(
@@ -79,6 +80,7 @@ public final class ModNetworking {
 					buf.writeFloat(payload.localUx);
 					buf.writeFloat(payload.localUy);
 					buf.writeFloat(payload.localUz);
+					buf.writeBoolean(payload.construction);
 				},
 				buf -> new SyncPayload(
 						buf.readBoolean(),
@@ -99,7 +101,8 @@ public final class ModNetworking {
 						buf.readBoolean(),
 						buf.readFloat(),
 						buf.readFloat(),
-						buf.readFloat()
+						buf.readFloat(),
+						buf.readBoolean()
 				)
 		);
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
@@ -303,7 +306,8 @@ public final class ModNetworking {
 				data.isFlightAssist(),
 				data.isRadarEnabled(),
 				foot,
-				(float) up.x, (float) up.y, (float) up.z
+				(float) up.x, (float) up.y, (float) up.z,
+				com.terminaldetector.drmd.world.build.ConstructionMode.isActive(player.getUuid())
 		));
 	}
 

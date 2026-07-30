@@ -49,14 +49,17 @@ public final class TrapBlocks {
 		protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
 			boolean open = !state.get(OPEN);
 			world.setBlockState(pos, state.with(OPEN, open).with(CYCLE, (state.get(CYCLE) + 1) & 15), Block.NOTIFY_ALL);
-			// Expand gate plane
-			Direction.Axis axis = Direction.Axis.X;
+			// Expand/collapse only our leaf iron — never wipe arbitrary player builds.
 			for (int i = -2; i <= 2; i++) {
 				for (int j = -2; j <= 2; j++) {
 					BlockPos p = pos.add(0, i, j);
 					if (p.equals(pos)) continue;
-					if (open) world.setBlockState(p, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
-					else if (world.getBlockState(p).isAir()) {
+					var st = world.getBlockState(p);
+					if (open) {
+						if (st.isOf(Blocks.IRON_BLOCK)) {
+							world.setBlockState(p, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
+						}
+					} else if (st.isAir()) {
 						world.setBlockState(p, Blocks.IRON_BLOCK.getDefaultState(), Block.NOTIFY_LISTENERS);
 					}
 				}

@@ -34,6 +34,8 @@ public final class DescentClientState {
 	/** Middle-mouse Use held (cockpit trigger). */
 	public static boolean weaponUseHeld;
 	public static boolean weaponAltHeld;
+	/** Mirror of ConstructionMode (also on ConstructionMode.clientMirror). */
+	public static boolean constructionMode;
 
 	private DescentClientState() {}
 }

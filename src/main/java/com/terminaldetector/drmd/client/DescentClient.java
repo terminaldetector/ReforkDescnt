@@ -51,6 +51,8 @@ public class DescentClient implements ClientModInitializer {
 			DescentClientState.alwaysRun = payload.alwaysRun();
 			DescentClientState.flightAssist = payload.flightAssist();
 			DescentClientState.radar = payload.radar();
+			com.terminaldetector.drmd.world.build.ConstructionMode.setClientMirror(payload.construction());
+			DescentClientState.constructionMode = payload.construction();
 			// Thrusters and foot-gravity are mutually exclusive on the client.
 			DescentClientState.footGravity = payload.enabled() ? false : payload.footGravity();
 			DescentClientState.localUx = payload.enabled() ? 0f : payload.localUx();

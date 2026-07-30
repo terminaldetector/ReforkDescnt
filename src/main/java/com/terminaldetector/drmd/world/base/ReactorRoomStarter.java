@@ -105,7 +105,14 @@ public final class ReactorRoomStarter {
 		player.giveItemStack(new ItemStack(ModItems.ROCKETS));
 		player.giveItemStack(new ItemStack(ModItems.GRAVY_RAILGUN));
 		player.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.BUILD_TOOL));
-		player.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.SIX_D_SOIL, 16));
+		player.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.CONSTRUCTION_LASER));
+		player.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.REPAIR_LASER));
+		player.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.MINING_LASER));
+		player.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH, 8));
+		player.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_GENERATOR));
+		player.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModBlocks.CHECKPOINT));
+		player.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModBlocks.DOCK));
+		player.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.SIX_D_SOIL, 32));
 		player.giveItemStack(new ItemStack(Blocks.IRON_BLOCK, 64));
 	}
 

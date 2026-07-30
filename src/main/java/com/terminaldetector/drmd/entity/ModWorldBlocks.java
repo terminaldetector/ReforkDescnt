@@ -45,8 +45,10 @@ public final class ModWorldBlocks {
 	public static final Block MAGNETIC_ANOMALY = registerBlock("magnetic_anomaly",
 			new TrapBlocks.MagneticAnomalyBlock(AbstractBlock.Settings.copy(Blocks.LODESTONE).ticksRandomly()));
 
+	// Explicit luminance — do not rely on RESPAWN_ANCHOR CHARGES property.
 	public static final Block UNSTABLE_REACTOR = registerBlock("unstable_reactor",
-			new TrapBlocks.UnstableReactorBlock(AbstractBlock.Settings.copy(Blocks.RESPAWN_ANCHOR).ticksRandomly()));
+			new TrapBlocks.UnstableReactorBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK)
+					.ticksRandomly().luminance(s -> 12).strength(3.5f).mapColor(MapColor.RED)));
 
 	public static final Block GRAVITY_GENERATOR = registerBlock("gravity_generator",
 			new com.terminaldetector.drmd.world.gravity.GravityGeneratorBlock(
@@ -93,23 +95,23 @@ public final class ModWorldBlocks {
 				new com.terminaldetector.drmd.world.engineer.EngineerTools.GravityScannerItem(new Item.Settings()));
 
 		ItemGroupEvents.modifyEntriesEvent(ModItems.GROUP_KEY).register(entries -> {
-			entries.add(SIX_D_SOIL);
-			entries.add(HERMETIC_GATE);
-			entries.add(LASER_BARRIER);
-			entries.add(VOLUME_TURRET);
-			entries.add(LASER_TURRET);
-			entries.add(PLASMA_TURRET);
-			entries.add(POINT_DEFENSE_TURRET);
-			entries.add(MAGNETIC_ANOMALY);
-			entries.add(UNSTABLE_REACTOR);
-			entries.add(GRAVITY_GENERATOR);
-			entries.add(GRAVITY_TORCH);
-			entries.add(DRILL_RIG);
-			entries.add(BUILD_TOOL);
-			entries.add(CONSTRUCTION_LASER);
-			entries.add(REPAIR_LASER);
-			entries.add(MINING_LASER);
-			entries.add(GRAVITY_SCANNER);
+			entries.addAfter(ModBlocks.OBJECTIVE, SIX_D_SOIL);
+			entries.addAfter(SIX_D_SOIL, HERMETIC_GATE);
+			entries.addAfter(HERMETIC_GATE, LASER_BARRIER);
+			entries.addAfter(LASER_BARRIER, VOLUME_TURRET);
+			entries.addAfter(VOLUME_TURRET, LASER_TURRET);
+			entries.addAfter(LASER_TURRET, PLASMA_TURRET);
+			entries.addAfter(PLASMA_TURRET, POINT_DEFENSE_TURRET);
+			entries.addAfter(POINT_DEFENSE_TURRET, MAGNETIC_ANOMALY);
+			entries.addAfter(MAGNETIC_ANOMALY, UNSTABLE_REACTOR);
+			entries.addAfter(UNSTABLE_REACTOR, GRAVITY_GENERATOR);
+			entries.addAfter(GRAVITY_GENERATOR, GRAVITY_TORCH);
+			entries.addAfter(GRAVITY_TORCH, DRILL_RIG);
+			entries.addAfter(DRILL_RIG, BUILD_TOOL);
+			entries.addAfter(BUILD_TOOL, CONSTRUCTION_LASER);
+			entries.addAfter(CONSTRUCTION_LASER, REPAIR_LASER);
+			entries.addAfter(REPAIR_LASER, MINING_LASER);
+			entries.addAfter(MINING_LASER, GRAVITY_SCANNER);
 		});
 
 		DescentMod.LOGGER.info("Registered Phase3 world blocks & engineer tools");
