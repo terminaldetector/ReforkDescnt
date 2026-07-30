@@ -17,3 +17,6 @@ logs/
 
 # Loom
 remappedSrc/
+
+# Accidental TLauncher log dumps named like this
+*.tlauncher.log

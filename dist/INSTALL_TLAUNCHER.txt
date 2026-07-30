@@ -1,23 +1,27 @@
 DRMD 6DOF — ПК TLauncher Fabric 1.21.1
 =======================================
-Jar: drmd-6dof-1.0.0-fabric-1.21.1.jar
-Also: drmd-6dof-1.0.0.jar
 
-Установка (ПК / TLauncher)
-  1. Версии → Fabric Loader для Minecraft 1.21.1
+НУЖНО
+  Minecraft 1.21.1 + Fabric Loader + Fabric API + Java 21
+  Файл: drmd-6dof-1.0.0-fabric-1.21.1.jar  (или drmd-6dof-1.0.0.jar)
+
+НЕ ПОДОЙДЁТ (из твоего лога)
+  ✗ Версия «пкен» / Forge 26.2-65.1.0  — это Forge, мод только для Fabric
+  ✗ drmd-6dof-pc.zip                  — это архив CI, не мод; в mods класть .jar
+  ✗ Minecraft 26.x                    — нужна 1.21.1
+
+Установка
+  1. TLauncher → Версии → установить Fabric для Minecraft 1.21.1
   2. Java 21+ в настройках лаунчера
-  3. В mods/: этот jar + Fabric API 1.21.1
-  4. Запуск Fabric 1.21.1 → креатив / новый мир
+  3. Если скачал drmd-6dof-pc.zip с GitHub Actions — РАСПАКУЙ
+     и возьми изнутри drmd-6dof-*-fabric-1.21.1.jar (или drmd-6dof-1.0.0.jar)
+  4. Положи .jar в:
+       .minecraft/versions/<имя_Fabric_1.21.1>/mods/
+     или .minecraft/mods/ (если профиль так настроен)
+  5. Туда же — Fabric API для 1.21.1 (Modrinth / CurseForge)
+  6. Запуск профиля Fabric 1.21.1 → новый мир
+  7. Креатив → вкладка «DRMD 6DOF» → «Запуск реактора»
 
-Без консоли
-  Креатив → вкладка «DRMD 6DOF» → сверху:
-    Запуск реактора / Ядро 6DoF / Стартовый набор / Лифт / Стройка / Энергия
-  Или ПКМ по предметам, выданным при входе в креатив.
-
-Не класть *-sources.jar / *-dev.jar в mods.
-
-Если краш при заходе / Preparing spawn:
-  - поставь свежий jar (фиксы nav_node + overworld.json)
-  - создай НОВЫЙ мир
+Не класть в mods: *-sources.jar, *-dev.jar, .zip, .mcaddon
 
 Сборка: ./gradlew build packageTlauncher --no-daemon
