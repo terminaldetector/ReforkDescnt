@@ -20,3 +20,4 @@ item.drmd:ctrl_brake=Brake
 item.drmd:ctrl_reset_roll=Level Attitude
 item.drmd:ctrl_afterburner=Afterburner
 tile.drmd:gravity_torch.name=Gravity Torch
+item.drmd:ctrl_barrel=Barrel Roll

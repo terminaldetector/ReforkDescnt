@@ -283,8 +283,8 @@ legacy/                               # исходный GMod-аддон
 ```bash
 ./scripts/package_all.sh
 # → dist/drmd-6dof-1.0.0.jar
-# → dist/drmd-6dof-mcpe-master-1.0.3.mcaddon
-# → dist/drmd-6dof-mcpe-master-1.0.3.zip   # ручная установка в games/com.mojang
+# → dist/drmd-6dof-mcpe-master-1.0.4.mcaddon
+# → dist/drmd-6dof-mcpe-master-1.0.4.zip   # ручная установка в games/com.mojang
 ```
 
 CI Artifacts (Actions → **Build DRMD 6DOF**):
@@ -293,6 +293,23 @@ CI Artifacts (Actions → **Build DRMD 6DOF**):
 - `drmd-evening-test` — both + README
 
 MCPE Master: [`mcpe/README.md`](mcpe/README.md) · [`mcpe/INSTALL_MCPE_MASTER.txt`](mcpe/INSTALL_MCPE_MASTER.txt)
+
+### MCPE выровнен с ПК (v1.0.4)
+
+Матрица крена на Bedrock теперь **та же самая**: опорный кадр берётся из
+`levelRightOf/levelUpOf` (из yaw), а не через `forward × worldUp`. Расхождение
+с Java-реализацией — **2.8e-14°**, снэпа на ±174° у полюса больше нет.
+Плюс демпферы (`!d6 damp` = `F` на ПК), HUD с теми же величинами
+(`6DOF · ТЯГА% · ДЕМПФ · SPD · P · R · ALT · уровень`) и те же метки уровней.
+
+**Полёт бочкой** — отдельный интерфейс: кнопка `drmd:ctrl_barrel`, пункт в
+панели или `!d6 barrel`. Бочка 360°/180°/720°, непрерывная бочка, выбор
+скорости крена, стоп. Манёвр складывается с ручным креном, поэтому из бочки
+можно вырулить не прерывая её; ход виден на HUD полосой.
+
+Чего на Bedrock нет: камера не кренится — скриптовый API даёт только yaw/pitch,
+поэтому крен читается по приборам. И высоту мира переопределить нельзя, так что
+уровни `NETHER / ABYSS / ORBITAL / END` там подписаны, но недостижимы.
 
 ## Phase 3 — 6DoF Framework
 

@@ -11,11 +11,23 @@ const TAG_CONSTRUCT = "drmd_construct";
 const TAG_WELCOME = "drmd_welcome";
 const TAG_AFTERBURN = "drmd_afterburn";
 const TAG_HUD_CTRL = "drmd_hud_ctrl";
+/** Flight Assist / dampeners — the PC build's F key. */
+const TAG_FLIGHT_ASSIST = "drmd_flight_assist";
 
 /** Pitch / roll rates (deg per tick) — Descent-like responsiveness */
 const PITCH_RATE = 3.2;
 const ROLL_RATE = 4.8;
 const YAW_RATE = 2.8;
+
+/** Selectable barrel-roll rates, deg/tick. Index is stored per pilot. */
+const ROLL_RATES = [
+  { label: "медленно", rate: 2.6 },
+  { label: "норма", rate: ROLL_RATE },
+  { label: "быстро", rate: 8.0 },
+];
+
+/** Scripted roll maneuvers run at a multiple of the manual rate. */
+const MANEUVER_GAIN = 1.6;
 
 /**
  * @typedef {{
@@ -107,13 +119,29 @@ function setForwardUp(st, f, u) {
   st.uz = u.z;
 }
 
+/**
+ * Right vector of a zero-roll camera for this heading — derived from yaw alone.
+ *
+ * Port of ShipAttitude.levelRightOf from the PC build. Deliberately NOT
+ * cross(forward, worldUp): that collapses when the nose points straight up or
+ * down, and the old fallback made the roll read-out snap ~174 degrees a couple
+ * of degrees off vertical.
+ */
+function levelRightOf(f) {
+  const yaw = Math.atan2(-f.x, f.z);
+  return v(-Math.cos(yaw), 0, -Math.sin(yaw));
+}
+
+/** Up vector of a zero-roll camera for this heading. */
+function levelUpOf(f) {
+  const u = cross(levelRightOf(f), f);
+  if (dot(u, u) < 1e-12) return v(0, 1, 0);
+  return normalize(u);
+}
+
 function attitudeFromView(player) {
   const f = normalize(player.getViewDirection());
-  let r = cross(f, v(0, 1, 0));
-  if (dot(r, r) < 1e-6) r = v(1, 0, 0);
-  r = normalize(r);
-  const u = normalize(cross(r, f));
-  return { f, u };
+  return { f, u: levelUpOf(f) };
 }
 
 function stateOf(player) {
@@ -132,6 +160,9 @@ function stateOf(player) {
       uz: u.z,
       dashCd: 0,
       hudTick: 0,
+      rollRateIdx: 1,
+      /** Active barrel-roll maneuver, or null. */
+      man: null,
     });
   }
   return flights.get(id);
@@ -161,17 +192,35 @@ function yawDegrees(st) {
   return (Math.atan2(-st.fx, st.fz) * 180) / Math.PI;
 }
 
+/**
+ * Bank against the pole-safe zero-roll frame, in (-180, 180].
+ *
+ * Matches ShipAttitude.bankDegrees on PC, so the two versions report the same
+ * number for the same attitude — including straight up and straight down.
+ */
 function rollDegrees(st) {
-  // Bank: angle of up projected onto world-up vs local right
   const f = forwardOf(st);
   const u = upOf(st);
-  let worldUp = v(0, 1, 0);
-  // if looking nearly straight up/down, use world forward as reference
-  if (Math.abs(f.y) > 0.95) worldUp = v(0, 0, 1);
-  const levelRight = normalize(cross(f, worldUp));
-  const levelUp = normalize(cross(levelRight, f));
-  const r = rightOf(st);
-  return (Math.atan2(dot(u, levelRight), dot(u, levelUp)) * 180) / Math.PI;
+  return (
+    (Math.atan2(dot(u, levelRightOf(f)), dot(u, levelUpOf(f))) * 180) / Math.PI
+  );
+}
+
+/**
+ * Level band for an altitude, using the same thresholds as WorldLevels on PC.
+ *
+ * Bedrock cannot widen the overworld the way the PC datapack does, so only the
+ * bands inside -64..320 are reachable here; the labels still match so both
+ * versions name the same altitude the same way.
+ */
+function bandOf(y) {
+  if (y >= 880) return "END";
+  if (y >= 640) return "ORBITAL";
+  if (y >= 320) return "SKY";
+  if (y >= 40) return "SURFACE";
+  if (y >= -64) return "INDUSTRIAL";
+  if (y >= -240) return "ABYSS";
+  return "NETHER";
 }
 
 function bar(val, max, width) {
@@ -213,6 +262,7 @@ function safeCommand(player, cmd) {
 function giveControls(player) {
   const items = [
     "drmd:ctrl_panel",
+    "drmd:ctrl_barrel",
     "drmd:ctrl_ascend", // pitch up
     "drmd:ctrl_descend", // pitch down
     "drmd:ctrl_roll_left",
@@ -268,6 +318,16 @@ function toggleAfterburner(player) {
   }
 }
 
+function toggleFlightAssist(player) {
+  if (player.hasTag(TAG_FLIGHT_ASSIST)) {
+    player.removeTag(TAG_FLIGHT_ASSIST);
+    player.sendMessage("§7Демпферы ВЫКЛ — инерция как в Descent");
+  } else {
+    player.addTag(TAG_FLIGHT_ASSIST);
+    player.sendMessage("§aДемпферы ВКЛ");
+  }
+}
+
 function toggle6dof(player) {
   if (player.hasTag(TAG_6DOF)) {
     player.removeTag(TAG_6DOF);
@@ -284,13 +344,10 @@ function toggle6dof(player) {
 }
 
 function resetAttitude(player, st) {
-  const { f, u } = attitudeFromView(player);
-  setForwardUp(st, f, u);
-  // level roll: rebuild up from world
-  let r = cross(f, v(0, 1, 0));
-  if (dot(r, r) < 1e-6) r = v(1, 0, 0);
-  r = normalize(r);
-  setForwardUp(st, f, normalize(cross(r, f)));
+  // Keep the nose where it is and zero the bank against the pole-safe frame.
+  const f = forwardOf(st);
+  st.man = null;
+  setForwardUp(st, f, levelUpOf(f));
   syncCamera(player, st);
   player.sendMessage("§6Крен выровнен (уровень)");
 }
@@ -375,10 +432,34 @@ function drawHud(player, st, holds) {
   const pitchBar = bar(pitch, 90, 9);
   const rollBar = bar(roll, 180, 9);
 
+  // Same readouts the PC cockpit shows, condensed into the action bar.
+  const thrustPct = Math.round(Math.min(1, spd / 33) * 100);
+  const damp = player.hasTag(TAG_FLIGHT_ASSIST) ? "§aВКЛ" : "§7ВЫКЛ";
+  let alt = 0;
+  let band = "SURFACE";
+  try {
+    alt = Math.round(player.location.y);
+    band = bandOf(alt);
+  } catch (_) {}
+
+  // Barrel-roll maneuver takes over the tail of the line while it runs.
+  const prog = maneuverProgress(st);
+  let manText = "";
+  if (st.man && st.man.kind === "cont") {
+    manText = ` §d[БОЧКА ${st.man.dir < 0 ? "←" : "→"} ∞]`;
+  } else if (prog >= 0) {
+    const filled = Math.round(prog * 8);
+    let pb = "";
+    for (let i = 0; i < 8; i++) pb += i < filled ? "§d█" : "§8░";
+    manText = ` §d[БОЧКА ${Math.round(st.man.total)}° ${pb}§d]`;
+  }
+
   try {
     player.onScreenDisplay.setActionBar(
-      `§a${mode}${after ? " §cФС" : ""} §fSPD§e${spd.toFixed(0)} §fP§b${pitch.toFixed(0)}§7° ${pitchBar} §fR§d${roll.toFixed(0)}§7° ${rollBar}` +
-        (act.length ? ` §6[${act.join(" ")}]` : " §8[хотбар=удерж]")
+      `§a6DOF·${mode}${after ? " §cФС" : ""} §fТЯГА§e${thrustPct}% §fДЕМПФ${damp}` +
+        ` §fSPD§e${spd.toFixed(0)} §fP§b${pitch.toFixed(0)}§7°${pitchBar} §fR§d${roll.toFixed(0)}§7°${rollBar}` +
+        ` §fALT§b${alt} §7${band}` +
+        (manText || (act.length ? ` §6[${act.join(" ")}]` : " §8[хотбар=удерж]"))
     );
   } catch (_) {}
 
@@ -399,7 +480,8 @@ function panelChatFallback(player) {
   player.sendMessage("§aБочки ←/→ §7— крен вокруг продольной оси");
   player.sendMessage("§aРысканье ←/→ §7— вокруг вертикали корабля");
   player.sendMessage("§eПрыжок/Тяга §7вперёд · §cТормоз · §bСкольжение ↑↓");
-  player.sendMessage("§f!d6 panel|kit|hud|level|dash|toggle");
+  player.sendMessage("§dПолёт бочкой §7— §f!d6 barrel §7(360°/180°/непрерывно)");
+  player.sendMessage("§f!d6 panel|barrel|kit|hud|level|damp|dash|toggle");
 }
 
 async function openControlPanel(player) {
@@ -419,6 +501,7 @@ async function openControlPanel(player) {
     .button("§eРывок")
     .button("§cТормоз")
     .button("§6Выровнять крен")
+    .button("§dПолёт бочкой…")
     .button("§cФорсаж")
     .button(player.hasTag(TAG_HUD_CTRL) ? "§7Скрыть подсказки HUD" : "§aПоказать подсказки HUD")
     .button(player.hasTag(TAG_6DOF) ? "§76DoF ВЫКЛ" : "§a6DoF ВКЛ")
@@ -463,9 +546,12 @@ async function openControlPanel(player) {
         resetAttitude(player, st);
         break;
       case 11:
-        toggleAfterburner(player);
+        system.run(() => openBarrelPanel(player));
         break;
       case 12:
+        toggleAfterburner(player);
+        break;
+      case 13:
         if (player.hasTag(TAG_HUD_CTRL)) {
           player.removeTag(TAG_HUD_CTRL);
           player.sendMessage("§7Подсказки HUD выкл");
@@ -475,7 +561,7 @@ async function openControlPanel(player) {
           showControlsTitle(player, true);
         }
         break;
-      case 13:
+      case 14:
         toggle6dof(player);
         break;
       default:
@@ -483,6 +569,100 @@ async function openControlPanel(player) {
     }
   } catch (_) {
     panelChatFallback(player);
+  }
+}
+
+/**
+ * Barrel-roll interface — the flight panel dedicated to rolls.
+ *
+ * The hotbar buttons already give a raw held axis; this is the other half:
+ * scripted arcs you fire and forget, a continuous roll you can leave running,
+ * and the rate they all use.
+ */
+async function openBarrelPanel(player) {
+  const st = stateOf(player);
+  const rateLabel = ROLL_RATES[st.rollRateIdx ?? 1]?.label ?? "норма";
+  const m = st.man;
+  const status = m
+    ? m.kind === "cont"
+      ? `§dНЕПРЕРЫВНАЯ ${m.dir < 0 ? "влево" : "вправо"}`
+      : `§dБочка ${Math.round(m.total)}° — осталось ${Math.round(m.left)}°`
+    : "§7манёвр не выполняется";
+
+  const form = new ActionFormData()
+    .title("DRMD — Полёт бочкой")
+    .body(
+      `Крен вокруг продольной оси.
+§fСейчас: ${status}
+§fСкорость крена: §a${rateLabel}
+§fТекущий крен: §d${rollDegrees(st).toFixed(0)}°
+
+§7Манёвр можно перебить ручным креном.`
+    )
+    .button("§dБочка 360° влево")
+    .button("§dБочка 360° вправо")
+    .button("§5Полубочка 180° (перевернуться)")
+    .button("§5Двойная бочка 720° вправо")
+    .button("§bНепрерывная бочка ←")
+    .button("§bНепрерывная бочка →")
+    .button("§cСтоп манёвр")
+    .button(`§eСкорость крена: §a${rateLabel}`)
+    .button("§6Выровнять крен")
+    .button("§8Назад")
+    .button("§8Закрыть");
+
+  try {
+    const res = await form.show(player);
+    if (res.canceled) return;
+    switch (res.selection) {
+      case 0:
+        startBarrel(st, 360, -1);
+        player.sendMessage("§dБочка 360° влево");
+        break;
+      case 1:
+        startBarrel(st, 360, 1);
+        player.sendMessage("§dБочка 360° вправо");
+        break;
+      case 2:
+        startBarrel(st, 180, 1);
+        player.sendMessage("§5Полубочка — переворот");
+        break;
+      case 3:
+        startBarrel(st, 720, 1);
+        player.sendMessage("§5Двойная бочка");
+        break;
+      case 4:
+        startBarrel(st, 0, -1);
+        player.sendMessage("§bНепрерывная бочка влево — «Стоп» чтобы прервать");
+        break;
+      case 5:
+        startBarrel(st, 0, 1);
+        player.sendMessage("§bНепрерывная бочка вправо — «Стоп» чтобы прервать");
+        break;
+      case 6:
+        stopBarrel(st);
+        player.sendMessage("§7Манёвр прерван");
+        break;
+      case 7:
+        st.rollRateIdx = ((st.rollRateIdx ?? 1) + 1) % ROLL_RATES.length;
+        player.sendMessage(
+          `§eСкорость крена: §a${ROLL_RATES[st.rollRateIdx].label}`
+        );
+        system.run(() => openBarrelPanel(player));
+        break;
+      case 8:
+        resetAttitude(player, st);
+        break;
+      case 9:
+        system.run(() => openControlPanel(player));
+        break;
+      default:
+        break;
+    }
+  } catch (_) {
+    player.sendMessage("§b=== Полёт бочкой ===");
+    player.sendMessage("§f!d6 barrel §7— панель · §f!d6 roll360 §7· §f!d6 roll180");
+    player.sendMessage("§f!d6 rollcont §7— непрерывно · §f!d6 rollstop §7— стоп");
   }
 }
 
@@ -502,6 +682,10 @@ function handleControlUse(player, id) {
   }
   if (id === "drmd:ctrl_panel") {
     system.run(() => openControlPanel(player));
+    return true;
+  }
+  if (id === "drmd:ctrl_barrel") {
+    system.run(() => openBarrelPanel(player));
     return true;
   }
   // Tap = short pulse of Descent axis
@@ -550,6 +734,22 @@ function handleChatCommand(player, msg) {
     pulseHold(player, "rollL", 10);
   } else if (arg === "rollr") {
     pulseHold(player, "rollR", 10);
+  } else if (arg === "barrel" || arg === "roll") {
+    system.run(() => openBarrelPanel(player));
+  } else if (arg === "roll360") {
+    startBarrel(st, 360, 1);
+    player.sendMessage("§dБочка 360°");
+  } else if (arg === "roll180") {
+    startBarrel(st, 180, 1);
+    player.sendMessage("§5Полубочка 180°");
+  } else if (arg === "rollcont") {
+    startBarrel(st, 0, 1);
+    player.sendMessage("§bНепрерывная бочка");
+  } else if (arg === "rollstop") {
+    stopBarrel(st);
+    player.sendMessage("§7Манёвр прерван");
+  } else if (arg === "damp" || arg === "assist") {
+    toggleFlightAssist(player);
   } else if (arg === "dash") {
     applyDash(player, st);
   } else if (arg === "kit") {
@@ -561,6 +761,48 @@ function handleChatCommand(player, msg) {
     panelChatFallback(player);
   }
   return true;
+}
+
+function rollRateOf(st) {
+  return ROLL_RATES[st.rollRateIdx ?? 1]?.rate ?? ROLL_RATE;
+}
+
+/**
+ * Start a scripted barrel roll.
+ *
+ * @param degrees total arc, or 0 for a continuous roll that runs until stopped
+ * @param dir     -1 left, +1 right
+ */
+function startBarrel(st, degrees, dir) {
+  st.man = {
+    kind: degrees > 0 ? "arc" : "cont",
+    dir: dir < 0 ? -1 : 1,
+    left: degrees,
+    total: degrees,
+  };
+}
+
+function stopBarrel(st) {
+  st.man = null;
+}
+
+/** Degrees of roll the active maneuver contributes this tick. */
+function maneuverRoll(st) {
+  const m = st.man;
+  if (!m) return 0;
+  const step = rollRateOf(st) * MANEUVER_GAIN;
+  if (m.kind === "cont") return step * m.dir;
+  const applied = Math.min(step, m.left);
+  m.left -= applied;
+  if (m.left <= 1e-3) st.man = null;
+  return applied * m.dir;
+}
+
+/** 0..1 progress of an arc maneuver, or -1 when none / continuous. */
+function maneuverProgress(st) {
+  const m = st.man;
+  if (!m || m.kind !== "arc" || !(m.total > 0)) return -1;
+  return 1 - m.left / m.total;
 }
 
 /** Apply Descent local-axis rotations this tick */
@@ -583,14 +825,16 @@ function applyAttitude(st, holds) {
   r = normalize(cross(f, u));
   u = normalize(cross(r, f));
 
-  // Barrel roll around local FORWARD (бочки)
-  if (holds.rollL) {
-    u = rotateAround(u, f, -ROLL_RATE);
-    r = rotateAround(r, f, -ROLL_RATE);
-  }
-  if (holds.rollR) {
-    u = rotateAround(u, f, ROLL_RATE);
-    r = rotateAround(r, f, ROLL_RATE);
+  // Barrel roll around local FORWARD (бочки). Manual holds and any scripted
+  // maneuver sum into one delta, so a pilot can steer out of a 360 mid-roll.
+  const rate = rollRateOf(st);
+  let rollDelta = 0;
+  if (holds.rollL) rollDelta -= rate;
+  if (holds.rollR) rollDelta += rate;
+  rollDelta += maneuverRoll(st);
+  if (rollDelta !== 0) {
+    u = rotateAround(u, f, rollDelta);
+    r = rotateAround(r, f, rollDelta);
   }
 
   // Yaw around local UP (рысканье)
@@ -617,6 +861,7 @@ world.afterEvents.playerSpawn.subscribe((ev) => {
       player.addTag(TAG_WELCOME);
       player.addTag(TAG_6DOF);
       player.addTag(TAG_HUD_CTRL);
+      player.addTag(TAG_FLIGHT_ASSIST);
       const st = stateOf(player);
       const { f, u } = attitudeFromView(player);
       setForwardUp(st, f, u);
@@ -753,9 +998,11 @@ system.runInterval(() => {
       st.vy *= 0.8;
       st.vz *= 0.8;
     } else {
-      st.vx *= 0.97;
-      st.vy *= 0.97;
-      st.vz *= 0.97;
+      // Dampeners off = Descent drift; on = the assisted feel, as on PC.
+      const keep = player.hasTag(TAG_FLIGHT_ASSIST) ? 0.955 : 0.992;
+      st.vx *= keep;
+      st.vy *= keep;
+      st.vz *= keep;
     }
 
     const speed = Math.sqrt(st.vx * st.vx + st.vy * st.vy + st.vz * st.vz);

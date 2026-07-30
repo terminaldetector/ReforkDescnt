@@ -11,6 +11,9 @@
     "drmd_ctrl_ascend": {
       "textures": "textures/items/ctrl_ascend"
     },
+    "drmd_ctrl_barrel": {
+      "textures": "textures/items/ctrl_barrel"
+    },
     "drmd_ctrl_brake": {
       "textures": "textures/items/ctrl_brake"
     },

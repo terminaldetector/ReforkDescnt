@@ -1058,6 +1058,63 @@ def build_icon():
     return im
 
 
+# ----------------------------------------------------------------- MCPE control icons
+
+MCPE_ITEMS = os.path.join(ROOT, "mcpe/resource_pack/textures/items")
+
+
+def mcpe_frame(accent, fill=(40, 50, 70, 255)):
+    """16x16 framed button in the style the existing MCPE ctrl_* icons use."""
+    im = img()
+    rect(im, 1, 1, 14, 14, fill)
+    for x in range(1, 15):
+        px(im, x, 1, accent)
+        px(im, x, 14, accent)
+    for y in range(1, 15):
+        px(im, 1, y, accent)
+        px(im, 14, y, accent)
+    return im
+
+
+def mcpe_ctrl_barrel():
+    """Barrel-roll button: a ship silhouette inside a roll arc."""
+    accent = (200, 110, 255, 255)
+    im = mcpe_frame(accent, fill=(46, 38, 66, 255))
+    # Roll arc, open at the lower right so it reads as rotation not a ring.
+    import math as _m
+    for deg in range(200, 520, 6):
+        a_ = _m.radians(deg % 360)
+        x = 7.5 + _m.cos(a_) * 4.6
+        y = 7.5 + _m.sin(a_) * 4.6
+        px(im, int(round(x)), int(round(y)), accent)
+    # Arrow head closing the arc.
+    px(im, 11, 4, accent)
+    px(im, 12, 5, accent)
+    px(im, 10, 5, accent)
+    px(im, 11, 6, accent)
+    # Ship silhouette, banked.
+    body = (235, 240, 255, 255)
+    for x, y in ((7, 6), (8, 6), (7, 7), (8, 7), (7, 8), (8, 8)):
+        px(im, x, y, body)
+    for x, y in ((5, 8), (6, 8), (9, 7), (10, 7)):
+        px(im, x, y, (150, 170, 200, 255))
+    px(im, 7, 5, (120, 240, 255, 255))
+    return im
+
+
+MCPE_ICONS = {
+    "ctrl_barrel": mcpe_ctrl_barrel,
+}
+
+
+def build_mcpe_icons():
+    if not os.path.isdir(MCPE_ITEMS):
+        return 0
+    for name, fn in MCPE_ICONS.items():
+        fn().save(os.path.join(MCPE_ITEMS, name + ".png"))
+    return len(MCPE_ICONS)
+
+
 def main():
     items = os.path.join(TEX, "item")
     blocks = os.path.join(TEX, "block")
@@ -1068,7 +1125,8 @@ def main():
     nb = build_blocks(blocks)
     ne = build_entities(entity)
     build_icon().save(os.path.join(TEX, "..", "icon.png"))
-    print(f"items={ni} blocks={nb} entities={ne} icon=1")
+    nm = build_mcpe_icons()
+    print(f"items={ni} blocks={nb} entities={ne} icon=1 mcpe={nm}")
 
 
 if __name__ == "__main__":
