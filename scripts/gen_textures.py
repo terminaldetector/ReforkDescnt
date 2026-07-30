@@ -156,6 +156,26 @@ def sh_emitter(im, body, accent):
     rect(im, 3, 7, 4, 9, shade(accent, 0.8))
 
 
+def sh_fusion(im, body, accent):
+    """Fusion cannon: twin charge prongs with an arc bridging the gap."""
+    rect(im, 1, 6, 8, 11, body)
+    rect(im, 1, 6, 8, 6, shade(body, 1.35))
+    rect(im, 1, 11, 8, 11, shade(body, 0.6))
+    rect(im, 3, 12, 6, 15, shade(body, 0.7))       # grip
+    # Coil bands on the receiver.
+    for x in (3, 5, 7):
+        rect(im, x, 6, x, 11, shade(accent, 0.55))
+    # Twin prongs.
+    rect(im, 8, 4, 13, 5, shade(body, 1.05))
+    rect(im, 8, 12, 13, 13, shade(body, 0.8))
+    rect(im, 13, 4, 14, 6, shade(accent, 0.9))
+    rect(im, 13, 11, 14, 13, shade(accent, 0.9))
+    # Arc across the gap.
+    glow(im, 13.5, 8.5, 3.0, accent)
+    px(im, 13, 8, WHITE)
+    px(im, 14, 9, WHITE)
+
+
 def sh_rail(im, body, accent):
     """Railgun: twin accelerator rails with an armature between them."""
     rect(im, 1, 5, 14, 6, body)
@@ -349,6 +369,7 @@ def sh_core(im, body, accent):
 
 
 SHAPES = {
+    "fusion": sh_fusion,
     "cannon": sh_cannon, "gatling": sh_gatling, "launcher": sh_launcher,
     "missile": sh_missile, "emitter": sh_emitter, "rail": sh_rail,
     "mine": sh_mine, "orb": sh_orb, "deploy": sh_deploy, "bomb": sh_bomb,
@@ -370,6 +391,7 @@ ITEMS = {
     "weapon_d6_overdrive":     ("emitter", HULL_M, GREEN),
     "weapon_d6_darklance":     ("emitter", (36, 28, 52, 255), VIOLET),
     "weapon_d6_bfg":           ("emitter", (30, 54, 44, 255), GREEN),
+    "weapon_d6_fusion":        ("fusion", (44, 34, 62, 255), VIOLET),
     # --- rails
     "weapon_d6_railmk2":       ("rail", HULL_L, CYAN),
     "weapon_d6_gravy_railgun": ("rail", HULL_D, VIOLET),

@@ -55,5 +55,6 @@
   "item.drmd.spawn_egg_tripod": "Яйцо призыва: треножник",
   "item.drmd.spawn_egg_scanner": "Яйцо призыва: сканер",
   "item.drmd.spawn_egg_spider_turret": "Яйцо призыва: паук-турель",
-  "block.drmd.drill_rig": "Лазерная буровая установка"
+  "block.drmd.drill_rig": "Лазерная буровая установка",
+  "item.drmd.weapon_d6_fusion": "Фьюжен-пушка"
 }

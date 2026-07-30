@@ -203,7 +203,7 @@ public final class ProjectileFramework {
 			case "plasma" -> ProjectileKind.PLASMA;
 			case "rockets", "homing", "smart_missile", "mega_missile", "concussion" -> ProjectileKind.ROCKET;
 			case "gravy" -> ProjectileKind.GRAVITY_SPHERE;
-			case "bfg", "darklance" -> ProjectileKind.ENERGY_ORB;
+			case "bfg", "darklance", "fusion" -> ProjectileKind.ENERGY_ORB;
 			case "deploy" -> ProjectileKind.PROXIMITY_MINE;
 			case "flak" -> ProjectileKind.AIRBURST;
 			case "frag" -> ProjectileKind.DRILL_CHARGE;

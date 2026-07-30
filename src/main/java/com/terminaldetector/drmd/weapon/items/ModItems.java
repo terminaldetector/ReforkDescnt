@@ -43,6 +43,7 @@ public final class ModItems {
 	public static Item WARP;
 	public static Item TELEFRAG;
 	public static Item WHIPLASH;
+	public static Item FUSION;
 
 	public static Item PYRO_GX;
 	public static Item EGG_ASSAULT;
@@ -163,6 +164,11 @@ public final class ModItems {
 		WHIPLASH = register("weapon_d6_whiplash", new DescentWeaponItem(def_whiplash, new Item.Settings()));
 		WeaponRegistry.register(def_whiplash);
 
+		// Descent's charge weapon — held, not tapped; see FusionCannonItem.
+		WeaponDef def_fusion = new WeaponDef("fusion", "Фьюжен-пушка", "heavy", 25f, 0.5f, 195f, 90f, 260f, 2400f, 320f, DamageClass.EXOTIC, "fusion");
+		FUSION = register("weapon_d6_fusion", new FusionCannonItem(def_fusion, new Item.Settings()));
+		WeaponRegistry.register(def_fusion);
+
 		PYRO_GX = register("pyro_gx", new com.terminaldetector.drmd.entity.PyroShipItem(new Item.Settings().maxCount(1)));
 
 		EGG_ASSAULT = egg("spawn_egg_assault", com.terminaldetector.drmd.ai.AiRole.ASSAULT, 0xCC3333, 0x442222);
@@ -251,6 +257,7 @@ public final class ModItems {
 					entries.add(WARP);
 					entries.add(TELEFRAG);
 					entries.add(WHIPLASH);
+					entries.add(FUSION);
 				})
 				.build());
 

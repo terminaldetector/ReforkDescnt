@@ -99,5 +99,6 @@
   "item.drmd.spawn_egg_tripod": "Tripod Strider Spawn Egg",
   "item.drmd.spawn_egg_scanner": "Flying Scanner Spawn Egg",
   "item.drmd.spawn_egg_spider_turret": "Spider Turret Spawn Egg",
-  "block.drmd.drill_rig": "Laser Drill Rig"
+  "block.drmd.drill_rig": "Laser Drill Rig",
+  "item.drmd.weapon_d6_fusion": "Fusion Cannon"
 }

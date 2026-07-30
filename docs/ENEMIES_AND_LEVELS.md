@@ -89,6 +89,24 @@ and a seeded mine without three projectile entities.
 | `TIMED` | air-burst when the fuse runs out, wherever it is. Flak bursts into an 8-sliver shrapnel cone |
 | `PROXIMITY` | coasts through contact, settles where it lands, triggers when a target enters the radius. Mines: 3.5 m, arms after 0.8 s |
 
+### Fusion Cannon
+
+Ported from Descent: `drmd:weapon_d6_fusion` is the only DRMD weapon that is *held* rather than
+tapped. Charge builds over 2 s (40 ticks) and the bolt scales with it.
+
+| | tap | full charge |
+|--|-----|-------------|
+| Damage | 45 | 195 |
+| Splash | 20 / 90 units | 90 / 260 units |
+| Energy | 25 | 70 |
+| Recoil | 40 | 320 — enough to matter in 6DoF |
+| Extras | — | pierces one target, cracks terrain |
+
+Holding past full does not build further; Descent's fusion tops out and hums. The bolt carries a
+`DELAYED_IMPACT` fuse arming 0.1 s out so a point-blank shot cannot detonate in the firer's own
+cockpit. The energy check is server-side only — the client always starts the hold animation, or
+the two sides would disagree about whether the item is in use.
+
 New kinds: `PROXIMITY_MINE`, `AIRBURST`, `BURN_LANCE`. The `deploy` weapons (grav mine, plasma
 mine, energy trap, dark field) map onto `PROXIMITY_MINE`; `flak` maps onto `AIRBURST`.
 
