@@ -51,6 +51,13 @@ public final class WeaponCore {
 		public int pierceCount = 0;
 		public int colorR = 180, colorG = 220, colorB = 255;
 		public Consumer<HitContext> onHit;
+		/** Visual mesh: 0 bolt, 1 rocket, 2 orb, 3 drill. */
+		public int meshKind = 0;
+		public float visualScale = 1f;
+		/** True → createExplosion crater (heavy ordinance). */
+		public boolean worldBlast = false;
+		/** True → 3×3 soft carve on block hit (drill charge). */
+		public boolean drillCarve = false;
 	}
 
 	public record HitContext(ProjectileEntity projectile, Entity hitEntity, Vec3d hitPos, Vec3d hitNormal, boolean isBlock) {}
@@ -93,8 +100,12 @@ public final class WeaponCore {
 		proj.setDrag(cfg.drag);
 		proj.setHoming(cfg.homing, cfg.turnRate, cfg.homeTarget);
 		proj.setPierceCount(cfg.pierceCount);
-		proj.setColor(cfg.dmgClass.r, cfg.dmgClass.g, cfg.dmgClass.b);
+		proj.setColorRgb(cfg.colorR, cfg.colorG, cfg.colorB);
 		proj.setOnHit(cfg.onHit);
+		proj.setVisualScale(cfg.visualScale);
+		proj.setMeshKind(cfg.meshKind);
+		proj.setWorldBlast(cfg.worldBlast);
+		proj.setDrillCarve(cfg.drillCarve);
 		world.spawnEntity(proj);
 
 		applyRecoil(cfg.owner, dir, recoilFactor);
@@ -145,6 +156,11 @@ public final class WeaponCore {
 	}
 
 	public static void hitscan(LivingEntity owner, Vec3d start, Vec3d dir, float rangeSource, float damage, DamageClass dmgClass, Consumer<HitContext> onHit) {
+		hitscan(owner, start, dir, rangeSource, damage, dmgClass, onHit, true, dmgClass == DamageClass.ENERGY || dmgClass == DamageClass.EXOTIC);
+	}
+
+	public static void hitscan(LivingEntity owner, Vec3d start, Vec3d dir, float rangeSource, float damage,
+							   DamageClass dmgClass, Consumer<HitContext> onHit, boolean drawBeam, boolean meltBlocks) {
 		if (owner.getWorld().isClient) return;
 		ServerWorld world = (ServerWorld) owner.getWorld();
 		double range = DescentMod.su(rangeSource);
@@ -153,11 +169,28 @@ public final class WeaponCore {
 				RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, owner));
 		EntityHitResult entityHit = raycastEntities(owner, start, blockHit.getType() == HitResult.Type.MISS ? end : blockHit.getPos());
 
+		Vec3d impact = end;
 		if (entityHit != null) {
+			impact = entityHit.getPos();
 			directDamage(owner, entityHit.getEntity(), damage, dmgClass);
 			if (onHit != null) onHit.accept(new HitContext(null, entityHit.getEntity(), entityHit.getPos(), dir.negate(), false));
-		} else if (blockHit.getType() != HitResult.Type.MISS && onHit != null) {
-			onHit.accept(new HitContext(null, null, blockHit.getPos(), Vec3d.of(blockHit.getSide().getVector()), true));
+		} else if (blockHit.getType() != HitResult.Type.MISS) {
+			impact = blockHit.getPos();
+			if (meltBlocks) {
+				int intensity = damage >= 100f ? 3 : (damage >= 50f ? 2 : 1);
+				com.terminaldetector.drmd.weapon.fx.WeaponFx.melt(world, blockHit.getBlockPos(), intensity, owner);
+			}
+			if (onHit != null) onHit.accept(new HitContext(null, null, blockHit.getPos(), Vec3d.of(blockHit.getSide().getVector()), true));
+		}
+		if (drawBeam) {
+			if (dmgClass == DamageClass.EXOTIC) {
+				com.terminaldetector.drmd.weapon.fx.WeaponFx.beamExotic(world, start, impact);
+			} else if (dmgClass == DamageClass.ENERGY) {
+				com.terminaldetector.drmd.weapon.fx.WeaponFx.beamEnergy(world, start, impact);
+			} else {
+				com.terminaldetector.drmd.weapon.fx.WeaponFx.beam(world, start, impact,
+						new org.joml.Vector3f(dmgClass.r / 255f, dmgClass.g / 255f, dmgClass.b / 255f), 0.95f);
+			}
 		}
 	}
 

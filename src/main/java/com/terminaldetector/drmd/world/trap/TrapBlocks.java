@@ -119,6 +119,10 @@ public final class TrapBlocks {
 			}
 			if (target != null) {
 				target.damage(world.getDamageSources().magic(), 6f);
+				Vec3d from = Vec3d.ofCenter(pos);
+				Vec3d to = target.getPos().add(0, target.getHeight() * 0.5, 0);
+				com.terminaldetector.drmd.weapon.fx.WeaponFx.beamEnergy(world, from, to);
+				com.terminaldetector.drmd.weapon.fx.WeaponFx.melt(world, target.getBlockPos(), 1, target);
 				world.spawnParticles(ParticleTypes.FLAME,
 						target.getX(), target.getY() + target.getHeight() * 0.5, target.getZ(),
 						8, 0.2, 0.2, 0.2, 0.02);

@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.world.engineer;
 
+import com.terminaldetector.drmd.weapon.fx.WeaponFx;
 import com.terminaldetector.drmd.world.LocalOrientation;
 import com.terminaldetector.drmd.world.build.AdaptivePlacement;
 import com.terminaldetector.drmd.world.build.ConstructionMode;
@@ -11,6 +12,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUsageContext;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -18,8 +20,10 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.UseAction;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
@@ -30,6 +34,7 @@ import org.joml.Vector3f;
 
 /**
  * Specialized engineer tools replacing pickaxe workflow in 6DoF volume.
+ * Mining laser = continuous drill / melt installation (hold use).
  */
 public final class EngineerTools {
 	private EngineerTools() {}
@@ -64,14 +69,12 @@ public final class EngineerTools {
 			if (hit.getType() == HitResult.Type.BLOCK) {
 				BlockPos pos = hit.getBlockPos();
 				BlockState st = world.getBlockState(pos);
-				// "Repair": refresh cracked / damaged-looking blocks toward iron / stone solid
 				if (st.isOf(Blocks.CRACKED_STONE_BRICKS) || st.isOf(Blocks.CRACKED_DEEPSLATE_BRICKS)
 						|| st.isOf(Blocks.CRACKED_NETHER_BRICKS)) {
 					world.setBlockState(pos, Blocks.STONE_BRICKS.getDefaultState(), Block.NOTIFY_ALL);
 				} else if (st.getHardness(world, pos) >= 0) {
 					world.setBlockState(pos, st, Block.NOTIFY_ALL);
 				}
-				// Heal nearby living (ships / drones / players) lightly
 				for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class,
 						new net.minecraft.util.math.Box(pos).expand(3), LivingEntity::isAlive)) {
 					e.heal(4f);
@@ -92,24 +95,68 @@ public final class EngineerTools {
 		}
 	}
 
+	/**
+	 * Drill laser installation — hold RMB to continuously melt / carve along look.
+	 * Reuses mining_laser texture + WeaponFx melt/drill.
+	 */
 	public static class MiningLaserItem extends Item {
 		public MiningLaserItem(Settings settings) { super(settings.maxCount(1)); }
 
 		@Override
 		public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-			ItemStack stack = user.getStackInHand(hand);
-			if (world.isClient) return TypedActionResult.success(stack);
-			BlockHitResult hit = ray(world, user, 20);
-			if (hit.getType() == HitResult.Type.BLOCK && world instanceof ServerWorld sw) {
-				BlockPos pos = hit.getBlockPos();
+			user.setCurrentHand(hand);
+			return TypedActionResult.consume(user.getStackInHand(hand));
+		}
+
+		@Override
+		public UseAction getUseAction(ItemStack stack) {
+			return UseAction.BOW;
+		}
+
+		@Override
+		public int getMaxUseTime(ItemStack stack, LivingEntity user) {
+			return 72000;
+		}
+
+		@Override
+		public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
+			if (world.isClient || !(user instanceof PlayerEntity player)) return;
+			if (remainingUseTicks % 2 != 0) return;
+			if (!(world instanceof ServerWorld sw)) return;
+
+			BlockHitResult hit = ray(world, player, player.isSneaking() ? 32 : 18);
+			Vec3d eye = player.getEyePos();
+			if (hit.getType() != HitResult.Type.BLOCK) {
+				Vec3d end = eye.add(player.getRotationVec(1f).multiply(player.isSneaking() ? 32 : 18));
+				WeaponFx.beamDrill(sw, eye, end);
+				return;
+			}
+			BlockPos pos = hit.getBlockPos();
+			WeaponFx.beamDrill(sw, eye, hit.getPos());
+			int intensity = player.isSneaking() ? 3 : 2;
+			boolean carved = WeaponFx.melt(sw, pos, intensity, player);
+			if (!carved) {
 				BlockState st = world.getBlockState(pos);
 				if (!st.isAir() && st.getHardness(world, pos) >= 0 && st.getHardness(world, pos) < 50) {
-					sw.breakBlock(pos, true, user);
-					beam(world, user, pos.toCenterPos(), new Vector3f(1f, 0.55f, 0.15f));
-					world.playSound(null, pos, SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.BLOCKS, 0.4f, 1.8f);
+					sw.breakBlock(pos, true, player);
 				}
 			}
-			return TypedActionResult.success(stack);
+			// Widen tunnel slightly every few ticks while sneaking
+			if (player.isSneaking() && remainingUseTicks % 6 == 0) {
+				WeaponFx.drillCarve(sw, pos, player);
+			}
+			world.playSound(null, pos, SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.BLOCKS,
+					0.25f, 1.6f + world.getRandom().nextFloat() * 0.4f);
+		}
+
+		@Override
+		public ActionResult useOnBlock(ItemUsageContext context) {
+			PlayerEntity user = context.getPlayer();
+			if (user != null) {
+				user.setCurrentHand(context.getHand());
+				return ActionResult.CONSUME;
+			}
+			return ActionResult.PASS;
 		}
 	}
 
@@ -153,12 +200,6 @@ public final class EngineerTools {
 
 	private static void beam(World world, PlayerEntity user, Vec3d target, Vector3f color) {
 		if (!(world instanceof ServerWorld sw)) return;
-		Vec3d eye = user.getEyePos();
-		Vec3d delta = target.subtract(eye);
-		int n = Math.max(4, (int) (delta.length() * 2));
-		for (int i = 0; i <= n; i++) {
-			Vec3d p = eye.add(delta.multiply(i / (double) n));
-			sw.spawnParticles(new DustParticleEffect(color, 0.9f), p.x, p.y, p.z, 1, 0, 0, 0, 0);
-		}
+		WeaponFx.beam(sw, user.getEyePos(), target, color, 0.9f);
 	}
 }

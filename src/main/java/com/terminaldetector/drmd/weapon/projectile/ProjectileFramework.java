@@ -1,8 +1,7 @@
 package com.terminaldetector.drmd.weapon.projectile;
 
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
+import com.terminaldetector.drmd.weapon.fx.WeaponFx;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -46,6 +45,14 @@ public final class ProjectileFramework {
 				cfg.directDamage = 28;
 				cfg.life = 4f;
 			}
+			case DRILL_CHARGE -> {
+				cfg.speed = 2800;
+				cfg.directDamage = 25;
+				cfg.life = 3f;
+				cfg.drillCarve = true;
+				cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_DRILL;
+				cfg.visualScale = 1.05f;
+			}
 			case ROCKET -> {
 				cfg.speed = 2200;
 				cfg.directDamage = 60;
@@ -53,13 +60,9 @@ public final class ProjectileFramework {
 				cfg.splashRadius = 180;
 				cfg.life = 5f;
 				cfg.turnRate = 70f;
-			}
-			case GRAVITY_SPHERE -> {
-				cfg.speed = 1800;
-				cfg.directDamage = 10;
-				cfg.splashDamage = 5;
-				cfg.splashRadius = 140;
-				cfg.life = 4f;
+				cfg.worldBlast = true;
+				cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ROCKET;
+				cfg.visualScale = 1.2f;
 			}
 			case ENERGY_ORB -> {
 				cfg.speed = 2600;
@@ -67,11 +70,18 @@ public final class ProjectileFramework {
 				cfg.splashDamage = 15;
 				cfg.splashRadius = 90;
 				cfg.life = 3.5f;
+				cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ORB;
+				cfg.visualScale = 1.3f;
+				cfg.worldBlast = true;
 			}
-			case DRILL_CHARGE -> {
-				cfg.speed = 2800;
-				cfg.directDamage = 25;
-				cfg.life = 3f;
+			case GRAVITY_SPHERE -> {
+				cfg.speed = 1800;
+				cfg.directDamage = 10;
+				cfg.splashDamage = 5;
+				cfg.splashRadius = 140;
+				cfg.life = 4f;
+				cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ORB;
+				cfg.visualScale = 1.4f;
 			}
 		}
 		return cfg;
@@ -96,19 +106,21 @@ public final class ProjectileFramework {
 			}
 			case DRILL_CHARGE -> {
 				if (ctx.isBlock()) {
-					BlockPos bp = BlockPos.ofFloored(ctx.hitPos());
-					for (BlockPos p : BlockPos.iterate(bp.add(-1, -1, -1), bp.add(1, 1, 1))) {
-						if (sw.getBlockState(p).getHardness(sw, p) >= 0
-								&& sw.getBlockState(p).getHardness(sw, p) < 20
-								&& !sw.getBlockState(p).isOf(Blocks.BEDROCK)) {
-							sw.breakBlock(p, true);
-						}
-					}
+					WeaponFx.drillCarve(sw, BlockPos.ofFloored(ctx.hitPos()),
+							ctx.projectile().getOwnerLiving());
 				}
 			}
 			case ENERGY_ORB -> {
-				sw.createExplosion(ctx.projectile(), ctx.hitPos().x, ctx.hitPos().y, ctx.hitPos().z,
-						1.2f, false, net.minecraft.world.World.ExplosionSourceType.NONE);
+				LivingEntity own = ctx.projectile().getOwnerLiving();
+				if (own != null) {
+					WeaponFx.explode(own, sw, ctx.hitPos(), 35f, 2.2f, kind.damageClass, false);
+				}
+			}
+			case ROCKET -> {
+				LivingEntity own = ctx.projectile().getOwnerLiving();
+				if (own != null && ctx.projectile().getDamageClass() != com.terminaldetector.drmd.weapon.core.DamageClass.EXPLOSIVE) {
+					WeaponFx.explode(own, sw, ctx.hitPos(), 80f, 2.5f, kind.damageClass, true);
+				}
 			}
 			default -> {}
 		}

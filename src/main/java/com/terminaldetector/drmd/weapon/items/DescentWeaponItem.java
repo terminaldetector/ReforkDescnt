@@ -102,6 +102,13 @@ public class DescentWeaponItem extends Item {
 			cfg.speed = def.speed;
 			cfg.recoil = def.recoil;
 			cfg.dmgClass = def.dmgClass;
+			cfg.meshKind = def.dmgClass == DamageClass.EXPLOSIVE
+					? com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ROCKET
+					: (def.dmgClass == DamageClass.EXOTIC
+					? com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ORB
+					: com.terminaldetector.drmd.entity.ProjectileEntity.MESH_BOLT);
+			cfg.visualScale = def.splashRadius > 200 ? 1.35f : 1f;
+			cfg.worldBlast = def.dmgClass == DamageClass.EXPLOSIVE && def.splashRadius >= 180;
 			WeaponCore.fireProjectile(cfg);
 		}
 		return true;
@@ -121,6 +128,8 @@ public class DescentWeaponItem extends Item {
 				cfg.speed = def.speed;
 				cfg.recoil = i == 0 ? def.recoil : 0;
 				cfg.dmgClass = DamageClass.EXOTIC;
+				cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ORB;
+				cfg.visualScale = 0.9f;
 				WeaponCore.fireProjectile(cfg);
 			}
 		} else {
@@ -133,6 +142,8 @@ public class DescentWeaponItem extends Item {
 				cfg.speed = def.speed;
 				cfg.recoil = def.recoil * 0.5f;
 				cfg.dmgClass = DamageClass.EXOTIC;
+				cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ORB;
+				cfg.visualScale = 0.9f;
 				WeaponCore.fireProjectile(cfg);
 			}
 		}
@@ -153,6 +164,9 @@ public class DescentWeaponItem extends Item {
 			cfg.recoil = i == 0 ? def.recoil : 0;
 			cfg.life = 1.2f;
 			cfg.dmgClass = DamageClass.EXPLOSIVE;
+			cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_BOLT;
+			cfg.visualScale = 0.5f;
+			cfg.worldBlast = false;
 			WeaponCore.fireProjectile(cfg);
 		}
 		return true;
@@ -179,9 +193,15 @@ public class DescentWeaponItem extends Item {
 				frag.life = 1.5f;
 				frag.dmgClass = DamageClass.KINETIC;
 				frag.inherit = 0;
+				frag.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_BOLT;
+				frag.visualScale = 0.4f;
 				WeaponCore.fireProjectile(frag);
 			}
 		};
+		cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_DRILL;
+		cfg.visualScale = 1.1f;
+		cfg.worldBlast = true;
+		cfg.drillCarve = true;
 		WeaponCore.fireProjectile(cfg);
 		return true;
 	}
@@ -205,6 +225,9 @@ public class DescentWeaponItem extends Item {
 			cfg.recoil = i == 0 ? (atomic ? 220 : 120) : 0;
 			cfg.dmgClass = DamageClass.EXPLOSIVE;
 			cfg.life = 6f;
+			cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ROCKET;
+			cfg.visualScale = atomic ? 1.8f : (count > 1 ? 0.85f : 1.2f);
+			cfg.worldBlast = true;
 			WeaponCore.fireProjectile(cfg);
 		}
 		return true;
@@ -286,7 +309,9 @@ public class DescentWeaponItem extends Item {
 		float dmg = 150f + 450f * frac;
 		float rad = 300f + 600f * frac;
 		if (user.getWorld() instanceof net.minecraft.server.world.ServerWorld sw) {
-			WeaponCore.splashDamage(user, sw, user.getPos(), dmg, (float)com.terminaldetector.drmd.DescentMod.su(rad), DamageClass.EXPLOSIVE);
+			float r = (float) com.terminaldetector.drmd.DescentMod.su(rad);
+			com.terminaldetector.drmd.weapon.fx.WeaponFx.explode(
+					user, sw, user.getPos(), dmg, r, DamageClass.EXPLOSIVE, true);
 		}
 		return true;
 	}
@@ -321,6 +346,8 @@ public class DescentWeaponItem extends Item {
 		cfg.dmgClass = DamageClass.EXOTIC;
 		cfg.recoil = 40;
 		cfg.life = 2f;
+		cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ORB;
+		cfg.visualScale = 0.7f;
 		WeaponCore.fireProjectile(cfg);
 		return true;
 	}
@@ -367,6 +394,11 @@ public class DescentWeaponItem extends Item {
 		cfg.life = 8f;
 		cfg.dmgClass = def.dmgClass;
 		cfg.recoil = 10;
+		cfg.meshKind = def.dmgClass == DamageClass.EXOTIC
+				? com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ORB
+				: com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ROCKET;
+		cfg.visualScale = 1.05f;
+		cfg.worldBlast = def.dmgClass == DamageClass.EXPLOSIVE || def.dmgClass == DamageClass.EXOTIC;
 		WeaponCore.fireProjectile(cfg);
 		return true;
 	}
@@ -381,6 +413,9 @@ public class DescentWeaponItem extends Item {
 		cfg.dmgClass = DamageClass.EXOTIC;
 		cfg.recoil = def.recoil;
 		cfg.scale = 2.5f;
+		cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ORB;
+		cfg.visualScale = 2.4f;
+		cfg.worldBlast = true;
 		cfg.life = 8f;
 		cfg.onHit = ctx -> {
 			if (!(user.getWorld() instanceof net.minecraft.server.world.ServerWorld sw)) return;
@@ -404,6 +439,8 @@ public class DescentWeaponItem extends Item {
 		cfg.dmgClass = DamageClass.KINETIC;
 		cfg.recoil = def.recoil;
 		cfg.life = 2f;
+		cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_BOLT;
+		cfg.visualScale = 0.85f;
 		WeaponCore.fireProjectile(cfg);
 		return true;
 	}
@@ -421,6 +458,9 @@ public class DescentWeaponItem extends Item {
 		cfg.dmgClass = DamageClass.EXPLOSIVE;
 		cfg.recoil = def.recoil;
 		cfg.life = 15f;
+		cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ROCKET;
+		cfg.visualScale = def.splashRadius > 300 ? 1.6f : 1.15f;
+		cfg.worldBlast = true;
 		WeaponCore.fireProjectile(cfg);
 		return true;
 	}
