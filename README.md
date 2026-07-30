@@ -167,6 +167,14 @@ legacy/                               # исходный GMod-аддон
 
 ---
 
+## Блог / концепт
+
+- Презент-лог: [`docs/BLOG_PRESENT.md`](docs/BLOG_PRESENT.md) — что это вообще  
+- Дорожная карта: [`docs/ROADMAP.md`](docs/ROADMAP.md) — Havok-lite гравипушка, стволы, HUD  
+- HUD — emerald tactical cockpit по концепт-арту (радар, LOCK, weapons, shield/armor, combat log)
+
+---
+
 ## Nexus / дистрибуция
 
 Готовый продукт для выгрузки (Modrinth / CurseForge / Nexus-совместимый jar):

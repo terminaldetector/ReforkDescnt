@@ -81,11 +81,46 @@ public final class WeaponViewRenderer {
 
 				int[] rgb = colorForModel(m);
 				int argb = (m.colorA << 24) | (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
-				drawBox(matrices, consumers, argb, context.camera().getPos() != null ? 15728880 : 15728880);
+				if ("gravy".equals(m.model)) {
+					drawGravyClaw(matrices, consumers, argb);
+				} else if ("nosegun".equals(m.model)) {
+					drawNoseGun(matrices, consumers, argb);
+				} else {
+					drawBox(matrices, consumers, argb, 15728880);
+				}
 				matrices.pop();
 			}
 			matrices.pop();
 		});
+	}
+
+	/** Gravy manipulator — fork/claw silhouette (MC is simple enough for procedural barrels). */
+	private static void drawGravyClaw(MatrixStack matrices, VertexConsumerProvider consumers, int argb) {
+		drawBox(matrices, consumers, argb, 15728880);
+		matrices.push();
+		matrices.translate(-0.7f, 0.4f, 0.6f);
+		matrices.scale(0.35f, 0.35f, 1.4f);
+		drawBox(matrices, consumers, argb, 15728880);
+		matrices.pop();
+		matrices.push();
+		matrices.translate(0.7f, 0.4f, 0.6f);
+		matrices.scale(0.35f, 0.35f, 1.4f);
+		drawBox(matrices, consumers, argb, 15728880);
+		matrices.pop();
+		matrices.push();
+		matrices.translate(0f, -0.55f, 0.5f);
+		matrices.scale(0.3f, 0.3f, 1.2f);
+		drawBox(matrices, consumers, argb, 15728880);
+		matrices.pop();
+	}
+
+	private static void drawNoseGun(MatrixStack matrices, VertexConsumerProvider consumers, int argb) {
+		drawBox(matrices, consumers, argb, 15728880);
+		matrices.push();
+		matrices.translate(0, 0, 0.55f);
+		matrices.scale(0.55f, 0.55f, 0.9f);
+		drawBox(matrices, consumers, argb, 15728880);
+		matrices.pop();
 	}
 
 	private static float modelLength(String model) {

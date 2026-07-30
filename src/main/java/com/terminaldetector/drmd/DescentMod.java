@@ -63,6 +63,7 @@ public class DescentMod implements ModInitializer {
 					FlightSystem.tick(player, data);
 					EnergySystem.regenTick(player, data);
 					ShieldSystem.regenTick(player, data);
+					com.terminaldetector.drmd.physics.GravyPhysics.tick(player);
 				}
 				if (tick % 10 == player.getId() % 10) {
 					ModNetworking.syncLlod(player);

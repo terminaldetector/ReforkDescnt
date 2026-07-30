@@ -292,7 +292,26 @@ public class DescentWeaponItem extends Item {
 	}
 
 	protected boolean fireGravy(PlayerEntity user, DescentPlayerData data) {
-		// Simplified: spend gravy energy to launch a hypersonic kinetic bolt (prop rail analogue)
+		if (!(user instanceof net.minecraft.server.network.ServerPlayerEntity sp)) return false;
+		// Toggle grab / fling — Havok-lite via GravyPhysics
+		if (com.terminaldetector.drmd.physics.GravyPhysics.isHolding(sp)) {
+			if (data.getGravyEnergy() < 10f) return false;
+			data.setGravyEnergy(data.getGravyEnergy() - 10f);
+			com.terminaldetector.drmd.physics.GravyPhysics.fling(sp, 2.8f);
+			data.setGravyGrabbing(false);
+			return true;
+		}
+		if (data.getGravyEnergy() < 15f) return false;
+		LivingEntity look = findLookTarget(user, 12);
+		if (look != null && look != user) {
+			float mass = Math.max(0.4f, look.getWidth() * look.getHeight());
+			if (com.terminaldetector.drmd.physics.GravyPhysics.tryGrab(sp, look, mass)) {
+				data.setGravyEnergy(data.getGravyEnergy() - 15f);
+				data.setGravyGrabbing(true);
+				return true;
+			}
+		}
+		// Fallback kinetic bolt when nothing to grab (prop-rail analogue)
 		if (data.getGravyEnergy() < 20f) return false;
 		data.setGravyEnergy(data.getGravyEnergy() - 20f);
 		WeaponCore.FireConfig cfg = baseCfg(user);
