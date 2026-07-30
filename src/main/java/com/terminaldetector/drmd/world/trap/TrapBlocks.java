@@ -204,6 +204,14 @@ public final class TrapBlocks {
 		protected boolean hasRandomTicks(BlockState state) { return true; }
 
 		@Override
+		protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+			if (!state.isOf(newState.getBlock()) && world instanceof ServerWorld sw) {
+				com.terminaldetector.drmd.world.mega.SkyUfoEntity.notifyCoreBroken(sw, pos);
+			}
+			super.onStateReplaced(state, world, pos, newState, moved);
+		}
+
+		@Override
 		protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
 			Box volume = new Box(pos).expand(6);
 			world.spawnParticles(ParticleTypes.FLASH, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 1, 0, 0, 0, 0);
@@ -220,7 +228,6 @@ public final class TrapBlocks {
 				e.addVelocity(push.x, push.y, push.z);
 				e.velocityModified = true;
 			}
-			// Emergency lighting cue — redstone lamp flash nearby
 			for (BlockPos p : BlockPos.iterate(pos.add(-4, -2, -4), pos.add(4, 4, 4))) {
 				if (world.getBlockState(p).isOf(Blocks.REDSTONE_LAMP) && random.nextBoolean()) {
 					world.spawnParticles(ParticleTypes.FLAME,

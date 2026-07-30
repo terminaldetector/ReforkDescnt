@@ -26,17 +26,23 @@ public class SkyUfoRenderer extends EntityRenderer<SkyUfoEntity> {
 	public void render(SkyUfoEntity entity, float yaw, float tickDelta, MatrixStack matrices,
 					   VertexConsumerProvider consumers, int light) {
 		super.render(entity, yaw, tickDelta, matrices, consumers, light);
+		// Real copper hull is in the world — keep only a soft under-beam cue
+		if (entity.isMaterialized()) {
+			VertexConsumer buf = consumers.getBuffer(RenderLayer.getEntityTranslucent(TEXTURE));
+			matrices.push();
+			matrices.translate(0, -2.2, 0);
+			cube(buf, matrices.peek().getPositionMatrix(), 0.35f, 1.4f, 0.35f, light, 255, 200, 80, 120);
+			matrices.pop();
+			return;
+		}
 		VertexConsumer buf = consumers.getBuffer(RenderLayer.getEntityTranslucent(TEXTURE));
 		float pulse = 0.92f + 0.08f * MathHelper.sin((entity.age + tickDelta) * 0.2f);
 
 		matrices.push();
 		matrices.scale(pulse, pulse, pulse);
-		// Flat saucer
 		cube(buf, matrices.peek().getPositionMatrix(), 3.2f, 0.35f, 3.2f, light, 80, 220, 180, 210);
-		// Dome
 		matrices.translate(0, 0.7, 0);
 		cube(buf, matrices.peek().getPositionMatrix(), 1.2f, 0.7f, 1.2f, light, 120, 255, 220, 230);
-		// Under-beam glow
 		matrices.translate(0, -1.6, 0);
 		cube(buf, matrices.peek().getPositionMatrix(), 0.45f, 1.2f, 0.45f, light, 255, 200, 80, 160);
 		matrices.pop();

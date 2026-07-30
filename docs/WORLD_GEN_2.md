@@ -50,7 +50,7 @@
 
 ## XCOM UFO pair
 
-1. **Sky UFO** — движущийся макрос; `FireSystem.igniteBlast` + soft-break под лучом; рой ≤12.
+1. **Sky UFO** — **enterable flying hull** (oxidized copper saucer): bay door underside/side, deck cavity, `UNSTABLE_REACTOR` core. Cruises on a grid (carries occupants); LLOD at distance. Kill: fly in → **reactor dump** (`weapon_d6_reactor`) / bomb the core / break the reactor → hull shatters, fly out.
 2. **Crashed UFO** — crater + copper saucer, турели/мины/14 дронов. Tip: чистить на Pyro GX.
 
 ## LLOD — Voxel Long Level of Detail

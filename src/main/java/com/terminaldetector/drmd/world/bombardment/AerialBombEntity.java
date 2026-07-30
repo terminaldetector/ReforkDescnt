@@ -116,6 +116,7 @@ public class AerialBombEntity extends Entity {
 		sw.createExplosion(this, getX(), getY(), getZ(), power, true, World.ExplosionSourceType.TNT);
 		SmokeSystem.emitExplosion(getPos(), power);
 		BlockPos at = getBlockPos();
+		com.terminaldetector.drmd.world.mega.SkyUfoEntity.notifyBombDetonation(sw, at, power);
 
 		if (type.incendiary || type == OrdnanceType.TNT_BOMB) {
 			FireSystem.igniteBlast(sw, at, type.incendiary ? 18 : 6, type.incendiary ? 6 : 3);

@@ -309,6 +309,10 @@ public class DescentWeaponItem extends Item {
 		float dmg = 150f + 450f * frac;
 		float rad = 300f + 600f * frac;
 		if (user.getWorld() instanceof net.minecraft.server.world.ServerWorld sw) {
+			// Inside / near Sky UFO core — dump reactor to kill the flying hull
+			if (com.terminaldetector.drmd.world.mega.SkyUfoEntity.tryReactorDump(sw, user)) {
+				return true;
+			}
 			float r = (float) com.terminaldetector.drmd.DescentMod.su(rad);
 			com.terminaldetector.drmd.weapon.fx.WeaponFx.explode(
 					user, sw, user.getPos(), dmg, r, DamageClass.EXPLOSIVE, true);

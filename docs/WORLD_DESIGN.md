@@ -121,7 +121,7 @@ Stock seed при старте мира ставит ориентиры во **�
 ### Lunar Base & UFO (Descent / XCOM refs)
 
 - **LUNAR_BASE** — заброшенная lunar outpost: force-shield crystals, traps, micro-reactor + Reactor Keeper
-- **Sky UFO** — летающая тарелка (LLOD), выжигает постройки под собой, роняет рой
+- **Sky UFO** — летающая **блочная** тарелка (залететь в bay): ядро `UNSTABLE_REACTOR`; убить сбросом реактора / бомбой / ломом ядра → обломки, вылет
 - **CRASHED_UFO** — упавшая medium-структура; плотные ловушки/дроны — заход после крафта Pyro GX
 
 ---
