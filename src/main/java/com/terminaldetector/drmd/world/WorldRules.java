@@ -1,68 +1,88 @@
 package com.terminaldetector.drmd.world;
 
 /**
- * Minecraft 6DoF — World Design Specification (core rules).
- *
- * Philosophy: there is no absolute "up" or "down".
- * The player builds space, not buildings. Volume (cavities) is gameplay.
- * This is not "Minecraft with flight" — it is a 3D voxel sandbox designed for 6DoF.
+ * World Generation 2.0 — vertical multi-scale universe.
+ * Continuous flight from deep reactor complexes to End-space without loading screens.
  */
 public final class WorldRules {
 	private WorldRules() {}
 
-	// ── Height layers (continuous, no loading screens) ──
-	public static final int LOWER_WORLD = -50_000;
-	public static final int SURFACE = 0;
-	public static final int HIGH_ISLANDS_MIN = 10_000;
-	public static final int HIGH_ISLANDS_MAX = 40_000;
-	public static final int SPACE = 50_000;
-	public static final int END_LAYER = 100_000;
+	// ── Target vertical continuum (spec) ──
+	public static final int Y_DEPTH_REACTORS = -50_000;
+	public static final int Y_SURFACE = 0;
+	public static final int Y_SKY_MIN = 5_000;
+	public static final int Y_SKY_MAX = 20_000;
+	public static final int Y_ORBITAL_MIN = 20_000;
+	public static final int Y_ORBITAL_MAX = 60_000;
+	public static final int Y_END_SPACE = 100_000;
 
-	/** Practical gen band used until custom dimension/chunkgen widens world height. */
+	/** Practical Overworld band until custom dimension height is enabled. */
 	public static final int GEN_Y_MIN = -64;
 	public static final int GEN_Y_MAX = 320;
 	public static final int INDUSTRIAL_Y_MIN = -56;
 	public static final int INDUSTRIAL_Y_MAX = 40;
+	public static final int SKY_PRACTICAL_MIN = 180;
+	public static final int SKY_PRACTICAL_MAX = 300;
 
 	public enum Layer {
-		LOWER_WORLD,
-		SURFACE,
-		HIGH_ISLANDS,
-		SPACE,
-		END
+		DEPTH_REACTORS("Depth Reactors / Nether-analog", Y_DEPTH_REACTORS, Y_SURFACE - 1),
+		SURFACE("Classic Overworld", Y_SURFACE, Y_SKY_MIN - 1),
+		SKY_ARCHIPELAGO("Celestial archipelagos", Y_SKY_MIN, Y_SKY_MAX),
+		ORBITAL("Orbital megastructures", Y_ORBITAL_MIN, Y_ORBITAL_MAX),
+		END_SPACE("End-space continuum", Y_END_SPACE, Y_END_SPACE + 50_000);
+
+		public final String label;
+		public final int yMin, yMax;
+
+		Layer(String label, int yMin, int yMax) {
+			this.label = label;
+			this.yMin = yMin;
+			this.yMax = yMax;
+		}
+
+		public static Layer at(double y) {
+			if (y >= Y_END_SPACE) return END_SPACE;
+			if (y >= Y_ORBITAL_MIN) return ORBITAL;
+			if (y >= Y_SKY_MIN) return SKY_ARCHIPELAGO;
+			if (y >= Y_SURFACE) return SURFACE;
+			return DEPTH_REACTORS;
+		}
 	}
 
-	public static Layer layerAt(double y) {
-		if (y >= END_LAYER) return Layer.END;
-		if (y >= SPACE) return Layer.SPACE;
-		if (y >= HIGH_ISLANDS_MIN) return Layer.HIGH_ISLANDS;
-		if (y >= SURFACE) return Layer.SURFACE;
-		return Layer.LOWER_WORLD;
+	/** Streaming representation levels. */
+	public enum StreamLevel {
+		MACROWORLD,  // tens of km — silhouette only
+		REGION,      // km-scale intermediate geometry
+		CHUNK,       // vanilla chunk blocks
+		LOCAL        // full detail around player
 	}
 
-	/** Architecture vocabulary — preferred shapes over houses. */
 	public enum Architecture {
-		SPHERE, RING, CYLINDER, TORUS, HONEYCOMB, ASTEROID, STATION, TUNNEL_NET
+		SPHERE, RING, CYLINDER, TORUS, HONEYCOMB, ASTEROID, STATION, TUNNEL_NET,
+		RIFT, CANYON, ARCH, FLOATING_CONTINENT, SPIRAL_RANGE, INVERTED_ISLAND
 	}
 
-	/** Level-design primitives — every point needs ≥3 movement directions. */
 	public enum SpacePrimitive {
 		VERTICAL_SHAFT, SPIRAL, SPHERICAL_CHAMBER, INTERSECTION, LOOP, MULTILAYER_ROOM
 	}
 
-	/** Industrial Underground complex styles. */
 	public enum ComplexStyle {
-		ABANDONED_RESEARCH,
-		ANCIENT_POWER,
-		AUTO_FACTORY,
-		SMELTERY,
-		CRYSTAL_REACTOR,
-		TECH_RUINS
+		ABANDONED_RESEARCH, ANCIENT_POWER, AUTO_FACTORY, SMELTERY, CRYSTAL_REACTOR, TECH_RUINS
 	}
 
-	/** Modular complex parts. */
 	public enum ModuleType {
 		REACTOR, HABITATION, STORAGE, POWER_SPINE, REPAIR_HANGAR,
 		COMMAND, COOLING, EVAC_TUNNEL
+	}
+
+	/** Map speculative Y into practical Overworld height for prototype gen. */
+	public static int practicalY(Layer layer, int seedMod) {
+		return switch (layer) {
+			case DEPTH_REACTORS -> INDUSTRIAL_Y_MIN + Math.floorMod(seedMod, 20);
+			case SURFACE -> 64 + Math.floorMod(seedMod, 40);
+			case SKY_ARCHIPELAGO -> SKY_PRACTICAL_MIN + Math.floorMod(seedMod, 80);
+			case ORBITAL -> SKY_PRACTICAL_MAX - 20 + Math.floorMod(seedMod, 15);
+			case END_SPACE -> SKY_PRACTICAL_MAX - 5;
+		};
 	}
 }

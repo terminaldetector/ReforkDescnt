@@ -57,5 +57,8 @@
   "block.drmd.unstable_reactor": "Unstable Reactor",
   "item.drmd.build_tool": "6DoF Build Tool",
   "entity.drmd.pyro_ship": "Pyro Scout",
-  "entity.drmd.reactor_display": "Reactor Core"
+  "entity.drmd.reactor_display": "Reactor Core",
+  "entity.drmd.mega_worm": "Sky Worm",
+  "entity.drmd.drone_swarm": "Drone Swarm",
+  "entity.drmd.reactor_keeper": "Reactor Keeper"
 }

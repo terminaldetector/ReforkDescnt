@@ -20,5 +20,8 @@ public final class ModEntityRenderers {
 		EntityRendererRegistry.register(ModEntities.AIR_MINE, AirMineRenderer::new);
 		EntityRendererRegistry.register(ModEntities.PYRO_SHIP, PyroShipRenderer::new);
 		EntityRendererRegistry.register(ModEntities.REACTOR_DISPLAY, ReactorDisplayRenderer::new);
+		EntityRendererRegistry.register(ModEntities.MEGA_WORM, MegaWormRenderer::new);
+		EntityRendererRegistry.register(ModEntities.DRONE_SWARM, DroneSwarmRenderer::new);
+		EntityRendererRegistry.register(ModEntities.REACTOR_KEEPER, ReactorKeeperRenderer::new);
 	}
 }

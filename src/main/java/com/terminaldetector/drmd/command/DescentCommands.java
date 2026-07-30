@@ -190,6 +190,76 @@ public final class DescentCommands {
 								}
 								return 1;
 							}))
+					.then(CommandManager.literal("worldgen2")
+							.requires(s -> s.hasPermissionLevel(2))
+							.then(CommandManager.argument("kind", StringArgumentType.word()).executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								String name = StringArgumentType.getString(ctx, "kind").toUpperCase();
+								com.terminaldetector.drmd.world.gen2.MacroEntry.Kind kind;
+								try {
+									kind = com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.valueOf(name);
+								} catch (Exception e) {
+									kind = switch (name) {
+										case "CONTINENT" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.FLOATING_CONTINENT;
+										case "SPIRAL" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.SPIRAL_RANGE;
+										case "INVERTED" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.INVERTED_ISLAND;
+										default -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.ARCH;
+									};
+								}
+								var pos = p.getBlockPos().up(8);
+								var entry = com.terminaldetector.drmd.world.gen2.ModWorldgen2.forceGenerate(
+										p.getServerWorld(), pos, kind);
+								com.terminaldetector.drmd.world.gen2.MacroEntry.Kind finalKind = kind;
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"WG2.0 " + finalKind + " [" + entry.label + "] at " + pos.toShortString()), true);
+								return 1;
+							})))
+					.then(CommandManager.literal("mega")
+							.requires(s -> s.hasPermissionLevel(2))
+							.then(CommandManager.argument("type", StringArgumentType.word()).executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								String type = StringArgumentType.getString(ctx, "type").toLowerCase();
+								var world = p.getServerWorld();
+								var at = p.getPos().add(p.getRotationVec(1f).multiply(12));
+								switch (type) {
+									case "worm" -> {
+										var e = com.terminaldetector.drmd.entity.ModEntities.MEGA_WORM.create(world);
+										if (e != null) {
+											e.refreshPositionAndAngles(at.x, at.y, at.z, p.getYaw(), 0);
+											world.spawnEntity(e);
+										}
+									}
+									case "swarm" -> {
+										var e = com.terminaldetector.drmd.entity.ModEntities.DRONE_SWARM.create(world);
+										if (e != null) {
+											e.refreshPositionAndAngles(at.x, at.y, at.z, 0, 0);
+											world.spawnEntity(e);
+										}
+									}
+									case "keeper" -> {
+										var e = com.terminaldetector.drmd.entity.ModEntities.REACTOR_KEEPER.create(world);
+										if (e != null) {
+											e.refreshPositionAndAngles(at.x, at.y, at.z, 0, 0);
+											world.spawnEntity(e);
+										}
+									}
+									default -> {
+										ctx.getSource().sendError(Text.literal("Use: worm | swarm | keeper"));
+										return 0;
+									}
+								}
+								ctx.getSource().sendFeedback(() -> Text.literal("Spawned mega creature: " + type), true);
+								return 1;
+							})))
+					.then(CommandManager.literal("llod")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								ModNetworking.syncLlod(p);
+								int n = com.terminaldetector.drmd.world.gen2.MacroWorld.size();
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"LLOD sync — macro catalogue size: " + n), false);
+								return 1;
+							}))
 			);
 		});
 	}

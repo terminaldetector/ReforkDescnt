@@ -18,6 +18,7 @@ public final class ModNetworking {
 	public static final Identifier INPUT_ID = Identifier.of(DescentMod.MOD_ID, "input");
 	public static final Identifier SYNC_ID = Identifier.of(DescentMod.MOD_ID, "sync");
 	public static final Identifier ACTION_ID = Identifier.of(DescentMod.MOD_ID, "action");
+	public static final Identifier LLOD_ID = Identifier.of(DescentMod.MOD_ID, "llod");
 
 	public record InputPayload(float forward, float strafe, float vertical, float roll,
 							   boolean dash, boolean hook) implements CustomPayload {
@@ -86,6 +87,47 @@ public final class ModNetworking {
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
 	}
 
+	/** Server → client LLOD silhouette catalogue for distant megastructures. */
+	public record LlodPayload(java.util.List<LlodEntry> entries) implements CustomPayload {
+		public record LlodEntry(String kind, double x, double y, double z,
+								float rx, float ry, float rz, String level, int color, String label) {}
+
+		public static final Id<LlodPayload> ID = new Id<>(LLOD_ID);
+		public static final PacketCodec<RegistryByteBuf, LlodPayload> CODEC = PacketCodec.of(
+				(payload, buf) -> {
+					buf.writeVarInt(payload.entries.size());
+					for (LlodEntry e : payload.entries) {
+						buf.writeString(e.kind);
+						buf.writeDouble(e.x);
+						buf.writeDouble(e.y);
+						buf.writeDouble(e.z);
+						buf.writeFloat(e.rx);
+						buf.writeFloat(e.ry);
+						buf.writeFloat(e.rz);
+						buf.writeString(e.level);
+						buf.writeInt(e.color);
+						buf.writeString(e.label);
+					}
+				},
+				buf -> {
+					int n = buf.readVarInt();
+					java.util.ArrayList<LlodEntry> list = new java.util.ArrayList<>(n);
+					for (int i = 0; i < n; i++) {
+						list.add(new LlodEntry(
+								buf.readString(),
+								buf.readDouble(), buf.readDouble(), buf.readDouble(),
+								buf.readFloat(), buf.readFloat(), buf.readFloat(),
+								buf.readString(),
+								buf.readInt(),
+								buf.readString()
+						));
+					}
+					return new LlodPayload(list);
+				}
+		);
+		@Override public Id<? extends CustomPayload> getId() { return ID; }
+	}
+
 	/** Client → server construction apply (empty modules list = clear override). */
 	public record ConstructionPayload(String weaponId, net.minecraft.nbt.NbtList modules) implements CustomPayload {
 		public static final Identifier CONSTRUCTION_ID = Identifier.of(DescentMod.MOD_ID, "construction");
@@ -113,6 +155,7 @@ public final class ModNetworking {
 		PayloadTypeRegistry.playC2S().register(ConstructionPayload.ID, ConstructionPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(SyncPayload.ID, SyncPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ConstructionPayload.ID, ConstructionPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(LlodPayload.ID, LlodPayload.CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(InputPayload.ID, (payload, context) -> {
 			ServerPlayerEntity player = context.player();
@@ -180,5 +223,21 @@ public final class ModNetworking {
 				data.isFlightAssist(),
 				data.isRadarEnabled()
 		));
+	}
+
+	public static void syncLlod(ServerPlayerEntity player) {
+		var silhouettes = com.terminaldetector.drmd.world.llod.LlodRegistry.queryVisible(player.getBlockPos(), 48);
+		java.util.ArrayList<LlodPayload.LlodEntry> entries = new java.util.ArrayList<>(silhouettes.size());
+		for (var s : silhouettes) {
+			entries.add(new LlodPayload.LlodEntry(
+					s.kind().name(),
+					s.center().x, s.center().y, s.center().z,
+					s.radiusX(), s.radiusY(), s.radiusZ(),
+					s.level().name(),
+					s.colorRgb(),
+					s.label()
+			));
+		}
+		ServerPlayNetworking.send(player, new LlodPayload(entries));
 	}
 }

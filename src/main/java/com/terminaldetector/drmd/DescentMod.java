@@ -43,19 +43,28 @@ public class DescentMod implements ModInitializer {
 		com.terminaldetector.drmd.entity.ModWorldBlocks.register();
 		com.terminaldetector.drmd.entity.ModBlockEntities.register();
 		com.terminaldetector.drmd.world.gen.ModWorldgen.register();
+		com.terminaldetector.drmd.world.gen2.ModWorldgen2.register();
 		WeaponRegistry.bootstrap();
 		DescentCommands.register();
 		AiCommands.register();
 
-		ServerLifecycleEvents.SERVER_STARTED.register(ConstructionRegistry::bootstrap);
+		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+			ConstructionRegistry.bootstrap(server);
+			com.terminaldetector.drmd.world.gen2.MacroWorld.clear();
+		});
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			int tick = server.getTicks();
 			server.getPlayerManager().getPlayerList().forEach(player -> {
 				DescentPlayerData data = DescentPlayerData.get(player);
 				if (data.isEnabled()) {
 					FlightSystem.tick(player, data);
 					EnergySystem.regenTick(player, data);
 					ShieldSystem.regenTick(player, data);
+				}
+				// LLOD silhouette sync ~2 Hz
+				if (tick % 10 == player.getId() % 10) {
+					ModNetworking.syncLlod(player);
 				}
 			});
 		});

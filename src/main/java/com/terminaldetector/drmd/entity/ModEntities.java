@@ -1,6 +1,9 @@
 package com.terminaldetector.drmd.entity;
 
 import com.terminaldetector.drmd.DescentMod;
+import com.terminaldetector.drmd.world.mega.DroneSwarmEntity;
+import com.terminaldetector.drmd.world.mega.MegaWormEntity;
+import com.terminaldetector.drmd.world.mega.ReactorKeeperEntity;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
@@ -56,12 +59,44 @@ public final class ModEntities {
 					.build()
 	);
 
+	public static final EntityType<MegaWormEntity> MEGA_WORM = Registry.register(
+			Registries.ENTITY_TYPE,
+			Identifier.of(DescentMod.MOD_ID, "mega_worm"),
+			EntityType.Builder.<MegaWormEntity>create(MegaWormEntity::new, SpawnGroup.MONSTER)
+					.dimensions(3.0f, 3.0f)
+					.maxTrackingRange(256)
+					.trackingTickInterval(2)
+					.build()
+	);
+
+	public static final EntityType<DroneSwarmEntity> DRONE_SWARM = Registry.register(
+			Registries.ENTITY_TYPE,
+			Identifier.of(DescentMod.MOD_ID, "drone_swarm"),
+			EntityType.Builder.<DroneSwarmEntity>create(DroneSwarmEntity::new, SpawnGroup.MISC)
+					.dimensions(4.0f, 4.0f)
+					.maxTrackingRange(256)
+					.trackingTickInterval(5)
+					.build()
+	);
+
+	public static final EntityType<ReactorKeeperEntity> REACTOR_KEEPER = Registry.register(
+			Registries.ENTITY_TYPE,
+			Identifier.of(DescentMod.MOD_ID, "reactor_keeper"),
+			EntityType.Builder.<ReactorKeeperEntity>create(ReactorKeeperEntity::new, SpawnGroup.MONSTER)
+					.dimensions(4.5f, 4.5f)
+					.maxTrackingRange(160)
+					.trackingTickInterval(2)
+					.build()
+	);
+
 	private ModEntities() {}
 
 	public static void register() {
 		FabricDefaultAttributeRegistry.register(DRONE, DroneEntity.createDroneAttributes());
 		FabricDefaultAttributeRegistry.register(AIR_MINE, AirMineEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(PYRO_SHIP, PyroShipEntity.createAttributes());
-		DescentMod.LOGGER.info("Registered DRMD entities (drones, mines, pyro ship, reactor)");
+		FabricDefaultAttributeRegistry.register(MEGA_WORM, MegaWormEntity.createAttributes());
+		FabricDefaultAttributeRegistry.register(REACTOR_KEEPER, ReactorKeeperEntity.createAttributes());
+		DescentMod.LOGGER.info("Registered DRMD entities (drones, mines, pyro, reactor, mega fauna)");
 	}
 }

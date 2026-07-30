@@ -94,7 +94,15 @@ build/libs/drmd-6dof-1.0.0.jar
 - **6D Soil** — рост на шести гранях наружу
 - **Build Tool** — Look / Surface / Plane + вращение по 3 осям
 - **Industrial Underground** — технокомплексы в генерации
+- **World Generation 2.0** — небесные мегаструктуры, mega fauna, LLOD
 - Ловушки навигации: hermetic / laser / turret / magnetic / unstable
+
+### World Generation 2.0
+- Многомасштабные формы: разломы, каньоны, арки, кольца, летающие материки, спирали, перевёрнутые острова
+- Mega creatures как элементы мира: sky worm, drone swarm, reactor keeper
+- **LLOD** — далёкие объекты как воксельные силуэты за километры
+- Стриминг: MACROWORLD → REGION → CHUNK → LOCAL
+- Спека: [`docs/WORLD_GEN_2.md`](docs/WORLD_GEN_2.md)
 
 ### Placeholder-модели (Descent-like)
 | Объект | ID | Описание |
@@ -103,6 +111,9 @@ build/libs/drmd-6dof-1.0.0.jar
 | Drone | `drmd:drone` | Враг-дрон с 4 спарсами |
 | Reactor | `drmd:reactor_display` | Вращающееся ядро реактора |
 | Air mine | `drmd:air_mine` | Воздушная мина |
+| Mega worm | `drmd:mega_worm` | Небесный червь (24 сегмента) |
+| Drone swarm | `drmd:drone_swarm` | Якорь колоссального роя |
+| Reactor keeper | `drmd:reactor_keeper` | Страж реакторных комплексов |
 
 Модели — procedural placeholder (готовы к замене Blockbench-ассетами).
 
@@ -115,6 +126,9 @@ build/libs/drmd-6dof-1.0.0.jar
 /d6 ship                          # заспавнить Pyro
 /d6 kit                           # блоки мира / build tool
 /d6 worldgen industrial [STYLE]   # комплекс (CRYSTAL_REACTOR, SMELTERY, …)
+/d6 worldgen2 <kind>              # WG2.0: arch, ring, rift, canyon, continent, …
+/d6 mega worm|swarm|keeper        # mega creatures
+/d6 llod                          # sync LLOD silhouettes
 /d6 orient reset                  # сброс локального UP
 /6dof toggle|dash|alwaysrun
 /6dof_spawn <role>                # assault, interceptor, mg, rpg, …
@@ -145,10 +159,14 @@ src/main/java/com/terminaldetector/drmd/
 ├── ai/ entity/                       # дроны, Pyro, реактор
 ├── workshop/                         # оружейная мастерская + clusters
 ├── world/                            # 6DoF world rules, soil, traps, industrial
+│   ├── gen2/                         # WG 2.0 megastructures + MacroWorld
+│   ├── mega/                         # mega worm / swarm / keeper
+│   ├── llod/                         # Long Level of Detail
 │   └── base/ReactorRoomStarter.java  # /d6 start
-└── client/                           # HUD, модели, рендер
+└── client/                           # HUD, модели, рендер, LLOD silhouettes
 
 docs/WORLD_DESIGN.md                  # спецификация мира
+docs/WORLD_GEN_2.md                   # World Generation 2.0
 legacy/                               # исходный GMod-аддон
 ```
 
@@ -162,6 +180,8 @@ legacy/                               # исходный GMod-аддон
 4. `M` — подкрутить оружие в Workshop → Apply Build  
 5. Build Tool: Shift+ПКМ по стене → Local UP = эта грань → строить «пол» где угодно  
 6. `/d6 worldgen industrial CRYSTAL_REACTOR` — новый комплекс рядом  
+7. `/d6 worldgen2 arch` + `/d6 mega worm` — небесные мегаструктуры и фауна  
+8. Улететь далеко и `/d6 llod` — увидеть силуэты LLOD на горизонте  
 
 ---
 
