@@ -34,12 +34,15 @@ public class DescentMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		LOGGER.info("DRMD 6DOF initializing — Descent Resource Management Dynamics");
+		LOGGER.info("DRMD 6DOF initializing — 6DoF world mode (volume-first)");
 
 		ModNetworking.register();
 		ModEntities.register();
 		ModBlocks.register();
 		ModItems.register();
+		com.terminaldetector.drmd.entity.ModWorldBlocks.register();
+		com.terminaldetector.drmd.entity.ModBlockEntities.register();
+		com.terminaldetector.drmd.world.gen.ModWorldgen.register();
 		WeaponRegistry.bootstrap();
 		DescentCommands.register();
 		AiCommands.register();

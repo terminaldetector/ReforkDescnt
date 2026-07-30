@@ -13,9 +13,7 @@
   "key.drmd.workshop": "Weapon Workshop",
   "key.drmd.rocket_mode": "Rocket Submode",
   "key.drmd.reset_roll": "Reset Roll",
-
   "itemGroup.drmd.weapons": "DRMD Weapons",
-
   "item.drmd.weapon_d6_mg": "Пулемёт",
   "item.drmd.weapon_d6_plasma": "Плазма",
   "item.drmd.weapon_d6_heavy": "Тяжёлый",
@@ -43,14 +41,19 @@
   "item.drmd.weapon_d6_warp": "Боевой варп",
   "item.drmd.weapon_d6_telefrag": "Телефраг",
   "item.drmd.weapon_d6_whiplash": "Хлыст",
-
   "block.drmd.checkpoint": "DRMD Checkpoint",
   "block.drmd.dock": "DRMD Dock",
   "block.drmd.combat_zone": "DRMD Combat Zone",
   "block.drmd.nav_node": "DRMD Nav Node",
   "block.drmd.objective": "DRMD Objective",
-
   "entity.drmd.projectile": "DRMD Projectile",
   "entity.drmd.drone": "DRMD Drone",
-  "entity.drmd.air_mine": "DRMD Air Mine"
+  "entity.drmd.air_mine": "DRMD Air Mine",
+  "block.drmd.six_d_soil": "6D Soil",
+  "block.drmd.hermetic_gate": "Hermetic Gate",
+  "block.drmd.laser_barrier": "Laser Barrier",
+  "block.drmd.volume_turret": "Volume Turret",
+  "block.drmd.magnetic_anomaly": "Magnetic Anomaly",
+  "block.drmd.unstable_reactor": "Unstable Reactor",
+  "item.drmd.build_tool": "6DoF Build Tool"
 }

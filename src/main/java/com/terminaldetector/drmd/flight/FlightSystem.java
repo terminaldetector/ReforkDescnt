@@ -116,9 +116,10 @@ public final class FlightSystem {
 
 		Vec3d vel = data.getFlightVelocity().add(wish);
 
-		// Micro gravity + idle gravity
+		// Micro gravity + idle gravity along LOCAL down (magnetic anomalies / surface snap)
 		double g = DescentMod.su(MICRO_GRAV) + DescentMod.su(data.getGravity()) * data.getGravityFactor();
-		vel = vel.add(0, -g * dt, 0);
+		Vec3d gravDir = com.terminaldetector.drmd.world.LocalOrientation.gravityDir(player.getUuid());
+		vel = vel.add(gravDir.multiply(g * dt));
 
 		// Dash
 		if (in.dash && data.getDashCooldown() <= 0 && EnergySystem.tryConsume(data, "engines", EnergySystem.DASH_COST)) {

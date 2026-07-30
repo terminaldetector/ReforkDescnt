@@ -150,3 +150,22 @@ legacy/                      # оригинальный GMod аддон
 ---
 
 MIT License. Inspired by Descent. Original GMod systems preserved in spirit and numbers.
+
+---
+
+## 6DoF World Mode
+
+См. [`docs/WORLD_DESIGN.md`](docs/WORLD_DESIGN.md) — спецификация мира:
+
+- нет абсолютного верха (`LocalOrientation` + магнитные аномалии);
+- **6D Soil** — рост на шести гранях наружу;
+- **Build Tool** — Look / Surface / Plane + вращение по 3 осям;
+- **Industrial Underground** — сферические реакторы, шахты, спирали, модульные комплексы;
+- ловушки навигации: hermetic gate, laser, volume turret, magnetic anomaly, unstable reactor.
+
+```
+/d6 kit
+/d6 worldgen industrial CRYSTAL_REACTOR
+/d6 orient reset
+```
+

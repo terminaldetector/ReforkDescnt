@@ -123,6 +123,54 @@ public final class DescentCommands {
 						d.setRoll(0); d.setRollVel(0);
 						return 1;
 					}))
+					.then(CommandManager.literal("orient")
+							.then(CommandManager.literal("reset").executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								com.terminaldetector.drmd.world.LocalOrientation.clear(p.getUuid());
+								ctx.getSource().sendFeedback(() -> Text.literal("Local UP reset to world +Y"), false);
+								return 1;
+							})))
+					.then(CommandManager.literal("worldgen")
+							.requires(s -> s.hasPermissionLevel(2))
+							.then(CommandManager.literal("industrial")
+									.then(CommandManager.argument("style", StringArgumentType.word()).executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										String styleName = StringArgumentType.getString(ctx, "style");
+										com.terminaldetector.drmd.world.WorldRules.ComplexStyle style;
+										try {
+											style = com.terminaldetector.drmd.world.WorldRules.ComplexStyle.valueOf(styleName.toUpperCase());
+										} catch (Exception e) {
+											style = com.terminaldetector.drmd.world.WorldRules.ComplexStyle.ABANDONED_RESEARCH;
+										}
+										var pos = p.getBlockPos();
+										com.terminaldetector.drmd.world.gen.ModWorldgen.forceGenerate(p.getServerWorld(), pos, style);
+										com.terminaldetector.drmd.world.WorldRules.ComplexStyle finalStyle = style;
+										ctx.getSource().sendFeedback(() -> Text.literal(
+												"Generated Industrial Underground [" + finalStyle + "] at " + pos.toShortString()), true);
+										return 1;
+									}))
+									.executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										com.terminaldetector.drmd.world.gen.ModWorldgen.forceGenerate(
+												p.getServerWorld(), p.getBlockPos(),
+												com.terminaldetector.drmd.world.WorldRules.ComplexStyle.ANCIENT_POWER);
+										ctx.getSource().sendFeedback(() -> Text.literal("Generated Industrial Underground nearby"), true);
+										return 1;
+									})))
+					.then(CommandManager.literal("kit")
+							.requires(s -> s.hasPermissionLevel(2))
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.BUILD_TOOL));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.SIX_D_SOIL));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.MAGNETIC_ANOMALY));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.VOLUME_TURRET));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.LASER_BARRIER));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.HERMETIC_GATE));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR));
+								ctx.getSource().sendFeedback(() -> Text.literal("Gave 6DoF world-design kit"), false);
+								return 1;
+							}))
 			);
 		});
 	}
