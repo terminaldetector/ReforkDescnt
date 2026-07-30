@@ -91,11 +91,12 @@ public class PyroShipEntity extends PathAwareEntity {
 		if (!getWorld().isClient && !hasPassengers()) {
 			player.startRiding(this);
 			if (player instanceof ServerPlayerEntity sp) {
-				DescentPlayerData data = DescentPlayerData.get(sp);
-				data.setEnabled(true);
-				data.ensureInit();
-				ConstructionMode.set(sp, false);
-			}
+			DescentPlayerData data = DescentPlayerData.get(sp);
+			data.setEnabled(true);
+			data.ensureInit();
+			ConstructionMode.set(sp, false);
+			sp.sendMessage(Text.literal("§bPyro GX §7— Tab+H · 3D terrain map"), false);
+		}
 			return ActionResult.SUCCESS;
 		}
 		return ActionResult.SUCCESS;

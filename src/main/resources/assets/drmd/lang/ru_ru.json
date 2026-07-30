@@ -13,5 +13,6 @@
   "key.drmd.workshop": "Оружейная мастерская",
   "key.drmd.rocket_mode": "Режим ракет",
   "key.drmd.reset_roll": "Сброс крена",
+  "hud.drmd.terrain_map": "Pyro GX · 3D карта (Tab+H)",
   "itemGroup.drmd.weapons": "Оружие DRMD"
 }

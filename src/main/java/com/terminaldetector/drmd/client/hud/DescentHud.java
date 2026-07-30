@@ -67,6 +67,7 @@ public final class DescentHud {
 		if (mc.options.getPerspective().isFirstPerson() == false) {
 			ctx.drawCenteredTextWithShadow(mc.textRenderer, Text.literal("3RD · SHIP CAM"), cx, sh - 62, GREEN_DIM);
 		}
+		com.terminaldetector.drmd.client.hud.TerrainMap3d.render(ctx, mc);
 
 		if (DescentClientState.gravityFactor > 0.05f) {
 			String warn = DescentClientState.gravityFactor >= 1f

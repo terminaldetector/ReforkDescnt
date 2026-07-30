@@ -132,13 +132,26 @@ public class BuildToolItem extends Item {
 	}
 
 	private static BlockState applyRotation(BlockState state, Direction face, int axis, int rot) {
+		// Surface-normal first — barrels / dispensers / observers sit correctly on ceilings.
+		if (state.contains(net.minecraft.state.property.Properties.FACING)) {
+			Direction facing = face;
+			if (axis == 1) {
+				// Yaw cycle around the surface normal's plane
+				Direction[] cycle = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
+				if (face.getAxis().isVertical()) {
+					facing = cycle[Math.floorMod(rot, 4)];
+				} else {
+					facing = face;
+				}
+			} else if (axis == 2 && face.getAxis().isHorizontal()) {
+				// Roll: flip to opposite (ceiling mount)
+				facing = rot % 2 == 0 ? face : face.getOpposite();
+			}
+			return state.with(net.minecraft.state.property.Properties.FACING, facing);
+		}
 		if (state.contains(net.minecraft.state.property.Properties.HORIZONTAL_FACING)) {
 			Direction[] cycle = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
 			return state.with(net.minecraft.state.property.Properties.HORIZONTAL_FACING, cycle[Math.floorMod(rot, 4)]);
-		}
-		if (state.contains(net.minecraft.state.property.Properties.FACING)) {
-			Direction[] all = Direction.values();
-			return state.with(net.minecraft.state.property.Properties.FACING, all[Math.floorMod(rot + face.getId(), 6)]);
 		}
 		return state;
 	}

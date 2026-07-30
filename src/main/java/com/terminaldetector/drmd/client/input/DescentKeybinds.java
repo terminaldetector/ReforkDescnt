@@ -62,7 +62,14 @@ public final class DescentKeybinds {
 		}
 		wasEnabled = en;
 
-		while (toggle.wasPressed()) sendAction("toggle");
+		while (toggle.wasPressed()) {
+			boolean tab = InputUtil.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_TAB);
+			if (tab && com.terminaldetector.drmd.client.hud.TerrainMap3d.canUse(client.player)) {
+				com.terminaldetector.drmd.client.hud.TerrainMap3d.toggle();
+			} else if (!tab) {
+				sendAction("toggle");
+			}
+		}
 		while (dash.wasPressed()) {
 			dashQueued = true;
 			sendAction("dash");
@@ -91,6 +98,7 @@ public final class DescentKeybinds {
 			ShipAttitudeClient.tickRoll(client.player, rollIn, dt);
 			com.terminaldetector.drmd.client.flight.DescentCamera.tick(client.player, dt);
 		}
+		com.terminaldetector.drmd.client.hud.TerrainMap3d.tick(client);
 	}
 
 	public static void sendInput(MinecraftClient client) {
