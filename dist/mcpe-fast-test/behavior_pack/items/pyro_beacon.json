@@ -1,0 +1,15 @@
+{
+  "format_version": "1.21.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "drmd:pyro_beacon",
+      "menu_category": { "category": "equipment" }
+    },
+    "components": {
+      "minecraft:max_stack_size": 1,
+      "minecraft:icon": "drmd_pyro_beacon",
+      "minecraft:display_name": { "value": "Pyro Beacon (6DoF Toggle)" },
+      "minecraft:cooldown": { "category": "drmd", "duration": 0.5 }
+    }
+  }
+}

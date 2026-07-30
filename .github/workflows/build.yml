@@ -1,4 +1,4 @@
-name: Build DRMD 6DOF
+name: Build DRMD 6DOF (PC + MCPE)
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  fabric-pc:
+    name: Fabric PC jar
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,22 +25,100 @@ jobs:
         uses: gradle/actions/wrapper-validation@v4
 
       - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+        run: chmod +x gradlew scripts/package_mcpe.sh
 
-      - name: Build with Gradle
+      - name: Build Fabric mod
         run: ./gradlew build --no-daemon --stacktrace
 
-      - name: List build outputs
-        run: ls -lh build/libs/
+      - name: Stage PC jar into dist/
+        run: |
+          mkdir -p dist
+          cp build/libs/drmd-6dof-*.jar dist/
+          rm -f dist/*-sources.jar dist/*-dev.jar dist/*-dev-shadow.jar || true
+          ls -lh dist/
 
-      - name: Upload mod jar
+      - name: Upload Fabric PC mod
         uses: actions/upload-artifact@v4
         with:
-          name: drmd-6dof
+          name: drmd-6dof-pc
           path: |
-            build/libs/drmd-6dof-*.jar
-            !build/libs/*-sources.jar
-            !build/libs/*-dev.jar
-            !build/libs/*-dev-shadow.jar
+            dist/drmd-6dof-*.jar
+            !dist/*-sources.jar
+          if-no-files-found: error
+          retention-days: 30
+
+  mcpe-fast-test:
+    name: MCPE Fast Test addon
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install zip
+        run: sudo apt-get update && sudo apt-get install -y zip
+
+      - name: Package .mcaddon
+        run: |
+          chmod +x scripts/package_mcpe.sh
+          ./scripts/package_mcpe.sh dist 1.0.0
+
+      - name: Upload MCPE addon
+        uses: actions/upload-artifact@v4
+        with:
+          name: drmd-6dof-mcpe
+          path: |
+            dist/drmd-6dof-fast-test-1.0.0.mcaddon
+            dist/drmd-6dof-fast-test-bp-1.0.0.mcpack
+            dist/drmd-6dof-fast-test-rp-1.0.0.mcpack
+            mcpe/README.md
+          if-no-files-found: error
+          retention-days: 30
+
+  evening-test-bundle:
+    name: Evening test bundle (PC + MCPE)
+    needs: [fabric-pc, mcpe-fast-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download PC jar
+        uses: actions/download-artifact@v4
+        with:
+          name: drmd-6dof-pc
+          path: bundle/pc
+
+      - name: Download MCPE addon
+        uses: actions/download-artifact@v4
+        with:
+          name: drmd-6dof-mcpe
+          path: bundle/mcpe
+
+      - name: Write evening README
+        run: |
+          cat > bundle/README_EVENING_TEST.txt << 'EOF'
+          DRMD 6DOF — evening test pack
+          =============================
+
+          PC (Java / Fabric 1.21.1)
+            1. Install Fabric Loader 1.21.1 + Fabric API
+            2. Copy pc/drmd-6dof-1.0.0.jar into .minecraft/mods/
+            3. Launch, join world — 6DoF is native. Craft/use Pyro GX.
+
+          MCPE / Bedrock Fast Test
+            1. Open mcpe/drmd-6dof-fast-test-1.0.0.mcaddon
+            2. Enable both packs in the world (+ Beta APIs if asked)
+            3. Use Pyro Beacon / Construction Wand / Gravity Torch
+
+          Full features = PC Fabric build.
+          MCPE = UX sandbox only (see mcpe/README.md).
+          EOF
+          find bundle -type f -ls
+
+      - name: Upload evening bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: drmd-evening-test
+          path: bundle/
           if-no-files-found: error
           retention-days: 30

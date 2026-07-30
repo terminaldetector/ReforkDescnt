@@ -167,6 +167,21 @@ legacy/                               # исходный GMod-аддон
 
 ---
 
+## Evening test (PC + MCPE)
+
+```bash
+./scripts/package_all.sh
+# → dist/drmd-6dof-1.0.0.jar              (Fabric PC)
+# → dist/drmd-6dof-fast-test-1.0.0.mcaddon (Bedrock/MCPE)
+```
+
+CI Artifacts (Actions → **Build DRMD 6DOF**):
+- `drmd-6dof-pc` — Fabric jar
+- `drmd-6dof-mcpe` — `.mcaddon` + packs
+- `drmd-evening-test` — both + README
+
+MCPE sandbox notes: [`mcpe/README.md`](mcpe/README.md)
+
 ## Phase 3 — 6DoF Framework
 
 - Adaptive Construction после посадки Pyro GX (`/d6 construct`)
