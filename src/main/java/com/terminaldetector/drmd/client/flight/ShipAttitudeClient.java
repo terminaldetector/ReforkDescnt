@@ -90,8 +90,9 @@ public final class ShipAttitudeClient {
 		}
 
 		// Local-axis yaw then pitch: no world-up reference — nose crosses poles without gimbal lock.
+		// pitchLocal is around pilot's RIGHT (up×forward); negate so mouse-up raises the nose.
 		ATT.yawLocal(angYaw);
-		ATT.pitchLocal(angPitch);
+		ATT.pitchLocal(-angPitch);
 		applyToPlayer(player);
 	}
 

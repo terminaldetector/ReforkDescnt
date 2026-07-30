@@ -243,26 +243,32 @@ public class DescentPlayerData {
 	}
 
 	public Vec3d shipForward(PlayerEntity player) {
-		if (shipAttitudeValid) return new Vec3d(shipFx, shipFy, shipFz).normalize();
-		return player.getRotationVec(1f);
+		if (shipAttitudeValid) {
+			Vec3d f = new Vec3d(shipFx, shipFy, shipFz);
+			if (f.lengthSquared() > 1e-10) return f.normalize();
+		}
+		// Fallback only before first attitude packet — still full 3D look, not XZ walk.
+		return player.getRotationVec(1f).normalize();
 	}
 
 	public Vec3d shipUp(PlayerEntity player) {
+		Vec3d f = shipForward(player);
 		if (shipAttitudeValid) {
-			Vec3d f = shipForward(player);
 			Vec3d u = new Vec3d(shipUx, shipUy, shipUz);
 			u = u.subtract(f.multiply(u.dotProduct(f)));
-			if (u.lengthSquared() < 1e-8) return new Vec3d(0, 1, 0);
+			if (u.lengthSquared() < 1e-8) {
+				return com.terminaldetector.drmd.flight.ShipAttitude.levelUpOf(f);
+			}
 			return u.normalize();
 		}
-		Vec3d look = player.getRotationVec(1f);
-		Vec3d right = look.crossProduct(new Vec3d(0, 1, 0));
-		if (right.lengthSquared() < 1e-6) right = new Vec3d(1, 0, 0);
-		return right.normalize().crossProduct(look).normalize();
+		return com.terminaldetector.drmd.flight.ShipAttitude.levelUpOf(f);
 	}
 
 	public Vec3d shipRight(PlayerEntity player) {
-		return shipForward(player).crossProduct(shipUp(player)).normalize();
+		// up × forward = right (Descent / RH)
+		Vec3d r = shipUp(player).crossProduct(shipForward(player));
+		if (r.lengthSquared() < 1e-10) return new Vec3d(1, 0, 0);
+		return r.normalize();
 	}
 
 	public void levelShipAttitude(PlayerEntity player) {

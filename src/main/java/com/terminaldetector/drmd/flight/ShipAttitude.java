@@ -22,7 +22,12 @@ public final class ShipAttitude {
 
 	public Vec3d forward() { return new Vec3d(fx, fy, fz); }
 	public Vec3d up() { return new Vec3d(ux, uy, uz); }
-	public Vec3d right() { return forward().crossProduct(up()).normalize(); }
+	/** Pilot's right: up × forward (right-handed). */
+	public Vec3d right() {
+		Vec3d r = up().crossProduct(forward());
+		if (r.lengthSquared() < 1e-12) return levelRight();
+		return r.normalize();
+	}
 
 	public void setForwardUp(Vec3d f, Vec3d u) {
 		f = f.normalize();

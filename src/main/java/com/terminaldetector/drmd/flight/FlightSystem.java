@@ -94,12 +94,15 @@ public final class FlightSystem {
 			data.setRoll(roll);
 		}
 
+		// Descent ship basis: W = thrust along nose, not flattened world-forward.
 		Vec3d look = data.shipForward(player);
 		Vec3d rolledUp = data.shipUp(player);
-		Vec3d rolledRight = look.crossProduct(rolledUp);
+		// right = up × forward (RH) — matches Descent strafe; forward×up was inverted.
+		Vec3d rolledRight = rolledUp.crossProduct(look);
 		if (rolledRight.lengthSquared() < 1e-8) {
 			rolledRight = new Vec3d(1, 0, 0);
-			rolledUp = rolledRight.crossProduct(look).normalize();
+			rolledUp = look.crossProduct(rolledRight).normalize();
+			rolledRight = rolledUp.crossProduct(look).normalize();
 		} else {
 			rolledRight = rolledRight.normalize();
 		}
@@ -130,13 +133,13 @@ public final class FlightSystem {
 			data.setGravityFactor(0f);
 		}
 
-		double accel = DescentMod.su(data.getAccel()) * accelMult * spool;
-		Vec3d wish = look.multiply(in.forward)
-				.add(rolledRight.multiply(in.strafe * STRAFE_MULT))
-				.add(rolledUp.multiply(in.vertical * VERT_MULT));
-		if (wish.lengthSquared() > 1e-6) wish = wish.normalize().multiply(accel * dt);
-
-		Vec3d vel = data.getFlightVelocity().add(wish);
+		// Per-axis thrust like Descent/GMod — do NOT normalize the sum.
+		// Normalizing made W+Space steal nose thrust; pure W must be full nose accel.
+		double a = DescentMod.su(data.getAccel()) * accelMult * spool * dt;
+		Vec3d vel = data.getFlightVelocity()
+				.add(look.multiply(in.forward * a))
+				.add(rolledRight.multiply(in.strafe * STRAFE_MULT * a))
+				.add(rolledUp.multiply(in.vertical * VERT_MULT * a));
 
 		// Thruster mode ignores station torches / generators — free 6DoF must not get
 		// reoriented to wall UP (that kills spherical look and feels like "flight fell off").
@@ -152,9 +155,16 @@ public final class FlightSystem {
 		}
 		if (g > 0) vel = vel.add(gravDir.multiply(g * dt));
 
-		// Dash
+		// Dash — along current thrust wish, else straight out the nose (Descent afterburner kick).
 		if (in.dash && data.getDashCooldown() <= 0 && EnergySystem.tryConsume(data, "engines", EnergySystem.DASH_COST)) {
-			Vec3d dashDir = wish.lengthSquared() > 1e-6 ? wish.normalize() : look;
+			Vec3d dashDir = look;
+			if (Math.abs(in.forward) > 0.01f || Math.abs(in.strafe) > 0.01f || Math.abs(in.vertical) > 0.01f) {
+				dashDir = look.multiply(in.forward)
+						.add(rolledRight.multiply(in.strafe * STRAFE_MULT))
+						.add(rolledUp.multiply(in.vertical * VERT_MULT));
+				if (dashDir.lengthSquared() > 1e-8) dashDir = dashDir.normalize();
+				else dashDir = look;
+			}
 			vel = vel.add(dashDir.multiply(DescentMod.su(DASH_VEL)));
 			data.setDashCooldown(DASH_CD);
 			data.setDashTimer(DASH_DUR);

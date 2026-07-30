@@ -64,7 +64,8 @@ public final class FlightMotion {
 		up = up.subtract(look.multiply(up.dotProduct(look)));
 		if (up.lengthSquared() < 1e-8) up = new Vec3d(0, 1, 0);
 		else up = up.normalize();
-		Vec3d right = look.crossProduct(up);
+		// up × forward = pilot's right (same as server FlightSystem)
+		Vec3d right = up.crossProduct(look);
 		if (right.lengthSquared() < 1e-8) right = new Vec3d(1, 0, 0);
 		else right = right.normalize();
 
@@ -74,13 +75,12 @@ public final class FlightMotion {
 		else spool = Math.max(0f, spool - FlightSystem.SPOOL_DOWN * dt);
 		data.setThrustSpool(spool);
 
-		double accel = DescentMod.su(data.getAccel()) * spool;
-		Vec3d wish = look.multiply(forward)
-				.add(right.multiply(strafe * FlightSystem.STRAFE_MULT))
-				.add(up.multiply(vertical * FlightSystem.VERT_MULT));
-		if (wish.lengthSquared() > 1e-6) wish = wish.normalize().multiply(accel * dt);
-
-		Vec3d vel = data.getFlightVelocity().add(wish);
+		// Descent: W adds full accel along nose — never renormalize with strafe/vertical.
+		double a = DescentMod.su(data.getAccel()) * spool * dt;
+		Vec3d vel = data.getFlightVelocity()
+				.add(look.multiply(forward * a))
+				.add(right.multiply(strafe * FlightSystem.STRAFE_MULT * a))
+				.add(up.multiply(vertical * FlightSystem.VERT_MULT * a));
 		double inertiaKeep = Math.pow(FlightSystem.INERTIA, dt * 60.0);
 		vel = vel.multiply(inertiaKeep);
 		double maxSpd = DescentMod.su(data.getMaxSpeed());

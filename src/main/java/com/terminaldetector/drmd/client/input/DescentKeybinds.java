@@ -157,26 +157,26 @@ public final class DescentKeybinds {
 		dashQueued = false;
 		hookQueued = false;
 
-		boolean att = DescentClientState.enabled && DescentClientState.attitudeValid;
-		net.minecraft.util.math.Vec3d fwd = att
-				? new net.minecraft.util.math.Vec3d(DescentClientState.attFx, DescentClientState.attFy, DescentClientState.attFz)
-				: client.player.getRotationVec(1f);
-		net.minecraft.util.math.Vec3d up = att
-				? new net.minecraft.util.math.Vec3d(DescentClientState.attUx, DescentClientState.attUy, DescentClientState.attUz)
-				: new net.minecraft.util.math.Vec3d(0, 1, 0);
-		// Predict locally so creative/SP does not wait a server round-trip (feels frozen otherwise).
+		// Always drive thrust from ship nose (ShipAttitude), never clamped getRotationVec.
+		// That is Descent W = forward along the craft, including through vertical.
+		boolean primed = DescentClientState.enabled && ShipAttitudeClient.isPrimed();
+		if (primed && !DescentClientState.attitudeValid) {
+			ShipAttitudeClient.applyToPlayer(client.player);
+		}
+		var ship = ShipAttitudeClient.get();
+		net.minecraft.util.math.Vec3d fwd = primed ? ship.forward() : client.player.getRotationVec(1f);
+		net.minecraft.util.math.Vec3d up = primed ? ship.up() : new net.minecraft.util.math.Vec3d(0, 1, 0);
+		if (fwd.lengthSquared() > 1e-8) fwd = fwd.normalize();
+		if (up.lengthSquared() > 1e-8) up = up.normalize();
+
 		com.terminaldetector.drmd.flight.FlightMotion.clientPredict(
 				client.player, forward, strafe, vertical, fwd, up);
 
 		ClientPlayNetworking.send(new ModNetworking.InputPayload(
 				forward, strafe, vertical, roll, dash, hk,
-				att,
-				att ? DescentClientState.attFx : 0,
-				att ? DescentClientState.attFy : 0,
-				att ? DescentClientState.attFz : 1,
-				att ? DescentClientState.attUx : 0,
-				att ? DescentClientState.attUy : 1,
-				att ? DescentClientState.attUz : 0
+				primed,
+				(float) fwd.x, (float) fwd.y, (float) fwd.z,
+				(float) up.x, (float) up.y, (float) up.z
 		));
 	}
 
