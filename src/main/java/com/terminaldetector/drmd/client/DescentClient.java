@@ -26,6 +26,7 @@ public class DescentClient implements ClientModInitializer {
 		ModEntityRenderers.register();
 		WeaponViewRenderer.register();
 		LlodSilhouetteRenderer.register();
+		com.terminaldetector.drmd.client.smoke.SmokeRenderer.register();
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SyncPayload.ID, (payload, context) -> {
 			DescentClientState.enabled = payload.enabled();
@@ -87,6 +88,18 @@ public class DescentClient implements ClientModInitializer {
 			DescentKeybinds.tick(client);
 			if (DescentClientState.enabled) {
 				DescentKeybinds.sendInput(client);
+			}
+			// Age client-only smoke on dedicated clients; integrated SP uses server tick
+			if (client.world != null && client.world.getTime() % 2 == 0
+					&& !client.isIntegratedServerRunning()) {
+				com.terminaldetector.drmd.world.smoke.SmokeSystem.tick();
+			}
+			float smoke = com.terminaldetector.drmd.world.smoke.SmokeSystem.obscurityAt(client.player.getEyePos());
+			DescentClientState.smokeObscurity = smoke;
+			if (smoke > 0.15f && client.world != null && client.world.getTime() % 3 == 0) {
+				var pos = client.player.getEyePos();
+				client.world.addParticle(net.minecraft.particle.ParticleTypes.CAMPFIRE_COSY_SMOKE,
+						pos.x, pos.y, pos.z, 0, 0.01, 0);
 			}
 		});
 	}

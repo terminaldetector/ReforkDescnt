@@ -15,6 +15,8 @@ public final class DescentClientState {
 	public static boolean alwaysRun;
 	public static boolean flightAssist = true;
 	public static boolean radar = true;
+	/** 0..0.85 local smoke density for HUD / tactics. */
+	public static float smokeObscurity;
 
 	private DescentClientState() {}
 }

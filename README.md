@@ -114,6 +114,9 @@ Assault, Interceptor, Artillery, Support, Heavy Elite, MG, Laser, RPG, Heavy, Se
 /d6 worldgen2 <kind>              # WG2.0 mega-structure
 /d6 mega worm|swarm|keeper
 /d6 llod
+/d6 atmosphere                   # atmospheric band + smoke/fire counts
+/d6 bomb [tnt|cluster|incendiary|guided]
+/d6 laser
 /d6 orient reset
 /6dof toggle|dash|alwaysrun
 /6dof_spawn <role>                # 10 ролей
@@ -146,12 +149,16 @@ src/main/java/com/terminaldetector/drmd/
 ├── world/                            # 6DoF world rules, soil, traps, industrial
 │   ├── gen2/                         # WG 2.0 megastructures + MacroWorld
 │   ├── mega/                         # mega worm / swarm / keeper
+│   ├── atmosphere/                   # altitude physics bands
+│   ├── bombardment/                  # aerial TNT / cluster / guided
+│   ├── smoke/ fire/                  # dynamic smoke + 3D fire
 │   ├── llod/                         # Long Level of Detail
 │   └── base/ReactorRoomStarter.java  # /d6 start
-└── client/                           # HUD, модели, рендер, LLOD silhouettes
+└── client/                           # HUD, модели, рендер, LLOD silhouettes, smoke
 
 docs/WORLD_DESIGN.md                  # спецификация мира
 docs/WORLD_GEN_2.md                   # World Generation 2.0
+docs/ATMOSPHERE_COMBAT.md             # Sector A: atmosphere / bombs / smoke / fire
 legacy/                               # исходный GMod-аддон
 ```
 
@@ -189,6 +196,13 @@ MCPE sandbox notes: [`mcpe/README.md`](mcpe/README.md)
 - Projectile Framework (7 kinds, shared hits)
 - Gravity Generator + Gravity Torch + multi-zone stations
 - Spec: [`docs/PHASE3_FRAMEWORK.md`](docs/PHASE3_FRAMEWORK.md) · MCPE sandbox: [`docs/MCPE_FAST_TEST.md`](docs/MCPE_FAST_TEST.md)
+
+## AI Sector A — Atmosphere & vertical combat
+
+- Atmospheric bands (classic → thin → near-space + deep pressure)
+- Aerial bomb bay (TNT / cluster / incendiary / laser-guided) + designator
+- Dynamic volumetric smoke + 3D fire with LLOD
+- Spec: [`docs/ATMOSPHERE_COMBAT.md`](docs/ATMOSPHERE_COMBAT.md)
 
 ## Блог / концепт
 

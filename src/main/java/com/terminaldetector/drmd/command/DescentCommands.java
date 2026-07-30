@@ -277,6 +277,53 @@ public final class DescentCommands {
 												+ " visible LLOD0=" + c0 + " LLOD1=" + c1 + " LLOD2=" + c2), false);
 								return 1;
 							}))
+					.then(CommandManager.literal("bomb")
+							.requires(s -> s.hasPermissionLevel(2))
+							.then(CommandManager.argument("type", StringArgumentType.word()).executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								String name = StringArgumentType.getString(ctx, "type").toLowerCase();
+								ItemStack stack = switch (name) {
+									case "cluster" -> new ItemStack(ModItems.BOMB_CLUSTER, 8);
+									case "incendiary", "fire" -> new ItemStack(ModItems.BOMB_INCENDIARY, 8);
+									case "guided", "laser" -> new ItemStack(ModItems.BOMB_GUIDED, 8);
+									default -> new ItemStack(ModItems.BOMB_TNT, 8);
+								};
+								p.giveItemStack(stack);
+								p.giveItemStack(new ItemStack(ModItems.LASER_DESIGNATOR));
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Bomb bay: " + name + " + laser designator"), false);
+								return 1;
+							}))
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								p.giveItemStack(new ItemStack(ModItems.BOMB_TNT, 8));
+								p.giveItemStack(new ItemStack(ModItems.BOMB_CLUSTER, 4));
+								p.giveItemStack(new ItemStack(ModItems.BOMB_INCENDIARY, 4));
+								p.giveItemStack(new ItemStack(ModItems.BOMB_GUIDED, 4));
+								p.giveItemStack(new ItemStack(ModItems.LASER_DESIGNATOR));
+								ctx.getSource().sendFeedback(() -> Text.literal("Full bomb bay issued"), false);
+								return 1;
+							}))
+					.then(CommandManager.literal("laser")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								p.giveItemStack(new ItemStack(ModItems.LASER_DESIGNATOR));
+								ctx.getSource().sendFeedback(() -> Text.literal("Laser designator ready"), false);
+								return 1;
+							}))
+					.then(CommandManager.literal("atmosphere")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								var band = com.terminaldetector.drmd.world.atmosphere.AtmosphereBand.at(p.getY());
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Atmosphere: " + band.label
+												+ " | drag=" + band.airDrag
+												+ " thrust×" + band.thrustScale
+												+ " blast×" + band.blastScale
+												+ " | smoke=" + com.terminaldetector.drmd.world.smoke.SmokeSystem.all().size()
+												+ " fire=" + com.terminaldetector.drmd.world.fire.FireSystem.focusCount()), false);
+								return 1;
+							}))
 			);
 		});
 	}

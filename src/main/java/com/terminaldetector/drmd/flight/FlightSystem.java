@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.energy.EnergySystem;
 import com.terminaldetector.drmd.network.ModNetworking;
+import com.terminaldetector.drmd.world.atmosphere.AtmosphereBand;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -100,6 +101,12 @@ public final class FlightSystem {
 		Vec3d rolledUp = up.multiply(Math.cos(rollRad)).subtract(right.multiply(Math.sin(rollRad)));
 
 		boolean thrusting = Math.abs(in.forward) > 0.01f || Math.abs(in.strafe) > 0.01f || Math.abs(in.vertical) > 0.01f;
+		if (thrusting && player.getServer().getTicks() % 4 == 0) {
+			com.terminaldetector.drmd.world.smoke.SmokeSystem.emit(
+					player.getPos().subtract(look.multiply(0.8)),
+					com.terminaldetector.drmd.world.smoke.SmokeSystem.Source.ENGINE,
+					0.4f, 0.25f, 18);
+		}
 		float spool = data.getThrustSpool();
 		if (thrusting) spool = Math.min(1f, spool + SPOOL_UP * dt);
 		else spool = Math.max(0f, spool - SPOOL_DOWN * dt);
@@ -108,6 +115,11 @@ public final class FlightSystem {
 		float engAlloc = data.getAllocEngines();
 		float accelMult = data.isAlwaysRun() ? MathHelper.lerp(engAlloc, 1.3f, 1.9f) : 1f;
 		float speedMult = data.isAlwaysRun() ? MathHelper.lerp(engAlloc, 1.3f, 1.8f) : 1f;
+
+		// Atmospheric bands: thin air / near-space → less drag, more thrust reliance
+		AtmosphereBand band = AtmosphereBand.at(player.getY());
+		accelMult *= band.thrustScale;
+		speedMult *= MathHelper.lerp(1f - band.airDrag, 1f, 1.15f);
 
 		double accel = DescentMod.su(data.getAccel()) * accelMult * spool;
 		Vec3d wish = look.multiply(in.forward)
@@ -167,9 +179,9 @@ public final class FlightSystem {
 			}
 		}
 
-		// Drag / Flight Assist
+		// Drag / Flight Assist — scaled by atmosphere air density
 		double speed = vel.length();
-		double dragK = data.getDrag();
+		double dragK = data.getDrag() * band.airDrag;
 		if (data.isFlightAssist()) {
 			// Quadratic drag + linear brake when no input
 			if (speed > 1e-4) {

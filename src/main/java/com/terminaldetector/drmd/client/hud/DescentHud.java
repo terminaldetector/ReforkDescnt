@@ -51,9 +51,10 @@ public final class DescentHud {
 		maybeCombatLog(mc);
 		drawFlightStatus(ctx, mc, 8, 8);
 		drawCoords(ctx, mc, 8, 62);
+		drawAtmosphere(ctx, mc, 8, 94);
 		drawRadar(ctx, mc, sw - 78, 8, 64);
 		TargetInfo target = resolveTarget(mc);
-		drawTargetPanel(ctx, mc, 8, 88, target);
+		drawTargetPanel(ctx, mc, 8, 120, target);
 		drawWeapons(ctx, mc, sw - 120, 90);
 		drawDefense(ctx, mc, sw - 120, sh - 88);
 		drawCrosshair(ctx, cx, cy, target != null);
@@ -86,6 +87,21 @@ public final class DescentHud {
 		line(ctx, mc, x, y + 18, String.format(Locale.ROOT, "Z %.1f", p.getZ()), GREEN_DIM);
 	}
 
+	private static void drawAtmosphere(DrawContext ctx, MinecraftClient mc, int x, int y) {
+		var band = com.terminaldetector.drmd.world.atmosphere.AtmosphereBand.at(mc.player.getY());
+		int color = switch (band) {
+			case NEAR_SPACE -> 0xFF88CCFF;
+			case THIN -> 0xFFAAEEFF;
+			case DEEP_PRESSURE -> AMBER;
+			default -> GREEN_DIM;
+		};
+		line(ctx, mc, x, y, "ATM: " + band.label.toUpperCase(Locale.ROOT), color);
+		if (DescentClientState.smokeObscurity > 0.08f) {
+			line(ctx, mc, x, y + 9, String.format(Locale.ROOT, "SMOKE %d%%",
+					(int) (DescentClientState.smokeObscurity * 100)), AMBER);
+		}
+	}
+
 	private static void drawRadar(DrawContext ctx, MinecraftClient mc, int x, int y, int size) {
 		panel(ctx, x - 2, y - 2, size + 4, size + 14);
 		line(ctx, mc, x, y, "RADAR 3D", GREEN);
@@ -101,7 +117,7 @@ public final class DescentHud {
 		ctx.fill(ox - 1, oy - 1, ox + 2, oy + 2, GREEN);
 
 		if (!DescentClientState.radar || mc.world == null) return;
-		double range = 96;
+		double range = 96 * (1.0 - DescentClientState.smokeObscurity * 0.7);
 		for (Entity e : mc.world.getEntities()) {
 			if (e == mc.player || !(e instanceof LivingEntity) || !e.isAlive()) continue;
 			Vec3d rel = e.getPos().subtract(mc.player.getPos());

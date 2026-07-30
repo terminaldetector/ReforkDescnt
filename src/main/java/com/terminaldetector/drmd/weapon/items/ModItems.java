@@ -56,6 +56,12 @@ public final class ModItems {
 	public static Item EGG_HEAVY;
 	public static Item EGG_SEEKER;
 
+	public static Item BOMB_TNT;
+	public static Item BOMB_CLUSTER;
+	public static Item BOMB_INCENDIARY;
+	public static Item BOMB_GUIDED;
+	public static Item LASER_DESIGNATOR;
+
 	public static final RegistryKey<ItemGroup> GROUP_KEY = RegistryKey.of(RegistryKeys.ITEM_GROUP, Identifier.of(DescentMod.MOD_ID, "weapons"));
 
 	private ModItems() {}
@@ -161,6 +167,17 @@ public final class ModItems {
 		EGG_HEAVY = egg("spawn_egg_heavy", com.terminaldetector.drmd.ai.AiRole.HEAVY, 0x555577, 0x222233);
 		EGG_SEEKER = egg("spawn_egg_seeker", com.terminaldetector.drmd.ai.AiRole.SEEKER, 0x55FFAA, 0x115533);
 
+		BOMB_TNT = register("bomb_tnt", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(
+				com.terminaldetector.drmd.world.bombardment.OrdnanceType.TNT_BOMB, new Item.Settings()));
+		BOMB_CLUSTER = register("bomb_cluster", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(
+				com.terminaldetector.drmd.world.bombardment.OrdnanceType.CLUSTER, new Item.Settings()));
+		BOMB_INCENDIARY = register("bomb_incendiary", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(
+				com.terminaldetector.drmd.world.bombardment.OrdnanceType.INCENDIARY, new Item.Settings()));
+		BOMB_GUIDED = register("bomb_guided", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(
+				com.terminaldetector.drmd.world.bombardment.OrdnanceType.LASER_GUIDED, new Item.Settings()));
+		LASER_DESIGNATOR = register("laser_designator",
+				new com.terminaldetector.drmd.world.bombardment.BombardmentItems.LaserDesignatorItem(new Item.Settings()));
+
 		Registry.register(Registries.ITEM_GROUP, GROUP_KEY, FabricItemGroup.builder()
 				.icon(() -> new ItemStack(PYRO_GX))
 				.displayName(Text.translatable("itemGroup.drmd.weapons"))
@@ -176,6 +193,11 @@ public final class ModItems {
 					entries.add(EGG_RPG);
 					entries.add(EGG_HEAVY);
 					entries.add(EGG_SEEKER);
+					entries.add(BOMB_TNT);
+					entries.add(BOMB_CLUSTER);
+					entries.add(BOMB_INCENDIARY);
+					entries.add(BOMB_GUIDED);
+					entries.add(LASER_DESIGNATOR);
 					entries.add(MG);
 					entries.add(PLASMA);
 					entries.add(HEAVY);
@@ -206,7 +228,7 @@ public final class ModItems {
 				})
 				.build());
 
-		DescentMod.LOGGER.info("Registered DRMD weapons + Pyro GX + 10 drone spawn eggs");
+		DescentMod.LOGGER.info("Registered DRMD weapons + Pyro GX + drones + aerial ordnance");
 	}
 
 	private static Item egg(String id, com.terminaldetector.drmd.ai.AiRole role, int primary, int secondary) {

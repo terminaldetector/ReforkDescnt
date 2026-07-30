@@ -77,5 +77,11 @@
   "entity.drmd.reactor_display": "Reactor Core",
   "entity.drmd.mega_worm": "Sky Worm",
   "entity.drmd.drone_swarm": "Drone Swarm",
-  "entity.drmd.reactor_keeper": "Reactor Keeper"
+  "entity.drmd.reactor_keeper": "Reactor Keeper",
+  "entity.drmd.aerial_bomb": "Aerial Bomb",
+  "item.drmd.bomb_tnt": "TNT Bomb Bay",
+  "item.drmd.bomb_cluster": "Cluster Bomb Bay",
+  "item.drmd.bomb_incendiary": "Incendiary Bomb Bay",
+  "item.drmd.bomb_guided": "Laser-Guided Bomb",
+  "item.drmd.laser_designator": "Laser Designator"
 }

@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.entity;
 
 import com.terminaldetector.drmd.DescentMod;
+import com.terminaldetector.drmd.world.bombardment.AerialBombEntity;
 import com.terminaldetector.drmd.world.mega.DroneSwarmEntity;
 import com.terminaldetector.drmd.world.mega.MegaWormEntity;
 import com.terminaldetector.drmd.world.mega.ReactorKeeperEntity;
@@ -89,6 +90,16 @@ public final class ModEntities {
 					.build()
 	);
 
+	public static final EntityType<AerialBombEntity> AERIAL_BOMB = Registry.register(
+			Registries.ENTITY_TYPE,
+			Identifier.of(DescentMod.MOD_ID, "aerial_bomb"),
+			EntityType.Builder.<AerialBombEntity>create(AerialBombEntity::new, SpawnGroup.MISC)
+					.dimensions(0.55f, 0.55f)
+					.maxTrackingRange(256)
+					.trackingTickInterval(1)
+					.build()
+	);
+
 	private ModEntities() {}
 
 	public static void register() {
@@ -97,6 +108,6 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(PYRO_SHIP, PyroShipEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(MEGA_WORM, MegaWormEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(REACTOR_KEEPER, ReactorKeeperEntity.createAttributes());
-		DescentMod.LOGGER.info("Registered DRMD entities (drones, mines, pyro, reactor, mega fauna)");
+		DescentMod.LOGGER.info("Registered DRMD entities (drones, mines, pyro, reactor, mega fauna, aerial bomb)");
 	}
 }

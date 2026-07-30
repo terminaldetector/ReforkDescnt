@@ -23,5 +23,6 @@ public final class ModEntityRenderers {
 		EntityRendererRegistry.register(ModEntities.MEGA_WORM, MegaWormRenderer::new);
 		EntityRendererRegistry.register(ModEntities.DRONE_SWARM, DroneSwarmRenderer::new);
 		EntityRendererRegistry.register(ModEntities.REACTOR_KEEPER, ReactorKeeperRenderer::new);
+		EntityRendererRegistry.register(ModEntities.AERIAL_BOMB, AerialBombRenderer::new);
 	}
 }

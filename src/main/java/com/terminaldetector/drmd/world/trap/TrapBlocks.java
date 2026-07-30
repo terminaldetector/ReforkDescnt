@@ -177,11 +177,25 @@ public final class TrapBlocks {
 		protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
 			Box volume = new Box(pos).expand(6);
 			world.spawnParticles(ParticleTypes.FLASH, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 1, 0, 0, 0, 0);
+			com.terminaldetector.drmd.world.smoke.SmokeSystem.emit(
+					Vec3d.ofCenter(pos), com.terminaldetector.drmd.world.smoke.SmokeSystem.Source.REACTOR, 2.5f, 0.85f, 100);
+			if (random.nextInt(3) == 0) {
+				com.terminaldetector.drmd.world.fire.FireSystem.igniteBlast(world, pos, 4, 3);
+			}
+			world.spawnParticles(ParticleTypes.LARGE_SMOKE,
+					pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5, 20, 1.5, 1.0, 1.5, 0.02);
 			for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, volume, LivingEntity::isAlive)) {
 				e.damage(world.getDamageSources().explosion(null, null), 8f);
 				Vec3d push = e.getPos().subtract(Vec3d.ofCenter(pos)).normalize().multiply(1.2);
 				e.addVelocity(push.x, push.y, push.z);
 				e.velocityModified = true;
+			}
+			// Emergency lighting cue — redstone lamp flash nearby
+			for (BlockPos p : BlockPos.iterate(pos.add(-4, -2, -4), pos.add(4, 4, 4))) {
+				if (world.getBlockState(p).isOf(Blocks.REDSTONE_LAMP) && random.nextBoolean()) {
+					world.spawnParticles(ParticleTypes.FLAME,
+							p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5, 2, 0.1, 0.1, 0.1, 0.01);
+				}
 			}
 		}
 	}

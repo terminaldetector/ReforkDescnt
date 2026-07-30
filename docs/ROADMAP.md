@@ -66,6 +66,13 @@
 - Внутренние пространства mega-creatures
 - Datapack placed-features вместо только chunk-load fallback
 - Публикация Modrinth / CurseForge (Nexus-ready jar уже собирается CI)
+- Multiplayer smoke cloud sync (сейчас volumetric smoke best on integrated SP)
+
+---
+
+## 5. AI Sector A ✅
+
+Atmosphere bands + aerial bombardment + dynamic smoke/fire LLOD — см. `docs/ATMOSPHERE_COMBAT.md`.
 
 ---
 

@@ -52,11 +52,19 @@ public class DescentMod implements ModInitializer {
 			ConstructionRegistry.bootstrap(server);
 			com.terminaldetector.drmd.world.gen2.MacroWorld.clear();
 			com.terminaldetector.drmd.world.gravity.GravityFields.clear();
+			com.terminaldetector.drmd.world.smoke.SmokeSystem.clear();
+			com.terminaldetector.drmd.world.fire.FireSystem.clear();
 			server.execute(() -> com.terminaldetector.drmd.world.base.DescentSession.seedWorld(server));
 		});
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			int tick = server.getTicks();
+			com.terminaldetector.drmd.world.smoke.SmokeSystem.tick();
+			server.getWorlds().forEach(world -> {
+				if (tick % 5 == 0) {
+					com.terminaldetector.drmd.world.fire.FireSystem.tick(world);
+				}
+			});
 			server.getPlayerManager().getPlayerList().forEach(player -> {
 				DescentPlayerData data = DescentPlayerData.get(player);
 				if (data.isEnabled()) {
@@ -64,6 +72,13 @@ public class DescentMod implements ModInitializer {
 					EnergySystem.regenTick(player, data);
 					ShieldSystem.regenTick(player, data);
 					com.terminaldetector.drmd.physics.GravyPhysics.tick(player);
+				}
+				if (tick % 20 == player.getId() % 20) {
+					var pos = player.getBlockPos();
+					com.terminaldetector.drmd.world.atmosphere.AtmosphereRules.tickWaterSuppression(
+							player.getServerWorld(), pos, 2);
+					com.terminaldetector.drmd.world.atmosphere.AtmosphereRules.tickDeepPressure(
+							player.getServerWorld(), pos);
 				}
 				if (tick % 10 == player.getId() % 10) {
 					ModNetworking.syncLlod(player);
