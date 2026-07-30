@@ -67,7 +67,13 @@ public final class DescentHud {
 
 	public static void render(DrawContext ctx, float tickDelta) {
 		MinecraftClient mc = MinecraftClient.getInstance();
-		if (mc.player == null || mc.world == null || mc.options.hudHidden || !DescentClientState.enabled) return;
+		if (mc.player == null || mc.world == null || mc.options.hudHidden) return;
+		if (!DescentClientState.enabled) {
+			// Pedestrian: remind how to enter flight
+			ctx.drawTextWithShadow(mc.textRenderer, Text.literal("§8DRMD §eПЕШИЙ §8· Caps/H → полёт"),
+					4, 4, 0xFFFFFF);
+			return;
+		}
 
 		int sw = mc.getWindow().getScaledWidth();
 		int sh = mc.getWindow().getScaledHeight();
@@ -144,12 +150,11 @@ public final class DescentHud {
 		panel(ctx, x, y, w, h);
 		int tx = x + 4, ty = y + 4;
 		float thrust = MathHelper.clamp(DescentClientState.speed / 2.5f, 0f, 1f);
-		line(ctx, mc, tx, ty, "6DOF MODE: ON", GREEN);
-		line(ctx, mc, tx, ty + 11, String.format(Locale.ROOT, "THRUST: %d%%", Math.round(thrust * 100)), GREEN);
-		line(ctx, mc, tx, ty + 22, "DAMPENERS: " + (DescentClientState.flightAssist ? "ON" : "OFF"),
+		line(ctx, mc, tx, ty, "MODE: FLIGHT", GREEN);
+		line(ctx, mc, tx, ty + 11, "SWAP: Caps/H", GREEN_DIM);
+		line(ctx, mc, tx, ty + 22, String.format(Locale.ROOT, "THRUST: %d%%", Math.round(thrust * 100)), GREEN);
+		line(ctx, mc, tx, ty + 33, "DAMPENERS: " + (DescentClientState.flightAssist ? "ON" : "OFF"),
 				DescentClientState.flightAssist ? GREEN : AMBER);
-		line(ctx, mc, tx, ty + 33, String.format(Locale.ROOT, "GRAVITY: %.2fG", DescentClientState.gravityFactor),
-				DescentClientState.gravityFactor > 0.05f ? AMBER : GREEN);
 		line(ctx, mc, tx, ty + 44, String.format(Locale.ROOT, "SPEED: %.1f m/s", DescentClientState.speed * 20f), GREEN);
 		return y + h;
 	}

@@ -12,9 +12,12 @@ import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Binds matching COMMANDS.txt: H toggle, SHIFT dash, R alwaysrun, Q/E roll, etc.
+ * Binds: Caps Lock / H = пеший ↔ полёт, SHIFT dash, R alwaysrun, Q/E roll, etc.
  */
 public final class DescentKeybinds {
+	/** Primary mode swap: pedestrian ↔ 6DoF flight. */
+	public static KeyBinding modeSwap;
+	/** Alias (legacy H). Tab+H still opens terrain map when piloting Pyro. */
 	public static KeyBinding toggle;
 	public static KeyBinding dash;
 	public static KeyBinding alwaysRun;
@@ -38,7 +41,10 @@ public final class DescentKeybinds {
 	private DescentKeybinds() {}
 
 	public static void register() {
-		toggle = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "key.category.drmd"));
+		modeSwap = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+				"key.drmd.mode_swap", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_CAPS_LOCK, "key.category.drmd"));
+		toggle = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+				"key.drmd.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "key.category.drmd"));
 		dash = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.dash", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_SHIFT, "key.category.drmd"));
 		alwaysRun = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.alwaysrun", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "key.category.drmd"));
 		flightAssist = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.flightassist", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F, "key.category.drmd"));
@@ -55,6 +61,36 @@ public final class DescentKeybinds {
 		weaponView = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.weapon_view", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_V, "key.category.drmd"));
 	}
 
+	/**
+	 * Swap pedestrian ↔ 6DoF flight. Used by Caps Lock, H, settings, and 6DoF Core item.
+	 */
+	public static void swapWalkFlight(MinecraftClient client) {
+		boolean next = !DescentClientState.enabled;
+		DescentClientState.enabled = next;
+		DescentClientState.footGravity = false;
+		if (client.player != null) {
+			var data = com.terminaldetector.drmd.DescentPlayerData.get(client.player);
+			data.setEnabled(next);
+			if (next) {
+				com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(client.player);
+				com.terminaldetector.drmd.flight.FlightMotion.suppressCreativeFly(client.player);
+				ShipAttitudeClient.resetFromPlayer(client.player);
+				DescentClientState.attitudeValid = true;
+				client.player.sendMessage(net.minecraft.text.Text.literal(
+						"§aРежим: ПОЛЁТ §7· Caps/H → пеший · WASD нос · Space/Ctrl"), true);
+			} else {
+				data.setFlightVelocity(net.minecraft.util.math.Vec3d.ZERO);
+				client.player.setVelocity(net.minecraft.util.math.Vec3d.ZERO);
+				client.player.setNoGravity(false);
+				DescentClientState.attitudeValid = false;
+				ShipAttitudeClient.clear();
+				client.player.sendMessage(net.minecraft.text.Text.literal(
+						"§eРежим: ПЕШИЙ §7· Caps/H → полёт"), true);
+			}
+		}
+		sendAction(next ? "enable" : "disable");
+	}
+
 	public static void tick(MinecraftClient client) {
 		boolean en = DescentClientState.enabled;
 		if (en && !wasEnabled && client.player != null) {
@@ -66,29 +102,15 @@ public final class DescentKeybinds {
 		}
 		wasEnabled = en;
 
+		while (modeSwap.wasPressed()) {
+			swapWalkFlight(client);
+		}
 		while (toggle.wasPressed()) {
 			boolean tab = InputUtil.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_TAB);
 			if (tab && com.terminaldetector.drmd.client.hud.TerrainMap3d.canUse(client.player)) {
 				com.terminaldetector.drmd.client.hud.TerrainMap3d.toggle();
 			} else if (!tab) {
-				// Explicit enable/disable keeps client prediction aligned with server mode.
-				boolean next = !DescentClientState.enabled;
-				DescentClientState.enabled = next;
-				DescentClientState.footGravity = false;
-				if (client.player != null) {
-					var data = com.terminaldetector.drmd.DescentPlayerData.get(client.player);
-					data.setEnabled(next);
-					if (next) {
-						com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(client.player);
-						ShipAttitudeClient.resetFromPlayer(client.player);
-						DescentClientState.attitudeValid = true;
-					} else {
-						data.setFlightVelocity(net.minecraft.util.math.Vec3d.ZERO);
-						DescentClientState.attitudeValid = false;
-						ShipAttitudeClient.clear();
-					}
-				}
-				sendAction(next ? "enable" : "disable");
+				swapWalkFlight(client);
 			}
 		}
 		while (dash.wasPressed()) {

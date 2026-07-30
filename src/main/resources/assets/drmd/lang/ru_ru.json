@@ -1,6 +1,7 @@
 {
   "key.category.drmd": "DRMD 6DOF",
-  "key.drmd.toggle": "Переключить 6DOF",
+  "key.drmd.mode_swap": "Своп: Пеший ↔ Полёт",
+  "key.drmd.toggle": "Своп режимов (H, как Caps)",
   "key.drmd.dash": "Рывок",
   "key.drmd.alwaysrun": "Форсаж",
   "key.drmd.flightassist": "Помощник полёта",

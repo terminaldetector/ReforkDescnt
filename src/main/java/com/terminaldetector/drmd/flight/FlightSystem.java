@@ -305,14 +305,22 @@ public final class FlightSystem {
 		player.setVelocity(Vec3d.ZERO);
 		// Pedestrian default; foot-gravity may reclaim if standing in a field.
 		player.setNoGravity(false);
+		// Creative: allow vanilla fly again after leaving 6DoF (double-tap Space).
+		if (player.getAbilities().creativeMode) {
+			player.getAbilities().allowFlying = true;
+			player.getAbilities().flying = false;
+			player.sendAbilitiesUpdate();
+		}
 		ModNetworking.syncPlayer(player, data);
+		player.sendMessage(net.minecraft.text.Text.literal(
+				"§eРежим: ПЕШИЙ §7· Caps Lock / H — снова полёт"), true);
 	}
 
+	/** Pedestrian ↔ flight swap (server authority). */
 	public static void toggle(ServerPlayerEntity player) {
 		DescentPlayerData data = DescentPlayerData.get(player);
 		if (data.isEnabled()) {
 			disable(player, data);
-			// Re-enter foot gravity only after flight fully released
 			com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptAt(player, player.getPos());
 			com.terminaldetector.drmd.world.gravity.FootGravitySystem.tick(player);
 		} else {

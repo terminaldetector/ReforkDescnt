@@ -72,27 +72,32 @@ public class ModSettingsScreen extends Screen {
 	}
 
 	private void buildFlight(int x, int y, int w, int h, int gap) {
-		thrusterBtn = addDrawableChild(ButtonWidget.builder(thrusterLabel(), b -> {
-			// Explicit enable/disable — never "toggle" (avoids desync with optimistic UI).
-			boolean next = !DescentClientState.enabled;
-			applyClientFlightMode(next);
-			send(next ? "enable" : "disable");
-			status = next ? "Режим: §aПОЛЁТ" : "Режим: §eПЕШИЙ";
+		thrusterBtn = addDrawableChild(ButtonWidget.builder(swapLabel(), b -> {
+			com.terminaldetector.drmd.client.input.DescentKeybinds.swapWalkFlight(client);
+			status = DescentClientState.enabled ? "Своп → §aПОЛЁТ" : "Своп → §eПЕШИЙ";
 			refreshLabels();
 		}).dimensions(x, y, w, h).build());
 		y += gap;
 
-		addDrawableChild(ButtonWidget.builder(Text.literal("§aРежим ПОЛЁТ (force ON)"), b -> {
-			applyClientFlightMode(true);
-			send("enable");
+		addDrawableChild(ButtonWidget.builder(Text.literal("§aТолько ПОЛЁТ"), b -> {
+			if (!DescentClientState.enabled) {
+				com.terminaldetector.drmd.client.input.DescentKeybinds.swapWalkFlight(client);
+			} else {
+				applyClientFlightMode(true);
+				send("enable");
+			}
 			status = "Режим: §aПОЛЁТ";
 			refreshLabels();
 		}).dimensions(x, y, w, h).build());
 		y += gap;
 
-		addDrawableChild(ButtonWidget.builder(Text.literal("§cРежим ПЕШИЙ (полёт OFF)"), b -> {
-			applyClientFlightMode(false);
-			send("disable");
+		addDrawableChild(ButtonWidget.builder(Text.literal("§eТолько ПЕШИЙ"), b -> {
+			if (DescentClientState.enabled) {
+				com.terminaldetector.drmd.client.input.DescentKeybinds.swapWalkFlight(client);
+			} else {
+				applyClientFlightMode(false);
+				send("disable");
+			}
 			status = "Режим: §eПЕШИЙ";
 			refreshLabels();
 		}).dimensions(x, y, w, h).build());
@@ -213,7 +218,7 @@ public class ModSettingsScreen extends Screen {
 	}
 
 	private void refreshLabels() {
-		if (thrusterBtn != null) thrusterBtn.setMessage(thrusterLabel());
+		if (thrusterBtn != null) thrusterBtn.setMessage(swapLabel());
 		if (faBtn != null) faBtn.setMessage(faLabel());
 		if (arBtn != null) arBtn.setMessage(arLabel());
 		if (radarBtn != null) radarBtn.setMessage(radarLabel());
@@ -268,8 +273,10 @@ public class ModSettingsScreen extends Screen {
 		refreshLabels();
 	}
 
-	private Text thrusterLabel() {
-		return Text.literal("6DoF thrusters: " + (DescentClientState.enabled ? "§aON" : "§cOFF") + " §7(toggle)");
+	private Text swapLabel() {
+		String cur = DescentClientState.enabled ? "§aПОЛЁТ" : "§eПЕШИЙ";
+		String next = DescentClientState.enabled ? "§eпеший" : "§aполёт";
+		return Text.literal("§bСВОП §f" + cur + " §7→ " + next + " §8(Caps/H)");
 	}
 
 	private Text faLabel() {

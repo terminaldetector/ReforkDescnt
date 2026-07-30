@@ -1,6 +1,7 @@
 {
   "key.category.drmd": "DRMD 6DOF",
-  "key.drmd.toggle": "Toggle 6DOF",
+  "key.drmd.mode_swap": "Swap: Walk ↔ Flight",
+  "key.drmd.toggle": "Mode swap (H, same as Caps)",
   "key.drmd.dash": "Dash",
   "key.drmd.alwaysrun": "Always-Run / Afterburner",
   "key.drmd.flightassist": "Flight Assist",
