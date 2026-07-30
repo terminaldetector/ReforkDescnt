@@ -13,7 +13,7 @@ rm -f dist/*-sources.jar dist/*-dev.jar dist/*-dev-shadow.jar || true
 
 echo "==> MCPE Master (.mcaddon + com.mojang zip)"
 chmod +x scripts/package_mcpe.sh scripts/package_mcpe_master.sh
-./scripts/package_mcpe_master.sh dist 1.0.2
+./scripts/package_mcpe_master.sh dist 1.0.3
 
 cat > dist/README_EVENING_TEST.txt << 'EOF'
 DRMD 6DOF — evening test pack
@@ -25,11 +25,11 @@ PC (Java / Fabric 1.21.1)
   3. New world — 6DoF on join; Pyro GX; /d6 kit
 
 MCPE Master / Bedrock
-  A) drmd-6dof-mcpe-master-1.0.2.mcaddon — открыть в игре
-  B) drmd-6dof-mcpe-master-1.0.2.zip — вручную в games/com.mojang
+  A) drmd-6dof-mcpe-master-1.0.3.mcaddon — открыть в игре
+  B) drmd-6dof-mcpe-master-1.0.3.zip — вручную в games/com.mojang
      behavior_packs/DRMD_6DOF_BP + resource_packs/DRMD_6DOF_RP
   3. Beta APIs ВКЛ · /function drmd/start
-  4. Кнопки хотбара: крен, вверх/вниз, стрейф, рывок · Панель
+  4. Descent: Нос↑↓ · Бочки←→ · Рысканье · HUD на экране
 
 Full game = PC jar. MCPE = UX sandbox (see mcpe/README.md).
 EOF

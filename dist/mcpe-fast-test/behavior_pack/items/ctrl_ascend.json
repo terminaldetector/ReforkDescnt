@@ -11,7 +11,7 @@
       "minecraft:max_stack_size": 1,
       "minecraft:icon": "drmd_ctrl_ascend",
       "minecraft:display_name": {
-        "value": "Ascend (hold selected)"
+        "value": "Нос вверх (pitch)"
       },
       "minecraft:cooldown": {
         "category": "drmd_ctrl",

@@ -2,16 +2,16 @@
   "format_version": 2,
   "header": {
     "name": "DRMD 6DOF Resources (MCPE Master)",
-    "description": "Иконки кнопок управления и предметов для DRMD 6DOF Fast Test",
+    "description": "Иконки Descent-кнопок: нос, бочки, рысканье, тяга",
     "uuid": "f7e9be31-02e0-4a69-a49a-90a4fd9f9fe6",
-    "version": [1, 0, 2],
+    "version": [1, 0, 3],
     "min_engine_version": [1, 20, 60]
   },
   "modules": [
     {
       "type": "resources",
       "uuid": "c8e1a2b4-5d6f-4789-a012-3456789abcde",
-      "version": [1, 0, 2]
+      "version": [1, 0, 3]
     }
   ],
   "metadata": {

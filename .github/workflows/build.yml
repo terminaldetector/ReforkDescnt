@@ -60,18 +60,18 @@ jobs:
       - name: Package MCPE Master
         run: |
           chmod +x scripts/package_mcpe_master.sh scripts/package_mcpe.sh
-          ./scripts/package_mcpe_master.sh dist 1.0.2
+          ./scripts/package_mcpe_master.sh dist 1.0.3
 
       - name: Upload MCPE Master addon
         uses: actions/upload-artifact@v4
         with:
           name: drmd-6dof-mcpe
           path: |
-            dist/drmd-6dof-mcpe-master-1.0.2.mcaddon
-            dist/drmd-6dof-mcpe-master-1.0.2.zip
-            dist/drmd-6dof-mcpe-master-bp-1.0.2.mcpack
-            dist/drmd-6dof-mcpe-master-rp-1.0.2.mcpack
-            dist/drmd-6dof-fast-test-1.0.2.mcaddon
+            dist/drmd-6dof-mcpe-master-1.0.3.mcaddon
+            dist/drmd-6dof-mcpe-master-1.0.3.zip
+            dist/drmd-6dof-mcpe-master-bp-1.0.3.mcpack
+            dist/drmd-6dof-mcpe-master-rp-1.0.3.mcpack
+            dist/drmd-6dof-fast-test-1.0.3.mcaddon
             mcpe/README.md
             mcpe/INSTALL_MCPE_MASTER.txt
           if-no-files-found: error
@@ -109,10 +109,10 @@ jobs:
             3. Launch, join world — 6DoF is native. Craft/use Pyro GX.
 
           MCPE Master / Bedrock
-            A) Open mcpe/drmd-6dof-mcpe-master-1.0.2.mcaddon
-            B) Or unzip mcpe/drmd-6dof-mcpe-master-1.0.2.zip into games/com.mojang
+            A) Open mcpe/drmd-6dof-mcpe-master-1.0.3.mcaddon
+            B) Or unzip mcpe/drmd-6dof-mcpe-master-1.0.3.zip into games/com.mojang
             Then: enable both packs + Beta APIs
-            /function drmd/start · hotbar roll/strafe/dash buttons
+            Descent axes: nose pitch / barrel roll / yaw — HUD on screen
 
           Full features = PC Fabric build.
           MCPE = UX sandbox (see mcpe/README.md).
