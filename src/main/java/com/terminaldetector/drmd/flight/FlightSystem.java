@@ -81,24 +81,26 @@ public final class FlightSystem {
 			}
 		}
 
-		// Roll
+		// Roll rate (client applies local roll into synced ship attitude)
 		float rollVel = data.getRollVel() + in.roll * ROLL_ACCEL * dt;
 		rollVel *= Math.pow(MathHelper.clamp(1f - ROLL_DRAG * dt, 0f, 1f), 1);
 		data.setRollVel(rollVel);
-		float roll = data.getRoll() + rollVel * dt;
-		while (roll > 180f) roll -= 360f;
-		while (roll < -180f) roll += 360f;
-		data.setRoll(roll);
+		if (!data.hasShipAttitude()) {
+			float roll = data.getRoll() + rollVel * dt;
+			while (roll > 180f) roll -= 360f;
+			while (roll < -180f) roll += 360f;
+			data.setRoll(roll);
+		}
 
-		Vec3d look = player.getRotationVec(1f);
-		Vec3d right = look.crossProduct(new Vec3d(0, 1, 0));
-		if (right.lengthSquared() < 1e-6) right = new Vec3d(1, 0, 0);
-		right = right.normalize();
-		// Apply roll to local axes
-		double rollRad = Math.toRadians(roll);
-		Vec3d up = right.crossProduct(look).normalize();
-		Vec3d rolledRight = right.multiply(Math.cos(rollRad)).add(up.multiply(Math.sin(rollRad)));
-		Vec3d rolledUp = up.multiply(Math.cos(rollRad)).subtract(right.multiply(Math.sin(rollRad)));
+		Vec3d look = data.shipForward(player);
+		Vec3d rolledUp = data.shipUp(player);
+		Vec3d rolledRight = look.crossProduct(rolledUp);
+		if (rolledRight.lengthSquared() < 1e-8) {
+			rolledRight = new Vec3d(1, 0, 0);
+			rolledUp = rolledRight.crossProduct(look).normalize();
+		} else {
+			rolledRight = rolledRight.normalize();
+		}
 
 		boolean thrusting = Math.abs(in.forward) > 0.01f || Math.abs(in.strafe) > 0.01f || Math.abs(in.vertical) > 0.01f;
 		if (thrusting && player.getServer().getTicks() % 4 == 0) {
@@ -231,6 +233,9 @@ public final class FlightSystem {
 
 	public static void disable(ServerPlayerEntity player, DescentPlayerData data) {
 		data.setEnabled(false);
+		data.clearShipAttitude();
+		data.setRoll(0);
+		data.setRollVel(0);
 		player.setNoGravity(false);
 		data.setFlightVelocity(Vec3d.ZERO);
 		data.setHookActive(false);

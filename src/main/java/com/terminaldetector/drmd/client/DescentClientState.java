@@ -17,6 +17,10 @@ public final class DescentClientState {
 	public static boolean radar = true;
 	/** 0..0.85 local smoke density for HUD / tactics. */
 	public static float smokeObscurity;
+	/** Descent attitude (client-authoritative while flying). */
+	public static float pitch;
+	public static boolean attitudeValid;
+	public static float attFx, attFy, attFz, attUx, attUy, attUz;
 
 	private DescentClientState() {}
 }

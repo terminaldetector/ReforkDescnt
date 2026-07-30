@@ -50,17 +50,20 @@ public final class DescentHud {
 
 		maybeCombatLog(mc);
 		drawFlightStatus(ctx, mc, 8, 8);
-		drawCoords(ctx, mc, 8, 62);
-		drawAtmosphere(ctx, mc, 8, 94);
+		drawAttitude(ctx, mc, 8, 72);
+		drawCoords(ctx, mc, 8, 148);
+		drawBiomeLayer(ctx, mc, 8, 180);
+		drawAtmosphere(ctx, mc, 8, 200);
 		drawRadar(ctx, mc, sw - 78, 8, 64);
 		TargetInfo target = resolveTarget(mc);
-		drawTargetPanel(ctx, mc, 8, 120, target);
+		drawTargetPanel(ctx, mc, 8, 226, target);
 		drawWeapons(ctx, mc, sw - 120, 90);
 		drawDefense(ctx, mc, sw - 120, sh - 88);
 		drawCrosshair(ctx, cx, cy, target != null);
 		drawCockpitPanels(ctx, cx, sh - 54);
 		drawCombatLog(ctx, mc, 8, sh - 78);
 		drawDashBar(ctx, cx, cy);
+		drawAttitudeLadder(ctx, cx, cy);
 
 		if (DescentClientState.gravityFactor > 0.05f) {
 			String warn = DescentClientState.gravityFactor >= 1f
@@ -71,13 +74,42 @@ public final class DescentHud {
 	}
 
 	private static void drawFlightStatus(DrawContext ctx, MinecraftClient mc, int x, int y) {
-		panel(ctx, x - 2, y - 2, 118, 52);
+		panel(ctx, x - 2, y - 2, 128, 62);
 		float thrust = MathHelper.clamp(DescentClientState.speed / 2.5f, 0f, 1f);
 		line(ctx, mc, x, y, "6DOF MODE: ON", GREEN);
 		line(ctx, mc, x, y + 10, String.format(Locale.ROOT, "THRUST: %d%%", (int) (thrust * 100)), GREEN);
 		line(ctx, mc, x, y + 20, "DAMPENERS: " + (DescentClientState.flightAssist ? "ON" : "OFF"), GREEN);
-		line(ctx, mc, x, y + 30, String.format(Locale.ROOT, "GRAVITY: %.2fG", DescentClientState.gravityFactor), GREEN);
-		line(ctx, mc, x, y + 40, String.format(Locale.ROOT, "SPEED: %.1f m/s", DescentClientState.speed * 20f), GREEN);
+		line(ctx, mc, x, y + 30, String.format(Locale.ROOT, "PRESET: %s",
+				DescentClientState.preset == null ? "—" : DescentClientState.preset.toUpperCase(Locale.ROOT)), GREEN);
+		line(ctx, mc, x, y + 40, String.format(Locale.ROOT, "GRAVITY: %.2fG", DescentClientState.gravityFactor), GREEN);
+		line(ctx, mc, x, y + 50, String.format(Locale.ROOT, "SPEED: %.1f m/s", DescentClientState.speed * 20f), GREEN);
+	}
+
+	private static void drawAttitude(DrawContext ctx, MinecraftClient mc, int x, int y) {
+		panel(ctx, x - 2, y - 2, 128, 68);
+		float pitch = DescentClientState.pitch;
+		float roll = DescentClientState.roll;
+		line(ctx, mc, x, y, "ATTITUDE", GREEN);
+		line(ctx, mc, x, y + 11, String.format(Locale.ROOT, "P %+6.1f°", pitch), GREEN);
+		segBar(ctx, x, y + 21, 110, 5, (pitch + 90f) / 180f, 0xFF44DDBB);
+		int rollColor = Math.abs(roll) > 90f ? RED : (Math.abs(roll) > 4f ? AMBER : GREEN);
+		line(ctx, mc, x, y + 30, String.format(Locale.ROOT, "R %+6.1f°", roll), rollColor);
+		segBar(ctx, x, y + 40, 110, 5, (roll + 180f) / 360f, rollColor);
+		line(ctx, mc, x, y + 50, "Q/E roll · X level", GREEN_DIM);
+	}
+
+	private static void drawAttitudeLadder(DrawContext ctx, int cx, int cy) {
+		if (!DescentClientState.attitudeValid) return;
+		float roll = DescentClientState.roll;
+		float pitch = DescentClientState.pitch;
+		// Horizon line banks with ship roll (GMod-style cue)
+		double rad = Math.toRadians(roll);
+		int hw = 36;
+		int hx = (int) (Math.cos(rad) * hw);
+		int hy = (int) (Math.sin(rad) * hw);
+		int py = (int) MathHelper.clamp(pitch * 0.35f, -18, 18);
+		ctx.fill(cx - hx, cy + py - hy, cx + hx + 1, cy + py - hy + 1, GREEN);
+		ctx.fill(cx - hx, cy + py + hy, cx + hx + 1, cy + py + hy + 1, GREEN_DIM);
 	}
 
 	private static void drawCoords(DrawContext ctx, MinecraftClient mc, int x, int y) {
@@ -85,6 +117,13 @@ public final class DescentHud {
 		line(ctx, mc, x, y, String.format(Locale.ROOT, "X %.1f", p.getX()), GREEN_DIM);
 		line(ctx, mc, x, y + 9, String.format(Locale.ROOT, "Y %.1f", p.getY()), GREEN_DIM);
 		line(ctx, mc, x, y + 18, String.format(Locale.ROOT, "Z %.1f", p.getZ()), GREEN_DIM);
+	}
+
+	private static void drawBiomeLayer(DrawContext ctx, MinecraftClient mc, int x, int y) {
+		var layer = com.terminaldetector.drmd.world.WorldRules.practicalLayer(mc.player.getY());
+		String biome = com.terminaldetector.drmd.world.WorldRules.biomeLabel(layer);
+		line(ctx, mc, x, y, "BIOME: " + biome.toUpperCase(Locale.ROOT), GREEN);
+		line(ctx, mc, x, y + 9, "LAYER: " + layer.name().replace('_', ' '), GREEN_DIM);
 	}
 
 	private static void drawAtmosphere(DrawContext ctx, MinecraftClient mc, int x, int y) {

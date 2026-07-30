@@ -26,7 +26,7 @@
 | `SPIRAL_RANGE` | Спиральные горные системы |
 | `INVERTED_ISLAND` | Перевёрнутые острова |
 
-Генерация: chunk-load (~1/48) + команда `/d6 worldgen2 <kind>`.
+Генерация: chunk-load (~1/18) + команда `/d6 worldgen2 <kind>`.
 
 Философия: мир выглядит «неправильным», но остаётся полностью проходимым полётом.
 
@@ -63,6 +63,8 @@ CHUNK  обычные блоки Minecraft
 ## Индустриальные биомы
 
 См. `world/gen` — комплексы с реакторами, тоннелями, ангарами. WG 2.0 связывает их с вертикальным континуумом и LLOD.
+
+Практические biome labels (`WorldRules.practicalLayer` / `biomeLabel`) отображаются в PC HUD. Stock seed (`DescentSession.seedLayerBiomes`) гарантирует ориентир в каждом слое у спавна. Mega-structures помечаются `LODESTONE` для идемпотентности при chunk reload.
 
 ## Команды
 

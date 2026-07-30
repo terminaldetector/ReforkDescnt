@@ -52,13 +52,24 @@
 - Вертикальные шахты + спирали + 6-направленные входы.
 - Стили: abandoned research, ancient power, auto factory, smeltery, crystal reactor, tech ruins.
 
-Генерация: редкая при загрузке чанков Overworld + команда:
+Генерация: редкая при загрузке чанков Overworld (~1/12) + stock seed у спавна + команда:
 
 ```
 /d6 worldgen industrial
 /d6 worldgen industrial CRYSTAL_REACTOR
 ```
 
+### Практические биом-слои (HUD)
+
+| Слой (practical Y) | Biome label | Контент |
+|--------------------|-------------|---------|
+| −56…40 | Industrial Depth | реакторные комплексы |
+| 40…180 | Surface Corridor | rift / canyon |
+| 180…285 | Sky Archipelago | arch / ring / continent / spiral / inverted |
+| 285…318 | Orbital Belt | верхние кольца |
+| ≥318 | Near-End Space | инвертированные острова |
+
+Stock seed при старте мира ставит ориентиры во **всех** слоях; HUD показывает `BIOME` / `LAYER` / `ATM`.
 ## 7. Ловушки (навигация > урон)
 
 | Блок | Роль |

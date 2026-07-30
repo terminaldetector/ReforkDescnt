@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.client.input;
 
 import com.terminaldetector.drmd.client.DescentClient;
 import com.terminaldetector.drmd.client.DescentClientState;
+import com.terminaldetector.drmd.client.flight.ShipAttitudeClient;
 import com.terminaldetector.drmd.network.ModNetworking;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -11,7 +12,7 @@ import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Binds matching COMMANDS.txt: H toggle, SHIFT dash, R alwaysrun, T radar, etc.
+ * Binds matching COMMANDS.txt: H toggle, SHIFT dash, R alwaysrun, Q/E roll, etc.
  */
 public final class DescentKeybinds {
 	public static KeyBinding toggle;
@@ -30,6 +31,7 @@ public final class DescentKeybinds {
 
 	private static boolean dashQueued;
 	private static boolean hookQueued;
+	private static boolean wasEnabled;
 
 	private DescentKeybinds() {}
 
@@ -50,15 +52,39 @@ public final class DescentKeybinds {
 	}
 
 	public static void tick(MinecraftClient client) {
+		boolean en = DescentClientState.enabled;
+		if (en && !wasEnabled && client.player != null) {
+			ShipAttitudeClient.resetFromPlayer(client.player);
+		}
+		if (!en && wasEnabled) {
+			ShipAttitudeClient.clear();
+			DescentClientState.attitudeValid = false;
+		}
+		wasEnabled = en;
+
 		while (toggle.wasPressed()) sendAction("toggle");
 		while (dash.wasPressed()) { dashQueued = true; sendAction("dash"); }
 		while (alwaysRun.wasPressed()) sendAction("alwaysrun");
 		while (flightAssist.wasPressed()) sendAction("flightassist");
 		while (radar.wasPressed()) sendAction("radar");
 		while (rocketMode.wasPressed()) sendAction("rocket_next");
-		while (resetRoll.wasPressed()) sendAction("reset_roll");
+		while (resetRoll.wasPressed()) {
+			if (client.player != null && en) {
+				ShipAttitudeClient.level();
+				ShipAttitudeClient.applyToPlayer(client.player);
+			}
+			sendAction("reset_roll");
+		}
 		while (workshop.wasPressed()) DescentClient.openWorkshop();
 		if (hook.isPressed()) hookQueued = true;
+
+		if (en && client.player != null) {
+			float rollIn = 0;
+			if (rollLeft.isPressed()) rollIn -= 1;
+			if (rollRight.isPressed()) rollIn += 1;
+			ShipAttitudeClient.applyRollInput(rollIn, 1f / 20f);
+			if (Math.abs(rollIn) > 0.01f) ShipAttitudeClient.applyToPlayer(client.player);
+		}
 	}
 
 	public static void sendInput(MinecraftClient client) {
@@ -78,7 +104,17 @@ public final class DescentKeybinds {
 		dashQueued = false;
 		hookQueued = false;
 
-		ClientPlayNetworking.send(new ModNetworking.InputPayload(forward, strafe, vertical, roll, dash, hk));
+		boolean att = DescentClientState.enabled && DescentClientState.attitudeValid;
+		ClientPlayNetworking.send(new ModNetworking.InputPayload(
+				forward, strafe, vertical, roll, dash, hk,
+				att,
+				att ? DescentClientState.attFx : 0,
+				att ? DescentClientState.attFy : 0,
+				att ? DescentClientState.attFz : 1,
+				att ? DescentClientState.attUx : 0,
+				att ? DescentClientState.attUy : 1,
+				att ? DescentClientState.attUz : 0
+		));
 	}
 
 	private static void sendAction(String action) {

@@ -40,10 +40,14 @@ public final class ModWorldgen2 {
 			MacroEntry.Kind kind = kinds[(int) Math.floorMod(seed >> 3, kinds.length)];
 			int y = skyY(kind, seed);
 			BlockPos origin = new BlockPos(cp.getStartX() + 8, y, cp.getStartZ() + 8);
-			world.getServer().execute(() -> {
-				Random random = Random.create(seed);
-				MegaStructureGenerator.generate(world, origin, kind, random);
-			});
+			// Idempotent: LODESTONE marker placed by MegaStructureGenerator
+			if (!world.getBlockState(origin).isOf(net.minecraft.block.Blocks.LODESTONE)) {
+				world.getServer().execute(() -> {
+					if (world.getBlockState(origin).isOf(net.minecraft.block.Blocks.LODESTONE)) return;
+					Random random = Random.create(seed);
+					MegaStructureGenerator.generate(world, origin, kind, random);
+				});
+			}
 		}
 
 		// Mega fauna anchors — stock rarity

@@ -46,8 +46,9 @@ public final class DescentSession {
 		}
 
 		seedStockMegastructures(world, spawn);
+		seedLayerBiomes(world, spawn);
 		state.setStockSeeded(true);
-		DescentMod.LOGGER.info("Descent stock worldgen seeded around spawn");
+		DescentMod.LOGGER.info("Descent stock worldgen seeded (all practical biome layers)");
 	}
 
 	/** Soft player onboarding — 6DoF on, tip message, creative gets Pyro GX. */
@@ -126,7 +127,7 @@ public final class DescentSession {
 		for (int i = 0; i < kinds.length; i++) {
 			MacroEntry.Kind kind = kinds[i];
 			double ang = i * (Math.PI * 2 / kinds.length);
-			int dist = 180 + i * 40;
+			int dist = 160 + i * 36;
 			int x = spawn.getX() + (int) (Math.cos(ang) * dist);
 			int z = spawn.getZ() + (int) (Math.sin(ang) * dist);
 			int y = switch (kind) {
@@ -140,5 +141,41 @@ public final class DescentSession {
 		// One industrial complex under spawn
 		BlockPos under = new BlockPos(spawn.getX(), WorldRules.INDUSTRIAL_Y_MIN + 30, spawn.getZ());
 		IndustrialComplexGenerator.generateAt(world, under, WorldRules.ComplexStyle.CRYSTAL_REACTOR, random);
+	}
+
+	/**
+	 * Ensure every practical Descent biome layer has a seeded landmark near spawn
+	 * so HUD BIOME / LAYER readouts and exploration routes are immediately playable.
+	 */
+	private static void seedLayerBiomes(ServerWorld world, BlockPos spawn) {
+		Random random = world.getRandom();
+		WorldRules.ComplexStyle[] styles = WorldRules.ComplexStyle.values();
+
+		// Depth reactors — second industrial node
+		BlockPos depth = new BlockPos(spawn.getX() - 64, WorldRules.INDUSTRIAL_Y_MIN + 18, spawn.getZ() + 48);
+		IndustrialComplexGenerator.generateAt(world, depth, styles[2 % styles.length], random);
+
+		// Surface corridor — canyon + rift pair
+		MegaStructureGenerator.generate(world,
+				new BlockPos(spawn.getX() + 96, WorldRules.INDUSTRIAL_Y_MAX - 8, spawn.getZ() - 40),
+				MacroEntry.Kind.CANYON, Random.create(world.getSeed() ^ 0xC0FFEE));
+		MegaStructureGenerator.generate(world,
+				new BlockPos(spawn.getX() - 110, WorldRules.INDUSTRIAL_Y_MIN + 36, spawn.getZ() - 90),
+				MacroEntry.Kind.RIFT, Random.create(world.getSeed() ^ 0xBEEF));
+
+		// Sky archipelago sample
+		MegaStructureGenerator.generate(world,
+				new BlockPos(spawn.getX() + 48, WorldRules.SKY_PRACTICAL_MIN + 40, spawn.getZ() + 120),
+				MacroEntry.Kind.FLOATING_CONTINENT, Random.create(world.getSeed() ^ 0x51A10001L));
+
+		// Orbital belt (top practical band)
+		MegaStructureGenerator.generate(world,
+				new BlockPos(spawn.getX() - 80, WorldRules.SKY_PRACTICAL_MAX - 12, spawn.getZ() + 60),
+				MacroEntry.Kind.RING, Random.create(world.getSeed() ^ 0x0B817100L));
+
+		// Near-end space marker island
+		MegaStructureGenerator.generate(world,
+				new BlockPos(spawn.getX() + 20, WorldRules.SKY_PRACTICAL_MAX - 4, spawn.getZ() - 140),
+				MacroEntry.Kind.INVERTED_ISLAND, Random.create(world.getSeed() ^ 0xEAD10001L));
 	}
 }

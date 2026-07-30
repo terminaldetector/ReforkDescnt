@@ -29,12 +29,15 @@ public class DescentClient implements ClientModInitializer {
 		com.terminaldetector.drmd.client.smoke.SmokeRenderer.register();
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SyncPayload.ID, (payload, context) -> {
+			boolean wasEnabled = DescentClientState.enabled;
 			DescentClientState.enabled = payload.enabled();
 			DescentClientState.energy = payload.energy();
 			DescentClientState.energyMax = payload.energyMax();
 			DescentClientState.shield = payload.shield();
 			DescentClientState.shieldMax = payload.shieldMax();
-			DescentClientState.roll = payload.roll();
+			if (!DescentClientState.attitudeValid) {
+				DescentClientState.roll = payload.roll();
+			}
 			DescentClientState.speed = payload.speed();
 			DescentClientState.rocketSub = payload.rocketSub();
 			DescentClientState.preset = payload.preset();
@@ -44,6 +47,17 @@ public class DescentClient implements ClientModInitializer {
 			DescentClientState.alwaysRun = payload.alwaysRun();
 			DescentClientState.flightAssist = payload.flightAssist();
 			DescentClientState.radar = payload.radar();
+			// Prime Descent attitude when 6DoF turns on from server (/d6 / join).
+			if (payload.enabled() && !wasEnabled) {
+				var player = context.client().player;
+				if (player != null) {
+					com.terminaldetector.drmd.client.flight.ShipAttitudeClient.resetFromPlayer(player);
+				}
+			}
+			if (!payload.enabled()) {
+				DescentClientState.attitudeValid = false;
+				com.terminaldetector.drmd.client.flight.ShipAttitudeClient.clear();
+			}
 		});
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ConstructionPayload.ID, (payload, context) -> {

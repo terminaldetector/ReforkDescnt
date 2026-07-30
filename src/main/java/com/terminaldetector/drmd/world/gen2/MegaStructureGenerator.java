@@ -20,7 +20,11 @@ public final class MegaStructureGenerator {
 	private MegaStructureGenerator() {}
 
 	public static MacroEntry generate(WorldAccess world, BlockPos origin, MacroEntry.Kind kind, Random random) {
-		return switch (kind) {
+		if (world.getBlockState(origin).isOf(Blocks.LODESTONE)) {
+			// Already generated this cell
+			return entry(kind, WorldRules.practicalLayer(origin.getY()), origin, 8, 8, 8, 0x888888, kind.name());
+		}
+		MacroEntry e = switch (kind) {
 			case RIFT -> rift(world, origin, random);
 			case CANYON -> canyon(world, origin, random);
 			case ARCH -> arch(world, origin, random);
@@ -30,6 +34,10 @@ public final class MegaStructureGenerator {
 			case INVERTED_ISLAND -> invertedIsland(world, origin, random);
 			default -> arch(world, origin, random);
 		};
+		if (inLimit(world, origin)) {
+			world.setBlockState(origin, Blocks.LODESTONE.getDefaultState(), Block.NOTIFY_LISTENERS);
+		}
+		return e;
 	}
 
 	/** Enormous vertical rift — multi-chunk deep fracture. */

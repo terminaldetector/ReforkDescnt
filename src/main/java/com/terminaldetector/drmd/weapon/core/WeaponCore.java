@@ -181,14 +181,9 @@ public final class WeaponCore {
 
 	public static Vec3d muzzle(PlayerEntity player, float forward, float right, float up) {
 		DescentPlayerData data = DescentPlayerData.get(player);
-		Vec3d look = player.getRotationVec(1f);
-		Vec3d r = look.crossProduct(new Vec3d(0, 1, 0));
-		if (r.lengthSquared() < 1e-6) r = new Vec3d(1, 0, 0);
-		r = r.normalize();
-		Vec3d u = r.crossProduct(look).normalize();
-		double roll = Math.toRadians(data.getRoll());
-		Vec3d rr = r.multiply(Math.cos(roll)).add(u.multiply(Math.sin(roll)));
-		Vec3d uu = u.multiply(Math.cos(roll)).subtract(r.multiply(Math.sin(roll)));
+		Vec3d look = data.shipForward(player);
+		Vec3d rr = data.shipRight(player);
+		Vec3d uu = data.shipUp(player);
 		return player.getEyePos()
 				.add(look.multiply(forward))
 				.add(rr.multiply(right))

@@ -21,16 +21,33 @@ public final class ModNetworking {
 	public static final Identifier LLOD_ID = Identifier.of(DescentMod.MOD_ID, "llod");
 
 	public record InputPayload(float forward, float strafe, float vertical, float roll,
-							   boolean dash, boolean hook) implements CustomPayload {
+							   boolean dash, boolean hook,
+							   boolean attitude, float fx, float fy, float fz,
+							   float ux, float uy, float uz) implements CustomPayload {
 		public static final Id<InputPayload> ID = new Id<>(INPUT_ID);
-		public static final PacketCodec<RegistryByteBuf, InputPayload> CODEC = PacketCodec.tuple(
-				PacketCodecs.FLOAT, InputPayload::forward,
-				PacketCodecs.FLOAT, InputPayload::strafe,
-				PacketCodecs.FLOAT, InputPayload::vertical,
-				PacketCodecs.FLOAT, InputPayload::roll,
-				PacketCodecs.BOOL, InputPayload::dash,
-				PacketCodecs.BOOL, InputPayload::hook,
-				InputPayload::new
+		public static final PacketCodec<RegistryByteBuf, InputPayload> CODEC = PacketCodec.of(
+				(payload, buf) -> {
+					buf.writeFloat(payload.forward);
+					buf.writeFloat(payload.strafe);
+					buf.writeFloat(payload.vertical);
+					buf.writeFloat(payload.roll);
+					buf.writeBoolean(payload.dash);
+					buf.writeBoolean(payload.hook);
+					buf.writeBoolean(payload.attitude);
+					buf.writeFloat(payload.fx);
+					buf.writeFloat(payload.fy);
+					buf.writeFloat(payload.fz);
+					buf.writeFloat(payload.ux);
+					buf.writeFloat(payload.uy);
+					buf.writeFloat(payload.uz);
+				},
+				buf -> new InputPayload(
+						buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(),
+						buf.readBoolean(), buf.readBoolean(),
+						buf.readBoolean(),
+						buf.readFloat(), buf.readFloat(), buf.readFloat(),
+						buf.readFloat(), buf.readFloat(), buf.readFloat()
+				)
 		);
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
 	}
@@ -170,6 +187,12 @@ public final class ModNetworking {
 			in.roll = payload.roll();
 			if (payload.dash()) in.dash = true;
 			if (payload.hook()) FlightSystem.toggleHook(player);
+			if (payload.attitude()) {
+				DescentPlayerData data = DescentPlayerData.get(player);
+				data.setShipAttitude(
+						payload.fx(), payload.fy(), payload.fz(),
+						payload.ux(), payload.uy(), payload.uz());
+			}
 		});
 
 		ServerPlayNetworking.registerGlobalReceiver(ActionPayload.ID, (payload, context) -> {
@@ -182,7 +205,11 @@ public final class ModNetworking {
 				case "flightassist" -> data.setFlightAssist(!data.isFlightAssist());
 				case "radar" -> data.setRadarEnabled(!data.isRadarEnabled());
 				case "rocket_next" -> data.setRocketSubmode(data.getRocketSubmode() + 1);
-				case "reset_roll" -> { data.setRoll(0); data.setRollVel(0); }
+				case "reset_roll" -> {
+					data.levelShipAttitude(player);
+					data.setRoll(0);
+					data.setRollVel(0);
+				}
 				case "preset_balanced" -> EnergySystem.setPreset(data, EnergyPreset.BALANCED);
 				case "preset_assault" -> EnergySystem.setPreset(data, EnergyPreset.ASSAULT);
 				case "preset_interceptor" -> EnergySystem.setPreset(data, EnergyPreset.INTERCEPTOR);

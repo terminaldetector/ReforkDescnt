@@ -86,4 +86,27 @@ public final class WorldRules {
 			case END_SPACE -> SKY_PRACTICAL_MAX - 5;
 		};
 	}
+
+	/**
+	 * Resolve Descent "biome layer" from practical Overworld Y
+	 * (atmosphere bands + industrial / sky generation bands).
+	 */
+	public static Layer practicalLayer(double y) {
+		if (y < INDUSTRIAL_Y_MAX) return Layer.DEPTH_REACTORS;
+		if (y < SKY_PRACTICAL_MIN) return Layer.SURFACE;
+		if (y < SKY_PRACTICAL_MAX - 15) return Layer.SKY_ARCHIPELAGO;
+		if (y < SKY_PRACTICAL_MAX - 2) return Layer.ORBITAL;
+		return Layer.END_SPACE;
+	}
+
+	/** Short HUD / biome label for a practical layer. */
+	public static String biomeLabel(Layer layer) {
+		return switch (layer) {
+			case DEPTH_REACTORS -> "Industrial Depth";
+			case SURFACE -> "Surface Corridor";
+			case SKY_ARCHIPELAGO -> "Sky Archipelago";
+			case ORBITAL -> "Orbital Belt";
+			case END_SPACE -> "Near-End Space";
+		};
+	}
 }
