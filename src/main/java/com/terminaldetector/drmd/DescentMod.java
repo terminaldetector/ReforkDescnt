@@ -51,6 +51,8 @@ public class DescentMod implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			ConstructionRegistry.bootstrap(server);
 			com.terminaldetector.drmd.world.gen2.MacroWorld.clear();
+			// Descent is part of the world — seed hub + stock megastructures once
+			server.execute(() -> com.terminaldetector.drmd.world.base.DescentSession.seedWorld(server));
 		});
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
@@ -62,7 +64,6 @@ public class DescentMod implements ModInitializer {
 					EnergySystem.regenTick(player, data);
 					ShieldSystem.regenTick(player, data);
 				}
-				// LLOD silhouette sync ~2 Hz
 				if (tick % 10 == player.getId() % 10) {
 					ModNetworking.syncLlod(player);
 				}
@@ -70,23 +71,17 @@ public class DescentMod implements ModInitializer {
 		});
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			DescentPlayerData data = DescentPlayerData.get(handler.player);
-			data.ensureInit();
-			// Sync all construction overrides to joining client
 			ConstructionRegistry.allOverrides().forEach((id, mods) -> {
 				ServerPlayNetworking.send(handler.player,
 						new ModNetworking.ConstructionPayload(id, ClusterModule.listToNbt(mods)));
 			});
-			// Auto-activate 6DOF shortly after join (matches GMod 0.5s spawn delay)
 			server.execute(() -> {
-				if (!data.isEnabled()) {
-					data.setEnabled(true);
-					ModNetworking.syncPlayer(handler.player, data);
-				}
+				com.terminaldetector.drmd.world.base.DescentSession.onPlayerJoin(handler.player);
+				ModNetworking.syncPlayer(handler.player, DescentPlayerData.get(handler.player));
 			});
 		});
 
-		LOGGER.info("DRMD 6DOF ready. Toggle with /6dof toggle");
+		LOGGER.info("DRMD 6DOF ready — Descent session is native to this Minecraft world");
 	}
 
 	public static double su(double sourceUnits) {

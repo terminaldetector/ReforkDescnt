@@ -25,6 +25,7 @@ public class DroneRenderer extends MobEntityRenderer<DroneEntity, DescentDroneMo
 					   VertexConsumerProvider consumers, int light) {
 		matrices.push();
 		matrices.scale(1.2f, 1.2f, 1.2f);
+		matrices.multiply(net.minecraft.util.math.RotationAxis.POSITIVE_Z.rotationDegrees(entity.getFlightRoll()));
 		super.render(entity, yaw, tickDelta, matrices, consumers, light);
 		matrices.pop();
 	}

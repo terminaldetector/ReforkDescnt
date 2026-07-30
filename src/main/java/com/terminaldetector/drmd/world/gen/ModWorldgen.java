@@ -1,7 +1,12 @@
 package com.terminaldetector.drmd.world.gen;
 
 import com.terminaldetector.drmd.DescentMod;
+import com.terminaldetector.drmd.ai.AiRole;
+import com.terminaldetector.drmd.entity.DroneEntity;
+import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.world.WorldRules;
+import com.terminaldetector.drmd.world.gen2.MacroEntry;
+import com.terminaldetector.drmd.world.gen2.MacroWorld;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -13,44 +18,65 @@ import net.minecraft.world.chunk.WorldChunk;
 import net.minecraft.world.gen.feature.DefaultFeatureConfig;
 import net.minecraft.world.gen.feature.Feature;
 
+import java.util.UUID;
+
 /**
- * Registers industrial feature + chunk-load generation fallback.
- * Chunk fallback guarantees complexes appear even without datapack placed-features.
+ * Industrial Underground — stock worldgen (~1 complex / 12 chunks) + garrison drones.
  */
 public final class ModWorldgen {
 	public static final Feature<DefaultFeatureConfig> INDUSTRIAL =
 			new IndustrialUndergroundFeature(DefaultFeatureConfig.CODEC);
 
+	private static final AiRole[] GARRISON = {
+			AiRole.ASSAULT, AiRole.INTERCEPTOR, AiRole.MG, AiRole.LASER, AiRole.RPG,
+			AiRole.ARTILLERY, AiRole.SUPPORT, AiRole.HEAVY, AiRole.SEEKER, AiRole.HEAVY_ELITE
+	};
+
 	private ModWorldgen() {}
 
 	public static void register() {
 		Registry.register(Registries.FEATURE, Identifier.of(DescentMod.MOD_ID, "industrial_underground"), INDUSTRIAL);
-
 		ServerChunkEvents.CHUNK_LOAD.register(ModWorldgen::onChunkLoad);
-		DescentMod.LOGGER.info("Registered Industrial Underground worldgen (chunk + feature)");
+		DescentMod.LOGGER.info("Registered Industrial Underground worldgen (stock density)");
 	}
 
 	private static void onChunkLoad(ServerWorld world, WorldChunk chunk) {
 		if (world.getRegistryKey() != ServerWorld.OVERWORLD) return;
 		ChunkPos cp = chunk.getPos();
 		long seed = world.getSeed() ^ (((long) cp.x) << 32) ^ cp.z;
-		// ~1 complex per 28 chunks
-		if (Math.floorMod(seed * 31L, 28L) != 0L) return;
-		// Only generate once: marker in chunk NBT would be better; use block probe
+		// Stock density: ~1 complex per 12 chunks
+		if (Math.floorMod(seed * 31L, 12L) != 0L) return;
 		int y = WorldRules.INDUSTRIAL_Y_MIN + 24 + (int) Math.floorMod(seed, 16L);
 		BlockPos center = new BlockPos(cp.getStartX() + 8, y, cp.getStartZ() + 8);
-		// Skip if already carved (sea lantern shell from prior gen)
 		if (world.getBlockState(center).isOf(net.minecraft.block.Blocks.BEACON)) return;
 		if (!world.getBlockState(center).isAir() && world.getBlockState(center).isSolidBlock(world, center)) {
 			WorldRules.ComplexStyle[] styles = WorldRules.ComplexStyle.values();
 			WorldRules.ComplexStyle style = styles[(int) Math.floorMod(seed, styles.length)];
-			world.getServer().execute(() ->
-					IndustrialComplexGenerator.generateAt(world, center, style, world.getRandom()));
+			world.getServer().execute(() -> forceGenerate(world, center, style));
 		}
 	}
 
-	/** Force-generate at a position (command / creative). */
 	public static void forceGenerate(ServerWorld world, BlockPos pos, WorldRules.ComplexStyle style) {
 		IndustrialComplexGenerator.generateAt(world, pos, style, world.getRandom());
+		MacroWorld.put(new MacroEntry(UUID.randomUUID(), MacroEntry.Kind.INDUSTRIAL_COMPLEX,
+				WorldRules.Layer.DEPTH_REACTORS, pos.toImmutable(), 56, 48, 56, 0x6688AA, "Industrial " + style));
+		spawnGarrison(world, pos);
+	}
+
+	private static void spawnGarrison(ServerWorld world, BlockPos center) {
+		int n = 3 + world.getRandom().nextInt(3);
+		for (int i = 0; i < n; i++) {
+			DroneEntity drone = ModEntities.DRONE.create(world);
+			if (drone == null) continue;
+			AiRole role = GARRISON[world.getRandom().nextInt(GARRISON.length)];
+			double ang = world.getRandom().nextDouble() * Math.PI * 2;
+			drone.refreshPositionAndAngles(
+					center.getX() + Math.cos(ang) * 10,
+					center.getY() + (world.getRandom().nextDouble() - 0.5) * 8,
+					center.getZ() + Math.sin(ang) * 10,
+					0, 0);
+			drone.applyRole(role);
+			world.spawnEntity(drone);
+		}
 	}
 }

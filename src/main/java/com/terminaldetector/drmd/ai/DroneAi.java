@@ -10,8 +10,8 @@ import net.minecraft.util.math.Vec3d;
 import java.util.EnumSet;
 
 /**
- * Combat motion phases: ORBIT → RUN (dive/climb) → BREAK (+ barrel/split-s/immelmann).
- * Boids weights from d6_ai.lua: sep 2.8 / coh 0.8 / align 1.0 / target 2.2.
+ * Combat motion: ORBIT → RUN → BREAK with 6DoF attitude (yaw/pitch/roll from velocity).
+ * Port of GMod drone combat — ~10 roles share this motion; no special per-mob port needed.
  */
 public final class DroneAi {
 	public enum Phase { ORBIT, RUN, BREAK }
@@ -50,11 +50,14 @@ public final class DroneAi {
 			Vec3d desire;
 			switch (drone.getPhase()) {
 				case ORBIT -> {
-					Vec3d tangent = toTarget.crossProduct(new Vec3d(0, 1, 0));
+					// Orbit in the plane facing the target (full 3D, not world-up locked)
+					Vec3d radial = toTarget.lengthSquared() > 1e-6 ? toTarget.normalize() : new Vec3d(0, 0, 1);
+					Vec3d upHint = Math.abs(radial.y) < 0.9 ? new Vec3d(0, 1, 0) : new Vec3d(1, 0, 0);
+					Vec3d tangent = radial.crossProduct(upHint);
 					if (tangent.lengthSquared() < 1e-4) tangent = new Vec3d(1, 0, 0);
 					tangent = tangent.normalize();
-					double radial = MathHelper.clamp((dist - preferred) / preferred, -1, 1);
-					desire = tangent.multiply(2.2).add(toTarget.normalize().multiply(-radial));
+					double radialErr = MathHelper.clamp((dist - preferred) / preferred, -1, 1);
+					desire = tangent.multiply(2.2).add(radial.multiply(-radialErr));
 				}
 				case RUN -> desire = toTarget.normalize().add(0, drone.getRandom().nextBoolean() ? 0.4 : -0.4, 0);
 				case BREAK -> {
@@ -64,7 +67,6 @@ public final class DroneAi {
 				default -> desire = toTarget.normalize();
 			}
 
-			// Simple separation from nearby drones
 			Vec3d sep = Vec3d.ZERO;
 			for (DroneEntity other : drone.getWorld().getEntitiesByClass(DroneEntity.class,
 					drone.getBoundingBox().expand(DescentMod.su(90)), d -> d != drone)) {
@@ -74,17 +76,40 @@ public final class DroneAi {
 					sep = sep.add(away.normalize().multiply(2.8 / d));
 				}
 			}
-			desire = desire.add(sep).normalize();
+			desire = desire.add(sep);
+			if (desire.lengthSquared() < 1e-6) desire = toTarget;
+			desire = desire.normalize();
 
 			double maxSpd = DescentMod.su(drone.getRole().speed);
 			Vec3d vel = desire.multiply(maxSpd / 20.0);
 			drone.setVelocity(vel);
 			drone.velocityModified = true;
-			drone.getLookControl().lookAt(target, 30f, 30f);
+			alignAttitude(drone, vel, desire, dt);
 
 			if (dist < DescentMod.su(2000)) {
 				drone.tryFireAt(target);
 			}
+		}
+
+		/** Velocity-aligned yaw/pitch + bank roll — 6DoF feel without per-mob special cases. */
+		private static void alignAttitude(DroneEntity drone, Vec3d vel, Vec3d desire, float dt) {
+			if (vel.lengthSquared() < 1e-6) return;
+			Vec3d dir = vel.normalize();
+			float yaw = (float) (MathHelper.atan2(-dir.x, dir.z) * (180.0 / Math.PI));
+			float pitch = (float) (MathHelper.atan2(-dir.y, Math.sqrt(dir.x * dir.x + dir.z * dir.z)) * (180.0 / Math.PI));
+			drone.setYaw(yaw);
+			drone.setPitch(pitch);
+			drone.bodyYaw = yaw;
+
+			// Bank into turn: lateral desire vs current right vector
+			Vec3d forward = dir;
+			Vec3d worldUp = new Vec3d(0, 1, 0);
+			Vec3d right = forward.crossProduct(worldUp);
+			if (right.lengthSquared() < 1e-4) right = new Vec3d(1, 0, 0);
+			right = right.normalize();
+			float bank = (float) MathHelper.clamp(desire.dotProduct(right) * 55.0, -55.0, 55.0);
+			float roll = MathHelper.lerp(1f - (float) Math.exp(-6f * dt), drone.getFlightRoll(), bank);
+			drone.setFlightRoll(roll);
 		}
 	}
 }

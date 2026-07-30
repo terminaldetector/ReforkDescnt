@@ -44,6 +44,18 @@ public final class ModItems {
 	public static Item TELEFRAG;
 	public static Item WHIPLASH;
 
+	public static Item PYRO_GX;
+	public static Item EGG_ASSAULT;
+	public static Item EGG_INTERCEPTOR;
+	public static Item EGG_ARTILLERY;
+	public static Item EGG_SUPPORT;
+	public static Item EGG_HEAVY_ELITE;
+	public static Item EGG_MG;
+	public static Item EGG_LASER;
+	public static Item EGG_RPG;
+	public static Item EGG_HEAVY;
+	public static Item EGG_SEEKER;
+
 	public static final RegistryKey<ItemGroup> GROUP_KEY = RegistryKey.of(RegistryKeys.ITEM_GROUP, Identifier.of(DescentMod.MOD_ID, "weapons"));
 
 	private ModItems() {}
@@ -136,10 +148,34 @@ public final class ModItems {
 		WHIPLASH = register("weapon_d6_whiplash", new DescentWeaponItem(def_whiplash, new Item.Settings()));
 		WeaponRegistry.register(def_whiplash);
 
+		PYRO_GX = register("pyro_gx", new com.terminaldetector.drmd.entity.PyroShipItem(new Item.Settings().maxCount(1)));
+
+		EGG_ASSAULT = egg("spawn_egg_assault", com.terminaldetector.drmd.ai.AiRole.ASSAULT, 0xCC3333, 0x442222);
+		EGG_INTERCEPTOR = egg("spawn_egg_interceptor", com.terminaldetector.drmd.ai.AiRole.INTERCEPTOR, 0x33AACC, 0x224455);
+		EGG_ARTILLERY = egg("spawn_egg_artillery", com.terminaldetector.drmd.ai.AiRole.ARTILLERY, 0xCCAA33, 0x554422);
+		EGG_SUPPORT = egg("spawn_egg_support", com.terminaldetector.drmd.ai.AiRole.SUPPORT, 0x33CC66, 0x224433);
+		EGG_HEAVY_ELITE = egg("spawn_egg_heavy_elite", com.terminaldetector.drmd.ai.AiRole.HEAVY_ELITE, 0xAA33CC, 0x331144);
+		EGG_MG = egg("spawn_egg_mg", com.terminaldetector.drmd.ai.AiRole.MG, 0x888888, 0x333333);
+		EGG_LASER = egg("spawn_egg_laser", com.terminaldetector.drmd.ai.AiRole.LASER, 0xFF5555, 0x551111);
+		EGG_RPG = egg("spawn_egg_rpg", com.terminaldetector.drmd.ai.AiRole.RPG, 0xCC7733, 0x442211);
+		EGG_HEAVY = egg("spawn_egg_heavy", com.terminaldetector.drmd.ai.AiRole.HEAVY, 0x555577, 0x222233);
+		EGG_SEEKER = egg("spawn_egg_seeker", com.terminaldetector.drmd.ai.AiRole.SEEKER, 0x55FFAA, 0x115533);
+
 		Registry.register(Registries.ITEM_GROUP, GROUP_KEY, FabricItemGroup.builder()
-				.icon(() -> new ItemStack(MG))
+				.icon(() -> new ItemStack(PYRO_GX))
 				.displayName(Text.translatable("itemGroup.drmd.weapons"))
 				.entries((ctx, entries) -> {
+					entries.add(PYRO_GX);
+					entries.add(EGG_ASSAULT);
+					entries.add(EGG_INTERCEPTOR);
+					entries.add(EGG_ARTILLERY);
+					entries.add(EGG_SUPPORT);
+					entries.add(EGG_HEAVY_ELITE);
+					entries.add(EGG_MG);
+					entries.add(EGG_LASER);
+					entries.add(EGG_RPG);
+					entries.add(EGG_HEAVY);
+					entries.add(EGG_SEEKER);
 					entries.add(MG);
 					entries.add(PLASMA);
 					entries.add(HEAVY);
@@ -170,6 +206,10 @@ public final class ModItems {
 				})
 				.build());
 
-		DescentMod.LOGGER.info("Registered {} DRMD weapons", 27);
+		DescentMod.LOGGER.info("Registered DRMD weapons + Pyro GX + 10 drone spawn eggs");
+	}
+
+	private static Item egg(String id, com.terminaldetector.drmd.ai.AiRole role, int primary, int secondary) {
+		return register(id, new com.terminaldetector.drmd.entity.DroneSpawnEggItem(role, primary, secondary, new Item.Settings()));
 	}
 }

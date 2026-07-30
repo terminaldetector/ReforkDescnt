@@ -3,10 +3,12 @@
   "id": "drmd",
   "version": "${version}",
   "name": "DRMD 6DOF",
-  "description": "Descent-Inspired Resource Management Dynamics — full 6DOF combat flight, energy, shields, weapons, AI, and Weapon Workshop. Minecraft port of the Garry's Mod DRMD 6DOF addon.",
+  "description": "Descent-like 6DoF Minecraft: inertial flight, Pyro GX, industrial biomes, sky megastructures, mega fauna, LLOD. Ready for survival and creative.",
   "authors": ["Terminal", "DRMD Team"],
   "contact": {
-    "sources": "https://github.com/terminaldetector/ReforkDescnt"
+    "homepage": "https://github.com/terminaldetector/ReforkDescnt",
+    "sources": "https://github.com/terminaldetector/ReforkDescnt",
+    "issues": "https://github.com/terminaldetector/ReforkDescnt/issues"
   },
   "license": "MIT",
   "icon": "assets/drmd/icon.png",
@@ -21,5 +23,15 @@
     "minecraft": "~1.21.1",
     "java": ">=21",
     "fabric-api": "*"
+  },
+  "suggests": {
+    "modmenu": "*"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://github.com/terminaldetector/ReforkDescnt"
+      }
+    }
   }
 }

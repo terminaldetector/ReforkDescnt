@@ -30,6 +30,7 @@ public class DroneEntity extends HostileEntity {
 	private static final TrackedData<String> ROLE = DataTracker.registerData(DroneEntity.class, TrackedDataHandlerRegistry.STRING);
 	private static final TrackedData<Float> SHIELD = DataTracker.registerData(DroneEntity.class, TrackedDataHandlerRegistry.FLOAT);
 	private static final TrackedData<Float> ARMOR = DataTracker.registerData(DroneEntity.class, TrackedDataHandlerRegistry.FLOAT);
+	private static final TrackedData<Float> FLIGHT_ROLL = DataTracker.registerData(DroneEntity.class, TrackedDataHandlerRegistry.FLOAT);
 
 	private AiRole role = AiRole.ASSAULT;
 	private float shield;
@@ -74,6 +75,10 @@ public class DroneEntity extends HostileEntity {
 	public AiRole getRole() { return role; }
 	public float getDroneShield() { return shield; }
 	public float getDroneArmor() { return armor; }
+	public float getFlightRoll() { return dataTracker.get(FLIGHT_ROLL); }
+	public void setFlightRoll(float roll) {
+		if (!getWorld().isClient) dataTracker.set(FLIGHT_ROLL, roll);
+	}
 
 	@Override
 	protected void initDataTracker(DataTracker.Builder builder) {
@@ -81,6 +86,7 @@ public class DroneEntity extends HostileEntity {
 		builder.add(ROLE, AiRole.ASSAULT.id);
 		builder.add(SHIELD, 50f);
 		builder.add(ARMOR, 0f);
+		builder.add(FLIGHT_ROLL, 0f);
 	}
 
 	@Override

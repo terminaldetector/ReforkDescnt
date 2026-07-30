@@ -30,8 +30,8 @@ public final class ModWorldgen2 {
 		ChunkPos cp = chunk.getPos();
 		long seed = world.getSeed() ^ (((long) cp.x) * 341873128712L) ^ (((long) cp.z) * 132897987541L);
 
-		// ~1 mega-structure per 48 chunks
-		if (Math.floorMod(seed, 48L) == 0L) {
+		// ~1 mega-structure per 18 chunks (stock sky / rift generation)
+		if (Math.floorMod(seed, 18L) == 0L) {
 			MacroEntry.Kind[] kinds = {
 					MacroEntry.Kind.ARCH, MacroEntry.Kind.RING, MacroEntry.Kind.FLOATING_CONTINENT,
 					MacroEntry.Kind.SPIRAL_RANGE, MacroEntry.Kind.INVERTED_ISLAND,
@@ -46,8 +46,8 @@ public final class ModWorldgen2 {
 			});
 		}
 
-		// Rare mega fauna anchors
-		if (Math.floorMod(seed ^ 0x9E3779B97F4A7C15L, 96L) == 0L) {
+		// Mega fauna anchors — stock rarity
+		if (Math.floorMod(seed ^ 0x9E3779B97F4A7C15L, 40L) == 0L) {
 			int roll = (int) Math.floorMod(seed >> 7, 3L);
 			int y = WorldRules.SKY_PRACTICAL_MIN + 20 + (int) Math.floorMod(seed, 40L);
 			BlockPos at = new BlockPos(cp.getStartX() + 8, y, cp.getStartZ() + 8);

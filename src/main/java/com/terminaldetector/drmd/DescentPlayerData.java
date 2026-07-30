@@ -69,6 +69,9 @@ public class DescentPlayerData {
 	private float wepInherit = 1f;
 	private float wepRecoil = 1f;
 
+	/** First-join tip already shown. */
+	private boolean sessionWelcomed;
+
 	public void ensureInit() {
 		if (energyMax <= 0) energyMax = 100f;
 		if (shieldMax <= 0) shieldMax = 100f;
@@ -98,6 +101,7 @@ public class DescentPlayerData {
 		d.putFloat("wepInherit", wepInherit);
 		d.putFloat("wepRecoil", wepRecoil);
 		d.putBoolean("radar", radarEnabled);
+		d.putBoolean("sessionWelcomed", sessionWelcomed);
 		nbt.put("DrmdData", d);
 	}
 
@@ -124,6 +128,7 @@ public class DescentPlayerData {
 		if (d.contains("wepInherit")) wepInherit = d.getFloat("wepInherit");
 		if (d.contains("wepRecoil")) wepRecoil = d.getFloat("wepRecoil");
 		radarEnabled = !d.contains("radar") || d.getBoolean("radar");
+		sessionWelcomed = d.getBoolean("sessionWelcomed");
 	}
 
 	// Getters / setters
@@ -203,4 +208,6 @@ public class DescentPlayerData {
 	public void setWepInherit(float wepInherit) { this.wepInherit = wepInherit; }
 	public float getWepRecoil() { return wepRecoil; }
 	public void setWepRecoil(float wepRecoil) { this.wepRecoil = wepRecoil; }
+	public boolean isSessionWelcomed() { return sessionWelcomed; }
+	public void setSessionWelcomed(boolean sessionWelcomed) { this.sessionWelcomed = sessionWelcomed; }
 }
