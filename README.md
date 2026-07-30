@@ -179,8 +179,8 @@ legacy/                               # исходный GMod-аддон
 ```bash
 ./scripts/package_all.sh
 # → dist/drmd-6dof-1.0.0.jar
-# → dist/drmd-6dof-mcpe-master-1.0.2.mcaddon
-# → dist/drmd-6dof-mcpe-master-1.0.2.zip   # ручная установка в games/com.mojang
+# → dist/drmd-6dof-mcpe-master-1.0.3.mcaddon
+# → dist/drmd-6dof-mcpe-master-1.0.3.zip   # ручная установка в games/com.mojang
 ```
 
 CI Artifacts (Actions → **Build DRMD 6DOF**):
