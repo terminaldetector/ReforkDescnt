@@ -218,10 +218,11 @@ public final class ModItems {
 		SessionControlItems.register();
 
 		Registry.register(Registries.ITEM_GROUP, GROUP_KEY, FabricItemGroup.builder()
-				.icon(() -> new ItemStack(SessionControlItems.REACTOR_STARTER))
+				.icon(() -> new ItemStack(SessionControlItems.MOD_SETTINGS))
 				.displayName(Text.translatable("itemGroup.drmd.weapons"))
 				.entries((ctx, entries) -> {
-					// Session — enable / start without console
+					// Settings + session — everything from creative, no console
+					entries.add(SessionControlItems.MOD_SETTINGS);
 					entries.add(SessionControlItems.REACTOR_STARTER);
 					entries.add(SessionControlItems.SIXDOF_CORE);
 					entries.add(SessionControlItems.STARTER_KIT);

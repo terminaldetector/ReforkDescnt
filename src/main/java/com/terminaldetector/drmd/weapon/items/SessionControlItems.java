@@ -31,6 +31,7 @@ import java.util.List;
  * so players can start 6DoF without typing /d6.
  */
 public final class SessionControlItems {
+	public static Item MOD_SETTINGS;
 	public static Item REACTOR_STARTER;
 	public static Item SIXDOF_CORE;
 	public static Item STARTER_KIT;
@@ -41,6 +42,7 @@ public final class SessionControlItems {
 	private SessionControlItems() {}
 
 	public static void register() {
+		MOD_SETTINGS = reg("mod_settings", new ModSettingsItem(new Item.Settings().maxCount(1)));
 		REACTOR_STARTER = reg("reactor_starter", new ActionItem(new Item.Settings().maxCount(1), Action.REACTOR));
 		SIXDOF_CORE = reg("sixdof_core", new ActionItem(new Item.Settings().maxCount(1), Action.SIXDOF));
 		STARTER_KIT = reg("starter_kit", new ActionItem(new Item.Settings().maxCount(1), Action.KIT));

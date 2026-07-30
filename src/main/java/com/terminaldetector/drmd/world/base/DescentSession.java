@@ -83,12 +83,13 @@ public final class DescentSession {
 			player.sendMessage(Text.literal(
 					"§8Crashed UFO is trap-dense — bring Pyro GX before clearing."), false);
 			if (player.isCreative()) {
+				giveIfPresent(player, com.terminaldetector.drmd.weapon.items.SessionControlItems.MOD_SETTINGS);
 				giveIfPresent(player, com.terminaldetector.drmd.weapon.items.SessionControlItems.REACTOR_STARTER);
 				giveIfPresent(player, com.terminaldetector.drmd.weapon.items.SessionControlItems.SIXDOF_CORE);
 				giveIfPresent(player, com.terminaldetector.drmd.weapon.items.SessionControlItems.STARTER_KIT);
 				giveIfPresent(player, ModItems.PYRO_GX);
 				player.sendMessage(Text.literal(
-						"§aCreative: session tools + Pyro GX — ПКМ на «Запуск реактора» без консоли."), false);
+						"§aCreative: ПКМ «Настройки DRMD» или вкладка DRMD 6DOF — без консоли."), false);
 			}
 		}
 	}

@@ -23,6 +23,8 @@ import java.util.ArrayList;
 public class DescentClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
+		// Creative-tab «Настройки DRMD» → this screen (common item must not import client classes).
+		com.terminaldetector.drmd.weapon.items.ModSettingsItem.OPEN_SETTINGS = DescentClient::openSettings;
 		DescentKeybinds.register();
 		ModEntityRenderers.register();
 		WeaponViewRenderer.register();
@@ -168,5 +170,9 @@ public class DescentClient implements ClientModInitializer {
 
 	public static void openWorkshop() {
 		MinecraftClient.getInstance().setScreen(new WorkshopScreen());
+	}
+
+	public static void openSettings() {
+		MinecraftClient.getInstance().setScreen(new ModSettingsScreen());
 	}
 }

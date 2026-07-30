@@ -223,6 +223,36 @@ public final class ModNetworking {
 				case "preset_assault" -> EnergySystem.setPreset(data, EnergyPreset.ASSAULT);
 				case "preset_interceptor" -> EnergySystem.setPreset(data, EnergyPreset.INTERCEPTOR);
 				case "preset_siege" -> EnergySystem.setPreset(data, EnergyPreset.SIEGE);
+				case "energy_cycle" -> {
+					EnergyPreset[] presets = EnergyPreset.values();
+					int idx = 0;
+					for (int i = 0; i < presets.length; i++) {
+						if (presets[i] == data.getPreset()) {
+							idx = (i + 1) % presets.length;
+							break;
+						}
+					}
+					EnergySystem.setPreset(data, presets[idx]);
+					player.sendMessage(net.minecraft.text.Text.literal("§eEnergy: §f" + data.getPreset().id), false);
+				}
+				case "construct" -> com.terminaldetector.drmd.world.build.ConstructionMode.toggle(player);
+				case "level_lift" -> {
+					var levels = com.terminaldetector.drmd.world.level.WorldLevels.Level.values();
+					var cur = com.terminaldetector.drmd.world.level.WorldLevels.at(player.getY());
+					var target = levels[(cur.ordinal() + 1) % levels.length];
+					player.requestTeleport(player.getX(), target.travelY(), player.getZ());
+					player.sendMessage(net.minecraft.text.Text.literal(
+							"§bLevel → §f" + target.label), false);
+				}
+				case "reactor_start" ->
+						com.terminaldetector.drmd.world.base.ReactorRoomStarter.activate(player);
+				case "starter_kit" -> {
+					FlightSystem.enable(player);
+					data.setEnergy(100);
+					data.setShield(100);
+					com.terminaldetector.drmd.world.base.ReactorRoomStarter.giveKit(player);
+					player.sendMessage(net.minecraft.text.Text.literal("§aStarter kit issued"), false);
+				}
 				default -> {}
 			}
 			syncPlayer(player, data);
