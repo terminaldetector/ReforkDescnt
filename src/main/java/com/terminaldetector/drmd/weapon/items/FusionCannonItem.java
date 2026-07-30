@@ -125,9 +125,18 @@ public class FusionCannonItem extends DescentWeaponItem {
 		cfg.armSeconds = 0.1f;
 		WeaponCore.fireProjectile(cfg);
 
-		world.playSound(null, player.getX(), player.getY(), player.getZ(),
-				charge > 0.75f ? SoundEvents.ENTITY_WARDEN_SONIC_BOOM : SoundEvents.ENTITY_GENERIC_EXPLODE,
-				SoundCategory.PLAYERS, 0.6f + charge * 0.5f, 1.6f - charge * 0.5f);
+		// Two calls rather than a ternary: vanilla's SoundEvents fields are not uniformly typed
+		// (some are SoundEvent, some RegistryEntry<SoundEvent>), so mixing them in one conditional
+		// leaves the expression with no applicable playSound overload.
+		float volume = 0.6f + charge * 0.5f;
+		float pitch = 1.6f - charge * 0.5f;
+		if (charge > 0.75f) {
+			world.playSound(null, player.getX(), player.getY(), player.getZ(),
+					SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, volume, pitch);
+		} else {
+			world.playSound(null, player.getX(), player.getY(), player.getZ(),
+					SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.PLAYERS, volume, pitch);
+		}
 		player.getItemCooldownManager().set(this, Math.round(MathHelper.lerp(charge, 8f, 26f)));
 		DescentWeaponItem.NbtWrite.lastFire(stack, world.getTime());
 	}
