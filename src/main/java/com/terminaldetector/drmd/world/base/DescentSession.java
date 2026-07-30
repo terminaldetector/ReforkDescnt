@@ -97,6 +97,23 @@ public final class DescentSession {
 			drone.applyRole(roles[i]);
 			world.spawnEntity(drone);
 		}
+
+		// Multi-zone gravity preview (dynamic station sections)
+		world.setBlockState(center.add(0, -6, 0),
+				com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_GENERATOR.getDefaultState()
+						.with(com.terminaldetector.drmd.world.gravity.GravityGeneratorBlock.FACING,
+								net.minecraft.util.math.Direction.DOWN),
+				net.minecraft.block.Block.NOTIFY_ALL);
+		world.setBlockState(center.add(12, -4, 0),
+				com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState()
+						.with(com.terminaldetector.drmd.world.gravity.GravityTorchBlock.FACING,
+								net.minecraft.util.math.Direction.EAST),
+				net.minecraft.block.Block.NOTIFY_ALL);
+		world.setBlockState(center.add(-12, -4, 0),
+				com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState()
+						.with(com.terminaldetector.drmd.world.gravity.GravityTorchBlock.FACING,
+								net.minecraft.util.math.Direction.WEST),
+				net.minecraft.block.Block.NOTIFY_ALL);
 	}
 
 	private static void seedStockMegastructures(ServerWorld world, BlockPos spawn) {

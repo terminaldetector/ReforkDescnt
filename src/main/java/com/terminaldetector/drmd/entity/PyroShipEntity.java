@@ -1,28 +1,31 @@
 package com.terminaldetector.drmd.entity;
 
-import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.DescentPlayerData;
-import com.terminaldetector.drmd.flight.FlightSystem;
+import com.terminaldetector.drmd.world.LocalOrientation;
+import com.terminaldetector.drmd.world.build.ConstructionMode;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MovementType;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 /**
- * Placeholder Descent-like transport (Pyro-class scout).
- * Rideable hull that inherits 6DoF flight while piloted.
+ * Pyro GX transport — 6DoF while piloted; landing / dismount enters Construction Mode.
  */
 public class PyroShipEntity extends PathAwareEntity {
+	private boolean wasPiloted;
+	private int landTicks;
+
 	public PyroShipEntity(EntityType<? extends PyroShipEntity> type, World world) {
 		super(type, world);
 		this.setNoGravity(true);
@@ -46,11 +49,10 @@ public class PyroShipEntity extends PathAwareEntity {
 		if (getWorld().isClient) return;
 
 		if (getFirstPassenger() instanceof ServerPlayerEntity pilot) {
+			wasPiloted = true;
+			landTicks = 0;
 			DescentPlayerData data = DescentPlayerData.get(pilot);
-			if (!data.isEnabled()) {
-				data.setEnabled(true);
-			}
-			// Match ship to pilot flight velocity
+			if (!data.isEnabled()) data.setEnabled(true);
 			Vec3d vel = data.getFlightVelocity();
 			this.setVelocity(vel);
 			this.velocityModified = true;
@@ -58,8 +60,29 @@ public class PyroShipEntity extends PathAwareEntity {
 			this.setPitch(pilot.getPitch());
 			this.bodyYaw = pilot.getYaw();
 		} else {
-			// Idle drift
-			this.setVelocity(getVelocity().multiply(0.92));
+			this.setVelocity(getVelocity().multiply(0.88));
+			if (wasPiloted && getVelocity().lengthSquared() < 0.04) {
+				landTicks++;
+				if (landTicks > 8) wasPiloted = false;
+			}
+		}
+	}
+
+	@Override
+	protected void removePassenger(Entity passenger) {
+		super.removePassenger(passenger);
+		if (!getWorld().isClient && passenger instanceof ServerPlayerEntity sp) {
+			Direction floor = Direction.UP;
+			for (Direction d : Direction.values()) {
+				BlockPos p = getBlockPos().offset(d.getOpposite());
+				if (getWorld().getBlockState(p).isSolidBlock(getWorld(), p)) {
+					floor = d;
+					break;
+				}
+			}
+			LocalOrientation.setFromDirection(sp.getUuid(), floor);
+			ConstructionMode.onShipLanded(sp);
+			sp.sendMessage(Text.literal("§7Local floor locked to §f" + floor.asString()), false);
 		}
 	}
 
@@ -71,6 +94,7 @@ public class PyroShipEntity extends PathAwareEntity {
 				DescentPlayerData data = DescentPlayerData.get(sp);
 				data.setEnabled(true);
 				data.ensureInit();
+				ConstructionMode.set(sp, false);
 			}
 			return ActionResult.SUCCESS;
 		}
@@ -78,12 +102,12 @@ public class PyroShipEntity extends PathAwareEntity {
 	}
 
 	@Override
-	protected boolean canAddPassenger(net.minecraft.entity.Entity passenger) {
+	protected boolean canAddPassenger(Entity passenger) {
 		return getPassengerList().isEmpty();
 	}
 
 	@Override
-	protected Vec3d getPassengerAttachmentPos(net.minecraft.entity.Entity passenger, net.minecraft.entity.EntityDimensions dimensions, float scaleFactor) {
+	protected Vec3d getPassengerAttachmentPos(Entity passenger, net.minecraft.entity.EntityDimensions dimensions, float scaleFactor) {
 		return new Vec3d(0, 0.35, 0);
 	}
 
@@ -93,7 +117,7 @@ public class PyroShipEntity extends PathAwareEntity {
 	}
 
 	@Override
-	public boolean collidesWith(net.minecraft.entity.Entity other) {
+	public boolean collidesWith(Entity other) {
 		return true;
 	}
 

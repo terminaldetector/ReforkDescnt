@@ -130,6 +130,12 @@ public final class DescentCommands {
 								ctx.getSource().sendFeedback(() -> Text.literal("Local UP reset to world +Y"), false);
 								return 1;
 							})))
+					.then(CommandManager.literal("construct")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								com.terminaldetector.drmd.world.build.ConstructionMode.toggle(p);
+								return 1;
+							}))
 					.then(CommandManager.literal("worldgen")
 							.requires(s -> s.hasPermissionLevel(2))
 							.then(CommandManager.literal("industrial")
@@ -162,13 +168,19 @@ public final class DescentCommands {
 							.executes(ctx -> {
 								ServerPlayerEntity p = ctx.getSource().getPlayer();
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.BUILD_TOOL));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.CONSTRUCTION_LASER));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.REPAIR_LASER));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.MINING_LASER));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_SCANNER));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.SIX_D_SOIL));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_GENERATOR));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH, 16));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.MAGNETIC_ANOMALY));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.VOLUME_TURRET));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.LASER_BARRIER));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.HERMETIC_GATE));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR));
-								ctx.getSource().sendFeedback(() -> Text.literal("Gave 6DoF world-design kit"), false);
+								ctx.getSource().sendFeedback(() -> Text.literal("Gave Phase 3 engineer / gravity kit"), false);
 								return 1;
 							}))
 					.then(CommandManager.literal("start")

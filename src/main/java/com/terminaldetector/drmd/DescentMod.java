@@ -51,7 +51,7 @@ public class DescentMod implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			ConstructionRegistry.bootstrap(server);
 			com.terminaldetector.drmd.world.gen2.MacroWorld.clear();
-			// Descent is part of the world — seed hub + stock megastructures once
+			com.terminaldetector.drmd.world.gravity.GravityFields.clear();
 			server.execute(() -> com.terminaldetector.drmd.world.base.DescentSession.seedWorld(server));
 		});
 

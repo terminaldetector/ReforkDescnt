@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.energy.EnergySystem;
 import com.terminaldetector.drmd.network.ModNetworking;
+import com.terminaldetector.drmd.world.gravity.GravityFields;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.MathHelper;
@@ -116,9 +117,18 @@ public final class FlightSystem {
 
 		Vec3d vel = data.getFlightVelocity().add(wish);
 
-		// Micro gravity + idle gravity along LOCAL down (magnetic anomalies / surface snap)
+		// Micro gravity + idle gravity + local GravityFields (generators / torches / stations)
+		GravityFields.Sample field = GravityFields.sample(player.getWorld(), player.getPos());
+		Vec3d gravDir;
 		double g = DescentMod.su(MICRO_GRAV) + DescentMod.su(data.getGravity()) * data.getGravityFactor();
-		Vec3d gravDir = com.terminaldetector.drmd.world.LocalOrientation.gravityDir(player.getUuid());
+		if (field != null) {
+			gravDir = field.downDir();
+			g += DescentMod.su(data.getGravity()) * field.strength() * 0.55;
+			// Smoothly adopt field UP for construction / station sections
+			com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), field.upDir());
+		} else {
+			gravDir = com.terminaldetector.drmd.world.LocalOrientation.gravityDir(player.getUuid());
+		}
 		vel = vel.add(gravDir.multiply(g * dt));
 
 		// Dash

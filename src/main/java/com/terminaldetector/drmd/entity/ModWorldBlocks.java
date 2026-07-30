@@ -38,7 +38,19 @@ public final class ModWorldBlocks {
 	public static final Block UNSTABLE_REACTOR = registerBlock("unstable_reactor",
 			new TrapBlocks.UnstableReactorBlock(AbstractBlock.Settings.copy(Blocks.RESPAWN_ANCHOR).ticksRandomly()));
 
+	public static final Block GRAVITY_GENERATOR = registerBlock("gravity_generator",
+			new com.terminaldetector.drmd.world.gravity.GravityGeneratorBlock(
+					AbstractBlock.Settings.copy(Blocks.LODESTONE).luminance(s -> 8).strength(4f)));
+
+	public static final Block GRAVITY_TORCH = registerBlock("gravity_torch",
+			new com.terminaldetector.drmd.world.gravity.GravityTorchBlock(
+					AbstractBlock.Settings.copy(Blocks.TORCH).luminance(s -> 12).ticksRandomly().nonOpaque()));
+
 	public static Item BUILD_TOOL;
+	public static Item CONSTRUCTION_LASER;
+	public static Item REPAIR_LASER;
+	public static Item MINING_LASER;
+	public static Item GRAVITY_SCANNER;
 
 	private ModWorldBlocks() {}
 
@@ -53,6 +65,18 @@ public final class ModWorldBlocks {
 		BUILD_TOOL = Registry.register(Registries.ITEM,
 				Identifier.of(DescentMod.MOD_ID, "build_tool"),
 				new BuildToolItem(new Item.Settings()));
+		CONSTRUCTION_LASER = Registry.register(Registries.ITEM,
+				Identifier.of(DescentMod.MOD_ID, "construction_laser"),
+				new com.terminaldetector.drmd.world.engineer.EngineerTools.ConstructionLaserItem(new Item.Settings()));
+		REPAIR_LASER = Registry.register(Registries.ITEM,
+				Identifier.of(DescentMod.MOD_ID, "repair_laser"),
+				new com.terminaldetector.drmd.world.engineer.EngineerTools.RepairLaserItem(new Item.Settings()));
+		MINING_LASER = Registry.register(Registries.ITEM,
+				Identifier.of(DescentMod.MOD_ID, "mining_laser"),
+				new com.terminaldetector.drmd.world.engineer.EngineerTools.MiningLaserItem(new Item.Settings()));
+		GRAVITY_SCANNER = Registry.register(Registries.ITEM,
+				Identifier.of(DescentMod.MOD_ID, "gravity_scanner"),
+				new com.terminaldetector.drmd.world.engineer.EngineerTools.GravityScannerItem(new Item.Settings()));
 
 		ItemGroupEvents.modifyEntriesEvent(ModItems.GROUP_KEY).register(entries -> {
 			entries.add(SIX_D_SOIL);
@@ -61,9 +85,15 @@ public final class ModWorldBlocks {
 			entries.add(VOLUME_TURRET);
 			entries.add(MAGNETIC_ANOMALY);
 			entries.add(UNSTABLE_REACTOR);
+			entries.add(GRAVITY_GENERATOR);
+			entries.add(GRAVITY_TORCH);
 			entries.add(BUILD_TOOL);
+			entries.add(CONSTRUCTION_LASER);
+			entries.add(REPAIR_LASER);
+			entries.add(MINING_LASER);
+			entries.add(GRAVITY_SCANNER);
 		});
 
-		DescentMod.LOGGER.info("Registered 6DoF world-design blocks & build tool");
+		DescentMod.LOGGER.info("Registered Phase3 world blocks & engineer tools");
 	}
 }

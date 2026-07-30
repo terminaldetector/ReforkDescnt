@@ -167,6 +167,14 @@ legacy/                               # исходный GMod-аддон
 
 ---
 
+## Phase 3 — 6DoF Framework
+
+- Adaptive Construction после посадки Pyro GX (`/d6 construct`)
+- Engineer tools: Construction / Repair / Mining Laser + Gravity Scanner
+- Projectile Framework (7 kinds, shared hits)
+- Gravity Generator + Gravity Torch + multi-zone stations
+- Spec: [`docs/PHASE3_FRAMEWORK.md`](docs/PHASE3_FRAMEWORK.md) · MCPE sandbox: [`docs/MCPE_FAST_TEST.md`](docs/MCPE_FAST_TEST.md)
+
 ## Блог / концепт
 
 - Блог / концепт: `docs/BLOG_PRESENT.md` · Roadmap: `docs/ROADMAP.md` · Voxel LLOD: `docs/VOXEL_LLOD.md`

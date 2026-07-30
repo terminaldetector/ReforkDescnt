@@ -1,6 +1,9 @@
 package com.terminaldetector.drmd.world.build;
 
 import com.terminaldetector.drmd.world.LocalOrientation;
+import com.terminaldetector.drmd.world.build.AdaptivePlacement;
+import com.terminaldetector.drmd.world.build.BuildMode;
+import com.terminaldetector.drmd.world.build.ConstructionMode;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -68,6 +71,13 @@ public class BuildToolItem extends Item {
 			}
 			writeMode(tool, BuildMode.SURFACE);
 			return ActionResult.success(world.isClient);
+		}
+
+		// Adaptive Construction Mode: always surface-normal placement
+		if (!world.isClient && player instanceof net.minecraft.server.network.ServerPlayerEntity sp
+				&& ConstructionMode.isActive(sp.getUuid())) {
+			BlockPos placed = AdaptivePlacement.placeOnSurface(world, player, hit, face);
+			return placed != null ? ActionResult.SUCCESS : ActionResult.FAIL;
 		}
 
 		BuildMode mode = readMode(tool);

@@ -2,9 +2,11 @@ package com.terminaldetector.drmd.entity;
 
 import com.terminaldetector.drmd.weapon.core.DamageClass;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
+import com.terminaldetector.drmd.world.LocalOrientation;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.particle.DustParticleEffect;
@@ -111,7 +113,13 @@ public class ProjectileEntity extends Entity {
 			}
 		}
 
-		if (gravityStrength != 0) vel = vel.add(0, -gravityStrength * 0.05, 0);
+		if (gravityStrength != 0) {
+			LivingEntity own = getOwnerLiving();
+			Vec3d gdir = own instanceof PlayerEntity
+					? LocalOrientation.gravityDir(own.getUuid())
+					: new Vec3d(0, -1, 0);
+			vel = vel.add(gdir.multiply(gravityStrength * 0.05));
+		}
 		if (drag > 0 && vel.lengthSquared() > 1e-6) {
 			vel = vel.multiply(Math.max(0, 1.0 - drag * 0.02));
 		}
