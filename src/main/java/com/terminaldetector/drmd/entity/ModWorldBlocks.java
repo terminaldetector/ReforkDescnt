@@ -52,6 +52,10 @@ public final class ModWorldBlocks {
 			new com.terminaldetector.drmd.world.gravity.GravityGeneratorBlock(
 					AbstractBlock.Settings.copy(Blocks.LODESTONE).luminance(s -> 8).strength(4f)));
 
+	public static final Block DRILL_RIG = registerBlock("drill_rig",
+			new com.terminaldetector.drmd.world.engineer.DrillRigBlock(
+					AbstractBlock.Settings.copy(Blocks.BLAST_FURNACE).luminance(s -> 7).strength(4.5f)));
+
 	public static final Block GRAVITY_TORCH = registerBlock("gravity_torch",
 			new com.terminaldetector.drmd.world.gravity.GravityTorchBlock(
 					AbstractBlock.Settings.copy(Blocks.TORCH).luminance(s -> 12).ticksRandomly().nonOpaque()));
@@ -100,6 +104,7 @@ public final class ModWorldBlocks {
 			entries.add(UNSTABLE_REACTOR);
 			entries.add(GRAVITY_GENERATOR);
 			entries.add(GRAVITY_TORCH);
+			entries.add(DRILL_RIG);
 			entries.add(BUILD_TOOL);
 			entries.add(CONSTRUCTION_LASER);
 			entries.add(REPAIR_LASER);

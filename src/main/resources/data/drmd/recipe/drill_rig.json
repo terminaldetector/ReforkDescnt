@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "AMA",
+    "AEA",
+    "ADA"
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "M": {
+      "item": "drmd:mining_laser"
+    },
+    "E": {
+      "item": "drmd:energy_cell"
+    },
+    "D": {
+      "item": "minecraft:blast_furnace"
+    }
+  },
+  "result": {
+    "id": "drmd:drill_rig",
+    "count": 1
+  }
+}

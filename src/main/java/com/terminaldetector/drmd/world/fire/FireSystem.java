@@ -23,8 +23,12 @@ public final class FireSystem {
 		public BlockPos pos;
 		public int intensity;
 		public int life;
+		/** Which world this focus burns in — foci are tracked globally, so ticking must filter. */
+		public final net.minecraft.registry.RegistryKey<net.minecraft.world.World> worldKey;
 
-		Focus(BlockPos pos, int intensity, int life) {
+		Focus(net.minecraft.registry.RegistryKey<net.minecraft.world.World> worldKey,
+			  BlockPos pos, int intensity, int life) {
+			this.worldKey = worldKey;
 			this.pos = pos.toImmutable();
 			this.intensity = intensity;
 			this.life = life;
@@ -40,7 +44,7 @@ public final class FireSystem {
 	}
 
 	public static void ignite(ServerWorld world, BlockPos pos, int intensity) {
-		FOCI.put(pos.asLong(), new Focus(pos, intensity, 100 + intensity * 20));
+		FOCI.put(pos.asLong(), new Focus(world.getRegistryKey(), pos, intensity, 100 + intensity * 20));
 		if (world.getBlockState(pos).isAir() || world.getBlockState(pos).isReplaceable()) {
 			world.setBlockState(pos, Blocks.FIRE.getDefaultState(), Block.NOTIFY_ALL);
 		}
@@ -64,6 +68,8 @@ public final class FireSystem {
 		List<Long> dead = new ArrayList<>();
 		List<Focus> spread = new ArrayList<>();
 		for (Focus f : FOCI.values()) {
+			// One global map, many worlds: only age and spread the ones burning in this one.
+			if (f.worldKey != world.getRegistryKey()) continue;
 			f.life--;
 			if (f.life <= 0) {
 				dead.add(f.pos.asLong());
@@ -79,7 +85,8 @@ public final class FireSystem {
 				BlockPos next = f.pos.offset(dir);
 				if (isFlammable(world, next) || (dir == Direction.UP && world.getBlockState(next).isAir()
 						&& isFlammable(world, next.up()))) {
-					spread.add(new Focus(next, Math.max(1, f.intensity - 1), 60 + f.intensity * 10));
+					spread.add(new Focus(world.getRegistryKey(), next,
+							Math.max(1, f.intensity - 1), 60 + f.intensity * 10));
 				}
 			}
 		}
@@ -89,15 +96,23 @@ public final class FireSystem {
 		}
 	}
 
+	/**
+	 * Whether a block will carry the fire.
+	 *
+	 * <p>Deliberately uses the vanilla burnable flag rather than a blast-resistance threshold: the
+	 * old {@code blastResistance < 1.5} catch-all matched dirt, grass, sand, gravel and netherrack,
+	 * so a single energy hit on open ground could chain across the terrain until it hit the focus cap.
+	 */
 	private static boolean isFlammable(ServerWorld world, BlockPos pos) {
 		var st = world.getBlockState(pos);
-		return st.isOf(Blocks.OAK_LOG) || st.isOf(Blocks.SPRUCE_LOG) || st.isOf(Blocks.BIRCH_LOG)
-				|| st.isOf(Blocks.JUNGLE_LOG) || st.isOf(Blocks.ACACIA_LOG) || st.isOf(Blocks.DARK_OAK_LOG)
-				|| st.isOf(Blocks.OAK_PLANKS) || st.isOf(Blocks.SPRUCE_PLANKS) || st.isOf(Blocks.BIRCH_PLANKS)
-				|| st.isOf(Blocks.OAK_LEAVES) || st.isOf(Blocks.SPRUCE_LEAVES) || st.isOf(Blocks.BIRCH_LEAVES)
-				|| st.isOf(Blocks.WHITE_WOOL) || st.isOf(Blocks.HAY_BLOCK) || st.isOf(Blocks.BOOKSHELF)
-				|| st.isOf(Blocks.BARREL) || st.isOf(Blocks.CRAFTING_TABLE) || st.isOf(Blocks.CHEST)
-				|| (st.getBlock().getBlastResistance() < 1.5f && !st.isAir() && !st.isLiquid());
+		if (st.isAir() || !st.getFluidState().isEmpty()) return false;
+		return st.isBurnable()
+				|| st.isIn(net.minecraft.registry.tag.BlockTags.LOGS)
+				|| st.isIn(net.minecraft.registry.tag.BlockTags.PLANKS)
+				|| st.isIn(net.minecraft.registry.tag.BlockTags.LEAVES)
+				|| st.isIn(net.minecraft.registry.tag.BlockTags.WOOL)
+				|| st.isOf(Blocks.HAY_BLOCK) || st.isOf(Blocks.BOOKSHELF)
+				|| st.isOf(Blocks.BARREL) || st.isOf(Blocks.CRAFTING_TABLE) || st.isOf(Blocks.CHEST);
 	}
 
 	public static int focusCount() {

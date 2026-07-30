@@ -681,7 +681,31 @@ def blk_end_reactor_panel():
     return im
 
 
+def blk_drill_rig(active=False):
+    """Laser drill rig: armoured housing around a downward emitter."""
+    im = img()
+    plating(im, (48, 44, 40, 255), bolt=shade(AMBER, 0.9), seam=False)
+    rect(im, 3, 2, 12, 11, shade(HULL_D, 1.0))
+    rect(im, 3, 2, 12, 2, shade(HULL_L, 1.0))
+    hazard(im, 3, 3, 13, 6, AMBER if active else shade(AMBER, 0.45), (26, 22, 20, 255))
+    lens = ORANGE if active else shade(ORANGE, 0.35)
+    for y in range(16):
+        for x in range(16):
+            d = ((x - 7.5) ** 2 + (y - 9.5) ** 2) ** 0.5
+            if d < 3.2:
+                px(im, x, y, shade(lens, 1.1 - d * 0.13))
+    if active:
+        for x in range(6, 10):
+            px(im, x, 14, AMBER)
+            px(im, x, 15, shade(ORANGE, 1.0))
+    for x, y in ((1, 1), (14, 1), (1, 14), (14, 14)):
+        px(im, x, y, shade(HULL_X, 1.0))
+    return im
+
+
 BLOCKS = {
+    "drill_rig": lambda: blk_drill_rig(False),
+    "drill_rig_active": lambda: blk_drill_rig(True),
     "six_d_soil": blk_six_d_soil,
     "hermetic_gate": blk_hermetic_gate,
     "laser_barrier": blk_laser_barrier,

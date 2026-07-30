@@ -98,5 +98,6 @@
   "entity.drmd.spider_turret": "Spider Turret",
   "item.drmd.spawn_egg_tripod": "Tripod Strider Spawn Egg",
   "item.drmd.spawn_egg_scanner": "Flying Scanner Spawn Egg",
-  "item.drmd.spawn_egg_spider_turret": "Spider Turret Spawn Egg"
+  "item.drmd.spawn_egg_spider_turret": "Spider Turret Spawn Egg",
+  "block.drmd.drill_rig": "Laser Drill Rig"
 }
