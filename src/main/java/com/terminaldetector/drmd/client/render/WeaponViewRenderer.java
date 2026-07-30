@@ -41,17 +41,8 @@ public final class WeaponViewRenderer {
 			if (matrices == null || consumers == null) return;
 
 			matrices.push();
-			// Camera-relative: origin at eye, looking down -Z in view space via camera transform already applied.
-			// WorldRenderEvents gives world space — convert eye offset manually.
+			// World-space barrels from ship basis (not yaw/pitch/roll euler — that gimbal-locks at poles).
 			Vec3d cam = context.camera().getPos();
-			float yaw = context.camera().getYaw();
-			float pitch = context.camera().getPitch();
-			// Hull bank, not screen bank: these barrels live in world space, so the F5 front-view
-			// mirroring that viewRoll() applies must not leak in here.
-			float roll = DescentClientState.attitudeValid
-					? com.terminaldetector.drmd.client.flight.ShipAttitudeClient.get().bankDegrees()
-					: 0f;
-
 			Vec3d look;
 			Vec3d right;
 			Vec3d up;
@@ -61,14 +52,14 @@ public final class WeaponViewRenderer {
 				up = att.up();
 				right = att.right();
 			} else {
+				float yaw = context.camera().getYaw();
+				float pitch = context.camera().getPitch();
 				look = Vec3d.fromPolar(pitch, yaw);
 				right = look.crossProduct(new Vec3d(0, 1, 0));
 				if (right.lengthSquared() < 1e-6) right = new Vec3d(1, 0, 0);
 				right = right.normalize();
 				up = right.crossProduct(look).normalize();
 			}
-			Vec3d rr = right;
-			Vec3d uu = up;
 
 			float time = (mc.player.age + context.tickCounter().getTickDelta(false)) / 20f;
 
@@ -79,13 +70,22 @@ public final class WeaponViewRenderer {
 				if (m.bobAmp > 0 && m.bobFreq > 0) {
 					upp += (float) (Math.sin(time * m.bobFreq * Math.PI * 2) * m.bobAmp / 16f);
 				}
-				Vec3d pos = cam.add(look.multiply(fwd)).add(rr.multiply(rgt)).add(uu.multiply(upp));
+				Vec3d pos = cam.add(look.multiply(fwd)).add(right.multiply(rgt)).add(up.multiply(upp));
 
 				matrices.push();
 				matrices.translate(pos.x - cam.x, pos.y - cam.y, pos.z - cam.z);
-				matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-yaw));
-				matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pitch));
-				matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll + m.roll));
+				// JOML ctor is column-major: col0=right, col1=up, col2=-forward (view -Z).
+				org.joml.Matrix4f basis = new org.joml.Matrix4f(
+						(float) right.x, (float) right.y, (float) right.z, 0f,
+						(float) up.x, (float) up.y, (float) up.z, 0f,
+						(float) -look.x, (float) -look.y, (float) -look.z, 0f,
+						0f, 0f, 0f, 1f);
+				var entry = matrices.peek();
+				entry.getPositionMatrix().mul(basis);
+				entry.getNormalMatrix().mul(basis.normal(new org.joml.Matrix3f()));
+				if (Math.abs(m.roll) > 0.01f) {
+					matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(m.roll));
+				}
 				if (m.spin != 0) {
 					matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(time * m.spin * 60f));
 				}

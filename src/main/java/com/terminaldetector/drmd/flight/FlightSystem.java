@@ -240,7 +240,33 @@ public final class FlightSystem {
 		data.setEnabled(true);
 		data.ensureInit();
 		player.setNoGravity(true);
+		player.fallDistance = 0f;
 		ModNetworking.syncPlayer(player, data);
+	}
+
+	/**
+	 * Hard repair: force thrusters ON, clear foot gravity / hook / idle sink,
+	 * re-sync so the client re-primes spherical attitude.
+	 */
+	public static void repair(ServerPlayerEntity player) {
+		DescentPlayerData data = DescentPlayerData.get(player);
+		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
+		com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
+		data.setEnabled(true);
+		data.ensureInit();
+		data.setHookActive(false);
+		data.setIdleTimer(0f);
+		data.setGravityFactor(0f);
+		data.setDashCooldown(0f);
+		if (!data.hasShipAttitude()) {
+			data.levelShipAttitude(player);
+		}
+		player.setNoGravity(true);
+		player.fallDistance = 0f;
+		player.velocityModified = true;
+		ModNetworking.syncPlayer(player, data);
+		player.sendMessage(net.minecraft.text.Text.literal(
+				"§b6DoF §arepaired §7— thrusters ON, attitude sync, WASD+Space/Ctrl, Q/E roll"), false);
 	}
 
 	public static void disable(ServerPlayerEntity player, DescentPlayerData data) {

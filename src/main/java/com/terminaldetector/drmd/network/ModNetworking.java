@@ -209,6 +209,9 @@ public final class ModNetworking {
 			DescentPlayerData data = DescentPlayerData.get(player);
 			switch (payload.action()) {
 				case "toggle" -> FlightSystem.toggle(player);
+				case "enable" -> FlightSystem.enable(player);
+				case "disable" -> FlightSystem.disable(player, data);
+				case "repair_flight" -> FlightSystem.repair(player);
 				case "dash" -> FlightSystem.tryDash(player);
 				case "alwaysrun" -> data.setAlwaysRun(!data.isAlwaysRun());
 				case "flightassist" -> data.setFlightAssist(!data.isFlightAssist());

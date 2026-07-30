@@ -53,25 +53,32 @@ public final class ShipAttitudeClient {
 
 	/**
 	 * Mouse deltas once per render frame (Mouse.updateMouse → changeLookDirection).
-	 * FrameTime-scaled Lerp rates match GMod CreateMove.
+	 *
+	 * <p>Accumulates raw degrees then drains with FrameTime lag (GMod TurnVel/AngVel feel)
+	 * so total look rotation is preserved — the old “lerp toward delta then apply lerped”
+	 * path ate most of the mouse and made first-person 360° feel broken vs F5 rear view.
 	 */
 	public static void applyMouse(ClientPlayerEntity player, double cursorDeltaX, double cursorDeltaY) {
 		if (!primed) resetFromPlayer(player);
 		float dt = frameDt();
-		float targetYaw = (float) (-cursorDeltaX * 0.15);
-		float targetPitch = (float) (-cursorDeltaY * 0.15);
+		// Accumulate impulses (degrees this frame)
+		turnYaw += (float) (-cursorDeltaX * 0.15);
+		turnPitch += (float) (-cursorDeltaY * 0.15);
 
-		float turnK = MathHelper.clamp(8f * dt, 0f, 1f);
-		turnYaw = MathHelper.lerp(turnK, turnYaw, targetYaw);
-		turnPitch = MathHelper.lerp(turnK, turnPitch, targetPitch);
+		// TurnVel drain → body (FA on = heavier hull lag)
+		float turnRate = DescentClientState.flightAssist ? 10f : 18f;
+		float turnK = MathHelper.clamp(turnRate * dt, 0f, 1f);
+		float stepYaw = turnYaw * turnK;
+		float stepPitch = turnPitch * turnK;
+		turnYaw -= stepYaw;
+		turnPitch -= stepPitch;
 
-		float angDamp = DescentClientState.flightAssist ? 5f : 2f;
+		float angDamp = DescentClientState.flightAssist ? 8f : 16f;
 		float angK = MathHelper.clamp(angDamp * dt, 0f, 1f);
-		angYaw = MathHelper.lerp(angK, angYaw, turnYaw);
-		angPitch = MathHelper.lerp(angK, angPitch, turnPitch);
+		angYaw += (stepYaw - angYaw) * angK;
+		angPitch += (stepPitch - angPitch) * angK;
 
-		// Local-axis yaw then pitch: no world-up reference anywhere in the input path, so the nose
-		// crosses straight up / straight down without gimbal lock, exactly like Descent.
+		// Local-axis yaw then pitch: no world-up reference — nose crosses poles without gimbal lock.
 		ATT.yawLocal(angYaw);
 		ATT.pitchLocal(angPitch);
 		applyToPlayer(player);

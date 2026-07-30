@@ -27,10 +27,10 @@ public class GameRendererMixin {
 	@Inject(method = "tiltViewWhenHurt", at = @At("HEAD"), cancellable = true)
 	private void drmd$cameraBank(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
 		if (DescentClientState.enabled) {
+			// Always apply bank while thrusters are on — even tiny values matter near poles
+			// where yaw swings fast and bank cancels the swing (full 360° in first person).
 			float roll = DescentCamera.viewRoll();
-			if (Math.abs(roll) > 0.05f) {
-				matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll));
-			}
+			matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll));
 			ci.cancel();
 			return;
 		}
