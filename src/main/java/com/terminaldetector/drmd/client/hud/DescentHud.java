@@ -64,6 +64,9 @@ public final class DescentHud {
 		drawCombatLog(ctx, mc, 8, sh - 78);
 		drawDashBar(ctx, cx, cy);
 		drawAttitudeLadder(ctx, cx, cy);
+		if (mc.options.getPerspective().isFirstPerson() == false) {
+			ctx.drawCenteredTextWithShadow(mc.textRenderer, Text.literal("3RD · SHIP CAM"), cx, sh - 62, GREEN_DIM);
+		}
 
 		if (DescentClientState.gravityFactor > 0.05f) {
 			String warn = DescentClientState.gravityFactor >= 1f

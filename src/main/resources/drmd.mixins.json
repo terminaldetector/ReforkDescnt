@@ -6,7 +6,9 @@
     "PlayerEntityMixin",
     "LivingEntityMixin"
   ],
-	"client": [
+  "client": [
+    "client.CameraAccessor",
+    "client.CameraMixin",
     "client.GameRendererMixin",
     "client.InGameHudMixin",
     "client.MouseMixin"

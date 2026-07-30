@@ -46,16 +46,25 @@ public final class WeaponViewRenderer {
 			Vec3d cam = context.camera().getPos();
 			float yaw = context.camera().getYaw();
 			float pitch = context.camera().getPitch();
-			float roll = DescentClientState.roll;
+			float roll = com.terminaldetector.drmd.client.flight.DescentCamera.viewRoll();
 
-			Vec3d look = Vec3d.fromPolar(pitch, yaw);
-			Vec3d right = look.crossProduct(new Vec3d(0, 1, 0));
-			if (right.lengthSquared() < 1e-6) right = new Vec3d(1, 0, 0);
-			right = right.normalize();
-			Vec3d up = right.crossProduct(look).normalize();
-			double rollRad = Math.toRadians(roll);
-			Vec3d rr = right.multiply(Math.cos(rollRad)).add(up.multiply(Math.sin(rollRad)));
-			Vec3d uu = up.multiply(Math.cos(rollRad)).subtract(right.multiply(Math.sin(rollRad)));
+			Vec3d look;
+			Vec3d right;
+			Vec3d up;
+			if (DescentClientState.attitudeValid) {
+				var att = com.terminaldetector.drmd.client.flight.ShipAttitudeClient.get();
+				look = att.forward();
+				up = att.up();
+				right = att.right();
+			} else {
+				look = Vec3d.fromPolar(pitch, yaw);
+				right = look.crossProduct(new Vec3d(0, 1, 0));
+				if (right.lengthSquared() < 1e-6) right = new Vec3d(1, 0, 0);
+				right = right.normalize();
+				up = right.crossProduct(look).normalize();
+			}
+			Vec3d rr = right;
+			Vec3d uu = up;
 
 			float time = (mc.player.age + context.tickCounter().getTickDelta(false)) / 20f;
 

@@ -63,7 +63,13 @@ public final class DescentKeybinds {
 		wasEnabled = en;
 
 		while (toggle.wasPressed()) sendAction("toggle");
-		while (dash.wasPressed()) { dashQueued = true; sendAction("dash"); }
+		while (dash.wasPressed()) {
+			dashQueued = true;
+			sendAction("dash");
+			if (en && ShipAttitudeClient.isPrimed()) {
+				com.terminaldetector.drmd.client.flight.DescentCamera.pulseDash(ShipAttitudeClient.get().forward());
+			}
+		}
 		while (alwaysRun.wasPressed()) sendAction("alwaysrun");
 		while (flightAssist.wasPressed()) sendAction("flightassist");
 		while (radar.wasPressed()) sendAction("radar");
@@ -71,7 +77,6 @@ public final class DescentKeybinds {
 		while (resetRoll.wasPressed()) {
 			if (client.player != null && en) {
 				ShipAttitudeClient.level();
-				ShipAttitudeClient.applyToPlayer(client.player);
 			}
 			sendAction("reset_roll");
 		}
@@ -82,8 +87,9 @@ public final class DescentKeybinds {
 			float rollIn = 0;
 			if (rollLeft.isPressed()) rollIn -= 1;
 			if (rollRight.isPressed()) rollIn += 1;
-			ShipAttitudeClient.applyRollInput(rollIn, 1f / 20f);
-			if (Math.abs(rollIn) > 0.01f) ShipAttitudeClient.applyToPlayer(client.player);
+			float dt = 1f / 20f;
+			ShipAttitudeClient.tickRoll(client.player, rollIn, dt);
+			com.terminaldetector.drmd.client.flight.DescentCamera.tick(client.player, dt);
 		}
 	}
 
