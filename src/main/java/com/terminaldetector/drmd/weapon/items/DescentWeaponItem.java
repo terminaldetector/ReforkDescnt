@@ -33,24 +33,84 @@ public class DescentWeaponItem extends Item {
 	public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
 		ItemStack stack = user.getStackInHand(hand);
 		if (world.isClient) return TypedActionResult.pass(stack);
+		return tryFire(user, stack) ? TypedActionResult.success(stack) : TypedActionResult.fail(stack);
+	}
 
+	/**
+	 * Primary Use — fire this weapon (RMB vanilla path + middle-mouse cockpit trigger).
+	 * @return true if a shot was spent (cooldown advanced)
+	 */
+	public boolean tryFire(PlayerEntity user, ItemStack stack) {
+		if (user.getWorld().isClient) return false;
 		DescentPlayerData data = DescentPlayerData.get(user);
-		long now = world.getTime();
+		long now = user.getWorld().getTime();
 		long last = 0L;
 		var custom = stack.get(net.minecraft.component.DataComponentTypes.CUSTOM_DATA);
 		if (custom != null) last = custom.copyNbt().getLong("lastFire");
 		int cdTicks = Math.max(1, (int) (def.fireRate * 20));
-		if (now - last < cdTicks) return TypedActionResult.fail(stack);
+		if (now - last < cdTicks) return false;
+		if (user.getItemCooldownManager().isCoolingDown(this)) return false;
 
-		if (!fire(world, user, data, stack)) {
-			return TypedActionResult.fail(stack);
+		if (!fire(user.getWorld(), user, data, stack)) {
+			return false;
 		}
 
 		NbtWrite.lastFire(stack, now);
 		user.getItemCooldownManager().set(this, cdTicks);
-		world.playSound(null, user.getX(), user.getY(), user.getZ(),
+		user.getWorld().playSound(null, user.getX(), user.getY(), user.getZ(),
 				SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, SoundCategory.PLAYERS, 0.6f, 1.2f);
-		return TypedActionResult.success(stack);
+		return true;
+	}
+
+	/**
+	 * Server entry for network Use channels.
+	 * PRIMARY = held DRMD gun; ALT = GMod DelegateSecondary (rockets from inventory).
+	 */
+	public static boolean tryUseChannel(PlayerEntity user, boolean alt) {
+		if (user.getWorld().isClient) return false;
+		if (alt) return tryAltUse(user);
+		ItemStack stack = user.getMainHandStack();
+		if (!(stack.getItem() instanceof DescentWeaponItem wep)) return false;
+		return wep.tryFire(user, stack);
+	}
+
+	/**
+	 * Alt Use — fire rockets while another gun is held (port of D6_Wep.DelegateSecondary).
+	 * If rockets are already in hand, cycles rocket submode instead.
+	 */
+	public static boolean tryAltUse(PlayerEntity user) {
+		if (user.getWorld().isClient) return false;
+		ItemStack held = user.getMainHandStack();
+		if (held.getItem() instanceof DescentWeaponItem wep && "rockets".equals(wep.getDef().behavior)) {
+			DescentPlayerData data = DescentPlayerData.get(user);
+			data.setRocketSubmode(data.getRocketSubmode() + 1);
+			user.sendMessage(net.minecraft.text.Text.literal(
+					"§eRocket mode §f#" + ((data.getRocketSubmode() % 4) + 1)), true);
+			if (user instanceof net.minecraft.server.network.ServerPlayerEntity sp) {
+				com.terminaldetector.drmd.network.ModNetworking.syncPlayer(sp, data);
+			}
+			return true;
+		}
+		// Find rockets anywhere in inventory (hotbar preferred)
+		ItemStack rockets = ItemStack.EMPTY;
+		int rocketSlot = -1;
+		for (int i = 0; i < user.getInventory().size(); i++) {
+			ItemStack s = user.getInventory().getStack(i);
+			if (s.getItem() instanceof DescentWeaponItem dw && "rockets".equals(dw.getDef().behavior)) {
+				rockets = s;
+				rocketSlot = i;
+				break;
+			}
+		}
+		if (rockets.isEmpty() || !(rockets.getItem() instanceof DescentWeaponItem rocketWep)) {
+			user.sendMessage(net.minecraft.text.Text.literal("§8Alt Use: §7no rockets in inventory"), true);
+			return false;
+		}
+		boolean ok = rocketWep.tryFire(user, rockets);
+		if (ok && rocketSlot >= 0) {
+			user.getInventory().setStack(rocketSlot, rockets);
+		}
+		return ok;
 	}
 
 	protected boolean fire(World world, PlayerEntity user, DescentPlayerData data, ItemStack stack) {

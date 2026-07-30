@@ -3,34 +3,21 @@ DRMD 6DOF — ПК TLauncher Fabric 1.21.1
 Jar: drmd-6dof-1.0.0-fabric-1.21.1.jar
 Also: drmd-6dof-1.0.0.jar
 
-НУЖНО
-  Minecraft 1.21.1 + Fabric Loader + Fabric API + Java 21
-  В mods класть .jar, не .zip CI-архив
-
-НЕ ПОДОЙДЁТ
-  ✗ Forge / «пкен» / 26.x — мод только Fabric 1.21.1
-  ✗ drmd-6dof-pc.zip целиком в mods — распакуй и бери .jar
-
-Установка
-  1. TLauncher → Версии → Fabric Loader для Minecraft 1.21.1
+Установка (ПК / TLauncher)
+  1. Версии → Fabric Loader для Minecraft 1.21.1
   2. Java 21+ в настройках лаунчера
-  3. mods/: этот jar + Fabric API 1.21.1
+  3. В mods/: этот jar + Fabric API 1.21.1
   4. Запуск Fabric 1.21.1 → креатив / новый мир
 
 Без консоли
-  Креатив → вкладка «DRMD 6DOF» → сверху «Настройки DRMD» (ПКМ)
-  Или клавиша P — меню мода (вкладки Полёт / Обзор / Сессия)
-  В меню: force ON, «Починить полёт + обзор», FA, энергия, реактор…
+  Креатив → вкладка «DRMD 6DOF» → сверху:
+    Запуск реактора / Ядро 6DoF / Стартовый набор / Лифт / Стройка / Энергия
+  Или ПКМ по предметам, выданным при входе в креатив.
 
-Управление полётом
-  H — thrusters ON/OFF (при входе обычно уже ON)
-  WASD + Space/Ctrl — тяга · Q/E — крен · Shift — рывок · мышь — 360°
-  Если полёт/обзор «отвалился» → меню P → «Починить полёт + обзор»
-
-Не класть в mods: *-sources.jar, *-dev.jar, .zip, .mcaddon
+Не класть *-sources.jar / *-dev.jar в mods.
 
 Если краш при заходе / Preparing spawn:
-  - свежий jar (фиксы nav_node + overworld.json)
+  - поставь свежий jar (фиксы nav_node + overworld.json)
   - создай НОВЫЙ мир
 
 Сборка: ./gradlew build packageTlauncher --no-daemon

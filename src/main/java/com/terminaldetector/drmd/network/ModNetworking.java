@@ -212,6 +212,8 @@ public final class ModNetworking {
 				case "enable" -> FlightSystem.enable(player);
 				case "disable" -> FlightSystem.disable(player, data);
 				case "repair_flight" -> FlightSystem.repair(player);
+				case "weapon_use" -> com.terminaldetector.drmd.weapon.items.DescentWeaponItem.tryUseChannel(player, false);
+				case "weapon_alt" -> com.terminaldetector.drmd.weapon.items.DescentWeaponItem.tryUseChannel(player, true);
 				case "dash" -> FlightSystem.tryDash(player);
 				case "alwaysrun" -> data.setAlwaysRun(!data.isAlwaysRun());
 				case "flightassist" -> data.setFlightAssist(!data.isFlightAssist());

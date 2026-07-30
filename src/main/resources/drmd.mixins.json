@@ -11,6 +11,7 @@
     "client.CameraAccessor",
     "client.CameraMixin",
     "client.GameRendererMixin",
+    "client.HeldItemRendererMixin",
     "client.InGameHudMixin",
     "client.LivingEntityRendererMixin",
     "client.MouseMixin"

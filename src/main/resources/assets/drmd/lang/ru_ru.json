@@ -14,6 +14,8 @@
   "key.drmd.rocket_mode": "Режим ракет",
   "key.drmd.reset_roll": "Сброс крена",
   "key.drmd.settings": "Меню мода DRMD",
+  "key.drmd.weapon_view": "Вид оружия 3D (цикл)",
+  "key.drmd.weapon_use": "Use оружия (колёсико)",
   "hud.drmd.terrain_map": "Pyro GX · 3D карта (Tab+H)",
   "itemGroup.drmd.weapons": "DRMD 6DOF",
   "screen.drmd.settings": "Настройки DRMD",

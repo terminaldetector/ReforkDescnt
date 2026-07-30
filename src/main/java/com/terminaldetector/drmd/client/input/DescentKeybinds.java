@@ -29,6 +29,7 @@ public final class DescentKeybinds {
 	public static KeyBinding rocketMode;
 	public static KeyBinding resetRoll;
 	public static KeyBinding settings;
+	public static KeyBinding weaponView;
 
 	private static boolean dashQueued;
 	private static boolean hookQueued;
@@ -51,6 +52,7 @@ public final class DescentKeybinds {
 		rocketMode = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.rocket_mode", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "key.category.drmd"));
 		resetRoll = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.reset_roll", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_X, "key.category.drmd"));
 		settings = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.settings", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_P, "key.category.drmd"));
+		weaponView = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.weapon_view", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_V, "key.category.drmd"));
 	}
 
 	public static void tick(MinecraftClient client) {
@@ -91,6 +93,14 @@ public final class DescentKeybinds {
 		}
 		while (workshop.wasPressed()) DescentClient.openWorkshop();
 		while (settings.wasPressed()) DescentClient.openSettings();
+		while (weaponView.wasPressed()) {
+			DescentClientState.weaponViewMode = DescentClientState.weaponViewMode.next();
+			if (client.player != null) {
+				client.player.sendMessage(net.minecraft.text.Text.literal(
+						"§bWeapon view §f" + DescentClientState.weaponViewMode.label()
+								+ " §8· MMB=Use · Alt+MMB=ракеты"), true);
+			}
+		}
 		if (hook.isPressed()) hookQueued = true;
 
 		if (en && client.player != null) {
@@ -101,6 +111,7 @@ public final class DescentKeybinds {
 			ShipAttitudeClient.tickRoll(client.player, rollIn, dt);
 			com.terminaldetector.drmd.client.flight.DescentCamera.tick(client.player, dt);
 		}
+		WeaponUseClient.tick(client);
 		com.terminaldetector.drmd.client.hud.TerrainMap3d.tick(client);
 	}
 

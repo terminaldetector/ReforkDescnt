@@ -1,5 +1,7 @@
 package com.terminaldetector.drmd.client;
 
+import com.terminaldetector.drmd.client.render.WeaponViewMode;
+
 /** Mirrored server sync for HUD / camera. */
 public final class DescentClientState {
 	public static boolean enabled;
@@ -24,6 +26,14 @@ public final class DescentClientState {
 	/** On-foot local gravity (torch / generator) — camera + travel. */
 	public static boolean footGravity;
 	public static float localUx = 0f, localUy = 1f, localUz = 0f;
+	/**
+	 * FP weapon display for existing DRMD guns.
+	 * Client-only; cycles with key / mod menu.
+	 */
+	public static WeaponViewMode weaponViewMode = WeaponViewMode.COCKPIT_3D;
+	/** Middle-mouse Use held (cockpit trigger). */
+	public static boolean weaponUseHeld;
+	public static boolean weaponAltHeld;
 
 	private DescentClientState() {}
 }

@@ -495,10 +495,13 @@ public final class DescentHud {
 			var def = weapon.getDef();
 			line(ctx, mc, x + 4, y + 4, clip(mc, def.displayName.toUpperCase(Locale.ROOT), w - 8), AMBER);
 			line(ctx, mc, x + 4, y + 15, def.category.toUpperCase(Locale.ROOT) + " · " + def.dmgClass.name(), GREEN);
-			line(ctx, mc, x + 4, y + 26, String.format(Locale.ROOT, "DAMAGE: %.0f", def.damage), GREEN);
-			line(ctx, mc, x + 4, y + 36, String.format(Locale.ROOT, "RADIUS: %.0fm", def.splashRadius / 16f), GREEN);
-			line(ctx, mc, x + 4, y + 46, String.format(Locale.ROOT, "ENERGY: %.0f", def.energyCost),
+			line(ctx, mc, x + 4, y + 26, String.format(Locale.ROOT, "DMG %.0f  E %.0f", def.damage, def.energyCost),
 					def.energyCost > DescentClientState.energy ? RED : GREEN);
+			String view = DescentClientState.weaponViewMode.label();
+			line(ctx, mc, x + 4, y + 36, "VIEW " + view, GREEN_DIM);
+			String use = DescentClientState.weaponUseHeld ? "USE ▉"
+					: DescentClientState.weaponAltHeld ? "ALT ▉" : "MMB USE · V VIEW";
+			line(ctx, mc, x + 4, y + 46, use, DescentClientState.weaponUseHeld || DescentClientState.weaponAltHeld ? AMBER : GREEN);
 			ctx.drawItem(held, x + w - 20, y + h - 22);
 		} else {
 			line(ctx, mc, x + 4, y + 4, "ARMAMENT", GREEN_DIM);

@@ -14,6 +14,8 @@
   "key.drmd.rocket_mode": "Rocket Submode",
   "key.drmd.reset_roll": "Reset Roll",
   "key.drmd.settings": "DRMD Mod Menu",
+  "key.drmd.weapon_view": "Weapon View 3D (cycle)",
+  "key.drmd.weapon_use": "Weapon Use (middle mouse)",
   "hud.drmd.terrain_map": "Pyro GX 3D Map (Tab+H)",
   "itemGroup.drmd.weapons": "DRMD 6DOF",
   "screen.drmd.settings": "DRMD Settings",

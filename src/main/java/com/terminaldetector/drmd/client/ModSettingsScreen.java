@@ -126,6 +126,14 @@ public class ModSettingsScreen extends Screen {
 	}
 
 	private void buildView(int x, int y, int w, int h, int gap) {
+		addDrawableChild(ButtonWidget.builder(weaponViewLabel(), b -> {
+			DescentClientState.weaponViewMode = DescentClientState.weaponViewMode.next();
+			status = "Вид оружия: " + DescentClientState.weaponViewMode.label()
+					+ " · MMB=Use · Alt+MMB=ракеты";
+			scheduleRefresh();
+		}).dimensions(x, y, w, h).build());
+		y += gap;
+
 		addDrawableChild(ButtonWidget.builder(Text.literal("Сброс крена / level"), b -> {
 			if (client != null && client.player != null && DescentClientState.enabled) {
 				ShipAttitudeClient.level();
@@ -165,6 +173,10 @@ public class ModSettingsScreen extends Screen {
 					status = "Статус обновлён";
 					scheduleRefresh();
 				}).dimensions(x, y, w, h).build());
+	}
+
+	private Text weaponViewLabel() {
+		return Text.literal("Вид оружия: §e" + DescentClientState.weaponViewMode.label() + " §7(V)");
 	}
 
 	private void buildSession(int x, int y, int w, int h, int gap) {
