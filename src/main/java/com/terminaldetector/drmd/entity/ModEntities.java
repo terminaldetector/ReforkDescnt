@@ -5,6 +5,7 @@ import com.terminaldetector.drmd.world.bombardment.AerialBombEntity;
 import com.terminaldetector.drmd.world.mega.DroneSwarmEntity;
 import com.terminaldetector.drmd.world.mega.MegaWormEntity;
 import com.terminaldetector.drmd.world.mega.ReactorKeeperEntity;
+import com.terminaldetector.drmd.world.mega.SkyUfoEntity;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
@@ -111,6 +112,16 @@ public final class ModEntities {
 					.build()
 	);
 
+	public static final EntityType<SkyUfoEntity> SKY_UFO = Registry.register(
+			Registries.ENTITY_TYPE,
+			Identifier.of(DescentMod.MOD_ID, "sky_ufo"),
+			EntityType.Builder.<SkyUfoEntity>create(SkyUfoEntity::new, SpawnGroup.MISC)
+					.dimensions(6.0f, 2.5f)
+					.maxTrackingRange(256)
+					.trackingTickInterval(2)
+					.build()
+	);
+
 	private ModEntities() {}
 
 	public static void register() {
@@ -121,6 +132,6 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(REACTOR_KEEPER, ReactorKeeperEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(END_REACTOR_BOSS,
 				com.terminaldetector.drmd.world.end.EndReactorBossEntity.createAttributes());
-		DescentMod.LOGGER.info("Registered DRMD entities (incl. End giga-reactor boss)");
+		DescentMod.LOGGER.info("Registered DRMD entities (End boss + Sky UFO)");
 	}
 }

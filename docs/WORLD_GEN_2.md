@@ -25,59 +25,53 @@
 | `FLOATING_CONTINENT` | Летающие материки |
 | `SPIRAL_RANGE` | Спиральные горные системы |
 | `INVERTED_ISLAND` | Перевёрнутые острова |
+| `LUNAR_BASE` | Заброшенная лунная база Descent 1 — щиты, ловушки, микрореактор + Keeper |
+| `CRASHED_UFO` | Упавшая XCOM-тарелка — плотные ловушки/гарнизон (после Pyro GX) |
+| `UFO` | Летающая тарелка (entity) — LLOD с неба, выжигает постройки, рой |
 
-Генерация: chunk-load (~1/18) + команда `/d6 worldgen2 <kind>`.
+Генерация: chunk-load (~1/18, lunar/crashed в пуле) + `/d6 worldgen2 <kind>`.
 
 Философия: мир выглядит «неправильным», но остаётся полностью проходимым полётом.
 
 ## Mega Creatures (`world/mega`)
 
-Не боссы — **элементы ландшафта**:
-
 | Entity | ID | Роль |
 |--------|-----|------|
-| Sky Worm | `drmd:mega_worm` | Многосегментный червь; полёт вдоль тела |
-| Drone Swarm | `drmd:drone_swarm` | Якорь колоссального роя штурмовых дронов |
-| Reactor Keeper | `drmd:reactor_keeper` | Древний страж реакторных ядер |
+| Sky Worm | `drmd:mega_worm` | Многосегментный червь |
+| Drone Swarm | `drmd:drone_swarm` | Якорь роя штурмовых дронов |
+| Reactor Keeper | `drmd:reactor_keeper` | Страж реакторов / lunar boss |
+| Sky UFO | `drmd:sky_ufo` | XCOM saucer: cruise, burn, drones, LLOD |
 
-Спавн: редко при chunk-load + `/d6 mega worm|swarm|keeper`.
+Спавн: chunk-load + `/d6 mega worm|swarm|keeper|ufo`.
 
-Каждый регистрируется в `MacroWorld` для LLOD-силуэтов.
+## Descent Lunar Base
+
+`LunarBaseGenerator` — серый диск на sky band, спицы с hermetic/laser, shield crystals вокруг `UNSTABLE_REACTOR`, `ReactorKeeper` на якоре. Stock seed у спавна.
+
+## XCOM UFO pair
+
+1. **Sky UFO** — движущийся макрос; `FireSystem.igniteBlast` + soft-break под лучом; рой ≤12.
+2. **Crashed UFO** — crater + copper saucer, турели/мины/14 дронов. Tip: чистить на Pyro GX.
 
 ## LLOD — Voxel Long Level of Detail
 
 ```
-LLOD0  силуэт (~тысячи кубов)
-  ↓
-LLOD1  крупные формы
-  ↓
-LLOD2  регион
-  ↓
-CHUNK  обычные блоки Minecraft
+LLOD0 → LLOD1 → LLOD2 → CHUNK
 ```
 
-Спека и бюджеты: [`docs/VOXEL_LLOD.md`](VOXEL_LLOD.md).
-
-Сервер шлёт компактный каталог макрообъектов; клиент разворачивает воксельные меши. `/d6 llod` — sync + счётчики по бэндам.
-
-## Индустриальные биомы
-
-См. `world/gen` — комплексы с реакторами, тоннелями, ангарами. WG 2.0 связывает их с вертикальным континуумом и LLOD.
-
-Практические biome labels (`WorldRules.practicalLayer` / `biomeLabel`) отображаются в PC HUD. Stock seed (`DescentSession.seedLayerBiomes`) гарантирует ориентир в каждом слое у спавна. Mega-structures помечаются `LODESTONE` для идемпотентности при chunk reload.
+Спека: [`docs/VOXEL_LLOD.md`](VOXEL_LLOD.md). `/d6 llod` — sync + счётчики.
 
 ## Команды
 
 ```
-/d6 worldgen2 arch|ring|rift|canyon|continent|spiral|inverted|…
-/d6 mega worm|swarm|keeper
+/d6 worldgen2 arch|ring|rift|canyon|continent|spiral|inverted|lunar|crashed|ufo
+/d6 mega worm|swarm|keeper|ufo
 /d6 llod
 /d6 worldgen industrial [STYLE]
 ```
 
 ## Пакеты
 
-- `com.terminaldetector.drmd.world.gen2` — MacroEntry, MacroWorld, MegaStructureGenerator, ModWorldgen2
-- `com.terminaldetector.drmd.world.mega` — mega fauna
-- `com.terminaldetector.drmd.world.llod` — LlodLevel, LlodRegistry
-- `com.terminaldetector.drmd.client.llod` — клиентские силуэты
+- `world/gen2` — MacroEntry, MegaStructureGenerator, LunarBaseGenerator, CrashedUfoGenerator, ModWorldgen2
+- `world/mega` — worm / swarm / keeper / sky UFO
+- `world/llod` — LlodLevel, LlodRegistry, VoxelLodMesh

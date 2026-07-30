@@ -42,6 +42,11 @@ public class ReactorKeeperEntity extends HostileEntity {
 				.add(EntityAttributes.GENERIC_FLYING_SPEED, 0.25);
 	}
 
+	/** Pin orbit center (lunar / End micro-reactor arenas). */
+	public void setAnchor(Vec3d a) {
+		this.anchor = a;
+	}
+
 	@Override
 	protected void initGoals() {}
 
@@ -80,6 +85,11 @@ public class ReactorKeeperEntity extends HostileEntity {
 		PlayerEntity near = getWorld().getClosestPlayer(this, 32);
 		if (near != null && squaredDistanceTo(near) < 20 * 20) {
 			setTarget(near);
+			if (age % 25 == 0 && getWorld() instanceof ServerWorld sw) {
+				near.damage(sw.getDamageSources().mobAttack(this), 10f);
+				sw.spawnParticles(ParticleTypes.ELECTRIC_SPARK,
+						near.getX(), near.getY() + 1, near.getZ(), 8, 0.4, 0.4, 0.4, 0.05);
+			}
 		}
 	}
 

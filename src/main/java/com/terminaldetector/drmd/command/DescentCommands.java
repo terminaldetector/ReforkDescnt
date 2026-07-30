@@ -218,6 +218,9 @@ public final class DescentCommands {
 										case "CONTINENT" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.FLOATING_CONTINENT;
 										case "SPIRAL" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.SPIRAL_RANGE;
 										case "INVERTED" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.INVERTED_ISLAND;
+										case "LUNAR", "MOON" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.LUNAR_BASE;
+										case "CRASH", "CRASHED" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.CRASHED_UFO;
+										case "SAUCER", "FLYING" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.UFO;
 										default -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.ARCH;
 									};
 								}
@@ -258,8 +261,15 @@ public final class DescentCommands {
 											world.spawnEntity(e);
 										}
 									}
+									case "ufo", "saucer" -> {
+										var e = com.terminaldetector.drmd.entity.ModEntities.SKY_UFO.create(world);
+										if (e != null) {
+											e.refreshPositionAndAngles(at.x, at.y, at.z, 0, 0);
+											world.spawnEntity(e);
+										}
+									}
 									default -> {
-										ctx.getSource().sendError(Text.literal("Use: worm | swarm | keeper"));
+										ctx.getSource().sendError(Text.literal("Use: worm | swarm | keeper | ufo"));
 										return 0;
 									}
 								}

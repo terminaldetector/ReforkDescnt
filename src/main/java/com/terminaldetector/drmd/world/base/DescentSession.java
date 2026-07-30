@@ -65,7 +65,9 @@ public final class DescentSession {
 			player.sendMessage(Text.literal(
 					"§bDRMD 6DOF §f— Descent session is part of this world."), false);
 			player.sendMessage(Text.literal(
-					"§7Fly with §fH§7 · craft §fPyro GX§7 · explore industrial caves & sky megastructures"), false);
+					"§7Fly with §fH§7 · craft §fPyro GX§7 · lunar base / sky UFO / crashed saucer nearby"), false);
+			player.sendMessage(Text.literal(
+					"§8Crashed UFO is trap-dense — bring Pyro GX before clearing."), false);
 			if (player.isCreative()) {
 				player.giveItemStack(new ItemStack(ModItems.PYRO_GX));
 				player.sendMessage(Text.literal("§aCreative: Pyro GX given — right-click to deploy."), false);
@@ -177,5 +179,23 @@ public final class DescentSession {
 		MegaStructureGenerator.generate(world,
 				new BlockPos(spawn.getX() + 20, WorldRules.SKY_PRACTICAL_MAX - 4, spawn.getZ() - 140),
 				MacroEntry.Kind.INVERTED_ISLAND, Random.create(world.getSeed() ^ 0xEAD10001L));
+
+		// Descent 1 lunar base (sky) — micro-reactor + Keeper
+		MegaStructureGenerator.generate(world,
+				new BlockPos(spawn.getX() - 140, WorldRules.SKY_PRACTICAL_MIN + 55, spawn.getZ() + 90),
+				MacroEntry.Kind.LUNAR_BASE, Random.create(world.getSeed() ^ 0x10AAB001L));
+
+		// Crashed XCOM UFO — dense traps; tip: clear with Pyro GX
+		MegaStructureGenerator.generate(world,
+				new BlockPos(spawn.getX() + 180, 80, spawn.getZ() - 60),
+				MacroEntry.Kind.CRASHED_UFO, Random.create(world.getSeed() ^ 0x0F00A001L));
+
+		// One airborne UFO near spawn sky lane
+		var ufo = ModEntities.SKY_UFO.create(world);
+		if (ufo != null) {
+			ufo.refreshPositionAndAngles(spawn.getX() + 100.5, WorldRules.SKY_PRACTICAL_MIN + 48,
+					spawn.getZ() + 40.5, 0, 0);
+			world.spawnEntity(ufo);
+		}
 	}
 }

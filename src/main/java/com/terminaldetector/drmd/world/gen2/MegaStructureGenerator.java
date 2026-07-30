@@ -32,9 +32,13 @@ public final class MegaStructureGenerator {
 			case FLOATING_CONTINENT -> floatingContinent(world, origin, random);
 			case SPIRAL_RANGE -> spiralRange(world, origin, random);
 			case INVERTED_ISLAND -> invertedIsland(world, origin, random);
+			case LUNAR_BASE -> LunarBaseGenerator.generate(world, origin, random);
+			case CRASHED_UFO -> CrashedUfoGenerator.generate(world, origin, random);
 			default -> arch(world, origin, random);
 		};
-		if (inLimit(world, origin)) {
+		// Lunar / crashed place their own LODESTONE marker
+		if (kind != MacroEntry.Kind.LUNAR_BASE && kind != MacroEntry.Kind.CRASHED_UFO
+				&& inLimit(world, origin)) {
 			world.setBlockState(origin, Blocks.LODESTONE.getDefaultState(), Block.NOTIFY_LISTENERS);
 		}
 		return e;

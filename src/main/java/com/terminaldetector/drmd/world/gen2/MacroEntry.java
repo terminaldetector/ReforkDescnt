@@ -13,7 +13,13 @@ import java.util.UUID;
 public final class MacroEntry {
 	public enum Kind {
 		RIFT, CANYON, ARCH, RING, FLOATING_CONTINENT, SPIRAL_RANGE, INVERTED_ISLAND,
-		INDUSTRIAL_COMPLEX, STATION, WORM, SWARM, KEEPER
+		INDUSTRIAL_COMPLEX, STATION, WORM, SWARM, KEEPER,
+		/** Descent 1 abandoned lunar outpost. */
+		LUNAR_BASE,
+		/** XCOM-style airborne saucer (moving entity macro). */
+		UFO,
+		/** Crashed abandoned saucer — dense traps, post-Pyro GX. */
+		CRASHED_UFO
 	}
 
 	public final UUID id;

@@ -121,6 +121,15 @@ public final class VoxelLodMesh {
 					out.add(new Voxel((float) c.x + i * hx * 0.25f, (float) c.y, (float) c.z, hy * 0.35f));
 				}
 			}
+			case UFO, CRASHED_UFO -> {
+				out.add(new Voxel((float) c.x, (float) c.y, (float) c.z, hx * 0.55f));
+				out.add(new Voxel((float) c.x, (float) (c.y - hy * 0.25f), (float) c.z, hx * 0.25f));
+			}
+			case LUNAR_BASE -> {
+				out.add(new Voxel((float) c.x, (float) c.y, (float) c.z, hx * 0.5f));
+				out.add(new Voxel((float) c.x + hx * 0.4f, (float) c.y, (float) c.z, hx * 0.2f));
+				out.add(new Voxel((float) c.x - hx * 0.4f, (float) c.y, (float) c.z, hx * 0.2f));
+			}
 			default -> out.add(new Voxel((float) c.x, (float) c.y, (float) c.z,
 					Math.max(hx, Math.max(hy, hz)) * 0.55f));
 		}
@@ -134,6 +143,8 @@ public final class VoxelLodMesh {
 			case FLOATING_CONTINENT, INVERTED_ISLAND -> 0.35;
 			case SPIRAL_RANGE, CANYON, RIFT -> 0.3;
 			case WORM, SWARM -> 0.2;
+			case UFO, CRASHED_UFO -> 0.28;
+			case LUNAR_BASE -> 0.32;
 			default -> 0.4;
 		};
 		int r = (int) Math.ceil(Math.sqrt(budget / (6.0 * fill)));
@@ -195,6 +206,20 @@ public final class VoxelLodMesh {
 				boolean core = r2 < 0.2f;
 				boolean tunnel = Math.abs(y) < 0.12f && Math.abs(z) < 0.12f;
 				yield (shell && r2 < 1.05f) || core || tunnel;
+			}
+			case LUNAR_BASE -> {
+				float disk = x * x + z * z;
+				boolean deck = disk < 1.0f && Math.abs(y) < 0.35f;
+				boolean rim = disk > 0.72f && disk < 1.05f && Math.abs(y) < 0.55f;
+				boolean core = r2 < 0.18f;
+				yield deck || rim || core;
+			}
+			case UFO, CRASHED_UFO -> {
+				float disk = x * x + z * z;
+				boolean saucer = disk < 1.0f && Math.abs(y) < 0.22f + 0.35f * (1f - disk);
+				boolean dome = disk < 0.35f && y > 0 && y < 0.55f;
+				boolean keel = disk < 0.2f && y < 0 && y > -0.45f;
+				yield saucer || dome || keel;
 			}
 			case KEEPER -> r2 < 0.55f;
 			default -> r2 < 0.85f;

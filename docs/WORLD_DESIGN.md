@@ -111,10 +111,18 @@ Stock seed при старте мира ставит ориентиры во **�
 ```
 /d6 kit                 # build tool + soil + traps + turrets
 /d6 worldgen industrial # комплекс у игрока
+/d6 worldgen2 lunar|crashed|ufo|…
+/d6 mega ufo|keeper|…
 /d6 orient reset        # сброс Local UP
 /d6 endreactor          # force-regen End giga-reactor base
 /d6 ship                # spawn Pyro GX
 ```
+
+### Lunar Base & UFO (Descent / XCOM refs)
+
+- **LUNAR_BASE** — заброшенная lunar outpost: force-shield crystals, traps, micro-reactor + Reactor Keeper
+- **Sky UFO** — летающая тарелка (LLOD), выжигает постройки под собой, роняет рой
+- **CRASHED_UFO** — упавшая medium-структура; плотные ловушки/дроны — заход после крафта Pyro GX
 
 ---
 
