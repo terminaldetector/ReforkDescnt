@@ -52,7 +52,7 @@ public final class DescentSession {
 		IndustrialComplexGenerator.generateAt(world, under, WorldRules.ComplexStyle.CRYSTAL_REACTOR, world.getRandom());
 		var ufo = ModEntities.SKY_UFO.create(world);
 		if (ufo != null) {
-			ufo.refreshPositionAndAngles(spawn.getX() + 100.5, WorldRules.SKY_PRACTICAL_MIN + 48,
+			ufo.refreshPositionAndAngles(spawn.getX() + 100.5, WorldRules.skyY(world, 48),
 					spawn.getZ() + 40.5, 0, 0);
 			world.spawnEntity(ufo);
 		}
@@ -152,8 +152,8 @@ public final class DescentSession {
 			int x = spawn.getX() + (int) (Math.cos(ang) * dist);
 			int z = spawn.getZ() + (int) (Math.sin(ang) * dist);
 			int y = switch (kind) {
-				case RIFT, CANYON -> WorldRules.INDUSTRIAL_Y_MIN + 28;
-				default -> WorldRules.SKY_PRACTICAL_MIN + 20 + i * 8;
+				case RIFT, CANYON -> WorldRules.clampBuildY(world, WorldRules.INDUSTRIAL_Y_MIN + 28);
+				default -> WorldRules.skyY(world, 20 + i * 8);
 			};
 			BlockPos at = new BlockPos(x, y, z);
 			MegaStructureGenerator.generate(world, at, kind, Random.create(world.getSeed() ^ (i * 31L)));
@@ -184,35 +184,35 @@ public final class DescentSession {
 				new BlockPos(spawn.getX() - 110, WorldRules.INDUSTRIAL_Y_MIN + 36, spawn.getZ() - 90),
 				MacroEntry.Kind.RIFT, Random.create(world.getSeed() ^ 0xBEEF));
 
-		// Sky archipelago sample
+		// Sky archipelago sample (inside live −64…320 column)
 		MegaStructureGenerator.generate(world,
-				new BlockPos(spawn.getX() + 48, WorldRules.SKY_PRACTICAL_MIN + 40, spawn.getZ() + 120),
+				new BlockPos(spawn.getX() + 48, WorldRules.skyY(world, 40), spawn.getZ() + 120),
 				MacroEntry.Kind.FLOATING_CONTINENT, Random.create(world.getSeed() ^ 0x51A10001L));
 
-		// Orbital belt (top practical band)
+		// High sky ring near column top
 		MegaStructureGenerator.generate(world,
-				new BlockPos(spawn.getX() - 80, WorldRules.SKY_PRACTICAL_MAX - 12, spawn.getZ() + 60),
+				new BlockPos(spawn.getX() - 80, WorldRules.clampBuildY(world, WorldRules.SKY_PRACTICAL_MAX - 12), spawn.getZ() + 60),
 				MacroEntry.Kind.RING, Random.create(world.getSeed() ^ 0x0B817100L));
 
-		// Near-end space marker island
+		// Near-top inverted island marker
 		MegaStructureGenerator.generate(world,
-				new BlockPos(spawn.getX() + 20, WorldRules.SKY_PRACTICAL_MAX - 4, spawn.getZ() - 140),
+				new BlockPos(spawn.getX() + 20, WorldRules.clampBuildY(world, WorldRules.SKY_PRACTICAL_MAX - 4), spawn.getZ() - 140),
 				MacroEntry.Kind.INVERTED_ISLAND, Random.create(world.getSeed() ^ 0xEAD10001L));
 
 		// Descent 1 lunar base (sky) — micro-reactor + Keeper
 		MegaStructureGenerator.generate(world,
-				new BlockPos(spawn.getX() - 140, WorldRules.SKY_PRACTICAL_MIN + 55, spawn.getZ() + 90),
+				new BlockPos(spawn.getX() - 140, WorldRules.skyY(world, 55), spawn.getZ() + 90),
 				MacroEntry.Kind.LUNAR_BASE, Random.create(world.getSeed() ^ 0x10AAB001L));
 
 		// Crashed XCOM UFO — dense traps; tip: clear with Pyro GX
 		MegaStructureGenerator.generate(world,
-				new BlockPos(spawn.getX() + 180, 80, spawn.getZ() - 60),
+				new BlockPos(spawn.getX() + 180, WorldRules.clampBuildY(world, 80), spawn.getZ() - 60),
 				MacroEntry.Kind.CRASHED_UFO, Random.create(world.getSeed() ^ 0x0F00A001L));
 
 		// One airborne UFO near spawn sky lane
 		var ufo = ModEntities.SKY_UFO.create(world);
 		if (ufo != null) {
-			ufo.refreshPositionAndAngles(spawn.getX() + 100.5, WorldRules.SKY_PRACTICAL_MIN + 48,
+			ufo.refreshPositionAndAngles(spawn.getX() + 100.5, WorldRules.skyY(world, 48),
 					spawn.getZ() + 40.5, 0, 0);
 			world.spawnEntity(ufo);
 		}

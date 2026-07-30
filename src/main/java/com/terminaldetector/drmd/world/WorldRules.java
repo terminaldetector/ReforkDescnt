@@ -1,5 +1,8 @@
 package com.terminaldetector.drmd.world;
 
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
+
 /**
  * World Generation 2.0 — vertical multi-scale universe.
  * Continuous flight from deep reactor complexes to End-space without loading screens.
@@ -17,17 +20,42 @@ public final class WorldRules {
 	public static final int Y_END_SPACE = 100_000;
 
 	/**
-	 * Practical build band. The custom dimension height <em>is</em> enabled now
-	 * ({@code data/minecraft/dimension_type/overworld.json}), so these mirror
-	 * {@link com.terminaldetector.drmd.world.level.WorldLevels} rather than vanilla's −64…320.
+	 * Spec / future tall-column targets ({@link com.terminaldetector.drmd.world.level.WorldLevels}).
+	 * Live Overworld datapack is still vanilla −64…320 — use {@link #clampBuildY} / {@link #skyY}
+	 * for anything that must place blocks or flight soft-walls.
 	 */
 	public static final int GEN_Y_MIN = com.terminaldetector.drmd.world.level.WorldLevels.WORLD_BOTTOM;
 	public static final int GEN_Y_MAX = com.terminaldetector.drmd.world.level.WorldLevels.WORLD_TOP;
 	/** Industrial complexes stay inside the vanilla stone shell so they cut into real terrain. */
 	public static final int INDUSTRIAL_Y_MIN = -56;
 	public static final int INDUSTRIAL_Y_MAX = com.terminaldetector.drmd.world.level.WorldLevels.INDUSTRIAL_TOP;
-	public static final int SKY_PRACTICAL_MIN = com.terminaldetector.drmd.world.level.WorldLevels.SURFACE_TOP;
-	public static final int SKY_PRACTICAL_MAX = com.terminaldetector.drmd.world.level.WorldLevels.ORBITAL_TOP;
+	/**
+	 * In-column sky band for the shipped −64…320 Overworld.
+	 * Do not use WorldLevels.SURFACE_TOP (320) as a placement floor — that is the world ceiling.
+	 */
+	public static final int SKY_PRACTICAL_MIN = 180;
+	public static final int SKY_PRACTICAL_MAX = 300;
+
+	/** Inclusive top Y for the world's buildable column. */
+	public static int worldTopInclusive(World world) {
+		return world.getBottomY() + world.getHeight() - 1;
+	}
+
+	/** Clamp a placement Y into the real world column with a small margin. */
+	public static int clampBuildY(World world, int y) {
+		int bot = world.getBottomY();
+		int top = worldTopInclusive(world);
+		return MathHelper.clamp(y, bot + 8, top - 8);
+	}
+
+	/** Deterministic high-altitude Y inside the live column (not past topY). */
+	public static int skyY(World world, int seedMod) {
+		int bot = world.getBottomY();
+		int top = worldTopInclusive(world);
+		int lo = Math.min(top - 48, Math.max(bot + 100, SKY_PRACTICAL_MIN));
+		int hi = Math.max(lo + 8, Math.min(top - 8, SKY_PRACTICAL_MAX));
+		return lo + Math.floorMod(seedMod, Math.max(1, hi - lo + 1));
+	}
 
 	public enum Layer {
 		DEPTH_REACTORS("Depth Reactors / Nether-analog", Y_DEPTH_REACTORS, Y_SURFACE - 1),
@@ -86,11 +114,9 @@ public final class WorldRules {
 		return switch (layer) {
 			case DEPTH_REACTORS -> INDUSTRIAL_Y_MIN + Math.floorMod(seedMod, 20);
 			case SURFACE -> 64 + Math.floorMod(seedMod, 40);
-			case SKY_ARCHIPELAGO -> SKY_PRACTICAL_MIN + Math.floorMod(seedMod, 240);
-			case ORBITAL -> com.terminaldetector.drmd.world.level.WorldLevels.SKY_TOP
-					+ Math.floorMod(seedMod, 200);
-			case END_SPACE -> com.terminaldetector.drmd.world.level.WorldLevels.END_ISLAND_MIN
-					+ Math.floorMod(seedMod, 80);
+			case SKY_ARCHIPELAGO -> SKY_PRACTICAL_MIN + Math.floorMod(seedMod, Math.max(1, SKY_PRACTICAL_MAX - SKY_PRACTICAL_MIN));
+			case ORBITAL -> Math.min(SKY_PRACTICAL_MAX, SKY_PRACTICAL_MIN + 80 + Math.floorMod(seedMod, 40));
+			case END_SPACE -> Math.min(SKY_PRACTICAL_MAX, SKY_PRACTICAL_MAX - 8 - Math.floorMod(seedMod, 12));
 		};
 	}
 

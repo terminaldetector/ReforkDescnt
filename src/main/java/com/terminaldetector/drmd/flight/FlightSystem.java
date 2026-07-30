@@ -212,6 +212,10 @@ public final class FlightSystem {
 		double maxSpd = DescentMod.su(data.getMaxSpeed()) * speedMult;
 		if (vel.length() > maxSpd) vel = vel.normalize().multiply(maxSpd);
 
+		// Soft world-column walls — stop silent void flight past min_y / topY
+		// (Overworld datapack is still −64…320; speculative WorldLevels are not live yet).
+		vel = applyColumnSoftWall(player, vel);
+
 		// Wall bounce from last move (LivingEntityMixin applies move during travel)
 		if (player.horizontalCollision || player.verticalCollision) {
 			Vec3d bounced = vel.multiply(-WALL_BOUNCE);
@@ -244,6 +248,7 @@ public final class FlightSystem {
 		com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
 		data.setEnabled(true);
 		data.ensureInit();
+		rescueIntoColumn(player);
 		player.setNoGravity(true);
 		player.fallDistance = 0f;
 		ModNetworking.syncPlayer(player, data);
@@ -266,6 +271,7 @@ public final class FlightSystem {
 		if (!data.hasShipAttitude()) {
 			data.levelShipAttitude(player);
 		}
+		rescueIntoColumn(player);
 		player.setNoGravity(true);
 		player.fallDistance = 0f;
 		player.velocityModified = true;
@@ -311,5 +317,48 @@ public final class FlightSystem {
 		} else {
 			input(player).hook = true;
 		}
+	}
+
+	/** Pull a player who already escaped the buildable column back inside. */
+	private static void rescueIntoColumn(ServerPlayerEntity player) {
+		int bot = player.getWorld().getBottomY();
+		int top = bot + player.getWorld().getHeight() - 1;
+		double y = player.getY();
+		if (y >= bot + 4 && y <= top - 4) return;
+		double clampedY = MathHelper.clamp(y, bot + 16.0, top - 16.0);
+		player.requestTeleport(player.getX(), clampedY, player.getZ());
+		DescentPlayerData data = DescentPlayerData.get(player);
+		data.setFlightVelocity(Vec3d.ZERO);
+		player.setVelocity(Vec3d.ZERO);
+	}
+
+	/**
+	 * Bounce / clamp inside the real dimension column so 6DoF never drifts to Y≈−3800 void.
+	 */
+	private static Vec3d applyColumnSoftWall(ServerPlayerEntity player, Vec3d vel) {
+		int bot = player.getWorld().getBottomY();
+		int top = bot + player.getWorld().getHeight() - 1;
+		double margin = 4.0;
+		double lo = bot + margin;
+		double hi = top - margin;
+		double y = player.getY();
+		if (y >= lo && y <= hi) {
+			// Soft push near edges before punching through
+			if (y < lo + 8.0 && vel.y < 0) {
+				double t = (lo + 8.0 - y) / 8.0;
+				return new Vec3d(vel.x, vel.y * (1.0 - 0.85 * t), vel.z);
+			}
+			if (y > hi - 8.0 && vel.y > 0) {
+				double t = (y - (hi - 8.0)) / 8.0;
+				return new Vec3d(vel.x, vel.y * (1.0 - 0.85 * t), vel.z);
+			}
+			return vel;
+		}
+		double clampedY = MathHelper.clamp(y, lo + 0.5, hi - 0.5);
+		player.requestTeleport(player.getX(), clampedY, player.getZ());
+		double vy;
+		if (y < lo) vy = Math.max(Math.abs(vel.y) * WALL_BOUNCE, 0.35);
+		else vy = -Math.max(Math.abs(vel.y) * WALL_BOUNCE, 0.35);
+		return new Vec3d(vel.x * 0.85, vy, vel.z * 0.85);
 	}
 }

@@ -312,7 +312,13 @@ public final class ModNetworking {
 	}
 
 	public static void syncLlod(ServerPlayerEntity player) {
-		var silhouettes = com.terminaldetector.drmd.world.llod.LlodRegistry.queryVisible(player.getBlockPos(), 64);
+		DescentPlayerData data = DescentPlayerData.get(player);
+		net.minecraft.util.math.Vec3d vel = data.isEnabled() ? data.getFlightVelocity() : player.getVelocity();
+		// Seeded ghost macros so high-speed / unloaded chunks still feed Voxel LLOD
+		com.terminaldetector.drmd.world.gen2.MacroCatalogue.ensureAround(
+				player.getServerWorld(), player.getBlockPos(), vel);
+		var silhouettes = com.terminaldetector.drmd.world.llod.LlodRegistry.queryVisible(
+				player.getBlockPos(), vel, 96);
 		java.util.ArrayList<LlodPayload.LlodEntry> entries = new java.util.ArrayList<>(silhouettes.size());
 		for (var s : silhouettes) {
 			entries.add(new LlodPayload.LlodEntry(

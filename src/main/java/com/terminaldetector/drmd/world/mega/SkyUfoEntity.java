@@ -117,7 +117,10 @@ public class SkyUfoEntity extends Entity {
 		setVelocity(vel);
 		setYaw(cruiseYaw);
 
-		double y = MathHelper.clamp(getY(), WorldRules.SKY_PRACTICAL_MIN + 14.0, WorldRules.SKY_PRACTICAL_MAX - 10.0);
+		int skyLo = WorldRules.clampBuildY(getWorld(), WorldRules.SKY_PRACTICAL_MIN + 14);
+		int skyHi = WorldRules.clampBuildY(getWorld(), WorldRules.SKY_PRACTICAL_MAX - 10);
+		if (skyHi <= skyLo) skyHi = skyLo + 1;
+		double y = MathHelper.clamp(getY(), skyLo, skyHi);
 		if (Math.abs(y - getY()) > 0.5) setPosition(getX(), y, getZ());
 
 		// Grid-crawl hull so interior stays coherent Minecraft blocks
@@ -126,7 +129,7 @@ public class SkyUfoEntity extends Entity {
 			BlockPos want = BlockPos.ofFloored(getX() + vel.x * MOVE_INTERVAL,
 					getY() + vel.y * MOVE_INTERVAL, getZ() + vel.z * MOVE_INTERVAL);
 			want = new BlockPos(want.getX(),
-					MathHelper.clamp(want.getY(), WorldRules.SKY_PRACTICAL_MIN + 14, WorldRules.SKY_PRACTICAL_MAX - 10),
+					MathHelper.clamp(want.getY(), skyLo, skyHi),
 					want.getZ());
 			if (!want.equals(hullCenter)) {
 				relocateHull(sw, want);

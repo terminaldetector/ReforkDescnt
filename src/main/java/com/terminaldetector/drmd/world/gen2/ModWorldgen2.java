@@ -61,7 +61,7 @@ public final class ModWorldgen2 {
 		// Mega fauna + sky UFO anchors
 		if (Math.floorMod(seed ^ 0x9E3779B97F4A7C15L, 40L) == 0L) {
 			int roll = (int) Math.floorMod(seed >> 7, 4L);
-			int y = WorldRules.SKY_PRACTICAL_MIN + 20 + (int) Math.floorMod(seed, 40L);
+			int y = WorldRules.skyY(world, (int) seed);
 			BlockPos at = new BlockPos(cp.getStartX() + 8, y, cp.getStartZ() + 8);
 			world.getServer().execute(() -> spawnMega(world, at, roll));
 		}
@@ -69,16 +69,17 @@ public final class ModWorldgen2 {
 
 	private static int skyY(MacroEntry.Kind kind, long seed, ServerWorld world, ChunkPos cp) {
 		return switch (kind) {
-			case RIFT, CANYON -> WorldRules.INDUSTRIAL_Y_MIN + 30 + (int) Math.floorMod(seed, 20L);
+			case RIFT, CANYON -> WorldRules.clampBuildY(world,
+					WorldRules.INDUSTRIAL_Y_MIN + 30 + (int) Math.floorMod(seed, 20L));
 			case ARCH, RING, FLOATING_CONTINENT, SPIRAL_RANGE, INVERTED_ISLAND, LUNAR_BASE ->
-					WorldRules.SKY_PRACTICAL_MIN + (int) Math.floorMod(seed, 60L);
+					WorldRules.skyY(world, (int) seed);
 			case CRASHED_UFO -> {
 				int x = cp.getStartX() + 8;
 				int z = cp.getStartZ() + 8;
 				int top = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
-				yield MathHelperClamp(top, 55, 110);
+				yield WorldRules.clampBuildY(world, MathHelperClamp(top, 55, 110));
 			}
-			default -> WorldRules.SKY_PRACTICAL_MIN + 40;
+			default -> WorldRules.skyY(world, (int) (seed >> 5));
 		};
 	}
 
