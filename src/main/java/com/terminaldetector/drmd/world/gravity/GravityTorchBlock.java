@@ -113,8 +113,8 @@ public class GravityTorchBlock extends Block {
 						com.terminaldetector.drmd.DescentPlayerData.get(sp);
 				// Only reorient walkers — thruster mode keeps ship UP
 				if (data.isEnabled()) continue;
-				LocalOrientation.setUp(sp.getUuid(), up);
-				FootGravitySystem.adoptClient(sp.getUuid(), up);
+				LocalOrientation.setUp(sp, up);
+				FootGravitySystem.adoptClient(sp, up);
 				sp.setNoGravity(true);
 			} else {
 				Vec3d down = up.negate();
@@ -138,10 +138,12 @@ public class GravityTorchBlock extends Block {
 		}
 		Direction face = state.get(FACING);
 		Vec3d up = Vec3d.of(face.getVector());
-		LocalOrientation.setUp(p.getUuid(), up);
 		if (p instanceof ServerPlayerEntity sp) {
-			FootGravitySystem.adoptClient(sp.getUuid(), up);
+			LocalOrientation.setUp(sp, up);
+			FootGravitySystem.adoptClient(sp, up);
 			sp.setNoGravity(true);
+		} else {
+			LocalOrientation.setUp(p.getUuid(), up);
 		}
 	}
 

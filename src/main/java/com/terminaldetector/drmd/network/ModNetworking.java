@@ -317,9 +317,12 @@ public final class ModNetworking {
 		var flightVel = data.getFlightVelocity();
 		float speed = (float) flightVel.length();
 		var up = com.terminaldetector.drmd.world.LocalOrientation.getUp(player.getUuid());
-		boolean foot = com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player.getUuid());
+		boolean foot = !data.isEnabled()
+				&& com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player);
 		if (foot) {
-			up = com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(player.getUuid());
+			up = com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(player);
+		} else if (data.isEnabled()) {
+			up = new net.minecraft.util.math.Vec3d(0, 1, 0);
 		}
 		ServerPlayNetworking.send(player, new SyncPayload(
 				data.isEnabled(),

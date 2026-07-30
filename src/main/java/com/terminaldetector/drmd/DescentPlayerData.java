@@ -11,16 +11,25 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Per-player DRMD state — mirrors GMod NWVars / ply fields from d6_core, energy, shield.
+ *
+ * <p><b>Client and server stores are separate</b> (keyed by side). On integrated
+ * singleplayer a shared map let SyncPayload roll back server flight velocity every
+ * tick — freezing the model and killing thrusters while foot/flight modes fought.
  */
 public class DescentPlayerData {
-	private static final Map<UUID, DescentPlayerData> STORE = new ConcurrentHashMap<>();
+	private static final Map<String, DescentPlayerData> STORE = new ConcurrentHashMap<>();
+
+	private static String key(PlayerEntity player) {
+		return (player.getWorld().isClient ? "c:" : "s:") + player.getUuid();
+	}
 
 	public static DescentPlayerData get(PlayerEntity player) {
-		return STORE.computeIfAbsent(player.getUuid(), id -> new DescentPlayerData());
+		return STORE.computeIfAbsent(key(player), id -> new DescentPlayerData());
 	}
 
 	public static void remove(UUID id) {
-		STORE.remove(id);
+		STORE.remove("c:" + id);
+		STORE.remove("s:" + id);
 	}
 
 	// --- Flight (d6_core.lua CFG) ---

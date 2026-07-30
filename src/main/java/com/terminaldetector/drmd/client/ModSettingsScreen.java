@@ -73,45 +73,36 @@ public class ModSettingsScreen extends Screen {
 
 	private void buildFlight(int x, int y, int w, int h, int gap) {
 		thrusterBtn = addDrawableChild(ButtonWidget.builder(thrusterLabel(), b -> {
-			send("toggle");
-			// Optimistic flip so the click always feels live before sync.
-			DescentClientState.enabled = !DescentClientState.enabled;
-			if (DescentClientState.enabled && client != null && client.player != null) {
-				ShipAttitudeClient.resetFromPlayer(client.player);
-				DescentClientState.attitudeValid = true;
-			}
-			status = DescentClientState.enabled ? "Thrusters §aON" : "Thrusters §cOFF";
+			// Explicit enable/disable — never "toggle" (avoids desync with optimistic UI).
+			boolean next = !DescentClientState.enabled;
+			applyClientFlightMode(next);
+			send(next ? "enable" : "disable");
+			status = next ? "Режим: §aПОЛЁТ" : "Режим: §eПЕШИЙ";
 			refreshLabels();
 		}).dimensions(x, y, w, h).build());
 		y += gap;
 
-		addDrawableChild(ButtonWidget.builder(Text.literal("§aВключить полёт (force ON)"), b -> {
+		addDrawableChild(ButtonWidget.builder(Text.literal("§aРежим ПОЛЁТ (force ON)"), b -> {
+			applyClientFlightMode(true);
 			send("enable");
-			DescentClientState.enabled = true;
-			if (client != null && client.player != null) {
-				ShipAttitudeClient.resetFromPlayer(client.player);
-				DescentClientState.attitudeValid = true;
-			}
-			status = "Полёт принудительно ON";
+			status = "Режим: §aПОЛЁТ";
 			refreshLabels();
 		}).dimensions(x, y, w, h).build());
 		y += gap;
 
-		addDrawableChild(ButtonWidget.builder(Text.literal("§cВыключить полёт"), b -> {
+		addDrawableChild(ButtonWidget.builder(Text.literal("§cРежим ПЕШИЙ (полёт OFF)"), b -> {
+			applyClientFlightMode(false);
 			send("disable");
-			DescentClientState.enabled = false;
-			DescentClientState.attitudeValid = false;
-			ShipAttitudeClient.clear();
-			status = "Полёт OFF";
+			status = "Режим: §eПЕШИЙ";
 			refreshLabels();
 		}).dimensions(x, y, w, h).build());
 		y += gap;
 
 		addDrawableChild(ButtonWidget.builder(Text.literal("§eПочинить полёт + обзор"), b -> {
+			applyClientFlightMode(true);
 			send("repair_flight");
-			DescentClientState.enabled = true;
 			reprimeLook();
-			status = "Repair отправлен — thrusters + attitude";
+			status = "Repair — полёт ON, пеший/foot сброшены";
 			refreshLabels();
 		}).dimensions(x, y, w, h).build());
 		y += gap;
@@ -239,6 +230,29 @@ public class ModSettingsScreen extends Screen {
 		}
 		ShipAttitudeClient.resetFromPlayer(client.player);
 		DescentClientState.attitudeValid = true;
+	}
+
+	/** Keep client DescentPlayerData + camera flags in the same mode the buttons claim. */
+	private void applyClientFlightMode(boolean flight) {
+		DescentClientState.enabled = flight;
+		DescentClientState.footGravity = false;
+		if (client == null || client.player == null) return;
+		var data = com.terminaldetector.drmd.DescentPlayerData.get(client.player);
+		data.setEnabled(flight);
+		if (flight) {
+			com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(client.player);
+			com.terminaldetector.drmd.world.LocalOrientation.setUp(client.player, new net.minecraft.util.math.Vec3d(0, 1, 0));
+			client.player.setNoGravity(true);
+			ShipAttitudeClient.resetFromPlayer(client.player);
+			DescentClientState.attitudeValid = true;
+			com.terminaldetector.drmd.client.gravity.FootGravityCamera.reset();
+		} else {
+			data.setFlightVelocity(net.minecraft.util.math.Vec3d.ZERO);
+			client.player.setVelocity(net.minecraft.util.math.Vec3d.ZERO);
+			client.player.setNoGravity(false);
+			DescentClientState.attitudeValid = false;
+			ShipAttitudeClient.clear();
+		}
 	}
 
 	@Override

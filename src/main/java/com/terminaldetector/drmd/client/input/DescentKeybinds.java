@@ -71,7 +71,24 @@ public final class DescentKeybinds {
 			if (tab && com.terminaldetector.drmd.client.hud.TerrainMap3d.canUse(client.player)) {
 				com.terminaldetector.drmd.client.hud.TerrainMap3d.toggle();
 			} else if (!tab) {
-				sendAction("toggle");
+				// Explicit enable/disable keeps client prediction aligned with server mode.
+				boolean next = !DescentClientState.enabled;
+				DescentClientState.enabled = next;
+				DescentClientState.footGravity = false;
+				if (client.player != null) {
+					var data = com.terminaldetector.drmd.DescentPlayerData.get(client.player);
+					data.setEnabled(next);
+					if (next) {
+						com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(client.player);
+						ShipAttitudeClient.resetFromPlayer(client.player);
+						DescentClientState.attitudeValid = true;
+					} else {
+						data.setFlightVelocity(net.minecraft.util.math.Vec3d.ZERO);
+						DescentClientState.attitudeValid = false;
+						ShipAttitudeClient.clear();
+					}
+				}
+				sendAction(next ? "enable" : "disable");
 			}
 		}
 		while (dash.wasPressed()) {

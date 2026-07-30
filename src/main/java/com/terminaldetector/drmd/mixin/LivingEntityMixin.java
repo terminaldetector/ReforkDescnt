@@ -43,11 +43,13 @@ public class LivingEntityMixin {
 		if (player.getVehicle() instanceof PyroShipEntity) return;
 
 		DescentPlayerData data = DescentPlayerData.get(player);
+		// Side-local data: flight and foot-gravity are mutually exclusive.
 		if (data.isEnabled()) {
+			if (FootGravitySystem.isActive(player)) {
+				FootGravitySystem.clear(player);
+			}
 			player.setNoGravity(true);
 			Vec3d vel = data.getFlightVelocity();
-			// Client: flight vector is filled from SyncPayload (and shared on integrated SP).
-			// Fall back to entity velocity only before the first sync arrives.
 			if (player.getWorld().isClient && vel.lengthSquared() < 1e-12) {
 				vel = player.getVelocity();
 			}
@@ -59,7 +61,7 @@ public class LivingEntityMixin {
 			return;
 		}
 
-		if (!FootGravitySystem.isActive(player.getUuid())) return;
+		if (!FootGravitySystem.isActive(player)) return;
 		FootGravitySystem.travel(player, movementInput);
 		ci.cancel();
 	}

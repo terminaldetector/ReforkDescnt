@@ -60,7 +60,7 @@ public class DescentClient implements ClientModInitializer {
 			DescentClientState.localUz = payload.enabled() ? 0f : payload.localUz();
 			var player = context.client().player;
 			if (player != null) {
-				// Keep DescentPlayerData.enabled in sync so LivingEntityMixin cancels vanilla travel.
+				// Client-side DescentPlayerData only (server store is separate on integrated SP).
 				var data = com.terminaldetector.drmd.DescentPlayerData.get(player);
 				data.setEnabled(payload.enabled());
 				data.setFlightAssist(payload.flightAssist());
@@ -72,18 +72,20 @@ public class DescentClient implements ClientModInitializer {
 					data.setFlightVelocity(flight);
 					player.setVelocity(flight);
 					player.setNoGravity(true);
-					com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
-					com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
+					com.terminaldetector.drmd.world.LocalOrientation.setUp(player, new Vec3d(0, 1, 0));
+					com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player);
+					com.terminaldetector.drmd.client.gravity.FootGravityCamera.reset();
 				} else {
 					data.setFlightVelocity(Vec3d.ZERO);
-					com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),
+					com.terminaldetector.drmd.world.LocalOrientation.setUp(player,
 							new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));
 					if (payload.footGravity()) {
 						com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptClient(
-								player.getUuid(),
+								player,
 								new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));
 					} else {
-						com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
+						com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player);
+						player.setNoGravity(false);
 					}
 				}
 			}

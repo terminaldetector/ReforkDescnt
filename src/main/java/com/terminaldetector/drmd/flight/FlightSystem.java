@@ -138,8 +138,8 @@ public final class FlightSystem {
 		// Thruster mode ignores station torches / generators — free 6DoF must not get
 		// reoriented to wall UP (that kills spherical look and feels like "flight fell off").
 		boolean onPyro = player.getVehicle() instanceof com.terminaldetector.drmd.entity.PyroShipEntity;
-		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
-		com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
+		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player);
+		com.terminaldetector.drmd.world.LocalOrientation.setUp(player, new Vec3d(0, 1, 0));
 		// World-down sink only while idle (GMod). While thrusting — pure free flight, no pull.
 		Vec3d gravDir = new Vec3d(0, -1, 0);
 		double g = 0.0;
@@ -236,13 +236,18 @@ public final class FlightSystem {
 	/** Full thruster arming — use everywhere instead of bare setEnabled(true). */
 	public static void enable(ServerPlayerEntity player) {
 		DescentPlayerData data = DescentPlayerData.get(player);
+		// Hard exclusive switch: leave pedestrian / foot-gravity completely.
 		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
-		com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
+		com.terminaldetector.drmd.world.LocalOrientation.setUp(player, new Vec3d(0, 1, 0));
 		data.setEnabled(true);
 		data.ensureInit();
+		data.setIdleTimer(0f);
+		data.setGravityFactor(0f);
+		data.setHookActive(false);
 		rescueIntoColumn(player);
 		player.setNoGravity(true);
 		player.fallDistance = 0f;
+		player.velocityModified = true;
 		ModNetworking.syncPlayer(player, data);
 	}
 
@@ -253,7 +258,7 @@ public final class FlightSystem {
 	public static void repair(ServerPlayerEntity player) {
 		DescentPlayerData data = DescentPlayerData.get(player);
 		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
-		com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
+		com.terminaldetector.drmd.world.LocalOrientation.setUp(player, new Vec3d(0, 1, 0));
 		data.setEnabled(true);
 		data.ensureInit();
 		data.setHookActive(false);
@@ -279,10 +284,12 @@ public final class FlightSystem {
 		data.setRollVel(0);
 		data.setFlightVelocity(Vec3d.ZERO);
 		data.setHookActive(false);
-		// Foot gravity may immediately reclaim noGravity; default to vanilla until then
-		if (!com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player.getUuid())) {
-			player.setNoGravity(false);
-		}
+		data.setThrustSpool(0f);
+		data.setIdleTimer(0f);
+		data.setGravityFactor(0f);
+		player.setVelocity(Vec3d.ZERO);
+		// Pedestrian default; foot-gravity may reclaim if standing in a field.
+		player.setNoGravity(false);
 		ModNetworking.syncPlayer(player, data);
 	}
 
@@ -290,7 +297,7 @@ public final class FlightSystem {
 		DescentPlayerData data = DescentPlayerData.get(player);
 		if (data.isEnabled()) {
 			disable(player, data);
-			// Re-enter foot gravity if standing in a torch/generator field
+			// Re-enter foot gravity only after flight fully released
 			com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptAt(player, player.getPos());
 			com.terminaldetector.drmd.world.gravity.FootGravitySystem.tick(player);
 		} else {

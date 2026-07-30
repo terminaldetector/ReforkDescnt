@@ -19,7 +19,9 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * On-foot local gravity — torch / generator redefine "down".
  * Pyro GX passengers are never affected; pilots keep thruster 6DoF.
- * After dismount (flight off), players walk on walls/ceilings with stable local UP.
+ * Mutually exclusive with flight mode ({@link DescentPlayerData#isEnabled()}).
+ *
+ * <p>State is keyed by client/server side so integrated SP does not cross-wire modes.
  */
 public final class FootGravitySystem {
 	public static final double GRAVITY = 0.08;
@@ -27,38 +29,71 @@ public final class FootGravitySystem {
 
 	public record State(Vec3d up, boolean active, boolean grounded, String label) {}
 
-	private static final Map<UUID, State> STATES = new ConcurrentHashMap<>();
+	private static final Map<String, State> STATES = new ConcurrentHashMap<>();
 
 	private FootGravitySystem() {}
 
-	public static State get(UUID id) {
-		return STATES.get(id);
+	private static String key(UUID id, boolean client) {
+		return (client ? "c:" : "s:") + id;
 	}
 
-	public static boolean isActive(UUID id) {
-		State s = STATES.get(id);
+	private static String key(PlayerEntity player) {
+		return key(player.getUuid(), player.getWorld().isClient);
+	}
+
+	public static State get(PlayerEntity player) {
+		return STATES.get(key(player));
+	}
+
+	public static boolean isActive(PlayerEntity player) {
+		State s = STATES.get(key(player));
 		return s != null && s.active();
 	}
 
+	/** @deprecated prefer {@link #isActive(PlayerEntity)} — UUID alone is side-ambiguous on SP. */
+	@Deprecated
+	public static boolean isActive(UUID id) {
+		State s = STATES.get(key(id, false));
+		if (s != null && s.active()) return true;
+		s = STATES.get(key(id, true));
+		return s != null && s.active();
+	}
+
+	public static Vec3d getUp(PlayerEntity player) {
+		State s = STATES.get(key(player));
+		if (s != null && s.active()) return s.up();
+		return LocalOrientation.getUp(player);
+	}
+
 	public static Vec3d getUp(UUID id) {
-		State s = STATES.get(id);
+		State s = STATES.get(key(id, false));
+		if (s != null && s.active()) return s.up();
+		s = STATES.get(key(id, true));
 		if (s != null && s.active()) return s.up();
 		return LocalOrientation.getUp(id);
 	}
 
+	/** Clear both sides (flight arming / hard reset). */
 	public static void clear(UUID id) {
-		STATES.remove(id);
+		STATES.remove(key(id, true));
+		STATES.remove(key(id, false));
+	}
+
+	public static void clear(PlayerEntity player) {
+		STATES.remove(key(player));
 	}
 
 	/** Server tick — orientation / activation only (motion via {@link #travel}). */
 	public static void tick(ServerPlayerEntity player) {
 		if (player.getVehicle() instanceof PyroShipEntity) {
-			clear(player.getUuid());
+			clear(player);
 			return;
 		}
 		DescentPlayerData data = DescentPlayerData.get(player);
 		if (data.isEnabled()) {
-			clear(player.getUuid());
+			// Flight owns the body — never keep foot-gravity active underneath.
+			clear(player);
+			LocalOrientation.setUp(player, new Vec3d(0, 1, 0));
 			return;
 		}
 
@@ -69,23 +104,23 @@ public final class FootGravitySystem {
 			up = field.upDir().normalize();
 			label = field.label() != null ? field.label() : "Local Gravity";
 		} else {
-			up = LocalOrientation.getUp(player.getUuid());
+			up = LocalOrientation.getUp(player);
 			label = "Local";
 			if (isWorldUp(up)) {
 				player.setNoGravity(false);
-				clear(player.getUuid());
-				LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
+				clear(player);
+				LocalOrientation.setUp(player, new Vec3d(0, 1, 0));
 				if (player.age % 10 == 0) ModNetworking.syncPlayer(player, data);
 				return;
 			}
 		}
 
-		LocalOrientation.setUp(player.getUuid(), up);
+		LocalOrientation.setUp(player, up);
 		player.setNoGravity(true);
 		player.fallDistance = 0f;
 
 		boolean grounded = probeGround(player, up);
-		STATES.put(player.getUuid(), new State(up, true, grounded, label));
+		STATES.put(key(player), new State(up, true, grounded, label));
 		if (player.age % 2 == 0) ModNetworking.syncPlayer(player, data);
 	}
 
@@ -94,7 +129,13 @@ public final class FootGravitySystem {
 	 * movementInput: strafe / jump / forward.
 	 */
 	public static void travel(PlayerEntity player, Vec3d movementInput) {
-		Vec3d up = getUp(player.getUuid());
+		// Never run foot travel while thrusters claim the player (mode exclusivity).
+		if (DescentPlayerData.get(player).isEnabled()) {
+			clear(player);
+			return;
+		}
+
+		Vec3d up = getUp(player);
 		if (up.lengthSquared() < 1e-6) up = new Vec3d(0, 1, 0);
 		up = up.normalize();
 
@@ -126,7 +167,6 @@ public final class FootGravitySystem {
 		if (!grounded) {
 			vel = vel.add(up.negate().multiply(GRAVITY));
 		} else {
-			// Kill into-floor component and keep contact
 			double into = vel.dotProduct(up.negate());
 			if (into > 0) vel = vel.subtract(up.negate().multiply(into));
 			snapToSurface(player, up);
@@ -138,11 +178,9 @@ public final class FootGravitySystem {
 		player.setOnGround(grounded);
 		player.fallDistance = 0f;
 
-		if (player instanceof ServerPlayerEntity sp) {
-			State prev = STATES.get(sp.getUuid());
-			String label = prev != null ? prev.label() : "Local";
-			STATES.put(sp.getUuid(), new State(up, true, grounded, label));
-		}
+		State prev = STATES.get(key(player));
+		String label = prev != null ? prev.label() : "Local";
+		STATES.put(key(player), new State(up, true, grounded, label));
 	}
 
 	private static boolean probeGround(PlayerEntity player, Vec3d up) {
@@ -166,11 +204,9 @@ public final class FootGravitySystem {
 				RaycastContext.FluidHandling.NONE,
 				player));
 		if (hit.getType() != HitResult.Type.BLOCK) return;
-		double stand = 0.0;
-		Vec3d target = hit.getPos().add(up.multiply(stand));
+		Vec3d target = hit.getPos();
 		Vec3d delta = target.subtract(player.getPos());
 		double along = delta.dotProduct(up);
-		// Only correct along up/down, keep tangential freedom
 		if (Math.abs(along) > 0.02) {
 			player.setPosition(player.getPos().add(up.multiply(along * 0.55)));
 		}
@@ -184,23 +220,38 @@ public final class FootGravitySystem {
 		return up.squaredDistanceTo(0, 1, 0) < 0.04;
 	}
 
-	/** Adopt gravity field at a position (dismount / torch). */
+	/** Adopt gravity field at a position (dismount / torch) — server side. */
 	public static void adoptAt(ServerPlayerEntity player, Vec3d pos) {
+		if (DescentPlayerData.get(player).isEnabled()) return;
 		GravityFields.Sample field = GravityFields.sample(player.getWorld(), pos);
 		if (field != null) {
 			Vec3d up = field.upDir().normalize();
-			LocalOrientation.setUp(player.getUuid(), up);
-			STATES.put(player.getUuid(), new State(up, true, false,
+			LocalOrientation.setUp(player, up);
+			STATES.put(key(player), new State(up, true, false,
 					field.label() != null ? field.label() : "Local Gravity"));
 			player.setNoGravity(true);
 		}
 	}
 
-	/** Client mirror of active foot-gravity state (from sync). */
+	/** Mirror active foot-gravity onto this side (client sync or server torch). */
+	public static void adoptClient(PlayerEntity player, Vec3d up) {
+		if (DescentPlayerData.get(player).isEnabled()) {
+			clear(player);
+			return;
+		}
+		if (up.lengthSquared() < 1e-6) up = new Vec3d(0, 1, 0);
+		up = up.normalize();
+		LocalOrientation.setUp(player, up);
+		STATES.put(key(player), new State(up, true, false, "Local"));
+	}
+
+	/** @deprecated use {@link #adoptClient(PlayerEntity, Vec3d)} */
+	@Deprecated
 	public static void adoptClient(UUID id, Vec3d up) {
 		if (up.lengthSquared() < 1e-6) up = new Vec3d(0, 1, 0);
 		up = up.normalize();
 		LocalOrientation.setUp(id, up);
-		STATES.put(id, new State(up, true, false, "Local"));
+		// Legacy: write client slot (sync path). Server torch should pass PlayerEntity.
+		STATES.put(key(id, true), new State(up, true, false, "Local"));
 	}
 }
