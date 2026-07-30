@@ -216,17 +216,9 @@ public final class FlightSystem {
 		// (Overworld datapack is still −64…320; speculative WorldLevels are not live yet).
 		vel = applyColumnSoftWall(player, vel);
 
-		// Wall bounce from last move (LivingEntityMixin applies move during travel)
-		if (player.horizontalCollision || player.verticalCollision) {
-			Vec3d bounced = vel.multiply(-WALL_BOUNCE);
-			if (player.horizontalCollision) {
-				bounced = new Vec3d(bounced.x, vel.y * WALL_BOUNCE, bounced.z);
-			}
-			if (player.verticalCollision) {
-				bounced = new Vec3d(vel.x * WALL_BOUNCE, -Math.abs(vel.y) * WALL_BOUNCE, vel.z * WALL_BOUNCE);
-			}
-			vel = vel.multiply(WALL_BOUNCE).add(bounced).multiply(0.5);
-		}
+		// Collision: axis-aware. NEVER zero upward thrust while standing on ground —
+		// the old "bounce every verticalCollision tick" made takeoff impossible.
+		vel = applyCollisionResponse(player, vel, thrusting);
 
 		data.setFlightVelocity(vel);
 		// Apply to player — LivingEntityMixin.travel moves with this vector (no vanilla air-strafe).
@@ -319,7 +311,7 @@ public final class FlightSystem {
 		}
 	}
 
-	/** Pull a player who already escaped the buildable column back inside. */
+	/** Pull a player who already escaped the buildable column back inside (keep momentum). */
 	private static void rescueIntoColumn(ServerPlayerEntity player) {
 		int bot = player.getWorld().getBottomY();
 		int top = bot + player.getWorld().getHeight() - 1;
@@ -328,8 +320,34 @@ public final class FlightSystem {
 		double clampedY = MathHelper.clamp(y, bot + 16.0, top - 16.0);
 		player.requestTeleport(player.getX(), clampedY, player.getZ());
 		DescentPlayerData data = DescentPlayerData.get(player);
-		data.setFlightVelocity(Vec3d.ZERO);
-		player.setVelocity(Vec3d.ZERO);
+		Vec3d vel = data.getFlightVelocity();
+		double vy = y < bot + 4 ? Math.max(0.4, Math.abs(vel.y) * WALL_BOUNCE)
+				: -Math.max(0.4, Math.abs(vel.y) * WALL_BOUNCE);
+		Vec3d bounced = new Vec3d(vel.x * 0.85, vy, vel.z * 0.85);
+		data.setFlightVelocity(bounced);
+		player.setVelocity(bounced);
+	}
+
+	/**
+	 * Axis-aware wall response. Floor contact must not cancel Space/ship-up takeoff.
+	 */
+	private static Vec3d applyCollisionResponse(ServerPlayerEntity player, Vec3d vel, boolean thrusting) {
+		if (player.horizontalCollision && (vel.x * vel.x + vel.z * vel.z) > 0.0025) {
+			vel = new Vec3d(vel.x * -WALL_BOUNCE, vel.y, vel.z * -WALL_BOUNCE);
+		}
+		if (!player.verticalCollision) return vel;
+		if (player.isOnGround()) {
+			// Resting / scraping floor: kill only downward sink; keep upward thrust.
+			if (vel.y < 0) {
+				vel = new Vec3d(vel.x, thrusting ? 0 : vel.y * -WALL_BOUNCE * 0.25, vel.z);
+			}
+			return vel;
+		}
+		// Ceiling / overhang while climbing
+		if (vel.y > 0.02) {
+			vel = new Vec3d(vel.x, -Math.abs(vel.y) * WALL_BOUNCE, vel.z);
+		}
+		return vel;
 	}
 
 	/**

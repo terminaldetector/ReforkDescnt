@@ -8,7 +8,6 @@ import com.terminaldetector.drmd.flight.FlightSystem;
 import com.terminaldetector.drmd.network.ModNetworking;
 import com.terminaldetector.drmd.world.base.ReactorRoomStarter;
 import com.terminaldetector.drmd.world.build.ConstructionMode;
-import com.terminaldetector.drmd.world.level.WorldLevels;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -101,13 +100,28 @@ public final class SessionControlItems {
 							SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 0.9f, 1.2f);
 				}
 				case LEVEL -> {
-					WorldLevels.Level[] levels = WorldLevels.Level.values();
-					WorldLevels.Level cur = WorldLevels.at(player.getY());
-					int next = (cur.ordinal() + 1) % levels.length;
-					WorldLevels.Level target = levels[next];
-					player.requestTeleport(player.getX(), target.travelY(), player.getZ());
+					// Stay inside live overworld column (−64…320); speculative WorldLevels Y is OOB.
+					int bot = world.getBottomY();
+					int top = bot + world.getHeight() - 1;
+					int[] stops = {
+							Math.max(bot + 12, -40),
+							64,
+							Math.min(top - 16, 180),
+							Math.min(top - 8, 280)
+					};
+					double y = player.getY();
+					int dest = stops[0];
+					for (int i = 0; i < stops.length; i++) {
+						if (y < stops[i] - 2) {
+							dest = stops[i];
+							break;
+						}
+						dest = stops[(i + 1) % stops.length];
+					}
+					player.requestTeleport(player.getX(), dest, player.getZ());
+					FlightSystem.enable(player);
 					player.sendMessage(Text.literal(
-							"§bLevel lift → §f" + target.label + " §7(y=" + target.travelY() + ")"), false);
+							"§bAltitude lift → §fY " + dest), false);
 					world.playSound(null, player.getX(), player.getY(), player.getZ(),
 							SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 0.7f, 1.3f);
 				}

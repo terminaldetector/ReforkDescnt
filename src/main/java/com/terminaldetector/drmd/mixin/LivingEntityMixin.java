@@ -46,7 +46,8 @@ public class LivingEntityMixin {
 		if (data.isEnabled()) {
 			player.setNoGravity(true);
 			Vec3d vel = data.getFlightVelocity();
-			// Client fallback before first sync of flight vector
+			// Client: flight vector is filled from SyncPayload (and shared on integrated SP).
+			// Fall back to entity velocity only before the first sync arrives.
 			if (player.getWorld().isClient && vel.lengthSquared() < 1e-12) {
 				vel = player.getVelocity();
 			}

@@ -56,7 +56,7 @@ public final class ModNetworking {
 							  float roll, float speed, int rocketSub, String preset, float gravy,
 							  float dashCd, float gravityFactor, boolean alwaysRun, boolean flightAssist,
 							  boolean radar, boolean footGravity, float localUx, float localUy, float localUz,
-							  boolean construction
+							  boolean construction, float vx, float vy, float vz
 	) implements CustomPayload {
 		public static final Id<SyncPayload> ID = new Id<>(SYNC_ID);
 		public static final PacketCodec<RegistryByteBuf, SyncPayload> CODEC = PacketCodec.of(
@@ -81,6 +81,9 @@ public final class ModNetworking {
 					buf.writeFloat(payload.localUy);
 					buf.writeFloat(payload.localUz);
 					buf.writeBoolean(payload.construction);
+					buf.writeFloat(payload.vx);
+					buf.writeFloat(payload.vy);
+					buf.writeFloat(payload.vz);
 				},
 				buf -> new SyncPayload(
 						buf.readBoolean(),
@@ -102,7 +105,10 @@ public final class ModNetworking {
 						buf.readFloat(),
 						buf.readFloat(),
 						buf.readFloat(),
-						buf.readBoolean()
+						buf.readBoolean(),
+						buf.readFloat(),
+						buf.readFloat(),
+						buf.readFloat()
 				)
 		);
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
@@ -215,8 +221,14 @@ public final class ModNetworking {
 				case "enable" -> FlightSystem.enable(player);
 				case "disable" -> FlightSystem.disable(player, data);
 				case "repair_flight" -> FlightSystem.repair(player);
-				case "weapon_use" -> com.terminaldetector.drmd.weapon.items.DescentWeaponItem.tryUseChannel(player, false);
-				case "weapon_alt" -> com.terminaldetector.drmd.weapon.items.DescentWeaponItem.tryUseChannel(player, true);
+				case "weapon_use" -> {
+					com.terminaldetector.drmd.weapon.items.DescentWeaponItem.tryUseChannel(player, false);
+					return; // high-frequency — skip full HUD sync
+				}
+				case "weapon_alt" -> {
+					com.terminaldetector.drmd.weapon.items.DescentWeaponItem.tryUseChannel(player, true);
+					return;
+				}
 				case "dash" -> FlightSystem.tryDash(player);
 				case "alwaysrun" -> data.setAlwaysRun(!data.isAlwaysRun());
 				case "flightassist" -> data.setFlightAssist(!data.isFlightAssist());
@@ -245,12 +257,28 @@ public final class ModNetworking {
 				}
 				case "construct" -> com.terminaldetector.drmd.world.build.ConstructionMode.toggle(player);
 				case "level_lift" -> {
-					var levels = com.terminaldetector.drmd.world.level.WorldLevels.Level.values();
-					var cur = com.terminaldetector.drmd.world.level.WorldLevels.at(player.getY());
-					var target = levels[(cur.ordinal() + 1) % levels.length];
-					player.requestTeleport(player.getX(), target.travelY(), player.getZ());
+					// Cycle inside the live buildable column (−64…320), not speculative WorldLevels Y.
+					int bot = player.getWorld().getBottomY();
+					int top = bot + player.getWorld().getHeight() - 1;
+					int[] stops = {
+							Math.max(bot + 12, -40),
+							64,
+							Math.min(top - 16, 180),
+							Math.min(top - 8, 280)
+					};
+					double y = player.getY();
+					int next = stops[0];
+					for (int i = 0; i < stops.length; i++) {
+						if (y < stops[i] - 2) {
+							next = stops[i];
+							break;
+						}
+						next = stops[(i + 1) % stops.length];
+					}
+					player.requestTeleport(player.getX(), next, player.getZ());
+					FlightSystem.enable(player);
 					player.sendMessage(net.minecraft.text.Text.literal(
-							"§bLevel → §f" + target.label), false);
+							"§bAltitude → §fY " + next), false);
 				}
 				case "reactor_start" ->
 						com.terminaldetector.drmd.world.base.ReactorRoomStarter.activate(player);
@@ -286,7 +314,8 @@ public final class ModNetworking {
 	}
 
 	public static void syncPlayer(ServerPlayerEntity player, DescentPlayerData data) {
-		float speed = (float) data.getFlightVelocity().length();
+		var flightVel = data.getFlightVelocity();
+		float speed = (float) flightVel.length();
 		var up = com.terminaldetector.drmd.world.LocalOrientation.getUp(player.getUuid());
 		boolean foot = com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player.getUuid());
 		if (foot) {
@@ -307,7 +336,8 @@ public final class ModNetworking {
 				data.isRadarEnabled(),
 				foot,
 				(float) up.x, (float) up.y, (float) up.z,
-				com.terminaldetector.drmd.world.build.ConstructionMode.isActive(player.getUuid())
+				com.terminaldetector.drmd.world.build.ConstructionMode.isActive(player.getUuid()),
+				(float) flightVel.x, (float) flightVel.y, (float) flightVel.z
 		));
 	}
 

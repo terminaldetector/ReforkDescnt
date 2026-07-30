@@ -68,10 +68,14 @@ public class DescentClient implements ClientModInitializer {
 				data.setRadarEnabled(payload.radar());
 				data.setGravityFactor(payload.gravityFactor());
 				if (payload.enabled()) {
+					Vec3d flight = new Vec3d(payload.vx(), payload.vy(), payload.vz());
+					data.setFlightVelocity(flight);
+					player.setVelocity(flight);
 					player.setNoGravity(true);
 					com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
 					com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
 				} else {
+					data.setFlightVelocity(Vec3d.ZERO);
 					com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),
 							new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));
 					if (payload.footGravity()) {

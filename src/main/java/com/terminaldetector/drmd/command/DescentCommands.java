@@ -152,9 +152,13 @@ public final class DescentCommands {
 										ServerPlayerEntity p = ctx.getSource().getPlayer();
 										var level = com.terminaldetector.drmd.world.level.WorldLevels
 												.byName(StringArgumentType.getString(ctx, "name"));
-										p.requestTeleport(p.getX(), level.travelY(), p.getZ());
+										int y = com.terminaldetector.drmd.world.WorldRules.clampBuildY(
+												p.getWorld(), level.travelY());
+										p.requestTeleport(p.getX(), y, p.getZ());
+										FlightSystem.enable(p);
 										ctx.getSource().sendFeedback(() -> Text.literal(
-												"Ascending to " + level.label + " @ y=" + level.travelY()), false);
+												"Ascending to " + level.label + " @ y=" + y
+														+ " (clamped to world column)"), false);
 										return 1;
 									})))
 					.then(CommandManager.literal("worldgen")

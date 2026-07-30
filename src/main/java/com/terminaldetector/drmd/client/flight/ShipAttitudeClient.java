@@ -42,6 +42,11 @@ public final class ShipAttitudeClient {
 		rollVel = 0;
 		DescentCamera.clear();
 		applyToPlayer(player);
+		// Snap render history only on prime — continuous snap caused F5 model hang.
+		player.prevYaw = player.getYaw();
+		player.prevPitch = player.getPitch();
+		player.prevHeadYaw = player.headYaw;
+		player.prevBodyYaw = player.bodyYaw;
 	}
 
 	public static void clear() {
@@ -115,10 +120,15 @@ public final class ShipAttitudeClient {
 	}
 
 	public static void applyToPlayer(ClientPlayerEntity player) {
-		player.setYaw(ATT.yawDegrees());
-		player.setPitch(clampPitch(ATT.pitchDegrees()));
-		player.prevYaw = player.getYaw();
-		player.prevPitch = player.getPitch();
+		float yaw = ATT.yawDegrees();
+		float pitch = clampPitch(ATT.pitchDegrees());
+		player.setYaw(yaw);
+		player.setPitch(pitch);
+		// Drive body with the ship so F5 does not lag behind the camera.
+		// Do NOT snap prevYaw/prevPitch every mouse frame — that kills interpolation
+		// and makes the model look frozen / hitching while the camera turns.
+		player.headYaw = yaw;
+		player.bodyYaw = yaw;
 		DescentClientState.roll = ATT.bankDegrees();
 		DescentClientState.pitch = ATT.pitchDegrees();
 		DescentClientState.attFx = (float) ATT.fx;
