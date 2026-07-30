@@ -1,60 +1,64 @@
-# DRMD 6DOF — Minecraft Fabric Mod
+# DRMD 6DOF — Descent-like in Minecraft
 
 ![Fabric](https://img.shields.io/badge/Fabric-1.21.1-brightgreen)
 ![Java](https://img.shields.io/badge/Java-21-orange)
-![Status](https://img.shields.io/badge/status-Port-blue)
+![Build](https://img.shields.io/badge/build-Gradle-blue)
 
-**DRMD 6DOF** (Descent-Inspired Resource Management Dynamics) — полный порт боевого аддона Garry's Mod на **Minecraft Fabric 1.21.1**.
-
-Сохранены исходные черты: 6DOF-полёт, энергия с пресетами, щиты, 27 оружий, AI-дроны с ролями, карточные сущности, кокпит-HUD и **Оружейная Мастерская**.
-
-Исходный GMod-код лежит в [`legacy/`](legacy/) для сверки поведения.
+**DRMD 6DOF** — это не «Minecraft с полётом». Это режим Minecraft, переосмысленный как **трёхмерная воксельная песочница в духе Descent**: инерционный 6DoF-полёт, реакторные комплексы, дроны-враги, транспорт Pyro, энергия, щиты и оружейная мастерская.
 
 ---
 
-## Системы
+## Быстрый старт (активация мода)
 
-| Система | Источник (GMod) | Реализация |
-|---------|-----------------|------------|
-| 6DOF полёт + инерция + dash + крюк | `d6_core.lua` | `flight/FlightSystem` |
-| Энергия + пресеты | `d6_energy.lua` | `energy/EnergySystem` |
-| Щиты | `d6_shield.lua` | `shield/ShieldSystem` |
-| Снаряды / урон / отдача | `d6_weapon_core.lua` | `weapon/core/WeaponCore` |
-| 27 оружий | `weapon_d6_*.lua` | `weapon/items/*` |
-| AI роли | `d6_ai_roles.lua` | `ai/AiRole` + `DroneEntity` |
-| Мастерская | SCK schema/UI | `workshop/*` |
-| Карта | FGD entities | `checkpoint` / `dock` / … |
-| HUD | `d6_cockpit.lua` | `client/hud/DescentHud` |
+### 1. Собрать jar
 
-### Физика (Source → Minecraft)
+```bash
+# Нужен JDK 21
+./gradlew build
+```
 
-Скорости и ускорения из Source переводятся через `UNIT_SCALE = 1/80`, чтобы сохранить характер Descent (быстрый инерционный полёт) без неиграбельных значений.
-
-### Энергетические пресеты
-
-- **balanced** — 34 / 33 / 33 (W/S/E)
-- **assault** — 55 / 25 / 20
-- **interceptor** — 25 / 20 / 55
-- **siege** — 45 / 45 / 10
-
-Реген: `8 * (0.5 + weaponsAlloc)` ед/сек — как в оригинале.
-
-### Оружие
-
-Пулемёт, Плазма, Тяжёлый, Лазер, Ракеты (4 сабрежима), Грави-рельса, Вулкан, Флак, ГСН/КС/Умная/Мега ракеты, Quad-лазер, Рельса МК2, BFG, Фраг, Овердрайв, Энерговолна, Копьё/Поле тьмы, капканы, мины, Сброс реактора, Варп, Телефраг, Хлыст.
-
-Классы урона: `kinetic` / `energy` / `explosive` / `exotic`.
-
-### Враги
-
-Роли: assault, interceptor, artillery, support, heavy_elite + legacy mg/laser/rpg/heavy/seeker/grav + air mines.
+Готовый файл:
 
 ```
-/6dof_spawn assault
-/6dof_spawn_squad 5
-/6dof_spawn_mine
-/d6_kill_npcs
+build/libs/drmd-6dof-1.0.0.jar
 ```
+
+Или скачать артефакт из GitHub Actions: **Actions → Build DRMD 6DOF → Artifacts → drmd-6dof**.
+
+### 2. Установить в Minecraft
+
+1. Установите [Fabric Loader](https://fabricmc.net/use/) для **Minecraft 1.21.1**
+2. Положите в папку `mods/`:
+   - `drmd-6dof-1.0.0.jar`
+   - [Fabric API](https://modrinth.com/mod/fabric-api) для 1.21.1
+3. Запустите клиент / сервер
+
+### 3. Активировать Descent-сессию в мире
+
+В чате (читов достаточно для `/d6 start` в одиночке):
+
+```
+/d6 start
+```
+
+Это:
+
+- вырезает **реакторную комнату** (сфера + ядро + кольца + шахты);
+- ставит **вращающийся реактор**, док, чекпоинт, магнитную аномалию;
+- спавнит **Pyro-транспорт** и **5 вражеских дронов**;
+- выдаёт стартовый арсенал (MG, Plasma, Laser, Rockets, Gravy, Build Tool);
+- включает 6DoF.
+
+Дальше:
+
+| Действие | Как |
+|----------|-----|
+| Сесть в корабль | ПКМ по Pyro |
+| Свободный полёт | `H` (toggle 6DoF) |
+| Рывок | `Shift` |
+| Мастерская оружия | `M` |
+| Ещё дроны | `/6dof_spawn assault` |
+| Новый корабль | `/d6 ship` |
 
 ---
 
@@ -62,50 +66,74 @@
 
 | Клавиша | Действие |
 |---------|----------|
-| **H** | Вкл/выкл 6DOF |
+| **H** | Вкл/выкл 6DoF |
 | **WASD** | Тяга |
-| **Space / Ctrl** | Вверх / вниз |
+| **Space / Ctrl** | Вверх / вниз (локально) |
 | **Q / E** | Крен |
-| **Shift** | Рывок (15 энергии) |
-| **R** | Форсаж (Always-Run) |
+| **Shift** | Dash (15 энергии) |
+| **R** | Форсаж |
 | **F** | Flight Assist |
 | **Z** | Крюк |
 | **G** | Сабрежим ракет |
-| **T** | Радар |
 | **M** | Оружейная Мастерская |
 | **X** | Сброс крена |
+
+---
+
+## Что внутри
+
+### Полёт и бой
+- Инерционный 6DoF (spool, drag, idle-гравитация по **локальному UP**)
+- Энергия + пресеты balanced / assault / interceptor / siege
+- Щиты с регеном
+- 27 оружий Descent/Doom-стиля
+- Кластеры стволов + Workshop
+
+### Мир 6DoF
+- Нет абсолютного верха (`LocalOrientation`)
+- **6D Soil** — рост на шести гранях наружу
+- **Build Tool** — Look / Surface / Plane + вращение по 3 осям
+- **Industrial Underground** — технокомплексы в генерации
+- Ловушки навигации: hermetic / laser / turret / magnetic / unstable
+
+### Placeholder-модели (Descent-like)
+| Объект | ID | Описание |
+|--------|-----|----------|
+| Pyro ship | `drmd:pyro_ship` | Транспорт — корпус + крылья + сопло |
+| Drone | `drmd:drone` | Враг-дрон с 4 спарсами |
+| Reactor | `drmd:reactor_display` | Вращающееся ядро реактора |
+| Air mine | `drmd:air_mine` | Воздушная мина |
+
+Модели — procedural placeholder (готовы к замене Blockbench-ассетами).
 
 ---
 
 ## Команды
 
 ```
-/6dof toggle|dash|alwaysrun|flightassist
-/d6 energy preset <balanced|assault|interceptor|siege>
-/d6 energy set <w> <s> <e>
-/d6 set <gravity|accel|drag|maxSpeed> <value>   # admin
-/d6 weapons list
-/d6 weapons give_all                            # admin
+/d6 start                         # реакторная база + кит + дроны + корабль
+/d6 ship                          # заспавнить Pyro
+/d6 kit                           # блоки мира / build tool
+/d6 worldgen industrial [STYLE]   # комплекс (CRYSTAL_REACTOR, SMELTERY, …)
+/d6 orient reset                  # сброс локального UP
+/6dof toggle|dash|alwaysrun
+/6dof_spawn <role>                # assault, interceptor, mg, rpg, …
+/6dof_spawn_squad 5
+/d6 weapons give_all
 ```
+
+Стили комплексов: `ABANDONED_RESEARCH`, `ANCIENT_POWER`, `AUTO_FACTORY`, `SMELTERY`, `CRYSTAL_REACTOR`, `TECH_RUINS`.
 
 ---
 
-## Сборка
-
-Требования: **JDK 21**, интернет для зависимостей Fabric.
+## Dev / CI
 
 ```bash
-./gradlew build
+./gradlew runClient    # клиент разработки
+./gradlew build        # jar
 ```
 
-Готовый jar: `build/libs/drmd-6dof-1.0.0.jar`  
-Установка: положить в `mods/` вместе с Fabric API для 1.21.1.
-
-Запуск клиента разработки:
-
-```bash
-./gradlew runClient
-```
+GitHub Actions: `.github/workflows/build.yml` — сборка на push/PR + upload jar.
 
 ---
 
@@ -113,59 +141,28 @@
 
 ```
 src/main/java/com/terminaldetector/drmd/
-├── DescentMod.java          # входная точка
-├── DescentPlayerData.java   # состояние игрока
-├── flight/                  # 6DOF
-├── energy/                  # пул + пресеты
-├── shield/                  # поглощение + реген
-├── weapon/                  # ядро + 27 оружий
-├── ai/                      # роли и цели
-├── entity/                  # снаряды, дроны, блоки карты
-├── workshop/                # 4-вкладочный редактор
-├── client/                  # HUD, бинды, рендер
-├── command/                 # /6dof /d6
-└── network/                 # sync + input
+├── flight/ energy/ shield/ weapon/   # бой и полёт
+├── ai/ entity/                       # дроны, Pyro, реактор
+├── workshop/                         # оружейная мастерская + clusters
+├── world/                            # 6DoF world rules, soil, traps, industrial
+│   └── base/ReactorRoomStarter.java  # /d6 start
+└── client/                           # HUD, модели, рендер
 
-legacy/                      # оригинальный GMod аддон
+docs/WORLD_DESIGN.md                  # спецификация мира
+legacy/                               # исходный GMod-аддон
 ```
 
 ---
 
-## Оружейная Мастерская
+## Рекомендуемый первый час
 
-Клавиша **M** — вкладки **Stats / Projectile / Flak / Guidance / Clusters**.
-
-### Clusters (строительство)
-Порт SCK WeaponClusters + `D6_SCKBridge`:
-- Зоны: **Center → Upper → SideLeft → SideRight → Lower**
-- Модули: `barrel` / `nosegun` / `strider` / `gravy` с позицией, scale, muzzle idx
-- Дефолтные компоновки всех 27 оружий из `d6_wepview.lua`
-- **Load Held** — загрузить construction текущего оружия
-- **Apply Build** — применить маззлы/вид к оружию (сервер + клиенты)
-- **Reset Layout** — вернуть Doom-стиль по умолчанию
-- Экспорт Java включает блок `WeaponClusters` + `ConstructionRegistry.setOverride`
-
-Точки выстрела из construction кормят `WeaponCore.muzzleFor` (плазма/quad/vulcan стреляют из нескольких стволов).
+1. `/d6 start` — оказаться в реакторной камере  
+2. ПКМ по **Pyro** — облететь ядро  
+3. Отстрелять дронов (Plasma / Rockets)  
+4. `M` — подкрутить оружие в Workshop → Apply Build  
+5. Build Tool: Shift+ПКМ по стене → Local UP = эта грань → строить «пол» где угодно  
+6. `/d6 worldgen industrial CRYSTAL_REACTOR` — новый комплекс рядом  
 
 ---
 
-MIT License. Inspired by Descent. Original GMod systems preserved in spirit and numbers.
-
----
-
-## 6DoF World Mode
-
-См. [`docs/WORLD_DESIGN.md`](docs/WORLD_DESIGN.md) — спецификация мира:
-
-- нет абсолютного верха (`LocalOrientation` + магнитные аномалии);
-- **6D Soil** — рост на шести гранях наружу;
-- **Build Tool** — Look / Surface / Plane + вращение по 3 осям;
-- **Industrial Underground** — сферические реакторы, шахты, спирали, модульные комплексы;
-- ловушки навигации: hermetic gate, laser, volume turret, magnetic anomaly, unstable reactor.
-
-```
-/d6 kit
-/d6 worldgen industrial CRYSTAL_REACTOR
-/d6 orient reset
-```
-
+MIT. Inspired by **Descent**. GMod-оригинал — в `legacy/`.

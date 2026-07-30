@@ -171,6 +171,25 @@ public final class DescentCommands {
 								ctx.getSource().sendFeedback(() -> Text.literal("Gave 6DoF world-design kit"), false);
 								return 1;
 							}))
+					.then(CommandManager.literal("start")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								com.terminaldetector.drmd.world.base.ReactorRoomStarter.activate(p);
+								ctx.getSource().sendFeedback(() -> Text.literal("Descent Reactor Room activated"), true);
+								return 1;
+							}))
+					.then(CommandManager.literal("ship")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								var ship = com.terminaldetector.drmd.entity.ModEntities.PYRO_SHIP.create(p.getServerWorld());
+								if (ship != null) {
+									var pos = p.getPos().add(p.getRotationVec(1f).multiply(3));
+									ship.refreshPositionAndAngles(pos.x, pos.y, pos.z, p.getYaw(), 0);
+									p.getServerWorld().spawnEntity(ship);
+									ctx.getSource().sendFeedback(() -> Text.literal("Spawned Pyro transport — ПКМ to board"), false);
+								}
+								return 1;
+							}))
 			);
 		});
 	}

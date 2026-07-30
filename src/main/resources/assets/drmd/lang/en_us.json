@@ -47,13 +47,15 @@
   "block.drmd.nav_node": "DRMD Nav Node",
   "block.drmd.objective": "DRMD Objective",
   "entity.drmd.projectile": "DRMD Projectile",
-  "entity.drmd.drone": "DRMD Drone",
-  "entity.drmd.air_mine": "DRMD Air Mine",
+  "entity.drmd.drone": "Descent Drone",
+  "entity.drmd.air_mine": "Air Mine",
   "block.drmd.six_d_soil": "6D Soil",
   "block.drmd.hermetic_gate": "Hermetic Gate",
   "block.drmd.laser_barrier": "Laser Barrier",
   "block.drmd.volume_turret": "Volume Turret",
   "block.drmd.magnetic_anomaly": "Magnetic Anomaly",
   "block.drmd.unstable_reactor": "Unstable Reactor",
-  "item.drmd.build_tool": "6DoF Build Tool"
+  "item.drmd.build_tool": "6DoF Build Tool",
+  "entity.drmd.pyro_ship": "Pyro Scout",
+  "entity.drmd.reactor_display": "Reactor Core"
 }
