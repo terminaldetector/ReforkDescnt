@@ -1,0 +1,48 @@
+{
+  "resource_pack_name": "drmd_fast_test",
+  "texture_name": "atlas.items",
+  "texture_data": {
+    "drmd_pyro_beacon": {
+      "textures": "textures/items/pyro_beacon"
+    },
+    "drmd_construction_wand": {
+      "textures": "textures/items/construction_wand"
+    },
+    "drmd_gravity_torch": {
+      "textures": "textures/items/gravity_torch"
+    },
+    "drmd_ctrl_roll_left": {
+      "textures": "textures/items/ctrl_roll_left"
+    },
+    "drmd_ctrl_roll_right": {
+      "textures": "textures/items/ctrl_roll_right"
+    },
+    "drmd_ctrl_ascend": {
+      "textures": "textures/items/ctrl_ascend"
+    },
+    "drmd_ctrl_descend": {
+      "textures": "textures/items/ctrl_descend"
+    },
+    "drmd_ctrl_strafe_left": {
+      "textures": "textures/items/ctrl_strafe_left"
+    },
+    "drmd_ctrl_strafe_right": {
+      "textures": "textures/items/ctrl_strafe_right"
+    },
+    "drmd_ctrl_dash": {
+      "textures": "textures/items/ctrl_dash"
+    },
+    "drmd_ctrl_brake": {
+      "textures": "textures/items/ctrl_brake"
+    },
+    "drmd_ctrl_reset_roll": {
+      "textures": "textures/items/ctrl_reset_roll"
+    },
+    "drmd_ctrl_afterburner": {
+      "textures": "textures/items/ctrl_afterburner"
+    },
+    "drmd_ctrl_panel": {
+      "textures": "textures/items/ctrl_panel"
+    }
+  }
+}

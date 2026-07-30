@@ -174,20 +174,21 @@ legacy/                               # исходный GMod-аддон
 
 ---
 
-## Evening test (PC + MCPE)
+## Evening test (PC + MCPE Master)
 
 ```bash
 ./scripts/package_all.sh
-# → dist/drmd-6dof-1.0.0.jar              (Fabric PC)
-# → dist/drmd-6dof-fast-test-1.0.0.mcaddon (Bedrock/MCPE)
+# → dist/drmd-6dof-1.0.0.jar
+# → dist/drmd-6dof-mcpe-master-1.0.2.mcaddon
+# → dist/drmd-6dof-mcpe-master-1.0.2.zip   # ручная установка в games/com.mojang
 ```
 
 CI Artifacts (Actions → **Build DRMD 6DOF**):
 - `drmd-6dof-pc` — Fabric jar
-- `drmd-6dof-mcpe` — `.mcaddon` + packs
+- `drmd-6dof-mcpe` — Master `.mcaddon` + `.zip` + packs
 - `drmd-evening-test` — both + README
 
-MCPE sandbox notes: [`mcpe/README.md`](mcpe/README.md)
+MCPE Master: [`mcpe/README.md`](mcpe/README.md) · [`mcpe/INSTALL_MCPE_MASTER.txt`](mcpe/INSTALL_MCPE_MASTER.txt)
 
 ## Phase 3 — 6DoF Framework
 

@@ -1,38 +1,47 @@
-# MCPE Fast Test Edition
+# MCPE Fast Test / MCPE Master
 
-Bedrock/MCPE UX sandbox for Phase 3 feel-checks. **Not** the full Fabric mod.
+Bedrock UX-песочница DRMD 6DOF, адаптированная под **MCPE Master** и официальный Bedrock.
 
-## Install (phone / Windows Bedrock / MCPE)
+## Что скачать
 
-1. Download artifact **`drmd-6dof-mcpe`** → `drmd-6dof-fast-test-1.0.0.mcaddon`
-2. Open the file (double-click / share to Minecraft)
-3. Enable **DRMD 6DOF Fast Test** behavior + resource packs in the world
-4. Enable **Beta APIs** / experiments if prompted (Script API)
+| Файл | Для чего |
+|------|----------|
+| `drmd-6dof-mcpe-master-1.0.2.mcaddon` | Авто-импорт (открыть файлом) |
+| `drmd-6dof-mcpe-master-1.0.2.zip` | Ручная установка в `games/com.mojang` (ZArchiver / Master) |
+| `*-bp-*.mcpack` / `*-rp-*.mcpack` | По отдельности BP + RP |
 
-## Controls (touch-adapted)
+## Установка в MCPE Master
 
-| Action | How (MCPE) | PC Fabric analog |
-|--------|------------|------------------|
-| Toggle 6DoF | Use **Pyro Beacon** or Control Panel | `H` |
-| Thrust forward | Jump **or** move stick forward | WASD |
-| Brake | Sneak **or** hold **Brake** button | Flight Assist brake |
-| **Roll left / right** | Hold **Roll L/R** in hotbar (or tap / Panel) | `Q` / `E` |
-| Ascend / Descend | Hold **Ascend/Descend** selected | Space / Ctrl |
-| Strafe L/R | Hold **Strafe** buttons | A / D (local) |
-| Dash | Tap **Dash** | Shift |
-| Afterburner | Tap **Afterburner** | `R` |
-| Reset roll | Tap **Reset Roll** | `X` |
-| All actions | Tap **Control Panel** → form buttons | — |
-| Construction tip | Use **Construction Wand** | `/d6 construct` |
-| Gravity marker | Place **Gravity Torch** | Gravity Torch block |
+### A) Авто
+1. Открой `.mcaddon` через Minecraft / MCPE Master  
+2. Мир → **Наборы ресурсов** + **Наборы поведения** → оба **DRMD 6DOF (MCPE Master)**  
+3. **Эксперименты → Beta APIs = ВКЛ**
 
-**Hold rule:** keep a control item **selected** in the hotbar for continuous input (best for touch). Tap Use for one-shot actions (dash, reset, panel, afterburner).
+### B) Вручную (часто надёжнее на Master)
+1. Распакуй `.zip`  
+2. Скопируй:
+   - `behavior_packs/DRMD_6DOF_BP` → `/games/com.mojang/behavior_packs/`
+   - `resource_packs/DRMD_6DOF_RP` → `/games/com.mojang/resource_packs/`
+3. Перезапуск → активируй пакеты в мире → **Beta APIs**  
+4. `/function drmd/start` или просто зайди в мир (авто-кит)
 
-Chat shortcuts (if enabled): `!d6 panel` · `!d6 rolll` · `!d6 rollr` · `!d6 dash` · `!d6 kit`
+## Управление (touch)
 
-## Scope
+| Действие | Как |
+|----------|-----|
+| Крен ← / → | Держи **Крен влево/вправо** в хотбаре |
+| Вверх / вниз | Держи **Вверх/Вниз** |
+| Стрейф | Держи **Стрейф** |
+| Рывок / форсаж / сброс | Тап по кнопке |
+| Все сразу | **Панель управления** или `!d6 panel` |
+| Тяга / тормоз | Прыжок / красться |
 
-In: flight feel, **roll / vertical / strafe / dash buttons**, construct tip, gravity torch, mini HUD, starter kit  
-Out: LLOD, megastructures, workshop, full gravy, WG 2.0
+Чат: `!d6 kit` · `!d6 dash` · `!d6 rolll` · `!d6 rollr` · `!d6 toggle`  
+Функции: `/function drmd/help` · `/function drmd/kit` · `/function drmd/start`
 
-Production build: Fabric jar `drmd-6dof-1.0.0.jar` (Java 1.21.1).
+## Требования
+
+- Minecraft / MCPE Master **≈ 1.20.60+** (лучше **1.21.x**)  
+- Beta APIs / эксперименты для Script API  
+
+Полный Descent = Fabric jar на ПК (`drmd-6dof-1.0.0.jar`).

@@ -1,0 +1,22 @@
+DRMD 6DOF — установка в MCPE Master / Bedrock (Android)
+
+Способ A — авто (если открывается):
+  1) drmd-6dof-mcpe-master-1.0.2.mcaddon → открыть через Minecraft / Master
+  2) Новый мир → Наборы ресурсов + Наборы поведения → активировать оба DRMD
+  3) Эксперименты / Beta APIs = ВКЛ
+
+Способ B — вручную (ZArchiver / MCPE Master file manager):
+  1) Распаковать этот ZIP
+  2) Скопировать папки:
+       behavior_packs/DRMD_6DOF_BP  →  /games/com.mojang/behavior_packs/
+       resource_packs/DRMD_6DOF_RP  →  /games/com.mojang/resource_packs/
+     (или Android/data/.../games/com.mojang/ на новых Android)
+  3) Перезапустить игру, активировать пакеты в мире
+  4) Beta APIs = ВКЛ
+  5) В игре: /function drmd/start   или просто зайдите в мир (авто-кит)
+
+Управление: кнопки хотбара (крен ←/→, вверх/вниз, стрейф, рывок)
+             Панель управления · !d6 panel
+
+Нужен Minecraft / Master примерно 1.20.60+ (лучше 1.21.x).
+Полная версия Descent — Fabric jar на ПК.

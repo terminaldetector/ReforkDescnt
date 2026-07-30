@@ -9,12 +9,11 @@
 ## Scope (in)
 
 - 6DoF flight feel (упрощённая инерция)
-- **Touch control buttons**: roll L/R, ascend/descend, strafe, dash, brake, afterburner, reset roll
-- **Control Panel** ActionForm (`drmd:ctrl_panel`)
-- Construction Mode без абсолютного up
-- Gravity Torch-эквивалент (script entity / block)
-- Минимальный HUD (speed / roll / mode)
-- Hotbar hold = continuous input (адаптация под MCPE)
+- **MCPE Master** packaging: `.mcaddon` + `com.mojang` ZIP
+- Touch control buttons + Control Panel (RU)
+- `/function drmd/start|kit|help` fallback
+- Construction / Gravity Torch
+- Mini HUD (speed / roll / mode)
 
 ## Scope (out)
 

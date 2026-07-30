@@ -1,0 +1,17 @@
+pack.name=DRMD 6DOF (MCPE Master)
+pack.description=6DoF тест для MCPE Master / Bedrock. Включите Beta APIs в мире.
+item.drmd:pyro_beacon=Pyro Beacon (6DoF)
+item.drmd:construction_wand=Строительная палочка
+item.drmd:gravity_torch_item=Грави-факел
+item.drmd:ctrl_panel=Панель управления
+item.drmd:ctrl_roll_left=Крен влево
+item.drmd:ctrl_roll_right=Крен вправо
+item.drmd:ctrl_ascend=Вверх
+item.drmd:ctrl_descend=Вниз
+item.drmd:ctrl_strafe_left=Стрейф влево
+item.drmd:ctrl_strafe_right=Стрейф вправо
+item.drmd:ctrl_dash=Рывок
+item.drmd:ctrl_brake=Тормоз
+item.drmd:ctrl_reset_roll=Сброс крена
+item.drmd:ctrl_afterburner=Форсаж
+tile.drmd:gravity_torch.name=Грави-факел

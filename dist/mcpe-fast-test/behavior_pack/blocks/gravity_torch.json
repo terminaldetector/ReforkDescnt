@@ -1,19 +1,22 @@
 {
-  "format_version": "1.21.0",
+  "format_version": "1.20.50",
   "minecraft:block": {
     "description": {
       "identifier": "drmd:gravity_torch",
-      "menu_category": { "category": "construction" }
+      "menu_category": {
+        "category": "construction"
+      }
     },
     "components": {
       "minecraft:display_name": "Gravity Torch",
       "minecraft:geometry": "minecraft:geometry.full_block",
       "minecraft:material_instances": {
-        "*": { "texture": "drmd_gravity_torch", "render_method": "opaque" }
+        "*": {
+          "texture": "drmd_gravity_torch",
+          "render_method": "opaque"
+        }
       },
-      "minecraft:light_emission": 12,
-      "minecraft:collision_box": { "origin": [-2, 0, -2], "size": [4, 10, 4] },
-      "minecraft:selection_box": { "origin": [-2, 0, -2], "size": [4, 10, 4] }
+      "minecraft:light_emission": 12
     }
   }
 }
