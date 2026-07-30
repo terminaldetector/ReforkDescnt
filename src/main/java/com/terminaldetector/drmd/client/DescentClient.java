@@ -13,6 +13,7 @@ import com.terminaldetector.drmd.workshop.ConstructionRegistry;
 import com.terminaldetector.drmd.workshop.WorkshopScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.Vec3d;
@@ -48,30 +49,36 @@ public class DescentClient implements ClientModInitializer {
 			DescentClientState.alwaysRun = payload.alwaysRun();
 			DescentClientState.flightAssist = payload.flightAssist();
 			DescentClientState.radar = payload.radar();
-			DescentClientState.footGravity = payload.footGravity();
-			DescentClientState.localUx = payload.localUx();
-			DescentClientState.localUy = payload.localUy();
-			DescentClientState.localUz = payload.localUz();
+			// Thrusters and foot-gravity are mutually exclusive on the client.
+			DescentClientState.footGravity = payload.enabled() ? false : payload.footGravity();
+			DescentClientState.localUx = payload.enabled() ? 0f : payload.localUx();
+			DescentClientState.localUy = payload.enabled() ? 1f : payload.localUy();
+			DescentClientState.localUz = payload.enabled() ? 0f : payload.localUz();
 			var player = context.client().player;
 			if (player != null) {
-				com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),
-						new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));
-				if (payload.footGravity()) {
-					com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptClient(
-							player.getUuid(),
-							new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));
-				} else {
+				if (payload.enabled()) {
+					com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
 					com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
+				} else {
+					com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),
+							new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));
+					if (payload.footGravity()) {
+						com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptClient(
+								player.getUuid(),
+								new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));
+					} else {
+						com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
+					}
 				}
 			}
-			// Prime Descent attitude when 6DoF turns on from server (/d6 / join).
-			if (payload.enabled() && !wasEnabled) {
-				if (player != null) {
+			// Prime / re-prime attitude whenever thrusters are on (join race: player may be null once).
+			if (payload.enabled()) {
+				if (player != null && (!wasEnabled || !DescentClientState.attitudeValid
+						|| !com.terminaldetector.drmd.client.flight.ShipAttitudeClient.isPrimed())) {
 					com.terminaldetector.drmd.client.flight.ShipAttitudeClient.resetFromPlayer(player);
 				}
 				com.terminaldetector.drmd.client.gravity.FootGravityCamera.reset();
-			}
-			if (!payload.enabled()) {
+			} else {
 				DescentClientState.attitudeValid = false;
 				com.terminaldetector.drmd.client.flight.ShipAttitudeClient.clear();
 			}
@@ -114,11 +121,23 @@ public class DescentClient implements ClientModInitializer {
 			LlodClientState.INSTANCE.set(next);
 		});
 
+		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+			DescentClientState.enabled = false;
+			DescentClientState.attitudeValid = false;
+			DescentClientState.footGravity = false;
+			com.terminaldetector.drmd.client.flight.ShipAttitudeClient.clear();
+			com.terminaldetector.drmd.client.gravity.FootGravityCamera.reset();
+		});
+
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null || client.getNetworkHandler() == null) return;
 			DescentKeybinds.tick(client);
 			com.terminaldetector.drmd.client.gravity.FootGravityCamera.tickClient();
 			if (DescentClientState.enabled) {
+				if (!DescentClientState.attitudeValid
+						|| !com.terminaldetector.drmd.client.flight.ShipAttitudeClient.isPrimed()) {
+					com.terminaldetector.drmd.client.flight.ShipAttitudeClient.resetFromPlayer(client.player);
+				}
 				DescentKeybinds.sendInput(client);
 			}
 			// Age client-only smoke on dedicated clients; integrated SP uses server tick

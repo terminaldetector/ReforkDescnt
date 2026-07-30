@@ -70,17 +70,16 @@ public final class DescentSession {
 	public static void onPlayerJoin(ServerPlayerEntity player) {
 		DescentPlayerData data = DescentPlayerData.get(player);
 		data.ensureInit();
-		if (!data.isEnabled()) {
-			data.setEnabled(true);
-		}
+		// Always fully arm thrusters on join (clear foot gravity / setNoGravity / sync).
+		com.terminaldetector.drmd.flight.FlightSystem.enable(player);
 
 		boolean first = !data.isSessionWelcomed();
 		if (first) {
 			data.setSessionWelcomed(true);
 			player.sendMessage(Text.literal(
-					"§bDRMD 6DOF §f— Descent session is part of this world."), false);
+					"§bDRMD 6DOF §f— thrusters ON. Mouse = full sphere · WASD/Space/Shift = fly."), false);
 			player.sendMessage(Text.literal(
-					"§7Fly with §fH§7 · creative tab §fDRMD 6DOF§7 · Pyro GX / lunar base / sky UFO nearby"), false);
+					"§7§fH§7 toggles thrusters off/on · creative tab §fDRMD 6DOF§7 · Pyro GX nearby"), false);
 			player.sendMessage(Text.literal(
 					"§8Crashed UFO is trap-dense — bring Pyro GX before clearing."), false);
 			if (player.isCreative()) {

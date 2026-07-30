@@ -5,7 +5,6 @@ import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.energy.EnergySystem;
 import com.terminaldetector.drmd.network.ModNetworking;
 import com.terminaldetector.drmd.world.atmosphere.AtmosphereBand;
-import com.terminaldetector.drmd.world.gravity.GravityFields;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.MathHelper;
@@ -136,28 +135,15 @@ public final class FlightSystem {
 
 		Vec3d vel = data.getFlightVelocity().add(wish);
 
-		// Micro gravity + idle gravity — NEVER from station torches while piloting Pyro GX
+		// Thruster mode ignores station torches / generators — free 6DoF must not get
+		// reoriented to wall UP (that kills spherical look and feels like "flight fell off").
 		boolean onPyro = player.getVehicle() instanceof com.terminaldetector.drmd.entity.PyroShipEntity;
-		GravityFields.Sample field = null;
-		Vec3d gravDir;
+		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
+		com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
+		Vec3d gravDir = new Vec3d(0, -1, 0);
 		double g = endVacuum ? 0.0
-				: DescentMod.su(MICRO_GRAV) + DescentMod.su(data.getGravity()) * data.getGravityFactor();
-		if (!onPyro && !endVacuum) {
-			field = GravityFields.sample(player.getWorld(), player.getPos());
-		}
-		if (field != null) {
-			gravDir = field.downDir();
-			g += DescentMod.su(data.getGravity()) * field.strength() * 0.55;
-			com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), field.upDir());
-		} else {
-			gravDir = onPyro
-					? new Vec3d(0, -1, 0) // ship ignores local station UP
-					: com.terminaldetector.drmd.world.LocalOrientation.gravityDir(player.getUuid());
-			if (onPyro) {
-				// Keep micro-g along world down only; no torch reorientation
-				g = endVacuum ? 0.0 : DescentMod.su(MICRO_GRAV) * 0.25;
-			}
-		}
+				: DescentMod.su(MICRO_GRAV) * (onPyro ? 0.25 : 1.0)
+				+ DescentMod.su(data.getGravity()) * data.getGravityFactor() * (onPyro ? 0.0 : 1.0);
 		if (g > 0) vel = vel.add(gravDir.multiply(g * dt));
 
 		// Dash
@@ -246,6 +232,17 @@ public final class FlightSystem {
 		ModNetworking.syncPlayer(player, data);
 	}
 
+	/** Full thruster arming — use everywhere instead of bare setEnabled(true). */
+	public static void enable(ServerPlayerEntity player) {
+		DescentPlayerData data = DescentPlayerData.get(player);
+		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
+		com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
+		data.setEnabled(true);
+		data.ensureInit();
+		player.setNoGravity(true);
+		ModNetworking.syncPlayer(player, data);
+	}
+
 	public static void disable(ServerPlayerEntity player, DescentPlayerData data) {
 		data.setEnabled(false);
 		data.clearShipAttitude();
@@ -268,11 +265,7 @@ public final class FlightSystem {
 			com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptAt(player, player.getPos());
 			com.terminaldetector.drmd.world.gravity.FootGravitySystem.tick(player);
 		} else {
-			com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
-			data.setEnabled(true);
-			data.ensureInit();
-			player.setNoGravity(true);
-			ModNetworking.syncPlayer(player, data);
+			enable(player);
 		}
 	}
 

@@ -85,14 +85,14 @@ public final class ReactorRoomStarter {
 
 		// 8) Teleport player to pad + enable 6DoF + kit
 		player.requestTeleport(pad.getX() + 0.5, pad.getY() + 2, pad.getZ() + 0.5);
+		com.terminaldetector.drmd.flight.FlightSystem.enable(player);
 		var data = com.terminaldetector.drmd.DescentPlayerData.get(player);
-		data.setEnabled(true);
-		data.ensureInit();
 		data.setEnergy(100);
 		data.setShield(100);
+		com.terminaldetector.drmd.network.ModNetworking.syncPlayer(player, data);
 
 		giveKit(player);
-		player.sendMessage(Text.literal("§bDRMD §fReactor Room online. §7Board the Pyro ship (ПКМ) or fly free (H)."), false);
+		player.sendMessage(Text.literal("§bDRMD §fReactor Room online. §7Thrusters ON — fly free or board Pyro (ПКМ)."), false);
 		player.sendMessage(Text.literal("§7Weapons in inventory · M = Workshop · creative tab §fDRMD 6DOF §7for drones"), false);
 	}
 

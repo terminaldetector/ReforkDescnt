@@ -79,20 +79,17 @@ public final class SessionControlItems {
 							SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 1f, 1.1f);
 				}
 				case SIXDOF -> {
-					DescentPlayerData data = DescentPlayerData.get(player);
-					data.ensureInit();
 					FlightSystem.toggle(player);
 					boolean on = DescentPlayerData.get(player).isEnabled();
 					player.sendMessage(Text.literal(on
 							? "§b6DoF §aON §7— thrusters armed (H also toggles)"
-							: "§b6DoF §7OFF"), false);
+							: "§b6DoF §7OFF §8— press again / H to fly"), false);
 					world.playSound(null, player.getX(), player.getY(), player.getZ(),
 							SoundEvents.BLOCK_NOTE_BLOCK_CHIME.value(), SoundCategory.PLAYERS, 0.8f, on ? 1.4f : 0.7f);
 				}
 				case KIT -> {
+					FlightSystem.enable(player);
 					DescentPlayerData data = DescentPlayerData.get(player);
-					data.setEnabled(true);
-					data.ensureInit();
 					data.setEnergy(100);
 					data.setShield(100);
 					ModNetworking.syncPlayer(player, data);

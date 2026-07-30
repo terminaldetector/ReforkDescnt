@@ -8,7 +8,6 @@ import com.terminaldetector.drmd.world.WorldRules;
 import com.terminaldetector.drmd.world.atmosphere.AtmosphereBand;
 import com.terminaldetector.drmd.world.build.ConstructionMode;
 import com.terminaldetector.drmd.world.gravity.FootGravitySystem;
-import com.terminaldetector.drmd.world.gravity.GravityFields;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
@@ -20,14 +19,12 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 /**
  * Pyro GX transport — 6DoF while piloted (immune to gravity torches).
- * On dismount: leave thruster mode and walk with local gravity / surface lock.
+ * On dismount: keep free thrusters ON so spherical look / flight stay armed.
  */
 public class PyroShipEntity extends PathAwareEntity {
 	private boolean wasPiloted;
@@ -67,8 +64,12 @@ public class PyroShipEntity extends PathAwareEntity {
 			wasPiloted = true;
 			landTicks = 0;
 			DescentPlayerData data = DescentPlayerData.get(pilot);
-			if (!data.isEnabled()) data.setEnabled(true);
-			FootGravitySystem.clear(pilot.getUuid());
+			if (!data.isEnabled()) {
+				FlightSystem.enable(pilot);
+			} else {
+				FootGravitySystem.clear(pilot.getUuid());
+				pilot.setNoGravity(true);
+			}
 			Vec3d vel = data.getFlightVelocity();
 			this.setVelocity(vel);
 			this.velocityModified = true;
@@ -103,51 +104,14 @@ public class PyroShipEntity extends PathAwareEntity {
 				return;
 			}
 
-			// Leave thruster mode → on-foot gravity / walking
-			FlightSystem.disable(sp, data);
-			data = DescentPlayerData.get(sp);
-
-			GravityFields.Sample field = GravityFields.sample(getWorld(), sp.getPos());
-			if (field != null) {
-				FootGravitySystem.adoptAt(sp, sp.getPos());
-				ConstructionMode.onShipLanded(sp);
-				String axis = axisName(field.upDir());
-				sp.sendMessage(Text.literal(
-						"§aLocal gravity §f" + field.label() + " §7— walk with UP=" + axis), false);
-			} else {
-				Direction floor = Direction.UP;
-				boolean found = false;
-				for (Direction d : Direction.values()) {
-					BlockPos p = getBlockPos().offset(d.getOpposite());
-					if (getWorld().getBlockState(p).isSolidBlock(getWorld(), p)) {
-						floor = d;
-						found = true;
-						break;
-					}
-				}
-				if (found) {
-					LocalOrientation.setFromDirection(sp.getUuid(), floor);
-					if (!FootGravitySystem.isWorldUp(LocalOrientation.getUp(sp.getUuid()))) {
-						FootGravitySystem.adoptClient(sp.getUuid(), LocalOrientation.getUp(sp.getUuid()));
-						sp.setNoGravity(true);
-					}
-					ConstructionMode.onShipLanded(sp);
-					sp.sendMessage(Text.literal("§7Local floor locked to §f" + floor.asString()), false);
-				} else {
-					LocalOrientation.setUp(sp.getUuid(), new Vec3d(0, 1, 0));
-					FootGravitySystem.clear(sp.getUuid());
-					sp.sendMessage(Text.literal("§7Pyro GX drifting — no surface lock."), false);
-				}
-			}
-			ModNetworking.syncPlayer(sp, data);
+			// Keep free 6DoF after dismount — previously disable()+hub torches killed thrusters
+			// and left only vanilla/F5 look ("задний обзор"), with guns still working.
+			FlightSystem.enable(sp);
+			ConstructionMode.onShipLanded(sp);
+			sp.sendMessage(Text.literal(
+					"§bPyro GX §7secured — free thrusters still ON (§fH§7 to walk / foot gravity)"), false);
+			ModNetworking.syncPlayer(sp, DescentPlayerData.get(sp));
 		}
-	}
-
-	private static String axisName(Vec3d up) {
-		double ax = Math.abs(up.x), ay = Math.abs(up.y), az = Math.abs(up.z);
-		if (ay >= ax && ay >= az) return up.y >= 0 ? "+Y (floor)" : "-Y (ceiling)";
-		if (ax >= az) return up.x >= 0 ? "+X (wall)" : "-X (wall)";
-		return up.z >= 0 ? "+Z (wall)" : "-Z (wall)";
 	}
 
 	@Override
@@ -155,15 +119,9 @@ public class PyroShipEntity extends PathAwareEntity {
 		if (!getWorld().isClient && !hasPassengers()) {
 			player.startRiding(this);
 			if (player instanceof ServerPlayerEntity sp) {
-				DescentPlayerData data = DescentPlayerData.get(sp);
-				data.setEnabled(true);
-				data.ensureInit();
-				FootGravitySystem.clear(sp.getUuid());
+				FlightSystem.enable(sp);
 				ConstructionMode.set(sp, false);
-				LocalOrientation.setUp(sp.getUuid(), new Vec3d(0, 1, 0));
-				sp.setNoGravity(true);
 				sp.sendMessage(Text.literal("§bPyro GX §7— thrusters online (gravity torches ignored)"), false);
-				ModNetworking.syncPlayer(sp, data);
 			}
 			return ActionResult.SUCCESS;
 		}
