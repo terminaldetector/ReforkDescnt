@@ -84,10 +84,15 @@ public final class FootGravitySystem {
 					LocalOrientation.getUp(player.getUuid()), new Vec3d(0, 1, 0), RELEASE_RATE);
 			label = "Local";
 			if (isWorldUp(up)) {
-				player.setNoGravity(false);
-				clear(player.getUuid());
-				LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
-				ModNetworking.syncPlayer(player, data);
+				// Upright and out of reach: nothing to do. Guarded on having actually been held,
+				// because this is the branch every walking player falls through every tick — an
+				// unconditional sync here would be a packet per tick, per player, forever.
+				if (isActive(player.getUuid())) {
+					player.setNoGravity(false);
+					clear(player.getUuid());
+					LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
+					ModNetworking.syncPlayer(player, data);
+				}
 				return;
 			}
 		}
