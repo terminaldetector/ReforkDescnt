@@ -100,9 +100,18 @@ and release rates, same walk speed, same half-space clip.
 
 Two implementation differences, both forced by the platform:
 
-**Motion is teleport-driven.** Bedrock has no per-tick velocity setter for players, so surface
-travel steps the pilot with `tryTeleport` and `checkForBlocks` supplies the collision. Fast passes
-are split into sub-steps so a step cannot tunnel a one-block wall.
+**Motion is teleport-driven, from our own position.** Bedrock has no per-tick velocity setter for
+players and no way to switch a player's gravity off, so the engine keeps pulling world-down every
+tick underneath the walk model. Stepping from `player.location` would fold that pull into the
+result and the pilot would slide down the wall they are meant to be standing on. Surface travel
+therefore integrates from a tracked position and overwrites the player's position each tick with
+`tryTeleport`, which makes the engine's contribution moot; `checkForBlocks` supplies the collision.
+Fast passes are split into sub-steps so a step cannot tunnel a one-block wall, and the tracked
+position resyncs to the engine's whenever the gap exceeds 2 blocks — something else moved the
+player and our copy is stale.
+
+Hitting geometry stops a walk dead rather than bouncing it. A bounce is right for a hull at speed
+and wrong for a pair of boots.
 
 **Torches are found by sweeping.** There is no field registry to hook, so the script sweeps one
 horizontal slice of blocks per tick around each on-foot player: 169 lookups, a full 13-slice cube in

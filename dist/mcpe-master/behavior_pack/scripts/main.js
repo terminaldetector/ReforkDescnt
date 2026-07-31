@@ -503,12 +503,71 @@ function walkerOf(player) {
     walkers.set(id, {
       ux: 0, uy: 1, uz: 0,
       vx: 0, vy: 0, vz: 0,
+      // Authoritative position while a surface owns the pilot — see stepSurface.
+      px: 0, py: 0, pz: 0,
       sweepY: -SCAN_RADIUS,
       active: false,
       label: "",
     });
   }
   return walkers.get(id);
+}
+
+/** How far the engine may drag us before we accept its position instead of ours. */
+const RESYNC_DIST_SQ = 4.0;
+
+/**
+ * Step along the surface from our own tracked position, not the engine's.
+ *
+ * Bedrock gives no way to switch a player's gravity off, so the engine keeps
+ * pulling world-down every tick underneath us. Stepping from player.location
+ * would fold that pull into our position and the pilot would slide down the
+ * wall they are supposed to be standing on. Integrating from px/py/pz and
+ * overwriting the position each tick makes the engine's contribution moot.
+ *
+ * We still take the engine's word for it when the gap gets large — something
+ * else moved the player (a real teleport, a piston, a respawn) and our tracked
+ * position is stale.
+ */
+function stepSurface(player, st, vel) {
+  const loc = player.location;
+  const dx = loc.x - st.px;
+  const dy = loc.y - st.py;
+  const dz = loc.z - st.pz;
+  if (dx * dx + dy * dy + dz * dz > RESYNC_DIST_SQ) {
+    st.px = loc.x;
+    st.py = loc.y;
+    st.pz = loc.z;
+  }
+
+  const speed = Math.sqrt(dot(vel, vel));
+  const steps = speed > 0.5 ? 2 : 1;
+  for (let i = 0; i < steps; i++) {
+    const to = {
+      x: st.px + vel.x / steps,
+      y: st.py + vel.y / steps,
+      z: st.pz + vel.z / steps,
+    };
+    let ok = false;
+    try {
+      ok = player.tryTeleport(to, { checkForBlocks: true }) !== false;
+    } catch (_) {
+      ok = false;
+    }
+    if (!ok) {
+      // Ran into geometry. Walking stops dead rather than bouncing — a bounce is
+      // right for a hull at speed, wrong for a pair of boots.
+      st.vx = st.vy = st.vz = 0;
+      const here = player.location;
+      st.px = here.x;
+      st.py = here.y;
+      st.pz = here.z;
+      return;
+    }
+    st.px = to.x;
+    st.py = to.y;
+    st.pz = to.z;
+  }
 }
 
 /** Is there surface within reach along local down? */
@@ -565,8 +624,13 @@ function wallWalkTick(player, tick) {
   if (!st.active) {
     st.active = true;
     st.label = field ? "Гравифакел" : "Локальная";
+    const at = player.location;
+    st.px = at.x;
+    st.py = at.y;
+    st.pz = at.z;
+    st.vx = st.vy = st.vz = 0;
     try {
-      player.dimension.playSound?.("beacon.activate", player.location, { volume: 0.35, pitch: 1.7 });
+      player.dimension.playSound?.("beacon.activate", at, { volume: 0.35, pitch: 1.7 });
     } catch (_) {}
   }
 
@@ -624,10 +688,7 @@ function wallWalkTick(player, tick) {
   st.vy = vel.y;
   st.vz = vel.z;
 
-  const speed = Math.sqrt(dot(vel, vel));
-  if (speed > 1e-4) {
-    stepByTeleport(player, st, speed);
-  }
+  stepSurface(player, st, vel);
   return true;
 }
 
