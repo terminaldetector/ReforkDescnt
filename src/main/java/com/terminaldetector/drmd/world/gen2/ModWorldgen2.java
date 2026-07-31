@@ -19,7 +19,14 @@ import net.minecraft.world.chunk.WorldChunk;
  * World Generation 2.0 — celestial / rift megastructures, lunar base, UFOs, mega fauna.
  */
 public final class ModWorldgen2 {
+	/** Held off until the spawn seed finishes — see {@link com.terminaldetector.drmd.world.gen.ModWorldgen}. */
+	private static volatile boolean worldgenLive = false;
+
 	private ModWorldgen2() {}
+
+	public static void enableLiveGeneration() {
+		worldgenLive = true;
+	}
 
 	public static void register() {
 		ServerChunkEvents.CHUNK_LOAD.register(ModWorldgen2::onChunkLoad);
@@ -27,6 +34,7 @@ public final class ModWorldgen2 {
 	}
 
 	private static void onChunkLoad(ServerWorld world, WorldChunk chunk) {
+		if (!worldgenLive) return;
 		if (world.getRegistryKey() != ServerWorld.OVERWORLD) return;
 		ChunkPos cp = chunk.getPos();
 		long seed = world.getSeed() ^ (((long) cp.x) * 341873128712L) ^ (((long) cp.z) * 132897987541L);
@@ -42,7 +50,9 @@ public final class ModWorldgen2 {
 			MacroEntry.Kind kind = kinds[(int) Math.floorMod(seed >> 3, kinds.length)];
 			int y = skyY(kind, seed, world, cp);
 			BlockPos origin = new BlockPos(cp.getStartX() + 8, y, cp.getStartZ() + 8);
-			if (!world.getBlockState(origin).isOf(net.minecraft.block.Blocks.LODESTONE)) {
+			// Probe the loading chunk directly; the deferred check below can safely go through the
+			// world, because by then the chunk is fully loaded.
+			if (!chunk.getBlockState(origin).isOf(net.minecraft.block.Blocks.LODESTONE)) {
 				world.getServer().execute(() -> {
 					if (world.getBlockState(origin).isOf(net.minecraft.block.Blocks.LODESTONE)) return;
 					Random random = Random.create(seed);
