@@ -35,7 +35,13 @@ public final class MegaStructureGenerator {
 			case LUNAR_BASE -> LunarBaseGenerator.generate(world, origin, random);
 			case CRASHED_UFO -> CrashedUfoGenerator.generate(world, origin, random);
 			case MEGACITY -> MegacityGenerator.generate(world, origin, random);
-			default -> arch(world, origin, random);
+			// A complex has had a generator all along; it was just never reachable from here, so
+			// `/d6 mega complex` quietly built an arch instead.
+			case INDUSTRIAL_COMPLEX, STATION -> industrialComplex(world, origin, random);
+			// WORM / SWARM / KEEPER / UFO are entity macros, not terrain. ModWorldgen2 spawns those.
+			// Building an arch for them was worse than doing nothing: it looked like it worked.
+			case WORM, SWARM, KEEPER, UFO -> entry(kind, WorldRules.practicalLayer(origin.getY()),
+					origin, 8, 8, 8, 0x888888, kind.name());
 		};
 		// Lunar / crashed place their own LODESTONE marker
 		if (kind != MacroEntry.Kind.LUNAR_BASE && kind != MacroEntry.Kind.CRASHED_UFO
@@ -237,6 +243,15 @@ public final class MegaStructureGenerator {
 		MacroEntry e = entry(MacroEntry.Kind.INVERTED_ISLAND, WorldRules.Layer.SKY_ARCHIPELAGO, origin, r * 2, 20, r * 2, 0x3A5A40, "Inverted Island");
 		MacroWorld.put(e);
 		return e;
+	}
+
+	/** DRMD reactor complex — the styles rotate so two never look the same. */
+	private static MacroEntry industrialComplex(WorldAccess world, BlockPos origin, Random random) {
+		WorldRules.ComplexStyle[] styles = WorldRules.ComplexStyle.values();
+		WorldRules.ComplexStyle style = styles[random.nextInt(styles.length)];
+		com.terminaldetector.drmd.world.gen.IndustrialComplexGenerator.generateAt(world, origin, style, random);
+		return entry(MacroEntry.Kind.INDUSTRIAL_COMPLEX, WorldRules.practicalLayer(origin.getY()),
+				origin, 56, 40, 56, 0xE0A040, style.name());
 	}
 
 	private static MacroEntry entry(MacroEntry.Kind kind, WorldRules.Layer layer, BlockPos c,

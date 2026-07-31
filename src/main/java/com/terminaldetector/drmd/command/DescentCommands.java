@@ -243,6 +243,7 @@ public final class DescentCommands {
 										case "CRASH", "CRASHED" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.CRASHED_UFO;
 										case "SAUCER", "FLYING" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.UFO;
 									case "CITY", "MEGACITY" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.MEGACITY;
+									case "COMPLEX", "REACTOR" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.INDUSTRIAL_COMPLEX;
 										default -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.ARCH;
 									};
 								}

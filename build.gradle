@@ -11,6 +11,10 @@ base {
 }
 
 repositories {
+	// Loom injects the Fabric and Mojang repositories itself, and the project resolved with this
+	// block empty for as long as every dependency came from one of those. JUnit does not, so Central
+	// is declared rather than assumed.
+	mavenCentral()
 }
 
 dependencies {

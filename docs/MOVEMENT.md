@@ -124,9 +124,12 @@ That makes the function continuous everywhere by construction, with no special c
 One 8-bit colour step is 3.9e-03, so none of these is a visible edge. The steepest gradient anywhere
 in the column is 5.9e-03 per block.
 
-Surface is anchored at **weight 0** rather than to a colour, so the whole of ordinary play keeps
-vanilla's sky exactly — day, night, weather and biome tint all still work. The tint only takes hold
-as you climb or dive out of it.
+Surface is a **plateau at weight 0**, pinned at both edges of the band rather than at its midpoint.
+Anchored at the midpoint alone the tint was exactly vanilla only at y=180 and blended away in both
+directions, which put sea level 0.51 of the way to industrial grey — the one altitude the game is
+actually played at. Pinning both edges keeps y=40..320 untouched, day, night, weather and biome
+tint included, and moves the whole ramp outside the band. The unit test asserts it edge to edge;
+that is how the single-anchor version was caught.
 
 One hook does both the sky dome and the fog: vanilla's background renderer takes its overworld fog
 colour from `ClientWorld.getSkyColor`, so blending there carries through to the horizon haze

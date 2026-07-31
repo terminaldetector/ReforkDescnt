@@ -29,8 +29,14 @@ public final class LevelSky {
 			new Anchor(mid(WorldLevels.NETHER_CEILING, WorldLevels.ABYSS_TOP), 0.02f, 0.025f, 0.045f, 1.00f),
 			// Industrial depth — gunmetal haze off the complexes.
 			new Anchor(mid(WorldLevels.ABYSS_TOP, WorldLevels.INDUSTRIAL_TOP), 0.09f, 0.10f, 0.12f, 0.85f),
-			// Surface: vanilla, untouched.
-			new Anchor(mid(WorldLevels.INDUSTRIAL_TOP, WorldLevels.SURFACE_TOP), 0f, 0f, 0f, 0.00f),
+			// Surface is a plateau at weight zero, not a single point.
+			//
+			// Anchored only at the band's midpoint, the tint was exactly vanilla at y=180 and blended
+			// away from it in both directions — which put sea level, where the game is actually
+			// played, 0.51 of the way to industrial grey. Pinning both edges keeps the entire band
+			// untouched and moves the whole ramp outside it.
+			new Anchor(WorldLevels.INDUSTRIAL_TOP, 0f, 0f, 0f, 0.00f),
+			new Anchor(WorldLevels.SURFACE_TOP, 0f, 0f, 0f, 0.00f),
 			// Thin air over the archipelago — paler and colder than sea level.
 			new Anchor(mid(WorldLevels.SURFACE_TOP, WorldLevels.SKY_TOP), 0.33f, 0.52f, 0.76f, 0.70f),
 			// Orbital: near vacuum, the sky drains to black.

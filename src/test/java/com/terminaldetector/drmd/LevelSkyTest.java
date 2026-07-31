@@ -16,10 +16,16 @@ class LevelSkyTest {
 
 	private static final Vec3d DAYTIME = new Vec3d(0.47, 0.65, 1.0);
 
+	/**
+	 * The whole surface band, edge to edge — not just its middle.
+	 *
+	 * <p>This is the assertion that caught the tint being anchored at a single point: sea level came
+	 * out 0.51 of the way to industrial grey, which is where the game is actually played.
+	 */
 	@Test
 	@DisplayName("vanilla sky is untouched through the surface band")
 	void surfaceKeepsVanilla() {
-		for (int y = WorldLevels.INDUSTRIAL_TOP + 40; y <= WorldLevels.SURFACE_TOP - 40; y += 5) {
+		for (int y = WorldLevels.INDUSTRIAL_TOP; y <= WorldLevels.SURFACE_TOP; y += 5) {
 			Vec3d out = LevelSky.tint(DAYTIME, y);
 			assertEquals(DAYTIME.x, out.x, 1e-6, "y=" + y);
 			assertEquals(DAYTIME.y, out.y, 1e-6, "y=" + y);
