@@ -21,7 +21,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  */
 @Mixin(ClientWorld.class)
 public class ClientWorldMixin {
-	@Inject(method = "getSkyColor", at = @At("RETURN"), cancellable = true)
+	// require = 0 on purpose, and only here. The flight hooks are load-bearing — if one of those ever
+	// stops matching, a crash is the right outcome, because silently skipping it reproduces exactly
+	// the bug where the ship would not move. This one only tints a colour, so if a future mapping
+	// moves the target it should degrade to a vanilla sky rather than take the game down with it.
+	@Inject(method = "getSkyColor", at = @At("RETURN"), cancellable = true, require = 0)
 	private void drmd$levelSky(Vec3d cameraPos, float tickDelta, CallbackInfoReturnable<Vec3d> cir) {
 		ClientWorld self = (ClientWorld) (Object) this;
 		if (self.getRegistryKey() != World.OVERWORLD) return;
