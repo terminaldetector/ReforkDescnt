@@ -191,6 +191,15 @@ public final class DescentSession {
 				new BlockPos(spawn.getX() + 180, 80, spawn.getZ() - 60),
 				MacroEntry.Kind.CRASHED_UFO, Random.create(world.getSeed() ^ 0x0F00A001L));
 
+		// Cyberpunk megacity — far enough out that spawn stays open sky, close enough to be the
+		// obvious first destination once you have a ship.
+		int cityX = spawn.getX() - 320;
+		int cityZ = spawn.getZ() + 280;
+		int citySurface = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, cityX, cityZ);
+		MegaStructureGenerator.generate(world,
+				new BlockPos(cityX, Math.max(citySurface, WorldRules.INDUSTRIAL_Y_MAX + 24), cityZ),
+				MacroEntry.Kind.MEGACITY, Random.create(world.getSeed() ^ 0xC1740001L));
+
 		// One airborne UFO near spawn sky lane
 		var ufo = ModEntities.SKY_UFO.create(world);
 		if (ufo != null) {

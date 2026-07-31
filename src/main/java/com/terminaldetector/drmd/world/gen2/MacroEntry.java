@@ -19,7 +19,9 @@ public final class MacroEntry {
 		/** XCOM-style airborne saucer (moving entity macro). */
 		UFO,
 		/** Crashed abandoned saucer — dense traps, post-Pyro GX. */
-		CRASHED_UFO
+		CRASHED_UFO,
+		/** Cyberpunk megacity: tower grid, sewer network, reactor pyramid. */
+		MEGACITY
 	}
 
 	public final UUID id;

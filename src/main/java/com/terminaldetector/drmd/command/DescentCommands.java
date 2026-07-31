@@ -242,6 +242,7 @@ public final class DescentCommands {
 										case "LUNAR", "MOON" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.LUNAR_BASE;
 										case "CRASH", "CRASHED" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.CRASHED_UFO;
 										case "SAUCER", "FLYING" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.UFO;
+									case "CITY", "MEGACITY" -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.MEGACITY;
 										default -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.ARCH;
 									};
 								}
