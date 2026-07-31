@@ -32,6 +32,34 @@ public final class DescentKeybinds {
 	private static boolean dashQueued;
 	private static boolean hookQueued;
 	private static boolean wasEnabled;
+	/**
+	 * Thrust axes as of the last sample.
+	 *
+	 * <p>Sampled on demand rather than cached from the end-of-tick send: {@code travel} runs during
+	 * the world tick and the input packet goes out after it, so reading a stored value there would
+	 * fly the ship on last tick's stick.
+	 */
+	private static float lastForward, lastStrafe, lastVertical;
+
+	public static float inputForward() { return lastForward; }
+	public static float inputStrafe() { return lastStrafe; }
+	public static float inputVertical() { return lastVertical; }
+
+	/** Read the thrust axes from the keyboard now. Both the integrator and the packet use this. */
+	public static void sampleThrust() {
+		MinecraftClient client = MinecraftClient.getInstance();
+		if (client == null || client.player == null) return;
+		float forward = 0, strafe = 0, vertical = 0;
+		if (client.options.forwardKey.isPressed()) forward += 1;
+		if (client.options.backKey.isPressed()) forward -= 1;
+		if (client.options.leftKey.isPressed()) strafe += 1;
+		if (client.options.rightKey.isPressed()) strafe -= 1;
+		if (ascend.isPressed()) vertical += 1;
+		if (descend.isPressed()) vertical -= 1;
+		lastForward = forward;
+		lastStrafe = strafe;
+		lastVertical = vertical;
+	}
 
 	private DescentKeybinds() {}
 
@@ -58,6 +86,7 @@ public final class DescentKeybinds {
 		}
 		if (!en && wasEnabled) {
 			ShipAttitudeClient.clear();
+			com.terminaldetector.drmd.client.flight.DescentFlightMotion.clear();
 			DescentClientState.attitudeValid = false;
 		}
 		wasEnabled = en;
@@ -103,13 +132,9 @@ public final class DescentKeybinds {
 
 	public static void sendInput(MinecraftClient client) {
 		if (client.player == null) return;
-		float forward = 0, strafe = 0, vertical = 0, roll = 0;
-		if (client.options.forwardKey.isPressed()) forward += 1;
-		if (client.options.backKey.isPressed()) forward -= 1;
-		if (client.options.leftKey.isPressed()) strafe += 1;
-		if (client.options.rightKey.isPressed()) strafe -= 1;
-		if (ascend.isPressed()) vertical += 1;
-		if (descend.isPressed()) vertical -= 1;
+		sampleThrust();
+		float forward = lastForward, strafe = lastStrafe, vertical = lastVertical;
+		float roll = 0;
 		if (rollLeft.isPressed()) roll -= 1;
 		if (rollRight.isPressed()) roll += 1;
 

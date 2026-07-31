@@ -56,7 +56,8 @@ public final class ModNetworking {
 							  float roll, float speed, int rocketSub, String preset, float gravy,
 							  float dashCd, float gravityFactor, boolean alwaysRun, boolean flightAssist,
 							  boolean radar, boolean footGravity, float localUx, float localUy, float localUz,
-							  float velX, float velY, float velZ
+							  float velX, float velY, float velZ,
+							  float accel, float drag, float maxSpeed, float allocEngines
 	) implements CustomPayload {
 		public static final Id<SyncPayload> ID = new Id<>(SYNC_ID);
 		public static final PacketCodec<RegistryByteBuf, SyncPayload> CODEC = PacketCodec.of(
@@ -83,6 +84,10 @@ public final class ModNetworking {
 					buf.writeFloat(payload.velX);
 					buf.writeFloat(payload.velY);
 					buf.writeFloat(payload.velZ);
+					buf.writeFloat(payload.accel);
+					buf.writeFloat(payload.drag);
+					buf.writeFloat(payload.maxSpeed);
+					buf.writeFloat(payload.allocEngines);
 				},
 				buf -> new SyncPayload(
 						buf.readBoolean(),
@@ -101,6 +106,10 @@ public final class ModNetworking {
 						buf.readBoolean(),
 						buf.readBoolean(),
 						buf.readBoolean(),
+						buf.readFloat(),
+						buf.readFloat(),
+						buf.readFloat(),
+						buf.readFloat(),
 						buf.readFloat(),
 						buf.readFloat(),
 						buf.readFloat(),
@@ -284,7 +293,8 @@ public final class ModNetworking {
 				data.isRadarEnabled(),
 				foot,
 				(float) up.x, (float) up.y, (float) up.z,
-				(float) shipVel.x, (float) shipVel.y, (float) shipVel.z
+				(float) shipVel.x, (float) shipVel.y, (float) shipVel.z,
+				data.getAccel(), data.getDrag(), data.getMaxSpeed(), data.getAllocEngines()
 		));
 	}
 

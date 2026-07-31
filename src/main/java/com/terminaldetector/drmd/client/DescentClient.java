@@ -55,11 +55,16 @@ public class DescentClient implements ClientModInitializer {
 			DescentClientState.velX = payload.velX();
 			DescentClientState.velY = payload.velY();
 			DescentClientState.velZ = payload.velZ();
+			DescentClientState.accel = payload.accel();
+			DescentClientState.drag = payload.drag();
+			DescentClientState.maxSpeed = payload.maxSpeed();
+			DescentClientState.allocEngines = payload.allocEngines();
 			var player = context.client().player;
 			if (player != null && payload.enabled() && !player.isSpectator()) {
-				// The pilot's own client is the authority on where it ends up, so the ship velocity
-				// has to land on the local entity — the server integrating it is not enough.
-				player.setVelocity(payload.velX(), payload.velY(), payload.velZ());
+				// Authority, not command: the client runs its own copy of the integrator and
+				// converges on this. See DescentFlightMotion.
+				com.terminaldetector.drmd.client.flight.DescentFlightMotion.onServerVelocity(
+						payload.velX(), payload.velY(), payload.velZ());
 			}
 			if (player != null) {
 				com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),
@@ -82,6 +87,7 @@ public class DescentClient implements ClientModInitializer {
 			if (!payload.enabled()) {
 				DescentClientState.attitudeValid = false;
 				com.terminaldetector.drmd.client.flight.ShipAttitudeClient.clear();
+				com.terminaldetector.drmd.client.flight.DescentFlightMotion.clear();
 			}
 		});
 
