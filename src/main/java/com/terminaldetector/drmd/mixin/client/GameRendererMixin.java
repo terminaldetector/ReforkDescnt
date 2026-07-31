@@ -17,7 +17,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class GameRendererMixin {
 	@Inject(method = "bobView", at = @At("HEAD"), cancellable = true)
 	private void drmd$cancelBob(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
-		if (DescentClientState.enabled || DescentClientState.footGravity) ci.cancel();
+		// View bob walks the camera along world axes, which fights any tilted frame.
+		if (DescentClientState.enabled || !FootGravityCamera.settled()) ci.cancel();
 	}
 
 	/**
@@ -34,10 +35,8 @@ public class GameRendererMixin {
 			ci.cancel();
 			return;
 		}
-		if (DescentClientState.footGravity || !FootGravityCamera.isNearWorldUp(
-				new net.minecraft.util.math.Vec3d(
-						DescentClientState.localUx, DescentClientState.localUy, DescentClientState.localUz))) {
-			FootGravityCamera.apply(matrices);
+		if (!FootGravityCamera.settled()) {
+			FootGravityCamera.apply(matrices, tickDelta);
 			ci.cancel();
 		}
 	}

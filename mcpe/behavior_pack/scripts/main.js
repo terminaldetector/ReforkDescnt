@@ -144,6 +144,92 @@ function attitudeFromView(player) {
   return { f, u: levelUpOf(f) };
 }
 
+/* ------------------------------------------------------------------ *
+ * Propulsion
+ *
+ * applyKnockback is the smooth path — it goes through the engine's own
+ * collision and interpolation. But Bedrock makes creative and spectator
+ * players knockback-immune, and the call is a silent no-op there rather
+ * than a throw, so the catch-block fallback never fires either. A pilot
+ * in creative got zero thrust and simply hung at the spawn point.
+ *
+ * Those two modes fly by teleport instead.
+ * ------------------------------------------------------------------ */
+
+/** gameMode cache: id -> { mode, tick }. Re-probed once a second. */
+const gameModes = new Map();
+const GAMEMODE_TTL = 20;
+const KNOCKBACK_MODES = ["survival", "adventure"];
+
+function gameModeOf(player, tick) {
+  const cached = gameModes.get(player.id);
+  if (cached && tick - cached.tick < GAMEMODE_TTL) return cached.mode;
+  let mode = "survival";
+  try {
+    const direct = player.getGameMode?.();
+    if (typeof direct === "string" && direct) mode = direct;
+    else mode = probeGameMode(player);
+  } catch (_) {
+    mode = probeGameMode(player);
+  }
+  gameModes.set(player.id, { mode, tick });
+  return mode;
+}
+
+/** Fallback for engines whose Player has no getGameMode(): ask the selector. */
+function probeGameMode(player) {
+  for (const mode of ["creative", "spectator", "adventure", "survival"]) {
+    try {
+      for (const p of world.getPlayers({ gameMode: mode })) {
+        if (p.id === player.id) return mode;
+      }
+    } catch (_) {}
+  }
+  return "survival";
+}
+
+/**
+ * Walk the hull along its velocity by teleporting.
+ *
+ * checkForBlocks gives us collision: a blocked destination fails instead of
+ * putting the pilot inside a wall. Fast passes are split so a 2-block step
+ * cannot tunnel a 1-block wall.
+ */
+function stepByTeleport(player, st, speed) {
+  if (speed < 1e-4) return;
+  const steps = speed > 0.85 ? 3 : 1;
+  const sx = st.vx / steps;
+  const sy = st.vy / steps;
+  const sz = st.vz / steps;
+  for (let i = 0; i < steps; i++) {
+    const loc = player.location;
+    const to = { x: loc.x + sx, y: loc.y + sy, z: loc.z + sz };
+    let ok = false;
+    try {
+      ok = player.tryTeleport(to, { checkForBlocks: true }) !== false;
+    } catch (_) {
+      ok = false;
+    }
+    if (!ok) {
+      // Wall bounce, same feel as the PC build: most of the energy goes into the hull.
+      st.vx *= -0.3;
+      st.vy *= -0.3;
+      st.vz *= -0.3;
+      return;
+    }
+  }
+}
+
+function propel(player, st, speed, mode) {
+  if (KNOCKBACK_MODES.includes(mode)) {
+    try {
+      player.applyKnockback(st.vx, st.vz, Math.min(1.3, speed * 0.92), st.vy * 0.38);
+      return;
+    } catch (_) {}
+  }
+  stepByTeleport(player, st, speed);
+}
+
 function stateOf(player) {
   const id = player.id;
   if (!flights.has(id)) {
@@ -922,9 +1008,15 @@ function bindChat() {
 }
 bindChat();
 
+let flightTick = 0;
+
 system.runInterval(() => {
+  flightTick++;
   for (const player of world.getPlayers()) {
     if (!player.hasTag(TAG_6DOF)) continue;
+    const mode = gameModeOf(player, flightTick);
+    // A spectator already has free flight and no collision; hijacking it strands them.
+    if (mode === "spectator") continue;
     const st = stateOf(player);
     if (st.dashCd > 0) st.dashCd--;
 
@@ -1014,13 +1106,7 @@ system.runInterval(() => {
       st.vz *= s;
     }
 
-    try {
-      player.applyKnockback(st.vx, st.vz, Math.min(1.3, speed * 0.92), st.vy * 0.38);
-    } catch (_) {
-      try {
-        player.applyImpulse({ x: st.vx * 0.22, y: st.vy * 0.22, z: st.vz * 0.22 });
-      } catch (__) {}
-    }
+    propel(player, st, speed, mode);
 
     drawHud(player, st, holds);
   }
@@ -1031,5 +1117,6 @@ world.afterEvents.playerLeave.subscribe((ev) => {
   if (id) {
     flights.delete(id);
     pulseFlags.delete(id);
+    gameModes.delete(id);
   }
 });

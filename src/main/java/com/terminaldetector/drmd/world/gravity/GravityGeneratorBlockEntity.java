@@ -46,7 +46,8 @@ public class GravityGeneratorBlockEntity extends BlockEntity {
 		// Facing points "down" into the gravity well
 		Vec3d down = Vec3d.of(facing.getVector());
 		GravityFields.put(new GravityFields.Field(
-				fieldId, pos, down, radius, power, shape, "Generator"));
+				fieldId, world != null ? world.getRegistryKey() : null,
+				pos, down, radius, power, shape, "Generator"));
 	}
 
 	public void unregister() {

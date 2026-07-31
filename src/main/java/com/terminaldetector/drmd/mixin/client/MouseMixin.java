@@ -19,8 +19,13 @@ public class MouseMixin {
 			)
 	)
 	private void drmd$descentLook(ClientPlayerEntity player, double cursorDeltaX, double cursorDeltaY) {
-		if (DescentClientState.enabled && MinecraftClient.getInstance().currentScreen == null) {
+		boolean open = MinecraftClient.getInstance().currentScreen == null;
+		if (DescentClientState.enabled && open) {
 			ShipAttitudeClient.applyMouse(player, cursorDeltaX, cursorDeltaY);
+		} else if (open && !com.terminaldetector.drmd.client.gravity.FootGravityCamera.settled()) {
+			// A gravity torch redefines which way is up; look has to turn in that frame or the pilot
+			// loses most of their headings the moment the surface goes vertical.
+			com.terminaldetector.drmd.client.gravity.FootLook.applyMouse(player, cursorDeltaX, cursorDeltaY);
 		} else {
 			player.changeLookDirection(cursorDeltaX, cursorDeltaY);
 		}

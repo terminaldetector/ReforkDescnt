@@ -55,12 +55,13 @@ public final class DescentSession {
 	public static void onPlayerJoin(ServerPlayerEntity player) {
 		DescentPlayerData data = DescentPlayerData.get(player);
 		data.ensureInit();
-		if (!data.isEnabled()) {
-			data.setEnabled(true);
-		}
 
 		boolean first = !data.isSessionWelcomed();
 		if (first) {
+			// 6DoF is the default way to move in this world, but only the first join decides that.
+			// Re-asserting it every login would keep overriding a pilot who switched it off with H —
+			// which in creative means their building flight gets taken away on every reconnect.
+			data.setEnabled(true);
 			data.setSessionWelcomed(true);
 			player.sendMessage(Text.literal(
 					"§bDRMD 6DOF §f— Descent session is part of this world."), false);

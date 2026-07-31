@@ -53,8 +53,22 @@ public final class FlightSystem {
 	}
 
 	public static void tick(ServerPlayerEntity player, DescentPlayerData data) {
+		// Spectators own their own movement entirely — hijacking travel there strands them.
+		if (player.isSpectator()) {
+			if (player.hasNoGravity()) player.setNoGravity(false);
+			return;
+		}
 		float dt = 1f / 20f;
 		InputState in = input(player);
+
+		// Creative flight cannot co-drive the hull: PlayerEntity.travel's flying branch rewrites Y
+		// as `previousY * 0.6` every tick, and ClientPlayerEntity.tickMovement injects ±flySpeed*3
+		// on jump/sneak outside travel() entirely. Either one shreds a 6DoF velocity. The player
+		// keeps `allowFlying`, so toggling 6DoF off (H) hands creative flight straight back.
+		if (player.getAbilities().flying) {
+			player.getAbilities().flying = false;
+			player.sendAbilitiesUpdate();
+		}
 
 		if (data.getDashCooldown() > 0) data.setDashCooldown(data.getDashCooldown() - dt);
 		if (data.getDashTimer() > 0) data.setDashTimer(data.getDashTimer() - dt);
@@ -225,9 +239,14 @@ public final class FlightSystem {
 
 		data.setFlightVelocity(vel);
 
-		// Apply to player — disable vanilla gravity while 6DOF on
+		// Apply to player — disable vanilla gravity while 6DOF on.
+		//
+		// The integrator above runs in blocks per SECOND (Source velocities are per-second), so the
+		// hand-off to Minecraft has to divide by the tick rate. Feeding blocks/s straight into
+		// setVelocity is what made the hull cap out at 27 blocks/tick — 550 m/s, outrunning chunk
+		// loading and every collision sweep in the game.
 		player.setNoGravity(true);
-		player.setVelocity(vel);
+		player.setVelocity(vel.multiply(1.0 / 20.0));
 		player.velocityModified = true;
 		player.fallDistance = 0f;
 

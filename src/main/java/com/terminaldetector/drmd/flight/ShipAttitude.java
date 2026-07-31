@@ -115,8 +115,45 @@ public final class ShipAttitude {
 	 * yaw swings fast and bank cancels the swing.
 	 */
 	public float bankDegrees() {
-		Vec3d u = up();
-		return (float) Math.toDegrees(Math.atan2(u.dotProduct(levelRight()), u.dotProduct(levelUp())));
+		return bankDegrees(forward(), up());
+	}
+
+	/**
+	 * Bank of any up vector against the zero-roll frame of any heading, in (-180, 180].
+	 *
+	 * <p>The same decomposition the ship uses, exposed for anything else that has to render an
+	 * arbitrary "up" as screen-up — the gravity torch's wall walking measures the local gravity up
+	 * against the camera's heading with this and rolls the view by the result.
+	 *
+	 * <p>Undefined only when {@code up} is parallel to {@code forward}: there is no such thing as a
+	 * screen-space bank when you are looking straight along your own up axis. Callers keep pitch off
+	 * that singularity rather than the formula guessing.
+	 */
+	public static float bankDegrees(Vec3d forward, Vec3d up) {
+		return (float) Math.toDegrees(Math.atan2(
+				up.dotProduct(levelRightOf(forward)),
+				up.dotProduct(levelUpOf(forward))));
+	}
+
+	/**
+	 * Shortest-arc interpolation between two unit vectors.
+	 *
+	 * <p>Component lerp is not usable here: stepping from world up to a ceiling's down passes
+	 * through the origin, and normalising that is a division by ~0 — the camera tumbles through
+	 * garbage on exactly the transition the gravity torch exists for.
+	 */
+	public static Vec3d slerp(Vec3d from, Vec3d to, double t) {
+		Vec3d a = from.normalize();
+		Vec3d b = to.normalize();
+		double d = MathHelper.clamp(a.dotProduct(b), -1.0, 1.0);
+		if (d > 0.99995) return b;
+		Vec3d axis = a.crossProduct(b);
+		if (axis.lengthSquared() < 1e-12) {
+			// Exactly antipodal: every arc is equally short, so pick a stable perpendicular.
+			axis = a.crossProduct(new Vec3d(0, 1, 0));
+			if (axis.lengthSquared() < 1e-12) axis = a.crossProduct(new Vec3d(1, 0, 0));
+		}
+		return rotate(a, axis.normalize(), Math.toDegrees(Math.acos(d)) * t).normalize();
 	}
 
 	public static Vec3d rotate(Vec3d v, Vec3d axis, double deg) {

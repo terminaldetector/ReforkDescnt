@@ -55,7 +55,8 @@ public final class ModNetworking {
 	public record SyncPayload(boolean enabled, float energy, float energyMax, float shield, float shieldMax,
 							  float roll, float speed, int rocketSub, String preset, float gravy,
 							  float dashCd, float gravityFactor, boolean alwaysRun, boolean flightAssist,
-							  boolean radar, boolean footGravity, float localUx, float localUy, float localUz
+							  boolean radar, boolean footGravity, float localUx, float localUy, float localUz,
+							  float velX, float velY, float velZ
 	) implements CustomPayload {
 		public static final Id<SyncPayload> ID = new Id<>(SYNC_ID);
 		public static final PacketCodec<RegistryByteBuf, SyncPayload> CODEC = PacketCodec.of(
@@ -79,6 +80,9 @@ public final class ModNetworking {
 					buf.writeFloat(payload.localUx);
 					buf.writeFloat(payload.localUy);
 					buf.writeFloat(payload.localUz);
+					buf.writeFloat(payload.velX);
+					buf.writeFloat(payload.velY);
+					buf.writeFloat(payload.velZ);
 				},
 				buf -> new SyncPayload(
 						buf.readBoolean(),
@@ -97,6 +101,9 @@ public final class ModNetworking {
 						buf.readBoolean(),
 						buf.readBoolean(),
 						buf.readBoolean(),
+						buf.readFloat(),
+						buf.readFloat(),
+						buf.readFloat(),
 						buf.readFloat(),
 						buf.readFloat(),
 						buf.readFloat()
@@ -248,6 +255,13 @@ public final class ModNetworking {
 	}
 
 	public static void syncPlayer(ServerPlayerEntity player, DescentPlayerData data) {
+		// Ship velocity in blocks/tick, ready for the client to move on.
+		//
+		// It rides this payload rather than vanilla's EntityVelocityUpdateS2CPacket for two reasons:
+		// a player is never in its own entity tracker, so that packet reaches every client EXCEPT
+		// the pilot's; and its wire format is a short scaled by 8000, capping at 4.09 blocks/tick,
+		// which a dash overruns.
+		net.minecraft.util.math.Vec3d shipVel = data.getFlightVelocity().multiply(1.0 / 20.0);
 		float speed = (float) data.getFlightVelocity().length();
 		var up = com.terminaldetector.drmd.world.LocalOrientation.getUp(player.getUuid());
 		boolean foot = com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player.getUuid());
@@ -268,7 +282,8 @@ public final class ModNetworking {
 				data.isFlightAssist(),
 				data.isRadarEnabled(),
 				foot,
-				(float) up.x, (float) up.y, (float) up.z
+				(float) up.x, (float) up.y, (float) up.z,
+				(float) shipVel.x, (float) shipVel.y, (float) shipVel.z
 		));
 	}
 

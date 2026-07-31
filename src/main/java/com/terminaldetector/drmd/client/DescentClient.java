@@ -52,7 +52,15 @@ public class DescentClient implements ClientModInitializer {
 			DescentClientState.localUx = payload.localUx();
 			DescentClientState.localUy = payload.localUy();
 			DescentClientState.localUz = payload.localUz();
+			DescentClientState.velX = payload.velX();
+			DescentClientState.velY = payload.velY();
+			DescentClientState.velZ = payload.velZ();
 			var player = context.client().player;
+			if (player != null && payload.enabled() && !player.isSpectator()) {
+				// The pilot's own client is the authority on where it ends up, so the ship velocity
+				// has to land on the local entity — the server integrating it is not enough.
+				player.setVelocity(payload.velX(), payload.velY(), payload.velZ());
+			}
 			if (player != null) {
 				com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),
 						new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));

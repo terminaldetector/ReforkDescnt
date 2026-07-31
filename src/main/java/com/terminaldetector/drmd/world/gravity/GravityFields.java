@@ -17,15 +17,29 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class GravityFields {
 	public record Field(
 		UUID id,
+		net.minecraft.registry.RegistryKey<World> worldKey,
 		BlockPos origin,
 		Vec3d downDir,
 		double radius,
 		float power,
 		FieldShape shape,
-		String label
+		String label,
+		/**
+		 * Clip the field to the side the emitter faces.
+		 *
+		 * <p>A torch bolted to a wall should not flip somebody walking on the floor of the room
+		 * behind that wall — the pull has to stop at the surface it is mounted on.
+		 */
+		boolean frontOnly
 	) {
+		public Field(UUID id, net.minecraft.registry.RegistryKey<World> worldKey, BlockPos origin,
+					 Vec3d downDir, double radius, float power, FieldShape shape, String label) {
+			this(id, worldKey, origin, downDir, radius, power, shape, label, false);
+		}
+
 		public double influenceAt(Vec3d pos) {
 			Vec3d rel = pos.subtract(Vec3d.ofCenter(origin));
+			if (frontOnly && rel.dotProduct(downDir.normalize()) > 0.5) return 0;
 			return switch (shape) {
 				case SPHERE -> {
 					double d = rel.length();
@@ -77,10 +91,11 @@ public final class GravityFields {
 		double weight = 0;
 		float maxPower = 0;
 		String dominant = null;
+		var key = world != null ? world.getRegistryKey() : null;
 		for (Field f : FIELDS.values()) {
-			if (world != null && world.getRegistryKey() == null) {
-				// keep signature open for future per-world filtering
-			}
+			// Fields live in one map but belong to one world each: without this a torch bolted to a
+			// wall in the Nether would flip a player's "down" while they stood in the Overworld.
+			if (key != null && f.worldKey() != null && f.worldKey() != key) continue;
 			double w = f.influenceAt(pos);
 			if (w <= 1e-4) continue;
 			sumDir = sumDir.add(f.downDir().normalize().multiply(w));

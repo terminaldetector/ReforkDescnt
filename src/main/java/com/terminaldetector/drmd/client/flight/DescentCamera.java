@@ -192,7 +192,9 @@ public final class DescentCamera {
 		if (!DescentClientState.enabled) return 0;
 		float boost = 0;
 		if (DescentClientState.alwaysRun) boost += 6f;
-		boost += MathHelper.clamp(DescentClientState.speed / 2.5f, 0f, 1f) * 4f;
+		// speed is blocks/second; the hull tops out near 28, so scale across that whole range
+		// instead of pinning the stretch on at walking pace.
+		boost += MathHelper.clamp(DescentClientState.speed / 28f, 0f, 1f) * 4f;
 		return boost;
 	}
 

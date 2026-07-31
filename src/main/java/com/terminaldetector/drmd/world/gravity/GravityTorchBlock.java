@@ -2,7 +2,6 @@ package com.terminaldetector.drmd.world.gravity;
 
 import com.mojang.serialization.MapCodec;
 import com.terminaldetector.drmd.entity.PyroShipEntity;
-import com.terminaldetector.drmd.world.LocalOrientation;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
@@ -111,11 +110,16 @@ public class GravityTorchBlock extends Block {
 			if (e instanceof ServerPlayerEntity sp) {
 				com.terminaldetector.drmd.DescentPlayerData data =
 						com.terminaldetector.drmd.DescentPlayerData.get(sp);
-				// Only reorient walkers — thruster mode keeps ship UP
+				// Only reorient walkers — thruster mode keeps ship UP.
 				if (data.isEnabled()) continue;
-				LocalOrientation.setUp(sp.getUuid(), up);
-				FootGravitySystem.adoptClient(sp.getUuid(), up);
-				sp.setNoGravity(true);
+				// Capture itself is FootGravitySystem's job: it samples this field every tick and
+				// eases the up vector round. Snapping it here would undo that easing ten times a
+				// second and make the world jump onto the wall instead of rolling onto it.
+				if (!FootGravitySystem.isActive(sp.getUuid())) {
+					sp.getWorld().playSound(null, sp.getX(), sp.getY(), sp.getZ(),
+							net.minecraft.sound.SoundEvents.BLOCK_BEACON_ACTIVATE,
+							net.minecraft.sound.SoundCategory.BLOCKS, 0.35f, 1.7f);
+				}
 			} else {
 				Vec3d down = up.negate();
 				e.addVelocity(down.x * 0.05, down.y * 0.05, down.z * 0.05);
@@ -136,13 +140,9 @@ public class GravityTorchBlock extends Block {
 				&& com.terminaldetector.drmd.DescentPlayerData.get(sp).isEnabled()) {
 			return;
 		}
-		Direction face = state.get(FACING);
-		Vec3d up = Vec3d.of(face.getVector());
-		LocalOrientation.setUp(p.getUuid(), up);
-		if (p instanceof ServerPlayerEntity sp) {
-			FootGravitySystem.adoptClient(sp.getUuid(), up);
-			sp.setNoGravity(true);
-		}
+		// Touching the emitter only registers the field; FootGravitySystem samples it every tick and
+		// rotates the player onto the surface from there.
+		register(world, pos, state);
 	}
 
 	private static void register(World world, BlockPos pos, BlockState state) {
@@ -150,7 +150,8 @@ public class GravityTorchBlock extends Block {
 		// Gravity pulls into the mount surface (opposite of outward FACING)
 		Vec3d down = Vec3d.of(face.getOpposite().getVector());
 		GravityFields.put(new GravityFields.Field(
-				torchId(pos), pos, down, RADIUS, POWER, FieldShape.SPHERE, "Gravity Torch"));
+				torchId(pos), world.getRegistryKey(),
+				pos, down, RADIUS, POWER, FieldShape.SPHERE, "Gravity Torch", true));
 	}
 
 	private static UUID torchId(BlockPos pos) {

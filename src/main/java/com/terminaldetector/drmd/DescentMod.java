@@ -129,4 +129,16 @@ public class DescentMod implements ModInitializer {
 	public static double su(double sourceUnits) {
 		return sourceUnits * UNIT_SCALE;
 	}
+
+	/**
+	 * Source units per second → Minecraft blocks per tick.
+	 *
+	 * <p>{@link #su} answers "how many blocks", which for a rate is blocks per <em>second</em> —
+	 * Source velocities are per-second quantities. Minecraft entity velocity is per <em>tick</em>,
+	 * so anything handed to {@code setVelocity} needs this one instead. Mixing the two is what made
+	 * the ship top out at 27 blocks/tick: 550 m/s, faster than chunks can load.
+	 */
+	public static double suPerTick(double sourceUnitsPerSecond) {
+		return su(sourceUnitsPerSecond) / 20.0;
+	}
 }

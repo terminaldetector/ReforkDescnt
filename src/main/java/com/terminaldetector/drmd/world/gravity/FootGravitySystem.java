@@ -24,6 +24,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class FootGravitySystem {
 	public static final double GRAVITY = 0.08;
 	public static final double STICK_DIST = 1.4;
+	/** Per-tick arc toward a field's up when it takes hold — ~0.4 s to settle. */
+	private static final double CAPTURE_RATE = 0.18;
+	/** Faster on release so stepping off a walkway reads as letting go, not sliding off. */
+	private static final double RELEASE_RATE = 0.26;
 
 	public record State(Vec3d up, boolean active, boolean grounded, String label) {}
 
@@ -66,16 +70,22 @@ public final class FootGravitySystem {
 		Vec3d up;
 		String label;
 		if (field != null) {
-			up = field.upDir().normalize();
+			// Ease onto the surface instead of snapping: walking into a torch's reach should roll
+			// the world under you, which is the whole point of the thing.
+			up = com.terminaldetector.drmd.flight.ShipAttitude.slerp(
+					LocalOrientation.getUp(player.getUuid()), field.upDir(), CAPTURE_RATE);
 			label = field.label() != null ? field.label() : "Local Gravity";
 		} else {
-			up = LocalOrientation.getUp(player.getUuid());
+			// Out of reach — bleed back to world up and hand the player to vanilla gravity. Holding
+			// the last surface's up forever left them walking on thin air off the end of a walkway.
+			up = com.terminaldetector.drmd.flight.ShipAttitude.slerp(
+					LocalOrientation.getUp(player.getUuid()), new Vec3d(0, 1, 0), RELEASE_RATE);
 			label = "Local";
 			if (isWorldUp(up)) {
 				player.setNoGravity(false);
 				clear(player.getUuid());
 				LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
-				if (player.age % 10 == 0) ModNetworking.syncPlayer(player, data);
+				ModNetworking.syncPlayer(player, data);
 				return;
 			}
 		}
@@ -94,16 +104,32 @@ public final class FootGravitySystem {
 	 * movementInput: strafe / jump / forward.
 	 */
 	public static void travel(PlayerEntity player, Vec3d movementInput) {
+		// This runs from inside PlayerEntity.travel's super call, so a creative pilot who is still
+		// flying would get Y rewritten as `previousY * 0.6` the moment we return — enough to peel
+		// them off a wall every tick. You walk surfaces here; H gives creative flight back.
+		if (player.getAbilities().flying) {
+			player.getAbilities().flying = false;
+		}
 		Vec3d up = getUp(player.getUuid());
 		if (up.lengthSquared() < 1e-6) up = new Vec3d(0, 1, 0);
 		up = up.normalize();
 
-		float yawRad = player.getYaw() * MathHelper.RADIANS_PER_DEGREE;
-		Vec3d prefer = new Vec3d(-MathHelper.sin(yawRad), 0.0, MathHelper.cos(yawRad));
+		// Walk direction comes from the full look vector flattened onto the surface, not from world
+		// yaw. Yaw alone rotates about world Y: flatten that against a vertical wall and every
+		// heading collapses onto one axis, leaving the player able to face exactly two directions.
+		// The look vector already lives in the surface's frame (FootLook keeps it there), so
+		// projecting it out is the whole job — and on a floor it reduces to plain vanilla forward.
+		Vec3d prefer = player.getRotationVec(1f);
 		Vec3d forward = prefer.subtract(up.multiply(prefer.dotProduct(up)));
 		if (forward.lengthSquared() < 1e-6) {
-			prefer = Math.abs(up.y) > 0.9 ? new Vec3d(0, 0, 1) : new Vec3d(0, 1, 0);
+			// Looking straight along local up: fall back to a stable tangent so movement still works.
+			float yawRad = player.getYaw() * MathHelper.RADIANS_PER_DEGREE;
+			prefer = new Vec3d(-MathHelper.sin(yawRad), 0.0, MathHelper.cos(yawRad));
 			forward = prefer.subtract(up.multiply(prefer.dotProduct(up)));
+			if (forward.lengthSquared() < 1e-6) {
+				prefer = Math.abs(up.y) > 0.9 ? new Vec3d(0, 0, 1) : new Vec3d(0, 1, 0);
+				forward = prefer.subtract(up.multiply(prefer.dotProduct(up)));
+			}
 		}
 		forward = forward.normalize();
 		Vec3d right = up.crossProduct(forward).normalize();
