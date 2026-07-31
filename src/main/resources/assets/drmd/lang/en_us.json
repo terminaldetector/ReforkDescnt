@@ -100,5 +100,21 @@
   "item.drmd.spawn_egg_scanner": "Flying Scanner Spawn Egg",
   "item.drmd.spawn_egg_spider_turret": "Spider Turret Spawn Egg",
   "block.drmd.drill_rig": "Laser Drill Rig",
-  "item.drmd.weapon_d6_fusion": "Fusion Cannon"
+  "item.drmd.weapon_d6_fusion": "Fusion Cannon",
+  "menu.drmd.settings": "DRMD 6DOF…",
+  "screen.drmd.settings": "DRMD 6DOF — Options",
+  "options.drmd.keys_hint": "H toggle · Q/E roll · Space/Ctrl slide · Shift dash · F dampeners · R afterburner · X level · T radar · G rocket mode · Z grapple · M workshop",
+  "options.drmd.cockpit": "3D cockpit",
+  "options.drmd.instruments": "Instruments",
+  "options.drmd.hud": "Telemetry HUD",
+  "options.drmd.weapon_view": "Weapon view",
+  "options.drmd.level_sky": "Level skies",
+  "options.drmd.camera_shake": "Camera motion",
+  "options.drmd.cockpit_opacity": "Cockpit opacity",
+  "options.drmd.look_gain": "Look gain",
+  "options.drmd.roll_rate": "Roll rate",
+  "options.drmd.toggle_6dof": "6DoF: %s",
+  "options.drmd.give_ship": "Give Pyro GX",
+  "options.drmd.give_kit": "Give engineer kit",
+  "options.drmd.creative_only": "Creative mode only"
 }

@@ -93,7 +93,7 @@ public final class DescentCamera {
 		Vec3d vel = player.getVelocity();
 
 		Vec3d lagTarget = Vec3d.ZERO;
-		if (DescentClientState.alwaysRun) {
+		if (DescentClientState.alwaysRun && com.terminaldetector.drmd.client.config.DescentConfig.cameraShake) {
 			double fwdSpd = vel.dotProduct(forward) * 20.0; // blocks/sec feel
 			double pull = MathHelper.clamp(fwdSpd / 12.0, 0.0, 1.0) * LAG_MAX;
 			lagTarget = forward.multiply(-pull);
@@ -149,7 +149,7 @@ public final class DescentCamera {
 
 		Vec3d origin = eye.add(camLag);
 
-		double spd = player.getVelocity().length() * 20.0;
+		double spd = com.terminaldetector.drmd.client.config.DescentConfig.cameraShake ? player.getVelocity().length() * 20.0 : 0.0;
 		double mmAmp = MathHelper.clamp(spd / 22.0, 0.0, 1.0) * MICRO_MAX;
 		if (mmAmp > 0.004) {
 			origin = origin
@@ -189,7 +189,7 @@ public final class DescentCamera {
 
 	/** FOV delta degrees while afterburning (Descent menu had FOV 60–130). */
 	public static float fovBoost() {
-		if (!DescentClientState.enabled) return 0;
+		if (!DescentClientState.enabled || !com.terminaldetector.drmd.client.config.DescentConfig.cameraShake) return 0;
 		float boost = 0;
 		if (DescentClientState.alwaysRun) boost += 6f;
 		// speed is blocks/second; the hull tops out near 28, so scale across that whole range

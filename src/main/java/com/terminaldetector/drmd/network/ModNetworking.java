@@ -235,6 +235,22 @@ public final class ModNetworking {
 					data.setRoll(0);
 					data.setRollVel(0);
 				}
+				// Creative helpers from the options screen. Gated here rather than on the client:
+				// the sender decides nothing, the server does.
+				case "creative_ship" -> {
+					if (player.isCreative()) {
+						player.giveItemStack(new net.minecraft.item.ItemStack(
+								com.terminaldetector.drmd.weapon.items.ModItems.PYRO_GX));
+					}
+				}
+				case "creative_kit" -> {
+					if (player.isCreative()) {
+						player.giveItemStack(new net.minecraft.item.ItemStack(
+								com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH, 16));
+						player.giveItemStack(new net.minecraft.item.ItemStack(
+								com.terminaldetector.drmd.entity.ModWorldBlocks.DRILL_RIG, 4));
+					}
+				}
 				case "preset_balanced" -> EnergySystem.setPreset(data, EnergyPreset.BALANCED);
 				case "preset_assault" -> EnergySystem.setPreset(data, EnergyPreset.ASSAULT);
 				case "preset_interceptor" -> EnergySystem.setPreset(data, EnergyPreset.INTERCEPTOR);

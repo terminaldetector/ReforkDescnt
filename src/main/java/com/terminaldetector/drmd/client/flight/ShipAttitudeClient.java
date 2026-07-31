@@ -16,6 +16,7 @@ import net.minecraft.util.math.MathHelper;
  */
 public final class ShipAttitudeClient {
 	private static final ShipAttitude ATT = new ShipAttitude();
+	/** Default roll rate; the options screen overrides it. */
 	private static final float ROLL_SPEED = 175f;
 
 	private static boolean primed;
@@ -58,8 +59,9 @@ public final class ShipAttitudeClient {
 	public static void applyMouse(ClientPlayerEntity player, double cursorDeltaX, double cursorDeltaY) {
 		if (!primed) resetFromPlayer(player);
 		float dt = frameDt();
-		float targetYaw = (float) (-cursorDeltaX * 0.15);
-		float targetPitch = (float) (-cursorDeltaY * 0.15);
+		double gain = 0.15 * com.terminaldetector.drmd.client.config.DescentConfig.lookGain;
+		float targetYaw = (float) (-cursorDeltaX * gain);
+		float targetPitch = (float) (-cursorDeltaY * gain);
 
 		float turnK = MathHelper.clamp(8f * dt, 0f, 1f);
 		turnYaw = MathHelper.lerp(turnK, turnYaw, targetYaw);
@@ -80,7 +82,8 @@ public final class ShipAttitudeClient {
 	/** Every client tick while flying so roll inertia decays without held keys. */
 	public static void tickRoll(ClientPlayerEntity player, float rollInput, float dt) {
 		if (!primed) return;
-		float target = rollInput * ROLL_SPEED;
+		float rate = com.terminaldetector.drmd.client.config.DescentConfig.rollRate > 0 ? com.terminaldetector.drmd.client.config.DescentConfig.rollRate : ROLL_SPEED;
+		float target = rollInput * rate;
 		rollVel = MathHelper.lerp(MathHelper.clamp(5f * dt, 0f, 1f), rollVel, target);
 		if (Math.abs(rollVel) > 0.01f) {
 			// Unbounded: a Pyro can keep barrel-rolling in one direction forever.

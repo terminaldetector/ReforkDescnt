@@ -25,6 +25,7 @@ public class DescentClient implements ClientModInitializer {
 		DescentKeybinds.register();
 		ModEntityRenderers.register();
 		WeaponViewRenderer.register();
+		com.terminaldetector.drmd.client.render.CockpitRenderer.register();
 		LlodSilhouetteRenderer.register();
 		com.terminaldetector.drmd.client.smoke.SmokeRenderer.register();
 		registerRenderLayers();
@@ -127,6 +128,24 @@ public class DescentClient implements ClientModInitializer {
 			}
 			LlodClientState.INSTANCE.set(next);
 		});
+
+		com.terminaldetector.drmd.client.config.DescentConfig.load();
+
+		// A screen event rather than a GameMenuScreen mixin: the pause menu's layout is a grid that
+		// gets rebuilt, and appending a widget through the public API survives that without having
+		// to match any of vanilla's internals.
+		net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.AFTER_INIT.register(
+				(client, screen, width, height) -> {
+					if (!(screen instanceof net.minecraft.client.gui.screen.GameMenuScreen)) return;
+					net.fabricmc.fabric.api.client.screen.v1.Screens.getButtons(screen).add(
+							net.minecraft.client.gui.widget.ButtonWidget.builder(
+											net.minecraft.text.Text.translatable("menu.drmd.settings"),
+											b -> client.setScreen(
+													new com.terminaldetector.drmd.client.screen.DescentSettingsScreen(screen)))
+									// Bottom-left, clear of vanilla's centred column at any window size.
+									.dimensions(8, height - 28, 120, 20)
+									.build());
+				});
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null || client.getNetworkHandler() == null) return;

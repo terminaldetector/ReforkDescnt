@@ -68,6 +68,7 @@ public final class DescentHud {
 	public static void render(DrawContext ctx, float tickDelta) {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (mc.player == null || mc.world == null || mc.options.hudHidden || !DescentClientState.enabled) return;
+		if (!com.terminaldetector.drmd.client.config.DescentConfig.hud) return;
 
 		int sw = mc.getWindow().getScaledWidth();
 		int sh = mc.getWindow().getScaledHeight();

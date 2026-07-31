@@ -27,6 +27,7 @@ public class ClientWorldMixin {
 	// moves the target it should degrade to a vanilla sky rather than take the game down with it.
 	@Inject(method = "getSkyColor", at = @At("RETURN"), cancellable = true, require = 0)
 	private void drmd$levelSky(Vec3d cameraPos, float tickDelta, CallbackInfoReturnable<Vec3d> cir) {
+		if (!com.terminaldetector.drmd.client.config.DescentConfig.levelSky) return;
 		ClientWorld self = (ClientWorld) (Object) this;
 		if (self.getRegistryKey() != World.OVERWORLD) return;
 		Vec3d vanilla = cir.getReturnValue();

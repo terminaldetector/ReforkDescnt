@@ -27,7 +27,7 @@ public final class WeaponViewRenderer {
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
 			MinecraftClient mc = MinecraftClient.getInstance();
 			if (mc.player == null || mc.options.getPerspective().isFirstPerson() == false) return;
-			if (!DescentClientState.enabled) return;
+			if (!DescentClientState.enabled || !com.terminaldetector.drmd.client.config.DescentConfig.weaponView) return;
 			if (mc.options.hudHidden) return;
 
 			ItemStack stack = mc.player.getMainHandStack();
