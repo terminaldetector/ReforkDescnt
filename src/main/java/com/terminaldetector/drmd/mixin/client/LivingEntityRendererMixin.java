@@ -24,7 +24,9 @@ public class LivingEntityRendererMixin {
 								   CallbackInfo ci) {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (mc.player != entity) return;
-		if (DescentClientState.enabled || !DescentClientState.footGravity) return;
-		FootGravityCamera.apply(matrices);
+		if (DescentClientState.enabled) return;
+		// Follows the smoothed up vector rather than the raw synced one, so the model rolls onto
+		// the wall over the same 0.4 s the view does instead of snapping ahead of it.
+		FootGravityCamera.applyModelUp(matrices, bodyYaw);
 	}
 }

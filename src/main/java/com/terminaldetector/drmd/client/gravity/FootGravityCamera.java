@@ -5,8 +5,11 @@ import com.terminaldetector.drmd.flight.ShipAttitude;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 /**
  * Wall walking, seen from the inside — the Prey trick.
@@ -78,6 +81,40 @@ public final class FootGravityCamera {
 		if (Math.abs(roll) > 0.05f) {
 			matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll));
 		}
+	}
+
+	/**
+	 * Stand the player model on the surface, for the entity renderer.
+	 *
+	 * <p>Not the same operation as {@link #apply}, despite both tilting a matrix stack. That one is
+	 * a screen-space roll of the view; this is a world-space reorientation of a model. The
+	 * distinction is what the old shared implementation got wrong — a world-space axis pushed onto
+	 * the view stack is read in the wrong basis.
+	 *
+	 * <p>{@code setupTransforms} has already turned the stack by {@code 180 - bodyYaw} about Y, so
+	 * the target has to be pulled back through that before the rotation is built. Otherwise the
+	 * model leans by an amount that depends on which way it happens to be facing.
+	 */
+	public static void applyModelUp(MatrixStack matrices, float bodyYaw) {
+		Vec3d up = visualUp;
+		if (settled() || isNearWorldUp(up)) return;
+
+		double rad = Math.toRadians(-(180.0 - bodyYaw));
+		double c = Math.cos(rad);
+		double s = Math.sin(rad);
+		Vec3d target = new Vec3d(up.x * c + up.z * s, up.y, -up.x * s + up.z * c);
+
+		Vec3d modelUp = new Vec3d(0, 1, 0);
+		double d = MathHelper.clamp(modelUp.dotProduct(target), -1.0, 1.0);
+		Vec3d axis = modelUp.crossProduct(target);
+		if (axis.lengthSquared() < 1e-10) {
+			// Straight up or straight down in model space; only the flip needs handling.
+			if (d < 0) matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180f));
+			return;
+		}
+		axis = axis.normalize();
+		matrices.multiply(new Quaternionf().fromAxisAngleRad(
+				new Vector3f((float) axis.x, (float) axis.y, (float) axis.z), (float) Math.acos(d)));
 	}
 
 	public static boolean isNearWorldUp(Vec3d up) {

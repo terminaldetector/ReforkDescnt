@@ -246,7 +246,7 @@ public final class FlightSystem {
 		// setVelocity is what made the hull cap out at 27 blocks/tick — 550 m/s, outrunning chunk
 		// loading and every collision sweep in the game.
 		player.setNoGravity(true);
-		player.setVelocity(vel.multiply(1.0 / 20.0));
+		player.setVelocity(vel.multiply(1.0 / DescentMod.TICKS_PER_SECOND));
 		player.velocityModified = true;
 		player.fallDistance = 0f;
 

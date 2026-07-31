@@ -261,7 +261,8 @@ public final class ModNetworking {
 		// a player is never in its own entity tracker, so that packet reaches every client EXCEPT
 		// the pilot's; and its wire format is a short scaled by 8000, capping at 4.09 blocks/tick,
 		// which a dash overruns.
-		net.minecraft.util.math.Vec3d shipVel = data.getFlightVelocity().multiply(1.0 / 20.0);
+		net.minecraft.util.math.Vec3d shipVel = data.getFlightVelocity()
+				.multiply(1.0 / com.terminaldetector.drmd.DescentMod.TICKS_PER_SECOND);
 		float speed = (float) data.getFlightVelocity().length();
 		var up = com.terminaldetector.drmd.world.LocalOrientation.getUp(player.getUuid());
 		boolean foot = com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player.getUuid());
