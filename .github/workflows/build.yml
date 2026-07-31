@@ -10,6 +10,8 @@ jobs:
   fabric-pc:
     name: Fabric PC jar
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,9 +45,29 @@ jobs:
           name: drmd-6dof-pc
           path: |
             dist/drmd-6dof-*.jar
+            dist/INSTALL_TLAUNCHER.txt
             !dist/*-sources.jar
           if-no-files-found: error
           retention-days: 30
+
+      # dist/ is checked in so the jar can be downloaded straight from the repository — no Actions
+      # login, no nested zip. Keeping it current by hand is what left a crashing build sitting there
+      # under a name that looked like the latest one, so the build refreshes it itself.
+      #
+      # A push made with GITHUB_TOKEN does not start another workflow run, so this cannot loop.
+      - name: Commit refreshed jar into dist/
+        if: github.event_name == 'push'
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/drmd-6dof-*.jar dist/INSTALL_TLAUNCHER.txt
+          if git diff --cached --quiet; then
+            echo "dist/ already matches this build"
+            exit 0
+          fi
+          git commit -m "Refresh dist jar from ${GITHUB_SHA:0:7} [skip ci]"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
 
   mcpe-master:
     name: MCPE Master addon

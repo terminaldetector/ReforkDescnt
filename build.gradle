@@ -62,6 +62,57 @@ jar {
 	}
 }
 
+// The remapped jar under a name that says what it is.
+//
+// build/libs holds several jars and only one of them is the mod: dropping -sources or -dev into
+// mods/ fails in a way that reads like the mod is broken. This writes the loader and game version
+// into the filename and leaves an install note next to it.
+tasks.register('packageTlauncher') {
+	group = 'distribution'
+	description = 'Copy the remapped Fabric jar for TLauncher / third-party Fabric loaders'
+	dependsOn remapJar
+	doLast {
+		def distDir = file('dist')
+		distDir.mkdirs()
+		def remapped = remapJar.archiveFile.get().asFile
+		def outName = "${project.archives_base_name}-${project.version}-fabric-1.21.1.jar"
+		copy {
+			from remapped
+			into distDir
+			rename { outName }
+		}
+		// Stable alias, so a link to the jar keeps working across versions.
+		copy {
+			from remapped
+			into distDir
+			rename { "${project.archives_base_name}-${project.version}.jar" }
+		}
+		new File(distDir, 'INSTALL_TLAUNCHER.txt').text = """DRMD 6DOF — ПК TLauncher Fabric 1.21.1
+=======================================
+Jar: ${outName}
+Он же: ${project.archives_base_name}-${project.version}.jar
+
+Установка
+  1. Версии → Fabric Loader для Minecraft 1.21.1
+  2. Java 21+ в настройках лаунчера
+  3. В mods/: этот jar + Fabric API 1.21.1
+  4. Запуск Fabric 1.21.1 → новый мир
+
+Не класть *-sources.jar / *-dev.jar в mods — это не мод.
+
+Если краш при заходе или зависание на «Preparing spawn»
+  - поставь свежий jar: чинились четыре отдельные причины —
+    nav_node (Blocks.LIGHT), форма overworld.json, негейченный
+    CHUNK_LOAD и сид мира на потоке сервера
+  - создай НОВЫЙ мир: старый сохранил повреждённое состояние
+
+Сборка: ./gradlew build --no-daemon
+"""
+		println "TLauncher package → ${new File(distDir, outName)}"
+	}
+}
+build.finalizedBy(packageTlauncher)
+
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
