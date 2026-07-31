@@ -21,8 +21,16 @@ public final class ModBlocks {
 			new DockBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).mapColor(MapColor.DIAMOND_BLUE)));
 	public static final Block COMBAT_ZONE = register("combat_zone",
 			new MarkerBlock(AbstractBlock.Settings.copy(Blocks.GLASS).nonOpaque().mapColor(MapColor.RED)));
+	// Glass rather than Blocks.LIGHT, with the glow set as a constant.
+	//
+	// Settings.copy carries the source block's luminance *function* across, and LIGHT's reads
+	// state.get(LEVEL_15). AbstractBlockState applies that function while the state manager is still
+	// being built, so a MarkerBlock — which has no level property — threw before it was ever
+	// registered, taking the whole mod's init down with it. LIGHT is also the wrong donor otherwise:
+	// it is unbreakable, drops nothing and is replaceable, none of which suits a marker you place.
 	public static final Block NAV_NODE = register("nav_node",
-			new MarkerBlock(AbstractBlock.Settings.copy(Blocks.LIGHT).mapColor(MapColor.YELLOW)));
+			new MarkerBlock(AbstractBlock.Settings.copy(Blocks.GLASS).nonOpaque()
+					.mapColor(MapColor.YELLOW).luminance(state -> 15)));
 	public static final Block OBJECTIVE = register("objective",
 			new MarkerBlock(AbstractBlock.Settings.copy(Blocks.GOLD_BLOCK).mapColor(MapColor.GOLD)));
 
