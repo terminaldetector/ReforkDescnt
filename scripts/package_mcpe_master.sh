@@ -5,7 +5,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT_DIR="${1:-$ROOT/dist}"
-VER="${2:-1.0.4}"
+VER="${2:-1.0.5}"
 mkdir -p "$OUT_DIR"
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT

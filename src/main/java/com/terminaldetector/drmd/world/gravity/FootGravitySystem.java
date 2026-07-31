@@ -28,6 +28,8 @@ public final class FootGravitySystem {
 	private static final double CAPTURE_RATE = 0.18;
 	/** Faster on release so stepping off a walkway reads as letting go, not sliding off. */
 	private static final double RELEASE_RATE = 0.26;
+	/** Multiplier on movement speed that reproduces vanilla's 0.216 blocks/tick walk. */
+	private static final float WALK_GAIN = 0.35f;
 
 	public record State(Vec3d up, boolean active, boolean grounded, String label) {}
 
@@ -135,9 +137,12 @@ public final class FootGravitySystem {
 		Vec3d right = up.crossProduct(forward).normalize();
 		forward = right.crossProduct(up).normalize();
 
-		float speed = player.getMovementSpeed();
-		Vec3d wish = right.multiply(movementInput.x * speed * 2.5)
-				.add(forward.multiply(movementInput.z * speed * 2.5));
+		// Ground friction is 0.84, so terminal speed is accel/0.16. The old 2.5 gain put that at
+		// 1.56 blocks/tick — seven times vanilla walking, which read as skating rather than walking
+		// on the wall. 0.35 lands on 0.219, which is vanilla's 0.216 to within a rounding error.
+		float speed = player.getMovementSpeed() * (player.isSprinting() ? WALK_GAIN * 1.3f : WALK_GAIN);
+		Vec3d wish = right.multiply(movementInput.x * speed)
+				.add(forward.multiply(movementInput.z * speed));
 
 		boolean grounded = probeGround(player, up);
 		Vec3d vel = projectTangent(player.getVelocity(), up);

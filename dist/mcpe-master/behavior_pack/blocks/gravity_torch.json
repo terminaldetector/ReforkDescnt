@@ -5,6 +5,11 @@
       "identifier": "drmd:gravity_torch",
       "menu_category": {
         "category": "construction"
+      },
+      "traits": {
+        "minecraft:placement_position": {
+          "enabled_states": ["minecraft:block_face"]
+        }
       }
     },
     "components": {
@@ -16,7 +21,10 @@
           "render_method": "opaque"
         }
       },
-      "minecraft:light_emission": 12
+      "minecraft:light_emission": 12,
+      "minecraft:destructible_by_mining": {
+        "seconds_to_destroy": 0.6
+      }
     }
   }
 }

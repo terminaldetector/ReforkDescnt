@@ -41,6 +41,8 @@ const MANEUVER_GAIN = 1.6;
 /** @type {Map<string, FlightState>} */
 const flights = new Map();
 const pulseFlags = new Map();
+/** Server tick counter driving the flight loop, torch sweeps and cache expiry. */
+let flightTick = 0;
 
 const HOLD = {
   "drmd:ctrl_roll_left": "rollL",
@@ -344,6 +346,322 @@ function safeCommand(player, cmd) {
     } catch (__) {}
   }
 }
+
+/* ================================================================== *
+ * Gravity torch — walking on walls and ceilings
+ *
+ * The Prey trick, and the same model as the PC build's FootGravitySystem:
+ * a torch redefines which way is down for anyone near the face it is
+ * mounted on, and you then walk that surface as if it were the floor.
+ *
+ * One honest platform difference: the Bedrock script API exposes only yaw
+ * and pitch, so the view cannot be rolled. On PC the world rotates under
+ * you and a wall looks like a floor; here you genuinely walk the wall,
+ * but the horizon stays world-level. Everything else — sticking, local
+ * gravity, movement in the surface frame, jumping off — behaves the same.
+ * ================================================================== */
+
+const TORCH_ID = "drmd:gravity_torch";
+/** Reach of one torch, matching GravityTorchBlock.RADIUS on PC. */
+const TORCH_RADIUS = 8;
+/** Half-width of the block sweep that finds torches. */
+const SCAN_RADIUS = 6;
+/** A torch drops out of the registry if a sweep has not seen it for this long. */
+const TORCH_TTL = 200;
+/** Per-tick arc onto / off a surface — PC uses the same pair. */
+const CAPTURE_RATE = 0.18;
+const RELEASE_RATE = 0.26;
+/** Vanilla walking is 0.216 blocks/tick; ground friction is 0.84, so accel is that times 0.16. */
+const WALK_ACCEL = 0.035;
+const SPRINT_GAIN = 1.3;
+const FOOT_GRAVITY = 0.08;
+const JUMP_IMPULSE = 0.42;
+/** How far below the feet still counts as standing on the surface. */
+const STICK_DIST = 1.4;
+
+const FACE_UP = {
+  up: { x: 0, y: 1, z: 0 },
+  down: { x: 0, y: -1, z: 0 },
+  north: { x: 0, y: 0, z: -1 },
+  south: { x: 0, y: 0, z: 1 },
+  west: { x: -1, y: 0, z: 0 },
+  east: { x: 1, y: 0, z: 0 },
+};
+
+/** Known torches: "dim:x,y,z" -> { dimId, x, y, z, up, seen }. */
+const torches = new Map();
+/** Per-pilot walking state. */
+const walkers = new Map();
+
+/** Shortest-arc interpolation — a component lerp collapses to zero on a ceiling flip. */
+function slerpV(from, to, t) {
+  const a = normalize(from);
+  const b = normalize(to);
+  const d = Math.max(-1, Math.min(1, dot(a, b)));
+  if (d > 0.99995) return b;
+  let axis = cross(a, b);
+  if (dot(axis, axis) < 1e-12) {
+    axis = cross(a, v(0, 1, 0));
+    if (dot(axis, axis) < 1e-12) axis = cross(a, v(1, 0, 0));
+  }
+  return normalize(rotateAround(a, axis, (Math.acos(d) * 180) / Math.PI * t));
+}
+
+function nearWorldUp(u) {
+  const dx = u.x, dy = u.y - 1, dz = u.z;
+  return dx * dx + dy * dy + dz * dz < 0.0025;
+}
+
+function torchKey(dimId, x, y, z) {
+  return `${dimId}:${x},${y},${z}`;
+}
+
+/** Surface normal a torch was mounted against, from the placement trait. */
+function torchUp(block) {
+  try {
+    const face = block.permutation?.getState?.("minecraft:block_face");
+    if (typeof face === "string" && FACE_UP[face]) return FACE_UP[face];
+  } catch (_) {}
+  return FACE_UP.up;
+}
+
+function rememberTorch(dimId, pos, up, tick) {
+  torches.set(torchKey(dimId, pos.x, pos.y, pos.z), {
+    dimId,
+    x: pos.x,
+    y: pos.y,
+    z: pos.z,
+    up,
+    seen: tick,
+  });
+}
+
+/**
+ * Sweep one horizontal slice of blocks around a pilot per tick.
+ *
+ * A full 13x13x13 cube is far too many getBlock calls to do at once, so the
+ * slice index walks and the registry carries what earlier slices found. A
+ * complete sweep lands inside 0.65 s, which is well under the time it takes
+ * to walk into a torch's reach.
+ */
+function sweepForTorches(player, st, tick) {
+  const dim = player.dimension;
+  const o = player.location;
+  const bx = Math.floor(o.x);
+  const by = Math.floor(o.y);
+  const bz = Math.floor(o.z);
+  const y = by + st.sweepY;
+  st.sweepY++;
+  if (st.sweepY > SCAN_RADIUS) st.sweepY = -SCAN_RADIUS;
+
+  for (let dx = -SCAN_RADIUS; dx <= SCAN_RADIUS; dx++) {
+    for (let dz = -SCAN_RADIUS; dz <= SCAN_RADIUS; dz++) {
+      const pos = { x: bx + dx, y, z: bz + dz };
+      let block;
+      try {
+        block = dim.getBlock(pos);
+      } catch (_) {
+        continue;
+      }
+      const key = torchKey(dim.id, pos.x, pos.y, pos.z);
+      if (block && block.typeId === TORCH_ID) {
+        rememberTorch(dim.id, pos, torchUp(block), tick);
+      } else if (torches.has(key)) {
+        // Swept this exact spot and it is not a torch any more.
+        torches.delete(key);
+      }
+    }
+  }
+}
+
+/** Nearest torch whose field covers this position, or null. */
+function fieldAt(player) {
+  const o = player.location;
+  const dimId = player.dimension.id;
+  let best = null;
+  let bestWeight = 0;
+  for (const t of torches.values()) {
+    if (t.dimId !== dimId) continue;
+    const rel = v(o.x - (t.x + 0.5), o.y - (t.y + 0.5), o.z - (t.z + 0.5));
+    const d = Math.sqrt(dot(rel, rel));
+    if (d > TORCH_RADIUS) continue;
+    // Stop at the surface it is bolted to, so a torch on a wall leaves the room
+    // on the other side of that wall alone.
+    if (dot(rel, t.up) < -0.5) continue;
+    const w = 1 - d / TORCH_RADIUS;
+    if (w > bestWeight) {
+      bestWeight = w;
+      best = t;
+    }
+  }
+  return best;
+}
+
+function walkerOf(player) {
+  const id = player.id;
+  if (!walkers.has(id)) {
+    walkers.set(id, {
+      ux: 0, uy: 1, uz: 0,
+      vx: 0, vy: 0, vz: 0,
+      sweepY: -SCAN_RADIUS,
+      active: false,
+      label: "",
+    });
+  }
+  return walkers.get(id);
+}
+
+/** Is there surface within reach along local down? */
+function groundedOn(player, up) {
+  const o = player.location;
+  const from = { x: o.x + up.x * 0.15, y: o.y + up.y * 0.15 + 0.1, z: o.z + up.z * 0.15 };
+  try {
+    const hit = player.dimension.getBlockFromRay(from, scale(up, -1), {
+      maxDistance: STICK_DIST,
+      includeLiquidBlocks: false,
+      includePassableBlocks: false,
+    });
+    return !!hit;
+  } catch (_) {
+    return false;
+  }
+}
+
+/**
+ * One tick of surface walking. Returns true while the torch owns this pilot,
+ * false once they are back on ordinary world gravity.
+ */
+function wallWalkTick(player, tick) {
+  const st = walkerOf(player);
+  // One slice is 169 block lookups, so it only runs every tick while a surface
+  // already has the pilot — where latency shows. Otherwise it idles at a fifth of
+  // that, and placing a torch registers it immediately through the block event.
+  if (st.active || tick % 5 === 0) sweepForTorches(player, st, tick);
+  if (tick % 40 === 0) {
+    for (const [key, t] of torches) {
+      if (tick - t.seen > TORCH_TTL) torches.delete(key);
+    }
+  }
+
+  const field = fieldAt(player);
+  const up0 = v(st.ux, st.uy, st.uz);
+  const target = field ? field.up : v(0, 1, 0);
+  const upN = slerpV(up0, target, field ? CAPTURE_RATE : RELEASE_RATE);
+  st.ux = upN.x;
+  st.uy = upN.y;
+  st.uz = upN.z;
+
+  if (!field && nearWorldUp(upN)) {
+    // Released: hand the pilot back to ordinary gravity.
+    if (st.active) {
+      st.active = false;
+      st.vx = st.vy = st.vz = 0;
+      st.label = "";
+      player.onScreenDisplay?.setActionBar?.("§7Гравиполе отпустило");
+    }
+    return false;
+  }
+
+  if (!st.active) {
+    st.active = true;
+    st.label = field ? "Гравифакел" : "Локальная";
+    try {
+      player.dimension.playSound?.("beacon.activate", player.location, { volume: 0.35, pitch: 1.7 });
+    } catch (_) {}
+  }
+
+  // Walk frame: the look vector flattened onto the surface. Using world yaw here
+  // instead would collapse every heading onto one axis the moment the surface
+  // goes vertical, leaving two usable directions out of the whole circle.
+  const up = upN;
+  let look = v(0, 0, 1);
+  try {
+    look = normalize(player.getViewDirection());
+  } catch (_) {}
+  let forward = add(look, scale(up, -dot(look, up)));
+  if (dot(forward, forward) < 1e-6) {
+    const alt = Math.abs(up.y) > 0.9 ? v(0, 0, 1) : v(0, 1, 0);
+    forward = add(alt, scale(up, -dot(alt, up)));
+  }
+  forward = normalize(forward);
+  const right = normalize(cross(up, forward));
+
+  let mx = 0;
+  let my = 0;
+  try {
+    const mv = player.inputInfo?.getMovementVector?.();
+    if (mv) {
+      mx = mv.x ?? 0;
+      my = mv.y ?? 0;
+    }
+  } catch (_) {}
+  let sprint = false;
+  let jumping = false;
+  try {
+    sprint = !!player.isSprinting;
+    jumping = !!player.isJumping;
+  } catch (_) {}
+
+  const gain = WALK_ACCEL * (sprint ? SPRINT_GAIN : 1);
+  const wish = add(scale(right, mx * gain), scale(forward, my * gain));
+
+  let grounded = groundedOn(player, up);
+
+  // Strip any component along local up, then rebuild it from gravity / jump —
+  // otherwise the old world-down velocity keeps dragging the pilot off the wall.
+  let vel = v(st.vx, st.vy, st.vz);
+  vel = add(vel, scale(up, -dot(vel, up)));
+
+  if (jumping && grounded) {
+    vel = add(vel, scale(up, JUMP_IMPULSE));
+    grounded = false;
+  }
+  vel = scale(vel, grounded ? 0.84 : 0.98);
+  vel = add(vel, wish);
+  if (!grounded) vel = add(vel, scale(up, -FOOT_GRAVITY));
+
+  st.vx = vel.x;
+  st.vy = vel.y;
+  st.vz = vel.z;
+
+  const speed = Math.sqrt(dot(vel, vel));
+  if (speed > 1e-4) {
+    stepByTeleport(player, st, speed);
+  }
+  return true;
+}
+
+function walkHud(player, st) {
+  const up = v(st.ux, st.uy, st.uz);
+  let face = "ПОЛ";
+  if (up.y < -0.7) face = "ПОТОЛОК";
+  else if (Math.abs(up.y) < 0.7) face = "СТЕНА";
+  const line =
+    `§b${st.label || "Гравиполе"}§7 · §f${face}§7 · UP ` +
+    `§a${up.x.toFixed(2)} ${up.y.toFixed(2)} ${up.z.toFixed(2)}§7 · ` +
+    `${bandOf(player.location.y)}`;
+  try {
+    player.onScreenDisplay?.setActionBar?.(line);
+  } catch (_) {}
+}
+
+// Placing or breaking a torch updates the registry straight away, so you do not
+// have to wait for a sweep to reach that slice.
+try {
+  world.afterEvents.playerPlaceBlock.subscribe((ev) => {
+    const block = ev.block;
+    if (!block || block.typeId !== TORCH_ID) return;
+    rememberTorch(block.dimension.id, block.location, torchUp(block), flightTick);
+  });
+} catch (_) {}
+try {
+  world.afterEvents.playerBreakBlock.subscribe((ev) => {
+    const id = ev.brokenBlockPermutation?.type?.id;
+    if (id !== TORCH_ID) return;
+    const b = ev.block;
+    if (b) torches.delete(torchKey(b.dimension.id, b.location.x, b.location.y, b.location.z));
+  });
+} catch (_) {}
 
 function giveControls(player) {
   const items = [
@@ -1008,15 +1326,18 @@ function bindChat() {
 }
 bindChat();
 
-let flightTick = 0;
-
 system.runInterval(() => {
   flightTick++;
   for (const player of world.getPlayers()) {
-    if (!player.hasTag(TAG_6DOF)) continue;
     const mode = gameModeOf(player, flightTick);
     // A spectator already has free flight and no collision; hijacking it strands them.
     if (mode === "spectator") continue;
+    if (!player.hasTag(TAG_6DOF)) {
+      // On foot: a gravity torch may own which way is down. Thruster mode never
+      // reorients — the ship keeps its own up, same rule as the PC build.
+      if (wallWalkTick(player, flightTick)) walkHud(player, walkerOf(player));
+      continue;
+    }
     const st = stateOf(player);
     if (st.dashCd > 0) st.dashCd--;
 
@@ -1118,5 +1439,6 @@ world.afterEvents.playerLeave.subscribe((ev) => {
     flights.delete(id);
     pulseFlags.delete(id);
     gameModes.delete(id);
+    walkers.delete(id);
   }
 });
