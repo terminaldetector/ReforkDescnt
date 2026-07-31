@@ -94,12 +94,11 @@ public final class WeaponViewRenderer {
 
 				int[] rgb = colorForModel(m);
 				int argb = (m.colorA << 24) | (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
-				if ("gravy".equals(m.model)) {
-					drawGravyClaw(matrices, consumers, argb);
-				} else if ("nosegun".equals(m.model)) {
-					drawNoseGun(matrices, consumers, argb);
-				} else {
-					drawBox(matrices, consumers, argb, 15728880);
+				switch (m.model) {
+					case "gravy" -> drawGravyClaw(matrices, consumers, argb);
+					case "nosegun" -> drawNoseGun(matrices, consumers, argb);
+					case "strider" -> drawMissilePod(matrices, consumers, argb);
+					default -> drawBarrel(matrices, consumers, argb);
 				}
 				matrices.pop();
 			}
@@ -132,6 +131,49 @@ public final class WeaponViewRenderer {
 		matrices.push();
 		matrices.translate(0, 0, 0.55f);
 		matrices.scale(0.55f, 0.55f, 0.9f);
+		drawBox(matrices, consumers, argb, 15728880);
+		matrices.pop();
+	}
+
+	/**
+	 * Missile pod — a rack of tubes with visible warheads, not one block.
+	 *
+	 * <p>Loaded rounds are drawn slightly proud of the tube mouths so the pod reads as armed at a
+	 * glance; the count is what the rocket sub-mode is cycling through.
+	 */
+	private static void drawMissilePod(MatrixStack matrices, VertexConsumerProvider consumers, int argb) {
+		int tipArgb = (argb & 0xFF000000) | 0x00FFD070;
+		for (int i = 0; i < 4; i++) {
+			float ox = (i % 2 == 0) ? -0.32f : 0.32f;
+			float oy = (i < 2) ? 0.28f : -0.28f;
+			matrices.push();
+			matrices.translate(ox, oy, 0f);
+			matrices.scale(0.42f, 0.42f, 1.0f);
+			drawBox(matrices, consumers, argb, 15728880);
+			matrices.pop();
+			// Warhead poking out of the tube.
+			matrices.push();
+			matrices.translate(ox, oy, 0.42f);
+			matrices.scale(0.26f, 0.26f, 0.30f);
+			drawBox(matrices, consumers, tipArgb, 15728880);
+			matrices.pop();
+		}
+		// Spine tying the tubes together.
+		matrices.push();
+		matrices.scale(0.9f, 0.16f, 0.9f);
+		drawBox(matrices, consumers, argb, 15728880);
+		matrices.pop();
+	}
+
+	/** Plain cannon: a body with a stepped muzzle, so the firing end is readable. */
+	private static void drawBarrel(MatrixStack matrices, VertexConsumerProvider consumers, int argb) {
+		matrices.push();
+		matrices.scale(0.7f, 0.7f, 1f);
+		drawBox(matrices, consumers, argb, 15728880);
+		matrices.pop();
+		matrices.push();
+		matrices.translate(0, 0, 0.46f);
+		matrices.scale(0.44f, 0.44f, 0.28f);
 		drawBox(matrices, consumers, argb, 15728880);
 		matrices.pop();
 	}
