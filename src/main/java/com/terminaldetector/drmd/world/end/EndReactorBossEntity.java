@@ -183,8 +183,10 @@ public class EndReactorBossEntity extends HostileEntity {
 		Vec3d core = anchor.equals(Vec3d.ZERO) ? getPos() : anchor;
 		BlockPos pad = BlockPos.ofFloored(core.x, core.y - 12.0, core.z);
 		EndReactorSession.placeExitGateways(sw, pad);
+		boolean inEnd = sw.getRegistryKey() == net.minecraft.world.World.END;
+		String tail = inEnd ? "End exit gateways online." : "landing pad secured.";
 		for (ServerPlayerEntity p : sw.getPlayers()) {
-			p.sendMessage(Text.literal("§dGiga-Reactor destroyed §7— End exit gateways online."), false);
+			p.sendMessage(Text.literal("§dGiga-Reactor destroyed §7— " + tail), false);
 		}
 		bossBar.clearPlayers();
 	}

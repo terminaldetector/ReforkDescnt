@@ -27,26 +27,62 @@ public final class EndReactorSession {
 
 	private EndReactorSession() {}
 
+	/**
+	 * Where the fight lives in a given world.
+	 *
+	 * <p>The End is a band of the overworld column now, not a dimension you portal to, so the
+	 * arena has to exist up there — otherwise {@code /d6 level end} drops you among End islands with
+	 * nothing in them while the actual fight sits behind a portal the design says should not exist.
+	 * The old End dimension keeps its copy: it is still reachable by vanilla means, and the fight
+	 * state is per-world, so the two never interfere.
+	 */
+	public static BlockPos arenaCenter(ServerWorld world) {
+		if (world.getRegistryKey() == World.OVERWORLD) {
+			return new BlockPos(0, END_BAND_ARENA_Y, 0);
+		}
+		int y = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, 0, 0);
+		if (y < 40 || y > 120) y = 72;
+		return new BlockPos(0, y, 0);
+	}
+
+	/**
+	 * Arena floor inside the END band.
+	 *
+	 * <p>Sits among the island shelf rather than above it — {@code generateBase} clears a radius-30
+	 * volume first, so it carves its own space and the surrounding islands become the approach.
+	 * Kept well under the column ceiling: the pillars and their crystals reach 16 above the floor,
+	 * and writes past the height limit are silently dropped, which would decapitate the towers.
+	 */
+	private static final int END_BAND_ARENA_Y = 940;
+
 	public static void onServerTick(MinecraftServer server) {
 		ServerWorld end = server.getWorld(World.END);
-		if (end == null) return;
-		suppressDragons(end);
-		if (!seededThisRun) {
-			ensureBase(end);
-			seededThisRun = true;
+		if (end != null) suppressDragons(end);
+		if (seededThisRun) return;
+		seededThisRun = true;
+		for (ServerWorld world : arenaWorlds(server)) {
+			ensureBase(world);
 		}
 	}
 
 	public static void onServerStarted(MinecraftServer server) {
 		seededThisRun = false;
+		server.execute(() -> {
+			for (ServerWorld world : arenaWorlds(server)) {
+				suppressDragons(world);
+				ensureBase(world);
+			}
+			seededThisRun = true;
+		});
+	}
+
+	private static java.util.List<ServerWorld> arenaWorlds(MinecraftServer server) {
+		java.util.ArrayList<ServerWorld> worlds = new java.util.ArrayList<>(2);
+		ServerWorld overworld = server.getWorld(World.OVERWORLD);
+		if (overworld != null) worlds.add(overworld);
 		ServerWorld end = server.getWorld(World.END);
-		if (end != null) {
-			server.execute(() -> {
-				suppressDragons(end);
-				ensureBase(end);
-				seededThisRun = true;
-			});
-		}
+		if (end != null) worlds.add(end);
+		return worlds;
 	}
 
 	/** Called each dragon-fight tick — remove dragons, keep our fight. */
@@ -62,27 +98,20 @@ public final class EndReactorSession {
 			ensureBossAlive(end, state);
 			return;
 		}
-		BlockPos center = resolveCenter(end);
+		BlockPos center = arenaCenter(end);
 		generateBase(end, center);
 		spawnBoss(end, center);
 		state.setBaseGenerated(true);
 		state.setPhase(EndReactorState.Phase.SHIELDED);
-		DescentMod.LOGGER.info("End mega-reactor base generated at {}", center.toShortString());
-	}
-
-	/** Prefer island surface near 0,0 so portal arrival stays contiguous. */
-	private static BlockPos resolveCenter(ServerWorld end) {
-		int y = end.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, 0, 0);
-		if (y < 40 || y > 120) y = 72;
-		return new BlockPos(0, y, 0);
+		DescentMod.LOGGER.info("Reactor arena generated in {} at {}",
+				end.getRegistryKey().getValue(), center.toShortString());
 	}
 
 	private static void ensureBossAlive(ServerWorld end, EndReactorState state) {
 		if (state.isDefeated()) return;
 		boolean alive = !end.getEntitiesByType(ModEntities.END_REACTOR_BOSS, e -> e.isAlive()).isEmpty();
 		if (!alive && state.getPhase() != EndReactorState.Phase.DEFEATED) {
-			BlockPos center = resolveCenter(end);
-			spawnBoss(end, center);
+			spawnBoss(end, arenaCenter(end));
 		}
 	}
 
@@ -197,26 +226,58 @@ public final class EndReactorSession {
 		}
 	}
 
-	/** Place exit gateways linked to Overworld spawn (dragon-analogue victory). */
-	public static void placeExitGateways(ServerWorld end, BlockPos at) {
-		end.setBlockState(at, Blocks.DRAGON_EGG.getDefaultState(), Block.NOTIFY_ALL);
-		ServerWorld overworld = end.getServer().getWorld(World.OVERWORLD);
+	/**
+	 * Victory marker — the dragon-fight analogue.
+	 *
+	 * <p>In the End dimension that is a ring of gateways home, as vanilla does it. In the END band
+	 * there is nowhere to portal <em>to</em>: the way back is the same column you flew up, so the
+	 * reward is a landing pad and a lit trophy instead of four gateways that would teleport a pilot
+	 * out of a world they never left.
+	 */
+	public static void placeExitGateways(ServerWorld world, BlockPos at) {
+		world.setBlockState(at, Blocks.DRAGON_EGG.getDefaultState(), Block.NOTIFY_ALL);
+
+		if (world.getRegistryKey() != World.END) {
+			for (int dx = -3; dx <= 3; dx++) {
+				for (int dz = -3; dz <= 3; dz++) {
+					if (dx * dx + dz * dz > 9) continue;
+					world.setBlockState(at.add(dx, -1, dz),
+							Blocks.END_STONE_BRICKS.getDefaultState(), Block.NOTIFY_LISTENERS);
+				}
+			}
+			for (int i = 0; i < 4; i++) {
+				double ang = i * Math.PI * 0.5;
+				world.setBlockState(at.add((int) (Math.cos(ang) * 3), 0, (int) (Math.sin(ang) * 3)),
+						Blocks.SEA_LANTERN.getDefaultState(), Block.NOTIFY_LISTENERS);
+			}
+			return;
+		}
+
+		ServerWorld overworld = world.getServer().getWorld(World.OVERWORLD);
 		BlockPos exit = overworld != null ? overworld.getSpawnPos() : BlockPos.ORIGIN;
 		for (int i = 0; i < 4; i++) {
 			double ang = i * Math.PI * 0.5;
 			BlockPos g = at.add((int) (Math.cos(ang) * 6), 0, (int) (Math.sin(ang) * 6));
-			end.setBlockState(g, Blocks.END_GATEWAY.getDefaultState(), Block.NOTIFY_ALL);
-			BlockEntity be = end.getBlockEntity(g);
+			world.setBlockState(g, Blocks.END_GATEWAY.getDefaultState(), Block.NOTIFY_ALL);
+			BlockEntity be = world.getBlockEntity(g);
 			if (be instanceof EndGatewayBlockEntity gateway) {
 				gateway.setExitPortalPos(exit, true);
 			}
 		}
 	}
 
-	/** Count living End crystals near the island — shield while > 0. */
+	/**
+	 * Count living shield crystals around the arena — the boss is invulnerable while any stand.
+	 *
+	 * <p>The search box follows the arena rather than being fixed at y 40..120. Hardcoded, it only
+	 * ever matched a base sitting on an End island; up in the END band it would find nothing, the
+	 * shield would read as already down, and the fight would open with the boss exposed.
+	 */
 	public static int countShieldCrystals(ServerWorld world) {
-		return world.getEntitiesByClass(EndCrystalEntity.class,
-				new net.minecraft.util.math.Box(-40, 40, -40, 40, 120, 40),
-				EndCrystalEntity::isAlive).size();
+		BlockPos c = arenaCenter(world);
+		net.minecraft.util.math.Box box = new net.minecraft.util.math.Box(
+				c.getX() - 40, c.getY() - 8, c.getZ() - 40,
+				c.getX() + 40, c.getY() + 48, c.getZ() + 40);
+		return world.getEntitiesByClass(EndCrystalEntity.class, box, EndCrystalEntity::isAlive).size();
 	}
 }

@@ -26,14 +26,24 @@ public final class ModelOrientation {
 	 * that turn first; with a level ship this collapses to the identity and vanilla is untouched.
 	 */
 	public static void applyBasis(MatrixStack matrices, float bodyYaw, Vec3d forward, Vec3d up) {
-		if (forward == null || up == null) return;
-		if (forward.lengthSquared() < 1e-8 || up.lengthSquared() < 1e-8) return;
+		Quaternionf q = basisRotation(bodyYaw, forward, up);
+		if (q != null) matrices.multiply(q);
+	}
+
+	/**
+	 * The rotation {@link #applyBasis} appends, or null when there is nothing to do.
+	 *
+	 * <p>Separated out so the geometry can be checked without a matrix stack or a running game.
+	 */
+	public static Quaternionf basisRotation(float bodyYaw, Vec3d forward, Vec3d up) {
+		if (forward == null || up == null) return null;
+		if (forward.lengthSquared() < 1e-8 || up.lengthSquared() < 1e-8) return null;
 
 		double rad = Math.toRadians(-(180.0 - bodyYaw));
 		Vec3d tf = rotateY(forward.normalize(), rad);
 		Vec3d tu = rotateY(up, rad);
 		tu = tu.subtract(tf.multiply(tu.dotProduct(tf)));
-		if (tu.lengthSquared() < 1e-10) return;
+		if (tu.lengthSquared() < 1e-10) return null;
 		tu = tu.normalize();
 		Vec3d tr = tu.crossProduct(tf);
 
@@ -44,7 +54,7 @@ public final class ModelOrientation {
 				(float) -tr.x, (float) -tr.y, (float) -tr.z,
 				(float) tu.x, (float) tu.y, (float) tu.z,
 				(float) -tf.x, (float) -tf.y, (float) -tf.z);
-		matrices.multiply(new Quaternionf().setFromNormalized(m));
+		return new Quaternionf().setFromNormalized(m);
 	}
 
 	private static Vec3d rotateY(Vec3d v, double rad) {
