@@ -72,5 +72,7 @@
   "options.drmd.toggle_6dof": "6DoF: %s",
   "options.drmd.give_ship": "Выдать Pyro GX",
   "options.drmd.give_kit": "Выдать набор инженера",
-  "options.drmd.creative_only": "Только в креативе"
+  "options.drmd.creative_only": "Только в креативе",
+  "options.drmd.controls": "Управление…",
+  "options.drmd.controls.tip": "Раскладка клавиш DRMD: крен, рывок, ассист, крюк, мастерская"
 }

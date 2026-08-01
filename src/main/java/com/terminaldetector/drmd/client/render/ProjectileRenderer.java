@@ -25,15 +25,24 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 	public void render(ProjectileEntity entity, float yaw, float tickDelta, MatrixStack matrices,
 					   VertexConsumerProvider consumers, int light) {
 		matrices.push();
+		// Point the round along its own velocity, built from a basis rather than from yaw and pitch.
+		//
+		// The yaw/pitch version came apart exactly where 6DoF puts you most often. Yaw was
+		// atan2(vel.x, vel.z), so firing straight up or down left both arguments near zero and the
+		// heading became noise — the round span on the spot. And the two Euler turns do not commute,
+		// so anything launched from a banked ship sat crooked in the air. A forward/up basis has
+		// neither problem; this is the same call the pilot model uses, verified across 1701
+		// attitudes.
 		Vec3d vel = entity.getVelocity();
-		float bodyYaw = yaw;
-		float bodyPitch = 0;
 		if (vel.lengthSquared() > 1e-6) {
-			bodyYaw = (float) (MathHelper.atan2(vel.x, vel.z) * (180F / Math.PI));
-			bodyPitch = (float) (MathHelper.atan2(vel.y, Math.sqrt(vel.x * vel.x + vel.z * vel.z)) * (180F / Math.PI));
+			Vec3d dir = vel.normalize();
+			// The basis maps the model's -Z onto `forward`, and these meshes are built long along
+			// +Z, so the direction goes in negated. Any reference that is not parallel to the round's
+			// own axis will do for up — it is orthogonalised against it — and these shapes are
+			// axially symmetric, so the roll it lands on does not read.
+			Vec3d ref = Math.abs(dir.y) > 0.99 ? new Vec3d(0, 0, 1) : new Vec3d(0, 1, 0);
+			ModelOrientation.applyBasis(matrices, 180f, dir.negate(), ref);
 		}
-		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(bodyYaw));
-		matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-bodyPitch));
 
 		float s = 0.12f * entity.getVisualScale();
 		int argb = 0xFF000000 | entity.getColorRgb();

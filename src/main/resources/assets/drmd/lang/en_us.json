@@ -116,5 +116,7 @@
   "options.drmd.toggle_6dof": "6DoF: %s",
   "options.drmd.give_ship": "Give Pyro GX",
   "options.drmd.give_kit": "Give engineer kit",
-  "options.drmd.creative_only": "Creative mode only"
+  "options.drmd.creative_only": "Creative mode only",
+  "options.drmd.controls": "Controls…",
+  "options.drmd.controls.tip": "DRMD key binds: roll, dash, assist, hook, workshop"
 }

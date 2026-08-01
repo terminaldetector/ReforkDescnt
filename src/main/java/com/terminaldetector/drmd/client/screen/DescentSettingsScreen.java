@@ -83,6 +83,21 @@ public class DescentSettingsScreen extends Screen {
 				.dimensions(right, y, 150, 20).build());
 		y += ROW + 8;
 
+		// Controls get their own row rather than a scattering of hints. Thirteen of the mod's
+		// actions are bound keys — roll, dash, assist, hook, workshop — and none of them is
+		// discoverable from this screen otherwise.
+		addDrawableChild(ButtonWidget.builder(Text.translatable("options.drmd.controls"),
+						b -> {
+							if (this.client != null) {
+								this.client.setScreen(new net.minecraft.client.gui.screen.option.KeybindsScreen(
+										this, this.client.options));
+							}
+						})
+				.tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(
+						Text.translatable("options.drmd.controls.tip")))
+				.dimensions(cx - 100, y, 200, 20).build());
+		y += ROW + 8;
+
 		addDrawableChild(ButtonWidget.builder(Text.translatable("gui.done"), b -> close())
 				.dimensions(cx - 100, Math.min(this.height - 28, y), 200, 20).build());
 	}
