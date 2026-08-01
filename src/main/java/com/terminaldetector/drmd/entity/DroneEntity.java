@@ -2,12 +2,13 @@ package com.terminaldetector.drmd.entity;
 
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.ai.AiRole;
+import com.terminaldetector.drmd.ai.BombardVillageGoal;
 import com.terminaldetector.drmd.ai.DroneAi;
+import com.terminaldetector.drmd.ai.HostileEnvironment;
 import com.terminaldetector.drmd.weapon.core.DamageClass;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.ai.goal.LookAtEntityGoal;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -16,7 +17,6 @@ import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
@@ -52,7 +52,7 @@ public class DroneEntity extends HostileEntity {
 				.add(EntityAttributes.GENERIC_MAX_HEALTH, 200)
 				.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.5)
 				.add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 10)
-				.add(EntityAttributes.GENERIC_FOLLOW_RANGE, 64)
+				.add(EntityAttributes.GENERIC_FOLLOW_RANGE, 96)
 				.add(EntityAttributes.GENERIC_FLYING_SPEED, 0.8);
 	}
 
@@ -91,9 +91,11 @@ public class DroneEntity extends HostileEntity {
 
 	@Override
 	protected void initGoals() {
+		// Bombers climb the settlement before dogfighting random livestock.
+		this.goalSelector.add(0, new BombardVillageGoal(this));
 		this.goalSelector.add(1, new DroneAi.CombatGoal(this));
-		this.goalSelector.add(8, new LookAtEntityGoal(this, PlayerEntity.class, 16f));
-		this.targetSelector.add(1, new ActiveTargetGoal<>(this, PlayerEntity.class, true));
+		this.goalSelector.add(8, new LookAtEntityGoal(this, LivingEntity.class, 24f));
+		HostileEnvironment.installTargets(this, this.targetSelector);
 	}
 
 	@Override
@@ -178,6 +180,10 @@ public class DroneEntity extends HostileEntity {
 		cfg.homing = role.weaponHoming;
 		cfg.homeTarget = role.weaponHoming ? target : null;
 		cfg.life = 4f;
+		cfg.worldBlast = role.villageBomber || role.weaponClass == DamageClass.EXPLOSIVE;
+		cfg.meshKind = role.weaponClass == DamageClass.EXPLOSIVE
+				? ProjectileEntity.MESH_ROCKET
+				: ProjectileEntity.MESH_BOLT;
 		WeaponCore.fireProjectile(cfg);
 		return true;
 	}
