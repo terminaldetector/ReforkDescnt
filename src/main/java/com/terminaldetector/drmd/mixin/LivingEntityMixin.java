@@ -30,11 +30,24 @@ public class LivingEntityMixin {
 		return ShieldSystem.absorb(data, amount, cls);
 	}
 
-	/** Local-UP foot travel — walls/ceilings from gravity torch / generator. */
+	/**
+	 * Local-UP foot travel — walls and ceilings from the gravity torch or generator.
+	 *
+	 * <p>Client only, for the same reason 6DoF flight is: a player's position is decided by its own
+	 * client, which walks the entity and then reports where it ended up. Running this on the server
+	 * too meant both ends walked the player independently and {@code snapToSurface} teleported the
+	 * server's copy onto the wall every tick without telling anyone. The server then saw the client
+	 * reporting a different position and corrected it back — every tick, which is why the torch
+	 * pinned the player in place instead of letting them walk.
+	 *
+	 * <p>The server still tracks the orientation and holds gravity off; it just does not move
+	 * anybody. See {@code PlayerFlightTravelMixin}, which has always had this guard.
+	 */
 	@Inject(method = "travel", at = @At("HEAD"), cancellable = true)
 	private void drmd$footGravityTravel(Vec3d movementInput, CallbackInfo ci) {
 		LivingEntity self = (LivingEntity) (Object) this;
 		if (!(self instanceof PlayerEntity player)) return;
+		if (!player.getWorld().isClient) return;
 		if (player.getVehicle() instanceof PyroShipEntity) return;
 		if (DescentPlayerData.get(player).isEnabled()) return;
 		if (!FootGravitySystem.isActive(player.getUuid())) return;
