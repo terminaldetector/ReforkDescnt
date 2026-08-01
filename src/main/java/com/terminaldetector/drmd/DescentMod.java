@@ -74,7 +74,7 @@ public class DescentMod implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			int tick = server.getTicks();
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.tick();
-			com.terminaldetector.drmd.world.base.DescentSession.drainSeedQueue();
+			com.terminaldetector.drmd.world.base.DescentSession.drainSeedQueue(server);
 			if (tick % 40 == 0) {
 				com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);
 			}

@@ -27,37 +27,64 @@ import net.minecraft.world.Heightmap;
  */
 public final class DescentSession {
 	/**
-	 * Landmarks waiting to be built, one per tick.
+	 * Landmarks waiting for someone to come near them.
 	 *
-	 * <p>Seeding used to run the whole set inline on SERVER_STARTED. That is seventeen structures —
-	 * a megacity among them — each forcing chunk loads hundreds of blocks from spawn, all on the
-	 * server thread before the world was up. It ran past the 60 s watchdog, which the player sees as
-	 * a crash on join. The work itself is fine; doing it in one tick is not. Same shape as
-	 * {@link com.terminaldetector.drmd.world.level.LevelBuilder}: queue it, spend a fixed budget per
-	 * tick, and the landmarks are all present within a second of the world opening.
+	 * <p>Seeding first ran the whole set inline on SERVER_STARTED — seventeen structures on the
+	 * server thread before the world was up. Spreading them one per tick was not enough, because the
+	 * unit is wrong: a single landmark is not small. The megacity alone is a 112-block grid of
+	 * towers, streets and sewers standing 320 blocks from spawn, where no chunk is loaded yet, so
+	 * every write there generates the chunk under it first. One of those in one tick is minutes of
+	 * frozen server however patiently the queue is drained.
+	 *
+	 * <p>So the trigger is distance, not time. A landmark is raised when a player gets within
+	 * {@link #SEED_RADIUS} of it — which at spawn means the hub and the complex directly underneath,
+	 * and nothing else. The rest wait until you fly out to them, by which point their chunks are
+	 * loading anyway.
 	 */
-	private static final java.util.ArrayDeque<Runnable> SEED_QUEUE = new java.util.ArrayDeque<>();
+	private record SeedJob(BlockPos near, Runnable build) {}
+
+	private static final java.util.ArrayDeque<SeedJob> SEED_QUEUE = new java.util.ArrayDeque<>();
+
+	/** How close a player has to be before a queued landmark is built. */
+	private static final int SEED_RADIUS = 256;
 
 	private DescentSession() {}
 
-	/** Build at most one queued landmark. Called every server tick. */
-	public static void drainSeedQueue() {
-		Runnable job = SEED_QUEUE.poll();
-		if (job == null) return;
-		try {
-			job.run();
-		} catch (Exception e) {
-			// One bad landmark must not take the rest of the queue — or the world — with it.
-			DescentMod.LOGGER.error("Descent landmark seed failed", e);
+	/** Build at most one landmark, and only one somebody is close to. Called every server tick. */
+	public static void drainSeedQueue(MinecraftServer server) {
+		if (SEED_QUEUE.isEmpty()) return;
+		ServerWorld world = server.getOverworld();
+		if (world == null) return;
+		for (var it = SEED_QUEUE.iterator(); it.hasNext(); ) {
+			SeedJob job = it.next();
+			if (!playerWithinSeedRange(world, job.near())) continue;
+			it.remove();
+			try {
+				job.build().run();
+			} catch (Exception e) {
+				// One bad landmark must not take the rest of the queue — or the world — with it.
+				DescentMod.LOGGER.error("Descent landmark seed failed", e);
+			}
+			return;
 		}
+	}
+
+	/** Horizontal distance only — a landmark can span most of the column's height. */
+	private static boolean playerWithinSeedRange(ServerWorld world, BlockPos at) {
+		for (var player : world.getPlayers()) {
+			double dx = player.getX() - at.getX();
+			double dz = player.getZ() - at.getZ();
+			if (dx * dx + dz * dz <= (double) SEED_RADIUS * SEED_RADIUS) return true;
+		}
+		return false;
 	}
 
 	public static void clearSeedQueue() {
 		SEED_QUEUE.clear();
 	}
 
-	private static void enqueue(Runnable job) {
-		SEED_QUEUE.add(job);
+	private static void enqueue(BlockPos near, Runnable job) {
+		SEED_QUEUE.add(new SeedJob(near.toImmutable(), job));
 	}
 
 	/** Called once when overworld is ready — seed hub + nearby stock features. */
@@ -172,12 +199,12 @@ public final class DescentSession {
 			BlockPos at = new BlockPos(x, y, z);
 			// The loop counter is not effectively final, so the seed is resolved before capture.
 			long salt = world.getSeed() ^ (i * 31L);
-			enqueue(() -> MegaStructureGenerator.generate(world, at, kind, Random.create(salt)));
+			enqueue(at, () -> MegaStructureGenerator.generate(world, at, kind, Random.create(salt)));
 		}
 
 		// One industrial complex under spawn
 		BlockPos under = new BlockPos(spawn.getX(), WorldRules.INDUSTRIAL_Y_MIN + 30, spawn.getZ());
-		enqueue(() -> IndustrialComplexGenerator.generateAt(
+		enqueue(under, () -> IndustrialComplexGenerator.generateAt(
 				world, under, WorldRules.ComplexStyle.CRYSTAL_REACTOR, random));
 	}
 
@@ -191,7 +218,7 @@ public final class DescentSession {
 
 		// Depth reactors — second industrial node
 		BlockPos depth = new BlockPos(spawn.getX() - 64, WorldRules.INDUSTRIAL_Y_MIN + 18, spawn.getZ() + 48);
-		enqueue(() -> IndustrialComplexGenerator.generateAt(world, depth, styles[2 % styles.length], random));
+		enqueue(depth, () -> IndustrialComplexGenerator.generateAt(world, depth, styles[2 % styles.length], random));
 
 		// Surface corridor — canyon + rift pair
 		enqueueMega(world, new BlockPos(spawn.getX() + 96, WorldRules.INDUSTRIAL_Y_MAX - 8, spawn.getZ() - 40),
@@ -225,7 +252,7 @@ public final class DescentSession {
 		// this is off the join path.
 		int cityX = spawn.getX() - 320;
 		int cityZ = spawn.getZ() + 280;
-		enqueue(() -> {
+		enqueue(new BlockPos(cityX, 0, cityZ), () -> {
 			int citySurface = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, cityX, cityZ);
 			MegaStructureGenerator.generate(world,
 					new BlockPos(cityX, Math.max(citySurface, WorldRules.INDUSTRIAL_Y_MAX + 24), cityZ),
@@ -233,7 +260,7 @@ public final class DescentSession {
 		});
 
 		// One airborne UFO near spawn sky lane
-		enqueue(() -> {
+		enqueue(new BlockPos(spawn.getX() + 100, WorldRules.SKY_PRACTICAL_MIN + 48, spawn.getZ() + 40), () -> {
 			var ufo = ModEntities.SKY_UFO.create(world);
 			if (ufo != null) {
 				ufo.refreshPositionAndAngles(spawn.getX() + 100.5, WorldRules.SKY_PRACTICAL_MIN + 48,
@@ -245,6 +272,6 @@ public final class DescentSession {
 
 	/** Queue one megastructure; the salt is mixed with the world seed at build time. */
 	private static void enqueueMega(ServerWorld world, BlockPos at, MacroEntry.Kind kind, long salt) {
-		enqueue(() -> MegaStructureGenerator.generate(world, at, kind, Random.create(world.getSeed() ^ salt)));
+		enqueue(at, () -> MegaStructureGenerator.generate(world, at, kind, Random.create(world.getSeed() ^ salt)));
 	}
 }
