@@ -96,8 +96,8 @@ public final class EngineerTools {
 	}
 
 	/**
-	 * Drill laser installation — hold RMB to continuously melt / carve along look.
-	 * Reuses mining_laser texture + WeaponFx melt/drill.
+	 * Drill laser — hold RMB to melt / carve a wide face along look.
+	 * Sneak extends range and widens the cut (5³).
 	 */
 	public static class MiningLaserItem extends Item {
 		public MiningLaserItem(Settings settings) { super(settings.maxCount(1)); }
@@ -124,15 +124,16 @@ public final class EngineerTools {
 			if (remainingUseTicks % 2 != 0) return;
 			if (!(world instanceof ServerWorld sw)) return;
 
-			BlockHitResult hit = ray(world, player, player.isSneaking() ? 32 : 18);
+			double range = player.isSneaking() ? 40 : 26;
+			BlockHitResult hit = ray(world, player, range);
 			Vec3d eye = player.getEyePos();
 			if (hit.getType() != HitResult.Type.BLOCK) {
-				Vec3d end = eye.add(player.getRotationVec(1f).multiply(player.isSneaking() ? 32 : 18));
-				WeaponFx.beamDrill(sw, eye, end);
+				Vec3d end = eye.add(player.getRotationVec(1f).multiply(range));
+				WeaponFx.beamDrill(sw, eye, end, false);
 				return;
 			}
 			BlockPos pos = hit.getBlockPos();
-			WeaponFx.beamDrill(sw, eye, hit.getPos());
+			WeaponFx.beamDrill(sw, eye, hit.getPos(), false);
 			int intensity = player.isSneaking() ? 3 : 2;
 			boolean carved = WeaponFx.melt(sw, pos, intensity, player);
 			if (!carved) {
@@ -141,12 +142,74 @@ public final class EngineerTools {
 					sw.breakBlock(pos, true, player);
 				}
 			}
-			// Widen tunnel slightly every few ticks while sneaking
-			if (player.isSneaking() && remainingUseTicks % 6 == 0) {
-				WeaponFx.drillCarve(sw, pos, player);
+			// Wider work face every pulse (sneak → 5³ mining head)
+			if (remainingUseTicks % 4 == 0) {
+				WeaponFx.drillCarve(sw, pos, player, player.isSneaking() ? 2 : 1);
 			}
 			world.playSound(null, pos, SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.BLOCKS,
 					0.25f, 1.6f + world.getRandom().nextFloat() * 0.4f);
+		}
+
+		@Override
+		public ActionResult useOnBlock(ItemUsageContext context) {
+			PlayerEntity user = context.getPlayer();
+			if (user != null) {
+				user.setCurrentHand(context.getHand());
+				return ActionResult.CONSUME;
+			}
+			return ActionResult.PASS;
+		}
+	}
+
+	/**
+	 * Heavy tunnel laser — hold RMB to bore a walkable cylinder along look.
+	 * Radius 2 (sneak 3), advances several blocks per pulse with industrial smoke.
+	 */
+	public static class TunnelLaserItem extends Item {
+		public TunnelLaserItem(Settings settings) { super(settings.maxCount(1)); }
+
+		@Override
+		public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+			user.setCurrentHand(hand);
+			return TypedActionResult.consume(user.getStackInHand(hand));
+		}
+
+		@Override
+		public UseAction getUseAction(ItemStack stack) {
+			return UseAction.BOW;
+		}
+
+		@Override
+		public int getMaxUseTime(ItemStack stack, LivingEntity user) {
+			return 72000;
+		}
+
+		@Override
+		public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
+			if (world.isClient || !(user instanceof PlayerEntity player)) return;
+			if (remainingUseTicks % 3 != 0) return;
+			if (!(world instanceof ServerWorld sw)) return;
+
+			double range = 48;
+			Vec3d eye = player.getEyePos();
+			Vec3d dir = player.getRotationVec(1f);
+			BlockHitResult hit = ray(world, player, range);
+			Vec3d aimEnd = hit.getType() == HitResult.Type.BLOCK
+					? hit.getPos()
+					: eye.add(dir.multiply(range));
+			WeaponFx.beamDrill(sw, eye, aimEnd, true);
+
+			BlockPos origin = hit.getType() == HitResult.Type.BLOCK
+					? hit.getBlockPos()
+					: BlockPos.ofFloored(eye.add(dir.multiply(2.5)));
+			int radius = player.isSneaking() ? 3 : 2;
+			int length = player.isSneaking() ? 5 : 3;
+			int carved = WeaponFx.drillTunnel(sw, origin, dir, player, radius, length);
+			if (carved > 0) {
+				player.sendMessage(Text.literal("§6Tunnel bore §f" + carved + " §7blocks"), true);
+			}
+			world.playSound(null, origin, SoundEvents.BLOCK_BEACON_AMBIENT, SoundCategory.BLOCKS,
+					0.45f, 0.55f + world.getRandom().nextFloat() * 0.25f);
 		}
 
 		@Override

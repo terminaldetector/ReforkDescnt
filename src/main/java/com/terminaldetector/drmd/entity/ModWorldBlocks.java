@@ -54,7 +54,11 @@ public final class ModWorldBlocks {
 
 	public static final Block DRILL_RIG = registerBlock("drill_rig",
 			new com.terminaldetector.drmd.world.engineer.DrillRigBlock(
-					AbstractBlock.Settings.copy(Blocks.BLAST_FURNACE).luminance(s -> 7).strength(4.5f)));
+					AbstractBlock.Settings.copy(Blocks.BLAST_FURNACE).luminance(s -> s.get(com.terminaldetector.drmd.world.engineer.DrillRigBlock.ACTIVE) ? 12 : 5).strength(4.5f).nonOpaque()));
+
+	public static final Block TUNNEL_DRILL_RIG = registerBlock("tunnel_drill_rig",
+			new com.terminaldetector.drmd.world.engineer.TunnelDrillRigBlock(
+					AbstractBlock.Settings.copy(Blocks.BLAST_FURNACE).luminance(s -> s.get(com.terminaldetector.drmd.world.engineer.TunnelDrillRigBlock.ACTIVE) ? 14 : 6).strength(5f).nonOpaque()));
 
 	public static final Block GRAVITY_TORCH = registerBlock("gravity_torch",
 			new com.terminaldetector.drmd.world.gravity.GravityTorchBlock(
@@ -64,6 +68,7 @@ public final class ModWorldBlocks {
 	public static Item CONSTRUCTION_LASER;
 	public static Item REPAIR_LASER;
 	public static Item MINING_LASER;
+	public static Item TUNNEL_LASER;
 	public static Item GRAVITY_SCANNER;
 
 	private ModWorldBlocks() {}
@@ -88,6 +93,9 @@ public final class ModWorldBlocks {
 		MINING_LASER = Registry.register(Registries.ITEM,
 				Identifier.of(DescentMod.MOD_ID, "mining_laser"),
 				new com.terminaldetector.drmd.world.engineer.EngineerTools.MiningLaserItem(new Item.Settings()));
+		TUNNEL_LASER = Registry.register(Registries.ITEM,
+				Identifier.of(DescentMod.MOD_ID, "tunnel_laser"),
+				new com.terminaldetector.drmd.world.engineer.EngineerTools.TunnelLaserItem(new Item.Settings()));
 		GRAVITY_SCANNER = Registry.register(Registries.ITEM,
 				Identifier.of(DescentMod.MOD_ID, "gravity_scanner"),
 				new com.terminaldetector.drmd.world.engineer.EngineerTools.GravityScannerItem(new Item.Settings()));
@@ -105,10 +113,12 @@ public final class ModWorldBlocks {
 			entries.add(GRAVITY_GENERATOR);
 			entries.add(GRAVITY_TORCH);
 			entries.add(DRILL_RIG);
+			entries.add(TUNNEL_DRILL_RIG);
 			entries.add(BUILD_TOOL);
 			entries.add(CONSTRUCTION_LASER);
 			entries.add(REPAIR_LASER);
 			entries.add(MINING_LASER);
+			entries.add(TUNNEL_LASER);
 			entries.add(GRAVITY_SCANNER);
 		});
 

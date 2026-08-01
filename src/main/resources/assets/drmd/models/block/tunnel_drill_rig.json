@@ -1,16 +1,16 @@
 {
-  "credit": "DRMD drill rig",
+  "credit": "DRMD tunnel drill rig",
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "drmd:block/drill_rig",
-    "body": "drmd:block/drill_rig",
+    "particle": "drmd:block/tunnel_drill_rig",
+    "body": "drmd:block/tunnel_drill_rig",
     "accent": "drmd:block/reactor_casing"
   },
   "elements": [
     {
-      "name": "base",
+      "name": "chassis",
       "from": [1, 0, 1],
-      "to": [15, 4, 15],
+      "to": [15, 10, 12],
       "faces": {
         "north": { "uv": [0, 0, 16, 16], "texture": "#body" },
         "south": { "uv": [0, 0, 16, 16], "texture": "#body" },
@@ -21,65 +21,52 @@
       }
     },
     {
-      "name": "column",
-      "from": [5, 4, 5],
-      "to": [11, 12, 11],
-      "faces": {
-        "north": { "uv": [0, 0, 16, 16], "texture": "#body" },
-        "south": { "uv": [0, 0, 16, 16], "texture": "#body" },
-        "east": { "uv": [0, 0, 16, 16], "texture": "#body" },
-        "west": { "uv": [0, 0, 16, 16], "texture": "#body" },
-        "up": { "uv": [0, 0, 16, 16], "texture": "#body" },
-        "down": { "uv": [0, 0, 16, 16], "texture": "#body" }
-      }
-    },
-    {
-      "name": "head",
-      "from": [3, 12, 3],
-      "to": [13, 15, 13],
+      "name": "barrel",
+      "from": [5, 3, 12],
+      "to": [11, 9, 16],
       "faces": {
         "north": { "uv": [0, 0, 16, 16], "texture": "#accent" },
         "south": { "uv": [0, 0, 16, 16], "texture": "#accent" },
         "east": { "uv": [0, 0, 16, 16], "texture": "#accent" },
         "west": { "uv": [0, 0, 16, 16], "texture": "#accent" },
-        "up": { "uv": [0, 0, 16, 16], "texture": "#body" },
+        "up": { "uv": [0, 0, 16, 16], "texture": "#accent" },
         "down": { "uv": [0, 0, 16, 16], "texture": "#accent" }
       }
     },
     {
-      "name": "emitter",
-      "from": [6, -2, 6],
-      "to": [10, 4, 10],
+      "name": "stack",
+      "from": [6, 10, 3],
+      "to": [10, 16, 7],
       "faces": {
-        "north": { "uv": [0, 0, 16, 16], "texture": "#accent" },
-        "south": { "uv": [0, 0, 16, 16], "texture": "#accent" },
-        "east": { "uv": [0, 0, 16, 16], "texture": "#accent" },
-        "west": { "uv": [0, 0, 16, 16], "texture": "#accent" },
+        "north": { "uv": [0, 0, 16, 16], "texture": "#body" },
+        "south": { "uv": [0, 0, 16, 16], "texture": "#body" },
+        "east": { "uv": [0, 0, 16, 16], "texture": "#body" },
+        "west": { "uv": [0, 0, 16, 16], "texture": "#body" },
         "up": { "uv": [0, 0, 16, 16], "texture": "#accent" },
         "down": { "uv": [0, 0, 16, 16], "texture": "#body" }
       }
     },
     {
-      "name": "vent_l",
-      "from": [0, 5, 6],
-      "to": [5, 10, 10],
+      "name": "tracks_l",
+      "from": [0, 0, 2],
+      "to": [2, 3, 14],
       "faces": {
         "north": { "uv": [0, 0, 16, 16], "texture": "#body" },
         "south": { "uv": [0, 0, 16, 16], "texture": "#body" },
         "east": { "uv": [0, 0, 16, 16], "texture": "#body" },
-        "west": { "uv": [0, 0, 16, 16], "texture": "#accent" },
+        "west": { "uv": [0, 0, 16, 16], "texture": "#body" },
         "up": { "uv": [0, 0, 16, 16], "texture": "#body" },
         "down": { "uv": [0, 0, 16, 16], "texture": "#body" }
       }
     },
     {
-      "name": "vent_r",
-      "from": [11, 5, 6],
-      "to": [16, 10, 10],
+      "name": "tracks_r",
+      "from": [14, 0, 2],
+      "to": [16, 3, 14],
       "faces": {
         "north": { "uv": [0, 0, 16, 16], "texture": "#body" },
         "south": { "uv": [0, 0, 16, 16], "texture": "#body" },
-        "east": { "uv": [0, 0, 16, 16], "texture": "#accent" },
+        "east": { "uv": [0, 0, 16, 16], "texture": "#body" },
         "west": { "uv": [0, 0, 16, 16], "texture": "#body" },
         "up": { "uv": [0, 0, 16, 16], "texture": "#body" },
         "down": { "uv": [0, 0, 16, 16], "texture": "#body" }

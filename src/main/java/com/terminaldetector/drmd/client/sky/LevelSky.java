@@ -41,8 +41,8 @@ public final class LevelSky {
 			new Anchor(mid(WorldLevels.SURFACE_TOP, WorldLevels.SKY_TOP), 0.33f, 0.52f, 0.76f, 0.70f),
 			// Orbital: near vacuum, the sky drains to black.
 			new Anchor(mid(WorldLevels.SKY_TOP, WorldLevels.ORBITAL_TOP), 0.015f, 0.02f, 0.07f, 1.00f),
-			// End level — the violet of the old dimension, kept as a signature.
-			new Anchor(mid(WorldLevels.ORBITAL_TOP, WorldLevels.WORLD_TOP), 0.07f, 0.035f, 0.10f, 1.00f),
+			// Upper column — stock-like empty high sky (no End violet when END_BAND is parked).
+			new Anchor(mid(WorldLevels.ORBITAL_TOP, WorldLevels.WORLD_TOP), 0.015f, 0.02f, 0.07f, 1.00f),
 	};
 
 	private LevelSky() {}
