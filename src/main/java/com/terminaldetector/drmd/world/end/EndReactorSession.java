@@ -23,8 +23,6 @@ import net.minecraft.world.Heightmap;
  * Shield crystals (End crystals on pillars) → exposed giga-core → destroy for exit gateways.
  */
 public final class EndReactorSession {
-	private static boolean seededThisRun;
-
 	private EndReactorSession() {}
 
 	/**
@@ -58,23 +56,50 @@ public final class EndReactorSession {
 	public static void onServerTick(MinecraftServer server) {
 		ServerWorld end = server.getWorld(World.END);
 		if (end != null) suppressDragons(end);
-		if (seededThisRun) return;
-		seededThisRun = true;
 		for (ServerWorld world : arenaWorlds(server)) {
-			ensureBase(world);
+			if (playerNearArena(world)) ensureBase(world);
 		}
 	}
 
+	/**
+	 * Nothing is built here.
+	 *
+	 * <p>This used to raise both arenas on the spot. Each one clears a radius-30 cylinder — some
+	 * sixty thousand block writes — and doing two of them in a single task on the server thread, at
+	 * the moment the world opens, stalled startup at "Preparing spawn 100%". The End's copy was
+	 * worse still: its chunks do not exist yet, so the clear had to generate them first.
+	 *
+	 * <p>The arena is raised when a player is actually near it instead — see {@link #onServerTick}.
+	 * It is a one-off per world, {@code EndReactorState} remembers it, and until someone flies up to
+	 * the band or steps into the End there is no reason for it to exist.
+	 */
 	public static void onServerStarted(MinecraftServer server) {
-		seededThisRun = false;
-		server.execute(() -> {
-			for (ServerWorld world : arenaWorlds(server)) {
-				suppressDragons(world);
-				ensureBase(world);
-			}
-			seededThisRun = true;
-		});
+		// Intentionally empty.
 	}
+
+	/**
+	 * Is anyone close enough to justify raising the arena?
+	 *
+	 * <p>Deliberately does not call {@link #arenaCenter}: for the End that samples a heightmap, which
+	 * generates the centre chunk. Distance is measured against the column axis instead, so the check
+	 * itself never touches the world.
+	 */
+	private static boolean playerNearArena(ServerWorld world) {
+		boolean band = world.getRegistryKey() == World.OVERWORLD;
+		for (var player : world.getPlayers()) {
+			double x = player.getX();
+			double z = player.getZ();
+			if (x * x + z * z > ARENA_WAKE_RADIUS * ARENA_WAKE_RADIUS) continue;
+			// In the band the arena is one level of many, so surface play near the origin must not
+			// wake it — only flying up into the END band does.
+			if (band && Math.abs(player.getY() - END_BAND_ARENA_Y) > ARENA_WAKE_RADIUS) continue;
+			return true;
+		}
+		return false;
+	}
+
+	/** How close a player has to be before the arena is raised. */
+	private static final int ARENA_WAKE_RADIUS = 256;
 
 	private static java.util.List<ServerWorld> arenaWorlds(MinecraftServer server) {
 		java.util.ArrayList<ServerWorld> worlds = new java.util.ArrayList<>(2);
@@ -116,12 +141,19 @@ public final class EndReactorSession {
 	}
 
 	public static void generateBase(ServerWorld world, BlockPos center) {
-		// Clear a working volume so the base replaces the stock podium without leftover clutter
+		// Clear a working volume so the base replaces the stock podium without leftover clutter.
+		//
+		// Air that is already air is skipped. The volume is a radius-30 cylinder — sixty thousand
+		// positions — and up in the band nearly all of it is open column, where a no-op setBlockState
+		// still pays for a lighting update. Reading first is what keeps this a brief hitch.
+		BlockPos.Mutable cursor = new BlockPos.Mutable();
 		for (int x = -30; x <= 30; x++) {
 			for (int z = -30; z <= 30; z++) {
 				if (x * x + z * z > 30 * 30) continue;
 				for (int y = 1; y <= 22; y++) {
-					world.setBlockState(center.add(x, y, z), Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
+					cursor.set(center.getX() + x, center.getY() + y, center.getZ() + z);
+					if (world.getBlockState(cursor).isAir()) continue;
+					world.setBlockState(cursor, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
 				}
 			}
 		}
