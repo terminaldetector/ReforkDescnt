@@ -320,6 +320,8 @@ public final class DescentCommands {
 								String name = StringArgumentType.getString(ctx, "type").toLowerCase();
 								ItemStack stack = switch (name) {
 									case "cluster" -> new ItemStack(ModItems.BOMB_CLUSTER, 8);
+									case "heavy", "heavy_cluster", "heavycluster" -> new ItemStack(ModItems.BOMB_HEAVY_CLUSTER, 6);
+									case "rocket", "rockets" -> new ItemStack(ModItems.BOMB_ROCKET, 8);
 									case "incendiary", "fire" -> new ItemStack(ModItems.BOMB_INCENDIARY, 8);
 									case "guided", "laser" -> new ItemStack(ModItems.BOMB_GUIDED, 8);
 									default -> new ItemStack(ModItems.BOMB_TNT, 8);
@@ -334,10 +336,13 @@ public final class DescentCommands {
 								ServerPlayerEntity p = ctx.getSource().getPlayer();
 								p.giveItemStack(new ItemStack(ModItems.BOMB_TNT, 8));
 								p.giveItemStack(new ItemStack(ModItems.BOMB_CLUSTER, 4));
+								p.giveItemStack(new ItemStack(ModItems.BOMB_HEAVY_CLUSTER, 4));
+								p.giveItemStack(new ItemStack(ModItems.BOMB_ROCKET, 4));
 								p.giveItemStack(new ItemStack(ModItems.BOMB_INCENDIARY, 4));
 								p.giveItemStack(new ItemStack(ModItems.BOMB_GUIDED, 4));
 								p.giveItemStack(new ItemStack(ModItems.LASER_DESIGNATOR));
-								ctx.getSource().sendFeedback(() -> Text.literal("Full bomb bay issued"), false);
+								p.giveItemStack(new ItemStack(ModItems.MEGA_LASER));
+								ctx.getSource().sendFeedback(() -> Text.literal("Full bomb bay + mega laser issued"), false);
 								return 1;
 							}))
 					.then(CommandManager.literal("laser")

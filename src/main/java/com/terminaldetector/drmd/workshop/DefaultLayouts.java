@@ -59,6 +59,7 @@ public final class DefaultLayouts {
 		BUILTIN.put("laser", layout("barrel", 1.00f, "barrel", 1.00f, "strider", SF, SU, SS));
 		BUILTIN.put("vulcan", layout("barrel", 0.92f, "barrel", 0.92f, "gravy", GF, GU, GS));
 		BUILTIN.put("quad_laser", layout("barrel", 0.90f, "barrel", 0.90f, "strider", SF, SU, 0.60f));
+		BUILTIN.put("mega_laser", layout("nosegun", 1.85f, "nosegun", 1.75f, "strider", SF, SU, 0.85f));
 		// Secondary / heavy
 		BUILTIN.put("rockets", layout("barrel", 1.00f, "barrel", 1.00f, "gravy", GF, GU, GS));
 		BUILTIN.put("gravy_railgun", layout("barrel", 1.00f, "barrel", 1.00f, "gravy", GFR, GUR, GS));

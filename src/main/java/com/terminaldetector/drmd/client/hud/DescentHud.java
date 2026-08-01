@@ -485,7 +485,9 @@ public final class DescentHud {
 		if (held.getItem() instanceof BombardmentItems.BombBayItem bomb) {
 			OrdnanceType o = bomb.getOrdnance();
 			line(ctx, mc, x + 4, y + 4, "BOMB", AMBER);
-			line(ctx, mc, x + 4, y + 15, o.cluster ? "CLUSTER SPREAD"
+			line(ctx, mc, x + 4, y + 15, o.heavyCluster ? "HEAVY CLUSTER"
+					: o.cluster ? "CLUSTER SPREAD"
+					: o.rocket ? "ROCKET STRIKE"
 					: o.incendiary ? "INCENDIARY" : "AREA DAMAGE", GREEN);
 			line(ctx, mc, x + 4, y + 26, "BLAST: " + (o.blastPower >= 1.2f ? "HIGH"
 					: o.blastPower >= 0.8f ? "MEDIUM" : "LOW"), GREEN);
@@ -722,6 +724,7 @@ public final class DescentHud {
 	private static Item[] bombItems() {
 		if (bombItems == null) {
 			bombItems = new Item[]{ModItems.BOMB_TNT, ModItems.BOMB_CLUSTER,
+					ModItems.BOMB_HEAVY_CLUSTER, ModItems.BOMB_ROCKET,
 					ModItems.BOMB_INCENDIARY, ModItems.BOMB_GUIDED};
 		}
 		return bombItems;
