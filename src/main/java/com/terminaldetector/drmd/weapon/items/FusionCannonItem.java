@@ -88,7 +88,8 @@ public class FusionCannonItem extends DescentWeaponItem {
 	public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
 		if (!(world instanceof ServerWorld sw)) return;
 		float charge = chargeOf(remainingUseTicks);
-		Vec3d muzzle = user.getEyePos().add(user.getRotationVec(1f).multiply(0.8));
+		// Off the nose, like every other muzzle — the look vector cannot point past vertical.
+		Vec3d muzzle = user.getEyePos().add(WeaponCore.aimDir(user).multiply(0.8));
 		int count = 1 + Math.round(charge * 5);
 		sw.spawnParticles(ParticleTypes.SOUL_FIRE_FLAME, muzzle.x, muzzle.y, muzzle.z,
 				count, 0.12 + charge * 0.2, 0.12 + charge * 0.2, 0.12 + charge * 0.2, 0.01);

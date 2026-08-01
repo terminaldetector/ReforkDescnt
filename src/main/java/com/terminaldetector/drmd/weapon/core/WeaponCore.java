@@ -263,7 +263,19 @@ public final class WeaponCore {
 		return out;
 	}
 
+	/**
+	 * Where the guns are pointing: down the ship's nose, not down the vanilla look vector.
+	 *
+	 * <p>This was {@code player.getRotationVec(1f)} while the muzzle positions beside it already came
+	 * off the ship basis, so the rounds left the right hardpoints in the wrong direction. Vanilla
+	 * builds that vector from yaw and pitch, and pitch is clamped to ±90° — there is no way to
+	 * express "past vertical" in it at all, which is why firing never went 360. Rolled or inverted it
+	 * is wrong by the whole bank angle.
+	 *
+	 * <p>Every weapon aims through here, so this is the only place it needed fixing. Falls back to
+	 * the look vector when there is no valid attitude — on foot, that is the correct answer.
+	 */
 	public static Vec3d aimDir(PlayerEntity player) {
-		return player.getRotationVec(1f);
+		return DescentPlayerData.get(player).shipForward(player);
 	}
 }

@@ -202,15 +202,30 @@ public final class FootGravitySystem {
 				RaycastContext.FluidHandling.NONE,
 				player));
 		if (hit.getType() != HitResult.Type.BLOCK) return;
-		double stand = 0.0;
-		Vec3d target = hit.getPos().add(up.multiply(stand));
-		Vec3d delta = target.subtract(player.getPos());
+		Vec3d delta = hit.getPos().subtract(player.getPos());
 		double along = delta.dotProduct(up);
-		// Only correct along up/down, keep tangential freedom
-		if (Math.abs(along) > 0.02) {
-			player.setPosition(player.getPos().add(up.multiply(along * 0.55)));
-		}
+
+		// Correct along local up only, and go through move() rather than setPosition().
+		//
+		// setPosition ignores collision, so a correction pointing into the surface pushed the hitbox
+		// inside the block — the model sank into the wall. The next tick's move() shoved it back out,
+		// the tick after that put it in again, and that alternation is the jitter. move() clips
+		// against the same geometry the walk does, so the two agree.
+		//
+		// The deadband is wide enough to sit still on a flat surface: at 0.02 the raycast's own
+		// rounding was enough to keep it correcting every single tick, and a correction every tick
+		// is a shake however small each one is.
+		if (Math.abs(along) <= SNAP_DEADBAND) return;
+		double step = MathHelper.clamp(along * SNAP_GAIN, -SNAP_MAX_STEP, SNAP_MAX_STEP);
+		player.move(MovementType.SELF, up.multiply(step));
 	}
+
+	/** Below this the player is close enough to the surface to leave alone. */
+	private static final double SNAP_DEADBAND = 0.06;
+	/** Fraction of the remaining gap closed per tick — under-damped on purpose, so it settles. */
+	private static final double SNAP_GAIN = 0.35;
+	/** Never move more than this in one tick; a big correction is a teleport, and it reads as one. */
+	private static final double SNAP_MAX_STEP = 0.25;
 
 	private static Vec3d projectTangent(Vec3d v, Vec3d up) {
 		return v.subtract(up.multiply(v.dotProduct(up)));
