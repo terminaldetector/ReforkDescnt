@@ -23,6 +23,20 @@ public class DescentPlayerData {
 		STORE.remove(id);
 	}
 
+	/**
+	 * Drop every player's state. Called when a server stops.
+	 *
+	 * <p>This map is keyed by UUID and lives as long as the game process, not as long as the world.
+	 * Nothing used to clear it, so quitting to the title screen and creating a new world left the
+	 * previous world's state in place — and because a brand-new world has no player file to read
+	 * over it, the stale entry simply won. The visible symptom was 6DoF being off in every world
+	 * after the first: {@code sessionWelcomed} was still set, so the first-join branch that switches
+	 * it on never ran again. Energy, shields and the ship's attitude leaked the same way.
+	 */
+	public static void clear() {
+		STORE.clear();
+	}
+
 	// --- Flight (d6_core.lua CFG) ---
 	private boolean enabled;
 	private boolean flightAssist = true;

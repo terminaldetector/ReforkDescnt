@@ -8,6 +8,7 @@ import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.entity.PyroShipEntity;
 import com.terminaldetector.drmd.weapon.items.ModItems;
 import com.terminaldetector.drmd.world.DescentWorldState;
+import com.terminaldetector.drmd.world.WorldFeatures;
 import com.terminaldetector.drmd.world.WorldRules;
 import com.terminaldetector.drmd.world.gen.IndustrialComplexGenerator;
 import com.terminaldetector.drmd.world.gen2.MacroEntry;
@@ -104,8 +105,10 @@ public final class DescentSession {
 			DescentMod.LOGGER.info("Descent spawn hub generated at {}", hub.toShortString());
 		}
 
-		seedStockMegastructures(world, spawn);
-		seedLayerBiomes(world, spawn);
+		if (WorldFeatures.MACRO_WORLDGEN) {
+			seedStockMegastructures(world, spawn);
+			seedLayerBiomes(world, spawn);
+		}
 		state.setStockSeeded(true);
 		DescentMod.LOGGER.info("Descent stock worldgen seeded (all practical biome layers)");
 	}

@@ -49,7 +49,16 @@ public class DescentMod implements ModInitializer {
 		DescentCommands.register();
 		AiCommands.register();
 
+		// Player state is keyed by UUID in a process-wide map, so it outlives the world unless it is
+		// cleared. Leaving it behind meant a new world inherited the previous one's data — and since
+		// a fresh world has no player file to read over it, the stale copy won. 6DoF ended up off in
+		// every world after the first, because the flag saying the first-join branch had already run
+		// was part of what carried over. Cleared at both ends: on stop for the ordinary case, on
+		// start in case a stop never happened.
+		ServerLifecycleEvents.SERVER_STOPPED.register(server -> DescentPlayerData.clear());
+
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+			DescentPlayerData.clear();
 			ConstructionRegistry.bootstrap(server);
 			com.terminaldetector.drmd.world.gen2.MacroWorld.clear();
 			com.terminaldetector.drmd.world.gravity.GravityFields.clear();

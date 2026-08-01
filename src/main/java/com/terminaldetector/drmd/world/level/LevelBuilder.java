@@ -85,8 +85,12 @@ public final class LevelBuilder {
 		long seed = world.getSeed() ^ (((long) chunkX) * 341873128712L) ^ (((long) chunkZ) * 132897987541L);
 		Random random = Random.create(seed);
 		int written = 0;
-		written += buildNetherLevel(world, chunkX, chunkZ, random);
-		written += buildEndLevel(world, chunkX, chunkZ, seed, random);
+		if (com.terminaldetector.drmd.world.WorldFeatures.NETHER_BAND) {
+			written += buildNetherLevel(world, chunkX, chunkZ, random);
+		}
+		if (com.terminaldetector.drmd.world.WorldFeatures.END_BAND) {
+			written += buildEndLevel(world, chunkX, chunkZ, seed, random);
+		}
 		if (WorldLevels.isShaftChunk(chunkX, chunkZ)) {
 			written += cutDescentShaft(world, chunkX, chunkZ);
 		}

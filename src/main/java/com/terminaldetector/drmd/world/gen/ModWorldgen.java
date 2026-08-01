@@ -49,6 +49,12 @@ public final class ModWorldgen {
 
 	public static void register() {
 		Registry.register(Registries.FEATURE, Identifier.of(DescentMod.MOD_ID, "industrial_underground"), INDUSTRIAL);
+		// The feature stays registered either way — only the live placement is parked, so existing
+		// worlds and the /d6 commands keep working.
+		if (!com.terminaldetector.drmd.world.WorldFeatures.MACRO_WORLDGEN) {
+			DescentMod.LOGGER.info("Industrial Underground worldgen parked (WorldFeatures.MACRO_WORLDGEN)");
+			return;
+		}
 		ServerChunkEvents.CHUNK_LOAD.register(ModWorldgen::onChunkLoad);
 		DescentMod.LOGGER.info("Registered Industrial Underground worldgen (stock density)");
 	}

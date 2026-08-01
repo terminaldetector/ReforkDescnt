@@ -29,6 +29,10 @@ public final class ModWorldgen2 {
 	}
 
 	public static void register() {
+		if (!com.terminaldetector.drmd.world.WorldFeatures.MACRO_WORLDGEN) {
+			DescentMod.LOGGER.info("World Generation 2.0 parked (WorldFeatures.MACRO_WORLDGEN)");
+			return;
+		}
 		ServerChunkEvents.CHUNK_LOAD.register(ModWorldgen2::onChunkLoad);
 		DescentMod.LOGGER.info("Registered World Generation 2.0 (mega-structures + lunar/UFO + fauna)");
 	}
