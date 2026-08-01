@@ -28,6 +28,7 @@ public final class ModItems {
 	public static Item CONCUSSION;
 	public static Item SMART_MISSILE;
 	public static Item MEGA_MISSILE;
+	public static Item MEGA_LASER;
 	public static Item QUAD_LASER;
 	public static Item RAILMK2;
 	public static Item BFG;
@@ -59,6 +60,8 @@ public final class ModItems {
 
 	public static Item BOMB_TNT;
 	public static Item BOMB_CLUSTER;
+	public static Item BOMB_HEAVY_CLUSTER;
+	public static Item BOMB_ROCKET;
 	public static Item BOMB_INCENDIARY;
 	public static Item BOMB_GUIDED;
 	public static Item LASER_DESIGNATOR;
@@ -91,10 +94,10 @@ public final class ModItems {
 		WeaponDef def_heavy = new WeaponDef("heavy", "Тяжёлый", "primary", 18f, 1.1f, 80f, 60f, 220f, 1100f, 160f, DamageClass.EXPLOSIVE, "heavy");
 		HEAVY = register("weapon_d6_heavy", new DescentWeaponItem(def_heavy, new Item.Settings()));
 		WeaponRegistry.register(def_heavy);
-		WeaponDef def_laser = new WeaponDef("laser", "Лазер", "primary", 0f, 0.4f, 150f, 0f, 0f, 0f, 30f, DamageClass.ENERGY, "laser");
+		WeaponDef def_laser = new WeaponDef("laser", "Лазер", "primary", 0f, 0.4f, 150f, 70f, 180f, 0f, 30f, DamageClass.ENERGY, "laser");
 		LASER = register("weapon_d6_laser", new DescentWeaponItem(def_laser, new Item.Settings()));
 		WeaponRegistry.register(def_laser);
-		WeaponDef def_rockets = new WeaponDef("rockets", "Ракеты", "primary", 20f, 0.8f, 80f, 50f, 200f, 2800f, 120f, DamageClass.EXPLOSIVE, "rockets");
+		WeaponDef def_rockets = new WeaponDef("rockets", "Ракеты", "primary", 20f, 0.8f, 100f, 90f, 320f, 2800f, 120f, DamageClass.EXPLOSIVE, "rockets");
 		ROCKETS = register("weapon_d6_rockets", new DescentWeaponItem(def_rockets, new Item.Settings()));
 		WeaponRegistry.register(def_rockets);
 		WeaponDef def_gravy_railgun = new WeaponDef("gravy_railgun", "Грави-Рельса", "primary", 0f, 0.3f, 0f, 0f, 0f, 18000f, 0f, DamageClass.EXOTIC, "gravy");
@@ -106,21 +109,24 @@ public final class ModItems {
 		WeaponDef def_flak = new WeaponDef("flak", "Флак-пушка", "secondary", 14f, 0.7f, 12f, 16f, 90f, 3500f, 40f, DamageClass.EXPLOSIVE, "flak");
 		FLAK = register("weapon_d6_flak", new DescentWeaponItem(def_flak, new Item.Settings()));
 		WeaponRegistry.register(def_flak);
-		WeaponDef def_homing = new WeaponDef("homing", "ГСН-ракета", "heavy", 0f, 3.5f, 90f, 40f, 160f, 1400f, 80f, DamageClass.EXPLOSIVE, "homing");
+		WeaponDef def_homing = new WeaponDef("homing", "ГСН-ракета", "heavy", 0f, 3.5f, 110f, 75f, 260f, 1400f, 80f, DamageClass.EXPLOSIVE, "homing");
 		HOMING = register("weapon_d6_homing", new DescentWeaponItem(def_homing, new Item.Settings()));
 		WeaponRegistry.register(def_homing);
-		WeaponDef def_concussion = new WeaponDef("concussion", "КС-ракета", "heavy", 0f, 2.0f, 120f, 90f, 280f, 1600f, 200f, DamageClass.EXPLOSIVE, "basic");
+		WeaponDef def_concussion = new WeaponDef("concussion", "КС-ракета", "heavy", 0f, 2.0f, 150f, 140f, 420f, 1600f, 200f, DamageClass.EXPLOSIVE, "basic");
 		CONCUSSION = register("weapon_d6_concussion", new DescentWeaponItem(def_concussion, new Item.Settings()));
 		WeaponRegistry.register(def_concussion);
-		WeaponDef def_smart_missile = new WeaponDef("smart_missile", "Умная-ракета", "heavy", 0f, 4.0f, 110f, 60f, 200f, 1600f, 100f, DamageClass.EXPLOSIVE, "homing");
+		WeaponDef def_smart_missile = new WeaponDef("smart_missile", "Умная-ракета", "heavy", 0f, 4.0f, 130f, 100f, 320f, 1600f, 100f, DamageClass.EXPLOSIVE, "homing");
 		SMART_MISSILE = register("weapon_d6_smart_missile", new DescentWeaponItem(def_smart_missile, new Item.Settings()));
 		WeaponRegistry.register(def_smart_missile);
-		WeaponDef def_mega_missile = new WeaponDef("mega_missile", "Мега-ракета", "heavy", 0f, 8.0f, 350f, 200f, 500f, 800f, 500f, DamageClass.EXPLOSIVE, "basic");
+		WeaponDef def_mega_missile = new WeaponDef("mega_missile", "Мега-ракета", "heavy", 0f, 8.0f, 420f, 320f, 720f, 800f, 500f, DamageClass.EXPLOSIVE, "basic");
 		MEGA_MISSILE = register("weapon_d6_mega_missile", new DescentWeaponItem(def_mega_missile, new Item.Settings()));
 		WeaponRegistry.register(def_mega_missile);
-		WeaponDef def_quad_laser = new WeaponDef("quad_laser", "Quad-лазер", "secondary", 12f, 0.3f, 30f, 0f, 0f, 0f, 20f, DamageClass.ENERGY, "quad_laser");
+		WeaponDef def_quad_laser = new WeaponDef("quad_laser", "Quad-лазер", "secondary", 12f, 0.3f, 45f, 55f, 160f, 0f, 20f, DamageClass.ENERGY, "quad_laser");
 		QUAD_LASER = register("weapon_d6_quad_laser", new DescentWeaponItem(def_quad_laser, new Item.Settings()));
 		WeaponRegistry.register(def_quad_laser);
+		WeaponDef def_mega_laser = new WeaponDef("mega_laser", "Мега-лазер", "heavy", 55f, 1.4f, 420f, 280f, 520f, 0f, 90f, DamageClass.ENERGY, "mega_laser");
+		MEGA_LASER = register("weapon_d6_mega_laser", new DescentWeaponItem(def_mega_laser, new Item.Settings()));
+		WeaponRegistry.register(def_mega_laser);
 		WeaponDef def_railmk2 = new WeaponDef("railmk2", "Рельса МК2", "heavy", 18f, 0.6f, 120f, 0f, 0f, 8000f, 80f, DamageClass.KINETIC, "rail");
 		RAILMK2 = register("weapon_d6_railmk2", new DescentWeaponItem(def_railmk2, new Item.Settings()));
 		WeaponRegistry.register(def_railmk2);
@@ -130,10 +136,10 @@ public final class ModItems {
 		WeaponDef def_frag = new WeaponDef("frag", "Фраг-пускатель", "secondary", 24f, 1.5f, 60f, 50f, 180f, 2000f, 60f, DamageClass.EXPLOSIVE, "frag");
 		FRAG = register("weapon_d6_frag", new DescentWeaponItem(def_frag, new Item.Settings()));
 		WeaponRegistry.register(def_frag);
-		WeaponDef def_overdrive = new WeaponDef("overdrive", "Овердрайв-луч", "utility", 3f, 0.08f, 25f, 0f, 0f, 0f, 5f, DamageClass.ENERGY, "beam");
+		WeaponDef def_overdrive = new WeaponDef("overdrive", "Овердрайв-луч", "utility", 3f, 0.08f, 35f, 22f, 110f, 0f, 5f, DamageClass.ENERGY, "beam");
 		OVERDRIVE = register("weapon_d6_overdrive", new DescentWeaponItem(def_overdrive, new Item.Settings()));
 		WeaponRegistry.register(def_overdrive);
-		WeaponDef def_shockwave = new WeaponDef("shockwave", "Энерговолна", "utility", 40f, 3.0f, 20f, 80f, 700f, 0f, 0f, DamageClass.ENERGY, "shockwave");
+		WeaponDef def_shockwave = new WeaponDef("shockwave", "Энерговолна", "utility", 40f, 3.0f, 30f, 120f, 900f, 0f, 0f, DamageClass.ENERGY, "shockwave");
 		SHOCKWAVE = register("weapon_d6_shockwave", new DescentWeaponItem(def_shockwave, new Item.Settings()));
 		WeaponRegistry.register(def_shockwave);
 		WeaponDef def_darklance = new WeaponDef("darklance", "Копьё тьмы", "heavy", 70f, 5.0f, 250f, 0f, 0f, 0f, 50f, DamageClass.EXOTIC, "darklance");
@@ -186,6 +192,10 @@ public final class ModItems {
 				com.terminaldetector.drmd.world.bombardment.OrdnanceType.TNT_BOMB, new Item.Settings()));
 		BOMB_CLUSTER = register("bomb_cluster", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(
 				com.terminaldetector.drmd.world.bombardment.OrdnanceType.CLUSTER, new Item.Settings()));
+		BOMB_HEAVY_CLUSTER = register("bomb_heavy_cluster", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(
+				com.terminaldetector.drmd.world.bombardment.OrdnanceType.HEAVY_CLUSTER, new Item.Settings()));
+		BOMB_ROCKET = register("bomb_rocket", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(
+				com.terminaldetector.drmd.world.bombardment.OrdnanceType.ROCKET, new Item.Settings()));
 		BOMB_INCENDIARY = register("bomb_incendiary", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(
 				com.terminaldetector.drmd.world.bombardment.OrdnanceType.INCENDIARY, new Item.Settings()));
 		BOMB_GUIDED = register("bomb_guided", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(
@@ -227,6 +237,8 @@ public final class ModItems {
 					entries.add(EGG_SPIDER_TURRET);
 					entries.add(BOMB_TNT);
 					entries.add(BOMB_CLUSTER);
+					entries.add(BOMB_HEAVY_CLUSTER);
+					entries.add(BOMB_ROCKET);
 					entries.add(BOMB_INCENDIARY);
 					entries.add(BOMB_GUIDED);
 					entries.add(LASER_DESIGNATOR);
@@ -243,6 +255,7 @@ public final class ModItems {
 					entries.add(SMART_MISSILE);
 					entries.add(MEGA_MISSILE);
 					entries.add(QUAD_LASER);
+					entries.add(MEGA_LASER);
 					entries.add(RAILMK2);
 					entries.add(BFG);
 					entries.add(FRAG);

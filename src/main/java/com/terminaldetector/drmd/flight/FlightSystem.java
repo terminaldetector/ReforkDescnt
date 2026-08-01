@@ -262,7 +262,10 @@ public final class FlightSystem {
 			data.setFlightVelocity(data.getFlightVelocity().multiply(WALL_BOUNCE).add(bounced).multiply(0.5));
 		}
 
-		ModNetworking.syncPlayer(player, data);
+		// Half-rate sync while flying — every-tick SyncPayload was a hitch source during rolls.
+		if ((player.age & 1) == 0) {
+			ModNetworking.syncPlayer(player, data);
+		}
 	}
 
 	public static void disable(ServerPlayerEntity player, DescentPlayerData data) {

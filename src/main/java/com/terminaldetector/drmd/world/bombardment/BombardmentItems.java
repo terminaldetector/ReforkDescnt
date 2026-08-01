@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.world.bombardment;
 
+import com.terminaldetector.drmd.DescentPlayerData;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -20,7 +21,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Bomb bay / laser designator items for high-altitude bombardment.
+ * Bomb bay / rocket bay / laser designator items for high-altitude bombardment.
+ * Release point is ship belly + ahead of the bay, inheriting flight velocity.
  */
 public final class BombardmentItems {
 	/** Last laser mark per player. */
@@ -53,21 +55,37 @@ public final class BombardmentItems {
 			}
 			var bomb = com.terminaldetector.drmd.entity.ModEntities.AERIAL_BOMB.create(sw);
 			if (bomb == null) return TypedActionResult.fail(stack);
-			Vec3d drop = user.getPos().add(user.getRotationVec(1f).multiply(2)).add(0, -1.2, 0);
+
+			DescentPlayerData data = DescentPlayerData.get(user);
+			Vec3d fwd = data.shipForward(user);
+			Vec3d up = data.shipUp(user);
+			// Bay doors: under the hull and a bit ahead — not a pure "drop from feet".
+			Vec3d drop = user.getPos()
+					.add(0, user.getHeight() * 0.45, 0)
+					.add(fwd.multiply(2.4))
+					.add(up.multiply(-1.65));
+			Vec3d inherit = data.isEnabled() ? data.getFlightVelocity() : user.getVelocity();
+			// Eject forward + down so the round clears the ship before falling.
+			Vec3d eject = inherit.add(fwd.multiply(0.65)).add(up.multiply(-0.45));
+			if (ordnance.rocket) {
+				eject = eject.add(fwd.multiply(1.55)).add(up.multiply(-0.1));
+			}
+
 			bomb.refreshPositionAndAngles(drop.x, drop.y, drop.z, user.getYaw(), 90);
-			bomb.setVelocity(user.getVelocity().add(0, -0.2, 0));
+			bomb.setVelocity(eject);
 			bomb.configure(ordnance, user, LASER_MARKS.get(user.getUuid()));
 			sw.spawnEntity(bomb);
-			SmokeSystemTrail(user);
+			SmokeSystemTrail(drop);
 			if (!user.getAbilities().creativeMode) stack.decrement(1);
-			user.sendMessage(Text.literal("§cOrdnance away: §f" + ordnance.name()
+			String label = ordnance.rocket ? "Rocket" : "Ordnance";
+			user.sendMessage(Text.literal("§c" + label + " away: §f" + ordnance.name()
 					+ " §7@ Y=" + (int) user.getY()), true);
 			return TypedActionResult.success(stack);
 		}
 
-		private static void SmokeSystemTrail(PlayerEntity user) {
+		private static void SmokeSystemTrail(Vec3d at) {
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.emit(
-					user.getPos(), com.terminaldetector.drmd.world.smoke.SmokeSystem.Source.ENGINE, 0.5f, 0.3f, 20);
+					at, com.terminaldetector.drmd.world.smoke.SmokeSystem.Source.ENGINE, 0.5f, 0.3f, 20);
 		}
 	}
 

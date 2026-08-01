@@ -6,7 +6,7 @@ import com.terminaldetector.drmd.weapon.core.DamageClass;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.ActiveTargetGoal;
+import com.terminaldetector.drmd.ai.HostileEnvironment;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.LookAtEntityGoal;
 import net.minecraft.entity.ai.goal.WanderAroundFarGoal;
@@ -73,8 +73,8 @@ public class TripodEntity extends CyberMobEntity {
 	protected void initGoals() {
 		goalSelector.add(1, new TripodBattleGoal(this));
 		goalSelector.add(6, new WanderAroundFarGoal(this, 0.7));
-		goalSelector.add(8, new LookAtEntityGoal(this, PlayerEntity.class, 24f));
-		targetSelector.add(1, new ActiveTargetGoal<>(this, PlayerEntity.class, true));
+		goalSelector.add(8, new LookAtEntityGoal(this, LivingEntity.class, 24f));
+		HostileEnvironment.installTargets(this, this.targetSelector);
 	}
 
 	/** 0..1 lance charge, drives the emissive build-up in the renderer. */

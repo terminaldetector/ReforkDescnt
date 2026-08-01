@@ -103,8 +103,12 @@ public final class EndReactorSession {
 
 	private static java.util.List<ServerWorld> arenaWorlds(MinecraftServer server) {
 		java.util.ArrayList<ServerWorld> worlds = new java.util.ArrayList<>(2);
-		ServerWorld overworld = server.getWorld(World.OVERWORLD);
-		if (overworld != null) worlds.add(overworld);
+		// Overworld End-band arena only when the custom band is enabled; otherwise leave the
+		// upper column identical to stock Minecraft sky.
+		if (com.terminaldetector.drmd.world.WorldFeatures.END_BAND) {
+			ServerWorld overworld = server.getWorld(World.OVERWORLD);
+			if (overworld != null) worlds.add(overworld);
+		}
 		ServerWorld end = server.getWorld(World.END);
 		if (end != null) worlds.add(end);
 		return worlds;

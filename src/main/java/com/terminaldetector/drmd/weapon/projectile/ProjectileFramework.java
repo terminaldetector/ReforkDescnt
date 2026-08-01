@@ -29,7 +29,9 @@ public final class ProjectileFramework {
 		switch (kind) {
 			case LASER -> {
 				cfg.speed = 8000;
-				cfg.directDamage = 18;
+				cfg.directDamage = 28;
+				cfg.splashDamage = 40;
+				cfg.splashRadius = 160;
 				cfg.life = 1.2f;
 				cfg.pierceCount = 2;
 				// Combat laser is a burner: what it punches through catches fire.
@@ -89,9 +91,9 @@ public final class ProjectileFramework {
 			}
 			case ROCKET -> {
 				cfg.speed = 2200;
-				cfg.directDamage = 60;
-				cfg.splashDamage = 80;
-				cfg.splashRadius = 180;
+				cfg.directDamage = 90;
+				cfg.splashDamage = 120;
+				cfg.splashRadius = 300;
 				cfg.life = 5f;
 				cfg.turnRate = 70f;
 				cfg.worldBlast = true;
@@ -156,7 +158,13 @@ public final class ProjectileFramework {
 			case ROCKET -> {
 				LivingEntity own = ctx.projectile().getOwnerLiving();
 				if (own != null && ctx.projectile().getDamageClass() != com.terminaldetector.drmd.weapon.core.DamageClass.EXPLOSIVE) {
-					WeaponFx.explode(own, sw, ctx.hitPos(), 80f, 2.5f, kind.damageClass, true);
+					WeaponFx.explode(own, sw, ctx.hitPos(), 120f, 3.6f, kind.damageClass, true);
+				}
+			}
+			case LASER -> {
+				LivingEntity own = ctx.projectile().getOwnerLiving();
+				if (own != null) {
+					WeaponCore.splashDamage(own, sw, ctx.hitPos(), 40f, 2.8f, kind.damageClass);
 				}
 			}
 			case AIRBURST -> {
@@ -199,7 +207,7 @@ public final class ProjectileFramework {
 	public static ProjectileKind fromBehavior(String behavior) {
 		if (behavior == null) return ProjectileKind.KINETIC;
 		return switch (behavior) {
-			case "laser", "quad_laser", "beam", "overdrive" -> ProjectileKind.LASER;
+			case "laser", "quad_laser", "mega_laser", "beam", "overdrive" -> ProjectileKind.LASER;
 			case "plasma" -> ProjectileKind.PLASMA;
 			case "rockets", "homing", "smart_missile", "mega_missile", "concussion" -> ProjectileKind.ROCKET;
 			case "gravy" -> ProjectileKind.GRAVITY_SPHERE;

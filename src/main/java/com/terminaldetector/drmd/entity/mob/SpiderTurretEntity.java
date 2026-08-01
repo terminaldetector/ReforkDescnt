@@ -5,7 +5,7 @@ import com.terminaldetector.drmd.weapon.core.DamageClass;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.ActiveTargetGoal;
+import com.terminaldetector.drmd.ai.HostileEnvironment;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.WanderAroundFarGoal;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
@@ -77,7 +77,7 @@ public class SpiderTurretEntity extends CyberMobEntity {
 	protected void initGoals() {
 		goalSelector.add(1, new TurretEngageGoal(this));
 		goalSelector.add(7, new WanderAroundFarGoal(this, 0.6));
-		targetSelector.add(1, new ActiveTargetGoal<>(this, PlayerEntity.class, true));
+		HostileEnvironment.installTargets(this, this.targetSelector);
 	}
 
 	public float getHeadYaw2() { return dataTracker.get(HEAD_YAW); }

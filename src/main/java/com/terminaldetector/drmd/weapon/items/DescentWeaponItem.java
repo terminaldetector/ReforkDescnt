@@ -57,6 +57,7 @@ public class DescentWeaponItem extends Item {
 		return switch (def.behavior) {
 			case "laser" -> fireLaser(user, data);
 			case "quad_laser" -> fireQuadLaser(user, data);
+			case "mega_laser" -> fireMegaLaser(user, data);
 			case "rockets" -> fireRockets(user, data);
 			case "plasma" -> firePlasma(user, data);
 			case "flak" -> fireFlak(user, data);
@@ -219,9 +220,9 @@ public class DescentWeaponItem extends Item {
 			cfg.speed = speed;
 			cfg.homing = homing;
 			cfg.turnRate = 120f;
-			cfg.directDamage = atomic ? 350 : 80;
-			cfg.splashDamage = atomic ? 350 : 50;
-			cfg.splashRadius = atomic ? 650 : 200;
+			cfg.directDamage = atomic ? 420 : Math.max(def.damage, 100f);
+			cfg.splashDamage = atomic ? 420 : Math.max(def.splashDamage, 90f);
+			cfg.splashRadius = atomic ? 780 : Math.max(def.splashRadius, 320f);
 			cfg.recoil = i == 0 ? (atomic ? 220 : 120) : 0;
 			cfg.dmgClass = DamageClass.EXPLOSIVE;
 			cfg.life = 6f;
@@ -234,40 +235,78 @@ public class DescentWeaponItem extends Item {
 	}
 
 	protected boolean fireLaser(PlayerEntity user, DescentPlayerData data) {
-		// Charge-style: spend up to 22 energy for scaled damage 40-150
+		// Charge-style: spend up to 22 energy for scaled damage 40-150 + growing splash
 		float spend = Math.min(22f, data.getEnergy());
 		if (spend < 4f) return false;
 		EnergySystem.tryConsume(data, "weapons", spend);
 		float charge = spend / 22f;
 		float dmg = 40f + 110f * charge;
-		WeaponCore.hitscan(user, user.getEyePos(), WeaponCore.aimDir(user), 8000f, dmg, DamageClass.ENERGY, null);
+		float splash = Math.max(def.splashDamage, 40f) + 80f * charge;
+		float splashR = Math.max(def.splashRadius, 120f) + 140f * charge;
+		WeaponCore.hitscan(user, user.getEyePos(), WeaponCore.aimDir(user), 8000f, dmg, DamageClass.ENERGY, ctx -> {
+			if (!(user.getWorld() instanceof net.minecraft.server.world.ServerWorld sw)) return;
+			float r = (float) com.terminaldetector.drmd.DescentMod.su(splashR);
+			WeaponCore.splashDamage(user, sw, ctx.hitPos(), splash, r, DamageClass.ENERGY);
+			com.terminaldetector.drmd.world.fire.FireSystem.igniteBlast(
+					sw, net.minecraft.util.math.BlockPos.ofFloored(ctx.hitPos()),
+					1 + (int) (2 * charge), 1 + (int) (2 * charge));
+		});
 		WeaponCore.applyRecoil(user, WeaponCore.aimDir(user), 30f * charge);
 		return true;
 	}
 
 	protected boolean fireQuadLaser(PlayerEntity user, DescentPlayerData data) {
 		if (!consumeEnergy(data, def.energyCost)) return false;
+		float splash = Math.max(def.splashDamage, 40f);
+		float splashR = (float) com.terminaldetector.drmd.DescentMod.su(Math.max(def.splashRadius, 140f));
+		java.util.function.Consumer<WeaponCore.HitContext> splashHit = ctx -> {
+			if (!(user.getWorld() instanceof net.minecraft.server.world.ServerWorld sw)) return;
+			WeaponCore.splashDamage(user, sw, ctx.hitPos(), splash, splashR, DamageClass.ENERGY);
+		};
 		var muzzles = WeaponCore.allMuzzles(user, def.id);
 		if (muzzles.size() >= 4) {
 			for (int i = 0; i < 4; i++) {
-				WeaponCore.hitscan(user, muzzles.get(i), WeaponCore.aimDir(user), 8000f, def.damage, DamageClass.ENERGY, null);
+				WeaponCore.hitscan(user, muzzles.get(i), WeaponCore.aimDir(user), 8000f, def.damage, DamageClass.ENERGY, splashHit);
 			}
 		} else {
 			for (float[] off : new float[][]{{-0.2f,0.1f},{0.2f,0.1f},{-0.2f,-0.1f},{0.2f,-0.1f}}) {
 				Vec3d start = WeaponCore.muzzle(user, 0.5f, off[0], off[1]);
-				WeaponCore.hitscan(user, start, WeaponCore.aimDir(user), 8000f, def.damage, DamageClass.ENERGY, null);
+				WeaponCore.hitscan(user, start, WeaponCore.aimDir(user), 8000f, def.damage, DamageClass.ENERGY, splashHit);
 			}
 		}
 		WeaponCore.applyRecoil(user, WeaponCore.aimDir(user), def.recoil);
 		return true;
 	}
 
+	/** Mega laser — mega direct hit + mega energy splash radius. */
+	protected boolean fireMegaLaser(PlayerEntity user, DescentPlayerData data) {
+		if (!consumeEnergy(data, def.energyCost)) return false;
+		float dmg = Math.max(def.damage, 420f);
+		float splash = Math.max(def.splashDamage, 280f);
+		float splashR = (float) com.terminaldetector.drmd.DescentMod.su(Math.max(def.splashRadius, 520f));
+		WeaponCore.hitscan(user, WeaponCore.muzzleFor(user, def.id, 1), WeaponCore.aimDir(user),
+				14000f, dmg, DamageClass.ENERGY, ctx -> {
+					if (!(user.getWorld() instanceof net.minecraft.server.world.ServerWorld sw)) return;
+					com.terminaldetector.drmd.weapon.fx.WeaponFx.explode(
+							user, sw, ctx.hitPos(), splash, splashR, DamageClass.ENERGY, true);
+					com.terminaldetector.drmd.world.fire.FireSystem.igniteBlast(
+							sw, net.minecraft.util.math.BlockPos.ofFloored(ctx.hitPos()), 10, 5);
+				});
+		WeaponCore.applyRecoil(user, WeaponCore.aimDir(user), def.recoil);
+		return true;
+	}
+
 	protected boolean fireBeam(PlayerEntity user, DescentPlayerData data) {
 		if (!consumeEnergy(data, def.energyCost)) return false;
+		float splash = Math.max(def.splashDamage, 18f);
+		float splashR = (float) com.terminaldetector.drmd.DescentMod.su(Math.max(def.splashRadius, 90f));
 		WeaponCore.hitscan(user, user.getEyePos(), WeaponCore.aimDir(user), 4000f, def.damage, DamageClass.ENERGY, ctx -> {
 			if (ctx.hitEntity() instanceof PlayerEntity ply) {
 				DescentPlayerData td = DescentPlayerData.get(ply);
 				td.setShield(Math.max(0, td.getShield() - 12f));
+			}
+			if (user.getWorld() instanceof net.minecraft.server.world.ServerWorld sw) {
+				WeaponCore.splashDamage(user, sw, ctx.hitPos(), splash, splashR, DamageClass.ENERGY);
 			}
 		});
 		return true;

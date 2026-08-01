@@ -24,12 +24,12 @@ public final class WorldFeatures {
 	public static final boolean NETHER_BAND = false;
 
 	/**
-	 * The End band at the top: stone shards, the island shelf, and the reactor arena among them.
+	 * Custom End-band islands at the top of the Overworld column.
 	 *
-	 * <p>Kept. It is sparse — only scattered shards rather than a slab in every chunk — and it is
-	 * where the reactor fight lives.
+	 * <p>Parked: the upper layer should match stock Minecraft (empty high sky / no End-stone
+	 * archipelago). The reactor fight still lives in the vanilla End dimension.
 	 */
-	public static final boolean END_BAND = true;
+	public static final boolean END_BAND = false;
 
 	/**
 	 * Megastructures, industrial complexes, the megacity and the landmark seeding around spawn.

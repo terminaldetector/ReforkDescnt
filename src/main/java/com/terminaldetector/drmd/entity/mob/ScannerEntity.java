@@ -6,7 +6,7 @@ import com.terminaldetector.drmd.weapon.core.DamageClass;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.ActiveTargetGoal;
+import com.terminaldetector.drmd.ai.HostileEnvironment;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -66,7 +66,7 @@ public class ScannerEntity extends CyberMobEntity {
 	protected void initGoals() {
 		goalSelector.add(1, new ScannerCombatGoal(this));
 		goalSelector.add(6, new ScannerPatrolGoal(this));
-		targetSelector.add(1, new ActiveTargetGoal<>(this, PlayerEntity.class, true));
+		HostileEnvironment.installTargets(this, this.targetSelector);
 	}
 
 	@Override

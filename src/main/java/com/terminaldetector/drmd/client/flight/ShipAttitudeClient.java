@@ -12,7 +12,8 @@ import net.minecraft.util.math.MathHelper;
  * Two-layer angular filter (author notes in GMod):
  *   TurnVel  — smooths mouse (≈ ft*8)
  *   AngVel   — body inertia (FA on ≈ ft*5, FA off ≈ ft*2)
- * Roll uses inertial RollVel around local Forward; bank soft-clamped ±180.
+ * Roll uses inertial RollVel around local Forward; integrated every render frame
+ * so barrel rolls stay smooth at any refresh rate (not stepped at 20 Hz).
  */
 public final class ShipAttitudeClient {
 	private static final ShipAttitude ATT = new ShipAttitude();
@@ -25,6 +26,9 @@ public final class ShipAttitudeClient {
 	private static float angPitch;
 	private static float angYaw;
 	private static float rollVel;
+	/** Q/E stick, sampled on the client tick; consumed on render frames. */
+	private static float rollInput;
+	private static long lastIntegrateNs;
 
 	private ShipAttitudeClient() {}
 
@@ -36,11 +40,18 @@ public final class ShipAttitudeClient {
 		return primed;
 	}
 
+	/** Instantaneous roll rate °/s — HUD / minimap can freeze heavy work while barrel-rolling. */
+	public static float rollSpeed() {
+		return rollVel;
+	}
+
 	public static void resetFromPlayer(ClientPlayerEntity player) {
 		ATT.fromLook(player.getRotationVec(1f));
 		primed = true;
 		turnPitch = turnYaw = angPitch = angYaw = 0;
 		rollVel = 0;
+		rollInput = 0;
+		lastIntegrateNs = 0;
 		DescentCamera.clear();
 		applyToPlayer(player);
 	}
@@ -49,7 +60,14 @@ public final class ShipAttitudeClient {
 		primed = false;
 		turnPitch = turnYaw = angPitch = angYaw = 0;
 		rollVel = 0;
+		rollInput = 0;
+		lastIntegrateNs = 0;
 		DescentCamera.clear();
+	}
+
+	/** Sampled once per client tick from Q/E — does not advance the basis. */
+	public static void setRollInput(float input) {
+		rollInput = MathHelper.clamp(input, -1f, 1f);
 	}
 
 	/**
@@ -79,17 +97,52 @@ public final class ShipAttitudeClient {
 		applyToPlayer(player);
 	}
 
-	/** Every client tick while flying so roll inertia decays without held keys. */
-	public static void tickRoll(ClientPlayerEntity player, float rollInput, float dt) {
-		if (!primed) return;
-		float rate = com.terminaldetector.drmd.client.config.DescentConfig.rollRate > 0 ? com.terminaldetector.drmd.client.config.DescentConfig.rollRate : ROLL_SPEED;
+	/**
+	 * Advance roll (and soft level) on the render clock.
+	 *
+	 * <p>Must not run on the 20 Hz client tick — that is what made barrel rolls staircase. Real
+	 * frame dt from {@link System#nanoTime()} keeps the rate honest even if Camera.update is called
+	 * more than once in a frame (second call sees ~0 dt).
+	 */
+	public static void integrateRender(ClientPlayerEntity player) {
+		if (!primed || player == null) return;
+		long now = System.nanoTime();
+		float dt;
+		if (lastIntegrateNs == 0L) {
+			dt = frameDt();
+		} else {
+			dt = (now - lastIntegrateNs) * 1e-9f;
+		}
+		lastIntegrateNs = now;
+		dt = MathHelper.clamp(dt, 0f, 0.1f);
+		if (dt < 1e-5f) return;
+
+		float rate = com.terminaldetector.drmd.client.config.DescentConfig.rollRate > 0
+				? com.terminaldetector.drmd.client.config.DescentConfig.rollRate
+				: ROLL_SPEED;
 		float target = rollInput * rate;
 		rollVel = MathHelper.lerp(MathHelper.clamp(5f * dt, 0f, 1f), rollVel, target);
 		if (Math.abs(rollVel) > 0.01f) {
-			// Unbounded: a Pyro can keep barrel-rolling in one direction forever.
 			ATT.rollLocal(rollVel * dt);
 		}
+
+		if (DescentCamera.isLeveling()) {
+			ATT.rollLocal(-ATT.bankDegrees() * MathHelper.clamp(12f * dt, 0f, 1f));
+			decayRollVel(MathHelper.clamp(12f * dt, 0f, 1f));
+			if (Math.abs(ATT.bankDegrees()) < 0.35f) {
+				ATT.levelRoll();
+				zeroRollVel();
+				DescentCamera.finishLevel();
+			}
+		}
+
 		applyToPlayer(player);
+	}
+
+	/** @deprecated Roll advances in {@link #integrateRender}; kept for call-site clarity. */
+	@Deprecated
+	public static void tickRoll(ClientPlayerEntity player, float rollInput, float dt) {
+		setRollInput(rollInput);
 	}
 
 	public static void decayRollVel(float t) {
@@ -110,14 +163,6 @@ public final class ShipAttitudeClient {
 		player.setPitch(clampPitch(ATT.pitchDegrees()));
 
 		// Carry the previous yaw across the ±180 seam instead of pinning it to the new one.
-		//
-		// Pinning prev to current every tick leaves the renderer nothing to interpolate between, so
-		// the view advances in twenty steps a second however many frames are drawn — which is the
-		// judder in a barrel roll, and it gets worse the faster you roll. The only thing pinning
-		// actually guarded against was the wrap: cross from 179° to -179° and a naive lerp spins the
-		// long way round. Rewriting prev to the congruent angle within half a turn of the new value
-		// fixes the wrap and leaves the interpolation intact, which pitch never needed because it is
-		// clamped either side of vertical and cannot wrap at all.
 		player.prevYaw = yaw - MathHelper.wrapDegrees(yaw - player.prevYaw);
 		DescentClientState.roll = ATT.bankDegrees();
 		DescentClientState.pitch = ATT.pitchDegrees();
@@ -135,7 +180,7 @@ public final class ShipAttitudeClient {
 		return MathHelper.clamp(p, -90f, 90f);
 	}
 
-	/** GMod FrameTime analogue from MC last frame duration (1.0 = one game tick). */
+	/** GMod FrameTime analogue from MC last frame duration (seconds). */
 	private static float frameDt() {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (mc == null) return 1f / 60f;

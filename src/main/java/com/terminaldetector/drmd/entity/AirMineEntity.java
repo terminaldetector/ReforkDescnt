@@ -1,19 +1,20 @@
 package com.terminaldetector.drmd.entity;
 
 import com.terminaldetector.drmd.DescentMod;
+import com.terminaldetector.drmd.ai.HostileEnvironment;
 import com.terminaldetector.drmd.weapon.core.DamageClass;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-/** Air mine — drift 45, trigger 160, blast 120 (Source units). */
+/** Air mine — drift 45, trigger 160, blast 120 (Source units). Hostile to any non-allied life. */
 public class AirMineEntity extends HostileEntity {
 	private float blipTimer = 1.2f;
 
@@ -48,8 +49,18 @@ public class AirMineEntity extends HostileEntity {
 
 		blipTimer -= 1f / 20f;
 		double trigger = DescentMod.su(160);
-		PlayerEntity nearest = getWorld().getClosestPlayer(this, trigger);
-		if (nearest != null && squaredDistanceTo(nearest) < trigger * trigger) {
+		LivingEntity prey = null;
+		double best = trigger * trigger;
+		for (LivingEntity e : getWorld().getEntitiesByClass(LivingEntity.class,
+				getBoundingBox().expand(trigger),
+				ent -> HostileEnvironment.isHostileTarget(this, ent))) {
+			double d = squaredDistanceTo(e);
+			if (d < best) {
+				best = d;
+				prey = e;
+			}
+		}
+		if (prey != null) {
 			detonate();
 		} else if (blipTimer <= 0) {
 			blipTimer = 1.2f;
