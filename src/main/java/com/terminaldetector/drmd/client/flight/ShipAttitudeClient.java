@@ -105,10 +105,20 @@ public final class ShipAttitudeClient {
 	}
 
 	public static void applyToPlayer(ClientPlayerEntity player) {
-		player.setYaw(ATT.yawDegrees());
+		float yaw = ATT.yawDegrees();
+		player.setYaw(yaw);
 		player.setPitch(clampPitch(ATT.pitchDegrees()));
-		player.prevYaw = player.getYaw();
-		player.prevPitch = player.getPitch();
+
+		// Carry the previous yaw across the ±180 seam instead of pinning it to the new one.
+		//
+		// Pinning prev to current every tick leaves the renderer nothing to interpolate between, so
+		// the view advances in twenty steps a second however many frames are drawn — which is the
+		// judder in a barrel roll, and it gets worse the faster you roll. The only thing pinning
+		// actually guarded against was the wrap: cross from 179° to -179° and a naive lerp spins the
+		// long way round. Rewriting prev to the congruent angle within half a turn of the new value
+		// fixes the wrap and leaves the interpolation intact, which pitch never needed because it is
+		// clamped either side of vertical and cannot wrap at all.
+		player.prevYaw = yaw - MathHelper.wrapDegrees(yaw - player.prevYaw);
 		DescentClientState.roll = ATT.bankDegrees();
 		DescentClientState.pitch = ATT.pitchDegrees();
 		DescentClientState.attFx = (float) ATT.fx;
