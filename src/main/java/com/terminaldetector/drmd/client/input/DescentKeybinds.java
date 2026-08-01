@@ -123,12 +123,19 @@ public final class DescentKeybinds {
 			float rollIn = 0;
 			if (rollLeft.isPressed()) rollIn -= 1;
 			if (rollRight.isPressed()) rollIn += 1;
+			// Stick only — basis advances on the render clock so barrel rolls are not 20 Hz stepped.
+			ShipAttitudeClient.setRollInput(rollIn);
 			float dt = 1f / 20f;
-			ShipAttitudeClient.tickRoll(client.player, rollIn, dt);
 			com.terminaldetector.drmd.client.flight.DescentCamera.tick(client.player, dt);
+		} else {
+			ShipAttitudeClient.setRollInput(0);
 		}
 		com.terminaldetector.drmd.client.hud.TerrainMap3d.tick(client);
 	}
+
+	private static int inputSendAge;
+	private static float lastSentFx, lastSentFy, lastSentFz, lastSentUx, lastSentUy, lastSentUz;
+	private static float lastSentFwd, lastSentStrafe, lastSentVert, lastSentRoll;
 
 	public static void sendInput(MinecraftClient client) {
 		if (client.player == null) return;
@@ -144,15 +151,38 @@ public final class DescentKeybinds {
 		hookQueued = false;
 
 		boolean att = DescentClientState.enabled && DescentClientState.attitudeValid;
+		float fx = att ? DescentClientState.attFx : 0;
+		float fy = att ? DescentClientState.attFy : 0;
+		float fz = att ? DescentClientState.attFz : 1;
+		float ux = att ? DescentClientState.attUx : 0;
+		float uy = att ? DescentClientState.attUy : 1;
+		float uz = att ? DescentClientState.attUz : 0;
+
+		inputSendAge++;
+		boolean stickChanged = Math.abs(forward - lastSentFwd) > 0.01f
+				|| Math.abs(strafe - lastSentStrafe) > 0.01f
+				|| Math.abs(vertical - lastSentVert) > 0.01f
+				|| Math.abs(roll - lastSentRoll) > 0.01f;
+		boolean attChanged = Math.abs(fx - lastSentFx) > 0.002f || Math.abs(fy - lastSentFy) > 0.002f
+				|| Math.abs(fz - lastSentFz) > 0.002f || Math.abs(ux - lastSentUx) > 0.002f
+				|| Math.abs(uy - lastSentUy) > 0.002f || Math.abs(uz - lastSentUz) > 0.002f;
+		// Keep a heartbeat so the server does not go stale, but skip duplicate packets mid-coast.
+		if (!dash && !hk && !stickChanged && !attChanged && inputSendAge < 4) return;
+		inputSendAge = 0;
+		lastSentFwd = forward;
+		lastSentStrafe = strafe;
+		lastSentVert = vertical;
+		lastSentRoll = roll;
+		lastSentFx = fx;
+		lastSentFy = fy;
+		lastSentFz = fz;
+		lastSentUx = ux;
+		lastSentUy = uy;
+		lastSentUz = uz;
+
 		ClientPlayNetworking.send(new ModNetworking.InputPayload(
 				forward, strafe, vertical, roll, dash, hk,
-				att,
-				att ? DescentClientState.attFx : 0,
-				att ? DescentClientState.attFy : 0,
-				att ? DescentClientState.attFz : 1,
-				att ? DescentClientState.attUx : 0,
-				att ? DescentClientState.attUy : 1,
-				att ? DescentClientState.attUz : 0
+				att, fx, fy, fz, ux, uy, uz
 		));
 	}
 

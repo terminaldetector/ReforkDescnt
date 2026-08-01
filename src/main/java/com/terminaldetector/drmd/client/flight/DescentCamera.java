@@ -58,6 +58,10 @@ public final class DescentCamera {
 		leveling = true;
 	}
 
+	public static void finishLevel() {
+		leveling = false;
+	}
+
 	public static boolean isLeveling() {
 		return leveling;
 	}
@@ -65,9 +69,8 @@ public final class DescentCamera {
 	/**
 	 * Screen-space bank the world is rendered with, in degrees.
 	 *
-	 * <p>Exact — never smoothed. Together with the camera's yaw/pitch it has to reconstruct the ship
-	 * basis bit for bit; any lag here would decouple the horizon from the hull, and near the poles
-	 * (where yaw swings fast) it would read as the camera spinning on its own.
+	 * <p>Exact against the live basis — roll itself advances every render frame in
+	 * {@link ShipAttitudeClient#integrateRender}, so the bank is already smooth at display rate.
 	 */
 	public static float viewRoll() {
 		if (!DescentClientState.enabled || !DescentClientState.attitudeValid) return 0f;
@@ -103,17 +106,7 @@ public final class DescentCamera {
 		camLag = lerpVec(camLag, lagTarget, lerpT);
 		dashKick = lerpVec(dashKick, Vec3d.ZERO, MathHelper.clamp(6.0 * dt, 0.0, 1.0));
 
-		// Soft level (GMod double-tap R → Ang.r Lerp); X starts this
-		if (leveling) {
-			att.rollLocal(-att.bankDegrees() * MathHelper.clamp(12f * dt, 0f, 1f));
-			ShipAttitudeClient.decayRollVel(MathHelper.clamp(12f * dt, 0f, 1f));
-			if (Math.abs(att.bankDegrees()) < 0.35f) {
-				att.levelRoll();
-				ShipAttitudeClient.zeroRollVel();
-				leveling = false;
-			}
-			ShipAttitudeClient.applyToPlayer(player);
-		}
+		// Soft level advances on the render clock with roll — see ShipAttitudeClient.integrateRender.
 
 		// Lerp along the shortest arc so a barrel roll past ±180 does not whip the gauge around.
 		float delta = MathHelper.wrapDegrees(att.bankDegrees() - hudRoll);
@@ -128,7 +121,11 @@ public final class DescentCamera {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		ClientPlayerEntity player = mc.player;
 		mirroredView = false;
-		if (player == null || !DescentClientState.enabled || !DescentClientState.attitudeValid) return;
+		if (player == null || !DescentClientState.enabled) return;
+
+		// Roll + soft-level on the render clock before we read the basis for the lens.
+		ShipAttitudeClient.integrateRender(player);
+		if (!DescentClientState.attitudeValid) return;
 
 		ShipAttitude att = ShipAttitudeClient.get();
 		Vec3d forward = att.forward();

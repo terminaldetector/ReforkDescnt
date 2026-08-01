@@ -261,87 +261,134 @@ public final class DescentHud {
 
 	// =============================================================== minimap
 
-	private static final int MAP_CELLS = 34;
+	private static final int MAP_CELLS = 36;
 	private static final int MAP_STEP = 3;
 	private static final int MAP_H = MAP_CELLS * 2 + 8;
-	private static int[] mapColors = new int[MAP_CELLS * MAP_CELLS];
-	private static long mapStamp = Long.MIN_VALUE;
+	/** North-up height/color cache — rotated on blit by live ship yaw (no full rescan per turn). */
+	private static final int[] mapColors = new int[MAP_CELLS * MAP_CELLS];
+	private static final short[] mapHeights = new short[MAP_CELLS * MAP_CELLS];
+	private static final boolean[] mapReady = new boolean[MAP_CELLS * MAP_CELLS];
+	private static int mapCursor;
 	private static double mapOx, mapOz;
-	private static float mapYaw;
+	private static boolean mapAnchored;
+	private static final int MAP_BUDGET = 48; // heightmap samples per HUD frame
 
 	private static int drawMinimap(DrawContext ctx, MinecraftClient mc, int x, int y, List<Entity> contacts) {
 		int size = MAP_CELLS * 2;
 		panel(ctx, x, y, size + 8, size + 8);
 		int ox = x + 4, oy = y + 4;
-		rescanMap(mc);
-		for (int gz = 0; gz < MAP_CELLS; gz++) {
-			for (int gx = 0; gx < MAP_CELLS; gx++) {
-				int col = mapColors[gz * MAP_CELLS + gx];
-				if (col == 0) continue;
-				ctx.fill(ox + gx * 2, oy + gz * 2, ox + gx * 2 + 2, oy + gz * 2 + 2, col);
-			}
-		}
-		// Hostile contacts, ship-up like the scan grid.
-		double span = MAP_CELLS * MAP_STEP / 2.0;
-		float yawRad = mapYaw * ((float) Math.PI / 180f);
-		double sin = Math.sin(yawRad), cos = Math.cos(yawRad);
-		for (Entity e : contacts) {
-			double dx = e.getX() - mapOx;
-			double dz = e.getZ() - mapOz;
-			double lx = dx * cos - dz * sin;
-			double lz = dx * sin + dz * cos;
-			if (Math.abs(lx) > span || Math.abs(lz) > span) continue;
-			int px = ox + (int) ((lx + span) / (span * 2) * size);
-			int py = oy + (int) ((-lz + span) / (span * 2) * size);
-			ctx.fill(px - 1, py - 1, px + 2, py + 2, hostile(e) ? RED : CYAN);
-		}
-		// Own ship marker, offset from the scan origin so it drifts smoothly between rescans.
-		double sx = mc.player.getX() - mapOx;
-		double sz = mc.player.getZ() - mapOz;
-		double slx = MathHelper.clamp(sx * cos - sz * sin, -span, span);
-		double slz = MathHelper.clamp(sx * sin + sz * cos, -span, span);
-		int mx = ox + (int) ((slx + span) / (span * 2) * size);
-		int my = oy + (int) ((-slz + span) / (span * 2) * size);
-		ctx.fill(mx - 1, my - 2, mx + 2, my + 3, 0xFFFFFFFF);
-		ctx.fill(mx, my - 4, mx + 1, my - 1, GREEN);
-		return y;
-	}
-
-	private static void rescanMap(MinecraftClient mc) {
-		long now = mc.world.getTime();
-		if (now - mapStamp < 20 && mapStamp != Long.MIN_VALUE) return;
-		mapStamp = now;
-		mapOx = mc.player.getX();
-		mapOz = mc.player.getZ();
-		mapYaw = DescentClientState.attitudeValid
+		pumpMapScan(mc);
+		float yaw = DescentClientState.attitudeValid
 				? ShipAttitudeClient.get().yawDegrees()
 				: mc.player.getYaw();
-		float yawRad = mapYaw * ((float) Math.PI / 180f);
-		// Inverse of the blip rotation: sample world cells for a ship-up grid.
+		float yawRad = yaw * ((float) Math.PI / 180f);
 		double sin = Math.sin(yawRad), cos = Math.cos(yawRad);
 		int half = MAP_CELLS / 2;
-		BlockPos.Mutable probe = new BlockPos.Mutable();
+		double span = MAP_CELLS * MAP_STEP / 2.0;
+		double py = mc.player.getY();
+
+		// Ship-up blit from the north-up cache — turning only rotates the view, not the sampler.
 		for (int gz = 0; gz < MAP_CELLS; gz++) {
 			for (int gx = 0; gx < MAP_CELLS; gx++) {
 				double lx = (gx - half) * MAP_STEP;
 				double lz = -(gz - half) * MAP_STEP;
 				double wx = mapOx + lx * cos + lz * sin;
 				double wz = mapOz - lx * sin + lz * cos;
-				int bx = MathHelper.floor(wx);
-				int bz = MathHelper.floor(wz);
-				int top = mc.world.getTopY(Heightmap.Type.WORLD_SURFACE, bx, bz);
-				probe.set(bx, top - 1, bz);
-				var state = mc.world.getBlockState(probe);
-				if (state.isAir()) {
-					mapColors[gz * MAP_CELLS + gx] = 0;
-					continue;
-				}
-				int base = state.getMapColor(mc.world, probe).color;
-				// Shade by height delta so relief reads on a flat 2D grid.
-				double delta = MathHelper.clamp((top - mc.player.getY()) / 48.0, -1.0, 1.0);
-				mapColors[gz * MAP_CELLS + gx] = 0xFF000000 | shade(base, (float) (0.72 + delta * 0.28));
+				int col = sampleMapColor(wx, wz, py);
+				if (col == 0) continue;
+				ctx.fill(ox + gx * 2, oy + gz * 2, ox + gx * 2 + 2, oy + gz * 2 + 2, col);
 			}
 		}
+		// Contacts in live ship frame.
+		for (Entity e : contacts) {
+			double dx = e.getX() - mc.player.getX();
+			double dz = e.getZ() - mc.player.getZ();
+			double lx = dx * cos - dz * sin;
+			double lz = dx * sin + dz * cos;
+			if (Math.abs(lx) > span || Math.abs(lz) > span) continue;
+			int px = ox + (int) ((lx + span) / (span * 2) * size);
+			int pz = oy + (int) ((-lz + span) / (span * 2) * size);
+			ctx.fill(px - 1, pz - 1, px + 2, pz + 2, hostile(e) ? RED : CYAN);
+		}
+		// Own ship always centred — terrain slides under the marker as the cache reanchors.
+		int mx = ox + size / 2;
+		int my = oy + size / 2;
+		ctx.fill(mx - 1, my - 2, mx + 2, my + 3, 0xFFFFFFFF);
+		ctx.fill(mx, my - 4, mx + 1, my - 1, GREEN);
+		// Heading notch.
+		ctx.fill(mx, my - 6, mx + 1, my - 4, AMBER);
+		return y;
+	}
+
+	/**
+	 * Budgeted north-up terrain fill. Reanchors when the pilot leaves the cache centre; slows
+	 * sampling during hard barrel rolls so the cockpit stays smooth.
+	 */
+	private static void pumpMapScan(MinecraftClient mc) {
+		double px = mc.player.getX();
+		double pz = mc.player.getZ();
+		if (!mapAnchored) {
+			mapOx = px;
+			mapOz = pz;
+			mapAnchored = true;
+			mapCursor = 0;
+			java.util.Arrays.fill(mapReady, false);
+		} else {
+			double dx = px - mapOx;
+			double dz = pz - mapOz;
+			if (dx * dx + dz * dz > (MAP_STEP * 2.5) * (MAP_STEP * 2.5)) {
+				mapOx = px;
+				mapOz = pz;
+				mapCursor = 0;
+				java.util.Arrays.fill(mapReady, false);
+			}
+		}
+		int budget = MAP_BUDGET;
+		if (Math.abs(ShipAttitudeClient.rollSpeed()) > 90f) budget = 12;
+		BlockPos.Mutable probe = new BlockPos.Mutable();
+		int half = MAP_CELLS / 2;
+		int total = MAP_CELLS * MAP_CELLS;
+		for (int n = 0; n < budget; n++) {
+			int idx = mapCursor % total;
+			mapCursor++;
+			int gx = idx % MAP_CELLS;
+			int gz = idx / MAP_CELLS;
+			int bx = MathHelper.floor(mapOx + (gx - half) * MAP_STEP);
+			int bz = MathHelper.floor(mapOz + (gz - half) * MAP_STEP);
+			if (!mc.world.isChunkLoaded(bx >> 4, bz >> 4)) {
+				mapReady[idx] = false;
+				mapColors[idx] = 0;
+				continue;
+			}
+			int top = mc.world.getTopY(Heightmap.Type.WORLD_SURFACE, bx, bz);
+			probe.set(bx, Math.max(mc.world.getBottomY(), top - 1), bz);
+			var state = mc.world.getBlockState(probe);
+			mapHeights[idx] = (short) top;
+			if (state.isAir()) {
+				mapColors[idx] = 0xFF061018;
+			} else {
+				int base = state.getMapColor(mc.world, probe).color;
+				mapColors[idx] = 0xFF000000 | base;
+			}
+			mapReady[idx] = true;
+		}
+	}
+
+	/** Bilinear-ish nearest cell from the north-up cache, height-shaded vs pilot altitude. */
+	private static int sampleMapColor(double wx, double wz, double playerY) {
+		int half = MAP_CELLS / 2;
+		double fx = (wx - mapOx) / MAP_STEP + half;
+		double fz = (wz - mapOz) / MAP_STEP + half;
+		int gx = MathHelper.floor(fx);
+		int gz = MathHelper.floor(fz);
+		if (gx < 0 || gz < 0 || gx >= MAP_CELLS || gz >= MAP_CELLS) return 0;
+		int idx = gz * MAP_CELLS + gx;
+		if (!mapReady[idx]) return 0x66061018;
+		int base = mapColors[idx];
+		if (base == 0) return 0;
+		double delta = MathHelper.clamp((mapHeights[idx] - playerY) / 48.0, -1.0, 1.0);
+		int rgb = base & 0xFFFFFF;
+		return 0xFF000000 | shade(rgb, (float) (0.70 + delta * 0.30));
 	}
 
 	private static int shade(int rgb, float k) {
@@ -630,7 +677,15 @@ public final class DescentHud {
 		return e instanceof net.minecraft.entity.mob.HostileEntity;
 	}
 
+	private static TargetInfo targetCache;
+	private static long targetStamp = Long.MIN_VALUE;
+
 	private static TargetInfo resolveTarget(MinecraftClient mc) {
+		long now = mc.world.getTime();
+		// One raycast + entity sweep per game tick is enough; HUD may paint at 120+ fps.
+		if (targetStamp == now) return targetCache;
+		targetStamp = now;
+
 		Vec3d eye = mc.player.getEyePos();
 		Vec3d dir = DescentClientState.attitudeValid
 				? ShipAttitudeClient.get().forward()
@@ -648,25 +703,28 @@ public final class DescentHud {
 				lastTargetName = name;
 				pushLog("[SYS] Target lock: " + name);
 			}
-			return new TargetInfo(
+			targetCache = new TargetInfo(
 					name,
 					entityType(living),
 					(int) living.getHealth(),
 					(int) living.getMaxHealth(),
 					(int) mc.player.distanceTo(living),
 					(float) living.getVelocity().length() * 20f);
+			return targetCache;
 		}
 		lastTargetName = "";
 		if (blockHit.getType() == HitResult.Type.BLOCK) {
 			BlockPos pos = blockHit.getBlockPos();
 			var state = mc.world.getBlockState(pos);
-			return new TargetInfo(
+			targetCache = new TargetInfo(
 					state.getBlock().getName().getString(),
 					"STRUCTURE",
 					0, 0,
 					(int) blockDist,
 					0f);
+			return targetCache;
 		}
+		targetCache = null;
 		return null;
 	}
 

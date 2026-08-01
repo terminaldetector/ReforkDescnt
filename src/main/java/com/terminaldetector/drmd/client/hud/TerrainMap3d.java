@@ -71,34 +71,41 @@ public final class TerrainMap3d {
 			open = false;
 			return;
 		}
-		scanAge++;
-		if (scanAge < 8 && heights != null) return;
-		scanAge = 0;
-		rescan(mc.world, mc.player);
+		// Live yaw every tick so the mesh turns with the hull without a full rescan.
 		if (DescentClientState.attitudeValid) {
 			yawView = ShipAttitudeClient.get().yawDegrees();
 		} else {
 			yawView = mc.player.getYaw();
 		}
+		scanAge++;
+		// Slower + lighter during hard rolls; heightmap-only (no vertical solid hunt).
+		int period = Math.abs(ShipAttitudeClient.rollSpeed()) > 90f ? 16 : 10;
+		if (scanAge < period && heights != null) return;
+		scanAge = 0;
+		rescan(mc.world, mc.player);
 	}
 
 	private static void rescan(World world, ClientPlayerEntity player) {
-		heights = new int[GRID][GRID];
-		kinds = new byte[GRID][GRID];
+		if (heights == null) {
+			heights = new int[GRID][GRID];
+			kinds = new byte[GRID][GRID];
+		}
 		BlockPos origin = player.getBlockPos();
 		int half = (GRID * STEP) / 2;
+		BlockPos.Mutable m = new BlockPos.Mutable();
 		for (int ix = 0; ix < GRID; ix++) {
 			for (int iz = 0; iz < GRID; iz++) {
 				int wx = origin.getX() - half + ix * STEP;
 				int wz = origin.getZ() - half + iz * STEP;
+				if (!world.isChunkLoaded(wx >> 4, wz >> 4)) {
+					heights[ix][iz] = 0;
+					kinds[ix][iz] = 0;
+					continue;
+				}
 				int top = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, wx, wz);
-				// Also probe near player Y for caves / industrial voids
-				int probeY = origin.getY();
-				BlockPos.Mutable m = new BlockPos.Mutable(wx, probeY, wz);
-				int solidNear = findNearestSolid(world, m, probeY, 24);
-				int hy = solidNear != Integer.MIN_VALUE ? solidNear : top;
-				heights[ix][iz] = hy - origin.getY();
-				BlockState st = world.getBlockState(new BlockPos(wx, hy, wz));
+				heights[ix][iz] = top - origin.getY();
+				m.set(wx, Math.max(world.getBottomY(), top - 1), wz);
+				BlockState st = world.getBlockState(m);
 				if (st.isOf(Blocks.WATER) || st.isOf(Blocks.LAVA)) kinds[ix][iz] = 2;
 				else if (st.isOf(Blocks.BEACON) || st.isOf(Blocks.LODESTONE) || st.isOf(Blocks.IRON_BLOCK)
 						|| st.isOf(Blocks.COPPER_BLOCK) || st.isOf(Blocks.SEA_LANTERN)) kinds[ix][iz] = 3;
@@ -106,20 +113,6 @@ public final class TerrainMap3d {
 				else kinds[ix][iz] = 1;
 			}
 		}
-	}
-
-	private static int findNearestSolid(World world, BlockPos.Mutable m, int centerY, int range) {
-		for (int d = 0; d <= range; d++) {
-			for (int sign : new int[]{0, 1, -1}) {
-				if (d == 0 && sign != 0) continue;
-				int y = centerY + d * (sign == 0 ? 0 : sign);
-				if (sign == 0 && d > 0) continue;
-				m.setY(y);
-				BlockState st = world.getBlockState(m);
-				if (!st.isAir() && st.getHardness(world, m) >= 0) return y;
-			}
-		}
-		return Integer.MIN_VALUE;
 	}
 
 	public static void render(DrawContext ctx, MinecraftClient mc) {
