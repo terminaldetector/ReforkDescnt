@@ -89,7 +89,9 @@ public class FusionCannonItem extends DescentWeaponItem {
 		if (!(world instanceof ServerWorld sw)) return;
 		float charge = chargeOf(remainingUseTicks);
 		// Off the nose, like every other muzzle — the look vector cannot point past vertical.
-		Vec3d muzzle = user.getEyePos().add(WeaponCore.aimDir(user).multiply(0.8));
+		Vec3d muzzle = user.getEyePos().add(user.getRotationVec(1f).multiply(0.8));
+		// Charge particles only — usageTick hands us a LivingEntity, and aimDir needs a PlayerEntity.
+		// The shot itself goes through baseCfg, which does aim down the nose.
 		int count = 1 + Math.round(charge * 5);
 		sw.spawnParticles(ParticleTypes.SOUL_FIRE_FLAME, muzzle.x, muzzle.y, muzzle.z,
 				count, 0.12 + charge * 0.2, 0.12 + charge * 0.2, 0.12 + charge * 0.2, 0.01);
