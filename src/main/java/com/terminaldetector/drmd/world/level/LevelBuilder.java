@@ -57,8 +57,14 @@ public final class LevelBuilder {
 		long key = cp.toLong();
 		if (QUEUED.contains(key)) return;
 		// Cheap already-built probe: the floor marker at the chunk centre.
+		//
+		// Read it off the chunk being handed to us, never through the world. A chunk is not in the
+		// full-status map during its own load event, so world.getBlockState here would ask the chunk
+		// manager to load the chunk that is already loading: the future it waits on cannot complete,
+		// and the server thread sits in that wait forever. That is a hang with no crash report —
+		// world creation stopping a few percent in.
 		BlockPos probe = new BlockPos(cp.getStartX() + 8, WorldLevels.NETHER_FLOOR, cp.getStartZ() + 8);
-		if (world.getBlockState(probe).isOf(Blocks.BEDROCK)) return;
+		if (chunk.getBlockState(probe).isOf(Blocks.BEDROCK)) return;
 		QUEUED.add(key);
 		QUEUE.add(new Job(world, cp.x, cp.z));
 	}
