@@ -1,0 +1,150 @@
+name: Build DRMD 6DOF (PC + MCPE)
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  fabric-pc:
+    name: Fabric PC jar
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew scripts/package_mcpe.sh scripts/package_mcpe_master.sh
+
+      - name: Build Fabric mod
+        run: ./gradlew build --no-daemon --stacktrace
+
+      - name: Stage PC jar into dist/
+        run: |
+          mkdir -p dist
+          cp build/libs/drmd-6dof-*.jar dist/
+          rm -f dist/*-sources.jar dist/*-dev.jar dist/*-dev-shadow.jar || true
+          ls -lh dist/
+
+      - name: Upload Fabric PC mod
+        uses: actions/upload-artifact@v4
+        with:
+          name: drmd-6dof-pc
+          path: |
+            dist/drmd-6dof-*.jar
+            dist/INSTALL_TLAUNCHER.txt
+            !dist/*-sources.jar
+          if-no-files-found: error
+          retention-days: 30
+
+      # dist/ is checked in so the jar can be downloaded straight from the repository — no Actions
+      # login, no nested zip. Keeping it current by hand is what left a crashing build sitting there
+      # under a name that looked like the latest one, so the build refreshes it itself.
+      #
+      # A push made with GITHUB_TOKEN does not start another workflow run, so this cannot loop.
+      - name: Commit refreshed jar into dist/
+        if: github.event_name == 'push'
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/drmd-6dof-*.jar dist/INSTALL_TLAUNCHER.txt
+          if git diff --cached --quiet; then
+            echo "dist/ already matches this build"
+            exit 0
+          fi
+          git commit -m "Refresh dist jar from ${GITHUB_SHA:0:7} [skip ci]"
+          git push origin HEAD:"${GITHUB_REF_NAME}"
+
+  mcpe-master:
+    name: MCPE Master addon
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install zip
+        run: sudo apt-get update && sudo apt-get install -y zip
+
+      - name: Package MCPE Master
+        run: |
+          chmod +x scripts/package_mcpe_master.sh scripts/package_mcpe.sh
+          ./scripts/package_mcpe_master.sh dist 1.0.5
+
+      - name: Upload MCPE Master addon
+        uses: actions/upload-artifact@v4
+        with:
+          name: drmd-6dof-mcpe
+          path: |
+            dist/drmd-6dof-mcpe-master-1.0.5.mcaddon
+            dist/drmd-6dof-mcpe-master-1.0.5.zip
+            dist/drmd-6dof-mcpe-master-bp-1.0.5.mcpack
+            dist/drmd-6dof-mcpe-master-rp-1.0.5.mcpack
+            dist/drmd-6dof-fast-test-1.0.5.mcaddon
+            mcpe/README.md
+            mcpe/INSTALL_MCPE_MASTER.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  evening-test-bundle:
+    name: Evening test bundle (PC + MCPE)
+    needs: [fabric-pc, mcpe-master]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download PC jar
+        uses: actions/download-artifact@v4
+        with:
+          name: drmd-6dof-pc
+          path: bundle/pc
+
+      - name: Download MCPE addon
+        uses: actions/download-artifact@v4
+        with:
+          name: drmd-6dof-mcpe
+          path: bundle/mcpe
+
+      - name: Write evening README
+        run: |
+          cat > bundle/README_EVENING_TEST.txt << 'EOF'
+          DRMD 6DOF — evening test pack
+          =============================
+
+          PC (Java / Fabric 1.21.1)
+            1. Install Fabric Loader 1.21.1 + Fabric API
+            2. Copy pc/drmd-6dof-1.0.0.jar into .minecraft/mods/
+            3. Launch, join world — 6DoF is native. Craft/use Pyro GX.
+
+          MCPE Master / Bedrock
+            A) Open mcpe/drmd-6dof-mcpe-master-1.0.5.mcaddon
+            B) Or unzip mcpe/drmd-6dof-mcpe-master-1.0.5.zip into games/com.mojang
+            Then: enable both packs + Beta APIs
+            Descent axes: nose pitch / barrel roll / yaw — HUD on screen
+
+          Full features = PC Fabric build.
+          MCPE = UX sandbox (see mcpe/README.md).
+          EOF
+          find bundle -type f -ls
+
+      - name: Upload evening bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: drmd-evening-test
+          path: bundle/
+          if-no-files-found: error
+          retention-days: 30

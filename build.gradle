@@ -1,0 +1,123 @@
+plugins {
+	id 'fabric-loom' version "${loom_version}"
+	id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+	// Loom injects the Fabric and Mojang repositories itself, and the project resolved with this
+	// block empty for as long as every dependency came from one of those. JUnit does not, so Central
+	// is declared rather than assumed.
+	mavenCentral()
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	testImplementation platform("org.junit:junit-bom:${project.junit_version}")
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// Runs as part of `gradlew build`, so CI covers it with no workflow change.
+// Only the pure geometry and world-layout classes are exercised: Vec3d and MathHelper stand alone
+// without a game bootstrap, which is what makes these testable at all.
+test {
+	useJUnitPlatform()
+	testLogging {
+		events "failed"
+		exceptionFormat "full"
+	}
+}
+
+processResources {
+	inputs.property "version", project.version
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 21
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${project.base.archivesName.get()}" }
+	}
+}
+
+// The remapped jar under a name that says what it is.
+//
+// build/libs holds several jars and only one of them is the mod: dropping -sources or -dev into
+// mods/ fails in a way that reads like the mod is broken. This writes the loader and game version
+// into the filename and leaves an install note next to it.
+tasks.register('packageTlauncher') {
+	group = 'distribution'
+	description = 'Copy the remapped Fabric jar for TLauncher / third-party Fabric loaders'
+	dependsOn remapJar
+	doLast {
+		def distDir = file('dist')
+		distDir.mkdirs()
+		def remapped = remapJar.archiveFile.get().asFile
+		def outName = "${project.archives_base_name}-${project.version}-fabric-1.21.1.jar"
+		copy {
+			from remapped
+			into distDir
+			rename { outName }
+		}
+		// Stable alias, so a link to the jar keeps working across versions.
+		copy {
+			from remapped
+			into distDir
+			rename { "${project.archives_base_name}-${project.version}.jar" }
+		}
+		new File(distDir, 'INSTALL_TLAUNCHER.txt').text = """DRMD 6DOF — ПК TLauncher Fabric 1.21.1
+=======================================
+Jar: ${outName}
+Он же: ${project.archives_base_name}-${project.version}.jar
+
+Установка
+  1. Версии → Fabric Loader для Minecraft 1.21.1
+  2. Java 21+ в настройках лаунчера
+  3. В mods/: этот jar + Fabric API 1.21.1
+  4. Запуск Fabric 1.21.1 → новый мир
+
+Не класть *-sources.jar / *-dev.jar в mods — это не мод.
+
+Если краш при заходе или зависание на «Preparing spawn»
+  - поставь свежий jar: чинились четыре отдельные причины —
+    nav_node (Blocks.LIGHT), форма overworld.json, негейченный
+    CHUNK_LOAD и сид мира на потоке сервера
+  - создай НОВЫЙ мир: старый сохранил повреждённое состояние
+
+Сборка: ./gradlew build --no-daemon
+"""
+		println "TLauncher package → ${new File(distDir, outName)}"
+	}
+}
+build.finalizedBy(packageTlauncher)
+
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			artifactId = project.archives_base_name
+			from components.java
+		}
+	}
+}

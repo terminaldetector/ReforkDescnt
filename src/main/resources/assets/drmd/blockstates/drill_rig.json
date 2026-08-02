@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "active=false": { "model": "drmd:block/drill_rig" },
+    "active=true": { "model": "drmd:block/drill_rig_active" }
+  }
+}

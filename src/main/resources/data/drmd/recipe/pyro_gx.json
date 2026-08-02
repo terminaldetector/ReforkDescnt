@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "ATA",
+    "CEC",
+    "III"
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "T": {
+      "item": "drmd:targeting_core"
+    },
+    "C": {
+      "item": "drmd:energy_cell"
+    },
+    "E": {
+      "item": "minecraft:furnace"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    }
+  },
+  "result": {
+    "id": "drmd:pyro_gx",
+    "count": 1
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "DRMD 6DOF (MCPE Master)",
+    "description": "Descent 6DoF: нос↑↓, бочки, рысканье. HUD на экране. Beta APIs.",
+    "uuid": "9a1d85ab-093b-4f19-a8e5-93d075e6f703",
+    "version": [
+      1,
+      0,
+      5
+    ],
+    "min_engine_version": [
+      1,
+      20,
+      60
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "172c72b2-e232-441c-893a-5dbc2fba3d5b",
+      "version": [
+        1,
+        0,
+        5
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "768fb92c-cd17-4c69-b48e-f62cdf5ea55e",
+      "version": [
+        1,
+        0,
+        5
+      ],
+      "entry": "scripts/main.js"
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "f7e9be31-02e0-4a69-a49a-90a4fd9f9fe6",
+      "version": [
+        1,
+        0,
+        5
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "1.11.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "1.2.0"
+    }
+  ],
+  "metadata": {
+    "authors": [
+      "DRMD"
+    ],
+    "product_type": "addon"
+  }
+}
