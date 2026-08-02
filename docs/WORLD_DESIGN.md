@@ -1,0 +1,129 @@
+# Minecraft 6DoF — World Design Specification
+
+> Это не «Minecraft с полётом». Это воксельная песочница, где строительство, исследование, навигация и бой с самого начала рассчитаны на полноценное пространство 6DoF.
+
+Реализация в коде: пакет `com.terminaldetector.drmd.world`.
+
+---
+
+## 1. Философия
+
+- Нет абсолютного «верха» и «низа» (`LocalOrientation`).
+- Любая поверхность — потенциальный пол / стена / потолок.
+- Игрок строит **пространство**, а не здания.
+- Главное — **полости (объём)**, не стены и не комнаты.
+
+## 2. Слои высот (`WorldRules`)
+
+| Слой | Y (целевой) |
+|------|-------------|
+| Нижний мир | −50 000 |
+| Обычный мир | 0 |
+| Высотные острова | 10 000–40 000 |
+| Космос | 50 000 |
+| End | 100 000 |
+
+Между слоями нет загрузочных экранов. Практическая генерация Industrial Underground пока в диапазоне −56…40 (лимит vanilla world height); целевые слои заложены в API.
+
+## 3. Архитектура
+
+Предпочтительные формы: сферы, кольца, цилиндры, торы, соты, астероиды, станции, тоннельные сети.  
+Левел-дизайн: вертикальные шахты, спирали, сферические камеры, пересечения, петли, многослойные помещения — у каждой точки ≥3 направления движения.
+
+## 4. 6D Soil
+
+Блок `drmd:six_d_soil` — шесть рабочих сторон. ПКМ с саженцем/грибом/лозой/цветком/мхом сажает рост на **ударившую грань**; рост всегда идёт **наружу** относительно стороны → сферические леса, кольцевые сады, потолочные джунгли.
+
+## 5. Строительство игрока
+
+Предмет `drmd:build_tool`:
+
+- **Shift+ПКМ по блоку** — snap Local UP = нормаль грани (Surface mode).
+- **Shift+ПКМ в воздухе** — цикл режимов Look / Surface / Plane.
+- **ПКМ в воздухе** — цикл оси вращения Pitch / Yaw / Roll.
+- **ПКМ по блоку** — поставить блок из оффхенда/хотбара с учётом режима и вращения.
+
+## 6. Industrial Underground
+
+Модульные технокомплексы неизвестного происхождения:
+
+- Реакторные секции (сфера, ядро, кольца, охлаждение, мостики).
+- Спицы модулей: reactor / habitation / storage / power / hangar / command / cooling / evac.
+- Вертикальные шахты + спирали + 6-направленные входы.
+- Стили: abandoned research, ancient power, auto factory, smeltery, crystal reactor, tech ruins.
+
+Генерация: редкая при загрузке чанков Overworld (~1/12) + stock seed у спавна + команда:
+
+```
+/d6 worldgen industrial
+/d6 worldgen industrial CRYSTAL_REACTOR
+```
+
+### Практические биом-слои (HUD)
+
+| Слой (practical Y) | Biome label | Контент |
+|--------------------|-------------|---------|
+| −56…40 | Industrial Depth | реакторные комплексы |
+| 40…180 | Surface Corridor | rift / canyon |
+| 180…285 | Sky Archipelago | arch / ring / continent / spiral / inverted |
+| 285…318 | Orbital Belt | верхние кольца |
+| ≥318 | Near-End Space | инвертированные острова |
+
+Stock seed при старте мира ставит ориентиры во **всех** слоях; HUD показывает `BIOME` / `LAYER` / `ATM`.
+
+### Ориентация и бочки «вверх ногами»
+
+- **Build Tool** Shift+ПКМ по грани — Local UP = нормаль грани (потолок тоже пол).
+- Блоки с `FACING` (бочка, раздатчик, обсервер…) ставятся **по нормали поверхности** — на потолке бочка смотрит вниз.
+- Камера 6DoF банковуется по крену корабля; гравитация idle/micro следует Local UP.
+- Полный «переворот мира» как отдельный viewport Minecraft не делает — это ship attitude + local gravity + surface placement.
+
+### Pyro GX · 3D карта
+
+В кабине Pyro GX (или при активном 6DoF): **Tab+H** — изометрическая heightfield-карта местности (сканер Vertor-стиля) с маркерами LLOD/макроструктур.## 7. Ловушки (навигация > урон)
+
+| Блок | Роль |
+|------|------|
+| Hermetic Gate | закрывающиеся гермоворота |
+| Laser Barrier | лазерный объёмный барьер |
+| Volume Turret | турель, контролирующая объём |
+| Magnetic Anomaly | меняет Local UP игрока |
+| Unstable Reactor | нестабильная зона / knockback |
+| Laser / Plasma / Point-Defense Turret | активная ПВО базы (End giga-reactor + kit) |
+
+## 8. Бой и мобы
+
+Существующие DRMD-дроны уже летают в 3D (orbit / run / break). Гравитация idle/micro следует Local UP — магнитные аномалии меняют ориентацию полёта.
+
+### End: Giga-Reactor (вместо дракона)
+
+Ванильный `EnderDragonFight` глушится (`EnderDragonFightMixin`). На острове у `(0, surface, 0)` строится база с гигареактором:
+
+1. **SHIELDED** — 4 End-кристалла на пилонах; ядро неуязвимо.
+2. **EXPOSED** — кристаллы сбиты; ядро принимает урон, бьёт beams / pulse.
+3. **CRITICAL** — HP &lt; 35%; ускоренный огонь.
+4. **DEFEATED** — яйцо + 4 `END_GATEWAY` на Overworld spawn.
+
+ПВО: laser / plasma / point-defense / volume turrets на пилонах и кольце. Pyro GX в End / near-space **висит в невесомости** после высадки (без floor-lock).
+
+## 9. Команды
+
+```
+/d6 kit                 # build tool + soil + traps + turrets
+/d6 worldgen industrial # комплекс у игрока
+/d6 worldgen2 lunar|crashed|ufo|…
+/d6 mega ufo|keeper|…
+/d6 orient reset        # сброс Local UP
+/d6 endreactor          # force-regen End giga-reactor base
+/d6 ship                # spawn Pyro GX
+```
+
+### Lunar Base & UFO (Descent / XCOM refs)
+
+- **LUNAR_BASE** — заброшенная lunar outpost: force-shield crystals, traps, micro-reactor + Reactor Keeper
+- **Sky UFO** — летающая **блочная** тарелка (залететь в bay): ядро `UNSTABLE_REACTOR`; убить сбросом реактора / бомбой / ломом ядра → обломки, вылет
+- **CRASHED_UFO** — упавшая medium-структура; плотные ловушки/дроны — заход после крафта Pyro GX
+
+---
+
+Принцип проектирования уровней — из Descent, адаптированный под воксельный мир: полости, маршруты в трёх измерениях, бой с любых направлений.

@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "facing=north,active=false": { "model": "drmd:block/tunnel_drill_rig" },
+    "facing=south,active=false": { "model": "drmd:block/tunnel_drill_rig", "y": 180 },
+    "facing=west,active=false": { "model": "drmd:block/tunnel_drill_rig", "y": 270 },
+    "facing=east,active=false": { "model": "drmd:block/tunnel_drill_rig", "y": 90 },
+    "facing=north,active=true": { "model": "drmd:block/tunnel_drill_rig_active" },
+    "facing=south,active=true": { "model": "drmd:block/tunnel_drill_rig_active", "y": 180 },
+    "facing=west,active=true": { "model": "drmd:block/tunnel_drill_rig_active", "y": 270 },
+    "facing=east,active=true": { "model": "drmd:block/tunnel_drill_rig_active", "y": 90 }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    " W ",
+    "AEA",
+    "ADA"
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "E": {
+      "item": "drmd:energy_cell"
+    },
+    "D": {
+      "item": "minecraft:dispenser"
+    },
+    "W": {
+      "item": "drmd:weapon_d6_plasma"
+    }
+  },
+  "result": {
+    "id": "drmd:plasma_turret",
+    "count": 1
+  }
+}

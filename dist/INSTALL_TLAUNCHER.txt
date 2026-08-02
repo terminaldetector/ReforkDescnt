@@ -1,0 +1,20 @@
+DRMD 6DOF — ПК TLauncher Fabric 1.21.1
+=======================================
+Jar: drmd-6dof-1.0.0-fabric-1.21.1.jar
+Он же: drmd-6dof-1.0.0.jar
+
+Установка
+  1. Версии → Fabric Loader для Minecraft 1.21.1
+  2. Java 21+ в настройках лаунчера
+  3. В mods/: этот jar + Fabric API 1.21.1
+  4. Запуск Fabric 1.21.1 → новый мир
+
+Не класть *-sources.jar / *-dev.jar в mods — это не мод.
+
+Если краш при заходе или зависание на «Preparing spawn»
+  - поставь свежий jar: чинились четыре отдельные причины —
+    nav_node (Blocks.LIGHT), форма overworld.json, негейченный
+    CHUNK_LOAD и сид мира на потоке сервера
+  - создай НОВЫЙ мир: старый сохранил повреждённое состояние
+
+Сборка: ./gradlew build --no-daemon

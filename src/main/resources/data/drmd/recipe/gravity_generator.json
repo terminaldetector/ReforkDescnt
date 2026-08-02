@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "AEA",
+    "ETE",
+    "AEA"
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "E": {
+      "item": "drmd:energy_cell"
+    },
+    "T": {
+      "item": "drmd:targeting_core"
+    }
+  },
+  "result": {
+    "id": "drmd:gravity_generator",
+    "count": 1
+  }
+}
