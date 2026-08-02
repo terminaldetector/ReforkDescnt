@@ -26,10 +26,10 @@ public final class DescentConfig {
 	public static boolean hud = true;
 	/** Blend sky and fog by level band. */
 	public static boolean levelSky = true;
-	/** Orbital belt / green-light ring on the skybox (survival relocate cue). */
+	/** Spark-style planet + dark ring + neon-green halo (skybox, not R=2048 junk). */
 	public static boolean orbitalBeltSky = true;
-	/** Hybrid far land plates + clouds without loading distant chunks. */
-	public static boolean hybridHorizon = true;
+	/** Hybrid far land plates — off; Klondike voxels + Spark ring replace fake horizon. */
+	public static boolean hybridHorizon = false;
 	/** End/orbit planetary voxel floor (explored map + fog-of-war). */
 	public static boolean planetFloor = true;
 	/** Ship roll rate, degrees per second. */

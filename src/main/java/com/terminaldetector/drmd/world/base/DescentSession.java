@@ -256,9 +256,10 @@ public final class DescentSession {
 
 	private static void seedStockMegastructures(ServerWorld world, BlockPos spawn) {
 		Random random = world.getRandom();
+		// Klondike sky ring of islands + a couple of surface fractures — no ARCH/RING LLOD zoo.
 		MacroEntry.Kind[] kinds = {
-				MacroEntry.Kind.ARCH, MacroEntry.Kind.RING, MacroEntry.Kind.FLOATING_CONTINENT,
-				MacroEntry.Kind.SPIRAL_RANGE, MacroEntry.Kind.INVERTED_ISLAND,
+				MacroEntry.Kind.KLONDIKE_ISLAND, MacroEntry.Kind.KLONDIKE_ISLAND,
+				MacroEntry.Kind.KLONDIKE_ISLAND, MacroEntry.Kind.KLONDIKE_ISLAND,
 				MacroEntry.Kind.CANYON, MacroEntry.Kind.RIFT
 		};
 		for (int i = 0; i < kinds.length; i++) {
@@ -272,12 +273,10 @@ public final class DescentSession {
 				default -> WorldRules.SKY_PRACTICAL_MIN + 20 + i * 8;
 			};
 			BlockPos at = new BlockPos(x, y, z);
-			// The loop counter is not effectively final, so the seed is resolved before capture.
 			long salt = world.getSeed() ^ (i * 31L);
 			enqueue(at, () -> MegaStructureGenerator.generate(world, at, kind, Random.create(salt)));
 		}
 
-		// One industrial complex under spawn
 		BlockPos under = new BlockPos(spawn.getX(), WorldRules.INDUSTRIAL_Y_MIN + 30, spawn.getZ());
 		enqueue(under, () -> IndustrialComplexGenerator.generateAt(
 				world, under, WorldRules.ComplexStyle.CRYSTAL_REACTOR, random));
@@ -301,17 +300,13 @@ public final class DescentSession {
 		enqueueMega(world, new BlockPos(spawn.getX() - 110, WorldRules.INDUSTRIAL_Y_MIN + 36, spawn.getZ() - 90),
 				MacroEntry.Kind.RIFT, 0xBEEF);
 
-		// Sky archipelago sample
+		// Sky Klondike islands — real voxels; Spark ring is skybox (OrbitalBeltSkyRenderer).
 		enqueueMega(world, new BlockPos(spawn.getX() + 48, WorldRules.SKY_PRACTICAL_MIN + 40, spawn.getZ() + 120),
-				MacroEntry.Kind.FLOATING_CONTINENT, 0x51A10001L);
-
-		// Orbital belt (top practical band)
-		enqueueMega(world, new BlockPos(spawn.getX() - 80, WorldRules.SKY_PRACTICAL_MAX - 12, spawn.getZ() + 60),
-				MacroEntry.Kind.RING, 0x0B817100L);
-
-		// Near-end space marker island
-		enqueueMega(world, new BlockPos(spawn.getX() + 20, WorldRules.SKY_PRACTICAL_MAX - 4, spawn.getZ() - 140),
-				MacroEntry.Kind.INVERTED_ISLAND, 0xEAD10001L);
+				MacroEntry.Kind.KLONDIKE_ISLAND, 0x51A10001L);
+		enqueueMega(world, new BlockPos(spawn.getX() - 80, WorldRules.SKY_PRACTICAL_MIN + 55, spawn.getZ() + 60),
+				MacroEntry.Kind.KLONDIKE_ISLAND, 0x0B817100L);
+		enqueueMega(world, new BlockPos(spawn.getX() + 20, WorldRules.SKY_PRACTICAL_MIN + 70, spawn.getZ() - 140),
+				MacroEntry.Kind.KLONDIKE_ISLAND, 0xEAD10001L);
 
 		// Descent 1 lunar base (sky) — micro-reactor + Keeper
 		enqueueMega(world, new BlockPos(spawn.getX() - 140, WorldRules.SKY_PRACTICAL_MIN + 55, spawn.getZ() + 90),

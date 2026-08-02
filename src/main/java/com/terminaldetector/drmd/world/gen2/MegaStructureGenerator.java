@@ -39,6 +39,7 @@ public final class MegaStructureGenerator {
 			case LOCATOR -> MegaLocatorGenerator.generateSmall(world, origin, random);
 			case SCORCHED_TOWN -> ScorchedSurfaceGenerator.generateTown(world, origin, random);
 			case IRON_GUILD -> IronGuildSurfaceGenerator.generateHall(world, origin, random);
+			case KLONDIKE_ISLAND -> KlondikeIslandGenerator.generate(world, origin, random);
 			// A complex has had a generator all along; it was just never reachable from here, so
 			// `/d6 mega complex` quietly built an arch instead.
 			case INDUSTRIAL_COMPLEX, STATION -> industrialComplex(world, origin, random);
@@ -47,13 +48,14 @@ public final class MegaStructureGenerator {
 			case WORM, SWARM, KEEPER, UFO -> entry(kind, WorldRules.practicalLayer(origin.getY()),
 					origin, 8, 8, 8, 0x888888, kind.name());
 		};
-		// Lunar / crashed / megacity / locators / scorched place their own LODESTONE marker
+		// Lunar / crashed / megacity / locators / scorched / klondike place their own LODESTONE marker
 		if (kind != MacroEntry.Kind.LUNAR_BASE && kind != MacroEntry.Kind.CRASHED_UFO
 				&& kind != MacroEntry.Kind.MEGACITY
 				&& kind != MacroEntry.Kind.MEGA_LOCATOR
 				&& kind != MacroEntry.Kind.LOCATOR
 				&& kind != MacroEntry.Kind.SCORCHED_TOWN
 				&& kind != MacroEntry.Kind.IRON_GUILD
+				&& kind != MacroEntry.Kind.KLONDIKE_ISLAND
 				&& inLimit(world, origin)) {
 			world.setBlockState(origin, Blocks.LODESTONE.getDefaultState(), Block.NOTIFY_LISTENERS);
 		}

@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.client;
 
+import com.terminaldetector.drmd.client.config.DescentConfig;
 import com.terminaldetector.drmd.client.input.DescentKeybinds;
 import com.terminaldetector.drmd.client.llod.LlodClientState;
 import com.terminaldetector.drmd.client.llod.LlodSilhouetteRenderer;
@@ -34,12 +35,17 @@ public class DescentClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+		DescentConfig.load();
 		DescentKeybinds.register();
 		ModEntityRenderers.register();
 		WeaponViewRenderer.register();
 		com.terminaldetector.drmd.client.render.CockpitRenderer.register();
 		com.terminaldetector.drmd.client.render.BoundarySeamRenderer.register();
-		LlodSilhouetteRenderer.register();
+		// Macro LLOD silhouettes parked (WorldFeatures.MACRO_LLOD) — Klondike voxels only.
+		if (com.terminaldetector.drmd.world.WorldFeatures.MACRO_LLOD) {
+			LlodSilhouetteRenderer.register();
+		}
+		// Still register — renderer self-gates on DescentConfig.hybridHorizon (default off).
 		com.terminaldetector.drmd.client.llod.HybridHorizonRenderer.register();
 		com.terminaldetector.drmd.client.llod.planet.PlanetFloorRenderer.register();
 		com.terminaldetector.drmd.client.sky.OrbitalBeltSkyRenderer.register();
@@ -133,8 +139,6 @@ public class DescentClient implements ClientModInitializer {
 						}
 					}
 				}));
-
-		com.terminaldetector.drmd.client.config.DescentConfig.load();
 
 		// Pause-menu button: GameMenuScreenMixin.addDrawableChild (reliable).
 		// Keybind below opens the same screen in-world without Esc.

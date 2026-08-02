@@ -30,6 +30,24 @@ public final class WorldFeatures {
 	public static final boolean END_BAND = false;
 
 	/**
+	 * Distant MacroWorld → LLOD silhouette cubes. Parked: sky presence is real Klondike voxels +
+	 * Spark-style skybox ring, not mesh shells at 192–96k.
+	 */
+	public static final boolean MACRO_LLOD = false;
+
+	/**
+	 * Sparse Klondike floating islands (real blocks) in the sky band — replaces ARCH/RING/continent
+	 * LLOD zoo for the Orbit layer.
+	 */
+	public static final boolean KLONDIKE_ISLANDS = true;
+
+	/**
+	 * Techno-ring satellites + junk plates at R≈2048. Parked so the Spark skybox ring is the ring
+	 * (not competing abstract debris).
+	 */
+	public static final boolean ORBIT_JUNK = false;
+
+	/**
 	 * Megastructures / industrial complexes on CHUNK_LOAD (queued via landmark drain — not inline).
 	 *
 	 * <p>Was parked after spawn freezes; generators now go through {@code DescentSession} /

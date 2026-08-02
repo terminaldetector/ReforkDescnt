@@ -13,8 +13,12 @@
 | `LevelSky` / `OrbitalBeltSkyRenderer` | Небо/пояс с **анимацией как у Oblivion** (дрейф по времени мира) |
 | `MantleStream` | Мантия рядом с игроком, не fill всей колонны |
 | `SeamWarmup` | Фон: стрим Nether-колонки + chunk tickets реального Nether/End **до 10 блоков** до шва (−240 / 880) |
+| `OrbitalBeltSkyRenderer` | **Spark-кольцо**: планета + тёмная полоса + зелёный ореол (skybox) |
+| `KlondikeIslandGenerator` | Реальные воксельные острова в sky-band — вместо macro LLOD |
 
 Immersive Portals — опциональный soft-dep для настоящего see-through.
+
+**LLOD силуэты parked** (`WorldFeatures.MACRO_LLOD=false`). Orbit junk parked. Связка слоёв = LayerBridge + SeamWarmup + BoundarySeam + Spark ring.
 
 | Шов Y | Слои |
 |------:|------|

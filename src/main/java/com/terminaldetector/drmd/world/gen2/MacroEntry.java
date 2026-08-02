@@ -29,7 +29,9 @@ public final class MacroEntry {
 		/** Scorched / bombed town silhouette. */
 		SCORCHED_TOWN,
 		/** Strafe techno-medieval iron guild hall. */
-		IRON_GUILD
+		IRON_GUILD,
+		/** Simple Spark/Klondike floating voxel island — no LLOD shell. */
+		KLONDIKE_ISLAND
 	}
 
 	public final UUID id;

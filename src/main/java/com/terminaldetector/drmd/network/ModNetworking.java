@@ -532,6 +532,11 @@ public final class ModNetworking {
 	}
 
 	public static void syncLlod(ServerPlayerEntity player) {
+		// MACRO_LLOD parked — Klondike voxels + Spark skybox replace silhouette shells.
+		if (!com.terminaldetector.drmd.world.WorldFeatures.MACRO_LLOD) {
+			ServerPlayNetworking.send(player, new LlodPayload(java.util.List.of()));
+			return;
+		}
 		var silhouettes = com.terminaldetector.drmd.world.llod.LlodRegistry.queryVisible(player.getBlockPos(), 64);
 		java.util.ArrayList<LlodPayload.LlodEntry> entries = new java.util.ArrayList<>(silhouettes.size());
 		for (var s : silhouettes) {

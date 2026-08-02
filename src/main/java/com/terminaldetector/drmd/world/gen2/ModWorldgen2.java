@@ -43,25 +43,31 @@ public final class ModWorldgen2 {
 		ChunkPos cp = chunk.getPos();
 		long seed = world.getSeed() ^ (((long) cp.x) * 341873128712L) ^ (((long) cp.z) * 132897987541L);
 
-		// ~1 mega-structure per 18 chunks
-		if (Math.floorMod(seed, 18L) == 0L) {
+		// Sparse sky: Klondike voxel islands (no LLOD). Surface keeps lunar/crash/rift only.
+		if (com.terminaldetector.drmd.world.WorldFeatures.KLONDIKE_ISLANDS
+				&& Math.floorMod(seed, 22L) == 0L) {
+			int y = KlondikeIslandGenerator.placeY(seed);
+			BlockPos origin = new BlockPos(cp.getStartX() + 8, y, cp.getStartZ() + 8);
+			if (!chunk.getBlockState(origin).isOf(net.minecraft.block.Blocks.LODESTONE)) {
+				com.terminaldetector.drmd.world.base.DescentSession.enqueueLandmark(origin, () -> {
+					if (world.getBlockState(origin).isOf(net.minecraft.block.Blocks.LODESTONE)) return;
+					MegaStructureGenerator.generate(world, origin, MacroEntry.Kind.KLONDIKE_ISLAND,
+							Random.create(seed));
+				});
+			}
+		} else if (Math.floorMod(seed, 48L) == 0L) {
 			MacroEntry.Kind[] kinds = {
-					MacroEntry.Kind.ARCH, MacroEntry.Kind.RING, MacroEntry.Kind.FLOATING_CONTINENT,
-					MacroEntry.Kind.SPIRAL_RANGE, MacroEntry.Kind.INVERTED_ISLAND,
 					MacroEntry.Kind.RIFT, MacroEntry.Kind.CANYON,
 					MacroEntry.Kind.LUNAR_BASE, MacroEntry.Kind.CRASHED_UFO
 			};
 			MacroEntry.Kind kind = kinds[(int) Math.floorMod(seed >> 3, kinds.length)];
 			int y = skyY(kind, seed, world, cp);
 			BlockPos origin = new BlockPos(cp.getStartX() + 8, y, cp.getStartZ() + 8);
-			// Probe the loading chunk directly; the deferred check below can safely go through the
-			// world, because by then the chunk is fully loaded.
 			if (!chunk.getBlockState(origin).isOf(net.minecraft.block.Blocks.LODESTONE)) {
 				MacroEntry.Kind finalKind = kind;
 				com.terminaldetector.drmd.world.base.DescentSession.enqueueLandmark(origin, () -> {
 					if (world.getBlockState(origin).isOf(net.minecraft.block.Blocks.LODESTONE)) return;
-					Random random = Random.create(seed);
-					MegaStructureGenerator.generate(world, origin, finalKind, random);
+					MegaStructureGenerator.generate(world, origin, finalKind, Random.create(seed));
 				});
 			}
 		}

@@ -144,7 +144,8 @@ public class DescentMod implements ModInitializer {
 					com.terminaldetector.drmd.world.atmosphere.AtmosphereRules.tickDeepPressure(
 							player.getServerWorld(), pos);
 				}
-				if (tick % 10 == player.getId() % 10) {
+				if (com.terminaldetector.drmd.world.WorldFeatures.MACRO_LLOD
+						&& tick % 10 == player.getId() % 10) {
 					ModNetworking.syncLlod(player);
 				}
 				// Planetary map sample + End/orbit viewport (~1 Hz staggered).
@@ -175,7 +176,7 @@ public class DescentMod implements ModInitializer {
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
 				com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid()));
 
-		LOGGER.info("DRMD 6DOF 1.0.7 ready — seam warm Nether/End · deep 6DoF · hooks");
+		LOGGER.info("DRMD 6DOF 1.0.8 ready — Spark ring · Klondike voxels · LLOD parked");
 	}
 
 	/**
