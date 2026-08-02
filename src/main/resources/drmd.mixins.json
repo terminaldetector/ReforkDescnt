@@ -14,6 +14,7 @@
     "client.CameraAccessor",
     "client.CameraMixin",
     "client.ClientWorldMixin",
+    "client.GameMenuScreenMixin",
     "client.GameRendererMixin",
     "client.InGameHudMixin",
     "client.LivingEntityRendererMixin",

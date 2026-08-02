@@ -16,16 +16,15 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * HL2-style layer transitions without a seamless-world mod.
+ * Layer hooks inside one max-height Overworld column.
  *
- * <p>Minecraft cannot host a kilometre-tall Euclidean column safely. Path A (optional):
- * Immersive Portals dimension stack for true see-through seams. Path B (this class):
- * stay in the max-height Overworld column and, when the pilot crosses a narrative
- * boundary at speed, run a short fade → soft reposition → fade-in so the set never
- * collapses into a hard loading screen.
+ * <p>Doctrine: stacked parallelepipeds (≈ three cubes at world scale) — Core / Surface /
+ * Sky-Orbit-End — not separate dimensions. The engine already allows the height; we use
+ * band announcements + optional soft arrive so crossing a seam never feels like a portal load.
+ * Optional Immersive Portals remains a soft-dep for true see-through stacks.
  *
- * <p>When {@link WorldFeatures#MACRO_WORLDGEN} is off, transitions only announce the
- * layer (HUD title) — no teleport — so empty bands stay flyable.
+ * <p>When macro/districts are live and the pilot afterburns across a band, {@link #softArrive}
+ * can nudge; otherwise we only title the layer so empty bands stay flyable.
  */
 public final class LayerBridge {
 	/** Seconds of title fade (in + stay + out). */

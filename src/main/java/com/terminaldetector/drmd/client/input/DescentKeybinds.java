@@ -29,6 +29,7 @@ public final class DescentKeybinds {
 	public static KeyBinding customize;
 	public static KeyBinding rocketMode;
 	public static KeyBinding resetRoll;
+	public static KeyBinding settings;
 
 	private static boolean dashQueued;
 	private static boolean hookQueued;
@@ -79,6 +80,7 @@ public final class DescentKeybinds {
 		customize = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.customize", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, "key.category.drmd"));
 		rocketMode = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.rocket_mode", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "key.category.drmd"));
 		resetRoll = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.reset_roll", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_X, "key.category.drmd"));
+		settings = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.settings", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_COMMA, "key.category.drmd"));
 	}
 
 	public static void tick(MinecraftClient client) {
@@ -120,6 +122,7 @@ public final class DescentKeybinds {
 		}
 		while (workshop.wasPressed()) DescentClient.openWorkshop();
 		while (customize.wasPressed()) DescentClient.openShipCustomize();
+		while (settings.wasPressed()) DescentClient.openSettings();
 		if (hook.isPressed()) hookQueued = true;
 
 		if (en && client.player != null) {

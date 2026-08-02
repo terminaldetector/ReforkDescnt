@@ -1,6 +1,19 @@
 # Аудит мира и биомов (отдельно от арсенала)
 
-*Срез: Terraria-слои + HL2 fragment load. `NETHER_BAND=true` (streamed). `SURFACE_DISTRICTS=true`.*
+*Срез: одна колонна max-height + хуки слоёв. `NETHER_BAND=true` (streamed). `SURFACE_DISTRICTS=true`. `MACRO_WORLDGEN=true` (через очередь).*
+
+## Доктрина масштаба
+
+Движок **не ломаем** — используем грамотно: `min_y=-512`, `height=1536`.  
+В масштабе это **три куба / параллелепипеда**, сложенных друг на друга:
+
+| Объём | Слои | Y |
+|-------|------|---|
+| Нижний | Core + Abyss + Industrial | −512…40 |
+| Средний | Surface corridor | 40…320 |
+| Верхний | Sky + Orbit + End-band | 320…1024 |
+
+Параллелепипеды и **есть** слои; `LayerBridge` — объявление шва без portal-load. Безшовность = полёт/копание по колонне.
 
 ---
 
@@ -8,7 +21,7 @@
 
 | Тема | Состояние |
 |------|-----------|
-| Колонна Overworld −512…1024 | Готова |
+| Колонна Overworld −512…1024 | Готова (3 объёма) |
 | Бедрок как граница | **Нет** — rewrite → `plasma_granite` (плазмоустойчивый гранит) |
 | Мантия / dig-down Core | **On** — granite → nether mix → continuous nether |
 | HL2 streaming | `MantleStream` — полный fill только у diggers / shaft grid |

@@ -1,29 +1,27 @@
 package com.terminaldetector.drmd.world.level;
 
 /**
- * The world is one continuous column, not three dimensions.
+ * One continuous Overworld column — the engine is not broken; it is used correctly.
  *
- * <p>{@code data/minecraft/dimension_type/overworld.json} widens the Overworld to
- * −512 … 1024, and the Nether and the End become <em>levels</em> inside it: bands you dig or
- * fly to (Terraria multilayer + HL2 fragment load). Bedrock is not a border — diggable
- * plasma-resistant granite. Vanilla worldgen still fills −64 … 320; mantle/Core stream via
+ * <p>Scale idea: <b>three cubes stacked</b> (or parallelepipeds that <em>are</em> the layers).
+ * {@code overworld.json} takes the full legal height (−512…1024). Narrative bands are hooks
+ * inside that volume so flight feels seamless — dig/fly, no hard dimension load screens.
+ * Bedrock is not a border → diggable plasma granite. Mantle/Core stream via
  * {@link LevelBuilder} / {@link MantleStream}.
  *
  * <pre>
- *   1024 ┐
- *        │ END          880 … 1024   end-stone shards, spires, void gaps
- *    880 ┤
- *        │ ORBITAL      640 …  880   megastructures, vacuum flight
- *    640 ┤
- *        │ SKY          320 …  640   floating archipelago
- *    320 ┤
- *        │ SURFACE       40 …  320   vanilla terrain and sky
- *     40 ┤
- *        │ INDUSTRIAL   −64 …   40   vanilla stone, DRMD complexes
- *    −64 ┤ ← old world floor; LevelBuilder cuts descent shafts through it
- *        │ ABYSS       −240 …  −64   open drop between levels
- *   −240 ┤
- *        │ NETHER      −420 … −240   basalt caverns, lava seas, fire
+ *   conceptual 3 volumes (parallelepipeds → layers):
+ *     UPPER   SKY + ORBIT + END     320 … 1024
+ *     MIDDLE  SURFACE corridor       40 …  320
+ *     LOWER   INDUSTRIAL + ABYSS + CORE   −512 … 40
+ *
+ *   1024 ┐ END          880 … 1024
+ *    880 ┤ ORBITAL      640 …  880
+ *    640 ┤ SKY          320 …  640
+ *    320 ┤ SURFACE       40 …  320
+ *     40 ┤ INDUSTRIAL   −64 …   40
+ *    −64 ┤ ABYSS       −240 …  −64
+ *   −240 ┤ NETHER/CORE −512 … −240
  *   −512 ┘
  * </pre>
  */
