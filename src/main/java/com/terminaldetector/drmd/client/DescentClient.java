@@ -20,6 +20,9 @@ import net.minecraft.util.math.Vec3d;
 import java.util.ArrayList;
 
 public class DescentClient implements ClientModInitializer {
+	/** One enable-request per session after join if SyncPayload never armed flight. */
+	private static boolean enableRequested;
+
 	@Override
 	public void onInitializeClient() {
 		DescentKeybinds.register();
@@ -127,10 +130,36 @@ public class DescentClient implements ClientModInitializer {
 		// Keybind below opens the same screen in-world without Esc.
 
 		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
-				(handler, client) -> DescentClientState.resetSession());
+				(handler, client) -> {
+					DescentClientState.resetSession();
+					enableRequested = false;
+				});
+
+		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register(
+				(handler, sender, client) -> client.execute(() -> {
+					// Integrated SP shares DescentPlayerData STORE with the server — mirror enable
+					// immediately so flight/cockpit do not wait on a delayed SyncPayload.
+					var p = client.player;
+					if (p != null && com.terminaldetector.drmd.DescentPlayerData.get(p).isEnabled()) {
+						DescentClientState.enabled = true;
+						com.terminaldetector.drmd.client.flight.ShipAttitudeClient.resetFromPlayer(p);
+					}
+				}));
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null || client.getNetworkHandler() == null) return;
+			// Integrated / late sync: pick up server enable if client mirror is still cold.
+			if (!DescentClientState.enabled
+					&& com.terminaldetector.drmd.DescentPlayerData.get(client.player).isEnabled()) {
+				DescentClientState.enabled = true;
+				com.terminaldetector.drmd.client.flight.ShipAttitudeClient.resetFromPlayer(client.player);
+			}
+			// One-shot: if still disarmed a few seconds after join, request enable (not toggle).
+			if (!DescentClientState.enabled && !enableRequested
+					&& client.player.age > 60) {
+				enableRequested = true;
+				ClientPlayNetworking.send(new ModNetworking.ActionPayload("enable"));
+			}
 			DescentKeybinds.tick(client);
 			com.terminaldetector.drmd.client.gravity.FootGravityCamera.tickClient();
 			if (DescentClientState.enabled) {

@@ -73,6 +73,11 @@ public final class DescentHud {
 		renderReactorSyncStrip(ctx, mc);
 
 		if (!DescentClientState.enabled) return;
+		// 2D canopy always when flying — 3D frame can fail under some pipelines; this never does.
+		if (com.terminaldetector.drmd.client.config.DescentConfig.cockpit
+				&& mc.options.getPerspective().isFirstPerson()) {
+			drawCanopyChrome(ctx, mc);
+		}
 		if (!com.terminaldetector.drmd.client.config.DescentConfig.hud) return;
 
 		int sw = mc.getWindow().getScaledWidth();
@@ -144,6 +149,33 @@ public final class DescentHud {
 	}
 
 	// =============================================================== left column
+
+	/** Flat canopy rails — visible even when the 3D Tessellator frame fails. */
+	private static void drawCanopyChrome(DrawContext ctx, MinecraftClient mc) {
+		int sw = mc.getWindow().getScaledWidth();
+		int sh = mc.getWindow().getScaledHeight();
+		int marginX = Math.max(18, sw / 14);
+		int marginY = Math.max(14, sh / 12);
+		int x0 = marginX;
+		int y0 = marginY;
+		int x1 = sw - marginX;
+		int y1 = sh - marginY - 22;
+		int edge = 0xCC1AFF7A;
+		int hull = 0xAA0A1210;
+		// Side pillars
+		ctx.fill(x0, y0, x0 + 3, y1, hull);
+		ctx.fill(x1 - 3, y0, x1, y1, hull);
+		ctx.fill(x0, y0, x0 + 1, y1, edge);
+		ctx.fill(x1 - 1, y0, x1, y1, edge);
+		// Brow / sill
+		ctx.fill(x0, y0, x1, y0 + 2, hull);
+		ctx.fill(x0, y1 - 3, x1, y1, hull);
+		ctx.fill(x0 + 4, y1 - 2, x1 - 4, y1 - 1, edge);
+		// Nose spine cue
+		int cx = sw / 2;
+		ctx.fill(cx - 1, y1 - 1, cx + 1, Math.min(sh - 8, y1 + 16), edge);
+		ctx.drawTextWithShadow(mc.textRenderer, Text.literal("6DoF"), x0 + 6, y0 + 4, GREEN_DIM);
+	}
 
 	private static int drawFlightStatus(DrawContext ctx, MinecraftClient mc, int x, int y) {
 		int w = 116, h = 74;

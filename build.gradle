@@ -106,9 +106,8 @@ Jar: ${outName}
 
 Не класть *-sources.jar / *-dev.jar в mods.
 
-Краш powered_rail / south_east
-  В ${project.version} cyclic rails убраны с hub/End. Если краш остаётся —
-  в mods лежит старый 1.0.0 (проверь имя файла и строку ready в логе).
+В логе обязательно: "DRMD 6DOF ${project.version} ready"
+  Нет строки — в mods старый jar. 6DoF: H · кокпит FP · "," настройки.
 
 Сборка: ./gradlew build --no-daemon
 """

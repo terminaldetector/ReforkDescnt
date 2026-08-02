@@ -411,6 +411,7 @@ public final class ModNetworking {
 			DescentPlayerData data = DescentPlayerData.get(player);
 			switch (payload.action()) {
 				case "toggle" -> FlightSystem.toggle(player);
+				case "enable" -> FlightSystem.enable(player, data);
 				case "dash" -> FlightSystem.tryDash(player);
 				// Legacy toggle kept for /d6 alwaysrun; hold-R is the Descent path via InputPayload.
 				case "alwaysrun" -> data.setAlwaysRun(!data.isAlwaysRun());
