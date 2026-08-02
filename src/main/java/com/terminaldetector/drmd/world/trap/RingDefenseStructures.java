@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.world.trap;
 
+import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.entity.LaserBarrierCartEntity;
 import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
@@ -94,8 +95,20 @@ public final class RingDefenseStructures {
 
 	/**
 	 * Square powered-rail loop + cyclic laser carts. Radius is half-width of the square.
+	 *
+	 * <p>Must never throw into world tick — {@code powered_rail} + curved {@code south_east}
+	 * previously crashed the integrated server (see crash log {@code новый 1.txt}).
+	 * Corners use vanilla curved rails only.
 	 */
 	public static void placeCyclicLaserLoop(ServerWorld world, BlockPos center, int radius, int y, int carts) {
+		try {
+			placeCyclicLaserLoopInner(world, center, radius, y, carts);
+		} catch (Exception e) {
+			DescentMod.LOGGER.error("Cyclic laser loop failed at {} — skipped", center.toShortString(), e);
+		}
+	}
+
+	private static void placeCyclicLaserLoopInner(ServerWorld world, BlockPos center, int radius, int y, int carts) {
 		int r = Math.max(3, radius);
 		// Support deck
 		for (int x = -r; x <= r; x++) {
@@ -111,7 +124,7 @@ public final class RingDefenseStructures {
 			}
 		}
 
-		// Sides
+		// Sides — straight powered rails only
 		for (int x = -r + 1; x <= r - 1; x++) {
 			placePowered(world, center.getX() + x, y + 1, center.getZ() - r, RailShape.EAST_WEST);
 			placePowered(world, center.getX() + x, y + 1, center.getZ() + r, RailShape.EAST_WEST);
@@ -120,8 +133,7 @@ public final class RingDefenseStructures {
 			placePowered(world, center.getX() - r, y + 1, center.getZ() + z, RailShape.NORTH_SOUTH);
 			placePowered(world, center.getX() + r, y + 1, center.getZ() + z, RailShape.NORTH_SOUTH);
 		}
-		// Corners — powered rails have no curve shapes (only N/S, E/W, ascending_*).
-		// Curved vanilla rails turn the carts; straights stay powered.
+		// Corners — NEVER powered_rail (no curve shapes). Vanilla rail turns the carts.
 		placeCurve(world, center.getX() - r, y + 1, center.getZ() - r, RailShape.SOUTH_EAST);
 		placeCurve(world, center.getX() + r, y + 1, center.getZ() - r, RailShape.SOUTH_WEST);
 		placeCurve(world, center.getX() - r, y + 1, center.getZ() + r, RailShape.NORTH_EAST);
@@ -149,20 +161,43 @@ public final class RingDefenseStructures {
 	}
 
 	private static void placePowered(WorldAccess world, int x, int y, int z, RailShape shape) {
-		// PoweredRailBlock rejects curved shapes — callers must only pass straight/ascending.
-		if (!shape.isAscending() && shape != RailShape.NORTH_SOUTH && shape != RailShape.EAST_WEST) {
+		// PoweredRailBlock only allows N/S, E/W, ascending_* — curves crash with IAE.
+		if (!isPoweredRailShape(shape)) {
 			placeCurve(world, x, y, z, shape);
 			return;
 		}
-		BlockState rail = Blocks.POWERED_RAIL.getDefaultState()
-				.with(PoweredRailBlock.SHAPE, shape)
-				.with(PoweredRailBlock.POWERED, true);
-		set(world, new BlockPos(x, y, z), rail);
+		try {
+			BlockState rail = Blocks.POWERED_RAIL.getDefaultState()
+					.with(PoweredRailBlock.SHAPE, shape)
+					.with(PoweredRailBlock.POWERED, true);
+			set(world, new BlockPos(x, y, z), rail);
+		} catch (IllegalArgumentException e) {
+			// Last resort: never take down worldgen / dragon-fight tick.
+			placeCurve(world, x, y, z, shape);
+		}
+	}
+
+	private static boolean isPoweredRailShape(RailShape shape) {
+		return shape == RailShape.NORTH_SOUTH
+				|| shape == RailShape.EAST_WEST
+				|| shape == RailShape.ASCENDING_EAST
+				|| shape == RailShape.ASCENDING_WEST
+				|| shape == RailShape.ASCENDING_NORTH
+				|| shape == RailShape.ASCENDING_SOUTH;
 	}
 
 	private static void placeCurve(WorldAccess world, int x, int y, int z, RailShape shape) {
-		BlockState rail = Blocks.RAIL.getDefaultState().with(RailBlock.SHAPE, shape);
-		set(world, new BlockPos(x, y, z), rail);
+		RailShape safe = shape;
+		if (safe == null || isPoweredRailShape(safe)) {
+			// Curve slot needs a corner shape; don't put N/S-E/W on a corner cell via RAIL default alone.
+			safe = RailShape.SOUTH_EAST;
+		}
+		try {
+			BlockState rail = Blocks.RAIL.getDefaultState().with(RailBlock.SHAPE, safe);
+			set(world, new BlockPos(x, y, z), rail);
+		} catch (IllegalArgumentException e) {
+			set(world, new BlockPos(x, y, z), Blocks.RAIL.getDefaultState());
+		}
 	}
 
 	private static void set(WorldAccess world, BlockPos pos, BlockState state) {
