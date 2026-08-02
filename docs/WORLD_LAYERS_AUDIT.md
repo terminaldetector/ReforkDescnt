@@ -93,9 +93,10 @@ Nether (Core)   ↑
 
 ### Surface megacity (активно)
 
-- Хаб: Lunar Base Descent 1 на spawn.
-- Город-данж NW: plate rim, небоскрёбы, канализация, пирамида-реактор, турели/дроны (атмосфера FF7 / Midgar).
-- 6DoF бой в уличных каньонах + sewer deck; shaft под пирамидой → industrial.
+- Хаб: Lunar Base Descent 1 на spawn; маяки к городу.
+- Город-данж NW: plate, highways, sky arena, artifact hangar, atriums, sewers, pyramid/mako, garrison.
+- Под городом: tech ruins + rift; над городом: orbit ring + arch.
+- 6DoF: улицы → maglev → arena; shaft под пирамидой → industrial.
 
 ---
 
