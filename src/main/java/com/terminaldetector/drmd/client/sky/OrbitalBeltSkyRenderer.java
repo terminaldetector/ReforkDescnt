@@ -12,14 +12,18 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.MathHelper;
 import org.joml.Matrix4f;
 
 /**
- * Spark-style orbital vista — planet sphere + dark solid ring + neon-green outer halo.
+ * Spark orbital vista in the skybox.
  *
- * <p>Camera-relative skybox (no chunk load). This is the “кольцо вокруг планеты”, not techno-junk
- * at R=2048. World connection stays on {@code LayerBridge} / {@code SeamWarmup}; this is display.
+ * <ul>
+ *   <li><b>Altitude</b> — full planet + dark ring + neon-green halo (Orbit layer).</li>
+ *   <li><b>Night on surface</b> — Starlink-style: thin bright train of the same ring + distant
+ *       Oblivion object, visible against the dark sky without climbing.</li>
+ * </ul>
  */
 public final class OrbitalBeltSkyRenderer {
 	private static boolean warned;
@@ -40,18 +44,29 @@ public final class OrbitalBeltSkyRenderer {
 		if (mc.player == null || mc.world == null) return;
 		if (mc.world.getRegistryKey() != net.minecraft.world.World.OVERWORLD) return;
 
+		float tickDelta = ctx.tickCounter().getTickDelta(false);
 		double y = ctx.camera().getPos().y;
-		float alpha = beltAlpha(y);
+		float alt = altitudeAlpha(y);
+		float night = nightFactor(mc.world, tickDelta);
+		// Surface night: Starlink-thin visibility; altitude: full Spark vista.
+		float starlink = night * MathHelper.clamp(
+				1f - (float) ((y - WorldLevels.INDUSTRIAL_TOP) / (WorldLevels.SURFACE_TOP - WorldLevels.INDUSTRIAL_TOP + 40)),
+				0.35f, 1f);
+		if (y > WorldLevels.SURFACE_TOP - 20) starlink *= 0.35f; // altitude mode owns the bright ring
+		float alpha = Math.max(alt, starlink * 0.65f);
 		if (alpha < 0.02f) return;
 
-		if (!warned && y >= WorldLevels.SURFACE_TOP - 40) {
+		if (!warned && (alt > 0.4f || (night > 0.7f && y < WorldLevels.SURFACE_TOP))) {
 			warned = true;
 			mc.player.sendMessage(net.minecraft.text.Text.literal(
-					"§a◉ ORBIT RING §7— Spark vista · Klondike islands ahead · relocate before vacuum."), false);
+					night > 0.5f && alt < 0.3f
+							? "§a◉ STARLINK RING §7+ §dOblivion §7visible in night skybox."
+							: "§a◉ ORBIT RING §7— Spark vista · Oblivion above."), false);
 		}
 
 		Matrix4f mat = ctx.matrixStack().peek().getPositionMatrix();
-		double spin = (mc.world.getTime() + ctx.tickCounter().getTickDelta(false)) * 0.0009;
+		double spin = (mc.world.getTime() + tickDelta) * 0.0009;
+		boolean starlinkMode = alt < 0.35f && starlink > 0.15f;
 
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
@@ -63,22 +78,29 @@ public final class OrbitalBeltSkyRenderer {
 		Tessellator tess = Tessellator.getInstance();
 		BufferBuilder buf = tess.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 
-		// Planet centre below the camera — reads as the world globe under the ring.
 		float cx = 0f;
 		float cy = -95f;
 		float cz = -40f;
 		float planetR = 88f;
 
-		paintPlanet(buf, mat, cx, cy, cz, planetR, alpha, spin);
-		// Dark solid ring (Spark inner band)
-		paintRing(buf, mat, cx, cy, cz, planetR * 1.22f, planetR * 1.34f, 3.2f, spin,
-				0.04f, 0.05f, 0.07f, 0.78f * alpha, 48);
-		// Neon-green outer halo
-		paintRing(buf, mat, cx, cy, cz, planetR * 1.36f, planetR * 1.48f, 1.6f, spin,
-				0.20f, 1.0f, 0.28f, 0.72f * alpha, 64);
-		// Soft glow rim just outside the green
-		paintRing(buf, mat, cx, cy, cz, planetR * 1.48f, planetR * 1.58f, 0.8f, spin,
-				0.35f, 1.0f, 0.45f, 0.28f * alpha, 48);
+		if (!starlinkMode) {
+			paintPlanet(buf, mat, cx, cy, cz, planetR, alpha, spin);
+			paintRing(buf, mat, cx, cy, cz, planetR * 1.22f, planetR * 1.34f, 3.2f, spin,
+					0.04f, 0.05f, 0.07f, 0.78f * alpha, 48);
+			paintRing(buf, mat, cx, cy, cz, planetR * 1.36f, planetR * 1.48f, 1.6f, spin,
+					0.20f, 1.0f, 0.28f, 0.72f * alpha, 64);
+			paintRing(buf, mat, cx, cy, cz, planetR * 1.48f, planetR * 1.58f, 0.8f, spin,
+					0.35f, 1.0f, 0.45f, 0.28f * alpha, 48);
+		} else {
+			// Starlink train — segmented bright dashes on a thin orbital arc across the night sky.
+			paintStarlinkTrain(buf, mat, spin, starlink);
+		}
+
+		// Oblivion — distant skybox object (always at night; stronger high up).
+		float oblA = MathHelper.clamp(night * 0.85f + alt * 0.55f, 0f, 1f) * alpha;
+		if (oblA > 0.04f) {
+			paintOblivion(buf, mat, spin, oblA, alt > 0.3f);
+		}
 
 		var built = buf.endNullable();
 		if (built != null) BufferRenderer.drawWithGlobalProgram(built);
@@ -87,6 +109,79 @@ public final class OrbitalBeltSkyRenderer {
 		RenderSystem.enableDepthTest();
 		RenderSystem.enableCull();
 		RenderSystem.disableBlend();
+	}
+
+	/** 0 noon → 1 deep night (Minecraft sky angle). */
+	static float nightFactor(ClientWorld world, float tickDelta) {
+		float sky = world.getSkyAngle(tickDelta);
+		float dayness = MathHelper.cos(sky * MathHelper.TAU);
+		return MathHelper.clamp((-dayness + 0.12f) / 0.9f, 0f, 1f);
+	}
+
+	/** Starlink-style train of bright green segments along a high sky arc. */
+	private static void paintStarlinkTrain(BufferBuilder buf, Matrix4f mat, double spin, float a) {
+		int segs = 36;
+		float radius = 180f;
+		float elev = 55f; // degrees above horizon in sky space
+		double tilt = Math.toRadians(elev);
+		for (int i = 0; i < segs; i++) {
+			// Skip every other → broken train like Starlink string of pearls
+			if ((i & 1) == 0) continue;
+			double a0 = spin * 2.2 + Math.PI * 2 * i / segs;
+			double a1 = spin * 2.2 + Math.PI * 2 * (i + 0.55) / segs;
+			float x0 = (float) (Math.cos(a0) * radius);
+			float z0 = (float) (Math.sin(a0) * Math.cos(tilt) * radius);
+			float y0 = (float) (Math.sin(tilt) * radius * 0.55 + Math.sin(a0) * 8);
+			float x1 = (float) (Math.cos(a1) * radius);
+			float z1 = (float) (Math.sin(a1) * Math.cos(tilt) * radius);
+			float y1 = (float) (Math.sin(tilt) * radius * 0.55 + Math.sin(a1) * 8);
+			float s = 1.35f;
+			quad(buf, mat,
+					x0 - s, y0, z0 - s, x0 + s, y0, z0 + s,
+					x1 + s, y1, z1 + s, x1 - s, y1, z1 - s,
+					0.45f, 1f, 0.55f, 0.75f * a);
+			// Soft glow
+			float g = 2.4f;
+			quad(buf, mat,
+					x0 - g, y0, z0 - g, x0 + g, y0, z0 + g,
+					x1 + g, y1, z1 + g, x1 - g, y1, z1 - g,
+					0.2f, 1f, 0.35f, 0.22f * a);
+		}
+	}
+
+	/**
+	 * Distant Oblivion mass — dark violet body + magenta rim, parked in the upper sky.
+	 * Reads as the End/Oblivion object from the surface at night and grows with altitude.
+	 */
+	private static void paintOblivion(BufferBuilder buf, Matrix4f mat, double spin, float a, boolean near) {
+		float ox = (float) (Math.cos(spin * 0.35 + 1.1) * (near ? 140 : 200));
+		float oy = near ? 70f : 95f;
+		float oz = (float) (Math.sin(spin * 0.35 + 1.1) * (near ? 140 : 200));
+		float r = near ? 18f : 11f;
+		int bands = near ? 8 : 6;
+		for (int lat = 0; lat < bands; lat++) {
+			double p0 = Math.PI * (-0.5 + (double) lat / bands);
+			double p1 = Math.PI * (-0.5 + (double) (lat + 1) / bands);
+			float y0 = (float) (Math.sin(p0) * r);
+			float y1 = (float) (Math.sin(p1) * r);
+			float rr0 = (float) (Math.cos(p0) * r);
+			float rr1 = (float) (Math.cos(p1) * r);
+			for (int lon = 0; lon < 10; lon++) {
+				double b0 = Math.PI * 2 * lon / 10;
+				double b1 = Math.PI * 2 * (lon + 1) / 10;
+				float shade = 0.4f + 0.6f * (lat / (float) bands);
+				quad(buf, mat,
+						ox + (float) (Math.cos(b0) * rr0), oy + y0, oz + (float) (Math.sin(b0) * rr0),
+						ox + (float) (Math.cos(b1) * rr0), oy + y0, oz + (float) (Math.sin(b1) * rr0),
+						ox + (float) (Math.cos(b1) * rr1), oy + y1, oz + (float) (Math.sin(b1) * rr1),
+						ox + (float) (Math.cos(b0) * rr1), oy + y1, oz + (float) (Math.sin(b0) * rr1),
+						0.35f * shade, 0.08f * shade, 0.55f * shade, 0.88f * a);
+			}
+		}
+		// Magenta corona
+		float cr = r * 1.25f;
+		paintRing(buf, mat, ox, oy, oz, cr * 0.9f, cr * 1.15f, near ? 1.2f : 0.7f, spin * 1.7,
+				0.85f, 0.25f, 1f, 0.45f * a, 24);
 	}
 
 	private static void paintPlanet(BufferBuilder buf, Matrix4f mat,
@@ -112,19 +207,17 @@ public final class OrbitalBeltSkyRenderer {
 				float z10 = (float) (Math.sin(b0) * rr1);
 				float x11 = (float) (Math.cos(b1) * rr1);
 				float z11 = (float) (Math.sin(b1) * rr1);
-				// Ocean / cloud bands — cooler dark teal planet like Spark reference
 				float t = (lat + 0.5f) / latBands;
 				float shade = 0.55f + 0.45f * (float) Math.sin(b0 * 3 + lat);
 				float pr = 0.08f * shade;
 				float pg = (0.22f + 0.18f * t) * shade;
 				float pb = (0.38f + 0.25f * (1f - t)) * shade;
-				float a = 0.92f * alpha;
 				quad(buf, mat,
 						cx + x00, cy + y0, cz + z00,
 						cx + x01, cy + y0, cz + z01,
 						cx + x11, cy + y1, cz + z11,
 						cx + x10, cy + y1, cz + z10,
-						pr, pg, pb, a);
+						pr, pg, pb, 0.92f * alpha);
 			}
 		}
 	}
@@ -143,14 +236,12 @@ public final class OrbitalBeltSkyRenderer {
 			float s1 = (float) Math.sin(a1);
 			float y0 = cy - halfH;
 			float y1 = cy + halfH;
-			// Top face
 			quad(buf, mat,
 					cx + c0 * rInner, y1, cz + s0 * rInner,
 					cx + c1 * rInner, y1, cz + s1 * rInner,
 					cx + c1 * rOuter, y1, cz + s1 * rOuter,
 					cx + c0 * rOuter, y1, cz + s0 * rOuter,
 					r, g, b, a);
-			// Outer wall
 			quad(buf, mat,
 					cx + c0 * rOuter, y0, cz + s0 * rOuter,
 					cx + c1 * rOuter, y0, cz + s1 * rOuter,
@@ -160,8 +251,7 @@ public final class OrbitalBeltSkyRenderer {
 		}
 	}
 
-	/** 0 at mid-surface, ramps through sky, full in orbital. */
-	static float beltAlpha(double y) {
+	static float altitudeAlpha(double y) {
 		if (y < WorldLevels.SURFACE_TOP - 60) return 0f;
 		if (y >= WorldLevels.SKY_TOP) return 1f;
 		float t = (float) ((y - (WorldLevels.SURFACE_TOP - 60))

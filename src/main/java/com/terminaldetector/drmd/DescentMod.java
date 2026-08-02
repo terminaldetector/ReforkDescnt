@@ -176,7 +176,7 @@ public class DescentMod implements ModInitializer {
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
 				com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid()));
 
-		LOGGER.info("DRMD 6DOF 1.0.8 ready — Spark ring · Klondike voxels · LLOD parked");
+		LOGGER.info("DRMD 6DOF 1.0.9 ready — night Starlink ring + Oblivion skybox");
 	}
 
 	/**
