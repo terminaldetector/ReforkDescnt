@@ -22,14 +22,16 @@ Territory bias: technogenic sea / megacity skew alive; scorched / surface events
 
 Giga-reactor (End fight) calls the same aftermath with a denser asteroid rain.
 
-## Endings (design note)
+## Endings
 
-| Ending | What it is | Extra systems? |
-|--------|------------|----------------|
-| **Primary** | Destroy End giga-reactor → gateways / landing pad + aftermath | Already wired |
-| **Second** | Survive / escape the column aftermath (dig mantle, fall view, surface scars) without a unique finale set-piece | **Nothing special required** — reuse `ReactorAftermath`, `DimensionSync`, dig path, fall-aftermath camera |
+Canon: [`WORLD_PHILOSOPHY.md`](WORLD_PHILOSOPHY.md) — *the world already lost*.
 
-The second ending is narrative framing on existing tools, not a second boss or scripted epilogue.
+| Ending | Trigger | Effect |
+|--------|---------|--------|
+| **1 · Silence** (obvious) | Destroy End giga-reactor | `WorldFate.SILENCE` — machines culled / no longer spawn; scars + slow decay |
+| **2 · Void** (hidden) | Arm `dark_energy_bomb` at planetary core (`NETHER_FLOOR`) | `WorldFate.VOID` — matter clears, black sky, endless 6DoF flight, **no credits** |
+
+Most players reach (1). (2) needs deep dig + expensive craft — the reactor was only a switch; the wound is the planet.
 
 ## Orbit structure (stock column — not End)
 

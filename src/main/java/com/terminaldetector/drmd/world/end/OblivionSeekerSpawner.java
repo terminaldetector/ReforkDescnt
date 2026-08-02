@@ -24,6 +24,7 @@ public final class OblivionSeekerSpawner {
 
 	public static void onServerTick(MinecraftServer server) {
 		if (server.getTicks() % CHECK_INTERVAL != 0) return;
+		if (!com.terminaldetector.drmd.world.fate.WorldEndings.allowMachineSpawn(server)) return;
 		for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
 			if (p.isCreative() || p.isSpectator()) continue;
 			WorldLayer layer = WorldLayer.at(p.getWorld(), p.getY());

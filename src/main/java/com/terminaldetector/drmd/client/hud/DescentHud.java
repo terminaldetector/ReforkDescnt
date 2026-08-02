@@ -935,12 +935,19 @@ public final class DescentHud {
 		int breachSec = sync.nearestBreachSeconds(
 				mc.player.getX(), mc.player.getY(), mc.player.getZ());
 		int falls = sync.falls().size();
-		if (breachSec < 0 && falls <= 0 && sync.lastGameTime() < 0) return;
+		boolean fateActive = DescentClientState.isSilenceEnding() || DescentClientState.isVoidEnding();
+		if (!fateActive && breachSec < 0 && falls <= 0 && sync.lastGameTime() < 0) return;
 
 		int sw = mc.getWindow().getScaledWidth();
 		String line;
 		int color;
-		if (breachSec >= 0) {
+		if (DescentClientState.isVoidEnding()) {
+			line = "NOTHING REMAINS";
+			color = 0xFFAA66FF;
+		} else if ("SILENCE".equals(DescentClientState.worldFate)) {
+			line = "MACHINE SILENCE  decay " + DescentClientState.fateDecayTicks;
+			color = GREEN_DIM;
+		} else if (breachSec >= 0) {
 			line = "REACTOR BREACH  " + breachSec + "s";
 			color = breachSec <= 15 ? RED : AMBER;
 		} else if (falls > 0) {

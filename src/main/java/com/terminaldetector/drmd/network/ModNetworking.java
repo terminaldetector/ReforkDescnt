@@ -217,6 +217,7 @@ public final class ModNetworking {
 	public static final Identifier SCAFFOLD_ID = Identifier.of(DescentMod.MOD_ID, "scaffold");
 	public static final Identifier SMOKE_ID = Identifier.of(DescentMod.MOD_ID, "smoke");
 	public static final Identifier REACTOR_SYNC_ID = Identifier.of(DescentMod.MOD_ID, "reactor_sync");
+	public static final Identifier FATE_ID = Identifier.of(DescentMod.MOD_ID, "fate");
 
 	/** Server → client volumetric smoke snapshot (dedicated MP). */
 	public record SmokePayload(int seq, java.util.List<Cloud> clouds) implements CustomPayload {
@@ -317,6 +318,17 @@ public final class ModNetworking {
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
 	}
 
+	/** Server → client world fate (silence / void endings). */
+	public record FatePayload(String fate, int decayTicks) implements CustomPayload {
+		public static final Id<FatePayload> ID = new Id<>(FATE_ID);
+		public static final PacketCodec<RegistryByteBuf, FatePayload> CODEC = PacketCodec.tuple(
+				PacketCodecs.STRING, FatePayload::fate,
+				PacketCodecs.VAR_INT, FatePayload::decayTicks,
+				FatePayload::new
+		);
+		@Override public Id<? extends CustomPayload> getId() { return ID; }
+	}
+
 	/** Server → client construction scaffold frame (locked positions). */
 	public record ScaffoldPayload(boolean active, String shapeId, java.util.List<net.minecraft.util.math.BlockPos> positions)
 			implements CustomPayload {
@@ -374,6 +386,7 @@ public final class ModNetworking {
 		PayloadTypeRegistry.playS2C().register(ScaffoldPayload.ID, ScaffoldPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(SmokePayload.ID, SmokePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ReactorSyncPayload.ID, ReactorSyncPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(FatePayload.ID, FatePayload.CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(InputPayload.ID, (payload, context) -> {
 			ServerPlayerEntity player = context.player();

@@ -102,6 +102,7 @@ public final class ModItems {
 	public static Item PORTAL_STABILIZER;
 	public static Item NETHER_GATE_CATALYST;
 	public static Item END_GATE_CATALYST;
+	public static Item DARK_ENERGY_BOMB;
 
 	public static Item EGG_TRIPOD;
 	public static Item EGG_SCANNER;
@@ -219,6 +220,8 @@ public final class ModItems {
 		PORTAL_STABILIZER = register("portal_stabilizer", new Item(new Item.Settings()));
 		NETHER_GATE_CATALYST = register("nether_gate_catalyst", new Item(new Item.Settings().maxCount(16)));
 		END_GATE_CATALYST = register("end_gate_catalyst", new Item(new Item.Settings().maxCount(16)));
+		DARK_ENERGY_BOMB = register("dark_energy_bomb",
+				new com.terminaldetector.drmd.world.fate.DarkEnergyBombItem(new Item.Settings().maxCount(1)));
 
 		EGG_TRIPOD = register("spawn_egg_tripod", new net.minecraft.item.SpawnEggItem(
 				com.terminaldetector.drmd.entity.ModEntities.TRIPOD, 0x3A4450, 0xFF3366, new Item.Settings()));
@@ -240,6 +243,7 @@ public final class ModItems {
 					entries.add(PORTAL_STABILIZER);
 					entries.add(NETHER_GATE_CATALYST);
 					entries.add(END_GATE_CATALYST);
+					entries.add(DARK_ENERGY_BOMB);
 					entries.add(SHIELD_ORB);
 					entries.add(ENERGY_ORB_PICKUP);
 					for (Item w : ArsenalCatalog.creativeWeapons()) entries.add(w);

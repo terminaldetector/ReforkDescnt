@@ -474,6 +474,43 @@ public final class DescentCommands {
 												+ " | destroy core → 90s escape → detonation"), false);
 								return 1;
 							}))
+					.then(CommandManager.literal("fate")
+							.executes(ctx -> {
+								var fate = com.terminaldetector.drmd.world.fate.WorldEndings.fate(
+										ctx.getSource().getServer());
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"World fate=" + fate
+												+ " | SILENCE←giga-reactor | VOID←dark_energy_bomb @ core"
+												+ " | see docs/WORLD_PHILOSOPHY.md"), false);
+								return 1;
+							})
+							.then(CommandManager.argument("set", StringArgumentType.word())
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										String set = StringArgumentType.getString(ctx, "set").toUpperCase();
+										var server = ctx.getSource().getServer();
+										switch (set) {
+											case "SILENCE" -> com.terminaldetector.drmd.world.fate.WorldEndings
+													.applySilence(server, p.getBlockPos());
+											case "VOID" -> com.terminaldetector.drmd.world.fate.WorldEndings
+													.applyVoid(server, p, p.getBlockPos());
+											case "CONTINUING", "RESET" -> {
+												var st = com.terminaldetector.drmd.world.fate.WorldEndings.state(server);
+												if (st != null) {
+													st.setFate(com.terminaldetector.drmd.world.fate.WorldFate.CONTINUING,
+															server.getOverworld().getTime());
+													com.terminaldetector.drmd.world.fate.WorldEndings.broadcast(server);
+												}
+											}
+											default -> {
+												ctx.getSource().sendError(Text.literal("Use: SILENCE | VOID | CONTINUING"));
+												return 0;
+											}
+										}
+										ctx.getSource().sendFeedback(() -> Text.literal("Fate → " + set), true);
+										return 1;
+									})))
 					.then(CommandManager.literal("psychedelic")
 							.executes(ctx -> {
 								var server = ctx.getSource().getServer();

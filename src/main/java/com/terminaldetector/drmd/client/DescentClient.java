@@ -169,6 +169,15 @@ public class DescentClient implements ClientModInitializer {
 				context.client().execute(() ->
 						com.terminaldetector.drmd.client.sync.ClientReactorSync.INSTANCE.apply(payload)));
 
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.FatePayload.ID, (payload, context) ->
+				context.client().execute(() -> {
+					DescentClientState.worldFate = payload.fate() == null ? "CONTINUING" : payload.fate();
+					DescentClientState.fateDecayTicks = payload.decayTicks();
+					if (DescentClientState.isVoidEnding()) {
+						DescentClientState.enabled = true;
+					}
+				}));
+
 		com.terminaldetector.drmd.client.config.DescentConfig.load();
 
 		// A screen event rather than a GameMenuScreen mixin: the pause menu's layout is a grid that

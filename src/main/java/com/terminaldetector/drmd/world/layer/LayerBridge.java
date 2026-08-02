@@ -77,7 +77,7 @@ public final class LayerBridge {
 			player.sendMessage(Text.literal(
 					"§c◉ Core §7— diggable mantle / continuous nether. No bedrock border."), false);
 			player.sendMessage(Text.literal(
-					"§8Dig up through granite→mantle for surface, or craft a Nether Gate Catalyst. Sync keeps aftermath linked."), true);
+					"§8The reactor is only a switch. Something older hums under continuous nether — the wound is the planet."), true);
 		}
 		if (layer == WorldLayer.DUNGEON && player.getY() < com.terminaldetector.drmd.world.level.WorldLevels.ABYSS_TOP + 8) {
 			player.sendMessage(Text.literal(

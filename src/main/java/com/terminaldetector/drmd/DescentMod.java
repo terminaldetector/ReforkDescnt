@@ -101,6 +101,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.tick(server);
 			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.tick(server);
 			com.terminaldetector.drmd.world.sync.DimensionSync.tick(server);
+			com.terminaldetector.drmd.world.fate.WorldEndings.tick(server);
 			if (tick % 40 == 0) {
 				com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);
 			}
@@ -151,6 +152,7 @@ public class DescentMod implements ModInitializer {
 				com.terminaldetector.drmd.world.base.DescentSession.onPlayerJoin(handler.player);
 				ModNetworking.syncPlayer(handler.player, DescentPlayerData.get(handler.player));
 				com.terminaldetector.drmd.world.sync.DimensionSync.pushTo(handler.player);
+				com.terminaldetector.drmd.world.fate.WorldEndings.pushTo(handler.player);
 				unlockDrmdRecipes(handler.player);
 			});
 		});

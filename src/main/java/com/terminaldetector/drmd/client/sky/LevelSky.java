@@ -58,6 +58,10 @@ public final class LevelSky {
 	 * so the ends of the column are flat instead of running off into out-of-range colour.
 	 */
 	public static Vec3d tint(Vec3d vanilla, double y) {
+		// Ending 2 — absolute void: no sun, no moon, no band colour. Just black.
+		if (com.terminaldetector.drmd.client.DescentClientState.isVoidEnding()) {
+			return new Vec3d(0.0, 0.0, 0.0);
+		}
 		Anchor lo = ANCHORS[0];
 		Anchor hi = ANCHORS[ANCHORS.length - 1];
 		if (y <= lo.y()) return blend(vanilla, lo, 1.0);

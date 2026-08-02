@@ -32,6 +32,17 @@ public final class DescentClientState {
 	public static float localUx = 0f, localUy = 1f, localUz = 0f;
 	/** Holding Mega Beam (FP thick column). Cleared when use stops. */
 	public static boolean megaBeamActive;
+	/** Mirrored {@code WorldFate} — CONTINUING / SILENCE / VOID. */
+	public static String worldFate = "CONTINUING";
+	public static int fateDecayTicks;
+
+	public static boolean isVoidEnding() {
+		return "VOID".equals(worldFate);
+	}
+
+	public static boolean isSilenceEnding() {
+		return "SILENCE".equals(worldFate) || isVoidEnding();
+	}
 
 	private DescentClientState() {}
 }
