@@ -128,6 +128,7 @@
   "options.drmd.instruments": "Instruments",
   "options.drmd.hud": "Telemetry HUD",
   "options.drmd.weapon_view": "Weapon view",
+  "options.drmd.fall_aftermath": "Fall aftermath (corkscrew)",
   "options.drmd.level_sky": "Level skies",
   "options.drmd.camera_shake": "Camera motion",
   "options.drmd.cockpit_opacity": "Cockpit opacity",

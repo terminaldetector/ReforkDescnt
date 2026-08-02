@@ -82,6 +82,7 @@
   "options.drmd.instruments": "Приборы",
   "options.drmd.hud": "Телеметрия",
   "options.drmd.weapon_view": "Вид оружия",
+  "options.drmd.fall_aftermath": "Последствия падения (штопор)",
   "options.drmd.level_sky": "Небо по уровням",
   "options.drmd.camera_shake": "Движение камеры",
   "options.drmd.cockpit_opacity": "Прозрачность кокпита",

@@ -211,10 +211,16 @@ public class EndReactorBossEntity extends HostileEntity {
 		Vec3d core = anchor.equals(Vec3d.ZERO) ? getPos() : anchor;
 		BlockPos pad = BlockPos.ofFloored(core.x, core.y - 12.0, core.z);
 		EndReactorSession.placeExitGateways(sw, pad);
+		// Final orbital/End fight: station break + asteroid rain on the planet map
+		com.terminaldetector.drmd.world.dungeon.ReactorAftermath.onGigaReactorDestroyed(sw, pad);
 		boolean inEnd = sw.getRegistryKey() == net.minecraft.world.World.END;
-		String tail = inEnd ? "End exit gateways online." : "landing pad secured.";
+		String tail = inEnd
+				? "station breaking up — debris falling planetward. Exit gateways online."
+				: "landing pad secured; planet scars inbound.";
 		for (ServerPlayerEntity p : sw.getPlayers()) {
 			p.sendMessage(Text.literal("§dGiga-Reactor destroyed §7— " + tail), false);
+			p.sendMessage(Text.literal(
+					"§8Enable §ffall aftermath§8 in DRMD settings to corkscrew down and inspect impacts."), false);
 		}
 		bossBar.clearPlayers();
 	}

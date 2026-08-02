@@ -18,6 +18,8 @@ UFOs and nearby builds are **random surface events** (`SurfaceEventWorldgen`), â
 
 Style pick is salt-stable per plate/event anchor.
 
+Vitality (`DEAD` / `SEMI_ALIVE` / `ALIVE`) is also salt-stable â€” living sites get traps/turrets + `unstable_reactor` breach fights. See `REACTOR_FIGHT_AND_ORBIT.md`.
+
 ## 6DoF dungeon variants (`ComplexStyle`)
 
 Layouts (not only core block):

@@ -39,6 +39,12 @@ public class GameRendererMixin {
 			if (Math.abs(roll) > 0.05f) {
 				matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll));
 			}
+			// Fall-aftermath corkscrew — soft pitch toward planet to inspect meteor scars
+			if (com.terminaldetector.drmd.client.config.DescentConfig.fallAftermath) {
+				matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(18f));
+				matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(
+						(float) Math.sin((System.currentTimeMillis() % 8000L) / 8000.0 * Math.PI * 2) * 8f));
+			}
 			ci.cancel();
 			return;
 		}

@@ -69,7 +69,13 @@ public final class LayerBridge {
 		// Survival cue: orbital belt on the sky means surface bases are about to lose cover.
 		if (layer == WorldLayer.ORBIT) {
 			player.sendMessage(Text.literal(
-					"§a◉ Orbital belt §7ahead — relocate surface base before near-space."), false);
+					"§a◉ Orbital belt §7ahead — junk A/B + techno-ring (not the End)."), false);
+			player.sendMessage(Text.literal("§8" + com.terminaldetector.drmd.world.orbit.OrbitBands.describe(
+					player.getBlockX(), player.getBlockY(), player.getBlockZ())), true);
+		}
+		if (layer == WorldLayer.OBLIVION || player.getY() >= com.terminaldetector.drmd.world.level.WorldLevels.ORBITAL_TOP - 16) {
+			player.sendMessage(Text.literal(
+					"§dTechno-ring vista §7— End seam above max orbital height. Portals are harder; don't drift in."), false);
 		}
 	}
 

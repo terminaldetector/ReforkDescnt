@@ -430,6 +430,42 @@ public final class DescentCommands {
 													.findNearest(ctx.getSource().getPlayer().getBlockX(),
 															ctx.getSource().getPlayer().getBlockZ()),
 											"scorched lands"))))
+					.then(CommandManager.literal("orbit")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								String desc = com.terminaldetector.drmd.world.orbit.OrbitBands.describe(
+										p.getBlockX(), p.getBlockY(), p.getBlockZ());
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Orbit — " + desc
+												+ " | junk A Y=" + com.terminaldetector.drmd.world.orbit.OrbitBands.LAYER_A_Y
+												+ " B Y=" + com.terminaldetector.drmd.world.orbit.OrbitBands.LAYER_B_Y
+												+ " ring Y=" + com.terminaldetector.drmd.world.orbit.OrbitBands.RING_Y
+												+ " | End = above orbital top (separate)"), false);
+								return 1;
+							})
+							.then(CommandManager.literal("ring")
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										double ang = Math.atan2(p.getZ(), p.getX());
+										int x = (int) (Math.cos(ang) * com.terminaldetector.drmd.world.orbit.OrbitBands.RING_RADIUS);
+										int z = (int) (Math.sin(ang) * com.terminaldetector.drmd.world.orbit.OrbitBands.RING_RADIUS);
+										p.requestTeleport(x, com.terminaldetector.drmd.world.orbit.OrbitBands.RING_Y, z);
+										ctx.getSource().sendFeedback(() -> Text.literal(
+												"Teleported to techno-ring deck"), true);
+										return 1;
+									})))
+					.then(CommandManager.literal("reactor")
+							.executes(ctx -> {
+								int breaches = com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.activeBreaches();
+								int falls = com.terminaldetector.drmd.world.dungeon.ReactorAftermath.pendingFalls();
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Reactor — active breaches=" + breaches
+												+ " pending meteor falls=" + falls
+												+ " | vitality ALIVE/SEMI_ALIVE/DEAD on technogenic dungeons"
+												+ " | destroy core → 90s escape → detonation"), false);
+								return 1;
+							}))
 					.then(CommandManager.literal("psychedelic")
 							.executes(ctx -> {
 								var server = ctx.getSource().getServer();

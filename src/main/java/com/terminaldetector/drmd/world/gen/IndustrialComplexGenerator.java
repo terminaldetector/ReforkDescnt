@@ -2,9 +2,13 @@ package com.terminaldetector.drmd.world.gen;
 
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import com.terminaldetector.drmd.world.WorldRules;
+import com.terminaldetector.drmd.world.dungeon.DungeonVitality;
+import com.terminaldetector.drmd.world.dungeon.FacilityReactorFight;
+import com.terminaldetector.drmd.world.dungeon.LivingDefensePass;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
@@ -14,7 +18,7 @@ import net.minecraft.util.math.random.Random;
  * Industrial Underground — modular 6DoF complexes.
  * Cavities first: spheres, cylinders, rings, vertical shafts, multi-node intersections.
  * No privileged floor — every surface is traversable in flight.
- * Layout / palette branch on {@link WorldRules.ComplexStyle}.
+ * Layout / palette branch on {@link WorldRules.ComplexStyle}; vitality drives living defenses.
  */
 public final class IndustrialComplexGenerator {
 	private IndustrialComplexGenerator() {}
@@ -26,6 +30,11 @@ public final class IndustrialComplexGenerator {
 
 	public static void generateAt(net.minecraft.world.WorldAccess world, BlockPos origin,
 			WorldRules.ComplexStyle style, Random random) {
+		generateAt(world, origin, style, DungeonVitality.DEAD, random);
+	}
+
+	public static void generateAt(net.minecraft.world.WorldAccess world, BlockPos origin,
+			WorldRules.ComplexStyle style, DungeonVitality vitality, Random random) {
 		StyleProfile p = StyleProfile.of(style);
 		clearVolume(world, origin, p.clearR);
 		switch (p.layout) {
@@ -37,7 +46,7 @@ public final class IndustrialComplexGenerator {
 			case SIGNAL -> layoutSignal(world, origin, p, random);
 			default -> layoutSphere(world, origin, p, random);
 		}
-		placeReactorCore(world, origin, p);
+		placeReactorCore(world, origin, p, vitality);
 		if (p.rings) placeSpinRings(world, origin, Math.max(8, p.mainR - 6), 2, p.trim);
 		if (p.cooling) placeCoolingChannels(world, origin, random, p.accent);
 		placeTechnicalBridges(world, origin, random, p.trim);
@@ -57,6 +66,15 @@ public final class IndustrialComplexGenerator {
 		if (p.shaft) carveVerticalShaft(world, origin, p.shaftHalf, p.wall);
 		if (p.spiral) carveSpiral(world, origin.add(8, -10, 8), 10, 24, p.trim);
 		if (p.locatorDecor) placeLocatorDecor(world, origin, random);
+
+		if (vitality.disguiseAsDead) {
+			LivingDefensePass.paintDeadShell(world, origin, p.mainR + 2, random);
+		}
+		LivingDefensePass.apply(world, origin, vitality, random);
+
+		if (vitality.hasLivingReactor && world instanceof ServerWorld sw) {
+			FacilityReactorFight.register(sw, origin, vitality);
+		}
 	}
 
 	// ── Layouts ──────────────────────────────────────────────────────────────
@@ -292,7 +310,8 @@ public final class IndustrialComplexGenerator {
 		}
 	}
 
-	private static void placeReactorCore(net.minecraft.world.WorldAccess world, BlockPos c, StyleProfile p) {
+	private static void placeReactorCore(net.minecraft.world.WorldAccess world, BlockPos c, StyleProfile p,
+			DungeonVitality vitality) {
 		BlockPos.Mutable m = new BlockPos.Mutable();
 		for (int x = -2; x <= 2; x++) {
 			for (int y = -2; y <= 2; y++) {
@@ -304,7 +323,17 @@ public final class IndustrialComplexGenerator {
 				}
 			}
 		}
-		world.setBlockState(c, Blocks.BEACON.getDefaultState(), Block.NOTIFY_ALL);
+		if (vitality.hasLivingReactor) {
+			// Living / semi-alive: unstable reactor is the destroyable fight core
+			world.setBlockState(c, ModWorldBlocks.UNSTABLE_REACTOR.getDefaultState(), Block.NOTIFY_ALL);
+			if (vitality == DungeonVitality.SEMI_ALIVE) {
+				// Deeper alive pocket under a "dead" beacon shell look
+				world.setBlockState(c.down(3), ModWorldBlocks.UNSTABLE_REACTOR.getDefaultState(), Block.NOTIFY_ALL);
+				world.setBlockState(c.up(), Blocks.CRACKED_DEEPSLATE_BRICKS.getDefaultState(), Block.NOTIFY_LISTENERS);
+			}
+		} else {
+			world.setBlockState(c, Blocks.BEACON.getDefaultState(), Block.NOTIFY_ALL);
+		}
 	}
 
 	private static void placeSpinRings(net.minecraft.world.WorldAccess world, BlockPos c, int radius, int thickness,

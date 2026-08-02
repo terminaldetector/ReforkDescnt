@@ -44,6 +44,9 @@ public class DescentSettingsScreen extends Screen {
 		addDrawableChild(toggle(right, y, "options.drmd.weapon_view", DescentConfig.weaponView,
 				v -> DescentConfig.weaponView = v));
 		y += ROW;
+		addDrawableChild(toggle(left, y, "options.drmd.fall_aftermath", DescentConfig.fallAftermath,
+				v -> DescentConfig.fallAftermath = v));
+		y += ROW;
 		addDrawableChild(toggle(left, y, "options.drmd.level_sky", DescentConfig.levelSky,
 				v -> DescentConfig.levelSky = v));
 		addDrawableChild(toggle(right, y, "options.drmd.camera_shake", DescentConfig.cameraShake,

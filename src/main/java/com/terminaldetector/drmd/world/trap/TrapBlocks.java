@@ -212,6 +212,8 @@ public final class TrapBlocks {
 		protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
 			if (!state.isOf(newState.getBlock()) && world instanceof ServerWorld sw) {
 				com.terminaldetector.drmd.world.mega.SkyUfoEntity.notifyCoreBroken(sw, pos);
+				// Living facility reactor breach → escape timer / detonation
+				com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.onReactorBroken(sw, pos);
 			}
 			super.onStateReplaced(state, world, pos, newState, moved);
 		}

@@ -49,6 +49,7 @@ public class DescentMod implements ModInitializer {
 		com.terminaldetector.drmd.world.surface.TechnogenicSeaBiomeWorldgen.register();
 		com.terminaldetector.drmd.world.surface.ScorchedLandsBiomeWorldgen.register();
 		com.terminaldetector.drmd.world.surface.SurfaceEventWorldgen.register();
+		com.terminaldetector.drmd.world.orbit.OrbitJunkWorldgen.register();
 		com.terminaldetector.drmd.world.level.LevelBuilder.register();
 		WeaponRegistry.bootstrap();
 		DescentCommands.register();
@@ -72,6 +73,8 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.fire.FireSystem.clear();
 			com.terminaldetector.drmd.world.base.DescentSession.clearSeedQueue();
 			com.terminaldetector.drmd.world.build.ConstructScaffold.clearAll();
+			com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.clear();
+			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.clear();
 			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.clear();
 			// Both halves of worldgen are kept off the join path. Seeding only queues the landmarks
 			// and spends one per tick; the CHUNK_LOAD generators stay idle until that hand-off is
@@ -93,6 +96,8 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.tick();
 			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.tick(server);
 			com.terminaldetector.drmd.world.base.DescentSession.drainSeedQueue(server);
+			com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.tick(server);
+			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.tick(server);
 			if (tick % 40 == 0) {
 				com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);
 			}

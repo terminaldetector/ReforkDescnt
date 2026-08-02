@@ -94,9 +94,10 @@ public final class SurfaceEventWorldgen {
 		});
 		// Nearby ruin build — random 6DoF dungeon under the crash site
 		WorldRules.ComplexStyle style = DungeonTerritory.primaryStyle(DungeonTerritory.Kind.SURFACE_EVENT, seed);
+		var vit = DungeonTerritory.vitality(DungeonTerritory.Kind.SURFACE_EVENT, seed);
 		BlockPos under = new BlockPos(ax + 24, WorldRules.INDUSTRIAL_Y_MIN + 28, az - 18);
 		DescentSession.enqueueLandmark(under, () ->
-				IndustrialComplexGenerator.generateAt(world, under, style, Random.create(seed ^ 0x11L)));
+				IndustrialComplexGenerator.generateAt(world, under, style, vit, Random.create(seed ^ 0x11L)));
 	}
 
 	private static void enqueueSkyUfo(ServerWorld world, int ax, int az, long seed) {
@@ -113,18 +114,20 @@ public final class SurfaceEventWorldgen {
 
 	private static void enqueueRuinedComplex(ServerWorld world, int ax, int az, long seed) {
 		WorldRules.ComplexStyle style = DungeonTerritory.primaryStyle(DungeonTerritory.Kind.SURFACE_EVENT, seed);
+		var vit = DungeonTerritory.vitality(DungeonTerritory.Kind.SURFACE_EVENT, seed ^ 0x33L);
 		BlockPos at = new BlockPos(ax, WorldRules.INDUSTRIAL_Y_MIN + 22 + (int) Math.floorMod(seed, 16L), az);
 		DescentSession.enqueueLandmark(at, () ->
-				IndustrialComplexGenerator.generateAt(world, at, style, Random.create(seed)));
+				IndustrialComplexGenerator.generateAt(world, at, style, vit, Random.create(seed)));
 	}
 
 	private static void enqueueSmallLocator(ServerWorld world, int ax, int az, long seed) {
 		DescentSession.enqueueLandmark(new BlockPos(ax, 0, az), () ->
 				MegaLocatorGenerator.generateSmall(world, new BlockPos(ax, 0, az), Random.create(seed)));
 		WorldRules.ComplexStyle style = DungeonTerritory.satelliteStyle(DungeonTerritory.Kind.SURFACE_EVENT, seed);
+		var vit = DungeonTerritory.vitality(DungeonTerritory.Kind.SURFACE_EVENT, seed ^ 0x22L);
 		BlockPos under = new BlockPos(ax, Math.min(WorldRules.INDUSTRIAL_Y_MAX - 8, 42), az);
 		DescentSession.enqueueLandmark(under, () ->
-				IndustrialComplexGenerator.generateAt(world, under, style, Random.create(seed ^ 0x22L)));
+				IndustrialComplexGenerator.generateAt(world, under, style, vit, Random.create(seed ^ 0x22L)));
 	}
 
 	private static void enqueueOutpostPair(ServerWorld world, int ax, int az, long seed) {

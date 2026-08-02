@@ -78,14 +78,16 @@ public final class TechnogenicSeaBiomeWorldgen {
 
 		WorldRules.ComplexStyle primary = DungeonTerritory.primaryStyle(DungeonTerritory.Kind.TECHNOGENIC_SEA, seed);
 		WorldRules.ComplexStyle secondary = DungeonTerritory.satelliteStyle(DungeonTerritory.Kind.TECHNOGENIC_SEA, seed);
+		var vitPrimary = DungeonTerritory.vitality(DungeonTerritory.Kind.TECHNOGENIC_SEA, seed);
+		var vitSat = DungeonTerritory.vitality(DungeonTerritory.Kind.TECHNOGENIC_SEA, seed ^ 0x52L);
 
 		// Underwater 6DoF dungeon under the mega + signal satellite
 		BlockPos under = new BlockPos(ax, Math.min(WorldRules.INDUSTRIAL_Y_MAX - 8, 40), az);
 		DescentSession.enqueueLandmark(under, () -> IndustrialComplexGenerator.generateAt(
-				world, under, primary, Random.create(seed ^ 0x51L)));
+				world, under, primary, vitPrimary, Random.create(seed ^ 0x51L)));
 
 		BlockPos signal = new BlockPos(ax + 48, Math.min(WorldRules.INDUSTRIAL_Y_MAX - 4, 48), az - 36);
 		DescentSession.enqueueLandmark(signal, () -> IndustrialComplexGenerator.generateAt(
-				world, signal, secondary, Random.create(seed ^ 0x52L)));
+				world, signal, secondary, vitSat, Random.create(seed ^ 0x52L)));
 	}
 }

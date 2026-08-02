@@ -73,8 +73,9 @@ public final class ScorchedLandsBiomeWorldgen {
 		}
 
 		WorldRules.ComplexStyle under = DungeonTerritory.primaryStyle(DungeonTerritory.Kind.SCORCHED_LANDS, seed);
+		var vit = DungeonTerritory.vitality(DungeonTerritory.Kind.SCORCHED_LANDS, seed);
 		BlockPos dungeon = new BlockPos(ax, WorldRules.INDUSTRIAL_Y_MIN + 26, az);
 		DescentSession.enqueueLandmark(dungeon, () -> IndustrialComplexGenerator.generateAt(
-				world, dungeon, under, Random.create(seed ^ 0x5C04L)));
+				world, dungeon, under, vit, Random.create(seed ^ 0x5C04L)));
 	}
 }

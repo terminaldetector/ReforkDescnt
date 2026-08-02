@@ -79,14 +79,16 @@ public final class MegacityBiomeWorldgen {
 		long plateSalt = world.getSeed() ^ 0xC1740001L ^ cityX * 31L ^ cityZ;
 		WorldRules.ComplexStyle primary = DungeonTerritory.primaryStyle(DungeonTerritory.Kind.MEGACITY, plateSalt);
 		WorldRules.ComplexStyle secondary = DungeonTerritory.satelliteStyle(DungeonTerritory.Kind.MEGACITY, plateSalt);
+		var vitPrimary = DungeonTerritory.vitality(DungeonTerritory.Kind.MEGACITY, plateSalt);
+		var vitSat = DungeonTerritory.vitality(DungeonTerritory.Kind.MEGACITY, plateSalt ^ 0xBEEFL);
 
 		BlockPos cityDungeon = new BlockPos(cityX, WorldRules.INDUSTRIAL_Y_MIN + 24, cityZ);
 		DescentSession.enqueueLandmark(cityDungeon, () -> IndustrialComplexGenerator.generateAt(
-				world, cityDungeon, primary, Random.create(plateSalt)));
+				world, cityDungeon, primary, vitPrimary, Random.create(plateSalt)));
 
 		BlockPos satDungeon = new BlockPos(cityX - 55, WorldRules.INDUSTRIAL_Y_MIN + 32, cityZ + 48);
 		DescentSession.enqueueLandmark(satDungeon, () -> IndustrialComplexGenerator.generateAt(
-				world, satDungeon, secondary, Random.create(plateSalt ^ 0xBEEFL)));
+				world, satDungeon, secondary, vitSat, Random.create(plateSalt ^ 0xBEEFL)));
 
 		DescentSession.enqueueLandmark(new BlockPos(cityX + 40, WorldRules.INDUSTRIAL_Y_MIN + 36, cityZ - 30),
 				() -> MegaStructureGenerator.generate(world,

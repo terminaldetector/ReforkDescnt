@@ -64,6 +64,25 @@ public final class DungeonTerritory {
 		};
 	}
 
+	/**
+	 * Vitality bias by territory — technogenic plates skew living;
+	 * scorched / surface events more often dead or disguised.
+	 */
+	public static DungeonVitality vitality(Kind kind, long salt) {
+		int roll = (int) Math.floorMod(salt >> 9, 100L);
+		return switch (kind) {
+			case TECHNOGENIC_SEA -> roll < 45 ? DungeonVitality.ALIVE
+					: roll < 75 ? DungeonVitality.SEMI_ALIVE : DungeonVitality.DEAD;
+			case MEGACITY -> roll < 35 ? DungeonVitality.ALIVE
+					: roll < 70 ? DungeonVitality.SEMI_ALIVE : DungeonVitality.DEAD;
+			case SCORCHED_LANDS -> roll < 15 ? DungeonVitality.ALIVE
+					: roll < 45 ? DungeonVitality.SEMI_ALIVE : DungeonVitality.DEAD;
+			case SURFACE_EVENT -> roll < 20 ? DungeonVitality.ALIVE
+					: roll < 50 ? DungeonVitality.SEMI_ALIVE : DungeonVitality.DEAD;
+			case SPAWN_HUB -> DungeonVitality.DEAD;
+		};
+	}
+
 	@SafeVarargs
 	private static WorldRules.ComplexStyle pick(long salt, WorldRules.ComplexStyle... styles) {
 		if (styles.length == 0) return WorldRules.ComplexStyle.TECH_RUINS;

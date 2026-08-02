@@ -40,6 +40,11 @@ public final class DescentConfig {
 	public static boolean cameraShake = true;
 	/** Draw the first-person weapon clusters. */
 	public static boolean weaponView = true;
+	/**
+	 * Fall-aftermath view — corkscrew pitch bias toward planet after orbital reactor detonation
+	 * so pilots can inspect meteor scars on the surface / voxel map.
+	 */
+	public static boolean fallAftermath = false;
 
 	private static final String FILE = DescentMod.MOD_ID + ".properties";
 	private static boolean loaded;
@@ -74,6 +79,7 @@ public final class DescentConfig {
 		lookGain = clamp(num(props, "lookGain", lookGain), 0.25f, 3f);
 		cameraShake = bool(props, "cameraShake", cameraShake);
 		weaponView = bool(props, "weaponView", weaponView);
+		fallAftermath = bool(props, "fallAftermath", fallAftermath);
 	}
 
 	public static void save() {
@@ -90,6 +96,7 @@ public final class DescentConfig {
 		props.setProperty("lookGain", Float.toString(lookGain));
 		props.setProperty("cameraShake", Boolean.toString(cameraShake));
 		props.setProperty("weaponView", Boolean.toString(weaponView));
+		props.setProperty("fallAftermath", Boolean.toString(fallAftermath));
 		try {
 			Files.createDirectories(path().getParent());
 			try (var out = Files.newOutputStream(path())) {
