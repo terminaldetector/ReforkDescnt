@@ -86,7 +86,8 @@ public class TunnelDrillRigBlock extends Block {
 			if (world.isOutOfHeightLimit(probe)) break;
 			BlockState st = world.getBlockState(probe);
 			if (st.isAir() || !st.getFluidState().isEmpty()) continue;
-			if (st.isOf(Blocks.BEDROCK) || st.getHardness(world, probe) < 0) break;
+			// Plasma granite is diggable; only truly unbreakable (hardness < 0) stops the head.
+			if (st.getHardness(world, probe) < 0) break;
 			cut = probe;
 			break;
 		}

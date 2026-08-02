@@ -89,7 +89,7 @@ public class DrillRigBlock extends Block {
 				probe.set(target.getX() + dx, target.getY(), target.getZ() + dz);
 				BlockState st = world.getBlockState(probe);
 				float h = st.getHardness(world, probe);
-				if (st.isAir() || h < 0 || st.isOf(Blocks.BEDROCK)) continue;
+				if (st.isAir() || h < 0) continue;
 				world.breakBlock(probe.toImmutable(), true);
 				carved++;
 			}
@@ -125,7 +125,6 @@ public class DrillRigBlock extends Block {
 			if (world.isOutOfHeightLimit(probe)) return null;
 			BlockState st = world.getBlockState(probe);
 			if (st.isAir()) continue;
-			if (st.isOf(Blocks.BEDROCK)) return null;
 			float hardness = st.getHardness(world, probe);
 			if (hardness < 0) return null;
 			if (!st.getFluidState().isEmpty()) continue;
@@ -165,6 +164,7 @@ public class DrillRigBlock extends Block {
 	}
 
 	public static boolean canOperate(World world, BlockPos pos) {
-		return !world.getBlockState(pos.offset(Direction.DOWN)).isOf(Blocks.BEDROCK);
+		float h = world.getBlockState(pos.offset(Direction.DOWN)).getHardness(world, pos.down());
+		return h >= 0; // plasma granite / mantle are diggable
 	}
 }

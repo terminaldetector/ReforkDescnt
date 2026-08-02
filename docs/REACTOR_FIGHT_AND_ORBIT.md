@@ -53,4 +53,4 @@ soft pitch + bank spiral while 6DoF is on — inspect planet scars / meteor impa
 
 Join pushes an immediate smoke + reactor snapshot. HUD strip shows nearest breach / fall count even outside 6DoF.
 
-Still future: Immersive Portals true see-through dimension stack (`WORLD_LAYERS_AUDIT.md`).
+ImmPtl see-through stack: optional soft-dep — see [`IMMPTL_STACK.md`](IMMPTL_STACK.md).

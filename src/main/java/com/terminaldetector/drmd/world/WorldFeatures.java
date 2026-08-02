@@ -14,14 +14,12 @@ package com.terminaldetector.drmd.world;
  */
 public final class WorldFeatures {
 	/**
-	 * The Nether band at the bottom of the column: bedrock floor, basalt crust, lava seas, a capped
-	 * ceiling and the pillars between them.
+	 * The Nether / Core band + diggable mantle under −64.
 	 *
-	 * <p>Parked. It is by far the most expensive thing the level builder does — roughly two thousand
-	 * block writes in every single chunk, each one costing a lighting update — and it is the part of
-	 * the column furthest from what is being worked on now.
+	 * <p>On: streamed near diggers via {@code MantleStream} (HL2 fragment load). Bedrock is rewritten
+	 * to plasma-resistant granite everywhere; full mantle/cavern fills only near pilots below industrial.
 	 */
-	public static final boolean NETHER_BAND = false;
+	public static final boolean NETHER_BAND = true;
 
 	/**
 	 * Custom End-band islands at the top of the Overworld column.

@@ -99,6 +99,9 @@ public final class ModItems {
 	public static Item ALLOY_PLATE;
 	public static Item ENERGY_CELL;
 	public static Item TARGETING_CORE;
+	public static Item PORTAL_STABILIZER;
+	public static Item NETHER_GATE_CATALYST;
+	public static Item END_GATE_CATALYST;
 
 	public static Item EGG_TRIPOD;
 	public static Item EGG_SCANNER;
@@ -212,6 +215,9 @@ public final class ModItems {
 		ALLOY_PLATE = register("alloy_plate", new Item(new Item.Settings()));
 		ENERGY_CELL = register("energy_cell", new Item(new Item.Settings()));
 		TARGETING_CORE = register("targeting_core", new Item(new Item.Settings()));
+		PORTAL_STABILIZER = register("portal_stabilizer", new Item(new Item.Settings()));
+		NETHER_GATE_CATALYST = register("nether_gate_catalyst", new Item(new Item.Settings().maxCount(16)));
+		END_GATE_CATALYST = register("end_gate_catalyst", new Item(new Item.Settings().maxCount(16)));
 
 		EGG_TRIPOD = register("spawn_egg_tripod", new net.minecraft.item.SpawnEggItem(
 				com.terminaldetector.drmd.entity.ModEntities.TRIPOD, 0x3A4450, 0xFF3366, new Item.Settings()));
@@ -228,6 +234,9 @@ public final class ModItems {
 					entries.add(ALLOY_PLATE);
 					entries.add(ENERGY_CELL);
 					entries.add(TARGETING_CORE);
+					entries.add(PORTAL_STABILIZER);
+					entries.add(NETHER_GATE_CATALYST);
+					entries.add(END_GATE_CATALYST);
 					entries.add(SHIELD_ORB);
 					entries.add(ENERGY_ORB_PICKUP);
 					for (Item w : ArsenalCatalog.creativeWeapons()) entries.add(w);

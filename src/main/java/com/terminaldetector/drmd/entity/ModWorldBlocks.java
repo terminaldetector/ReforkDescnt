@@ -76,6 +76,17 @@ public final class ModWorldBlocks {
 			new com.terminaldetector.drmd.world.locator.LocatorPanelBlock(
 					AbstractBlock.Settings.copy(Blocks.OXIDIZED_COPPER).luminance(s -> 4).strength(3f)));
 
+	/**
+	 * Diggable replacement for world-border bedrock — hard, blast-resistant, but breakable.
+	 * Plasma flecks in the granite crust of the mantle / Core seam.
+	 */
+	public static final Block PLASMA_GRANITE = registerBlock("plasma_granite",
+			new Block(AbstractBlock.Settings.create()
+					.mapColor(MapColor.GRAY)
+					.requiresTool()
+					.strength(45.0f, 1200.0f)
+					.sounds(net.minecraft.sound.BlockSoundGroup.STONE)));
+
 	public static Item BUILD_TOOL;
 	/** Legacy id — green tier. */
 	public static Item CONSTRUCTION_LASER;
@@ -154,6 +165,7 @@ public final class ModWorldBlocks {
 			entries.add(LOCATOR_CORE);
 			entries.add(LOCATOR_RESONATOR);
 			entries.add(LOCATOR_PANEL);
+			entries.add(PLASMA_GRANITE);
 			entries.add(DRILL_RIG);
 			entries.add(TUNNEL_DRILL_RIG);
 			entries.add(BUILD_TOOL);

@@ -4,9 +4,10 @@ package com.terminaldetector.drmd.world.level;
  * The world is one continuous column, not three dimensions.
  *
  * <p>{@code data/minecraft/dimension_type/overworld.json} widens the Overworld to
- * −512 … 1024, and the Nether and the End become <em>levels</em> inside it: bands you fly to,
- * with no portal and no loading screen. Vanilla worldgen still fills −64 … 320; everything
- * outside that is built by {@link LevelBuilder}.
+ * −512 … 1024, and the Nether and the End become <em>levels</em> inside it: bands you dig or
+ * fly to (Terraria multilayer + HL2 fragment load). Bedrock is not a border — diggable
+ * plasma-resistant granite. Vanilla worldgen still fills −64 … 320; mantle/Core stream via
+ * {@link LevelBuilder} / {@link MantleStream}.
  *
  * <pre>
  *   1024 ┐

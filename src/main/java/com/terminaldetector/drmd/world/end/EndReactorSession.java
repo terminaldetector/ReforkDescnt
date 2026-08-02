@@ -209,7 +209,9 @@ public final class EndReactorSession {
 					world.setBlockState(base.up(y).west(), Blocks.IRON_BARS.getDefaultState(), Block.NOTIFY_LISTENERS);
 				}
 			}
-			world.setBlockState(base.up(15), Blocks.BEDROCK.getDefaultState(), Block.NOTIFY_LISTENERS);
+			world.setBlockState(base.up(15),
+					com.terminaldetector.drmd.entity.ModWorldBlocks.PLASMA_GRANITE.getDefaultState(),
+					Block.NOTIFY_LISTENERS);
 			EndCrystalEntity crystal = spawnCrystal(world, base.up(16));
 			if (crystal != null) world.spawnEntity(crystal);
 

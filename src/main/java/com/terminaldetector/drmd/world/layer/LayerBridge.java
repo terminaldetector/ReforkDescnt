@@ -73,9 +73,19 @@ public final class LayerBridge {
 			player.sendMessage(Text.literal("§8" + com.terminaldetector.drmd.world.orbit.OrbitBands.describe(
 					player.getBlockX(), player.getBlockY(), player.getBlockZ())), true);
 		}
+		if (layer == WorldLayer.CORE) {
+			player.sendMessage(Text.literal(
+					"§c◉ Core §7— diggable mantle / continuous nether. No bedrock border."), false);
+			player.sendMessage(Text.literal(
+					"§8Dig up through granite→mantle for surface, or craft a Nether Gate Catalyst. Sync keeps aftermath linked."), true);
+		}
+		if (layer == WorldLayer.DUNGEON && player.getY() < com.terminaldetector.drmd.world.level.WorldLevels.ABYSS_TOP + 8) {
+			player.sendMessage(Text.literal(
+					"§7Mantle crust §8— plasma-resistant granite. Nether blocks appear as you dig deeper."), true);
+		}
 		if (layer == WorldLayer.OBLIVION || player.getY() >= com.terminaldetector.drmd.world.level.WorldLevels.ORBITAL_TOP - 16) {
 			player.sendMessage(Text.literal(
-					"§dTechno-ring vista §7— End seam above max orbital height. Portals are harder; don't drift in."), false);
+					"§dTechno-ring vista §7— End seam. Gate catalysts required; ImmPtl stack optional."), false);
 		}
 	}
 
