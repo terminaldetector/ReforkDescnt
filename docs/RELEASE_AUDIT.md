@@ -34,18 +34,18 @@
 | 1 | mg | Пулемёт | primary | 12 | — | 0.06 | 1 | mg | снаряд | OK |
 | 2 | plasma | Плазма | primary | 45 | 25@120 | 0.45 | 8 | plasma | ×2 орб | OK |
 | 3 | heavy | Тяжёлый | primary | 80 | 60@220 | 1.1 | 18 | heavy | снаряд+blast | OK |
-| 4 | laser | Лазер | primary | 40–150* | растёт* | 0.4 | 4–22* | laser | hitscan charge | OK, def игнор |
+| 4 | laser | Лазер | primary | 18–48×2* | lvl* | 0.12 | 2.5–7* | laser | **Descent dual bolts** (модули, LVL 1–4) | OK |
 | 5 | rockets | Ракеты | primary | ≥100* | ≥90@320* | 0.8 | 20 | rockets | 1/3/6/atomic | OK |
 | 6 | gravy_railgun | Грави-Рельса | primary | — | — | 0.3 | gravy pool | gravy | grab/fling | Lite, не Havok |
 | 7 | vulcan | Вулкан | secondary | 15 | — | 0.065 | 2 | vulcan | все дула | OK |
 | 8 | flak | Флак | secondary | 12 | 16@90 | 0.7 | 14 | flak | ×12 спред | OK |
-| 9 | quad_laser | Quad-лазер | secondary | 45 | 55@160 | 0.3 | 12 | quad_laser | hitscan×4 | OK |
+| 9 | quad_laser | Quad-лазер | secondary | 45×4 | 55@160 | 0.22 | 12 | quad_laser | **4 module bolts** converge | OK |
 | 10 | frag | Фраг | secondary | 60 | 50@180 | 1.5 | 24 | frag | +8 осколков | OK |
 | 11 | homing | ГСН-ракета | heavy | 110 | 75@260 | 3.5 | **0** | homing | самонаведение | ⚠ free |
 | 12 | concussion | КС-ракета | heavy | 150 | 140@420 | 2.0 | **0** | **basic** | dumbfire | ⚠ не seeker, free |
 | 13 | smart_missile | Умная-ракета | heavy | 130 | 100@320 | 4.0 | **0** | homing | самонаведение | ⚠ free |
 | 14 | mega_missile | Мега-ракета | heavy | 420 | 320@720 | 8.0 | **0** | **basic** | dumbfire | ⚠ не seeker, free |
-| 15 | mega_laser | Мега-лазер | heavy | 420 | 280@520 | 1.4 | 55 | mega_laser | hitscan+AoE | OK |
+| 15 | mega_laser | Мега-лазер | heavy | 210×2 | 140@520 | 1.1 | 55 | mega_laser | **dual fat bolts** converge | OK |
 | 16 | railmk2 | Рельса МК2 | heavy | 120 | — | 0.6 | 18 | rail | pierce×5 | OK |
 | 17 | bfg | BFG | heavy | 300 | 150@600 | 10 | 80 | bfg | орб+chain | OK |
 | 18 | fusion | Фьюжен | heavy | 45–195* | 90@260* | hold | 25–70* | fusion | заряд | OK |

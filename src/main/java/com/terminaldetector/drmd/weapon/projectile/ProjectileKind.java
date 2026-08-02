@@ -6,7 +6,8 @@ import com.terminaldetector.drmd.weapon.core.DamageClass;
  * Unified projectile kinds — one collision / world-interaction pipeline.
  */
 public enum ProjectileKind {
-	LASER(DamageClass.ENERGY, 0.0f, 0.0f, false, 0x66FFAA),
+	/** Descent combat laser bolt (magenta L1 default; fire path overrides per level). */
+	LASER(DamageClass.ENERGY, 0.0f, 0.0f, false, 0xFF44AA),
 	PLASMA(DamageClass.EXOTIC, 0.05f, 0.02f, false, 0xAA66FF),
 	KINETIC(DamageClass.KINETIC, 0.15f, 0.01f, false, 0xCCDDEE),
 	ROCKET(DamageClass.EXPLOSIVE, 0.08f, 0.005f, true, 0xFF8844),

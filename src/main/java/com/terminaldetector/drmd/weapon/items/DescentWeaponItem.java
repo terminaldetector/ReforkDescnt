@@ -3,18 +3,23 @@ package com.terminaldetector.drmd.weapon.items;
 import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.energy.EnergySystem;
 import com.terminaldetector.drmd.weapon.core.DamageClass;
+import com.terminaldetector.drmd.weapon.core.DescentLaserFire;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.weapon.registry.WeaponDef;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+
+import java.util.List;
 
 /**
  * Base DRMD weapon item — consumes shared energy and fires via WeaponCore.
@@ -35,6 +40,25 @@ public class DescentWeaponItem extends Item {
 		if (world.isClient) return TypedActionResult.pass(stack);
 
 		DescentPlayerData data = DescentPlayerData.get(user);
+
+		// Descent laser powerup: sneak + glowstone dust in offhand raises LASER LVL (max 4).
+		if ("laser".equals(def.behavior) && user.isSneaking()) {
+			ItemStack off = user.getOffHandStack();
+			if (off.isOf(net.minecraft.item.Items.GLOWSTONE_DUST)) {
+				int lvl = DescentLaserFire.levelOf(stack);
+				if (lvl >= 4) {
+					user.sendMessage(Text.literal("LASER LVL: 4 (max)"), true);
+					return TypedActionResult.fail(stack);
+				}
+				if (!user.getAbilities().creativeMode) off.decrement(1);
+				DescentLaserFire.setLevel(stack, lvl + 1);
+				user.sendMessage(Text.literal("LASER LVL: " + (lvl + 1)), true);
+				world.playSound(null, user.getX(), user.getY(), user.getZ(),
+						SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.PLAYERS, 0.7f, 1.4f);
+				return TypedActionResult.success(stack);
+			}
+		}
+
 		long now = world.getTime();
 		long last = 0L;
 		var custom = stack.get(net.minecraft.component.DataComponentTypes.CUSTOM_DATA);
@@ -55,7 +79,7 @@ public class DescentWeaponItem extends Item {
 
 	protected boolean fire(World world, PlayerEntity user, DescentPlayerData data, ItemStack stack) {
 		return switch (def.behavior) {
-			case "laser" -> fireLaser(user, data);
+			case "laser" -> fireLaser(user, data, stack);
 			case "quad_laser" -> fireQuadLaser(user, data);
 			case "mega_laser" -> fireMegaLaser(user, data);
 			case "rockets" -> fireRockets(user, data);
@@ -234,66 +258,32 @@ public class DescentWeaponItem extends Item {
 		return true;
 	}
 
-	protected boolean fireLaser(PlayerEntity user, DescentPlayerData data) {
-		// Charge-style: spend up to 22 energy for scaled damage 40-150 + growing splash
-		float spend = Math.min(22f, data.getEnergy());
-		if (spend < 4f) return false;
-		EnergySystem.tryConsume(data, "weapons", spend);
-		float charge = spend / 22f;
-		float dmg = 40f + 110f * charge;
-		float splash = Math.max(def.splashDamage, 40f) + 80f * charge;
-		float splashR = Math.max(def.splashRadius, 120f) + 140f * charge;
-		WeaponCore.hitscan(user, user.getEyePos(), WeaponCore.aimDir(user), 8000f, dmg, DamageClass.ENERGY, ctx -> {
-			if (!(user.getWorld() instanceof net.minecraft.server.world.ServerWorld sw)) return;
-			float r = (float) com.terminaldetector.drmd.DescentMod.su(splashR);
-			WeaponCore.splashDamage(user, sw, ctx.hitPos(), splash, r, DamageClass.ENERGY);
-			com.terminaldetector.drmd.world.fire.FireSystem.igniteBlast(
-					sw, net.minecraft.util.math.BlockPos.ofFloored(ctx.hitPos()),
-					1 + (int) (2 * charge), 1 + (int) (2 * charge));
-		});
-		WeaponCore.applyRecoil(user, WeaponCore.aimDir(user), 30f * charge);
-		return true;
+	/**
+	 * Descent primary laser — dual travel-time bolts from wing modules,
+	 * converging on the reticle. Level 1–4 on the stack (powerup / {@code /d6 laserlevel}).
+	 */
+	protected boolean fireLaser(PlayerEntity user, DescentPlayerData data, ItemStack stack) {
+		int level = DescentLaserFire.levelOf(stack);
+		float cost = DescentLaserFire.primaryEnergy(level);
+		if (!consumeEnergy(data, cost)) return false;
+		return DescentLaserFire.firePrimary(user, def.id, stack);
 	}
 
+	/** Quad laser — four module banks, Descent bolt projectiles with convergence. */
 	protected boolean fireQuadLaser(PlayerEntity user, DescentPlayerData data) {
 		if (!consumeEnergy(data, def.energyCost)) return false;
 		float splash = Math.max(def.splashDamage, 40f);
-		float splashR = (float) com.terminaldetector.drmd.DescentMod.su(Math.max(def.splashRadius, 140f));
-		java.util.function.Consumer<WeaponCore.HitContext> splashHit = ctx -> {
-			if (!(user.getWorld() instanceof net.minecraft.server.world.ServerWorld sw)) return;
-			WeaponCore.splashDamage(user, sw, ctx.hitPos(), splash, splashR, DamageClass.ENERGY);
-		};
-		var muzzles = WeaponCore.allMuzzles(user, def.id);
-		if (muzzles.size() >= 4) {
-			for (int i = 0; i < 4; i++) {
-				WeaponCore.hitscan(user, muzzles.get(i), WeaponCore.aimDir(user), 8000f, def.damage, DamageClass.ENERGY, splashHit);
-			}
-		} else {
-			for (float[] off : new float[][]{{-0.2f,0.1f},{0.2f,0.1f},{-0.2f,-0.1f},{0.2f,-0.1f}}) {
-				Vec3d start = WeaponCore.muzzle(user, 0.5f, off[0], off[1]);
-				WeaponCore.hitscan(user, start, WeaponCore.aimDir(user), 8000f, def.damage, DamageClass.ENERGY, splashHit);
-			}
-		}
-		WeaponCore.applyRecoil(user, WeaponCore.aimDir(user), def.recoil);
-		return true;
+		float splashR = Math.max(def.splashRadius, 140f);
+		return DescentLaserFire.fireQuad(user, def.id, def.damage, splash, splashR);
 	}
 
-	/** Mega laser — mega direct hit + mega energy splash radius. */
+	/** Mega laser — fat dual nosegun bolts (still travel-time, not hitscan). */
 	protected boolean fireMegaLaser(PlayerEntity user, DescentPlayerData data) {
 		if (!consumeEnergy(data, def.energyCost)) return false;
-		float dmg = Math.max(def.damage, 420f);
-		float splash = Math.max(def.splashDamage, 280f);
-		float splashR = (float) com.terminaldetector.drmd.DescentMod.su(Math.max(def.splashRadius, 520f));
-		WeaponCore.hitscan(user, WeaponCore.muzzleFor(user, def.id, 1), WeaponCore.aimDir(user),
-				14000f, dmg, DamageClass.ENERGY, ctx -> {
-					if (!(user.getWorld() instanceof net.minecraft.server.world.ServerWorld sw)) return;
-					com.terminaldetector.drmd.weapon.fx.WeaponFx.explode(
-							user, sw, ctx.hitPos(), splash, splashR, DamageClass.ENERGY, true);
-					com.terminaldetector.drmd.world.fire.FireSystem.igniteBlast(
-							sw, net.minecraft.util.math.BlockPos.ofFloored(ctx.hitPos()), 10, 5);
-				});
-		WeaponCore.applyRecoil(user, WeaponCore.aimDir(user), def.recoil);
-		return true;
+		float dmg = Math.max(def.damage, 210f); // per bolt; dual ≈ old single mega punch
+		float splash = Math.max(def.splashDamage, 140f);
+		float splashR = Math.max(def.splashRadius, 520f);
+		return DescentLaserFire.fireMega(user, def.id, dmg, splash, splashR);
 	}
 
 	protected boolean fireBeam(PlayerEntity user, DescentPlayerData data) {
@@ -558,6 +548,18 @@ public class DescentWeaponItem extends Item {
 			}
 		}
 		return best;
+	}
+
+	@Override
+	public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+		super.appendTooltip(stack, context, tooltip, type);
+		if ("laser".equals(def.behavior)) {
+			int lvl = DescentLaserFire.levelOf(stack);
+			tooltip.add(Text.literal("LASER LVL: " + lvl + "  ·  dual module bolts"));
+			tooltip.add(Text.literal("Energy/shot: " + DescentLaserFire.primaryEnergy(lvl)));
+		} else if ("quad_laser".equals(def.behavior) || "mega_laser".equals(def.behavior)) {
+			tooltip.add(Text.literal("Descent bolts from weapon modules (converge)"));
+		}
 	}
 
 	/** Helper for writing lastFire into custom data component. */

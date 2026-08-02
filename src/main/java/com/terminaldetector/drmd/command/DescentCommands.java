@@ -1,12 +1,15 @@
 package com.terminaldetector.drmd.command;
 
 import com.mojang.brigadier.arguments.FloatArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.energy.EnergyPreset;
 import com.terminaldetector.drmd.energy.EnergySystem;
 import com.terminaldetector.drmd.flight.FlightSystem;
 import com.terminaldetector.drmd.network.ModNetworking;
+import com.terminaldetector.drmd.weapon.core.DescentLaserFire;
+import com.terminaldetector.drmd.weapon.items.DescentWeaponItem;
 import com.terminaldetector.drmd.weapon.items.ModItems;
 import com.terminaldetector.drmd.weapon.registry.WeaponRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -109,6 +112,22 @@ public final class DescentCommands {
 										p.giveItemStack(new ItemStack(ModItems.FLAK));
 										p.giveItemStack(new ItemStack(ModItems.BFG));
 										ctx.getSource().sendFeedback(() -> Text.literal("Gave core weapon set"), false);
+										return 1;
+									})))
+					.then(CommandManager.literal("laserlevel")
+							.then(CommandManager.argument("level", IntegerArgumentType.integer(1, 4))
+									.executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										ItemStack stack = p.getMainHandStack();
+										if (!(stack.getItem() instanceof DescentWeaponItem dwi)
+												|| !"laser".equals(dwi.getDef().behavior)) {
+											ctx.getSource().sendError(Text.literal("Hold weapon_d6_laser in main hand"));
+											return 0;
+										}
+										int lvl = IntegerArgumentType.getInteger(ctx, "level");
+										DescentLaserFire.setLevel(stack, lvl);
+										ctx.getSource().sendFeedback(
+												() -> Text.literal("LASER LVL: " + DescentLaserFire.levelOf(stack)), false);
 										return 1;
 									})))
 					.then(CommandManager.literal("radar").executes(ctx -> {

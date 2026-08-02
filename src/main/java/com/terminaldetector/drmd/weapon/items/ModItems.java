@@ -94,7 +94,8 @@ public final class ModItems {
 		WeaponDef def_heavy = new WeaponDef("heavy", "Тяжёлый", "primary", 18f, 1.1f, 80f, 60f, 220f, 1100f, 160f, DamageClass.EXPLOSIVE, "heavy");
 		HEAVY = register("weapon_d6_heavy", new DescentWeaponItem(def_heavy, new Item.Settings()));
 		WeaponRegistry.register(def_heavy);
-		WeaponDef def_laser = new WeaponDef("laser", "Лазер", "primary", 0f, 0.4f, 150f, 70f, 180f, 0f, 30f, DamageClass.ENERGY, "laser");
+		// Descent primary: dual module bolts; energy/damage come from laserLevel (1–4), not energyCost.
+		WeaponDef def_laser = new WeaponDef("laser", "Лазер", "primary", 0f, 0.12f, 36f, 12f, 85f, 6200f, 16f, DamageClass.ENERGY, "laser");
 		LASER = register("weapon_d6_laser", new DescentWeaponItem(def_laser, new Item.Settings()));
 		WeaponRegistry.register(def_laser);
 		WeaponDef def_rockets = new WeaponDef("rockets", "Ракеты", "primary", 20f, 0.8f, 100f, 90f, 320f, 2800f, 120f, DamageClass.EXPLOSIVE, "rockets");
@@ -121,10 +122,10 @@ public final class ModItems {
 		WeaponDef def_mega_missile = new WeaponDef("mega_missile", "Мега-ракета", "heavy", 0f, 8.0f, 420f, 320f, 720f, 800f, 500f, DamageClass.EXPLOSIVE, "basic");
 		MEGA_MISSILE = register("weapon_d6_mega_missile", new DescentWeaponItem(def_mega_missile, new Item.Settings()));
 		WeaponRegistry.register(def_mega_missile);
-		WeaponDef def_quad_laser = new WeaponDef("quad_laser", "Quad-лазер", "secondary", 12f, 0.3f, 45f, 55f, 160f, 0f, 20f, DamageClass.ENERGY, "quad_laser");
+		WeaponDef def_quad_laser = new WeaponDef("quad_laser", "Quad-лазер", "secondary", 12f, 0.22f, 45f, 55f, 160f, 6500f, 20f, DamageClass.ENERGY, "quad_laser");
 		QUAD_LASER = register("weapon_d6_quad_laser", new DescentWeaponItem(def_quad_laser, new Item.Settings()));
 		WeaponRegistry.register(def_quad_laser);
-		WeaponDef def_mega_laser = new WeaponDef("mega_laser", "Мега-лазер", "heavy", 55f, 1.4f, 420f, 280f, 520f, 0f, 90f, DamageClass.ENERGY, "mega_laser");
+		WeaponDef def_mega_laser = new WeaponDef("mega_laser", "Мега-лазер", "heavy", 55f, 1.1f, 210f, 140f, 520f, 7800f, 90f, DamageClass.ENERGY, "mega_laser");
 		MEGA_LASER = register("weapon_d6_mega_laser", new DescentWeaponItem(def_mega_laser, new Item.Settings()));
 		WeaponRegistry.register(def_mega_laser);
 		WeaponDef def_railmk2 = new WeaponDef("railmk2", "Рельса МК2", "heavy", 18f, 0.6f, 120f, 0f, 0f, 8000f, 80f, DamageClass.KINETIC, "rail");

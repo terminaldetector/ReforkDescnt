@@ -95,15 +95,20 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 				matrices.pop();
 			}
 			default -> {
-				// Bolt: a lance body with a brighter leading tip so travel direction reads.
+				// Descent laser bolt: elongated teardrop — thick nose, thinner trailing body.
 				matrices.push();
-				matrices.scale(s * 0.45f, s * 0.45f, s * 1.6f);
+				matrices.scale(s * 0.38f, s * 0.38f, s * 2.4f);
 				drawBox(matrices, consumers, argb);
 				matrices.pop();
 				matrices.push();
-				matrices.translate(0, 0, -s * 0.9f);
-				matrices.scale(s * 0.62f, s * 0.62f, s * 0.5f);
+				matrices.translate(0, 0, s * 1.1f);
+				matrices.scale(s * 0.72f, s * 0.72f, s * 0.55f);
 				drawBox(matrices, consumers, brighten(argb));
+				matrices.pop();
+				matrices.push();
+				matrices.translate(0, 0, -s * 1.35f);
+				matrices.scale(s * 0.28f, s * 0.28f, s * 0.9f);
+				drawBox(matrices, consumers, argb);
 				matrices.pop();
 			}
 		}

@@ -152,9 +152,18 @@ public class ProjectileEntity extends Entity {
 	public void tick() {
 		super.tick();
 		if (getWorld().isClient) {
+			Vec3d v = getVelocity();
+			float dustSize = getMeshKind() == MESH_BOLT ? 1.35f : 1.0f;
 			getWorld().addParticle(new DustParticleEffect(
-							new Vector3f(getColorR() / 255f, getColorG() / 255f, getColorB() / 255f), 1.0f),
+							new Vector3f(getColorR() / 255f, getColorG() / 255f, getColorB() / 255f), dustSize),
 					getX(), getY(), getZ(), 0, 0, 0);
+			// Descent laser trail: a second bead behind the bolt along velocity.
+			if (getMeshKind() == MESH_BOLT && v.lengthSquared() > 1e-6) {
+				Vec3d back = v.normalize().multiply(-0.35 * getVisualScale());
+				getWorld().addParticle(new DustParticleEffect(
+								new Vector3f(getColorR() / 255f, getColorG() / 255f, getColorB() / 255f), dustSize * 0.7f),
+						getX() + back.x, getY() + back.y, getZ() + back.z, 0, 0, 0);
+			}
 			return;
 		}
 

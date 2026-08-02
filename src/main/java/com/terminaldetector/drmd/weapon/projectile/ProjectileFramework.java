@@ -28,13 +28,15 @@ public final class ProjectileFramework {
 		cfg.onHit = ctx -> onHit(kind, ctx);
 		switch (kind) {
 			case LASER -> {
-				cfg.speed = 8000;
-				cfg.directDamage = 28;
-				cfg.splashDamage = 40;
-				cfg.splashRadius = 160;
-				cfg.life = 1.2f;
-				cfg.pierceCount = 2;
-				// Combat laser is a burner: what it punches through catches fire.
+				// Descent bolt defaults — player fire paths override from DescentLaserFire.
+				cfg.speed = 6200;
+				cfg.directDamage = 18;
+				cfg.splashDamage = 12;
+				cfg.splashRadius = 85;
+				cfg.life = 1.4f;
+				cfg.pierceCount = 0;
+				cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_BOLT;
+				cfg.visualScale = 1.05f;
 				cfg.igniteOnHit = true;
 			}
 			case BURN_LANCE -> {
@@ -162,10 +164,7 @@ public final class ProjectileFramework {
 				}
 			}
 			case LASER -> {
-				LivingEntity own = ctx.projectile().getOwnerLiving();
-				if (own != null) {
-					WeaponCore.splashDamage(own, sw, ctx.hitPos(), 40f, 2.8f, kind.damageClass);
-				}
+				// Splash already applied by ProjectileEntity.detonate from FireConfig values.
 			}
 			case AIRBURST -> {
 				// Shrapnel cone: short kinetic slivers thrown out of the burst point.
