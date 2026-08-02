@@ -1,39 +1,44 @@
-# Megacity complex (HL2 surface districts)
+# Megacity complex — biome plate (not spawn)
 
-Sparse campaign landmarks without full `MACRO_WORLDGEN`. Flag: `WorldFeatures.SURFACE_DISTRICTS = true`.
+Megacity is the **`drmd:megacity` biome**: sparse seed-placed plates far from spawn. It is **not** generated at the player start point.
 
-## Spawn loop
+Flag: `WorldFeatures.SURFACE_DISTRICTS = true`.
+
+## Spawn (hub only)
 
 | Landmark | Role |
 |----------|------|
 | **Lunar Base** (Descent 1 disc) | Hub at spawn — turrets, Keeper, gravity pad, Pyro, SUPPORT drones |
-| **Approach beacons** | Sea-lantern pylons every ~32 blocks toward the plate |
-| **Megacity** (NW, ~180 / +160) | Surface combat dungeon — Midgar / FF7 plate read |
-| Crashed UFO | Artifact boarding fight |
+| Crashed UFO | Nearby tutorial fight |
 | Sky UFO | Air lane target |
-| Crystal reactor under spawn | Dungeon depth link |
-| Tech ruins + rift under city | Dungeon satellite under the plate |
-| Orbit ring + arch above city | High-altitude 6DoF after the plate |
+| Crystal reactor under spawn | Dungeon depth link from the hub |
 
-Landmarks build when a player enters `SEED_RADIUS` (256) — join stays fast.
+No approach beacons. No city plate at spawn.
 
-## Megacity (6DoF dungeon)
+## Megacity biome
 
-- Street canyons cleared to ~48 — flyable corridors between towers
-- **Sky highways** (~Y+22) — maglev lanes + crossroads pad
-- **Sky arena** (~Y+36) — open dogfight ring with PD rim
-- **Artifact hangar** (south edge) — Descent grey bay, turrets, magnetic anomaly
-- Plate rim + PD pillars (city plate silhouette)
-- Atrium towers — hollow cores for vertical flythrough
-- Rooftop laser / plasma / PD / volume turrets
-- Sewer grid under streets (manholes / ladders)
-- Central reactor pyramid + mako glow columns + depth shaft
-- Garrison: street drones, sewer scanners, spiders, tripod, sky interceptors, hangar scanner
-- **Ring AA** on plate + arena (embedded casemate turrets + shield projectors)
-- **Cyclic laser carts** on powered-rail loops (also buildable via `cyclic_laser_kit`)
+| | |
+|--|--|
+| Biome id | `drmd:megacity` |
+| Placement | Grid cells ~3072 · ~1/6 cells · radius 160 · ≥1600 m from spawn |
+| Inject | `MultiNoiseBiomeSourceMixin` (F3 / HUD show the biome) |
+| Structure | Distance-queued when a chunk in the plate loads (`MegacityBiomeWorldgen`) |
+
+### Plate contents (6DoF dungeon)
+
+- Street canyons, sky highways, sky arena, artifact hangar
+- Pyramid / sewers / garrison / ring AA / cyclic laser carts
+- Under-plate tech ruins + rift; orbit ring + arch above
+
+## Locate
+
+- Join tip lists nearest plate distance
+- `/d6 megacity` — status / nearest coords
+- `/d6 megacity tp` — OP teleport onto the plate
+- Explore until F3 biome reads `drmd:megacity`
 
 ## Layers
 
 `LayerBridge`: title fade on band change; soft arrive when afterburning if districts or macro are on.
 
-Full column / ImmPtl notes: `WORLD_LAYERS_AUDIT.md`.
+Full column notes: `WORLD_LAYERS_AUDIT.md`.

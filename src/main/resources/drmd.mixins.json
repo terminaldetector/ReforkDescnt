@@ -7,7 +7,8 @@
     "LivingEntityMixin",
     "EnderDragonFightMixin",
     "FlowableFluidMixin",
-    "EntityFluidMixin"
+    "EntityFluidMixin",
+    "MultiNoiseBiomeSourceMixin"
   ],
   "client": [
     "client.CameraAccessor",

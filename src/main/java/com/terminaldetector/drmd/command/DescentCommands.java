@@ -382,6 +382,37 @@ public final class DescentCommands {
 												"Planet scar painted under you (visible from End/orbit)"), true);
 										return 1;
 									})))
+					.then(CommandManager.literal("megacity")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								String tip = com.terminaldetector.drmd.world.surface.MegacityRegions
+										.describeNearest(p.getBlockX(), p.getBlockZ());
+								boolean here = com.terminaldetector.drmd.world.surface.MegacityRegions
+										.isInBiome(p.getBlockX(), p.getBlockZ());
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										(here ? "§aInside megacity biome · " : "§7")
+												+ tip
+												+ " §8· not at spawn — explore the plate"), false);
+								return 1;
+							})
+							.then(CommandManager.literal("tp")
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										var a = com.terminaldetector.drmd.world.surface.MegacityRegions
+												.findNearest(p.getBlockX(), p.getBlockZ());
+										if (a == null) {
+											ctx.getSource().sendError(Text.literal("No megacity plate found"));
+											return 0;
+										}
+										var world = p.getServerWorld();
+										int y = world.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+												a.getX(), a.getZ()) + 8;
+										p.requestTeleport(a.getX() + 0.5, y, a.getZ() + 0.5);
+										ctx.getSource().sendFeedback(() -> Text.literal(
+												"Teleported to megacity biome plate @ " + a.getX() + " " + a.getZ()), true);
+										return 1;
+									})))
 					.then(CommandManager.literal("psychedelic")
 							.executes(ctx -> {
 								var server = ctx.getSource().getServer();

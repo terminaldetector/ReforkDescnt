@@ -41,11 +41,9 @@ public final class WorldFeatures {
 	public static final boolean MACRO_WORLDGEN = false;
 
 	/**
-	 * HL2-style surface districts without full macro WG2: spawn lunar hub (Descent 1),
-	 * nearby megacity (pyramid / sewers / towers / garrison), and soft layer seams.
-	 *
-	 * <p>Does <em>not</em> enable live CHUNK_LOAD industrial spam — only distance-queued
-	 * landmarks around spawn.
+	 * HL2-style surface campaign without full macro WG2: spawn lunar hub (Descent 1) +
+	 * hub satellites, and {@code drmd:megacity} biome plates elsewhere in the world
+	 * (not at spawn — see {@link com.terminaldetector.drmd.world.surface.MegacityRegions}).
 	 */
 	public static final boolean SURFACE_DISTRICTS = true;
 

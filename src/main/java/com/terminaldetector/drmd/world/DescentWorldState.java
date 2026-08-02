@@ -1,10 +1,15 @@
 package com.terminaldetector.drmd.world;
 
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtLong;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Per-world Descent integration flags — spawn hub and stock megastructure seeding.
@@ -18,6 +23,8 @@ public class DescentWorldState extends PersistentState {
 	private boolean psychedelic;
 	/** Fractal variant index baked into this world (0..N-1). */
 	private int psychedelicVariant = -1;
+	/** Packed megacity plate anchors already queued (x<<32|z). */
+	private final Set<Long> megacitySeeded = new HashSet<>();
 
 	public static DescentWorldState get(ServerWorld world) {
 		PersistentStateManager mgr = world.getPersistentStateManager();
@@ -32,6 +39,12 @@ public class DescentWorldState extends PersistentState {
 		s.stockSeeded = nbt.getBoolean("stockSeeded");
 		s.psychedelic = nbt.getBoolean("psychedelic");
 		s.psychedelicVariant = nbt.contains("psychedelicVariant") ? nbt.getInt("psychedelicVariant") : -1;
+		if (nbt.contains("megacitySeeded")) {
+			NbtList list = nbt.getList("megacitySeeded", net.minecraft.nbt.NbtElement.LONG_TYPE);
+			for (int i = 0; i < list.size(); i++) {
+				s.megacitySeeded.add(((NbtLong) list.get(i)).longValue());
+			}
+		}
 		return s;
 	}
 
@@ -41,6 +54,11 @@ public class DescentWorldState extends PersistentState {
 		nbt.putBoolean("stockSeeded", stockSeeded);
 		nbt.putBoolean("psychedelic", psychedelic);
 		nbt.putInt("psychedelicVariant", psychedelicVariant);
+		NbtList list = new NbtList();
+		for (long p : megacitySeeded) {
+			list.add(NbtLong.of(p));
+		}
+		nbt.put("megacitySeeded", list);
 		return nbt;
 	}
 
@@ -55,4 +73,16 @@ public class DescentWorldState extends PersistentState {
 
 	public int getPsychedelicVariant() { return psychedelicVariant; }
 	public void setPsychedelicVariant(int v) { this.psychedelicVariant = v; markDirty(); }
+
+	public boolean isMegacitySeeded(int x, int z) {
+		return megacitySeeded.contains(pack(x, z));
+	}
+
+	public void markMegacitySeeded(int x, int z) {
+		if (megacitySeeded.add(pack(x, z))) markDirty();
+	}
+
+	private static long pack(int x, int z) {
+		return ((long) x << 32) ^ (z & 0xffffffffL);
+	}
 }

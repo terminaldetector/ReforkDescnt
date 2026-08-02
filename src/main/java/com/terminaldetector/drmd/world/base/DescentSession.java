@@ -155,9 +155,13 @@ public final class DescentSession {
 			player.sendMessage(Text.literal(
 					"§bDRMD 6DOF §f— Descent session is part of this world."), false);
 			player.sendMessage(Text.literal(
-					"§7Hub: §fLunar Base§7 · hold §fR§7 afterburner · §fH§7 6DoF"), false);
+					"§7Hub: §fLunar Base§7 · hold §fR§7 afterburner · §fH§7 6DoF · §fN§7 ship"), false);
+			String cityTip = com.terminaldetector.drmd.world.surface.MegacityRegions
+					.describeNearest(player.getBlockX(), player.getBlockZ());
 			player.sendMessage(Text.literal(
-					"§7Follow §fbeacons NW§7 → city plate: highways, arena, hangar, pyramid."), false);
+					"§7Megacity is a §fbiome plate§7 far from spawn — " + cityTip), false);
+			player.sendMessage(Text.literal(
+					"§8/d6 megacity · explore until F3 shows drmd:megacity"), false);
 			if (player.isCreative()) {
 				player.giveItemStack(new ItemStack(ModItems.PYRO_GX));
 				player.sendMessage(Text.literal("§aCreative: Pyro GX given — right-click to deploy."), false);
@@ -210,24 +214,10 @@ public final class DescentSession {
 	}
 
 	/**
-	 * Sparse surface campaign without full MACRO_WORLDGEN: megacity (combat dungeon),
-	 * crashed UFO, sky UFO, orbit/dungeon satellites — distance-queued so join stays fast.
+	 * Sparse surface campaign near spawn — hub satellites only.
+	 * Megacity is a separate world biome ({@code drmd:megacity}), not spawned here.
 	 */
 	private static void seedSurfaceDistricts(ServerWorld world, BlockPos spawn) {
-		// Megacity close enough that flying NW from hub enters SEED_RADIUS quickly.
-		int cityX = spawn.getX() - 180;
-		int cityZ = spawn.getZ() + 160;
-		BlockPos cityNear = new BlockPos(cityX, 0, cityZ);
-		enqueue(cityNear, () -> {
-			int citySurface = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, cityX, cityZ);
-			BlockPos cityAt = new BlockPos(cityX, Math.max(citySurface, WorldRules.INDUSTRIAL_Y_MAX + 24), cityZ);
-			MegaStructureGenerator.generate(world, cityAt,
-					MacroEntry.Kind.MEGACITY, Random.create(world.getSeed() ^ 0xC1740001L));
-		});
-
-		// Nav beacons from spawn toward the plate — readable without a map mod.
-		enqueue(spawn, () -> placeCityApproachBeacons(world, spawn, cityX, cityZ));
-
 		enqueueMega(world, new BlockPos(spawn.getX() + 140, 80, spawn.getZ() - 100),
 				MacroEntry.Kind.CRASHED_UFO, 0x0F00A001L);
 
@@ -240,51 +230,10 @@ public final class DescentSession {
 			}
 		});
 
-		// Depth reactor under spawn — dungeon link from surface plate.
+		// Depth reactor under spawn — dungeon link from the lunar hub.
 		BlockPos under = new BlockPos(spawn.getX(), WorldRules.INDUSTRIAL_Y_MIN + 30, spawn.getZ());
 		enqueue(under, () -> IndustrialComplexGenerator.generateAt(
 				world, under, WorldRules.ComplexStyle.CRYSTAL_REACTOR, world.getRandom()));
-
-		// Dungeon satellite under the city plate — fly the pyramid shaft or dive from canyons.
-		BlockPos cityDungeon = new BlockPos(cityX, WorldRules.INDUSTRIAL_Y_MIN + 24, cityZ);
-		enqueue(cityDungeon, () -> IndustrialComplexGenerator.generateAt(
-				world, cityDungeon, WorldRules.ComplexStyle.TECH_RUINS, world.getRandom()));
-		enqueueMega(world, new BlockPos(cityX + 40, WorldRules.INDUSTRIAL_Y_MIN + 36, cityZ - 30),
-				MacroEntry.Kind.RIFT, 0xD00D0001L);
-
-		// Orbit sample above the district — ring for high-altitude 6DoF after the plate.
-		enqueueMega(world, new BlockPos(cityX - 40, WorldRules.SKY_PRACTICAL_MIN + 60, cityZ + 40),
-				MacroEntry.Kind.RING, 0x0B81C171L);
-		enqueueMega(world, new BlockPos(cityX + 70, WorldRules.SKY_PRACTICAL_MIN + 40, cityZ - 50),
-				MacroEntry.Kind.ARCH, 0xA12C0001L);
-	}
-
-	/** Sea-lantern pylons every ~32 blocks toward the megacity — HL2 breadcrumb. */
-	private static void placeCityApproachBeacons(ServerWorld world, BlockPos spawn, int cityX, int cityZ) {
-		double dx = cityX - spawn.getX();
-		double dz = cityZ - spawn.getZ();
-		double len = Math.sqrt(dx * dx + dz * dz);
-		if (len < 1) return;
-		dx /= len;
-		dz /= len;
-		int steps = (int) (len / 32);
-		for (int i = 1; i <= steps; i++) {
-			int x = spawn.getX() + (int) Math.round(dx * i * 32);
-			int z = spawn.getZ() + (int) Math.round(dz * i * 32);
-			int y = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
-			BlockPos base = new BlockPos(x, Math.max(y, 64), z);
-			for (int h = 0; h < 6; h++) {
-				world.setBlockState(base.up(h),
-						net.minecraft.block.Blocks.POLISHED_DEEPSLATE.getDefaultState(),
-						net.minecraft.block.Block.NOTIFY_LISTENERS);
-			}
-			world.setBlockState(base.up(6),
-					net.minecraft.block.Blocks.SEA_LANTERN.getDefaultState(),
-					net.minecraft.block.Block.NOTIFY_LISTENERS);
-			world.setBlockState(base.up(7),
-					net.minecraft.block.Blocks.END_ROD.getDefaultState(),
-					net.minecraft.block.Block.NOTIFY_LISTENERS);
-		}
 	}
 
 	private static void seedStockMegastructures(ServerWorld world, BlockPos spawn) {
@@ -354,18 +303,8 @@ public final class DescentSession {
 		enqueueMega(world, new BlockPos(spawn.getX() + 180, 80, spawn.getZ() - 60),
 				MacroEntry.Kind.CRASHED_UFO, 0x0F00A001L);
 
-		// Cyberpunk megacity — far enough out that spawn stays open sky, close enough to be the
-		// obvious first destination once you have a ship. Its ground level is sampled at build time:
-		// reading a heightmap 320 blocks out forces that chunk to load, which is the whole reason
-		// this is off the join path.
-		int cityX = spawn.getX() - 320;
-		int cityZ = spawn.getZ() + 280;
-		enqueue(new BlockPos(cityX, 0, cityZ), () -> {
-			int citySurface = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, cityX, cityZ);
-			MegaStructureGenerator.generate(world,
-					new BlockPos(cityX, Math.max(citySurface, WorldRules.INDUSTRIAL_Y_MAX + 24), cityZ),
-					MacroEntry.Kind.MEGACITY, Random.create(world.getSeed() ^ 0xC1740001L));
-		});
+		// Megacity is biome-region based ({@link com.terminaldetector.drmd.world.surface.MegacityRegions}),
+		// not a spawn-offset landmark — see MegacityBiomeWorldgen.
 
 		// One airborne UFO near spawn sky lane
 		enqueue(new BlockPos(spawn.getX() + 100, WorldRules.SKY_PRACTICAL_MIN + 48, spawn.getZ() + 40), () -> {
