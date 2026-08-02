@@ -221,6 +221,16 @@ public final class VoxelLodMesh {
 				boolean keel = disk < 0.2f && y < 0 && y > -0.45f;
 				yield saucer || dome || keel;
 			}
+			case MEGACITY -> {
+				// Plate rim + tower grid silhouette for orbit LLOD.
+				float disk = x * x + z * z;
+				boolean plate = disk < 1.05f && y > -0.15f && y < 0.08f;
+				boolean tower = Math.abs(((x * 5f) % 1f) - 0.5f) < 0.18f
+						&& Math.abs(((z * 5f) % 1f) - 0.5f) < 0.18f
+						&& y > 0.05f && y < 0.85f && disk < 0.92f;
+				boolean pyramid = Math.abs(x) + Math.abs(z) < 0.35f * (1f - y) && y > 0 && y < 0.7f;
+				yield plate || tower || pyramid;
+			}
 			case KEEPER -> r2 < 0.55f;
 			default -> r2 < 0.85f;
 		};

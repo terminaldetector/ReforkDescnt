@@ -18,6 +18,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.UseAction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -39,6 +40,13 @@ public class DescentWeaponItem extends Item {
 	@Override
 	public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
 		ItemStack stack = user.getStackInHand(hand);
+
+		// Mega Beam — hold to sustain (FP thick white-core cyan column).
+		if ("mega_laser".equals(def.behavior)) {
+			user.setCurrentHand(hand);
+			return TypedActionResult.consume(stack);
+		}
+
 		if (world.isClient) return TypedActionResult.pass(stack);
 
 		DescentPlayerData data = DescentPlayerData.get(user);
@@ -77,6 +85,39 @@ public class DescentWeaponItem extends Item {
 		world.playSound(null, user.getX(), user.getY(), user.getZ(),
 				SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, SoundCategory.PLAYERS, 0.6f, 1.2f);
 		return TypedActionResult.success(stack);
+	}
+
+	@Override
+	public int getMaxUseTime(ItemStack stack, LivingEntity user) {
+		return "mega_laser".equals(def.behavior) ? 72000 : 0;
+	}
+
+	@Override
+	public UseAction getUseAction(ItemStack stack) {
+		return "mega_laser".equals(def.behavior) ? UseAction.BOW : UseAction.NONE;
+	}
+
+	@Override
+	public void usageTick(World world, LivingEntity user, ItemStack stack, int remainingUseTicks) {
+		if (!"mega_laser".equals(def.behavior)) return;
+		if (!(user instanceof PlayerEntity player)) return;
+		if (world.isClient) {
+			com.terminaldetector.drmd.client.DescentClientState.megaBeamActive = true;
+			return;
+		}
+		int used = 72000 - remainingUseTicks;
+		if (used % 2 != 0) return;
+		DescentPlayerData data = DescentPlayerData.get(player);
+		if (!com.terminaldetector.drmd.weapon.core.MegaBeamFire.tick(player, data)) {
+			player.stopUsingItem();
+		}
+	}
+
+	@Override
+	public void onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
+		if ("mega_laser".equals(def.behavior) && world.isClient) {
+			com.terminaldetector.drmd.client.DescentClientState.megaBeamActive = false;
+		}
 	}
 
 	protected boolean fire(World world, PlayerEntity user, DescentPlayerData data, ItemStack stack) {
@@ -299,13 +340,9 @@ public class DescentWeaponItem extends Item {
 		return DescentLaserFire.fireQuad(user, def.id, def.damage, splash, splashR);
 	}
 
-	/** Mega laser — fat dual nosegun bolts (still travel-time, not hitscan). */
+	/** Legacy bolt volley — Mega Beam is hold-to-sustain via {@link #usageTick}. */
 	protected boolean fireMegaLaser(PlayerEntity user, DescentPlayerData data) {
-		if (!consumeEnergy(data, def.energyCost)) return false;
-		float dmg = Math.max(def.damage, 210f); // per bolt; dual ≈ old single mega punch
-		float splash = Math.max(def.splashDamage, 140f);
-		float splashR = Math.max(def.splashRadius, 520f);
-		return DescentLaserFire.fireMega(user, def.id, dmg, splash, splashR);
+		return com.terminaldetector.drmd.weapon.core.MegaBeamFire.tick(user, data);
 	}
 
 	protected boolean fireLaserPrism(PlayerEntity user, DescentPlayerData data) {

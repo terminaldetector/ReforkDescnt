@@ -28,6 +28,8 @@ public final class DescentClientState {
 	/** On-foot local gravity (torch / generator) — camera + travel. */
 	public static boolean footGravity;
 	public static float localUx = 0f, localUy = 1f, localUz = 0f;
+	/** Holding Mega Beam (FP thick column). Cleared when use stops. */
+	public static boolean megaBeamActive;
 
 	private DescentClientState() {}
 }

@@ -26,6 +26,10 @@ public final class DescentConfig {
 	public static boolean hud = true;
 	/** Blend sky and fog by level band. */
 	public static boolean levelSky = true;
+	/** Orbital belt / green-light ring on the skybox (survival relocate cue). */
+	public static boolean orbitalBeltSky = true;
+	/** Hybrid far land plates + clouds without loading distant chunks. */
+	public static boolean hybridHorizon = true;
 	/** Ship roll rate, degrees per second. */
 	public static float rollRate = 175f;
 	/** Mouse gain for ship attitude, relative to vanilla look. */
@@ -61,6 +65,8 @@ public final class DescentConfig {
 		cockpitInstruments = bool(props, "cockpitInstruments", cockpitInstruments);
 		hud = bool(props, "hud", hud);
 		levelSky = bool(props, "levelSky", levelSky);
+		orbitalBeltSky = bool(props, "orbitalBeltSky", orbitalBeltSky);
+		hybridHorizon = bool(props, "hybridHorizon", hybridHorizon);
 		rollRate = clamp(num(props, "rollRate", rollRate), 40f, 400f);
 		lookGain = clamp(num(props, "lookGain", lookGain), 0.25f, 3f);
 		cameraShake = bool(props, "cameraShake", cameraShake);
@@ -74,6 +80,8 @@ public final class DescentConfig {
 		props.setProperty("cockpitInstruments", Boolean.toString(cockpitInstruments));
 		props.setProperty("hud", Boolean.toString(hud));
 		props.setProperty("levelSky", Boolean.toString(levelSky));
+		props.setProperty("orbitalBeltSky", Boolean.toString(orbitalBeltSky));
+		props.setProperty("hybridHorizon", Boolean.toString(hybridHorizon));
 		props.setProperty("rollRate", Float.toString(rollRate));
 		props.setProperty("lookGain", Float.toString(lookGain));
 		props.setProperty("cameraShake", Boolean.toString(cameraShake));

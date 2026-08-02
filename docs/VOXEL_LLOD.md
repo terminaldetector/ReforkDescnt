@@ -15,6 +15,8 @@ CHUNK     vanilla blocks           Minecraft chunk mesh
 
 Near → far: **CHUNK → LLOD2 → LLOD1 → LLOD0**.
 
+From altitude, **hybrid horizon** adds seeded land plates + cloud banks without loading distant chunks (`HybridHorizonRenderer`). Macro silhouettes and the orbital belt skybox sit on top. See `MEGA_BEAM_ORBIT_LLOD.md`.
+
 ## Distance bands (`LlodLevel`)
 
 | Band | Distance (blocks) | Draw |

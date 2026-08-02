@@ -66,6 +66,11 @@ public final class LayerBridge {
 				Text.literal("§b" + layer.label.toUpperCase())));
 		player.sendMessage(Text.literal("§7Layer · §f" + layer.label
 				+ " §8Y " + layer.yMin + "…" + layer.yMax), true);
+		// Survival cue: orbital belt on the sky means surface bases are about to lose cover.
+		if (layer == WorldLayer.ORBIT) {
+			player.sendMessage(Text.literal(
+					"§a◉ Orbital belt §7ahead — relocate surface base before near-space."), false);
+		}
 	}
 
 	/**
