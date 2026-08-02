@@ -30,13 +30,12 @@ public final class WorldFeatures {
 	public static final boolean END_BAND = false;
 
 	/**
-	 * Megastructures, industrial complexes, the megacity and the landmark seeding around spawn.
+	 * Megastructures / industrial complexes on CHUNK_LOAD (queued via landmark drain — not inline).
 	 *
-	 * <p>Parked. These are the largest single pieces of work the server does, and every one of them
-	 * writes into chunks that are not loaded yet, so each forces terrain generation underneath
-	 * itself before it can start.
+	 * <p>Was parked after spawn freezes; generators now go through {@code DescentSession} /
+	 * {@code server.execute} with live-gen gating so distant flyover content returns.
 	 */
-	public static final boolean MACRO_WORLDGEN = false;
+	public static final boolean MACRO_WORLDGEN = true;
 
 	/**
 	 * Surface campaign without full macro WG2: spawn lunar hub + hub satellites, and

@@ -15,6 +15,7 @@ import com.terminaldetector.drmd.world.psychedelic.PsychedelicWorldgen;
 import com.terminaldetector.drmd.world.gen.IndustrialComplexGenerator;
 import com.terminaldetector.drmd.world.gen2.MacroEntry;
 import com.terminaldetector.drmd.world.gen2.MegaStructureGenerator;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -53,22 +54,28 @@ public final class DescentSession {
 
 	private DescentSession() {}
 
-	/** Build at most one landmark, and only one somebody is close to. Called every server tick. */
+	/** Build up to a few landmarks near players. Called every server tick. */
 	public static void drainSeedQueue(MinecraftServer server) {
 		if (SEED_QUEUE.isEmpty()) return;
 		ServerWorld world = server.getOverworld();
 		if (world == null) return;
-		for (var it = SEED_QUEUE.iterator(); it.hasNext(); ) {
-			SeedJob job = it.next();
-			if (!playerWithinSeedRange(world, job.near())) continue;
-			it.remove();
-			try {
-				job.build().run();
-			} catch (Exception e) {
-				// One bad landmark must not take the rest of the queue — or the world — with it.
-				DescentMod.LOGGER.error("Descent landmark seed failed", e);
+		int budget = SEED_QUEUE.size() > 12 ? 3 : 1;
+		while (budget-- > 0) {
+			boolean built = false;
+			for (var it = SEED_QUEUE.iterator(); it.hasNext(); ) {
+				SeedJob job = it.next();
+				if (!playerWithinSeedRange(world, job.near())) continue;
+				it.remove();
+				try {
+					job.build().run();
+				} catch (Exception e) {
+					// One bad landmark must not take the rest of the queue — or the world — with it.
+					DescentMod.LOGGER.error("Descent landmark seed failed", e);
+				}
+				built = true;
+				break;
 			}
-			return;
+			if (!built) return;
 		}
 	}
 
@@ -100,6 +107,22 @@ public final class DescentSession {
 		ServerWorld world = server.getOverworld();
 		if (world == null) return;
 		DescentWorldState state = DescentWorldState.get(world);
+
+		BlockPos spawn = world.getSpawnPos();
+		int surfaceY = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, spawn.getX(), spawn.getZ());
+		BlockPos hub = new BlockPos(spawn.getX() + 24, Math.max(surfaceY + 12, 90), spawn.getZ() + 24);
+
+		// Hub must re-queue even when stockSeeded — queue is wiped every boot.
+		if (!state.isSpawnHubGenerated() && !state.isPsychedelic()) {
+			BlockPos hubAt = hub.toImmutable();
+			enqueueLandmark(hubAt, () -> {
+				if (DescentWorldState.get(world).isSpawnHubGenerated()) return;
+				generateSpawnHub(world, hubAt);
+				DescentWorldState.get(world).setSpawnHubGenerated(true);
+				DescentMod.LOGGER.info("Descent lunar hub generated at {}", hubAt.toShortString());
+			});
+		}
+
 		if (state.isStockSeeded()) return;
 
 		// Stock option: psychedelic fractal void worlds (weightless orbital start)
@@ -109,22 +132,6 @@ public final class DescentSession {
 			DescentMod.LOGGER.info("Descent psychedelic stock seeded — variant=#{}",
 					state.getPsychedelicVariant());
 			return;
-		}
-
-		BlockPos spawn = world.getSpawnPos();
-		int surfaceY = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, spawn.getX(), spawn.getZ());
-		BlockPos hub = new BlockPos(spawn.getX() + 24, Math.max(surfaceY + 12, 90), spawn.getZ() + 24);
-
-		if (!state.isSpawnHubGenerated()) {
-			// Never build the hub inline during SERVER_STARTED — lunar disc writes force
-			// chunk gen under the pad and used to hitch right after "Preparing spawn 100%".
-			BlockPos hubAt = hub.toImmutable();
-			enqueueLandmark(hubAt, () -> {
-				if (DescentWorldState.get(world).isSpawnHubGenerated()) return;
-				generateSpawnHub(world, hubAt);
-				DescentWorldState.get(world).setSpawnHubGenerated(true);
-				DescentMod.LOGGER.info("Descent lunar hub generated at {}", hubAt.toShortString());
-			});
 		}
 
 		// HL2 path: megacity + nearby combat landmarks without full MACRO_WORLDGEN spam.
@@ -166,10 +173,18 @@ public final class DescentSession {
 					.describeNearest(player.getBlockX(), player.getBlockZ());
 			player.sendMessage(Text.literal(
 					"§7Explore: random UFO/outpost events · biome plates · 6DoF dungeons"), false);
-			player.sendMessage(Text.literal("§8" + cityTip + " · /d6 megacity|technogenic|scorched"), false);
+			player.sendMessage(Text.literal(
+					"§8" + cityTip + " · /d6 megacity|technogenic|scorched|guild|weapons give_all"), false);
 			if (player.isCreative()) {
 				player.giveItemStack(new ItemStack(ModItems.PYRO_GX));
-				player.sendMessage(Text.literal("§aCreative: Pyro GX given — right-click to deploy."), false);
+				for (Item w : com.terminaldetector.drmd.weapon.registry.ArsenalCatalog.creativeWeapons()) {
+					player.giveItemStack(new ItemStack(w));
+				}
+				for (Item egg : ModItems.creativeSpawnEggs()) {
+					player.giveItemStack(new ItemStack(egg));
+				}
+				player.sendMessage(Text.literal(
+						"§aCreative: Pyro + arsenal + spawn eggs · options kit / /d6 weapons give_all"), false);
 			}
 		}
 	}

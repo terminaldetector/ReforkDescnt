@@ -57,10 +57,11 @@ public final class ModWorldgen2 {
 			// Probe the loading chunk directly; the deferred check below can safely go through the
 			// world, because by then the chunk is fully loaded.
 			if (!chunk.getBlockState(origin).isOf(net.minecraft.block.Blocks.LODESTONE)) {
-				world.getServer().execute(() -> {
+				MacroEntry.Kind finalKind = kind;
+				com.terminaldetector.drmd.world.base.DescentSession.enqueueLandmark(origin, () -> {
 					if (world.getBlockState(origin).isOf(net.minecraft.block.Blocks.LODESTONE)) return;
 					Random random = Random.create(seed);
-					MegaStructureGenerator.generate(world, origin, kind, random);
+					MegaStructureGenerator.generate(world, origin, finalKind, random);
 				});
 			}
 		}
@@ -70,7 +71,8 @@ public final class ModWorldgen2 {
 			int roll = (int) Math.floorMod(seed >> 7, 4L);
 			int y = WorldRules.SKY_PRACTICAL_MIN + 20 + (int) Math.floorMod(seed, 40L);
 			BlockPos at = new BlockPos(cp.getStartX() + 8, y, cp.getStartZ() + 8);
-			world.getServer().execute(() -> spawnMega(world, at, roll));
+			com.terminaldetector.drmd.world.base.DescentSession.enqueueLandmark(at,
+					() -> spawnMega(world, at, roll));
 		}
 	}
 

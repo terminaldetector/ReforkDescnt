@@ -436,6 +436,14 @@ public final class ModNetworking {
 								com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH, 16));
 						player.giveItemStack(new net.minecraft.item.ItemStack(
 								com.terminaldetector.drmd.entity.ModWorldBlocks.DRILL_RIG, 4));
+						player.giveItemStack(new net.minecraft.item.ItemStack(
+								com.terminaldetector.drmd.weapon.items.ModItems.PYRO_GX));
+						for (var w : com.terminaldetector.drmd.weapon.registry.ArsenalCatalog.creativeWeapons()) {
+							player.giveItemStack(new net.minecraft.item.ItemStack(w));
+						}
+						for (var egg : com.terminaldetector.drmd.weapon.items.ModItems.creativeSpawnEggs()) {
+							player.giveItemStack(new net.minecraft.item.ItemStack(egg));
+						}
 					}
 				}
 				case "preset_balanced" -> EnergySystem.setPreset(data, EnergyPreset.BALANCED);

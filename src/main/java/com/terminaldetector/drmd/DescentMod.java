@@ -17,6 +17,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.server.world.ServerWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,6 +75,11 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.clear();
 			com.terminaldetector.drmd.world.fire.FireSystem.clear();
 			com.terminaldetector.drmd.world.base.DescentSession.clearSeedQueue();
+			// Queue is RAM-only; persisted "seeded" marks must reset or distant plates stay empty.
+			ServerWorld ow = server.getOverworld();
+			if (ow != null) {
+				com.terminaldetector.drmd.world.DescentWorldState.get(ow).clearLandmarkSeedMarks();
+			}
 			com.terminaldetector.drmd.world.build.ConstructScaffold.clearAll();
 			com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.clear();
 			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.clear();

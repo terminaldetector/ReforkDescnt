@@ -132,6 +132,22 @@ public class DescentWorldState extends PersistentState {
 		if (surfaceEventSeeded.add(pack(x, z))) markDirty();
 	}
 
+	/**
+	 * Drop plate/event "already queued" marks. The landmark queue is in-memory and wiped
+	 * every boot — keeping these marks left empty plates forever after a restart.
+	 */
+	public void clearLandmarkSeedMarks() {
+		boolean any = !megacitySeeded.isEmpty() || !technogenicSeeded.isEmpty()
+				|| !scorchedSeeded.isEmpty() || !ironGuildSeeded.isEmpty()
+				|| !surfaceEventSeeded.isEmpty();
+		megacitySeeded.clear();
+		technogenicSeeded.clear();
+		scorchedSeeded.clear();
+		ironGuildSeeded.clear();
+		surfaceEventSeeded.clear();
+		if (any) markDirty();
+	}
+
 	private static long pack(int x, int z) {
 		return ((long) x << 32) ^ (z & 0xffffffffL);
 	}

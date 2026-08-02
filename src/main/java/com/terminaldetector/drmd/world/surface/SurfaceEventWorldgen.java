@@ -150,7 +150,8 @@ public final class SurfaceEventWorldgen {
 		if (a == null) return null;
 		long dx = (long) blockX - a.getX();
 		long dz = (long) blockZ - a.getZ();
-		if (dx * dx + dz * dz > 96L * 96L) return null;
+		// Match landmark SEED_RADIUS — 96m was easy to fly past without ever enqueueing.
+		if (dx * dx + dz * dz > 256L * 256L) return null;
 		return a;
 	}
 

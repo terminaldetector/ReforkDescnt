@@ -6,8 +6,10 @@ import com.terminaldetector.drmd.weapon.registry.ArsenalCatalog;
 import com.terminaldetector.drmd.weapon.registry.WeaponDef;
 import com.terminaldetector.drmd.weapon.registry.WeaponRegistry;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemGroups;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -247,24 +249,29 @@ public final class ModItems {
 					entries.add(SHIELD_ORB);
 					entries.add(ENERGY_ORB_PICKUP);
 					for (Item w : ArsenalCatalog.creativeWeapons()) entries.add(w);
-					entries.add(EGG_ASSAULT);
-					entries.add(EGG_INTERCEPTOR);
-					entries.add(EGG_ARTILLERY);
-					entries.add(EGG_SUPPORT);
-					entries.add(EGG_HEAVY_ELITE);
-					entries.add(EGG_MG);
-					entries.add(EGG_LASER);
-					entries.add(EGG_RPG);
-					entries.add(EGG_HEAVY);
-					entries.add(EGG_SEEKER);
-					entries.add(EGG_TRIPOD);
-					entries.add(EGG_SCANNER);
-					entries.add(EGG_SPIDER_TURRET);
-					entries.add(EGG_OBLIVION_SEEKER);
+					for (Item egg : creativeSpawnEggs()) entries.add(egg);
 				})
 				.build());
 
+		// Also surface in vanilla tabs — players look there first when "eggs/weapons fell off".
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(entries -> {
+			for (Item egg : creativeSpawnEggs()) entries.add(egg);
+		});
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {
+			entries.add(PYRO_GX);
+			for (Item w : ArsenalCatalog.creativeWeapons()) entries.add(w);
+		});
+
 		DescentMod.LOGGER.info("Registered closed Descent arsenal ({} open weapons)", ArsenalCatalog.all().size());
+	}
+
+	/** All creative-visible spawn eggs (drones + surface mobs). */
+	public static Item[] creativeSpawnEggs() {
+		return new Item[]{
+				EGG_ASSAULT, EGG_INTERCEPTOR, EGG_ARTILLERY, EGG_SUPPORT, EGG_HEAVY_ELITE,
+				EGG_MG, EGG_LASER, EGG_RPG, EGG_HEAVY, EGG_SEEKER,
+				EGG_TRIPOD, EGG_SCANNER, EGG_SPIDER_TURRET, EGG_OBLIVION_SEEKER
+		};
 	}
 
 	private static Item egg(String id, com.terminaldetector.drmd.ai.AiRole role, int primary, int secondary) {
