@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "minecraft:block/sea_lantern"
+    "all": "drmd:block/locator_resonator"
   }
 }
