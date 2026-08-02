@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "XEX",
+    "AAA"
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "E": {
+      "item": "drmd:energy_cell"
+    },
+    "X": {
+      "item": "minecraft:red_dye"
+    }
+  },
+  "result": {
+    "id": "drmd:combat_zone",
+    "count": 1
+  }
+}

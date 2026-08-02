@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "FTF",
+    " A "
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "T": {
+      "item": "minecraft:tnt"
+    },
+    "F": {
+      "item": "minecraft:firework_rocket"
+    }
+  },
+  "result": {
+    "id": "drmd:bomb_rocket",
+    "count": 2
+  }
+}

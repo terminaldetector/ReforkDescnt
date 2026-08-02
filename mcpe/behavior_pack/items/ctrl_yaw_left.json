@@ -1,0 +1,22 @@
+{
+  "format_version": "1.20.50",
+  "minecraft:item": {
+    "description": {
+      "identifier": "drmd:ctrl_yaw_left",
+      "menu_category": {
+        "category": "equipment"
+      }
+    },
+    "components": {
+      "minecraft:max_stack_size": 1,
+      "minecraft:icon": "drmd_ctrl_yaw_left",
+      "minecraft:display_name": {
+        "value": "Рысканье влево (удерж)"
+      },
+      "minecraft:cooldown": {
+        "category": "drmd_ctrl",
+        "duration": 0.1
+      }
+    }
+  }
+}

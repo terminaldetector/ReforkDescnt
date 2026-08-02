@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "AEA",
+    "EME",
+    "AEA"
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "E": {
+      "item": "drmd:energy_cell"
+    },
+    "M": {
+      "item": "minecraft:magma_block"
+    }
+  },
+  "result": {
+    "id": "drmd:unstable_reactor",
+    "count": 1
+  }
+}

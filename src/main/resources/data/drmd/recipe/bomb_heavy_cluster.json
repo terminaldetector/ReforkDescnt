@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ATA",
+    "WTW",
+    "ATA"
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "T": {
+      "item": "minecraft:tnt"
+    },
+    "W": {
+      "item": "minecraft:gunpowder"
+    }
+  },
+  "result": {
+    "id": "drmd:bomb_heavy_cluster",
+    "count": 2
+  }
+}

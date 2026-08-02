@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " B ",
+    "AEA",
+    "ARA"
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "B": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "E": {
+      "item": "drmd:energy_cell"
+    },
+    "R": {
+      "item": "drmd:mining_laser"
+    }
+  },
+  "result": {
+    "id": "drmd:tunnel_laser",
+    "count": 1
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "drmd",
+  "version": "${version}",
+  "name": "DRMD 6DOF",
+  "description": "Descent-like 6DoF Minecraft: inertial flight, Pyro GX, industrial biomes, sky megastructures, mega fauna, LLOD. Ready for survival and creative.",
+  "authors": ["Terminal", "DRMD Team"],
+  "contact": {
+    "homepage": "https://github.com/terminaldetector/ReforkDescnt",
+    "sources": "https://github.com/terminaldetector/ReforkDescnt",
+    "issues": "https://github.com/terminaldetector/ReforkDescnt/issues"
+  },
+  "license": "MIT",
+  "icon": "assets/drmd/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.terminaldetector.drmd.DescentMod"],
+    "client": ["com.terminaldetector.drmd.client.DescentClient"]
+  },
+  "mixins": ["drmd.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "modmenu": "*"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://github.com/terminaldetector/ReforkDescnt"
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " B ",
+    "AEA",
+    " A "
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "B": {
+      "item": "minecraft:gold_ingot"
+    },
+    "E": {
+      "item": "drmd:energy_cell"
+    }
+  },
+  "result": {
+    "id": "drmd:repair_laser",
+    "count": 1
+  }
+}

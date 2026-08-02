@@ -1,0 +1,9 @@
+{
+  "credit": "DRMD tunnel drill rig active",
+  "parent": "drmd:block/tunnel_drill_rig",
+  "textures": {
+    "particle": "drmd:block/tunnel_drill_rig_active",
+    "body": "drmd:block/tunnel_drill_rig_active",
+    "accent": "drmd:block/reactor_core_block"
+  }
+}

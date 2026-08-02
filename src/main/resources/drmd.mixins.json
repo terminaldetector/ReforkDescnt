@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "package": "com.terminaldetector.drmd.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "PlayerEntityMixin",
+    "LivingEntityMixin",
+    "EnderDragonFightMixin"
+  ],
+  "client": [
+    "client.CameraAccessor",
+    "client.CameraMixin",
+    "client.ClientWorldMixin",
+    "client.GameRendererMixin",
+    "client.InGameHudMixin",
+    "client.LivingEntityRendererMixin",
+    "client.MouseMixin",
+    "client.PlayerFlightTravelMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

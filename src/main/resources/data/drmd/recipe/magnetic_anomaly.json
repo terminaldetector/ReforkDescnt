@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "AMA",
+    "MTM",
+    "AMA"
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "M": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "T": {
+      "item": "drmd:targeting_core"
+    }
+  },
+  "result": {
+    "id": "drmd:magnetic_anomaly",
+    "count": 1
+  }
+}

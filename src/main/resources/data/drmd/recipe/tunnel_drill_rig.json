@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AIA",
+    "TRT",
+    "AEA"
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "T": {
+      "item": "minecraft:redstone_block"
+    },
+    "R": {
+      "item": "drmd:drill_rig"
+    },
+    "E": {
+      "item": "drmd:energy_cell"
+    }
+  },
+  "result": {
+    "id": "drmd:tunnel_drill_rig",
+    "count": 1
+  }
+}

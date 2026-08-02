@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "AGA",
+    "GEG",
+    "AGA"
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "E": {
+      "item": "drmd:energy_cell"
+    }
+  },
+  "result": {
+    "id": "drmd:laser_barrier",
+    "count": 4
+  }
+}

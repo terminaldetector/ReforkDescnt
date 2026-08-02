@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=down":  { "model": "drmd:block/gravity_generator", "x": 180 },
+    "facing=up":    { "model": "drmd:block/gravity_generator" },
+    "facing=north": { "model": "drmd:block/gravity_generator", "x": 90 },
+    "facing=south": { "model": "drmd:block/gravity_generator", "x": 90, "y": 180 },
+    "facing=west":  { "model": "drmd:block/gravity_generator", "x": 90, "y": 270 },
+    "facing=east":  { "model": "drmd:block/gravity_generator", "x": 90, "y": 90 }
+  }
+}
