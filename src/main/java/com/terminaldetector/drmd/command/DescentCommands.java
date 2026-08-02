@@ -597,7 +597,7 @@ public final class DescentCommands {
 										int y = com.terminaldetector.drmd.world.psychedelic.PsychedelicWorldgen.SPAWN_Y;
 										p.requestTeleport(0.5, y + 2.0, 0.5);
 										DescentPlayerData d = DescentPlayerData.get(p);
-										d.setEnabled(true);
+										FlightSystem.enable(p, d);
 										d.setGravityFactor(0f);
 										ModNetworking.syncPlayer(p, d);
 										ctx.getSource().sendFeedback(() -> Text.literal(

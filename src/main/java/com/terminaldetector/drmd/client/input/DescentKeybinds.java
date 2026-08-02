@@ -109,6 +109,7 @@ public final class DescentKeybinds {
 			if (tab && com.terminaldetector.drmd.client.hud.TerrainMap3d.canUse(client.player)) {
 				com.terminaldetector.drmd.client.hud.TerrainMap3d.toggle();
 			} else if (!tab) {
+				com.terminaldetector.drmd.client.DescentClient.markUserFlightChoice();
 				sendAction("toggle");
 			}
 		}

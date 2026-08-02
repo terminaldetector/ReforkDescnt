@@ -18,16 +18,16 @@ import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
 /**
- * Client display hook at layer seams — fake block curtain, not a built parallelepiped.
+ * Client display hook at layer seams — fake block curtains for the world parallelepiped,
+ * not built volumes.
  *
- * <p>When the pilot is near a {@link LayerBridge} teleport edge, draw a thin plate of coloured
- * quads at that Y so the boundary reads as a place. Worldgen does not fill three stacked volumes;
- * this is the visual only.
+ * <p>Draws every major face (Y −240 / 40 / 320 / 880) within range so surface play still sees
+ * the stack, plus a thin vertical rim marking the teleport zone thickness.
  */
 public final class BoundarySeamRenderer {
-	/** How close (blocks) before the curtain appears. */
-	private static final double SHOW_DIST = 48.0;
-	private static final int HALF = 24;
+	/** How close (blocks) before a face curtain appears. */
+	private static final double SHOW_DIST = 120.0;
+	private static final int HALF = 32;
 	private static final float CELL = 2f;
 
 	private BoundarySeamRenderer() {}
@@ -42,24 +42,10 @@ public final class BoundarySeamRenderer {
 		if (mc.world.getRegistryKey() != net.minecraft.world.World.OVERWORLD) return;
 
 		double py = mc.player.getY();
-		int seamY = LayerBridge.nearestSeamY(py);
-		if (seamY == Integer.MIN_VALUE) return;
-		double dist = Math.abs(py - seamY);
-		if (dist > SHOW_DIST) return;
-
-		WorldLayer below = WorldLayer.at(seamY - 1);
-		WorldLayer above = WorldLayer.at(seamY + 1);
-		float alpha = (float) MathHelper.clamp(1.0 - dist / SHOW_DIST, 0.12, 0.55);
-		if (DescentClientState.enabled) alpha *= 0.85f;
-
 		Vec3d cam = ctx.camera().getPos();
 		Matrix4f mat = ctx.matrixStack().peek().getPositionMatrix();
 		int ox = MathHelper.floor(mc.player.getX() / CELL) * (int) CELL;
 		int oz = MathHelper.floor(mc.player.getZ() / CELL) * (int) CELL;
-		float y = (float) (seamY + 0.02 - cam.y);
-
-		int argbBelow = below.hudColor;
-		int argbAbove = above.hudColor;
 
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
@@ -70,7 +56,46 @@ public final class BoundarySeamRenderer {
 		Tessellator tess = Tessellator.getInstance();
 		BufferBuilder buf = tess.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 
-		// Checker of "blocks" on the seam plane — reads as a boundary, not a solid cube world.
+		int nearest = LayerBridge.nearestSeamY(py);
+		boolean drew = false;
+		for (int seamY : LayerBridge.parallelepipedFaces()) {
+			double dist = Math.abs(py - seamY);
+			if (dist > SHOW_DIST) continue;
+			drew = true;
+			WorldLayer below = WorldLayer.at(seamY - 1);
+			WorldLayer above = WorldLayer.at(seamY + 1);
+			float alpha = (float) MathHelper.clamp(1.0 - dist / SHOW_DIST, 0.10, 0.62);
+			// Nearest face reads stronger; far faces stay as stack context.
+			if (seamY != nearest) alpha *= 0.45f;
+			if (DescentClientState.enabled) alpha *= 0.9f;
+			if (LayerBridge.inSeamZone(py) && seamY == nearest) alpha = Math.min(0.72f, alpha + 0.18f);
+
+			paintFace(buf, mat, cam, ox, oz, seamY, below.hudColor, above.hudColor, alpha);
+		}
+
+		var built = buf.endNullable();
+		if (built != null) {
+			BufferRenderer.drawWithGlobalProgram(built);
+		}
+
+		RenderSystem.depthMask(true);
+		RenderSystem.enableCull();
+		RenderSystem.disableBlend();
+
+		// One-line action bar cue when inside the teleport zone so hooks feel wired.
+		if (drew && LayerBridge.inSeamZone(py) && mc.player.age % 40 == 0) {
+			mc.player.sendMessage(net.minecraft.text.Text.literal(
+					DescentClientState.enabled
+							? "§b◈ SEAM §7— 6DoF hop armed · Y " + nearest
+							: "§b◈ SEAM §7— display hook · press §fH §7for 6DoF hop · Y " + nearest), true);
+		}
+	}
+
+	private static void paintFace(BufferBuilder buf, Matrix4f mat, Vec3d cam,
+								  int ox, int oz, int seamY,
+								  int argbBelow, int argbAbove, float alpha) {
+		float y = (float) (seamY + 0.02 - cam.y);
+
 		for (int dx = -HALF; dx < HALF; dx += (int) CELL) {
 			for (int dz = -HALF; dz < HALF; dz += (int) CELL) {
 				boolean alt = (((dx + dz) / (int) CELL) & 1) == 0;
@@ -86,14 +111,13 @@ public final class BoundarySeamRenderer {
 			}
 		}
 
-		// Thin vertical rim so the teleport zone has a thickness cue.
 		float rim = LayerBridge.SEAM_HALF;
 		float y0 = (float) (seamY - rim - cam.y);
 		float y1 = (float) (seamY + rim - cam.y);
 		float rr = ((argbAbove >> 16) & 0xFF) / 255f;
 		float gg = ((argbAbove >> 8) & 0xFF) / 255f;
 		float bb = (argbAbove & 0xFF) / 255f;
-		float aRim = alpha * 0.35f;
+		float aRim = alpha * 0.4f;
 		for (int i = -HALF; i <= HALF; i += (int) CELL * 4) {
 			float x = (float) (ox + i - cam.x);
 			float z = (float) (oz - HALF - cam.z);
@@ -101,15 +125,6 @@ public final class BoundarySeamRenderer {
 			z = (float) (oz + HALF - cam.z);
 			quad(buf, mat, x, y0, z, x + 0.15f, y0, z, x + 0.15f, y1, z, x, y1, z, rr, gg, bb, aRim);
 		}
-
-		var built = buf.endNullable();
-		if (built != null) {
-			BufferRenderer.drawWithGlobalProgram(built);
-		}
-
-		RenderSystem.depthMask(true);
-		RenderSystem.enableCull();
-		RenderSystem.disableBlend();
 	}
 
 	private static void quad(BufferBuilder buf, Matrix4f mat,

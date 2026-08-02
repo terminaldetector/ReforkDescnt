@@ -64,10 +64,14 @@ public class DescentMod implements ModInitializer {
 		// every world after the first, because the flag saying the first-join branch had already run
 		// was part of what carried over. Cleared at both ends: on stop for the ordinary case, on
 		// start in case a stop never happened.
-		ServerLifecycleEvents.SERVER_STOPPED.register(server -> DescentPlayerData.clear());
+		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+			DescentPlayerData.clear();
+			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
+		});
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			DescentPlayerData.clear();
+			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
 			ConstructionRegistry.bootstrap(server);
 			com.terminaldetector.drmd.world.gen2.MacroWorld.clear();
 			com.terminaldetector.drmd.world.gravity.GravityFields.clear();
@@ -120,13 +124,14 @@ public class DescentMod implements ModInitializer {
 			});
 			server.getPlayerManager().getPlayerList().forEach(player -> {
 				DescentPlayerData data = DescentPlayerData.get(player);
+				// Seam announce + display-hook pairing always; teleport only when 6DoF armed.
+				com.terminaldetector.drmd.world.layer.LayerBridge.tick(player, data);
 				if (data.isEnabled()) {
 					FlightSystem.tick(player, data);
 					EnergySystem.regenTick(player, data);
 					ShieldSystem.regenTick(player, data);
 					com.terminaldetector.drmd.physics.GravyPhysics.tick(player);
 					com.terminaldetector.drmd.pickup.LootField.tick(player, data);
-					com.terminaldetector.drmd.world.layer.LayerBridge.tick(player, data);
 				} else {
 					com.terminaldetector.drmd.world.gravity.FootGravitySystem.tick(player);
 				}
@@ -151,6 +156,7 @@ public class DescentMod implements ModInitializer {
 				(world, chunk) -> com.terminaldetector.drmd.world.llod.planet.PlanetScarApplier.onChunkLoad(world, chunk));
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid());
 			ConstructionRegistry.allOverrides().forEach((id, mods) -> {
 				ServerPlayNetworking.send(handler.player,
 						new ModNetworking.ConstructionPayload(id, ClusterModule.listToNbt(mods)));
@@ -164,7 +170,10 @@ public class DescentMod implements ModInitializer {
 			});
 		});
 
-		LOGGER.info("DRMD 6DOF 1.0.5 ready — Sky UFO relocate-safe · creative 6DoF · seam hooks");
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
+				com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid()));
+
+		LOGGER.info("DRMD 6DOF 1.0.6 ready — deep 6DoF lock · seam hooks always-on");
 	}
 
 	/**

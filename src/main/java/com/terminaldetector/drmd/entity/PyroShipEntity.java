@@ -67,7 +67,7 @@ public class PyroShipEntity extends PathAwareEntity {
 			wasPiloted = true;
 			landTicks = 0;
 			DescentPlayerData data = DescentPlayerData.get(pilot);
-			if (!data.isEnabled()) data.setEnabled(true);
+			if (!data.isEnabled()) FlightSystem.enable(pilot, data);
 			FootGravitySystem.clear(pilot.getUuid());
 			Vec3d vel = data.getFlightVelocity();
 			this.setVelocity(vel);
@@ -162,14 +162,10 @@ public class PyroShipEntity extends PathAwareEntity {
 			player.startRiding(this);
 			if (player instanceof ServerPlayerEntity sp) {
 				DescentPlayerData data = DescentPlayerData.get(sp);
-				data.setEnabled(true);
-				data.ensureInit();
-				FootGravitySystem.clear(sp.getUuid());
+				com.terminaldetector.drmd.flight.FlightSystem.enable(sp, data);
 				ConstructionMode.set(sp, false);
 				LocalOrientation.setUp(sp.getUuid(), new Vec3d(0, 1, 0));
-				sp.setNoGravity(true);
 				sp.sendMessage(Text.literal("§bPyro GX §7— thrusters online (gravity torches ignored)"), false);
-				ModNetworking.syncPlayer(sp, data);
 			}
 			return ActionResult.SUCCESS;
 		}

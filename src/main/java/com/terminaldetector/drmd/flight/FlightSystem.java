@@ -294,6 +294,11 @@ public final class FlightSystem {
 		if (!com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player.getUuid())) {
 			player.setNoGravity(false);
 		}
+		// Restore creative fly permission so H-off can build again.
+		if (player.getAbilities().creativeMode && !player.getAbilities().allowFlying) {
+			player.getAbilities().allowFlying = true;
+			player.sendAbilitiesUpdate();
+		}
 		ModNetworking.syncPlayer(player, data);
 	}
 
@@ -314,10 +319,17 @@ public final class FlightSystem {
 		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
 		data.setEnabled(true);
 		data.ensureInit();
+		boolean dirty = false;
 		if (player.getAbilities().flying) {
 			player.getAbilities().flying = false;
-			player.sendAbilitiesUpdate();
+			dirty = true;
 		}
+		// Hard-block creative double-tap while armed — client mixin mirrors this each tick.
+		if (player.getAbilities().allowFlying) {
+			player.getAbilities().allowFlying = false;
+			dirty = true;
+		}
+		if (dirty) player.sendAbilitiesUpdate();
 		player.setNoGravity(true);
 		ModNetworking.syncPlayer(player, data);
 	}

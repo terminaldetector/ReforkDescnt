@@ -147,6 +147,24 @@ public final class DescentFlightMotion {
 			vel = vel.add(wish.normalize().multiply(accel * dt));
 		}
 
+		// Match server micro-g + idle gravity ramp so the predictor does not fight SyncPayload sink.
+		MinecraftClient mc = MinecraftClient.getInstance();
+		boolean endVacuum = false;
+		if (mc != null && mc.world != null && mc.player != null) {
+			var level = com.terminaldetector.drmd.world.level.WorldLevels.at(mc.player.getY());
+			endVacuum = mc.world.getRegistryKey() == net.minecraft.world.World.END
+					|| level == com.terminaldetector.drmd.world.level.WorldLevels.Level.END
+					|| level == com.terminaldetector.drmd.world.level.WorldLevels.Level.ORBITAL;
+		}
+		if (!endVacuum) {
+			// Server default ship gravity is 200 Source-units; only the idle factor is synced.
+			double g = DescentMod.su(FlightSystem.MICRO_GRAV)
+					+ DescentMod.su(200f) * MathHelper.clamp(DescentClientState.gravityFactor, 0f, 1f);
+			if (g > 0) {
+				vel = vel.add(0, -g * dt, 0);
+			}
+		}
+
 		double speed = vel.length();
 		if (speed > 1e-4) {
 			double qDrag = DescentClientState.drag * speed * speed * DescentMod.UNIT_SCALE * dt;
@@ -160,5 +178,11 @@ public final class DescentFlightMotion {
 		double maxSpd = DescentMod.su(DescentClientState.maxSpeed) * speedMult;
 		if (vel.length() > maxSpd) vel = vel.normalize().multiply(maxSpd);
 		return vel;
+	}
+
+	/** Hard snap after seam teleport / large authority jump — blend would lurch for seconds. */
+	public static void snapToServerVelocity(float x, float y, float z) {
+		predicted = new Vec3d(x, y, z).multiply(DescentMod.TICKS_PER_SECOND);
+		primed = true;
 	}
 }

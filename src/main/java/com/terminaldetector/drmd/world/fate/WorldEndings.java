@@ -92,7 +92,7 @@ public final class WorldEndings {
 
 	public static void enterVoidFlight(ServerPlayerEntity p) {
 		DescentPlayerData data = DescentPlayerData.get(p);
-		data.setEnabled(true);
+		com.terminaldetector.drmd.flight.FlightSystem.enable(p, data);
 		data.setAlwaysRun(true);
 		data.setFlightAssist(false);
 		// Park above the old column — empty half-cube sky.
@@ -131,8 +131,7 @@ public final class WorldEndings {
 			for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
 				DescentPlayerData data = DescentPlayerData.get(p);
 				if (!data.isEnabled()) {
-					data.setEnabled(true);
-					ModNetworking.syncPlayer(p, data);
+					com.terminaldetector.drmd.flight.FlightSystem.enable(p, data);
 				}
 				clearSphere(p.getServerWorld(), p.getBlockPos(), 28);
 				if (p.getY() < WorldLevels.SKY_TOP) {

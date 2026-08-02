@@ -36,6 +36,10 @@ public final class LayerBridge {
 
 	private LayerBridge() {}
 
+	/**
+	 * Always tick (not only while 6DoF is on): announce layer changes for every pilot.
+	 * Seam teleport still requires Descent armed — otherwise creative walk would yoyo at edges.
+	 */
 	public static void tick(ServerPlayerEntity player, DescentPlayerData data) {
 		UUID id = player.getUuid();
 		int cd = COOLDOWN.getOrDefault(id, 0);
@@ -53,7 +57,10 @@ public final class LayerBridge {
 
 		announce(player, now);
 		COOLDOWN.put(id, COOLDOWN_TICKS);
-		seamTeleport(player, data, prev, now);
+		// Teleport hop only when 6DoF owns motion — walking uses announce + display hooks alone.
+		if (data != null && data.isEnabled()) {
+			seamTeleport(player, data, prev, now);
+		}
 	}
 
 	/** True when {@code y} sits inside a layer boundary teleport zone. */
@@ -80,6 +87,16 @@ public final class LayerBridge {
 			}
 		}
 		return best;
+	}
+
+	/** Major parallelepiped face Ys — lower / mid / upper narrative cuts. */
+	public static int[] parallelepipedFaces() {
+		return new int[] {
+				WorldLayer.DUNGEON.yMin,   // −240
+				WorldLayer.SURFACE.yMin,   // 40
+				WorldLayer.ORBIT.yMin,     // 320
+				WorldLayer.OBLIVION.yMin   // 880
+		};
 	}
 
 	private static void announce(ServerPlayerEntity player, WorldLayer layer) {
@@ -144,5 +161,10 @@ public final class LayerBridge {
 	public static void clear(UUID id) {
 		LAST.remove(id);
 		COOLDOWN.remove(id);
+	}
+
+	public static void clearAll() {
+		LAST.clear();
+		COOLDOWN.clear();
 	}
 }

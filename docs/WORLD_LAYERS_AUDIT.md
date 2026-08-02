@@ -27,7 +27,9 @@ Immersive Portals — опциональный soft-dep для настояще�
 ## 6DoF + креатив
 
 Vanilla creative `abilities.flying` (двойной пробел) ломает корпус: Y×0.6 и flySpeed вне `travel()`.  
-Пока Descent включён: клиент (`ClientPlayerEntityMixin`) и сервер держат `flying=false`, `allowFlying` остаётся — H выключает 6DoF и возвращает обычный креатив-полёт.
+Пока Descent включён: клиент (`ClientPlayerEntityMixin` HEAD+RETURN) и сервер держат `flying=false` **и** `allowFlying=false` — двойной пробел не может перевключить fly. H выключает 6DoF и возвращает `allowFlying` в креативе. Серверный `ServerPlayerFlightTravelMixin` отменяет vanilla `travel` пока armed.
+
+`LayerBridge.tick` всегда (announce + display); teleport-hop только при 6DoF. `BoundarySeamRenderer` рисует все грани параллелепипеда (−240/40/320/880) в радиусе 120.
 
 ---
 
