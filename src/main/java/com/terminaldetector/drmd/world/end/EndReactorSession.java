@@ -266,12 +266,15 @@ public final class EndReactorSession {
 	}
 
 	/**
-	 * Victory marker — the dragon-fight analogue.
+	 * Victory marker — the dragon-fight analogue (primary ending).
 	 *
 	 * <p>In the End dimension that is a ring of gateways home, as vanilla does it. In the END band
 	 * there is nowhere to portal <em>to</em>: the way back is the same column you flew up, so the
 	 * reward is a landing pad and a lit trophy instead of four gateways that would teleport a pilot
 	 * out of a world they never left.
+	 *
+	 * <p>Second ending (escape / survive aftermath) needs nothing special here — dig path,
+	 * {@code ReactorAftermath}, and DimensionSync already cover it.
 	 */
 	public static void placeExitGateways(ServerWorld world, BlockPos at) {
 		world.setBlockState(at, Blocks.DRAGON_EGG.getDefaultState(), Block.NOTIFY_ALL);

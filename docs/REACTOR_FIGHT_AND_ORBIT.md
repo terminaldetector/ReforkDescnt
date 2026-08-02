@@ -22,6 +22,15 @@ Territory bias: technogenic sea / megacity skew alive; scorched / surface events
 
 Giga-reactor (End fight) calls the same aftermath with a denser asteroid rain.
 
+## Endings (design note)
+
+| Ending | What it is | Extra systems? |
+|--------|------------|----------------|
+| **Primary** | Destroy End giga-reactor → gateways / landing pad + aftermath | Already wired |
+| **Second** | Survive / escape the column aftermath (dig mantle, fall view, surface scars) without a unique finale set-piece | **Nothing special required** — reuse `ReactorAftermath`, `DimensionSync`, dig path, fall-aftermath camera |
+
+The second ending is narrative framing on existing tools, not a second boss or scripted epilogue.
+
 ## Orbit structure (stock column — not End)
 
 ```
