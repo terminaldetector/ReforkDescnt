@@ -302,12 +302,7 @@ public final class MegacityGenerator {
 				world, origin, Math.min(half - 4, 26), y + 36, 10, true);
 		com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeTurretRing(
 				world, origin, 18, y + 2, 8, true);
-		if (world instanceof ServerWorld sw) {
-			com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeCyclicLaserLoop(
-					sw, origin, 12, y + 3, 3);
-			com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeCyclicLaserLoop(
-					sw, origin, 8, y + 37, 2);
-		}
+		// Cyclic rail loops left to the player kit — auto-place used to crash on powered_rail curves.
 	}
 
 	/**

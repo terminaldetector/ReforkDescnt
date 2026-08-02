@@ -164,7 +164,7 @@ public class DescentMod implements ModInitializer {
 			});
 		});
 
-		LOGGER.info("DRMD 6DOF ready — Descent session is native to this Minecraft world");
+		LOGGER.info("DRMD 6DOF 1.0.1 ready — rail-safe hub/End · Descent session native");
 	}
 
 	/**

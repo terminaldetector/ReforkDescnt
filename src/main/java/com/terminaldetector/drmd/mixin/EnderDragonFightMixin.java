@@ -19,9 +19,13 @@ public class EnderDragonFightMixin {
 
 	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)
 	private void drmd$replaceDragonFight(CallbackInfo ci) {
-		// Always kill stock dragons; arena raise is gated — building the full reactor
-		// on every End tick (incl. world create with 0 players) froze join / crashed.
-		EndReactorSession.onDragonFightTick(world);
+		// Always kill stock dragons; arena raise is gated. Entire path must be exception-safe —
+		// an uncaught IAE here (powered_rail curves) crashed the integrated server on join.
+		try {
+			EndReactorSession.onDragonFightTick(world);
+		} catch (Throwable t) {
+			com.terminaldetector.drmd.DescentMod.LOGGER.error("EnderDragonFight mixin tick failed", t);
+		}
 		ci.cancel();
 	}
 

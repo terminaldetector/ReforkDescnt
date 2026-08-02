@@ -126,14 +126,19 @@ public final class EndReactorSession {
 	 * (or the base already exists and needs a boss check).
 	 */
 	public static void onDragonFightTick(ServerWorld end) {
-		suppressDragons(end);
-		EndReactorState state = EndReactorState.get(end);
-		if (state.isBaseGenerated()) {
-			ensureBossAlive(end, state);
-			return;
+		try {
+			suppressDragons(end);
+			EndReactorState state = EndReactorState.get(end);
+			if (state.isBaseGenerated()) {
+				ensureBossAlive(end, state);
+				return;
+			}
+			if (!playerNearArena(end)) return;
+			ensureBase(end);
+		} catch (Exception e) {
+			// Dragon-fight mixin runs every End tick — never let arena code kill the server.
+			DescentMod.LOGGER.error("End reactor tick failed — skipped", e);
 		}
-		if (!playerNearArena(end)) return;
-		ensureBase(end);
 	}
 
 	public static void ensureBase(ServerWorld end) {
@@ -242,11 +247,10 @@ public final class EndReactorSession {
 			placeTurretPad(world, base.add(0, 8, 3), ModWorldBlocks.POINT_DEFENSE_TURRET);
 		}
 
-		// Inner ring: embedded casemate turrets + shield cross + cyclic laser sweep
+		// Inner ring: embedded casemate turrets + shield cross (no cyclic rails —
+		// powered_rail curves crashed join / End tick; kit item still places loops).
 		com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeTurretRing(
 				world, center, 14, center.getY() + 1, 8, true);
-		com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeCyclicLaserLoop(
-				world, center, 18, center.getY() + 1, 3);
 
 		// Approach bridges toward outer islands
 		for (int d = 28; d <= 48; d++) {

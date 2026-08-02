@@ -1,20 +1,20 @@
-DRMD 6DOF — ПК TLauncher Fabric 1.21.1
+DRMD 6DOF 1.0.1 — ПК TLauncher Fabric 1.21.1
 =======================================
-Jar: drmd-6dof-1.0.0-fabric-1.21.1.jar
-Он же: drmd-6dof-1.0.0.jar
+Jar: drmd-6dof-1.0.1-fabric-1.21.1.jar
+Он же: drmd-6dof-1.0.1.jar
 
 Установка
   1. Версии → Fabric Loader для Minecraft 1.21.1
   2. Java 21+ в настройках лаунчера
-  3. В mods/: этот jar + Fabric API 1.21.1
-  4. Запуск Fabric 1.21.1 → новый мир
+  3. УДАЛИ ВСЕ старые drmd-6dof*.jar из mods/ и versions/*/mods/
+  4. Положи ТОЛЬКО drmd-6dof-1.0.1-fabric-1.21.1.jar + Fabric API 1.21.1
+  5. В логе должно быть: "DRMD 6DOF 1.0.1 ready"
+  6. Новый мир
 
-Не класть *-sources.jar / *-dev.jar в mods — это не мод.
+Не класть *-sources.jar / *-dev.jar в mods.
 
-Если краш при заходе или зависание на «Preparing spawn»
-  - поставь свежий jar: чинились четыре отдельные причины —
-    nav_node (Blocks.LIGHT), форма overworld.json, негейченный
-    CHUNK_LOAD и сид мира на потоке сервера
-  - создай НОВЫЙ мир: старый сохранил повреждённое состояние
+Краш powered_rail / south_east
+  В 1.0.1 cyclic rails убраны с hub/End. Если краш остаётся —
+  в mods лежит старый 1.0.0 (проверь имя файла и строку ready в логе).
 
 Сборка: ./gradlew build --no-daemon

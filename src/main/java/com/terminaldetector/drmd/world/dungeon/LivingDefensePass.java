@@ -32,10 +32,7 @@ public final class LivingDefensePass {
 		// Inner living section — always for ALIVE / SEMI_ALIVE
 		placeInnerTraps(world, origin, random, vitality == DungeonVitality.SEMI_ALIVE);
 
-		if (vitality == DungeonVitality.ALIVE && random.nextBoolean()
-				&& world instanceof net.minecraft.server.world.ServerWorld sw) {
-			RingDefenseStructures.placeCyclicLaserLoop(sw, origin, 8, origin.getY() + 4, 2);
-		}
+		// Cyclic rail loops: kit-only. Auto-place on join/dungeon gen crashed with powered_rail curves.
 	}
 
 	private static void placeInnerTraps(WorldAccess world, BlockPos origin, Random random, boolean deepOnly) {
