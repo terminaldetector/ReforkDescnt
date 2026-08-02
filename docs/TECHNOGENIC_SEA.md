@@ -17,9 +17,10 @@ Inspired by *Spark the Electric Jester* seascapes.
 
 | Landmark | Role |
 |----------|------|
-| **Mega Locator** | Tall deepslate tower + iron parabolic dish · `MacroWorld` / voxel LLOD silhouette |
-| **Locator ×5** | Smaller dish towers around the mega |
-| **Subsea dungeon** | `SUBSEA_LOCATOR` industrial complex under the mega — flyable cavities |
+| **Mega Locator** | Tower + dish with `locator_core` / panel / resonators · `MacroWorld` LLOD |
+| **Locator ×5** | Smaller dish towers (`locator_resonator`) around the mega |
+| **Subsea dungeon** | Territory-picked style (`SUBSEA_LOCATOR` / `SIGNAL_ARRAY` / `HOLLOW_RING`) under the mega |
+| **Signal satellite** | Second underwater 6DoF node nearby |
 
 ## Commands
 
