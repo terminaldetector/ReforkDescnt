@@ -30,6 +30,20 @@ public class DescentClient implements ClientModInitializer {
 		com.terminaldetector.drmd.client.smoke.SmokeRenderer.register();
 		registerRenderLayers();
 
+		// Drop the client's copy of the session on disconnect.
+		//
+		// DescentClientState and the attitude are static, so they outlive the world. Nothing cleared
+		// them, and the sync handler only primes the attitude on the edge where 6DoF goes from off to
+		// on — so leaving a world with it on and joining another one left `enabled` already true, the
+		// edge never fired, and the priming step was skipped. This is the client half of the same
+		// leak that kept 6DoF switched off on the server after the first world.
+		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
+				(handler, client) -> {
+					DescentClientState.enabled = false;
+					DescentClientState.attitudeValid = false;
+					com.terminaldetector.drmd.client.flight.ShipAttitudeClient.clear();
+				});
+
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SyncPayload.ID, (payload, context) -> {
 			boolean wasEnabled = DescentClientState.enabled;
 			DescentClientState.enabled = payload.enabled();
