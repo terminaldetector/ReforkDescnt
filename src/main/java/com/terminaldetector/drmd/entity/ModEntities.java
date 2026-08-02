@@ -129,7 +129,7 @@ public final class ModEntities {
 			Identifier.of(DescentMod.MOD_ID, "tripod"),
 			EntityType.Builder.<com.terminaldetector.drmd.entity.mob.TripodEntity>create(
 							com.terminaldetector.drmd.entity.mob.TripodEntity::new, SpawnGroup.MONSTER)
-					.dimensions(2.4f, 4.6f)
+					.dimensions(3.2f, 6.0f)
 					.maxTrackingRange(96)
 					.build()
 	);

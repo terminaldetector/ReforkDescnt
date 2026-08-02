@@ -27,11 +27,10 @@ import net.minecraft.world.World;
 import java.util.EnumSet;
 
 /**
- * Tripod strider — War of the Worlds–style fighting machine.
+ * Tripod strider — early War of the Worlds war machine (1953 / transistor-age).
  *
- * <p>Heavy ground unit: cobra-hood head, long articulated legs, heat-ray lance. Holds a mid
- * standoff, telegraphs the lance with a visible charge, and stomps anything underneath. Turning
- * eases about its own axis so the hood pivots instead of sliding.
+ * <p>Heavy ground unit: large copper chassis, swan-neck heat ray, tall spindly legs. Holds a mid
+ * standoff, telegraphs the lance with a visible charge, and stomps anything underneath.
  */
 public class TripodEntity extends CyberMobEntity {
 	private static final TrackedData<Float> CHARGE =

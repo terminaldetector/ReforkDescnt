@@ -17,15 +17,15 @@ public class TripodRenderer extends MobEntityRenderer<TripodEntity, TripodModel>
 			Identifier.of(DescentMod.MOD_ID, "textures/entity/tripod.png");
 
 	public TripodRenderer(EntityRendererFactory.Context ctx) {
-		super(ctx, new TripodModel(ctx.getPart(LAYER)), 1.35f);
+		super(ctx, new TripodModel(ctx.getPart(LAYER)), 1.85f);
 	}
 
 	@Override
 	public void render(TripodEntity entity, float yaw, float tickDelta, MatrixStack matrices,
 					   VertexConsumerProvider consumers, int light) {
 		matrices.push();
-		// Slight presence scale — WotW machines read taller than the hitbox alone.
-		matrices.scale(1.08f, 1.12f, 1.08f);
+		// Early WotW machines are big — presence scale beyond the collision box.
+		matrices.scale(1.35f, 1.4f, 1.35f);
 		super.render(entity, yaw, tickDelta, matrices, consumers, light);
 		matrices.pop();
 	}

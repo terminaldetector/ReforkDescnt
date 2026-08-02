@@ -855,46 +855,54 @@ def hazard(im, x0, y0, x1, y1, a, b):
 
 
 def ent_tripod():
-    """128×128 — WotW fighting machine: bronze hood, heat-ray eye, spindly legs, tentacles."""
+    """128×128 — 1953 / transistor-age WotW: polished copper chassis, swan neck, green lens."""
     im = img(128, 128)
-    BRONZE = (92, 78, 58, 255)
-    BRONZE_D = (54, 46, 36, 255)
-    BRONZE_L = (130, 112, 84, 255)
-    HEAT = (255, 48, 28, 255)
-    HEAT_C = (255, 180, 90, 255)
-    # body 12×8×12 @ 0,0
-    box(im, 0, 0, 12, 8, 12, BRONZE_D, accent=BRONZE)
-    box(im, 0, 20, 9, 5, 9, BRONZE, accent=BRONZE_L)
-    # hood 20×16×12 @ 48,0
-    box(im, 48, 0, 20, 16, 12, BRONZE, accent=HEAT, stripe=False)
-    box(im, 48, 28, 10, 12, 8, BRONZE_D, accent=BRONZE)
-    box(im, 0, 34, 16, 4, 6, BRONZE_L, accent=HEAT)
-    # eye + emitter
-    box(im, 112, 0, 6, 6, 3, HEAT, accent=HEAT_C)
-    box(im, 112, 10, 3, 3, 14, BRONZE_D, accent=HEAT)
-    box(im, 112, 28, 5, 5, 3, HEAT_C, accent=HEAT)
-    # hip / upper / lower / foot
-    box(im, 0, 44, 6, 5, 6, BRONZE, accent=BRONZE_L)
-    box(im, 24, 44, 4, 18, 4, BRONZE_D, accent=BRONZE)
-    box(im, 40, 44, 5, 4, 5, BRONZE_L, accent=AMBER)
-    box(im, 60, 48, 3, 20, 3, BRONZE_D, accent=BRONZE)
-    box(im, 72, 48, 2, 6, 2, BRONZE, accent=BRONZE_L)
-    box(im, 80, 48, 7, 3, 9, BRONZE, accent=BRONZE_L)
-    box(im, 80, 60, 2, 2, 4, BRONZE_D, accent=HEAT)
-    box(im, 92, 60, 2, 2, 4, BRONZE_D, accent=HEAT)
-    # tentacles
-    box(im, 112, 40, 2, 14, 2, BRONZE_D, accent=BRONZE)
-    box(im, 118, 40, 3, 3, 3, BRONZE, accent=HEAT)
-    # Hood front: heat-ray iris
-    for x in range(68, 88):
-        for y in range(16, 28):
-            dx, dy = x - 77.5, y - 21.5
-            if dx * dx + dy * dy < 36:
-                px(im, x, y, HEAT if dx * dx + dy * dy < 12 else shade(HEAT, 0.55))
-            else:
-                px(im, x, y, shade(BRONZE_D, 0.95))
-    px(im, 77, 21, HEAT_C)
-    px(im, 78, 21, WHITE)
+    COPPER = (168, 102, 62, 255)
+    COPPER_D = (96, 58, 36, 255)
+    COPPER_L = (210, 148, 96, 255)
+    LENS = (60, 220, 120, 255)
+    LENS_C = (200, 255, 180, 255)
+    HEAT = (255, 90, 40, 255)
+    # chassis 28×12×20 @ 0,0 — large copper body
+    box(im, 0, 0, 28, 12, 20, COPPER, accent=COPPER_L)
+    box(im, 0, 32, 20, 6, 14, COPPER_D, accent=COPPER)
+    box(im, 0, 52, 22, 4, 16, COPPER_D, accent=COPPER)
+    # wings / radiator
+    box(im, 68, 0, 16, 3, 12, COPPER_L, accent=COPPER)
+    box(im, 68, 16, 6, 2, 8, COPPER, accent=COPPER_D)
+    box(im, 68, 28, 16, 10, 4, COPPER_D, accent=LENS)
+    # swan neck + head bulb
+    box(im, 96, 0, 5, 20, 5, COPPER_D, accent=COPPER)
+    box(im, 96, 26, 6, 6, 6, COPPER, accent=LENS)
+    box(im, 96, 42, 10, 10, 10, COPPER_L, accent=LENS)
+    box(im, 68, 44, 7, 7, 3, LENS, accent=LENS_C)
+    # heat ray
+    box(im, 112, 0, 3, 3, 12, COPPER_D, accent=HEAT)
+    box(im, 112, 16, 5, 5, 4, HEAT, accent=LENS_C)
+    # legs
+    box(im, 0, 72, 7, 5, 7, COPPER, accent=COPPER_L)
+    box(im, 28, 72, 4, 22, 4, COPPER_D, accent=COPPER)
+    box(im, 44, 72, 5, 5, 5, COPPER_L, accent=AMBER)
+    box(im, 64, 72, 3, 24, 3, COPPER_D, accent=COPPER)
+    box(im, 76, 72, 8, 3, 10, COPPER, accent=COPPER_L)
+    box(im, 76, 86, 3, 2, 5, COPPER_D, accent=HEAT)
+    box(im, 92, 86, 3, 2, 5, COPPER_D, accent=HEAT)
+    # Chassis face: riveted copper + green valve glow
+    for x in range(28, 56):
+        for y in range(12, 32):
+            px(im, x, y, shade(COPPER_D, 0.95 + ((x + y) % 3) * 0.02))
+    for x in range(36, 48):
+        for y in range(18, 26):
+            dx, dy = x - 41.5, y - 21.5
+            if dx * dx + dy * dy < 20:
+                px(im, x, y, LENS if dx * dx + dy * dy < 6 else shade(LENS, 0.5))
+    # Head lens iris
+    for x in range(100, 112):
+        for y in range(48, 58):
+            dx, dy = x - 105.5, y - 52.5
+            if dx * dx + dy * dy < 16:
+                px(im, x, y, LENS_C if dx * dx + dy * dy < 4 else LENS)
+    px(im, 105, 52, WHITE)
     return im
 
 
