@@ -3,12 +3,9 @@ package com.terminaldetector.drmd.client;
 import com.terminaldetector.drmd.client.config.DescentConfig;
 import com.terminaldetector.drmd.client.input.DescentKeybinds;
 import com.terminaldetector.drmd.client.llod.LlodClientState;
-import com.terminaldetector.drmd.client.llod.LlodSilhouetteRenderer;
 import com.terminaldetector.drmd.client.render.ModEntityRenderers;
 import com.terminaldetector.drmd.client.render.WeaponViewRenderer;
 import com.terminaldetector.drmd.network.ModNetworking;
-import com.terminaldetector.drmd.world.gen2.MacroEntry;
-import com.terminaldetector.drmd.world.llod.LlodLevel;
 import com.terminaldetector.drmd.workshop.ClusterModule;
 import com.terminaldetector.drmd.workshop.ConstructionRegistry;
 import com.terminaldetector.drmd.workshop.WorkshopScreen;
@@ -41,13 +38,7 @@ public class DescentClient implements ClientModInitializer {
 		WeaponViewRenderer.register();
 		com.terminaldetector.drmd.client.render.CockpitRenderer.register();
 		com.terminaldetector.drmd.client.render.BoundarySeamRenderer.register();
-		// Macro LLOD silhouettes parked (WorldFeatures.MACRO_LLOD) — Klondike voxels only.
-		if (com.terminaldetector.drmd.world.WorldFeatures.MACRO_LLOD) {
-			LlodSilhouetteRenderer.register();
-		}
-		// Still register — renderer self-gates on DescentConfig.hybridHorizon (default off).
-		com.terminaldetector.drmd.client.llod.HybridHorizonRenderer.register();
-		com.terminaldetector.drmd.client.llod.planet.PlanetFloorRenderer.register();
+		// Voxel LLOD / hybrid horizon / planet-floor expand REMOVED — use Distant Horizons.
 		com.terminaldetector.drmd.client.sky.OrbitalBeltSkyRenderer.register();
 		com.terminaldetector.drmd.client.render.MegaBeamViewRenderer.register();
 		com.terminaldetector.drmd.client.render.ConstructScaffoldRenderer.register();
@@ -66,44 +57,12 @@ public class DescentClient implements ClientModInitializer {
 			}
 		});
 
-		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.LlodPayload.ID, (payload, context) -> {
-			ArrayList<LlodClientState.Entry> next = new ArrayList<>(payload.entries().size());
-			for (var e : payload.entries()) {
-				MacroEntry.Kind kind;
-				LlodLevel level;
-				try {
-					kind = MacroEntry.Kind.valueOf(e.kind());
-				} catch (Exception ex) {
-					kind = MacroEntry.Kind.STATION;
-				}
-				try {
-					level = LlodLevel.valueOf(e.level());
-				} catch (Exception ex) {
-					// Legacy packet names
-					level = switch (e.level()) {
-						case "SILHOUETTE", "MEDIUM" -> LlodLevel.LLOD0;
-						case "FULL" -> LlodLevel.CHUNK;
-						default -> LlodLevel.LLOD1;
-					};
-				}
-				next.add(new LlodClientState.Entry(
-						e.id(),
-						kind, new Vec3d(e.x(), e.y(), e.z()),
-						e.rx(), e.ry(), e.rz(), level, e.color(), e.label(), e.seed()));
-			}
-			LlodClientState.INSTANCE.set(next);
-		});
-
-		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.PlanetMapPayload.ID, (payload, context) -> {
-			ArrayList<com.terminaldetector.drmd.world.llod.planet.PlanetCell> cells =
-					new ArrayList<>(payload.cells().size());
-			for (var c : payload.cells()) {
-				cells.add(new com.terminaldetector.drmd.world.llod.planet.PlanetCell(
-						c.cx(), c.cz(), c.height(), c.tint(), c.flags()));
-			}
-			com.terminaldetector.drmd.client.llod.planet.PlanetMapClientState.INSTANCE.set(
-					cells, payload.originCx(), payload.originCz(), payload.seed());
-		});
+		// Legacy LLOD / planet-map packets ignored (voxel pipeline stripped).
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.LlodPayload.ID, (payload, context) ->
+				context.client().execute(LlodClientState.INSTANCE::clear));
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.PlanetMapPayload.ID, (payload, context) ->
+				context.client().execute(() ->
+						com.terminaldetector.drmd.client.llod.planet.PlanetMapClientState.INSTANCE.clear()));
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ScaffoldPayload.ID, (payload, context) ->
 				context.client().execute(() -> com.terminaldetector.drmd.client.build.ScaffoldClientState.INSTANCE.set(

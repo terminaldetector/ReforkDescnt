@@ -531,26 +531,8 @@ public final class ModNetworking {
 		));
 	}
 
+	/** No-op — voxel LLOD pipeline removed; keep method for /d6 llod debug. */
 	public static void syncLlod(ServerPlayerEntity player) {
-		// MACRO_LLOD parked — Klondike voxels + Spark skybox replace silhouette shells.
-		if (!com.terminaldetector.drmd.world.WorldFeatures.MACRO_LLOD) {
-			ServerPlayNetworking.send(player, new LlodPayload(java.util.List.of()));
-			return;
-		}
-		var silhouettes = com.terminaldetector.drmd.world.llod.LlodRegistry.queryVisible(player.getBlockPos(), 64);
-		java.util.ArrayList<LlodPayload.LlodEntry> entries = new java.util.ArrayList<>(silhouettes.size());
-		for (var s : silhouettes) {
-			entries.add(new LlodPayload.LlodEntry(
-					s.id(),
-					s.kind().name(),
-					s.center().x, s.center().y, s.center().z,
-					s.radiusX(), s.radiusY(), s.radiusZ(),
-					s.level().name(),
-					s.colorRgb(),
-					s.label(),
-					s.seed()
-			));
-		}
-		ServerPlayNetworking.send(player, new LlodPayload(entries));
+		ServerPlayNetworking.send(player, new LlodPayload(java.util.List.of()));
 	}
 }

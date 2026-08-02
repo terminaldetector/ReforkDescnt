@@ -31,6 +31,7 @@ public final class HybridHorizonRenderer {
 	}
 
 	private static void render(WorldRenderContext ctx) {
+		if (!com.terminaldetector.drmd.world.WorldFeatures.VOXEL_HORIZON) return;
 		if (!DescentConfig.hybridHorizon) return;
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (mc.player == null || mc.world == null) return;

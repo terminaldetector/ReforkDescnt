@@ -144,14 +144,7 @@ public class DescentMod implements ModInitializer {
 					com.terminaldetector.drmd.world.atmosphere.AtmosphereRules.tickDeepPressure(
 							player.getServerWorld(), pos);
 				}
-				if (com.terminaldetector.drmd.world.WorldFeatures.MACRO_LLOD
-						&& tick % 10 == player.getId() % 10) {
-					ModNetworking.syncLlod(player);
-				}
-				// Planetary map sample + End/orbit viewport (~1 Hz staggered).
-				if (tick % 20 == player.getId() % 20) {
-					com.terminaldetector.drmd.world.llod.planet.PlanetMapSync.tickPlayer(player);
-				}
+				// Voxel LLOD / planet-floor sync removed — Distant Horizons owns far vista.
 			});
 		});
 
@@ -176,7 +169,8 @@ public class DescentMod implements ModInitializer {
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
 				com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid()));
 
-		LOGGER.info("DRMD 6DOF 1.1.0 ready — unified merge: arsenal + orbit + 6DoF");
+		com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.logStatus();
+		LOGGER.info("DRMD 6DOF 1.1.1 ready — voxel LLOD removed · Distant Horizons suggested");
 	}
 
 	/**

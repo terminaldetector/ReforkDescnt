@@ -3,7 +3,7 @@
   "id": "drmd",
   "version": "${version}",
   "name": "DRMD 6DOF",
-  "description": "Descent-like 6DoF Minecraft: inertial flight, Pyro GX, industrial biomes, sky megastructures, mega fauna, LLOD. Ready for survival and creative.",
+  "description": "Descent-like 6DoF Minecraft: inertial flight, arsenal, world layers. Far view via Distant Horizons (suggested) — no built-in voxel LLOD.",
   "authors": ["Terminal", "DRMD Team"],
   "contact": {
     "homepage": "https://github.com/terminaldetector/ReforkDescnt",
@@ -27,6 +27,8 @@
   },
   "suggests": {
     "modmenu": "*",
+    "distanthorizons": "*",
+    "sodium": "*",
     "immersive_portals": "*",
     "imm_ptl_core": "*"
   },

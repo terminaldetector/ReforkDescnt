@@ -28,10 +28,10 @@ public final class DescentConfig {
 	public static boolean levelSky = true;
 	/** Spark-style planet + dark ring + neon-green halo (skybox, not R=2048 junk). */
 	public static boolean orbitalBeltSky = true;
-	/** Hybrid far land plates — off; Klondike voxels + Spark ring replace fake horizon. */
+	/** Dead toggle — voxel hybrid horizon removed; use Distant Horizons. */
 	public static boolean hybridHorizon = false;
-	/** End/orbit planetary voxel floor (explored map + fog-of-war). */
-	public static boolean planetFloor = true;
+	/** Dead toggle — planet-floor voxel expand removed; use Distant Horizons. */
+	public static boolean planetFloor = false;
 	/** Ship roll rate, degrees per second. */
 	public static float rollRate = 175f;
 	/** Mouse gain for ship attitude, relative to vanilla look. */

@@ -356,16 +356,12 @@ public final class DescentCommands {
 							})))
 					.then(CommandManager.literal("llod")
 							.executes(ctx -> {
-								ServerPlayerEntity p = ctx.getSource().getPlayer();
-								ModNetworking.syncLlod(p);
+								boolean dh = com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.isPresent();
 								int n = com.terminaldetector.drmd.world.gen2.MacroWorld.size();
-								var bands = com.terminaldetector.drmd.world.llod.LlodRegistry.queryVisible(p.getBlockPos(), 64);
-								long c0 = bands.stream().filter(s -> s.level() == com.terminaldetector.drmd.world.llod.LlodLevel.LLOD0).count();
-								long c1 = bands.stream().filter(s -> s.level() == com.terminaldetector.drmd.world.llod.LlodLevel.LLOD1).count();
-								long c2 = bands.stream().filter(s -> s.level() == com.terminaldetector.drmd.world.llod.LlodLevel.LLOD2).count();
 								ctx.getSource().sendFeedback(() -> Text.literal(
-										"Voxel LLOD sync — macros=" + n
-												+ " visible LLOD0=" + c0 + " LLOD1=" + c1 + " LLOD2=" + c2), false);
+										"DRMD voxel LLOD removed. macros=" + n
+												+ " · Distant Horizons=" + (dh ? "YES" : "NO — install modrinth.com/mod/distanthorizons")),
+										false);
 								return 1;
 							}))
 					.then(CommandManager.literal("planet")

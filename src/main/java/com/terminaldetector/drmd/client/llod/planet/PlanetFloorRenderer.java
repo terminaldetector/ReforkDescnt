@@ -31,7 +31,8 @@ public final class PlanetFloorRenderer {
 	}
 
 	private static void render(WorldRenderContext ctx) {
-		if (!DescentConfig.planetFloor) return;
+		if (!com.terminaldetector.drmd.world.WorldFeatures.VOXEL_HORIZON) return;
+		if (!DescentConfig.planetFloor) return; // also hard-off via VOXEL_HORIZON
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (mc.player == null || mc.world == null) return;
 

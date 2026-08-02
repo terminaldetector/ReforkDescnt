@@ -30,14 +30,22 @@ public final class WorldFeatures {
 	public static final boolean END_BAND = false;
 
 	/**
-	 * Distant MacroWorld → LLOD silhouette cubes. Parked: sky presence is real Klondike voxels +
-	 * Spark-style skybox ring, not mesh shells at 192–96k.
+	 * Distant MacroWorld → voxel LLOD silhouette cubes.
+	 *
+	 * <p><b>Removed.</b> Inherited merge code caused errors/load. Far vista = Distant Horizons
+	 * soft-dep, not DRMD cubes. Do not flip on.
 	 */
 	public static final boolean MACRO_LLOD = false;
 
 	/**
-	 * Sparse Klondike floating islands (real blocks) in the sky band — replaces ARCH/RING/continent
-	 * LLOD zoo for the Orbit layer.
+	 * Client hybrid fake-horizon plates + planet-floor voxel expand.
+	 *
+	 * <p><b>Removed.</b> Same reason — use Distant Horizons for distance; Spark skybox for orbit.
+	 */
+	public static final boolean VOXEL_HORIZON = false;
+
+	/**
+	 * Sparse Klondike floating islands (real blocks) in the sky band — not LLOD shells.
 	 */
 	public static final boolean KLONDIKE_ISLANDS = true;
 
