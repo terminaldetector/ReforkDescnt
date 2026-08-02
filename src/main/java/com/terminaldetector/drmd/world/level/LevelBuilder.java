@@ -211,6 +211,15 @@ public final class LevelBuilder {
 		int baseX = chunk.getPos().getStartX();
 		int baseZ = chunk.getPos().getStartZ();
 		BlockPos.Mutable pos = new BlockPos.Mutable();
+		// Skip if the crust seam is already solid — avoids rewriting on every reload.
+		pos.set(baseX + 8, WorldLevels.ABYSS_TOP - 2, baseZ + 8);
+		BlockState probe = chunk.getBlockState(pos);
+		if (!probe.isAir() && !probe.isOf(Blocks.CAVE_AIR) && !probe.isOf(Blocks.VOID_AIR)
+				&& !probe.isOf(Blocks.BEDROCK)
+				&& (probe.isOf(ModWorldBlocks.PLASMA_GRANITE) || probe.isOf(Blocks.GRANITE)
+				|| probe.isOf(Blocks.STONE) || probe.isOf(Blocks.DEEPSLATE))) {
+			return;
+		}
 		Random random = Random.create((baseX * 31L) ^ baseZ);
 		for (int dx = 0; dx < 16; dx++) {
 			for (int dz = 0; dz < 16; dz++) {
@@ -230,15 +239,37 @@ public final class LevelBuilder {
 		}
 	}
 
+	/**
+	 * Replace unbreakable bedrock with diggable plasma granite.
+	 *
+	 * <p>Must stay cheap: this runs on every {@code CHUNK_LOAD}, including during
+	 * "Preparing spawn area". Scanning the whole −512…−56 band (~450 Y × 256) per
+	 * chunk freezes the join at 100% and trips the watchdog. Bedrock only exists in
+	 * thin floor/cap bands — rewrite those only.
+	 */
 	private static int rewriteBedrock(WorldChunk chunk) {
-		int written = 0;
 		BlockPos.Mutable pos = new BlockPos.Mutable();
 		int minY = chunk.getBottomY();
-		int maxY = Math.min(minY + chunk.getHeight(), WorldLevels.ABYSS_TOP + 8);
-		for (int x = 0; x < 16; x++) {
-			for (int z = 0; z < 16; z++) {
-				for (int y = minY; y < maxY; y++) {
-					pos.set(chunk.getPos().getStartX() + x, y, chunk.getPos().getStartZ() + z);
+		int heightTop = minY + chunk.getHeight();
+		int written = 0;
+		// Column-floor bedrock.
+		written += rewriteBedrockBand(chunk, pos, minY, Math.min(heightTop, minY + 8));
+		// Old −64 seam / crust leftovers.
+		written += rewriteBedrockBand(chunk, pos,
+				Math.max(minY, WorldLevels.ABYSS_TOP - 8),
+				Math.min(heightTop, WorldLevels.ABYSS_TOP + 2));
+		return written;
+	}
+
+	private static int rewriteBedrockBand(WorldChunk chunk, BlockPos.Mutable pos, int y0, int y1) {
+		if (y0 >= y1) return 0;
+		int written = 0;
+		int startX = chunk.getPos().getStartX();
+		int startZ = chunk.getPos().getStartZ();
+		for (int y = y0; y < y1; y++) {
+			for (int x = 0; x < 16; x++) {
+				for (int z = 0; z < 16; z++) {
+					pos.set(startX + x, y, startZ + z);
 					if (chunk.getBlockState(pos).isOf(Blocks.BEDROCK)) {
 						chunk.setBlockState(pos, ModWorldBlocks.PLASMA_GRANITE.getDefaultState(), false);
 						written++;

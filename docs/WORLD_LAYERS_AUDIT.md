@@ -32,7 +32,7 @@
  CORE cavern (−420…−240)          basalt / lava / pillars
 ```
 
-Полный мантийный столбец **не** пишется во все чанки сразу — только рядом с игроками ниже industrial (`MantleStream.STREAM_CHUNKS`) и на shaft grid. Crust plug (−64…−70) ставится на каждый chunk load.
+Полный мантийный столбец **не** пишется во все чанки сразу — только рядом с игроками (`MantleStream.STREAM_CHUNKS`). Shaft grid больше не форсится при нуле игроков (это вешало Preparing spawn 100%). Bedrock→plasma — только тонкие Y-полосы (пол колонны + шов −64), не весь −512…−56. Crust plug (−64…−70) с early-out если уже solid.
 
 ---
 

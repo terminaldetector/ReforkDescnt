@@ -116,9 +116,15 @@ public final class DescentSession {
 		BlockPos hub = new BlockPos(spawn.getX() + 24, Math.max(surfaceY + 12, 90), spawn.getZ() + 24);
 
 		if (!state.isSpawnHubGenerated()) {
-			generateSpawnHub(world, hub);
-			state.setSpawnHubGenerated(true);
-			DescentMod.LOGGER.info("Descent lunar hub generated at {}", hub.toShortString());
+			// Never build the hub inline during SERVER_STARTED — lunar disc writes force
+			// chunk gen under the pad and used to hitch right after "Preparing spawn 100%".
+			BlockPos hubAt = hub.toImmutable();
+			enqueueLandmark(hubAt, () -> {
+				if (DescentWorldState.get(world).isSpawnHubGenerated()) return;
+				generateSpawnHub(world, hubAt);
+				DescentWorldState.get(world).setSpawnHubGenerated(true);
+				DescentMod.LOGGER.info("Descent lunar hub generated at {}", hubAt.toShortString());
+			});
 		}
 
 		// HL2 path: megacity + nearby combat landmarks without full MACRO_WORLDGEN spam.
