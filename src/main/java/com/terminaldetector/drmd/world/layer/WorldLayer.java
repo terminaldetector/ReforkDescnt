@@ -5,10 +5,11 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 /**
- * Narrative world layers for the Oblivion / Orbit / Surface / Core concept.
+ * Narrative world layers — seam Y bands for teleport + display hooks.
  *
- * <p>Mapped onto the tall Overworld column (−512…1024) for the no-mod path, with
- * End/Nether dimensions reserved as optional Immersive-Portals / HL2 hops.
+ * <p>Not stacked parallelepipeds. Each edge ({@code yMin}) is a thin teleport zone
+ * ({@link LayerBridge}); the client paints a block curtain there. End/Nether dimensions
+ * remain optional Immersive-Portals hops.
  */
 public enum WorldLayer {
 	/** Planetary core — Nether band + deep abyss. Aggressive bases, tangled mines. */

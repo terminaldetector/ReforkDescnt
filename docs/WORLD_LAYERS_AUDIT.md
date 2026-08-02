@@ -1,19 +1,24 @@
 # Аудит мира и биомов (отдельно от арсенала)
 
-*Срез: одна колонна max-height + хуки слоёв. `NETHER_BAND=true` (streamed). `SURFACE_DISTRICTS=true`. `MACRO_WORLDGEN=true` (через очередь).*
+*Срез: tall Overworld + **зоны телепорта на швах** + хук отображения блоков. Не параллелепипеды.*
 
-## Доктрина масштаба
+## Доктрина
 
-Движок **не ломаем** — используем грамотно: `min_y=-512`, `height=1536`.  
-В масштабе это **три куба / параллелепипеда**, сложенных друг на друга:
+Движок **не ломаем** — `min_y=-512`, `height=1536` даёт место для полёта/копания.
 
-| Объём | Слои | Y |
-|-------|------|---|
-| Нижний | Core + Abyss + Industrial | −512…40 |
-| Средний | Surface corridor | 40…320 |
-| Верхний | Sky + Orbit + End-band | 320…1024 |
+Слои — это **не** «три куба, которые надо построить». На каждой границе Y:
 
-Параллелепипеды и **есть** слои; `LayerBridge` — объявление шва без portal-load. Безшовность = полёт/копание по колонне.
+1. **Зона телепорта** (`LayerBridge`, ±`SEAM_HALF`) — пересёк шов → arrive в соседний бэнд  
+2. **Хук отображения блоков** (`BoundarySeamRenderer`) — клиент рисует «занавес» клеток на плоскости шва  
+
+Без portal-load. Immersive Portals — опциональный soft-dep для настоящего see-through.
+
+| Шов Y | Слои |
+|------:|------|
+| −240 | Core ↔ Dungeon |
+| 40 | Dungeon ↔ Surface |
+| 320 | Surface ↔ Orbit |
+| 880 | Orbit ↔ Oblivion |
 
 ---
 
@@ -21,63 +26,37 @@
 
 | Тема | Состояние |
 |------|-----------|
-| Колонна Overworld −512…1024 | Готова (3 объёма) |
-| Бедрок как граница | **Нет** — rewrite → `plasma_granite` (плазмоустойчивый гранит) |
-| Мантия / dig-down Core | **On** — granite → nether mix → continuous nether |
-| HL2 streaming | `MantleStream` — полный fill только у diggers / shaft grid |
-| Vanilla Nether/End portals | Усложнены (`PortalComplexity` + catalysts) |
-| Immersive Portals | Soft-dep, см. [`IMMPTL_STACK.md`](IMMPTL_STACK.md) |
-| DimensionSync | Smoke / reactor / falls — выход на поверхность читаем |
+| Tall Overworld −512…1024 | Да (комната для 6DoF) |
+| Параллелепипеды / три куба | **Нет** — убраны из доктрины |
+| Seam teleport | `LayerBridge.seamTeleport` |
+| Boundary block display | `BoundarySeamRenderer` |
+| Бедрок как граница | **Нет** — `plasma_granite` |
+| Мантия / Core stream | `MantleStream` у игроков |
+| Vanilla Nether/End portals | Catalysts |
+| ImmPtl | Soft-dep |
 
 ---
 
-## Dig path (Terraria / HL2)
+## Dig path
 
 ```
  SURFACE / INDUSTRIAL
         ↓ dig
- plasma-resistant granite crust   (бывший −64 bedrock plug)
+ plasma granite crust
         ↓
- mixed granite + netherrack       (mantle)
+ mantle mix → continuous nether
         ↓
- continuous nether blocks
-        ↓ seamless
- CORE cavern (−420…−240)          basalt / lava / pillars
+ CORE cavern
 ```
 
-Полный мантийный столбец **не** пишется во все чанки сразу — только рядом с игроками (`MantleStream.STREAM_CHUNKS`). Shaft grid больше не форсится при нуле игроков (это вешало Preparing spawn 100%). Bedrock→plasma — только тонкие Y-полосы (пол колонны + шов −64), не весь −512…−56. Crust plug (−64…−70) с early-out если уже solid.
-
----
-
-## Порталы
-
-| Путь | Как |
-|------|-----|
-| Seamless | Копать колонну / shafts / 6DoF |
-| Vanilla Nether frame | Нужен `nether_gate_catalyst` |
-| End portal eye | Нужен `end_gate_catalyst` |
-| ImmPtl stack | Опционально; catalysts всё равно |
-
-Крафт: stabilizer → nether/end catalysts (дорогие компоненты).
-
----
-
-## Концепт слоёв
-
-```
-OBLIVION   880…1024 / vanilla End boss
-ORBIT      320…880
-SURFACE     40…320
-DUNGEON   −240…40   (+ mantle dig into Core)
-CORE      −512…−240
-```
+Полный мантийный столбец не пишется во все чанки — только рядом с игроками.
 
 ---
 
 ## Приоритеты
 
-1. ImmPtl configs как user-facing optional pack (`IMMPTL_STACK.md`)  
-2. Sparse Orbit / Oblivion nodes без полного WG2  
-3. Hostile 6DoF populate в Core  
+1. ImmPtl optional pack  
+2. Богаче визуал шва (типы блоков по слою)  
+3. Hostile populate в Core  
 
 *Мир аудируется отдельно от оружия.*

@@ -1,28 +1,22 @@
 package com.terminaldetector.drmd.world.level;
 
 /**
- * One continuous Overworld column — the engine is not broken; it is used correctly.
+ * Tall Overworld height bands — seams are teleport zones, not built parallelepipeds.
  *
- * <p>Scale idea: <b>three cubes stacked</b> (or parallelepipeds that <em>are</em> the layers).
- * {@code overworld.json} takes the full legal height (−512…1024). Narrative bands are hooks
- * inside that volume so flight feels seamless — dig/fly, no hard dimension load screens.
- * Bedrock is not a border → diggable plasma granite. Mantle/Core stream via
- * {@link LevelBuilder} / {@link MantleStream}.
+ * <p>{@code overworld.json} keeps the full legal height (−512…1024) so flight/dig have room.
+ * Layers are <em>labels + seam Y</em>: cross a boundary → {@link com.terminaldetector.drmd.world.layer.LayerBridge}
+ * teleports; clients draw a block curtain via {@code BoundarySeamRenderer}. We do not construct
+ * three giant cubes. Bedrock → diggable plasma granite; mantle via {@link MantleStream}.
  *
  * <pre>
- *   conceptual 3 volumes (parallelepipeds → layers):
- *     UPPER   SKY + ORBIT + END     320 … 1024
- *     MIDDLE  SURFACE corridor       40 …  320
- *     LOWER   INDUSTRIAL + ABYSS + CORE   −512 … 40
- *
- *   1024 ┐ END          880 … 1024
- *    880 ┤ ORBITAL      640 …  880
- *    640 ┤ SKY          320 …  640
- *    320 ┤ SURFACE       40 …  320
- *     40 ┤ INDUSTRIAL   −64 …   40
- *    −64 ┤ ABYSS       −240 …  −64
- *   −240 ┤ NETHER/CORE −512 … −240
- *   −512 ┘
+ *   1024  END          880 … 1024   seam teleport + display hook
+ *    880  ORBITAL      640 …  880
+ *    640  SKY          320 …  640
+ *    320  SURFACE       40 …  320
+ *     40  INDUSTRIAL   −64 …   40
+ *    −64  ABYSS       −240 …  −64
+ *   −240  NETHER/CORE −512 … −240
+ *   −512
  * </pre>
  */
 public final class WorldLevels {

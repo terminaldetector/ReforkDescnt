@@ -29,6 +29,7 @@ public class DescentClient implements ClientModInitializer {
 		ModEntityRenderers.register();
 		WeaponViewRenderer.register();
 		com.terminaldetector.drmd.client.render.CockpitRenderer.register();
+		com.terminaldetector.drmd.client.render.BoundarySeamRenderer.register();
 		LlodSilhouetteRenderer.register();
 		com.terminaldetector.drmd.client.llod.HybridHorizonRenderer.register();
 		com.terminaldetector.drmd.client.llod.planet.PlanetFloorRenderer.register();
