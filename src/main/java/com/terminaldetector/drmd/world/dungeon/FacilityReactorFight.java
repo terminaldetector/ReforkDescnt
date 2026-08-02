@@ -5,21 +5,29 @@ import com.terminaldetector.drmd.entity.ModBlocks;
 import com.terminaldetector.drmd.world.fire.FireSystem;
 import com.terminaldetector.drmd.world.level.WorldLevels;
 import com.terminaldetector.drmd.world.smoke.SmokeSystem;
+import com.terminaldetector.drmd.world.sync.DimensionSync;
+import com.terminaldetector.drmd.world.sync.DimensionSyncState;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,12 +44,13 @@ public final class FacilityReactorFight {
 		public final BlockPos core;
 		public final DungeonVitality vitality;
 		public final boolean orbital;
+		public final Identifier dim;
 		public Phase phase;
 		public int ticksLeft;
 		public BlockPos exit;
 
 		Facility(UUID id, BlockPos core, DungeonVitality vitality, boolean orbital,
-				Phase phase, int ticksLeft, BlockPos exit) {
+				Phase phase, int ticksLeft, BlockPos exit, Identifier dim) {
 			this.id = id;
 			this.core = core;
 			this.vitality = vitality;
@@ -49,6 +58,7 @@ public final class FacilityReactorFight {
 			this.phase = phase;
 			this.ticksLeft = ticksLeft;
 			this.exit = exit;
+			this.dim = dim != null ? dim : Identifier.of("minecraft", "overworld");
 		}
 	}
 
@@ -60,11 +70,13 @@ public final class FacilityReactorFight {
 
 	public static void register(ServerWorld world, BlockPos core, DungeonVitality vitality) {
 		if (!vitality.hasLivingReactor) return;
+		if (BY_CORE.containsKey(core.asLong())) return;
 		UUID id = UUID.nameUUIDFromBytes(("facility-" + core.toShortString()).getBytes());
 		boolean orbital = WorldLevels.at(core.getY()) == WorldLevels.Level.ORBITAL
 				|| WorldLevels.at(core.getY()) == WorldLevels.Level.END
 				|| world.getRegistryKey() == World.END;
-		Facility f = new Facility(id, core.toImmutable(), vitality, orbital, Phase.ARMED, 0, null);
+		Facility f = new Facility(id, core.toImmutable(), vitality, orbital, Phase.ARMED, 0, null,
+				world.getRegistryKey().getValue());
 		ACTIVE.put(id, f);
 		BY_CORE.put(core.asLong(), id);
 		DescentMod.LOGGER.info("Facility {} registered @ {} vitality={}",
@@ -113,7 +125,7 @@ public final class FacilityReactorFight {
 		if (ACTIVE.isEmpty()) return;
 		for (Facility f : ACTIVE.values()) {
 			if (f.phase != Phase.BREACH) continue;
-			ServerWorld host = resolveHost(server, f.core);
+			ServerWorld host = resolveHost(server, f);
 			f.ticksLeft--;
 
 			if (f.exit != null) {
@@ -144,9 +156,11 @@ public final class FacilityReactorFight {
 		}
 	}
 
-	private static ServerWorld resolveHost(MinecraftServer server, BlockPos core) {
+	private static ServerWorld resolveHost(MinecraftServer server, Facility f) {
+		ServerWorld byDim = server.getWorld(RegistryKey.of(RegistryKeys.WORLD, f.dim));
+		if (byDim != null) return byDim;
 		for (ServerWorld w : server.getWorlds()) {
-			if (w.isChunkLoaded(core.getX() >> 4, core.getZ() >> 4)) return w;
+			if (w.isChunkLoaded(f.core.getX() >> 4, f.core.getZ() >> 4)) return w;
 		}
 		return server.getOverworld();
 	}
@@ -178,6 +192,7 @@ public final class FacilityReactorFight {
 
 		ReactorAftermath.onFacilityDetonation(world, core, f.orbital);
 		f.phase = Phase.DETONATED;
+		DimensionSync.recordDetonation(world.getServer(), core, f.orbital);
 
 		for (ServerPlayerEntity p : world.getPlayers()) {
 			p.sendMessage(Text.literal(f.orbital
@@ -218,6 +233,52 @@ public final class FacilityReactorFight {
 	public static void clear() {
 		ACTIVE.clear();
 		BY_CORE.clear();
+	}
+
+	public static Collection<Facility> all() {
+		return ACTIVE.values();
+	}
+
+	public static void loadFrom(DimensionSyncState state, MinecraftServer server) {
+		clear();
+		for (DimensionSyncState.FacilityNbt n : state.facilities()) {
+			Phase phase;
+			try {
+				phase = Phase.valueOf(n.phase);
+			} catch (Exception e) {
+				continue;
+			}
+			if (phase == Phase.DETONATED || phase == Phase.ESCAPED) continue;
+			DungeonVitality vit;
+			try {
+				vit = DungeonVitality.valueOf(n.vitality);
+			} catch (Exception e) {
+				vit = DungeonVitality.ALIVE;
+			}
+			Facility f = new Facility(n.id, n.core.toImmutable(), vit, n.orbital,
+					phase, n.ticksLeft, n.exit, n.dim);
+			ACTIVE.put(f.id, f);
+			BY_CORE.put(f.core.asLong(), f.id);
+		}
+		DescentMod.LOGGER.info("Restored {} facilities from dimension sync", ACTIVE.size());
+	}
+
+	public static void saveTo(DimensionSyncState state, MinecraftServer server) {
+		List<DimensionSyncState.FacilityNbt> list = new ArrayList<>();
+		for (Facility f : ACTIVE.values()) {
+			if (f.phase == Phase.DETONATED || f.phase == Phase.ESCAPED) continue;
+			DimensionSyncState.FacilityNbt n = new DimensionSyncState.FacilityNbt();
+			n.id = f.id;
+			n.core = f.core;
+			n.vitality = f.vitality.name();
+			n.orbital = f.orbital;
+			n.phase = f.phase.name();
+			n.ticksLeft = f.ticksLeft;
+			n.exit = f.exit;
+			n.dim = f.dim;
+			list.add(n);
+		}
+		state.replaceFacilities(list);
 	}
 
 	public static int activeBreaches() {

@@ -4,6 +4,8 @@ import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.world.fire.FireSystem;
 import com.terminaldetector.drmd.world.llod.planet.PlanetMapState;
 import com.terminaldetector.drmd.world.smoke.SmokeSystem;
+import com.terminaldetector.drmd.world.sync.DimensionSync;
+import com.terminaldetector.drmd.world.sync.DimensionSyncState;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
@@ -19,6 +21,8 @@ import java.util.List;
  * Fall-view mode (client) lets pilots corkscrew down and inspect consequences.
  */
 public final class ReactorAftermath {
+	public record FallView(int blockX, int blockZ, int ticksLeft, int intensity) {}
+
 	private static final class FallEvent {
 		final int blockX, blockZ, intensity;
 		int ticksLeft;
@@ -72,6 +76,7 @@ public final class ReactorAftermath {
 	/** Final End giga-reactor death — full station break + asteroid rain. */
 	public static void onGigaReactorDestroyed(ServerWorld endOrHost, BlockPos pad) {
 		onFacilityDetonation(endOrHost, pad, true);
+		DimensionSync.recordDetonation(endOrHost.getServer(), pad, true);
 		ServerWorld ow = endOrHost.getServer().getOverworld();
 		if (ow == null) return;
 		PlanetMapState map = PlanetMapState.get(ow);
@@ -112,5 +117,34 @@ public final class ReactorAftermath {
 
 	public static int pendingFalls() {
 		return FALLS.size();
+	}
+
+	public static List<FallView> snapshotFalls() {
+		List<FallView> out = new ArrayList<>(FALLS.size());
+		for (FallEvent e : FALLS) {
+			out.add(new FallView(e.blockX, e.blockZ, e.ticksLeft, e.intensity));
+		}
+		return out;
+	}
+
+	public static void loadFrom(DimensionSyncState state) {
+		FALLS.clear();
+		for (DimensionSyncState.FallNbt n : state.falls()) {
+			FALLS.add(new FallEvent(n.x, n.z, n.ticks, n.intensity));
+		}
+		DescentMod.LOGGER.info("Restored {} meteor falls from dimension sync", FALLS.size());
+	}
+
+	public static void saveTo(DimensionSyncState state) {
+		List<DimensionSyncState.FallNbt> list = new ArrayList<>(FALLS.size());
+		for (FallEvent e : FALLS) {
+			DimensionSyncState.FallNbt n = new DimensionSyncState.FallNbt();
+			n.x = e.blockX;
+			n.z = e.blockZ;
+			n.ticks = e.ticksLeft;
+			n.intensity = e.intensity;
+			list.add(n);
+		}
+		state.replaceFalls(list);
 	}
 }

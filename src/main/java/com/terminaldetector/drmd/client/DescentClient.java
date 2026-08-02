@@ -151,6 +151,24 @@ public class DescentClient implements ClientModInitializer {
 				context.client().execute(() -> com.terminaldetector.drmd.client.build.ScaffoldClientState.INSTANCE.set(
 						payload.active(), payload.shapeId(), payload.positions())));
 
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SmokePayload.ID, (payload, context) ->
+				context.client().execute(() -> {
+					// Integrated SP already shares the server SmokeSystem map — skip overwrite races.
+					if (context.client().isIntegratedServerRunning()) return;
+					ArrayList<com.terminaldetector.drmd.world.smoke.SmokeSystem.NetCloud> wire =
+							new ArrayList<>(payload.clouds().size());
+					for (var c : payload.clouds()) {
+						wire.add(new com.terminaldetector.drmd.world.smoke.SmokeSystem.NetCloud(
+								c.idMsb(), c.idLsb(), c.x(), c.y(), c.z(),
+								c.radius(), c.density(), c.life(), c.sourceOrdinal(), c.colorRgb()));
+					}
+					com.terminaldetector.drmd.world.smoke.SmokeSystem.applyNetwork(wire);
+				}));
+
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ReactorSyncPayload.ID, (payload, context) ->
+				context.client().execute(() ->
+						com.terminaldetector.drmd.client.sync.ClientReactorSync.INSTANCE.apply(payload)));
+
 		com.terminaldetector.drmd.client.config.DescentConfig.load();
 
 		// A screen event rather than a GameMenuScreen mixin: the pause menu's layout is a grid that
@@ -176,11 +194,7 @@ public class DescentClient implements ClientModInitializer {
 			if (DescentClientState.enabled) {
 				DescentKeybinds.sendInput(client);
 			}
-			// Age client-only smoke on dedicated clients; integrated SP uses server tick
-			if (client.world != null && client.world.getTime() % 2 == 0
-					&& !client.isIntegratedServerRunning()) {
-				com.terminaldetector.drmd.world.smoke.SmokeSystem.tick();
-			}
+			// Dedicated clients receive authoritative SmokePayload snapshots; do not local-tick.
 			float smoke = com.terminaldetector.drmd.world.smoke.SmokeSystem.obscurityAt(client.player.getEyePos());
 			DescentClientState.smokeObscurity = smoke;
 			if (smoke > 0.15f && client.world != null && client.world.getTime() % 3 == 0) {

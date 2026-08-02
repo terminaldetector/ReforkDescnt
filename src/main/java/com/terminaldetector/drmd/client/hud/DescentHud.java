@@ -68,7 +68,11 @@ public final class DescentHud {
 
 	public static void render(DrawContext ctx, float tickDelta) {
 		MinecraftClient mc = MinecraftClient.getInstance();
-		if (mc.player == null || mc.world == null || mc.options.hudHidden || !DescentClientState.enabled) return;
+		if (mc.player == null || mc.world == null || mc.options.hudHidden) return;
+
+		renderReactorSyncStrip(ctx, mc);
+
+		if (!DescentClientState.enabled) return;
 		if (!com.terminaldetector.drmd.client.config.DescentConfig.hud) return;
 
 		int sw = mc.getWindow().getScaledWidth();
@@ -923,6 +927,34 @@ public final class DescentHud {
 			if (e2 >= dy) { err += dy; x0 += sx; }
 			if (e2 <= dx) { err += dx; y0 += sy; }
 		}
+	}
+
+	/** Column / End / orbit aftermath cue — visible even outside 6DoF. */
+	private static void renderReactorSyncStrip(DrawContext ctx, MinecraftClient mc) {
+		var sync = com.terminaldetector.drmd.client.sync.ClientReactorSync.INSTANCE;
+		int breachSec = sync.nearestBreachSeconds(
+				mc.player.getX(), mc.player.getY(), mc.player.getZ());
+		int falls = sync.falls().size();
+		if (breachSec < 0 && falls <= 0 && sync.lastGameTime() < 0) return;
+
+		int sw = mc.getWindow().getScaledWidth();
+		String line;
+		int color;
+		if (breachSec >= 0) {
+			line = "REACTOR BREACH  " + breachSec + "s";
+			color = breachSec <= 15 ? RED : AMBER;
+		} else if (falls > 0) {
+			line = "METEOR FALLS  " + falls;
+			color = AMBER;
+		} else {
+			line = sync.lastOrbital() ? "ORBITAL DETONATION LOGGED" : "FACILITY DETONATION LOGGED";
+			color = GREEN_DIM;
+		}
+		int tw = mc.textRenderer.getWidth(line);
+		int x = (sw - tw) / 2;
+		int y = 6;
+		ctx.fill(x - 4, y - 2, x + tw + 4, y + 11, 0x88000C10);
+		ctx.drawText(mc.textRenderer, Text.literal(line), x, y, color, false);
 	}
 
 	private record TargetInfo(String name, String type, int hp, int hpMax, int dist, float vel) {}

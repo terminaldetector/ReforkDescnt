@@ -66,7 +66,7 @@
 - Внутренние пространства mega-creatures
 - Datapack placed-features вместо только chunk-load fallback
 - Публикация Modrinth / CurseForge (Nexus-ready jar уже собирается CI)
-- Multiplayer smoke cloud sync (сейчас volumetric smoke best on integrated SP)
+- ~~Multiplayer smoke cloud sync~~ (`SmokePayload` / `DimensionSync`)
 
 ---
 

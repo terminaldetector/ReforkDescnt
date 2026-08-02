@@ -42,13 +42,15 @@ Commands: `/d6 orbit`, `/d6 orbit ring`, `/d6 reactor`.
 Client option **Fall aftermath (corkscrew)** (`fallAftermath` in `drmd.properties`):
 soft pitch + bank spiral while 6DoF is on — inspect planet scars / meteor impacts after an orbital detonation. Uses voxel planet map + `PlanetScarApplier` on chunk load.
 
-## 3-dimension sync (architecture note)
+## Full column · orbit · End sync
 
-Full sync of Overworld column · orbit content · End/giga aftermath requires:
+`DimensionSync` + Overworld `DimensionSyncState` (`drmd_dimension_sync`):
 
-1. Shared `PlanetMapState` scars (done)  
-2. Facility / breach state persistence across dims (partial — in-memory fight map today)  
-3. Optional Immersive Portals dimension stack for true see-through seams (`WORLD_LAYERS_AUDIT.md`)  
-4. Networked smoke / meteor fall cues for dedicated servers  
+1. **Persist** armed/breach facilities + queued meteor falls (+ last detonation stamp) across restarts  
+2. **SmokePayload** (~5 Hz when dirty) — volumetric clouds to dedicated clients  
+3. **ReactorSyncPayload** (~2 Hz) — breach timers, pending falls, last detonation for OW sky+/End pilots  
+4. Shared `PlanetMapState` scars (already)  
 
-This pass lays the gameplay hooks; full ImmPtl + MP smoke sync remains a follow-up.
+Join pushes an immediate smoke + reactor snapshot. HUD strip shows nearest breach / fall count even outside 6DoF.
+
+Still future: Immersive Portals true see-through dimension stack (`WORLD_LAYERS_AUDIT.md`).

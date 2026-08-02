@@ -76,6 +76,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.clear();
 			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.clear();
 			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.clear();
+			com.terminaldetector.drmd.world.sync.DimensionSync.load(server);
 			// Both halves of worldgen are kept off the join path. Seeding only queues the landmarks
 			// and spends one per tick; the CHUNK_LOAD generators stay idle until that hand-off is
 			// done, so nothing of the mod's runs while the server is still preparing spawn.
@@ -98,6 +99,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.base.DescentSession.drainSeedQueue(server);
 			com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.tick(server);
 			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.tick(server);
+			com.terminaldetector.drmd.world.sync.DimensionSync.tick(server);
 			if (tick % 40 == 0) {
 				com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);
 			}
@@ -146,6 +148,7 @@ public class DescentMod implements ModInitializer {
 			server.execute(() -> {
 				com.terminaldetector.drmd.world.base.DescentSession.onPlayerJoin(handler.player);
 				ModNetworking.syncPlayer(handler.player, DescentPlayerData.get(handler.player));
+				com.terminaldetector.drmd.world.sync.DimensionSync.pushTo(handler.player);
 				unlockDrmdRecipes(handler.player);
 			});
 		});

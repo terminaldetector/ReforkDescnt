@@ -215,6 +215,107 @@ public final class ModNetworking {
 	}
 
 	public static final Identifier SCAFFOLD_ID = Identifier.of(DescentMod.MOD_ID, "scaffold");
+	public static final Identifier SMOKE_ID = Identifier.of(DescentMod.MOD_ID, "smoke");
+	public static final Identifier REACTOR_SYNC_ID = Identifier.of(DescentMod.MOD_ID, "reactor_sync");
+
+	/** Server → client volumetric smoke snapshot (dedicated MP). */
+	public record SmokePayload(int seq, java.util.List<Cloud> clouds) implements CustomPayload {
+		public record Cloud(long idMsb, long idLsb, float x, float y, float z,
+							float radius, float density, int life, int sourceOrdinal, int colorRgb) {}
+
+		public static final Id<SmokePayload> ID = new Id<>(SMOKE_ID);
+		public static final PacketCodec<RegistryByteBuf, SmokePayload> CODEC = PacketCodec.of(
+				(payload, buf) -> {
+					buf.writeVarInt(payload.seq);
+					buf.writeVarInt(payload.clouds.size());
+					for (Cloud c : payload.clouds) {
+						buf.writeLong(c.idMsb);
+						buf.writeLong(c.idLsb);
+						buf.writeFloat(c.x);
+						buf.writeFloat(c.y);
+						buf.writeFloat(c.z);
+						buf.writeFloat(c.radius);
+						buf.writeFloat(c.density);
+						buf.writeVarInt(c.life);
+						buf.writeVarInt(c.sourceOrdinal);
+						buf.writeInt(c.colorRgb);
+					}
+				},
+				buf -> {
+					int seq = buf.readVarInt();
+					int n = buf.readVarInt();
+					java.util.ArrayList<Cloud> list = new java.util.ArrayList<>(n);
+					for (int i = 0; i < n; i++) {
+						list.add(new Cloud(
+								buf.readLong(), buf.readLong(),
+								buf.readFloat(), buf.readFloat(), buf.readFloat(),
+								buf.readFloat(), buf.readFloat(),
+								buf.readVarInt(), buf.readVarInt(), buf.readInt()));
+					}
+					return new SmokePayload(seq, list);
+				}
+		);
+		@Override public Id<? extends CustomPayload> getId() { return ID; }
+	}
+
+	/** Server → client reactor breaches, meteor falls, last detonation stamp. */
+	public record ReactorSyncPayload(
+			java.util.List<Breach> breaches,
+			java.util.List<Fall> falls,
+			int lastX, int lastY, int lastZ,
+			long lastGameTime,
+			boolean lastOrbital
+	) implements CustomPayload {
+		public record Breach(int x, int y, int z, String phase, int ticksLeft, boolean orbital, String vitality) {}
+		public record Fall(int x, int z, int ticksLeft, int intensity) {}
+
+		public static final Id<ReactorSyncPayload> ID = new Id<>(REACTOR_SYNC_ID);
+		public static final PacketCodec<RegistryByteBuf, ReactorSyncPayload> CODEC = PacketCodec.of(
+				(payload, buf) -> {
+					buf.writeVarInt(payload.breaches.size());
+					for (Breach b : payload.breaches) {
+						buf.writeInt(b.x);
+						buf.writeInt(b.y);
+						buf.writeInt(b.z);
+						buf.writeString(b.phase == null ? "" : b.phase);
+						buf.writeVarInt(b.ticksLeft);
+						buf.writeBoolean(b.orbital);
+						buf.writeString(b.vitality == null ? "" : b.vitality);
+					}
+					buf.writeVarInt(payload.falls.size());
+					for (Fall f : payload.falls) {
+						buf.writeInt(f.x);
+						buf.writeInt(f.z);
+						buf.writeVarInt(f.ticksLeft);
+						buf.writeVarInt(f.intensity);
+					}
+					buf.writeInt(payload.lastX);
+					buf.writeInt(payload.lastY);
+					buf.writeInt(payload.lastZ);
+					buf.writeLong(payload.lastGameTime);
+					buf.writeBoolean(payload.lastOrbital);
+				},
+				buf -> {
+					int bn = buf.readVarInt();
+					java.util.ArrayList<Breach> breaches = new java.util.ArrayList<>(bn);
+					for (int i = 0; i < bn; i++) {
+						breaches.add(new Breach(
+								buf.readInt(), buf.readInt(), buf.readInt(),
+								buf.readString(), buf.readVarInt(), buf.readBoolean(), buf.readString()));
+					}
+					int fn = buf.readVarInt();
+					java.util.ArrayList<Fall> falls = new java.util.ArrayList<>(fn);
+					for (int i = 0; i < fn; i++) {
+						falls.add(new Fall(buf.readInt(), buf.readInt(), buf.readVarInt(), buf.readVarInt()));
+					}
+					return new ReactorSyncPayload(
+							breaches, falls,
+							buf.readInt(), buf.readInt(), buf.readInt(),
+							buf.readLong(), buf.readBoolean());
+				}
+		);
+		@Override public Id<? extends CustomPayload> getId() { return ID; }
+	}
 
 	/** Server → client construction scaffold frame (locked positions). */
 	public record ScaffoldPayload(boolean active, String shapeId, java.util.List<net.minecraft.util.math.BlockPos> positions)
@@ -271,6 +372,8 @@ public final class ModNetworking {
 		PayloadTypeRegistry.playS2C().register(LlodPayload.ID, LlodPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(PlanetMapPayload.ID, PlanetMapPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ScaffoldPayload.ID, ScaffoldPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(SmokePayload.ID, SmokePayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(ReactorSyncPayload.ID, ReactorSyncPayload.CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(InputPayload.ID, (payload, context) -> {
 			ServerPlayerEntity player = context.player();
