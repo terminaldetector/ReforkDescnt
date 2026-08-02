@@ -91,6 +91,17 @@ public class DescentPlayerData {
 	/** First-join tip already shown. */
 	private boolean sessionWelcomed;
 
+	/**
+	 * The pilot turned 6DoF off themselves, so leave it off.
+	 *
+	 * <p>Enabling used to hang off the first-join edge alone, which made it a single point of
+	 * failure: miss that one edge and 6DoF never came on again, and with it the cockpit, the HUD,
+	 * the camera and the flight model — all of them gated on the same flag, all of them silent about
+	 * it. Recording the pilot's own choice instead lets the session be re-asserted on every join
+	 * without ever overriding somebody who pressed H.
+	 */
+	private boolean userDisabled;
+
 	public void ensureInit() {
 		if (energyMax <= 0) energyMax = 100f;
 		if (shieldMax <= 0) shieldMax = 100f;
@@ -121,6 +132,7 @@ public class DescentPlayerData {
 		d.putFloat("wepRecoil", wepRecoil);
 		d.putBoolean("radar", radarEnabled);
 		d.putBoolean("sessionWelcomed", sessionWelcomed);
+		d.putBoolean("userDisabled", userDisabled);
 		nbt.put("DrmdData", d);
 	}
 
@@ -148,6 +160,7 @@ public class DescentPlayerData {
 		if (d.contains("wepRecoil")) wepRecoil = d.getFloat("wepRecoil");
 		radarEnabled = !d.contains("radar") || d.getBoolean("radar");
 		sessionWelcomed = d.getBoolean("sessionWelcomed");
+		userDisabled = d.getBoolean("userDisabled");
 	}
 
 	// Getters / setters
@@ -227,6 +240,9 @@ public class DescentPlayerData {
 	public void setWepInherit(float wepInherit) { this.wepInherit = wepInherit; }
 	public float getWepRecoil() { return wepRecoil; }
 	public void setWepRecoil(float wepRecoil) { this.wepRecoil = wepRecoil; }
+	public boolean isUserDisabled() { return userDisabled; }
+	public void setUserDisabled(boolean userDisabled) { this.userDisabled = userDisabled; }
+
 	public boolean isSessionWelcomed() { return sessionWelcomed; }
 	public void setSessionWelcomed(boolean sessionWelcomed) { this.sessionWelcomed = sessionWelcomed; }
 

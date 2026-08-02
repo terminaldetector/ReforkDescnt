@@ -267,6 +267,8 @@ public final class FlightSystem {
 
 	public static void disable(ServerPlayerEntity player, DescentPlayerData data) {
 		data.setEnabled(false);
+		// The pilot's own choice, so the session must not re-assert it on the next join.
+		data.setUserDisabled(true);
 		data.clearShipAttitude();
 		data.setRoll(0);
 		data.setRollVel(0);
@@ -289,6 +291,7 @@ public final class FlightSystem {
 		} else {
 			com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
 			data.setEnabled(true);
+			data.setUserDisabled(false);
 			data.ensureInit();
 			player.setNoGravity(true);
 			ModNetworking.syncPlayer(player, data);

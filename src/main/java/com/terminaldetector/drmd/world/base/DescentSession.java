@@ -118,12 +118,20 @@ public final class DescentSession {
 		DescentPlayerData data = DescentPlayerData.get(player);
 		data.ensureInit();
 
+		// 6DoF is the default way to move in this world, so it is re-asserted on every join unless the
+		// pilot switched it off themselves.
+		//
+		// This used to happen only on the very first join, which made that one edge a single point of
+		// failure: everything visible — cockpit, HUD, camera, the flight model — is gated on this one
+		// flag, and all of it fails silently when the flag is off. Miss the edge once and the session
+		// never comes back for the life of the world. Keying on the pilot's recorded choice instead
+		// still never overrides somebody who pressed H, which is what the edge was protecting.
+		if (!data.isUserDisabled() && !data.isEnabled()) {
+			data.setEnabled(true);
+		}
+
 		boolean first = !data.isSessionWelcomed();
 		if (first) {
-			// 6DoF is the default way to move in this world, but only the first join decides that.
-			// Re-asserting it every login would keep overriding a pilot who switched it off with H —
-			// which in creative means their building flight gets taken away on every reconnect.
-			data.setEnabled(true);
 			data.setSessionWelcomed(true);
 			player.sendMessage(Text.literal(
 					"§bDRMD 6DOF §f— Descent session is part of this world."), false);
