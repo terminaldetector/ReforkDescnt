@@ -19,6 +19,7 @@ public final class ModNetworking {
 	public static final Identifier SYNC_ID = Identifier.of(DescentMod.MOD_ID, "sync");
 	public static final Identifier ACTION_ID = Identifier.of(DescentMod.MOD_ID, "action");
 	public static final Identifier LLOD_ID = Identifier.of(DescentMod.MOD_ID, "llod");
+	public static final Identifier PLANET_MAP_ID = Identifier.of(DescentMod.MOD_ID, "planet_map");
 
 	public record InputPayload(float forward, float strafe, float vertical, float roll,
 							   boolean dash, boolean hook, boolean afterburner,
@@ -175,6 +176,41 @@ public final class ModNetworking {
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
 	}
 
+	/** Server → client planetary map viewport (explored + procedural fog-of-war cells). */
+	public record PlanetMapPayload(int originCx, int originCz, long seed, java.util.List<Cell> cells) implements CustomPayload {
+		public record Cell(int cx, int cz, int height, int tint, int flags) {}
+
+		public static final Id<PlanetMapPayload> ID = new Id<>(PLANET_MAP_ID);
+		public static final PacketCodec<RegistryByteBuf, PlanetMapPayload> CODEC = PacketCodec.of(
+				(payload, buf) -> {
+					buf.writeVarInt(payload.originCx);
+					buf.writeVarInt(payload.originCz);
+					buf.writeLong(payload.seed);
+					buf.writeVarInt(payload.cells.size());
+					for (Cell c : payload.cells) {
+						buf.writeVarInt(c.cx);
+						buf.writeVarInt(c.cz);
+						buf.writeByte(c.height);
+						buf.writeInt(c.tint);
+						buf.writeByte(c.flags);
+					}
+				},
+				buf -> {
+					int ox = buf.readVarInt();
+					int oz = buf.readVarInt();
+					long seed = buf.readLong();
+					int n = buf.readVarInt();
+					java.util.ArrayList<Cell> list = new java.util.ArrayList<>(n);
+					for (int i = 0; i < n; i++) {
+						list.add(new Cell(buf.readVarInt(), buf.readVarInt(),
+								buf.readUnsignedByte(), buf.readInt(), buf.readUnsignedByte()));
+					}
+					return new PlanetMapPayload(ox, oz, seed, list);
+				}
+		);
+		@Override public Id<? extends CustomPayload> getId() { return ID; }
+	}
+
 	/** Client → server construction apply (empty modules list = clear override). */
 	public record ConstructionPayload(String weaponId, net.minecraft.nbt.NbtList modules) implements CustomPayload {
 		public static final Identifier CONSTRUCTION_ID = Identifier.of(DescentMod.MOD_ID, "construction");
@@ -203,6 +239,7 @@ public final class ModNetworking {
 		PayloadTypeRegistry.playS2C().register(SyncPayload.ID, SyncPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ConstructionPayload.ID, ConstructionPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(LlodPayload.ID, LlodPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(PlanetMapPayload.ID, PlanetMapPayload.CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(InputPayload.ID, (payload, context) -> {
 			ServerPlayerEntity player = context.player();

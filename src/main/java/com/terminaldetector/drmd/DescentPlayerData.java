@@ -91,6 +91,10 @@ public class DescentPlayerData {
 	/** First-join tip already shown. */
 	private boolean sessionWelcomed;
 
+	/** Last Overworld XZ — planet-map focus while viewing from End / orbit. */
+	private int lastOverworldX;
+	private int lastOverworldZ;
+
 	public void ensureInit() {
 		if (energyMax <= 0) energyMax = 100f;
 		if (shieldMax <= 0) shieldMax = 100f;
@@ -229,6 +233,13 @@ public class DescentPlayerData {
 	public void setWepRecoil(float wepRecoil) { this.wepRecoil = wepRecoil; }
 	public boolean isSessionWelcomed() { return sessionWelcomed; }
 	public void setSessionWelcomed(boolean sessionWelcomed) { this.sessionWelcomed = sessionWelcomed; }
+
+	public int getLastOverworldX() { return lastOverworldX; }
+	public int getLastOverworldZ() { return lastOverworldZ; }
+	public void setLastOverworldBlock(int x, int z) {
+		this.lastOverworldX = x;
+		this.lastOverworldZ = z;
+	}
 
 	public boolean hasShipAttitude() { return shipAttitudeValid; }
 

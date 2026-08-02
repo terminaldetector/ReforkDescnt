@@ -115,8 +115,15 @@ public class DescentMod implements ModInitializer {
 				if (tick % 10 == player.getId() % 10) {
 					ModNetworking.syncLlod(player);
 				}
+				// Planetary map sample + End/orbit viewport (~1 Hz staggered).
+				if (tick % 20 == player.getId() % 20) {
+					com.terminaldetector.drmd.world.llod.planet.PlanetMapSync.tickPlayer(player);
+				}
 			});
 		});
+
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents.CHUNK_LOAD.register(
+				(world, chunk) -> com.terminaldetector.drmd.world.llod.planet.PlanetScarApplier.onChunkLoad(world, chunk));
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			ConstructionRegistry.allOverrides().forEach((id, mods) -> {

@@ -30,6 +30,8 @@ public final class DescentConfig {
 	public static boolean orbitalBeltSky = true;
 	/** Hybrid far land plates + clouds without loading distant chunks. */
 	public static boolean hybridHorizon = true;
+	/** End/orbit planetary voxel floor (explored map + fog-of-war). */
+	public static boolean planetFloor = true;
 	/** Ship roll rate, degrees per second. */
 	public static float rollRate = 175f;
 	/** Mouse gain for ship attitude, relative to vanilla look. */
@@ -67,6 +69,7 @@ public final class DescentConfig {
 		levelSky = bool(props, "levelSky", levelSky);
 		orbitalBeltSky = bool(props, "orbitalBeltSky", orbitalBeltSky);
 		hybridHorizon = bool(props, "hybridHorizon", hybridHorizon);
+		planetFloor = bool(props, "planetFloor", planetFloor);
 		rollRate = clamp(num(props, "rollRate", rollRate), 40f, 400f);
 		lookGain = clamp(num(props, "lookGain", lookGain), 0.25f, 3f);
 		cameraShake = bool(props, "cameraShake", cameraShake);
@@ -82,6 +85,7 @@ public final class DescentConfig {
 		props.setProperty("levelSky", Boolean.toString(levelSky));
 		props.setProperty("orbitalBeltSky", Boolean.toString(orbitalBeltSky));
 		props.setProperty("hybridHorizon", Boolean.toString(hybridHorizon));
+		props.setProperty("planetFloor", Boolean.toString(planetFloor));
 		props.setProperty("rollRate", Float.toString(rollRate));
 		props.setProperty("lookGain", Float.toString(lookGain));
 		props.setProperty("cameraShake", Boolean.toString(cameraShake));

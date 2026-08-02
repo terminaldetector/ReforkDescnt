@@ -333,6 +333,31 @@ public final class DescentCommands {
 												+ " visible LLOD0=" + c0 + " LLOD1=" + c1 + " LLOD2=" + c2), false);
 								return 1;
 							}))
+					.then(CommandManager.literal("planet")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								com.terminaldetector.drmd.world.llod.planet.PlanetMapSync.tickPlayer(p);
+								var ow = p.getServer().getOverworld();
+								int n = ow == null ? 0
+										: com.terminaldetector.drmd.world.llod.planet.PlanetMapState.get(ow).size();
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Planet map sync — explored cells=" + n
+												+ " focus=" + p.getBlockX() + "," + p.getBlockZ()), false);
+								return 1;
+							})
+							.then(CommandManager.literal("scar")
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										var ow = p.getServer().getOverworld();
+										if (ow == null) return 0;
+										com.terminaldetector.drmd.world.llod.planet.PlanetMapState.get(ow)
+												.scarBlock(p.getBlockX(), p.getBlockZ(), 2);
+										com.terminaldetector.drmd.world.llod.planet.PlanetMapSync.tickPlayer(p);
+										ctx.getSource().sendFeedback(() -> Text.literal(
+												"Planet scar painted under you (visible from End/orbit)"), true);
+										return 1;
+									})))
 					.then(CommandManager.literal("bomb")
 							.requires(s -> s.hasPermissionLevel(2))
 							.then(CommandManager.argument("type", StringArgumentType.word()).executes(ctx -> {
