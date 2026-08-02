@@ -1,4 +1,4 @@
-# Mega Beam · Orbital belt sky · Hybrid LLOD
+# Mega Beam · Orbital belt sky · Far view
 
 ## 1. Mega Beam (FP special)
 
@@ -19,20 +19,21 @@ Reference: thick character-height beam with shield block point.
 
 Config: `orbitalBeltSky=true` in `drmd.properties`.
 
-## 3. Hybrid LLOD (orbit lands + clouds)
+## 3. Far view
 
-Chunks stay local. From altitude, `HybridHorizonRenderer` draws:
+DRMD draws no far-field terrain of its own. Chunks stay local; everything past them is
+[Distant Horizons](DISTANT_HORIZONS.md) (soft-dep, + Sodium).
+
+What DRMD still draws past the chunk radius:
 
 | Layer | What |
 |-------|------|
-| Macro Voxel LLOD | Stations / city / rings (`LlodSilhouetteRenderer`) |
-| Hybrid land plates | Seeded heightfield cells beyond chunk radius |
-| Cloud banks | Soft translucent decks when looking from above |
-
-Config: `hybridHorizon=true`. Megacity has a dedicated LLOD silhouette (plate + towers + pyramid).
+| Skybox | Spark ring / Starlink train / Oblivion mass (`OrbitalBeltSkyRenderer`) |
+| Seam curtains | Layer faces (`BoundarySeamRenderer`) |
+| Real blocks | Klondike sky islands · End-band islands — generated, not drawn as shells |
 
 ```
 Near:  CHUNK mesh
-Mid:   LLOD2→0 macros
-Far / high Y: hybrid land + clouds + sky belt
+Far:   Distant Horizons LODs
+Sky:   camera-locked belt / ring / Oblivion
 ```

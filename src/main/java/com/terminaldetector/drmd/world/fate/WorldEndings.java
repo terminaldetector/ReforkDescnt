@@ -7,7 +7,7 @@ import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.entity.mob.CyberMobEntity;
 import com.terminaldetector.drmd.network.ModNetworking;
 import com.terminaldetector.drmd.world.level.WorldLevels;
-import com.terminaldetector.drmd.world.llod.planet.PlanetMapState;
+import com.terminaldetector.drmd.world.scar.ScarMapState;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.mob.HostileEntity;
@@ -49,11 +49,11 @@ public final class WorldEndings {
 		// Infrastructure that held the remnants starts to fail — extra planet scars.
 		ServerWorld ow = server.getOverworld();
 		if (ow != null) {
-			PlanetMapState map = PlanetMapState.get(ow);
+			ScarMapState map = ScarMapState.get(ow);
 			for (int i = 0; i < 24; i++) {
 				int ox = at.getX() + (ow.getRandom().nextInt(257) - 128);
 				int oz = at.getZ() + (ow.getRandom().nextInt(257) - 128);
-				map.scarBlock(ox, oz, 2);
+				map.scarBlock(ox, oz);
 			}
 		}
 
@@ -120,9 +120,9 @@ public final class WorldEndings {
 				ServerWorld ow = server.getOverworld();
 				if (ow != null && !ow.getPlayers().isEmpty()) {
 					ServerPlayerEntity p = ow.getPlayers().get(0);
-					PlanetMapState.get(ow).scarBlock(
+					ScarMapState.get(ow).scarBlock(
 							p.getBlockX() + ow.getRandom().nextInt(64) - 32,
-							p.getBlockZ() + ow.getRandom().nextInt(64) - 32, 1);
+							p.getBlockZ() + ow.getRandom().nextInt(64) - 32);
 				}
 			}
 		}

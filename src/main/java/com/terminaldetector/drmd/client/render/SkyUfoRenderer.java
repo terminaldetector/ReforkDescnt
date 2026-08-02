@@ -12,7 +12,7 @@ import net.minecraft.util.math.MathHelper;
 import org.joml.Matrix4f;
 
 /**
- * Airborne XCOM-style saucer — procedural disc + dome for LLOD-scale presence.
+ * Airborne XCOM-style saucer — procedural disc + dome, big enough to read from far off.
  */
 public class SkyUfoRenderer extends EntityRenderer<SkyUfoEntity> {
 	private static final Identifier TEXTURE = Identifier.of(com.terminaldetector.drmd.DescentMod.MOD_ID, "textures/entity/sky_ufo.png");

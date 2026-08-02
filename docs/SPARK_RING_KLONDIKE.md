@@ -26,7 +26,7 @@ Jar from PR #8 is world/6DoF. For weapons, take the arsenal PR jar (or merge tho
 
 ## Islands
 
-Sky presence = **real voxels** via `KlondikeIslandGenerator` (grass disk + stone underside).
+Sky presence = **real blocks** via `KlondikeIslandGenerator` (grass disk + stone underside).
 Sparse CHUNK_LOAD + spawn seed. No ARCH/RING/FLOATING_CONTINENT silhouette zoo.
 
 ## Connection (stabilized)
@@ -34,8 +34,9 @@ Sparse CHUNK_LOAD + spawn seed. No ARCH/RING/FLOATING_CONTINENT silhouette zoo.
 | Hook | Job |
 |------|-----|
 | `LayerBridge` | Seam announce + 6DoF hop |
-| `SeamWarmup` | Background Nether/End before 10 blocks |
+| `SeamWarmup` | Background Nether/End on a 3 s lookahead, both directions |
 | `BoundarySeamRenderer` | Face curtains |
 | Spark ring + Klondike | Orbit layer *display* |
 
-Macro LLOD (`MACRO_LLOD`) stays compiled but off.
+The same island shape builds the **End band** at the top of the column in End stone —
+see [`END_BAND.md`](END_BAND.md). No voxel LLOD anywhere: far view is Distant Horizons.

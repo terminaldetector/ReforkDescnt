@@ -11,7 +11,7 @@ import net.minecraft.world.WorldAccess;
 import java.util.UUID;
 
 /**
- * Simple Spark/Klondike-style floating voxel islands — real blocks only, no LLOD shells.
+ * Simple Spark/Klondike-style floating islands — real blocks, placed sparsely.
  *
  * <p>One shape: dirt/stone disk, grass top, short underside. Sparse sky-band placement replaces
  * the old ARCH/RING/FLOATING_CONTINENT silhouette zoo.
@@ -62,7 +62,7 @@ public final class KlondikeIslandGenerator {
 		MacroEntry e = new MacroEntry(UUID.randomUUID(), MacroEntry.Kind.KLONDIKE_ISLAND,
 				WorldRules.Layer.SKY_ARCHIPELAGO, origin.toImmutable(),
 				rx * 2, thick + 4, rz * 2, 0x4A8F3C, "Klondike Island");
-		// Catalogue kept for radar/debug only — no silhouette sync while MACRO_LLOD is off.
+		// Catalogue entry for radar / debug listings; the island itself is the blocks above.
 		MacroWorld.put(e);
 		return e;
 	}

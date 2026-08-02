@@ -17,7 +17,7 @@
 
 ## Scope (out)
 
-- Voxel LLOD
+- Far-field terrain rendering (Distant Horizons on PC)
 - Megastructures / MacroWorld
 - Full weapon workshop
 - Havok-complete gravy

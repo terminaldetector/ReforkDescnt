@@ -46,7 +46,7 @@ Behaviour:
 - volumetric clouds with buoyancy / near-space spherical expansion
 - tunnel-friendly drift; longer life in thin/near-space air
 - obscures HUD radar range + smoke % readout
-- LLOD draw: LLOD0 far columns → LLOD1 large puffs → LLOD2 local blobs
+- Draw bands: far columns → large puffs → local blobs (`SmokeSystem.Band`)
 
 ## Advanced Fire (3D)
 
@@ -56,7 +56,7 @@ Behaviour:
 
 ## Performance
 
-Smoke capped (~256 clouds). Fire foci capped (~200). Smoke LLOD culls far detail.
+Smoke capped (~256 clouds). Fire foci capped (~200). Distance bands cull far detail.
 
 ## 6DoF vertical combat loop
 

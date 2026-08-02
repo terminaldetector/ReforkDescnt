@@ -43,7 +43,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * XCOM-style airborne UFO — real enterable flying hull (not LLOD-only).
+ * XCOM-style airborne UFO — a real enterable flying hull, not a distant prop.
  * Cruise while carrying interior entities; destroy by reactor dump / bomb / core break.
  */
 public class SkyUfoEntity extends Entity {

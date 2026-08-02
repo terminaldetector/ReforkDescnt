@@ -163,8 +163,8 @@ public class EndReactorBossEntity extends HostileEntity {
 	}
 
 	/**
-	 * Reactor fire paints a scar on the Overworld planet map at the pilot's last surface focus —
-	 * visible from End orbit and applied as terrain when that chunk is later loaded.
+	 * Reactor fire burns the Overworld at the pilot's last surface focus — recorded now, cut into
+	 * the ground when that chunk is next loaded.
 	 */
 	private void scarPlanetFromOrbit(ServerWorld sw, LivingEntity focus, int intensity) {
 		ServerWorld ow = sw.getServer().getOverworld();
@@ -176,15 +176,15 @@ public class EndReactorBossEntity extends HostileEntity {
 			x = data.getLastOverworldX();
 			z = data.getLastOverworldZ();
 		}
-		// Spread a few cells so the orbital map reads a burn zone.
-		var map = com.terminaldetector.drmd.world.llod.planet.PlanetMapState.get(ow);
-		int cx = com.terminaldetector.drmd.world.llod.planet.PlanetCell.cellOf(x);
-		int cz = com.terminaldetector.drmd.world.llod.planet.PlanetCell.cellOf(z);
-		map.scar(cx, cz, intensity);
-		map.scar(cx + 1, cz, intensity);
-		map.scar(cx, cz - 1, intensity);
+		// Spread a few cells so the ground reads as a burn zone rather than one crater.
+		var map = com.terminaldetector.drmd.world.scar.ScarMapState.get(ow);
+		int cx = com.terminaldetector.drmd.world.scar.ScarMapState.cellOf(x);
+		int cz = com.terminaldetector.drmd.world.scar.ScarMapState.cellOf(z);
+		map.scar(cx, cz);
+		map.scar(cx + 1, cz);
+		map.scar(cx, cz - 1);
 		if (intensity > 1) {
-			map.scar(cx - 1, cz + 1, intensity);
+			map.scar(cx - 1, cz + 1);
 		}
 	}
 

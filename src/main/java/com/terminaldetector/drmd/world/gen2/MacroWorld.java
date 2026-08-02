@@ -10,8 +10,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Server + client registry of macro-world entries for LLOD silhouettes
- * and multi-scale streaming awareness.
+ * Registry of macro-world entries — what the world has built and where, for radar, HUD contacts
+ * and generator bookkeeping.
  */
 public final class MacroWorld {
 	private static final Map<UUID, MacroEntry> ENTRIES = new ConcurrentHashMap<>();

@@ -19,7 +19,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 
 /**
- * Technogenic sea plates: Mega Locator (LLOD) + small locator network + underwater 6DoF dungeon.
+ * Technogenic sea plates: Mega Locator + small locator network + underwater 6DoF dungeon.
  */
 public final class TechnogenicSeaBiomeWorldgen {
 	private TechnogenicSeaBiomeWorldgen() {}
@@ -61,7 +61,7 @@ public final class TechnogenicSeaBiomeWorldgen {
 		int az = anchor.getZ();
 		long seed = world.getSeed() ^ ((long) ax * 31L) ^ az;
 
-		// Mega Locator first — MacroWorld.put gives horizon LLOD before the player arrives.
+		// Mega Locator first — MacroWorld.put catalogues the landmark before the player arrives.
 		DescentSession.enqueueLandmark(new BlockPos(ax, 0, az), () ->
 				MegaLocatorGenerator.generateMega(world, new BlockPos(ax, 0, az), Random.create(seed)));
 

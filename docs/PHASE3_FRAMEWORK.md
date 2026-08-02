@@ -78,4 +78,4 @@ Spawn-хаб ставит generator + два torch с разными напра�
 
 Java/Fabric остаётся каноном для глубокой модификации движка.
 
-См. также: `docs/BLOG_PRESENT.md`, `docs/ROADMAP.md`, `docs/VOXEL_LLOD.md`.
+См. также: `docs/BLOG_PRESENT.md`, `docs/ROADMAP.md`, `docs/DISTANT_HORIZONS.md`.

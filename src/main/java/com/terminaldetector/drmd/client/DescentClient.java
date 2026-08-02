@@ -2,7 +2,6 @@ package com.terminaldetector.drmd.client;
 
 import com.terminaldetector.drmd.client.config.DescentConfig;
 import com.terminaldetector.drmd.client.input.DescentKeybinds;
-import com.terminaldetector.drmd.client.llod.LlodClientState;
 import com.terminaldetector.drmd.client.render.ModEntityRenderers;
 import com.terminaldetector.drmd.client.render.WeaponViewRenderer;
 import com.terminaldetector.drmd.network.ModNetworking;
@@ -38,7 +37,6 @@ public class DescentClient implements ClientModInitializer {
 		WeaponViewRenderer.register();
 		com.terminaldetector.drmd.client.render.CockpitRenderer.register();
 		com.terminaldetector.drmd.client.render.BoundarySeamRenderer.register();
-		// Voxel LLOD / hybrid horizon / planet-floor expand REMOVED — use Distant Horizons.
 		com.terminaldetector.drmd.client.sky.OrbitalBeltSkyRenderer.register();
 		com.terminaldetector.drmd.client.render.MegaBeamViewRenderer.register();
 		com.terminaldetector.drmd.client.render.ConstructScaffoldRenderer.register();
@@ -56,13 +54,6 @@ public class DescentClient implements ClientModInitializer {
 				ConstructionRegistry.setOverride(id, ClusterModule.listFromNbt(payload.modules()));
 			}
 		});
-
-		// Legacy LLOD / planet-map packets ignored (voxel pipeline stripped).
-		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.LlodPayload.ID, (payload, context) ->
-				context.client().execute(LlodClientState.INSTANCE::clear));
-		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.PlanetMapPayload.ID, (payload, context) ->
-				context.client().execute(() ->
-						com.terminaldetector.drmd.client.llod.planet.PlanetMapClientState.INSTANCE.clear()));
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ScaffoldPayload.ID, (payload, context) ->
 				context.client().execute(() -> com.terminaldetector.drmd.client.build.ScaffoldClientState.INSTANCE.set(

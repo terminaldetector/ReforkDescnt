@@ -12,13 +12,15 @@
 | `BoundarySeamRenderer` | «Занавес» блоков на границе |
 | `LevelSky` / `OrbitalBeltSkyRenderer` | Небо/пояс с **анимацией как у Oblivion** (дрейф по времени мира) |
 | `MantleStream` | Мантия рядом с игроком, не fill всей колонны |
-| `SeamWarmup` | Фон: стрим Nether-колонки + chunk tickets реального Nether/End **до 10 блоков** до шва (−240 / 880) |
+| `SeamWarmup` | Фон: стрим колонки + chunk tickets реального Nether/End по **прогнозу на 3 с** вперёд, в обе стороны |
 | `OrbitalBeltSkyRenderer` | **Spark-кольцо**: планета + тёмная полоса + зелёный ореол (skybox) |
-| `KlondikeIslandGenerator` | Реальные воксельные острова в sky-band — вместо macro LLOD |
+| `KlondikeIslandGenerator` | Реальные блочные острова в sky-band |
+| `EndIslandGenerator` | Тот же остров в End-камне — архипелаг End-полосы (900…1000) |
 
 Immersive Portals — опциональный soft-dep для настоящего see-through.
 
-**LLOD силуэты parked** (`WorldFeatures.MACRO_LLOD=false`). Orbit junk parked. Связка слоёв = LayerBridge + SeamWarmup + BoundarySeam + Spark ring.
+**Voxel LLOD удалён целиком** (`world/llod`, `client/llod`, payload'ы). Дальний вид — Distant Horizons.
+Orbit junk parked. Связка слоёв = LayerBridge + SeamWarmup + BoundarySeam + Spark ring + End-полоса.
 
 | Шов Y | Слои |
 |------:|------|
@@ -38,9 +40,19 @@ Vanilla creative `abilities.flying` (двойной пробел) ломает �
 
 ### SeamWarmup (бесшовный Nether / End)
 
-- Старт фона: **72** блока до лица шва; к **10** блокам — усиленный радиус стрима/тикетов.
+- Решение принимается по **спрогнозированной** позиции: где корабль будет через **3 с**
+  (`LOOKAHEAD_SECONDS`), по скорости лётной модели. Окно то же — **72** блока до лица шва,
+  к **10** блокам радиус стрима/тикетов усиливается — но открывается заранее и тянется
+  за прогнозом по XZ, а не за текущей клеткой.
+- Пересечение шва внутри окна прогноза ловится отдельно: на форсаже корабль может быть
+  вне окна и до, и после, и всё равно пройти шов между ними.
 - Шов −240 (`NETHER_CEILING`): `LevelBuilder.streamAround` + MantleStream + ticket в `World.NETHER` (1:8).
-- Шов 880 (`ORBITAL_TOP`): ticket в `World.END` (XZ пилота + арена 0,0); ранний wake реактора.
+- Шов 880 (`ORBITAL_TOP`): `LevelBuilder.streamEndBand` (только острова, без мантии) + ticket
+  в `World.END` (XZ прогноза + арена 0,0) + ticket на арену в Overworld; ранний wake реактора.
+- Внутри End-полосы стрим продолжается: чанки, уже загруженные до набора высоты, CHUNK_LOAD не покроет.
+- **Обратный путь**: в End/Nether раз в секунду держится ticket на последней наземной точке пилота
+  (`DescentPlayerData.lastOverworld*`) — возвращение домой тоже без подгрузки.
+- Прогулка футпринта — раз в 5 тиков (`STREAM_INTERVAL`): постановка в очередь идемпотентна.
 - Без fill кубов — только очередь LevelBuilder и движковые chunk tickets.
 
 ---

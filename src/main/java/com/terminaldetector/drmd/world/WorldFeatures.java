@@ -22,30 +22,18 @@ public final class WorldFeatures {
 	public static final boolean NETHER_BAND = true;
 
 	/**
-	 * Custom End-band islands at the top of the Overworld column.
+	 * The End band at the top of the column: an End-stone archipelago with the reactor arena in it.
 	 *
-	 * <p>Parked: the upper layer should match stock Minecraft (empty high sky / no End-stone
-	 * archipelago). The reactor fight still lives in the vanilla End dimension.
+	 * <p>On. It was parked for a while so the high sky would match stock Minecraft, which left the
+	 * top of the column empty and the reactor fight reachable only through the vanilla End portal —
+	 * the one dimension hop the design says should not be needed. The band is back, and the islands
+	 * are now built by {@code EndIslandGenerator}: the same sparse real-block shape as the Klondike
+	 * islands in the sky band, in End stone, rather than the dense slab this used to write.
 	 */
-	public static final boolean END_BAND = false;
+	public static final boolean END_BAND = true;
 
 	/**
-	 * Distant MacroWorld → voxel LLOD silhouette cubes.
-	 *
-	 * <p><b>Removed.</b> Inherited merge code caused errors/load. Far vista = Distant Horizons
-	 * soft-dep, not DRMD cubes. Do not flip on.
-	 */
-	public static final boolean MACRO_LLOD = false;
-
-	/**
-	 * Client hybrid fake-horizon plates + planet-floor voxel expand.
-	 *
-	 * <p><b>Removed.</b> Same reason — use Distant Horizons for distance; Spark skybox for orbit.
-	 */
-	public static final boolean VOXEL_HORIZON = false;
-
-	/**
-	 * Sparse Klondike floating islands (real blocks) in the sky band — not LLOD shells.
+	 * Sparse Klondike floating islands (real blocks) in the sky band.
 	 */
 	public static final boolean KLONDIKE_ISLANDS = true;
 

@@ -145,6 +145,13 @@ public final class LayerBridge {
 		}
 
 		player.requestTeleport(x, y, z);
+		// The hop puts the pilot inside the destination band on this tick. SeamWarmup would get to
+		// it within its stream interval, but the arrival is exactly the moment the band has to be
+		// there, so ask for the content around the landing point now.
+		if (to == WorldLayer.OBLIVION) {
+			com.terminaldetector.drmd.world.level.LevelBuilder.streamEndBand(
+					world, MathHelper.floor(x) >> 4, MathHelper.floor(z) >> 4, 6);
+		}
 		Vec3d v = data.getFlightVelocity().multiply(0.4);
 		double nudge = ascending ? 2.0 : -2.0;
 		data.setFlightVelocity(new Vec3d(v.x, nudge, v.z));

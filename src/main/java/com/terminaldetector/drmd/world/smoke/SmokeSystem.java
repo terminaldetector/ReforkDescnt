@@ -1,7 +1,6 @@
 package com.terminaldetector.drmd.world.smoke;
 
 import com.terminaldetector.drmd.world.atmosphere.AtmosphereBand;
-import com.terminaldetector.drmd.world.llod.LlodLevel;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
@@ -13,13 +12,27 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Dynamic Smoke — volumetric clouds for nav/combat, with LLOD draw budgets.
+ * Dynamic Smoke — volumetric clouds for nav/combat, drawn coarser with distance.
  *
- * LLOD0 far columns → LLOD1 large puffs → LLOD2 local particle sim near player.
+ * <p>Far columns → large puffs → a local blob per cloud near the pilot. The bands are the
+ * renderer's own draw budget and have nothing to do with terrain distance any more: DRMD draws no
+ * far-field voxels, and a smoke column has to stay visible from further out than terrain does.
  */
 public final class SmokeSystem {
 	public enum Source {
 		TNT, FIRE, ENGINE, REACTOR, DAMAGE, VOLCANO, INDUSTRIAL, BOMB_TRAIL
+	}
+
+	/** How coarsely one cloud is drawn, by distance from the camera. */
+	public enum Band {
+		/** Under 48 blocks — local particles carry the cloud, this is the fill behind them. */
+		LOCAL,
+		/** A handful of puffs. */
+		NEAR,
+		/** Fewer, larger puffs. */
+		MID,
+		/** One wide, faint column — readable as a landmark. */
+		FAR
 	}
 
 	public static final class Cloud {
@@ -156,13 +169,13 @@ public final class SmokeSystem {
 		return list;
 	}
 
-	/** Which smoke LLOD band to draw this cloud at. */
-	public static LlodLevel drawBand(Cloud c, Vec3d viewer) {
+	/** Which band to draw this cloud at. */
+	public static Band drawBand(Cloud c, Vec3d viewer) {
 		double d = Math.sqrt(c.pos.squaredDistanceTo(viewer));
-		if (d < 48) return LlodLevel.CHUNK; // local particles handled separately
-		if (d < 160) return LlodLevel.LLOD2;
-		if (d < 512) return LlodLevel.LLOD1;
-		return LlodLevel.LLOD0;
+		if (d < 48) return Band.LOCAL; // local particles handled separately
+		if (d < 160) return Band.NEAR;
+		if (d < 512) return Band.MID;
+		return Band.FAR;
 	}
 
 	public static float obscurityAt(Vec3d eye) {

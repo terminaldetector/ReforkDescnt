@@ -15,7 +15,7 @@ Biome plate `drmd:scorched_lands`: ash fields, charred trees, ruined village hus
 
 | Landmark | Role |
 |----------|------|
-| **Scorched town** | Ash field, crater, ruined tower shells · LLOD `SCORCHED_TOWN` |
+| **Scorched town** | Ash field, crater, ruined tower shells · `SCORCHED_TOWN` |
 | **Ruined village** | Bombed hut husks |
 | **Burned groves ×4** | Stripped dark-oak / coal “trees” around the town |
 

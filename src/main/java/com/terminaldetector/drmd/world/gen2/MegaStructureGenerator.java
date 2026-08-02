@@ -40,6 +40,7 @@ public final class MegaStructureGenerator {
 			case SCORCHED_TOWN -> ScorchedSurfaceGenerator.generateTown(world, origin, random);
 			case IRON_GUILD -> IronGuildSurfaceGenerator.generateHall(world, origin, random);
 			case KLONDIKE_ISLAND -> KlondikeIslandGenerator.generate(world, origin, random);
+			case END_ISLAND -> EndIslandGenerator.generate(world, origin, random);
 			// A complex has had a generator all along; it was just never reachable from here, so
 			// `/d6 mega complex` quietly built an arch instead.
 			case INDUSTRIAL_COMPLEX, STATION -> industrialComplex(world, origin, random);
@@ -56,10 +57,11 @@ public final class MegaStructureGenerator {
 				&& kind != MacroEntry.Kind.SCORCHED_TOWN
 				&& kind != MacroEntry.Kind.IRON_GUILD
 				&& kind != MacroEntry.Kind.KLONDIKE_ISLAND
+				&& kind != MacroEntry.Kind.END_ISLAND
 				&& inLimit(world, origin)) {
 			world.setBlockState(origin, Blocks.LODESTONE.getDefaultState(), Block.NOTIFY_LISTENERS);
 		}
-		// Ensure LLOD catalogue knows about city / lunar / crash / locators (helpers already put some).
+		// Ensure the catalogue knows about city / lunar / crash / locators (helpers already put some).
 		if (e != null
 				&& (kind == MacroEntry.Kind.MEGACITY
 				|| kind == MacroEntry.Kind.LUNAR_BASE

@@ -16,7 +16,7 @@ import java.util.UUID;
 
 /**
  * Spark-style technogenic locator — dark tower + parabolic dish on the water.
- * Mega variant registers a large {@link MacroWorld} entry for voxel LLOD on the horizon.
+ * Mega variant registers a large {@link MacroWorld} entry — a landmark on the radar.
  * Uses {@link ModWorldBlocks#LOCATOR_CORE} / resonator / panel for gameplay effects.
  */
 public final class MegaLocatorGenerator {
@@ -93,7 +93,7 @@ public final class MegaLocatorGenerator {
 		set(world, dishC.add(0, dishR / 2 + 4, 0),
 				mega ? ModWorldBlocks.LOCATOR_CORE.getDefaultState() : ModWorldBlocks.LOCATOR_RESONATOR.getDefaultState());
 
-		// Heart of the pad — gameplay ping + LLOD still keyed by MacroWorld entry
+		// Heart of the pad — gameplay ping, keyed by the MacroWorld entry
 		set(world, base.add(0, 1, 0),
 				mega ? ModWorldBlocks.LOCATOR_CORE.getDefaultState() : ModWorldBlocks.LOCATOR_RESONATOR.getDefaultState());
 		set(world, base.add(2, 1, 0), ModWorldBlocks.LOCATOR_PANEL.getDefaultState());

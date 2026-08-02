@@ -1,4 +1,4 @@
-package com.terminaldetector.drmd.world.llod.planet;
+package com.terminaldetector.drmd.world.scar;
 
 import net.minecraft.block.Blocks;
 import net.minecraft.server.world.ServerWorld;
@@ -8,33 +8,33 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 
 /**
- * When an Overworld chunk loads, apply persistent reactor scars from the planet map
- * so orbital damage exists on the ground when you descend.
+ * When an Overworld chunk loads, burn in the scars {@link ScarMapState} remembers for it, so
+ * orbital damage exists on the ground when you descend.
  */
-public final class PlanetScarApplier {
-	private PlanetScarApplier() {}
+public final class ScarApplier {
+	private ScarApplier() {}
 
 	public static void onChunkLoad(ServerWorld world, WorldChunk chunk) {
 		if (world.getRegistryKey() != World.OVERWORLD) return;
-		PlanetMapState map = PlanetMapState.get(world);
-		int minCx = PlanetCell.cellOf(chunk.getPos().getStartX());
-		int maxCx = PlanetCell.cellOf(chunk.getPos().getEndX());
-		int minCz = PlanetCell.cellOf(chunk.getPos().getStartZ());
-		int maxCz = PlanetCell.cellOf(chunk.getPos().getEndZ());
+		ScarMapState map = ScarMapState.get(world);
+		if (map.size() == 0) return;
+		int minCx = ScarMapState.cellOf(chunk.getPos().getStartX());
+		int maxCx = ScarMapState.cellOf(chunk.getPos().getEndX());
+		int minCz = ScarMapState.cellOf(chunk.getPos().getStartZ());
+		int maxCz = ScarMapState.cellOf(chunk.getPos().getEndZ());
 		for (int cx = minCx; cx <= maxCx; cx++) {
 			for (int cz = minCz; cz <= maxCz; cz++) {
-				PlanetCell cell = map.get(cx, cz);
-				if (cell == null || !cell.scarred()) continue;
+				if (!map.scarred(cx, cz)) continue;
 				scarTerrain(world, cx, cz);
 			}
 		}
 	}
 
 	private static void scarTerrain(ServerWorld world, int cx, int cz) {
-		int x0 = cx * PlanetCell.CELL;
-		int z0 = cz * PlanetCell.CELL;
+		int x0 = cx * ScarMapState.CELL;
+		int z0 = cz * ScarMapState.CELL;
 		// Shallow crater + scorched ring — readable, not a nuke.
-		int mid = PlanetCell.CELL / 2;
+		int mid = ScarMapState.CELL / 2;
 		for (int dx = mid - 4; dx <= mid + 4; dx++) {
 			for (int dz = mid - 4; dz <= mid + 4; dz++) {
 				int x = x0 + dx;

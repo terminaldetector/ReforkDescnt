@@ -43,7 +43,7 @@ public final class ModWorldgen2 {
 		ChunkPos cp = chunk.getPos();
 		long seed = world.getSeed() ^ (((long) cp.x) * 341873128712L) ^ (((long) cp.z) * 132897987541L);
 
-		// Sparse sky: Klondike voxel islands (no LLOD). Surface keeps lunar/crash/rift only.
+		// Sparse sky: Klondike block islands. Surface keeps lunar/crash/rift only.
 		if (com.terminaldetector.drmd.world.WorldFeatures.KLONDIKE_ISLANDS
 				&& Math.floorMod(seed, 22L) == 0L) {
 			int y = KlondikeIslandGenerator.placeY(seed);
@@ -72,6 +72,24 @@ public final class ModWorldgen2 {
 			}
 		}
 
+		// End band at the top of the column — the same island in End stone. Independent of the sky
+		// roll above: the two hang seven hundred blocks apart and a chunk may carry one of each.
+		//
+		// Only while somebody is actually up there. The landmark queue holds a job until a player
+		// comes within range of it, so queueing the band from every chunk a surface player loads
+		// would pile up work for sky nine hundred blocks over their head. Climbing into the band is
+		// covered either way: SeamWarmup streams it directly, on approach and from inside.
+		if (com.terminaldetector.drmd.world.WorldFeatures.END_BAND && anyPilotAloft(world)) {
+			BlockPos endOrigin = EndIslandGenerator.originFor(cp.x, cp.z, seed);
+			if (endOrigin != null && !EndIslandGenerator.built(chunk, endOrigin)) {
+				com.terminaldetector.drmd.world.base.DescentSession.enqueueLandmark(endOrigin, () -> {
+					if (EndIslandGenerator.built(world, endOrigin)) return;
+					MegaStructureGenerator.generate(world, endOrigin, MacroEntry.Kind.END_ISLAND,
+							Random.create(seed));
+				});
+			}
+		}
+
 		// Mega fauna + sky UFO anchors
 		if (Math.floorMod(seed ^ 0x9E3779B97F4A7C15L, 40L) == 0L) {
 			int roll = (int) Math.floorMod(seed >> 7, 4L);
@@ -80,6 +98,14 @@ public final class ModWorldgen2 {
 			com.terminaldetector.drmd.world.base.DescentSession.enqueueLandmark(at,
 					() -> spawnMega(world, at, roll));
 		}
+	}
+
+	/** Is anyone high enough for the End band to be worth building? */
+	private static boolean anyPilotAloft(ServerWorld world) {
+		for (var player : world.getPlayers()) {
+			if (player.getY() >= com.terminaldetector.drmd.world.level.WorldLevels.SKY_TOP) return true;
+		}
+		return false;
 	}
 
 	private static int skyY(MacroEntry.Kind kind, long seed, ServerWorld world, ChunkPos cp) {

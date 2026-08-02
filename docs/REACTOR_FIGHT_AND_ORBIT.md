@@ -18,7 +18,7 @@ Territory bias: technogenic sea / megacity skew alive; scorched / surface events
 2. **90s escape timer** + procedural exit tunnel (nav node)  
 3. Escape by exit / dig / mines — or timer expires  
 4. Detonation: ash + smoke + blackstone/basalt scorch; facility wiped  
-5. **Orbital / End** detonation → planet-map scars + scheduled meteor falls to surface  
+5. **Orbital / End** detonation → recorded scars + scheduled meteor falls to surface  
 
 Giga-reactor (End fight) calls the same aftermath with a denser asteroid rain.
 
@@ -51,7 +51,7 @@ Commands: `/d6 orbit`, `/d6 orbit ring`, `/d6 reactor`.
 ## Fall aftermath mode
 
 Client option **Fall aftermath (corkscrew)** (`fallAftermath` in `drmd.properties`):
-soft pitch + bank spiral while 6DoF is on — inspect planet scars / meteor impacts after an orbital detonation. Uses voxel planet map + `PlanetScarApplier` on chunk load.
+soft pitch + bank spiral while 6DoF is on — inspect scars / meteor impacts after an orbital detonation. Scars are recorded in `ScarMapState` and cut into the ground by `ScarApplier` on chunk load (`/d6 scars`).
 
 ## Full column · orbit · End sync
 
@@ -60,7 +60,7 @@ soft pitch + bank spiral while 6DoF is on — inspect planet scars / meteor impa
 1. **Persist** armed/breach facilities + queued meteor falls (+ last detonation stamp) across restarts  
 2. **SmokePayload** (~5 Hz when dirty) — volumetric clouds to dedicated clients  
 3. **ReactorSyncPayload** (~2 Hz) — breach timers, pending falls, last detonation for OW sky+/End pilots  
-4. Shared `PlanetMapState` scars (already)  
+4. Shared `ScarMapState` scars (already)  
 
 Join pushes an immediate smoke + reactor snapshot. HUD strip shows nearest breach / fall count even outside 6DoF.
 

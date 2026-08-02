@@ -256,7 +256,7 @@ public final class DescentSession {
 
 	private static void seedStockMegastructures(ServerWorld world, BlockPos spawn) {
 		Random random = world.getRandom();
-		// Klondike sky ring of islands + a couple of surface fractures — no ARCH/RING LLOD zoo.
+		// Klondike sky ring of islands + a couple of surface fractures — no ARCH/RING silhouette zoo.
 		MacroEntry.Kind[] kinds = {
 				MacroEntry.Kind.KLONDIKE_ISLAND, MacroEntry.Kind.KLONDIKE_ISLAND,
 				MacroEntry.Kind.KLONDIKE_ISLAND, MacroEntry.Kind.KLONDIKE_ISLAND,

@@ -54,15 +54,6 @@ public final class WorldRules {
 		}
 	}
 
-	/** Streaming / Voxel LLOD bands aligned with LlodLevel. */
-	public enum StreamLevel {
-		LLOD0,   // far silhouette — thousands of voxels
-		LLOD1,   // large forms
-		LLOD2,   // region proxies
-		CHUNK,   // vanilla blocks
-		LOCAL    // full local detail
-	}
-
 	public enum Architecture {
 		SPHERE, RING, CYLINDER, TORUS, HONEYCOMB, ASTEROID, STATION, TUNNEL_NET,
 		RIFT, CANYON, ARCH, FLOATING_CONTINENT, SPIRAL_RANGE, INVERTED_ISLAND

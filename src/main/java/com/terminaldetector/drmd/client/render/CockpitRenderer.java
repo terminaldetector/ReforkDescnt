@@ -21,8 +21,8 @@ import org.joml.Matrix4f;
  *
  * <p>Previously used {@code RenderLayer.getDebugQuads()} through the world consumer, which often
  * never appears under TLauncher / sodium-class pipelines, and after an eye→camera retarget the
- * frame could sit at the wrong origin. This path matches {@code LlodSilhouetteRenderer}: subtract
- * nothing extra (offsets are already camera-relative), draw with {@code PositionColor}.
+ * frame could sit at the wrong origin. This path subtracts nothing extra (offsets are already
+ * camera-relative) and draws with {@code PositionColor}, as the other world-space overlays do.
  */
 public final class CockpitRenderer {
 	private static final double NEAR = 0.55;

@@ -1,6 +1,6 @@
 # Technogenic sea — Spark-style locators
 
-Biome plate `drmd:technogenic_sea`: industrial towers with satellite dishes on the water, a Mega Locator (voxel LLOD on the horizon), a network of smaller locators, and an underwater 6DoF dungeon.
+Biome plate `drmd:technogenic_sea`: industrial towers with satellite dishes on the water, a Mega Locator (a tower you can see from far off), a network of smaller locators, and an underwater 6DoF dungeon.
 
 Inspired by *Spark the Electric Jester* seascapes.
 
@@ -17,7 +17,7 @@ Inspired by *Spark the Electric Jester* seascapes.
 
 | Landmark | Role |
 |----------|------|
-| **Mega Locator** | Tower + dish with `locator_core` / panel / resonators · `MacroWorld` LLOD |
+| **Mega Locator** | Tower + dish with `locator_core` / panel / resonators · `MacroWorld` landmark |
 | **Locator ×5** | Smaller dish towers (`locator_resonator`) around the mega |
 | **Subsea dungeon** | Territory-picked style (`SUBSEA_LOCATOR` / `SIGNAL_ARRAY` / `HOLLOW_RING`) under the mega |
 | **Signal satellite** | Second underwater 6DoF node nearby |
@@ -26,7 +26,7 @@ Inspired by *Spark the Electric Jester* seascapes.
 
 - `/d6 technogenic` — nearest plate
 - `/d6 technogenic tp` — OP teleport
-- `/d6 llod` — confirm Mega Locator silhouette on the horizon
+- `/d6 worldgen2 locator` — place a locator to compare against the plate's own
 
 ## Notes
 

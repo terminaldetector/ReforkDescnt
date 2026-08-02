@@ -6,7 +6,7 @@ import net.fabricmc.loader.api.FabricLoader;
 /**
  * Soft-dep on <a href="https://modrinth.com/mod/distanthorizons">Distant Horizons</a>.
  *
- * <p>DRMD no longer draws its own far-field voxel LLOD. Extreme view distance without the
+ * <p>DRMD draws no far-field terrain of its own. Extreme view distance without the
  * CPU/GPU cost of real chunks belongs to DH (LOD meshes outside vanilla render distance).
  * Install DH + Fabric API (+ Sodium recommended) alongside this mod.
  */
@@ -26,7 +26,7 @@ public final class DistantHorizonsCompat {
 
 	public static void logStatus() {
 		if (isPresent()) {
-			DescentMod.LOGGER.info("Distant Horizons detected — far LODs delegated to DH (DRMD voxel LLOD off)");
+			DescentMod.LOGGER.info("Distant Horizons detected — far terrain delegated to DH");
 		} else {
 			DescentMod.LOGGER.info(
 					"Distant Horizons not installed — install modrinth.com/mod/distanthorizons for max view distance");

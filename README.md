@@ -19,13 +19,13 @@ Descent-сессия **встроена в мир** — при загрузке 
 ./gradlew build --no-daemon
 ```
 
-Готовый файл: `build/libs/drmd-6dof-1.0.0.jar`  
+Готовый файл: `build/libs/drmd-6dof-1.1.2.jar`  
 CI: **Actions → Build DRMD 6DOF → Artifacts → drmd-6dof** (`workflow_dispatch` поддерживается).
 
 ### 2. Установить
 
 1. [Fabric Loader](https://fabricmc.net/use/) **1.21.1**
-2. В `mods/`: `drmd-6dof-1.0.0.jar` + [Fabric API 1.21.1](https://modrinth.com/mod/fabric-api)
+2. В `mods/`: `drmd-6dof-1.1.2.jar` + [Fabric API 1.21.1](https://modrinth.com/mod/fabric-api)
 3. Новый мир / сервер — Descent уже часть мира
 
 ### 3. Играть
@@ -92,7 +92,8 @@ CI: **Actions → Build DRMD 6DOF → Artifacts → drmd-6dof** (`workflow_dispa
 - Descent-сессия **нативная**: spawn-хаб + 6DoF при входе
 - **Industrial Underground** ~1/12 чанков + гарнизон дронов
 - **WG 2.0** мегаструктуры ~1/18 чанков + сид вокруг спавна
-- **LLOD** — Voxel LLOD0→1→2→Chunk (`docs/VOXEL_LLOD.md`)
+- **End-полоса** — архипелаг End-островов + арена реактора наверху колонны (`docs/END_BAND.md`)
+- **Дальний вид** — Distant Horizons (soft-dep), своих LOD-вокселей нет (`docs/DISTANT_HORIZONS.md`)
 - Спеки: `docs/WORLD_DESIGN.md`, `docs/WORLD_GEN_2.md`
 
 ### Кокпит-HUD
@@ -217,7 +218,7 @@ Assault, Interceptor, Artillery, Support, Heavy Elite, MG, Laser, RPG, Heavy, Se
 /d6 worldgen industrial [STYLE]   # комплекс
 /d6 worldgen2 <kind>              # WG2.0 mega-structure
 /d6 mega worm|swarm|keeper
-/d6 llod
+/d6 scars                        # шрамы реактора на планете
 /d6 atmosphere                   # atmospheric band + smoke/fire counts
 /d6 bomb [tnt|cluster|incendiary|guided]
 /d6 laser
@@ -282,7 +283,7 @@ legacy/                               # исходный GMod-аддон
 
 ```bash
 ./scripts/package_all.sh
-# → dist/drmd-6dof-1.0.0.jar
+# → dist/drmd-6dof-1.1.2.jar
 # → dist/drmd-6dof-mcpe-master-1.0.5.mcaddon
 # → dist/drmd-6dof-mcpe-master-1.0.5.zip   # ручная установка в games/com.mojang
 ```
@@ -345,12 +346,12 @@ MCPE Master: [`mcpe/README.md`](mcpe/README.md) · [`mcpe/INSTALL_MCPE_MASTER.tx
 
 - Atmospheric bands (classic → thin → near-space + deep pressure)
 - Aerial bomb bay (TNT / cluster / incendiary / laser-guided) + designator
-- Dynamic volumetric smoke + 3D fire with LLOD
+- Dynamic volumetric smoke + 3D fire, drawn coarser with distance
 - Spec: [`docs/ATMOSPHERE_COMBAT.md`](docs/ATMOSPHERE_COMBAT.md)
 
 ## Блог / концепт
 
-- Блог / концепт: `docs/BLOG_PRESENT.md` · Roadmap: `docs/ROADMAP.md` · Voxel LLOD: `docs/VOXEL_LLOD.md`
+- Блог / концепт: `docs/BLOG_PRESENT.md` · Roadmap: `docs/ROADMAP.md` · End-полоса: `docs/END_BAND.md`
 
 ---
 

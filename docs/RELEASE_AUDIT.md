@@ -147,7 +147,7 @@
 | Workshop (M) | ON | keep |
 | Atmosphere bands | ON (правила) | keep |
 | Engineer tools / drill | ON | keep |
-| LLOD | ON, пустой без макро | зависит от worldgen |
+| Дальний вид | Distant Horizons (soft-dep) | своих LOD нет |
 | `MACRO_WORLDGEN` | **false** | **главная дыра survival** |
 | `NETHER_BAND` | false | later / perf |
 | `END_BAND` | false | OK (сток-небо), End boss в End dim |

@@ -2,7 +2,7 @@ package com.terminaldetector.drmd.world.dungeon;
 
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.world.fire.FireSystem;
-import com.terminaldetector.drmd.world.llod.planet.PlanetMapState;
+import com.terminaldetector.drmd.world.scar.ScarMapState;
 import com.terminaldetector.drmd.world.smoke.SmokeSystem;
 import com.terminaldetector.drmd.world.sync.DimensionSync;
 import com.terminaldetector.drmd.world.sync.DimensionSyncState;
@@ -51,14 +51,14 @@ public final class ReactorAftermath {
 
 		ServerWorld ow = host.getServer().getOverworld();
 		if (ow == null) return;
-		PlanetMapState map = PlanetMapState.get(ow);
+		ScarMapState map = ScarMapState.get(ow);
 		int x = core.getX();
 		int z = core.getZ();
 		int intensity = orbital ? 3 : 2;
 		for (int dx = -2; dx <= 2; dx++) {
 			for (int dz = -2; dz <= 2; dz++) {
 				if (dx * dx + dz * dz > 5) continue;
-				map.scarBlock(x + dx * 16, z + dz * 16, intensity);
+				map.scarBlock(x + dx * 16, z + dz * 16);
 			}
 		}
 
@@ -67,7 +67,7 @@ public final class ReactorAftermath {
 				int ox = x + (host.getRandom().nextInt(97) - 48);
 				int oz = z + (host.getRandom().nextInt(97) - 48);
 				FALLS.add(new FallEvent(ox, oz, 20 * (8 + i * 3), intensity));
-				map.scarBlock(ox, oz, intensity);
+				map.scarBlock(ox, oz);
 			}
 			DescentMod.LOGGER.info("Orbital detonation — 5 meteor falls queued toward surface");
 		}
@@ -79,12 +79,12 @@ public final class ReactorAftermath {
 		DimensionSync.recordDetonation(endOrHost.getServer(), pad, true);
 		ServerWorld ow = endOrHost.getServer().getOverworld();
 		if (ow == null) return;
-		PlanetMapState map = PlanetMapState.get(ow);
+		ScarMapState map = ScarMapState.get(ow);
 		for (int i = 0; i < 12; i++) {
 			int ox = pad.getX() + (endOrHost.getRandom().nextInt(161) - 80);
 			int oz = pad.getZ() + (endOrHost.getRandom().nextInt(161) - 80);
 			FALLS.add(new FallEvent(ox, oz, 20 * (6 + i * 2), 3));
-			map.scarBlock(ox, oz, 3);
+			map.scarBlock(ox, oz);
 		}
 	}
 

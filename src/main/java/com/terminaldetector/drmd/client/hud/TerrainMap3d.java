@@ -2,7 +2,6 @@ package com.terminaldetector.drmd.client.hud;
 
 import com.terminaldetector.drmd.client.DescentClientState;
 import com.terminaldetector.drmd.client.flight.ShipAttitudeClient;
-import com.terminaldetector.drmd.client.llod.LlodClientState;
 import com.terminaldetector.drmd.entity.PyroShipEntity;
 import com.terminaldetector.drmd.flight.ShipAttitude;
 import com.terminaldetector.drmd.world.WorldRules;
@@ -156,22 +155,6 @@ public final class TerrainMap3d {
 		// Player pip at center
 		ctx.fill(ox - 2, oy - 2, ox + 3, oy + 3, 0xFFFFFFFF);
 		ctx.fill(ox - 1, oy - 5, ox + 2, oy - 2, 0xFF33FF88);
-
-		// Macro / LLOD blips
-		BlockPos origin = mc.player.getBlockPos();
-		int half = (GRID * STEP) / 2;
-		for (var e : LlodClientState.INSTANCE.entries()) {
-			double lx = e.center().x - origin.getX();
-			double lz = e.center().z - origin.getZ();
-			double ly = e.center().y - origin.getY();
-			if (lx * lx + lz * lz > (half + 24.0) * (half + 24.0)) continue;
-			float rx = (float) (lx * cos - lz * sin);
-			float rz = (float) (lx * sin + lz * cos);
-			int x = ox + (int) ((rx - rz) * sx * 0.22f);
-			int y = oy + (int) ((rx + rz) * sy * 0.22f - ly * 0.35f);
-			if (x < px || x > px + PANEL_W || y < py || y > py + PANEL_H) continue;
-			ctx.fill(x - 1, y - 1, x + 2, y + 2, 0xFF000000 | (e.colorRgb() & 0xFFFFFF));
-		}
 
 		var layer = WorldRules.practicalLayer(mc.player.getY());
 		ctx.drawText(mc.textRenderer, Text.literal(WorldRules.biomeLabel(layer)), px + 4, py + PANEL_H - 10, 0xAA22AA55, false);

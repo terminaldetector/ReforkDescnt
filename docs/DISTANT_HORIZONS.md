@@ -1,7 +1,8 @@
 # Distant Horizons — far view (replaces DRMD voxel LLOD)
 
 DRMD **no longer** draws MacroWorld voxel silhouettes, hybrid horizon plates, or
-planet-floor voxel expand. That pipeline was error-prone and heavy after the branch merge.
+planet-floor voxel expand. That pipeline was error-prone and heavy after the branch merge; 1.1.1
+switched it off and 1.1.2 deleted it — `world/llod`, `client/llod`, and both payloads are gone.
 
 ## Use this instead
 
@@ -14,7 +15,7 @@ LOD terrain outside vanilla render distance → extreme view (64–512+ chunks) 
 2. **Distant Horizons** (`distanthorizons`) — required for far vista  
 3. **Sodium** (optional, strongly recommended)  
 4. Iris (optional, shaders with DH support)  
-5. `drmd-6dof-1.1.1-fabric-1.21.1.jar`
+5. `drmd-6dof-1.1.2-fabric-1.21.1.jar`
 
 DRMD `fabric.mod.json` **suggests** `distanthorizons` + `sodium` (soft-dep, not hard).
 
@@ -22,7 +23,7 @@ DRMD `fabric.mod.json` **suggests** `distanthorizons` + `sodium` (soft-dep, not 
 
 - Spark / Starlink / Oblivion **skybox** (`OrbitalBeltSkyRenderer`)  
 - Seam curtains (`BoundarySeamRenderer`)  
-- Real Klondike block islands (CHUNK_LOAD, not LLOD shells)  
+- Real Klondike block islands + the End-band archipelago (CHUNK_LOAD, real blocks)  
 - Cockpit / weapons / smoke  
 
 Log line when DH is present:  

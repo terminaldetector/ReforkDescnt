@@ -144,12 +144,11 @@ public class DescentMod implements ModInitializer {
 					com.terminaldetector.drmd.world.atmosphere.AtmosphereRules.tickDeepPressure(
 							player.getServerWorld(), pos);
 				}
-				// Voxel LLOD / planet-floor sync removed — Distant Horizons owns far vista.
 			});
 		});
 
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents.CHUNK_LOAD.register(
-				(world, chunk) -> com.terminaldetector.drmd.world.llod.planet.PlanetScarApplier.onChunkLoad(world, chunk));
+				(world, chunk) -> com.terminaldetector.drmd.world.scar.ScarApplier.onChunkLoad(world, chunk));
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid());
@@ -170,7 +169,7 @@ public class DescentMod implements ModInitializer {
 				com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid()));
 
 		com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.logStatus();
-		LOGGER.info("DRMD 6DOF 1.1.1 ready — voxel LLOD removed · Distant Horizons suggested");
+		LOGGER.info("DRMD 6DOF 1.1.2 ready — End band restored · no voxel LLOD · Distant Horizons suggested");
 	}
 
 	/**

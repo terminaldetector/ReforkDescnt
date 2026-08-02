@@ -35,12 +35,27 @@ public final class LevelBuilder {
 	private static final int MANTLE_PROBE_Y = -120;
 	/** Mantle Y-rows per drain step (16×16 each). */
 	private static final int MANTLE_ROWS_PER_STEP = 4;
+	/** End-band chunks examined per tick, island or not. */
+	private static final int END_JOBS_PER_TICK = 64;
 
 	private static final Deque<Job> QUEUE = new ArrayDeque<>();
 	private static final Set<Long> QUEUED = new HashSet<>();
 
+	/**
+	 * End-band work on its own queue.
+	 *
+	 * <p>A pilot climbing into the band needs its islands and nothing else. Putting them on the
+	 * column queue would start each chunk at phase 0 — the whole mantle fill, tens of thousands of
+	 * writes underneath a player who is nine hundred blocks above it — and the islands would arrive
+	 * only after all of that had drained.
+	 */
+	private static final Deque<EndJob> END_QUEUE = new ArrayDeque<>();
+	private static final Set<Long> END_QUEUED = new HashSet<>();
+
 	/** phase 0=mantle (cursorY), 1=nether cavern, 2=shaft/end finish */
 	private record Job(ServerWorld world, int chunkX, int chunkZ, int phase, int cursorY) {}
+
+	private record EndJob(ServerWorld world, int chunkX, int chunkZ) {}
 
 	private LevelBuilder() {}
 
@@ -73,7 +88,7 @@ public final class LevelBuilder {
 
 	/**
 	 * Background stream for {@link com.terminaldetector.drmd.world.layer.SeamWarmup}: enqueue the
-	 * mantle/Nether (and End-band if enabled) build around a chunk without waiting for CHUNK_LOAD.
+	 * mantle/Nether build around a chunk without waiting for CHUNK_LOAD.
 	 */
 	public static void streamAround(ServerWorld world, int chunkX, int chunkZ, int radius) {
 		if (world.getRegistryKey() != World.OVERWORLD) return;
@@ -83,6 +98,31 @@ public final class LevelBuilder {
 				enqueue(world, chunkX + dx, chunkZ + dz);
 			}
 		}
+	}
+
+	/**
+	 * Same, for the End band alone — used while a pilot is inside it or climbing toward the seam.
+	 *
+	 * <p>CHUNK_LOAD covers chunks a pilot flies into. It cannot cover the chunks that were already
+	 * loaded when they turned upward, and those are the ones under a climb, so without this pass the
+	 * band opens as empty sky and fills in only where the pilot has not been yet.
+	 */
+	public static void streamEndBand(ServerWorld world, int chunkX, int chunkZ, int radius) {
+		if (world.getRegistryKey() != World.OVERWORLD) return;
+		if (!com.terminaldetector.drmd.world.WorldFeatures.END_BAND) return;
+		int r = Math.max(0, Math.min(radius, 10));
+		for (int dx = -r; dx <= r; dx++) {
+			for (int dz = -r; dz <= r; dz++) {
+				enqueueEndBand(world, chunkX + dx, chunkZ + dz);
+			}
+		}
+	}
+
+	private static void enqueueEndBand(ServerWorld world, int chunkX, int chunkZ) {
+		if (END_QUEUE.size() >= MAX_QUEUE) return;
+		long key = ChunkPos.toLong(chunkX, chunkZ);
+		if (!END_QUEUED.add(key)) return;
+		END_QUEUE.add(new EndJob(world, chunkX, chunkZ));
 	}
 
 	private static boolean mantleBuilt(WorldChunk chunk) {
@@ -116,6 +156,23 @@ public final class LevelBuilder {
 				QUEUED.add(key);
 				QUEUE.addFirst(step.next);
 			}
+		}
+
+		// End band gets what is left. One island is a single indivisible step, so it runs on the
+		// remaining budget rather than reserving its own — the column keeps priority when a pilot is
+		// digging and flying at once.
+		//
+		// Bounded by count as well as by budget: most chunks in the band have no island, cost
+		// nothing, and would let one tick walk the entire queue however long the stream made it.
+		int endJobs = 0;
+		while (budget > 0 && endJobs++ < END_JOBS_PER_TICK && !END_QUEUE.isEmpty()) {
+			EndJob job = END_QUEUE.poll();
+			END_QUEUED.remove(ChunkPos.toLong(job.chunkX, job.chunkZ));
+			if (!job.world.isChunkLoaded(job.chunkX, job.chunkZ)) continue;
+			long seed = job.world.getSeed()
+					^ (((long) job.chunkX) * 341873128712L)
+					^ (((long) job.chunkZ) * 132897987541L);
+			budget -= buildEndLevel(job.world, job.chunkX, job.chunkZ, seed, Random.create(seed));
 		}
 	}
 
@@ -359,36 +416,24 @@ public final class LevelBuilder {
 		return Blocks.MAGMA_BLOCK.getDefaultState();
 	}
 
+	/**
+	 * One End-band island for this chunk, if the seed puts one here.
+	 *
+	 * <p>The shape lives in {@link com.terminaldetector.drmd.world.gen2.EndIslandGenerator} and is
+	 * shared with the chunk-load pass, so a pilot who flies into the band sees the same archipelago
+	 * the background stream would have built for them. The returned figure is the drain budget's
+	 * charge for the island — its footprint, which tracks the write count closely enough to keep one
+	 * island from eating a whole tick's allowance unnoticed.
+	 */
 	private static int buildEndLevel(ServerWorld world, int chunkX, int chunkZ, long seed, Random random) {
-		if (Math.floorMod(seed >> 5, 6L) != 0L) return 0;
-		int cx = (chunkX << 4) + 4 + random.nextInt(8);
-		int cz = (chunkZ << 4) + 4 + random.nextInt(8);
-		int cy = WorldLevels.END_ISLAND_MIN
-				+ random.nextInt(WorldLevels.END_ISLAND_MAX - WorldLevels.END_ISLAND_MIN);
-		int radius = 5 + random.nextInt(5);
-		BlockPos.Mutable pos = new BlockPos.Mutable();
-		int written = 0;
-		for (int dx = -radius; dx <= radius; dx++) {
-			for (int dz = -radius; dz <= radius; dz++) {
-				double horizontal = Math.sqrt(dx * dx + dz * dz);
-				if (horizontal > radius) continue;
-				int depth = (int) ((1.0 - horizontal / radius) * radius * 1.4) + 1;
-				for (int d = 0; d < depth; d++) {
-					BlockState state = d == 0 ? Blocks.END_STONE.getDefaultState()
-							: (random.nextInt(12) == 0 ? Blocks.PURPUR_BLOCK.getDefaultState()
-							: Blocks.END_STONE.getDefaultState());
-					written += set(world, pos.set(cx + dx, cy - d, cz + dz), state);
-				}
-			}
-		}
-		if (radius >= 8) {
-			int height = 8 + random.nextInt(10);
-			for (int h = 1; h <= height; h++) {
-				written += set(world, pos.set(cx, cy + h, cz), Blocks.OBSIDIAN.getDefaultState());
-			}
-			written += set(world, pos.set(cx, cy + height + 1, cz), Blocks.END_ROD.getDefaultState());
-		}
-		return written;
+		BlockPos origin = com.terminaldetector.drmd.world.gen2.EndIslandGenerator
+				.originFor(chunkX, chunkZ, seed);
+		if (origin == null) return 0;
+		if (world.isOutOfHeightLimit(origin)) return 0;
+		if (com.terminaldetector.drmd.world.gen2.EndIslandGenerator.built(world, origin)) return 0;
+		var island = com.terminaldetector.drmd.world.gen2.EndIslandGenerator
+				.generate(world, origin, random);
+		return island == null ? 0 : island.sizeX * island.sizeZ;
 	}
 
 	private static int cutDescentShaft(ServerWorld world, int chunkX, int chunkZ) {

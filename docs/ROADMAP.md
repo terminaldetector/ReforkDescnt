@@ -72,7 +72,7 @@
 
 ## 5. AI Sector A ✅
 
-Atmosphere bands + aerial bombardment + dynamic smoke/fire LLOD — см. `docs/ATMOSPHERE_COMBAT.md`.
+Atmosphere bands + aerial bombardment + dynamic smoke/fire — см. `docs/ATMOSPHERE_COMBAT.md`.
 
 ---
 

@@ -7,8 +7,10 @@ import net.minecraft.util.math.Box;
 import java.util.UUID;
 
 /**
- * Macro-world entry — simplified representation of a mega-structure or mega-creature
- * for LLOD / streaming at tens of kilometres.
+ * Macro-world entry — simplified representation of a mega-structure or mega-creature.
+ *
+ * <p>A catalogue for radar, HUD contacts and debug listings. It used to feed the far-field voxel
+ * silhouettes as well; distance now belongs to Distant Horizons, so nothing here has an LOD band.
  */
 public final class MacroEntry {
 	public enum Kind {
@@ -22,7 +24,7 @@ public final class MacroEntry {
 		CRASHED_UFO,
 		/** Cyberpunk megacity: tower grid, sewer network, reactor pyramid. */
 		MEGACITY,
-		/** Spark-style mega locator (dish tower) — horizon LLOD. */
+		/** Spark-style mega locator (dish tower) — visible from far off. */
 		MEGA_LOCATOR,
 		/** Smaller technogenic locator dish. */
 		LOCATOR,
@@ -30,8 +32,10 @@ public final class MacroEntry {
 		SCORCHED_TOWN,
 		/** Strafe techno-medieval iron guild hall. */
 		IRON_GUILD,
-		/** Simple Spark/Klondike floating voxel island — no LLOD shell. */
-		KLONDIKE_ISLAND
+		/** Simple Spark/Klondike floating island of real blocks. */
+		KLONDIKE_ISLAND,
+		/** The same island in End stone, in the End band at the top of the column. */
+		END_ISLAND
 	}
 
 	public final UUID id;
@@ -63,18 +67,5 @@ public final class MacroEntry {
 
 	public double distanceSq(BlockPos from) {
 		return center.getSquaredDistance(from);
-	}
-
-	/** Which Voxel LLOD band this entry should use at a given distance. */
-	public WorldRules.StreamLevel lodAt(double distance) {
-		com.terminaldetector.drmd.world.llod.LlodLevel band =
-				com.terminaldetector.drmd.world.llod.LlodLevel.of(distance);
-		return switch (band) {
-			case LLOD0 -> WorldRules.StreamLevel.LLOD0;
-			case LLOD1 -> WorldRules.StreamLevel.LLOD1;
-			case LLOD2 -> WorldRules.StreamLevel.LLOD2;
-			case CHUNK -> WorldRules.StreamLevel.CHUNK;
-			case NONE -> WorldRules.StreamLevel.LLOD0;
-		};
 	}
 }
