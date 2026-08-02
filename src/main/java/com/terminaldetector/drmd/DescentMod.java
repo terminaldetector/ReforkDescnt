@@ -100,6 +100,7 @@ public class DescentMod implements ModInitializer {
 					ShieldSystem.regenTick(player, data);
 					com.terminaldetector.drmd.physics.GravyPhysics.tick(player);
 					com.terminaldetector.drmd.pickup.LootField.tick(player, data);
+					com.terminaldetector.drmd.world.layer.LayerBridge.tick(player, data);
 				} else {
 					com.terminaldetector.drmd.world.gravity.FootGravitySystem.tick(player);
 				}

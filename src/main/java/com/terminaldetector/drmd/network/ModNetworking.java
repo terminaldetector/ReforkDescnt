@@ -21,7 +21,7 @@ public final class ModNetworking {
 	public static final Identifier LLOD_ID = Identifier.of(DescentMod.MOD_ID, "llod");
 
 	public record InputPayload(float forward, float strafe, float vertical, float roll,
-							   boolean dash, boolean hook,
+							   boolean dash, boolean hook, boolean afterburner,
 							   boolean attitude, float fx, float fy, float fz,
 							   float ux, float uy, float uz) implements CustomPayload {
 		public static final Id<InputPayload> ID = new Id<>(INPUT_ID);
@@ -33,6 +33,7 @@ public final class ModNetworking {
 					buf.writeFloat(payload.roll);
 					buf.writeBoolean(payload.dash);
 					buf.writeBoolean(payload.hook);
+					buf.writeBoolean(payload.afterburner);
 					buf.writeBoolean(payload.attitude);
 					buf.writeFloat(payload.fx);
 					buf.writeFloat(payload.fy);
@@ -43,7 +44,7 @@ public final class ModNetworking {
 				},
 				buf -> new InputPayload(
 						buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(),
-						buf.readBoolean(), buf.readBoolean(),
+						buf.readBoolean(), buf.readBoolean(), buf.readBoolean(),
 						buf.readBoolean(),
 						buf.readFloat(), buf.readFloat(), buf.readFloat(),
 						buf.readFloat(), buf.readFloat(), buf.readFloat()
@@ -210,6 +211,7 @@ public final class ModNetworking {
 			in.strafe = payload.strafe();
 			in.vertical = payload.vertical();
 			in.roll = payload.roll();
+			in.afterburner = payload.afterburner();
 			if (payload.dash()) in.dash = true;
 			if (payload.hook()) FlightSystem.toggleHook(player);
 			if (payload.attitude()) {
@@ -226,6 +228,7 @@ public final class ModNetworking {
 			switch (payload.action()) {
 				case "toggle" -> FlightSystem.toggle(player);
 				case "dash" -> FlightSystem.tryDash(player);
+				// Legacy toggle kept for /d6 alwaysrun; hold-R is the Descent path via InputPayload.
 				case "alwaysrun" -> data.setAlwaysRun(!data.isAlwaysRun());
 				case "flightassist" -> data.setFlightAssist(!data.isFlightAssist());
 				case "radar" -> data.setRadarEnabled(!data.isRadarEnabled());

@@ -120,11 +120,16 @@ public final class DescentFlightMotion {
 		float fwd = DescentKeybinds.inputForward();
 		float strafe = DescentKeybinds.inputStrafe();
 		float vert = DescentKeybinds.inputVertical();
+		boolean afterburner = DescentClientState.alwaysRun;
+		// Descent afterburner cruise: hold R with idle stick still drives nose-forward.
+		if (afterburner && Math.abs(fwd) < 0.01f && Math.abs(strafe) < 0.01f && Math.abs(vert) < 0.01f) {
+			fwd = 1f;
+		}
 		boolean thrusting = Math.abs(fwd) > 0.01f || Math.abs(strafe) > 0.01f || Math.abs(vert) > 0.01f;
 
 		float engAlloc = DescentClientState.allocEngines;
-		float accelMult = DescentClientState.alwaysRun ? MathHelper.lerp(engAlloc, 1.3f, 1.9f) : 1f;
-		float speedMult = DescentClientState.alwaysRun ? MathHelper.lerp(engAlloc, 1.3f, 1.8f) : 1f;
+		float accelMult = afterburner ? MathHelper.lerp(engAlloc, 1.35f, 2.05f) : 1f;
+		float speedMult = afterburner ? MathHelper.lerp(engAlloc, 1.35f, 1.95f) : 1f;
 
 		double accel = DescentMod.su(DescentClientState.accel) * accelMult;
 		Vec3d wish = look.multiply(fwd)

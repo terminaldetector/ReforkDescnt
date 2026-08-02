@@ -38,6 +38,8 @@ public final class FlightSystem {
 	public static final class InputState {
 		public float forward, strafe, vertical, roll;
 		public boolean dash, hook, alwaysRunToggle;
+		/** Descent afterburner — held (not toggled). Drives cruise when stick is idle. */
+		public boolean afterburner;
 	}
 
 	private static final java.util.Map<java.util.UUID, InputState> INPUTS = new java.util.concurrent.ConcurrentHashMap<>();
@@ -88,11 +90,19 @@ public final class FlightSystem {
 			}
 		}
 
-		// Always-Run energy drain
-		if (data.isAlwaysRun()) {
+		// Descent afterburner cruise: hold R → burn energy, boost, and keep nose thrust if stick idle.
+		boolean afterburner = in.afterburner;
+		if (afterburner) {
 			if (!EnergySystem.tryConsume(data, "engines", EnergySystem.ALWAYS_RUN_COST_PER_SEC * dt)) {
-				data.setAlwaysRun(false);
+				afterburner = false;
+				in.afterburner = false;
 			}
+		}
+		data.setAlwaysRun(afterburner);
+		if (afterburner && Math.abs(in.forward) < 0.01f
+				&& Math.abs(in.strafe) < 0.01f && Math.abs(in.vertical) < 0.01f) {
+			// Corridor cruise — afterburner alone pushes forward like original Descent.
+			in.forward = 1f;
 		}
 
 		// Roll rate (client applies local roll into synced ship attitude)
@@ -121,7 +131,7 @@ public final class FlightSystem {
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.emit(
 					player.getPos().subtract(look.multiply(0.8)),
 					com.terminaldetector.drmd.world.smoke.SmokeSystem.Source.ENGINE,
-					0.4f, 0.25f, 18);
+					afterburner ? 0.7f : 0.4f, afterburner ? 0.4f : 0.25f, afterburner ? 28 : 18);
 		}
 		float spool = data.getThrustSpool();
 		if (thrusting) spool = Math.min(1f, spool + SPOOL_UP * dt);
@@ -129,8 +139,8 @@ public final class FlightSystem {
 		data.setThrustSpool(spool);
 
 		float engAlloc = data.getAllocEngines();
-		float accelMult = data.isAlwaysRun() ? MathHelper.lerp(engAlloc, 1.3f, 1.9f) : 1f;
-		float speedMult = data.isAlwaysRun() ? MathHelper.lerp(engAlloc, 1.3f, 1.8f) : 1f;
+		float accelMult = afterburner ? MathHelper.lerp(engAlloc, 1.35f, 2.05f) : 1f;
+		float speedMult = afterburner ? MathHelper.lerp(engAlloc, 1.35f, 1.95f) : 1f;
 
 		// Atmospheric bands: thin air / near-space / End vacuum → less drag, more thrust
 		boolean endVacuum = player.getWorld().getRegistryKey() == net.minecraft.world.World.END;

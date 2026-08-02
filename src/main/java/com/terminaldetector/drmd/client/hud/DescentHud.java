@@ -142,17 +142,19 @@ public final class DescentHud {
 	// =============================================================== left column
 
 	private static int drawFlightStatus(DrawContext ctx, MinecraftClient mc, int x, int y) {
-		int w = 116, h = 62;
+		int w = 116, h = 74;
 		panel(ctx, x, y, w, h);
 		int tx = x + 4, ty = y + 4;
 		float thrust = MathHelper.clamp(DescentClientState.speed / 2.5f, 0f, 1f);
+		var layer = com.terminaldetector.drmd.world.layer.WorldLayer.at(mc.world, mc.player.getY());
 		line(ctx, mc, tx, ty, "6DOF MODE: ON", GREEN);
 		line(ctx, mc, tx, ty + 11, String.format(Locale.ROOT, "THRUST: %d%%", Math.round(thrust * 100)), GREEN);
-		line(ctx, mc, tx, ty + 22, "DAMPENERS: " + (DescentClientState.flightAssist ? "ON" : "OFF"),
+		line(ctx, mc, tx, ty + 22, "AFTERBURNER: " + (DescentClientState.alwaysRun ? "ON" : "OFF"),
+				DescentClientState.alwaysRun ? AMBER : GREEN_DIM);
+		line(ctx, mc, tx, ty + 33, "DAMPENERS: " + (DescentClientState.flightAssist ? "ON" : "OFF"),
 				DescentClientState.flightAssist ? GREEN : AMBER);
-		line(ctx, mc, tx, ty + 33, String.format(Locale.ROOT, "GRAVITY: %.2fG", DescentClientState.gravityFactor),
-				DescentClientState.gravityFactor > 0.05f ? AMBER : GREEN);
 		line(ctx, mc, tx, ty + 44, String.format(Locale.ROOT, "SPEED: %.1f m/s", DescentClientState.speed * 20f), GREEN);
+		line(ctx, mc, tx, ty + 55, "LAYER: " + layer.label.toUpperCase(Locale.ROOT), layer.hudColor | 0xFF000000);
 		return y + h;
 	}
 
