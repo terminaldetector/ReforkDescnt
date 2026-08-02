@@ -16,12 +16,12 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Layer seams — teleport zones + display hooks. Not stacked parallelepipeds.
+ * Three narrative layers form one parallelepiped in scale — Core · Surface · Sky/Orbit/End —
+ * but we do <em>not</em> build three solid volumes. The engine already gives the height; seams are
+ * thin {@linkplain #SEAM_HALF teleport zones}, and clients show the boundary (block curtain, sky
+ * belt drift like Oblivion's sky motion) through render hooks.
  *
- * <p>We do <em>not</em> build three giant volumes. Each narrative band edge is a thin
- * {@linkplain #SEAM_HALF teleport zone}: cross it → arrive in the next band. Clients render a
- * block curtain at that Y via {@code BoundarySeamRenderer} so the seam reads as a place, not a
- * load screen. Optional Immersive Portals stays a soft-dep for true see-through stacks.
+ * <p>Optional Immersive Portals remains a soft-dep for true see-through stacks.
  */
 public final class LayerBridge {
 	/** Half-thickness of the teleport trigger around each layer Y edge. */
@@ -53,24 +53,20 @@ public final class LayerBridge {
 
 		announce(player, now);
 		COOLDOWN.put(id, COOLDOWN_TICKS);
-
-		// Seam = teleport zone. Crossing a band edge relocates to a safe arrive Y in the new band.
 		seamTeleport(player, data, prev, now);
 	}
 
-	/**
-	 * True when {@code y} sits inside a layer boundary teleport zone (for clients / debug).
-	 */
+	/** True when {@code y} sits inside a layer boundary teleport zone. */
 	public static boolean inSeamZone(double y) {
 		int yi = MathHelper.floor(y);
 		for (WorldLayer layer : WorldLayer.values()) {
-			if (layer == WorldLayer.CORE) continue; // bottom has no lower seam in-column
+			if (layer == WorldLayer.CORE) continue;
 			if (Math.abs(yi - layer.yMin) <= SEAM_HALF) return true;
 		}
 		return false;
 	}
 
-	/** Nearest seam Y below or at the player, or {@link Integer#MIN_VALUE} if none. */
+	/** Nearest seam Y to the player, or {@link Integer#MIN_VALUE}. */
 	public static int nearestSeamY(double y) {
 		int yi = MathHelper.floor(y);
 		int best = Integer.MIN_VALUE;
@@ -90,19 +86,19 @@ public final class LayerBridge {
 		player.networkHandler.sendPacket(new TitleFadeS2CPacket(FADE_IN, FADE_STAY, FADE_OUT));
 		player.networkHandler.sendPacket(new TitleS2CPacket(
 				Text.literal("§b" + layer.label.toUpperCase())));
-		player.sendMessage(Text.literal("§7Seam · §f" + layer.label
-				+ " §8Y " + layer.yMin + "…" + layer.yMax), true);
+		player.sendMessage(Text.literal("§7Layer · §f" + layer.label
+				+ " §8seam Y " + layer.yMin + "…" + layer.yMax), true);
 		if (layer == WorldLayer.ORBIT) {
 			player.sendMessage(Text.literal(
-					"§a◉ Orbit seam §7— belt sky + boundary display (not a built cube)."), false);
+					"§a◉ Orbit §7— sky-belt hook (Oblivion motion) · boundary display · teleport seam."), false);
 		}
 		if (layer == WorldLayer.CORE) {
 			player.sendMessage(Text.literal(
-					"§c◉ Core seam §7— diggable mantle. No bedrock border."), false);
+					"§c◉ Core §7— diggable mantle. No bedrock border."), false);
 		}
 		if (layer == WorldLayer.OBLIVION) {
 			player.sendMessage(Text.literal(
-					"§d◉ Oblivion seam §7— End band / reactor. Teleport zone + display hook."), false);
+					"§d◉ Oblivion §7— End band. Seam teleport + sky/display hooks, not a built cube."), false);
 		}
 	}
 
@@ -113,7 +109,6 @@ public final class LayerBridge {
 		double x = player.getX();
 		double z = player.getZ();
 		boolean ascending = to.ordinal() > from.ordinal();
-		// Arrive a few blocks past the shared edge so we do not re-trigger the zone next tick.
 		int y;
 		if (ascending) {
 			y = to.yMin + SEAM_HALF + 4;
@@ -134,11 +129,15 @@ public final class LayerBridge {
 
 		player.requestTeleport(x, y, z);
 		Vec3d v = data.getFlightVelocity().multiply(0.4);
-		// Keep a little of the crossing motion so the hop feels continuous.
 		double nudge = ascending ? 2.0 : -2.0;
 		data.setFlightVelocity(new Vec3d(v.x, nudge, v.z));
 		player.setVelocity(v.x / 20.0, nudge / 20.0, v.z / 20.0);
 		player.velocityModified = true;
+		// Creative must not re-arm vanilla fly mid-hop.
+		if (player.getAbilities().flying) {
+			player.getAbilities().flying = false;
+			player.sendAbilitiesUpdate();
+		}
 		LAST.put(player.getUuid(), WorldLayer.at(world, y));
 	}
 

@@ -16,10 +16,10 @@ import net.minecraft.util.math.MathHelper;
 import org.joml.Matrix4f;
 
 /**
- * Skybox orbital belt / ring installation — dark structural arc with green city lights.
+ * Skybox orbital belt — engine-driven sky motion (Oblivion-style drift), not a built volume.
  *
- * <p>Fades in as the pilot climbs toward sky/orbital so survival players get a clear
- * “relocate your base” cue before chunk terrain empties into vacuum.
+ * <p>The three layers form one parallelepiped in scale; this hook paints the upper face in the
+ * skybox and slowly rotates it with world time so the belt feels alive without loading chunks.
  */
 public final class OrbitalBeltSkyRenderer {
 	private static boolean warned;
@@ -63,15 +63,17 @@ public final class OrbitalBeltSkyRenderer {
 		BufferBuilder buf = tess.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 
 		// Huge distant ring in sky space — camera-relative so it never loads chunks.
+		// Slow yaw drift = Oblivion sky motion using the render clock, not worldgen.
 		double radius = 220;
-		double ringY = 40; // above camera horizon feel
+		double ringY = 40;
 		int segs = 72;
 		float bodyA = 0.35f * alpha;
 		float lightA = 0.85f * alpha;
+		double spin = (mc.world.getTime() + ctx.tickCounter().getTickDelta(false)) * 0.0018;
 
 		for (int i = 0; i < segs; i++) {
-			double a0 = i * Math.PI * 2 / segs;
-			double a1 = (i + 1) * Math.PI * 2 / segs;
+			double a0 = i * Math.PI * 2 / segs + spin;
+			double a1 = (i + 1) * Math.PI * 2 / segs + spin;
 			float x0 = (float) (Math.cos(a0) * radius);
 			float z0 = (float) (Math.sin(a0) * radius);
 			float x1 = (float) (Math.cos(a1) * radius);

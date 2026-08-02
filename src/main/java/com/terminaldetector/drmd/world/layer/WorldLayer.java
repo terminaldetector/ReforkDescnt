@@ -5,11 +5,11 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 /**
- * Narrative world layers — seam Y bands for teleport + display hooks.
+ * Narrative layers of the world parallelepiped (Core · Surface · Orbit/Oblivion).
  *
- * <p>Not stacked parallelepipeds. Each edge ({@code yMin}) is a thin teleport zone
- * ({@link LayerBridge}); the client paints a block curtain there. End/Nether dimensions
- * remain optional Immersive-Portals hops.
+ * <p>Edges ({@code yMin}) are thin teleport seams ({@link LayerBridge}); clients paint the
+ * boundary and sky through hooks — not by building solid volumes. End/Nether stay optional
+ * Immersive-Portals hops.
  */
 public enum WorldLayer {
 	/** Planetary core — Nether band + deep abyss. Aggressive bases, tangled mines. */

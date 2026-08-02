@@ -76,8 +76,7 @@ public final class DescentFlightMotion {
 	}
 
 	public static void travel(PlayerEntity player) {
-		// Creative flight cannot co-drive the hull. `allowFlying` is left alone, so switching 6DoF
-		// off with H hands normal creative flight straight back for building.
+		// Belt-and-suspenders with ClientPlayerEntityMixin — never let creative flying co-drive.
 		if (player.getAbilities().flying) {
 			player.getAbilities().flying = false;
 		}

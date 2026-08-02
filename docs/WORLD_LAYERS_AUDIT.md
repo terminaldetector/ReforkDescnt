@@ -1,17 +1,19 @@
 # Аудит мира и биомов (отдельно от арсенала)
 
-*Срез: tall Overworld + **зоны телепорта на швах** + хук отображения блоков. Не параллелепипеды.*
-
 ## Доктрина
 
-Движок **не ломаем** — `min_y=-512`, `height=1536` даёт место для полёта/копания.
+**Три слоя в итоге образуют параллелепипед** (Core · Surface · Sky/Orbit/End) в масштабе tall Overworld (−512…1024).
 
-Слои — это **не** «три куба, которые надо построить». На каждой границе Y:
+Отображение — **через хуки и максимальное использование движка**, не постройкой трёх кубов:
 
-1. **Зона телепорта** (`LayerBridge`, ±`SEAM_HALF`) — пересёк шов → arrive в соседний бэнд  
-2. **Хук отображения блоков** (`BoundarySeamRenderer`) — клиент рисует «занавес» клеток на плоскости шва  
+| Хук | Что даёт |
+|-----|----------|
+| `LayerBridge` | Тонкая **зона телепорта** на шве Y |
+| `BoundarySeamRenderer` | «Занавес» блоков на границе |
+| `LevelSky` / `OrbitalBeltSkyRenderer` | Небо/пояс с **анимацией как у Oblivion** (дрейф по времени мира) |
+| `MantleStream` | Мантия рядом с игроком, не fill всей колонны |
 
-Без portal-load. Immersive Portals — опциональный soft-dep для настоящего see-through.
+Immersive Portals — опциональный soft-dep для настоящего see-through.
 
 | Шов Y | Слои |
 |------:|------|
@@ -22,41 +24,17 @@
 
 ---
 
-## Вердикт
+## 6DoF + креатив
 
-| Тема | Состояние |
-|------|-----------|
-| Tall Overworld −512…1024 | Да (комната для 6DoF) |
-| Параллелепипеды / три куба | **Нет** — убраны из доктрины |
-| Seam teleport | `LayerBridge.seamTeleport` |
-| Boundary block display | `BoundarySeamRenderer` |
-| Бедрок как граница | **Нет** — `plasma_granite` |
-| Мантия / Core stream | `MantleStream` у игроков |
-| Vanilla Nether/End portals | Catalysts |
-| ImmPtl | Soft-dep |
+Vanilla creative `abilities.flying` (двойной пробел) ломает корпус: Y×0.6 и flySpeed вне `travel()`.  
+Пока Descent включён: клиент (`ClientPlayerEntityMixin`) и сервер держат `flying=false`, `allowFlying` остаётся — H выключает 6DoF и возвращает обычный креатив-полёт.
 
 ---
 
 ## Dig path
 
 ```
- SURFACE / INDUSTRIAL
-        ↓ dig
- plasma granite crust
-        ↓
- mantle mix → continuous nether
-        ↓
- CORE cavern
+ SURFACE → plasma granite → mantle → CORE
 ```
-
-Полный мантийный столбец не пишется во все чанки — только рядом с игроками.
-
----
-
-## Приоритеты
-
-1. ImmPtl optional pack  
-2. Богаче визуал шва (типы блоков по слою)  
-3. Hostile populate в Core  
 
 *Мир аудируется отдельно от оружия.*

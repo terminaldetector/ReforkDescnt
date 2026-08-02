@@ -164,7 +164,7 @@ public class DescentMod implements ModInitializer {
 			});
 		});
 
-		LOGGER.info("DRMD 6DOF 1.0.3 ready — seam teleport + boundary display · Descent native");
+		LOGGER.info("DRMD 6DOF 1.0.4 ready — creative fly suppressed · seam hooks · Descent native");
 	}
 
 	/**

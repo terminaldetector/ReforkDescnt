@@ -1,22 +1,17 @@
 package com.terminaldetector.drmd.world.level;
 
 /**
- * Tall Overworld height bands — seams are teleport zones, not built parallelepipeds.
+ * Tall Overworld bands — three layers form one parallelepiped in scale; display via hooks.
  *
- * <p>{@code overworld.json} keeps the full legal height (−512…1024) so flight/dig have room.
- * Layers are <em>labels + seam Y</em>: cross a boundary → {@link com.terminaldetector.drmd.world.layer.LayerBridge}
- * teleports; clients draw a block curtain via {@code BoundarySeamRenderer}. We do not construct
- * three giant cubes. Bedrock → diggable plasma granite; mantle via {@link MantleStream}.
+ * <p>{@code overworld.json} keeps −512…1024. We do not build three solid cubes: seams are
+ * teleport zones ({@link com.terminaldetector.drmd.world.layer.LayerBridge}), boundaries use
+ * {@code BoundarySeamRenderer}, sky uses engine-driven drift (Oblivion-style). Bedrock → plasma
+ * granite; mantle via {@link MantleStream}.
  *
  * <pre>
- *   1024  END          880 … 1024   seam teleport + display hook
- *    880  ORBITAL      640 …  880
- *    640  SKY          320 …  640
- *    320  SURFACE       40 …  320
- *     40  INDUSTRIAL   −64 …   40
- *    −64  ABYSS       −240 …  −64
- *   −240  NETHER/CORE −512 … −240
- *   −512
+ *   UPPER   Sky + Orbit + End     320 … 1024
+ *   MIDDLE  Surface                40 …  320
+ *   LOWER   Industrial + Abyss + Core  −512 … 40
  * </pre>
  */
 public final class WorldLevels {

@@ -63,10 +63,9 @@ public final class FlightSystem {
 		float dt = 1f / 20f;
 		InputState in = input(player);
 
-		// Creative flight cannot co-drive the hull: PlayerEntity.travel's flying branch rewrites Y
-		// as `previousY * 0.6` every tick, and ClientPlayerEntity.tickMovement injects ±flySpeed*3
-		// on jump/sneak outside travel() entirely. Either one shreds a 6DoF velocity. The player
-		// keeps `allowFlying`, so toggling 6DoF off (H) hands creative flight straight back.
+		// Creative double-tap space re-arms flying; that path shreds 6DoF (Y*0.6 + flySpeed outside
+		// travel). Keep allowFlying so H-off restores creative build flight. Client also clears
+		// flying at tickMovement HEAD (ClientPlayerEntityMixin).
 		if (player.getAbilities().flying) {
 			player.getAbilities().flying = false;
 			player.sendAbilitiesUpdate();

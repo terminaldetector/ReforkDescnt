@@ -13,6 +13,7 @@
   "client": [
     "client.CameraAccessor",
     "client.CameraMixin",
+    "client.ClientPlayerEntityMixin",
     "client.ClientWorldMixin",
     "client.GameMenuScreenMixin",
     "client.GameRendererMixin",
