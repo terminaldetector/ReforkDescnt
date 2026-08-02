@@ -27,7 +27,7 @@ import net.minecraft.world.World;
 
 /**
  * Pyro GX transport — 6DoF while piloted (immune to gravity torches).
- * On dismount: leave thruster mode and walk with local gravity / surface lock.
+ * On dismount: walk when a gravity field / solid floor is present; keep free 6DoF in open air.
  */
 public class PyroShipEntity extends PathAwareEntity {
 	private boolean wasPiloted;
