@@ -5,6 +5,7 @@ import com.terminaldetector.drmd.world.DescentWorldState;
 import com.terminaldetector.drmd.world.WorldFeatures;
 import com.terminaldetector.drmd.world.WorldRules;
 import com.terminaldetector.drmd.world.base.DescentSession;
+import com.terminaldetector.drmd.world.dungeon.DungeonTerritory;
 import com.terminaldetector.drmd.world.gen.IndustrialComplexGenerator;
 import com.terminaldetector.drmd.world.gen2.MacroEntry;
 import com.terminaldetector.drmd.world.gen2.MegaStructureGenerator;
@@ -75,9 +76,17 @@ public final class MegacityBiomeWorldgen {
 					MacroEntry.Kind.MEGACITY, Random.create(world.getSeed() ^ 0xC1740001L ^ cityX * 31L ^ cityZ));
 		});
 
+		long plateSalt = world.getSeed() ^ 0xC1740001L ^ cityX * 31L ^ cityZ;
+		WorldRules.ComplexStyle primary = DungeonTerritory.primaryStyle(DungeonTerritory.Kind.MEGACITY, plateSalt);
+		WorldRules.ComplexStyle secondary = DungeonTerritory.satelliteStyle(DungeonTerritory.Kind.MEGACITY, plateSalt);
+
 		BlockPos cityDungeon = new BlockPos(cityX, WorldRules.INDUSTRIAL_Y_MIN + 24, cityZ);
 		DescentSession.enqueueLandmark(cityDungeon, () -> IndustrialComplexGenerator.generateAt(
-				world, cityDungeon, WorldRules.ComplexStyle.TECH_RUINS, world.getRandom()));
+				world, cityDungeon, primary, Random.create(plateSalt)));
+
+		BlockPos satDungeon = new BlockPos(cityX - 55, WorldRules.INDUSTRIAL_Y_MIN + 32, cityZ + 48);
+		DescentSession.enqueueLandmark(satDungeon, () -> IndustrialComplexGenerator.generateAt(
+				world, satDungeon, secondary, Random.create(plateSalt ^ 0xBEEFL)));
 
 		DescentSession.enqueueLandmark(new BlockPos(cityX + 40, WorldRules.INDUSTRIAL_Y_MIN + 36, cityZ - 30),
 				() -> MegaStructureGenerator.generate(world,

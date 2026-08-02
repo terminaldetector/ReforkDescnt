@@ -5,6 +5,7 @@ import com.terminaldetector.drmd.world.DescentWorldState;
 import com.terminaldetector.drmd.world.WorldFeatures;
 import com.terminaldetector.drmd.world.WorldRules;
 import com.terminaldetector.drmd.world.base.DescentSession;
+import com.terminaldetector.drmd.world.dungeon.DungeonTerritory;
 import com.terminaldetector.drmd.world.gen.IndustrialComplexGenerator;
 import com.terminaldetector.drmd.world.gen2.MegaLocatorGenerator;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
@@ -75,9 +76,16 @@ public final class TechnogenicSeaBiomeWorldgen {
 					MegaLocatorGenerator.generateSmall(world, new BlockPos(lx, 0, lz), Random.create(salt)));
 		}
 
-		// Underwater 6DoF dungeon under the mega
+		WorldRules.ComplexStyle primary = DungeonTerritory.primaryStyle(DungeonTerritory.Kind.TECHNOGENIC_SEA, seed);
+		WorldRules.ComplexStyle secondary = DungeonTerritory.satelliteStyle(DungeonTerritory.Kind.TECHNOGENIC_SEA, seed);
+
+		// Underwater 6DoF dungeon under the mega + signal satellite
 		BlockPos under = new BlockPos(ax, Math.min(WorldRules.INDUSTRIAL_Y_MAX - 8, 40), az);
 		DescentSession.enqueueLandmark(under, () -> IndustrialComplexGenerator.generateAt(
-				world, under, WorldRules.ComplexStyle.SUBSEA_LOCATOR, world.getRandom()));
+				world, under, primary, Random.create(seed ^ 0x51L)));
+
+		BlockPos signal = new BlockPos(ax + 48, Math.min(WorldRules.INDUSTRIAL_Y_MAX - 4, 48), az - 36);
+		DescentSession.enqueueLandmark(signal, () -> IndustrialComplexGenerator.generateAt(
+				world, signal, secondary, Random.create(seed ^ 0x52L)));
 	}
 }

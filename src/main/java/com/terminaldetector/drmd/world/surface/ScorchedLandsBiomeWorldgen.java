@@ -3,7 +3,10 @@ package com.terminaldetector.drmd.world.surface;
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.world.DescentWorldState;
 import com.terminaldetector.drmd.world.WorldFeatures;
+import com.terminaldetector.drmd.world.WorldRules;
 import com.terminaldetector.drmd.world.base.DescentSession;
+import com.terminaldetector.drmd.world.dungeon.DungeonTerritory;
+import com.terminaldetector.drmd.world.gen.IndustrialComplexGenerator;
 import com.terminaldetector.drmd.world.gen2.ScorchedSurfaceGenerator;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -68,5 +71,10 @@ public final class ScorchedLandsBiomeWorldgen {
 			DescentSession.enqueueLandmark(new BlockPos(gx, 0, gz), () ->
 					ScorchedSurfaceGenerator.generateGrove(world, new BlockPos(gx, 0, gz), Random.create(salt)));
 		}
+
+		WorldRules.ComplexStyle under = DungeonTerritory.primaryStyle(DungeonTerritory.Kind.SCORCHED_LANDS, seed);
+		BlockPos dungeon = new BlockPos(ax, WorldRules.INDUSTRIAL_Y_MIN + 26, az);
+		DescentSession.enqueueLandmark(dungeon, () -> IndustrialComplexGenerator.generateAt(
+				world, dungeon, under, Random.create(seed ^ 0x5C04L)));
 	}
 }

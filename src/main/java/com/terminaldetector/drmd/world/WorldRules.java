@@ -75,7 +75,19 @@ public final class WorldRules {
 	public enum ComplexStyle {
 		ABANDONED_RESEARCH, ANCIENT_POWER, AUTO_FACTORY, SMELTERY, CRYSTAL_REACTOR, TECH_RUINS,
 		/** Underwater 6DoF dungeon under technogenic sea locators. */
-		SUBSEA_LOCATOR
+		SUBSEA_LOCATOR,
+		/** Torus / ring cavity — megacity & sea satellites. */
+		HOLLOW_RING,
+		/** Tall shaft stack with stacked chambers. */
+		VERTICAL_SPIRE,
+		/** Asymmetric drifting lab nodes. */
+		DRIFT_LAB,
+		/** Locator-linked signal chambers + panel skin. */
+		SIGNAL_ARRAY,
+		/** Irregular warped cavern web. */
+		WARPED_CAVERN,
+		/** Thin orbital shell sphere with open poles. */
+		ORBITAL_SHELL
 	}
 
 	public enum ModuleType {

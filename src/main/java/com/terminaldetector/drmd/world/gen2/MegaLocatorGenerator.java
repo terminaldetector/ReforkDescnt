@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.world.gen2;
 
+import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import com.terminaldetector.drmd.world.WorldRules;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -16,6 +17,7 @@ import java.util.UUID;
 /**
  * Spark-style technogenic locator — dark tower + parabolic dish on the water.
  * Mega variant registers a large {@link MacroWorld} entry for voxel LLOD on the horizon.
+ * Uses {@link ModWorldBlocks#LOCATOR_CORE} / resonator / panel for gameplay effects.
  */
 public final class MegaLocatorGenerator {
 	private MegaLocatorGenerator() {}
@@ -36,11 +38,12 @@ public final class MegaLocatorGenerator {
 		int towerH = mega ? 48 + random.nextInt(16) : 22 + random.nextInt(10);
 		int shaftR = mega ? 5 : 3;
 		int dishR = mega ? 18 : 8;
-		BlockState hull = Blocks.DEEPSLATE_TILES.getDefaultState();
+		BlockState hull = ModWorldBlocks.LOCATOR_PANEL.getDefaultState();
 		BlockState trim = Blocks.OXIDIZED_COPPER.getDefaultState();
 		BlockState dish = Blocks.IRON_BLOCK.getDefaultState();
 		BlockState light = Blocks.SEA_LANTERN.getDefaultState();
 		BlockState pad = Blocks.DARK_PRISMARINE.getDefaultState();
+		BlockState deep = Blocks.DEEPSLATE_TILES.getDefaultState();
 
 		int padR = mega ? 14 : 7;
 		for (int x = -padR; x <= padR; x++) {
@@ -58,11 +61,19 @@ public final class MegaLocatorGenerator {
 					if (d > shaftR * shaftR) continue;
 					boolean shell = d >= (shaftR - 1) * (shaftR - 1);
 					BlockPos p = base.add(x, y, z);
-					if (shell) set(world, p, (y % 6 == 0) ? trim : hull);
-					else set(world, p, Blocks.AIR.getDefaultState());
+					if (shell) {
+						BlockState skin = (y % 6 == 0) ? trim : ((y % 3 == 0) ? hull : deep);
+						set(world, p, skin);
+					} else {
+						set(world, p, Blocks.AIR.getDefaultState());
+					}
 				}
 			}
 			if (y % 8 == 0) set(world, base.add(0, y, 0), light);
+			if (mega && y % 12 == 0 && y > 0) {
+				set(world, base.add(shaftR, y, 0), ModWorldBlocks.LOCATOR_RESONATOR.getDefaultState());
+				set(world, base.add(-shaftR, y, 0), ModWorldBlocks.LOCATOR_RESONATOR.getDefaultState());
+			}
 		}
 
 		BlockPos dishC = base.add(0, towerH + 2, 0);
@@ -72,16 +83,21 @@ public final class MegaLocatorGenerator {
 				if (dist > dishR || dist < dishR * 0.25f) continue;
 				int y = (int) (dist * dist / (dishR * 0.9f));
 				if (y > dishR / 2) continue;
-				set(world, dishC.add(x, y, z), dish);
+				set(world, dishC.add(x, y, z), (x + z) % 4 == 0 ? hull : dish);
 				if ((x + z) % 5 == 0) set(world, dishC.add(x, y + 1, z), light);
 			}
 		}
 		for (int y = 0; y < dishR / 2 + 4; y++) {
 			set(world, dishC.add(0, y, 0), trim);
 		}
-		set(world, dishC.add(0, dishR / 2 + 4, 0), light);
+		set(world, dishC.add(0, dishR / 2 + 4, 0),
+				mega ? ModWorldBlocks.LOCATOR_CORE.getDefaultState() : ModWorldBlocks.LOCATOR_RESONATOR.getDefaultState());
 
-		set(world, base.add(0, 1, 0), Blocks.LODESTONE.getDefaultState());
+		// Heart of the pad — gameplay ping + LLOD still keyed by MacroWorld entry
+		set(world, base.add(0, 1, 0),
+				mega ? ModWorldBlocks.LOCATOR_CORE.getDefaultState() : ModWorldBlocks.LOCATOR_RESONATOR.getDefaultState());
+		set(world, base.add(2, 1, 0), ModWorldBlocks.LOCATOR_PANEL.getDefaultState());
+		set(world, base.add(-2, 1, 0), ModWorldBlocks.LOCATOR_PANEL.getDefaultState());
 
 		MacroEntry.Kind kind = mega ? MacroEntry.Kind.MEGA_LOCATOR : MacroEntry.Kind.LOCATOR;
 		int sx = mega ? 56 : 24;

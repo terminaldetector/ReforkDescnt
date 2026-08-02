@@ -155,11 +155,11 @@ public final class DescentSession {
 			player.sendMessage(Text.literal(
 					"§bDRMD 6DOF §f— Descent session is part of this world."), false);
 			player.sendMessage(Text.literal(
-					"§7Hub: §fLunar Base§7 · hold §fR§7 afterburner · §fH§7 6DoF · §fN§7 ship"), false);
+					"§7Pad: §fLunar Base§7 (not the campaign) · §fR§7 afterburner · §fH§7 6DoF · §fN§7 ship"), false);
 			String cityTip = com.terminaldetector.drmd.world.surface.MegacityRegions
 					.describeNearest(player.getBlockX(), player.getBlockZ());
 			player.sendMessage(Text.literal(
-					"§7Biome plates far from spawn — megacity · technogenic sea · scorched lands"), false);
+					"§7Explore: random UFO/outpost events · biome plates · 6DoF dungeons"), false);
 			player.sendMessage(Text.literal("§8" + cityTip + " · /d6 megacity|technogenic|scorched"), false);
 			if (player.isCreative()) {
 				player.giveItemStack(new ItemStack(ModItems.PYRO_GX));
@@ -213,26 +213,14 @@ public final class DescentSession {
 	}
 
 	/**
-	 * Sparse surface campaign near spawn — hub satellites only.
-	 * Megacity is a separate world biome ({@code drmd:megacity}), not spawned here.
+	 * Surface districts path — hub is pad-only.
+	 * UFOs / outposts / ruins are random {@link com.terminaldetector.drmd.world.surface.SurfaceEventWorldgen}
+	 * events (≥400 m from spawn), not a spawn-tied package. Biome plates own their own dungeons.
 	 */
 	private static void seedSurfaceDistricts(ServerWorld world, BlockPos spawn) {
-		enqueueMega(world, new BlockPos(spawn.getX() + 140, 80, spawn.getZ() - 100),
-				MacroEntry.Kind.CRASHED_UFO, 0x0F00A001L);
-
-		enqueue(new BlockPos(spawn.getX() + 80, WorldRules.SKY_PRACTICAL_MIN + 48, spawn.getZ() + 60), () -> {
-			var ufo = ModEntities.SKY_UFO.create(world);
-			if (ufo != null) {
-				ufo.refreshPositionAndAngles(spawn.getX() + 80.5, WorldRules.SKY_PRACTICAL_MIN + 48,
-						spawn.getZ() + 60.5, 0, 0);
-				world.spawnEntity(ufo);
-			}
-		});
-
-		// Depth reactor under spawn — dungeon link from the lunar hub.
-		BlockPos under = new BlockPos(spawn.getX(), WorldRules.INDUSTRIAL_Y_MIN + 30, spawn.getZ());
-		enqueue(under, () -> IndustrialComplexGenerator.generateAt(
-				world, under, WorldRules.ComplexStyle.CRYSTAL_REACTOR, world.getRandom()));
+		DescentMod.LOGGER.info(
+				"Surface districts: hub pad only @ spawn {}; events/plates discover on chunk load",
+				spawn.toShortString());
 	}
 
 	private static void seedStockMegastructures(ServerWorld world, BlockPos spawn) {

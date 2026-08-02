@@ -64,6 +64,18 @@ public final class ModWorldBlocks {
 			new com.terminaldetector.drmd.world.gravity.GravityTorchBlock(
 					AbstractBlock.Settings.copy(Blocks.TORCH).luminance(s -> 12).ticksRandomly().nonOpaque()));
 
+	public static final Block LOCATOR_CORE = registerBlock("locator_core",
+			new com.terminaldetector.drmd.world.locator.LocatorCoreBlock(
+					AbstractBlock.Settings.copy(Blocks.LODESTONE).luminance(s -> 14).strength(5f).nonOpaque()));
+
+	public static final Block LOCATOR_RESONATOR = registerBlock("locator_resonator",
+			new com.terminaldetector.drmd.world.locator.LocatorResonatorBlock(
+					AbstractBlock.Settings.copy(Blocks.SEA_LANTERN).luminance(s -> 12).ticksRandomly().strength(3.5f)));
+
+	public static final Block LOCATOR_PANEL = registerBlock("locator_panel",
+			new com.terminaldetector.drmd.world.locator.LocatorPanelBlock(
+					AbstractBlock.Settings.copy(Blocks.OXIDIZED_COPPER).luminance(s -> 4).strength(3f)));
+
 	public static Item BUILD_TOOL;
 	public static Item CONSTRUCTION_LASER;
 	public static Item REPAIR_LASER;
@@ -116,6 +128,9 @@ public final class ModWorldBlocks {
 			entries.add(UNSTABLE_REACTOR);
 			entries.add(GRAVITY_GENERATOR);
 			entries.add(GRAVITY_TORCH);
+			entries.add(LOCATOR_CORE);
+			entries.add(LOCATOR_RESONATOR);
+			entries.add(LOCATOR_PANEL);
 			entries.add(DRILL_RIG);
 			entries.add(TUNNEL_DRILL_RIG);
 			entries.add(BUILD_TOOL);
