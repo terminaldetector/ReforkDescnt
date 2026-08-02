@@ -7,6 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.PoweredRailBlock;
+import net.minecraft.block.RailBlock;
 import net.minecraft.block.enums.RailShape;
 import net.minecraft.entity.decoration.EndCrystalEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -119,11 +120,12 @@ public final class RingDefenseStructures {
 			placePowered(world, center.getX() - r, y + 1, center.getZ() + z, RailShape.NORTH_SOUTH);
 			placePowered(world, center.getX() + r, y + 1, center.getZ() + z, RailShape.NORTH_SOUTH);
 		}
-		// Corners
-		placePowered(world, center.getX() - r, y + 1, center.getZ() - r, RailShape.SOUTH_EAST);
-		placePowered(world, center.getX() + r, y + 1, center.getZ() - r, RailShape.SOUTH_WEST);
-		placePowered(world, center.getX() - r, y + 1, center.getZ() + r, RailShape.NORTH_EAST);
-		placePowered(world, center.getX() + r, y + 1, center.getZ() + r, RailShape.NORTH_WEST);
+		// Corners — powered rails have no curve shapes (only N/S, E/W, ascending_*).
+		// Curved vanilla rails turn the carts; straights stay powered.
+		placeCurve(world, center.getX() - r, y + 1, center.getZ() - r, RailShape.SOUTH_EAST);
+		placeCurve(world, center.getX() + r, y + 1, center.getZ() - r, RailShape.SOUTH_WEST);
+		placeCurve(world, center.getX() - r, y + 1, center.getZ() + r, RailShape.NORTH_EAST);
+		placeCurve(world, center.getX() + r, y + 1, center.getZ() + r, RailShape.NORTH_WEST);
 
 		int n = Math.max(1, Math.min(carts, 4));
 		for (int i = 0; i < n; i++) {
@@ -147,9 +149,19 @@ public final class RingDefenseStructures {
 	}
 
 	private static void placePowered(WorldAccess world, int x, int y, int z, RailShape shape) {
+		// PoweredRailBlock rejects curved shapes — callers must only pass straight/ascending.
+		if (!shape.isAscending() && shape != RailShape.NORTH_SOUTH && shape != RailShape.EAST_WEST) {
+			placeCurve(world, x, y, z, shape);
+			return;
+		}
 		BlockState rail = Blocks.POWERED_RAIL.getDefaultState()
 				.with(PoweredRailBlock.SHAPE, shape)
 				.with(PoweredRailBlock.POWERED, true);
+		set(world, new BlockPos(x, y, z), rail);
+	}
+
+	private static void placeCurve(WorldAccess world, int x, int y, int z, RailShape shape) {
+		BlockState rail = Blocks.RAIL.getDefaultState().with(RailBlock.SHAPE, shape);
 		set(world, new BlockPos(x, y, z), rail);
 	}
 

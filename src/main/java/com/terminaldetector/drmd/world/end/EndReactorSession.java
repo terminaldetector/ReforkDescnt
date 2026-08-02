@@ -121,6 +121,21 @@ public final class EndReactorSession {
 		}
 	}
 
+	/**
+	 * Mixin entry — cheap every tick. Heavy arena build only when a player is near
+	 * (or the base already exists and needs a boss check).
+	 */
+	public static void onDragonFightTick(ServerWorld end) {
+		suppressDragons(end);
+		EndReactorState state = EndReactorState.get(end);
+		if (state.isBaseGenerated()) {
+			ensureBossAlive(end, state);
+			return;
+		}
+		if (!playerNearArena(end)) return;
+		ensureBase(end);
+	}
+
 	public static void ensureBase(ServerWorld end) {
 		EndReactorState state = EndReactorState.get(end);
 		if (state.isBaseGenerated()) {
@@ -128,12 +143,18 @@ public final class EndReactorSession {
 			return;
 		}
 		BlockPos center = arenaCenter(end);
-		generateBase(end, center);
-		spawnBoss(end, center);
-		state.setBaseGenerated(true);
-		state.setPhase(EndReactorState.Phase.SHIELDED);
-		DescentMod.LOGGER.info("Reactor arena generated in {} at {}",
-				end.getRegistryKey().getValue(), center.toShortString());
+		try {
+			generateBase(end, center);
+			spawnBoss(end, center);
+			state.setBaseGenerated(true);
+			state.setPhase(EndReactorState.Phase.SHIELDED);
+			DescentMod.LOGGER.info("Reactor arena generated in {} at {}",
+					end.getRegistryKey().getValue(), center.toShortString());
+		} catch (Exception e) {
+			// Never take down the integrated server over a bad rail / block write.
+			DescentMod.LOGGER.error("Reactor arena generate failed in {} at {}",
+					end.getRegistryKey().getValue(), center.toShortString(), e);
+		}
 	}
 
 	private static void ensureBossAlive(ServerWorld end, EndReactorState state) {

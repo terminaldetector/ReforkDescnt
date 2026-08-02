@@ -19,8 +19,9 @@ public class EnderDragonFightMixin {
 
 	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)
 	private void drmd$replaceDragonFight(CallbackInfo ci) {
-		EndReactorSession.suppressDragons(world);
-		EndReactorSession.ensureBase(world);
+		// Always kill stock dragons; arena raise is gated — building the full reactor
+		// on every End tick (incl. world create with 0 players) froze join / crashed.
+		EndReactorSession.onDragonFightTick(world);
 		ci.cancel();
 	}
 
