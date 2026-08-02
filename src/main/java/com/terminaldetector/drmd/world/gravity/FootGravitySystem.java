@@ -71,11 +71,20 @@ public final class FootGravitySystem {
 		GravityFields.Sample field = GravityFields.sample(player.getWorld(), player.getPos());
 		Vec3d up;
 		String label;
+		boolean hardMount = false;
 		if (field != null) {
-			// Ease onto the surface instead of snapping: walking into a torch's reach should roll
-			// the world under you, which is the whole point of the thing.
-			up = com.terminaldetector.drmd.flight.ShipAttitude.slerp(
-					LocalOrientation.getUp(player.getUuid()), field.upDir(), CAPTURE_RATE);
+			Vec3d target = field.upDir().normalize();
+			Vec3d current = LocalOrientation.getUp(player.getUuid());
+			double align = current.dotProduct(target);
+			// Big reorient (wall/ceiling capture, ceiling flip): snap + safe place so the standing
+			// AABB is not crushed into the mount face (vanilla crawl ≈ 1-cube).
+			if (!isActive(player.getUuid()) || align < 0.5) {
+				up = target;
+				hardMount = true;
+			} else {
+				// Ease onto the surface: walking into reach should roll the world under you.
+				up = com.terminaldetector.drmd.flight.ShipAttitude.slerp(current, target, CAPTURE_RATE);
+			}
 			label = field.label() != null ? field.label() : "Local Gravity";
 		} else {
 			// Out of reach — bleed back to world up and hand the player to vanilla gravity. Holding
@@ -100,6 +109,15 @@ public final class FootGravitySystem {
 		LocalOrientation.setUp(player.getUuid(), up);
 		player.setNoGravity(true);
 		player.fallDistance = 0f;
+		if (hardMount) {
+			GravityMount.safeMount(player, up);
+		}
+		// Prefer standing size while local gravity holds and there is clearance.
+		if (GravityMount.hasStandingClearance(player)
+				&& player.getPose() != net.minecraft.entity.EntityPose.STANDING) {
+			player.setPose(net.minecraft.entity.EntityPose.STANDING);
+			player.setSwimming(false);
+		}
 
 		boolean grounded = probeGround(player, up);
 		STATES.put(player.getUuid(), new State(up, true, grounded, label));
@@ -244,6 +262,7 @@ public final class FootGravitySystem {
 			STATES.put(player.getUuid(), new State(up, true, false,
 					field.label() != null ? field.label() : "Local Gravity"));
 			player.setNoGravity(true);
+			GravityMount.safeMount(player, up);
 		}
 	}
 

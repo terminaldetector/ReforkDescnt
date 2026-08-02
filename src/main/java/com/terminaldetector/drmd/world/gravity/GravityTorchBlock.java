@@ -6,7 +6,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.particle.DustParticleEffect;
@@ -29,9 +28,10 @@ import org.joml.Vector3f;
 import java.util.UUID;
 
 /**
- * Gravity Torch — compact local gravity source.
- * Mount face becomes the floor: FACING points out from the surface, gravity pulls into the wall/ceiling/floor.
- * Does not affect Pyro GX (ship or pilot).
+ * Gravity Torch — compact local gravity source (radius {@link #RADIUS}).
+ * Mount face becomes the floor: FACING points out from the surface, gravity pulls into it.
+ * Does not affect Pyro GX. Mobs are handled by {@link EntityGravitySystem}; players by
+ * {@link FootGravitySystem} + {@link GravityMount}.
  */
 public class GravityTorchBlock extends Block {
 	public static final DirectionProperty FACING = Properties.FACING;
@@ -89,41 +89,31 @@ public class GravityTorchBlock extends Block {
 	@Override
 	protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
 		register(world, pos, state);
-		applyToNearby(world, pos, state);
+		pulseCaptureCue(world, pos);
 		world.scheduleBlockTick(pos, this, 10);
 	}
 
 	@Override
 	protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
 		register(world, pos, state);
-		applyToNearby(world, pos, state);
+		pulseCaptureCue(world, pos);
 		world.scheduleBlockTick(pos, this, 10);
 	}
 
-	private static void applyToNearby(ServerWorld world, BlockPos pos, BlockState state) {
-		Direction face = state.get(FACING);
-		Vec3d up = Vec3d.of(face.getVector()); // floor normal = FACING
-		for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class,
-				new net.minecraft.util.math.Box(pos).expand(RADIUS), LivingEntity::isAlive)) {
-			if (e.getVehicle() instanceof PyroShipEntity) continue;
-			if (e instanceof PyroShipEntity) continue;
-			if (e instanceof ServerPlayerEntity sp) {
-				com.terminaldetector.drmd.DescentPlayerData data =
-						com.terminaldetector.drmd.DescentPlayerData.get(sp);
-				// Only reorient walkers — thruster mode keeps ship UP.
-				if (data.isEnabled()) continue;
-				// Capture itself is FootGravitySystem's job: it samples this field every tick and
-				// eases the up vector round. Snapping it here would undo that easing ten times a
-				// second and make the world jump onto the wall instead of rolling onto it.
-				if (!FootGravitySystem.isActive(sp.getUuid())) {
-					sp.getWorld().playSound(null, sp.getX(), sp.getY(), sp.getZ(),
-							net.minecraft.sound.SoundEvents.BLOCK_BEACON_ACTIVATE,
-							net.minecraft.sound.SoundCategory.BLOCKS, 0.35f, 1.7f);
-				}
-			} else {
-				Vec3d down = up.negate();
-				e.addVelocity(down.x * 0.05, down.y * 0.05, down.z * 0.05);
-				e.velocityModified = true;
+	/** Soft capture cue for players first entering the field — no mob shove. */
+	private static void pulseCaptureCue(ServerWorld world, BlockPos pos) {
+		for (ServerPlayerEntity sp : world.getEntitiesByClass(ServerPlayerEntity.class,
+				new net.minecraft.util.math.Box(pos).expand(RADIUS), PlayerEntity::isAlive)) {
+			if (sp.getVehicle() instanceof PyroShipEntity) continue;
+			com.terminaldetector.drmd.DescentPlayerData data =
+					com.terminaldetector.drmd.DescentPlayerData.get(sp);
+			if (data.isEnabled()) continue;
+			GravityFields.Sample sample = GravityFields.sample(world, sp.getPos());
+			if (sample == null) continue;
+			if (!FootGravitySystem.isActive(sp.getUuid())) {
+				world.playSound(null, sp.getX(), sp.getY(), sp.getZ(),
+						net.minecraft.sound.SoundEvents.BLOCK_BEACON_ACTIVATE,
+						net.minecraft.sound.SoundCategory.BLOCKS, 0.35f, 1.7f);
 			}
 		}
 		world.spawnParticles(new DustParticleEffect(new Vector3f(0.2f, 1f, 0.45f), 1.0f),
@@ -140,12 +130,10 @@ public class GravityTorchBlock extends Block {
 				&& com.terminaldetector.drmd.DescentPlayerData.get(sp).isEnabled()) {
 			return;
 		}
-		// Touching the emitter only registers the field; FootGravitySystem samples it every tick and
-		// rotates the player onto the surface from there.
 		register(world, pos, state);
 	}
 
-	private static void register(World world, BlockPos pos, BlockState state) {
+	static void register(World world, BlockPos pos, BlockState state) {
 		Direction face = state.get(FACING);
 		// Gravity pulls into the mount surface (opposite of outward FACING)
 		Vec3d down = Vec3d.of(face.getOpposite().getVector());

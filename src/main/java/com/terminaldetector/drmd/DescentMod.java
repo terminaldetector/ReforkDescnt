@@ -67,6 +67,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.clear();
 			com.terminaldetector.drmd.world.fire.FireSystem.clear();
 			com.terminaldetector.drmd.world.base.DescentSession.clearSeedQueue();
+			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.clear();
 			// Both halves of worldgen are kept off the join path. Seeding only queues the landmarks
 			// and spends one per tick; the CHUNK_LOAD generators stay idle until that hand-off is
 			// done, so nothing of the mod's runs while the server is still preparing spawn.
@@ -85,6 +86,7 @@ public class DescentMod implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			int tick = server.getTicks();
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.tick();
+			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.tick(server);
 			com.terminaldetector.drmd.world.base.DescentSession.drainSeedQueue(server);
 			if (tick % 40 == 0) {
 				com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);

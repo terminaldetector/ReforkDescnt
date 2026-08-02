@@ -1,7 +1,17 @@
-# Gravity torch — walking on walls
+# Gravity torch & generator — walking on walls
 
-`drmd:gravity_torch` is the Prey-2006 mechanic: the face it is bolted to becomes the floor for
-anyone nearby. Walk up a wall, keep walking onto the ceiling, jump off, fall back to the world.
+`drmd:gravity_torch` and `drmd:gravity_generator` share the Prey-2006 mechanic: the face they are
+bolted to becomes the floor for anyone nearby. Walk up a wall, keep walking onto the ceiling, jump
+off, fall back to the world.
+
+| Emitter | Reach | Notes |
+|---------|------:|-------|
+| Gravity Torch | 8 | Compact |
+| Gravity Generator | 24 (tunable 20–48) | Same rules, larger area; sneak-use cycles shape, use cycles power |
+
+Both clip to the mount half-space. Players use `FootGravitySystem`; mobs use `EntityGravitySystem`.
+On a hard reorient, `GravityMount.safeMount` places feet on the new surface and clears the standing
+hitbox so entities are not crushed into a 1-cube crawl / suffocation.
 
 The design rule everywhere below is that **on a level floor nothing may change**. Every formula
 here reduces exactly to vanilla when local up is world up — that is what makes it read as stock
