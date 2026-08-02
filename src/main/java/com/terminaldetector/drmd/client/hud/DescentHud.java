@@ -6,6 +6,7 @@ import com.terminaldetector.drmd.client.flight.ShipAttitudeClient;
 import com.terminaldetector.drmd.flight.ShipAttitude;
 import com.terminaldetector.drmd.weapon.items.DescentWeaponItem;
 import com.terminaldetector.drmd.weapon.items.ModItems;
+import com.terminaldetector.drmd.weapon.registry.ArsenalCatalog;
 import com.terminaldetector.drmd.world.bombardment.BombardmentItems;
 import com.terminaldetector.drmd.world.bombardment.OrdnanceType;
 import net.minecraft.client.MinecraftClient;
@@ -263,7 +264,7 @@ public final class DescentHud {
 
 	private static final int MAP_CELLS = 36;
 	private static final int MAP_STEP = 3;
-	private static final int MAP_H = MAP_CELLS * 2 + 8;
+	private static final int MAP_H = MAP_CELLS * 2 + 8 + 18; // terrain + armament strip
 	/** North-up height/color cache — rotated on blit by live ship yaw (no full rescan per turn). */
 	private static final int[] mapColors = new int[MAP_CELLS * MAP_CELLS];
 	private static final short[] mapHeights = new short[MAP_CELLS * MAP_CELLS];
@@ -317,6 +318,15 @@ public final class DescentHud {
 		ctx.fill(mx, my - 4, mx + 1, my - 1, GREEN);
 		// Heading notch.
 		ctx.fill(mx, my - 6, mx + 1, my - 4, AMBER);
+		// Armament strip under the wireframe terrain (not only contact blips).
+		int stripY = y + size + 10;
+		int rockets = countAll(mc, ArsenalCatalog.hudMissileOrder());
+		int mines = countAll(mc, ArsenalCatalog.hudMineOrder());
+		String strip = String.format(Locale.ROOT, "RKT %02d  MINE %02d  NRG %03d",
+				Math.min(99, rockets), Math.min(99, mines),
+				(int) MathHelper.clamp(DescentClientState.energy, 0f, 999f));
+		panel(ctx, x, stripY, Math.max(size + 8, mc.textRenderer.getWidth(strip) + 8), 14);
+		line(ctx, mc, x + 4, stripY + 3, strip, GREEN);
 		return y;
 	}
 
@@ -454,22 +464,44 @@ public final class DescentHud {
 	}
 
 	private static int drawWeapons(DrawContext ctx, MinecraftClient mc, int x, int y, int w) {
-		int h = 60;
+		// Concept-style armament list: held primary + rocket / mine inventory counts.
+		int h = 78;
 		panel(ctx, x, y, w, h);
 		line(ctx, mc, x + 4, y + 4, "WEAPONS", GREEN);
-		String[] names = {"1. CANNON", "2. PLASMA", "3. MISSILE", "4. BOMB"};
+		ItemStack held = mc.player.getMainHandStack();
+		String heldName = "—";
+		boolean heldOpen = false;
+		if (held.getItem() instanceof DescentWeaponItem dwi) {
+			var entry = ArsenalCatalog.get(dwi.getDef().id);
+			heldName = entry != null ? entry.hudSlot() : dwi.getDef().displayName;
+			heldOpen = entry != null;
+		}
+		line(ctx, mc, x + 4, y + 15, "1. " + heldName, heldOpen ? GREEN : GREEN_DIM);
+		String nrg = String.format(Locale.ROOT, "%03d", (int) MathHelper.clamp(DescentClientState.energy, 0f, 999f));
+		line(ctx, mc, x + w - 4 - mc.textRenderer.getWidth(nrg), y + 15, nrg, CYAN);
+
+		int rockets = countAll(mc, ArsenalCatalog.hudMissileOrder());
+		int mines = countAll(mc, ArsenalCatalog.hudMineOrder());
+		int bombs = countAll(mc, bombItems());
+		String[] names = {"2. ROCKETS", "3. MINES", "4. BOMB", "5. SHIELD"};
 		String[] counts = {
-				"∞",
-				String.format(Locale.ROOT, "%03d", (int) MathHelper.clamp(DescentClientState.energy, 0f, 999f)),
-				String.format(Locale.ROOT, "%02d", Math.min(99, countAll(mc, missileItems()))),
-				String.format(Locale.ROOT, "%02d", Math.min(99, countAll(mc, bombItems())))
+				String.format(Locale.ROOT, "%02d", Math.min(99, rockets)),
+				String.format(Locale.ROOT, "%02d", Math.min(99, mines)),
+				String.format(Locale.ROOT, "%02d", Math.min(99, bombs)),
+				String.format(Locale.ROOT, "%02d", Math.min(99, countAll(mc, new Item[]{ModItems.SHIELD_ORB})))
 		};
-		int selected = MathHelper.clamp(DescentClientState.rocketSub, 0, 3);
+		ItemStack main = held;
+		int selected = 0;
+		if (main.getItem() instanceof DescentWeaponItem dwi) {
+			String id = dwi.getDef().id;
+			if (id.startsWith("rocket_")) selected = 1;
+			else if (id.startsWith("mine_")) selected = 2;
+		} else if (main.getItem() instanceof BombardmentItems.BombBayItem) selected = 3;
 		for (int i = 0; i < names.length; i++) {
-			int color = i == selected ? GREEN : GREEN_DIM;
-			line(ctx, mc, x + 4, y + 16 + i * 11, names[i], color);
+			int color = (i + 1) == selected ? GREEN : GREEN_DIM;
+			line(ctx, mc, x + 4, y + 26 + i * 11, names[i], color);
 			int cw = mc.textRenderer.getWidth(counts[i]);
-			line(ctx, mc, x + w - 4 - cw, y + 16 + i * 11, counts[i], color);
+			line(ctx, mc, x + w - 4 - cw, y + 26 + i * 11, counts[i], color);
 		}
 		return y + h;
 	}

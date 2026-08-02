@@ -150,8 +150,16 @@ public class DroneEntity extends HostileEntity {
 	@Override
 	public void onDeath(DamageSource damageSource) {
 		super.onDeath(damageSource);
-		if (!getWorld().isClient && role == AiRole.HEAVY_ELITE && random.nextFloat() < 0.35f) {
-			// Reactor death boom 35%: rad 340 → ~4.25 blocks, dmg 200
+		if (getWorld().isClient) return;
+		// Descent shield/energy orbs — heavier roles drop more often.
+		float shieldChance = switch (role) {
+			case HEAVY_ELITE, HEAVY -> 0.55f;
+			case ARTILLERY, RPG, SEEKER -> 0.35f;
+			default -> 0.22f;
+		};
+		float energyChance = 0.18f + shieldChance * 0.25f;
+		com.terminaldetector.drmd.pickup.EnemyDrops.onDroneDeath(this, damageSource, shieldChance, energyChance);
+		if (role == AiRole.HEAVY_ELITE && random.nextFloat() < 0.35f) {
 			if (getWorld() instanceof ServerWorld sw) {
 				WeaponCore.splashDamage(this, sw, getPos(), 200f, (float) DescentMod.su(340), DamageClass.EXPLOSIVE);
 				sw.spawnParticles(ParticleTypes.EXPLOSION_EMITTER, getX(), getY(), getZ(), 1, 0, 0, 0, 0);

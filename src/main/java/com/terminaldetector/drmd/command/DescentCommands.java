@@ -13,6 +13,7 @@ import com.terminaldetector.drmd.weapon.items.DescentWeaponItem;
 import com.terminaldetector.drmd.weapon.items.ModItems;
 import com.terminaldetector.drmd.weapon.registry.WeaponRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -102,16 +103,12 @@ public final class DescentCommands {
 									.requires(s -> s.hasPermissionLevel(2))
 									.executes(ctx -> {
 										ServerPlayerEntity p = ctx.getSource().getPlayer();
-										p.giveItemStack(new ItemStack(ModItems.MG));
-										p.giveItemStack(new ItemStack(ModItems.PLASMA));
-										p.giveItemStack(new ItemStack(ModItems.HEAVY));
-										p.giveItemStack(new ItemStack(ModItems.LASER));
-										p.giveItemStack(new ItemStack(ModItems.ROCKETS));
-										p.giveItemStack(new ItemStack(ModItems.GRAVY_RAILGUN));
-										p.giveItemStack(new ItemStack(ModItems.VULCAN));
-										p.giveItemStack(new ItemStack(ModItems.FLAK));
-										p.giveItemStack(new ItemStack(ModItems.BFG));
-										ctx.getSource().sendFeedback(() -> Text.literal("Gave core weapon set"), false);
+										for (Item w : com.terminaldetector.drmd.weapon.registry.ArsenalCatalog.creativeWeapons()) {
+											p.giveItemStack(new ItemStack(w));
+										}
+										p.giveItemStack(new ItemStack(ModItems.SHIELD_ORB, 8));
+										p.giveItemStack(new ItemStack(ModItems.ENERGY_ORB_PICKUP, 8));
+										ctx.getSource().sendFeedback(() -> Text.literal("Gave closed Descent arsenal"), false);
 										return 1;
 									})))
 					.then(CommandManager.literal("laserlevel")

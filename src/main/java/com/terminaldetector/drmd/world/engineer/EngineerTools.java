@@ -46,10 +46,15 @@ public final class EngineerTools {
 		public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
 			ItemStack stack = user.getStackInHand(hand);
 			if (world.isClient) return TypedActionResult.success(stack);
+			if (!(user.getOffHandStack().getItem() instanceof net.minecraft.item.BlockItem)) {
+				user.sendMessage(Text.literal("§eСтроительный лазер: блок в левой руке"), true);
+				return TypedActionResult.fail(stack);
+			}
 			if (user instanceof ServerPlayerEntity sp && !ConstructionMode.isActive(sp.getUuid())) {
 				ConstructionMode.set(sp, true);
 			}
-			BlockPos placed = AdaptivePlacement.placeAlongLook(world, user, user.isSneaking() ? 32 : 12);
+			// Left-hand block only; placement follows ship aim / local UP in any orientation.
+			BlockPos placed = AdaptivePlacement.placeAlongLook(world, user, user.isSneaking() ? 32 : 12, true);
 			if (placed != null) {
 				beam(world, user, placed.toCenterPos(), new Vector3f(0.3f, 0.9f, 1f));
 				world.playSound(null, placed, SoundEvents.BLOCK_METAL_PLACE, SoundCategory.BLOCKS, 0.6f, 1.3f);

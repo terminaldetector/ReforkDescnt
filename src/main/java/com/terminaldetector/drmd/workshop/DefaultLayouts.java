@@ -53,38 +53,52 @@ public final class DefaultLayouts {
 
 	static {
 		// Primary
-		BUILTIN.put("mg", layout("barrel", 1.00f, "barrel", 1.00f, "gravy", GF, GU, GS));
-		BUILTIN.put("plasma", layout("nosegun", 1.55f, "barrel", 1.00f, "gravy", GF, GU, GS));
-		BUILTIN.put("heavy", layout("nosegun", 1.70f, "barrel", 1.05f, "gravy", GF, GU, GS));
+		// Closed arsenal layouts (+ legacy keys for retired / remapped ids)
 		BUILTIN.put("laser", layout("barrel", 1.00f, "barrel", 1.00f, "strider", SF, SU, SS));
-		BUILTIN.put("vulcan", layout("barrel", 0.92f, "barrel", 0.92f, "gravy", GF, GU, GS));
+		BUILTIN.put("laser_pulse", layout("nosegun", 1.50f, "nosegun", 1.40f, "strider", SF, SU, 0.70f));
 		BUILTIN.put("quad_laser", layout("barrel", 0.90f, "barrel", 0.90f, "strider", SF, SU, 0.60f));
 		BUILTIN.put("mega_laser", layout("nosegun", 1.85f, "nosegun", 1.75f, "strider", SF, SU, 0.85f));
-		// Secondary / heavy
-		BUILTIN.put("rockets", layout("barrel", 1.00f, "barrel", 1.00f, "gravy", GF, GU, GS));
+		BUILTIN.put("laser_prism", layout("nosegun", 1.70f, "nosegun", 1.60f, "strider", SBF, SBU, SBS));
+		BUILTIN.put("spread", layout("barrel", 1.05f, "nosegun", 1.55f, "gravy", GF, GU, GS));
+		BUILTIN.put("fusion", layout("nosegun", 1.75f, "nosegun", 1.65f, "gravy", GF, GU, GS));
+		BUILTIN.put("vulcan", layout("barrel", 0.92f, "barrel", 0.92f, "gravy", GF, GU, GS));
+		BUILTIN.put("gatling", layout("barrel", 1.00f, "barrel", 1.00f, "gravy", GF, GU, GS));
+		BUILTIN.put("plasma", layout("nosegun", 1.55f, "barrel", 1.00f, "gravy", GF, GU, GS));
+		BUILTIN.put("rocket_light", layout("nosegun", 1.40f, "barrel", 0.95f, "gravy", GF, GU, GS));
+		BUILTIN.put("rocket_offense", layout("nosegun", 1.40f, "barrel", 0.95f, "gravy", GF, GU, GS));
+		BUILTIN.put("rocket_dual", layout("barrel", 1.00f, "barrel", 1.00f, "gravy", GF, GU, GS));
+		BUILTIN.put("rocket_triple", layout("nosegun", 1.55f, "nosegun", 1.40f, "gravy", GF, GU, GS));
+		BUILTIN.put("rocket_heavy", layout("nosegun", 1.70f, "barrel", 1.05f, "gravy", GF, GU, GS));
+		BUILTIN.put("rocket_mega", layout("nosegun", 1.80f, "nosegun", 1.80f, "gravy", GF, GU, GS));
+		BUILTIN.put("mine_prox", layoutPair("barrel", 0.85f, null, 0, 0, 0));
+		BUILTIN.put("mine_plasma", layoutPair("barrel", 0.85f, null, 0, 0, 0));
+		BUILTIN.put("mine_energy", layoutPair("nosegun", 1.30f, "strider", SF, SU, SS));
+		BUILTIN.put("mine_smart", layoutPair("nosegun", 1.50f, "strider", SF, SU, 0.70f));
+		BUILTIN.put("bfg", layout("nosegun", 1.70f, "nosegun", 1.70f, "gravy", GF, GU, GS));
+		BUILTIN.put("beam_lance", layout("nosegun", 1.60f, "nosegun", 1.60f, "gravy", GF, GU, GS));
+		BUILTIN.put("warp", layoutPair("nosegun", 1.20f, "strider", SF, SU, SS));
+		// Legacy aliases
+		BUILTIN.put("mg", BUILTIN.get("gatling"));
+		BUILTIN.put("flak", BUILTIN.get("spread"));
+		BUILTIN.put("rockets", BUILTIN.get("rocket_dual"));
+		BUILTIN.put("concussion", BUILTIN.get("rocket_light"));
+		BUILTIN.put("homing", BUILTIN.get("rocket_offense"));
+		BUILTIN.put("smart_missile", BUILTIN.get("rocket_triple"));
+		BUILTIN.put("mega_missile", BUILTIN.get("rocket_mega"));
+		BUILTIN.put("frag", BUILTIN.get("rocket_heavy"));
+		BUILTIN.put("overdrive", BUILTIN.get("laser_prism"));
+		BUILTIN.put("darklance", BUILTIN.get("laser_pulse"));
+		BUILTIN.put("shockwave", BUILTIN.get("beam_lance"));
+		BUILTIN.put("gravmine", BUILTIN.get("mine_prox"));
+		BUILTIN.put("plasmamine", BUILTIN.get("mine_plasma"));
+		BUILTIN.put("energytrap", BUILTIN.get("mine_energy"));
+		BUILTIN.put("darkfield", BUILTIN.get("mine_smart"));
+		BUILTIN.put("heavy", layout("nosegun", 1.70f, "barrel", 1.05f, "gravy", GF, GU, GS));
 		BUILTIN.put("gravy_railgun", layout("barrel", 1.00f, "barrel", 1.00f, "gravy", GFR, GUR, GS));
 		BUILTIN.put("railmk2", layout("nosegun", 1.40f, "barrel", 1.00f, "strider", 25, -12, 0.65f));
-		BUILTIN.put("concussion", layout("nosegun", 1.55f, "barrel", 1.00f, "gravy", GF, GU, GS));
-		BUILTIN.put("homing", layout("nosegun", 1.40f, "barrel", 0.95f, "gravy", GF, GU, GS));
-		BUILTIN.put("smart_missile", layout("nosegun", 1.55f, "nosegun", 1.40f, "gravy", GF, GU, GS));
-		BUILTIN.put("mega_missile", layout("nosegun", 1.80f, "nosegun", 1.80f, "gravy", GF, GU, GS));
-		BUILTIN.put("bfg", layout("nosegun", 1.70f, "nosegun", 1.70f, "gravy", GF, GU, GS));
-		BUILTIN.put("flak", layout("barrel", 1.05f, "nosegun", 1.55f, "gravy", GF, GU, GS));
-		BUILTIN.put("frag", layout("barrel", 1.00f, "barrel", 1.00f, "gravy", GF, GU, GS));
-		BUILTIN.put("shockwave", layout("nosegun", 1.60f, "nosegun", 1.60f, "gravy", GF, GU, GS));
-		// Zone control
-		BUILTIN.put("plasmamine", layoutPair("barrel", 0.85f, null, 0, 0, 0));
-		BUILTIN.put("gravmine", layoutPair("barrel", 0.85f, "gravy", GF, GU, GS));
-		BUILTIN.put("energytrap", layoutPair("nosegun", 1.30f, "strider", SF, SU, SS));
-		BUILTIN.put("darkfield", layoutPair("nosegun", 1.50f, "strider", SF, SU, 0.70f));
-		// Mobility
 		BUILTIN.put("telefrag", layoutPair("barrel", 0.80f, null, 0, 0, 0));
 		BUILTIN.put("whiplash", layoutPair("barrel", 0.90f, "gravy", GF, GU, GS));
-		BUILTIN.put("warp", layoutPair("nosegun", 1.20f, "strider", SF, SU, SS));
-		// Ultimates
-		BUILTIN.put("overdrive", layout("nosegun", 1.80f, "nosegun", 1.70f, "strider", SBF, SBU, SBS));
 		BUILTIN.put("reactor", layout("nosegun", 1.80f, "nosegun", 1.80f, "strider", SBF, SBU, SBS));
-		BUILTIN.put("darklance", layout("nosegun", 1.90f, "nosegun", 1.90f, "strider", SF, SU, 0.90f));
 	}
 
 	public static List<ClusterModule> forWeapon(String weaponId) {

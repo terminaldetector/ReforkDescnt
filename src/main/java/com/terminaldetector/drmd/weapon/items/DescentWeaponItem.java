@@ -4,6 +4,8 @@ import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.energy.EnergySystem;
 import com.terminaldetector.drmd.weapon.core.DamageClass;
 import com.terminaldetector.drmd.weapon.core.DescentLaserFire;
+import com.terminaldetector.drmd.weapon.core.DescentMineFire;
+import com.terminaldetector.drmd.weapon.core.DescentRocketFire;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.weapon.registry.WeaponDef;
 import net.minecraft.entity.LivingEntity;
@@ -79,26 +81,37 @@ public class DescentWeaponItem extends Item {
 
 	protected boolean fire(World world, PlayerEntity user, DescentPlayerData data, ItemStack stack) {
 		return switch (def.behavior) {
+			// Lasers (5)
 			case "laser" -> fireLaser(user, data, stack);
+			case "laser_pulse" -> fireLaserPulse(user, data);
 			case "quad_laser" -> fireQuadLaser(user, data);
 			case "mega_laser" -> fireMegaLaser(user, data);
-			case "rockets" -> fireRockets(user, data);
+			case "laser_prism" -> fireLaserPrism(user, data);
+			// Blasters
+			case "spread", "flak" -> fireSpread(user, data);
 			case "plasma" -> firePlasma(user, data);
-			case "flak" -> fireFlak(user, data);
-			case "frag" -> fireFrag(user, data);
+			case "vulcan", "gatling", "mg" -> fireBasic(user, data);
+			// Rockets (6)
+			case "rocket_light", "rocket_offense", "rocket_dual", "rocket_triple",
+					"rocket_heavy", "rocket_mega", "rockets", "homing" -> fireDescentRocket(user, data);
+			// Air mines (4)
+			case "mine_prox", "mine_plasma", "mine_energy", "mine_smart",
+					"deploy", "plasmamine", "gravmine", "energytrap", "darkfield" -> fireAirMine(user, data);
+			// Unique
+			case "bfg" -> fireBfg(user, data);
+			case "beam_lance" -> fireBeamLance(user, data);
+			case "warp" -> fireWarp(user, data);
+			// Retired / leftover
 			case "beam" -> fireBeam(user, data);
 			case "shockwave" -> fireShockwave(user, data);
-			case "warp" -> fireWarp(user, data);
 			case "telefrag" -> fireTelefrag(user, data);
 			case "reactor" -> fireReactor(user, data);
 			case "gravy" -> fireGravy(user, data);
 			case "whiplash" -> fireWhiplash(user, data);
 			case "darklance" -> fireDarklance(user, data);
-			case "deploy" -> fireDeploy(user, data);
-			case "bfg" -> fireBfg(user, data);
+			case "frag" -> fireFrag(user, data);
 			case "rail" -> fireRail(user, data);
-			case "homing" -> fireHoming(user, data);
-			case "vulcan", "mg", "heavy", "basic" -> fireBasic(user, data);
+			case "heavy", "basic" -> fireBasic(user, data);
 			default -> fireBasic(user, data);
 		};
 	}
@@ -112,12 +125,16 @@ public class DescentWeaponItem extends Item {
 		if (!consumeEnergy(data, def.energyCost)) return false;
 		// Single-barrel weapons (mg/heavy/basic): primary muzzle only
 		// Vulcan: all construction muzzles
-		if ("vulcan".equals(def.behavior)) {
+		if ("vulcan".equals(def.behavior) || "gatling".equals(def.behavior)) {
 			fireFromAllMuzzles(user, cfg -> {
 				cfg.directDamage = def.damage;
 				cfg.speed = def.speed;
 				cfg.recoil = def.recoil;
 				cfg.dmgClass = def.dmgClass;
+				cfg.colorR = "vulcan".equals(def.behavior) ? 0x66 : 0xCC;
+				cfg.colorG = "vulcan".equals(def.behavior) ? 0xFF : 0xCC;
+				cfg.colorB = "vulcan".equals(def.behavior) ? 0x66 : 0xAA;
+				cfg.visualScale = "gatling".equals(def.behavior) ? 0.7f : 0.85f;
 			});
 		} else {
 			WeaponCore.FireConfig cfg = baseCfg(user);
@@ -269,6 +286,11 @@ public class DescentWeaponItem extends Item {
 		return DescentLaserFire.firePrimary(user, def.id, stack);
 	}
 
+	protected boolean fireLaserPulse(PlayerEntity user, DescentPlayerData data) {
+		if (!consumeEnergy(data, def.energyCost > 0 ? def.energyCost : 2.5f)) return false;
+		return DescentLaserFire.firePulse(user, def.id);
+	}
+
 	/** Quad laser — four module banks, Descent bolt projectiles with convergence. */
 	protected boolean fireQuadLaser(PlayerEntity user, DescentPlayerData data) {
 		if (!consumeEnergy(data, def.energyCost)) return false;
@@ -284,6 +306,70 @@ public class DescentWeaponItem extends Item {
 		float splash = Math.max(def.splashDamage, 140f);
 		float splashR = Math.max(def.splashRadius, 520f);
 		return DescentLaserFire.fireMega(user, def.id, dmg, splash, splashR);
+	}
+
+	protected boolean fireLaserPrism(PlayerEntity user, DescentPlayerData data) {
+		if (!consumeEnergy(data, def.energyCost > 0 ? def.energyCost : 6f)) return false;
+		return DescentLaserFire.firePrism(user, def.id);
+	}
+
+	/** Descent Spreadfire — kinetic pellet cone from modules. */
+	protected boolean fireSpread(PlayerEntity user, DescentPlayerData data) {
+		if (!consumeEnergy(data, def.energyCost)) return false;
+		Vec3d aim = WeaponCore.aimDir(user);
+		var muzzles = WeaponCore.allMuzzles(user, def.id);
+		Vec3d origin = muzzles.isEmpty() ? WeaponCore.muzzle(user, 0.7f, 0f, -0.1f) : muzzles.get(0);
+		for (int i = 0; i < 8; i++) {
+			WeaponCore.FireConfig cfg = baseCfg(user);
+			cfg.pos = origin;
+			cfg.dir = spread(aim, 9f, user.getRandom());
+			cfg.directDamage = def.damage;
+			cfg.splashDamage = def.splashDamage;
+			cfg.splashRadius = def.splashRadius;
+			cfg.speed = def.speed;
+			cfg.recoil = i == 0 ? def.recoil : 0;
+			cfg.life = 1.1f;
+			cfg.dmgClass = DamageClass.KINETIC;
+			cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_BOLT;
+			cfg.visualScale = 0.55f;
+			cfg.colorR = 0xFF; cfg.colorG = 0xEE; cfg.colorB = 0x66;
+			WeaponCore.fireProjectile(cfg);
+		}
+		return true;
+	}
+
+	protected boolean fireDescentRocket(PlayerEntity user, DescentPlayerData data) {
+		var kind = DescentRocketFire.Kind.fromBehavior(def.behavior);
+		float cost = def.energyCost > 0 ? def.energyCost : kind.energy;
+		if (!consumeEnergy(data, cost)) return false;
+		return DescentRocketFire.fire(user, kind);
+	}
+
+	protected boolean fireAirMine(PlayerEntity user, DescentPlayerData data) {
+		var kind = DescentMineFire.Kind.fromBehavior(def.behavior);
+		float cost = def.energyCost > 0 ? def.energyCost : kind.energy;
+		if (!consumeEnergy(data, cost)) return false;
+		return DescentMineFire.fire(user, kind);
+	}
+
+	/** Unique large beam projectile — fat energy lance, not hitscan. */
+	protected boolean fireBeamLance(PlayerEntity user, DescentPlayerData data) {
+		if (!consumeEnergy(data, def.energyCost)) return false;
+		WeaponCore.FireConfig cfg = baseCfg(user);
+		cfg.speed = def.speed > 0 ? def.speed : 2800f;
+		cfg.directDamage = Math.max(def.damage, 160f);
+		cfg.splashDamage = Math.max(def.splashDamage, 80f);
+		cfg.splashRadius = Math.max(def.splashRadius, 200f);
+		cfg.life = 2.8f;
+		cfg.pierceCount = 3;
+		cfg.dmgClass = DamageClass.ENERGY;
+		cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_BOLT;
+		cfg.visualScale = 2.6f;
+		cfg.igniteOnHit = true;
+		cfg.recoil = def.recoil;
+		cfg.colorR = 0x44; cfg.colorG = 0xFF; cfg.colorB = 0xAA;
+		WeaponCore.fireProjectile(cfg);
+		return true;
 	}
 
 	protected boolean fireBeam(PlayerEntity user, DescentPlayerData data) {

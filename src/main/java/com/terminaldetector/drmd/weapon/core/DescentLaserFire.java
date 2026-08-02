@@ -143,12 +143,42 @@ public final class DescentLaserFire {
 
 	/** Mega laser — fat dual bolts from the nosegun modules. */
 	public static boolean fireMega(PlayerEntity user, String weaponId, float damage, float splash, float splashR) {
-		boolean ok = fireModuleBolts(user, weaponId, 2, damage, splash, splashR, 7800f, 1.6f, 2,
+		return fireModuleBolts(user, weaponId, 2, damage, splash, splashR, 7800f, 1.6f, 2,
 				0x44FFEE, 1.85f, 90f, true);
-		if (ok && user.getWorld() instanceof ServerWorld) {
-			// Mega keeps a punchy impact feel via larger splash already on the bolt.
+	}
+
+	/** Impulse laser — faster, weaker dual bolts (laser installation #2). */
+	public static boolean firePulse(PlayerEntity user, String weaponId) {
+		return fireModuleBolts(user, weaponId, 2, 14f, 6f, 60f, 7200f, 1.1f, 0,
+				0x66FFAA, 0.85f, 8f, true);
+	}
+
+	/** Prism laser — three-way module fan converging on the reticle (laser #5). */
+	public static boolean firePrism(PlayerEntity user, String weaponId) {
+		if (user.getWorld().isClient) return false;
+		List<Vec3d> muzzles = combatMuzzles(user, weaponId, 3);
+		Vec3d aimPoint = resolveAimPoint(user);
+		boolean any = false;
+		for (int i = 0; i < muzzles.size(); i++) {
+			Vec3d pos = muzzles.get(i);
+			Vec3d dir = aimPoint.subtract(pos);
+			if (dir.lengthSquared() < 1e-8) dir = WeaponCore.aimDir(user);
+			else dir = dir.normalize();
+			WeaponCore.FireConfig cfg = ProjectileFramework.config(ProjectileKind.LASER, user, pos, dir);
+			cfg.speed = 6400;
+			cfg.directDamage = 22f;
+			cfg.splashDamage = 10f;
+			cfg.splashRadius = 80f;
+			cfg.life = 1.25f;
+			cfg.pierceCount = 1;
+			cfg.visualScale = 1.1f;
+			cfg.igniteOnHit = true;
+			cfg.recoil = i == 0 ? 14f : 0f;
+			cfg.colorR = 0xFF; cfg.colorG = 0x88; cfg.colorB = 0x44;
+			cfg.onHit = null;
+			if (WeaponCore.fireProjectile(cfg) != null) any = true;
 		}
-		return ok;
+		return any;
 	}
 
 	/**

@@ -129,6 +129,14 @@ public abstract class CyberMobEntity extends HostileEntity {
 		return super.damage(source, amount);
 	}
 
+	@Override
+	public void onDeath(DamageSource damageSource) {
+		super.onDeath(damageSource);
+		if (!getWorld().isClient) {
+			com.terminaldetector.drmd.pickup.EnemyDrops.onDroneDeath(this, damageSource, 0.45f, 0.30f);
+		}
+	}
+
 	/** Spend from the pool; false when the capacitor has not recharged yet. */
 	protected boolean drawEnergy(float cost) {
 		if (energy < cost) return false;

@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.weapon.items;
 
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.weapon.core.DamageClass;
+import com.terminaldetector.drmd.weapon.registry.ArsenalCatalog;
 import com.terminaldetector.drmd.weapon.registry.WeaponDef;
 import com.terminaldetector.drmd.weapon.registry.WeaponRegistry;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
@@ -15,23 +16,54 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
+/**
+ * Weapon items. Open combat set is {@link ArsenalCatalog}; retired placeholders stay
+ * registered under legacy item ids for world compatibility but are hidden from creative.
+ */
 public final class ModItems {
-	public static Item MG;
-	public static Item PLASMA;
-	public static Item HEAVY;
+	// ---- Open arsenal (canonical names) -------------------------------------------------------
 	public static Item LASER;
+	public static Item LASER_PULSE;
+	public static Item QUAD_LASER;
+	public static Item MEGA_LASER;
+	public static Item LASER_PRISM;
+
+	public static Item SPREAD;
+	public static Item FUSION;
+	public static Item VULCAN;
+	public static Item GATLING;
+	public static Item PLASMA;
+
+	public static Item ROCKET_LIGHT;
+	public static Item ROCKET_OFFENSE;
+	public static Item ROCKET_DUAL;
+	public static Item ROCKET_TRIPLE;
+	public static Item ROCKET_HEAVY;
+	public static Item ROCKET_MEGA;
+
+	public static Item MINE_PROX;
+	public static Item MINE_PLASMA;
+	public static Item MINE_ENERGY;
+	public static Item MINE_SMART;
+
+	public static Item BFG;
+	public static Item BEAM_LANCE;
+	public static Item WARP;
+
+	public static Item SHIELD_ORB;
+	public static Item ENERGY_ORB_PICKUP;
+
+	// ---- Legacy aliases (same instances where remapped; else retired stubs) -------------------
+	public static Item MG;
+	public static Item HEAVY;
 	public static Item ROCKETS;
 	public static Item GRAVY_RAILGUN;
-	public static Item VULCAN;
 	public static Item FLAK;
 	public static Item HOMING;
 	public static Item CONCUSSION;
 	public static Item SMART_MISSILE;
 	public static Item MEGA_MISSILE;
-	public static Item MEGA_LASER;
-	public static Item QUAD_LASER;
 	public static Item RAILMK2;
-	public static Item BFG;
 	public static Item FRAG;
 	public static Item OVERDRIVE;
 	public static Item SHOCKWAVE;
@@ -41,10 +73,8 @@ public final class ModItems {
 	public static Item GRAVMINE;
 	public static Item PLASMAMINE;
 	public static Item REACTOR;
-	public static Item WARP;
 	public static Item TELEFRAG;
 	public static Item WHIPLASH;
-	public static Item FUSION;
 
 	public static Item PYRO_GX;
 	public static Item EGG_ASSAULT;
@@ -66,7 +96,6 @@ public final class ModItems {
 	public static Item BOMB_GUIDED;
 	public static Item LASER_DESIGNATOR;
 
-	/** Survival crafting intermediates — every DRMD device is built from these three. */
 	public static Item ALLOY_PLATE;
 	public static Item ENERGY_CELL;
 	public static Item TARGETING_CORE;
@@ -83,98 +112,74 @@ public final class ModItems {
 		return Registry.register(Registries.ITEM, Identifier.of(DescentMod.MOD_ID, id), item);
 	}
 
+	private static Item wep(String itemId, WeaponDef def) {
+		Item item = register(itemId, new DescentWeaponItem(def, new Item.Settings()));
+		WeaponRegistry.register(def);
+		return item;
+	}
+
 	public static void register() {
+		// --- Lasers (5) — item paths keep legacy textures where remapped ---
+		LASER = wep("weapon_d6_laser", new WeaponDef("laser", "Лазер", "laser", 0f, 0.12f, 36f, 12f, 85f, 6200f, 16f, DamageClass.ENERGY, "laser"));
+		LASER_PULSE = wep("weapon_d6_darklance", new WeaponDef("laser_pulse", "Импульс-лазер", "laser", 2.5f, 0.07f, 14f, 6f, 60f, 7200f, 8f, DamageClass.ENERGY, "laser_pulse"));
+		DARKLANCE = LASER_PULSE;
+		QUAD_LASER = wep("weapon_d6_quad_laser", new WeaponDef("quad_laser", "Quad-лазер", "laser", 12f, 0.22f, 45f, 55f, 160f, 6500f, 20f, DamageClass.ENERGY, "quad_laser"));
+		MEGA_LASER = wep("weapon_d6_mega_laser", new WeaponDef("mega_laser", "Мега-лазер", "laser", 55f, 1.1f, 210f, 140f, 520f, 7800f, 90f, DamageClass.ENERGY, "mega_laser"));
+		LASER_PRISM = wep("weapon_d6_overdrive", new WeaponDef("laser_prism", "Призменный лазер", "laser", 6f, 0.16f, 22f, 10f, 80f, 6400f, 14f, DamageClass.ENERGY, "laser_prism"));
+		OVERDRIVE = LASER_PRISM;
 
-		WeaponDef def_mg = new WeaponDef("mg", "Пулемёт", "primary", 1f, 0.06f, 12f, 0f, 0f, 5000f, 5f, DamageClass.KINETIC, "mg");
-		MG = register("weapon_d6_mg", new DescentWeaponItem(def_mg, new Item.Settings()));
-		WeaponRegistry.register(def_mg);
-		WeaponDef def_plasma = new WeaponDef("plasma", "Плазма", "primary", 8f, 0.45f, 45f, 25f, 120f, 3200f, 40f, DamageClass.EXOTIC, "plasma");
-		PLASMA = register("weapon_d6_plasma", new DescentWeaponItem(def_plasma, new Item.Settings()));
-		WeaponRegistry.register(def_plasma);
-		WeaponDef def_heavy = new WeaponDef("heavy", "Тяжёлый", "primary", 18f, 1.1f, 80f, 60f, 220f, 1100f, 160f, DamageClass.EXPLOSIVE, "heavy");
-		HEAVY = register("weapon_d6_heavy", new DescentWeaponItem(def_heavy, new Item.Settings()));
-		WeaponRegistry.register(def_heavy);
-		// Descent primary: dual module bolts; energy/damage come from laserLevel (1–4), not energyCost.
-		WeaponDef def_laser = new WeaponDef("laser", "Лазер", "primary", 0f, 0.12f, 36f, 12f, 85f, 6200f, 16f, DamageClass.ENERGY, "laser");
-		LASER = register("weapon_d6_laser", new DescentWeaponItem(def_laser, new Item.Settings()));
-		WeaponRegistry.register(def_laser);
-		WeaponDef def_rockets = new WeaponDef("rockets", "Ракеты", "primary", 20f, 0.8f, 100f, 90f, 320f, 2800f, 120f, DamageClass.EXPLOSIVE, "rockets");
-		ROCKETS = register("weapon_d6_rockets", new DescentWeaponItem(def_rockets, new Item.Settings()));
-		WeaponRegistry.register(def_rockets);
-		WeaponDef def_gravy_railgun = new WeaponDef("gravy_railgun", "Грави-Рельса", "primary", 0f, 0.3f, 0f, 0f, 0f, 18000f, 0f, DamageClass.EXOTIC, "gravy");
-		GRAVY_RAILGUN = register("weapon_d6_gravy_railgun", new DescentWeaponItem(def_gravy_railgun, new Item.Settings()));
-		WeaponRegistry.register(def_gravy_railgun);
-		WeaponDef def_vulcan = new WeaponDef("vulcan", "Вулкан", "secondary", 2f, 0.065f, 15f, 0f, 0f, 4800f, 8f, DamageClass.KINETIC, "vulcan");
-		VULCAN = register("weapon_d6_vulcan", new DescentWeaponItem(def_vulcan, new Item.Settings()));
-		WeaponRegistry.register(def_vulcan);
-		WeaponDef def_flak = new WeaponDef("flak", "Флак-пушка", "secondary", 14f, 0.7f, 12f, 16f, 90f, 3500f, 40f, DamageClass.EXPLOSIVE, "flak");
-		FLAK = register("weapon_d6_flak", new DescentWeaponItem(def_flak, new Item.Settings()));
-		WeaponRegistry.register(def_flak);
-		WeaponDef def_homing = new WeaponDef("homing", "ГСН-ракета", "heavy", 0f, 3.5f, 110f, 75f, 260f, 1400f, 80f, DamageClass.EXPLOSIVE, "homing");
-		HOMING = register("weapon_d6_homing", new DescentWeaponItem(def_homing, new Item.Settings()));
-		WeaponRegistry.register(def_homing);
-		WeaponDef def_concussion = new WeaponDef("concussion", "КС-ракета", "heavy", 0f, 2.0f, 150f, 140f, 420f, 1600f, 200f, DamageClass.EXPLOSIVE, "basic");
-		CONCUSSION = register("weapon_d6_concussion", new DescentWeaponItem(def_concussion, new Item.Settings()));
-		WeaponRegistry.register(def_concussion);
-		WeaponDef def_smart_missile = new WeaponDef("smart_missile", "Умная-ракета", "heavy", 0f, 4.0f, 130f, 100f, 320f, 1600f, 100f, DamageClass.EXPLOSIVE, "homing");
-		SMART_MISSILE = register("weapon_d6_smart_missile", new DescentWeaponItem(def_smart_missile, new Item.Settings()));
-		WeaponRegistry.register(def_smart_missile);
-		WeaponDef def_mega_missile = new WeaponDef("mega_missile", "Мега-ракета", "heavy", 0f, 8.0f, 420f, 320f, 720f, 800f, 500f, DamageClass.EXPLOSIVE, "basic");
-		MEGA_MISSILE = register("weapon_d6_mega_missile", new DescentWeaponItem(def_mega_missile, new Item.Settings()));
-		WeaponRegistry.register(def_mega_missile);
-		WeaponDef def_quad_laser = new WeaponDef("quad_laser", "Quad-лазер", "secondary", 12f, 0.22f, 45f, 55f, 160f, 6500f, 20f, DamageClass.ENERGY, "quad_laser");
-		QUAD_LASER = register("weapon_d6_quad_laser", new DescentWeaponItem(def_quad_laser, new Item.Settings()));
-		WeaponRegistry.register(def_quad_laser);
-		WeaponDef def_mega_laser = new WeaponDef("mega_laser", "Мега-лазер", "heavy", 55f, 1.1f, 210f, 140f, 520f, 7800f, 90f, DamageClass.ENERGY, "mega_laser");
-		MEGA_LASER = register("weapon_d6_mega_laser", new DescentWeaponItem(def_mega_laser, new Item.Settings()));
-		WeaponRegistry.register(def_mega_laser);
-		WeaponDef def_railmk2 = new WeaponDef("railmk2", "Рельса МК2", "heavy", 18f, 0.6f, 120f, 0f, 0f, 8000f, 80f, DamageClass.KINETIC, "rail");
-		RAILMK2 = register("weapon_d6_railmk2", new DescentWeaponItem(def_railmk2, new Item.Settings()));
-		WeaponRegistry.register(def_railmk2);
-		WeaponDef def_bfg = new WeaponDef("bfg", "BFG-излучатель", "heavy", 80f, 10.0f, 300f, 150f, 600f, 400f, 200f, DamageClass.EXOTIC, "bfg");
-		BFG = register("weapon_d6_bfg", new DescentWeaponItem(def_bfg, new Item.Settings()));
-		WeaponRegistry.register(def_bfg);
-		WeaponDef def_frag = new WeaponDef("frag", "Фраг-пускатель", "secondary", 24f, 1.5f, 60f, 50f, 180f, 2000f, 60f, DamageClass.EXPLOSIVE, "frag");
-		FRAG = register("weapon_d6_frag", new DescentWeaponItem(def_frag, new Item.Settings()));
-		WeaponRegistry.register(def_frag);
-		WeaponDef def_overdrive = new WeaponDef("overdrive", "Овердрайв-луч", "utility", 3f, 0.08f, 35f, 22f, 110f, 0f, 5f, DamageClass.ENERGY, "beam");
-		OVERDRIVE = register("weapon_d6_overdrive", new DescentWeaponItem(def_overdrive, new Item.Settings()));
-		WeaponRegistry.register(def_overdrive);
-		WeaponDef def_shockwave = new WeaponDef("shockwave", "Энерговолна", "utility", 40f, 3.0f, 30f, 120f, 900f, 0f, 0f, DamageClass.ENERGY, "shockwave");
-		SHOCKWAVE = register("weapon_d6_shockwave", new DescentWeaponItem(def_shockwave, new Item.Settings()));
-		WeaponRegistry.register(def_shockwave);
-		WeaponDef def_darklance = new WeaponDef("darklance", "Копьё тьмы", "heavy", 70f, 5.0f, 250f, 0f, 0f, 0f, 50f, DamageClass.EXOTIC, "darklance");
-		DARKLANCE = register("weapon_d6_darklance", new DescentWeaponItem(def_darklance, new Item.Settings()));
-		WeaponRegistry.register(def_darklance);
-		WeaponDef def_darkfield = new WeaponDef("darkfield", "Поле тьмы", "utility", 45f, 4.0f, 18f, 0f, 400f, 800f, 0f, DamageClass.EXOTIC, "deploy");
-		DARKFIELD = register("weapon_d6_darkfield", new DescentWeaponItem(def_darkfield, new Item.Settings()));
-		WeaponRegistry.register(def_darkfield);
-		WeaponDef def_energytrap = new WeaponDef("energytrap", "Энерго-капкан", "utility", 22f, 1.2f, 6f, 0f, 150f, 1200f, 0f, DamageClass.ENERGY, "deploy");
-		ENERGYTRAP = register("weapon_d6_energytrap", new DescentWeaponItem(def_energytrap, new Item.Settings()));
-		WeaponRegistry.register(def_energytrap);
-		WeaponDef def_gravmine = new WeaponDef("gravmine", "Грави-мина", "utility", 30f, 1.5f, 90f, 0f, 300f, 900f, 0f, DamageClass.EXOTIC, "deploy");
-		GRAVMINE = register("weapon_d6_gravmine", new DescentWeaponItem(def_gravmine, new Item.Settings()));
-		WeaponRegistry.register(def_gravmine);
-		WeaponDef def_plasmamine = new WeaponDef("plasmamine", "Плазма-мина", "utility", 25f, 1.0f, 120f, 100f, 260f, 900f, 0f, DamageClass.EXOTIC, "deploy");
-		PLASMAMINE = register("weapon_d6_plasmamine", new DescentWeaponItem(def_plasmamine, new Item.Settings()));
-		WeaponRegistry.register(def_plasmamine);
-		WeaponDef def_reactor = new WeaponDef("reactor", "Сброс реактора", "utility", 30f, 15.0f, 300f, 300f, 600f, 600f, 0f, DamageClass.EXPLOSIVE, "reactor");
-		REACTOR = register("weapon_d6_reactor", new DescentWeaponItem(def_reactor, new Item.Settings()));
-		WeaponRegistry.register(def_reactor);
-		WeaponDef def_warp = new WeaponDef("warp", "Боевой варп", "utility", 30f, 2.5f, 100f, 0f, 200f, 0f, 0f, DamageClass.EXOTIC, "warp");
-		WARP = register("weapon_d6_warp", new DescentWeaponItem(def_warp, new Item.Settings()));
-		WeaponRegistry.register(def_warp);
-		WeaponDef def_telefrag = new WeaponDef("telefrag", "Телефраг", "utility", 50f, 5.0f, 1000f, 0f, 140f, 0f, 0f, DamageClass.EXOTIC, "telefrag");
-		TELEFRAG = register("weapon_d6_telefrag", new DescentWeaponItem(def_telefrag, new Item.Settings()));
-		WeaponRegistry.register(def_telefrag);
-		WeaponDef def_whiplash = new WeaponDef("whiplash", "Хлыст", "utility", 20f, 3.0f, 80f, 0f, 160f, 0f, 0f, DamageClass.KINETIC, "whiplash");
-		WHIPLASH = register("weapon_d6_whiplash", new DescentWeaponItem(def_whiplash, new Item.Settings()));
-		WeaponRegistry.register(def_whiplash);
+		// --- Blasters ---
+		SPREAD = wep("weapon_d6_flak", new WeaponDef("spread", "Spreadfire", "blaster", 6f, 0.35f, 10f, 8f, 70f, 3800f, 25f, DamageClass.KINETIC, "spread"));
+		FLAK = SPREAD;
+		FUSION = register("weapon_d6_fusion", new FusionCannonItem(
+				new WeaponDef("fusion", "Fusion", "blaster", 25f, 0.5f, 195f, 90f, 260f, 2400f, 320f, DamageClass.EXOTIC, "fusion"),
+				new Item.Settings()));
+		WeaponRegistry.register(((FusionCannonItem) FUSION).getDef());
+		VULCAN = wep("weapon_d6_vulcan", new WeaponDef("vulcan", "Vulcan", "blaster", 2f, 0.065f, 15f, 0f, 0f, 4800f, 8f, DamageClass.KINETIC, "vulcan"));
+		GATLING = wep("weapon_d6_mg", new WeaponDef("gatling", "Гатлинг", "blaster", 1.5f, 0.04f, 11f, 0f, 0f, 5200f, 4f, DamageClass.KINETIC, "gatling"));
+		MG = GATLING;
+		PLASMA = wep("weapon_d6_plasma", new WeaponDef("plasma", "Плазма", "blaster", 8f, 0.45f, 45f, 25f, 120f, 3200f, 40f, DamageClass.EXOTIC, "plasma"));
 
-		// Descent's charge weapon — held, not tapped; see FusionCannonItem.
-		WeaponDef def_fusion = new WeaponDef("fusion", "Фьюжен-пушка", "heavy", 25f, 0.5f, 195f, 90f, 260f, 2400f, 320f, DamageClass.EXOTIC, "fusion");
-		FUSION = register("weapon_d6_fusion", new FusionCannonItem(def_fusion, new Item.Settings()));
-		WeaponRegistry.register(def_fusion);
+		// --- Rockets (6) ---
+		ROCKET_LIGHT = wep("weapon_d6_concussion", new WeaponDef("rocket_light", "Ракета лёгкая", "rocket", 8f, 0.9f, 70f, 55f, 220f, 3000f, 18f, DamageClass.EXPLOSIVE, "rocket_light"));
+		CONCUSSION = ROCKET_LIGHT;
+		ROCKET_OFFENSE = wep("weapon_d6_homing", new WeaponDef("rocket_offense", "Ракета наступательная", "rocket", 12f, 1.2f, 110f, 85f, 280f, 2400f, 22f, DamageClass.EXPLOSIVE, "rocket_offense"));
+		HOMING = ROCKET_OFFENSE;
+		ROCKET_DUAL = wep("weapon_d6_rockets", new WeaponDef("rocket_dual", "Ракета сдвоенная", "rocket", 16f, 1.0f, 95f, 80f, 300f, 2600f, 28f, DamageClass.EXPLOSIVE, "rocket_dual"));
+		ROCKETS = ROCKET_DUAL;
+		ROCKET_TRIPLE = wep("weapon_d6_smart_missile", new WeaponDef("rocket_triple", "Ракета строенная", "rocket", 20f, 1.3f, 90f, 75f, 300f, 2500f, 36f, DamageClass.EXPLOSIVE, "rocket_triple"));
+		SMART_MISSILE = ROCKET_TRIPLE;
+		ROCKET_HEAVY = wep("weapon_d6_frag", new WeaponDef("rocket_heavy", "Ракета тяжёлая", "rocket", 28f, 1.8f, 180f, 160f, 480f, 2000f, 45f, DamageClass.EXPLOSIVE, "rocket_heavy"));
+		FRAG = ROCKET_HEAVY;
+		ROCKET_MEGA = wep("weapon_d6_mega_missile", new WeaponDef("rocket_mega", "Мега-ракета", "rocket", 55f, 3.5f, 420f, 360f, 720f, 1600f, 70f, DamageClass.EXPLOSIVE, "rocket_mega"));
+		MEGA_MISSILE = ROCKET_MEGA;
+
+		// --- Air mines (4, no gravity) ---
+		MINE_PROX = wep("weapon_d6_gravmine", new WeaponDef("mine_prox", "Прокси-мина", "mine", 25f, 1.2f, 0f, 90f, 220f, 700f, 8f, DamageClass.EXPLOSIVE, "mine_prox"));
+		GRAVMINE = MINE_PROX;
+		MINE_PLASMA = wep("weapon_d6_plasmamine", new WeaponDef("mine_plasma", "Плазма-мина", "mine", 28f, 1.2f, 0f, 120f, 260f, 700f, 8f, DamageClass.EXPLOSIVE, "mine_plasma"));
+		PLASMAMINE = MINE_PLASMA;
+		MINE_ENERGY = wep("weapon_d6_energytrap", new WeaponDef("mine_energy", "Энерго-мина", "mine", 22f, 1.2f, 0f, 70f, 200f, 700f, 8f, DamageClass.ENERGY, "mine_energy"));
+		ENERGYTRAP = MINE_ENERGY;
+		MINE_SMART = wep("weapon_d6_darkfield", new WeaponDef("mine_smart", "Смарт-мина", "mine", 35f, 1.5f, 0f, 140f, 300f, 700f, 8f, DamageClass.EXPLOSIVE, "mine_smart"));
+		DARKFIELD = MINE_SMART;
+
+		// --- Unique ---
+		BFG = wep("weapon_d6_bfg", new WeaponDef("bfg", "BFG", "unique", 80f, 10.0f, 300f, 150f, 600f, 400f, 200f, DamageClass.EXOTIC, "bfg"));
+		BEAM_LANCE = wep("weapon_d6_shockwave", new WeaponDef("beam_lance", "Лучевой снаряд", "unique", 40f, 1.6f, 160f, 80f, 200f, 2800f, 40f, DamageClass.ENERGY, "beam_lance"));
+		SHOCKWAVE = BEAM_LANCE;
+		WARP = wep("weapon_d6_warp", new WeaponDef("warp", "Телепорт", "unique", 30f, 2.5f, 100f, 0f, 200f, 0f, 0f, DamageClass.EXOTIC, "warp"));
+
+		// --- Retired placeholders (still registered, hidden from creative) ---
+		HEAVY = wep("weapon_d6_heavy", new WeaponDef("heavy", "Тяжёлый (retired)", "retired", 18f, 1.1f, 80f, 60f, 220f, 1100f, 160f, DamageClass.EXPLOSIVE, "basic"));
+		GRAVY_RAILGUN = wep("weapon_d6_gravy_railgun", new WeaponDef("gravy_railgun", "Грави-Рельса (retired)", "retired", 0f, 0.3f, 0f, 0f, 0f, 18000f, 0f, DamageClass.EXOTIC, "gravy"));
+		RAILMK2 = wep("weapon_d6_railmk2", new WeaponDef("railmk2", "Рельса МК2 (retired)", "retired", 18f, 0.6f, 120f, 0f, 0f, 8000f, 80f, DamageClass.KINETIC, "rail"));
+		REACTOR = wep("weapon_d6_reactor", new WeaponDef("reactor", "Реактор (retired)", "retired", 30f, 15.0f, 300f, 300f, 600f, 600f, 0f, DamageClass.EXPLOSIVE, "reactor"));
+		TELEFRAG = wep("weapon_d6_telefrag", new WeaponDef("telefrag", "Телефраг (retired)", "retired", 50f, 5.0f, 1000f, 0f, 140f, 0f, 0f, DamageClass.EXOTIC, "telefrag"));
+		WHIPLASH = wep("weapon_d6_whiplash", new WeaponDef("whiplash", "Хлыст (retired)", "retired", 20f, 3.0f, 80f, 0f, 160f, 0f, 0f, DamageClass.KINETIC, "whiplash"));
+
+		SHIELD_ORB = register("shield_orb", new com.terminaldetector.drmd.pickup.ShieldOrbItem(new Item.Settings().maxCount(16)));
+		ENERGY_ORB_PICKUP = register("energy_orb_pickup", new com.terminaldetector.drmd.pickup.EnergyOrbItem(new Item.Settings().maxCount(16)));
 
 		PYRO_GX = register("pyro_gx", new com.terminaldetector.drmd.entity.PyroShipItem(new Item.Settings().maxCount(1)));
 
@@ -223,6 +228,9 @@ public final class ModItems {
 					entries.add(ALLOY_PLATE);
 					entries.add(ENERGY_CELL);
 					entries.add(TARGETING_CORE);
+					entries.add(SHIELD_ORB);
+					entries.add(ENERGY_ORB_PICKUP);
+					for (Item w : ArsenalCatalog.creativeWeapons()) entries.add(w);
 					entries.add(EGG_ASSAULT);
 					entries.add(EGG_INTERCEPTOR);
 					entries.add(EGG_ARTILLERY);
@@ -243,39 +251,10 @@ public final class ModItems {
 					entries.add(BOMB_INCENDIARY);
 					entries.add(BOMB_GUIDED);
 					entries.add(LASER_DESIGNATOR);
-					entries.add(MG);
-					entries.add(PLASMA);
-					entries.add(HEAVY);
-					entries.add(LASER);
-					entries.add(ROCKETS);
-					entries.add(GRAVY_RAILGUN);
-					entries.add(VULCAN);
-					entries.add(FLAK);
-					entries.add(HOMING);
-					entries.add(CONCUSSION);
-					entries.add(SMART_MISSILE);
-					entries.add(MEGA_MISSILE);
-					entries.add(QUAD_LASER);
-					entries.add(MEGA_LASER);
-					entries.add(RAILMK2);
-					entries.add(BFG);
-					entries.add(FRAG);
-					entries.add(OVERDRIVE);
-					entries.add(SHOCKWAVE);
-					entries.add(DARKLANCE);
-					entries.add(DARKFIELD);
-					entries.add(ENERGYTRAP);
-					entries.add(GRAVMINE);
-					entries.add(PLASMAMINE);
-					entries.add(REACTOR);
-					entries.add(WARP);
-					entries.add(TELEFRAG);
-					entries.add(WHIPLASH);
-					entries.add(FUSION);
 				})
 				.build());
 
-		DescentMod.LOGGER.info("Registered DRMD weapons + Pyro GX + drones + aerial ordnance");
+		DescentMod.LOGGER.info("Registered closed Descent arsenal ({} open weapons)", ArsenalCatalog.all().size());
 	}
 
 	private static Item egg(String id, com.terminaldetector.drmd.ai.AiRole role, int primary, int secondary) {
