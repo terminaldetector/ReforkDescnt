@@ -358,6 +358,69 @@ public final class DescentCommands {
 												"Planet scar painted under you (visible from End/orbit)"), true);
 										return 1;
 									})))
+					.then(CommandManager.literal("psychedelic")
+							.executes(ctx -> {
+								var server = ctx.getSource().getServer();
+								var ow = server.getOverworld();
+								boolean cfg = com.terminaldetector.drmd.world.DrmdServerConfig.psychedelicEnabled();
+								if (ow == null) {
+									ctx.getSource().sendFeedback(() -> Text.literal(
+											"Psychedelic config=" + cfg + " (no overworld)"), false);
+									return 1;
+								}
+								var st = com.terminaldetector.drmd.world.DescentWorldState.get(ow);
+								String variant = st.getPsychedelicVariant() < 0 ? "unset"
+										: com.terminaldetector.drmd.world.psychedelic.PsychedelicFractal
+										.fromIndex(st.getPsychedelicVariant()).label
+										+ " (#" + st.getPsychedelicVariant() + ")";
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Psychedelic — config=" + cfg
+												+ " world=" + st.isPsychedelic()
+												+ " variant=" + variant
+												+ " | kinds=" + com.terminaldetector.drmd.world.psychedelic.PsychedelicFractal.count()
+												+ " | dock Y=" + com.terminaldetector.drmd.world.psychedelic.PsychedelicWorldgen.SPAWN_Y
+												+ " | set config/drmd-server.properties psychedelicWorlds=true before world create"), false);
+								return 1;
+							})
+							.then(CommandManager.literal("seed")
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> {
+										var server = ctx.getSource().getServer();
+										var ow = server.getOverworld();
+										if (ow == null) return 0;
+										var st = com.terminaldetector.drmd.world.DescentWorldState.get(ow);
+										if (st.isStockSeeded() && st.isPsychedelic()) {
+											ctx.getSource().sendFeedback(() -> Text.literal(
+													"Already psychedelic-seeded — variant #" + st.getPsychedelicVariant()), false);
+											return 1;
+										}
+										if (st.isStockSeeded() && !st.isPsychedelic()) {
+											ctx.getSource().sendError(Text.literal(
+													"World already stock-seeded as non-psychedelic. Use a fresh world + psychedelicWorlds=true."));
+											return 0;
+										}
+										st.setPsychedelic(true);
+										com.terminaldetector.drmd.world.psychedelic.PsychedelicWorldgen.seed(server, st);
+										st.setStockSeeded(true);
+										ctx.getSource().sendFeedback(() -> Text.literal(
+												"Forced psychedelic seed — " + com.terminaldetector.drmd.world.psychedelic.PsychedelicFractal
+														.fromIndex(st.getPsychedelicVariant()).label
+														+ " (#" + st.getPsychedelicVariant() + ")"), true);
+										return 1;
+									}))
+							.then(CommandManager.literal("dock")
+									.executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										int y = com.terminaldetector.drmd.world.psychedelic.PsychedelicWorldgen.SPAWN_Y;
+										p.requestTeleport(0.5, y + 2.0, 0.5);
+										DescentPlayerData d = DescentPlayerData.get(p);
+										d.setEnabled(true);
+										d.setGravityFactor(0f);
+										ModNetworking.syncPlayer(p, d);
+										ctx.getSource().sendFeedback(() -> Text.literal(
+												"Teleported to psychedelic void dock @ y=" + y), false);
+										return 1;
+									})))
 					.then(CommandManager.literal("bomb")
 							.requires(s -> s.hasPermissionLevel(2))
 							.then(CommandManager.argument("type", StringArgumentType.word()).executes(ctx -> {

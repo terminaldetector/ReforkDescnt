@@ -150,8 +150,10 @@ public final class FlightSystem {
 		AtmosphereBand band = AtmosphereBand.at(player.getWorld(), player.getY());
 		accelMult *= band.thrustScale;
 		speedMult *= MathHelper.lerp(1f - band.airDrag, 1f, 1.15f);
-		if (endVacuum) {
-			// No idle gravity sink in End / orbital edge — thrusters only
+		boolean psychedelicVoid = com.terminaldetector.drmd.world.DescentWorldState
+				.get(player.getServerWorld()).isPsychedelic();
+		if (endVacuum || psychedelicVoid) {
+			// No idle gravity sink in End / orbital / psychedelic void — thrusters only
 			data.setGravityFactor(0f);
 		}
 

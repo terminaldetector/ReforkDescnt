@@ -8,8 +8,10 @@ import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.entity.PyroShipEntity;
 import com.terminaldetector.drmd.weapon.items.ModItems;
 import com.terminaldetector.drmd.world.DescentWorldState;
+import com.terminaldetector.drmd.world.DrmdServerConfig;
 import com.terminaldetector.drmd.world.WorldFeatures;
 import com.terminaldetector.drmd.world.WorldRules;
+import com.terminaldetector.drmd.world.psychedelic.PsychedelicWorldgen;
 import com.terminaldetector.drmd.world.gen.IndustrialComplexGenerator;
 import com.terminaldetector.drmd.world.gen2.MacroEntry;
 import com.terminaldetector.drmd.world.gen2.MegaStructureGenerator;
@@ -88,12 +90,26 @@ public final class DescentSession {
 		SEED_QUEUE.add(new SeedJob(near.toImmutable(), job));
 	}
 
+	/** Public landmark enqueue for satellite structures (psychedelic fractals, etc.). */
+	public static void enqueueLandmark(BlockPos near, Runnable job) {
+		enqueue(near, job);
+	}
+
 	/** Called once when overworld is ready — seed hub + nearby stock features. */
 	public static void seedWorld(MinecraftServer server) {
 		ServerWorld world = server.getOverworld();
 		if (world == null) return;
 		DescentWorldState state = DescentWorldState.get(world);
 		if (state.isStockSeeded()) return;
+
+		// Stock option: psychedelic fractal void worlds (weightless orbital start)
+		if (DrmdServerConfig.psychedelicEnabled() || state.isPsychedelic()) {
+			PsychedelicWorldgen.seed(server, state);
+			state.setStockSeeded(true);
+			DescentMod.LOGGER.info("Descent psychedelic stock seeded — variant=#{}",
+					state.getPsychedelicVariant());
+			return;
+		}
 
 		BlockPos spawn = world.getSpawnPos();
 		int surfaceY = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, spawn.getX(), spawn.getZ());
@@ -125,6 +141,12 @@ public final class DescentSession {
 
 		boolean first = !data.isSessionWelcomed();
 		if (first) {
+			ServerWorld world = player.getServerWorld();
+			DescentWorldState state = DescentWorldState.get(world);
+			if (state.isPsychedelic()) {
+				PsychedelicWorldgen.onPlayerJoin(player, state);
+				return;
+			}
 			// 6DoF is the default way to move in this world, but only the first join decides that.
 			// Re-asserting it every login would keep overriding a pilot who switched it off with H —
 			// which in creative means their building flight gets taken away on every reconnect.

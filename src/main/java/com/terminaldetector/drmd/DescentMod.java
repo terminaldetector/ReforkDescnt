@@ -36,6 +36,7 @@ public class DescentMod implements ModInitializer {
 	public void onInitialize() {
 		LOGGER.info("DRMD 6DOF initializing — 6DoF world mode (volume-first)");
 
+		com.terminaldetector.drmd.world.DrmdServerConfig.load();
 		ModNetworking.register();
 		ModEntities.register();
 		ModBlocks.register();

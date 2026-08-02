@@ -49,5 +49,12 @@ public final class WorldFeatures {
 	 */
 	public static final boolean SURFACE_DISTRICTS = true;
 
+	/**
+	 * Compile-time force for psychedelic fractal stock worlds.
+	 * Prefer {@code config/drmd-server.properties} → {@code psychedelicWorlds=true}
+	 * so worlds can opt in at generation without rebuilding the mod.
+	 */
+	public static final boolean PSYCHEDELIC_WORLDS = false;
+
 	private WorldFeatures() {}
 }
