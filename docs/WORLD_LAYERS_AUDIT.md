@@ -1,6 +1,6 @@
 # Аудит мира и биомов (отдельно от арсенала)
 
-*Срез концепции безшовного мира DRMD 6DOF. Код флаги: `WorldFeatures` — сейчас parked.*
+*Срез концепции безшовного мира DRMD 6DOF. Флаги: `MACRO_WORLDGEN` / bands parked; `SURFACE_DISTRICTS` on.*
 
 ---
 
@@ -9,11 +9,12 @@
 | Тема | Состояние |
 |------|-----------|
 | Колонна Overworld −512…1024 | Готова (`overworld.json`, `WorldLevels`) |
-| Контент слоёв (MACRO / NETHER_BAND / END_BAND) | **Выключен** — после хаба пусто |
+| Контент слоёв (MACRO / NETHER_BAND / END_BAND) | **Выключен** — полный WG2 spam off |
+| HL2 surface districts | **`SURFACE_DISTRICTS=true`** — lunar hub + megacity + sparse landmarks |
 | Безшовность «одной колонной» | Частично: shaft grid + LevelSky; потолок движка ~2032 |
 | Immersive Portals / Dimension Stack | Рекомендуемый внешний путь к true seamless |
-| HL2-переходы без модов | `LayerBridge` — fade + soft arrive на границах слоёв |
-| Биомы ванили vs DRMD | Поверхность = ваниль; остальные — LevelBuilder/gen2 |
+| HL2-переходы без модов | `LayerBridge` — fade + soft arrive (districts/macro + afterburner) |
+| Биомы ванили vs DRMD | Поверхность = ваниль + districts; остальные — LevelBuilder/gen2 |
 
 ---
 
@@ -88,7 +89,13 @@ Nether (Core)   ↑
 | Dungeon | Shafts only | Hi-tech + abandoned mines adjacency |
 | Core | `buildNetherLevel` gated | Агрессивные базы, denser mines |
 
-Флаги: `MACRO_WORLDGEN`, `NETHER_BAND`, `END_BAND` — все `false`.
+Флаги: `MACRO_WORLDGEN`, `NETHER_BAND`, `END_BAND` — `false`. `SURFACE_DISTRICTS` — `true` (см. `MEGACITY_COMPLEX.md`).
+
+### Surface megacity (активно)
+
+- Хаб: Lunar Base Descent 1 на spawn.
+- Город-данж NW: plate rim, небоскрёбы, канализация, пирамида-реактор, турели/дроны (атмосфера FF7 / Midgar).
+- 6DoF бой в уличных каньонах + sewer deck; shaft под пирамидой → industrial.
 
 ---
 
@@ -103,7 +110,7 @@ Nether (Core)   ↑
 ## Приоритеты до сильного world-релиза
 
 1. Честный README: колонна + HL2 seams **или** ImmPtl stack.  
-2. Unpark sparse Orbit + Dungeon landmarks (не полный WG2).  
+2. Расширить districts: Orbit / Dungeon sparse nodes (не полный WG2).  
 3. Oblivion reactor laser как scripted event (End dim OK).  
 4. Endermen faction ally.  
 5. Опциональная soft-dep документация Immersive Portals Dimension Stack.

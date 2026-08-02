@@ -102,15 +102,20 @@ public final class DescentSession {
 		if (!state.isSpawnHubGenerated()) {
 			generateSpawnHub(world, hub);
 			state.setSpawnHubGenerated(true);
-			DescentMod.LOGGER.info("Descent spawn hub generated at {}", hub.toShortString());
+			DescentMod.LOGGER.info("Descent lunar hub generated at {}", hub.toShortString());
 		}
 
+		// HL2 path: megacity + nearby combat landmarks without full MACRO_WORLDGEN spam.
+		if (WorldFeatures.SURFACE_DISTRICTS) {
+			seedSurfaceDistricts(world, spawn);
+		}
 		if (WorldFeatures.MACRO_WORLDGEN) {
 			seedStockMegastructures(world, spawn);
 			seedLayerBiomes(world, spawn);
 		}
 		state.setStockSeeded(true);
-		DescentMod.LOGGER.info("Descent stock worldgen seeded (all practical biome layers)");
+		DescentMod.LOGGER.info("Descent stock worldgen seeded (districts={} macro={})",
+				WorldFeatures.SURFACE_DISTRICTS, WorldFeatures.MACRO_WORLDGEN);
 	}
 
 	/** Soft player onboarding — 6DoF on, tip message, creative gets Pyro GX. */
@@ -128,9 +133,9 @@ public final class DescentSession {
 			player.sendMessage(Text.literal(
 					"§bDRMD 6DOF §f— Descent session is part of this world."), false);
 			player.sendMessage(Text.literal(
-					"§7Fly with §fH§7 · craft §fPyro GX§7 · lunar base / sky UFO / crashed saucer nearby"), false);
+					"§7Hub: §fLunar Base§7 · hold §fR§7 afterburner · §fH§7 6DoF"), false);
 			player.sendMessage(Text.literal(
-					"§8Crashed UFO is trap-dense — bring Pyro GX before clearing."), false);
+					"§7Fly to the §fcity plate§7 (NW) — pyramid, sewers, 6DoF canyon combat."), false);
 			if (player.isCreative()) {
 				player.giveItemStack(new ItemStack(ModItems.PYRO_GX));
 				player.sendMessage(Text.literal("§aCreative: Pyro GX given — right-click to deploy."), false);
@@ -138,48 +143,81 @@ public final class DescentSession {
 		}
 	}
 
+	/**
+	 * Descent 1 lunar-base hub at spawn — grey disc, turrets, micro-reactor, Keeper —
+	 * plus a Pyro pad and a light friendly drone ring for first contact.
+	 */
 	private static void generateSpawnHub(ServerWorld world, BlockPos center) {
-		IndustrialComplexGenerator.generateAt(world, center, WorldRules.ComplexStyle.ANCIENT_POWER, world.getRandom());
+		MegaStructureGenerator.generate(world, center, MacroEntry.Kind.LUNAR_BASE, world.getRandom());
 
 		PyroShipEntity ship = ModEntities.PYRO_SHIP.create(world);
 		if (ship != null) {
-			ship.refreshPositionAndAngles(center.getX() + 0.5, center.getY() - 4, center.getZ() + 8.5, 0, 0);
+			ship.refreshPositionAndAngles(center.getX() + 0.5, center.getY() + 8, center.getZ() + 14.5, 0, 0);
 			world.spawnEntity(ship);
 		}
 
-		AiRole[] roles = {
-				AiRole.ASSAULT, AiRole.INTERCEPTOR, AiRole.MG, AiRole.LASER, AiRole.RPG,
-				AiRole.ARTILLERY, AiRole.SUPPORT, AiRole.HEAVY, AiRole.SEEKER, AiRole.HEAVY_ELITE
-		};
-		for (int i = 0; i < roles.length; i++) {
+		// Friendly pad escorts — SUPPORT only so the hub is not a death ring on join.
+		for (int i = 0; i < 4; i++) {
 			DroneEntity drone = ModEntities.DRONE.create(world);
 			if (drone == null) continue;
-			double ang = i * (Math.PI * 2 / roles.length);
+			double ang = i * (Math.PI * 2 / 4);
 			drone.refreshPositionAndAngles(
-					center.getX() + Math.cos(ang) * 18,
-					center.getY() + (i % 3) * 2,
-					center.getZ() + Math.sin(ang) * 18,
+					center.getX() + Math.cos(ang) * 26,
+					center.getY() + 4 + (i % 2) * 2,
+					center.getZ() + Math.sin(ang) * 26,
 					0, 0);
-			drone.applyRole(roles[i]);
+			drone.applyRole(AiRole.SUPPORT);
 			world.spawnEntity(drone);
 		}
 
-		// Multi-zone gravity preview (dynamic station sections)
-		world.setBlockState(center.add(0, -6, 0),
+		world.setBlockState(center.add(0, -1, 0),
 				com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_GENERATOR.getDefaultState()
 						.with(com.terminaldetector.drmd.world.gravity.GravityGeneratorBlock.FACING,
 								net.minecraft.util.math.Direction.DOWN),
 				net.minecraft.block.Block.NOTIFY_ALL);
-		world.setBlockState(center.add(12, -4, 0),
+		world.setBlockState(center.add(14, 1, 0),
 				com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState()
 						.with(com.terminaldetector.drmd.world.gravity.GravityTorchBlock.FACING,
 								net.minecraft.util.math.Direction.EAST),
 				net.minecraft.block.Block.NOTIFY_ALL);
-		world.setBlockState(center.add(-12, -4, 0),
+		world.setBlockState(center.add(-14, 1, 0),
 				com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState()
 						.with(com.terminaldetector.drmd.world.gravity.GravityTorchBlock.FACING,
 								net.minecraft.util.math.Direction.WEST),
 				net.minecraft.block.Block.NOTIFY_ALL);
+	}
+
+	/**
+	 * Sparse surface campaign without full MACRO_WORLDGEN: megacity (combat dungeon),
+	 * crashed UFO, sky UFO — all distance-queued so join stays fast.
+	 */
+	private static void seedSurfaceDistricts(ServerWorld world, BlockPos spawn) {
+		// Megacity close enough that flying NW from hub enters SEED_RADIUS quickly.
+		int cityX = spawn.getX() - 180;
+		int cityZ = spawn.getZ() + 160;
+		enqueue(new BlockPos(cityX, 0, cityZ), () -> {
+			int citySurface = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, cityX, cityZ);
+			MegaStructureGenerator.generate(world,
+					new BlockPos(cityX, Math.max(citySurface, WorldRules.INDUSTRIAL_Y_MAX + 24), cityZ),
+					MacroEntry.Kind.MEGACITY, Random.create(world.getSeed() ^ 0xC1740001L));
+		});
+
+		enqueueMega(world, new BlockPos(spawn.getX() + 140, 80, spawn.getZ() - 100),
+				MacroEntry.Kind.CRASHED_UFO, 0x0F00A001L);
+
+		enqueue(new BlockPos(spawn.getX() + 80, WorldRules.SKY_PRACTICAL_MIN + 48, spawn.getZ() + 60), () -> {
+			var ufo = ModEntities.SKY_UFO.create(world);
+			if (ufo != null) {
+				ufo.refreshPositionAndAngles(spawn.getX() + 80.5, WorldRules.SKY_PRACTICAL_MIN + 48,
+						spawn.getZ() + 60.5, 0, 0);
+				world.spawnEntity(ufo);
+			}
+		});
+
+		// Depth reactor under spawn — dungeon link from surface plate.
+		BlockPos under = new BlockPos(spawn.getX(), WorldRules.INDUSTRIAL_Y_MIN + 30, spawn.getZ());
+		enqueue(under, () -> IndustrialComplexGenerator.generateAt(
+				world, under, WorldRules.ComplexStyle.CRYSTAL_REACTOR, world.getRandom()));
 	}
 
 	private static void seedStockMegastructures(ServerWorld world, BlockPos spawn) {

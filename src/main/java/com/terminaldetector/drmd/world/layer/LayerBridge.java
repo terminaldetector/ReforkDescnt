@@ -53,9 +53,9 @@ public final class LayerBridge {
 		announce(player, now);
 		COOLDOWN.put(id, COOLDOWN_TICKS);
 
-		// Soft seam: if macro content is live and the player is crossing at afterburner
-		// speed into an empty vertical gap, nudge them to the arrival altitude of the new layer.
-		if (WorldFeatures.MACRO_WORLDGEN && data.isEnabled() && data.isAlwaysRun()) {
+		// Soft seam when districts/macro are live and the pilot is afterburning across a band.
+		if ((WorldFeatures.SURFACE_DISTRICTS || WorldFeatures.MACRO_WORLDGEN)
+				&& data.isEnabled() && data.isAlwaysRun()) {
 			softArrive(player, now);
 		}
 	}

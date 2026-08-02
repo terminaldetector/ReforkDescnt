@@ -43,11 +43,20 @@ public final class MegaStructureGenerator {
 			case WORM, SWARM, KEEPER, UFO -> entry(kind, WorldRules.practicalLayer(origin.getY()),
 					origin, 8, 8, 8, 0x888888, kind.name());
 		};
-		// Lunar / crashed place their own LODESTONE marker
+		// Lunar / crashed / megacity place their own LODESTONE marker
 		if (kind != MacroEntry.Kind.LUNAR_BASE && kind != MacroEntry.Kind.CRASHED_UFO
 				&& kind != MacroEntry.Kind.MEGACITY
 				&& inLimit(world, origin)) {
 			world.setBlockState(origin, Blocks.LODESTONE.getDefaultState(), Block.NOTIFY_LISTENERS);
+		}
+		// Ensure LLOD catalogue knows about city / lunar / crash (terrain helpers already put some).
+		if (e != null
+				&& (kind == MacroEntry.Kind.MEGACITY
+				|| kind == MacroEntry.Kind.LUNAR_BASE
+				|| kind == MacroEntry.Kind.CRASHED_UFO
+				|| kind == MacroEntry.Kind.INDUSTRIAL_COMPLEX
+				|| kind == MacroEntry.Kind.STATION)) {
+			MacroWorld.put(e);
 		}
 		return e;
 	}
