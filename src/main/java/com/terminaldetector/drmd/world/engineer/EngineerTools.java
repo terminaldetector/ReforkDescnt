@@ -2,8 +2,6 @@ package com.terminaldetector.drmd.world.engineer;
 
 import com.terminaldetector.drmd.weapon.fx.WeaponFx;
 import com.terminaldetector.drmd.world.LocalOrientation;
-import com.terminaldetector.drmd.world.build.AdaptivePlacement;
-import com.terminaldetector.drmd.world.build.ConstructionMode;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
