@@ -164,7 +164,7 @@ public class DescentMod implements ModInitializer {
 			});
 		});
 
-		LOGGER.info("DRMD 6DOF 1.0.4 ready — creative fly suppressed · seam hooks · Descent native");
+		LOGGER.info("DRMD 6DOF 1.0.5 ready — Sky UFO relocate-safe · creative 6DoF · seam hooks");
 	}
 
 	/**
