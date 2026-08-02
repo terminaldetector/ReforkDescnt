@@ -155,6 +155,16 @@ public final class ModEntities {
 					.build()
 	);
 
+	public static final EntityType<LaserBarrierCartEntity> LASER_BARRIER_CART = Registry.register(
+			Registries.ENTITY_TYPE,
+			Identifier.of(DescentMod.MOD_ID, "laser_barrier_cart"),
+			EntityType.Builder.<LaserBarrierCartEntity>create(LaserBarrierCartEntity::new, SpawnGroup.MISC)
+					.dimensions(0.98f, 0.7f)
+					.maxTrackingRange(80)
+					.trackingTickInterval(2)
+					.build()
+	);
+
 	private ModEntities() {}
 
 	public static void register() {
@@ -171,6 +181,6 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(REACTOR_KEEPER, ReactorKeeperEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(END_REACTOR_BOSS,
 				com.terminaldetector.drmd.world.end.EndReactorBossEntity.createAttributes());
-		DescentMod.LOGGER.info("Registered DRMD entities (End boss + Sky UFO)");
+		DescentMod.LOGGER.info("Registered DRMD entities (End boss + Sky UFO + laser cart)");
 	}
 }

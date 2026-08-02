@@ -29,6 +29,8 @@ Landmarks build when a player enters `SEED_RADIUS` (256) — join stays fast.
 - Sewer grid under streets (manholes / ladders)
 - Central reactor pyramid + mako glow columns + depth shaft
 - Garrison: street drones, sewer scanners, spiders, tripod, sky interceptors, hangar scanner
+- **Ring AA** on plate + arena (embedded casemate turrets + shield projectors)
+- **Cyclic laser carts** on powered-rail loops (also buildable via `cyclic_laser_kit`)
 
 ## Layers
 

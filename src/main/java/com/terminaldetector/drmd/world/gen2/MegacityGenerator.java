@@ -57,6 +57,7 @@ public final class MegacityGenerator {
 		skyHighways(world, origin, half, y);
 		skyArena(world, origin, half, y);
 		artifactHangar(world, origin, half, y, random);
+		ringDefenses(world, origin, half, y);
 
 		int mid = GRID / 2;
 		for (int gx = 0; gx < GRID; gx++) {
@@ -269,7 +270,8 @@ public final class MegacityGenerator {
 	}
 
 	/**
-	 * Open sky arena above the plate — primary 6DoF dogfight volume with rim turrets.
+	 * Open sky arena above the plate — primary 6DoF dogfight volume.
+	 * Rim AA comes from {@link #ringDefenses} (embedded turret ring), not loose pads.
 	 */
 	private static void skyArena(WorldAccess world, BlockPos origin, int half, int y) {
 		int arenaY = y + 36;
@@ -282,21 +284,29 @@ public final class MegacityGenerator {
 				boolean rim = d2 > (r - 2) * (r - 2);
 				if (rim) {
 					set(world, p, Blocks.CYAN_CONCRETE.getDefaultState());
-					if ((dx + dz) % 8 == 0) {
-						set(world, p.up(), ModWorldBlocks.POINT_DEFENSE_TURRET.getDefaultState());
-					}
+				} else if (d2 > (r - 5) * (r - 5) && (dx + dz) % 5 == 0) {
+					set(world, p, Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState());
 				} else {
-					// Keep open air for dogfights; faint ring markers only.
-					if (d2 > (r - 5) * (r - 5) && (dx + dz) % 5 == 0) {
-						set(world, p, Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState());
-					} else {
-						set(world, p, Blocks.AIR.getDefaultState());
-					}
+					set(world, p, Blocks.AIR.getDefaultState());
 				}
 				for (int h = 1; h <= 14; h++) {
 					set(world, p.up(h), Blocks.AIR.getDefaultState());
 				}
 			}
+		}
+	}
+
+	/** Embedded turret rings + shield cross + cyclic laser carts on plate / arena. */
+	private static void ringDefenses(WorldAccess world, BlockPos origin, int half, int y) {
+		com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeTurretRing(
+				world, origin, Math.min(half - 4, 26), y + 36, 10, true);
+		com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeTurretRing(
+				world, origin, 18, y + 2, 8, true);
+		if (world instanceof ServerWorld sw) {
+			com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeCyclicLaserLoop(
+					sw, origin, 12, y + 3, 3);
+			com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeCyclicLaserLoop(
+					sw, origin, 8, y + 37, 2);
 		}
 	}
 

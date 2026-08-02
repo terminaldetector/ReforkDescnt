@@ -143,12 +143,15 @@ public final class FlightSystem {
 		float speedMult = afterburner ? MathHelper.lerp(engAlloc, 1.35f, 1.95f) : 1f;
 
 		// Atmospheric bands: thin air / near-space / End vacuum → less drag, more thrust
-		boolean endVacuum = player.getWorld().getRegistryKey() == net.minecraft.world.World.END;
+		var level = com.terminaldetector.drmd.world.level.WorldLevels.at(player.getY());
+		boolean endVacuum = player.getWorld().getRegistryKey() == net.minecraft.world.World.END
+				|| level == com.terminaldetector.drmd.world.level.WorldLevels.Level.END
+				|| level == com.terminaldetector.drmd.world.level.WorldLevels.Level.ORBITAL;
 		AtmosphereBand band = AtmosphereBand.at(player.getWorld(), player.getY());
 		accelMult *= band.thrustScale;
 		speedMult *= MathHelper.lerp(1f - band.airDrag, 1f, 1.15f);
 		if (endVacuum) {
-			// No idle gravity sink in End — thrusters only
+			// No idle gravity sink in End / orbital edge — thrusters only
 			data.setGravityFactor(0f);
 		}
 

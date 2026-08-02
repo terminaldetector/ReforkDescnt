@@ -70,6 +70,7 @@ public final class ModWorldBlocks {
 	public static Item MINING_LASER;
 	public static Item TUNNEL_LASER;
 	public static Item GRAVITY_SCANNER;
+	public static Item CYCLIC_LASER_KIT;
 
 	private ModWorldBlocks() {}
 
@@ -99,6 +100,9 @@ public final class ModWorldBlocks {
 		GRAVITY_SCANNER = Registry.register(Registries.ITEM,
 				Identifier.of(DescentMod.MOD_ID, "gravity_scanner"),
 				new com.terminaldetector.drmd.world.engineer.EngineerTools.GravityScannerItem(new Item.Settings()));
+		CYCLIC_LASER_KIT = Registry.register(Registries.ITEM,
+				Identifier.of(DescentMod.MOD_ID, "cyclic_laser_kit"),
+				new com.terminaldetector.drmd.world.build.CyclicLaserKitItem(new Item.Settings()));
 
 		ItemGroupEvents.modifyEntriesEvent(ModItems.GROUP_KEY).register(entries -> {
 			entries.add(SIX_D_SOIL);
@@ -120,6 +124,7 @@ public final class ModWorldBlocks {
 			entries.add(MINING_LASER);
 			entries.add(TUNNEL_LASER);
 			entries.add(GRAVITY_SCANNER);
+			entries.add(CYCLIC_LASER_KIT);
 		});
 
 		DescentMod.LOGGER.info("Registered Phase3 world blocks & engineer tools");

@@ -139,6 +139,14 @@ public final class LunarBaseGenerator {
 			}
 		}
 
+		// Ring-embedded AA + shield projectors + cyclic laser carts on the disc rim.
+		com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeTurretRing(
+				world, origin, radius - 2, origin.getY(), 8, true);
+		if (world instanceof ServerWorld sw) {
+			com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeCyclicLaserLoop(
+					sw, origin, 10, origin.getY(), 2);
+		}
+
 		MacroEntry e = new MacroEntry(UUID.randomUUID(), MacroEntry.Kind.LUNAR_BASE,
 				WorldRules.Layer.SKY_ARCHIPELAGO, origin.toImmutable(),
 				radius * 2 + 8, 18, radius * 2 + 8, 0xAAB8C8, "Abandoned Lunar Base");

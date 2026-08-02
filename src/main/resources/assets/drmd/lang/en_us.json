@@ -79,6 +79,8 @@
   "item.drmd.construction_laser": "Construction Laser",
   "item.drmd.repair_laser": "Repair Laser",
   "item.drmd.gravity_scanner": "Gravity Scanner",
+  "item.drmd.cyclic_laser_kit": "Cyclic Laser Barrier Kit",
+  "entity.drmd.laser_barrier_cart": "Cyclic Laser Barrier Cart",
   "block.drmd.gravity_generator": "Gravity Generator",
   "block.drmd.gravity_torch": "Gravity Torch",
   "entity.drmd.pyro_ship": "Pyro GX",

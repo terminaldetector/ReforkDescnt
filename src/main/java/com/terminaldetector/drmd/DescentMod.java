@@ -62,6 +62,7 @@ public class DescentMod implements ModInitializer {
 			ConstructionRegistry.bootstrap(server);
 			com.terminaldetector.drmd.world.gen2.MacroWorld.clear();
 			com.terminaldetector.drmd.world.gravity.GravityFields.clear();
+			com.terminaldetector.drmd.world.trap.ShieldProjectors.clear();
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.clear();
 			com.terminaldetector.drmd.world.fire.FireSystem.clear();
 			com.terminaldetector.drmd.world.base.DescentSession.clearSeedQueue();

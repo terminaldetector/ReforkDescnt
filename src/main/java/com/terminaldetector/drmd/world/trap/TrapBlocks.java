@@ -64,7 +64,7 @@ public final class TrapBlocks {
 		}
 	}
 
-	/** Laser barrier — damages entities crossing the volume along a line. */
+	/** Laser barrier — damages entities crossing; scheduled beam along +Y (carts sweep circles). */
 	public static class LaserBarrierBlock extends Block {
 		public LaserBarrierBlock(Settings settings) {
 			super(settings.nonOpaque().noCollision());
@@ -72,7 +72,8 @@ public final class TrapBlocks {
 
 		@Override
 		protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
-			if (!world.isClient && entity instanceof LivingEntity living) {
+			if (!world.isClient && entity instanceof LivingEntity living
+					&& LaserBeams.isBarrierTarget(living)) {
 				living.damage(world.getDamageSources().magic(), 4f);
 				if (world instanceof ServerWorld sw) {
 					sw.spawnParticles(ParticleTypes.END_ROD, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
@@ -82,20 +83,24 @@ public final class TrapBlocks {
 		}
 
 		@Override
+		protected void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
+			super.onBlockAdded(state, world, pos, oldState, notify);
+			if (!world.isClient) world.scheduleBlockTick(pos, this, 10);
+		}
+
+		@Override
+		protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+			LaserBeams.cast(world, Vec3d.ofCenter(pos), Direction.UP, 8, 3f);
+			world.scheduleBlockTick(pos, this, 10);
+		}
+
+		@Override
 		protected boolean hasRandomTicks(BlockState state) { return true; }
 
 		@Override
 		protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-			// Extend laser beam through air along local look of placement (Y axis default)
-			for (int i = 1; i <= 8; i++) {
-				BlockPos p = pos.up(i);
-				if (!world.getBlockState(p).isAir()) break;
-				Box box = new Box(p);
-				for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, box, LivingEntity::isAlive)) {
-					e.damage(world.getDamageSources().magic(), 3f);
-				}
-				world.spawnParticles(ParticleTypes.CRIT, p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5, 1, 0, 0, 0, 0);
-			}
+			LaserBeams.cast(world, Vec3d.ofCenter(pos), Direction.UP, 8, 3f);
+			world.scheduleBlockTick(pos, this, 10);
 		}
 	}
 

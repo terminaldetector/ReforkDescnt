@@ -18,6 +18,7 @@
     "client": ["com.terminaldetector.drmd.client.DescentClient"]
   },
   "mixins": ["drmd.mixins.json"],
+  "accessWidener": "drmd.accesswidener",
   "depends": {
     "fabricloader": ">=0.16.0",
     "minecraft": "~1.21.1",

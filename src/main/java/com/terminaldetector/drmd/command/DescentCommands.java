@@ -221,6 +221,7 @@ public final class DescentCommands {
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.PLASMA_TURRET));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.POINT_DEFENSE_TURRET));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.LASER_BARRIER));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.CYCLIC_LASER_KIT));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.HERMETIC_GATE));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR));
 								ctx.getSource().sendFeedback(() -> Text.literal("Gave Phase 3 engineer / gravity / turret kit"), false);

@@ -35,5 +35,8 @@ public final class ModEntityRenderers {
 		EntityRendererRegistry.register(ModEntities.TRIPOD, TripodRenderer::new);
 		EntityRendererRegistry.register(ModEntities.SCANNER, ScannerRenderer::new);
 		EntityRendererRegistry.register(ModEntities.SPIDER_TURRET, SpiderTurretRenderer::new);
+		EntityRendererRegistry.register(ModEntities.LASER_BARRIER_CART, ctx ->
+				new net.minecraft.client.render.entity.MinecartEntityRenderer<>(
+						ctx, net.minecraft.client.render.entity.model.EntityModelLayers.MINECART));
 	}
 }

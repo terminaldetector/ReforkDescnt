@@ -33,6 +33,8 @@
   "item.drmd.construction_laser": "Строительный лазер",
   "item.drmd.repair_laser": "Ремонтный лазер",
   "item.drmd.gravity_scanner": "Гравитационный сканер",
+  "item.drmd.cyclic_laser_kit": "Набор циклического лазерного барьера",
+  "entity.drmd.laser_barrier_cart": "Вагонетка циклического лазерного барьера",
   "item.drmd.bomb_tnt": "Бомбоотсек: ТНТ",
   "item.drmd.bomb_cluster": "Бомбоотсек: кассетная",
   "item.drmd.bomb_heavy_cluster": "Бомбоотсек: усиленная кассета",

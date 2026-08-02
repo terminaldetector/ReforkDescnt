@@ -219,12 +219,11 @@ public final class EndReactorSession {
 			placeTurretPad(world, base.add(0, 8, 3), ModWorldBlocks.POINT_DEFENSE_TURRET);
 		}
 
-		// Inner ring volume turrets
-		for (int i = 0; i < 6; i++) {
-			double ang = i * Math.PI * 2 / 6;
-			BlockPos t = center.add((int) (Math.cos(ang) * 14), 2, (int) (Math.sin(ang) * 14));
-			placeTurretPad(world, t, ModWorldBlocks.VOLUME_TURRET);
-		}
+		// Inner ring: embedded casemate turrets + shield cross + cyclic laser sweep
+		com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeTurretRing(
+				world, center, 14, center.getY() + 1, 8, true);
+		com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeCyclicLaserLoop(
+				world, center, 18, center.getY() + 1, 3);
 
 		// Approach bridges toward outer islands
 		for (int d = 28; d <= 48; d++) {
