@@ -21,6 +21,8 @@
   "block.drmd.point_defense_turret": "Точечная ПВО-турель",
   "block.drmd.volume_turret": "Объёмная турель",
   "entity.drmd.end_reactor_boss": "Гигареактор Энда",
+  "entity.drmd.oblivion_seeker": "Рыскатель Oblivion",
+  "item.drmd.spawn_egg_oblivion_seeker": "Яйцо призыва: рыскатель Oblivion",
   "entity.drmd.pyro_ship": "Pyro GX",
   "entity.drmd.sky_ufo": "Небесное НЛО",
   "entity.drmd.reactor_keeper": "Хранитель реактора",

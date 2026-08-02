@@ -261,6 +261,8 @@ public final class EndReactorSession {
 			keeper.refreshPositionAndAngles(center.getX() + 8.5, center.getY() + 12, center.getZ() + 0.5, 0, 0);
 			world.spawnEntity(keeper);
 		}
+		// Pre-boss Oblivion Seekers — solo hunters that still paint aggro onto End machines.
+		OblivionSeekerSpawner.spawnArenaEscorts(world, center, 3);
 	}
 
 	/**

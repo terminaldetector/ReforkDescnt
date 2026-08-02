@@ -97,6 +97,8 @@
   "entity.drmd.drone_swarm": "Drone Swarm",
   "entity.drmd.reactor_keeper": "Reactor Keeper",
   "entity.drmd.end_reactor_boss": "End Giga-Reactor",
+  "entity.drmd.oblivion_seeker": "Oblivion Seeker",
+  "item.drmd.spawn_egg_oblivion_seeker": "Oblivion Seeker Spawn Egg",
   "entity.drmd.aerial_bomb": "Aerial Bomb",
   "entity.drmd.sky_ufo": "Sky UFO",
   "item.drmd.bomb_tnt": "TNT Bomb Bay",

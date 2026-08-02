@@ -155,6 +155,18 @@ public final class ModEntities {
 					.build()
 	);
 
+	/** Oblivion Seeker (рыскатель) — dark spherical End-faction pre-boss. */
+	public static final EntityType<com.terminaldetector.drmd.entity.mob.OblivionSeekerEntity> OBLIVION_SEEKER = Registry.register(
+			Registries.ENTITY_TYPE,
+			Identifier.of(DescentMod.MOD_ID, "oblivion_seeker"),
+			EntityType.Builder.<com.terminaldetector.drmd.entity.mob.OblivionSeekerEntity>create(
+							com.terminaldetector.drmd.entity.mob.OblivionSeekerEntity::new, SpawnGroup.MONSTER)
+					.dimensions(1.35f, 1.35f)
+					.maxTrackingRange(128)
+					.trackingTickInterval(2)
+					.build()
+	);
+
 	public static final EntityType<LaserBarrierCartEntity> LASER_BARRIER_CART = Registry.register(
 			Registries.ENTITY_TYPE,
 			Identifier.of(DescentMod.MOD_ID, "laser_barrier_cart"),
@@ -175,6 +187,8 @@ public final class ModEntities {
 				com.terminaldetector.drmd.entity.mob.ScannerEntity.createScannerAttributes());
 		FabricDefaultAttributeRegistry.register(SPIDER_TURRET,
 				com.terminaldetector.drmd.entity.mob.SpiderTurretEntity.createSpiderTurretAttributes());
+		FabricDefaultAttributeRegistry.register(OBLIVION_SEEKER,
+				com.terminaldetector.drmd.entity.mob.OblivionSeekerEntity.createSeekerAttributes());
 		FabricDefaultAttributeRegistry.register(AIR_MINE, AirMineEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(PYRO_SHIP, PyroShipEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(MEGA_WORM, MegaWormEntity.createAttributes());

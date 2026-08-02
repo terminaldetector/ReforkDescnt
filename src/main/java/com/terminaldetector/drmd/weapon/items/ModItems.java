@@ -106,6 +106,7 @@ public final class ModItems {
 	public static Item EGG_TRIPOD;
 	public static Item EGG_SCANNER;
 	public static Item EGG_SPIDER_TURRET;
+	public static Item EGG_OBLIVION_SEEKER;
 
 	public static final RegistryKey<ItemGroup> GROUP_KEY = RegistryKey.of(RegistryKeys.ITEM_GROUP, Identifier.of(DescentMod.MOD_ID, "weapons"));
 
@@ -225,6 +226,8 @@ public final class ModItems {
 				com.terminaldetector.drmd.entity.ModEntities.SCANNER, 0x1E2A38, 0x35E0FF, new Item.Settings()));
 		EGG_SPIDER_TURRET = register("spawn_egg_spider_turret", new net.minecraft.item.SpawnEggItem(
 				com.terminaldetector.drmd.entity.ModEntities.SPIDER_TURRET, 0x2A3038, 0xFFC24D, new Item.Settings()));
+		EGG_OBLIVION_SEEKER = register("spawn_egg_oblivion_seeker", new net.minecraft.item.SpawnEggItem(
+				com.terminaldetector.drmd.entity.ModEntities.OBLIVION_SEEKER, 0x1A1420, 0xC040FF, new Item.Settings()));
 
 		Registry.register(Registries.ITEM_GROUP, GROUP_KEY, FabricItemGroup.builder()
 				.icon(() -> new ItemStack(PYRO_GX))
@@ -253,6 +256,7 @@ public final class ModItems {
 					entries.add(EGG_TRIPOD);
 					entries.add(EGG_SCANNER);
 					entries.add(EGG_SPIDER_TURRET);
+					entries.add(EGG_OBLIVION_SEEKER);
 				})
 				.build());
 

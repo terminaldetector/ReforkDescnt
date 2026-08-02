@@ -338,8 +338,16 @@ public final class DescentCommands {
 											world.spawnEntity(e);
 										}
 									}
+									case "seeker", "oblivion", "ryskatel" -> {
+										var e = com.terminaldetector.drmd.entity.ModEntities.OBLIVION_SEEKER.create(world);
+										if (e != null) {
+											e.refreshPositionAndAngles(at.x, at.y, at.z, p.getYaw(), 0);
+											world.spawnEntity(e);
+										}
+									}
 									default -> {
-										ctx.getSource().sendError(Text.literal("Use: worm | swarm | keeper | ufo"));
+										ctx.getSource().sendError(Text.literal(
+												"Use: worm | swarm | keeper | ufo | seeker"));
 										return 0;
 									}
 								}
