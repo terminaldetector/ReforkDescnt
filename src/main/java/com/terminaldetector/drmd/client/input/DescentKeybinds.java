@@ -34,6 +34,15 @@ public final class DescentKeybinds {
 	private static boolean dashQueued;
 	private static boolean hookQueued;
 	private static boolean wasEnabled;
+
+	/** Call on disconnect so the next join sees a clean false→true edge. */
+	public static void resetSession() {
+		wasEnabled = false;
+		dashQueued = false;
+		hookQueued = false;
+		lastForward = lastStrafe = lastVertical = 0;
+		inputSendAge = 0;
+	}
 	/**
 	 * Thrust axes as of the last sample.
 	 *

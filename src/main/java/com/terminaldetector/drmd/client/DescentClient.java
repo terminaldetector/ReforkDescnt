@@ -35,72 +35,8 @@ public class DescentClient implements ClientModInitializer {
 		com.terminaldetector.drmd.client.smoke.SmokeRenderer.register();
 		registerRenderLayers();
 
-		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SyncPayload.ID, (payload, context) -> {
-			boolean wasEnabled = DescentClientState.enabled;
-			DescentClientState.enabled = payload.enabled();
-			DescentClientState.energy = payload.energy();
-			DescentClientState.energyMax = payload.energyMax();
-			DescentClientState.shield = payload.shield();
-			DescentClientState.shieldMax = payload.shieldMax();
-			if (!DescentClientState.attitudeValid) {
-				DescentClientState.roll = payload.roll();
-			}
-			DescentClientState.speed = payload.speed();
-			DescentClientState.rocketSub = payload.rocketSub();
-			DescentClientState.preset = payload.preset();
-			DescentClientState.gravy = payload.gravy();
-			DescentClientState.dashCd = payload.dashCd();
-			DescentClientState.gravityFactor = payload.gravityFactor();
-			DescentClientState.alwaysRun = payload.alwaysRun();
-			DescentClientState.flightAssist = payload.flightAssist();
-			DescentClientState.radar = payload.radar();
-			DescentClientState.footGravity = payload.footGravity();
-			DescentClientState.localUx = payload.localUx();
-			DescentClientState.localUy = payload.localUy();
-			DescentClientState.localUz = payload.localUz();
-			DescentClientState.velX = payload.velX();
-			DescentClientState.velY = payload.velY();
-			DescentClientState.velZ = payload.velZ();
-			DescentClientState.accel = payload.accel();
-			DescentClientState.drag = payload.drag();
-			DescentClientState.maxSpeed = payload.maxSpeed();
-			DescentClientState.allocEngines = payload.allocEngines();
-			DescentClientState.afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers
-					.clamp(payload.afterburnerTier());
-			var player = context.client().player;
-			if (player != null && payload.enabled() && !player.isSpectator()) {
-				// Authority, not command: the client runs its own copy of the integrator and
-				// converges on this. See DescentFlightMotion.
-				com.terminaldetector.drmd.client.flight.DescentFlightMotion.onServerVelocity(
-						payload.velX(), payload.velY(), payload.velZ());
-			}
-			if (player != null) {
-				com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),
-						new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));
-				if (payload.footGravity()) {
-					com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptClient(
-							player.getUuid(),
-							new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));
-				} else {
-					com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
-				}
-			}
-			// Prime attitude whenever flight is on but the client basis is cold — not only on
-			// the false→true edge (stale enabled=true across worlds skipped the prime).
-			if (payload.enabled()) {
-				boolean cold = !wasEnabled
-						|| !DescentClientState.attitudeValid
-						|| !com.terminaldetector.drmd.client.flight.ShipAttitudeClient.isPrimed();
-				if (cold && player != null) {
-					com.terminaldetector.drmd.client.flight.ShipAttitudeClient.resetFromPlayer(player);
-					com.terminaldetector.drmd.client.gravity.FootGravityCamera.reset();
-				}
-			} else {
-				DescentClientState.attitudeValid = false;
-				com.terminaldetector.drmd.client.flight.ShipAttitudeClient.clear();
-				com.terminaldetector.drmd.client.flight.DescentFlightMotion.clear();
-			}
-		});
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SyncPayload.ID, (payload, context) ->
+				context.client().execute(() -> applySync(payload, context.client())));
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ConstructionPayload.ID, (payload, context) -> {
 			String id = ConstructionRegistry.normalize(payload.weaponId());
@@ -178,6 +114,10 @@ public class DescentClient implements ClientModInitializer {
 					DescentClientState.fateDecayTicks = payload.decayTicks();
 					if (DescentClientState.isVoidEnding()) {
 						DescentClientState.enabled = true;
+						var p = context.client().player;
+						if (p != null && !com.terminaldetector.drmd.client.flight.ShipAttitudeClient.isPrimed()) {
+							com.terminaldetector.drmd.client.flight.ShipAttitudeClient.resetFromPlayer(p);
+						}
 					}
 				}));
 
@@ -236,5 +176,78 @@ public class DescentClient implements ClientModInitializer {
 	public static void openSettings() {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		mc.setScreen(new com.terminaldetector.drmd.client.screen.DescentSettingsScreen(mc.currentScreen));
+	}
+
+	/** Apply authoritative flight HUD sync on the client thread. */
+	private static void applySync(ModNetworking.SyncPayload payload, MinecraftClient client) {
+		boolean wasEnabled = DescentClientState.enabled;
+		DescentClientState.enabled = payload.enabled();
+		DescentClientState.energy = payload.energy();
+		DescentClientState.energyMax = payload.energyMax();
+		DescentClientState.shield = payload.shield();
+		DescentClientState.shieldMax = payload.shieldMax();
+		if (!DescentClientState.attitudeValid) {
+			DescentClientState.roll = payload.roll();
+		}
+		DescentClientState.speed = payload.speed();
+		DescentClientState.rocketSub = payload.rocketSub();
+		DescentClientState.preset = payload.preset();
+		DescentClientState.gravy = payload.gravy();
+		DescentClientState.dashCd = payload.dashCd();
+		DescentClientState.gravityFactor = payload.gravityFactor();
+		DescentClientState.alwaysRun = payload.alwaysRun();
+		DescentClientState.flightAssist = payload.flightAssist();
+		DescentClientState.radar = payload.radar();
+		DescentClientState.footGravity = payload.footGravity();
+		DescentClientState.localUx = payload.localUx();
+		DescentClientState.localUy = payload.localUy();
+		DescentClientState.localUz = payload.localUz();
+		DescentClientState.velX = payload.velX();
+		DescentClientState.velY = payload.velY();
+		DescentClientState.velZ = payload.velZ();
+		DescentClientState.accel = payload.accel();
+		DescentClientState.drag = payload.drag();
+		DescentClientState.maxSpeed = payload.maxSpeed();
+		DescentClientState.allocEngines = payload.allocEngines();
+		DescentClientState.afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers
+				.clamp(payload.afterburnerTier());
+
+		// Keep client STORE in lockstep — LivingEntityMixin foot-gravity gates on this.
+		var local = client.player;
+		if (local != null) {
+			com.terminaldetector.drmd.DescentPlayerData.get(local).setEnabled(payload.enabled());
+		}
+
+		if (local != null && payload.enabled() && !local.isSpectator()) {
+			// Authority, not command: client integrator converges on this. See DescentFlightMotion.
+			com.terminaldetector.drmd.client.flight.DescentFlightMotion.onServerVelocity(
+					payload.velX(), payload.velY(), payload.velZ());
+		}
+		if (local != null) {
+			com.terminaldetector.drmd.world.LocalOrientation.setUp(local.getUuid(),
+					new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));
+			if (payload.footGravity()) {
+				com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptClient(
+						local.getUuid(),
+						new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));
+			} else {
+				com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(local.getUuid());
+			}
+		}
+		// Prime attitude whenever flight is on but the client basis is cold — not only on
+		// the false→true edge (stale enabled=true across worlds skipped the prime).
+		if (payload.enabled()) {
+			boolean cold = !wasEnabled
+					|| !DescentClientState.attitudeValid
+					|| !com.terminaldetector.drmd.client.flight.ShipAttitudeClient.isPrimed();
+			if (cold && local != null) {
+				com.terminaldetector.drmd.client.flight.ShipAttitudeClient.resetFromPlayer(local);
+				com.terminaldetector.drmd.client.gravity.FootGravityCamera.reset();
+			}
+		} else {
+			DescentClientState.attitudeValid = false;
+			com.terminaldetector.drmd.client.flight.ShipAttitudeClient.clear();
+			com.terminaldetector.drmd.client.flight.DescentFlightMotion.clear();
+		}
 	}
 }

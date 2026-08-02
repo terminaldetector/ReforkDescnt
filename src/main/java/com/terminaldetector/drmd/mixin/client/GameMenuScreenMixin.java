@@ -25,6 +25,7 @@ public abstract class GameMenuScreenMixin extends Screen {
 
 	@Inject(method = "init", at = @At("RETURN"))
 	private void drmd$addSettingsButton(CallbackInfo ci) {
+		// Top-right — bottom-left is often covered by launcher overlays / skin widgets.
 		this.addDrawableChild(ButtonWidget.builder(
 						Text.translatable("menu.drmd.settings"),
 						b -> {
@@ -32,7 +33,7 @@ public abstract class GameMenuScreenMixin extends Screen {
 								this.client.setScreen(new DescentSettingsScreen(this));
 							}
 						})
-				.dimensions(8, this.height - 28, 120, 20)
+				.dimensions(this.width - 128, 8, 120, 20)
 				.build());
 	}
 }

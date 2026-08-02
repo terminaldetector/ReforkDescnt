@@ -57,12 +57,10 @@ public final class CockpitRenderer {
 			Vec3d u = att.up();
 			Vec3d r = att.right();
 
-			Vec3d cam = context.camera().getPos();
-			Vec3d eye = mc.player.getLerpedPos(context.tickCounter().getTickDelta(true))
-					.add(0, mc.player.getStandingEyeHeight(), 0);
-
+			// Pin to the camera (matrix origin after cam subtract). DescentCamera applies CamLag /
+			// vib / dash kick after Camera.update — anchoring to the eye left the frame sliding
+			// off the lens under thrust while weapons (camera-relative) stayed glued.
 			matrices.push();
-			matrices.translate(eye.x - cam.x, eye.y - cam.y, eye.z - cam.z);
 
 			int alpha = (int) (MathHelper.clamp(DescentConfig.cockpitOpacity, 0.2f, 1f) * 255);
 			VertexConsumer buf = consumers.getBuffer(RenderLayer.getDebugQuads());

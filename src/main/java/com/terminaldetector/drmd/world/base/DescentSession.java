@@ -163,9 +163,9 @@ public final class DescentSession {
 		if (state.isPsychedelic()) {
 			if (!data.isSessionWelcomed()) {
 				PsychedelicWorldgen.onPlayerJoin(player, state);
-			} else {
-				com.terminaldetector.drmd.flight.FlightSystem.enable(player, data);
 			}
+			// Psychedelic tip path only setEnabled(true) — still need noGravity + sync + abilities.
+			com.terminaldetector.drmd.flight.FlightSystem.enable(player, data);
 			return;
 		}
 

@@ -12,8 +12,8 @@ import java.util.Properties;
  * Client-side mod options, reachable from the pause menu.
  *
  * <p>Deliberately a flat properties file rather than a config library: these are a dozen scalars
- * that only the local client reads, and a dependency for that would cost more than it saves. Writes
- * are explicit — the screen saves when it closes, not on every slider tick.
+ * that only the local client reads, and a dependency for that would cost more than it saves.
+ * Toggles save immediately; the settings screen also writes on close.
  */
 public final class DescentConfig {
 	/** Draw the 3D cockpit frame in first person. */
@@ -55,8 +55,14 @@ public final class DescentConfig {
 		return FabricLoader.getInstance().getConfigDir().resolve(FILE);
 	}
 
+	/** First load at client init — no-op if already loaded. */
 	public static void load() {
 		if (loaded) return;
+		reload();
+	}
+
+	/** Always re-read {@code drmd.properties} into the static fields. */
+	public static void reload() {
 		loaded = true;
 		Path p = path();
 		if (!Files.exists(p)) return;

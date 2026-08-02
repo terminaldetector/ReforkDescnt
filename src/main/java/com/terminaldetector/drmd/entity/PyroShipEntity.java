@@ -103,43 +103,49 @@ public class PyroShipEntity extends PathAwareEntity {
 				return;
 			}
 
-			// Leave thruster mode → on-foot gravity / walking
-			FlightSystem.disable(sp, data);
-			data = DescentPlayerData.get(sp);
-
+			// Surface with a gravity field / solid floor → walk. Open air → keep free 6DoF
+			// (disabling here made the cockpit/flight "fall off" after every exit).
 			GravityFields.Sample field = GravityFields.sample(getWorld(), sp.getPos());
 			if (field != null) {
+				FlightSystem.disable(sp, data);
+				data = DescentPlayerData.get(sp);
 				FootGravitySystem.adoptAt(sp, sp.getPos());
 				ConstructionMode.onShipLanded(sp);
 				String axis = axisName(field.upDir());
 				sp.sendMessage(Text.literal(
 						"§aLocal gravity §f" + field.label() + " §7— walk with UP=" + axis), false);
-			} else {
-				Direction floor = Direction.UP;
-				boolean found = false;
-				for (Direction d : Direction.values()) {
-					BlockPos p = getBlockPos().offset(d.getOpposite());
-					if (getWorld().getBlockState(p).isSolidBlock(getWorld(), p)) {
-						floor = d;
-						found = true;
-						break;
-					}
-				}
-				if (found) {
-					LocalOrientation.setFromDirection(sp.getUuid(), floor);
-					if (!FootGravitySystem.isWorldUp(LocalOrientation.getUp(sp.getUuid()))) {
-						FootGravitySystem.adoptClient(sp.getUuid(), LocalOrientation.getUp(sp.getUuid()));
-						sp.setNoGravity(true);
-					}
-					ConstructionMode.onShipLanded(sp);
-					sp.sendMessage(Text.literal("§7Local floor locked to §f" + floor.asString()), false);
-				} else {
-					LocalOrientation.setUp(sp.getUuid(), new Vec3d(0, 1, 0));
-					FootGravitySystem.clear(sp.getUuid());
-					sp.sendMessage(Text.literal("§7Pyro GX drifting — no surface lock."), false);
+				ModNetworking.syncPlayer(sp, data);
+				return;
+			}
+
+			Direction floor = Direction.UP;
+			boolean found = false;
+			for (Direction d : Direction.values()) {
+				BlockPos p = getBlockPos().offset(d.getOpposite());
+				if (getWorld().getBlockState(p).isSolidBlock(getWorld(), p)) {
+					floor = d;
+					found = true;
+					break;
 				}
 			}
-			ModNetworking.syncPlayer(sp, data);
+			if (found) {
+				FlightSystem.disable(sp, data);
+				data = DescentPlayerData.get(sp);
+				LocalOrientation.setFromDirection(sp.getUuid(), floor);
+				if (!FootGravitySystem.isWorldUp(LocalOrientation.getUp(sp.getUuid()))) {
+					FootGravitySystem.adoptClient(sp.getUuid(), LocalOrientation.getUp(sp.getUuid()));
+					sp.setNoGravity(true);
+				}
+				ConstructionMode.onShipLanded(sp);
+				sp.sendMessage(Text.literal("§7Local floor locked to §f" + floor.asString()), false);
+				ModNetworking.syncPlayer(sp, data);
+				return;
+			}
+
+			LocalOrientation.setUp(sp.getUuid(), new Vec3d(0, 1, 0));
+			FootGravitySystem.clear(sp.getUuid());
+			FlightSystem.enable(sp, data);
+			sp.sendMessage(Text.literal("§b6DoF §7— free flight after Pyro exit."), false);
 		}
 	}
 

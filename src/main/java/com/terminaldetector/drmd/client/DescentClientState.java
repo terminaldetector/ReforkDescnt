@@ -58,6 +58,7 @@ public final class DescentClientState {
 		com.terminaldetector.drmd.client.flight.ShipAttitudeClient.clear();
 		com.terminaldetector.drmd.client.flight.DescentFlightMotion.clear();
 		com.terminaldetector.drmd.client.gravity.FootGravityCamera.reset();
+		com.terminaldetector.drmd.client.input.DescentKeybinds.resetSession();
 	}
 
 	private DescentClientState() {}
