@@ -121,6 +121,7 @@ public final class DescentFlightMotion {
 		float strafe = DescentKeybinds.inputStrafe();
 		float vert = DescentKeybinds.inputVertical();
 		boolean afterburner = DescentClientState.alwaysRun;
+		int abTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(DescentClientState.afterburnerTier);
 		// Descent afterburner cruise: hold R with idle stick still drives nose-forward.
 		if (afterburner && Math.abs(fwd) < 0.01f && Math.abs(strafe) < 0.01f && Math.abs(vert) < 0.01f) {
 			fwd = 1f;
@@ -128,8 +129,10 @@ public final class DescentFlightMotion {
 		boolean thrusting = Math.abs(fwd) > 0.01f || Math.abs(strafe) > 0.01f || Math.abs(vert) > 0.01f;
 
 		float engAlloc = DescentClientState.allocEngines;
-		float accelMult = afterburner ? MathHelper.lerp(engAlloc, 1.35f, 2.05f) : 1f;
-		float speedMult = afterburner ? MathHelper.lerp(engAlloc, 1.35f, 1.95f) : 1f;
+		float accelMult = afterburner
+				? com.terminaldetector.drmd.flight.AfterburnerTiers.accelMult(abTier, engAlloc) : 1f;
+		float speedMult = afterburner
+				? com.terminaldetector.drmd.flight.AfterburnerTiers.speedMult(abTier, engAlloc) : 1f;
 
 		double accel = DescentMod.su(DescentClientState.accel) * accelMult;
 		Vec3d wish = look.multiply(fwd)

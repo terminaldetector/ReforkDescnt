@@ -149,8 +149,14 @@ public final class DescentHud {
 		var layer = com.terminaldetector.drmd.world.layer.WorldLayer.at(mc.world, mc.player.getY());
 		line(ctx, mc, tx, ty, "6DOF MODE: ON", GREEN);
 		line(ctx, mc, tx, ty + 11, String.format(Locale.ROOT, "THRUST: %d%%", Math.round(thrust * 100)), GREEN);
-		line(ctx, mc, tx, ty + 22, "AFTERBURNER: " + (DescentClientState.alwaysRun ? "ON" : "OFF"),
-				DescentClientState.alwaysRun ? AMBER : GREEN_DIM);
+		int abTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(DescentClientState.afterburnerTier);
+		int abColor = DescentClientState.alwaysRun
+				? com.terminaldetector.drmd.flight.AfterburnerTiers.colorArgb(abTier)
+				: GREEN_DIM;
+		line(ctx, mc, tx, ty + 22, "AFTERBURNER: "
+						+ (DescentClientState.alwaysRun ? "ON" : "OFF")
+						+ " " + com.terminaldetector.drmd.flight.AfterburnerTiers.shortLabel(abTier),
+				abColor);
 		line(ctx, mc, tx, ty + 33, "DAMPENERS: " + (DescentClientState.flightAssist ? "ON" : "OFF"),
 				DescentClientState.flightAssist ? GREEN : AMBER);
 		line(ctx, mc, tx, ty + 44, String.format(Locale.ROOT, "SPEED: %.1f m/s", DescentClientState.speed * 20f), GREEN);
@@ -620,8 +626,13 @@ public final class DescentHud {
 		ctx.drawCenteredTextWithShadow(mc.textRenderer,
 				Text.literal(Math.round(thrust * 100) + "%"), x0 + w / 2, y + 14, AMBER);
 		vertBar(ctx, x0 + 8, y + 24, 8, 16, thrust, GREEN);
-		ctx.drawText(mc.textRenderer, Text.literal("BOOST"), x0 + 20, y + 30,
-				DescentClientState.alwaysRun ? AMBER : GREEN_DIM, false);
+		int boostTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(DescentClientState.afterburnerTier);
+		ctx.drawText(mc.textRenderer, Text.literal("BOOST "
+						+ com.terminaldetector.drmd.flight.AfterburnerTiers.shortLabel(boostTier)),
+				x0 + 20, y + 30,
+				DescentClientState.alwaysRun
+						? com.terminaldetector.drmd.flight.AfterburnerTiers.colorArgb(boostTier)
+						: GREEN_DIM, false);
 
 		// Middle plate — attitude MFD.
 		int mx = x0 + w + gap;

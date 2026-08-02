@@ -93,6 +93,30 @@ public final class DescentCommands {
 										ctx.getSource().sendFeedback(() -> Text.literal("Set " + key + " = " + val), true);
 										return 1;
 									}))))
+					.then(CommandManager.literal("afterburner")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								DescentPlayerData d = DescentPlayerData.get(p);
+								int t = d.getAfterburnerTier();
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Afterburner tier " + t + " ("
+												+ com.terminaldetector.drmd.flight.AfterburnerTiers.colorName(t)
+												+ ") · cost "
+												+ com.terminaldetector.drmd.flight.AfterburnerTiers.costPerSec(t)
+												+ "/s · hold R · menu: N"), false);
+								return 1;
+							})
+							.then(CommandManager.argument("tier", IntegerArgumentType.integer(1, 4)).executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								DescentPlayerData d = DescentPlayerData.get(p);
+								int t = IntegerArgumentType.getInteger(ctx, "tier");
+								d.setAfterburnerTier(t);
+								ModNetworking.syncPlayer(p, d);
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Afterburner → " + t + " "
+												+ com.terminaldetector.drmd.flight.AfterburnerTiers.colorName(t)), false);
+								return 1;
+							})))
 					.then(CommandManager.literal("weapons")
 							.then(CommandManager.literal("list").executes(ctx -> {
 								WeaponRegistry.all().forEach(w ->

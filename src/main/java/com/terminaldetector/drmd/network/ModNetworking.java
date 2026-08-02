@@ -59,7 +59,8 @@ public final class ModNetworking {
 							  float dashCd, float gravityFactor, boolean alwaysRun, boolean flightAssist,
 							  boolean radar, boolean footGravity, float localUx, float localUy, float localUz,
 							  float velX, float velY, float velZ,
-							  float accel, float drag, float maxSpeed, float allocEngines
+							  float accel, float drag, float maxSpeed, float allocEngines,
+							  int afterburnerTier
 	) implements CustomPayload {
 		public static final Id<SyncPayload> ID = new Id<>(SYNC_ID);
 		public static final PacketCodec<RegistryByteBuf, SyncPayload> CODEC = PacketCodec.of(
@@ -90,6 +91,7 @@ public final class ModNetworking {
 					buf.writeFloat(payload.drag);
 					buf.writeFloat(payload.maxSpeed);
 					buf.writeFloat(payload.allocEngines);
+					buf.writeVarInt(payload.afterburnerTier);
 				},
 				buf -> new SyncPayload(
 						buf.readBoolean(),
@@ -117,7 +119,8 @@ public final class ModNetworking {
 						buf.readFloat(),
 						buf.readFloat(),
 						buf.readFloat(),
-						buf.readFloat()
+						buf.readFloat(),
+						buf.readVarInt()
 				)
 		);
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
@@ -295,7 +298,27 @@ public final class ModNetworking {
 				case "preset_assault" -> EnergySystem.setPreset(data, EnergyPreset.ASSAULT);
 				case "preset_interceptor" -> EnergySystem.setPreset(data, EnergyPreset.INTERCEPTOR);
 				case "preset_siege" -> EnergySystem.setPreset(data, EnergyPreset.SIEGE);
-				default -> {}
+				case "ab_1" -> data.setAfterburnerTier(1);
+				case "ab_2" -> data.setAfterburnerTier(2);
+				case "ab_3" -> data.setAfterburnerTier(3);
+				case "ab_4" -> data.setAfterburnerTier(4);
+				default -> {
+					String a = payload.action();
+					// Creative ship physics from ShipCustomizeScreen — server gates creative.
+					if (player.isCreative() && a != null && a.contains(":")) {
+						int colon = a.indexOf(':');
+						String key = a.substring(0, colon);
+						try {
+							float val = Float.parseFloat(a.substring(colon + 1));
+							switch (key) {
+								case "accel" -> data.setAccel(net.minecraft.util.math.MathHelper.clamp(val, 500f, 12000f));
+								case "drag" -> data.setDrag(net.minecraft.util.math.MathHelper.clamp(val, 0.1f, 8f));
+								case "maxspeed" -> data.setMaxSpeed(net.minecraft.util.math.MathHelper.clamp(val, 400f, 6000f));
+								default -> {}
+							}
+						} catch (NumberFormatException ignored) {}
+					}
+				}
 			}
 			syncPlayer(player, data);
 		});
@@ -350,7 +373,8 @@ public final class ModNetworking {
 				foot,
 				(float) up.x, (float) up.y, (float) up.z,
 				(float) shipVel.x, (float) shipVel.y, (float) shipVel.z,
-				data.getAccel(), data.getDrag(), data.getMaxSpeed(), data.getAllocEngines()
+				data.getAccel(), data.getDrag(), data.getMaxSpeed(), data.getAllocEngines(),
+				data.getAfterburnerTier()
 		));
 	}
 

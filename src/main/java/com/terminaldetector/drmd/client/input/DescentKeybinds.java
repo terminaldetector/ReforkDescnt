@@ -26,6 +26,7 @@ public final class DescentKeybinds {
 	public static KeyBinding descend;
 	public static KeyBinding hook;
 	public static KeyBinding workshop;
+	public static KeyBinding customize;
 	public static KeyBinding rocketMode;
 	public static KeyBinding resetRoll;
 
@@ -75,6 +76,7 @@ public final class DescentKeybinds {
 		descend = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.descend", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_CONTROL, "key.category.drmd"));
 		hook = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.hook", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_Z, "key.category.drmd"));
 		workshop = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.workshop", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_M, "key.category.drmd"));
+		customize = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.customize", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, "key.category.drmd"));
 		rocketMode = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.rocket_mode", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "key.category.drmd"));
 		resetRoll = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.reset_roll", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_X, "key.category.drmd"));
 	}
@@ -117,6 +119,7 @@ public final class DescentKeybinds {
 			sendAction("reset_roll");
 		}
 		while (workshop.wasPressed()) DescentClient.openWorkshop();
+		while (customize.wasPressed()) DescentClient.openShipCustomize();
 		if (hook.isPressed()) hookQueued = true;
 
 		if (en && client.player != null) {

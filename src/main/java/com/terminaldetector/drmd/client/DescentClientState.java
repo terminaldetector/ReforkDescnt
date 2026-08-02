@@ -13,6 +13,8 @@ public final class DescentClientState {
 	public static float dashCd;
 	public static float gravityFactor;
 	public static boolean alwaysRun;
+	/** Afterburner accelerator grade 1..4 (traffic light). */
+	public static int afterburnerTier = 2;
 	public static boolean flightAssist = true;
 	public static boolean radar = true;
 	/** 0..0.85 local smoke density for HUD / tactics. */

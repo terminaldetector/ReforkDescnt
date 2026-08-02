@@ -86,6 +86,16 @@ public class DescentSettingsScreen extends Screen {
 		// Controls get their own row rather than a scattering of hints. Thirteen of the mod's
 		// actions are bound keys — roll, dash, assist, hook, workshop — and none of them is
 		// discoverable from this screen otherwise.
+		addDrawableChild(ButtonWidget.builder(Text.translatable("options.drmd.ship_customize"),
+						b -> {
+							if (this.client != null) {
+								this.client.setScreen(new ShipCustomizeScreen(this));
+							}
+						})
+				.tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(
+						Text.translatable("options.drmd.ship_customize.tip")))
+				.dimensions(cx - 100, y, 200, 20).build());
+		y += ROW;
 		addDrawableChild(ButtonWidget.builder(Text.translatable("options.drmd.controls"),
 						b -> {
 							if (this.client != null) {

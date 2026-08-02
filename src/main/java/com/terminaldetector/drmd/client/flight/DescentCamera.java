@@ -188,7 +188,9 @@ public final class DescentCamera {
 	public static float fovBoost() {
 		if (!DescentClientState.enabled || !com.terminaldetector.drmd.client.config.DescentConfig.cameraShake) return 0;
 		float boost = 0;
-		if (DescentClientState.alwaysRun) boost += 6f;
+		if (DescentClientState.alwaysRun) {
+			boost += com.terminaldetector.drmd.flight.AfterburnerTiers.fovBoost(DescentClientState.afterburnerTier);
+		}
 		// speed is blocks/second; the hull tops out near 28, so scale across that whole range
 		// instead of pinning the stretch on at walking pace.
 		boost += MathHelper.clamp(DescentClientState.speed / 28f, 0f, 1f) * 4f;

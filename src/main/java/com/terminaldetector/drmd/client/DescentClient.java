@@ -64,6 +64,8 @@ public class DescentClient implements ClientModInitializer {
 			DescentClientState.drag = payload.drag();
 			DescentClientState.maxSpeed = payload.maxSpeed();
 			DescentClientState.allocEngines = payload.allocEngines();
+			DescentClientState.afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers
+					.clamp(payload.afterburnerTier());
 			var player = context.client().player;
 			if (player != null && payload.enabled() && !player.isSpectator()) {
 				// Authority, not command: the client runs its own copy of the integrator and
@@ -197,5 +199,10 @@ public class DescentClient implements ClientModInitializer {
 
 	public static void openWorkshop() {
 		MinecraftClient.getInstance().setScreen(new WorkshopScreen());
+	}
+
+	public static void openShipCustomize() {
+		MinecraftClient mc = MinecraftClient.getInstance();
+		mc.setScreen(new com.terminaldetector.drmd.client.screen.ShipCustomizeScreen(mc.currentScreen));
 	}
 }

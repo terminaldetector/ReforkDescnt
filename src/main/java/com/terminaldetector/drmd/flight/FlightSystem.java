@@ -90,10 +90,11 @@ public final class FlightSystem {
 			}
 		}
 
-		// Descent afterburner cruise: hold R → burn energy, boost, and keep nose thrust if stick idle.
+		// Descent afterburner cruise: hold R → burn energy (tier cost), boost, idle nose thrust.
+		int abTier = data.getAfterburnerTier();
 		boolean afterburner = in.afterburner;
 		if (afterburner) {
-			if (!EnergySystem.tryConsume(data, "engines", EnergySystem.ALWAYS_RUN_COST_PER_SEC * dt)) {
+			if (!EnergySystem.tryConsume(data, "engines", AfterburnerTiers.costPerSec(abTier) * dt)) {
 				afterburner = false;
 				in.afterburner = false;
 			}
@@ -139,8 +140,8 @@ public final class FlightSystem {
 		data.setThrustSpool(spool);
 
 		float engAlloc = data.getAllocEngines();
-		float accelMult = afterburner ? MathHelper.lerp(engAlloc, 1.35f, 2.05f) : 1f;
-		float speedMult = afterburner ? MathHelper.lerp(engAlloc, 1.35f, 1.95f) : 1f;
+		float accelMult = afterburner ? AfterburnerTiers.accelMult(abTier, engAlloc) : 1f;
+		float speedMult = afterburner ? AfterburnerTiers.speedMult(abTier, engAlloc) : 1f;
 
 		// Atmospheric bands: thin air / near-space / End vacuum → less drag, more thrust
 		var level = com.terminaldetector.drmd.world.level.WorldLevels.at(player.getY());
