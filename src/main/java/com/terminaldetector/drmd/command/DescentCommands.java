@@ -383,36 +383,50 @@ public final class DescentCommands {
 										return 1;
 									})))
 					.then(CommandManager.literal("megacity")
-							.executes(ctx -> {
-								ServerPlayerEntity p = ctx.getSource().getPlayer();
-								String tip = com.terminaldetector.drmd.world.surface.MegacityRegions
-										.describeNearest(p.getBlockX(), p.getBlockZ());
-								boolean here = com.terminaldetector.drmd.world.surface.MegacityRegions
-										.isInBiome(p.getBlockX(), p.getBlockZ());
-								ctx.getSource().sendFeedback(() -> Text.literal(
-										(here ? "§aInside megacity biome · " : "§7")
-												+ tip
-												+ " §8· not at spawn — explore the plate"), false);
-								return 1;
-							})
+							.executes(ctx -> plateStatus(ctx, "megacity",
+									com.terminaldetector.drmd.world.surface.MegacityRegions
+											.describeNearest(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ()),
+									com.terminaldetector.drmd.world.surface.MegacityRegions
+											.isInBiome(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ())))
 							.then(CommandManager.literal("tp")
 									.requires(s -> s.hasPermissionLevel(2))
-									.executes(ctx -> {
-										ServerPlayerEntity p = ctx.getSource().getPlayer();
-										var a = com.terminaldetector.drmd.world.surface.MegacityRegions
-												.findNearest(p.getBlockX(), p.getBlockZ());
-										if (a == null) {
-											ctx.getSource().sendError(Text.literal("No megacity plate found"));
-											return 0;
-										}
-										var world = p.getServerWorld();
-										int y = world.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
-												a.getX(), a.getZ()) + 8;
-										p.requestTeleport(a.getX() + 0.5, y, a.getZ() + 0.5);
-										ctx.getSource().sendFeedback(() -> Text.literal(
-												"Teleported to megacity biome plate @ " + a.getX() + " " + a.getZ()), true);
-										return 1;
-									})))
+									.executes(ctx -> plateTp(ctx,
+											com.terminaldetector.drmd.world.surface.MegacityRegions
+													.findNearest(ctx.getSource().getPlayer().getBlockX(),
+															ctx.getSource().getPlayer().getBlockZ()),
+											"megacity"))))
+					.then(CommandManager.literal("technogenic")
+							.executes(ctx -> plateStatus(ctx, "technogenic_sea",
+									com.terminaldetector.drmd.world.surface.TechnogenicSeaRegions
+											.describeNearest(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ()),
+									com.terminaldetector.drmd.world.surface.TechnogenicSeaRegions
+											.isInBiome(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ())))
+							.then(CommandManager.literal("tp")
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> plateTp(ctx,
+											com.terminaldetector.drmd.world.surface.TechnogenicSeaRegions
+													.findNearest(ctx.getSource().getPlayer().getBlockX(),
+															ctx.getSource().getPlayer().getBlockZ()),
+											"technogenic sea"))))
+					.then(CommandManager.literal("scorched")
+							.executes(ctx -> plateStatus(ctx, "scorched_lands",
+									com.terminaldetector.drmd.world.surface.ScorchedLandsRegions
+											.describeNearest(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ()),
+									com.terminaldetector.drmd.world.surface.ScorchedLandsRegions
+											.isInBiome(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ())))
+							.then(CommandManager.literal("tp")
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> plateTp(ctx,
+											com.terminaldetector.drmd.world.surface.ScorchedLandsRegions
+													.findNearest(ctx.getSource().getPlayer().getBlockX(),
+															ctx.getSource().getPlayer().getBlockZ()),
+											"scorched lands"))))
 					.then(CommandManager.literal("psychedelic")
 							.executes(ctx -> {
 								var server = ctx.getSource().getServer();
@@ -549,5 +563,33 @@ public final class DescentCommands {
 							}))
 			);
 		});
+	}
+
+	private static int plateStatus(com.mojang.brigadier.context.CommandContext<net.minecraft.server.command.ServerCommandSource> ctx,
+								   String name, String tip, boolean here)
+			throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+		ctx.getSource().getPlayer(); // require player
+		ctx.getSource().sendFeedback(() -> Text.literal(
+				(here ? "§aInside " + name + " · " : "§7")
+						+ tip
+						+ " §8· biome plate · /d6 " + name.split("_")[0] + " tp"), false);
+		return 1;
+	}
+
+	private static int plateTp(com.mojang.brigadier.context.CommandContext<net.minecraft.server.command.ServerCommandSource> ctx,
+							   net.minecraft.util.math.BlockPos anchor, String label)
+			throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+		ServerPlayerEntity p = ctx.getSource().getPlayer();
+		if (anchor == null) {
+			ctx.getSource().sendError(Text.literal("No " + label + " plate found"));
+			return 0;
+		}
+		var world = p.getServerWorld();
+		int y = world.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+				anchor.getX(), anchor.getZ()) + 8;
+		p.requestTeleport(anchor.getX() + 0.5, y, anchor.getZ() + 0.5);
+		ctx.getSource().sendFeedback(() -> Text.literal(
+				"Teleported to " + label + " @ " + anchor.getX() + " " + anchor.getZ()), true);
+		return 1;
 	}
 }

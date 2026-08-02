@@ -41,9 +41,9 @@ public final class WorldFeatures {
 	public static final boolean MACRO_WORLDGEN = false;
 
 	/**
-	 * HL2-style surface campaign without full macro WG2: spawn lunar hub (Descent 1) +
-	 * hub satellites, and {@code drmd:megacity} biome plates elsewhere in the world
-	 * (not at spawn — see {@link com.terminaldetector.drmd.world.surface.MegacityRegions}).
+	 * Surface campaign without full macro WG2: spawn lunar hub + hub satellites, and
+	 * biome plates elsewhere — {@code drmd:megacity}, {@code drmd:technogenic_sea},
+	 * {@code drmd:scorched_lands} (not at spawn).
 	 */
 	public static final boolean SURFACE_DISTRICTS = true;
 

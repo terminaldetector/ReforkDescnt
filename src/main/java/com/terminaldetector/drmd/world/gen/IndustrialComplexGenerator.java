@@ -152,6 +152,7 @@ public final class IndustrialComplexGenerator {
 			case CRYSTAL_REACTOR -> Blocks.AMETHYST_BLOCK.getDefaultState();
 			case ANCIENT_POWER -> Blocks.CRYING_OBSIDIAN.getDefaultState();
 			case SMELTERY -> Blocks.MAGMA_BLOCK.getDefaultState();
+			case SUBSEA_LOCATOR -> Blocks.DARK_PRISMARINE.getDefaultState();
 			default -> Blocks.RESPAWN_ANCHOR.getDefaultState();
 		};
 		BlockPos.Mutable m = new BlockPos.Mutable();

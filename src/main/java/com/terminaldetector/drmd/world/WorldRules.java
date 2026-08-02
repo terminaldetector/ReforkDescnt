@@ -73,7 +73,9 @@ public final class WorldRules {
 	}
 
 	public enum ComplexStyle {
-		ABANDONED_RESEARCH, ANCIENT_POWER, AUTO_FACTORY, SMELTERY, CRYSTAL_REACTOR, TECH_RUINS
+		ABANDONED_RESEARCH, ANCIENT_POWER, AUTO_FACTORY, SMELTERY, CRYSTAL_REACTOR, TECH_RUINS,
+		/** Underwater 6DoF dungeon under technogenic sea locators. */
+		SUBSEA_LOCATOR
 	}
 
 	public enum ModuleType {

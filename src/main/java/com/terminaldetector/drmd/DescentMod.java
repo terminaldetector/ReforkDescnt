@@ -46,6 +46,8 @@ public class DescentMod implements ModInitializer {
 		com.terminaldetector.drmd.world.gen.ModWorldgen.register();
 		com.terminaldetector.drmd.world.gen2.ModWorldgen2.register();
 		com.terminaldetector.drmd.world.surface.MegacityBiomeWorldgen.register();
+		com.terminaldetector.drmd.world.surface.TechnogenicSeaBiomeWorldgen.register();
+		com.terminaldetector.drmd.world.surface.ScorchedLandsBiomeWorldgen.register();
 		com.terminaldetector.drmd.world.level.LevelBuilder.register();
 		WeaponRegistry.bootstrap();
 		DescentCommands.register();

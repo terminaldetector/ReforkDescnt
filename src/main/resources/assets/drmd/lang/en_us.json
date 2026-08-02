@@ -113,6 +113,8 @@
   "item.drmd.weapon_d6_fusion": "Fusion Cannon",
   "menu.drmd.settings": "DRMD 6DOF…",
   "biome.drmd.megacity": "Megacity Plate",
+  "biome.drmd.technogenic_sea": "Technogenic Sea",
+  "biome.drmd.scorched_lands": "Scorched Lands",
   "screen.drmd.settings": "DRMD 6DOF — Options",
   "options.drmd.keys_hint": "H toggle · Q/E roll · Space/Ctrl slide · Shift dash · F dampeners · R afterburner · N customize · X level · T radar · G rocket mode · Z grapple · M workshop",
   "options.drmd.cockpit": "3D cockpit",

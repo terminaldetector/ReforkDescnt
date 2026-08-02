@@ -159,9 +159,8 @@ public final class DescentSession {
 			String cityTip = com.terminaldetector.drmd.world.surface.MegacityRegions
 					.describeNearest(player.getBlockX(), player.getBlockZ());
 			player.sendMessage(Text.literal(
-					"§7Megacity is a §fbiome plate§7 far from spawn — " + cityTip), false);
-			player.sendMessage(Text.literal(
-					"§8/d6 megacity · explore until F3 shows drmd:megacity"), false);
+					"§7Biome plates far from spawn — megacity · technogenic sea · scorched lands"), false);
+			player.sendMessage(Text.literal("§8" + cityTip + " · /d6 megacity|technogenic|scorched"), false);
 			if (player.isCreative()) {
 				player.giveItemStack(new ItemStack(ModItems.PYRO_GX));
 				player.sendMessage(Text.literal("§aCreative: Pyro GX given — right-click to deploy."), false);

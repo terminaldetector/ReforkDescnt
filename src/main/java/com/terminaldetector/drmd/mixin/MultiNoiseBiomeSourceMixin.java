@@ -2,6 +2,8 @@ package com.terminaldetector.drmd.mixin;
 
 import com.terminaldetector.drmd.world.WorldFeatures;
 import com.terminaldetector.drmd.world.surface.MegacityRegions;
+import com.terminaldetector.drmd.world.surface.ScorchedLandsRegions;
+import com.terminaldetector.drmd.world.surface.TechnogenicSeaRegions;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.source.MultiNoiseBiomeSource;
@@ -12,21 +14,37 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Injects {@code drmd:megacity} plates into Overworld multi-noise sampling.
- * Coordinates are quart-space (block / 4), same as vanilla biome source.
+ * Injects DRMD plate biomes into Overworld multi-noise sampling.
+ * Quart-space coords (block / 4). Order: megacity → technogenic sea → scorched lands.
  */
 @Mixin(MultiNoiseBiomeSource.class)
 public class MultiNoiseBiomeSourceMixin {
 	@Inject(method = "getBiome", at = @At("HEAD"), cancellable = true)
-	private void drmd$megacityBiome(int x, int y, int z, MultiNoiseUtil.MultiNoiseSampler noise,
-									CallbackInfoReturnable<RegistryEntry<Biome>> cir) {
+	private void drmd$plateBiomes(int x, int y, int z, MultiNoiseUtil.MultiNoiseSampler noise,
+								  CallbackInfoReturnable<RegistryEntry<Biome>> cir) {
 		if (!WorldFeatures.SURFACE_DISTRICTS) return;
-		if (!MegacityRegions.isBound()) return;
-		RegistryEntry<Biome> entry = MegacityRegions.biomeEntry();
-		if (entry == null) return;
 		int bx = x << 2;
 		int bz = z << 2;
-		if (!MegacityRegions.isInBiome(bx, bz)) return;
-		cir.setReturnValue(entry);
+
+		if (MegacityRegions.isBound() && MegacityRegions.isInBiome(bx, bz)) {
+			RegistryEntry<Biome> e = MegacityRegions.biomeEntry();
+			if (e != null) {
+				cir.setReturnValue(e);
+				return;
+			}
+		}
+		if (TechnogenicSeaRegions.isBound() && TechnogenicSeaRegions.isInBiome(bx, bz)) {
+			RegistryEntry<Biome> e = TechnogenicSeaRegions.biomeEntry();
+			if (e != null) {
+				cir.setReturnValue(e);
+				return;
+			}
+		}
+		if (ScorchedLandsRegions.isBound() && ScorchedLandsRegions.isInBiome(bx, bz)) {
+			RegistryEntry<Biome> e = ScorchedLandsRegions.biomeEntry();
+			if (e != null) {
+				cir.setReturnValue(e);
+			}
+		}
 	}
 }

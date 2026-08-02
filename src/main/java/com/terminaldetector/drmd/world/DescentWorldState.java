@@ -23,8 +23,10 @@ public class DescentWorldState extends PersistentState {
 	private boolean psychedelic;
 	/** Fractal variant index baked into this world (0..N-1). */
 	private int psychedelicVariant = -1;
-	/** Packed megacity plate anchors already queued (x<<32|z). */
+	/** Packed plate anchors already queued (x<<32|z). */
 	private final Set<Long> megacitySeeded = new HashSet<>();
+	private final Set<Long> technogenicSeeded = new HashSet<>();
+	private final Set<Long> scorchedSeeded = new HashSet<>();
 
 	public static DescentWorldState get(ServerWorld world) {
 		PersistentStateManager mgr = world.getPersistentStateManager();
@@ -39,12 +41,9 @@ public class DescentWorldState extends PersistentState {
 		s.stockSeeded = nbt.getBoolean("stockSeeded");
 		s.psychedelic = nbt.getBoolean("psychedelic");
 		s.psychedelicVariant = nbt.contains("psychedelicVariant") ? nbt.getInt("psychedelicVariant") : -1;
-		if (nbt.contains("megacitySeeded")) {
-			NbtList list = nbt.getList("megacitySeeded", net.minecraft.nbt.NbtElement.LONG_TYPE);
-			for (int i = 0; i < list.size(); i++) {
-				s.megacitySeeded.add(((NbtLong) list.get(i)).longValue());
-			}
-		}
+		readPacked(nbt, "megacitySeeded", s.megacitySeeded);
+		readPacked(nbt, "technogenicSeeded", s.technogenicSeeded);
+		readPacked(nbt, "scorchedSeeded", s.scorchedSeeded);
 		return s;
 	}
 
@@ -54,12 +53,24 @@ public class DescentWorldState extends PersistentState {
 		nbt.putBoolean("stockSeeded", stockSeeded);
 		nbt.putBoolean("psychedelic", psychedelic);
 		nbt.putInt("psychedelicVariant", psychedelicVariant);
-		NbtList list = new NbtList();
-		for (long p : megacitySeeded) {
-			list.add(NbtLong.of(p));
-		}
-		nbt.put("megacitySeeded", list);
+		writePacked(nbt, "megacitySeeded", megacitySeeded);
+		writePacked(nbt, "technogenicSeeded", technogenicSeeded);
+		writePacked(nbt, "scorchedSeeded", scorchedSeeded);
 		return nbt;
+	}
+
+	private static void readPacked(NbtCompound nbt, String key, Set<Long> into) {
+		if (!nbt.contains(key)) return;
+		NbtList list = nbt.getList(key, net.minecraft.nbt.NbtElement.LONG_TYPE);
+		for (int i = 0; i < list.size(); i++) {
+			into.add(((NbtLong) list.get(i)).longValue());
+		}
+	}
+
+	private static void writePacked(NbtCompound nbt, String key, Set<Long> from) {
+		NbtList list = new NbtList();
+		for (long p : from) list.add(NbtLong.of(p));
+		nbt.put(key, list);
 	}
 
 	public boolean isSpawnHubGenerated() { return spawnHubGenerated; }
@@ -80,6 +91,22 @@ public class DescentWorldState extends PersistentState {
 
 	public void markMegacitySeeded(int x, int z) {
 		if (megacitySeeded.add(pack(x, z))) markDirty();
+	}
+
+	public boolean isTechnogenicSeeded(int x, int z) {
+		return technogenicSeeded.contains(pack(x, z));
+	}
+
+	public void markTechnogenicSeeded(int x, int z) {
+		if (technogenicSeeded.add(pack(x, z))) markDirty();
+	}
+
+	public boolean isScorchedSeeded(int x, int z) {
+		return scorchedSeeded.contains(pack(x, z));
+	}
+
+	public void markScorchedSeeded(int x, int z) {
+		if (scorchedSeeded.add(pack(x, z))) markDirty();
 	}
 
 	private static long pack(int x, int z) {
