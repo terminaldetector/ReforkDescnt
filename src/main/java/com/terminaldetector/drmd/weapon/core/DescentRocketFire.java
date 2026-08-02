@@ -92,9 +92,8 @@ public final class DescentRocketFire {
 		double yaw = Math.toRadians((user.getRandom().nextDouble() - 0.5) * 2 * deg);
 		double pitch = Math.toRadians((user.getRandom().nextDouble() - 0.5) * 2 * deg);
 		Vec3d f = aim.normalize();
-		Vec3d right = f.crossProduct(new Vec3d(0, 1, 0));
-		if (right.lengthSquared() < 1e-6) right = new Vec3d(1, 0, 0);
-		right = right.normalize();
+		// Pole-safe: never cross world +Y (collapses past vertical).
+		Vec3d right = com.terminaldetector.drmd.flight.ShipAttitude.levelRightOf(f);
 		Vec3d up = right.crossProduct(f).normalize();
 		return f.add(right.multiply(Math.sin(yaw))).add(up.multiply(Math.sin(pitch))).normalize();
 	}

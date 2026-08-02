@@ -111,13 +111,20 @@ public final class BombardVillageGoal extends Goal {
 			case SEEKER -> OrdnanceType.LASER_GUIDED;
 			default -> OrdnanceType.CLUSTER;
 		};
-		Vec3d drop = drone.getPos().add(0, -0.8, 0);
-		bomb.refreshPositionAndAngles(drop.x, drop.y, drop.z, drone.getYaw(), 90);
-		bomb.setVelocity(drone.getVelocity().multiply(0.4).add(0, -0.35, 0));
+		// Body-down eject from drone attitude (360°-safe), not world −Y + pitch 90.
+		Vec3d fwd = drone.getRotationVec(1f);
+		Vec3d right = com.terminaldetector.drmd.flight.ShipAttitude.levelRightOf(fwd);
+		Vec3d down = fwd.crossProduct(right).normalize().multiply(-1);
+		if (down.lengthSquared() < 1e-6) down = new Vec3d(0, -1, 0);
+		Vec3d drop = drone.getPos().add(down.multiply(0.9));
+		bomb.refreshPositionAndAngles(drop.x, drop.y, drop.z, 0f, 0f);
+		Vec3d eject = drone.getVelocity().multiply(0.55).add(down.multiply(0.45)).add(fwd.multiply(0.2));
+		bomb.setVelocity(eject);
 		bomb.configure(type, drone, villageAim);
 		sw.spawnEntity(bomb);
 		com.terminaldetector.drmd.world.smoke.SmokeSystem.emit(
-				drop, com.terminaldetector.drmd.world.smoke.SmokeSystem.Source.BOMB_TRAIL, 0.7f, 0.4f, 40);
+				drop, com.terminaldetector.drmd.world.smoke.SmokeSystem.Source.BOMB_TRAIL, 0.7f, 0.4f, 40,
+				down.multiply(0.03));
 	}
 
 	private BlockPos findVillageFocus() {

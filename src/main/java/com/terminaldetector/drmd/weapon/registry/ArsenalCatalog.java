@@ -18,7 +18,7 @@ public final class ArsenalCatalog {
 	private ArsenalCatalog() {}
 
 	public enum Family {
-		LASER, BLASTER, ROCKET, MINE, UNIQUE, DRILL, BUILD
+		LASER, BLASTER, ROCKET, MINE, UNIQUE, DRILL, BUILD, ORDNANCE
 	}
 
 	public record Entry(String id, Family family, String label, String hudSlot) {}
@@ -58,6 +58,15 @@ public final class ArsenalCatalog {
 		put("bfg", Family.UNIQUE, "BFG", "BFG");
 		put("beam_lance", Family.UNIQUE, "Лучевой снаряд", "BEAM");
 		put("warp", Family.UNIQUE, "Телепорт", "WARP");
+
+		// 6) Droppable bomb bay (cluster / rocket / guided…) — kept for release
+		put("bomb_tnt", Family.ORDNANCE, "Бомба ТНТ", "BOMB");
+		put("bomb_cluster", Family.ORDNANCE, "Кассетная", "CLUSTER");
+		put("bomb_heavy_cluster", Family.ORDNANCE, "Тяж. кассета", "H-CLST");
+		put("bomb_rocket", Family.ORDNANCE, "Ракетный отсек", "B-RKT");
+		put("bomb_incendiary", Family.ORDNANCE, "Зажигательная", "INCEND");
+		put("bomb_guided", Family.ORDNANCE, "Управляемая", "GUIDED");
+		put("laser_designator", Family.ORDNANCE, "Целеуказатель", "DESIGN");
 	}
 
 	private static void put(String id, Family family, String label, String hud) {
@@ -105,7 +114,14 @@ public final class ArsenalCatalog {
 				ModItems.MINE_SMART,
 				ModItems.BFG,
 				ModItems.BEAM_LANCE,
-				ModItems.WARP
+				ModItems.WARP,
+				ModItems.BOMB_TNT,
+				ModItems.BOMB_CLUSTER,
+				ModItems.BOMB_HEAVY_CLUSTER,
+				ModItems.BOMB_ROCKET,
+				ModItems.BOMB_INCENDIARY,
+				ModItems.BOMB_GUIDED,
+				ModItems.LASER_DESIGNATOR
 		};
 	}
 

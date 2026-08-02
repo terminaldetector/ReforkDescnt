@@ -612,9 +612,7 @@ public class DescentWeaponItem extends Item {
 		double yaw = Math.toRadians((random.nextDouble() - 0.5) * 2 * degrees);
 		double pitch = Math.toRadians((random.nextDouble() - 0.5) * 2 * degrees);
 		Vec3d d = dir.normalize();
-		Vec3d right = d.crossProduct(new Vec3d(0, 1, 0));
-		if (right.lengthSquared() < 1e-6) right = new Vec3d(1, 0, 0);
-		right = right.normalize();
+		Vec3d right = com.terminaldetector.drmd.flight.ShipAttitude.levelRightOf(d);
 		Vec3d up = right.crossProduct(d).normalize();
 		return d.add(right.multiply(Math.tan(yaw))).add(up.multiply(Math.tan(pitch))).normalize();
 	}

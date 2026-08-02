@@ -71,7 +71,8 @@ public final class BombardmentItems {
 				eject = eject.add(fwd.multiply(1.55)).add(up.multiply(-0.1));
 			}
 
-			bomb.refreshPositionAndAngles(drop.x, drop.y, drop.z, user.getYaw(), 90);
+			// Velocity carries attitude — no Euler pitch=90 (breaks past-vertical / banked drops).
+			bomb.refreshPositionAndAngles(drop.x, drop.y, drop.z, 0f, 0f);
 			bomb.setVelocity(eject);
 			bomb.configure(ordnance, user, LASER_MARKS.get(user.getUuid()));
 			sw.spawnEntity(bomb);
@@ -99,7 +100,9 @@ public final class BombardmentItems {
 			ItemStack stack = user.getStackInHand(hand);
 			if (world.isClient) return TypedActionResult.success(stack);
 			Vec3d eye = user.getEyePos();
-			Vec3d end = eye.add(user.getRotationVec(1f).multiply(256));
+			// Ship-forward aim so laser marks work inverted / past vertical.
+			Vec3d aim = com.terminaldetector.drmd.weapon.core.WeaponCore.aimDir(user);
+			Vec3d end = eye.add(aim.multiply(256));
 			BlockHitResult hit = world.raycast(new RaycastContext(eye, end,
 					RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, user));
 			if (hit.getType() == HitResult.Type.BLOCK) {

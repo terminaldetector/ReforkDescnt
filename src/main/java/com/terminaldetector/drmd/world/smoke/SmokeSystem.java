@@ -52,9 +52,17 @@ public final class SmokeSystem {
 	}
 
 	public static void emit(Vec3d pos, Source source, float radius, float density, int lifeTicks) {
+		emit(pos, source, radius, density, lifeTicks, null);
+	}
+
+	/**
+	 * @param velOverride when non-null, used as the cloud drift (e.g. bomb trail streaming
+	 *                    aft of a 6DoF round). Otherwise source defaults apply.
+	 */
+	public static void emit(Vec3d pos, Source source, float radius, float density, int lifeTicks, Vec3d velOverride) {
 		AtmosphereBand band = AtmosphereBand.at(pos.y);
 		int life = (int) (lifeTicks * band.smokeLifeScale());
-		Vec3d vel = switch (source) {
+		Vec3d vel = velOverride != null ? velOverride : switch (source) {
 			case BOMB_TRAIL -> new Vec3d(0, 0.02, 0);
 			case ENGINE -> new Vec3d(0, 0.05, 0);
 			case VOLCANO, REACTOR -> new Vec3d(0, 0.12, 0);

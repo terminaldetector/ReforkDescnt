@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.world.bombardment;
 
 import com.terminaldetector.drmd.entity.ModEntities;
+import com.terminaldetector.drmd.world.LocalOrientation;
 import com.terminaldetector.drmd.world.atmosphere.AtmosphereBand;
 import com.terminaldetector.drmd.world.atmosphere.AtmosphereRules;
 import com.terminaldetector.drmd.world.fire.FireSystem;
@@ -25,6 +26,10 @@ import java.util.UUID;
 /**
  * Falling / powered aerial munition — smoke trail, thin-air accel, crater on impact.
  * Clusters burst mid-air into physically scattered submunitions.
+ *
+ * <p>Physics and tracers are attitude-safe for full 360° / 6DoF: gravity follows the
+ * owner's local DOWN when known, fins stabilize along that axis (no Euler yaw/pitch),
+ * and trails stream aft of velocity rather than world +Y.
  */
 public class AerialBombEntity extends Entity {
 	private OrdnanceType type = OrdnanceType.TNT_BOMB;
@@ -61,6 +66,15 @@ public class AerialBombEntity extends Entity {
 		return type;
 	}
 
+	/** Local DOWN for this round — owner's foot gravity when available, else world −Y. */
+	private Vec3d gravityDir() {
+		if (ownerId != null) {
+			Vec3d g = LocalOrientation.gravityDir(ownerId);
+			if (g.lengthSquared() > 1e-8) return g.normalize();
+		}
+		return new Vec3d(0, -1, 0);
+	}
+
 	@Override
 	protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder) {}
 
@@ -68,29 +82,41 @@ public class AerialBombEntity extends Entity {
 	public void tick() {
 		super.tick();
 		ageTicks++;
+		Vec3d vel = getVelocity();
+		Vec3d aft = vel.lengthSquared() > 1e-6 ? vel.normalize().multiply(-1) : gravityDir();
+
 		if (getWorld().isClient) {
 			float r = ((type.trailColor >> 16) & 0xFF) / 255f;
 			float g = ((type.trailColor >> 8) & 0xFF) / 255f;
 			float b = (type.trailColor & 0xFF) / 255f;
 			float size = type.rocket ? 1.7f : 1.4f;
+			// Tracer bead at the round + dust streaming aft (works inverted / banked).
 			getWorld().addParticle(new DustParticleEffect(new Vector3f(r, g, b), size),
-					getX(), getY(), getZ(), 0, 0.05, 0);
-			getWorld().addParticle(ParticleTypes.LARGE_SMOKE, getX(), getY() + 0.2, getZ(), 0, 0.02, 0);
+					getX(), getY(), getZ(), 0, 0, 0);
+			Vec3d trail = aft.multiply(0.12);
+			getWorld().addParticle(new DustParticleEffect(new Vector3f(r * 0.7f, g * 0.7f, b * 0.7f), size * 0.75f),
+					getX() + trail.x, getY() + trail.y, getZ() + trail.z, 0, 0, 0);
+			getWorld().addParticle(ParticleTypes.LARGE_SMOKE,
+					getX() + aft.x * 0.25, getY() + aft.y * 0.25, getZ() + aft.z * 0.25,
+					aft.x * 0.02, aft.y * 0.02, aft.z * 0.02);
 			if (type.rocket) {
-				getWorld().addParticle(ParticleTypes.FLAME, getX(), getY(), getZ(), 0, -0.02, 0);
+				getWorld().addParticle(ParticleTypes.FLAME,
+						getX() + aft.x * 0.15, getY() + aft.y * 0.15, getZ() + aft.z * 0.15,
+						aft.x * 0.04, aft.y * 0.04, aft.z * 0.04);
 			}
 			if (ageTicks % 2 == 0) {
-				SmokeSystem.emit(getPos(), SmokeSystem.Source.BOMB_TRAIL, 0.6f, 0.45f, 50);
+				SmokeSystem.emit(getPos(), SmokeSystem.Source.BOMB_TRAIL, 0.6f, 0.45f, 50,
+						aft.multiply(0.03));
 			}
 			return;
 		}
 
 		AtmosphereBand band = AtmosphereBand.at(getY());
-		Vec3d vel = getVelocity();
+		Vec3d gDir = gravityDir();
 
 		if (type.rocket && !submunition) {
-			// Powered rocket: thrust along nose (velocity bias + mild gravity).
-			Vec3d nose = vel.lengthSquared() > 1e-4 ? vel.normalize() : new Vec3d(0, -1, 0);
+			// Powered rocket: thrust along nose (velocity), laser bias, mild local-g.
+			Vec3d nose = vel.lengthSquared() > 1e-4 ? vel.normalize() : gDir;
 			if (laserTarget != null) {
 				Vec3d to = Vec3d.ofCenter(laserTarget).subtract(getPos());
 				if (to.lengthSquared() > 1e-6) {
@@ -98,12 +124,23 @@ public class AerialBombEntity extends Entity {
 				}
 			}
 			double thrust = 0.085 + (1.0 - band.airDrag) * 0.04;
-			vel = vel.add(nose.multiply(thrust)).add(0, -0.018, 0);
+			vel = vel.add(nose.multiply(thrust)).add(gDir.multiply(0.018));
 			vel = vel.multiply(0.995);
 		} else {
 			double grav = 0.04 + (1.0 - band.airDrag) * 0.03;
-			vel = vel.add(0, -grav, 0);
+			vel = vel.add(gDir.multiply(grav));
 			vel = vel.multiply(0.99 + (1.0 - band.airDrag) * 0.008);
+			// Fin stabilization: slerp toward local DOWN so free-fall reads in any attitude.
+			if (vel.lengthSquared() > 1e-6) {
+				Vec3d cur = vel.normalize();
+				Vec3d desired = gDir;
+				if (laserTarget != null && (type == OrdnanceType.LASER_GUIDED)) {
+					Vec3d to = Vec3d.ofCenter(laserTarget).subtract(getPos());
+					if (to.lengthSquared() > 1e-6) desired = to.normalize();
+				}
+				Vec3d blended = cur.add(desired.subtract(cur).multiply(0.08)).normalize();
+				vel = blended.multiply(vel.length());
+			}
 		}
 
 		// Laser guidance — stronger for guided / rocket
@@ -120,20 +157,25 @@ public class AerialBombEntity extends Entity {
 		Vec3d next = from.add(vel);
 		Vec3d lookAhead = vel.lengthSquared() > 1e-8
 				? next.add(vel.normalize().multiply(0.5))
-				: next.add(0, -0.5, 0);
+				: next.add(gDir.multiply(0.5));
 
 		if (ageTicks % 2 == 0) {
-			SmokeSystem.emit(from, SmokeSystem.Source.BOMB_TRAIL, 0.6f, 0.45f, 50);
+			Vec3d trailVel = vel.lengthSquared() > 1e-6
+					? vel.normalize().multiply(-0.03)
+					: gDir.multiply(-0.02);
+			SmokeSystem.emit(from, SmokeSystem.Source.BOMB_TRAIL, 0.6f, 0.45f, 50, trailVel);
 		}
 
-		// Cluster: open bay mid-air when ground is close — fragments get flight physics.
+		// Cluster: open bay when ground is close along fall / gravity axis (not world −Y).
 		if (type.cluster && !submunition && !dispensed && ageTicks > 14) {
+			Vec3d probeAxis = vel.lengthSquared() > 1e-4 ? vel.normalize() : gDir;
 			BlockHitResult groundProbe = getWorld().raycast(new net.minecraft.world.RaycastContext(
-					from, from.add(0, -22, 0),
+					from, from.add(probeAxis.multiply(22)),
 					net.minecraft.world.RaycastContext.ShapeType.COLLIDER,
 					net.minecraft.world.RaycastContext.FluidHandling.NONE, this));
+			double fallSpeed = vel.dotProduct(gDir);
 			if (groundProbe.getType() == HitResult.Type.BLOCK
-					|| (vel.y < -0.8 && ageTicks > 35)) {
+					|| (fallSpeed > 0.8 && ageTicks > 35)) {
 				dispenseCluster((ServerWorld) getWorld());
 				return;
 			}
@@ -145,9 +187,12 @@ public class AerialBombEntity extends Entity {
 				net.minecraft.world.RaycastContext.FluidHandling.NONE, this));
 		setPosition(next);
 
+		// Ground contact: prefer hit along velocity; block under feet uses local DOWN, not world.
+		BlockPos downProbe = BlockPos.ofFloored(getPos().add(gDir.multiply(0.35)));
 		boolean grounded = hit.getType() == HitResult.Type.BLOCK
 				|| verticalCollision || horizontalCollision
-				|| (!getWorld().getBlockState(getBlockPos().down()).isAir() && vel.y < 0 && (getY() - Math.floor(getY())) < 0.35);
+				|| (!getWorld().getBlockState(downProbe).isAir()
+				&& vel.dotProduct(gDir) > 0.05);
 
 		if (grounded || ageTicks > 20 * 90) {
 			if (type.cluster && !submunition && !dispensed) {
@@ -167,9 +212,11 @@ public class AerialBombEntity extends Entity {
 		Vec3d parentVel = getVelocity();
 		Vec3d fallAxis = parentVel.lengthSquared() > 1e-4
 				? parentVel.normalize()
-				: new Vec3d(0, -1, 0);
+				: gravityDir();
+		// Pole-safe lateral basis for the cone (no world-up cross).
+		Vec3d right = com.terminaldetector.drmd.flight.ShipAttitude.levelRightOf(fallAxis);
+		Vec3d up = right.crossProduct(fallAxis).normalize();
 
-		// Small opener charge so the canister does not vanish silently.
 		float opener = AtmosphereRules.scaleBlast(getY(), 2.4f * type.blastPower);
 		sw.createExplosion(this, getX(), getY(), getZ(), opener * 0.55f, true, World.ExplosionSourceType.TNT);
 		SmokeSystem.emitExplosion(getPos(), opener);
@@ -177,25 +224,26 @@ public class AerialBombEntity extends Entity {
 		for (int i = 0; i < count; i++) {
 			Vec3d dir;
 			if (type.heavyCluster) {
-				// Full sphere — fragments scream every which way.
 				dir = randomUnit(rng);
 			} else {
-				// Cone ahead/under the canister (forward of fall + lateral).
+				// Cone along fall axis with lateral scatter in ship-safe basis.
 				dir = fallAxis
-						.add((rng.nextDouble() - 0.5) * 1.4,
-								-0.35 - rng.nextDouble() * 0.55,
-								(rng.nextDouble() - 0.5) * 1.4)
+						.add(right.multiply((rng.nextDouble() - 0.5) * 1.4))
+						.add(up.multiply((rng.nextDouble() - 0.5) * 1.4))
+						.add(fallAxis.multiply(0.35 + rng.nextDouble() * 0.55))
 						.normalize();
 			}
 			double speed = outward * (0.75 + rng.nextDouble() * 0.55);
 			Vec3d fragVel = parentVel.multiply(0.55).add(dir.multiply(speed));
 			AerialBombEntity frag = ModEntities.AERIAL_BOMB.create(sw);
 			if (frag == null) continue;
+			// No Euler pitch=90 — orientation is implied by velocity for tracers/mesh.
 			frag.refreshPositionAndAngles(
 					getX() + dir.x * 0.35,
 					getY() + dir.y * 0.35,
 					getZ() + dir.z * 0.35,
-					(float) (rng.nextFloat() * 360f), 90);
+					0f, 0f);
+			frag.setVelocity(fragVel);
 			frag.configureSubmunition(OrdnanceType.TNT_BOMB, ownerId, fragBlast, fragVel);
 			sw.spawnEntity(frag);
 		}
@@ -228,7 +276,6 @@ public class AerialBombEntity extends Entity {
 					type.incendiary ? 20 : (type.rocket ? 12 : 8),
 					type.incendiary ? 7 : (type.rocket ? 5 : 3));
 		}
-		// Deep pressure: extra tunnel shock puff
 		if (AtmosphereBand.at(getY()).highPressure) {
 			SmokeSystem.emit(getPos(), SmokeSystem.Source.TNT, 4f, 0.9f, 120);
 		}

@@ -244,13 +244,6 @@ public final class ModItems {
 					entries.add(EGG_TRIPOD);
 					entries.add(EGG_SCANNER);
 					entries.add(EGG_SPIDER_TURRET);
-					entries.add(BOMB_TNT);
-					entries.add(BOMB_CLUSTER);
-					entries.add(BOMB_HEAVY_CLUSTER);
-					entries.add(BOMB_ROCKET);
-					entries.add(BOMB_INCENDIARY);
-					entries.add(BOMB_GUIDED);
-					entries.add(LASER_DESIGNATOR);
 				})
 				.build());
 

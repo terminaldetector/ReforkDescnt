@@ -47,7 +47,21 @@
 
 `mine_prox` · `mine_plasma` · `mine_energy` · `mine_smart` — proximity fuse, зависают (`gravity=0`).
 
-## 7. Прочее в scope
+## 7. Бомбоотсек (оставляем)
+
+| id | Тип |
+|----|-----|
+| `bomb_tnt` | HE |
+| `bomb_cluster` | кассета |
+| `bomb_heavy_cluster` | тяжёлая кассета |
+| `bomb_rocket` | реактивная |
+| `bomb_incendiary` | зажигательная |
+| `bomb_guided` | лазерная |
+| `laser_designator` | метка |
+
+Физика 360°: выброс с ship F/U, гравитация/стабилизация по local DOWN владельца, трассеры aft-of-velocity, cluster probe вдоль падения, designator по `WeaponCore.aimDir`.
+
+## 8. Прочее в scope
 
 - **Shield / Energy** — пулы как в Descent; орбы `shield_orb` / `energy_orb_pickup` дропаются с дронов и CyberMobs; автоподбор в **LootField** (r≈6.5) при 6DoF.
 - **Строительный лазер** — блок только из **левой руки**, размещение по ship-aim / local UP.
