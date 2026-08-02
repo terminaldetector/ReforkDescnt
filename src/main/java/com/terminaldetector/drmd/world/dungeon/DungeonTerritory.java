@@ -19,7 +19,9 @@ public final class DungeonTerritory {
 		/** {@code drmd:technogenic_sea} plate. */
 		TECHNOGENIC_SEA,
 		/** {@code drmd:scorched_lands} plate. */
-		SCORCHED_LANDS
+		SCORCHED_LANDS,
+		/** {@code drmd:iron_guild} Strafe techno-medieval plate. */
+		IRON_GUILD
 	}
 
 	private DungeonTerritory() {}
@@ -38,6 +40,8 @@ public final class DungeonTerritory {
 					WorldRules.ComplexStyle.SIGNAL_ARRAY, WorldRules.ComplexStyle.HOLLOW_RING);
 			case SCORCHED_LANDS -> pick(salt, WorldRules.ComplexStyle.SMELTERY,
 					WorldRules.ComplexStyle.ANCIENT_POWER, WorldRules.ComplexStyle.WARPED_CAVERN);
+			case IRON_GUILD -> pick(salt, WorldRules.ComplexStyle.SMELTERY,
+					WorldRules.ComplexStyle.AUTO_FACTORY, WorldRules.ComplexStyle.ANCIENT_POWER);
 		};
 	}
 
@@ -50,6 +54,8 @@ public final class DungeonTerritory {
 					WorldRules.ComplexStyle.DRIFT_LAB, WorldRules.ComplexStyle.CRYSTAL_REACTOR);
 			case SCORCHED_LANDS -> pick(salt ^ 0x5C04L, WorldRules.ComplexStyle.ABANDONED_RESEARCH,
 					WorldRules.ComplexStyle.SMELTERY);
+			case IRON_GUILD -> pick(salt ^ 0x1840L, WorldRules.ComplexStyle.TECH_RUINS,
+					WorldRules.ComplexStyle.SMELTERY, WorldRules.ComplexStyle.SIGNAL_ARRAY);
 			default -> primaryStyle(kind, salt ^ 1L);
 		};
 	}
@@ -61,6 +67,7 @@ public final class DungeonTerritory {
 			case MEGACITY -> "Megacity plate";
 			case TECHNOGENIC_SEA -> "Technogenic sea";
 			case SCORCHED_LANDS -> "Scorched lands";
+			case IRON_GUILD -> "Iron guild";
 		};
 	}
 
@@ -77,6 +84,8 @@ public final class DungeonTerritory {
 					: roll < 70 ? DungeonVitality.SEMI_ALIVE : DungeonVitality.DEAD;
 			case SCORCHED_LANDS -> roll < 15 ? DungeonVitality.ALIVE
 					: roll < 45 ? DungeonVitality.SEMI_ALIVE : DungeonVitality.DEAD;
+			case IRON_GUILD -> roll < 40 ? DungeonVitality.SEMI_ALIVE
+					: roll < 70 ? DungeonVitality.ALIVE : DungeonVitality.DEAD;
 			case SURFACE_EVENT -> roll < 20 ? DungeonVitality.ALIVE
 					: roll < 50 ? DungeonVitality.SEMI_ALIVE : DungeonVitality.DEAD;
 			case SPAWN_HUB -> DungeonVitality.DEAD;

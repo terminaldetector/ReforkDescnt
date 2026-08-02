@@ -249,6 +249,14 @@ public final class VoxelLodMesh {
 				boolean crater = disk < 0.28f && y > -0.35f && y < 0.02f;
 				yield ash || ruin || crater;
 			}
+			case IRON_GUILD -> {
+				float disk = x * x + z * z;
+				boolean yard = disk < 1.0f && y > -0.15f && y < 0.06f;
+				boolean hall = Math.abs(x) < 0.35f && Math.abs(z) < 0.28f && y > 0 && y < 0.45f;
+				boolean stack = Math.abs(x - 0.35f) < 0.18f && Math.abs(z - 0.2f) < 0.18f
+						&& y > 0 && y < 0.7f;
+				yield yard || hall || stack;
+			}
 			case KEEPER -> r2 < 0.55f;
 			default -> r2 < 0.85f;
 		};

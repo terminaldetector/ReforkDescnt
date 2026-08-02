@@ -8,7 +8,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
 
 /**
- * Shared sparse seed-grid biome plates (megacity / technogenic sea / scorched lands).
+ * Shared sparse seed-grid biome plates (megacity / technogenic sea / scorched / iron guild).
  */
 public final class BiomePlateRegions {
 	private final Identifier biomeId;

@@ -27,6 +27,7 @@ public class DescentWorldState extends PersistentState {
 	private final Set<Long> megacitySeeded = new HashSet<>();
 	private final Set<Long> technogenicSeeded = new HashSet<>();
 	private final Set<Long> scorchedSeeded = new HashSet<>();
+	private final Set<Long> ironGuildSeeded = new HashSet<>();
 	/** Packed surface-event anchors (UFO / outpost / ruin) already queued. */
 	private final Set<Long> surfaceEventSeeded = new HashSet<>();
 
@@ -46,6 +47,7 @@ public class DescentWorldState extends PersistentState {
 		readPacked(nbt, "megacitySeeded", s.megacitySeeded);
 		readPacked(nbt, "technogenicSeeded", s.technogenicSeeded);
 		readPacked(nbt, "scorchedSeeded", s.scorchedSeeded);
+		readPacked(nbt, "ironGuildSeeded", s.ironGuildSeeded);
 		readPacked(nbt, "surfaceEventSeeded", s.surfaceEventSeeded);
 		return s;
 	}
@@ -59,6 +61,7 @@ public class DescentWorldState extends PersistentState {
 		writePacked(nbt, "megacitySeeded", megacitySeeded);
 		writePacked(nbt, "technogenicSeeded", technogenicSeeded);
 		writePacked(nbt, "scorchedSeeded", scorchedSeeded);
+		writePacked(nbt, "ironGuildSeeded", ironGuildSeeded);
 		writePacked(nbt, "surfaceEventSeeded", surfaceEventSeeded);
 		return nbt;
 	}
@@ -111,6 +114,14 @@ public class DescentWorldState extends PersistentState {
 
 	public void markScorchedSeeded(int x, int z) {
 		if (scorchedSeeded.add(pack(x, z))) markDirty();
+	}
+
+	public boolean isIronGuildSeeded(int x, int z) {
+		return ironGuildSeeded.contains(pack(x, z));
+	}
+
+	public void markIronGuildSeeded(int x, int z) {
+		if (ironGuildSeeded.add(pack(x, z))) markDirty();
 	}
 
 	public boolean isSurfaceEventSeeded(int x, int z) {

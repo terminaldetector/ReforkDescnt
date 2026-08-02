@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.mixin;
 
 import com.terminaldetector.drmd.world.WorldFeatures;
+import com.terminaldetector.drmd.world.surface.IronGuildRegions;
 import com.terminaldetector.drmd.world.surface.MegacityRegions;
 import com.terminaldetector.drmd.world.surface.ScorchedLandsRegions;
 import com.terminaldetector.drmd.world.surface.TechnogenicSeaRegions;
@@ -15,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Injects DRMD plate biomes into Overworld multi-noise sampling.
- * Quart-space coords (block / 4). Order: megacity → technogenic sea → scorched lands.
+ * Quart-space coords (block / 4). Order: megacity → technogenic sea → scorched → iron guild.
  */
 @Mixin(MultiNoiseBiomeSource.class)
 public class MultiNoiseBiomeSourceMixin {
@@ -42,6 +43,13 @@ public class MultiNoiseBiomeSourceMixin {
 		}
 		if (ScorchedLandsRegions.isBound() && ScorchedLandsRegions.isInBiome(bx, bz)) {
 			RegistryEntry<Biome> e = ScorchedLandsRegions.biomeEntry();
+			if (e != null) {
+				cir.setReturnValue(e);
+				return;
+			}
+		}
+		if (IronGuildRegions.isBound() && IronGuildRegions.isInBiome(bx, bz)) {
+			RegistryEntry<Biome> e = IronGuildRegions.biomeEntry();
 			if (e != null) {
 				cir.setReturnValue(e);
 			}

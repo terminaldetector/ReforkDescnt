@@ -87,6 +87,11 @@ public final class ModWorldBlocks {
 					.strength(45.0f, 1200.0f)
 					.sounds(net.minecraft.sound.BlockSoundGroup.STONE)));
 
+	/** Procedural dialogue / quest contact for survivor enclaves. */
+	public static final Block ENCLAVE_HERALD = registerBlock("enclave_herald",
+			new com.terminaldetector.drmd.world.enclave.EnclaveHeraldBlock(
+					AbstractBlock.Settings.copy(Blocks.LODESTONE).luminance(s -> 6).strength(3.5f)));
+
 	public static Item BUILD_TOOL;
 	/** Legacy id — green tier. */
 	public static Item CONSTRUCTION_LASER;
@@ -166,6 +171,7 @@ public final class ModWorldBlocks {
 			entries.add(LOCATOR_RESONATOR);
 			entries.add(LOCATOR_PANEL);
 			entries.add(PLASMA_GRANITE);
+			entries.add(ENCLAVE_HERALD);
 			entries.add(DRILL_RIG);
 			entries.add(TUNNEL_DRILL_RIG);
 			entries.add(BUILD_TOOL);

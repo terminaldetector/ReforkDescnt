@@ -27,7 +27,9 @@ public final class MacroEntry {
 		/** Smaller technogenic locator dish. */
 		LOCATOR,
 		/** Scorched / bombed town silhouette. */
-		SCORCHED_TOWN
+		SCORCHED_TOWN,
+		/** Strafe techno-medieval iron guild hall. */
+		IRON_GUILD
 	}
 
 	public final UUID id;

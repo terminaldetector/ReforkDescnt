@@ -438,6 +438,36 @@ public final class DescentCommands {
 													.findNearest(ctx.getSource().getPlayer().getBlockX(),
 															ctx.getSource().getPlayer().getBlockZ()),
 											"scorched lands"))))
+					.then(CommandManager.literal("guild")
+							.executes(ctx -> plateStatus(ctx, "iron_guild",
+									com.terminaldetector.drmd.world.surface.IronGuildRegions
+											.describeNearest(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ()),
+									com.terminaldetector.drmd.world.surface.IronGuildRegions
+											.isInBiome(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ())))
+							.then(CommandManager.literal("tp")
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> plateTp(ctx,
+											com.terminaldetector.drmd.world.surface.IronGuildRegions
+													.findNearest(ctx.getSource().getPlayer().getBlockX(),
+															ctx.getSource().getPlayer().getBlockZ()),
+											"iron guild"))))
+					.then(CommandManager.literal("enclave")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								var site = com.terminaldetector.drmd.world.enclave.EnclaveSite
+										.generate(p.getServerWorld().getSeed(), p.getBlockPos());
+								var mem = com.terminaldetector.drmd.world.enclave.FactionMemory
+										.of(p.getServerWorld());
+								int rep = mem.getRep(p.getUuid(), site.origin);
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Enclave cell — " + site.shortLabel()
+												+ " · rep=" + rep
+												+ " · " + site.anchor.getX() + " " + site.anchor.getZ()
+												+ " | herald: use / sneak-use for dialogue+quest"), false);
+								return 1;
+							}))
 					.then(CommandManager.literal("orbit")
 							.executes(ctx -> {
 								ServerPlayerEntity p = ctx.getSource().getPlayer();
