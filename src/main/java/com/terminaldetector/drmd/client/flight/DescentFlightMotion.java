@@ -109,7 +109,13 @@ public final class DescentFlightMotion {
 	 */
 	private static Vec3d integrate(Vec3d vel) {
 		float dt = 1f / (float) DescentMod.TICKS_PER_SECOND;
-		if (!DescentClientState.attitudeValid || !ShipAttitudeClient.isPrimed()) return vel;
+		if (!DescentClientState.attitudeValid || !ShipAttitudeClient.isPrimed()) {
+			MinecraftClient mc = MinecraftClient.getInstance();
+			if (mc != null && mc.player != null) {
+				ShipAttitudeClient.resetFromPlayer(mc.player);
+			}
+			if (!DescentClientState.attitudeValid || !ShipAttitudeClient.isPrimed()) return vel;
+		}
 
 		var att = ShipAttitudeClient.get();
 		Vec3d look = att.forward();

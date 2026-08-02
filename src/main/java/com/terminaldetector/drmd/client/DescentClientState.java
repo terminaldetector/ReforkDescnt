@@ -44,5 +44,21 @@ public final class DescentClientState {
 		return "SILENCE".equals(worldFate) || isVoidEnding();
 	}
 
+	/** Drop flight mirrors when leaving a world — avoids stale enabled/attitude across joins. */
+	public static void resetSession() {
+		enabled = false;
+		attitudeValid = false;
+		footGravity = false;
+		alwaysRun = false;
+		megaBeamActive = false;
+		smokeObscurity = 0f;
+		worldFate = "CONTINUING";
+		fateDecayTicks = 0;
+		velX = velY = velZ = 0f;
+		com.terminaldetector.drmd.client.flight.ShipAttitudeClient.clear();
+		com.terminaldetector.drmd.client.flight.DescentFlightMotion.clear();
+		com.terminaldetector.drmd.client.gravity.FootGravityCamera.reset();
+	}
+
 	private DescentClientState() {}
 }

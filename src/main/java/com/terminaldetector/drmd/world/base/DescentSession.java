@@ -147,32 +147,42 @@ public final class DescentSession {
 				WorldFeatures.SURFACE_DISTRICTS, WorldFeatures.MACRO_WORLDGEN);
 	}
 
-	/** Soft player onboarding — 6DoF on, tip message, creative gets Pyro GX. */
+	/**
+	 * Soft player onboarding — 6DoF is native every join.
+	 *
+	 * <p>Saving {@code enabled=false} + {@code sessionWelcomed} used to leave pilots stuck on
+	 * vanilla walk until they found H; after reconnect the client attitude often never primed.
+	 * This world <em>is</em> Descent — re-assert flight each login; H still toggles for the session.
+	 */
 	public static void onPlayerJoin(ServerPlayerEntity player) {
 		DescentPlayerData data = DescentPlayerData.get(player);
 		data.ensureInit();
 
+		ServerWorld world = player.getServerWorld();
+		DescentWorldState state = DescentWorldState.get(world);
+		if (state.isPsychedelic()) {
+			if (!data.isSessionWelcomed()) {
+				PsychedelicWorldgen.onPlayerJoin(player, state);
+			} else {
+				com.terminaldetector.drmd.flight.FlightSystem.enable(player, data);
+			}
+			return;
+		}
+
+		// Native session: always 6DoF on join (H toggles off until next login).
+		com.terminaldetector.drmd.flight.FlightSystem.enable(player, data);
+
 		boolean first = !data.isSessionWelcomed();
 		if (first) {
-			ServerWorld world = player.getServerWorld();
-			DescentWorldState state = DescentWorldState.get(world);
-			if (state.isPsychedelic()) {
-				PsychedelicWorldgen.onPlayerJoin(player, state);
-				return;
-			}
-			// 6DoF is the default way to move in this world, but only the first join decides that.
-			// Re-asserting it every login would keep overriding a pilot who switched it off with H —
-			// which in creative means their building flight gets taken away on every reconnect.
-			data.setEnabled(true);
 			data.setSessionWelcomed(true);
 			player.sendMessage(Text.literal(
 					"§bDRMD 6DOF §f— Descent session is part of this world."), false);
 			player.sendMessage(Text.literal(
-					"§7Pad: §fLunar Base§7 (not the campaign) · §fR§7 afterburner · §fH§7 6DoF · §fN§7 ship"), false);
+					"§7Pad: §fLunar Base§7 · §fR§7 afterburner · §fH§7 6DoF · §f,§7 settings · §fN§7 ship"), false);
 			String cityTip = com.terminaldetector.drmd.world.surface.MegacityRegions
 					.describeNearest(player.getBlockX(), player.getBlockZ());
 			player.sendMessage(Text.literal(
-					"§7Explore: random UFO/outpost events · biome plates · 6DoF dungeons"), false);
+					"§7Explore: UFO/outpost events · biome plates · 6DoF dungeons"), false);
 			player.sendMessage(Text.literal(
 					"§8" + cityTip + " · /d6 megacity|technogenic|scorched|guild|weapons give_all"), false);
 			if (player.isCreative()) {

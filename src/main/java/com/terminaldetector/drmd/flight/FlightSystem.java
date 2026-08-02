@@ -306,12 +306,21 @@ public final class FlightSystem {
 			com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptAt(player, player.getPos());
 			com.terminaldetector.drmd.world.gravity.FootGravitySystem.tick(player);
 		} else {
-			com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
-			data.setEnabled(true);
-			data.ensureInit();
-			player.setNoGravity(true);
-			ModNetworking.syncPlayer(player, data);
+			enable(player, data);
 		}
+	}
+
+	/** Force 6DoF on and sync — join path / /d6 / void ending. */
+	public static void enable(ServerPlayerEntity player, DescentPlayerData data) {
+		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
+		data.setEnabled(true);
+		data.ensureInit();
+		if (player.getAbilities().flying) {
+			player.getAbilities().flying = false;
+			player.sendAbilitiesUpdate();
+		}
+		player.setNoGravity(true);
+		ModNetworking.syncPlayer(player, data);
 	}
 
 	public static void tryDash(ServerPlayerEntity player) {

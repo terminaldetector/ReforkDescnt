@@ -85,14 +85,17 @@ public class DescentClient implements ClientModInitializer {
 					com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
 				}
 			}
-			// Prime Descent attitude when 6DoF turns on from server (/d6 / join).
-			if (payload.enabled() && !wasEnabled) {
-				if (player != null) {
+			// Prime attitude whenever flight is on but the client basis is cold — not only on
+			// the false→true edge (stale enabled=true across worlds skipped the prime).
+			if (payload.enabled()) {
+				boolean cold = !wasEnabled
+						|| !DescentClientState.attitudeValid
+						|| !com.terminaldetector.drmd.client.flight.ShipAttitudeClient.isPrimed();
+				if (cold && player != null) {
 					com.terminaldetector.drmd.client.flight.ShipAttitudeClient.resetFromPlayer(player);
+					com.terminaldetector.drmd.client.gravity.FootGravityCamera.reset();
 				}
-				com.terminaldetector.drmd.client.gravity.FootGravityCamera.reset();
-			}
-			if (!payload.enabled()) {
+			} else {
 				DescentClientState.attitudeValid = false;
 				com.terminaldetector.drmd.client.flight.ShipAttitudeClient.clear();
 				com.terminaldetector.drmd.client.flight.DescentFlightMotion.clear();
@@ -183,11 +186,19 @@ public class DescentClient implements ClientModInitializer {
 		// Pause-menu button: GameMenuScreenMixin.addDrawableChild (reliable).
 		// Keybind below opens the same screen in-world without Esc.
 
+		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
+				(handler, client) -> DescentClientState.resetSession());
+
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null || client.getNetworkHandler() == null) return;
 			DescentKeybinds.tick(client);
 			com.terminaldetector.drmd.client.gravity.FootGravityCamera.tickClient();
 			if (DescentClientState.enabled) {
+				// Self-heal: travel mixin needs a primed basis or the hull sits dead.
+				if (!DescentClientState.attitudeValid
+						|| !com.terminaldetector.drmd.client.flight.ShipAttitudeClient.isPrimed()) {
+					com.terminaldetector.drmd.client.flight.ShipAttitudeClient.resetFromPlayer(client.player);
+				}
 				DescentKeybinds.sendInput(client);
 			}
 			// Dedicated clients receive authoritative SmokePayload snapshots; do not local-tick.
