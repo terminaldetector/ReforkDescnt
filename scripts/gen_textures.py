@@ -855,33 +855,46 @@ def hazard(im, x0, y0, x1, y1, a, b):
 
 
 def ent_tripod():
-    """128×128 — cubic hull, sensor turret, plasma lance, one shared leg." """
+    """128×128 — WotW fighting machine: bronze hood, heat-ray eye, spindly legs, tentacles."""
     im = img(128, 128)
-    box(im, 0, 0, 18, 18, 18, HULL_D, accent=PINK, stripe=True)     # hull
-    box(im, 72, 0, 10, 7, 10, HULL_M, accent=CYAN)                  # sensor turret
-    box(im, 72, 17, 3, 3, 12, (58, 44, 74, 255), accent=VIOLET)     # plasma lance
-    box(im, 0, 36, 5, 26, 5, HULL_M, accent=PINK)                   # leg
-    box(im, 20, 36, 7, 3, 7, HULL_L, accent=AMBER)                  # hip / foot pad
-    # Hull front face: armoured plate with a neon core slit and hazard banding.
-    for x in range(18, 36):
-        for y in range(18, 36):
-            px(im, x, y, shade(HULL_D, 0.92))
-    hazard(im, 18, 19, 36, 22, PINK, shade(HULL_D, 0.7))
-    for x in range(22, 32):
-        for y in range(26, 30):
-            px(im, x, y, shade(VIOLET, 1.0))
-    px(im, 26, 27, WHITE)
-    px(im, 27, 27, WHITE)
-    # Sensor eye on the turret's front face.
-    for x in range(82, 92):
-        for y in range(10, 17):
-            px(im, x, y, shade(CYAN, 0.55))
-    for x in range(85, 89):
-        px(im, x, 13, CYAN_L)
-    # Lance muzzle glows.
-    for x in range(75, 78):
-        for y in range(29, 32):
-            px(im, x, y, VIOLET)
+    BRONZE = (92, 78, 58, 255)
+    BRONZE_D = (54, 46, 36, 255)
+    BRONZE_L = (130, 112, 84, 255)
+    HEAT = (255, 48, 28, 255)
+    HEAT_C = (255, 180, 90, 255)
+    # body 12×8×12 @ 0,0
+    box(im, 0, 0, 12, 8, 12, BRONZE_D, accent=BRONZE)
+    box(im, 0, 20, 9, 5, 9, BRONZE, accent=BRONZE_L)
+    # hood 20×16×12 @ 48,0
+    box(im, 48, 0, 20, 16, 12, BRONZE, accent=HEAT, stripe=False)
+    box(im, 48, 28, 10, 12, 8, BRONZE_D, accent=BRONZE)
+    box(im, 0, 34, 16, 4, 6, BRONZE_L, accent=HEAT)
+    # eye + emitter
+    box(im, 112, 0, 6, 6, 3, HEAT, accent=HEAT_C)
+    box(im, 112, 10, 3, 3, 14, BRONZE_D, accent=HEAT)
+    box(im, 112, 28, 5, 5, 3, HEAT_C, accent=HEAT)
+    # hip / upper / lower / foot
+    box(im, 0, 44, 6, 5, 6, BRONZE, accent=BRONZE_L)
+    box(im, 24, 44, 4, 18, 4, BRONZE_D, accent=BRONZE)
+    box(im, 40, 44, 5, 4, 5, BRONZE_L, accent=AMBER)
+    box(im, 60, 48, 3, 20, 3, BRONZE_D, accent=BRONZE)
+    box(im, 72, 48, 2, 6, 2, BRONZE, accent=BRONZE_L)
+    box(im, 80, 48, 7, 3, 9, BRONZE, accent=BRONZE_L)
+    box(im, 80, 60, 2, 2, 4, BRONZE_D, accent=HEAT)
+    box(im, 92, 60, 2, 2, 4, BRONZE_D, accent=HEAT)
+    # tentacles
+    box(im, 112, 40, 2, 14, 2, BRONZE_D, accent=BRONZE)
+    box(im, 118, 40, 3, 3, 3, BRONZE, accent=HEAT)
+    # Hood front: heat-ray iris
+    for x in range(68, 88):
+        for y in range(16, 28):
+            dx, dy = x - 77.5, y - 21.5
+            if dx * dx + dy * dy < 36:
+                px(im, x, y, HEAT if dx * dx + dy * dy < 12 else shade(HEAT, 0.55))
+            else:
+                px(im, x, y, shade(BRONZE_D, 0.95))
+    px(im, 77, 21, HEAT_C)
+    px(im, 78, 21, WHITE)
     return im
 
 

@@ -29,16 +29,16 @@ scaled by a per-class resistance; a metered energy pool gates every trigger pull
 | | Tripod strider | Flying scanner | Spider turret | **Oblivion Seeker** |
 |--|----------------|----------------|----------------|---------------------|
 | id | `drmd:tripod` | `drmd:scanner` | `drmd:spider_turret` | `drmd:oblivion_seeker` |
-| Size | 2.0 × 3.4 | 1.0 × 1.0 | 1.6 × 1.4 | 1.35 × 1.35 |
+| Size | **2.4 × 4.6** | 1.0 × 1.0 | 1.6 × 1.4 | 1.35 × 1.35 |
 | Hull / shield / plating | 300 / 80 / 90 | 120 / 60 / 20 | 220 / 50 / 80 | **220 / 90 / 40** |
 | Resists | kinetic .25, energy .10, blast .30 | energy .30 | kinetic .35 | energy .35 |
 | Movement | walks, steps 1.6 | hovers, no gravity | walks, plants when it has sight | hover + **3D bank** + dashes |
-| Weapon | charged plasma lance + stomp | laser → 3 rockets → recharge | MG bursts ≤18 m, laser beyond | SCAN → MG burst → **4 rockets** → dash |
+| Weapon | charged heat-ray + stomp | laser → 3 rockets → recharge | MG bursts ≤18 m, laser beyond | SCAN → MG burst → **4 rockets** → dash |
 
-**Tripod strider** — cubic hull on three splayed legs. Holds a 12-block standoff and backs
-away if you close, so it fights at its own range. The lance takes 1.1 s to charge and the hull
-squats while it does, which is the tell. Anything under the hull gets stomped for AoE and
-knock-back.
+**Tripod strider** — War of the Worlds fighting-machine silhouette: cobra hood, red heat-ray
+eye, long multi-jointed legs, hanging probe tentacles. Holds a 12-block standoff and backs
+away if you close. The lance takes 1.1 s to charge (hood squats — the tell). Anything under
+the machine gets stomped for AoE and knock-back.
 
 **Flying scanner** — the Descent-style sentry. Its firing cycle is fixed, not random, so it is
 learnable: one laser lance, then three rockets launched one at a time off a rotating pod ring
