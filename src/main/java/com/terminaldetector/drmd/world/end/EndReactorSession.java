@@ -91,8 +91,15 @@ public final class EndReactorSession {
 			double z = player.getZ();
 			if (x * x + z * z > ARENA_WAKE_RADIUS * ARENA_WAKE_RADIUS) continue;
 			// In the band the arena is one level of many, so surface play near the origin must not
-			// wake it — only flying up into the END band does.
-			if (band && Math.abs(player.getY() - END_BAND_ARENA_Y) > ARENA_WAKE_RADIUS) continue;
+			// wake it — only flying up into the END band / Oblivion seam does.
+			if (band) {
+				double dy = Math.abs(player.getY() - END_BAND_ARENA_Y);
+				// SeamWarmup starts at ORBITAL_TOP±72 — wake earlier than full 256 Y so the
+				// arena exists before the critical 10-block seam approach.
+				double yWake = com.terminaldetector.drmd.world.layer.SeamWarmup.nearEndSeam(player.getY())
+						? 120.0 : ARENA_WAKE_RADIUS;
+				if (dy > yWake) continue;
+			}
 			return true;
 		}
 		return false;

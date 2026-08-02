@@ -126,6 +126,8 @@ public class DescentMod implements ModInitializer {
 				DescentPlayerData data = DescentPlayerData.get(player);
 				// Seam announce + display-hook pairing always; teleport only when 6DoF armed.
 				com.terminaldetector.drmd.world.layer.LayerBridge.tick(player, data);
+				// Background Nether/End warm before ±10 of the parallelepiped faces.
+				com.terminaldetector.drmd.world.layer.SeamWarmup.tick(player);
 				if (data.isEnabled()) {
 					FlightSystem.tick(player, data);
 					EnergySystem.regenTick(player, data);
@@ -173,7 +175,7 @@ public class DescentMod implements ModInitializer {
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
 				com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid()));
 
-		LOGGER.info("DRMD 6DOF 1.0.6 ready — deep 6DoF lock · seam hooks always-on");
+		LOGGER.info("DRMD 6DOF 1.0.7 ready — seam warm Nether/End · deep 6DoF · hooks");
 	}
 
 	/**

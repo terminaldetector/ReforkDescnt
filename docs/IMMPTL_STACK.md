@@ -34,6 +34,10 @@ Align ImmPtl floor/ceiling links with `WorldLevels`:
 
 Igniting a nether frame or placing an eye consumes the matching catalyst (creative exempt).
 
+## SeamWarmup (Path B + optional ImmPtl)
+
+`SeamWarmup` opens real Nether/End with short-lived chunk tickets when the pilot is within 72 blocks of OW faces −240 / 880 (critical intensify at 10). With ImmPtl installed this pre-warms remote sides of the stack; without it, Path B still streams the Nether column seamlessly via `MantleStream` / `LevelBuilder`.
+
 ## Escape
 
 Digging up through mantle / shafts, `/d6 level`, or DimensionSync aftermath cues keep the surface path readable after Core events.

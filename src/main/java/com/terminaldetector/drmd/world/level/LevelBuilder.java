@@ -71,6 +71,20 @@ public final class LevelBuilder {
 		QUEUE.add(new Job(world, chunkX, chunkZ, 0, WorldLevels.ABYSS_TOP - 1));
 	}
 
+	/**
+	 * Background stream for {@link com.terminaldetector.drmd.world.layer.SeamWarmup}: enqueue the
+	 * mantle/Nether (and End-band if enabled) build around a chunk without waiting for CHUNK_LOAD.
+	 */
+	public static void streamAround(ServerWorld world, int chunkX, int chunkZ, int radius) {
+		if (world.getRegistryKey() != World.OVERWORLD) return;
+		int r = Math.max(0, Math.min(radius, 10));
+		for (int dx = -r; dx <= r; dx++) {
+			for (int dz = -r; dz <= r; dz++) {
+				enqueue(world, chunkX + dx, chunkZ + dz);
+			}
+		}
+	}
+
 	private static boolean mantleBuilt(WorldChunk chunk) {
 		BlockPos probe = new BlockPos(
 				chunk.getPos().getStartX() + 8, MANTLE_PROBE_Y, chunk.getPos().getStartZ() + 8);
@@ -112,7 +126,11 @@ public final class LevelBuilder {
 		List<Digger> list = new ArrayList<>(4);
 		for (var p : server.getPlayerManager().getPlayerList()) {
 			if (p.getWorld().getRegistryKey() != World.OVERWORLD) continue;
-			if (p.getY() > WorldLevels.INDUSTRIAL_TOP + 24) continue;
+			// Diggers below industrial, or anyone approaching the Nether Core seam (SeamWarmup).
+			if (p.getY() > WorldLevels.INDUSTRIAL_TOP + 24
+					&& !com.terminaldetector.drmd.world.layer.SeamWarmup.nearNetherSeam(p.getY())) {
+				continue;
+			}
 			list.add(new Digger(p.getBlockX() >> 4, p.getBlockZ() >> 4));
 		}
 		return list;
