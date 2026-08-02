@@ -214,6 +214,33 @@ public final class ModNetworking {
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
 	}
 
+	public static final Identifier SCAFFOLD_ID = Identifier.of(DescentMod.MOD_ID, "scaffold");
+
+	/** Server → client construction scaffold frame (locked positions). */
+	public record ScaffoldPayload(boolean active, String shapeId, java.util.List<net.minecraft.util.math.BlockPos> positions)
+			implements CustomPayload {
+		public static final Id<ScaffoldPayload> ID = new Id<>(SCAFFOLD_ID);
+		public static final PacketCodec<RegistryByteBuf, ScaffoldPayload> CODEC = PacketCodec.of(
+				(payload, buf) -> {
+					buf.writeBoolean(payload.active);
+					buf.writeString(payload.shapeId == null ? "" : payload.shapeId);
+					buf.writeVarInt(payload.positions.size());
+					for (net.minecraft.util.math.BlockPos p : payload.positions) {
+						buf.writeBlockPos(p);
+					}
+				},
+				buf -> {
+					boolean active = buf.readBoolean();
+					String shape = buf.readString();
+					int n = buf.readVarInt();
+					java.util.ArrayList<net.minecraft.util.math.BlockPos> list = new java.util.ArrayList<>(n);
+					for (int i = 0; i < n; i++) list.add(buf.readBlockPos());
+					return new ScaffoldPayload(active, shape, list);
+				}
+		);
+		@Override public Id<? extends CustomPayload> getId() { return ID; }
+	}
+
 	/** Client → server construction apply (empty modules list = clear override). */
 	public record ConstructionPayload(String weaponId, net.minecraft.nbt.NbtList modules) implements CustomPayload {
 		public static final Identifier CONSTRUCTION_ID = Identifier.of(DescentMod.MOD_ID, "construction");
@@ -243,6 +270,7 @@ public final class ModNetworking {
 		PayloadTypeRegistry.playS2C().register(ConstructionPayload.ID, ConstructionPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(LlodPayload.ID, LlodPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(PlanetMapPayload.ID, PlanetMapPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(ScaffoldPayload.ID, ScaffoldPayload.CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(InputPayload.ID, (payload, context) -> {
 			ServerPlayerEntity player = context.player();

@@ -71,6 +71,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.clear();
 			com.terminaldetector.drmd.world.fire.FireSystem.clear();
 			com.terminaldetector.drmd.world.base.DescentSession.clearSeedQueue();
+			com.terminaldetector.drmd.world.build.ConstructScaffold.clearAll();
 			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.clear();
 			// Both halves of worldgen are kept off the join path. Seeding only queues the landmarks
 			// and spends one per tick; the CHUNK_LOAD generators stay idle until that hand-off is

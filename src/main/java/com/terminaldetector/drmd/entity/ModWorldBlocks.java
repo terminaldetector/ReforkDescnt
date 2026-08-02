@@ -77,7 +77,12 @@ public final class ModWorldBlocks {
 					AbstractBlock.Settings.copy(Blocks.OXIDIZED_COPPER).luminance(s -> 4).strength(3f)));
 
 	public static Item BUILD_TOOL;
+	/** Legacy id — green tier. */
 	public static Item CONSTRUCTION_LASER;
+	public static Item CONSTRUCTION_LASER_GREEN;
+	public static Item CONSTRUCTION_LASER_YELLOW;
+	public static Item CONSTRUCTION_LASER_BLUE;
+	public static Item CONSTRUCTION_LASER_PURPLE;
 	public static Item REPAIR_LASER;
 	public static Item MINING_LASER;
 	public static Item TUNNEL_LASER;
@@ -97,9 +102,27 @@ public final class ModWorldBlocks {
 		BUILD_TOOL = Registry.register(Registries.ITEM,
 				Identifier.of(DescentMod.MOD_ID, "build_tool"),
 				new BuildToolItem(new Item.Settings()));
+		CONSTRUCTION_LASER_GREEN = Registry.register(Registries.ITEM,
+				Identifier.of(DescentMod.MOD_ID, "construction_laser_green"),
+				new com.terminaldetector.drmd.world.build.ConstructLaserItem(new Item.Settings(),
+						com.terminaldetector.drmd.world.build.ConstructLaserTier.GREEN));
+		CONSTRUCTION_LASER_YELLOW = Registry.register(Registries.ITEM,
+				Identifier.of(DescentMod.MOD_ID, "construction_laser_yellow"),
+				new com.terminaldetector.drmd.world.build.ConstructLaserItem(new Item.Settings(),
+						com.terminaldetector.drmd.world.build.ConstructLaserTier.YELLOW));
+		CONSTRUCTION_LASER_BLUE = Registry.register(Registries.ITEM,
+				Identifier.of(DescentMod.MOD_ID, "construction_laser_blue"),
+				new com.terminaldetector.drmd.world.build.ConstructLaserItem(new Item.Settings(),
+						com.terminaldetector.drmd.world.build.ConstructLaserTier.BLUE));
+		CONSTRUCTION_LASER_PURPLE = Registry.register(Registries.ITEM,
+				Identifier.of(DescentMod.MOD_ID, "construction_laser_purple"),
+				new com.terminaldetector.drmd.world.build.ConstructLaserItem(new Item.Settings(),
+						com.terminaldetector.drmd.world.build.ConstructLaserTier.PURPLE));
+		// Back-compat id → green tier
 		CONSTRUCTION_LASER = Registry.register(Registries.ITEM,
 				Identifier.of(DescentMod.MOD_ID, "construction_laser"),
-				new com.terminaldetector.drmd.world.engineer.EngineerTools.ConstructionLaserItem(new Item.Settings()));
+				new com.terminaldetector.drmd.world.build.ConstructLaserItem(new Item.Settings(),
+						com.terminaldetector.drmd.world.build.ConstructLaserTier.GREEN));
 		REPAIR_LASER = Registry.register(Registries.ITEM,
 				Identifier.of(DescentMod.MOD_ID, "repair_laser"),
 				new com.terminaldetector.drmd.world.engineer.EngineerTools.RepairLaserItem(new Item.Settings()));
@@ -134,6 +157,10 @@ public final class ModWorldBlocks {
 			entries.add(DRILL_RIG);
 			entries.add(TUNNEL_DRILL_RIG);
 			entries.add(BUILD_TOOL);
+			entries.add(CONSTRUCTION_LASER_GREEN);
+			entries.add(CONSTRUCTION_LASER_YELLOW);
+			entries.add(CONSTRUCTION_LASER_BLUE);
+			entries.add(CONSTRUCTION_LASER_PURPLE);
 			entries.add(CONSTRUCTION_LASER);
 			entries.add(REPAIR_LASER);
 			entries.add(MINING_LASER);

@@ -31,6 +31,7 @@ public class DescentClient implements ClientModInitializer {
 		com.terminaldetector.drmd.client.llod.planet.PlanetFloorRenderer.register();
 		com.terminaldetector.drmd.client.sky.OrbitalBeltSkyRenderer.register();
 		com.terminaldetector.drmd.client.render.MegaBeamViewRenderer.register();
+		com.terminaldetector.drmd.client.render.ConstructScaffoldRenderer.register();
 		com.terminaldetector.drmd.client.smoke.SmokeRenderer.register();
 		registerRenderLayers();
 
@@ -145,6 +146,10 @@ public class DescentClient implements ClientModInitializer {
 			com.terminaldetector.drmd.client.llod.planet.PlanetMapClientState.INSTANCE.set(
 					cells, payload.originCx(), payload.originCz(), payload.seed());
 		});
+
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ScaffoldPayload.ID, (payload, context) ->
+				context.client().execute(() -> com.terminaldetector.drmd.client.build.ScaffoldClientState.INSTANCE.set(
+						payload.active(), payload.shapeId(), payload.positions())));
 
 		com.terminaldetector.drmd.client.config.DescentConfig.load();
 
