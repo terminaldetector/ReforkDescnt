@@ -7,6 +7,7 @@ import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.RotationAxis;
+import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -19,6 +20,12 @@ public class GameRendererMixin {
 	private void drmd$cancelBob(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
 		// View bob walks the camera along world axes, which fights any tilted frame.
 		if (DescentClientState.enabled || !FootGravityCamera.settled()) ci.cancel();
+	}
+
+	/** 6DoF cockpit — no vanilla first-person arm / held-item overlay. */
+	@Inject(method = "renderHand", at = @At("HEAD"), cancellable = true)
+	private void drmd$hideHand(Camera camera, float tickDelta, Matrix4f matrix4f, CallbackInfo ci) {
+		if (DescentClientState.enabled) ci.cancel();
 	}
 
 	/**
