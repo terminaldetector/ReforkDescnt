@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "E",
+    "A"
+  ],
+  "key": {
+    "E": {
+      "item": "drmd:energy_cell"
+    },
+    "A": {
+      "item": "drmd:alloy_plate"
+    }
+  },
+  "result": {
+    "id": "drmd:gravity_torch",
+    "count": 4
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "drmd:block/point_defense_turret"
+    }
+  }
+}

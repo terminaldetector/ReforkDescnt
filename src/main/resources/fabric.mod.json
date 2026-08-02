@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "drmd",
+  "version": "${version}",
+  "name": "DRMD 6DOF",
+  "description": "Descent-like 6DoF for Fabric 1.21.1 (TLauncher / PC / mobile Java). Inertial flight, Pyro GX, megastructures, LLOD. Needs Fabric API + Java 21.",
+  "authors": ["Terminal", "DRMD Team"],
+  "contact": {
+    "homepage": "https://github.com/terminaldetector/ReforkDescnt",
+    "sources": "https://github.com/terminaldetector/ReforkDescnt",
+    "issues": "https://github.com/terminaldetector/ReforkDescnt/issues"
+  },
+  "license": "MIT",
+  "icon": "assets/drmd/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.terminaldetector.drmd.DescentMod"],
+    "client": ["com.terminaldetector.drmd.client.DescentClient"]
+  },
+  "mixins": ["drmd.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "modmenu": "*"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://github.com/terminaldetector/ReforkDescnt"
+      }
+    }
+  }
+}

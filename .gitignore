@@ -1,0 +1,22 @@
+# Gradle
+.gradle/
+/build/
+out/
+run/
+runs/
+logs/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+.DS_Store
+
+# Loom
+remappedSrc/
+
+# Accidental TLauncher log dumps named like this
+*.tlauncher.log

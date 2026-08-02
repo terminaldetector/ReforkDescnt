@@ -1,0 +1,34 @@
+DRMD 6DOF — ПК TLauncher Fabric 1.21.1
+=======================================
+Jar: drmd-6dof-1.0.0-fabric-1.21.1.jar
+Also: drmd-6dof-1.0.0.jar
+
+НУЖНО
+  Minecraft 1.21.1 + Fabric Loader + Fabric API + Java 21
+  В mods класть .jar, не .zip CI-архив
+
+Установка
+  1. Версии → Fabric Loader для Minecraft 1.21.1
+  2. Java 21+ в настройках лаунчера
+  3. mods/: этот jar + Fabric API 1.21.1
+  4. Запуск Fabric 1.21.1 → креатив / новый мир
+
+Без консоли
+  Креатив → «DRMD 6DOF» → сверху настройки/сессия, сразу после — блоки и стройка
+  ПКМ по выданным предметам при входе в креатив
+
+Стройка / блоки
+  Build Tool / Construction Laser: блок в оффхенд или хотбар (survival тратит)
+  Construction Pad / после Pyro — Construction Mode (поверхность = пол)
+  Gravity Generator виден; Checkpoint / Dock — пройти насквозь или ПКМ
+
+Полёт
+  H — thrusters · Space/Ctrl — вверх/вниз корабля · мышь 360° · Q/E крен
+  P → «Починить полёт» если отвалилось
+
+Оружие
+  V — вид 3D · MMB — Use · Alt+MMB — ракеты
+
+Не класть *-sources.jar / *-dev.jar / .zip в mods.
+
+Сборка: ./gradlew build packageTlauncher --no-daemon

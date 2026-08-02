@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "MG",
+    "GM"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:moss_block"
+    },
+    "G": {
+      "item": "minecraft:glowstone_dust"
+    }
+  },
+  "result": {
+    "id": "drmd:six_d_soil",
+    "count": 2
+  }
+}

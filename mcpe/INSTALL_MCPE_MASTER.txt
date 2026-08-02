@@ -1,0 +1,7 @@
+УСТАНОВКА MCPE MASTER — см. mcpe/README.md и INSTALL_MCPE_MASTER.txt внутри zip.
+
+Кратко:
+1) drmd-6dof-mcpe-master-*.zip → behavior_packs + resource_packs в games/com.mojang
+2) Или открой .mcaddon
+3) Beta APIs ВКЛ
+4) /function drmd/start
