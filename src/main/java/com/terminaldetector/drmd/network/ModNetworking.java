@@ -18,6 +18,7 @@ public final class ModNetworking {
 	public static final Identifier INPUT_ID = Identifier.of(DescentMod.MOD_ID, "input");
 	public static final Identifier SYNC_ID = Identifier.of(DescentMod.MOD_ID, "sync");
 	public static final Identifier ACTION_ID = Identifier.of(DescentMod.MOD_ID, "action");
+	public static final Identifier PLANET_ID = Identifier.of(DescentMod.MOD_ID, "planet");
 
 	public record InputPayload(float forward, float strafe, float vertical, float roll,
 							   boolean dash, boolean hook, boolean afterburner,
@@ -128,6 +129,40 @@ public final class ModNetworking {
 		public static final Id<ActionPayload> ID = new Id<>(ACTION_ID);
 		public static final PacketCodec<RegistryByteBuf, ActionPayload> CODEC = PacketCodec.tuple(
 				PacketCodecs.STRING, ActionPayload::action, ActionPayload::new
+		);
+		@Override public Id<? extends CustomPayload> getId() { return ID; }
+	}
+
+	/**
+	 * Server → client planet snapshot: the world seed, and the cells a reactor burned.
+	 *
+	 * <p>Everything the floor under the End draws follows from the seed, so this goes out once on
+	 * join and again only when the scar set changes. Its predecessor streamed a viewport of six
+	 * hundred cells — height, tint and flags each — on every player tick.
+	 */
+	public record PlanetPayload(long seed, java.util.List<Long> scarCells) implements CustomPayload {
+		/** Cap so a heavily bombed world cannot turn one join into a megabyte. */
+		public static final int MAX_SCARS = 2048;
+
+		public static final Id<PlanetPayload> ID = new Id<>(PLANET_ID);
+		public static final PacketCodec<RegistryByteBuf, PlanetPayload> CODEC = PacketCodec.of(
+				(payload, buf) -> {
+					buf.writeLong(payload.seed);
+					int n = Math.min(payload.scarCells.size(), MAX_SCARS);
+					buf.writeVarInt(n);
+					for (int i = 0; i < n; i++) {
+						buf.writeLong(payload.scarCells.get(i));
+					}
+				},
+				buf -> {
+					long seed = buf.readLong();
+					int n = Math.min(buf.readVarInt(), MAX_SCARS);
+					java.util.ArrayList<Long> cells = new java.util.ArrayList<>(n);
+					for (int i = 0; i < n; i++) {
+						cells.add(buf.readLong());
+					}
+					return new PlanetPayload(seed, cells);
+				}
 		);
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
 	}
@@ -303,6 +338,7 @@ public final class ModNetworking {
 		PayloadTypeRegistry.playS2C().register(SmokePayload.ID, SmokePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ReactorSyncPayload.ID, ReactorSyncPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(FatePayload.ID, FatePayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(PlanetPayload.ID, PlanetPayload.CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(InputPayload.ID, (payload, context) -> {
 			ServerPlayerEntity player = context.player();

@@ -89,6 +89,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.clear();
 			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.clear();
 			com.terminaldetector.drmd.world.sync.DimensionSync.load(server);
+			com.terminaldetector.drmd.world.planet.PlanetSync.reset();
 			// Both halves of worldgen are kept off the join path. Seeding only queues the landmarks
 			// and spends one per tick; the CHUNK_LOAD generators stay idle until that hand-off is
 			// done, so nothing of the mod's runs while the server is still preparing spawn.
@@ -112,6 +113,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.tick(server);
 			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.tick(server);
 			com.terminaldetector.drmd.world.sync.DimensionSync.tick(server);
+			com.terminaldetector.drmd.world.planet.PlanetSync.tick(server);
 			com.terminaldetector.drmd.world.fate.WorldEndings.tick(server);
 			if (tick % 40 == 0) {
 				com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);
@@ -161,6 +163,7 @@ public class DescentMod implements ModInitializer {
 				ModNetworking.syncPlayer(handler.player, DescentPlayerData.get(handler.player));
 				com.terminaldetector.drmd.world.sync.DimensionSync.pushTo(handler.player);
 				com.terminaldetector.drmd.world.fate.WorldEndings.pushTo(handler.player);
+				com.terminaldetector.drmd.world.planet.PlanetSync.pushTo(handler.player);
 				unlockDrmdRecipes(handler.player);
 			});
 		});
@@ -169,7 +172,7 @@ public class DescentMod implements ModInitializer {
 				com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid()));
 
 		com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.logStatus();
-		LOGGER.info("DRMD 6DOF 1.1.2 ready — End band restored · no voxel LLOD · Distant Horizons suggested");
+		LOGGER.info("DRMD 6DOF 1.1.3 ready — End band + planet floor · Distant Horizons suggested");
 	}
 
 	/**

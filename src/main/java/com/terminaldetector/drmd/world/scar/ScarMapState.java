@@ -90,6 +90,11 @@ public class ScarMapState extends PersistentState {
 		return scars.size();
 	}
 
+	/** Cell keys, for the client snapshot. Insertion-ordered, so the oldest scars go first. */
+	public java.util.Collection<Long> cells() {
+		return java.util.Collections.unmodifiableCollection(scars);
+	}
+
 	public static int cellOf(int block) {
 		return Math.floorDiv(block, CELL);
 	}

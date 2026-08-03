@@ -74,6 +74,11 @@ public class DescentSettingsScreen extends Screen {
 					DescentConfig.save();
 				}));
 		y = addRow(y, viewBottom,
+				toggle(left, y, "options.drmd.planet_floor", DescentConfig.planetFloor, v -> {
+					DescentConfig.planetFloor = v;
+					DescentConfig.save();
+				}), null);
+		y = addRow(y, viewBottom,
 				toggle(left, y, "options.drmd.camera_shake", DescentConfig.cameraShake, v -> {
 					DescentConfig.cameraShake = v;
 					DescentConfig.save();

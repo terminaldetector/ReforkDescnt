@@ -38,6 +38,7 @@ public class DescentClient implements ClientModInitializer {
 		com.terminaldetector.drmd.client.render.CockpitRenderer.register();
 		com.terminaldetector.drmd.client.render.BoundarySeamRenderer.register();
 		com.terminaldetector.drmd.client.sky.OrbitalBeltSkyRenderer.register();
+		com.terminaldetector.drmd.client.planet.PlanetFloorRenderer.register();
 		com.terminaldetector.drmd.client.render.MegaBeamViewRenderer.register();
 		com.terminaldetector.drmd.client.render.ConstructScaffoldRenderer.register();
 		com.terminaldetector.drmd.client.smoke.SmokeRenderer.register();
@@ -54,6 +55,12 @@ public class DescentClient implements ClientModInitializer {
 				ConstructionRegistry.setOverride(id, ClusterModule.listFromNbt(payload.modules()));
 			}
 		});
+
+		// Seed + scars: everything the floor under the End needs, sent once rather than streamed.
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.PlanetPayload.ID, (payload, context) ->
+				context.client().execute(() ->
+						com.terminaldetector.drmd.client.planet.PlanetClientState.INSTANCE.apply(
+								payload.seed(), payload.scarCells())));
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ScaffoldPayload.ID, (payload, context) ->
 				context.client().execute(() -> com.terminaldetector.drmd.client.build.ScaffoldClientState.INSTANCE.set(
@@ -96,6 +103,7 @@ public class DescentClient implements ClientModInitializer {
 		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register(
 				(handler, client) -> {
 					DescentClientState.resetSession();
+					com.terminaldetector.drmd.client.planet.PlanetClientState.INSTANCE.clear();
 					enableRequested = false;
 					sawSync = false;
 					lastY = Double.NaN;
