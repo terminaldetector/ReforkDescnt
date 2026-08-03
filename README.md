@@ -19,13 +19,13 @@ Descent-сессия **встроена в мир** — при загрузке 
 ./gradlew build --no-daemon
 ```
 
-Готовый файл: `build/libs/drmd-6dof-1.1.3.jar`  
+Готовый файл: `build/libs/drmd-6dof-1.1.4.jar`  
 CI: **Actions → Build DRMD 6DOF → Artifacts → drmd-6dof** (`workflow_dispatch` поддерживается).
 
 ### 2. Установить
 
 1. [Fabric Loader](https://fabricmc.net/use/) **1.21.1**
-2. В `mods/`: `drmd-6dof-1.1.3.jar` + [Fabric API 1.21.1](https://modrinth.com/mod/fabric-api)
+2. В `mods/`: `drmd-6dof-1.1.4.jar` + [Fabric API 1.21.1](https://modrinth.com/mod/fabric-api)
 3. Новый мир / сервер — Descent уже часть мира
 
 ### 3. Играть
@@ -93,7 +93,7 @@ CI: **Actions → Build DRMD 6DOF → Artifacts → drmd-6dof** (`workflow_dispa
 - **Industrial Underground** ~1/12 чанков + гарнизон дронов
 - **WG 2.0** мегаструктуры ~1/18 чанков + сид вокруг спавна
 - **End-полоса** — архипелаг End-островов + арена реактора наверху колонны (`docs/END_BAND.md`)
-- **Планета под Эндом** — карта поверхности, сжатая к камере (`docs/PLANET_FLOOR.md`)
+- **Воксельный горизонт** — дальний рельеф колонками + силуэты построек (`docs/VOXEL_HORIZON.md`)
 - **Дальний вид** — Distant Horizons (soft-dep), своих LOD-вокселей нет (`docs/DISTANT_HORIZONS.md`)
 - Спеки: `docs/WORLD_DESIGN.md`, `docs/WORLD_GEN_2.md`
 
@@ -284,7 +284,7 @@ legacy/                               # исходный GMod-аддон
 
 ```bash
 ./scripts/package_all.sh
-# → dist/drmd-6dof-1.1.3.jar
+# → dist/drmd-6dof-1.1.4.jar
 # → dist/drmd-6dof-mcpe-master-1.0.5.mcaddon
 # → dist/drmd-6dof-mcpe-master-1.0.5.zip   # ручная установка в games/com.mojang
 ```

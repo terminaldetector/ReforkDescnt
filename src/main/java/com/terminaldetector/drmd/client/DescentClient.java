@@ -24,6 +24,26 @@ public class DescentClient implements ClientModInitializer {
 	/** Last player Y for seam-teleport predictor snap. */
 	private static double lastY = Double.NaN;
 
+	/**
+	 * Landmark wire records to the client's own form.
+	 *
+	 * <p>The kind arrives as an ordinal, so a server running a different build could name one this
+	 * client has never heard of. Those are dropped rather than guessed at — an out-of-range ordinal
+	 * would otherwise take down the receiver thread with an array index.
+	 */
+	private static java.util.List<com.terminaldetector.drmd.client.planet.HorizonLandmark> horizonLandmarks(
+			ModNetworking.PlanetPayload payload) {
+		var kinds = com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.values();
+		var out = new ArrayList<com.terminaldetector.drmd.client.planet.HorizonLandmark>(
+				payload.landmarks().size());
+		for (var l : payload.landmarks()) {
+			if (l.kind() < 0 || l.kind() >= kinds.length) continue;
+			out.add(new com.terminaldetector.drmd.client.planet.HorizonLandmark(
+					l.x(), l.y(), l.z(), l.sizeX(), l.sizeY(), l.sizeZ(), l.colour(), kinds[l.kind()]));
+		}
+		return out;
+	}
+
 	/** Call when the pilot locally chooses toggle — suppress join force-arm. */
 	public static void markUserFlightChoice() {
 		enableRequested = true;
@@ -56,11 +76,12 @@ public class DescentClient implements ClientModInitializer {
 			}
 		});
 
-		// Seed + scars: everything the floor under the End needs, sent once rather than streamed.
+		// Seed, scars and the landmark catalogue: everything the voxel horizon needs, sent once
+		// rather than streamed.
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.PlanetPayload.ID, (payload, context) ->
 				context.client().execute(() ->
 						com.terminaldetector.drmd.client.planet.PlanetClientState.INSTANCE.apply(
-								payload.seed(), payload.scarCells())));
+								payload.seed(), payload.scarCells(), horizonLandmarks(payload))));
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ScaffoldPayload.ID, (payload, context) ->
 				context.client().execute(() -> com.terminaldetector.drmd.client.build.ScaffoldClientState.INSTANCE.set(

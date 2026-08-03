@@ -173,7 +173,7 @@
   "options.drmd.fall_aftermath": "Fall aftermath (corkscrew)",
   "options.drmd.level_sky": "Level skies",
   "options.drmd.orbital_belt_sky": "Orbital belt sky",
-  "options.drmd.planet_floor": "Planet floor under End",
+  "options.drmd.planet_floor": "Voxel horizon",
   "options.drmd.camera_shake": "Camera motion",
   "options.drmd.cockpit_opacity": "Cockpit opacity",
   "options.drmd.look_gain": "Look gain",

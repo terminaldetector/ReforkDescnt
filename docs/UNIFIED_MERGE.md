@@ -1,4 +1,4 @@
-# Unified merge (1.1.3)
+# Unified merge (1.1.4)
 
 All draft feature branches are merged into `cursor/megacity-complex-02fc`:
 
@@ -11,7 +11,7 @@ All draft feature branches are merged into `cursor/megacity-complex-02fc`:
 | `cursor/release-audit-02fc` | #4 | already ancestor |
 | `cursor/minecraft-mod-port-02fc` | #1 | already ancestor |
 
-**One jar:** `dist/drmd-6dof-1.1.3-fabric-1.21.1.jar`
+**One jar:** `dist/drmd-6dof-1.1.4-fabric-1.21.1.jar`
 
 Includes: closed Descent arsenal, dual-bolt lasers, rockets/bombs, afterburner,
 world layers / SeamWarmup, Spark+Starlink ring, Klondike islands, 6DoF lock.
@@ -19,8 +19,10 @@ world layers / SeamWarmup, Spark+Starlink ring, Klondike islands, 6DoF lock.
 **End band restored (1.1.2).** Archipelago + reactor arena at the top of the column —
 see [`END_BAND.md`](END_BAND.md).
 
-**Planet floor (1.1.3).** The surface drawn under the band as a scaled map, so the End reads as the
-upper world of the same planet — see [`PLANET_FLOOR.md`](PLANET_FLOOR.md).
+**Voxel horizon (1.1.3 → 1.1.4).** The surface drawn as compressed voxel columns, with silhouettes
+of everything the mod has built standing up out of it — so the End reads as the upper world of the
+same planet and the horizon does not stop at the chunk edge. See
+[`VOXEL_HORIZON.md`](VOXEL_HORIZON.md).
 
 **Voxel LLOD deleted (1.1.2).** 1.1.1 switched the pipeline off and left it compiled; the packages,
 payloads and client renderers are gone now. Far view → [Distant Horizons](https://modrinth.com/mod/distanthorizons) (+ Sodium).

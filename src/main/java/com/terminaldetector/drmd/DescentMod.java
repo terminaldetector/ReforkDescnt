@@ -172,7 +172,7 @@ public class DescentMod implements ModInitializer {
 				com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid()));
 
 		com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.logStatus();
-		LOGGER.info("DRMD 6DOF 1.1.3 ready — End band + planet floor · Distant Horizons suggested");
+		LOGGER.info("DRMD 6DOF 1.1.4 ready — End band + voxel horizon · Distant Horizons suggested");
 	}
 
 	/**

@@ -19,40 +19,27 @@ import net.minecraft.world.World;
 import org.joml.Matrix4f;
 
 /**
- * The planet, seen from the End.
+ * The distant world, drawn as voxels: terrain past the chunk edge, and the things built on it.
  *
- * <p>The point of the band at the top of the column is that it is the <em>upper</em> world, not a
- * separate one — so the ground has to be under it. It cannot be drawn where it actually is: nine
- * hundred blocks down is past the projection's far plane, and the chunks are not on the client
- * anyway. So the surface is drawn <em>scaled toward the camera</em>: every point is pulled in along
- * the line from the eye to it, by one factor for the whole field.
+ * <p>Vanilla stops at the render distance and the projection stops at four times that, so from
+ * altitude almost everything worth looking at is in neither. This draws it anyway, compressed
+ * toward the eye by {@link HorizonProjection} — every point on its own sight line, so a coastline
+ * lies in the direction the coastline really lies and a locator two kilometres out leaves the
+ * silhouette it really would. Only depth is lost.
  *
- * <p>That factor is the whole trick, and it is why this is a map rather than the decorative shelf it
- * replaces. A uniform scale about the camera moves no point off its own sight line, so the picture
- * on screen is exactly the picture the real planet would make — the same coastline in the same
- * direction, at the same angle below the horizon. Only the sense of distance is compressed. Fly
- * toward a bay you can see and you arrive at that bay.
- *
- * <p>The field starts where the real chunks stop, so the two never draw the same ground, and it is
- * pulled in far enough to sit below the band's own islands rather than through them.
+ * <p>Height matters for when it runs. At sea level the map would sit next to real vanilla terrain
+ * it does not match, hill for hill, right in front of the player. From the sky band up there is
+ * nothing to compare it against and everything to gain: the ground reads as a map, which is what
+ * it is. So it fades in across the climb out of the surface band and is fully on by the orbital.
  */
 public final class PlanetFloorRenderer {
-	/**
-	 * How far below the eye the surface is drawn.
-	 *
-	 * <p>Has to clear the whole End band from anywhere inside it: the band is 144 blocks deep, so
-	 * this leaves the floor a good margin under its lowest island however high the ship is.
-	 */
-	private static final double FLOOR_DROP = 208.0;
+	/** Below this the real terrain owns the view; the map would only argue with it. */
+	private static final double FADE_START = WorldLevels.SURFACE_TOP;
+	/** Fully on by the top of the sky band. */
+	private static final double FADE_FULL = WorldLevels.SKY_TOP;
 
-	/** In the End dimension there is no ground below to be consistent with, so the drop is chosen. */
+	/** In the End there is no shared vertical, so the planet is placed at a chosen depth. */
 	private static final double END_VIRTUAL_DROP = 900.0;
-
-	/** Fade in over the last stretch of climb toward the seam. */
-	private static final double FADE_BAND = 96.0;
-
-	/** Share of the far plane the field is allowed to fill. */
-	private static final double CLIP_USE = 0.72;
 
 	private PlanetFloorRenderer() {}
 
@@ -73,37 +60,31 @@ public final class PlanetFloorRenderer {
 		Vec3d cam = ctx.camera().getPos();
 		float alpha = 1f;
 		if (overworld) {
-			// Only from the band, ramping up over the last of the climb into it.
-			double into = cam.y - (WorldLevels.ORBITAL_TOP - FADE_BAND);
+			double into = cam.y - FADE_START;
 			if (into <= 0) return;
-			alpha = (float) MathHelper.clamp(into / FADE_BAND, 0.0, 1.0);
+			alpha = (float) MathHelper.clamp(into / (FADE_FULL - FADE_START), 0.0, 1.0);
 		}
 
 		long seed = PlanetClientState.INSTANCE.seed();
-		// In the column the map's Y is the world's Y, which is what keeps the projection honest.
-		// In the End there is no shared vertical, so sea level is placed at a chosen depth.
-		double yShift = endDim
-				? (cam.y - END_VIRTUAL_DROP) - PlanetMap.SEA_LEVEL
-				: 0.0;
-		double groundY = PlanetMap.height(seed, cam.x, cam.z) + yShift;
-		double drop = cam.y - groundY;
-		if (drop < FLOOR_DROP * 1.2) return; // too low for the compression to make sense
+		// In the column the eye is where it is and the map keeps the world's own heights. In the
+		// End nothing ties the two verticals together, so the field is built for an eye hanging a
+		// fixed distance above sea level and then hung under the camera wherever it is.
+		double eyeY = endDim ? PlanetMap.SEA_LEVEL + END_VIRTUAL_DROP : cam.y;
 
-		double scale = FLOOR_DROP / drop;
 		double viewBlocks = mc.options.getClampedViewDistance() * 16.0;
 		double clip = viewBlocks * 4.0;
-		double outer = clip * CLIP_USE / scale;
-		double inner = innerRadius(endDim, viewBlocks, clip, drop);
+		double reach = clip * HorizonProjection.CLIP_USE;
+		double inner = innerRadius(endDim, viewBlocks, clip, eyeY, seed, cam);
 
-		PlanetSurfaceMesh mesh = PlanetClientState.INSTANCE.mesh(cam.x, cam.z, inner, outer);
+		PlanetSurfaceMesh mesh = PlanetClientState.INSTANCE.mesh(cam.x, eyeY, cam.z, inner, reach);
 		if (mesh.quads == 0) return;
 
 		Matrix4f mat = new Matrix4f(ctx.matrixStack().peek().getPositionMatrix());
-		// s = scale * (vertex + shift - camera): one uniform scale about the eye, so every bearing
-		// survives it. JOML applies these to the vertex in reverse order, translate first.
-		mat.scale((float) scale);
+		// The field is a rigid body between rebuilds: shift it by the parallax the ship has flown
+		// since it was built. Vertically that applies only in the column, where the map is pinned to
+		// real heights — in the End it hangs from the camera and must not drift with it.
 		mat.translate((float) (mesh.originX - cam.x),
-				(float) (yShift - cam.y),
+				endDim ? 0f : (float) (mesh.originY - cam.y),
 				(float) (mesh.originZ - cam.z));
 
 		RenderSystem.enableBlend();
@@ -142,9 +123,14 @@ public final class PlanetFloorRenderer {
 	 * nothing is drawn past the far plane at all. From the band the ground is usually past the far
 	 * plane already, which gives zero — the map owns the whole view down. From lower, or with a very
 	 * long view distance, real terrain reaches further and the map starts outside it.
+	 *
+	 * <p>Whatever it comes to, the compression is the identity inside it, so the map's first cells
+	 * are drawn at their true distance and continue the real ground rather than stepping off it.
 	 */
-	private static double innerRadius(boolean endDim, double viewBlocks, double clip, double drop) {
+	private static double innerRadius(boolean endDim, double viewBlocks, double clip,
+									  double eyeY, long seed, Vec3d cam) {
 		if (endDim) return 0.0; // no Overworld ground below the End to collide with
+		double drop = eyeY - PlanetMap.height(seed, cam.x, cam.z);
 		double byClip = clip * clip - drop * drop;
 		if (byClip <= 0) return 0.0;
 		return Math.min(viewBlocks, Math.sqrt(byClip));

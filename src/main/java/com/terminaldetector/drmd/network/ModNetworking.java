@@ -134,15 +134,26 @@ public final class ModNetworking {
 	}
 
 	/**
-	 * Server → client planet snapshot: the world seed, and the cells a reactor burned.
+	 * Server → client planet snapshot: the world seed, the cells a reactor burned, and the
+	 * catalogue of built landmarks the horizon stands up as silhouettes.
 	 *
-	 * <p>Everything the floor under the End draws follows from the seed, so this goes out once on
-	 * join and again only when the scar set changes. Its predecessor streamed a viewport of six
-	 * hundred cells — height, tint and flags each — on every player tick.
+	 * <p>The surface itself follows from the seed, so this goes out once on join and again only when
+	 * one of the other two changes. Its predecessor streamed a viewport of six hundred cells —
+	 * height, tint and flags each — on every player tick.
+	 *
+	 * <p>Only what a silhouette needs is sent: where a thing is, how big it is, its colour and its
+	 * kind. The shape is rebuilt on the client from the kind, because a mast and a dish cost two
+	 * boxes to describe and kilobytes to transmit.
 	 */
-	public record PlanetPayload(long seed, java.util.List<Long> scarCells) implements CustomPayload {
+	public record PlanetPayload(long seed, java.util.List<Long> scarCells,
+								java.util.List<Landmark> landmarks) implements CustomPayload {
+		public record Landmark(int x, int y, int z, int sizeX, int sizeY, int sizeZ,
+							   int colour, int kind) {}
+
 		/** Cap so a heavily bombed world cannot turn one join into a megabyte. */
 		public static final int MAX_SCARS = 2048;
+		/** Cap on landmarks — well past what a horizon can distinguish. */
+		public static final int MAX_LANDMARKS = 512;
 
 		public static final Id<PlanetPayload> ID = new Id<>(PLANET_ID);
 		public static final PacketCodec<RegistryByteBuf, PlanetPayload> CODEC = PacketCodec.of(
@@ -153,6 +164,19 @@ public final class ModNetworking {
 					for (int i = 0; i < n; i++) {
 						buf.writeLong(payload.scarCells.get(i));
 					}
+					int m = Math.min(payload.landmarks.size(), MAX_LANDMARKS);
+					buf.writeVarInt(m);
+					for (int i = 0; i < m; i++) {
+						Landmark l = payload.landmarks.get(i);
+						buf.writeInt(l.x());
+						buf.writeInt(l.y());
+						buf.writeInt(l.z());
+						buf.writeVarInt(l.sizeX());
+						buf.writeVarInt(l.sizeY());
+						buf.writeVarInt(l.sizeZ());
+						buf.writeInt(l.colour());
+						buf.writeVarInt(l.kind());
+					}
 				},
 				buf -> {
 					long seed = buf.readLong();
@@ -161,7 +185,15 @@ public final class ModNetworking {
 					for (int i = 0; i < n; i++) {
 						cells.add(buf.readLong());
 					}
-					return new PlanetPayload(seed, cells);
+					int m = Math.min(buf.readVarInt(), MAX_LANDMARKS);
+					java.util.ArrayList<Landmark> marks = new java.util.ArrayList<>(m);
+					for (int i = 0; i < m; i++) {
+						marks.add(new Landmark(
+								buf.readInt(), buf.readInt(), buf.readInt(),
+								buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
+								buf.readInt(), buf.readVarInt()));
+					}
+					return new PlanetPayload(seed, cells, marks);
 				}
 		);
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
