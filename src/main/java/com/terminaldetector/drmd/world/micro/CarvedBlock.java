@@ -15,6 +15,7 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldView;
 import net.minecraft.world.explosion.Explosion;
 import com.mojang.serialization.MapCodec;
 
@@ -107,7 +108,7 @@ public class CarvedBlock extends BlockWithEntity {
 	}
 
 	@Override
-	public ItemStack getPickStack(BlockView world, BlockPos pos, BlockState state) {
+	public ItemStack getPickStack(WorldView world, BlockPos pos, BlockState state) {
 		BlockEntity be = world.getBlockEntity(pos);
 		if (be instanceof CarvedBlockEntity carved) {
 			return new ItemStack(carved.source().getBlock());
