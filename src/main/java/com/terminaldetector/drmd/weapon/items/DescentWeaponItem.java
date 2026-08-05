@@ -120,6 +120,9 @@ public class DescentWeaponItem extends Item {
 		}
 	}
 
+	/** Which of the five helix bank positions the next shot uses. */
+	private int helixStep;
+
 	protected boolean fire(World world, PlayerEntity user, DescentPlayerData data, ItemStack stack) {
 		return switch (def.behavior) {
 			// Lasers (5)
@@ -132,6 +135,12 @@ public class DescentWeaponItem extends Item {
 			case "spread", "flak" -> fireSpread(user, data);
 			case "plasma" -> firePlasma(user, data);
 			case "vulcan", "gatling", "mg" -> fireBasic(user, data);
+			// Descent 2 super primaries — each is the D1 weapon taken one step further,
+			// which is the relationship the originals had and the reason they are not reskins.
+			case "gauss" -> fireGauss(user, data);
+			case "helix" -> fireHelix(user, data);
+			case "phoenix" -> firePhoenix(user, data);
+			case "omega" -> fireOmega(user, data);
 			// Rockets (6)
 			case "rocket_light", "rocket_offense", "rocket_dual", "rocket_triple",
 					"rocket_heavy", "rocket_mega", "rockets", "homing" -> fireDescentRocket(user, data);
@@ -351,6 +360,149 @@ public class DescentWeaponItem extends Item {
 	}
 
 	/** Descent Spreadfire — kinetic pellet cone from modules. */
+	/**
+	 * Gauss — the Vulcan taken to a rail gun.
+	 *
+	 * <p>Hitscan rather than a fast bullet, which is the whole difference in Descent 2: the Vulcan
+	 * leads a moving target and the Gauss does not. Punches through what it hits instead of melting
+	 * it, so it is a weapon against ships rather than against walls.
+	 */
+	protected boolean fireGauss(PlayerEntity user, DescentPlayerData data) {
+		if (!consumeEnergy(data, def.energyCost)) return false;
+		Vec3d aim = WeaponCore.aimDir(user);
+		var muzzles = WeaponCore.allMuzzles(user, def.id);
+		Vec3d origin = muzzles.isEmpty() ? WeaponCore.muzzle(user, 0.7f, 0f, -0.1f) : muzzles.get(0);
+		if (user instanceof net.minecraft.entity.LivingEntity living) {
+			WeaponCore.hitscan(living, origin, aim, 9000f, def.damage, DamageClass.KINETIC,
+					null, true, false);
+		}
+		WeaponCore.applyRecoil(user, aim, def.recoil);
+		return true;
+	}
+
+	/**
+	 * Helix — the Spreadfire taken from a cross to a rotating fan.
+	 *
+	 * <p>Five bolts on a line through the crosshair, and the line turns a step every shot. Held down
+	 * it sweeps a volume rather than a plane, which is what made it the room-clearing weapon: the
+	 * spread is deterministic, so it is aimed rather than sprayed.
+	 */
+	protected boolean fireHelix(PlayerEntity user, DescentPlayerData data) {
+		if (!consumeEnergy(data, def.energyCost)) return false;
+		Vec3d aim = WeaponCore.aimDir(user);
+		var muzzles = WeaponCore.allMuzzles(user, def.id);
+		Vec3d origin = muzzles.isEmpty() ? WeaponCore.muzzle(user, 0.7f, 0f, -0.1f) : muzzles.get(0);
+
+		// The bank steps 36° a shot: five positions before it repeats, so a burst covers the circle.
+		helixStep = (helixStep + 1) % 5;
+		double bank = Math.toRadians(helixStep * 36.0);
+		Vec3d right = aim.crossProduct(new Vec3d(0, 1, 0));
+		if (right.lengthSquared() < 1.0e-4) right = aim.crossProduct(new Vec3d(1, 0, 0));
+		right = right.normalize();
+		Vec3d up = right.crossProduct(aim).normalize();
+		Vec3d axis = right.multiply(Math.cos(bank)).add(up.multiply(Math.sin(bank)));
+
+		for (int i = -2; i <= 2; i++) {
+			WeaponCore.FireConfig cfg = baseCfg(user);
+			cfg.pos = origin;
+			cfg.dir = aim.add(axis.multiply(i * 0.11)).normalize();
+			cfg.directDamage = def.damage;
+			cfg.splashDamage = def.splashDamage;
+			cfg.splashRadius = def.splashRadius;
+			cfg.speed = def.speed;
+			cfg.recoil = i == -2 ? def.recoil : 0;
+			cfg.life = 1.4f;
+			cfg.dmgClass = DamageClass.KINETIC;
+			cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_BOLT;
+			cfg.visualScale = 0.8f;
+			WeaponCore.fireProjectile(cfg);
+		}
+		return true;
+	}
+
+	/**
+	 * Phoenix — the Plasma taken to a bolt that comes back at you.
+	 *
+	 * <p>Fires low so the bolts skip off the floor of a corridor. The bounce itself is the shot
+	 * pattern rather than a physics property: two bolts on slightly divergent lines with a long life,
+	 * which in a corridor reads as the ricochet the original had. A real reflecting projectile wants
+	 * a bounce flag on the projectile entity, and that is worth doing when the projectile framework
+	 * grows one — noted rather than pretended.
+	 */
+	protected boolean firePhoenix(PlayerEntity user, DescentPlayerData data) {
+		if (!consumeEnergy(data, def.energyCost)) return false;
+		Vec3d aim = WeaponCore.aimDir(user);
+		var muzzles = WeaponCore.allMuzzles(user, def.id);
+		for (int i = 0; i < 2; i++) {
+			WeaponCore.FireConfig cfg = baseCfg(user);
+			cfg.pos = muzzles.size() > i ? muzzles.get(i) : WeaponCore.muzzle(user, 0.7f, 0f, -0.1f);
+			cfg.dir = aim.add(new Vec3d(0, -0.05 - i * 0.02, 0)).normalize();
+			cfg.directDamage = def.damage;
+			cfg.splashDamage = def.splashDamage;
+			cfg.splashRadius = def.splashRadius;
+			cfg.speed = def.speed;
+			cfg.recoil = i == 0 ? def.recoil : 0;
+			cfg.life = 3.5f;
+			cfg.dmgClass = DamageClass.EXOTIC;
+			cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ORB;
+			cfg.visualScale = 1.05f;
+			WeaponCore.fireProjectile(cfg);
+		}
+		return true;
+	}
+
+	/**
+	 * Omega — the Fusion taken from a charge to a chain.
+	 *
+	 * <p>No projectile at all: it reaches the nearest thing in front of the ship and jumps from there
+	 * to whatever is near it. That is why it drinks energy — in Descent 2 the Omega runs off the
+	 * ship's own supply rather than ammunition, and firing it flat is what empties you.
+	 */
+	protected boolean fireOmega(PlayerEntity user, DescentPlayerData data) {
+		if (!consumeEnergy(data, def.energyCost)) return false;
+		if (!(user instanceof net.minecraft.entity.LivingEntity living)) return false;
+		Vec3d aim = WeaponCore.aimDir(user);
+		var muzzles = WeaponCore.allMuzzles(user, def.id);
+		Vec3d origin = muzzles.isEmpty() ? WeaponCore.muzzle(user, 0.7f, 0f, -0.1f) : muzzles.get(0);
+
+		WeaponCore.hitscan(living, origin, aim, 1800f, def.damage, DamageClass.EXOTIC,
+				hit -> chainFrom(user, hit.hitPos(), def.damage), true, false);
+		return true;
+	}
+
+	/**
+	 * The jump: everything within reach of where the arc landed takes a share, twice.
+	 *
+	 * <p>Each link is weaker than the last, so a crowd is worth more than a single target without the
+	 * chain being free damage forever.
+	 */
+	private void chainFrom(PlayerEntity user, Vec3d from, float damage) {
+		if (!(user.getWorld() instanceof net.minecraft.server.world.ServerWorld world)) return;
+		double reach = 7.0;
+		float linkDamage = damage * 0.6f;
+		Vec3d at = from;
+		for (int link = 0; link < 2 && linkDamage > 1f; link++) {
+			net.minecraft.util.math.Box box = new net.minecraft.util.math.Box(
+					at.x - reach, at.y - reach, at.z - reach, at.x + reach, at.y + reach, at.z + reach);
+			var targets = world.getEntitiesByClass(net.minecraft.entity.LivingEntity.class, box,
+					e -> e != user && e.isAlive());
+			if (targets.isEmpty()) return;
+			net.minecraft.entity.LivingEntity next = targets.get(0);
+			double best = Double.MAX_VALUE;
+			for (var candidate : targets) {
+				double d = candidate.getPos().squaredDistanceTo(at);
+				if (d < best) {
+					best = d;
+					next = candidate;
+				}
+			}
+			WeaponCore.directDamage(user, next, linkDamage, DamageClass.EXOTIC);
+			com.terminaldetector.drmd.weapon.fx.WeaponFx.beamExotic(world, at, next.getPos().add(0, 0.9, 0));
+			at = next.getPos().add(0, 0.9, 0);
+			linkDamage *= 0.6f;
+		}
+	}
+
 	protected boolean fireSpread(PlayerEntity user, DescentPlayerData data) {
 		if (!consumeEnergy(data, def.energyCost)) return false;
 		Vec3d aim = WeaponCore.aimDir(user);

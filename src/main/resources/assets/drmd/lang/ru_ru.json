@@ -159,5 +159,9 @@
   "screen.drmd.preset.assault": "Штурм",
   "screen.drmd.preset.interceptor": "Перехват",
   "screen.drmd.preset.siege": "Осада",
-  "block.drmd.carved": "Разрушенный блок"
+  "block.drmd.carved": "Разрушенный блок",
+  "item.drmd.weapon_d6_gauss": "Гаусс-пушка",
+  "item.drmd.weapon_d6_helix": "Хеликс-пушка",
+  "item.drmd.weapon_d6_phoenix": "Феникс-пушка",
+  "item.drmd.weapon_d6_omega": "Омега-пушка"
 }

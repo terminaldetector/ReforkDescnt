@@ -35,6 +35,10 @@ public final class ModItems {
 	public static Item VULCAN;
 	public static Item GATLING;
 	public static Item PLASMA;
+	public static Item GAUSS;
+	public static Item HELIX;
+	public static Item PHOENIX;
+	public static Item OMEGA;
 
 	public static Item ROCKET_LIGHT;
 	public static Item ROCKET_OFFENSE;
@@ -146,6 +150,12 @@ public final class ModItems {
 		GATLING = wep("weapon_d6_mg", new WeaponDef("gatling", "Гатлинг", "blaster", 1.5f, 0.04f, 11f, 0f, 0f, 5200f, 4f, DamageClass.KINETIC, "gatling"));
 		MG = GATLING;
 		PLASMA = wep("weapon_d6_plasma", new WeaponDef("plasma", "Плазма", "blaster", 8f, 0.45f, 45f, 25f, 120f, 3200f, 40f, DamageClass.EXOTIC, "plasma"));
+
+		// --- Descent 2 super primaries (4) — each one the D1 weapon taken a step further ---
+		GAUSS = wep("weapon_d6_gauss", new WeaponDef("gauss", "Gauss", "blaster", 6f, 0.55f, 130f, 0f, 0f, 0f, 55f, DamageClass.KINETIC, "gauss"));
+		HELIX = wep("weapon_d6_helix", new WeaponDef("helix", "Helix", "blaster", 9f, 0.4f, 22f, 10f, 60f, 4200f, 30f, DamageClass.KINETIC, "helix"));
+		PHOENIX = wep("weapon_d6_phoenix", new WeaponDef("phoenix", "Phoenix", "blaster", 11f, 0.5f, 55f, 30f, 130f, 3000f, 45f, DamageClass.EXOTIC, "phoenix"));
+		OMEGA = wep("weapon_d6_omega", new WeaponDef("omega", "Omega", "blaster", 30f, 0.15f, 40f, 0f, 0f, 0f, 10f, DamageClass.EXOTIC, "omega"));
 
 		// --- Rockets (6) ---
 		ROCKET_LIGHT = wep("weapon_d6_concussion", new WeaponDef("rocket_light", "Ракета лёгкая", "rocket", 8f, 0.9f, 70f, 55f, 220f, 3000f, 18f, DamageClass.EXPLOSIVE, "rocket_light"));

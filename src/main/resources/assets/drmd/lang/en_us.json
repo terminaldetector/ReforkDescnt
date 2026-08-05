@@ -205,5 +205,9 @@
   "screen.drmd.preset.assault": "Assault",
   "screen.drmd.preset.interceptor": "Interceptor",
   "screen.drmd.preset.siege": "Siege",
-  "block.drmd.carved": "Carved Block"
+  "block.drmd.carved": "Carved Block",
+  "item.drmd.weapon_d6_gauss": "Gauss Cannon",
+  "item.drmd.weapon_d6_helix": "Helix Cannon",
+  "item.drmd.weapon_d6_phoenix": "Phoenix Cannon",
+  "item.drmd.weapon_d6_omega": "Omega Cannon"
 }

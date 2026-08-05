@@ -40,6 +40,12 @@ public final class ArsenalCatalog {
 		put("gatling", Family.BLASTER, "Гатлинг", "GATLING");
 		put("plasma", Family.BLASTER, "Плазма", "PLASMA");
 
+		// 2b) Descent 2 super primaries — the halves of the canon that were never ported
+		put("gauss", Family.BLASTER, "Gauss", "GAUSS");
+		put("helix", Family.BLASTER, "Helix", "HELIX");
+		put("phoenix", Family.BLASTER, "Phoenix", "PHOENIX");
+		put("omega", Family.BLASTER, "Omega", "OMEGA");
+
 		// 3) Rockets — six Descent weights
 		put("rocket_light", Family.ROCKET, "Ракета лёгкая", "R-LIGHT");
 		put("rocket_offense", Family.ROCKET, "Ракета наступательная", "R-ATK");
