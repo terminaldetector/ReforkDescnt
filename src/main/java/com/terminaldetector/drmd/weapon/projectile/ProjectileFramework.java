@@ -208,7 +208,10 @@ public final class ProjectileFramework {
 		return switch (behavior) {
 			case "laser", "quad_laser", "mega_laser", "beam", "overdrive" -> ProjectileKind.LASER;
 			case "plasma" -> ProjectileKind.PLASMA;
-			case "rockets", "homing", "smart_missile", "mega_missile", "concussion" -> ProjectileKind.ROCKET;
+			case "rockets", "homing", "smart_missile", "mega_missile", "concussion",
+					"flash", "guided", "mercury", "earthshaker",
+					"rocket_light", "rocket_offense", "rocket_dual", "rocket_triple",
+					"rocket_heavy", "rocket_mega" -> ProjectileKind.ROCKET;
 			case "gravy" -> ProjectileKind.GRAVITY_SPHERE;
 			case "bfg", "darklance", "fusion" -> ProjectileKind.ENERGY_ORB;
 			case "deploy" -> ProjectileKind.PROXIMITY_MINE;

@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.entity;
 
 import com.terminaldetector.drmd.weapon.core.DamageClass;
+import com.terminaldetector.drmd.weapon.core.MissileSteering;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.weapon.fx.WeaponFx;
 import com.terminaldetector.drmd.world.LocalOrientation;
@@ -53,6 +54,7 @@ public class ProjectileEntity extends Entity {
 	private float gravityStrength;
 	private float drag;
 	private boolean homing;
+	private boolean pilotGuided;
 	private float turnRate = 90f;
 	private Entity homeTarget;
 	private int pierceCount;
@@ -103,6 +105,15 @@ public class ProjectileEntity extends Entity {
 	public void setGravityStrength(float v) { this.gravityStrength = v; }
 	public void setDrag(float v) { this.drag = v; }
 	public void setHoming(boolean h, float turn, Entity target) { this.homing = h; this.turnRate = turn; this.homeTarget = target; }
+
+	/**
+	 * Fly the owner's aim rather than a target — the Guided Missile.
+	 *
+	 * <p>Steering to a direction and not to a point is the faithful reading: in Descent the pilot's
+	 * stick becomes the missile's stick, so it goes where you are facing, not where you are looking
+	 * at. That is what lets it be walked around a corner into a room you cannot see into.
+	 */
+	public void setPilotGuided(boolean v) { this.pilotGuided = v; }
 	public void setPierceCount(int v) { this.pierceCount = v; }
 	public void setOnHit(Consumer<WeaponCore.HitContext> cb) { this.onHit = cb; }
 	public void setWorldBlast(boolean v) { this.worldBlast = v; }
@@ -190,18 +201,22 @@ public class ProjectileEntity extends Entity {
 
 		Vec3d vel = getVelocity();
 
-		if (homing) {
+		if (pilotGuided) {
+			// No lock to acquire or lose: while the pilot is there to fly it, it turns when they turn.
+			// Once they are not — dead, gone, on foot elsewhere — it coasts on its last heading.
+			LivingEntity own = getOwnerLiving();
+			if (own instanceof PlayerEntity ply) {
+				vel = MissileSteering.steer(vel, WeaponCore.aimDir(ply), turnRate);
+			}
+		} else if (homing) {
 			Entity target = homeTarget;
 			if (target == null || !target.isAlive()) {
 				target = findTarget();
 				homeTarget = target;
 			}
 			if (target != null) {
-				Vec3d desired = target.getPos().add(0, target.getHeight() * 0.5, 0).subtract(getPos()).normalize();
-				Vec3d cur = vel.lengthSquared() > 1e-6 ? vel.normalize() : desired;
-				double maxRad = Math.toRadians(turnRate / 20.0);
-				Vec3d blended = cur.add(desired.subtract(cur).multiply(Math.min(1.0, maxRad * 3))).normalize();
-				vel = blended.multiply(vel.length());
+				vel = MissileSteering.steer(vel,
+						target.getPos().add(0, target.getHeight() * 0.5, 0).subtract(getPos()), turnRate);
 			}
 		}
 

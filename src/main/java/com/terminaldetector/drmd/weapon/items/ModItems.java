@@ -40,12 +40,19 @@ public final class ModItems {
 	public static Item PHOENIX;
 	public static Item OMEGA;
 
-	public static Item ROCKET_LIGHT;
-	public static Item ROCKET_OFFENSE;
+	// Secondaries: the four launched D1 missiles, their D2 supers, and two pre-port weights.
+	public static Item CONCUSSION;
+	public static Item HOMING;
+	public static Item SMART_MISSILE;
+	public static Item MEGA_MISSILE;
+
+	public static Item FLASH;
+	public static Item GUIDED;
+	public static Item MERCURY;
+	public static Item EARTHSHAKER;
+
 	public static Item ROCKET_DUAL;
-	public static Item ROCKET_TRIPLE;
 	public static Item ROCKET_HEAVY;
-	public static Item ROCKET_MEGA;
 
 	public static Item MINE_PROX;
 	public static Item MINE_PLASMA;
@@ -65,10 +72,6 @@ public final class ModItems {
 	public static Item ROCKETS;
 	public static Item GRAVY_RAILGUN;
 	public static Item FLAK;
-	public static Item HOMING;
-	public static Item CONCUSSION;
-	public static Item SMART_MISSILE;
-	public static Item MEGA_MISSILE;
 	public static Item RAILMK2;
 	public static Item FRAG;
 	public static Item OVERDRIVE;
@@ -157,28 +160,34 @@ public final class ModItems {
 		PHOENIX = wep("weapon_d6_phoenix", new WeaponDef("phoenix", "Phoenix", "blaster", 11f, 0.5f, 55f, 30f, 130f, 3000f, 45f, DamageClass.EXOTIC, "phoenix"));
 		OMEGA = wep("weapon_d6_omega", new WeaponDef("omega", "Omega", "blaster", 30f, 0.15f, 40f, 0f, 0f, 0f, 10f, DamageClass.EXOTIC, "omega"));
 
-		// --- Rockets (6) ---
-		ROCKET_LIGHT = wep("weapon_d6_concussion", new WeaponDef("rocket_light", "Ракета лёгкая", "rocket", 8f, 0.9f, 70f, 55f, 220f, 3000f, 18f, DamageClass.EXPLOSIVE, "rocket_light"));
-		CONCUSSION = ROCKET_LIGHT;
-		ROCKET_OFFENSE = wep("weapon_d6_homing", new WeaponDef("rocket_offense", "Ракета наступательная", "rocket", 12f, 1.2f, 110f, 85f, 280f, 2400f, 22f, DamageClass.EXPLOSIVE, "rocket_offense"));
-		HOMING = ROCKET_OFFENSE;
+		// --- Descent 1 secondaries (4 launched; Proximity Bomb is the fifth, laid, below) ---
+		// The item ids were always the canonical ones — only the weapon ids had gone generic, so the
+		// names come back here and every saved inventory still points at the same registry entry.
+		CONCUSSION = wep("weapon_d6_concussion", new WeaponDef("concussion", "Concussion", "rocket", 8f, 0.9f, 70f, 55f, 220f, 3000f, 18f, DamageClass.EXPLOSIVE, "concussion"));
+		HOMING = wep("weapon_d6_homing", new WeaponDef("homing", "Homing", "rocket", 12f, 1.2f, 110f, 85f, 280f, 2400f, 22f, DamageClass.EXPLOSIVE, "homing"));
+		SMART_MISSILE = wep("weapon_d6_smart_missile", new WeaponDef("smart_missile", "Smart", "rocket", 20f, 1.3f, 85f, 70f, 260f, 2500f, 36f, DamageClass.EXPLOSIVE, "smart_missile"));
+		MEGA_MISSILE = wep("weapon_d6_mega_missile", new WeaponDef("mega_missile", "Mega", "rocket", 55f, 3.5f, 420f, 360f, 720f, 1600f, 70f, DamageClass.EXPLOSIVE, "mega_missile"));
+
+		// --- Descent 2 super secondaries (4) — each the D1 missile taken a step, not rescaled ---
+		FLASH = wep("weapon_d6_flash", new WeaponDef("flash", "Flash", "rocket", 20f, 1.0f, 12f, 18f, 200f, 3200f, 6f, DamageClass.EXPLOSIVE, "flash"));
+		GUIDED = wep("weapon_d6_guided", new WeaponDef("guided", "Guided", "rocket", 26f, 1.4f, 100f, 80f, 270f, 1700f, 10f, DamageClass.EXPLOSIVE, "guided"));
+		MERCURY = wep("weapon_d6_mercury", new WeaponDef("mercury", "Mercury", "rocket", 40f, 1.5f, 200f, 110f, 300f, 5200f, 34f, DamageClass.EXPLOSIVE, "mercury"));
+		EARTHSHAKER = wep("weapon_d6_earthshaker", new WeaponDef("earthshaker", "Earthshaker", "rocket", 85f, 4.0f, 480f, 420f, 820f, 1500f, 75f, DamageClass.EXPLOSIVE, "earthshaker"));
+
+		// --- Two weights that predate the port; no canon weapon answers to either ---
 		ROCKET_DUAL = wep("weapon_d6_rockets", new WeaponDef("rocket_dual", "Ракета сдвоенная", "rocket", 16f, 1.0f, 95f, 80f, 300f, 2600f, 28f, DamageClass.EXPLOSIVE, "rocket_dual"));
 		ROCKETS = ROCKET_DUAL;
-		ROCKET_TRIPLE = wep("weapon_d6_smart_missile", new WeaponDef("rocket_triple", "Ракета строенная", "rocket", 20f, 1.3f, 90f, 75f, 300f, 2500f, 36f, DamageClass.EXPLOSIVE, "rocket_triple"));
-		SMART_MISSILE = ROCKET_TRIPLE;
 		ROCKET_HEAVY = wep("weapon_d6_frag", new WeaponDef("rocket_heavy", "Ракета тяжёлая", "rocket", 28f, 1.8f, 180f, 160f, 480f, 2000f, 45f, DamageClass.EXPLOSIVE, "rocket_heavy"));
 		FRAG = ROCKET_HEAVY;
-		ROCKET_MEGA = wep("weapon_d6_mega_missile", new WeaponDef("rocket_mega", "Мега-ракета", "rocket", 55f, 3.5f, 420f, 360f, 720f, 1600f, 70f, DamageClass.EXPLOSIVE, "rocket_mega"));
-		MEGA_MISSILE = ROCKET_MEGA;
 
 		// --- Air mines (4, no gravity) ---
-		MINE_PROX = wep("weapon_d6_gravmine", new WeaponDef("mine_prox", "Прокси-мина", "mine", 25f, 1.2f, 0f, 90f, 220f, 700f, 8f, DamageClass.EXPLOSIVE, "mine_prox"));
+		MINE_PROX = wep("weapon_d6_gravmine", new WeaponDef("mine_prox", "Proximity Bomb", "mine", 25f, 1.2f, 0f, 90f, 220f, 700f, 8f, DamageClass.EXPLOSIVE, "mine_prox"));
 		GRAVMINE = MINE_PROX;
 		MINE_PLASMA = wep("weapon_d6_plasmamine", new WeaponDef("mine_plasma", "Плазма-мина", "mine", 28f, 1.2f, 0f, 120f, 260f, 700f, 8f, DamageClass.EXPLOSIVE, "mine_plasma"));
 		PLASMAMINE = MINE_PLASMA;
 		MINE_ENERGY = wep("weapon_d6_energytrap", new WeaponDef("mine_energy", "Энерго-мина", "mine", 22f, 1.2f, 0f, 70f, 200f, 700f, 8f, DamageClass.ENERGY, "mine_energy"));
 		ENERGYTRAP = MINE_ENERGY;
-		MINE_SMART = wep("weapon_d6_darkfield", new WeaponDef("mine_smart", "Смарт-мина", "mine", 35f, 1.5f, 0f, 140f, 300f, 700f, 8f, DamageClass.EXPLOSIVE, "mine_smart"));
+		MINE_SMART = wep("weapon_d6_darkfield", new WeaponDef("mine_smart", "Smart Mine", "mine", 35f, 1.5f, 0f, 140f, 300f, 700f, 8f, DamageClass.EXPLOSIVE, "mine_smart"));
 		DARKFIELD = MINE_SMART;
 
 		// --- Unique ---

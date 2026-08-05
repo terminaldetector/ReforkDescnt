@@ -141,9 +141,12 @@ public class DescentWeaponItem extends Item {
 			case "helix" -> fireHelix(user, data);
 			case "phoenix" -> firePhoenix(user, data);
 			case "omega" -> fireOmega(user, data);
-			// Rockets (6)
-			case "rocket_light", "rocket_offense", "rocket_dual", "rocket_triple",
-					"rocket_heavy", "rocket_mega", "rockets", "homing" -> fireDescentRocket(user, data);
+			// Secondaries: D1's four launched missiles, their D2 supers, and the two pre-port weights.
+			// The generic rocket_* names stay routable so nothing still holding one goes silent.
+			case "concussion", "homing", "smart_missile", "mega_missile",
+					"flash", "guided", "mercury", "earthshaker",
+					"rocket_dual", "rocket_heavy", "rockets",
+					"rocket_light", "rocket_offense", "rocket_triple", "rocket_mega" -> fireDescentRocket(user, data);
 			// Air mines (4)
 			case "mine_prox", "mine_plasma", "mine_energy", "mine_smart",
 					"deploy", "plasmamine", "gravmine", "energytrap", "darkfield" -> fireAirMine(user, data);

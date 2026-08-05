@@ -46,6 +46,14 @@ public final class WeaponCore {
 		public float splashDamage = 0f;
 		public float splashRadius = 0f;
 		public boolean homing = false;
+		/**
+		 * Steer to the owner's current aim for the whole flight instead of to a target.
+		 *
+		 * <p>Separate from {@link #homing} because it is a different question: homing asks the warhead
+		 * what to chase, this asks the pilot. Set both and the pilot wins — there is nothing sensible
+		 * for a missile to do when a lock and a hand disagree.
+		 */
+		public boolean pilotGuided = false;
 		public float turnRate = 90f;
 		public Entity homeTarget;
 		public int pierceCount = 0;
@@ -110,6 +118,7 @@ public final class WeaponCore {
 		proj.setGravityStrength(cfg.gravity);
 		proj.setDrag(cfg.drag);
 		proj.setHoming(cfg.homing, cfg.turnRate, cfg.homeTarget);
+		proj.setPilotGuided(cfg.pilotGuided);
 		proj.setPierceCount(cfg.pierceCount);
 		proj.setColorRgb(cfg.colorR, cfg.colorG, cfg.colorB);
 		proj.setOnHit(cfg.onHit);

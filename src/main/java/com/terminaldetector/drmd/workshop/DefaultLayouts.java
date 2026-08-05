@@ -64,12 +64,23 @@ public final class DefaultLayouts {
 		BUILTIN.put("vulcan", layout("barrel", 0.92f, "barrel", 0.92f, "gravy", GF, GU, GS));
 		BUILTIN.put("gatling", layout("barrel", 1.00f, "barrel", 1.00f, "gravy", GF, GU, GS));
 		BUILTIN.put("plasma", layout("nosegun", 1.55f, "barrel", 1.00f, "gravy", GF, GU, GS));
-		BUILTIN.put("rocket_light", layout("nosegun", 1.40f, "barrel", 0.95f, "gravy", GF, GU, GS));
-		BUILTIN.put("rocket_offense", layout("nosegun", 1.40f, "barrel", 0.95f, "gravy", GF, GU, GS));
+		// The D2 super primaries arrived without racks and were falling back to the generic stub pair.
+		// Same rule as the secondaries below: a super sits in its ancestor's mounts.
+		BUILTIN.put("gauss", BUILTIN.get("vulcan"));
+		BUILTIN.put("helix", BUILTIN.get("spread"));
+		BUILTIN.put("phoenix", BUILTIN.get("plasma"));
+		BUILTIN.put("omega", BUILTIN.get("fusion"));
+		BUILTIN.put("concussion", layout("nosegun", 1.40f, "barrel", 0.95f, "gravy", GF, GU, GS));
+		BUILTIN.put("homing", layout("nosegun", 1.40f, "barrel", 0.95f, "gravy", GF, GU, GS));
+		BUILTIN.put("smart_missile", layout("nosegun", 1.55f, "nosegun", 1.40f, "gravy", GF, GU, GS));
+		BUILTIN.put("mega_missile", layout("nosegun", 1.80f, "nosegun", 1.80f, "gravy", GF, GU, GS));
+		// Supers carry their ancestor's rack — a bigger tube in the same mounts, which is what they are.
+		BUILTIN.put("flash", BUILTIN.get("concussion"));
+		BUILTIN.put("guided", BUILTIN.get("homing"));
+		BUILTIN.put("mercury", BUILTIN.get("smart_missile"));
+		BUILTIN.put("earthshaker", BUILTIN.get("mega_missile"));
 		BUILTIN.put("rocket_dual", layout("barrel", 1.00f, "barrel", 1.00f, "gravy", GF, GU, GS));
-		BUILTIN.put("rocket_triple", layout("nosegun", 1.55f, "nosegun", 1.40f, "gravy", GF, GU, GS));
 		BUILTIN.put("rocket_heavy", layout("nosegun", 1.70f, "barrel", 1.05f, "gravy", GF, GU, GS));
-		BUILTIN.put("rocket_mega", layout("nosegun", 1.80f, "nosegun", 1.80f, "gravy", GF, GU, GS));
 		BUILTIN.put("mine_prox", layoutPair("barrel", 0.85f, null, 0, 0, 0));
 		BUILTIN.put("mine_plasma", layoutPair("barrel", 0.85f, null, 0, 0, 0));
 		BUILTIN.put("mine_energy", layoutPair("nosegun", 1.30f, "strider", SF, SU, SS));
@@ -81,10 +92,10 @@ public final class DefaultLayouts {
 		BUILTIN.put("mg", BUILTIN.get("gatling"));
 		BUILTIN.put("flak", BUILTIN.get("spread"));
 		BUILTIN.put("rockets", BUILTIN.get("rocket_dual"));
-		BUILTIN.put("concussion", BUILTIN.get("rocket_light"));
-		BUILTIN.put("homing", BUILTIN.get("rocket_offense"));
-		BUILTIN.put("smart_missile", BUILTIN.get("rocket_triple"));
-		BUILTIN.put("mega_missile", BUILTIN.get("rocket_mega"));
+		BUILTIN.put("rocket_light", BUILTIN.get("concussion"));
+		BUILTIN.put("rocket_offense", BUILTIN.get("homing"));
+		BUILTIN.put("rocket_triple", BUILTIN.get("smart_missile"));
+		BUILTIN.put("rocket_mega", BUILTIN.get("mega_missile"));
 		BUILTIN.put("frag", BUILTIN.get("rocket_heavy"));
 		BUILTIN.put("overdrive", BUILTIN.get("laser_prism"));
 		BUILTIN.put("darklance", BUILTIN.get("laser_pulse"));

@@ -46,19 +46,32 @@ public final class ArsenalCatalog {
 		put("phoenix", Family.BLASTER, "Phoenix", "PHOENIX");
 		put("omega", Family.BLASTER, "Omega", "OMEGA");
 
-		// 3) Rockets — six Descent weights
-		put("rocket_light", Family.ROCKET, "Ракета лёгкая", "R-LIGHT");
-		put("rocket_offense", Family.ROCKET, "Ракета наступательная", "R-ATK");
-		put("rocket_dual", Family.ROCKET, "Ракета сдвоенная", "R-DUAL");
-		put("rocket_triple", Family.ROCKET, "Ракета строенная", "R-TRI");
-		put("rocket_heavy", Family.ROCKET, "Ракета тяжёлая", "R-HVY");
-		put("rocket_mega", Family.ROCKET, "Мега-ракета", "R-MEGA");
+		// 3) Secondaries — the launched half. Canon names, because these are named weapons and not
+		// weights: the generic rocket_* ids were the placeholder, not the other way round.
+		put("concussion", Family.ROCKET, "Concussion", "CONC");
+		put("homing", Family.ROCKET, "Homing", "HOMING");
+		put("smart_missile", Family.ROCKET, "Smart", "SMART");
+		put("mega_missile", Family.ROCKET, "Mega", "MEGA-M");
 
-		// 4) Air mines (no gravity mines)
-		put("mine_prox", Family.MINE, "Прокси-мина", "M-PROX");
+		// 3b) Descent 2 super secondaries — one older brother per D1 secondary, same as the primaries.
+		// The fifth pair is Proximity Bomb → Smart Mine, and both of those are laid, so they sit in
+		// the mine family below rather than here.
+		put("flash", Family.ROCKET, "Flash", "FLASH");
+		put("guided", Family.ROCKET, "Guided", "GUIDED");
+		put("mercury", Family.ROCKET, "Mercury", "MERCURY");
+		put("earthshaker", Family.ROCKET, "Earthshaker", "SHAKER");
+
+		// 3c) Two weights that predate the port and answer to nothing in the canon. Kept because they
+		// are somebody's loadout by now, named so they do not read as Descent weapons.
+		put("rocket_dual", Family.ROCKET, "Ракета сдвоенная", "R-DUAL");
+		put("rocket_heavy", Family.ROCKET, "Ракета тяжёлая", "R-HVY");
+
+		// 4) Air mines (no gravity mines) — mine_prox and mine_smart are secondaries 3 and 8 of the
+		// canon bank; the other two are extras like the rockets above.
+		put("mine_prox", Family.MINE, "Proximity Bomb", "M-PROX");
 		put("mine_plasma", Family.MINE, "Плазма-мина", "M-PLAS");
 		put("mine_energy", Family.MINE, "Энерго-мина", "M-NRG");
-		put("mine_smart", Family.MINE, "Смарт-мина", "M-SMRT");
+		put("mine_smart", Family.MINE, "Smart Mine", "M-SMRT");
 
 		// 5) Unique
 		put("bfg", Family.UNIQUE, "BFG", "BFG");
@@ -108,12 +121,16 @@ public final class ArsenalCatalog {
 				ModItems.VULCAN,
 				ModItems.GATLING,
 				ModItems.PLASMA,
-				ModItems.ROCKET_LIGHT,
-				ModItems.ROCKET_OFFENSE,
+				ModItems.CONCUSSION,
+				ModItems.HOMING,
+				ModItems.SMART_MISSILE,
+				ModItems.MEGA_MISSILE,
+				ModItems.FLASH,
+				ModItems.GUIDED,
+				ModItems.MERCURY,
+				ModItems.EARTHSHAKER,
 				ModItems.ROCKET_DUAL,
-				ModItems.ROCKET_TRIPLE,
 				ModItems.ROCKET_HEAVY,
-				ModItems.ROCKET_MEGA,
 				ModItems.MINE_PROX,
 				ModItems.MINE_PLASMA,
 				ModItems.MINE_ENERGY,
@@ -138,10 +155,12 @@ public final class ArsenalCatalog {
 		};
 	}
 
+	/** Bank order: the four launched D1 secondaries, then each one's D2 super, then the extras. */
 	public static Item[] hudMissileOrder() {
 		return new Item[]{
-				ModItems.ROCKET_LIGHT, ModItems.ROCKET_OFFENSE, ModItems.ROCKET_DUAL,
-				ModItems.ROCKET_TRIPLE, ModItems.ROCKET_HEAVY, ModItems.ROCKET_MEGA
+				ModItems.CONCUSSION, ModItems.HOMING, ModItems.SMART_MISSILE, ModItems.MEGA_MISSILE,
+				ModItems.FLASH, ModItems.GUIDED, ModItems.MERCURY, ModItems.EARTHSHAKER,
+				ModItems.ROCKET_DUAL, ModItems.ROCKET_HEAVY
 		};
 	}
 
@@ -154,10 +173,27 @@ public final class ArsenalCatalog {
 	/** Legacy placeholder ids kept registered but not in the open set. */
 	public static Set<String> retiredIds() {
 		return Set.of(
-				"mg", "heavy", "rockets", "gravy_railgun", "flak", "homing", "concussion",
-				"smart_missile", "mega_missile", "railmk2", "frag", "overdrive", "shockwave",
-				"darklance", "darkfield", "energytrap", "gravmine", "plasmamine",
-				"reactor", "telefrag", "whiplash"
+				"mg", "heavy", "rockets", "gravy_railgun", "flak", "railmk2", "frag",
+				"overdrive", "shockwave", "darklance", "darkfield", "energytrap", "gravmine",
+				"plasmamine", "reactor", "telefrag", "whiplash",
+				// The generic weights the secondaries wore before their own names came back.
+				"rocket_light", "rocket_offense", "rocket_triple", "rocket_mega"
+		);
+	}
+
+	/**
+	 * What each renamed weapon used to be called.
+	 *
+	 * <p>Anything that filed something away under a weapon id — workshop layouts are the live case —
+	 * has to be able to find it again after the rename, so the old key stays readable. Only the
+	 * lookups consult this; nothing writes under the old name any more.
+	 */
+	public static Map<String, String> legacyIdOf() {
+		return Map.of(
+				"concussion", "rocket_light",
+				"homing", "rocket_offense",
+				"smart_missile", "rocket_triple",
+				"mega_missile", "rocket_mega"
 		);
 	}
 }

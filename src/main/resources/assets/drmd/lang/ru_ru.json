@@ -163,5 +163,17 @@
   "item.drmd.weapon_d6_gauss": "Гаусс-пушка",
   "item.drmd.weapon_d6_helix": "Хеликс-пушка",
   "item.drmd.weapon_d6_phoenix": "Феникс-пушка",
-  "item.drmd.weapon_d6_omega": "Омега-пушка"
+  "item.drmd.weapon_d6_omega": "Омега-пушка",
+  "item.drmd.weapon_d6_concussion": "Ракета Concussion",
+  "item.drmd.weapon_d6_homing": "Ракета Homing",
+  "item.drmd.weapon_d6_smart_missile": "Ракета Smart",
+  "item.drmd.weapon_d6_mega_missile": "Ракета Mega",
+  "item.drmd.weapon_d6_flash": "Ракета Flash",
+  "item.drmd.weapon_d6_guided": "Ракета Guided",
+  "item.drmd.weapon_d6_mercury": "Ракета Mercury",
+  "item.drmd.weapon_d6_earthshaker": "Ракета Earthshaker",
+  "item.drmd.weapon_d6_gravmine": "Proximity Bomb",
+  "item.drmd.weapon_d6_darkfield": "Smart Mine",
+  "item.drmd.weapon_d6_rockets": "Ракета сдвоенная",
+  "item.drmd.weapon_d6_frag": "Ракета тяжёлая"
 }

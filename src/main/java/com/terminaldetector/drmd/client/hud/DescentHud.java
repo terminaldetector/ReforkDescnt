@@ -537,9 +537,13 @@ public final class DescentHud {
 		ItemStack main = held;
 		int selected = 0;
 		if (main.getItem() instanceof DescentWeaponItem dwi) {
-			String id = dwi.getDef().id;
-			if (id.startsWith("rocket_")) selected = 1;
-			else if (id.startsWith("mine_")) selected = 2;
+			// Ask the catalog which bank this is rather than reading the id: the secondaries carry
+			// their canon names now, and none of Concussion, Flash or Mercury spells "rocket_".
+			var heldEntry = ArsenalCatalog.get(dwi.getDef().id);
+			if (heldEntry != null) {
+				if (heldEntry.family() == ArsenalCatalog.Family.ROCKET) selected = 1;
+				else if (heldEntry.family() == ArsenalCatalog.Family.MINE) selected = 2;
+			}
 		} else if (main.getItem() instanceof BombardmentItems.BombBayItem) selected = 3;
 		for (int i = 0; i < names.length; i++) {
 			int color = (i + 1) == selected ? GREEN : GREEN_DIM;
@@ -849,16 +853,9 @@ public final class DescentHud {
 
 	// =============================================================== ammo counting
 
-	private static Item[] missileItems;
+	// Missile counting goes through ArsenalCatalog.hudMissileOrder(). There was a second, private
+	// copy of that list here; it had already drifted (no heavy rocket) and nothing called it.
 	private static Item[] bombItems;
-
-	private static Item[] missileItems() {
-		if (missileItems == null) {
-			missileItems = new Item[]{ModItems.ROCKETS, ModItems.HOMING, ModItems.CONCUSSION,
-					ModItems.SMART_MISSILE, ModItems.MEGA_MISSILE};
-		}
-		return missileItems;
-	}
 
 	private static Item[] bombItems() {
 		if (bombItems == null) {

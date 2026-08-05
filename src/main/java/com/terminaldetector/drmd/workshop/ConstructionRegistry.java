@@ -40,19 +40,35 @@ public final class ConstructionRegistry {
 	}
 
 	public static boolean hasOverride(String weaponId) {
-		return OVERRIDES.containsKey(normalize(weaponId));
+		return findOverride(normalize(weaponId)) != null;
 	}
 
 	/** Effective modules: override if present, else default layout. */
 	public static List<ClusterModule> getModules(String weaponId) {
 		String id = normalize(weaponId);
-		List<ClusterModule> over = OVERRIDES.get(id);
-		if (over != null && !over.isEmpty()) {
+		List<ClusterModule> over = findOverride(id);
+		if (over != null) {
 			List<ClusterModule> copy = new ArrayList<>(over.size());
 			for (ClusterModule m : over) copy.add(m.copy());
 			return copy;
 		}
 		return DefaultLayouts.forWeapon(id);
+	}
+
+	/**
+	 * A weapon's saved layout, under its own id or the one it used to have.
+	 *
+	 * <p>These files are named after the weapon id, so renaming a weapon would otherwise orphan every
+	 * rack a player had already built for it. The fallback is read-only: the next save writes under
+	 * the current name, and the stale file simply stops being consulted.
+	 */
+	private static List<ClusterModule> findOverride(String id) {
+		List<ClusterModule> over = OVERRIDES.get(id);
+		if (over != null && !over.isEmpty()) return over;
+		String legacy = com.terminaldetector.drmd.weapon.registry.ArsenalCatalog.legacyIdOf().get(id);
+		if (legacy == null) return null;
+		over = OVERRIDES.get(legacy);
+		return over != null && !over.isEmpty() ? over : null;
 	}
 
 	public static Map<Integer, WeaponClusters.MuzzleOffset> getMuzzles(String weaponId) {
