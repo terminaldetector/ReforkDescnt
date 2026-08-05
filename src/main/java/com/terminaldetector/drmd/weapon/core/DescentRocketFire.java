@@ -172,12 +172,16 @@ public final class DescentRocketFire {
 		var framework = cfg.onHit;
 		cfg.onHit = ctx -> {
 			if (framework != null) framework.accept(ctx);
+			// Re-resolve the shooter rather than trusting the one captured at launch: a missile can
+			// outlive the pilot who fired it, and the projectile knows how to look them up again.
+			LivingEntity owner = ctx.projectile() != null ? ctx.projectile().getOwnerLiving() : user;
+			if (owner == null) return;
 			// Step back off the surface, or the children are born inside the wall that was hit.
 			Vec3d at = ctx.hitPos().add(ctx.hitNormal().multiply(0.4));
 			switch (warhead) {
-				case FLASH -> flashBurst(user, at);
-				case SEEKERS -> seekerSplit(user, at);
-				case SHAKER -> shakerSplit(user, at);
+				case FLASH -> flashBurst(owner, at);
+				case SEEKERS -> seekerSplit(owner, at);
+				case SHAKER -> shakerSplit(owner, at);
 				default -> { }
 			}
 		};
@@ -190,7 +194,7 @@ public final class DescentRocketFire {
 	 * goes for the pilot, and a mob drops whatever it was chasing. That second half is the one that
 	 * matters in a corridor, and it is why the missile is worth carrying without any damage on it.
 	 */
-	private static void flashBurst(PlayerEntity user, Vec3d at) {
+	private static void flashBurst(LivingEntity user, Vec3d at) {
 		if (!(user.getWorld() instanceof ServerWorld world)) return;
 		// Reaches well past its own blast: the flash is the weapon, the charge only carries it there.
 		double radius = 9.0;
@@ -213,7 +217,7 @@ public final class DescentRocketFire {
 	 * gone off anywhere near you. The missile itself is deliberately unimpressive — spending the
 	 * damage on the children is what makes it the Smart Missile rather than a bigger Concussion.
 	 */
-	private static void seekerSplit(PlayerEntity user, Vec3d at) {
+	private static void seekerSplit(LivingEntity user, Vec3d at) {
 		for (int i = 0; i < 5; i++) {
 			WeaponCore.FireConfig cfg = ProjectileFramework.config(
 					ProjectileKind.PLASMA, user, at, scatter(user, i, 5));
@@ -243,7 +247,7 @@ public final class DescentRocketFire {
 	 * blasts inside the room rather than against the first surface they touch. They are slow and the
 	 * fuse is short, so the ring lands around the impact rather than somewhere down the corridor.
 	 */
-	private static void shakerSplit(PlayerEntity user, Vec3d at) {
+	private static void shakerSplit(LivingEntity user, Vec3d at) {
 		for (int i = 0; i < 5; i++) {
 			WeaponCore.FireConfig cfg = ProjectileFramework.config(
 					ProjectileKind.ROCKET, user, at, scatter(user, i, 5));
@@ -270,7 +274,7 @@ public final class DescentRocketFire {
 	 * Evenly-spaced outward directions around the burst, tilted off the horizontal so a split on a
 	 * floor does not send every child skimming along it.
 	 */
-	private static Vec3d scatter(PlayerEntity user, int index, int total) {
+	private static Vec3d scatter(LivingEntity user, int index, int total) {
 		double ring = Math.PI * 2 * index / total;
 		double lift = 0.35 + user.getRandom().nextDouble() * 0.4;
 		return new Vec3d(Math.cos(ring), lift, Math.sin(ring)).normalize();
