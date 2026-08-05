@@ -52,7 +52,7 @@ public final class LevelBuilder {
 	private static final Deque<EndJob> END_QUEUE = new ArrayDeque<>();
 	private static final Set<Long> END_QUEUED = new HashSet<>();
 
-	/** phase 0=mantle (cursorY), 1=nether cavern, 2=shaft/end finish */
+	/** phase 0=mantle (cursorY), 1=nether floor, 2=nether ceiling, 3=shaft/end finish */
 	private record Job(ServerWorld world, int chunkX, int chunkZ, int phase, int cursorY) {}
 
 	private record EndJob(ServerWorld world, int chunkX, int chunkZ) {}
@@ -214,9 +214,17 @@ public final class LevelBuilder {
 			return new StepResult(written, false, new Job(job.world, job.chunkX, job.chunkZ, 1, 0));
 		}
 
+		// The band is written floor first, then ceiling, then everything else. Relief costs several
+		// times what the two flat slabs did, and one chunk that overruns the tick budget by that much
+		// is a visible hitch — splitting it lets the drain stop between the two halves.
 		if (job.phase == 1) {
-			int written = buildNetherLevel(job.world, job.chunkX, job.chunkZ, random);
+			int written = buildNetherFloor(job.world, job.chunkX, job.chunkZ, seed, random);
 			return new StepResult(written, false, new Job(job.world, job.chunkX, job.chunkZ, 2, 0));
+		}
+
+		if (job.phase == 2) {
+			int written = buildNetherCeiling(job.world, job.chunkX, job.chunkZ, seed, random);
+			return new StepResult(written, false, new Job(job.world, job.chunkX, job.chunkZ, 3, 0));
 		}
 
 		int written = 0;
@@ -355,54 +363,96 @@ public final class LevelBuilder {
 		return written;
 	}
 
-	private static int buildNetherLevel(ServerWorld world, int chunkX, int chunkZ, Random random) {
+	/**
+	 * The floor of the Nether band: ground that rises and falls, with lava in what it does not reach.
+	 *
+	 * <p>Relief is the whole point. A flat slab under a flat ceiling is a room a hundred and eighty
+	 * blocks tall, and from a cockpit that reads as nothing at all — there is no scale in it and
+	 * nothing to fly around. Heights come from {@link NetherRelief}, which is a pure function of
+	 * world position, so the chunk built now and its neighbour built ten seconds later meet without
+	 * a step.
+	 */
+	private static int buildNetherFloor(ServerWorld world, int chunkX, int chunkZ, long seed, Random random) {
 		int baseX = chunkX << 4;
 		int baseZ = chunkZ << 4;
 		BlockPos.Mutable pos = new BlockPos.Mutable();
 		int written = 0;
+		int lava = NetherRelief.lavaLevel();
+		boolean shaft = WorldLevels.isShaftChunk(chunkX, chunkZ);
+		int scx = baseX + 8;
+		int scz = baseZ + 8;
+		int sr = WorldLevels.SHAFT_RADIUS;
 
 		for (int dx = 0; dx < 16; dx++) {
 			for (int dz = 0; dz < 16; dz++) {
 				int x = baseX + dx;
 				int z = baseZ + dz;
+				// The descent shafts have to survive the fill, or the way down ends in the ceiling.
+				boolean inShaft = shaft
+						&& (x - scx) * (x - scx) + (z - scz) * (z - scz) <= sr * sr;
 
-				for (int i = 0; i < WorldLevels.NETHER_FLOOR_THICKNESS; i++) {
-					int y = WorldLevels.NETHER_FLOOR + i;
-					BlockState state = i == 0
-							? ModWorldBlocks.PLASMA_GRANITE.getDefaultState()
-							: pickNetherGround(random);
-					written += set(world, pos.set(x, y, z), state);
-				}
-				if (random.nextInt(9) == 0) {
-					written += set(world, pos.set(x, WorldLevels.NETHER_FLOOR
-							+ WorldLevels.NETHER_FLOOR_THICKNESS, z), Blocks.LAVA.getDefaultState());
-				}
+				// Sealed base — the column's floor, not a border: still diggable granite.
+				written += set(world, pos.set(x, WorldLevels.NETHER_FLOOR, z),
+						ModWorldBlocks.PLASMA_GRANITE.getDefaultState());
 
-				for (int i = 0; i < WorldLevels.NETHER_CEILING_THICKNESS; i++) {
-					int y = WorldLevels.NETHER_CEILING - i;
-					written += set(world, pos.set(x, y, z), i == 0
-							? ModWorldBlocks.PLASMA_GRANITE.getDefaultState()
-							: Blocks.BASALT.getDefaultState());
+				int top = NetherRelief.floorTop(seed, x, z);
+				if (!inShaft) {
+					for (int y = WorldLevels.NETHER_FLOOR + 1; y <= top; y++) {
+						written += set(world, pos.set(x, y, z), pickNetherGround(random));
+					}
 				}
-				if (random.nextInt(48) == 0) {
-					written += set(world, pos.set(x, WorldLevels.NETHER_CEILING
-							- WorldLevels.NETHER_CEILING_THICKNESS, z), Blocks.GLOWSTONE.getDefaultState());
+				// Lava fills the low ground. Above the sea the same columns are the coast.
+				if (!inShaft) {
+					for (int y = Math.max(top + 1, WorldLevels.NETHER_FLOOR + 1); y <= lava; y++) {
+						written += set(world, pos.set(x, y, z), Blocks.LAVA.getDefaultState());
+					}
+				}
+				// A crust of magma where ground meets sea reads as heat rather than as a bathtub edge.
+				if (!inShaft && top >= lava - 1 && top <= lava + 2 && random.nextInt(4) == 0) {
+					written += set(world, pos.set(x, top, z), Blocks.MAGMA_BLOCK.getDefaultState());
 				}
 			}
 		}
+		return written;
+	}
 
-		int pillars = random.nextInt(3);
-		for (int p = 0; p < pillars; p++) {
-			int cx = baseX + 2 + random.nextInt(12);
-			int cz = baseZ + 2 + random.nextInt(12);
-			int radius = 1 + random.nextInt(2);
-			for (int y = WorldLevels.NETHER_FLOOR + WorldLevels.NETHER_FLOOR_THICKNESS;
-				 y < WorldLevels.NETHER_CEILING - WorldLevels.NETHER_CEILING_THICKNESS; y++) {
-				for (int dx = -radius; dx <= radius; dx++) {
-					for (int dz = -radius; dz <= radius; dz++) {
-						if (dx * dx + dz * dz > radius * radius) continue;
-						written += set(world, pos.set(cx + dx, y, cz + dz), Blocks.BASALT.getDefaultState());
-					}
+	/**
+	 * The ceiling, hanging down to meet the floor in places.
+	 *
+	 * <p>Where the two nearly touch the band pinches into a corridor, which is what gives a pilot
+	 * something to thread. Glowstone goes on the underside in clusters rather than one block at a
+	 * time — scattered singles are invisible from any distance worth flying at.
+	 */
+	private static int buildNetherCeiling(ServerWorld world, int chunkX, int chunkZ, long seed, Random random) {
+		int baseX = chunkX << 4;
+		int baseZ = chunkZ << 4;
+		BlockPos.Mutable pos = new BlockPos.Mutable();
+		int written = 0;
+		boolean shaft = WorldLevels.isShaftChunk(chunkX, chunkZ);
+		int scx = baseX + 8;
+		int scz = baseZ + 8;
+		int sr = WorldLevels.SHAFT_RADIUS;
+
+		for (int dx = 0; dx < 16; dx++) {
+			for (int dz = 0; dz < 16; dz++) {
+				int x = baseX + dx;
+				int z = baseZ + dz;
+				boolean inShaft = shaft
+						&& (x - scx) * (x - scx) + (z - scz) * (z - scz) <= sr * sr;
+
+				written += set(world, pos.set(x, WorldLevels.NETHER_CEILING, z),
+						ModWorldBlocks.PLASMA_GRANITE.getDefaultState());
+				if (inShaft) continue;
+
+				int bottom = NetherRelief.ceilingBottom(seed, x, z);
+				for (int y = WorldLevels.NETHER_CEILING - 1; y >= bottom; y--) {
+					written += set(world, pos.set(x, y, z),
+							random.nextInt(5) == 0 ? Blocks.BLACKSTONE.getDefaultState()
+									: Blocks.BASALT.getDefaultState());
+				}
+				// Clustered by position, not per block: one lattice cell in a few lights up whole.
+				if (NetherRelief.value(seed ^ 0x91E10DA5L, x, z, 9) > 0.86f) {
+					written += set(world, pos.set(x, bottom, z), Blocks.GLOWSTONE.getDefaultState());
 				}
 			}
 		}

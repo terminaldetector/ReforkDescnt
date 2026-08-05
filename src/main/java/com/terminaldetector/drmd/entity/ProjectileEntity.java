@@ -163,18 +163,7 @@ public class ProjectileEntity extends Entity {
 	public void tick() {
 		super.tick();
 		if (getWorld().isClient) {
-			Vec3d v = getVelocity();
-			float dustSize = getMeshKind() == MESH_BOLT ? 1.35f : 1.0f;
-			getWorld().addParticle(new DustParticleEffect(
-							new Vector3f(getColorR() / 255f, getColorG() / 255f, getColorB() / 255f), dustSize),
-					getX(), getY(), getZ(), 0, 0, 0);
-			// Descent laser trail: a second bead behind the bolt along velocity.
-			if (getMeshKind() == MESH_BOLT && v.lengthSquared() > 1e-6) {
-				Vec3d back = v.normalize().multiply(-0.35 * getVisualScale());
-				getWorld().addParticle(new DustParticleEffect(
-								new Vector3f(getColorR() / 255f, getColorG() / 255f, getColorB() / 255f), dustSize * 0.7f),
-						getX() + back.x, getY() + back.y, getZ() + back.z, 0, 0, 0);
-			}
+			drawTracer();
 			return;
 		}
 
@@ -261,6 +250,46 @@ public class ProjectileEntity extends Entity {
 			return;
 		}
 		setPosition(next);
+	}
+
+	/**
+	 * The visible shot: a bead of light every half block along the ground the round covered this tick.
+	 *
+	 * <p>This used to drop one particle per tick at the entity's position, which is why the guns
+	 * looked like they were firing nothing. A Descent laser moves 6200 source units a second — some
+	 * seventy blocks in a tick — so one bead per tick is one dot of light every seventy blocks, and
+	 * the round is past the far wall before a second one is drawn. Nothing joins them up, so there is
+	 * no bolt on screen at any point in its flight.
+	 *
+	 * <p>Filling the segment instead gives a continuous streak at any speed, which is what the
+	 * original's bolts read as. Spacing is fixed rather than a fixed bead count so a slow rocket does
+	 * not get a dense clot of particles around it, and the count is capped so a fast round costs a
+	 * bounded amount.
+	 */
+	private void drawTracer() {
+		Vec3d vel = getVelocity();
+		float scale = getVisualScale();
+		boolean bolt = getMeshKind() == MESH_BOLT;
+		Vector3f rgb = new Vector3f(getColorR() / 255f, getColorG() / 255f, getColorB() / 255f);
+		float size = (bolt ? 1.5f : 1.15f) * Math.max(0.6f, scale);
+
+		double travel = vel.length();
+		if (travel < 1e-3) {
+			getWorld().addParticle(new DustParticleEffect(rgb, size), getX(), getY(), getZ(), 0, 0, 0);
+			return;
+		}
+
+		// Where it was a tick ago: the client has already moved it, so walk back down the velocity.
+		Vec3d head = getPos();
+		Vec3d back = vel.normalize();
+		int beads = (int) Math.min(48, Math.max(2, travel / 0.5));
+		for (int i = 0; i < beads; i++) {
+			double along = travel * i / (double) beads;
+			Vec3d p = head.subtract(back.multiply(along));
+			// The head stays brightest; the tail thins out so the streak has a direction.
+			float f = size * (1f - 0.55f * i / (float) beads);
+			getWorld().addParticle(new DustParticleEffect(rgb, f), p.x, p.y, p.z, 0, 0, 0);
+		}
 	}
 
 	/** Closest thing the fuse would consider worth going off for, or null. */

@@ -3,10 +3,11 @@ package com.terminaldetector.drmd.world.level;
 /**
  * Tall Overworld bands — three layers form one parallelepiped in scale; display via hooks.
  *
- * <p>{@code overworld.json} keeps −512…1024. We do not build three solid cubes: seams are
- * teleport zones ({@link com.terminaldetector.drmd.world.layer.LayerBridge}), boundaries use
- * {@code BoundarySeamRenderer}, sky uses engine-driven drift (Oblivion-style). Bedrock → plasma
- * granite; mantle via {@link MantleStream}.
+ * <p>{@code overworld.json} keeps −512…1024. We do not build three solid cubes, and nothing marks
+ * where one band ends: the boundaries are not teleported across and not drawn, so a climb through
+ * the column is one continuous flight. Sky colour is a continuous function of altitude
+ * ({@link com.terminaldetector.drmd.client.sky.LevelSky}); bedrock → plasma granite; mantle via
+ * {@link MantleStream}.
  *
  * <pre>
  *   UPPER   Sky + Orbit + End     320 … 1024

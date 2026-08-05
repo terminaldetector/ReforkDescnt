@@ -56,7 +56,9 @@ public class DescentClient implements ClientModInitializer {
 		ModEntityRenderers.register();
 		WeaponViewRenderer.register();
 		com.terminaldetector.drmd.client.render.CockpitRenderer.register();
-		com.terminaldetector.drmd.client.render.BoundarySeamRenderer.register();
+		// No seam curtain. It painted a two-colour checkerboard across every layer boundary within
+		// 120 blocks, which put a blue-green grid over the ground at Y 40 — where the game is played.
+		// A boundary the player can see is a boundary; the column is meant to read as one space.
 		com.terminaldetector.drmd.client.sky.OrbitalBeltSkyRenderer.register();
 		com.terminaldetector.drmd.client.planet.PlanetFloorRenderer.register();
 		com.terminaldetector.drmd.client.render.MegaBeamViewRenderer.register();

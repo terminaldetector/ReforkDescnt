@@ -44,9 +44,20 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 			ModelOrientation.applyBasis(matrices, 180f, dir.negate(), ref);
 		}
 
-		float s = 0.12f * entity.getVisualScale();
+		// The rounds were drawn a tenth of a block across, which is under a pixel at any range worth
+		// firing at. Descent's bolts are big, solid and bright — that is what makes a firefight
+		// readable, on screen and on video — so the silhouette is sized to be seen.
+		float s = 0.22f * entity.getVisualScale();
 		int argb = 0xFF000000 | entity.getColorRgb();
 		int mesh = entity.getMeshKind();
+
+		// A round crossing seventy blocks a tick is somewhere else by the next frame. Stretching the
+		// body along its own axis by the distance it covers turns it from a dot that flickers into
+		// the streak the eye actually follows; slow rounds stretch by nothing and keep their shape.
+		float streak = 1f;
+		if (mesh == ProjectileEntity.MESH_BOLT && vel.lengthSquared() > 1e-6) {
+			streak = (float) MathHelper.clamp(vel.length() * 1.4, 1.0, 26.0);
+		}
 		switch (mesh) {
 			case ProjectileEntity.MESH_ROCKET -> {
 				matrices.push();
@@ -95,20 +106,19 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 				matrices.pop();
 			}
 			default -> {
-				// Descent laser bolt: elongated teardrop — thick nose, thinner trailing body.
+				// Descent laser bolt: elongated teardrop — thick nose, thinner trailing body, drawn
+				// back down its own path by however far it is travelling.
+				float body = s * 2.4f * streak;
 				matrices.push();
-				matrices.scale(s * 0.38f, s * 0.38f, s * 2.4f);
+				matrices.translate(0, 0, -body * 0.5f + s * 1.2f);
+				matrices.scale(s * 0.38f, s * 0.38f, body);
 				drawBox(matrices, consumers, argb);
 				matrices.pop();
+				// The nose stays at the round's real position whatever the tail is doing.
 				matrices.push();
 				matrices.translate(0, 0, s * 1.1f);
-				matrices.scale(s * 0.72f, s * 0.72f, s * 0.55f);
+				matrices.scale(s * 0.8f, s * 0.8f, s * 0.6f);
 				drawBox(matrices, consumers, brighten(argb));
-				matrices.pop();
-				matrices.push();
-				matrices.translate(0, 0, -s * 1.35f);
-				matrices.scale(s * 0.28f, s * 0.28f, s * 0.9f);
-				drawBox(matrices, consumers, argb);
 				matrices.pop();
 			}
 		}

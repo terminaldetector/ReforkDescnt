@@ -136,3 +136,22 @@ it and jump off it, but the horizon stays world-level while you do. Everything e
 
 The HUD names the surface instead, so the state is at least legible:
 `Гравифакел · СТЕНА · UP 1.00 0.00 0.00 · SURFACE`
+
+---
+
+## The 1-block crawl (fixed)
+
+Standing in a torch's field folded the pilot into the ~1-block crawl pose, permanently.
+
+`PlayerEntityMixin` already blocked vanilla's squeeze into `SWIMMING`, but only while
+`GravityMount.hasStandingClearance` said a standing body fit — and that test built its box **1.8
+blocks up the world Y** whatever way the body was pointing. Stood on a wall, local up is horizontal
+and the body lies sideways, so the test was asking for a standing height of headroom above someone
+lying down. In a corridor there is none, so the answer was no, so the crawl was allowed. Once
+crawling the body is shorter still and the answer stayed no: nothing could get the pilot back up.
+
+`GravityMount.standingBox(feet, up, halfWidth, height)` now builds the AABB of the standing capsule
+along local up — the feet→head segment padded by `hw·√(1−up_i²)` on each axis, which is the width of
+a disc of radius `hw` normal to `up` seen down that axis. With `up = (0,1,0)` the padding is `hw` on
+X and Z and **zero** on Y, so on a level floor it is byte-for-byte the vanilla box and nothing
+changes — the rule the whole feature is built on. Covered by `StandingBoxTest`.
