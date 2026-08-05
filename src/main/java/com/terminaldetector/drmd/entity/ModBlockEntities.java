@@ -13,6 +13,7 @@ public final class ModBlockEntities {
 	public static BlockEntityType<SixDSoilBlockEntity> SIX_D_SOIL;
 	public static BlockEntityType<GravityGeneratorBlockEntity> GRAVITY_GENERATOR;
 	public static BlockEntityType<LocatorCoreBlockEntity> LOCATOR_CORE;
+	public static BlockEntityType<com.terminaldetector.drmd.world.micro.CarvedBlockEntity> CARVED;
 
 	private ModBlockEntities() {}
 
@@ -26,6 +27,11 @@ public final class ModBlockEntities {
 		LOCATOR_CORE = Registry.register(Registries.BLOCK_ENTITY_TYPE,
 				Identifier.of(DescentMod.MOD_ID, "locator_core"),
 				BlockEntityType.Builder.create(LocatorCoreBlockEntity::new, ModWorldBlocks.LOCATOR_CORE).build());
+		CARVED = Registry.register(Registries.BLOCK_ENTITY_TYPE,
+				Identifier.of(DescentMod.MOD_ID, "carved"),
+				BlockEntityType.Builder.create(
+						com.terminaldetector.drmd.world.micro.CarvedBlockEntity::new,
+						ModWorldBlocks.CARVED).build());
 		DescentMod.LOGGER.info("Registered DRMD block entities");
 	}
 }

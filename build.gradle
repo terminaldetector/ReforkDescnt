@@ -85,16 +85,9 @@ tasks.register('packageTlauncher') {
 			into distDir
 			rename { outName }
 		}
-		// Stable alias, so a link to the jar keeps working across versions.
-		copy {
-			from remapped
-			into distDir
-			rename { "${project.archives_base_name}-${project.version}.jar" }
-		}
 		new File(distDir, 'INSTALL_TLAUNCHER.txt').text = """DRMD 6DOF ${project.version} — ПК TLauncher Fabric 1.21.1
 =======================================
 Jar: ${outName}
-Он же: ${project.archives_base_name}-${project.version}.jar
 
 Установка
   1. Версии → Fabric Loader для Minecraft 1.21.1

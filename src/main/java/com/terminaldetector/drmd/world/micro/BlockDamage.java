@@ -61,15 +61,43 @@ public final class BlockDamage {
 		MicroGrid.Stage now = MicroGrid.stage(after);
 
 		if (MicroGrid.isEmpty(after)) {
-			destroy(world, pos, state);
+			destroy(world, pos, sourceOf(world, pos, state));
 			store.clear(pos);
 			return true;
 		}
 
 		store.set(pos, after);
-		world.setBlockBreakingInfo(breakerId(pos), pos, MicroGrid.crackStage(after));
-		if (now != was) announceStage(world, pos, state, now);
+		applyShape(world, pos, state, after);
+		if (now != was) announceStage(world, pos, sourceOf(world, pos, state), now);
 		return false;
+	}
+
+	/**
+	 * Give the block the shape its mask describes.
+	 *
+	 * <p>The first hit swaps the ordinary block for a carved one that carries both the original state
+	 * and the mask — that swap is what turns a hole from a texture into somewhere a ship can fly
+	 * through. Later hits only update the mask it already has.
+	 *
+	 * <p>The crack overlay stays on top of it. The carved shape shows what is gone; the cracks show
+	 * how close what is left is to going, which the shape alone does not say at a glance.
+	 */
+	private static void applyShape(ServerWorld world, BlockPos pos, BlockState state, long mask) {
+		if (state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.CARVED)) {
+			if (world.getBlockEntity(pos) instanceof CarvedBlockEntity carved) carved.setMask(mask);
+		} else {
+			CarvedBlock.replace(world, pos, state, mask);
+		}
+		world.setBlockBreakingInfo(breakerId(pos), pos, MicroGrid.crackStage(mask));
+	}
+
+	/** The block this one used to be, for drops, sounds and particles. */
+	private static BlockState sourceOf(ServerWorld world, BlockPos pos, BlockState state) {
+		if (state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.CARVED)
+				&& world.getBlockEntity(pos) instanceof CarvedBlockEntity carved) {
+			return carved.source();
+		}
+		return state;
 	}
 
 	/** Spherical damage — an explosion, a reactor going up. */
@@ -92,6 +120,7 @@ public final class BlockDamage {
 	}
 
 	private static boolean isDamageable(ServerWorld world, BlockPos pos, BlockState state) {
+		if (state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.CARVED)) return true;
 		if (state.getHardness(world, pos) < 0) return false;   // bedrock and friends
 		return !state.isIn(BlockTags.WITHER_IMMUNE);
 	}
@@ -104,7 +133,9 @@ public final class BlockDamage {
 	 * the ladder is that walls come apart visibly rather than blinking out.
 	 */
 	private static double radiusFor(BlockState state, ServerWorld world, BlockPos pos, float damage) {
-		float hardness = Math.max(0.2f, state.getHardness(world, pos));
+		// A carved shell is soft by itself; what resists is the material it is standing in for.
+		BlockState material = sourceOf(world, pos, state);
+		float hardness = Math.max(0.2f, material.getHardness(world, pos));
 		float resistance = Math.min(hardness, TOUGH);
 		double cells = damage / (DAMAGE_PER_CELL * resistance);
 		if (cells < 0.35) return 0;

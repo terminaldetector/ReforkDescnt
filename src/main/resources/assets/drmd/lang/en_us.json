@@ -204,5 +204,6 @@
   "screen.drmd.preset.balanced": "Balanced",
   "screen.drmd.preset.assault": "Assault",
   "screen.drmd.preset.interceptor": "Interceptor",
-  "screen.drmd.preset.siege": "Siege"
+  "screen.drmd.preset.siege": "Siege",
+  "block.drmd.carved": "Carved Block"
 }

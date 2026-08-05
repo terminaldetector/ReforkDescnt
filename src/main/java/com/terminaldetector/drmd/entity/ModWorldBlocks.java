@@ -107,6 +107,19 @@ public final class ModWorldBlocks {
 
 	private ModWorldBlocks() {}
 
+	/**
+	 * What a damaged block turns into. No item form — it is never held or crafted, only left behind
+	 * by something hitting a wall, and it drops whatever it used to be rather than itself.
+	 */
+	public static final Block CARVED = registerBlockNoItem("carved",
+			new com.terminaldetector.drmd.world.micro.CarvedBlock(
+					AbstractBlock.Settings.copy(Blocks.STONE).strength(0.6f).nonOpaque()
+							.dropsNothing().pistonBehavior(net.minecraft.block.piston.PistonBehavior.BLOCK)));
+
+	private static Block registerBlockNoItem(String id, Block block) {
+		return Registry.register(Registries.BLOCK, Identifier.of(DescentMod.MOD_ID, id), block);
+	}
+
 	private static Block registerBlock(String id, Block block) {
 		Identifier ident = Identifier.of(DescentMod.MOD_ID, id);
 		Registry.register(Registries.BLOCK, ident, block);

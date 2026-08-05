@@ -1,7 +1,6 @@
 DRMD 6DOF 1.1.5 — ПК TLauncher Fabric 1.21.1
 =======================================
 Jar: drmd-6dof-1.1.5-fabric-1.21.1.jar
-Он же: drmd-6dof-1.1.5.jar
 
 Установка
   1. Версии → Fabric Loader для Minecraft 1.21.1

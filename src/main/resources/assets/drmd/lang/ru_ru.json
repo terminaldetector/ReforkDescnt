@@ -158,5 +158,6 @@
   "screen.drmd.preset.balanced": "Баланс",
   "screen.drmd.preset.assault": "Штурм",
   "screen.drmd.preset.interceptor": "Перехват",
-  "screen.drmd.preset.siege": "Осада"
+  "screen.drmd.preset.siege": "Осада",
+  "block.drmd.carved": "Разрушенный блок"
 }
