@@ -83,6 +83,11 @@ public class DescentClient implements ClientModInitializer {
 						com.terminaldetector.drmd.client.planet.PlanetClientState.INSTANCE.apply(
 								payload.seed(), payload.scarCells(), horizonLandmarks(payload))));
 
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SurfacePayload.ID, (payload, context) ->
+				context.client().execute(() ->
+						com.terminaldetector.drmd.client.planet.PlanetClientState.INSTANCE.acceptSection(
+								payload.key(), payload.data())));
+
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ScaffoldPayload.ID, (payload, context) ->
 				context.client().execute(() -> com.terminaldetector.drmd.client.build.ScaffoldClientState.INSTANCE.set(
 						payload.active(), payload.shapeId(), payload.positions())));

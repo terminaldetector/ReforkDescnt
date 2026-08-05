@@ -19,6 +19,7 @@ public final class ModNetworking {
 	public static final Identifier SYNC_ID = Identifier.of(DescentMod.MOD_ID, "sync");
 	public static final Identifier ACTION_ID = Identifier.of(DescentMod.MOD_ID, "action");
 	public static final Identifier PLANET_ID = Identifier.of(DescentMod.MOD_ID, "planet");
+	public static final Identifier SURFACE_ID = Identifier.of(DescentMod.MOD_ID, "surface");
 
 	public record InputPayload(float forward, float strafe, float vertical, float roll,
 							   boolean dash, boolean hook, boolean afterburner,
@@ -199,6 +200,37 @@ public final class ModNetworking {
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
 	}
 
+	/**
+	 * Server → client: one observed surface section.
+	 *
+	 * <p>Sent a few at a time, only for the area a pilot's horizon would want, and only once — the
+	 * client keeps what it has been given. Terrain that nobody has changed never needs sending
+	 * again, so this converges to nothing rather than repeating itself.
+	 */
+	public record SurfacePayload(long key, byte[] data) implements CustomPayload {
+		public static final Id<SurfacePayload> ID = new Id<>(SURFACE_ID);
+		public static final PacketCodec<RegistryByteBuf, SurfacePayload> CODEC = PacketCodec.of(
+				(payload, buf) -> {
+					buf.writeLong(payload.key);
+					buf.writeVarInt(payload.data.length);
+					buf.writeBytes(payload.data);
+				},
+				buf -> {
+					long key = buf.readLong();
+					int n = buf.readVarInt();
+					// A section is a fixed size; anything else is a build mismatch, not a section.
+					if (n < 0 || n > 1 << 20) {
+						buf.skipBytes(buf.readableBytes());
+						return new SurfacePayload(key, new byte[0]);
+					}
+					byte[] data = new byte[n];
+					buf.readBytes(data);
+					return new SurfacePayload(key, data);
+				}
+		);
+		@Override public Id<? extends CustomPayload> getId() { return ID; }
+	}
+
 	public static final Identifier SCAFFOLD_ID = Identifier.of(DescentMod.MOD_ID, "scaffold");
 	public static final Identifier SMOKE_ID = Identifier.of(DescentMod.MOD_ID, "smoke");
 	public static final Identifier REACTOR_SYNC_ID = Identifier.of(DescentMod.MOD_ID, "reactor_sync");
@@ -371,6 +403,7 @@ public final class ModNetworking {
 		PayloadTypeRegistry.playS2C().register(ReactorSyncPayload.ID, ReactorSyncPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(FatePayload.ID, FatePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(PlanetPayload.ID, PlanetPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(SurfacePayload.ID, SurfacePayload.CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(InputPayload.ID, (payload, context) -> {
 			ServerPlayerEntity player = context.player();

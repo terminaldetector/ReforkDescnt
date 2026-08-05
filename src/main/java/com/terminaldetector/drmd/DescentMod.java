@@ -65,6 +65,7 @@ public class DescentMod implements ModInitializer {
 		// was part of what carried over. Cleared at both ends: on stop for the ordinary case, on
 		// start in case a stop never happened.
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+			com.terminaldetector.drmd.world.store.SurfaceIngest.close();
 			DescentPlayerData.clear();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
 		});
@@ -90,6 +91,8 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.clear();
 			com.terminaldetector.drmd.world.sync.DimensionSync.load(server);
 			com.terminaldetector.drmd.world.planet.PlanetSync.reset();
+			com.terminaldetector.drmd.world.store.SurfaceIngest.onServerStarted(server);
+			com.terminaldetector.drmd.world.store.SurfaceStreamer.clear();
 			// Both halves of worldgen are kept off the join path. Seeding only queues the landmarks
 			// and spends one per tick; the CHUNK_LOAD generators stay idle until that hand-off is
 			// done, so nothing of the mod's runs while the server is still preparing spawn.
@@ -114,6 +117,8 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.tick(server);
 			com.terminaldetector.drmd.world.sync.DimensionSync.tick(server);
 			com.terminaldetector.drmd.world.planet.PlanetSync.tick(server);
+			com.terminaldetector.drmd.world.store.SurfaceIngest.tick(server);
+			com.terminaldetector.drmd.world.store.SurfaceStreamer.tick(server);
 			com.terminaldetector.drmd.world.fate.WorldEndings.tick(server);
 			if (tick % 40 == 0) {
 				com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);
@@ -150,7 +155,10 @@ public class DescentMod implements ModInitializer {
 		});
 
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents.CHUNK_LOAD.register(
-				(world, chunk) -> com.terminaldetector.drmd.world.scar.ScarApplier.onChunkLoad(world, chunk));
+				(world, chunk) -> {
+					com.terminaldetector.drmd.world.scar.ScarApplier.onChunkLoad(world, chunk);
+					com.terminaldetector.drmd.world.store.SurfaceIngest.onChunkLoad(world, chunk);
+				});
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid());
@@ -168,11 +176,13 @@ public class DescentMod implements ModInitializer {
 			});
 		});
 
-		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
-				com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid()));
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+			com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid());
+			com.terminaldetector.drmd.world.store.SurfaceStreamer.forget(handler.player.getUuid());
+		});
 
 		com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.logStatus();
-		LOGGER.info("DRMD 6DOF 1.1.4 ready — End band + voxel horizon · Distant Horizons suggested");
+		LOGGER.info("DRMD 6DOF 1.1.5 ready — End band + voxel horizon + surface store");
 	}
 
 	/**

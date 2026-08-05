@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.client.planet;
 
 import com.terminaldetector.drmd.world.planet.PlanetMap;
+import com.terminaldetector.drmd.world.store.SurfaceSection;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,6 +14,11 @@ import java.util.Set;
  * <p>The old flight-simulator trick rather than a mesh of real terrain — sample a height per cell,
  * stand a column there, let the steps between neighbours do the shading. Which is also why it is
  * allowed to look blocky: that chunkiness is the point, not an artefact of running out of budget.
+ *
+ * <p>The heights come from what the server has actually seen ({@code SurfaceStore}) wherever anyone
+ * has been, and from the seed's procedural map everywhere else. So the ground a pilot has flown over
+ * is drawn as it really is, complete with what they built and what they flattened, and the rest of
+ * the planet is still a planet rather than a hole.
  *
  * <p>Two things keep it affordable at kilometre range. Cells are sized <em>by distance</em> — a
  * cell is always about a seventh of its own distance from the eye — so every column covers the same
@@ -178,12 +184,23 @@ public final class PlanetSurfaceMesh {
 					double d2 = mx * mx + mz * mz;
 					if (d2 < inner2 || d2 >= outer2) continue;
 
-					float h = PlanetMap.height(seed, centreX, centreZ);
+					// What was actually seen wins over what the seed predicts. Where nobody has been,
+					// the procedural map fills in — so the horizon is never a hole, and the parts of
+					// it that are real look real.
+					int level = PlanetClientState.levelForCell(cell);
+					short seen = PlanetClientState.INSTANCE.observedHeight(centreX, centreZ, level);
+					boolean known = seen != SurfaceSection.NO_HEIGHT;
+					float h = known ? seen : PlanetMap.height(seed, centreX, centreZ);
 					boolean water = h < PlanetMap.SEA_LEVEL;
 					double top = water ? PlanetMap.SEA_LEVEL : h;
-					int rgb = scarred(centreX, centreZ)
-							? PlanetMap.scarTint()
-							: PlanetMap.tint(seed, centreX, centreZ, h);
+					int rgb;
+					if (scarred(centreX, centreZ)) {
+						rgb = PlanetMap.scarTint();
+					} else if (known) {
+						rgb = PlanetClientState.INSTANCE.observedColour(centreX, centreZ, level);
+					} else {
+						rgb = PlanetMap.tint(seed, centreX, centreZ, h);
+					}
 					float alpha = alphaAt(Math.sqrt(d2));
 					double x1 = x0 + cell;
 					double z1 = z0 + cell;
@@ -196,8 +213,8 @@ public final class PlanetSurfaceMesh {
 					// far sides covered by the next cell's near sides, so two per cell tiles the
 					// field with no doubled faces — and the step they draw is what makes a column
 					// read as a column rather than a floating tile.
-					double hx = PlanetMap.height(seed, centreX + cell, centreZ);
-					double hz = PlanetMap.height(seed, centreX, centreZ + cell);
+					double hx = sampleHeight(centreX + cell, centreZ, cell, level);
+					double hz = sampleHeight(centreX, centreZ + cell, cell, level);
 					int side = argb(rgb, 0.68f, alpha);
 					double floor = PlanetMap.SEA_LEVEL - 6.0;
 					if (top > hx) {
@@ -320,6 +337,12 @@ public final class PlanetSurfaceMesh {
 				alpha *= (float) Math.max(0.0, 1.0 - (distance - fadeFrom) / tail);
 			}
 			return Math.max(0f, Math.min(1f, alpha));
+		}
+
+		/** Neighbour height for a skirt, from the same source the cell itself came from. */
+		private double sampleHeight(double worldX, double worldZ, int cell, int level) {
+			short seen = PlanetClientState.INSTANCE.observedHeight(worldX, worldZ, level);
+			return seen != SurfaceSection.NO_HEIGHT ? seen : PlanetMap.height(seed, worldX, worldZ);
 		}
 
 		private boolean scarred(double worldX, double worldZ) {

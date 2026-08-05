@@ -1,5 +1,10 @@
 package com.terminaldetector.drmd.client.planet;
 
+import com.terminaldetector.drmd.world.store.MemorySectionStorage;
+import com.terminaldetector.drmd.world.store.SectionKey;
+import com.terminaldetector.drmd.world.store.SurfaceSection;
+import com.terminaldetector.drmd.world.store.SurfaceStore;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -14,6 +19,8 @@ public final class PlanetClientState {
 	private final Set<Long> scars = new HashSet<>();
 	private List<HorizonLandmark> landmarks = List.of();
 	private PlanetSurfaceMesh mesh;
+	/** Sections the server has sent — the world as actually seen, where it has been seen. */
+	private final SurfaceStore observed = new SurfaceStore(new MemorySectionStorage());
 
 	private PlanetClientState() {}
 
@@ -43,11 +50,39 @@ public final class PlanetClientState {
 		if (changed) mesh = null;
 	}
 
+	/** A section arrived. Anything already built is stale, because the ground under it changed. */
+	public void acceptSection(long key, byte[] data) {
+		SurfaceSection section = SurfaceSection.fromBytes(data);
+		if (section == null) return;
+		observed.put(key, section);
+		mesh = null;
+	}
+
+	/**
+	 * Observed height at a position, or {@link SurfaceSection#NO_HEIGHT} where nothing was ever
+	 * seen — which is where the procedural map takes over.
+	 */
+	public short observedHeight(double worldX, double worldZ, int level) {
+		return observed.heightAt((int) Math.floor(worldX), (int) Math.floor(worldZ), level);
+	}
+
+	public int observedColour(double worldX, double worldZ, int level) {
+		return observed.colourAt((int) Math.floor(worldX), (int) Math.floor(worldZ), level);
+	}
+
+	/** Which stored level has cells closest to the size the horizon is drawing. */
+	public static int levelForCell(int cellBlocks) {
+		int level = 0;
+		while (level < SectionKey.MAX_LEVEL && SectionKey.cellSize(level + 1) <= cellBlocks) level++;
+		return level;
+	}
+
 	public void clear() {
 		hasSeed = false;
 		seed = 0L;
 		scars.clear();
 		landmarks = List.of();
+		observed.reset();
 		mesh = null;
 	}
 
