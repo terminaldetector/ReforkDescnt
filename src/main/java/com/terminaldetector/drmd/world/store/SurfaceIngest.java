@@ -106,6 +106,25 @@ public final class SurfaceIngest {
 		}
 	}
 
+	/**
+	 * Something changed the ground here — re-sample the chunk and let it be sent again.
+	 *
+	 * <p>This is the loop that makes destruction show up on the horizon: a wall coming down changes
+	 * the cell, the cell rebuilds the coarse levels above it downward, and the section goes back into
+	 * the streamer's queue for everyone who had already been given the old one.
+	 */
+	public static void onGroundChanged(ServerWorld world, BlockPos pos) {
+		SurfaceStore live = store;
+		if (live == null) return;
+		if (world.getRegistryKey() != World.OVERWORLD) return;
+		if (!world.isChunkLoaded(pos.getX() >> 4, pos.getZ() >> 4)) return;
+		onChunkLoad(world, world.getChunk(pos.getX() >> 4, pos.getZ() >> 4));
+		for (int level = 0; level <= SectionKey.MAX_LEVEL; level++) {
+			SurfaceStreamer.invalidate(SectionKey.of(level,
+					SectionKey.sectionOf(pos.getX(), level), SectionKey.sectionOf(pos.getZ(), level)));
+		}
+	}
+
 	/** Server tick: climb the levels a little, and write back now and then. */
 	public static void tick(MinecraftServer server) {
 		SurfaceStore live = store;

@@ -82,6 +82,22 @@ class MicroGridTest {
 	}
 
 	@Test
+	@DisplayName("crack overlay tracks the damage, and a whole block shows none")
+	void crackOverlayTracksDamage() {
+		assertEquals(-1, MicroGrid.crackStage(MicroGrid.FULL), "an untouched block shows nothing");
+		assertEquals(9, MicroGrid.crackStage(MicroGrid.EMPTY));
+		assertTrue(MicroGrid.crackStage(maskOf(63)) >= 0, "one chipped cell already shows");
+		assertTrue(MicroGrid.crackStage(maskOf(1)) <= 8, "something still standing is not stage 9");
+		int previous = -1;
+		for (int n = 64; n >= 1; n--) {
+			int stage = MicroGrid.crackStage(maskOf(n));
+			assertTrue(stage >= previous, "cracks must not heal as cells are lost");
+			assertTrue(stage >= -1 && stage <= 8, "stage " + stage + " out of range at " + n);
+			previous = stage;
+		}
+	}
+
+	@Test
 	@DisplayName("a hit craters where it landed and leaves the far side standing")
 	void damageIsLocal() {
 		// Hit the lower-x corner.

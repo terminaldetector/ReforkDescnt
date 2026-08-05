@@ -189,6 +189,10 @@ public final class WeaponCore {
 			if (onHit != null) onHit.accept(new HitContext(null, entityHit.getEntity(), entityHit.getPos(), dir.negate(), false));
 		} else if (blockHit.getType() != HitResult.Type.MISS) {
 			impact = blockHit.getPos();
+			// Blocks come apart in stages now: the hit carves a crater where it landed rather than
+			// leaving the wall pristine until something else decides to remove it whole.
+			com.terminaldetector.drmd.world.micro.BlockDamage.hit(
+					world, blockHit.getBlockPos(), blockHit.getPos(), damage);
 			if (meltBlocks) {
 				int intensity = damage >= 100f ? 3 : (damage >= 50f ? 2 : 1);
 				com.terminaldetector.drmd.weapon.fx.WeaponFx.melt(world, blockHit.getBlockPos(), intensity, owner);

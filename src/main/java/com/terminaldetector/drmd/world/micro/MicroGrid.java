@@ -108,6 +108,24 @@ public final class MicroGrid {
 	}
 
 	/**
+	 * The shape as one of vanilla's ten crack overlays.
+	 *
+	 * <p>Minecraft already draws destruction progress on a block and every resource pack already has
+	 * art for it. Borrowing it means the damage ladder is visible from the first commit, with no
+	 * model, no block entity and no renderer — those buy real geometry later, not the ability to see
+	 * that something is breaking.
+	 *
+	 * @return 0..9 for a damaged block, or −1 for one that is whole and should show nothing
+	 */
+	public static int crackStage(long mask) {
+		if (mask == FULL) return -1;
+		if (mask == EMPTY) return 9;
+		// Ten steps across the missing fraction, never reaching 9 while anything still stands.
+		int step = (int) ((1.0 - integrity(mask)) * 10.0);
+		return Math.max(0, Math.min(8, step));
+	}
+
+	/**
 	 * Take a bite out of the shape.
 	 *
 	 * <p>Coordinates and radius are fractions of a block, so a hit anywhere on or in the block can be
