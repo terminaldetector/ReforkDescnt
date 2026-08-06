@@ -93,13 +93,18 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 		// A round crossing the screen leaves a track as long as the ground it covered.
 		float length = half + (float) MathHelper.clamp(speed * 0.55, 0.0, 7.0);
 
-		VertexConsumer vc = consumers.getBuffer(RenderLayer.getLightning());
 		var entry = matrices.peek();
-		// Outer glow: the weapon's own colour, wide and soft.
-		billboard(vc, entry, length * 1.05f, half * 2.3f, argb, 0.30f);
-		billboard(vc, entry, length, half * 1.35f, argb, 0.65f);
-		// Core: driven to white, the way a hot bolt reads in the original's palette.
-		billboard(vc, entry, length * 0.94f, half * 0.5f, whiten(argb), 1.0f);
+		// Glow additively, so the bolt brightens what is behind it the way the original's palette
+		// does in a dark mine.
+		VertexConsumer glow = consumers.getBuffer(RenderLayer.getLightning());
+		billboard(glow, entry, length * 1.05f, half * 2.3f, argb, 0.30f);
+		billboard(glow, entry, length, half * 1.35f, argb, 0.65f);
+		// The core is drawn solid rather than additively, and that is deliberate: additive light adds
+		// nothing to a background that is already bright, so an all-glow bolt is legible in a mine
+		// and washes out over a sunlit field. The opaque core keeps the shot readable on any
+		// background, which is the whole requirement.
+		VertexConsumer core = consumers.getBuffer(RenderLayer.getDebugQuads());
+		billboard(core, entry, length * 0.94f, half * 0.5f, whiten(argb), 1.0f);
 		matrices.pop();
 	}
 
@@ -207,7 +212,11 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 		// Quads, into a layer that draws quads. This was RenderLayer.getDebugFilledBox(), which is a
 		// TRIANGLE_STRIP layer — six quads' worth of vertices fed to a strip is not six faces, it is
 		// a run of degenerate slivers, which is why the rounds had no visible body at all.
-		VertexConsumer vc = consumers.getBuffer(RenderLayer.getLightning());
+		//
+		// Solid, and with culling off. These boxes are written by hand and their faces are not wound
+		// consistently outward, so a culling layer would drop whichever ones happen to face away and
+		// leave the body full of holes.
+		VertexConsumer vc = consumers.getBuffer(RenderLayer.getDebugQuads());
 		float a = ((argb >> 24) & 255) / 255f;
 		float r = ((argb >> 16) & 255) / 255f;
 		float g = ((argb >> 8) & 255) / 255f;

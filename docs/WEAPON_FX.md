@@ -41,9 +41,17 @@ Both `ProjectileRenderer.drawBox` and `WeaponViewRenderer.drawBox` emit six **qu
 four per face — into `RenderLayer.getDebugFilledBox()`. That layer is declared with
 `VertexFormat.DrawMode.TRIANGLE_STRIP`. Quad-ordered vertices read as a strip are not six faces; they
 are a run of degenerate slivers, so the rounds had no visible body at all and neither did the ship's
-weapon modules. Both now use `RenderLayer.getLightning()` — `POSITION_COLOR`, `DrawMode.QUADS`,
-additive blend, no texture — which matches what the emitters were always producing and glows, which
-is what a bolt should do anyway.
+weapon modules.
+
+Solid geometry now goes to `RenderLayer.getDebugQuads()` — `POSITION_COLOR`, `DrawMode.QUADS`,
+translucent, **culling disabled**. Culling matters: these boxes are written by hand and their faces
+are not wound consistently outward, so a culling layer drops whichever ones happen to face away and
+leaves the body full of holes. Glow shells go to `RenderLayer.getLightning()`, which is the same
+vertex format and draw mode but blends additively.
+
+The split is deliberate. Additive light adds nothing to a background that is already bright, so an
+all-glow bolt reads beautifully in a dark mine and washes out over a sunlit field. Glow shells
+additive, core solid: legible on any background.
 
 ## Structure copied from the original (Descent 2 source)
 

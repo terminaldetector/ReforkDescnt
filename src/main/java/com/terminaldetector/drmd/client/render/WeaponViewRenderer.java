@@ -201,9 +201,10 @@ public final class WeaponViewRenderer {
 	private static void drawBox(MatrixStack matrices, VertexConsumerProvider consumers, int argb, int light) {
 		// Quads, into a layer that draws quads. This was RenderLayer.getDebugFilledBox(), which is a
 		// TRIANGLE_STRIP layer: the six quads below are 24 vertices, and a strip reads those as a run
-		// of degenerate slivers rather than as six faces, so the module had no solid body.
+		// of degenerate slivers rather than as six faces, so the module had no solid body. Culling is
+		// off here too — these faces are not wound consistently outward.
 		var entry = matrices.peek();
-		var vc = consumers.getBuffer(net.minecraft.client.render.RenderLayer.getLightning());
+		var vc = consumers.getBuffer(net.minecraft.client.render.RenderLayer.getDebugQuads());
 		float a = ((argb >> 24) & 255) / 255f;
 		float r = ((argb >> 16) & 255) / 255f;
 		float g = ((argb >> 8) & 255) / 255f;
