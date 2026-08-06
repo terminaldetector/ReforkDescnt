@@ -21,7 +21,17 @@ public final class MacroEntry {
 		/** Crashed abandoned saucer — dense traps, post-Pyro GX. */
 		CRASHED_UFO,
 		/** Cyberpunk megacity: tower grid, sewer network, reactor pyramid. */
-		MEGACITY
+		MEGACITY,
+		/** Spark-style mega locator (dish tower) — horizon LLOD. */
+		MEGA_LOCATOR,
+		/** Smaller technogenic locator dish. */
+		LOCATOR,
+		/** Scorched / bombed town silhouette. */
+		SCORCHED_TOWN,
+		/** Strafe techno-medieval iron guild hall. */
+		IRON_GUILD,
+		/** Simple Spark/Klondike floating voxel island — no LLOD shell. */
+		KLONDIKE_ISLAND
 	}
 
 	public final UUID id;

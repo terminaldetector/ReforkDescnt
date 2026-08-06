@@ -26,19 +26,19 @@ mod's own now, generated from `scripts/gen_textures.py`.
 All three share `CyberMobEntity`: shield soaks first, then armour plating, then hull, each
 scaled by a per-class resistance; a metered energy pool gates every trigger pull.
 
-| | Tripod strider | Flying scanner | Spider turret |
-|--|----------------|----------------|----------------|
-| id | `drmd:tripod` | `drmd:scanner` | `drmd:spider_turret` |
-| Size | 2.0 × 3.4 | 1.0 × 1.0 | 1.6 × 1.4 |
-| Hull / shield / plating | 300 / 80 / 90 | 120 / 60 / 20 | 220 / 50 / 80 |
-| Resists | kinetic .25, energy .10, blast .30 | energy .30 | kinetic .35 |
-| Movement | walks, steps 1.6 | hovers, no gravity | walks, plants when it has sight |
-| Weapon | charged plasma lance + stomp | laser → 3 rockets → recharge | MG bursts ≤18 m, laser beyond |
+| | Tripod strider | Flying scanner | Spider turret | **Oblivion Seeker** |
+|--|----------------|----------------|----------------|---------------------|
+| id | `drmd:tripod` | `drmd:scanner` | `drmd:spider_turret` | `drmd:oblivion_seeker` |
+| Size | **3.2 × 6.0** | 1.0 × 1.0 | 1.6 × 1.4 | 1.35 × 1.35 |
+| Hull / shield / plating | 300 / 80 / 90 | 120 / 60 / 20 | 220 / 50 / 80 | **220 / 90 / 40** |
+| Resists | kinetic .25, energy .10, blast .30 | energy .30 | kinetic .35 | energy .35 |
+| Movement | walks, steps 1.6 | hovers, no gravity | walks, plants when it has sight | hover + **3D bank** + dashes |
+| Weapon | charged heat-ray + stomp | laser → 3 rockets → recharge | MG bursts ≤18 m, laser beyond | SCAN → MG burst → **4 rockets** → dash |
 
-**Tripod strider** — cubic hull on three splayed legs. Holds a 12-block standoff and backs
-away if you close, so it fights at its own range. The lance takes 1.1 s to charge and the hull
-squats while it does, which is the tell. Anything under the hull gets stomped for AoE and
-knock-back.
+**Tripod strider** — early (1953) War of the Worlds war machine: large copper “transistor”
+chassis, manta wings, swan-neck heat ray with green lens, tall spindly legs. Holds a
+12-block standoff. The lance takes 1.1 s to charge (neck dips — the tell). Anything under
+the machine gets stomped for AoE and knock-back.
 
 **Flying scanner** — the Descent-style sentry. Its firing cycle is fixed, not random, so it is
 learnable: one laser lance, then three rockets launched one at a time off a rotating pod ring
@@ -49,6 +49,14 @@ while holding a 14-block standoff.
 independently of the chassis at roughly five times the turn rate, so it keeps shooting while
 the legs are still coming round. MG fires 3-round bursts with a small cone; past 18 blocks it
 switches to the laser.
+
+**Oblivion Seeker (рыскатель)** — End-faction pre-boss. Dark Oblivion sphere (not the green
+`AiRole.SEEKER` flank drone). Built on the Scanner + `FlightAttitude` placeholder: full 3D bank,
+sharp dashes, twin-gun MG → 4-rocket salvo. Spawns solo near Oblivion / End pilots
+(`OblivionSeekerSpawner`) and as arena escorts with the giga-reactor. Paints aggro onto nearby
+CyberMobs / keepers / Endermen (`HostileEnvironment` End faction).
+
+`/d6 mega seeker` · spawn egg `spawn_egg_oblivion_seeker`.
 
 ### Swarms
 

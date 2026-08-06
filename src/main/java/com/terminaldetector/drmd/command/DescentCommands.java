@@ -93,6 +93,30 @@ public final class DescentCommands {
 										ctx.getSource().sendFeedback(() -> Text.literal("Set " + key + " = " + val), true);
 										return 1;
 									}))))
+					.then(CommandManager.literal("afterburner")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								DescentPlayerData d = DescentPlayerData.get(p);
+								int t = d.getAfterburnerTier();
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Afterburner tier " + t + " ("
+												+ com.terminaldetector.drmd.flight.AfterburnerTiers.colorName(t)
+												+ ") · cost "
+												+ com.terminaldetector.drmd.flight.AfterburnerTiers.costPerSec(t)
+												+ "/s · hold R · menu: N"), false);
+								return 1;
+							})
+							.then(CommandManager.argument("tier", IntegerArgumentType.integer(1, 4)).executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								DescentPlayerData d = DescentPlayerData.get(p);
+								int t = IntegerArgumentType.getInteger(ctx, "tier");
+								d.setAfterburnerTier(t);
+								ModNetworking.syncPlayer(p, d);
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Afterburner → " + t + " "
+												+ com.terminaldetector.drmd.flight.AfterburnerTiers.colorName(t)), false);
+								return 1;
+							})))
 					.then(CommandManager.literal("weapons")
 							.then(CommandManager.literal("list").executes(ctx -> {
 								WeaponRegistry.all().forEach(w ->
@@ -205,7 +229,10 @@ public final class DescentCommands {
 							.executes(ctx -> {
 								ServerPlayerEntity p = ctx.getSource().getPlayer();
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.BUILD_TOOL));
-								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.CONSTRUCTION_LASER));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.CONSTRUCTION_LASER_GREEN));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.CONSTRUCTION_LASER_YELLOW));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.CONSTRUCTION_LASER_BLUE));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.CONSTRUCTION_LASER_PURPLE));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.REPAIR_LASER));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.MINING_LASER));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.TUNNEL_LASER));
@@ -221,6 +248,7 @@ public final class DescentCommands {
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.PLASMA_TURRET));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.POINT_DEFENSE_TURRET));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.LASER_BARRIER));
+								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.CYCLIC_LASER_KIT));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.HERMETIC_GATE));
 								p.giveItemStack(new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR));
 								ctx.getSource().sendFeedback(() -> Text.literal("Gave Phase 3 engineer / gravity / turret kit"), false);
@@ -310,8 +338,16 @@ public final class DescentCommands {
 											world.spawnEntity(e);
 										}
 									}
+									case "seeker", "oblivion", "ryskatel" -> {
+										var e = com.terminaldetector.drmd.entity.ModEntities.OBLIVION_SEEKER.create(world);
+										if (e != null) {
+											e.refreshPositionAndAngles(at.x, at.y, at.z, p.getYaw(), 0);
+											world.spawnEntity(e);
+										}
+									}
 									default -> {
-										ctx.getSource().sendError(Text.literal("Use: worm | swarm | keeper | ufo"));
+										ctx.getSource().sendError(Text.literal(
+												"Use: worm | swarm | keeper | ufo | seeker"));
 										return 0;
 									}
 								}
@@ -320,18 +356,250 @@ public final class DescentCommands {
 							})))
 					.then(CommandManager.literal("llod")
 							.executes(ctx -> {
-								ServerPlayerEntity p = ctx.getSource().getPlayer();
-								ModNetworking.syncLlod(p);
+								boolean dh = com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.isPresent();
 								int n = com.terminaldetector.drmd.world.gen2.MacroWorld.size();
-								var bands = com.terminaldetector.drmd.world.llod.LlodRegistry.queryVisible(p.getBlockPos(), 64);
-								long c0 = bands.stream().filter(s -> s.level() == com.terminaldetector.drmd.world.llod.LlodLevel.LLOD0).count();
-								long c1 = bands.stream().filter(s -> s.level() == com.terminaldetector.drmd.world.llod.LlodLevel.LLOD1).count();
-								long c2 = bands.stream().filter(s -> s.level() == com.terminaldetector.drmd.world.llod.LlodLevel.LLOD2).count();
 								ctx.getSource().sendFeedback(() -> Text.literal(
-										"Voxel LLOD sync — macros=" + n
-												+ " visible LLOD0=" + c0 + " LLOD1=" + c1 + " LLOD2=" + c2), false);
+										"DRMD voxel LLOD removed. macros=" + n
+												+ " · Distant Horizons=" + (dh ? "YES" : "NO — install modrinth.com/mod/distanthorizons")),
+										false);
 								return 1;
 							}))
+					.then(CommandManager.literal("planet")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								com.terminaldetector.drmd.world.llod.planet.PlanetMapSync.tickPlayer(p);
+								var ow = p.getServer().getOverworld();
+								int n = ow == null ? 0
+										: com.terminaldetector.drmd.world.llod.planet.PlanetMapState.get(ow).size();
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Planet map sync — explored cells=" + n
+												+ " focus=" + p.getBlockX() + "," + p.getBlockZ()), false);
+								return 1;
+							})
+							.then(CommandManager.literal("scar")
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										var ow = p.getServer().getOverworld();
+										if (ow == null) return 0;
+										com.terminaldetector.drmd.world.llod.planet.PlanetMapState.get(ow)
+												.scarBlock(p.getBlockX(), p.getBlockZ(), 2);
+										com.terminaldetector.drmd.world.llod.planet.PlanetMapSync.tickPlayer(p);
+										ctx.getSource().sendFeedback(() -> Text.literal(
+												"Planet scar painted under you (visible from End/orbit)"), true);
+										return 1;
+									})))
+					.then(CommandManager.literal("megacity")
+							.executes(ctx -> plateStatus(ctx, "megacity",
+									com.terminaldetector.drmd.world.surface.MegacityRegions
+											.describeNearest(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ()),
+									com.terminaldetector.drmd.world.surface.MegacityRegions
+											.isInBiome(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ())))
+							.then(CommandManager.literal("tp")
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> plateTp(ctx,
+											com.terminaldetector.drmd.world.surface.MegacityRegions
+													.findNearest(ctx.getSource().getPlayer().getBlockX(),
+															ctx.getSource().getPlayer().getBlockZ()),
+											"megacity"))))
+					.then(CommandManager.literal("technogenic")
+							.executes(ctx -> plateStatus(ctx, "technogenic_sea",
+									com.terminaldetector.drmd.world.surface.TechnogenicSeaRegions
+											.describeNearest(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ()),
+									com.terminaldetector.drmd.world.surface.TechnogenicSeaRegions
+											.isInBiome(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ())))
+							.then(CommandManager.literal("tp")
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> plateTp(ctx,
+											com.terminaldetector.drmd.world.surface.TechnogenicSeaRegions
+													.findNearest(ctx.getSource().getPlayer().getBlockX(),
+															ctx.getSource().getPlayer().getBlockZ()),
+											"technogenic sea"))))
+					.then(CommandManager.literal("scorched")
+							.executes(ctx -> plateStatus(ctx, "scorched_lands",
+									com.terminaldetector.drmd.world.surface.ScorchedLandsRegions
+											.describeNearest(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ()),
+									com.terminaldetector.drmd.world.surface.ScorchedLandsRegions
+											.isInBiome(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ())))
+							.then(CommandManager.literal("tp")
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> plateTp(ctx,
+											com.terminaldetector.drmd.world.surface.ScorchedLandsRegions
+													.findNearest(ctx.getSource().getPlayer().getBlockX(),
+															ctx.getSource().getPlayer().getBlockZ()),
+											"scorched lands"))))
+					.then(CommandManager.literal("guild")
+							.executes(ctx -> plateStatus(ctx, "iron_guild",
+									com.terminaldetector.drmd.world.surface.IronGuildRegions
+											.describeNearest(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ()),
+									com.terminaldetector.drmd.world.surface.IronGuildRegions
+											.isInBiome(ctx.getSource().getPlayer().getBlockX(),
+													ctx.getSource().getPlayer().getBlockZ())))
+							.then(CommandManager.literal("tp")
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> plateTp(ctx,
+											com.terminaldetector.drmd.world.surface.IronGuildRegions
+													.findNearest(ctx.getSource().getPlayer().getBlockX(),
+															ctx.getSource().getPlayer().getBlockZ()),
+											"iron guild"))))
+					.then(CommandManager.literal("enclave")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								var site = com.terminaldetector.drmd.world.enclave.EnclaveSite
+										.generate(p.getServerWorld().getSeed(), p.getBlockPos());
+								var mem = com.terminaldetector.drmd.world.enclave.FactionMemory
+										.of(p.getServerWorld());
+								int rep = mem.getRep(p.getUuid(), site.origin);
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Enclave cell — " + site.shortLabel()
+												+ " · rep=" + rep
+												+ " · " + site.anchor.getX() + " " + site.anchor.getZ()
+												+ " | herald: use / sneak-use for dialogue+quest"), false);
+								return 1;
+							}))
+					.then(CommandManager.literal("orbit")
+							.executes(ctx -> {
+								ServerPlayerEntity p = ctx.getSource().getPlayer();
+								String desc = com.terminaldetector.drmd.world.orbit.OrbitBands.describe(
+										p.getBlockX(), p.getBlockY(), p.getBlockZ());
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Orbit — " + desc
+												+ " | junk A Y=" + com.terminaldetector.drmd.world.orbit.OrbitBands.LAYER_A_Y
+												+ " B Y=" + com.terminaldetector.drmd.world.orbit.OrbitBands.LAYER_B_Y
+												+ " ring Y=" + com.terminaldetector.drmd.world.orbit.OrbitBands.RING_Y
+												+ " | End = above orbital top (separate)"), false);
+								return 1;
+							})
+							.then(CommandManager.literal("ring")
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										double ang = Math.atan2(p.getZ(), p.getX());
+										int x = (int) (Math.cos(ang) * com.terminaldetector.drmd.world.orbit.OrbitBands.RING_RADIUS);
+										int z = (int) (Math.sin(ang) * com.terminaldetector.drmd.world.orbit.OrbitBands.RING_RADIUS);
+										p.requestTeleport(x, com.terminaldetector.drmd.world.orbit.OrbitBands.RING_Y, z);
+										ctx.getSource().sendFeedback(() -> Text.literal(
+												"Teleported to techno-ring deck"), true);
+										return 1;
+									})))
+					.then(CommandManager.literal("reactor")
+							.executes(ctx -> {
+								int breaches = com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.activeBreaches();
+								int falls = com.terminaldetector.drmd.world.dungeon.ReactorAftermath.pendingFalls();
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Reactor — active breaches=" + breaches
+												+ " pending meteor falls=" + falls
+												+ " | vitality ALIVE/SEMI_ALIVE/DEAD on technogenic dungeons"
+												+ " | destroy core → 90s escape → detonation"), false);
+								return 1;
+							}))
+					.then(CommandManager.literal("fate")
+							.executes(ctx -> {
+								var fate = com.terminaldetector.drmd.world.fate.WorldEndings.fate(
+										ctx.getSource().getServer());
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"World fate=" + fate
+												+ " | SILENCE←giga-reactor | VOID←dark_energy_bomb @ core"
+												+ " | see docs/WORLD_PHILOSOPHY.md"), false);
+								return 1;
+							})
+							.then(CommandManager.argument("set", StringArgumentType.word())
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										String set = StringArgumentType.getString(ctx, "set").toUpperCase();
+										var server = ctx.getSource().getServer();
+										switch (set) {
+											case "SILENCE" -> com.terminaldetector.drmd.world.fate.WorldEndings
+													.applySilence(server, p.getBlockPos());
+											case "VOID" -> com.terminaldetector.drmd.world.fate.WorldEndings
+													.applyVoid(server, p, p.getBlockPos());
+											case "CONTINUING", "RESET" -> {
+												var st = com.terminaldetector.drmd.world.fate.WorldEndings.state(server);
+												if (st != null) {
+													st.setFate(com.terminaldetector.drmd.world.fate.WorldFate.CONTINUING,
+															server.getOverworld().getTime());
+													com.terminaldetector.drmd.world.fate.WorldEndings.broadcast(server);
+												}
+											}
+											default -> {
+												ctx.getSource().sendError(Text.literal("Use: SILENCE | VOID | CONTINUING"));
+												return 0;
+											}
+										}
+										ctx.getSource().sendFeedback(() -> Text.literal("Fate → " + set), true);
+										return 1;
+									})))
+					.then(CommandManager.literal("psychedelic")
+							.executes(ctx -> {
+								var server = ctx.getSource().getServer();
+								var ow = server.getOverworld();
+								boolean cfg = com.terminaldetector.drmd.world.DrmdServerConfig.psychedelicEnabled();
+								if (ow == null) {
+									ctx.getSource().sendFeedback(() -> Text.literal(
+											"Psychedelic config=" + cfg + " (no overworld)"), false);
+									return 1;
+								}
+								var st = com.terminaldetector.drmd.world.DescentWorldState.get(ow);
+								String variant = st.getPsychedelicVariant() < 0 ? "unset"
+										: com.terminaldetector.drmd.world.psychedelic.PsychedelicFractal
+										.fromIndex(st.getPsychedelicVariant()).label
+										+ " (#" + st.getPsychedelicVariant() + ")";
+								ctx.getSource().sendFeedback(() -> Text.literal(
+										"Psychedelic — config=" + cfg
+												+ " world=" + st.isPsychedelic()
+												+ " variant=" + variant
+												+ " | kinds=" + com.terminaldetector.drmd.world.psychedelic.PsychedelicFractal.count()
+												+ " | dock Y=" + com.terminaldetector.drmd.world.psychedelic.PsychedelicWorldgen.SPAWN_Y
+												+ " | set config/drmd-server.properties psychedelicWorlds=true before world create"), false);
+								return 1;
+							})
+							.then(CommandManager.literal("seed")
+									.requires(s -> s.hasPermissionLevel(2))
+									.executes(ctx -> {
+										var server = ctx.getSource().getServer();
+										var ow = server.getOverworld();
+										if (ow == null) return 0;
+										var st = com.terminaldetector.drmd.world.DescentWorldState.get(ow);
+										if (st.isStockSeeded() && st.isPsychedelic()) {
+											ctx.getSource().sendFeedback(() -> Text.literal(
+													"Already psychedelic-seeded — variant #" + st.getPsychedelicVariant()), false);
+											return 1;
+										}
+										if (st.isStockSeeded() && !st.isPsychedelic()) {
+											ctx.getSource().sendError(Text.literal(
+													"World already stock-seeded as non-psychedelic. Use a fresh world + psychedelicWorlds=true."));
+											return 0;
+										}
+										st.setPsychedelic(true);
+										com.terminaldetector.drmd.world.psychedelic.PsychedelicWorldgen.seed(server, st);
+										st.setStockSeeded(true);
+										ctx.getSource().sendFeedback(() -> Text.literal(
+												"Forced psychedelic seed — " + com.terminaldetector.drmd.world.psychedelic.PsychedelicFractal
+														.fromIndex(st.getPsychedelicVariant()).label
+														+ " (#" + st.getPsychedelicVariant() + ")"), true);
+										return 1;
+									}))
+							.then(CommandManager.literal("dock")
+									.executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										int y = com.terminaldetector.drmd.world.psychedelic.PsychedelicWorldgen.SPAWN_Y;
+										p.requestTeleport(0.5, y + 2.0, 0.5);
+										DescentPlayerData d = DescentPlayerData.get(p);
+										FlightSystem.enable(p, d);
+										d.setGravityFactor(0f);
+										ModNetworking.syncPlayer(p, d);
+										ctx.getSource().sendFeedback(() -> Text.literal(
+												"Teleported to psychedelic void dock @ y=" + y), false);
+										return 1;
+									})))
 					.then(CommandManager.literal("bomb")
 							.requires(s -> s.hasPermissionLevel(2))
 							.then(CommandManager.argument("type", StringArgumentType.word()).executes(ctx -> {
@@ -405,5 +673,33 @@ public final class DescentCommands {
 							}))
 			);
 		});
+	}
+
+	private static int plateStatus(com.mojang.brigadier.context.CommandContext<net.minecraft.server.command.ServerCommandSource> ctx,
+								   String name, String tip, boolean here)
+			throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+		ctx.getSource().getPlayer(); // require player
+		ctx.getSource().sendFeedback(() -> Text.literal(
+				(here ? "§aInside " + name + " · " : "§7")
+						+ tip
+						+ " §8· biome plate · /d6 " + name.split("_")[0] + " tp"), false);
+		return 1;
+	}
+
+	private static int plateTp(com.mojang.brigadier.context.CommandContext<net.minecraft.server.command.ServerCommandSource> ctx,
+							   net.minecraft.util.math.BlockPos anchor, String label)
+			throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+		ServerPlayerEntity p = ctx.getSource().getPlayer();
+		if (anchor == null) {
+			ctx.getSource().sendError(Text.literal("No " + label + " plate found"));
+			return 0;
+		}
+		var world = p.getServerWorld();
+		int y = world.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+				anchor.getX(), anchor.getZ()) + 8;
+		p.requestTeleport(anchor.getX() + 0.5, y, anchor.getZ() + 0.5);
+		ctx.getSource().sendFeedback(() -> Text.literal(
+				"Teleported to " + label + " @ " + anchor.getX() + " " + anchor.getZ()), true);
+		return 1;
 	}
 }

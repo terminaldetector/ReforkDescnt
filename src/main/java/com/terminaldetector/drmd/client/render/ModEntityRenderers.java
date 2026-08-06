@@ -20,6 +20,8 @@ public final class ModEntityRenderers {
 				com.terminaldetector.drmd.entity.model.ScannerModel::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(SpiderTurretRenderer.LAYER,
 				com.terminaldetector.drmd.entity.model.SpiderTurretModel::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(OblivionSeekerRenderer.LAYER,
+				com.terminaldetector.drmd.entity.model.OblivionSeekerModel::getTexturedModelData);
 
 		EntityRendererRegistry.register(ModEntities.PROJECTILE, ProjectileRenderer::new);
 		EntityRendererRegistry.register(ModEntities.DRONE, DroneRenderer::new);
@@ -35,5 +37,9 @@ public final class ModEntityRenderers {
 		EntityRendererRegistry.register(ModEntities.TRIPOD, TripodRenderer::new);
 		EntityRendererRegistry.register(ModEntities.SCANNER, ScannerRenderer::new);
 		EntityRendererRegistry.register(ModEntities.SPIDER_TURRET, SpiderTurretRenderer::new);
+		EntityRendererRegistry.register(ModEntities.OBLIVION_SEEKER, OblivionSeekerRenderer::new);
+		EntityRendererRegistry.register(ModEntities.LASER_BARRIER_CART, ctx ->
+				new net.minecraft.client.render.entity.MinecartEntityRenderer<>(
+						ctx, net.minecraft.client.render.entity.model.EntityModelLayers.MINECART));
 	}
 }

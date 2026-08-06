@@ -38,6 +38,8 @@ public final class FlightSystem {
 	public static final class InputState {
 		public float forward, strafe, vertical, roll;
 		public boolean dash, hook, alwaysRunToggle;
+		/** Descent afterburner — held (not toggled). Drives cruise when stick is idle. */
+		public boolean afterburner;
 	}
 
 	private static final java.util.Map<java.util.UUID, InputState> INPUTS = new java.util.concurrent.ConcurrentHashMap<>();
@@ -61,10 +63,9 @@ public final class FlightSystem {
 		float dt = 1f / 20f;
 		InputState in = input(player);
 
-		// Creative flight cannot co-drive the hull: PlayerEntity.travel's flying branch rewrites Y
-		// as `previousY * 0.6` every tick, and ClientPlayerEntity.tickMovement injects ±flySpeed*3
-		// on jump/sneak outside travel() entirely. Either one shreds a 6DoF velocity. The player
-		// keeps `allowFlying`, so toggling 6DoF off (H) hands creative flight straight back.
+		// Creative double-tap space re-arms flying; that path shreds 6DoF (Y*0.6 + flySpeed outside
+		// travel). Keep allowFlying so H-off restores creative build flight. Client also clears
+		// flying at tickMovement HEAD (ClientPlayerEntityMixin).
 		if (player.getAbilities().flying) {
 			player.getAbilities().flying = false;
 			player.sendAbilitiesUpdate();
@@ -88,11 +89,20 @@ public final class FlightSystem {
 			}
 		}
 
-		// Always-Run energy drain
-		if (data.isAlwaysRun()) {
-			if (!EnergySystem.tryConsume(data, "engines", EnergySystem.ALWAYS_RUN_COST_PER_SEC * dt)) {
-				data.setAlwaysRun(false);
+		// Descent afterburner cruise: hold R → burn energy (tier cost), boost, idle nose thrust.
+		int abTier = data.getAfterburnerTier();
+		boolean afterburner = in.afterburner;
+		if (afterburner) {
+			if (!EnergySystem.tryConsume(data, "engines", AfterburnerTiers.costPerSec(abTier) * dt)) {
+				afterburner = false;
+				in.afterburner = false;
 			}
+		}
+		data.setAlwaysRun(afterburner);
+		if (afterburner && Math.abs(in.forward) < 0.01f
+				&& Math.abs(in.strafe) < 0.01f && Math.abs(in.vertical) < 0.01f) {
+			// Corridor cruise — afterburner alone pushes forward like original Descent.
+			in.forward = 1f;
 		}
 
 		// Roll rate (client applies local roll into synced ship attitude)
@@ -121,7 +131,7 @@ public final class FlightSystem {
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.emit(
 					player.getPos().subtract(look.multiply(0.8)),
 					com.terminaldetector.drmd.world.smoke.SmokeSystem.Source.ENGINE,
-					0.4f, 0.25f, 18);
+					afterburner ? 0.7f : 0.4f, afterburner ? 0.4f : 0.25f, afterburner ? 28 : 18);
 		}
 		float spool = data.getThrustSpool();
 		if (thrusting) spool = Math.min(1f, spool + SPOOL_UP * dt);
@@ -129,16 +139,21 @@ public final class FlightSystem {
 		data.setThrustSpool(spool);
 
 		float engAlloc = data.getAllocEngines();
-		float accelMult = data.isAlwaysRun() ? MathHelper.lerp(engAlloc, 1.3f, 1.9f) : 1f;
-		float speedMult = data.isAlwaysRun() ? MathHelper.lerp(engAlloc, 1.3f, 1.8f) : 1f;
+		float accelMult = afterburner ? AfterburnerTiers.accelMult(abTier, engAlloc) : 1f;
+		float speedMult = afterburner ? AfterburnerTiers.speedMult(abTier, engAlloc) : 1f;
 
 		// Atmospheric bands: thin air / near-space / End vacuum → less drag, more thrust
-		boolean endVacuum = player.getWorld().getRegistryKey() == net.minecraft.world.World.END;
+		var level = com.terminaldetector.drmd.world.level.WorldLevels.at(player.getY());
+		boolean endVacuum = player.getWorld().getRegistryKey() == net.minecraft.world.World.END
+				|| level == com.terminaldetector.drmd.world.level.WorldLevels.Level.END
+				|| level == com.terminaldetector.drmd.world.level.WorldLevels.Level.ORBITAL;
 		AtmosphereBand band = AtmosphereBand.at(player.getWorld(), player.getY());
 		accelMult *= band.thrustScale;
 		speedMult *= MathHelper.lerp(1f - band.airDrag, 1f, 1.15f);
-		if (endVacuum) {
-			// No idle gravity sink in End — thrusters only
+		boolean psychedelicVoid = com.terminaldetector.drmd.world.DescentWorldState
+				.get(player.getServerWorld()).isPsychedelic();
+		if (endVacuum || psychedelicVoid) {
+			// No idle gravity sink in End / orbital / psychedelic void — thrusters only
 			data.setGravityFactor(0f);
 		}
 
@@ -279,6 +294,11 @@ public final class FlightSystem {
 		if (!com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player.getUuid())) {
 			player.setNoGravity(false);
 		}
+		// Restore creative fly permission so H-off can build again.
+		if (player.getAbilities().creativeMode && !player.getAbilities().allowFlying) {
+			player.getAbilities().allowFlying = true;
+			player.sendAbilitiesUpdate();
+		}
 		ModNetworking.syncPlayer(player, data);
 	}
 
@@ -290,12 +310,28 @@ public final class FlightSystem {
 			com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptAt(player, player.getPos());
 			com.terminaldetector.drmd.world.gravity.FootGravitySystem.tick(player);
 		} else {
-			com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
-			data.setEnabled(true);
-			data.ensureInit();
-			player.setNoGravity(true);
-			ModNetworking.syncPlayer(player, data);
+			enable(player, data);
 		}
+	}
+
+	/** Force 6DoF on and sync — join path / /d6 / void ending. */
+	public static void enable(ServerPlayerEntity player, DescentPlayerData data) {
+		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
+		data.setEnabled(true);
+		data.ensureInit();
+		boolean dirty = false;
+		if (player.getAbilities().flying) {
+			player.getAbilities().flying = false;
+			dirty = true;
+		}
+		// Hard-block creative double-tap while armed — client mixin mirrors this each tick.
+		if (player.getAbilities().allowFlying) {
+			player.getAbilities().allowFlying = false;
+			dirty = true;
+		}
+		if (dirty) player.sendAbilitiesUpdate();
+		player.setNoGravity(true);
+		ModNetworking.syncPlayer(player, data);
 	}
 
 	public static void tryDash(ServerPlayerEntity player) {

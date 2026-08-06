@@ -12,10 +12,13 @@ import net.minecraft.world.World;
 
 import java.util.UUID;
 
+/**
+ * Block entity for {@link GravityGeneratorBlock} — torch rules, larger tunable radius.
+ */
 public class GravityGeneratorBlockEntity extends BlockEntity {
 	private UUID fieldId = UUID.randomUUID();
-	private float radius = 24f;
-	private float power = 1.0f;
+	private float radius = GravityGeneratorBlock.DEFAULT_RADIUS;
+	private float power = GravityGeneratorBlock.DEFAULT_POWER;
 	private FieldShape shape = FieldShape.SPHERE;
 
 	public GravityGeneratorBlockEntity(BlockPos pos, BlockState state) {
@@ -29,7 +32,8 @@ public class GravityGeneratorBlockEntity extends BlockEntity {
 	public void cyclePower() {
 		power += 0.25f;
 		if (power > 2.0f) power = 0.25f;
-		radius = 12f + power * 16f;
+		// Keep generator strictly larger than the torch (8) across the whole range.
+		radius = 16f + power * 16f; // 20 … 48
 		markDirty();
 		registerField();
 	}
@@ -42,12 +46,13 @@ public class GravityGeneratorBlockEntity extends BlockEntity {
 	}
 
 	public void registerField() {
+		if (world == null) return;
 		Direction facing = getCachedState().get(GravityGeneratorBlock.FACING);
-		// Facing points "down" into the gravity well
-		Vec3d down = Vec3d.of(facing.getVector());
+		// Same semantics as the torch: FACING is local up (out of mount face), gravity pulls opposite.
+		Vec3d down = Vec3d.of(facing.getOpposite().getVector());
 		GravityFields.put(new GravityFields.Field(
-				fieldId, world != null ? world.getRegistryKey() : null,
-				pos, down, radius, power, shape, "Generator"));
+				fieldId, world.getRegistryKey(),
+				pos, down, radius, power, shape, "Gravity Generator", true));
 	}
 
 	public void unregister() {
@@ -71,8 +76,8 @@ public class GravityGeneratorBlockEntity extends BlockEntity {
 	protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
 		super.readNbt(nbt, registryLookup);
 		if (nbt.containsUuid("field")) fieldId = nbt.getUuid("field");
-		radius = nbt.contains("radius") ? nbt.getFloat("radius") : 24f;
-		power = nbt.contains("power") ? nbt.getFloat("power") : 1f;
+		radius = nbt.contains("radius") ? nbt.getFloat("radius") : GravityGeneratorBlock.DEFAULT_RADIUS;
+		power = nbt.contains("power") ? nbt.getFloat("power") : GravityGeneratorBlock.DEFAULT_POWER;
 		try {
 			shape = FieldShape.valueOf(nbt.getString("shape"));
 		} catch (Exception e) {

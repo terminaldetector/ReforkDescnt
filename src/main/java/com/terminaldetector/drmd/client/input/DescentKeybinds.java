@@ -12,7 +12,7 @@ import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * Binds matching COMMANDS.txt: H toggle, SHIFT dash, R alwaysrun, Q/E roll, etc.
+ * Binds: H toggle, SHIFT dash, R hold afterburner (Descent cruise), Q/E roll, etc.
  */
 public final class DescentKeybinds {
 	public static KeyBinding toggle;
@@ -26,12 +26,23 @@ public final class DescentKeybinds {
 	public static KeyBinding descend;
 	public static KeyBinding hook;
 	public static KeyBinding workshop;
+	public static KeyBinding customize;
 	public static KeyBinding rocketMode;
 	public static KeyBinding resetRoll;
+	public static KeyBinding settings;
 
 	private static boolean dashQueued;
 	private static boolean hookQueued;
 	private static boolean wasEnabled;
+
+	/** Call on disconnect so the next join sees a clean false→true edge. */
+	public static void resetSession() {
+		wasEnabled = false;
+		dashQueued = false;
+		hookQueued = false;
+		lastForward = lastStrafe = lastVertical = 0;
+		inputSendAge = 0;
+	}
 	/**
 	 * Thrust axes as of the last sample.
 	 *
@@ -75,8 +86,10 @@ public final class DescentKeybinds {
 		descend = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.descend", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_CONTROL, "key.category.drmd"));
 		hook = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.hook", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_Z, "key.category.drmd"));
 		workshop = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.workshop", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_M, "key.category.drmd"));
+		customize = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.customize", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_N, "key.category.drmd"));
 		rocketMode = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.rocket_mode", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "key.category.drmd"));
 		resetRoll = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.reset_roll", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_X, "key.category.drmd"));
+		settings = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.settings", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_COMMA, "key.category.drmd"));
 	}
 
 	public static void tick(MinecraftClient client) {
@@ -96,6 +109,7 @@ public final class DescentKeybinds {
 			if (tab && com.terminaldetector.drmd.client.hud.TerrainMap3d.canUse(client.player)) {
 				com.terminaldetector.drmd.client.hud.TerrainMap3d.toggle();
 			} else if (!tab) {
+				com.terminaldetector.drmd.client.DescentClient.markUserFlightChoice();
 				sendAction("toggle");
 			}
 		}
@@ -106,7 +120,7 @@ public final class DescentKeybinds {
 				com.terminaldetector.drmd.client.flight.DescentCamera.pulseDash(ShipAttitudeClient.get().forward());
 			}
 		}
-		while (alwaysRun.wasPressed()) sendAction("alwaysrun");
+		// Afterburner is hold-R via InputPayload — no toggle edge here.
 		while (flightAssist.wasPressed()) sendAction("flightassist");
 		while (radar.wasPressed()) sendAction("radar");
 		while (rocketMode.wasPressed()) sendAction("rocket_next");
@@ -117,6 +131,8 @@ public final class DescentKeybinds {
 			sendAction("reset_roll");
 		}
 		while (workshop.wasPressed()) DescentClient.openWorkshop();
+		while (customize.wasPressed()) DescentClient.openShipCustomize();
+		while (settings.wasPressed()) DescentClient.openSettings();
 		if (hook.isPressed()) hookQueued = true;
 
 		if (en && client.player != null) {
@@ -136,6 +152,7 @@ public final class DescentKeybinds {
 	private static int inputSendAge;
 	private static float lastSentFx, lastSentFy, lastSentFz, lastSentUx, lastSentUy, lastSentUz;
 	private static float lastSentFwd, lastSentStrafe, lastSentVert, lastSentRoll;
+	private static boolean lastSentAfterburner;
 
 	public static void sendInput(MinecraftClient client) {
 		if (client.player == null) return;
@@ -147,6 +164,7 @@ public final class DescentKeybinds {
 
 		boolean dash = dashQueued;
 		boolean hk = hookQueued;
+		boolean afterburner = alwaysRun.isPressed();
 		dashQueued = false;
 		hookQueued = false;
 
@@ -166,13 +184,15 @@ public final class DescentKeybinds {
 		boolean attChanged = Math.abs(fx - lastSentFx) > 0.002f || Math.abs(fy - lastSentFy) > 0.002f
 				|| Math.abs(fz - lastSentFz) > 0.002f || Math.abs(ux - lastSentUx) > 0.002f
 				|| Math.abs(uy - lastSentUy) > 0.002f || Math.abs(uz - lastSentUz) > 0.002f;
+		boolean abChanged = afterburner != lastSentAfterburner;
 		// Keep a heartbeat so the server does not go stale, but skip duplicate packets mid-coast.
-		if (!dash && !hk && !stickChanged && !attChanged && inputSendAge < 4) return;
+		if (!dash && !hk && !abChanged && !stickChanged && !attChanged && inputSendAge < 4) return;
 		inputSendAge = 0;
 		lastSentFwd = forward;
 		lastSentStrafe = strafe;
 		lastSentVert = vertical;
 		lastSentRoll = roll;
+		lastSentAfterburner = afterburner;
 		lastSentFx = fx;
 		lastSentFy = fy;
 		lastSentFz = fz;
@@ -180,8 +200,11 @@ public final class DescentKeybinds {
 		lastSentUy = uy;
 		lastSentUz = uz;
 
+		// Local prediction: afterburner state before the sync round-trip.
+		DescentClientState.alwaysRun = afterburner && DescentClientState.enabled;
+
 		ClientPlayNetworking.send(new ModNetworking.InputPayload(
-				forward, strafe, vertical, roll, dash, hk,
+				forward, strafe, vertical, roll, dash, hk, afterburner,
 				att, fx, fy, fz, ux, uy, uz
 		));
 	}

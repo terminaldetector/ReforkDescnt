@@ -10,6 +10,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
 import net.minecraft.entity.ai.goal.GoalSelector;
 import net.minecraft.entity.ai.goal.RevengeGoal;
+import net.minecraft.entity.mob.EndermanEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.passive.AnimalEntity;
@@ -19,12 +20,12 @@ import net.minecraft.entity.player.PlayerEntity;
 
 /**
  * Shared targeting for DRMD machines — hostile to the living environment, never to each other.
- * Port of GMod GetEnemy breadth: anything alive that is not a Descent unit is fair game.
+ * End faction: CyberMobs + keepers/boss + Endermen (Oblivion Seeker coop).
  */
 public final class HostileEnvironment {
 	private HostileEnvironment() {}
 
-	/** True for DRMD combat machines / keepers that should not murder each other. */
+	/** True for DRMD combat machines / End-faction allies that should not murder each other. */
 	public static boolean isAlly(LivingEntity e) {
 		if (e == null || !e.isAlive()) return true;
 		return e instanceof DroneEntity
@@ -32,7 +33,8 @@ public final class HostileEnvironment {
 				|| e instanceof AirMineEntity
 				|| e instanceof MegaWormEntity
 				|| e instanceof ReactorKeeperEntity
-				|| e instanceof EndReactorBossEntity;
+				|| e instanceof EndReactorBossEntity
+				|| e instanceof EndermanEntity;
 	}
 
 	public static boolean isHostileTarget(LivingEntity self, LivingEntity other) {

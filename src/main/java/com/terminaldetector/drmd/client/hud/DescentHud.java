@@ -68,7 +68,16 @@ public final class DescentHud {
 
 	public static void render(DrawContext ctx, float tickDelta) {
 		MinecraftClient mc = MinecraftClient.getInstance();
-		if (mc.player == null || mc.world == null || mc.options.hudHidden || !DescentClientState.enabled) return;
+		if (mc.player == null || mc.world == null || mc.options.hudHidden) return;
+
+		renderReactorSyncStrip(ctx, mc);
+
+		if (!DescentClientState.enabled) return;
+		// 2D canopy always when flying — 3D frame can fail under some pipelines; this never does.
+		if (com.terminaldetector.drmd.client.config.DescentConfig.cockpit
+				&& mc.options.getPerspective().isFirstPerson()) {
+			drawCanopyChrome(ctx, mc);
+		}
 		if (!com.terminaldetector.drmd.client.config.DescentConfig.hud) return;
 
 		int sw = mc.getWindow().getScaledWidth();
@@ -141,18 +150,53 @@ public final class DescentHud {
 
 	// =============================================================== left column
 
+	/** Flat canopy rails — visible even when the 3D Tessellator frame fails. */
+	private static void drawCanopyChrome(DrawContext ctx, MinecraftClient mc) {
+		int sw = mc.getWindow().getScaledWidth();
+		int sh = mc.getWindow().getScaledHeight();
+		int marginX = Math.max(18, sw / 14);
+		int marginY = Math.max(14, sh / 12);
+		int x0 = marginX;
+		int y0 = marginY;
+		int x1 = sw - marginX;
+		int y1 = sh - marginY - 22;
+		int edge = 0xCC1AFF7A;
+		int hull = 0xAA0A1210;
+		// Side pillars
+		ctx.fill(x0, y0, x0 + 3, y1, hull);
+		ctx.fill(x1 - 3, y0, x1, y1, hull);
+		ctx.fill(x0, y0, x0 + 1, y1, edge);
+		ctx.fill(x1 - 1, y0, x1, y1, edge);
+		// Brow / sill
+		ctx.fill(x0, y0, x1, y0 + 2, hull);
+		ctx.fill(x0, y1 - 3, x1, y1, hull);
+		ctx.fill(x0 + 4, y1 - 2, x1 - 4, y1 - 1, edge);
+		// Nose spine cue
+		int cx = sw / 2;
+		ctx.fill(cx - 1, y1 - 1, cx + 1, Math.min(sh - 8, y1 + 16), edge);
+		ctx.drawTextWithShadow(mc.textRenderer, Text.literal("6DoF"), x0 + 6, y0 + 4, GREEN_DIM);
+	}
+
 	private static int drawFlightStatus(DrawContext ctx, MinecraftClient mc, int x, int y) {
-		int w = 116, h = 62;
+		int w = 116, h = 74;
 		panel(ctx, x, y, w, h);
 		int tx = x + 4, ty = y + 4;
 		float thrust = MathHelper.clamp(DescentClientState.speed / 2.5f, 0f, 1f);
+		var layer = com.terminaldetector.drmd.world.layer.WorldLayer.at(mc.world, mc.player.getY());
 		line(ctx, mc, tx, ty, "6DOF MODE: ON", GREEN);
 		line(ctx, mc, tx, ty + 11, String.format(Locale.ROOT, "THRUST: %d%%", Math.round(thrust * 100)), GREEN);
-		line(ctx, mc, tx, ty + 22, "DAMPENERS: " + (DescentClientState.flightAssist ? "ON" : "OFF"),
+		int abTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(DescentClientState.afterburnerTier);
+		int abColor = DescentClientState.alwaysRun
+				? com.terminaldetector.drmd.flight.AfterburnerTiers.colorArgb(abTier)
+				: GREEN_DIM;
+		line(ctx, mc, tx, ty + 22, "AFTERBURNER: "
+						+ (DescentClientState.alwaysRun ? "ON" : "OFF")
+						+ " " + com.terminaldetector.drmd.flight.AfterburnerTiers.shortLabel(abTier),
+				abColor);
+		line(ctx, mc, tx, ty + 33, "DAMPENERS: " + (DescentClientState.flightAssist ? "ON" : "OFF"),
 				DescentClientState.flightAssist ? GREEN : AMBER);
-		line(ctx, mc, tx, ty + 33, String.format(Locale.ROOT, "GRAVITY: %.2fG", DescentClientState.gravityFactor),
-				DescentClientState.gravityFactor > 0.05f ? AMBER : GREEN);
 		line(ctx, mc, tx, ty + 44, String.format(Locale.ROOT, "SPEED: %.1f m/s", DescentClientState.speed * 20f), GREEN);
+		line(ctx, mc, tx, ty + 55, "LAYER: " + layer.label.toUpperCase(Locale.ROOT), layer.hudColor | 0xFF000000);
 		return y + h;
 	}
 
@@ -618,8 +662,13 @@ public final class DescentHud {
 		ctx.drawCenteredTextWithShadow(mc.textRenderer,
 				Text.literal(Math.round(thrust * 100) + "%"), x0 + w / 2, y + 14, AMBER);
 		vertBar(ctx, x0 + 8, y + 24, 8, 16, thrust, GREEN);
-		ctx.drawText(mc.textRenderer, Text.literal("BOOST"), x0 + 20, y + 30,
-				DescentClientState.alwaysRun ? AMBER : GREEN_DIM, false);
+		int boostTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(DescentClientState.afterburnerTier);
+		ctx.drawText(mc.textRenderer, Text.literal("BOOST "
+						+ com.terminaldetector.drmd.flight.AfterburnerTiers.shortLabel(boostTier)),
+				x0 + 20, y + 30,
+				DescentClientState.alwaysRun
+						? com.terminaldetector.drmd.flight.AfterburnerTiers.colorArgb(boostTier)
+						: GREEN_DIM, false);
 
 		// Middle plate — attitude MFD.
 		int mx = x0 + w + gap;
@@ -910,6 +959,41 @@ public final class DescentHud {
 			if (e2 >= dy) { err += dy; x0 += sx; }
 			if (e2 <= dx) { err += dx; y0 += sy; }
 		}
+	}
+
+	/** Column / End / orbit aftermath cue — visible even outside 6DoF. */
+	private static void renderReactorSyncStrip(DrawContext ctx, MinecraftClient mc) {
+		var sync = com.terminaldetector.drmd.client.sync.ClientReactorSync.INSTANCE;
+		int breachSec = sync.nearestBreachSeconds(
+				mc.player.getX(), mc.player.getY(), mc.player.getZ());
+		int falls = sync.falls().size();
+		boolean fateActive = DescentClientState.isSilenceEnding() || DescentClientState.isVoidEnding();
+		if (!fateActive && breachSec < 0 && falls <= 0 && sync.lastGameTime() < 0) return;
+
+		int sw = mc.getWindow().getScaledWidth();
+		String line;
+		int color;
+		if (DescentClientState.isVoidEnding()) {
+			line = "NOTHING REMAINS";
+			color = 0xFFAA66FF;
+		} else if ("SILENCE".equals(DescentClientState.worldFate)) {
+			line = "MACHINE SILENCE  decay " + DescentClientState.fateDecayTicks;
+			color = GREEN_DIM;
+		} else if (breachSec >= 0) {
+			line = "REACTOR BREACH  " + breachSec + "s";
+			color = breachSec <= 15 ? RED : AMBER;
+		} else if (falls > 0) {
+			line = "METEOR FALLS  " + falls;
+			color = AMBER;
+		} else {
+			line = sync.lastOrbital() ? "ORBITAL DETONATION LOGGED" : "FACILITY DETONATION LOGGED";
+			color = GREEN_DIM;
+		}
+		int tw = mc.textRenderer.getWidth(line);
+		int x = (sw - tw) / 2;
+		int y = 6;
+		ctx.fill(x - 4, y - 2, x + tw + 4, y + 11, 0x88000C10);
+		ctx.drawText(mc.textRenderer, Text.literal(line), x, y, color, false);
 	}
 
 	private record TargetInfo(String name, String type, int hp, int hpMax, int dist, float vel) {}

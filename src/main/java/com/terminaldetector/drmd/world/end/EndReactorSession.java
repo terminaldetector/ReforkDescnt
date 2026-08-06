@@ -91,8 +91,15 @@ public final class EndReactorSession {
 			double z = player.getZ();
 			if (x * x + z * z > ARENA_WAKE_RADIUS * ARENA_WAKE_RADIUS) continue;
 			// In the band the arena is one level of many, so surface play near the origin must not
-			// wake it — only flying up into the END band does.
-			if (band && Math.abs(player.getY() - END_BAND_ARENA_Y) > ARENA_WAKE_RADIUS) continue;
+			// wake it — only flying up into the END band / Oblivion seam does.
+			if (band) {
+				double dy = Math.abs(player.getY() - END_BAND_ARENA_Y);
+				// SeamWarmup starts at ORBITAL_TOP±72 — wake earlier than full 256 Y so the
+				// arena exists before the critical 10-block seam approach.
+				double yWake = com.terminaldetector.drmd.world.layer.SeamWarmup.nearEndSeam(player.getY())
+						? 120.0 : ARENA_WAKE_RADIUS;
+				if (dy > yWake) continue;
+			}
 			return true;
 		}
 		return false;
@@ -121,6 +128,26 @@ public final class EndReactorSession {
 		}
 	}
 
+	/**
+	 * Mixin entry — cheap every tick. Heavy arena build only when a player is near
+	 * (or the base already exists and needs a boss check).
+	 */
+	public static void onDragonFightTick(ServerWorld end) {
+		try {
+			suppressDragons(end);
+			EndReactorState state = EndReactorState.get(end);
+			if (state.isBaseGenerated()) {
+				ensureBossAlive(end, state);
+				return;
+			}
+			if (!playerNearArena(end)) return;
+			ensureBase(end);
+		} catch (Exception e) {
+			// Dragon-fight mixin runs every End tick — never let arena code kill the server.
+			DescentMod.LOGGER.error("End reactor tick failed — skipped", e);
+		}
+	}
+
 	public static void ensureBase(ServerWorld end) {
 		EndReactorState state = EndReactorState.get(end);
 		if (state.isBaseGenerated()) {
@@ -128,12 +155,18 @@ public final class EndReactorSession {
 			return;
 		}
 		BlockPos center = arenaCenter(end);
-		generateBase(end, center);
-		spawnBoss(end, center);
-		state.setBaseGenerated(true);
-		state.setPhase(EndReactorState.Phase.SHIELDED);
-		DescentMod.LOGGER.info("Reactor arena generated in {} at {}",
-				end.getRegistryKey().getValue(), center.toShortString());
+		try {
+			generateBase(end, center);
+			spawnBoss(end, center);
+			state.setBaseGenerated(true);
+			state.setPhase(EndReactorState.Phase.SHIELDED);
+			DescentMod.LOGGER.info("Reactor arena generated in {} at {}",
+					end.getRegistryKey().getValue(), center.toShortString());
+		} catch (Exception e) {
+			// Never take down the integrated server over a bad rail / block write.
+			DescentMod.LOGGER.error("Reactor arena generate failed in {} at {}",
+					end.getRegistryKey().getValue(), center.toShortString(), e);
+		}
 	}
 
 	private static void ensureBossAlive(ServerWorld end, EndReactorState state) {
@@ -209,7 +242,9 @@ public final class EndReactorSession {
 					world.setBlockState(base.up(y).west(), Blocks.IRON_BARS.getDefaultState(), Block.NOTIFY_LISTENERS);
 				}
 			}
-			world.setBlockState(base.up(15), Blocks.BEDROCK.getDefaultState(), Block.NOTIFY_LISTENERS);
+			world.setBlockState(base.up(15),
+					com.terminaldetector.drmd.entity.ModWorldBlocks.PLASMA_GRANITE.getDefaultState(),
+					Block.NOTIFY_LISTENERS);
 			EndCrystalEntity crystal = spawnCrystal(world, base.up(16));
 			if (crystal != null) world.spawnEntity(crystal);
 
@@ -219,12 +254,10 @@ public final class EndReactorSession {
 			placeTurretPad(world, base.add(0, 8, 3), ModWorldBlocks.POINT_DEFENSE_TURRET);
 		}
 
-		// Inner ring volume turrets
-		for (int i = 0; i < 6; i++) {
-			double ang = i * Math.PI * 2 / 6;
-			BlockPos t = center.add((int) (Math.cos(ang) * 14), 2, (int) (Math.sin(ang) * 14));
-			placeTurretPad(world, t, ModWorldBlocks.VOLUME_TURRET);
-		}
+		// Inner ring: embedded casemate turrets + shield cross (no cyclic rails —
+		// powered_rail curves crashed join / End tick; kit item still places loops).
+		com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeTurretRing(
+				world, center, 14, center.getY() + 1, 8, true);
 
 		// Approach bridges toward outer islands
 		for (int d = 28; d <= 48; d++) {
@@ -260,15 +293,20 @@ public final class EndReactorSession {
 			keeper.refreshPositionAndAngles(center.getX() + 8.5, center.getY() + 12, center.getZ() + 0.5, 0, 0);
 			world.spawnEntity(keeper);
 		}
+		// Pre-boss Oblivion Seekers — solo hunters that still paint aggro onto End machines.
+		OblivionSeekerSpawner.spawnArenaEscorts(world, center, 3);
 	}
 
 	/**
-	 * Victory marker — the dragon-fight analogue.
+	 * Victory marker — the dragon-fight analogue (primary ending).
 	 *
 	 * <p>In the End dimension that is a ring of gateways home, as vanilla does it. In the END band
 	 * there is nowhere to portal <em>to</em>: the way back is the same column you flew up, so the
 	 * reward is a landing pad and a lit trophy instead of four gateways that would teleport a pilot
 	 * out of a world they never left.
+	 *
+	 * <p>Second ending (escape / survive aftermath) needs nothing special here — dig path,
+	 * {@code ReactorAftermath}, and DimensionSync already cover it.
 	 */
 	public static void placeExitGateways(ServerWorld world, BlockPos at) {
 		world.setBlockState(at, Blocks.DRAGON_EGG.getDefaultState(), Block.NOTIFY_ALL);

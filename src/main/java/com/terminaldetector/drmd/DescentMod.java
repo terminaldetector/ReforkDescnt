@@ -17,6 +17,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.server.world.ServerWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ public class DescentMod implements ModInitializer {
 	public void onInitialize() {
 		LOGGER.info("DRMD 6DOF initializing — 6DoF world mode (volume-first)");
 
+		com.terminaldetector.drmd.world.DrmdServerConfig.load();
 		ModNetworking.register();
 		ModEntities.register();
 		ModBlocks.register();
@@ -44,7 +46,14 @@ public class DescentMod implements ModInitializer {
 		com.terminaldetector.drmd.entity.ModBlockEntities.register();
 		com.terminaldetector.drmd.world.gen.ModWorldgen.register();
 		com.terminaldetector.drmd.world.gen2.ModWorldgen2.register();
+		com.terminaldetector.drmd.world.surface.MegacityBiomeWorldgen.register();
+		com.terminaldetector.drmd.world.surface.TechnogenicSeaBiomeWorldgen.register();
+		com.terminaldetector.drmd.world.surface.ScorchedLandsBiomeWorldgen.register();
+		com.terminaldetector.drmd.world.surface.IronGuildBiomeWorldgen.register();
+		com.terminaldetector.drmd.world.surface.SurfaceEventWorldgen.register();
+		com.terminaldetector.drmd.world.orbit.OrbitJunkWorldgen.register();
 		com.terminaldetector.drmd.world.level.LevelBuilder.register();
+		com.terminaldetector.drmd.world.portal.PortalComplexity.register();
 		WeaponRegistry.bootstrap();
 		DescentCommands.register();
 		AiCommands.register();
@@ -55,16 +64,31 @@ public class DescentMod implements ModInitializer {
 		// every world after the first, because the flag saying the first-join branch had already run
 		// was part of what carried over. Cleared at both ends: on stop for the ordinary case, on
 		// start in case a stop never happened.
-		ServerLifecycleEvents.SERVER_STOPPED.register(server -> DescentPlayerData.clear());
+		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+			DescentPlayerData.clear();
+			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
+		});
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			DescentPlayerData.clear();
+			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
 			ConstructionRegistry.bootstrap(server);
 			com.terminaldetector.drmd.world.gen2.MacroWorld.clear();
 			com.terminaldetector.drmd.world.gravity.GravityFields.clear();
+			com.terminaldetector.drmd.world.trap.ShieldProjectors.clear();
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.clear();
 			com.terminaldetector.drmd.world.fire.FireSystem.clear();
 			com.terminaldetector.drmd.world.base.DescentSession.clearSeedQueue();
+			// Queue is RAM-only; persisted "seeded" marks must reset or distant plates stay empty.
+			ServerWorld ow = server.getOverworld();
+			if (ow != null) {
+				com.terminaldetector.drmd.world.DescentWorldState.get(ow).clearLandmarkSeedMarks();
+			}
+			com.terminaldetector.drmd.world.build.ConstructScaffold.clearAll();
+			com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.clear();
+			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.clear();
+			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.clear();
+			com.terminaldetector.drmd.world.sync.DimensionSync.load(server);
 			// Both halves of worldgen are kept off the join path. Seeding only queues the landmarks
 			// and spends one per tick; the CHUNK_LOAD generators stay idle until that hand-off is
 			// done, so nothing of the mod's runs while the server is still preparing spawn.
@@ -83,10 +107,16 @@ public class DescentMod implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			int tick = server.getTicks();
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.tick();
+			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.tick(server);
 			com.terminaldetector.drmd.world.base.DescentSession.drainSeedQueue(server);
+			com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.tick(server);
+			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.tick(server);
+			com.terminaldetector.drmd.world.sync.DimensionSync.tick(server);
+			com.terminaldetector.drmd.world.fate.WorldEndings.tick(server);
 			if (tick % 40 == 0) {
 				com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);
 			}
+			com.terminaldetector.drmd.world.end.OblivionSeekerSpawner.onServerTick(server);
 			server.getWorlds().forEach(world -> {
 				if (tick % 5 == 0) {
 					com.terminaldetector.drmd.world.fire.FireSystem.tick(world);
@@ -94,6 +124,10 @@ public class DescentMod implements ModInitializer {
 			});
 			server.getPlayerManager().getPlayerList().forEach(player -> {
 				DescentPlayerData data = DescentPlayerData.get(player);
+				// Seam announce + display-hook pairing always; teleport only when 6DoF armed.
+				com.terminaldetector.drmd.world.layer.LayerBridge.tick(player, data);
+				// Background Nether/End warm before ±10 of the parallelepiped faces.
+				com.terminaldetector.drmd.world.layer.SeamWarmup.tick(player);
 				if (data.isEnabled()) {
 					FlightSystem.tick(player, data);
 					EnergySystem.regenTick(player, data);
@@ -110,13 +144,15 @@ public class DescentMod implements ModInitializer {
 					com.terminaldetector.drmd.world.atmosphere.AtmosphereRules.tickDeepPressure(
 							player.getServerWorld(), pos);
 				}
-				if (tick % 10 == player.getId() % 10) {
-					ModNetworking.syncLlod(player);
-				}
+				// Voxel LLOD / planet-floor sync removed — Distant Horizons owns far vista.
 			});
 		});
 
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents.CHUNK_LOAD.register(
+				(world, chunk) -> com.terminaldetector.drmd.world.llod.planet.PlanetScarApplier.onChunkLoad(world, chunk));
+
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid());
 			ConstructionRegistry.allOverrides().forEach((id, mods) -> {
 				ServerPlayNetworking.send(handler.player,
 						new ModNetworking.ConstructionPayload(id, ClusterModule.listToNbt(mods)));
@@ -124,11 +160,17 @@ public class DescentMod implements ModInitializer {
 			server.execute(() -> {
 				com.terminaldetector.drmd.world.base.DescentSession.onPlayerJoin(handler.player);
 				ModNetworking.syncPlayer(handler.player, DescentPlayerData.get(handler.player));
+				com.terminaldetector.drmd.world.sync.DimensionSync.pushTo(handler.player);
+				com.terminaldetector.drmd.world.fate.WorldEndings.pushTo(handler.player);
 				unlockDrmdRecipes(handler.player);
 			});
 		});
 
-		LOGGER.info("DRMD 6DOF ready — Descent session is native to this Minecraft world");
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) ->
+				com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid()));
+
+		com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.logStatus();
+		LOGGER.info("DRMD 6DOF 1.1.1 ready — voxel LLOD removed · Distant Horizons suggested");
 	}
 
 	/**

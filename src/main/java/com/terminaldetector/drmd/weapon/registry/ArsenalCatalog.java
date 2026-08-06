@@ -30,7 +30,7 @@ public final class ArsenalCatalog {
 		put("laser", Family.LASER, "Лазер", "LASER");
 		put("laser_pulse", Family.LASER, "Импульс-лазер", "PULSE");
 		put("quad_laser", Family.LASER, "Quad-лазер", "QUAD");
-		put("mega_laser", Family.LASER, "Мега-лазер", "MEGA-L");
+		put("mega_laser", Family.LASER, "Мега-луч (удерж.)", "MEGA-B");
 		put("laser_prism", Family.LASER, "Призменный лазер", "PRISM");
 
 		// 2) Blasters — Spreadfire / Fusion / Vulcan / Gatling / Plasma

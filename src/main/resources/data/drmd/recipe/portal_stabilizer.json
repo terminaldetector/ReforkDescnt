@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AEA",
+    "GQG",
+    "AEA"
+  ],
+  "key": {
+    "A": { "item": "drmd:alloy_plate" },
+    "E": { "item": "drmd:energy_cell" },
+    "G": { "item": "drmd:plasma_granite" },
+    "Q": { "item": "minecraft:quartz" }
+  },
+  "result": {
+    "id": "drmd:portal_stabilizer",
+    "count": 1
+  }
+}

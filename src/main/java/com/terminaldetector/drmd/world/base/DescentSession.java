@@ -8,11 +8,14 @@ import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.entity.PyroShipEntity;
 import com.terminaldetector.drmd.weapon.items.ModItems;
 import com.terminaldetector.drmd.world.DescentWorldState;
+import com.terminaldetector.drmd.world.DrmdServerConfig;
 import com.terminaldetector.drmd.world.WorldFeatures;
 import com.terminaldetector.drmd.world.WorldRules;
+import com.terminaldetector.drmd.world.psychedelic.PsychedelicWorldgen;
 import com.terminaldetector.drmd.world.gen.IndustrialComplexGenerator;
 import com.terminaldetector.drmd.world.gen2.MacroEntry;
 import com.terminaldetector.drmd.world.gen2.MegaStructureGenerator;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -51,22 +54,28 @@ public final class DescentSession {
 
 	private DescentSession() {}
 
-	/** Build at most one landmark, and only one somebody is close to. Called every server tick. */
+	/** Build up to a few landmarks near players. Called every server tick. */
 	public static void drainSeedQueue(MinecraftServer server) {
 		if (SEED_QUEUE.isEmpty()) return;
 		ServerWorld world = server.getOverworld();
 		if (world == null) return;
-		for (var it = SEED_QUEUE.iterator(); it.hasNext(); ) {
-			SeedJob job = it.next();
-			if (!playerWithinSeedRange(world, job.near())) continue;
-			it.remove();
-			try {
-				job.build().run();
-			} catch (Exception e) {
-				// One bad landmark must not take the rest of the queue — or the world — with it.
-				DescentMod.LOGGER.error("Descent landmark seed failed", e);
+		int budget = SEED_QUEUE.size() > 12 ? 3 : 1;
+		while (budget-- > 0) {
+			boolean built = false;
+			for (var it = SEED_QUEUE.iterator(); it.hasNext(); ) {
+				SeedJob job = it.next();
+				if (!playerWithinSeedRange(world, job.near())) continue;
+				it.remove();
+				try {
+					job.build().run();
+				} catch (Exception e) {
+					// One bad landmark must not take the rest of the queue — or the world — with it.
+					DescentMod.LOGGER.error("Descent landmark seed failed", e);
+				}
+				built = true;
+				break;
 			}
-			return;
+			if (!built) return;
 		}
 	}
 
@@ -88,105 +97,169 @@ public final class DescentSession {
 		SEED_QUEUE.add(new SeedJob(near.toImmutable(), job));
 	}
 
+	/** Public landmark enqueue for satellite structures (psychedelic fractals, etc.). */
+	public static void enqueueLandmark(BlockPos near, Runnable job) {
+		enqueue(near, job);
+	}
+
 	/** Called once when overworld is ready — seed hub + nearby stock features. */
 	public static void seedWorld(MinecraftServer server) {
 		ServerWorld world = server.getOverworld();
 		if (world == null) return;
 		DescentWorldState state = DescentWorldState.get(world);
-		if (state.isStockSeeded()) return;
 
 		BlockPos spawn = world.getSpawnPos();
 		int surfaceY = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, spawn.getX(), spawn.getZ());
 		BlockPos hub = new BlockPos(spawn.getX() + 24, Math.max(surfaceY + 12, 90), spawn.getZ() + 24);
 
-		if (!state.isSpawnHubGenerated()) {
-			generateSpawnHub(world, hub);
-			state.setSpawnHubGenerated(true);
-			DescentMod.LOGGER.info("Descent spawn hub generated at {}", hub.toShortString());
+		// Hub must re-queue even when stockSeeded — queue is wiped every boot.
+		if (!state.isSpawnHubGenerated() && !state.isPsychedelic()) {
+			BlockPos hubAt = hub.toImmutable();
+			enqueueLandmark(hubAt, () -> {
+				if (DescentWorldState.get(world).isSpawnHubGenerated()) return;
+				generateSpawnHub(world, hubAt);
+				DescentWorldState.get(world).setSpawnHubGenerated(true);
+				DescentMod.LOGGER.info("Descent lunar hub generated at {}", hubAt.toShortString());
+			});
 		}
 
+		if (state.isStockSeeded()) return;
+
+		// Stock option: psychedelic fractal void worlds (weightless orbital start)
+		if (DrmdServerConfig.psychedelicEnabled() || state.isPsychedelic()) {
+			PsychedelicWorldgen.seed(server, state);
+			state.setStockSeeded(true);
+			DescentMod.LOGGER.info("Descent psychedelic stock seeded — variant=#{}",
+					state.getPsychedelicVariant());
+			return;
+		}
+
+		// HL2 path: megacity + nearby combat landmarks without full MACRO_WORLDGEN spam.
+		if (WorldFeatures.SURFACE_DISTRICTS) {
+			seedSurfaceDistricts(world, spawn);
+		}
 		if (WorldFeatures.MACRO_WORLDGEN) {
 			seedStockMegastructures(world, spawn);
 			seedLayerBiomes(world, spawn);
 		}
 		state.setStockSeeded(true);
-		DescentMod.LOGGER.info("Descent stock worldgen seeded (all practical biome layers)");
+		DescentMod.LOGGER.info("Descent stock worldgen seeded (districts={} macro={})",
+				WorldFeatures.SURFACE_DISTRICTS, WorldFeatures.MACRO_WORLDGEN);
 	}
 
-	/** Soft player onboarding — 6DoF on, tip message, creative gets Pyro GX. */
+	/**
+	 * Soft player onboarding — 6DoF is native every join.
+	 *
+	 * <p>Saving {@code enabled=false} + {@code sessionWelcomed} used to leave pilots stuck on
+	 * vanilla walk until they found H; after reconnect the client attitude often never primed.
+	 * This world <em>is</em> Descent — re-assert flight each login; H still toggles for the session.
+	 */
 	public static void onPlayerJoin(ServerPlayerEntity player) {
 		DescentPlayerData data = DescentPlayerData.get(player);
 		data.ensureInit();
 
+		ServerWorld world = player.getServerWorld();
+		DescentWorldState state = DescentWorldState.get(world);
+		if (state.isPsychedelic()) {
+			if (!data.isSessionWelcomed()) {
+				PsychedelicWorldgen.onPlayerJoin(player, state);
+			}
+			// Psychedelic tip path only setEnabled(true) — still need noGravity + sync + abilities.
+			com.terminaldetector.drmd.flight.FlightSystem.enable(player, data);
+			return;
+		}
+
+		// Native session: always 6DoF on join (H toggles off until next login).
+		com.terminaldetector.drmd.flight.FlightSystem.enable(player, data);
+
 		boolean first = !data.isSessionWelcomed();
 		if (first) {
-			// 6DoF is the default way to move in this world, but only the first join decides that.
-			// Re-asserting it every login would keep overriding a pilot who switched it off with H —
-			// which in creative means their building flight gets taken away on every reconnect.
-			data.setEnabled(true);
 			data.setSessionWelcomed(true);
 			player.sendMessage(Text.literal(
 					"§bDRMD 6DOF §f— Descent session is part of this world."), false);
 			player.sendMessage(Text.literal(
-					"§7Fly with §fH§7 · craft §fPyro GX§7 · lunar base / sky UFO / crashed saucer nearby"), false);
+					"§7Pad: §fLunar Base§7 · §fR§7 afterburner · §fH§7 6DoF · §f,§7 settings · §fN§7 ship"), false);
+			String cityTip = com.terminaldetector.drmd.world.surface.MegacityRegions
+					.describeNearest(player.getBlockX(), player.getBlockZ());
 			player.sendMessage(Text.literal(
-					"§8Crashed UFO is trap-dense — bring Pyro GX before clearing."), false);
+					"§7Explore: UFO/outpost events · biome plates · 6DoF dungeons"), false);
+			player.sendMessage(Text.literal(
+					"§8" + cityTip + " · /d6 megacity|technogenic|scorched|guild|weapons give_all"), false);
 			if (player.isCreative()) {
 				player.giveItemStack(new ItemStack(ModItems.PYRO_GX));
-				player.sendMessage(Text.literal("§aCreative: Pyro GX given — right-click to deploy."), false);
+				for (Item w : com.terminaldetector.drmd.weapon.registry.ArsenalCatalog.creativeWeapons()) {
+					player.giveItemStack(new ItemStack(w));
+				}
+				for (Item egg : ModItems.creativeSpawnEggs()) {
+					player.giveItemStack(new ItemStack(egg));
+				}
+				player.sendMessage(Text.literal(
+						"§aCreative: Pyro + arsenal + spawn eggs · options kit / /d6 weapons give_all"), false);
 			}
 		}
 	}
 
+	/**
+	 * Descent 1 lunar-base hub at spawn — grey disc, turrets, micro-reactor, Keeper —
+	 * plus a Pyro pad and a light friendly drone ring for first contact.
+	 */
 	private static void generateSpawnHub(ServerWorld world, BlockPos center) {
-		IndustrialComplexGenerator.generateAt(world, center, WorldRules.ComplexStyle.ANCIENT_POWER, world.getRandom());
+		MegaStructureGenerator.generate(world, center, MacroEntry.Kind.LUNAR_BASE, world.getRandom());
 
 		PyroShipEntity ship = ModEntities.PYRO_SHIP.create(world);
 		if (ship != null) {
-			ship.refreshPositionAndAngles(center.getX() + 0.5, center.getY() - 4, center.getZ() + 8.5, 0, 0);
+			ship.refreshPositionAndAngles(center.getX() + 0.5, center.getY() + 8, center.getZ() + 14.5, 0, 0);
 			world.spawnEntity(ship);
 		}
 
-		AiRole[] roles = {
-				AiRole.ASSAULT, AiRole.INTERCEPTOR, AiRole.MG, AiRole.LASER, AiRole.RPG,
-				AiRole.ARTILLERY, AiRole.SUPPORT, AiRole.HEAVY, AiRole.SEEKER, AiRole.HEAVY_ELITE
-		};
-		for (int i = 0; i < roles.length; i++) {
+		// Friendly pad escorts — SUPPORT only so the hub is not a death ring on join.
+		for (int i = 0; i < 4; i++) {
 			DroneEntity drone = ModEntities.DRONE.create(world);
 			if (drone == null) continue;
-			double ang = i * (Math.PI * 2 / roles.length);
+			double ang = i * (Math.PI * 2 / 4);
 			drone.refreshPositionAndAngles(
-					center.getX() + Math.cos(ang) * 18,
-					center.getY() + (i % 3) * 2,
-					center.getZ() + Math.sin(ang) * 18,
+					center.getX() + Math.cos(ang) * 26,
+					center.getY() + 4 + (i % 2) * 2,
+					center.getZ() + Math.sin(ang) * 26,
 					0, 0);
-			drone.applyRole(roles[i]);
+			drone.applyRole(AiRole.SUPPORT);
 			world.spawnEntity(drone);
 		}
 
-		// Multi-zone gravity preview (dynamic station sections)
-		world.setBlockState(center.add(0, -6, 0),
+		world.setBlockState(center.add(0, -1, 0),
 				com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_GENERATOR.getDefaultState()
 						.with(com.terminaldetector.drmd.world.gravity.GravityGeneratorBlock.FACING,
 								net.minecraft.util.math.Direction.DOWN),
 				net.minecraft.block.Block.NOTIFY_ALL);
-		world.setBlockState(center.add(12, -4, 0),
+		world.setBlockState(center.add(14, 1, 0),
 				com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState()
 						.with(com.terminaldetector.drmd.world.gravity.GravityTorchBlock.FACING,
 								net.minecraft.util.math.Direction.EAST),
 				net.minecraft.block.Block.NOTIFY_ALL);
-		world.setBlockState(center.add(-12, -4, 0),
+		world.setBlockState(center.add(-14, 1, 0),
 				com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState()
 						.with(com.terminaldetector.drmd.world.gravity.GravityTorchBlock.FACING,
 								net.minecraft.util.math.Direction.WEST),
 				net.minecraft.block.Block.NOTIFY_ALL);
 	}
 
+	/**
+	 * Surface districts path — hub is pad-only.
+	 * UFOs / outposts / ruins are random {@link com.terminaldetector.drmd.world.surface.SurfaceEventWorldgen}
+	 * events (≥400 m from spawn), not a spawn-tied package. Biome plates own their own dungeons.
+	 */
+	private static void seedSurfaceDistricts(ServerWorld world, BlockPos spawn) {
+		DescentMod.LOGGER.info(
+				"Surface districts: hub pad only @ spawn {}; events/plates discover on chunk load",
+				spawn.toShortString());
+	}
+
 	private static void seedStockMegastructures(ServerWorld world, BlockPos spawn) {
 		Random random = world.getRandom();
+		// Klondike sky ring of islands + a couple of surface fractures — no ARCH/RING LLOD zoo.
 		MacroEntry.Kind[] kinds = {
-				MacroEntry.Kind.ARCH, MacroEntry.Kind.RING, MacroEntry.Kind.FLOATING_CONTINENT,
-				MacroEntry.Kind.SPIRAL_RANGE, MacroEntry.Kind.INVERTED_ISLAND,
+				MacroEntry.Kind.KLONDIKE_ISLAND, MacroEntry.Kind.KLONDIKE_ISLAND,
+				MacroEntry.Kind.KLONDIKE_ISLAND, MacroEntry.Kind.KLONDIKE_ISLAND,
 				MacroEntry.Kind.CANYON, MacroEntry.Kind.RIFT
 		};
 		for (int i = 0; i < kinds.length; i++) {
@@ -200,12 +273,10 @@ public final class DescentSession {
 				default -> WorldRules.SKY_PRACTICAL_MIN + 20 + i * 8;
 			};
 			BlockPos at = new BlockPos(x, y, z);
-			// The loop counter is not effectively final, so the seed is resolved before capture.
 			long salt = world.getSeed() ^ (i * 31L);
 			enqueue(at, () -> MegaStructureGenerator.generate(world, at, kind, Random.create(salt)));
 		}
 
-		// One industrial complex under spawn
 		BlockPos under = new BlockPos(spawn.getX(), WorldRules.INDUSTRIAL_Y_MIN + 30, spawn.getZ());
 		enqueue(under, () -> IndustrialComplexGenerator.generateAt(
 				world, under, WorldRules.ComplexStyle.CRYSTAL_REACTOR, random));
@@ -229,17 +300,13 @@ public final class DescentSession {
 		enqueueMega(world, new BlockPos(spawn.getX() - 110, WorldRules.INDUSTRIAL_Y_MIN + 36, spawn.getZ() - 90),
 				MacroEntry.Kind.RIFT, 0xBEEF);
 
-		// Sky archipelago sample
+		// Sky Klondike islands — real voxels; Spark ring is skybox (OrbitalBeltSkyRenderer).
 		enqueueMega(world, new BlockPos(spawn.getX() + 48, WorldRules.SKY_PRACTICAL_MIN + 40, spawn.getZ() + 120),
-				MacroEntry.Kind.FLOATING_CONTINENT, 0x51A10001L);
-
-		// Orbital belt (top practical band)
-		enqueueMega(world, new BlockPos(spawn.getX() - 80, WorldRules.SKY_PRACTICAL_MAX - 12, spawn.getZ() + 60),
-				MacroEntry.Kind.RING, 0x0B817100L);
-
-		// Near-end space marker island
-		enqueueMega(world, new BlockPos(spawn.getX() + 20, WorldRules.SKY_PRACTICAL_MAX - 4, spawn.getZ() - 140),
-				MacroEntry.Kind.INVERTED_ISLAND, 0xEAD10001L);
+				MacroEntry.Kind.KLONDIKE_ISLAND, 0x51A10001L);
+		enqueueMega(world, new BlockPos(spawn.getX() - 80, WorldRules.SKY_PRACTICAL_MIN + 55, spawn.getZ() + 60),
+				MacroEntry.Kind.KLONDIKE_ISLAND, 0x0B817100L);
+		enqueueMega(world, new BlockPos(spawn.getX() + 20, WorldRules.SKY_PRACTICAL_MIN + 70, spawn.getZ() - 140),
+				MacroEntry.Kind.KLONDIKE_ISLAND, 0xEAD10001L);
 
 		// Descent 1 lunar base (sky) — micro-reactor + Keeper
 		enqueueMega(world, new BlockPos(spawn.getX() - 140, WorldRules.SKY_PRACTICAL_MIN + 55, spawn.getZ() + 90),
@@ -249,18 +316,8 @@ public final class DescentSession {
 		enqueueMega(world, new BlockPos(spawn.getX() + 180, 80, spawn.getZ() - 60),
 				MacroEntry.Kind.CRASHED_UFO, 0x0F00A001L);
 
-		// Cyberpunk megacity — far enough out that spawn stays open sky, close enough to be the
-		// obvious first destination once you have a ship. Its ground level is sampled at build time:
-		// reading a heightmap 320 blocks out forces that chunk to load, which is the whole reason
-		// this is off the join path.
-		int cityX = spawn.getX() - 320;
-		int cityZ = spawn.getZ() + 280;
-		enqueue(new BlockPos(cityX, 0, cityZ), () -> {
-			int citySurface = world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, cityX, cityZ);
-			MegaStructureGenerator.generate(world,
-					new BlockPos(cityX, Math.max(citySurface, WorldRules.INDUSTRIAL_Y_MAX + 24), cityZ),
-					MacroEntry.Kind.MEGACITY, Random.create(world.getSeed() ^ 0xC1740001L));
-		});
+		// Megacity is biome-region based ({@link com.terminaldetector.drmd.world.surface.MegacityRegions}),
+		// not a spawn-offset landmark — see MegacityBiomeWorldgen.
 
 		// One airborne UFO near spawn sky lane
 		enqueue(new BlockPos(spawn.getX() + 100, WorldRules.SKY_PRACTICAL_MIN + 48, spawn.getZ() + 40), () -> {

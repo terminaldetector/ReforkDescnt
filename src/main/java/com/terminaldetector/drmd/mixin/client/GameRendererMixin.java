@@ -7,6 +7,7 @@ import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.RotationAxis;
+import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,6 +22,12 @@ public class GameRendererMixin {
 		if (DescentClientState.enabled || !FootGravityCamera.settled()) ci.cancel();
 	}
 
+	/** 6DoF cockpit — no vanilla first-person arm / held-item overlay. */
+	@Inject(method = "renderHand", at = @At("HEAD"), cancellable = true)
+	private void drmd$hideHand(Camera camera, float tickDelta, Matrix4f matrix4f, CallbackInfo ci) {
+		if (DescentClientState.enabled) ci.cancel();
+	}
+
 	/**
 	 * 6DoF bank while flying; otherwise stabilize camera to local gravity UP
 	 * (torch / wall / ceiling) so the world reads upright.
@@ -31,6 +38,12 @@ public class GameRendererMixin {
 			float roll = DescentCamera.viewRoll();
 			if (Math.abs(roll) > 0.05f) {
 				matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll));
+			}
+			// Fall-aftermath corkscrew — soft pitch toward planet to inspect meteor scars
+			if (com.terminaldetector.drmd.client.config.DescentConfig.fallAftermath) {
+				matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(18f));
+				matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(
+						(float) Math.sin((System.currentTimeMillis() % 8000L) / 8000.0 * Math.PI * 2) * 8f));
 			}
 			ci.cancel();
 			return;

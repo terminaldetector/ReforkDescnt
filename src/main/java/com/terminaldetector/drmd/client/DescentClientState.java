@@ -13,6 +13,8 @@ public final class DescentClientState {
 	public static float dashCd;
 	public static float gravityFactor;
 	public static boolean alwaysRun;
+	/** Afterburner accelerator grade 1..4 (traffic light). */
+	public static int afterburnerTier = 2;
 	public static boolean flightAssist = true;
 	public static boolean radar = true;
 	/** 0..0.85 local smoke density for HUD / tactics. */
@@ -28,6 +30,36 @@ public final class DescentClientState {
 	/** On-foot local gravity (torch / generator) — camera + travel. */
 	public static boolean footGravity;
 	public static float localUx = 0f, localUy = 1f, localUz = 0f;
+	/** Holding Mega Beam (FP thick column). Cleared when use stops. */
+	public static boolean megaBeamActive;
+	/** Mirrored {@code WorldFate} — CONTINUING / SILENCE / VOID. */
+	public static String worldFate = "CONTINUING";
+	public static int fateDecayTicks;
+
+	public static boolean isVoidEnding() {
+		return "VOID".equals(worldFate);
+	}
+
+	public static boolean isSilenceEnding() {
+		return "SILENCE".equals(worldFate) || isVoidEnding();
+	}
+
+	/** Drop flight mirrors when leaving a world — avoids stale enabled/attitude across joins. */
+	public static void resetSession() {
+		enabled = false;
+		attitudeValid = false;
+		footGravity = false;
+		alwaysRun = false;
+		megaBeamActive = false;
+		smokeObscurity = 0f;
+		worldFate = "CONTINUING";
+		fateDecayTicks = 0;
+		velX = velY = velZ = 0f;
+		com.terminaldetector.drmd.client.flight.ShipAttitudeClient.clear();
+		com.terminaldetector.drmd.client.flight.DescentFlightMotion.clear();
+		com.terminaldetector.drmd.client.gravity.FootGravityCamera.reset();
+		com.terminaldetector.drmd.client.input.DescentKeybinds.resetSession();
+	}
 
 	private DescentClientState() {}
 }

@@ -129,7 +129,7 @@ public final class ModEntities {
 			Identifier.of(DescentMod.MOD_ID, "tripod"),
 			EntityType.Builder.<com.terminaldetector.drmd.entity.mob.TripodEntity>create(
 							com.terminaldetector.drmd.entity.mob.TripodEntity::new, SpawnGroup.MONSTER)
-					.dimensions(2.0f, 3.4f)
+					.dimensions(3.2f, 6.0f)
 					.maxTrackingRange(96)
 					.build()
 	);
@@ -155,6 +155,28 @@ public final class ModEntities {
 					.build()
 	);
 
+	/** Oblivion Seeker (рыскатель) — dark spherical End-faction pre-boss. */
+	public static final EntityType<com.terminaldetector.drmd.entity.mob.OblivionSeekerEntity> OBLIVION_SEEKER = Registry.register(
+			Registries.ENTITY_TYPE,
+			Identifier.of(DescentMod.MOD_ID, "oblivion_seeker"),
+			EntityType.Builder.<com.terminaldetector.drmd.entity.mob.OblivionSeekerEntity>create(
+							com.terminaldetector.drmd.entity.mob.OblivionSeekerEntity::new, SpawnGroup.MONSTER)
+					.dimensions(1.35f, 1.35f)
+					.maxTrackingRange(128)
+					.trackingTickInterval(2)
+					.build()
+	);
+
+	public static final EntityType<LaserBarrierCartEntity> LASER_BARRIER_CART = Registry.register(
+			Registries.ENTITY_TYPE,
+			Identifier.of(DescentMod.MOD_ID, "laser_barrier_cart"),
+			EntityType.Builder.<LaserBarrierCartEntity>create(LaserBarrierCartEntity::new, SpawnGroup.MISC)
+					.dimensions(0.98f, 0.7f)
+					.maxTrackingRange(80)
+					.trackingTickInterval(2)
+					.build()
+	);
+
 	private ModEntities() {}
 
 	public static void register() {
@@ -165,12 +187,14 @@ public final class ModEntities {
 				com.terminaldetector.drmd.entity.mob.ScannerEntity.createScannerAttributes());
 		FabricDefaultAttributeRegistry.register(SPIDER_TURRET,
 				com.terminaldetector.drmd.entity.mob.SpiderTurretEntity.createSpiderTurretAttributes());
+		FabricDefaultAttributeRegistry.register(OBLIVION_SEEKER,
+				com.terminaldetector.drmd.entity.mob.OblivionSeekerEntity.createSeekerAttributes());
 		FabricDefaultAttributeRegistry.register(AIR_MINE, AirMineEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(PYRO_SHIP, PyroShipEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(MEGA_WORM, MegaWormEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(REACTOR_KEEPER, ReactorKeeperEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(END_REACTOR_BOSS,
 				com.terminaldetector.drmd.world.end.EndReactorBossEntity.createAttributes());
-		DescentMod.LOGGER.info("Registered DRMD entities (End boss + Sky UFO)");
+		DescentMod.LOGGER.info("Registered DRMD entities (End boss + Sky UFO + laser cart)");
 	}
 }

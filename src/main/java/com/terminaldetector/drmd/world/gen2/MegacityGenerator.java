@@ -1,10 +1,14 @@
 package com.terminaldetector.drmd.world.gen2;
 
+import com.terminaldetector.drmd.ai.AiRole;
+import com.terminaldetector.drmd.entity.DroneEntity;
+import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import com.terminaldetector.drmd.world.WorldRules;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.WorldAccess;
@@ -12,16 +16,12 @@ import net.minecraft.world.WorldAccess;
 import java.util.UUID;
 
 /**
- * Cyberpunk megacity — towers, street canyons, a sewer network, and a reactor pyramid.
+ * Midgar / FF7-flavoured surface megacity — flyable street canyons, sky highways,
+ * sky arena, sewer grid, reactor pyramid, plate rim, artifact hangar and garrison.
  *
- * <p>Built on a street grid rather than scattered, because the point of the place is the canyons
- * between the towers: they are what makes it fly-through space instead of scenery. Every street
- * line is mirrored underground by a tunnel, and the two are stitched together at the intersections,
- * so the city is one continuous volume from the sewer floor to the tower roofs — you can enter at
- * any manhole and come out anywhere.
- *
- * <p>Towers are shells with floor plates, not solid prisms. That is what keeps the whole district
- * inside a sane block budget, and it also means they are enterable, which a solid one would not be.
+ * <p>Built on a street grid rather than scattered: the canyons between towers are the level.
+ * Every street is mirrored underground; manholes stitch the volumes together. Atrium towers
+ * and the elevated maglev deck give vertical combat routes without leaving the district.
  */
 public final class MegacityGenerator {
 	/** City blocks per side. Odd, so one block is dead centre for the pyramid. */
@@ -52,25 +52,41 @@ public final class MegacityGenerator {
 		int y = origin.getY();
 
 		streets(world, origin, half, y);
+		plateRim(world, origin, half, y);
 		sewers(world, origin, half, y, random);
+		skyHighways(world, origin, half, y);
+		skyArena(world, origin, half, y);
+		artifactHangar(world, origin, half, y, random);
+		ringDefenses(world, origin, half, y);
 
 		int mid = GRID / 2;
 		for (int gx = 0; gx < GRID; gx++) {
 			for (int gz = 0; gz < GRID; gz++) {
 				if (gx == mid && gz == mid) continue;
 				BlockPos corner = blockCorner(origin, half, gx, gz);
-				tower(world, corner, y, random);
+				boolean atrium = (gx + gz) % 2 == 0;
+				int height = tower(world, corner, y, random, atrium);
+				rooftopDefense(world, corner, y, height, random);
 			}
 		}
 
-		reactorPyramid(world, blockCorner(origin, half, mid, mid).add(BLOCK_SIZE / 2, 0, BLOCK_SIZE / 2), y);
+		BlockPos pyramidCentre = blockCorner(origin, half, mid, mid).add(BLOCK_SIZE / 2, 0, BLOCK_SIZE / 2);
+		reactorPyramid(world, pyramidCentre, y);
+		underPyramidShaft(world, pyramidCentre, y);
+		makoGlow(world, pyramidCentre, y);
+
+		if (world instanceof ServerWorld sw) {
+			garrison(sw, origin, half, y, random);
+		}
 
 		if (inLimit(world, origin)) {
 			world.setBlockState(origin, Blocks.LODESTONE.getDefaultState(), Block.NOTIFY_LISTENERS);
 		}
-		return new MacroEntry(UUID.randomUUID(), MacroEntry.Kind.MEGACITY,
+		MacroEntry entry = new MacroEntry(UUID.randomUUID(), MacroEntry.Kind.MEGACITY,
 				WorldRules.practicalLayer(y), origin.toImmutable(),
-				SPAN, TOWER_MAX + SEWER_DROP, SPAN, 0x22D3EE, "Megacity");
+				SPAN + 24, TOWER_MAX + SEWER_DROP + 8, SPAN + 24, 0x22D3EE, "Megacity");
+		MacroWorld.put(entry);
+		return entry;
 	}
 
 	private static BlockPos blockCorner(BlockPos origin, int half, int gx, int gz) {
@@ -81,17 +97,23 @@ public final class MegacityGenerator {
 
 	/** Deck the whole footprint, then let the towers stand on it. */
 	private static void streets(WorldAccess world, BlockPos origin, int half, int y) {
+		int pitch = BLOCK_SIZE + STREET;
 		for (int dx = -half; dx <= half; dx++) {
 			for (int dz = -half; dz <= half; dz++) {
 				BlockPos p = new BlockPos(origin.getX() + dx, y, origin.getZ() + dz);
 				set(world, p, Blocks.POLISHED_ANDESITE.getDefaultState());
 				set(world, p.down(), Blocks.DEEPSLATE_TILES.getDefaultState());
-				// Clear the canyon so the streets are flyable rather than filled with terrain.
-				for (int h = 1; h <= 4; h++) set(world, p.up(h), Blocks.AIR.getDefaultState());
+				// Low clear everywhere so towers can rise through air, not terrain.
+				for (int h = 1; h <= 6; h++) set(world, p.up(h), Blocks.AIR.getDefaultState());
+				// Street canyons (not under building pads): tall flyable volume for 6DoF.
+				boolean streetX = streetLane(dx + half, pitch);
+				boolean streetZ = streetLane(dz + half, pitch);
+				if (streetX || streetZ) {
+					for (int h = 7; h <= 48; h++) set(world, p.up(h), Blocks.AIR.getDefaultState());
+				}
 			}
 		}
-		// Street lighting on a regular pitch — also the visual grid that makes the layout legible
-		// from the air, which matters when the district is mostly seen from above.
+		// Neon street grid — legible from altitude (FF7 Midgar night read).
 		for (int dx = -half; dx <= half; dx += 8) {
 			for (int dz = -half; dz <= half; dz += 8) {
 				BlockPos p = new BlockPos(origin.getX() + dx, y + 1, origin.getZ() + dz);
@@ -99,6 +121,46 @@ public final class MegacityGenerator {
 					set(world, p, Blocks.SEA_LANTERN.getDefaultState());
 				}
 			}
+		}
+	}
+
+	/** True when local offset sits on a street strip rather than a tower pad. */
+	private static boolean streetLane(int local, int pitch) {
+		int mod = Math.floorMod(local, pitch);
+		return mod >= BLOCK_SIZE;
+	}
+
+	/**
+	 * Midgar-style outer plate — raised ring around the district so the skyline reads as a city
+	 * plate rather than a flat village.
+	 */
+	private static void plateRim(WorldAccess world, BlockPos origin, int half, int y) {
+		int outer = half + 10;
+		int plateY = y + 10;
+		for (int dx = -outer; dx <= outer; dx++) {
+			for (int dz = -outer; dz <= outer; dz++) {
+				int adx = Math.abs(dx);
+				int adz = Math.abs(dz);
+				boolean rim = (adx >= half + 2 && adx <= outer) || (adz >= half + 2 && adz <= outer);
+				if (!rim) continue;
+				if (adx > outer || adz > outer) continue;
+				BlockPos p = new BlockPos(origin.getX() + dx, plateY, origin.getZ() + dz);
+				set(world, p, Blocks.POLISHED_BLACKSTONE.getDefaultState());
+				set(world, p.down(), Blocks.DEEPSLATE_BRICKS.getDefaultState());
+				if ((dx + dz) % 9 == 0) {
+					set(world, p.up(), Blocks.CYAN_STAINED_GLASS.getDefaultState());
+				}
+			}
+		}
+		// Support pillars under the plate
+		for (int a = 0; a < 8; a++) {
+			double ang = a * (Math.PI / 4);
+			int px = origin.getX() + (int) (Math.cos(ang) * (half + 6));
+			int pz = origin.getZ() + (int) (Math.sin(ang) * (half + 6));
+			for (int yy = y; yy <= plateY; yy++) {
+				set(world, new BlockPos(px, yy, pz), Blocks.POLISHED_DEEPSLATE.getDefaultState());
+			}
+			set(world, new BlockPos(px, plateY + 1, pz), ModWorldBlocks.POINT_DEFENSE_TURRET.getDefaultState());
 		}
 	}
 
@@ -173,8 +235,129 @@ public final class MegacityGenerator {
 		set(world, new BlockPos(deckPos.getX(), streetY, deckPos.getZ()), Blocks.AIR.getDefaultState());
 	}
 
-	/** One tower: shell, floor plates, glazing bands, neon crown. */
-	private static void tower(WorldAccess world, BlockPos corner, int y, Random random) {
+	/**
+	 * Midgar maglev / elevated highway — two flyable lanes above street level so dogfights
+	 * have a second deck without leaving the district.
+	 */
+	private static void skyHighways(WorldAccess world, BlockPos origin, int half, int y) {
+		int deck = y + 22;
+		for (int axis = 0; axis < 2; axis++) {
+			boolean alongX = axis == 0;
+			for (int t = -half; t <= half; t++) {
+				for (int lane = -1; lane <= 1; lane += 2) {
+					int x = alongX ? t : lane * 4;
+					int z = alongX ? lane * 4 : t;
+					BlockPos p = new BlockPos(origin.getX() + x, deck, origin.getZ() + z);
+					set(world, p, Blocks.POLISHED_BLACKSTONE_SLAB.getDefaultState());
+					if (Math.floorMod(t, 6) == 0) {
+						set(world, p.up(), Blocks.END_ROD.getDefaultState());
+					}
+					// Clear flight tube above the rail.
+					for (int h = 1; h <= 6; h++) {
+						if (h == 1 && Math.floorMod(t, 6) == 0) continue;
+						set(world, p.up(h), Blocks.AIR.getDefaultState());
+					}
+				}
+			}
+		}
+		// Crossroads hub pad at centre highways.
+		for (int dx = -3; dx <= 3; dx++) {
+			for (int dz = -3; dz <= 3; dz++) {
+				set(world, new BlockPos(origin.getX() + dx, deck, origin.getZ() + dz),
+						Blocks.SMOOTH_BASALT.getDefaultState());
+			}
+		}
+	}
+
+	/**
+	 * Open sky arena above the plate — primary 6DoF dogfight volume.
+	 * Rim AA comes from {@link #ringDefenses} (embedded turret ring), not loose pads.
+	 */
+	private static void skyArena(WorldAccess world, BlockPos origin, int half, int y) {
+		int arenaY = y + 36;
+		int r = Math.min(half - 6, 28);
+		for (int dx = -r; dx <= r; dx++) {
+			for (int dz = -r; dz <= r; dz++) {
+				int d2 = dx * dx + dz * dz;
+				if (d2 > r * r) continue;
+				BlockPos p = new BlockPos(origin.getX() + dx, arenaY, origin.getZ() + dz);
+				boolean rim = d2 > (r - 2) * (r - 2);
+				if (rim) {
+					set(world, p, Blocks.CYAN_CONCRETE.getDefaultState());
+				} else if (d2 > (r - 5) * (r - 5) && (dx + dz) % 5 == 0) {
+					set(world, p, Blocks.LIGHT_BLUE_STAINED_GLASS.getDefaultState());
+				} else {
+					set(world, p, Blocks.AIR.getDefaultState());
+				}
+				for (int h = 1; h <= 14; h++) {
+					set(world, p.up(h), Blocks.AIR.getDefaultState());
+				}
+			}
+		}
+	}
+
+	/** Embedded turret rings + shield cross + cyclic laser carts on plate / arena. */
+	private static void ringDefenses(WorldAccess world, BlockPos origin, int half, int y) {
+		com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeTurretRing(
+				world, origin, Math.min(half - 4, 26), y + 36, 10, true);
+		com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeTurretRing(
+				world, origin, 18, y + 2, 8, true);
+		// Cyclic rail loops left to the player kit — auto-place used to crash on powered_rail curves.
+	}
+
+	/**
+	 * Descent-flavoured artifact hangar on the south plate edge — grey hull bay for 6DoF boarding.
+	 */
+	private static void artifactHangar(WorldAccess world, BlockPos origin, int half, int y, Random random) {
+		BlockPos door = new BlockPos(origin.getX(), y + 1, origin.getZ() + half + 4);
+		int rw = 10;
+		int rd = 16;
+		int rh = 8;
+		for (int dx = -rw; dx <= rw; dx++) {
+			for (int dz = 0; dz <= rd; dz++) {
+				for (int dy = 0; dy <= rh; dy++) {
+					BlockPos p = door.add(dx, dy, dz);
+					boolean shell = Math.abs(dx) == rw || dz == 0 || dz == rd || dy == 0 || dy == rh;
+					boolean mouth = dz == 0 && Math.abs(dx) < rw - 2 && dy > 0 && dy < rh - 1;
+					if (mouth) {
+						set(world, p, Blocks.AIR.getDefaultState());
+					} else if (shell) {
+						set(world, p, Blocks.LIGHT_GRAY_CONCRETE.getDefaultState());
+					} else {
+						set(world, p, Blocks.AIR.getDefaultState());
+					}
+				}
+			}
+		}
+		// Inner pad + traps
+		set(world, door.add(0, 1, rd / 2), Blocks.LODESTONE.getDefaultState());
+		set(world, door.add(4, 2, rd / 2), ModWorldBlocks.LASER_TURRET.getDefaultState());
+		set(world, door.add(-4, 2, rd / 2), ModWorldBlocks.PLASMA_TURRET.getDefaultState());
+		set(world, door.add(0, 2, rd - 3), ModWorldBlocks.MAGNETIC_ANOMALY.getDefaultState());
+		if (random.nextBoolean()) {
+			set(world, door.add(2, 1, 6), ModWorldBlocks.HERMETIC_GATE.getDefaultState());
+		}
+		// Approach lights from street
+		for (int i = 1; i <= 6; i++) {
+			set(world, door.add(0, 0, -i), Blocks.SEA_LANTERN.getDefaultState());
+		}
+	}
+
+	/** Cyan “mako” accent columns around the reactor pyramid. */
+	private static void makoGlow(WorldAccess world, BlockPos centre, int y) {
+		int[][] offs = {{8, 0}, {-8, 0}, {0, 8}, {0, -8}, {6, 6}, {-6, 6}, {6, -6}, {-6, -6}};
+		for (int[] o : offs) {
+			for (int h = 1; h <= 10; h++) {
+				BlockPos p = centre.add(o[0], h, o[1]);
+				set(world, p, h % 3 == 0
+						? Blocks.SEA_LANTERN.getDefaultState()
+						: Blocks.CYAN_STAINED_GLASS.getDefaultState());
+			}
+		}
+	}
+
+	/** One tower: shell, floor plates, glazing bands, neon crown. Returns height. */
+	private static int tower(WorldAccess world, BlockPos corner, int y, Random random, boolean atrium) {
 		int inset = 2;
 		int size = BLOCK_SIZE - inset * 2;
 		int height = TOWER_MIN + random.nextInt(TOWER_MAX - TOWER_MIN);
@@ -195,8 +378,10 @@ public final class MegacityGenerator {
 					BlockPos p = corner.add(inset + dx, y + 1 + h, inset + dz);
 					if (edge) {
 						set(world, p, band ? glass : wall);
+					} else if (atrium && dx > 2 && dz > 2 && dx < size - 3 && dz < size - 3) {
+						// Vertical atrium — fly through the building.
+						set(world, p, Blocks.AIR.getDefaultState());
 					} else if (h % STOREY == 0) {
-						// Floor plate: makes the tower enterable and stops it being a light well.
 						set(world, p, Blocks.SMOOTH_STONE.getDefaultState());
 					} else {
 						set(world, p, Blocks.AIR.getDefaultState());
@@ -205,7 +390,6 @@ public final class MegacityGenerator {
 			}
 		}
 
-		// Crown: a lit rim so the skyline reads at night and from altitude.
 		int top = y + 1 + height;
 		BlockState neon = random.nextInt(2) == 0
 				? Blocks.SEA_LANTERN.getDefaultState()
@@ -214,7 +398,11 @@ public final class MegacityGenerator {
 			for (int dz = 0; dz < size; dz++) {
 				boolean edge = dx == 0 || dz == 0 || dx == size - 1 || dz == size - 1;
 				BlockPos p = corner.add(inset + dx, top, inset + dz);
-				set(world, p, edge ? neon : Blocks.SMOOTH_STONE.getDefaultState());
+				if (atrium && !edge && dx > 2 && dz > 2 && dx < size - 3 && dz < size - 3) {
+					set(world, p, Blocks.AIR.getDefaultState());
+				} else {
+					set(world, p, edge ? neon : Blocks.SMOOTH_STONE.getDefaultState());
+				}
 			}
 		}
 		if (random.nextInt(3) == 0) {
@@ -222,6 +410,114 @@ public final class MegacityGenerator {
 				set(world, corner.add(BLOCK_SIZE / 2, top + h, BLOCK_SIZE / 2),
 						h == 8 ? Blocks.REDSTONE_LAMP.getDefaultState() : Blocks.IRON_BARS.getDefaultState());
 			}
+		}
+		return height;
+	}
+
+	/** Rooftop PD / laser turrets — 6DoF AA when diving the canyons. */
+	private static void rooftopDefense(WorldAccess world, BlockPos corner, int y, int height, Random random) {
+		int top = y + 1 + height;
+		Block turret = switch (random.nextInt(3)) {
+			case 0 -> ModWorldBlocks.LASER_TURRET;
+			case 1 -> ModWorldBlocks.PLASMA_TURRET;
+			default -> ModWorldBlocks.POINT_DEFENSE_TURRET;
+		};
+		set(world, corner.add(BLOCK_SIZE / 2, top + 1, 2), turret.getDefaultState());
+		if (random.nextBoolean()) {
+			set(world, corner.add(2, top + 1, BLOCK_SIZE / 2),
+					ModWorldBlocks.VOLUME_TURRET.getDefaultState());
+		}
+	}
+
+	/** Drop shaft from pyramid floor toward industrial depth — dungeon link. */
+	private static void underPyramidShaft(WorldAccess world, BlockPos centre, int y) {
+		int bottom = Math.max(world.getBottomY() + 8, y - 48);
+		for (int yy = y; yy >= bottom; yy--) {
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					BlockPos p = centre.add(dx, yy - y, dz);
+					boolean edge = Math.abs(dx) == 1 || Math.abs(dz) == 1;
+					if (edge) set(world, p, Blocks.POLISHED_DEEPSLATE.getDefaultState());
+					else set(world, p, Blocks.AIR.getDefaultState());
+				}
+			}
+		}
+		set(world, centre.down(y - bottom), ModWorldBlocks.UNSTABLE_REACTOR.getDefaultState());
+	}
+
+	/**
+	 * Hostile garrison: street drones, sewer scanners, rooftop spider turrets, pyramid tripod.
+	 */
+	private static void garrison(ServerWorld world, BlockPos origin, int half, int y, Random random) {
+		AiRole[] streetRoles = {
+				AiRole.ASSAULT, AiRole.INTERCEPTOR, AiRole.MG, AiRole.LASER,
+				AiRole.RPG, AiRole.SEEKER, AiRole.HEAVY
+		};
+		for (int i = 0; i < streetRoles.length; i++) {
+			double ang = i * (Math.PI * 2 / streetRoles.length);
+			double r = 18 + (i % 3) * 10;
+			DroneEntity drone = ModEntities.DRONE.create(world);
+			if (drone == null) continue;
+			drone.refreshPositionAndAngles(
+					origin.getX() + 0.5 + Math.cos(ang) * r,
+					y + 8 + (i % 4) * 3,
+					origin.getZ() + 0.5 + Math.sin(ang) * r,
+					0, 0);
+			drone.applyRole(streetRoles[i]);
+			world.spawnEntity(drone);
+		}
+
+		// Sewer scanners
+		int deck = y - SEWER_DROP + 1;
+		for (int i = 0; i < 4; i++) {
+			var scanner = ModEntities.SCANNER.create(world);
+			if (scanner == null) continue;
+			double ang = i * (Math.PI / 2) + 0.4;
+			scanner.refreshPositionAndAngles(
+					origin.getX() + Math.cos(ang) * 28,
+					deck + 1,
+					origin.getZ() + Math.sin(ang) * 28,
+					0, 0);
+			world.spawnEntity(scanner);
+		}
+
+		// Spider turrets on plate corners
+		int[][] corners = {{half - 4, half - 4}, {-half + 4, half - 4}, {half - 4, -half + 4}, {-half + 4, -half + 4}};
+		for (int[] c : corners) {
+			var spider = ModEntities.SPIDER_TURRET.create(world);
+			if (spider == null) continue;
+			spider.refreshPositionAndAngles(origin.getX() + c[0] + 0.5, y + 2, origin.getZ() + c[1] + 0.5, 0, 0);
+			world.spawnEntity(spider);
+		}
+
+		// Tripod guardian at pyramid mouth
+		var tripod = ModEntities.TRIPOD.create(world);
+		if (tripod != null) {
+			tripod.refreshPositionAndAngles(origin.getX() + 0.5, y + 2, origin.getZ() + half * 0.35, 0, 0);
+			world.spawnEntity(tripod);
+		}
+
+		// Sky-arena interceptors — high-deck dogfight pressure.
+		AiRole[] skyRoles = {AiRole.INTERCEPTOR, AiRole.LASER, AiRole.SEEKER, AiRole.HEAVY};
+		for (int i = 0; i < skyRoles.length; i++) {
+			DroneEntity drone = ModEntities.DRONE.create(world);
+			if (drone == null) continue;
+			double ang = i * (Math.PI * 2 / skyRoles.length) + 0.3;
+			drone.refreshPositionAndAngles(
+					origin.getX() + 0.5 + Math.cos(ang) * 20,
+					y + 40 + (i % 2) * 3,
+					origin.getZ() + 0.5 + Math.sin(ang) * 20,
+					0, 0);
+			drone.applyRole(skyRoles[i]);
+			world.spawnEntity(drone);
+		}
+
+		// Hangar bay scanner
+		var hangarScanner = ModEntities.SCANNER.create(world);
+		if (hangarScanner != null) {
+			hangarScanner.refreshPositionAndAngles(
+					origin.getX() + 0.5, y + 4, origin.getZ() + half + 10.5, 0, 0);
+			world.spawnEntity(hangarScanner);
 		}
 	}
 

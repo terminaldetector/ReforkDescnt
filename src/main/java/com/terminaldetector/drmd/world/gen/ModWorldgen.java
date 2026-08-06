@@ -76,7 +76,9 @@ public final class ModWorldgen {
 		if (!local.isAir() && local.isSolidBlock(world, center)) {
 			WorldRules.ComplexStyle[] styles = WorldRules.ComplexStyle.values();
 			WorldRules.ComplexStyle style = styles[(int) Math.floorMod(seed, styles.length)];
-			world.getServer().execute(() -> forceGenerate(world, center, style));
+			// Landmark queue — never generate inline on CHUNK_LOAD (spawn/fly freezes).
+			com.terminaldetector.drmd.world.base.DescentSession.enqueueLandmark(center,
+					() -> forceGenerate(world, center, style));
 		}
 	}
 

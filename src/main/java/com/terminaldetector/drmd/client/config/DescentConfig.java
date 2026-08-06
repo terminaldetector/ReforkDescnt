@@ -12,8 +12,8 @@ import java.util.Properties;
  * Client-side mod options, reachable from the pause menu.
  *
  * <p>Deliberately a flat properties file rather than a config library: these are a dozen scalars
- * that only the local client reads, and a dependency for that would cost more than it saves. Writes
- * are explicit — the screen saves when it closes, not on every slider tick.
+ * that only the local client reads, and a dependency for that would cost more than it saves.
+ * Toggles save immediately; the settings screen also writes on close.
  */
 public final class DescentConfig {
 	/** Draw the 3D cockpit frame in first person. */
@@ -26,6 +26,12 @@ public final class DescentConfig {
 	public static boolean hud = true;
 	/** Blend sky and fog by level band. */
 	public static boolean levelSky = true;
+	/** Spark-style planet + dark ring + neon-green halo (skybox, not R=2048 junk). */
+	public static boolean orbitalBeltSky = true;
+	/** Dead toggle — voxel hybrid horizon removed; use Distant Horizons. */
+	public static boolean hybridHorizon = false;
+	/** Dead toggle — planet-floor voxel expand removed; use Distant Horizons. */
+	public static boolean planetFloor = false;
 	/** Ship roll rate, degrees per second. */
 	public static float rollRate = 175f;
 	/** Mouse gain for ship attitude, relative to vanilla look. */
@@ -34,6 +40,11 @@ public final class DescentConfig {
 	public static boolean cameraShake = true;
 	/** Draw the first-person weapon clusters. */
 	public static boolean weaponView = true;
+	/**
+	 * Fall-aftermath view — corkscrew pitch bias toward planet after orbital reactor detonation
+	 * so pilots can inspect meteor scars on the surface / voxel map.
+	 */
+	public static boolean fallAftermath = false;
 
 	private static final String FILE = DescentMod.MOD_ID + ".properties";
 	private static boolean loaded;
@@ -44,8 +55,14 @@ public final class DescentConfig {
 		return FabricLoader.getInstance().getConfigDir().resolve(FILE);
 	}
 
+	/** First load at client init — no-op if already loaded. */
 	public static void load() {
 		if (loaded) return;
+		reload();
+	}
+
+	/** Always re-read {@code drmd.properties} into the static fields. */
+	public static void reload() {
 		loaded = true;
 		Path p = path();
 		if (!Files.exists(p)) return;
@@ -61,10 +78,14 @@ public final class DescentConfig {
 		cockpitInstruments = bool(props, "cockpitInstruments", cockpitInstruments);
 		hud = bool(props, "hud", hud);
 		levelSky = bool(props, "levelSky", levelSky);
+		orbitalBeltSky = bool(props, "orbitalBeltSky", orbitalBeltSky);
+		hybridHorizon = bool(props, "hybridHorizon", hybridHorizon);
+		planetFloor = bool(props, "planetFloor", planetFloor);
 		rollRate = clamp(num(props, "rollRate", rollRate), 40f, 400f);
 		lookGain = clamp(num(props, "lookGain", lookGain), 0.25f, 3f);
 		cameraShake = bool(props, "cameraShake", cameraShake);
 		weaponView = bool(props, "weaponView", weaponView);
+		fallAftermath = bool(props, "fallAftermath", fallAftermath);
 	}
 
 	public static void save() {
@@ -74,10 +95,14 @@ public final class DescentConfig {
 		props.setProperty("cockpitInstruments", Boolean.toString(cockpitInstruments));
 		props.setProperty("hud", Boolean.toString(hud));
 		props.setProperty("levelSky", Boolean.toString(levelSky));
+		props.setProperty("orbitalBeltSky", Boolean.toString(orbitalBeltSky));
+		props.setProperty("hybridHorizon", Boolean.toString(hybridHorizon));
+		props.setProperty("planetFloor", Boolean.toString(planetFloor));
 		props.setProperty("rollRate", Float.toString(rollRate));
 		props.setProperty("lookGain", Float.toString(lookGain));
 		props.setProperty("cameraShake", Boolean.toString(cameraShake));
 		props.setProperty("weaponView", Boolean.toString(weaponView));
+		props.setProperty("fallAftermath", Boolean.toString(fallAftermath));
 		try {
 			Files.createDirectories(path().getParent());
 			try (var out = Files.newOutputStream(path())) {
