@@ -36,7 +36,7 @@ public final class MantleStream {
 			}
 			// Diggers / deep flyers stream the full column around them.
 			if (p.getY() <= WorldLevels.INDUSTRIAL_TOP + 24) return true;
-			// Approaching the Core seam (−240): pre-stream so the Nether band is seamless.
+			// Approaching the Core seam: pre-stream so the Nether band is seamless.
 			if (com.terminaldetector.drmd.world.layer.SeamWarmup.nearNetherSeam(p.getY())) return true;
 			// Surface pilots only pull shaft escape routes when nearby.
 			if (shaft) return true;

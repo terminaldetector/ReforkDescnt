@@ -30,7 +30,20 @@ import java.util.Set;
  * <p>Heavy fills stream via {@link MantleStream} and drain in Y-slices against a tick budget.
  */
 public final class LevelBuilder {
-	private static final int BUDGET_PER_TICK = 2_800;
+	/**
+	 * Block writes the drain may spend per tick, shared across every queued chunk.
+	 *
+	 * <p>2800 was tuned against the pre-rescale band heights: 176 mantle rows, 22 of floor relief, 16
+	 * of ceiling. The height-budget rescale ({@code WorldLevels}) grew all three — 260 / 35 / 26 — for
+	 * a total row count ×1.5 what it was. A budget that stayed at 2800 would still finish every chunk
+	 * eventually, but 1.5× the writes per chunk against the same writes-per-tick means each one takes
+	 * 1.5× as many ticks to fully build; a pilot who used to outrun the stream only on a very fast
+	 * approach now outruns it on an ordinary one, and what they fly into reads as terrain that failed
+	 * to load rather than terrain still being built. Scaled by the same ×1.5 so a chunk takes the same
+	 * real time to finish as it did before the bands grew. Not benchmarked against a live server —
+	 * reasoned from the row-count ratio, the same basis the original number was presumably tuned from.
+	 */
+	private static final int BUDGET_PER_TICK = 4_200;
 	private static final int MAX_QUEUE = 512;
 	private static final int MANTLE_PROBE_Y = -120;
 	/** Mantle Y-rows per drain step (16×16 each). */

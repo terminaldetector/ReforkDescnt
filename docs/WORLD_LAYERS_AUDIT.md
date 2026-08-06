@@ -183,3 +183,33 @@ carrying a bare literal into being wrong, not the test that was missing.
 
 Swept every other file touching a `WorldLevels` boundary (30 of them) for the same pattern; the rest
 already derive from the constants and moved for free.
+
+## Fixed: the streaming budget didn't grow when the bands did
+
+Reported as the Nether band still not loading in, after the chunk-seed fix above — same visual family
+of symptom, different cause. The seed fix stops neighbouring chunks disagreeing about height; this is
+about a chunk not finishing in time at all.
+
+`LevelBuilder.BUDGET_PER_TICK` (block writes the background drain may spend per tick, shared across
+the whole queue) stayed at its pre-rescale value, `2800`, while the height-budget rescale
+(`WorldLevels`, two commits back) grew every row count it pays for: mantle span 176→260, floor relief
+22→35, ceiling drop 16→26 — a combined ×1.5 in total rows written per chunk. The budget still finishes
+every chunk eventually; it just now takes 1.5× as many ticks to do it, and a pilot moving at the speed
+that used to safely outrun the stream now doesn't. What that looks like from the cockpit is terrain
+that failed to load, because from the player's side "still mid-build" and "never going to finish" are
+indistinguishable — both are missing terrain where terrain should be.
+
+Scaled `BUDGET_PER_TICK` to `4200`, the same ×1.5 the row count grew by, so a chunk takes the same real
+time to finish now as it did before the rescale — reasoned from the ratio, not benchmarked against a
+live server (nothing here can be). `GenerationBudgetTest` ties the two together going forward: it
+fails if `WorldLevels`/`NetherRelief` grow the bands again without a matching budget change, which is
+exactly the class of bug this was.
+
+### If the Nether still looks wrong after this
+
+Two independent things have to both be true for a rebuilt jar to actually contain either fix: the
+source has to have the fix (it does, as of this session), and the jar being run has to be built from
+it. `dist/`'s auto-refresh only fires on a genuine GitHub `push` event, and pushes from this session
+have not been reliably registering as one — every fix this session needed a manual
+`workflow_dispatch` to even get CI to run, and that path does not update `dist/`. If the same striped
+pattern is still showing up, check which jar is actually running before looking for a third bug.

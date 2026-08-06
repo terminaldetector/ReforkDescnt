@@ -26,6 +26,23 @@ public final class DescentLaserFire {
 	public static final float CONVERGE_SU = 2800f;
 	/** Max aim-point probe (Source units). */
 	public static final float AIM_PROBE_SU = 9000f;
+	/**
+	 * Nearest the convergence point is allowed to sit, in Source units.
+	 *
+	 * <p>Every bolt in a volley starts from its own wing muzzle — up to about 2 blocks off the ship's
+	 * centreline (a {@code SideLeft}/{@code SideRight} mount is 32 inches out, {@code /16}) — and is
+	 * aimed from there at one shared point so the spread reads as a volley converging on the reticle
+	 * rather than four parallel lines. That is fine at any real combat range: at 35 blocks a 2-block
+	 * muzzle offset bends the shot under four degrees. It stops being fine the moment the convergence
+	 * point is <em>closer than the muzzle spread itself</em> — point-blank against a wall, or a robot
+	 * filling a tight Descent corridor — because then "aim from a wing gun at a point beside the nose"
+	 * is asking for a direction nowhere near forward, and at the extreme, behind the muzzle entirely.
+	 * That is what reads as the volley firing in every direction at once, and it is worst exactly in
+	 * the close corridors this game is built around. 800 units (10 blocks) keeps the worst wing-muzzle
+	 * bolt within about 13° of forward at the floor itself — a visible tight spread on a very close
+	 * target, not the multiple-tens-of-degrees swing an un-floored point-blank hit produces.
+	 */
+	public static final float MIN_CONVERGE_SU = 800f;
 
 	private DescentLaserFire() {}
 
@@ -199,17 +216,25 @@ public final class DescentLaserFire {
 		return out;
 	}
 
-	/** Reticle aim point: first block under the nose, else a fixed converge distance. */
+	/**
+	 * Reticle aim point: first block under the nose, else a fixed converge distance.
+	 *
+	 * <p>Floored at {@link #MIN_CONVERGE_SU} from the eye. A raw raycast hit can land closer to the
+	 * muzzles than the muzzles are to each other — see {@link #MIN_CONVERGE_SU} for why that is the
+	 * one distance this must never return.
+	 */
 	public static Vec3d resolveAimPoint(PlayerEntity user) {
 		Vec3d start = user.getEyePos();
 		Vec3d dir = WeaponCore.aimDir(user);
 		double probe = DescentMod.su(AIM_PROBE_SU);
+		double minDist = DescentMod.su(MIN_CONVERGE_SU);
 		Vec3d end = start.add(dir.multiply(probe));
 		if (user.getWorld() instanceof ServerWorld sw) {
 			BlockHitResult hit = sw.raycast(new RaycastContext(start, end,
 					RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, user));
 			if (hit.getType() != HitResult.Type.MISS) {
-				return hit.getPos();
+				Vec3d hitPos = hit.getPos();
+				return start.distanceTo(hitPos) >= minDist ? hitPos : start.add(dir.multiply(minDist));
 			}
 		}
 		return start.add(dir.multiply(DescentMod.su(CONVERGE_SU)));

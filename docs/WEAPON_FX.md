@@ -76,3 +76,32 @@ still a light).
 One liberty: the blob is stretched along its screen track. Descent's rounds are slow enough to be
 discrete objects frame to frame; ours cross seventy blocks in a tick, so an unstretched blob would be
 a dot in a different place every frame.
+
+## Fixed: multi-muzzle lasers firing at extreme angles close-up
+
+Reported as "lasers and small arms are tied to the player model, so they fire in every direction
+instead of where the player is looking." The aim vector itself checked out — `WeaponCore.aimDir` /
+`DescentPlayerData.shipForward` / the client's mouse-look-to-attitude pipeline
+(`ShipAttitudeClient.applyMouse` → `InputPayload` → `setShipAttitude`) all trace cleanly to the same
+direction, with no player-model orientation anywhere in that path. The bug was in a different, real
+place: `DescentLaserFire.fireModuleBolts`/`firePrism` aim each wing bolt from its own muzzle position
+*at a shared convergence point* (`resolveAimPoint`, the first raycast hit under the reticle), so a
+volley reads as bolts converging on the crosshair rather than firing dead parallel — correct, and how
+Descent's own multi-barrel lasers work.
+
+The point returned by `resolveAimPoint` had no minimum distance. A wing muzzle sits up to ~2 blocks off
+the ship's centreline; aim that muzzle at a convergence point closer than that offset and the direction
+swings wide — past 90° once the point is nearer than the muzzle's own forward offset (~1.2 blocks),
+climbing toward 120° as the raycast hit approaches the eye. In the open that never happens (nothing to
+hit within a couple of blocks), but this game is built around tight corridors and point-blank robots,
+where the first raycast hit routinely lands well inside 2 blocks — exactly the geometry that produces
+it, and exactly why it read as "fires in every direction" rather than as an occasional glitch.
+
+Fixed with a floor: `DescentLaserFire.MIN_CONVERGE_SU` (800 units / 10 blocks) is the closest
+`resolveAimPoint` is allowed to return. Chosen from the actual geometry, not guessed — at the floor
+itself the worst wing-muzzle bolt (the quad layout's upper mount, 2 blocks out) is ~13° off forward;
+unfloored, the same muzzle passes 90° before 1.2 blocks and keeps opening toward 120° from there.
+Farther targets are untouched: the floor only ever raises a raycast distance, never lowers one.
+Pinned by `LaserConvergenceTest`, which mirrors the muzzle offsets and the floor (both public/private
+constants copied with a "keep these in sync" note, since importing `DescentLaserFire` itself would
+require stubbing `PlayerEntity`/`ServerWorld`/`RaycastContext` for one number).
