@@ -24,7 +24,7 @@ import net.minecraft.world.World;
  */
 public final class PsychedelicWorldgen {
 	/** Orbital void start — weightless thruster flight (ORBITAL band). */
-	public static final int SPAWN_Y = WorldLevels.SKY_TOP + 48; // 688
+	public static final int SPAWN_Y = WorldLevels.SKY_TOP + 48;
 
 	private PsychedelicWorldgen() {}
 

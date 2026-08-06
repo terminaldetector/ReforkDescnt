@@ -132,3 +132,54 @@ the chunk-mixed local, and the two functions rename the parameter to `worldSeed`
 is visible at the signature. `NetherReliefTest.chunkMixedSeedIsUnsafeForContinuity` mirrors the mixing
 formula and asserts it reliably breaks continuity, so the failure mode is on record even though the
 math it protects was never wrong.
+
+---
+
+## Height budget: 1536 → 2672 blocks
+
+Measured against the engine's own limits for a `dimension_type` (`height` ≤ 4064, `min_y` ≥ −2032,
+`min_y + height` ≤ 2032): the shipped column used 1536 of a possible 4064 — under 38%. Stretched to
+`min_y=−784, height=2672` (`min_y+height=1888`, still 144 short of the 2032 ceiling — headroom kept
+deliberately rather than pushed to the edge).
+
+**Not every band grew.** Vanilla's own terrain generator is untouched here (no `noise_settings`
+override), and it always shapes ground between Y −64 and 320 regardless of how tall the dimension is
+declared — that is where sea level, villages and biomes actually sit, no matter what `WorldLevels`
+says. `ABYSS_TOP`(−64) and `SURFACE_TOP`(320) are exactly those two numbers for that reason, and
+stayed exactly those two numbers: moving them would not move one block of real terrain, only mislay
+the `LevelSky` untouched-plateau and the industrial/surface flavour split relative to ground that
+never budged. `INDUSTRIAL_TOP`(40) sits between them by choice, not requirement, and was left alone
+too. The other five bands are entirely this mod's own generated content with nothing external pinning
+them, and very nearly doubled:
+
+| Band | Was | Now |
+|---|---|---|
+| NETHER (open) | 180 | 360 |
+| ABYSS | 176 | 260 |
+| INDUSTRIAL | 104 | 104 *(pinned)* |
+| SURFACE | 280 | 280 *(pinned)* |
+| SKY | 320 | 700 |
+| ORBITAL | 240 | 560 |
+| END | 144 | 308 |
+
+`NetherRelief.FLOOR_RELIEF`/`CEILING_DROP` grew too (22→35, 16→26) — by less than the band did, so
+the extra height reads mostly as open flight room, with terrain relief scaled up rather than diluted.
+
+### Two absolute-Y literals this broke
+
+Neither was caught by compiling — both are exactly the "still a valid `int`, silently the wrong
+place" class of bug the chunk-seed fix above already was.
+
+**`EndReactorSession.END_BAND_ARENA_Y`** was the bare literal `940`, chosen when END spanned 880…1024
+(60 above its own floor). Left as a literal, the arena would have stayed at 940 while its band moved
+to 1580…1888 — landing inside the *Orbital* band, five hundred blocks under the islands it is dug
+into. Now `WorldLevels.ORBITAL_TOP + 60`.
+
+**`WorldLevels.Level.ORBITAL.travelY()`** was the bare literal `720` (80 above the old
+`SKY_TOP`=640). `/d6 level orbital` would have arrived inside the new Sky band instead of Orbital.
+Every `travelY()` case is now an offset from a band edge — `WorldLevelsTest.travelAltitudesAreInsideTheirBand`
+already existed and catches this whole class by construction; it was this file that hadn't been
+carrying a bare literal into being wrong, not the test that was missing.
+
+Swept every other file touching a `WorldLevels` boundary (30 of them) for the same pattern; the rest
+already derive from the constants and moved for free.

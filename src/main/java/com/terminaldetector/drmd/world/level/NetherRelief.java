@@ -21,10 +21,19 @@ public final class NetherRelief {
 	/** Detail on top of it. */
 	private static final int CELL_FINE = 13;
 
-	/** Floor relief above the floor slab, in blocks. */
-	public static final int FLOOR_RELIEF = 22;
-	/** How far the ceiling can hang down below the ceiling slab, in blocks. */
-	public static final int CEILING_DROP = 16;
+	/**
+	 * Floor relief above the floor slab, in blocks.
+	 *
+	 * <p>Scaled with the band: the open Nether band ({@link WorldLevels#NETHER_CEILING} minus
+	 * {@link WorldLevels#NETHER_FLOOR}) very nearly doubled in the same rescale that gave the mod more
+	 * height to work with. Leaving relief at its old absolute size would have made the terrain
+	 * proportionally flatter in a taller room — the opposite of what relief is for — so it grows too,
+	 * by a smaller factor than the band itself, which is what keeps most of that height as open flight
+	 * room rather than spending all of it on taller terrain.
+	 */
+	public static final int FLOOR_RELIEF = 35;
+	/** How far the ceiling can hang down below the ceiling slab, in blocks. Scaled with the band. */
+	public static final int CEILING_DROP = 26;
 
 	private NetherRelief() {}
 

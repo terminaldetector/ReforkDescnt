@@ -7,7 +7,7 @@ import com.terminaldetector.drmd.world.level.WorldLevels;
  * The techno-ring is the backbone; End requires overcoming max column height.
  *
  * <pre>
- *   ORBITAL band (Y 640…880):
+ *   ORBITAL band (Y WorldLevels.SKY_TOP…ORBITAL_TOP):
  *     RING zone   — dense techno-ring islands / satellites / artifacts (XZ ring cells)
  *     LAYER_A     — space junk field (one high slab inside orbital)
  *     LAYER_B     — second junk / satellite slab, also left/right of the ring
@@ -21,11 +21,11 @@ public final class OrbitBands {
 	public static final int RING_WIDTH = 220;
 
 	/** Layer A — lower orbital junk slab. */
-	public static final int LAYER_A_Y = WorldLevels.SKY_TOP + 40;       // ~680
+	public static final int LAYER_A_Y = WorldLevels.SKY_TOP + 40;
 	/** Layer B — upper orbital junk / side-of-ring slab. */
-	public static final int LAYER_B_Y = WorldLevels.SKY_TOP + 140;      // ~780
+	public static final int LAYER_B_Y = WorldLevels.SKY_TOP + 140;
 	/** Techno-ring deck height. */
-	public static final int RING_Y = WorldLevels.SKY_TOP + 90;          // ~730
+	public static final int RING_Y = WorldLevels.SKY_TOP + 90;
 
 	public enum Zone {
 		RING("Techno-ring"),

@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import com.terminaldetector.drmd.entity.ReactorDisplayEntity;
+import com.terminaldetector.drmd.world.level.WorldLevels;
 import com.terminaldetector.drmd.world.mega.ReactorKeeperEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -50,8 +51,13 @@ public final class EndReactorSession {
 	 * volume first, so it carves its own space and the surrounding islands become the approach.
 	 * Kept well under the column ceiling: the pillars and their crystals reach 16 above the floor,
 	 * and writes past the height limit are silently dropped, which would decapitate the towers.
+	 *
+	 * <p>An offset from {@link WorldLevels#ORBITAL_TOP}, not a bare Y — this was {@code 940} when the
+	 * END band was 880…1024 (60 above its own floor), and stayed {@code 940} across a rescale that
+	 * moved the band to 1580…1888. The arena would have sat inside the Orbital band instead, five
+	 * hundred blocks under the islands it is meant to be dug into.
 	 */
-	private static final int END_BAND_ARENA_Y = 940;
+	private static final int END_BAND_ARENA_Y = WorldLevels.ORBITAL_TOP + 60;
 
 	public static void onServerTick(MinecraftServer server) {
 		ServerWorld end = server.getWorld(World.END);
