@@ -189,3 +189,34 @@ drag, thrust scaling and structure placement all follow the new heights.
 
 > Writes outside the height limit are a silent no-op in Minecraft, so if the dimension override
 > ever fails to apply, the level builder simply does nothing rather than breaking the world.
+
+## 6. A behaviour taken from the Descent 1 source: fleeing at critical hull
+
+Added while checking what else the original C source (not just the port structure we already had)
+had to offer. `AI.C`'s `do_ai_robot_hit` snaps a hit `AIM_STILL` robot straight to chasing, and
+separately, every per-behaviour state table in the file routes a losing robot to `AIM_HIDE` — nothing
+in the canon keeps fighting once it is clearly losing.
+
+Our roles carry no static "this type hides" flag the way a Descent robot's behaviour byte does, so
+`DroneAi.CombatGoal` uses hull fraction instead — the number this AI already tracks, standing in for
+the same fact: the fight is going badly. Below 22% hull, **every** style — including `support`,
+checked first, since a critically hurt healer has nothing left to spend on anyone else — drops what
+it was doing and runs. Not just away from the target: `nearestCoverDirection` samples a few headings
+biased away from the threat and picks whichever one's raycast hits solid ground soonest, so it reads
+as ducking behind something rather than panicking in open air. No return fire while fleeing — one
+still shooting is not actually retreating.
+
+No new state is stored and no per-role data changed: the check runs every tick against the health the
+role already has, so a support drone healing an ally back over the threshold pulls it straight back
+into whichever style it had, for free.
+
+### What the same source could *not* verify
+
+`Weapon_info[].strength[]`/`.speed[]` — the actual damage and muzzle-velocity numbers — are not in
+this source tree. `WEAPON.H`'s `weapon_info` struct declares them, but they are populated at runtime
+from an external data table (the same mechanism `render_type` and `blob_size` come from, per
+`BMREAD.C`), which is compiled game data, not C source, and is not part of this zip. What the source
+*did* confirm: the canonical weapon index order (`LASER_INDEX`=0 … `FUSION_INDEX`=4 for primaries;
+`CONCUSSION_INDEX`=0, `HOMING_INDEX`=1, `PROXIMITY_INDEX`=2, `SMART_INDEX`=3, `MEGA_INDEX`=4 for
+secondaries) — Proximity sits at bank position 3 between Homing and Smart in the canon itself, which
+matches this port's own slot layout without needing a change.
