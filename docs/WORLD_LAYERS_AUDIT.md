@@ -213,3 +213,83 @@ it. `dist/`'s auto-refresh only fires on a genuine GitHub `push` event, and push
 have not been reliably registering as one — every fix this session needed a manual
 `workflow_dispatch` to even get CI to run, and that path does not update `dist/`. If the same striped
 pattern is still showing up, check which jar is actually running before looking for a third bug.
+
+## Fixed: generation "locking onto a small area" — the drain queue's scheduling, not its budget
+
+Reported again after the budget fix above, this time as generation staying confined to a small area
+around wherever the pilot started rather than extending as they fly. Different mechanism from either
+Nether fix above: not a disagreement between chunks, not a budget too small to finish a chunk — a
+scheduling order that let one chunk hog the entire queue.
+
+`LevelBuilder.enqueue` appends new work to the *tail* of `QUEUE` — for a moving pilot, that is
+whatever chunk they have just approached. But `drain`'s loop re-queued an unfinished job with
+`QUEUE.addFirst`, putting it straight back at the *head*, where the very next `poll()` in the same
+tick picks it up again. That job then wins every poll after that too, tick after tick, for as long as
+it takes to run mantle fill → floor relief → ceiling relief → shaft/End finish to completion — a
+single chunk's full build is on the order of the mantle span alone (260 rows × 256 blocks), tens of
+thousands of writes against a 4200-per-tick budget, so on the order of twenty ticks before the queue
+ever looks at anything behind it. Multiply that by however many chunks were already queued and a
+pilot's newest, closest-ahead chunk could sit behind minutes of backlog before its first block ever
+gets placed. What finishes is whatever was queued earliest — the start point — and it looks exactly
+like generation refusing to follow the pilot anywhere past it.
+
+Changed the re-queue to `QUEUE.add` (tail), so an unfinished job goes to the back of the line instead
+of monopolizing the front. Every in-flight job now gets a slice of each tick's budget in round-robin
+rather than one job running to completion before the next is even touched — same total throughput
+(the budget didn't change, so the whole backlog still takes exactly as long to fully drain), but a
+chunk added under load starts making progress on the tick it is queued instead of after everything
+ahead of it in the queue finishes. `LevelBuilderFairnessTest` mirrors the scheduling in isolation
+(the real `drain`/`step`/`Job` are private and need a live `ServerWorld`) and pins the gap: in a
+seed-backlog-of-five-plus-one-late-job scenario, the old policy leaves the late job untouched for
+most of the backlog's total drain time, the new one touches it within two ticks.
+
+### A second, smaller finding from the same sweep: crashed UFOs rebuilding themselves
+
+Not the Nether/mantle stream at all — the separate macro-worldgen landmark system
+(`world/gen2/*`, `world/base/DescentSession`) that seeds megacities, rifts, lunar bases, crashed UFOs.
+No hard radius cap exists anywhere in it — placement is unbounded, keyed off whichever chunk a player
+happens to load — so it is not itself a confinement bug. But `CrashedUfoGenerator.resolveCrashSite`
+clamped the terrain-surface Y it resamples differently (`[≤120, floor sub-50 to 70]`) than
+`ModWorldgen2.skyY`'s `CRASHED_UFO` case does (`[55,110]`) for the identical `getTopY` sample at the
+identical X/Z — the two only ever agreed inside the overlap. Outside it, the LODESTONE "already built"
+marker landed away from the Y every future chunk-load pre-check looks for it at, so any crash site on
+low or tall terrain fully rebuilt itself — saucer, trap lattice, 24-entity garrison — on every reload,
+which is ordinary play in a dogfighting mod: circling back over ground already cleared. Matched the
+clamp to `[55,110]` in both places; `CrashedUfoMarkerTest` pins the two formulas agreeing for every
+terrain height from bedrock to the surface band's top, not just the range that happened to overlap
+before.
+
+## Fixed: "OBLIVION SEAM" ghosting through the flight HUD in the End band
+
+Same report, second half — described as part of the client "falling apart," with the settings screen
+visible but unresponsive. A screenshot from inside the End band showed the answer to the HUD half of
+that: the DRMD flight HUD's THRUST/ENERGY instrument cluster with a second, fainter line of text
+bleeding through it — `§d◈ OBLIVION SEAM §7— End band streaming · dim warm`.
+
+`SeamWarmup.tickColumn`'s End branch gated that action-bar announce on `crit`, the same flag used for
+streaming radius. `crit` is `atSeamFace || y >= END_SEAM_Y` — deliberately true for a pilot's *entire*
+time above the seam, because islands keep streaming in as they roam the band, not just while crossing
+into it. Correct for streaming; wrong for a one-shot notification, which then re-announced every 80
+ticks for as long as the pilot stayed in the band — not the brief crossing flash it reads as for the
+Nether seam (whose `crit` has no such "inside forever" clause). `InGameHudMixin` draws the DRMD HUD
+after vanilla's own render pass, and the instrument cluster's panel fill is translucent
+(`PANEL = 0xA6000C10`, roughly 65% opacity) rather than solid, so an action-bar message that never
+stops repeating shows through it continuously instead of fading out between crossings — read from
+outside as the HUD glitching, not as a status message just doing its job too enthusiastically.
+
+Split the two: `crit` keeps its wide definition for streaming radius; a new, narrower `atSeamFace`
+(seam-face proximity only, no "already inside" clause) gates the announce. The heads-up still fires on
+an actual crossing or a fast approach; it stops once the pilot is settled deep in the band with
+nothing left to cross. `SeamAnnounceTest` mirrors the seam-proximity check (`SeamWarmup.approaching`
+is private and the real check needs a `ServerPlayerEntity` tick) and pins both halves: the old
+gate never stops firing while loitering in the band, the new one does, and an actual crossing still
+announces either way.
+
+The settings-screen-unresponsive half of the same report is still open — read through
+`MouseMixin`/`GameMenuScreenMixin`/`DescentSettingsScreen`/`DescentKeybinds` twice without finding a
+structural defect in any of them; worth noting the player's own log shows TLauncher with its bundled
+skin/cape mod (`tlskincape`) loaded, and `GameMenuScreenMixin`'s own comment already documents that
+launcher's skin overlays as a known source of pause-menu interference on this exact screen. Whether
+that is the actual cause here or a red herring needs either a repro via the `,` keybind directly
+(bypassing the pause menu entirely) or a log from the moment it happens — nothing in the uploaded
+launcher log points at it (no exception anywhere, every session exits cleanly with code 0).

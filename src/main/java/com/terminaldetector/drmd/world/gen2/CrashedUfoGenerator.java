@@ -120,11 +120,26 @@ public final class CrashedUfoGenerator {
 		return e;
 	}
 
+	/**
+	 * Resample the surface under the hint rather than trust its Y outright — {@code hint} can come
+	 * from a caller with no idea what the ground looks like there ({@code DescentSession}'s spawn-seed
+	 * list hands this a flat {@code Y=80} regardless of terrain).
+	 *
+	 * <p>The clamp band, {@code [55,110]}, has to match {@code ModWorldgen2.skyY}'s CRASHED_UFO case
+	 * exactly, not just overlap it — that call computes the same {@code getTopY} at the same X/Z to
+	 * decide whether this chunk already has a crash site (checking for the LODESTONE marker at the Y
+	 * it computes) and to build the landmark job's {@code origin} if not. A looser or shifted clamp
+	 * here — this used to float the top end to 120 and floor sub-50 columns to a flat 70 — means the
+	 * two functions agree only for surface heights already inside [55,110] and disagree everywhere
+	 * else, so the marker lands somewhere the pre-check never looks. Every chunk with a crash site on
+	 * low or tall terrain then rebuilt it — full saucer, trap lattice and 24-entity garrison — on every
+	 * reload, which is ordinary play for a dogfighting mod: circle back over anywhere you have already
+	 * cleared.
+	 */
 	private static BlockPos resolveCrashSite(WorldAccess world, BlockPos hint) {
 		if (!(world instanceof ServerWorld sw)) return hint;
 		int y = sw.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, hint.getX(), hint.getZ());
-		if (y < 50) y = 70;
-		return new BlockPos(hint.getX(), Math.min(y, 120), hint.getZ());
+		return new BlockPos(hint.getX(), Math.max(55, Math.min(110, y)), hint.getZ());
 	}
 
 	private static void placeRing(WorldAccess world, BlockPos origin, int r, int y, Block block) {

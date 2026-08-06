@@ -141,7 +141,10 @@ public final class SeamWarmup {
 		}
 
 		if (end) {
-			boolean crit = approaching(y, projectedY, END_SEAM_Y, WARM_CRITICAL) || y >= END_SEAM_Y;
+			// Deliberately wider than the face check below: islands keep streaming in around a pilot
+			// who is roaming deep inside the band, not just one crossing the seam.
+			boolean atSeamFace = approaching(y, projectedY, END_SEAM_Y, WARM_CRITICAL);
+			boolean crit = atSeamFace || y >= END_SEAM_Y;
 			// End-band islands are their own queue: a pilot up here wants the archipelago, not the
 			// mantle nine hundred blocks below them.
 			if (player.age % STREAM_INTERVAL == 0) {
@@ -155,7 +158,13 @@ public final class SeamWarmup {
 			// pilot closes on the band, in whichever of the two the fight is going to happen.
 			warmDimension(server, World.END, ARENA_CHUNK.x, ARENA_CHUNK.z, crit ? 4 : 2);
 			warmDimension(server, World.OVERWORLD, ARENA_CHUNK.x, ARENA_CHUNK.z, crit ? 3 : 2);
-			if (crit && player.age % 80 == 0) {
+			// Gated on the narrower atSeamFace, not crit: crit stays true for the pilot's whole time
+			// in the band (see above), and re-announcing every 80 ticks forever means this is on
+			// screen almost continuously rather than during the crossing it is meant to flag. The
+			// DRMD flight HUD sits in the same screen region as the vanilla action bar this renders
+			// through, so a message that never stops repeating reads as the HUD itself glitching —
+			// translucent instrument panels drawn afterward on top of it, so both texts show at once.
+			if (atSeamFace && player.age % 80 == 0) {
 				announce(player, "§d◈ OBLIVION SEAM §7— End band streaming · dim warm");
 			}
 		}

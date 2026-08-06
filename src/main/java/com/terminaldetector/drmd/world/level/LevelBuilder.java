@@ -167,7 +167,18 @@ public final class LevelBuilder {
 			budget -= step.written;
 			if (!step.done) {
 				QUEUED.add(key);
-				QUEUE.addFirst(step.next);
+				// addLast, not addFirst: a chunk re-queued mid-build goes to the back of the line, not
+				// straight back to the front. addFirst made the head-of-queue job monopolize every
+				// tick's whole budget until it finished all four phases — worth it for the very first
+				// chunk queued, but every chunk queued after it (which, for a moving pilot, means
+				// everything ahead of them) sat completely untouched behind that one job, then the
+				// next, one at a time. A queue anywhere near MAX_QUEUE deep made that a multi-minute
+				// wait before generation ahead of the pilot ever got a single write — reading as
+				// generation stuck around only the small area that was queued first. addLast instead
+				// round-robins the budget across every in-flight job each tick, so a chunk newly queued
+				// under load still starts making progress on the tick it is added, not after the whole
+				// backlog ahead of it finishes.
+				QUEUE.add(step.next);
 			}
 		}
 
