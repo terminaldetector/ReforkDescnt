@@ -217,13 +217,18 @@ public final class LevelBuilder {
 		// The band is written floor first, then ceiling, then everything else. Relief costs several
 		// times what the two flat slabs did, and one chunk that overruns the tick budget by that much
 		// is a visible hitch — splitting it lets the drain stop between the two halves.
+		//
+		// world.getSeed(), not the chunk-mixed `seed` above: that one is right for `random` (block
+		// variety should differ chunk to chunk) and wrong for a height field two neighbouring chunks
+		// have to agree on. Feeding the mixed seed to NetherRelief was exactly the bug that shipped —
+		// see buildNetherFloor's doc.
 		if (job.phase == 1) {
-			int written = buildNetherFloor(job.world, job.chunkX, job.chunkZ, seed, random);
+			int written = buildNetherFloor(job.world, job.chunkX, job.chunkZ, job.world.getSeed(), random);
 			return new StepResult(written, false, new Job(job.world, job.chunkX, job.chunkZ, 2, 0));
 		}
 
 		if (job.phase == 2) {
-			int written = buildNetherCeiling(job.world, job.chunkX, job.chunkZ, seed, random);
+			int written = buildNetherCeiling(job.world, job.chunkX, job.chunkZ, job.world.getSeed(), random);
 			return new StepResult(written, false, new Job(job.world, job.chunkX, job.chunkZ, 3, 0));
 		}
 
@@ -370,9 +375,14 @@ public final class LevelBuilder {
 	 * blocks tall, and from a cockpit that reads as nothing at all — there is no scale in it and
 	 * nothing to fly around. Heights come from {@link NetherRelief}, which is a pure function of
 	 * world position, so the chunk built now and its neighbour built ten seconds later meet without
-	 * a step.
+	 * a step — <strong>provided both are given the same seed</strong>. That is why this takes
+	 * {@code worldSeed} rather than the chunk-mixed {@code seed} that {@link #step} already has in
+	 * scope for its {@link Random}: passing the mixed one here was the actual shipped bug — every
+	 * chunk sampled the height field under a different seed, so neighbours agreed on nothing and
+	 * every chunk border rendered as a cliff. Seen from altitude across a wide stream of chunks, a
+	 * grid of cliffs one next to the other reads as vertical stripes.
 	 */
-	private static int buildNetherFloor(ServerWorld world, int chunkX, int chunkZ, long seed, Random random) {
+	private static int buildNetherFloor(ServerWorld world, int chunkX, int chunkZ, long worldSeed, Random random) {
 		int baseX = chunkX << 4;
 		int baseZ = chunkZ << 4;
 		BlockPos.Mutable pos = new BlockPos.Mutable();
@@ -395,7 +405,7 @@ public final class LevelBuilder {
 				written += set(world, pos.set(x, WorldLevels.NETHER_FLOOR, z),
 						ModWorldBlocks.PLASMA_GRANITE.getDefaultState());
 
-				int top = NetherRelief.floorTop(seed, x, z);
+				int top = NetherRelief.floorTop(worldSeed, x, z);
 				if (!inShaft) {
 					for (int y = WorldLevels.NETHER_FLOOR + 1; y <= top; y++) {
 						written += set(world, pos.set(x, y, z), pickNetherGround(random));
@@ -423,7 +433,7 @@ public final class LevelBuilder {
 	 * something to thread. Glowstone goes on the underside in clusters rather than one block at a
 	 * time — scattered singles are invisible from any distance worth flying at.
 	 */
-	private static int buildNetherCeiling(ServerWorld world, int chunkX, int chunkZ, long seed, Random random) {
+	private static int buildNetherCeiling(ServerWorld world, int chunkX, int chunkZ, long worldSeed, Random random) {
 		int baseX = chunkX << 4;
 		int baseZ = chunkZ << 4;
 		BlockPos.Mutable pos = new BlockPos.Mutable();
@@ -444,14 +454,14 @@ public final class LevelBuilder {
 						ModWorldBlocks.PLASMA_GRANITE.getDefaultState());
 				if (inShaft) continue;
 
-				int bottom = NetherRelief.ceilingBottom(seed, x, z);
+				int bottom = NetherRelief.ceilingBottom(worldSeed, x, z);
 				for (int y = WorldLevels.NETHER_CEILING - 1; y >= bottom; y--) {
 					written += set(world, pos.set(x, y, z),
 							random.nextInt(5) == 0 ? Blocks.BLACKSTONE.getDefaultState()
 									: Blocks.BASALT.getDefaultState());
 				}
 				// Clustered by position, not per block: one lattice cell in a few lights up whole.
-				if (NetherRelief.value(seed ^ 0x91E10DA5L, x, z, 9) > 0.86f) {
+				if (NetherRelief.value(worldSeed ^ 0x91E10DA5L, x, z, 9) > 0.86f) {
 					written += set(world, pos.set(x, bottom, z), Blocks.GLOWSTONE.getDefaultState());
 				}
 			}

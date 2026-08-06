@@ -111,4 +111,40 @@ class NetherReliefTest {
 		}
 		assertTrue(max - min > 0.5f, "noise only spans " + (max - min) + " — the band would read as flat");
 	}
+
+	/**
+	 * Reproduces the bug that shipped: not in this math, but at the one call site that feeds it.
+	 *
+	 * <p>{@code LevelBuilder.step()} derives {@code seed = world.getSeed() ^ (chunkX·A) ^ (chunkZ·B)}
+	 * for its per-chunk {@link java.util.random.RandomGenerator} — correct there, since block variety
+	 * is supposed to differ chunk to chunk. That same local was passed into
+	 * {@code buildNetherFloor}/{@code buildNetherCeiling} as well, which forwarded it into these
+	 * static methods. Every chunk sampled the height field under a <em>different</em> seed, so
+	 * neighbours agreed on nothing and every chunk border rendered as a cliff — a grid of them, seen
+	 * from altitude, is the vertical-stripe artifact this test is named for.
+	 *
+	 * <p>The fix was entirely at the call site — pass {@code world.getSeed()}, not the mixed local —
+	 * so nothing here can prove the fix by itself; {@link #chunkBordersAreSeamless} already proves the
+	 * math is continuous under one shared seed. What this documents is <em>why</em> that has to be a
+	 * world seed and not a chunk-mixed one: mixing chunk coordinates into two neighbours' seeds this
+	 * way reliably breaks continuity, which is exactly what must never again reach the real call site.
+	 */
+	@Test
+	@DisplayName("a chunk-mixed seed — the bug that shipped — reliably breaks continuity")
+	void chunkMixedSeedIsUnsafeForContinuity() {
+		long worldSeed = 42L;
+		// World x=15 is the last column of chunk 0; x=16 is the first column of chunk 1 — neighbours.
+		long seedChunk0 = mixChunkSeed(worldSeed, 0, 0);
+		long seedChunk1 = mixChunkSeed(worldSeed, 1, 0);
+		int a = NetherRelief.floorTop(seedChunk0, 15, 0);
+		int b = NetherRelief.floorTop(seedChunk1, 16, 0);
+		assertTrue(Math.abs(a - b) > 3,
+				"a chunk-mixed seed stopped breaking continuity — the failure mode this documents may "
+						+ "no longer exist, but check nothing started using it for a height field again");
+	}
+
+	/** {@code LevelBuilder.step()}'s per-chunk seed derivation, mirrored so the case above is honest. */
+	private static long mixChunkSeed(long worldSeed, int chunkX, int chunkZ) {
+		return worldSeed ^ (((long) chunkX) * 341873128712L) ^ (((long) chunkZ) * 132897987541L);
+	}
 }

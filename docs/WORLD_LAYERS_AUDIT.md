@@ -106,3 +106,29 @@ sea leaves both dry ground and flooded ground.
 
 The fill is split into its own phases (1 floor, 2 ceiling) because relief costs several times what
 two flat slabs did, and one chunk overrunning the tick budget by that much is a visible hitch.
+
+
+## Fixed: chunk-seed leak into the relief field (the vertical-stripe bug)
+
+Shipped in the relief commit above and caught from a screenshot the same session: the Nether band
+rendered as a dense grid of vertical multicoloured stripes from altitude — a cliff at every chunk
+border, packed close enough over a wide flyover to read as stripes rather than as individual walls.
+
+The cause was one wrong variable. `LevelBuilder.step()` derives
+`seed = world.getSeed() ^ (chunkX·A) ^ (chunkZ·B)` for its per-chunk `Random` — correct there, block
+variety is supposed to differ chunk to chunk — and that same local was also being passed into
+`buildNetherFloor` / `buildNetherCeiling`, which forwarded it into `NetherRelief.floorTop` /
+`ceilingBottom`. Those are meant to be pure functions of world position so that two chunks built on
+different ticks agree on the height they share at their border. Feeding them a seed that itself
+depends on which chunk is asking defeats that on every single border: the world x=15 column (chunk 0)
+and the world x=16 column (chunk 1) are neighbours, but computed their relief under two unrelated
+seeds, so the two heights were as good as random relative to each other.
+
+`NetherReliefTest` did not catch it, because it tested `NetherRelief`'s math in isolation with one
+shared constant `SEED` on both sides of a simulated chunk border — which correctly proved the pure
+function is continuous, but never exercised the call site that broke that guarantee. The fix is
+entirely at the call site: `step()` now passes `job.world.getSeed()` into both builders instead of
+the chunk-mixed local, and the two functions rename the parameter to `worldSeed` so the requirement
+is visible at the signature. `NetherReliefTest.chunkMixedSeedIsUnsafeForContinuity` mirrors the mixing
+formula and asserts it reliably breaks continuity, so the failure mode is on record even though the
+math it protects was never wrong.
