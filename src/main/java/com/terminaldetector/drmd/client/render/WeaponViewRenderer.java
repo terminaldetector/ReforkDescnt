@@ -199,9 +199,11 @@ public final class WeaponViewRenderer {
 	}
 
 	private static void drawBox(MatrixStack matrices, VertexConsumerProvider consumers, int argb, int light) {
-		// Use debug/immediate filled quad via Minecraft's built-in debug renderer style
+		// Quads, into a layer that draws quads. This was RenderLayer.getDebugFilledBox(), which is a
+		// TRIANGLE_STRIP layer: the six quads below are 24 vertices, and a strip reads those as a run
+		// of degenerate slivers rather than as six faces, so the module had no solid body.
 		var entry = matrices.peek();
-		var vc = consumers.getBuffer(net.minecraft.client.render.RenderLayer.getDebugFilledBox());
+		var vc = consumers.getBuffer(net.minecraft.client.render.RenderLayer.getLightning());
 		float a = ((argb >> 24) & 255) / 255f;
 		float r = ((argb >> 16) & 255) / 255f;
 		float g = ((argb >> 8) & 255) / 255f;
