@@ -17,10 +17,12 @@ import net.minecraft.util.math.Vec3d;
 import java.util.ArrayList;
 
 public class DescentClient implements ClientModInitializer {
-	/** One enable-request per session after join if SyncPayload never armed flight. */
-	private static boolean enableRequested;
+	/** True once the pilot has toggled flight themselves — suppresses the join auto-arm for the rest of the session. */
+	private static boolean userFlightChoice;
 	/** True once any SyncPayload arrived — force-arm must not fight intentional H-off. */
 	private static boolean sawSync;
+	/** Ticks until the next join auto-arm retry is allowed; 0 = due now. */
+	private static int enableRetryCooldown;
 	/** Last player Y for seam-teleport predictor snap. */
 	private static double lastY = Double.NaN;
 
@@ -46,7 +48,7 @@ public class DescentClient implements ClientModInitializer {
 
 	/** Call when the pilot locally chooses toggle — suppress join force-arm. */
 	public static void markUserFlightChoice() {
-		enableRequested = true;
+		userFlightChoice = true;
 	}
 
 	@Override
@@ -132,16 +134,18 @@ public class DescentClient implements ClientModInitializer {
 				(handler, client) -> {
 					DescentClientState.resetSession();
 					com.terminaldetector.drmd.client.planet.PlanetClientState.INSTANCE.clear();
-					enableRequested = false;
+					userFlightChoice = false;
 					sawSync = false;
+					enableRetryCooldown = 0;
 					lastY = Double.NaN;
 					com.terminaldetector.drmd.client.sky.OrbitalBeltSkyRenderer.clearWarn();
 				});
 
 		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register(
 				(handler, sender, client) -> client.execute(() -> {
-					enableRequested = false;
+					userFlightChoice = false;
 					sawSync = false;
+					enableRetryCooldown = 0;
 					lastY = Double.NaN;
 					// Integrated SP shares DescentPlayerData STORE with the server — mirror enable
 					// immediately so flight/cockpit do not wait on a delayed SyncPayload.
@@ -160,11 +164,19 @@ public class DescentClient implements ClientModInitializer {
 				DescentClientState.enabled = true;
 				com.terminaldetector.drmd.client.flight.ShipAttitudeClient.resetFromPlayer(client.player);
 			}
-			// One-shot only when SyncPayload never arrived — never re-arm after H-off / sync.
-			if (!DescentClientState.enabled && !enableRequested && !sawSync
+			// Retry every 3s while no SyncPayload has ever arrived — never re-arm after H-off / sync.
+			// A single attempt raced the server's own onPlayerJoin often enough on a freshly created
+			// world (megacity/technogenic-sea/etc. region binding plus spawn-region prep can run past
+			// the 3s mark) that a dropped or too-early "enable" request left the pilot stuck reading
+			// disabled for the rest of the session with no further recovery attempt.
+			if (!DescentClientState.enabled && !userFlightChoice && !sawSync
 					&& client.player.age > 60) {
-				enableRequested = true;
-				ClientPlayNetworking.send(new ModNetworking.ActionPayload("enable"));
+				if (enableRetryCooldown <= 0) {
+					ClientPlayNetworking.send(new ModNetworking.ActionPayload("enable"));
+					enableRetryCooldown = 60;
+				} else {
+					enableRetryCooldown--;
+				}
 			}
 			// Seam teleport yanks Y; soft SyncPayload blend leaves the predictor fighting for seconds.
 			double y = client.player.getY();
@@ -223,7 +235,7 @@ public class DescentClient implements ClientModInitializer {
 	/** Apply authoritative flight HUD sync on the client thread. */
 	private static void applySync(ModNetworking.SyncPayload payload, MinecraftClient client) {
 		sawSync = true;
-		enableRequested = true; // sync settled arm state — never force-arm over it
+		userFlightChoice = true; // sync settled arm state — never force-arm over it
 		boolean wasEnabled = DescentClientState.enabled;
 		DescentClientState.enabled = payload.enabled();
 		DescentClientState.energy = payload.energy();
