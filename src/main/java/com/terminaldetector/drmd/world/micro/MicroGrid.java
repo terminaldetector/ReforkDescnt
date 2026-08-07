@@ -172,6 +172,36 @@ public final class MicroGrid {
 		return out;
 	}
 
+	/** A test against one cell's grid coordinates, each 0..EDGE-1. */
+	@FunctionalInterface
+	public interface CellTest {
+		boolean inside(int x, int y, int z);
+	}
+
+	/**
+	 * Build a mask cell by cell from an arbitrary test, rather than the sphere {@link #carve}/
+	 * {@link #fill} already cover.
+	 *
+	 * <p>What this buys over calling {@code fill} with a huge radius and then clearing the cells a
+	 * shape does not want: {@code fill}/{@code carve} both describe round regions in block-local
+	 * <em>units</em> — one block's own 0..1 cube. A shape that spans many blocks the same way a shot
+	 * or an explosion does not — a cylinder's axis, a tunnel's boundary — needs each block's cells
+	 * tested against a condition defined in <em>world</em> space, which only the caller knows how to
+	 * state. This is that hook: {@code test} decides per cell, in this block's own 0..EDGE-1 grid
+	 * coordinates, and owns whatever world-space math got it there.
+	 */
+	public static long build(CellTest test) {
+		long out = EMPTY;
+		for (int cy = 0; cy < EDGE; cy++) {
+			for (int cz = 0; cz < EDGE; cz++) {
+				for (int cx = 0; cx < EDGE; cx++) {
+					if (test.inside(cx, cy, cz)) out |= 1L << index(cx, cy, cz);
+				}
+			}
+		}
+		return out;
+	}
+
 	/** Which cell a block-local position falls in. Values outside 0..1 clamp to the nearest cell. */
 	public static int cellOf(double blockLocal) {
 		int c = (int) Math.floor(blockLocal * EDGE);

@@ -520,13 +520,26 @@ public final class LevelBuilder {
 		return island == null ? 0 : island.sizeX * island.sizeZ;
 	}
 
+	/**
+	 * At {@code WorldLevels.SHAFT_RADIUS} = 3, a whole-block circle test is a third of the tunnel's
+	 * own radius away from a real one at every corner — a 6DoF ship reads that as a snag, not a
+	 * curve. {@link com.terminaldetector.drmd.world.micro.TunnelCarving} rounds the boundary this
+	 * pass leaves solid down to quarter-cell precision, in one pass over the whole shaft height
+	 * rather than split across ticks the way the mantle phases above are: a shaft chunk is already
+	 * one of the heavier single jobs this drain accepts unbudgeted (the whole-block carve below is
+	 * itself ~18k writes in one call), and shafts are sparse — one in {@code SHAFT_CHUNK_SPACING}²
+	 * = 64 chunks — so this roughly doubles an already-accepted, already-infrequent cost rather than
+	 * introducing a new one.
+	 */
 	private static int cutDescentShaft(ServerWorld world, int chunkX, int chunkZ) {
 		int cx = (chunkX << 4) + 8;
 		int cz = (chunkZ << 4) + 8;
 		int r = WorldLevels.SHAFT_RADIUS;
+		int yTop = -40;
+		int yBottom = WorldLevels.NETHER_FLOOR + WorldLevels.NETHER_FLOOR_THICKNESS + 4;
 		BlockPos.Mutable pos = new BlockPos.Mutable();
 		int written = 0;
-		for (int y = -40; y >= WorldLevels.NETHER_FLOOR + WorldLevels.NETHER_FLOOR_THICKNESS + 4; y--) {
+		for (int y = yTop; y >= yBottom; y--) {
 			for (int dx = -r; dx <= r; dx++) {
 				for (int dz = -r; dz <= r; dz++) {
 					if (dx * dx + dz * dz > r * r) continue;
@@ -541,6 +554,8 @@ public final class LevelBuilder {
 				written += set(world, pos.set(cx + dx, -40, cz + dz), Blocks.SEA_LANTERN.getDefaultState());
 			}
 		}
+		written += com.terminaldetector.drmd.world.micro.TunnelCarving.carveBoundaryRing(
+				world, cx, cz, r, yTop, yBottom);
 		return written;
 	}
 
