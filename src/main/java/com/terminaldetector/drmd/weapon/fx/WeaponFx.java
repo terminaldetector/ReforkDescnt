@@ -239,37 +239,33 @@ public final class WeaponFx {
 	}
 
 	/**
-	 * Continuous tunnel bore — clears a cylinder of {@code radius} along {@code dir}
-	 * for {@code length} blocks from {@code origin}.
+	 * Continuous tunnel bore — clears a capsule of {@code radius} along {@code dir} for
+	 * {@code length} blocks from {@code origin}, chamfered to quarter-cell precision at the
+	 * boundary rather than a whole-block sphere silhouette (see
+	 * {@link com.terminaldetector.drmd.world.micro.TunnelCarving#carveCapsule}).
 	 */
 	public static int drillTunnel(ServerWorld world, BlockPos origin, Vec3d dir,
 								  LivingEntity breaker, int radius, int length) {
 		Vec3d n = dir.lengthSquared() < 1e-6 ? new Vec3d(0, 0, 1) : dir.normalize();
 		int r = MathHelper.clamp(radius, 1, 4);
 		int len = MathHelper.clamp(length, 1, 12);
-		int carved = 0;
-		BlockPos.Mutable probe = new BlockPos.Mutable();
+
+		// The swept shape a chain of per-step spheres always was — a sphere of radius r moving from
+		// step 0 to step len-1 along n is exactly the capsule between those two points, just found
+		// here per whole block before instead of per quarter-cell. See TunnelCarving for why a fixed
+		// plane (like the Descent shaft's own boundary pass) does not cover this: a drill's axis is
+		// not always vertical or even horizontal — the engineer's own tool fires along full look
+		// pitch — so every candidate block is measured against the segment directly.
+		Vec3d segStart = Vec3d.ofCenter(origin);
+		Vec3d segEnd = segStart.add(n.multiply(len - 1));
+		int carved = com.terminaldetector.drmd.world.micro.TunnelCarving.carveCapsule(
+				world, segStart, segEnd, r, breaker);
+
 		for (int step = 0; step < len; step++) {
-			Vec3d at = Vec3d.ofCenter(origin).add(n.multiply(step));
-			BlockPos center = BlockPos.ofFloored(at);
-			for (int dx = -r; dx <= r; dx++) {
-				for (int dy = -r; dy <= r; dy++) {
-					for (int dz = -r; dz <= r; dz++) {
-						if (dx * dx + dy * dy + dz * dz > r * r + 1) continue;
-						probe.set(center.getX() + dx, center.getY() + dy, center.getZ() + dz);
-						if (world.isOutOfHeightLimit(probe)) continue;
-						BlockState st = world.getBlockState(probe);
-						float h = st.getHardness(world, probe);
-						if (st.isAir() || h < 0 || h >= 50 || st.isOf(Blocks.BEDROCK)) continue;
-						world.breakBlock(probe.toImmutable(), true, breaker);
-						carved++;
-					}
-				}
-			}
-			if (step % 2 == 0) {
-				SmokeSystem.emit(at, SmokeSystem.Source.INDUSTRIAL, 1.4f, 0.5f, 70);
-				world.spawnParticles(ParticleTypes.FLAME, at.x, at.y, at.z, 6, 0.4, 0.4, 0.4, 0.02);
-			}
+			if (step % 2 != 0) continue;
+			Vec3d at = segStart.add(n.multiply(step));
+			SmokeSystem.emit(at, SmokeSystem.Source.INDUSTRIAL, 1.4f, 0.5f, 70);
+			world.spawnParticles(ParticleTypes.FLAME, at.x, at.y, at.z, 6, 0.4, 0.4, 0.4, 0.02);
 		}
 		if (carved > 0) {
 			Vec3d end = Vec3d.ofCenter(origin).add(n.multiply(len - 1));
