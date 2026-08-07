@@ -230,9 +230,14 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 		// draws its own hand-built cubes through; a rocket casing is not different from a worm
 		// segment as far as the renderer is concerned.
 		//
-		// Solid, and with each face's own outward normal. These boxes are written by hand and their
-		// faces are not wound consistently outward, so a culling layer would drop whichever ones
-		// happen to face away and leave the body full of holes — getEntitySolid does not cull.
+		// Solid, and with each face's own outward normal. Recomputing the winding of the coordinates
+		// below (cross product of each face's own edges) shows all six *are* wound consistently
+		// outward — the "not wound consistently" claim this comment used to make was stale, left over
+		// from before these coordinates were last touched. What's actually unresolved is the other
+		// half of the question: whether getEntitySolid culls backfaces at all in this MC/Fabric
+		// version's RenderPhase setup, and if so, which winding it treats as front — this project has
+		// no decompiled Minecraft source and no live client available to check either way. See quad()
+		// below for how that is made not to matter.
 		VertexConsumer vc = consumers.getBuffer(RenderLayer.getEntitySolid(TEXTURE));
 		float a = ((argb >> 24) & 255) / 255f;
 		float r = ((argb >> 16) & 255) / 255f;
@@ -248,6 +253,20 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 		quad(vc, entry, x1, y0, z0, x1, y1, z0, x1, y1, z1, x1, y0, z1, r, g, b, a, 1, 0, 0);
 	}
 
+	/**
+	 * Emits each face in both winding orders. Whichever convention getEntitySolid actually culls
+	 * against — if it culls at all, which this environment cannot check either way (see drawBox) —
+	 * one ordering is front-facing and survives; the other is back-facing and gets dropped. If
+	 * culling turns out to be off entirely, both orderings draw: same four corners, same colour,
+	 * landing on identical depth, so the second pass paints over the first rather than showing as a
+	 * seam. Either way the face is fully visible; there is no ordering under which it goes missing.
+	 *
+	 * <p>Doubles the vertex count per box — not a cost worth trading the certainty for at this scale
+	 * (a handful of small boxes per round, never many rounds at once). A custom RenderLayer.of(...)
+	 * with its own Cull phase forced off would only need one winding, but that API has no precedent
+	 * anywhere in this codebase and could not be compiled or run here to get right; worth revisiting
+	 * later against real CI, on its own, not as a precondition for the box rendering at all.
+	 */
 	private static void quad(VertexConsumer vc, MatrixStack.Entry entry,
 							 float x0, float y0, float z0, float x1, float y1, float z1,
 							 float x2, float y2, float z2, float x3, float y3, float z3,
@@ -257,6 +276,10 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 		vc.vertex(m, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
 		vc.vertex(m, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
 		vc.vertex(m, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
 	}
 
 	@Override

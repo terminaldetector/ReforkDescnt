@@ -212,9 +212,14 @@ public final class WeaponViewRenderer {
 		// MegaWormRenderer and (as of the same fix) ProjectileRenderer already draw their own
 		// hand-built cubes through.
 		//
-		// Solid, and with each face's own outward normal. These boxes are written by hand and their
-		// faces are not wound consistently outward, so a culling layer would drop whichever ones
-		// happen to face away and leave the body full of holes — getEntitySolid does not cull.
+		// Solid, and with each face's own outward normal. Recomputing the winding of the coordinates
+		// below (cross product of each face's own edges) shows all six *are* wound consistently
+		// outward — the "not wound consistently" claim this comment used to make was stale, left over
+		// from before these coordinates were last touched. What's actually unresolved is the other
+		// half of the question: whether getEntitySolid culls backfaces at all in this MC/Fabric
+		// version's RenderPhase setup, and if so, which winding it treats as front — this project has
+		// no decompiled Minecraft source and no live client available to check either way. See quad()
+		// below for how that is made not to matter.
 		var entry = matrices.peek();
 		var vc = consumers.getBuffer(net.minecraft.client.render.RenderLayer.getEntitySolid(TEXTURE));
 		float a = ((argb >> 24) & 255) / 255f;
@@ -232,6 +237,16 @@ public final class WeaponViewRenderer {
 		quad(vc, entry, x1, y0, z0, x1, y1, z0, x1, y1, z1, x1, y0, z1, r, g, b, a, light, 1, 0, 0);
 	}
 
+	/**
+	 * Emits each face in both winding orders. Whichever convention getEntitySolid actually culls
+	 * against — if it culls at all, which this environment cannot check either way (see drawBox) —
+	 * one ordering is front-facing and survives; the other is back-facing and gets dropped. If
+	 * culling turns out to be off entirely, both orderings draw: same four corners, same colour,
+	 * landing on identical depth, so the second pass paints over the first rather than showing as a
+	 * seam. Either way the face is fully visible; there is no ordering under which it goes missing.
+	 * Doubles the vertex count per box — negligible next to a single vanilla mob model, and not a
+	 * cost worth trading the certainty for at this scale.
+	 */
 	private static void quad(net.minecraft.client.render.VertexConsumer vc, MatrixStack.Entry entry,
 							 float x0, float y0, float z0, float x1, float y1, float z1,
 							 float x2, float y2, float z2, float x3, float y3, float z3,
@@ -241,5 +256,9 @@ public final class WeaponViewRenderer {
 		vc.vertex(m, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(0).light(light).normal(nx, ny, nz);
 		vc.vertex(m, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(0).light(light).normal(nx, ny, nz);
 		vc.vertex(m, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(0).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(0).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(0).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(0).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(0).light(light).normal(nx, ny, nz);
 	}
 }

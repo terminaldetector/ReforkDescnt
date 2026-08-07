@@ -38,20 +38,36 @@ Speeds themselves are unchanged — this is what the rounds already did, drawn s
 ## Why nothing was on screen (render layer)
 
 Both `ProjectileRenderer.drawBox` and `WeaponViewRenderer.drawBox` emit six **quads** — 24 vertices,
-four per face — into `RenderLayer.getDebugFilledBox()`. That layer is declared with
-`VertexFormat.DrawMode.TRIANGLE_STRIP`. Quad-ordered vertices read as a strip are not six faces; they
-are a run of degenerate slivers, so the rounds had no visible body at all and neither did the ship's
-weapon modules.
+four per face. Three render layers, in order, before this settled:
 
-Solid geometry now goes to `RenderLayer.getDebugQuads()` — `POSITION_COLOR`, `DrawMode.QUADS`,
-translucent, **culling disabled**. Culling matters: these boxes are written by hand and their faces
-are not wound consistently outward, so a culling layer drops whichever ones happen to face away and
-leaves the body full of holes. Glow shells go to `RenderLayer.getLightning()`, which is the same
-vertex format and draw mode but blends additively.
+1. `RenderLayer.getDebugFilledBox()`, declared `VertexFormat.DrawMode.TRIANGLE_STRIP`. Quad-ordered
+   vertices read as a strip are not six faces; they are a run of degenerate slivers, so the rounds had
+   no visible body at all and neither did the ship's weapon modules.
+2. `RenderLayer.getDebugQuads()`/`getLightning()` — right primitive (`DrawMode.QUADS`), wrong layer:
+   both are special-purpose vanilla layers (the F3 debug overlay; the lightning-bolt entity), and per
+   `CockpitRenderer`'s own finding from fixing the exact same class of problem, one that "often never
+   appears under TLauncher / sodium-class pipelines." High-frequency gameplay geometry — every shot
+   fired, the weapon view held every frame in first person — going through a layer that sometimes
+   doesn't render, or renders one of several quad passes without the others, reads as disconnected
+   fragments rather than a coherent shape.
+3. `RenderLayer.getEntitySolid()`/`getEntityTranslucent()` — the ordinary entity layers
+   `DroneSwarmRenderer`, `SkyUfoRenderer` and `MegaWormRenderer` already drew their own hand-built
+   quads through successfully. Reliable, but this project cannot check locally whether these layers
+   cull backfaces at all, or which winding they'd treat as front if they do — no decompiled Minecraft
+   source and no live client are available here, only GitHub Actions CI, which compiles and runs
+   pure-logic tests but never renders a frame. Trusting one winding blind was exactly what step 2's
+   symptom looked like again after this swap (see the section below): a box whose faces are each
+   internally consistent but might be **entirely** front- or **entirely** back-facing, never partway.
+   `quad()` in every renderer built this way now emits each face in **both** winding orders instead of
+   betting on one — whichever the true convention favours survives; if culling turns out to be off
+   entirely, the second pass just overpaints the first, since it is the same four corners and the same
+   colour landing on identical depth, not a different surface competing for it.
 
-The split is deliberate. Additive light adds nothing to a background that is already bright, so an
-all-glow bolt reads beautifully in a dark mine and washes out over a sunlit field. Glow shells
-additive, core solid: legible on any background.
+One casualty of steps 2→3: glow shells used to blend additively (`getLightning()`, chosen so an
+all-glow bolt reads in a dark mine without washing out a sunlit field). `getEntityTranslucent()` is
+ordinary alpha blending, not additive — a deliberate reliability trade, not an oversight. The opaque
+core (alpha 1.0) still fully covers whatever is behind it either way, so it stays legible on any
+background; the glow itself is a softer effect than before.
 
 ## Structure copied from the original (Descent 2 source)
 
@@ -69,9 +85,9 @@ seen edge-on from, and it is the same bright shape coming at you as crossing in 
 missile is a model because a missile has a nose and a tail you are meant to read.
 
 We follow the split: `MESH_BOLT` and `MESH_ORB` take the blob path (camera-facing quad, saturated
-glow with a whitened core, additive), `MESH_ROCKET` / `MESH_DRILL` / `MESH_MINE` take the model path
-(oriented body, plus a camera-facing exhaust blob at a rocket's tail so one heading away from you is
-still a light).
+glow with a whitened core — translucent, not additive; see "Why nothing was on screen" above),
+`MESH_ROCKET` / `MESH_DRILL` / `MESH_MINE` take the model path (oriented body, plus a camera-facing
+exhaust blob at a rocket's tail so one heading away from you is still a light).
 
 One liberty: the blob is stretched along its screen track. Descent's rounds are slow enough to be
 discrete objects frame to frame; ours cross seventy blocks in a tick, so an unstretched blob would be
@@ -105,3 +121,36 @@ Farther targets are untouched: the floor only ever raises a raycast distance, ne
 Pinned by `LaserConvergenceTest`, which mirrors the muzzle offsets and the floor (both public/private
 constants copied with a "keep these in sync" note, since importing `DescentLaserFire` itself would
 require stubbing `PlayerEntity`/`ServerWorld`/`RaycastContext` for one number).
+
+## Fixed: solid box faces missing after the debug-layer swap
+
+Reported as "Забаговано отображение снарядов при выстреле" (projectile display is bugged on firing) —
+still broken after step 3 above shipped (`getEntitySolid`/`getEntityTranslucent` in place of the
+debug layers). Ordinary entity layers are exactly the layers vanilla mob models rely on backface
+culling for, and get it for free: a `ModelPart` cuboid is built by code that guarantees consistent
+winding. The seven renderers in this mod that hand-write box/quad vertices instead of using a
+`ModelPart` don't get that guarantee automatically, and it turned out to matter.
+
+Recomputing the actual coordinates in `ProjectileRenderer.drawBox`/`WeaponViewRenderer.drawBox` (cross
+product of each face's own edges) showed both were already internally consistent — a comment claiming
+otherwise was stale, left over from before those coordinates were last touched. But `MegaWormRenderer`,
+`SkyUfoRenderer`, `EndReactorBossRenderer`, `ReactorKeeperRenderer` and `DroneSwarmRenderer` hand-build
+cube/quad geometry through the same two layers too, and are *also* internally consistent — with the
+exact opposite handedness. A uniformly-wound box is either fully visible or fully backface-culled,
+never patchy, under any one convention, so at most one of these two groups could have been "right,"
+and this project has no way to check which — no decompiled Minecraft source, no live client, only CI,
+which never renders a frame.
+
+Fixed the same way in all seven files: `quad()` now emits every face in both winding orders (`v0,v1,
+v2,v3` then `v0,v3,v2,v1`), the true outward normal kept unchanged on both copies since the physical
+direction doesn't change even though which copy culling calls "front" might. Whichever ordering the
+real convention favours renders; if culling isn't active at all, both draw identically stacked and the
+second pass just overpaints the first. Pinned by `ProjectileBoxWindingTest`, which mirrors `drawBox`'s
+own six-face coordinates and confirms the two orderings are exact opposites and that the original order
+is the genuinely outward one.
+
+A custom `RenderLayer.of(...)` with its own `Cull` phase forced off would only need one winding
+instead of two — the "proper" fix — but this codebase has no existing use of
+`RenderLayer.of`/`MultiPhaseParameters`/`RenderPhase` anywhere to build from, and getting that surface
+wrong is a runtime failure (a `VertexFormat` mismatch) CI's pure-logic tests would not catch; it would
+ship green and only fail live. Left as a deliberate follow-up, not attempted blind here.

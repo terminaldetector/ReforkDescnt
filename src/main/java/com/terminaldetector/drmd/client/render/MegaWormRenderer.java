@@ -48,6 +48,14 @@ public class MegaWormRenderer extends EntityRenderer<MegaWormEntity> {
 		quad(buf, mat, s, -h, -s, s, -h, s, s, h, s, s, h, -s, light, r, g, b);
 	}
 
+	/**
+	 * Emitted in both winding orders. This body's faces are wound consistently but with the opposite
+	 * handedness from ProjectileRenderer's boxes (confirmed by recomputing the cross product), and
+	 * whether getEntitySolid culls backfaces at all here — let alone which convention it treats as
+	 * front — cannot be checked without a decompiled Minecraft source or a live client, neither
+	 * available in this environment. Emitting the reverse order too means whichever one is actually
+	 * front-facing survives regardless; see ProjectileRenderer.quad's doc comment for the full case.
+	 */
 	private static void quad(VertexConsumer buf, Matrix4f mat,
 							 float x0, float y0, float z0,
 							 float x1, float y1, float z1,
@@ -58,6 +66,10 @@ public class MegaWormRenderer extends EntityRenderer<MegaWormEntity> {
 		buf.vertex(mat, x1, y1, z1).color(r, g, b, 255).texture(1, 0).overlay(0).light(light).normal(0, 1, 0);
 		buf.vertex(mat, x2, y2, z2).color(r, g, b, 255).texture(1, 1).overlay(0).light(light).normal(0, 1, 0);
 		buf.vertex(mat, x3, y3, z3).color(r, g, b, 255).texture(0, 1).overlay(0).light(light).normal(0, 1, 0);
+		buf.vertex(mat, x0, y0, z0).color(r, g, b, 255).texture(0, 0).overlay(0).light(light).normal(0, 1, 0);
+		buf.vertex(mat, x3, y3, z3).color(r, g, b, 255).texture(0, 1).overlay(0).light(light).normal(0, 1, 0);
+		buf.vertex(mat, x2, y2, z2).color(r, g, b, 255).texture(1, 1).overlay(0).light(light).normal(0, 1, 0);
+		buf.vertex(mat, x1, y1, z1).color(r, g, b, 255).texture(1, 0).overlay(0).light(light).normal(0, 1, 0);
 	}
 
 	@Override

@@ -33,6 +33,11 @@ public class DroneSwarmRenderer extends EntityRenderer<DroneSwarmEntity> {
 		quad(buf, mat, -s, -s * 0.4f, -s, -s, -s * 0.4f, s, s, -s * 0.4f, s, s, -s * 0.4f, -s, light);
 	}
 
+	/**
+	 * Emitted in both winding orders — see ProjectileRenderer.quad's doc comment: this codebase has
+	 * no way to check which winding (if either) getEntityTranslucent actually keeps after culling
+	 * here, so both are drawn and whichever is front-facing survives regardless.
+	 */
 	private static void quad(VertexConsumer buf, Matrix4f mat,
 							 float x0, float y0, float z0,
 							 float x1, float y1, float z1,
@@ -43,6 +48,10 @@ public class DroneSwarmRenderer extends EntityRenderer<DroneSwarmEntity> {
 		buf.vertex(mat, x1, y1, z1).color(200, 40, 40, 90).texture(1, 0).overlay(0).light(light).normal(0, 1, 0);
 		buf.vertex(mat, x2, y2, z2).color(200, 40, 40, 90).texture(1, 1).overlay(0).light(light).normal(0, 1, 0);
 		buf.vertex(mat, x3, y3, z3).color(200, 40, 40, 90).texture(0, 1).overlay(0).light(light).normal(0, 1, 0);
+		buf.vertex(mat, x0, y0, z0).color(200, 40, 40, 90).texture(0, 0).overlay(0).light(light).normal(0, 1, 0);
+		buf.vertex(mat, x3, y3, z3).color(200, 40, 40, 90).texture(0, 1).overlay(0).light(light).normal(0, 1, 0);
+		buf.vertex(mat, x2, y2, z2).color(200, 40, 40, 90).texture(1, 1).overlay(0).light(light).normal(0, 1, 0);
+		buf.vertex(mat, x1, y1, z1).color(200, 40, 40, 90).texture(1, 0).overlay(0).light(light).normal(0, 1, 0);
 	}
 
 	@Override

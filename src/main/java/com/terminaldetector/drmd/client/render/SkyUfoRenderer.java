@@ -58,6 +58,11 @@ public class SkyUfoRenderer extends EntityRenderer<SkyUfoEntity> {
 		quad(buf, mat, hx, -hy, -hz, hx, -hy, hz, hx, hy, hz, hx, hy, -hz, light, r, g, b, a);
 	}
 
+	/**
+	 * Emitted in both winding orders — see ProjectileRenderer.quad's doc comment: this codebase has
+	 * no way to check which winding (if either) getEntitySolid/getEntityTranslucent actually keep
+	 * after culling here, so both are drawn and whichever is front-facing survives regardless.
+	 */
 	private static void quad(VertexConsumer buf, Matrix4f mat,
 							 float x0, float y0, float z0,
 							 float x1, float y1, float z1,
@@ -68,6 +73,10 @@ public class SkyUfoRenderer extends EntityRenderer<SkyUfoEntity> {
 		buf.vertex(mat, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(0).light(light).normal(0, 1, 0);
 		buf.vertex(mat, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(0).light(light).normal(0, 1, 0);
 		buf.vertex(mat, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(0).light(light).normal(0, 1, 0);
+		buf.vertex(mat, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(0).light(light).normal(0, 1, 0);
+		buf.vertex(mat, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(0).light(light).normal(0, 1, 0);
+		buf.vertex(mat, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(0).light(light).normal(0, 1, 0);
+		buf.vertex(mat, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(0).light(light).normal(0, 1, 0);
 	}
 
 	@Override
