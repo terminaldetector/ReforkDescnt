@@ -45,7 +45,7 @@ public final class TechnogenicSeaBiomeWorldgen {
 		if (world.getRegistryKey() != World.OVERWORLD) return;
 		if (!TechnogenicSeaRegions.isBound()) return;
 		DescentWorldState state = DescentWorldState.get(world);
-		if (state.isPsychedelic()) return;
+		if (state.isPsychedelic() || state.isInfiniteMegacity()) return;
 
 		ChunkPos cp = chunk.getPos();
 		BlockPos anchor = TechnogenicSeaRegions.anchorAt(cp.getCenterX(), cp.getCenterZ());

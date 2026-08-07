@@ -60,7 +60,7 @@ public final class SurfaceEventWorldgen {
 		if (worldSeed == Long.MIN_VALUE) return;
 
 		DescentWorldState state = DescentWorldState.get(world);
-		if (state.isPsychedelic()) return;
+		if (state.isPsychedelic() || state.isInfiniteMegacity()) return;
 
 		ChunkPos cp = chunk.getPos();
 		BlockPos anchor = anchorAt(cp.getCenterX(), cp.getCenterZ());

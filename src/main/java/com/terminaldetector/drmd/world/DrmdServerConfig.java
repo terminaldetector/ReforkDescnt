@@ -9,19 +9,42 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 /**
- * Server / worldgen options loaded at mod init.
+ * Server / worldgen options loaded at mod init, and editable from the new "DRMD World Generation"
+ * screen off the vanilla Create World menu ({@code DrmdWorldGenScreen}, opened via a button injected
+ * by {@code CreateWorldScreenMixin}) instead of by hand-editing this file.
  *
- * <p>{@code psychedelicWorlds} is the stock toggle for fractal void campaigns —
- * set before creating or first-loading a world ({@code config/drmd-server.properties}).
+ * <p>These settings are global — one {@code config/drmd-server.properties}, not one per world — which
+ * is what "GUI-editable before creating a world" could reach without also making every
+ * {@link WorldFeatures} read site (chunk-load listeners, {@code DescentSession}, the biome-source
+ * mixin) world-aware. The choice a player makes here becomes the default for the *next* world created
+ * or first loaded; {@code DescentSession.seedWorld} locks the resolved {@link WorldKind} into that
+ * world's own {@link DescentWorldState} at first seed, exactly as it already did for the one existing
+ * toggle ({@code psychedelic}), so a later change here never reaches back into an existing save.
  */
 public final class DrmdServerConfig {
 	private static final String FILE = DescentMod.MOD_ID + "-server.properties";
 
+	/** What a freshly created world generates as. */
+	public enum WorldKind {
+		/** The regular Descent campaign: spawn hub, biome plates, macro structures. */
+		STOCK,
+		/** Fractal void worlds with a weightless start ({@link com.terminaldetector.drmd.world.psychedelic.PsychedelicWorldgen}). */
+		PSYCHEDELIC,
+		/** Dense city tiled without limit in every direction — a bot/swarm-AI test arena. */
+		INFINITE_MEGACITY
+	}
+
 	/**
 	 * When true, new Descent stock seeds become psychedelic fractal void worlds
 	 * with a weightless start point (see {@link com.terminaldetector.drmd.world.psychedelic.PsychedelicWorldgen}).
+	 *
+	 * @deprecated superseded by {@link #worldKind}; kept so a {@code psychedelicWorlds=true} line in an
+	 * existing {@code drmd-server.properties} still works after this field stopped being the only one.
 	 */
+	@Deprecated
 	public static boolean psychedelicWorlds = false;
+
+	public static WorldKind worldKind = WorldKind.STOCK;
 
 	private static boolean loaded;
 
@@ -42,19 +65,100 @@ public final class DrmdServerConfig {
 			DescentMod.LOGGER.warn("Could not read {}: {}", FILE, e.toString());
 			return;
 		}
+		applyFrom(props);
+		DescentMod.LOGGER.info("DRMD server config — worldKind={} netherBand={} endBand={} "
+						+ "klondikeIslands={} macroWorldgen={} surfaceDistricts={} orbitJunk={}",
+				worldKind, WorldFeatures.NETHER_BAND, WorldFeatures.END_BAND, WorldFeatures.KLONDIKE_ISLANDS,
+				WorldFeatures.MACRO_WORLDGEN, WorldFeatures.SURFACE_DISTRICTS, WorldFeatures.ORBIT_JUNK);
+	}
+
+	/**
+	 * Parse {@code props} into the static fields and push the six {@link WorldFeatures} flags —
+	 * shared by {@link #load()} and {@link #save}, so writing from the new screen takes effect
+	 * immediately without a restart.
+	 */
+	private static void applyFrom(Properties props) {
 		psychedelicWorlds = Boolean.parseBoolean(props.getProperty("psychedelicWorlds", "false"));
-		DescentMod.LOGGER.info("DRMD server config — psychedelicWorlds={}", psychedelicWorlds);
+		String kind = props.getProperty("worldKind");
+		if (kind != null) {
+			worldKind = parseKind(kind, psychedelicWorlds ? WorldKind.PSYCHEDELIC : WorldKind.STOCK);
+		} else {
+			// No worldKind line at all: an old properties file, or a hand-written one. Fall back to
+			// the legacy boolean so it keeps meaning what it always meant.
+			worldKind = psychedelicWorlds ? WorldKind.PSYCHEDELIC : WorldKind.STOCK;
+		}
+		WorldFeatures.NETHER_BAND = parseBool(props, "netherBand", WorldFeatures.NETHER_BAND);
+		WorldFeatures.END_BAND = parseBool(props, "endBand", WorldFeatures.END_BAND);
+		WorldFeatures.KLONDIKE_ISLANDS = parseBool(props, "klondikeIslands", WorldFeatures.KLONDIKE_ISLANDS);
+		WorldFeatures.ORBIT_JUNK = parseBool(props, "orbitJunk", WorldFeatures.ORBIT_JUNK);
+		WorldFeatures.MACRO_WORLDGEN = parseBool(props, "macroWorldgen", WorldFeatures.MACRO_WORLDGEN);
+		WorldFeatures.SURFACE_DISTRICTS = parseBool(props, "surfaceDistricts", WorldFeatures.SURFACE_DISTRICTS);
+	}
+
+	private static boolean parseBool(Properties props, String key, boolean fallback) {
+		String v = props.getProperty(key);
+		return v == null ? fallback : Boolean.parseBoolean(v);
+	}
+
+	/** {@code WorldKind.valueOf} without throwing on a stale/typo'd value from a hand-edited file. */
+	private static WorldKind parseKind(String raw, WorldKind fallback) {
+		try {
+			return WorldKind.valueOf(raw.trim().toUpperCase(java.util.Locale.ROOT));
+		} catch (IllegalArgumentException e) {
+			DescentMod.LOGGER.warn("Unknown worldKind '{}' in {}, defaulting to {}", raw, FILE, fallback);
+			return fallback;
+		}
 	}
 
 	private static void saveDefaults(Path path) {
 		Properties props = new Properties();
+		props.setProperty("worldKind", WorldKind.STOCK.name());
 		props.setProperty("psychedelicWorlds", "false");
+		props.setProperty("netherBand", String.valueOf(WorldFeatures.NETHER_BAND));
+		props.setProperty("endBand", String.valueOf(WorldFeatures.END_BAND));
+		props.setProperty("klondikeIslands", String.valueOf(WorldFeatures.KLONDIKE_ISLANDS));
+		props.setProperty("orbitJunk", String.valueOf(WorldFeatures.ORBIT_JUNK));
+		props.setProperty("macroWorldgen", String.valueOf(WorldFeatures.MACRO_WORLDGEN));
+		props.setProperty("surfaceDistricts", String.valueOf(WorldFeatures.SURFACE_DISTRICTS));
+		writeFile(path, props);
+	}
+
+	/**
+	 * Persist the current in-memory settings, called from {@code DrmdWorldGenScreen} on close.
+	 * Applies immediately (no restart needed) and rewrites the file.
+	 */
+	public static void save(WorldKind kind, boolean netherBand, boolean endBand, boolean klondikeIslands,
+							 boolean orbitJunk, boolean macroWorldgen, boolean surfaceDistricts) {
+		load(); // ensure `loaded`, so a save before any world exists still sticks
+		worldKind = kind;
+		psychedelicWorlds = kind == WorldKind.PSYCHEDELIC;
+		WorldFeatures.NETHER_BAND = netherBand;
+		WorldFeatures.END_BAND = endBand;
+		WorldFeatures.KLONDIKE_ISLANDS = klondikeIslands;
+		WorldFeatures.ORBIT_JUNK = orbitJunk;
+		WorldFeatures.MACRO_WORLDGEN = macroWorldgen;
+		WorldFeatures.SURFACE_DISTRICTS = surfaceDistricts;
+
+		Properties props = new Properties();
+		props.setProperty("worldKind", worldKind.name());
+		props.setProperty("psychedelicWorlds", String.valueOf(psychedelicWorlds));
+		props.setProperty("netherBand", String.valueOf(netherBand));
+		props.setProperty("endBand", String.valueOf(endBand));
+		props.setProperty("klondikeIslands", String.valueOf(klondikeIslands));
+		props.setProperty("orbitJunk", String.valueOf(orbitJunk));
+		props.setProperty("macroWorldgen", String.valueOf(macroWorldgen));
+		props.setProperty("surfaceDistricts", String.valueOf(surfaceDistricts));
+		writeFile(FabricLoader.getInstance().getConfigDir().resolve(FILE), props);
+	}
+
+	private static void writeFile(Path path, Properties props) {
 		try {
 			Files.createDirectories(path.getParent());
 			try (var out = Files.newOutputStream(path)) {
 				props.store(out, """
-						DRMD 6DOF server / worldgen options
-						psychedelicWorlds=true — stock fractal void worlds (10–20 fractal kinds), weightless spawn
+						DRMD 6DOF server / worldgen options — editable from the DRMD World Generation
+						screen off the vanilla Create World menu, or by hand here.
+						worldKind = STOCK | PSYCHEDELIC | INFINITE_MEGACITY
 						""");
 			}
 		} catch (IOException e) {
@@ -65,6 +169,12 @@ public final class DrmdServerConfig {
 	/** Effective stock psychedelic flag (config or compile-time WorldFeatures). */
 	public static boolean psychedelicEnabled() {
 		load();
-		return psychedelicWorlds || WorldFeatures.PSYCHEDELIC_WORLDS;
+		return worldKind == WorldKind.PSYCHEDELIC || WorldFeatures.PSYCHEDELIC_WORLDS;
+	}
+
+	/** Effective infinite-megacity flag. No compile-time equivalent — this mode is new. */
+	public static boolean infiniteMegacityEnabled() {
+		load();
+		return worldKind == WorldKind.INFINITE_MEGACITY;
 	}
 }

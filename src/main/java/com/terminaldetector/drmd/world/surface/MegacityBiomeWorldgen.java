@@ -49,7 +49,7 @@ public final class MegacityBiomeWorldgen {
 		if (!MegacityRegions.isBound()) return;
 
 		DescentWorldState state = DescentWorldState.get(world);
-		if (state.isPsychedelic()) return;
+		if (state.isPsychedelic() || state.isInfiniteMegacity()) return;
 
 		ChunkPos cp = chunk.getPos();
 		int cx = cp.getCenterX();

@@ -23,6 +23,8 @@ public class DescentWorldState extends PersistentState {
 	private boolean psychedelic;
 	/** Fractal variant index baked into this world (0..N-1). */
 	private int psychedelicVariant = -1;
+	/** Locked at first stock seed when {@code DrmdServerConfig.WorldKind.INFINITE_MEGACITY} was chosen. */
+	private boolean infiniteMegacity;
 	/** Packed plate anchors already queued (x<<32|z). */
 	private final Set<Long> megacitySeeded = new HashSet<>();
 	private final Set<Long> technogenicSeeded = new HashSet<>();
@@ -30,6 +32,8 @@ public class DescentWorldState extends PersistentState {
 	private final Set<Long> ironGuildSeeded = new HashSet<>();
 	/** Packed surface-event anchors (UFO / outpost / ruin) already queued. */
 	private final Set<Long> surfaceEventSeeded = new HashSet<>();
+	/** Packed infinite-megacity grid cells (cellX<<32|cellZ) already queued. */
+	private final Set<Long> infiniteMegacityCellSeeded = new HashSet<>();
 
 	public static DescentWorldState get(ServerWorld world) {
 		PersistentStateManager mgr = world.getPersistentStateManager();
@@ -44,11 +48,13 @@ public class DescentWorldState extends PersistentState {
 		s.stockSeeded = nbt.getBoolean("stockSeeded");
 		s.psychedelic = nbt.getBoolean("psychedelic");
 		s.psychedelicVariant = nbt.contains("psychedelicVariant") ? nbt.getInt("psychedelicVariant") : -1;
+		s.infiniteMegacity = nbt.getBoolean("infiniteMegacity");
 		readPacked(nbt, "megacitySeeded", s.megacitySeeded);
 		readPacked(nbt, "technogenicSeeded", s.technogenicSeeded);
 		readPacked(nbt, "scorchedSeeded", s.scorchedSeeded);
 		readPacked(nbt, "ironGuildSeeded", s.ironGuildSeeded);
 		readPacked(nbt, "surfaceEventSeeded", s.surfaceEventSeeded);
+		readPacked(nbt, "infiniteMegacityCellSeeded", s.infiniteMegacityCellSeeded);
 		return s;
 	}
 
@@ -58,11 +64,13 @@ public class DescentWorldState extends PersistentState {
 		nbt.putBoolean("stockSeeded", stockSeeded);
 		nbt.putBoolean("psychedelic", psychedelic);
 		nbt.putInt("psychedelicVariant", psychedelicVariant);
+		nbt.putBoolean("infiniteMegacity", infiniteMegacity);
 		writePacked(nbt, "megacitySeeded", megacitySeeded);
 		writePacked(nbt, "technogenicSeeded", technogenicSeeded);
 		writePacked(nbt, "scorchedSeeded", scorchedSeeded);
 		writePacked(nbt, "ironGuildSeeded", ironGuildSeeded);
 		writePacked(nbt, "surfaceEventSeeded", surfaceEventSeeded);
+		writePacked(nbt, "infiniteMegacityCellSeeded", infiniteMegacityCellSeeded);
 		return nbt;
 	}
 
@@ -91,6 +99,17 @@ public class DescentWorldState extends PersistentState {
 
 	public int getPsychedelicVariant() { return psychedelicVariant; }
 	public void setPsychedelicVariant(int v) { this.psychedelicVariant = v; markDirty(); }
+
+	public boolean isInfiniteMegacity() { return infiniteMegacity; }
+	public void setInfiniteMegacity(boolean v) { this.infiniteMegacity = v; markDirty(); }
+
+	public boolean isInfiniteMegacityCellSeeded(int cellX, int cellZ) {
+		return infiniteMegacityCellSeeded.contains(pack(cellX, cellZ));
+	}
+
+	public void markInfiniteMegacityCellSeeded(int cellX, int cellZ) {
+		if (infiniteMegacityCellSeeded.add(pack(cellX, cellZ))) markDirty();
+	}
 
 	public boolean isMegacitySeeded(int x, int z) {
 		return megacitySeeded.contains(pack(x, z));
@@ -139,12 +158,13 @@ public class DescentWorldState extends PersistentState {
 	public void clearLandmarkSeedMarks() {
 		boolean any = !megacitySeeded.isEmpty() || !technogenicSeeded.isEmpty()
 				|| !scorchedSeeded.isEmpty() || !ironGuildSeeded.isEmpty()
-				|| !surfaceEventSeeded.isEmpty();
+				|| !surfaceEventSeeded.isEmpty() || !infiniteMegacityCellSeeded.isEmpty();
 		megacitySeeded.clear();
 		technogenicSeeded.clear();
 		scorchedSeeded.clear();
 		ironGuildSeeded.clear();
 		surfaceEventSeeded.clear();
+		infiniteMegacityCellSeeded.clear();
 		if (any) markDirty();
 	}
 

@@ -43,7 +43,7 @@ public final class IronGuildBiomeWorldgen {
 		if (world.getRegistryKey() != World.OVERWORLD) return;
 		if (!IronGuildRegions.isBound()) return;
 		DescentWorldState state = DescentWorldState.get(world);
-		if (state.isPsychedelic()) return;
+		if (state.isPsychedelic() || state.isInfiniteMegacity()) return;
 
 		ChunkPos cp = chunk.getPos();
 		BlockPos anchor = IronGuildRegions.anchorAt(cp.getCenterX(), cp.getCenterZ());

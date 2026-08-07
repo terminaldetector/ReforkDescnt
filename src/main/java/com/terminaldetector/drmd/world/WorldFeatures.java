@@ -11,6 +11,13 @@ package com.terminaldetector.drmd.world;
  * <p>Flip a flag back to {@code true} to bring a piece back. Nothing else needs changing — the
  * dimension is still the full column, so the parked bands have somewhere to exist the moment they
  * are wanted again.
+ *
+ * <p>These six are {@code static}, not {@code static final} — the values below are still what a
+ * fresh install ships with and what every read site keeps trusting, but {@link DrmdServerConfig#load()}
+ * overwrites them once, at mod init, from {@code config/drmd-server.properties} (or from the new
+ * pre-world-creation screen, which just writes that same file). Every existing read site — chunk-load
+ * listeners, {@code DescentSession}, the biome-source mixin — reads these fields directly and none of
+ * them needed to change: the override happens before any of them ever run.
  */
 public final class WorldFeatures {
 	/**
@@ -19,7 +26,7 @@ public final class WorldFeatures {
 	 * <p>On: streamed near diggers via {@code MantleStream} (HL2 fragment load). Bedrock is rewritten
 	 * to plasma-resistant granite everywhere; full mantle/cavern fills only near pilots below industrial.
 	 */
-	public static final boolean NETHER_BAND = true;
+	public static boolean NETHER_BAND = true;
 
 	/**
 	 * The End band at the top of the column: an End-stone archipelago with the reactor arena in it.
@@ -30,18 +37,18 @@ public final class WorldFeatures {
 	 * are now built by {@code EndIslandGenerator}: the same sparse real-block shape as the Klondike
 	 * islands in the sky band, in End stone, rather than the dense slab this used to write.
 	 */
-	public static final boolean END_BAND = true;
+	public static boolean END_BAND = true;
 
 	/**
 	 * Sparse Klondike floating islands (real blocks) in the sky band.
 	 */
-	public static final boolean KLONDIKE_ISLANDS = true;
+	public static boolean KLONDIKE_ISLANDS = true;
 
 	/**
 	 * Techno-ring satellites + junk plates at R≈2048. Parked so the Spark skybox ring is the ring
 	 * (not competing abstract debris).
 	 */
-	public static final boolean ORBIT_JUNK = false;
+	public static boolean ORBIT_JUNK = false;
 
 	/**
 	 * Megastructures / industrial complexes on CHUNK_LOAD (queued via landmark drain — not inline).
@@ -49,14 +56,14 @@ public final class WorldFeatures {
 	 * <p>Was parked after spawn freezes; generators now go through {@code DescentSession} /
 	 * {@code server.execute} with live-gen gating so distant flyover content returns.
 	 */
-	public static final boolean MACRO_WORLDGEN = true;
+	public static boolean MACRO_WORLDGEN = true;
 
 	/**
 	 * Surface campaign without full macro WG2: spawn lunar hub + hub satellites, and
 	 * biome plates elsewhere — {@code drmd:megacity}, {@code drmd:technogenic_sea},
 	 * {@code drmd:scorched_lands}, {@code drmd:iron_guild} (not at spawn).
 	 */
-	public static final boolean SURFACE_DISTRICTS = true;
+	public static boolean SURFACE_DISTRICTS = true;
 
 	/**
 	 * Compile-time force for psychedelic fractal stock worlds.

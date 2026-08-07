@@ -113,7 +113,7 @@ public final class DescentSession {
 		BlockPos hub = new BlockPos(spawn.getX() + 24, Math.max(surfaceY + 12, 90), spawn.getZ() + 24);
 
 		// Hub must re-queue even when stockSeeded — queue is wiped every boot.
-		if (!state.isSpawnHubGenerated() && !state.isPsychedelic()) {
+		if (!state.isSpawnHubGenerated() && !state.isPsychedelic() && !state.isInfiniteMegacity()) {
 			BlockPos hubAt = hub.toImmutable();
 			enqueueLandmark(hubAt, () -> {
 				if (DescentWorldState.get(world).isSpawnHubGenerated()) return;
@@ -131,6 +131,18 @@ public final class DescentSession {
 			state.setStockSeeded(true);
 			DescentMod.LOGGER.info("Descent psychedelic stock seeded — variant=#{}",
 					state.getPsychedelicVariant());
+			return;
+		}
+
+		// Stock option: infinite megacity test arena — no landmarks to seed here, InfiniteMegacityWorldgen
+		// tiles the city itself as chunks load near a player. Locking the choice into per-world state
+		// (not just reading DrmdServerConfig live) matches psychedelic above: a later change to the
+		// global default must not reach back into a world already committed to one or the other.
+		if (DrmdServerConfig.infiniteMegacityEnabled() || state.isInfiniteMegacity()) {
+			state.setInfiniteMegacity(true);
+			state.setStockSeeded(true);
+			DescentMod.LOGGER.info("Descent infinite-megacity stock seeded — grid pitch {}",
+					com.terminaldetector.drmd.world.surface.InfiniteMegacityRegions.PITCH);
 			return;
 		}
 

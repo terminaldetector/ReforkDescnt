@@ -43,7 +43,7 @@ public final class ScorchedLandsBiomeWorldgen {
 		if (world.getRegistryKey() != World.OVERWORLD) return;
 		if (!ScorchedLandsRegions.isBound()) return;
 		DescentWorldState state = DescentWorldState.get(world);
-		if (state.isPsychedelic()) return;
+		if (state.isPsychedelic() || state.isInfiniteMegacity()) return;
 
 		ChunkPos cp = chunk.getPos();
 		BlockPos anchor = ScorchedLandsRegions.anchorAt(cp.getCenterX(), cp.getCenterZ());
