@@ -183,7 +183,8 @@ public final class DescentHud {
 		int tx = x + 4, ty = y + 4;
 		float thrust = MathHelper.clamp(DescentClientState.speed / 2.5f, 0f, 1f);
 		var layer = com.terminaldetector.drmd.world.layer.WorldLayer.at(mc.world, mc.player.getY());
-		line(ctx, mc, tx, ty, "6DOF MODE: ON", GREEN);
+		line(ctx, mc, tx, ty, "6DOF MODE: " + (DescentClientState.enabled ? "ON" : "OFF"),
+				DescentClientState.enabled ? GREEN : AMBER);
 		line(ctx, mc, tx, ty + 11, String.format(Locale.ROOT, "THRUST: %d%%", Math.round(thrust * 100)), GREEN);
 		int abTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(DescentClientState.afterburnerTier);
 		int abColor = DescentClientState.alwaysRun
