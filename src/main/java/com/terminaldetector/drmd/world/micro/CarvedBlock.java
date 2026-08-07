@@ -102,7 +102,13 @@ public class CarvedBlock extends BlockWithEntity {
 	public List<ItemStack> getDroppedStacks(BlockState state, LootContextParameterSet.Builder builder) {
 		BlockEntity be = builder.getOptional(net.minecraft.loot.context.LootContextParameters.BLOCK_ENTITY);
 		if (be instanceof CarvedBlockEntity carved) {
-			return carved.source().getDroppedStacks(builder);
+			BlockState src = carved.source();
+			// A source carrying itself recurses here forever the moment anything asks for a drop —
+			// see the guard in replace() that stops it from being written in the first place. This
+			// is only reachable from a save that already has that corruption from before the guard
+			// existed; an empty drop is the safe fallback, not a real answer for "what was this."
+			if (src.getBlock() instanceof CarvedBlock) return List.of();
+			return src.getDroppedStacks(builder);
 		}
 		return super.getDroppedStacks(state, builder);
 	}
@@ -151,14 +157,38 @@ public class CarvedBlock extends BlockWithEntity {
 	/**
 	 * Put a carved block where an ordinary one was, remembering what it was.
 	 *
-	 * @return the block entity holding the shape, or {@code null} if the swap did not take
+	 * <p>{@code pos} being carved already is routine, not an edge case: the Descent shaft's own
+	 * boundary chamfer and a drill bore can both cross the same corner, and two passes of the drill
+	 * itself do the same. {@code source} is only ever the true material on the <em>first</em> carve —
+	 * on every carve after that, {@code world.getBlockState(pos)} is this very block, and wrapping a
+	 * carved block's default state as if it were the material it drops made {@code getDroppedStacks}
+	 * call itself through that "source" with no base case. The real source and the intersection of
+	 * both masks — only what both passes still leave solid — replace it instead.
+	 *
+	 * @return the block entity holding the shape, or {@code null} if the swap did not take (including
+	 *         when the two masks no longer share any solid cell, so the block breaks outright)
 	 */
 	public static CarvedBlockEntity replace(ServerWorld world, BlockPos pos, BlockState source, long mask) {
+		BlockState trueSource = source;
+		long combinedMask = mask;
+		if (world.getBlockEntity(pos) instanceof CarvedBlockEntity existing) {
+			trueSource = existing.source();
+			combinedMask = mask & existing.mask();
+		}
+		// Belt and suspenders against a save that already carries the self-reference this guards
+		// against above: unwrapping it here too means fixed data, not just no more of it.
+		if (trueSource.getBlock() instanceof CarvedBlock) {
+			trueSource = Blocks.STONE.getDefaultState();
+		}
+		if (combinedMask == MicroGrid.EMPTY) {
+			world.breakBlock(pos.toImmutable(), true, null);
+			return null;
+		}
 		world.setBlockState(pos, com.terminaldetector.drmd.entity.ModWorldBlocks.CARVED.getDefaultState(),
 				Block.NOTIFY_ALL);
 		BlockEntity be = world.getBlockEntity(pos);
 		if (!(be instanceof CarvedBlockEntity carved)) return null;
-		carved.init(source, mask);
+		carved.init(trueSource, combinedMask);
 		return carved;
 	}
 
@@ -166,6 +196,7 @@ public class CarvedBlock extends BlockWithEntity {
 	public static void restore(ServerWorld world, BlockPos pos) {
 		BlockEntity be = world.getBlockEntity(pos);
 		BlockState source = be instanceof CarvedBlockEntity carved ? carved.source() : Blocks.STONE.getDefaultState();
+		if (source.getBlock() instanceof CarvedBlock) source = Blocks.STONE.getDefaultState();
 		world.setBlockState(pos, source, Block.NOTIFY_ALL);
 	}
 
