@@ -100,6 +100,9 @@ public final class ModItems {
 	public static Item BOMB_TNT;
 	public static Item BOMB_CLUSTER;
 	public static Item BOMB_HEAVY_CLUSTER;
+	public static Item BOMB_CLUSTER_VIRUS_NETHER;
+	public static Item BOMB_CLUSTER_VIRUS_SCULK;
+	public static Item BOMB_CLUSTER_LASER;
 	public static Item BOMB_ROCKET;
 	public static Item BOMB_INCENDIARY;
 	public static Item BOMB_GUIDED;
@@ -226,6 +229,12 @@ public final class ModItems {
 				com.terminaldetector.drmd.world.bombardment.OrdnanceType.CLUSTER, new Item.Settings()));
 		BOMB_HEAVY_CLUSTER = register("bomb_heavy_cluster", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(
 				com.terminaldetector.drmd.world.bombardment.OrdnanceType.HEAVY_CLUSTER, new Item.Settings()));
+		BOMB_CLUSTER_VIRUS_NETHER = register("bomb_cluster_virus_nether", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(
+				com.terminaldetector.drmd.world.bombardment.OrdnanceType.CLUSTER_VIRUS_NETHER, new Item.Settings()));
+		BOMB_CLUSTER_VIRUS_SCULK = register("bomb_cluster_virus_sculk", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(
+				com.terminaldetector.drmd.world.bombardment.OrdnanceType.CLUSTER_VIRUS_SCULK, new Item.Settings()));
+		BOMB_CLUSTER_LASER = register("bomb_cluster_laser", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(
+				com.terminaldetector.drmd.world.bombardment.OrdnanceType.CLUSTER_LASER, new Item.Settings()));
 		BOMB_ROCKET = register("bomb_rocket", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(
 				com.terminaldetector.drmd.world.bombardment.OrdnanceType.ROCKET, new Item.Settings()));
 		BOMB_INCENDIARY = register("bomb_incendiary", new com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem(

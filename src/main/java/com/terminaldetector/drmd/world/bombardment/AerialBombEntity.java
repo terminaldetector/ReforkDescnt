@@ -6,16 +6,28 @@ import com.terminaldetector.drmd.world.atmosphere.AtmosphereBand;
 import com.terminaldetector.drmd.world.atmosphere.AtmosphereRules;
 import com.terminaldetector.drmd.world.fire.FireSystem;
 import com.terminaldetector.drmd.world.smoke.SmokeSystem;
+import com.terminaldetector.drmd.world.trap.LaserBeams;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.data.DataTracker;
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
@@ -32,6 +44,17 @@ import java.util.UUID;
  * and trails stream aft of velocity rather than world +Y.
  */
 public class AerialBombEntity extends Entity {
+	private static final TrackedData<Integer> TRAIL_COLOR =
+			DataTracker.registerData(AerialBombEntity.class, TrackedDataHandlerRegistry.INTEGER);
+	private static final TrackedData<Boolean> ROCKET_FX =
+			DataTracker.registerData(AerialBombEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+
+	/** Cluster-laser hazard: sweep time after a laser bomblet lands, before its final pop. */
+	private static final int LASER_HAZARD_TICKS = 100;
+	private static final double LASER_SPIN_DEG_PER_TICK = 9.0;
+	private static final int LASER_BEAM_LENGTH = 20;
+	private static final float LASER_BEAM_DAMAGE = 3.5f;
+
 	private OrdnanceType type = OrdnanceType.TNT_BOMB;
 	private UUID ownerId;
 	private BlockPos laserTarget;
@@ -41,6 +64,8 @@ public class AerialBombEntity extends Entity {
 	private boolean dispensed;
 	/** Multiplier on detonation blast for fragment bomblets. */
 	private float blastMul = 1f;
+	/** Countdown while a landed laser bomblet is sweeping; 0 = no hazard active. */
+	private int laserHazardTicks;
 
 	public AerialBombEntity(EntityType<? extends AerialBombEntity> type, World world) {
 		super(type, world);
@@ -51,6 +76,7 @@ public class AerialBombEntity extends Entity {
 		this.type = ordnance;
 		if (owner != null) this.ownerId = owner.getUuid();
 		this.laserTarget = laserTarget;
+		syncVisual();
 	}
 
 	public void configureSubmunition(OrdnanceType ordnance, UUID owner, float blastMul, Vec3d velocity) {
@@ -60,10 +86,17 @@ public class AerialBombEntity extends Entity {
 		this.blastMul = blastMul;
 		this.laserTarget = null;
 		setVelocity(velocity);
+		syncVisual();
 	}
 
 	public OrdnanceType getOrdnance() {
 		return type;
+	}
+
+	/** Pushes the fields the client actually needs — {@code type} itself is never synced. */
+	private void syncVisual() {
+		dataTracker.set(TRAIL_COLOR, type.trailColor);
+		dataTracker.set(ROCKET_FX, type.rocket);
 	}
 
 	/** Local DOWN for this round — owner's foot gravity when available, else world −Y. */
@@ -76,7 +109,10 @@ public class AerialBombEntity extends Entity {
 	}
 
 	@Override
-	protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder) {}
+	protected void initDataTracker(DataTracker.Builder builder) {
+		builder.add(TRAIL_COLOR, OrdnanceType.TNT_BOMB.trailColor);
+		builder.add(ROCKET_FX, false);
+	}
 
 	@Override
 	public void tick() {
@@ -86,10 +122,12 @@ public class AerialBombEntity extends Entity {
 		Vec3d aft = vel.lengthSquared() > 1e-6 ? vel.normalize().multiply(-1) : gravityDir();
 
 		if (getWorld().isClient) {
-			float r = ((type.trailColor >> 16) & 0xFF) / 255f;
-			float g = ((type.trailColor >> 8) & 0xFF) / 255f;
-			float b = (type.trailColor & 0xFF) / 255f;
-			float size = type.rocket ? 1.7f : 1.4f;
+			int trailColor = dataTracker.get(TRAIL_COLOR);
+			boolean rocketFx = dataTracker.get(ROCKET_FX);
+			float r = ((trailColor >> 16) & 0xFF) / 255f;
+			float g = ((trailColor >> 8) & 0xFF) / 255f;
+			float b = (trailColor & 0xFF) / 255f;
+			float size = rocketFx ? 1.7f : 1.4f;
 			// Tracer bead at the round + dust streaming aft (works inverted / banked).
 			getWorld().addParticle(new DustParticleEffect(new Vector3f(r, g, b), size),
 					getX(), getY(), getZ(), 0, 0, 0);
@@ -99,7 +137,7 @@ public class AerialBombEntity extends Entity {
 			getWorld().addParticle(ParticleTypes.LARGE_SMOKE,
 					getX() + aft.x * 0.25, getY() + aft.y * 0.25, getZ() + aft.z * 0.25,
 					aft.x * 0.02, aft.y * 0.02, aft.z * 0.02);
-			if (type.rocket) {
+			if (rocketFx) {
 				getWorld().addParticle(ParticleTypes.FLAME,
 						getX() + aft.x * 0.15, getY() + aft.y * 0.15, getZ() + aft.z * 0.15,
 						aft.x * 0.04, aft.y * 0.04, aft.z * 0.04);
@@ -108,6 +146,11 @@ public class AerialBombEntity extends Entity {
 				SmokeSystem.emit(getPos(), SmokeSystem.Source.BOMB_TRAIL, 0.6f, 0.45f, 50,
 						aft.multiply(0.03));
 			}
+			return;
+		}
+
+		if (laserHazardTicks > 0) {
+			tickLaserHazard((ServerWorld) getWorld());
 			return;
 		}
 
@@ -197,6 +240,8 @@ public class AerialBombEntity extends Entity {
 		if (grounded || ageTicks > 20 * 90) {
 			if (type.cluster && !submunition && !dispensed) {
 				dispenseCluster((ServerWorld) getWorld());
+			} else if (submunition && type.payload == OrdnanceType.SubmunitionPayload.LASER) {
+				beginLaserHazard((ServerWorld) getWorld());
 			} else {
 				detonate();
 			}
@@ -244,7 +289,7 @@ public class AerialBombEntity extends Entity {
 					getZ() + dir.z * 0.35,
 					0f, 0f);
 			frag.setVelocity(fragVel);
-			frag.configureSubmunition(OrdnanceType.TNT_BOMB, ownerId, fragBlast, fragVel);
+			frag.configureSubmunition(this.type, ownerId, fragBlast, fragVel);
 			sw.spawnEntity(frag);
 		}
 		discard();
@@ -262,6 +307,15 @@ public class AerialBombEntity extends Entity {
 			discard();
 			return;
 		}
+		switch (type.payload) {
+			case VIRUS_NETHER -> detonateVirusNether(sw);
+			case VIRUS_SCULK -> detonateVirusSculk(sw);
+			case NONE, LASER -> detonateStandard(sw);
+		}
+		discard();
+	}
+
+	private void detonateStandard(ServerWorld sw) {
 		float power = AtmosphereRules.scaleBlast(getY(), 5.2f * type.blastPower * blastMul);
 		if (type.rocket) {
 			power = AtmosphereRules.scaleBlast(getY(), 6.4f * type.blastPower * blastMul);
@@ -279,7 +333,150 @@ public class AerialBombEntity extends Entity {
 		if (AtmosphereBand.at(getY()).highPressure) {
 			SmokeSystem.emit(getPos(), SmokeSystem.Source.TNT, 4f, 0.9f, 120);
 		}
-		discard();
+	}
+
+	/** Smaller pop than a straight HE bomblet — the corruption spreading afterward is the payload. */
+	private void detonateVirusNether(ServerWorld sw) {
+		float power = AtmosphereRules.scaleBlast(getY(), 2.6f * type.blastPower * blastMul);
+		sw.createExplosion(this, getX(), getY(), getZ(), power, true, World.ExplosionSourceType.TNT);
+		SmokeSystem.emitExplosion(getPos(), power);
+		BlockPos ground = groundBelow(sw, getBlockPos());
+		corruptNether(sw, ground, 3 + (int) (power * 0.6f), sw.getRandom());
+		FireSystem.igniteBlast(sw, ground, 10, 5);
+		com.terminaldetector.drmd.world.mega.SkyUfoEntity.notifyBombDetonation(sw, ground, power);
+	}
+
+	private void detonateVirusSculk(ServerWorld sw) {
+		float power = AtmosphereRules.scaleBlast(getY(), 2.2f * type.blastPower * blastMul);
+		sw.createExplosion(this, getX(), getY(), getZ(), power, true, World.ExplosionSourceType.TNT);
+		SmokeSystem.emitExplosion(getPos(), power);
+		BlockPos ground = groundBelow(sw, getBlockPos());
+		corruptSculk(sw, ground, 3 + (int) (power * 0.6f), sw.getRandom());
+		darkenNearby(sw, ground, 5 + power);
+		com.terminaldetector.drmd.world.mega.SkyUfoEntity.notifyBombDetonation(sw, ground, power);
+	}
+
+	/**
+	 * First solid block at or below {@code at} — corruption and the Sculk catalyst want real ground,
+	 * not whatever air pocket the round happened to burst in.
+	 */
+	private static BlockPos groundBelow(ServerWorld sw, BlockPos at) {
+		BlockPos p = at;
+		for (int i = 0; i < 4 && sw.getBlockState(p).isAir(); i++) {
+			p = p.down();
+		}
+		return p;
+	}
+
+	/**
+	 * Ragged, overlapping blobs rather than one filled sphere — a handful of small spheres with a
+	 * porous edge (30% of candidate cells skipped) reads as organic corruption; one clean sphere reads
+	 * as a crater with a different texture.
+	 */
+	private static void corruptNether(ServerWorld sw, BlockPos origin, int radius, Random rng) {
+		int r = Math.max(1, radius);
+		int blobs = 3 + rng.nextInt(3);
+		for (int b = 0; b < blobs; b++) {
+			BlockPos blobCenter = origin.add(
+					rng.nextInt(r * 2 + 1) - r,
+					rng.nextInt(3) - 1,
+					rng.nextInt(r * 2 + 1) - r);
+			int blobR = 2 + rng.nextInt(r);
+			for (BlockPos p : BlockPos.iterate(blobCenter.add(-blobR, -blobR, -blobR), blobCenter.add(blobR, blobR, blobR))) {
+				if (p.getSquaredDistance(blobCenter) > blobR * blobR) continue;
+				if (rng.nextFloat() > 0.7f) continue;
+				BlockState st = sw.getBlockState(p);
+				if (st.isAir() || st.isOf(Blocks.BEDROCK) || !st.isSolidBlock(sw, p)) continue;
+				float hardness = st.getHardness(sw, p);
+				if (hardness < 0 || hardness > 12) continue;
+				boolean exposedTop = sw.getBlockState(p.up()).isAir();
+				BlockState stain = pickNetherStain(rng, exposedTop);
+				sw.setBlockState(p, stain, Block.NOTIFY_ALL);
+				// Fungus only where the stain is nylium — a known-good growth surface either way,
+				// rather than trusting a placement-validity call we cannot compile-check here.
+				boolean nylium = stain.isOf(Blocks.CRIMSON_NYLIUM) || stain.isOf(Blocks.WARPED_NYLIUM);
+				if (exposedTop && nylium && rng.nextFloat() < 0.15f) {
+					sw.setBlockState(p.up(), rng.nextBoolean()
+							? Blocks.WARPED_FUNGUS.getDefaultState()
+							: Blocks.CRIMSON_FUNGUS.getDefaultState(), Block.NOTIFY_ALL);
+				}
+			}
+		}
+	}
+
+	private static BlockState pickNetherStain(Random rng, boolean exposedTop) {
+		int roll = rng.nextInt(10);
+		if (exposedTop && roll < 4) return Blocks.NETHER_WART_BLOCK.getDefaultState();
+		if (roll < 5) return Blocks.CRIMSON_NYLIUM.getDefaultState();
+		if (roll < 8) return Blocks.WARPED_NYLIUM.getDefaultState();
+		return Blocks.NETHERRACK.getDefaultState();
+	}
+
+	/** Same ragged-blob shape as the Nether stain, plus one catalyst to seed real, ongoing vanilla spread. */
+	private static void corruptSculk(ServerWorld sw, BlockPos origin, int radius, Random rng) {
+		int r = Math.max(1, radius);
+		int blobs = 3 + rng.nextInt(3);
+		for (int b = 0; b < blobs; b++) {
+			BlockPos blobCenter = origin.add(
+					rng.nextInt(r * 2 + 1) - r,
+					rng.nextInt(3) - 1,
+					rng.nextInt(r * 2 + 1) - r);
+			int blobR = 2 + rng.nextInt(r);
+			for (BlockPos p : BlockPos.iterate(blobCenter.add(-blobR, -blobR, -blobR), blobCenter.add(blobR, blobR, blobR))) {
+				if (p.getSquaredDistance(blobCenter) > blobR * blobR) continue;
+				if (rng.nextFloat() > 0.7f) continue;
+				BlockState st = sw.getBlockState(p);
+				if (st.isAir() || st.isOf(Blocks.BEDROCK) || st.isOf(Blocks.SCULK_CATALYST) || !st.isSolidBlock(sw, p)) continue;
+				float hardness = st.getHardness(sw, p);
+				if (hardness < 0 || hardness > 12) continue;
+				sw.setBlockState(p, Blocks.SCULK.getDefaultState(), Block.NOTIFY_ALL);
+			}
+		}
+		// Reuses vanilla's own catalyst so nearby mob deaths keep growing real Sculk long after this,
+		// instead of a hand-rolled spread simulation duplicating what the game already does.
+		BlockPos catalystAt = origin.up();
+		if (sw.getBlockState(origin).isSolidBlock(sw, origin) && sw.getBlockState(catalystAt).isAir()) {
+			sw.setBlockState(catalystAt, Blocks.SCULK_CATALYST.getDefaultState(), Block.NOTIFY_ALL);
+		} else {
+			sw.setBlockState(origin, Blocks.SCULK_CATALYST.getDefaultState(), Block.NOTIFY_ALL);
+		}
+	}
+
+	/** Thematic nod to Sculk Shrieker / Warden rather than plain HE — the payload disorients, not just hurts. */
+	private static void darkenNearby(ServerWorld sw, BlockPos center, double radius) {
+		Box box = new Box(center).expand(radius);
+		for (LivingEntity e : sw.getEntitiesByClass(LivingEntity.class, box, LivingEntity::isAlive)) {
+			e.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, 140, 0, true, true, true));
+		}
+	}
+
+	/** Lands and arms instead of detonating — the Cyberpunk laser-grenade beat: stick, spin, then pop. */
+	private void beginLaserHazard(ServerWorld sw) {
+		laserHazardTicks = LASER_HAZARD_TICKS;
+		setVelocity(Vec3d.ZERO);
+		sw.playSound(null, getX(), getY(), getZ(), SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.HOSTILE, 1f, 1.6f);
+	}
+
+	/**
+	 * Two opposite beams rotating together in the plane perpendicular to local gravity — "horizontal"
+	 * relative to whatever surface the bomblet is resting on, not to world Y, matching the rest of this
+	 * class's attitude-safe physics. Reuses {@link LaserBeams#cast}, the same barrier-laser sweep the
+	 * trap blocks use, for both the damage tick and the beam particles — one proven implementation
+	 * instead of a second one duplicating it.
+	 */
+	private void tickLaserHazard(ServerWorld sw) {
+		laserHazardTicks--;
+		Vec3d spinAxis = gravityDir().multiply(-1);
+		Vec3d origin = getPos().add(spinAxis.multiply(0.25));
+		Vec3d ref = com.terminaldetector.drmd.flight.ShipAttitude.levelRightOf(spinAxis);
+		Vec3d ortho = ref.crossProduct(spinAxis).normalize();
+		double angle = Math.toRadians((LASER_HAZARD_TICKS - laserHazardTicks) * LASER_SPIN_DEG_PER_TICK);
+		Vec3d beamDir = ref.multiply(Math.cos(angle)).add(ortho.multiply(Math.sin(angle)));
+		LaserBeams.cast(sw, origin, beamDir, LASER_BEAM_LENGTH, LASER_BEAM_DAMAGE);
+		LaserBeams.cast(sw, origin, beamDir.multiply(-1), LASER_BEAM_LENGTH, LASER_BEAM_DAMAGE);
+		if (laserHazardTicks <= 0) {
+			detonate();
+		}
 	}
 
 	@Override
@@ -294,6 +491,8 @@ public class AerialBombEntity extends Entity {
 		submunition = nbt.getBoolean("sub");
 		dispensed = nbt.getBoolean("dispensed");
 		blastMul = nbt.contains("blastMul") ? nbt.getFloat("blastMul") : 1f;
+		laserHazardTicks = nbt.getInt("laserHazard");
+		syncVisual();
 	}
 
 	@Override
@@ -308,5 +507,6 @@ public class AerialBombEntity extends Entity {
 		nbt.putBoolean("sub", submunition);
 		nbt.putBoolean("dispensed", dispensed);
 		nbt.putFloat("blastMul", blastMul);
+		nbt.putInt("laserHazard", laserHazardTicks);
 	}
 }

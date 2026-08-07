@@ -599,6 +599,9 @@ public final class DescentCommands {
 								ItemStack stack = switch (name) {
 									case "cluster" -> new ItemStack(ModItems.BOMB_CLUSTER, 8);
 									case "heavy", "heavy_cluster", "heavycluster" -> new ItemStack(ModItems.BOMB_HEAVY_CLUSTER, 6);
+									case "virus_nether", "nether_virus", "virusnether" -> new ItemStack(ModItems.BOMB_CLUSTER_VIRUS_NETHER, 8);
+									case "virus_sculk", "sculk_virus", "virussculk", "sculk" -> new ItemStack(ModItems.BOMB_CLUSTER_VIRUS_SCULK, 8);
+									case "cluster_laser", "laser_cluster", "clusterlaser" -> new ItemStack(ModItems.BOMB_CLUSTER_LASER, 8);
 									case "rocket", "rockets" -> new ItemStack(ModItems.BOMB_ROCKET, 8);
 									case "incendiary", "fire" -> new ItemStack(ModItems.BOMB_INCENDIARY, 8);
 									case "guided", "laser" -> new ItemStack(ModItems.BOMB_GUIDED, 8);
@@ -615,6 +618,9 @@ public final class DescentCommands {
 								p.giveItemStack(new ItemStack(ModItems.BOMB_TNT, 8));
 								p.giveItemStack(new ItemStack(ModItems.BOMB_CLUSTER, 4));
 								p.giveItemStack(new ItemStack(ModItems.BOMB_HEAVY_CLUSTER, 4));
+								p.giveItemStack(new ItemStack(ModItems.BOMB_CLUSTER_VIRUS_NETHER, 4));
+								p.giveItemStack(new ItemStack(ModItems.BOMB_CLUSTER_VIRUS_SCULK, 4));
+								p.giveItemStack(new ItemStack(ModItems.BOMB_CLUSTER_LASER, 4));
 								p.giveItemStack(new ItemStack(ModItems.BOMB_ROCKET, 4));
 								p.giveItemStack(new ItemStack(ModItems.BOMB_INCENDIARY, 4));
 								p.giveItemStack(new ItemStack(ModItems.BOMB_GUIDED, 4));

@@ -612,7 +612,10 @@ public final class DescentHud {
 		if (held.getItem() instanceof BombardmentItems.BombBayItem bomb) {
 			OrdnanceType o = bomb.getOrdnance();
 			line(ctx, mc, x + 4, y + 4, "BOMB", AMBER);
-			line(ctx, mc, x + 4, y + 15, o.heavyCluster ? "HEAVY CLUSTER"
+			line(ctx, mc, x + 4, y + 15, o.payload == OrdnanceType.SubmunitionPayload.VIRUS_NETHER ? "NETHER VIRUS"
+					: o.payload == OrdnanceType.SubmunitionPayload.VIRUS_SCULK ? "SCULK VIRUS"
+					: o.payload == OrdnanceType.SubmunitionPayload.LASER ? "LASER CLUSTER"
+					: o.heavyCluster ? "HEAVY CLUSTER"
 					: o.cluster ? "CLUSTER SPREAD"
 					: o.rocket ? "ROCKET STRIKE"
 					: o.incendiary ? "INCENDIARY" : "AREA DAMAGE", GREEN);
@@ -860,8 +863,9 @@ public final class DescentHud {
 	private static Item[] bombItems() {
 		if (bombItems == null) {
 			bombItems = new Item[]{ModItems.BOMB_TNT, ModItems.BOMB_CLUSTER,
-					ModItems.BOMB_HEAVY_CLUSTER, ModItems.BOMB_ROCKET,
-					ModItems.BOMB_INCENDIARY, ModItems.BOMB_GUIDED};
+					ModItems.BOMB_HEAVY_CLUSTER, ModItems.BOMB_CLUSTER_VIRUS_NETHER,
+					ModItems.BOMB_CLUSTER_VIRUS_SCULK, ModItems.BOMB_CLUSTER_LASER,
+					ModItems.BOMB_ROCKET, ModItems.BOMB_INCENDIARY, ModItems.BOMB_GUIDED};
 		}
 		return bombItems;
 	}
