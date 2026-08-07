@@ -32,6 +32,10 @@ import org.joml.Vector3f;
  * <p>Here, bolts and orbs take the blob path and rockets, drills and mines take the model path.
  */
 public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
+	private static final Identifier TEXTURE = Identifier.of("minecraft", "textures/misc/white.png");
+	/** Packed full-bright lightmap coordinate — a shot has to read in a dark mine, not just outdoors. */
+	private static final int FULL_BRIGHT = 15728880;
+
 	public ProjectileRenderer(EntityRendererFactory.Context ctx) {
 		super(ctx);
 	}
@@ -60,8 +64,9 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 	 * <p>Descent's blob is a bitmap and the bolt shape lives in the art. There is no art here, so the
 	 * shape is built instead — a saturated outer glow with a near-white core inside it, which is what
 	 * the original's bolt sprites look like and what makes them read against both a lit wall and open
-	 * space. Both layers go through an additive pass, so they brighten whatever is behind them rather
-	 * than flatly covering it.
+	 * space. All three layers go through the same translucent entity layer real geometry uses
+	 * elsewhere in this mod ({@code RenderLayer.getEntityTranslucent}) rather than a debug-only one —
+	 * see {@link #billboard} for why that swap matters.
 	 *
 	 * <p>The elongation is the one liberty taken. Descent's rounds move slowly enough to be discrete
 	 * objects frame to frame; ours cross seventy blocks in a tick, so a round blob would be a dot in
@@ -94,31 +99,39 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 		float length = half + (float) MathHelper.clamp(speed * 0.55, 0.0, 7.0);
 
 		var entry = matrices.peek();
-		// Glow additively, so the bolt brightens what is behind it the way the original's palette
-		// does in a dark mine.
-		VertexConsumer glow = consumers.getBuffer(RenderLayer.getLightning());
-		billboard(glow, entry, length * 1.05f, half * 2.3f, argb, 0.30f);
-		billboard(glow, entry, length, half * 1.35f, argb, 0.65f);
-		// The core is drawn solid rather than additively, and that is deliberate: additive light adds
-		// nothing to a background that is already bright, so an all-glow bolt is legible in a mine
-		// and washes out over a sunlit field. The opaque core keeps the shot readable on any
-		// background, which is the whole requirement.
-		VertexConsumer core = consumers.getBuffer(RenderLayer.getDebugQuads());
-		billboard(core, entry, length * 0.94f, half * 0.5f, whiten(argb), 1.0f);
+		VertexConsumer buf = consumers.getBuffer(RenderLayer.getEntityTranslucent(TEXTURE));
+		billboard(buf, entry, length * 1.05f, half * 2.3f, argb, 0.30f);
+		billboard(buf, entry, length, half * 1.35f, argb, 0.65f);
+		// The core reads as solid rather than as more glow: alpha 1.0 fully covers whatever is behind
+		// it, so it stays legible in a mine and does not wash out over a sunlit field the way a purely
+		// additive bolt would.
+		billboard(buf, entry, length * 0.94f, half * 0.5f, whiten(argb), 1.0f);
 		matrices.pop();
 	}
 
-	/** One camera-facing quad, centred on the round, {@code len} along X and {@code wide} along Y. */
+	/**
+	 * One camera-facing quad, centred on the round, {@code len} along X and {@code wide} along Y.
+	 *
+	 * <p>Used to go through {@code RenderLayer.getLightning()} for the additive brightening and
+	 * {@code RenderLayer.getDebugQuads()} for the opaque core — both are special-purpose vanilla
+	 * layers meant for exactly one built-in use each (the lightning bolt entity; the F3 debug
+	 * overlay), not high-frequency gameplay geometry, and {@code CockpitRenderer} already found the
+	 * debug one "often never appears under TLauncher / sodium-class pipelines." A round rendered that
+	 * way is a shot that sometimes has no visible bolt and sometimes has one layer of it without the
+	 * others, which reads as disconnected fragments rather than a coherent tracer. The standard
+	 * translucent entity layer other hand-drawn geometry in this mod already uses successfully
+	 * ({@code DroneSwarmRenderer}, {@code SkyUfoRenderer}) does not have that failure mode.
+	 */
 	private static void billboard(VertexConsumer vc, MatrixStack.Entry entry,
 								  float len, float wide, int argb, float alpha) {
 		float r = ((argb >> 16) & 255) / 255f;
 		float g = ((argb >> 8) & 255) / 255f;
 		float b = (argb & 255) / 255f;
 		var m = entry.getPositionMatrix();
-		vc.vertex(m, -len, -wide, 0).color(r, g, b, alpha);
-		vc.vertex(m, len, -wide, 0).color(r, g, b, alpha);
-		vc.vertex(m, len, wide, 0).color(r, g, b, alpha);
-		vc.vertex(m, -len, wide, 0).color(r, g, b, alpha);
+		vc.vertex(m, -len, -wide, 0).color(r, g, b, alpha).texture(0, 0).overlay(0).light(FULL_BRIGHT).normal(0, 0, 1);
+		vc.vertex(m, len, -wide, 0).color(r, g, b, alpha).texture(1, 0).overlay(0).light(FULL_BRIGHT).normal(0, 0, 1);
+		vc.vertex(m, len, wide, 0).color(r, g, b, alpha).texture(1, 1).overlay(0).light(FULL_BRIGHT).normal(0, 0, 1);
+		vc.vertex(m, -len, wide, 0).color(r, g, b, alpha).texture(0, 1).overlay(0).light(FULL_BRIGHT).normal(0, 0, 1);
 	}
 
 	// ------------------------------------------------------------- WEAPON_RENDER_POLYMODEL
@@ -173,7 +186,7 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 			matrices.push();
 			matrices.multiply(this.dispatcher.getRotation());
 			var entry = matrices.peek();
-			VertexConsumer vc = consumers.getBuffer(RenderLayer.getLightning());
+			VertexConsumer vc = consumers.getBuffer(RenderLayer.getEntityTranslucent(TEXTURE));
 			billboard(vc, entry, s * 2.2f, s * 2.2f, 0xFFFF9944, 0.42f);
 			billboard(vc, entry, s * 1.1f, s * 1.1f, 0xFFFFDDAA, 0.85f);
 			matrices.pop();
@@ -209,40 +222,45 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 	private static void drawBox(MatrixStack matrices, VertexConsumerProvider consumers,
 								float hx, float hy, float hz, int argb) {
 		var entry = matrices.peek();
-		// Quads, into a layer that draws quads. This was RenderLayer.getDebugFilledBox(), which is a
+		// Quads, into a layer built for them. This was RenderLayer.getDebugFilledBox() (a
 		// TRIANGLE_STRIP layer — six quads' worth of vertices fed to a strip is not six faces, it is
-		// a run of degenerate slivers, which is why the rounds had no visible body at all.
+		// a run of degenerate slivers), then RenderLayer.getDebugQuads() — still a debug-only layer,
+		// and per CockpitRenderer's own finding, one that "often never appears under TLauncher /
+		// sodium-class pipelines". RenderLayer.getEntitySolid is the layer MegaWormRenderer already
+		// draws its own hand-built cubes through; a rocket casing is not different from a worm
+		// segment as far as the renderer is concerned.
 		//
-		// Solid, and with culling off. These boxes are written by hand and their faces are not wound
-		// consistently outward, so a culling layer would drop whichever ones happen to face away and
-		// leave the body full of holes.
-		VertexConsumer vc = consumers.getBuffer(RenderLayer.getDebugQuads());
+		// Solid, and with each face's own outward normal. These boxes are written by hand and their
+		// faces are not wound consistently outward, so a culling layer would drop whichever ones
+		// happen to face away and leave the body full of holes — getEntitySolid does not cull.
+		VertexConsumer vc = consumers.getBuffer(RenderLayer.getEntitySolid(TEXTURE));
 		float a = ((argb >> 24) & 255) / 255f;
 		float r = ((argb >> 16) & 255) / 255f;
 		float g = ((argb >> 8) & 255) / 255f;
 		float b = (argb & 255) / 255f;
 		float x0 = -hx, y0 = -hy, z0 = -hz;
 		float x1 = hx, y1 = hy, z1 = hz;
-		quad(vc, entry, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1, r, g, b, a);
-		quad(vc, entry, x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0, r, g, b, a);
-		quad(vc, entry, x0, y0, z0, x0, y1, z0, x1, y1, z0, x1, y0, z0, r, g, b, a);
-		quad(vc, entry, x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1, r, g, b, a);
-		quad(vc, entry, x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0, r, g, b, a);
-		quad(vc, entry, x1, y0, z0, x1, y1, z0, x1, y1, z1, x1, y0, z1, r, g, b, a);
+		quad(vc, entry, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1, r, g, b, a, 0, -1, 0);
+		quad(vc, entry, x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0, r, g, b, a, 0, 1, 0);
+		quad(vc, entry, x0, y0, z0, x0, y1, z0, x1, y1, z0, x1, y0, z0, r, g, b, a, 0, 0, -1);
+		quad(vc, entry, x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1, r, g, b, a, 0, 0, 1);
+		quad(vc, entry, x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0, r, g, b, a, -1, 0, 0);
+		quad(vc, entry, x1, y0, z0, x1, y1, z0, x1, y1, z1, x1, y0, z1, r, g, b, a, 1, 0, 0);
 	}
 
 	private static void quad(VertexConsumer vc, MatrixStack.Entry entry,
 							 float x0, float y0, float z0, float x1, float y1, float z1,
 							 float x2, float y2, float z2, float x3, float y3, float z3,
-							 float r, float g, float b, float a) {
-		vc.vertex(entry.getPositionMatrix(), x0, y0, z0).color(r, g, b, a);
-		vc.vertex(entry.getPositionMatrix(), x1, y1, z1).color(r, g, b, a);
-		vc.vertex(entry.getPositionMatrix(), x2, y2, z2).color(r, g, b, a);
-		vc.vertex(entry.getPositionMatrix(), x3, y3, z3).color(r, g, b, a);
+							 float r, float g, float b, float a, float nx, float ny, float nz) {
+		var m = entry.getPositionMatrix();
+		vc.vertex(m, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
 	}
 
 	@Override
 	public Identifier getTexture(ProjectileEntity entity) {
-		return Identifier.of("minecraft", "textures/misc/white.png");
+		return TEXTURE;
 	}
 }

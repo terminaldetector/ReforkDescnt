@@ -198,13 +198,25 @@ public final class WeaponViewRenderer {
 		};
 	}
 
+	private static final net.minecraft.util.Identifier TEXTURE =
+			net.minecraft.util.Identifier.of("minecraft", "textures/misc/white.png");
+
 	private static void drawBox(MatrixStack matrices, VertexConsumerProvider consumers, int argb, int light) {
-		// Quads, into a layer that draws quads. This was RenderLayer.getDebugFilledBox(), which is a
+		// Quads, into a layer built for them. This was RenderLayer.getDebugFilledBox() (a
 		// TRIANGLE_STRIP layer: the six quads below are 24 vertices, and a strip reads those as a run
-		// of degenerate slivers rather than as six faces, so the module had no solid body. Culling is
-		// off here too — these faces are not wound consistently outward.
+		// of degenerate slivers rather than as six faces, so the module had no solid body), then
+		// RenderLayer.getDebugQuads() — still a debug-only layer, and per CockpitRenderer's own
+		// finding, one that "often never appears under TLauncher / sodium-class pipelines". A weapon
+		// module rendered that way is a barrel that sometimes is not there at all, or is there as
+		// disconnected faces instead of a solid shape. RenderLayer.getEntitySolid is the layer
+		// MegaWormRenderer and (as of the same fix) ProjectileRenderer already draw their own
+		// hand-built cubes through.
+		//
+		// Solid, and with each face's own outward normal. These boxes are written by hand and their
+		// faces are not wound consistently outward, so a culling layer would drop whichever ones
+		// happen to face away and leave the body full of holes — getEntitySolid does not cull.
 		var entry = matrices.peek();
-		var vc = consumers.getBuffer(net.minecraft.client.render.RenderLayer.getDebugQuads());
+		var vc = consumers.getBuffer(net.minecraft.client.render.RenderLayer.getEntitySolid(TEXTURE));
 		float a = ((argb >> 24) & 255) / 255f;
 		float r = ((argb >> 16) & 255) / 255f;
 		float g = ((argb >> 8) & 255) / 255f;
@@ -212,21 +224,22 @@ public final class WeaponViewRenderer {
 		float x0 = -0.5f, y0 = -0.5f, z0 = -0.5f;
 		float x1 = 0.5f, y1 = 0.5f, z1 = 0.5f;
 		// 6 faces — compact
-		quad(vc, entry, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1, r, g, b, a); // -Y
-		quad(vc, entry, x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0, r, g, b, a); // +Y
-		quad(vc, entry, x0, y0, z0, x0, y1, z0, x1, y1, z0, x1, y0, z0, r, g, b, a); // -Z
-		quad(vc, entry, x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1, r, g, b, a); // +Z
-		quad(vc, entry, x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0, r, g, b, a); // -X
-		quad(vc, entry, x1, y0, z0, x1, y1, z0, x1, y1, z1, x1, y0, z1, r, g, b, a); // +X
+		quad(vc, entry, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1, r, g, b, a, light, 0, -1, 0);
+		quad(vc, entry, x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0, r, g, b, a, light, 0, 1, 0);
+		quad(vc, entry, x0, y0, z0, x0, y1, z0, x1, y1, z0, x1, y0, z0, r, g, b, a, light, 0, 0, -1);
+		quad(vc, entry, x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1, r, g, b, a, light, 0, 0, 1);
+		quad(vc, entry, x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0, r, g, b, a, light, -1, 0, 0);
+		quad(vc, entry, x1, y0, z0, x1, y1, z0, x1, y1, z1, x1, y0, z1, r, g, b, a, light, 1, 0, 0);
 	}
 
 	private static void quad(net.minecraft.client.render.VertexConsumer vc, MatrixStack.Entry entry,
 							 float x0, float y0, float z0, float x1, float y1, float z1,
 							 float x2, float y2, float z2, float x3, float y3, float z3,
-							 float r, float g, float b, float a) {
-		vc.vertex(entry.getPositionMatrix(), x0, y0, z0).color(r, g, b, a);
-		vc.vertex(entry.getPositionMatrix(), x1, y1, z1).color(r, g, b, a);
-		vc.vertex(entry.getPositionMatrix(), x2, y2, z2).color(r, g, b, a);
-		vc.vertex(entry.getPositionMatrix(), x3, y3, z3).color(r, g, b, a);
+							 float r, float g, float b, float a, int light, float nx, float ny, float nz) {
+		var m = entry.getPositionMatrix();
+		vc.vertex(m, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(0).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(0).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(0).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(0).light(light).normal(nx, ny, nz);
 	}
 }
