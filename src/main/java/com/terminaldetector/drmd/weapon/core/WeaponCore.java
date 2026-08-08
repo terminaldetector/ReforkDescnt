@@ -85,7 +85,17 @@ public final class WeaponCore {
 		if (cfg.owner == null || cfg.owner.getWorld().isClient) return null;
 		ServerWorld world = (ServerWorld) cfg.owner.getWorld();
 
-		float spd = cfg.speedIsSourceUnits ? (float) DescentMod.su(cfg.speed) : cfg.speed;
+		// cfg.speed (Source units, speedIsSourceUnits=true — every caller in this codebase) and
+		// DescentPlayerData.getFlightVelocity() are both blocks-*per-second*, Source/Descent's own
+		// convention and the flight model's own internal one (ServerPlayerFlightTravelMixin divides
+		// the same getFlightVelocity() by TICKS_PER_SECOND at its own hand-off to setVelocity).
+		// ProjectileEntity.tick adds this vector to position once per *tick*, so both need that same
+		// conversion here — previously missing, which is why rounds travelled roughly
+		// TICKS_PER_SECOND (20x) their intended speed. cfg.owner.getVelocity() in the non-player
+		// branch is already vanilla per-tick and is deliberately left alone.
+		float spd = cfg.speedIsSourceUnits
+				? (float) (DescentMod.su(cfg.speed) / DescentMod.TICKS_PER_SECOND)
+				: cfg.speed;
 		Vec3d dir = cfg.dir.normalize();
 		Vec3d shipVel = Vec3d.ZERO;
 		float inheritFactor = cfg.inherit;
@@ -93,7 +103,7 @@ public final class WeaponCore {
 
 		if (cfg.owner instanceof PlayerEntity player) {
 			DescentPlayerData data = DescentPlayerData.get(player);
-			shipVel = data.getFlightVelocity();
+			shipVel = data.getFlightVelocity().multiply(1.0 / DescentMod.TICKS_PER_SECOND);
 			inheritFactor *= data.getWepInherit();
 			recoilFactor *= data.getWepRecoil();
 		} else {

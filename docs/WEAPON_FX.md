@@ -134,41 +134,6 @@ values can't be pulled from source, only the mechanics around them):
   still detonates for splash damage if it has `damage_radius`; only zero-radius weapons (plain bolts)
   simply vanish.
 
-## Open question, not changed here: rounds may be travelling 20× their intended speed
-
-Found while tracing the render pipeline for the "no projectile visible" fix below, and left alone
-because fixing it would change how every weapon in the game feels, not just how it's drawn — that call
-belongs to whoever is happy with combat pacing today, not to a rendering bug hunt.
-
-`WeaponCore.fireProjectile` converts a weapon's `speed` field with `DescentMod.su(cfg.speed)` —
-`× UNIT_SCALE (1/80)`, a pure length conversion, Source inches to blocks — and hands the result straight
-to `proj.setVelocity(...)`. `ProjectileEntity.tick()` then does `setPosition(getPos().add(vel))` once
-per server tick. Nothing between those two calls divides by `DescentMod.TICKS_PER_SECOND` (20).
-
-Every other velocity in this codebase that starts life as a per-*second* quantity — the flight model,
-in `ServerPlayerFlightTravelMixin`, `FlightSystem`, `DescentFlightMotion`, `ModNetworking`,
-`SeamWarmup` — visibly multiplies or divides by `TICKS_PER_SECOND` at the hand-off, and
-`docs/MOVEMENT.md` documents that conversion as a deliberate, named step. Weapon fire has no equivalent
-line anywhere. `cfg.speed = 6200f` for the laser is a per-*second* figure — Source (and Descent) both
-express `speed` that way, and this project's own docs call it "6200 source units **a second**" — so
-`su(6200)` (77.5) is blocks per second, applied here as if it were blocks per *tick*: 20× too fast,
-~1550 blocks/second instead of ~77.5, every weapon in the arsenal, not just the laser.
-
-This is not a new discovery contradicting old code — it's already priced into the rest of the render
-stack. `docs/WEAPON_FX.md` itself has called the result "**70 blocks per tick**" since the tracer was
-first added, and both the tracer's 48-bead cap and the billboard's 7-block stretch clamp exist
-specifically to make a round moving that fast per tick legible at all. If the ÷20 were added, both of
-those would suddenly be sized for a round ten times faster than the one actually flying — not wrong,
-just built for a problem that would no longer exist at anywhere near this scale, since the
-source-accurate speed (confirmed above: Descent's own blob is a fixed-size, unstretched sprite,
-needing none of this) would cross under 4 blocks a tick instead of ~77.
-
-Not touched here because it is a balance decision wearing a rendering bug's clothes: every hitbox,
-every "can I dodge this," every weapon's felt aggressiveness in this mod depends on this number today,
-and changing it is one line (`spd` in `fireProjectile`, one more `/ DescentMod.TICKS_PER_SECOND`) with
-consequences across the entire arsenal at once, not something to flip alongside an unrelated visibility
-fix without it being asked for.
-
 ## Fixed: multi-muzzle lasers firing at extreme angles close-up
 
 Reported as "lasers and small arms are tied to the player model, so they fire in every direction
@@ -314,3 +279,54 @@ difference. `ProjectileBoxWindingTest` now covers this quad alongside the six bo
 checked — same three properties (reversed winding is exactly antiparallel, the original order is
 already outward, exactly one of the two orderings matches the true normal) — so a future change to
 either shape's vertex order gets caught the same way.
+
+## Fixed: rounds were travelling 20× their intended speed
+
+Reported in the same follow-up as the winding fix above shipping and not being enough: still no round
+visible along its actual flight path, and — new, specific detail this time, checked directly against
+the uploaded Descent source rather than taken on faith — "excessively fast for Descent." Both are
+exactly what a round covering its entire realistic flight path in one or two ticks looks like, no
+matter how correct its billboard's winding is by then: there's barely a "along the path" for it to be
+seen on.
+
+Found while tracing the render pipeline for that fix, actually, and initially left alone there as a
+named-but-unchanged finding — it's a balance decision wearing a rendering bug's clothes, changing how
+every weapon in the game feels, not just how it's drawn, not something to flip alongside an unrelated
+visibility fix without it being asked for. Confirmed as the real remaining cause once it was asked for.
+
+`WeaponCore.fireProjectile` converted a weapon's `speed` field with `DescentMod.su(cfg.speed)` —
+`× UNIT_SCALE (1/80)`, a pure length conversion, Source inches to blocks — and handed the result
+straight to `proj.setVelocity(...)`. `ProjectileEntity.tick()` does `setPosition(getPos().add(vel))`
+once per server tick. Nothing between those two calls divided by `DescentMod.TICKS_PER_SECOND` (20).
+
+Every other velocity in this codebase that starts life as a per-*second* quantity — the flight model,
+in `ServerPlayerFlightTravelMixin`, `FlightSystem`, `DescentFlightMotion`, `ModNetworking`,
+`SeamWarmup`, and `MissileSteering.steer`'s own `turnRate / 20.0` for the identical projectiles this
+bug affects — visibly multiplies or divides by `TICKS_PER_SECOND` at the hand-off, and
+`docs/MOVEMENT.md` documents that conversion as a deliberate, named step. Weapon fire had no equivalent
+line. `cfg.speed = 6200f` for the laser is a per-*second* figure — Source (and Descent) both express
+`speed` that way, and this project's own docs called it "6200 source units **a second**" — so
+`su(6200)` (77.5) was blocks per second, applied as if it were blocks per *tick*: 20× too fast, ~1550
+blocks/second instead of ~77.5, every weapon in the arsenal, not just the laser. The same gap applied
+to a piloted ship's inherited velocity (`DescentPlayerData.getFlightVelocity()`, also per-second) —
+`cfg.owner.getVelocity()` in the non-player branch is already vanilla per-tick and needed no change.
+
+This was already priced into the rest of the render stack without anyone naming the actual cause.
+`docs/WEAPON_FX.md` itself called the result "**70 blocks per tick**" since the tracer was first added,
+and both the tracer's 48-bead cap and the billboard's 7-block stretch clamp exist specifically to make
+a round moving that fast per tick legible at all — and, since both are already derived *from* speed
+(`travel / 0.5` beads, `speed * 0.55` stretch) rather than fixed numbers, both scale down automatically
+and correctly now that speed does, with no separate retuning needed: a ~3.9-block/tick laser gets a
+~7-bead tracer and a ~2.1-block stretch, proportioned the same way the old ~77.5-block/tick one was, at
+new numbers that no longer need clamping to stay legible.
+
+Fixed in `WeaponCore.fireProjectile`: both `spd` and the piloted-ship inheritance term now divide by
+`DescentMod.TICKS_PER_SECOND` after their existing Source-units conversion — the same hand-off every
+other per-second velocity in this codebase already goes through, applied to the one place it had been
+missing. Confirmed against the Descent source rather than assumed: a blob billboard there is a
+fixed-size sprite with no engine-level speed or distance scaling (`draw_object_blob`/`g3_draw_bitmap`,
+sized from `blob_size` alone), so the original never had — and never needed — anything to mask an
+overly fast round the way this port's stretch/tracer machinery incidentally did. Pinned by
+`WeaponSpeedConversionTest`: the laser's 6200 su/s now converts to ~3.875 blocks/tick (not ~77.5),
+exactly 20× smaller than the pre-fix value, and a 5-second laser lifetime now covers a plausible
+few-hundred-block range instead of thousands.
