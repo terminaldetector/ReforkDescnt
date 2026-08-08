@@ -360,51 +360,6 @@ to match here, only a proportion re-derived for the now-correct speed and re-che
 reference screenshot's shorter, steadier bolts; a first pass, like `SCRAPE_KEEP_SMOOTH` elsewhere in
 this project, expected to want a further live-feel pass rather than treated as final. The
 muzzle-proximity distance cap (`0.6 ×` distance to camera) is untouched — it guards a different case
-(a fresh bolt still at the muzzle) on its own terms and was never part of this. Pinned at the time by
-`ProjectileBlobStretchTest`, mirroring these constants directly — superseded below along with the
-billboard technique itself; see `ProjectileBoltLengthTest` for the formula `MESH_BOLT` actually uses now.
-
-## Changed: bolts no longer use the billboard at all — a real oriented body instead
-
-Shortening the streak (above) narrowed the wobble; it didn't remove its cause, and reported again with
-a clearer diagnosis this time: bolts should be "positioned exactly like any other projectile" — not
-the camera-facing billboard's own thing, something inherently unsteady by that description. Correct
-enough as a diagnosis to act on directly rather than retune the same mechanism a third time.
-
-`renderBlob`'s `spin` — the angle its elongated quad is laid along — came from projecting the round's
-*own* velocity into the *current camera's* view space, every frame: `atan2` of that projection. Two
-things about that are true regardless of how short the streak is. First, the result depends on the
-live camera orientation as well as the round's own direction, so a bolt's on-screen angle shifts as the
-player's own view turns even though the round itself is flying dead straight — nothing else this mod
-draws is oriented that way. Second, `DescentLaserFire` deliberately aims each bolt of a dual/quad
-volley at one shared convergence point from its own wing muzzle (see "multi-muzzle lasers" above), so
-two bolts from a single trigger pull *are* a few degrees apart by design — correct, and how the
-original's own multi-barrel lasers work — but a billboard rotation recomputed fresh each frame from
-each bolt's own projected direction has no mechanism to present that as "one volley, two related
-shots" the way a fixed 3D orientation would.
-
-Every other projectile in this mod that needs a direction — rockets, drills, mines — already avoids
-both problems the same way: `ModelOrientation.applyBasis` builds a rotation from the round's own
-world-space velocity alone, no camera term anywhere in it, verified across 1701 attitudes for the
-pilot model this technique was written for. `renderBolt` (new, replacing `MESH_BOLT`'s branch of
-`renderBlob`) uses exactly that call instead of the projected-`spin` trick, and draws two nested
-`drawBox` bodies (bright core, dimmer whitened shell) down the resulting axis rather than a flat quad —
-the same `body()`/`drawBox()` machinery `renderModel` already uses, not new drawing code. A bolt's
-orientation is now a pure function of its own flight direction: nothing about the camera or about a
-sibling bolt's own convergence angle can move it.
-
-That trade has one real cost, which is exactly why the original chose a billboard for
-`WEAPON_RENDER_BLOB` in the first place (see the class doc): a true 3D body forced end-on to the camera
-foreshortens toward nothing, which a camera-facing quad never does. Guarded directly rather than
-ignored — `renderBolt`'s cross-section is deliberately fat for its length (radius `0.15 * scale`,
-length floored at `2.5×` that radius) rather than a thin needle, so the worst case viewed dead-on is
-still a visible disc, not a vanishing line. `MESH_ORB` (plasma) stays on the billboard path unchanged:
-a ball has no direction to get right or wrong, so there was never a reason to move it, and the
-original's own plasma rounds use the identical `WEAPON_RENDER_BLOB` billboard technique this keeps.
-
-Not matched against a source number — same as the streak length before it, `LASER.C`'s own blob has no
-orientation logic to model this against at all, this port's own invention from the start. Pinned by
-`ProjectileBoltLengthTest` (replacing `ProjectileBlobStretchTest`, whose formula no longer exists now
-that `MESH_BOLT` doesn't call `renderBlob`): the floor, the ceiling, and that a larger `visualScale`
-raises the floor rather than shrinking it. A first pass, not a final tuning — expects the same further
-live-feel adjustment `SCRAPE_KEEP_SMOOTH` and the streak-length constants above do.
+(a fresh bolt still at the muzzle) on its own terms and was never part of this. `ProjectileBlobStretchTest`
+now pins the new constants directly (laser and mega-laser speeds recomputed post speed-fix) instead of
+the pre-fix ~70 block/tick figure it used to mirror.
