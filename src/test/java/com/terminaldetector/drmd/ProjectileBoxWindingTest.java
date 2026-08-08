@@ -10,9 +10,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Mirrors the six box faces {@code ProjectileRenderer.drawBox} / {@code WeaponViewRenderer.drawBox}
- * (and the five other hand-built-cube renderers touched by the same fix) all emit
+ * (and the five other hand-built-cube renderers touched by the same fix) all emit, plus the one
+ * camera-facing quad {@code ProjectileRenderer.billboard} emits — every {@code MESH_BOLT}/
+ * {@code MESH_ORB} round's entire visible shape, and the gap left when the box fix shipped without
+ * it: a billboard is one hand-emitted quad through the same unverified culling convention as a cube
+ * face, just one face instead of six, and a wrong winding there does not read as "one face missing,"
+ * it reads as "no projectiles" — every laser and plasma round draws nothing at all.
  * ({@code VertexConsumer}/{@code MatrixStack.Entry} are unavailable here, same mirroring approach as
- * {@code TunnelCarvingCapsuleTest}). {@code quad()}'s fix for the unresolved
+ * {@code TunnelCarvingCapsuleTest}). {@code quad()}/{@code billboard()}'s fix for the unresolved
  * {@code getEntitySolid}/{@code getEntityTranslucent} culling question emits every face in both
  * winding orders ({@code v0,v1,v2,v3} then {@code v0,v3,v2,v1}). This pins that the two orderings
  * really are exact opposites (not two accidental copies of the same thing), and that of the two, the
@@ -61,10 +66,25 @@ class ProjectileBoxWindingTest {
 		};
 	}
 
+	/** {@code billboard(len=5, wide=2)}'s single camera-facing quad — normal points at the viewer, +Z. */
+	private static Face billboardFace() {
+		float len = 5, wide = 2;
+		return new Face(new double[]{-len, -wide, 0}, new double[]{len, -wide, 0},
+				new double[]{len, wide, 0}, new double[]{-len, wide, 0}, new double[]{0, 0, 1});
+	}
+
+	/** Every hand-emitted face this fix covers: the six box faces plus the one billboard quad. */
+	private static Face[] allFaces() {
+		Face[] box = boxFaces();
+		Face[] all = Arrays.copyOf(box, box.length + 1);
+		all[box.length] = billboardFace();
+		return all;
+	}
+
 	@Test
 	@DisplayName("reversing a face's winding (v0,v3,v2,v1) flips its normal to the exact opposite")
 	void reversedWindingIsAntiparallel() {
-		for (Face f : boxFaces()) {
+		for (Face f : allFaces()) {
 			double[] forward = faceNormal(f.v0(), f.v1(), f.v2());
 			double[] reversed = faceNormal(f.v0(), f.v3(), f.v2());
 			double cosAngle = dot(forward, reversed) / (length(forward) * length(reversed));
@@ -77,7 +97,7 @@ class ProjectileBoxWindingTest {
 	@Test
 	@DisplayName("the original v0,v1,v2,v3 order already points outward, before any reversed copy is added")
 	void originalOrderIsOutward() {
-		for (Face f : boxFaces()) {
+		for (Face f : allFaces()) {
 			double[] forward = faceNormal(f.v0(), f.v1(), f.v2());
 			double[] unit = {forward[0] / length(forward), forward[1] / length(forward), forward[2] / length(forward)};
 			assertEquals(1.0, dot(unit, f.expectedOutward()), 1e-9,
@@ -88,7 +108,7 @@ class ProjectileBoxWindingTest {
 	@Test
 	@DisplayName("exactly one of the two emitted orderings matches the true outward normal — never both, never neither")
 	void exactlyOneOrderingIsOutward() {
-		for (Face f : boxFaces()) {
+		for (Face f : allFaces()) {
 			double[] forward = faceNormal(f.v0(), f.v1(), f.v2());
 			double[] reversed = faceNormal(f.v0(), f.v3(), f.v2());
 			boolean forwardMatches = dot(forward, f.expectedOutward()) > 0;

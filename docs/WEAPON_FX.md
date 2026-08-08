@@ -93,6 +93,82 @@ One liberty: the blob is stretched along its screen track. Descent's rounds are 
 discrete objects frame to frame; ours cross seventy blocks in a tick, so an unstretched blob would be
 a dot in a different place every frame.
 
+**Confirmed directly against the source** (`LASER.C`/`OBJECT.C`, both games — D1's `Weapon_info[]` and
+D2's are never statically initialized in either source tree; the real per-weapon numbers live in a
+`bitmaps.tbl` game-data file this checkout doesn't have, so exact stock `speed`/`fire_wait`/`blob_size`
+values can't be pulled from source, only the mechanics around them):
+
+- **`obj->size` for a blob weapon is set once, at creation, from `blob_size`, and nothing in `LASER.C`
+  ever changes it afterward.** `draw_object_blob` (`OBJECT.C`) feeds that one fixed number straight to
+  `g3_draw_bitmap`; the only thing that makes a far-away bolt look smaller is the ordinary 3D camera
+  projection every object gets, not a per-weapon distance or speed term. The stretch/tracer machinery
+  above exists entirely to cover a gap the original never had — Descent's engine advances a bolt a
+  small fraction of the screen between rendered frames at its actual speed; a single 20 Hz Minecraft
+  tick at the same speed does not.
+- **Ship velocity is not inherited by weapon fire**, with one named exception: `Laser_create_new`
+  (`LASER.C`) sets `velocity = direction * (weapon_speed + parent_speed)`, and `parent_speed` is
+  computed — and used — only for `PROXIMITY_ID`, specifically to stop a mine dropped while flying
+  backward from launching itself at the ship. Laser, vulcan, spreadfire, plasma, fusion and every
+  missile fire at exactly `speed[Difficulty_level]`, full stop, regardless of how fast or which way the
+  ship is moving. `WeaponCore.fireProjectile` here does the opposite by default —
+  `dir.multiply(spd).add(shipVel.multiply(inheritFactor))` — for every weapon that doesn't zero
+  `cfg.inherit`. Not flagged as a bug (Source-engine `prop_physics` projectiles inheriting carrier
+  velocity is the GMod original's own behaviour, which is what this port is actually ported from, not
+  Descent directly) — flagged as a real, source-confirmed point where the two lineages disagree, worth
+  knowing before tuning either one against "how Descent does it."
+- **No weapon has random aim spread except Vulcan and D2's Gauss** — every other weapon in both games
+  fires dead straight down its gun point, spread only ever coming from *multiple simultaneous shots at
+  fixed offsets* (Spreadfire's alternating fixed 3-shot cross, D2 Helix's 5-bolt fan at 22.5° steps),
+  never from per-shot randomness. Vulcan/Gauss roll `(rand()/8 - 32767/16)` per axis per shot (Gauss
+  divides that by 5 for a tighter cone) — real randomness, but confined to exactly those two weapons.
+- **The base laser is always two simultaneous bolts**, guns 0 and 1 fired together every trigger pull —
+  "single laser" already means a dual-bolt volley in the original, which is what this port's own
+  dual-bolt implementation already matches; quad laser adds guns 2/3 for four bolts at once, not two
+  pairs alternating.
+- **A wall hit right at the muzzle silently cancels the shot** — the player-fire path raycasts from ship
+  position to the computed gun point *before* creating anything, and drops the shot with no object, no
+  effect, nothing, if that segment is blocked (`mprintf("Your laser is stuck thru a wall!")` in a debug
+  build, nothing in a release one). The identical check against *objects* (including, per the source
+  comment, potentially the firer's own ship) explicitly does **not** block firing — "we don't care if
+  the laser is stuck in an object, we just fire away normally." A weapon that reaches its lifetime limit
+  still detonates for splash damage if it has `damage_radius`; only zero-radius weapons (plain bolts)
+  simply vanish.
+
+## Open question, not changed here: rounds may be travelling 20× their intended speed
+
+Found while tracing the render pipeline for the "no projectile visible" fix below, and left alone
+because fixing it would change how every weapon in the game feels, not just how it's drawn — that call
+belongs to whoever is happy with combat pacing today, not to a rendering bug hunt.
+
+`WeaponCore.fireProjectile` converts a weapon's `speed` field with `DescentMod.su(cfg.speed)` —
+`× UNIT_SCALE (1/80)`, a pure length conversion, Source inches to blocks — and hands the result straight
+to `proj.setVelocity(...)`. `ProjectileEntity.tick()` then does `setPosition(getPos().add(vel))` once
+per server tick. Nothing between those two calls divides by `DescentMod.TICKS_PER_SECOND` (20).
+
+Every other velocity in this codebase that starts life as a per-*second* quantity — the flight model,
+in `ServerPlayerFlightTravelMixin`, `FlightSystem`, `DescentFlightMotion`, `ModNetworking`,
+`SeamWarmup` — visibly multiplies or divides by `TICKS_PER_SECOND` at the hand-off, and
+`docs/MOVEMENT.md` documents that conversion as a deliberate, named step. Weapon fire has no equivalent
+line anywhere. `cfg.speed = 6200f` for the laser is a per-*second* figure — Source (and Descent) both
+express `speed` that way, and this project's own docs call it "6200 source units **a second**" — so
+`su(6200)` (77.5) is blocks per second, applied here as if it were blocks per *tick*: 20× too fast,
+~1550 blocks/second instead of ~77.5, every weapon in the arsenal, not just the laser.
+
+This is not a new discovery contradicting old code — it's already priced into the rest of the render
+stack. `docs/WEAPON_FX.md` itself has called the result "**70 blocks per tick**" since the tracer was
+first added, and both the tracer's 48-bead cap and the billboard's 7-block stretch clamp exist
+specifically to make a round moving that fast per tick legible at all. If the ÷20 were added, both of
+those would suddenly be sized for a round ten times faster than the one actually flying — not wrong,
+just built for a problem that would no longer exist at anywhere near this scale, since the
+source-accurate speed (confirmed above: Descent's own blob is a fixed-size, unstretched sprite,
+needing none of this) would cross under 4 blocks a tick instead of ~77.
+
+Not touched here because it is a balance decision wearing a rendering bug's clothes: every hitbox,
+every "can I dodge this," every weapon's felt aggressiveness in this mod depends on this number today,
+and changing it is one line (`spd` in `fireProjectile`, one more `/ DescentMod.TICKS_PER_SECOND`) with
+consequences across the entire arsenal at once, not something to flip alongside an unrelated visibility
+fix without it being asked for.
+
 ## Fixed: multi-muzzle lasers firing at extreme angles close-up
 
 Reported as "lasers and small arms are tied to the player model, so they fire in every direction
@@ -202,3 +278,39 @@ carry a bolt colour as a numeric constant anywhere — `Laser_render` dispatches
 isn't in this source-only checkout. `DescentLaserFire.primaryColor`'s magenta-to-cyan progression by
 laser level is an existing, already-considered approximation of that art, not something this pass had
 grounds to second-guess — left as is.
+
+## Fixed: no projectile visible at all — sound and damage happen, nothing draws
+
+Reported again after the distance-cap fix above shipped, this time with no visible bolt whatsoever —
+confirmed (no video this time, so asked directly) that the shot sound and the hit itself both still
+happen; only the round's own visual is missing. That rules out the firing path (`WeaponCore`,
+`DescentWeaponItem`, energy/cooldown, `world.spawnEntity`) — the server side is doing everything it
+always did — and narrows this to render-only, same territory as the winding fix two sections up.
+
+That earlier section reasoned the billboard path couldn't be *that* bug's cause: a camera-facing quad
+rotated by a `Quaternionf` can only encode a rotation, never a reflection, so its winding as presented
+to the camera can't flip *frame to frame* the way a statically-oriented box's six faces can depending
+on which way the box happens to be facing. That reasoning is correct for a symptom that comes and
+goes — but it says nothing about a winding that is wrong *consistently*, every frame, for every round.
+A billboard whose single quad is wound backward relative to whatever convention
+`RenderLayer.getEntityTranslucent` actually culls against (never confirmed either way — see the
+winding section's own note on that) would not flicker; it would simply never draw, which is exactly
+"no projectiles" rather than "sometimes no projectiles."
+
+`billboard()` — the one function every `MESH_BOLT`/`MESH_ORB` round's entire visible shape goes
+through, laser and plasma included — never got the double-winding treatment `drawBox`/`quad()` did.
+Not a deliberate exception: the box fix's own commit scoped itself to "hand-built cube renderers,"
+and a billboard's single quad is a cube face in every way that matters for this specific risk (a
+hand-emitted quad through a culling convention this sandbox cannot inspect), it just isn't part of a
+cube. The gap sat unnoticed because the two bugs look nothing alike on the surface — a hand's-width of
+solid colour filling the screen reads as "obviously something is drawing, just wrong," not "check
+whether the thing that draws bolts at all is even reaching the GPU."
+
+Fixed the same way as `drawBox`: `billboard()` now emits its quad in both winding orders, the reversed
+copy sharing the first vertex the same way `quad()`'s does. Whichever convention this pipeline
+actually culls against, one ordering survives; if it doesn't cull translucent geometry at all, the
+second pass lands exactly on top of the first and costs four extra vertices per round, never a visible
+difference. `ProjectileBoxWindingTest` now covers this quad alongside the six box faces it already
+checked — same three properties (reversed winding is exactly antiparallel, the original order is
+already outward, exactly one of the two orderings matches the true normal) — so a future change to
+either shape's vertex order gets caught the same way.

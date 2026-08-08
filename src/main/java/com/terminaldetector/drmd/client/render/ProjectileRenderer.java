@@ -134,6 +134,14 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 	 * others, which reads as disconnected fragments rather than a coherent tracer. The standard
 	 * translucent entity layer other hand-drawn geometry in this mod already uses successfully
 	 * ({@code DroneSwarmRenderer}, {@code SkyUfoRenderer}) does not have that failure mode.
+	 *
+	 * <p>Emitted in both winding orders, same reasoning and same fix as {@link #quad}: this single
+	 * quad went through the RenderLayer swap above but never got the double-winding treatment that
+	 * shipped for the hand-built cube faces in {@code drawBox} — a gap, not a deliberate exception,
+	 * since a billboard is exactly the same "hand-emitted quad through an unverified culling
+	 * convention" risk as a cube face, just one face instead of six. Every bolt and orb goes through
+	 * here, so a wrong-winding guess does not read as "one shot in ten looks off," it reads as "no
+	 * projectiles" — the whole {@code MESH_BOLT}/{@code MESH_ORB} path draws nothing at all.
 	 */
 	private static void billboard(VertexConsumer vc, MatrixStack.Entry entry,
 								  float len, float wide, int argb, float alpha) {
@@ -141,10 +149,19 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 		float g = ((argb >> 8) & 255) / 255f;
 		float b = (argb & 255) / 255f;
 		var m = entry.getPositionMatrix();
-		vc.vertex(m, -len, -wide, 0).color(r, g, b, alpha).texture(0, 0).overlay(0).light(FULL_BRIGHT).normal(0, 0, 1);
-		vc.vertex(m, len, -wide, 0).color(r, g, b, alpha).texture(1, 0).overlay(0).light(FULL_BRIGHT).normal(0, 0, 1);
-		vc.vertex(m, len, wide, 0).color(r, g, b, alpha).texture(1, 1).overlay(0).light(FULL_BRIGHT).normal(0, 0, 1);
-		vc.vertex(m, -len, wide, 0).color(r, g, b, alpha).texture(0, 1).overlay(0).light(FULL_BRIGHT).normal(0, 0, 1);
+		blobVertex(vc, m, -len, -wide, r, g, b, alpha, 0, 0);
+		blobVertex(vc, m, len, -wide, r, g, b, alpha, 1, 0);
+		blobVertex(vc, m, len, wide, r, g, b, alpha, 1, 1);
+		blobVertex(vc, m, -len, wide, r, g, b, alpha, 0, 1);
+		blobVertex(vc, m, -len, -wide, r, g, b, alpha, 0, 0);
+		blobVertex(vc, m, -len, wide, r, g, b, alpha, 0, 1);
+		blobVertex(vc, m, len, wide, r, g, b, alpha, 1, 1);
+		blobVertex(vc, m, len, -wide, r, g, b, alpha, 1, 0);
+	}
+
+	private static void blobVertex(VertexConsumer vc, org.joml.Matrix4f m, float x, float y,
+								   float r, float g, float b, float a, float u, float v) {
+		vc.vertex(m, x, y, 0).color(r, g, b, a).texture(u, v).overlay(0).light(FULL_BRIGHT).normal(0, 0, 1);
 	}
 
 	// ------------------------------------------------------------- WEAPON_RENDER_POLYMODEL
