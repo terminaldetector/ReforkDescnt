@@ -18,6 +18,24 @@ import net.minecraft.world.World;
 public final class MantleStream {
 	/** Chunk radius around a digging pilot that loads mantle/nether content. */
 	public static final int STREAM_CHUNKS = 6;
+	/**
+	 * Inner radius that gets full drain priority; the ring out to {@link #STREAM_CHUNKS} is prefetch
+	 * and gets only whatever budget the priority tier doesn't spend.
+	 *
+	 * <p>{@code STREAM_CHUNKS = 6} around one digger is already a 13×13, 169-chunk neighbourhood — and
+	 * a pilot exploring fresh ground near the Core re-fills a fresh 169-chunk batch every time they
+	 * round a corner, all requeued the instant it loads (the redundant {@code enqueue} calls the rest
+	 * of every tick makes are no-ops once a chunk is queued, but the first pass through unbuilt ground
+	 * is not redundant). {@link LevelBuilder}'s per-tick budget divided across however many of those are
+	 * still mid-build makes every one of them crawl at once rather than most finishing quickly — the
+	 * queue-fairness fix upstream of this one traded starvation (some chunks never touched) for exactly
+	 * this (every chunk touched, all of them slowly), and a wide-enough burst still reads as the same
+	 * complaint: terrain visibly filling in under the pilot rather than already being there. Shrinking
+	 * to a tight priority ring doesn't change the total work or the per-tick budget — it changes where
+	 * that fixed budget is spent first, so the handful of chunks the pilot can actually see finish
+	 * before the wider look-ahead ring even gets a turn.
+	 */
+	public static final int STREAM_CHUNKS_NEAR = 2;
 
 	private MantleStream() {}
 

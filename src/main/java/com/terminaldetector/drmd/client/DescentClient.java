@@ -62,6 +62,7 @@ public class DescentClient implements ClientModInitializer {
 		// 120 blocks, which put a blue-green grid over the ground at Y 40 — where the game is played.
 		// A boundary the player can see is a boundary; the column is meant to read as one space.
 		com.terminaldetector.drmd.client.sky.OrbitalBeltSkyRenderer.register();
+		com.terminaldetector.drmd.client.sky.CoreSkyDome.register();
 		com.terminaldetector.drmd.client.planet.PlanetFloorRenderer.register();
 		com.terminaldetector.drmd.client.render.MegaBeamViewRenderer.register();
 		com.terminaldetector.drmd.client.render.ConstructScaffoldRenderer.register();

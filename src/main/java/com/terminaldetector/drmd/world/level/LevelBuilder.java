@@ -55,6 +55,17 @@ public final class LevelBuilder {
 	private static final Set<Long> QUEUED = new HashSet<>();
 
 	/**
+	 * Look-ahead ring beyond {@link MantleStream#STREAM_CHUNKS_NEAR}, out to
+	 * {@link MantleStream#STREAM_CHUNKS} — drains only on whatever budget {@link #QUEUE} doesn't spend
+	 * this tick. Same idea as {@link #END_QUEUE} getting the column's leftovers: a wide prefetch radius
+	 * is worth streaming ahead of a digging pilot, but not at the cost of the handful of chunks
+	 * actually around them right now taking just as long to finish as the whole 169-chunk neighbourhood
+	 * would.
+	 */
+	private static final Deque<Job> PRESTREAM_QUEUE = new ArrayDeque<>();
+	private static final Set<Long> PRESTREAM_QUEUED = new HashSet<>();
+
+	/**
 	 * End-band work on its own queue.
 	 *
 	 * <p>A pilot climbing into the band needs its islands and nothing else. Putting them on the
@@ -93,10 +104,27 @@ public final class LevelBuilder {
 	private static void enqueue(ServerWorld world, int chunkX, int chunkZ) {
 		if (QUEUE.size() >= MAX_QUEUE) return;
 		long key = ChunkPos.toLong(chunkX, chunkZ);
-		if (QUEUED.contains(key)) return;
+		if (QUEUED.contains(key) || PRESTREAM_QUEUED.contains(key)) return;
 		if (world.isChunkLoaded(chunkX, chunkZ) && mantleBuilt(world.getChunk(chunkX, chunkZ))) return;
 		QUEUED.add(key);
 		QUEUE.add(new Job(world, chunkX, chunkZ, 0, WorldLevels.ABYSS_TOP - 1));
+	}
+
+	/**
+	 * Same as {@link #enqueue}, but onto the low-priority prefetch ring ({@link #PRESTREAM_QUEUE}).
+	 *
+	 * <p>Never promotes a chunk already sitting in the priority {@link #QUEUE} — if it's already there,
+	 * it is already getting the better deal this call would have given it. A chunk enqueued here that
+	 * the pilot later closes on stays in this ring rather than jumping the priority one: worst case, it
+	 * finishes exactly as slowly as every chunk did before this split existed, never slower.
+	 */
+	private static void enqueuePrestream(ServerWorld world, int chunkX, int chunkZ) {
+		if (PRESTREAM_QUEUE.size() >= MAX_QUEUE) return;
+		long key = ChunkPos.toLong(chunkX, chunkZ);
+		if (QUEUED.contains(key) || PRESTREAM_QUEUED.contains(key)) return;
+		if (world.isChunkLoaded(chunkX, chunkZ) && mantleBuilt(world.getChunk(chunkX, chunkZ))) return;
+		PRESTREAM_QUEUED.add(key);
+		PRESTREAM_QUEUE.add(new Job(world, chunkX, chunkZ, 0, WorldLevels.ABYSS_TOP - 1));
 	}
 
 	/**
@@ -145,42 +173,59 @@ public final class LevelBuilder {
 		return !st.isAir() && !st.isOf(Blocks.CAVE_AIR) && !st.isOf(Blocks.VOID_AIR);
 	}
 
+	/**
+	 * Spend up to {@code budget} draining one queue. Shared by {@link #QUEUE} and
+	 * {@link #PRESTREAM_QUEUE} so the two tiers can only ever differ in <em>how much</em> budget they
+	 * get, never in how fairly they spend it.
+	 *
+	 * <p>Re-queues with {@code addLast}, not {@code addFirst}: a chunk re-queued mid-build goes to the
+	 * back of its own queue's line, not straight back to the front. {@code addFirst} let the
+	 * head-of-queue job monopolize every tick's whole budget until it finished all four phases — worth
+	 * it for the very first chunk queued, but every chunk queued after it (which, for a moving pilot,
+	 * means everything ahead of them) sat completely untouched behind that one job, then the next, one
+	 * at a time. A queue anywhere near {@link #MAX_QUEUE} deep made that a multi-minute wait before
+	 * generation ahead of the pilot ever got a single write — reading as generation stuck around only
+	 * the small area that was queued first. {@code addLast} instead round-robins the budget across
+	 * every in-flight job each tick, so a chunk newly queued under load still starts making progress on
+	 * the tick it is added, not after the whole backlog ahead of it finishes.
+	 *
+	 * @return the budget left over after this queue either empties or the budget runs out
+	 */
+	private static int drainQueue(Deque<Job> queue, Set<Long> queued, int budget) {
+		while (budget > 0 && !queue.isEmpty()) {
+			Job job = queue.poll();
+			long key = ChunkPos.toLong(job.chunkX, job.chunkZ);
+			queued.remove(key);
+			if (!job.world.isChunkLoaded(job.chunkX, job.chunkZ)) continue;
+			StepResult step = step(job, budget);
+			budget -= step.written;
+			if (!step.done) {
+				queued.add(key);
+				queue.add(step.next);
+			}
+		}
+		return budget;
+	}
+
 	private static void drain(net.minecraft.server.MinecraftServer server) {
 		ServerWorld ow = server.getOverworld();
 		if (ow != null && com.terminaldetector.drmd.world.WorldFeatures.NETHER_BAND) {
 			for (Digger d : nearbyDiggers(server)) {
 				for (int dx = -MantleStream.STREAM_CHUNKS; dx <= MantleStream.STREAM_CHUNKS; dx++) {
 					for (int dz = -MantleStream.STREAM_CHUNKS; dz <= MantleStream.STREAM_CHUNKS; dz++) {
-						enqueue(ow, d.cx + dx, d.cz + dz);
+						if (Math.max(Math.abs(dx), Math.abs(dz)) <= MantleStream.STREAM_CHUNKS_NEAR) {
+							enqueue(ow, d.cx + dx, d.cz + dz);
+						} else {
+							enqueuePrestream(ow, d.cx + dx, d.cz + dz);
+						}
 					}
 				}
 			}
 		}
 
 		int budget = BUDGET_PER_TICK;
-		while (budget > 0 && !QUEUE.isEmpty()) {
-			Job job = QUEUE.poll();
-			long key = ChunkPos.toLong(job.chunkX, job.chunkZ);
-			QUEUED.remove(key);
-			if (!job.world.isChunkLoaded(job.chunkX, job.chunkZ)) continue;
-			StepResult step = step(job, budget);
-			budget -= step.written;
-			if (!step.done) {
-				QUEUED.add(key);
-				// addLast, not addFirst: a chunk re-queued mid-build goes to the back of the line, not
-				// straight back to the front. addFirst made the head-of-queue job monopolize every
-				// tick's whole budget until it finished all four phases — worth it for the very first
-				// chunk queued, but every chunk queued after it (which, for a moving pilot, means
-				// everything ahead of them) sat completely untouched behind that one job, then the
-				// next, one at a time. A queue anywhere near MAX_QUEUE deep made that a multi-minute
-				// wait before generation ahead of the pilot ever got a single write — reading as
-				// generation stuck around only the small area that was queued first. addLast instead
-				// round-robins the budget across every in-flight job each tick, so a chunk newly queued
-				// under load still starts making progress on the tick it is added, not after the whole
-				// backlog ahead of it finishes.
-				QUEUE.add(step.next);
-			}
-		}
+		budget = drainQueue(QUEUE, QUEUED, budget);
+		budget = drainQueue(PRESTREAM_QUEUE, PRESTREAM_QUEUED, budget);
 
 		// End band gets what is left. One island is a single indivisible step, so it runs on the
 		// remaining budget rather than reserving its own — the column keeps priority when a pilot is

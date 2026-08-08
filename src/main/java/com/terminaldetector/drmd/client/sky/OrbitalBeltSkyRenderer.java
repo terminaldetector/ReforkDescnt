@@ -14,6 +14,7 @@ import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
 /**
@@ -39,13 +40,19 @@ public final class OrbitalBeltSkyRenderer {
 	}
 
 	private static void render(WorldRenderContext ctx) {
-		if (!DescentConfig.levelSky || !DescentConfig.orbitalBeltSky) return;
+		if (!DescentConfig.levelSky) return;
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (mc.player == null || mc.world == null) return;
 		if (mc.world.getRegistryKey() != net.minecraft.world.World.OVERWORLD) return;
 
 		float tickDelta = ctx.tickCounter().getTickDelta(false);
 		double y = ctx.camera().getPos().y;
+		Matrix4f mat = ctx.matrixStack().peek().getPositionMatrix();
+		// Independent of orbitalBeltSky below: this hides the wrong sun/moon, it isn't one of the
+		// decorative extras that flag turns off.
+		paintOblivionEnvelope(ctx, mat, y, tickDelta);
+
+		if (!DescentConfig.orbitalBeltSky) return;
 		float alt = altitudeAlpha(y);
 		float night = nightFactor(mc.world, tickDelta);
 		// Surface night: Starlink-thin visibility; altitude: full Spark vista.
@@ -64,7 +71,6 @@ public final class OrbitalBeltSkyRenderer {
 							: "§a◉ ORBIT RING §7— Spark vista · Oblivion above."), false);
 		}
 
-		Matrix4f mat = ctx.matrixStack().peek().getPositionMatrix();
 		double spin = (mc.world.getTime() + tickDelta) * 0.0009;
 		boolean starlinkMode = alt < 0.35f && starlink > 0.15f;
 
@@ -109,6 +115,56 @@ public final class OrbitalBeltSkyRenderer {
 		RenderSystem.enableDepthTest();
 		RenderSystem.enableCull();
 		RenderSystem.disableBlend();
+	}
+
+	/**
+	 * Once the pilot is actually inside the End band, the small distant "Oblivion object" above isn't
+	 * enough to hide vanilla's sun and moon — it's a landmark meant to be seen from outside the band,
+	 * not a skybox. Same fix as {@link CoreSkyDome} for the opposite end of the column: a large
+	 * sky-coloured box enclosing the camera, <em>depth-tested</em> (unlike this file's other draws
+	 * above) so it only shows through open sky and never paints over an island the pilot is flying
+	 * past. Kept in this file rather than as its own class, unlike the Core case, because it has to
+	 * hand off with the belt/Oblivion-object visuals painted just above rather than fight them for the
+	 * same altitudes — one method deciding both is what keeps that handoff automatic; two independently
+	 * gated renderers would each need to know about the other's alpha to avoid overpainting it.
+	 */
+	private static void paintOblivionEnvelope(WorldRenderContext ctx, Matrix4f mat, double y, float tickDelta) {
+		float envelope = envelopeAlpha(y);
+		if (envelope < 0.02f) return;
+		Vec3d sky = MinecraftClient.getInstance().world.getSkyColor(ctx.camera().getPos(), tickDelta);
+
+		RenderSystem.enableBlend();
+		RenderSystem.defaultBlendFunc();
+		RenderSystem.disableCull();
+		RenderSystem.enableDepthTest();
+		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+		RenderSystem.depthMask(false);
+
+		Tessellator tess = Tessellator.getInstance();
+		BufferBuilder buf = tess.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+		float r = (float) sky.x, g = (float) sky.y, b = (float) sky.z;
+		float s = 256f;
+		quad(buf, mat, -s, -s, -s, s, -s, -s, s, s, -s, -s, s, -s, r, g, b, envelope);
+		quad(buf, mat, -s, -s, s, s, -s, s, s, s, s, -s, s, s, r, g, b, envelope);
+		quad(buf, mat, -s, -s, -s, -s, -s, s, s, -s, s, s, -s, -s, r, g, b, envelope);
+		quad(buf, mat, -s, s, -s, s, s, -s, s, s, s, -s, s, s, r, g, b, envelope);
+		quad(buf, mat, -s, -s, -s, -s, s, -s, -s, s, s, -s, -s, s, r, g, b, envelope);
+		quad(buf, mat, s, -s, -s, s, -s, s, s, s, s, s, s, -s, r, g, b, envelope);
+		var built = buf.endNullable();
+		if (built != null) BufferRenderer.drawWithGlobalProgram(built);
+
+		RenderSystem.depthMask(true);
+		RenderSystem.enableCull();
+		RenderSystem.disableBlend();
+	}
+
+	/** 0 at the Orbital ceiling, 1 a hundred blocks into the End band. */
+	static float envelopeAlpha(double y) {
+		if (y <= WorldLevels.ORBITAL_TOP) return 0f;
+		double top = WorldLevels.ORBITAL_TOP + 100;
+		if (y >= top) return 1f;
+		float t = (float) ((y - WorldLevels.ORBITAL_TOP) / (top - WorldLevels.ORBITAL_TOP));
+		return t * t * (3 - 2 * t);
 	}
 
 	/** 0 noon → 1 deep night (Minecraft sky angle). */

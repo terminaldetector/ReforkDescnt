@@ -293,3 +293,71 @@ launcher's skin overlays as a known source of pause-menu interference on this ex
 that is the actual cause here or a red herring needs either a repro via the `,` keybind directly
 (bypassing the pause menu entirely) or a log from the moment it happens — nothing in the uploaded
 launcher log points at it (no exception anywhere, every session exits cleanly with code 0).
+
+## Fixed: Core-band chunks visibly crawling in, and vanilla's sun/moon still showing underground
+
+Reported as slow chunk loading near the Core, seen first-hand ("чанки буквально росли друг над
+другом" — chunks literally growing on top of each other) while loitering there rather than passing
+through, plus the Overworld's sun and moon still visible from the Core band and from the End band
+alike — read together as "the transitions aren't really set up."
+
+**The crawl.** Different mechanism from either Nether-band fix above — not a chunk disagreeing with
+its neighbour, not a budget too small to finish a chunk ever, and not one job starving the rest of the
+queue (that was the addFirst→addLast fix). `MantleStream.STREAM_CHUNKS = 6` around one digger is a
+13×13, 169-chunk neighbourhood, refreshed by `LevelBuilder.drain`'s digger loop every tick a pilot
+spends near the Core. The `addLast` fairness fix means every one of those 169 gets a turn — but a turn
+each, round-robin, off one shared `BUDGET_PER_TICK`, is a completely different thing from finishing
+quickly: with the budget divided across everything still mid-build, a chunk directly under a loitering
+pilot advances by `MANTLE_ROWS_PER_STEP` rows every few ticks instead of every tick, and the whole
+mantle fill is visibly, slowly assembling in front of them rather than already being there when they
+arrive. Fairness stopped starvation; it didn't stop dilution.
+
+Split the digger radius into two tiers: `MantleStream.STREAM_CHUNKS_NEAR` (2 — a 5×5, 25-chunk ring)
+drains on `LevelBuilder.QUEUE` with the full per-tick budget, same as before; the remaining ring out to
+`STREAM_CHUNKS` (144 chunks) drains on a new `PRESTREAM_QUEUE` that only gets whatever budget the near
+ring didn't spend that tick — the same "gets what is left" relationship `END_QUEUE` already had to the
+column queue, applied one level up. Total throughput is unchanged (same budget, same total row count,
+same number of ticks to fully drain everything queued); what changes is which 25 of the 169 finish
+first, and those 25 are the ones the pilot can actually see. A chunk that starts in the prefetch ring
+and never gets promoted if the pilot later reaches it early behaves exactly as it did before this
+split — never worse, which is what makes the change safe to ship without a way to load-test it live.
+`LevelBuilderPriorityStreamTest` mirrors the two-queue scheduling and pins the three load-bearing
+claims: the near ring finishes in the same tick count whether or not 144 far jobs are also queued, the
+same near jobs take more than 3× as long in one undivided queue, and the split changes who goes first
+without changing the total ticks to drain everything.
+
+**The sky.** `ClientWorldMixin.drmd$levelSky` (see `LevelSky` above) tints `getSkyColor` — the flat
+background colour, which the fog also reads from — but the sun and moon are separate textured quads
+vanilla draws regardless of that colour, on their own draw calls this mod has never touched. Tinting
+the sky red-black at the Core or violet in Oblivion while the ordinary sun still crosses it is exactly
+"presence of the regular world's skybox" the report named — the colour changed, but the two objects
+that make a sky read as *the Overworld's* specifically never went anywhere.
+
+There is no per-position hook to cancel just those two quads without a raw Mixin into
+`WorldRenderer`'s internals, and this project has no decompiled Minecraft source and no live client to
+get that exact target right — a wrong Mixin target fails to apply at startup and takes the whole game
+down with it, not a cosmetic miss CI would catch either way. Occluded them instead, with geometry
+through the same `WorldRenderEvents` Fabric API this file already uses safely elsewhere
+(`OrbitalBeltSkyRenderer`, shipped and unchanged): a large sky-coloured box enclosing the camera in
+every direction (6DoF has no fixed "up" to skip one face of), coloured from `world.getSkyColor` itself
+so it is invisible as a shape and reads only as "no sun or moon here." Unlike this file's other draws,
+it keeps depth testing **on** — a shape meant to fill the whole sky has to lose to anything nearer
+(terrain, a cavern wall, an island) or it would paint over real geometry the same way a depth-ignoring
+skybox always would once it's this large.
+
+Split across two owners rather than one new class covering the whole column: `CoreSkyDome` (new file)
+handles the lower reaches, where nothing else draws custom sky content and there's nothing to conflict
+with. The Oblivion/End side is handled inside `OrbitalBeltSkyRenderer` itself
+(`paintOblivionEnvelope`) instead of a second independent class, because that file already owns a
+competing set of visuals up there (the belt, the distant "Oblivion object" landmark) whose own alpha
+stays saturated from the Sky band up through Oblivion with no natural gap to hand off through — one
+method deciding both the landmark and the envelope is what keeps them from fighting over the same
+pixels; two renderers gated on separate altitude curves would each need to know the other's alpha to
+avoid it. `SkyOcclusionRampTest` mirrors both ramps (`CoreSkyDome.lowerAlpha`,
+`OrbitalBeltSkyRenderer.envelopeAlpha`) and pins the same properties `LevelSkyTest` already established
+for the colour tint: exact 0/1 endpoints, held flat rather than extrapolated beyond them, and no step
+anywhere a pilot flying straight through would actually see one.
+
+Neither fix touches the Sky/Orbital band itself — `OrbitalBeltSkyRenderer`'s existing belt vista owns
+that altitude range untouched, and the report didn't name it; only the Core and Oblivion ends, which
+it did.
