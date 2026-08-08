@@ -9,27 +9,39 @@ import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
 /**
- * Fired objects, drawn the way Descent draws them.
+ * Fired objects, drawn the way Descent draws them — with one deliberate divergence for bolts, see
+ * below.
  *
  * <p>The original splits weapons in two by {@code Weapon_info[].render_type} and nothing else
  * (WEAPON.H, LASER.C). {@code WEAPON_RENDER_BLOB} — every laser, plasma ball and fusion bolt —
  * becomes an object with {@code RT_LASER}, and {@code Laser_render} sends it to
  * {@code draw_object_blob}, which is one call to {@code g3_draw_bitmap}: a sprite pinned to the
- * camera at the object's position, sized by {@code blob_size}. {@code WEAPON_RENDER_POLYMODEL} —
- * the missiles — becomes {@code RT_POLYOBJ} and is drawn as a real model turned along its flight.
+ * camera at the object's position, sized by {@code blob_size}, never rotated to face any particular
+ * way — the angled-streak look in the original's own art comes entirely from the bitmap texture, not
+ * from any runtime orientation logic. {@code WEAPON_RENDER_POLYMODEL} — the missiles — becomes
+ * {@code RT_POLYOBJ} and is drawn as a real model turned along its flight.
  *
- * <p>That split is the reason a Descent firefight is readable. A bolt is a billboard, so there is no
- * angle you can see it from where it thins out or disappears; it is the same bright shape whether it
- * is coming at you or crossing in front of you. A missile is a model, because a missile is a thing
- * with a nose and a tail and you are meant to read which way it is pointing.
+ * <p>Here, there is no pre-drawn art, so the streak shape has to come from somewhere else. The first
+ * attempt kept the billboard (camera-facing quad) and rotated it in-plane to match the round's
+ * velocity as projected into the current camera's view space — correct in principle, but every frame's
+ * angle depends on the live camera orientation as well as the round's own direction, and reads as
+ * unsteady across a bolt's now much longer visible flight (see {@code docs/WEAPON_FX.md}'s speed fix).
+ * {@code MESH_BOLT} now takes the same path {@code MESH_ROCKET}/{@code MESH_DRILL}/{@code MESH_MINE}
+ * already do instead: a real body oriented in world space by {@link ModelOrientation#applyBasis}, the
+ * same call verified across 1701 attitudes for the pilot model — its orientation is a pure function of
+ * the round's own flight direction, nothing else, so it cannot wobble with the camera or with two
+ * bolts from one volley converging at slightly different angles (deliberate — see
+ * {@code DescentLaserFire}), the way the projected-billboard version could. Kept generously fat in
+ * cross-section rather than a thin needle specifically so it stays legible even viewed end-on, which
+ * is the one thing a true 3D body gives up relative to a billboard and the reason the original chose a
+ * billboard in the first place.
  *
- * <p>Here, bolts and orbs take the blob path and rockets, drills and mines take the model path.
+ * <p>{@code MESH_ORB} stays on the billboard path — a plasma ball reads as a round blob from any
+ * angle, so it has no orientation to get wrong and no reason to leave the technique the original
+ * itself uses. Rockets, drills and mines keep the model path they always had.
  */
 public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 	private static final Identifier TEXTURE = Identifier.of("minecraft", "textures/misc/white.png");
@@ -48,82 +60,80 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 		int mesh = entity.getMeshKind();
 		float scale = entity.getVisualScale();
 
-		if (mesh == ProjectileEntity.MESH_BOLT || mesh == ProjectileEntity.MESH_ORB) {
-			renderBlob(entity, mesh, scale, argb, vel, matrices, consumers);
+		if (mesh == ProjectileEntity.MESH_ORB) {
+			renderBlob(scale, argb, matrices, consumers);
+		} else if (mesh == ProjectileEntity.MESH_BOLT) {
+			renderBolt(scale, argb, vel, matrices, consumers);
 		} else {
 			renderModel(entity, mesh, scale, argb, vel, tickDelta, matrices, consumers);
 		}
 		super.render(entity, yaw, tickDelta, matrices, consumers, light);
 	}
 
-	// ------------------------------------------------------------------ WEAPON_RENDER_BLOB
+	// ------------------------------------------------------------------ WEAPON_RENDER_BLOB (orbs)
 
 	/**
-	 * The blob: a quad turned to face the camera, elongated along the round's screen track.
+	 * The blob: a quad turned to face the camera — plasma and other {@code MESH_ORB} rounds only.
+	 * {@code MESH_BOLT} moved to {@link #renderBolt}; see the class doc for why.
 	 *
-	 * <p>Descent's blob is a bitmap and the bolt shape lives in the art. There is no art here, so the
-	 * shape is built instead — a saturated outer glow with a near-white core inside it, which is what
-	 * the original's bolt sprites look like and what makes them read against both a lit wall and open
-	 * space. All three layers go through the same translucent entity layer real geometry uses
-	 * elsewhere in this mod ({@code RenderLayer.getEntityTranslucent}) rather than a debug-only one —
-	 * see {@link #billboard} for why that swap matters.
-	 *
-	 * <p>The elongation is the one liberty taken. Descent's rounds move slowly enough to be discrete
-	 * objects frame to frame; ours cross seventy blocks in a tick, so a round blob would be a dot in
-	 * a different place each frame. Stretching it down its own screen track is what a round moving
-	 * that fast would leave on a real sensor, and it is what makes the shot legible in the frame.
+	 * <p>Descent's blob is a bitmap and the shape lives in the art. There is no art here, so the shape
+	 * is built instead — a saturated outer glow with a near-white core inside it, which is what the
+	 * original's sprites look like and what makes them read against both a lit wall and open space.
+	 * All three layers go through the same translucent entity layer real geometry uses elsewhere in
+	 * this mod ({@code RenderLayer.getEntityTranslucent}) rather than a debug-only one — see
+	 * {@link #billboard} for why that swap matters. No elongation, no rotation: a ball reads as a ball
+	 * from every angle, so unlike a bolt it has no direction to get right or wrong.
 	 */
-	private void renderBlob(ProjectileEntity entity, int mesh, float scale, int argb, Vec3d vel,
-							MatrixStack matrices, VertexConsumerProvider consumers) {
+	private void renderBlob(float scale, int argb, MatrixStack matrices, VertexConsumerProvider consumers) {
 		matrices.push();
-		// Distance from the round's own render position to the camera, read off the matrix's
-		// translation column before any of this method's own rotations touch it — at this point the
-		// matrix is still camera-relative and unrotated, so the column is exactly renderPos - cameraPos.
-		float distToCamera = matrices.peek().getPositionMatrix().getTranslation(new Vector3f()).length();
-		// Pin to the camera. This is the whole property draw_object_blob buys in the original: a bolt
-		// has no bad viewing angle, because it has no orientation of its own to be seen edge-on.
-		Quaternionf camera = this.dispatcher.getRotation();
-		matrices.multiply(camera);
+		// Pin to the camera. This is the whole property draw_object_blob buys in the original: a round
+		// object has no bad viewing angle, because it has no orientation of its own to be seen edge-on.
+		matrices.multiply(this.dispatcher.getRotation());
 
-		// Lay the long axis along where the round is travelling *on screen*. Rotating the world
-		// velocity by the camera's inverse puts it in view space; its x/y is the track.
-		float spin = 0f;
-		float speed = (float) vel.length();
-		if (speed > 1e-4) {
-			Vector3f view = new Vector3f((float) vel.x, (float) vel.y, (float) vel.z);
-			camera.conjugate(new Quaternionf()).transform(view);
-			if (view.x * view.x + view.y * view.y > 1e-8f) {
-				spin = (float) Math.toDegrees(Math.atan2(view.y, view.x));
-			}
-		}
-		matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(spin));
-
-		float half = (mesh == ProjectileEntity.MESH_ORB ? 0.34f : 0.26f) * Math.max(0.55f, scale);
-		// A round crossing the screen leaves a track as long as the ground it covered — sized from
-		// speed alone. This clamp and multiplier were both sized for the ~77 block/tick a round moved
-		// before WeaponCore.fireProjectile's own speed bug was fixed (missing a /TICKS_PER_SECOND
-		// hand-off — see docs/WEAPON_FX.md); at the corrected ~4 block/tick, the old numbers produced a
-		// streak several times longer than the ground actually covered — read as "just bars," not
-		// bolts, and long enough that ordinary per-bolt angle variation (dual/quad convergence toward a
-		// shared aim point is deliberate, see DescentLaserFire's own doc, and each bolt's own velocity
-		// sync has some quantisation) was visible as a wobble at the far end. A shorter streak is far
-		// less sensitive to the same angular variation — the arm is shorter — so tightening this also
-		// reads as steadier, not just shorter. Descent's own blob has no distance/speed scaling at all
-		// (confirmed against LASER.C/OBJECT.C — a fixed-size sprite, see docs/WEAPON_FX.md), so there is
-		// no source number to match here, only a proportion re-derived for the now-correct speed;
-		// distance-to-camera capping (below) still guards the muzzle-proximity case on its own terms.
-		float stretch = (float) MathHelper.clamp(speed * 0.3, 0.0, 3.0);
-		stretch = Math.min(stretch, distToCamera * 0.6f);
-		float length = half + stretch;
-
+		float half = 0.34f * Math.max(0.55f, scale);
 		var entry = matrices.peek();
 		VertexConsumer buf = consumers.getBuffer(RenderLayer.getEntityTranslucent(TEXTURE));
-		billboard(buf, entry, length * 1.05f, half * 2.3f, argb, 0.30f);
-		billboard(buf, entry, length, half * 1.35f, argb, 0.65f);
+		billboard(buf, entry, half * 2.3f, half * 2.3f, argb, 0.30f);
+		billboard(buf, entry, half * 1.35f, half * 1.35f, argb, 0.65f);
 		// The core reads as solid rather than as more glow: alpha 1.0 fully covers whatever is behind
 		// it, so it stays legible in a mine and does not wash out over a sunlit field the way a purely
 		// additive bolt would.
-		billboard(buf, entry, length * 0.94f, half * 0.5f, whiten(argb), 1.0f);
+		billboard(buf, entry, half * 0.5f, half * 0.5f, whiten(argb), 1.0f);
+		matrices.pop();
+	}
+
+	// ------------------------------------------------------------------- WEAPON_RENDER_BLOB (bolts)
+
+	/**
+	 * The bolt: a real body oriented along the round's own flight direction, same technique as
+	 * {@link #renderModel} — see the class doc for why this departs from a camera-facing billboard.
+	 *
+	 * <p>Deliberately fat for its length (cross-section roughly a third of the total length) rather
+	 * than a thin needle: a true 3D body foreshortens toward nothing when viewed end-on, which a
+	 * billboard never does, so the one failure mode being traded in for a stable orientation is guarded
+	 * against directly by never making the body thin enough for that foreshortening to read as
+	 * "vanished" rather than "pointed at you."
+	 */
+	private void renderBolt(float scale, int argb, Vec3d vel,
+							MatrixStack matrices, VertexConsumerProvider consumers) {
+		matrices.push();
+		if (vel.lengthSquared() > 1e-6) {
+			Vec3d dir = vel.normalize();
+			Vec3d ref = Math.abs(dir.y) > 0.99 ? new Vec3d(0, 0, 1) : new Vec3d(0, 1, 0);
+			ModelOrientation.applyBasis(matrices, 180f, dir.negate(), ref);
+		}
+
+		float speed = (float) vel.length();
+		float r = 0.15f * Math.max(0.55f, scale);
+		// Half-length along the flight axis, from speed the same way the old billboard stretch was —
+		// re-derived for the corrected per-tick speed (docs/WEAPON_FX.md), not matched against a source
+		// number: Descent's own blob has no speed/distance scaling at all. Floored at 2.5x the radius so
+		// a slow or small round never reads as a flat disc instead of a bolt; capped short, matching the
+		// reference screenshot's own short bolts rather than the far longer billboard streak this
+		// replaces.
+		float len = MathHelper.clamp(speed * 0.3f, r * 2.5f, 1.4f);
+		body(matrices, consumers, r * 1.7f, r * 1.7f, len, 0, argb);
+		body(matrices, consumers, r * 0.75f, r * 0.75f, len * 0.85f, 0, whiten(argb));
 		matrices.pop();
 	}
 
