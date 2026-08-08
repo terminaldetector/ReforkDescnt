@@ -330,3 +330,36 @@ overly fast round the way this port's stretch/tracer machinery incidentally did.
 `WeaponSpeedConversionTest`: the laser's 6200 su/s now converts to ~3.875 blocks/tick (not ~77.5),
 exactly 20× smaller than the pre-fix value, and a 5-second laser lifetime now covers a plausible
 few-hundred-block range instead of thousands.
+
+## Fixed: streaks read as bars, and wobbled — sized for the old (20×-too-fast) speed
+
+Confirmed with the speed fix above: rounds now travel a real path and are visible along it, but the
+billboard streak itself — sized from speed by `clamp(speed * 0.55, 0, 7)`, unchanged since "Making a
+shot visible" — was calibrated against the pre-fix ~77 block/tick laser and never revisited once that
+speed was corrected to ~3.875. At the new, correct speed the same formula still produced a streak
+several times longer than the ground a round actually covers in a tick, reported as "просто балки" —
+just bars — with a reference screenshot of the original's short, clearly-directional bolts to aim for.
+
+The wobble ("стабилизируй их положение") is the same root cause seen from a different angle, not a
+second bug needing its own fix. `spin` — the angle the streak is laid along — comes from projecting the
+round's own velocity into view space (`renderBlob`); dual/quad lasers deliberately aim each bolt at a
+shared convergence point from its own wing muzzle (`DescentLaserFire`, see "multi-muzzle lasers" above),
+so two bolts from one trigger pull *are* a few degrees apart by design, and any one bolt's own velocity
+sync carries some ordinary quantisation. Neither is new. What changed is the lever arm: at the old
+~7-block half-length, a few degrees of arm-swing lands a visible distance away at the tip; shortened,
+the same angular variation moves the tip by much less, which reads as "steadier" without anything about
+the angle computation itself needing to change.
+
+Retuned in `ProjectileRenderer.renderBlob`: `clamp(speed * 0.3, 0, 3)` in place of
+`clamp(speed * 0.55, 0, 7)` — both the multiplier and the absolute ceiling brought down together, since
+the ceiling had gone slack at the corrected speed (no `MESH_BOLT`/`MESH_ORB` weapon's stretch reaches
+anywhere near 7 any more) and was left at a proportionally lower but still genuinely defensive value
+rather than removed. Not tuned against a source number — confirmed above that the original has no
+stretch at all, a fixed-size sprite regardless of speed or distance — so there is nothing in `LASER.C`
+to match here, only a proportion re-derived for the now-correct speed and re-checked against the
+reference screenshot's shorter, steadier bolts; a first pass, like `SCRAPE_KEEP_SMOOTH` elsewhere in
+this project, expected to want a further live-feel pass rather than treated as final. The
+muzzle-proximity distance cap (`0.6 ×` distance to camera) is untouched — it guards a different case
+(a fresh bolt still at the muzzle) on its own terms and was never part of this. `ProjectileBlobStretchTest`
+now pins the new constants directly (laser and mega-laser speeds recomputed post speed-fix) instead of
+the pre-fix ~70 block/tick figure it used to mirror.

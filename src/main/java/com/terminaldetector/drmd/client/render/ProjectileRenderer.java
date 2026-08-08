@@ -100,14 +100,19 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 
 		float half = (mesh == ProjectileEntity.MESH_ORB ? 0.34f : 0.26f) * Math.max(0.55f, scale);
 		// A round crossing the screen leaves a track as long as the ground it covered — sized from
-		// speed alone, so a bolt reaches this ~7-block clamp the instant it spawns, before it has
-		// gone anywhere. Centred a couple of blocks out at a muzzle's actual distance, a streak that
-		// long subtends most of the screen: a flat wash of colour where a bolt should be, for exactly
-		// as long as the round is still that close. Capping the stretch by the round's own distance to
-		// the camera fixes it at the source — near the muzzle the cap binds and the streak grows in
-		// behind the round; a tick later, once the round is far enough out that 0.6x its distance
-		// already clears 7 blocks, the cap stops applying and it reaches full size same as before.
-		float stretch = (float) MathHelper.clamp(speed * 0.55, 0.0, 7.0);
+		// speed alone. This clamp and multiplier were both sized for the ~77 block/tick a round moved
+		// before WeaponCore.fireProjectile's own speed bug was fixed (missing a /TICKS_PER_SECOND
+		// hand-off — see docs/WEAPON_FX.md); at the corrected ~4 block/tick, the old numbers produced a
+		// streak several times longer than the ground actually covered — read as "just bars," not
+		// bolts, and long enough that ordinary per-bolt angle variation (dual/quad convergence toward a
+		// shared aim point is deliberate, see DescentLaserFire's own doc, and each bolt's own velocity
+		// sync has some quantisation) was visible as a wobble at the far end. A shorter streak is far
+		// less sensitive to the same angular variation — the arm is shorter — so tightening this also
+		// reads as steadier, not just shorter. Descent's own blob has no distance/speed scaling at all
+		// (confirmed against LASER.C/OBJECT.C — a fixed-size sprite, see docs/WEAPON_FX.md), so there is
+		// no source number to match here, only a proportion re-derived for the now-correct speed;
+		// distance-to-camera capping (below) still guards the muzzle-proximity case on its own terms.
+		float stretch = (float) MathHelper.clamp(speed * 0.3, 0.0, 3.0);
 		stretch = Math.min(stretch, distToCamera * 0.6f);
 		float length = half + stretch;
 
