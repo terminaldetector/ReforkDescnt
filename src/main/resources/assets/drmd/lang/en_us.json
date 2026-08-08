@@ -191,6 +191,7 @@
   "options.drmd.ship_customize.tip": "Traffic-light afterburner tiers + energy presets (creative: physics too)",
   "menu.drmd.worldgen": "DRMD World Generation…",
   "screen.drmd.worldgen": "DRMD World Generation",
+  "pack.drmd.advanced_column": "DRMD — Advanced column (tall Overworld)",
   "options.drmd.worldgen_hint": "Applies to the next world created or first loaded — never an existing save",
   "options.drmd.mode.advanced": "Advanced (full column)",
   "options.drmd.mode.vanilla": "Vanilla (real height, restart required)",

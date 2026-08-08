@@ -17,8 +17,10 @@ public final class WorldRules {
 	public static final int Y_END_SPACE = 100_000;
 
 	/**
-	 * Practical build band. The custom dimension height <em>is</em> enabled now
-	 * ({@code data/minecraft/dimension_type/overworld.json}), so these mirror
+	 * Practical build band. The custom dimension height is enabled by default
+	 * ({@code resourcepacks/drmd_advanced_column/data/minecraft/dimension_type/overworld.json}, see
+	 * {@link DrmdBuiltinPacks}) — on unless a world was created in
+	 * {@link DrmdServerConfig.WorldModLevel#VANILLA} — so these mirror
 	 * {@link com.terminaldetector.drmd.world.level.WorldLevels} rather than vanilla's −64…320.
 	 */
 	public static final int GEN_Y_MIN = com.terminaldetector.drmd.world.level.WorldLevels.WORLD_BOTTOM;

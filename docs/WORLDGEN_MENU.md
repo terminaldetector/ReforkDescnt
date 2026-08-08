@@ -148,25 +148,42 @@ instead of matching the rest of the screen's instant-apply language:
   they keep behaving exactly as Advanced for any world that is still physically the tall column,
   regardless of what this screen says, until that world's height itself changes.
 
-### What's not wired up yet
+### Making the height itself optional: `DrmdBuiltinPacks`
 
-Nothing here can make an existing or new Overworld actually shorter — `overworld.json` is still merged
-into the mod's base data unconditionally, so `isAdvancedColumn` reports `true` for every world today no
-matter what this screen says. That's the next, riskier step: moving the dimension-type override into an
-optional built-in resource pack (`DrmdBuiltinPacks`, via
-`ResourceManagerHelper.registerBuiltinResourcePack`) whose activation type is chosen from this same
-config — tracked separately from this scaffolding pass. Until it lands, picking Vanilla here clears the
-six feature flags and previews the screen layout, but does not yet produce a shorter world.
+The scaffolding above only reroutes behaviour around whichever world already loaded — none of it can
+make an Overworld actually shorter. That needed `overworld.json` to stop being unconditional base mod
+data. It now lives at `resourcepacks/drmd_advanced_column/data/minecraft/dimension_type/overworld.json`
+(moved out of `data/minecraft/dimension_type/`, unchanged content) with its own `pack.mcmeta`
+(`pack_format` 48, the 1.21–1.21.1 data pack format — a wrong number here is a non-fatal warning in the
+Data Packs screen, not a crash), and `DrmdBuiltinPacks.register()` — called from
+`DescentMod.onInitialize()`, right after `DrmdServerConfig.load()` so the config is already resolved —
+registers it as a built-in data pack via `ResourceManagerHelper.registerBuiltinResourcePack`, with
+`ResourcePackActivationType.DEFAULT_ENABLED` for `WorldModLevel.ADVANCED` (identical to every world this
+mod has produced so far) or `NORMAL` (present but off, so vanilla's own −64…320 Overworld wins) for
+`VANILLA`. No new Gradle dependency — `fabric-api` (already `modImplementation`'d) bundles
+`fabric-resource-loader-v0`, where this API lives.
 
-**Load-bearing limitation once that pack does exist, worth restating here because it will not be
-obvious from playing the game:** a resource pack's registered activation type is fixed once, at mod
-init, from whatever `worldModLevel` the config held at *that* moment — flipping this screen's row mid-
-session still writes the config immediately like everything else here, but the pack itself only picks
-up the new value on the *next game launch*. Reaching into the live `CreateWorldScreen`/`WorldCreator`'s
-own datapack-selection state to make it same-session-immediate was investigated and set aside: the real
-Yarn field/method names for that surface cannot be confirmed without decompiled source unavailable in
-this sandbox, so it's a follow-up for once the primary mechanism has round-tripped through a live client,
-not part of this pass.
+**Load-bearing limitation, worth restating here because it will not be obvious from playing the game:**
+a built-in pack's registered activation type is fixed once, at that `onInitialize` call, from whatever
+`worldModLevel` the config held at *that* moment — flipping this screen's row mid-session still writes
+the config immediately like everything else here, but the pack itself only picks up the new value on the
+*next game launch*. That's why the row's label says so directly instead of matching the rest of the
+screen's instant-apply language, and why `isAdvancedColumn` (ground truth, re-read from whichever world
+actually loaded) rather than the config flag is what everything else in this file gates on — the two can
+legitimately disagree for one session after a flip, and ground truth is the one that's actually correct.
+
+Reaching into the live `CreateWorldScreen`/`WorldCreator`'s own datapack-selection state to make the
+toggle same-session-immediate was investigated and set aside: the real Yarn field/method names for that
+surface cannot be confirmed without decompiled source unavailable in this sandbox, so a wrong guess
+there risks a Mixin that fails to apply at startup — a follow-up for once this primary mechanism has
+round-tripped through a live client, not part of this pass.
+
+**What CI cannot verify, and needs a live client before this is called done** (see also the plan's own
+Verification section): whether the moved `overworld.json` actually wins in the datapack stack as a
+built-in pack instead of silently not applying; whether it shows up correctly, named and toggleable, in
+vanilla's own Data Packs screen at world creation; whether a freshly created Vanilla world loads without
+crashing — the single highest-severity unknown in this entire pass; whether the real End behaves
+correctly with its own dragon fight and normal portals once `isAdvancedColumn` reports `false` for it.
 
 ## Tests
 

@@ -145,6 +145,7 @@
   "options.drmd.ship_customize.tip": "Ускорители светофор + пресеты энергии (креатив: физика корпуса)",
   "menu.drmd.worldgen": "Генерация мира DRMD…",
   "screen.drmd.worldgen": "Генерация мира DRMD",
+  "pack.drmd.advanced_column": "DRMD — расширенная колонна (высокий Overworld)",
   "options.drmd.worldgen_hint": "Действует на следующий созданный/загруженный мир — уже созданные сейвы не затрагивает",
   "options.drmd.mode.advanced": "Advanced (полная колонна)",
   "options.drmd.mode.vanilla": "Vanilla (настоящая высота, нужен рестарт)",
