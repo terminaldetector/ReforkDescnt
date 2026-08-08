@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.world.layer;
 
+import com.terminaldetector.drmd.world.level.WorldLevels;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
@@ -28,6 +29,8 @@ public final class LayerBridge {
 
 	/** Name the band on entry, for every pilot, flying or walking. */
 	public static void tick(ServerPlayerEntity player) {
+		if (!WorldLevels.isAdvancedColumn(player.getServerWorld())) return;
+
 		UUID id = player.getUuid();
 		int cd = COOLDOWN.getOrDefault(id, 0);
 		if (cd > 0) COOLDOWN.put(id, cd - 1);

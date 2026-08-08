@@ -1,5 +1,8 @@
 package com.terminaldetector.drmd.world.level;
 
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.World;
+
 /**
  * Tall Overworld bands — three layers form one parallelepiped in scale; display via hooks.
  *
@@ -125,5 +128,26 @@ public final class WorldLevels {
 	public static boolean isShaftChunk(int chunkX, int chunkZ) {
 		return Math.floorMod(chunkX, SHAFT_CHUNK_SPACING) == 0
 				&& Math.floorMod(chunkZ, SHAFT_CHUNK_SPACING) == 0;
+	}
+
+	/**
+	 * True when the running server's Overworld is this mod's tall column ({@link #WORLD_BOTTOM}..
+	 * {@link #WORLD_TOP}), false for a genuinely vanilla-height one (Advanced vs Vanilla
+	 * {@code DrmdServerConfig.WorldModLevel}). Always resolves through the Overworld regardless of
+	 * which world {@code anyWorld} is — it is the only {@code dimension_type} this mod ever
+	 * overrides, so a Nether/End world's own height says nothing about which mode is active.
+	 *
+	 * <p>Deliberately re-derived from the dimension registry on every call rather than cached or
+	 * locked per-world the way {@code psychedelic}/{@code infiniteMegacity} are in
+	 * {@code DescentWorldState}: those need a lock because they are pure bookkeeping with no
+	 * independent ground truth, but column height already has an authoritative source of truth —
+	 * the dimension registry, fixed forever at world creation — so there is nothing to lock, and
+	 * re-deriving self-corrects if a second, differently configured world is loaded into the same
+	 * running game, which a config-time-only flag could not.
+	 */
+	public static boolean isAdvancedColumn(ServerWorld anyWorld) {
+		ServerWorld overworld = anyWorld.getServer().getWorld(World.OVERWORLD);
+		if (overworld == null) return true;
+		return overworld.getBottomY() == WORLD_BOTTOM && overworld.getHeight() == WORLD_TOP - WORLD_BOTTOM;
 	}
 }

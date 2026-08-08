@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.mixin;
 
 import com.terminaldetector.drmd.world.end.EndReactorSession;
+import com.terminaldetector.drmd.world.level.WorldLevels;
 import net.minecraft.entity.boss.dragon.EnderDragonFight;
 import net.minecraft.server.world.ServerWorld;
 import org.spongepowered.asm.mixin.Final;
@@ -19,6 +20,8 @@ public class EnderDragonFightMixin {
 
 	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)
 	private void drmd$replaceDragonFight(CallbackInfo ci) {
+		// Vanilla mode: real End, real dragon fight — let vanilla's own tick run untouched.
+		if (!WorldLevels.isAdvancedColumn(world)) return;
 		// Always kill stock dragons; arena raise is gated. Entire path must be exception-safe —
 		// an uncaught IAE here (powered_rail curves) crashed the integrated server on join.
 		try {
@@ -31,6 +34,7 @@ public class EnderDragonFightMixin {
 
 	@Inject(method = "respawnDragon", at = @At("HEAD"), cancellable = true)
 	private void drmd$noRespawn(CallbackInfo ci) {
+		if (!WorldLevels.isAdvancedColumn(world)) return;
 		ci.cancel();
 	}
 }

@@ -72,6 +72,14 @@ public class DescentMod implements ModInitializer {
 		});
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+			// Column height is authoritative once a world is loaded — reconcile the WorldFeatures
+			// forced-off-in-Vanilla state against what actually loaded, in case it differs from the
+			// config-time guess (e.g. loading an existing Advanced save after the config was flipped
+			// to Vanilla for the *next* world, or vice versa).
+			if (server.getOverworld() != null) {
+				com.terminaldetector.drmd.world.DrmdServerConfig.forceFeaturesFor(
+						com.terminaldetector.drmd.world.level.WorldLevels.isAdvancedColumn(server.getOverworld()));
+			}
 			DescentPlayerData.clear();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
 			ConstructionRegistry.bootstrap(server);

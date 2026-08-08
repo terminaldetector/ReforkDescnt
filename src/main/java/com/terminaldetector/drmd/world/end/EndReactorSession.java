@@ -61,7 +61,8 @@ public final class EndReactorSession {
 
 	public static void onServerTick(MinecraftServer server) {
 		ServerWorld end = server.getWorld(World.END);
-		if (end != null) suppressDragons(end);
+		// Vanilla mode: leave the real End's own dragons alone.
+		if (end != null && WorldLevels.isAdvancedColumn(end)) suppressDragons(end);
 		for (ServerWorld world : arenaWorlds(server)) {
 			if (playerNearArena(world)) ensureBase(world);
 		}
@@ -123,7 +124,8 @@ public final class EndReactorSession {
 			if (overworld != null) worlds.add(overworld);
 		}
 		ServerWorld end = server.getWorld(World.END);
-		if (end != null) worlds.add(end);
+		// Vanilla mode: the real End is a normal dragon-fight dimension, not a reactor arena.
+		if (end != null && WorldLevels.isAdvancedColumn(end)) worlds.add(end);
 		return worlds;
 	}
 

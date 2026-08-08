@@ -361,3 +361,13 @@ anywhere a pilot flying straight through would actually see one.
 Neither fix touches the Sky/Orbital band itself — `OrbitalBeltSkyRenderer`'s existing belt vista owns
 that altitude range untouched, and the report didn't name it; only the Core and Oblivion ends, which
 it did.
+
+## Cross-reference: `LayerBridge`/`SeamWarmup` are no longer unconditional
+
+Both `tick` methods documented above as running "always" now start with a
+`WorldLevels.isAdvancedColumn(...)` early return, added alongside three other gates
+(`EnderDragonFightMixin`, `EndReactorSession`, `PortalComplexity`) for a Vanilla world-modification
+level — a genuinely vanilla-height Overworld with real, unreplaced Nether/End. Full writeup, including
+why the gate re-derives from the loaded world's actual height instead of a locked per-world flag like
+`psychedelic`/`infiniteMegacity` use, is in `docs/WORLDGEN_MENU.md`. Nothing about the seam/streaming
+mechanics themselves changed — the gate only decides whether they run at all for a given world.

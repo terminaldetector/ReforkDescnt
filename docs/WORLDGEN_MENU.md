@@ -102,6 +102,72 @@ landmark queue in this mod), so a previously-built cell a player flies back over
 re-enqueued after any restart. Calling the unguarded generator directly there would have rebuilt the
 entire plate on top of itself — caught in review before it shipped, not from a report.
 
+## Advanced vs Vanilla — how much of the world this mod is allowed to change
+
+A second control on the same screen, `WorldModLevel` (`DrmdServerConfig.worldModLevel`): **Advanced**
+(today's full tall column, unchanged — every band, every layer) or **Vanilla** (the goal: a genuinely
+vanilla-height Overworld, real unmodified Nether/End with normal portals, DRMD flight/weapons/HUD
+layered on top with minimal world changes).
+
+Resolving `VANILLA` — at config load, and again at every `SERVER_STARTED`, against whichever world
+actually loaded — forces all six `WorldFeatures` flags off regardless of what was individually saved
+for each (`DrmdServerConfig.forceFeaturesFor`, shared by `applyFrom`, `save`, and the `SERVER_STARTED`
+reconciliation so there's exactly one place this rule lives), and gates five further systems that had
+no `WorldFeatures` gate of their own before this:
+
+- `LayerBridge.tick` / `SeamWarmup.tick` — no band-crossing announcements or Nether/End warm-loading;
+  there is nothing to warm in a column with no bands.
+- `EnderDragonFightMixin` (`tick` and `respawnDragon`) — vanilla's own dragon fight and respawn run
+  untouched instead of being replaced by the reactor-base fight.
+- `EndReactorSession` (`onServerTick`'s dragon suppression and `arenaWorlds`) — the real End is left as
+  an ordinary dragon-fight dimension: no suppressed dragons, no reactor arena raised in it.
+- `PortalComplexity`'s `UseBlockCallback` — Nether/End portals ignite and activate normally, no
+  catalyst item required.
+
+Each of those five is a one-line early return on `WorldLevels.isAdvancedColumn(...)` — no other logic
+in any of them changed.
+
+### Ground truth, not a locked flag — and why that means two different timings
+
+`psychedelic`/`infiniteMegacity` lock their resolved value into `DescentWorldState` the moment a world
+is first seeded, because they're pure bookkeeping — nothing else in the save says which one a world is.
+Column height doesn't need that: the dimension registry is already the authoritative record, fixed
+permanently at world creation, so `isAdvancedColumn` re-reads the loaded Overworld's own
+`getBottomY()`/`getHeight()` every call instead of trusting a stored flag that could go stale — and
+self-corrects a case config-time forcing alone can't: opening a second, differently-configured world in
+the same running game.
+
+That split is deliberate and produces two different timings on this one screen, which is why the six
+feature toggles disappear the instant Vanilla is picked but the row itself carries a restart note
+instead of matching the rest of the screen's instant-apply language:
+
+- The six `WorldFeatures` flags are, and always were (see "What existed before this" above), live
+  global config with no per-world memory — flipping to Vanilla force-clears them immediately, the same
+  global/live-apply tradeoff unchecking any one of them by hand already had.
+- The five gated systems above read `isAdvancedColumn` — the *actual* loaded Overworld's height — so
+  they keep behaving exactly as Advanced for any world that is still physically the tall column,
+  regardless of what this screen says, until that world's height itself changes.
+
+### What's not wired up yet
+
+Nothing here can make an existing or new Overworld actually shorter — `overworld.json` is still merged
+into the mod's base data unconditionally, so `isAdvancedColumn` reports `true` for every world today no
+matter what this screen says. That's the next, riskier step: moving the dimension-type override into an
+optional built-in resource pack (`DrmdBuiltinPacks`, via
+`ResourceManagerHelper.registerBuiltinResourcePack`) whose activation type is chosen from this same
+config — tracked separately from this scaffolding pass. Until it lands, picking Vanilla here clears the
+six feature flags and previews the screen layout, but does not yet produce a shorter world.
+
+**Load-bearing limitation once that pack does exist, worth restating here because it will not be
+obvious from playing the game:** a resource pack's registered activation type is fixed once, at mod
+init, from whatever `worldModLevel` the config held at *that* moment — flipping this screen's row mid-
+session still writes the config immediately like everything else here, but the pack itself only picks
+up the new value on the *next game launch*. Reaching into the live `CreateWorldScreen`/`WorldCreator`'s
+own datapack-selection state to make it same-session-immediate was investigated and set aside: the real
+Yarn field/method names for that surface cannot be confirmed without decompiled source unavailable in
+this sandbox, so it's a follow-up for once the primary mechanism has round-tripped through a live client,
+not part of this pass.
+
 ## Tests
 
 - `InfiniteMegacityGridTest` — derives `PITCH`'s safety margin from `MegacityGenerator`'s own
@@ -110,3 +176,9 @@ entire plate on top of itself — caught in review before it shipped, not from a
   `config/drmd-server.properties` shape: no `worldKind` line at all (old file, either value of the
   legacy `psychedelicWorlds` boolean), an explicit line in either case, and a malformed value falling
   back safely instead of failing config load.
+- `WorldModLevelConfigTest` — same shape for `WorldModLevel` (default `ADVANCED`, case-insensitive,
+  malformed value falls back safely), plus pinning that resolving `VANILLA` forces every
+  `WorldFeatures` output false regardless of what was individually saved for each one.
+- `AdvancedColumnGateTest` — pins `isAdvancedColumn`'s two concrete numbers: this mod's tall column
+  (`-784`, height `2672`) reads as Advanced; vanilla's real height (`-64`, height `384`) and an
+  arbitrary third height both read as not-Advanced.

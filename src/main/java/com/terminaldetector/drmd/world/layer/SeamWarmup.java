@@ -93,6 +93,7 @@ public final class SeamWarmup {
 	public static void tick(ServerPlayerEntity player) {
 		MinecraftServer server = player.getServer();
 		if (server == null) return;
+		if (!WorldLevels.isAdvancedColumn(player.getServerWorld())) return;
 
 		if (player.getWorld().getRegistryKey() == World.OVERWORLD) {
 			tickColumn(player, server);

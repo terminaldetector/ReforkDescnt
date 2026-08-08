@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.world.portal;
 
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.weapon.items.ModItems;
+import com.terminaldetector.drmd.world.level.WorldLevels;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BlockState;
@@ -11,6 +12,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -32,6 +34,8 @@ public final class PortalComplexity {
 	public static void register() {
 		UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
 			if (world.isClient) return ActionResult.PASS;
+			// Vanilla mode: normal portals, no catalyst gate.
+			if (!WorldLevels.isAdvancedColumn((ServerWorld) world)) return ActionResult.PASS;
 			ItemStack stack = player.getStackInHand(hand);
 			BlockPos pos = hit.getBlockPos();
 			BlockState state = world.getBlockState(pos);

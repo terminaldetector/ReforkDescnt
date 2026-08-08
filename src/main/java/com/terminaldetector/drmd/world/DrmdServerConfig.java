@@ -34,6 +34,20 @@ public final class DrmdServerConfig {
 		INFINITE_MEGACITY
 	}
 
+	/** How much of the world this mod is allowed to change. */
+	public enum WorldModLevel {
+		/** Today's full tall column (-784..1888) and every layer/band in it. */
+		ADVANCED,
+		/**
+		 * Genuinely vanilla-height Overworld, real unmodified Nether/End with normal portals — DRMD
+		 * content layered on top with minimal world changes. Forces every {@link WorldFeatures} flag
+		 * off (see {@link #applyFrom}) regardless of their individually-saved values, and — once
+		 * {@code DrmdBuiltinPacks} exists — controls whether the tall-column {@code dimension_type}
+		 * override loads at all, which only takes effect on the next game launch.
+		 */
+		VANILLA
+	}
+
 	/**
 	 * When true, new Descent stock seeds become psychedelic fractal void worlds
 	 * with a weightless start point (see {@link com.terminaldetector.drmd.world.psychedelic.PsychedelicWorldgen}).
@@ -45,6 +59,8 @@ public final class DrmdServerConfig {
 	public static boolean psychedelicWorlds = false;
 
 	public static WorldKind worldKind = WorldKind.STOCK;
+
+	public static WorldModLevel worldModLevel = WorldModLevel.ADVANCED;
 
 	private static boolean loaded;
 
@@ -66,9 +82,9 @@ public final class DrmdServerConfig {
 			return;
 		}
 		applyFrom(props);
-		DescentMod.LOGGER.info("DRMD server config — worldKind={} netherBand={} endBand={} "
+		DescentMod.LOGGER.info("DRMD server config — worldKind={} worldModLevel={} netherBand={} endBand={} "
 						+ "klondikeIslands={} macroWorldgen={} surfaceDistricts={} orbitJunk={}",
-				worldKind, WorldFeatures.NETHER_BAND, WorldFeatures.END_BAND, WorldFeatures.KLONDIKE_ISLANDS,
+				worldKind, worldModLevel, WorldFeatures.NETHER_BAND, WorldFeatures.END_BAND, WorldFeatures.KLONDIKE_ISLANDS,
 				WorldFeatures.MACRO_WORLDGEN, WorldFeatures.SURFACE_DISTRICTS, WorldFeatures.ORBIT_JUNK);
 	}
 
@@ -87,12 +103,35 @@ public final class DrmdServerConfig {
 			// the legacy boolean so it keeps meaning what it always meant.
 			worldKind = psychedelicWorlds ? WorldKind.PSYCHEDELIC : WorldKind.STOCK;
 		}
+		worldModLevel = parseModLevel(props.getProperty("worldModLevel"), WorldModLevel.ADVANCED);
 		WorldFeatures.NETHER_BAND = parseBool(props, "netherBand", WorldFeatures.NETHER_BAND);
 		WorldFeatures.END_BAND = parseBool(props, "endBand", WorldFeatures.END_BAND);
 		WorldFeatures.KLONDIKE_ISLANDS = parseBool(props, "klondikeIslands", WorldFeatures.KLONDIKE_ISLANDS);
 		WorldFeatures.ORBIT_JUNK = parseBool(props, "orbitJunk", WorldFeatures.ORBIT_JUNK);
 		WorldFeatures.MACRO_WORLDGEN = parseBool(props, "macroWorldgen", WorldFeatures.MACRO_WORLDGEN);
 		WorldFeatures.SURFACE_DISTRICTS = parseBool(props, "surfaceDistricts", WorldFeatures.SURFACE_DISTRICTS);
+
+		// Forced here, not only at seedWorld: MultiNoiseBiomeSourceMixin reads SURFACE_DISTRICTS
+		// during spawn-chunk pregeneration, which runs before SERVER_STARTED ever fires.
+		forceFeaturesFor(worldModLevel != WorldModLevel.VANILLA);
+	}
+
+	/**
+	 * Forces every {@link WorldFeatures} flag off unless {@code advancedColumn} — shared by
+	 * {@link #applyFrom}, {@link #save}, and {@code DescentMod}'s {@code SERVER_STARTED} handler,
+	 * which calls this with the actually-loaded world's own ground truth
+	 * ({@code WorldLevels.isAdvancedColumn}) so a loaded save always wins over whatever this config
+	 * guessed at mod-init time — e.g. an existing Advanced save opened after the config was flipped
+	 * to Vanilla for the *next* world, or vice versa.
+	 */
+	public static void forceFeaturesFor(boolean advancedColumn) {
+		if (advancedColumn) return;
+		WorldFeatures.NETHER_BAND = false;
+		WorldFeatures.END_BAND = false;
+		WorldFeatures.KLONDIKE_ISLANDS = false;
+		WorldFeatures.ORBIT_JUNK = false;
+		WorldFeatures.MACRO_WORLDGEN = false;
+		WorldFeatures.SURFACE_DISTRICTS = false;
 	}
 
 	private static boolean parseBool(Properties props, String key, boolean fallback) {
@@ -110,9 +149,21 @@ public final class DrmdServerConfig {
 		}
 	}
 
+	/** {@code WorldModLevel.valueOf} without throwing on a stale/typo'd/missing value. */
+	private static WorldModLevel parseModLevel(String raw, WorldModLevel fallback) {
+		if (raw == null) return fallback;
+		try {
+			return WorldModLevel.valueOf(raw.trim().toUpperCase(java.util.Locale.ROOT));
+		} catch (IllegalArgumentException e) {
+			DescentMod.LOGGER.warn("Unknown worldModLevel '{}' in {}, defaulting to {}", raw, FILE, fallback);
+			return fallback;
+		}
+	}
+
 	private static void saveDefaults(Path path) {
 		Properties props = new Properties();
 		props.setProperty("worldKind", WorldKind.STOCK.name());
+		props.setProperty("worldModLevel", WorldModLevel.ADVANCED.name());
 		props.setProperty("psychedelicWorlds", "false");
 		props.setProperty("netherBand", String.valueOf(WorldFeatures.NETHER_BAND));
 		props.setProperty("endBand", String.valueOf(WorldFeatures.END_BAND));
@@ -125,12 +176,16 @@ public final class DrmdServerConfig {
 
 	/**
 	 * Persist the current in-memory settings, called from {@code DrmdWorldGenScreen} on close.
-	 * Applies immediately (no restart needed) and rewrites the file.
+	 * Applies immediately (no restart needed) and rewrites the file — except {@code modLevel} itself,
+	 * whose effect on the built-in resource pack's activation type only lands on the next game launch
+	 * (see the {@link WorldModLevel#VANILLA} doc and {@code DrmdWorldGenScreen}'s class doc).
 	 */
-	public static void save(WorldKind kind, boolean netherBand, boolean endBand, boolean klondikeIslands,
-							 boolean orbitJunk, boolean macroWorldgen, boolean surfaceDistricts) {
+	public static void save(WorldKind kind, WorldModLevel modLevel, boolean netherBand, boolean endBand,
+							 boolean klondikeIslands, boolean orbitJunk, boolean macroWorldgen,
+							 boolean surfaceDistricts) {
 		load(); // ensure `loaded`, so a save before any world exists still sticks
 		worldKind = kind;
+		worldModLevel = modLevel;
 		psychedelicWorlds = kind == WorldKind.PSYCHEDELIC;
 		WorldFeatures.NETHER_BAND = netherBand;
 		WorldFeatures.END_BAND = endBand;
@@ -138,16 +193,18 @@ public final class DrmdServerConfig {
 		WorldFeatures.ORBIT_JUNK = orbitJunk;
 		WorldFeatures.MACRO_WORLDGEN = macroWorldgen;
 		WorldFeatures.SURFACE_DISTRICTS = surfaceDistricts;
+		forceFeaturesFor(worldModLevel != WorldModLevel.VANILLA);
 
 		Properties props = new Properties();
 		props.setProperty("worldKind", worldKind.name());
+		props.setProperty("worldModLevel", worldModLevel.name());
 		props.setProperty("psychedelicWorlds", String.valueOf(psychedelicWorlds));
-		props.setProperty("netherBand", String.valueOf(netherBand));
-		props.setProperty("endBand", String.valueOf(endBand));
-		props.setProperty("klondikeIslands", String.valueOf(klondikeIslands));
-		props.setProperty("orbitJunk", String.valueOf(orbitJunk));
-		props.setProperty("macroWorldgen", String.valueOf(macroWorldgen));
-		props.setProperty("surfaceDistricts", String.valueOf(surfaceDistricts));
+		props.setProperty("netherBand", String.valueOf(WorldFeatures.NETHER_BAND));
+		props.setProperty("endBand", String.valueOf(WorldFeatures.END_BAND));
+		props.setProperty("klondikeIslands", String.valueOf(WorldFeatures.KLONDIKE_ISLANDS));
+		props.setProperty("orbitJunk", String.valueOf(WorldFeatures.ORBIT_JUNK));
+		props.setProperty("macroWorldgen", String.valueOf(WorldFeatures.MACRO_WORLDGEN));
+		props.setProperty("surfaceDistricts", String.valueOf(WorldFeatures.SURFACE_DISTRICTS));
 		writeFile(FabricLoader.getInstance().getConfigDir().resolve(FILE), props);
 	}
 
@@ -159,6 +216,7 @@ public final class DrmdServerConfig {
 						DRMD 6DOF server / worldgen options — editable from the DRMD World Generation
 						screen off the vanilla Create World menu, or by hand here.
 						worldKind = STOCK | PSYCHEDELIC | INFINITE_MEGACITY
+						worldModLevel = ADVANCED | VANILLA
 						""");
 			}
 		} catch (IOException e) {
@@ -176,5 +234,11 @@ public final class DrmdServerConfig {
 	public static boolean infiniteMegacityEnabled() {
 		load();
 		return worldKind == WorldKind.INFINITE_MEGACITY;
+	}
+
+	/** True when the configured level is {@link WorldModLevel#VANILLA}. */
+	public static boolean vanillaModLevel() {
+		load();
+		return worldModLevel == WorldModLevel.VANILLA;
 	}
 }
