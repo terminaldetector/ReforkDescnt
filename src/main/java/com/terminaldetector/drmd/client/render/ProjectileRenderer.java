@@ -76,6 +76,10 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 	private void renderBlob(ProjectileEntity entity, int mesh, float scale, int argb, Vec3d vel,
 							MatrixStack matrices, VertexConsumerProvider consumers) {
 		matrices.push();
+		// Distance from the round's own render position to the camera, read off the matrix's
+		// translation column before any of this method's own rotations touch it — at this point the
+		// matrix is still camera-relative and unrotated, so the column is exactly renderPos - cameraPos.
+		float distToCamera = matrices.peek().getPositionMatrix().getTranslation(new Vector3f()).length();
 		// Pin to the camera. This is the whole property draw_object_blob buys in the original: a bolt
 		// has no bad viewing angle, because it has no orientation of its own to be seen edge-on.
 		Quaternionf camera = this.dispatcher.getRotation();
@@ -95,8 +99,17 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 		matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(spin));
 
 		float half = (mesh == ProjectileEntity.MESH_ORB ? 0.34f : 0.26f) * Math.max(0.55f, scale);
-		// A round crossing the screen leaves a track as long as the ground it covered.
-		float length = half + (float) MathHelper.clamp(speed * 0.55, 0.0, 7.0);
+		// A round crossing the screen leaves a track as long as the ground it covered — sized from
+		// speed alone, so a bolt reaches this ~7-block clamp the instant it spawns, before it has
+		// gone anywhere. Centred a couple of blocks out at a muzzle's actual distance, a streak that
+		// long subtends most of the screen: a flat wash of colour where a bolt should be, for exactly
+		// as long as the round is still that close. Capping the stretch by the round's own distance to
+		// the camera fixes it at the source — near the muzzle the cap binds and the streak grows in
+		// behind the round; a tick later, once the round is far enough out that 0.6x its distance
+		// already clears 7 blocks, the cap stops applying and it reaches full size same as before.
+		float stretch = (float) MathHelper.clamp(speed * 0.55, 0.0, 7.0);
+		stretch = Math.min(stretch, distToCamera * 0.6f);
+		float length = half + stretch;
 
 		var entry = matrices.peek();
 		VertexConsumer buf = consumers.getBuffer(RenderLayer.getEntityTranslucent(TEXTURE));

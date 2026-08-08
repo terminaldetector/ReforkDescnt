@@ -154,3 +154,51 @@ instead of two — the "proper" fix — but this codebase has no existing use of
 `RenderLayer.of`/`MultiPhaseParameters`/`RenderPhase` anywhere to build from, and getting that surface
 wrong is a runtime failure (a `VertexFormat` mismatch) CI's pure-logic tests would not catch; it would
 ship green and only fail live. Left as a deliberate follow-up, not attempted blind here.
+
+## Fixed: a giant flat colour filling the screen on every shot
+
+Reported again after the winding fix above shipped, with a video: firing fills most of the screen
+with two solid diagonal bars of colour for as long as the trigger is held, not a bolt at all. The
+winding fix didn't touch this because it isn't the same code path — `drawBox`/`quad()` build the
+*solid* rocket/mine/drill bodies and the weapon-view modules; bolts and orbs take the separate
+billboard path in `renderBlob`/`billboard`, camera-facing quads rotated by a `Quaternionf`
+(`matrices.multiply(camera)`), which can only encode a rotation, never a reflection — so their winding
+as presented to the camera can't be the "wrong" one on some frames and not others the way a
+hand-wound box's can. That ruled the billboard path out as the culprit going in; the actual cause was
+in the same method for an unrelated reason.
+
+`WEAPON_RENDER_BLOB` in the original (`LASER.C`) is `draw_object_blob`: one call to `g3_draw_bitmap`,
+a fixed-size sprite (`blob_size`) that the standard 3D projection naturally shrinks or grows with
+distance — Descent's own rounds never needed anything more, because they move slowly enough to stay
+legible as a small dot from frame to frame. Ours cross roughly seventy blocks a tick, so a plain dot
+would be in a different place every frame; "Making a shot visible (tracer)" above added a length
+stretch along the round's own screen track to compensate, sized from how fast it's going
+(`clamp(speed * 0.55, 0, 7)` blocks) — a deliberate addition beyond what the original ever had to do,
+and the thing the original's fixed-size sprite made unnecessary to guard.
+
+That stretch is sized from speed alone, with no regard for how far the round has actually travelled.
+A bolt reaches its ~7-block half-length the instant it spawns, while it is still sitting at the
+muzzle — a wing mount is on the order of a block or two from the camera (`WeaponClusters`/
+`DefaultLayouts`: `fwd`/`rgt`/`up` around 19–32 inches, `/16`). A ~14-block camera-facing quad centred
+a block and a half from the eye subtends on the order of 150° — most of the field of view — for
+however many ticks the round stays that close, which at these speeds is effectively its first
+rendered frame, repeated for every round in a burst as long as the trigger is held.
+
+Fixed in `ProjectileRenderer.renderBlob`: the stretch is capped at `0.6 ×` the round's own distance to
+the camera that frame, read directly off the render matrix's translation column (camera-relative,
+unrotated at that point in the method, so it is exactly `renderPos - cameraPos`) rather than a new
+camera lookup. Near the muzzle the cap binds and the streak grows in behind the round instead of
+appearing full-size at zero range; a tick later, once the round is out far enough that `0.6 ×` its
+distance already clears the natural 7-block ceiling, the cap stops applying and the streak reaches the
+same full size it always did. `half` (the width term) was left alone — it was never speed-derived and
+never reaches more than a fraction of a block, so it was never the source of this. Pinned by
+`ProjectileBlobStretchTest`, mirroring the stretch formula: capped well under the muzzle's own
+distance up close, reaching the untouched 7-block clamp once far enough out, and never negative even
+at zero distance.
+
+Bolt colour was the other thing checked against the source while in there: `LASER.C`/`WEAPON.H` don't
+carry a bolt colour as a numeric constant anywhere — `Laser_render` dispatches purely on
+`Weapon_info[].render_type`, and the actual colour lived in the bitmap art (`bitmaps.tbl`), which
+isn't in this source-only checkout. `DescentLaserFire.primaryColor`'s magenta-to-cyan progression by
+laser level is an existing, already-considered approximation of that art, not something this pass had
+grounds to second-guess — left as is.
