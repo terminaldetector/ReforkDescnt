@@ -363,3 +363,22 @@ muzzle-proximity distance cap (`0.6 ×` distance to camera) is untouched — it 
 (a fresh bolt still at the muzzle) on its own terms and was never part of this. `ProjectileBlobStretchTest`
 now pins the new constants directly (laser and mega-laser speeds recomputed post speed-fix) instead of
 the pre-fix ~70 block/tick figure it used to mirror.
+
+## Fixed: the streak was laid crosswise to the track, not along it
+
+Read as "not oriented like any other projectile" and tried as a bigger structural change first — moving
+`MESH_BOLT` off the billboard entirely onto the same real-3D-body technique `renderModel` already uses
+for rockets/mines/drills. Reverted whole: the actual ask was much smaller, an in-plane rotation off by
+90° in the existing billboard, not a different rendering technique. Went back to the billboard exactly
+as it stood after the streak-length fix above (`git revert` of the 3D-body commit, not a manual redo —
+keeps the shortened stretch, the corrected speed, the double winding, all untouched).
+
+`spin` lays the billboard's long axis along the round's velocity projected into the camera's view
+space (`atan2(view.y, view.x)`); the geometry that rotation feeds into checks out on paper — the
+derivation was re-walked and the quad's own long axis does land along `(view.x, view.y)` after the
+rotation, no sign or axis-order slip found in it. Whatever the actual mismatch is — most likely which
+local axis this MC/Fabric version's camera-facing basis actually calls "right" versus "up", not
+something this sandbox can inspect without a live client — the observed result was a beam standing
+crosswise to its own track instead of pointed down it, and correcting that is a plain +90° added to
+`spin`. Taken as reported rather than re-derived a second time from the same unverifiable camera-basis
+assumption that produced the wrong angle in the first place.

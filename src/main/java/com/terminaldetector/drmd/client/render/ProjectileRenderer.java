@@ -93,7 +93,11 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 			Vector3f view = new Vector3f((float) vel.x, (float) vel.y, (float) vel.z);
 			camera.conjugate(new Quaternionf()).transform(view);
 			if (view.x * view.x + view.y * view.y > 1e-8f) {
-				spin = (float) Math.toDegrees(Math.atan2(view.y, view.x));
+				// +90°: reported directly against the live result — the streak was laid crosswise to
+				// the track instead of along it, a laser beam standing on its end instead of pointed
+				// down its own line. Not re-derived from the camera-basis math (this project cannot
+				// render a frame to check that against), taken as reported.
+				spin = (float) Math.toDegrees(Math.atan2(view.y, view.x)) + 90f;
 			}
 		}
 		matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(spin));
