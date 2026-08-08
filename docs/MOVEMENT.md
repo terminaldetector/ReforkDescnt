@@ -140,3 +140,56 @@ that is how the single-anchor version was caught.
 One hook does both the sky dome and the fog: vanilla's background renderer takes its overworld fog
 colour from `ClientWorld.getSkyColor`, so blending there carries through to the horizon haze
 without a second injection into the renderer.
+
+---
+
+## Fixed: diagonal tunnels felt worse than the geometry alone explains
+
+Reported as flying and building diagonal tunnels being uncomfortable — investigated first as a
+possible gap in `TunnelCarving`'s wall geometry, but that geometry already chamfers a bore's boundary
+to real, quarter-cell collision through `CarvedBlock`'s mask-driven `VoxelShape` (see
+`docs/MICROBLOCKS.md`). The actual mechanism was in collision *response*, not shape.
+
+`ServerPlayerFlightTravelMixin.drmd$serverDescentTravel` moves the hull with
+`sp.move(MovementType.SELF, perTick)`, which — like any vanilla `Entity.move` — already zeroes
+whichever axis a collision sweep actually blocked before the mixin's own code runs. What ran next,
+unconditionally, was `sp.getVelocity().multiply(0.86)`: not a tax on the blocked axis, a tax on
+*everything that survived*, every single tick a wall is touched. A ship threading a corridor that
+isn't axis-aligned grazes on one axis continuously while still trying to travel on the others, and
+paid 14% of its entire remaining speed on every one of those ticks, compounding:
+
+| consecutive grazes | speed remaining |
+|--:|--:|
+| 1 | 86.0% |
+| 5 | 47.0% |
+| 10 | 22.1% |
+
+— regardless of how gently the wall it touched was chamfered. This is also architecturally why finer
+geometry alone could never have fully fixed it: Minecraft's `VoxelShape` is always a union of
+axis-aligned boxes, at any resolution — there is no true sloped/diagonal collision primitive in the
+engine to chamfer *toward*. Rendering has no such limit (a real mesh can show a genuine diagonal
+face), but collision can only ever be a finer staircase, never truly smooth.
+
+Split the graze tax by context instead, via `TerrainClassifier` (`world/micro/TerrainClassifier.java`
+— reuses `MacroWorld`, the existing structure catalogue built for radar/HUD contacts, no new spatial
+index): `SCRAPE_KEEP_CUBIC = 0.86` unchanged for a position inside any known structure's bounds, so a
+built wall still feels exactly as solid as it always has; `SCRAPE_KEEP_SMOOTH = 0.95` everywhere
+else — every natural mantle/cave/corridor context, which is what the Descent shaft, the drill rig and
+the engineer's tool all already are. Ten grazes down a natural corridor now keep ≈60% of speed instead
+of ≈22%. 0.95 is a reasoned starting point, not a tuned one — this sandbox has no live client to feel
+it against.
+
+Classification only runs on a tick an actual collision happened, not every tick, and only server-side:
+`TerrainClassifier` needs `MacroWorld`, which is never synced to clients, so the client-predictive
+twin (`DescentFlightMotion`) is left exactly as it was — the correction-blend above (`predicted +=
+(server-predicted) * 0.25`) already exists to absorb exactly this class of divergence, "a collision
+the server resolved differently," and does so within 8–16 ticks even for the largest possible jump
+between the two constants.
+
+Not done here, and worth naming rather than silently dropping: wiring the classifier into
+`TunnelCarving`'s own carve methods, so a drill aimed at a structure wall falls back to a plain
+whole-block carve instead of the chamfered one — held back because that pipeline just had a
+`StackOverflowError` fixed this session and is still delicate, for a benefit (sharper hole edges in a
+structure wall) that is more cosmetic than the actual reported discomfort. And true
+marching-cubes-style smooth *rendering* for natural terrain — a real, separate rendering-pipeline
+project, and one that, per above, would still buy nothing for collision even once built.

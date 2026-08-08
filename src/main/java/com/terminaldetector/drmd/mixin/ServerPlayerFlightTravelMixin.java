@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.mixin;
 
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.DescentPlayerData;
+import com.terminaldetector.drmd.world.micro.TerrainClassifier;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -21,6 +22,22 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(PlayerEntity.class)
 public class ServerPlayerFlightTravelMixin {
+	/**
+	 * How much speed a graze leaves behind against a built structure — unchanged from before the
+	 * SMOOTH/CUBIC split, so a wall still feels exactly as solid as it always has.
+	 */
+	private static final double SCRAPE_KEEP_CUBIC = 0.86;
+	/**
+	 * Same, against natural mantle/cave/corridor terrain — {@code TunnelCarving} already chamfers
+	 * these walls to real quarter-cell collision, but {@code Entity.move} zeroes whichever axis a
+	 * sweep actually blocked before this runs, so what compounds tick over tick isn't the geometry, it
+	 * is this multiplier applied to everything that survived: {@code 0.86^10 ≈ 22%} of a ship's speed
+	 * is left after ten consecutive grazes down a non-axis-aligned corridor, however gently that
+	 * corridor is chamfered. 0.95 is a starting value pending live-client tuning, not a measured
+	 * constant — see {@code docs/MOVEMENT.md} for the full reasoning and the compounding numbers.
+	 */
+	private static final double SCRAPE_KEEP_SMOOTH = 0.95;
+
 	@Inject(method = "travel", at = @At("HEAD"), cancellable = true)
 	private void drmd$serverDescentTravel(Vec3d movementInput, CallbackInfo ci) {
 		PlayerEntity self = (PlayerEntity) (Object) this;
@@ -40,7 +57,9 @@ public class ServerPlayerFlightTravelMixin {
 		sp.setVelocity(perTick);
 		sp.move(MovementType.SELF, perTick);
 		if (sp.horizontalCollision || sp.verticalCollision) {
-			Vec3d after = sp.getVelocity().multiply(0.86);
+			double keep = TerrainClassifier.classify(sp.getBlockPos()) == TerrainClassifier.Zone.SMOOTH
+					? SCRAPE_KEEP_SMOOTH : SCRAPE_KEEP_CUBIC;
+			Vec3d after = sp.getVelocity().multiply(keep);
 			sp.setVelocity(after);
 			data.setFlightVelocity(after.multiply(DescentMod.TICKS_PER_SECOND));
 		}
