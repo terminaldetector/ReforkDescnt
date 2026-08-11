@@ -4,7 +4,9 @@ import com.terminaldetector.drmd.client.DescentClientState;
 import com.terminaldetector.drmd.client.flight.ShipAttitudeClient;
 import com.terminaldetector.drmd.client.gravity.FootGravityCamera;
 import com.terminaldetector.drmd.client.render.ModelOrientation;
+import com.terminaldetector.drmd.entity.PyroShipEntity;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
@@ -15,11 +17,15 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Put the pilot's model in the same orientation the camera is in.
+ * Put the pilot's model in the same orientation the camera is in, and hide it entirely while piloting
+ * the Pyro GX — Descent never shows its own ship's pilot from outside, only the hull.
  *
- * <p>Two cases, one call: flying, the model takes the ship's basis so it pitches and rolls with the
- * hull instead of staying upright through a barrel roll; on foot under a gravity torch it takes the
- * surface's, so legs point into the wall being walked on.
+ * <p>Two orientation cases, one call: flying free, the model takes the ship's basis so it pitches and
+ * rolls with the hull instead of staying upright through a barrel roll; on foot under a gravity torch
+ * it takes the surface's, so legs point into the wall being walked on. Piloting the Pyro GX is a third
+ * case handled by the second injection below — hidden outright rather than oriented, since
+ * {@code PyroShipRenderer} draws the hull itself and there is nothing useful left for the pilot's own
+ * body to show.
  */
 @Mixin(LivingEntityRenderer.class)
 public class LivingEntityRendererMixin {
@@ -48,5 +54,21 @@ public class LivingEntityRendererMixin {
 		Vec3d forward = look.subtract(up.multiply(look.dotProduct(up)));
 		if (forward.lengthSquared() < 1e-6) return;
 		ModelOrientation.applyBasis(matrices, bodyYaw, forward, up);
+	}
+
+	/**
+	 * Local-only: this client's own view of itself. A nearby player watching someone else pilot the
+	 * Pyro GX still sees that pilot's body seated in the hull — hiding it everywhere would need a
+	 * server-synced visibility flag, a bigger change than this pass makes; see
+	 * {@code aeris-mirai}-style scope notes in the PR/report for why that's deliberately left out here.
+	 */
+	@Inject(method = "render(Lnet/minecraft/entity/LivingEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V",
+			at = @At("HEAD"), cancellable = true)
+	private void drmd$hidePilotInShip(LivingEntity entity, float yaw, float tickDelta, MatrixStack matrices,
+									  VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
+		MinecraftClient mc = MinecraftClient.getInstance();
+		if (mc.player == entity && entity.getVehicle() instanceof PyroShipEntity) {
+			ci.cancel();
+		}
 	}
 }

@@ -331,7 +331,26 @@ public final class FlightSystem {
 		}
 		if (dirty) player.sendAbilitiesUpdate();
 		player.setNoGravity(true);
+		autoMountPyroShip(player);
 		ModNetworking.syncPlayer(player, data);
+	}
+
+	/**
+	 * Summon the Pyro GX under the pilot the moment 6DoF comes on, so flying always means visibly
+	 * flying it rather than the bare reoriented body. Guarded on {@code !hasVehicle()} rather than on
+	 * a call-site flag, so it is a safe no-op for every existing caller of {@code enable}: the join
+	 * path, the reactor-room/psychedelic/void-ending narrative triggers, {@code /d6}, and — this is
+	 * the one that matters for correctness, not just convenience — {@code PyroShipEntity} itself
+	 * calling {@code enable} from {@code interactMob}/{@code tick} always does so only after the
+	 * player is already riding it, so this never spawns a second ship out from under an existing one.
+	 */
+	private static void autoMountPyroShip(ServerPlayerEntity player) {
+		if (player.hasVehicle()) return;
+		var ship = com.terminaldetector.drmd.entity.ModEntities.PYRO_SHIP.create(player.getServerWorld());
+		if (ship == null) return;
+		ship.refreshPositionAndAngles(player.getX(), player.getY(), player.getZ(), player.getYaw(), 0);
+		player.getServerWorld().spawnEntity(ship);
+		player.startRiding(ship);
 	}
 
 	public static void tryDash(ServerPlayerEntity player) {

@@ -193,3 +193,67 @@ whole-block carve instead of the chamfered one — held back because that pipeli
 structure wall) that is more cosmetic than the actual reported discomfort. And true
 marching-cubes-style smooth *rendering* for natural terrain — a real, separate rendering-pipeline
 project, and one that, per above, would still buy nothing for collision even once built.
+
+## Fixed: no visible ship, and no way to get out of it
+
+Free 6DoF flight has never drawn a hull — see "The pilot's model" above: the fix there was making the
+*pilot's own vanilla body* bank and pitch with the ship basis, not drawing a ship around it. There was
+nothing to exit either, because there was nothing separate from the player to begin with — `H` just
+flips a boolean on the player entity.
+
+A real ship already existed for this, just not as the default: `PyroShipEntity` (`entity/PyroShipEntity.java`,
+"Pyro GX") is an ordinary vanilla-riding vehicle — `startRiding`/`removePassenger`, one seat, spawned
+via a placeable item — that a player could already mount and, critically, already had a fully worked
+out dismount (`removePassenger`): hang in place in a zero-g zone, switch to foot-gravity walking on a
+gravity field, lock local orientation to a floor if one's found underfoot, or fall back to free 6DoF in
+open air. It just wasn't anything a player would find without already knowing to place the item, and
+its own hull model (`entity/model/PyroShipModel.java`) was an explicit placeholder — a plain fuselage,
+two flat wings, a fin, a thruster — with no roll: `PyroShipRenderer` only ever applied yaw and pitch,
+so barrel-rolling in it showed your own body rolling while the hull under you stayed level.
+
+**Auto-mount, not a new mechanism.** `FlightSystem.enable()` now spawns a Pyro GX under the pilot and
+mounts them the moment 6DoF turns on (`autoMountPyroShip`, guarded on `!player.hasVehicle()`), reusing
+`PyroShipItem`'s own spawn call verbatim rather than a new one. That guard is what keeps this safe
+across every existing caller of `enable` — the join path (6DoF is native every join), the reactor-room
+and psychedelic-dock and void-ending triggers, `/d6` — and, the one that actually matters for
+correctness and not just tidiness, `PyroShipEntity` calling `enable` from its own `interactMob`/`tick`
+always does so *after* the player is already riding it, so the guard makes that a no-op rather than a
+second ship spawning out from under the first. Exiting needed nothing new: sneak-to-dismount is
+standard vanilla vehicle behavior, and `removePassenger`'s existing branches already do the right,
+context-sensitive thing — the ship is left parked in the world, re-enterable the same way any placed
+one always was (walk up, interact).
+
+**New hull, and the roll it never had.** `PyroShipModel` is rebuilt to the ÆRis/concept-art layout — a
+tapered fuselage, twin outboard weapon pods (each carrying a laser + missile cuboid), a top twin-tube
+cluster-bomb dispenser, and a ventral mining/construction-laser rig — matching how weapons actually map
+to hardpoints as reported live (top = cluster bombs, sides = combat lasers + offensive missiles, below
+= construction/mining beam), not just the concept art's own generic-rocket read of the top slot.
+`PyroShipRenderer` now orients entirely through `ModelOrientation.applyBasis(matrices, 180f, forward, up)`
+— the same helper "The pilot's model" uses, but the `bodyYaw=180` constant (not the entity's live yaw)
+matches how `ProjectileRenderer` calls it for rocket/mine bodies, not how the `LivingEntityRenderer`
+mixin does: this renderer builds its whole transform from scratch the way projectiles do, with no
+prior vanilla `180-bodyYaw` rotation on the stack for `applyBasis`'s own internal undo-step to cancel
+out, so passing 180 makes that step a no-op and the rotation comes straight from world forward/up. Roll
+is only known for the local pilot's own ship — nothing syncs a remote ship's attitude, same limitation
+the pilot-model mixin already has — so every other ship falls back to a plain yaw/pitch look vector
+with world-up, i.e. no visible roll, which is what this renderer did for everyone before this change.
+
+**Pilot hidden, locally only.** `LivingEntityRendererMixin` gained a second injection, this one into
+`render` itself rather than `setupTransforms`, cancelling the local player's own body render outright
+while `getVehicle() instanceof PyroShipEntity` — Descent never shows its own ship's pilot from the
+outside, only the hull. This is deliberately local-only: it reads `mc.player == entity`, so it hides
+your body from *your own* client, not from anyone else's — a nearby player watching someone else pilot
+the Pyro GX still sees that pilot's body seated in the hull normally. Making that universal needs a
+server-synced visibility flag, a bigger change than this pass makes.
+
+**Not done, and worth naming:** weapon muzzle/aim math (`WeaponCore.aimDir`/`muzzle`) is unchanged and
+was never tied to any ship mesh to begin with — it's always been player-relative offsets, independent
+of whatever (if anything) is drawn around the player, so the new hull's wing-pod barrels are not
+guaranteed to land exactly where the first-person weapon view (`WeaponViewRenderer`) draws its own
+boxes; the two were already independent before this change and stay that way. A player who disconnects
+mid-flight and rejoins gets force-re-enabled 6DoF (per "every join is native," unrelated to this
+change) and therefore a brand-new ship — their old one, if it persisted through the save, is left
+behind parked and un-piloted rather than being found and reclaimed; harmless (a stray hull, not a
+crash), but not cleaned up here. And the whole hull is new geometry with no way to render a frame in
+this sandbox: the shape, the UV-to-texture-region mapping, and the roll math are this session's best
+effort, not something confirmed to look right — see the PR/report for exactly what to check first.
