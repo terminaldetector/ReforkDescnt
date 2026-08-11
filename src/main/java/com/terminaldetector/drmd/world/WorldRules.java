@@ -18,7 +18,7 @@ public final class WorldRules {
 
 	/**
 	 * Practical build band. The custom dimension height is enabled by default
-	 * ({@code resourcepacks/drmd_advanced_column/data/minecraft/dimension_type/overworld.json}, see
+	 * ({@code resourcepacks/advanced_column/data/minecraft/dimension_type/overworld.json}, see
 	 * {@link DrmdBuiltinPacks}) — on unless a world was created in
 	 * {@link DrmdServerConfig.WorldModLevel#VANILLA} — so these mirror
 	 * {@link com.terminaldetector.drmd.world.level.WorldLevels} rather than vanilla's −64…320.

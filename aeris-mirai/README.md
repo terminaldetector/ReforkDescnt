@@ -88,7 +88,7 @@ Chunks на старте.
 
 Этот же репозиторий (`ReforkDescnt`, DRMD 6DOF) прямо сейчас — не гипотетически, не в стадии
 прототипа — гоняет Overworld высотой 2672 блока (`min_y: -784, height: 2672`,
-`src/main/resources/resourcepacks/drmd_advanced_column/data/minecraft/dimension_type/overworld.json`),
+`src/main/resources/resourcepacks/advanced_column/data/minecraft/dimension_type/overworld.json`),
 собранный из семи вертикальных "уровней" (Nether/Abyss/Industrial/Surface/Sky/Orbital/End —
 `WorldLevels.java`), заполняемых поверх ванильной генерации отдельной потоковой системой
 (`LevelBuilder.java`). Это не строчка в брифе и не результат поиска — это код, который можно прочитать

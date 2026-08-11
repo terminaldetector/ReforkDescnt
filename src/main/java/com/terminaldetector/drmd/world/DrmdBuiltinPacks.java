@@ -13,7 +13,7 @@ import net.minecraft.util.Identifier;
  * data, so {@link DrmdServerConfig.WorldModLevel#VANILLA} can mean a genuinely vanilla-height
  * Overworld rather than the same column with only content generation switched off.
  *
- * <p>{@code overworld.json} lives under {@code resourcepacks/drmd_advanced_column/} (moved out of
+ * <p>{@code overworld.json} lives under {@code resourcepacks/advanced_column/} (moved out of
  * {@code data/minecraft/dimension_type/}, where it used to be unconditional base mod data) and is
  * registered here as a built-in data pack whose default activation follows the current
  * {@link DrmdServerConfig#worldModLevel}: enabled for {@link DrmdServerConfig.WorldModLevel#ADVANCED}
@@ -24,6 +24,15 @@ import net.minecraft.util.Identifier;
  * once, at this call, from whatever the config held at that moment — it does not react to the config
  * changing again later in the same session. {@code DrmdWorldGenScreen} says so directly rather than
  * implying its usual apply-now behaviour for this one control.
+ *
+ * <p><strong>Fixed: the pack could never actually register, at all, regardless of mode.</strong>
+ * {@link ResourceManagerHelper#registerBuiltinResourcePack} resolves a built-in pack's on-disk location
+ * as {@code resourcepacks/<identifier's path segment>/} — the namespace is dropped. The identifier
+ * below has always been {@code drmd:advanced_column}, but the directory used to be named
+ * {@code resourcepacks/drmd_advanced_column/} — one path segment off from what this call actually looks
+ * for. The pack was never found, {@code registered} was always {@code false}, and the Overworld was
+ * always vanilla height regardless of which mode was selected. The directory is renamed to match; this
+ * comment (and the warning string below) are what's left pointing at it now.
  */
 public final class DrmdBuiltinPacks {
 	private DrmdBuiltinPacks() {}
@@ -44,7 +53,7 @@ public final class DrmdBuiltinPacks {
 			// simply absent from the Data Packs list, which is exactly today's always-on behaviour
 			// for a fresh Advanced world and a same-message warning for a Vanilla one.
 			DescentMod.LOGGER.warn("Could not register the advanced_column built-in pack — "
-					+ "resourcepacks/drmd_advanced_column may be missing from the jar.");
+					+ "resourcepacks/advanced_column may be missing from the jar.");
 		}
 	}
 }

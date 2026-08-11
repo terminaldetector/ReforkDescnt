@@ -152,7 +152,7 @@ instead of matching the rest of the screen's instant-apply language:
 
 The scaffolding above only reroutes behaviour around whichever world already loaded — none of it can
 make an Overworld actually shorter. That needed `overworld.json` to stop being unconditional base mod
-data. It now lives at `resourcepacks/drmd_advanced_column/data/minecraft/dimension_type/overworld.json`
+data. It now lives at `resourcepacks/advanced_column/data/minecraft/dimension_type/overworld.json`
 (moved out of `data/minecraft/dimension_type/`, unchanged content) with its own `pack.mcmeta`
 (`pack_format` 48, the 1.21–1.21.1 data pack format — a wrong number here is a non-fatal warning in the
 Data Packs screen, not a crash), and `DrmdBuiltinPacks.register()` — called from
@@ -199,3 +199,29 @@ correctly with its own dragon fight and normal portals once `isAdvancedColumn` r
 - `AdvancedColumnGateTest` — pins `isAdvancedColumn`'s two concrete numbers: this mod's tall column
   (`-784`, height `2672`) reads as Advanced; vanilla's real height (`-64`, height `384`) and an
   arbitrary third height both read as not-Advanced.
+
+## Fixed: Advanced mode never actually took effect, in any world, on any launch
+
+Live testing found that selecting Advanced still produced a genuinely vanilla-height Overworld —
+`isAdvancedColumn` correctly reported `false`, because the Overworld really was vanilla height, not
+because the check was wrong. Root cause was one path segment:
+`ResourceManagerHelper.registerBuiltinResourcePack` resolves a built-in pack's on-disk location as
+`resourcepacks/<identifier's path segment>/`, dropping the namespace — for the identifier this mod has
+always registered (`drmd:advanced_column`), that means `resourcepacks/advanced_column/`. The directory
+was named `resourcepacks/drmd_advanced_column/` — one segment off from what the lookup actually does.
+The pack could never be found, `registerBuiltinResourcePack` returned `false` (silently — see
+`DrmdBuiltinPacks`'s own already-written warning branch, which had been logging the right suspicion the
+whole time), and the tall-column `overworld.json` was never added to any world's data pack stack,
+regardless of mode. Fixed by renaming the directory to match the identifier, confirmed against
+FabricMC's own upstream documentation of the convention (`resourcepacks/<id path>/`, namespace
+dropped) rather than assumed. This was a permanent, every-launch failure — restarting between toggling
+the setting and creating a world would not have masked or explained it.
+
+One genuinely useful side effect worth knowing: once the pack actually registers, it also becomes a
+real, named, togglable entry in vanilla's own Data Packs screen at world creation — `ADVANCED` shows up
+`DEFAULT_ENABLED` (on, can be turned off), `VANILLA` shows up `NORMAL` (off, can be turned on). A player
+can therefore also flip modes directly from vanilla's own UI instead of this screen's button — this is
+safe specifically because `SERVER_STARTED`'s existing reconciliation
+(`DrmdServerConfig.forceFeaturesFor(WorldLevels.isAdvancedColumn(...))`) re-derives the real loaded
+height and re-syncs `WorldFeatures` the moment the world actually loads, regardless of which surface
+was used to toggle the pack.

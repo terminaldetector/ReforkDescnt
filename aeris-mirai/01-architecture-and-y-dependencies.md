@@ -127,7 +127,7 @@ Minecraft Wiki]` Функции из `NoiseRouter` реально вызываю
 `[ПРОВЕРЕНО-В-РЕПО]` — всё в этом разделе прочитано напрямую из файлов этого репозитория в эту сессию,
 не из памяти и не из поиска.
 
-**Факт 1.** `src/main/resources/resourcepacks/drmd_advanced_column/data/minecraft/dimension_type/overworld.json`
+**Факт 1.** `src/main/resources/resourcepacks/advanced_column/data/minecraft/dimension_type/overworld.json`
 задаёт `"min_y": -784, "height": 2672` (потолок Y=1888) для реального, рабочего, тикающего Overworld —
 чисто через `dimension_type` JSON, без единой строчки Java-кода на сам факт изменения диапазона.
 Подтверждает: диапазон Y на уровне `World`/`HeightLimitView` (строка 1 таблицы выше) — это
