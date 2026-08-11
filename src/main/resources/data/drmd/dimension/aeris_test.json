@@ -1,0 +1,10 @@
+{
+  "type": "drmd:aeris_test",
+  "generator": {
+    "type": "drmd:aeris_density_generator",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "minecraft:plains"
+    }
+  }
+}
