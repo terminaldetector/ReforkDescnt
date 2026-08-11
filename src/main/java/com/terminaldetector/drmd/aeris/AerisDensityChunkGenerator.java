@@ -21,7 +21,6 @@ import net.minecraft.world.gen.noise.NoiseConfig;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 /**
  * ÆRis/Mirai — step 6 PoC. Interprets {@link AerisDensity#density} directly as solid/air, per block, in
@@ -32,15 +31,15 @@ import java.util.concurrent.Executor;
  * every ordinary generator uses, per doc 01/02's shared conclusion that the storage layer does not need
  * to change for this experiment.
  *
- * <p><b>Confidence note, in the same spirit as every ÆRis/Mirai doc:</b> this file has no local
- * Minecraft/Fabric classpath to compile against in this sandbox (confirmed earlier this session — no
- * Loom/Yarn decompile cache present). Every method signature below is this session's best-effort
- * reconstruction of Yarn 1.21.1's actual {@code ChunkGenerator} shape, cross-checked against WebSearch
- * snippets of the pinned {@code yarn-1.21.1+build.3} javadoc (itself not directly fetchable — blocked by
- * this environment's proxy, same as every other maven.fabricmc.net lookup this session). GitHub Actions
- * CI is the real compiler check here, the same role it has played for every other Java change this
- * session. The single most likely failure point is the {@link #getCodec()} override — some Yarn releases
- * may name it {@code codec()} instead; if CI reports that as unresolved, that rename is the fix.
+ * <p><b>Confidence note:</b> this file has no local Minecraft/Fabric classpath to compile against in
+ * this sandbox (confirmed earlier this session — no Loom/Yarn decompile cache present), so every method
+ * signature was reconstructed from memory and WebSearch snippets of the pinned {@code yarn-1.21.1+build.3}
+ * javadoc (the page itself is not directly fetchable — blocked by this environment's proxy, same as
+ * every other {@code maven.fabricmc.net} lookup this session) and confirmed against GitHub Actions CI,
+ * the real compiler here. Two rounds were wrong before this one compiled: {@code NoiseConfig} lives at
+ * {@code net.minecraft.world.gen.noise}, not {@code .gen.chunk}; {@link #populateNoise} takes no
+ * {@code Executor} parameter; and the debug-HUD method is named {@link #getDebugHudText}, not
+ * {@code addDebugScreenInfo}. {@link #getCodec()}'s name was a guess that turned out right.
  */
 public final class AerisDensityChunkGenerator extends ChunkGenerator {
 	public static final MapCodec<AerisDensityChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(instance ->
@@ -81,12 +80,13 @@ public final class AerisDensityChunkGenerator extends ChunkGenerator {
 	}
 
 	@Override
-	public CompletableFuture<Chunk> populateNoise(Executor executor, Blender blender, NoiseConfig noiseConfig,
+	public CompletableFuture<Chunk> populateNoise(Blender blender, NoiseConfig noiseConfig,
 			StructureAccessor structureAccessor, Chunk chunk) {
-		return CompletableFuture.supplyAsync(() -> {
-			fillChunk(chunk);
-			return chunk;
-		}, executor);
+		// No Executor parameter on this signature (confirmed by CI — an earlier guess included one) —
+		// filled synchronously and wrapped, rather than dispatched to a thread pool this method is never
+		// handed.
+		fillChunk(chunk);
+		return CompletableFuture.completedFuture(chunk);
 	}
 
 	private static void fillChunk(Chunk chunk) {
@@ -131,7 +131,7 @@ public final class AerisDensityChunkGenerator extends ChunkGenerator {
 	}
 
 	@Override
-	public void addDebugScreenInfo(List<String> info, NoiseConfig noiseConfig, BlockPos pos) {
+	public void getDebugHudText(List<String> info, NoiseConfig noiseConfig, BlockPos pos) {
 		info.add("ÆRis density: " + AerisDensity.density(pos.getX(), pos.getY(), pos.getZ()));
 	}
 
