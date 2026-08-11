@@ -31,15 +31,10 @@ import java.util.concurrent.CompletableFuture;
  * every ordinary generator uses, per doc 01/02's shared conclusion that the storage layer does not need
  * to change for this experiment.
  *
- * <p><b>Confidence note:</b> this file has no local Minecraft/Fabric classpath to compile against in
- * this sandbox (confirmed earlier this session — no Loom/Yarn decompile cache present), so every method
- * signature was reconstructed from memory and WebSearch snippets of the pinned {@code yarn-1.21.1+build.3}
- * javadoc (the page itself is not directly fetchable — blocked by this environment's proxy, same as
- * every other {@code maven.fabricmc.net} lookup this session) and confirmed against GitHub Actions CI,
- * the real compiler here. Two rounds were wrong before this one compiled: {@code NoiseConfig} lives at
- * {@code net.minecraft.world.gen.noise}, not {@code .gen.chunk}; {@link #populateNoise} takes no
- * {@code Executor} parameter; and the debug-HUD method is named {@link #getDebugHudText}, not
- * {@code addDebugScreenInfo}. {@link #getCodec()}'s name was a guess that turned out right.
+ * <p>This file has no local Minecraft/Fabric classpath to compile against in this sandbox (no Loom/Yarn
+ * decompile cache present) — every method signature was reconstructed from memory and WebSearch and
+ * confirmed against GitHub Actions CI, the only real compiler available for it (see
+ * {@code aeris-mirai/04-first-experiment-density-generator.md} for the fix history that took).
  */
 public final class AerisDensityChunkGenerator extends ChunkGenerator {
 	public static final MapCodec<AerisDensityChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(instance ->
