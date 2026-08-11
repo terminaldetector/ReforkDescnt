@@ -144,4 +144,9 @@ public final class AerisDensityChunkGenerator extends ChunkGenerator {
 	public int getMinimumY() {
 		return MIN_Y;
 	}
+
+	@Override
+	public int getWorldHeight() {
+		return HEIGHT;
+	}
 }
