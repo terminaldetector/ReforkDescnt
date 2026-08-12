@@ -46,4 +46,51 @@ class StructureCrashTest {
 		assertEquals(StructureCrash.BASE, StructureCrash.fallSpeed(-5), 1e-9);
 		assertEquals(StructureCrash.BASE, StructureCrash.fallSpeed(-1000), 1e-9);
 	}
+
+	@Test
+	@DisplayName("nextDrop's remainder always stays in [0, 1) — never accumulates a whole block without reporting it")
+	void nextDropRemainderStaysInUnitRange() {
+		double acc = 0;
+		for (int t = 0; t <= 500; t++) {
+			StructureCrash.DescentStep step = StructureCrash.nextDrop(acc, t);
+			assertTrue(step.remainder() >= 0.0 && step.remainder() < 1.0,
+					"remainder " + step.remainder() + " at t=" + t + " should be in [0,1)");
+			acc = step.remainder();
+		}
+	}
+
+	@Test
+	@DisplayName("nextDrop never reports a negative whole-block count")
+	void nextDropNeverNegative() {
+		double acc = 0;
+		for (int t = 0; t <= 500; t++) {
+			StructureCrash.DescentStep step = StructureCrash.nextDrop(acc, t);
+			assertTrue(step.wholeBlocks() >= 0, "wholeBlocks should never be negative at t=" + t);
+			acc = step.remainder();
+		}
+	}
+
+	@Test
+	@DisplayName("nextDrop's accumulated whole-block drops track the summed fall-speed curve within one block of flooring error")
+	void nextDropTracksFallSpeedOverManyTicks() {
+		double acc = 0;
+		long totalWhole = 0;
+		double expectedTotal = 0;
+		int ticks = 300;
+		for (int t = 0; t < ticks; t++) {
+			StructureCrash.DescentStep step = StructureCrash.nextDrop(acc, t);
+			totalWhole += step.wholeBlocks();
+			acc = step.remainder();
+			expectedTotal += StructureCrash.fallSpeed(t);
+		}
+		assertTrue(Math.abs(totalWhole - expectedTotal) < 1.0,
+				"accumulated whole-block drops (" + totalWhole + ") should track the summed fall speed ("
+						+ expectedTotal + ") within one block of flooring error");
+	}
+
+	@Test
+	@DisplayName("nextDrop is deterministic for the same accumulator and tick count")
+	void nextDropIsDeterministic() {
+		assertEquals(StructureCrash.nextDrop(0.7, 42), StructureCrash.nextDrop(0.7, 42));
+	}
 }

@@ -5,6 +5,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.Heightmap;
 
 import java.util.Map;
 
@@ -51,5 +52,27 @@ public final class StructureMover {
 
 	private static BlockPos toBlockPos(StructureDelta.Cell c) {
 		return new BlockPos(c.x(), c.y(), c.z());
+	}
+
+	/** {@code remainder}: the fractional accumulator to pass into the next tick's {@code tickCrashDescent} call. */
+	public record DescentTick(double remainder, boolean touchedGround) {}
+
+	/**
+	 * Advances one tick of a vertical crash-descent: drops the instance by {@link StructureCrash}'s
+	 * fall-speed curve (accumulated fractionally via {@link StructureCrash#nextDrop}, since {@code moveTo}
+	 * only ever moves whole blocks) and reports ground contact via the same
+	 * {@code world.getTopY(Heightmap.Type.MOTION_BLOCKING, ...)} call {@code SkyUfoEntity.burnGround}
+	 * already makes today. Purely vertical — no horizontal drift/tumble in this pass.
+	 */
+	public static DescentTick tickCrashDescent(ServerWorld world, StructureInstance instance, int crashTicks,
+			double fallAccumulator) {
+		StructureCrash.DescentStep step = StructureCrash.nextDrop(fallAccumulator, crashTicks);
+		if (step.wholeBlocks() > 0) {
+			moveTo(world, instance, instance.anchor().add(0, -step.wholeBlocks(), 0));
+		}
+		BlockPos anchor = instance.anchor();
+		int groundY = world.getTopY(Heightmap.Type.MOTION_BLOCKING, anchor.getX(), anchor.getZ());
+		boolean touchedGround = instance.lowestWorldY() <= groundY;
+		return new DescentTick(step.remainder(), touchedGround);
 	}
 }
