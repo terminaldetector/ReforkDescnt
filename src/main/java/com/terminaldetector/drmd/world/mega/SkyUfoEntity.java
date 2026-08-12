@@ -56,7 +56,17 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SkyUfoEntity extends Entity {
 	public static final int SWARM_CAP = 12;
-	public static final int MOVE_INTERVAL = 18;
+	/**
+	 * Ticks between hull relocations, and the look-ahead window {@code tick()} projects velocity over to
+	 * pick the next anchor ({@code pos + velocity*MOVE_INTERVAL}) — this one constant controls both how
+	 * often the hull re-evaluates its position and how big each jump is. Shrunk from the old build()-era
+	 * value of 18: back when every relocation meant a full clear+rebuild, fewer/bigger jumps meant less
+	 * total rebuild work; now that {@code StructureMover.moveTo} only touches the diff shell, frequent
+	 * small jumps cost about the same per-tick as infrequent big ones, so there's no reason not to prefer
+	 * the smoother motion. First-guess value pending live-client feedback, per the plan's own explicit
+	 * "cannot be verified without a live client" note on this exact constant.
+	 */
+	public static final int MOVE_INTERVAL = 6;
 
 	private static final TrackedData<Boolean> MATERIALIZED =
 			DataTracker.registerData(SkyUfoEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
@@ -111,6 +121,11 @@ public class SkyUfoEntity extends Entity {
 
 	public boolean containsPos(Vec3d pos) {
 		return hullReady && instance != null && instance.interior().contains(pos);
+	}
+
+	/** Debug/testing hook: overrides the destruction outcome the next {@link #destroyFromCore} call picks. */
+	public void forceDestructionMode(DestructionMode mode) {
+		this.destructionMode = mode;
 	}
 
 	@Override

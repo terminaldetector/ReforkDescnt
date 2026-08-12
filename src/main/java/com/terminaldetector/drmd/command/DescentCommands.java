@@ -353,7 +353,34 @@ public final class DescentCommands {
 								}
 								ctx.getSource().sendFeedback(() -> Text.literal("Spawned mega creature: " + type), true);
 								return 1;
-							})))
+							}))
+							.then(CommandManager.literal("ufodestroy")
+									.then(CommandManager.argument("mode", StringArgumentType.word()).executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										String modeArg = StringArgumentType.getString(ctx, "mode").toLowerCase();
+										com.terminaldetector.drmd.world.structure.DestructionMode mode = switch (modeArg) {
+											case "crash" -> com.terminaldetector.drmd.world.structure.DestructionMode.CRASH;
+											case "shockwave", "shock" -> com.terminaldetector.drmd.world.structure.DestructionMode.SHOCKWAVE;
+											default -> null;
+										};
+										if (mode == null) {
+											ctx.getSource().sendError(Text.literal("Use: crash | shockwave"));
+											return 0;
+										}
+										var world = p.getServerWorld();
+										var ufo = com.terminaldetector.drmd.world.mega.SkyUfoEntity.findContaining(world, p.getPos());
+										if (ufo == null) {
+											ufo = com.terminaldetector.drmd.world.mega.SkyUfoEntity.findNear(world, p.getBlockPos(), 5);
+										}
+										if (ufo == null) {
+											ctx.getSource().sendError(Text.literal("No Sky UFO nearby"));
+											return 0;
+										}
+										ufo.forceDestructionMode(mode);
+										ufo.destroyFromCore(world, p, "debug " + modeArg);
+										ctx.getSource().sendFeedback(() -> Text.literal("Sky UFO destruction forced: " + modeArg), true);
+										return 1;
+									}))))
 					.then(CommandManager.literal("scars")
 							.executes(ctx -> {
 								ServerPlayerEntity p = ctx.getSource().getPlayer();
