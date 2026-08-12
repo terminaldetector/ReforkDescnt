@@ -54,12 +54,16 @@ public final class StructureInstance {
 		return local == null ? null : anchor.add(local.x(), local.y(), local.z());
 	}
 
-	/** The template's local interior box, translated into world space by the current anchor. */
+	/**
+	 * The template's local interior box, translated into world space by the current anchor. Built
+	 * straight from {@code template}'s raw bounds via {@code Box}'s 6-double constructor rather than by
+	 * decomposing {@link StructureTemplate#interiorLocal()}'s already-built {@code Box} — see that
+	 * field's comment for why.
+	 */
 	public Box interior() {
-		Box l = template.interiorLocal();
 		return new Box(
-				anchor.getX() + l.minX(), anchor.getY() + l.minY(), anchor.getZ() + l.minZ(),
-				anchor.getX() + l.maxX(), anchor.getY() + l.maxY(), anchor.getZ() + l.maxZ());
+				anchor.getX() + template.interiorMinX, anchor.getY() + template.interiorMinY, anchor.getZ() + template.interiorMinZ,
+				anchor.getX() + template.interiorMaxX, anchor.getY() + template.interiorMaxY, anchor.getZ() + template.interiorMaxZ);
 	}
 
 	public int lowestWorldY() {
