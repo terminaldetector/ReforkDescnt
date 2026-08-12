@@ -4,13 +4,16 @@ import com.terminaldetector.drmd.ai.AiRole;
 import com.terminaldetector.drmd.entity.DroneEntity;
 import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
-import com.terminaldetector.drmd.weapon.core.DamageClass;
-import com.terminaldetector.drmd.weapon.fx.WeaponFx;
 import com.terminaldetector.drmd.world.WorldRules;
 import com.terminaldetector.drmd.world.fire.FireSystem;
 import com.terminaldetector.drmd.world.gen2.MacroEntry;
 import com.terminaldetector.drmd.world.gen2.MacroWorld;
-import com.terminaldetector.drmd.world.smoke.SmokeSystem;
+import com.terminaldetector.drmd.world.structure.DestructionMode;
+import com.terminaldetector.drmd.world.structure.StructureDelta;
+import com.terminaldetector.drmd.world.structure.StructureInstance;
+import com.terminaldetector.drmd.world.structure.StructureMover;
+import com.terminaldetector.drmd.world.structure.StructureOccupants;
+import com.terminaldetector.drmd.world.structure.StructureShockwave;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -24,8 +27,6 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -45,6 +46,13 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * XCOM-style airborne UFO — a real enterable flying hull, not a distant prop.
  * Cruise while carrying interior entities; destroy by reactor dump / bomb / core break.
+ *
+ * <p>Placement/movement is delegated to {@code world.structure} infra ({@link StructureInstance} +
+ * {@code StructureMover}/{@code StructureOccupants}) instead of the old from-scratch
+ * clear-and-rebuild-every-move — see {@link SkyUfoHull} for the captured shape. Every public method here
+ * kept its exact old signature; every external caller (weapons, worldgen, commands, the renderer) only
+ * ever touched this stable surface, never the removed internal fields, so nothing outside this file and
+ * {@code SkyUfoHull.java} needed to change.
  */
 public class SkyUfoEntity extends Entity {
 	public static final int SWARM_CAP = 12;
@@ -67,10 +75,15 @@ public class SkyUfoEntity extends Entity {
 	private boolean destroyed;
 	/** True while intentionally clearing/rebuilding hull — ignore reactor onStateReplaced. */
 	private boolean suppressCoreNotify;
-	private BlockPos hullCenter = BlockPos.ORIGIN;
-	private BlockPos corePos = BlockPos.ORIGIN;
-	private final Set<BlockPos> hullBlocks = new HashSet<>();
-	private Box interior = new Box(0, 0, 0, 0, 0, 0);
+	private StructureInstance instance;
+
+	/** How this hull dies once destroyFromCore fires — chosen once at materialize time. */
+	private DestructionMode destructionMode = DestructionMode.SHOCKWAVE;
+	private boolean crashing;
+	private int crashTicks;
+	private double crashFallAccumulator;
+	private PlayerEntity crashCulprit;
+	private String crashReason = "structural failure";
 
 	public SkyUfoEntity(EntityType<? extends SkyUfoEntity> type, World world) {
 		super(type, world);
@@ -88,15 +101,16 @@ public class SkyUfoEntity extends Entity {
 	}
 
 	public Box getInterior() {
-		return interior;
+		return instance != null ? instance.interior() : new Box(0, 0, 0, 0, 0, 0);
 	}
 
 	public BlockPos getCorePos() {
-		return corePos;
+		BlockPos core = instance != null ? instance.markerPos("core") : null;
+		return core != null ? core : BlockPos.ORIGIN;
 	}
 
 	public boolean containsPos(Vec3d pos) {
-		return hullReady && interior.contains(pos);
+		return hullReady && instance != null && instance.interior().contains(pos);
 	}
 
 	@Override
@@ -106,6 +120,11 @@ public class SkyUfoEntity extends Entity {
 		if (!(getWorld() instanceof ServerWorld sw)) return;
 
 		ACTIVE.put(getUuid(), this);
+
+		if (crashing) {
+			tickCrash(sw);
+			return;
+		}
 
 		if (!hullReady) {
 			materialize(sw, getBlockPos());
@@ -130,21 +149,21 @@ public class SkyUfoEntity extends Entity {
 			want = new BlockPos(want.getX(),
 					MathHelper.clamp(want.getY(), WorldRules.SKY_PRACTICAL_MIN + 14, WorldRules.SKY_PRACTICAL_MAX - 10),
 					want.getZ());
-			if (!want.equals(hullCenter)) {
+			if (!want.equals(instance.anchor())) {
 				relocateHull(sw, want);
 			}
 			moveCd = occupied ? MOVE_INTERVAL + 8 : MOVE_INTERVAL;
 		}
 
 		// Keep entity anchored to hull center
-		setPosition(hullCenter.getX() + 0.5, hullCenter.getY() + 0.5, hullCenter.getZ() + 0.5);
+		setPosition(instance.anchor().getX() + 0.5, instance.anchor().getY() + 0.5, instance.anchor().getZ() + 0.5);
 
 		if (macroId == null) macroId = UUID.randomUUID();
 		MacroWorld.put(new MacroEntry(macroId, MacroEntry.Kind.UFO, WorldRules.Layer.SKY_ARCHIPELAGO,
-				hullCenter, 28, 12, 28, 0x55FFAA, "Sky UFO"));
+				instance.anchor(), 28, 12, 28, 0x55FFAA, "Sky UFO"));
 
 		// Core still present?
-		if (hullReady && !sw.getBlockState(corePos).isOf(ModWorldBlocks.UNSTABLE_REACTOR)) {
+		if (hullReady && !sw.getBlockState(getCorePos()).isOf(ModWorldBlocks.UNSTABLE_REACTOR)) {
 			destroyFromCore(sw, null, "core ruptured");
 			return;
 		}
@@ -169,22 +188,20 @@ public class SkyUfoEntity extends Entity {
 	}
 
 	private boolean hasOccupants(ServerWorld sw) {
-		if (!hullReady) return false;
-		return !sw.getEntitiesByClass(PlayerEntity.class, interior, PlayerEntity::isAlive).isEmpty();
+		if (!hullReady || instance == null) return false;
+		return !sw.getEntitiesByClass(PlayerEntity.class, instance.interior(), PlayerEntity::isAlive).isEmpty();
 	}
 
 	private void materialize(ServerWorld sw, BlockPos at) {
 		BlockPos center = at.toImmutable();
-		SkyUfoHull.Built built = SkyUfoHull.build(sw, center);
-		hullCenter = built.center();
-		corePos = built.core();
-		hullBlocks.clear();
-		hullBlocks.addAll(built.blocks());
-		interior = built.interior();
+		instance = new StructureInstance(SkyUfoHull.TEMPLATE, center);
+		StructureMover.place(sw, instance);
 		hullReady = true;
+		destructionMode = random.nextInt(2) == 0 ? DestructionMode.CRASH : DestructionMode.SHOCKWAVE;
 		dataTracker.set(MATERIALIZED, true);
-		CORE_INDEX.put(corePos.asLong(), getUuid());
-		setPosition(hullCenter.getX() + 0.5, hullCenter.getY() + 0.5, hullCenter.getZ() + 0.5);
+		BlockPos core = instance.markerPos("core");
+		if (core != null) CORE_INDEX.put(core.asLong(), getUuid());
+		setPosition(center.getX() + 0.5, center.getY() + 0.5, center.getZ() + 0.5);
 		for (ServerPlayerEntity p : sw.getPlayers()) {
 			if (squaredDistanceTo(p) < 96 * 96) {
 				p.sendMessage(Text.literal("§aSky UFO hull online §7— fly the bay, dump reactor on the core."), false);
@@ -193,29 +210,50 @@ public class SkyUfoEntity extends Entity {
 	}
 
 	private void relocateHull(ServerWorld sw, BlockPos newCenter) {
-		if (!hullReady || destroyed) return;
-		List<Entity> carry = SkyUfoHull.collectInterior(sw, interior, this);
-		Vec3d delta = Vec3d.of(newCenter.subtract(hullCenter));
-		CORE_INDEX.remove(corePos.asLong());
+		if (!hullReady || destroyed || instance == null) return;
+		BlockPos before = instance.anchor();
+		List<Entity> carry = StructureOccupants.collect(sw, instance, this).stream()
+				.filter(e -> !(e instanceof SkyUfoEntity))
+				.toList();
+		BlockPos oldCore = instance.markerPos("core");
+		if (oldCore != null) CORE_INDEX.remove(oldCore.asLong());
 		suppressCoreNotify = true;
 		try {
-			SkyUfoHull.clear(sw, hullBlocks);
-			SkyUfoHull.Built built = SkyUfoHull.build(sw, newCenter);
-			hullCenter = built.center();
-			corePos = built.core();
-			hullBlocks.clear();
-			hullBlocks.addAll(built.blocks());
-			interior = built.interior();
+			StructureMover.moveTo(sw, instance, newCenter);
 		} finally {
 			suppressCoreNotify = false;
 		}
-		CORE_INDEX.put(corePos.asLong(), getUuid());
-		SkyUfoHull.shiftEntities(carry, delta);
+		BlockPos newCore = instance.markerPos("core");
+		if (newCore != null) CORE_INDEX.put(newCore.asLong(), getUuid());
+		StructureOccupants.shiftBy(carry, Vec3d.of(newCenter.subtract(before)));
+	}
+
+	/** Advances a CRASH-mode destruction by one tick: fall + carry occupants + detect ground contact. */
+	private void tickCrash(ServerWorld sw) {
+		if (instance == null) {
+			finishDestruction(sw, crashCulprit, crashReason, getBlockPos());
+			return;
+		}
+		BlockPos before = instance.anchor();
+		List<Entity> carry = StructureOccupants.collect(sw, instance, this).stream()
+				.filter(e -> !(e instanceof SkyUfoEntity))
+				.toList();
+		StructureMover.DescentTick result = StructureMover.tickCrashDescent(sw, instance, crashTicks, crashFallAccumulator);
+		crashTicks++;
+		crashFallAccumulator = result.remainder();
+		if (!instance.anchor().equals(before)) {
+			StructureOccupants.shiftBy(carry, Vec3d.of(instance.anchor().subtract(before)));
+		}
+		setPosition(instance.anchor().getX() + 0.5, instance.anchor().getY() + 0.5, instance.anchor().getZ() + 0.5);
+		if (result.touchedGround()) {
+			finishDestruction(sw, crashCulprit, crashReason, getCorePos());
+		}
 	}
 
 	private void burnGround(ServerWorld world) {
-		int sx = hullCenter.getX();
-		int sz = hullCenter.getZ();
+		BlockPos anchor = instance.anchor();
+		int sx = anchor.getX();
+		int sz = anchor.getZ();
 		int top = world.getTopY(Heightmap.Type.MOTION_BLOCKING, sx, sz);
 		BlockPos focus = new BlockPos(sx, top, sz);
 		FireSystem.igniteBlast(world, focus, 8, 7);
@@ -259,24 +297,46 @@ public class SkyUfoEntity extends Entity {
 		swarm.add(drone.getUuid());
 	}
 
-	/** Reactor dump / bomb / core break — catastrophic hull failure. */
+	/**
+	 * Reactor dump / bomb / core break — catastrophic hull failure. Picks a destruction outcome chosen at
+	 * materialize time: {@link DestructionMode#SHOCKWAVE} detonates immediately (the same explosion/fire/
+	 * sound sequence this method always ran, now via {@link StructureShockwave}); {@link DestructionMode#CRASH}
+	 * instead falls to the ground over subsequent ticks ({@link #tickCrash}) before detonating a smaller
+	 * impact shockwave.
+	 */
 	public void destroyFromCore(ServerWorld sw, PlayerEntity culprit, String reason) {
+		if (destroyed || crashing) return;
+		if (destructionMode == DestructionMode.CRASH && instance != null) {
+			crashing = true;
+			crashTicks = 0;
+			crashFallAccumulator = 0;
+			crashCulprit = culprit;
+			crashReason = reason;
+			for (ServerPlayerEntity p : sw.getPlayers()) {
+				if (squaredDistanceTo(p) < 128 * 128) {
+					p.sendMessage(Text.literal("§cSky UFO reactor failing §7— it's going down."), false);
+				}
+			}
+			return;
+		}
+		finishDestruction(sw, culprit, reason, getCorePos());
+	}
+
+	private void finishDestruction(ServerWorld sw, PlayerEntity culprit, String reason, BlockPos epicenter) {
 		if (destroyed) return;
 		destroyed = true;
-		BlockPos epicenter = corePos;
 		Vec3d epic = Vec3d.ofCenter(epicenter);
-		if (culprit != null) {
-			WeaponFx.explode(culprit, sw, epic, 180f, 9f, DamageClass.EXPLOSIVE, true);
-		} else {
-			sw.createExplosion(this, epic.x, epic.y, epic.z, 6.5f, true, World.ExplosionSourceType.TNT);
-			SmokeSystem.emitExplosion(epic, 8f);
-		}
-		FireSystem.igniteBlast(sw, epicenter, 16, 10);
-		sw.playSound(null, epicenter.getX() + 0.5, epicenter.getY() + 0.5, epicenter.getZ() + 0.5,
-				SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.BLOCKS, 2.5f, 0.55f);
+		StructureShockwave.detonate(sw, epic, this, culprit, 9f, 6.5f, 8f, 16, 10);
 		CORE_INDEX.remove(epicenter.asLong());
-		SkyUfoHull.shatter(sw, hullBlocks, epicenter);
+		if (instance != null) {
+			Set<BlockPos> positions = new HashSet<>();
+			for (StructureDelta.Cell c : instance.occupiedCells().keySet()) {
+				positions.add(new BlockPos(c.x(), c.y(), c.z()));
+			}
+			SkyUfoHull.shatter(sw, positions, epicenter);
+		}
 		hullReady = false;
+		crashing = false;
 		dataTracker.set(MATERIALIZED, false);
 		for (UUID id : swarm) {
 			Entity e = sw.getEntity(id);
@@ -306,7 +366,7 @@ public class SkyUfoEntity extends Entity {
 		double bestD = Double.MAX_VALUE;
 		for (SkyUfoEntity ufo : ACTIVE.values()) {
 			if (ufo.getWorld() != world || ufo.destroyed) continue;
-			double d = ufo.corePos.getSquaredDistance(pos);
+			double d = ufo.getCorePos().getSquaredDistance(pos);
 			if (d < r2 && d < bestD) {
 				bestD = d;
 				best = ufo;
@@ -332,7 +392,7 @@ public class SkyUfoEntity extends Entity {
 
 	public static void notifyBombDetonation(ServerWorld world, BlockPos pos, float power) {
 		SkyUfoEntity ufo = findNear(world, pos, 6 + power);
-		if (ufo != null && (ufo.containsPos(Vec3d.ofCenter(pos)) || pos.isWithinDistance(ufo.corePos, 7))) {
+		if (ufo != null && (ufo.containsPos(Vec3d.ofCenter(pos)) || pos.isWithinDistance(ufo.getCorePos(), 7))) {
 			ufo.destroyFromCore(world, null, "ordnance impact");
 		}
 	}
@@ -350,12 +410,12 @@ public class SkyUfoEntity extends Entity {
 	@Override
 	public void remove(RemovalReason reason) {
 		ACTIVE.remove(getUuid());
-		CORE_INDEX.remove(corePos.asLong());
+		CORE_INDEX.remove(getCorePos().asLong());
 		if (macroId != null) MacroWorld.remove(macroId);
-		if (!destroyed && getWorld() instanceof ServerWorld sw && hullReady) {
+		if (!destroyed && getWorld() instanceof ServerWorld sw && hullReady && instance != null) {
 			suppressCoreNotify = true;
 			try {
-				SkyUfoHull.clear(sw, hullBlocks);
+				StructureMover.clear(sw, instance);
 			} finally {
 				suppressCoreNotify = false;
 			}
@@ -368,6 +428,9 @@ public class SkyUfoEntity extends Entity {
 		if (nbt.containsUuid("macro")) macroId = nbt.getUuid("macro");
 		cruiseYaw = nbt.getFloat("cruise");
 		hullReady = false; // rebuild on next tick
+		crashing = nbt.getBoolean("crashing");
+		crashTicks = nbt.getInt("crashTicks");
+		if (nbt.contains("crashReason")) crashReason = nbt.getString("crashReason");
 	}
 
 	@Override
@@ -375,6 +438,9 @@ public class SkyUfoEntity extends Entity {
 		if (macroId != null) nbt.putUuid("macro", macroId);
 		nbt.putFloat("cruise", cruiseYaw);
 		nbt.putBoolean("hull", hullReady);
+		nbt.putBoolean("crashing", crashing);
+		nbt.putInt("crashTicks", crashTicks);
+		if (crashReason != null) nbt.putString("crashReason", crashReason);
 	}
 
 	@Override

@@ -30,17 +30,21 @@ public final class StructureShockwave {
 	 *                   entity, if it has one); mirrors {@code sw.createExplosion(this, ...)}
 	 * @param culprit    the player to credit/attribute the kill to, or {@code null} for an unattributed
 	 *                   detonation (reactor rupture, timer, impact — no specific player responsible)
-	 * @param explosionPower  matches {@code WeaponFx.explode}'s/{@code createExplosion}'s power parameter
+	 * @param attributedExplosionPower    matches {@code WeaponFx.explode}'s power parameter (culprit != null path)
+	 * @param unattributedExplosionPower  matches {@code createExplosion}'s power parameter (culprit == null path) —
+	 *                   kept separate from the attributed path's power rather than one shared value, since
+	 *                   the original code these were extracted from used two different literals (9f vs 6.5f)
 	 * @param smokeRadius     matches {@code SmokeSystem.emitExplosion}'s radius parameter (unattributed path only)
 	 * @param igniteRadius    matches {@code FireSystem.igniteBlast}'s radius parameter
 	 * @param igniteChance    matches {@code FireSystem.igniteBlast}'s chance parameter
 	 */
 	public static void detonate(ServerWorld world, Vec3d center, Entity source, PlayerEntity culprit,
-			float explosionPower, float smokeRadius, int igniteRadius, int igniteChance) {
+			float attributedExplosionPower, float unattributedExplosionPower, float smokeRadius,
+			int igniteRadius, int igniteChance) {
 		if (culprit != null) {
-			WeaponFx.explode(culprit, world, center, 180f, explosionPower, DamageClass.EXPLOSIVE, true);
+			WeaponFx.explode(culprit, world, center, 180f, attributedExplosionPower, DamageClass.EXPLOSIVE, true);
 		} else {
-			world.createExplosion(source, center.x, center.y, center.z, explosionPower, true, World.ExplosionSourceType.TNT);
+			world.createExplosion(source, center.x, center.y, center.z, unattributedExplosionPower, true, World.ExplosionSourceType.TNT);
 			SmokeSystem.emitExplosion(center, smokeRadius);
 		}
 		FireSystem.igniteBlast(world, BlockPos.ofFloored(center.x, center.y, center.z), igniteRadius, igniteChance);

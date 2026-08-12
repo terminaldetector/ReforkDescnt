@@ -1,150 +1,120 @@
 package com.terminaldetector.drmd.world.mega;
 
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
+import com.terminaldetector.drmd.world.structure.StructureDelta;
+import com.terminaldetector.drmd.world.structure.StructureTemplate;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.Entity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
- * Enterable flying saucer hull — hollow deck, bay door, reactor core.
- * Owned/moved by {@link SkyUfoEntity}.
+ * Enterable flying saucer hull shape — captured once into a {@link StructureTemplate} ({@link #TEMPLATE})
+ * and placed/moved by {@code StructureMover}/{@code StructureOccupants} (owned by {@link SkyUfoEntity}).
+ *
+ * <p>{@code build}/{@code clear}/{@code collectInterior}/{@code shiftEntities}/{@code contains}/
+ * {@code inLimit} are gone — replaced by the generic {@code world.structure} infra
+ * ({@code StructureMover.place}/{@code clear}/{@code moveTo}, {@code StructureOccupants.collect}/
+ * {@code shiftBy}, {@code instance.interior().contains(...)}). {@link #shatter} stays exactly as it was —
+ * destruction VFX is unrelated to the movement/placement rewrite.
  */
 public final class SkyUfoHull {
 	public static final int MAJOR = 11;
 	public static final int MINOR = 4;
 
+	/**
+	 * Captured once at class-load, immutable, reused by every UFO instance — the whole hull sweep
+	 * (~5000 cells) no longer needs to re-run on every materialize/move, unlike the old {@code build()},
+	 * which rebuilt from scratch on every single call including every ~0.9s relocation tick.
+	 */
+	public static final StructureTemplate TEMPLATE = captureTemplate();
+
 	private SkyUfoHull() {}
 
-	public record Built(BlockPos center, BlockPos core, Set<BlockPos> blocks, Box interior) {}
-
-	/** Build hollow saucer at center. Returns core pos + block set for later clear/move. */
-	public static Built build(ServerWorld world, BlockPos center) {
-		Set<BlockPos> placed = new HashSet<>();
-		BlockPos.Mutable m = new BlockPos.Mutable();
+	private static StructureTemplate captureTemplate() {
+		Map<StructureDelta.Cell, BlockState> cells = new HashMap<>();
+		Map<String, StructureDelta.Cell> markers = new HashMap<>();
 
 		for (int x = -MAJOR; x <= MAJOR; x++) {
 			for (int y = -MINOR; y <= MINOR + 1; y++) {
 				for (int z = -MAJOR; z <= MAJOR; z++) {
-					double nx = x / (double) MAJOR;
-					double ny = (y + 0.2) / (double) (MINOR + 0.5);
-					double nz = z / (double) MAJOR;
-					double e = nx * nx + ny * ny * 1.7 + nz * nz;
-					if (e > 1.02 || e < 0.52) continue;
-
-					// Underside bay door — open shaft so Pyro can fly in from below
-					boolean bay = z >= -2 && z <= 2 && x >= -2 && x <= 2 && y < -1;
-					if (bay) continue;
-
-					m.set(center.getX() + x, center.getY() + y, center.getZ() + z);
-					if (!inLimit(world, m)) continue;
-
-					boolean outer = e > 0.78;
-					BlockState state;
-					if (outer) {
-						state = Blocks.OXIDIZED_COPPER.getDefaultState();
-					} else if (Math.abs(y) <= 1 && nx * nx + nz * nz < 0.55) {
-						// Interior air (deck cavity)
-						continue;
-					} else if (y == -1 && nx * nx + nz * nz < 0.7) {
-						state = Blocks.DARK_PRISMARINE.getDefaultState(); // deck
-					} else if ((x + z) % 7 == 0 && outer) {
-						state = Blocks.CYAN_STAINED_GLASS.getDefaultState();
-					} else {
-						state = Blocks.PRISMARINE_BRICKS.getDefaultState();
-					}
-					world.setBlockState(m, state, Block.NOTIFY_LISTENERS);
-					placed.add(m.toImmutable());
+					BlockState state = stateFor(SkyUfoShape.classify(x, y, z));
+					if (state != null) cells.put(new StructureDelta.Cell(x, y, z), state);
 				}
 			}
 		}
 
-		// Clear interior volume for flight
+		// Widen the interior cavity beyond the ellipsoid formula's own radius, and lay a full deck plate
+		// at y=-1 across the same disc. Unconditional, unlike the old build() (which only laid deck plate
+		// where the target position's pre-existing terrain happened to already be air): a template has no
+		// target position yet to check against, and the diff-based mover needs the same cell set wherever
+		// it's ever placed — so "was it air here" can't survive as part of capture. Visible behavior
+		// change, named plainly rather than ported silently: the floor is now always solid deck, never a
+		// patch of whatever terrain happened to be underneath at first materialize.
 		for (int x = -7; x <= 7; x++) {
 			for (int z = -7; z <= 7; z++) {
 				if (x * x + z * z > 55) continue;
 				for (int y = 0; y <= 2; y++) {
-					m.set(center.getX() + x, center.getY() + y, center.getZ() + z);
-					if (!inLimit(world, m)) continue;
-					BlockState cur = world.getBlockState(m);
-					if (cur.isOf(Blocks.OXIDIZED_COPPER) || cur.isOf(Blocks.PRISMARINE_BRICKS)
-							|| cur.isOf(Blocks.CYAN_STAINED_GLASS)) {
-						world.setBlockState(m, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
-						placed.remove(m.toImmutable());
-					}
+					StructureDelta.Cell c = new StructureDelta.Cell(x, y, z);
+					if (isCapturedHullMaterial(cells.get(c))) cells.put(c, Blocks.AIR.getDefaultState());
 				}
-				// Deck plate
-				m.set(center.getX() + x, center.getY() - 1, center.getZ() + z);
-				if (inLimit(world, m) && world.getBlockState(m).isAir()) {
-					world.setBlockState(m, Blocks.DARK_PRISMARINE.getDefaultState(), Block.NOTIFY_LISTENERS);
-					placed.add(m.toImmutable());
-				}
+				cells.put(new StructureDelta.Cell(x, -1, z), Blocks.DARK_PRISMARINE.getDefaultState());
 			}
 		}
 
-		// Side bay door (open toward -Z)
+		// Side bay door (open toward -Z) — a second, separate opening from the underside bay
+		// SkyUfoShape.classify's own bay check already carves.
 		for (int x = -2; x <= 2; x++) {
 			for (int y = 0; y <= 2; y++) {
 				for (int z = -MAJOR; z <= -MAJOR + 2; z++) {
-					m.set(center.getX() + x, center.getY() + y, center.getZ() + z);
-					if (!inLimit(world, m)) continue;
-					world.setBlockState(m, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
-					placed.remove(m.toImmutable());
+					cells.put(new StructureDelta.Cell(x, y, z), Blocks.AIR.getDefaultState());
 				}
 			}
 		}
 
-		// Reactor core pedestal
-		BlockPos core = center.up(1);
-		world.setBlockState(center, Blocks.OBSIDIAN.getDefaultState(), Block.NOTIFY_ALL);
-		placed.add(center.toImmutable());
-		world.setBlockState(core, ModWorldBlocks.UNSTABLE_REACTOR.getDefaultState(), Block.NOTIFY_ALL);
-		placed.add(core.toImmutable());
-		world.setBlockState(center.up(2), Blocks.SEA_LANTERN.getDefaultState(), Block.NOTIFY_ALL);
-		placed.add(center.up(2).toImmutable());
-
-		// Ring lights
+		// Reactor core pedestal + ring lights
+		cells.put(new StructureDelta.Cell(0, 0, 0), Blocks.OBSIDIAN.getDefaultState());
+		StructureDelta.Cell core = new StructureDelta.Cell(0, 1, 0);
+		cells.put(core, ModWorldBlocks.UNSTABLE_REACTOR.getDefaultState());
+		markers.put("core", core);
+		cells.put(new StructureDelta.Cell(0, 2, 0), Blocks.SEA_LANTERN.getDefaultState());
 		for (int a = 0; a < 360; a += 45) {
 			double rad = Math.toRadians(a);
-			BlockPos p = center.add((int) (Math.cos(rad) * 8), 2, (int) (Math.sin(rad) * 8));
-			if (inLimit(world, p)) {
-				world.setBlockState(p, Blocks.SEA_LANTERN.getDefaultState(), Block.NOTIFY_LISTENERS);
-				placed.add(p.toImmutable());
-			}
+			cells.put(new StructureDelta.Cell((int) (Math.cos(rad) * 8), 2, (int) (Math.sin(rad) * 8)),
+					Blocks.SEA_LANTERN.getDefaultState());
 		}
 
-		Box interior = new Box(
-				center.getX() - 8.5, center.getY() - 1.5, center.getZ() - 8.5,
-				center.getX() + 8.5, center.getY() + 3.5, center.getZ() + 8.5);
-		return new Built(center.toImmutable(), core.toImmutable(), placed, interior);
+		return new StructureTemplate(cells, markers, -8.5, -1.5, -8.5, 8.5, 3.5, 8.5);
 	}
 
-	public static void clear(ServerWorld world, Set<BlockPos> blocks) {
-		if (blocks == null || blocks.isEmpty()) return;
-		// Copy + empty first: setBlockState on the reactor fires onStateReplaced →
-		// SkyUfoEntity.notifyCoreBroken, which used to re-enter shatter/clear on the same Set (CME).
-		List<BlockPos> copy = new ArrayList<>(blocks);
-		blocks.clear();
-		for (BlockPos p : copy) {
-			BlockState st = world.getBlockState(p);
-			if (isHullMaterial(st) || st.isOf(ModWorldBlocks.UNSTABLE_REACTOR)
-					|| st.isOf(Blocks.OBSIDIAN) || st.isOf(Blocks.SEA_LANTERN)
-					|| st.isOf(Blocks.DARK_PRISMARINE)) {
-				world.setBlockState(p, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
-			}
-		}
+	private static BlockState stateFor(SkyUfoShape.Cell cell) {
+		return switch (cell) {
+			case OUTER_HULL -> Blocks.OXIDIZED_COPPER.getDefaultState();
+			case INNER_SHELL -> Blocks.PRISMARINE_BRICKS.getDefaultState();
+			case GLASS -> Blocks.CYAN_STAINED_GLASS.getDefaultState();
+			case DECK -> Blocks.DARK_PRISMARINE.getDefaultState();
+			case INTERIOR_AIR -> Blocks.AIR.getDefaultState();
+			case NONE -> null;
+		};
 	}
 
-	/** Shatter hull with leftover debris / fire. */
+	/**
+	 * The three materials the main sweep above can place at y=0..2 — narrower than, and distinct from,
+	 * {@link #isHullMaterial}, which also covers {@link #shatter}'s broader damaged/deck cases.
+	 */
+	private static boolean isCapturedHullMaterial(BlockState st) {
+		return st != null && (st.isOf(Blocks.OXIDIZED_COPPER) || st.isOf(Blocks.PRISMARINE_BRICKS)
+				|| st.isOf(Blocks.CYAN_STAINED_GLASS));
+	}
+
+	/** Shatter hull with leftover debris / fire. Unchanged — destruction VFX, not movement/placement. */
 	public static void shatter(ServerWorld world, Set<BlockPos> blocks, BlockPos epicenter) {
 		if (blocks == null || blocks.isEmpty()) return;
 		List<BlockPos> copy = new ArrayList<>(blocks);
@@ -166,31 +136,11 @@ public final class SkyUfoHull {
 		}
 	}
 
-	public static List<Entity> collectInterior(ServerWorld world, Box interior, Entity exclude) {
-		return world.getOtherEntities(exclude, interior, e -> e.isAlive() && !(e instanceof SkyUfoEntity));
-	}
-
-	public static void shiftEntities(List<Entity> entities, Vec3d delta) {
-		for (Entity e : entities) {
-			e.setPosition(e.getPos().add(delta));
-			e.velocityModified = true;
-		}
-	}
-
-	public static boolean contains(Box interior, Vec3d pos) {
-		return interior.contains(pos);
-	}
-
 	private static boolean isHullMaterial(BlockState st) {
 		return st.isOf(Blocks.OXIDIZED_COPPER)
 				|| st.isOf(Blocks.PRISMARINE_BRICKS)
 				|| st.isOf(Blocks.CYAN_STAINED_GLASS)
 				|| st.isOf(Blocks.COPPER_BLOCK)
 				|| st.isOf(Blocks.DARK_PRISMARINE);
-	}
-
-	private static boolean inLimit(ServerWorld world, BlockPos pos) {
-		int y = pos.getY();
-		return y >= world.getBottomY() && y < world.getBottomY() + world.getHeight();
 	}
 }
