@@ -185,95 +185,16 @@ public final class EndReactorSession {
 		}
 	}
 
+	/**
+	 * Builds the station shell. Skeleton for now (Phase 2 of the Citadel redesign, see
+	 * {@code CitadelStationGenerator}): exterior hull + central shaft + six deck floors only — no
+	 * turrets, shield crystals, reactor pedestal, or approach bridges yet, those are later phases.
+	 * {@code placeTurretPad}/{@code spawnCrystal} below are temporarily unused between this phase and the
+	 * next, kept rather than deleted since they're exactly what the next phase re-wires, just from new
+	 * per-deck coordinates instead of the old flat disc's.
+	 */
 	public static void generateBase(ServerWorld world, BlockPos center) {
-		// Clear a working volume so the base replaces the stock podium without leftover clutter.
-		//
-		// Air that is already air is skipped. The volume is a radius-30 cylinder — sixty thousand
-		// positions — and up in the band nearly all of it is open column, where a no-op setBlockState
-		// still pays for a lighting update. Reading first is what keeps this a brief hitch.
-		BlockPos.Mutable cursor = new BlockPos.Mutable();
-		for (int x = -30; x <= 30; x++) {
-			for (int z = -30; z <= 30; z++) {
-				if (x * x + z * z > 30 * 30) continue;
-				for (int y = 1; y <= 22; y++) {
-					cursor.set(center.getX() + x, center.getY() + y, center.getZ() + z);
-					if (world.getBlockState(cursor).isAir()) continue;
-					world.setBlockState(cursor, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
-				}
-			}
-		}
-
-		// Central platform
-		for (int x = -28; x <= 28; x++) {
-			for (int z = -28; z <= 28; z++) {
-				if (x * x + z * z > 28 * 28) continue;
-				BlockPos p = center.add(x, 0, z);
-				world.setBlockState(p, Blocks.OBSIDIAN.getDefaultState(), Block.NOTIFY_LISTENERS);
-				if (x * x + z * z > 22 * 22) {
-					world.setBlockState(p.up(), Blocks.END_STONE_BRICKS.getDefaultState(), Block.NOTIFY_LISTENERS);
-				} else if ((x + z) % 5 == 0) {
-					world.setBlockState(p.up(), Blocks.PURPUR_BLOCK.getDefaultState(), Block.NOTIFY_LISTENERS);
-				}
-			}
-		}
-		// Reactor ring
-		for (int a = 0; a < 360; a += 8) {
-			double rad = Math.toRadians(a);
-			int x = (int) (Math.cos(rad) * 10);
-			int z = (int) (Math.sin(rad) * 10);
-			for (int y = 1; y <= 8; y++) {
-				world.setBlockState(center.add(x, y, z), Blocks.CRYING_OBSIDIAN.getDefaultState(), Block.NOTIFY_LISTENERS);
-			}
-		}
-		// Core pedestal
-		for (int y = 1; y <= 6; y++) {
-			world.setBlockState(center.up(y), Blocks.RESPAWN_ANCHOR.getDefaultState(), Block.NOTIFY_ALL);
-		}
-		world.setBlockState(center.up(7), ModWorldBlocks.UNSTABLE_REACTOR.getDefaultState(), Block.NOTIFY_ALL);
-
-		ReactorDisplayEntity core = ModEntities.REACTOR_DISPLAY.create(world);
-		if (core != null) {
-			core.refreshPositionAndAngles(center.getX() + 0.5, center.getY() + 9.0, center.getZ() + 0.5, 0, 0);
-			world.spawnEntity(core);
-		}
-
-		// Shield crystal pillars (dragon-analogue) — 4 towers with End crystals
-		BlockPos[] pillars = {
-				center.add(22, 0, 0), center.add(-22, 0, 0),
-				center.add(0, 0, 22), center.add(0, 0, -22)
-		};
-		for (BlockPos base : pillars) {
-			for (int y = 1; y <= 14; y++) {
-				world.setBlockState(base.up(y), Blocks.OBSIDIAN.getDefaultState(), Block.NOTIFY_LISTENERS);
-				if (y % 3 == 0) {
-					world.setBlockState(base.up(y).east(), Blocks.IRON_BARS.getDefaultState(), Block.NOTIFY_LISTENERS);
-					world.setBlockState(base.up(y).west(), Blocks.IRON_BARS.getDefaultState(), Block.NOTIFY_LISTENERS);
-				}
-			}
-			world.setBlockState(base.up(15),
-					com.terminaldetector.drmd.entity.ModWorldBlocks.PLASMA_GRANITE.getDefaultState(),
-					Block.NOTIFY_LISTENERS);
-			EndCrystalEntity crystal = spawnCrystal(world, base.up(16));
-			if (crystal != null) world.spawnEntity(crystal);
-
-			// Defense turrets on mid platforms
-			placeTurretPad(world, base.add(3, 8, 0), ModWorldBlocks.LASER_TURRET);
-			placeTurretPad(world, base.add(-3, 8, 0), ModWorldBlocks.PLASMA_TURRET);
-			placeTurretPad(world, base.add(0, 8, 3), ModWorldBlocks.POINT_DEFENSE_TURRET);
-		}
-
-		// Inner ring: embedded casemate turrets + shield cross (no cyclic rails —
-		// powered_rail curves crashed join / End tick; kit item still places loops).
-		com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeTurretRing(
-				world, center, 14, center.getY() + 1, 8, true);
-
-		// Approach bridges toward outer islands
-		for (int d = 28; d <= 48; d++) {
-			world.setBlockState(center.add(d, 0, 0), Blocks.END_STONE_BRICKS.getDefaultState(), Block.NOTIFY_LISTENERS);
-			world.setBlockState(center.add(-d, 0, 0), Blocks.END_STONE_BRICKS.getDefaultState(), Block.NOTIFY_LISTENERS);
-			world.setBlockState(center.add(0, 0, d), Blocks.END_STONE_BRICKS.getDefaultState(), Block.NOTIFY_LISTENERS);
-			world.setBlockState(center.add(0, 0, -d), Blocks.END_STONE_BRICKS.getDefaultState(), Block.NOTIFY_LISTENERS);
-		}
+		CitadelStationGenerator.generate(world, center);
 	}
 
 	private static void placeTurretPad(ServerWorld world, BlockPos pad, Block turret) {
