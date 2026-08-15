@@ -1,6 +1,8 @@
 package com.terminaldetector.drmd.world.end;
 
+import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
+import com.terminaldetector.drmd.entity.ReactorDisplayEntity;
 import com.terminaldetector.drmd.world.end.CitadelDeckShape.Deck;
 import com.terminaldetector.drmd.world.trap.RingDefenseStructures;
 import net.minecraft.block.Block;
@@ -97,6 +99,8 @@ public final class CitadelStationGenerator {
 	 * for why nothing needs to change there for these positions to already be covered.
 	 */
 	private static void placeReactorCoreFeatures(ServerWorld world, BlockPos center) {
+		placeReactorPedestal(world, center);
+
 		BlockPos[] pillars = {
 				center.add(22, 0, 0), center.add(-22, 0, 0),
 				center.add(0, 0, 22), center.add(0, 0, -22)
@@ -122,6 +126,24 @@ public final class CitadelStationGenerator {
 		// shorter crystal towers, and this is the only ring on the station with shields on — keeps the
 		// total crystal count (and so when shields-down triggers) matching the old arena's behavior.
 		RingDefenseStructures.placeTurretRing(world, center, 16, center.getY() + 1, 8, true);
+	}
+
+	/**
+	 * Purely decorative — {@code EndReactorBossEntity}'s own HP/death is the fight's real trigger, this
+	 * block never gates anything. Same local-Y offsets (1..9) the old flat-disc arena used; still valid
+	 * since they sit well below the boss's own new anchor at local Y 16.
+	 */
+	private static void placeReactorPedestal(ServerWorld world, BlockPos center) {
+		for (int y = 1; y <= 6; y++) {
+			world.setBlockState(center.up(y), Blocks.RESPAWN_ANCHOR.getDefaultState(), Block.NOTIFY_ALL);
+		}
+		world.setBlockState(center.up(7), ModWorldBlocks.UNSTABLE_REACTOR.getDefaultState(), Block.NOTIFY_ALL);
+
+		ReactorDisplayEntity core = ModEntities.REACTOR_DISPLAY.create(world);
+		if (core != null) {
+			core.refreshPositionAndAngles(center.getX() + 0.5, center.getY() + 9.0, center.getZ() + 0.5, 0, 0);
+			world.spawnEntity(core);
+		}
 	}
 
 	/**

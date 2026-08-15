@@ -188,16 +188,30 @@ public final class EndReactorSession {
 		CitadelStationGenerator.generate(world, center);
 	}
 
+	/**
+	 * Boss anchor sits at local Y 16 — the Reactor Core deck's own vertical mid-point (deck span 0..32)
+	 * — rather than the old flat disc's Y 12 (chosen for a much shallower ~22-tall clear zone). The
+	 * orbit's own vertical wobble is +-2.5 (see {@code EndReactorBossEntity.tick}), so the boss ranges
+	 * roughly Y 13.5..18.5 — comfortably inside the deck's open interior on both sides, clear of both
+	 * the floor and the next deck's own floor at Y 32.
+	 *
+	 * <p>{@code EndReactorBossEntity.onDeath()}'s exit-gateway pad is {@code anchor.y - 12}, unchanged —
+	 * so this move also shifts the pad from the deck's own floor (old: anchor 12 - 12 = 0) up to local Y
+	 * 4. Deliberately not re-tuned to land exactly on the floor: {@code placeExitGateways} builds its own
+	 * small support platform directly under wherever the pad ends up, so it doesn't depend on landing on
+	 * pre-existing floor — a trophy platform floating a few blocks up, inside the same open room, reads
+	 * fine either way.
+	 */
 	private static void spawnBoss(ServerWorld world, BlockPos center) {
 		EndReactorBossEntity boss = ModEntities.END_REACTOR_BOSS.create(world);
 		if (boss == null) return;
-		boss.refreshPositionAndAngles(center.getX() + 0.5, center.getY() + 10.0, center.getZ() + 0.5, 0, 0);
-		boss.setAnchor(new Vec3d(center.getX() + 0.5, center.getY() + 12.0, center.getZ() + 0.5));
+		boss.refreshPositionAndAngles(center.getX() + 0.5, center.getY() + 14.0, center.getZ() + 0.5, 0, 0);
+		boss.setAnchor(new Vec3d(center.getX() + 0.5, center.getY() + 16.0, center.getZ() + 0.5));
 		world.spawnEntity(boss);
 
 		ReactorKeeperEntity keeper = ModEntities.REACTOR_KEEPER.create(world);
 		if (keeper != null) {
-			keeper.refreshPositionAndAngles(center.getX() + 8.5, center.getY() + 12, center.getZ() + 0.5, 0, 0);
+			keeper.refreshPositionAndAngles(center.getX() + 8.5, center.getY() + 16, center.getZ() + 0.5, 0, 0);
 			world.spawnEntity(keeper);
 		}
 		// Pre-boss Oblivion Seekers — solo hunters that still paint aggro onto End machines.
