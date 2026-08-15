@@ -235,6 +235,32 @@ public final class IndustrialComplexGenerator {
 		}
 	}
 
+	public static void carveBox(net.minecraft.world.WorldAccess world, BlockPos center,
+			int halfX, int halfY, int halfZ, int wallThickness) {
+		carveBox(world, center, halfX, halfY, halfZ, wallThickness,
+				Blocks.DEEPSLATE_BRICKS.getDefaultState(), Blocks.SEA_LANTERN.getDefaultState());
+	}
+
+	/** Hollow rectangular room — this toolkit's only generic box carve, alongside the sphere/cylinder/shaft ones above. */
+	public static void carveBox(net.minecraft.world.WorldAccess world, BlockPos center,
+			int halfX, int halfY, int halfZ, int wallThickness, BlockState wall, BlockState lamp) {
+		BlockPos.Mutable m = new BlockPos.Mutable();
+		for (int x = -halfX; x <= halfX; x++) {
+			for (int y = -halfY; y <= halfY; y++) {
+				for (int z = -halfZ; z <= halfZ; z++) {
+					int distToEdge = Math.min(halfX - Math.abs(x), Math.min(halfY - Math.abs(y), halfZ - Math.abs(z)));
+					m.set(center.getX() + x, center.getY() + y, center.getZ() + z);
+					if (!inLimit(world, m)) continue;
+					if (distToEdge < wallThickness) {
+						world.setBlockState(m, ((x + y + z) % 7 == 0) ? lamp : wall, Block.NOTIFY_LISTENERS);
+					} else {
+						world.setBlockState(m, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
+					}
+				}
+			}
+		}
+	}
+
 	public static void carveCylinder(net.minecraft.world.WorldAccess world, BlockPos a, BlockPos b, int radius) {
 		carveCylinder(world, a, b, radius, Blocks.POLISHED_DEEPSLATE.getDefaultState());
 	}
@@ -269,15 +295,29 @@ public final class IndustrialComplexGenerator {
 
 	public static void carveVerticalShaft(net.minecraft.world.WorldAccess world, BlockPos c, int halfHeight,
 			BlockState wall) {
+		carveVerticalShaft(world, c, halfHeight, 3, wall);
+	}
+
+	/**
+	 * Radius-parameterized shaft carve — a single pass over a fixed-height, fixed-radius cross-section,
+	 * unlike {@link #carveCylinder}, which stamps a full sphere at every step along its line and would
+	 * cost roughly 25x more for a tall, wide shaft (e.g. a 148-tall run at radius 12: ~2.4M positions via
+	 * carveCylinder vs. ~95K here). {@code radius=3} reproduces the original 4-arg overload's hardcoded
+	 * air/wall bounds exactly (air out to radius-1, wall out to radius).
+	 */
+	public static void carveVerticalShaft(net.minecraft.world.WorldAccess world, BlockPos c, int halfHeight,
+			int radius, BlockState wall) {
 		BlockPos.Mutable m = new BlockPos.Mutable();
+		int airR2 = (radius - 1) * (radius - 1);
+		int wallR2 = radius * radius;
 		for (int y = -halfHeight; y <= halfHeight; y++) {
-			for (int x = -3; x <= 3; x++) {
-				for (int z = -3; z <= 3; z++) {
+			for (int x = -radius; x <= radius; x++) {
+				for (int z = -radius; z <= radius; z++) {
 					m.set(c.getX() + x, c.getY() + y, c.getZ() + z);
 					if (!inLimit(world, m)) continue;
 					int d = x * x + z * z;
-					if (d <= 4) world.setBlockState(m, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
-					else if (d <= 9) world.setBlockState(m, wall, Block.NOTIFY_LISTENERS);
+					if (d <= airR2) world.setBlockState(m, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
+					else if (d <= wallR2) world.setBlockState(m, wall, Block.NOTIFY_LISTENERS);
 				}
 			}
 		}
