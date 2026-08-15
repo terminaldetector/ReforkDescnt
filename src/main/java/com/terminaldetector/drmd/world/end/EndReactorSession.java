@@ -2,8 +2,6 @@ package com.terminaldetector.drmd.world.end;
 
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.entity.ModEntities;
-import com.terminaldetector.drmd.entity.ModWorldBlocks;
-import com.terminaldetector.drmd.entity.ReactorDisplayEntity;
 import com.terminaldetector.drmd.world.level.WorldLevels;
 import com.terminaldetector.drmd.world.mega.ReactorKeeperEntity;
 import net.minecraft.block.Block;
@@ -185,29 +183,9 @@ public final class EndReactorSession {
 		}
 	}
 
-	/**
-	 * Builds the station shell. Skeleton for now (Phase 2 of the Citadel redesign, see
-	 * {@code CitadelStationGenerator}): exterior hull + central shaft + six deck floors only — no
-	 * turrets, shield crystals, reactor pedestal, or approach bridges yet, those are later phases.
-	 * {@code placeTurretPad}/{@code spawnCrystal} below are temporarily unused between this phase and the
-	 * next, kept rather than deleted since they're exactly what the next phase re-wires, just from new
-	 * per-deck coordinates instead of the old flat disc's.
-	 */
+	/** Builds the station shell — full geometry, theming, and Reactor/Flight deck features live in {@link CitadelStationGenerator}. */
 	public static void generateBase(ServerWorld world, BlockPos center) {
 		CitadelStationGenerator.generate(world, center);
-	}
-
-	private static void placeTurretPad(ServerWorld world, BlockPos pad, Block turret) {
-		world.setBlockState(pad, Blocks.END_STONE_BRICKS.getDefaultState(), Block.NOTIFY_LISTENERS);
-		world.setBlockState(pad.up(), turret.getDefaultState(), Block.NOTIFY_ALL);
-	}
-
-	private static EndCrystalEntity spawnCrystal(ServerWorld world, BlockPos at) {
-		EndCrystalEntity c = net.minecraft.entity.EntityType.END_CRYSTAL.create(world);
-		if (c == null) return null;
-		c.refreshPositionAndAngles(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, 0, 0);
-		c.setShowBottom(false);
-		return c;
 	}
 
 	private static void spawnBoss(ServerWorld world, BlockPos center) {
