@@ -14,6 +14,7 @@ public final class ModBlockEntities {
 	public static BlockEntityType<GravityGeneratorBlockEntity> GRAVITY_GENERATOR;
 	public static BlockEntityType<LocatorCoreBlockEntity> LOCATOR_CORE;
 	public static BlockEntityType<com.terminaldetector.drmd.world.micro.CarvedBlockEntity> CARVED;
+	public static BlockEntityType<com.terminaldetector.drmd.world.portal.mirror.MirrorBlockEntity> MIRROR;
 
 	private ModBlockEntities() {}
 
@@ -32,6 +33,11 @@ public final class ModBlockEntities {
 				BlockEntityType.Builder.create(
 						com.terminaldetector.drmd.world.micro.CarvedBlockEntity::new,
 						ModWorldBlocks.CARVED).build());
+		MIRROR = Registry.register(Registries.BLOCK_ENTITY_TYPE,
+				Identifier.of(DescentMod.MOD_ID, "mirror"),
+				BlockEntityType.Builder.create(
+						com.terminaldetector.drmd.world.portal.mirror.MirrorBlockEntity::new,
+						ModWorldBlocks.MIRROR).build());
 		DescentMod.LOGGER.info("Registered DRMD block entities");
 	}
 }
