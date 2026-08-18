@@ -27,6 +27,11 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
+	// Optional at runtime (see PortalComplexity.hasImmersivePortals() / docs/IMMPTL_STACK.md) but
+	// compiled against directly for the mirror/portal block feature — vendored rather than pulled
+	// from a remote repo since upstream archived itself with no ongoing release feed to track.
+	modImplementation files("libs/immersiveportals-${project.immersive_portals_version}-mc1.21.1-fabric.jar")
+
 	testImplementation platform("org.junit:junit-bom:${project.junit_version}")
 	testImplementation 'org.junit.jupiter:junit-jupiter'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
