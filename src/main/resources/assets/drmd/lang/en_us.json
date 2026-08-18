@@ -86,6 +86,7 @@
   "item.drmd.gravity_scanner": "Gravity Scanner",
   "item.drmd.cyclic_laser_kit": "Cyclic Laser Barrier Kit",
   "entity.drmd.laser_barrier_cart": "Cyclic Laser Barrier Cart",
+  "block.drmd.mirror": "Mirror",
   "block.drmd.gravity_generator": "Gravity Generator",
   "block.drmd.gravity_torch": "Gravity Torch",
   "block.drmd.locator_core": "Locator Core",

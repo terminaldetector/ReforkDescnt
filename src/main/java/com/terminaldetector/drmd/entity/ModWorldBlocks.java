@@ -76,6 +76,12 @@ public final class ModWorldBlocks {
 			new com.terminaldetector.drmd.world.locator.LocatorPanelBlock(
 					AbstractBlock.Settings.copy(Blocks.OXIDIZED_COPPER).luminance(s -> 4).strength(3f)));
 
+	/** Ricochets lasers; a literal live mirror once Immersive Portals is installed. */
+	public static final Block MIRROR = registerBlock("mirror",
+			new com.terminaldetector.drmd.world.portal.mirror.MirrorBlock(
+					AbstractBlock.Settings.copy(Blocks.GLASS).nonOpaque().strength(3f)
+							.sounds(net.minecraft.sound.BlockSoundGroup.GLASS)));
+
 	/**
 	 * Diggable replacement for world-border bedrock — hard, blast-resistant, but breakable.
 	 * Plasma flecks in the granite crust of the mantle / Core seam.
@@ -178,6 +184,7 @@ public final class ModWorldBlocks {
 			entries.add(POINT_DEFENSE_TURRET);
 			entries.add(MAGNETIC_ANOMALY);
 			entries.add(UNSTABLE_REACTOR);
+			entries.add(MIRROR);
 			entries.add(GRAVITY_GENERATOR);
 			entries.add(GRAVITY_TORCH);
 			entries.add(LOCATOR_CORE);
