@@ -5,6 +5,9 @@ import com.terminaldetector.drmd.weapon.core.MissileSteering;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.weapon.fx.WeaponFx;
 import com.terminaldetector.drmd.world.LocalOrientation;
+import com.terminaldetector.drmd.world.portal.mirror.MirrorReflection;
+import com.terminaldetector.drmd.world.portal.mirror.ReflectiveBlock;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -60,6 +63,10 @@ public class ProjectileEntity extends Entity {
 	private int pierceCount;
 	private boolean worldBlast;
 	private boolean drillCarve;
+
+	public static final int DEFAULT_MAX_BOUNCES = 6;
+	private int bounceCount;
+	private int maxBounces = DEFAULT_MAX_BOUNCES;
 	private Consumer<WeaponCore.HitContext> onHit;
 	private final Set<Integer> pierced = new HashSet<>();
 
@@ -118,6 +125,9 @@ public class ProjectileEntity extends Entity {
 	public void setOnHit(Consumer<WeaponCore.HitContext> cb) { this.onHit = cb; }
 	public void setWorldBlast(boolean v) { this.worldBlast = v; }
 	public void setDrillCarve(boolean v) { this.drillCarve = v; }
+
+	/** How many {@link ReflectiveBlock} hits this shot can bounce off before it terminates normally. */
+	public void setMaxBounces(int v) { this.maxBounces = v; }
 
 	/**
 	 * Arm the fuse.
@@ -369,7 +379,41 @@ public class ProjectileEntity extends Entity {
 		}
 	}
 
+	/**
+	 * A mirror block ricochet is resolved here rather than in {@link #tick()}: only the terminal
+	 * path needs to change, and {@code tick()} already just calls this and returns, so a shot that
+	 * survives is automatically picked up by next tick's raycast with no other change to the movement
+	 * logic every other weapon in the mod shares.
+	 *
+	 * <p>Detonation/melt/ignite FX and the {@code onHit} callback are deliberately skipped on a
+	 * bounce — those are terminal-impact effects, wrong to fire against a surface the shot is
+	 * continuing past, and no weapon's {@code onHit} callback expects more than one call per shot.
+	 * Explosive-class hits still detonate on contact regardless of the struck block: a rocket
+	 * ricocheting through a mirror would read as a bug, not a feature.
+	 *
+	 * <p>Resolves at most one bounce per tick — a shot travelling far enough in one tick to reach a
+	 * second mirror before the tick ends instead resumes at full speed from the first bounce point
+	 * next tick. A correct fix means looping the raycast within {@code tick()}'s own movement
+	 * resolution, which is a materially larger change touching every weapon's shared movement path;
+	 * deliberately deferred rather than done here.
+	 */
 	private void onBlockHit(BlockHitResult hit) {
+		boolean explosive = worldBlast || (splashRadius > 0 && dmgClass == DamageClass.EXPLOSIVE);
+		BlockState hitState = getWorld().getBlockState(hit.getBlockPos());
+		if (!explosive && bounceCount < maxBounces && hitState.getBlock() instanceof ReflectiveBlock rb) {
+			bounceCount++;
+			Vec3d normal = rb.getReflectionNormal(hitState);
+			setVelocity(MirrorReflection.reflect(getVelocity(), normal));
+			// Nudge off the surface so this tick doesn't immediately re-resolve the same face at zero
+			// distance — same spirit as onEntityHit's pierce reposition above.
+			setPosition(hit.getPos().add(normal.multiply(0.05)));
+			if (getWorld() instanceof ServerWorld sw) {
+				sw.spawnParticles(new DustParticleEffect(new Vector3f(0.7f, 0.9f, 1f), 0.8f),
+						hit.getPos().x, hit.getPos().y, hit.getPos().z, 6, 0.05, 0.05, 0.05, 0.02);
+			}
+			return;
+		}
+
 		LivingEntity own = getOwnerLiving();
 		if (own != null && getWorld() instanceof ServerWorld sw) {
 			detonate(own, hit.getPos());
