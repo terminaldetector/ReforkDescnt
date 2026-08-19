@@ -97,6 +97,10 @@ public class DescentPlayerData {
 	private int lastOverworldX;
 	private int lastOverworldZ;
 
+	/** UUID of the last {@code PyroShipEntity} this pilot boarded — lets a rejoin find and remount
+	 *  the same hull instead of always minting a fresh one (see {@code FlightSystem.autoMountPyroShip}). */
+	private UUID lastShipUuid;
+
 	public void ensureInit() {
 		if (energyMax <= 0) energyMax = 100f;
 		if (shieldMax <= 0) shieldMax = 100f;
@@ -128,6 +132,7 @@ public class DescentPlayerData {
 		d.putFloat("wepRecoil", wepRecoil);
 		d.putBoolean("radar", radarEnabled);
 		d.putBoolean("sessionWelcomed", sessionWelcomed);
+		if (lastShipUuid != null) d.putUuid("lastShip", lastShipUuid);
 		nbt.put("DrmdData", d);
 	}
 
@@ -158,6 +163,7 @@ public class DescentPlayerData {
 		if (d.contains("wepRecoil")) wepRecoil = d.getFloat("wepRecoil");
 		radarEnabled = !d.contains("radar") || d.getBoolean("radar");
 		sessionWelcomed = d.getBoolean("sessionWelcomed");
+		lastShipUuid = d.containsUuid("lastShip") ? d.getUuid("lastShip") : null;
 	}
 
 	// Getters / setters
@@ -252,6 +258,9 @@ public class DescentPlayerData {
 		this.lastOverworldX = x;
 		this.lastOverworldZ = z;
 	}
+
+	public UUID getLastShipUuid() { return lastShipUuid; }
+	public void setLastShipUuid(UUID lastShipUuid) { this.lastShipUuid = lastShipUuid; }
 
 	public boolean hasShipAttitude() { return shipAttitudeValid; }
 

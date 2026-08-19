@@ -25,6 +25,8 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
+import java.util.UUID;
+
 /**
  * Pyro GX transport — 6DoF while piloted (immune to gravity torches).
  * On dismount: walk when a gravity field / solid floor is present; keep free 6DoF in open air.
@@ -32,6 +34,13 @@ import net.minecraft.world.World;
 public class PyroShipEntity extends PathAwareEntity {
 	private boolean wasPiloted;
 	private int landTicks;
+	/** Last pilot to board — lets {@code FlightSystem.autoMountPyroShip} find this hull again on
+	 *  rejoin instead of always minting a fresh one. Not exclusive ownership: boarding an unpiloted
+	 *  ship (any owner, or none) claims it. */
+	private UUID ownerUuid;
+
+	public UUID getOwnerUuid() { return ownerUuid; }
+	public void setOwnerUuid(UUID ownerUuid) { this.ownerUuid = ownerUuid; }
 
 	public PyroShipEntity(EntityType<? extends PyroShipEntity> type, World world) {
 		super(type, world);
@@ -161,7 +170,9 @@ public class PyroShipEntity extends PathAwareEntity {
 		if (!getWorld().isClient && !hasPassengers()) {
 			player.startRiding(this);
 			if (player instanceof ServerPlayerEntity sp) {
+				this.ownerUuid = sp.getUuid();
 				DescentPlayerData data = DescentPlayerData.get(sp);
+				data.setLastShipUuid(this.getUuid());
 				com.terminaldetector.drmd.flight.FlightSystem.enable(sp, data);
 				ConstructionMode.set(sp, false);
 				LocalOrientation.setUp(sp.getUuid(), new Vec3d(0, 1, 0));
@@ -196,10 +207,12 @@ public class PyroShipEntity extends PathAwareEntity {
 	public void writeCustomDataToNbt(NbtCompound nbt) {
 		super.writeCustomDataToNbt(nbt);
 		nbt.putString("hull", "pyro");
+		if (ownerUuid != null) nbt.putUuid("owner", ownerUuid);
 	}
 
 	@Override
 	public void readCustomDataFromNbt(NbtCompound nbt) {
 		super.readCustomDataFromNbt(nbt);
+		ownerUuid = nbt.containsUuid("owner") ? nbt.getUuid("owner") : null;
 	}
 }

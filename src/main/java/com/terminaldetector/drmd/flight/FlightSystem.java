@@ -343,12 +343,31 @@ public final class FlightSystem {
 	 * the one that matters for correctness, not just convenience — {@code PyroShipEntity} itself
 	 * calling {@code enable} from {@code interactMob}/{@code tick} always does so only after the
 	 * player is already riding it, so this never spawns a second ship out from under an existing one.
+	 *
+	 * <p>Tries to remount the pilot's last known hull before minting a fresh one — every join is
+	 * native 6DoF ({@code DescentSession.onPlayerJoin}), so without this a rejoin always spawned a
+	 * new ship and left the old one parked and un-piloted (harmless while the ship carried no state
+	 * of its own; not harmless once it carries equipped weapons/a propulsion module). Any lookup
+	 * failure — unloaded chunk, the hull was destroyed, or a pre-existing ship with no recorded UUID
+	 * — falls straight through to today's spawn-fresh behavior.
 	 */
 	private static void autoMountPyroShip(ServerPlayerEntity player) {
 		if (player.hasVehicle()) return;
+		DescentPlayerData data = DescentPlayerData.get(player);
+		java.util.UUID lastShipId = data.getLastShipUuid();
+		if (lastShipId != null
+				&& player.getServerWorld().getEntity(lastShipId) instanceof com.terminaldetector.drmd.entity.PyroShipEntity found
+				&& !found.hasPassengers()
+				&& (found.getOwnerUuid() == null || found.getOwnerUuid().equals(player.getUuid()))) {
+			found.setOwnerUuid(player.getUuid());
+			player.startRiding(found);
+			return;
+		}
 		var ship = com.terminaldetector.drmd.entity.ModEntities.PYRO_SHIP.create(player.getServerWorld());
 		if (ship == null) return;
 		ship.refreshPositionAndAngles(player.getX(), player.getY(), player.getZ(), player.getYaw(), 0);
+		ship.setOwnerUuid(player.getUuid());
+		data.setLastShipUuid(ship.getUuid());
 		player.getServerWorld().spawnEntity(ship);
 		player.startRiding(ship);
 	}
