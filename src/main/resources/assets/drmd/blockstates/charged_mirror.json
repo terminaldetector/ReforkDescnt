@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=down,linked=false":  { "model": "drmd:block/charged_mirror", "x": 180 },
+    "facing=up,linked=false":    { "model": "drmd:block/charged_mirror" },
+    "facing=north,linked=false": { "model": "drmd:block/charged_mirror", "x": 90 },
+    "facing=south,linked=false": { "model": "drmd:block/charged_mirror", "x": 90, "y": 180 },
+    "facing=west,linked=false":  { "model": "drmd:block/charged_mirror", "x": 90, "y": 270 },
+    "facing=east,linked=false":  { "model": "drmd:block/charged_mirror", "x": 90, "y": 90 },
+    "facing=down,linked=true":  { "model": "drmd:block/charged_mirror_linked", "x": 180 },
+    "facing=up,linked=true":    { "model": "drmd:block/charged_mirror_linked" },
+    "facing=north,linked=true": { "model": "drmd:block/charged_mirror_linked", "x": 90 },
+    "facing=south,linked=true": { "model": "drmd:block/charged_mirror_linked", "x": 90, "y": 180 },
+    "facing=west,linked=true":  { "model": "drmd:block/charged_mirror_linked", "x": 90, "y": 270 },
+    "facing=east,linked=true":  { "model": "drmd:block/charged_mirror_linked", "x": 90, "y": 90 }
+  }
+}

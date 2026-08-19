@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PEP",
+    "EST",
+    "PGP"
+  ],
+  "key": {
+    "P": { "item": "minecraft:ender_pearl" },
+    "E": { "item": "minecraft:end_crystal" },
+    "S": { "item": "drmd:portal_stabilizer" },
+    "T": { "item": "drmd:targeting_core" },
+    "G": { "item": "drmd:plasma_granite" }
+  },
+  "result": {
+    "id": "drmd:mirror_linker_cross_dimension",
+    "count": 1
+  }
+}

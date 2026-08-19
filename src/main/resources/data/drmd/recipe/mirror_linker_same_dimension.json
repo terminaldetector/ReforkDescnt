@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AGA",
+    "GSG",
+    "AGA"
+  ],
+  "key": {
+    "A": { "item": "minecraft:amethyst_shard" },
+    "G": { "item": "minecraft:glass_pane" },
+    "S": { "item": "drmd:portal_stabilizer" }
+  },
+  "result": {
+    "id": "drmd:mirror_linker_same_dimension",
+    "count": 1
+  }
+}

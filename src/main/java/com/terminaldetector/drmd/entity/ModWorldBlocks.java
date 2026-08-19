@@ -82,6 +82,12 @@ public final class ModWorldBlocks {
 					AbstractBlock.Settings.copy(Blocks.GLASS).nonOpaque().strength(3f)
 							.sounds(net.minecraft.sound.BlockSoundGroup.GLASS)));
 
+	/** {@link com.terminaldetector.drmd.world.portal.mirror.MirrorLinkerItem} spends it to build a real portal. */
+	public static final Block CHARGED_MIRROR = registerBlock("charged_mirror",
+			new com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlock(
+					AbstractBlock.Settings.copy(Blocks.GLASS).nonOpaque().strength(3.5f).luminance(s -> 5)
+							.sounds(net.minecraft.sound.BlockSoundGroup.AMETHYST_CLUSTER)));
+
 	/**
 	 * Diggable replacement for world-border bedrock — hard, blast-resistant, but breakable.
 	 * Plasma flecks in the granite crust of the mantle / Core seam.
@@ -110,6 +116,9 @@ public final class ModWorldBlocks {
 	public static Item TUNNEL_LASER;
 	public static Item GRAVITY_SCANNER;
 	public static Item CYCLIC_LASER_KIT;
+	public static Item MIRROR_LINKER_SAME_DIMENSION;
+	public static Item MIRROR_LINKER_ROTATED_SCALED;
+	public static Item MIRROR_LINKER_CROSS_DIMENSION;
 
 	private ModWorldBlocks() {}
 
@@ -173,6 +182,18 @@ public final class ModWorldBlocks {
 		CYCLIC_LASER_KIT = Registry.register(Registries.ITEM,
 				Identifier.of(DescentMod.MOD_ID, "cyclic_laser_kit"),
 				new com.terminaldetector.drmd.world.build.CyclicLaserKitItem(new Item.Settings()));
+		MIRROR_LINKER_SAME_DIMENSION = Registry.register(Registries.ITEM,
+				Identifier.of(DescentMod.MOD_ID, "mirror_linker_same_dimension"),
+				new com.terminaldetector.drmd.world.portal.mirror.MirrorLinkerItem(new Item.Settings(),
+						com.terminaldetector.drmd.world.portal.mirror.MirrorLinkerTier.SAME_DIMENSION));
+		MIRROR_LINKER_ROTATED_SCALED = Registry.register(Registries.ITEM,
+				Identifier.of(DescentMod.MOD_ID, "mirror_linker_rotated_scaled"),
+				new com.terminaldetector.drmd.world.portal.mirror.MirrorLinkerItem(new Item.Settings(),
+						com.terminaldetector.drmd.world.portal.mirror.MirrorLinkerTier.ROTATED_SCALED));
+		MIRROR_LINKER_CROSS_DIMENSION = Registry.register(Registries.ITEM,
+				Identifier.of(DescentMod.MOD_ID, "mirror_linker_cross_dimension"),
+				new com.terminaldetector.drmd.world.portal.mirror.MirrorLinkerItem(new Item.Settings(),
+						com.terminaldetector.drmd.world.portal.mirror.MirrorLinkerTier.CROSS_DIMENSION));
 
 		ItemGroupEvents.modifyEntriesEvent(ModItems.GROUP_KEY).register(entries -> {
 			entries.add(SIX_D_SOIL);
@@ -185,6 +206,10 @@ public final class ModWorldBlocks {
 			entries.add(MAGNETIC_ANOMALY);
 			entries.add(UNSTABLE_REACTOR);
 			entries.add(MIRROR);
+			entries.add(CHARGED_MIRROR);
+			entries.add(MIRROR_LINKER_SAME_DIMENSION);
+			entries.add(MIRROR_LINKER_ROTATED_SCALED);
+			entries.add(MIRROR_LINKER_CROSS_DIMENSION);
 			entries.add(GRAVITY_GENERATOR);
 			entries.add(GRAVITY_TORCH);
 			entries.add(LOCATOR_CORE);
