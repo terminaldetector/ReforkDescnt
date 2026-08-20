@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.mixin;
 
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.DescentPlayerData;
+import com.terminaldetector.drmd.flight.CrashDamage;
 import com.terminaldetector.drmd.world.micro.TerrainClassifier;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -57,6 +58,10 @@ public class ServerPlayerFlightTravelMixin {
 		sp.setVelocity(perTick);
 		sp.move(MovementType.SELF, perTick);
 		if (sp.horizontalCollision || sp.verticalCollision) {
+			float crashDmg = CrashDamage.damageFor(data.getFlightVelocity().length());
+			if (crashDmg > 0f) {
+				sp.damage(sp.getWorld().getDamageSources().flyIntoWall(), crashDmg);
+			}
 			double keep = TerrainClassifier.classify(sp.getBlockPos()) == TerrainClassifier.Zone.SMOOTH
 					? SCRAPE_KEEP_SMOOTH : SCRAPE_KEEP_CUBIC;
 			Vec3d after = sp.getVelocity().multiply(keep);

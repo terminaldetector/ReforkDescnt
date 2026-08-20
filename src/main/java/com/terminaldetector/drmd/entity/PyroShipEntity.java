@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.entity;
 
 import com.terminaldetector.drmd.DescentPlayerData;
+import com.terminaldetector.drmd.flight.CrashDamage;
 import com.terminaldetector.drmd.flight.FlightSystem;
 import com.terminaldetector.drmd.network.ModNetworking;
 import com.terminaldetector.drmd.world.LocalOrientation;
@@ -124,6 +125,15 @@ public class PyroShipEntity extends PathAwareEntity {
 			wasPiloted = true;
 			landTicks = 0;
 			DescentPlayerData data = DescentPlayerData.get(pilot);
+			// super.tick() (above) just swept the hull through the world using the velocity this
+			// same method set last tick, so a collision flag here reflects a real impact at real
+			// speed — checked before the target velocity for *this* tick overwrites it below.
+			if (this.horizontalCollision || this.verticalCollision) {
+				float crashDmg = CrashDamage.damageFor(data.getFlightVelocity().length());
+				if (crashDmg > 0f) {
+					pilot.damage(getWorld().getDamageSources().flyIntoWall(), crashDmg);
+				}
+			}
 			if (!data.isEnabled()) FlightSystem.enable(pilot, data);
 			FootGravitySystem.clear(pilot.getUuid());
 			Vec3d vel = data.getFlightVelocity();
