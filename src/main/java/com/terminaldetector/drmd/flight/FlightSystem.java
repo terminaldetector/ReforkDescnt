@@ -100,8 +100,10 @@ public final class FlightSystem {
 		}
 
 		// Descent afterburner cruise: hold R → burn energy (tier cost), boost, idle nose thrust.
+		// abTier is 0 when piloting a ship with an empty propulsion slot — no module, no burn at
+		// all, not just a weaker one (see PyroShipEntity.getAfterburnerTier's own javadoc).
 		int abTier = effAbTier;
-		boolean afterburner = in.afterburner;
+		boolean afterburner = in.afterburner && abTier > 0;
 		if (afterburner) {
 			if (!EnergySystem.tryConsume(data, "engines", AfterburnerTiers.costPerSec(abTier) * dt)) {
 				afterburner = false;

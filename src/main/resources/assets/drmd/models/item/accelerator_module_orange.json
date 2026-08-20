@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "drmd:item/accelerator_module_orange"
+  }
+}

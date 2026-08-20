@@ -11,10 +11,10 @@ import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.text.Text;
 
 /**
- * Afterburner + ship customize.
+ * Ship customize.
  *
  * <ul>
- *   <li>Survival — lightweight: afterburner tier (traffic light), energy presets, weapon hardpoints</li>
+ *   <li>Survival — lightweight: propulsion module socket, energy presets, weapon hardpoints</li>
  *   <li>Creative — fuller: same + accel / drag / max-speed tuners</li>
  * </ul>
  */
@@ -38,34 +38,30 @@ public class ShipCustomizeScreen extends Screen {
 		int cx = this.width / 2;
 		int y = Math.max(36, this.height / 2 - (creative ? 165 : 125));
 
-		// --- Afterburner traffic light ---
-		addDrawableChild(ButtonWidget.builder(Text.translatable("screen.drmd.afterburner.header"), b -> {})
+		// --- Propulsion module (both modes) — hold a crafted module, click Equip; Unequip returns
+		// it. An empty slot means no afterburner at all, not just a weak one (see
+		// PyroShipEntity.getAfterburnerTier). Replaces the old free tier-picker: a tier now has to
+		// be crafted and socketed like a weapon, not clicked. ---
+		addDrawableChild(ButtonWidget.builder(Text.translatable("screen.drmd.propulsion.header"), b -> {})
 				.dimensions(cx - 100, y, 200, 18).build()).active = false;
 		y += ROW;
-
-		int tier = AfterburnerTiers.clamp(DescentClientState.afterburnerTier);
-		int bx = cx - 152;
-		for (int t = 1; t <= 4; t++) {
-			final int ft = t;
-			boolean sel = ft == tier;
-			ButtonWidget btn = ButtonWidget.builder(
-							Text.translatable("screen.drmd.afterburner.tier." + AfterburnerTiers.colorName(ft)),
-							b -> {
-								ClientPlayNetworking.send(new ModNetworking.ActionPayload("ab_" + ft));
-								DescentClientState.afterburnerTier = ft;
-								rebuild();
-							})
-					.dimensions(bx + (t - 1) * 78, y, 74, 20)
-					.build();
-			btn.active = !sel;
-			addDrawableChild(btn);
-		}
+		addDrawableChild(ButtonWidget.builder(
+						Text.translatable("screen.drmd.propulsion.equip"),
+						b -> ClientPlayNetworking.send(new ModNetworking.ActionPayload("equip_propulsion")))
+				.dimensions(cx - 155, y, 150, 20).build());
+		addDrawableChild(ButtonWidget.builder(
+						Text.translatable("screen.drmd.propulsion.unequip"),
+						b -> ClientPlayNetworking.send(new ModNetworking.ActionPayload("unequip_propulsion")))
+				.dimensions(cx + 5, y, 150, 20).build());
 		y += ROW + 4;
 
+		boolean hasModule = DescentClientState.afterburnerTier > 0;
+		int tier = AfterburnerTiers.clamp(DescentClientState.afterburnerTier);
 		addDrawableChild(ButtonWidget.builder(
-						Text.translatable("screen.drmd.afterburner.stats",
-								AfterburnerTiers.clamp(DescentClientState.afterburnerTier),
-								String.format("%.0f", AfterburnerTiers.costPerSec(DescentClientState.afterburnerTier))),
+						hasModule
+								? Text.translatable("screen.drmd.afterburner.stats", tier,
+										String.format("%.0f", AfterburnerTiers.costPerSec(tier)))
+								: Text.translatable("screen.drmd.propulsion.empty"),
 						b -> {})
 				.dimensions(cx - 120, y, 240, 18).build()).active = false;
 		y += ROW + 6;
@@ -144,20 +140,22 @@ public class ShipCustomizeScreen extends Screen {
 	@Override
 	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
 		super.render(context, mouseX, mouseY, delta);
+		boolean hasModule = DescentClientState.afterburnerTier > 0;
 		int tier = AfterburnerTiers.clamp(DescentClientState.afterburnerTier);
-		int color = AfterburnerTiers.colorArgb(tier);
+		int color = hasModule ? AfterburnerTiers.colorArgb(tier) : 0xFF888888;
 		context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 12, color);
 		Text mode = Text.translatable(creative
 				? "screen.drmd.ship.mode_creative"
 				: "screen.drmd.ship.mode_survival");
 		context.drawCenteredTextWithShadow(this.textRenderer, mode, this.width / 2, 24, 0x88AAAAAA);
 
-		// Traffic-light strip under title
+		// Propulsion status strip under title — every bar dim when the slot is empty, since there's
+		// no active tier to highlight (0 isn't a real tier, just "nothing socketed").
 		int cx = this.width / 2;
 		int sx = cx - 40;
 		for (int t = 1; t <= 4; t++) {
 			int c = AfterburnerTiers.colorArgb(t);
-			boolean on = t == tier;
+			boolean on = hasModule && t == tier;
 			context.fill(sx + (t - 1) * 22, 28, sx + (t - 1) * 22 + 18, 34, on ? c : (c & 0x55FFFFFF));
 		}
 	}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " A ",
+    "AEA",
+    " A "
+  ],
+  "key": {
+    "A": { "item": "drmd:alloy_plate" },
+    "E": { "item": "drmd:energy_cell" }
+  },
+  "result": {
+    "id": "drmd:accelerator_module_green",
+    "count": 1
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "AGA",
+    "GEG",
+    "AGA"
+  ],
+  "key": {
+    "A": { "item": "drmd:alloy_plate" },
+    "G": { "item": "minecraft:glowstone" },
+    "E": { "item": "drmd:energy_cell" }
+  },
+  "result": {
+    "id": "drmd:accelerator_module_orange",
+    "count": 1
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "GDG",
+    "AEA",
+    "GDG"
+  ],
+  "key": {
+    "G": { "item": "minecraft:glowstone" },
+    "D": { "item": "minecraft:diamond" },
+    "A": { "item": "drmd:alloy_plate" },
+    "E": { "item": "drmd:energy_cell" }
+  },
+  "result": {
+    "id": "drmd:accelerator_module_red",
+    "count": 1
+  }
+}

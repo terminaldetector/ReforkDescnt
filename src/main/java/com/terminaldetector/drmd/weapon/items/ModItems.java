@@ -116,6 +116,11 @@ public final class ModItems {
 	public static Item END_GATE_CATALYST;
 	public static Item DARK_ENERGY_BOMB;
 
+	public static Item ACCELERATOR_MODULE_GREEN;
+	public static Item ACCELERATOR_MODULE_YELLOW;
+	public static Item ACCELERATOR_MODULE_ORANGE;
+	public static Item ACCELERATOR_MODULE_RED;
+
 	public static Item EGG_TRIPOD;
 	public static Item EGG_SCANNER;
 	public static Item EGG_SPIDER_TURRET;
@@ -253,6 +258,15 @@ public final class ModItems {
 		DARK_ENERGY_BOMB = register("dark_energy_bomb",
 				new com.terminaldetector.drmd.world.fate.DarkEnergyBombItem(new Item.Settings().maxCount(1)));
 
+		ACCELERATOR_MODULE_GREEN = register("accelerator_module_green",
+				new com.terminaldetector.drmd.flight.AcceleratorModuleItem(new Item.Settings(), 1));
+		ACCELERATOR_MODULE_YELLOW = register("accelerator_module_yellow",
+				new com.terminaldetector.drmd.flight.AcceleratorModuleItem(new Item.Settings(), 2));
+		ACCELERATOR_MODULE_ORANGE = register("accelerator_module_orange",
+				new com.terminaldetector.drmd.flight.AcceleratorModuleItem(new Item.Settings(), 3));
+		ACCELERATOR_MODULE_RED = register("accelerator_module_red",
+				new com.terminaldetector.drmd.flight.AcceleratorModuleItem(new Item.Settings(), 4));
+
 		EGG_TRIPOD = register("spawn_egg_tripod", new net.minecraft.item.SpawnEggItem(
 				com.terminaldetector.drmd.entity.ModEntities.TRIPOD, 0x3A4450, 0xFF3366, new Item.Settings()));
 		EGG_SCANNER = register("spawn_egg_scanner", new net.minecraft.item.SpawnEggItem(
@@ -274,6 +288,10 @@ public final class ModItems {
 					entries.add(NETHER_GATE_CATALYST);
 					entries.add(END_GATE_CATALYST);
 					entries.add(DARK_ENERGY_BOMB);
+					entries.add(ACCELERATOR_MODULE_GREEN);
+					entries.add(ACCELERATOR_MODULE_YELLOW);
+					entries.add(ACCELERATOR_MODULE_ORANGE);
+					entries.add(ACCELERATOR_MODULE_RED);
 					entries.add(SHIELD_ORB);
 					entries.add(ENERGY_ORB_PICKUP);
 					for (Item w : ArsenalCatalog.creativeWeapons()) entries.add(w);

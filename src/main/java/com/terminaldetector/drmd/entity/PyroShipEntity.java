@@ -47,7 +47,10 @@ public class PyroShipEntity extends PathAwareEntity {
 	private float accel = 4200f;
 	private float drag = 2.1f;
 	private float maxSpeed = 2200f;
-	private int afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers.DEFAULT;
+
+	/** The ship's single propulsion hardpoint. An empty stack means no afterburner at all — see
+	 *  {@link #getAfterburnerTier()} — not just a low tier; a bare hull has nothing to burn. */
+	private ItemStack propulsionModule = ItemStack.EMPTY;
 
 	// Four weapon hardpoints. A DefaultedList backs it (not a bare array) purely so NBT persistence
 	// can reuse vanilla's own Inventories.writeNbt/readNbt rather than hand-rolling ItemStack<->NBT
@@ -64,11 +67,19 @@ public class PyroShipEntity extends PathAwareEntity {
 	public void setDrag(float drag) { this.drag = drag; }
 	public float getMaxSpeed() { return maxSpeed; }
 	public void setMaxSpeed(float maxSpeed) { this.maxSpeed = maxSpeed; }
+
+	public ItemStack getPropulsionModule() { return propulsionModule; }
+	public void setPropulsionModule(ItemStack propulsionModule) { this.propulsionModule = propulsionModule; }
+
+	/** 0 (no afterburner available) if the propulsion slot is empty, otherwise the socketed
+	 *  module's own tier — see {@link com.terminaldetector.drmd.flight.AcceleratorModuleItem}. Unlike
+	 *  every other tier read in the mod, this is deliberately NOT clamped into 1..4: callers must
+	 *  treat 0 as "unavailable," not silently floor it to tier 1 (see FlightSystem.tick's own guard). */
 	public int getAfterburnerTier() {
-		return com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(afterburnerTier);
-	}
-	public void setAfterburnerTier(int afterburnerTier) {
-		this.afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(afterburnerTier);
+		if (propulsionModule.getItem() instanceof com.terminaldetector.drmd.flight.AcceleratorModuleItem module) {
+			return module.tier();
+		}
+		return 0;
 	}
 
 	public ItemStack getWeaponSlot(ShipWeaponSlot slot) {
@@ -248,10 +259,15 @@ public class PyroShipEntity extends PathAwareEntity {
 		nbt.putFloat("accel", accel);
 		nbt.putFloat("drag", drag);
 		nbt.putFloat("maxSpeed", maxSpeed);
-		nbt.putInt("abTier", afterburnerTier);
 		NbtCompound weapons = new NbtCompound();
 		Inventories.writeNbt(weapons, weaponSlots, getWorld().getRegistryManager());
 		nbt.put("weapons", weapons);
+		// Single-slot round-trip reuses Inventories.writeNbt/readNbt (proven above for the four
+		// weapon hardpoints) via a throwaway one-element list, rather than a second, separate
+		// ItemStack<->NBT encoding for just this one field.
+		NbtCompound propulsion = new NbtCompound();
+		Inventories.writeNbt(propulsion, DefaultedList.copyOf(ItemStack.EMPTY, propulsionModule), getWorld().getRegistryManager());
+		nbt.put("propulsion", propulsion);
 	}
 
 	@Override
@@ -261,11 +277,13 @@ public class PyroShipEntity extends PathAwareEntity {
 		if (nbt.contains("accel")) accel = nbt.getFloat("accel");
 		if (nbt.contains("drag")) drag = nbt.getFloat("drag");
 		if (nbt.contains("maxSpeed")) maxSpeed = nbt.getFloat("maxSpeed");
-		if (nbt.contains("abTier")) {
-			afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(nbt.getInt("abTier"));
-		}
 		if (nbt.contains("weapons")) {
 			Inventories.readNbt(nbt.getCompound("weapons"), weaponSlots, getWorld().getRegistryManager());
+		}
+		if (nbt.contains("propulsion")) {
+			DefaultedList<ItemStack> tmp = DefaultedList.ofSize(1, ItemStack.EMPTY);
+			Inventories.readNbt(nbt.getCompound("propulsion"), tmp, getWorld().getRegistryManager());
+			propulsionModule = tmp.get(0);
 		}
 	}
 }

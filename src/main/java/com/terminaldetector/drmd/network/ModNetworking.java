@@ -469,10 +469,8 @@ public final class ModNetworking {
 				case "preset_assault" -> EnergySystem.setPreset(data, EnergyPreset.ASSAULT);
 				case "preset_interceptor" -> EnergySystem.setPreset(data, EnergyPreset.INTERCEPTOR);
 				case "preset_siege" -> EnergySystem.setPreset(data, EnergyPreset.SIEGE);
-				case "ab_1" -> setAfterburnerTier(player, data, 1);
-				case "ab_2" -> setAfterburnerTier(player, data, 2);
-				case "ab_3" -> setAfterburnerTier(player, data, 3);
-				case "ab_4" -> setAfterburnerTier(player, data, 4);
+				case "equip_propulsion" -> equipPropulsion(player);
+				case "unequip_propulsion" -> unequipPropulsion(player);
 				case "equip_slot:UPPER" -> equipSlot(player, com.terminaldetector.drmd.entity.ShipWeaponSlot.UPPER);
 				case "equip_slot:LOWER" -> equipSlot(player, com.terminaldetector.drmd.entity.ShipWeaponSlot.LOWER);
 				case "equip_slot:SIDE_LEFT" -> equipSlot(player, com.terminaldetector.drmd.entity.ShipWeaponSlot.SIDE_LEFT);
@@ -537,9 +535,32 @@ public final class ModNetworking {
 		return player.getVehicle() instanceof PyroShipEntity ship ? ship : null;
 	}
 
-	private static void setAfterburnerTier(ServerPlayerEntity player, DescentPlayerData data, int tier) {
+	/** Socket the held accelerator module into the propulsion slot, returning whatever was already
+	 *  there to hand. Retires the old free "ab_1".."ab_4" instant tier-switch — a tier now has to be
+	 *  crafted and socketed, not clicked. */
+	private static void equipPropulsion(ServerPlayerEntity player) {
 		PyroShipEntity ship = pilotedShip(player);
-		if (ship != null) ship.setAfterburnerTier(tier); else data.setAfterburnerTier(tier);
+		if (ship == null) return;
+		net.minecraft.item.ItemStack held = player.getMainHandStack();
+		if (held.isEmpty() || !(held.getItem() instanceof com.terminaldetector.drmd.flight.AcceleratorModuleItem)) {
+			player.sendMessage(net.minecraft.text.Text.literal("§7Hold an accelerator module to equip it."), true);
+			return;
+		}
+		net.minecraft.item.ItemStack previous = ship.getPropulsionModule();
+		ship.setPropulsionModule(held.copy());
+		player.setStackInHand(net.minecraft.util.Hand.MAIN_HAND, previous);
+	}
+
+	/** Return the propulsion module to the pilot's inventory (dropped at their feet if it's full). */
+	private static void unequipPropulsion(ServerPlayerEntity player) {
+		PyroShipEntity ship = pilotedShip(player);
+		if (ship == null) return;
+		net.minecraft.item.ItemStack current = ship.getPropulsionModule();
+		if (current.isEmpty()) return;
+		ship.setPropulsionModule(net.minecraft.item.ItemStack.EMPTY);
+		if (!player.getInventory().insertStack(current)) {
+			player.dropItem(current, false);
+		}
 	}
 
 	/** Socket the held weapon into a hardpoint, returning whatever was already there to hand. */
