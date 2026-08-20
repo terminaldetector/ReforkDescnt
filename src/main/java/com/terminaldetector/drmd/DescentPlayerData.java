@@ -59,7 +59,9 @@ public class DescentPlayerData {
 	private float shipFx, shipFy, shipFz = 1f;
 	private float shipUx, shipUy = 1f, shipUz;
 
-	// Tunable physics (admin d6_set) — Source units, scaled at runtime
+	// Tunable physics (admin d6_set) — Source units, scaled at runtime. accel/drag/maxSpeed are the
+	// pilotless free-6DoF fallback only — while piloting a Pyro GX, its own fields apply instead
+	// (see FlightSystem.tick's effAccel/effDrag/effMaxSpeed resolution).
 	private float gravity = 200f;
 	private float accel = 4200f;
 	private float drag = 2.1f;
@@ -80,9 +82,9 @@ public class DescentPlayerData {
 
 	// --- Combat ---
 	private int rocketSubmode; // 0..3
-	/** Afterburner accelerator grade 1..4 (traffic light). */
+	/** Pilotless free-6DoF fallback tier — while piloting a Pyro GX, the ship's own tier applies
+	 *  instead (see {@code FlightSystem.tick}, {@code PyroShipEntity.getAfterburnerTier}). */
 	private int afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers.DEFAULT;
-	private int activeWeaponSlot;
 	private float gravyEnergy = 100f;
 	private boolean gravyGrabbing;
 
@@ -239,8 +241,6 @@ public class DescentPlayerData {
 	public void setAfterburnerTier(int afterburnerTier) {
 		this.afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(afterburnerTier);
 	}
-	public int getActiveWeaponSlot() { return activeWeaponSlot; }
-	public void setActiveWeaponSlot(int activeWeaponSlot) { this.activeWeaponSlot = activeWeaponSlot; }
 	public float getGravyEnergy() { return gravyEnergy; }
 	public void setGravyEnergy(float gravyEnergy) { this.gravyEnergy = gravyEnergy; }
 	public boolean isGravyGrabbing() { return gravyGrabbing; }

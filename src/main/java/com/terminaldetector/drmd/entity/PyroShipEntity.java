@@ -39,8 +39,27 @@ public class PyroShipEntity extends PathAwareEntity {
 	 *  ship (any owner, or none) claims it. */
 	private UUID ownerUuid;
 
+	// Flight stats — same defaults DescentPlayerData used before this hull owned them; that class
+	// keeps its own copies as the pilotless free-6DoF fallback (see FlightSystem.tick).
+	private float accel = 4200f;
+	private float drag = 2.1f;
+	private float maxSpeed = 2200f;
+	private int afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers.DEFAULT;
+
 	public UUID getOwnerUuid() { return ownerUuid; }
 	public void setOwnerUuid(UUID ownerUuid) { this.ownerUuid = ownerUuid; }
+	public float getAccel() { return accel; }
+	public void setAccel(float accel) { this.accel = accel; }
+	public float getDrag() { return drag; }
+	public void setDrag(float drag) { this.drag = drag; }
+	public float getMaxSpeed() { return maxSpeed; }
+	public void setMaxSpeed(float maxSpeed) { this.maxSpeed = maxSpeed; }
+	public int getAfterburnerTier() {
+		return com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(afterburnerTier);
+	}
+	public void setAfterburnerTier(int afterburnerTier) {
+		this.afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(afterburnerTier);
+	}
 
 	public PyroShipEntity(EntityType<? extends PyroShipEntity> type, World world) {
 		super(type, world);
@@ -208,11 +227,21 @@ public class PyroShipEntity extends PathAwareEntity {
 		super.writeCustomDataToNbt(nbt);
 		nbt.putString("hull", "pyro");
 		if (ownerUuid != null) nbt.putUuid("owner", ownerUuid);
+		nbt.putFloat("accel", accel);
+		nbt.putFloat("drag", drag);
+		nbt.putFloat("maxSpeed", maxSpeed);
+		nbt.putInt("abTier", afterburnerTier);
 	}
 
 	@Override
 	public void readCustomDataFromNbt(NbtCompound nbt) {
 		super.readCustomDataFromNbt(nbt);
 		ownerUuid = nbt.containsUuid("owner") ? nbt.getUuid("owner") : null;
+		if (nbt.contains("accel")) accel = nbt.getFloat("accel");
+		if (nbt.contains("drag")) drag = nbt.getFloat("drag");
+		if (nbt.contains("maxSpeed")) maxSpeed = nbt.getFloat("maxSpeed");
+		if (nbt.contains("abTier")) {
+			afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(nbt.getInt("abTier"));
+		}
 	}
 }

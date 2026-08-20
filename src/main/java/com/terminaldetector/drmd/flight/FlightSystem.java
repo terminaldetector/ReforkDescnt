@@ -3,6 +3,7 @@ package com.terminaldetector.drmd.flight;
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.energy.EnergySystem;
+import com.terminaldetector.drmd.entity.PyroShipEntity;
 import com.terminaldetector.drmd.network.ModNetworking;
 import com.terminaldetector.drmd.world.atmosphere.AtmosphereBand;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
@@ -63,6 +64,15 @@ public final class FlightSystem {
 		float dt = 1f / 20f;
 		InputState in = input(player);
 
+		// Ship-owned stats when piloting a Pyro GX, pilot-owned (pilotless free-6DoF) fallback
+		// otherwise — the ship carries no independent physics of its own (see PyroShipEntity.tick),
+		// only these four inputs to the same integrator below.
+		PyroShipEntity ship = player.getVehicle() instanceof PyroShipEntity ps ? ps : null;
+		float effAccel = ship != null ? ship.getAccel() : data.getAccel();
+		float effDrag = ship != null ? ship.getDrag() : data.getDrag();
+		float effMaxSpeed = ship != null ? ship.getMaxSpeed() : data.getMaxSpeed();
+		int effAbTier = ship != null ? ship.getAfterburnerTier() : data.getAfterburnerTier();
+
 		// Creative double-tap space re-arms flying; that path shreds 6DoF (Y*0.6 + flySpeed outside
 		// travel). Keep allowFlying so H-off restores creative build flight. Client also clears
 		// flying at tickMovement HEAD (ClientPlayerEntityMixin).
@@ -90,7 +100,7 @@ public final class FlightSystem {
 		}
 
 		// Descent afterburner cruise: hold R → burn energy (tier cost), boost, idle nose thrust.
-		int abTier = data.getAfterburnerTier();
+		int abTier = effAbTier;
 		boolean afterburner = in.afterburner;
 		if (afterburner) {
 			if (!EnergySystem.tryConsume(data, "engines", AfterburnerTiers.costPerSec(abTier) * dt)) {
@@ -157,7 +167,7 @@ public final class FlightSystem {
 			data.setGravityFactor(0f);
 		}
 
-		double accel = DescentMod.su(data.getAccel()) * accelMult * spool;
+		double accel = DescentMod.su(effAccel) * accelMult * spool;
 		Vec3d wish = look.multiply(in.forward)
 				.add(rolledRight.multiply(in.strafe * STRAFE_MULT))
 				.add(rolledUp.multiply(in.vertical * VERT_MULT));
@@ -227,7 +237,7 @@ public final class FlightSystem {
 
 		// Drag / Flight Assist — scaled by atmosphere air density
 		double speed = vel.length();
-		double dragK = data.getDrag() * band.airDrag;
+		double dragK = effDrag * band.airDrag;
 		if (data.isFlightAssist()) {
 			// Quadratic drag + linear brake when no input
 			if (speed > 1e-4) {
@@ -249,7 +259,7 @@ public final class FlightSystem {
 		vel = vel.multiply(inertiaKeep);
 
 		// Soft speed cap
-		double maxSpd = DescentMod.su(data.getMaxSpeed()) * speedMult;
+		double maxSpd = DescentMod.su(effMaxSpeed) * speedMult;
 		if (vel.length() > maxSpd) vel = vel.normalize().multiply(maxSpd);
 
 		data.setFlightVelocity(vel);
@@ -356,7 +366,7 @@ public final class FlightSystem {
 		DescentPlayerData data = DescentPlayerData.get(player);
 		java.util.UUID lastShipId = data.getLastShipUuid();
 		if (lastShipId != null
-				&& player.getServerWorld().getEntity(lastShipId) instanceof com.terminaldetector.drmd.entity.PyroShipEntity found
+				&& player.getServerWorld().getEntity(lastShipId) instanceof PyroShipEntity found
 				&& !found.hasPassengers()
 				&& (found.getOwnerUuid() == null || found.getOwnerUuid().equals(player.getUuid()))) {
 			found.setOwnerUuid(player.getUuid());

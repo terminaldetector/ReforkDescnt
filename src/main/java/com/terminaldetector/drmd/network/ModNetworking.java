@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.energy.EnergyPreset;
 import com.terminaldetector.drmd.energy.EnergySystem;
+import com.terminaldetector.drmd.entity.PyroShipEntity;
 import com.terminaldetector.drmd.flight.FlightSystem;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -468,10 +469,10 @@ public final class ModNetworking {
 				case "preset_assault" -> EnergySystem.setPreset(data, EnergyPreset.ASSAULT);
 				case "preset_interceptor" -> EnergySystem.setPreset(data, EnergyPreset.INTERCEPTOR);
 				case "preset_siege" -> EnergySystem.setPreset(data, EnergyPreset.SIEGE);
-				case "ab_1" -> data.setAfterburnerTier(1);
-				case "ab_2" -> data.setAfterburnerTier(2);
-				case "ab_3" -> data.setAfterburnerTier(3);
-				case "ab_4" -> data.setAfterburnerTier(4);
+				case "ab_1" -> setAfterburnerTier(player, data, 1);
+				case "ab_2" -> setAfterburnerTier(player, data, 2);
+				case "ab_3" -> setAfterburnerTier(player, data, 3);
+				case "ab_4" -> setAfterburnerTier(player, data, 4);
 				default -> {
 					String a = payload.action();
 					// Creative ship physics from ShipCustomizeScreen — server gates creative.
@@ -480,10 +481,20 @@ public final class ModNetworking {
 						String key = a.substring(0, colon);
 						try {
 							float val = Float.parseFloat(a.substring(colon + 1));
+							PyroShipEntity ship = pilotedShip(player);
 							switch (key) {
-								case "accel" -> data.setAccel(net.minecraft.util.math.MathHelper.clamp(val, 500f, 12000f));
-								case "drag" -> data.setDrag(net.minecraft.util.math.MathHelper.clamp(val, 0.1f, 8f));
-								case "maxspeed" -> data.setMaxSpeed(net.minecraft.util.math.MathHelper.clamp(val, 400f, 6000f));
+								case "accel" -> {
+									float v = net.minecraft.util.math.MathHelper.clamp(val, 500f, 12000f);
+									if (ship != null) ship.setAccel(v); else data.setAccel(v);
+								}
+								case "drag" -> {
+									float v = net.minecraft.util.math.MathHelper.clamp(val, 0.1f, 8f);
+									if (ship != null) ship.setDrag(v); else data.setDrag(v);
+								}
+								case "maxspeed" -> {
+									float v = net.minecraft.util.math.MathHelper.clamp(val, 400f, 6000f);
+									if (ship != null) ship.setMaxSpeed(v); else data.setMaxSpeed(v);
+								}
 								default -> {}
 							}
 						} catch (NumberFormatException ignored) {}
@@ -512,6 +523,17 @@ public final class ModNetworking {
 		});
 	}
 
+	/** The Pyro GX this player is currently riding, or {@code null} — the ship-vs-pilot resolution
+	 *  point shared by every action/sync path that touches accel/drag/maxSpeed/afterburnerTier. */
+	private static PyroShipEntity pilotedShip(ServerPlayerEntity player) {
+		return player.getVehicle() instanceof PyroShipEntity ship ? ship : null;
+	}
+
+	private static void setAfterburnerTier(ServerPlayerEntity player, DescentPlayerData data, int tier) {
+		PyroShipEntity ship = pilotedShip(player);
+		if (ship != null) ship.setAfterburnerTier(tier); else data.setAfterburnerTier(tier);
+	}
+
 	public static void syncPlayer(ServerPlayerEntity player, DescentPlayerData data) {
 		// Ship velocity in blocks/tick, ready for the client to move on.
 		//
@@ -527,6 +549,11 @@ public final class ModNetworking {
 		if (foot) {
 			up = com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(player.getUuid());
 		}
+		PyroShipEntity ship = pilotedShip(player);
+		float syncAccel = ship != null ? ship.getAccel() : data.getAccel();
+		float syncDrag = ship != null ? ship.getDrag() : data.getDrag();
+		float syncMaxSpeed = ship != null ? ship.getMaxSpeed() : data.getMaxSpeed();
+		int syncAbTier = ship != null ? ship.getAfterburnerTier() : data.getAfterburnerTier();
 		ServerPlayNetworking.send(player, new SyncPayload(
 				data.isEnabled(),
 				data.getEnergy(), data.getEnergyMax(),
@@ -543,8 +570,8 @@ public final class ModNetworking {
 				foot,
 				(float) up.x, (float) up.y, (float) up.z,
 				(float) shipVel.x, (float) shipVel.y, (float) shipVel.z,
-				data.getAccel(), data.getDrag(), data.getMaxSpeed(), data.getAllocEngines(),
-				data.getAfterburnerTier()
+				syncAccel, syncDrag, syncMaxSpeed, data.getAllocEngines(),
+				syncAbTier
 		));
 	}
 }
