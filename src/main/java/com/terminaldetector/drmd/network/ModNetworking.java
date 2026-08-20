@@ -515,6 +515,14 @@ public final class ModNetworking {
 			if (!player.hasPermissionLevel(2) && !player.getServer().isSingleplayer()) {
 				return; // only ops / SP can publish constructions
 			}
+			// Phase 5: Workshop's first-ever access gate. Before this, any player who reached the
+			// screen (M keybind, no game-mode check) could publish a live construction override.
+			// The screen still opens for anyone (see ShipCustomizeScreen/CreativeToolsScreen doc) —
+			// only the write-back is restricted, and only to creative, matching every other
+			// creative-tuning path in this class (the sender decides nothing, the server does).
+			if (!player.isCreative()) {
+				return;
+			}
 			String id = com.terminaldetector.drmd.workshop.ConstructionRegistry.normalize(payload.weaponId());
 			if (payload.modules() == null || payload.modules().isEmpty()) {
 				com.terminaldetector.drmd.workshop.ConstructionRegistry.clearOverride(id);

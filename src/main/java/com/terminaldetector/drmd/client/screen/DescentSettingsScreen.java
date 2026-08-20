@@ -22,7 +22,7 @@ public class DescentSettingsScreen extends Screen {
 	private static final int ROW = 22;
 	private static final int TOP = 36;
 	/** Rows from first toggle through Controls (including spacers). */
-	private static final int CONTENT_ROWS = 12;
+	private static final int CONTENT_ROWS = 13;
 	private final Screen parent;
 	private int scroll;
 
@@ -136,6 +136,17 @@ public class DescentSettingsScreen extends Screen {
 								})
 						.tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(
 								Text.translatable("options.drmd.ship_customize.tip")))
+						.dimensions(cx - 100, y, 200, 20).build(),
+				null);
+		y = addRow(y, viewBottom,
+				ButtonWidget.builder(Text.translatable("screen.drmd.creative_tools"),
+								b -> {
+									if (this.client != null) {
+										this.client.setScreen(new CreativeToolsScreen(this));
+									}
+								})
+						.tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(
+								Text.translatable("options.drmd.creative_only")))
 						.dimensions(cx - 100, y, 200, 20).build(),
 				null);
 		addRow(y, viewBottom,
