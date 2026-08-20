@@ -473,6 +473,14 @@ public final class ModNetworking {
 				case "ab_2" -> setAfterburnerTier(player, data, 2);
 				case "ab_3" -> setAfterburnerTier(player, data, 3);
 				case "ab_4" -> setAfterburnerTier(player, data, 4);
+				case "equip_slot:UPPER" -> equipSlot(player, com.terminaldetector.drmd.entity.ShipWeaponSlot.UPPER);
+				case "equip_slot:LOWER" -> equipSlot(player, com.terminaldetector.drmd.entity.ShipWeaponSlot.LOWER);
+				case "equip_slot:SIDE_LEFT" -> equipSlot(player, com.terminaldetector.drmd.entity.ShipWeaponSlot.SIDE_LEFT);
+				case "equip_slot:SIDE_RIGHT" -> equipSlot(player, com.terminaldetector.drmd.entity.ShipWeaponSlot.SIDE_RIGHT);
+				case "unequip_slot:UPPER" -> unequipSlot(player, com.terminaldetector.drmd.entity.ShipWeaponSlot.UPPER);
+				case "unequip_slot:LOWER" -> unequipSlot(player, com.terminaldetector.drmd.entity.ShipWeaponSlot.LOWER);
+				case "unequip_slot:SIDE_LEFT" -> unequipSlot(player, com.terminaldetector.drmd.entity.ShipWeaponSlot.SIDE_LEFT);
+				case "unequip_slot:SIDE_RIGHT" -> unequipSlot(player, com.terminaldetector.drmd.entity.ShipWeaponSlot.SIDE_RIGHT);
 				default -> {
 					String a = payload.action();
 					// Creative ship physics from ShipCustomizeScreen — server gates creative.
@@ -532,6 +540,32 @@ public final class ModNetworking {
 	private static void setAfterburnerTier(ServerPlayerEntity player, DescentPlayerData data, int tier) {
 		PyroShipEntity ship = pilotedShip(player);
 		if (ship != null) ship.setAfterburnerTier(tier); else data.setAfterburnerTier(tier);
+	}
+
+	/** Socket the held weapon into a hardpoint, returning whatever was already there to hand. */
+	private static void equipSlot(ServerPlayerEntity player, com.terminaldetector.drmd.entity.ShipWeaponSlot slot) {
+		PyroShipEntity ship = pilotedShip(player);
+		if (ship == null) return;
+		net.minecraft.item.ItemStack held = player.getMainHandStack();
+		if (held.isEmpty() || !(held.getItem() instanceof com.terminaldetector.drmd.weapon.items.DescentWeaponItem)) {
+			player.sendMessage(net.minecraft.text.Text.literal("§7Hold a weapon to equip it."), true);
+			return;
+		}
+		net.minecraft.item.ItemStack previous = ship.getWeaponSlot(slot);
+		ship.setWeaponSlot(slot, held.copy());
+		player.setStackInHand(net.minecraft.util.Hand.MAIN_HAND, previous);
+	}
+
+	/** Return a hardpoint's weapon to the pilot's inventory (dropped at their feet if it's full). */
+	private static void unequipSlot(ServerPlayerEntity player, com.terminaldetector.drmd.entity.ShipWeaponSlot slot) {
+		PyroShipEntity ship = pilotedShip(player);
+		if (ship == null) return;
+		net.minecraft.item.ItemStack current = ship.getWeaponSlot(slot);
+		if (current.isEmpty()) return;
+		ship.setWeaponSlot(slot, net.minecraft.item.ItemStack.EMPTY);
+		if (!player.getInventory().insertStack(current)) {
+			player.dropItem(current, false);
+		}
 	}
 
 	public static void syncPlayer(ServerPlayerEntity player, DescentPlayerData data) {

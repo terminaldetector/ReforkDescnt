@@ -15,11 +15,14 @@ import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.Inventories;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -46,6 +49,13 @@ public class PyroShipEntity extends PathAwareEntity {
 	private float maxSpeed = 2200f;
 	private int afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers.DEFAULT;
 
+	// Four weapon hardpoints. A DefaultedList backs it (not a bare array) purely so NBT persistence
+	// can reuse vanilla's own Inventories.writeNbt/readNbt rather than hand-rolling ItemStack<->NBT
+	// encoding — this is not a vanilla Inventory, nothing here implements that interface or exposes
+	// a scrollable inventory UI, it is four fixed, individually-addressed hardpoints.
+	private final DefaultedList<ItemStack> weaponSlots =
+			DefaultedList.ofSize(ShipWeaponSlot.values().length, ItemStack.EMPTY);
+
 	public UUID getOwnerUuid() { return ownerUuid; }
 	public void setOwnerUuid(UUID ownerUuid) { this.ownerUuid = ownerUuid; }
 	public float getAccel() { return accel; }
@@ -59,6 +69,14 @@ public class PyroShipEntity extends PathAwareEntity {
 	}
 	public void setAfterburnerTier(int afterburnerTier) {
 		this.afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(afterburnerTier);
+	}
+
+	public ItemStack getWeaponSlot(ShipWeaponSlot slot) {
+		return weaponSlots.get(slot.ordinal());
+	}
+
+	public void setWeaponSlot(ShipWeaponSlot slot, ItemStack stack) {
+		weaponSlots.set(slot.ordinal(), stack);
 	}
 
 	public PyroShipEntity(EntityType<? extends PyroShipEntity> type, World world) {
@@ -231,6 +249,9 @@ public class PyroShipEntity extends PathAwareEntity {
 		nbt.putFloat("drag", drag);
 		nbt.putFloat("maxSpeed", maxSpeed);
 		nbt.putInt("abTier", afterburnerTier);
+		NbtCompound weapons = new NbtCompound();
+		Inventories.writeNbt(weapons, weaponSlots, getWorld().getRegistryManager());
+		nbt.put("weapons", weapons);
 	}
 
 	@Override
@@ -242,6 +263,9 @@ public class PyroShipEntity extends PathAwareEntity {
 		if (nbt.contains("maxSpeed")) maxSpeed = nbt.getFloat("maxSpeed");
 		if (nbt.contains("abTier")) {
 			afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(nbt.getInt("abTier"));
+		}
+		if (nbt.contains("weapons")) {
+			Inventories.readNbt(nbt.getCompound("weapons"), weaponSlots, getWorld().getRegistryManager());
 		}
 	}
 }

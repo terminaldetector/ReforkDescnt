@@ -14,7 +14,7 @@ import net.minecraft.text.Text;
  * Afterburner + ship customize.
  *
  * <ul>
- *   <li>Survival — lightweight: afterburner tier (traffic light) + energy presets</li>
+ *   <li>Survival — lightweight: afterburner tier (traffic light), energy presets, weapon hardpoints</li>
  *   <li>Creative — fuller: same + accel / drag / max-speed tuners</li>
  * </ul>
  */
@@ -36,7 +36,7 @@ public class ShipCustomizeScreen extends Screen {
 	@Override
 	protected void init() {
 		int cx = this.width / 2;
-		int y = Math.max(36, this.height / 2 - (creative ? 110 : 70));
+		int y = Math.max(36, this.height / 2 - (creative ? 165 : 125));
 
 		// --- Afterburner traffic light ---
 		addDrawableChild(ButtonWidget.builder(Text.translatable("screen.drmd.afterburner.header"), b -> {})
@@ -92,6 +92,27 @@ public class ShipCustomizeScreen extends Screen {
 			addDrawableChild(btn);
 		}
 		y += ROW + 10;
+
+		// --- Weapon hardpoints (both modes) — hold a weapon, click Equip; Unequip returns it. ---
+		addDrawableChild(ButtonWidget.builder(Text.translatable("screen.drmd.weapons.header"), b -> {})
+				.dimensions(cx - 100, y, 200, 18).build()).active = false;
+		y += ROW;
+		String[] slotKeys = {"upper", "lower", "side_left", "side_right"};
+		com.terminaldetector.drmd.entity.ShipWeaponSlot[] slots = com.terminaldetector.drmd.entity.ShipWeaponSlot.values();
+		for (int i = 0; i < slots.length; i++) {
+			String key = slotKeys[i];
+			com.terminaldetector.drmd.entity.ShipWeaponSlot slot = slots[i];
+			addDrawableChild(ButtonWidget.builder(
+							Text.translatable("screen.drmd.weapons.equip." + key),
+							b -> ClientPlayNetworking.send(new ModNetworking.ActionPayload("equip_slot:" + slot.name())))
+					.dimensions(cx - 155, y, 150, 20).build());
+			addDrawableChild(ButtonWidget.builder(
+							Text.translatable("screen.drmd.weapons.unequip." + key),
+							b -> ClientPlayNetworking.send(new ModNetworking.ActionPayload("unequip_slot:" + slot.name())))
+					.dimensions(cx + 5, y, 150, 20).build());
+			y += ROW;
+		}
+		y += 6;
 
 		if (creative) {
 			addDrawableChild(ButtonWidget.builder(Text.translatable("screen.drmd.ship.creative_header"), b -> {})
