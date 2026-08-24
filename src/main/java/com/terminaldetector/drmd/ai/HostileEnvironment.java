@@ -4,7 +4,6 @@ import com.terminaldetector.drmd.entity.AirMineEntity;
 import com.terminaldetector.drmd.entity.DroneEntity;
 import com.terminaldetector.drmd.entity.mob.CyberMobEntity;
 import com.terminaldetector.drmd.world.end.EndReactorBossEntity;
-import com.terminaldetector.drmd.world.mega.MegaWormEntity;
 import com.terminaldetector.drmd.world.mega.ReactorKeeperEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.ActiveTargetGoal;
@@ -31,7 +30,6 @@ public final class HostileEnvironment {
 		return e instanceof DroneEntity
 				|| e instanceof CyberMobEntity
 				|| e instanceof AirMineEntity
-				|| e instanceof MegaWormEntity
 				|| e instanceof ReactorKeeperEntity
 				|| e instanceof EndReactorBossEntity
 				|| e instanceof EndermanEntity;

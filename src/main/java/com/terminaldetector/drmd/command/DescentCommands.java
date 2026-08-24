@@ -310,13 +310,6 @@ public final class DescentCommands {
 								var world = p.getServerWorld();
 								var at = p.getPos().add(p.getRotationVec(1f).multiply(12));
 								switch (type) {
-									case "worm" -> {
-										var e = com.terminaldetector.drmd.entity.ModEntities.MEGA_WORM.create(world);
-										if (e != null) {
-											e.refreshPositionAndAngles(at.x, at.y, at.z, p.getYaw(), 0);
-											world.spawnEntity(e);
-										}
-									}
 									case "swarm" -> {
 										var e = com.terminaldetector.drmd.entity.ModEntities.DRONE_SWARM.create(world);
 										if (e != null) {
@@ -347,7 +340,7 @@ public final class DescentCommands {
 									}
 									default -> {
 										ctx.getSource().sendError(Text.literal(
-												"Use: worm | swarm | keeper | ufo | seeker"));
+												"Use: swarm | keeper | ufo | seeker"));
 										return 0;
 									}
 								}

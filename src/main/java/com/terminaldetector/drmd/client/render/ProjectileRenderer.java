@@ -265,9 +265,8 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 		// TRIANGLE_STRIP layer — six quads' worth of vertices fed to a strip is not six faces, it is
 		// a run of degenerate slivers), then RenderLayer.getDebugQuads() — still a debug-only layer,
 		// and per CockpitRenderer's own finding, one that "often never appears under TLauncher /
-		// sodium-class pipelines". RenderLayer.getEntitySolid is the layer MegaWormRenderer already
-		// draws its own hand-built cubes through; a rocket casing is not different from a worm
-		// segment as far as the renderer is concerned.
+		// sodium-class pipelines". RenderLayer.getEntitySolid is the ordinary layer any hand-built
+		// cube geometry in this codebase draws through — nothing rocket-casing-specific about it.
 		//
 		// Solid, and with each face's own outward normal. Recomputing the winding of the coordinates
 		// below (cross product of each face's own edges) shows all six *are* wound consistently

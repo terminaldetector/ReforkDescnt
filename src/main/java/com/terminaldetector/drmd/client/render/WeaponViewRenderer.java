@@ -209,8 +209,8 @@ public final class WeaponViewRenderer {
 		// finding, one that "often never appears under TLauncher / sodium-class pipelines". A weapon
 		// module rendered that way is a barrel that sometimes is not there at all, or is there as
 		// disconnected faces instead of a solid shape. RenderLayer.getEntitySolid is the layer
-		// MegaWormRenderer and (as of the same fix) ProjectileRenderer already draw their own
-		// hand-built cubes through.
+		// ProjectileRenderer (and every other hand-built-cube renderer in this codebase) already
+		// draws through.
 		//
 		// Solid, and with each face's own outward normal. Recomputing the winding of the coordinates
 		// below (cross product of each face's own edges) shows all six *are* wound consistently

@@ -3,7 +3,6 @@ package com.terminaldetector.drmd.world.gen2;
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.world.WorldRules;
 import com.terminaldetector.drmd.world.mega.DroneSwarmEntity;
-import com.terminaldetector.drmd.world.mega.MegaWormEntity;
 import com.terminaldetector.drmd.world.mega.ReactorKeeperEntity;
 import com.terminaldetector.drmd.world.mega.SkyUfoEntity;
 import com.terminaldetector.drmd.entity.ModEntities;
@@ -92,7 +91,7 @@ public final class ModWorldgen2 {
 
 		// Mega fauna + sky UFO anchors
 		if (Math.floorMod(seed ^ 0x9E3779B97F4A7C15L, 40L) == 0L) {
-			int roll = (int) Math.floorMod(seed >> 7, 4L);
+			int roll = (int) Math.floorMod(seed >> 7, 3L);
 			int y = WorldRules.SKY_PRACTICAL_MIN + 20 + (int) Math.floorMod(seed, 40L);
 			BlockPos at = new BlockPos(cp.getStartX() + 8, y, cp.getStartZ() + 8);
 			com.terminaldetector.drmd.world.base.DescentSession.enqueueLandmark(at,
@@ -130,20 +129,13 @@ public final class ModWorldgen2 {
 	private static void spawnMega(ServerWorld world, BlockPos at, int roll) {
 		switch (roll) {
 			case 0 -> {
-				MegaWormEntity worm = ModEntities.MEGA_WORM.create(world);
-				if (worm != null) {
-					worm.refreshPositionAndAngles(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, 0, 0);
-					world.spawnEntity(worm);
-				}
-			}
-			case 1 -> {
 				DroneSwarmEntity swarm = ModEntities.DRONE_SWARM.create(world);
 				if (swarm != null) {
 					swarm.refreshPositionAndAngles(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, 0, 0);
 					world.spawnEntity(swarm);
 				}
 			}
-			case 2 -> {
+			case 1 -> {
 				SkyUfoEntity ufo = ModEntities.SKY_UFO.create(world);
 				if (ufo != null) {
 					ufo.refreshPositionAndAngles(at.getX() + 0.5, at.getY() + 12, at.getZ() + 0.5, 0, 0);

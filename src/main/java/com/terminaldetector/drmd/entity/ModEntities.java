@@ -3,7 +3,6 @@ package com.terminaldetector.drmd.entity;
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.world.bombardment.AerialBombEntity;
 import com.terminaldetector.drmd.world.mega.DroneSwarmEntity;
-import com.terminaldetector.drmd.world.mega.MegaWormEntity;
 import com.terminaldetector.drmd.world.mega.ReactorKeeperEntity;
 import com.terminaldetector.drmd.world.mega.SkyUfoEntity;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
@@ -58,16 +57,6 @@ public final class ModEntities {
 			EntityType.Builder.<ReactorDisplayEntity>create(ReactorDisplayEntity::new, SpawnGroup.MISC)
 					.dimensions(1.5f, 1.5f)
 					.maxTrackingRange(64)
-					.build()
-	);
-
-	public static final EntityType<MegaWormEntity> MEGA_WORM = Registry.register(
-			Registries.ENTITY_TYPE,
-			Identifier.of(DescentMod.MOD_ID, "mega_worm"),
-			EntityType.Builder.<MegaWormEntity>create(MegaWormEntity::new, SpawnGroup.MONSTER)
-					.dimensions(3.0f, 3.0f)
-					.maxTrackingRange(256)
-					.trackingTickInterval(2)
 					.build()
 	);
 
@@ -191,7 +180,6 @@ public final class ModEntities {
 				com.terminaldetector.drmd.entity.mob.OblivionSeekerEntity.createSeekerAttributes());
 		FabricDefaultAttributeRegistry.register(AIR_MINE, AirMineEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(PYRO_SHIP, PyroShipEntity.createAttributes());
-		FabricDefaultAttributeRegistry.register(MEGA_WORM, MegaWormEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(REACTOR_KEEPER, ReactorKeeperEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(END_REACTOR_BOSS,
 				com.terminaldetector.drmd.world.end.EndReactorBossEntity.createAttributes());
