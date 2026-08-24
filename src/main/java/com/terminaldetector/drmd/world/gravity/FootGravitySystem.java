@@ -7,6 +7,7 @@ import com.terminaldetector.drmd.world.LocalOrientation;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -72,13 +73,14 @@ public final class FootGravitySystem {
 		Vec3d up;
 		String label;
 		boolean hardMount = false;
+		boolean wasActive = isActive(player.getUuid());
 		if (field != null) {
 			Vec3d target = field.upDir().normalize();
 			Vec3d current = LocalOrientation.getUp(player.getUuid());
 			double align = current.dotProduct(target);
 			// Big reorient (wall/ceiling capture, ceiling flip): snap + safe place so the standing
 			// AABB is not crushed into the mount face (vanilla crawl ≈ 1-cube).
-			if (!isActive(player.getUuid()) || align < 0.5) {
+			if (!wasActive || align < 0.5) {
 				up = target;
 				hardMount = true;
 			} else {
@@ -86,6 +88,14 @@ public final class FootGravitySystem {
 				up = com.terminaldetector.drmd.flight.ShipAttitude.slerp(current, target, CAPTURE_RATE);
 			}
 			label = field.label() != null ? field.label() : "Local Gravity";
+			// Walking is only the default here, not the only option — this field never blocks the
+			// 6DoF toggle (tick's own isEnabled() guard above hands off to FlightSystem entirely,
+			// and a piloted Pyro GX ignores station fields altogether — see FlightSystem.tick's
+			// onPyro guard), so say so the first time a field takes hold, not every tick.
+			if (!wasActive) {
+				player.sendMessage(Text.literal(
+						"§7Local gravity active — walk normally, or press §fH§7 for full 6DoF flight through the zone."), false);
+			}
 		} else {
 			// Out of reach — bleed back to world up and hand the player to vanilla gravity. Holding
 			// the last surface's up forever left them walking on thin air off the end of a walkway.
