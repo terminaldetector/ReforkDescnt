@@ -71,7 +71,6 @@ public final class EntityGravitySystem {
 
 	private static void tickEntity(LivingEntity entity) {
 		if (entity instanceof PlayerEntity) return; // FootGravitySystem
-		if (entity instanceof PyroShipEntity) return;
 		if (entity.getVehicle() instanceof PyroShipEntity) return;
 		if (entity.hasVehicle()) return;
 

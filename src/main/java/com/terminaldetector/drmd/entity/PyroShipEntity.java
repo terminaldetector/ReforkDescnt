@@ -12,10 +12,8 @@ import com.terminaldetector.drmd.world.gravity.FootGravitySystem;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.vehicle.VehicleEntity;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -34,8 +32,12 @@ import java.util.UUID;
 /**
  * Pyro GX transport — 6DoF while piloted (immune to gravity torches).
  * On dismount: walk when a gravity field / solid floor is present; keep free 6DoF in open air.
+ *
+ * <p>Extends {@link VehicleEntity}, not a mob base — it's piloted, not AI-driven, and never had any
+ * AI running ({@code initGoals()} was always empty). {@link com.terminaldetector.drmd.entity
+ * .LaserBarrierCartEntity} is this codebase's existing precedent for a non-mob rideable vehicle.
  */
-public class PyroShipEntity extends PathAwareEntity {
+public class PyroShipEntity extends VehicleEntity {
 	private boolean wasPiloted;
 	private int landTicks;
 	/** Last pilot to board — lets {@code FlightSystem.autoMountPyroShip} find this hull again on
@@ -96,14 +98,6 @@ public class PyroShipEntity extends PathAwareEntity {
 		this.setNoGravity(true);
 	}
 
-	public static DefaultAttributeContainer.Builder createAttributes() {
-		return PathAwareEntity.createMobAttributes()
-				.add(EntityAttributes.GENERIC_MAX_HEALTH, 120)
-				.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.8)
-				.add(EntityAttributes.GENERIC_FLYING_SPEED, 1.2)
-				.add(EntityAttributes.GENERIC_FOLLOW_RANGE, 32);
-	}
-
 	/** End dimension or near-space / end-space altitude bands. */
 	public boolean isZeroGZone() {
 		if (getWorld().getRegistryKey() == World.END) return true;
@@ -111,9 +105,6 @@ public class PyroShipEntity extends PathAwareEntity {
 		if (band == AtmosphereBand.NEAR_SPACE) return true;
 		return WorldRules.practicalLayer(getY()) == WorldRules.Layer.END_SPACE;
 	}
-
-	@Override
-	protected void initGoals() {}
 
 	@Override
 	public void tick() {
@@ -141,7 +132,6 @@ public class PyroShipEntity extends PathAwareEntity {
 			this.velocityModified = true;
 			this.setYaw(pilot.getYaw());
 			this.setPitch(pilot.getPitch());
-			this.bodyYaw = pilot.getYaw();
 		} else if (isZeroGZone()) {
 			this.setVelocity(getVelocity().multiply(0.997));
 			this.velocityModified = true;
@@ -224,7 +214,7 @@ public class PyroShipEntity extends PathAwareEntity {
 	}
 
 	@Override
-	public ActionResult interactMob(PlayerEntity player, Hand hand) {
+	public ActionResult interact(PlayerEntity player, Hand hand) {
 		if (!getWorld().isClient && !hasPassengers()) {
 			player.startRiding(this);
 			if (player instanceof ServerPlayerEntity sp) {

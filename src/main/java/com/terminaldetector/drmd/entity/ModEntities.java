@@ -179,7 +179,6 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(OBLIVION_SEEKER,
 				com.terminaldetector.drmd.entity.mob.OblivionSeekerEntity.createSeekerAttributes());
 		FabricDefaultAttributeRegistry.register(AIR_MINE, AirMineEntity.createAttributes());
-		FabricDefaultAttributeRegistry.register(PYRO_SHIP, PyroShipEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(REACTOR_KEEPER, ReactorKeeperEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(END_REACTOR_BOSS,
 				com.terminaldetector.drmd.world.end.EndReactorBossEntity.createAttributes());

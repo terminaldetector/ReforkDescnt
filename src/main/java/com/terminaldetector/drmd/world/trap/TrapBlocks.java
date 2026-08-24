@@ -154,7 +154,6 @@ public final class TrapBlocks {
 
 	private static boolean isVolumeTarget(LivingEntity e) {
 		if (!e.isAlive()) return false;
-		if (e instanceof com.terminaldetector.drmd.entity.PyroShipEntity) return false;
 		if (e instanceof com.terminaldetector.drmd.world.end.EndReactorBossEntity) return false;
 		if (e instanceof com.terminaldetector.drmd.world.mega.ReactorKeeperEntity) return false;
 		if (e instanceof PlayerEntity p && (p.isCreative() || p.isSpectator())) return false;

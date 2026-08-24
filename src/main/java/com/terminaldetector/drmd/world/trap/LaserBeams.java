@@ -1,6 +1,5 @@
 package com.terminaldetector.drmd.world.trap;
 
-import com.terminaldetector.drmd.entity.PyroShipEntity;
 import com.terminaldetector.drmd.weapon.fx.WeaponFx;
 import com.terminaldetector.drmd.world.end.EndReactorBossEntity;
 import com.terminaldetector.drmd.world.mega.ReactorKeeperEntity;
@@ -56,7 +55,6 @@ public final class LaserBeams {
 
 	public static boolean isBarrierTarget(LivingEntity e) {
 		if (!e.isAlive()) return false;
-		if (e instanceof PyroShipEntity) return false;
 		if (e instanceof EndReactorBossEntity) return false;
 		if (e instanceof ReactorKeeperEntity) return false;
 		if (e instanceof PlayerEntity p && (p.isCreative() || p.isSpectator())) return false;
