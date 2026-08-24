@@ -158,6 +158,12 @@ public class PyroShipEntity extends VehicleEntity {
 	@Override
 	protected void removePassenger(Entity passenger) {
 		super.removePassenger(passenger);
+		// Park in place, not coast — runs on both client (local prediction) and server
+		// (authoritative) unconditionally, same reasoning as tick()'s own setNoGravity(true)
+		// running before that method's client check: zeroing only inside the server-only guard
+		// below would leave the client's own rendered copy drifting until the next sync packet.
+		this.setVelocity(Vec3d.ZERO);
+		this.velocityModified = true;
 		if (!getWorld().isClient && passenger instanceof ServerPlayerEntity sp) {
 			DescentPlayerData data = DescentPlayerData.get(sp);
 			if (isZeroGZone()) {
