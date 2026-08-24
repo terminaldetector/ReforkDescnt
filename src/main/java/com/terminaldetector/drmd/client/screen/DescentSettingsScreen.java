@@ -68,11 +68,7 @@ public class DescentSettingsScreen extends Screen {
 				toggle(left, y, "options.drmd.level_sky", DescentConfig.levelSky, v -> {
 					DescentConfig.levelSky = v;
 					DescentConfig.save();
-				}),
-				toggle(right, y, "options.drmd.orbital_belt_sky", DescentConfig.orbitalBeltSky, v -> {
-					DescentConfig.orbitalBeltSky = v;
-					DescentConfig.save();
-				}));
+				}), null);
 		y = addRow(y, viewBottom,
 				toggle(left, y, "options.drmd.planet_floor", DescentConfig.planetFloor, v -> {
 					DescentConfig.planetFloor = v;

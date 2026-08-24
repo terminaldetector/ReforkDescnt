@@ -26,8 +26,6 @@ public final class DescentConfig {
 	public static boolean hud = true;
 	/** Blend sky and fog by level band. */
 	public static boolean levelSky = true;
-	/** Spark-style planet + dark ring + neon-green halo (skybox, not R=2048 junk). */
-	public static boolean orbitalBeltSky = true;
 	/**
 	 * Draw the planet below the End band — the surface map, scaled toward the camera.
 	 *
@@ -80,7 +78,6 @@ public final class DescentConfig {
 		cockpitInstruments = bool(props, "cockpitInstruments", cockpitInstruments);
 		hud = bool(props, "hud", hud);
 		levelSky = bool(props, "levelSky", levelSky);
-		orbitalBeltSky = bool(props, "orbitalBeltSky", orbitalBeltSky);
 		planetFloor = bool(props, "planetFloor", planetFloor);
 		rollRate = clamp(num(props, "rollRate", rollRate), 40f, 400f);
 		lookGain = clamp(num(props, "lookGain", lookGain), 0.25f, 3f);
@@ -96,7 +93,6 @@ public final class DescentConfig {
 		props.setProperty("cockpitInstruments", Boolean.toString(cockpitInstruments));
 		props.setProperty("hud", Boolean.toString(hud));
 		props.setProperty("levelSky", Boolean.toString(levelSky));
-		props.setProperty("orbitalBeltSky", Boolean.toString(orbitalBeltSky));
 		props.setProperty("planetFloor", Boolean.toString(planetFloor));
 		props.setProperty("rollRate", Float.toString(rollRate));
 		props.setProperty("lookGain", Float.toString(lookGain));

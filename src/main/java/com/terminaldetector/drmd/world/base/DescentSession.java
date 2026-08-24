@@ -312,7 +312,7 @@ public final class DescentSession {
 		enqueueMega(world, new BlockPos(spawn.getX() - 110, WorldRules.INDUSTRIAL_Y_MIN + 36, spawn.getZ() - 90),
 				MacroEntry.Kind.RIFT, 0xBEEF);
 
-		// Sky Klondike islands — real voxels; Spark ring is skybox (OrbitalBeltSkyRenderer).
+		// Sky Klondike islands — real voxels.
 		enqueueMega(world, new BlockPos(spawn.getX() + 48, WorldRules.SKY_PRACTICAL_MIN + 40, spawn.getZ() + 120),
 				MacroEntry.Kind.KLONDIKE_ISLAND, 0x51A10001L);
 		enqueueMega(world, new BlockPos(spawn.getX() - 80, WorldRules.SKY_PRACTICAL_MIN + 55, spawn.getZ() + 60),

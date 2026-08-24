@@ -139,7 +139,6 @@ public class DescentClient implements ClientModInitializer {
 					sawSync = false;
 					enableRetryCooldown = 0;
 					lastY = Double.NaN;
-					com.terminaldetector.drmd.client.sky.OrbitalBeltSkyRenderer.clearWarn();
 				});
 
 		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register(
