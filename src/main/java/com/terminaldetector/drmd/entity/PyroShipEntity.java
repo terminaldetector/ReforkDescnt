@@ -15,6 +15,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.VehicleEntity;
 import net.minecraft.inventory.Inventories;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -96,6 +97,14 @@ public class PyroShipEntity extends VehicleEntity {
 	public PyroShipEntity(EntityType<? extends PyroShipEntity> type, World world) {
 		super(type, world);
 		this.setNoGravity(true);
+	}
+
+	/** {@code VehicleEntity}'s own hook — the item this entity corresponds to for drop/give
+	 *  purposes. Same idiom as {@link LaserBarrierCartEntity#asItem()}: the real placeable item
+	 *  that spawns this entity, not a placeholder. */
+	@Override
+	public Item asItem() {
+		return com.terminaldetector.drmd.weapon.items.ModItems.PYRO_GX;
 	}
 
 	/** End dimension or near-space / end-space altitude bands. */
@@ -251,9 +260,14 @@ public class PyroShipEntity extends VehicleEntity {
 		return true;
 	}
 
+	// writeCustomDataToNbt/readCustomDataFromNbt are abstract on Entity with no concrete
+	// implementation anywhere in the VehicleEntity chain (confirmed by CI: "abstract method ...
+	// cannot be accessed directly") — under the old PathAwareEntity/LivingEntity ancestry there
+	// was one to call via super, but it only ever wrote LivingEntity-tier data (health, effects)
+	// this ship never used anyway, so there's nothing lost by these two methods being the entity's
+	// whole NBT contract now, not a super-augmented one.
 	@Override
 	public void writeCustomDataToNbt(NbtCompound nbt) {
-		super.writeCustomDataToNbt(nbt);
 		nbt.putString("hull", "pyro");
 		if (ownerUuid != null) nbt.putUuid("owner", ownerUuid);
 		nbt.putFloat("accel", accel);
@@ -272,7 +286,6 @@ public class PyroShipEntity extends VehicleEntity {
 
 	@Override
 	public void readCustomDataFromNbt(NbtCompound nbt) {
-		super.readCustomDataFromNbt(nbt);
 		ownerUuid = nbt.containsUuid("owner") ? nbt.getUuid("owner") : null;
 		if (nbt.contains("accel")) accel = nbt.getFloat("accel");
 		if (nbt.contains("drag")) drag = nbt.getFloat("drag");
