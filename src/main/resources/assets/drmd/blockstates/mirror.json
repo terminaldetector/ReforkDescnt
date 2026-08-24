@@ -1,10 +1,10 @@
 {
   "variants": {
-    "facing=down":  { "model": "drmd:block/mirror", "x": 180 },
-    "facing=up":    { "model": "drmd:block/mirror" },
-    "facing=north": { "model": "drmd:block/mirror", "x": 90 },
-    "facing=south": { "model": "drmd:block/mirror", "x": 90, "y": 180 },
-    "facing=west":  { "model": "drmd:block/mirror", "x": 90, "y": 270 },
-    "facing=east":  { "model": "drmd:block/mirror", "x": 90, "y": 90 }
+    "facing=down":  { "model": "drmd:block/mirror_down" },
+    "facing=up":    { "model": "drmd:block/mirror_up" },
+    "facing=north": { "model": "drmd:block/mirror_north" },
+    "facing=south": { "model": "drmd:block/mirror_south" },
+    "facing=west":  { "model": "drmd:block/mirror_west" },
+    "facing=east":  { "model": "drmd:block/mirror_east" }
   }
 }

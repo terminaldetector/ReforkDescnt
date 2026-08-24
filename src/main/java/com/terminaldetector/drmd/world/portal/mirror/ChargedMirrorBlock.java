@@ -9,8 +9,11 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
@@ -83,6 +86,50 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 				&& world.getBlockEntity(pos) instanceof ChargedMirrorBlockEntity be) {
 			UUID id = ImmPtlMirrorBridge.attach(sw, pos, state.get(FACING));
 			be.setAttachedEntityId(id);
+			tryAutoLink(sw, pos, state.get(FACING));
+		}
+	}
+
+	/** How far an auto-link ray walks before giving up — long enough for a real hallway, short
+	 *  enough not to go hunting through unrelated, unloaded terrain on every placement. */
+	private static final int AUTO_LINK_MAX_RANGE = 24;
+
+	/**
+	 * Auto-pairing: when a freshly placed charged mirror looks straight down an open line at another
+	 * unlinked charged mirror facing back at it, link them on the spot. Walks one block at a time
+	 * along {@code facing} and stops at the first non-air block that isn't that facing-back partner —
+	 * deliberately no line-of-sight-free pairing through solid terrain: two mirrors either end of an
+	 * open corridor connect, two mirrors either side of a mountain don't. Only ever produces the
+	 * cheapest, unrotated, same-dimension link ({@link MirrorLinkerTier#SAME_DIMENSION}) — rotation,
+	 * rescale, and cross-dimension links stay a deliberate {@link MirrorLinkerItem} action, never
+	 * something placement alone triggers.
+	 */
+	private static void tryAutoLink(ServerWorld world, BlockPos pos, Direction facing) {
+		Direction facingBack = facing.getOpposite();
+		for (int i = 1; i <= AUTO_LINK_MAX_RANGE; i++) {
+			BlockPos check = pos.offset(facing, i);
+			BlockState state = world.getBlockState(check);
+			if (state.isAir()) continue;
+			if (!(state.getBlock() instanceof ChargedMirrorBlock) || state.get(LINKED)
+					|| state.get(FACING) != facingBack) {
+				return;
+			}
+			if (!(world.getBlockEntity(check) instanceof ChargedMirrorBlockEntity partnerBe)
+					|| !(world.getBlockEntity(pos) instanceof ChargedMirrorBlockEntity selfBe)) {
+				return;
+			}
+			ImmPtlMirrorBridge.linkPortals(
+					world, pos, facing, selfBe.getAttachedEntityId(),
+					world, check, facingBack, partnerBe.getAttachedEntityId(),
+					MirrorLinkerTier.SAME_DIMENSION);
+			// No player to message (this fires from placement, not a hand action) — particles/sound
+			// at both ends are the only feedback, same effect MirrorLinkerItem plays on a manual link.
+			for (BlockPos p : new BlockPos[]{pos, check}) {
+				world.spawnParticles(ParticleTypes.REVERSE_PORTAL, p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
+						30, 0.4, 0.4, 0.4, 0.02);
+				world.playSound(null, p, SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE, SoundCategory.BLOCKS, 0.8f, 1.1f);
+			}
+			return;
 		}
 	}
 
@@ -97,9 +144,10 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 	}
 
 	/**
-	 * Called by {@link MirrorLinkerItem} once {@link ImmPtlMirrorBridge#linkPortals} has actually
-	 * spawned the two-way portal at this position — records the link and flips {@link #LINKED} so
-	 * every client sees the change through the ordinary blockstate-update path.
+	 * Called once {@link ImmPtlMirrorBridge#linkPortals} has actually spawned the two-way portal at
+	 * this position — by {@link MirrorLinkerItem} after a manual link, or by {@link #tryAutoLink}
+	 * right here after an automatic one — records the link and flips {@link #LINKED} so every client
+	 * sees the change through the ordinary blockstate-update path.
 	 */
 	public static void markLinked(ServerWorld world, BlockPos pos, UUID portalEntityId,
 			BlockPos partnerPos, RegistryKey<World> partnerDim) {

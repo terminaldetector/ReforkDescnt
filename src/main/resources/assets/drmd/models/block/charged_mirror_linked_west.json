@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "north": "drmd:block/mirror_frame",
+    "south": "drmd:block/mirror_frame",
+    "east": "drmd:block/mirror_frame",
+    "west": "drmd:block/charged_mirror_linked",
+    "up": "drmd:block/mirror_frame",
+    "down": "drmd:block/mirror_frame",
+    "particle": "drmd:block/charged_mirror_linked"
+  }
+}
