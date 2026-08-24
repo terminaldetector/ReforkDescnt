@@ -12,6 +12,7 @@ import com.terminaldetector.drmd.world.gravity.FootGravitySystem;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.MovementType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.VehicleEntity;
 import net.minecraft.inventory.Inventories;
@@ -121,13 +122,19 @@ public class PyroShipEntity extends VehicleEntity {
 		this.setNoGravity(true);
 		if (getWorld().isClient) return;
 
+		// VehicleEntity (unlike the old PathAwareEntity/LivingEntity ancestry) has no built-in
+		// velocity-to-position step of its own — super.tick() above does NOT sweep the hull.
+		// Every other mover in this codebase pairs setVelocity with an explicit
+		// move(MovementType.SELF, ...) call (EntityGravitySystem.tickEntity,
+		// FootGravitySystem.tick, ServerPlayerFlightTravelMixin) — this hull needs the same,
+		// swept here with *last* tick's velocity, before this tick's target velocity overwrites
+		// it below, so the collision check right after reflects a real impact at real speed.
+		this.move(MovementType.SELF, this.getVelocity());
+
 		if (getFirstPassenger() instanceof ServerPlayerEntity pilot) {
 			wasPiloted = true;
 			landTicks = 0;
 			DescentPlayerData data = DescentPlayerData.get(pilot);
-			// super.tick() (above) just swept the hull through the world using the velocity this
-			// same method set last tick, so a collision flag here reflects a real impact at real
-			// speed — checked before the target velocity for *this* tick overwrites it below.
 			if (this.horizontalCollision || this.verticalCollision) {
 				float crashDmg = CrashDamage.damageFor(data.getFlightVelocity().length());
 				if (crashDmg > 0f) {
