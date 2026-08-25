@@ -236,6 +236,7 @@ public final class ModNetworking {
 	public static final Identifier SMOKE_ID = Identifier.of(DescentMod.MOD_ID, "smoke");
 	public static final Identifier REACTOR_SYNC_ID = Identifier.of(DescentMod.MOD_ID, "reactor_sync");
 	public static final Identifier FATE_ID = Identifier.of(DescentMod.MOD_ID, "fate");
+	public static final Identifier UFO_MOTION_ID = Identifier.of(DescentMod.MOD_ID, "ufo_motion");
 
 	/** Server → client volumetric smoke snapshot (dedicated MP). */
 	public record SmokePayload(int seq, java.util.List<Cloud> clouds) implements CustomPayload {
@@ -347,6 +348,35 @@ public final class ModNetworking {
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
 	}
 
+	/**
+	 * Server → client Sky UFO continuous motion snapshot — two of these bracket every point the
+	 * client renders between them ({@code StructureMotion.interpolate}), so the hull can be drawn as
+	 * a smoothly-interpolated visual batch instead of moved block by block. Velocity is carried
+	 * alongside position even though the base interpolation only needs two positional keyframes: it's
+	 * the hook for dead-reckoning a late or dropped packet, not consumed by anything yet.
+	 */
+	public record UfoMotionPayload(int entityId, double x, double y, double z, float yaw,
+									float velX, float velY, float velZ, long tick) implements CustomPayload {
+		public static final Id<UfoMotionPayload> ID = new Id<>(UFO_MOTION_ID);
+		public static final PacketCodec<RegistryByteBuf, UfoMotionPayload> CODEC = PacketCodec.of(
+				(payload, buf) -> {
+					buf.writeVarInt(payload.entityId);
+					buf.writeDouble(payload.x);
+					buf.writeDouble(payload.y);
+					buf.writeDouble(payload.z);
+					buf.writeFloat(payload.yaw);
+					buf.writeFloat(payload.velX);
+					buf.writeFloat(payload.velY);
+					buf.writeFloat(payload.velZ);
+					buf.writeLong(payload.tick);
+				},
+				buf -> new UfoMotionPayload(
+						buf.readVarInt(), buf.readDouble(), buf.readDouble(), buf.readDouble(),
+						buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readLong())
+		);
+		@Override public Id<? extends CustomPayload> getId() { return ID; }
+	}
+
 	/** Server → client construction scaffold frame (locked positions). */
 	public record ScaffoldPayload(boolean active, String shapeId, java.util.List<net.minecraft.util.math.BlockPos> positions)
 			implements CustomPayload {
@@ -405,6 +435,7 @@ public final class ModNetworking {
 		PayloadTypeRegistry.playS2C().register(FatePayload.ID, FatePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(PlanetPayload.ID, PlanetPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(SurfacePayload.ID, SurfacePayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(UfoMotionPayload.ID, UfoMotionPayload.CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(InputPayload.ID, (payload, context) -> {
 			ServerPlayerEntity player = context.player();

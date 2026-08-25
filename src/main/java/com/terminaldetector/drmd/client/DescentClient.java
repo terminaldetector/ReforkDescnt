@@ -115,6 +115,10 @@ public class DescentClient implements ClientModInitializer {
 				context.client().execute(() ->
 						com.terminaldetector.drmd.client.sync.ClientReactorSync.INSTANCE.apply(payload)));
 
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.UfoMotionPayload.ID, (payload, context) ->
+				context.client().execute(() ->
+						com.terminaldetector.drmd.client.sync.ClientSkyUfoMotionSync.INSTANCE.apply(payload)));
+
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.FatePayload.ID, (payload, context) ->
 				context.client().execute(() -> {
 					DescentClientState.worldFate = payload.fate() == null ? "CONTINUING" : payload.fate();

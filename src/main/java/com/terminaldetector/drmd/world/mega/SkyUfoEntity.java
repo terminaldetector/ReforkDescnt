@@ -78,6 +78,16 @@ public class SkyUfoEntity extends Entity {
 	private final List<UUID> swarm = new ArrayList<>();
 	private UUID macroId;
 	private float cruiseYaw;
+	/**
+	 * Continuous double-precision position, integrated from {@code vel} every tick — independent of
+	 * {@code instance.anchor()}, which only advances in whole-block jumps every {@link #MOVE_INTERVAL}
+	 * ticks. This is the position the render rewrite's client-side interpolation actually tracks;
+	 * relying on vanilla's own entity-tracker interpolation is a dead end here regardless (this entity
+	 * is registered with a coarse {@code trackingTickInterval(2)} and a hitbox far smaller than the
+	 * real hull, per this feature's plan) — kept and broadcast starting here so later phases have a
+	 * real, already-synced value to render from once they stop relying on the block anchor.
+	 */
+	private double motionX, motionY, motionZ;
 	private int burnCd;
 	private int spawnCd;
 	private int moveCd;
@@ -156,6 +166,12 @@ public class SkyUfoEntity extends Entity {
 		double y = MathHelper.clamp(getY(), WorldRules.SKY_PRACTICAL_MIN + 14.0, WorldRules.SKY_PRACTICAL_MAX - 10.0);
 		if (Math.abs(y - getY()) > 0.5) setPosition(getX(), y, getZ());
 
+		motionX += vel.x;
+		motionY = MathHelper.clamp(motionY + vel.y,
+				WorldRules.SKY_PRACTICAL_MIN + 14.0, WorldRules.SKY_PRACTICAL_MAX - 10.0);
+		motionZ += vel.z;
+		if ((age & 1) == 0) broadcastMotion(sw, vel); // half-rate — see FlightSystem's own SyncPayload precedent
+
 		// Grid-crawl hull so interior stays coherent Minecraft blocks
 		if (moveCd > 0) moveCd--;
 		else {
@@ -217,9 +233,29 @@ public class SkyUfoEntity extends Entity {
 		BlockPos core = instance.markerPos("core");
 		if (core != null) CORE_INDEX.put(core.asLong(), getUuid());
 		setPosition(center.getX() + 0.5, center.getY() + 0.5, center.getZ() + 0.5);
+		motionX = center.getX() + 0.5;
+		motionY = center.getY() + 0.5;
+		motionZ = center.getZ() + 0.5;
 		for (ServerPlayerEntity p : sw.getPlayers()) {
 			if (squaredDistanceTo(p) < 96 * 96) {
 				p.sendMessage(Text.literal("§aSky UFO hull online §7— fly the bay, dump reactor on the core."), false);
+			}
+		}
+	}
+
+	/**
+	 * Broadcasts the continuous position this tick just integrated, to whoever is close enough to
+	 * plausibly have this entity tracked client-side — matches {@code ModEntities.SKY_UFO}'s own
+	 * registered {@code maxTrackingRange(256)}, so this never sends to a player who couldn't have the
+	 * entity spawned locally in the first place.
+	 */
+	private void broadcastMotion(ServerWorld sw, Vec3d vel) {
+		var payload = new com.terminaldetector.drmd.network.ModNetworking.UfoMotionPayload(
+				getId(), motionX, motionY, motionZ, cruiseYaw,
+				(float) vel.x, (float) vel.y, (float) vel.z, sw.getTime());
+		for (ServerPlayerEntity p : sw.getPlayers()) {
+			if (squaredDistanceTo(p) < 256 * 256) {
+				net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, payload);
 			}
 		}
 	}
