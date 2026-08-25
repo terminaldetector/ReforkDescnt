@@ -42,13 +42,13 @@ public final class PlanetSurfaceMesh {
 	 */
 	private static final double RING_GROWTH = 1.8;
 	/** Finest cell, so the field never dissolves into thousands of tiny columns underfoot. */
-	private static final int MIN_CELL = 32;
+	private static final int MIN_CELL = 24;
 	/** Enough rings to walk from the chunk edge out to the far radius at that growth. */
 	private static final int MAX_RINGS = 9;
 	/** Hard ceiling on geometry, whatever the rings ask for. */
 	private static final int MAX_QUADS = 18_000;
 	/** Landmarks drawn, nearest first — the rest are too far apart to tell from terrain. */
-	private static final int MAX_LANDMARKS = 48;
+	private static final int MAX_LANDMARKS = 96;
 	/** How far the ship may drift from the build origin before the field is rebuilt. */
 	private static final double ORIGIN_SLACK = 64.0;
 	/** And how far it may climb, since the compression is measured from the eye. */

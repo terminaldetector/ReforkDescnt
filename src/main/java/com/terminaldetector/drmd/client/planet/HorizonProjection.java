@@ -32,6 +32,14 @@ public final class HorizonProjection {
 	public static final double CLIP_USE = 0.72;
 
 	/**
+	 * Share of the far plane once fully in the sky/orbit bands and above, blended in by
+	 * {@code PlanetFloorRenderer}'s own altitude fade — kilometre-scale voxel-horizon vistas want
+	 * more of the budget than the surface-adjacent case {@link #CLIP_USE} was chosen for, but this
+	 * still leaves margin against {@code clip}'s own far-plane estimate rather than using all of it.
+	 */
+	public static final double CLIP_USE_ORBIT = 0.85;
+
+	/**
 	 * Nothing beyond this is sampled.
 	 *
 	 * <p>Not a view limit so much as an honesty limit: the curve saturates, so past a few times its

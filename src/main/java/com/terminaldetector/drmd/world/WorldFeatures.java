@@ -45,10 +45,11 @@ public final class WorldFeatures {
 	public static boolean KLONDIKE_ISLANDS = true;
 
 	/**
-	 * Techno-ring satellites + junk plates at R≈2048. Parked so the Spark skybox ring is the ring
-	 * (not competing abstract debris).
+	 * Techno-ring satellites + junk plates at R≈2048 — real, flyable Orbit content. Used to be
+	 * parked so the painted Spark skybox ring wouldn't compete with it; that skybox is gone
+	 * (see {@code OrbitalBeltSkyRenderer}'s own class doc), so this is on by default now.
 	 */
-	public static boolean ORBIT_JUNK = false;
+	public static boolean ORBIT_JUNK = true;
 
 	/**
 	 * Megastructures / industrial complexes on CHUNK_LOAD (queued via landmark drain — not inline).

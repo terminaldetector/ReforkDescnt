@@ -55,7 +55,7 @@ public final class OrbitJunkWorldgen {
 		}
 
 		// Layer A / B junk — sparse debris platforms beside / near ring
-		if (OrbitBands.besideRing(cx, cz) && Math.floorMod(seed >> 3, 17L) == 0L) {
+		if (OrbitBands.besideRing(cx, cz) && Math.floorMod(seed >> 3, 10L) == 0L) {
 			boolean layerB = Math.floorMod(seed >> 7, 2L) == 0L;
 			int y = layerB ? OrbitBands.LAYER_B_Y : OrbitBands.LAYER_A_Y;
 			BlockPos at = new BlockPos(cx, y, cz);

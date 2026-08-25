@@ -73,7 +73,11 @@ public final class PlanetFloorRenderer {
 
 		double viewBlocks = mc.options.getClampedViewDistance() * 16.0;
 		double clip = viewBlocks * 4.0;
-		double reach = clip * HorizonProjection.CLIP_USE;
+		// Blend toward the orbit-band share by the same alpha the map itself faded in by, so the
+		// reach boost has no seam of its own — it grows in exactly as the map becomes visible.
+		double clipUse = HorizonProjection.CLIP_USE
+				+ (HorizonProjection.CLIP_USE_ORBIT - HorizonProjection.CLIP_USE) * alpha;
+		double reach = clip * clipUse;
 		double inner = innerRadius(endDim, viewBlocks, clip, eyeY, seed, cam);
 
 		PlanetSurfaceMesh mesh = PlanetClientState.INSTANCE.mesh(cam.x, eyeY, cam.z, inner, reach);
