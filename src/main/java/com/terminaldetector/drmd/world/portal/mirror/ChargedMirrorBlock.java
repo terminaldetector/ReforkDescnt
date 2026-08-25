@@ -11,6 +11,7 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -18,6 +19,7 @@ import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -82,8 +84,24 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 	@Override
 	protected void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
 		super.onBlockAdded(state, world, pos, oldState, notify);
-		if (world instanceof ServerWorld sw && PortalComplexity.hasImmersivePortals()
-				&& world.getBlockEntity(pos) instanceof ChargedMirrorBlockEntity be) {
+		if (!(world instanceof ServerWorld sw)) return;
+		if (!PortalComplexity.hasImmersivePortals()) {
+			// The single most likely cause of "can't walk through a linked mirror": there is no real
+			// portal behind it at all, because ImmPtl (see MirrorLinkerItem's own identical warning
+			// for the manual-link path) isn't installed — this is the placement/auto-link path, which
+			// had no such feedback before, so a missing-dependency setup looked identical to a broken
+			// one. Broadcast rather than targeting a placer: onBlockAdded fires for world-gen and
+			// non-player causes too, and has no player reference to target even when one exists.
+			for (ServerPlayerEntity p : sw.getPlayers()) {
+				if (p.squaredDistanceTo(Vec3d.ofCenter(pos)) < 36) {
+					p.sendMessage(Text.literal(
+							"§dCharged mirror is decorative only §7— needs the Immersive Portals stack "
+									+ "to actually link (see docs/IMMPTL_STACK.md)."), false);
+				}
+			}
+			return;
+		}
+		if (world.getBlockEntity(pos) instanceof ChargedMirrorBlockEntity be) {
 			UUID id = ImmPtlMirrorBridge.attach(sw, pos, state.get(FACING));
 			be.setAttachedEntityId(id);
 			tryAutoLink(sw, pos, state.get(FACING));
