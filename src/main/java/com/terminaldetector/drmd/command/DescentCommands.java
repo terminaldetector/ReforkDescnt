@@ -373,6 +373,48 @@ public final class DescentCommands {
 										ufo.destroyFromCore(world, p, "debug " + modeArg);
 										ctx.getSource().sendFeedback(() -> Text.literal("Sky UFO destruction forced: " + modeArg), true);
 										return 1;
+									})))
+							.then(CommandManager.literal("ufodebug")
+									.then(CommandManager.literal("virtual")
+											.then(CommandManager.argument("state", StringArgumentType.word()).executes(ctx -> {
+												ServerPlayerEntity p = ctx.getSource().getPlayer();
+												String state = StringArgumentType.getString(ctx, "state").toLowerCase();
+												Boolean virtual = switch (state) {
+													case "on", "true" -> Boolean.TRUE;
+													case "off", "false" -> Boolean.FALSE;
+													default -> null;
+												};
+												if (virtual == null) {
+													ctx.getSource().sendError(Text.literal("Use: on | off"));
+													return 0;
+												}
+												var world = p.getServerWorld();
+												var ufo = com.terminaldetector.drmd.world.mega.SkyUfoEntity.findContaining(world, p.getPos());
+												if (ufo == null) {
+													ufo = com.terminaldetector.drmd.world.mega.SkyUfoEntity.findNear(world, p.getBlockPos(), 64);
+												}
+												if (ufo == null) {
+													ctx.getSource().sendError(Text.literal("No Sky UFO nearby"));
+													return 0;
+												}
+												ufo.forceVirtualFlight(world, virtual);
+												ctx.getSource().sendFeedback(() -> Text.literal("Sky UFO virtual flight: " + virtual), true);
+												return 1;
+											})))
+									.then(CommandManager.literal("box").executes(ctx -> {
+										ServerPlayerEntity p = ctx.getSource().getPlayer();
+										var world = p.getServerWorld();
+										var ufo = com.terminaldetector.drmd.world.mega.SkyUfoEntity.findContaining(world, p.getPos());
+										if (ufo == null) {
+											ufo = com.terminaldetector.drmd.world.mega.SkyUfoEntity.findNear(world, p.getBlockPos(), 64);
+										}
+										if (ufo == null) {
+											ctx.getSource().sendError(Text.literal("No Sky UFO nearby"));
+											return 0;
+										}
+										ufo.debugOutlineBox(world);
+										ctx.getSource().sendFeedback(() -> Text.literal("Sky UFO collision box outlined"), true);
+										return 1;
 									}))))
 					.then(CommandManager.literal("scars")
 							.executes(ctx -> {

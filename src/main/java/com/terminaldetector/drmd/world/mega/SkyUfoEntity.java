@@ -618,9 +618,69 @@ public class SkyUfoEntity extends Entity {
 	 */
 	@Override
 	public Box getBoundingBox() {
+		double[] b = hullBounds();
+		return new Box(b[0], b[1], b[2], b[3], b[4], b[5]);
+	}
+
+	/** {@code {minX, minY, minZ, maxX, maxY, maxZ}} — the raw numbers behind {@link #getBoundingBox()}, shared with {@link #debugOutlineBox} so neither has to decompose the other's {@code Box}. */
+	private double[] hullBounds() {
 		double half = SkyUfoHull.MAJOR + 0.5;
 		double bottom = getY() - (SkyUfoHull.MINOR + 0.5);
 		double top = getY() + (SkyUfoHull.MINOR + 1.5);
-		return new Box(getX() - half, bottom, getZ() - half, getX() + half, top, getZ() + half);
+		return new double[] {getX() - half, bottom, getZ() - half, getX() + half, top, getZ() + half};
+	}
+
+	/**
+	 * Debug/testing hook: forces a live toggle between virtual-flight and real-block hull state,
+	 * without waiting for {@link #destroyFromCore} — same guarded clear/place calls {@link #materialize}
+	 * and the CRASH branch already use, just runnable on demand while cruising normally.
+	 */
+	public void forceVirtualFlight(ServerWorld sw, boolean virtual) {
+		if (!hullReady || instance == null || virtual == virtualFlight) return;
+		suppressCoreNotify = true;
+		try {
+			if (virtual) {
+				StructureMover.clear(sw, instance);
+			} else {
+				StructureMover.place(sw, instance);
+			}
+		} finally {
+			suppressCoreNotify = false;
+		}
+		virtualFlight = virtual;
+	}
+
+	/**
+	 * Debug/testing hook: traces {@link #getBoundingBox()}'s current 12 edges in particles, so a
+	 * synthetic collision volume (Phase 5) can be checked against the visible hull from a live client —
+	 * the one thing this sandbox can never render to confirm itself.
+	 */
+	public void debugOutlineBox(ServerWorld sw) {
+		double[] b = hullBounds();
+		double minX = b[0], minY = b[1], minZ = b[2], maxX = b[3], maxY = b[4], maxZ = b[5];
+		for (double x : new double[] {minX, maxX}) {
+			for (double y : new double[] {minY, maxY}) {
+				outlineEdge(sw, x, y, minZ, x, y, maxZ);
+			}
+		}
+		for (double x : new double[] {minX, maxX}) {
+			for (double z : new double[] {minZ, maxZ}) {
+				outlineEdge(sw, x, minY, z, x, maxY, z);
+			}
+		}
+		for (double y : new double[] {minY, maxY}) {
+			for (double z : new double[] {minZ, maxZ}) {
+				outlineEdge(sw, minX, y, z, maxX, y, z);
+			}
+		}
+	}
+
+	private static void outlineEdge(ServerWorld sw, double x0, double y0, double z0, double x1, double y1, double z1) {
+		int steps = 20;
+		for (int i = 0; i <= steps; i++) {
+			double t = (double) i / steps;
+			sw.spawnParticles(ParticleTypes.ELECTRIC_SPARK,
+					x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, z0 + (z1 - z0) * t, 1, 0, 0, 0, 0);
+		}
 	}
 }
