@@ -88,6 +88,12 @@ public final class ModWorldBlocks {
 					AbstractBlock.Settings.copy(Blocks.GLASS).nonOpaque().strength(3.5f).luminance(s -> 5)
 							.sounds(net.minecraft.sound.BlockSoundGroup.AMETHYST_CLUSTER)));
 
+	/** {@link com.terminaldetector.drmd.world.portal.mirror.PortalGunItem}'s payload — see that class's own doc. */
+	public static final Block PORTAL_PANEL = registerBlock("portal_panel",
+			new com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock(
+					AbstractBlock.Settings.copy(Blocks.GLASS).nonOpaque().strength(2f).luminance(s -> 6)
+							.sounds(net.minecraft.sound.BlockSoundGroup.AMETHYST_CLUSTER)));
+
 	/**
 	 * Diggable replacement for world-border bedrock — hard, blast-resistant, but breakable.
 	 * Plasma flecks in the granite crust of the mantle / Core seam.
@@ -119,6 +125,7 @@ public final class ModWorldBlocks {
 	public static Item MIRROR_LINKER_SAME_DIMENSION;
 	public static Item MIRROR_LINKER_ROTATED_SCALED;
 	public static Item MIRROR_LINKER_CROSS_DIMENSION;
+	public static Item PORTAL_GUN;
 
 	private ModWorldBlocks() {}
 
@@ -194,6 +201,9 @@ public final class ModWorldBlocks {
 				Identifier.of(DescentMod.MOD_ID, "mirror_linker_cross_dimension"),
 				new com.terminaldetector.drmd.world.portal.mirror.MirrorLinkerItem(new Item.Settings(),
 						com.terminaldetector.drmd.world.portal.mirror.MirrorLinkerTier.CROSS_DIMENSION));
+		PORTAL_GUN = Registry.register(Registries.ITEM,
+				Identifier.of(DescentMod.MOD_ID, "portal_gun"),
+				new com.terminaldetector.drmd.world.portal.mirror.PortalGunItem(new Item.Settings().maxCount(1)));
 
 		ItemGroupEvents.modifyEntriesEvent(ModItems.GROUP_KEY).register(entries -> {
 			entries.add(SIX_D_SOIL);
@@ -207,9 +217,11 @@ public final class ModWorldBlocks {
 			entries.add(UNSTABLE_REACTOR);
 			entries.add(MIRROR);
 			entries.add(CHARGED_MIRROR);
+			entries.add(PORTAL_PANEL);
 			entries.add(MIRROR_LINKER_SAME_DIMENSION);
 			entries.add(MIRROR_LINKER_ROTATED_SCALED);
 			entries.add(MIRROR_LINKER_CROSS_DIMENSION);
+			entries.add(PORTAL_GUN);
 			entries.add(GRAVITY_GENERATOR);
 			entries.add(GRAVITY_TORCH);
 			entries.add(LOCATOR_CORE);

@@ -44,13 +44,23 @@ public final class ImmPtlMirrorBridge {
 	 * method does internally instead of calling it.
 	 */
 	public static UUID attach(ServerWorld world, BlockPos pos, Direction facing) {
+		return attach(world, pos, facing, new Box(pos));
+	}
+
+	/**
+	 * Same as {@link #attach(ServerWorld, BlockPos, Direction)}, but shaped from an arbitrary
+	 * {@code shape} rather than the placed block's own 1-block footprint — {@code PortalAPI
+	 * .setPortalOrthodoxShape} was already taking a {@link Box} for the single-block case, so a wider
+	 * {@link PortalPanelBlock#panelBox} costs nothing new here, just a bigger box.
+	 */
+	public static UUID attach(ServerWorld world, BlockPos pos, Direction facing, Box shape) {
 		Mirror mirror = Mirror.ENTITY_TYPE.create(world);
 		if (mirror == null) return null;
 		Vec3d center = Vec3d.ofCenter(pos);
 		mirror.setOriginPos(center);
 		mirror.setDestination(center); // formality — Mirror.canTeleportEntity() is always false
 		mirror.setDestinationDimension(world.getRegistryKey());
-		PortalAPI.setPortalOrthodoxShape(mirror, facing, new Box(pos));
+		PortalAPI.setPortalOrthodoxShape(mirror, facing, shape);
 		world.spawnEntity(mirror);
 		return mirror.getUuid();
 	}
@@ -97,5 +107,35 @@ public final class ImmPtlMirrorBridge {
 
 		ChargedMirrorBlock.markLinked(worldA, posA, forward.getUuid(), posB, worldB.getRegistryKey());
 		ChargedMirrorBlock.markLinked(worldB, posB, reverse.getUuid(), posA, worldA.getRegistryKey());
+	}
+
+	/**
+	 * {@link PortalPanelBlock}'s own pairing call — a parallel method rather than a parameterized
+	 * {@link #linkPortals} because that method's own body ends by calling {@code ChargedMirrorBlock
+	 * .markLinked} directly; threading a second block type through it would mean changing an already-
+	 * shipped, working link path for every existing mirror just to share a few lines with a new one.
+	 * Same shape (two shaped one-way {@code Portal}s built back to back) and same restriction (auto-
+	 * pairing is always same-dimension, unrotated, unscaled — {@link MirrorLinkerTier#SAME_DIMENSION}
+	 * hardcoded, not threaded through, since nothing calls this with any other tier).
+	 */
+	public static void linkPortalPanels(
+			ServerWorld worldA, BlockPos posA, Direction facingA, UUID existingA, Box shapeA,
+			ServerWorld worldB, BlockPos posB, Direction facingB, UUID existingB, Box shapeB) {
+		detach(worldA, existingA);
+		detach(worldB, existingB);
+
+		Portal forward = Portal.ENTITY_TYPE.create(worldA);
+		if (forward == null) return;
+		PortalAPI.setPortalOrthodoxShape(forward, facingA, shapeA);
+		PortalAPI.setPortalTransformation(forward, worldB.getRegistryKey(), Vec3d.ofCenter(posB), null,
+				MirrorLinkerTier.SAME_DIMENSION.scale);
+		worldA.spawnEntity(forward);
+
+		Portal reverse = PortalAPI.createReversePortal(forward);
+		PortalAPI.setPortalOrthodoxShape(reverse, facingB, shapeB);
+		worldB.spawnEntity(reverse);
+
+		PortalPanelBlock.markLinked(worldA, posA, forward.getUuid(), posB, worldB.getRegistryKey());
+		PortalPanelBlock.markLinked(worldB, posB, reverse.getUuid(), posA, worldA.getRegistryKey());
 	}
 }
