@@ -133,7 +133,6 @@ public final class DescentHud {
 		if (sw >= 380 && sh >= 260) drawInstrumentCluster(ctx, mc, cx, sh - 86);
 		drawReticle(ctx, mc, cx, cy, target);
 		drawAttitudeLadder(ctx, cx, cy);
-		drawDashBar(ctx, cx, cy);
 
 		if (!mc.options.getPerspective().isFirstPerson()) {
 			ctx.drawCenteredTextWithShadow(mc.textRenderer, Text.literal("EXTERNAL · SHIP CAM"), cx, sh - 96, GREEN_DIM);
@@ -732,12 +731,6 @@ public final class DescentHud {
 		int py = (int) MathHelper.clamp(pitch * 0.35f, -22, 22);
 		lineTo(ctx, cx - hx - 24, cy + py - hy, cx - hx, cy + py - hy, GREEN_DIM);
 		lineTo(ctx, cx + hx, cy + py + hy, cx + hx + 24, cy + py + hy, GREEN_DIM);
-	}
-
-	private static void drawDashBar(DrawContext ctx, int cx, int cy) {
-		if (DescentClientState.dashCd <= 0) return;
-		float pct = 1f - DescentClientState.dashCd / 1.8f;
-		segBar(ctx, cx - 40, cy + 26, 80, 3, pct, AMBER);
 	}
 
 	// =============================================================== targeting

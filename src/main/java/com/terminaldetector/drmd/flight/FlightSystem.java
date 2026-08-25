@@ -29,7 +29,8 @@ public final class FlightSystem {
 	public static final float MICRO_GRAV = 20f;
 	public static final float DASH_VEL = 3200f;
 	public static final float DASH_DUR = 0.18f;
-	public static final float DASH_CD = 1.8f;
+	/** No flat cooldown by design — EnergySystem.DASH_COST is the only thing rate-limiting dash. */
+	public static final float DASH_CD = 0f;
 	public static final float HOOK_DIST = 2500f;
 	public static final float HOOK_PULL = 3800f;
 	public static final float ROLL_ACCEL = 220f;
