@@ -73,6 +73,22 @@ class LevelBuilderPriorityStreamTest {
 		return q.stream().anyMatch(j -> j.remaining > 0);
 	}
 
+	/** Mirrors LevelBuilder.promote: moves a job from far to near, keeping its remaining work. */
+	private static void promote(Deque<Job> far, Deque<Job> near, String name) {
+		for (var it = far.iterator(); it.hasNext(); ) {
+			Job job = it.next();
+			if (job.name.equals(name)) {
+				it.remove();
+				near.addLast(job);
+				return;
+			}
+		}
+	}
+
+	private static int remainingOf(Deque<Job> q, String name) {
+		return q.stream().filter(j -> j.name.equals(name)).findFirst().map(j -> j.remaining).orElse(-1);
+	}
+
 	@Test
 	@DisplayName("the near ring finishes just as fast whether or not a much larger far ring is also queued")
 	void nearRingIgnoresFarRingSize() {
@@ -127,5 +143,53 @@ class LevelBuilderPriorityStreamTest {
 		assertEquals(combinedTicks, splitTicks,
 				"the same total work at the same total per-tick budget must take the same number of"
 						+ " ticks to fully drain either way — the split only reorders who finishes first");
+	}
+
+	@Test
+	@DisplayName("promoting a chunk a pilot has closed on keeps its progress instead of restarting it")
+	void promotionKeepsProgressInsteadOfRestarting() {
+		// An otherwise-empty far ring isolates the one property this test checks: promote() must move
+		// the job itself, not a fresh one. (Whether far ever gets budget at all when near is busy is
+		// the pre-existing, unrelated "near always goes first" behaviour the other tests above cover.)
+		Deque<Job> far = new ArrayDeque<>();
+		far.add(new Job("target", WORK_PER_JOB));
+		Deque<Job> near = new ArrayDeque<>();
+
+		drain(far, BUDGET, STEP);
+		int progressBeforePromotion = WORK_PER_JOB - remainingOf(far, "target");
+		assertTrue(progressBeforePromotion > 0, "the target should have made progress while far, given budget");
+
+		promote(far, near, "target");
+		assertEquals(-1, remainingOf(far, "target"), "promoted job must leave the far queue entirely");
+		assertEquals(WORK_PER_JOB - progressBeforePromotion, remainingOf(near, "target"),
+				"promotion must carry over exactly the work already done — not restart, not lose it");
+	}
+
+	@Test
+	@DisplayName("a promoted chunk finishes as fast as the other near jobs from the moment it is promoted")
+	void promotedJobFinishesAtNearRingSpeed() {
+		Deque<Job> far = new ArrayDeque<>();
+		far.add(new Job("target", WORK_PER_JOB));
+		drain(far, STEP, STEP); // one small step of real far-ring progress before the pilot closes in
+		int remainingAtPromotion = remainingOf(far, "target");
+		assertTrue(remainingAtPromotion > 0 && remainingAtPromotion < WORK_PER_JOB);
+
+		Deque<Job> near = jobs("near", NEAR_COUNT);
+		promote(far, near, "target");
+
+		// From here the target must be indistinguishable from a fresh near job with the same
+		// remaining work, drained alongside the same near-ring peers in the same arrival order —
+		// not still paying the diluted far-ring rate it was on before promotion.
+		Deque<Job> controlNear = jobs("near", NEAR_COUNT);
+		controlNear.addLast(new Job("control", remainingAtPromotion));
+		int controlTicks = 0;
+		while (remainingOf(controlNear, "control") > 0) { drain(controlNear, BUDGET, STEP); controlTicks++; }
+
+		int promotedTicks = 0;
+		while (remainingOf(near, "target") > 0) { drain(near, BUDGET, STEP); promotedTicks++; }
+
+		assertEquals(controlTicks, promotedTicks,
+				"once promoted, the target must take exactly as long as a same-arrival-order near job"
+						+ " with the same remaining work — same peers, same round-robin, same ticks");
 	}
 }

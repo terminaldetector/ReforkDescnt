@@ -104,10 +104,41 @@ public final class LevelBuilder {
 	private static void enqueue(ServerWorld world, int chunkX, int chunkZ) {
 		if (QUEUE.size() >= MAX_QUEUE) return;
 		long key = ChunkPos.toLong(chunkX, chunkZ);
-		if (QUEUED.contains(key) || PRESTREAM_QUEUED.contains(key)) return;
+		if (QUEUED.contains(key)) return;
+		if (PRESTREAM_QUEUED.contains(key)) {
+			promote(key);
+			return;
+		}
 		if (world.isChunkLoaded(chunkX, chunkZ) && mantleBuilt(world.getChunk(chunkX, chunkZ))) return;
 		QUEUED.add(key);
 		QUEUE.add(new Job(world, chunkX, chunkZ, 0, WorldLevels.ABYSS_TOP - 1));
+	}
+
+	/**
+	 * A pilot closing distance on a chunk still sitting in the prefetch ring used to get nothing: the
+	 * old {@link #enqueue} bailed out the instant it saw the chunk already tracked in
+	 * {@link #PRESTREAM_QUEUED}, so a chunk that entered the near ring stayed on the diluted budget for
+	 * the rest of its build — exactly the crawl the near/far split exists to prevent, just for chunks
+	 * unlucky enough to have queued as "far" a moment before the pilot arrived. Moves the job itself
+	 * (not a fresh one) onto the priority queue, so whatever phase/cursorY progress it already made on
+	 * the prefetch budget carries over instead of being thrown away and restarted.
+	 */
+	private static void promote(long key) {
+		for (var it = PRESTREAM_QUEUE.iterator(); it.hasNext(); ) {
+			Job job = it.next();
+			if (ChunkPos.toLong(job.chunkX(), job.chunkZ()) == key) {
+				it.remove();
+				PRESTREAM_QUEUED.remove(key);
+				QUEUED.add(key);
+				QUEUE.add(job);
+				return;
+			}
+		}
+		// Tracked but not actually sitting in the deque right now (mid-poll within this same tick's
+		// drainQueue call) — nothing to move; drainQueue's own re-add at the end of this tick will
+		// still land it in PRESTREAM_QUEUE, but the very next enqueue() for it (next tick, if the
+		// pilot is still this close) will find it in the deque and promote it then.
+		PRESTREAM_QUEUED.remove(key);
 	}
 
 	/**
