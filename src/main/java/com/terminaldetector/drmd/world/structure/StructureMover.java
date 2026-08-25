@@ -72,9 +72,8 @@ public final class StructureMover {
 	/**
 	 * Advances one tick of a vertical crash-descent: drops the instance by {@link StructureCrash}'s
 	 * fall-speed curve (accumulated fractionally via {@link StructureCrash#nextDrop}, since {@code moveTo}
-	 * only ever moves whole blocks) and reports ground contact via the same
-	 * {@code world.getTopY(Heightmap.Type.MOTION_BLOCKING, ...)} call {@code SkyUfoEntity.burnGround}
-	 * already makes today. Purely vertical — no horizontal drift/tumble in this pass.
+	 * only ever moves whole blocks) and reports ground contact via {@link #hasTouchedGround}. Purely
+	 * vertical — no horizontal drift/tumble in this pass.
 	 */
 	public static DescentTick tickCrashDescent(ServerWorld world, StructureInstance instance, int crashTicks,
 			double fallAccumulator) {
@@ -82,9 +81,19 @@ public final class StructureMover {
 		if (step.wholeBlocks() > 0) {
 			moveTo(world, instance, instance.anchor().add(0, -step.wholeBlocks(), 0));
 		}
+		return new DescentTick(step.remainder(), hasTouchedGround(world, instance));
+	}
+
+	/**
+	 * Ground-contact check, shared by {@link #tickCrashDescent}'s real-block descent and a virtual-flight
+	 * crash fall (see {@code SkyUfoEntity}'s own continuous descent, which keeps the anchor current via
+	 * {@link #moveAnchorOnly} every tick instead of a whole-block {@link #moveTo} and needs this same
+	 * check against that anchor) — extracted so both read the exact same
+	 * {@code world.getTopY(Heightmap.Type.MOTION_BLOCKING, ...)} call, not two copies of it.
+	 */
+	public static boolean hasTouchedGround(ServerWorld world, StructureInstance instance) {
 		BlockPos anchor = instance.anchor();
 		int groundY = world.getTopY(Heightmap.Type.MOTION_BLOCKING, anchor.getX(), anchor.getZ());
-		boolean touchedGround = instance.lowestWorldY() <= groundY;
-		return new DescentTick(step.remainder(), touchedGround);
+		return instance.lowestWorldY() <= groundY;
 	}
 }

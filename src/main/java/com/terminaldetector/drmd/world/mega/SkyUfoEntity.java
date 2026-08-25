@@ -9,6 +9,7 @@ import com.terminaldetector.drmd.world.fire.FireSystem;
 import com.terminaldetector.drmd.world.gen2.MacroEntry;
 import com.terminaldetector.drmd.world.gen2.MacroWorld;
 import com.terminaldetector.drmd.world.structure.DestructionMode;
+import com.terminaldetector.drmd.world.structure.StructureCrash;
 import com.terminaldetector.drmd.world.structure.StructureDelta;
 import com.terminaldetector.drmd.world.structure.StructureInstance;
 import com.terminaldetector.drmd.world.structure.StructureMover;
@@ -349,6 +350,10 @@ public class SkyUfoEntity extends Entity {
 			finishDestruction(sw, crashCulprit, crashReason, getBlockPos());
 			return;
 		}
+		if (virtualFlight) {
+			tickCrashVirtual(sw);
+			return;
+		}
 		BlockPos before = instance.anchor();
 		List<Entity> carry = StructureOccupants.collect(sw, instance, this).stream()
 				.filter(e -> !(e instanceof SkyUfoEntity))
@@ -361,6 +366,32 @@ public class SkyUfoEntity extends Entity {
 		}
 		setPosition(instance.anchor().getX() + 0.5, instance.anchor().getY() + 0.5, instance.anchor().getZ() + 0.5);
 		if (result.touchedGround()) {
+			finishDestruction(sw, crashCulprit, crashReason, getCorePos());
+		}
+	}
+
+	/**
+	 * Continuous-motion counterpart to the real-block descent above, extending virtual flight through
+	 * the crash arc instead of snapping back to a diffed {@code moveTo} the moment one starts:
+	 * integrates {@link StructureCrash}'s own fall-speed curve straight into {@code motionY} every tick
+	 * rather than quantizing it into whole-block steps — the same relationship virtual cruise already
+	 * has to grid-crawl cruise (see {@code tick()}), just applied to the fall instead. Riders are still
+	 * carried, via the same {@link #relocateAnchorOnly} cruise already calls, whenever the floored
+	 * position crosses into a new anchor block. {@link #finishDestruction} (unchanged since Phase 4)
+	 * still does the one real {@code StructureMover.place} handoff the instant this ends, so {@code
+	 * SkyUfoHull.shatter}/{@code StructureShockwave.detonate} always see real blocks to act on.
+	 */
+	private void tickCrashVirtual(ServerWorld sw) {
+		double speed = StructureCrash.fallSpeed(crashTicks);
+		crashTicks++;
+		motionY -= speed;
+		BlockPos want = BlockPos.ofFloored(motionX, motionY, motionZ);
+		if (!want.equals(instance.anchor())) {
+			relocateAnchorOnly(sw, want);
+		}
+		setPosition(motionX, motionY, motionZ);
+		if ((crashTicks & 1) == 0) broadcastMotion(sw, new Vec3d(0, -speed, 0));
+		if (StructureMover.hasTouchedGround(sw, instance)) {
 			finishDestruction(sw, crashCulprit, crashReason, getCorePos());
 		}
 	}
@@ -427,24 +458,11 @@ public class SkyUfoEntity extends Entity {
 			crashFallAccumulator = 0;
 			crashCulprit = culprit;
 			crashReason = reason;
-			// Rematerialize for real before the fall starts: tickCrash's own StructureMover.moveTo
-			// diffs and writes only the shell that changed each step, which is only correct if the
-			// hull is fully real to begin with — against a virtual (all-air) hull it would build just
-			// a thin leading edge of real blocks while the rest of the interior/top stayed invisible
-			// air, a broken partial wreck rather than either a clean mesh or a clean hull. Virtual
-			// flight's smoothness is for the long, common cruise state; a crash is brief, so reverting
-			// to the tried-and-tested real hull for its short remaining lifetime is the safe choice,
-			// not a compromise — extending virtual rendering through the crash too is a genuinely
-			// separate, optional follow-up, not a correctness requirement.
-			if (virtualFlight) {
-				suppressCoreNotify = true;
-				try {
-					StructureMover.place(sw, instance);
-				} finally {
-					suppressCoreNotify = false;
-				}
-				virtualFlight = false;
-			}
+			// virtualFlight is left exactly as it was: tickCrash now has its own continuous-fall path
+			// for a virtual hull (see below), so a crash starting mid-cruise stays smooth all the way
+			// down instead of snapping back to the old real-block descent. The only remaining real-block
+			// handoff is finishDestruction's own (already in place since Phase 4), right before shatter/
+			// detonate need real blocks to act on.
 			for (ServerPlayerEntity p : sw.getPlayers()) {
 				if (squaredDistanceTo(p) < 128 * 128) {
 					p.sendMessage(Text.literal("§cSky UFO reactor failing §7— it's going down."), false);
