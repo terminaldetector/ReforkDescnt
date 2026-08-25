@@ -103,6 +103,13 @@ public final class PlanetSurfaceMesh {
 
 		// Plan the rings before emitting any: the outermost one has to know where the field ends so
 		// it can fade out into it. A ring that stops at full opacity leaves a rim hanging in the air.
+		//
+		// Cell size follows the true (slant) eye-distance, not just horizontal ground distance — the
+		// same metric HorizonProjection.factor already uses below to decide *where* a point is drawn,
+		// so "how coarse" and "where drawn" agree instead of disagreeing exactly at altitude, where the
+		// vertical component of distance stops being negligible next to the horizontal one. Same shape
+		// as PlanetFloorRenderer.innerRadius's own "drop" — no new plumbing, camY/seed are already here.
+		double drop = camY - PlanetMap.height(seed, camX, camZ);
 		double[] ringEdges = new double[MAX_RINGS + 1];
 		int[] ringCells = new int[MAX_RINGS];
 		int rings = 0;
@@ -111,7 +118,8 @@ public final class PlanetSurfaceMesh {
 		double sizeFrom = Math.max(MIN_CELL * CELLS_PER_RADIUS, ringInner);
 		ringEdges[0] = ringInner;
 		while (rings < MAX_RINGS && ringInner < HorizonProjection.MAX_TRUE_RADIUS) {
-			ringCells[rings] = (int) Math.max(MIN_CELL, sizeFrom / CELLS_PER_RADIUS);
+			double trueDist = Math.sqrt(sizeFrom * sizeFrom + drop * drop);
+			ringCells[rings] = (int) Math.max(MIN_CELL, trueDist / CELLS_PER_RADIUS);
 			ringInner = Math.min(sizeFrom * RING_GROWTH, HorizonProjection.MAX_TRUE_RADIUS);
 			ringEdges[++rings] = ringInner;
 			sizeFrom = ringInner;
