@@ -217,10 +217,17 @@ public class SkyUfoEntity extends Entity {
 		MacroWorld.put(new MacroEntry(macroId, MacroEntry.Kind.UFO, WorldRules.Layer.SKY_ARCHIPELAGO,
 				instance.anchor(), 28, 12, 28, 0x55FFAA, "Sky UFO"));
 
-		// Core still present? Only meaningful once real blocks exist — while virtual there is no real
-		// reactor block anywhere to check (the hull is drawn, not built). A later, separate pass
-		// replaces this with a synced coreIntact flag that works in both modes; this phase's own
-		// scope is the render/movement split, not the damage-detection rework that has to go with it.
+		// Core still present? A landed-hull backstop for direct mining: TrapBlocks.UnstableReactorBlock
+		// .onStateReplaced already calls destroyFromCore the instant the real reactor block is replaced,
+		// so this poll mostly re-confirms the same event a tick later rather than being the only path.
+		// Traced, not assumed, before deciding this needs no synced coreIntact flag as first planned:
+		// while virtual there is no real reactor block anywhere for either mechanism to observe, so
+		// direct mining simply cannot happen against a virtual hull; the two mechanisms that CAN still
+		// kill one, reactor dump (tryReactorDump) and bomb detonation (notifyBombDetonation), both call
+		// destroyFromCore(...) directly and never touch this check at all. No call site was found that
+		// could ever flip such a flag false while virtual — it would only ever read true, dead state
+		// rather than a fix — so skipping this poll while virtual is the correct final behavior, not an
+		// interim gap. Direct mining ends up landed-only, a named narrowing, not a silent regression.
 		if (hullReady && !virtualFlight && !sw.getBlockState(getCorePos()).isOf(ModWorldBlocks.UNSTABLE_REACTOR)) {
 			destroyFromCore(sw, null, "core ruptured");
 			return;
