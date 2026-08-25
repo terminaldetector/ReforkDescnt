@@ -2,6 +2,8 @@ package com.terminaldetector.drmd.world.end;
 
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.entity.ModEntities;
+import com.terminaldetector.drmd.world.end.space.EndSpaceRegions;
+import com.terminaldetector.drmd.world.end.space.EndSpaceWorldgen;
 import com.terminaldetector.drmd.world.level.WorldLevels;
 import com.terminaldetector.drmd.world.mega.ReactorKeeperEntity;
 import net.minecraft.block.Block;
@@ -248,7 +250,7 @@ public final class EndReactorSession {
 			return;
 		}
 
-		BlockPos layer2Target = layer2ExitTarget(world);
+		BlockPos layer2Target = layer2ExitTarget(at);
 		BlockPos exit;
 		if (layer2Target != null) {
 			exit = layer2Target;
@@ -278,13 +280,22 @@ public final class EndReactorSession {
 	}
 
 	/**
-	 * Where a real-End exit gateway should lead once Layer 2 exists — {@code null} for now, which
-	 * {@link #placeExitGateways} reads as "fall back to the Overworld spawn point," exactly today's
-	 * behavior. Filled in once {@code EndSpaceRegions}/{@code EndSpaceWorldgen} exist to compute a
-	 * real tile anchor from the gateway's own position.
+	 * Where a real-End exit gateway should lead — the nearest {@link EndSpaceRegions} tile anchor to
+	 * {@code at} (the reactor's own pad position, always the origin in practice — {@link #arenaCenter}
+	 * for the real End is {@code (0, y, 0)}), at {@link EndSpaceWorldgen#TILE_BASE_Y} plus one so the
+	 * gateway lands a pilot standing on the tile's own lowest platform rather than inside it.
+	 *
+	 * <p>Never actually {@code null}: this only ever runs from {@code onDeath}, which only ever fires
+	 * once per world (a {@code DEFEATED} boss never respawns), at the exact moment the tall End
+	 * dimension type this method's target Y assumes is guaranteed active for the rest of the current
+	 * session (activation is fixed at server start — see {@code DrmdBuiltinPacks}). {@link
+	 * #placeExitGateways}'s Overworld-spawn fallback for a {@code null} result is left in place anyway,
+	 * not removed, since it costs nothing to keep and this method returning one value in one shape is
+	 * an easy invariant to break by accident later.
 	 */
-	private static BlockPos layer2ExitTarget(ServerWorld end) {
-		return null;
+	private static BlockPos layer2ExitTarget(BlockPos at) {
+		BlockPos cell = EndSpaceRegions.nearestTileAnchor(at.getX(), at.getZ());
+		return new BlockPos(cell.getX(), EndSpaceWorldgen.TILE_BASE_Y + 1, cell.getZ());
 	}
 
 	/**

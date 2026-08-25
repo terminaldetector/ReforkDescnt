@@ -39,4 +39,26 @@ public final class EndSpaceRegions {
 		long dx = cellX, dz = cellZ;
 		return dx * dx + dz * dz >= (long) INNER_RADIUS_CELLS * INNER_RADIUS_CELLS;
 	}
+
+	/**
+	 * Nearest tile anchor to a world XZ position, guaranteed to actually be tiled — used to point an
+	 * exit gateway somewhere {@link EndSpaceWorldgen} will really build, not at whatever cell the
+	 * gateway's own position naively falls in (for the real End that's always the origin itself, deep
+	 * inside the excluded Citadel zone). A point already past the inner radius keeps its own cell;
+	 * one that isn't gets pushed straight out along whichever single axis it already leans toward, by
+	 * exactly {@code INNER_RADIUS_CELLS + 1} cells — enough on its own to clear {@link #isBeyondInnerRadius}
+	 * (its square alone already exceeds {@code INNER_RADIUS_CELLS}²) without needing a diagonal
+	 * push that could undershoot after rounding.
+	 */
+	public static BlockPos nearestTileAnchor(int worldX, int worldZ) {
+		int cellX = cellOf(worldX);
+		int cellZ = cellOf(worldZ);
+		if (isBeyondInnerRadius(cellX, cellZ)) return anchorForCell(cellX, cellZ);
+
+		int pushed = INNER_RADIUS_CELLS + 1;
+		boolean leanX = Math.abs(cellX) >= Math.abs(cellZ);
+		int pushedX = leanX ? (cellX < 0 ? -pushed : pushed) : 0;
+		int pushedZ = leanX ? 0 : (cellZ < 0 ? -pushed : pushed);
+		return anchorForCell(pushedX, pushedZ);
+	}
 }

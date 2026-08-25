@@ -40,9 +40,15 @@ public final class EndSpaceWorldgen {
 	private static final int BURST_THRESHOLD = 8;
 	/** How close a player must be before a queued tile is built. */
 	private static final int BUILD_RADIUS = 128;
-	/** Local-Y-0 for every tile — mid-way up the 0..4096 tall-End column (Phase B1), clear of the
-	 * Citadel arena down low (its own topmost deck tops out at 148) and the declared ceiling up high. */
-	private static final int TILE_BASE_Y = 512;
+	/**
+	 * Local-Y-0 for every tile — mid-way up the 0..4096 tall-End column (Phase B1), clear of the
+	 * Citadel arena down low (its own topmost deck tops out at 148) and the declared ceiling up high.
+	 *
+	 * <p>Public: {@code EndReactorSession#layer2ExitTarget} reads this too, to land a gateway at
+	 * roughly the height a tile will actually exist at rather than guessing a second number that could
+	 * drift from this one.
+	 */
+	public static final int TILE_BASE_Y = 512;
 
 	private record Job(ServerWorld world, int cellX, int cellZ) {}
 
