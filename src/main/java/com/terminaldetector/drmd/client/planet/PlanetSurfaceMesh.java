@@ -53,6 +53,16 @@ public final class PlanetSurfaceMesh {
 	private static final double ORIGIN_SLACK = 64.0;
 	/** And how far it may climb, since the compression is measured from the eye. */
 	private static final double ALTITUDE_SLACK = 48.0;
+	/**
+	 * How deep a ring-to-ring seam skirt drops, unconditionally, to guarantee no gap shows through a
+	 * misaligned LOD boundary regardless of what the far side's grid actually looks like. Comfortably
+	 * exceeds {@code PlanetMap.height()}'s own confirmed range (worked out from its fbm construction:
+	 * roughly Y 28 at the deepest ocean shelf to Y 259 at the tallest ridge, a ~231-block span) with
+	 * margin left over for observed/player-modified terrain via {@code SurfaceStore}, which isn't bounded
+	 * by the procedural formula at all. A taller quad costs nothing extra to render, so erring generous
+	 * here is free.
+	 */
+	private static final double SEAM_SKIRT_DROP = 320.0;
 
 	/** Positions are compressed and relative to the build origin — see {@link HorizonProjection}. */
 	public final float[] positions;
@@ -215,6 +225,42 @@ public final class PlanetSurfaceMesh {
 
 					quad(x0, top, z0, x1, top, z0, x1, top, z1, x0, top, z1, argb(rgb, 1f, alpha));
 
+					int side = argb(rgb, 0.68f, alpha);
+
+					// Ring-to-ring seam skirts: each ring plans its own independent grid pitch (see
+					// build()'s ring-planning loop), so a cell right at a ring boundary is generally
+					// phase-misaligned with its counterpart in the neighbouring ring — a classic LOD
+					// T-junction crack, not a height-difference problem. Unlike the same-ring skirts
+					// below, this runs regardless of water (a coverage gap hides whatever is behind it
+					// the same way over flat sea or dry land) and is unconditional rather than
+					// height-gated (a differently-phased neighbour grid cannot be trusted to reciprocate).
+					// Suppressed at the two edges that are deliberately alpha-handled instead of seamed:
+					// ring 0's own inner edge (ringInner <= inner — exact, both trace to the same
+					// innerRadius parameter — the real-chunk join, already ramped in alphaAt, no hard
+					// skirt wanted there) and the outermost ring's outer edge (ringOuter >= fieldOuter,
+					// exact by the same reasoning — fades to alpha 0 into haze, nothing to seam against).
+					// Both sides of every remaining seam draw, deliberately redundant: a single-sided
+					// wall cannot be proven gap-free at every viewing angle.
+					boolean nearRingInner = ringInner <= inner;
+					boolean nearRingOuter = ringOuter >= fieldOuter;
+					double seamBottom = top - SEAM_SKIRT_DROP;
+					double d2xPos = distSquared(centreX + cell, centreZ);
+					if ((d2xPos < inner2 && !nearRingInner) || (d2xPos >= outer2 && !nearRingOuter)) {
+						quad(x1, top, z0, x1, seamBottom, z0, x1, seamBottom, z1, x1, top, z1, side);
+					}
+					double d2xNeg = distSquared(centreX - cell, centreZ);
+					if ((d2xNeg < inner2 && !nearRingInner) || (d2xNeg >= outer2 && !nearRingOuter)) {
+						quad(x0, top, z0, x0, seamBottom, z0, x0, seamBottom, z1, x0, top, z1, side);
+					}
+					double d2zPos = distSquared(centreX, centreZ + cell);
+					if ((d2zPos < inner2 && !nearRingInner) || (d2zPos >= outer2 && !nearRingOuter)) {
+						quad(x0, top, z1, x0, seamBottom, z1, x1, seamBottom, z1, x1, top, z1, side);
+					}
+					double d2zNeg = distSquared(centreX, centreZ - cell);
+					if ((d2zNeg < inner2 && !nearRingInner) || (d2zNeg >= outer2 && !nearRingOuter)) {
+						quad(x0, top, z0, x0, seamBottom, z0, x1, seamBottom, z0, x1, top, z0, side);
+					}
+
 					if (water) continue; // the sea is flat; a skirt on it reads as a wall
 
 					// Skirts toward all 4 neighbours: whichever side of a shared edge is higher owns the
@@ -229,7 +275,6 @@ public final class PlanetSurfaceMesh {
 					double hxNeg = sampleHeight(centreX - cell, centreZ, cell, level);
 					double hzPos = sampleHeight(centreX, centreZ + cell, cell, level);
 					double hzNeg = sampleHeight(centreX, centreZ - cell, cell, level);
-					int side = argb(rgb, 0.68f, alpha);
 					double floor = PlanetMap.SEA_LEVEL - 6.0;
 					if (SkirtGeometry.drawsSkirt(top, hxPos)) {
 						double bottom = SkirtGeometry.skirtBottom(hxPos, floor);
@@ -365,6 +410,15 @@ public final class PlanetSurfaceMesh {
 		private double sampleHeight(double worldX, double worldZ, int cell, int level) {
 			short seen = PlanetClientState.INSTANCE.observedHeight(worldX, worldZ, level);
 			return seen != SurfaceSection.NO_HEIGHT ? seen : PlanetMap.height(seed, worldX, worldZ);
+		}
+
+		/** Distance² from the camera to a world XZ position — the same {@code d2} test used to place a
+		 *  cell into a ring, reused by the ring-seam skirt check to ask whether a neighbour step leaves
+		 *  the ring the current cell is in. */
+		private double distSquared(double worldX, double worldZ) {
+			double dx = worldX - camX;
+			double dz = worldZ - camZ;
+			return dx * dx + dz * dz;
 		}
 
 		private boolean scarred(double worldX, double worldZ) {
