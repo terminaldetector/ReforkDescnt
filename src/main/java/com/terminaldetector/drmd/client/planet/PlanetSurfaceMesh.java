@@ -209,20 +209,21 @@ public final class PlanetSurfaceMesh {
 
 					if (water) continue; // the sea is flat; a skirt on it reads as a wall
 
-					// Skirts toward the two neighbours the grid walks away from. Every cell has its
-					// far sides covered by the next cell's near sides, so two per cell tiles the
-					// field with no doubled faces — and the step they draw is what makes a column
-					// read as a column rather than a floating tile.
+					// Skirts toward the two neighbours the grid walks away from (+X, +Z). Only covers a
+					// height step when THIS cell is the higher side — a lower cell walking toward a
+					// higher neighbour draws nothing here, since it never looks at its own -X/-Z side.
+					// Extended to all 4 directions in the next phase; kept at 2 here so this phase's own
+					// diff only swaps in the new SkirtGeometry helper, not the fix itself.
 					double hx = sampleHeight(centreX + cell, centreZ, cell, level);
 					double hz = sampleHeight(centreX, centreZ + cell, cell, level);
 					int side = argb(rgb, 0.68f, alpha);
 					double floor = PlanetMap.SEA_LEVEL - 6.0;
-					if (top > hx) {
-						double bottom = Math.max(hx, floor);
+					if (SkirtGeometry.drawsSkirt(top, hx)) {
+						double bottom = SkirtGeometry.skirtBottom(hx, floor);
 						quad(x1, top, z0, x1, bottom, z0, x1, bottom, z1, x1, top, z1, side);
 					}
-					if (top > hz) {
-						double bottom = Math.max(hz, floor);
+					if (SkirtGeometry.drawsSkirt(top, hz)) {
+						double bottom = SkirtGeometry.skirtBottom(hz, floor);
 						quad(x0, top, z1, x0, bottom, z1, x1, bottom, z1, x1, top, z1, side);
 					}
 				}
