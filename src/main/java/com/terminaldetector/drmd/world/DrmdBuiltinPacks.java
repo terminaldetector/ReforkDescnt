@@ -20,6 +20,12 @@ import net.minecraft.util.Identifier;
  * (identical to every world this mod has ever produced), disabled — so vanilla's own −64…320 Overworld
  * wins instead — for {@link DrmdServerConfig.WorldModLevel#VANILLA}.
  *
+ * <p>{@code the_end.json} ships in this same pack, same toggle, not a separate one: the real End's
+ * reactor fight (Layer 1) is itself gated on {@code WorldLevels.isAdvancedColumn}, so under
+ * {@code VANILLA} the fight that is Layer 2's only unlock path never runs at all — a tall End with no
+ * way to reach Layer 2, or a reactor fight with nowhere taller to send its gateways, would both be
+ * strictly worse than one switch that raises both ceilings together.
+ *
  * <p><strong>Load-bearing limitation:</strong> a built-in pack's registered activation type is fixed
  * once, at this call, from whatever the config held at that moment — it does not react to the config
  * changing again later in the same session. {@code DrmdWorldGenScreen} says so directly rather than
