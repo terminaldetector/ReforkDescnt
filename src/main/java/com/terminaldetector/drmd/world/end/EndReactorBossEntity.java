@@ -213,11 +213,14 @@ public class EndReactorBossEntity extends HostileEntity {
 		EndReactorSession.placeExitGateways(sw, pad);
 		// Final orbital/End fight: station break + asteroid rain on the planet map
 		com.terminaldetector.drmd.world.dungeon.ReactorAftermath.onGigaReactorDestroyed(sw, pad);
+		boolean inEnd = sw.getRegistryKey() == World.END;
 		// Ending 1 — switch the machine off. Silence + slow decay (see WORLD_PHILOSOPHY.md).
-		if (sw.getServer() != null) {
+		// Not in the real End: that kill unlocks Layer 2 instead — a progression beat, not a
+		// world-wide "machine falls silent" narration. The Overworld END-band's own copy of
+		// this fight is unaffected.
+		if (!inEnd && sw.getServer() != null) {
 			com.terminaldetector.drmd.world.fate.WorldEndings.applySilence(sw.getServer(), pad);
 		}
-		boolean inEnd = sw.getRegistryKey() == net.minecraft.world.World.END;
 		String tail = inEnd
 				? "station breaking up — debris falling planetward. Exit gateways online."
 				: "landing pad secured; planet scars inbound.";

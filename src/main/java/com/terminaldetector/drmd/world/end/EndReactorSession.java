@@ -248,8 +248,14 @@ public final class EndReactorSession {
 			return;
 		}
 
-		ServerWorld overworld = world.getServer().getWorld(World.OVERWORLD);
-		BlockPos exit = overworld != null ? overworld.getSpawnPos() : BlockPos.ORIGIN;
+		BlockPos layer2Target = layer2ExitTarget(world);
+		BlockPos exit;
+		if (layer2Target != null) {
+			exit = layer2Target;
+		} else {
+			ServerWorld overworld = world.getServer().getWorld(World.OVERWORLD);
+			exit = overworld != null ? overworld.getSpawnPos() : BlockPos.ORIGIN;
+		}
 		for (int i = 0; i < 4; i++) {
 			double ang = i * Math.PI * 0.5;
 			BlockPos g = at.add((int) (Math.cos(ang) * 6), 0, (int) (Math.sin(ang) * 6));
@@ -259,6 +265,26 @@ public final class EndReactorSession {
 				gateway.setExitPortalPos(exit, true);
 			}
 		}
+	}
+
+	/**
+	 * Is Layer 1 (the reactor) destroyed, unlocking Layer 2 — the vertical space extension past the
+	 * exit gateways? One named gate, the same shape as {@code WorldLevels.isAdvancedColumn} and
+	 * {@code WorldEndings.allowMachineSpawn}: a single method call instead of every caller re-deriving
+	 * "is the state DEFEATED" for itself.
+	 */
+	public static boolean isLayer2Unlocked(ServerWorld end) {
+		return EndReactorState.get(end).isDefeated();
+	}
+
+	/**
+	 * Where a real-End exit gateway should lead once Layer 2 exists — {@code null} for now, which
+	 * {@link #placeExitGateways} reads as "fall back to the Overworld spawn point," exactly today's
+	 * behavior. Filled in once {@code EndSpaceRegions}/{@code EndSpaceWorldgen} exist to compute a
+	 * real tile anchor from the gateway's own position.
+	 */
+	private static BlockPos layer2ExitTarget(ServerWorld end) {
+		return null;
 	}
 
 	/**
