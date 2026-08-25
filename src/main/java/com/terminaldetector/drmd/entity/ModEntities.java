@@ -104,8 +104,13 @@ public final class ModEntities {
 	public static final EntityType<SkyUfoEntity> SKY_UFO = Registry.register(
 			Registries.ENTITY_TYPE,
 			Identifier.of(DescentMod.MOD_ID, "sky_ufo"),
+			// Covers the real hull footprint (SkyUfoHull.MAJOR=11 -> 23 wide, MINOR=4 -> 10 tall) now
+			// that the entity itself provides collision while virtual (see SkyUfoEntity.getBoundingBox,
+			// which overrides this declarative box with the hull's actual non-symmetric vertical profile
+			// — this call still matters for the horizontal extent and for systems that read type-level
+			// dimensions directly rather than a live instance's box).
 			EntityType.Builder.<SkyUfoEntity>create(SkyUfoEntity::new, SpawnGroup.MISC)
-					.dimensions(6.0f, 2.5f)
+					.dimensions(23.0f, 10.0f)
 					.maxTrackingRange(256)
 					.trackingTickInterval(2)
 					.build()

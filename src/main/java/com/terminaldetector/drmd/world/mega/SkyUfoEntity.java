@@ -582,8 +582,38 @@ public class SkyUfoEntity extends Entity {
 		if (crashReason != null) nbt.putString("crashReason", crashReason);
 	}
 
+	/**
+	 * True once materialized: the hull's own blocks stopped providing collision the moment they were
+	 * cleared in favour of the virtual-flight mesh (see {@link #materialize}), so the entity's own box
+	 * has to stand in for it instead — mirrors {@code PyroShipEntity}'s "large vehicle is its own
+	 * collision" pattern. Stays true through a CRASH-mode fall too, where real blocks are briefly back
+	 * ({@link #destroyFromCore}): the two mechanisms simply agree while that overlap lasts.
+	 */
 	@Override
 	public boolean isCollidable() {
-		return false; // hull blocks provide collision
+		return isMaterialized();
+	}
+
+	@Override
+	public boolean collidesWith(Entity other) {
+		return true;
+	}
+
+	/**
+	 * The hull's real footprint, not {@code EntityType}'s declarative box: {@link SkyUfoHull}'s cells
+	 * run x/z over {@code [-MAJOR, MAJOR]} (23 wide, symmetric — a plain {@code dimensions()} width
+	 * already covers this exactly) but y over {@code [-MINOR, MINOR+1]}, an asymmetric range vanilla's
+	 * feet-anchored box (always {@code [Y, Y+height)}) cannot express through the builder alone. Built
+	 * fresh from live position + the template's own constants every call, never by decomposing an
+	 * existing {@code Box}'s fields (see {@code StructureTemplate}'s own comment on why that's avoided
+	 * here) — matches whether the hull is real or virtual, since the visual/physical footprint is the
+	 * same shape either way.
+	 */
+	@Override
+	public Box getBoundingBox() {
+		double half = SkyUfoHull.MAJOR + 0.5;
+		double bottom = getY() - (SkyUfoHull.MINOR + 0.5);
+		double top = getY() + (SkyUfoHull.MINOR + 1.5);
+		return new Box(getX() - half, bottom, getZ() - half, getX() + half, top, getZ() + half);
 	}
 }
