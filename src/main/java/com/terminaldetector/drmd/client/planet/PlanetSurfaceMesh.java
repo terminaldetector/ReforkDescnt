@@ -209,22 +209,35 @@ public final class PlanetSurfaceMesh {
 
 					if (water) continue; // the sea is flat; a skirt on it reads as a wall
 
-					// Skirts toward the two neighbours the grid walks away from (+X, +Z). Only covers a
-					// height step when THIS cell is the higher side — a lower cell walking toward a
-					// higher neighbour draws nothing here, since it never looks at its own -X/-Z side.
-					// Extended to all 4 directions in the next phase; kept at 2 here so this phase's own
-					// diff only swaps in the new SkirtGeometry helper, not the fix itself.
-					double hx = sampleHeight(centreX + cell, centreZ, cell, level);
-					double hz = sampleHeight(centreX, centreZ + cell, cell, level);
+					// Skirts toward all 4 neighbours: whichever side of a shared edge is higher owns the
+					// wall down to its lower neighbour (SkirtGeometry.drawsSkirt is strict, so exactly
+					// one side ever fires, never both, never neither on a real step). The old 2-direction
+					// version (+X, +Z only) drew nothing for an "uphill" step — a lower cell facing a
+					// higher neighbour never looked at its own -X/-Z side, and the higher cell (once it
+					// became "current") only checked its own +X/+Z neighbour, one cell further out. All 4
+					// directions closes that: whichever cell is higher finds the shared edge from its own
+					// side regardless of which one the grid walk visits first.
+					double hxPos = sampleHeight(centreX + cell, centreZ, cell, level);
+					double hxNeg = sampleHeight(centreX - cell, centreZ, cell, level);
+					double hzPos = sampleHeight(centreX, centreZ + cell, cell, level);
+					double hzNeg = sampleHeight(centreX, centreZ - cell, cell, level);
 					int side = argb(rgb, 0.68f, alpha);
 					double floor = PlanetMap.SEA_LEVEL - 6.0;
-					if (SkirtGeometry.drawsSkirt(top, hx)) {
-						double bottom = SkirtGeometry.skirtBottom(hx, floor);
+					if (SkirtGeometry.drawsSkirt(top, hxPos)) {
+						double bottom = SkirtGeometry.skirtBottom(hxPos, floor);
 						quad(x1, top, z0, x1, bottom, z0, x1, bottom, z1, x1, top, z1, side);
 					}
-					if (SkirtGeometry.drawsSkirt(top, hz)) {
-						double bottom = SkirtGeometry.skirtBottom(hz, floor);
+					if (SkirtGeometry.drawsSkirt(top, hxNeg)) {
+						double bottom = SkirtGeometry.skirtBottom(hxNeg, floor);
+						quad(x0, top, z0, x0, bottom, z0, x0, bottom, z1, x0, top, z1, side);
+					}
+					if (SkirtGeometry.drawsSkirt(top, hzPos)) {
+						double bottom = SkirtGeometry.skirtBottom(hzPos, floor);
 						quad(x0, top, z1, x0, bottom, z1, x1, bottom, z1, x1, top, z1, side);
+					}
+					if (SkirtGeometry.drawsSkirt(top, hzNeg)) {
+						double bottom = SkirtGeometry.skirtBottom(hzNeg, floor);
+						quad(x0, top, z0, x0, bottom, z0, x1, bottom, z0, x1, top, z0, side);
 					}
 				}
 			}

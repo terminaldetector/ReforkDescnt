@@ -40,4 +40,23 @@ class SkirtGeometryTest {
 	void skirtBottomClampsToFloor() {
 		assertEquals(-6.0, SkirtGeometry.skirtBottom(-40.0, -6.0));
 	}
+
+	/**
+	 * The regression case that would have caught the original bug: a single low "pit" cell surrounded
+	 * on all 4 sides by higher neighbors. A 2-direction check (only +X, +Z) can only ever see this pit
+	 * from 2 of its 4 sides — the other 2 higher neighbors, when they are the ones being evaluated,
+	 * would need to look at their own -X/-Z side to find it, which the old code never did. Checking all
+	 * 4 directions means every one of the 4 higher neighbors independently reports the shared edge from
+	 * its own side, regardless of which cell the mesh builder happens to visit first.
+	 */
+	@Test
+	@DisplayName("all 4 higher neighbors of a low pit independently draw toward it")
+	void pitIsClosedFromAllFourSides() {
+		double pitTop = 0.0;
+		double[] higherNeighbors = {10.0, 12.0, 8.0, 9.0}; // +X, -X, +Z, -Z
+		for (double neighborTop : higherNeighbors) {
+			assertTrue(SkirtGeometry.drawsSkirt(neighborTop, pitTop),
+					"neighbor at " + neighborTop + " must draw down toward the pit from its own side");
+		}
+	}
 }
