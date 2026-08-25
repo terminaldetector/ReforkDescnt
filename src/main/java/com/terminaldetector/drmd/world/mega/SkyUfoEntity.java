@@ -92,6 +92,14 @@ public class SkyUfoEntity extends Entity {
 	private int spawnCd;
 	private int moveCd;
 	private boolean hullReady;
+	/**
+	 * True once the hull's real blocks have been cleared in favour of the client-side interpolated
+	 * mesh ({@code SkyUfoHullRenderer}) — server-only bookkeeping, not synced: nothing client-side
+	 * reads this directly, since a client already knows to draw the virtual mesh purely from having a
+	 * live motion sample for this entity id (see {@code SkyUfoEntity.broadcastMotion}, which only
+	 * ever broadcasts while this is true).
+	 */
+	private boolean virtualFlight;
 	private boolean destroyed;
 	/** True while intentionally clearing/rebuilding hull — ignore reactor onStateReplaced. */
 	private boolean suppressCoreNotify;
@@ -118,6 +126,10 @@ public class SkyUfoEntity extends Entity {
 
 	public boolean isMaterialized() {
 		return dataTracker.get(MATERIALIZED);
+	}
+
+	public boolean isVirtualFlight() {
+		return virtualFlight;
 	}
 
 	public Box getInterior() {
@@ -170,31 +182,46 @@ public class SkyUfoEntity extends Entity {
 		motionY = MathHelper.clamp(motionY + vel.y,
 				WorldRules.SKY_PRACTICAL_MIN + 14.0, WorldRules.SKY_PRACTICAL_MAX - 10.0);
 		motionZ += vel.z;
-		if ((age & 1) == 0) broadcastMotion(sw, vel); // half-rate — see FlightSystem's own SyncPayload precedent
+		// Half-rate — see FlightSystem's own SyncPayload precedent for why every-tick sync hitched.
+		if (virtualFlight && (age & 1) == 0) broadcastMotion(sw, vel);
 
-		// Grid-crawl hull so interior stays coherent Minecraft blocks
-		if (moveCd > 0) moveCd--;
-		else {
-			BlockPos want = BlockPos.ofFloored(getX() + vel.x * MOVE_INTERVAL,
-					getY() + vel.y * MOVE_INTERVAL, getZ() + vel.z * MOVE_INTERVAL);
-			want = new BlockPos(want.getX(),
-					MathHelper.clamp(want.getY(), WorldRules.SKY_PRACTICAL_MIN + 14, WorldRules.SKY_PRACTICAL_MAX - 10),
-					want.getZ());
+		if (virtualFlight) {
+			// No real blocks to move — just keep the anchor's bookkeeping honest (so a later real
+			// placement, e.g. the destruction handoff, starts from where the ship actually is, not a
+			// stale spawn-time position) and carry any riders every tick, since motion is continuous
+			// now rather than a once-per-MOVE_INTERVAL jump.
+			BlockPos want = BlockPos.ofFloored(motionX, motionY, motionZ);
 			if (!want.equals(instance.anchor())) {
-				relocateHull(sw, want);
+				relocateAnchorOnly(sw, want);
 			}
-			moveCd = occupied ? MOVE_INTERVAL + 8 : MOVE_INTERVAL;
+			setPosition(motionX, motionY, motionZ);
+		} else {
+			// Grid-crawl hull so interior stays coherent Minecraft blocks
+			if (moveCd > 0) moveCd--;
+			else {
+				BlockPos want = BlockPos.ofFloored(getX() + vel.x * MOVE_INTERVAL,
+						getY() + vel.y * MOVE_INTERVAL, getZ() + vel.z * MOVE_INTERVAL);
+				want = new BlockPos(want.getX(),
+						MathHelper.clamp(want.getY(), WorldRules.SKY_PRACTICAL_MIN + 14, WorldRules.SKY_PRACTICAL_MAX - 10),
+						want.getZ());
+				if (!want.equals(instance.anchor())) {
+					relocateHull(sw, want);
+				}
+				moveCd = occupied ? MOVE_INTERVAL + 8 : MOVE_INTERVAL;
+			}
+			// Keep entity anchored to hull center
+			setPosition(instance.anchor().getX() + 0.5, instance.anchor().getY() + 0.5, instance.anchor().getZ() + 0.5);
 		}
-
-		// Keep entity anchored to hull center
-		setPosition(instance.anchor().getX() + 0.5, instance.anchor().getY() + 0.5, instance.anchor().getZ() + 0.5);
 
 		if (macroId == null) macroId = UUID.randomUUID();
 		MacroWorld.put(new MacroEntry(macroId, MacroEntry.Kind.UFO, WorldRules.Layer.SKY_ARCHIPELAGO,
 				instance.anchor(), 28, 12, 28, 0x55FFAA, "Sky UFO"));
 
-		// Core still present?
-		if (hullReady && !sw.getBlockState(getCorePos()).isOf(ModWorldBlocks.UNSTABLE_REACTOR)) {
+		// Core still present? Only meaningful once real blocks exist — while virtual there is no real
+		// reactor block anywhere to check (the hull is drawn, not built). A later, separate pass
+		// replaces this with a synced coreIntact flag that works in both modes; this phase's own
+		// scope is the render/movement split, not the damage-detection rework that has to go with it.
+		if (hullReady && !virtualFlight && !sw.getBlockState(getCorePos()).isOf(ModWorldBlocks.UNSTABLE_REACTOR)) {
 			destroyFromCore(sw, null, "core ruptured");
 			return;
 		}
@@ -230,8 +257,6 @@ public class SkyUfoEntity extends Entity {
 		hullReady = true;
 		destructionMode = random.nextInt(2) == 0 ? DestructionMode.CRASH : DestructionMode.SHOCKWAVE;
 		dataTracker.set(MATERIALIZED, true);
-		BlockPos core = instance.markerPos("core");
-		if (core != null) CORE_INDEX.put(core.asLong(), getUuid());
 		setPosition(center.getX() + 0.5, center.getY() + 0.5, center.getZ() + 0.5);
 		motionX = center.getX() + 0.5;
 		motionY = center.getY() + 0.5;
@@ -241,6 +266,20 @@ public class SkyUfoEntity extends Entity {
 				p.sendMessage(Text.literal("§aSky UFO hull online §7— fly the bay, dump reactor on the core."), false);
 			}
 		}
+		// The placement above was only ever needed to prove the shape out once; go virtual
+		// immediately after, via the exact same StructureMover.clear already proven for destruction/
+		// removal cleanup. No CORE_INDEX entry is registered for this hull: that map exists purely to
+		// let a real block-break event on a landed core find its owning UFO fast, and while virtual
+		// there is no real core block anywhere for a break event to ever fire on — the fallback
+		// proximity lookup in notifyCoreBroken (via findNear, which already tracks the moving core
+		// through getCorePos()) covers the rest correctly with no index needed.
+		suppressCoreNotify = true;
+		try {
+			StructureMover.clear(sw, instance);
+		} finally {
+			suppressCoreNotify = false;
+		}
+		virtualFlight = true;
 	}
 
 	/**
@@ -258,6 +297,24 @@ public class SkyUfoEntity extends Entity {
 				net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, payload);
 			}
 		}
+	}
+
+	/**
+	 * Like {@link #relocateHull}, but only updates the anchor's bookkeeping via
+	 * {@link StructureMover#moveAnchorOnly} — no real block writes, since there's nothing physically
+	 * there to move while {@link #virtualFlight}. Riders still need carrying every tick this runs, or
+	 * they're left behind the moment the anchor (and so {@code instance.interior()}) moves out from
+	 * under them — same reasoning {@code relocateHull}'s own carry logic already follows, just against
+	 * a cheap anchor update instead of a real diff-and-write move.
+	 */
+	private void relocateAnchorOnly(ServerWorld sw, BlockPos newCenter) {
+		if (!hullReady || destroyed || instance == null) return;
+		BlockPos before = instance.anchor();
+		List<Entity> carry = StructureOccupants.collect(sw, instance, this).stream()
+				.filter(e -> !(e instanceof SkyUfoEntity))
+				.toList();
+		StructureMover.moveAnchorOnly(instance, newCenter);
+		StructureOccupants.shiftBy(carry, Vec3d.of(newCenter.subtract(before)));
 	}
 
 	private void relocateHull(ServerWorld sw, BlockPos newCenter) {
@@ -363,6 +420,24 @@ public class SkyUfoEntity extends Entity {
 			crashFallAccumulator = 0;
 			crashCulprit = culprit;
 			crashReason = reason;
+			// Rematerialize for real before the fall starts: tickCrash's own StructureMover.moveTo
+			// diffs and writes only the shell that changed each step, which is only correct if the
+			// hull is fully real to begin with — against a virtual (all-air) hull it would build just
+			// a thin leading edge of real blocks while the rest of the interior/top stayed invisible
+			// air, a broken partial wreck rather than either a clean mesh or a clean hull. Virtual
+			// flight's smoothness is for the long, common cruise state; a crash is brief, so reverting
+			// to the tried-and-tested real hull for its short remaining lifetime is the safe choice,
+			// not a compromise — extending virtual rendering through the crash too is a genuinely
+			// separate, optional follow-up, not a correctness requirement.
+			if (virtualFlight) {
+				suppressCoreNotify = true;
+				try {
+					StructureMover.place(sw, instance);
+				} finally {
+					suppressCoreNotify = false;
+				}
+				virtualFlight = false;
+			}
 			for (ServerPlayerEntity p : sw.getPlayers()) {
 				if (squaredDistanceTo(p) < 128 * 128) {
 					p.sendMessage(Text.literal("§cSky UFO reactor failing §7— it's going down."), false);
@@ -380,6 +455,19 @@ public class SkyUfoEntity extends Entity {
 		StructureShockwave.detonate(sw, epic, this, culprit, 9f, 6.5f, 8f, 16, 10);
 		CORE_INDEX.remove(epicenter.asLong());
 		if (instance != null) {
+			// The hull has been virtual (real blocks cleared) since materialize — SkyUfoHull.shatter
+			// reads real world block state per cell, so without this it would find nothing but air at
+			// every position and skip all of them. One real placement at the instance's current
+			// (anchor-tracked) position is the clean handoff back from virtual to real, right before
+			// the two calls that actually need real blocks to act on.
+			if (virtualFlight) {
+				suppressCoreNotify = true;
+				try {
+					StructureMover.place(sw, instance);
+				} finally {
+					suppressCoreNotify = false;
+				}
+			}
 			Set<BlockPos> positions = new HashSet<>();
 			for (StructureDelta.Cell c : instance.occupiedCells().keySet()) {
 				positions.add(new BlockPos(c.x(), c.y(), c.z()));

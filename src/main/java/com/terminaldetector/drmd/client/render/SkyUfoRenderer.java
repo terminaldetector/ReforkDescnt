@@ -26,15 +26,10 @@ public class SkyUfoRenderer extends EntityRenderer<SkyUfoEntity> {
 	public void render(SkyUfoEntity entity, float yaw, float tickDelta, MatrixStack matrices,
 					   VertexConsumerProvider consumers, int light) {
 		super.render(entity, yaw, tickDelta, matrices, consumers, light);
-		// Real copper hull is in the world — keep only a soft under-beam cue
-		if (entity.isMaterialized()) {
-			VertexConsumer buf = consumers.getBuffer(RenderLayer.getEntityTranslucent(TEXTURE));
-			matrices.push();
-			matrices.translate(0, -2.2, 0);
-			cube(buf, matrices.peek().getPositionMatrix(), 0.35f, 1.4f, 0.35f, light, 255, 200, 80, 120);
-			matrices.pop();
-			return;
-		}
+		// The hull itself — real blocks under the old design, a dedicated interpolated mesh
+		// (SkyUfoHullRenderer) under the render rewrite — owns the big visual once materialized; this
+		// renderer keeps only the pre-materialize placeholder pulse.
+		if (entity.isMaterialized()) return;
 		VertexConsumer buf = consumers.getBuffer(RenderLayer.getEntityTranslucent(TEXTURE));
 		float pulse = 0.92f + 0.08f * MathHelper.sin((entity.age + tickDelta) * 0.2f);
 

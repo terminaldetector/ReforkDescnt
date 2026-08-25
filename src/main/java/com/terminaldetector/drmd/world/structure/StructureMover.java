@@ -50,6 +50,18 @@ public final class StructureMover {
 		}
 	}
 
+	/**
+	 * Updates the instance's anchor bookkeeping only — no block writes, no diffing, nothing touches
+	 * the world. For a structure rendered virtually (real blocks hidden while a client-side mesh
+	 * tracks a continuous position instead — see {@code SkyUfoEntity}'s own virtual-flight mode), the
+	 * anchor still needs to track roughly where the structure really is, so a later real placement
+	 * (a destruction handoff, a future landing) starts from where the structure actually is rather
+	 * than the stale position it was last physically built at.
+	 */
+	public static void moveAnchorOnly(StructureInstance instance, BlockPos newAnchor) {
+		instance.setAnchor(newAnchor);
+	}
+
 	private static BlockPos toBlockPos(StructureDelta.Cell c) {
 		return new BlockPos(c.x(), c.y(), c.z());
 	}

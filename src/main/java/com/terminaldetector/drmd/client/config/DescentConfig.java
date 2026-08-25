@@ -32,6 +32,15 @@ public final class DescentConfig {
 	 * <p>Off means the band looks down on empty sky, as it did before the floor existed.
 	 */
 	public static boolean planetFloor = true;
+	/**
+	 * Draw the Sky UFO hull as an interpolated virtual mesh instead of leaving it invisible while its
+	 * real blocks are hidden mid-flight — the escape hatch for this render rewrite's single biggest
+	 * live-client-only unknown (does the interpolation actually read as smooth, does the flat-colour
+	 * mesh sit acceptably next to real terrain). Off means a materialized, flying UFO simply has no
+	 * visible hull at all, same as toggling {@link #planetFloor} off leaves the End band looking at
+	 * empty sky.
+	 */
+	public static boolean skyUfoVirtualHull = true;
 	/** Ship roll rate, degrees per second. */
 	public static float rollRate = 175f;
 	/** Mouse gain for ship attitude, relative to vanilla look. */
@@ -79,6 +88,7 @@ public final class DescentConfig {
 		hud = bool(props, "hud", hud);
 		levelSky = bool(props, "levelSky", levelSky);
 		planetFloor = bool(props, "planetFloor", planetFloor);
+		skyUfoVirtualHull = bool(props, "skyUfoVirtualHull", skyUfoVirtualHull);
 		rollRate = clamp(num(props, "rollRate", rollRate), 40f, 400f);
 		lookGain = clamp(num(props, "lookGain", lookGain), 0.25f, 3f);
 		cameraShake = bool(props, "cameraShake", cameraShake);
@@ -94,6 +104,7 @@ public final class DescentConfig {
 		props.setProperty("hud", Boolean.toString(hud));
 		props.setProperty("levelSky", Boolean.toString(levelSky));
 		props.setProperty("planetFloor", Boolean.toString(planetFloor));
+		props.setProperty("skyUfoVirtualHull", Boolean.toString(skyUfoVirtualHull));
 		props.setProperty("rollRate", Float.toString(rollRate));
 		props.setProperty("lookGain", Float.toString(lookGain));
 		props.setProperty("cameraShake", Boolean.toString(cameraShake));

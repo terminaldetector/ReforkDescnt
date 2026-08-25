@@ -64,6 +64,7 @@ public class DescentClient implements ClientModInitializer {
 		com.terminaldetector.drmd.client.sky.OrbitalBeltSkyRenderer.register();
 		com.terminaldetector.drmd.client.sky.CoreSkyDome.register();
 		com.terminaldetector.drmd.client.planet.PlanetFloorRenderer.register();
+		com.terminaldetector.drmd.client.render.SkyUfoHullRenderer.register();
 		com.terminaldetector.drmd.client.render.MegaBeamViewRenderer.register();
 		com.terminaldetector.drmd.client.render.ConstructScaffoldRenderer.register();
 		com.terminaldetector.drmd.client.smoke.SmokeRenderer.register();
