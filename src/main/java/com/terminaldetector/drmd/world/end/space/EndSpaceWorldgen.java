@@ -41,7 +41,7 @@ public final class EndSpaceWorldgen {
 	/** How close a player must be before a queued tile is built. */
 	private static final int BUILD_RADIUS = 128;
 	/**
-	 * Local-Y-0 for every tile — mid-way up the 0..4096 tall-End column (Phase B1), clear of the
+	 * Local-Y-0 for every tile — well up the 0..1888 tall-End column (Phase B1), clear of the
 	 * Citadel arena down low (its own topmost deck tops out at 148) and the declared ceiling up high.
 	 *
 	 * <p>Public: {@code EndReactorSession#layer2ExitTarget} reads this too, to land a gateway at

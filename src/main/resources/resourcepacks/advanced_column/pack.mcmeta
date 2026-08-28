@@ -1,6 +1,6 @@
 {
   "pack": {
     "pack_format": 48,
-    "description": "DRMD 6DOF — tall Overworld column (−784…1888) and tall real End (0…4096). Disable for vanilla-height dimensions."
+    "description": "DRMD 6DOF — tall Overworld column (−784…1888) and tall real End (0…1888). Disable for vanilla-height dimensions."
   }
 }
