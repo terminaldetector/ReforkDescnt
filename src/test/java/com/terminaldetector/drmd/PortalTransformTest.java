@@ -3,6 +3,7 @@ package com.terminaldetector.drmd;
 import com.terminaldetector.drmd.client.portal.PortalTransform;
 import com.terminaldetector.drmd.client.portal.PortalTransform.Quat;
 import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
+import com.terminaldetector.drmd.client.portal.PortalTransform.YawPitch;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -136,5 +137,78 @@ class PortalTransformTest {
 		Vec3 b = PortalTransform.transformPoint(new Vec3(1, 2, 3), new Vec3(0, 0, 0), new Vec3(1, 0, 0),
 				new Vec3(5, 5, 5), new Vec3(0, 1, 0), 1.0);
 		assertEquals(a, b);
+	}
+
+	@Test
+	@DisplayName("yaw 0 / pitch 0 looks along +Z, matching ShipAttitude's own convention")
+	void yawZeroPitchZeroLooksAlongPositiveZ() {
+		assertVec3Close(new Vec3(0, 0, 1), PortalTransform.yawPitchToVector(0, 0), "yaw=0,pitch=0");
+	}
+
+	@Test
+	@DisplayName("yaw 90 looks along -X; pitch +90/-90 look straight down/up")
+	void cardinalYawAndPitchLookWhereExpected() {
+		assertVec3Close(new Vec3(-1, 0, 0), PortalTransform.yawPitchToVector(90, 0), "yaw=90,pitch=0");
+		assertVec3Close(new Vec3(0, -1, 0), PortalTransform.yawPitchToVector(0, 90), "pitch=90 (down)");
+		assertVec3Close(new Vec3(0, 1, 0), PortalTransform.yawPitchToVector(0, -90), "pitch=-90 (up)");
+	}
+
+	@Test
+	@DisplayName("yawPitchToVector always returns a unit vector")
+	void yawPitchToVectorIsUnitLength() {
+		for (double yaw : new double[] {-170, -90, -45, 0, 30, 60, 90, 120, 179}) {
+			for (double pitch : new double[] {-80, -45, -10, 0, 10, 45, 80}) {
+				Vec3 v = PortalTransform.yawPitchToVector(yaw, pitch);
+				assertTrue(Math.abs(v.length() - 1.0) < EPS, "not unit length at yaw=" + yaw + " pitch=" + pitch);
+			}
+		}
+	}
+
+	@Test
+	@DisplayName("vectorToYawPitch is the exact inverse of yawPitchToVector away from the poles")
+	void vectorToYawPitchRoundTrips() {
+		for (double yaw : new double[] {-170, -90, -45, 0, 30, 60, 90, 120, 179}) {
+			for (double pitch : new double[] {-80, -45, -10, 0, 10, 45, 80}) {
+				Vec3 v = PortalTransform.yawPitchToVector(yaw, pitch);
+				YawPitch back = PortalTransform.vectorToYawPitch(v);
+				assertTrue(Math.abs(back.yawDegrees() - yaw) < 1e-6, "yaw round trip at yaw=" + yaw + " pitch=" + pitch
+						+ ": got " + back.yawDegrees());
+				assertTrue(Math.abs(back.pitchDegrees() - pitch) < 1e-6, "pitch round trip at yaw=" + yaw + " pitch=" + pitch
+						+ ": got " + back.pitchDegrees());
+			}
+		}
+	}
+
+	@Test
+	@DisplayName("vectorToYawPitch normalizes first, so scale doesn't change the answer")
+	void vectorToYawPitchIgnoresScale() {
+		Vec3 unit = PortalTransform.yawPitchToVector(37, -22);
+		YawPitch fromUnit = PortalTransform.vectorToYawPitch(unit);
+		YawPitch fromScaled = PortalTransform.vectorToYawPitch(unit.scaled(5.0));
+
+		assertTrue(Math.abs(fromUnit.yawDegrees() - fromScaled.yawDegrees()) < 1e-9, "yaw should be scale-invariant");
+		assertTrue(Math.abs(fromUnit.pitchDegrees() - fromScaled.pitchDegrees()) < 1e-9, "pitch should be scale-invariant");
+	}
+
+	@Test
+	@DisplayName("a look direction reflected off a horizontal mirror flips only the pitch, matching reflectVector")
+	void reflectVectorThroughYawPitchFlipsOnlyPitch() {
+		double yaw = 30;
+		double pitch = 40;
+		Vec3 forward = PortalTransform.yawPitchToVector(yaw, pitch);
+
+		Vec3 reflected = PortalTransform.reflectVector(forward, new Vec3(0, 1, 0));
+		YawPitch result = PortalTransform.vectorToYawPitch(reflected);
+
+		assertTrue(Math.abs(result.yawDegrees() - yaw) < 1e-9, "yaw should be unchanged by a horizontal mirror");
+		assertTrue(Math.abs(result.pitchDegrees() - (-pitch)) < 1e-9, "pitch should invert through a horizontal mirror");
+	}
+
+	@Test
+	@DisplayName("yawPitchToVector and vectorToYawPitch are deterministic")
+	void yawPitchConversionIsDeterministic() {
+		assertEquals(PortalTransform.yawPitchToVector(12, -34), PortalTransform.yawPitchToVector(12, -34));
+		assertEquals(PortalTransform.vectorToYawPitch(new Vec3(0.4, 0.3, 0.5)),
+				PortalTransform.vectorToYawPitch(new Vec3(0.4, 0.3, 0.5)));
 	}
 }

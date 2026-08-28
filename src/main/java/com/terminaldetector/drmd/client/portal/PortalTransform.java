@@ -27,6 +27,13 @@ public final class PortalTransform {
 			return new Vec3(y * o.z - z * o.y, z * o.x - x * o.z, x * o.y - y * o.x);
 		}
 		public double lengthSquared() { return dot(this); }
+		public double length() { return Math.sqrt(lengthSquared()); }
+
+		/** Returns this vector unchanged (rather than NaN) if it is too close to zero to have a direction. */
+		public Vec3 normalized() {
+			double len = length();
+			return len < 1e-12 ? this : scaled(1.0 / len);
+		}
 	}
 
 	/** Unit-quaternion rotation, {@code (x,y,z)} the vector part, {@code w} the scalar part. */
@@ -114,5 +121,36 @@ public final class PortalTransform {
 	 */
 	public static Vec3 reflectVector(Vec3 v, Vec3 normal) {
 		return v.minus(normal.scaled(2 * v.dot(normal)));
+	}
+
+	/** Yaw/pitch pair in degrees, vanilla {@code Camera}/{@code CameraAccessor} convention. */
+	public record YawPitch(double yawDegrees, double pitchDegrees) {}
+
+	/**
+	 * Yaw/pitch (degrees) to a unit forward vector — mirrored exactly from
+	 * {@code ShipAttitude.yawDegrees()}/{@code pitchDegrees()}'s own formula (the convention already
+	 * driving DRMD's live 6DoF camera every frame), not re-derived independently, since
+	 * {@code WorldRenderer.render()} reads the vanilla {@code Camera} basis that
+	 * {@code CameraAccessor.drmd$invokeSetRotation(yaw, pitch)} builds from exactly this shape. Needed
+	 * because a mirror only ever has a look <em>direction</em> to reflect ({@link #reflectVector}), but
+	 * the real camera can only be told a yaw/pitch, not a vector.
+	 */
+	public static Vec3 yawPitchToVector(double yawDegrees, double pitchDegrees) {
+		double yaw = Math.toRadians(yawDegrees);
+		double pitch = Math.toRadians(pitchDegrees);
+		double cosPitch = Math.cos(pitch);
+		return new Vec3(-cosPitch * Math.sin(yaw), -Math.sin(pitch), cosPitch * Math.cos(yaw));
+	}
+
+	/**
+	 * Exact inverse of {@link #yawPitchToVector} — same source of truth, same convention. Normalizes
+	 * {@code forward} first so a reflected-but-not-renormalized direction still round-trips cleanly.
+	 */
+	public static YawPitch vectorToYawPitch(Vec3 forward) {
+		Vec3 f = forward.normalized();
+		double clampedY = Math.max(-1.0, Math.min(1.0, f.y()));
+		double pitch = -Math.asin(clampedY);
+		double yaw = Math.atan2(-f.x(), f.z());
+		return new YawPitch(Math.toDegrees(yaw), Math.toDegrees(pitch));
 	}
 }
