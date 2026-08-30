@@ -223,7 +223,10 @@ public class PyroShipEntity extends VehicleEntity {
 
 			LocalOrientation.setUp(sp.getUuid(), new Vec3d(0, 1, 0));
 			FootGravitySystem.clear(sp.getUuid());
-			FlightSystem.enable(sp, data);
+			// Deliberately the no-mount variant: super.removePassenger above has already cleared the
+			// vehicle link, so plain enable() would auto-mount this same hull straight back under the
+			// pilot and make stepping out in open air impossible.
+			FlightSystem.enableWithoutMount(sp, data);
 			sp.sendMessage(Text.literal("§b6DoF §7— free flight after Pyro exit."), false);
 		}
 	}

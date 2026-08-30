@@ -329,6 +329,26 @@ public final class FlightSystem {
 
 	/** Force 6DoF on and sync — join path / /d6 / void ending. */
 	public static void enable(ServerPlayerEntity player, DescentPlayerData data) {
+		enable(player, data, true);
+	}
+
+	/**
+	 * Force 6DoF on without summoning or remounting a hull.
+	 *
+	 * <p>Exists for exactly one caller: {@code PyroShipEntity.removePassenger}'s open-air branch,
+	 * which turns free flight back on for a pilot who just stepped out with nothing under them. That
+	 * path must not auto-mount, because {@code super.removePassenger} has already severed the vehicle
+	 * link by the time it runs — so {@link #autoMountPyroShip}'s {@code hasVehicle()} guard sees a
+	 * pilot with no vehicle, finds the very hull they just left sitting there un-passengered, and
+	 * puts them straight back in it. The pilot could never actually get out: every dismount in open
+	 * air instantly re-boarded, which read as the ship being welded to the player, and left
+	 * destroying the hull as the only way to separate from it.
+	 */
+	public static void enableWithoutMount(ServerPlayerEntity player, DescentPlayerData data) {
+		enable(player, data, false);
+	}
+
+	private static void enable(ServerPlayerEntity player, DescentPlayerData data, boolean mountHull) {
 		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
 		data.setEnabled(true);
 		data.ensureInit();
@@ -344,7 +364,7 @@ public final class FlightSystem {
 		}
 		if (dirty) player.sendAbilitiesUpdate();
 		player.setNoGravity(true);
-		autoMountPyroShip(player);
+		if (mountHull) autoMountPyroShip(player);
 		ModNetworking.syncPlayer(player, data);
 	}
 
@@ -356,6 +376,12 @@ public final class FlightSystem {
 	 * the one that matters for correctness, not just convenience — {@code PyroShipEntity} itself
 	 * calling {@code enable} from {@code interactMob}/{@code tick} always does so only after the
 	 * player is already riding it, so this never spawns a second ship out from under an existing one.
+	 *
+	 * <p><b>The one place that reasoning did not hold</b> was {@code removePassenger}: there the
+	 * vehicle link is already severed when {@code enable} runs, so the {@code hasVehicle()} guard
+	 * passed and the pilot was re-seated in the hull they had just left. That path now calls
+	 * {@link #enableWithoutMount} instead — see its own doc. Any future caller that enables 6DoF for
+	 * a player who is deliberately <em>not</em> in a hull has to do the same.
 	 *
 	 * <p>Tries to remount the pilot's last known hull before minting a fresh one — every join is
 	 * native 6DoF ({@code DescentSession.onPlayerJoin}), so without this a rejoin always spawned a
