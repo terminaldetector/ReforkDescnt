@@ -35,6 +35,12 @@ jobs:
       - name: Stage PC jar into dist/
         run: |
           mkdir -p dist
+          # Clear previously-committed mod jars before copying this build's in. The version is part of
+          # the filename, so without this a version bump leaves the OLD jar sitting in dist/ next to the
+          # new one, under a name that still looks perfectly current -- the same "crashing build sitting
+          # there under a plausible name" hazard the commit step below already exists to prevent, just
+          # reached by a different route.
+          rm -f dist/drmd-6dof-*.jar
           cp build/libs/drmd-6dof-*.jar dist/
           rm -f dist/*-sources.jar dist/*-dev.jar dist/*-dev-shadow.jar || true
           ls -lh dist/
@@ -61,7 +67,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dist/drmd-6dof-*.jar dist/INSTALL_TLAUNCHER.txt
+          git add -A 'dist/drmd-6dof-*.jar' dist/INSTALL_TLAUNCHER.txt
           if git diff --cached --quiet; then
             echo "dist/ already matches this build"
             exit 0
