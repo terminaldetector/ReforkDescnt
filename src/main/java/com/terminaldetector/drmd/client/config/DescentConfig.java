@@ -54,6 +54,16 @@ public final class DescentConfig {
 	 * so pilots can inspect meteor scars on the surface.
 	 */
 	public static boolean fallAftermath = false;
+	/**
+	 * Native see-through mirror reflection (Phase R1a of the portal-rendering plan) — a recursive,
+	 * camera-reflected re-render of the world, unmasked (fills the whole screen, not just the mirror's
+	 * own silhouette; the stencil mask is a later phase). The first genuinely client-verification-only
+	 * feature in this project: it compiles and passes CI, but whether the reflected view is actually
+	 * correct — or whether it renders at all without artifacts — has never been seen on a live client.
+	 * Defaults off on purpose, unlike every other toggle here, so it never runs until deliberately
+	 * turned on to test it. Off means mirrors behave exactly as before (bounce lasers, nothing else).
+	 */
+	public static boolean mirrorReflection = false;
 
 	private static final String FILE = DescentMod.MOD_ID + ".properties";
 	private static boolean loaded;
@@ -94,6 +104,7 @@ public final class DescentConfig {
 		cameraShake = bool(props, "cameraShake", cameraShake);
 		weaponView = bool(props, "weaponView", weaponView);
 		fallAftermath = bool(props, "fallAftermath", fallAftermath);
+		mirrorReflection = bool(props, "mirrorReflection", mirrorReflection);
 	}
 
 	public static void save() {
@@ -110,6 +121,7 @@ public final class DescentConfig {
 		props.setProperty("cameraShake", Boolean.toString(cameraShake));
 		props.setProperty("weaponView", Boolean.toString(weaponView));
 		props.setProperty("fallAftermath", Boolean.toString(fallAftermath));
+		props.setProperty("mirrorReflection", Boolean.toString(mirrorReflection));
 		try {
 			Files.createDirectories(path().getParent());
 			try (var out = Files.newOutputStream(path())) {

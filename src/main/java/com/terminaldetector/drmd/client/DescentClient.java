@@ -68,6 +68,7 @@ public class DescentClient implements ClientModInitializer {
 		com.terminaldetector.drmd.client.render.MegaBeamViewRenderer.register();
 		com.terminaldetector.drmd.client.render.ConstructScaffoldRenderer.register();
 		com.terminaldetector.drmd.client.smoke.SmokeRenderer.register();
+		com.terminaldetector.drmd.client.portal.MirrorReflectionRenderer.register();
 		registerRenderLayers();
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SyncPayload.ID, (payload, context) ->
