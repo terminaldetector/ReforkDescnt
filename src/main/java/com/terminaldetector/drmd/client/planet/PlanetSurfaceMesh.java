@@ -20,10 +20,10 @@ import java.util.Set;
  * is drawn as it really is, complete with what they built and what they flattened, and the rest of
  * the planet is still a planet rather than a hole.
  *
- * <p>Two things keep it affordable at kilometre range. Cells are sized <em>by distance</em> — a
- * cell is always about a seventh of its own distance from the eye — so every column covers the same
- * slice of the view however far out it is, and a horizon twelve kilometres away costs about what
- * the ground below the ship costs. And distance itself is compressed by
+ * <p>Two things keep it affordable at kilometre range. Cells are sized <em>by distance</em> — see
+ * {@link HorizonGrid}, which owns that rule and is tested directly — so every column covers roughly
+ * the same slice of the view however far out it is, and a horizon twelve kilometres away costs about
+ * what the ground below the ship costs. And distance itself is compressed by
  * {@link HorizonProjection}, so all of it fits inside the projection's far plane while every point
  * keeps its exact bearing and elevation.
  *
@@ -33,20 +33,18 @@ import java.util.Set;
  * replaces rebuilt up to ten thousand boxes on the render thread every frame.
  */
 public final class PlanetSurfaceMesh {
-	/** How many cells fit across a ring's inner radius — sets the angular size of one column. */
-	private static final double CELLS_PER_RADIUS = 7.0;
 	/**
-	 * Each ring reaches this many times further than the one inside it — and its cells are that
-	 * much coarser. Kept modest because the jump in cell size is visible as a terrace where two
-	 * rings meet, and a gentler step buys that back for a couple of hundred more columns.
+	 * Hard ceiling on geometry, whatever the rings ask for.
+	 *
+	 * <p>Sized against {@link HorizonGrid}'s own worst case rather than picked round: the grid tops
+	 * out near 7,200 cells at full altitude refinement (measured by {@code HorizonGridTest}'s own
+	 * disc-area count, the same estimate this number is derived from), and a cell emits a top plus up
+	 * to four skirts. Generous on purpose — running out mid-plan drops the <em>outermost</em> rings,
+	 * so the failure mode of a too-small budget is the far horizon vanishing, which is worse than the
+	 * blockiness this rework set out to fix. Grew with the finer grid: 18,000 covered the old
+	 * seven-cells-per-radius field, which drew barely 650 columns from altitude.
 	 */
-	private static final double RING_GROWTH = 1.8;
-	/** Finest cell, so the field never dissolves into thousands of tiny columns underfoot. */
-	private static final int MIN_CELL = 24;
-	/** Enough rings to walk from the chunk edge out to the far radius at that growth. */
-	private static final int MAX_RINGS = 9;
-	/** Hard ceiling on geometry, whatever the rings ask for. */
-	private static final int MAX_QUADS = 18_000;
+	private static final int MAX_QUADS = 36_000;
 	/** Landmarks drawn, nearest first — the rest are too far apart to tell from terrain. */
 	private static final int MAX_LANDMARKS = 96;
 	/** How far the ship may drift from the build origin before the field is rebuilt. */
@@ -113,31 +111,14 @@ public final class PlanetSurfaceMesh {
 
 		// Plan the rings before emitting any: the outermost one has to know where the field ends so
 		// it can fade out into it. A ring that stops at full opacity leaves a rim hanging in the air.
-		//
-		// Cell size follows the true (slant) eye-distance, not just horizontal ground distance — the
-		// same metric HorizonProjection.factor already uses below to decide *where* a point is drawn,
-		// so "how coarse" and "where drawn" agree instead of disagreeing exactly at altitude, where the
-		// vertical component of distance stops being negligible next to the horizontal one. Same shape
-		// as PlanetFloorRenderer.innerRadius's own "drop" — no new plumbing, camY/seed are already here.
+		// The sizing rule itself lives in HorizonGrid, where it is directly testable — see that class
+		// for why altitude now refines the grid instead of coarsening it.
 		double drop = camY - PlanetMap.height(seed, camX, camZ);
-		double[] ringEdges = new double[MAX_RINGS + 1];
-		int[] ringCells = new int[MAX_RINGS];
-		int rings = 0;
-		double ringInner = Math.max(0.0, innerRadius);
-		// The walk needs a non-zero radius to size the first cell from, even at the nadir.
-		double sizeFrom = Math.max(MIN_CELL * CELLS_PER_RADIUS, ringInner);
-		ringEdges[0] = ringInner;
-		while (rings < MAX_RINGS && ringInner < HorizonProjection.MAX_TRUE_RADIUS) {
-			double trueDist = Math.sqrt(sizeFrom * sizeFrom + drop * drop);
-			ringCells[rings] = (int) Math.max(MIN_CELL, trueDist / CELLS_PER_RADIUS);
-			ringInner = Math.min(sizeFrom * RING_GROWTH, HorizonProjection.MAX_TRUE_RADIUS);
-			ringEdges[++rings] = ringInner;
-			sizeFrom = ringInner;
-		}
-		b.fieldOuter = ringEdges[rings];
+		HorizonGrid.Plan plan = HorizonGrid.plan(innerRadius, HorizonProjection.MAX_TRUE_RADIUS, drop);
+		b.fieldOuter = plan.outer();
 
-		for (int ring = 0; ring < rings; ring++) {
-			b.emitRing(ringEdges[ring], ringEdges[ring + 1], ringCells[ring]);
+		for (int ring = 0; ring < plan.rings(); ring++) {
+			b.emitRing(plan.edges()[ring], plan.edges()[ring + 1], plan.cells()[ring]);
 			if (b.full()) break;
 		}
 
