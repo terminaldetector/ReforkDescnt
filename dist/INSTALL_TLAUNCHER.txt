@@ -1,18 +1,18 @@
-DRMD 6DOF 1.1.5 — ПК TLauncher Fabric 1.21.1
+DRMD 6DOF 1.1.6 — ПК TLauncher Fabric 1.21.1
 =======================================
-Jar: drmd-6dof-1.1.5-fabric-1.21.1.jar
+Jar: drmd-6dof-1.1.6-fabric-1.21.1.jar
 
 Установка
   1. Версии → Fabric Loader для Minecraft 1.21.1
   2. Java 21+ в настройках лаунчера
   3. УДАЛИ ВСЕ старые drmd-6dof*.jar из mods/ и versions/*/mods/
-  4. Положи ТОЛЬКО drmd-6dof-1.1.5-fabric-1.21.1.jar + Fabric API 1.21.1
-  5. В логе должно быть: "DRMD 6DOF 1.1.5 ready"
+  4. Положи ТОЛЬКО drmd-6dof-1.1.6-fabric-1.21.1.jar + Fabric API 1.21.1
+  5. В логе должно быть: "DRMD 6DOF 1.1.6 ready"
   6. Новый мир
 
 Не класть *-sources.jar / *-dev.jar в mods.
 
-В логе обязательно: "DRMD 6DOF 1.1.5 ready"
+В логе обязательно: "DRMD 6DOF 1.1.6 ready"
   Нет строки — в mods старый jar. 6DoF: H · кокпит FP · "," настройки.
 
 Сборка: ./gradlew build --no-daemon
