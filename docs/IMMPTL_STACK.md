@@ -8,6 +8,26 @@ Path A (optional soft-dep): Immersive Portals **Dimension Stack** for true see-t
 `fabric.mod.json` **suggests** ImmPtl. The mod runs without it.
 `PortalComplexity.hasImmersivePortals()` detects common mod ids for HUD only.
 
+### Build-side trap: ImmPtl's transitive access wideners
+
+DRMD compiles against the vendored ImmPtl jar (`modImplementation files("libs/immersiveportals-…")`),
+and **Loom applies a mod dependency's `transitive-*` access wideners to this project's compile
+environment.** So every vanilla member ImmPtl widens is silently widened for DRMD's compile too. Code
+relying on one of those widenings compiles cleanly and CI passes — then crashes at class-load on any
+client *without* ImmPtl, because Fabric Loader only applies wideners from **installed** mods.
+
+This is not hypothetical. `SkyUfoEntity.getBoundingBox()` overrides a method vanilla declares `final`;
+it compiled only because ImmPtl's own widener covers it (`transitive-extendable class_1297
+method_5829`), and a real client without ImmPtl died at startup with `IncompatibleClassChangeError`
+before the title screen. Fixed by declaring the widening in DRMD's own `drmd.accesswidener` — which
+Fabric Loader *does* apply at runtime, since `fabric.mod.json` declares it.
+
+**Rule: anything DRMD needs widened must be in `src/main/resources/drmd.accesswidener`, never inherited
+from ImmPtl.** `AccessWidenerTest` pins the known case; the general risk (a compile that only succeeds
+because of an optional dependency's widener) has no compiler or CI signal at all, so check
+`imm_ptl.accesswidener` inside the vendored jar before assuming a `final`/`private` vanilla member is
+legitimately reachable.
+
 Vanilla Nether / End portals still need **gate catalysts** (complex crafts) even with ImmPtl installed — dig-through remains the seamless survival path.
 
 ## Recommended stack (Fabric 1.21.1)

@@ -1,2 +1,13 @@
 accessWidener	v2	named
 accessible	method	net/minecraft/entity/vehicle/VehicleEntity	asItem	()Lnet/minecraft/item/Item;
+
+# SkyUfoEntity overrides Entity.getBoundingBox(), which vanilla declares final. Immersive Portals'
+# own access widener already widens exactly this method (transitive-extendable class_1297
+# method_5829), and Loom applies a modImplementation dependency's transitive wideners to this
+# project's compile environment -- so the override compiled, and CI stayed green, purely because
+# ImmPtl happened to be on the compile classpath. At runtime ImmPtl is optional (see
+# PortalComplexity.hasImmersivePortals / docs/IMMPTL_STACK.md), Fabric Loader only applies wideners
+# from installed mods, and a client without ImmPtl therefore died at class-load with
+# IncompatibleClassChangeError before reaching the title screen. Declared here so DRMD owns the
+# widening it actually needs instead of inheriting it by accident from an optional dependency.
+extendable	method	net/minecraft/entity/Entity	getBoundingBox	()Lnet/minecraft/util/math/Box;
