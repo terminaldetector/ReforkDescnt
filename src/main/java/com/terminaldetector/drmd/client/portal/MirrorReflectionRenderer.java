@@ -1,11 +1,13 @@
 package com.terminaldetector.drmd.client.portal;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.terminaldetector.drmd.client.config.DescentConfig;
 import com.terminaldetector.drmd.mixin.client.CameraAccessor;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
@@ -17,19 +19,23 @@ import java.util.List;
  * literal mirror, reflected by actually re-rendering the world from a moved-and-turned camera, not a
  * flat texture or a fake reversed model.
  *
- * <p><b>Deliberately unmasked for now.</b> The real ImmPtl technique stencil-masks the recursive render
- * to just the mirror's own screen silhouette ({@code RendererUsingStencil}, 7 GL state steps — see the
- * plan's R1a section). That is real, novel, first-ever-in-this-project GL state code stacked on top of
- * an already-uncertain camera/matrix reconstruction (see below) — shipping both at once would mean that
- * if the live client shows something wrong, there would be no way to tell which of the two broke it
- * without a debugger this sandbox doesn't have. So this first cut skips the mask entirely: when
- * {@link DescentConfig#mirrorReflection} is on and the nearest qualifying mirror is in range, its
- * reflection fills the <em>whole</em> screen for that frame, not just the mirror's own outline. That is
- * not the finished feature — it is a deliberately minimal, visually obvious way for a live client to
- * confirm or deny the one thing that can't be checked here: does reflecting the camera through
- * {@link PortalTransform} and recursively calling {@code WorldRenderer.render} actually produce a
- * correctly-oriented view of the world at all. The stencil mask is the next increment once that is
- * confirmed, not before.
+ * <p><b>This is a probe, not the finished feature, and it is shaped that way on purpose.</b> The
+ * reflection is rendered into an off-screen target ({@link MirrorFramebuffer}) and then blitted over
+ * the <em>whole</em> screen — it is not yet confined to the mirror's own outline. That isolates the one
+ * question nothing in this sandbox can answer: does reflecting the camera through
+ * {@link PortalTransform} and recursively calling {@code WorldRenderer.render} produce a correct view
+ * of the world at all? Everything past that point — masking the result to the mirror's shape, letting
+ * several mirrors coexist, recursion — is only worth building once the answer is yes.
+ *
+ * <p><b>Why the mask is not here yet</b> is a finding, not a postponement. Both of ImmPtl's masking
+ * strategies need infrastructure DRMD does not have. The stencil one needs a stencil attachment on the
+ * main framebuffer, which vanilla lacks and ImmPtl gets from Porting Lib (see
+ * {@link MirrorFramebuffer}). The framebuffer one composites through a <em>custom shader</em>
+ * ({@code DrawFbInAreaShader}), which takes the screen size as a uniform and derives its texture
+ * coordinates from {@code gl_FragCoord} — and it has to, because per-vertex screen-space UVs would be
+ * interpolated perspective-correctly across the quad and come out distorted. DRMD ships no custom
+ * shaders at all today, so that composite is its own piece of new infrastructure. A full-screen blit
+ * needs neither, and uses only {@code Framebuffer.draw}, which is vanilla's own.
  *
  * <p>{@code reflectedPositionMatrix} in {@link #renderReflection} — {@code WorldRenderer.render}'s
  * {@code positionMatrix} parameter — is built the same shape vanilla itself uses: ImmPtl's own real
@@ -126,6 +132,10 @@ public final class MirrorReflectionRenderer {
 		PortalTransform.Vec3 reflectedLook = PortalTransform.reflectVector(lookDirection, normal);
 		PortalTransform.YawPitch reflectedAngles = PortalTransform.vectorToYawPitch(reflectedLook);
 
+		Framebuffer target = MirrorFramebuffer.get();
+		if (target == null) return; // window has no area this frame — nothing to draw into
+
+		MinecraftClient mc = MinecraftClient.getInstance();
 		recursionDepth++;
 		try {
 			accessor.drmd$invokeSetPos(fromPure(reflectedPos));
@@ -134,6 +144,10 @@ public final class MirrorReflectionRenderer {
 			// See the class doc comment: this reconstruction, not the scan or the recursion itself, is
 			// the line to re-derive first if a live test shows a mis-oriented (not just unmasked) result.
 			Matrix4f reflectedPositionMatrix = new Matrix4f().rotation(camera.getRotation());
+
+			target.setClearColor(0f, 0f, 0f, 1f);
+			target.clear(MinecraftClient.IS_SYSTEM_MAC);
+			target.beginWrite(true);
 
 			context.worldRenderer().render(
 					context.tickCounter(),
@@ -144,10 +158,25 @@ public final class MirrorReflectionRenderer {
 					context.projectionMatrix(), // FOV/aspect/near/far — unchanged by moving the camera
 					reflectedPositionMatrix);
 		} finally {
+			// Restore in the reverse order of setup, and unconditionally: leaving the camera at a
+			// reflected pose or the off-screen target bound would corrupt every system that reads either
+			// next frame, not just this mirror's own picture.
+			target.endWrite();
+			mc.getFramebuffer().beginWrite(true);
 			accessor.drmd$invokeSetPos(originalPos);
 			accessor.drmd$invokeSetRotation(originalYaw, originalPitch);
 			recursionDepth--;
 		}
+
+		// Vanilla's own blit — no custom shader, which is the whole reason this probe is a full-screen
+		// draw rather than a mirror-shaped one. Outside the try/finally: the camera and the bound target
+		// must already be back to normal before anything is put on screen.
+		target.draw(MirrorFramebuffer.width(), MirrorFramebuffer.height());
+		// draw() leaves the depth test disabled (it restores the depth *mask* and colour mask, but not
+		// this), and we are still inside the world render — anything drawn after us in the same frame
+		// would lose its depth sorting. Cheap to put back, and the alternative is a bug that would read
+		// as "the mirror broke some unrelated renderer".
+		RenderSystem.enableDepthTest();
 	}
 
 	private static PortalTransform.Vec3 toPure(Vec3d v) {

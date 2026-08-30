@@ -56,12 +56,22 @@ public final class DescentConfig {
 	public static boolean fallAftermath = false;
 	/**
 	 * Native see-through mirror reflection (Phase R1a of the portal-rendering plan) — a recursive,
-	 * camera-reflected re-render of the world, unmasked (fills the whole screen, not just the mirror's
-	 * own silhouette; the stencil mask is a later phase). The first genuinely client-verification-only
-	 * feature in this project: it compiles and passes CI, but whether the reflected view is actually
-	 * correct — or whether it renders at all without artifacts — has never been seen on a live client.
-	 * Defaults off on purpose, unlike every other toggle here, so it never runs until deliberately
-	 * turned on to test it. Off means mirrors behave exactly as before (bounce lasers, nothing else).
+	 * camera-reflected re-render of the world, drawn into an off-screen target and then blitted over
+	 * the whole screen.
+	 *
+	 * <p><b>A diagnostic probe, not the feature.</b> Turning this on while a mirror is within 24 blocks
+	 * replaces the entire view with what the mirror sees, rather than putting that image on the mirror's
+	 * face. That is deliberate: confining it to the mirror's own shape needs a custom compositing shader
+	 * (or a stencil buffer vanilla does not have), and neither is worth building until the harder
+	 * question is answered — does the reflected render come out correct at all? What to look for: the
+	 * view should be the world seen from behind the mirror, mirrored left-to-right, turning the right
+	 * way as you move. Wrong position or wrong orientation points at
+	 * {@code MirrorReflectionRenderer}'s matrix reconstruction; a black or unchanged screen points at
+	 * the off-screen render itself.
+	 *
+	 * <p>Defaults off, unlike every other toggle here, and stays off until deliberately switched on:
+	 * this is the first feature in the project where passing CI says nothing about whether it works.
+	 * Off means mirrors behave exactly as before (bounce lasers, nothing else).
 	 */
 	public static boolean mirrorReflection = false;
 
