@@ -112,6 +112,23 @@ class MirrorScreenBoundsTest {
 	}
 
 	@Test
+	@DisplayName("a face crossing the eye plane reports the part in front, not nothing")
+	void faceStraddlingTheEyePlaneIsClipped() {
+		float[] m = perspective(70, (double) W / H, 0.05, 1000);
+		// A 4-wide portal panel you have almost walked into: its plane is beside the camera, so two of
+		// its corners are behind the eye and two in front. Throwing the whole face away here — which is
+		// what a per-corner rejection does — makes a portal vanish exactly as you get close enough to
+		// use it.
+		Vec3[] corners = MirrorScreenBounds.faceCorners(new Vec3(0.1, 0, -1), new Vec3(1, 0, 0), 4.0);
+
+		MirrorScreenBounds.Box box = MirrorScreenBounds.project(corners, m, W, H, 0);
+		assertTrue(box.valid(), "a partly visible face must still report a box");
+		assertTrue(box.width() > 0 && box.height() > 0, "empty box: " + box);
+		// It reaches the screen edge, because an edge cut at the eye plane projects arbitrarily far.
+		assertEquals(H, box.height(), "a face through the eye plane should span the screen vertically");
+	}
+
+	@Test
 	@DisplayName("a face behind the camera is rejected rather than projected through infinity")
 	void behindCameraIsInvalid() {
 		float[] m = perspective(70, (double) W / H, 0.05, 1000);

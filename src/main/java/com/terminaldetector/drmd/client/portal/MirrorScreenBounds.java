@@ -23,8 +23,10 @@ public final class MirrorScreenBounds {
 	/**
 	 * A pixel rectangle in OpenGL's bottom-left origin, ready for a scissor call.
 	 *
-	 * @param valid false when the box could not be trusted — a corner behind the camera, or a
-	 *              degenerate result. The caller must fall back rather than clip to garbage.
+	 * @param valid false when there is no box to report — the face is entirely at or behind the eye
+	 *              plane, or it lands wholly off-screen. The caller must fall back rather than clip to
+	 *              garbage. A face only <em>partly</em> in front of the eye is valid, and reports the
+	 *              part that is.
 	 */
 	public record Box(int x, int y, int width, int height, boolean valid) {
 		public static final Box INVALID = new Box(0, 0, 0, 0, false);
@@ -60,12 +62,47 @@ public final class MirrorScreenBounds {
 		double h = size / 2.0;
 		PortalTransform.Vec3 a = t[0].scaled(h);
 		PortalTransform.Vec3 b = t[1].scaled(h);
+		// Around the square, not across it: {@link #project} clips these as a polygon, and a Z-shaped
+		// order would have it clipping the diagonals.
 		return new PortalTransform.Vec3[] {
 				centre.plus(a).plus(b),
 				centre.plus(a).minus(b),
-				centre.minus(a).plus(b),
 				centre.minus(a).minus(b),
+				centre.minus(a).plus(b),
 		};
+	}
+
+	/**
+	 * How close to the eye plane a point may be and still be projected. A vertex exactly on it divides
+	 * by zero; a hair in front of it projects enormously far off-screen, which is the honest answer and
+	 * what {@link #PIXEL_LIMIT} then bounds.
+	 */
+	private static final double W_EPSILON = 1e-6;
+
+	/**
+	 * Pixel coordinates are clamped to this before being rounded to {@code int}.
+	 *
+	 * <p>Not tidiness. An edge cut at the eye plane projects to something like 10^9 pixels, and Java's
+	 * double-to-int conversion saturates at {@code Integer.MAX_VALUE} — after which subtracting the pad
+	 * overflows and wraps to a large negative, turning "far off to the right" into "far off to the
+	 * left". Clamping first keeps every later step in ordinary arithmetic.
+	 */
+	private static final double PIXEL_LIMIT = 1e7;
+
+	private static double pixelX(double clipX, double clipW, int screenWidth) {
+		// GL's window origin is bottom-left, which is also what a scissor call expects, so neither axis
+		// is flipped the way a GUI-space conversion would.
+		return clamp((clipX / clipW * 0.5 + 0.5) * screenWidth);
+	}
+
+	private static double pixelY(double clipY, double clipW, int screenHeight) {
+		return clamp((clipY / clipW * 0.5 + 0.5) * screenHeight);
+	}
+
+	private static double clamp(double pixel) {
+		if (pixel < -PIXEL_LIMIT) return -PIXEL_LIMIT;
+		if (pixel > PIXEL_LIMIT) return PIXEL_LIMIT;
+		return pixel;
 	}
 
 	/**
@@ -77,6 +114,9 @@ public final class MirrorScreenBounds {
 	 * @param screenWidth  framebuffer width in pixels
 	 * @param screenHeight framebuffer height in pixels
 	 * @param pad          pixels to grow the box by on every side, to cover rounding at the edges
+	 *
+	 * <p>{@code points} are treated as a polygon in order, and one crossing the eye plane is cut there
+	 * rather than thrown away — see the loop for why that matters more than it sounds.
 	 */
 	public static Box project(PortalTransform.Vec3[] points, float[] matrix,
 			int screenWidth, int screenHeight, int pad) {
@@ -85,36 +125,58 @@ public final class MirrorScreenBounds {
 		}
 		if (screenWidth <= 0 || screenHeight <= 0) return Box.INVALID;
 
+		int n = points.length;
+		double[] cx = new double[n];
+		double[] cy = new double[n];
+		double[] cw = new double[n];
+		for (int i = 0; i < n; i++) {
+			double x = points[i].x();
+			double y = points[i].y();
+			double z = points[i].z();
+			cx[i] = matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12];
+			cy[i] = matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13];
+			cw[i] = matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15];
+		}
+
 		double minX = Double.MAX_VALUE;
 		double minY = Double.MAX_VALUE;
 		double maxX = -Double.MAX_VALUE;
 		double maxY = -Double.MAX_VALUE;
+		boolean any = false;
 
-		for (PortalTransform.Vec3 p : points) {
-			double x = p.x();
-			double y = p.y();
-			double z = p.z();
-			double cx = matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12];
-			double cy = matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13];
-			double cw = matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15];
-
-			// w <= 0 means the corner is at or behind the eye plane. Its projection is meaningless (it
-			// flips through infinity), so one such corner poisons the whole box — bail rather than clip
-			// the reflection to a rectangle derived from a sign error.
-			if (cw <= 1e-6) return Box.INVALID;
-
-			double ndcX = cx / cw;
-			double ndcY = cy / cw;
-			// GL's window origin is bottom-left, which is also what a scissor call expects, so Y is not
-			// flipped here the way a GUI-space conversion would.
-			double px = (ndcX * 0.5 + 0.5) * screenWidth;
-			double py = (ndcY * 0.5 + 0.5) * screenHeight;
-
-			if (px < minX) minX = px;
-			if (px > maxX) maxX = px;
-			if (py < minY) minY = py;
-			if (py > maxY) maxY = py;
+		// Walk the polygon's edges, keeping what is in front of the eye plane and cutting each edge
+		// where it crosses. Rejecting the whole face instead — which is what this did — meant a portal
+		// disappeared exactly as you got close enough to walk through it, since a wide face straddles
+		// the eye plane long before you reach it. Clip-space coordinates are linear along an edge, so
+		// the cut point is exact rather than an approximation.
+		for (int i = 0; i < n; i++) {
+			int j = (i + 1) % n;
+			boolean insideI = cw[i] > W_EPSILON;
+			boolean insideJ = cw[j] > W_EPSILON;
+			if (insideI) {
+				double px = pixelX(cx[i], cw[i], screenWidth);
+				double py = pixelY(cy[i], cw[i], screenHeight);
+				if (px < minX) minX = px;
+				if (px > maxX) maxX = px;
+				if (py < minY) minY = py;
+				if (py > maxY) maxY = py;
+				any = true;
+			}
+			if (insideI != insideJ) {
+				double t = (W_EPSILON - cw[i]) / (cw[j] - cw[i]);
+				double ix = cx[i] + t * (cx[j] - cx[i]);
+				double iy = cy[i] + t * (cy[j] - cy[i]);
+				double px = pixelX(ix, W_EPSILON, screenWidth);
+				double py = pixelY(iy, W_EPSILON, screenHeight);
+				if (px < minX) minX = px;
+				if (px > maxX) maxX = px;
+				if (py < minY) minY = py;
+				if (py > maxY) maxY = py;
+				any = true;
+			}
 		}
+		// Nothing survived: the face is entirely at or behind the eye plane.
+		if (!any) return Box.INVALID;
 
 		int x0 = (int) Math.floor(minX) - pad;
 		int y0 = (int) Math.floor(minY) - pad;
