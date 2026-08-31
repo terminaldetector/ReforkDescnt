@@ -12,6 +12,8 @@ import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -70,6 +72,11 @@ public final class MirrorReflectionRenderer {
 	 * couple of pixels of slack costs nothing and keeps rounding from biting a line off the edge.
 	 */
 	private static final int SCISSOR_PAD = 2;
+	/**
+	 * Mirrors reflected per frame. Each one is a whole extra world render, so this — not the range gate —
+	 * is what actually bounds the cost of walking into a room with several of them.
+	 */
+	private static final int MAX_MIRRORS_PER_FRAME = 2;
 
 	private static int recursionDepth = 0;
 	private static int scanAge = SCAN_PERIOD_TICKS;
@@ -94,8 +101,14 @@ public final class MirrorReflectionRenderer {
 
 	private static void onAfterTranslucent(WorldRenderContext context) {
 		if (!DescentConfig.mirrorReflection) return;
-		if (recursionDepth >= MirrorRenderGate.DEFAULT_MAX_RECURSION_DEPTH) return;
 		if (cachedMirrors.isEmpty()) return;
+		// Depth 0 only, and this is a correctness stop rather than a budget one. The recursive render
+		// draws into MirrorFramebuffer, and this callback fires again inside it — so a nested mirror
+		// would bind that same single target while its own blit reads from it. Sampling a framebuffer
+		// that is currently bound for writing is undefined in GL, not merely slow. MirrorRenderGate
+		// already models deeper layers and stays as-is; the missing piece is one target per layer, not
+		// a different gate.
+		if (recursionDepth > 0) return;
 
 		Camera camera = context.camera();
 		// Unconditional cast, same idiom as CameraMixin's own use of this accessor: CameraAccessor is a
@@ -103,29 +116,33 @@ public final class MirrorReflectionRenderer {
 		// applied, CameraMixin itself would already have failed long before this code ever runs.
 		CameraAccessor accessor = (CameraAccessor) camera;
 
-		// Unmasked means only one reflection can actually be visible on screen at a time (each draws
-		// over the whole frame) — the nearest qualifying mirror is the obvious, simplest choice, and is
-		// diagnostic-only behaviour worth re-examining once the stencil mask lets several coexist.
-		MirrorScanner.MirrorFace nearest = null;
-		double nearestDistance = Double.MAX_VALUE;
+		// Several mirrors can now be on screen at once — each blit is scissored to its own rectangle, so
+		// they no longer overwrite each other the way full-screen draws did. Nearest first, capped:
+		// every mirror costs a full world render, so the cap is the real budget, not the range gate.
 		Vec3d cameraPos = camera.getPos();
+		List<MirrorScanner.MirrorFace> visible = new ArrayList<>();
 		for (MirrorScanner.MirrorFace mirror : cachedMirrors) {
 			double distance = cameraPos.distanceTo(mirror.planePoint());
 			if (!MirrorRenderGate.shouldRender(recursionDepth, MirrorRenderGate.DEFAULT_MAX_RECURSION_DEPTH,
 					distance, BASE_RENDER_RANGE)) {
 				continue;
 			}
-			if (distance < nearestDistance) {
-				nearestDistance = distance;
-				nearest = mirror;
-			}
+			visible.add(mirror);
 		}
-		if (nearest == null) return;
+		if (visible.isEmpty()) return;
+		visible.sort(Comparator.comparingDouble(m -> cameraPos.squaredDistanceTo(m.planePoint())));
 
-		renderReflection(context, accessor, camera, nearest);
+		int drawn = 0;
+		for (MirrorScanner.MirrorFace mirror : visible) {
+			if (drawn >= MAX_MIRRORS_PER_FRAME) break;
+			// Counts only mirrors that actually rendered: one whose box is off-screen costs nothing and
+			// must not use up a slot a visible one behind it could have had.
+			if (renderReflection(context, accessor, camera, mirror)) drawn++;
+		}
 	}
 
-	private static void renderReflection(WorldRenderContext context, CameraAccessor accessor, Camera camera,
+	/** @return true when the reflection actually reached the screen, false when it was skipped. */
+	private static boolean renderReflection(WorldRenderContext context, CameraAccessor accessor, Camera camera,
 			MirrorScanner.MirrorFace mirror) {
 		Vec3d originalPos = camera.getPos();
 		float originalYaw = camera.getYaw();
@@ -140,13 +157,13 @@ public final class MirrorReflectionRenderer {
 		PortalTransform.YawPitch reflectedAngles = PortalTransform.vectorToYawPitch(reflectedLook);
 
 		Framebuffer target = MirrorFramebuffer.get();
-		if (target == null) return; // window has no area this frame — nothing to draw into
+		if (target == null) return false; // window has no area this frame — nothing to draw into
 
 		// Where the mirror's own face lands on screen, measured with the OUTER camera and its matrices,
 		// before anything is reflected. Computed up front rather than after the render: an invalid box
 		// means there is nowhere to put the result, so bailing here also skips a whole world render.
 		MirrorScreenBounds.Box box = screenBox(context, mirror, originalPos);
-		if (!box.valid()) return;
+		if (!box.valid()) return false;
 
 		MinecraftClient mc = MinecraftClient.getInstance();
 		recursionDepth++;
@@ -197,6 +214,7 @@ public final class MirrorReflectionRenderer {
 		// would lose its depth sorting. Cheap to put back, and the alternative is a bug that would read
 		// as "the mirror broke some unrelated renderer".
 		RenderSystem.enableDepthTest();
+		return true;
 	}
 
 	/**
