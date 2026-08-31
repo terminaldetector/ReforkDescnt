@@ -50,9 +50,11 @@ public final class PortalTravel {
 	/**
 	 * Move anyone who stepped through {@code pos}'s face this tick to {@code partnerPos}'s.
 	 *
-	 * @param halfSpan how far from the face centre a crossing may land and still count — half a block
-	 *                 for a mirror, the panel's own half-span for a portal panel. Slightly generous is
-	 *                 right: it forgives the corners without reaching the block beyond.
+	 * @param halfSpan how far from the face centre, along each in-plane axis, a crossing may land and
+	 *                 still count — half a block for a mirror, the panel's own half-span for a portal
+	 *                 panel. Slightly generous is right for a mirror: it forgives the corners without
+	 *                 reaching the block beyond. Measured as a rectangle rather than a radius, so a
+	 *                 wide panel keeps its corners — see {@link PortalCrossing#withinFace}.
 	 */
 	public static void carry(ServerWorld world, BlockPos pos, Direction facing,
 			BlockPos partnerPos, Direction partnerFacing, double halfSpan) {
@@ -64,7 +66,6 @@ public final class PortalTravel {
 
 		PortalTransform.Vec3 plane = toPure(face);
 		PortalTransform.Vec3 n = toPure(normal);
-		double reachSq = halfSpan * halfSpan;
 
 		// The box only decides who is worth testing; the step test below is what catches anything moving
 		// faster than the box is wide, which at this project's ship speeds is the normal case.
@@ -85,7 +86,7 @@ public final class PortalTravel {
 			// carried: the crossing has to land on the portal's own face.
 			PortalTransform.Vec3 hit = PortalCrossing.crossingPoint(prev, nowPos, plane, n);
 			if (hit == null) continue;
-			if (new Vec3d(hit.x(), hit.y(), hit.z()).squaredDistanceTo(face) > reachSq) continue;
+			if (!PortalCrossing.withinFace(hit, plane, n, halfSpan)) continue;
 
 			PortalCrossing.Exit exit = PortalCrossing.exitFor(
 					nowPos, toPure(entity.getVelocity()),

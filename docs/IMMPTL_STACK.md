@@ -28,6 +28,26 @@ because of an optional dependency's widener) has no compiler or CI signal at all
 `imm_ptl.accesswidener` inside the vendored jar before assuming a `final`/`private` vanilla member is
 legitimately reachable.
 
+### Что зеркала и панели делают без ImmPtl
+
+Игровые сообщения о связке ссылаются сюда, так что вот прямой ответ.
+
+| | без ImmPtl | с ImmPtl |
+|---|---|---|
+| Связка пары (авто и вручную) | да | да |
+| Проход насквозь | да, `PortalTravel` | да, сущность `Portal` |
+| Взгляд насквозь | нет | да |
+| Кросс-дименшн связь | нет, отказ с причиной | да |
+| Пересчёт масштаба (`Warped Resonance Key`) | нет, отказ с причиной | да |
+
+Раньше без ImmPtl **связка не образовывалась вообще**: оба пути связывания выходили досрочно, `LINKED`
+никогда не выставлялся, и блок честно писал «decorative only». Теперь связывается и носит сам; ImmPtl
+добавляет к этому вид сквозь портал, а не сам портал.
+
+Кто именно носит — решается по наличию привязанной сущности, а не по наличию мода. Это заодно правильно
+отрабатывает обе миграции: мир, связанный с ImmPtl и открытый без него, продолжает работать нативно, а
+связанный нативно не ломается, если ImmPtl потом поставить.
+
 Vanilla Nether / End portals still need **gate catalysts** (complex crafts) even with ImmPtl installed — dig-through remains the seamless survival path.
 
 ## Recommended stack (Fabric 1.21.1)

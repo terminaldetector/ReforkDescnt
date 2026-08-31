@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.world.portal.mirror;
 
 import com.terminaldetector.drmd.entity.ModBlockEntities;
+import com.terminaldetector.drmd.world.portal.PortalComplexity;
 import com.terminaldetector.drmd.world.portal.PortalTravel;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -94,10 +95,18 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 	 * <p>Everything but the guards lives in {@link PortalTravel}, shared with {@code PortalPanelBlock}:
 	 * a mirror is a one-block face and a panel is several across, but nothing else about travelling
 	 * through them differs, so only the span is passed in.
+	 *
+	 * <p>Stands aside for a real ImmPtl portal rather than testing whether the mod is installed. The
+	 * attached-entity id is the honest question — it is set only when a live {@code Portal} was spawned
+	 * here, and that portal does its own carrying, so both doing it would fight over the same traveller.
+	 * Asking it this way also gets both migrations right on its own: a world linked with ImmPtl and
+	 * opened without it has no portal to lose, and one linked natively keeps working if ImmPtl is
+	 * installed later.
 	 */
 	public static void tick(World world, BlockPos pos, BlockState state, ChargedMirrorBlockEntity be) {
 		if (!(world instanceof ServerWorld serverWorld)) return;
 		if (!be.linked || be.linkPartnerPos == null) return;
+		if (be.attachedEntityId != null && PortalComplexity.hasImmersivePortals()) return;
 		// Same dimension only — see PortalTravel for why a cross-dimension hop is not this call.
 		if (be.linkPartnerDim != null && !be.linkPartnerDim.equals(world.getRegistryKey())) return;
 		if (!(state.getBlock() instanceof ChargedMirrorBlock)) return;

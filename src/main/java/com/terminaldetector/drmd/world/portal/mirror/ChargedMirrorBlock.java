@@ -31,7 +31,10 @@ import java.util.UUID;
 /**
  * The mirror block's upgraded sibling: still {@link ReflectiveBlock} and, when ImmPtl is present,
  * still a literal live mirror on placement — but a {@link MirrorLinkerItem} can spend it on turning
- * a pair of these blocks into a real two-way portal (see {@link ImmPtlMirrorBridge#linkPortals}).
+ * a pair of these blocks into a real two-way portal. With Immersive Portals installed that portal is
+ * one of its {@code Portal} entities ({@link ImmPtlMirrorBridge#linkPortals}); without it the pair is
+ * linked all the same and carries travellers itself ({@link #linkNatively},
+ * {@link ChargedMirrorBlockEntity#tick}) — what is lost is seeing through, not going through.
  * Not a subclass of {@link MirrorBlock}: with almost every method needing a different block entity
  * and different attach/detach targets, inheriting would mean overriding nearly everything anyway —
  * matches this codebase's own preference (see {@code GravityGeneratorBlock}/{@code GravityTorchBlock})
@@ -90,27 +93,20 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 	protected void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
 		super.onBlockAdded(state, world, pos, oldState, notify);
 		if (!(world instanceof ServerWorld sw)) return;
-		if (!PortalComplexity.hasImmersivePortals()) {
-			// The single most likely cause of "can't walk through a linked mirror": there is no real
-			// portal behind it at all, because ImmPtl (see MirrorLinkerItem's own identical warning
-			// for the manual-link path) isn't installed — this is the placement/auto-link path, which
-			// had no such feedback before, so a missing-dependency setup looked identical to a broken
-			// one. Broadcast rather than targeting a placer: onBlockAdded fires for world-gen and
-			// non-player causes too, and has no player reference to target even when one exists.
-			for (ServerPlayerEntity p : sw.getPlayers()) {
-				if (p.squaredDistanceTo(Vec3d.ofCenter(pos)) < 36) {
-					p.sendMessage(Text.literal(
-							"§dCharged mirror is decorative only §7— needs the Immersive Portals stack "
-									+ "to actually link (see docs/IMMPTL_STACK.md)."), false);
-				}
-			}
-			return;
+		// Re-entrancy guard. markLinked flips LINKED with a setBlockState, and vanilla calls
+		// onBlockAdded again for the new state — so without this, pairing runs a second time from
+		// inside itself. Harmless for the native path (recording a link twice changes nothing) but
+		// not for the ImmPtl one, where it spawned a second pair of portals and orphaned the first.
+		if (state.get(LINKED)) return;
+
+		Direction facing = state.get(FACING);
+		// The live Mirror entity is ImmPtl's see-through surface, and only that. Linking and travel
+		// below no longer go through it, so a missing ImmPtl costs the view, not the portal.
+		if (PortalComplexity.hasImmersivePortals()
+				&& world.getBlockEntity(pos) instanceof ChargedMirrorBlockEntity be) {
+			be.setAttachedEntityId(ImmPtlMirrorBridge.attach(sw, pos, facing));
 		}
-		if (world.getBlockEntity(pos) instanceof ChargedMirrorBlockEntity be) {
-			UUID id = ImmPtlMirrorBridge.attach(sw, pos, state.get(FACING));
-			be.setAttachedEntityId(id);
-			tryAutoLink(sw, pos, state.get(FACING));
-		}
+		tryAutoLink(sw, pos, facing);
 	}
 
 	/** How far an auto-link ray walks before giving up — long enough for a real hallway, short
@@ -141,10 +137,15 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 					|| !(world.getBlockEntity(pos) instanceof ChargedMirrorBlockEntity selfBe)) {
 				return;
 			}
-			ImmPtlMirrorBridge.linkPortals(
-					world, pos, facing, selfBe.getAttachedEntityId(),
-					world, check, facingBack, partnerBe.getAttachedEntityId(),
-					MirrorLinkerTier.SAME_DIMENSION);
+			if (PortalComplexity.hasImmersivePortals()) {
+				ImmPtlMirrorBridge.linkPortals(
+						world, pos, facing, selfBe.getAttachedEntityId(),
+						world, check, facingBack, partnerBe.getAttachedEntityId(),
+						MirrorLinkerTier.SAME_DIMENSION);
+			} else {
+				linkNatively(world, pos, check);
+				noteNativeLink(world, pos, check);
+			}
 			// No player to message (this fires from placement, not a hand action) — particles/sound
 			// at both ends are the only feedback, same effect MirrorLinkerItem plays on a manual link.
 			for (BlockPos p : new BlockPos[]{pos, check}) {
@@ -167,10 +168,45 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 	}
 
 	/**
-	 * Called once {@link ImmPtlMirrorBridge#linkPortals} has actually spawned the two-way portal at
-	 * this position — by {@link MirrorLinkerItem} after a manual link, or by {@link #tryAutoLink}
-	 * right here after an automatic one — records the link and flips {@link #LINKED} so every client
-	 * sees the change through the ordinary blockstate-update path.
+	 * Record a working link with no portal entity behind it — the same bookkeeping
+	 * {@link ImmPtlMirrorBridge#linkPortals} ends with, minus the two {@code Portal}s it spawns first.
+	 *
+	 * <p>This is what makes a linked pair mean anything without Immersive Portals installed. Before it,
+	 * both link paths refused outright when ImmPtl was absent, so {@code LINKED} was never set, and the
+	 * native travel in {@link com.terminaldetector.drmd.world.portal.PortalTravel} could not fire —
+	 * dead code exactly in the case it exists for.
+	 *
+	 * <p>A null entity id is not an oversight: it is the flag that says "nothing of ImmPtl's is carrying
+	 * anyone through here", which is what {@code ChargedMirrorBlockEntity.tick} reads to decide whether
+	 * to do the carrying itself.
+	 */
+	static void linkNatively(ServerWorld world, BlockPos a, BlockPos b) {
+		markLinked(world, a, null, b, world.getRegistryKey());
+		markLinked(world, b, null, a, world.getRegistryKey());
+	}
+
+	/**
+	 * Tell whoever is standing there what a native link does and does not do. Worth saying, because
+	 * nothing about the surface changes: the pair carries you now, but looking at it still shows a
+	 * mirror rather than the far side. Kept apart from {@link #linkNatively} so the manual linker,
+	 * which is already answering a player directly, can say it its own way.
+	 */
+	static void noteNativeLink(ServerWorld world, BlockPos a, BlockPos b) {
+		for (ServerPlayerEntity p : world.getPlayers()) {
+			if (p.squaredDistanceTo(Vec3d.ofCenter(a)) < 256 || p.squaredDistanceTo(Vec3d.ofCenter(b)) < 256) {
+				p.sendMessage(Text.literal(
+						"§bMirrors linked §7— walk in to travel. §8Seeing through needs Immersive Portals "
+								+ "(docs/IMMPTL_STACK.md)."), false);
+			}
+		}
+	}
+
+	/**
+	 * Records the link and flips {@link #LINKED}, so every client sees the change through the ordinary
+	 * blockstate-update path. Called from all four link paths: automatic or manual, with a live
+	 * {@link ImmPtlMirrorBridge#linkPortals} portal behind it or with nothing behind it at all
+	 * ({@link #linkNatively}). {@code portalEntityId} is null in the latter case, and that null is the
+	 * signal the tick reads — see {@link #linkNatively}.
 	 */
 	public static void markLinked(ServerWorld world, BlockPos pos, UUID portalEntityId,
 			BlockPos partnerPos, RegistryKey<World> partnerDim) {

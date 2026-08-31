@@ -140,6 +140,43 @@ class PortalCrossingTest {
 	}
 
 	@Test
+	@DisplayName("a crossing on the face counts, one past its edge does not")
+	void withinFaceBoundsTheFace() {
+		// A one-block mirror: its own corner is at 0.5, so 0.7 is inside the forgiving span and 0.8 out.
+		assertTrue(PortalCrossing.withinFace(new Vec3(0.7, 0.7, 0), PLANE, NORMAL, 0.75));
+		assertFalse(PortalCrossing.withinFace(new Vec3(0.8, 0, 0), PLANE, NORMAL, 0.75));
+		// Exactly on the edge counts, so the span reads as a closed rectangle.
+		assertTrue(PortalCrossing.withinFace(new Vec3(0.75, 0, 0), PLANE, NORMAL, 0.75));
+	}
+
+	@Test
+	@DisplayName("a wide portal keeps its corners — the face is a rectangle, not a circle")
+	void withinFaceKeepsTheCornersOfAWidePortal() {
+		// A 4-wide portal panel. The corner is 2.69 from the centre, so a radius test of 2.0 would
+		// refuse a traveller aiming at a visibly open part of the portal.
+		assertTrue(PortalCrossing.withinFace(new Vec3(1.9, 1.9, 0), PLANE, NORMAL, 2.0),
+				"the corner of a 4-wide panel must be inside its own face");
+		assertFalse(PortalCrossing.withinFace(new Vec3(2.1, 0, 0), PLANE, NORMAL, 2.0));
+	}
+
+	@Test
+	@DisplayName("distance along the normal is not the face test's business")
+	void withinFaceIgnoresDepth() {
+		// The caller passes a point already known to be on the plane; the normal component is projected
+		// out so a stray depth cannot make a centred hit read as a miss.
+		assertTrue(PortalCrossing.withinFace(new Vec3(0, 0, 7), PLANE, NORMAL, 0.75));
+	}
+
+	@Test
+	@DisplayName("the face test works off any axis and does not need a unit normal")
+	void withinFaceHandlesOtherAxesAndScales() {
+		assertTrue(PortalCrossing.withinFace(new Vec3(5, 0.7, -0.74), PLANE, new Vec3(1, 0, 0), 0.75));
+		assertFalse(PortalCrossing.withinFace(new Vec3(5, 0.7, -0.9), PLANE, new Vec3(1, 0, 0), 0.75));
+		assertTrue(PortalCrossing.withinFace(new Vec3(0.7, 0.7, 0), PLANE, new Vec3(0, 0, 5), 0.75),
+				"an unnormalised normal must measure the same as a unit one");
+	}
+
+	@Test
 	@DisplayName("crossing and exit are deterministic")
 	void isDeterministic() {
 		var a = PortalCrossing.exitFor(new Vec3(1, 2, 3), new Vec3(0, 0, -1),

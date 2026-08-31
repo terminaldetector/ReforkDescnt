@@ -79,6 +79,32 @@ public final class PortalCrossing {
 	}
 
 	/**
+	 * Whether a point on the portal's plane lies on the portal's own face.
+	 *
+	 * <p>The rectangle, not a circle around the centre. A circle of radius {@code halfSpan} covers a
+	 * one-block mirror face completely, so the difference never showed there — but a four-wide portal
+	 * panel inscribed in that circle loses its corners, and a traveller aiming at the corner of a
+	 * visibly open portal would simply not be carried.
+	 *
+	 * <p>Chebyshev distance is the right measure here because both linked block families are
+	 * axis-aligned ({@code Properties.FACING}): with an axis-aligned normal the in-plane offset has
+	 * nothing along the normal's own axis, so the largest remaining component <em>is</em> the distance
+	 * to the nearer edge. A rotated portal would need its own two in-plane axes; neither block can
+	 * produce one.
+	 *
+	 * <p>Distance along the normal is deliberately not judged — the caller passes a point already known
+	 * to be on the plane, and the component along the normal is projected out before measuring.
+	 */
+	public static boolean withinFace(PortalTransform.Vec3 point, PortalTransform.Vec3 planePoint,
+			PortalTransform.Vec3 normal, double halfSpan) {
+		PortalTransform.Vec3 n = normal.normalized();
+		PortalTransform.Vec3 offset = point.minus(planePoint);
+		PortalTransform.Vec3 inPlane = offset.minus(n.scaled(offset.dot(n)));
+		double reach = Math.max(Math.abs(inPlane.x()), Math.max(Math.abs(inPlane.y()), Math.abs(inPlane.z())));
+		return reach <= halfSpan;
+	}
+
+	/**
 	 * Transform a traveller from one portal to its partner.
 	 *
 	 * <p>Position goes through {@link PortalTransform#transformPoint} at 1:1 scale; velocity is turned

@@ -1,7 +1,6 @@
 package com.terminaldetector.drmd.world.portal.mirror;
 
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
-import com.terminaldetector.drmd.world.portal.PortalComplexity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -45,13 +44,9 @@ public class PortalGunItem extends Item {
 	public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
 		ItemStack stack = user.getStackInHand(hand);
 		if (world.isClient || !(world instanceof ServerWorld sw)) return TypedActionResult.success(stack);
-		if (!PortalComplexity.hasImmersivePortals()) {
-			user.sendMessage(Text.literal(
-					"§dPortal gun is decorative only §7— needs the Immersive Portals stack "
-							+ "to actually link (see docs/IMMPTL_STACK.md)."), false);
-			return TypedActionResult.fail(stack);
-		}
-
+		// No Immersive Portals check any more. The gun refused to fire without it because a placed panel
+		// could not link; panels pair and carry travellers on their own now, so the only thing a missing
+		// ImmPtl costs here is seeing through the panel — which is not a reason to refuse to place one.
 		Vec3d start = user.getEyePos();
 		Vec3d end = start.add(user.getRotationVec(1f).multiply(RANGE));
 		BlockHitResult hit = world.raycast(new RaycastContext(start, end,

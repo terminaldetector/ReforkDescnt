@@ -48,11 +48,6 @@ public class MirrorLinkerItem extends Item {
 		PlayerEntity user = context.getPlayer();
 		if (user == null || !(world instanceof ServerWorld sw)) return ActionResult.FAIL;
 
-		if (!PortalComplexity.hasImmersivePortals()) {
-			user.sendMessage(Text.literal("§dPortal link requires the Immersive Portals stack §7— see docs/IMMPTL_STACK.md."), false);
-			return ActionResult.FAIL;
-		}
-
 		ItemStack stack = context.getStack();
 		Anchor anchor = readAnchor(stack);
 
@@ -78,12 +73,36 @@ public class MirrorLinkerItem extends Item {
 			return ActionResult.FAIL;
 		}
 
+		boolean immPtl = PortalComplexity.hasImmersivePortals();
+		if (!immPtl && anchorWorld != sw) {
+			// The native path is same-dimension only, and deliberately: the far end's chunks may not be
+			// loaded and a player's own dimension change is a different call with its own failure modes.
+			user.sendMessage(Text.literal("§6Cross-dimension links need the Immersive Portals stack §7— see docs/IMMPTL_STACK.md."), false);
+			return ActionResult.FAIL;
+		}
+		if (!immPtl && tier.scale != 1.0) {
+			// Refused rather than silently downgraded: this key is spent by the link, and getting an
+			// ordinary one back for a rare item is a worse answer than being told why not.
+			user.sendMessage(Text.literal(tier.colorCode + tier.label + " §7rescales space §8— that needs the "
+					+ "Immersive Portals stack. A Resonance Key links natively."), false);
+			return ActionResult.FAIL;
+		}
+
 		Direction facingHere = world.getBlockState(pos).get(ChargedMirrorBlock.FACING);
 		Direction facingAnchor = anchorWorld.getBlockState(anchor.pos).get(ChargedMirrorBlock.FACING);
-		ImmPtlMirrorBridge.linkPortals(
-				anchorWorld, anchor.pos, facingAnchor, entityIdAt(anchorWorld, anchor.pos),
-				sw, pos, facingHere, entityIdAt(sw, pos),
-				tier);
+		if (immPtl) {
+			ImmPtlMirrorBridge.linkPortals(
+					anchorWorld, anchor.pos, facingAnchor, entityIdAt(anchorWorld, anchor.pos),
+					sw, pos, facingHere, entityIdAt(sw, pos),
+					tier);
+		} else {
+			// Without ImmPtl there is no portal entity to spawn, only the link to record — the pair is
+			// then carried by ChargedMirrorBlockEntity.tick. Rotation needs no permission here: the
+			// native transform always turns a traveller from one face onto the other, which is what
+			// walking through a portal means, so no tier gates it.
+			ChargedMirrorBlock.linkNatively(sw, anchor.pos, pos);
+			user.sendMessage(Text.literal("§8No Immersive Portals §7— linked, walkable, but not see-through."), false);
+		}
 
 		sw.spawnParticles(ParticleTypes.REVERSE_PORTAL, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
 				30, 0.4, 0.4, 0.4, 0.02);
