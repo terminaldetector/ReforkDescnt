@@ -8,6 +8,7 @@ import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 /**
  * Renders the world a second time from a moved camera and puts the result on screen inside one
@@ -17,6 +18,13 @@ import org.joml.Matrix4f;
  * <p>Extracted when the portal view arrived rather than copied into it. The dance below is short but
  * every step of it is load-bearing in a way that would not survive being maintained twice: the order of
  * the restores, the depth-test line at the end, the single shared depth counter.
+ *
+ * <p><b>The camera lands behind the surface, always.</b> A mirror reflects it through the glass, a
+ * portal carries it behind its partner — so in both cases the surface's own block, and the wall it is
+ * mounted on, stand between the camera and everything worth seeing. {@link ObliqueNearPlane} bends the
+ * projection so its near plane <em>is</em> that surface, which is what turns the result into a picture
+ * of somewhere else instead of a picture of a wall. Without it this machinery renders correctly and
+ * shows nothing useful.
  *
  * <p><b>The scissor is the trick that keeps this shader-free.</b> The result is blitted back
  * <em>full-screen</em> and only the clip is narrowed, so every pixel keeps the exact screen position it
@@ -62,11 +70,17 @@ public final class OffscreenWorldView {
 	/**
 	 * Draw the world from {@code viewPos}/{@code viewYaw}/{@code viewPitch}, clipped to {@code box}.
 	 *
+	 * @param clipPoint  a point on the surface being seen through, in world space, or null for no
+	 *                   clipping. Everything on the camera's own side of it is cut away — see
+	 *                   {@link ObliqueNearPlane} for why that is what makes this a picture of somewhere
+	 *                   else rather than of the wall the surface is mounted on.
+	 * @param clipNormal that surface's outward normal, pointing at the side worth seeing.
 	 * @return true when something actually reached the screen, false when it was skipped — the caller
 	 *         should not spend one of its per-frame slots on a view that never drew.
 	 */
 	public static boolean render(WorldRenderContext context, CameraAccessor accessor, Camera camera,
-			Vec3d viewPos, float viewYaw, float viewPitch, MirrorScreenBounds.Box box) {
+			Vec3d viewPos, float viewYaw, float viewPitch,
+			Vec3d clipPoint, Vec3d clipNormal, MirrorScreenBounds.Box box) {
 		if (!box.valid()) return false;
 		Framebuffer target = MirrorFramebuffer.get();
 		if (target == null) return false; // window has no area this frame — nothing to draw into
@@ -82,6 +96,8 @@ public final class OffscreenWorldView {
 			accessor.drmd$invokeSetRotation(viewYaw, viewPitch);
 
 			Matrix4f positionMatrix = new Matrix4f().rotation(camera.getRotation());
+			Matrix4f projection = clipped(context.projectionMatrix(), positionMatrix, viewPos,
+					clipPoint, clipNormal);
 
 			target.setClearColor(0f, 0f, 0f, 1f);
 			target.clear(MinecraftClient.IS_SYSTEM_MAC);
@@ -93,7 +109,7 @@ public final class OffscreenWorldView {
 					camera,
 					context.gameRenderer(),
 					context.lightmapTextureManager(),
-					context.projectionMatrix(), // FOV/aspect/near/far — unchanged by moving the camera
+					projection, // vanilla's own, with only its near plane moved onto the surface
 					positionMatrix);
 		} finally {
 			// Restore in the reverse order of setup, and unconditionally: leaving the camera moved or the
@@ -119,5 +135,47 @@ public final class OffscreenWorldView {
 		// "the mirror broke some unrelated renderer".
 		RenderSystem.enableDepthTest();
 		return true;
+	}
+
+	/**
+	 * How far past the surface the clip plane is pushed, in blocks.
+	 *
+	 * <p>A millimetre, and not cosmetic. Left exactly on the surface, the surface's own front face lies
+	 * on the plane and is kept or cut per pixel by float rounding — a shimmering line around the edge of
+	 * every mirror. Pushing it into the kept side puts the face unambiguously on the discarded side,
+	 * where it belongs: the point is to look through it, not at it.
+	 */
+	private static final double CLIP_NUDGE = 0.001;
+
+	/**
+	 * Vanilla's projection with its near plane moved onto {@code clipPoint}/{@code clipNormal}, or
+	 * vanilla's own unchanged when there is no plane to apply or it cannot be expressed.
+	 *
+	 * <p>The world is drawn camera-relative — the camera sits at the origin and {@code positionMatrix}
+	 * is a pure rotation — so view space is reached by rotating the offset from the camera, with no
+	 * translation to undo.
+	 */
+	private static Matrix4f clipped(Matrix4f projection, Matrix4f positionMatrix, Vec3d viewPos,
+			Vec3d clipPoint, Vec3d clipNormal) {
+		if (clipPoint == null || clipNormal == null) return projection;
+
+		Vector3f viewNormal = positionMatrix.transformDirection(
+				new Vector3f((float) clipNormal.x, (float) clipNormal.y, (float) clipNormal.z));
+		Vec3d nudged = clipPoint.add(clipNormal.normalize().multiply(CLIP_NUDGE));
+		Vector3f viewPoint = positionMatrix.transformPosition(new Vector3f(
+				(float) (nudged.x - viewPos.x),
+				(float) (nudged.y - viewPos.y),
+				(float) (nudged.z - viewPos.z)));
+
+		PortalTransform.Vec3 normal = new PortalTransform.Vec3(viewNormal.x, viewNormal.y, viewNormal.z);
+		PortalTransform.Vec3 point = new PortalTransform.Vec3(viewPoint.x, viewPoint.y, viewPoint.z);
+
+		float[] source = new float[16];
+		projection.get(source);
+		float[] bent = ObliqueNearPlane.apply(source, normal, ObliqueNearPlane.offsetFor(normal, point));
+		// Null means the plane could not be expressed against this projection. Rendering unclipped shows
+		// the wall this exists to remove, which is wrong but visible and diagnosable; a guessed clip
+		// plane hides the world instead.
+		return bent == null ? projection : new Matrix4f().set(bent);
 	}
 }

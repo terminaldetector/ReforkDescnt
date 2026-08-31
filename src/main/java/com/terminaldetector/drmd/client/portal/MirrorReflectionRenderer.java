@@ -137,8 +137,12 @@ public final class MirrorReflectionRenderer {
 		MirrorScreenBounds.Box box = screenBox(context, mirror, originalPos);
 		if (!box.valid()) return false;
 
+		// The mirror's own plane is also the clip plane: the reflected camera stands behind it, so
+		// without this the reflection is a picture of the wall the mirror is mounted on. Keeping the
+		// side the normal points at keeps the room and discards the mirror block and everything behind.
 		return OffscreenWorldView.render(context, accessor, camera, fromPure(reflectedPos),
-				(float) reflectedAngles.yawDegrees(), (float) reflectedAngles.pitchDegrees(), box);
+				(float) reflectedAngles.yawDegrees(), (float) reflectedAngles.pitchDegrees(),
+				mirror.planePoint(), mirror.normal(), box);
 	}
 
 	/**
