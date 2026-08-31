@@ -56,18 +56,19 @@ public final class DescentConfig {
 	public static boolean fallAftermath = false;
 	/**
 	 * Native see-through mirror reflection (Phase R1a of the portal-rendering plan) — a recursive,
-	 * camera-reflected re-render of the world, drawn into an off-screen target and then blitted over
-	 * the whole screen.
+	 * camera-reflected re-render of the world, drawn into an off-screen target and blitted back through
+	 * a scissor clipped to the mirror.
 	 *
-	 * <p><b>A diagnostic probe, not the feature.</b> Turning this on while a mirror is within 24 blocks
-	 * replaces the entire view with what the mirror sees, rather than putting that image on the mirror's
-	 * face. That is deliberate: confining it to the mirror's own shape needs a custom compositing shader
-	 * (or a stencil buffer vanilla does not have), and neither is worth building until the harder
-	 * question is answered — does the reflected render come out correct at all? What to look for: the
-	 * view should be the world seen from behind the mirror, mirrored left-to-right, turning the right
-	 * way as you move. Wrong position or wrong orientation points at
-	 * {@code MirrorReflectionRenderer}'s matrix reconstruction; a black or unchanged screen points at
-	 * the off-screen render itself.
+	 * <p>The reflection is clipped to the mirror's screen rectangle, so it appears roughly on the mirror
+	 * rather than over the whole view. Roughly, because a rectangle is not the mirror's outline: head-on
+	 * the two nearly coincide, at a steep angle the box is bigger than the face and the reflection spills
+	 * past its edges. The exact shape needs a custom shader DRMD has no infrastructure for yet, and the
+	 * blit also ignores depth, so something standing between you and the mirror will not hide it.
+	 *
+	 * <p>What to look for: the world seen from behind the mirror, mirrored left-to-right, turning the
+	 * right way as you move. Wrong position or orientation points at {@code MirrorReflectionRenderer}'s
+	 * matrix reconstruction; a black or unchanged mirror points at the off-screen render itself; a
+	 * correct image in the wrong place on screen points at {@code MirrorScreenBounds}.
 	 *
 	 * <p>Defaults off, unlike every other toggle here, and stays off until deliberately switched on:
 	 * this is the first feature in the project where passing CI says nothing about whether it works.
