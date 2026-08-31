@@ -50,6 +50,53 @@ legitimately reachable.
 
 Vanilla Nether / End portals still need **gate catalysts** (complex crafts) even with ImmPtl installed — dig-through remains the seamless survival path.
 
+## Инвентарь для вшивания: 181 миксин, посчитанные по джарнику
+
+Не оценка, а разбор `libs/immersiveportals-6.0.6-mc1.21.1-fabric.jar`: пять миксин-конфигов,
+перечисленных в его `fabric.mod.json`.
+
+| конфиг | пакет | миксинов |
+|---|---|---|
+| `imm_ptl.mixins.json` | `imm_ptl.core.mixin` | **134** (74 общих + 60 клиентских) |
+| `imm_ptl_compat.mixins.json` | `imm_ptl.core.compat.mixin` | **20** |
+| `imm_ptl_peripheral.mixins.json` | `imm_ptl.peripheral.mixin` | **18** |
+| `q_misc_util.mixins.json` | `q_misc_util.mixin` | **5** |
+| `imm_ptl_fabric.mixins.json` | `platform_specific.mixin` | **4** |
+| | | **181** |
+
+### Что из этого не переносится в принципе
+
+**Все 20 из `compat`** — это миксины в чужие моды, а не в ваниль: Sodium 9, Iris 7, Flywheel 3,
+Cardinal Components 1. Без этих модов их не во что вставлять, а DRMD совместимость с шейдерпаками уже
+объявил вне области (см. `PORTAL_RENDERING.md`). То есть 11% от общего числа отпадает сразу и без
+потерь.
+
+**Жёсткая зависимость `dimlib`.** В `fabric.mod.json` ImmPtl она в `depends`, а не в `recommends` —
+это ещё один мод, не библиотека внутри джарника.
+
+**Список несовместимостей ImmPtl** (его собственный `breaks`), потому что он же становится списком
+ограничений всего, что на нём стоит: `optifabric`, `canvas`, `cardboard`, `vmp`, `gravity_api`,
+`resolutioncontrol` — целиком; `pehkui < 3.4.1`; и — главное — **`iris` строго 1.8.1** и **`sodium`
+строго 0.6.7**, не «не ниже», а ровно эти версии. Мод, прибитый к точечным версиям двух самых
+популярных рендер-модов, — это и есть цена подхода «миксины в рендер».
+
+### Что относится к нашей задаче
+
+Из 134 ядровых:
+
+| группа | миксинов | зачем |
+|---|---|---|
+| `client.render*` (+ optimization, shader, framebuffer, isometric) | **29** | сам сквозной рендер |
+| `client.sync`, `common.chunk_sync`, `position_sync`, `entity_sync`, `other_sync` | **38** | несколько миров разом |
+| `common.collision`, `client.collisions` | **9** | физика через портал |
+| `common.debug`, `client.debug` | **10** | пропускается |
+| остальное (interaction, particle, sound, registry, networking, mc_util, …) | 48 | по потребности |
+
+Из этого следует практический вывод к плану: **38 миксинов синхронизации — это не рендер, это
+инфраструктура двух живых миров**, и именно она стоит между «зеркало показывает отражение» и
+«кросс-дименшн портал». 29 рендерных — та часть, которую DRMD уже обошёл своим путём (ножницы вместо
+маски, косая ближняя плоскость вместо `gl_ClipDistance`), не написав ни одного миксина.
+
 ## Recommended stack (Fabric 1.21.1)
 
 ```
