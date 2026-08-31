@@ -78,7 +78,12 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-		return null; // Nothing to tick: the attached Mirror/Portal entity sits and saves with its chunk.
+		// Only a linked pair needs ticking, and only on the server: that is where travel is decided.
+		// An unlinked charged mirror still has nothing to do — the attached Mirror entity, when ImmPtl
+		// is present, sits and saves with its chunk exactly as before.
+		if (world.isClient || !state.get(LINKED)) return null;
+		return validateTicker(type, com.terminaldetector.drmd.entity.ModBlockEntities.CHARGED_MIRROR,
+				ChargedMirrorBlockEntity::tick);
 	}
 
 	@Override
