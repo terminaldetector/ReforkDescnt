@@ -9,7 +9,10 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.render.Camera;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.RaycastContext;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;
@@ -127,6 +130,7 @@ public final class MirrorReflectionRenderer {
 					distance, BASE_RENDER_RANGE)) {
 				continue;
 			}
+			if (!hasLineOfSight(camera, mirror)) continue;
 			visible.add(mirror);
 		}
 		if (visible.isEmpty()) return;
@@ -239,6 +243,29 @@ public final class MirrorReflectionRenderer {
 
 		return MirrorScreenBounds.project(corners, m,
 				MirrorFramebuffer.width(), MirrorFramebuffer.height(), SCISSOR_PAD);
+	}
+
+	/**
+	 * Whether anything solid stands between the eye and the mirror.
+	 *
+	 * <p>A partial answer to the blit ignoring depth, and worth having on its own: without it a mirror
+	 * in the next room reflects <em>through</em> the wall, which is the most obviously wrong thing the
+	 * scissor version can do. It does not help with something only partly covering the mirror — that
+	 * needs the depth-aware shader composite — but it removes the whole-mirror-should-not-be-there case
+	 * for the cost of one short raycast per candidate.
+	 *
+	 * <p>The ray naturally ends on the mirror's own block, so hitting that counts as clear line.
+	 */
+	private static boolean hasLineOfSight(Camera camera, MirrorScanner.MirrorFace mirror) {
+		MinecraftClient mc = MinecraftClient.getInstance();
+		if (mc.world == null || mc.player == null) return false;
+		BlockHitResult hit = mc.world.raycast(new RaycastContext(
+				camera.getPos(), mirror.planePoint(),
+				RaycastContext.ShapeType.VISUAL,
+				RaycastContext.FluidHandling.NONE,
+				mc.player));
+		if (hit.getType() == HitResult.Type.MISS) return true;
+		return hit.getBlockPos().equals(mirror.pos());
 	}
 
 	private static PortalTransform.Vec3 toPure(Vec3d v) {
