@@ -36,15 +36,19 @@ public final class PlanetSurfaceMesh {
 	/**
 	 * Hard ceiling on geometry, whatever the rings ask for.
 	 *
-	 * <p>Sized against {@link HorizonGrid}'s own worst case rather than picked round: the grid tops
-	 * out near 7,200 cells at full altitude refinement (measured by {@code HorizonGridTest}'s own
-	 * disc-area count, the same estimate this number is derived from), and a cell emits a top plus up
-	 * to four skirts. Generous on purpose — running out mid-plan drops the <em>outermost</em> rings,
-	 * so the failure mode of a too-small budget is the far horizon vanishing, which is worse than the
-	 * blockiness this rework set out to fix. Grew with the finer grid: 18,000 covered the old
-	 * seven-cells-per-radius field, which drew barely 650 columns from altitude.
+	 * <p>Sized against {@link HorizonGrid}'s own worst case rather than picked round: at the current
+	 * constants the grid tops out near 19,100 cells at full altitude refinement (measured by
+	 * {@code HorizonGridTest}'s own disc-area count, the same estimate this number is derived from),
+	 * and a cell emits a top plus up to four skirts — about 95,000 quads. Generous on purpose: running
+	 * out mid-plan drops the <em>outermost</em> rings, so the failure mode of a too-small budget is the
+	 * far horizon vanishing, which is worse than the blockiness this set out to fix.
+	 *
+	 * <p>It has grown with each step of the grid: 18,000 for the original seven-cells-per-radius field
+	 * (barely 650 columns from altitude), 36,000 at ten, and this at twelve with 1.8x altitude
+	 * refinement. The step was affordable only once the field stopped being re-sent every frame — see
+	 * {@code HorizonVertexBuffer}.
 	 */
-	private static final int MAX_QUADS = 36_000;
+	private static final int MAX_QUADS = 110_000;
 	/** Landmarks drawn, nearest first — the rest are too far apart to tell from terrain. */
 	private static final int MAX_LANDMARKS = 96;
 	/** How far the ship may drift from the build origin before the field is rebuilt. */

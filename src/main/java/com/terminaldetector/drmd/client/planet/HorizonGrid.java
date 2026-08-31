@@ -30,10 +30,11 @@ public final class HorizonGrid {
 
 	/**
 	 * How many cells fit across a ring's inner radius — sets the angular size of one column, and so
-	 * the whole field's chunkiness. Raised from the original 7 (≈8° a column, the blockiness that
-	 * prompted this rework) to 10 (≈5.7°), which costs about twice the cells for the same coverage.
+	 * the whole field's chunkiness. 7 originally (≈8° a column, the blockiness that started this), then
+	 * 10 (≈5.7°), now 12 (≈4.8°). Each step costs the square of itself in cells, which is why it moves
+	 * in steps rather than straight to the answer.
 	 */
-	public static final double CELLS_PER_RADIUS = 10.0;
+	public static final double CELLS_PER_RADIUS = 12.0;
 	/** Each ring reaches this many times further than the one inside it. */
 	public static final double RING_GROWTH = 1.8;
 	/** Finest cell, so the field never dissolves into tens of thousands of tiny columns underfoot. */
@@ -42,11 +43,16 @@ public final class HorizonGrid {
 	public static final int MAX_RINGS = 9;
 
 	/**
-	 * Most the grid may refine when high above the ground. 1.25 buys a visibly finer field from
-	 * altitude for ~1.6× the cells; the cap exists because cell count grows as its square and the
-	 * renderer re-buffers every quad each frame.
+	 * Most the grid may refine when high above the ground — cells at the top of the climb are this much
+	 * smaller than the same ring's at sea level.
+	 *
+	 * <p>1.25 while the renderer re-sent every quad every frame, which made the cap about that per-frame
+	 * cost rather than about how the field should look; at 1.25 the refinement was barely visible, which
+	 * is not what "voxels shrink as you leave the ground" is supposed to mean. The field now lives on
+	 * the GPU between rebuilds ({@code HorizonVertexBuffer}), so the cost that remains is the rebuild
+	 * itself, and 1.8 fits inside it.
 	 */
-	public static final double REFINE_MAX = 1.25;
+	public static final double REFINE_MAX = 1.8;
 	/**
 	 * Eye-height above the ground at which {@link #REFINE_MAX} is reached. Roughly the top of the sky
 	 * band — the altitude by which the map is fully faded in and owns the whole view down. Kept as a

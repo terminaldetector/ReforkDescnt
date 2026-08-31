@@ -111,7 +111,13 @@ class HorizonGridTest {
 		assertTrue(orbit > ground, "altitude should buy detail, ground " + ground + " orbit " + orbit);
 		// Refinement is capped, so the cell count it can add is capped too — this is what keeps the
 		// quad budget in PlanetSurfaceMesh a fixed number rather than something altitude can blow past.
-		assertTrue(orbit <= ground * 2, "altitude cost unbounded: ground " + ground + " orbit " + orbit);
+		// The bound is the refinement squared, because cells go as the square of cells-per-radius. Stated
+		// that way rather than as a number, so it keeps testing the property when the constant is tuned:
+		// as a hard 2 it was really pinning REFINE_MAX = 1.25, and it failed the moment that moved.
+		double bound = HorizonGrid.REFINE_MAX * HorizonGrid.REFINE_MAX;
+		assertTrue(orbit <= ground * bound,
+				"altitude cost past the refinement bound: ground " + ground + " orbit " + orbit
+						+ " bound " + bound);
 	}
 
 	/** Rough disc-area count, the same estimate the quad budget was sized from. */
