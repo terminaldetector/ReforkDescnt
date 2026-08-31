@@ -26,6 +26,7 @@ import net.minecraft.client.gl.SimpleFramebuffer;
  */
 public final class MirrorFramebuffer {
 	private static Framebuffer framebuffer;
+	/** What the target was last sized to — only for deciding when it needs resizing. */
 	private static int width;
 	private static int height;
 
@@ -60,13 +61,24 @@ public final class MirrorFramebuffer {
 		return framebuffer;
 	}
 
-	/** Width the target was last sized to — the blit needs it, and it is the window's, not the world's. */
+	/**
+	 * Width the next render will use — the window's, not the world's, and read from the window rather
+	 * than from the field {@link #get()} caches.
+	 *
+	 * <p>Reading the field instead was a deadlock, and a silent one. Callers measure a face on screen
+	 * before deciding whether to render it, and that measurement needs a size; the field is only set by
+	 * {@link #get()}, which is only reached after the measurement succeeds. Starting at zero, the
+	 * measurement always failed, so {@code get()} was never called, so the field stayed zero — no mirror
+	 * and no portal would ever have drawn, on any frame, with nothing in a log to say why. Asking the
+	 * window removes the ordering question entirely, and the answer is the same one {@code get()} sizes
+	 * the target to.
+	 */
 	public static int width() {
-		return width;
+		return MinecraftClient.getInstance().getWindow().getFramebufferWidth();
 	}
 
-	/** Height the target was last sized to. */
+	/** Height the next render will use — see {@link #width()}. */
 	public static int height() {
-		return height;
+		return MinecraftClient.getInstance().getWindow().getFramebufferHeight();
 	}
 }
