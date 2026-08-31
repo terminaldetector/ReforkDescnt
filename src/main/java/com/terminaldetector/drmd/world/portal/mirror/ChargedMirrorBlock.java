@@ -93,11 +93,13 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 	protected void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
 		super.onBlockAdded(state, world, pos, oldState, notify);
 		if (!(world instanceof ServerWorld sw)) return;
-		// Re-entrancy guard. markLinked flips LINKED with a setBlockState, and vanilla calls
-		// onBlockAdded again for the new state — so without this, pairing runs a second time from
-		// inside itself. Harmless for the native path (recording a link twice changes nothing) but
-		// not for the ImmPtl one, where it spawned a second pair of portals and orphaned the first.
-		if (state.get(LINKED)) return;
+		// Not a fresh placement, so nothing to attach or pair. Both of this block's own link edits
+		// come back through here: markLinked flips LINKED with a setBlockState, and unlinkPartner
+		// flips it back, and vanilla calls onBlockAdded again for each new state. Reading oldState
+		// rather than the LINKED bit catches both, and without it pairing ran a second time from
+		// inside itself — harmless natively, but it spawned a second pair of ImmPtl portals and
+		// orphaned the first.
+		if (oldState.isOf(state.getBlock())) return;
 
 		Direction facing = state.get(FACING);
 		// The live Mirror entity is ImmPtl's see-through surface, and only that. Linking and travel
@@ -160,9 +162,9 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 	@Override
 	protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
 		if (!state.isOf(newState.getBlock()) && world instanceof ServerWorld sw
-				&& PortalComplexity.hasImmersivePortals()
 				&& world.getBlockEntity(pos) instanceof ChargedMirrorBlockEntity be) {
-			ImmPtlMirrorBridge.detach(sw, be.getAttachedEntityId());
+			if (PortalComplexity.hasImmersivePortals()) ImmPtlMirrorBridge.detach(sw, be.getAttachedEntityId());
+			unlinkPartner(sw, pos, be.getLinkPartnerPos(), be.getLinkPartnerDim());
 		}
 		super.onStateReplaced(state, world, pos, newState, moved);
 	}
@@ -199,6 +201,35 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 								+ "(docs/IMMPTL_STACK.md)."), false);
 			}
 		}
+	}
+
+	/**
+	 * Break the far end of a link when this end is removed.
+	 *
+	 * <p>A link is a pair, and half of one is not a smaller link — it is a block that claims to be
+	 * linked and silently is not. Natively that only misleads; with ImmPtl the far {@code Portal}
+	 * entity outlives the block it was anchored to and goes on carrying people into a wall.
+	 *
+	 * <p>Only breaks a link that still points back here. The far block may have been re-linked to
+	 * someone else in the meantime, and that link is not this one's to cut.
+	 *
+	 * <p>Same dimension only, like everything else here: reaching into another world from inside a
+	 * block removal would mean loading its chunks at the worst possible moment.
+	 */
+	private static void unlinkPartner(ServerWorld world, BlockPos self,
+			@Nullable BlockPos partnerPos, @Nullable RegistryKey<World> partnerDim) {
+		if (partnerPos == null) return;
+		if (partnerDim != null && !partnerDim.equals(world.getRegistryKey())) return;
+		BlockState partner = world.getBlockState(partnerPos);
+		if (!(partner.getBlock() instanceof ChargedMirrorBlock) || !partner.get(LINKED)) return;
+		if (world.getBlockEntity(partnerPos) instanceof ChargedMirrorBlockEntity partnerBe) {
+			if (partnerBe.getLinkPartnerPos() != null && !partnerBe.getLinkPartnerPos().equals(self)) return;
+			if (PortalComplexity.hasImmersivePortals()) {
+				ImmPtlMirrorBridge.detach(world, partnerBe.getAttachedEntityId());
+			}
+			partnerBe.clearLink();
+		}
+		world.setBlockState(partnerPos, partner.with(LINKED, false), Block.NOTIFY_LISTENERS);
 	}
 
 	/**

@@ -49,6 +49,21 @@ public class PortalPanelBlockEntity extends BlockEntity {
 		markDirty();
 	}
 
+	/**
+	 * Forget the link: the far end is gone, so there is nothing left to travel to.
+	 *
+	 * <p>Without this a survivor keeps {@code LINKED} and a partner position pointing at nothing. The
+	 * native tick reads that and does nothing, which is safe but leaves a block that says it is linked
+	 * and is not. With ImmPtl it is worse than untidy — the far portal entity outlives its own block.
+	 */
+	public void clearLink() {
+		this.attachedEntityId = null;
+		this.linked = false;
+		this.linkPartnerPos = null;
+		this.linkPartnerDim = null;
+		markDirty();
+	}
+
 	@Override
 	protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
 		super.writeNbt(nbt, registryLookup);
