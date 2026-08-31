@@ -6,6 +6,9 @@ import com.terminaldetector.drmd.world.portal.PortalTravel;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.listener.ClientPlayPacketListener;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
@@ -20,11 +23,11 @@ import java.util.UUID;
 /**
  * Server-side link bookkeeping for {@link ChargedMirrorBlock}: which live ImmPtl entity is currently
  * attached (a plain {@code Mirror} before linking, a linked {@code Portal} after), and — once
- * linked — where the other end of the link is. The client-visible half of this ("is this block
- * currently linked") is a {@code LINKED} blockstate property instead of NBT sync, since that one bit
- * is all the client needs to render differently and ordinary blockstate updates already sync it for
- * free — no {@code toInitialChunkDataNbt}/{@code toUpdatePacket} overrides needed, unlike
- * {@code CarvedBlockEntity}'s heavier shape data.
+ * linked — where the other end of the link is. Whether this block is linked at all stays a
+ * {@code LINKED} blockstate property, because ordinary blockstate updates sync that bit for free; the
+ * link itself is synced as block entity data ({@code toInitialChunkDataNbt}/{@code toUpdatePacket},
+ * {@code CarvedBlockEntity}'s idiom), because a client drawing <em>through</em> a portal needs to know
+ * where it goes, and a bit cannot say that.
  */
 public class ChargedMirrorBlockEntity extends BlockEntity {
 	/**
@@ -131,5 +134,23 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 
 		PortalTravel.carry(serverWorld, pos, state.get(ChargedMirrorBlock.FACING),
 				be.linkPartnerPos, partnerState.get(ChargedMirrorBlock.FACING), FACE_HALF_SPAN);
+	}
+
+	/**
+	 * Send the link to the client, not just the {@code LINKED} bit the blockstate already carries.
+	 *
+	 * <p>That bit was enough while the client only had to draw a linked block differently. Drawing
+	 * <em>through</em> one needs to know where it goes — the partner's position, and whether a live
+	 * ImmPtl portal is already doing the job — and none of that is in a blockstate. This is
+	 * {@code CarvedBlockEntity}'s existing sync idiom, unchanged, on the data this block already writes.
+	 */
+	@Override
+	public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registries) {
+		return createNbt(registries);
+	}
+
+	@Override
+	public Packet<ClientPlayPacketListener> toUpdatePacket() {
+		return BlockEntityUpdateS2CPacket.create(this);
 	}
 }
