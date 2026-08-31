@@ -7,12 +7,7 @@ import com.terminaldetector.drmd.world.planet.PlanetMap;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -95,27 +90,16 @@ public final class PlanetFloorRenderer {
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.disableCull(); // skirts are single quads seen from either side
 		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+		// The climb's fade as a uniform rather than per-vertex alpha, which is what lets the geometry
+		// stay on the GPU across frames — see HorizonVertexBuffer. Each quad's own alpha is already
+		// baked in there; this multiplies the whole field by how far the map has faded in.
+		RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
 
-		Tessellator tess = Tessellator.getInstance();
-		BufferBuilder buf = tess.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-		float[] pos = mesh.positions;
-		int[] colours = mesh.colours;
-		for (int q = 0; q < mesh.quads; q++) {
-			int argb = colours[q];
-			float a = ((argb >>> 24) & 0xFF) / 255f * alpha;
-			if (a <= 0.01f) continue;
-			float r = ((argb >> 16) & 0xFF) / 255f;
-			float g = ((argb >> 8) & 0xFF) / 255f;
-			float b = (argb & 0xFF) / 255f;
-			int i = q * 12;
-			buf.vertex(mat, pos[i], pos[i + 1], pos[i + 2]).color(r, g, b, a);
-			buf.vertex(mat, pos[i + 3], pos[i + 4], pos[i + 5]).color(r, g, b, a);
-			buf.vertex(mat, pos[i + 6], pos[i + 7], pos[i + 8]).color(r, g, b, a);
-			buf.vertex(mat, pos[i + 9], pos[i + 10], pos[i + 11]).color(r, g, b, a);
+		if (HorizonVertexBuffer.prepare(mesh)) {
+			HorizonVertexBuffer.draw(mat);
 		}
-		var built = buf.endNullable();
-		if (built != null) BufferRenderer.drawWithGlobalProgram(built);
 
+		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 		RenderSystem.enableCull();
 		RenderSystem.disableBlend();
 	}
