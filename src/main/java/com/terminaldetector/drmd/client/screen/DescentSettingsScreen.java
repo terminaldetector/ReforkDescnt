@@ -22,7 +22,7 @@ public class DescentSettingsScreen extends Screen {
 	private static final int ROW = 22;
 	private static final int TOP = 36;
 	/** Rows from first toggle through Controls (including spacers). */
-	private static final int CONTENT_ROWS = 13;
+	private static final int CONTENT_ROWS = 14;
 	private final Screen parent;
 	private int scroll;
 
@@ -74,6 +74,15 @@ public class DescentSettingsScreen extends Screen {
 					DescentConfig.planetFloor = v;
 					DescentConfig.save();
 				}), null);
+		y = addRow(y, viewBottom,
+				toggle(left, y, "options.drmd.mirror_reflection", DescentConfig.mirrorReflection, v -> {
+					DescentConfig.mirrorReflection = v;
+					DescentConfig.save();
+				}),
+				toggle(right, y, "options.drmd.portal_see_through", DescentConfig.portalSeeThrough, v -> {
+					DescentConfig.portalSeeThrough = v;
+					DescentConfig.save();
+				}));
 		y = addRow(y, viewBottom,
 				toggle(left, y, "options.drmd.camera_shake", DescentConfig.cameraShake, v -> {
 					DescentConfig.cameraShake = v;

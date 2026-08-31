@@ -77,7 +77,6 @@ public final class MirrorReflectionRenderer {
 
 	private static void onAfterTranslucent(WorldRenderContext context) {
 		if (!DescentConfig.mirrorReflection) return;
-		if (cachedMirrors.isEmpty()) return;
 		// Depth 0 only, and a correctness stop rather than a budget one — see OffscreenWorldView, which
 		// owns the counter because the portal view shares the same single target. MirrorRenderGate still
 		// models deeper layers and stays as-is; the missing piece is one target per layer, not a
@@ -94,6 +93,7 @@ public final class MirrorReflectionRenderer {
 		// they no longer overwrite each other the way full-screen draws did. Nearest first, capped:
 		// every mirror costs a full world render, so the cap is the real budget, not the range gate.
 		Vec3d cameraPos = camera.getPos();
+		int inRange = 0;
 		List<MirrorScanner.MirrorFace> visible = new ArrayList<>();
 		for (MirrorScanner.MirrorFace mirror : cachedMirrors) {
 			double distance = cameraPos.distanceTo(mirror.planePoint());
@@ -101,10 +101,10 @@ public final class MirrorReflectionRenderer {
 					distance, BASE_RENDER_RANGE)) {
 				continue;
 			}
+			inRange++;
 			if (!hasLineOfSight(camera, mirror)) continue;
 			visible.add(mirror);
 		}
-		if (visible.isEmpty()) return;
 		visible.sort(Comparator.comparingDouble(m -> cameraPos.squaredDistanceTo(m.planePoint())));
 
 		int drawn = 0;
@@ -114,6 +114,13 @@ public final class MirrorReflectionRenderer {
 			// must not use up a slot a visible one behind it could have had.
 			if (renderReflection(context, accessor, camera, mirror)) drawn++;
 		}
+
+		// A mirror is seen from either side, so the facing stage does not apply here and is reported as
+		// passed rather than invented: the found count is handed in for it.
+		PortalViewDiagnostics.report("mirror", drawn > 0
+				? "drawing " + drawn + " of " + cachedMirrors.size()
+				: PortalViewDiagnostics.whyNothingDrawn(
+						cachedMirrors.size(), cachedMirrors.size(), inRange, visible.size()));
 	}
 
 	/** @return true when the reflection actually reached the screen, false when it was skipped. */

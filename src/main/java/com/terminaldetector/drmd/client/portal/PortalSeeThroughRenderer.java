@@ -77,28 +77,31 @@ public final class PortalSeeThroughRenderer {
 
 	private static void onAfterTranslucent(WorldRenderContext context) {
 		if (!DescentConfig.portalSeeThrough) return;
-		if (cachedPortals.isEmpty()) return;
 		// Shared with the mirror renderer, deliberately: both draw into the same single off-screen
-		// target, so neither may start while the other is running.
+		// target, so neither may start while the other is running. Checked before anything is counted,
+		// so a nested frame never reports on the outer one's behalf.
 		if (OffscreenWorldView.busy()) return;
 
 		Camera camera = context.camera();
 		CameraAccessor accessor = (CameraAccessor) camera;
 		Vec3d cameraPos = camera.getPos();
 
+		int facing = 0;
+		int inRange = 0;
 		List<MirrorScanner.PortalFace> visible = new ArrayList<>();
 		for (MirrorScanner.PortalFace portal : cachedPortals) {
 			// In front of the face, not behind it: a portal is looked through the way it is entered.
 			if (cameraPos.subtract(portal.planePoint()).dotProduct(portal.normal()) <= 0) continue;
+			facing++;
 			double distance = cameraPos.distanceTo(portal.planePoint());
 			if (!MirrorRenderGate.shouldRender(OffscreenWorldView.depth(),
 					MirrorRenderGate.DEFAULT_MAX_RECURSION_DEPTH, distance, BASE_RENDER_RANGE)) {
 				continue;
 			}
+			inRange++;
 			if (!hasLineOfSight(camera, portal)) continue;
 			visible.add(portal);
 		}
-		if (visible.isEmpty()) return;
 		visible.sort(Comparator.comparingDouble(p -> cameraPos.squaredDistanceTo(p.planePoint())));
 
 		int drawn = 0;
@@ -106,6 +109,10 @@ public final class PortalSeeThroughRenderer {
 			if (drawn >= MAX_PORTALS_PER_FRAME) break;
 			if (renderThrough(context, accessor, camera, portal)) drawn++;
 		}
+
+		PortalViewDiagnostics.report("portal", drawn > 0
+				? "drawing " + drawn + " of " + cachedPortals.size()
+				: PortalViewDiagnostics.whyNothingDrawn(cachedPortals.size(), facing, inRange, visible.size()));
 	}
 
 	/** @return true when the view actually reached the screen, false when it was skipped. */
