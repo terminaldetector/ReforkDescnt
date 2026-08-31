@@ -76,6 +76,18 @@ public final class DescentConfig {
 	 */
 	public static boolean mirrorReflection = false;
 
+	/**
+	 * Draw the far side of a linked portal on its face, instead of the block's own texture.
+	 *
+	 * <p>The same machinery as {@link #mirrorReflection} with a different camera move — carried to the
+	 * partner rather than reflected — so it shares the same single off-screen target and the same
+	 * caveats: a rectangle instead of the portal's exact shape, and no depth in the composite.
+	 *
+	 * <p>Off by default for the same reason, and worth stating together: with both on, a frame can pay
+	 * for four extra world renders. The per-frame caps, not the distance gates, are what bound that.
+	 */
+	public static boolean portalSeeThrough = false;
+
 	private static final String FILE = DescentMod.MOD_ID + ".properties";
 	private static boolean loaded;
 
@@ -116,6 +128,7 @@ public final class DescentConfig {
 		weaponView = bool(props, "weaponView", weaponView);
 		fallAftermath = bool(props, "fallAftermath", fallAftermath);
 		mirrorReflection = bool(props, "mirrorReflection", mirrorReflection);
+		portalSeeThrough = bool(props, "portalSeeThrough", portalSeeThrough);
 	}
 
 	public static void save() {
@@ -133,6 +146,7 @@ public final class DescentConfig {
 		props.setProperty("weaponView", Boolean.toString(weaponView));
 		props.setProperty("fallAftermath", Boolean.toString(fallAftermath));
 		props.setProperty("mirrorReflection", Boolean.toString(mirrorReflection));
+		props.setProperty("portalSeeThrough", Boolean.toString(portalSeeThrough));
 		try {
 			Files.createDirectories(path().getParent());
 			try (var out = Files.newOutputStream(path())) {

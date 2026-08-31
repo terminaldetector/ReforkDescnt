@@ -8,7 +8,13 @@ JAVA_LANG = set("""String Object Integer Long Double Float Boolean Byte Short Ch
 Exception RuntimeException IllegalArgumentException IllegalStateException Override Deprecated
 SuppressWarnings FunctionalInterface Thread Runnable Comparable Iterable Number Class Enum Record
 StringBuilder CharSequence Void Error Throwable NullPointerException UnsupportedOperationException
-SafeVarargs""".split())
+SafeVarargs NumberFormatException ArithmeticException ClassCastException
+IndexOutOfBoundsException ArrayIndexOutOfBoundsException StringIndexOutOfBoundsException
+Iterable Cloneable AutoCloseable Process ProcessBuilder ThreadLocal StrictMath""".split())
+
+# Nested types inherited from a superclass (Block.Settings, Item.Settings) resolve without an
+# import and cannot be seen from this file alone. Named rather than silently allowed.
+INHERITED_NESTED = {'Settings'}
 
 def package_types(pkg_dir):
     return {os.path.basename(p)[:-5] for p in glob.glob(os.path.join(pkg_dir, '*.java'))}
@@ -30,7 +36,7 @@ for path in files:
         imports.add(m.group(1).rsplit('.', 1)[-1])
     same_pkg = package_types(os.path.dirname(path))
     declared = set(re.findall(r'\b(?:class|interface|enum|record)\s+(\w+)', body))
-    known = imports | same_pkg | declared | JAVA_LANG
+    known = imports | same_pkg | declared | JAVA_LANG | INHERITED_NESTED
 
     # candidate type references: a capitalised word not preceded by '.' (so Foo.Bar only checks Foo)
     for m in re.finditer(r'(?<![\w.$])([A-Z]\w+)', body):

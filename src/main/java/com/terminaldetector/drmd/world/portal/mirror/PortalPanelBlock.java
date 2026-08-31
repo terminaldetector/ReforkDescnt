@@ -57,10 +57,11 @@ public class PortalPanelBlock extends BlockWithEntity {
 
 	/**
 	 * Half the panel's in-plane span — 2 either side of the anchor block makes a 4-wide portal.
-	 * Package-private because {@link PortalPanelBlockEntity} carries travellers across exactly this
-	 * span; a second copy of the number there could drift from the one the portal is shaped from.
+	 * Public because two other places need exactly this number: {@link PortalPanelBlockEntity} carries
+	 * travellers across this span, and the client draws the portal's face at this size. A second copy
+	 * of it anywhere could drift from the one the portal is actually shaped from.
 	 */
-	static final double HALF_SPAN = 2.0;
+	public static final double HALF_SPAN = 2.0;
 	/** Same reach as {@link ChargedMirrorBlock}'s own auto-link walk — a real hallway, not the whole world. */
 	private static final int AUTO_LINK_MAX_RANGE = 24;
 
