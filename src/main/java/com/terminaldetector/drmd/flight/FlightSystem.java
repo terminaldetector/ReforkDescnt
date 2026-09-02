@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.flight;
 
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.DescentPlayerData;
+import com.terminaldetector.drmd.diag.DiagTrace;
 import com.terminaldetector.drmd.energy.EnergySystem;
 import com.terminaldetector.drmd.entity.PyroShipEntity;
 import com.terminaldetector.drmd.network.ModNetworking;
@@ -297,6 +298,8 @@ public final class FlightSystem {
 	}
 
 	public static void disable(ServerPlayerEntity player, DescentPlayerData data) {
+		DiagTrace.record("flight", "6DoF off for " + player.getGameProfile().getName()
+				+ (player.hasVehicle() ? " while riding " + player.getVehicle().getType() : ""));
 		data.setEnabled(false);
 		data.clearShipAttitude();
 		data.setRoll(0);
@@ -349,6 +352,11 @@ public final class FlightSystem {
 	}
 
 	private static void enable(ServerPlayerEntity player, DescentPlayerData data, boolean mountHull) {
+		// mountHull is the flag the ship-glued-to-player bug turned on: a dismount that re-seated the
+		// pilot in the hull it had just left, same tick. Traced so a recurrence shows the sequence
+		// rather than only the end state, which is what made it hard to see the first time.
+		DiagTrace.record("flight", "6DoF on for " + player.getGameProfile().getName()
+				+ (mountHull ? " (will mount a hull)" : " (no mount — leaving one)"));
 		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
 		data.setEnabled(true);
 		data.ensureInit();
@@ -391,7 +399,13 @@ public final class FlightSystem {
 	 * — falls straight through to today's spawn-fresh behavior.
 	 */
 	private static void autoMountPyroShip(ServerPlayerEntity player) {
-		if (player.hasVehicle()) return;
+		if (player.hasVehicle()) {
+			// The guard that stops a re-seat. Worth a line: it firing means something tried to mount a
+			// pilot who was already riding, which is the shape of the bug that needed lava to undo.
+			DiagTrace.record("flight", "auto-mount skipped — already riding "
+					+ player.getVehicle().getType());
+			return;
+		}
 		DescentPlayerData data = DescentPlayerData.get(player);
 		java.util.UUID lastShipId = data.getLastShipUuid();
 		if (lastShipId != null
@@ -399,6 +413,7 @@ public final class FlightSystem {
 				&& !found.hasPassengers()
 				&& (found.getOwnerUuid() == null || found.getOwnerUuid().equals(player.getUuid()))) {
 			found.setOwnerUuid(player.getUuid());
+			DiagTrace.record("flight", "remounted the existing Pyro hull at " + found.getBlockPos());
 			player.startRiding(found);
 			return;
 		}
@@ -408,6 +423,7 @@ public final class FlightSystem {
 		ship.setOwnerUuid(player.getUuid());
 		data.setLastShipUuid(ship.getUuid());
 		player.getServerWorld().spawnEntity(ship);
+		DiagTrace.record("flight", "spawned a new Pyro hull at " + ship.getBlockPos());
 		player.startRiding(ship);
 	}
 
