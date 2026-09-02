@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.world.portal.mirror;
 
+import com.terminaldetector.drmd.diag.DiagProblems;
 import com.terminaldetector.drmd.entity.ModBlockEntities;
 import com.terminaldetector.drmd.world.portal.PortalComplexity;
 import com.terminaldetector.drmd.world.portal.PortalTravel;
@@ -107,11 +108,19 @@ public class PortalPanelBlockEntity extends BlockEntity {
 		if (!be.linked || be.linkPartnerPos == null) return;
 		if (be.attachedEntityId != null && PortalComplexity.hasImmersivePortals()) return;
 		// Same dimension only — see PortalTravel for why a cross-dimension hop is not this call.
-		if (be.linkPartnerDim != null && !be.linkPartnerDim.equals(world.getRegistryKey())) return;
+		if (be.linkPartnerDim != null && !be.linkPartnerDim.equals(world.getRegistryKey())) {
+			DiagProblems.record("portal", "panel at " + pos + " links to " + be.linkPartnerDim.getValue()
+					+ " — native travel is same-dimension only, so it carries nobody");
+			return;
+		}
 		if (!(state.getBlock() instanceof PortalPanelBlock)) return;
 
 		BlockState partnerState = world.getBlockState(be.linkPartnerPos);
-		if (!(partnerState.getBlock() instanceof PortalPanelBlock)) return;
+		if (!(partnerState.getBlock() instanceof PortalPanelBlock)) {
+			DiagProblems.record("portal", "panel at " + pos + " points at " + be.linkPartnerPos
+					+ " where there is no portal panel — the link is dead");
+			return;
+		}
 
 		PortalTravel.carry(serverWorld, pos, state.get(PortalPanelBlock.FACING),
 				be.linkPartnerPos, partnerState.get(PortalPanelBlock.FACING), PortalPanelBlock.HALF_SPAN);

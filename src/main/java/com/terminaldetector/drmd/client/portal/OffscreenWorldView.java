@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.client.portal;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.terminaldetector.drmd.diag.DiagProblems;
 import com.terminaldetector.drmd.mixin.client.CameraAccessor;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
@@ -83,7 +84,12 @@ public final class OffscreenWorldView {
 			Vec3d clipPoint, Vec3d clipNormal, MirrorScreenBounds.Box box) {
 		if (!box.valid()) return false;
 		Framebuffer target = MirrorFramebuffer.get();
-		if (target == null) return false; // window has no area this frame — nothing to draw into
+		if (target == null) {
+			// Ordinarily a minimised window, but it is also one of the ways a mirror shows nothing at
+			// all, so it is worth being able to rule out rather than assume.
+			DiagProblems.record("portal", "no off-screen target this frame — the window reports no area");
+			return false;
+		}
 
 		Vec3d originalPos = camera.getPos();
 		float originalYaw = camera.getYaw();
@@ -176,6 +182,14 @@ public final class OffscreenWorldView {
 		// Null means the plane could not be expressed against this projection. Rendering unclipped shows
 		// the wall this exists to remove, which is wrong but visible and diagnosable; a guessed clip
 		// plane hides the world instead.
-		return bent == null ? projection : new Matrix4f().set(bent);
+		if (bent == null) {
+			// This is diagnostic outcome five, the one that reads as "the back of the destination block
+			// instead of the room". Recording it turns that from something to be guessed at into
+			// something the report already says.
+			DiagProblems.record("portal", "clip plane could not be applied — the view will show the "
+					+ "surface's own block and the wall behind it");
+			return projection;
+		}
+		return new Matrix4f().set(bent);
 	}
 }

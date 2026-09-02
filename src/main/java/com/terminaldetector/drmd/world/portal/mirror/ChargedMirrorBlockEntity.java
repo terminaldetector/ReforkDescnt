@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.world.portal.mirror;
 
+import com.terminaldetector.drmd.diag.DiagProblems;
 import com.terminaldetector.drmd.entity.ModBlockEntities;
 import com.terminaldetector.drmd.world.portal.PortalComplexity;
 import com.terminaldetector.drmd.world.portal.PortalTravel;
@@ -126,11 +127,21 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 		if (!be.linked || be.linkPartnerPos == null) return;
 		if (be.attachedEntityId != null && PortalComplexity.hasImmersivePortals()) return;
 		// Same dimension only — see PortalTravel for why a cross-dimension hop is not this call.
-		if (be.linkPartnerDim != null && !be.linkPartnerDim.equals(world.getRegistryKey())) return;
+		if (be.linkPartnerDim != null && !be.linkPartnerDim.equals(world.getRegistryKey())) {
+			// Silently doing nothing here is exactly the symptom that is impossible to diagnose from a
+			// chair: the block says LINKED, the particles played, and walking in does nothing.
+			DiagProblems.record("portal", "mirror at " + pos + " links to " + be.linkPartnerDim.getValue()
+					+ " — native travel is same-dimension only, so it carries nobody");
+			return;
+		}
 		if (!(state.getBlock() instanceof ChargedMirrorBlock)) return;
 
 		BlockState partnerState = world.getBlockState(be.linkPartnerPos);
-		if (!(partnerState.getBlock() instanceof ChargedMirrorBlock)) return;
+		if (!(partnerState.getBlock() instanceof ChargedMirrorBlock)) {
+			DiagProblems.record("portal", "mirror at " + pos + " points at " + be.linkPartnerPos
+					+ " where there is no charged mirror — the link is dead");
+			return;
+		}
 
 		PortalTravel.carry(serverWorld, pos, state.get(ChargedMirrorBlock.FACING),
 				be.linkPartnerPos, partnerState.get(ChargedMirrorBlock.FACING), FACE_HALF_SPAN);
