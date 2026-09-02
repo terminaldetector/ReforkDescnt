@@ -112,10 +112,17 @@ public final class PlanetClientState {
 			mesh = current;
 
 			long tookMillis = (System.nanoTime() - startedNanos) / 1_000_000L;
-			DiagTrace.record("horizon", "rebuilt " + current.quads + " quads in " + tookMillis + "ms at "
-					+ Math.round(camX) + "," + Math.round(eyeY) + "," + Math.round(camZ));
 			DiagTrace.count("horizon.rebuild");
 			rebuilds++;
+			// Counted always, written down only when it is worth reading. A rebuild fires every 64 blocks
+			// of flight, which at this project's speeds is several a second: tracing all of them would
+			// fill the buffer with routine work and push out the portal and flight events the trace
+			// exists for. The first few show the horizon coming alive; after that only the slow ones
+			// carry information.
+			if (rebuilds <= 3 || tookMillis >= TRACE_REBUILD_MILLIS) {
+				DiagTrace.record("horizon", "rebuilt " + current.quads + " quads in " + tookMillis + "ms at "
+						+ Math.round(camX) + "," + Math.round(eyeY) + "," + Math.round(camZ));
+			}
 			lastRebuildMillis = tookMillis;
 			if (tookMillis > worstRebuildMillis) worstRebuildMillis = tookMillis;
 			if (tookMillis >= REBUILD_STUTTER_MILLIS) {
@@ -130,6 +137,13 @@ public final class PlanetClientState {
 
 	/** A rebuild at or over this many milliseconds has cost a frame at 60fps, so it is worth recording. */
 	private static final int REBUILD_STUTTER_MILLIS = 20;
+	/**
+	 * A rebuild at or over this many milliseconds earns a line in the trace.
+	 *
+	 * <p>Lower than the stutter threshold on purpose: half a frame is not yet a problem but is already
+	 * the thing to watch, and the trace is where a trend shows up before it becomes a complaint.
+	 */
+	private static final int TRACE_REBUILD_MILLIS = 8;
 
 	private int rebuilds;
 	private long lastRebuildMillis = -1;
