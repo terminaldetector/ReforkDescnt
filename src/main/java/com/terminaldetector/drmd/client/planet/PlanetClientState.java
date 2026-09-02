@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.client.planet;
 
 import com.terminaldetector.drmd.diag.DiagProblems;
+import com.terminaldetector.drmd.diag.DiagTrace;
 import com.terminaldetector.drmd.world.store.MemorySectionStorage;
 import com.terminaldetector.drmd.world.store.SectionKey;
 import com.terminaldetector.drmd.world.store.SurfaceSection;
@@ -111,6 +112,9 @@ public final class PlanetClientState {
 			mesh = current;
 
 			long tookMillis = (System.nanoTime() - startedNanos) / 1_000_000L;
+			DiagTrace.record("horizon", "rebuilt " + current.quads + " quads in " + tookMillis + "ms at "
+					+ Math.round(camX) + "," + Math.round(eyeY) + "," + Math.round(camZ));
+			DiagTrace.count("horizon.rebuild");
 			rebuilds++;
 			lastRebuildMillis = tookMillis;
 			if (tookMillis > worstRebuildMillis) worstRebuildMillis = tookMillis;

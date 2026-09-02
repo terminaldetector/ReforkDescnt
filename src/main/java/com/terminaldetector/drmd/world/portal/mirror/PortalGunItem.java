@@ -64,6 +64,8 @@ public class PortalGunItem extends Item {
 		}
 
 		BlockState panelState = ModWorldBlocks.PORTAL_PANEL.getDefaultState().with(PortalPanelBlock.FACING, facing);
+		com.terminaldetector.drmd.diag.DiagTrace.record("portal",
+				"portal gun placed a panel at " + target + " facing " + facing);
 		world.setBlockState(target, panelState, Block.NOTIFY_ALL);
 		sw.playSound(null, target, SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE, SoundCategory.PLAYERS, 0.9f, 1.2f);
 		return TypedActionResult.success(stack);

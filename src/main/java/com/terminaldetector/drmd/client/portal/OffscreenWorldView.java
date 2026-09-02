@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.client.portal;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.terminaldetector.drmd.diag.DiagProblems;
+import com.terminaldetector.drmd.diag.DiagTrace;
 import com.terminaldetector.drmd.mixin.client.CameraAccessor;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
@@ -135,6 +136,7 @@ public final class OffscreenWorldView {
 		} finally {
 			RenderSystem.disableScissor();
 		}
+		DiagTrace.count("view.drawn");
 		// draw() leaves the depth test disabled (it restores the depth *mask* and the colour mask, but
 		// not this), and we are still inside the world render — anything drawn after us in the same frame
 		// would lose its depth sorting. Cheap to put back, and the alternative is a bug that reads as

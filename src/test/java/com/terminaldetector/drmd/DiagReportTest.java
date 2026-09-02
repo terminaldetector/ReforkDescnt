@@ -2,6 +2,7 @@ package com.terminaldetector.drmd;
 
 import com.terminaldetector.drmd.diag.DiagProblems;
 import com.terminaldetector.drmd.diag.DiagReport;
+import com.terminaldetector.drmd.diag.DiagTrace;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ class DiagReportTest {
 	@BeforeEach
 	void reset() {
 		DiagProblems.clear();
+		DiagTrace.clear();
 	}
 
 	@Test
@@ -100,6 +102,40 @@ class DiagReportTest {
 		String text = new DiagReport().section("S").rowIf(false, "hidden", 1).rowIf(true, "shown", 2).render();
 		assertFalse(text.contains("hidden"), text);
 		assertTrue(text.contains("shown"), text);
+	}
+
+	@Test
+	@DisplayName("the trace keeps order, and does NOT collapse repeats the way problems do")
+	void traceKeepsEveryEventInOrder() {
+		DiagTrace.clear();
+		DiagTrace.record("portal", "carried player through 1,2,3");
+		DiagTrace.record("portal", "carried player through 1,2,3");
+
+		List<DiagTrace.Event> events = DiagTrace.events();
+		// Two travellers through the same portal are two events, and knowing there were two is the
+		// point. Collapsing them would turn a record of what happened back into a summary of what is.
+		assertEquals(2, events.size(), "the trace collapsed a repeat");
+		assertTrue(events.get(0).millis() <= events.get(1).millis(), "trace is not in order");
+	}
+
+	@Test
+	@DisplayName("the trace drops the oldest, so a report taken after a problem still holds what led to it")
+	void traceIsBoundedFromTheFront() {
+		DiagTrace.clear();
+		for (int i = 0; i < 900; i++) DiagTrace.record("worldgen", "event " + i);
+		List<DiagTrace.Event> events = DiagTrace.events();
+		assertTrue(events.size() <= 600, "unbounded at " + events.size());
+		assertTrue(events.get(events.size() - 1).message().contains("event 899"),
+				"the newest event was dropped instead of the oldest");
+	}
+
+	@Test
+	@DisplayName("counters aggregate what is too frequent to write down")
+	void countersAggregate() {
+		DiagTrace.clear();
+		for (int i = 0; i < 5000; i++) DiagTrace.count("view.drawn");
+		assertEquals(0, DiagTrace.size(), "a counted thing should not also fill the trace");
+		assertEquals(5000, DiagTrace.counters().get("view.drawn"));
 	}
 
 	@Test

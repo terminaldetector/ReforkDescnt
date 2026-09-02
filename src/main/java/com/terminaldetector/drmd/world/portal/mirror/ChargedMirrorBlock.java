@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.world.portal.mirror;
 
 import com.mojang.serialization.MapCodec;
+import com.terminaldetector.drmd.diag.DiagTrace;
 import com.terminaldetector.drmd.world.portal.PortalComplexity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -185,6 +186,7 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 	static void linkNatively(ServerWorld world, BlockPos a, BlockPos b) {
 		markLinked(world, a, null, b, world.getRegistryKey());
 		markLinked(world, b, null, a, world.getRegistryKey());
+		DiagTrace.record("portal", "mirrors linked natively: " + a + " <-> " + b);
 	}
 
 	/**
@@ -229,6 +231,7 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 			}
 			partnerBe.clearLink();
 		}
+		DiagTrace.record("portal", "link broken: " + self + " removed, so " + partnerPos + " unlinked");
 		world.setBlockState(partnerPos, partner.with(LINKED, false), Block.NOTIFY_LISTENERS);
 	}
 

@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.world.portal.mirror;
 
+import com.terminaldetector.drmd.diag.DiagTrace;
 import com.terminaldetector.drmd.world.portal.PortalComplexity;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
@@ -52,6 +53,7 @@ public class MirrorLinkerItem extends Item {
 		Anchor anchor = readAnchor(stack);
 
 		if (anchor == null) {
+			DiagTrace.record("portal", "linker anchored at " + pos + " (" + tier.label + ")");
 			writeAnchor(stack, pos, sw.getRegistryKey());
 			user.sendMessage(Text.literal(tier.colorCode + tier.label + " §7anchor set §8— right-click the far mirror to link."), true);
 			return ActionResult.SUCCESS;
@@ -100,6 +102,7 @@ public class MirrorLinkerItem extends Item {
 			// then carried by ChargedMirrorBlockEntity.tick. Rotation needs no permission here: the
 			// native transform always turns a traveller from one face onto the other, which is what
 			// walking through a portal means, so no tier gates it.
+			DiagTrace.record("portal", "linker joined " + anchor.pos + " to " + pos + " natively");
 			ChargedMirrorBlock.linkNatively(sw, anchor.pos, pos);
 			user.sendMessage(Text.literal("§8No Immersive Portals §7— linked, walkable, but not see-through."), false);
 		}

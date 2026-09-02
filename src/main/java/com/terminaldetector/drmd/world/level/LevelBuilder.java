@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.world.level;
 
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.diag.DiagProblems;
+import com.terminaldetector.drmd.diag.DiagTrace;
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -351,6 +352,12 @@ public final class LevelBuilder {
 				queue.add(step.next);
 			} else {
 				chunksFilled++;
+				DiagTrace.count("worldgen.chunkFilled");
+				// A line every fifty, not every chunk: the trace should show the rate over time without
+				// spending its whole buffer on one system.
+				if (chunksFilled % 50 == 0) {
+					DiagTrace.record("worldgen", chunksFilled + " chunks filled, " + queueDepth() + " still queued");
+				}
 			}
 		}
 		return budget;

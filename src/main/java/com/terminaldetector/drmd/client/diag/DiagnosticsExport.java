@@ -10,6 +10,7 @@ import com.terminaldetector.drmd.client.portal.PortalSeeThroughRenderer;
 import com.terminaldetector.drmd.client.portal.PortalViewDiagnostics;
 import com.terminaldetector.drmd.diag.DiagProblems;
 import com.terminaldetector.drmd.diag.DiagReport;
+import com.terminaldetector.drmd.diag.DiagTrace;
 import com.terminaldetector.drmd.world.level.LevelBuilder;
 import com.terminaldetector.drmd.world.level.WorldLevels;
 import com.terminaldetector.drmd.world.portal.PortalComplexity;
@@ -21,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Writes one file that answers "what is actually going on" — the thing that has been missing every
@@ -82,6 +84,8 @@ public final class DiagnosticsExport {
 		horizon(report);
 		generation(report);
 		problems(report);
+		counters(report);
+		trace(report);
 		return report.render();
 	}
 
@@ -241,6 +245,45 @@ public final class DiagnosticsExport {
 		for (DiagProblems.Entry entry : entries) {
 			String age = ((now - entry.lastSeenMillis()) / 1000L) + "s ago";
 			report.row("[" + entry.area() + "] x" + entry.count() + ", last " + age, entry.message());
+		}
+	}
+
+	/**
+	 * How much of each kind of work happened, for the things too frequent to write down one by one.
+	 *
+	 * <p>A zero here is as informative as a large number: {@code view.drawn} at zero says the portal
+	 * view never reached the screen at all, which is a different failure from it reaching the screen
+	 * wrong, and no amount of looking at the game distinguishes those two.
+	 */
+	private static void counters(DiagReport report) {
+		Map<String, Integer> counters = DiagTrace.counters();
+		report.section("Counters");
+		if (counters.isEmpty()) {
+			report.note("nothing counted yet this session");
+			return;
+		}
+		counters.forEach(report::row);
+	}
+
+	/**
+	 * What happened, in order.
+	 *
+	 * <p>The section that answers "what was going on when it broke", which the state above cannot: a
+	 * portal that carries nobody means one thing if the link formed a minute earlier and another if it
+	 * never formed, and those look identical in a snapshot. Oldest first, with time counted back from
+	 * now, so it reads as a sequence rather than needing wall-clock arithmetic.
+	 */
+	private static void trace(DiagReport report) {
+		List<DiagTrace.Event> events = DiagTrace.events();
+		report.section("Trace (" + events.size() + " actions, oldest first)");
+		if (events.isEmpty()) {
+			report.note("nothing recorded — either nothing happened yet, or the systems involved were off");
+			return;
+		}
+		long now = System.currentTimeMillis();
+		for (DiagTrace.Event event : events) {
+			report.row(String.format("-%6.1fs [%s]", (now - event.millis()) / 1000.0, event.area()),
+					event.message());
 		}
 	}
 

@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.world.portal;
 
 import com.terminaldetector.drmd.client.portal.PortalTransform;
+import com.terminaldetector.drmd.diag.DiagTrace;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -92,6 +93,11 @@ public final class PortalTravel {
 					nowPos, toPure(entity.getVelocity()),
 					plane, n, toPure(partnerFace), toPure(partnerNormal));
 
+			// The event the whole native-travel feature exists to produce. Written before the teleport so
+			// the record survives even if the move itself throws.
+			DiagTrace.record("portal", "carried " + entity.getType().toString() + " through " + pos
+					+ " to " + partnerPos);
+			DiagTrace.count("portal.carried");
 			entity.requestTeleport(exit.position().x(), exit.position().y(), exit.position().z());
 			entity.setVelocity(new Vec3d(exit.velocity().x(), exit.velocity().y(), exit.velocity().z()));
 			// Without this the client keeps its own predicted velocity and fights the new one.
