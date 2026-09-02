@@ -28,6 +28,11 @@ public final class PortalViewDiagnostics {
 	/** Channel → the last summary written for it. Two keys, ever. */
 	private static final Map<String, String> LAST = new HashMap<>();
 
+	/** The last line written for a channel, for the diagnostics report to carry. Null if never. */
+	public static String lastSummary(String channel) {
+		return LAST.get(channel);
+	}
+
 	/**
 	 * Write {@code summary} for {@code channel} if it differs from the last one written there.
 	 *

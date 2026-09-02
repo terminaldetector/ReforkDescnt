@@ -58,6 +58,11 @@ public final class MirrorReflectionRenderer {
 	private static int scanAge = SCAN_PERIOD_TICKS;
 	private static List<MirrorScanner.MirrorFace> cachedMirrors = List.of();
 
+	/** How many faces the last scan found — a fact the diagnostics report needs and a log line has not. */
+	public static int scannedCount() {
+		return cachedMirrors.size();
+	}
+
 	public static void register() {
 		ClientTickEvents.END_CLIENT_TICK.register(MirrorReflectionRenderer::onClientTick);
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(MirrorReflectionRenderer::onAfterTranslucent);

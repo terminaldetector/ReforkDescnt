@@ -59,6 +59,11 @@ public final class PortalSeeThroughRenderer {
 	private static int scanAge = SCAN_PERIOD_TICKS;
 	private static List<MirrorScanner.PortalFace> cachedPortals = List.of();
 
+	/** How many faces the last scan found — a fact the diagnostics report needs and a log line has not. */
+	public static int scannedCount() {
+		return cachedPortals.size();
+	}
+
 	public static void register() {
 		ClientTickEvents.END_CLIENT_TICK.register(PortalSeeThroughRenderer::onClientTick);
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(PortalSeeThroughRenderer::onAfterTranslucent);

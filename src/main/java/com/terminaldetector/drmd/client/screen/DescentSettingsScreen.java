@@ -22,7 +22,7 @@ public class DescentSettingsScreen extends Screen {
 	private static final int ROW = 22;
 	private static final int TOP = 36;
 	/** Rows from first toggle through Controls (including spacers). */
-	private static final int CONTENT_ROWS = 14;
+	private static final int CONTENT_ROWS = 16;
 	private final Screen parent;
 	private int scroll;
 
@@ -119,6 +119,24 @@ public class DescentSettingsScreen extends Screen {
 											Text.translatable(next ? "options.on" : "options.off")));
 								})
 						.dimensions(right, y, 150, 20).build());
+		y += 6;
+		y = addRow(y, viewBottom,
+				ButtonWidget.builder(Text.translatable("options.drmd.export_diagnostics"), b -> {
+					java.nio.file.Path written = com.terminaldetector.drmd.client.diag.DiagnosticsExport.write();
+					b.setMessage(Text.literal(written == null
+							? "§cCould not write — see the log"
+							: "§aSaved: " + written.getFileName()));
+					// The full path goes to chat, because the button is too narrow for it and the point of
+					// the report is being able to find and send the file.
+					if (this.client != null && this.client.player != null) {
+						this.client.player.sendMessage(Text.literal(written == null
+								? "§cDRMD diagnostics could not be written — see the log."
+								: "§aDRMD diagnostics written to §f" + written), false);
+					}
+				})
+						.tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(
+								Text.translatable("options.drmd.export_diagnostics_hint")))
+						.dimensions(left, y, 316, 20).build(), null);
 		y += 6;
 		y = addRow(y, viewBottom,
 				ButtonWidget.builder(Text.translatable("options.drmd.give_ship"),

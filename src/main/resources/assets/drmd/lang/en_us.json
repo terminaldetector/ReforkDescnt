@@ -180,6 +180,8 @@
   "options.drmd.fall_aftermath": "Fall aftermath (corkscrew)",
   "options.drmd.level_sky": "Level skies",
   "options.drmd.planet_floor": "Voxel horizon",
+  "options.drmd.export_diagnostics": "Export diagnostics to a file",
+  "options.drmd.export_diagnostics_hint": "Writes drmd-diagnostics.txt into the game folder: versions, which optional mods loaded, the state of every DRMD system with a failure mode, and what the mod noticed going wrong. Send this file instead of describing the symptom.",
   "options.drmd.mirror_reflection": "Mirror reflections",
   "options.drmd.portal_see_through": "See through portals",
   "options.drmd.camera_shake": "Camera motion",

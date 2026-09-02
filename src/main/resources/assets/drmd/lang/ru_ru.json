@@ -135,6 +135,8 @@
   "options.drmd.fall_aftermath": "Последствия падения (штопор)",
   "options.drmd.level_sky": "Небо по уровням",
   "options.drmd.planet_floor": "Воксельный горизонт",
+  "options.drmd.export_diagnostics": "Выгрузить диагностику в файл",
+  "options.drmd.export_diagnostics_hint": "Пишет drmd-diagnostics.txt в папку игры: версии, какие опциональные моды загрузились, состояние всех систем DRMD со своими режимами отказа и то, что мод сам заметил не так. Присылать этот файл вместо описания симптома.",
   "options.drmd.mirror_reflection": "Отражения в зеркалах",
   "options.drmd.portal_see_through": "Взгляд сквозь порталы",
   "options.drmd.camera_shake": "Движение камеры",

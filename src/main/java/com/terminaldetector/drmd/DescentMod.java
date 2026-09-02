@@ -36,6 +36,8 @@ public class DescentMod implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		LOGGER.info("DRMD 6DOF initializing — 6DoF world mode (volume-first)");
+		// First, so these facts are in the log even if something below this line takes the game down.
+		com.terminaldetector.drmd.diag.DiagStartup.logBanner();
 
 		com.terminaldetector.drmd.world.DrmdServerConfig.load();
 		com.terminaldetector.drmd.world.DrmdBuiltinPacks.register();

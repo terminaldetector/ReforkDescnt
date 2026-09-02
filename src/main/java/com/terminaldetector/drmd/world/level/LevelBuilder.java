@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.world.level;
 
 import com.terminaldetector.drmd.DescentMod;
+import com.terminaldetector.drmd.diag.DiagProblems;
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -222,6 +223,60 @@ public final class LevelBuilder {
 	 *
 	 * @return the budget left over after this queue either empties or the budget runs out
 	 */
+	/** Ticks between reports while the fill stays saturated — 200 is ten seconds, not every tick. */
+	private static final int SATURATION_REPORT_TICKS = 200;
+
+	private static int saturatedTicks;
+	private static int worstQueueDepth;
+
+	/** Chunks waiting to be filled right now. */
+	public static int queueDepth() {
+		return QUEUE.size() + PRESTREAM_QUEUE.size();
+	}
+
+	/** The deepest the queue has been this session. */
+	public static int worstQueueDepth() {
+		return worstQueueDepth;
+	}
+
+	/** How many consecutive ticks the whole write budget has been spent with work still waiting. */
+	public static int saturatedTicks() {
+		return saturatedTicks;
+	}
+
+	/**
+	 * Notice when the column fill cannot keep up, and say so once every ten seconds rather than every
+	 * tick.
+	 *
+	 * <p>This exists to separate two failures that look identical from inside the game — a hole in the
+	 * ground below you — and that no amount of reading the code from outside can tell apart:
+	 *
+	 * <ul>
+	 *   <li><b>Saturated with a deep queue</b> means the budget is the limit: the chunks are queued and
+	 *       the writes are simply not fast enough, so terrain trails a moving pilot.
+	 *   <li><b>An empty queue with terrain still missing</b> means the opposite — the chunks were never
+	 *       queued at all, so the streaming window ({@code MantleStream.STREAM_CHUNKS}) is smaller than
+	 *       what the pilot can see, and raising the budget would change nothing.
+	 * </ul>
+	 *
+	 * <p>Both numbers go in the diagnostics report for exactly that reason. Guessing which one is in
+	 * play has cost more time on this project than fixing either would have.
+	 */
+	private static void recordBacklog(int budgetLeft) {
+		int depth = queueDepth();
+		if (depth > worstQueueDepth) worstQueueDepth = depth;
+
+		if (budgetLeft > 0 || depth == 0) {
+			saturatedTicks = 0;
+			return;
+		}
+		saturatedTicks++;
+		if (saturatedTicks % SATURATION_REPORT_TICKS != 0) return;
+		DiagProblems.record("worldgen", "column fill saturated for " + (saturatedTicks / 20) + "s — "
+				+ depth + " chunks still queued (worst " + worstQueueDepth + "), budget "
+				+ BUDGET_PER_TICK + " writes/tick");
+	}
+
 	private static int drainQueue(Deque<Job> queue, Set<Long> queued, int budget) {
 		while (budget > 0 && !queue.isEmpty()) {
 			Job job = queue.poll();
@@ -257,6 +312,7 @@ public final class LevelBuilder {
 		int budget = BUDGET_PER_TICK;
 		budget = drainQueue(QUEUE, QUEUED, budget);
 		budget = drainQueue(PRESTREAM_QUEUE, PRESTREAM_QUEUED, budget);
+		recordBacklog(budget);
 
 		// End band gets what is left. One island is a single indivisible step, so it runs on the
 		// remaining budget rather than reserving its own — the column keeps priority when a pilot is

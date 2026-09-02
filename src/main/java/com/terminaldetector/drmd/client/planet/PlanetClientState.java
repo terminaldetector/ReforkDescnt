@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.client.planet;
 
+import com.terminaldetector.drmd.diag.DiagProblems;
 import com.terminaldetector.drmd.world.store.MemorySectionStorage;
 import com.terminaldetector.drmd.world.store.SectionKey;
 import com.terminaldetector.drmd.world.store.SurfaceSection;
@@ -94,16 +95,48 @@ public final class PlanetClientState {
 		return seed;
 	}
 
-	/** The field around this eye, rebuilt only when the last one no longer fits. */
+	/**
+	 * The field around this eye, rebuilt only when the last one no longer fits.
+	 *
+	 * <p>Timed, because this is now the horizon's whole cost. Drawing it is free between rebuilds — the
+	 * field lives on the GPU — so a stutter while flying can only be this call, and guessing at that
+	 * from a chair is exactly what the diagnostics report exists to stop.
+	 */
 	public PlanetSurfaceMesh mesh(double camX, double eyeY, double camZ, double inner, double reach) {
 		PlanetSurfaceMesh current = mesh;
 		if (current == null || current.stale(camX, eyeY, camZ, inner, reach)) {
+			long startedNanos = System.nanoTime();
 			current = PlanetSurfaceMesh.build(seed, camX, eyeY, camZ, inner, reach,
 					scars, nearestLandmarks(camX, camZ));
 			mesh = current;
+
+			long tookMillis = (System.nanoTime() - startedNanos) / 1_000_000L;
+			rebuilds++;
+			lastRebuildMillis = tookMillis;
+			if (tookMillis > worstRebuildMillis) worstRebuildMillis = tookMillis;
+			if (tookMillis >= REBUILD_STUTTER_MILLIS) {
+				// Recorded rather than logged per rebuild: this fires while flying, so it would otherwise
+				// be thousands of lines. DiagProblems counts repeats and keeps the worst visible.
+				DiagProblems.record("horizon",
+						"rebuild took " + tookMillis + "ms for " + current.quads + " quads — a dropped frame");
+			}
 		}
 		return current;
 	}
+
+	/** A rebuild at or over this many milliseconds has cost a frame at 60fps, so it is worth recording. */
+	private static final int REBUILD_STUTTER_MILLIS = 20;
+
+	private int rebuilds;
+	private long lastRebuildMillis = -1;
+	private long worstRebuildMillis = -1;
+
+	public int rebuilds() { return rebuilds; }
+	/** Milliseconds the last rebuild took, or -1 if the field has never been built. */
+	public long lastRebuildMillis() { return lastRebuildMillis; }
+	public long worstRebuildMillis() { return worstRebuildMillis; }
+	/** The field currently built, or null before the first one — for diagnostics only. */
+	public PlanetSurfaceMesh currentMesh() { return mesh; }
 
 	/**
 	 * Landmarks by distance from the eye.
