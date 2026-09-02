@@ -6,7 +6,6 @@ import com.terminaldetector.drmd.diag.DiagTrace;
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.world.ServerWorld;
@@ -417,6 +416,7 @@ public final class LevelBuilder {
 		}
 
 		recordFillCost(BUDGET_PER_TICK - budget, System.nanoTime() - startedNanos);
+		clearWriteChunk();
 	}
 
 	private record Digger(int cx, int cz) {}
@@ -778,9 +778,53 @@ public final class LevelBuilder {
 		return written;
 	}
 
+	/** One chunk, remembered across a row. Cleared every tick, so it never outlives an unload. */
+	private static WorldChunk writeChunk;
+	private static ServerWorld writeChunkWorld;
+	private static long writeChunkKey = Long.MIN_VALUE;
+
+	/**
+	 * Write one block of terrain, as cheaply as this can be done without changing what a client sees.
+	 *
+	 * <p>This used to go through {@code world.setBlockState(NOTIFY_LISTENERS | FORCE_STATE)}, which
+	 * looks the chunk up again for every single block — and a row is 256 blocks of the same chunk. The
+	 * first live report measured the whole fill at 2.15 microseconds a write, which is where a budget
+	 * of 24,000 a tick turned into 3,000.
+	 *
+	 * <p>So: the chunk is found once and reused, and the write goes straight to it. Clients are still
+	 * told, explicitly, through the same call {@code World.setBlockState} would have made — that is a
+	 * set insert per block and a packet per section per tick, not a packet per block, so keeping it
+	 * costs almost nothing and losing it would leave freshly filled terrain invisible.
+	 *
+	 * <p>What is <em>not</em> saved here, stated so the next measurement is read correctly: heightmaps
+	 * and lighting still run inside the chunk's own write, and those are the likely remainder. If the
+	 * next report still shows microseconds per write, that is where to go — section-level writes with
+	 * one lighting pass at the end — and this change will have told us so.
+	 */
 	private static int set(ServerWorld world, BlockPos pos, BlockState state) {
 		if (world.isOutOfHeightLimit(pos)) return 0;
-		world.setBlockState(pos, state, Block.NOTIFY_LISTENERS | Block.FORCE_STATE);
+		int chunkX = pos.getX() >> 4;
+		int chunkZ = pos.getZ() >> 4;
+		long key = ChunkPos.toLong(chunkX, chunkZ);
+		if (writeChunk == null || writeChunkWorld != world || writeChunkKey != key) {
+			writeChunk = world.getChunk(chunkX, chunkZ);
+			writeChunkWorld = world;
+			writeChunkKey = key;
+		}
+		writeChunk.setBlockState(pos, state, false);
+		world.getChunkManager().markForUpdate(pos);
 		return 1;
+	}
+
+	/**
+	 * Drop the remembered chunk at the end of a tick.
+	 *
+	 * <p>A static reference to a chunk is a reference the chunk manager cannot unload around. One tick
+	 * is long enough for the cache to pay for itself and short enough that it never holds one open.
+	 */
+	private static void clearWriteChunk() {
+		writeChunk = null;
+		writeChunkWorld = null;
+		writeChunkKey = Long.MIN_VALUE;
 	}
 }
