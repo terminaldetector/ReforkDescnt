@@ -89,6 +89,12 @@ public final class PortalSeeThroughRenderer {
 
 		Camera camera = context.camera();
 		CameraAccessor accessor = (CameraAccessor) camera;
+		// Captured before anything nested runs. A nested WorldRenderer.render re-enters Fabric's own
+		// mixin, which re-prepares the single shared WorldRenderContext with that call's arguments — so
+		// from the second view onward the context describes the view, not the frame. Everything below
+		// uses these copies.
+		Matrix4f outerProjection = new Matrix4f(context.projectionMatrix());
+		Matrix4f outerPosition = new Matrix4f(context.positionMatrix());
 		Vec3d cameraPos = camera.getPos();
 
 		int facing = 0;
@@ -112,7 +118,7 @@ public final class PortalSeeThroughRenderer {
 		int drawn = 0;
 		for (MirrorScanner.PortalFace portal : visible) {
 			if (drawn >= MAX_PORTALS_PER_FRAME) break;
-			if (renderThrough(context, accessor, camera, portal)) drawn++;
+			if (renderThrough(context, accessor, camera, outerProjection, outerPosition, portal)) drawn++;
 		}
 
 		PortalViewDiagnostics.report("portal", drawn > 0
@@ -122,6 +128,7 @@ public final class PortalSeeThroughRenderer {
 
 	/** @return true when the view actually reached the screen, false when it was skipped. */
 	private static boolean renderThrough(WorldRenderContext context, CameraAccessor accessor, Camera camera,
+			Matrix4f outerProjection, Matrix4f outerPosition,
 			MirrorScanner.PortalFace portal) {
 		Vec3d cameraPos = camera.getPos();
 
@@ -140,20 +147,20 @@ public final class PortalSeeThroughRenderer {
 
 		// This end's face on screen, measured with the outer camera before anything moves. Bailing here
 		// also skips a whole world render, which is the expensive half.
-		MirrorScreenBounds.Box box = screenBox(context, portal, cameraPos);
+		MirrorScreenBounds.Box box = screenBox(outerProjection, outerPosition, portal, cameraPos);
 		if (!box.valid()) return false;
 
 		// The destination's own plane is the clip plane: the moved camera stands behind it, so without
 		// this the portal would show the back of the block it leads to and the wall around it.
-		return OffscreenWorldView.render(context, accessor, camera, fromPure(movedPos),
+		return OffscreenWorldView.render(context, accessor, camera, outerProjection, fromPure(movedPos),
 				(float) movedAngles.yawDegrees(), (float) movedAngles.pitchDegrees(),
 				portal.destPoint(), portal.destNormal(), box);
 	}
 
 	/** The portal face's pixel bounding box under the current view — the mirror's own method, at this face's size. */
-	private static MirrorScreenBounds.Box screenBox(WorldRenderContext context,
+	private static MirrorScreenBounds.Box screenBox(Matrix4f outerProjection, Matrix4f outerPosition,
 			MirrorScanner.PortalFace portal, Vec3d cameraPos) {
-		Matrix4f viewProjection = new Matrix4f(context.projectionMatrix()).mul(context.positionMatrix());
+		Matrix4f viewProjection = new Matrix4f(outerProjection).mul(outerPosition);
 		float[] m = new float[16];
 		viewProjection.get(m);
 

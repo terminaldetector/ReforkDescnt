@@ -72,6 +72,14 @@ public final class OffscreenWorldView {
 	/**
 	 * Draw the world from {@code viewPos}/{@code viewYaw}/{@code viewPitch}, clipped to {@code box}.
 	 *
+	 * @param outerProjection the frame's own projection, captured by the caller <b>before</b> any nested
+	 *                        render. It cannot be read from the context here: calling
+	 *                        {@code WorldRenderer.render} re-enters Fabric's own mixin on that method,
+	 *                        which re-prepares the single shared {@code WorldRenderContext} with
+	 *                        whatever this call passes. After the first nested view, the context's
+	 *                        matrices describe that view rather than the frame — which is exactly how
+	 *                        the second mirror in a frame ended up being handed a rotation matrix where
+	 *                        it expected a projection.
 	 * @param clipPoint  a point on the surface being seen through, in world space, or null for no
 	 *                   clipping. Everything on the camera's own side of it is cut away — see
 	 *                   {@link ObliqueNearPlane} for why that is what makes this a picture of somewhere
@@ -81,7 +89,7 @@ public final class OffscreenWorldView {
 	 *         should not spend one of its per-frame slots on a view that never drew.
 	 */
 	public static boolean render(WorldRenderContext context, CameraAccessor accessor, Camera camera,
-			Vec3d viewPos, float viewYaw, float viewPitch,
+			Matrix4f outerProjection, Vec3d viewPos, float viewYaw, float viewPitch,
 			Vec3d clipPoint, Vec3d clipNormal, MirrorScreenBounds.Box box) {
 		if (!box.valid()) return false;
 		Framebuffer target = MirrorFramebuffer.get();
@@ -103,8 +111,7 @@ public final class OffscreenWorldView {
 			accessor.drmd$invokeSetRotation(viewYaw, viewPitch);
 
 			Matrix4f positionMatrix = new Matrix4f().rotation(camera.getRotation());
-			Matrix4f projection = clipped(context.projectionMatrix(), positionMatrix, viewPos,
-					clipPoint, clipNormal);
+			Matrix4f projection = clipped(outerProjection, positionMatrix, viewPos, clipPoint, clipNormal);
 
 			target.setClearColor(0f, 0f, 0f, 1f);
 			target.clear(MinecraftClient.IS_SYSTEM_MAC);
@@ -116,8 +123,11 @@ public final class OffscreenWorldView {
 					camera,
 					context.gameRenderer(),
 					context.lightmapTextureManager(),
-					projection, // vanilla's own, with only its near plane moved onto the surface
-					positionMatrix);
+					// Vanilla's own order, which is positionMatrix first and projectionMatrix second —
+					// confirmed against Fabric's own mixin on this method, not from memory. Passing them
+					// the other way round is what the first live diagnostics report caught.
+					positionMatrix,
+					projection);
 		} finally {
 			// Restore in the reverse order of setup, and unconditionally: leaving the camera moved or the
 			// off-screen target bound would corrupt every system that reads either next frame, not just

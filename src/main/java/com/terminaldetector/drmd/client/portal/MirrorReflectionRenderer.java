@@ -93,6 +93,12 @@ public final class MirrorReflectionRenderer {
 		// hard (non-require=0) mixin DRMD's whole camera system already depends on, so if it hadn't
 		// applied, CameraMixin itself would already have failed long before this code ever runs.
 		CameraAccessor accessor = (CameraAccessor) camera;
+		// Captured before anything nested runs. A nested WorldRenderer.render re-enters Fabric's own
+		// mixin, which re-prepares the single shared WorldRenderContext with that call's arguments — so
+		// from the second view onward the context describes the view, not the frame. Everything below
+		// uses these copies.
+		Matrix4f outerProjection = new Matrix4f(context.projectionMatrix());
+		Matrix4f outerPosition = new Matrix4f(context.positionMatrix());
 
 		// Several mirrors can now be on screen at once — each blit is scissored to its own rectangle, so
 		// they no longer overwrite each other the way full-screen draws did. Nearest first, capped:
@@ -117,7 +123,7 @@ public final class MirrorReflectionRenderer {
 			if (drawn >= MAX_MIRRORS_PER_FRAME) break;
 			// Counts only mirrors that actually rendered: one whose box is off-screen costs nothing and
 			// must not use up a slot a visible one behind it could have had.
-			if (renderReflection(context, accessor, camera, mirror)) drawn++;
+			if (renderReflection(context, accessor, camera, outerProjection, outerPosition, mirror)) drawn++;
 		}
 
 		// A mirror is seen from either side, so the facing stage does not apply here and is reported as
@@ -130,6 +136,7 @@ public final class MirrorReflectionRenderer {
 
 	/** @return true when the reflection actually reached the screen, false when it was skipped. */
 	private static boolean renderReflection(WorldRenderContext context, CameraAccessor accessor, Camera camera,
+			Matrix4f outerProjection, Matrix4f outerPosition,
 			MirrorScanner.MirrorFace mirror) {
 		Vec3d originalPos = camera.getPos();
 
@@ -147,13 +154,13 @@ public final class MirrorReflectionRenderer {
 		// Where the mirror's own face lands on screen, measured with the OUTER camera and its matrices,
 		// before anything is reflected. Computed up front rather than after the render: an invalid box
 		// means there is nowhere to put the result, so bailing here also skips a whole world render.
-		MirrorScreenBounds.Box box = screenBox(context, mirror, originalPos);
+		MirrorScreenBounds.Box box = screenBox(outerProjection, outerPosition, mirror, originalPos);
 		if (!box.valid()) return false;
 
 		// The mirror's own plane is also the clip plane: the reflected camera stands behind it, so
 		// without this the reflection is a picture of the wall the mirror is mounted on. Keeping the
 		// side the normal points at keeps the room and discards the mirror block and everything behind.
-		return OffscreenWorldView.render(context, accessor, camera, fromPure(reflectedPos),
+		return OffscreenWorldView.render(context, accessor, camera, outerProjection, fromPure(reflectedPos),
 				(float) reflectedAngles.yawDegrees(), (float) reflectedAngles.pitchDegrees(),
 				mirror.planePoint(), mirror.normal(), box);
 	}
@@ -165,9 +172,9 @@ public final class MirrorReflectionRenderer {
 	 * projecting, and the matrix is {@code projection × positionMatrix} — the same pair
 	 * {@code WorldRenderer.render} itself is handed, taken straight off the context rather than rebuilt.
 	 */
-	private static MirrorScreenBounds.Box screenBox(WorldRenderContext context,
+	private static MirrorScreenBounds.Box screenBox(Matrix4f outerProjection, Matrix4f outerPosition,
 			MirrorScanner.MirrorFace mirror, Vec3d cameraPos) {
-		Matrix4f viewProjection = new Matrix4f(context.projectionMatrix()).mul(context.positionMatrix());
+		Matrix4f viewProjection = new Matrix4f(outerProjection).mul(outerPosition);
 		float[] m = new float[16];
 		viewProjection.get(m);
 

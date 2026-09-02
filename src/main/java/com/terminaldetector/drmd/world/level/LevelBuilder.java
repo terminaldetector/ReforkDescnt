@@ -59,6 +59,15 @@ public final class LevelBuilder {
 	 * roughly six minutes of backlog and exactly why terrain never appeared below a flying pilot.
 	 */
 	private static final long MAX_FILL_NANOS = 6_000_000L;
+	/**
+	 * Most writes one step may do before the tick deadline is re-checked.
+	 *
+	 * <p>A deadline tested only between steps is only as tight as the longest step. With the budget
+	 * raised to 24,000 a single step could spend all of it, and one tick was measured at 52ms against a
+	 * 6ms deadline. Capping the step bounds the overshoot to roughly what these writes cost times this
+	 * number, which is a couple of milliseconds rather than a lost tick.
+	 */
+	private static final int WRITES_PER_STEP = 1_024;
 	private static final int MAX_QUEUE = 512;
 	private static final int MANTLE_PROBE_Y = -120;
 	/** Mantle Y-rows per drain step (16×16 each). */
@@ -345,7 +354,10 @@ public final class LevelBuilder {
 			long key = ChunkPos.toLong(job.chunkX, job.chunkZ);
 			queued.remove(key);
 			if (!job.world.isChunkLoaded(job.chunkX, job.chunkZ)) continue;
-			StepResult step = step(job, budget);
+			// Capped, so the deadline below is checked often enough to mean anything. Handing a step the
+			// whole remaining budget let one call run for 52ms against a 6ms deadline — measured, in the
+			// first report that had the numbers — because the deadline is only tested between steps.
+			StepResult step = step(job, Math.min(budget, WRITES_PER_STEP));
 			budget -= step.written;
 			if (!step.done) {
 				queued.add(key);
