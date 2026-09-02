@@ -214,11 +214,20 @@ public final class DiagnosticsExport {
 		}
 		report.row("chunks queued now", LevelBuilder.queueDepth())
 				.row("deepest queue this session", LevelBuilder.worstQueueDepth())
+				.row("chunks filled this session", LevelBuilder.chunksFilled())
 				.row("saturated for", LevelBuilder.saturatedTicks() > 0
 						? (LevelBuilder.saturatedTicks() / 20) + "s and counting"
 						: "not saturated")
+				// Which of the two limits is actually binding. Spending the budget well inside the
+				// deadline means it can go higher; stopping on the deadline means the machine is the
+				// limit and a bigger budget would only stall the tick.
+				.row("writes spent last tick", LevelBuilder.lastWritesSpent())
+				.row("fill time last tick", LevelBuilder.lastFillMicros() + "us")
+				.row("worst fill time", LevelBuilder.worstFillMicros() + "us")
+				.row("ticks stopped by the deadline", LevelBuilder.deadlineStops())
 				.note("deep queue + saturated = the write budget is the limit")
-				.note("empty queue + missing terrain = the streaming window is, and budget will not help");
+				.note("empty queue + missing terrain = the streaming window is, and budget will not help")
+				.note("deadline stops climbing = the machine is the limit, not the budget");
 	}
 
 	private static void problems(DiagReport report) {

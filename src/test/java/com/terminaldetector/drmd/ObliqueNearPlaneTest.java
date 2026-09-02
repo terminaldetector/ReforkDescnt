@@ -141,6 +141,31 @@ class ObliqueNearPlaneTest {
 	}
 
 	@Test
+	@DisplayName("a refusal names its own guard, and success clears it")
+	void refusalIsNamed() {
+		float[] projection = perspective(70, 16.0 / 9.0, NEAR, FAR);
+		Vec3 normal = new Vec3(0, 0, -1);
+		double offset = ObliqueNearPlane.offsetFor(normal, new Vec3(0, 0, -3));
+
+		// A report that says only "the clip plane failed" is one level too coarse to act on: there are
+		// six guards here and they mean different things. Each says which one, and with the numbers.
+		assertNull(ObliqueNearPlane.apply(projection, new Vec3(0, 0, 0), offset));
+		assertNotNull(ObliqueNearPlane.lastRefusal());
+		assertTrue(ObliqueNearPlane.lastRefusal().contains("normal is zero"),
+				"unhelpful reason: " + ObliqueNearPlane.lastRefusal());
+
+		float[] noFarPlane = projection.clone();
+		noFarPlane[10] = -1f;
+		assertNull(ObliqueNearPlane.apply(noFarPlane, normal, offset));
+		assertTrue(ObliqueNearPlane.lastRefusal().contains("far plane"),
+				"unhelpful reason: " + ObliqueNearPlane.lastRefusal());
+
+		// And a success must clear it, or the next report would carry a stale reason as if it were live.
+		assertNotNull(ObliqueNearPlane.apply(projection, normal, offset));
+		assertNull(ObliqueNearPlane.lastRefusal(), "a stale refusal survived a successful call");
+	}
+
+	@Test
 	@DisplayName("anything it cannot express returns null rather than a wrong clip")
 	void degenerateInputReturnsNull() {
 		float[] projection = perspective(70, 16.0 / 9.0, NEAR, FAR);

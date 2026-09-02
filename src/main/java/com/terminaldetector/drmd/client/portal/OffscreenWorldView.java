@@ -186,8 +186,8 @@ public final class OffscreenWorldView {
 			// This is diagnostic outcome five, the one that reads as "the back of the destination block
 			// instead of the room". Recording it turns that from something to be guessed at into
 			// something the report already says.
-			DiagProblems.record("portal", "clip plane could not be applied — the view will show the "
-					+ "surface's own block and the wall behind it");
+			DiagProblems.record("portal", "clip plane refused (" + ObliqueNearPlane.lastRefusal()
+					+ ") — the view will show the surface's own block and the wall behind it");
 			return projection;
 		}
 		return new Matrix4f().set(bent);

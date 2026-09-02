@@ -44,7 +44,20 @@ public final class LevelBuilder {
 	 * real time to finish as it did before the bands grew. Not benchmarked against a live server —
 	 * reasoned from the row-count ratio, the same basis the original number was presumably tuned from.
 	 */
-	private static final int BUDGET_PER_TICK = 4_200;
+	private static final int BUDGET_PER_TICK = 24_000;
+	/**
+	 * Hard stop on how long one tick may spend filling, whatever the write budget says.
+	 *
+	 * <p>This is what makes raising the budget safe rather than hopeful. A write count is a guess about
+	 * how fast the machine is; a deadline is a fact about how long the tick has actually taken. With
+	 * both, a fast machine spends its whole budget and a slow one stops early — instead of the write
+	 * count quietly turning into a stall on hardware nobody tested.
+	 *
+	 * <p>Six milliseconds of a fifty-millisecond tick. Chosen against measurement, not taste: the old
+	 * 4,200 writes were filling about one chunk a second against a queue that reached 395, which is
+	 * roughly six minutes of backlog and exactly why terrain never appeared below a flying pilot.
+	 */
+	private static final long MAX_FILL_NANOS = 6_000_000L;
 	private static final int MAX_QUEUE = 512;
 	private static final int MANTLE_PROBE_Y = -120;
 	/** Mantle Y-rows per drain step (16×16 each). */
@@ -228,6 +241,48 @@ public final class LevelBuilder {
 
 	private static int saturatedTicks;
 	private static int worstQueueDepth;
+	private static int chunksFilled;
+	private static int deadlineStops;
+	private static int lastWritesSpent;
+	private static long lastFillNanos;
+	private static long worstFillNanos;
+
+	/** Chunks whose column fill finished this session. */
+	public static int chunksFilled() {
+		return chunksFilled;
+	}
+
+	/** Ticks that stopped on the time deadline rather than on the write budget. */
+	public static int deadlineStops() {
+		return deadlineStops;
+	}
+
+	public static int lastWritesSpent() {
+		return lastWritesSpent;
+	}
+
+	/** Microseconds the last tick's fill took — reported in units a tick budget is judged in. */
+	public static long lastFillMicros() {
+		return lastFillNanos / 1000L;
+	}
+
+	public static long worstFillMicros() {
+		return worstFillNanos / 1000L;
+	}
+
+	/**
+	 * What one tick's fill actually cost.
+	 *
+	 * <p>Recorded rather than assumed, because the write budget alone cannot say whether it is the
+	 * limit. Spending the whole budget well inside the deadline means the budget can go up; hitting
+	 * the deadline first means the machine is the limit and raising it would only stall the tick.
+	 * Which of those is happening was, until this existed, purely a matter of opinion.
+	 */
+	private static void recordFillCost(int writesSpent, long tookNanos) {
+		lastWritesSpent = writesSpent;
+		lastFillNanos = tookNanos;
+		if (tookNanos > worstFillNanos) worstFillNanos = tookNanos;
+	}
 
 	/** Chunks waiting to be filled right now. */
 	public static int queueDepth() {
@@ -277,8 +332,14 @@ public final class LevelBuilder {
 				+ BUDGET_PER_TICK + " writes/tick");
 	}
 
-	private static int drainQueue(Deque<Job> queue, Set<Long> queued, int budget) {
+	private static int drainQueue(Deque<Job> queue, Set<Long> queued, int budget, long deadlineNanos) {
 		while (budget > 0 && !queue.isEmpty()) {
+			// Two limits, and the one that bites first wins. The write budget is what is affordable on a
+			// fast machine; the deadline is what is affordable on this one.
+			if (System.nanoTime() >= deadlineNanos) {
+				deadlineStops++;
+				break;
+			}
 			Job job = queue.poll();
 			long key = ChunkPos.toLong(job.chunkX, job.chunkZ);
 			queued.remove(key);
@@ -288,6 +349,8 @@ public final class LevelBuilder {
 			if (!step.done) {
 				queued.add(key);
 				queue.add(step.next);
+			} else {
+				chunksFilled++;
 			}
 		}
 		return budget;
@@ -310,8 +373,10 @@ public final class LevelBuilder {
 		}
 
 		int budget = BUDGET_PER_TICK;
-		budget = drainQueue(QUEUE, QUEUED, budget);
-		budget = drainQueue(PRESTREAM_QUEUE, PRESTREAM_QUEUED, budget);
+		long startedNanos = System.nanoTime();
+		long deadlineNanos = startedNanos + MAX_FILL_NANOS;
+		budget = drainQueue(QUEUE, QUEUED, budget, deadlineNanos);
+		budget = drainQueue(PRESTREAM_QUEUE, PRESTREAM_QUEUED, budget, deadlineNanos);
 		recordBacklog(budget);
 
 		// End band gets what is left. One island is a single indivisible step, so it runs on the
@@ -321,7 +386,8 @@ public final class LevelBuilder {
 		// Bounded by count as well as by budget: most chunks in the band have no island, cost
 		// nothing, and would let one tick walk the entire queue however long the stream made it.
 		int endJobs = 0;
-		while (budget > 0 && endJobs++ < END_JOBS_PER_TICK && !END_QUEUE.isEmpty()) {
+		while (budget > 0 && endJobs++ < END_JOBS_PER_TICK && !END_QUEUE.isEmpty()
+				&& System.nanoTime() < deadlineNanos) {
 			EndJob job = END_QUEUE.poll();
 			END_QUEUED.remove(ChunkPos.toLong(job.chunkX, job.chunkZ));
 			if (!job.world.isChunkLoaded(job.chunkX, job.chunkZ)) continue;
@@ -330,6 +396,8 @@ public final class LevelBuilder {
 					^ (((long) job.chunkZ) * 132897987541L);
 			budget -= buildEndLevel(job.world, job.chunkX, job.chunkZ, seed, Random.create(seed));
 		}
+
+		recordFillCost(BUDGET_PER_TICK - budget, System.nanoTime() - startedNanos);
 	}
 
 	private record Digger(int cx, int cz) {}

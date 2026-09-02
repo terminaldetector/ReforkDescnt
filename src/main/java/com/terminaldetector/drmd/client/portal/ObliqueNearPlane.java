@@ -41,6 +41,25 @@ public final class ObliqueNearPlane {
 	/** Below this, a divisor is treated as degenerate and the caller gets the matrix back unchanged. */
 	private static final double EPSILON = 1e-9;
 
+	private static volatile String lastRefusal;
+
+	/**
+	 * Why the last {@link #apply} returned null, or null if it succeeded.
+	 *
+	 * <p>Added after a diagnostics report said the clip plane had failed sixty times and could not say
+	 * which of six guards had refused it — a diagnostic one level too coarse to act on, which is its own
+	 * kind of failure. Naming the guard and the numbers behind it turns the next report into an answer
+	 * rather than a shortlist.
+	 */
+	public static String lastRefusal() {
+		return lastRefusal;
+	}
+
+	private static float[] refuse(String reason) {
+		lastRefusal = reason;
+		return null;
+	}
+
 	/**
 	 * The plane constant for a plane through {@code pointOnPlane} with this {@code normal}, in the
 	 * convention {@link #apply} keeps: {@code normal·p + offset >= 0} is the side that survives.
@@ -63,36 +82,43 @@ public final class ObliqueNearPlane {
 	 *         wall this exists to remove.
 	 */
 	public static float[] apply(float[] projection, PortalTransform.Vec3 normal, double offset) {
-		if (projection == null || projection.length < 16 || normal == null) return null;
+		lastRefusal = null;
+		if (projection == null || projection.length < 16 || normal == null) return refuse("no matrix or no normal");
 
 		PortalTransform.Vec3 n = normal.normalized();
 		double cx = n.x();
 		double cy = n.y();
 		double cz = n.z();
-		if (cx == 0 && cy == 0 && cz == 0) return null; // normalized() gave up on a zero normal
+		if (cx == 0 && cy == 0 && cz == 0) return refuse("the normal is zero, so it describes no plane");
 
 		double m00 = projection[0];
 		double m11 = projection[5];
 		double m22 = projection[10];
 		double m23 = projection[14];
-		if (Math.abs(m00) < EPSILON || Math.abs(m11) < EPSILON) return null;
+		if (Math.abs(m00) < EPSILON || Math.abs(m11) < EPSILON) {
+			return refuse("projection has no scale: m00=" + m00 + " m11=" + m11);
+		}
 
 		// Where this projection puts its far plane, read back out of the matrix rather than passed in:
 		// the caller hands over Minecraft's own matrix and does not necessarily know its near/far.
 		double denominator = m22 + 1.0;
-		if (Math.abs(denominator) < EPSILON) return null;
+		if (Math.abs(denominator) < EPSILON) {
+			return refuse("projection carries no far plane to read: m22=" + m22);
+		}
 		double farZ = -m23 / denominator; // negative — the camera looks down -Z
-		if (!(farZ < 0)) return null;
+		if (!(farZ < 0)) return refuse("far plane is not down -Z: farZ=" + farZ + " m22=" + m22 + " m23=" + m23);
 
 		// The far-plane corner in the direction of the plane's own normal. Picking the corner this way
 		// is what makes the scale below preserve the depth range instead of merely being positive.
 		double qx = Math.signum(cx) * -farZ / m00;
 		double qy = Math.signum(cy) * -farZ / m11;
 		double cq = cx * qx + cy * qy + cz * farZ + offset;
-		if (Math.abs(cq) < EPSILON) return null;
+		if (Math.abs(cq) < EPSILON) {
+			return refuse("the far corner lies on the clip plane: cq=" + cq + " offset=" + offset);
+		}
 
 		double scale = 2.0 * -farZ / cq;
-		if (!Double.isFinite(scale)) return null;
+		if (!Double.isFinite(scale)) return refuse("scale is not finite: " + scale);
 
 		float[] out = projection.clone();
 		// The z row, in column-major terms: [column * 4 + 2] for columns 0..3.
