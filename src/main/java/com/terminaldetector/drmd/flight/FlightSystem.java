@@ -408,10 +408,21 @@ public final class FlightSystem {
 		}
 		DescentPlayerData data = DescentPlayerData.get(player);
 		java.util.UUID lastShipId = data.getLastShipUuid();
-		if (lastShipId != null
-				&& player.getServerWorld().getEntity(lastShipId) instanceof PyroShipEntity found
-				&& !found.hasPassengers()
-				&& (found.getOwnerUuid() == null || found.getOwnerUuid().equals(player.getUuid()))) {
+		// Spelled out rather than left as one boolean, because the first live trace showed four hulls
+		// spawned and not one remount — and could not say which of these four conditions had refused.
+		// Each abandoned hull stays in the world, which is the litter that had to be burned off by hand.
+		if (lastShipId == null) {
+			DiagTrace.record("flight", "no remount: this pilot has no remembered hull");
+		} else if (!(player.getServerWorld().getEntity(lastShipId) instanceof PyroShipEntity found)) {
+			// The likeliest one: getEntity finds nothing in an unloaded chunk, so a hull parked and
+			// flown away from is indistinguishable from one that never existed.
+			DiagTrace.record("flight", "no remount: hull " + lastShipId + " not found in this world "
+					+ "(unloaded chunk, removed, or another dimension)");
+		} else if (found.hasPassengers()) {
+			DiagTrace.record("flight", "no remount: hull at " + found.getBlockPos() + " still has a passenger");
+		} else if (found.getOwnerUuid() != null && !found.getOwnerUuid().equals(player.getUuid())) {
+			DiagTrace.record("flight", "no remount: hull at " + found.getBlockPos() + " belongs to someone else");
+		} else {
 			found.setOwnerUuid(player.getUuid());
 			DiagTrace.record("flight", "remounted the existing Pyro hull at " + found.getBlockPos());
 			player.startRiding(found);
