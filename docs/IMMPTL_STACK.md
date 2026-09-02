@@ -97,6 +97,58 @@ Cardinal Components 1. Без этих модов их не во что вста
 «кросс-дименшн портал». 29 рендерных — та часть, которую DRMD уже обошёл своим путём (ножницы вместо
 маски, косая ближняя плоскость вместо `gl_ClipDistance`), не написав ни одного миксина.
 
+### Во что упираются осознанные ограничения нативного переноса
+
+Два ограничения, записанные в `PORTAL_RENDERING.md` («только одно измерение», «пассажиры
+пропускаются»), стоят очень по-разному — вот чем именно каждое снимается у ImmPtl.
+
+**«Только одно измерение» — около 40 миксинов, и ни одного рендерного.**
+
+| группа | шт. | что делает |
+|---|---|---|
+| `common.chunk_sync` | 10 | шлёт игроку чанки измерения, в котором он не находится |
+| `client.sync` | 11 | клиентская половина, включая `MixinReceivingLevelScreen` — экран «Downloading terrain» не должен появляться |
+| `common.position_sync` | 7 | шесть из семи — варианты `ServerboundMovePlayerPacket`: ваниль считает пакет движения издалека читом, а проход портала делает таким **каждый** пакет |
+| `common.entity_sync` | 6 | `TrackedEntity`, `ServerEntity`, `PersistentEntitySectionManager` |
+| `common.other_sync` | 4 | `PlayerList` (сама смена измерения), поза, карты |
+| `client.multiworld_awareness` | 2 | туман и эмбиент-звук **чужого** мира |
+
+Это не «перенести рендер». Это заменить то, как Minecraft решает, какие чанки и каких сущностей
+игроку вообще позволено видеть.
+
+**«Пассажиры пропускаются» — 9 миксинов**, `common.collision` (8) плюс `client.collisions`
+(`MixinLocalPlayer`). Существенно: отдельного пакета `passenger`/`vehicle` **нет вообще** — это
+сидит внутри `MixinEntity` плюс персональный `MixinAbstractMinecartEntity`. То есть пассажиров
+нельзя вынуть как отдельную фичу: это инъекция в сам `Entity`. И транспорт даже у ImmPtl оказался
+достоин отдельного случая.
+
+### Что на самом деле определяет цену вшивания: пересечение целей
+
+У DRMD 18 своих миксинов. Из 11 ванильных классов, в которые он уже вмешивается, **10 — тоже цели
+ImmPtl**:
+
+| ванильный класс | миксинов ImmPtl | миксин DRMD |
+|---|---|---|
+| `GameRenderer` | 4 | `client.GameRendererMixin` |
+| `Minecraft` | 4 | — |
+| `Entity` | 3 | `EntityFluidMixin` |
+| `ClientLevel` | 3 | `client.ClientWorldMixin` |
+| `Player` | 2 | `PlayerEntityMixin` |
+| `LivingEntity` | 2 | `LivingEntityMixin` |
+| `Camera` | 1 | `client.CameraMixin` + `CameraAccessor` |
+| `LocalPlayer` | 1 | `client.ClientPlayerEntityMixin` |
+| `ServerPlayer` | 1 | `ServerPlayerFlightTravelMixin` |
+| `Gui` | 1 | `client.InGameHudMixin` |
+
+И миксины DRMD на `Player` / `ServerPlayer` / `LocalPlayer` / `Camera` / `GameRenderer` — это система
+6DoF-полёта, то есть ядро мода. Поэтому вшивание — не «добавить 134 файла», а **свести две системы
+инъекций в одни и те же методы тех классов, которыми 6DoF уже владеет**. Оценивать эту работу надо
+по этой таблице, а не по числу файлов.
+
+Отсюда же и подтверждение уже выбранного пути: 29 рендерных миксинов ImmPtl DRMD обошёл целиком
+(ножницы вместо маски, косая ближняя плоскость вместо `gl_ClipDistance`), не тронув ни `GameRenderer`,
+ни `Camera` чужим кодом.
+
 ## Recommended stack (Fabric 1.21.1)
 
 ```
