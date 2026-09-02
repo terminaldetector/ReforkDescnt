@@ -136,7 +136,7 @@ public class DescentSettingsScreen extends Screen {
 				})
 						.tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(
 								Text.translatable("options.drmd.export_diagnostics_hint")))
-						.dimensions(left, y, 316, 20).build(), null);
+						.dimensions(left, y, 310, 20).build(), null);
 		y += 6;
 		y = addRow(y, viewBottom,
 				ButtonWidget.builder(Text.translatable("options.drmd.give_ship"),
