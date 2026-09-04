@@ -185,12 +185,15 @@ public final class ImmPtlQuaternions {
 	 * The rotation described by the three orthonormal <b>columns</b> of a rotation matrix — that is,
 	 * by where it sends each basis vector.
 	 *
-	 * <p><b>The donor's comment says rows, and it is wrong.</b> Its code reads {@code m10} out of the
-	 * first argument's y and {@code m20} out of its z, which is a column, not a row. Checked rather
-	 * than assumed: feeding it the three axes of a known rotation recovers that rotation, and feeding
-	 * it the transpose does not. Since the arguments are the images of the basis vectors, this is
-	 * self-consistent with the donor's own {@code getAxisW}/{@code fromFacingVecs}, which is presumably
-	 * why the comment never caused it trouble.
+	 * <p><b>The donor calls these rows; both names are right, in different conventions.</b> Its code
+	 * reads {@code m10} out of the first argument's y, which is a column under the usual column-vector
+	 * convention — but the donor's own {@code IntMatrix3} states plainly that it transforms row
+	 * vectors as {@code p * m}, and under that convention row {@code i} <em>is</em> the image of basis
+	 * vector {@code i}. Same three vectors, two words for them.
+	 *
+	 * <p>So the name here is the thing itself rather than either convention's word for it. Which
+	 * reading DRMD needs was settled by arithmetic and not by argument: feeding this the three axes of
+	 * a known rotation recovers that rotation exactly, and feeding it the transpose lands 1.09 away.
 	 *
 	 * <p>Branches on which diagonal term is largest, which is not decoration: the direct formula
 	 * divides by a term that vanishes for a 180° turn, and each branch picks one that cannot. Only

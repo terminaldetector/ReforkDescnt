@@ -16,9 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * <p>Vendored code gets tested harder than written code, not less. A translated file compiles
  * whether or not the translation preserved the maths, and the two places this one could have gone
- * wrong silently are pinned here: the argument order of a composition, and whether
- * {@code fromBasisImages} takes rows or columns — where the donor's own comment says rows and is
- * demonstrably wrong.
+ * wrong silently are pinned here: the argument order of a composition, and which of a rotation
+ * matrix and its transpose {@code fromBasisImages} wants.
  *
  * <p>Every expected value below was computed independently before being written down.
  */
@@ -59,8 +58,8 @@ class ImmPtlQuaternionsTest {
 	}
 
 	@Test
-	@DisplayName("fromBasisImages takes columns, whatever the donor's comment says")
-	void basisImagesAreColumnsNotRows() {
+	@DisplayName("fromBasisImages takes the images of the basis vectors, not the transpose")
+	void basisImagesAreNotTheTranspose() {
 		Quat original = ImmPtlQuaternions.rotationByDegrees(new Vec3(0.3, 0.5, 0.2), 63.0);
 		Vec3 imageOfX = original.rotate(new Vec3(1, 0, 0));
 		Vec3 imageOfY = original.rotate(new Vec3(0, 1, 0));
@@ -70,8 +69,8 @@ class ImmPtlQuaternionsTest {
 		assertTrue(ImmPtlQuaternions.isClose(original, recovered),
 				"a rotation did not survive a round trip through its own basis images");
 
-		// The transpose — the reading the donor's comment describes — must NOT work, or the test above
-		// would pass for the wrong reason.
+		// The transpose must NOT work, or the test above would pass for the wrong reason. This is the
+		// pair the two matrix conventions disagree about, and the only way to know which DRMD needs.
 		Quat transposed = ImmPtlQuaternions.fromBasisImages(
 				new Vec3(imageOfX.x(), imageOfY.x(), imageOfZ.x()),
 				new Vec3(imageOfX.y(), imageOfY.y(), imageOfZ.y()),
