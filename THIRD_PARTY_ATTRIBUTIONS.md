@@ -37,6 +37,7 @@ is easy to miss and was in fact missed once — see `docs/source-audit/license-m
 | `src/main/java/com/terminaldetector/drmd/vendor/immptl/ImmPtlPlane.java` | Immersive Portals 6.0.6, `qouteall.q_misc_util.my_util.Plane` | Apache-2.0 | Yes — see the header |
 | `src/main/java/com/terminaldetector/drmd/vendor/immptl/ImmPtlIntMatrix3.java` | Immersive Portals 6.0.6, `qouteall.q_misc_util.my_util.IntMatrix3` | Apache-2.0 | Yes — see the header |
 | `src/main/java/com/terminaldetector/drmd/vendor/immptl/ImmPtlAARotation.java` | Immersive Portals 6.0.6, `qouteall.q_misc_util.my_util.AARotation` | Apache-2.0 | Yes — see the header |
+| `src/main/java/com/terminaldetector/drmd/vendor/immptl/ImmPtlIntBox.java` | Immersive Portals 6.0.6, `qouteall.q_misc_util.my_util.IntBox` | Apache-2.0 | Yes — see the header |
 
 Vendored files live under `com.terminaldetector.drmd.vendor.<project>` and are Apache-2.0 whole, so
 each file is its own licence boundary. Each carries the Apache header, the copyright, and a list of
