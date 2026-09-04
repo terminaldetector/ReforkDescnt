@@ -8,7 +8,8 @@ JAVA_LANG = set("""String Object Integer Long Double Float Boolean Byte Short Ch
 Exception RuntimeException IllegalArgumentException IllegalStateException Override Deprecated
 SuppressWarnings FunctionalInterface Thread Runnable Comparable Iterable Number Class Enum Record
 StringBuilder CharSequence Void Error Throwable NullPointerException UnsupportedOperationException
-SafeVarargs NumberFormatException ArithmeticException ClassCastException
+SafeVarargs NumberFormatException ArithmeticException ClassCastException ClassLoader
+Module Package StackTraceElement InterruptedException ReflectiveOperationException
 IndexOutOfBoundsException ArrayIndexOutOfBoundsException StringIndexOutOfBoundsException
 Iterable Cloneable AutoCloseable Process ProcessBuilder ThreadLocal StrictMath""".split())
 
