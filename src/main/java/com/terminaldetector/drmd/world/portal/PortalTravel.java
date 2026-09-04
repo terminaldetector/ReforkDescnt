@@ -8,6 +8,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.world.RaycastContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -83,11 +86,15 @@ public final class PortalTravel {
 			PortalTransform.Vec3 nowPos = new PortalTransform.Vec3(entity.getX(), entity.getY(), entity.getZ());
 			if (!PortalCrossing.crossedInward(prev, nowPos, plane, n)) continue;
 
-			// Where the step met the plane, so someone passing through the wall beside the portal is not
-			// carried: the crossing has to land on the portal's own face.
+			// Where the step met the plane. The crossing has to land on the portal's own face, which
+			// takes two tests: inside the nominal span, and actually reachable across it.
 			PortalTransform.Vec3 hit = PortalCrossing.crossingPoint(prev, nowPos, plane, n);
 			if (hit == null) continue;
 			if (!PortalCrossing.withinFace(hit, plane, n, halfSpan)) continue;
+			if (!faceIsOpenTo(world, entity, face, normal, hit)) {
+				DiagTrace.count("portal.blockedSpan");
+				continue;
+			}
 
 			PortalCrossing.Exit exit = PortalCrossing.exitFor(
 					nowPos, toPure(entity.getVelocity()),
@@ -105,6 +112,44 @@ public final class PortalTravel {
 			markArrived(entity.getUuid(), now);
 		}
 	}
+
+	/**
+	 * Whether the crossing point is on the open part of the portal plane, rather than through the wall
+	 * beside it.
+	 *
+	 * <p><b>The gap this closes.</b> {@link PortalCrossing#withinFace} measures the <em>nominal</em>
+	 * span — how far from the anchor a crossing may land — and nothing measured whether the plane is
+	 * actually open that far. For a charged mirror the span is three quarters of a block, so the
+	 * question never arose. For a portal panel it is two either side, a five-block plane of which one
+	 * block is the panel and the other twenty-four are whatever happens to be there. Mounted on a wall,
+	 * that plane continues straight through it, and anyone in the next room crossing it at the same
+	 * depth was carried — through solid rock, from a portal they could not see.
+	 *
+	 * <p>One ray from the anchor's face to the crossing point settles it: if the plane is walled off
+	 * between the two, they are not on the same face.
+	 *
+	 * <p>Both ends are nudged a little along the normal, onto the side the traveller came from. A ray
+	 * running exactly along a block face grazes it unpredictably, and the approach side is by
+	 * definition open — the traveller was standing in it.
+	 *
+	 * <p>Costs nothing in the common case: a crossing within a block of the anchor is on the anchor's
+	 * own face by construction, which covers every mirror and the middle of every panel, and returns
+	 * before any ray is cast.
+	 */
+	private static boolean faceIsOpenTo(ServerWorld world, Entity traveller, Vec3d faceCentre,
+			Vec3d normal, PortalTransform.Vec3 hit) {
+		Vec3d hitPoint = new Vec3d(hit.x(), hit.y(), hit.z());
+		if (faceCentre.squaredDistanceTo(hitPoint) <= 1.0) return true;
+
+		Vec3d offset = normal.multiply(APPROACH_NUDGE);
+		BlockHitResult blocked = world.raycast(new RaycastContext(
+				faceCentre.add(offset), hitPoint.add(offset),
+				RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, traveller));
+		return blocked.getType() == HitResult.Type.MISS;
+	}
+
+	/** How far off the plane the reachability ray runs, in blocks — enough not to graze the face. */
+	private static final double APPROACH_NUDGE = 0.05;
 
 	private static boolean onCooldown(UUID id, long now) {
 		Long until = RECENT_ARRIVALS.get(id);
