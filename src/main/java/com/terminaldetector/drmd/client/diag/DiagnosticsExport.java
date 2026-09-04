@@ -188,7 +188,8 @@ public final class DiagnosticsExport {
 				.rowIf(state.hasSeed(), "seed", state.seed())
 				.row("rebuilds this session", state.rebuilds())
 				.row("last rebuild", state.lastRebuildMillis() < 0 ? "never" : state.lastRebuildMillis() + "ms")
-				.row("worst rebuild", state.worstRebuildMillis() < 0 ? "never" : state.worstRebuildMillis() + "ms");
+				.row("worst rebuild", state.worstRebuildMillis() < 0 ? "never" : state.worstRebuildMillis() + "ms")
+				.row("rebuilding now", state.building() ? "yes — the field on screen is one build behind" : "no");
 
 		PlanetSurfaceMesh mesh = state.currentMesh();
 		if (mesh == null) {
@@ -198,10 +199,11 @@ public final class DiagnosticsExport {
 		report.row("quads in the field", mesh.quads)
 				.row("built around", String.format(Locale.ROOT, "%.0f, %.0f, %.0f", mesh.originX, mesh.originY, mesh.originZ))
 				.row("inner radius / reach", String.format(Locale.ROOT, "%.0f / %.0f", mesh.innerRadius, mesh.reach));
-		// The rebuild is the horizon's whole remaining cost: drawing it is free between rebuilds. So a
-		// stutter while flying is this number, and it is here so nobody has to guess that.
-		report.note("drawing is free between rebuilds (the field is on the GPU); a stutter while flying "
-				+ "is the rebuild time above");
+		// Drawing is free between rebuilds — the field lives on the GPU — and the rebuild itself now
+		// happens on drmd-horizon rather than in a frame. So neither number here can be a stutter any
+		// more, and the note says so rather than leaving the old claim to be re-tested.
+		report.note("drawing is free between rebuilds (the field is on the GPU)")
+				.note("rebuilds run on the drmd-horizon thread, so a slow one lags the field, not the frame");
 	}
 
 	/**

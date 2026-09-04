@@ -82,7 +82,10 @@ public final class PlanetFloorRenderer {
 		double inner = innerRadius(endDim, viewBlocks, clip, eyeY, seed, cam);
 
 		PlanetSurfaceMesh mesh = PlanetClientState.INSTANCE.mesh(cam.x, eyeY, cam.z, inner, reach);
-		if (mesh.quads == 0) return;
+		// Null for the first frames of a world: the field is built on drmd-horizon now, and this asks
+		// for it rather than waiting. Drawing nothing for a frame or two is what buys never spending
+		// 26ms of one — see PlanetClientState.mesh.
+		if (mesh == null || mesh.quads == 0) return;
 
 		Matrix4f mat = new Matrix4f(ctx.matrixStack().peek().getPositionMatrix());
 		// The field is a rigid body between rebuilds: shift it by the parallax the ship has flown
