@@ -61,9 +61,13 @@ class D6PortalTransformTest {
 	@Test
 	@DisplayName("in front of the source is behind the destination")
 	void positionLandsBehindTheFarFace() {
+		// Two along +sourceNormal lands two along -destNormal from the destination: (10,0,0) less
+		// two of the destination's own normal (1,0,0).
 		assertVec(new Vec3(8, 0, 0), TURN.transformPoint(new Vec3(0, 0, 2)), "two in front");
-		// Which is the same thing the see-through view does, so what you see is where you arrive.
-		assertVec(new Vec3(0, 0, 18), FACING.transformPoint(new Vec3(0, 0, 2)), "facing pair");
+		// The same rule, and the sign is the whole test: the destination faces -Z, so behind it is
+		// +Z and the point lands at 22 rather than at 18. Which is what the see-through view draws,
+		// so what you see through the source is what is behind the destination.
+		assertVec(new Vec3(0, 0, 22), FACING.transformPoint(new Vec3(0, 0, 2)), "facing pair");
 	}
 
 	@Test
