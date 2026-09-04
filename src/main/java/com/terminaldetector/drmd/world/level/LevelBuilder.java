@@ -896,6 +896,26 @@ public final class LevelBuilder {
 			writeChunk = world.isChunkLoaded(chunkX, chunkZ) ? world.getChunk(chunkX, chunkZ) : null;
 		}
 		if (writeChunk == null) return 0;
+		// Overwriting a block that owns a block entity, recorded rather than assumed away.
+		//
+		// The last flight logged 43 warnings of the shape "Tried to load a DUMMY block entity @ ... but
+		// found not block entity block Block{minecraft:air}", clustered at y -22 to -32 — the depth this
+		// fill works at. That warning means a chunk was saved carrying a block entity position whose
+		// block no longer owns one, and the fill is the obvious suspect for having overwritten it. The
+		// obvious suspect has been wrong before on this project, so this names the block instead of
+		// guessing: one report and the writer is known.
+		//
+		// The cost is one extra block-state read per write — a section lookup and a palette read, which
+		// setBlockState is about to do anyway. Against a fill already capped at six milliseconds of a
+		// fifty-millisecond tick, a few percent of that is well under one percent of the tick, and the
+		// question it answers has already cost two play sessions. DiagProblems deduplicates, so a
+		// column full of these is one line.
+		BlockState previous = writeChunk.getBlockState(pos);
+		if (previous.hasBlockEntity() && !previous.isOf(state.getBlock())) {
+			DiagProblems.record("worldgen", "column fill overwrote a block entity: "
+					+ previous.getBlock() + " at y=" + pos.getY() + " replaced by " + state.getBlock());
+			DiagTrace.count("worldgen.overwroteBlockEntity");
+		}
 		writeChunk.setBlockState(pos, state, false);
 		world.getChunkManager().markForUpdate(pos);
 		return 1;
