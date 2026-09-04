@@ -30,13 +30,18 @@
 | `CubicChunks2` | `MC_1.18` | Вторая версия | MIT |
 | `CubicChunks3` | `dev` | Третья версия | MIT |
 | `FarPlaneTwo` | `dev/abstract-everything` | Дальний рендер для кубических миров | MIT **плюс** требование атрибуции |
-| `SeamlessPortals` | **`1.21`** | Бесшовные порталы | Apache-2.0 |
+| `SeamlessPortals` | **`1.21`** | **Не SeamlessPortals** — порт Immersive Portals под NeoForge | Apache-2.0 |
 | `portal_gun` | `main` | Портальная пушка (TarLaboratories) | MIT |
 | `portal-gun-mod` | **`1.21.1`** | Портальная пушка (MeowMC) | MIT |
 
-**Два из них на версии DRMD.** `SeamlessPortals` собирается под 1.21, `portal-gun-mod` — под
-1.21.1. Это единственные доноры во всём наборе, чей код не надо мысленно переводить через смену
-версии игры, и по одному этому они читаются первыми в своих группах.
+**`portal-gun-mod` собирается под 1.21.1** — версию DRMD, и это единственный донор во всём наборе,
+чей код не надо переводить ни через версию игры, ни через загрузчик.
+
+**Имя `SeamlessPortals` вводит в заблуждение.** В репозитории лежит Immersive Portals — все 525
+файлов в пакетах `qouteall.imm_ptl.*`, `archives_base_name=immersive-portals`, — портированный под
+**NeoForge** (единственный gradle-плагин сборки `net.neoforged.gradle.userdev`, Fabric API через
+`org.sinytra.forgified-fabric-api`). DRMD собирается под Fabric, поэтому вставить его нельзя; чем он
+всё-таки ценен — в [`portal-engine.md`](portal-engine.md).
 
 **`CubicChunks` — MIT, но узнать это можно только из исходников.** Файла `LICENSE` в корне нет ни
 под каким именем; лицензия объявлена в шапке каждого `.java` («This file is part of Cubic Chunks

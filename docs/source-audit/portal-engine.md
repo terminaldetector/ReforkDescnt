@@ -7,7 +7,7 @@
 
 | Форк | Ветка по умолчанию | Лицензия | Роль |
 |---|---|---|---|
-| `SeamlessPortals` | **`1.21`** | Apache-2.0 | движок бесшовных порталов |
+| `SeamlessPortals` | **`1.21`** | Apache-2.0 | **на деле не SeamlessPortals** — порт Immersive Portals под NeoForge, см. ниже |
 | `portal-gun-mod` | **`1.21.1`** | MIT | пушка (MeowMC, 2021 + 2025) |
 | `portal_gun` | `main` | MIT | пушка (TarLaboratories, 2024) |
 | Immersive Portals | ветка `1.21` | Apache-2.0 | движок; исходники есть, три файла уже перенесены |
@@ -15,8 +15,79 @@
 Отсутствует относительно брифа: `ricks-portal-gun-multiloader`, `iPortalTeam/PortalGun`,
 `ImmersivePortalsModForForge`.
 
-**`SeamlessPortals` и `portal-gun-mod` собираются под 1.21 и 1.21.1** — версию DRMD. Единственные
-доноры во всём наборе, чей код не нужно переводить через смену версии игры. Читаются первыми.
+**`portal-gun-mod` собирается под 1.21.1** — версию DRMD, и это единственный донор в группе, чей код
+не надо переводить ни через версию игры, ни через загрузчик.
+
+## Что такое `terminaldetector/SeamlessPortals` на самом деле
+
+Прочитано, а не предположено по имени. Это **не** SeamlessPortals Voidlighter'а.
+
+- `README.md` начинается со слов «# Immersive Portals Mod … This fork is not yet available on
+  Modrinth or Curseforge».
+- `archives_base_name=immersive-portals`, `minecraft_version=1.21.1`.
+- Все 525 файлов лежат в пакетах `qouteall.imm_ptl.*` и `qouteall.q_misc_util.*` — это дерево
+  Immersive Portals.
+- Верхний коммит: «First attempt adding Gravity Control support, based on the work done by
+  Matthew-Alpha … ImmersivePortalsModForForge/tree/1.20.1».
+
+То есть это ветка `ImmersivePortalsModForForge` из списка брифа, лежащая под чужим именем.
+
+**И это NeoForge, а не Fabric.** Единственный gradle-плагин сборки — `net.neoforged.gradle.userdev`;
+Fabric API подтягивается через `org.sinytra.forgified-fabric-api`, то есть переиздание Fabric API
+поверх NeoForge от Sinytra Connector. `fabric.mod.json` в ресурсах лежит, но собирается проект под
+Neo.
+
+Практический вывод: **вставить его в DRMD нельзя** — DRMD собирается под Fabric. Ценность форка
+другая, и она большая.
+
+## Чем этот форк ценен: измеренная граница платформы
+
+Бриф и общий план требуют «Minecraft = platform adapter». Этот форк — рабочий ответ на вопрос,
+сколько это стоит на живом движке порталов в 70 000 строк, потому что рядом лежат обе версии одного
+и того же кода: присланный архив под Fabric (492 файла) и этот форк под Neo (525).
+
+| | Fabric-исходники | Форк под Neo |
+|---|---|---|
+| файлов всего | 492 | 525 |
+| импортируют `net.fabricmc` | **105** (21%) | 3 |
+| импортируют `net.neoforged` | — | 76 |
+| импортируют `net.minecraft.client` | 148 | 154 |
+
+**Слой загрузчика не исчез — он переехал.** Было 105 файлов, привязанных к Fabric; стало 79,
+привязанных к Neo и остаткам Fabric. Пятая часть дерева трогает API загрузчика в любом случае, и
+полностью развязать движок такого размера у портировавших не вышло — вместо этого они опёрлись на
+слой совместимости (Sinytra), чтобы не переписывать код против Fabric API заново.
+
+Для плана это отрезвляющий факт, и лучше знать его сейчас: «ядро, не знающее о платформе» на
+масштабе портального движка — не бесплатная архитектурная позиция, а работа, которую даже авторы
+порта предпочли обойти.
+
+## Три приёма из этого форка, которые стоят переноса
+
+Дельта между двумя деревьями — 34 добавленных файла и один удалённый, и она вся про границу
+платформы.
+
+**1. Клиентский код вынесен в отдельные файлы.** `ScaleUtilsClient`, `CollisionHelperClient`,
+`ImmPtlNetworkingClient`, `GlobalPortalStorageClient`, `PortalWandItemClient`,
+`McRemoteProcedureCallClient` и ещё несколько. В самих файлах это записано прямо:
+`// @Nick1st copy of ScaleUtils with ClientOnly code`. Причина не косметическая: Neo строго делит
+клиент и сервер, и класс с клиентским кодом не должен грузиться на выделенном сервере, тогда как
+Fabric терпит смешанные классы с `@Environment`.
+
+У DRMD это уже частично сделано разложением по пакетам `client/` и `world/`, но не до конца: например
+`PortalTransform` с чистой математикой живёт в `client.portal`, а пользуется им серверный
+`PortalCrossing`. Это не ошибка сборки, а мина под будущий адаптер.
+
+**2. Свой слой событий вместо колбэков загрузчика** — `de.nick1st.imm_ptl.events`, 11 файлов:
+`ServerPortalTickEvent`, `ClientPortalTickEvent`, `PortalDisposeEvent`, `ReadPortalDataEvent`,
+`WritePortalDataEvent`, `DimensionEvents` и другие. Движок публикует свои события, адаптер их
+переводит в события конкретного загрузчика.
+
+**3. Свой слой сети** — `de.nick1st.*.networking`, 4 файла: `Payloads`, `ClientPayloadHandler`,
+`ImplRPCPayload`. Ровно то, что бриф называет `D6PortalNetwork`.
+
+Порядок именно такой: без пункта 1 два других не имеют смысла, потому что граница проходит не только
+между загрузчиками, но и между сторонами.
 
 ## Что в DRMD уже есть по этому брифу
 
