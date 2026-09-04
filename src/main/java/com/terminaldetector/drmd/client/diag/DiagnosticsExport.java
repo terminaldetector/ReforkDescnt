@@ -10,6 +10,7 @@ import com.terminaldetector.drmd.client.portal.PortalSeeThroughRenderer;
 import com.terminaldetector.drmd.client.portal.PortalViewDiagnostics;
 import com.terminaldetector.drmd.diag.DiagProblems;
 import com.terminaldetector.drmd.diag.DiagReport;
+import com.terminaldetector.drmd.diag.DiagServerTick;
 import com.terminaldetector.drmd.diag.DiagTrace;
 import com.terminaldetector.drmd.world.level.LevelBuilder;
 import com.terminaldetector.drmd.world.level.WorldLevels;
@@ -22,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -82,6 +84,7 @@ public final class DiagnosticsExport {
 		worldAndPlayer(report);
 		portals(report);
 		horizon(report);
+		serverTick(report);
 		generation(report);
 		problems(report);
 		counters(report);
@@ -153,11 +156,11 @@ public final class DiagnosticsExport {
 		}
 		PlayerEntity player = mc.player;
 		report.row("dimension", mc.world.getRegistryKey().getValue())
-				.row("position", String.format("%.1f, %.1f, %.1f", player.getX(), player.getY(), player.getZ()))
+				.row("position", String.format(Locale.ROOT, "%.1f, %.1f, %.1f", player.getX(), player.getY(), player.getZ()))
 				.row("layer at this Y", WorldLevels.at(player.getY()))
 				.row("6DoF enabled", DescentClientState.enabled)
 				.row("flight assist", DescentClientState.flightAssist)
-				.row("speed", String.format("%.2f", DescentClientState.speed))
+				.row("speed", String.format(Locale.ROOT, "%.2f", DescentClientState.speed))
 				.row("energy / shield", DescentClientState.energy + " / " + DescentClientState.shield)
 				// The ship-glued-to-player bug lived here: a player still riding what they had just
 				// dismounted. Worth naming outright rather than leaving to be inferred from a position.
@@ -193,12 +196,86 @@ public final class DiagnosticsExport {
 			return;
 		}
 		report.row("quads in the field", mesh.quads)
-				.row("built around", String.format("%.0f, %.0f, %.0f", mesh.originX, mesh.originY, mesh.originZ))
-				.row("inner radius / reach", String.format("%.0f / %.0f", mesh.innerRadius, mesh.reach));
+				.row("built around", String.format(Locale.ROOT, "%.0f, %.0f, %.0f", mesh.originX, mesh.originY, mesh.originZ))
+				.row("inner radius / reach", String.format(Locale.ROOT, "%.0f / %.0f", mesh.innerRadius, mesh.reach));
 		// The rebuild is the horizon's whole remaining cost: drawing it is free between rebuilds. So a
 		// stutter while flying is this number, and it is here so nobody has to guess that.
 		report.note("drawing is free between rebuilds (the field is on the GPU); a stutter while flying "
 				+ "is the rebuild time above");
+	}
+
+	/**
+	 * Where the server tick goes, and whether DRMD is the reason it is late.
+	 *
+	 * <p>Placed immediately before the column-fill rows because it is the row those rows have to be
+	 * read against. A fill costing 6ms is 12% of a healthy tick and a rounding error in a 300ms one,
+	 * and the same six milliseconds is a thing to optimise in the first case and a red herring in the
+	 * second. A whole play session was spent last time deciding that from the outside; this decides it
+	 * from the file.
+	 *
+	 * <p>The distances are here for the same reason. Simulation distance is the setting that governs
+	 * how much world the server ticks every tick — 31 means roughly 3,900 chunks against a vanilla
+	 * default of 10, or about 440 — and it is invisible from inside the game while being by far the
+	 * largest lever on the number above it.
+	 */
+	private static void serverTick(DiagReport report) {
+		report.section("Server tick");
+		if (MinecraftClient.getInstance().getServer() == null) {
+			report.note("multiplayer — this client cannot time the server's tick");
+			return;
+		}
+		if (DiagServerTick.measuredPeriods() == 0) {
+			report.note("not measured yet — the first 40 ticks are skipped so world load does not own 'worst'");
+			return;
+		}
+
+		long period = DiagServerTick.averagePeriodMicros();
+		long worstPeriod = DiagServerTick.worstPeriodMicros();
+		long drmd = DiagServerTick.averageDrmdMicros();
+		long measured = DiagServerTick.measuredPeriods();
+
+		report.row("average tick", millis(period) + (period <= 52_000
+						? " — healthy, the server is sleeping out the rest of each tick"
+						: " — behind; a tick that keeps up reads 50ms"))
+				.row("worst tick", millis(worstPeriod))
+				.row("ticks over 50ms", DiagServerTick.slowTicks() + " of " + measured
+						+ " (" + percent(DiagServerTick.slowTicks(), measured) + ")")
+				.row("ticks over 100ms", DiagServerTick.stalledTicks() + " of " + measured
+						+ " (" + percent(DiagServerTick.stalledTicks(), measured) + ")")
+				.row("DRMD per tick", millis(drmd) + " of " + millis(period)
+						+ " (" + percent(drmd, period) + " of the tick)")
+				.row("DRMD worst tick", millis(DiagServerTick.worstDrmdMicros())
+						+ " — " + DiagServerTick.worstDrmdArea())
+				.row("view distance", DiagServerTick.viewDistance())
+				.row("simulation distance", DiagServerTick.simulationDistance()
+						+ (DiagServerTick.simulationDistance() > 16
+								? " — vanilla default is 10; this ticks about "
+										+ square(DiagServerTick.simulationDistance()) + " chunks every tick"
+								: ""))
+				.row("loaded chunks", DiagServerTick.loadedChunks());
+
+		for (DiagServerTick.Area area : DiagServerTick.areas()) {
+			report.row("  " + area.name(), millis(area.totalMicros()) + " per tick, worst "
+					+ millis(area.worstMicros()));
+		}
+
+		report.note("DRMD small + tick large = the stall is vanilla's, and simulation distance is the lever")
+				.note("DRMD large = the bucket named above is the one to cut");
+	}
+
+	/** Microseconds as milliseconds, because a tick is fifty of them and nobody counts in microseconds. */
+	private static String millis(long micros) {
+		return String.format(Locale.ROOT, "%.1fms", micros / 1000.0);
+	}
+
+	private static String percent(long part, long whole) {
+		return whole <= 0 ? "?" : String.format(Locale.ROOT, "%.1f%%", 100.0 * part / whole);
+	}
+
+	/** Chunks a square simulation radius covers, which is the number that makes the setting concrete. */
+	private static long square(int radius) {
+		long side = 2L * radius + 1L;
+		return side * side;
 	}
 
 	/**
@@ -229,9 +306,15 @@ public final class DiagnosticsExport {
 				.row("fill time last tick", LevelBuilder.lastFillMicros() + "us")
 				.row("worst fill time", LevelBuilder.worstFillMicros() + "us")
 				.row("ticks stopped by the deadline", LevelBuilder.deadlineStops())
+				// Not the same failure as a deadline stop, and the difference decides what to do next: a
+				// deadline stop is this fill running out of its own six milliseconds, a yield is it giving
+				// them back because the tick was already over budget before it started.
+				.row("ticks yielded to a busy server", LevelBuilder.yieldedTicks()
+						+ " skipped, " + LevelBuilder.shortenedTicks() + " halved")
 				.note("deep queue + saturated = the write budget is the limit")
 				.note("empty queue + missing terrain = the streaming window is, and budget will not help")
-				.note("deadline stops climbing = the machine is the limit, not the budget");
+				.note("deadline stops climbing = the machine is the limit, not the budget")
+				.note("yields climbing = the server is behind for reasons other than this fill");
 	}
 
 	private static void problems(DiagReport report) {
@@ -282,7 +365,7 @@ public final class DiagnosticsExport {
 		}
 		long now = System.currentTimeMillis();
 		for (DiagTrace.Event event : events) {
-			report.row(String.format("-%6.1fs [%s]", (now - event.millis()) / 1000.0, event.area()),
+			report.row(String.format(Locale.ROOT, "-%6.1fs [%s]", (now - event.millis()) / 1000.0, event.area()),
 					event.message());
 		}
 	}

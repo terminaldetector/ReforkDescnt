@@ -67,6 +67,59 @@ public final class LevelBuilder {
 	 * number, which is a couple of milliseconds rather than a lost tick.
 	 */
 	private static final int WRITES_PER_STEP = 1_024;
+	/**
+	 * Tick duration above which this fill starts standing aside, in microseconds.
+	 *
+	 * <p>Twice a tick's own fifty milliseconds. Below it the server is keeping up and this fill is
+	 * spending headroom that exists; above it the server is running catch-up ticks back to back and
+	 * every millisecond taken here is a millisecond vanilla does not get for generating and sending
+	 * the chunks the pilot is actually waiting to see.
+	 */
+	private static final long YIELD_ABOVE_MICROS = 100_000L;
+	/**
+	 * Tick duration above which the fill skips the tick entirely.
+	 *
+	 * <p>Four ticks' worth. A server this far behind is not going to be helped by a smaller share; the
+	 * useful move is to give the tick back whole and resume the moment it recovers. Yielding is
+	 * self-correcting in both directions: if this fill was the reason ticks were long, they shorten and
+	 * it resumes; if it was not, it costs terrain that could not have reached the client anyway.
+	 */
+	private static final long SKIP_ABOVE_MICROS = 200_000L;
+
+	/** Ticks this fill handed back because the server was already behind — reported, not silent. */
+	private static long yieldedTicks;
+	private static long shortenedTicks;
+
+	/**
+	 * How long this tick may spend filling, given how long the last one took.
+	 *
+	 * <p>Returns 0 to skip the tick. The measurement comes from {@code DiagServerTick}, whose own tick
+	 * handler is registered first and so closes the previous tick before this one runs — the freshest
+	 * honest number available from inside a tick.
+	 */
+	private static long fillNanosForThisTick() {
+		long lastTickMicros = com.terminaldetector.drmd.diag.DiagServerTick.lastPeriodMicros();
+		// Zero means not measured yet: the first forty ticks are world load, where the full budget is
+		// wanted rather than withheld.
+		if (lastTickMicros == 0 || lastTickMicros <= YIELD_ABOVE_MICROS) return MAX_FILL_NANOS;
+		if (lastTickMicros >= SKIP_ABOVE_MICROS) {
+			yieldedTicks++;
+			return 0L;
+		}
+		shortenedTicks++;
+		return MAX_FILL_NANOS / 2;
+	}
+
+	/** Ticks skipped outright because the previous tick took four ticks' worth of time or more. */
+	public static long yieldedTicks() {
+		return yieldedTicks;
+	}
+
+	/** Ticks run at half the deadline because the previous tick took two to four ticks' worth. */
+	public static long shortenedTicks() {
+		return shortenedTicks;
+	}
+
 	private static final int MAX_QUEUE = 512;
 	private static final int MANTLE_PROBE_Y = -120;
 	/** Mantle Y-rows per drain step (16×16 each). */
@@ -108,7 +161,13 @@ public final class LevelBuilder {
 
 	public static void register() {
 		ServerChunkEvents.CHUNK_LOAD.register(LevelBuilder::onChunkLoad);
-		ServerTickEvents.END_SERVER_TICK.register(LevelBuilder::drain);
+		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			// Timed against the tick it runs in, not only against its own budget: this fill was the
+			// obvious suspect for a stalling server and needs a number set beside the tick's own.
+			long started = com.terminaldetector.drmd.diag.DiagServerTick.begin();
+			drain(server);
+			com.terminaldetector.drmd.diag.DiagServerTick.end("worldgen.column", started);
+		});
 		DescentMod.LOGGER.info("Level builder online — diggable mantle / Core band (no bedrock border)");
 	}
 
@@ -326,9 +385,21 @@ public final class LevelBuilder {
 	 * <p>Both numbers go in the diagnostics report for exactly that reason. Guessing which one is in
 	 * play has cost more time on this project than fixing either would have.
 	 */
-	private static void recordBacklog(int budgetLeft) {
+	/**
+	 * The queue's depth, without judging it.
+	 *
+	 * <p>Split out for the yielded tick, where the backlog is real but the write budget is not what is
+	 * holding it: resetting the saturation counter there would report "not saturated" every time the
+	 * server was too busy to let this run, which is the opposite of what happened.
+	 */
+	private static void recordQueueDepth() {
 		int depth = queueDepth();
 		if (depth > worstQueueDepth) worstQueueDepth = depth;
+	}
+
+	private static void recordBacklog(int budgetLeft) {
+		recordQueueDepth();
+		int depth = queueDepth();
 
 		if (budgetLeft > 0 || depth == 0) {
 			saturatedTicks = 0;
@@ -392,7 +463,16 @@ public final class LevelBuilder {
 
 		int budget = BUDGET_PER_TICK;
 		long startedNanos = System.nanoTime();
-		long deadlineNanos = startedNanos + MAX_FILL_NANOS;
+		long fillNanos = fillNanosForThisTick();
+		if (fillNanos <= 0) {
+			// Nothing filled, but the tick still gets its bookkeeping: a queue that stops moving because
+			// the server is drowning must not read in the report as a queue that stopped for no reason.
+			recordQueueDepth();
+			recordFillCost(0, 0);
+			clearWriteChunk();
+			return;
+		}
+		long deadlineNanos = startedNanos + fillNanos;
 		budget = drainQueue(QUEUE, QUEUED, budget, deadlineNanos);
 		budget = drainQueue(PRESTREAM_QUEUE, PRESTREAM_QUEUED, budget, deadlineNanos);
 		recordBacklog(budget);

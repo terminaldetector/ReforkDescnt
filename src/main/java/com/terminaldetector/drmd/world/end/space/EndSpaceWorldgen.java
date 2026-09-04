@@ -59,7 +59,11 @@ public final class EndSpaceWorldgen {
 
 	public static void register() {
 		ServerChunkEvents.CHUNK_LOAD.register(EndSpaceWorldgen::onChunkLoad);
-		ServerTickEvents.END_SERVER_TICK.register(EndSpaceWorldgen::drain);
+		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			long started = com.terminaldetector.drmd.diag.DiagServerTick.begin();
+			drain(server);
+			com.terminaldetector.drmd.diag.DiagServerTick.end("worldgen.endspace", started);
+		});
 		DescentMod.LOGGER.info("End Space (Layer 2) worldgen online — grid pitch {}", EndSpaceRegions.PITCH);
 	}
 

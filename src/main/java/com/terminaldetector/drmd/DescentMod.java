@@ -38,6 +38,22 @@ public class DescentMod implements ModInitializer {
 		LOGGER.info("DRMD 6DOF initializing — 6DoF world mode (volume-first)");
 		// First, so these facts are in the log even if something below this line takes the game down.
 		com.terminaldetector.drmd.diag.DiagStartup.logBanner();
+		// Registered before any other DRMD tick handler, so the tick it closes is a whole one. The
+		// distances are sampled a second apart rather than every tick: they change when a slider moves,
+		// and reading them 20 times a second to prove that would be its own small cost.
+		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			com.terminaldetector.drmd.diag.DiagServerTick.rollTick(System.nanoTime());
+			if (com.terminaldetector.drmd.diag.DiagServerTick.ticks() % 20 == 0) {
+				int chunks = 0;
+				for (net.minecraft.server.world.ServerWorld world : server.getWorlds()) {
+					chunks += world.getChunkManager().getLoadedChunkCount();
+				}
+				com.terminaldetector.drmd.diag.DiagServerTick.sample(
+						server.getPlayerManager().getViewDistance(),
+						server.getPlayerManager().getSimulationDistance(),
+						chunks);
+			}
+		});
 
 		com.terminaldetector.drmd.world.DrmdServerConfig.load();
 		com.terminaldetector.drmd.world.DrmdBuiltinPacks.register();
@@ -124,6 +140,10 @@ public class DescentMod implements ModInitializer {
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			int tick = server.getTicks();
+			// Two buckets rather than one: the world-wide systems and the per-player ones scale with
+			// different things — loaded chunks and entities on one side, player count on the other — so a
+			// single figure for "the mod" could not say which to look at. See DiagServerTick.
+			long worldStart = com.terminaldetector.drmd.diag.DiagServerTick.begin();
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.tick();
 			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.tick(server);
 			com.terminaldetector.drmd.world.base.DescentSession.drainSeedQueue(server);
@@ -143,6 +163,9 @@ public class DescentMod implements ModInitializer {
 					com.terminaldetector.drmd.world.fire.FireSystem.tick(world);
 				}
 			});
+			com.terminaldetector.drmd.diag.DiagServerTick.end("systems.world", worldStart);
+
+			long playerStart = com.terminaldetector.drmd.diag.DiagServerTick.begin();
 			server.getPlayerManager().getPlayerList().forEach(player -> {
 				DescentPlayerData data = DescentPlayerData.get(player);
 				com.terminaldetector.drmd.world.layer.LayerBridge.tick(player);
@@ -165,6 +188,7 @@ public class DescentMod implements ModInitializer {
 							player.getServerWorld(), pos);
 				}
 			});
+			com.terminaldetector.drmd.diag.DiagServerTick.end("systems.players", playerStart);
 		});
 
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents.CHUNK_LOAD.register(

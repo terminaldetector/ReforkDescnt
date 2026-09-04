@@ -61,7 +61,11 @@ public final class InfiniteMegacityWorldgen {
 
 	public static void register() {
 		ServerChunkEvents.CHUNK_LOAD.register(InfiniteMegacityWorldgen::onChunkLoad);
-		ServerTickEvents.END_SERVER_TICK.register(InfiniteMegacityWorldgen::drain);
+		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			long started = com.terminaldetector.drmd.diag.DiagServerTick.begin();
+			drain(server);
+			com.terminaldetector.drmd.diag.DiagServerTick.end("worldgen.megacity", started);
+		});
 		DescentMod.LOGGER.info("Infinite megacity worldgen online — grid pitch {}", InfiniteMegacityRegions.PITCH);
 	}
 
