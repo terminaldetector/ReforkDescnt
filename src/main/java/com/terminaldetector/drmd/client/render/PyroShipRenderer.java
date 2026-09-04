@@ -46,10 +46,27 @@ public class PyroShipRenderer extends EntityRenderer<PyroShipEntity> {
 	@Override
 	public void render(PyroShipEntity entity, float yaw, float tickDelta, MatrixStack matrices,
 					   VertexConsumerProvider consumers, int light) {
+		MinecraftClient mc = MinecraftClient.getInstance();
+
+		// Your own hull is not drawn while you are sitting inside it in first person.
+		//
+		// The camera rides at the pilot's eye, which is inside the model, so what reached the screen was
+		// the hull seen from within — geometry wrapped around the view and rotating with it. That reads
+		// as the view being welded to the aircraft, and no amount of straightening the attitude fixes
+		// it, because the model is simply in the way. Vanilla does the same thing with your own body for
+		// the same reason.
+		//
+		// Only your own, and only in first person: another pilot's ship, and your own in third person,
+		// are things you are looking at rather than out of.
+		if (mc.player != null && entity.getFirstPassenger() == mc.player
+				&& mc.options.getPerspective().isFirstPerson()) {
+			super.render(entity, yaw, tickDelta, matrices, consumers, light);
+			return;
+		}
+
 		matrices.push();
 		Vec3d forward;
 		Vec3d up;
-		MinecraftClient mc = MinecraftClient.getInstance();
 		boolean localPiloted = entity.getFirstPassenger() == mc.player
 				&& DescentClientState.enabled && DescentClientState.attitudeValid && ShipAttitudeClient.isPrimed();
 		if (localPiloted) {

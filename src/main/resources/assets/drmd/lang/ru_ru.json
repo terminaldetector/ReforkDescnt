@@ -69,6 +69,8 @@
   "item.drmd.mirror_linker_same_dimension": "Ключ резонанса",
   "item.drmd.mirror_linker_rotated_scaled": "Искажённый ключ резонанса",
   "item.drmd.mirror_linker_cross_dimension": "Трансмерный ключ",
+  "block.drmd.portal_panel": "Портальная панель",
+  "item.drmd.portal_gun": "Портальный стабилизатор",
   "block.drmd.gravity_generator": "Генератор гравитации",
   "block.drmd.gravity_torch": "Гравитационный факел",
   "block.drmd.locator_core": "Ядро локатора",

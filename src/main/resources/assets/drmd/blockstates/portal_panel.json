@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=down,linked=false":  { "model": "drmd:block/portal_panel", "x": 90 },
+    "facing=up,linked=false":    { "model": "drmd:block/portal_panel", "x": 270 },
+    "facing=north,linked=false": { "model": "drmd:block/portal_panel" },
+    "facing=south,linked=false": { "model": "drmd:block/portal_panel", "y": 180 },
+    "facing=west,linked=false":  { "model": "drmd:block/portal_panel", "y": 270 },
+    "facing=east,linked=false":  { "model": "drmd:block/portal_panel", "y": 90 },
+    "facing=down,linked=true":  { "model": "drmd:block/portal_panel_linked", "x": 90 },
+    "facing=up,linked=true":    { "model": "drmd:block/portal_panel_linked", "x": 270 },
+    "facing=north,linked=true": { "model": "drmd:block/portal_panel_linked" },
+    "facing=south,linked=true": { "model": "drmd:block/portal_panel_linked", "y": 180 },
+    "facing=west,linked=true":  { "model": "drmd:block/portal_panel_linked", "y": 270 },
+    "facing=east,linked=true":  { "model": "drmd:block/portal_panel_linked", "y": 90 }
+  }
+}

@@ -91,6 +91,8 @@
   "item.drmd.mirror_linker_same_dimension": "Resonance Key",
   "item.drmd.mirror_linker_rotated_scaled": "Warped Resonance Key",
   "item.drmd.mirror_linker_cross_dimension": "Transdimensional Key",
+  "block.drmd.portal_panel": "Portal Panel",
+  "item.drmd.portal_gun": "Portal Stabilizer",
   "block.drmd.gravity_generator": "Gravity Generator",
   "block.drmd.gravity_torch": "Gravity Torch",
   "block.drmd.locator_core": "Locator Core",
