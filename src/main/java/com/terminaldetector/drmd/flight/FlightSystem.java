@@ -8,8 +8,10 @@ import com.terminaldetector.drmd.entity.PyroShipEntity;
 import com.terminaldetector.drmd.network.ModNetworking;
 import com.terminaldetector.drmd.world.atmosphere.AtmosphereBand;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
@@ -70,6 +72,12 @@ public final class FlightSystem {
 		// otherwise — the ship carries no independent physics of its own (see PyroShipEntity.tick),
 		// only these four inputs to the same integrator below.
 		PyroShipEntity ship = player.getVehicle() instanceof PyroShipEntity ps ? ps : null;
+		// Keep the remembered hull's position current while it is being flown. Without this the
+		// position saved when the pilot boarded goes stale the moment they move, and the chunk loaded
+		// to find the hull again would be the one they took off from — see findRememberedHull.
+		if (ship != null && !ship.getBlockPos().equals(data.getLastShipPos())) {
+			data.setLastShip(ship.getUuid(), ship.getBlockPos());
+		}
 		float effAccel = ship != null ? ship.getAccel() : data.getAccel();
 		float effDrag = ship != null ? ship.getDrag() : data.getDrag();
 		float effMaxSpeed = ship != null ? ship.getMaxSpeed() : data.getMaxSpeed();
@@ -398,6 +406,34 @@ public final class FlightSystem {
 	 * failure — unloaded chunk, the hull was destroyed, or a pre-existing ship with no recorded UUID
 	 * — falls straight through to today's spawn-fresh behavior.
 	 */
+	/**
+	 * The remembered hull, loading its chunk first if that is what it takes to see it.
+	 *
+	 * <p>{@code ServerWorld.getEntity(UUID)} searches the <em>loaded</em> entity index, so a hull
+	 * parked and walked away from reads exactly like one that never existed — and the pilot silently
+	 * got a fresh ship while the old one stayed in the world. That is where the abandoned hulls came
+	 * from, and it was the branch the first live trace could not distinguish from a genuine loss.
+	 *
+	 * <p>So the position is remembered alongside the id, and one chunk is loaded before giving up.
+	 * Bounded and rare by construction: it runs only on a manual 6DoF toggle, only when the direct
+	 * lookup already failed, and only for one chunk that almost certainly exists on disk. A pilot who
+	 * asked to fly has accepted a chunk load.
+	 */
+	@Nullable
+	private static Entity findRememberedHull(ServerPlayerEntity player, java.util.UUID id,
+			@Nullable net.minecraft.util.math.BlockPos lastSeenAt) {
+		Entity direct = player.getServerWorld().getEntity(id);
+		if (direct != null || lastSeenAt == null) return direct;
+
+		// Touching the chunk brings its entities into the index; the retry then finds the hull.
+		player.getServerWorld().getChunk(lastSeenAt.getX() >> 4, lastSeenAt.getZ() >> 4);
+		Entity afterLoad = player.getServerWorld().getEntity(id);
+		if (afterLoad != null) {
+			DiagTrace.record("flight", "found the remembered hull after loading its chunk at " + lastSeenAt);
+		}
+		return afterLoad;
+	}
+
 	private static void autoMountPyroShip(ServerPlayerEntity player) {
 		if (player.hasVehicle()) {
 			// The guard that stops a re-seat. Worth a line: it firing means something tried to mount a
@@ -413,11 +449,9 @@ public final class FlightSystem {
 		// Each abandoned hull stays in the world, which is the litter that had to be burned off by hand.
 		if (lastShipId == null) {
 			DiagTrace.record("flight", "no remount: this pilot has no remembered hull");
-		} else if (!(player.getServerWorld().getEntity(lastShipId) instanceof PyroShipEntity found)) {
-			// The likeliest one: getEntity finds nothing in an unloaded chunk, so a hull parked and
-			// flown away from is indistinguishable from one that never existed.
+		} else if (!(findRememberedHull(player, lastShipId, data.getLastShipPos()) instanceof PyroShipEntity found)) {
 			DiagTrace.record("flight", "no remount: hull " + lastShipId + " not found in this world "
-					+ "(unloaded chunk, removed, or another dimension)");
+					+ "(removed, or another dimension)");
 		} else if (found.hasPassengers()) {
 			DiagTrace.record("flight", "no remount: hull at " + found.getBlockPos() + " still has a passenger");
 		} else if (found.getOwnerUuid() != null && !found.getOwnerUuid().equals(player.getUuid())) {
@@ -432,7 +466,7 @@ public final class FlightSystem {
 		if (ship == null) return;
 		ship.refreshPositionAndAngles(player.getX(), player.getY(), player.getZ(), player.getYaw(), 0);
 		ship.setOwnerUuid(player.getUuid());
-		data.setLastShipUuid(ship.getUuid());
+		data.setLastShip(ship.getUuid(), ship.getBlockPos());
 		player.getServerWorld().spawnEntity(ship);
 		DiagTrace.record("flight", "spawned a new Pyro hull at " + ship.getBlockPos());
 		player.startRiding(ship);

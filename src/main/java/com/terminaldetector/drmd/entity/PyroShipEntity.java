@@ -245,7 +245,7 @@ public class PyroShipEntity extends VehicleEntity {
 			if (player instanceof ServerPlayerEntity sp) {
 				this.ownerUuid = sp.getUuid();
 				DescentPlayerData data = DescentPlayerData.get(sp);
-				data.setLastShipUuid(this.getUuid());
+				data.setLastShip(this.getUuid(), this.getBlockPos());
 				com.terminaldetector.drmd.flight.FlightSystem.enable(sp, data);
 				ConstructionMode.set(sp, false);
 				LocalOrientation.setUp(sp.getUuid(), new Vec3d(0, 1, 0));

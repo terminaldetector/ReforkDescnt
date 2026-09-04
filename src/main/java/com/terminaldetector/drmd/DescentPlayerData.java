@@ -3,6 +3,7 @@ package com.terminaldetector.drmd;
 import com.terminaldetector.drmd.energy.EnergyPreset;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.Map;
@@ -102,6 +103,19 @@ public class DescentPlayerData {
 	/** UUID of the last {@code PyroShipEntity} this pilot boarded — lets a rejoin find and remount
 	 *  the same hull instead of always minting a fresh one (see {@code FlightSystem.autoMountPyroShip}). */
 	private UUID lastShipUuid;
+	/**
+	 * Where that hull was last seen, remembered alongside its id.
+	 *
+	 * <p>The id alone is not enough to find it. {@code ServerWorld.getEntity(UUID)} searches the
+	 * loaded entity index, so a hull parked and walked away from is indistinguishable from one that
+	 * never existed — and the pilot gets a fresh ship while the old one stays in the world. That is
+	 * the litter that had to be burned off by hand. With a position the chunk can be loaded and the
+	 * lookup retried.
+	 *
+	 * <p>Null when no hull is remembered, and kept in step with {@link #lastShipUuid} by
+	 * {@link #setLastShip} rather than by two independent setters that could disagree.
+	 */
+	private BlockPos lastShipPos;
 
 	public void ensureInit() {
 		if (energyMax <= 0) energyMax = 100f;
@@ -135,6 +149,7 @@ public class DescentPlayerData {
 		d.putBoolean("radar", radarEnabled);
 		d.putBoolean("sessionWelcomed", sessionWelcomed);
 		if (lastShipUuid != null) d.putUuid("lastShip", lastShipUuid);
+		if (lastShipPos != null) d.putLong("lastShipPos", lastShipPos.asLong());
 		nbt.put("DrmdData", d);
 	}
 
@@ -166,6 +181,7 @@ public class DescentPlayerData {
 		radarEnabled = !d.contains("radar") || d.getBoolean("radar");
 		sessionWelcomed = d.getBoolean("sessionWelcomed");
 		lastShipUuid = d.containsUuid("lastShip") ? d.getUuid("lastShip") : null;
+		lastShipPos = d.contains("lastShipPos") ? BlockPos.fromLong(d.getLong("lastShipPos")) : null;
 	}
 
 	// Getters / setters
@@ -260,7 +276,25 @@ public class DescentPlayerData {
 	}
 
 	public UUID getLastShipUuid() { return lastShipUuid; }
-	public void setLastShipUuid(UUID lastShipUuid) { this.lastShipUuid = lastShipUuid; }
+	/** Where the remembered hull was last seen, or null — see {@link #lastShipPos}. */
+	public BlockPos getLastShipPos() { return lastShipPos; }
+
+	/**
+	 * Remember a hull by id and position together.
+	 *
+	 * <p>One setter rather than two, because the two are only useful in agreement: an id without a
+	 * position cannot be found once its chunk unloads, and a position without an id names no
+	 * particular hull.
+	 */
+	public void setLastShip(UUID uuid, BlockPos pos) {
+		this.lastShipUuid = uuid;
+		this.lastShipPos = pos;
+	}
+
+	public void clearLastShip() {
+		this.lastShipUuid = null;
+		this.lastShipPos = null;
+	}
 
 	public boolean hasShipAttitude() { return shipAttitudeValid; }
 
