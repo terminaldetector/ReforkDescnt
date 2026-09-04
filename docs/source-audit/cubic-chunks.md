@@ -79,6 +79,105 @@ blockToLocal(val) = val & (DIAMETER_IN_BLOCKS - 1)
 `EarlyConfig`, `DIAMETER_IN_BLOCKS` — их произведение. Всё вышесказанное держится на том, что это
 степень двойки.
 
+## D. Ванильные допущения, которые придётся снять
+
+Классификация 207 миксинов по цели инъекции — то, ради чего аудит и делался. Из них ~37 это чистые
+аксессоры (`access/*`), ~12 отладка, ~7 машинерия сборки; работу делают около 150, и они распадаются
+на восемь допущений.
+
+### 1. Y — особая координата на уровне битов, и это чинится изъятием битов у X и Z
+
+Самое короткое и самое показательное место всего проекта. Весь миксин на `BlockPos`:
+
+```java
+@Mixin(BlockPos.class)
+public class MixinBlockPos {
+    //TODO: This is a temporary fix to achieve taller worlds (by stopping the light engine from NPEing)
+    @ModifyConstant(method = "<clinit>", constant = @Constant(intValue = 30000000))
+    private static int getMaxWorldSizeXZ(int size) {
+        return 1000000;
+    }
+}
+```
+
+`BlockPos` пакует позицию в `long`, и раскладка битов выводится из константы предела мира:
+`PACKED_X_LENGTH = 1 + log2(ceilPow2(30000000)) = 26`, столько же на Z, а Y достаётся остаток —
+**64 − 26 − 26 = 12 бит**, то есть ±2048.
+
+Уменьшив горизонтальный предел с 30 000 000 до 1 000 000, они получают `1 + log2(2²⁰) = 21` бит на
+X и Z, и Y вырастает до **22 бит**, то есть ±2 097 152.
+
+Итог сделки: Y выигрывает в 1024 раза, X и Z теряют в 30. Никакого способа сделать Y равноправным
+внутри ванильного `BlockPos` **не существует** — 64 бита делятся на три оси, и симметрия возможна
+только по 21 биту на каждую.
+
+Для DRMD вывод прямой и он про §2 и §14 брифа сразу: **`D6WorldPos` не может быть `BlockPos`**. Либо
+своя упаковка 21/21/21 (как у `CubePos` на уровне кубов), либо три отдельных `int`, либо `long` на
+ось. Переиспользовать ванильный тип — значит унаследовать несимметричность, ради снятия которой всё
+и затевается.
+
+### 2. Чанк — это колонна, адресуемая парой (x, z)
+
+Около 15 миксинов: `ChunkMap`, `ChunkHolder` (+`LevelChangeListener`), `ChunkSource`,
+`ServerChunkCache`, `ClientChunkCache`, `ChunkAccess`, `LevelChunk` (трижды, с `priority=0`),
+`ProtoChunk`, `ImposterProtoChunk`, `ChunkStatus` (+`SimpleGenerationTask`), `ChunkSerializer`,
+`BulkSectionAccess`, `DistanceManager`.
+
+`priority=0` на `LevelChunk` в трёх разных пакетах — признак того, что переопределять пришлось
+раньше всех прочих модов.
+
+### 3. У мира есть верх и низ
+
+Девять: `LevelHeightAccessor`, `Level`, `LevelReader`, `ServerLevel`, `WorldGenRegion`,
+`PlayerRespawnLogic`, `NaturalSpawner` (+`SpawnState`), `LocalMobCapCalculator`, `PortalForcer`.
+
+Показательно, что сюда попали спавн мобов и поиск точки возрождения: «найти поверхность» в ванили
+означает «идти вниз от потолка», и это допущение зашито в геймплейные системы, а не только в мир.
+
+### 4. Свет падает с неба, то есть вниз
+
+Восемь-девять: `SkyLightEngine`, `SkyLightSectionStorage`, `BlockLightEngine`, `LayerLightEngine`,
+`LayerLightSectionStorage`, `LevelLightEngine`, `ThreadedLevelLightEngine`,
+`DynamicGraphMinFixedPoint`.
+
+Последний — обобщённый граф распространения, и то, что и он в списке, говорит: направленность зашита
+не только в «небесный» слой, но и в механику распространения под ним.
+
+### 5. Сущность живёт в секции колонны
+
+Семь: `PersistentEntitySectionManager`, `TransientEntitySectionManager`, `EntitySectionStorage`,
+`EntityStorage`, `ServerPlayer`, `PoiManager`, `SectionStorage`.
+
+Это же и есть `D6SpatialIndex` из §7 брифа: индекс сущностей у ванили двумерный с вертикальной
+нарезкой, а нужен объёмный.
+
+### 6. Прогресс загрузки — это квадрат
+
+Шесть: `LevelLoadingScreen`, `ProcessorChunkProgressListener`, `StoringChunkProgressListener`,
+`LoggerChunkProgressListener`, `ChunkBorderRenderer`, `DebugScreenOverlay`.
+
+Смешное, но полезное наблюдение: даже экран загрузки знает, что мир — колонна. Полоска прогресса
+рисует квадрат чанков вокруг спавна. Это индикатор глубины допущения: оно протекло в места, никак с
+геометрией мира не связанные.
+
+### 7. Рендер обходит горизонтальную сетку
+
+Шесть: `LevelRenderer`, `ViewArea`, `RenderChunk`, `RenderChunkRegion`,
+`ChunkRenderDispatcher.RenderChunk`, `GameRenderer`.
+
+### 8. Генерация ведётся от карты высот
+
+Самая многочисленная группа, ~43 миксина: `NoiseBasedChunkGenerator`, `NoiseChunk`,
+`NoiseRouterData`, `SurfaceSystem`, `WorldCarver`, `VerticalAnchor.AboveBottom`/`.BelowTop`,
+`TrapezoidHeight`, `PlacementModifier` — и **одиннадцать отдельных миксинов на конкретные фичи**:
+`IcebergFeature`, `LakeFeature`, `SpringFeature`, `IcePatchFeature`, `IceSpikeFeature`,
+`HugeFungusFeature`, `TwistingVinesFeature`, `ReplaceBlobsFeature` и другие.
+
+Одиннадцать штук не потому, что фичи сложные, а потому, что **каждая независимо предполагает, что
+может пройти вверх или вниз до поверхности**. Это ровно то, о чём говорит §5 брифа: карта высот не
+должна быть фундаментом геометрии. У ванили она фундамент настолько, что вычищать приходится
+пофичево.
+
 ## Что это говорит про сам DRMD
 
 **У `SectionKey` нет Y.** Ключ хранилища поверхности — `of(level, sectionX, sectionZ)`, то есть
@@ -108,10 +207,8 @@ blockToLocal(val) = val & (DIAMETER_IN_BLOCKS - 1)
 настоящие 3D, а не колонна с секциями), освещение, отслеживание сущностей, и `FarPlaneTwo` целиком —
 он про LOD по трёхмерному расстоянию, что для DRMD с его горизонтом отдельная тема.
 
-Главный оставшийся результат — **список ванильных допущений, предполагающих вертикальную колонну**.
-Его нельзя выписать иначе, чем разобрав 207 миксинов по тому, какое допущение каждый снимает. Это и
-есть та часть аудита, которая ценнее любого куска кода, потому что DRMD придётся снимать те же
-допущения, но в своей архитектуре и без их машинерии.
+Список ванильных допущений выписан выше — это раздел D. Осталось: устройство хранилища и регионов
+(насколько они настоящие 3D), детали освещения, и `FarPlaneTwo` целиком.
 
 ## Что уже сделано в DRMD и относится к этому брифу
 
