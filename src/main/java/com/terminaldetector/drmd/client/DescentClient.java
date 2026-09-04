@@ -68,6 +68,8 @@ public class DescentClient implements ClientModInitializer {
 		com.terminaldetector.drmd.client.render.MegaBeamViewRenderer.register();
 		com.terminaldetector.drmd.client.render.ConstructScaffoldRenderer.register();
 		com.terminaldetector.drmd.client.smoke.SmokeRenderer.register();
+		// First, so the frame's matrices are captured before either view can overwrite the context.
+		com.terminaldetector.drmd.client.portal.OffscreenWorldView.register();
 		com.terminaldetector.drmd.client.portal.MirrorReflectionRenderer.register();
 		com.terminaldetector.drmd.client.portal.PortalSeeThroughRenderer.register();
 		registerRenderLayers();

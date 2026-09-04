@@ -93,12 +93,12 @@ public final class MirrorReflectionRenderer {
 		// hard (non-require=0) mixin DRMD's whole camera system already depends on, so if it hadn't
 		// applied, CameraMixin itself would already have failed long before this code ever runs.
 		CameraAccessor accessor = (CameraAccessor) camera;
-		// Captured before anything nested runs. A nested WorldRenderer.render re-enters Fabric's own
-		// mixin, which re-prepares the single shared WorldRenderContext with that call's arguments — so
-		// from the second view onward the context describes the view, not the frame. Everything below
-		// uses these copies.
-		Matrix4f outerProjection = new Matrix4f(context.projectionMatrix());
-		Matrix4f outerPosition = new Matrix4f(context.positionMatrix());
+		// Taken from the frame's own capture, not from the context. Both views listen on the same event
+		// and the listeners run in order, so by the time the second one reads the context, the first
+		// one's nested render has already replaced it — see OffscreenWorldView.register.
+		Matrix4f outerProjection = OffscreenWorldView.frameProjection();
+		Matrix4f outerPosition = OffscreenWorldView.framePosition();
+		if (outerProjection == null || outerPosition == null) return;
 
 		// Several mirrors can now be on screen at once — each blit is scissored to its own rectangle, so
 		// they no longer overwrite each other the way full-screen draws did. Nearest first, capped:

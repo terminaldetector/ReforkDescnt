@@ -807,10 +807,15 @@ public final class LevelBuilder {
 		int chunkZ = pos.getZ() >> 4;
 		long key = ChunkPos.toLong(chunkX, chunkZ);
 		if (writeChunk == null || writeChunkWorld != world || writeChunkKey != key) {
-			writeChunk = world.getChunk(chunkX, chunkZ);
+			// Only a chunk the server already has. getChunk would generate a missing one on the spot,
+			// which is a whole chunk of work inside a tick that was budgeted for a few thousand writes —
+			// a job only ever runs for a loaded chunk, so a write landing outside one is incidental and
+			// skipping it is cheaper and more honest than forcing the world to grow to receive it.
 			writeChunkWorld = world;
 			writeChunkKey = key;
+			writeChunk = world.isChunkLoaded(chunkX, chunkZ) ? world.getChunk(chunkX, chunkZ) : null;
 		}
+		if (writeChunk == null) return 0;
 		writeChunk.setBlockState(pos, state, false);
 		world.getChunkManager().markForUpdate(pos);
 		return 1;

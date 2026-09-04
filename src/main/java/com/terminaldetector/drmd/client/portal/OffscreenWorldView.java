@@ -5,6 +5,7 @@ import com.terminaldetector.drmd.diag.DiagProblems;
 import com.terminaldetector.drmd.diag.DiagTrace;
 import com.terminaldetector.drmd.mixin.client.CameraAccessor;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.render.Camera;
@@ -58,6 +59,42 @@ public final class OffscreenWorldView {
 	private OffscreenWorldView() {}
 
 	private static int depth = 0;
+
+	private static Matrix4f frameProjection;
+	private static Matrix4f framePosition;
+
+	/**
+	 * Capture the frame's own matrices before anything can overwrite them.
+	 *
+	 * <p>The second live report caught why one snapshot per listener is not enough. Both views listen on
+	 * {@code AFTER_TRANSLUCENT}, and the listeners run in order: the mirror's runs first, renders a
+	 * nested world, and that nested render re-enters Fabric's own mixin, which re-prepares the single
+	 * shared {@code WorldRenderContext}. The portal's listener then runs in the same frame and reads
+	 * back the mirror's matrices — which is how a clip plane was handed something with
+	 * {@code m22 = 1.47} where a projection has −1.0001.
+	 *
+	 * <p>{@code START} fires immediately after that prepare, at the head of the world render, so this is
+	 * the one moment in a frame when the context is guaranteed to describe the frame. Guarded on
+	 * {@link #busy()} because a nested render fires {@code START} too, and its matrices are exactly the
+	 * ones that must not be captured.
+	 */
+	public static void register() {
+		WorldRenderEvents.START.register(context -> {
+			if (busy()) return;
+			frameProjection = new Matrix4f(context.projectionMatrix());
+			framePosition = new Matrix4f(context.positionMatrix());
+		});
+	}
+
+	/** The frame's projection, or null before the first world render of a session. */
+	public static Matrix4f frameProjection() {
+		return frameProjection;
+	}
+
+	/** The frame's position matrix — the camera rotation the world is being drawn with. */
+	public static Matrix4f framePosition() {
+		return framePosition;
+	}
 
 	/** How many of these views are on the stack — 0 outside one. */
 	public static int depth() {

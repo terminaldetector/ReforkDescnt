@@ -89,12 +89,12 @@ public final class PortalSeeThroughRenderer {
 
 		Camera camera = context.camera();
 		CameraAccessor accessor = (CameraAccessor) camera;
-		// Captured before anything nested runs. A nested WorldRenderer.render re-enters Fabric's own
-		// mixin, which re-prepares the single shared WorldRenderContext with that call's arguments — so
-		// from the second view onward the context describes the view, not the frame. Everything below
-		// uses these copies.
-		Matrix4f outerProjection = new Matrix4f(context.projectionMatrix());
-		Matrix4f outerPosition = new Matrix4f(context.positionMatrix());
+		// Taken from the frame's own capture, not from the context. Both views listen on the same event
+		// and the listeners run in order, so by the time the second one reads the context, the first
+		// one's nested render has already replaced it — see OffscreenWorldView.register.
+		Matrix4f outerProjection = OffscreenWorldView.frameProjection();
+		Matrix4f outerPosition = OffscreenWorldView.framePosition();
+		if (outerProjection == null || outerPosition == null) return;
 		Vec3d cameraPos = camera.getPos();
 
 		int facing = 0;

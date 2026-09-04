@@ -44,6 +44,12 @@ public final class PlanetFloorRenderer {
 
 	private static void render(WorldRenderContext ctx) {
 		if (!DescentConfig.planetFloor) return;
+		// Not inside a mirror or portal view. That nested render moves the camera, and this callback
+		// fires again within it — so the field was being rebuilt around the reflected eye and then drawn
+		// from there, which is exactly the "horizon stuck to the camera" the second live session found.
+		// The far world does not belong in a mirror anyway: it is the one thing a mirror cannot show
+		// correctly, since the field is built for one eye.
+		if (com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy()) return;
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (mc.player == null || mc.world == null) return;
 		if (!PlanetClientState.INSTANCE.hasSeed()) return;
