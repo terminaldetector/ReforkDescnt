@@ -29,11 +29,22 @@ lines are Apache-2.0, while `master` is GPL-3.0. DRMD targets Minecraft 1.21.1 a
 the `1.21` line, so Apache-2.0 is the one that governs here. This is recorded because the difference
 is easy to miss and was in fact missed once — see `docs/source-audit/license-map.md`.
 
+## Vendored into DRMD's own source
+
+| File | From | Licence | Modified? |
+|---|---|---|---|
+| `src/main/java/com/terminaldetector/drmd/vendor/immptl/ImmPtlQuaternions.java` | Immersive Portals 6.0.6, `qouteall.q_misc_util.my_util.DQuaternion` | Apache-2.0 | Yes — see the header |
+
+Vendored files live under `com.terminaldetector.drmd.vendor.<project>` and are Apache-2.0 whole, so
+each file is its own licence boundary. Each carries the Apache header, the copyright, and a list of
+the changes made, as Apache-2.0 section 4 requires. Nothing outside those packages is anything but
+DRMD's own MIT code.
+
 ## Adapted, not copied
 
-Nothing yet. Ideas and algorithms read from other projects during the source audit are described in
+Ideas and algorithms read from other projects during the source audit are described in
 `docs/source-audit/algorithm-map.md` and reimplemented; where a description leads to copied code
-instead, the project moves into the table above with its notices.
+instead, the file moves into the table above with its notices.
 
 Projects read under licences that forbid copying into an MIT project — NoCubes and LittleTiles
 (LGPL-3.0), bobby and Immersive Aircraft (GPL-3.0) — are, and stay, description only.
