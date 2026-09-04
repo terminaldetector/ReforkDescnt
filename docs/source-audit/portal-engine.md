@@ -8,15 +8,29 @@
 | Форк | Ветка по умолчанию | Лицензия | Роль |
 |---|---|---|---|
 | `SeamlessPortals` | **`1.21`** | Apache-2.0 | **на деле не SeamlessPortals** — порт Immersive Portals под NeoForge, см. ниже |
-| `portal-gun-mod` | **`1.21.1`** | MIT | пушка (MeowMC, 2021 + 2025) |
-| `portal_gun` | `main` | MIT | пушка (TarLaboratories, 2024) |
+| `portal-gun-mod` | **`1.21.1`** | MIT | пушка (MeowMC), **NeoForge** |
+| `portal_gun` | `main` | MIT | пушка (TarLaboratories), **Forge, MC 1.20.2** |
 | Immersive Portals | ветка `1.21` | Apache-2.0 | движок; исходники есть, три файла уже перенесены |
 
 Отсутствует относительно брифа: `ricks-portal-gun-multiloader`, `iPortalTeam/PortalGun`,
 `ImmersivePortalsModForForge`.
 
-**`portal-gun-mod` собирается под 1.21.1** — версию DRMD, и это единственный донор в группе, чей код
-не надо переводить ни через версию игры, ни через загрузчик.
+**Поправка к тому, что я написал часом раньше: ни один из трёх новых портальных форков не Fabric.**
+
+| Форк | Что это на самом деле | Загрузчик | MC |
+|---|---|---|---|
+| `SeamlessPortals` | Immersive Portals | NeoForge | 1.21.1 |
+| `portal-gun-mod` | пушка MeowMC | NeoForge | 1.21.1 |
+| `portal_gun` | пушка TarLaboratories | Forge | 1.20.2 |
+| присланный архив ImmPtl | Immersive Portals | **Fabric** | 1.21.1 |
+
+Проверено по `build.gradle` каждого: `net.neoforged.gradle.userdev`, `net.neoforged.moddev`,
+`net.minecraftforge.gradle` соответственно. Я сказал, что `portal-gun-mod` не требует перевода ни
+через версию, ни через загрузчик — версия совпадает, загрузчик нет.
+
+Практически: **единственный портальный исходник, который можно вставить в сборку DRMD, — это
+присланный архив Immersive Portals под Fabric.** Три новых форка читаются как проекты, а не как код
+для копирования: идея и структура переносятся, вызовы переписываются.
 
 ## Что такое `terminaldetector/SeamlessPortals` на самом деле
 
