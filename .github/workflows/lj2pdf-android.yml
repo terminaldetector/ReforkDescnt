@@ -68,6 +68,24 @@ jobs:
           chmod +x ./gradlew
           ./gradlew --no-daemon --stacktrace assembleDebug
 
+      # Proof that the built APK really carries the Facebook integration —
+      # a green compile alone would not show it shipped.
+      - name: Verify the Facebook code is in the APK
+        if: matrix.name == 'lj2pdf'
+        working-directory: ${{ matrix.dir }}
+        run: |
+          set -eu
+          apk=$(ls app/build/outputs/apk/debug/*.apk | head -1)
+          mkdir -p /tmp/apkcheck
+          unzip -o -q "$apk" -d /tmp/apkcheck 'classes*.dex' AndroidManifest.xml
+          for cls in Facebook BrowserSession FacebookLoginActivity FacebookProfile; do
+            grep -qa "com/drmd/lj2pdf/$cls;" /tmp/apkcheck/classes*.dex \
+              || { echo "::error::class $cls is missing from $(basename "$apk")"; exit 1; }
+          done
+          grep -qa 'FacebookLoginActivity' /tmp/apkcheck/AndroidManifest.xml \
+            || { echo '::error::FacebookLoginActivity is not registered in the manifest'; exit 1; }
+          echo "$(basename "$apk"): Facebook classes present and the login activity is registered"
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
