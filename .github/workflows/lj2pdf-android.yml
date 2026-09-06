@@ -1,0 +1,100 @@
+name: Build html2pdf (Android APKs + PC)
+
+# Only the blog/forum archiver under html2pdf/. The DRMD mod has its own
+# workflow (build.yml) and is untouched by this one.
+on:
+  push:
+    paths:
+      - 'html2pdf/**'
+      - '.github/workflows/lj2pdf-android.yml'
+  pull_request:
+    paths:
+      - 'html2pdf/**'
+  workflow_dispatch:
+
+jobs:
+  # ---- Android apps (debug APKs) ----------------------------------------
+  android:
+    name: ${{ matrix.name }} APK
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: lj2pdf
+            dir: html2pdf/android/lj2pdf
+          - name: httrack-pdf
+            dir: html2pdf/android/httrack-pdf
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build debug APK
+        working-directory: ${{ matrix.dir }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon --stacktrace assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}-debug-apk
+          path: ${{ matrix.dir }}/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+  # ---- PC: Linux CLI ----------------------------------------------------
+  pc-linux:
+    name: httrack2pdf (Linux CLI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install toolchain
+        run: sudo apt-get update && sudo apt-get install -y gcc make
+      - name: Build httrack2pdf
+        working-directory: html2pdf/pc/httrack_pdf_mod
+        run: make exe
+      - name: Smoke-test the CLI (usage lists the login/profile options)
+        working-directory: html2pdf/pc/httrack_pdf_mod
+        run: |
+          ./httrack2pdf 2>&1 | tee usage.txt || true
+          grep -q -- '--login' usage.txt
+          grep -q 'profile=<dir>' usage.txt
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: httrack2pdf-linux
+          path: html2pdf/pc/httrack_pdf_mod/httrack2pdf
+          if-no-files-found: error
+
+  # ---- PC: Windows GUI .exe (cross-compiled with MinGW) -----------------
+  pc-windows-gui:
+    name: httrack2pdf.exe (Windows GUI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MinGW-w64
+        run: sudo apt-get update && sudo apt-get install -y gcc-mingw-w64-x86-64
+      - name: Cross-compile httrack2pdf.exe (GUI)
+        working-directory: html2pdf/pc/httrack_pdf_mod
+        run: |
+          x86_64-w64-mingw32-gcc -O2 -std=gnu99 -Wall \
+            -DHTSPDF_STANDALONE -DHTSPDF_GUI \
+            -static -static-libgcc -s -mwindows \
+            -o httrack2pdf.exe \
+            httrack_pdf_gui.c httrack_pdf.c \
+            -lcomdlg32 -lshell32 -lole32 -lcomctl32
+      - name: Upload exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: httrack2pdf-windows-gui
+          path: html2pdf/pc/httrack_pdf_mod/httrack2pdf.exe
+          if-no-files-found: error
