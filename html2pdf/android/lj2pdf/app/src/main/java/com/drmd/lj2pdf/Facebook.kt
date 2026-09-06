@@ -167,7 +167,6 @@ object Facebook {
         val seenPages = HashSet<String>()
         var url: String? = feedUrl(base)
         var page = 0
-        var warnedAuth = false
 
         while (url != null && page < MAX_FEED_PAGES && out.size < max && !ConvertBus.cancelRequested) {
             if (!seenPages.add(url)) break
@@ -179,10 +178,7 @@ object Facebook {
                 break
             }
             if (looksLoggedOut(doc)) {
-                if (!warnedAuth) {
-                    ConvertBus.log("[fb] not signed in — open «FB → Войти» and log in as a browser")
-                    warnedAuth = true
-                }
+                ConvertBus.log("[fb] not signed in — open «FB → Войти» and log in as a browser")
                 break
             }
 
