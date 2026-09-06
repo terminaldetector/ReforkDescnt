@@ -13,10 +13,11 @@
 | [`drmd-baseline.md`](drmd-baseline.md) | Что в DRMD уже есть по каждому модулю D6, где и чего не хватает | да |
 | `architecture-map.md` | Устройство доноров: ядро, lifecycle, данные, тик, потоки | нет |
 | `dependency-map.md` | Зависимости доноров и что из них тянется | нет |
-| [`algorithm-map.md`](algorithm-map.md) | Алгоритмы доноров по формату §3 плана | 3 из 8 |
-| [`immptl-vendoring.md`](immptl-vendoring.md) | Что перенесено из ImmPtl, таблица маппингов, что дальше | да |
-| `cubic-chunks.md` | Аудит группы Cubic Chunks / FarPlaneTwo под свой бриф | матрицы есть, архитектура нет |
-| `portal-engine.md` | Аудит порталов и портальных пушек под свой бриф | матрицы есть, архитектура нет |
+| [`algorithm-map.md`](algorithm-map.md) | Алгоритмы доноров по формату §3 плана | да — 9 записей, все доноры, откуда можно читать |
+| [`immptl-vendoring.md`](immptl-vendoring.md) | Что перенесено из ImmPtl, таблица маппингов, что дальше | да — пять срезов |
+| [`cubic-chunks.md`](cubic-chunks.md) | Аудит группы Cubic Chunks / FarPlaneTwo под свой бриф | да — включая хранилище, освещение и LOD |
+| [`portal-engine.md`](portal-engine.md) | Аудит порталов и портальных пушек под свой бриф | да |
+| [`orchestrator-report.md`](orchestrator-report.md) | **Сводка состояния:** что из форкинга лежит в коде, что не подключено, что специфицировано | да |
 
 Первые три не требовали исходников доноров и сделаны. Форки подключены, чтение идёт по порядку из
 `repository-map.md` — сначала то, откуда можно брать код.
