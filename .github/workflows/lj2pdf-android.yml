@@ -77,14 +77,23 @@ jobs:
           set -eu
           apk=$(ls app/build/outputs/apk/debug/*.apk | head -1)
           mkdir -p /tmp/apkcheck
-          unzip -o -q "$apk" -d /tmp/apkcheck 'classes*.dex' AndroidManifest.xml
+          unzip -o -q "$apk" -d /tmp/apkcheck 'classes*.dex'
           for cls in Facebook BrowserSession FacebookLoginActivity FacebookProfile; do
             grep -qa "com/drmd/lj2pdf/$cls;" /tmp/apkcheck/classes*.dex \
               || { echo "::error::class $cls is missing from $(basename "$apk")"; exit 1; }
           done
-          grep -qa 'FacebookLoginActivity' /tmp/apkcheck/AndroidManifest.xml \
-            || { echo '::error::FacebookLoginActivity is not registered in the manifest'; exit 1; }
-          echo "$(basename "$apk"): Facebook classes present and the login activity is registered"
+          # The packaged manifest is binary AXML with a UTF-16 string pool, so
+          # it has to be decoded rather than grepped for ASCII.
+          aapt2=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 2>/dev/null | sort -V | tail -1)
+          if [ -n "$aapt2" ]; then
+            "$aapt2" dump xmltree --file AndroidManifest.xml "$apk" \
+              | grep -q 'FacebookLoginActivity' \
+              || { echo '::error::FacebookLoginActivity is not registered in the manifest'; exit 1; }
+            echo "manifest registers the login activity"
+          else
+            echo "::warning::aapt2 not found — skipped the manifest check"
+          fi
+          echo "$(basename "$apk"): Facebook classes present in the dex"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
