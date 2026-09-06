@@ -94,18 +94,28 @@ object BrowserSession : Http.Identity {
             val names = cm.getCookie(host)?.split(';')?.mapNotNull {
                 it.substringBefore('=').trim().ifBlank { null }
             } ?: emptyList()
-            // Expire each cookie on both the host and the registrable domain —
-            // Facebook sets most of them on ".facebook.com".
-            for (domain in listOf(Facebook.HOST, ".facebook.com", "facebook.com")) {
+            // Expire each cookie on every scope Facebook may have set it on —
+            // most live on ".facebook.com", the rest on the exact host. The URL
+            // stays a real one; only the Domain attribute varies.
+            val scopes = listOf(
+                host to Facebook.HOST,
+                "https://www.facebook.com/" to ".facebook.com",
+                "https://facebook.com/" to "facebook.com"
+            )
+            for ((url, domain) in scopes) {
                 for (n in names) {
-                    cm.setCookie(
-                        "https://$domain/",
-                        "$n=; Max-Age=0; Path=/; Domain=$domain"
-                    )
+                    cm.setCookie(url, "$n=; Max-Age=0; Path=/; Domain=$domain")
                 }
             }
             cm.removeSessionCookies(null)
             cm.flush()
+            // If anything survived that, the session is still usable, and a
+            // half-cleared "logout" would be a lie — drop the whole jar.
+            if (facebookUserId() != null) {
+                Logx.append("[session] targeted logout left cookies — clearing all")
+                cm.removeAllCookies(null)
+                cm.flush()
+            }
         } catch (t: Throwable) {
             Logx.append("[session] logout failed: ${t.message}")
         }

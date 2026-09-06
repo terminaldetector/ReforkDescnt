@@ -25,6 +25,7 @@ class CookieManager private constructor() {
         if (jar[key].isNullOrBlank()) jar.remove(key)
     }
     fun removeSessionCookies(cb: Any?) {}
+    fun removeAllCookies(cb: Any?) { jar.clear() }
     fun flush() {}
 
     private fun keyOf(url: String): String =
