@@ -78,7 +78,8 @@ jobs:
           apk=$(ls app/build/outputs/apk/debug/*.apk | head -1)
           mkdir -p /tmp/apkcheck
           unzip -o -q "$apk" -d /tmp/apkcheck 'classes*.dex'
-          for cls in Facebook BrowserSession FacebookLoginActivity FacebookProfile; do
+          for cls in Facebook BrowserSession FacebookLoginActivity FacebookProfile \
+                     ImageArchiver AlbumBuilder ImageCodec; do
             grep -qa "com/drmd/lj2pdf/$cls;" /tmp/apkcheck/classes*.dex \
               || { echo "::error::class $cls is missing from $(basename "$apk")"; exit 1; }
           done

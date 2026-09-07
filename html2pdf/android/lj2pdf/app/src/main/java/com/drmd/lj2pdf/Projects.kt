@@ -73,6 +73,21 @@ class Project(val dir: File) {
         return if (v.isNotEmpty()) v else if (epubFile.exists()) listOf(epubFile) else emptyList()
     }
 
+    // ---- Gallery (image-only archives) --------------------------------
+    /**
+     * Pictures harvested in image mode, kept apart from the per-post `img/`
+     * folders: those hold whatever a post inlined, this holds the originals
+     * the archive is actually for.
+     */
+    val galleryDir: File get() = File(dir, "gallery").apply { mkdirs() }
+    /** name<TAB>source<TAB>w<TAB>h<TAB>bytes<TAB>caption, in album order. */
+    val galleryIndex: File get() = File(dir, "gallery.tsv")
+    val albumPdf: File get() = File(dir, "album.pdf")
+    val albumCbz: File get() = File(dir, "album.cbz")
+
+    fun galleryFiles(): List<File> =
+        galleryDir.listFiles()?.filter { it.isFile }?.sortedBy { it.name } ?: emptyList()
+
     // ---- Multi-volume books (large blogs split to keep memory low) ----
     /** book_vol01.pdf, book_vol02.pdf … (1-based). */
     fun volumeFile(index: Int): File = File(dir, "book_vol%02d.pdf".format(index))

@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
     private lateinit var tilStep: TextInputLayout
     private lateinit var cbAll: CheckBox
     private lateinit var cbArchive: CheckBox
+    private lateinit var cbImages: CheckBox
     private lateinit var cbClean: CheckBox
     private lateinit var tilTo: TextInputLayout
     private lateinit var edtFrom: TextInputEditText
@@ -116,6 +117,7 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
         tilStep = findViewById(R.id.tilStep)
         cbAll = findViewById(R.id.cbAll)
         cbArchive = findViewById(R.id.cbArchive)
+        cbImages = findViewById(R.id.cbImages)
         cbClean = findViewById(R.id.cbClean)
         tilTo = findViewById(R.id.tilTo)
         edtFrom = findViewById(R.id.edtFrom)
@@ -141,6 +143,7 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
         showLastCrashIfAny()
 
         rgMode.setOnCheckedChangeListener { _, _ -> applyMode() }
+        cbImages.setOnCheckedChangeListener { _, _ -> applyMode() }
         applyMode()
 
         findViewById<MaterialButton>(R.id.btnChooseOut).setOnClickListener {
@@ -178,15 +181,23 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
     private fun applyMode() {
         val m = mode()
         val lj = m == Mode.LJ
+        val images = cbImages.isChecked
         cbAll.visibility = if (lj) View.VISIBLE else View.GONE
         cbArchive.visibility = if (lj) View.VISIBLE else View.GONE
+        // Ad-stripping is a text-cleanup step; in image mode it decides nothing.
+        cbClean.visibility = if (images) View.GONE else View.VISIBLE
         when (m) {
             Mode.LJ -> {
                 rowPager.visibility = View.VISIBLE
                 tilStep.visibility = View.VISIBLE
                 tilTo.visibility = View.GONE        // LJ uses scan/auto, not To
                 tilUrl.hint = "Blog / site URL"
-                txtHint.text = "Platform auto-detected by URL (LiveJournal, Habr, " +
+                txtHint.text = if (images)
+                    "Только изображения: со страниц берутся сами картинки в полном " +
+                    "размере (не превью), дубликаты отбрасываются. На выходе — папка " +
+                    "с файлами и альбом (PDF/CBZ). Facebook требует «FB → Войти»."
+                else
+                    "Platform auto-detected by URL (LiveJournal, Habr, " +
                     "Facebook, generic). Keep «Full posts» on. Scan → choose how many, " +
                     "or «automatically» for all. Facebook needs «FB → Войти» once."
             }
@@ -227,6 +238,32 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
             putExtra(ConvertService.EXTRA_NAME, name)
             putExtra(ConvertService.EXTRA_CLEAN, clean)
             treeUri?.let { putExtra(ConvertService.EXTRA_TREE, it) }
+        }
+
+        // Image mode replaces the text pipeline entirely: whatever the mode
+        // selector says, the job is "harvest the pictures from these pages".
+        if (cbImages.isChecked) {
+            intent.putExtra(ConvertService.EXTRA_MODE, "images")
+            intent.putExtra(ConvertService.EXTRA_AUTO, cbAll.isChecked)
+            intent.putExtra(ConvertService.EXTRA_BASE, raw.replace("{n}", "1").trimEnd('/'))
+            intent.putExtra(ConvertService.EXTRA_MAX, 2000)
+            when (mode()) {
+                Mode.SINGLE -> intent.putStringArrayListExtra(
+                    ConvertService.EXTRA_URLS, arrayListOf(raw))
+                Mode.TEMPLATE -> {
+                    if (!raw.contains("{n}")) { toast("Template must contain {n}"); return }
+                    var to = edtTo.text?.toString()?.toIntOrNull() ?: from
+                    if (to < from) to = from
+                    intent.putStringArrayListExtra(
+                        ConvertService.EXTRA_URLS,
+                        ArrayList((from..to).map { raw.replace("{n}", it.toString()) })
+                    )
+                }
+                Mode.LJ -> { /* the scanner finds the pages */ }
+            }
+            intent.withPerf().withImages()
+            launchService(intent, "Изображения…")
+            return
         }
 
         when (mode()) {
@@ -466,7 +503,11 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
         if (book == null || !book.exists()) { toast("Book not found."); return }
         try {
             val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", book)
-            val mime = if (book.extension.equals("epub", true)) "application/epub+zip" else "application/pdf"
+            val mime = when (book.extension.lowercase()) {
+                "epub" -> "application/epub+zip"
+                "cbz" -> "application/vnd.comicbook+zip"
+                else -> "application/pdf"
+            }
             val view = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, mime)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -548,14 +589,18 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
     }
 
     private fun showProjectActions(p: Project) {
+        val pics = p.galleryFiles().size
         androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("${p.name}  (${p.entries().size})")
+            .setTitle("${p.name}  (${p.entries().size}" +
+                (if (pics > 0) ", $pics карт." else "") + ")")
             .setItems(
                 arrayOf(
                     "Обновить (докачать новые)",
                     "Глубокий перескан",
+                    "Скачать изображения",
                     "В PDF (настройки)",
                     "В EPUB (настройки)",
+                    "В альбом (настройки)",
                     "В RAG (настройки)",
                     "Открыть",
                     "Удалить"
@@ -564,11 +609,13 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
                 when (i) {
                     0 -> updateProject(p, deep = false)
                     1 -> updateProject(p, deep = true)
-                    2 -> pdfSettingsDialog(p)
-                    3 -> epubSettingsDialog(p)
-                    4 -> ragSettingsDialog { startRag(listOf(p), "${p.name}_rag") }
-                    5 -> openProjectBook(p)
-                    6 -> confirmDelete(p)
+                    2 -> harvestImages(p)
+                    3 -> pdfSettingsDialog(p)
+                    4 -> epubSettingsDialog(p)
+                    5 -> imageSettingsDialog(p)
+                    6 -> ragSettingsDialog { startRag(listOf(p), "${p.name}_rag") }
+                    7 -> openProjectBook(p)
+                    8 -> confirmDelete(p)
                 }
             }
             .show()
@@ -598,6 +645,8 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
         p.books().forEachIndexed { i, _ -> labels.add(if (p.books().size == 1) "PDF" else "PDF том ${i + 1}") }
         val epubs = p.epubs()
         epubs.forEachIndexed { i, _ -> files.add(epubs[i]); labels.add(if (epubs.size == 1) "EPUB" else "EPUB том ${i + 1}") }
+        if (p.albumPdf.exists()) { files.add(p.albumPdf); labels.add("Альбом PDF") }
+        if (p.albumCbz.exists()) { files.add(p.albumCbz); labels.add("Альбом CBZ") }
         when {
             files.isEmpty() -> toast("Пока нет книги — соберите PDF или EPUB.")
             files.size == 1 -> openFile(files[0])
@@ -634,6 +683,12 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
     private fun trEndpoint() = prefs.getString("tr_endpoint", "").orEmpty()
     private fun trKey() = prefs.getString("tr_key", "").orEmpty()
     private fun trEngine() = prefs.getString("tr_engine", "libre").orEmpty()
+    // Image mode
+    private fun imgFull() = prefs.getBoolean("img_full", true)
+    private fun imgMinSide() = prefs.getInt("img_min_side", 400).coerceIn(0, 8000)
+    private fun imgMinKb() = prefs.getInt("img_min_kb", 8).coerceIn(0, 4096)
+    private fun albumFormat() = prefs.getString("album_format", "pdf").orEmpty()
+    private fun albumCaptions() = prefs.getBoolean("album_captions", true)
 
     /** Add performance / network / engine settings to a download or build intent. */
     private fun Intent.withPerf(): Intent {
@@ -667,6 +722,16 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
         return this
     }
 
+    /** Add the image-mode settings to a harvest or album intent. */
+    private fun Intent.withImages(): Intent {
+        putExtra(ConvertService.EXTRA_IMG_FULL, imgFull())
+        putExtra(ConvertService.EXTRA_IMG_MIN_SIDE, imgMinSide())
+        putExtra(ConvertService.EXTRA_IMG_MIN_BYTES, imgMinKb() * 1024)
+        putExtra(ConvertService.EXTRA_ALBUM, albumFormat())
+        putExtra(ConvertService.EXTRA_ALBUM_CAPTIONS, albumCaptions())
+        return this
+    }
+
     /** Add RAG extras to a service intent so the job uses the user's settings. */
     private fun Intent.withRag(includeAuto: Boolean): Intent {
         putExtra(ConvertService.EXTRA_RAG_CHUNK, ragChunk())
@@ -685,6 +750,7 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
             "Формат по умолчанию",
             "Настройки PDF",
             "Настройки EPUB",
+            "Настройки изображений",
             "Настройки RAG",
             "ИИ-переводчик",
             if (autoRag()) "Авто-RAG после архива: вкл" else "Авто-RAG после архива: выкл",
@@ -701,14 +767,15 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
                     3 -> defaultFormatDialog()
                     4 -> pdfSettingsDialog()
                     5 -> epubSettingsDialog()
-                    6 -> ragSettingsDialog()
-                    7 -> translatorDialog()
-                    8 -> {
+                    6 -> imageSettingsDialog()
+                    7 -> ragSettingsDialog()
+                    8 -> translatorDialog()
+                    9 -> {
                         prefs.edit().putBoolean("auto_rag", !autoRag()).apply()
                         toast("Авто-RAG: ${if (autoRag()) "вкл" else "выкл"}")
                     }
-                    9 -> resetSettings()
-                    10 -> showAbout()
+                    10 -> resetSettings()
+                    11 -> showAbout()
                 }
             }
             .setNegativeButton("Close", null)
@@ -947,6 +1014,87 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
             .show()
     }
 
+    /**
+     * Image-mode settings. The two that matter: whether to follow a thumbnail
+     * to the original (accurate but one extra request per picture), and how
+     * small a picture has to be before it is treated as interface furniture.
+     */
+    private fun imageSettingsDialog(p: Project? = null) {
+        if (!alive()) return
+        val box = settingsBox()
+        val full = android.widget.CheckBox(this).apply {
+            text = "Полный размер (идти по ссылке на оригинал)"
+            isChecked = imgFull()
+        }
+        box.addView(full)
+        val side = box.numField("Пропускать меньше N px по большей стороне (0 = всё)", imgMinSide())
+        val kb = box.numField("Пропускать меньше N КБ", imgMinKb())
+        box.addView(android.widget.TextView(this).apply { text = "Альбом:" })
+        val fmts = arrayOf("pdf", "cbz", "both", "none")
+        var fmtIdx = fmts.indexOf(albumFormat()).coerceAtLeast(0)
+        box.addView(android.widget.Spinner(this).apply {
+            adapter = android.widget.ArrayAdapter(
+                this@MainActivity, android.R.layout.simple_spinner_dropdown_item,
+                arrayOf("PDF (по картинке на страницу)", "CBZ (оригиналы в zip)",
+                        "И PDF, и CBZ", "Только папка с картинками")
+            )
+            setSelection(fmtIdx)
+            onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(pa: android.widget.AdapterView<*>?, v: View?, pos: Int, id: Long) { fmtIdx = pos }
+                override fun onNothingSelected(pa: android.widget.AdapterView<*>?) {}
+            }
+        })
+        val caps = android.widget.CheckBox(this).apply {
+            text = "Подписи под картинками (в PDF)"; isChecked = albumCaptions()
+        }
+        box.addView(caps)
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Настройки изображений")
+            .setView(box)
+            .setPositiveButton(if (p != null) "Собрать" else "Save") { _, _ ->
+                prefs.edit()
+                    .putBoolean("img_full", full.isChecked)
+                    .putInt("img_min_side", (side.text.toString().toIntOrNull() ?: 400).coerceIn(0, 8000))
+                    .putInt("img_min_kb", (kb.text.toString().toIntOrNull() ?: 8).coerceIn(0, 4096))
+                    .putString("album_format", fmts[fmtIdx])
+                    .putBoolean("album_captions", caps.isChecked)
+                    .apply()
+                if (p != null) buildAlbum(p) else toast("Saved")
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    /** Bind an already-harvested gallery into the chosen album format(s). */
+    private fun buildAlbum(p: Project) {
+        if (ConvertBus.running) { toast("Already running."); return }
+        if (ImageArchiver.loadIndex(p).isEmpty()) {
+            toast("Галерея пуста — сначала скачайте изображения."); return
+        }
+        val intent = Intent(this, ConvertService::class.java).apply {
+            putExtra(ConvertService.EXTRA_MODE, "build_album")
+            putExtra(ConvertService.EXTRA_BASE, p.base)
+            putExtra(ConvertService.EXTRA_NAME, p.name)
+            treeUri?.let { putExtra(ConvertService.EXTRA_TREE, it) }
+        }.withPerf().withImages()
+        launchService(intent, "Альбом: ${p.name}…")
+    }
+
+    /** Top up a project's gallery with pictures published since last time. */
+    private fun harvestImages(p: Project) {
+        if (ConvertBus.running) { toast("Already running."); return }
+        if (p.base.isBlank()) { toast("Project has no saved URL."); return }
+        val intent = Intent(this, ConvertService::class.java).apply {
+            putExtra(ConvertService.EXTRA_MODE, "images")
+            putExtra(ConvertService.EXTRA_AUTO, true)
+            putExtra(ConvertService.EXTRA_BASE, p.base)
+            putExtra(ConvertService.EXTRA_MAX, 2000)
+            treeUri?.let { putExtra(ConvertService.EXTRA_TREE, it) }
+        }.withPerf().withImages()
+        launchService(intent, "Изображения: ${p.name}…")
+    }
+
     private fun perfSettingsDialog() {
         if (!alive()) return
         val box = settingsBox()
@@ -984,7 +1132,11 @@ class MainActivity : AppCompatActivity(), ConvertBus.Observer {
                 "Platforms auto-detected: LiveJournal, Habr, Facebook, generic " +
                 "sites (TOC/forums with pagination). Facebook is read through " +
                 "mbasic with a browser login (кнопка «FB») — no app registration " +
-                "and no API keys. RAG export builds a JSONL corpus for local " +
+                "and no API keys.\n\n" +
+                "«Только изображения» — для блогов, у которых вся ценность в " +
+                "картинках: берутся оригиналы (не превью), дубликаты " +
+                "отбрасываются, на выходе папка с файлами и альбом PDF/CBZ.\n\n" +
+                "RAG export builds a JSONL corpus for local " +
                 "LLMs; «Auto-RAG» also makes it right after archiving.\n\n" +
                 "Roadmap: DTF/TJournal (osnova API), smarter forum structure, " +
                 "Sefaria + translator hook."

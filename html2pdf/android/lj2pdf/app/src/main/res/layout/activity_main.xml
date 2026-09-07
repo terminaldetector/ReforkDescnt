@@ -194,6 +194,14 @@
             android:checked="false"
             android:text="Download everything automatically (no prompt)" />
 
+        <!-- Image mode: for blogs whose whole point is the pictures. -->
+        <CheckBox
+            android:id="@+id/cbImages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="false"
+            android:text="Только изображения (галерея + альбом)" />
+
         <CheckBox
             android:id="@+id/cbClean"
             android:layout_width="match_parent"

@@ -77,6 +77,12 @@ class ConvertService : Service() {
         const val EXTRA_RAG_ENGINE = "ragEngine"     // "jsonl" | "mempalace"
         const val EXTRA_AUTO_BUILD = "autoBuild"     // "" | "pdf" | "epub" | "rag"
         const val EXTRA_CONTENT_SEL = "contentSel"   // override content CSS selector
+        // Image mode: harvest the pictures instead of the prose.
+        const val EXTRA_IMG_FULL = "imgFull"         // follow thumbnails to originals
+        const val EXTRA_IMG_MIN_SIDE = "imgMinSide"  // skip pictures smaller than this
+        const val EXTRA_IMG_MIN_BYTES = "imgMinBytes"
+        const val EXTRA_ALBUM = "album"              // "" | "pdf" | "cbz" | "both"
+        const val EXTRA_ALBUM_CAPTIONS = "albumCaptions"
         // Translator (external API): on/off, target lang, endpoint, key, engine.
         const val EXTRA_TR_ON = "trOn"
         const val EXTRA_TR_TARGET = "trTarget"
@@ -147,6 +153,8 @@ class ConvertService : Service() {
                 if (mode == "rag") { runRag(intent, name, tree); return@launch }
                 if (mode == "tg_rag") { runTgRag(intent, name, tree); return@launch }
                 if (mode == "download") { runDownload(intent); return@launch }
+                if (mode == "images") { runImages(intent, tree); return@launch }
+                if (mode == "build_album") { runAlbum(intent, tree); return@launch }
                 if (mode == "build_pdf") { runBuildPdf(intent, tree); return@launch }
                 if (mode == "build_epub") { runBuildEpub(intent, tree); return@launch }
                 val r = WebViewPdfRenderer(this@ConvertService) { line -> ConvertBus.log(line) }
@@ -265,6 +273,197 @@ class ConvertService : Service() {
         }
         if (n > 0 && tree != null) copyToTree(out, tree, out.name, "application/json")
         finishRag(n > 0, if (n > 0) out else null)
+    }
+
+    // ===================== IMAGE MODE: harvest pictures ===================
+
+    /**
+     * Archive the pictures rather than the prose: scan the blog exactly as the
+     * normal path does, then pull the full-size images out of those pages into
+     * the project's gallery, and optionally bind them into an album.
+     *
+     * Re-running tops the gallery up — pictures already held are recognised by
+     * content, so nothing is fetched or stored twice.
+     */
+    private suspend fun runImages(intent: Intent, tree: String?) {
+        val baseIn = (intent.getStringExtra(EXTRA_BASE) ?: "").trimEnd('/')
+        if (baseIn.isEmpty()) { finish(false, null); return }
+        val project = Projects.forBase(this, baseIn)
+        val fb = Facebook.isFacebook(baseIn)
+        val par = intent.getIntExtra(EXTRA_DL_THREADS, 8)
+            .let { if (fb) minOf(it, Facebook.MAX_PARALLEL) else it }
+        val max = intent.getIntExtra(EXTRA_MAX, DEFAULT_MAX)
+        val auto = intent.getBooleanExtra(EXTRA_AUTO, true)
+        val note: (String) -> Unit = { s -> nm.notify(NID, progressNotif(s, 0, 0, true)) }
+
+        ConvertBus.log("[images] $baseIn")
+        if (fb && BrowserSession.facebookUserId() == null)
+            ConvertBus.log("[fb] no browser session — open «FB → Войти» first")
+
+        // Which pages to look at: an explicit list, one named post, or the
+        // whole archive.
+        val given = intent.getStringArrayListExtra(EXTRA_URLS) ?: arrayListOf()
+        val pages: List<PostEntry> = if (given.isNotEmpty()) {
+            given.map { PostEntry(Projects.idOf(it), it, "") }
+        } else if (Facebook.isFacebook(baseIn) && Facebook.isPost(baseIn)) {
+            listOf(PostEntry(Projects.idOf(baseIn), Facebook.toMbasic(baseIn), ""))
+        } else {
+            val scanned = SiteScan.scanAll(project.base, max, par, note)
+            if (ConvertBus.cancelRequested) { finish(false, null); return }
+            if (scanned.isEmpty()) {
+                ConvertBus.log("[images] nothing found"); finish(false, null); return
+            }
+            var take = scanned
+            if (!auto) {
+                val def = CompletableDeferred<Int>()
+                selection = def
+                ConvertBus.log("[scan] found ${scanned.size} page(s) — waiting for your choice")
+                nm.notify(NID, progressNotif("Scanned ${scanned.size} — choose how many", 0, 0, true))
+                ConvertBus.scanReady(scanned.size)
+                val count = def.await().coerceIn(0, scanned.size); selection = null
+                if (count == 0 || ConvertBus.cancelRequested) { finish(false, null); return }
+                take = scanned.take(count)
+            }
+            take.map { PostEntry(Projects.idOf(it), it, "") }
+        }
+
+        val opts = ImageArchiver.Options(
+            fullSize = intent.getBooleanExtra(EXTRA_IMG_FULL, true),
+            minSide = intent.getIntExtra(EXTRA_IMG_MIN_SIDE, 400),
+            minBytes = intent.getIntExtra(EXTRA_IMG_MIN_BYTES, 8 * 1024),
+            parallelism = par
+        )
+        val shots = ImageArchiver.harvest(
+            project, pages, opts, ImageArchiver.loadIndex(project)
+        ) { d, t, st ->
+            ConvertBus.progress(d, t, st)
+            nm.notify(NID, progressNotif(st, d, t, false))
+        }
+        if (shots.isEmpty()) {
+            ConvertBus.log("[images] no pictures saved"); finish(false, null); return
+        }
+        // Keep the pictures themselves reachable from the chosen folder.
+        if (tree != null) copyGalleryToTree(project, shots, tree)
+        buildAlbums(project, shots, intent, tree)
+    }
+
+    // ===================== IMAGE MODE: bind an album ======================
+
+    private suspend fun runAlbum(intent: Intent, tree: String?) {
+        val baseIn = (intent.getStringExtra(EXTRA_BASE) ?: "").trimEnd('/')
+        if (baseIn.isEmpty()) { finish(false, null); return }
+        val project = Projects.forBase(this, baseIn)
+        val shots = ImageArchiver.loadIndex(project)
+        if (shots.isEmpty()) {
+            ConvertBus.log("[album] gallery is empty — run image mode first")
+            finish(false, null); return
+        }
+        buildAlbums(project, shots, intent, tree)
+    }
+
+    /** Bind the gallery into the album format(s) the user asked for. */
+    private suspend fun buildAlbums(
+        project: Project, shots: List<ImageArchiver.Shot>, intent: Intent, tree: String?
+    ) {
+        val want = intent.getStringExtra(EXTRA_ALBUM) ?: "pdf"
+        if (want.isBlank() || want == "none") { finishImages(shots.size, null); return }
+        val captions = intent.getBooleanExtra(EXTRA_ALBUM_CAPTIONS, true)
+        var first: File? = null
+
+        val result = withContext(Dispatchers.IO) {
+            try {
+                if (want == "pdf" || want == "both") {
+                    val msg = "Album PDF: ${shots.size} picture(s)…"
+                    ConvertBus.progress(0, shots.size, msg)
+                    nm.notify(NID, progressNotif(msg, 0, shots.size, false))
+                    val ok = AlbumBuilder.buildPdf(
+                        applicationContext, project, shots, project.albumPdf, captions
+                    ) { d, t, st ->
+                        ConvertBus.progress(d, t, st)
+                        nm.notify(NID, progressNotif(st, d, t, false))
+                    }
+                    if (ok) {
+                        first = project.albumPdf
+                        if (tree != null) copyToTree(project.albumPdf, tree, "${project.name}.pdf")
+                    }
+                }
+                if (want == "cbz" || want == "both") {
+                    val ok = AlbumBuilder.buildCbz(project, shots, project.albumCbz) { d, t, st ->
+                        ConvertBus.progress(d, t, st)
+                        nm.notify(NID, progressNotif(st, d, t, false))
+                    }
+                    if (ok) {
+                        if (first == null) first = project.albumCbz
+                        if (tree != null)
+                            copyToTree(project.albumCbz, tree, "${project.name}.cbz",
+                                "application/vnd.comicbook+zip")
+                    }
+                }
+                first
+            } catch (t: Throwable) {
+                ConvertBus.log("[album] error: ${t.message}"); null
+            }
+        }
+        finishImages(shots.size, result)
+    }
+
+    /**
+     * Image mode's ending. Unlike a book run, the pictures themselves are the
+     * result: a gallery with no album is still a success, so it must not fall
+     * into [finish]'s "nothing was saved" notification.
+     */
+    private fun finishImages(count: Int, album: File?) {
+        running = false
+        sampler?.cancel(); sampler = null
+        renderer?.destroy(); renderer = null
+        releaseWakeLock()
+        releaseWifiLock()
+        stopForeground(true)
+        val ok = count > 0
+        val n = NotificationCompat.Builder(this, CHANNEL)
+            .setSmallIcon(
+                if (ok) android.R.drawable.stat_sys_download_done
+                else android.R.drawable.stat_notify_error
+            )
+            .setContentTitle(if (ok) "$count picture(s) saved" else "No pictures saved")
+            .setContentText(
+                album?.let { "${it.name} (${it.length() / 1024} KB) — tap to open" }
+                    ?: "In the app: Projects → gallery"
+            )
+            .setAutoCancel(true)
+        if (album != null) n.setContentIntent(openIntent(album))
+        nm.notify(NID + 1, n.build())
+        ConvertBus.finished(ok, album)
+        stopSelf()
+    }
+
+    /** Copy the harvested pictures into the user's folder, in album order. */
+    private suspend fun copyGalleryToTree(
+        project: Project, shots: List<ImageArchiver.Shot>, treeUri: String
+    ) = withContext(Dispatchers.IO) {
+        try {
+            val root = DocumentFile.fromTreeUri(this@ConvertService, Uri.parse(treeUri)) ?: return@withContext
+            val dirName = "${project.name}_images"
+            val dir = root.findFile(dirName)?.takeIf { it.isDirectory }
+                ?: root.createDirectory(dirName) ?: return@withContext
+            var copied = 0
+            for (shot in shots) {
+                if (ConvertBus.cancelRequested) break
+                if (dir.findFile(shot.name) != null) continue      // already there
+                val src = File(project.galleryDir, shot.name)
+                if (!src.exists()) continue
+                val mime = "image/" + shot.name.substringAfterLast('.', "jpeg")
+                    .replace("jpg", "jpeg")
+                val doc = dir.createFile(mime, shot.name) ?: continue
+                contentResolver.openOutputStream(doc.uri)?.use { out ->
+                    FileInputStream(src).use { it.copyTo(out) }
+                }
+                copied++
+            }
+            ConvertBus.log("[images] $copied picture(s) copied to the chosen folder")
+        } catch (t: Throwable) {
+            ConvertBus.log("[images] copy failed: ${t.message}")
+        }
     }
 
     // ===================== STAGE 2: build PDF from the base ===============
@@ -997,8 +1196,13 @@ class ConvertService : Service() {
 
     private fun openIntent(book: File): PendingIntent {
         val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", book)
+        val mime = when (book.extension.lowercase()) {
+            "cbz" -> "application/vnd.comicbook+zip"
+            "epub" -> "application/epub+zip"
+            else -> "application/pdf"
+        }
         val view = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/pdf")
+            setDataAndType(uri, mime)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         val chooser = Intent.createChooser(view, "Open book.pdf")

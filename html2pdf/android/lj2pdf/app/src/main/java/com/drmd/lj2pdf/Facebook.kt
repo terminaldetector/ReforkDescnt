@@ -38,6 +38,9 @@ object Facebook {
         "facebook.com", "fb.com", "fb.watch", "facebook.net"
     )
 
+    /** Where Facebook serves files from — pictures and interface alike. */
+    private val FB_ASSET_HOSTS = listOf("fbcdn.net", "fbsbx.com")
+
     /** Query parameters worth keeping; everything else is tracking noise. */
     private val KEEP_PARAMS = setOf("story_fbid", "id", "fbid", "v")
 
@@ -273,6 +276,64 @@ object Facebook {
         return low.contains("/ufi/reaction") || low.contains("/reactions/") ||
             low.contains("/share/") || low.contains("/composer/") ||
             low.contains("/comment/replies") || low.contains("action=")
+    }
+
+    // ---- pictures --------------------------------------------------------
+
+    /**
+     * mbasic never puts the original picture in a story: the `<img>` is a
+     * preview (`/s320x320/…`) wrapped in a link to the photo page. The real
+     * file is one hop further, behind that page's "view full size" link — and
+     * the CDN URL is signed, so the size cannot be edited into it. This walks
+     * that hop.
+     *
+     * @return a URL whose bytes are the original, or null if the page has none.
+     */
+    suspend fun fullSizeImage(photoPageUrl: String): String? {
+        val doc = Http.doc(toMbasicKeepingCursor(photoPageUrl)) ?: return null
+        // The explicit "full size" link is the reliable one; it redirects to the
+        // CDN original, which the HTTP layer follows for us.
+        doc.selectFirst("a[href*=view_full_size], a[href*=/photo/view_full_size]")
+            ?.absUrl("href")?.ifBlank { null }?.let { return it }
+        // Otherwise take the largest picture the photo page itself shows.
+        return doc.select("img").mapNotNull { it.absUrl("src").ifBlank { null } }
+            .firstOrNull { isPhotoUrl(it) }
+    }
+
+    /** Photo-page links (`/photo.php?fbid=…`) found on a story or feed page. */
+    fun photoPageLinks(doc: Document): List<String> {
+        val out = LinkedHashSet<String>()
+        for (a in doc.select("a[href]")) {
+            val href = a.absUrl("href")
+            if (href.isBlank() || !isFacebook(href)) continue
+            val u = Uri.parse(unwrap(href))
+            val path = u.path ?: ""
+            val isPhotoPage = path == "/photo.php" || path.startsWith("/photo/") ||
+                (path.contains("/photos/") && u.getQueryParameter("fbid") != null)
+            if (isPhotoPage && u.getQueryParameter("fbid") != null) out.add(unwrap(href))
+        }
+        return out.toList()
+    }
+
+    /**
+     * Served by Facebook itself — the site or one of its CDNs. On a Facebook
+     * page this is what separates "their file" from an image somebody linked
+     * from elsewhere, which [isFacebook] alone cannot say: the CDN lives on
+     * fbcdn.net, a different domain from the site.
+     */
+    fun isFacebookAsset(url: String): Boolean {
+        val host = (Uri.parse(url).host ?: "").lowercase()
+        return (FB_HOSTS + FB_ASSET_HOSTS).any { host == it || host.endsWith(".$it") }
+    }
+
+    /** A content picture from Facebook's CDN, as opposed to an icon or emoji. */
+    fun isPhotoUrl(url: String): Boolean {
+        val low = url.lowercase()
+        if (!low.contains("fbcdn.net") && !low.contains("scontent")) return false
+        // Facebook serves its own chrome (emoji, spacers, sprites) from the same
+        // CDN; those live under /rsrc.php/ or are named as static assets.
+        return !low.contains("/rsrc.php/") && !low.contains("/emoji.php") &&
+            !low.contains("static.xx") && !low.contains("spacer")
     }
 
     // ---- article extraction --------------------------------------------
