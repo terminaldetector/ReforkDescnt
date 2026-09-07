@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.world.event;
 
 import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
+import com.terminaldetector.drmd.d6.D6Consequence;
 import com.terminaldetector.drmd.d6.D6EventRegistry;
 import com.terminaldetector.drmd.d6.D6WorldEvent;
 import com.terminaldetector.drmd.diag.DiagTrace;
@@ -24,6 +25,9 @@ import java.util.List;
  * that answer goes to the diagnostics, deliberately, so that the next flight report says whether the
  * spine runs before anything in the world depends on it. Guessing is what has cost this project time
  * before.
+ *
+ * <p>What an ending event leaves behind, however, is recorded now: that costs nothing, needs no
+ * entity, and is the half of the design that survives being unobserved.
  */
 public final class WorldEventSystem {
 	private WorldEventSystem() {}
@@ -73,13 +77,31 @@ public final class WorldEventSystem {
 		List<D6WorldEvent> finished = registry.purgeFinished(now);
 		for (D6WorldEvent event : finished) {
 			DiagTrace.count("event.finished");
-			// The consequence is not built yet; naming what it would be built from is the point of
-			// logging it, so the next report says what was lost by not building it.
-			DiagTrace.record("event", "event " + event.id() + " (" + event.type() + ") ended at "
-					+ event.positionAt(now) + " with no consequence recorded");
+			remember(state, event, now);
 		}
 
 		if (!change.isEmpty() || !finished.isEmpty()) state.touch();
+	}
+
+	/**
+	 * Turn an ended event into a mark on the world, if its kind leaves one.
+	 *
+	 * <p>The place is where the event <em>ended</em> rather than where it began, which matters for
+	 * anything that moved: a missile is remembered where it landed, not where it was launched.
+	 */
+	private static void remember(WorldEventState state, D6WorldEvent event, long now) {
+		EventAftermath.Trace trace = EventAftermath.forType(event.type());
+		if (trace == null) {
+			DiagTrace.record("event", "event " + event.id() + " (" + event.type()
+					+ ") ended leaving nothing, as its kind does");
+			return;
+		}
+		D6Consequence mark = state.consequences().add(new D6Consequence(
+				trace.severity(), event.positionAt(now), trace.radius(),
+				event.id(), event.type(), now));
+		DiagTrace.count("event.remembered");
+		DiagTrace.record("event", "event " + event.id() + " (" + event.type() + ") left "
+				+ mark.severity() + " over " + Math.round(mark.radius()) + " blocks at " + mark.centre());
 	}
 
 	/**

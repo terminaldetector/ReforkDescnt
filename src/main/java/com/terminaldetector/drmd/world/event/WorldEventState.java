@@ -1,6 +1,8 @@
 package com.terminaldetector.drmd.world.event;
 
 import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
+import com.terminaldetector.drmd.d6.D6Consequence;
+import com.terminaldetector.drmd.d6.D6ConsequenceMap;
 import com.terminaldetector.drmd.d6.D6EventRegistry;
 import com.terminaldetector.drmd.d6.D6WorldEvent;
 import net.minecraft.nbt.NbtCompound;
@@ -24,11 +26,17 @@ import net.minecraft.world.PersistentStateManager;
  * worth naming rather than hiding: an event is a place in a world, and one registry for the server
  * means the End cannot have events of its own. The fix is a registry per world when there is a reason
  * for one, and nothing here assumes otherwise.
+ *
+ * <p><b>Consequences live here too</b>, rather than in a state of their own. They are written on the
+ * same transition that removes an event — one ends, a mark appears — and splitting them across two
+ * saved states means a crash between the two writes keeps one and loses the other. One state, one
+ * write, no half-recorded history.
  */
 public class WorldEventState extends PersistentState {
 	public static final String ID = "drmd_world_events";
 
 	private final D6EventRegistry registry = new D6EventRegistry();
+	private final D6ConsequenceMap consequences = new D6ConsequenceMap();
 	private long nextId = 1;
 
 	public static WorldEventState get(ServerWorld overworld) {
@@ -40,6 +48,10 @@ public class WorldEventState extends PersistentState {
 
 	public D6EventRegistry registry() {
 		return registry;
+	}
+
+	public D6ConsequenceMap consequences() {
+		return consequences;
 	}
 
 	/**
@@ -86,6 +98,23 @@ public class WorldEventState extends PersistentState {
 				// keying them separately.
 			}
 		}
+		NbtCompound marks = nbt.getCompound("consequences");
+		for (String key : marks.getKeys()) {
+			try {
+				NbtCompound c = marks.getCompound(key);
+				// restore rather than add: what was saved was already folded, and folding it again at
+				// the cap is millions of overlap tests for an answer already known.
+				state.consequences.restore(new D6Consequence(
+						D6Consequence.Severity.valueOf(c.getString("severity")),
+						new Vec3(c.getDouble("x"), c.getDouble("y"), c.getDouble("z")),
+						c.getDouble("radius"),
+						c.getLong("cause"),
+						c.getString("causeType"),
+						c.getLong("at")));
+			} catch (RuntimeException ignored) {
+				// An unreadable mark loses one place, not the world's whole history.
+			}
+		}
 		return state;
 	}
 
@@ -112,6 +141,24 @@ public class WorldEventState extends PersistentState {
 			events.put(Long.toString(event.id()), e);
 		}
 		nbt.put("events", events);
+
+		NbtCompound marks = new NbtCompound();
+		int index = 0;
+		for (D6Consequence mark : consequences.all()) {
+			NbtCompound c = new NbtCompound();
+			c.putString("severity", mark.severity().name());
+			c.putDouble("x", mark.centre().x());
+			c.putDouble("y", mark.centre().y());
+			c.putDouble("z", mark.centre().z());
+			c.putDouble("radius", mark.radius());
+			c.putLong("cause", mark.causeEventId());
+			c.putString("causeType", mark.causeType());
+			c.putLong("at", mark.createdTick());
+			// Indexed rather than keyed by anything of its own: a folded mark has no identity that
+			// survives the fold, so the index is as stable as anything could be.
+			marks.put(Integer.toString(index++), c);
+		}
+		nbt.put("consequences", marks);
 		return nbt;
 	}
 }

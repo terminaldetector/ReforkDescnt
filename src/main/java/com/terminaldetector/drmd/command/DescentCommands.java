@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
 import com.terminaldetector.drmd.d6.D6EventVisibility;
+import com.terminaldetector.drmd.d6.D6Consequence;
 import com.terminaldetector.drmd.d6.D6WorldEvent;
 import com.terminaldetector.drmd.energy.EnergyPreset;
 import com.terminaldetector.drmd.energy.EnergySystem;
@@ -70,6 +71,41 @@ public final class DescentCommands {
 								overworld.getTime(), new int[] { 200, 200, 200 }, 5, 100);
 						ctx.getSource().sendFeedback(() -> Text.literal(
 								"Flight " + id + " inbound: glow at 1000, shape at 500, overhead in ~300 ticks"), false);
+						return 1;
+					}))
+					.then(CommandManager.literal("strike").executes(ctx -> {
+						ServerPlayerEntity p = ctx.getSource().getPlayer();
+						ServerWorld overworld = ctx.getSource().getServer().getOverworld();
+						Vec3d at = p.getPos();
+						WorldEventState state = WorldEventState.get(overworld);
+						// Sixty blocks off and over in three seconds, so the whole chain — runs, ends,
+						// leaves a mark — can be watched without waiting.
+						long id = state.add("strike",
+								new Vec3(at.x + 60, at.y, at.z), new Vec3(0, 0, 0),
+								overworld.getTime(), new int[] { 20, 20, 20 }, 30, 6700);
+						ctx.getSource().sendFeedback(() -> Text.literal(
+								"Strike " + id + " sixty blocks east, over in three seconds, leaves BURNED over 24"), false);
+						return 1;
+					}))
+					.then(CommandManager.literal("history").executes(ctx -> {
+						ServerPlayerEntity p = ctx.getSource().getPlayer();
+						ServerWorld overworld = ctx.getSource().getServer().getOverworld();
+						WorldEventState state = WorldEventState.get(overworld);
+						Vec3d eye = p.getEyePos();
+						java.util.List<D6Consequence> near =
+								state.consequences().near(new Vec3(eye.x, eye.y, eye.z), 512);
+						if (near.isEmpty()) {
+							int total = state.consequences().size();
+							ctx.getSource().sendFeedback(() -> Text.literal(
+									"Nothing happened within 512 blocks. " + total + " remembered elsewhere."), false);
+							return 0;
+						}
+						for (D6Consequence c : near) {
+							String line = String.format(java.util.Locale.ROOT,
+									"%s over %.0f blocks, from %s (event %d) at tick %d",
+									c.severity(), c.radius(), c.causeType(), c.causeEventId(), c.createdTick());
+							ctx.getSource().sendFeedback(() -> Text.literal(line), false);
+						}
 						return 1;
 					}))
 					.then(CommandManager.literal("list").executes(ctx -> {

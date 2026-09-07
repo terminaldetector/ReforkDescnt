@@ -109,6 +109,17 @@ public final class D6ConsequenceMap {
 		return found;
 	}
 
+	/**
+	 * Append without folding — for reloading records that were already folded when they were saved.
+	 *
+	 * <p>Going through {@link #add} would be correct and self-repairing, and at the cap it would also
+	 * be several million overlap tests during world load for an answer already known. This trusts the
+	 * save, which is reasonable because nothing but this class writes it.
+	 */
+	public void restore(D6Consequence stored) {
+		entries.add(stored);
+	}
+
 	public List<D6Consequence> all() {
 		return Collections.unmodifiableList(entries);
 	}
