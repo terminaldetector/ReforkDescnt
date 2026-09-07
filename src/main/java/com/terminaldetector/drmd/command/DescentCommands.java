@@ -4,6 +4,9 @@ import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.terminaldetector.drmd.DescentPlayerData;
+import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
+import com.terminaldetector.drmd.d6.D6EventVisibility;
+import com.terminaldetector.drmd.d6.D6WorldEvent;
 import com.terminaldetector.drmd.energy.EnergyPreset;
 import com.terminaldetector.drmd.energy.EnergySystem;
 import com.terminaldetector.drmd.flight.FlightSystem;
@@ -12,12 +15,15 @@ import com.terminaldetector.drmd.weapon.core.DescentLaserFire;
 import com.terminaldetector.drmd.weapon.items.DescentWeaponItem;
 import com.terminaldetector.drmd.weapon.items.ModItems;
 import com.terminaldetector.drmd.weapon.registry.WeaponRegistry;
+import com.terminaldetector.drmd.world.event.WorldEventState;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.Vec3d;
 
 public final class DescentCommands {
 	private DescentCommands() {}
@@ -45,6 +51,49 @@ public final class DescentCommands {
 						DescentPlayerData d = DescentPlayerData.get(p);
 						d.setFlightAssist(!d.isFlightAssist());
 						ctx.getSource().sendFeedback(() -> Text.literal("Flight Assist: " + d.isFlightAssist()), false);
+						return 1;
+					}))
+			);
+
+			// World events have no entities yet, so this is how the model is checked live: start one
+			// and read back what it looks like from where you stand.
+			dispatcher.register(CommandManager.literal("worldevent")
+					.then(CommandManager.literal("flight").executes(ctx -> {
+						ServerPlayerEntity p = ctx.getSource().getPlayer();
+						ServerWorld overworld = ctx.getSource().getServer().getOverworld();
+						Vec3d at = p.getPos();
+						WorldEventState state = WorldEventState.get(overworld);
+						// Six lights, three kilometres out and two hundred up, crossing at ten blocks a tick.
+						// Size 5 and brightness 100 put the glow at a kilometre and the shape at five hundred.
+						long id = state.add("flight",
+								new Vec3(at.x, at.y + 200, at.z + 3000), new Vec3(0, 0, -10),
+								overworld.getTime(), new int[] { 200, 200, 200 }, 5, 100);
+						ctx.getSource().sendFeedback(() -> Text.literal(
+								"Flight " + id + " inbound: glow at 1000, shape at 500, overhead in ~300 ticks"), false);
+						return 1;
+					}))
+					.then(CommandManager.literal("list").executes(ctx -> {
+						ServerPlayerEntity p = ctx.getSource().getPlayer();
+						ServerWorld overworld = ctx.getSource().getServer().getOverworld();
+						WorldEventState state = WorldEventState.get(overworld);
+						long now = overworld.getTime();
+						Vec3d eye = p.getEyePos();
+						Vec3 observer = new Vec3(eye.x, eye.y, eye.z);
+						if (state.registry().size() == 0) {
+							ctx.getSource().sendFeedback(() -> Text.literal("No world events."), false);
+							return 0;
+						}
+						for (D6WorldEvent e : state.registry().events()) {
+							Vec3 where = e.positionAt(now);
+							double distance = observer.minus(where).length();
+							D6EventVisibility.Band day = e.bandFor(observer, now, true);
+							D6EventVisibility.Band night = e.bandFor(observer, now, false);
+							String line = String.format(java.util.Locale.ROOT,
+									"%d %s  phase %d/%d  %.0f blocks  night %s / day %s%s",
+									e.id(), e.type(), e.phaseAt(now) + 1, e.phaseCount(), distance,
+									night, day, state.registry().isRealised(e.id()) ? "  [realised]" : "");
+							ctx.getSource().sendFeedback(() -> Text.literal(line), false);
+						}
 						return 1;
 					}))
 			);

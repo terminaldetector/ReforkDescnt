@@ -154,6 +154,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.store.SurfaceIngest.tick(server);
 			com.terminaldetector.drmd.world.store.SurfaceStreamer.tick(server);
 			com.terminaldetector.drmd.world.fate.WorldEndings.tick(server);
+			com.terminaldetector.drmd.world.event.WorldEventSystem.tick(server);
 			if (tick % 40 == 0) {
 				com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);
 			}

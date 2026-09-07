@@ -99,6 +99,11 @@ public final class D6WorldEvent {
 		return origin;
 	}
 
+	/** Blocks per tick. Named for its unit, because "velocity" alone invites seconds. */
+	public Vec3 velocityPerTick() {
+		return velocity;
+	}
+
 	public long startTick() {
 		return startTick;
 	}
