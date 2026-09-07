@@ -23,7 +23,12 @@ class SurfaceStoreTest {
 	@Test
 	@DisplayName("keys survive a round trip, negative coordinates included")
 	void keysRoundTrip() {
-		int[] coords = {0, 1, -1, 37, -37, 1 << 20, -(1 << 20), (1 << 28) - 1, -(1 << 28)};
+		// The repack that gave the key a Y took the bits from X and Z, so the horizontal extreme is
+		// now +-524,287 sections rather than +-268 million. At 512 blocks a section that is still
+		// +-268 million BLOCKS, nine times the largest world border Minecraft allows — the range this
+		// used to test was 137 billion blocks, which no world can reach. The most negative value is
+		// reserved as the column marker, hence 524287 and not 524288.
+		int[] coords = {0, 1, -1, 37, -37, 1 << 10, -(1 << 10), (1 << 19) - 1, -((1 << 19) - 1)};
 		for (int level = 0; level <= SectionKey.MAX_LEVEL; level++) {
 			for (int x : coords) {
 				for (int z : coords) {

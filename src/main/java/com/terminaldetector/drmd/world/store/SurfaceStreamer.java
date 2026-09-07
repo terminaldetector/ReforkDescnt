@@ -6,7 +6,10 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.World;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -28,6 +31,33 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class SurfaceStreamer {
 	/** Sections across, per level, centred on the pilot. */
 	private static final int SPAN = 3;
+
+	/**
+	 * The offsets of {@link #SPAN} squared, nearest first.
+	 *
+	 * <p>Nested loops visit a corner first and the centre in the middle, which is backwards: the
+	 * section the pilot is standing in is the one they notice missing. The donor this pattern came
+	 * from — {@code FarPlaneTwo}, see the source audit — separates the two questions deliberately: the
+	 * <em>set</em> is a box, because a box is cheap to enumerate, and the <em>order</em> is Manhattan
+	 * distance, because that approximates radial and gets the near ones there first. DRMD had the box
+	 * and not the order.
+	 *
+	 * <p>Built once. It matters more the wider the span gets, and more again when a third axis is
+	 * added: a cube's corner is farther from its centre than a square's.
+	 */
+	private static final int[][] OFFSETS = nearestFirst(SPAN);
+
+	private static int[][] nearestFirst(int span) {
+		int reach = span / 2;
+		List<int[]> offsets = new ArrayList<>();
+		for (int dx = -reach; dx <= reach; dx++) {
+			for (int dz = -reach; dz <= reach; dz++) {
+				offsets.add(new int[] { dx, dz });
+			}
+		}
+		offsets.sort(Comparator.comparingInt(o -> Math.abs(o[0]) + Math.abs(o[1])));
+		return offsets.toArray(new int[0][]);
+	}
 	/** Sections sent per pilot per pass — a few kilobytes, not a burst. */
 	private static final int PER_PASS = 6;
 	/** Ticks between passes. */
@@ -70,17 +100,15 @@ public final class SurfaceStreamer {
 		for (int level = 0; level <= SectionKey.MAX_LEVEL && budget > 0; level++) {
 			int centreX = SectionKey.sectionOf(px, level);
 			int centreZ = SectionKey.sectionOf(pz, level);
-			int reach = SPAN / 2;
-			for (int dx = -reach; dx <= reach && budget > 0; dx++) {
-				for (int dz = -reach; dz <= reach && budget > 0; dz++) {
-					long key = SectionKey.of(level, centreX + dx, centreZ + dz);
-					if (already.contains(key)) continue;
-					SurfaceSection section = store.peek(key);
-					if (section == null || !section.hasAny()) continue;
-					ServerPlayNetworking.send(player, new ModNetworking.SurfacePayload(key, section.toBytes()));
-					already.add(key);
-					budget--;
-				}
+			for (int[] offset : OFFSETS) {
+				if (budget <= 0) break;
+				long key = SectionKey.of(level, centreX + offset[0], centreZ + offset[1]);
+				if (already.contains(key)) continue;
+				SurfaceSection section = store.peek(key);
+				if (section == null || !section.hasAny()) continue;
+				ServerPlayNetworking.send(player, new ModNetworking.SurfacePayload(key, section.toBytes()));
+				already.add(key);
+				budget--;
 			}
 		}
 	}

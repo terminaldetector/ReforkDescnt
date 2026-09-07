@@ -30,9 +30,20 @@ public final class FileSectionStorage implements SectionStorage {
 		this.root = root;
 	}
 
+	/**
+	 * Named by decoded coordinates rather than by the packed key, so a change to the packing does not
+	 * orphan what is already on disk.
+	 *
+	 * <p>A volume section carries its Y in the name and a column does not, which keeps every column
+	 * file exactly where it was and stops a volume section at Y=0 landing on the column above it.
+	 */
 	private Path pathOf(long key) {
-		return root.resolve("L" + SectionKey.level(key))
-				.resolve(SectionKey.sectionX(key) + "_" + SectionKey.sectionZ(key) + ".bin");
+		Path dir = root.resolve("L" + SectionKey.level(key));
+		if (SectionKey.isColumn(key)) {
+			return dir.resolve(SectionKey.sectionX(key) + "_" + SectionKey.sectionZ(key) + ".bin");
+		}
+		return dir.resolve(SectionKey.sectionX(key) + "_" + SectionKey.sectionY(key) + "_"
+				+ SectionKey.sectionZ(key) + ".bin");
 	}
 
 	@Override
