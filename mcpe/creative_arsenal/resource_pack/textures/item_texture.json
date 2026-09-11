@@ -1,0 +1,125 @@
+{
+  "resource_pack_name": "DRMD Creative Arsenal",
+  "texture_data": {
+    "drmd:flame_thrower": {
+      "textures": "textures/items/flame_thrower"
+    },
+    "drmd:dynamite_gun": {
+      "textures": "textures/items/dynamite_gun"
+    },
+    "drmd:lava_orb": {
+      "textures": "textures/items/lava_orb"
+    },
+    "drmd:redstone_bomber_controller": {
+      "textures": "textures/items/redstone_bomber_controller"
+    },
+    "drmd:redstone_robot_controller": {
+      "textures": "textures/items/redstone_robot_controller"
+    },
+    "drmd:redstone_turret": {
+      "textures": "textures/items/redstone_turret"
+    },
+    "drmd:redstone_shield": {
+      "textures": "textures/items/redstone_shield"
+    },
+    "drmd:redstone_grenade": {
+      "textures": "textures/items/redstone_grenade"
+    },
+    "drmd:rocket_launcher": {
+      "textures": "textures/items/rocket_launcher"
+    },
+    "drmd:napalm_cannon": {
+      "textures": "textures/items/napalm_cannon"
+    },
+    "drmd:plasma_thrower": {
+      "textures": "textures/items/plasma_thrower"
+    },
+    "drmd:cluster_mortar": {
+      "textures": "textures/items/cluster_mortar"
+    },
+    "drmd:slime_bomber": {
+      "textures": "textures/items/slime_bomber"
+    },
+    "drmd:slime_flyer": {
+      "textures": "textures/items/slime_flyer"
+    },
+    "drmd:missile_battery": {
+      "textures": "textures/items/missile_battery"
+    },
+    "drmd:tesla_turret": {
+      "textures": "textures/items/tesla_turret"
+    },
+    "drmd:carpet_bomber": {
+      "textures": "textures/items/carpet_bomber"
+    },
+    "drmd:honey_strike_carrier": {
+      "textures": "textures/items/honey_strike_carrier"
+    },
+    "drmd:redstone_vampire": {
+      "textures": "textures/items/redstone_vampire"
+    },
+    "drmd:pulse_storm": {
+      "textures": "textures/items/pulse_storm"
+    },
+    "drmd:gravity_collapse": {
+      "textures": "textures/items/gravity_collapse"
+    },
+    "drmd:chain_detonator": {
+      "textures": "textures/items/chain_detonator"
+    },
+    "drmd:signal_eater": {
+      "textures": "textures/items/signal_eater"
+    },
+    "drmd:redstone_blackout": {
+      "textures": "textures/items/redstone_blackout"
+    },
+    "drmd:city_settlement": {
+      "textures": "textures/items/city_settlement"
+    },
+    "drmd:city_town": {
+      "textures": "textures/items/city_town"
+    },
+    "drmd:city_monotown": {
+      "textures": "textures/items/city_monotown"
+    },
+    "drmd:city_medieval": {
+      "textures": "textures/items/city_medieval"
+    },
+    "drmd:pvo_controller": {
+      "textures": "textures/items/pvo_controller"
+    },
+    "drmd:diagonal_cannon": {
+      "textures": "textures/items/diagonal_cannon"
+    },
+    "drmd:guided_turret_controller": {
+      "textures": "textures/items/guided_turret_controller"
+    },
+    "drmd:rocket_battery_controller": {
+      "textures": "textures/items/rocket_battery_controller"
+    },
+    "drmd:air_engine_controller": {
+      "textures": "textures/items/air_engine_controller"
+    },
+    "drmd:armed_villagers": {
+      "textures": "textures/items/armed_villagers"
+    },
+    "drmd:enderman_stalker": {
+      "textures": "textures/items/enderman_stalker"
+    },
+    "drmd:enderman_tank": {
+      "textures": "textures/items/enderman_tank"
+    },
+    "drmd:enderman_void": {
+      "textures": "textures/items/enderman_void"
+    },
+    "drmd:enderman_bomber": {
+      "textures": "textures/items/enderman_bomber"
+    },
+    "drmd:enderman_hunter": {
+      "textures": "textures/items/enderman_hunter"
+    },
+    "drmd:kamikaze_swarm": {
+      "textures": "textures/items/kamikaze_swarm"
+    }
+  }
+}

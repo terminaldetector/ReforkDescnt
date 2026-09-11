@@ -1,0 +1,5 @@
+tile.drmd:diagonal_cannon.name=Diagonal Cannon
+tile.drmd:guided_turret.name=Guided Turret
+tile.drmd:rocket_rack.name=Rocket Rack
+tile.drmd:air_engine_core.name=Air Engine Core
+tile.drmd:shield_emitter.name=Shield Emitter

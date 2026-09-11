@@ -1,0 +1,20 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "drmd:rocket_projectile",
+      "materials": {
+        "default": "entity_alphatest_one_sided"
+      },
+      "textures": {
+        "default": "textures/items/rocket_launcher"
+      },
+      "geometry": {
+        "default": "geometry.drmd_projectile"
+      },
+      "render_controllers": [
+        "controller.render.drmd_rocket_projectile"
+      ]
+    }
+  }
+}

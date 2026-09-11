@@ -1,0 +1,23 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:item": {
+    "description": {
+      "identifier": "drmd:plasma_thrower",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:max_stack_size": 1,
+      "minecraft:icon": "drmd:plasma_thrower",
+      "minecraft:display_name": {
+        "value": "⚡ PLASMA THROWER"
+      },
+      "minecraft:custom_components": ["drmd:weapon_use"],
+      "minecraft:use_modifiers": {
+        "use_duration": 0.05,
+        "movement_modifier": 1.0
+      }
+    }
+  }
+}

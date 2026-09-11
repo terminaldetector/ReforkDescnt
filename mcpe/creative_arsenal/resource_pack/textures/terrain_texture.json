@@ -1,0 +1,23 @@
+{
+  "resource_pack_name": "DRMD Creative Arsenal",
+  "texture_name": "atlas.terrain",
+  "padding": 8,
+  "num_mip_levels": 4,
+  "texture_data": {
+    "drmd:diagonal_cannon": {
+      "textures": "textures/blocks/diagonal_cannon"
+    },
+    "drmd:guided_turret": {
+      "textures": "textures/blocks/guided_turret"
+    },
+    "drmd:rocket_rack": {
+      "textures": "textures/blocks/rocket_rack"
+    },
+    "drmd:air_engine_core": {
+      "textures": "textures/blocks/air_engine_core"
+    },
+    "drmd:shield_emitter": {
+      "textures": "textures/blocks/shield_emitter"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "drmd:flame_bolt",
+      "materials": {
+        "default": "entity_alphatest_one_sided"
+      },
+      "textures": {
+        "default": "textures/items/flame_bolt"
+      },
+      "geometry": {
+        "default": "geometry.drmd_projectile"
+      },
+      "render_controllers": [
+        "controller.render.drmd_flame_bolt"
+      ]
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "drmd:napalm_projectile",
+      "materials": {
+        "default": "entity_alphatest_one_sided"
+      },
+      "textures": {
+        "default": "textures/items/napalm_cannon"
+      },
+      "geometry": {
+        "default": "geometry.drmd_projectile"
+      },
+      "render_controllers": [
+        "controller.render.drmd_napalm_projectile"
+      ]
+    }
+  }
+}

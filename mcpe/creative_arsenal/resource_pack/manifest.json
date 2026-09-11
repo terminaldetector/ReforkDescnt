@@ -1,0 +1,35 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "DRMD Creative Arsenal RP 3.2",
+    "description": "Resources for DRMD Creative Arsenal 3.2",
+    "uuid": "997d2676-84be-4f9a-a55d-87f9a5c6bb67",
+    "version": [
+      3,
+      2,
+      2
+    ],
+    "min_engine_version": [
+      1,
+      26,
+      33
+    ]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "3d6c0e0a-1f60-4002-a512-5e852c780620",
+      "version": [
+        3,
+        2,
+        2
+      ]
+    }
+  ],
+  "metadata": {
+    "authors": [
+      "DRMD"
+    ],
+    "product_type": "addon"
+  }
+}

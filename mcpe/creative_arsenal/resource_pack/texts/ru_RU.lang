@@ -1,0 +1,5 @@
+tile.drmd:diagonal_cannon.name=Диагональная пушка
+tile.drmd:guided_turret.name=Наводимая туррель
+tile.drmd:rocket_rack.name=Ракетная стойка
+tile.drmd:air_engine_core.name=Авиа-двигатель
+tile.drmd:shield_emitter.name=Эмиттер щита

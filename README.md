@@ -294,6 +294,9 @@ CI Artifacts (Actions → **Build DRMD 6DOF**):
 
 MCPE Master: [`mcpe/README.md`](mcpe/README.md) · [`mcpe/INSTALL_MCPE_MASTER.txt`](mcpe/INSTALL_MCPE_MASTER.txt)
 
+MCPE Creative Arsenal (лёгкий мобильный порт оружейного арсенала ПК-версии):
+[`mcpe/creative_arsenal/README.md`](mcpe/creative_arsenal/README.md)
+
 ### MCPE выровнен с ПК (v1.0.5)
 
 Матрица крена на Bedrock теперь **та же самая**: опорный кадр берётся из

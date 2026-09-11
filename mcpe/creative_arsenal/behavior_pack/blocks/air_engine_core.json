@@ -1,0 +1,30 @@
+{
+  "format_version": "1.26.0",
+  "minecraft:block": {
+    "description": {
+      "identifier": "drmd:air_engine_core",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:geometry": "minecraft:geometry.full_block",
+      "minecraft:material_instances": {
+        "*": {
+          "texture": "drmd:air_engine_core",
+          "render_method": "opaque"
+        }
+      },
+      "minecraft:item_visual": {
+        "geometry": "minecraft:geometry.full_block",
+        "material_instances": {
+          "*": {
+            "texture": "drmd:air_engine_core",
+            "render_method": "opaque"
+          }
+        }
+      },
+      "drmd:block_action": {}
+    }
+  }
+}

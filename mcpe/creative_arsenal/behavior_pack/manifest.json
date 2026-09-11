@@ -1,0 +1,60 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "DRMD Creative Arsenal BP 3.2",
+    "description": "Cities, air defense, autonomous air engines, armed citizens, Enderman variants and boid drone swarms.",
+    "uuid": "2eaeed9a-b0ed-4a4f-8043-220ba7771b0a",
+    "version": [
+      3,
+      2,
+      2
+    ],
+    "min_engine_version": [
+      1,
+      26,
+      33
+    ]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "d1087ec7-0922-4334-8c34-d38e29002053",
+      "version": [
+        3,
+        2,
+        2
+      ]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "entry": "scripts/main.js",
+      "uuid": "2a293d48-720d-476a-8386-0d5d6a345265",
+      "version": [
+        3,
+        2,
+        2
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "uuid": "997d2676-84be-4f9a-a55d-87f9a5c6bb67",
+      "version": [
+        3,
+        2,
+        2
+      ]
+    },
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.9.0"
+    }
+  ],
+  "metadata": {
+    "authors": [
+      "DRMD"
+    ],
+    "product_type": "addon"
+  }
+}
