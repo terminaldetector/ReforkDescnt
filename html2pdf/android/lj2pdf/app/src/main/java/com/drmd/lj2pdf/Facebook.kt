@@ -72,7 +72,25 @@ object Facebook {
         return "fb" + Integer.toHexString(url.substringBefore('#').hashCode() and 0x7fffffff)
     }
 
-    /** True for a URL that names one story rather than a feed. */
+    /**
+     * A photo permalink. It is content in its own right — a picture with its
+     * caption and comments — but when met **inside a feed** it is navigation:
+     * a profile's landing page is half photos grid, and every tile there links
+     * one. Counting those as the wall's stories is how a scan stops at the
+     * landing page having "found" a couple of thumbnails.
+     */
+    fun isPhotoPage(url: String): Boolean {
+        val u = Uri.parse(url)
+        val path = u.path ?: ""
+        if (path == "/photo.php" || path.startsWith("/photo/")) return true
+        if (path.contains("/photos/")) return true
+        return u.getQueryParameter("fbid") != null && u.getQueryParameter("story_fbid") == null
+    }
+
+    /** What counts as a post of the wall when walking a feed. */
+    fun isStory(url: String): Boolean = isPost(url) && !isPhotoPage(url)
+
+    /** True for a URL that names one piece of content rather than a feed. */
     fun isPost(url: String): Boolean {
         val u = Uri.parse(url)
         val path = u.path ?: ""
@@ -96,26 +114,41 @@ object Facebook {
     }
 
     /**
-     * The feed URL to start scanning from: a profile / page timeline, a group
-     * feed, or the post itself when a permalink was pasted.
+     * Where to start scanning, in the order worth trying.
+     *
+     * A profile's **landing page is not its feed**. What mbasic serves at
+     * `/<name>` is mostly navigation — cover, intro, a friends grid, a photos
+     * grid — with the stories either far below or behind a "Timeline" link
+     * entirely. Starting there and giving up when no story turns up is how a
+     * scan ends at zero on a wall that plainly has posts.
+     *
+     * So there is more than one door, and [scan] keeps knocking until one of
+     * them yields stories.
      */
-    fun feedUrl(base: String): String {
+    fun feedUrls(base: String): List<String> {
         val u = Uri.parse(base)
         val path = (u.path ?: "/").trimEnd('/').ifBlank { "/" }
-        if (isPost(base)) return toMbasic(base)
-        // profile.php?id=… keeps its id; a group keeps /groups/<id>; a vanity
-        // name keeps its path. Timelines list stories oldest-section-last, so
-        // v=timeline is what mbasic paginates through.
+        if (isPost(base)) return listOf(toMbasic(base))
+
         val id = u.getQueryParameter("id")
         return when {
             path.startsWith("/groups/") ->
-                "https://$HOST${path.split('/').take(3).joinToString("/")}"
-            !id.isNullOrBlank() ->
-                "https://$HOST/profile.php?id=$id&v=timeline"
-            else ->
-                "https://$HOST$path?v=timeline"
+                listOf("https://$HOST${path.split('/').take(3).joinToString("/")}")
+            !id.isNullOrBlank() -> listOf(
+                "https://$HOST/profile.php?id=$id&v=timeline",
+                "https://$HOST/profile.php?id=$id"
+            )
+            else -> {
+                val root = "https://$HOST$path"
+                // v=timeline is the feed proper; the bare profile is where a
+                // "Timeline" link lives; /posts/ is what a Page answers to.
+                listOf("$root?v=timeline", root, "$root/posts/")
+            }
         }
     }
+
+    /** The first entry point — see [feedUrls]. */
+    fun feedUrl(base: String): String = feedUrls(base).first()
 
     /** Short, filesystem-safe project name for a Facebook target. */
     fun targetName(base: String): String {
@@ -168,11 +201,13 @@ object Facebook {
         val out = ArrayList<String>()
         val seenPosts = HashSet<String>()
         val seenPages = HashSet<String>()
-        var url: String? = feedUrl(base)
+        val entries = feedUrls(base)
+        var entry = 0
+        var url: String? = entries.first()
         var page = 0
 
         while (url != null && page < MAX_FEED_PAGES && out.size < max && !ConvertBus.cancelRequested) {
-            if (!seenPages.add(url)) break
+            if (!seenPages.add(url)) { url = nextEntry(entries, ++entry, out, seenPages); continue }
             page++
             note("Facebook: page $page (${out.size} posts)…")
             val doc = Http.doc(url)
@@ -186,7 +221,8 @@ object Facebook {
             }
 
             var hitKnown = false
-            for (link in storyLinks(doc)) {
+            val found = storyLinks(doc)
+            for (link in found) {
                 val id = idOf(link)
                 if (id in stopAtIds) { hitKnown = true; break }
                 if (seenPosts.add(id)) out.add(link)
@@ -197,11 +233,29 @@ object Facebook {
                 ConvertBus.log("[fb] reached an already-archived post — stopping")
                 break
             }
+            // Say what a barren page actually contained; "0 posts" on its own
+            // is the least useful thing a scan can report.
+            if (found.isEmpty()) {
+                ConvertBus.log(
+                    "[fb] page $page: no stories among ${doc.select("a[href]").size} link(s)" +
+                        " — looking for the feed"
+                )
+            }
+
+            // A cursor link continues a feed. Failing that, and while nothing
+            // has been found yet, the page may be a landing page: take its own
+            // way through to the timeline, then try the next entry point.
             url = nextPage(doc, seenPages)
+                ?: (if (out.isEmpty()) timelineLink(doc, seenPages) else null)
+                ?: (if (out.isEmpty()) nextEntry(entries, ++entry, out, seenPages) else null)
             if (url != null) delay(PAUSE_MS + (0..PAUSE_JITTER_MS).random())
         }
 
         ConvertBus.log("[fb] ${out.size} post(s) over $page page(s)")
+        if (out.isEmpty()) ConvertBus.log(
+            "[fb] nothing found — check the URL points at a profile, page or group," +
+                " and that «FB → Войти» shows a session"
+        )
         return out
     }
 
@@ -212,7 +266,7 @@ object Facebook {
             val raw = a.absUrl("href")
             if (raw.isBlank() || !isFacebook(raw)) continue
             val clean = unwrap(raw)
-            if (!isPost(clean)) continue
+            if (!isStory(clean)) continue
             if (isReaction(clean)) continue
             out.add(toMbasic(clean))
         }
@@ -240,6 +294,52 @@ object Facebook {
             if (marked || labelled) candidates.add(toMbasicKeepingCursor(href))
         }
         return candidates.firstOrNull { it !in visited }
+    }
+
+    /** The next unvisited entry point, or null when they are exhausted. */
+    private fun nextEntry(
+        entries: List<String>, index: Int, found: List<String>, visited: Set<String>
+    ): String? {
+        if (found.isNotEmpty()) return null
+        for (i in index until entries.size) {
+            val e = entries[i]
+            if (e !in visited) {
+                ConvertBus.log("[fb] trying ${Uri.parse(e).path}${queryOf(e)}")
+                return e
+            }
+        }
+        return null
+    }
+
+    private fun queryOf(url: String): String =
+        url.substringAfter('?', "").let { if (it.isBlank()) "" else "?$it" }
+
+    /**
+     * The way from a profile's landing page to its actual feed. mbasic labels
+     * it "Timeline" / "Хроника" / "Посты" depending on locale and on whether
+     * the target is a person or a Page, so both the link and its text are
+     * checked.
+     */
+    private fun timelineLink(doc: Document, visited: Set<String>): String? {
+        val marks = listOf("v=timeline", "sk=timeline", "v=posts", "/posts/", "?v=wall")
+        val labels = listOf(
+            "timeline", "хроника", "posts", "публикации", "записи",
+            "all posts", "все записи", "вся хроника", "show timeline"
+        )
+        for (a in doc.select("a[href]")) {
+            val href = a.absUrl("href")
+            if (href.isBlank() || !isFacebook(href)) continue
+            val text = a.text().trim().lowercase()
+            val hit = marks.any { href.contains(it, ignoreCase = true) } ||
+                (text.isNotEmpty() && labels.any { text == it || text.startsWith("$it ") })
+            if (!hit) continue
+            val url = toMbasicKeepingCursor(href)
+            if (url !in visited) {
+                ConvertBus.log("[fb] following the page's own timeline link")
+                return url
+            }
+        }
+        return null
     }
 
     private val MORE_LABELS = listOf(

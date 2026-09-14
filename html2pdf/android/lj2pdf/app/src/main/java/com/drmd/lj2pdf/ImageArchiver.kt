@@ -50,6 +50,12 @@ object ImageArchiver {
         val minBytes: Int = 8 * 1024,
         /** Pictures fetched at once. */
         val parallelism: Int = 4,
+        /**
+         * Most photo pages to open for one page. A story links a handful; a
+         * profile's landing page carries a whole photos grid, and resolving
+         * every tile there would stall the run before a picture is saved.
+         */
+        val maxPhotoPages: Int = 40,
         /** Stop after this many (0 = no limit). */
         val max: Int = 0
     )
@@ -117,47 +123,86 @@ object ImageArchiver {
     private class Candidate(val url: String, val caption: String, val source: String)
 
     /**
+     * One picture still to be pinned down: either a URL already known, or a
+     * Facebook photo page that has to be opened to find the original behind it.
+     */
+    private class Pending(
+        val photoPage: String?, val direct: String?,
+        val caption: String, val source: String
+    )
+
+    /**
      * The pictures worth fetching from one page: the original behind each
      * thumbnail where there is one, the thumbnail itself where there is not.
+     *
+     * Photo pages are collected first and opened **together**, not one after
+     * another as they are met. A page can link dozens of them, and resolving
+     * those serially against a host that allows two connections is how the run
+     * appears to hang before a single picture is saved.
      */
     private suspend fun candidates(
         doc: Document, page: PostEntry, opts: Options, seenUrls: MutableSet<String>
     ): List<Candidate> {
         val fb = Facebook.isFacebook(page.permalink)
-        val out = ArrayList<Candidate>()
+        val pending = ArrayList<Pending>()
+        // Picture URLs are claimed in `seenUrls` only once they are final,
+        // after resolution; `local` is what stops one page queueing the same
+        // picture twice in the meantime. Photo *pages* are claimed straight
+        // away — they are never candidates themselves.
+        val local = HashSet<String>()
+        var photoPages = 0
 
         for (img in doc.select("img")) {
             val direct = srcOf(img)
             val link = originalLink(img, fb)
-            val resolved = link != null && opts.fullSize && fb
-            val url = when {
-                resolved -> {
-                    seenUrls.add(link!!)        // the grid sweep need not redo it
-                    Facebook.fullSizeImage(link) ?: direct
-                }
-                link != null -> link
-                else -> direct
+            val caption = img.attr("alt").trim().ifBlank { page.title }
+            if (link != null && opts.fullSize && fb) {
+                if (photoPages >= opts.maxPhotoPages) continue
+                if (!seenUrls.add(link)) continue
+                pending.add(Pending(link, direct, caption, page.permalink))
+                photoPages++
+                continue
             }
-            if (url.isNullOrBlank()) continue
+            val url = link ?: direct ?: continue
             // Facebook serves its interface — avatars, emoji, sprites — from the
             // same CDN as the photographs. Drop those before spending a request
-            // on them; a URL we resolved from a photo page is a photo by
-            // construction, and an external image is somebody's actual content.
-            if (!resolved && fb && Facebook.isFacebookAsset(url) && !Facebook.isPhotoUrl(url)) continue
-            if (!seenUrls.add(url)) continue
-            out.add(Candidate(url, img.attr("alt").trim().ifBlank { page.title }, page.permalink))
+            // on them; an external image is somebody's actual content.
+            if (fb && Facebook.isFacebookAsset(url) && !Facebook.isPhotoUrl(url)) continue
+            if (url in seenUrls || !local.add(url)) continue
+            pending.add(Pending(null, url, caption, page.permalink))
         }
 
-        // Facebook grids link photos without ever inlining a preview; those are
-        // exactly the pictures an album archive is after.
-        if (fb && opts.fullSize) {
+        // A story links its remaining photos without inlining a preview ("Ещё N
+        // фото") — those are exactly what an album is after. A feed or landing
+        // page instead carries a photos grid and a friends grid, which are
+        // navigation, not this post's pictures; its thumbnails were taken above.
+        if (fb && opts.fullSize && Facebook.isPost(page.permalink)) {
             for (photoPage in Facebook.photoPageLinks(doc)) {
                 if (ConvertBus.cancelRequested) break
+                if (photoPages >= opts.maxPhotoPages) {
+                    ConvertBus.log("[img] ${opts.maxPhotoPages} photo page(s) is the cap for one page")
+                    break
+                }
                 if (!seenUrls.add(photoPage)) continue
-                val full = Facebook.fullSizeImage(photoPage) ?: continue
-                if (!seenUrls.add(full)) continue
-                out.add(Candidate(full, page.title, photoPage))
+                pending.add(Pending(photoPage, null, page.title, photoPage))
+                photoPages++
             }
+        }
+
+        if (photoPages > 0) ConvertBus.log("[img] opening $photoPages photo page(s) for the originals")
+        val resolved = pending.mapPar(opts.parallelism.coerceIn(1, 8)) { p ->
+            when {
+                p.photoPage == null -> p.direct
+                ConvertBus.cancelRequested -> null
+                else -> Facebook.fullSizeImage(p.photoPage) ?: p.direct
+            }
+        }
+
+        val out = ArrayList<Candidate>(pending.size)
+        for ((i, p) in pending.withIndex()) {
+            val url = resolved[i] ?: continue
+            if (url.isBlank() || !seenUrls.add(url)) continue
+            out.add(Candidate(url, p.caption, p.source))
         }
         return out
     }

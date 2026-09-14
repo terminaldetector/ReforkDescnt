@@ -110,9 +110,17 @@ object Http {
             } catch (_: Throwable) { null }
         }
 
-    /** Parsed jsoup [Document] with [url] as base URI (for absUrl), or null. */
-    suspend fun doc(url: String): Document? =
+    /**
+     * Parsed jsoup [Document] with [url] as base URI (for absUrl), or null.
+     *
+     * Parsing happens on the IO dispatcher, not wherever the caller happens to
+     * be. The archiving pipeline is driven from the main thread, and a big page
+     * — a Facebook profile is the heaviest this app meets — takes long enough
+     * to parse that doing it there looks like the app has hung.
+     */
+    suspend fun doc(url: String): Document? = withContext(Dispatchers.IO) {
         getString(url)?.let { Jsoup.parse(it, url) }
+    }
 
     private fun java.io.InputStream.readCapped(): ByteArray {
         val out = java.io.ByteArrayOutputStream()
