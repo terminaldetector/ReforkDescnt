@@ -261,7 +261,7 @@ public class SkyUfoEntity extends Entity {
 	private void materialize(ServerWorld sw, BlockPos at) {
 		BlockPos center = at.toImmutable();
 		instance = new StructureInstance(SkyUfoHull.TEMPLATE, center);
-		StructureMover.place(sw, instance);
+		// Virtual assembly must never place/clear terrain at the spawn location.
 		hullReady = true;
 		destructionMode = random.nextInt(2) == 0 ? DestructionMode.CRASH : DestructionMode.SHOCKWAVE;
 		dataTracker.set(MATERIALIZED, true);
@@ -273,19 +273,6 @@ public class SkyUfoEntity extends Entity {
 			if (squaredDistanceTo(p) < 96 * 96) {
 				p.sendMessage(Text.literal("§aSky UFO hull online §7— fly the bay, dump reactor on the core."), false);
 			}
-		}
-		// The placement above was only ever needed to prove the shape out once; go virtual
-		// immediately after, via the exact same StructureMover.clear already proven for destruction/
-		// removal cleanup. No CORE_INDEX entry is registered for this hull: that map exists purely to
-		// let a real block-break event on a landed core find its owning UFO fast, and while virtual
-		// there is no real core block anywhere for a break event to ever fire on — the fallback
-		// proximity lookup in notifyCoreBroken (via findNear, which already tracks the moving core
-		// through getCorePos()) covers the rest correctly with no index needed.
-		suppressCoreNotify = true;
-		try {
-			StructureMover.clear(sw, instance);
-		} finally {
-			suppressCoreNotify = false;
 		}
 		virtualFlight = true;
 	}

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -30,6 +31,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * normal points at the side you stand on, so you enter against it and leave along the far one.
  */
 class D6PortalTransformTest {
+    @Test void malformedOrScaledRigidPortalFailsBeforeMutation() {
+        assertThrows(IllegalArgumentException.class, () -> D6PortalTransform.of(
+            new Vec3(0,0,0), new Vec3(0,0,0), new Vec3(10,0,0), new Vec3(1,0,0)));
+        D6PhysicsBody body = new D6PhysicsBody().withPosition(new Vec3(0,0,-3));
+        var scaled = new D6PortalTransform(new Vec3(0,0,0), new Vec3(0,0,1), new Vec3(10,0,0), new Vec3(1,0,0),2);
+        assertThrows(IllegalArgumentException.class, () -> scaled.apply(body, null));
+        assertVec(new Vec3(0,0,-3),body.position(),"atomic rejection");
+    }
+
 
 	private static final double EPS = 1e-9;
 
@@ -128,7 +138,7 @@ class D6PortalTransformTest {
 		D6PhysicsBody body = new D6PhysicsBody()
 				.withMass(2)
 				.withInertia(D6Mat3.diagonal(1, 1, 1))
-				.withPosition(new Vec3(0, 0, 1))
+				.withPosition(new Vec3(0, 0, -1))
 				.withLinearVelocity(new Vec3(0, 0, -5))
 				.withAngularMomentum(new Vec3(0, 3, 0));
 		Quat orientationBefore = body.rotation();
@@ -136,7 +146,7 @@ class D6PortalTransformTest {
 		Vec3 crossed = TURN.crossingPoint(new Vec3(0, 0, 1), new Vec3(0, 0, -1));
 		TURN.apply(body, crossed);
 
-		assertVec(new Vec3(10, 0, 0), body.position(), "placed at the far face, not at the tick boundary");
+		assertVec(new Vec3(11, 0, 0), body.position(), "residual movement after crossing is preserved");
 		assertVec(new Vec3(5, 0, 0), body.linearVelocity(), "velocity");
 		assertVec(TURN.rotation().rotate(new Vec3(0, 3, 0)), body.angularMomentum(), "angular momentum");
 		assertVec(TURN.transformOrientation(orientationBefore).rotate(new Vec3(0, 0, 1)),

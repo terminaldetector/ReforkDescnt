@@ -13,6 +13,12 @@ import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 public final class ModEntities {
+    public static final EntityType<com.terminaldetector.drmd.world.contraption.BlockBodyEntity> BLOCK_BODY = Registry.register(
+        Registries.ENTITY_TYPE, Identifier.of(DescentMod.MOD_ID, "block_body"),
+        EntityType.Builder.<com.terminaldetector.drmd.world.contraption.BlockBodyEntity>create(
+            com.terminaldetector.drmd.world.contraption.BlockBodyEntity::new, SpawnGroup.MISC)
+            .dimensions(1, 1).maxTrackingRange(128).trackingTickInterval(1).build());
+
 	public static final EntityType<ProjectileEntity> PROJECTILE = Registry.register(
 			Registries.ENTITY_TYPE,
 			Identifier.of(DescentMod.MOD_ID, "projectile"),

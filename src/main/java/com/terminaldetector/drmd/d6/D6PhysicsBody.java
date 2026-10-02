@@ -88,6 +88,7 @@ public final class D6PhysicsBody {
 	}
 
 	public D6PhysicsBody withMass(double newMass) {
+		if (!Double.isFinite(newMass) || newMass < 0) throw new IllegalArgumentException("invalid mass");
 		this.mass = newMass;
 		this.inverseMass = newMass > 1e-9 ? 1.0 / newMass : 0.0;
 		return this;
@@ -197,6 +198,12 @@ public final class D6PhysicsBody {
 		torque = torque.plus(newTorque);
 	}
 
+	/** Instantaneous collision/weapon impulse; offset is in world axes relative to the COM. */
+	public void applyImpulse(Vec3 impulse, Vec3 offset) {
+		linearVelocity = linearVelocity.plus(impulse.scaled(inverseMass));
+		angularMomentum = angularMomentum.plus(offset.cross(impulse));
+	}
+
 	/** The inertia tensor in world axes right now. */
 	public D6Mat3 worldInertia() {
 		return inertia.rotatedBy(rotation);
@@ -217,6 +224,7 @@ public final class D6PhysicsBody {
 	 * body respond one step late, which is invisible at sixty steps a second and obvious at twenty.
 	 */
 	public void step(double seconds) {
+		if (!Double.isFinite(seconds)) throw new IllegalArgumentException("non-finite timestep");
 		if (seconds <= 0) return;
 
 		// Torque goes straight into momentum: no inertia tensor is involved, which is the whole reason

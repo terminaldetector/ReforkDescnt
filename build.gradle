@@ -30,7 +30,7 @@ dependencies {
 	// Optional at runtime (see PortalComplexity.hasImmersivePortals() / docs/IMMPTL_STACK.md) but
 	// compiled against directly for the mirror/portal block feature — vendored rather than pulled
 	// from a remote repo since upstream archived itself with no ongoing release feed to track.
-	modImplementation files("libs/immersiveportals-${project.immersive_portals_version}-mc1.21.1-fabric.jar")
+	modCompileOnly files("libs/immersiveportals-${project.immersive_portals_version}-mc1.21.1-fabric.jar")
 
 	testImplementation platform("org.junit:junit-bom:${project.junit_version}")
 	testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -121,4 +121,28 @@ publishing {
 			from components.java
 		}
 	}
+}
+
+// Isolated headless world tests. Test entrypoints are never packaged into the release jar.
+sourceSets {
+    gametest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+loom {
+    mods {
+        drmd { sourceSet sourceSets.main }
+        drmd_gametest { sourceSet sourceSets.gametest }
+    }
+    runs {
+        gametest {
+            server()
+            name "DRMD world regression tests"
+            source sourceSets.gametest
+            vmArg "-Dfabric-api.gametest"
+            vmArg "-Dfabric-api.gametest.report-file=reports/gametest-results.xml"
+            runDir "build/gametest"
+        }
+    }
 }

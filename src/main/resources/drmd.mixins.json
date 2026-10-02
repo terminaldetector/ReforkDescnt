@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "PlayerEntityMixin",
+    "CubicChunkMixin",
     "ServerPlayerFlightTravelMixin",
     "LivingEntityMixin",
     "EnderDragonFightMixin",

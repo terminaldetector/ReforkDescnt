@@ -1,3 +1,5 @@
+> Архитектурное уточнение 2026-10-02: целевая модель — cubic XYZ; порталы связывают пространства, а не заменяют вертикальное хранилище. Текущая реализация и оставшиеся ограничения: [CUBIC_MIGRATION.md](architecture/CUBIC_MIGRATION.md). Старые пункты про dimension-stack ниже остаются историей/совместимостью.
+
 # World concept — the layer stack (post-column architecture)
 
 The user's own working concept for what replaces the single stretched Overworld column, once

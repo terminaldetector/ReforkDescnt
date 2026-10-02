@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Havok-like subset for the gravity gun — grab / hold spring / throw.
  * Not a full rigid-body solver: enough for Descent gravy feel in Minecraft.
  *
- * <p>Status: scaffold. Wire from {@code DescentWeaponItem.fireGravy} next.</p>
+ * <p>Called by the gravity weapon; block assemblies receive physical impulses in SI tick units.</p>
  */
 public final class GravyPhysics {
 	private static final Map<UUID, Grab> GRABS = new ConcurrentHashMap<>();
@@ -42,19 +42,24 @@ public final class GravyPhysics {
 		Grab grab = GRABS.get(player.getUuid());
 		if (grab == null) return;
 		World world = player.getWorld();
-		Entity target = null;
-		for (Entity e : ((net.minecraft.server.world.ServerWorld) world).iterateEntities()) {
-			if (e.getUuid().equals(grab.targetId())) {
-				target = e;
-				break;
-			}
-		}
+		Entity target = ((net.minecraft.server.world.ServerWorld) world).getEntity(grab.targetId());
 		if (target == null || !target.isAlive()) {
 			release(player);
 			return;
 		}
 		Vec3d hold = player.getEyePos().add(player.getRotationVec(1f).multiply(3.2));
 		Vec3d delta = hold.subtract(target.getPos());
+        if (target instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity blockBody) {
+            var body = blockBody.physics();
+            var v = body.linearVelocity();
+            // Fixed-strength spring: heavier assemblies accelerate less. Impulse includes dt once.
+            body.applyImpulse(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(
+                (delta.x * 80 - v.x() * 8) * .05,
+                (delta.y * 80 - v.y() * 8) * .05,
+                (delta.z * 80 - v.z() * 8) * .05),
+                new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(0,0,0));
+            return;
+        }
 		// Soft spring + damp (Havok-lite)
 		double k = 0.35 / grab.mass();
 		double damp = 0.82;
@@ -67,12 +72,15 @@ public final class GravyPhysics {
 	public static void fling(ServerPlayerEntity player, float power) {
 		Grab grab = GRABS.get(player.getUuid());
 		if (grab == null) return;
-		for (Entity e : ((net.minecraft.server.world.ServerWorld) player.getWorld()).iterateEntities()) {
-			if (!e.getUuid().equals(grab.targetId())) continue;
+		Entity e = player.getServerWorld().getEntity(grab.targetId());
+		if (e instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity blockBody) {
+			Vec3d impulse = player.getRotationVec(1f).multiply(power * 20);
+			blockBody.physics().applyImpulse(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(
+				impulse.x, impulse.y, impulse.z), new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(0,0,0));
+		} else if (e != null) {
 			Vec3d impulse = player.getRotationVec(1f).multiply(power / grab.mass());
 			e.addVelocity(impulse.x, impulse.y, impulse.z);
 			e.velocityModified = true;
-			break;
 		}
 		release(player);
 	}

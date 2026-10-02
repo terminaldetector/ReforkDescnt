@@ -43,6 +43,14 @@ public record D6PortalTransform(
 		Vec3 destPoint, Vec3 destNormal,
 		double scale) {
 
+	public D6PortalTransform {
+		if (!Double.isFinite(scale) || scale <= 0 || !Double.isFinite(sourceNormal.lengthSquared())
+				|| !Double.isFinite(destNormal.lengthSquared()) || sourceNormal.lengthSquared() < 1e-12
+				|| destNormal.lengthSquared() < 1e-12) throw new IllegalArgumentException("invalid portal transform");
+		sourceNormal = sourceNormal.normalized();
+		destNormal = destNormal.normalized();
+	}
+
 	/** A portal with no size change, which is the only kind DRMD links natively. */
 	public static D6PortalTransform of(Vec3 sourcePoint, Vec3 sourceNormal, Vec3 destPoint, Vec3 destNormal) {
 		return new D6PortalTransform(sourcePoint, sourceNormal, destPoint, destNormal, 1.0);
@@ -110,11 +118,14 @@ public record D6PortalTransform(
 	 * Carry a whole body through, in one call.
 	 *
 	 * <p>One call rather than four, because the failure mode of four is transforming three of them.
-	 * Position is placed from where the body actually crossed when that is known, and from its
-	 * current position otherwise.
+	 * Position includes the residual movement after crossing. The intersection is only
+	 * used by callers for aperture validation; it must not replace the current position.
 	 */
 	public void apply(D6PhysicsBody body, @Nullable Vec3 crossedAt) {
-		Vec3 origin = crossedAt == null ? body.position() : crossedAt;
+		if (scale != 1.0) throw new IllegalArgumentException("rigid body scaling requires a mass/inertia policy");
+		// Preserve the remainder of the tick after crossing. Snapping to the intersection loses
+		// travelled distance and causes visible braking, especially at afterburner speeds.
+		Vec3 origin = body.position();
 		body.withPosition(transformPoint(origin))
 				.withLinearVelocity(transformVelocity(body.linearVelocity()))
 				.withRotation(transformOrientation(body.rotation()))
@@ -124,6 +135,6 @@ public record D6PortalTransform(
 	/** The transform that undoes this one — the far side of the same pair. */
 	public D6PortalTransform inverse() {
 		return new D6PortalTransform(destPoint, destNormal, sourcePoint, sourceNormal,
-				scale == 0 ? 0 : 1.0 / scale);
+				1.0 / scale);
 	}
 }

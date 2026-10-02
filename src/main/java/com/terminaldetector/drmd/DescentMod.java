@@ -78,6 +78,7 @@ public class DescentMod implements ModInitializer {
 		com.terminaldetector.drmd.aeris.AerisMirai.register();
 		WeaponRegistry.bootstrap();
 		DescentCommands.register();
+		com.terminaldetector.drmd.world.contraption.BlockBodyCommands.register();
 		AiCommands.register();
 
 		// Player state is keyed by UUID in a process-wide map, so it outlives the world unless it is
@@ -88,6 +89,8 @@ public class DescentMod implements ModInitializer {
 		// start in case a stop never happened.
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
 			com.terminaldetector.drmd.world.store.SurfaceIngest.close();
+			com.terminaldetector.drmd.world.cubic.CubicWorldSystem.close();
+			com.terminaldetector.drmd.world.portal.PortalTravel.clear();
 			DescentPlayerData.clear();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
 		});
@@ -152,6 +155,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.sync.DimensionSync.tick(server);
 			com.terminaldetector.drmd.world.planet.PlanetSync.tick(server);
 			com.terminaldetector.drmd.world.store.SurfaceIngest.tick(server);
+			com.terminaldetector.drmd.world.cubic.CubicWorldSystem.tick(server);
 			com.terminaldetector.drmd.world.store.SurfaceStreamer.tick(server);
 			com.terminaldetector.drmd.world.fate.WorldEndings.tick(server);
 			com.terminaldetector.drmd.world.event.WorldEventSystem.tick(server);
@@ -199,6 +203,7 @@ public class DescentMod implements ModInitializer {
 				});
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			DescentPlayerData.get(handler.player).resetPortalEpoch();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid());
 			ConstructionRegistry.allOverrides().forEach((id, mods) -> {
 				ServerPlayNetworking.send(handler.player,
@@ -220,7 +225,7 @@ public class DescentMod implements ModInitializer {
 		});
 
 		com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.logStatus();
-		LOGGER.info("DRMD 6DOF 1.1.5 ready — End band + voxel horizon + surface store");
+		LOGGER.info("DRMD 6DOF ready — cubic body prototype + native portal frames + surface store");
 	}
 
 	/**

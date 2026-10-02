@@ -11,6 +11,7 @@ public final class ModEntityRenderers {
 	private ModEntityRenderers() {}
 
 	public static void register() {
+		EntityRendererRegistry.register(ModEntities.BLOCK_BODY, BlockBodyRenderer::new);
 		// The carved block has no baked model — its renderer draws the block it used to be, once per
 		// box of the shape the damage left.
 		net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry.register(
