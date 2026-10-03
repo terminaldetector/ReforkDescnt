@@ -16,9 +16,8 @@ import net.minecraft.util.math.Vec3d;
  * lives in {@link MicroStore}, and this is the part that knows about hardness, particles, sound and
  * when a block finally stops existing.
  *
- * <p>Progress shows through vanilla's own crack overlay. It costs nothing, every resource pack
- * already has the art, and it makes the ladder visible now — the carved block with real geometry and
- * real collision is a later commit, not a prerequisite for damage meaning something.
+ * <p>Progress uses the crack overlay together with the carved block's quarter-cell geometry and
+ * collision shape. The block entity is authoritative for the remaining mask.
  */
 public final class BlockDamage {
 	/** Damage that removes a cell's worth of an ordinary block. */
@@ -38,13 +37,13 @@ public final class BlockDamage {
 	 * @return true when the block was destroyed by this hit
 	 */
 	public static boolean hit(ServerWorld world, BlockPos pos, Vec3d impact, float damage) {
-		if (damage <= 0) return false;
+		if (!Float.isFinite(damage) || damage <= 0) return false;
 		BlockState state = world.getBlockState(pos);
 		if (state.isAir()) return false;
 		if (!isDamageable(world, pos, state)) return false;
 
 		MicroStore store = MicroStore.get(world);
-		long before = store.mask(pos);
+		long before = world.getBlockEntity(pos) instanceof CarvedBlockEntity carved ? carved.mask() : MicroGrid.FULL;
 		double radius = radiusFor(state, world, pos, damage);
 		if (radius <= 0) return false;
 
@@ -66,8 +65,8 @@ public final class BlockDamage {
 			return true;
 		}
 
+		if (!applyShape(world, pos, state, after)) return false;
 		store.set(pos, after);
-		applyShape(world, pos, state, after);
 		if (now != was) announceStage(world, pos, sourceOf(world, pos, state), now);
 		return false;
 	}
@@ -82,13 +81,16 @@ public final class BlockDamage {
 	 * <p>The crack overlay stays on top of it. The carved shape shows what is gone; the cracks show
 	 * how close what is left is to going, which the shape alone does not say at a glance.
 	 */
-	private static void applyShape(ServerWorld world, BlockPos pos, BlockState state, long mask) {
+	private static boolean applyShape(ServerWorld world, BlockPos pos, BlockState state, long mask) {
 		if (state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.CARVED)) {
 			if (world.getBlockEntity(pos) instanceof CarvedBlockEntity carved) carved.setMask(mask);
+			else return false;
 		} else {
-			CarvedBlock.replace(world, pos, state, mask);
+			if (CarvedBlock.replace(world, pos, state, mask) == null) return false;
 		}
 		world.setBlockBreakingInfo(breakerId(pos), pos, MicroGrid.crackStage(mask));
+		com.terminaldetector.drmd.world.store.SurfaceIngest.onGroundChanged(world, pos);
+		return true;
 	}
 
 	/** The block this one used to be, for drops, sounds and particles. */
@@ -98,6 +100,24 @@ public final class BlockDamage {
 			return carved.source();
 		}
 		return state;
+	}
+
+	/** Called only for vanilla-selected blast cells. Keep the centre's normal destruction/loot path. */
+	public static boolean fractureExplosion(ServerWorld world, BlockPos pos, Vec3d centre, float power) {
+		BlockState state = world.getBlockState(pos);
+		if (!Float.isFinite(power) || power <= 0 || !isDamageable(world,pos,state)) return false;
+		double distance = Vec3d.ofCenter(pos).distanceTo(centre);
+		if (distance < power * .55) return false;
+		float damage = (float)(power * 12 * Math.max(0, 1-distance/(power*2)));
+		if (damage <= 0) return false;
+		Vec3d toward = centre.subtract(Vec3d.ofCenter(pos)).normalize().multiply(.45);
+		long before = world.getBlockEntity(pos) instanceof CarvedBlockEntity c ? c.mask() : MicroGrid.FULL;
+		double radius = radiusFor(state,world,pos,damage);
+		long after = MicroGrid.carve(before, .5+toward.x, .5+toward.y, .5+toward.z, radius);
+		if (after == before || MicroGrid.isEmpty(after)) return false;
+		if (!applyShape(world,pos,state,after)) return false;
+		MicroStore.get(world).set(pos,after);
+		return true;
 	}
 
 	/** Spherical damage — an explosion, a reactor going up. */
@@ -119,8 +139,11 @@ public final class BlockDamage {
 		}
 	}
 
-	private static boolean isDamageable(ServerWorld world, BlockPos pos, BlockState state) {
+	public static boolean isDamageable(ServerWorld world, BlockPos pos, BlockState state) {
 		if (state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.CARVED)) return true;
+		// Generic carving cannot preserve inventories, fluids or the geometry of partial blocks.
+		if (world.getBlockEntity(pos) != null || !state.getFluidState().isEmpty()
+				|| !state.isFullCube(world, pos) || state.isOf(net.minecraft.block.Blocks.TNT)) return false;
 		if (state.getHardness(world, pos) < 0) return false;   // bedrock and friends
 		return !state.isIn(BlockTags.WITHER_IMMUNE);
 	}

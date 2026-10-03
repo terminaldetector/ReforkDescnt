@@ -15,7 +15,9 @@ public abstract class CubicChunkMixin {
     @Inject(method = "setBlockState", at = @At("RETURN"))
     private void drmd$cubeChanged(BlockPos pos, BlockState state, boolean moved,
             CallbackInfoReturnable<BlockState> cir) {
-        if (cir.getReturnValue() != null && ((WorldChunk) (Object) this).getWorld() instanceof ServerWorld world)
+        if (cir.getReturnValue() != null && ((WorldChunk) (Object) this).getWorld() instanceof ServerWorld world) {
             CubicWorldSystem.changed(world, pos);
+            com.terminaldetector.drmd.world.store.SurfaceIngest.onGroundChanged(world, pos);
+        }
     }
 }

@@ -1,5 +1,7 @@
 # Cubic space migration — 2026-10-02
 
+See also [hybrid rendering and destruction requirements](HYBRID_RENDERING.md).
+
 ## Decision
 
 The user's current direction supersedes the older dimension-stack proposal: the target is an XYZ-symmetric world made of independently addressable 16³ cubes. Portals connect spaces; they must not emulate the world's vertical extent. Mirrors are orientation-reversing optical views, not another vertical layer. Moving assemblies own local cubic spaces and a rigid transform into their parent space.

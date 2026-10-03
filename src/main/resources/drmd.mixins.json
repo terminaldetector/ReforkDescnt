@@ -5,6 +5,7 @@
   "mixins": [
     "PlayerEntityMixin",
     "CubicChunkMixin",
+    "MicroExplosionMixin",
     "ServerPlayerFlightTravelMixin",
     "LivingEntityMixin",
     "EnderDragonFightMixin",

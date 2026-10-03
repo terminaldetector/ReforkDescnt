@@ -169,6 +169,8 @@ public class CarvedBlock extends BlockWithEntity {
 	 *         when the two masks no longer share any solid cell, so the block breaks outright)
 	 */
 	public static CarvedBlockEntity replace(ServerWorld world, BlockPos pos, BlockState source, long mask) {
+		if (!(world.getBlockEntity(pos) instanceof CarvedBlockEntity)
+				&& !BlockDamage.isDamageable(world,pos,source)) return null;
 		BlockState trueSource = source;
 		long combinedMask = mask;
 		if (world.getBlockEntity(pos) instanceof CarvedBlockEntity existing) {
@@ -190,6 +192,12 @@ public class CarvedBlock extends BlockWithEntity {
 		if (!(be instanceof CarvedBlockEntity carved)) return null;
 		carved.init(trueSource, combinedMask);
 		return carved;
+	}
+
+	@Override
+	protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState next, boolean moved) {
+		if (!state.isOf(next.getBlock()) && world instanceof ServerWorld server) MicroStore.get(server).clear(pos);
+		super.onStateReplaced(state, world, pos, next, moved);
 	}
 
 	/** Whole again: put the original block back. */

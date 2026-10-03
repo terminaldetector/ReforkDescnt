@@ -26,6 +26,17 @@ import net.minecraft.util.math.BlockPos;
 public class CarvedBlockEntity extends BlockEntity {
 	private BlockState source = Blocks.STONE.getDefaultState();
 	private long mask = MicroGrid.FULL;
+	private long cachedMask;
+	private java.util.List<MicroGrid.Box> cachedBoxes;
+
+	/** Geometry is rebuilt on damage, not once per block per rendered frame. */
+	public java.util.List<MicroGrid.Box> boxes() {
+		if (cachedBoxes == null || cachedMask != mask) {
+			cachedMask = mask;
+			cachedBoxes = java.util.List.copyOf(MicroGrid.boxes(mask));
+		}
+		return cachedBoxes;
+	}
 
 	public CarvedBlockEntity(BlockPos pos, BlockState state) {
 		super(ModBlockEntities.CARVED, pos, state);
