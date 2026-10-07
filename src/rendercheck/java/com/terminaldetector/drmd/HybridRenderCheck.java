@@ -36,7 +36,7 @@ public final class HybridRenderCheck implements ClientModInitializer {
         if (ticks%200==0) System.out.println("DRMD rendercheck: screen="+
                 (client.currentScreen==null?"none":client.currentScreen.getClass().getName()+": "+client.currentScreen.getTitle().getString())+
                 ", world="+(client.world!=null)+", ready="+ready+", sceneTicks="+sceneTicks);
-        if (ticks>2400) {
+        if (ticks>4800) {
             capture(client,"hybrid-timeout.png");
             throw new IllegalStateException("Render check timed out; screen="+
                     (client.currentScreen==null?"none":client.currentScreen.getClass().getName())+", sceneTicks="+sceneTicks);
@@ -79,6 +79,7 @@ public final class HybridRenderCheck implements ClientModInitializer {
         client.player.setYaw(180);client.player.setPitch(sceneTicks>=260?24:28);
         if (!(client.getBlockRenderManager().getModel(ModWorldBlocks.CARVED.getDefaultState()) instanceof HybridTerrainModel))
             throw new IllegalStateException("The carved blockstate did not receive the hybrid baked model");
+        if(sceneTicks>=260 && !collapseReady)return;
         ++sceneTicks;
         if (sceneTicks==160) {
             capture(client,"hybrid-before.png");

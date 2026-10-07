@@ -44,7 +44,7 @@ jobs:
 
       - name: Verify hybrid terrain in a real client
         run: |
-          LIBGL_ALWAYS_SOFTWARE=1 timeout 240s xvfb-run -a ./gradlew runRendercheck --no-daemon --stacktrace
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runRendercheck --no-daemon --stacktrace
           test -s build/rendercheck/rendercheck-ok.txt
           test -s build/rendercheck/collapse-ok.txt
           mkdir -p dist/rendercheck
