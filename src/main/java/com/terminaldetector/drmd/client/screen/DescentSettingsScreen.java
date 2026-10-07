@@ -12,6 +12,9 @@ import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * DRMD options — pause menu button, {@code ,} keybind, or Controls category.
  *
@@ -21,10 +24,14 @@ import net.minecraft.util.math.MathHelper;
 public class DescentSettingsScreen extends Screen {
 	private static final int ROW = 22;
 	private static final int TOP = 36;
-	/** Twelve rows plus the three six-pixel gaps between utility controls. */
-	private static final int CONTENT_HEIGHT = 12 * ROW + 18;
+	private static final int SECTION = 14;
+	private static final int CONTENT_HEIGHT = 5 * SECTION + 13 * ROW + 3 * 6;
 	private final Screen parent;
+	private final List<Heading> headings = new ArrayList<>();
 	private int scroll;
+	private int viewBottom;
+
+	private record Heading(int y, Text text) {}
 
 	public DescentSettingsScreen(Screen parent) {
 		super(Text.translatable("screen.drmd.settings"));
@@ -35,17 +42,19 @@ public class DescentSettingsScreen extends Screen {
 	protected void init() {
 		DescentConfig.reload();
 		this.clearChildren();
+		headings.clear();
 
 		int cx = this.width / 2;
 		int left = cx - 155;
 		int right = cx + 5;
-		int viewBottom = this.height - 32;
+		viewBottom = this.height - 32;
 		int contentH = CONTENT_HEIGHT;
 		int viewH = Math.max(ROW, viewBottom - TOP);
 		int minScroll = Math.min(0, viewH - contentH);
 		scroll = MathHelper.clamp(scroll, minScroll, 0);
 
 		int y = TOP + scroll;
+		y = section(y, "options.drmd.settings.section.cockpit");
 		y = addRow(y, viewBottom,
 				toggle(left, y, "options.drmd.cockpit", DescentConfig.cockpit, v -> {
 					DescentConfig.cockpit = v;
@@ -64,6 +73,7 @@ public class DescentSettingsScreen extends Screen {
 					DescentConfig.weaponView = v;
 					DescentConfig.save();
 				}));
+		y = section(y, "options.drmd.settings.section.world_view");
 		y = addRow(y, viewBottom,
 				toggle(left, y, "options.drmd.level_sky", DescentConfig.levelSky, v -> {
 					DescentConfig.levelSky = v;
@@ -82,6 +92,7 @@ public class DescentSettingsScreen extends Screen {
 					DescentConfig.planetFloorWithDistantHorizons = v;
 					DescentConfig.save();
 				}));
+		y = section(y, "options.drmd.settings.section.portals");
 		y = addRow(y, viewBottom,
 				toggle(left, y, "options.drmd.mirror_reflection", DescentConfig.mirrorReflection, v -> {
 					DescentConfig.mirrorReflection = v;
@@ -100,6 +111,7 @@ public class DescentSettingsScreen extends Screen {
 					DescentConfig.fallAftermath = v;
 					DescentConfig.save();
 				}));
+		y = section(y, "options.drmd.settings.section.flight");
 		y = addRow(y, viewBottom,
 				new Slider(left, y, "options.drmd.cockpit_opacity",
 						DescentConfig.cockpitOpacity, 0.2f, 1.0f, "%.0f%%", 100f, v -> {
@@ -127,6 +139,7 @@ public class DescentSettingsScreen extends Screen {
 											Text.translatable(next ? "options.on" : "options.off")));
 								})
 						.dimensions(right, y, 150, 20).build());
+		y = section(y, "options.drmd.settings.section.tools");
 		y += 6;
 		y = addRow(y, viewBottom,
 				ButtonWidget.builder(Text.translatable("options.drmd.export_diagnostics"), b -> {
@@ -198,11 +211,16 @@ public class DescentSettingsScreen extends Screen {
 	}
 
 	private int addRow(int y, int viewBottom, ClickableWidget a, ClickableWidget b) {
-		if (y >= TOP - 2 && y + 20 <= viewBottom) {
+		if (y >= TOP && y + 20 <= viewBottom) {
 			if (a != null) addDrawableChild(a);
 			if (b != null) addDrawableChild(b);
 		}
 		return y + ROW;
+	}
+
+	private int section(int y, String key) {
+		headings.add(new Heading(y, Text.translatable(key)));
+		return y + SECTION;
 	}
 
 	private ButtonWidget toggle(int x, int y, String key, boolean initial,
@@ -223,9 +241,11 @@ public class DescentSettingsScreen extends Screen {
 
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+		if (mouseY < TOP || mouseY > viewBottom) {
+			return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+		}
 		int before = scroll;
-		scroll += (int) Math.round(verticalAmount * 14);
-		int viewBottom = this.height - 32;
+		scroll += Integer.signum((int) Math.signum(verticalAmount)) * ROW;
 		int contentH = CONTENT_HEIGHT;
 		int viewH = Math.max(ROW, viewBottom - TOP);
 		int minScroll = Math.min(0, viewH - contentH);
@@ -243,6 +263,12 @@ public class DescentSettingsScreen extends Screen {
 		context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 12, 0x5FE08A);
 		context.drawCenteredTextWithShadow(this.textRenderer,
 				Text.translatable("options.drmd.keys_hint"), this.width / 2, 24, 0x7A8A80);
+		for (Heading heading : headings) {
+			if (heading.y() >= TOP && heading.y() + 9 <= viewBottom) {
+				context.drawTextWithShadow(this.textRenderer, heading.text(), this.width / 2 - 155,
+						heading.y(), 0x91BFA1);
+			}
+		}
 	}
 
 	@Override

@@ -30,7 +30,6 @@ for real terrain LOD beyond vanilla chunk distance. `fabric.mod.json` marks DH a
 ### What DRMD still draws
 
 - Spark / Starlink / Oblivion **skybox** (`OrbitalBeltSkyRenderer`)  
-- Seam curtains (`BoundarySeamRenderer`)  
 - Real Klondike block islands + the End-band archipelago (CHUNK_LOAD, real blocks)
 - Voxel horizon: procedural surface map + landmark silhouettes (not terrain LODs)  
 - Cockpit / weapons / smoke  
