@@ -83,10 +83,12 @@ public final class HybridRenderCheck implements ClientModInitializer {
             capture(client,"hybrid-before.png");
             client.getServer().execute(() -> {
                 var world=client.getServer().getOverworld();
-                var be=(CarvedBlockEntity)world.getBlockEntity(DAMAGED);
-                if (be==null || !be.organic()) throw new IllegalStateException("Missing organic scene block");
-                long mask=MicroGrid.carve(be.mask(),.5,.5,.95,.5);
-                be.setMask(mask);
+                var state=world.getBlockState(DAMAGED);
+                if (!(state.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock) || world.getBlockEntity(DAMAGED)!=null)
+                    throw new IllegalStateException("Intact organic terrain must be palette-backed");
+                long mask=MicroGrid.carve(MicroGrid.FULL,.5,.5,.95,.5);
+                var be=CarvedBlock.replace(world,DAMAGED,state,mask);
+                if(be==null || !be.organic())throw new IllegalStateException("Organic damage transition lost mode");
                 world.setBlockState(DAMAGED.east(),Blocks.BRICKS.getDefaultState());
             });
         }

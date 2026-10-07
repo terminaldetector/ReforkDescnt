@@ -34,7 +34,7 @@ public final class HybridTerrainModel extends ForwardingBakedModel {
 
     public static void register() {
         ModelLoadingPlugin.register(plugin -> plugin.modifyModelAfterBake().register((model,context) ->
-            MODEL.equals(context.resourceId()) && model!=null ? new HybridTerrainModel(model) : model));
+            (MODEL.equals(context.resourceId()) || context.resourceId()!=null && context.resourceId().getNamespace().equals("drmd") && context.resourceId().getPath().startsWith("block/organic_")) && model!=null ? new HybridTerrainModel(model) : model));
     }
     @Override public boolean isVanillaAdapter() { return false; }
     @Override public boolean isBuiltin() { return false; }
@@ -44,7 +44,8 @@ public final class HybridTerrainModel extends ForwardingBakedModel {
     public void emitBlockQuads(BlockRenderView world, BlockState state, BlockPos pos,
             Supplier<Random> random, RenderContext context) {
         Object attachment=world.getBlockEntityRenderData(pos);
-        HybridTerrain.Data data=attachment instanceof HybridTerrain.Data d ? d :
+        HybridTerrain.Data data=state.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock organic ?
+            new HybridTerrain.Data(organic.source(),MicroGrid.FULL,true) : attachment instanceof HybridTerrain.Data d ? d :
             new HybridTerrain.Data(Blocks.STONE.getDefaultState(),MicroGrid.FULL,false);
         if (data.mask()==0) return;
         MinecraftClient client=MinecraftClient.getInstance();

@@ -62,6 +62,7 @@ public class DescentMod implements ModInitializer {
 		ModBlocks.register();
 		ModItems.register();
 		com.terminaldetector.drmd.entity.ModWorldBlocks.register();
+		com.terminaldetector.drmd.world.geometry.OrganicMaterials.register();
 		com.terminaldetector.drmd.entity.ModBlockEntities.register();
 		com.terminaldetector.drmd.world.gen.ModWorldgen.register();
 		com.terminaldetector.drmd.world.gen2.ModWorldgen2.register();

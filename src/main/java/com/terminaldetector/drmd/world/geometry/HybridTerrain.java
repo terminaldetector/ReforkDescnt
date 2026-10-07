@@ -20,6 +20,8 @@ public final class HybridTerrain {
             BlockState state=world.getBlockState(p);
             if (x==0 && y==0 && z==0) {
                 blocks.add(new HybridMesh.Block(self.mask,self.organic,!self.organic,self.source.isOpaque()));
+            } else if (state.getBlock() instanceof OrganicBlock organic) {
+                blocks.add(new HybridMesh.Block(MicroGrid.FULL,true,false,organic.source().isOpaque()));
             } else if (state.getBlock() instanceof CarvedBlock) {
                 Object attachment=world.getBlockEntityRenderData(p);
                 if (attachment instanceof Data data) {

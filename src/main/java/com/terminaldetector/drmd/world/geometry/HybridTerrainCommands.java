@@ -52,6 +52,9 @@ public final class HybridTerrainCommands {
             BlockPos p=cursor.toImmutable();var state=world.getBlockState(p);
             var existing=world.getBlockEntity(p) instanceof CarvedBlockEntity c?c:null;
             if (!organic) {
+                if (state.getBlock() instanceof OrganicBlock intact) {
+                    world.setBlockState(p,intact.source(),Block.NOTIFY_ALL);changed++;continue;
+                }
                 if (existing!=null && existing.organic()) {
                     if (existing.mask()==MicroGrid.FULL) CarvedBlock.restore(world,p);
                     else existing.setOrganic(false);
@@ -59,8 +62,15 @@ public final class HybridTerrainCommands {
                 }
                 continue;
             }
+            if (state.getBlock() instanceof OrganicBlock) continue;
             var source=existing==null?state:existing.source();
             if (!source.isIn(ORGANIC_MATERIALS) || !source.isOpaque() || !source.getFluidState().isEmpty()) continue;
+            var intact=OrganicMaterials.intact(source);
+            if (intact!=null && (existing==null || existing.mask()==MicroGrid.FULL)) {
+                if (existing==null && !BlockDamage.isDamageable(world,p,state)) continue;
+                if(world.setBlockState(p,intact,Block.NOTIFY_ALL))changed++;
+                continue;
+            }
             if (existing!=null && existing.organic()) continue;
             if (existing==null) {
                 if (!BlockDamage.isDamageable(world,p,state)) continue;

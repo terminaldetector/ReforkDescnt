@@ -166,7 +166,8 @@ public class CarvedBlock extends BlockWithEntity {
 	public static CarvedBlockEntity replace(ServerWorld world, BlockPos pos, BlockState source, long mask) {
 		if (!(world.getBlockEntity(pos) instanceof CarvedBlockEntity)
 				&& !BlockDamage.isDamageable(world,pos,source)) return null;
-		BlockState trueSource = source;
+		boolean organic = source.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock;
+        BlockState trueSource = organic ? ((com.terminaldetector.drmd.world.geometry.OrganicBlock)source.getBlock()).source() : source;
 		long combinedMask = mask;
 		if (world.getBlockEntity(pos) instanceof CarvedBlockEntity existing) {
 			trueSource = existing.source();
@@ -186,6 +187,7 @@ public class CarvedBlock extends BlockWithEntity {
 		BlockEntity be = world.getBlockEntity(pos);
 		if (!(be instanceof CarvedBlockEntity carved)) return null;
 		carved.init(trueSource, combinedMask);
+        if (organic) carved.setOrganic(true);
 		return carved;
 	}
 

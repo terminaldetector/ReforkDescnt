@@ -99,7 +99,7 @@ public final class BlockDamage {
 				&& world.getBlockEntity(pos) instanceof CarvedBlockEntity carved) {
 			return carved.source();
 		}
-		return state;
+		return state.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock organic ? organic.source() : state;
 	}
 
 	/** Called only for vanilla-selected blast cells. Keep the centre's normal destruction/loot path. */
@@ -140,7 +140,7 @@ public final class BlockDamage {
 	}
 
 	public static boolean isDamageable(ServerWorld world, BlockPos pos, BlockState state) {
-		if (state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.CARVED)) return true;
+		if (state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.CARVED) || state.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock) return true;
 		// Generic carving cannot preserve inventories, fluids or the geometry of partial blocks.
 		if (world.getBlockEntity(pos) != null || !state.getFluidState().isEmpty()
 				|| !state.isFullCube(world, pos) || state.isOf(net.minecraft.block.Blocks.TNT)) return false;

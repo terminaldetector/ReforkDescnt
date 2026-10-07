@@ -15,8 +15,10 @@ public class HybridTerrainGameTests implements FabricGameTest {
         var world=ctx.getWorld();var p=ctx.getAbsolutePos(new BlockPos(2,4,2));
         world.setBlockState(p,Blocks.STONE.getDefaultState());
         ctx.assertTrue(HybridTerrainCommands.apply(world,p,p,true)==1,"explicit conversion");
-        var be=(CarvedBlockEntity)world.getBlockEntity(p);var snapshot=be.getRenderData();
+        ctx.assertTrue(world.getBlockEntity(p)==null && world.getBlockState(p).getBlock() instanceof OrganicBlock,"intact terrain has no BE");
+        var snapshot=new HybridTerrain.Data(Blocks.STONE.getDefaultState(),MicroGrid.FULL,true);
         BlockDamage.hit(world,p,Vec3d.ofCenter(p).add(.4,0,0),12);
+        var be=(CarvedBlockEntity)world.getBlockEntity(p);
         ctx.assertTrue(be.organic() && be.mask()!=MicroGrid.FULL,"damage retains organic mode");
         ctx.assertTrue(snapshot.mask()==MicroGrid.FULL,"immutable render snapshot");
         var nbt=be.createNbt(world.getRegistryManager());
@@ -50,4 +52,21 @@ public class HybridTerrainGameTests implements FabricGameTest {
         try { HybridTerrainCommands.apply(world,p,p.add(4096,0,0),true); } catch(IllegalArgumentException e) {rejected=true;}
         ctx.assertTrue(rejected && world.getBlockState(p).isOf(Blocks.STONE),"oversized selection rejects before mutation");ctx.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void paletteIdentityAndNonDefaultPropertiesRoundTrip(TestContext ctx) {
+        var world=ctx.getWorld();var p=ctx.getAbsolutePos(new BlockPos(2,4,2));
+        world.setBlockState(p,Blocks.STONE.getDefaultState());HybridTerrainCommands.apply(world,p,p,true);
+        var state=world.getBlockState(p);
+        var encoded=net.minecraft.nbt.NbtHelper.fromBlockState(state);
+        var decoded=net.minecraft.nbt.NbtHelper.toBlockState(world.getRegistryManager().getWrapperOrThrow(net.minecraft.registry.RegistryKeys.BLOCK),encoded);
+        ctx.assertTrue(state.equals(decoded) && world.getBlockEntity(p)==null,"palette roundtrip without BE");
+        ctx.assertTrue(state.isIn(net.minecraft.registry.tag.BlockTags.PICKAXE_MINEABLE),"source tool category");
+        HybridTerrainCommands.apply(world,p,p,false);
+        ctx.assertTrue(world.getBlockState(p).isOf(Blocks.STONE),"intact rigid roundtrip");
+        var oriented=Blocks.DEEPSLATE.getDefaultState().with(net.minecraft.state.property.Properties.AXIS,net.minecraft.util.math.Direction.Axis.X);
+        world.setBlockState(p,oriented);HybridTerrainCommands.apply(world,p,p,true);
+        ctx.assertTrue(world.getBlockEntity(p) instanceof CarvedBlockEntity be && be.source().equals(oriented) && be.organic(),"non-default properties preserved");
+        ctx.complete();
+    }
+
 }
