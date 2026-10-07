@@ -176,5 +176,10 @@ tasks.register('prepareRendercheckWorld', Sync) {
     from 'build/gametest/world'
     into 'build/rendercheck/saves/DRMD-render-lab'
     exclude '**/session.lock'
+    doLast {
+        def save = file('build/rendercheck/saves/DRMD-render-lab/level.dat')
+        if (!save.isFile()) throw new GradleException('GameTest fixture is missing level.dat: ' + save)
+        file('build/rendercheck/options.txt').text = 'onboardAccessibility:false\npauseOnLostFocus:false\nmaxFps:30\nrenderDistance:8\nsimulationDistance:5\n'
+    }
 }
 tasks.named('runRendercheck') { dependsOn prepareRendercheckWorld }

@@ -29,7 +29,15 @@ public final class HybridRenderCheck implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(this::tick);
     }
     private void tick(MinecraftClient client) {
-        if (++ticks>2400) throw new IllegalStateException("Render check timed out before the test scene completed");
+        ++ticks;
+        if (ticks%200==0) System.out.println("DRMD rendercheck: screen="+
+                (client.currentScreen==null?"none":client.currentScreen.getClass().getName()+": "+client.currentScreen.getTitle().getString())+
+                ", world="+(client.world!=null)+", ready="+ready+", sceneTicks="+sceneTicks);
+        if (ticks>2400) {
+            capture(client,"hybrid-timeout.png");
+            throw new IllegalStateException("Render check timed out; screen="+
+                    (client.currentScreen==null?"none":client.currentScreen.getClass().getName())+", sceneTicks="+sceneTicks);
+        }
         if (client.world==null || client.player==null || client.getServer()==null) return;
         DescentClient.markUserFlightChoice();
         DescentPlayerData.get(client.player).setEnabled(false);
