@@ -124,6 +124,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.clear();
 			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.clear();
 			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.clear();
+			com.terminaldetector.drmd.world.trap.MagneticAnomalySystem.clear();
 			com.terminaldetector.drmd.world.sync.DimensionSync.load(server);
 			com.terminaldetector.drmd.world.planet.PlanetSync.reset();
 			com.terminaldetector.drmd.world.store.SurfaceIngest.onServerStarted(server);
@@ -151,6 +152,7 @@ public class DescentMod implements ModInitializer {
 			long worldStart = com.terminaldetector.drmd.diag.DiagServerTick.begin();
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.tick();
 			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.tick(server);
+			com.terminaldetector.drmd.world.trap.MagneticAnomalySystem.tick(server);
 			com.terminaldetector.drmd.world.base.DescentSession.drainSeedQueue(server);
 			com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.tick(server);
 			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.tick(server);

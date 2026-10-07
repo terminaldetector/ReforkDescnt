@@ -77,7 +77,9 @@ public class GravityTorchBlock extends Block {
 
 	@Override
 	protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-		GravityFields.remove(torchId(pos));
+		if (!state.isOf(newState.getBlock())) {
+			GravityFields.remove(torchId(pos));
+		}
 		super.onStateReplaced(state, world, pos, newState, moved);
 	}
 
