@@ -12,6 +12,8 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.world.BackupPromptScreen;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -37,6 +39,19 @@ public final class HybridRenderCheck implements ClientModInitializer {
             capture(client,"hybrid-timeout.png");
             throw new IllegalStateException("Render check timed out; screen="+
                     (client.currentScreen==null?"none":client.currentScreen.getClass().getName())+", sceneTicks="+sceneTicks);
+        }
+        // GameTest saves use the experimental registry lifecycle. Only this disposable fixture
+        // may acknowledge its load warning; this source set is absent from the playable jar.
+        if (client.currentScreen instanceof BackupPromptScreen prompt) {
+            if (!client.runDirectory.toPath().getFileName().toString().equals("rendercheck"))
+                throw new IllegalStateException("Render check must run in its disposable directory");
+            for (var child:prompt.children()) if (child instanceof ButtonWidget button &&
+                    button.getMessage().getString().equals("I know what I'm doing!")) {
+                System.out.println("DRMD rendercheck: loading disposable experimental fixture");
+                button.onPress();
+                return;
+            }
+            throw new IllegalStateException("Experimental fixture prompt has no expected continue button");
         }
         if (client.world==null || client.player==null || client.getServer()==null) return;
         DescentClient.markUserFlightChoice();
