@@ -205,6 +205,30 @@ public final class D6PhysicsBody {
 	}
 
 	/** The inertia tensor in world axes right now. */
+    /** Inelastic unilateral point contact with bounded Coulomb friction. */
+    public double contactImpulse(Vec3 offset, Vec3 normal, double friction) {
+        D6Mat3 inverse=worldInverseInertia();
+        if (mass<=1e-9 || inverse==null) return 0;
+        double closing=velocityAtPoint(offset).dot(normal);
+        if(closing>=0)return 0;
+        double effective=inverseMass+normal.dot(inverse.transform(offset.cross(normal)).cross(offset));
+        if(effective<=1e-12)return 0;
+        double magnitude=-closing/effective;
+        applyImpulse(normal.scaled(magnitude),offset);
+        Vec3 velocity=velocityAtPoint(offset);
+        Vec3 tangent=velocity.minus(normal.scaled(velocity.dot(normal)));
+        double speed=tangent.length();
+        if(speed>1e-8){
+            tangent=tangent.scaled(1/speed);
+            double denominator=inverseMass+tangent.dot(inverse.transform(offset.cross(tangent)).cross(offset));
+            double drag=Math.min(speed/denominator,Math.max(0,friction)*magnitude);
+            applyImpulse(tangent.scaled(-drag),offset);
+        }
+        double remaining=velocityAtPoint(offset).dot(normal);
+        if(remaining<0){double correction=-remaining/effective;applyImpulse(normal.scaled(correction),offset);magnitude+=correction;}
+        return magnitude;
+    }
+
 	public D6Mat3 worldInertia() {
 		return inertia.rotatedBy(rotation);
 	}

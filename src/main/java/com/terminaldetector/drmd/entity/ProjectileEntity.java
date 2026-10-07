@@ -308,7 +308,7 @@ public class ProjectileEntity extends Entity {
 		Entity best = null;
 		double bestDist = radius * radius;
 		for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(radius),
-				ent -> ent instanceof LivingEntity && ent.isAlive() && ent != own)) {
+				ent -> (ent instanceof LivingEntity || ent instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity) && ent.isAlive() && ent != own)) {
 			double d = e.squaredDistanceTo(this);
 			if (d < bestDist) {
 				bestDist = d;
@@ -335,7 +335,7 @@ public class ProjectileEntity extends Entity {
 		double best = 64 * 64;
 		Entity found = null;
 		for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(48),
-				ent -> ent instanceof LivingEntity && ent.isAlive() && ent != own)) {
+				ent -> (ent instanceof LivingEntity || ent instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity) && ent.isAlive() && ent != own)) {
 			double d = e.squaredDistanceTo(this);
 			if (d < best) { best = d; found = e; }
 		}
@@ -347,8 +347,8 @@ public class ProjectileEntity extends Entity {
 		EntityHitResult best = null;
 		double bestDist = Double.MAX_VALUE;
 		for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().stretch(end.subtract(start)).expand(0.5),
-				ent -> ent instanceof LivingEntity && ent.isAlive() && ent != own && !pierced.contains(ent.getId()))) {
-			var opt = e.getBoundingBox().expand(0.3).raycast(start, end);
+				ent -> (ent instanceof LivingEntity || ent instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity) && ent.isAlive() && ent != own && !pierced.contains(ent.getId()))) {
+			var opt = e instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity body ? body.raycast(start,end) : e.getBoundingBox().expand(0.3).raycast(start, end);
 			if (opt.isPresent()) {
 				double d = start.squaredDistanceTo(opt.get());
 				if (d < bestDist) {
@@ -362,6 +362,7 @@ public class ProjectileEntity extends Entity {
 
 	private void onEntityHit(EntityHitResult hit) {
 		LivingEntity own = getOwnerLiving();
+        if(hit.getEntity() instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity body)body.weaponImpulse(hit.getPos(),getVelocity(),directDamage);
 		if (own != null) {
 			WeaponCore.directDamage(own, hit.getEntity(), directDamage, dmgClass);
 			detonate(own, hit.getPos());
@@ -400,6 +401,8 @@ public class ProjectileEntity extends Entity {
 	private void onBlockHit(BlockHitResult hit) {
 		boolean explosive = worldBlast || (splashRadius > 0 && dmgClass == DamageClass.EXPLOSIVE);
 		BlockState hitState = getWorld().getBlockState(hit.getBlockPos());
+        if(explosive && getWorld() instanceof ServerWorld world)
+            com.terminaldetector.drmd.world.contraption.StructureCollapse.rocketCut(world,hit.getBlockPos(),hit.getPos(),getVelocity(),directDamage);
 		if (!explosive && bounceCount < maxBounces && hitState.getBlock() instanceof ReflectiveBlock rb) {
 			bounceCount++;
 			Vec3d normal = rb.getReflectionNormal(hitState);

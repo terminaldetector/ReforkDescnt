@@ -46,8 +46,11 @@ jobs:
         run: |
           LIBGL_ALWAYS_SOFTWARE=1 timeout 240s xvfb-run -a ./gradlew runRendercheck --no-daemon --stacktrace
           test -s build/rendercheck/rendercheck-ok.txt
+          test -s build/rendercheck/collapse-ok.txt
           mkdir -p dist/rendercheck
           cp build/rendercheck/screenshots/hybrid-*.png dist/rendercheck/
+          cp build/rendercheck/screenshots/collapse-before.png build/rendercheck/screenshots/collapse-flight.png build/rendercheck/screenshots/collapse-after.png dist/rendercheck/
+          cp build/rendercheck/collapse-ok.txt dist/rendercheck/
           cp build/rendercheck/rendercheck-ok.txt dist/rendercheck/
 
       - name: Upload test evidence
@@ -61,6 +64,7 @@ jobs:
             build/rendercheck/screenshots/
             build/rendercheck/logs/
             build/rendercheck/rendercheck-ok.txt
+            build/rendercheck/collapse-ok.txt
           retention-days: 7
 
       - name: Stage PC jar into dist/

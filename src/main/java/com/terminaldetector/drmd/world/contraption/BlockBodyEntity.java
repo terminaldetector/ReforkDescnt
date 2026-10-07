@@ -13,6 +13,7 @@ import net.minecraft.nbt.*;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
+import net.minecraft.registry.tag.BlockTags;
 import java.util.*;
 
 /** Experimental inert block assembly. All positions are COM positions; geometry is local cubic data. */
@@ -28,6 +29,10 @@ public final class BlockBodyEntity extends Entity {
     private final D6PhysicsBody body = new D6PhysicsBody().withLimits(20, 2);
     private Quat previousRotation = Quat.IDENTITY;
     private double radius = .5;
+    private boolean gravity;
+    public void setPhysicsGravity(boolean value) {gravity=value;dataTracker.set(POSE,pose());}
+    public boolean physicsGravity() {return gravity;}
+    public static boolean supports(BlockState state) {return SUPPORTED.contains(state.getBlock()) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
 
     public BlockBodyEntity(EntityType<? extends BlockBodyEntity> type, World world) {
         super(type, world); setNoGravity(true);
@@ -53,12 +58,12 @@ public final class BlockBodyEntity extends Entity {
                 BlockState state = cube.get(x, y, z);
                 if (state.isAir()) continue;
                 BlockPos pos = new BlockPos(p.minBlockX() + x, p.minBlockY() + y, p.minBlockZ() + z);
-                if (!SUPPORTED.contains(state.getBlock()) || next.size() >= 256
+                if (!supports(state) || next.size() >= 256
                     || pos.getX() < 0 || pos.getY() < 0 || pos.getZ() < 0
                     || pos.getX() >= 16 || pos.getY() >= 16 || pos.getZ() >= 16)
                     throw new IllegalArgumentException("Unsupported or oversized body shape");
                 next.add(new Cell(pos, state));
-                mass.addBlock(new Vec3(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5), 1);
+                mass.addBlock(new Vec3(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5), state.isIn(BlockTags.LEAVES)?.08:1);
             }
         }
         cells = List.copyOf(next); centre = mass.centreOfMass(); body.withMassProperties(mass);
@@ -77,6 +82,7 @@ public final class BlockBodyEntity extends Entity {
         NbtCompound tag = new NbtCompound();
         Quat q = body.rotation(); tag.putDouble("qx", q.x()); tag.putDouble("qy", q.y());
         tag.putDouble("qz", q.z()); tag.putDouble("qw", q.w());
+        tag.putBoolean("gravity",gravity);
         vector(tag, "v", body.linearVelocity()); vector(tag, "l", body.angularMomentum());
         return tag;
     }
@@ -90,6 +96,7 @@ public final class BlockBodyEntity extends Entity {
     }
     private void readPose(NbtCompound n) {
         if (!n.contains("qw")) return;
+        gravity=n.getBoolean("gravity");
         Quat q = new Quat(n.getDouble("qx"), n.getDouble("qy"), n.getDouble("qz"), n.getDouble("qw"));
         if (!Double.isFinite(q.x()*q.x()+q.y()*q.y()+q.z()*q.z()+q.w()*q.w())) throw new IllegalArgumentException("non-finite rotation");
         body.withRotation(q).withLinearVelocity(vector(n, "v")).withAngularMomentum(vector(n, "l"));
@@ -115,12 +122,30 @@ public final class BlockBodyEntity extends Entity {
                 throw new IllegalArgumentException("Selection must be inside loaded world bounds");
             BlockState state = world.getBlockState(p);
             if (state.isAir()) continue;
-            if (!SUPPORTED.contains(state.getBlock()) || world.getBlockEntity(p) != null || original.size() >= 256)
-                throw new IllegalArgumentException("Up to 256 inert blocks: stone, cobblestone, iron/gold/diamond, obsidian, glass, bricks");
+            if (!supports(state) || world.getBlockEntity(p) != null || original.size() >= 256)
+                throw new IllegalArgumentException("Up to 256 supported inert blocks, including logs, leaves and planks");
             original.put(p, state);
             shape.set(p.getX()-min.getX(), p.getY()-min.getY(), p.getZ()-min.getZ(), state);
         }
         if (original.isEmpty()) throw new IllegalArgumentException("Empty selection");
+        return assembleSelection(world,original);
+    }
+    /** Exact sparse selection: neighbouring machines and terrain outside the selection stay untouched. */
+    public static BlockBodyEntity assembleSelection(ServerWorld world,Map<BlockPos,BlockState> original) {
+        if(original.isEmpty() || original.size()>256)throw new IllegalArgumentException("Select 1..256 inert blocks");
+        int mx=original.keySet().stream().mapToInt(BlockPos::getX).min().orElseThrow();
+        int my=original.keySet().stream().mapToInt(BlockPos::getY).min().orElseThrow();
+        int mz=original.keySet().stream().mapToInt(BlockPos::getZ).min().orElseThrow();
+        BlockPos min=new BlockPos(mx,my,mz);
+        D6Volume<BlockState> shape=new D6Volume<>(Blocks.AIR.getDefaultState());
+        for(var e:original.entrySet()) {
+            var p=e.getKey();var state=e.getValue();var local=p.subtract(min);
+            if(!world.isChunkLoaded(p) || world.isOutOfHeightLimit(p) || !world.getWorldBorder().contains(p)
+                || !world.getBlockState(p).equals(state) || !supports(state) || world.getBlockEntity(p)!=null
+                || local.getX()>15 || local.getY()>15 || local.getZ()>15)
+                throw new IllegalArgumentException("Unsupported, changed, unloaded or oversized selection");
+            shape.set(local.getX(),local.getY(),local.getZ(),state);
+        }
         BlockBodyEntity entity = new BlockBodyEntity(ModEntities.BLOCK_BODY, world);
         entity.loadShape(CubicBlockCodec.writeVolume(shape));
         entity.setPosition(min.getX()+entity.centre.x(), min.getY()+entity.centre.y(), min.getZ()+entity.centre.z());
@@ -178,8 +203,9 @@ public final class BlockBodyEntity extends Entity {
         int steps = Math.max(1, Math.min(32, (int)Math.ceil((20 + 2*radius) * .05 / .15)));
         for (int step = 0; step < steps; step++) {
             Vec3 before = body.position(); Quat rotation = body.rotation();
+            if(gravity)body.applyForce(new Vec3(0,-9.81*body.mass(),0));
             body.step(.05 / steps);
-            if (blocked()) {
+            if (blocked() && !(gravity && groundContacts(before,rotation))) {
                 body.withPosition(before).withRotation(rotation)
                     .withLinearVelocity(new Vec3(0,0,0)).withAngularMomentum(new Vec3(0,0,0));
                 break;
@@ -189,6 +215,55 @@ public final class BlockBodyEntity extends Entity {
         Vec3 v = body.linearVelocity(); setVelocity(v.x()/20, v.y()/20, v.z()/20);
         setBoundingBox(new Box(getPos(), getPos()).expand(radius));
         dataTracker.set(POSE, pose()); velocityModified = true;
+    }
+
+    private List<Vec3> corners(Cell cell,Vec3 position,Quat rotation) {
+        var result=new ArrayList<Vec3>(8);
+        for(int x=0;x<=1;x++)for(int y=0;y<=1;y++)for(int z=0;z<=1;z++)
+            result.add(rotation.rotate(new Vec3(cell.pos.getX()+x,cell.pos.getY()+y,cell.pos.getZ()+z).minus(centre)).plus(position));
+        return result;
+    }
+    /** Floor support transfers impulse at contacts; it does not freeze the body's rotation. */
+    private boolean groundContacts(Vec3 before,Quat previous) {
+        List<Vec3> contacts=new ArrayList<>();double lift=0;
+        for(Cell cell:cells) {
+            Box bounds=box(cell);
+            double previousBottom=corners(cell,before,previous).stream().mapToDouble(Vec3::y).min().orElseThrow();
+            for(var shape:getWorld().getBlockCollisions(this,bounds.contract(1e-6))) {
+                Box obstacle=shape.getBoundingBox();
+                if(obstacle.maxY>previousBottom+.06 || obstacle.minY>=bounds.minY)return false;
+                lift=Math.max(lift,obstacle.maxY-bounds.minY);
+                for(Vec3 corner:corners(cell,body.position(),body.rotation()))
+                    if(corner.y()<=obstacle.maxY+.001 && corner.x()>=obstacle.minX-1e-6 && corner.x()<=obstacle.maxX+1e-6
+                        && corner.z()>=obstacle.minZ-1e-6 && corner.z()<=obstacle.maxZ+1e-6)
+                        contacts.add(new Vec3(corner.x(),obstacle.maxY,corner.z()));
+            }
+        }
+        if(contacts.isEmpty() || lift>.2)return false;
+        body.withPosition(body.position().plus(new Vec3(0,Math.max(0,lift)+1e-6,0)));
+        for(int pass=0;pass<4;pass++)for(Vec3 point:contacts)
+            body.contactImpulse(point.minus(body.position()),new Vec3(0,1,0),.65);
+        return !blocked();
+    }
+    /** Ray tests local occupied cubes, so hollow space in a body's broadphase remains passable. */
+    public Optional<Vec3d> raycast(Vec3d start,Vec3d end) {
+        Vec3 a=body.rotation().inverse().rotate(pure(start).minus(pure(getPos()))).plus(centre);
+        Vec3 b=body.rotation().inverse().rotate(pure(end).minus(pure(getPos()))).plus(centre);
+        Vec3d from=new Vec3d(a.x(),a.y(),a.z()),to=new Vec3d(b.x(),b.y(),b.z());
+        Vec3d best=null;double distance=Double.POSITIVE_INFINITY;
+        for(Cell cell:cells) {
+            var hit=new Box(cell.pos).raycast(from,to);
+            if(hit.isPresent() && from.squaredDistanceTo(hit.get())<distance) {best=hit.get();distance=from.squaredDistanceTo(best);}
+        }
+        if(best==null)return Optional.empty();
+        Vec3 world=body.rotation().rotate(pure(best).minus(centre)).plus(pure(getPos()));
+        return Optional.of(new Vec3d(world.x(),world.y(),world.z()));
+    }
+    public void weaponImpulse(Vec3d impact,Vec3d direction,float damage) {
+        if(getWorld().isClient || !Float.isFinite(damage) || damage<=0 || !Double.isFinite(direction.lengthSquared()))return;
+        Vec3 impulse=pure(direction.normalize()).scaled(Math.min(80,damage*.15));
+        body.applyImpulse(impulse,pure(impact).minus(pure(getPos())));
+        dataTracker.set(POSE,pose());velocityModified=true;
     }
     private boolean blocked() {
         for (Cell cell : cells) {
