@@ -38,7 +38,7 @@ Selection must fit 16×16×16 and contain at most 256 occupied cells. Supported 
 
 ## Terrain adapter, explicitly transitional
 
-`-Ddrmd.cubicSnapshots=true` enables budgeted cubic snapshots around players (radius two cubes in each axis, at most two captures/world/tick, 512 resident and pending cube budgets). Snapshots persist by dimension under `drmd/cubes/<namespace>/<path>/x_y_z.nbt`, with compressed NBT, atomic file replacement and a bounded/coalesced write queue. Block-change hooks invalidate resident snapshots. Reads are historical observations, not authoritative terrain.
+The **Experimental cubic snapshots** switch in the DRMD World Generation screen enables budgeted XYZ snapshots around players (radius two cubes per axis, at most two captures per world tick, 512 resident and pending cube budgets). The legacy `-Ddrmd.cubicSnapshots=true` JVM property remains a fallback only when the config file has no `cubicSnapshots` entry. Snapshots persist by dimension under `drmd/cubes/<namespace>/<path>/x_y_z.nbt`, with compressed NBT, atomic file replacement and a bounded/coalesced write queue. Block-change hooks invalidate resident snapshots. Reads are historical observations, not authoritative terrain.
 
 This adapter **does not replace** vanilla chunk ownership, tickets, generation, lighting, height checks, networking, block ticks or rendering. It deliberately reads already-loaded sections without forcing columns to load. The snapshot flag is off by default. Existing saves and `LayerBridge` remain on the legacy path; enabling snapshots does not silently convert a save.
 

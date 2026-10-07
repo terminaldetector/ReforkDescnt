@@ -21,8 +21,8 @@ import net.minecraft.util.math.MathHelper;
 public class DescentSettingsScreen extends Screen {
 	private static final int ROW = 22;
 	private static final int TOP = 36;
-	/** Rows from first toggle through Controls (including spacers). */
-	private static final int CONTENT_ROWS = 16;
+	/** Twelve rows plus the three six-pixel gaps between utility controls. */
+	private static final int CONTENT_HEIGHT = 12 * ROW + 18;
 	private final Screen parent;
 	private int scroll;
 
@@ -40,7 +40,7 @@ public class DescentSettingsScreen extends Screen {
 		int left = cx - 155;
 		int right = cx + 5;
 		int viewBottom = this.height - 32;
-		int contentH = CONTENT_ROWS * ROW + 12;
+		int contentH = CONTENT_HEIGHT;
 		int viewH = Math.max(ROW, viewBottom - TOP);
 		int minScroll = Math.min(0, viewH - contentH);
 		scroll = MathHelper.clamp(scroll, minScroll, 0);
@@ -68,12 +68,20 @@ public class DescentSettingsScreen extends Screen {
 				toggle(left, y, "options.drmd.level_sky", DescentConfig.levelSky, v -> {
 					DescentConfig.levelSky = v;
 					DescentConfig.save();
-				}), null);
+				}),
+				toggle(right, y, "options.drmd.sky_ufo_virtual_hull", DescentConfig.skyUfoVirtualHull, v -> {
+					DescentConfig.skyUfoVirtualHull = v;
+					DescentConfig.save();
+				}));
 		y = addRow(y, viewBottom,
 				toggle(left, y, "options.drmd.planet_floor", DescentConfig.planetFloor, v -> {
 					DescentConfig.planetFloor = v;
 					DescentConfig.save();
-				}), null);
+				}),
+				toggle(right, y, "options.drmd.planet_floor_with_dh", DescentConfig.planetFloorWithDistantHorizons, v -> {
+					DescentConfig.planetFloorWithDistantHorizons = v;
+					DescentConfig.save();
+				}));
 		y = addRow(y, viewBottom,
 				toggle(left, y, "options.drmd.mirror_reflection", DescentConfig.mirrorReflection, v -> {
 					DescentConfig.mirrorReflection = v;
@@ -218,7 +226,7 @@ public class DescentSettingsScreen extends Screen {
 		int before = scroll;
 		scroll += (int) Math.round(verticalAmount * 14);
 		int viewBottom = this.height - 32;
-		int contentH = CONTENT_ROWS * ROW + 12;
+		int contentH = CONTENT_HEIGHT;
 		int viewH = Math.max(ROW, viewBottom - TOP);
 		int minScroll = Math.min(0, viewH - contentH);
 		scroll = MathHelper.clamp(scroll, minScroll, 0);

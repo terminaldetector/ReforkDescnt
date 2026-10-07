@@ -12,17 +12,14 @@ import net.minecraft.util.Formatting;
  * World/biome generation options, off a button on the vanilla Create World screen
  * ({@code CreateWorldScreenMixin}).
  *
- * <p>Backs {@link DrmdServerConfig} directly rather than staging changes for a "confirm" step: every
- * click here writes {@code config/drmd-server.properties} immediately and applies to
- * {@link WorldFeatures} live, the same apply-on-click behaviour {@code DescentSettingsScreen} already
- * uses for its own toggles. That is also why this reads its current values straight from those two
- * classes' static fields on every {@link #init()} instead of caching them on the screen — a value
- * changed here has nowhere else to live in between.
+ * <p>Writes {@code config/drmd-server.properties} on each click. Worldgen choices set defaults for
+ * the next save; the cubic snapshot switch is loaded on server start and controls an optional
+ * supplemental terrain recorder. It does not replace vanilla chunk generation, lighting, networking
+ * or rendering.
  *
  * <p>Global, not per-world: {@code DescentSession.seedWorld} locks the resolved world kind into the
- * new world's own save data the moment it is first seeded, so a later visit to this screen changes
- * what the <em>next</em> world becomes without touching any world already created — the same rule the
- * one setting exposed here before this screen existed ({@code psychedelicWorlds}) already followed.
+ * new world's own save data when it is first seeded. Changing the world kind therefore affects the
+ * next save without rewriting an existing one.
  *
  * <p><strong>One exception to "applies immediately":</strong> the Advanced/Vanilla row. That choice
  * decides whether the Overworld's tall-column {@code dimension_type} override is registered as an
@@ -76,7 +73,7 @@ public class DrmdWorldGenScreen extends Screen {
 							v -> save(DrmdServerConfig.worldKind, DrmdServerConfig.worldModLevel, WorldFeatures.NETHER_BAND,
 									WorldFeatures.END_BAND, WorldFeatures.KLONDIKE_ISLANDS, WorldFeatures.ORBIT_JUNK,
 									v, WorldFeatures.SURFACE_DISTRICTS)));
-			row(y,
+			y = row(y,
 					toggle(left, y, "options.drmd.surface_districts", WorldFeatures.SURFACE_DISTRICTS,
 							v -> save(DrmdServerConfig.worldKind, DrmdServerConfig.worldModLevel, WorldFeatures.NETHER_BAND,
 									WorldFeatures.END_BAND, WorldFeatures.KLONDIKE_ISLANDS, WorldFeatures.ORBIT_JUNK,
@@ -85,7 +82,20 @@ public class DrmdWorldGenScreen extends Screen {
 							v -> save(DrmdServerConfig.worldKind, DrmdServerConfig.worldModLevel, WorldFeatures.NETHER_BAND,
 									WorldFeatures.END_BAND, WorldFeatures.KLONDIKE_ISLANDS, v,
 									WorldFeatures.MACRO_WORLDGEN, WorldFeatures.SURFACE_DISTRICTS)));
+		} else {
+			y = featuresHintY + 22;
 		}
+		y += 8;
+		addDrawableChild(ButtonWidget.builder(label("options.drmd.cubic_snapshots", DrmdServerConfig.cubicSnapshots), b -> {
+					DrmdServerConfig.save(DrmdServerConfig.worldKind, DrmdServerConfig.worldModLevel,
+							WorldFeatures.NETHER_BAND, WorldFeatures.END_BAND, WorldFeatures.KLONDIKE_ISLANDS,
+							WorldFeatures.ORBIT_JUNK, WorldFeatures.MACRO_WORLDGEN, WorldFeatures.SURFACE_DISTRICTS,
+							!DrmdServerConfig.cubicSnapshots);
+					clearAndInit();
+				})
+				.tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(
+						Text.translatable("options.drmd.cubic_snapshots_hint")))
+				.dimensions(cx - 155, y, 310, 20).build());
 
 		addDrawableChild(ButtonWidget.builder(Text.translatable("gui.done"), b -> close())
 				.dimensions(cx - 100, this.height - 28, 200, 20).build());

@@ -87,15 +87,19 @@ public final class GravityFields {
 	 * Returns null if no field affects the point.
 	 */
 	public static Sample sample(World world, Vec3d pos) {
+		return sample(world != null ? world.getRegistryKey() : null, pos);
+	}
+
+	/** Key-only variant used by diagnostics and pure tests; keeps dimension filtering explicit. */
+	public static Sample sample(net.minecraft.registry.RegistryKey<World> key, Vec3d pos) {
 		Vec3d sumDir = Vec3d.ZERO;
 		double weight = 0;
 		float maxPower = 0;
 		String dominant = null;
-		var key = world != null ? world.getRegistryKey() : null;
 		for (Field f : FIELDS.values()) {
 			// Fields live in one map but belong to one world each: without this a torch bolted to a
 			// wall in the Nether would flip a player's "down" while they stood in the Overworld.
-			if (key != null && f.worldKey() != null && f.worldKey() != key) continue;
+			if (key != null && f.worldKey() != null && !f.worldKey().equals(key)) continue;
 			double w = f.influenceAt(pos);
 			if (w <= 1e-4) continue;
 			sumDir = sumDir.add(f.downDir().normalize().multiply(w));

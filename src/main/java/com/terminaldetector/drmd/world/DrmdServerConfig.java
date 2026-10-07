@@ -13,13 +13,9 @@ import java.util.Properties;
  * screen off the vanilla Create World menu ({@code DrmdWorldGenScreen}, opened via a button injected
  * by {@code CreateWorldScreenMixin}) instead of by hand-editing this file.
  *
- * <p>These settings are global — one {@code config/drmd-server.properties}, not one per world — which
- * is what "GUI-editable before creating a world" could reach without also making every
- * {@link WorldFeatures} read site (chunk-load listeners, {@code DescentSession}, the biome-source
- * mixin) world-aware. The choice a player makes here becomes the default for the *next* world created
- * or first loaded; {@code DescentSession.seedWorld} locks the resolved {@link WorldKind} into that
- * world's own {@link DescentWorldState} at first seed, exactly as it already did for the one existing
- * toggle ({@code psychedelic}), so a later change here never reaches back into an existing save.
+ * <p>World-generation choices are global defaults and are locked into a save when seeded.
+ * {@code cubicSnapshots} is a separate runtime opt-in: it writes supplemental 16³ observations and
+ * does not replace the authoritative vanilla chunk engine.
  */
 public final class DrmdServerConfig {
 	private static final String FILE = DescentMod.MOD_ID + "-server.properties";
@@ -61,6 +57,9 @@ public final class DrmdServerConfig {
 	public static WorldKind worldKind = WorldKind.STOCK;
 
 	public static WorldModLevel worldModLevel = WorldModLevel.ADVANCED;
+
+	/** Persist passive XYZ cube snapshots beside vanilla terrain; this does not replace vanilla chunks. */
+	public static boolean cubicSnapshots = Boolean.getBoolean("drmd.cubicSnapshots");
 
 	private static boolean loaded;
 
@@ -104,6 +103,7 @@ public final class DrmdServerConfig {
 			worldKind = psychedelicWorlds ? WorldKind.PSYCHEDELIC : WorldKind.STOCK;
 		}
 		worldModLevel = parseModLevel(props.getProperty("worldModLevel"), WorldModLevel.ADVANCED);
+		cubicSnapshots = parseCubicSnapshots(props, Boolean.getBoolean("drmd.cubicSnapshots"));
 		WorldFeatures.NETHER_BAND = parseBool(props, "netherBand", WorldFeatures.NETHER_BAND);
 		WorldFeatures.END_BAND = parseBool(props, "endBand", WorldFeatures.END_BAND);
 		WorldFeatures.KLONDIKE_ISLANDS = parseBool(props, "klondikeIslands", WorldFeatures.KLONDIKE_ISLANDS);
@@ -139,6 +139,10 @@ public final class DrmdServerConfig {
 		return v == null ? fallback : Boolean.parseBoolean(v);
 	}
 
+	static boolean parseCubicSnapshots(Properties props, boolean legacyJvmFallback) {
+		return parseBool(props, "cubicSnapshots", legacyJvmFallback);
+	}
+
 	/** {@code WorldKind.valueOf} without throwing on a stale/typo'd value from a hand-edited file. */
 	private static WorldKind parseKind(String raw, WorldKind fallback) {
 		try {
@@ -164,6 +168,7 @@ public final class DrmdServerConfig {
 		Properties props = new Properties();
 		props.setProperty("worldKind", WorldKind.STOCK.name());
 		props.setProperty("worldModLevel", WorldModLevel.ADVANCED.name());
+		props.setProperty("cubicSnapshots", String.valueOf(cubicSnapshots));
 		props.setProperty("psychedelicWorlds", "false");
 		props.setProperty("netherBand", String.valueOf(WorldFeatures.NETHER_BAND));
 		props.setProperty("endBand", String.valueOf(WorldFeatures.END_BAND));
@@ -183,9 +188,18 @@ public final class DrmdServerConfig {
 	public static void save(WorldKind kind, WorldModLevel modLevel, boolean netherBand, boolean endBand,
 							 boolean klondikeIslands, boolean orbitJunk, boolean macroWorldgen,
 							 boolean surfaceDistricts) {
+		load();
+		save(kind, modLevel, netherBand, endBand, klondikeIslands, orbitJunk, macroWorldgen,
+				surfaceDistricts, cubicSnapshots);
+	}
+
+	public static void save(WorldKind kind, WorldModLevel modLevel, boolean netherBand, boolean endBand,
+							 boolean klondikeIslands, boolean orbitJunk, boolean macroWorldgen,
+							 boolean surfaceDistricts, boolean cubicSnapshots) {
 		load(); // ensure `loaded`, so a save before any world exists still sticks
 		worldKind = kind;
 		worldModLevel = modLevel;
+		DrmdServerConfig.cubicSnapshots = cubicSnapshots;
 		psychedelicWorlds = kind == WorldKind.PSYCHEDELIC;
 		WorldFeatures.NETHER_BAND = netherBand;
 		WorldFeatures.END_BAND = endBand;
@@ -198,6 +212,7 @@ public final class DrmdServerConfig {
 		Properties props = new Properties();
 		props.setProperty("worldKind", worldKind.name());
 		props.setProperty("worldModLevel", worldModLevel.name());
+		props.setProperty("cubicSnapshots", String.valueOf(cubicSnapshots));
 		props.setProperty("psychedelicWorlds", String.valueOf(psychedelicWorlds));
 		props.setProperty("netherBand", String.valueOf(WorldFeatures.NETHER_BAND));
 		props.setProperty("endBand", String.valueOf(WorldFeatures.END_BAND));

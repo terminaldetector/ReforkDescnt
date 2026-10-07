@@ -3,6 +3,7 @@ package com.terminaldetector.drmd.world.cubic;
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.d6.D6ChunkPos;
 import com.terminaldetector.drmd.d6.D6Cube;
+import com.terminaldetector.drmd.world.DrmdServerConfig;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.nbt.NbtIo;
@@ -23,14 +24,14 @@ import java.util.concurrent.*;
  * This is not a replacement for vanilla's light engine, tickets or client chunk renderer yet.
  */
 public final class CubicWorldSystem {
-    private static final Map<ServerWorld, Space> SPACES = new IdentityHashMap<>();
-    private static final boolean ENABLED = Boolean.getBoolean("drmd.cubicSnapshots");
+    private static final Map<ServerWorld, Space> SPACES = new ConcurrentHashMap<>();
     private static final int CAP = 512, PER_TICK = 2;
     private CubicWorldSystem() {}
 
     private static final class Space {
         final Map<Long, D6Cube<BlockState>> live = new LinkedHashMap<>(16, .75f, true);
         final Set<Long> dirty = new HashSet<>();
+        final Object liveLock = new Object();
         final Map<Long, D6Cube<BlockState>> pending = new ConcurrentHashMap<>();
         final ExecutorService io = Executors.newSingleThreadExecutor(r -> {
             Thread thread = new Thread(r, "drmd-cubes-io"); thread.setDaemon(true); return thread;
@@ -68,10 +69,12 @@ public final class CubicWorldSystem {
         Space s = SPACES.get(world);
         if (s == null) return;
         long key = D6ChunkPos.ofBlock(pos.getX(), pos.getY(), pos.getZ()).asLong();
-        if (s.live.containsKey(key)) s.dirty.add(key);
+        synchronized (s.liveLock) {
+            if (s.live.containsKey(key)) s.dirty.add(key);
+        }
     }
     public static void tick(MinecraftServer server) {
-        if (!ENABLED) return;
+        if (!DrmdServerConfig.cubicSnapshots) return;
         for (ServerWorld world : server.getWorlds()) {
             if (world.getPlayers().isEmpty()) continue;
             Space s = space(world);
@@ -84,7 +87,7 @@ public final class CubicWorldSystem {
                         D6ChunkPos pos = centre.offset(dx, dy, dz);
                         if (pos.minBlockY() < world.getBottomY() || pos.minBlockY() >= world.getTopY()) continue;
                         long key = pos.asLong();
-                        if (!s.live.containsKey(key) || s.dirty.contains(key))
+                        if (isMissingOrDirty(s, key))
                             wanted.merge(key, dx * dx + dy * dy + dz * dz, Math::min);
                     }
                 }
@@ -94,10 +97,16 @@ public final class CubicWorldSystem {
                     var chunk = world.getChunkManager().getChunk(p.x(), p.z(), ChunkStatus.FULL, false);
                     if (!(chunk instanceof WorldChunk wc)) continue;
                     D6Cube<BlockState> cube = snapshot(wc, p.y());
-                    s.live.put(key, cube); s.pending.put(key, cube); s.dirty.remove(key);
-                    while (s.live.size() > CAP) {
-                        long oldest = s.live.keySet().iterator().next(); s.live.remove(oldest); s.dirty.remove(oldest);
+                    synchronized (s.liveLock) {
+                        s.live.put(key, cube);
+                        s.dirty.remove(key);
+                        while (s.live.size() > CAP) {
+                            long oldest = s.live.keySet().iterator().next();
+                            s.live.remove(oldest);
+                            s.dirty.remove(oldest);
+                        }
                     }
+                    s.pending.put(key, cube);
                     if (++done >= PER_TICK || s.pending.size() >= CAP) break;
                 }
             }
@@ -106,6 +115,11 @@ public final class CubicWorldSystem {
                 s.writing = true;
                 s.io.execute(() -> { try { s.drain(); } finally { s.writing = false; } });
             }
+        }
+    }
+    private static boolean isMissingOrDirty(Space space, long key) {
+        synchronized (space.liveLock) {
+            return !space.live.containsKey(key) || space.dirty.contains(key);
         }
     }
     private static D6Cube<BlockState> snapshot(WorldChunk chunk, int sectionY) {
@@ -117,22 +131,46 @@ public final class CubicWorldSystem {
     }
     /** Historical cube read on the IO worker; never mistaken for authoritative live terrain. */
     public static CompletableFuture<D6Cube<BlockState>> readSaved(ServerWorld world, D6ChunkPos pos) {
-        Space s = space(world);
-        D6Cube<BlockState> live = s.live.get(pos.asLong());
+        Space s = SPACES.get(world);
+        if (s == null) return CompletableFuture.completedFuture(null);
+        D6Cube<BlockState> live;
+        synchronized (s.liveLock) {
+            live = s.live.get(pos.asLong());
+        }
         if (live != null) return CompletableFuture.completedFuture(live.copy());
-        return CompletableFuture.supplyAsync(() -> {
-            D6Cube<BlockState> queued = s.pending.get(pos.asLong());
-            if (queued != null) return queued.copy();
-            try {
-                Path path = s.path(pos.asLong());
-                return Files.exists(path) ? CubicBlockCodec.read(NbtIo.readCompressed(path, NbtSizeTracker.of(2 * 1024 * 1024))) : null;
-            } catch (Exception e) { throw new CompletionException(e); }
-        }, s.io);
+        try {
+            return CompletableFuture.supplyAsync(() -> {
+                D6Cube<BlockState> queued = s.pending.get(pos.asLong());
+                if (queued != null) return queued.copy();
+                try {
+                    Path path = s.path(pos.asLong());
+                    return Files.exists(path)
+                            ? CubicBlockCodec.read(NbtIo.readCompressed(path, NbtSizeTracker.of(2 * 1024 * 1024)))
+                            : null;
+                } catch (Exception e) {
+                    throw new CompletionException(e);
+                }
+            }, s.io);
+        } catch (RejectedExecutionException closed) {
+            return CompletableFuture.failedFuture(closed);
+        }
     }
-    public static int residentCount(ServerWorld world) { return space(world).live.size(); }
+    public static int residentCount(ServerWorld world) {
+        Space s = SPACES.get(world);
+        if (s == null) return 0;
+        synchronized (s.liveLock) { return s.live.size(); }
+    }
     public static void close() {
-        for (Space s : SPACES.values()) {
-            s.io.execute(s::drain); s.io.shutdown();
+        List<Space> spaces = List.copyOf(SPACES.values());
+        for (Space s : spaces) {
+            try {
+                s.io.execute(s::drain);
+                s.io.shutdown();
+            } catch (RejectedExecutionException alreadyClosed) {
+                // A repeated lifecycle callback has already queued the final drain.
+            }
+        }
+        for (Space s : spaces) {
             try {
                 if (!s.io.awaitTermination(30, TimeUnit.SECONDS)) DescentMod.LOGGER.error("Cubic snapshot IO still draining after shutdown timeout");
             } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
