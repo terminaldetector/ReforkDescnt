@@ -15,7 +15,7 @@ public final class OrganicMaterials {
             Blocks.DEEPSLATE,Blocks.TUFF,Blocks.CALCITE,Blocks.DIRT,Blocks.COARSE_DIRT,Blocks.CLAY,
             Blocks.NETHERRACK,Blocks.END_STONE,Blocks.TERRACOTTA}) {
             var id=Identifier.of("drmd","organic_"+Registries.BLOCK.getId(source).getPath());
-            var block=new OrganicBlock(source.getDefaultState(),AbstractBlock.Settings.copy(source).dynamicBounds());
+            var block=new OrganicBlock(source.getDefaultState(),AbstractBlock.Settings.copy(source).nonOpaque().dynamicBounds());
             Registry.register(Registries.BLOCK,id,block);MATERIALS.put(source,block);
         }
     }
