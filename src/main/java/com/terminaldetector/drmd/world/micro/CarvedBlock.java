@@ -58,15 +58,10 @@ public class CarvedBlock extends BlockWithEntity {
 		return new CarvedBlockEntity(pos, state);
 	}
 
-	/**
-	 * Drawn by its block entity renderer, not by a baked model.
-	 *
-	 * <p>There is no model that could be right: the block looks like whatever it used to be, minus
-	 * the parts that are gone.
-	 */
+	/** Meshed into terrain sections through Fabric Renderer API. */
 	@Override
 	public BlockRenderType getRenderType(BlockState state) {
-		return BlockRenderType.ENTITYBLOCK_ANIMATED;
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
@@ -135,7 +130,7 @@ public class CarvedBlock extends BlockWithEntity {
 	private static VoxelShape shapeAt(BlockView world, BlockPos pos) {
 		BlockEntity be = world.getBlockEntity(pos);
 		if (!(be instanceof CarvedBlockEntity carved)) return VoxelShapes.fullCube();
-		return shapeOf(carved.mask());
+		return carved.organic() ? carved.organicShape(world) : shapeOf(carved.mask());
 	}
 
 	/** The shape for a mask, built once and kept. */

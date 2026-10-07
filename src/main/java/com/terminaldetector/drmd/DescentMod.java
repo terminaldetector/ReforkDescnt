@@ -79,6 +79,7 @@ public class DescentMod implements ModInitializer {
 		WeaponRegistry.bootstrap();
 		DescentCommands.register();
 		com.terminaldetector.drmd.world.contraption.BlockBodyCommands.register();
+		com.terminaldetector.drmd.world.geometry.HybridTerrainCommands.register();
 		AiCommands.register();
 
 		// Player state is keyed by UUID in a process-wide map, so it outlives the world unless it is

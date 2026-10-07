@@ -9,6 +9,7 @@ on:
 jobs:
   fabric-pc:
     name: Fabric PC jar
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -39,7 +40,28 @@ jobs:
           # dist/drmd-6dof-<version>-fabric-1.21.1.jar itself: pruning afterwards deletes the very jar
           # INSTALL_TLAUNCHER.txt tells players to download.
           rm -f dist/drmd-6dof-*.jar
-          ./gradlew build --no-daemon --stacktrace
+          ./gradlew build runGametest --no-daemon --stacktrace
+
+      - name: Verify hybrid terrain in a real client
+        run: |
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 240s xvfb-run -a ./gradlew runRendercheck --no-daemon --stacktrace
+          test -s build/rendercheck/rendercheck-ok.txt
+          mkdir -p dist/rendercheck
+          cp build/rendercheck/screenshots/hybrid-*.png dist/rendercheck/
+          cp build/rendercheck/rendercheck-ok.txt dist/rendercheck/
+
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drmd-hybrid-verification
+          path: |
+            build/test-results/test/
+            build/gametest/reports/
+            build/rendercheck/screenshots/
+            build/rendercheck/logs/
+            build/rendercheck/rendercheck-ok.txt
+          retention-days: 7
 
       - name: Stage PC jar into dist/
         run: |
@@ -70,7 +92,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A 'dist/drmd-6dof-*.jar' dist/INSTALL_TLAUNCHER.txt
+          git add -A 'dist/drmd-6dof-*.jar' dist/INSTALL_TLAUNCHER.txt dist/rendercheck
           if git diff --cached --quiet; then
             echo "dist/ already matches this build"
             exit 0

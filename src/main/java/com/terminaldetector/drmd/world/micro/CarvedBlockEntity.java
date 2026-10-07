@@ -26,6 +26,37 @@ import net.minecraft.util.math.BlockPos;
 public class CarvedBlockEntity extends BlockEntity {
 	private BlockState source = Blocks.STONE.getDefaultState();
 	private long mask = MicroGrid.FULL;
+	private boolean organic;
+	private com.terminaldetector.drmd.world.geometry.HybridMesh.Neighbourhood shapeKey;
+	private net.minecraft.util.shape.VoxelShape cachedOrganicShape;
+
+	public boolean organic() { return organic; }
+
+	public void setOrganic(boolean value) {
+		if (organic == value) return;
+		organic = value;
+		markDirty();
+		sync();
+	}
+
+	@Override
+	public com.terminaldetector.drmd.world.geometry.HybridTerrain.Data getRenderData() {
+		return new com.terminaldetector.drmd.world.geometry.HybridTerrain.Data(source, mask, organic);
+	}
+
+	public net.minecraft.util.shape.VoxelShape organicShape(net.minecraft.world.BlockView view) {
+		var key = com.terminaldetector.drmd.world.geometry.HybridTerrain.snapshot(view, pos, getRenderData());
+		if (!key.equals(shapeKey)) {
+			var built = net.minecraft.util.shape.VoxelShapes.empty();
+			for (var box : new com.terminaldetector.drmd.world.geometry.HybridMesh(key).collisionBounds()) {
+				built = net.minecraft.util.shape.VoxelShapes.union(built, net.minecraft.util.shape.VoxelShapes.cuboid(
+					box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ()));
+			}
+			cachedOrganicShape = built.simplify();
+			shapeKey = key;
+		}
+		return cachedOrganicShape;
+	}
 	private long cachedMask;
 	private java.util.List<MicroGrid.Box> cachedBoxes;
 
@@ -75,6 +106,7 @@ public class CarvedBlockEntity extends BlockEntity {
 		super.writeNbt(nbt, registries);
 		nbt.put("source", NbtHelper.fromBlockState(source));
 		nbt.putLong("mask", mask);
+		nbt.putBoolean("organic", organic);
 	}
 
 	@Override
@@ -86,6 +118,10 @@ public class CarvedBlockEntity extends BlockEntity {
 					nbt.getCompound("source"));
 		}
 		if (nbt.contains("mask")) mask = nbt.getLong("mask");
+		organic = nbt.getBoolean("organic"); // Existing saves stay rigid.
+		if (source.getBlock() instanceof CarvedBlock || source.isAir()) source = Blocks.STONE.getDefaultState();
+		// BE packets change geometry without replacing block state. ClientWorld schedules a one-block halo.
+		if (world != null && world.isClient) world.updateListeners(pos, getCachedState(), getCachedState(), 3);
 	}
 
 	@Override

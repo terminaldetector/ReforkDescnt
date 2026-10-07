@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "drmd_rendercheck",
+  "version": "1.0.0",
+  "name": "DRMD isolated render verification",
+  "environment": "client",
+  "entrypoints": { "client": ["com.terminaldetector.drmd.HybridRenderCheck"] },
+  "depends": { "drmd": "*" }
+}

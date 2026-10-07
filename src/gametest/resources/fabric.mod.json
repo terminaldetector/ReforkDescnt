@@ -7,7 +7,8 @@
   "entrypoints": {
     "fabric-gametest": [
       "com.terminaldetector.drmd.BlockBodyGameTests",
-      "com.terminaldetector.drmd.MicroDamageGameTests"
+      "com.terminaldetector.drmd.MicroDamageGameTests",
+      "com.terminaldetector.drmd.HybridTerrainGameTests"
     ]
   },
   "depends": {

@@ -146,3 +146,35 @@ loom {
         }
     }
 }
+
+// Isolated real-client verification. Reuses a disposable GameTest save, never a user's world.
+sourceSets {
+    rendercheck {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+loom {
+    mods { drmd_rendercheck { sourceSet sourceSets.rendercheck } }
+    runs {
+        rendercheck {
+            client()
+            name "DRMD hybrid terrain render verification"
+            source sourceSets.rendercheck
+            runDir "build/rendercheck"
+            programArg "--quickPlaySingleplayer"
+            programArg "DRMD-render-lab"
+            programArg "--width"
+            programArg "1280"
+            programArg "--height"
+            programArg "720"
+        }
+    }
+}
+tasks.register('prepareRendercheckWorld', Sync) {
+    dependsOn runGametest
+    from 'build/gametest/world'
+    into 'build/rendercheck/saves/DRMD-render-lab'
+    exclude '**/session.lock'
+}
+tasks.named('runRendercheck') { dependsOn prepareRendercheckWorld }
