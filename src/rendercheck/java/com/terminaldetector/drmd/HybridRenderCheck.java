@@ -75,8 +75,10 @@ public final class HybridRenderCheck implements ClientModInitializer {
             return;
         }
         if (!ready || client.currentScreen!=null) return;
-        client.player.setPosition(sceneTicks>=260?17:14,sceneTicks>=260?211:209,sceneTicks>=260?37:29);client.player.setVelocity(Vec3d.ZERO);
-        client.player.setYaw(180);client.player.setPitch(sceneTicks>=260?24:28);
+		client.player.setPosition(sceneTicks>=680?17:sceneTicks>=260?17:14,
+				sceneTicks>=680?205:sceneTicks>=260?211:209,
+				sceneTicks>=680?30:sceneTicks>=260?37:29);client.player.setVelocity(Vec3d.ZERO);
+		client.player.setYaw(180);client.player.setPitch(sceneTicks>=680?12:sceneTicks>=260?24:28);
         if (!(client.getBlockRenderManager().getModel(ModWorldBlocks.CARVED.getDefaultState()) instanceof HybridTerrainModel))
             throw new IllegalStateException("The carved blockstate did not receive the hybrid baked model");
         if(sceneTicks>=260 && !collapseReady)return;
@@ -135,9 +137,30 @@ public final class HybridRenderCheck implements ClientModInitializer {
             if(bodies.size()!=2 || bodies.stream().anyMatch(b -> Math.abs(b.rotation().x())<.35))
                 throw new IllegalStateException("Rocket-cut tree/column did not physically tip on client: "+bodies.size());
             capture(client,"collapse-after.png");
-            try {Files.writeString(client.runDirectory.toPath().resolve("collapse-ok.txt"),"Real rocket impacts detached tree and column; both gravity bodies tipped; flight and before/after frames captured.\n");}
+			try {Files.writeString(client.runDirectory.toPath().resolve("collapse-ok.txt"),"Real rocket impacts detached tree and column; both gravity bodies tipped; flight and before/after frames captured.\n");}
             catch(java.io.IOException e){throw new IllegalStateException(e);}
-            client.scheduleStop();
+			client.getServer().execute(() -> {
+				var world=client.getServer().getOverworld();
+				var drone=com.terminaldetector.drmd.entity.ModEntities.DRONE.create(world);
+				if(drone==null)throw new IllegalStateException("Cannot create render-check drone");
+				drone.setPosition(17.5,206,20.5);drone.setVelocity(.12,.02,.03);drone.setHealth(1);
+				world.spawnEntity(drone);drone.damage(drone.getDamageSources().generic(),1000);
+			});
+		}
+		if(sceneTicks==692)capture(client,"ragdoll-flight.png");
+		if(sceneTicks==800) {
+			var wrecks=client.world.getEntitiesByClass(com.terminaldetector.drmd.entity.RagdollEntity.class,
+					new net.minecraft.util.math.Box(10,200,12,25,212,28),net.minecraft.entity.Entity::isAlive);
+			if(wrecks.size()!=1 || wrecks.getFirst().currentRenderParts().size()!=5)
+				throw new IllegalStateException("Drone death did not sync one five-part ragdoll to client: "+wrecks.size());
+			boolean articulated=wrecks.getFirst().currentRenderParts().stream().skip(1).anyMatch(part ->
+					Math.abs(part.rotation().x())+Math.abs(part.rotation().y())+Math.abs(part.rotation().z())>.03);
+			if(!articulated)throw new IllegalStateException("Ragdoll parts reached client but never articulated");
+			capture(client,"ragdoll-after.png");
+			try {Files.writeString(client.runDirectory.toPath().resolve("ragdoll-ok.txt"),
+					"Drone death spawned one networked five-part ragdoll; articulated renderer survived flight and terrain contact.\n");}
+			catch(java.io.IOException e){throw new IllegalStateException(e);}
+			client.scheduleStop();
         }
     }
     private static void setup(ServerWorld world) {

@@ -47,11 +47,14 @@ jobs:
           LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runRendercheck --no-daemon --stacktrace
           test -s build/rendercheck/rendercheck-ok.txt
           test -s build/rendercheck/collapse-ok.txt
+          test -s build/rendercheck/ragdoll-ok.txt
           mkdir -p dist/rendercheck
           cp build/rendercheck/screenshots/hybrid-*.png dist/rendercheck/
           cp build/rendercheck/screenshots/collapse-before.png build/rendercheck/screenshots/collapse-flight.png build/rendercheck/screenshots/collapse-after.png dist/rendercheck/
+          cp build/rendercheck/screenshots/ragdoll-flight.png build/rendercheck/screenshots/ragdoll-after.png dist/rendercheck/
           cp build/rendercheck/collapse-ok.txt dist/rendercheck/
           cp build/rendercheck/rendercheck-ok.txt dist/rendercheck/
+          cp build/rendercheck/ragdoll-ok.txt dist/rendercheck/
 
       - name: Upload test evidence
         if: always()
@@ -65,6 +68,7 @@ jobs:
             build/rendercheck/logs/
             build/rendercheck/rendercheck-ok.txt
             build/rendercheck/collapse-ok.txt
+            build/rendercheck/ragdoll-ok.txt
           retention-days: 7
 
       - name: Stage PC jar into dist/
