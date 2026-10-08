@@ -21,7 +21,7 @@ class GravityTorchIdentityTest {
 	@DisplayName("torch identity is stable but isolated by dimension")
 	void dimensionIsPartOfTorchIdentity() {
 		BlockPos pos = new BlockPos(12, 34, -56);
-		assertEquals(GravityTorchBlock.torchId(OVERWORLD, pos), GravityTorchBlock.torchId(OVERWORLD, pos));
-		assertNotEquals(GravityTorchBlock.torchId(OVERWORLD, pos), GravityTorchBlock.torchId(NETHER, pos));
+		assertEquals(GravityFieldIds.torch(OVERWORLD, pos), GravityFieldIds.torch(OVERWORLD, pos));
+		assertNotEquals(GravityFieldIds.torch(OVERWORLD, pos), GravityFieldIds.torch(NETHER, pos));
 	}
 }
