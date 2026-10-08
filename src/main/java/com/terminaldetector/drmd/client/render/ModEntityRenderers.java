@@ -12,6 +12,7 @@ public final class ModEntityRenderers {
 
 	public static void register() {
 		EntityRendererRegistry.register(ModEntities.BLOCK_BODY, BlockBodyRenderer::new);
+		EntityRendererRegistry.register(ModEntities.RAGDOLL, RagdollRenderer::new);
 		com.terminaldetector.drmd.client.render.terrain.HybridTerrainModel.register();
 
 		EntityModelLayerRegistry.registerModelLayer(PyroShipRenderer.LAYER, PyroShipModel::getTexturedModelData);

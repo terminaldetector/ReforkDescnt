@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import com.terminaldetector.drmd.weapon.core.WeaponCore;
 
 import java.util.Map;
 import java.util.UUID;
@@ -33,7 +34,9 @@ public final class GravyPhysics {
 	/** Begin grab if look-ray hits a living / prop entity within range. */
 	public static boolean tryGrab(ServerPlayerEntity player, Entity target, float mass) {
 		if (target == null || !target.isAlive()) return false;
-		GRABS.put(player.getUuid(), new Grab(target.getUuid(), Math.max(0.2f, mass), new Vec3d(0, 0, 2.5)));
+		float resolvedMass = target instanceof PhysicsTarget physics
+				? (float) physics.physicsMass() : mass;
+		GRABS.put(player.getUuid(), new Grab(target.getUuid(), Math.max(0.2f, resolvedMass), new Vec3d(0, 0, 2.5)));
 		return true;
 	}
 
@@ -47,19 +50,15 @@ public final class GravyPhysics {
 			release(player);
 			return;
 		}
-		Vec3d hold = player.getEyePos().add(player.getRotationVec(1f).multiply(3.2));
+		Vec3d hold = player.getEyePos().add(WeaponCore.aimDir(player).multiply(3.2));
 		Vec3d delta = hold.subtract(target.getPos());
-        if (target instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity blockBody) {
-            var body = blockBody.physics();
-            var v = body.linearVelocity();
-            // Fixed-strength spring: heavier assemblies accelerate less. Impulse includes dt once.
-            body.applyImpulse(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(
-                (delta.x * 80 - v.x() * 8) * .05,
-                (delta.y * 80 - v.y() * 8) * .05,
-                (delta.z * 80 - v.z() * 8) * .05),
-                new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(0,0,0));
-            return;
-        }
+		if (target instanceof PhysicsTarget physics) {
+			Vec3d velocity = physics.physicsVelocity();
+			// Fixed-strength spring: heavier targets accelerate less. Impulse includes dt once.
+			Vec3d impulse = delta.multiply(80).subtract(velocity.multiply(8)).multiply(.05);
+			physics.applyPhysicsImpulse(target.getPos(), impulse);
+			return;
+		}
 		// Soft spring + damp (Havok-lite)
 		double k = 0.35 / grab.mass();
 		double damp = 0.82;
@@ -73,12 +72,11 @@ public final class GravyPhysics {
 		Grab grab = GRABS.get(player.getUuid());
 		if (grab == null) return;
 		Entity e = player.getServerWorld().getEntity(grab.targetId());
-		if (e instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity blockBody) {
-			Vec3d impulse = player.getRotationVec(1f).multiply(power * 20);
-			blockBody.physics().applyImpulse(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(
-				impulse.x, impulse.y, impulse.z), new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(0,0,0));
+		if (e instanceof PhysicsTarget physics) {
+			Vec3d impulse = WeaponCore.aimDir(player).multiply(power * 20);
+			physics.applyPhysicsImpulse(e.getPos(), impulse);
 		} else if (e != null) {
-			Vec3d impulse = player.getRotationVec(1f).multiply(power / grab.mass());
+			Vec3d impulse = WeaponCore.aimDir(player).multiply(power / grab.mass());
 			e.addVelocity(impulse.x, impulse.y, impulse.z);
 			e.velocityModified = true;
 		}

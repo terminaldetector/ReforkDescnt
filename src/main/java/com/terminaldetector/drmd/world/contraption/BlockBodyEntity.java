@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.client.portal.PortalTransform.Quat;
 import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
 import com.terminaldetector.drmd.d6.*;
 import com.terminaldetector.drmd.entity.ModEntities;
+import com.terminaldetector.drmd.physics.PhysicsTarget;
 import com.terminaldetector.drmd.vendor.immptl.ImmPtlAARotation;
 import com.terminaldetector.drmd.world.cubic.CubicBlockCodec;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
@@ -18,7 +19,7 @@ import net.minecraft.registry.tag.BlockTags;
 import java.util.*;
 
 /** Experimental inert block assembly. All positions are COM positions; geometry is local cubic data. */
-public final class BlockBodyEntity extends Entity {
+public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public record Cell(BlockPos pos, BlockState state) {}
     private static final TrackedData<NbtCompound> SHAPE = DataTracker.registerData(BlockBodyEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
     private static final TrackedData<NbtCompound> POSE = DataTracker.registerData(BlockBodyEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
@@ -306,11 +307,19 @@ public final class BlockBodyEntity extends Entity {
         Vec3 world=body.rotation().rotate(pure(best).minus(centre)).plus(pure(getPos()));
         return Optional.of(new Vec3d(world.x(),world.y(),world.z()));
     }
+    @Override public Optional<Vec3d> physicsRaycast(Vec3d start,Vec3d end) {return raycast(start,end);}
+    @Override public void applyPhysicsImpulse(Vec3d impact,Vec3d impulse) {
+        if(getWorld().isClient || !Double.isFinite(impact.lengthSquared()) || !Double.isFinite(impulse.lengthSquared()))return;
+        body.applyImpulse(pure(impulse),pure(impact).minus(pure(getPos())));
+        dataTracker.set(POSE,pose());velocityModified=true;
+    }
+    @Override public Vec3d physicsVelocity() {
+        Vec3 velocity=body.linearVelocity();return new Vec3d(velocity.x(),velocity.y(),velocity.z());
+    }
+    @Override public double physicsMass() {return body.mass();}
     public void weaponImpulse(Vec3d impact,Vec3d direction,float damage) {
         if(getWorld().isClient || !Float.isFinite(damage) || damage<=0 || !Double.isFinite(direction.lengthSquared()))return;
-        Vec3 impulse=pure(direction.normalize()).scaled(Math.min(80,damage*.15));
-        body.applyImpulse(impulse,pure(impact).minus(pure(getPos())));
-        dataTracker.set(POSE,pose());velocityModified=true;
+        applyPhysicsImpulse(impact,direction.normalize().multiply(Math.min(80,damage*.15)));
     }
     private boolean blocked() {
         for (Cell cell : cells) {

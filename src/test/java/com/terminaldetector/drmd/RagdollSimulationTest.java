@@ -55,4 +55,30 @@ class RagdollSimulationTest {
 		assertThrows(IllegalArgumentException.class, () -> new RagdollRig(List.of(segment),
 				List.of(new RagdollRig.Joint(0, 1, new Vec3(0, 0, 0), new Vec3(0, 0, 0), 0))));
 	}
+
+	@Test
+	@DisplayName("world adapter can resolve contacts without entering the pure ragdoll core")
+	void collisionAdapterClampsIntegratedParts() {
+		RagdollSimulation simulation = new RagdollSimulation(
+				new RagdollRig(List.of(new RagdollRig.Segment(
+						"body", 2, new Vec3(.2, .2, .2), new Vec3(0, 0, 0))), List.of()),
+				new Vec3(0, .1, 0), Quat.IDENTITY, new Vec3(0, -3, 0));
+		simulation.step(.05, new Vec3(0, -9.81, 0), 4, 2, (part, fallback) -> {
+			if (part.body().position().y() < 0)
+				part.body().withPosition(new Vec3(part.body().position().x(), 0, part.body().position().z()))
+						.withLinearVelocity(new Vec3(0, 0, 0));
+		});
+		assertTrue(simulation.parts().get(0).body().position().y() >= 0);
+	}
+
+	@Test
+	@DisplayName("aggregate motion is mass weighted")
+	void aggregateStateUsesMass() {
+		RagdollSimulation simulation = new RagdollSimulation(twoParts(3, 1),
+				new Vec3(0, 0, 0), Quat.IDENTITY, new Vec3(0, 0, 0));
+		simulation.parts().get(0).body().withLinearVelocity(new Vec3(4, 0, 0));
+		simulation.parts().get(1).body().withLinearVelocity(new Vec3(0, 0, 0));
+		assertEquals(3, simulation.centreVelocity().x(), 1e-9);
+		assertEquals(4, simulation.totalMass(), 1e-9);
+	}
 }

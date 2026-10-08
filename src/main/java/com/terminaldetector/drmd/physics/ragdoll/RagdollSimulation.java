@@ -16,6 +16,12 @@ public final class RagdollSimulation {
 	public static final int DEFAULT_SUBSTEPS = 4;
 	public static final int DEFAULT_SOLVER_ITERATIONS = 8;
 
+	/** Minecraft-facing adapters may correct a part after each integration/constraint phase. */
+	@FunctionalInterface
+	public interface CollisionResolver {
+		void resolve(Part part, Vec3 fallbackPosition);
+	}
+
 	public static final class Part {
 		private final RagdollRig.Segment segment;
 		private final D6PhysicsBody body;
@@ -67,24 +73,64 @@ public final class RagdollSimulation {
 	}
 
 	public void step(double seconds, Vec3 gravity) {
-		step(seconds, gravity, DEFAULT_SUBSTEPS, DEFAULT_SOLVER_ITERATIONS);
+		step(seconds, gravity, DEFAULT_SUBSTEPS, DEFAULT_SOLVER_ITERATIONS, null);
 	}
 
 	public void step(double seconds, Vec3 gravity, int substeps, int solverIterations) {
+		step(seconds, gravity, substeps, solverIterations, null);
+	}
+
+	/**
+	 * Advances the articulated body while allowing the world adapter to resolve terrain contacts.
+	 * The pure overloads above remain deterministic and Minecraft-free for unit tests.
+	 */
+	public void step(double seconds, Vec3 gravity, int substeps, int solverIterations,
+			CollisionResolver collisionResolver) {
 		if (!Double.isFinite(seconds) || seconds <= 0 || seconds > .25)
 			throw new IllegalArgumentException("invalid ragdoll timestep");
 		if (gravity == null || !finite(gravity)) throw new IllegalArgumentException("invalid ragdoll gravity");
 		if (substeps < 1 || substeps > 32 || solverIterations < 1 || solverIterations > 64)
 			throw new IllegalArgumentException("invalid ragdoll solver budget");
 		double dt = seconds / substeps;
+		Vec3[] beforeConstraints = collisionResolver == null ? null : new Vec3[parts.size()];
 		for (int substep = 0; substep < substeps; substep++) {
 			for (Part part : parts) {
+				Vec3 before = part.body().position();
 				part.body().applyForce(gravity.scaled(part.body().mass()));
 				part.body().step(dt);
+				if (collisionResolver != null) collisionResolver.resolve(part, before);
 			}
+			if (collisionResolver != null)
+				for (int part = 0; part < parts.size(); part++)
+					beforeConstraints[part] = parts.get(part).body().position();
 			for (int iteration = 0; iteration < solverIterations; iteration++)
 				for (RagdollRig.Joint joint : rig.joints()) solve(joint, dt);
+			if (collisionResolver != null)
+				for (int part = 0; part < parts.size(); part++)
+					collisionResolver.resolve(parts.get(part), beforeConstraints[part]);
 		}
+	}
+
+	/** Aggregate centre of mass in world space. */
+	public Vec3 centreOfMass() {
+		double mass = totalMass();
+		Vec3 weighted = new Vec3(0, 0, 0);
+		for (Part part : parts) weighted = weighted.plus(part.body().position().scaled(part.body().mass()));
+		return weighted.scaled(1.0 / mass);
+	}
+
+	/** Aggregate linear velocity in world space. */
+	public Vec3 centreVelocity() {
+		double mass = totalMass();
+		Vec3 weighted = new Vec3(0, 0, 0);
+		for (Part part : parts) weighted = weighted.plus(part.body().linearVelocity().scaled(part.body().mass()));
+		return weighted.scaled(1.0 / mass);
+	}
+
+	public double totalMass() {
+		double result = 0;
+		for (Part part : parts) result += part.body().mass();
+		return result;
 	}
 
 	public double jointError(int jointIndex) {

@@ -40,6 +40,7 @@ public class DroneEntity extends HostileEntity {
 	private DroneAi.Phase phase = DroneAi.Phase.ORBIT;
 	private float phaseTimer;
 	private float resistK, resistE, resistX;
+	private boolean ragdollSpawned;
 
 	public DroneEntity(EntityType<? extends DroneEntity> type, World world) {
 		super(type, world);
@@ -151,6 +152,13 @@ public class DroneEntity extends HostileEntity {
 	public void onDeath(DamageSource damageSource) {
 		super.onDeath(damageSource);
 		if (getWorld().isClient) return;
+		if (!ragdollSpawned) {
+			ragdollSpawned = true;
+			RagdollEntity.spawnFromDrone(this, damageSource);
+			// Vanilla keeps a dead mob around for its death animation. The physical replacement owns the
+			// visible motion now, so do not draw both bodies on top of each other for twenty ticks.
+			setInvisible(true);
+		}
 		// Descent shield/energy orbs — heavier roles drop more often.
 		float shieldChance = switch (role) {
 			case HEAVY_ELITE, HEAVY -> 0.55f;

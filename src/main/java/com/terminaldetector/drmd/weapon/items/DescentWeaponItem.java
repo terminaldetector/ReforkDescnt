@@ -4,12 +4,14 @@ import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.energy.EnergySystem;
 import com.terminaldetector.drmd.entity.PyroShipEntity;
 import com.terminaldetector.drmd.entity.ShipWeaponSlot;
+import com.terminaldetector.drmd.physics.PhysicsTarget;
 import com.terminaldetector.drmd.weapon.core.DamageClass;
 import com.terminaldetector.drmd.weapon.core.DescentLaserFire;
 import com.terminaldetector.drmd.weapon.core.DescentMineFire;
 import com.terminaldetector.drmd.weapon.core.DescentRocketFire;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.weapon.registry.WeaponDef;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -22,6 +24,8 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.UseAction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.hit.HitResult;
+import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -663,9 +667,11 @@ public class DescentWeaponItem extends Item {
 			return true;
 		}
 		if (data.getGravyEnergy() < 15f) return false;
-		LivingEntity look = findLookTarget(user, 12);
+		Entity look = findPhysicsTarget(user, 12);
 		if (look != null && look != user) {
-			float mass = Math.max(0.4f, look.getWidth() * look.getHeight());
+			float mass = look instanceof PhysicsTarget physics
+					? (float) physics.physicsMass()
+					: Math.max(0.4f, look.getWidth() * look.getHeight());
 			if (com.terminaldetector.drmd.physics.GravyPhysics.tryGrab(sp, look, mass)) {
 				data.setGravyEnergy(data.getGravyEnergy() - 15f);
 				data.setGravyGrabbing(true);
@@ -846,6 +852,32 @@ public class DescentWeaponItem extends Item {
 			if (dot > bestDot && start.squaredDistanceTo(e.getPos()) < range * range) {
 				bestDot = dot;
 				best = e;
+			}
+		}
+		return best;
+	}
+
+	/** Exact 6DoF aim ray used by gravity tools for living targets and physical wrecks/assemblies. */
+	protected static Entity findPhysicsTarget(PlayerEntity user, double range) {
+		Vec3d start = user.getEyePos();
+		Vec3d end = start.add(WeaponCore.aimDir(user).normalize().multiply(range));
+		var block = user.getWorld().raycast(new RaycastContext(start, end,
+				RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, user));
+		if (block.getType() != HitResult.Type.MISS) end = block.getPos();
+		Entity best = null;
+		double bestDistance = Double.POSITIVE_INFINITY;
+		for (Entity entity : user.getWorld().getOtherEntities(user,
+				user.getBoundingBox().stretch(end.subtract(start)).expand(1),
+				candidate -> (candidate instanceof LivingEntity || candidate instanceof PhysicsTarget)
+						&& candidate.isAlive())) {
+			var hit = entity instanceof PhysicsTarget physics
+					? physics.physicsRaycast(start, end)
+					: entity.getBoundingBox().expand(.2).raycast(start, end);
+			if (hit.isEmpty()) continue;
+			double distance = start.squaredDistanceTo(hit.get());
+			if (distance < bestDistance) {
+				bestDistance = distance;
+				best = entity;
 			}
 		}
 		return best;
