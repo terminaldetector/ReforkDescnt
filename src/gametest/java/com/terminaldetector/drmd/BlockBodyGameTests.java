@@ -9,6 +9,9 @@ import net.minecraft.test.TestContext;
 import net.minecraft.block.Blocks;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+
+import java.util.UUID;
 
 public class BlockBodyGameTests implements FabricGameTest {
     @GameTest(templateName = EMPTY_STRUCTURE)
@@ -78,5 +81,27 @@ public class BlockBodyGameTests implements FabricGameTest {
         ctx.assertTrue(rejected && !body.isRemoved(),"body retained after obstructed landing");
         ctx.assertTrue(world.getBlockState(p).isOf(Blocks.OBSIDIAN),"terrain preserved");
         body.discard();ctx.complete();
+    }
+
+    @GameTest(templateName = EMPTY_STRUCTURE, tickLimit = 200)
+    public void localGravityPullsBodyOntoWall(TestContext ctx) {
+        var world=ctx.getWorld();BlockPos p=ctx.getAbsolutePos(new BlockPos(7,4,7));
+        BlockPos wall=p.west(3);world.setBlockState(wall,Blocks.OBSIDIAN.getDefaultState());
+        world.setBlockState(p,Blocks.IRON_BLOCK.getDefaultState());
+        var body=BlockBodyEntity.assemble(world,p,p);body.setPhysicsGravity(true);
+        UUID fieldId=new UUID(0x626f6479L,wall.asLong());
+        com.terminaldetector.drmd.world.gravity.GravityFields.put(
+            new com.terminaldetector.drmd.world.gravity.GravityFields.Field(fieldId,world.getRegistryKey(),wall,
+                new Vec3d(-1,0,0),8,1f,com.terminaldetector.drmd.world.gravity.FieldShape.SPHERE,"wall test",true));
+        double oldX=body.getX();
+        try {
+            for(int i=0;i<100;i++)body.tick();
+            ctx.assertTrue(body.getX()<oldX-1,"local gravity moved body sideways");
+            ctx.assertTrue(body.getX()>=wall.getX()+1.49,"body settled on wall face without tunnelling");
+            ctx.assertTrue(Math.abs(body.physics().linearVelocity().x())<.05,"wall contact cancelled inward velocity");
+        } finally {
+            com.terminaldetector.drmd.world.gravity.GravityFields.remove(fieldId);body.discard();
+        }
+        ctx.complete();
     }
 }

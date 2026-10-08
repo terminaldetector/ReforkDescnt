@@ -6,6 +6,7 @@ import com.terminaldetector.drmd.d6.*;
 import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.vendor.immptl.ImmPtlAARotation;
 import com.terminaldetector.drmd.world.cubic.CubicBlockCodec;
+import com.terminaldetector.drmd.world.gravity.GravityFields;
 import net.minecraft.block.*;
 import net.minecraft.entity.*;
 import net.minecraft.entity.data.*;
@@ -203,9 +204,10 @@ public final class BlockBodyEntity extends Entity {
         int steps = Math.max(1, Math.min(32, (int)Math.ceil((20 + 2*radius) * .05 / .15)));
         for (int step = 0; step < steps; step++) {
             Vec3 before = body.position(); Quat rotation = body.rotation();
-            if(gravity)body.applyForce(new Vec3(0,-9.81*body.mass(),0));
+            Vec3 gravityDown = gravityDirection();
+            if(gravity)body.applyForce(gravityDown.scaled(9.81*body.mass()));
             body.step(.05 / steps);
-            if (blocked() && !(gravity && groundContacts(before,rotation))) {
+            if (blocked() && !(gravity && gravityContacts(before,rotation,gravityDown.scaled(-1)))) {
                 body.withPosition(before).withRotation(rotation)
                     .withLinearVelocity(new Vec3(0,0,0)).withAngularMomentum(new Vec3(0,0,0));
                 break;
@@ -217,33 +219,78 @@ public final class BlockBodyEntity extends Entity {
         dataTracker.set(POSE, pose()); velocityModified = true;
     }
 
+    /** A falling assembly follows station gravity, but remains ordinary world-gravity debris outside it. */
+    private Vec3 gravityDirection() {
+        if (!gravity) return new Vec3(0,-1,0);
+        GravityFields.Sample field = GravityFields.sample(getWorld(), getPos());
+        if (field == null || field.strength() < .05f || field.downDir().lengthSquared() < 1e-10)
+            return new Vec3(0,-1,0);
+        Vec3d down = field.downDir().normalize();
+        return new Vec3(down.x,down.y,down.z);
+    }
+
     private List<Vec3> corners(Cell cell,Vec3 position,Quat rotation) {
         var result=new ArrayList<Vec3>(8);
         for(int x=0;x<=1;x++)for(int y=0;y<=1;y++)for(int z=0;z<=1;z++)
             result.add(rotation.rotate(new Vec3(cell.pos.getX()+x,cell.pos.getY()+y,cell.pos.getZ()+z).minus(centre)).plus(position));
         return result;
     }
-    /** Floor support transfers impulse at contacts; it does not freeze the body's rotation. */
-    private boolean groundContacts(Vec3 before,Quat previous) {
+    /**
+     * The local-gravity floor may be a world floor, wall or ceiling. Resolve against the cardinal
+     * face most aligned with local UP, transfer point impulses there and keep tangential motion.
+     */
+    private boolean gravityContacts(Vec3 before,Quat previous,Vec3 up) {
+        if (up.lengthSquared()<1e-10) return false;
+        up=up.scaled(1/up.length());
+        int axis=dominantAxis(up);double sign=component(up,axis)>=0?1:-1;
+        Vec3 normal=axisVector(axis,sign);
         List<Vec3> contacts=new ArrayList<>();double lift=0;
         for(Cell cell:cells) {
             Box bounds=box(cell);
-            double previousBottom=corners(cell,before,previous).stream().mapToDouble(Vec3::y).min().orElseThrow();
+            List<Vec3> oldCorners=corners(cell,before,previous);
+            double previousNear=sign>0
+                ? oldCorners.stream().mapToDouble(p->component(p,axis)).min().orElseThrow()
+                : oldCorners.stream().mapToDouble(p->component(p,axis)).max().orElseThrow();
+            List<Vec3> currentCorners=corners(cell,body.position(),body.rotation());
             for(var shape:getWorld().getBlockCollisions(this,bounds.contract(1e-6))) {
                 Box obstacle=shape.getBoundingBox();
-                if(obstacle.maxY>previousBottom+.06 || obstacle.minY>=bounds.minY)return false;
-                lift=Math.max(lift,obstacle.maxY-bounds.minY);
-                for(Vec3 corner:corners(cell,body.position(),body.rotation()))
-                    if(corner.y()<=obstacle.maxY+.001 && corner.x()>=obstacle.minX-1e-6 && corner.x()<=obstacle.maxX+1e-6
-                        && corner.z()>=obstacle.minZ-1e-6 && corner.z()<=obstacle.maxZ+1e-6)
-                        contacts.add(new Vec3(corner.x(),obstacle.maxY,corner.z()));
+                double surface=sign>0?boxMax(obstacle,axis):boxMin(obstacle,axis);
+                double currentNear=sign>0?boxMin(bounds,axis):boxMax(bounds,axis);
+                double penetration=sign>0?surface-currentNear:currentNear-surface;
+                // A side impact or a body already deep inside terrain is not a gravity support.
+                if((sign>0 && previousNear<surface-.06)||(sign<0 && previousNear>surface+.06)
+                    || penetration<0 || penetration>.2)return false;
+                lift=Math.max(lift,penetration);
+                for(Vec3 corner:currentCorners) {
+                    double near=component(corner,axis);
+                    if((sign>0?near<=surface+.001:near>=surface-.001) && insideTangents(corner,obstacle,axis))
+                        contacts.add(withComponent(corner,axis,surface));
+                }
             }
         }
         if(contacts.isEmpty() || lift>.2)return false;
-        body.withPosition(body.position().plus(new Vec3(0,Math.max(0,lift)+1e-6,0)));
+        body.withPosition(body.position().plus(normal.scaled(Math.max(0,lift)+1e-6)));
         for(int pass=0;pass<4;pass++)for(Vec3 point:contacts)
-            body.contactImpulse(point.minus(body.position()),new Vec3(0,1,0),.65);
+            body.contactImpulse(point.minus(body.position()),normal,.65);
         return !blocked();
+    }
+    private static int dominantAxis(Vec3 v) {
+        double ax=Math.abs(v.x()),ay=Math.abs(v.y()),az=Math.abs(v.z());
+        return ax>=ay&&ax>=az?0:ay>=az?1:2;
+    }
+    private static Vec3 axisVector(int axis,double value) {
+        return axis==0?new Vec3(value,0,0):axis==1?new Vec3(0,value,0):new Vec3(0,0,value);
+    }
+    private static double component(Vec3 v,int axis) {return axis==0?v.x():axis==1?v.y():v.z();}
+    private static Vec3 withComponent(Vec3 v,int axis,double value) {
+        return axis==0?new Vec3(value,v.y(),v.z()):axis==1?new Vec3(v.x(),value,v.z()):new Vec3(v.x(),v.y(),value);
+    }
+    private static double boxMin(Box b,int axis) {return axis==0?b.minX:axis==1?b.minY:b.minZ;}
+    private static double boxMax(Box b,int axis) {return axis==0?b.maxX:axis==1?b.maxY:b.maxZ;}
+    private static boolean insideTangents(Vec3 p,Box b,int axis) {
+        return (axis==0||(p.x()>=b.minX-1e-6&&p.x()<=b.maxX+1e-6))
+            && (axis==1||(p.y()>=b.minY-1e-6&&p.y()<=b.maxY+1e-6))
+            && (axis==2||(p.z()>=b.minZ-1e-6&&p.z()<=b.maxZ+1e-6));
     }
     /** Ray tests local occupied cubes, so hollow space in a body's broadphase remains passable. */
     public Optional<Vec3d> raycast(Vec3d start,Vec3d end) {

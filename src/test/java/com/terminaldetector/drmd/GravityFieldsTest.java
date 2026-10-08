@@ -53,4 +53,22 @@ class GravityFieldsTest {
 		assertEquals(0, field.influenceAt(new Vec3d(0.5, 0.5 + 8, 0.5)), 1e-9);
 	}
 
+	@Test
+	@DisplayName("equal opposing fields keep a finite deterministic direction")
+	void opposingFieldsNeverProduceZeroDirection() {
+		UUID first = new UUID(0, 1);
+		UUID second = new UUID(0, 2);
+		GravityFields.put(new GravityFields.Field(second, WORLD_A, BlockPos.ORIGIN,
+				new Vec3d(1, 0, 0), 8, 1f, FieldShape.SPHERE, "second"));
+		GravityFields.put(new GravityFields.Field(first, WORLD_A, BlockPos.ORIGIN,
+				new Vec3d(-1, 0, 0), 8, 1f, FieldShape.SPHERE, "first"));
+		GravityFields.Sample sample = GravityFields.sample(WORLD_A, new Vec3d(0.5, 0.5, 0.5));
+		assertNotNull(sample);
+		assertEquals(1, sample.downDir().length(), 1e-9);
+		assertEquals(-1, sample.downDir().x, 1e-9, "smaller UUID wins an exact tie");
+		assertEquals(0, sample.downDir().y, 1e-9);
+		assertEquals(0, sample.downDir().z, 1e-9);
+		assertEquals("first", sample.label());
+	}
+
 }

@@ -95,6 +95,9 @@ public final class GravityFields {
 		Vec3d sumDir = Vec3d.ZERO;
 		double weight = 0;
 		float maxPower = 0;
+		double dominantWeight = -1;
+		UUID dominantId = null;
+		Vec3d dominantDir = null;
 		String dominant = null;
 		for (Field f : FIELDS.values()) {
 			// Fields live in one map but belong to one world each: without this a torch bolted to a
@@ -104,13 +107,25 @@ public final class GravityFields {
 			if (w <= 1e-4) continue;
 			sumDir = sumDir.add(f.downDir().normalize().multiply(w));
 			weight += w;
-			if (f.power() >= maxPower) {
-				maxPower = f.power();
+			maxPower = Math.max(maxPower, f.power());
+			// ConcurrentHashMap iteration has no stable order. Pick the strongest influence at this
+			// point, and use the UUID as a deterministic tie-break, so overlapping equal fields do
+			// not make labels and fallback direction flicker from tick to tick.
+			if (w > dominantWeight || (Math.abs(w - dominantWeight) < 1e-9
+					&& (dominantId == null || f.id().compareTo(dominantId) < 0))) {
+				dominantWeight = w;
+				dominantId = f.id();
+				dominantDir = f.downDir().normalize();
 				dominant = f.label();
 			}
 		}
 		if (weight < 1e-4) return null;
-		return new Sample(sumDir.normalize(), (float) Math.min(2.0, weight), maxPower, dominant);
+		// Equal opposing fields can cancel exactly. A zero gravity direction poisons every later
+		// normalization and used to leave entities in an undefined orientation. In that singular
+		// point, keep the deterministic dominant field's direction instead.
+		Vec3d down = sumDir.lengthSquared() > 1e-10 ? sumDir.normalize() : dominantDir;
+		if (down == null || down.lengthSquared() < 1e-10) return null;
+		return new Sample(down, (float) Math.min(2.0, weight), maxPower, dominant);
 	}
 
 	public record Sample(Vec3d downDir, float strength, float maxPower, String label) {
