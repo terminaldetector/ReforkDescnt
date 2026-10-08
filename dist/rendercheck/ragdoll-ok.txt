@@ -1,0 +1,1 @@
+Drone death spawned one networked five-part ragdoll; articulated renderer survived flight and terrain contact.
