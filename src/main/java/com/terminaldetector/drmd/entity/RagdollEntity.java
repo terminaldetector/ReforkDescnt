@@ -388,6 +388,30 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	}
 
 	@Override
+	public Optional<Vec3d> physicsLongAxis() {
+		if (simulation.parts().isEmpty()) return Optional.empty();
+		RagdollSimulation.Part core = simulation.parts().get(0);
+		Vec3 half = core.segment().halfExtents();
+		Vec3 local = half.x() >= half.y() && half.x() >= half.z() ? new Vec3(1, 0, 0)
+				: half.y() >= half.z() ? new Vec3(0, 1, 0) : new Vec3(0, 0, 1);
+		return Optional.of(toMinecraft(core.body().rotation().rotate(local)));
+	}
+
+	@Override
+	public Vec3d physicsAngularVelocity() {
+		if (simulation.parts().isEmpty()) return Vec3d.ZERO;
+		return toMinecraft(simulation.parts().get(0).body().angularVelocity());
+	}
+
+	@Override
+	public void applyPhysicsTorque(Vec3d torque) {
+		if (getWorld().isClient || simulation.parts().isEmpty() || !finite(torque)) return;
+		simulation.parts().get(0).body().applyTorque(pure(torque));
+		dataTracker.set(POSE, trackedPose());
+		velocityModified = true;
+	}
+
+	@Override
 	public boolean canHit() {
 		return true;
 	}

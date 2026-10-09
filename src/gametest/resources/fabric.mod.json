@@ -9,7 +9,9 @@
       "com.terminaldetector.drmd.BlockBodyGameTests",
       "com.terminaldetector.drmd.MicroDamageGameTests",
       "com.terminaldetector.drmd.HybridTerrainGameTests",
-      "com.terminaldetector.drmd.CollapseGameTests"
+      "com.terminaldetector.drmd.CollapseGameTests",
+      "com.terminaldetector.drmd.RagdollGameTests",
+      "com.terminaldetector.drmd.GravityWeaponGameTests"
     ]
   },
   "depends": {

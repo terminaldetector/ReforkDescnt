@@ -25,4 +25,23 @@ public interface PhysicsTarget {
 
 	/** Total inertial mass used by hold springs and throw tools. */
 	double physicsMass();
+
+	/**
+	 * Dominant world-space axis, when the body has one.
+	 *
+	 * <p>The heavy gravity rail uses this to point a log, column or articulated wreck down the
+	 * launch corridor. A spherical or purely translational adapter can keep the default.</p>
+	 */
+	default Optional<Vec3d> physicsLongAxis() {
+		return Optional.empty();
+	}
+
+	/** Aggregate angular velocity in radians per second. */
+	default Vec3d physicsAngularVelocity() {
+		return Vec3d.ZERO;
+	}
+
+	/** Apply a world-space torque. Translational-only adapters may ignore it. */
+	default void applyPhysicsTorque(Vec3d torque) {
+	}
 }

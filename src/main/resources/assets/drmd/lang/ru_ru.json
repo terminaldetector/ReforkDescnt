@@ -240,5 +240,15 @@
   "options.drmd.settings.section.world_view": "Небо и обзор поверхности",
   "options.drmd.settings.section.portals": "Порталы и отклик движения",
   "options.drmd.settings.section.flight": "Ощущение полёта",
-  "options.drmd.settings.section.tools": "Корабль и инструменты"
+  "options.drmd.settings.section.tools": "Корабль и инструменты",
+  "item.drmd.weapon_d6_gravy_railgun": "Грави-рельса",
+  "item.drmd.weapon_d6_gravity_swarm": "Роевой гравизахват",
+  "item.drmd.weapon_d6_gravity_shifter": "Гравитационный метатель",
+  "message.drmd.gravity_captured": "Гравизахват: целей — %s",
+  "tooltip.drmd.gravity_swarm.1": "Собирает до 8 лёгких целей в 6DoF-формацию",
+  "tooltip.drmd.gravity_swarm.2": "Повторное применение бросает весь залп",
+  "tooltip.drmd.gravity_rail.1": "Держит одно тяжёлое тело и выравнивает длинную ось",
+  "tooltip.drmd.gravity_rail.2": "Повторное применение даёт мощный импульс",
+  "tooltip.drmd.gravity_shift.1": "Бросает цель вдоль нового направления локальной гравитации",
+  "tooltip.drmd.gravity_shift.2": "Без цели ставит на поверхности поле на 8 секунд"
 }

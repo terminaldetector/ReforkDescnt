@@ -93,6 +93,8 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.store.SurfaceIngest.close();
 			com.terminaldetector.drmd.world.cubic.CubicWorldSystem.close();
 			com.terminaldetector.drmd.world.portal.PortalTravel.clear();
+			com.terminaldetector.drmd.physics.GravyPhysics.clear();
+			com.terminaldetector.drmd.world.gravity.TransientGravityFields.clear();
 			DescentPlayerData.clear();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
 		});
@@ -108,6 +110,8 @@ public class DescentMod implements ModInitializer {
 			}
 			DescentPlayerData.clear();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
+			com.terminaldetector.drmd.physics.GravyPhysics.clear();
+			com.terminaldetector.drmd.world.gravity.TransientGravityFields.clear();
 			ConstructionRegistry.bootstrap(server);
 			com.terminaldetector.drmd.world.gen2.MacroWorld.clear();
 			com.terminaldetector.drmd.world.gravity.GravityFields.clear();
@@ -151,6 +155,7 @@ public class DescentMod implements ModInitializer {
 			// single figure for "the mod" could not say which to look at. See DiagServerTick.
 			long worldStart = com.terminaldetector.drmd.diag.DiagServerTick.begin();
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.tick();
+			com.terminaldetector.drmd.world.gravity.TransientGravityFields.tick(server);
 			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.tick(server);
 			com.terminaldetector.drmd.world.trap.MagneticAnomalySystem.tick(server);
 			com.terminaldetector.drmd.world.base.DescentSession.drainSeedQueue(server);
@@ -184,11 +189,14 @@ public class DescentMod implements ModInitializer {
 					FlightSystem.tick(player, data);
 					EnergySystem.regenTick(player, data);
 					ShieldSystem.regenTick(player, data);
-					com.terminaldetector.drmd.physics.GravyPhysics.tick(player);
 					com.terminaldetector.drmd.pickup.LootField.tick(player, data);
 				} else {
 					com.terminaldetector.drmd.world.gravity.FootGravitySystem.tick(player);
 				}
+				// Gravity tools are hand-held physical manipulators, not a 6DoF-flight subsystem.
+				// Keeping this outside the flight branch makes a landed pilot retain the captured body.
+				EnergySystem.regenGravityTick(data);
+				com.terminaldetector.drmd.physics.GravyPhysics.tick(player);
 				if (tick % 20 == player.getId() % 20) {
 					var pos = player.getBlockPos();
 					com.terminaldetector.drmd.world.atmosphere.AtmosphereRules.tickWaterSuppression(
@@ -224,6 +232,7 @@ public class DescentMod implements ModInitializer {
 		});
 
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+			com.terminaldetector.drmd.physics.GravyPhysics.release(handler.player);
 			com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid());
 			com.terminaldetector.drmd.world.store.SurfaceStreamer.forget(handler.player.getUuid());
 		});

@@ -31,6 +31,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private final D6PhysicsBody body = new D6PhysicsBody().withLimits(20, 2);
     private Quat previousRotation = Quat.IDENTITY;
     private double radius = .5;
+    private Vec3 longAxis = new Vec3(0, 1, 0);
     private boolean gravity;
     public void setPhysicsGravity(boolean value) {gravity=value;dataTracker.set(POSE,pose());}
     public boolean physicsGravity() {return gravity;}
@@ -69,6 +70,14 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             }
         }
         cells = List.copyOf(next); centre = mass.centreOfMass(); body.withMassProperties(mass);
+        int minX=Integer.MAX_VALUE,minY=Integer.MAX_VALUE,minZ=Integer.MAX_VALUE;
+        int maxX=Integer.MIN_VALUE,maxY=Integer.MIN_VALUE,maxZ=Integer.MIN_VALUE;
+        for(Cell c:cells) {
+            minX=Math.min(minX,c.pos.getX());minY=Math.min(minY,c.pos.getY());minZ=Math.min(minZ,c.pos.getZ());
+            maxX=Math.max(maxX,c.pos.getX());maxY=Math.max(maxY,c.pos.getY());maxZ=Math.max(maxZ,c.pos.getZ());
+        }
+        int sx=cells.isEmpty()?1:maxX-minX+1,sy=cells.isEmpty()?1:maxY-minY+1,sz=cells.isEmpty()?1:maxZ-minZ+1;
+        longAxis=sx>=sy&&sx>=sz?new Vec3(1,0,0):sy>=sz?new Vec3(0,1,0):new Vec3(0,0,1);
         radius = .5;
         for (Cell c : cells) radius = Math.max(radius,
             new Vec3(c.pos.getX() + .5, c.pos.getY() + .5, c.pos.getZ() + .5).minus(centre).length() + Math.sqrt(3) / 2);
@@ -317,6 +326,17 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         Vec3 velocity=body.linearVelocity();return new Vec3d(velocity.x(),velocity.y(),velocity.z());
     }
     @Override public double physicsMass() {return body.mass();}
+    @Override public Optional<Vec3d> physicsLongAxis() {
+        Vec3 axis=body.rotation().rotate(longAxis);
+        return Optional.of(new Vec3d(axis.x(),axis.y(),axis.z()));
+    }
+    @Override public Vec3d physicsAngularVelocity() {
+        Vec3 velocity=body.angularVelocity();return new Vec3d(velocity.x(),velocity.y(),velocity.z());
+    }
+    @Override public void applyPhysicsTorque(Vec3d torque) {
+        if(getWorld().isClient || !Double.isFinite(torque.lengthSquared()))return;
+        body.applyTorque(pure(torque));dataTracker.set(POSE,pose());velocityModified=true;
+    }
     public void weaponImpulse(Vec3d impact,Vec3d direction,float damage) {
         if(getWorld().isClient || !Float.isFinite(damage) || damage<=0 || !Double.isFinite(direction.lengthSquared()))return;
         applyPhysicsImpulse(impact,direction.normalize().multiply(Math.min(80,damage*.15)));

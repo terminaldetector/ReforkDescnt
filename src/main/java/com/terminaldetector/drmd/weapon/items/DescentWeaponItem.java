@@ -5,6 +5,7 @@ import com.terminaldetector.drmd.energy.EnergySystem;
 import com.terminaldetector.drmd.entity.PyroShipEntity;
 import com.terminaldetector.drmd.entity.ShipWeaponSlot;
 import com.terminaldetector.drmd.physics.PhysicsTarget;
+import com.terminaldetector.drmd.physics.GravyPhysics;
 import com.terminaldetector.drmd.weapon.core.DamageClass;
 import com.terminaldetector.drmd.weapon.core.DescentLaserFire;
 import com.terminaldetector.drmd.weapon.core.DescentMineFire;
@@ -29,6 +30,8 @@ import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  * Base DRMD weapon item — consumes shared energy and fires via WeaponCore.
@@ -111,8 +114,10 @@ public class DescentWeaponItem extends Item {
 
 		NbtWrite.lastFire(stack, now);
 		user.getItemCooldownManager().set(this, cdTicks);
+		boolean gravityTool = def.behavior.startsWith("gravity_") || "gravy".equals(def.behavior);
 		world.playSound(null, user.getX(), user.getY(), user.getZ(),
-				SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH, SoundCategory.PLAYERS, 0.6f, 1.2f);
+				gravityTool ? SoundEvents.BLOCK_BEACON_POWER_SELECT : SoundEvents.ENTITY_FIREWORK_ROCKET_LAUNCH,
+				SoundCategory.PLAYERS, gravityTool ? 0.85f : 0.6f, gravityTool ? 0.72f : 1.2f);
 		return TypedActionResult.success(stack);
 	}
 
@@ -188,7 +193,9 @@ public class DescentWeaponItem extends Item {
 			case "shockwave" -> fireShockwave(user, data);
 			case "telefrag" -> fireTelefrag(user, data);
 			case "reactor" -> fireReactor(user, data);
-			case "gravy" -> fireGravy(user, data);
+			case "gravity_swarm" -> fireGravity(user, data, GravyPhysics.Mode.SWARM);
+			case "gravity_rail", "gravy" -> fireGravity(user, data, GravyPhysics.Mode.RAIL);
+			case "gravity_shift" -> fireGravity(user, data, GravyPhysics.Mode.SHIFT);
 			case "whiplash" -> fireWhiplash(user, data);
 			case "darklance" -> fireDarklance(user, data);
 			case "frag" -> fireFrag(user, data);
@@ -656,42 +663,79 @@ public class DescentWeaponItem extends Item {
 		return true;
 	}
 
-	protected boolean fireGravy(PlayerEntity user, DescentPlayerData data) {
-		if (!(user instanceof net.minecraft.server.network.ServerPlayerEntity sp)) return false;
-		// Toggle grab / fling — Havok-lite via GravyPhysics
-		if (com.terminaldetector.drmd.physics.GravyPhysics.isHolding(sp)) {
-			if (data.getGravyEnergy() < 10f) return false;
-			data.setGravyEnergy(data.getGravyEnergy() - 10f);
-			com.terminaldetector.drmd.physics.GravyPhysics.fling(sp, 2.8f);
-			data.setGravyGrabbing(false);
-			return true;
-		}
-		if (data.getGravyEnergy() < 15f) return false;
-		Entity look = findPhysicsTarget(user, 12);
-		if (look != null && look != user) {
-			float mass = look instanceof PhysicsTarget physics
-					? (float) physics.physicsMass()
-					: Math.max(0.4f, look.getWidth() * look.getHeight());
-			if (com.terminaldetector.drmd.physics.GravyPhysics.tryGrab(sp, look, mass)) {
-				data.setGravyEnergy(data.getGravyEnergy() - 15f);
-				data.setGravyGrabbing(true);
+	protected boolean fireGravity(PlayerEntity user, DescentPlayerData data, GravyPhysics.Mode mode) {
+		if (!(user instanceof net.minecraft.server.network.ServerPlayerEntity player)) return false;
+
+		if (GravyPhysics.isHolding(player)) {
+			if (GravyPhysics.activeMode(player).orElse(null) != mode) {
+				// Changing tool releases the old formation safely; a rail must never inherit a swarm's
+				// eight UUIDs just because both weapons share the same physical-target service.
+				GravyPhysics.release(player);
+			} else {
+				int held = GravyPhysics.heldCount(player);
+				float cost = gravityFlingCost(mode, held);
+				if (data.getGravyEnergy() < cost) return false;
+				int launched = GravyPhysics.fling(player);
+				if (launched <= 0) return false;
+				data.setGravyEnergy(data.getGravyEnergy() - cost);
 				return true;
 			}
 		}
-		// Fallback kinetic bolt when nothing to grab (prop-rail analogue)
-		if (data.getGravyEnergy() < 20f) return false;
-		data.setGravyEnergy(data.getGravyEnergy() - 20f);
-		WeaponCore.FireConfig cfg = baseCfg(user);
-		cfg.speed = 18000;
-		cfg.directDamage = 80;
-		cfg.pierceCount = 3;
-		cfg.dmgClass = DamageClass.EXOTIC;
-		cfg.recoil = 40;
-		cfg.life = 2f;
-		cfg.meshKind = com.terminaldetector.drmd.entity.ProjectileEntity.MESH_ORB;
-		cfg.visualScale = 0.7f;
-		WeaponCore.fireProjectile(cfg);
-		return true;
+
+		double range = mode == GravyPhysics.Mode.RAIL ? 24 : mode == GravyPhysics.Mode.SWARM ? 18 : 20;
+		List<Entity> candidates = mode == GravyPhysics.Mode.SWARM
+				? findPhysicsTargets(user, range, 16, 18)
+				: single(findPhysicsTarget(user, range));
+		int captured = GravyPhysics.tryGrab(player, mode, candidates);
+		if (captured > 0) {
+			float cost = gravityCaptureCost(mode, captured);
+			if (data.getGravyEnergy() < cost) {
+				GravyPhysics.release(player);
+				return false;
+			}
+			data.setGravyEnergy(data.getGravyEnergy() - cost);
+			player.sendMessage(Text.translatable("message.drmd.gravity_captured", captured), true);
+			return true;
+		}
+
+		// The field projector remains useful when no entity is under the reticle: plant a short-lived
+		// directional gravity volume on the surface instead of silently degrading into a generic bolt.
+		if (mode == GravyPhysics.Mode.SHIFT && user.getWorld() instanceof net.minecraft.server.world.ServerWorld world) {
+			float cost = 28f;
+			if (data.getGravyEnergy() < cost) return false;
+			Vec3d start = user.getEyePos();
+			Vec3d aim = WeaponCore.aimDir(user).normalize();
+			var hit = world.raycast(new RaycastContext(start, start.add(aim.multiply(range)),
+					RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, user));
+			if (hit.getType() == HitResult.Type.MISS) return false;
+			com.terminaldetector.drmd.world.gravity.TransientGravityFields.place(world,
+					hit.getPos().subtract(aim.multiply(.1)), aim, 10, 1.35f, 20 * 8, "Gravity throw");
+			world.spawnParticles(net.minecraft.particle.ParticleTypes.REVERSE_PORTAL,
+					hit.getPos().x, hit.getPos().y, hit.getPos().z, 32, .6, .6, .6, .08);
+			data.setGravyEnergy(data.getGravyEnergy() - cost);
+			return true;
+		}
+		return false;
+	}
+
+	private static float gravityCaptureCost(GravyPhysics.Mode mode, int count) {
+		return switch (mode) {
+			case SWARM -> 8f + Math.max(1, count) * 2.5f;
+			case RAIL -> 16f;
+			case SHIFT -> 20f;
+		};
+	}
+
+	private static float gravityFlingCost(GravyPhysics.Mode mode, int count) {
+		return switch (mode) {
+			case SWARM -> 4f + Math.max(1, count) * 1.5f;
+			case RAIL -> 12f;
+			case SHIFT -> 18f;
+		};
+	}
+
+	private static List<Entity> single(Entity entity) {
+		return entity == null ? List.of() : List.of(entity);
 	}
 
 	protected boolean fireWhiplash(PlayerEntity user, DescentPlayerData data) {
@@ -868,8 +912,7 @@ public class DescentWeaponItem extends Item {
 		double bestDistance = Double.POSITIVE_INFINITY;
 		for (Entity entity : user.getWorld().getOtherEntities(user,
 				user.getBoundingBox().stretch(end.subtract(start)).expand(1),
-				candidate -> (candidate instanceof LivingEntity || candidate instanceof PhysicsTarget)
-						&& candidate.isAlive())) {
+				GravyPhysics::canGrab)) {
 			var hit = entity instanceof PhysicsTarget physics
 					? physics.physicsRaycast(start, end)
 					: entity.getBoundingBox().expand(.2).raycast(start, end);
@@ -883,6 +926,37 @@ public class DescentWeaponItem extends Item {
 		return best;
 	}
 
+	/**
+	 * Nearest-angle-first cone for the swarm manipulator. Each candidate gets an independent block
+	 * occlusion ray; a single wall hit therefore cannot truncate the whole fan at its centre line.
+	 * Count and mass are still enforced by {@link GravyPhysics}, which is the server authority.
+	 */
+	protected static List<Entity> findPhysicsTargets(PlayerEntity user, double range,
+											  double coneDegrees, int scanLimit) {
+		record Scored(Entity entity, double score) {}
+		Vec3d start = user.getEyePos();
+		Vec3d aim = WeaponCore.aimDir(user).normalize();
+		double minimumDot = Math.cos(Math.toRadians(coneDegrees));
+		List<Scored> scored = new ArrayList<>();
+		for (Entity entity : user.getWorld().getOtherEntities(user,
+				user.getBoundingBox().expand(range), GravyPhysics::canGrab)) {
+			Vec3d centre = entity instanceof PhysicsTarget ? entity.getPos() : entity.getBoundingBox().getCenter();
+			Vec3d delta = centre.subtract(start);
+			double distance = delta.length();
+			if (distance < .1 || distance > range) continue;
+			double dot = delta.multiply(1.0 / distance).dotProduct(aim);
+			if (dot < minimumDot) continue;
+			var block = user.getWorld().raycast(new RaycastContext(start, centre,
+					RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, user));
+			if (block.getType() != HitResult.Type.MISS
+					&& start.squaredDistanceTo(block.getPos()) + .04 < start.squaredDistanceTo(centre)) continue;
+			// Angle dominates, distance breaks near-equal reticle scores.
+			scored.add(new Scored(entity, (1 - dot) * range * 4 + distance));
+		}
+		scored.sort(Comparator.comparingDouble(Scored::score));
+		return scored.stream().limit(Math.max(1, scanLimit)).map(Scored::entity).toList();
+	}
+
 	@Override
 	public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
 		super.appendTooltip(stack, context, tooltip, type);
@@ -892,6 +966,15 @@ public class DescentWeaponItem extends Item {
 			tooltip.add(Text.literal("Energy/shot: " + DescentLaserFire.primaryEnergy(lvl)));
 		} else if ("quad_laser".equals(def.behavior) || "mega_laser".equals(def.behavior)) {
 			tooltip.add(Text.literal("Descent bolts from weapon modules (converge)"));
+		} else if ("gravity_swarm".equals(def.behavior)) {
+			tooltip.add(Text.translatable("tooltip.drmd.gravity_swarm.1"));
+			tooltip.add(Text.translatable("tooltip.drmd.gravity_swarm.2"));
+		} else if ("gravity_rail".equals(def.behavior) || "gravy".equals(def.behavior)) {
+			tooltip.add(Text.translatable("tooltip.drmd.gravity_rail.1"));
+			tooltip.add(Text.translatable("tooltip.drmd.gravity_rail.2"));
+		} else if ("gravity_shift".equals(def.behavior)) {
+			tooltip.add(Text.translatable("tooltip.drmd.gravity_shift.1"));
+			tooltip.add(Text.translatable("tooltip.drmd.gravity_shift.2"));
 		}
 	}
 

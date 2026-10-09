@@ -88,6 +88,9 @@ public final class DefaultLayouts {
 		BUILTIN.put("bfg", layout("nosegun", 1.70f, "nosegun", 1.70f, "gravy", GF, GU, GS));
 		BUILTIN.put("beam_lance", layout("nosegun", 1.60f, "nosegun", 1.60f, "gravy", GF, GU, GS));
 		BUILTIN.put("warp", layoutPair("nosegun", 1.20f, "strider", SF, SU, SS));
+		BUILTIN.put("gravity_swarm", layout("gravy", .82f, "gravy", .82f, "gravy", GF, GU, 1.05f));
+		BUILTIN.put("gravy_railgun", layout("barrel", 1.00f, "barrel", 1.00f, "gravy", GFR, GUR, GS));
+		BUILTIN.put("gravity_shift", layoutPair("nosegun", 1.15f, "gravy", GF, GU, 1.35f));
 		// Legacy aliases
 		BUILTIN.put("mg", BUILTIN.get("gatling"));
 		BUILTIN.put("flak", BUILTIN.get("spread"));
@@ -105,7 +108,6 @@ public final class DefaultLayouts {
 		BUILTIN.put("energytrap", BUILTIN.get("mine_energy"));
 		BUILTIN.put("darkfield", BUILTIN.get("mine_smart"));
 		BUILTIN.put("heavy", layout("nosegun", 1.70f, "barrel", 1.05f, "gravy", GF, GU, GS));
-		BUILTIN.put("gravy_railgun", layout("barrel", 1.00f, "barrel", 1.00f, "gravy", GFR, GUR, GS));
 		BUILTIN.put("railmk2", layout("nosegun", 1.40f, "barrel", 1.00f, "strider", 25, -12, 0.65f));
 		BUILTIN.put("telefrag", layoutPair("barrel", 0.80f, null, 0, 0, 0));
 		BUILTIN.put("whiplash", layoutPair("barrel", 0.90f, "gravy", GF, GU, GS));

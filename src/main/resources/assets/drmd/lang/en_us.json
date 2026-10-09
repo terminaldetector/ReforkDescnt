@@ -34,7 +34,9 @@
   "item.drmd.weapon_d6_heavy": "Heavy (retired)",
   "item.drmd.weapon_d6_laser": "Laser",
   "item.drmd.weapon_d6_rockets": "Dual Rockets",
-  "item.drmd.weapon_d6_gravy_railgun": "Gravy Rail (retired)",
+  "item.drmd.weapon_d6_gravy_railgun": "Gravity Rail",
+  "item.drmd.weapon_d6_gravity_swarm": "Swarm Gravity Driver",
+  "item.drmd.weapon_d6_gravity_shifter": "Gravity Shifter",
   "item.drmd.weapon_d6_vulcan": "Vulcan",
   "item.drmd.weapon_d6_flak": "Spreadfire",
   "item.drmd.weapon_d6_homing": "Homing Missile",
@@ -277,5 +279,12 @@
   "options.drmd.settings.section.world_view": "Sky and terrain view",
   "options.drmd.settings.section.portals": "Portals and motion feedback",
   "options.drmd.settings.section.flight": "Flight feel",
-  "options.drmd.settings.section.tools": "Ship and tools"
+  "options.drmd.settings.section.tools": "Ship and tools",
+  "message.drmd.gravity_captured": "Gravity lock: %s target(s)",
+  "tooltip.drmd.gravity_swarm.1": "Locks up to 8 light targets in a 6DoF formation",
+  "tooltip.drmd.gravity_swarm.2": "Use again to launch the whole volley",
+  "tooltip.drmd.gravity_rail.1": "Holds one heavy physical body and aligns its long axis",
+  "tooltip.drmd.gravity_rail.2": "Use again for a high-momentum launch",
+  "tooltip.drmd.gravity_shift.1": "Throws a target along a new local gravity direction",
+  "tooltip.drmd.gravity_shift.2": "Aim at terrain with no target to place an 8 s field"
 }

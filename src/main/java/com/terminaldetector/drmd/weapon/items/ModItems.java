@@ -62,6 +62,8 @@ public final class ModItems {
 	public static Item BFG;
 	public static Item BEAM_LANCE;
 	public static Item WARP;
+	public static Item GRAVITY_SWARM;
+	public static Item GRAVITY_SHIFTER;
 
 	public static Item SHIELD_ORB;
 	public static Item ENERGY_ORB_PICKUP;
@@ -203,10 +205,12 @@ public final class ModItems {
 		BEAM_LANCE = wep("weapon_d6_shockwave", new WeaponDef("beam_lance", "Лучевой снаряд", "unique", 40f, 1.6f, 160f, 80f, 200f, 2800f, 40f, DamageClass.ENERGY, "beam_lance"));
 		SHOCKWAVE = BEAM_LANCE;
 		WARP = wep("weapon_d6_warp", new WeaponDef("warp", "Телепорт", "unique", 30f, 2.5f, 100f, 0f, 200f, 0f, 0f, DamageClass.EXOTIC, "warp"));
+		GRAVITY_SWARM = wep("weapon_d6_gravity_swarm", new WeaponDef("gravity_swarm", "Роевой гравизахват", "unique", 0f, 0.25f, 0f, 0f, 0f, 0f, 0f, DamageClass.EXOTIC, "gravity_swarm"));
+		GRAVY_RAILGUN = wep("weapon_d6_gravy_railgun", new WeaponDef("gravy_railgun", "Грави-рельса", "unique", 0f, 0.3f, 0f, 0f, 0f, 0f, 0f, DamageClass.EXOTIC, "gravity_rail"));
+		GRAVITY_SHIFTER = wep("weapon_d6_gravity_shifter", new WeaponDef("gravity_shift", "Гравитационный метатель", "unique", 0f, 0.35f, 0f, 0f, 0f, 0f, 0f, DamageClass.EXOTIC, "gravity_shift"));
 
 		// --- Retired placeholders (still registered, hidden from creative) ---
 		HEAVY = wep("weapon_d6_heavy", new WeaponDef("heavy", "Тяжёлый (retired)", "retired", 18f, 1.1f, 80f, 60f, 220f, 1100f, 160f, DamageClass.EXPLOSIVE, "basic"));
-		GRAVY_RAILGUN = wep("weapon_d6_gravy_railgun", new WeaponDef("gravy_railgun", "Грави-Рельса (retired)", "retired", 0f, 0.3f, 0f, 0f, 0f, 18000f, 0f, DamageClass.EXOTIC, "gravy"));
 		RAILMK2 = wep("weapon_d6_railmk2", new WeaponDef("railmk2", "Рельса МК2 (retired)", "retired", 18f, 0.6f, 120f, 0f, 0f, 8000f, 80f, DamageClass.KINETIC, "rail"));
 		REACTOR = wep("weapon_d6_reactor", new WeaponDef("reactor", "Реактор (retired)", "retired", 30f, 15.0f, 300f, 300f, 600f, 600f, 0f, DamageClass.EXPLOSIVE, "reactor"));
 		TELEFRAG = wep("weapon_d6_telefrag", new WeaponDef("telefrag", "Телефраг (retired)", "retired", 50f, 5.0f, 1000f, 0f, 140f, 0f, 0f, DamageClass.EXOTIC, "telefrag"));
