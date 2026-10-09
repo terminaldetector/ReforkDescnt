@@ -337,6 +337,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         if(getWorld().isClient || !Double.isFinite(torque.lengthSquared()))return;
         body.applyTorque(pure(torque));dataTracker.set(POSE,pose());velocityModified=true;
     }
+    @Override public void enablePhysicsGravity() {setPhysicsGravity(true);}
     public void weaponImpulse(Vec3d impact,Vec3d direction,float damage) {
         if(getWorld().isClient || !Float.isFinite(damage) || damage<=0 || !Double.isFinite(direction.lengthSquared()))return;
         applyPhysicsImpulse(impact,direction.normalize().multiply(Math.min(80,damage*.15)));

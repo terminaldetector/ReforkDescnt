@@ -212,6 +212,7 @@ public final class GravyPhysics {
 			impulse = clampVector(impulse, held.mass() * grab.mode().launchSpeed() * 1.5);
 			applyImpulse(target, centreOf(target), impulse, held.mass());
 			if (grab.mode() == Mode.SHIFT) {
+				if (target instanceof PhysicsTarget physics) physics.enablePhysicsGravity();
 				TransientGravityFields.attach(world, target, direction, grab.mode().fieldRadius,
 						1.35f, grab.mode().fieldTicks, "Gravity throw");
 			}

@@ -58,8 +58,10 @@ public final class RagdollGameTests implements FabricGameTest {
 		try {
 			for (int tick = 0; tick < 120; tick++) ragdoll.tick();
 			context.assertTrue(ragdoll.getX() < startX - 1, "local gravity moved the wreck sideways");
-			context.assertTrue(ragdoll.partBounds().stream().allMatch(box -> box.minX >= wall.getX() + 1 - .025),
-					"segments settled against the wall instead of tunnelling through it");
+			double minimumX = ragdoll.partBounds().stream().mapToDouble(box -> box.minX).min().orElseThrow();
+			context.assertTrue(minimumX >= wall.getX() + 1 - .025,
+					"segments settled against the wall instead of tunnelling through it; minX=" + minimumX
+							+ " wallFace=" + (wall.getX() + 1));
 		} finally {
 			GravityFields.remove(fieldId);
 			ragdoll.discard();

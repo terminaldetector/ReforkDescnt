@@ -136,13 +136,23 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 				Push candidate = minimumPush(bounds, obstacle);
 				if (candidate != null && (best == null || candidate.depth() < best.depth())) best = candidate;
 			}
-			if (best == null) return;
+			if (best == null) break;
 
 			Vec3 normal = best.normal();
 			part.body().withPosition(part.body().position().plus(normal.scaled(best.depth() + CONTACT_EPSILON)));
 			double support = projectionRadius(part, normal);
 			Vec3 contactOffset = normal.scaled(-support);
 			part.body().contactImpulse(contactOffset, normal, .72);
+		}
+
+		// A joint correction is positional, not velocity-limited. A spar can therefore be pulled from
+		// one side of a one-block wall to the other between the two overlap checks and appear clear at
+		// both ends. Catch that swept crossing and return to the last known-safe constraint pose.
+		if (sweptThroughTerrain(part, fallbackPosition)) {
+			part.body().withPosition(fallbackPosition)
+					.withLinearVelocity(new Vec3(0, 0, 0))
+					.withAngularMomentum(new Vec3(0, 0, 0));
+			return;
 		}
 
 		// Constraint correction can occasionally wedge a conservative OBB broadphase into a corner.
@@ -152,6 +162,46 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 					.withLinearVelocity(new Vec3(0, 0, 0))
 					.withAngularMomentum(new Vec3(0, 0, 0));
 		}
+	}
+
+	private boolean sweptThroughTerrain(RagdollSimulation.Part part, Vec3 fallbackPosition) {
+		Vec3 currentPosition = part.body().position();
+		if (currentPosition.minus(fallbackPosition).lengthSquared() < 1.0e-10) return false;
+		Box start = partBox(part.segment(), fallbackPosition, part.body().rotation());
+		Box end = partBox(part);
+		Box sweep = union(start, end).expand(1.0e-6);
+		Vec3d from = toMinecraft(fallbackPosition);
+		Vec3d to = toMinecraft(currentPosition);
+		double halfX = (end.maxX - end.minX) * .5;
+		double halfY = (end.maxY - end.minY) * .5;
+		double halfZ = (end.maxZ - end.minZ) * .5;
+		for (var shape : getWorld().getBlockCollisions(this, sweep)) {
+			Box obstacle = shape.getBoundingBox();
+			if (crossedWholeObstacle(start, end, obstacle)) return true;
+			Box expanded = new Box(obstacle.minX - halfX, obstacle.minY - halfY, obstacle.minZ - halfZ,
+					obstacle.maxX + halfX, obstacle.maxY + halfY, obstacle.maxZ + halfZ);
+			if (containsInclusive(expanded, from)) continue;
+			Optional<Vec3d> hit = expanded.raycast(from, to);
+			if (hit.isPresent() && hit.get().squaredDistanceTo(to) > 1.0e-8) return true;
+		}
+		return false;
+	}
+
+	private static boolean crossedWholeObstacle(Box start, Box end, Box obstacle) {
+		double epsilon = 1.0e-6;
+		return start.minX >= obstacle.maxX - epsilon && end.maxX <= obstacle.minX + epsilon
+				|| start.maxX <= obstacle.minX + epsilon && end.minX >= obstacle.maxX - epsilon
+				|| start.minY >= obstacle.maxY - epsilon && end.maxY <= obstacle.minY + epsilon
+				|| start.maxY <= obstacle.minY + epsilon && end.minY >= obstacle.maxY - epsilon
+				|| start.minZ >= obstacle.maxZ - epsilon && end.maxZ <= obstacle.minZ + epsilon
+				|| start.maxZ <= obstacle.minZ + epsilon && end.minZ >= obstacle.maxZ - epsilon;
+	}
+
+	private static boolean containsInclusive(Box box, Vec3d point) {
+		double epsilon = 1.0e-7;
+		return point.x >= box.minX - epsilon && point.x <= box.maxX + epsilon
+				&& point.y >= box.minY - epsilon && point.y <= box.maxY + epsilon
+				&& point.z >= box.minZ - epsilon && point.z <= box.maxZ + epsilon;
 	}
 
 	private boolean insideLoadedWorld(Box box) {

@@ -44,4 +44,8 @@ public interface PhysicsTarget {
 	/** Apply a world-space torque. Translational-only adapters may ignore it. */
 	default void applyPhysicsTorque(Vec3d torque) {
 	}
+
+	/** Opt the body into world/local gravity after a gravity-shifter launch. */
+	default void enablePhysicsGravity() {
+	}
 }
