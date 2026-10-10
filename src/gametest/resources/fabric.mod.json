@@ -11,7 +11,8 @@
       "com.terminaldetector.drmd.HybridTerrainGameTests",
       "com.terminaldetector.drmd.CollapseGameTests",
       "com.terminaldetector.drmd.RagdollGameTests",
-      "com.terminaldetector.drmd.GravityWeaponGameTests"
+      "com.terminaldetector.drmd.GravityWeaponGameTests",
+      "com.terminaldetector.drmd.DroneSwarmGameTests"
     ]
   },
   "depends": {

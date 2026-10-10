@@ -94,6 +94,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.cubic.CubicWorldSystem.close();
 			com.terminaldetector.drmd.world.portal.PortalTravel.clear();
 			com.terminaldetector.drmd.physics.GravyPhysics.clear();
+			com.terminaldetector.drmd.ai.DroneSwarmAi.clear();
 			com.terminaldetector.drmd.world.gravity.TransientGravityFields.clear();
 			DescentPlayerData.clear();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
@@ -111,6 +112,7 @@ public class DescentMod implements ModInitializer {
 			DescentPlayerData.clear();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
 			com.terminaldetector.drmd.physics.GravyPhysics.clear();
+			com.terminaldetector.drmd.ai.DroneSwarmAi.clear();
 			com.terminaldetector.drmd.world.gravity.TransientGravityFields.clear();
 			ConstructionRegistry.bootstrap(server);
 			com.terminaldetector.drmd.world.gen2.MacroWorld.clear();
