@@ -9,6 +9,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GravyPhysicsTest {
 	@Test
+	void modeLaunchProfilesRemainMechanicallyDistinct() {
+		assertTrue(GravyPhysics.Mode.RAIL.launchSpeed() >= GravyPhysics.Mode.SWARM.launchSpeed() + 10,
+				"the heavy rail needs a visibly faster launch than the swarm volley");
+		assertTrue(GravyPhysics.Mode.SHIFT.launchSpeed() < GravyPhysics.Mode.RAIL.launchSpeed(),
+				"the field thrower pays for gravity conversion rather than rail speed");
+	}
+
+	@Test
+	void railHoldDistanceKeepsLongBodiesOutOfTheCamera() {
+		assertEquals(GravyPhysics.Mode.RAIL.holdDistance(),
+				GravyPhysics.holdDistance(GravyPhysics.Mode.RAIL,.5),1.0e-9);
+		assertEquals(GravyPhysics.Mode.RAIL.holdDistance()+3.5,
+				GravyPhysics.holdDistance(GravyPhysics.Mode.RAIL,4),1.0e-9);
+		assertEquals(GravyPhysics.Mode.SWARM.holdDistance(),
+				GravyPhysics.holdDistance(GravyPhysics.Mode.SWARM,20),1.0e-9);
+	}
+
+	@Test
 	void weaponProfilesEnforceSeparateTargetAndMassBudgets() {
 		assertTrue(GravyPhysics.Mode.SWARM.accepts(7, 29, 3));
 		assertFalse(GravyPhysics.Mode.SWARM.accepts(8, 10, 1), "swarm count is bounded");

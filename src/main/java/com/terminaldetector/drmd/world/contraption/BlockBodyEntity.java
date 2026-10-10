@@ -25,13 +25,16 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private static final TrackedData<NbtCompound> POSE = DataTracker.registerData(BlockBodyEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
     private static final Set<Block> SUPPORTED = Set.of(Blocks.STONE, Blocks.COBBLESTONE, Blocks.IRON_BLOCK,
         Blocks.GOLD_BLOCK, Blocks.DIAMOND_BLOCK, Blocks.OBSIDIAN, Blocks.GLASS, Blocks.BRICKS);
+    private static final double MAX_LINEAR_SPEED = 50;
+    private static final double MAX_ANGULAR_SPEED = 2;
     private D6Volume<BlockState> volume = new D6Volume<>(Blocks.AIR.getDefaultState());
     private List<Cell> cells = List.of();
     private Vec3 centre = new Vec3(0, 0, 0);
-    private final D6PhysicsBody body = new D6PhysicsBody().withLimits(20, 2);
+    private final D6PhysicsBody body = new D6PhysicsBody().withLimits(MAX_LINEAR_SPEED, MAX_ANGULAR_SPEED);
     private Quat previousRotation = Quat.IDENTITY;
     private double radius = .5;
     private Vec3 longAxis = new Vec3(0, 1, 0);
+    private Vec3 pendingTorque = new Vec3(0, 0, 0);
     private boolean gravity;
     public void setPhysicsGravity(boolean value) {gravity=value;dataTracker.set(POSE,pose());}
     public boolean physicsGravity() {return gravity;}
@@ -211,11 +214,17 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         if (cells.isEmpty()) return;
         body.withPosition(pure(getPos())); previousRotation = body.rotation();
         // Substeps bound corner travel to about 0.15 blocks, including rotation. Inelastic contact.
-        int steps = Math.max(1, Math.min(32, (int)Math.ceil((20 + 2*radius) * .05 / .15)));
+        int steps = Math.max(1, Math.min(32,
+            (int)Math.ceil((MAX_LINEAR_SPEED + MAX_ANGULAR_SPEED*radius) * .05 / .15)));
+        Vec3 externalTorque=pendingTorque;pendingTorque=new Vec3(0,0,0);
         for (int step = 0; step < steps; step++) {
             Vec3 before = body.position(); Quat rotation = body.rotation();
             Vec3 gravityDown = gravityDirection();
             if(gravity)body.applyForce(gravityDown.scaled(9.81*body.mass()));
+            // D6PhysicsBody clears force/torque after every integration step. Reapply the frame's
+            // external torque to each collision substep so its total impulse remains torque*0.05,
+            // independent of body speed/radius and therefore of the chosen substep count.
+            body.applyTorque(externalTorque);
             body.step(.05 / steps);
             if (blocked() && !(gravity && gravityContacts(before,rotation,gravityDown.scaled(-1)))) {
                 body.withPosition(before).withRotation(rotation)
@@ -335,7 +344,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     @Override public void applyPhysicsTorque(Vec3d torque) {
         if(getWorld().isClient || !Double.isFinite(torque.lengthSquared()))return;
-        body.applyTorque(pure(torque));dataTracker.set(POSE,pose());velocityModified=true;
+        pendingTorque=pendingTorque.plus(pure(torque));velocityModified=true;
     }
     @Override public void enablePhysicsGravity() {setPhysicsGravity(true);}
     public void weaponImpulse(Vec3d impact,Vec3d direction,float damage) {

@@ -182,14 +182,16 @@ public final class GravyPhysics {
 			Entity target = world.getEntity(held.targetId());
 			if (target == null) continue;
 			Vec3d formation = formationOffset(grab.mode(), index, active.size(), aim);
-			Vec3d holdPoint = player.getEyePos().add(aim.multiply(grab.mode().holdDistance())).add(formation);
+			double radius = Math.max(target.getBoundingBox().getLengthX(),
+					Math.max(target.getBoundingBox().getLengthY(), target.getBoundingBox().getLengthZ())) * .5;
+			Vec3d holdPoint = player.getEyePos().add(aim.multiply(holdDistance(grab.mode(),radius))).add(formation);
 			Vec3d centre = centreOf(target);
 			Vec3d impulse = springImpulse(grab.mode(), holdPoint.subtract(centre), velocityOf(target), held.mass());
 			applyImpulse(target, centre, impulse, held.mass());
 			if (grab.mode() == Mode.RAIL && target instanceof PhysicsTarget physics) {
 				alignLongAxis(physics, aim, held.mass());
 			}
-			if ((player.age & 1) == 0) drawTether(world, grab.mode(), player.getEyePos(), centre);
+			if ((player.age & 7) == 0) drawTether(world, grab.mode(), player.getEyePos(), centre);
 		}
 	}
 
@@ -234,6 +236,13 @@ public final class GravyPhysics {
 		mass = clampMass(mass);
 		Vec3d acceleration = delta.multiply(mode.stiffness).subtract(velocity.multiply(mode.damping));
 		return clampVector(acceleration.multiply(mass * .05), mass * mode.maxDeltaVelocity);
+	}
+
+	/** Keep the near end of a long rail body out of the player's camera while preserving small-body feel. */
+	public static double holdDistance(Mode mode, double boundingRadius) {
+		if(mode==null)return 0;
+		if(mode!=Mode.RAIL || !Double.isFinite(boundingRadius))return mode.holdDistance();
+		return mode.holdDistance()+Math.min(10,Math.max(0,boundingRadius-.5));
 	}
 
 	/** Stable ring in the plane perpendicular to aim; no world-Y assumption, so it survives roll. */
@@ -289,8 +298,10 @@ public final class GravyPhysics {
 	}
 
 	private static void drawTether(ServerWorld world, Mode mode, Vec3d from, Vec3d to) {
-		for (int point = 1; point <= 4; point++) {
-			Vec3d p = from.lerp(to, point / 5.0);
+		// Leave the eye-side quarter empty: long-lived particles there fill the camera instead
+		// of describing the tether, especially when SWARM holds several targets at once.
+		for (int point = 2; point <= 3; point++) {
+			Vec3d p = from.lerp(to, point / 4.0);
 			world.spawnParticles(mode == Mode.SWARM ? ParticleTypes.END_ROD
 						: mode == Mode.RAIL ? ParticleTypes.ELECTRIC_SPARK : ParticleTypes.REVERSE_PORTAL,
 					p.x, p.y, p.z, 1, 0, 0, 0, 0);

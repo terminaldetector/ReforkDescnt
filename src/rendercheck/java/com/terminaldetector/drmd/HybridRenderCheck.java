@@ -4,12 +4,18 @@ import com.terminaldetector.drmd.client.DescentClient;
 import com.terminaldetector.drmd.client.config.DescentConfig;
 import com.terminaldetector.drmd.client.render.terrain.HybridTerrainModel;
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
+import com.terminaldetector.drmd.physics.GravyPhysics;
+import com.terminaldetector.drmd.weapon.core.WeaponCore;
+import com.terminaldetector.drmd.world.contraption.BlockBodyEntity;
+import com.terminaldetector.drmd.world.gravity.GravityFields;
+import com.terminaldetector.drmd.world.gravity.TransientGravityFields;
 import com.terminaldetector.drmd.world.geometry.HybridTerrainCommands;
 import com.terminaldetector.drmd.world.micro.CarvedBlock;
 import com.terminaldetector.drmd.world.micro.CarvedBlockEntity;
 import com.terminaldetector.drmd.world.micro.MicroGrid;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.world.BackupPromptScreen;
@@ -17,15 +23,28 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /** Runs only in the isolated rendercheck source set; never included in the playable mod. */
 public final class HybridRenderCheck implements ClientModInitializer {
     private static final BlockPos DAMAGED=new BlockPos(20,203,18);
+    private static final Box GRAVITY_TRACKING=new Box(32,180,-80,82,240,90);
     private volatile boolean ready;
     private volatile boolean collapseReady;
+    private volatile boolean gravityReady=true;
+    private volatile double swarmLaunchSpeed;
+    private volatile double railLaunchSpeed;
+    private volatile UUID shiftBodyId;
+    private volatile Vec3d shiftStartPosition=Vec3d.ZERO;
+    private volatile Vec3d shiftDirection=Vec3d.ZERO;
+    private volatile List<UUID> gravityBodyIds=List.of();
+    private volatile boolean gravityArenaBuilt;
     private boolean setupQueued;
     private int ticks, sceneTicks;
     @Override public void onInitializeClient() {
@@ -75,13 +94,11 @@ public final class HybridRenderCheck implements ClientModInitializer {
             return;
         }
         if (!ready || client.currentScreen!=null) return;
-		client.player.setPosition(sceneTicks>=680?17:sceneTicks>=260?17:14,
-				sceneTicks>=680?205:sceneTicks>=260?211:209,
-				sceneTicks>=680?30:sceneTicks>=260?37:29);client.player.setVelocity(Vec3d.ZERO);
-		client.player.setYaw(180);client.player.setPitch(sceneTicks>=680?12:sceneTicks>=260?24:28);
+		positionCamera(client);
         if (!(client.getBlockRenderManager().getModel(ModWorldBlocks.CARVED.getDefaultState()) instanceof HybridTerrainModel))
             throw new IllegalStateException("The carved blockstate did not receive the hybrid baked model");
         if(sceneTicks>=260 && !collapseReady)return;
+        if(sceneTicks>=800 && !gravityReady)return;
         ++sceneTicks;
         if (sceneTicks==160) {
             capture(client,"hybrid-before.png");
@@ -105,8 +122,10 @@ public final class HybridRenderCheck implements ClientModInitializer {
         }
         if(sceneTicks==260)client.getServer().execute(() -> {
             var world=client.getServer().getOverworld();
-            for(BlockPos p:BlockPos.iterate(new BlockPos(1,200,4),new BlockPos(35,216,31)))
-                world.setBlockState(p,p.getY()==200?Blocks.OBSIDIAN.getDefaultState():Blocks.AIR.getDefaultState());
+            for(BlockPos p:BlockPos.iterate(new BlockPos(1,200,4),new BlockPos(35,216,31))) {
+				BlockState desired=p.getY()==200?Blocks.OBSIDIAN.getDefaultState():Blocks.AIR.getDefaultState();
+				if(!world.getBlockState(p).equals(desired))world.setBlockState(p,desired);
+			}
             for(int y=201;y<=207;y++)world.setBlockState(new BlockPos(10,y,14),Blocks.OAK_LOG.getDefaultState());
             for(BlockPos p:BlockPos.iterate(new BlockPos(8,205,12),new BlockPos(12,209,16)))
                 if(world.getBlockState(p).isAir() && Math.abs(p.getX()-10)+Math.abs(p.getZ()-14)+Math.abs(p.getY()-207)<=4)
@@ -150,7 +169,7 @@ public final class HybridRenderCheck implements ClientModInitializer {
 		if(sceneTicks==692)capture(client,"ragdoll-flight.png");
 		if(sceneTicks==800) {
 			var wrecks=client.world.getEntitiesByClass(com.terminaldetector.drmd.entity.RagdollEntity.class,
-					new net.minecraft.util.math.Box(10,200,12,25,212,28),net.minecraft.entity.Entity::isAlive);
+					new Box(10,200,12,25,212,28),net.minecraft.entity.Entity::isAlive);
 			if(wrecks.size()!=1 || wrecks.getFirst().currentRenderParts().size()!=5)
 				throw new IllegalStateException("Drone death did not sync one five-part ragdoll to client: "+wrecks.size());
 			boolean articulated=wrecks.getFirst().currentRenderParts().stream().skip(1).anyMatch(part ->
@@ -160,9 +179,234 @@ public final class HybridRenderCheck implements ClientModInitializer {
 			try {Files.writeString(client.runDirectory.toPath().resolve("ragdoll-ok.txt"),
 					"Drone death spawned one networked five-part ragdoll; articulated renderer survived flight and terrain contact.\n");}
 			catch(java.io.IOException e){throw new IllegalStateException(e);}
-			client.scheduleStop();
+			queueSwarmScene(client);
         }
+		if(sceneTicks==840) {
+			var bodies=gravityBodies(client);
+			if(bodies.size()!=6 || bodies.stream().anyMatch(body -> body.cells().size()!=1))
+				throw new IllegalStateException("Swarm hold did not sync six complete block bodies: "+bodies.size());
+			capture(client,"gravity-swarm-held.png");
+		}
+		if(sceneTicks==850)queueSwarmLaunch(client);
+		if(sceneTicks==856) {
+			var bodies=gravityBodies(client);
+			long moving=bodies.stream().filter(body -> body.physicsVelocity().length()>18).count();
+			if(bodies.size()!=6 || moving!=6)
+				throw new IllegalStateException("Swarm volley did not launch all six bodies: "+moving+"/"+bodies.size()+
+						" visible="+gravityBodySummary(client));
+			capture(client,"gravity-swarm-flight.png");
+		}
+		if(sceneTicks==880)queueRailScene(client);
+		if(sceneTicks==930) {
+			var bodies=gravityBodies(client);
+			double alignment=bodies.size()==1?Math.abs(bodies.getFirst().physicsLongAxis().orElse(Vec3d.ZERO)
+					.dotProduct(new Vec3d(0,0,-1))):0;
+			if(bodies.size()!=1 || bodies.getFirst().cells().size()!=7 || alignment<.65)
+				throw new IllegalStateException("Gravity rail did not align its long body with the launch corridor");
+			capture(client,"gravity-rail-held.png");
+		}
+		if(sceneTicks==940)queueRailLaunch(client);
+		if(sceneTicks==946) {
+			var bodies=gravityBodies(client);
+			if(bodies.size()!=1 || railLaunchSpeed<swarmLaunchSpeed+8
+					|| bodies.getFirst().physicsVelocity().length()<swarmLaunchSpeed+8)
+				throw new IllegalStateException("Heavy gravity rail was not faster than the swarm volley; visible="+
+						gravityBodySummary(client));
+			capture(client,"gravity-rail-flight.png");
+		}
+		if(sceneTicks==970)queueShiftScene(client);
+		if(sceneTicks==1010) {
+			var bodies=gravityBodies(client);
+			if(bodies.size()!=1 || bodies.getFirst().cells().size()!=2)
+				throw new IllegalStateException("Gravity shifter did not hold its physical target");
+			capture(client,"gravity-shift-held.png");
+		}
+		if(sceneTicks==1020)queueShiftLaunch(client);
+		if(sceneTicks==1026)capture(client,"gravity-shift-flight.png");
+		if(sceneTicks==1045)queueShiftVerification(client);
+		if(sceneTicks==1055) {
+			try {Files.writeString(client.runDirectory.toPath().resolve("gravity-weapons-ok.txt"),
+					"Swarm held and launched six bodies; rail aligned and outpaced the volley; shifter attached a moving horizontal gravity field.\n");}
+			catch(java.io.IOException e){throw new IllegalStateException(e);}
+			client.scheduleStop();
+		}
     }
+
+	private void positionCamera(MinecraftClient client) {
+		if(sceneTicks>=720 && sceneTicks<800) {
+			var wrecks=client.world.getEntitiesByClass(com.terminaldetector.drmd.entity.RagdollEntity.class,
+					new Box(8,198,8,28,216,32),net.minecraft.entity.Entity::isAlive);
+			if(!wrecks.isEmpty()) {
+				var wreck=wrecks.getFirst();
+				client.player.setPosition(wreck.getX(),wreck.getY()+1,wreck.getZ()+5.5);
+				client.player.setVelocity(Vec3d.ZERO);client.player.setYaw(180);client.player.setPitch(20);
+				return;
+			}
+		}
+		if(sceneTicks>=800) {
+			client.player.setPosition(56.5,206,34);client.player.setVelocity(Vec3d.ZERO);
+			client.player.setYaw(180);client.player.setPitch(0);return;
+		}
+		client.player.setPosition(sceneTicks>=680?17:sceneTicks>=260?17:14,
+				sceneTicks>=680?205:sceneTicks>=260?211:209,
+				sceneTicks>=680?30:sceneTicks>=260?37:29);client.player.setVelocity(Vec3d.ZERO);
+		client.player.setYaw(180);client.player.setPitch(sceneTicks>=680?12:sceneTicks>=260?24:28);
+	}
+
+	private void queueSwarmScene(MinecraftClient client) {
+		gravityReady=false;var server=client.getServer();var playerId=client.player.getUuid();
+		server.execute(() -> {
+			var player=server.getPlayerManager().getPlayer(playerId);var world=server.getOverworld();
+			if(player==null)throw new IllegalStateException("Missing gravity render-check player");
+			prepareGravityArena(world,player);
+			BlockState[] palette={Blocks.IRON_BLOCK.getDefaultState(),Blocks.GOLD_BLOCK.getDefaultState(),
+					Blocks.DIAMOND_BLOCK.getDefaultState(),Blocks.GLASS.getDefaultState(),
+					Blocks.BRICKS.getDefaultState(),Blocks.OBSIDIAN.getDefaultState()};
+			List<BlockBodyEntity> bodies=new ArrayList<>();
+			for(int index=0;index<palette.length;index++) {
+				BlockPos pos=new BlockPos(51+index*2,205,23+(index&1));
+				bodies.add(assembleBody(world,pos,pos,palette[index]));
+			}
+			gravityBodyIds=bodies.stream().map(BlockBodyEntity::getUuid).toList();
+			int captured=GravyPhysics.tryGrab(player,GravyPhysics.Mode.SWARM,bodies);
+			if(captured!=6)throw new IllegalStateException("Swarm captured "+captured+" of six bodies");
+			gravityReady=true;
+		});
+	}
+
+	private void queueSwarmLaunch(MinecraftClient client) {
+		gravityReady=false;var server=client.getServer();var playerId=client.player.getUuid();
+		server.execute(() -> {
+			var player=server.getPlayerManager().getPlayer(playerId);var world=server.getOverworld();
+			if(player==null)throw new IllegalStateException("Missing swarm launch player");
+			var bodies=serverGravityBodies(world);
+			if(GravyPhysics.fling(player)!=6)throw new IllegalStateException("Swarm volley lost a held body");
+			swarmLaunchSpeed=bodies.stream().mapToDouble(body -> body.physicsVelocity().length()).min().orElseThrow();
+			if(swarmLaunchSpeed<24)throw new IllegalStateException("Swarm launch speed collapsed to "+swarmLaunchSpeed);
+			gravityReady=true;
+		});
+	}
+
+	private void queueRailScene(MinecraftClient client) {
+		gravityReady=false;var server=client.getServer();var playerId=client.player.getUuid();
+		server.execute(() -> {
+			var player=server.getPlayerManager().getPlayer(playerId);var world=server.getOverworld();
+			if(player==null)throw new IllegalStateException("Missing rail render-check player");
+			prepareGravityArena(world,player);
+			var body=assembleBody(world,new BlockPos(53,205,23),new BlockPos(59,205,23),Blocks.BRICKS.getDefaultState());
+			gravityBodyIds=List.of(body.getUuid());
+			if(GravyPhysics.tryGrab(player,GravyPhysics.Mode.RAIL,List.of(body))!=1)
+				throw new IllegalStateException("Gravity rail could not capture its heavy body");
+			gravityReady=true;
+		});
+	}
+
+	private void queueRailLaunch(MinecraftClient client) {
+		gravityReady=false;var server=client.getServer();var playerId=client.player.getUuid();
+		server.execute(() -> {
+			var player=server.getPlayerManager().getPlayer(playerId);var world=server.getOverworld();
+			if(player==null)throw new IllegalStateException("Missing rail launch player");
+			var bodies=serverGravityBodies(world);
+			if(bodies.size()!=1)throw new IllegalStateException("Gravity rail scene has "+bodies.size()+" bodies");
+			Vec3d aim=WeaponCore.aimDir(player).normalize();
+			if(Math.abs(bodies.getFirst().physicsLongAxis().orElse(Vec3d.ZERO).dotProduct(aim))<.65)
+				throw new IllegalStateException("Server rail alignment did not converge");
+			if(GravyPhysics.fling(player)!=1)throw new IllegalStateException("Gravity rail lost its held body");
+			railLaunchSpeed=bodies.getFirst().physicsVelocity().length();
+			if(railLaunchSpeed<swarmLaunchSpeed+8)
+				throw new IllegalStateException("Rail speed "+railLaunchSpeed+" did not beat swarm "+swarmLaunchSpeed);
+			gravityReady=true;
+		});
+	}
+
+	private void queueShiftScene(MinecraftClient client) {
+		gravityReady=false;var server=client.getServer();var playerId=client.player.getUuid();
+		server.execute(() -> {
+			var player=server.getPlayerManager().getPlayer(playerId);var world=server.getOverworld();
+			if(player==null)throw new IllegalStateException("Missing shifter render-check player");
+			prepareGravityArena(world,player);
+			var body=assembleBody(world,new BlockPos(56,205,23),new BlockPos(56,206,23),Blocks.GOLD_BLOCK.getDefaultState());
+			gravityBodyIds=List.of(body.getUuid());
+			if(GravyPhysics.tryGrab(player,GravyPhysics.Mode.SHIFT,List.of(body))!=1)
+				throw new IllegalStateException("Gravity shifter could not capture its body");
+			gravityReady=true;
+		});
+	}
+
+	private void queueShiftLaunch(MinecraftClient client) {
+		gravityReady=false;var server=client.getServer();var playerId=client.player.getUuid();
+		server.execute(() -> {
+			var player=server.getPlayerManager().getPlayer(playerId);var world=server.getOverworld();
+			if(player==null)throw new IllegalStateException("Missing shifter launch player");
+			var bodies=serverGravityBodies(world);
+			if(bodies.size()!=1 || GravyPhysics.fling(player)!=1)
+				throw new IllegalStateException("Gravity shifter lost its physical target");
+			var body=bodies.getFirst();Vec3d aim=WeaponCore.aimDir(player).normalize();
+			if(!body.physicsGravity())throw new IllegalStateException("Shifter launch did not enable physical gravity");
+			GravityFields.Sample field=GravityFields.sample(world,body.getPos());
+			if(field==null || field.downDir().normalize().dotProduct(aim)<.98)
+				throw new IllegalStateException("Shifter did not attach launch-direction gravity");
+			shiftBodyId=body.getUuid();shiftStartPosition=body.getPos();shiftDirection=aim;gravityReady=true;
+		});
+	}
+
+	private void queueShiftVerification(MinecraftClient client) {
+		gravityReady=false;var server=client.getServer();
+		server.execute(() -> {
+			var world=server.getOverworld();var entity=world.getEntity(shiftBodyId);
+			if(!(entity instanceof BlockBodyEntity body))throw new IllegalStateException("Shifter body unloaded before verification");
+			GravityFields.Sample field=GravityFields.sample(world,body.getPos());
+			if(field==null || field.downDir().normalize().dotProduct(shiftDirection)<.98)
+				throw new IllegalStateException("Moving shifter field no longer followed its body");
+			Vec3d travel=body.getPos().subtract(shiftStartPosition);
+			if(Math.abs(travel.y)>.75 || travel.dotProduct(shiftDirection)<8)
+				throw new IllegalStateException("Horizontal gravity throw drifted vertically or failed to travel");
+			gravityReady=true;
+		});
+	}
+
+	private void prepareGravityArena(ServerWorld world,net.minecraft.server.network.ServerPlayerEntity player) {
+		GravyPhysics.release(player);TransientGravityFields.clear();
+		serverGravityBodies(world).forEach(BlockBodyEntity::discard);gravityBodyIds=List.of();
+		// The surrounding GameTest fixture is empty at this altitude. Rewriting sixteen thousand air
+		// blocks for every mode made the integrated server build a huge catch-up backlog, so launched
+		// bodies could cross the whole arena between two client ticks. Build the corridor floor once.
+		if(!gravityArenaBuilt) {
+			for(BlockPos pos:BlockPos.iterate(new BlockPos(48,200,-20),new BlockPos(65,200,40)))
+				world.setBlockState(pos,Blocks.OBSIDIAN.getDefaultState());
+			gravityArenaBuilt=true;
+		}
+		player.teleport(world,56.5,206,34,180,0);
+		Vec3d forward=player.getRotationVec(1).normalize();
+		DescentPlayerData.get(player).setShipAttitude((float)forward.x,(float)forward.y,(float)forward.z,0,1,0);
+	}
+
+	private static BlockBodyEntity assembleBody(ServerWorld world,BlockPos from,BlockPos to,BlockState state) {
+		for(BlockPos pos:BlockPos.iterate(from,to))world.setBlockState(pos,state);
+		return BlockBodyEntity.assemble(world,from,to);
+	}
+
+	private List<BlockBodyEntity> serverGravityBodies(ServerWorld world) {
+		List<BlockBodyEntity> bodies=new ArrayList<>();
+		for(UUID id:gravityBodyIds) {
+			var entity=world.getEntity(id);
+			if(entity instanceof BlockBodyEntity body && body.isAlive())bodies.add(body);
+		}
+		return bodies;
+	}
+
+	private List<BlockBodyEntity> gravityBodies(MinecraftClient client) {
+		return client.world.getEntitiesByClass(BlockBodyEntity.class,GRAVITY_TRACKING,
+				body -> body.isAlive() && gravityBodyIds.contains(body.getUuid()));
+	}
+
+	private String gravityBodySummary(MinecraftClient client) {
+		return client.world.getEntitiesByClass(BlockBodyEntity.class,GRAVITY_TRACKING,BlockBodyEntity::isAlive)
+				.stream().map(body -> body.getUuid()+"@"+body.getBlockPos()+" v="+
+						String.format(java.util.Locale.ROOT,"%.1f",body.physicsVelocity().length()))
+				.collect(java.util.stream.Collectors.joining(","));
+	}
+
     private static void setup(ServerWorld world) {
         world.setTimeOfDay(6000);
         for(BlockPos p:BlockPos.iterate(new BlockPos(2,200,5),new BlockPos(27,211,24)))
