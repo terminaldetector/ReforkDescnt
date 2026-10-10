@@ -204,14 +204,25 @@ public final class D6PhysicsBody {
 		angularMomentum = angularMomentum.plus(offset.cross(impulse));
 	}
 
-	/** The inertia tensor in world axes right now. */
+	/**
+	 * Inverse effective mass seen by a unit impulse at {@code offset} along {@code direction}.
+	 *
+	 * <p>The translational term alone is only correct through the centre of mass. At a joint or
+	 * surface contact the impulse also turns the body; omitting that angular response makes the
+	 * impulse too large and injects energy every time an articulated limb is corrected.</p>
+	 */
+	public double pointImpulseDenominator(Vec3 offset, Vec3 direction) {
+		D6Mat3 inverse = worldInverseInertia();
+		if (mass <= 1e-9 || inverse == null) return 0;
+		return inverseMass
+				+ direction.dot(inverse.transform(offset.cross(direction)).cross(offset));
+	}
+
     /** Inelastic unilateral point contact with bounded Coulomb friction. */
     public double contactImpulse(Vec3 offset, Vec3 normal, double friction) {
-        D6Mat3 inverse=worldInverseInertia();
-        if (mass<=1e-9 || inverse==null) return 0;
         double closing=velocityAtPoint(offset).dot(normal);
         if(closing>=0)return 0;
-        double effective=inverseMass+normal.dot(inverse.transform(offset.cross(normal)).cross(offset));
+        double effective=pointImpulseDenominator(offset,normal);
         if(effective<=1e-12)return 0;
         double magnitude=-closing/effective;
         applyImpulse(normal.scaled(magnitude),offset);
@@ -220,7 +231,7 @@ public final class D6PhysicsBody {
         double speed=tangent.length();
         if(speed>1e-8){
             tangent=tangent.scaled(1/speed);
-            double denominator=inverseMass+tangent.dot(inverse.transform(offset.cross(tangent)).cross(offset));
+            double denominator=pointImpulseDenominator(offset,tangent);
             double drag=Math.min(speed/denominator,Math.max(0,friction)*magnitude);
             applyImpulse(tangent.scaled(-drag),offset);
         }
@@ -229,6 +240,7 @@ public final class D6PhysicsBody {
         return magnitude;
     }
 
+	/** The inertia tensor in world axes right now. */
 	public D6Mat3 worldInertia() {
 		return inertia.rotatedBy(rotation);
 	}
