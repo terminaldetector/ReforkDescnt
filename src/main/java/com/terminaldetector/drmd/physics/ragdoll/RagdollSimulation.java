@@ -15,6 +15,14 @@ import java.util.List;
 public final class RagdollSimulation {
 	public static final int DEFAULT_SUBSTEPS = 4;
 	public static final int DEFAULT_SOLVER_ITERATIONS = 8;
+	/**
+	 * Maximum distance a complete joint correction may close in one solver iteration.
+	 *
+	 * <p>Contacts are resolved between iterations, so this must remain smaller than a block face.
+	 * Without the cap, a pinned limb can accumulate enough error for one positional correction to
+	 * move its partner from one side of a wall to the other without ever overlapping the wall.</p>
+	 */
+	private static final double MAX_JOINT_CORRECTION = .12;
 
 	/** Minecraft-facing adapters may correct a part after each integration/constraint phase. */
 	@FunctionalInterface
@@ -100,14 +108,17 @@ public final class RagdollSimulation {
 				part.body().step(dt);
 				if (collisionResolver != null) collisionResolver.resolve(part, before);
 			}
-			if (collisionResolver != null)
-				for (int part = 0; part < parts.size(); part++)
-					beforeConstraints[part] = parts.get(part).body().position();
-			for (int iteration = 0; iteration < solverIterations; iteration++)
+			for (int iteration = 0; iteration < solverIterations; iteration++) {
+				if (collisionResolver != null)
+					for (int part = 0; part < parts.size(); part++)
+						beforeConstraints[part] = parts.get(part).body().position();
 				for (RagdollRig.Joint joint : rig.joints()) solve(joint, dt);
-			if (collisionResolver != null)
-				for (int part = 0; part < parts.size(); part++)
-					collisionResolver.resolve(parts.get(part), beforeConstraints[part]);
+				// Positional constraints are capable of crossing terrain just as integration is.
+				// Resolve each iteration while its correction is still short and unambiguous.
+				if (collisionResolver != null)
+					for (int part = 0; part < parts.size(); part++)
+						collisionResolver.resolve(parts.get(part), beforeConstraints[part]);
+			}
 		}
 	}
 
@@ -154,6 +165,9 @@ public final class RagdollSimulation {
 		double softness = joint.compliance() / (dt * dt);
 		double correctionScale = 1.0 / (invSum + softness);
 		Vec3 correction = error.scaled(correctionScale);
+		double closure = correction.length() * invSum;
+		if (closure > MAX_JOINT_CORRECTION)
+			correction = correction.scaled(MAX_JOINT_CORRECTION / closure);
 		Vec3 moveA = correction.scaled(invA);
 		Vec3 moveB = correction.scaled(-invB);
 		a.withPosition(a.position().plus(moveA));
