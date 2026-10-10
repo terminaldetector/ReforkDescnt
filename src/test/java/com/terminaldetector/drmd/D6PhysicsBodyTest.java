@@ -39,6 +39,16 @@ class D6PhysicsBodyTest {
         assertVec(new Vec3(.1,0,0), body.position(), "post-impulse movement");
     }
 
+	@Test
+	@DisplayName("point effective mass includes the angular response of an off-centre impulse")
+	void pointImpulseDenominatorIncludesInertia() {
+		D6PhysicsBody body = new D6PhysicsBody().withMass(2).withInertia(D6Mat3.diagonal(1, 1, 1));
+		assertEquals(.5, body.pointImpulseDenominator(new Vec3(0, 0, 0), new Vec3(1, 0, 0)), 1e-12,
+				"through the centre only inverse mass contributes");
+		assertEquals(1.5, body.pointImpulseDenominator(new Vec3(0, 1, 0), new Vec3(1, 0, 0)), 1e-12,
+				"the lever arm must add rotational inverse mass");
+	}
+
 
 	private static final double EPS = 1e-9;
 
