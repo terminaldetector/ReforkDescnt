@@ -71,6 +71,34 @@ class RagdollSimulationTest {
 		assertTrue(simulation.parts().get(0).body().position().y() >= 0);
 	}
 
+
+	@Test
+	@DisplayName("joint corrections cannot carry a contacted limb through a wall")
+	void collisionAdapterRunsBetweenConstraintIterations() {
+		RagdollSimulation simulation = new RagdollSimulation(RagdollRig.scoutDrone(),
+				new Vec3(4.5, 5, 0), Quat.IDENTITY, new Vec3(0, 0, 0));
+		// Give one spar a turn so the test covers changing projected extents, not only axis-aligned boxes.
+		simulation.applyImpulse(1, new Vec3(0, 0, 2), new Vec3(.04, .05, 0));
+		for (int tick = 0; tick < 120; tick++) {
+			simulation.step(.05, new Vec3(-9.81, 0, 0), 4, 8, (part, fallback) -> {
+				double radius = projectedXRadius(part);
+				double min = part.body().position().x() - radius;
+				double max = part.body().position().x() + radius;
+				if (min >= 1 || max <= 0) return;
+				double towardRight = 1 - min;
+				double towardLeft = max;
+				Vec3 normal = towardRight <= towardLeft ? new Vec3(1, 0, 0) : new Vec3(-1, 0, 0);
+				double depth = Math.min(towardRight, towardLeft);
+				part.body().withPosition(part.body().position().plus(normal.scaled(depth + 1e-5)));
+				part.body().contactImpulse(normal.scaled(-radius), normal, .72);
+			});
+		}
+		double minimumX = simulation.parts().stream()
+				.mapToDouble(part -> part.body().position().x() - projectedXRadius(part)).min().orElseThrow();
+		assertTrue(simulation.centreOfMass().x() < 3.5, "sideways gravity did not reach the wall");
+		assertTrue(minimumX >= .975, "joint solver tunnelled through the wall by " + (1 - minimumX));
+	}
+
 	@Test
 	@DisplayName("aggregate motion is mass weighted")
 	void aggregateStateUsesMass() {
@@ -80,5 +108,13 @@ class RagdollSimulationTest {
 		simulation.parts().get(1).body().withLinearVelocity(new Vec3(0, 0, 0));
 		assertEquals(3, simulation.centreVelocity().x(), 1e-9);
 		assertEquals(4, simulation.totalMass(), 1e-9);
+	}
+
+	private static double projectedXRadius(RagdollSimulation.Part part) {
+		Vec3 half = part.segment().halfExtents();
+		Quat rotation = part.body().rotation();
+		return Math.abs(rotation.rotate(new Vec3(half.x(), 0, 0)).x())
+				+ Math.abs(rotation.rotate(new Vec3(0, half.y(), 0)).x())
+				+ Math.abs(rotation.rotate(new Vec3(0, 0, half.z())).x());
 	}
 }
