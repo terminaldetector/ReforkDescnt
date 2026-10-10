@@ -154,7 +154,8 @@ public final class PortalSeeThroughRenderer {
 		// this the portal would show the back of the block it leads to and the wall around it.
 		return OffscreenWorldView.render(context, accessor, camera, outerProjection, fromPure(movedPos),
 				(float) movedAngles.yawDegrees(), (float) movedAngles.pitchDegrees(),
-				portal.destPoint(), portal.destNormal(), box);
+				portal.destPoint(), portal.destNormal(), box,
+				PortalViewMatrix.through(outerPosition, PortalTransform.cameraRotation(srcNormal, dstNormal)), false);
 	}
 
 	/** The portal face's pixel bounding box under the current view — the mirror's own method, at this face's size. */

@@ -74,6 +74,17 @@ public class DescentClient implements ClientModInitializer {
 		com.terminaldetector.drmd.client.portal.PortalSeeThroughRenderer.register();
 		registerRenderLayers();
 
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.PortalFramePayload.ID, (payload, context) ->
+			context.client().execute(() -> {
+				var player = context.client().player;
+				if (player == null) return;
+				com.terminaldetector.drmd.client.flight.ShipAttitudeClient.portalEpoch = payload.epoch();
+				com.terminaldetector.drmd.client.flight.ShipAttitudeClient.acceptPortalFrame(player, payload.forward(), payload.up());
+				com.terminaldetector.drmd.client.flight.DescentFlightMotion.clear();
+				com.terminaldetector.drmd.client.flight.DescentFlightMotion.onServerVelocity(
+					(float) payload.velocity().x, (float) payload.velocity().y, (float) payload.velocity().z);
+				player.setVelocity(payload.velocity());
+			}));
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SyncPayload.ID, (payload, context) ->
 				context.client().execute(() -> applySync(payload, context.client())));
 
@@ -152,6 +163,7 @@ public class DescentClient implements ClientModInitializer {
 
 		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.JOIN.register(
 				(handler, sender, client) -> client.execute(() -> {
+					com.terminaldetector.drmd.client.flight.ShipAttitudeClient.portalEpoch = 0;
 					userFlightChoice = false;
 					sawSync = false;
 					enableRetryCooldown = 0;

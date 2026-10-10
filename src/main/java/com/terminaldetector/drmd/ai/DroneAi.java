@@ -164,17 +164,8 @@ public final class DroneAi {
 
 		private void tickSupport(Vec3d pos, Vec3d tpos, Vec3d toTarget, double dist,
 								 LivingEntity target, float dt) {
-			DroneEntity ally = null;
-			float worst = 1f;
-			for (DroneEntity other : drone.getWorld().getEntitiesByClass(DroneEntity.class,
-					drone.getBoundingBox().expand(DescentMod.su(500)),
-					d -> d != drone && d.isAlive())) {
-				float ratio = other.getHealth() / Math.max(1f, other.getMaxHealth());
-				if (ratio < worst) {
-					worst = ratio;
-					ally = other;
-				}
-			}
+			DroneEntity ally = DroneSwarmAi.mostDamagedAlly(drone, DescentMod.su(500));
+			float worst = ally == null ? 1f : ally.getHealth() / Math.max(1f, ally.getMaxHealth());
 			Vec3d desire;
 			if (ally != null && worst < 0.85f) {
 				desire = ally.getPos().subtract(pos);

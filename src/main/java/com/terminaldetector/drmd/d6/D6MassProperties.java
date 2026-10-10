@@ -71,6 +71,16 @@ public final class D6MassProperties {
 	 */
 	public D6MassProperties addPointMass(Vec3 position, double addedMass) {
 		if (Math.abs(addedMass) < 1e-12) return this;
+		if (!Double.isFinite(addedMass) || !Double.isFinite(position.lengthSquared()))
+			throw new IllegalArgumentException("non-finite mass or position");
+		double total = mass + addedMass;
+		if (total < -MASS_EPSILON) throw new IllegalArgumentException("removed more mass than present");
+		if (Math.abs(total) < MASS_EPSILON) {
+			mass = 0;
+			centreOfMass = new Vec3(0, 0, 0);
+			inertia = D6Mat3.ZERO;
+			return this;
+		}
 
 		Vec3 previousCentre = centreOfMass;
 		double previousMass = mass;
@@ -114,6 +124,8 @@ public final class D6MassProperties {
 	 * @param blockCentre the block's centre, so {@code pos + (0.5, 0.5, 0.5)} for a block position
 	 */
 	public D6MassProperties addBlock(Vec3 blockCentre, double blockMass) {
+		if (!Double.isFinite(blockMass) || !Double.isFinite(blockCentre.lengthSquared()) || mass + blockMass < -MASS_EPSILON)
+			throw new IllegalArgumentException("invalid block mass change");
 		double share = blockMass / 9.0;
 		addPointMass(blockCentre, share);
 		double d = BLOCK_SAMPLE_OFFSET;

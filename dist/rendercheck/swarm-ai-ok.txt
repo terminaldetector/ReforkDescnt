@@ -1,0 +1,1 @@
+Live swarm synchronized 128 drones; indexed=128; moving=128; maximum candidates/query=96.

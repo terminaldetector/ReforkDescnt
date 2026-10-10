@@ -3,7 +3,7 @@
   "id": "drmd",
   "version": "${version}",
   "name": "DRMD 6DOF",
-  "description": "Descent-like 6DoF Minecraft: inertial flight, arsenal, world layers. Far view via Distant Horizons (suggested) — no built-in voxel LLOD.",
+  "description": "Descent-like 6DoF Minecraft: inertial flight, arsenal, world layers and an experimental cubic terrain adapter.",
   "authors": ["Terminal", "DRMD Team"],
   "contact": {
     "homepage": "https://github.com/terminaldetector/ReforkDescnt",

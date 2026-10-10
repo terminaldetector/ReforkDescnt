@@ -135,7 +135,7 @@ public final class ModWorldBlocks {
 	 */
 	public static final Block CARVED = registerBlockNoItem("carved",
 			new com.terminaldetector.drmd.world.micro.CarvedBlock(
-					AbstractBlock.Settings.copy(Blocks.STONE).strength(0.6f).nonOpaque()
+					AbstractBlock.Settings.copy(Blocks.STONE).strength(0.6f).nonOpaque().dynamicBounds()
 							.dropsNothing().pistonBehavior(net.minecraft.block.piston.PistonBehavior.BLOCK)));
 
 	private static Block registerBlockNoItem(String id, Block block) {

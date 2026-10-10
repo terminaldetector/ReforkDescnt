@@ -32,6 +32,7 @@ public final class SurfaceIngest {
 	private static final int FLUSH_INTERVAL = 20 * 60;
 
 	private static SurfaceStore store;
+	private static final java.util.Set<Long> dirtyChunks = new java.util.LinkedHashSet<>();
 
 	private SurfaceIngest() {}
 
@@ -54,6 +55,7 @@ public final class SurfaceIngest {
 	}
 
 	public static void close() {
+		dirtyChunks.clear();
 		if (store == null) return;
 		try {
 			store.close();
@@ -98,6 +100,8 @@ public final class SurfaceIngest {
 	private static int colourAt(ServerWorld world, WorldChunk chunk, BlockPos pos) {
 		try {
 			var state = chunk.getBlockState(pos);
+			if (chunk.getBlockEntity(pos) instanceof com.terminaldetector.drmd.world.micro.CarvedBlockEntity carved)
+				state = carved.source();
 			var mapColour = state.getMapColor(world, pos);
 			return mapColour == null ? 0x4C7638 : mapColour.color;
 		} catch (Exception e) {
@@ -118,17 +122,25 @@ public final class SurfaceIngest {
 		if (live == null) return;
 		if (world.getRegistryKey() != World.OVERWORLD) return;
 		if (!world.isChunkLoaded(pos.getX() >> 4, pos.getZ() >> 4)) return;
-		onChunkLoad(world, world.getChunk(pos.getX() >> 4, pos.getZ() >> 4));
-		for (int level = 0; level <= SectionKey.MAX_LEVEL; level++) {
-			SurfaceStreamer.invalidate(SectionKey.of(level,
-					SectionKey.sectionOf(pos.getX(), level), SectionKey.sectionOf(pos.getZ(), level)));
-		}
+        dirtyChunks.add(net.minecraft.util.math.ChunkPos.toLong(pos.getX() >> 4,pos.getZ() >> 4));
 	}
 
 	/** Server tick: climb the levels a little, and write back now and then. */
 	public static void tick(MinecraftServer server) {
 		SurfaceStore live = store;
 		if (live == null) return;
+        ServerWorld world=server.getOverworld();
+        var dirty=dirtyChunks.iterator();
+        for(int done=0;world!=null && done<REBUILD_PER_TICK && dirty.hasNext();done++) {
+            long key=dirty.next();dirty.remove();
+            var pos=new net.minecraft.util.math.ChunkPos(key);
+            var chunk=world.getChunkManager().getChunk(pos.x,pos.z,net.minecraft.world.chunk.ChunkStatus.FULL,false);
+            if(!(chunk instanceof WorldChunk loaded)) continue; // CHUNK_LOAD refreshes unloaded areas later.
+            onChunkLoad(world,loaded);
+            for(int level=0;level<=SectionKey.MAX_LEVEL;level++)
+                SurfaceStreamer.invalidate(SectionKey.of(level,
+                    SectionKey.sectionOf(pos.getStartX(),level),SectionKey.sectionOf(pos.getStartZ(),level)));
+        }
 		live.rebuildDirty(REBUILD_PER_TICK);
 		if (server.getTicks() % FLUSH_INTERVAL == 0) live.flush();
 	}

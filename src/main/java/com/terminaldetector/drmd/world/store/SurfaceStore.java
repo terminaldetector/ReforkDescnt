@@ -57,10 +57,12 @@ public final class SurfaceStore {
 		if (existing != null) return existing;
 		SurfaceSection loaded = load(key);
 		if (loaded == null) return null;
-		live.putIfAbsent(key, loaded);
+		SurfaceSection raced = live.putIfAbsent(key, loaded);
+		if (raced != null) return raced;
 		synchronized (residency) {
 			residency.addLast(key);
 		}
+		evictIfCrowded();
 		return loaded;
 	}
 
@@ -174,9 +176,11 @@ public final class SurfaceStore {
 	 * there is nothing to merge and nothing to rebuild from — it simply replaces what was there.
 	 */
 	public void put(long key, SurfaceSection section) {
-		live.put(key, section);
-		synchronized (residency) {
-			residency.addLast(key);
+		SurfaceSection previous = live.put(key, section);
+		if (previous == null) {
+			synchronized (residency) {
+				residency.addLast(key);
+			}
 		}
 		store(key, section);
 		evictIfCrowded();

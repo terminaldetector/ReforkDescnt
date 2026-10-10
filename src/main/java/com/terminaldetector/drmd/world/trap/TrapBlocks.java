@@ -170,15 +170,22 @@ public final class TrapBlocks {
 		}
 
 		@Override
+		protected void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
+			super.onBlockAdded(state, world, pos, oldState, notify);
+			if (!world.isClient) world.scheduleBlockTick(pos, this, 5);
+		}
+
+		@Override
 		protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
-			if (world.isClient || !(entity instanceof PlayerEntity player)) return;
-			DescentPlayerData data = DescentPlayerData.get(player);
-			if (!data.isEnabled()) return;
-			// Pull local up toward vector from player to block (attract) or away (repel)
-			Vec3d to = Vec3d.ofCenter(pos).subtract(player.getPos()).normalize();
-			LocalOrientation.setUp(player.getUuid(), to);
-			player.addVelocity(to.x * 0.15, to.y * 0.15, to.z * 0.15);
-			player.velocityModified = true;
+			if (!world.isClient && world instanceof ServerWorld sw) {
+				MagneticAnomalySystem.pulse(sw, pos);
+			}
+		}
+
+		@Override
+		protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
+			MagneticAnomalySystem.pulse(world, pos);
+			world.scheduleBlockTick(pos, this, 5);
 		}
 
 		@Override
@@ -186,15 +193,7 @@ public final class TrapBlocks {
 
 		@Override
 		protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-			Box volume = new Box(pos).expand(8);
-			Direction dir = Direction.random(random);
-			for (PlayerEntity p : world.getEntitiesByClass(PlayerEntity.class, volume, PlayerEntity::isAlive)) {
-				if (DescentPlayerData.get(p).isEnabled()) {
-					LocalOrientation.setFromDirection(p.getUuid(), dir);
-					world.spawnParticles(ParticleTypes.REVERSE_PORTAL,
-							p.getX(), p.getY(), p.getZ(), 6, 0.3, 0.3, 0.3, 0.02);
-				}
-			}
+			MagneticAnomalySystem.pulse(world, pos);
 		}
 	}
 

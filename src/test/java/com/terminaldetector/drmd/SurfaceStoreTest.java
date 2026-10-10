@@ -13,12 +13,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * The LOD store, which is all plain arithmetic and bytes and therefore the one part of this that can
  * be held to account without a running game.
  */
 class SurfaceStoreTest {
+    @Test void farViewReadsRespectResidentBudget() {
+        var disk = new MemorySectionStorage();
+        var section = new SurfaceSection(); section.set(0,0,10,0x123456);
+        byte[] bytes = section.toBytes();
+        for (int x=0;x<600;x++) disk.write(SectionKey.of(0,x,0),bytes);
+        var store = new SurfaceStore(disk);
+        for (int x=0;x<600;x++) assertNotNull(store.peek(SectionKey.of(0,x,0)));
+        assertTrue(store.residentCount()<=512,"disk-backed far-view reads must evict");
+        assertEquals(10,store.peek(SectionKey.of(0,0,0)).height(0,0),"evicted sections can be restored");
+    }
+
 
 	@Test
 	@DisplayName("keys survive a round trip, negative coordinates included")

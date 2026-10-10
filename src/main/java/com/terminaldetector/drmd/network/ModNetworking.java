@@ -16,19 +16,20 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 public final class ModNetworking {
-	public static final Identifier INPUT_ID = Identifier.of(DescentMod.MOD_ID, "input");
+	public static final Identifier INPUT_ID = Identifier.of(DescentMod.MOD_ID, "input_v2");
 	public static final Identifier SYNC_ID = Identifier.of(DescentMod.MOD_ID, "sync");
 	public static final Identifier ACTION_ID = Identifier.of(DescentMod.MOD_ID, "action");
 	public static final Identifier PLANET_ID = Identifier.of(DescentMod.MOD_ID, "planet");
 	public static final Identifier SURFACE_ID = Identifier.of(DescentMod.MOD_ID, "surface");
 
-	public record InputPayload(float forward, float strafe, float vertical, float roll,
+	public record InputPayload(int portalEpoch, float forward, float strafe, float vertical, float roll,
 							   boolean dash, boolean hook, boolean afterburner,
 							   boolean attitude, float fx, float fy, float fz,
 							   float ux, float uy, float uz) implements CustomPayload {
 		public static final Id<InputPayload> ID = new Id<>(INPUT_ID);
 		public static final PacketCodec<RegistryByteBuf, InputPayload> CODEC = PacketCodec.of(
 				(payload, buf) -> {
+					buf.writeVarInt(payload.portalEpoch);
 					buf.writeFloat(payload.forward);
 					buf.writeFloat(payload.strafe);
 					buf.writeFloat(payload.vertical);
@@ -45,6 +46,7 @@ public final class ModNetworking {
 					buf.writeFloat(payload.uz);
 				},
 				buf -> new InputPayload(
+						buf.readVarInt(),
 						buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(),
 						buf.readBoolean(), buf.readBoolean(), buf.readBoolean(),
 						buf.readBoolean(),
@@ -421,9 +423,26 @@ public final class ModNetworking {
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
 	}
 
+	/** Atomic portal correction: basis and flight velocity must change together. */
+	public record PortalFramePayload(int epoch, net.minecraft.util.math.Vec3d forward,
+			net.minecraft.util.math.Vec3d up, net.minecraft.util.math.Vec3d velocity) implements CustomPayload {
+		public static final Id<PortalFramePayload> ID = new Id<>(Identifier.of(DescentMod.MOD_ID, "portal_frame"));
+		private static void writeVector(RegistryByteBuf buf, net.minecraft.util.math.Vec3d v) {
+			buf.writeDouble(v.x); buf.writeDouble(v.y); buf.writeDouble(v.z);
+		}
+		private static net.minecraft.util.math.Vec3d readVector(RegistryByteBuf buf) {
+			return new net.minecraft.util.math.Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+		}
+		public static final PacketCodec<RegistryByteBuf, PortalFramePayload> CODEC = PacketCodec.of(
+			(p, buf) -> { buf.writeVarInt(p.epoch); writeVector(buf, p.forward); writeVector(buf, p.up); writeVector(buf, p.velocity); },
+			buf -> new PortalFramePayload(buf.readVarInt(), readVector(buf), readVector(buf), readVector(buf)));
+		@Override public Id<? extends CustomPayload> getId() { return ID; }
+	}
+
 	private ModNetworking() {}
 
 	public static void register() {
+		PayloadTypeRegistry.playS2C().register(PortalFramePayload.ID, PortalFramePayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(InputPayload.ID, InputPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(ActionPayload.ID, ActionPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(ConstructionPayload.ID, ConstructionPayload.CODEC);
@@ -447,7 +466,7 @@ public final class ModNetworking {
 			in.afterburner = payload.afterburner();
 			if (payload.dash()) in.dash = true;
 			if (payload.hook()) FlightSystem.toggleHook(player);
-			if (payload.attitude()) {
+			if (payload.attitude() && payload.portalEpoch() == DescentPlayerData.get(player).portalEpoch()) {
 				DescentPlayerData data = DescentPlayerData.get(player);
 				data.setShipAttitude(
 						payload.fx(), payload.fy(), payload.fz(),

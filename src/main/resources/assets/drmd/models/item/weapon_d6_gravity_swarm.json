@@ -1,0 +1,7 @@
+{
+  "parent": "drmd:item/weapon_d6_gravy_railgun",
+  "textures": {
+    "particle": "drmd:item/weapon_d6_railmk2",
+    "0": "drmd:item/weapon_d6_railmk2"
+  }
+}

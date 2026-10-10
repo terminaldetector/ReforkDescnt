@@ -1,40 +1,18 @@
-# PHASE 0 · Аудит источников
+# Donor and repository research
 
-Каталог для нулевой фазы плана `DRMD_MINECRAFT_ARCHITECTURE`: собрать факты **до** того, как
-начнётся перенос. План прямо запрещает начинать масштабный порт до конца аудита, и причина видна уже
-по двум готовым файлам — оба меняют порядок работ по сравнению с тем, что план предполагал.
+These notes preserve findings about the source repositories that informed DRMD's architecture.
+They are research references, not a status report for the current branch. For implementation scope,
+compatibility and test status, use [`../PROJECT_STATUS.md`](../PROJECT_STATUS.md).
 
-## Что готово
+| File | Subject |
+|---|---|
+| [`repository-map.md`](repository-map.md) | Donor repositories and their actual purpose |
+| [`license-map.md`](license-map.md) | License findings and reuse boundaries |
+| [`drmd-baseline.md`](drmd-baseline.md) | Earlier baseline of DRMD subsystems |
+| [`algorithm-map.md`](algorithm-map.md) | Algorithms reviewed across donor projects |
+| [`immptl-vendoring.md`](immptl-vendoring.md) | Immersive Portals math vendored into DRMD |
+| [`cubic-chunks.md`](cubic-chunks.md) | Cubic-coordinate and far-distance research |
+| [`portal-engine.md`](portal-engine.md) | Portal implementation research |
 
-| Файл | Что в нём | Готов |
-|---|---|---|
-| [`repository-map.md`](repository-map.md) | Какие форки есть на самом деле и чем они оказались | да |
-| [`license-map.md`](license-map.md) | Лицензии, проверенные по самим форкам, и что из них следует | да |
-| [`drmd-baseline.md`](drmd-baseline.md) | Что в DRMD уже есть по каждому модулю D6, где и чего не хватает | да |
-| `architecture-map.md` | Устройство доноров: ядро, lifecycle, данные, тик, потоки | нет |
-| `dependency-map.md` | Зависимости доноров и что из них тянется | нет |
-| [`algorithm-map.md`](algorithm-map.md) | Алгоритмы доноров по формату §3 плана | да — 9 записей, все доноры, откуда можно читать |
-| [`immptl-vendoring.md`](immptl-vendoring.md) | Что перенесено из ImmPtl, таблица маппингов, что дальше | да — пять срезов |
-| [`cubic-chunks.md`](cubic-chunks.md) | Аудит группы Cubic Chunks / FarPlaneTwo под свой бриф | да — включая хранилище, освещение и LOD |
-| [`portal-engine.md`](portal-engine.md) | Аудит порталов и портальных пушек под свой бриф | да |
-| [`orchestrator-report.md`](orchestrator-report.md) | **Сводка состояния:** что из форкинга лежит в коде, что не подключено, что специфицировано | да |
-
-Первые три не требовали исходников доноров и сделаны. Форки подключены, чтение идёт по порядку из
-`repository-map.md` — сначала то, откуда можно брать код.
-
-## Три находки, ради которых стоило начать с аудита
-
-**Половина списка доноров из плана — не то, чем кажется.** `distant-horizons` — репозиторий готовых
-`.sqlite` LOD-файлов, а не исходники движка. `voxel-horizon-java-edition` — не мод, а отдельный
-воксельный движок на LWJGL под MIT. `Valkyrien-Skies` — первая версия, EOL, Minecraft 1.12. Подробно
-в `repository-map.md`.
-
-**Приоритет доноров переворачивается лицензиями, но в хорошую сторону.** Копировать разрешено из
-`BitsAndChisels` (CC0, вообще без условий), `voxel-horizon-java-edition` (MIT) и трёх проектов под
-Apache-2.0 — VS1, Eureka, Clockwork. Это закрывает разделы 5, 6, 8, 11 и 12 плана. Под запретом
-остаются NoCubes, LittleTiles, bobby и Immersive Aircraft — оттуда только описание алгоритма.
-
-**План опирается на подсистемы, которых в коде нет.** Раздел 16 говорит «сохранить концепцию
-существующего DRMD navigation: D6 Nav Volume, D6 Nav Node, D6 Path Follow». В коде нет ни одного из
-трёх — `NAV_NODE` это декоративный блок-маркер. Навигацию придётся писать целиком, и это меняет
-оценку PHASE 6.
+Some conclusions in these documents predate later integration work. Follow the code and current
+architecture documents when they disagree.

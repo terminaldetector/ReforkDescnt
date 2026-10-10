@@ -32,6 +32,8 @@ public final class DescentConfig {
 	 * <p>Off means the band looks down on empty sky, as it did before the floor existed.
 	 */
 	public static boolean planetFloor = true;
+	/** Opt-in diagnostic fallback when DH is installed but its terrain renderer is disabled. */
+	public static boolean planetFloorWithDistantHorizons = false;
 	/**
 	 * Draw the Sky UFO hull as an interpolated virtual mesh instead of leaving it invisible while its
 	 * real blocks are hidden mid-flight — the escape hatch for this render rewrite's single biggest
@@ -121,6 +123,7 @@ public final class DescentConfig {
 		hud = bool(props, "hud", hud);
 		levelSky = bool(props, "levelSky", levelSky);
 		planetFloor = bool(props, "planetFloor", planetFloor);
+		planetFloorWithDistantHorizons = bool(props, "planetFloorWithDistantHorizons", planetFloorWithDistantHorizons);
 		skyUfoVirtualHull = bool(props, "skyUfoVirtualHull", skyUfoVirtualHull);
 		rollRate = clamp(num(props, "rollRate", rollRate), 40f, 400f);
 		lookGain = clamp(num(props, "lookGain", lookGain), 0.25f, 3f);
@@ -139,6 +142,7 @@ public final class DescentConfig {
 		props.setProperty("hud", Boolean.toString(hud));
 		props.setProperty("levelSky", Boolean.toString(levelSky));
 		props.setProperty("planetFloor", Boolean.toString(planetFloor));
+		props.setProperty("planetFloorWithDistantHorizons", Boolean.toString(planetFloorWithDistantHorizons));
 		props.setProperty("skyUfoVirtualHull", Boolean.toString(skyUfoVirtualHull));
 		props.setProperty("rollRate", Float.toString(rollRate));
 		props.setProperty("lookGain", Float.toString(lookGain));

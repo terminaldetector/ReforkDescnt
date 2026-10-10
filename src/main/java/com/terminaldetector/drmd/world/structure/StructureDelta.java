@@ -28,6 +28,17 @@ public final class StructureDelta {
 		return out;
 	}
 
+	/** Include changed materials in the overlap, not just newly occupied positions. */
+	public static <T> Diff diff(java.util.Map<Cell, T> oldCells, java.util.Map<Cell, T> newCells) {
+		Set<Cell> clear = new HashSet<>(oldCells.keySet());
+		clear.removeAll(newCells.keySet());
+		Set<Cell> place = new HashSet<>();
+		newCells.forEach((cell, value) -> {
+			if (!java.util.Objects.equals(value, oldCells.get(cell))) place.add(cell);
+		});
+		return new Diff(clear, place);
+	}
+
 	public record Diff(Set<Cell> toClear, Set<Cell> toPlace) {}
 
 	/**

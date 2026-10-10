@@ -57,6 +57,9 @@ public final class PlanetFloorRenderer {
 		boolean endDim = mc.world.getRegistryKey() == World.END;
 		boolean overworld = mc.world.getRegistryKey() == World.OVERWORLD;
 		if (!endDim && !overworld) return;
+		// DH owns actual distant Overworld terrain. The procedural map is an explicit fallback,
+		// not another terrain layer to composite over the real LOD at altitude.
+		if (overworld && !DescentConfig.planetFloorWithDistantHorizons && com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.isPresent()) return;
 
 		Vec3d cam = ctx.camera().getPos();
 		float alpha = 1f;

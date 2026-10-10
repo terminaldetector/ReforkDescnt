@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 mkdir -p dist
+drmd_version="$(sed -n 's/^mod_version=//p' gradle.properties | head -n 1)"
+test -n "$drmd_version"
 
 echo "==> Fabric PC jar"
 chmod +x gradlew
@@ -21,7 +23,7 @@ DRMD 6DOF — evening test pack
 
 PC (Java / Fabric 1.21.1)
   1. Fabric Loader 1.21.1 + Fabric API for 1.21.1
-  2. Put drmd-6dof-1.0.0.jar into mods/
+  2. Put the current drmd-6dof-@DRMD_VERSION@-fabric-1.21.1.jar from dist/ into mods/
   3. New world — 6DoF on join; Pyro GX; /d6 kit
 
 MCPE Master / Bedrock
@@ -33,6 +35,7 @@ MCPE Master / Bedrock
 
 Full game = PC jar. MCPE = UX sandbox (see mcpe/README.md).
 EOF
+sed -i "s/@DRMD_VERSION@/${drmd_version}/g" dist/README_EVENING_TEST.txt
 
 echo ""
 echo "Ready in dist/:"

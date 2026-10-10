@@ -33,15 +33,14 @@ public final class StructureMover {
 
 	/**
 	 * Moves the instance to {@code newAnchor}, touching only the leading/trailing shell that actually
-	 * changed: cells common to both the old and new footprint (the overwhelming majority, for any
-	 * per-step delta small relative to the structure's own size) are never written at all.
+	 * changed: overlapping cells are rewritten when their material changes.
 	 */
 	public static void moveTo(ServerWorld world, StructureInstance instance, BlockPos newAnchor) {
 		Map<StructureDelta.Cell, BlockState> oldWorld = instance.occupiedCells();
 		instance.setAnchor(newAnchor);
 		Map<StructureDelta.Cell, BlockState> newWorld = instance.occupiedCells();
 
-		StructureDelta.Diff diff = StructureDelta.diff(oldWorld.keySet(), newWorld.keySet());
+		StructureDelta.Diff diff = StructureDelta.diff(oldWorld, newWorld);
 		for (StructureDelta.Cell c : diff.toClear()) {
 			world.setBlockState(toBlockPos(c), Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
 		}

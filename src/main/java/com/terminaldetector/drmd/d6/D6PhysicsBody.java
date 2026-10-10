@@ -88,6 +88,7 @@ public final class D6PhysicsBody {
 	}
 
 	public D6PhysicsBody withMass(double newMass) {
+		if (!Double.isFinite(newMass) || newMass < 0) throw new IllegalArgumentException("invalid mass");
 		this.mass = newMass;
 		this.inverseMass = newMass > 1e-9 ? 1.0 / newMass : 0.0;
 		return this;
@@ -197,6 +198,48 @@ public final class D6PhysicsBody {
 		torque = torque.plus(newTorque);
 	}
 
+	/** Instantaneous collision/weapon impulse; offset is in world axes relative to the COM. */
+	public void applyImpulse(Vec3 impulse, Vec3 offset) {
+		linearVelocity = linearVelocity.plus(impulse.scaled(inverseMass));
+		angularMomentum = angularMomentum.plus(offset.cross(impulse));
+	}
+
+	/**
+	 * Inverse effective mass seen by a unit impulse at {@code offset} along {@code direction}.
+	 *
+	 * <p>The translational term alone is only correct through the centre of mass. At a joint or
+	 * surface contact the impulse also turns the body; omitting that angular response makes the
+	 * impulse too large and injects energy every time an articulated limb is corrected.</p>
+	 */
+	public double pointImpulseDenominator(Vec3 offset, Vec3 direction) {
+		D6Mat3 inverse = worldInverseInertia();
+		if (mass <= 1e-9 || inverse == null) return 0;
+		return inverseMass
+				+ direction.dot(inverse.transform(offset.cross(direction)).cross(offset));
+	}
+
+    /** Inelastic unilateral point contact with bounded Coulomb friction. */
+    public double contactImpulse(Vec3 offset, Vec3 normal, double friction) {
+        double closing=velocityAtPoint(offset).dot(normal);
+        if(closing>=0)return 0;
+        double effective=pointImpulseDenominator(offset,normal);
+        if(effective<=1e-12)return 0;
+        double magnitude=-closing/effective;
+        applyImpulse(normal.scaled(magnitude),offset);
+        Vec3 velocity=velocityAtPoint(offset);
+        Vec3 tangent=velocity.minus(normal.scaled(velocity.dot(normal)));
+        double speed=tangent.length();
+        if(speed>1e-8){
+            tangent=tangent.scaled(1/speed);
+            double denominator=pointImpulseDenominator(offset,tangent);
+            double drag=Math.min(speed/denominator,Math.max(0,friction)*magnitude);
+            applyImpulse(tangent.scaled(-drag),offset);
+        }
+        double remaining=velocityAtPoint(offset).dot(normal);
+        if(remaining<0){double correction=-remaining/effective;applyImpulse(normal.scaled(correction),offset);magnitude+=correction;}
+        return magnitude;
+    }
+
 	/** The inertia tensor in world axes right now. */
 	public D6Mat3 worldInertia() {
 		return inertia.rotatedBy(rotation);
@@ -217,6 +260,7 @@ public final class D6PhysicsBody {
 	 * body respond one step late, which is invisible at sixty steps a second and obvious at twenty.
 	 */
 	public void step(double seconds) {
+		if (!Double.isFinite(seconds)) throw new IllegalArgumentException("non-finite timestep");
 		if (seconds <= 0) return;
 
 		// Torque goes straight into momentum: no inertia tensor is involved, which is the whole reason

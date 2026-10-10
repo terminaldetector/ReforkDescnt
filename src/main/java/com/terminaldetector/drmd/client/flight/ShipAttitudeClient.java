@@ -21,6 +21,7 @@ public final class ShipAttitudeClient {
 	private static final float ROLL_SPEED = 175f;
 
 	private static boolean primed;
+	public static int portalEpoch;
 	private static float turnPitch;
 	private static float turnYaw;
 	private static float angPitch;
@@ -52,6 +53,14 @@ public final class ShipAttitudeClient {
 		rollVel = 0;
 		rollInput = 0;
 		lastIntegrateNs = 0;
+		DescentCamera.clear();
+		applyToPlayer(player);
+	}
+
+	public static void acceptPortalFrame(ClientPlayerEntity player, net.minecraft.util.math.Vec3d forward,
+			net.minecraft.util.math.Vec3d up) {
+		ATT.setForwardUp(forward, up);
+		primed = true;
 		DescentCamera.clear();
 		applyToPlayer(player);
 	}

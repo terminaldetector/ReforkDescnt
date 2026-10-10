@@ -56,18 +56,12 @@ public class LivingEntityRendererMixin {
 		ModelOrientation.applyBasis(matrices, bodyYaw, forward, up);
 	}
 
-	/**
-	 * Local-only: this client's own view of itself. A nearby player watching someone else pilot the
-	 * Pyro GX still sees that pilot's body seated in the hull — hiding it everywhere would need a
-	 * server-synced visibility flag, a bigger change than this pass makes; see
-	 * {@code aeris-mirai}-style scope notes in the PR/report for why that's deliberately left out here.
-	 */
+	/** Hide every Pyro pilot model on this client; the vehicle hull is the visible cockpit occupant. */
 	@Inject(method = "render(Lnet/minecraft/entity/LivingEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V",
 			at = @At("HEAD"), cancellable = true)
 	private void drmd$hidePilotInShip(LivingEntity entity, float yaw, float tickDelta, MatrixStack matrices,
 									  VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-		MinecraftClient mc = MinecraftClient.getInstance();
-		if (mc.player == entity && entity.getVehicle() instanceof PyroShipEntity) {
+		if (entity.getVehicle() instanceof PyroShipEntity) {
 			ci.cancel();
 		}
 	}

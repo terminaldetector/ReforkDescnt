@@ -1,6 +1,16 @@
 {
   "replace": false,
   "values": [
-    "drmd:plasma_granite"
+    "drmd:plasma_granite",
+    "drmd:organic_stone",
+    "drmd:organic_granite",
+    "drmd:organic_diorite",
+    "drmd:organic_andesite",
+    "drmd:organic_deepslate",
+    "drmd:organic_tuff",
+    "drmd:organic_calcite",
+    "drmd:organic_netherrack",
+    "drmd:organic_end_stone",
+    "drmd:organic_terracotta"
   ]
 }

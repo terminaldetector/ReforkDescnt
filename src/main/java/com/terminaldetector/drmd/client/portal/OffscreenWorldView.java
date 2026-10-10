@@ -127,7 +127,7 @@ public final class OffscreenWorldView {
 	 */
 	public static boolean render(WorldRenderContext context, CameraAccessor accessor, Camera camera,
 			Matrix4f outerProjection, Vec3d viewPos, float viewYaw, float viewPitch,
-			Vec3d clipPoint, Vec3d clipNormal, MirrorScreenBounds.Box box) {
+			Vec3d clipPoint, Vec3d clipNormal, MirrorScreenBounds.Box box, Matrix4f viewMatrix, boolean reflected) {
 		if (!box.valid()) return false;
 		Framebuffer target = MirrorFramebuffer.get();
 		if (target == null) {
@@ -142,12 +142,15 @@ public final class OffscreenWorldView {
 		float originalPitch = camera.getPitch();
 
 		MinecraftClient mc = MinecraftClient.getInstance();
+		int originalWinding = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_FRONT_FACE);
 		depth++;
 		try {
 			accessor.drmd$invokeSetPos(viewPos);
 			accessor.drmd$invokeSetRotation(viewYaw, viewPitch);
 
-			Matrix4f positionMatrix = new Matrix4f().rotation(camera.getRotation());
+			Matrix4f positionMatrix = new Matrix4f(viewMatrix);
+			if (reflected) org.lwjgl.opengl.GL11.glFrontFace(originalWinding == org.lwjgl.opengl.GL11.GL_CCW
+				? org.lwjgl.opengl.GL11.GL_CW : org.lwjgl.opengl.GL11.GL_CCW);
 			Matrix4f projection = clipped(outerProjection, positionMatrix, viewPos, clipPoint, clipNormal);
 
 			target.setClearColor(0f, 0f, 0f, 1f);
@@ -169,6 +172,7 @@ public final class OffscreenWorldView {
 			// Restore in the reverse order of setup, and unconditionally: leaving the camera moved or the
 			// off-screen target bound would corrupt every system that reads either next frame, not just
 			// this one view's picture.
+			org.lwjgl.opengl.GL11.glFrontFace(originalWinding);
 			target.endWrite();
 			mc.getFramebuffer().beginWrite(true);
 			accessor.drmd$invokeSetPos(originalPos);

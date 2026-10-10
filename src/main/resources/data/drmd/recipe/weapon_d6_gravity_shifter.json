@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "AET",
+    "CRC",
+    "AQA"
+  ],
+  "key": {
+    "A": { "item": "drmd:alloy_plate" },
+    "C": { "item": "minecraft:amethyst_block" },
+    "E": { "item": "drmd:energy_cell" },
+    "Q": { "item": "minecraft:ender_pearl" },
+    "R": { "item": "minecraft:redstone" },
+    "T": { "item": "drmd:targeting_core" }
+  },
+  "result": {
+    "id": "drmd:weapon_d6_gravity_shifter",
+    "count": 1
+  }
+}

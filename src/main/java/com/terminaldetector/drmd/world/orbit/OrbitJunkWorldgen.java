@@ -30,7 +30,6 @@ public final class OrbitJunkWorldgen {
 
 	private static void onChunkLoad(ServerWorld world, WorldChunk chunk) {
 		if (!WorldFeatures.ORBIT_JUNK) return;
-		if (!WorldFeatures.SURFACE_DISTRICTS) return;
 		if (world.getRegistryKey() != World.OVERWORLD) return;
 
 		ChunkPos cp = chunk.getPos();

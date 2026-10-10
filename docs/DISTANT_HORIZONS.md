@@ -19,17 +19,17 @@ LOD terrain outside vanilla render distance → extreme view (64–512+ chunks) 
 ### Recommended stack (TLauncher Fabric 1.21.1)
 
 1. Fabric API  
-2. **Distant Horizons** (`distanthorizons`) — required for far vista  
+2. **Distant Horizons** (`distanthorizons`) — recommended for true terrain LOD beyond vanilla distance
 3. **Sodium** (optional, strongly recommended)  
 4. Iris (optional, shaders with DH support)  
-5. `drmd-6dof-1.1.4-fabric-1.21.1.jar`
+5. DRMD JAR built for Minecraft 1.21.1 (current build: `drmd-6dof-1.1.11-collapse-alpha.jar`)
 
-DRMD `fabric.mod.json` **suggests** `distanthorizons` + `sodium` (soft-dep, not hard).
+DRMD runs without Distant Horizons. Its own procedural voxel horizon remains available; install DH
+for real terrain LOD beyond vanilla chunk distance. `fabric.mod.json` marks DH and Sodium as optional.
 
 ### What DRMD still draws
 
 - Spark / Starlink / Oblivion **skybox** (`OrbitalBeltSkyRenderer`)  
-- Seam curtains (`BoundarySeamRenderer`)  
 - Real Klondike block islands + the End-band archipelago (CHUNK_LOAD, real blocks)
 - Voxel horizon: procedural surface map + landmark silhouettes (not terrain LODs)  
 - Cockpit / weapons / smoke  

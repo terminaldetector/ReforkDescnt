@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.entity.ProjectileEntity;
+import com.terminaldetector.drmd.physics.PhysicsTarget;
 import com.terminaldetector.drmd.shield.ShieldSystem;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -185,6 +186,15 @@ public final class WeaponCore {
 			e.addVelocity(knock.x, knock.y + 0.1, knock.z);
 			e.velocityModified = true;
 		}
+		for (Entity e : world.getOtherEntities(attacker, box, entity -> entity instanceof PhysicsTarget && entity.isAlive())) {
+			double dist = e.getPos().distanceTo(pos);
+			if (dist > radius) continue;
+			float falloff = (float) (1.0 - dist / radius);
+			Vec3d direction = e.getPos().subtract(pos);
+			if (direction.lengthSquared() < 1.0e-8) direction = new Vec3d(0, 1, 0);
+			((PhysicsTarget) e).applyPhysicsImpulse(e.getPos(),
+					direction.normalize().multiply(Math.min(80, amount * falloff * .15)));
+		}
 	}
 
 	public static void hitscan(LivingEntity owner, Vec3d start, Vec3d dir, float rangeSource, float damage, DamageClass dmgClass, Consumer<HitContext> onHit) {
@@ -204,6 +214,8 @@ public final class WeaponCore {
 		Vec3d impact = end;
 		if (entityHit != null) {
 			impact = entityHit.getPos();
+			if (entityHit.getEntity() instanceof PhysicsTarget target)
+				target.applyPhysicsImpulse(impact, dir.normalize().multiply(Math.min(80, damage * .15)));
 			directDamage(owner, entityHit.getEntity(), damage, dmgClass);
 			if (onHit != null) onHit.accept(new HitContext(null, entityHit.getEntity(), entityHit.getPos(), dir.negate(), false));
 		} else if (blockHit.getType() != HitResult.Type.MISS) {
@@ -234,9 +246,11 @@ public final class WeaponCore {
 		Box box = owner.getBoundingBox().stretch(end.subtract(start)).expand(1.0);
 		EntityHitResult best = null;
 		double bestDist = Double.MAX_VALUE;
-		for (Entity e : owner.getWorld().getOtherEntities(owner, box, ent -> ent instanceof LivingEntity && ent.isAlive())) {
-			Box eb = e.getBoundingBox().expand(0.3);
-			var opt = eb.raycast(start, end);
+		for (Entity e : owner.getWorld().getOtherEntities(owner, box,
+				ent -> (ent instanceof LivingEntity || ent instanceof PhysicsTarget) && ent.isAlive())) {
+			var opt = e instanceof PhysicsTarget target
+					? target.physicsRaycast(start, end)
+					: e.getBoundingBox().expand(0.3).raycast(start, end);
 			if (opt.isPresent()) {
 				double d = start.squaredDistanceTo(opt.get());
 				if (d < bestDist) {

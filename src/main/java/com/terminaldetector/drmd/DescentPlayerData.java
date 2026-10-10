@@ -38,6 +38,12 @@ public class DescentPlayerData {
 		STORE.clear();
 	}
 
+	// Session-only generation of the portal frame; old in-flight input cannot undo teleport rotation.
+	private int portalEpoch;
+	public int portalEpoch() { return portalEpoch; }
+	public int nextPortalEpoch() { return ++portalEpoch; }
+	public void resetPortalEpoch() { portalEpoch = 0; }
+
 	// --- Flight (d6_core.lua CFG) ---
 	private boolean enabled;
 	private boolean flightAssist = true;

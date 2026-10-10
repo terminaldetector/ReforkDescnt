@@ -58,15 +58,10 @@ public class CarvedBlock extends BlockWithEntity {
 		return new CarvedBlockEntity(pos, state);
 	}
 
-	/**
-	 * Drawn by its block entity renderer, not by a baked model.
-	 *
-	 * <p>There is no model that could be right: the block looks like whatever it used to be, minus
-	 * the parts that are gone.
-	 */
+	/** Meshed into terrain sections through Fabric Renderer API. */
 	@Override
 	public BlockRenderType getRenderType(BlockState state) {
-		return BlockRenderType.ENTITYBLOCK_ANIMATED;
+		return BlockRenderType.MODEL;
 	}
 
 	@Override
@@ -135,7 +130,7 @@ public class CarvedBlock extends BlockWithEntity {
 	private static VoxelShape shapeAt(BlockView world, BlockPos pos) {
 		BlockEntity be = world.getBlockEntity(pos);
 		if (!(be instanceof CarvedBlockEntity carved)) return VoxelShapes.fullCube();
-		return shapeOf(carved.mask());
+		return carved.organic() ? carved.organicShape(world) : shapeOf(carved.mask());
 	}
 
 	/** The shape for a mask, built once and kept. */
@@ -169,7 +164,10 @@ public class CarvedBlock extends BlockWithEntity {
 	 *         when the two masks no longer share any solid cell, so the block breaks outright)
 	 */
 	public static CarvedBlockEntity replace(ServerWorld world, BlockPos pos, BlockState source, long mask) {
-		BlockState trueSource = source;
+		if (!(world.getBlockEntity(pos) instanceof CarvedBlockEntity)
+				&& !BlockDamage.isDamageable(world,pos,source)) return null;
+		boolean organic = source.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock;
+        BlockState trueSource = organic ? ((com.terminaldetector.drmd.world.geometry.OrganicBlock)source.getBlock()).source() : source;
 		long combinedMask = mask;
 		if (world.getBlockEntity(pos) instanceof CarvedBlockEntity existing) {
 			trueSource = existing.source();
@@ -189,7 +187,14 @@ public class CarvedBlock extends BlockWithEntity {
 		BlockEntity be = world.getBlockEntity(pos);
 		if (!(be instanceof CarvedBlockEntity carved)) return null;
 		carved.init(trueSource, combinedMask);
+        if (organic) carved.setOrganic(true);
 		return carved;
+	}
+
+	@Override
+	protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState next, boolean moved) {
+		if (!state.isOf(next.getBlock()) && world instanceof ServerWorld server) MicroStore.get(server).clear(pos);
+		super.onStateReplaced(state, world, pos, next, moved);
 	}
 
 	/** Whole again: put the original block back. */

@@ -46,7 +46,7 @@ public final class EntityGravitySystem {
 		Set<UUID> active = new HashSet<>();
 		for (ServerWorld world : server.getWorlds()) {
 			for (GravityFields.Field field : GravityFields.all()) {
-				if (field.worldKey() != null && field.worldKey() != world.getRegistryKey()) continue;
+				if (field.worldKey() != null && !field.worldKey().equals(world.getRegistryKey())) continue;
 				BlockPos o = field.origin();
 				double r = field.radius() + 1.0;
 				Box box = new Box(o).expand(r);

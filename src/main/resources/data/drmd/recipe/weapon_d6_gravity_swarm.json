@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "TAT",
+    "CRC",
+    "A A"
+  ],
+  "key": {
+    "A": { "item": "drmd:alloy_plate" },
+    "C": { "item": "drmd:energy_cell" },
+    "R": { "item": "minecraft:redstone" },
+    "T": { "item": "drmd:targeting_core" }
+  },
+  "result": {
+    "id": "drmd:weapon_d6_gravity_swarm",
+    "count": 1
+  }
+}

@@ -20,6 +20,35 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * says which.
  */
 class D6PhysicsBodyTest {
+    @Test void removingLastBlockResetsMassCentreAndInertia() {
+        var mass = new D6MassProperties();
+        var centre = new Vec3(-100, 150000, 3);
+        mass.addBlock(centre, 2).addBlock(centre, -2);
+        assertEquals(0, mass.mass(), 1e-9);
+        assertVec(new Vec3(0,0,0), mass.centreOfMass(), "empty centre");
+        mass.addBlock(new Vec3(2,3,4), 3);
+        assertVec(new Vec3(2,3,4), mass.centreOfMass(), "rebuilt centre");
+        assertVec(new Vec3(.5,0,0), mass.inertia().transform(new Vec3(1,0,0)), "cube inertia");
+    }
+    @Test void offCentreImpulsePreservesExpectedMomentum() {
+        var body = new D6PhysicsBody().withMass(2).withInertia(D6Mat3.diagonal(1,2,3));
+        body.applyImpulse(new Vec3(4,0,0), new Vec3(0,1,0));
+        assertVec(new Vec3(2,0,0), body.linearVelocity(), "linear impulse");
+        assertVec(new Vec3(0,0,-4), body.angularMomentum(), "angular impulse");
+        body.step(.05);
+        assertVec(new Vec3(.1,0,0), body.position(), "post-impulse movement");
+    }
+
+	@Test
+	@DisplayName("point effective mass includes the angular response of an off-centre impulse")
+	void pointImpulseDenominatorIncludesInertia() {
+		D6PhysicsBody body = new D6PhysicsBody().withMass(2).withInertia(D6Mat3.diagonal(1, 1, 1));
+		assertEquals(.5, body.pointImpulseDenominator(new Vec3(0, 0, 0), new Vec3(1, 0, 0)), 1e-12,
+				"through the centre only inverse mass contributes");
+		assertEquals(1.5, body.pointImpulseDenominator(new Vec3(0, 1, 0), new Vec3(1, 0, 0)), 1e-12,
+				"the lever arm must add rotational inverse mass");
+	}
+
 
 	private static final double EPS = 1e-9;
 
