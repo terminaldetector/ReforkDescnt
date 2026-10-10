@@ -30,7 +30,8 @@ public final class RagdollGameTests implements FabricGameTest {
 		double startY = ragdoll.getY();
 		for (int tick = 0; tick < 140; tick++) ragdoll.tick();
 
-		context.assertTrue(ragdoll.getY() < startY - 1, "gravity moved articulated wreck");
+		context.assertTrue(ragdoll.getY() < startY - 1,
+				"gravity moved articulated wreck; startY=" + startY + " finalY=" + ragdoll.getY());
 		double floorTop = floor.getY() + 1;
 		context.assertTrue(ragdoll.partBounds().stream().allMatch(box -> box.minY >= floorTop - .025),
 				"every segment remained above the collision floor");
@@ -60,8 +61,8 @@ public final class RagdollGameTests implements FabricGameTest {
 			context.assertTrue(ragdoll.getX() < startX - 1, "local gravity moved the wreck sideways");
 			double minimumX = ragdoll.partBounds().stream().mapToDouble(box -> box.minX).min().orElseThrow();
 			context.assertTrue(minimumX >= wall.getX() + 1 - .025,
-					"segments settled against the wall instead of tunnelling through it; minX=" + minimumX
-							+ " wallFace=" + (wall.getX() + 1));
+					"segments settled against the wall instead of tunnelling through it; penetration="
+							+ (wall.getX() + 1 - minimumX));
 		} finally {
 			GravityFields.remove(fieldId);
 			ragdoll.discard();
