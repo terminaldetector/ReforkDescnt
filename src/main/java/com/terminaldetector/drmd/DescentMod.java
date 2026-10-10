@@ -62,6 +62,7 @@ public class DescentMod implements ModInitializer {
 		ModBlocks.register();
 		ModItems.register();
 		com.terminaldetector.drmd.entity.ModWorldBlocks.register();
+		com.terminaldetector.drmd.world.geometry.OrganicMaterials.register();
 		com.terminaldetector.drmd.entity.ModBlockEntities.register();
 		com.terminaldetector.drmd.world.gen.ModWorldgen.register();
 		com.terminaldetector.drmd.world.gen2.ModWorldgen2.register();
@@ -78,6 +79,8 @@ public class DescentMod implements ModInitializer {
 		com.terminaldetector.drmd.aeris.AerisMirai.register();
 		WeaponRegistry.bootstrap();
 		DescentCommands.register();
+		com.terminaldetector.drmd.world.contraption.BlockBodyCommands.register();
+		com.terminaldetector.drmd.world.geometry.HybridTerrainCommands.register();
 		AiCommands.register();
 
 		// Player state is keyed by UUID in a process-wide map, so it outlives the world unless it is
@@ -88,6 +91,10 @@ public class DescentMod implements ModInitializer {
 		// start in case a stop never happened.
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
 			com.terminaldetector.drmd.world.store.SurfaceIngest.close();
+			com.terminaldetector.drmd.world.cubic.CubicWorldSystem.close();
+			com.terminaldetector.drmd.world.portal.PortalTravel.clear();
+			com.terminaldetector.drmd.physics.GravyPhysics.clear();
+			com.terminaldetector.drmd.world.gravity.TransientGravityFields.clear();
 			DescentPlayerData.clear();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
 		});
@@ -103,6 +110,8 @@ public class DescentMod implements ModInitializer {
 			}
 			DescentPlayerData.clear();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
+			com.terminaldetector.drmd.physics.GravyPhysics.clear();
+			com.terminaldetector.drmd.world.gravity.TransientGravityFields.clear();
 			ConstructionRegistry.bootstrap(server);
 			com.terminaldetector.drmd.world.gen2.MacroWorld.clear();
 			com.terminaldetector.drmd.world.gravity.GravityFields.clear();
@@ -119,6 +128,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.clear();
 			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.clear();
 			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.clear();
+			com.terminaldetector.drmd.world.trap.MagneticAnomalySystem.clear();
 			com.terminaldetector.drmd.world.sync.DimensionSync.load(server);
 			com.terminaldetector.drmd.world.planet.PlanetSync.reset();
 			com.terminaldetector.drmd.world.store.SurfaceIngest.onServerStarted(server);
@@ -145,13 +155,16 @@ public class DescentMod implements ModInitializer {
 			// single figure for "the mod" could not say which to look at. See DiagServerTick.
 			long worldStart = com.terminaldetector.drmd.diag.DiagServerTick.begin();
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.tick();
+			com.terminaldetector.drmd.world.gravity.TransientGravityFields.tick(server);
 			com.terminaldetector.drmd.world.gravity.EntityGravitySystem.tick(server);
+			com.terminaldetector.drmd.world.trap.MagneticAnomalySystem.tick(server);
 			com.terminaldetector.drmd.world.base.DescentSession.drainSeedQueue(server);
 			com.terminaldetector.drmd.world.dungeon.FacilityReactorFight.tick(server);
 			com.terminaldetector.drmd.world.dungeon.ReactorAftermath.tick(server);
 			com.terminaldetector.drmd.world.sync.DimensionSync.tick(server);
 			com.terminaldetector.drmd.world.planet.PlanetSync.tick(server);
 			com.terminaldetector.drmd.world.store.SurfaceIngest.tick(server);
+			com.terminaldetector.drmd.world.cubic.CubicWorldSystem.tick(server);
 			com.terminaldetector.drmd.world.store.SurfaceStreamer.tick(server);
 			com.terminaldetector.drmd.world.fate.WorldEndings.tick(server);
 			com.terminaldetector.drmd.world.event.WorldEventSystem.tick(server);
@@ -176,11 +189,14 @@ public class DescentMod implements ModInitializer {
 					FlightSystem.tick(player, data);
 					EnergySystem.regenTick(player, data);
 					ShieldSystem.regenTick(player, data);
-					com.terminaldetector.drmd.physics.GravyPhysics.tick(player);
 					com.terminaldetector.drmd.pickup.LootField.tick(player, data);
 				} else {
 					com.terminaldetector.drmd.world.gravity.FootGravitySystem.tick(player);
 				}
+				// Gravity tools are hand-held physical manipulators, not a 6DoF-flight subsystem.
+				// Keeping this outside the flight branch makes a landed pilot retain the captured body.
+				EnergySystem.regenGravityTick(data);
+				com.terminaldetector.drmd.physics.GravyPhysics.tick(player);
 				if (tick % 20 == player.getId() % 20) {
 					var pos = player.getBlockPos();
 					com.terminaldetector.drmd.world.atmosphere.AtmosphereRules.tickWaterSuppression(
@@ -199,6 +215,7 @@ public class DescentMod implements ModInitializer {
 				});
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			DescentPlayerData.get(handler.player).resetPortalEpoch();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid());
 			ConstructionRegistry.allOverrides().forEach((id, mods) -> {
 				ServerPlayNetworking.send(handler.player,
@@ -215,12 +232,13 @@ public class DescentMod implements ModInitializer {
 		});
 
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+			com.terminaldetector.drmd.physics.GravyPhysics.release(handler.player);
 			com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid());
 			com.terminaldetector.drmd.world.store.SurfaceStreamer.forget(handler.player.getUuid());
 		});
 
 		com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.logStatus();
-		LOGGER.info("DRMD 6DOF 1.1.5 ready — End band + voxel horizon + surface store");
+		LOGGER.info("DRMD 6DOF ready — cubic body prototype + native portal frames + surface store");
 	}
 
 	/**

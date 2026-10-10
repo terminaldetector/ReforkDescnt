@@ -11,10 +11,9 @@ public final class ModEntityRenderers {
 	private ModEntityRenderers() {}
 
 	public static void register() {
-		// The carved block has no baked model — its renderer draws the block it used to be, once per
-		// box of the shape the damage left.
-		net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry.register(
-				com.terminaldetector.drmd.entity.ModBlockEntities.CARVED, CarvedBlockRenderer::new);
+		EntityRendererRegistry.register(ModEntities.BLOCK_BODY, BlockBodyRenderer::new);
+		EntityRendererRegistry.register(ModEntities.RAGDOLL, RagdollRenderer::new);
+		com.terminaldetector.drmd.client.render.terrain.HybridTerrainModel.register();
 
 		EntityModelLayerRegistry.registerModelLayer(PyroShipRenderer.LAYER, PyroShipModel::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(DroneRenderer.LAYER, DescentDroneModel::getTexturedModelData);

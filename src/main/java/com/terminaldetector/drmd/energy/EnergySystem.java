@@ -20,8 +20,11 @@ public final class EnergySystem {
 		float rate = ENERGY_REGEN_BASE * (0.5f + data.getAllocWeapons());
 		float next = Math.min(data.getEnergyMax(), data.getEnergy() + rate * dt);
 		data.setEnergy(next);
+	}
 
-		// Gravy railgun has its own pool (regen 10/s)
+	/** Gravity manipulators keep their own capacitor and recharge on foot as well as in 6DoF. */
+	public static void regenGravityTick(DescentPlayerData data) {
+		float dt = 1f / 20f;
 		float gravy = Math.min(100f, data.getGravyEnergy() + 10f * dt);
 		data.setGravyEnergy(gravy);
 	}

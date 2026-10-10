@@ -13,6 +13,20 @@ import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 public final class ModEntities {
+    public static final EntityType<com.terminaldetector.drmd.world.contraption.BlockBodyEntity> BLOCK_BODY = Registry.register(
+        Registries.ENTITY_TYPE, Identifier.of(DescentMod.MOD_ID, "block_body"),
+        EntityType.Builder.<com.terminaldetector.drmd.world.contraption.BlockBodyEntity>create(
+            com.terminaldetector.drmd.world.contraption.BlockBodyEntity::new, SpawnGroup.MISC)
+            .dimensions(1, 1).maxTrackingRange(128).trackingTickInterval(1).build());
+
+	public static final EntityType<RagdollEntity> RAGDOLL = Registry.register(
+			Registries.ENTITY_TYPE, Identifier.of(DescentMod.MOD_ID, "ragdoll"),
+			EntityType.Builder.<RagdollEntity>create(RagdollEntity::new, SpawnGroup.MISC)
+					.dimensions(1.4f, 1.0f)
+					.maxTrackingRange(128)
+					.trackingTickInterval(1)
+					.build());
+
 	public static final EntityType<ProjectileEntity> PROJECTILE = Registry.register(
 			Registries.ENTITY_TYPE,
 			Identifier.of(DescentMod.MOD_ID, "projectile"),
@@ -187,6 +201,6 @@ public final class ModEntities {
 		FabricDefaultAttributeRegistry.register(REACTOR_KEEPER, ReactorKeeperEntity.createAttributes());
 		FabricDefaultAttributeRegistry.register(END_REACTOR_BOSS,
 				com.terminaldetector.drmd.world.end.EndReactorBossEntity.createAttributes());
-		DescentMod.LOGGER.info("Registered DRMD entities (End boss + Sky UFO + laser cart)");
+		DescentMod.LOGGER.info("Registered DRMD entities (ragdoll + End boss + Sky UFO + laser cart)");
 	}
 }

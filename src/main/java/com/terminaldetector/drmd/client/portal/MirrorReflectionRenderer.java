@@ -162,7 +162,7 @@ public final class MirrorReflectionRenderer {
 		// side the normal points at keeps the room and discards the mirror block and everything behind.
 		return OffscreenWorldView.render(context, accessor, camera, outerProjection, fromPure(reflectedPos),
 				(float) reflectedAngles.yawDegrees(), (float) reflectedAngles.pitchDegrees(),
-				mirror.planePoint(), mirror.normal(), box);
+				mirror.planePoint(), mirror.normal(), box, PortalViewMatrix.reflected(outerPosition, normal), true);
 	}
 
 	/**

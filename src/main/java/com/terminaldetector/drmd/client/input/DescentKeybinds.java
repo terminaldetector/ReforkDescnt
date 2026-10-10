@@ -204,6 +204,7 @@ public final class DescentKeybinds {
 		DescentClientState.alwaysRun = afterburner && DescentClientState.enabled;
 
 		ClientPlayNetworking.send(new ModNetworking.InputPayload(
+				com.terminaldetector.drmd.client.flight.ShipAttitudeClient.portalEpoch,
 				forward, strafe, vertical, roll, dash, hk, afterburner,
 				att, fx, fy, fz, ux, uy, uz
 		));

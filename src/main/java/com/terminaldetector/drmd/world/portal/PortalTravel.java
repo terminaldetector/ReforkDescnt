@@ -72,14 +72,13 @@ public final class PortalTravel {
 		PortalTransform.Vec3 n = toPure(normal);
 
 		// The box only decides who is worth testing; the step test below is what catches anything moving
-		// faster than the box is wide, which at this project's ship speeds is the normal case.
-		Box reach = new Box(pos).expand(halfSpan + 1.0);
-		long now = world.getTime();
+		// up to 32 blocks/tick. Faster native travel needs a swept spatial index.
+		Box reach = new Box(pos).expand(halfSpan + 1.0 + 32.0);
+		long now = world.getServer().getTicks();
 
-		// Passengers are skipped rather than carried: moving one out from under its vehicle desyncs the
-		// pair, and the vehicle is itself in this list and travels on its own.
+		// Keep both vehicle and passengers in place until whole riding-tree transforms are supported.
 		for (Entity entity : world.getEntitiesByClass(Entity.class, reach,
-				e -> !e.isSpectator() && !e.hasVehicle())) {
+				e -> !e.isSpectator() && !e.hasVehicle() && !e.hasPassengers())) {
 			if (onCooldown(entity.getUuid(), now)) continue;
 
 			PortalTransform.Vec3 prev = new PortalTransform.Vec3(entity.prevX, entity.prevY, entity.prevZ);
@@ -90,7 +89,8 @@ public final class PortalTravel {
 			// takes two tests: inside the nominal span, and actually reachable across it.
 			PortalTransform.Vec3 hit = PortalCrossing.crossingPoint(prev, nowPos, plane, n);
 			if (hit == null) continue;
-			if (!PortalCrossing.withinFace(hit, plane, n, halfSpan)) continue;
+			double margin = entity instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity b ? b.radius() : 0;
+			if (halfSpan <= margin || !PortalCrossing.withinFace(hit, plane, n, halfSpan - margin)) continue;
 			if (!faceIsOpenTo(world, entity, face, normal, hit)) {
 				DiagTrace.count("portal.blockedSpan");
 				continue;
@@ -100,11 +100,37 @@ public final class PortalTravel {
 					nowPos, toPure(entity.getVelocity()),
 					plane, n, toPure(partnerFace), toPure(partnerNormal));
 
+			BlockPos destination = BlockPos.ofFloored(exit.position().x(), exit.position().y(), exit.position().z());
+			if (!world.isChunkLoaded(destination) || world.isOutOfHeightLimit(destination) || !world.getWorldBorder().contains(destination)) continue;
+			if (entity instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity blockBody
+				&& !blockBody.canCrossPortal(com.terminaldetector.drmd.d6.D6PortalTransform.of(
+					plane, n, toPure(partnerFace), toPure(partnerNormal)), exit.position())) continue;
+			var turn = com.terminaldetector.drmd.d6.D6PortalTransform.of(plane, n,
+				toPure(partnerFace), toPure(partnerNormal)).rotation();
+			Vec3d forward = fromPure(turn.rotate(toPure(entity.getRotationVec(1))));
+			if (entity instanceof net.minecraft.server.network.ServerPlayerEntity player) {
+				var data = com.terminaldetector.drmd.DescentPlayerData.get(player);
+				Vec3d f = fromPure(turn.rotate(toPure(data.shipForward(player))));
+				Vec3d u = fromPure(turn.rotate(toPure(data.shipUp(player))));
+				data.setShipAttitude((float) f.x, (float) f.y, (float) f.z, (float) u.x, (float) u.y, (float) u.z);
+				data.setFlightVelocity(fromPure(turn.rotate(toPure(data.getFlightVelocity()))));
+				com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), fromPure(turn.rotate(toPure(
+					com.terminaldetector.drmd.world.LocalOrientation.getUp(player.getUuid())))));
+				net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(player,
+					new com.terminaldetector.drmd.network.ModNetworking.PortalFramePayload(data.nextPortalEpoch(), f, u,
+						data.isEnabled() ? data.getFlightVelocity().multiply(1.0 / 20) : fromPure(exit.velocity())));
+			}
+
+			entity.setYaw((float) Math.toDegrees(Math.atan2(-forward.x, forward.z)));
+			entity.setPitch((float) -Math.toDegrees(Math.asin(Math.max(-1, Math.min(1, forward.y)))));
+
 			// The event the whole native-travel feature exists to produce. Written before the teleport so
 			// the record survives even if the move itself throws.
 			DiagTrace.record("portal", "carried " + entity.getType().toString() + " through " + pos
 					+ " to " + partnerPos);
 			DiagTrace.count("portal.carried");
+			if (entity instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity blockBody)
+				blockBody.crossPortal(com.terminaldetector.drmd.d6.D6PortalTransform.of(plane, n, toPure(partnerFace), toPure(partnerNormal)));
 			entity.requestTeleport(exit.position().x(), exit.position().y(), exit.position().z());
 			entity.setVelocity(new Vec3d(exit.velocity().x(), exit.velocity().y(), exit.velocity().z()));
 			// Without this the client keeps its own predicted velocity and fights the new one.
@@ -170,6 +196,10 @@ public final class PortalTravel {
 		}
 		RECENT_ARRIVALS.put(id, now + ARRIVAL_COOLDOWN_TICKS);
 	}
+
+	public static void clear() { RECENT_ARRIVALS.clear(); }
+
+	private static Vec3d fromPure(PortalTransform.Vec3 v) { return new Vec3d(v.x(), v.y(), v.z()); }
 
 	private static PortalTransform.Vec3 toPure(Vec3d v) {
 		return new PortalTransform.Vec3(v.x, v.y, v.z);

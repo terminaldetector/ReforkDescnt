@@ -1,41 +1,35 @@
 package com.terminaldetector.drmd.client.screen;
 
 import com.terminaldetector.drmd.world.DrmdServerConfig;
-import com.terminaldetector.drmd.world.WorldFeatures;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.MathHelper;
 
-/**
- * World/biome generation options, off a button on the vanilla Create World screen
- * ({@code CreateWorldScreenMixin}).
- *
- * <p>Backs {@link DrmdServerConfig} directly rather than staging changes for a "confirm" step: every
- * click here writes {@code config/drmd-server.properties} immediately and applies to
- * {@link WorldFeatures} live, the same apply-on-click behaviour {@code DescentSettingsScreen} already
- * uses for its own toggles. That is also why this reads its current values straight from those two
- * classes' static fields on every {@link #init()} instead of caching them on the screen — a value
- * changed here has nowhere else to live in between.
- *
- * <p>Global, not per-world: {@code DescentSession.seedWorld} locks the resolved world kind into the
- * new world's own save data the moment it is first seeded, so a later visit to this screen changes
- * what the <em>next</em> world becomes without touching any world already created — the same rule the
- * one setting exposed here before this screen existed ({@code psychedelicWorlds}) already followed.
- *
- * <p><strong>One exception to "applies immediately":</strong> the Advanced/Vanilla row. That choice
- * decides whether the Overworld's tall-column {@code dimension_type} override is registered as an
- * enabled or disabled built-in resource pack ({@code DrmdBuiltinPacks}), and a resource pack's
- * registered activation type is fixed once, at mod init — flipping the button here still writes the
- * config immediately like everything else on this screen, but the *pack* only picks up the new value
- * on the next game launch. The button labels say so directly rather than implying the same
- * apply-now behaviour the rest of the screen has.
- */
+import java.util.ArrayList;
+import java.util.List;
+
+/** World creation defaults and optional terrain snapshots, opened from the vanilla Create World screen. */
 public class DrmdWorldGenScreen extends Screen {
+	private static final int CONTENT_TOP = 42;
+	private static final int ROW = 22;
+	private static final int FOOTER_HEIGHT = 34;
+	private static final int SECTION_HEIGHT = 16;
+	private static final int SECTION_GAP = 6;
+
 	private final Screen parent;
+	private final List<Heading> headings = new ArrayList<>();
 	private boolean featuresHidden;
-	private int featuresHintY;
+	private int scroll;
+	private int viewBottom;
+	private int contentHeight;
+	private int hiddenFeaturesHintY = -1;
+
+	private record Heading(int y, Text text) {}
 
 	public DrmdWorldGenScreen(Screen parent) {
 		super(Text.translatable("screen.drmd.worldgen"));
@@ -46,114 +40,114 @@ public class DrmdWorldGenScreen extends Screen {
 	protected void init() {
 		DrmdServerConfig.load();
 		this.clearChildren();
+		headings.clear();
+		featuresHidden = DrmdServerConfig.worldModLevel == DrmdServerConfig.WorldModLevel.VANILLA;
+		hiddenFeaturesHintY = -1;
+		contentHeight = measureContent();
 
 		int cx = this.width / 2;
 		int left = cx - 155;
 		int right = cx + 5;
-		int y = 40;
+		viewBottom = Math.max(CONTENT_TOP + ROW, this.height - FOOTER_HEIGHT);
+		int viewHeight = viewBottom - CONTENT_TOP;
+		scroll = MathHelper.clamp(scroll, Math.min(0, viewHeight - contentHeight), 0);
+		int y = CONTENT_TOP + scroll;
 
-		y = modeRow(cx, y) + 8;
-		y = kindRow(cx, y) + 8;
+		y = section(y, "options.drmd.worldgen.section.world_shape");
+		y = addRow(y,
+				modeButton(cx - 155, y, 153, DrmdServerConfig.WorldModLevel.ADVANCED,
+						"options.drmd.mode.advanced"),
+				modeButton(cx + 2, y, 153, DrmdServerConfig.WorldModLevel.VANILLA,
+						"options.drmd.mode.vanilla"));
+		y += SECTION_GAP;
 
-		featuresHidden = DrmdServerConfig.worldModLevel == DrmdServerConfig.WorldModLevel.VANILLA;
-		featuresHintY = y + 8;
-		if (!featuresHidden) {
-			y = row(y,
-					toggle(left, y, "options.drmd.nether_band", WorldFeatures.NETHER_BAND,
-							v -> save(DrmdServerConfig.worldKind, DrmdServerConfig.worldModLevel, v, WorldFeatures.END_BAND,
-									WorldFeatures.KLONDIKE_ISLANDS, WorldFeatures.ORBIT_JUNK,
-									WorldFeatures.MACRO_WORLDGEN, WorldFeatures.SURFACE_DISTRICTS)),
-					toggle(right, y, "options.drmd.end_band", WorldFeatures.END_BAND,
-							v -> save(DrmdServerConfig.worldKind, DrmdServerConfig.worldModLevel, WorldFeatures.NETHER_BAND, v,
-									WorldFeatures.KLONDIKE_ISLANDS, WorldFeatures.ORBIT_JUNK,
-									WorldFeatures.MACRO_WORLDGEN, WorldFeatures.SURFACE_DISTRICTS)));
-			y = row(y,
-					toggle(left, y, "options.drmd.klondike_islands", WorldFeatures.KLONDIKE_ISLANDS,
-							v -> save(DrmdServerConfig.worldKind, DrmdServerConfig.worldModLevel, WorldFeatures.NETHER_BAND,
-									WorldFeatures.END_BAND, v, WorldFeatures.ORBIT_JUNK,
-									WorldFeatures.MACRO_WORLDGEN, WorldFeatures.SURFACE_DISTRICTS)),
-					toggle(right, y, "options.drmd.macro_worldgen", WorldFeatures.MACRO_WORLDGEN,
-							v -> save(DrmdServerConfig.worldKind, DrmdServerConfig.worldModLevel, WorldFeatures.NETHER_BAND,
-									WorldFeatures.END_BAND, WorldFeatures.KLONDIKE_ISLANDS, WorldFeatures.ORBIT_JUNK,
-									v, WorldFeatures.SURFACE_DISTRICTS)));
-			row(y,
-					toggle(left, y, "options.drmd.surface_districts", WorldFeatures.SURFACE_DISTRICTS,
-							v -> save(DrmdServerConfig.worldKind, DrmdServerConfig.worldModLevel, WorldFeatures.NETHER_BAND,
-									WorldFeatures.END_BAND, WorldFeatures.KLONDIKE_ISLANDS, WorldFeatures.ORBIT_JUNK,
-									WorldFeatures.MACRO_WORLDGEN, v)),
-					toggle(right, y, "options.drmd.orbit_junk", WorldFeatures.ORBIT_JUNK,
-							v -> save(DrmdServerConfig.worldKind, DrmdServerConfig.worldModLevel, WorldFeatures.NETHER_BAND,
-									WorldFeatures.END_BAND, WorldFeatures.KLONDIKE_ISLANDS, v,
-									WorldFeatures.MACRO_WORLDGEN, WorldFeatures.SURFACE_DISTRICTS)));
+		y = section(y, "options.drmd.worldgen.section.world_type");
+		y = addRow(y, kindButton(cx - 155, y, 310, DrmdServerConfig.WorldKind.STOCK,
+				"options.drmd.kind.stock"), null);
+		y = addRow(y, kindButton(cx - 155, y, 310, DrmdServerConfig.WorldKind.PSYCHEDELIC,
+				"options.drmd.kind.psychedelic"), null);
+		y = addRow(y, kindButton(cx - 155, y, 310, DrmdServerConfig.WorldKind.INFINITE_MEGACITY,
+				"options.drmd.kind.infinite_megacity"), null);
+		y += SECTION_GAP;
+
+		y = section(y, "options.drmd.worldgen.section.features");
+		if (featuresHidden) {
+			hiddenFeaturesHintY = y;
+			y += 30;
+		} else {
+			y = addRow(y,
+					featureToggle(left, y, "options.drmd.nether_band", DrmdServerConfig.WorldFeatureSetting.NETHER_BAND),
+					featureToggle(right, y, "options.drmd.end_band", DrmdServerConfig.WorldFeatureSetting.END_BAND));
+			y = addRow(y,
+					featureToggle(left, y, "options.drmd.klondike_islands", DrmdServerConfig.WorldFeatureSetting.KLONDIKE_ISLANDS),
+					featureToggle(right, y, "options.drmd.macro_worldgen", DrmdServerConfig.WorldFeatureSetting.MACRO_WORLDGEN));
+			y = addRow(y,
+					featureToggle(left, y, "options.drmd.surface_districts", DrmdServerConfig.WorldFeatureSetting.SURFACE_DISTRICTS),
+					featureToggle(right, y, "options.drmd.orbit_junk", DrmdServerConfig.WorldFeatureSetting.ORBIT_JUNK));
 		}
+		y += SECTION_GAP;
+
+		y = section(y, "options.drmd.worldgen.section.storage");
+		addInView(ButtonWidget.builder(label("options.drmd.cubic_snapshots", DrmdServerConfig.cubicSnapshots), b -> {
+					DrmdServerConfig.saveWorldSelection(DrmdServerConfig.worldKind,
+							DrmdServerConfig.worldModLevel, !DrmdServerConfig.cubicSnapshots);
+					clearAndInit();
+				})
+				.tooltip(Tooltip.of(Text.translatable("options.drmd.cubic_snapshots_hint")))
+				.dimensions(cx - 155, y, 310, 20).build());
 
 		addDrawableChild(ButtonWidget.builder(Text.translatable("gui.done"), b -> close())
 				.dimensions(cx - 100, this.height - 28, 200, 20).build());
 	}
 
-	/**
-	 * Advanced (today's full tall column) vs Vanilla (real-height Overworld, normal Nether/End,
-	 * minimal world changes — see the class doc for why this one control doesn't apply instantly).
-	 */
-	private int modeRow(int cx, int y) {
-		int w = 320 / 2 - 4;
-		int x0 = cx - 160;
-		modeButton(x0, y, w, DrmdServerConfig.WorldModLevel.ADVANCED, "options.drmd.mode.advanced");
-		modeButton(x0 + w + 8, y, w, DrmdServerConfig.WorldModLevel.VANILLA, "options.drmd.mode.vanilla");
-		return y + 20;
+	private int section(int y, String key) {
+		int absoluteY = y;
+		headings.add(new Heading(absoluteY, Text.translatable(key)));
+		return y + SECTION_HEIGHT;
 	}
 
-	private void modeButton(int x, int y, int w, DrmdServerConfig.WorldModLevel level, String key) {
+	private int addRow(int y, ClickableWidget a, ClickableWidget b) {
+		addInView(a);
+		addInView(b);
+		return y + ROW;
+	}
+
+	private void addInView(ClickableWidget widget) {
+		if (widget != null && widget.getY() >= CONTENT_TOP && widget.getY() + 20 <= viewBottom) {
+			addDrawableChild(widget);
+		}
+	}
+
+	private ButtonWidget modeButton(int x, int y, int width, DrmdServerConfig.WorldModLevel level, String key) {
 		boolean current = DrmdServerConfig.worldModLevel == level;
-		Text label = current
-				? Text.translatable(key).formatted(Formatting.GREEN, Formatting.BOLD)
-				: Text.translatable(key);
-		addDrawableChild(ButtonWidget.builder(label, b -> {
-					save(DrmdServerConfig.worldKind, level, WorldFeatures.NETHER_BAND, WorldFeatures.END_BAND,
-							WorldFeatures.KLONDIKE_ISLANDS, WorldFeatures.ORBIT_JUNK,
-							WorldFeatures.MACRO_WORLDGEN, WorldFeatures.SURFACE_DISTRICTS);
+		Text title = current ? Text.translatable(key).formatted(Formatting.GREEN, Formatting.BOLD) : Text.translatable(key);
+		return ButtonWidget.builder(title, b -> {
+					DrmdServerConfig.saveWorldSelection(DrmdServerConfig.worldKind, level, DrmdServerConfig.cubicSnapshots);
 					clearAndInit();
 				})
-				.dimensions(x, y, w, 20).build());
+				.tooltip(Tooltip.of(Text.translatable(key + ".hint")))
+				.dimensions(x, y, width, 20).build();
 	}
 
-	/** Three-way world-kind choice — a full-width button each, current pick bolded green. */
-	private int kindRow(int cx, int y) {
-		int w = 320 / 3 - 4;
-		int x0 = cx - 160;
-		kindButton(x0, y, w, DrmdServerConfig.WorldKind.STOCK, "options.drmd.kind.stock");
-		kindButton(x0 + w + 6, y, w, DrmdServerConfig.WorldKind.PSYCHEDELIC, "options.drmd.kind.psychedelic");
-		kindButton(x0 + (w + 6) * 2, y, w, DrmdServerConfig.WorldKind.INFINITE_MEGACITY,
-				"options.drmd.kind.infinite_megacity");
-		return y + 20;
-	}
-
-	private void kindButton(int x, int y, int w, DrmdServerConfig.WorldKind kind, String key) {
+	private ButtonWidget kindButton(int x, int y, int width, DrmdServerConfig.WorldKind kind, String key) {
 		boolean current = DrmdServerConfig.worldKind == kind;
-		Text label = current
-				? Text.translatable(key).formatted(Formatting.GREEN, Formatting.BOLD)
-				: Text.translatable(key);
-		addDrawableChild(ButtonWidget.builder(label, b -> {
-					save(kind, DrmdServerConfig.worldModLevel, WorldFeatures.NETHER_BAND, WorldFeatures.END_BAND,
-							WorldFeatures.KLONDIKE_ISLANDS, WorldFeatures.ORBIT_JUNK,
-							WorldFeatures.MACRO_WORLDGEN, WorldFeatures.SURFACE_DISTRICTS);
+		Text title = current ? Text.translatable(key).formatted(Formatting.GREEN, Formatting.BOLD) : Text.translatable(key);
+		return ButtonWidget.builder(title, b -> {
+					DrmdServerConfig.saveWorldSelection(kind, DrmdServerConfig.worldModLevel, DrmdServerConfig.cubicSnapshots);
 					clearAndInit();
 				})
-				.dimensions(x, y, w, 20).build());
+				.tooltip(Tooltip.of(Text.translatable(key + ".hint")))
+				.dimensions(x, y, width, 20).build();
 	}
 
-	private ButtonWidget toggle(int x, int y, String key, boolean value, java.util.function.Consumer<Boolean> onFlip) {
-		return ButtonWidget.builder(label(key, value), b -> {
-					onFlip.accept(!value);
+	private ButtonWidget featureToggle(int x, int y, String key, DrmdServerConfig.WorldFeatureSetting feature) {
+		return ButtonWidget.builder(label(key, DrmdServerConfig.configuredFeature(feature)), b -> {
+					boolean next = !DrmdServerConfig.configuredFeature(feature);
+					DrmdServerConfig.saveFeature(feature, next);
 					clearAndInit();
 				})
+				.tooltip(Tooltip.of(Text.translatable(key + ".hint")))
 				.dimensions(x, y, 150, 20).build();
-	}
-
-	private int row(int y, ButtonWidget a, ButtonWidget b) {
-		addDrawableChild(a);
-		addDrawableChild(b);
-		return y + 22;
 	}
 
 	private static Text label(String key, boolean on) {
@@ -161,11 +155,28 @@ public class DrmdWorldGenScreen extends Screen {
 				.append(Text.translatable(on ? "options.on" : "options.off"));
 	}
 
-	private static void save(DrmdServerConfig.WorldKind kind, DrmdServerConfig.WorldModLevel modLevel,
-							  boolean netherBand, boolean endBand, boolean klondikeIslands, boolean orbitJunk,
-							  boolean macroWorldgen, boolean surfaceDistricts) {
-		DrmdServerConfig.save(kind, modLevel, netherBand, endBand, klondikeIslands, orbitJunk,
-				macroWorldgen, surfaceDistricts);
+	private int measureContent() {
+		int rows = 0;
+		rows += SECTION_HEIGHT + ROW + SECTION_GAP;
+		rows += SECTION_HEIGHT + 3 * ROW + SECTION_GAP;
+		rows += SECTION_HEIGHT + (featuresHidden ? 30 : 3 * ROW) + SECTION_GAP;
+		rows += SECTION_HEIGHT + ROW;
+		return rows;
+	}
+
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+		if (mouseY >= CONTENT_TOP && mouseY <= viewBottom && contentHeight > viewBottom - CONTENT_TOP) {
+			int before = scroll;
+			int step = Math.max(ROW, (int) Math.round(Math.abs(verticalAmount) * ROW));
+			int minimum = Math.min(0, viewBottom - CONTENT_TOP - contentHeight);
+			scroll = MathHelper.clamp(scroll + Integer.signum((int) Math.signum(verticalAmount)) * step, minimum, 0);
+			if (scroll != before) {
+				clearAndInit();
+				return true;
+			}
+		}
+		return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
 	}
 
 	@Override
@@ -173,10 +184,19 @@ public class DrmdWorldGenScreen extends Screen {
 		super.render(context, mouseX, mouseY, delta);
 		context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 12, 0x5FE08A);
 		context.drawCenteredTextWithShadow(this.textRenderer,
-				Text.translatable("options.drmd.worldgen_hint"), this.width / 2, 24, 0x7A8A80);
-		if (featuresHidden) {
-			context.drawCenteredTextWithShadow(this.textRenderer,
-					Text.translatable("options.drmd.vanilla_hides_features"), this.width / 2, featuresHintY, 0x7A8A80);
+				Text.translatable("options.drmd.worldgen_hint"), this.width / 2, 24, 0xA6B5AA);
+		for (Heading heading : headings) {
+			if (heading.y() >= CONTENT_TOP && heading.y() + 10 <= viewBottom) {
+				context.drawTextWithShadow(this.textRenderer, heading.text(), this.width / 2 - 155, heading.y(), 0x91BFA1);
+			}
+		}
+		if (featuresHidden && hiddenFeaturesHintY >= CONTENT_TOP && hiddenFeaturesHintY < viewBottom) {
+			int textY = hiddenFeaturesHintY + 2;
+			for (var line : this.textRenderer.wrapLines(Text.translatable("options.drmd.vanilla_hides_features"), 310)) {
+				if (textY + 9 > viewBottom) break;
+				context.drawCenteredTextWithShadow(this.textRenderer, line, this.width / 2, textY, 0x7A8A80);
+				textY += 10;
+			}
 		}
 	}
 

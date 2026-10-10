@@ -19,6 +19,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * small filled box.
  */
 class StructureDeltaTest {
+    @Test void mixedMaterialsAreReplacedInsideOverlap() {
+        var a = new Cell(0,0,0); var b = new Cell(1,0,0); var c = new Cell(2,0,0);
+        var result = StructureDelta.diff(java.util.Map.of(a,"iron",b,"glass"), java.util.Map.of(b,"iron",c,"glass"));
+        assertEquals(Set.of(a), result.toClear());
+        assertEquals(Set.of(b,c), result.toPlace());
+        assertTrue(StructureDelta.diff(java.util.Map.of(b,"iron"),java.util.Map.of(b,"iron")).toPlace().isEmpty());
+    }
+
 	private static Set<Cell> sampleShape() {
 		Set<Cell> cells = new HashSet<>();
 		for (int x = -2; x <= 2; x++) {

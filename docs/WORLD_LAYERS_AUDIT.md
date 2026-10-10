@@ -1,5 +1,10 @@
 # Аудит мира и биомов (отдельно от арсенала)
 
+> Это аудит прежней схемы с диапазонами высоты в одном Overworld. Целевая архитектура теперь —
+> кубические XYZ-пространства, порталы для перехода между ними и зеркала для отражения; детали и
+> реальные границы реализации — в [`architecture/CUBIC_MIGRATION.md`](architecture/CUBIC_MIGRATION.md)
+> и [`PROJECT_STATUS.md`](PROJECT_STATUS.md). Ниже сохранены только заметки о совместимой legacy-схеме.
+
 ## Доктрина
 
 **Три слоя в итоге образуют параллелепипед** (Core · Surface · Sky/Orbit/End) в масштабе tall Overworld (−512…1024).
@@ -8,8 +13,8 @@
 
 | Хук | Что даёт |
 |-----|----------|
-| `LayerBridge` | Тонкая **зона телепорта** на шве Y |
-| `BoundarySeamRenderer` | «Занавес» блоков на границе |
+| `LayerBridge` | Название высотного пояса в action bar; без телепорта |
+| `BoundarySeamRenderer` | Удалён: полосы не рисуются |
 | `LevelSky` / `OrbitalBeltSkyRenderer` | Небо/пояс с **анимацией как у Oblivion** (дрейф по времени мира) |
 | `MantleStream` | Мантия рядом с игроком, не fill всей колонны |
 | `SeamWarmup` | Фон: стрим колонки + chunk tickets реального Nether/End по **прогнозу на 3 с** вперёд, в обе стороны |
@@ -19,8 +24,10 @@
 
 Immersive Portals — опциональный soft-dep для настоящего see-through.
 
-**Voxel LLOD удалён целиком** (`world/llod`, `client/llod`, payload'ы). Дальний вид — Distant Horizons.
-Orbit junk parked. Связка слоёв = LayerBridge + SeamWarmup + BoundarySeam + Spark ring + End-полоса.
+Старый полнообъёмный LOD-контур удалён. Процедурный воксельный горизонт остаётся отдельным
+поверхностным обзором, а Distant Horizons даёт дальний terrain LOD. Орбитальные структуры управляются
+отдельным `ORBIT_JUNK` и не зависят от поверхностных районов. Legacy-связка слоёв использует
+`LayerBridge`, `SeamWarmup`, небо и End-полосу.
 
 | Шов Y | Слои |
 |------:|------|
@@ -36,7 +43,8 @@ Orbit junk parked. Связка слоёв = LayerBridge + SeamWarmup + Boundary
 Vanilla creative `abilities.flying` (двойной пробел) ломает корпус: Y×0.6 и flySpeed вне `travel()`.  
 Пока Descent включён: клиент (`ClientPlayerEntityMixin` HEAD+RETURN) и сервер держат `flying=false` **и** `allowFlying=false` — двойной пробел не может перевключить fly. H выключает 6DoF и возвращает `allowFlying` в креативе. Серверный `ServerPlayerFlightTravelMixin` отменяет vanilla `travel` пока armed.
 
-`LayerBridge.tick` всегда (announce + display); teleport-hop только при 6DoF. `BoundarySeamRenderer` рисует все грани параллелепипеда (−240/40/320/880) в радиусе 120.
+`LayerBridge.tick` в Advanced-мире называет высотный пояс в action bar; телепорт-перехода и
+`BoundarySeamRenderer` больше нет. `SeamWarmup` по-прежнему заранее подгружает части legacy-колонны.
 
 ### SeamWarmup (бесшовный Nether / End)
 

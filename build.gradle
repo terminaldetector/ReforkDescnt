@@ -30,7 +30,7 @@ dependencies {
 	// Optional at runtime (see PortalComplexity.hasImmersivePortals() / docs/IMMPTL_STACK.md) but
 	// compiled against directly for the mirror/portal block feature — vendored rather than pulled
 	// from a remote repo since upstream archived itself with no ongoing release feed to track.
-	modImplementation files("libs/immersiveportals-${project.immersive_portals_version}-mc1.21.1-fabric.jar")
+	modCompileOnly files("libs/immersiveportals-${project.immersive_portals_version}-mc1.21.1-fabric.jar")
 
 	testImplementation platform("org.junit:junit-bom:${project.junit_version}")
 	testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -122,3 +122,64 @@ publishing {
 		}
 	}
 }
+
+// Isolated headless world tests. Test entrypoints are never packaged into the release jar.
+sourceSets {
+    gametest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+loom {
+    mods {
+        drmd { sourceSet sourceSets.main }
+        drmd_gametest { sourceSet sourceSets.gametest }
+    }
+    runs {
+        gametest {
+            server()
+            name "DRMD world regression tests"
+            source sourceSets.gametest
+            vmArg "-Dfabric-api.gametest"
+            vmArg "-Dfabric-api.gametest.report-file=reports/gametest-results.xml"
+            runDir "build/gametest"
+        }
+    }
+}
+
+// Isolated real-client verification. Reuses a disposable GameTest save, never a user's world.
+sourceSets {
+    rendercheck {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+loom {
+    mods { drmd_rendercheck { sourceSet sourceSets.rendercheck } }
+    runs {
+        rendercheck {
+            client()
+            name "DRMD hybrid terrain render verification"
+            source sourceSets.rendercheck
+            runDir "build/rendercheck"
+            programArg "--quickPlaySingleplayer"
+            programArg "DRMD-render-lab"
+            programArg "--width"
+            programArg "1280"
+            programArg "--height"
+            programArg "720"
+        }
+    }
+}
+tasks.register('prepareRendercheckWorld', Sync) {
+    dependsOn runGametest
+    from 'build/gametest/world'
+    into 'build/rendercheck/saves/DRMD-render-lab'
+    exclude '**/session.lock'
+    doLast {
+        def save = file('build/rendercheck/saves/DRMD-render-lab/level.dat')
+        if (!save.isFile()) throw new GradleException('GameTest fixture is missing level.dat: ' + save)
+        file('build/rendercheck/options.txt').text = 'onboardAccessibility:false\npauseOnLostFocus:false\nmaxFps:30\nrenderDistance:8\nsimulationDistance:5\n'
+    }
+}
+tasks.named('runRendercheck') { dependsOn prepareRendercheckWorld }

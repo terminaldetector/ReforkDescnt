@@ -25,8 +25,6 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.UUID;
-
 /**
  * Gravity Torch — compact local gravity source (radius {@link #RADIUS}).
  * Mount face becomes the floor: FACING points out from the surface, gravity pulls into it.
@@ -77,7 +75,9 @@ public class GravityTorchBlock extends Block {
 
 	@Override
 	protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-		GravityFields.remove(torchId(pos));
+		if (!state.isOf(newState.getBlock())) {
+			GravityFields.remove(GravityFieldIds.torch(world.getRegistryKey(), pos));
+		}
 		super.onStateReplaced(state, world, pos, newState, moved);
 	}
 
@@ -138,11 +138,7 @@ public class GravityTorchBlock extends Block {
 		// Gravity pulls into the mount surface (opposite of outward FACING)
 		Vec3d down = Vec3d.of(face.getOpposite().getVector());
 		GravityFields.put(new GravityFields.Field(
-				torchId(pos), world.getRegistryKey(),
+				GravityFieldIds.torch(world.getRegistryKey(), pos), world.getRegistryKey(),
 				pos, down, RADIUS, POWER, FieldShape.SPHERE, "Gravity Torch", true));
-	}
-
-	private static UUID torchId(BlockPos pos) {
-		return new UUID(0x67726176L ^ pos.asLong(), 0x746F726368L ^ (pos.asLong() >>> 1));
 	}
 }

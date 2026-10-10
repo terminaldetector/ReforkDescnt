@@ -47,7 +47,7 @@ public class CarvedBlockRenderer implements BlockEntityRenderer<CarvedBlockEntit
 		BakedModel model = client.getBlockRenderManager().getModel(source);
 		var layer = RenderLayers.getMovingBlockLayer(source);
 		var consumer = vertexConsumers.getBuffer(layer);
-		List<MicroGrid.Box> boxes = MicroGrid.boxes(mask);
+		List<MicroGrid.Box> boxes = entity.boxes();
 
 		for (MicroGrid.Box box : boxes) {
 			matrices.push();
@@ -63,15 +63,9 @@ public class CarvedBlockRenderer implements BlockEntityRenderer<CarvedBlockEntit
 		}
 	}
 
-	/**
-	 * Only worth drawing properly up close.
-	 *
-	 * <p>A carved block a hundred metres away is a few pixels, and the boxes it would cost are the
-	 * same however far away it is. Past this it falls back to nothing drawn, which reads as the hole
-	 * it is rather than as a block that should not be there.
-	 */
+	/** Follow loaded terrain's projection budget, including looking down from altitude. */
 	@Override
 	public int getRenderDistance() {
-		return 48;
+		return Math.max(64, client.options.getClampedViewDistance() * 16 * 4);
 	}
 }

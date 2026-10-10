@@ -77,6 +77,9 @@ public final class ArsenalCatalog {
 		put("bfg", Family.UNIQUE, "BFG", "BFG");
 		put("beam_lance", Family.UNIQUE, "Лучевой снаряд", "BEAM");
 		put("warp", Family.UNIQUE, "Телепорт", "WARP");
+		put("gravity_swarm", Family.UNIQUE, "Роевой гравизахват", "G-SWARM");
+		put("gravy_railgun", Family.UNIQUE, "Грави-рельса", "G-RAIL");
+		put("gravity_shift", Family.UNIQUE, "Гравитационный метатель", "G-SHIFT");
 
 		// 6) Droppable bomb bay (cluster / rocket / guided…) — kept for release
 		put("bomb_tnt", Family.ORDNANCE, "Бомба ТНТ", "BOMB");
@@ -138,6 +141,9 @@ public final class ArsenalCatalog {
 				ModItems.BFG,
 				ModItems.BEAM_LANCE,
 				ModItems.WARP,
+				ModItems.GRAVITY_SWARM,
+				ModItems.GRAVY_RAILGUN,
+				ModItems.GRAVITY_SHIFTER,
 				ModItems.BOMB_TNT,
 				ModItems.BOMB_CLUSTER,
 				ModItems.BOMB_HEAVY_CLUSTER,
@@ -176,7 +182,7 @@ public final class ArsenalCatalog {
 	/** Legacy placeholder ids kept registered but not in the open set. */
 	public static Set<String> retiredIds() {
 		return Set.of(
-				"mg", "heavy", "rockets", "gravy_railgun", "flak", "railmk2", "frag",
+				"mg", "heavy", "rockets", "flak", "railmk2", "frag",
 				"overdrive", "shockwave", "darklance", "darkfield", "energytrap", "gravmine",
 				"plasmamine", "reactor", "telefrag", "whiplash",
 				// The generic weights the secondaries wore before their own names came back.
