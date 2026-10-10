@@ -1,8 +1,12 @@
 package com.terminaldetector.drmd;
 
+import com.terminaldetector.drmd.ai.AiRole;
+import com.terminaldetector.drmd.ai.DroneSwarmAi;
 import com.terminaldetector.drmd.client.DescentClient;
 import com.terminaldetector.drmd.client.config.DescentConfig;
 import com.terminaldetector.drmd.client.render.terrain.HybridTerrainModel;
+import com.terminaldetector.drmd.entity.DroneEntity;
+import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import com.terminaldetector.drmd.physics.GravyPhysics;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
@@ -25,6 +29,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameMode;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -35,15 +40,22 @@ import java.util.UUID;
 public final class HybridRenderCheck implements ClientModInitializer {
     private static final BlockPos DAMAGED=new BlockPos(20,203,18);
     private static final Box GRAVITY_TRACKING=new Box(32,180,-80,82,240,90);
+    private static final Box DRONE_SWARM_TRACKING=new Box(20,180,-50,90,240,60);
+    private static final int LIVE_SWARM_SIZE=128;
     private volatile boolean ready;
     private volatile boolean collapseReady;
     private volatile boolean gravityReady=true;
+    private volatile boolean droneSwarmReady=true;
     private volatile double swarmLaunchSpeed;
     private volatile double railLaunchSpeed;
     private volatile UUID shiftBodyId;
     private volatile Vec3d shiftStartPosition=Vec3d.ZERO;
     private volatile Vec3d shiftDirection=Vec3d.ZERO;
     private volatile List<UUID> gravityBodyIds=List.of();
+    private volatile List<UUID> droneSwarmIds=List.of();
+    private volatile int swarmIndexedDrones;
+    private volatile int swarmMaxCandidates;
+    private volatile int swarmMovingDrones;
     private volatile boolean gravityArenaBuilt;
     private boolean setupQueued;
     private int ticks, sceneTicks;
@@ -99,6 +111,7 @@ public final class HybridRenderCheck implements ClientModInitializer {
             throw new IllegalStateException("The carved blockstate did not receive the hybrid baked model");
         if(sceneTicks>=260 && !collapseReady)return;
         if(sceneTicks>=800 && !gravityReady)return;
+        if(sceneTicks>=1055 && !droneSwarmReady)return;
         ++sceneTicks;
         if (sceneTicks==160) {
             capture(client,"hybrid-before.png");
@@ -227,6 +240,24 @@ public final class HybridRenderCheck implements ClientModInitializer {
 		if(sceneTicks==1055) {
 			try {Files.writeString(client.runDirectory.toPath().resolve("gravity-weapons-ok.txt"),
 					"Swarm held and launched six bodies; rail aligned and outpaced the volley; shifter attached a moving horizontal gravity field.\n");}
+			catch(java.io.IOException e){throw new IllegalStateException(e);}
+			queueDroneSwarmScene(client);
+		}
+		if(sceneTicks==1065) {
+			var drones=clientDroneSwarm(client);
+			if(drones.size()!=LIVE_SWARM_SIZE)
+				throw new IllegalStateException("Dense swarm did not synchronize to the client: "+drones.size());
+			capture(client,"drone-swarm-dense.png");
+		}
+		if(sceneTicks==1080)capture(client,"drone-swarm-flight.png");
+		if(sceneTicks==1085)queueDroneSwarmVerification(client);
+		if(sceneTicks==1090) {
+			var drones=clientDroneSwarm(client);
+			if(drones.size()!=LIVE_SWARM_SIZE)
+				throw new IllegalStateException("Live swarm lost client entities before verification: "+drones.size());
+			try {Files.writeString(client.runDirectory.toPath().resolve("swarm-ai-ok.txt"),
+					"Live swarm synchronized "+drones.size()+" drones; indexed="+swarmIndexedDrones+
+					"; moving="+swarmMovingDrones+"; maximum candidates/query="+swarmMaxCandidates+".\n");}
 			catch(java.io.IOException e){throw new IllegalStateException(e);}
 			client.scheduleStop();
 		}
@@ -365,6 +396,75 @@ public final class HybridRenderCheck implements ClientModInitializer {
 		});
 	}
 
+	private void queueDroneSwarmScene(MinecraftClient client) {
+		droneSwarmReady=false;var server=client.getServer();var playerId=client.player.getUuid();
+		server.execute(() -> {
+			var player=server.getPlayerManager().getPlayer(playerId);var world=server.getOverworld();
+			if(player==null)throw new IllegalStateException("Missing drone swarm render-check player");
+			prepareGravityArena(world,player);server.setDifficulty(Difficulty.NORMAL,true);
+			swarmIndexedDrones=0;swarmMaxCandidates=0;swarmMovingDrones=0;
+			for(var entity:world.iterateEntities())if(entity instanceof DroneEntity)entity.discard();
+			var target=net.minecraft.entity.EntityType.COW.create(world);
+			if(target==null)throw new IllegalStateException("Cannot create drone swarm target");
+			target.setPosition(56.5,207,31);target.setNoGravity(true);target.setInvulnerable(true);
+			target.setInvisible(true);target.setAiDisabled(true);target.setPersistent();world.spawnEntity(target);
+
+			List<DroneEntity> drones=new ArrayList<>();
+			for(int index=0;index<LIVE_SWARM_SIZE;index++) {
+				var drone=ModEntities.DRONE.create(world);
+				if(drone==null)throw new IllegalStateException("Cannot create live swarm drone "+index);
+				double x=56.5+((index&7)-3.5)*.7;
+				double y=207+(((index>>3)&3)-1.5)*.7;
+				double z=23+(((index>>5)&3)-1.5)*.7;
+				drone.refreshPositionAndAngles(x,y,z,180,0);drone.applyRole(AiRole.SUPPORT);drone.setPersistent();
+				world.spawnEntity(drone);drone.setTarget(target);drones.add(drone);
+			}
+			droneSwarmIds=drones.stream().map(DroneEntity::getUuid).toList();DroneSwarmAi.clear();
+			long examined=0;int maxCandidates=0;long snapshotTick=-1;
+			for(DroneEntity drone:drones) {
+				var stats=DroneSwarmAi.queryStats(drone);
+				if(snapshotTick<0)snapshotTick=stats.snapshotTick();
+				if(stats.snapshotTick()!=snapshotTick)
+					throw new IllegalStateException("Live swarm rebuilt its snapshot inside one pass");
+				if(stats.neighbours()!=DroneSwarmAi.MAX_BOID_NEIGHBOURS)
+					throw new IllegalStateException("Dense live swarm returned only "+stats.neighbours()+" neighbours");
+				examined+=stats.examinedCandidates();maxCandidates=Math.max(maxCandidates,stats.examinedCandidates());
+				swarmIndexedDrones=Math.max(swarmIndexedDrones,stats.indexedDrones());
+			}
+			if(swarmIndexedDrones<LIVE_SWARM_SIZE || maxCandidates>DroneSwarmAi.MAX_BOID_CANDIDATES
+					|| examined>(long)LIVE_SWARM_SIZE*DroneSwarmAi.MAX_BOID_CANDIDATES)
+				throw new IllegalStateException("Live swarm escaped its bounded spatial pass");
+			swarmMaxCandidates=maxCandidates;droneSwarmReady=true;
+		});
+	}
+
+	private void queueDroneSwarmVerification(MinecraftClient client) {
+		droneSwarmReady=false;var server=client.getServer();
+		server.execute(() -> {
+			var world=server.getOverworld();List<DroneEntity> drones=new ArrayList<>();
+			for(UUID id:droneSwarmIds) {
+				var entity=world.getEntity(id);
+				if(entity instanceof DroneEntity drone && drone.isAlive())drones.add(drone);
+			}
+			if(drones.size()!=LIVE_SWARM_SIZE)
+				throw new IllegalStateException("Server lost live swarm drones: "+drones.size());
+			swarmMovingDrones=(int)drones.stream().filter(drone -> drone.getPhaseTimer()>.5f
+					&& drone.getVelocity().lengthSquared()>.0025).count();
+			if(swarmMovingDrones<LIVE_SWARM_SIZE*3/4)
+				throw new IllegalStateException("Live swarm AI failed to move enough drones: "+swarmMovingDrones);
+			long examined=0;int maxCandidates=0;
+			for(DroneEntity drone:drones) {
+				var stats=DroneSwarmAi.queryStats(drone);examined+=stats.examinedCandidates();
+				maxCandidates=Math.max(maxCandidates,stats.examinedCandidates());
+				swarmIndexedDrones=Math.max(swarmIndexedDrones,stats.indexedDrones());
+			}
+			if(maxCandidates>DroneSwarmAi.MAX_BOID_CANDIDATES
+					|| examined>(long)LIVE_SWARM_SIZE*DroneSwarmAi.MAX_BOID_CANDIDATES)
+				throw new IllegalStateException("Moving swarm escaped its bounded spatial pass");
+			swarmMaxCandidates=Math.max(swarmMaxCandidates,maxCandidates);droneSwarmReady=true;
+		});
+	}
+
 	private void prepareGravityArena(ServerWorld world,net.minecraft.server.network.ServerPlayerEntity player) {
 		GravyPhysics.release(player);TransientGravityFields.clear();
 		serverGravityBodies(world).forEach(BlockBodyEntity::discard);gravityBodyIds=List.of();
@@ -398,6 +498,11 @@ public final class HybridRenderCheck implements ClientModInitializer {
 	private List<BlockBodyEntity> gravityBodies(MinecraftClient client) {
 		return client.world.getEntitiesByClass(BlockBodyEntity.class,GRAVITY_TRACKING,
 				body -> body.isAlive() && gravityBodyIds.contains(body.getUuid()));
+	}
+
+	private List<DroneEntity> clientDroneSwarm(MinecraftClient client) {
+		return client.world.getEntitiesByClass(DroneEntity.class,DRONE_SWARM_TRACKING,
+				drone -> drone.isAlive() && droneSwarmIds.contains(drone.getUuid()));
 	}
 
 	private String gravityBodySummary(MinecraftClient client) {

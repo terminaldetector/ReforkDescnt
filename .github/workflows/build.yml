@@ -49,15 +49,18 @@ jobs:
           test -s build/rendercheck/collapse-ok.txt
           test -s build/rendercheck/ragdoll-ok.txt
           test -s build/rendercheck/gravity-weapons-ok.txt
+          test -s build/rendercheck/swarm-ai-ok.txt
           mkdir -p dist/rendercheck
           cp build/rendercheck/screenshots/hybrid-*.png dist/rendercheck/
           cp build/rendercheck/screenshots/collapse-before.png build/rendercheck/screenshots/collapse-flight.png build/rendercheck/screenshots/collapse-after.png dist/rendercheck/
           cp build/rendercheck/screenshots/ragdoll-flight.png build/rendercheck/screenshots/ragdoll-after.png dist/rendercheck/
           cp build/rendercheck/screenshots/gravity-*.png dist/rendercheck/
+          cp build/rendercheck/screenshots/drone-swarm-*.png dist/rendercheck/
           cp build/rendercheck/collapse-ok.txt dist/rendercheck/
           cp build/rendercheck/rendercheck-ok.txt dist/rendercheck/
           cp build/rendercheck/ragdoll-ok.txt dist/rendercheck/
           cp build/rendercheck/gravity-weapons-ok.txt dist/rendercheck/
+          cp build/rendercheck/swarm-ai-ok.txt dist/rendercheck/
 
       - name: Upload test evidence
         if: always()
@@ -73,6 +76,7 @@ jobs:
             build/rendercheck/collapse-ok.txt
             build/rendercheck/ragdoll-ok.txt
             build/rendercheck/gravity-weapons-ok.txt
+            build/rendercheck/swarm-ai-ok.txt
           retention-days: 7
 
       - name: Stage PC jar into dist/
