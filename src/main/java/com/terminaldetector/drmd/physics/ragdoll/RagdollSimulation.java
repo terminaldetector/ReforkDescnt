@@ -177,7 +177,10 @@ public final class RagdollSimulation {
 		// angular response a ragdoll needs when an arm or spar is struck off-centre.
 		double separating = b.velocityAtPoint(rb).minus(a.velocityAtPoint(ra)).dot(normal);
 		if (separating > 0) {
-			double impulseMagnitude = separating / invSum;
+			double effectiveMass = a.pointImpulseDenominator(ra, normal)
+					+ b.pointImpulseDenominator(rb, normal);
+			if (effectiveMass <= 1e-12) return;
+			double impulseMagnitude = separating / effectiveMass;
 			Vec3 impulse = normal.scaled(impulseMagnitude);
 			a.applyImpulse(impulse, ra);
 			b.applyImpulse(impulse.scaled(-1), rb);
