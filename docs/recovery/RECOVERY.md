@@ -108,6 +108,12 @@ showed the server's far projectile still at its spawn while the client predicted
 Only disposable corridor chunks are force-loaded, and scene timing waits for a real server
 tick of all three projectiles as well as receipt of all three on the client.
 
+The same trace revealed a production prediction flaw: the initial reconstruction advanced
+client shots forever when their server entity stopped ticking. `ProjectilePrediction` now
+limits visual lead to four ticks from the latest authoritative position and resets on each
+position packet. Four unit tests cover full speed, a long update gap, resumed corrections,
+zero velocity and vertical travel. Server damage, lifetime and speed rules remain authoritative.
+
 ## Every major milestone goes through GitHub Actions
 
 Commit and push each coherent milestone to this recovery branch. `build.yml` runs on

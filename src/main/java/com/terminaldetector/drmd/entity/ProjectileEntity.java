@@ -73,6 +73,8 @@ public class ProjectileEntity extends Entity {
 	private int maxBounces = DEFAULT_MAX_BOUNCES;
 	private Consumer<WeaponCore.HitContext> onHit;
 	private final Set<Integer> pierced = new HashSet<>();
+	private final com.terminaldetector.drmd.weapon.projectile.ProjectilePrediction visualPrediction =
+			new com.terminaldetector.drmd.weapon.projectile.ProjectilePrediction();
 
 	private com.terminaldetector.drmd.weapon.projectile.FuseType fuse =
 			com.terminaldetector.drmd.weapon.projectile.FuseType.IMPACT;
@@ -198,7 +200,7 @@ public class ProjectileEntity extends Entity {
 		super.tick();
 		if (getWorld().isClient) {
 			setVelocity(getVisualVelocity());
-			setPosition(getPos().add(getVelocity()));
+			setPosition(visualPrediction.advance(getPos(), getVelocity()));
 			drawTracer();
 			return;
 		}
@@ -525,5 +527,13 @@ public class ProjectileEntity extends Entity {
 	@Override
 	public void onSpawnPacket(EntitySpawnS2CPacket packet) {
 		super.onSpawnPacket(packet);
+		visualPrediction.accept(getPos());
+	}
+
+	@Override
+	public void updateTrackedPositionAndAngles(double x, double y, double z, float yaw, float pitch,
+			int interpolationSteps, boolean interpolate) {
+		super.updateTrackedPositionAndAngles(x, y, z, yaw, pitch, interpolationSteps, interpolate);
+		visualPrediction.accept(new Vec3d(x, y, z));
 	}
 }
