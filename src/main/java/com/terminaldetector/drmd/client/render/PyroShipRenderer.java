@@ -83,8 +83,26 @@ public class PyroShipRenderer extends EntityRenderer<PyroShipEntity> {
 		VertexConsumer vc = consumers.getBuffer(model.getLayer(TEXTURE));
 		model.render(matrices, vc, light, OverlayTexture.DEFAULT_UV, 0xFFFFFFFF);
 		matrices.pop();
-		super.render(entity, yaw, tickDelta, matrices, consumers, light);
-	}
+        // Active construction uses the pilot eye/hull basis, exactly as its physical muzzles.
+        if(entity.getFirstPassenger() instanceof net.minecraft.entity.LivingEntity pilot &&
+                pilot.getMainHandStack().getItem() instanceof com.terminaldetector.drmd.weapon.items.DescentWeaponItem weapon) {
+            Vec3d eye=pilot.getCameraPosVec(tickDelta);
+            Vec3d base=entity.getLerpedPos(tickDelta);
+            Vec3d right=forward.crossProduct(up).normalize();
+            Vec3d orthogonalUp=right.crossProduct(forward).normalize();
+            for(var module:com.terminaldetector.drmd.workshop.ConstructionRegistry.getModules(weapon.getDef().id)) {
+                if(!com.terminaldetector.drmd.workshop.HybridWeaponModels.contains(module.model)) continue;
+                Vec3d anchor=eye.add(forward.multiply(module.posFwd/16f))
+                        .add(right.multiply(module.posRgt/16f)).add(orthogonalUp.multiply(module.posUp/16f));
+                Vec3d offset=anchor.subtract(base);
+                matrices.push(); matrices.translate(offset.x,offset.y,offset.z);
+                ModelOrientation.applyBasis(matrices,180f,forward,orthogonalUp);
+                HybridWeaponRenderer.draw(matrices,consumers,module,ShotFxRenderer.recoilAt(anchor,tickDelta),light);
+                matrices.pop();
+            }
+        }
+        super.render(entity, yaw, tickDelta, matrices, consumers, light);
+    }
 
 	/** Vanilla's own yaw/pitch → look-vector formula, inlined rather than trusted from memory as a
 	 * method name/signature on {@code Entity} — see the class-level risk note in this codebase's other

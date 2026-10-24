@@ -92,14 +92,13 @@ public class DescentClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SyncPayload.ID, (payload, context) ->
 				context.client().execute(() -> applySync(payload, context.client())));
 
-		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ConstructionPayload.ID, (payload, context) -> {
-			String id = ConstructionRegistry.normalize(payload.weaponId());
-			if (payload.modules() == null || payload.modules().isEmpty()) {
-				ConstructionRegistry.clearOverride(id);
-			} else {
-				ConstructionRegistry.setOverride(id, ClusterModule.listFromNbt(payload.modules()));
-			}
-		});
+        ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ConstructionPayload.ID, (payload, context) ->
+                context.client().execute(() -> {
+                    String id=ConstructionRegistry.normalize(payload.weaponId());
+                    ConstructionRegistry.acceptClientOverride(id,ClusterModule.listFromNbt(payload.modules()));
+                    if(context.client().currentScreen instanceof com.terminaldetector.drmd.workshop.WorkshopScreen workshop)
+                        workshop.constructionAccepted(id);
+                }));
 
 		// Seed, scars and the landmark catalogue: everything the voxel horizon needs, sent once
 		// rather than streamed.

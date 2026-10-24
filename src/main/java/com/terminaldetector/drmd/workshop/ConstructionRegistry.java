@@ -86,6 +86,7 @@ public final class ConstructionRegistry {
 
 	public static void setOverride(String weaponId, List<ClusterModule> modules) {
 		String id = normalize(weaponId);
+        if(!ConstructionValidation.validId(id)) throw new IllegalArgumentException("Invalid construction weapon ID");
 		if (modules == null || modules.isEmpty()) {
 			OVERRIDES.remove(id);
 			deleteFile(id);
@@ -97,6 +98,14 @@ public final class ConstructionRegistry {
 		OVERRIDES.put(id, copy);
 		save(id, copy);
 	}
+
+    /** Client mirror must never persist into an integrated server's world from a receive callback. */
+    public static void acceptClientOverride(String weaponId, List<ClusterModule> modules) {
+        String id=normalize(weaponId);
+        if(!ConstructionValidation.validId(id) || !ConstructionValidation.valid(modules)) return;
+        if(modules.isEmpty()) OVERRIDES.remove(id);
+        else OVERRIDES.put(id,modules.stream().map(ClusterModule::copy).toList());
+    }
 
 	public static void clearOverride(String weaponId) {
 		setOverride(weaponId, null);

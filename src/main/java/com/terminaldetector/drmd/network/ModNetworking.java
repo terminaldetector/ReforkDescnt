@@ -593,6 +593,10 @@ public final class ModNetworking {
 				return;
 			}
 			String id = com.terminaldetector.drmd.workshop.ConstructionRegistry.normalize(payload.weaponId());
+            if(!com.terminaldetector.drmd.workshop.ConstructionValidation.validId(id) ||
+                    com.terminaldetector.drmd.weapon.registry.WeaponRegistry.get(id)==null) return;
+            var accepted=com.terminaldetector.drmd.workshop.ClusterModule.listFromNbt(payload.modules());
+            if(!com.terminaldetector.drmd.workshop.ConstructionValidation.valid(accepted)) return;
 			if (payload.modules() == null || payload.modules().isEmpty()) {
 				com.terminaldetector.drmd.workshop.ConstructionRegistry.clearOverride(id);
 			} else {

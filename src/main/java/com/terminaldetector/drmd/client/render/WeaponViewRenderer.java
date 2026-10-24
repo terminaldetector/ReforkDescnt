@@ -73,6 +73,18 @@ public final class WeaponViewRenderer {
 			float time = (mc.player.age + context.tickCounter().getTickDelta(false)) / 20f;
 
 			for (ClusterModule m : modules) {
+                if (com.terminaldetector.drmd.workshop.HybridWeaponModels.contains(m.model)) {
+                    Vec3d anchor = cam.add(look.multiply(m.posFwd / 16f))
+                            .add(rr.multiply(m.posRgt / 16f)).add(uu.multiply(m.posUp / 16f));
+                    matrices.push();
+                    matrices.translate(anchor.x-cam.x, anchor.y-cam.y, anchor.z-cam.z);
+                    ModelOrientation.applyBasis(matrices, 180f, look, up);
+                    HybridWeaponRenderer.draw(matrices, consumers, m,
+                            ShotFxRenderer.recoilAt(anchor, context.tickCounter().getTickDelta(false)),
+                            mc.world.getLightLevel(net.minecraft.util.math.BlockPos.ofFloored(anchor)) * 0x100010);
+                    matrices.pop();
+                    continue;
+                }
 				float fwd = m.posFwd / 16f;
 				float rgt = m.posRgt / 16f;
 				float upp = m.posUp / 16f;
@@ -85,14 +97,16 @@ public final class WeaponViewRenderer {
 				matrices.translate(pos.x - cam.x, pos.y - cam.y, pos.z - cam.z);
 				ModelOrientation.applyBasis(matrices, 180f, look.negate(), up);
 				matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(m.roll));
+                matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(m.yaw));
+                matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(m.pitch));
 				if (m.spin != 0) {
 					matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(time * m.spin * 60f));
 				}
 				float s = 0.08f * m.scaleX;
-				matrices.scale(s, s, s * (modelLength(m.model)));
+				matrices.scale(s, .08f * m.scaleY, .08f * m.scaleZ * modelLength(m.model));
 
 				int[] rgb = colorForModel(m);
-				int argb = (m.colorA << 24) | (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+				int argb = HybridWeaponRenderer.tint((rgb[0] << 16) | (rgb[1] << 8) | rgb[2], m);
 				switch (m.model) {
 					case "gravy" -> drawGravyClaw(matrices, consumers, argb);
 					case "nosegun" -> drawNoseGun(matrices, consumers, argb);

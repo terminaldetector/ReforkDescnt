@@ -93,7 +93,10 @@ public final class DefaultLayouts {
 		BUILTIN.put("gravity_swarm", layout("gravy", .82f, "gravy", .82f, "gravy", GF, GU, 1.05f));
 		BUILTIN.put("gravy_railgun", layout("barrel", 1.00f, "barrel", 1.00f, "gravy", GFR, GUR, GS));
 		BUILTIN.put("gravity_shift", layoutPair("nosegun", 1.15f, "gravy", GF, GU, 1.35f));
-		// Legacy aliases
+        BUILTIN.put("laser_pulse", HybridWeaponModels.sample(HybridWeaponModels.IMPULSE));
+        BUILTIN.put("plasma", HybridWeaponModels.sample(HybridWeaponModels.PLASMA));
+        BUILTIN.put("gravy_railgun", HybridWeaponModels.sample(HybridWeaponModels.RAIL));
+        // Legacy aliases
 		BUILTIN.put("mg", BUILTIN.get("gatling"));
 		BUILTIN.put("flak", BUILTIN.get("spread"));
 		BUILTIN.put("rockets", BUILTIN.get("rocket_dual"));

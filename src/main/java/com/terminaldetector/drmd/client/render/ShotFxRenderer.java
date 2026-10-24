@@ -12,6 +12,7 @@ import java.util.ArrayDeque;
 public final class ShotFxRenderer {
     private static final int MAX_EFFECTS = 256;
     private static final ArrayDeque<Flash> FLASHES = new ArrayDeque<>();
+    private static final ArrayDeque<Flash> RECOIL = new ArrayDeque<>();
     private static ClientWorld world;
     private static long ticks;
     private static int muzzleEvents, impactEvents;
@@ -24,7 +25,7 @@ public final class ShotFxRenderer {
     private static void checkWorld() {
         var current = MinecraftClient.getInstance().world;
         if (world != current) {
-            FLASHES.clear(); world = current; ticks = 0; muzzleEvents = impactEvents = 0;
+            FLASHES.clear(); RECOIL.clear(); world = current; ticks = 0; muzzleEvents = impactEvents = 0;
         }
     }
 
@@ -35,12 +36,26 @@ public final class ShotFxRenderer {
         while (FLASHES.size() >= MAX_EFFECTS) FLASHES.removeFirst();
         FLASHES.addLast(new Flash(new Vec3d(event.x(), event.y(), event.z()), event.rgb(),
                 Math.clamp(event.scale(), .1f, 4f), event.impact(), ticks));
-        if (event.impact()) impactEvents++; else muzzleEvents++;
+        if (event.impact()) impactEvents++; else {
+            muzzleEvents++;
+            while(RECOIL.size() >= 64) RECOIL.removeFirst();
+            RECOIL.addLast(new Flash(new Vec3d(event.x(),event.y(),event.z()),event.rgb(),event.scale(),false,ticks));
+        }
+    }
+
+    public static float recoilAt(Vec3d anchor, float delta) {
+        float result=0;
+        for(var event:RECOIL) if(event.position().squaredDistanceTo(anchor)<.16) {
+            float age=ticks-event.born()+delta;
+            if(age>=0 && age<8) result=Math.max(result,(float)Math.sin(Math.PI*age/8));
+        }
+        return result;
     }
 
     public static void register() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             checkWorld(); ticks++;
+            RECOIL.removeIf(event -> ticks-event.born()>=8);
             FLASHES.removeIf(flash -> ticks - flash.born() >= (flash.impact() ? 6 : 3));
         });
         WorldRenderEvents.AFTER_ENTITIES.register(context -> {

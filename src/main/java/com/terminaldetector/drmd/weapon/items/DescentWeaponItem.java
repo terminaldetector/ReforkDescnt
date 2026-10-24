@@ -678,7 +678,10 @@ public class DescentWeaponItem extends Item {
 				int launched = GravyPhysics.fling(player);
 				if (launched <= 0) return false;
 				data.setGravyEnergy(data.getGravyEnergy() - cost);
-				return true;
+                for(Vec3d muzzle:WeaponCore.allMuzzles(player,def.id))
+                    com.terminaldetector.drmd.network.ModNetworking.shotFx(
+                            (net.minecraft.server.world.ServerWorld)player.getWorld(),muzzle,0xbc8bff,.75f,false);
+                return true;
 			}
 		}
 
