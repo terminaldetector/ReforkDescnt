@@ -22,6 +22,7 @@ jobs:
             --name evidence-1cd2f502cde9be849ff718385fdc3e0c38291dd3-40099518924-1 \
             --dir evidence
           gh run view 40099518924 --log-failed > failed-job.log
+          gh run view 40099518924 --job 120888591154 --log > full-job.log
       - name: Prepare diagnostic excerpts and original frames
         shell: python
         run: |
@@ -36,6 +37,11 @@ jobs:
                   lines = path.read_text(errors='replace').splitlines()
                   selected += [str(path)] + ([line for line in lines if len(line) < 2000 and any(word in line for word in words)] if path.name != 'REPORT.md' else lines)
           Path('diagnostics.txt').write_text('\n'.join(selected) + '\n')
+          lines = Path('full-job.log').read_text(errors='replace').splitlines()
+          with Path('diagnostics.txt').open('a') as out:
+              for index, line in enumerate(lines):
+                  if 'GITHUB_TOKEN Permissions' in line:
+                      out.write('\n' + '\n'.join(lines[index:index+12]) + '\n')
           with zipfile.ZipFile('screenshots.zip', 'w', compression=zipfile.ZIP_DEFLATED) as archive:
               for frame in base.rglob('*.png'):
                   archive.write(frame, str(frame.relative_to(base)))

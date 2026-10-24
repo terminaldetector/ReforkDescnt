@@ -4,6 +4,7 @@ run-name: Checkpoint · ${{ github.ref_name }} · ${{ github.sha }}
 on:
   push:
     branches: [ '**' ]
+    paths-ignore: ['.github/workflows/recovery-inspect.yml']
   pull_request:
   workflow_dispatch:
 
@@ -79,6 +80,11 @@ jobs:
       - name: Build remapped Fabric JAR
         id: build
         run: ./gradlew build --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/build.log
+      - name: Verify weapon images and client motion
+        id: shootcheck
+        run: |
+          rm -f build/shootcheck/shootcheck-ok.json
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runShootcheck --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/shootcheck.log
       - name: Verify real client
         id: rendercheck
         run: |
@@ -87,11 +93,6 @@ jobs:
             rm -f "build/rendercheck/${marker}.txt"
           done
           LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runRendercheck --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/rendercheck.log
-      - name: Verify weapon images and client motion
-        id: shootcheck
-        run: |
-          rm -f build/shootcheck/shootcheck-ok.json
-          LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runShootcheck --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/shootcheck.log
       - name: Validate fresh evidence and stage only the current JAR
         id: verify
         run: python3 scripts/checkpoint_report.py --verify 2>&1 | tee build/checkpoint/logs/verify.log
