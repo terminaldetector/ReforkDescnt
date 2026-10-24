@@ -12,11 +12,15 @@ public final class HybridWeaponRenderer {
     private static final Identifier WHITE = Identifier.of("minecraft", "textures/misc/white.png");
     private HybridWeaponRenderer() {}
     public static void draw(MatrixStack matrices, VertexConsumerProvider consumers, ClusterModule module,
-                            float recoil, int light) {
+                            float recoil, float load, int light) {
         var entry = matrices.peek();
         var buffer = consumers.getBuffer(RenderLayer.getEntitySolid(WHITE));
         for(var part : HybridWeaponModels.parts(module.model)) {
             int col = tint(part.material().rgb, module);
+            if(part.material().emissive) {
+                float power=module.model.equals(HybridWeaponModels.RAIL) ? .4f+.6f*load : .65f+.35f*recoil;
+                col=(col&0xff000000)|((int)(((col>>16)&255)*power)<<16)|((int)(((col>>8)&255)*power)<<8)|(int)((col&255)*power);
+            }
             int partLight = part.material().emissive ? LightmapTextureManager.MAX_LIGHT_COORDINATE : light;
             for(var face : part.faces()) {
                 var points = face.points().stream().map(p -> HybridWeaponModels.transform(module,p,recoil,part.moving()).div(16)).toList();

@@ -92,8 +92,8 @@ jobs:
       - name: Verify weapon images and client motion
         id: shootcheck
         run: |
-          rm -f build/shootcheck/shootcheck-ok.json
-          LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runShootcheck --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/shootcheck.log
+          rm -f build/shootcheck/shootcheck-ok.json build/shootcheck/hybrid-weapons-ok.json
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 480s xvfb-run -a ./gradlew runShootcheck --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/shootcheck.log
       - name: Verify real client
         id: rendercheck
         run: |
@@ -136,6 +136,7 @@ jobs:
             build/shootcheck/logs/
             build/shootcheck/crash-reports/
             build/shootcheck/shootcheck-ok.json
+            build/shootcheck/hybrid-weapons-ok.json
           if-no-files-found: error
           retention-days: 90
       - name: Publish verified installable mod

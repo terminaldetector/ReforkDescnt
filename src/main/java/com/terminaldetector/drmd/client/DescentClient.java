@@ -75,7 +75,9 @@ public class DescentClient implements ClientModInitializer {
 		com.terminaldetector.drmd.client.portal.MirrorReflectionRenderer.register();
 		com.terminaldetector.drmd.client.portal.PortalSeeThroughRenderer.register();
 		registerRenderLayers();
-		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ShotFxPayload.ID, (payload, context) ->
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.WeaponLoadPayload.ID, (payload, context) ->
+                context.client().execute(() -> com.terminaldetector.drmd.client.render.WeaponLoadState.accept(payload.ownerId(),payload.load())));
+        ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ShotFxPayload.ID, (payload, context) ->
 				context.client().execute(() -> com.terminaldetector.drmd.client.render.ShotFxRenderer.add(payload)));
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.PortalFramePayload.ID, (payload, context) ->

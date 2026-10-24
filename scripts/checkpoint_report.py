@@ -22,6 +22,9 @@ SHOT_FRAMES = ('bolt-dark-ranges', 'bolt-light-ranges', 'orb-dark-ranges', 'orb-
                'rocket-dark-ranges', 'rocket-light-ranges', 'banked-fire', 'vertical-fire',
                'muzzle-impact', 'fast-motion', 'mounts-fov-70', 'mounts-fov-80', 'mounts-fov-90')
 
+HYBRID_FRAMES = tuple(f'hybrid-{model}-{view}' for model in range(3)
+                      for view in ('workshop','fov70','fov80','fov90','banked','vertical')) + ('hybrid-2-loaded',)
+
 
 def properties(root):
     return dict(line.strip().split('=', 1) for line in
@@ -96,6 +99,16 @@ def verify(root):
     for name in SHOT_FRAMES:
         fresh(root / f'build/shootcheck/screenshots/{name}.png', started)
 
+    hybrid_marker = root / 'build/shootcheck/hybrid-weapons-ok.json'
+    fresh(hybrid_marker, started)
+    hybrid = json.loads(hybrid_marker.read_text())
+    expected = dict(models=3, presetRoundTrips=3, serverSaves=3, muzzlePairs=3,
+                    fovs=[70,80,90], banked=3, vertical=3, realUseAnimated=3, loadSynced=True)
+    if any(hybrid.get(key) != value for key,value in expected.items()) or hybrid.get('frames',0) < 19:
+        raise ValueError(f'Incomplete hybrid verification: {hybrid}')
+    for name in HYBRID_FRAMES:
+        fresh(root / f'build/shootcheck/screenshots/{name}.png', started)
+
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
     jar = root / f'build/libs/{base}-{version}.jar'
@@ -106,7 +119,7 @@ def verify(root):
             raise ValueError('JAR metadata does not match this source version')
         if 'com/terminaldetector/drmd/DescentMod.class' not in archive.namelist():
             raise ValueError('Not a compiled DRMD binary JAR')
-        forbidden = ('HybridRenderCheck', 'WeaponRenderCheck', 'GameTests.class',
+        forbidden = ('HybridRenderCheck', 'HybridWeaponCheck', 'HybridMeshProbe', 'WorkshopPreviewProbe', 'WeaponRenderCheck', 'GameTests.class',
                      'ProjectileRendererProbe', 'ProjectileVisibilityProbe', 'WeaponCrosshairMask', 'drmd.shootcheck.mixins',
                      'drmd_gametest', 'drmd_rendercheck', 'drmd_shootcheck', '-ok.txt')
         if any(any(token in name for token in forbidden) for name in archive.namelist()):
@@ -123,6 +136,7 @@ def verify(root):
     (distribution / 'SHA256SUMS').write_text(f'{digest}  {target.name}\n')
     result = dict(source_sha=source, version=version, jar=target.name, sha256=digest,
                   unit=results['unit'], gametest=results['gametest'], swarm=swarm.strip(),
+                  hybrid=hybrid, hybrid_frames=[name + '.png' for name in HYBRID_FRAMES],
                   frames=[name + '.png' for name in FRAMES], shootcheck=shot,
                   shot_frames=[name + '.png' for name in SHOT_FRAMES])
     (out / 'verified.json').write_text(json.dumps(result, indent=2) + '\n')
@@ -164,6 +178,7 @@ def report(root):
                   f'- SHA-256: `{result["sha256"]}`', '- Rendercheck: 5/5 fresh markers.',
                   f'- {result["swarm"]}', '', '### Fresh frames', '']
         lines += ['- ' + name for name in result['frames']]
+        lines += ['', '### Hybrid samples', '', f'- {result["hybrid"]}', ''] + ['- ' + name for name in result['hybrid_frames']]
         lines += ['', '### Weapon verification', '',
                   f'- {result["shootcheck"]}', ''] + ['- ' + name for name in result['shot_frames']]
     else:
@@ -172,6 +187,9 @@ def report(root):
     lines += ['', '## Limits', '',
               '- Historical 1.1.12 results in the supplied MHT are not results of this run.',
               '- Manual playability smoke test: NOT RUN.',
+              '- Workshop Apply Build publishes construction/muzzles; Stats/Projectile/Flak/Guidance drafts are saved/exported, not runtime behavior overrides.',
+              '- Three hybrid samples: laser_pulse (impulse), plasma, gravy_railgun. Models tab in the existing Workshop; Creative + server operator for publishing.',
+              '- Local named presets: config/drmd/weapon-presets/*.nbt; authoritative layouts: world/data/drmd/visual/*.nbt.',
               '- Source archives, reports and artifacts are retained by GHA for 90 days.', '']
     (out / 'REPORT.md').write_text('\n'.join(lines))
     (out / 'RUN_URL.txt').write_text(run_url + '\n')

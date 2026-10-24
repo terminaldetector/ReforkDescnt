@@ -97,7 +97,7 @@ public class PyroShipRenderer extends EntityRenderer<PyroShipEntity> {
                 Vec3d offset=anchor.subtract(base);
                 matrices.push(); matrices.translate(offset.x,offset.y,offset.z);
                 ModelOrientation.applyBasis(matrices,180f,forward,orthogonalUp);
-                HybridWeaponRenderer.draw(matrices,consumers,module,ShotFxRenderer.recoilAt(anchor,tickDelta),light);
+                HybridWeaponRenderer.draw(matrices,consumers,module,ShotFxRenderer.recoilAt(anchor,tickDelta),WeaponLoadState.get(pilot.getId()),light);
                 matrices.pop();
             }
         }

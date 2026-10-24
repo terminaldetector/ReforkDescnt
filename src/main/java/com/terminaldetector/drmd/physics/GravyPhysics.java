@@ -108,6 +108,7 @@ public final class GravyPhysics {
 	public static void release(ServerPlayerEntity player) {
 		if (player == null) return;
 		GRABS.remove(player.getUuid());
+        com.terminaldetector.drmd.network.ModNetworking.weaponLoad(player,0);
 		DescentPlayerData.get(player).setGravyGrabbing(false);
 	}
 
@@ -146,6 +147,7 @@ public final class GravyPhysics {
 		if (accepted.isEmpty()) return 0;
 		GRABS.put(player.getUuid(), new Grab(mode, accepted));
 		DescentPlayerData.get(player).setGravyGrabbing(true);
+        com.terminaldetector.drmd.network.ModNetworking.weaponLoad(player,(float)Math.min(1,totalMass/mode.maxMass()));
 		return accepted.size();
 	}
 
@@ -198,6 +200,7 @@ public final class GravyPhysics {
 	/** Release the current formation as one volley. Returns the number of bodies actually launched. */
 	public static int fling(ServerPlayerEntity player) {
 		Grab grab = GRABS.remove(player.getUuid());
+        com.terminaldetector.drmd.network.ModNetworking.weaponLoad(player,0);
 		DescentPlayerData.get(player).setGravyGrabbing(false);
 		if (grab == null) return 0;
 		ServerWorld world = player.getServerWorld();

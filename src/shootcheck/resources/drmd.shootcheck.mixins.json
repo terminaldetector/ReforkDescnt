@@ -2,6 +2,14 @@
   "required": true,
   "package": "com.terminaldetector.drmd.shootcheck",
   "compatibilityLevel": "JAVA_21",
-  "client": ["ProjectileRendererProbe", "ProjectileVisibilityProbe", "WeaponCrosshairMask"],
-  "injectors": {"defaultRequire": 1}
+  "client": [
+    "ProjectileRendererProbe",
+    "ProjectileVisibilityProbe",
+    "WeaponCrosshairMask",
+    "HybridMeshProbe",
+    "WorkshopPreviewProbe"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }

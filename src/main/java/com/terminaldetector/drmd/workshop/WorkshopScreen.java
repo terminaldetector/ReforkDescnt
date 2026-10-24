@@ -35,6 +35,7 @@ public class WorkshopScreen extends Screen {
     private float previewYaw = -24, previewPitch = 22;
     private long previewFire;
     private int previewFaces;
+    private String acceptedWeaponId="";
     private final List<String> modelLabels = new ArrayList<>();
     private final List<ButtonWidget> clusterButtons = new ArrayList<>();
 
@@ -427,7 +428,7 @@ public class WorkshopScreen extends Screen {
         flushFields();
         config = WeaponConfig.fromExistingWeapon(HybridWeaponModels.weapon(model));
         config.clusters.clear(); config.clusters.addAll(HybridWeaponModels.sample(model));
-        presetName = model; modelIndex = 0; transformPage = 0; tab = Tab.MODELS;
+        acceptedWeaponId=""; presetName = model; modelIndex = 0; transformPage = 0; tab = Tab.MODELS;
         status = "Draft: " + model + "; Apply Build publishes construction and muzzles";
         init();
     }
@@ -442,7 +443,9 @@ public class WorkshopScreen extends Screen {
         catch(java.io.IOException | IllegalArgumentException e) { status="Load: " + e.getMessage(); }
     }
     public void publishConstruction() { applyConstruction(); }
+    public String acceptedWeaponId() { return acceptedWeaponId; }
     public void constructionAccepted(String id) {
+        acceptedWeaponId=id;
         if(config.targetWeaponId.equals(id)) status="Server saved construction/muzzles: " + id + "; stats are export-only";
     }
     public int previewFaceCount() { return previewFaces; }

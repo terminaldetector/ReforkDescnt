@@ -80,7 +80,7 @@ public final class WeaponViewRenderer {
                     matrices.translate(anchor.x-cam.x, anchor.y-cam.y, anchor.z-cam.z);
                     ModelOrientation.applyBasis(matrices, 180f, look, up);
                     HybridWeaponRenderer.draw(matrices, consumers, m,
-                            ShotFxRenderer.recoilAt(anchor, context.tickCounter().getTickDelta(false)),
+                            ShotFxRenderer.recoilAt(anchor, context.tickCounter().getTickDelta(false)), WeaponLoadState.get(mc.player.getId()),
                             mc.world.getLightLevel(net.minecraft.util.math.BlockPos.ofFloored(anchor)) * 0x100010);
                     matrices.pop();
                     continue;

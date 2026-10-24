@@ -40,6 +40,10 @@ class EvidenceGateTest(unittest.TestCase):
         self.write('build/shootcheck/shootcheck-ok.json', json.dumps(dict(scenes=10, fovs=[70,80,90],
                    rangePixelsChecked=True, fastSpeed=8, fastTravel=32, fastFrames=3,
                    fastPixelsChecked=True, muzzleEvents=2, impactEvents=2)))
+        for name in checkpoint.HYBRID_FRAMES:
+            self.write(f'build/shootcheck/screenshots/{name}.png', b'\x89PNG\r\n\x1a\nfixture')
+        self.write('build/shootcheck/hybrid-weapons-ok.json',json.dumps(dict(models=3,presetRoundTrips=3,
+                   serverSaves=3,muzzlePairs=3,fovs=[70,80,90],banked=3,vertical=3,realUseAnimated=3,loadSynced=True,frames=37)))
         jar = self.root / 'build/libs/drmd-6dof-test.jar'
         jar.parent.mkdir(parents=True)
         with zipfile.ZipFile(jar, 'w') as archive:
@@ -103,6 +107,16 @@ class EvidenceGateTest(unittest.TestCase):
         proof['fastPixelsChecked'] = False
         path.write_text(json.dumps(proof))
         with self.assertRaisesRegex(ValueError, 'Incomplete weapon verification'):
+            checkpoint.verify(self.root)
+
+    def test_missing_hybrid_verification_is_rejected(self):
+        (self.root / 'build/shootcheck/hybrid-weapons-ok.json').unlink()
+        with self.assertRaisesRegex(ValueError, 'Missing or empty evidence'):
+            checkpoint.verify(self.root)
+
+    def test_unsaved_or_unanimated_hybrid_is_rejected(self):
+        self.write('build/shootcheck/hybrid-weapons-ok.json',json.dumps(dict(models=3,frames=37)))
+        with self.assertRaisesRegex(ValueError, 'Incomplete hybrid verification'):
             checkpoint.verify(self.root)
 
     def test_failed_run_still_has_report_without_certifying_jar(self):
