@@ -216,7 +216,7 @@ tasks.register('prepareShootcheckWorld', Sync) {
     doLast {
         if (!file('build/shootcheck/saves/DRMD-shot-lab/level.dat').isFile())
             throw new GradleException('Missing disposable shootcheck world')
-        file('build/shootcheck/options.txt').text = 'onboardAccessibility:false\npauseOnLostFocus:false\nmaxFps:30\nrenderDistance:8\nsimulationDistance:5\nfov:0.5\n'
+        file('build/shootcheck/options.txt').text = 'onboardAccessibility:false\npauseOnLostFocus:false\nmaxFps:30\nrenderDistance:8\nsimulationDistance:8\nfov:0.5\n'
     }
 }
 tasks.named('runShootcheck') { dependsOn prepareShootcheckWorld }

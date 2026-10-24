@@ -92,6 +92,11 @@ scene timing, pins the fixture camera on the server, and builds its backdrop onc
 provides contrast without repeatedly rebuilding thousands of blocks. Test-only HUD masking
 removes the inverted vanilla crosshair from the centre colour sample.
 
+The weapon fixture uses simulation distance 8: its 90-block target must remain inside the
+active server volume. The inherited terrain fixture's distance 5 is sufficient for its
+nearby bodies, but places the weapon range target at/beyond the active boundary. Terrain
+regression settings and gameplay distance preferences are not changed.
+
 ## Every major milestone goes through GitHub Actions
 
 Commit and push each coherent milestone to this recovery branch. `build.yml` runs on

@@ -100,6 +100,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         client.options.hudHidden = false; client.options.pauseOnLostFocus = false;
         client.options.setPerspective(Perspective.FIRST_PERSON);
         client.options.getParticles().setValue(ParticlesMode.MINIMAL);
+        client.options.getSimulationDistance().setValue(8);
         // Keep the viewport deterministic without hiding the weapon renderer (which requires HUD).
         // Join chat and tutorial toasts otherwise cover the very pixels under colour verification.
         client.inGameHud.getChatHud().clear(false);
@@ -138,6 +139,17 @@ public final class WeaponRenderCheck implements ClientModInitializer {
             if (previousFast != null) fastTravel += shot.getPos().distanceTo(previousFast);
             previousFast = shot.getPos();
             capture(client, "fast-motion-" + sceneTick, false, false);
+        }
+        if (scene < 8 && sceneTick == 75) {
+            var checkedIds = List.copyOf(ids);
+            client.getServer().execute(() -> {
+                var world = client.getServer().getOverworld();
+                for (int id : checkedIds) {
+                    var shot = world.getEntityById(id);
+                    System.out.println("DRMD shootcheck: server id=" + id + " entity=" + shot +
+                            (shot == null ? "" : " pos=" + shot.getPos() + " alive=" + shot.isAlive()));
+                }
+            });
         }
         if (sceneTick == 80) {
             if (scene < 8) {
@@ -179,6 +191,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         server.execute(() -> {
             var world = server.getOverworld(); var player = server.getPlayerManager().getPlayer(uuid);
             if (player == null) throw new IllegalStateException("Missing weapon-check player");
+            server.getPlayerManager().setSimulationDistance(8);
             for (var entity : world.iterateEntities()) if (entity instanceof ProjectileEntity) entity.discard();
             player.stopRiding(); player.changeGameMode(GameMode.CREATIVE);
             for (var entity : world.iterateEntities())
