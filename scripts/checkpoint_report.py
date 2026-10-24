@@ -146,14 +146,6 @@ def report(root):
              '| Stage | Outcome |', '|---|---|']
     for stage in ('unit', 'gametest', 'build', 'rendercheck', 'shootcheck', 'verify'):
         lines.append(f'| {stage} | {os.environ.get(stage.upper() + "_OUTCOME") or "NOT RUN"} |')
-        if os.environ.get(stage.upper() + '_OUTCOME') == 'failure':
-            log = out / f'logs/{stage}.log'
-            if log.is_file():
-                errors = [line for line in log.read_text(errors='replace').splitlines()
-                          if 'IllegalStateException:' in line or ' error:' in line or 'Caused by:' in line]
-                for error in errors[:8]:
-                    safe = error.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
-                    print(f'::error title={stage} diagnostic::{safe[:1500]}')
     lines += ['', '## Test reports', '']
     for name, folder in [('unit', 'build/test-results/test'), ('gametest', 'build/gametest/reports')]:
         try:
@@ -172,10 +164,6 @@ def report(root):
         lines += ['- ' + name for name in result['frames']]
         lines += ['', '### Weapon verification', '',
                   f'- {result["shootcheck"]}', ''] + ['- ' + name for name in result['shot_frames']]
-        with zipfile.ZipFile(out / 'screenshots.zip', 'w', compression=zipfile.ZIP_DEFLATED) as archive:
-            for kind in ('rendercheck', 'shootcheck'):
-                for frame in sorted((root / f'build/{kind}/screenshots').glob('*.png')):
-                    archive.write(frame, f'{kind}/{frame.name}')
     else:
         lines += ['', '**NOT VERIFIED: no installable-mod artifact is certified by this run.**',
                   'See `logs/`, JUnit XML, GameTest logs and client crash reports for the first failure.']
@@ -185,6 +173,30 @@ def report(root):
               '- Source archives, reports and artifacts are retained by GHA for 90 days.', '']
     (out / 'REPORT.md').write_text('\n'.join(lines))
     (out / 'RUN_URL.txt').write_text(run_url + '\n')
+    with zipfile.ZipFile(out / 'screenshots.zip', 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+        for kind in ('rendercheck', 'shootcheck'):
+            for frame in sorted((root / f'build/{kind}/screenshots').glob('*.png')):
+                archive.write(frame, f'{kind}/{frame.name}')
+    diagnostics = []
+    keywords = ('DRMD shootcheck:', 'IllegalStateException:', ' error:', 'Caused by:',
+                'Exception in', 'ValueError:', 'timed out', 'at com.terminaldetector.')
+    for stage in ('unit', 'gametest', 'build', 'rendercheck', 'shootcheck', 'verify'):
+        if os.environ.get(stage.upper() + '_OUTCOME') != 'failure':
+            continue
+        logs = [out / f'logs/{stage}.log']
+        if stage in ('rendercheck', 'shootcheck'):
+            logs += [root / f'build/{stage}/logs/latest.log']
+            logs += sorted((root / f'build/{stage}/crash-reports').glob('*.txt'))
+        for log in logs:
+            if not log.is_file():
+                continue
+            errors = list(dict.fromkeys(line for line in log.read_text(errors='replace').splitlines()
+                                       if any(word in line for word in keywords)))
+            diagnostics += [str(log.relative_to(root))] + errors
+            for error in errors[-20:]:
+                safe = error.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+                print(f'::error title={stage} diagnostic::{safe[:1500]}')
+    (out / 'diagnostics.txt').write_text('\n'.join(diagnostics) + '\n')
     print(out / 'REPORT.md')
 
 
@@ -194,4 +206,9 @@ if __name__ == '__main__':
     action.add_argument('--verify', action='store_true')
     action.add_argument('--report', action='store_true')
     args = parser.parse_args()
-    (verify if args.verify else report)(Path.cwd())
+    try:
+        (verify if args.verify else report)(Path.cwd())
+    except (ValueError, OSError, KeyError) as error:
+        safe = str(error).replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+        print(f'::error title=Checkpoint evidence rejected::{safe}')
+        raise

@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 # Preserve every milestone even if a later push arrives or the game build fails.
 jobs:
   source-checkpoint:
@@ -90,7 +94,7 @@ jobs:
           LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runShootcheck --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/shootcheck.log
       - name: Validate fresh evidence and stage only the current JAR
         id: verify
-        run: python3 scripts/checkpoint_report.py --verify
+        run: python3 scripts/checkpoint_report.py --verify 2>&1 | tee build/checkpoint/logs/verify.log
       - name: Write checkpoint report even on failure
         if: always()
         env:
@@ -135,6 +139,21 @@ jobs:
             build/checkpoint/SOURCE_SHA.txt
           if-no-files-found: error
           retention-days: 90
+      - name: Preserve failed-client diagnostics for recovery inspection
+        if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/codex/ungravity-cloud-recovery-20261024'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="recovery-diagnostics-${GITHUB_SHA:0:7}-${GITHUB_RUN_ID}"
+          gh release create "$tag" \
+            build/checkpoint/REPORT.md \
+            build/checkpoint/diagnostics.txt \
+            build/checkpoint/screenshots.zip \
+            --target "$GITHUB_SHA" \
+            --title "Recovery diagnostics: failed verification (${GITHUB_SHA:0:7})" \
+            --notes "Failed experimental verification. Frames and diagnostics only; no certified mod binary." \
+            --prerelease --latest=false
       - name: Publish recovered 1.1.12 and evidence as a downloadable prerelease
         if: github.event_name == 'push' && github.ref == 'refs/heads/codex/ungravity-cloud-recovery-20261024' && steps.verify.outputs.version == '1.1.12'
         env:
