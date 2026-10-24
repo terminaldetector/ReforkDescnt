@@ -97,6 +97,12 @@ active server volume. The inherited terrain fixture's distance 5 is sufficient f
 nearby bodies, but places the weapon range target at/beyond the active boundary. Terrain
 regression settings and gameplay distance preferences are not changed.
 
+Frame captures now execute after actual world rendering, with scene advancement held until
+the capture completes. Capturing in a client tick could read the preceding framebuffer when
+several catch-up ticks ran before one frame, falsely labelling FOV 80 pixels as FOV 70. The
+fast-shot measurement requires at least three newly rendered frames, full speed 8 and at least
+24 blocks of observed travel; it finishes as soon as those conditions are satisfied.
+
 ## Every major milestone goes through GitHub Actions
 
 Commit and push each coherent milestone to this recovery branch. `build.yml` runs on

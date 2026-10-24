@@ -38,7 +38,7 @@ class EvidenceGateTest(unittest.TestCase):
         for name in checkpoint.SHOT_FRAMES:
             self.write(f'build/shootcheck/screenshots/{name}.png', b'\x89PNG\r\n\x1a\nfixture')
         self.write('build/shootcheck/shootcheck-ok.json', json.dumps(dict(scenes=10, fovs=[70,80,90],
-                   rangePixelsChecked=True, fastSpeed=8, fastTravel=32, muzzleEvents=2, impactEvents=2)))
+                   rangePixelsChecked=True, fastSpeed=8, fastTravel=32, fastFrames=3, muzzleEvents=2, impactEvents=2)))
         jar = self.root / 'build/libs/drmd-6dof-test.jar'
         jar.parent.mkdir(parents=True)
         with zipfile.ZipFile(jar, 'w') as archive:

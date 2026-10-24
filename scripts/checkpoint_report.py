@@ -90,7 +90,8 @@ def verify(root):
     shot = json.loads(shot_marker.read_text())
     if (shot.get('scenes') != 10 or shot.get('fovs') != [70, 80, 90] or
             shot.get('rangePixelsChecked') is not True or shot.get('fastSpeed') != 8 or
-            shot.get('fastTravel', 0) < 24 or shot.get('muzzleEvents', 0) < 1 or shot.get('impactEvents', 0) < 1):
+            shot.get('fastTravel', 0) < 24 or shot.get('fastFrames', 0) < 3 or
+            shot.get('muzzleEvents', 0) < 1 or shot.get('impactEvents', 0) < 1):
         raise ValueError(f'Incomplete weapon verification: {shot}')
     for name in SHOT_FRAMES:
         fresh(root / f'build/shootcheck/screenshots/{name}.png', started)

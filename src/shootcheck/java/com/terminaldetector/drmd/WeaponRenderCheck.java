@@ -12,6 +12,7 @@ import com.terminaldetector.drmd.weapon.items.ModItems;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.world.BackupPromptScreen;
@@ -44,6 +45,9 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private int muzzleBefore, impactBefore;
     private Vec3d previousFast;
     private double fastTravel;
+    private int fastFrames;
+    private CaptureRequest pendingCapture;
+    private record CaptureRequest(String name, boolean colours, boolean mounts, Runnable after) {}
     private volatile net.minecraft.server.MinecraftServer fixtureServer;
     private volatile java.util.UUID fixturePlayer;
     private static final Map<Integer, RenderProbe> RENDERED = new HashMap<>();
@@ -66,6 +70,13 @@ public final class WeaponRenderCheck implements ClientModInitializer {
 
     @Override public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(this::tick);
+        WorldRenderEvents.END.register(context -> {
+            if (pendingCapture == null || com.terminaldetector.drmd.client.portal.OffscreenWorldView.depth() != 0) return;
+            var request = pendingCapture;
+            captureFrame(MinecraftClient.getInstance(), request.name(), request.colours(), request.mounts());
+            pendingCapture = null;
+            request.after().run();
+        });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             if (server != fixtureServer || fixturePlayer == null) return;
             var player = server.getPlayerManager().getPlayer(fixturePlayer);
@@ -113,6 +124,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         client.player.setPosition(POSITION); client.player.setVelocity(Vec3d.ZERO);
         DescentClientState.enabled = true; DescentClientState.attitudeValid = true;
         ShipAttitudeClient.acceptPortalFrame(client.player, forward(), up());
+        if (pendingCapture != null) return;
         if (scene < 8 && sceneTick == 0 && ids.stream().anyMatch(id ->
                 !(client.world.getEntityById(id) instanceof ProjectileEntity))) return;
         ++sceneTick;
@@ -133,11 +145,6 @@ public final class WeaponRenderCheck implements ClientModInitializer {
             capture(client, "muzzle-impact-" + sceneTick, false, false);
         if (scene == 9 && sceneTick == 40) fireVolley(client, false, true);
         if (scene == 9 && sceneTick >= 43 && sceneTick <= 49) {
-            var shot = clientShot(client, ids.getFirst());
-            if (Math.abs(shot.getVisualVelocity().length() - 8) > .001)
-                throw new IllegalStateException("Client speed still clamped: " + shot.getVisualVelocity());
-            if (previousFast != null) fastTravel += shot.getPos().distanceTo(previousFast);
-            previousFast = shot.getPos();
             capture(client, "fast-motion-" + sceneTick, false, false);
         }
         if (scene < 8 && sceneTick == 75) {
@@ -163,17 +170,20 @@ public final class WeaponRenderCheck implements ClientModInitializer {
                 throw new IllegalStateException("Short-lived shot lost muzzle or impact event");
             if (scene == 9 && fastTravel < 24)
                 throw new IllegalStateException("Fast shot did not travel continuously on client: " + fastTravel);
-            capture(client, SCENES[scene], scene < 6, false);
-            if (scene == SCENES.length - 1) {
-                try {
-                    Files.writeString(client.runDirectory.toPath().resolve("shootcheck-ok.json"),
-                            "{\"scenes\":10,\"fovs\":[70,80,90],\"rangePixelsChecked\":true,\"fastSpeed\":8," +
-                            "\"fastTravel\":" + fastTravel + ",\"muzzleEvents\":" + ShotFxRenderer.muzzleEvents() +
-                            ",\"impactEvents\":" + ShotFxRenderer.impactEvents() + "}\n");
-                } catch (java.io.IOException error) { throw new IllegalStateException(error); }
-                client.scheduleStop();
-            } else begin(client, scene + 1);
+            pendingCapture = new CaptureRequest(SCENES[scene], scene < 6, false,
+                    () -> { if (scene == SCENES.length - 1) finish(client); else begin(client, scene + 1); });
         }
+    }
+
+    private void finish(MinecraftClient client) {
+        try {
+            Files.writeString(client.runDirectory.toPath().resolve("shootcheck-ok.json"),
+                    "{\"scenes\":10,\"fovs\":[70,80,90],\"rangePixelsChecked\":true,\"fastSpeed\":8," +
+                    "\"fastTravel\":" + fastTravel + ",\"fastFrames\":" + fastFrames +
+                    ",\"muzzleEvents\":" + ShotFxRenderer.muzzleEvents() +
+                    ",\"impactEvents\":" + ShotFxRenderer.impactEvents() + "}\n");
+        } catch (java.io.IOException error) { throw new IllegalStateException(error); }
+        client.scheduleStop();
     }
 
     private static ProjectileEntity clientShot(MinecraftClient client, int id) {
@@ -266,9 +276,25 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     }
 
     private void capture(MinecraftClient client, String name, boolean colours, boolean mounts) {
+        if (pendingCapture != null) throw new IllegalStateException("A frame capture is already pending");
+        pendingCapture = new CaptureRequest(name, colours, mounts, () -> {});
+    }
+
+    private void captureFrame(MinecraftClient client, String name, boolean colours, boolean mounts) {
         try (var image = ScreenshotRecorder.takeScreenshot(client.getFramebuffer())) {
             var directory = client.runDirectory.toPath().resolve("screenshots"); Files.createDirectories(directory);
             image.writeTo(directory.resolve(name + ".png"));
+            if (scene == 9 && name.startsWith("fast-motion-")) {
+                var shot = clientShot(client, ids.getFirst());
+                if (Math.abs(shot.getVisualVelocity().length() - 8) > .001)
+                    throw new IllegalStateException("Client speed still clamped: " + shot.getVisualVelocity());
+                if (previousFast != null) fastTravel += shot.getPos().distanceTo(previousFast);
+                previousFast = shot.getPos(); fastFrames++;
+                if (fastFrames >= 3 && fastTravel >= 24) {
+                    image.writeTo(directory.resolve("fast-motion.png"));
+                    finish(client);
+                }
+            }
             if (colours) {
                 // A separate window per known range shot prevents a bright near bolt from hiding a
                 // missing far bolt, and a green hue check catches the old red damage-overlay tint.
