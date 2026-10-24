@@ -43,7 +43,7 @@ class EvidenceGateTest(unittest.TestCase):
         for name in checkpoint.HYBRID_FRAMES:
             self.write(f'build/shootcheck/screenshots/{name}.png', b'\x89PNG\r\n\x1a\nfixture')
         self.write('build/shootcheck/hybrid-weapons-ok.json',json.dumps(dict(models=3,presetRoundTrips=3,
-                   serverSaves=3,muzzlePairs=3,fovs=[70,80,90],banked=3,vertical=3,realUseAnimated=3,loadSynced=True,frames=37)))
+                   serverSaves=3,muzzlePairs=3,fovs=[70,80,90],banked=3,vertical=3,realUseAnimated=3,loadSynced=True,external=3,frames=40)))
         jar = self.root / 'build/libs/drmd-6dof-test.jar'
         jar.parent.mkdir(parents=True)
         with zipfile.ZipFile(jar, 'w') as archive:

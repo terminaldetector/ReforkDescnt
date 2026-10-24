@@ -472,19 +472,19 @@ public class WorkshopScreen extends Screen {
         ClusterModule m=config.clusters.get(modelIndex);
         addDrawableChild(ButtonWidget.builder(Text.literal("<"),b->{ modelIndex--; init(); }).dimensions(10,110,20,16).build());
         addDrawableChild(ButtonWidget.builder(Text.literal(">"),b->{ modelIndex++; init(); }).dimensions(164,110,20,16).build());
-        String[] pages={"Position", "Angles", "Scale XYZ", "Tint RGBA", "Animation"};
+        String[] pages={"Position", "Angles", "Scale XYZ", "Tint RGB", "Animation"};
         addDrawableChild(ButtonWidget.builder(Text.literal(pages[transformPage]), b->{ transformPage=(transformPage+1)%pages.length; init(); })
                 .dimensions(10,134,174,18).build());
         switch(transformPage) {
             case 0 -> { modelEdit("Forward",m.posFwd,v->m.posFwd=v); modelEdit("Right",m.posRgt,v->m.posRgt=v); modelEdit("Up",m.posUp,v->m.posUp=v); }
             case 1 -> { modelEdit("Pitch",m.pitch,v->m.pitch=v); modelEdit("Yaw",m.yaw,v->m.yaw=v); modelEdit("Roll",m.roll,v->m.roll=v); }
             case 2 -> { modelEdit("Scale X",m.scaleX,v->m.scaleX=Math.clamp(v,.1f,4)); modelEdit("Scale Y",m.scaleY,v->m.scaleY=Math.clamp(v,.1f,4)); modelEdit("Scale Z",m.scaleZ,v->m.scaleZ=Math.clamp(v,.1f,4)); }
-            case 3 -> { modelEdit("Red",m.colorR,v->m.colorR=Math.clamp(v.intValue(),0,255)); modelEdit("Green",m.colorG,v->m.colorG=Math.clamp(v.intValue(),0,255)); modelEdit("Blue",m.colorB,v->m.colorB=Math.clamp(v.intValue(),0,255)); modelEdit("Alpha",m.colorA,v->m.colorA=Math.clamp(v.intValue(),0,255)); }
-            case 4 -> { modelEdit("Bolt travel",m.kick,v->m.kick=Math.clamp(v,0,8)); }
+            case 3 -> { modelEdit("Red",m.colorR,v->m.colorR=Math.clamp(v.intValue(),0,255)); modelEdit("Green",m.colorG,v->m.colorG=Math.clamp(v.intValue(),0,255)); modelEdit("Blue",m.colorB,v->m.colorB=Math.clamp(v.intValue(),0,255)); }
+            case 4 -> { modelEdit("Bolt travel",m.kick,v->m.kick=Math.clamp(v,0,8)); modelEdit("Alpha",m.colorA,v->m.colorA=Math.clamp(v.intValue(),0,255)); }
         }
     }
     private void modelEdit(String label,float value,java.util.function.Consumer<Float> setter) {
-        int y=160+modelLabels.size()*22; modelLabels.add(label);
+        int y=height<300?150+modelLabels.size()*16:160+modelLabels.size()*22; modelLabels.add(label);
         TextFieldWidget tf=new TextFieldWidget(textRenderer,96,y,88,16,Text.literal(label));
         tf.setText(Float.toString(value));
         tf.setChangedListener(s->{try { float v=Float.parseFloat(s); if(Float.isFinite(v)) setter.accept(v); }catch(NumberFormatException ignored) {}});
@@ -502,8 +502,8 @@ public class WorkshopScreen extends Screen {
             var m=config.clusters.get(modelIndex);
             context.drawTextWithShadow(textRenderer,textRenderer.trimToWidth(m.name,128),34,114,0xc4dae5);
         }
-        for(int i=0;i<modelLabels.size();i++) context.drawTextWithShadow(textRenderer,modelLabels.get(i),10,164+i*22,0xc4dae5);
-        context.drawTextWithShadow(textRenderer,"Live: " + config.targetWeaponId + " · meshes " + config.clusters.size(),10,height-52,0x9ac5db);
+        for(int i=0;i<modelLabels.size();i++) context.drawTextWithShadow(textRenderer,modelLabels.get(i),10,(height<300?154+i*16:164+i*22),0xc4dae5);
+        context.drawTextWithShadow(textRenderer,"Live: " + config.targetWeaponId + " · meshes " + config.clusters.size(),200,height-52,0x9ac5db);
         if(previewFaces==0) context.drawTextWithShadow(textRenderer,"Select a hybrid sample",px+12,py+40,0xaaccff);
     }
     @Override public boolean mouseDragged(double x,double y,int button,double dx,double dy) {

@@ -23,7 +23,7 @@ SHOT_FRAMES = ('bolt-dark-ranges', 'bolt-light-ranges', 'orb-dark-ranges', 'orb-
                'muzzle-impact', 'fast-motion', 'mounts-fov-70', 'mounts-fov-80', 'mounts-fov-90')
 
 HYBRID_FRAMES = tuple(f'hybrid-{model}-{view}' for model in range(3)
-                      for view in ('workshop','fov70','fov80','fov90','banked','vertical')) + ('hybrid-2-loaded',)
+                      for view in ('workshop','fov70','fov80','fov90','banked','vertical','external')) + ('hybrid-2-loaded',)
 
 
 def properties(root):
@@ -103,7 +103,7 @@ def verify(root):
     fresh(hybrid_marker, started)
     hybrid = json.loads(hybrid_marker.read_text())
     expected = dict(models=3, presetRoundTrips=3, serverSaves=3, muzzlePairs=3,
-                    fovs=[70,80,90], banked=3, vertical=3, realUseAnimated=3, loadSynced=True)
+                    fovs=[70,80,90], banked=3, vertical=3, realUseAnimated=3, loadSynced=True, external=3)
     if any(hybrid.get(key) != value for key,value in expected.items()) or hybrid.get('frames',0) < 19:
         raise ValueError(f'Incomplete hybrid verification: {hybrid}')
     for name in HYBRID_FRAMES:

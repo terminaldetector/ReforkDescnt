@@ -41,3 +41,28 @@ separate from the existing live weapon definitions.
   are real client output. Manual evening gameplay remains a separate user test.
 - Every coherent milestone is committed on the recovery branch and saved in GHA;
   distribution requires the exact revision's successful tests and SHA-256.
+
+## Evening test route (1.1.13)
+
+1. Fabric 1.21.1 + Java 21 + Fabric API. Remove older DRMD JARs from `mods`.
+2. Use a Creative test world. Enable flight with H. Hold Impulse Laser, Plasma or
+   Gravity Rail from the existing DRMD arsenal. Their default layouts now use the samples;
+   old world overrides take precedence, so use Reset Layout if the old construction appears.
+3. Open the existing Weapon Workshop (M), choose **Models**. **Impulse**, **Plasma** and
+   **Gravity rail** create drafts for those live weapon ids. Drag the mesh to orbit; wheel
+   tilts the preview. Cycle the Position/Angles/Scale XYZ/Tint RGB/Animation button to edit
+   a selected port/starboard module. **Cycle recoil** previews the internal mechanism.
+4. Enter a short preset name (letters/digits/underscore/hyphen), Save, select another sample,
+   restore the name and Load. **Apply Build** sends construction to the server; wait for
+   **Server saved construction/muzzles**. Dedicated servers require Creative and operator.
+5. Fire both energy weapons; inspect bolt/inductor motion and muzzle events. With the rail,
+   capture a physical body and launch it with the existing tool behavior. The violet elements
+   brighten with server-reported mass load and the carriage kicks when the body launches.
+6. Check FOV 70/80/90, 90-degree bank, vertical flight, and third person while piloting a ship.
+   Keep the aiming area clear. Rejoin to check the server layout, and restore a named local
+   preset to check the local library separately.
+
+Apply Build applies geometry/muzzles. The existing Stats / Projectile / Flak / Guidance
+pages remain schema drafts for Save/Load and Copy Java; this release does not claim a full
+live behavior compiler or arbitrary SCK model import. External ship rendering shows the
+active weapon held by its pilot; remote attitude still uses the existing yaw/pitch fallback.

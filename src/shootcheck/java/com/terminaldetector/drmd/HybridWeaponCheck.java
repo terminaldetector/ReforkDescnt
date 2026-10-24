@@ -149,6 +149,23 @@ public final class HybridWeaponCheck {
         if(tick==150) {
             if(fired!=1 || maxRecoil<.1f) throw new IllegalStateException("Real use did not animate mechanisms: "+maxRecoil);
             if(!PROBED.contains(MODELS[model])) throw new IllegalStateException("Hybrid world renderer was not reached");
+        }
+        if(tick==155) {
+            client.getServer().execute(()->{
+                var player=client.getServer().getPlayerManager().getPlayer(client.player.getUuid());
+                var ship=new PyroShipEntity(ModEntities.PYRO_SHIP,player.getWorld());
+                ship.setPosition(POSITION); ship.setYaw(180); ship.setPitch(0);
+                ship.setWeaponSlot(ShipWeaponSlot.SIDE_LEFT,player.getMainHandStack().copy());
+                player.getWorld().spawnEntity(ship); player.startRiding(ship,true);
+            });
+        }
+        if(tick==165) {
+            if(!(client.player.getVehicle() instanceof PyroShipEntity)) {tick--;return;}
+            client.options.setPerspective(Perspective.THIRD_PERSON_FRONT);
+        }
+        if(tick==175) queue("hybrid-"+model+"-external",false,()->{});
+        if(tick==180) {
+            client.options.setPerspective(Perspective.FIRST_PERSON);
             if(++model<3) prepare(client); else finish(client);
         }
     }
@@ -160,7 +177,7 @@ public final class HybridWeaponCheck {
             image.writeTo(directory.resolve(name+".png"));
             if(!gui && !name.contains("fire-")) {
                 int accent=0;
-                for(int y=image.getHeight()/2;y<image.getHeight()-30;y++) for(int x=40;x<image.getWidth()-40;x++) {
+                for(int y=name.endsWith("external")?30:image.getHeight()/2;y<image.getHeight()-30;y++) for(int x=40;x<image.getWidth()-40;x++) {
                     int c=image.getColor(x,y),r=c&255,g=(c>>8)&255,b=(c>>16)&255;
                     boolean colour=switch(model) {case 0->r>80&&r>g*1.2&&g>b*1.2;case 1->g>80&&b>80&&b>r*1.4;default->b>60&&b>g*1.2&&r>g*1.1;};
                     if(colour)accent++;
@@ -173,7 +190,7 @@ public final class HybridWeaponCheck {
     }
     private static void finish(MinecraftClient client) {
         try {Files.writeString(client.runDirectory.toPath().resolve("hybrid-weapons-ok.json"),
-                "{\"models\":3,\"presetRoundTrips\":3,\"serverSaves\":3,\"muzzlePairs\":3,\"fovs\":[70,80,90],\"banked\":3,\"vertical\":3,\"realUseAnimated\":3,\"loadSynced\":true,\"frames\":"+captures+"}\n");
+                "{\"models\":3,\"presetRoundTrips\":3,\"serverSaves\":3,\"muzzlePairs\":3,\"fovs\":[70,80,90],\"banked\":3,\"vertical\":3,\"realUseAnimated\":3,\"loadSynced\":true,\"external\":3,\"frames\":"+captures+"}\n");
         }catch(java.io.IOException e){throw new IllegalStateException(e);}
         active=false; client.scheduleStop();
     }
