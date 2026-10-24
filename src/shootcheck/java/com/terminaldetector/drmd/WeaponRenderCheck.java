@@ -27,6 +27,8 @@ import net.minecraft.world.GameMode;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /** Real client/packet/render tests, isolated from production entrypoints and player saves. */
 public final class WeaponRenderCheck implements ClientModInitializer {
@@ -41,6 +43,20 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private int muzzleBefore, impactBefore;
     private Vec3d previousFast;
     private double fastTravel;
+    private static final Map<Integer, RenderProbe> RENDERED = new HashMap<>();
+    private record RenderProbe(float x, float y, float fogStart, float fogEnd, long recorded) {}
+
+    public static void recordRender(ProjectileEntity entity, net.minecraft.client.util.math.MatrixStack matrices) {
+        var client = MinecraftClient.getInstance();
+        var clip = new org.joml.Vector4f(0, 0, 0, 1).mul(matrices.peek().getPositionMatrix())
+                .mul(com.mojang.blaze3d.systems.RenderSystem.getModelViewMatrix())
+                .mul(com.mojang.blaze3d.systems.RenderSystem.getProjectionMatrix());
+        RENDERED.put(entity.getId(), new RenderProbe(
+                (clip.x / clip.w * .5f + .5f) * client.getFramebuffer().textureWidth,
+                (.5f - clip.y / clip.w * .5f) * client.getFramebuffer().textureHeight,
+                com.mojang.blaze3d.systems.RenderSystem.getShaderFogStart(),
+                com.mojang.blaze3d.systems.RenderSystem.getShaderFogEnd(), System.nanoTime()));
+    }
 
     @Override public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(this::tick);
@@ -219,12 +235,19 @@ public final class WeaponRenderCheck implements ClientModInitializer {
                 double focal = image.getHeight() / (2 * Math.tan(Math.toRadians(40)));
                 for (int id : ids) {
                     var shot = clientShot(client, id);
+                    var probe = RENDERED.get(id);
+                    System.out.println("DRMD shootcheck: id=" + id + " pos=" + shot.getPos() +
+                            " rgb=" + Integer.toHexString(shot.getColorRgb()) +
+                            " chunkLoaded=" + client.world.isChunkLoaded(shot.getBlockPos()) +
+                            " distanceMultiplier=" + ProjectileEntity.getRenderDistanceMultiplier() + " render=" + probe);
+                    if (probe == null || System.nanoTime() - probe.recorded() > 1_000_000_000L)
+                        throw new IllegalStateException("Projectile did not reach the actual renderer: " + id);
                     Vec3d delta = shot.getPos().subtract(client.gameRenderer.getCamera().getPos());
                     double depth = delta.dotProduct(forward());
-                    int x = (int) Math.round(image.getWidth() / 2.0 + delta.dotProduct(forward().crossProduct(up())) / depth * focal);
+                    int x = Math.round(probe.x()), cy = Math.round(probe.y());
                     int green = 0;
                     for (int px = Math.max(0, x - 8); px < Math.min(image.getWidth(), x + 9); px++)
-                        for (int y = image.getHeight() / 2 - 9; y <= image.getHeight() / 2 + 9; y++) {
+                        for (int y = Math.max(0, cy - 9); y < Math.min(image.getHeight(), cy + 10); y++) {
                             int color = image.getColor(px, y);
                             int r = color & 255, g = (color >> 8) & 255, b = (color >> 16) & 255;
                             if (g > 100 && g > r + 25 && g > b + 15) green++;

@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "com.terminaldetector.drmd.shootcheck",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["ProjectileRendererProbe"],
+  "injectors": {"defaultRequire": 1}
+}

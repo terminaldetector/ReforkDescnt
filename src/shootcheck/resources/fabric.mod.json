@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "name": "DRMD isolated weapon verification",
   "environment": "client",
+  "mixins": ["drmd.shootcheck.mixins.json"],
   "entrypoints": {"client": ["com.terminaldetector.drmd.WeaponRenderCheck"]},
   "depends": {"drmd": "*"}
 }
