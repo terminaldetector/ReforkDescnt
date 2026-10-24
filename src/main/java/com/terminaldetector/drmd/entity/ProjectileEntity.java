@@ -532,8 +532,8 @@ public class ProjectileEntity extends Entity {
 
 	@Override
 	public void updateTrackedPositionAndAngles(double x, double y, double z, float yaw, float pitch,
-			int interpolationSteps, boolean interpolate) {
-		super.updateTrackedPositionAndAngles(x, y, z, yaw, pitch, interpolationSteps, interpolate);
+			int interpolationSteps) {
+		super.updateTrackedPositionAndAngles(x, y, z, yaw, pitch, interpolationSteps);
 		visualPrediction.accept(new Vec3d(x, y, z));
 	}
 }
