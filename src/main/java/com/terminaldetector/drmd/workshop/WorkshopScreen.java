@@ -341,7 +341,8 @@ public class WorkshopScreen extends Screen {
 
 	@Override
 	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-		renderBackground(context, mouseX, mouseY, delta);
+		context.fill(0, 0, width, height, 0xb0101720);
+        context.draw();
 
 
 		if (tab == Tab.MODELS) {

@@ -18,11 +18,11 @@ jobs:
     steps:
       - name: Download the already preserved failed-client evidence
         run: |
-          gh run download 40106885198 \
-            --name evidence-7ac100505ddb721d381b769682135cf7ff034040-40106885198-1 \
+          gh run download 40107332215 \
+            --name evidence-0094fe64594d819f21a329c111cd0e528bd9e8c9-40107332215-1 \
             --dir evidence
-          gh run view 40106885198 --log-failed > failed-job.log
-          gh run view 40106885198 --job 120910313402 --log > full-job.log
+          gh run view 40107332215 --log-failed > failed-job.log
+          gh run view 40107332215 --job 120911623676 --log > full-job.log
       - name: Prepare diagnostic excerpts and original frames
         shell: python
         run: |
@@ -51,9 +51,9 @@ jobs:
                   archive.write(frame, str(frame.relative_to(base)))
       - name: Publish inspection package without a mod binary
         run: |
-          gh release create "recovery-inspection-40106885198-${GITHUB_RUN_ID}" \
+          gh release create "recovery-inspection-40107332215-${GITHUB_RUN_ID}" \
             diagnostics.txt screenshots.zip failed-job.log \
             --target "$GITHUB_SHA" \
-            --title "Preserved failed-client diagnostics (run 40106885198)" \
+            --title "Preserved failed-client diagnostics (run 40107332215)" \
             --notes "Inspection of an existing failed checkpoint; no rebuilt or certified mod binary." \
             --prerelease --latest=false

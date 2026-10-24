@@ -199,7 +199,7 @@ def report(root):
                 archive.write(frame, f'{kind}/{frame.name}')
     diagnostics = []
     keywords = ('DRMD shootcheck:', 'IllegalStateException:', ' error:', 'Caused by:',
-                'Exception in', 'ValueError:', 'timed out', 'at com.terminaldetector.')
+                'Exception', 'Error:', 'Description:', 'ValueError:', 'timed out', 'at com.terminaldetector.')
     for stage in ('unit', 'gametest', 'build', 'rendercheck', 'shootcheck', 'verify'):
         if os.environ.get(stage.upper() + '_OUTCOME') != 'failure':
             continue
