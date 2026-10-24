@@ -1,6 +1,8 @@
 name: Inspect preserved recovery evidence
 
 on:
+  push:
+    paths: ['.github/workflows/recovery-inspect.yml']
   workflow_dispatch:
 
 permissions:
@@ -16,9 +18,10 @@ jobs:
     steps:
       - name: Download the already preserved failed-client evidence
         run: |
-          gh run download 40081261463 \
-            --name evidence-4de0acbb443f47e10b05b058d3a35ccf5a3687b4-40081261463-1 \
+          gh run download 40099518924 \
+            --name evidence-1cd2f502cde9be849ff718385fdc3e0c38291dd3-40099518924-1 \
             --dir evidence
+          gh run view 40099518924 --log-failed > failed-job.log
       - name: Prepare diagnostic excerpts and original frames
         shell: python
         run: |
@@ -38,9 +41,9 @@ jobs:
                   archive.write(frame, str(frame.relative_to(base)))
       - name: Publish inspection package without a mod binary
         run: |
-          gh release create "recovery-inspection-40081261463-${GITHUB_RUN_ID}" \
-            diagnostics.txt screenshots.zip \
+          gh release create "recovery-inspection-40099518924-${GITHUB_RUN_ID}" \
+            diagnostics.txt screenshots.zip failed-job.log \
             --target "$GITHUB_SHA" \
-            --title "Preserved failed-client diagnostics (run 40081261463)" \
+            --title "Preserved failed-client diagnostics (run 40099518924)" \
             --notes "Inspection of an existing failed checkpoint; no rebuilt or certified mod binary." \
             --prerelease --latest=false
