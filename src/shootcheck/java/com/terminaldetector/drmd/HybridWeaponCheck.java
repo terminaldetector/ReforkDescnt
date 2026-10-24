@@ -76,6 +76,8 @@ public final class HybridWeaponCheck {
         });
     }
     public static void tick(MinecraftClient client) {
+        if(client.player==null || client.world==null || client.getServer()==null)
+            throw new IllegalStateException("Hybrid check disconnected during construction apply: model="+model+" tick="+tick);
         if(++total>2400) throw new IllegalStateException("Hybrid check timeout model="+model+" tick="+tick);
         if(!serverReady || pending!=null) return;
         DescentClientState.enabled=true; DescentClientState.attitudeValid=true;

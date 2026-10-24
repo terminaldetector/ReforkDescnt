@@ -411,12 +411,15 @@ public final class ModNetworking {
 		public static final PacketCodec<RegistryByteBuf, ConstructionPayload> CODEC = PacketCodec.of(
 				(payload, buf) -> {
 					buf.writeString(payload.weaponId);
-					buf.writeNbt(payload.modules);
+					net.minecraft.nbt.NbtCompound root=new net.minecraft.nbt.NbtCompound();
+                    root.put("modules",payload.modules);
+                    buf.writeNbt(root);
 				},
 				buf -> {
 					String id = buf.readString();
-					net.minecraft.nbt.NbtElement el = buf.readNbt();
-					net.minecraft.nbt.NbtList list = el instanceof net.minecraft.nbt.NbtList l ? l : new net.minecraft.nbt.NbtList();
+					net.minecraft.nbt.NbtCompound root = buf.readNbt();
+                    net.minecraft.nbt.NbtList list = root==null ? new net.minecraft.nbt.NbtList() :
+                            root.getList("modules",net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
 					return new ConstructionPayload(id, list);
 				}
 		);
