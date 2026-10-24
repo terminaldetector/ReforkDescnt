@@ -184,7 +184,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         try {
             Files.writeString(client.runDirectory.toPath().resolve("shootcheck-ok.json"),
                     "{\"scenes\":10,\"fovs\":[70,80,90],\"rangePixelsChecked\":true,\"fastSpeed\":8," +
-                    "\"fastTravel\":" + fastTravel + ",\"fastFrames\":" + fastFrames +
+                    "\"fastTravel\":" + fastTravel + ",\"fastFrames\":" + fastFrames + ",\"fastPixelsChecked\":true" +
                     ",\"muzzleEvents\":" + ShotFxRenderer.muzzleEvents() +
                     ",\"impactEvents\":" + ShotFxRenderer.impactEvents() + "}\n");
         } catch (java.io.IOException error) { throw new IllegalStateException(error); }
@@ -239,6 +239,11 @@ public final class WeaponRenderCheck implements ClientModInitializer {
                 for (var pos : BlockPos.iterate(new BlockPos(8, 203, 24), new BlockPos(16, 209, 24)))
                     world.setBlockState(pos, Blocks.OBSIDIAN.getDefaultState(), 2);
             }
+            if (scene == 9) {
+                for (int z : new int[]{24, -85})
+                    for (var pos : BlockPos.iterate(new BlockPos(8, 203, z), new BlockPos(16, 209, z)))
+                        world.setBlockState(pos, Blocks.AIR.getDefaultState(), 2);
+            }
             List<Integer> created = new ArrayList<>();
             if (scene < 8) {
                 Vec3d right = f.crossProduct(u).normalize();
@@ -263,7 +268,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         server.execute(() -> {
             var player = server.getPlayerManager().getPlayer(uuid);
             if (player == null) throw new IllegalStateException("Missing firing player");
-            var positions = fast ? List.of(player.getEyePos().add(forward().multiply(15))) : WeaponCore.allMuzzles(player, "laser").subList(0, 2);
+            var positions = fast ? List.of(WeaponCore.muzzleFor(player, "laser", 1)) : WeaponCore.allMuzzles(player, "laser").subList(0, 2);
             List<Integer> created = new ArrayList<>();
             for (Vec3d position : positions) {
                 var shot = WeaponCore.fireProjectile(config(player, position, forward(), fast ? 8 : 2, 0));
@@ -293,18 +298,17 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         try (var image = ScreenshotRecorder.takeScreenshot(client.getFramebuffer())) {
             var directory = client.runDirectory.toPath().resolve("screenshots"); Files.createDirectories(directory);
             image.writeTo(directory.resolve(name + ".png"));
-            if (scene == 9 && name.startsWith("fast-motion-")) {
+            boolean fastFrame = scene == 9 && name.startsWith("fast-motion-");
+            boolean fastComplete = false;
+            if (fastFrame) {
                 var shot = clientShot(client, ids.getFirst());
                 if (Math.abs(shot.getVisualVelocity().length() - 8) > .001)
                     throw new IllegalStateException("Client speed still clamped: " + shot.getVisualVelocity());
                 if (previousFast != null) fastTravel += shot.getPos().distanceTo(previousFast);
                 previousFast = shot.getPos(); fastFrames++;
-                if (fastFrames >= 3 && fastTravel >= 24) {
-                    image.writeTo(directory.resolve("fast-motion.png"));
-                    finish(client);
-                }
+                fastComplete = fastFrames >= 3 && fastTravel >= 24;
             }
-            if (colours) {
+            if (colours || fastFrame) {
                 // A separate window per known range shot prevents a bright near bolt from hiding a
                 // missing far bolt, and a green hue check catches the old red damage-overlay tint.
                 double focal = image.getHeight() / (2 * Math.tan(Math.toRadians(40)));
@@ -331,6 +335,10 @@ public final class WeaponRenderCheck implements ClientModInitializer {
                     int minimum = shot.getMeshKind() == ProjectileEntity.MESH_ROCKET ? 1 : 4;
                     if (green < minimum) throw new IllegalStateException(name + ": green shot missing at depth=" + depth + " x=" + x + " greenPixels=" + green);
                 }
+            }
+            if (fastComplete) {
+                image.writeTo(directory.resolve("fast-motion.png"));
+                finish(client);
             }
             if (mounts) {
                 double focal = image.getHeight() / (2 * Math.tan(Math.toRadians(client.options.getFov().getValue() / 2.0)));

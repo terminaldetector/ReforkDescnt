@@ -38,7 +38,8 @@ class EvidenceGateTest(unittest.TestCase):
         for name in checkpoint.SHOT_FRAMES:
             self.write(f'build/shootcheck/screenshots/{name}.png', b'\x89PNG\r\n\x1a\nfixture')
         self.write('build/shootcheck/shootcheck-ok.json', json.dumps(dict(scenes=10, fovs=[70,80,90],
-                   rangePixelsChecked=True, fastSpeed=8, fastTravel=32, fastFrames=3, muzzleEvents=2, impactEvents=2)))
+                   rangePixelsChecked=True, fastSpeed=8, fastTravel=32, fastFrames=3,
+                   fastPixelsChecked=True, muzzleEvents=2, impactEvents=2)))
         jar = self.root / 'build/libs/drmd-6dof-test.jar'
         jar.parent.mkdir(parents=True)
         with zipfile.ZipFile(jar, 'w') as archive:
@@ -94,6 +95,14 @@ class EvidenceGateTest(unittest.TestCase):
     def test_no_weapon_verification_is_rejected(self):
         (self.root / 'build/shootcheck/shootcheck-ok.json').unlink()
         with self.assertRaisesRegex(ValueError, 'Missing or empty evidence'):
+            checkpoint.verify(self.root)
+
+    def test_coordinates_without_visible_fast_shot_are_not_a_pass(self):
+        path = self.root / 'build/shootcheck/shootcheck-ok.json'
+        proof = json.loads(path.read_text())
+        proof['fastPixelsChecked'] = False
+        path.write_text(json.dumps(proof))
+        with self.assertRaisesRegex(ValueError, 'Incomplete weapon verification'):
             checkpoint.verify(self.root)
 
     def test_failed_run_still_has_report_without_certifying_jar(self):

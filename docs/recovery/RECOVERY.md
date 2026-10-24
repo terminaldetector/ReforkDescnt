@@ -114,6 +114,13 @@ limits visual lead to four ticks from the latest authoritative position and rese
 position packet. Four unit tests cover full speed, a long update gap, resumed corrections,
 zero velocity and vertical travel. Server damage, lifetime and speed rules remain authoritative.
 
+The first full reconstructed chain passed on `f080db9` in run 40103268810 (483 unit,
+23 GameTests, 10 weapon scenes, five physics/terrain markers, all 128 drones moving).
+Manual inspection then found the fast-shot screenshot occluded by the preceding impact
+wall. The latest harness removes that test obstacle and requires green projectile pixels
+in each measured fast frame in addition to full velocity, three frames and 24 blocks of
+travel. `fastPixelsChecked` is a mandatory distribution proof, not a coordinate-only pass.
+
 ## Every major milestone goes through GitHub Actions
 
 Commit and push each coherent milestone to this recovery branch. `build.yml` runs on
