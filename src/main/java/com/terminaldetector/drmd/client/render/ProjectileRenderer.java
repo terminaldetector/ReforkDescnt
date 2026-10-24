@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.client.render;
 
 import com.terminaldetector.drmd.entity.ProjectileEntity;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderer;
@@ -43,7 +44,7 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 	@Override
 	public void render(ProjectileEntity entity, float yaw, float tickDelta, MatrixStack matrices,
 					   VertexConsumerProvider consumers, int light) {
-		Vec3d vel = entity.getVelocity();
+		Vec3d vel = entity.getVisualVelocity();
 		int argb = 0xFF000000 | entity.getColorRgb();
 		int mesh = entity.getMeshKind();
 		float scale = entity.getVisualScale();
@@ -168,7 +169,7 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 
 	private static void blobVertex(VertexConsumer vc, org.joml.Matrix4f m, float x, float y,
 								   float r, float g, float b, float a, float u, float v) {
-		vc.vertex(m, x, y, 0).color(r, g, b, a).texture(u, v).overlay(0).light(FULL_BRIGHT).normal(0, 0, 1);
+		vc.vertex(m, x, y, 0).color(r, g, b, a).texture(u, v).overlay(OverlayTexture.DEFAULT_UV).light(FULL_BRIGHT).normal(0, 0, 1);
 	}
 
 	// ------------------------------------------------------------- WEAPON_RENDER_POLYMODEL
@@ -221,6 +222,8 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 		// the back, camera-facing, so a missile heading away from you is still a light and not a dot.
 		if (mesh == ProjectileEntity.MESH_ROCKET) {
 			matrices.push();
+			Vec3d tail = vel.lengthSquared() > 1e-8 ? vel.normalize().multiply(-s * 2.5f) : Vec3d.ZERO;
+			matrices.translate(tail.x, tail.y, tail.z);
 			matrices.multiply(this.dispatcher.getRotation());
 			var entry = matrices.peek();
 			VertexConsumer vc = consumers.getBuffer(RenderLayer.getEntityTranslucent(TEXTURE));
@@ -308,14 +311,14 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 							 float x2, float y2, float z2, float x3, float y3, float z3,
 							 float r, float g, float b, float a, float nx, float ny, float nz) {
 		var m = entry.getPositionMatrix();
-		vc.vertex(m, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
-		vc.vertex(m, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
-		vc.vertex(m, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
-		vc.vertex(m, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
-		vc.vertex(m, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
-		vc.vertex(m, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
-		vc.vertex(m, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
-		vc.vertex(m, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(0).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(OverlayTexture.DEFAULT_UV).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(OverlayTexture.DEFAULT_UV).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(FULL_BRIGHT).normal(nx, ny, nz);
+		vc.vertex(m, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(FULL_BRIGHT).normal(nx, ny, nz);
 	}
 
 	@Override

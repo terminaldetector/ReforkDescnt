@@ -110,6 +110,9 @@ def verify(root):
                   unit=results['unit'], gametest=results['gametest'], swarm=swarm.strip(),
                   frames=[name + '.png' for name in FRAMES])
     (out / 'verified.json').write_text(json.dumps(result, indent=2) + '\n')
+    print(f'::notice title=Verified checkpoint::{version}; unit={results["unit"]["tests"]}; '
+          f'GameTest={results["gametest"]["tests"]}; {swarm.strip()}')
+    print(f'::notice title=Installable JAR SHA-256::{target.name}: {digest}')
     print(json.dumps(result, indent=2))
 
 

@@ -11,6 +11,13 @@
   it was clean and has not been deleted.
 - Recovered version: `1.1.11-collapse-alpha`, Minecraft 1.21.1, Fabric, Java 21.
 
+The recovered baseline passed a new complete run on source commit
+`0adcfa967f95d21268b4bdcaa7b7d24230451ed2`:
+https://github.com/terminaldetector/ReforkDescnt/actions/runs/40079571590 .
+Unit tests, GameTests, build, real client, five fresh markers and all 15 required
+frames passed. Source, evidence and verified JAR artifacts were confirmed present.
+This result verifies the recovered baseline, not the missing later 1.1.12 work.
+
 ## Missing progress
 
 The supplied MHT records later local work labelled **1.1.12**, but no commit or binary
@@ -35,6 +42,15 @@ Full SCK editing/model import and an exact DXX Pyro model were not completed.
 Restore one verified stage at a time, beginning with the existing baseline's tests.
 The original supplied handoff is retained as `HANDOFF_2026-10-22.md` for context;
 the user's current request determines scope.
+
+## Reconstruction stage 1: projectile movement and range
+
+`1.1.12-recovery.1` reconstructs client tick motion, a full-range tracked velocity vector,
+collision-size-independent visual range, the neutral vanilla overlay UV, and exhaust at
+the physical rocket tail. Server damage, speed, collision and lifetime rules are retained.
+The added GameTest checks metadata above the standard packet clamp, vector replacement,
+and bounded visibility at 100 blocks. It does not establish client image quality; that
+requires the separate weapon harness in the next reconstruction stage.
 
 ## Every major milestone goes through GitHub Actions
 

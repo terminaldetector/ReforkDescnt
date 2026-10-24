@@ -47,6 +47,9 @@ public class ProjectileEntity extends Entity {
 	private static final TrackedData<Integer> COLOR = DataTracker.registerData(ProjectileEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	private static final TrackedData<Float> SCALE = DataTracker.registerData(ProjectileEntity.class, TrackedDataHandlerRegistry.FLOAT);
 	private static final TrackedData<Integer> MESH = DataTracker.registerData(ProjectileEntity.class, TrackedDataHandlerRegistry.INTEGER);
+	// Vanilla spawn/velocity packets clamp each component to +/-3.9 blocks/tick. Some DRMD
+	// weapons exceed that speed. Metadata carries the full vector without changing server physics.
+	private static final TrackedData<Vector3f> VISUAL_VELOCITY = DataTracker.registerData(ProjectileEntity.class, TrackedDataHandlerRegistry.VECTOR3F);
 
 	private UUID ownerUuid;
 	private LivingEntity owner;
@@ -170,10 +173,32 @@ public class ProjectileEntity extends Entity {
 	public int getColorB() { return getColorRgb() & 255; }
 	public DamageClass getDamageClass() { return dmgClass; }
 
+	public void synchronizeVisualVelocity() {
+		if (!getWorld().isClient) {
+			Vec3d v = getVelocity();
+			dataTracker.set(VISUAL_VELOCITY, new Vector3f((float) v.x, (float) v.y, (float) v.z));
+		}
+	}
+
+	public Vec3d getVisualVelocity() {
+		Vector3f v = dataTracker.get(VISUAL_VELOCITY);
+		return new Vec3d(v.x(), v.y(), v.z());
+	}
+
+	@Override
+	public boolean shouldRender(double squaredDistance) {
+		// Entity's default scales range by the tiny collision box (~22 blocks for a shot).
+		// Bright projectiles need a visual range independent of their collision dimensions.
+		double range = 256 * getRenderDistanceMultiplier();
+		return squaredDistance < range * range;
+	}
+
 	@Override
 	public void tick() {
 		super.tick();
 		if (getWorld().isClient) {
+			setVelocity(getVisualVelocity());
+			setPosition(getPos().add(getVelocity()));
 			drawTracer();
 			return;
 		}
@@ -231,6 +256,7 @@ public class ProjectileEntity extends Entity {
 			vel = vel.multiply(Math.max(0, 1.0 - drag * 0.02));
 		}
 		setVelocity(vel);
+		synchronizeVisualVelocity();
 
 		Vec3d next = getPos().add(vel);
 		HitResult hit = getWorld().raycast(new net.minecraft.world.RaycastContext(
@@ -411,6 +437,7 @@ public class ProjectileEntity extends Entity {
 			bounceCount++;
 			Vec3d normal = rb.getReflectionNormal(hitState);
 			setVelocity(MirrorReflection.reflect(getVelocity(), normal));
+			synchronizeVisualVelocity();
 			// Nudge off the surface so this tick doesn't immediately re-resolve the same face at zero
 			// distance — same spirit as onEntityHit's pierce reposition above.
 			setPosition(hit.getPos().add(normal.multiply(0.05)));
@@ -456,6 +483,7 @@ public class ProjectileEntity extends Entity {
 		builder.add(COLOR, 0xB4DCFF);
 		builder.add(SCALE, 1f);
 		builder.add(MESH, MESH_BOLT);
+		builder.add(VISUAL_VELOCITY, new Vector3f());
 	}
 
 	@Override

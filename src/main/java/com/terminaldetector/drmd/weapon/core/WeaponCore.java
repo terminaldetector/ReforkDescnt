@@ -139,6 +139,7 @@ public final class WeaponCore {
 		proj.setDrillCarve(cfg.drillCarve);
 		proj.setFuse(cfg.fuse, cfg.fuseSeconds, cfg.armSeconds, cfg.proximityRadius);
 		proj.setIgniteOnHit(cfg.igniteOnHit);
+		proj.synchronizeVisualVelocity();
 		world.spawnEntity(proj);
 
 		applyRecoil(cfg.owner, dir, recoilFactor);
