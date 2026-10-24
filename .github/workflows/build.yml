@@ -1,4 +1,5 @@
 name: Build DRMD 6DOF
+run-name: Checkpoint · ${{ github.ref_name }} · ${{ github.sha }}
 
 on:
   push:
@@ -6,112 +7,119 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+# Preserve every milestone even if a later push arrives or the game build fails.
 jobs:
-  fabric-pc:
-    name: Fabric PC jar
+  source-checkpoint:
+    name: Preserve source checkpoint
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Archive the exact source revision
+        run: |
+          mkdir -p checkpoint
+          git archive --format=tar.gz --output=checkpoint/source.tar.gz HEAD
+          git rev-parse HEAD > checkpoint/SOURCE_SHA.txt
+          printf '%s\n' "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" > checkpoint/RUN_URL.txt
+          cp docs/recovery/RECOVERY.md checkpoint/
+          sha256sum checkpoint/source.tar.gz > checkpoint/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: source-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: checkpoint/
+          if-no-files-found: error
+          retention-days: 90
 
+  fabric-pc:
+    name: Unit, world, real client and JAR
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Start evidence record
+        run: |
+          mkdir -p build/checkpoint/logs
+          date +%s > build/checkpoint/started-at.txt
+          git rev-parse HEAD > build/checkpoint/SOURCE_SHA.txt
+      - name: Test evidence gate
+        run: python3 -m unittest discover -s scripts -p 'test_checkpoint_report.py' -v
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
           cache: gradle
-
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v4
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Build Fabric mod
+      - name: Install real-client graphics dependencies
         run: |
-          # Clear previously-committed mod jars BEFORE the build, not after. The version is part of the
-          # filename, so without this a version bump leaves the old jar sitting in dist/ beside the new
-          # one under a name that still looks current -- the same "crashing build under a plausible
-          # name" hazard the commit step below exists to prevent, reached from the other direction.
-          # It has to happen before `build` because packageTlauncher (build.finalizedBy) writes
-          # dist/drmd-6dof-<version>-fabric-1.21.1.jar itself: pruning afterwards deletes the very jar
-          # INSTALL_TLAUNCHER.txt tells players to download.
-          rm -f dist/drmd-6dof-*.jar
-          ./gradlew build runGametest --no-daemon --stacktrace
-
-      - name: Verify hybrid terrain in a real client
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libglx-mesa0
+          chmod +x gradlew
+      - name: Unit tests
+        id: unit
+        run: ./gradlew test --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/unit.log
+      - name: Server GameTests
+        id: gametest
+        run: ./gradlew runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/gametest.log
+      - name: Build remapped Fabric JAR
+        id: build
+        run: ./gradlew build --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/build.log
+      - name: Verify real client
+        id: rendercheck
         run: |
-          LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runRendercheck --no-daemon --stacktrace
-          test -s build/rendercheck/rendercheck-ok.txt
-          test -s build/rendercheck/collapse-ok.txt
-          test -s build/rendercheck/ragdoll-ok.txt
-          test -s build/rendercheck/gravity-weapons-ok.txt
-          test -s build/rendercheck/swarm-ai-ok.txt
-          mkdir -p dist/rendercheck
-          cp build/rendercheck/screenshots/hybrid-*.png dist/rendercheck/
-          cp build/rendercheck/screenshots/collapse-before.png build/rendercheck/screenshots/collapse-flight.png build/rendercheck/screenshots/collapse-after.png dist/rendercheck/
-          cp build/rendercheck/screenshots/ragdoll-flight.png build/rendercheck/screenshots/ragdoll-after.png dist/rendercheck/
-          cp build/rendercheck/screenshots/gravity-*.png dist/rendercheck/
-          cp build/rendercheck/screenshots/drone-swarm-*.png dist/rendercheck/
-          cp build/rendercheck/collapse-ok.txt dist/rendercheck/
-          cp build/rendercheck/rendercheck-ok.txt dist/rendercheck/
-          cp build/rendercheck/ragdoll-ok.txt dist/rendercheck/
-          cp build/rendercheck/gravity-weapons-ok.txt dist/rendercheck/
-          cp build/rendercheck/swarm-ai-ok.txt dist/rendercheck/
-
-      - name: Upload test evidence
+          # Only disposable generated markers are cleared, never user worlds or tracked dist.
+          for marker in rendercheck-ok collapse-ok ragdoll-ok gravity-weapons-ok swarm-ai-ok; do
+            rm -f "build/rendercheck/${marker}.txt"
+          done
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runRendercheck --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/rendercheck.log
+      - name: Validate fresh evidence and stage only the current JAR
+        id: verify
+        run: python3 scripts/checkpoint_report.py --verify
+      - name: Write checkpoint report even on failure
+        if: always()
+        env:
+          UNIT_OUTCOME: ${{ steps.unit.outcome }}
+          GAMETEST_OUTCOME: ${{ steps.gametest.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          RENDERCHECK_OUTCOME: ${{ steps.rendercheck.outcome }}
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
+        run: |
+          python3 scripts/checkpoint_report.py --report
+          cat build/checkpoint/REPORT.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Save report, logs and frames even on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: drmd-hybrid-verification
+          name: evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
+            build/checkpoint/
             build/test-results/test/
             build/gametest/reports/
+            build/gametest/logs/
+            build/gametest/crash-reports/
             build/rendercheck/screenshots/
             build/rendercheck/logs/
-            build/rendercheck/rendercheck-ok.txt
-            build/rendercheck/collapse-ok.txt
-            build/rendercheck/ragdoll-ok.txt
-            build/rendercheck/gravity-weapons-ok.txt
-            build/rendercheck/swarm-ai-ok.txt
-          retention-days: 7
-
-      - name: Stage PC jar into dist/
-        run: |
-          mkdir -p dist
-          cp build/libs/drmd-6dof-*.jar dist/
-          rm -f dist/*-sources.jar dist/*-dev.jar dist/*-dev-shadow.jar || true
-          ls -lh dist/
-
-      - name: Upload Fabric PC mod
+            build/rendercheck/crash-reports/
+            build/rendercheck/*-ok.txt
+          if-no-files-found: error
+          retention-days: 90
+      - name: Publish verified installable mod
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: drmd-6dof-pc
+          name: drmd-pc-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            dist/drmd-6dof-*.jar
-            dist/INSTALL_TLAUNCHER.txt
-            !dist/*-sources.jar
+            build/checkpoint/distribution/
+            build/checkpoint/REPORT.md
+            build/checkpoint/SOURCE_SHA.txt
           if-no-files-found: error
-          retention-days: 30
-
-      # dist/ is checked in so the jar can be downloaded straight from the repository — no Actions
-      # login, no nested zip. Keeping it current by hand is what left a crashing build sitting there
-      # under a name that looked like the latest one, so the build refreshes it itself.
-      #
-      # A push made with GITHUB_TOKEN does not start another workflow run, so this cannot loop.
-      - name: Commit refreshed jar into dist/
-        if: github.event_name == 'push'
-        continue-on-error: true
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A 'dist/drmd-6dof-*.jar' dist/INSTALL_TLAUNCHER.txt dist/rendercheck
-          if git diff --cached --quiet; then
-            echo "dist/ already matches this build"
-            exit 0
-          fi
-          git commit -m "Refresh dist jar from ${GITHUB_SHA:0:7} [skip ci]"
-          git push origin HEAD:"${GITHUB_REF_NAME}"
+          retention-days: 90

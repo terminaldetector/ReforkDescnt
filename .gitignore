@@ -17,4 +17,7 @@ logs/
 
 # Loom
 remappedSrc/
+
+# Python CI/report tooling
+__pycache__/
 scripts/__pycache__/
