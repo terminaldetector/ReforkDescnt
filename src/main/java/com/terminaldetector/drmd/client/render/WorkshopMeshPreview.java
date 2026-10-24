@@ -42,8 +42,10 @@ public final class WorkshopMeshPreview {
         context.draw();
         var buffer=context.getVertexConsumers().getBuffer(RenderLayer.getGui());
         var matrix=context.getMatrices().peek().getPositionMatrix();
-        for(var face:faces) for(var p:face.points())
+        for(var face:faces) for(int index:new int[]{0,1,2,3,3,2,1,0}) {
+            var p=face.points().get(index);
             buffer.vertex(matrix,x+width/2f+(p.x-cx)*scale,y+height/2f-(p.y-cy)*scale,0).color(face.colour());
+        }
         context.draw(); context.disableScissor();
         return faces.size();
     }

@@ -32,7 +32,7 @@ public class WorkshopScreen extends Screen {
 	private String presetName = "evening-build";
     private int transformPage;
     private int modelIndex;
-    private float previewYaw = -24, previewPitch = 22;
+    private float previewYaw = -24, previewPitch = -22;
     private long previewFire;
     private int previewFaces;
     private String acceptedWeaponId="";
