@@ -12,21 +12,23 @@ import java.util.Map;
 public final class DefaultLayouts {
 	private DefaultLayouts() {}
 
-	private static final float GF = 15, GU = -12, GS = 1.20f;       // gravy center
-	private static final float GFR = 15, GUR = -24;                  // gravy rail lower
-	private static final float SF = 27, SU = -13, SS = 0.55f;        // strider center
-	private static final float SBF = 25, SBU = -13, SBS = 0.75f;     // strider big
+	// Shared physical/viewmodel mounts fit the ordinary 70-degree vertical FOV. These defaults
+	// do not transform saved ConstructionRegistry overrides.
+	private static final float GF = 22, GU = -9, GS = 1.20f;
+	private static final float GFR = 22, GUR = -11;
+	private static final float SF = 27, SU = -10, SS = 0.55f;
+	private static final float SBF = 25, SBU = -10, SBS = 0.75f;
 
 	/** 4 wing mounts + optional center (Layout in wepview). */
 	public static List<ClusterModule> layout(String row1, float s1, String row2, float s2,
 											 String center, float cf, float cu, float cs) {
 		List<ClusterModule> m = new ArrayList<>();
 		// Lower row → SideLeft / SideRight
-		m.add(WeaponClusters.make("SideLeft", 1, "wing_l1", row1, 19, -29, -13, s1, true, 1));
-		m.add(WeaponClusters.make("SideRight", 1, "wing_r1", row1, 19, 29, -13, s1, true, 2));
+		m.add(WeaponClusters.make("SideLeft", 1, "wing_l1", row1, 22, -16, -10, s1, true, 1));
+		m.add(WeaponClusters.make("SideRight", 1, "wing_r1", row1, 22, 16, -10, s1, true, 2));
 		// Upper row
-		m.add(WeaponClusters.make("Upper", 1, "wing_l2", row2, 19, -32, 10, s2, true, 3));
-		m.add(WeaponClusters.make("Upper", 2, "wing_r2", row2, 19, 32, 10, s2, true, 4));
+		m.add(WeaponClusters.make("Upper", 1, "wing_l2", row2, 22, -18, 8, s2, true, 3));
+		m.add(WeaponClusters.make("Upper", 2, "wing_r2", row2, 22, 18, 8, s2, true, 4));
 		if (center != null) {
 			boolean isGravy = "gravy".equals(center);
 			m.add(WeaponClusters.make("Center", 1, isGravy ? "gravy" : "core", center,
@@ -39,8 +41,8 @@ public final class DefaultLayouts {
 	public static List<ClusterModule> layoutPair(String mdl, float scale,
 												 String center, float cf, float cu, float cs) {
 		List<ClusterModule> m = new ArrayList<>();
-		m.add(WeaponClusters.make("SideLeft", 1, "wing_l", mdl, 19, -29, -13, scale, true, 1));
-		m.add(WeaponClusters.make("SideRight", 1, "wing_r", mdl, 19, 29, -13, scale, true, 2));
+		m.add(WeaponClusters.make("SideLeft", 1, "wing_l", mdl, 22, -16, -10, scale, true, 1));
+		m.add(WeaponClusters.make("SideRight", 1, "wing_r", mdl, 22, 16, -10, scale, true, 2));
 		if (center != null) {
 			boolean isGravy = "gravy".equals(center);
 			m.add(WeaponClusters.make("Center", 1, isGravy ? "gravy" : "core", center,

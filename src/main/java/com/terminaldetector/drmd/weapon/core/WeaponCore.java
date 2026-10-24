@@ -140,7 +140,9 @@ public final class WeaponCore {
 		proj.setFuse(cfg.fuse, cfg.fuseSeconds, cfg.armSeconds, cfg.proximityRadius);
 		proj.setIgniteOnHit(cfg.igniteOnHit);
 		proj.synchronizeVisualVelocity();
-		world.spawnEntity(proj);
+		if (!world.spawnEntity(proj)) return null;
+		com.terminaldetector.drmd.network.ModNetworking.shotFx(world, cfg.pos,
+				proj.getColorRgb(), cfg.visualScale, false);
 
 		applyRecoil(cfg.owner, dir, recoilFactor);
 		return proj;

@@ -83,9 +83,8 @@ public final class WeaponViewRenderer {
 
 				matrices.push();
 				matrices.translate(pos.x - cam.x, pos.y - cam.y, pos.z - cam.z);
-				matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-yaw));
-				matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pitch));
-				matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll + m.roll));
+				ModelOrientation.applyBasis(matrices, 180f, look.negate(), up);
+				matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(m.roll));
 				if (m.spin != 0) {
 					matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(time * m.spin * 60f));
 				}
@@ -252,13 +251,13 @@ public final class WeaponViewRenderer {
 							 float x2, float y2, float z2, float x3, float y3, float z3,
 							 float r, float g, float b, float a, int light, float nx, float ny, float nz) {
 		var m = entry.getPositionMatrix();
-		vc.vertex(m, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(0).light(light).normal(nx, ny, nz);
-		vc.vertex(m, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(0).light(light).normal(nx, ny, nz);
-		vc.vertex(m, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(0).light(light).normal(nx, ny, nz);
-		vc.vertex(m, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(0).light(light).normal(nx, ny, nz);
-		vc.vertex(m, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(0).light(light).normal(nx, ny, nz);
-		vc.vertex(m, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(0).light(light).normal(nx, ny, nz);
-		vc.vertex(m, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(0).light(light).normal(nx, ny, nz);
-		vc.vertex(m, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(0).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x0, y0, z0).color(r, g, b, a).texture(0, 0).overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x3, y3, z3).color(r, g, b, a).texture(0, 1).overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x2, y2, z2).color(r, g, b, a).texture(1, 1).overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV).light(light).normal(nx, ny, nz);
+		vc.vertex(m, x1, y1, z1).color(r, g, b, a).texture(1, 0).overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV).light(light).normal(nx, ny, nz);
 	}
 }

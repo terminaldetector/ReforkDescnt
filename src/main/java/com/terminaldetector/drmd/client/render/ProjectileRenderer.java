@@ -120,7 +120,7 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 		float length = half + stretch;
 
 		var entry = matrices.peek();
-		VertexConsumer buf = consumers.getBuffer(RenderLayer.getEntityTranslucent(TEXTURE));
+		VertexConsumer buf = consumers.getBuffer(ShotRenderLayers.GLOW);
 		billboard(buf, entry, length * 1.05f, half * 2.3f, argb, 0.30f);
 		billboard(buf, entry, length, half * 1.35f, argb, 0.65f);
 		// The core reads as solid rather than as more glow: alpha 1.0 fully covers whatever is behind
@@ -151,7 +151,7 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 	 * here, so a wrong-winding guess does not read as "one shot in ten looks off," it reads as "no
 	 * projectiles" — the whole {@code MESH_BOLT}/{@code MESH_ORB} path draws nothing at all.
 	 */
-	private static void billboard(VertexConsumer vc, MatrixStack.Entry entry,
+	static void billboard(VertexConsumer vc, MatrixStack.Entry entry,
 								  float len, float wide, int argb, float alpha) {
 		float r = ((argb >> 16) & 255) / 255f;
 		float g = ((argb >> 8) & 255) / 255f;
@@ -161,10 +161,6 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 		blobVertex(vc, m, len, -wide, r, g, b, alpha, 1, 0);
 		blobVertex(vc, m, len, wide, r, g, b, alpha, 1, 1);
 		blobVertex(vc, m, -len, wide, r, g, b, alpha, 0, 1);
-		blobVertex(vc, m, -len, -wide, r, g, b, alpha, 0, 0);
-		blobVertex(vc, m, -len, wide, r, g, b, alpha, 0, 1);
-		blobVertex(vc, m, len, wide, r, g, b, alpha, 1, 1);
-		blobVertex(vc, m, len, -wide, r, g, b, alpha, 1, 0);
 	}
 
 	private static void blobVertex(VertexConsumer vc, org.joml.Matrix4f m, float x, float y,
@@ -226,7 +222,7 @@ public class ProjectileRenderer extends EntityRenderer<ProjectileEntity> {
 			matrices.translate(tail.x, tail.y, tail.z);
 			matrices.multiply(this.dispatcher.getRotation());
 			var entry = matrices.peek();
-			VertexConsumer vc = consumers.getBuffer(RenderLayer.getEntityTranslucent(TEXTURE));
+			VertexConsumer vc = consumers.getBuffer(ShotRenderLayers.GLOW);
 			billboard(vc, entry, s * 2.2f, s * 2.2f, 0xFFFF9944, 0.42f);
 			billboard(vc, entry, s * 1.1f, s * 1.1f, 0xFFFFDDAA, 0.85f);
 			matrices.pop();

@@ -441,7 +441,26 @@ public final class ModNetworking {
 
 	private ModNetworking() {}
 
+	/** Cosmetic events survive even when the projectile hits and is removed in its first tick. */
+	public record ShotFxPayload(double x, double y, double z, int rgb, float scale, boolean impact) implements CustomPayload {
+		public static final Id<ShotFxPayload> ID = new Id<>(Identifier.of(DescentMod.MOD_ID, "shot_fx"));
+		public static final PacketCodec<RegistryByteBuf, ShotFxPayload> CODEC = PacketCodec.of(
+				(p, buf) -> { buf.writeDouble(p.x); buf.writeDouble(p.y); buf.writeDouble(p.z);
+					buf.writeInt(p.rgb); buf.writeFloat(p.scale); buf.writeBoolean(p.impact); },
+				buf -> new ShotFxPayload(buf.readDouble(), buf.readDouble(), buf.readDouble(),
+						buf.readInt(), buf.readFloat(), buf.readBoolean()));
+		@Override public Id<? extends CustomPayload> getId() { return ID; }
+	}
+
+	public static void shotFx(net.minecraft.server.world.ServerWorld world, net.minecraft.util.math.Vec3d pos,
+			int rgb, float scale, boolean impact) {
+		var event = new ShotFxPayload(pos.x, pos.y, pos.z, rgb, scale, impact);
+		for (var player : net.fabricmc.fabric.api.networking.v1.PlayerLookup.around(world, pos, 128))
+			ServerPlayNetworking.send(player, event);
+	}
+
 	public static void register() {
+		PayloadTypeRegistry.playS2C().register(ShotFxPayload.ID, ShotFxPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(PortalFramePayload.ID, PortalFramePayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(InputPayload.ID, InputPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(ActionPayload.ID, ActionPayload.CODEC);

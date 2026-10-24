@@ -56,6 +56,8 @@ public class DescentClient implements ClientModInitializer {
 		DescentConfig.load();
 		DescentKeybinds.register();
 		ModEntityRenderers.register();
+		com.terminaldetector.drmd.client.render.ShotRenderLayers.register();
+		com.terminaldetector.drmd.client.render.ShotFxRenderer.register();
 		WeaponViewRenderer.register();
 		com.terminaldetector.drmd.client.render.CockpitRenderer.register();
 		// No seam curtain. It painted a two-colour checkerboard across every layer boundary within
@@ -73,6 +75,8 @@ public class DescentClient implements ClientModInitializer {
 		com.terminaldetector.drmd.client.portal.MirrorReflectionRenderer.register();
 		com.terminaldetector.drmd.client.portal.PortalSeeThroughRenderer.register();
 		registerRenderLayers();
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ShotFxPayload.ID, (payload, context) ->
+				context.client().execute(() -> com.terminaldetector.drmd.client.render.ShotFxRenderer.add(payload)));
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.PortalFramePayload.ID, (payload, context) ->
 			context.client().execute(() -> {

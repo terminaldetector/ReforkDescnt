@@ -52,6 +52,17 @@ The added GameTest checks metadata above the standard packet clamp, vector repla
 and bounded visibility at 100 blocks. It does not establish client image quality; that
 requires the separate weapon harness in the next reconstruction stage.
 
+## Reconstruction stage 2: neutral glow, transient FX and mounts
+
+`1.1.12-recovery.2` adds an unlit radial shader without vanilla's damage overlay or
+directional colour modulation. Glow quads have one winding through a non-culling layer.
+Server-sent, bounded muzzle/impact events remain visible after short-lived projectiles
+are removed. Rocket exhaust uses its tail position. Default mounts fit FOV 70/80/90
+and remain shared by WeaponCore and the viewmodel; saved override coordinates are not
+rewritten. Weapon model orientation uses the full ship basis, including vertical fire.
+Unit tests exercise actual default layouts and shared muzzle coordinates. The original
+client regression still gates packaging; the dedicated weapon/image harness follows.
+
 ## Every major milestone goes through GitHub Actions
 
 Commit and push each coherent milestone to this recovery branch. `build.yml` runs on

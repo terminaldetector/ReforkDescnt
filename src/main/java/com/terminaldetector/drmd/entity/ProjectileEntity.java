@@ -347,6 +347,7 @@ public class ProjectileEntity extends Entity {
 
 	/** Go off where it sits — timed air-burst and proximity trigger both land here. */
 	private void detonateInPlace() {
+		impactVisual(getPos());
 		LivingEntity own = getOwnerLiving();
 		if (own != null) {
 			detonate(own, getPos());
@@ -388,6 +389,7 @@ public class ProjectileEntity extends Entity {
 	}
 
 	private void onEntityHit(EntityHitResult hit) {
+		impactVisual(hit.getPos());
 		LivingEntity own = getOwnerLiving();
 		if (hit.getEntity() instanceof PhysicsTarget target && getVelocity().lengthSquared() > 1.0e-12) {
 			Vec3d impulse = getVelocity().normalize().multiply(Math.min(80, directDamage * .15));
@@ -450,6 +452,7 @@ public class ProjectileEntity extends Entity {
 
 		LivingEntity own = getOwnerLiving();
 		if (own != null && getWorld() instanceof ServerWorld sw) {
+			impactVisual(hit.getPos().add(Vec3d.of(hit.getSide().getVector()).multiply(.03)));
 			detonate(own, hit.getPos());
 			if (drillCarve) {
 				WeaponFx.drillCarve(sw, hit.getBlockPos(), own);
@@ -476,6 +479,11 @@ public class ProjectileEntity extends Entity {
 		} else {
 			WeaponCore.splashDamage(own, sw, pos, splash, splashRadius, dmgClass);
 		}
+	}
+
+	private void impactVisual(Vec3d pos) {
+		if (getWorld() instanceof ServerWorld world)
+			com.terminaldetector.drmd.network.ModNetworking.shotFx(world, pos, getColorRgb(), getVisualScale(), true);
 	}
 
 	@Override
