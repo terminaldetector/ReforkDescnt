@@ -70,13 +70,19 @@ Ten real-client scenes exercise three mesh types against dark/light backgrounds,
 vertical fire, short-lived muzzle/impact events and full-speed 8-block/tick motion. Screenshot
 pixels must show green near/mid/far shots; FOV 70/80/90 images must show both weapon banks.
 The CI distribution gate now requires this fresh weapon evidence as well as the original
-five-marker terrain/physics/swarm regression. Version 1.1.12 is withheld until this chain passes.
+five-marker terrain/physics/swarm regression. Publishing 1.1.12 is withheld until this chain passes.
 
 The first weapon run failed the middle-range green-pixel check. Inspection of the preserved
 frame showed join chat covering the reticle and projectiles. The isolated harness now clears
 chat/tutorial toasts while retaining the HUD required by the weapon renderer, and removes
 the disposable world's entry hull after dismount. Colour thresholds are unchanged. CI uses
 an explicit Bash shell so a failing client or timeout cannot be hidden by `tee`.
+
+The candidate metadata now uses `1.1.12`. This is a reconstruction from the saved baseline
+and the MHT's functional record, not a byte-for-byte recovery of the lost binary. A prerelease
+is created only when the full chain passes on that exact source SHA. Its separate assets are
+the installable JAR, SHA256SUMS, REPORT.md and screenshots.zip; failed diagnostics never contain
+a certified binary. Current test counts must be taken from that run, not copied from the MHT.
 
 ## Every major milestone goes through GitHub Actions
 

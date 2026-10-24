@@ -1,8 +1,6 @@
 name: Inspect preserved recovery evidence
 
 on:
-  push:
-    paths: ['.github/workflows/recovery-inspect.yml']
   workflow_dispatch:
 
 permissions:

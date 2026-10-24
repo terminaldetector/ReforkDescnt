@@ -145,7 +145,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          tag="recovery-diagnostics-${GITHUB_SHA:0:7}-${GITHUB_RUN_ID}"
+          tag="recovery-diagnostics-${GITHUB_SHA:0:7}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           gh release create "$tag" \
             build/checkpoint/REPORT.md \
             build/checkpoint/diagnostics.txt \
@@ -160,7 +160,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          tag="recovered-1.1.12-${GITHUB_SHA:0:7}-${GITHUB_RUN_ID}"
+          tag="recovered-1.1.12-${GITHUB_SHA:0:7}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           gh release create "$tag" \
             build/checkpoint/distribution/*.jar \
             build/checkpoint/distribution/SHA256SUMS \

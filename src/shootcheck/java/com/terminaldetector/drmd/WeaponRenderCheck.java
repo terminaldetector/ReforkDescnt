@@ -73,8 +73,10 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         // Join chat and tutorial toasts otherwise cover the very pixels under colour verification.
         client.inGameHud.getChatHud().clear(false);
         client.getToastManager().clear();
-        client.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);
-        if (!queued) { queued = true; begin(client, 0); return; }
+        if (!queued) {
+            client.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);
+            queued = true; begin(client, 0); return;
+        }
         if (!ready || client.currentScreen != null) return;
         client.player.setPosition(POSITION); client.player.setVelocity(Vec3d.ZERO);
         DescentClientState.enabled = true; DescentClientState.attitudeValid = true;
