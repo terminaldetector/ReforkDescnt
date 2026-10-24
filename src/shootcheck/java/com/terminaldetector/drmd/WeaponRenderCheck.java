@@ -40,7 +40,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private static final Vec3d POSITION = new Vec3d(12, 205, 30);
     private volatile boolean ready;
     private volatile List<Integer> ids = List.of();
-    private boolean queued;
+    private boolean queued, hybridStarted;
     private int ticks, scene = -1, sceneTick;
     private int muzzleBefore, impactBefore;
     private Vec3d previousFast;
@@ -97,7 +97,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private Vec3d up() { return scene == 7 ? new Vec3d(0, 0, 1) : scene == 6 ? new Vec3d(1, 0, 0) : new Vec3d(0, 1, 0); }
 
     private void tick(MinecraftClient client) {
-        if(HybridWeaponCheck.active()) { HybridWeaponCheck.tick(client); return; }
+        if(hybridStarted) { if(HybridWeaponCheck.active()) HybridWeaponCheck.tick(client); return; }
         ticks++;
         if (ticks % 200 == 0) System.out.println("DRMD shootcheck: scene=" + scene + " tick=" + sceneTick +
                 " ready=" + ready + " screen=" + client.currentScreen);
@@ -189,7 +189,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
                     ",\"muzzleEvents\":" + ShotFxRenderer.muzzleEvents() +
                     ",\"impactEvents\":" + ShotFxRenderer.impactEvents() + "}\n");
         } catch (java.io.IOException error) { throw new IllegalStateException(error); }
-        fixtureServer=null; HybridWeaponCheck.start(client);
+        fixtureServer=null; hybridStarted=true; HybridWeaponCheck.start(client);
     }
 
     private static ProjectileEntity clientShot(MinecraftClient client, int id) {
