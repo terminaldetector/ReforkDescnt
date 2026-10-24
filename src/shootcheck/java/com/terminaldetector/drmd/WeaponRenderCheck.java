@@ -50,6 +50,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private record CaptureRequest(String name, boolean colours, boolean mounts, Runnable after) {}
     private volatile net.minecraft.server.MinecraftServer fixtureServer;
     private volatile java.util.UUID fixturePlayer;
+    private volatile boolean rangeServerTicked;
     private static final Map<Integer, RenderProbe> RENDERED = new HashMap<>();
     private static final Map<Integer, String> VISIBILITY = new HashMap<>();
     private record RenderProbe(float x, float y, float fogStart, float fogEnd, long recorded) {}
@@ -85,6 +86,10 @@ public final class WeaponRenderCheck implements ClientModInitializer {
             var data = DescentPlayerData.get(player); data.setFlightVelocity(Vec3d.ZERO);
             Vec3d f = forward(), u = up();
             data.setShipAttitude((float) f.x, (float) f.y, (float) f.z, (float) u.x, (float) u.y, (float) u.z);
+            if (ready && scene < 8 && ids.size() == 3) rangeServerTicked = ids.stream().allMatch(id -> {
+                var entity = server.getOverworld().getEntityById(id);
+                return entity instanceof ProjectileEntity && entity.age > 0;
+            });
         });
     }
 
@@ -125,8 +130,8 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         DescentClientState.enabled = true; DescentClientState.attitudeValid = true;
         ShipAttitudeClient.acceptPortalFrame(client.player, forward(), up());
         if (pendingCapture != null) return;
-        if (scene < 8 && sceneTick == 0 && ids.stream().anyMatch(id ->
-                !(client.world.getEntityById(id) instanceof ProjectileEntity))) return;
+        if (scene < 8 && sceneTick == 0 && (!rangeServerTicked || ids.stream().anyMatch(id ->
+                !(client.world.getEntityById(id) instanceof ProjectileEntity)))) return;
         ++sceneTick;
         if (scene == 0) {
             if (sceneTick == 35) client.options.getFov().setValue(70);
@@ -154,7 +159,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
                 for (int id : checkedIds) {
                     var shot = world.getEntityById(id);
                     System.out.println("DRMD shootcheck: server id=" + id + " entity=" + shot +
-                            (shot == null ? "" : " pos=" + shot.getPos() + " alive=" + shot.isAlive()));
+                            (shot == null ? "" : " pos=" + shot.getPos() + " alive=" + shot.isAlive() + " age=" + shot.age));
                 }
             });
         }
@@ -194,7 +199,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     }
 
     private void begin(MinecraftClient client, int next) {
-        ready = false; scene = next; sceneTick = 0;
+        ready = false; rangeServerTicked = false; scene = next; sceneTick = 0;
         client.options.getFov().setValue(80);
         var server = client.getServer(); var uuid = client.player.getUuid();
         fixtureServer = server; fixturePlayer = uuid;
@@ -207,6 +212,10 @@ public final class WeaponRenderCheck implements ClientModInitializer {
             for (var entity : world.iterateEntities())
                 if (entity instanceof com.terminaldetector.drmd.entity.PyroShipEntity) entity.discard();
             if (scene == 0) {
+                // Loaded does not imply ENTITY_TICKING. Keep every measured corridor chunk active
+                // even while the integrated server is still updating player-distance tickets.
+                for (int cx = 0; cx <= 1; cx++) for (int cz = -5; cz <= 1; cz++)
+                    world.setChunkForced(cx, cz, true);
                 // The copied GameTest save can contain authored/generated geometry. Clear only
                 // the disposable shot corridor and vertical shaft, before creating any targets.
                 for (var pos : BlockPos.iterate(new BlockPos(6, 202, -84), new BlockPos(21, 212, 30)))

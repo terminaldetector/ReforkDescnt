@@ -67,6 +67,14 @@ jobs:
           cache: gradle
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v4
+      - name: Restore Minecraft setup cache
+        id: loom-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.gradle/caches/fabric-loom
+            .gradle/loom-cache
+          key: ${{ runner.os }}-minecraft-setup-${{ hashFiles('gradle.properties', 'gradle/wrapper/gradle-wrapper.properties') }}
       - name: Install real-client graphics dependencies
         run: |
           sudo apt-get update
@@ -141,6 +149,14 @@ jobs:
             build/checkpoint/SOURCE_SHA.txt
           if-no-files-found: error
           retention-days: 90
+      - name: Preserve resolved Minecraft setup after a client assertion
+        if: always() && steps.unit.outcome == 'success' && steps.loom-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.gradle/caches/fabric-loom
+            .gradle/loom-cache
+          key: ${{ steps.loom-cache.outputs.cache-primary-key }}
       - name: Preserve failed-client diagnostics for recovery inspection
         if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/codex/ungravity-cloud-recovery-20261024'
         env:

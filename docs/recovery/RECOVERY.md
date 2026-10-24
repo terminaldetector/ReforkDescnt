@@ -103,6 +103,11 @@ several catch-up ticks ran before one frame, falsely labelling FOV 80 pixels as 
 fast-shot measurement requires at least three newly rendered frames, full speed 8 and at least
 24 blocks of observed travel; it finishes as soon as those conditions are satisfied.
 
+The range fixture also distinguishes loaded chunks from entity-ticking chunks: one trace
+showed the server's far projectile still at its spawn while the client predicted forward.
+Only disposable corridor chunks are force-loaded, and scene timing waits for a real server
+tick of all three projectiles as well as receipt of all three on the client.
+
 ## Every major milestone goes through GitHub Actions
 
 Commit and push each coherent milestone to this recovery branch. `build.yml` runs on
