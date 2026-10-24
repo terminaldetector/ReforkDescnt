@@ -16,6 +16,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.world.BackupPromptScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.option.Perspective;
+import net.minecraft.client.option.ParticlesMode;
 import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -63,9 +64,11 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         if (client.world == null || client.player == null || client.getServer() == null) return;
         DescentClient.markUserFlightChoice();
         DescentConfig.cockpit = false; DescentConfig.hud = false; DescentConfig.weaponView = true;
+        DescentConfig.cameraShake = false;
         DescentConfig.planetFloor = false; DescentConfig.levelSky = false; DescentConfig.skyUfoVirtualHull = false;
         client.options.hudHidden = false; client.options.pauseOnLostFocus = false;
         client.options.setPerspective(Perspective.FIRST_PERSON);
+        client.options.getParticles().setValue(ParticlesMode.MINIMAL);
         if (!queued) { queued = true; begin(client, 0); return; }
         if (!ready || client.currentScreen != null) return;
         client.player.setPosition(POSITION); client.player.setVelocity(Vec3d.ZERO);
@@ -222,13 +225,19 @@ public final class WeaponRenderCheck implements ClientModInitializer {
                 }
             }
             if (mounts) {
-                int left = 0, right = 0;
-                for (int y = 90; y < image.getHeight() - 70; y++) for (int x = 60; x < image.getWidth() - 60; x++) {
-                    int color = image.getColor(x, y);
-                    int r = color & 255, g = (color >> 8) & 255, b = (color >> 16) & 255;
-                    if (b > r + 25 && b > g + 10) { if (x < image.getWidth() / 2) left++; else right++; }
+                double focal = image.getHeight() / (2 * Math.tan(Math.toRadians(client.options.getFov().getValue() / 2.0)));
+                for (var module : com.terminaldetector.drmd.workshop.DefaultLayouts.forWeapon("laser").subList(0, 2)) {
+                    int cx = (int) Math.round(image.getWidth() / 2.0 + module.posRgt / module.posFwd * focal);
+                    int cy = (int) Math.round(image.getHeight() / 2.0 - module.posUp / module.posFwd * focal);
+                    int blue = 0;
+                    for (int y = Math.max(0, cy - 35); y < Math.min(image.getHeight(), cy + 36); y++)
+                        for (int x = Math.max(0, cx - 35); x < Math.min(image.getWidth(), cx + 36); x++) {
+                            int color = image.getColor(x, y);
+                            int r = color & 255, g = (color >> 8) & 255, b = (color >> 16) & 255;
+                            if (b > 100 && b > r + 25 && b > g + 10) blue++;
+                        }
+                    if (blue < 20) throw new IllegalStateException(name + ": weapon mount missing at " + cx + "," + cy + ": " + blue + " pixels");
                 }
-                if (left < 20 || right < 20) throw new IllegalStateException(name + ": weapon mounts outside FOV: " + left + "/" + right);
             }
         } catch (java.io.IOException error) { throw new IllegalStateException("Cannot save weapon evidence", error); }
     }

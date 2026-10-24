@@ -1,5 +1,6 @@
 """Regression checks for the release evidence gate, using temporary synthetic fixtures."""
 import json
+import io
 import os
 from pathlib import Path
 import subprocess
@@ -14,6 +15,10 @@ import checkpoint_report as checkpoint
 
 class EvidenceGateTest(unittest.TestCase):
     def setUp(self):
+        # Synthetic release fixtures must never produce GitHub workflow annotations.
+        output = patch('sys.stdout', new_callable=io.StringIO)
+        output.start()
+        self.addCleanup(output.stop)
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)

@@ -40,6 +40,8 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -66,7 +68,7 @@ jobs:
           chmod +x gradlew
       - name: Unit tests
         id: unit
-        run: ./gradlew test --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/unit.log
+        run: ./gradlew test compileShootcheckJava --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/unit.log
       - name: Server GameTests
         id: gametest
         run: ./gradlew runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/gametest.log
@@ -133,3 +135,19 @@ jobs:
             build/checkpoint/SOURCE_SHA.txt
           if-no-files-found: error
           retention-days: 90
+      - name: Publish recovered 1.1.12 and evidence as a downloadable prerelease
+        if: github.event_name == 'push' && github.ref == 'refs/heads/codex/ungravity-cloud-recovery-20261024' && steps.verify.outputs.version == '1.1.12'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="recovered-1.1.12-${GITHUB_SHA:0:7}-${GITHUB_RUN_ID}"
+          gh release create "$tag" \
+            build/checkpoint/distribution/*.jar \
+            build/checkpoint/distribution/SHA256SUMS \
+            build/checkpoint/REPORT.md \
+            build/checkpoint/screenshots.zip \
+            --target "$GITHUB_SHA" \
+            --title "UNGRAVITY 1.1.12 recovered (${GITHUB_SHA:0:7})" \
+            --notes-file build/checkpoint/REPORT.md \
+            --prerelease --latest=false

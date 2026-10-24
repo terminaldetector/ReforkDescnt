@@ -284,6 +284,7 @@ public class ProjectileEntity extends Entity {
 			// Mines settle where they land and wait for a customer.
 			setPosition(hit.getPos().subtract(getVelocity().normalize().multiply(0.15)));
 			setVelocity(Vec3d.ZERO);
+			synchronizeVisualVelocity();
 			return;
 		}
 		setPosition(next);

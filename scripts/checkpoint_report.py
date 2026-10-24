@@ -124,6 +124,9 @@ def verify(root):
                   frames=[name + '.png' for name in FRAMES], shootcheck=shot,
                   shot_frames=[name + '.png' for name in SHOT_FRAMES])
     (out / 'verified.json').write_text(json.dumps(result, indent=2) + '\n')
+    if os.environ.get('GITHUB_OUTPUT'):
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+            output.write(f'version={version}\n')
     print(f'::notice title=Verified checkpoint::{version}; unit={results["unit"]["tests"]}; '
           f'GameTest={results["gametest"]["tests"]}; {swarm.strip()}')
     print(f'::notice title=Installable JAR SHA-256::{target.name}: {digest}')
@@ -169,6 +172,10 @@ def report(root):
         lines += ['- ' + name for name in result['frames']]
         lines += ['', '### Weapon verification', '',
                   f'- {result["shootcheck"]}', ''] + ['- ' + name for name in result['shot_frames']]
+        with zipfile.ZipFile(out / 'screenshots.zip', 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+            for kind in ('rendercheck', 'shootcheck'):
+                for frame in sorted((root / f'build/{kind}/screenshots').glob('*.png')):
+                    archive.write(frame, f'{kind}/{frame.name}')
     else:
         lines += ['', '**NOT VERIFIED: no installable-mod artifact is certified by this run.**',
                   'See `logs/`, JUnit XML, GameTest logs and client crash reports for the first failure.']
