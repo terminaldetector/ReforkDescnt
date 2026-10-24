@@ -44,7 +44,10 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private Vec3d previousFast;
     private double fastTravel;
     private static final Map<Integer, RenderProbe> RENDERED = new HashMap<>();
+    private static final Map<Integer, String> VISIBILITY = new HashMap<>();
     private record RenderProbe(float x, float y, float fogStart, float fogEnd, long recorded) {}
+
+    public static void recordVisibility(int id, String state) { VISIBILITY.put(id, state); }
 
     public static void recordRender(ProjectileEntity entity, net.minecraft.client.util.math.MatrixStack matrices) {
         var client = MinecraftClient.getInstance();
@@ -165,6 +168,14 @@ public final class WeaponRenderCheck implements ClientModInitializer {
             player.stopRiding(); player.changeGameMode(GameMode.CREATIVE);
             for (var entity : world.iterateEntities())
                 if (entity instanceof com.terminaldetector.drmd.entity.PyroShipEntity) entity.discard();
+            if (scene == 0) {
+                // The copied GameTest save can contain authored/generated geometry. Clear only
+                // the disposable shot corridor and vertical shaft, before creating any targets.
+                for (var pos : BlockPos.iterate(new BlockPos(6, 202, -84), new BlockPos(21, 212, 30)))
+                    if (!world.getBlockState(pos).isAir()) world.setBlockState(pos, Blocks.AIR.getDefaultState(), 2);
+                for (var pos : BlockPos.iterate(new BlockPos(8, 203, 26), new BlockPos(16, 310, 34)))
+                    if (!world.getBlockState(pos).isAir()) world.setBlockState(pos, Blocks.AIR.getDefaultState(), 2);
+            }
             player.teleport(world, POSITION.x, POSITION.y, POSITION.z, 180, 0);
             var data = DescentPlayerData.get(player); data.setEnabled(true); data.setFlightVelocity(Vec3d.ZERO);
             Vec3d f = forward(), u = up();
@@ -239,7 +250,8 @@ public final class WeaponRenderCheck implements ClientModInitializer {
                     System.out.println("DRMD shootcheck: id=" + id + " pos=" + shot.getPos() +
                             " rgb=" + Integer.toHexString(shot.getColorRgb()) +
                             " chunkLoaded=" + client.world.isChunkLoaded(shot.getBlockPos()) +
-                            " distanceMultiplier=" + ProjectileEntity.getRenderDistanceMultiplier() + " render=" + probe);
+                            " distanceMultiplier=" + ProjectileEntity.getRenderDistanceMultiplier() + " render=" + probe +
+                            " visibility=" + VISIBILITY.get(id));
                     if (probe == null || System.nanoTime() - probe.recorded() > 1_000_000_000L)
                         throw new IllegalStateException("Projectile did not reach the actual renderer: " + id);
                     Vec3d delta = shot.getPos().subtract(client.gameRenderer.getCamera().getPos());

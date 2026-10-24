@@ -106,6 +106,7 @@ def verify(root):
         if 'com/terminaldetector/drmd/DescentMod.class' not in archive.namelist():
             raise ValueError('Not a compiled DRMD binary JAR')
         forbidden = ('HybridRenderCheck', 'WeaponRenderCheck', 'GameTests.class',
+                     'ProjectileRendererProbe', 'ProjectileVisibilityProbe', 'drmd.shootcheck.mixins',
                      'drmd_gametest', 'drmd_rendercheck', 'drmd_shootcheck', '-ok.txt')
         if any(any(token in name for token in forbidden) for name in archive.namelist()):
             raise ValueError('Test-only code or evidence leaked into the production JAR')
