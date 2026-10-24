@@ -343,9 +343,11 @@ public class WorkshopScreen extends Screen {
 	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
 		context.fill(0, 0, width, height, 0xb0101720);
         context.draw();
+        // Screen.render performs the vanilla background/blur pass before its children in 1.21.
+        // Draw custom mesh and manually rendered text fields after that pass.
+        super.render(context, mouseX, mouseY, delta);
 
-
-		if (tab == Tab.MODELS) {
+        if (tab == Tab.MODELS) {
             renderModels(context);
         } else if (tab == Tab.CLUSTERS) {
 			renderClusters(context);
@@ -374,7 +376,6 @@ public class WorkshopScreen extends Screen {
 		}
 
 		context.drawTextWithShadow(textRenderer, Text.literal(status), 10, height - 38, 0x88FF88);
-		super.render(context, mouseX, mouseY, delta);
 	}
 
 	private void renderClusters(DrawContext context) {
