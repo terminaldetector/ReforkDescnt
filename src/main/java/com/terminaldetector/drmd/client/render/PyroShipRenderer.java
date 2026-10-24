@@ -95,6 +95,13 @@ public class PyroShipRenderer extends EntityRenderer<PyroShipEntity> {
                 Vec3d anchor=eye.add(forward.multiply(module.posFwd/16f))
                         .add(right.multiply(module.posRgt/16f)).add(orthogonalUp.multiply(module.posUp/16f));
                 Vec3d offset=anchor.subtract(base);
+                float socketZ=module.model.equals(com.terminaldetector.drmd.workshop.HybridWeaponModels.RAIL)?22:
+                        module.model.equals(com.terminaldetector.drmd.workshop.HybridWeaponModels.PLASMA)?19:20;
+                var socket=com.terminaldetector.drmd.workshop.HybridWeaponModels.transform(module,
+                        new com.terminaldetector.drmd.workshop.HybridWeaponModels.Point(0,-4,socketZ),0,false).div(16);
+                Vec3d socketWorld=offset.add(right.multiply(socket.x)).add(orthogonalUp.multiply(socket.y)).subtract(forward.multiply(socket.z));
+                Vec3d hullPoint=right.multiply(Math.copySign(.4,module.posRgt)).add(orthogonalUp.multiply(-.5));
+                HybridWeaponRenderer.brace(matrices,consumers,hullPoint,socketWorld,light);
                 matrices.push(); matrices.translate(offset.x,offset.y,offset.z);
                 ModelOrientation.applyBasis(matrices,180f,forward,orthogonalUp);
                 HybridWeaponRenderer.draw(matrices,consumers,module,ShotFxRenderer.recoilAt(anchor,tickDelta),WeaponLoadState.get(pilot.getId()),light);

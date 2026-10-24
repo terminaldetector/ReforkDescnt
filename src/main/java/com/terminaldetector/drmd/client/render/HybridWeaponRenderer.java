@@ -36,6 +36,33 @@ public final class HybridWeaponRenderer {
             }
         }
     }
+    /** Solid voxel brace between a hull hardpoint and the saved module's socket. */
+    public static void brace(MatrixStack matrices,VertexConsumerProvider consumers,
+                             net.minecraft.util.math.Vec3d from,net.minecraft.util.math.Vec3d to,int light) {
+        var delta=to.subtract(from);
+        if(delta.lengthSquared()<1e-6) return;
+        var middle=from.add(to).multiply(.5);
+        matrices.push(); matrices.translate(middle.x,middle.y,middle.z);
+        matrices.multiply(new org.joml.Quaternionf().rotationTo(new Vector3f(0,0,1),
+                new Vector3f((float)delta.x,(float)delta.y,(float)delta.z).normalize()));
+        matrices.scale(.14f,.14f,(float)delta.length());
+        var buffer=consumers.getBuffer(RenderLayer.getEntitySolid(WHITE));
+        var entry=matrices.peek();
+        float[][] vertices={{-.5f,-.5f,-.5f},{.5f,-.5f,-.5f},{.5f,.5f,-.5f},{-.5f,.5f,-.5f},
+                {-.5f,-.5f,.5f},{.5f,-.5f,.5f},{.5f,.5f,.5f},{-.5f,.5f,.5f}};
+        int[][] faces={{0,3,2,1},{4,5,6,7},{0,1,5,4},{3,7,6,2},{0,4,7,3},{1,2,6,5}};
+        for(var face:faces) {
+            var a=vertices[face[0]];var b=vertices[face[1]];var c=vertices[face[2]];
+            var normal=new Vector3f(b[0]-a[0],b[1]-a[1],b[2]-a[2])
+                    .cross(new Vector3f(c[0]-a[0],c[1]-a[1],c[2]-a[2])).normalize();
+            for(int i:new int[]{0,1,2,3,3,2,1,0}) {
+                var v=vertices[face[i]];
+                buffer.vertex(entry.getPositionMatrix(),v[0],v[1],v[2]).color(0xff506579).texture(0,0)
+                        .overlay(OverlayTexture.DEFAULT_UV).light(light).normal(entry,normal.x,normal.y,normal.z);
+            }
+        }
+        matrices.pop();
+    }
     public static int tint(int rgb, ClusterModule m) {
         return (Math.clamp(m.colorA,0,255)<<24) |
                 (((rgb>>16)&255)*Math.clamp(m.colorR,0,255)/255<<16) |

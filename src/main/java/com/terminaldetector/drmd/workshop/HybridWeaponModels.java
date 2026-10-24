@@ -76,7 +76,7 @@ public final class HybridWeaponModels {
     private static List<Part> plasma() {
         var b = new Builder();
         b.shell("chamfered power housing",Material.STEEL,0,0,13,7,6,10,1.3f,false);
-        b.shell("rear ceramic cover",Material.CELL,0,.5f,18,5.8f,5,4,.9f,false);
+        b.shell("rear ceramic cover",Material.CELL,0,.7f,18,5.8f,5,4,.9f,false);
         b.ring("hollow emitter lip",Material.DARK,0,0,0,2.8f,1.75f,1.3f);
         b.ring("luminous aperture",Material.CYAN,0,0,.35f,1.8f,1.5f,.5f);
         b.ring("inner chamber",Material.DARK,0,0,1,2.2f,1.6f,8);
@@ -105,8 +105,8 @@ public final class HybridWeaponModels {
             b.box("voxel capacitor",Material.CELL,side*3.1f,-3.2f,17,2.6f,2.4f,5,false);
             b.box("capacitor load bar",Material.VIOLET,side*3.1f,-4.45f,17,1.6f,.18f,3,false);
         }
-        b.box("recoiling carriage",Material.COPPER,0,2.7f,16,2.4f,.8f,6,true);
-        b.box("load indicator",Material.VIOLET,0,3.2f,17,.65f,.2f,4,false);
+        b.box("recoiling carriage",Material.COPPER,0,3.4f,16,2.4f,.8f,6,true);
+        b.box("load indicator",Material.VIOLET,0,3.9f,17,.65f,.2f,4,false);
         b.box("voxel hull socket",Material.DARK,0,-4,22,4,2,3,false);
         return List.copyOf(b.parts);
     }
