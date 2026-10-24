@@ -30,6 +30,10 @@ class EvidenceGateTest(unittest.TestCase):
                    'Live swarm synchronized 128 drones; indexed=128; moving=96; maximum candidates/query=96.\n')
         for name in checkpoint.FRAMES:
             self.write(f'build/rendercheck/screenshots/{name}.png', b'\x89PNG\r\n\x1a\nfixture')
+        for name in checkpoint.SHOT_FRAMES:
+            self.write(f'build/shootcheck/screenshots/{name}.png', b'\x89PNG\r\n\x1a\nfixture')
+        self.write('build/shootcheck/shootcheck-ok.json', json.dumps(dict(scenes=10, fovs=[70,80,90],
+                   rangePixelsChecked=True, fastSpeed=8, fastTravel=32, muzzleEvents=2, impactEvents=2)))
         jar = self.root / 'build/libs/drmd-6dof-test.jar'
         jar.parent.mkdir(parents=True)
         with zipfile.ZipFile(jar, 'w') as archive:
@@ -80,6 +84,11 @@ class EvidenceGateTest(unittest.TestCase):
     def test_no_unit_tests_is_not_a_pass(self):
         self.write('build/test-results/test/tests.xml', '<testsuite/>')
         with self.assertRaisesRegex(ValueError, 'incomplete or failing test report'):
+            checkpoint.verify(self.root)
+
+    def test_no_weapon_verification_is_rejected(self):
+        (self.root / 'build/shootcheck/shootcheck-ok.json').unlink()
+        with self.assertRaisesRegex(ValueError, 'Missing or empty evidence'):
             checkpoint.verify(self.root)
 
     def test_failed_run_still_has_report_without_certifying_jar(self):

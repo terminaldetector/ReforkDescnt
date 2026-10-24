@@ -81,6 +81,11 @@ jobs:
             rm -f "build/rendercheck/${marker}.txt"
           done
           LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runRendercheck --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/rendercheck.log
+      - name: Verify weapon images and client motion
+        id: shootcheck
+        run: |
+          rm -f build/shootcheck/shootcheck-ok.json
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runShootcheck --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/shootcheck.log
       - name: Validate fresh evidence and stage only the current JAR
         id: verify
         run: python3 scripts/checkpoint_report.py --verify
@@ -91,6 +96,7 @@ jobs:
           GAMETEST_OUTCOME: ${{ steps.gametest.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
           RENDERCHECK_OUTCOME: ${{ steps.rendercheck.outcome }}
+          SHOOTCHECK_OUTCOME: ${{ steps.shootcheck.outcome }}
           VERIFY_OUTCOME: ${{ steps.verify.outcome }}
         run: |
           python3 scripts/checkpoint_report.py --report
@@ -110,6 +116,10 @@ jobs:
             build/rendercheck/logs/
             build/rendercheck/crash-reports/
             build/rendercheck/*-ok.txt
+            build/shootcheck/screenshots/
+            build/shootcheck/logs/
+            build/shootcheck/crash-reports/
+            build/shootcheck/shootcheck-ok.json
           if-no-files-found: error
           retention-days: 90
       - name: Publish verified installable mod

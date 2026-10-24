@@ -63,6 +63,15 @@ rewritten. Weapon model orientation uses the full ship basis, including vertical
 Unit tests exercise actual default layouts and shared muzzle coordinates. The original
 client regression still gates packaging; the dedicated weapon/image harness follows.
 
+## Reconstruction stage 3: independent weapon client
+
+`1.1.12-recovery.3` adds `runShootcheck`, a test-only source set and copied GameTest fixture.
+Ten real-client scenes exercise three mesh types against dark/light backgrounds, banked and
+vertical fire, short-lived muzzle/impact events and full-speed 8-block/tick motion. Screenshot
+pixels must show green near/mid/far shots; FOV 70/80/90 images must show both weapon banks.
+The CI distribution gate now requires this fresh weapon evidence as well as the original
+five-marker terrain/physics/swarm regression. Version 1.1.12 is withheld until this chain passes.
+
 ## Every major milestone goes through GitHub Actions
 
 Commit and push each coherent milestone to this recovery branch. `build.yml` runs on

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "drmd_shootcheck",
+  "version": "1.0.0",
+  "name": "DRMD isolated weapon verification",
+  "environment": "client",
+  "entrypoints": {"client": ["com.terminaldetector.drmd.WeaponRenderCheck"]},
+  "depends": {"drmd": "*"}
+}

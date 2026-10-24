@@ -1,0 +1,235 @@
+package com.terminaldetector.drmd;
+
+import com.terminaldetector.drmd.client.DescentClient;
+import com.terminaldetector.drmd.client.DescentClientState;
+import com.terminaldetector.drmd.client.config.DescentConfig;
+import com.terminaldetector.drmd.client.flight.ShipAttitudeClient;
+import com.terminaldetector.drmd.client.render.ShotFxRenderer;
+import com.terminaldetector.drmd.entity.ModEntities;
+import com.terminaldetector.drmd.entity.ProjectileEntity;
+import com.terminaldetector.drmd.weapon.core.WeaponCore;
+import com.terminaldetector.drmd.weapon.items.ModItems;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.minecraft.block.Blocks;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.world.BackupPromptScreen;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.option.Perspective;
+import net.minecraft.client.util.ScreenshotRecorder;
+import net.minecraft.item.ItemStack;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Hand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameMode;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+
+/** Real client/packet/render tests, isolated from production entrypoints and player saves. */
+public final class WeaponRenderCheck implements ClientModInitializer {
+    private static final String[] SCENES = {"bolt-dark-ranges", "bolt-light-ranges",
+            "orb-dark-ranges", "orb-light-ranges", "rocket-dark-ranges", "rocket-light-ranges",
+            "banked-fire", "vertical-fire", "muzzle-impact", "fast-motion"};
+    private static final Vec3d POSITION = new Vec3d(12, 205, 30);
+    private volatile boolean ready;
+    private volatile List<Integer> ids = List.of();
+    private boolean queued;
+    private int ticks, scene = -1, sceneTick;
+    private int muzzleBefore, impactBefore;
+    private Vec3d previousFast;
+    private double fastTravel;
+
+    @Override public void onInitializeClient() {
+        ClientTickEvents.END_CLIENT_TICK.register(this::tick);
+    }
+
+    private Vec3d forward() { return scene == 7 ? new Vec3d(0, 1, 0) : new Vec3d(0, 0, -1); }
+    private Vec3d up() { return scene == 7 ? new Vec3d(0, 0, 1) : scene == 6 ? new Vec3d(1, 0, 0) : new Vec3d(0, 1, 0); }
+
+    private void tick(MinecraftClient client) {
+        ticks++;
+        if (ticks % 200 == 0) System.out.println("DRMD shootcheck: scene=" + scene + " tick=" + sceneTick +
+                " ready=" + ready + " screen=" + client.currentScreen);
+        if (ticks > 4200) throw new IllegalStateException("Weapon check timed out: scene=" + scene + " tick=" + sceneTick);
+        if (client.currentScreen instanceof BackupPromptScreen prompt) {
+            if (!client.runDirectory.toPath().getFileName().toString().equals("shootcheck"))
+                throw new IllegalStateException("Weapon check must use its disposable directory");
+            for (var child : prompt.children()) if (child instanceof ButtonWidget button &&
+                    button.getMessage().getString().equals("I know what I'm doing!")) { button.onPress(); return; }
+            throw new IllegalStateException("Unexpected experimental-world prompt");
+        }
+        if (client.world == null || client.player == null || client.getServer() == null) return;
+        DescentClient.markUserFlightChoice();
+        DescentConfig.cockpit = false; DescentConfig.hud = false; DescentConfig.weaponView = true;
+        DescentConfig.planetFloor = false; DescentConfig.levelSky = false; DescentConfig.skyUfoVirtualHull = false;
+        client.options.hudHidden = false; client.options.pauseOnLostFocus = false;
+        client.options.setPerspective(Perspective.FIRST_PERSON);
+        if (!queued) { queued = true; begin(client, 0); return; }
+        if (!ready || client.currentScreen != null) return;
+        client.player.setPosition(POSITION); client.player.setVelocity(Vec3d.ZERO);
+        DescentClientState.enabled = true; DescentClientState.attitudeValid = true;
+        ShipAttitudeClient.acceptPortalFrame(client.player, forward(), up());
+        ++sceneTick;
+        if (scene == 0) {
+            if (sceneTick == 35) client.options.getFov().setValue(70);
+            if (sceneTick == 40) capture(client, "mounts-fov-70", false, true);
+            if (sceneTick == 45) client.options.getFov().setValue(80);
+            if (sceneTick == 50) capture(client, "mounts-fov-80", false, true);
+            if (sceneTick == 55) client.options.getFov().setValue(90);
+            if (sceneTick == 60) capture(client, "mounts-fov-90", false, true);
+            if (sceneTick == 65) client.options.getFov().setValue(80);
+        }
+        if (scene == 8 && sceneTick == 40) {
+            muzzleBefore = ShotFxRenderer.muzzleEvents(); impactBefore = ShotFxRenderer.impactEvents();
+            fireVolley(client, true, false);
+        }
+        if (scene == 8 && sceneTick >= 41 && sceneTick <= 50)
+            capture(client, "muzzle-impact-" + sceneTick, false, false);
+        if (scene == 9 && sceneTick == 40) fireVolley(client, false, true);
+        if (scene == 9 && sceneTick >= 43 && sceneTick <= 49) {
+            var shot = clientShot(client, ids.getFirst());
+            if (Math.abs(shot.getVisualVelocity().length() - 8) > .001)
+                throw new IllegalStateException("Client speed still clamped: " + shot.getVisualVelocity());
+            if (previousFast != null) fastTravel += shot.getPos().distanceTo(previousFast);
+            previousFast = shot.getPos();
+            capture(client, "fast-motion-" + sceneTick, false, false);
+        }
+        if (sceneTick == 80) {
+            if (scene < 8) {
+                if (ids.size() != 3) throw new IllegalStateException("Server did not create all range shots");
+                for (int id : ids) {
+                    var shot = clientShot(client, id);
+                    if (!shot.shouldRender(10000)) throw new IllegalStateException("Far projectile culled");
+                }
+            }
+            if (scene == 8 && (ShotFxRenderer.muzzleEvents() <= muzzleBefore || ShotFxRenderer.impactEvents() <= impactBefore))
+                throw new IllegalStateException("Short-lived shot lost muzzle or impact event");
+            if (scene == 9 && fastTravel < 24)
+                throw new IllegalStateException("Fast shot did not travel continuously on client: " + fastTravel);
+            capture(client, SCENES[scene], scene < 6, false);
+            if (scene == SCENES.length - 1) {
+                try {
+                    Files.writeString(client.runDirectory.toPath().resolve("shootcheck-ok.json"),
+                            "{\"scenes\":10,\"fovs\":[70,80,90],\"rangePixelsChecked\":true,\"fastSpeed\":8," +
+                            "\"fastTravel\":" + fastTravel + ",\"muzzleEvents\":" + ShotFxRenderer.muzzleEvents() +
+                            ",\"impactEvents\":" + ShotFxRenderer.impactEvents() + "}\n");
+                } catch (java.io.IOException error) { throw new IllegalStateException(error); }
+                client.scheduleStop();
+            } else begin(client, scene + 1);
+        }
+    }
+
+    private static ProjectileEntity clientShot(MinecraftClient client, int id) {
+        var entity = client.world.getEntityById(id);
+        if (!(entity instanceof ProjectileEntity shot))
+            throw new IllegalStateException("Projectile did not synchronize to client: " + id);
+        return shot;
+    }
+
+    private void begin(MinecraftClient client, int next) {
+        ready = false; scene = next; sceneTick = 0;
+        client.options.getFov().setValue(80);
+        var server = client.getServer(); var uuid = client.player.getUuid();
+        server.execute(() -> {
+            var world = server.getOverworld(); var player = server.getPlayerManager().getPlayer(uuid);
+            if (player == null) throw new IllegalStateException("Missing weapon-check player");
+            for (var entity : world.iterateEntities()) if (entity instanceof ProjectileEntity) entity.discard();
+            player.stopRiding(); player.changeGameMode(GameMode.CREATIVE);
+            player.teleport(world, POSITION.x, POSITION.y, POSITION.z, 180, 0);
+            var data = DescentPlayerData.get(player); data.setEnabled(true); data.setFlightVelocity(Vec3d.ZERO);
+            Vec3d f = forward(), u = up();
+            data.setShipAttitude((float) f.x, (float) f.y, (float) f.z, (float) u.x, (float) u.y, (float) u.z);
+            player.setStackInHand(Hand.MAIN_HAND, new ItemStack(ModItems.LASER));
+            // Only authored test blocks at an empty altitude; no user saves are loaded.
+            boolean light = scene < 6 && (scene & 1) == 1;
+            world.setTimeOfDay(light ? 6000 : 18000);
+            var background = (light ? Blocks.WHITE_CONCRETE : Blocks.BLACK_CONCRETE).getDefaultState();
+            for (var pos : BlockPos.iterate(new BlockPos(-32, 177, -85), new BlockPos(56, 235, -85)))
+                if (!world.getBlockState(pos).equals(background)) world.setBlockState(pos, background, 2);
+            if (scene == 8) {
+                for (var pos : BlockPos.iterate(new BlockPos(8, 203, 24), new BlockPos(16, 209, 24)))
+                    world.setBlockState(pos, Blocks.OBSIDIAN.getDefaultState(), 2);
+            }
+            List<Integer> created = new ArrayList<>();
+            if (scene < 8) {
+                Vec3d right = f.crossProduct(u).normalize();
+                for (int index = 0; index < 3; index++) {
+                    double distance = new double[]{12, 40, 90}[index];
+                    Vec3d pos = scene < 6
+                            ? player.getEyePos().add(f.multiply(distance)).add(right.multiply(new double[]{-3, 0, 5}[index]))
+                            : WeaponCore.allMuzzles(player, "laser").get(index);
+                    var cfg = config(player, pos, f, scene < 6 ? .06f : .5f,
+                            scene < 2 ? 0 : scene < 4 ? 2 : scene < 6 ? 1 : 0);
+                    var shot = WeaponCore.fireProjectile(cfg);
+                    if (shot == null) throw new IllegalStateException("Range projectile spawn rejected");
+                    created.add(shot.getId());
+                }
+            }
+            ids = List.copyOf(created); ready = true;
+        });
+    }
+
+    private void fireVolley(MinecraftClient client, boolean impact, boolean fast) {
+        ready = false; var server = client.getServer(); var uuid = client.player.getUuid();
+        server.execute(() -> {
+            var player = server.getPlayerManager().getPlayer(uuid);
+            if (player == null) throw new IllegalStateException("Missing firing player");
+            var positions = fast ? List.of(player.getEyePos().add(forward().multiply(15))) : WeaponCore.allMuzzles(player, "laser").subList(0, 2);
+            List<Integer> created = new ArrayList<>();
+            for (Vec3d position : positions) {
+                var shot = WeaponCore.fireProjectile(config(player, position, forward(), fast ? 8 : 2, 0));
+                if (shot == null) throw new IllegalStateException("Shot spawn rejected");
+                created.add(shot.getId());
+            }
+            ids = List.copyOf(created); ready = true;
+        });
+    }
+
+    private static WeaponCore.FireConfig config(ServerPlayerEntity player, Vec3d pos, Vec3d direction, float speed, int mesh) {
+        var cfg = new WeaponCore.FireConfig();
+        cfg.owner = player; cfg.pos = pos; cfg.dir = direction;
+        cfg.speedIsSourceUnits = false; cfg.speed = speed; cfg.inherit = 0; cfg.recoil = 0;
+        cfg.life = 10; cfg.directDamage = 0; cfg.splashRadius = 0;
+        cfg.meshKind = mesh; cfg.visualScale = 1.5f;
+        cfg.colorR = 40; cfg.colorG = 255; cfg.colorB = 100;
+        return cfg;
+    }
+
+    private void capture(MinecraftClient client, String name, boolean colours, boolean mounts) {
+        try (var image = ScreenshotRecorder.takeScreenshot(client.getFramebuffer())) {
+            var directory = client.runDirectory.toPath().resolve("screenshots"); Files.createDirectories(directory);
+            image.writeTo(directory.resolve(name + ".png"));
+            if (colours) {
+                // A separate window per known range shot prevents a bright near bolt from hiding a
+                // missing far bolt, and a green hue check catches the old red damage-overlay tint.
+                double focal = image.getHeight() / (2 * Math.tan(Math.toRadians(40)));
+                for (int id : ids) {
+                    var shot = clientShot(client, id);
+                    Vec3d delta = shot.getPos().subtract(client.gameRenderer.getCamera().getPos());
+                    double depth = delta.dotProduct(forward());
+                    int x = (int) Math.round(image.getWidth() / 2.0 + delta.dotProduct(forward().crossProduct(up())) / depth * focal);
+                    int green = 0;
+                    for (int px = Math.max(0, x - 8); px < Math.min(image.getWidth(), x + 9); px++)
+                        for (int y = image.getHeight() / 2 - 9; y <= image.getHeight() / 2 + 9; y++) {
+                            int color = image.getColor(px, y);
+                            int r = color & 255, g = (color >> 8) & 255, b = (color >> 16) & 255;
+                            if (g > 100 && g > r + 25 && g > b + 15) green++;
+                        }
+                    int minimum = shot.getMeshKind() == ProjectileEntity.MESH_ROCKET ? 1 : 4;
+                    if (green < minimum) throw new IllegalStateException(name + ": green shot missing at depth=" + depth + " x=" + x + " greenPixels=" + green);
+                }
+            }
+            if (mounts) {
+                int left = 0, right = 0;
+                for (int y = 90; y < image.getHeight() - 70; y++) for (int x = 60; x < image.getWidth() - 60; x++) {
+                    int color = image.getColor(x, y);
+                    int r = color & 255, g = (color >> 8) & 255, b = (color >> 16) & 255;
+                    if (b > r + 25 && b > g + 10) { if (x < image.getWidth() / 2) left++; else right++; }
+                }
+                if (left < 20 || right < 20) throw new IllegalStateException(name + ": weapon mounts outside FOV: " + left + "/" + right);
+            }
+        } catch (java.io.IOException error) { throw new IllegalStateException("Cannot save weapon evidence", error); }
+    }
+}

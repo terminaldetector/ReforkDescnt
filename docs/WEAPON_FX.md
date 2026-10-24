@@ -382,3 +382,21 @@ something this sandbox can inspect without a live client — the observed result
 crosswise to its own track instead of pointed down it, and correcting that is a plain +90° added to
 `spin`. Taken as reported rather than re-derived a second time from the same unverifiable camera-basis
 assumption that produced the wrong angle in the first place.
+# Recovery verification — 24 October 2026
+
+The 1.1.12 reconstruction uses tracked full-range projectile velocity and client tick motion,
+a 256-block visual range independent of the collision box, a neutral unlit radial shot shader,
+and server-sent muzzle/impact events with bounded lifetime/count. Rocket exhaust sits at the tail.
+Default viewmodel and firing mounts share coordinates and fit FOV 70/80/90; saved custom layouts
+are not rewritten. Full-basis model orientation preserves roll and vertical aiming.
+
+`./gradlew runShootcheck` runs a separate disposable real-client harness. Ten scenes cover
+bolt/orb/rocket on dark/light backgrounds, banked and vertical fire, muzzle/impact events, and
+8-block/tick motion. Green pixels must occur around **each** known near/mid/far shot, catching
+distance culling and red damage-overlay tint independently. FOV frames require both weapon banks.
+`shootcheck-ok.json` is written only after all assertions; CI requires fresh marker and images.
+This reconstructs documented behavior; it does not recover the original uncommitted source bytes
+or prove subjective artistic parity with Desecrators. SCK editing/model import remains open.
+
+The older sections below document the history of earlier rendering approaches.
+

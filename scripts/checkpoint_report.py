@@ -18,6 +18,9 @@ FRAMES = (
     'gravity-rail-held', 'gravity-rail-flight', 'gravity-shift-held', 'gravity-shift-flight',
     'drone-swarm-dense', 'drone-swarm-flight',
 )
+SHOT_FRAMES = ('bolt-dark-ranges', 'bolt-light-ranges', 'orb-dark-ranges', 'orb-light-ranges',
+               'rocket-dark-ranges', 'rocket-light-ranges', 'banked-fire', 'vertical-fire',
+               'muzzle-impact', 'fast-motion', 'mounts-fov-70', 'mounts-fov-80', 'mounts-fov-90')
 
 
 def properties(root):
@@ -82,6 +85,16 @@ def verify(root):
     if synced != 128 or indexed < 128 or not 96 <= moving <= 128 or not 0 <= candidates <= 96:
         raise ValueError(f'Swarm criteria failed: {swarm}')
 
+    shot_marker = root / 'build/shootcheck/shootcheck-ok.json'
+    fresh(shot_marker, started)
+    shot = json.loads(shot_marker.read_text())
+    if (shot.get('scenes') != 10 or shot.get('fovs') != [70, 80, 90] or
+            shot.get('rangePixelsChecked') is not True or shot.get('fastSpeed') != 8 or
+            shot.get('fastTravel', 0) < 24 or shot.get('muzzleEvents', 0) < 1 or shot.get('impactEvents', 0) < 1):
+        raise ValueError(f'Incomplete weapon verification: {shot}')
+    for name in SHOT_FRAMES:
+        fresh(root / f'build/shootcheck/screenshots/{name}.png', started)
+
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
     jar = root / f'build/libs/{base}-{version}.jar'
@@ -108,7 +121,8 @@ def verify(root):
     (distribution / 'SHA256SUMS').write_text(f'{digest}  {target.name}\n')
     result = dict(source_sha=source, version=version, jar=target.name, sha256=digest,
                   unit=results['unit'], gametest=results['gametest'], swarm=swarm.strip(),
-                  frames=[name + '.png' for name in FRAMES])
+                  frames=[name + '.png' for name in FRAMES], shootcheck=shot,
+                  shot_frames=[name + '.png' for name in SHOT_FRAMES])
     (out / 'verified.json').write_text(json.dumps(result, indent=2) + '\n')
     print(f'::notice title=Verified checkpoint::{version}; unit={results["unit"]["tests"]}; '
           f'GameTest={results["gametest"]["tests"]}; {swarm.strip()}')
@@ -127,8 +141,16 @@ def report(root):
              f'- Version: `{properties(root)["mod_version"]}`', f'- Run: {run_url}',
              '- Target: Minecraft 1.21.1 / Fabric / Java 21', '',
              '| Stage | Outcome |', '|---|---|']
-    for stage in ('unit', 'gametest', 'build', 'rendercheck', 'verify'):
+    for stage in ('unit', 'gametest', 'build', 'rendercheck', 'shootcheck', 'verify'):
         lines.append(f'| {stage} | {os.environ.get(stage.upper() + "_OUTCOME") or "NOT RUN"} |')
+        if os.environ.get(stage.upper() + '_OUTCOME') == 'failure':
+            log = out / f'logs/{stage}.log'
+            if log.is_file():
+                errors = [line for line in log.read_text(errors='replace').splitlines()
+                          if 'IllegalStateException:' in line or ' error:' in line or 'Caused by:' in line]
+                for error in errors[:8]:
+                    safe = error.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+                    print(f'::error title={stage} diagnostic::{safe[:1500]}')
     lines += ['', '## Test reports', '']
     for name, folder in [('unit', 'build/test-results/test'), ('gametest', 'build/gametest/reports')]:
         try:
@@ -145,6 +167,8 @@ def report(root):
                   f'- SHA-256: `{result["sha256"]}`', '- Rendercheck: 5/5 fresh markers.',
                   f'- {result["swarm"]}', '', '### Fresh frames', '']
         lines += ['- ' + name for name in result['frames']]
+        lines += ['', '### Weapon verification', '',
+                  f'- {result["shootcheck"]}', ''] + ['- ' + name for name in result['shot_frames']]
     else:
         lines += ['', '**NOT VERIFIED: no installable-mod artifact is certified by this run.**',
                   'See `logs/`, JUnit XML, GameTest logs and client crash reports for the first failure.']
