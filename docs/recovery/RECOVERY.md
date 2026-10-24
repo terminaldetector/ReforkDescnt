@@ -72,6 +72,12 @@ pixels must show green near/mid/far shots; FOV 70/80/90 images must show both we
 The CI distribution gate now requires this fresh weapon evidence as well as the original
 five-marker terrain/physics/swarm regression. Version 1.1.12 is withheld until this chain passes.
 
+The first weapon run failed the middle-range green-pixel check. Inspection of the preserved
+frame showed join chat covering the reticle and projectiles. The isolated harness now clears
+chat/tutorial toasts while retaining the HUD required by the weapon renderer, and removes
+the disposable world's entry hull after dismount. Colour thresholds are unchanged. CI uses
+an explicit Bash shell so a failing client or timeout cannot be hidden by `tee`.
+
 ## Every major milestone goes through GitHub Actions
 
 Commit and push each coherent milestone to this recovery branch. `build.yml` runs on

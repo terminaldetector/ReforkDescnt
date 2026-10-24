@@ -69,6 +69,11 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         client.options.hudHidden = false; client.options.pauseOnLostFocus = false;
         client.options.setPerspective(Perspective.FIRST_PERSON);
         client.options.getParticles().setValue(ParticlesMode.MINIMAL);
+        // Keep the viewport deterministic without hiding the weapon renderer (which requires HUD).
+        // Join chat and tutorial toasts otherwise cover the very pixels under colour verification.
+        client.inGameHud.getChatHud().clear(false);
+        client.getToastManager().clear();
+        client.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);
         if (!queued) { queued = true; begin(client, 0); return; }
         if (!ready || client.currentScreen != null) return;
         client.player.setPosition(POSITION); client.player.setVelocity(Vec3d.ZERO);
@@ -140,6 +145,8 @@ public final class WeaponRenderCheck implements ClientModInitializer {
             if (player == null) throw new IllegalStateException("Missing weapon-check player");
             for (var entity : world.iterateEntities()) if (entity instanceof ProjectileEntity) entity.discard();
             player.stopRiding(); player.changeGameMode(GameMode.CREATIVE);
+            for (var entity : world.iterateEntities())
+                if (entity instanceof com.terminaldetector.drmd.entity.PyroShipEntity) entity.discard();
             player.teleport(world, POSITION.x, POSITION.y, POSITION.z, 180, 0);
             var data = DescentPlayerData.get(player); data.setEnabled(true); data.setFlightVelocity(Vec3d.ZERO);
             Vec3d f = forward(), u = up();

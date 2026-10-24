@@ -33,7 +33,7 @@ jobs:
           for path in sorted(base.rglob('*')):
               if path.is_file() and ('shootcheck' in str(path) or path.name == 'REPORT.md') and path.suffix in ('.log', '.txt', '.md'):
                   lines = path.read_text(errors='replace').splitlines()
-                  selected += [str(path)] + ([line for line in lines if any(word in line for word in words)] if path.name != 'REPORT.md' else lines)
+                  selected += [str(path)] + ([line for line in lines if len(line) < 2000 and any(word in line for word in words)] if path.name != 'REPORT.md' else lines)
           Path('diagnostics.txt').write_text('\n'.join(selected) + '\n')
           with zipfile.ZipFile('screenshots.zip', 'w', compression=zipfile.ZIP_DEFLATED) as archive:
               for frame in base.rglob('*.png'):

@@ -191,7 +191,7 @@ def report(root):
             if not log.is_file():
                 continue
             errors = list(dict.fromkeys(line for line in log.read_text(errors='replace').splitlines()
-                                       if any(word in line for word in keywords)))
+                                       if len(line) < 2000 and any(word in line for word in keywords)))
             diagnostics += [str(log.relative_to(root))] + errors
             for error in errors[-20:]:
                 safe = error.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
