@@ -11,6 +11,7 @@ import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.weapon.items.ModItems;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.world.BackupPromptScreen;
@@ -43,6 +44,8 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private int muzzleBefore, impactBefore;
     private Vec3d previousFast;
     private double fastTravel;
+    private volatile net.minecraft.server.MinecraftServer fixtureServer;
+    private volatile java.util.UUID fixturePlayer;
     private static final Map<Integer, RenderProbe> RENDERED = new HashMap<>();
     private static final Map<Integer, String> VISIBILITY = new HashMap<>();
     private record RenderProbe(float x, float y, float fogStart, float fogEnd, long recorded) {}
@@ -63,6 +66,15 @@ public final class WeaponRenderCheck implements ClientModInitializer {
 
     @Override public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(this::tick);
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            if (server != fixtureServer || fixturePlayer == null) return;
+            var player = server.getPlayerManager().getPlayer(fixturePlayer);
+            if (player == null) return;
+            player.setPosition(POSITION); player.setVelocity(Vec3d.ZERO);
+            var data = DescentPlayerData.get(player); data.setFlightVelocity(Vec3d.ZERO);
+            Vec3d f = forward(), u = up();
+            data.setShipAttitude((float) f.x, (float) f.y, (float) f.z, (float) u.x, (float) u.y, (float) u.z);
+        });
     }
 
     private Vec3d forward() { return scene == 7 ? new Vec3d(0, 1, 0) : new Vec3d(0, 0, -1); }
@@ -100,6 +112,8 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         client.player.setPosition(POSITION); client.player.setVelocity(Vec3d.ZERO);
         DescentClientState.enabled = true; DescentClientState.attitudeValid = true;
         ShipAttitudeClient.acceptPortalFrame(client.player, forward(), up());
+        if (scene < 8 && sceneTick == 0 && ids.stream().anyMatch(id ->
+                !(client.world.getEntityById(id) instanceof ProjectileEntity))) return;
         ++sceneTick;
         if (scene == 0) {
             if (sceneTick == 35) client.options.getFov().setValue(70);
@@ -161,6 +175,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         ready = false; scene = next; sceneTick = 0;
         client.options.getFov().setValue(80);
         var server = client.getServer(); var uuid = client.player.getUuid();
+        fixtureServer = server; fixturePlayer = uuid;
         server.execute(() -> {
             var world = server.getOverworld(); var player = server.getPlayerManager().getPlayer(uuid);
             if (player == null) throw new IllegalStateException("Missing weapon-check player");
@@ -184,9 +199,10 @@ public final class WeaponRenderCheck implements ClientModInitializer {
             // Only authored test blocks at an empty altitude; no user saves are loaded.
             boolean light = scene < 6 && (scene & 1) == 1;
             world.setTimeOfDay(light ? 6000 : 18000);
-            var background = (light ? Blocks.WHITE_CONCRETE : Blocks.BLACK_CONCRETE).getDefaultState();
-            for (var pos : BlockPos.iterate(new BlockPos(-32, 177, -85), new BlockPos(56, 235, -85)))
-                if (!world.getBlockState(pos).equals(background)) world.setBlockState(pos, background, 2);
+            // One backdrop; daylight/night changes contrast without thousands of block updates
+            // competing with spawn packets at each transition.
+            if (scene == 0) for (var pos : BlockPos.iterate(new BlockPos(-32, 177, -85), new BlockPos(56, 235, -85)))
+                world.setBlockState(pos, Blocks.WHITE_CONCRETE.getDefaultState(), 2);
             if (scene == 8) {
                 for (var pos : BlockPos.iterate(new BlockPos(8, 203, 24), new BlockPos(16, 209, 24)))
                     world.setBlockState(pos, Blocks.OBSIDIAN.getDefaultState(), 2);
@@ -230,7 +246,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         var cfg = new WeaponCore.FireConfig();
         cfg.owner = player; cfg.pos = pos; cfg.dir = direction;
         cfg.speedIsSourceUnits = false; cfg.speed = speed; cfg.inherit = 0; cfg.recoil = 0;
-        cfg.life = 10; cfg.directDamage = 0; cfg.splashRadius = 0;
+        cfg.life = 30; cfg.directDamage = 0; cfg.splashRadius = 0;
         cfg.meshKind = mesh; cfg.visualScale = 1.5f;
         cfg.colorR = 40; cfg.colorG = 255; cfg.colorB = 100;
         return cfg;

@@ -84,6 +84,14 @@ is created only when the full chain passes on that exact source SHA. Its separat
 the installable JAR, SHA256SUMS, REPORT.md and screenshots.zip; failed diagnostics never contain
 a certified binary. Current test counts must be taken from that run, not copied from the MHT.
 
+Further inspection isolated the far-shot failure to geometry in the copied fixture: clearing
+the disposable corridor made the three initial range/colour scenes pass, with actual far-shot
+render calls recorded and unchanged pixel thresholds. The following transition exposed a spawn
+synchronization race. The harness now waits for all three client entities before starting range
+scene timing, pins the fixture camera on the server, and builds its backdrop once. Day/night
+provides contrast without repeatedly rebuilding thousands of blocks. Test-only HUD masking
+removes the inverted vanilla crosshair from the centre colour sample.
+
 ## Every major milestone goes through GitHub Actions
 
 Commit and push each coherent milestone to this recovery branch. `build.yml` runs on
