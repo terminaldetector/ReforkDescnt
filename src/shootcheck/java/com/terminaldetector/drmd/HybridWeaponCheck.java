@@ -16,7 +16,7 @@ import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.*;
-import net.minecraft.world.WorldSavePath;
+import net.minecraft.util.WorldSavePath;
 import java.nio.file.Files;
 import java.util.List;
 
