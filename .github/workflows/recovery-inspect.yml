@@ -1,0 +1,48 @@
+name: Inspect preserved recovery evidence
+
+on:
+  push:
+    paths: ['.github/workflows/recovery-inspect.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Download the already preserved failed-client evidence
+        run: |
+          gh run download 40081261463 \
+            --name evidence-4de0acbb443f47e10b05b058d3a35ccf5a3687b4-40081261463-1 \
+            --dir evidence
+      - name: Prepare diagnostic excerpts and original frames
+        shell: python
+        run: |
+          from pathlib import Path
+          import zipfile
+          base = Path('evidence')
+          selected = []
+          words = ('DRMD shootcheck:', 'IllegalStateException', 'Caused by:', 'Exception',
+                   'ERROR', 'at com.terminaldetector.', 'Failed to', 'FAILURE:', 'timed out')
+          for path in sorted(base.rglob('*')):
+              if path.is_file() and ('shootcheck' in str(path) or path.name == 'REPORT.md') and path.suffix in ('.log', '.txt', '.md'):
+                  lines = path.read_text(errors='replace').splitlines()
+                  selected += [str(path)] + ([line for line in lines if any(word in line for word in words)] if path.name != 'REPORT.md' else lines)
+          Path('diagnostics.txt').write_text('\n'.join(selected) + '\n')
+          with zipfile.ZipFile('screenshots.zip', 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+              for frame in base.rglob('*.png'):
+                  archive.write(frame, str(frame.relative_to(base)))
+      - name: Publish inspection package without a mod binary
+        run: |
+          gh release create "recovery-inspection-40081261463-${GITHUB_RUN_ID}" \
+            diagnostics.txt screenshots.zip \
+            --target "$GITHUB_SHA" \
+            --title "Preserved failed-client diagnostics (run 40081261463)" \
+            --notes "Inspection of an existing failed checkpoint; no rebuilt or certified mod binary." \
+            --prerelease --latest=false
