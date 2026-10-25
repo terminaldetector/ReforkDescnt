@@ -50,7 +50,14 @@ AUDIT_NATIVE_CASES = ('multiCellPlacementCannotOverwriteAnUnvalidatedNeighbour',
  'remoteMiningCannotPullAnUnloadedChunkIntoMemory',
  'clearFeetDoNotPermitAnExitWithTheHeadInsideAStoneBlock',
  'heightAndUnloadedExitRejectionsPreserveTheTraveller',
- 'everyRegisteredDrmdItemHasAnActualModelResource')
+ 'everyRegisteredDrmdItemHasAnActualModelResource',
+ 'aClearDoorWritesBothHalvesAndConsumesOneItem',
+ 'bedFootAndHeadFollowAllFourFacingDirections',
+ 'aTallPlantReceivesItsWholeFootprintFromOneItem',
+ 'collisionOnlyAtTheBedHeadCannotLeaveAPlacedFoot',
+ 'aMultiCellBatchCountsChangedCellsButChargesEachObjectOnce',
+ 'nativeQuietWriteFailureRollsBackEveryAttemptedCell',
+ 'anUpperPartBeyondWorldHeightCannotPlaceOrConsumeTheLowerPart')
 
 def verify_native_audit(root,started):
     names=[]

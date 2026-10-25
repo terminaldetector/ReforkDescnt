@@ -166,3 +166,25 @@ be validated atomically: onPlaced must not overwrite an unchecked neighbour. Van
 structure/jigsaw placement keeps its creative/operator restriction. Items remain intact on
 rejection; ordinary vanilla block-item placement remains available. Added native regression:
 NOT RUN. The18new native cases are mandatory before distribution.
+
+## M follow-up — complete placement footprints (audit.3, source only)
+
+The blanket rejection of ordinary vanilla doors,beds and non-age-dependent tall plants is
+replaced by an immutable footprint shared by prediction and application. Every cell is checked
+for border,height,reach,loaded neighbourhood,permission,replacement and entity collision before
+any target write. Vertical uppers validate their planned lower support; door power/open and
+per-cell waterlogging are resolved before writing. Existing vanilla direction limits still apply.
+
+PlacementTransaction checks stale snapshots,duplicate cells and a256cell bound, performs quiet
+writes, verifies the complete result and rolls back all attempted cells on denial/exception or
+loss of material/authority. Listeners/neighbours are notified only after the complete placement.
+Known pair callbacks are skipped because both parts already exist; exactly one item is charged
+per complete object. Batch limits/counts now use actual cells. Failed rollback is a distinct
+diagnostic, never a success. Container/blockentity item data and age-dependent crops remain
+unsupported by this direct path. Operator requirements are retained.
+
+Nine standalone transaction JUnit cases PASS, including second-write failure,exception after
+mutation,stale snapshot,invalidated first part,resource loss and failed rollback. Seven more
+native GameTests are prepared (doors,all bed facings,tall plants,second-part collision,batches,
+native quiet rollback and upper world bound); NOT RUN. All25native audit methods are required
+by the distribution gate. Full Fabric/API/Mixin/client confirmation remains blocked locally.
