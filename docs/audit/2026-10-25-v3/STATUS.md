@@ -120,3 +120,22 @@ Previously only the destination cell was checked. BlockBody keeps its existing t
 whole-hull check. Two prepared native GameTests cover clear feet/blocked head, valid body exit,
 height,unloaded target and no partial move. Foot-gravity reorientation, high-speed traversal,
 pair reload and actual see-through clipping remain independent acceptance work.
+
+## I/J resource and conservative legacy audit
+
+The static graph covers180modelJSONfiles and118item model resources: zero local missing-parent,
+missing-texture,PNG-header,geometry-bound or display-vector errors. Vanilla-owned references
+are recorded as external (not falsely verified from absent vanilla files). Nine identical-geometry
+groups are warnings; different textures may intentionally share a shape. Six actual Python
+regression cases PASS. The generated table/report is in resources/.
+
+A native GameTest now enumerates all actual registered drmditems (including retired savedIDs),
+checks model resources and writes item-resource-inventory.tsv with implementation/weaponDef.
+It is NOT RUN; the static118resources are not asserted to be the complete runtime registry.
+Real inventory/hand/drop appearance and broad category screenshots remain pending.
+
+Low-reference candidates are recorded with source references and a review-only action. Example:
+CarvedBlockRenderer is the old per-box BER with no registration in the present source, while
+HybridTerrainModel supplies the active chunk model; retained until native regression. Do not
+remove saved aliases or recovery ZIP/JARs. Portal stabilizer is a live recipe ingredient in six
+crafts, not an invented interactive portal tool or dead item merely because it extends Item.

@@ -58,7 +58,9 @@ jobs:
           date +%s > build/checkpoint/started-at.txt
           git rev-parse HEAD > build/checkpoint/SOURCE_SHA.txt
       - name: Test evidence gate
-        run: python3 -m unittest discover -s scripts -p 'test_checkpoint_report.py' -v
+        run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
+      - name: Audit model and texture resource graph
+        run: python3 scripts/audit_resources.py --out build/checkpoint/resources
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -128,6 +130,7 @@ jobs:
           path: |
             build/checkpoint/
             build/test-results/test/
+            build/gametest/item-resource-inventory.tsv
             build/gametest/reports/
             build/gametest/logs/
             build/gametest/crash-reports/

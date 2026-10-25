@@ -1,0 +1,1581 @@
+{
+  "models": 180,
+  "items": [
+    {
+      "id": "accelerator_module_green",
+      "model": "src/main/resources/assets/drmd/models/item/accelerator_module_green.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "accelerator_module_orange",
+      "model": "src/main/resources/assets/drmd/models/item/accelerator_module_orange.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "accelerator_module_red",
+      "model": "src/main/resources/assets/drmd/models/item/accelerator_module_red.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "accelerator_module_yellow",
+      "model": "src/main/resources/assets/drmd/models/item/accelerator_module_yellow.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "alloy_plate",
+      "model": "src/main/resources/assets/drmd/models/item/alloy_plate.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "bomb_cluster",
+      "model": "src/main/resources/assets/drmd/models/item/bomb_cluster.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "bomb_cluster_laser",
+      "model": "src/main/resources/assets/drmd/models/item/bomb_cluster_laser.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "bomb_cluster_virus_nether",
+      "model": "src/main/resources/assets/drmd/models/item/bomb_cluster_virus_nether.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "bomb_cluster_virus_sculk",
+      "model": "src/main/resources/assets/drmd/models/item/bomb_cluster_virus_sculk.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "bomb_guided",
+      "model": "src/main/resources/assets/drmd/models/item/bomb_guided.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "bomb_heavy_cluster",
+      "model": "src/main/resources/assets/drmd/models/item/bomb_heavy_cluster.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "bomb_incendiary",
+      "model": "src/main/resources/assets/drmd/models/item/bomb_incendiary.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "bomb_rocket",
+      "model": "src/main/resources/assets/drmd/models/item/bomb_rocket.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "bomb_tnt",
+      "model": "src/main/resources/assets/drmd/models/item/bomb_tnt.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "build_tool",
+      "model": "src/main/resources/assets/drmd/models/item/build_tool.json",
+      "parent": "minecraft:item/handheld",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "charged_mirror",
+      "model": "src/main/resources/assets/drmd/models/item/charged_mirror.json",
+      "parent": "drmd:block/charged_mirror",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "checkpoint",
+      "model": "src/main/resources/assets/drmd/models/item/checkpoint.json",
+      "parent": "drmd:block/checkpoint",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "combat_zone",
+      "model": "src/main/resources/assets/drmd/models/item/combat_zone.json",
+      "parent": "drmd:block/combat_zone",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "construction_laser",
+      "model": "src/main/resources/assets/drmd/models/item/construction_laser.json",
+      "parent": "minecraft:item/handheld",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "construction_laser_blue",
+      "model": "src/main/resources/assets/drmd/models/item/construction_laser_blue.json",
+      "parent": "minecraft:item/handheld",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "construction_laser_green",
+      "model": "src/main/resources/assets/drmd/models/item/construction_laser_green.json",
+      "parent": "minecraft:item/handheld",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "construction_laser_purple",
+      "model": "src/main/resources/assets/drmd/models/item/construction_laser_purple.json",
+      "parent": "minecraft:item/handheld",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "construction_laser_yellow",
+      "model": "src/main/resources/assets/drmd/models/item/construction_laser_yellow.json",
+      "parent": "minecraft:item/handheld",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "cyclic_laser_kit",
+      "model": "src/main/resources/assets/drmd/models/item/cyclic_laser_kit.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "dark_energy_bomb",
+      "model": "src/main/resources/assets/drmd/models/item/dark_energy_bomb.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "dock",
+      "model": "src/main/resources/assets/drmd/models/item/dock.json",
+      "parent": "drmd:block/dock",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "drill_rig",
+      "model": "src/main/resources/assets/drmd/models/item/drill_rig.json",
+      "parent": "drmd:block/drill_rig",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "enclave_herald",
+      "model": "src/main/resources/assets/drmd/models/item/enclave_herald.json",
+      "parent": "drmd:block/enclave_herald",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "end_gate_catalyst",
+      "model": "src/main/resources/assets/drmd/models/item/end_gate_catalyst.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "energy_cell",
+      "model": "src/main/resources/assets/drmd/models/item/energy_cell.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "energy_orb_pickup",
+      "model": "src/main/resources/assets/drmd/models/item/energy_orb_pickup.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "gravity_generator",
+      "model": "src/main/resources/assets/drmd/models/item/gravity_generator.json",
+      "parent": "drmd:block/gravity_generator",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "gravity_scanner",
+      "model": "src/main/resources/assets/drmd/models/item/gravity_scanner.json",
+      "parent": "minecraft:item/handheld",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "gravity_torch",
+      "model": "src/main/resources/assets/drmd/models/item/gravity_torch.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "hermetic_gate",
+      "model": "src/main/resources/assets/drmd/models/item/hermetic_gate.json",
+      "parent": "drmd:block/hermetic_gate",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "laser_barrier",
+      "model": "src/main/resources/assets/drmd/models/item/laser_barrier.json",
+      "parent": "drmd:block/laser_barrier",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "laser_designator",
+      "model": "src/main/resources/assets/drmd/models/item/laser_designator.json",
+      "parent": "minecraft:item/handheld",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "laser_turret",
+      "model": "src/main/resources/assets/drmd/models/item/laser_turret.json",
+      "parent": "drmd:block/laser_turret",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "locator_core",
+      "model": "src/main/resources/assets/drmd/models/item/locator_core.json",
+      "parent": "drmd:block/locator_core",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "locator_panel",
+      "model": "src/main/resources/assets/drmd/models/item/locator_panel.json",
+      "parent": "drmd:block/locator_panel",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "locator_resonator",
+      "model": "src/main/resources/assets/drmd/models/item/locator_resonator.json",
+      "parent": "drmd:block/locator_resonator",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "magnetic_anomaly",
+      "model": "src/main/resources/assets/drmd/models/item/magnetic_anomaly.json",
+      "parent": "drmd:block/magnetic_anomaly",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "mining_laser",
+      "model": "src/main/resources/assets/drmd/models/item/mining_laser.json",
+      "parent": "minecraft:item/handheld",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "mirror",
+      "model": "src/main/resources/assets/drmd/models/item/mirror.json",
+      "parent": "drmd:block/mirror",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "mirror_linker_cross_dimension",
+      "model": "src/main/resources/assets/drmd/models/item/mirror_linker_cross_dimension.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "mirror_linker_rotated_scaled",
+      "model": "src/main/resources/assets/drmd/models/item/mirror_linker_rotated_scaled.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "mirror_linker_same_dimension",
+      "model": "src/main/resources/assets/drmd/models/item/mirror_linker_same_dimension.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "nav_node",
+      "model": "src/main/resources/assets/drmd/models/item/nav_node.json",
+      "parent": "drmd:block/nav_node",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "nether_gate_catalyst",
+      "model": "src/main/resources/assets/drmd/models/item/nether_gate_catalyst.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "objective",
+      "model": "src/main/resources/assets/drmd/models/item/objective.json",
+      "parent": "drmd:block/objective",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "plasma_granite",
+      "model": "src/main/resources/assets/drmd/models/item/plasma_granite.json",
+      "parent": "drmd:block/plasma_granite",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "plasma_turret",
+      "model": "src/main/resources/assets/drmd/models/item/plasma_turret.json",
+      "parent": "drmd:block/plasma_turret",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "point_defense_turret",
+      "model": "src/main/resources/assets/drmd/models/item/point_defense_turret.json",
+      "parent": "drmd:block/point_defense_turret",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "portal_gun",
+      "model": "src/main/resources/assets/drmd/models/item/portal_gun.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "portal_panel",
+      "model": "src/main/resources/assets/drmd/models/item/portal_panel.json",
+      "parent": "drmd:block/portal_panel",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "portal_stabilizer",
+      "model": "src/main/resources/assets/drmd/models/item/portal_stabilizer.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "pyro_gx",
+      "model": "src/main/resources/assets/drmd/models/item/pyro_gx.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "repair_laser",
+      "model": "src/main/resources/assets/drmd/models/item/repair_laser.json",
+      "parent": "minecraft:item/handheld",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "shield_orb",
+      "model": "src/main/resources/assets/drmd/models/item/shield_orb.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "six_d_soil",
+      "model": "src/main/resources/assets/drmd/models/item/six_d_soil.json",
+      "parent": "drmd:block/six_d_soil",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "spawn_egg_artillery",
+      "model": "src/main/resources/assets/drmd/models/item/spawn_egg_artillery.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "spawn_egg_assault",
+      "model": "src/main/resources/assets/drmd/models/item/spawn_egg_assault.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "spawn_egg_heavy",
+      "model": "src/main/resources/assets/drmd/models/item/spawn_egg_heavy.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "spawn_egg_heavy_elite",
+      "model": "src/main/resources/assets/drmd/models/item/spawn_egg_heavy_elite.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "spawn_egg_interceptor",
+      "model": "src/main/resources/assets/drmd/models/item/spawn_egg_interceptor.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "spawn_egg_laser",
+      "model": "src/main/resources/assets/drmd/models/item/spawn_egg_laser.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "spawn_egg_mg",
+      "model": "src/main/resources/assets/drmd/models/item/spawn_egg_mg.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "spawn_egg_oblivion_seeker",
+      "model": "src/main/resources/assets/drmd/models/item/spawn_egg_oblivion_seeker.json",
+      "parent": "minecraft:item/template_spawn_egg",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "spawn_egg_rpg",
+      "model": "src/main/resources/assets/drmd/models/item/spawn_egg_rpg.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "spawn_egg_scanner",
+      "model": "src/main/resources/assets/drmd/models/item/spawn_egg_scanner.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "spawn_egg_seeker",
+      "model": "src/main/resources/assets/drmd/models/item/spawn_egg_seeker.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "spawn_egg_spider_turret",
+      "model": "src/main/resources/assets/drmd/models/item/spawn_egg_spider_turret.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "spawn_egg_support",
+      "model": "src/main/resources/assets/drmd/models/item/spawn_egg_support.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "spawn_egg_tripod",
+      "model": "src/main/resources/assets/drmd/models/item/spawn_egg_tripod.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "targeting_core",
+      "model": "src/main/resources/assets/drmd/models/item/targeting_core.json",
+      "parent": "minecraft:item/generated",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "tunnel_drill_rig",
+      "model": "src/main/resources/assets/drmd/models/item/tunnel_drill_rig.json",
+      "parent": "drmd:block/tunnel_drill_rig",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "tunnel_laser",
+      "model": "src/main/resources/assets/drmd/models/item/tunnel_laser.json",
+      "parent": "minecraft:item/handheld",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "unstable_reactor",
+      "model": "src/main/resources/assets/drmd/models/item/unstable_reactor.json",
+      "parent": "drmd:block/unstable_reactor",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "volume_turret",
+      "model": "src/main/resources/assets/drmd/models/item/volume_turret.json",
+      "parent": "drmd:block/volume_turret",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_bfg",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_bfg.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_concussion",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_concussion.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_darkfield",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_darkfield.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_darklance",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_darklance.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_earthshaker",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_earthshaker.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_energytrap",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_energytrap.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_flak",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_flak.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_flash",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_flash.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_frag",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_frag.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_fusion",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_fusion.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_gauss",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_gauss.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_gravity_shifter",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_gravity_shifter.json",
+      "parent": "drmd:item/weapon_d6_gravy_railgun",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_gravity_swarm",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_gravity_swarm.json",
+      "parent": "drmd:item/weapon_d6_gravy_railgun",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_gravmine",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_gravmine.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_gravy_railgun",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_gravy_railgun.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_guided",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_guided.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_heavy",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_heavy.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_helix",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_helix.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_homing",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_homing.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_laser",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_laser.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_mega_laser",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_mega_laser.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_mega_missile",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_mega_missile.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_mercury",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_mercury.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_mg",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_mg.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_omega",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_omega.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_overdrive",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_overdrive.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_phoenix",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_phoenix.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_plasma",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_plasma.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_plasmamine",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_plasmamine.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_quad_laser",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_quad_laser.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_railmk2",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_railmk2.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_reactor",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_reactor.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_rockets",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_rockets.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_shockwave",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_shockwave.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_smart_missile",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_smart_missile.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_telefrag",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_telefrag.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_vulcan",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_vulcan.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_warp",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_warp.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    },
+    {
+      "id": "weapon_d6_whiplash",
+      "model": "src/main/resources/assets/drmd/models/item/weapon_d6_whiplash.json",
+      "parent": "",
+      "status": "valid-static",
+      "runtime_registration": "NOT VERIFIED"
+    }
+  ],
+  "errors": [],
+  "duplicate_geometry": [
+    [
+      "drmd:item/accelerator_module_green",
+      "drmd:item/accelerator_module_orange",
+      "drmd:item/accelerator_module_red",
+      "drmd:item/accelerator_module_yellow",
+      "drmd:item/alloy_plate",
+      "drmd:item/bomb_guided",
+      "drmd:item/bomb_incendiary",
+      "drmd:item/bomb_rocket",
+      "drmd:item/bomb_tnt",
+      "drmd:item/cyclic_laser_kit",
+      "drmd:item/dark_energy_bomb",
+      "drmd:item/end_gate_catalyst",
+      "drmd:item/energy_cell",
+      "drmd:item/gravity_torch",
+      "drmd:item/mirror_linker_cross_dimension",
+      "drmd:item/mirror_linker_rotated_scaled",
+      "drmd:item/mirror_linker_same_dimension",
+      "drmd:item/nether_gate_catalyst",
+      "drmd:item/portal_gun",
+      "drmd:item/pyro_gx",
+      "drmd:item/spawn_egg_artillery",
+      "drmd:item/spawn_egg_assault",
+      "drmd:item/spawn_egg_heavy",
+      "drmd:item/spawn_egg_heavy_elite",
+      "drmd:item/spawn_egg_interceptor",
+      "drmd:item/spawn_egg_laser",
+      "drmd:item/spawn_egg_mg",
+      "drmd:item/spawn_egg_rpg",
+      "drmd:item/spawn_egg_scanner",
+      "drmd:item/spawn_egg_seeker",
+      "drmd:item/spawn_egg_spider_turret",
+      "drmd:item/spawn_egg_support",
+      "drmd:item/spawn_egg_tripod",
+      "drmd:item/targeting_core"
+    ],
+    [
+      "drmd:item/build_tool",
+      "drmd:item/construction_laser",
+      "drmd:item/construction_laser_blue",
+      "drmd:item/construction_laser_green",
+      "drmd:item/construction_laser_purple",
+      "drmd:item/construction_laser_yellow",
+      "drmd:item/gravity_scanner",
+      "drmd:item/tunnel_laser"
+    ],
+    [
+      "drmd:item/mining_laser",
+      "drmd:item/repair_laser"
+    ],
+    [
+      "drmd:item/weapon_d6_bfg",
+      "drmd:item/weapon_d6_darklance",
+      "drmd:item/weapon_d6_flak",
+      "drmd:item/weapon_d6_fusion",
+      "drmd:item/weapon_d6_gravy_railgun",
+      "drmd:item/weapon_d6_heavy",
+      "drmd:item/weapon_d6_laser",
+      "drmd:item/weapon_d6_mega_laser",
+      "drmd:item/weapon_d6_mg",
+      "drmd:item/weapon_d6_overdrive",
+      "drmd:item/weapon_d6_plasma",
+      "drmd:item/weapon_d6_quad_laser",
+      "drmd:item/weapon_d6_railmk2",
+      "drmd:item/weapon_d6_vulcan"
+    ],
+    [
+      "drmd:item/weapon_d6_concussion",
+      "drmd:item/weapon_d6_homing",
+      "drmd:item/weapon_d6_mega_missile",
+      "drmd:item/weapon_d6_rockets",
+      "drmd:item/weapon_d6_shockwave",
+      "drmd:item/weapon_d6_smart_missile"
+    ],
+    [
+      "drmd:item/weapon_d6_darkfield",
+      "drmd:item/weapon_d6_energytrap",
+      "drmd:item/weapon_d6_frag",
+      "drmd:item/weapon_d6_gravmine",
+      "drmd:item/weapon_d6_plasmamine",
+      "drmd:item/weapon_d6_reactor",
+      "drmd:item/weapon_d6_telefrag",
+      "drmd:item/weapon_d6_warp",
+      "drmd:item/weapon_d6_whiplash"
+    ],
+    [
+      "drmd:item/weapon_d6_flash",
+      "drmd:item/weapon_d6_guided"
+    ],
+    [
+      "drmd:item/weapon_d6_gauss",
+      "drmd:item/weapon_d6_helix",
+      "drmd:item/weapon_d6_phoenix"
+    ],
+    [
+      "drmd:item/weapon_d6_gravity_shifter",
+      "drmd:item/weapon_d6_gravity_swarm"
+    ]
+  ],
+  "vanilla_dependencies": [
+    "model minecraft:block/andesite",
+    "model minecraft:block/block",
+    "model minecraft:block/calcite",
+    "model minecraft:block/clay",
+    "model minecraft:block/coarse_dirt",
+    "model minecraft:block/cube",
+    "model minecraft:block/cube_all",
+    "model minecraft:block/deepslate",
+    "model minecraft:block/diorite",
+    "model minecraft:block/dirt",
+    "model minecraft:block/end_stone",
+    "model minecraft:block/granite",
+    "model minecraft:block/netherrack",
+    "model minecraft:block/stone",
+    "model minecraft:block/template_torch",
+    "model minecraft:block/terracotta",
+    "model minecraft:block/tuff",
+    "model minecraft:item/generated",
+    "model minecraft:item/handheld",
+    "model minecraft:item/template_spawn_egg",
+    "texture minecraft:block/black_concrete",
+    "texture minecraft:block/blue_concrete",
+    "texture minecraft:block/cyan_concrete",
+    "texture minecraft:block/gray_concrete",
+    "texture minecraft:block/light_blue_concrete",
+    "texture minecraft:block/lime_concrete",
+    "texture minecraft:block/nether_bricks",
+    "texture minecraft:block/orange_concrete",
+    "texture minecraft:block/purple_concrete",
+    "texture minecraft:block/red_concrete",
+    "texture minecraft:block/stone",
+    "texture minecraft:block/white_concrete",
+    "texture minecraft:block/yellow_concrete",
+    "texture minecraft:item/minecart",
+    "texture minecraft:item/redstone"
+  ],
+  "legacy_candidates": [
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/ai/AiCommands.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/ai/BombardVillageGoal.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/entity/DroneEntity.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/ai/DroneAi.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/entity/DroneEntity.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/command/DescentCommands.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/entity/CheckpointBlock.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/entity/ModBlocks.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/entity/DockBlock.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/entity/ModBlocks.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/entity/DroneSpawnEggItem.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/weapon/items/ModItems.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/entity/MarkerBlock.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/entity/ModBlocks.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/entity/PyroShipItem.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/weapon/items/ModItems.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/EnderDragonFightMixin.java",
+      "text_references": [],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/LivingEntityMixin.java",
+      "text_references": [],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/PlayerEntityMixin.java",
+      "text_references": [],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/EntityFluidMixin.java",
+      "text_references": [],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/FlowableFluidMixin.java",
+      "text_references": [],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/CubicChunkMixin.java",
+      "text_references": [],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/MicroExplosionMixin.java",
+      "text_references": [],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/FootGravityGeometryMixin.java",
+      "text_references": [],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/pickup/LootField.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/workshop/CodeGenerator.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/workshop/WorkshopScreen.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/aeris/AerisDensityChunkGenerator.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/aeris/AerisMirai.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/aeris/AerisMirai.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/d6/D6FlightControl.java",
+      "text_references": [
+        "src/test/java/com/terminaldetector/drmd/D6FlightControlTest.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/diag/DiagStartup.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/AerialBombRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/AirMineRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/DroneRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/EndReactorBossRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/DescentClient.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/ReactorDisplayRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/ReactorKeeperRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/ScannerRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/SpiderTurretRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/TripodRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/SkyUfoHullMesh.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/render/SkyUfoHullRenderer.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/BlockBodyRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/WorkshopMeshPreview.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/workshop/WorkshopScreen.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/MegaBeamViewRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/DescentClient.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/OblivionSeekerRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/ConstructScaffoldRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/DescentClient.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/CarvedBlockRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/world/micro/TunnelCarving.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/RagdollRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/smoke/SmokeRenderer.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/DescentClient.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/planet/HorizonShader.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/planet/PlanetFloorRenderer.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/diag/DiagnosticsExport.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/screen/DescentSettingsScreen.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/client/GameRendererMixin.java",
+      "text_references": [],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/client/InGameHudMixin.java",
+      "text_references": [
+        "src/test/java/com/terminaldetector/drmd/SeamAnnounceTest.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/client/LivingEntityRendererMixin.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/client/render/PyroShipRenderer.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/client/MouseMixin.java",
+      "text_references": [],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/client/CreateWorldScreenMixin.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/world/DrmdServerConfig.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/client/HeldWeaponFallbackMixin.java",
+      "text_references": [],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/weapon/core/DescentRocketFire.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/weapon/items/DescentWeaponItem.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/weapon/core/MegaBeamFire.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/weapon/items/DescentWeaponItem.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/weapon/items/FusionCannonItem.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/weapon/items/ModItems.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/base/ReactorRoomStarter.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/command/DescentCommands.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/build/BuildMode.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/world/build/BuildToolItem.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/build/CyclicLaserKitItem.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/entity/ModWorldBlocks.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/engineer/DrillRigBlock.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/entity/ModWorldBlocks.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/engineer/EngineerTools.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/entity/ModWorldBlocks.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/engineer/TunnelDrillRigBlock.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/entity/ModWorldBlocks.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/gen/IndustrialUndergroundFeature.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/world/gen/ModWorldgen.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/gen2/LunarBaseGenerator.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/world/gen2/MegaStructureGenerator.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/trap/DefenseTurrets.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/entity/ModWorldBlocks.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/event/EventAftermath.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/world/event/WorldEventSystem.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/event/WorldEventSystem.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/enclave/EnclaveHeraldBlock.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/entity/ModWorldBlocks.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/enclave/EnclaveDialogue.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/world/enclave/EnclaveHeraldBlock.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/enclave/EnclaveQuest.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/world/enclave/EnclaveHeraldBlock.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyCommands.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/dungeon/LivingDefensePass.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/world/gen/IndustrialComplexGenerator.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/psychedelic/PsychedelicFractalGenerator.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/world/psychedelic/PsychedelicWorldgen.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/locator/LocatorResonatorBlock.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/entity/ModWorldBlocks.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/locator/LocatorCoreBlock.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/entity/ModWorldBlocks.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/surface/ScorchedLandsBiomeWorldgen.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/surface/TechnogenicSeaBiomeWorldgen.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/surface/IronGuildBiomeWorldgen.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/planet/PlanetSync.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/fate/DarkEnergyBombItem.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/weapon/items/ModItems.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/end/space/EndSpaceState.java",
+      "text_references": [
+        "src/main/java/com/terminaldetector/drmd/world/end/space/EndSpaceWorldgen.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/vendor/immptl/ImmPtlIntBox.java",
+      "text_references": [
+        "src/test/java/com/terminaldetector/drmd/ImmPtlIntBoxTest.java"
+      ],
+      "action": "review only; no removal",
+      "runtime": "check Fabric entrypoints/mixins/registry/dynamic loading"
+    }
+  ]
+}
