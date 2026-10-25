@@ -229,3 +229,10 @@ is now a separate optional ConstructionModePayload,sent only to clients advertis
 channel. Clients lacking mode metadata do not guess a preview mode. Draft updates do not
 reset the mode mirror. An explicit legacy-frame decoder regression is mandatory,bringing the
 required native audit IDs to31. Native protocol/client checks remain NOT RUN.
+
+Final neighbourhood review also protects diagonal block-shape reads,not just the target
+column: placement checks a one-block neighbourhood,and rays require a loaded surrounding
+chunk halo for shape queries. Template-laser anchoring now uses the same clipped ray and
+side-correct local-up source. This is a conservative availability policy; it never requests
+new tickets and may defer an edit near the current loaded frontier. Native propagation and
+third-party block callbacks still need gameplay validation.

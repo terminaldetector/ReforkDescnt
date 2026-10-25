@@ -36,11 +36,7 @@ public record PlacementPlan(List<Cell> cells,Reason reason,boolean handlesPair) 
         for(var pos:positions) {
             if(player.getEyePos().squaredDistanceTo(pos.toCenterPos())>AdaptivePlacement.MAX_REACH*AdaptivePlacement.MAX_REACH)return rejected(Reason.OUTSIDE_WORLD);
             if(world.isOutOfHeightLimit(pos) || !world.getWorldBorder().contains(pos))return rejected(Reason.OUTSIDE_WORLD);
-            if(!world.isChunkLoaded(pos))return rejected(Reason.UNLOADED);
-            for(var direction:Direction.values()) {
-                var neighbour=pos.offset(direction);
-                if(!world.isOutOfHeightLimit(neighbour) && !world.isChunkLoaded(neighbour))return rejected(Reason.UNLOADED);
-            }
+            if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.neighbourhoodLoaded(world,pos))return rejected(Reason.UNLOADED);
         }
         BlockState first=bed?desired.with(Properties.BED_PART,BedPart.FOOT):vertical?desired.with(Properties.DOUBLE_BLOCK_HALF,DoubleBlockHalf.LOWER):desired;
         if(selected instanceof DoorBlock) {

@@ -29,7 +29,7 @@ public final class ConstructShapes {
 		int len = Math.min(tier.defaultLength * scale, tier.maxBlocks);
 		Vec3d eye = player.getEyePos();
 		Vec3d aim = aim(player);
-		Vec3d up = LocalOrientation.getUp(player.getUuid()).normalize();
+		Vec3d up = AdaptivePlacement.localUp(player).normalize();
 		Vec3d right = aim.crossProduct(up);
 		if (right.lengthSquared() < 1e-6) right = aim.crossProduct(new Vec3d(0, 1, 0));
 		if (right.lengthSquared() < 1e-6) right = new Vec3d(1, 0, 0);
@@ -58,12 +58,13 @@ public final class ConstructShapes {
 	}
 
 	private static BlockPos anchor(World world, PlayerEntity player, Vec3d eye, Vec3d aim, double range) {
-		var hit = world.raycast(new RaycastContext(eye, eye.add(aim.multiply(range)),
+        Vec3d end=com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedEnd(world,eye,eye.add(aim.multiply(range)));
+		var hit = world.raycast(new RaycastContext(eye, end,
 				RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, player));
 		if (hit.getType() == net.minecraft.util.hit.HitResult.Type.BLOCK) {
 			return hit.getBlockPos().offset(hit.getSide());
 		}
-		return BlockPos.ofFloored(eye.add(aim.multiply(Math.min(6, range))));
+		return BlockPos.ofFloored(eye.add(aim.multiply(Math.min(6, eye.distanceTo(end)))));
 	}
 
 	private static List<BlockPos> line(BlockPos start, Vec3d aim, int len, int max) {
