@@ -72,6 +72,22 @@ public final class GravityMount {
 		return hasStandingClearance(entity, up);
 	}
 
+    /** Releasing a wall/ceiling frame must leave room for the ordinary upright body. */
+    public static boolean releaseToWorldUp(net.minecraft.entity.player.PlayerEntity player,Vec3d oldUp) {
+        Vec3d away=oldUp.lengthSquared()<1e-6?new Vec3d(0,1,0):oldUp.normalize();
+        Vec3d origin=player.getPos();
+        double height=player.getDimensions(EntityPose.STANDING).height();
+        for(int i=0;i<=16;i++) {
+            Vec3d candidate=origin.add(away.multiply(i*.2));
+            if(!player.getWorld().isSpaceEmpty(player,standingBox(candidate,new Vec3d(0,1,0),player.getWidth()/2,height))) continue;
+            if(i>0) player.requestTeleport(candidate.x,candidate.y,candidate.z);
+            player.setPose(EntityPose.STANDING); player.setSwimming(false);
+            player.calculateDimensions();
+            return true;
+        }
+        return false;
+    }
+
 	/**
 	 * True when a standing body at the entity fits with no block overlap.
 	 *

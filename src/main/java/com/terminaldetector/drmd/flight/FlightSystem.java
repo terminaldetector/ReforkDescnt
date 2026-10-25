@@ -310,6 +310,8 @@ public final class FlightSystem {
 				+ (player.hasVehicle() ? " while riding " + player.getVehicle().getType() : ""));
         // Clear authority before dismount: the passenger callback must observe an explicit stop,
         // rather than re-enabling free flight while H is trying to turn it off.
+        boolean releaseFoot=com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player);
+        Vec3d previousUp=com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(player);
         data.setEnabled(false);
         if(player.getVehicle() instanceof PyroShipEntity) player.stopRiding();
         clearInput(player.getUuid());
@@ -319,6 +321,8 @@ public final class FlightSystem {
         com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
         com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),new Vec3d(0,1,0));
         player.setNoGravity(false);
+        if(releaseFoot && player.isAlive())
+            com.terminaldetector.drmd.world.gravity.GravityMount.releaseToWorldUp(player,previousUp);
         player.calculateDimensions();
         data.clearShipAttitude();
 		data.setRoll(0);
@@ -379,7 +383,10 @@ public final class FlightSystem {
 		// rather than only the end state, which is what made it hard to see the first time.
 		DiagTrace.record("flight", "6DoF on for " + player.getGameProfile().getName()
 				+ (mountHull ? " (will mount a hull)" : " (no mount — leaving one)"));
-		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
+		boolean releaseFoot=com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player);
+        Vec3d previousUp=com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(player);
+        com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
+        if(releaseFoot) com.terminaldetector.drmd.world.gravity.GravityMount.releaseToWorldUp(player,previousUp);
         if(!data.isEnabled()) {
             clearInput(player.getUuid());
             com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),new Vec3d(0,1,0));
