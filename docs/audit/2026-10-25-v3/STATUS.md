@@ -297,3 +297,27 @@ ON/OFF/roll images. Full portal see-through clipping, player/mount traversal and
 foot-frame/client synchronization remain open. No new visual PASS is claimed here.
 
 First-failure log/XML and subsequent results are retained in build/portal-audit.
+
+## Fusion activation — audit.4
+
+Portal activation no longer uses resonance keys or automatic placement pairing.
+A minimum-charge Fusion Cannon projectile hitting the front of a portal panel or
+charged mirror activates both ends of a matching, opposite-facing loaded pair
+across a clear corridor of at most 24 blocks. Activation uses native links and
+runs before blast, reflection or melting; it does not require the damage fuse to
+arm. Source/partner world modification permissions and loaded chunks are required.
+Existing active links are preserved and repeated impacts do not replace them.
+
+The fired weapon identity is carried by the projectile and survives NBT reload
+with its owner. Switching held items after firing cannot change the interaction.
+Legacy linker registry IDs remain readable in saved inventories, but keys are
+inert and removed from crafting/creative entries. Old optional backend entities
+are only detached for compatibility when making a new native link.
+
+Seven new Fusion GameTests passed together with the previous suite (78/78):
+placement stays inactive, one actual minimum Fusion shot after a hand switch,
+projectile/owner NBT restoration, wrong-weapon rejection, obstacles/permissions,
+inert legacy key, and front-face/idempotence. Initial compile/runtime failures
+and repeat logs are retained under build/fusion-audit. Vanilla Nether/End catalyst
+rules are unchanged by this DRMD activation change. No new visual audit PASS is
+claimed; the earlier clipping/performance/client proof gaps remain open.

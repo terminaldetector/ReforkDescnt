@@ -82,7 +82,7 @@ public final class ModWorldBlocks {
 					AbstractBlock.Settings.copy(Blocks.GLASS).nonOpaque().strength(3f)
 							.sounds(net.minecraft.sound.BlockSoundGroup.GLASS)));
 
-	/** {@link com.terminaldetector.drmd.world.portal.mirror.MirrorLinkerItem} spends it to build a real portal. */
+	/** A Fusion impact activates a loaded pair of these reflective portal surfaces. */
 	public static final Block CHARGED_MIRROR = registerBlock("charged_mirror",
 			new com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlock(
 					AbstractBlock.Settings.copy(Blocks.GLASS).nonOpaque().strength(3.5f).luminance(s -> 5)
@@ -218,9 +218,6 @@ public final class ModWorldBlocks {
 			entries.add(MIRROR);
 			entries.add(CHARGED_MIRROR);
 			entries.add(PORTAL_PANEL);
-			entries.add(MIRROR_LINKER_SAME_DIMENSION);
-			entries.add(MIRROR_LINKER_ROTATED_SCALED);
-			entries.add(MIRROR_LINKER_CROSS_DIMENSION);
 			entries.add(PORTAL_GUN);
 			entries.add(GRAVITY_GENERATOR);
 			entries.add(GRAVITY_TORCH);

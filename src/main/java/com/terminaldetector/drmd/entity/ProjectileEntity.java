@@ -66,6 +66,7 @@ public class ProjectileEntity extends Entity {
 	private Entity homeTarget;
 	private int pierceCount;
 	private boolean worldBlast;
+	private boolean fusionPortalCharge;
 	private boolean drillCarve;
 
 	public static final int DEFAULT_MAX_BOUNCES = 6;
@@ -115,6 +116,7 @@ public class ProjectileEntity extends Entity {
 	public void setSplashDamage(float v) { this.splashDamage = v; }
 	public void setSplashRadius(float v) { this.splashRadius = v; }
 	public void setLifeTicks(int v) { this.lifeTicks = v; }
+	public void setFusionPortalCharge(boolean value) { this.fusionPortalCharge = value; }
 	public void setGravityStrength(float v) { this.gravityStrength = v; }
 	public void setDrag(float v) { this.drag = v; }
 	public void setHoming(boolean h, float turn, Entity target) { this.homing = h; this.turnRate = turn; this.homeTarget = target; }
@@ -267,6 +269,13 @@ public class ProjectileEntity extends Entity {
 				net.minecraft.world.RaycastContext.FluidHandling.NONE, this));
 
 		// A mine or an unarmed shell coasts through everything instead of striking it.
+		// Portal charging is an energy interaction, independent of the projectile's damage fuse.
+		if (fusionPortalCharge && hit instanceof BlockHitResult blockHit
+				&& hit.getType() == HitResult.Type.BLOCK
+				&& com.terminaldetector.drmd.world.portal.mirror.FusionPortalActivation.isSurface(getWorld().getBlockState(blockHit.getBlockPos()))) {
+			onBlockHit(blockHit);
+			return;
+		}
 		boolean contactLive = isArmed()
 				&& fuse != com.terminaldetector.drmd.weapon.projectile.FuseType.PROXIMITY
 				&& fuse != com.terminaldetector.drmd.weapon.projectile.FuseType.TIMED;
@@ -434,6 +443,12 @@ public class ProjectileEntity extends Entity {
 	 * deliberately deferred rather than done here.
 	 */
 	private void onBlockHit(BlockHitResult hit) {
+		if (fusionPortalCharge && getWorld() instanceof ServerWorld sw
+				&& com.terminaldetector.drmd.world.portal.mirror.FusionPortalActivation.isSurface(sw.getBlockState(hit.getBlockPos()))) {
+			com.terminaldetector.drmd.world.portal.mirror.FusionPortalActivation.activate(sw,hit.getBlockPos(),hit.getSide(),getOwnerLiving());
+			discard();
+			return;
+		}
 		boolean explosive = worldBlast || (splashRadius > 0 && dmgClass == DamageClass.EXPLOSIVE);
 		BlockState hitState = getWorld().getBlockState(hit.getBlockPos());
         if(explosive && getWorld() instanceof ServerWorld world)
@@ -505,6 +520,9 @@ public class ProjectileEntity extends Entity {
 		splashRadius = nbt.getFloat("radius");
 		dmgClass = DamageClass.fromId(nbt.getString("class"));
 		worldBlast = nbt.getBoolean("blast");
+		fusionPortalCharge = nbt.getBoolean("fusionPortalCharge");
+		ownerUuid = nbt.containsUuid("owner") ? nbt.getUuid("owner") : null;
+		owner = null;
 		drillCarve = nbt.getBoolean("drill");
 		setVisualScale(nbt.contains("scale") ? nbt.getFloat("scale") : 1f);
 		setMeshKind(nbt.getInt("mesh"));
@@ -519,6 +537,8 @@ public class ProjectileEntity extends Entity {
 		nbt.putFloat("radius", splashRadius);
 		nbt.putString("class", dmgClass.id);
 		nbt.putBoolean("blast", worldBlast);
+		nbt.putBoolean("fusionPortalCharge", fusionPortalCharge);
+		if (ownerUuid != null) nbt.putUuid("owner", ownerUuid);
 		nbt.putBoolean("drill", drillCarve);
 		nbt.putFloat("scale", getVisualScale());
 		nbt.putInt("mesh", getMeshKind());

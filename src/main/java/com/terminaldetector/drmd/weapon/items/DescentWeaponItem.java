@@ -856,6 +856,7 @@ public class DescentWeaponItem extends Item {
 
 	protected WeaponCore.FireConfig baseCfg(PlayerEntity user) {
 		WeaponCore.FireConfig cfg = new WeaponCore.FireConfig();
+		cfg.fusionPortalCharge = "fusion".equals(def.id);
 		cfg.owner = user;
 		cfg.pos = WeaponCore.muzzleFor(user, def.id, 1);
 		cfg.dir = WeaponCore.aimDir(user);

@@ -29,6 +29,7 @@ public final class WeaponCore {
 	private WeaponCore() {}
 
 	public static class FireConfig {
+		public boolean fusionPortalCharge;
 		public LivingEntity owner;
 		public Vec3d pos;
 		public Vec3d dir;
@@ -126,6 +127,7 @@ public final class WeaponCore {
 		if (splashR > 20f) splashR = (float) DescentMod.su(splashR);
 		proj.setSplashRadius(splashR);
 		proj.setLifeTicks((int) (cfg.life * 20));
+		proj.setFusionPortalCharge(cfg.fusionPortalCharge);
 		proj.setGravityStrength(cfg.gravity);
 		proj.setDrag(cfg.drag);
 		proj.setHoming(cfg.homing, cfg.turnRate, cfg.homeTarget);

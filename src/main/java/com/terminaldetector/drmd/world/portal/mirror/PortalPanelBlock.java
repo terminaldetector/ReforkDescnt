@@ -64,7 +64,6 @@ public class PortalPanelBlock extends BlockWithEntity {
 	 */
 	public static final double HALF_SPAN = 2.0;
 	/** Same reach as {@link ChargedMirrorBlock}'s own auto-link walk — a real hallway, not the whole world. */
-	private static final int AUTO_LINK_MAX_RANGE = 24;
 
 	public PortalPanelBlock(Settings settings) {
 		super(settings);
@@ -148,63 +147,6 @@ public class PortalPanelBlock extends BlockWithEntity {
 	}
 
 	@Override
-	protected void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
-		super.onBlockAdded(state, world, pos, oldState, notify);
-		if (!(world instanceof ServerWorld sw)) return;
-		// Not a fresh placement, so nothing to attach or pair. Both of this block's own link edits
-		// come back through here: markLinked flips LINKED with a setBlockState, and unlinkPartner
-		// flips it back, and vanilla calls onBlockAdded again for each new state. Reading oldState
-		// rather than the LINKED bit catches both, and without it pairing ran a second time from
-		// inside itself — harmless natively, but it spawned a second pair of ImmPtl portals and
-		// orphaned the first.
-		if (oldState.isOf(state.getBlock())) return;
-
-		Direction facing = state.get(FACING);
-		// The live portal entity is ImmPtl's see-through surface, and only that — the pairing and the
-		// travel below stand on their own.
-		if (PortalComplexity.hasImmersivePortals()
-				&& world.getBlockEntity(pos) instanceof PortalPanelBlockEntity be) {
-			be.setAttachedEntityId(ImmPtlMirrorBridge.attach(sw, pos, facing, panelBox(pos, facing)));
-		}
-		tryAutoLink(sw, pos, facing);
-	}
-
-	/**
-	 * Auto-pairing, walked and gated exactly like {@link ChargedMirrorBlock#tryAutoLink}: two freshly
-	 * placed panels facing each other down an open line link immediately, same-dimension only — a
-	 * deliberate cross-dimension/rotated link stays out of scope for a gun's fire-and-forget placement.
-	 */
-	private static void tryAutoLink(ServerWorld world, BlockPos pos, Direction facing) {
-		Direction facingBack = facing.getOpposite();
-		for (int i = 1; i <= AUTO_LINK_MAX_RANGE; i++) {
-			BlockPos check = pos.offset(facing, i);
-			BlockState state = world.getBlockState(check);
-			if (state.isAir()) continue;
-			if (!(state.getBlock() instanceof PortalPanelBlock) || state.get(LINKED)
-					|| state.get(FACING) != facingBack) {
-				return;
-			}
-			if (!(world.getBlockEntity(check) instanceof PortalPanelBlockEntity partnerBe)
-					|| !(world.getBlockEntity(pos) instanceof PortalPanelBlockEntity selfBe)) {
-				return;
-			}
-			if (PortalComplexity.hasImmersivePortals()) {
-				ImmPtlMirrorBridge.linkPortalPanels(
-						world, pos, facing, selfBe.getAttachedEntityId(), panelBox(pos, facing),
-						world, check, facingBack, partnerBe.getAttachedEntityId(), panelBox(check, facingBack));
-			} else {
-				linkNatively(world, pos, check);
-			}
-			for (BlockPos p : new BlockPos[]{pos, check}) {
-				world.spawnParticles(ParticleTypes.REVERSE_PORTAL, p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5,
-						30, 0.4, 0.4, 0.4, 0.02);
-				world.playSound(null, p, SoundEvents.BLOCK_RESPAWN_ANCHOR_CHARGE, SoundCategory.BLOCKS, 0.8f, 1.1f);
-			}
-			return;
-		}
-	}
-
-	@Override
 	protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
 		if (!state.isOf(newState.getBlock()) && world instanceof ServerWorld sw
 				&& world.getBlockEntity(pos) instanceof PortalPanelBlockEntity be) {
@@ -218,19 +160,10 @@ public class PortalPanelBlock extends BlockWithEntity {
 	 * Record a working link with no portal entity behind it — see {@code ChargedMirrorBlock.linkNatively}
 	 * for why this exists at all. Same shape here, for this block's own types.
 	 */
-	private static void linkNatively(ServerWorld world, BlockPos a, BlockPos b) {
+	static void linkNatively(ServerWorld world, BlockPos a, BlockPos b) {
 		markLinked(world, a, null, b, world.getRegistryKey());
 		markLinked(world, b, null, a, world.getRegistryKey());
 		DiagTrace.record("portal", "panels linked natively: " + a + " <-> " + b);
-		// Same note ChargedMirrorBlock.noteNativeLink gives, worded for panels: the surface looks no
-		// different, so without this a working link is indistinguishable from nothing having happened.
-		for (ServerPlayerEntity p : world.getPlayers()) {
-			if (p.squaredDistanceTo(Vec3d.ofCenter(a)) < 256 || p.squaredDistanceTo(Vec3d.ofCenter(b)) < 256) {
-				p.sendMessage(Text.literal(
-						"§dPanels linked §7— walk in to travel. §8Seeing through needs Immersive Portals "
-								+ "(docs/IMMPTL_STACK.md)."), false);
-			}
-		}
 	}
 
 	/**

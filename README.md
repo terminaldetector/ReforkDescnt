@@ -60,3 +60,14 @@ See [`docs/CONTROLS.md`](docs/CONTROLS.md) for the current bindings and configur
 
 The Pyro uses a procedural model until an exported DXX model asset is available. The design target and
 exact current boundary are recorded in [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md).
+
+## Активация порталов Fusion
+
+Поставьте две портальные панели (либо два заряженных зеркала) лицом друг к другу
+в одном измерении, в свободном коридоре длиной до 24 блоков. Одно попадание из
+Fusion Cannon в лицевую сторону любого конца активирует оба. Минимального заряда
+достаточно; ключи резонанса не нужны. При установке пара остаётся выключенной.
+
+Партнёр должен находиться в загруженном чанке; через стены связь не создаётся.
+Повторное попадание сохраняет активную пару. Старые сохранённые связи работают,
+старые ключи больше не активируют порталы и исключены из крафта/творческой вкладки.

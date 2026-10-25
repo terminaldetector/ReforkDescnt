@@ -280,5 +280,8 @@
   "message.drmd.build_preview.ready": "Место свободно · ячеек: %s · расход: 1",
   "message.drmd.build_mode_changed": "Режим строительства: %s",
   "message.drmd.build_axis_changed": "Ось: %s · поворот: %s",
-  "message.drmd.build_surface_selected": "Поверхность выбрана"
+  "message.drmd.build_surface_selected": "Поверхность выбрана",
+  "message.drmd.portal.fusion_key_retired": "Ключи больше не нужны: попадите из Fusion Cannon в готовую пару порталов.",
+  "message.drmd.portal.fusion_activated": "Fusion: пара порталов активирована.",
+  "message.drmd.portal.fusion_no_partner": "Нужен второй портал того же типа напротив, в свободном коридоре до %s блоков."
 }

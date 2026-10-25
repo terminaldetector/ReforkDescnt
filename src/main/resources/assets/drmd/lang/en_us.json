@@ -316,5 +316,8 @@
   "message.drmd.build_preview.ready": "Space clear · cells: %s · cost: 1",
   "message.drmd.build_mode_changed": "Build mode: %s",
   "message.drmd.build_axis_changed": "Axis: %s · rotation: %s",
-  "message.drmd.build_surface_selected": "Surface selected"
+  "message.drmd.build_surface_selected": "Surface selected",
+  "message.drmd.portal.fusion_key_retired": "Keys are retired: hit a ready portal pair with the Fusion Cannon.",
+  "message.drmd.portal.fusion_activated": "Fusion: portal pair activated.",
+  "message.drmd.portal.fusion_no_partner": "Place a matching portal facing this one across a clear corridor, within %s blocks."
 }
