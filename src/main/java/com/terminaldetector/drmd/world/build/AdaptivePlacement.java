@@ -84,6 +84,16 @@ public final class AdaptivePlacement {
         ItemStack material=materialStack(player,leftHandOnly),placedStack=material.copy();
         int available=material.getCount();Block selected=resolveMaterial(player,leftHandOnly);
         if(selected!=plan.cells().getFirst().after().getBlock())return 0;
+        if(!plan.handlesPair()) {
+            var cell=plan.cells().getFirst();
+            if(plan.cells().size()!=1 || !world.getBlockState(cell.position()).equals(cell.before()))return 0;
+            // Single vanilla blocks can legitimately react during insertion (e.g. powered TNT).
+            // Preserve that path and charge the successful insertion even if it becomes an entity.
+            if(!world.setBlockState(cell.position(),cell.after(),Block.NOTIFY_ALL))return 0;
+            if(!player.getAbilities().creativeMode)material.decrement(1);
+            if(world.getBlockState(cell.position()).isOf(selected))selected.onPlaced(world,cell.position(),cell.after(),player,placedStack);
+            return 1;
+        }
         var changes=plan.cells().stream().map(cell->new PlacementTransaction.Change<>(cell.position(),cell.before(),cell.after())).toList();
         var result=PlacementTransaction.commit(changes,new PlacementTransaction.Storage<BlockPos,BlockState>() {
             public BlockState read(BlockPos position){return world.getBlockState(position);}
@@ -99,10 +109,7 @@ public final class AdaptivePlacement {
             return 0;
         }
         if(!player.getAbilities().creativeMode)material.decrement(1);
-        // Door/bed/plant parts already exist; do not invoke a callback that writes a second part.
-        if(!plan.handlesPair()) {
-            var cell=plan.cells().getFirst();cell.after().getBlock().onPlaced(world,cell.position(),cell.after(),player,placedStack);
-        }
+        // Both parts already exist: their vanilla onPlaced callback would duplicate the write.
         for(var cell:plan.cells()) {
             world.updateListeners(cell.position(),cell.before(),world.getBlockState(cell.position()),Block.NOTIFY_ALL);
             world.updateNeighbors(cell.position(),cell.after().getBlock());

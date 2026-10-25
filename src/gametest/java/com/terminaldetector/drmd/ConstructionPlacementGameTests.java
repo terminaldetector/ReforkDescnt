@@ -202,4 +202,15 @@ public final class ConstructionPlacementGameTests implements FabricGameTest {
         player.discard();context.complete();
     }
 
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void poweredTntIsChargedOnceWhenItImmediatelyBecomesAnEntity(TestContext context) {
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+        var at=context.getAbsolutePos(new BlockPos(4,5,4));player.setPosition(Vec3d.ofCenter(at.east(3)));
+        world.setBlockState(at.west(),Blocks.REDSTONE_BLOCK.getDefaultState(),2);player.setStackInHand(Hand.OFF_HAND,new ItemStack(Blocks.TNT,2));
+        context.assertTrue(AdaptivePlacement.placeState(world,player,at,Blocks.TNT.getDefaultState(),true),"native TNT activation is a successful placement");
+        var primed=world.getEntitiesByClass(net.minecraft.entity.TntEntity.class,new net.minecraft.util.math.Box(at).expand(2),entity->true);
+        context.assertTrue(primed.size()==1 && player.getOffHandStack().getCount()==1,"one TNT entity from one paid item");
+        for(var entity:primed)entity.discard();player.discard();context.complete();
+    }
+
 }

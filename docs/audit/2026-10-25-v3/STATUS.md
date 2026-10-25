@@ -208,3 +208,9 @@ Four additional native checks cover read-only plan/application equivalence,mode-
 round-trip,oversized wire frames and explicit persisted mode choices. All29native audit IDs
 are now mandatory; these and visual preview/roll/GUI-scale checks remain NOT RUN. The earlier
 369-frame suite remains mandatory and does not claim to certify the new preview's appearance.
+
+Ordinary single-block insertions retain the normal vanilla callback/notification path rather
+than being mistaken for a failed transaction when TNT immediately becomes an entity or another
+block reacts. One successful native insertion is charged once. Quiet commit/rollback applies
+to the explicitly handled multi-cell families. A powered-TNT native regression is added; all30
+native audit IDs are required. NOT RUN locally.
