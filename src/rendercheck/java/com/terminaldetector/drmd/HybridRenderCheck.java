@@ -57,6 +57,7 @@ public final class HybridRenderCheck implements ClientModInitializer {
     private volatile int swarmMaxCandidates;
     private volatile int swarmMovingDrones;
     private volatile int swarmStartTick;
+    private int lastSceneServerTick=-1;
     private volatile boolean gravityArenaBuilt;
     private boolean setupQueued;
     private int ticks, sceneTicks;
@@ -116,6 +117,9 @@ public final class HybridRenderCheck implements ClientModInitializer {
         // Rendering can run ahead of the integrated server under software GL. Give
         // the actual AI a fixed server-time interval before measuring its motion.
         if(sceneTicks==1084 && client.getServer().getTicks()-swarmStartTick<30)return;
+        int serverTick=client.getServer().getTicks();
+        if(serverTick==lastSceneServerTick)return;
+        lastSceneServerTick=serverTick;
         ++sceneTicks;
         if (sceneTicks==160) {
             capture(client,"hybrid-before.png");
