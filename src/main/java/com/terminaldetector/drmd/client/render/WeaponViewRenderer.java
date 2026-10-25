@@ -23,12 +23,20 @@ import java.util.List;
 public final class WeaponViewRenderer {
 	private WeaponViewRenderer() {}
 
+    /** Hide the ordinary item only when a visible cockpit representation will replace it. */
+    public static boolean replacesVanillaHand(MinecraftClient mc) {
+        if(mc.player==null || mc.world==null || !mc.options.getPerspective().isFirstPerson()
+                || !DescentClientState.enabled || !com.terminaldetector.drmd.client.config.DescentConfig.weaponView
+                || mc.options.hudHidden || mc.currentScreen!=null)return false;
+        if(!(mc.player.getMainHandStack().getItem() instanceof DescentWeaponItem weapon))return false;
+        return ConstructionRegistry.getModules(weapon.getDef().id).stream()
+                .anyMatch(m->m.colorA>0 && m.scaleX>0 && m.scaleY>0 && m.scaleZ>0);
+    }
+
 	public static void register() {
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
 			MinecraftClient mc = MinecraftClient.getInstance();
-			if (mc.player == null || mc.options.getPerspective().isFirstPerson() == false) return;
-			if (!DescentClientState.enabled || !com.terminaldetector.drmd.client.config.DescentConfig.weaponView) return;
-			if (mc.options.hudHidden) return;
+            if(!replacesVanillaHand(mc))return;
 
 			ItemStack stack = mc.player.getMainHandStack();
 			if (!(stack.getItem() instanceof DescentWeaponItem wep)) return;

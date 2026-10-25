@@ -39,3 +39,11 @@ Block-entity/container item data cannot yet be transferred by this direct path; 
 rejected intact to avoid silently losing their contents. No claim-mod integration exists.
 Four real GameTests cover consumption,hotbar,rejected targets,batch duplicates,exhaustion and
 creative collision. Added but NOT RUN: Fabric/Loom remains unavailable locally.
+
+## H weapon fallback source change (local; runtime NOT RUN)
+
+Vanilla hand suppression moved from the entire GameRenderer hand pass to the actual main-hand
+item path, only when a visible cockpit cluster is ready. The offhand, engineer tools, weaponView
+OFF and nonflight mode retain vanilla models. No gameplay IDs, muzzle coordinates or Workshop
+presets changed. First/third-person, dropped-item and offhand client frames remain required;
+this source finding is not inferred from which JAR was recorded.

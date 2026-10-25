@@ -25,7 +25,8 @@
     "client.InGameHudMixin",
     "client.LivingEntityRendererMixin",
     "client.MouseMixin",
-    "client.PlayerFlightTravelMixin"
+    "client.PlayerFlightTravelMixin",
+    "client.HeldWeaponFallbackMixin"
   ],
   "injectors": {
     "defaultRequire": 1
