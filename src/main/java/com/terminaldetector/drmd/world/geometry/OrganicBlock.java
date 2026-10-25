@@ -7,6 +7,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.loot.context.LootContextParameterSet;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.shape.*;
+import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.world.BlockView;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,8 +26,10 @@ public final class OrganicBlock extends Block {
         var key=HybridTerrain.snapshot(world,pos,new HybridTerrain.Data(source,-1,true));
         var cached=SHAPES.get(key);if(cached!=null)return cached;
         var shape=VoxelShapes.empty();
-        for(var b:new HybridMesh(key).collisionBounds()) shape=VoxelShapes.union(shape,
-            VoxelShapes.cuboid(b.minX(),b.minY(),b.minZ(),b.maxX(),b.maxY(),b.maxZ()));
+        // union() simplifies after every added fragment. Organic coordinates make that
+        // repeated decomposition expensive during neighbour updates; simplify once below.
+        for(var b:new HybridMesh(key).collisionBounds()) shape=VoxelShapes.combine(shape,
+            VoxelShapes.cuboid(b.minX(),b.minY(),b.minZ(),b.maxX(),b.maxY(),b.maxZ()),BooleanBiFunction.OR);
         shape=shape.simplify();if(SHAPES.size()<4096)SHAPES.putIfAbsent(key,shape);return shape;
     }
     @Override public VoxelShape getOutlineShape(BlockState s,BlockView w,BlockPos p,ShapeContext c){return shape(w,p);}
