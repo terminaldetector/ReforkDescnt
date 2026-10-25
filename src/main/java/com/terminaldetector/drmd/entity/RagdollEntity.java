@@ -70,7 +70,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 
 	/** Replace a destroyed combat drone with physical wreckage carrying its momentum. */
 	public static RagdollEntity spawnFromDrone(DroneEntity drone, DamageSource source) {
-		if (!(drone.getWorld() instanceof ServerWorld world)) return null;
+		if (!(drone.getWorld() instanceof ServerWorld world) || !com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(world)) return null;
 		Vec3d origin = drone.getPos().add(0, drone.getHeight() * .5, 0);
 		RagdollEntity ragdoll = spawnScout(world, origin, drone.getVelocity());
 		if (ragdoll == null) return null;

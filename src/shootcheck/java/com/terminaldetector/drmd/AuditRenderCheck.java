@@ -34,11 +34,11 @@ public final class AuditRenderCheck {
     private static final List<HorizonCase> HORIZON=new ArrayList<>();
     private static boolean active,cameraOverride,settingsCaptured;
     private static volatile boolean ready,serverPassed;
-    private static int phase,ticks,total,axis,scaleIndex,horizonIndex,horizonCases,frames,environmentIndex;
+    private static int phase,ticks,total,axis,scaleIndex,horizonIndex,horizonCases,frames,environmentIndex,profileIndex;
     private static String pending;
     private static Runnable after;
     private static UUID field;
-    private static long horizonDrawStamp,horizonDraws,offBaselineDraws;
+    private static long horizonDrawStamp,horizonDraws,offBaselineDraws,profileBaselineDraws;
     private static int[] onPixels;
     private static Vec3d cameraPosition=BASE;
     private static final Set<String> SETTINGS_SEEN=new HashSet<>();
@@ -163,8 +163,22 @@ public final class AuditRenderCheck {
             AuditSwarmProfile.tick(client);
         }else if(phase==9) {
             if(ticks==15)queue("audit-environment-"+environmentIndex,()->{
-                if(++environmentIndex<4){ticks=0;prepareEnvironment(client);}else finish(client);
+                if(++environmentIndex<4){ticks=0;prepareEnvironment(client);}else prepareProfile(client);
             });
+        }else if(phase==10) {
+            if(ticks<15)return;
+            boolean hybrid=(profileIndex&2)!=0;
+            if(!hybrid && horizonDraws!=profileBaselineDraws)throw new IllegalStateException("Hybrid OFF still submitted horizon geometry");
+            if(hybrid && horizonDraws==profileBaselineDraws) {
+                if(ticks<100)return;
+                throw new IllegalStateException("Hybrid ON failed to resume composed horizon");
+            }
+            var desired=(profileIndex&1)==0?com.terminaldetector.drmd.physics.PhysicsProfile.STANDARD:com.terminaldetector.drmd.physics.PhysicsProfile.EXPANDED;
+            if(DescentClientState.physicsProfile!=desired) {
+                if(ticks<100)return;
+                throw new IllegalStateException("Effective server physics did not synchronize: "+desired);
+            }
+            queue("audit-profile-"+profileIndex,()->{if(++profileIndex<4)prepareProfile(client);else finish(client);});
         }
     }
     private static void prepareGravity(MinecraftClient client) {
@@ -218,6 +232,14 @@ public final class AuditRenderCheck {
         attitude.setForwardUp(new Vec3d(0,-.5,-Math.sqrt(.75)),new Vec3d(0,Math.sqrt(.75),-.5));attitude.rollLocal(90);
         ShipAttitudeClient.acceptPortalFrame(client.player,attitude.forward(),attitude.up());
     }
+    private static void prepareProfile(MinecraftClient client) {
+        phase=10;ticks=0;
+        profileBaselineDraws=horizonDraws;
+        boolean hybrid=(profileIndex&2)!=0;
+        DescentConfig.hybridRender=hybrid;DescentConfig.save();DescentConfig.hybridRender=!hybrid;DescentConfig.reload();
+        if(DescentConfig.hybridRender!=hybrid)throw new IllegalStateException("Explicit Hybrid choice did not persist");
+        ClientPlayNetworking.send(new ModNetworking.ActionPayload((profileIndex&1)==0?"physics_standard":"physics_expanded"));
+    }
     private static void prepareInventory(MinecraftClient client) {
         phase=7;ticks=0;cameraOverride=false;
         client.options.getGuiScale().setValue(2);client.onResolutionChanged();client.setScreen(new AuditInventoryScreen());
@@ -225,7 +247,7 @@ public final class AuditRenderCheck {
     private static void prepareHorizon(MinecraftClient client) {
         client.setScreen(null);cameraOverride=true;
         DescentConfig.cockpit=false;DescentConfig.hud=false;DescentConfig.weaponView=false;
-        DescentConfig.planetFloor=true;DescentConfig.levelSky=false;DescentConfig.skyUfoVirtualHull=false;
+        DescentConfig.hybridRender=true;DescentConfig.planetFloor=true;DescentConfig.levelSky=false;DescentConfig.skyUfoVirtualHull=false;
         DescentConfig.planetFloorWithDistantHorizons=HORIZON.get(horizonIndex).withDh();
         client.options.getCloudRenderMode().setValue(CloudRenderMode.OFF);client.options.getFov().setValue(80);
         Vec3d forward=new Vec3d(0,-.5,-Math.sqrt(.75));Vec3d up=new Vec3d(0,Math.sqrt(.75),-.5);
@@ -291,7 +313,7 @@ public final class AuditRenderCheck {
     }
     private static void finish(MinecraftClient client) {
         try {
-            Files.writeString(client.runDirectory.toPath().resolve("audit-ok.json"),"{\"lifecycleRoundTrips\":8,\"gravityAxes\":6,\"gravityRelease\":true,\"lowerRecovery\":true,\"modalHud\":true,\"inventoryDistinct\":true,\"swarmProfiles\":[128,256,512,1024],\"environmentComparisons\":4,\"settingsScales\":[2,3,4],\"settingsViewports\":["+String.join(",",SETTINGS_VIEWPORTS)+"],\"horizonCases\":"+horizonCases+",\"horizonOnPixels\":true,\"dhInstalled\":"+com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.isPresent()+",\"frames\":"+frames+"}\n");
+            Files.writeString(client.runDirectory.toPath().resolve("audit-ok.json"),"{\"lifecycleRoundTrips\":8,\"gravityAxes\":6,\"gravityRelease\":true,\"lowerRecovery\":true,\"modalHud\":true,\"inventoryDistinct\":true,\"swarmProfiles\":[128,256,512,1024],\"environmentComparisons\":4,\"profileCombinations\":4,\"settingsScales\":[2,3,4],\"settingsViewports\":["+String.join(",",SETTINGS_VIEWPORTS)+"],\"horizonCases\":"+horizonCases+",\"horizonOnPixels\":true,\"dhInstalled\":"+com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.isPresent()+",\"frames\":"+frames+"}\n");
         }catch(java.io.IOException e){throw new IllegalStateException(e);}
         active=false;cameraOverride=false;client.scheduleStop();
     }

@@ -30,7 +30,7 @@ HYBRID_FRAMES = tuple(f'hybrid-{model}-{view}' for model in range(3)
 AUDIT_FRAMES = ('audit-flight-off','audit-lower-recovery','audit-inventory') + tuple(
     f'audit-gravity-{i}' for i in range(6)) + tuple(f'audit-gravity-release-{i}' for i in range(6)) + tuple(
     f'audit-settings-scale-{i}' for i in (2,3,4)) + tuple(f'audit-settings-bottom-{i}' for i in (2,3,4)) + tuple(
-    f'audit-swarm-{n}' for n in (128,256,512,1024)) + tuple(f'audit-environment-{i}' for i in range(4))
+    f'audit-swarm-{n}' for n in (128,256,512,1024)) + tuple(f'audit-environment-{i}' for i in range(4)) + tuple(f'audit-profile-{i}' for i in range(4))
 
 
 def verify_audit(root, started):
@@ -39,8 +39,8 @@ def verify_audit(root, started):
     proof=json.loads(marker.read_text())
     expected=dict(lifecycleRoundTrips=8,gravityAxes=6,gravityRelease=True,lowerRecovery=True,
                   modalHud=True,inventoryDistinct=True,settingsScales=[2,3,4],horizonCases=168,
-                  horizonOnPixels=True,swarmProfiles=[128,256,512,1024],environmentComparisons=4)
-    if (any(proof.get(key)!=value for key,value in expected.items()) or proof.get('frames',0)<365
+                  horizonOnPixels=True,swarmProfiles=[128,256,512,1024],environmentComparisons=4,profileCombinations=4)
+    if (any(proof.get(key)!=value for key,value in expected.items()) or proof.get('frames',0)<369
             or not isinstance(proof.get('dhInstalled'),bool)):
         raise ValueError(f'Incomplete video audit verification: {proof}')
     viewports=proof.get('settingsViewports',[])

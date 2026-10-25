@@ -18,7 +18,8 @@
       "com.terminaldetector.drmd.FootGravityRecoveryGameTests",
       "com.terminaldetector.drmd.LowerWorldRecoveryGameTests",
       "com.terminaldetector.drmd.BombBayVelocityGameTests",
-      "com.terminaldetector.drmd.ConstructionPlacementGameTests"
+      "com.terminaldetector.drmd.ConstructionPlacementGameTests",
+      "com.terminaldetector.drmd.PhysicsProfileGameTests"
     ]
   },
   "depends": {

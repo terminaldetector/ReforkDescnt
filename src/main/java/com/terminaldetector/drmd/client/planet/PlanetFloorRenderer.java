@@ -44,7 +44,7 @@ public final class PlanetFloorRenderer {
 	}
 
 	private static void render(WorldRenderContext ctx) {
-		if (!DescentConfig.planetFloor) return;
+		if (!DescentConfig.hybridRender || !DescentConfig.planetFloor) return;
 		// Not inside a mirror or portal view. That nested render moves the camera, and this callback
 		// fires again within it — so the field was being rebuilt around the reflected eye and then drawn
 		// from there, which is exactly the "horizon stuck to the camera" the second live session found.

@@ -16,6 +16,8 @@ import java.util.Properties;
  * Toggles save immediately; the settings screen also writes on close.
  */
 public final class DescentConfig {
+    /** Compose optional far terrain and level-sky passes; essential near geometry stays present. */
+    public static volatile boolean hybridRender=true;
 	/** Draw the 3D cockpit frame in first person. */
 	public static boolean cockpit = true;
 	/** Cockpit opacity, 0.2..1.0. */
@@ -109,7 +111,7 @@ public final class DescentConfig {
 	public static void reload() {
 		loaded = true;
 		Path p = path();
-		if (!Files.exists(p)) return;
+		if (!Files.exists(p)) {hybridRender=true;return;}
 		Properties props = new Properties();
 		try (var in = Files.newInputStream(p)) {
 			props.load(in);
@@ -117,6 +119,7 @@ public final class DescentConfig {
 			DescentMod.LOGGER.warn("Could not read {}: {}", FILE, e.toString());
 			return;
 		}
+		hybridRender=com.terminaldetector.drmd.config.ProfileDefaults.hybrid(props);
 		cockpit = bool(props, "cockpit", cockpit);
 		cockpitOpacity = clamp(num(props, "cockpitOpacity", cockpitOpacity), 0.2f, 1f);
 		cockpitInstruments = bool(props, "cockpitInstruments", cockpitInstruments);
@@ -136,6 +139,7 @@ public final class DescentConfig {
 
 	public static void save() {
 		Properties props = new Properties();
+		props.setProperty("hybridRender",Boolean.toString(hybridRender));
 		props.setProperty("cockpit", Boolean.toString(cockpit));
 		props.setProperty("cockpitOpacity", Float.toString(cockpitOpacity));
 		props.setProperty("cockpitInstruments", Boolean.toString(cockpitInstruments));

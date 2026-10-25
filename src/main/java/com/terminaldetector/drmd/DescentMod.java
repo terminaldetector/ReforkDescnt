@@ -105,6 +105,7 @@ public class DescentMod implements ModInitializer {
 		});
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            com.terminaldetector.drmd.physics.PhysicsProfileState.get(server.getOverworld());
             com.terminaldetector.drmd.world.build.ConstructionMode.clearAll();
 			// Column height is authoritative once a world is loaded — reconcile the WorldFeatures
 			// forced-off-in-Vanilla state against what actually loaded, in case it differs from the
@@ -236,6 +237,7 @@ public class DescentMod implements ModInitializer {
 				com.terminaldetector.drmd.world.sync.DimensionSync.pushTo(handler.player);
 				com.terminaldetector.drmd.world.fate.WorldEndings.pushTo(handler.player);
 				com.terminaldetector.drmd.world.planet.PlanetSync.pushTo(handler.player);
+				com.terminaldetector.drmd.physics.PhysicsProfileState.sync(handler.player);
 				unlockDrmdRecipes(handler.player);
 			});
 		});

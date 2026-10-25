@@ -52,7 +52,7 @@ public final class CoreSkyDome {
 	}
 
 	private static void render(WorldRenderContext ctx) {
-		if (!DescentConfig.levelSky) return;
+		if (!DescentConfig.hybridRender || !DescentConfig.levelSky) return;
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (mc.player == null || mc.world == null) return;
 		if (mc.world.getRegistryKey() != net.minecraft.world.World.OVERWORLD) return;

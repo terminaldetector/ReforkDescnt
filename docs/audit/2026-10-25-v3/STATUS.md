@@ -47,3 +47,29 @@ item path, only when a visible cockpit cluster is ready. The offhand, engineer t
 OFF and nonflight mode retain vanilla models. No gameplay IDs, muzzle coordinates or Workshop
 presets changed. First/third-person, dropped-item and offhand client frames remain required;
 this source finding is not inferred from which JAR was recorded.
+
+## N/O profile implementation (local; game proof NOT RUN)
+
+Hybrid is a persisted client option with a true default; explicit false/off/0 survives reload.
+It gates optional distant terrain and level-sky composition without overwriting their subflags,
+weapons, near block geometry, mirror/portal options or any server physics. Essential near/dynamic
+geometry stays present when OFF. This is a bounded composition profile, not a claim of completed
+NoCubes geometry or tested DH integration. Loaded before renderer registration.
+
+Physics is a separate server-owned PersistentState, `data/drmd_physics.dat` in the save's
+Overworld, shared across its dimensions. A save with a stored profile keeps it even if global
+server defaults later change. Untagged saves use `drmd-server.properties:physicsProfile`, whose
+missing/invalid default is EXPANDED (the branch previously always used these optional systems).
+An explicit STANDARD server default applies at first migration of untagged saves; it never
+rewrites an already recorded per-world choice. The settings button displays the server's actual
+profile, waits for synchronization and is locked for players without operator permission.
+
+STANDARD suppresses new staged combat microdamage, explosion-rim fracturing, automatic support
+collapse and drone-wreck conversion. EXPANDED retains them. Native movement/local gravity,
+projectile hits, existing carved-block collision and existing dynamic bodies remain valid in both;
+these are not a new rigid-body engine or a claim of mass-body performance. Existing limits remain.
+
+Five actual standalone JUnit regressions PASS for default/migration/round-trip/independence.
+Two added NBT GameTests and four client profile combinations are NOT RUN. New client proof must
+include real Hybrid ON/OFF VBO behavior, actual server profile and config reload; the gate now
+requires369 fresh audit frames, retaining all earlier checks. UI localization is RU/EN.

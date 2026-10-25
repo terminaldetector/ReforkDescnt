@@ -254,5 +254,12 @@
   "message.drmd.local_gravity_active": "Локальная гравитация · H: свободный полёт",
   "message.drmd.lower_world_recovery": "Достигнута нижняя граница · безопасная позиция и полёт восстановлены",
   "message.drmd.ordnance_launched": "Боеприпас выпущен",
-  "message.drmd.rocket_launched": "Ракета выпущена"
+  "message.drmd.rocket_launched": "Ракета выпущена",
+  "options.drmd.hybrid_render": "Гибридный рендер",
+  "options.drmd.physics": "Физика",
+  "options.drmd.physics.standard": "Standard",
+  "options.drmd.physics.expanded": "Expanded",
+  "options.drmd.physics.syncing": "Синхронизация…",
+  "options.drmd.physics.tip": "Настройка мира: постепенное разрушение блоков, обрушения опор и физические обломки дронов. Существующие тела и полёт сохраняются.",
+  "options.drmd.physics.locked": "Профиль физики этого мира меняет оператор сервера."
 }

@@ -10,6 +10,7 @@ import java.util.*;
 public final class StructureCollapse {
     private StructureCollapse() {}
     public static BlockBodyEntity rocketCut(ServerWorld world,BlockPos root,Vec3d impact,Vec3d direction,float damage) {
+        if(!com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(world))return null;
         if(!world.isChunkLoaded(root) || world.isOutOfHeightLimit(root))return null;
         var base=world.getBlockState(root);
         boolean tree=base.isIn(BlockTags.LOGS);

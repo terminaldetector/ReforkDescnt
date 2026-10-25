@@ -14,7 +14,7 @@ public abstract class MicroExplosionMixin {
     @Shadow @Final private World world;
     @Inject(method="affectWorld", at=@At("HEAD"))
     private void drmd$fractureRim(boolean particles, CallbackInfo ci) {
-        if (!(world instanceof ServerWorld server)) return;
+        if (!(world instanceof ServerWorld server) || !com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(server)) return;
         Explosion explosion=(Explosion)(Object)this;
         var type=explosion.getDestructionType();
         if(type!=Explosion.DestructionType.DESTROY && type!=Explosion.DestructionType.DESTROY_WITH_DECAY) return;

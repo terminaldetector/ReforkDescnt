@@ -54,6 +54,10 @@ public class DescentClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		DescentConfig.load();
+        ClientPlayNetworking.registerGlobalReceiver(ModNetworking.PhysicsProfilePayload.ID,(payload,context)->context.client().execute(()->{
+            DescentClientState.physicsProfile=com.terminaldetector.drmd.physics.PhysicsProfile.parse(payload.profile());
+            DescentClientState.physicsCanChange=payload.canChange();
+        }));
 		DescentKeybinds.register();
 		ModEntityRenderers.register();
 		com.terminaldetector.drmd.client.render.ShotRenderLayers.register();

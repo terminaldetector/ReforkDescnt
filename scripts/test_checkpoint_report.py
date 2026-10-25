@@ -122,7 +122,7 @@ class EvidenceGateTest(unittest.TestCase):
     def audit_fixture(self):
         proof=dict(lifecycleRoundTrips=8,gravityAxes=6,gravityRelease=True,lowerRecovery=True,
                    modalHud=True,inventoryDistinct=True,settingsScales=[2,3,4],horizonCases=168,
-                   horizonOnPixels=True,swarmProfiles=[128,256,512,1024],environmentComparisons=4,frames=365,dhInstalled=False)
+                   horizonOnPixels=True,swarmProfiles=[128,256,512,1024],environmentComparisons=4,profileCombinations=4,frames=369,dhInstalled=False)
         proof['settingsViewports']=[dict(requested=n,actual=n,width=1920 if n==4 else 1280,height=1080 if n==4 else 720) for n in (2,3,4)]
         self.write('build/shootcheck/audit-ok.json',json.dumps(proof))
         for name in checkpoint.AUDIT_FRAMES:

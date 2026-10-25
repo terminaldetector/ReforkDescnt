@@ -28,10 +28,11 @@ public class DescentSettingsScreen extends Screen {
     private int panelLeft,panelWidth,contentHeight;
     private List<net.minecraft.text.OrderedText> hintLines=List.of();
 	private static final int SECTION = 14;
-	private static final int CONTENT_HEIGHT = 5 * SECTION + 13 * ROW + 3 * 6;
+	private static final int CONTENT_HEIGHT = 5 * SECTION + 14 * ROW + 3 * 6;
 	private final Screen parent;
 	private final List<Heading> headings = new ArrayList<>();
 	private int scroll;
+    private ButtonWidget physicsButton;
 	private int viewBottom;
 
 	private record Heading(int y, Text text) {}
@@ -54,7 +55,7 @@ public class DescentSettingsScreen extends Screen {
         int right=panelLeft+(panelWidth+10)/2;
         hintLines=textRenderer.wrapLines(Text.translatable("options.drmd.keys_hint"),Math.max(100,width-24));
         contentTop=32+hintLines.size()*9+8;
-        contentHeight=CONTENT_HEIGHT+(singleColumn?9*ROW:0);
+        contentHeight=CONTENT_HEIGHT+(singleColumn?10*ROW:0);
 		viewBottom = this.height - 32;
 		int contentH = contentHeight;
 		int viewH = Math.max(ROW, viewBottom - contentTop);
@@ -82,6 +83,16 @@ public class DescentSettingsScreen extends Screen {
 					DescentConfig.save();
 				}));
 		y = section(y, "options.drmd.settings.section.world_view");
+        physicsButton=ButtonWidget.builder(physicsLabel(),b->{
+            var profile=DescentClientState.physicsProfile;
+            if(profile!=null && DescentClientState.physicsCanChange)ClientPlayNetworking.send(new ModNetworking.ActionPayload(
+                profile==com.terminaldetector.drmd.physics.PhysicsProfile.EXPANDED?"physics_standard":"physics_expanded"));
+        }).dimensions(right,y,150,20).build();
+        refreshPhysicsButton();
+        y=addRow(y,viewBottom,toggle(left,y,"options.drmd.hybrid_render",DescentConfig.hybridRender,v->{
+            DescentConfig.hybridRender=v;DescentConfig.save();
+        }),physicsButton);
+
 		y = addRow(y, viewBottom,
 				toggle(left, y, "options.drmd.level_sky", DescentConfig.levelSky, v -> {
 					DescentConfig.levelSky = v;
@@ -231,6 +242,20 @@ public class DescentSettingsScreen extends Screen {
         }
         return secondY+ROW;
     }
+
+    private Text physicsLabel() {
+        var profile=DescentClientState.physicsProfile;
+        return Text.translatable("options.drmd.physics").append(": ").append(Text.translatable(profile==null?
+            "options.drmd.physics.syncing":"options.drmd.physics."+profile.name().toLowerCase(java.util.Locale.ROOT)));
+    }
+    private void refreshPhysicsButton() {
+        if(physicsButton==null)return;
+        physicsButton.setMessage(physicsLabel());
+        physicsButton.active=DescentClientState.physicsProfile!=null && DescentClientState.physicsCanChange;
+        physicsButton.setTooltip(net.minecraft.client.gui.tooltip.Tooltip.of(Text.translatable(
+            DescentClientState.physicsCanChange?"options.drmd.physics.tip":"options.drmd.physics.locked")));
+    }
+    @Override public void tick() {super.tick();refreshPhysicsButton();}
 
 	private int section(int y, String key) {
 		headings.add(new Heading(y, Text.translatable(key)));

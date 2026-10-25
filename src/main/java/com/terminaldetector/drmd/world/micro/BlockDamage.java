@@ -37,7 +37,7 @@ public final class BlockDamage {
 	 * @return true when the block was destroyed by this hit
 	 */
 	public static boolean hit(ServerWorld world, BlockPos pos, Vec3d impact, float damage) {
-		if (!Float.isFinite(damage) || damage <= 0) return false;
+		if (!Float.isFinite(damage) || damage <= 0 || !com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(world)) return false;
 		BlockState state = world.getBlockState(pos);
 		if (state.isAir()) return false;
 		if (!isDamageable(world, pos, state)) return false;

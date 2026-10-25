@@ -100,6 +100,8 @@ public final class DrmdServerConfig {
 	@Deprecated
 	public static boolean psychedelicWorlds = false;
 
+	public static com.terminaldetector.drmd.physics.PhysicsProfile physicsProfile=com.terminaldetector.drmd.physics.PhysicsProfile.EXPANDED;
+
 	public static WorldKind worldKind = WorldKind.STOCK;
 
 	public static WorldModLevel worldModLevel = WorldModLevel.ADVANCED;
@@ -138,6 +140,7 @@ public final class DrmdServerConfig {
 	 * suppressed when the selected world height is Vanilla.
 	 */
 	private static void applyFrom(Properties props) {
+        physicsProfile=com.terminaldetector.drmd.physics.PhysicsProfile.parse(props.getProperty("physicsProfile"));
 		psychedelicWorlds = Boolean.parseBoolean(props.getProperty("psychedelicWorlds", "false"));
 		String kind = props.getProperty("worldKind");
 		if (kind != null) {
@@ -266,6 +269,7 @@ public final class DrmdServerConfig {
 
 	private static void persist() {
 		Properties props = new Properties();
+		props.setProperty("physicsProfile",physicsProfile.name());
 		props.setProperty("worldKind", worldKind.name());
 		props.setProperty("worldModLevel", worldModLevel.name());
 		props.setProperty("cubicSnapshots", String.valueOf(cubicSnapshots));

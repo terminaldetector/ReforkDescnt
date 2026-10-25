@@ -475,7 +475,16 @@ public final class ModNetworking {
 			ServerPlayNetworking.send(player, event);
 	}
 
+    public record PhysicsProfilePayload(String profile,boolean canChange) implements CustomPayload {
+        public static final Id<PhysicsProfilePayload> ID=new Id<>(Identifier.of(DescentMod.MOD_ID,"physics_profile"));
+        public static final PacketCodec<RegistryByteBuf,PhysicsProfilePayload> CODEC=PacketCodec.of(
+            (p,buf)->{buf.writeString(p.profile);buf.writeBoolean(p.canChange);},
+            buf->new PhysicsProfilePayload(buf.readString(),buf.readBoolean()));
+        @Override public Id<? extends CustomPayload> getId(){return ID;}
+    }
+
 	public static void register() {
+        PayloadTypeRegistry.playS2C().register(PhysicsProfilePayload.ID,PhysicsProfilePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(WeaponLoadPayload.ID,WeaponLoadPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ShotFxPayload.ID, ShotFxPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(PortalFramePayload.ID, PortalFramePayload.CODEC);
@@ -518,6 +527,8 @@ public final class ModNetworking {
 			ServerPlayerEntity player = context.player();
 			DescentPlayerData data = DescentPlayerData.get(player);
 			switch (payload.action()) {
+				case "physics_standard" -> com.terminaldetector.drmd.physics.PhysicsProfileState.request(player,com.terminaldetector.drmd.physics.PhysicsProfile.STANDARD);
+                case "physics_expanded" -> com.terminaldetector.drmd.physics.PhysicsProfileState.request(player,com.terminaldetector.drmd.physics.PhysicsProfile.EXPANDED);
 				case "toggle" -> FlightSystem.toggle(player);
 				case "enable" -> FlightSystem.enable(player, data);
 				case "dash" -> FlightSystem.tryDash(player);

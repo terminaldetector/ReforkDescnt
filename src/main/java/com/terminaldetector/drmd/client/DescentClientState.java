@@ -3,6 +3,8 @@ package com.terminaldetector.drmd.client;
 /** Mirrored server sync for HUD / camera. */
 public final class DescentClientState {
 	public static boolean enabled;
+    public static com.terminaldetector.drmd.physics.PhysicsProfile physicsProfile;
+    public static boolean physicsCanChange;
 	public static float energy = 100, energyMax = 100;
 	public static float shield = 100, shieldMax = 100;
 	public static float roll;
@@ -46,6 +48,7 @@ public final class DescentClientState {
 
 	/** Drop flight mirrors when leaving a world — avoids stale enabled/attitude across joins. */
 	public static void resetSession() {
+        physicsProfile=null;physicsCanChange=false;
 		com.terminaldetector.drmd.client.flight.ShipAttitudeClient.portalEpoch = 0;
 		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clearAllClient();
         com.terminaldetector.drmd.DescentPlayerData.clearClient();
