@@ -51,7 +51,7 @@ public class LivingEntityMixin {
 		if (player.getVehicle() instanceof PyroShipEntity) return;
 		// Client STORE is mirrored from SyncPayload in DescentClient.applySync.
 		if (DescentPlayerData.get(player).isEnabled()) return;
-		if (!FootGravitySystem.isActive(player.getUuid())) return;
+		if (!FootGravitySystem.isActive(player)) return;
 		FootGravitySystem.travel(player, movementInput);
 		ci.cancel();
 	}

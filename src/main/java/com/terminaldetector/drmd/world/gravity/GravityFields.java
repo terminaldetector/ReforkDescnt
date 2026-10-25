@@ -125,10 +125,13 @@ public final class GravityFields {
 		// point, keep the deterministic dominant field's direction instead.
 		Vec3d down = sumDir.lengthSquared() > 1e-10 ? sumDir.normalize() : dominantDir;
 		if (down == null || down.lengthSquared() < 1e-10) return null;
-		return new Sample(down, (float) Math.min(2.0, weight), maxPower, dominant);
+		return new Sample(down, (float) Math.min(2.0, weight), maxPower, dominant, dominantId);
 	}
 
-	public record Sample(Vec3d downDir, float strength, float maxPower, String label) {
+	public record Sample(Vec3d downDir, float strength, float maxPower, String label, UUID sourceId) {
+        public Sample(Vec3d downDir,float strength,float maxPower,String label) {
+            this(downDir,strength,maxPower,label,null);
+        }
 		public Vec3d upDir() {
 			return downDir.negate();
 		}

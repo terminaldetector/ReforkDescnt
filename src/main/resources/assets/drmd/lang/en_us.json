@@ -286,5 +286,6 @@
   "tooltip.drmd.gravity_rail.1": "Holds one heavy physical body and aligns its long axis",
   "tooltip.drmd.gravity_rail.2": "Use again for a high-momentum launch",
   "tooltip.drmd.gravity_shift.1": "Throws a target along a new local gravity direction",
-  "tooltip.drmd.gravity_shift.2": "Aim at terrain with no target to place an 8 s field"
+  "tooltip.drmd.gravity_shift.2": "Aim at terrain with no target to place an 8 s field",
+  "message.drmd.local_gravity_active": "Local gravity engaged · H: free 6DoF"
 }

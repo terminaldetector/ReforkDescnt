@@ -97,6 +97,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.ai.DroneSwarmAi.clear();
 			com.terminaldetector.drmd.world.gravity.TransientGravityFields.clear();
 			DescentPlayerData.clear();
+            com.terminaldetector.drmd.world.gravity.FootGravitySystem.clearAll();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
 		});
 
@@ -110,6 +111,7 @@ public class DescentMod implements ModInitializer {
 						com.terminaldetector.drmd.world.level.WorldLevels.isAdvancedColumn(server.getOverworld()));
 			}
 			DescentPlayerData.clear();
+            com.terminaldetector.drmd.world.gravity.FootGravitySystem.clearAll();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
 			com.terminaldetector.drmd.physics.GravyPhysics.clear();
 			com.terminaldetector.drmd.ai.DroneSwarmAi.clear();
@@ -246,6 +248,8 @@ public class DescentMod implements ModInitializer {
 
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             FlightSystem.disable(handler.player,DescentPlayerData.get(handler.player));
+            com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(handler.player.getUuid());
+            com.terminaldetector.drmd.world.LocalOrientation.clear(handler.player.getUuid());
 			com.terminaldetector.drmd.physics.GravyPhysics.release(handler.player);
 			com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid());
 			com.terminaldetector.drmd.world.store.SurfaceStreamer.forget(handler.player.getUuid());

@@ -33,7 +33,7 @@ public class PlayerEntityMixin {
 	@Inject(method = "canChangeIntoPose", at = @At("HEAD"), cancellable = true)
 	private void drmd$blockCrawlUnderFootGravity(EntityPose pose, CallbackInfoReturnable<Boolean> cir) {
 		PlayerEntity self = (PlayerEntity) (Object) this;
-		if (!FootGravitySystem.isActive(self.getUuid())) return;
+		if (!FootGravitySystem.isActive(self)) return;
 		if (pose != EntityPose.SWIMMING) return;
 		if (!GravityMount.hasStandingClearance(self)) return;
 		cir.setReturnValue(false);

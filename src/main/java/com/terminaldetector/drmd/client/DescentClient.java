@@ -313,10 +313,11 @@ public class DescentClient implements ClientModInitializer {
 						local.getUuid(),
 						new Vec3d(payload.localUx(), payload.localUy(), payload.localUz()));
 			} else {
-				com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(local.getUuid());
+				com.terminaldetector.drmd.world.gravity.FootGravitySystem.clearClient(local.getUuid());
 			}
 		}
-		// Prime attitude whenever flight is on but the client basis is cold — not only on
+		if(local!=null) local.calculateDimensions();
+        // Prime attitude whenever flight is on but the client basis is cold — not only on
 		// the false→true edge (stale enabled=true across worlds skipped the prime).
 		if (payload.enabled()) {
 			boolean cold = !wasEnabled

@@ -20,7 +20,16 @@ public class CameraMixin {
 	@Inject(method = "update", at = @At("RETURN"))
 	private void drmd$descentCalcView(BlockView area, Entity focusedEntity, boolean thirdPerson,
 									  boolean inverseView, float tickDelta, CallbackInfo ci) {
-		if (!DescentClientState.enabled || !DescentClientState.attitudeValid) return;
+		if(!DescentClientState.enabled && focusedEntity instanceof net.minecraft.entity.player.PlayerEntity player
+                && com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player)) {
+            CameraAccessor access=(CameraAccessor)(Object)this;
+            Vec3d up=com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(player);
+            double height=player.getEyeHeight(player.getPose());
+            // Preserve the third-person displacement; only replace vanilla's world-Y eye offset.
+            access.drmd$invokeSetPos(((Camera)(Object)this).getPos().add(up.multiply(height)).subtract(0,height,0));
+            return;
+        }
+        if (!DescentClientState.enabled || !DescentClientState.attitudeValid) return;
 		Camera self = (Camera) (Object) this;
 		CameraAccessor acc = (CameraAccessor) self;
 		DescentCamera.apply(self, new DescentCamera.CameraAccess() {

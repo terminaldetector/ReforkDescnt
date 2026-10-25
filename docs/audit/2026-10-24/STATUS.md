@@ -41,3 +41,17 @@ First local check: `gradle test compileGametestJava --offline` stopped before co
 Fabric Loom 1.10-SNAPSHOT is absent from the local cache. See
 `/workspace/audit-evidence-2026-10-25/first-local-check.log`. No Java/GameTest/client pass
 is claimed. GHA remains pending restoration of the cloud GitHub credential.
+
+## Package C implementation (local)
+
+Client gravity mirrors now have their own table; a late client off packet cannot erase the
+integrated server's authoritative field. Collider and interaction/camera eyes now use the
+same local-up frame, with upright geometry restored on release. Two GameTests exercise
+state isolation and the actual player bounding box/eye methods; real-client confirmation
+is still required before certification.
+
+`GravityNoticeGate` emits only on source transitions and debounces field-edge/source jitter
+for 100 ticks. Notifications use the action bar and RU/EN translations. Its four real JUnit
+regressions were compiled with Eclipse ECJ 3.40.0 and run via JUnit console 1.11.3 locally:
+4/4 PASS, XML at `/workspace/audit-evidence-2026-10-25/notice-junit/`.
+This is not a substitute for compiling the Fabric module or testing rendered camera behavior.

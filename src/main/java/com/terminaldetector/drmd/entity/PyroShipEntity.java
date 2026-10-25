@@ -222,7 +222,7 @@ public class PyroShipEntity extends VehicleEntity {
 				data = DescentPlayerData.get(sp);
 				LocalOrientation.setFromDirection(sp.getUuid(), floor);
 				if (!FootGravitySystem.isWorldUp(LocalOrientation.getUp(sp.getUuid()))) {
-					FootGravitySystem.adoptClient(sp.getUuid(), LocalOrientation.getUp(sp.getUuid()));
+					FootGravitySystem.adoptServer(sp.getUuid(), LocalOrientation.getUp(sp.getUuid()),"Local floor");
 					sp.setNoGravity(true);
 				}
 				ConstructionMode.onShipLanded(sp);

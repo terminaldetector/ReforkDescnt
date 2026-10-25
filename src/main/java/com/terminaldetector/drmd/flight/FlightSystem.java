@@ -319,6 +319,7 @@ public final class FlightSystem {
         com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
         com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),new Vec3d(0,1,0));
         player.setNoGravity(false);
+        player.calculateDimensions();
         data.clearShipAttitude();
 		data.setRoll(0);
 		data.setRollVel(0);

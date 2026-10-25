@@ -11,7 +11,8 @@
     "EnderDragonFightMixin",
     "FlowableFluidMixin",
     "EntityFluidMixin",
-    "MultiNoiseBiomeSourceMixin"
+    "MultiNoiseBiomeSourceMixin",
+    "FootGravityGeometryMixin"
   ],
   "client": [
     "client.CameraAccessor",
