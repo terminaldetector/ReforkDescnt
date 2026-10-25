@@ -101,6 +101,8 @@ public final class WeaponFx {
 	 * Reuses existing block palette (no new assets).
 	 */
 	public static boolean melt(ServerWorld world, BlockPos pos, int intensity, LivingEntity breaker) {
+        if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,pos,breaker))return false;
+        if(world.getBlockEntity(pos)!=null)return false;
 		BlockState st = world.getBlockState(pos);
 		if (st.isAir() || st.getHardness(world, pos) < 0 || st.isOf(Blocks.BEDROCK)) return false;
 		float hard = st.getHardness(world, pos);
@@ -123,6 +125,7 @@ public final class WeaponFx {
 			}
 			return false;
 		}
+        if(next.equals(st))return false;
 		if (next.isAir()) {
 			world.breakBlock(pos, true, breaker);
 		} else {
@@ -136,9 +139,10 @@ public final class WeaponFx {
 
 	private static BlockState meltStage(BlockState st, int intensity) {
 		if (st.isOf(Blocks.OBSIDIAN) || st.isOf(Blocks.CRYING_OBSIDIAN)) {
-			return intensity >= 3 ? Blocks.LAVA.getDefaultState() : Blocks.MAGMA_BLOCK.getDefaultState();
+			return intensity >= 3 ? Blocks.AIR.getDefaultState() : Blocks.MAGMA_BLOCK.getDefaultState();
 		}
-		if (st.isOf(Blocks.STONE) || st.isOf(Blocks.DEEPSLATE) || st.isOf(Blocks.COBBLESTONE)
+        if(st.isOf(Blocks.COBBLESTONE) || st.isOf(Blocks.COBBLED_DEEPSLATE))return intensity>=2?Blocks.AIR.getDefaultState():null;
+		if (st.isOf(Blocks.STONE) || st.isOf(Blocks.DEEPSLATE)
 				|| st.isOf(Blocks.STONE_BRICKS) || st.isOf(Blocks.DEEPSLATE_BRICKS)) {
 			return intensity >= 2 ? Blocks.COBBLESTONE.getDefaultState() : Blocks.COBBLED_DEEPSLATE.getDefaultState();
 		}
@@ -151,7 +155,7 @@ public final class WeaponFx {
 			return intensity >= 2 ? Blocks.AIR.getDefaultState() : Blocks.GLASS.getDefaultState();
 		}
 		if (st.isOf(Blocks.NETHERRACK) || st.isOf(Blocks.MAGMA_BLOCK)) {
-			return intensity >= 2 ? Blocks.LAVA.getDefaultState() : Blocks.MAGMA_BLOCK.getDefaultState();
+			return intensity >= 2 ? Blocks.AIR.getDefaultState() : Blocks.MAGMA_BLOCK.getDefaultState();
 		}
 		if (st.isOf(Blocks.ICE) || st.isOf(Blocks.PACKED_ICE) || st.isOf(Blocks.BLUE_ICE)
 				|| st.isOf(Blocks.SNOW_BLOCK)) {
@@ -218,6 +222,7 @@ public final class WeaponFx {
 			int dy = p.getY() - center.getY();
 			int dz = p.getZ() - center.getZ();
 			if (dx * dx + dy * dy + dz * dz > (r + 0.35f) * (r + 0.35f)) continue;
+            if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,breaker) || world.getBlockEntity(p)!=null)continue;
 			BlockState st = world.getBlockState(p);
 			float h = st.getHardness(world, p);
 			if (!st.isAir() && h >= 0 && h < maxHard && !st.isOf(Blocks.BEDROCK)) {

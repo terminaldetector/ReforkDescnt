@@ -1,5 +1,7 @@
 package com.terminaldetector.drmd.world.engineer;
 
+import com.terminaldetector.drmd.weapon.core.WeaponCore;
+
 import com.terminaldetector.drmd.weapon.fx.WeaponFx;
 import com.terminaldetector.drmd.world.LocalOrientation;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
@@ -118,7 +120,7 @@ public final class EngineerTools {
 			BlockHitResult hit = ray(world, player, range);
 			Vec3d eye = player.getEyePos();
 			if (hit.getType() != HitResult.Type.BLOCK) {
-				Vec3d end = eye.add(player.getRotationVec(1f).multiply(range));
+				Vec3d end = eye.add(WeaponCore.aimDir(player).multiply(range));
 				WeaponFx.beamDrill(sw, eye, end, false);
 				return;
 			}
@@ -182,7 +184,7 @@ public final class EngineerTools {
 
 			double range = 48;
 			Vec3d eye = player.getEyePos();
-			Vec3d dir = player.getRotationVec(1f);
+			Vec3d dir = WeaponCore.aimDir(player);
 			BlockHitResult hit = ray(world, player, range);
 			Vec3d aimEnd = hit.getType() == HitResult.Type.BLOCK
 					? hit.getPos()
@@ -246,7 +248,8 @@ public final class EngineerTools {
 
 	private static BlockHitResult ray(World world, PlayerEntity user, double range) {
 		Vec3d eye = user.getEyePos();
-		Vec3d end = eye.add(user.getRotationVec(1f).multiply(range));
+		Vec3d end = eye.add(WeaponCore.aimDir(user).multiply(range));
+        end=com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedEnd(world,eye,end);
 		return world.raycast(new RaycastContext(eye, end,
 				RaycastContext.ShapeType.OUTLINE, RaycastContext.FluidHandling.NONE, user));
 	}

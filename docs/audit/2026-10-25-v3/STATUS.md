@@ -88,3 +88,17 @@ A per-world admission budget preserves whole7/14bursts: max128children/tick,48/c
 is available or its finite lifetime ends. Four pure JUnit cases PASS. Three actual lifecycle/
 count GameTests are prepared but NOT RUN. Detonation/block-update timing and scatter images
 remain unmeasured; this is a spawn/lifecycle bound, not full explosion-cost certification.
+
+## L drill safety/progress source changes (local; runtime NOT RUN)
+
+The recovered branch already uses TunnelCarving→CarvedBlock quarter-cell masks and real matching
+collision; the older branch findings in the attachment are not a description of this exact source.
+Repeated identical boundary cuts previously rewrote/recounted the same shape; they now skip it.
+Handheld engineer rays now use full ship aim and stop at the loaded-region boundary. Mining
+checks loaded chunks,height,border,vanilla player permission and container presence before reads.
+The cobblestone heat stage no longer returns the same block indefinitely; hot Nether/magma
+processing no longer creates a lava source. Four prepared native GameTests are NOT RUN.
+
+Still open: accumulated/persisted heat, complete drop/material economics, pooled tick budgets
+and the requested smooth signed-distance tunnel surface. The existing quarter-cell edge is a
+finer staircase, not a mathematically smooth NoCubes replacement. No new dependency was added.

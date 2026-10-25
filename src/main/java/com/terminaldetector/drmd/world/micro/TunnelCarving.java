@@ -125,7 +125,7 @@ public final class TunnelCarving {
 					if (centerDist > radius + HALF_DIAGONAL) continue; // no corner can reach the capsule
 
 					pos.set(x, y, z);
-					if (!isBoreable(world, pos)) continue;
+					if (!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,pos,breaker) || !isBoreable(world, pos)) continue;
 
 					if (centerDist < radius - HALF_DIAGONAL) {
 						if (world.breakBlock(pos.toImmutable(), true, breaker)) carved++;
@@ -139,6 +139,7 @@ public final class TunnelCarving {
 						continue;
 					}
 					BlockState state = world.getBlockState(pos);
+                    if(world.getBlockEntity(pos) instanceof CarvedBlockEntity existing && (existing.mask() & mask)==existing.mask())continue;
 					if (CarvedBlock.replace(world, pos, state, mask) != null) carved++;
 				}
 			}
@@ -148,7 +149,9 @@ public final class TunnelCarving {
 
 	/** Mirrors the hardness/bedrock gate {@code WeaponFx.drillTunnel} already applied. */
 	private static boolean isBoreable(ServerWorld world, BlockPos pos) {
-		if (world.isOutOfHeightLimit(pos)) return false;
+		if (world.isOutOfHeightLimit(pos) || !world.isChunkLoaded(pos) || !world.getWorldBorder().contains(pos)) return false;
+        var entity=world.getBlockEntity(pos);
+        if(entity!=null && !(entity instanceof CarvedBlockEntity))return false;
 		BlockState state = world.getBlockState(pos);
 		if (state.isAir()) return false;
 		float hardness = state.getHardness(world, pos);
