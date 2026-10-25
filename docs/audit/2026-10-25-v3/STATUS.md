@@ -10,6 +10,46 @@ The user now says GitHub limits are exhausted and asks to work here with source 
 Use local commits and downloadable source/bundle/patch/report backups. Do not push or
 trigger Actions during this pause. These backups are not GHA checkpoints or tested JARs.
 
+## Cloud runtime checkpoint (25 October 2026)
+
+The historical "Loom unavailable / native NOT RUN" notes below describe the earlier
+machine. In this cloud instance, JDK 21 / Gradle 8.12 / Loom 1.10.5 work. A fresh
+full run on `9470935ef848785b33542409710fa8e5546f293e` passed **65 GameTests**, including
+all **31 AUDIT_NATIVE_CASES**; the item registry resource table was generated. The
+unit suite passed **538 tests**; the Python evidence/resource suite passed **26**.
+
+Runtime findings fixed in local commits: CHUNK_LOAD no longer asks for its own
+unfinished chunk (`e91f405`); lower-bound recovery uses a genuinely clear test
+position (`f8d45ec`); OrganicBlock simplifies its collision union once (`63a48a6`).
+Client scenarios now wait for server simulation ticks (`0758a5e`, `9470935`).
+The range-image fixture was subsequently made stationary at its exact authored
+ranges (`eb20183`); full-speed motion remains a separate mandatory test.
+
+Acceptance status is still partial:
+
+- Construction: native footprint, consumption, rollback, payload and read-only
+  proposal cases passed. Client preview / roll / GUI-scale matrices remain open.
+- Clusters: native seven/fourteen-child and lifetime cases passed. Full visual
+  scatter and measured explosion costs remain open.
+- Drill: native safety, progress, repeat-mask and loaded-ray checks passed.
+  Accumulated heat, material economy and smooth SDF surfaces remain open.
+- Portals: native whole-body exit rejection cases passed. Traversal, reload,
+  foot-frame and mirror/portal clipping client proofs remain open.
+- Physics profiles: native explicit STANDARD and migration cases passed.
+  Client profile combinations, reload and performance matrices remain open.
+- Weapons: client runs produced fresh range, mount and transient-effect images,
+  but the complete shootcheck failed when moving fixture projectiles reached
+  the corridor boundary during slow rendering. Revised range fixtures still
+  require a fresh complete run; no full weapon/audit success is claimed.
+- Rendering: hybrid, collapse, ragdoll and gravity markers were reached in an
+  intermediate attempt. Full rendercheck remains unverified: swarm timing failed
+  in one attempt; server-paced repeat exceeded its 420-second diagnostic budget
+  while world generation/fill consumed server time.
+
+No 369-frame audit or full video-audit completion is certified by these results.
+First-failure logs, XML, crash reports and partial frames are retained separately
+under `/workspace/refork-native-evidence` and `build/checkpoint/logs`.
+
 | ID | Scope | Source status / acceptance still required |
 |---|---|---|
 |022|Mirrors|OFF scans/target lifecycle patched; exact mirror clipping and client proof remain open.|
