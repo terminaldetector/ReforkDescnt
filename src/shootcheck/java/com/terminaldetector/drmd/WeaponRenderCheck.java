@@ -53,6 +53,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private volatile boolean rangeServerTicked;
     private static final Map<Integer, RenderProbe> RENDERED = new HashMap<>();
     private static final Map<Integer, String> VISIBILITY = new HashMap<>();
+    private static volatile String fastServerState = "fast volley not observed";
     private record RenderProbe(float x, float y, float fogStart, float fogEnd, long recorded) {}
 
     public static void recordVisibility(int id, String state) { VISIBILITY.put(id, state); }
@@ -82,6 +83,17 @@ public final class WeaponRenderCheck implements ClientModInitializer {
             if (server != fixtureServer || fixturePlayer == null) return;
             var player = server.getPlayerManager().getPlayer(fixturePlayer);
             if (player == null) return;
+            if (scene == 9 && !ids.isEmpty()) {
+                var shot = server.getOverworld().getEntityById(ids.getFirst());
+                if (shot != null) {
+                    var hit = server.getOverworld().raycast(new net.minecraft.world.RaycastContext(
+                            shot.getPos(), shot.getPos().add(shot.getVelocity()),
+                            net.minecraft.world.RaycastContext.ShapeType.COLLIDER,
+                            net.minecraft.world.RaycastContext.FluidHandling.NONE, shot));
+                    fastServerState = "server age=" + shot.age + " pos=" + shot.getPos()
+                            + " nextHit=" + hit.getType() + " at=" + hit.getPos();
+                }
+            }
             player.setPosition(POSITION); player.setVelocity(Vec3d.ZERO);
             var data = DescentPlayerData.get(player); data.setFlightVelocity(Vec3d.ZERO);
             Vec3d f = forward(), u = up();
@@ -195,7 +207,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private static ProjectileEntity clientShot(MinecraftClient client, int id) {
         var entity = client.world.getEntityById(id);
         if (!(entity instanceof ProjectileEntity shot))
-            throw new IllegalStateException("Projectile did not synchronize to client: " + id);
+            throw new IllegalStateException("Projectile did not synchronize to client: " + id + "; " + fastServerState);
         return shot;
     }
 

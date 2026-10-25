@@ -56,6 +56,7 @@ public final class HybridRenderCheck implements ClientModInitializer {
     private volatile int swarmIndexedDrones;
     private volatile int swarmMaxCandidates;
     private volatile int swarmMovingDrones;
+    private volatile int swarmStartTick;
     private volatile boolean gravityArenaBuilt;
     private boolean setupQueued;
     private int ticks, sceneTicks;
@@ -112,6 +113,9 @@ public final class HybridRenderCheck implements ClientModInitializer {
         if(sceneTicks>=260 && !collapseReady)return;
         if(sceneTicks>=800 && !gravityReady)return;
         if(sceneTicks>=1055 && !droneSwarmReady)return;
+        // Rendering can run ahead of the integrated server under software GL. Give
+        // the actual AI a fixed server-time interval before measuring its motion.
+        if(sceneTicks==1084 && client.getServer().getTicks()-swarmStartTick<30)return;
         ++sceneTicks;
         if (sceneTicks==160) {
             capture(client,"hybrid-before.png");
@@ -434,7 +438,7 @@ public final class HybridRenderCheck implements ClientModInitializer {
 			if(swarmIndexedDrones<LIVE_SWARM_SIZE || maxCandidates>DroneSwarmAi.MAX_BOID_CANDIDATES
 					|| examined>(long)LIVE_SWARM_SIZE*DroneSwarmAi.MAX_BOID_CANDIDATES)
 				throw new IllegalStateException("Live swarm escaped its bounded spatial pass");
-			swarmMaxCandidates=maxCandidates;droneSwarmReady=true;
+			swarmStartTick=server.getTicks();swarmMaxCandidates=maxCandidates;droneSwarmReady=true;
 		});
 	}
 
