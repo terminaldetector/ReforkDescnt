@@ -52,12 +52,12 @@ public final class ConstructScaffold {
 		Draft d = DRAFTS.get(player.getUuid());
 		if (d == null || d.positions().isEmpty()) {
 			ServerPlayNetworking.send(player, new ModNetworking.ScaffoldPayload(
-					false, d == null ? "" : d.shape().id, List.of()));
+					false, ConstructionMode.isActive(player.getUuid()), d == null ? "" : d.shape().id, List.of()));
 			return;
 		}
 		int cap = Math.min(d.positions().size(), 384);
 		List<BlockPos> slim = d.positions().subList(0, cap);
-		ServerPlayNetworking.send(player, new ModNetworking.ScaffoldPayload(true, d.shape().id, slim));
+		ServerPlayNetworking.send(player, new ModNetworking.ScaffoldPayload(true, ConstructionMode.isActive(player.getUuid()), d.shape().id, slim));
 	}
 
 	public static void clearAll() {

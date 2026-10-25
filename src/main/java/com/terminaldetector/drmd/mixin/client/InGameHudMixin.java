@@ -14,5 +14,6 @@ public class InGameHudMixin {
 	@Inject(method = "render", at = @At("RETURN"))
 	private void drmd$hud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
 		DescentHud.render(context, tickCounter.getTickDelta(false));
+        com.terminaldetector.drmd.client.render.BuildToolPreview.caption(context);
 	}
 }

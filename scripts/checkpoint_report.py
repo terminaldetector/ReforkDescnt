@@ -33,7 +33,8 @@ AUDIT_FRAMES = ('audit-flight-off','audit-lower-recovery','audit-inventory') + t
     f'audit-swarm-{n}' for n in (128,256,512,1024)) + tuple(f'audit-environment-{i}' for i in range(4)) + tuple(f'audit-profile-{i}' for i in range(4))
 
 
-AUDIT_NATIVE_CASES = ('multiCellPlacementCannotOverwriteAnUnvalidatedNeighbour',
+AUDIT_NATIVE_CASES = ('explicitToolModesAreNotMaskedByAdaptiveDefaults',
+ 'multiCellPlacementCannotOverwriteAnUnvalidatedNeighbour',
  'carvedFragmentsRemainMineableWhileContainersAreProtected',
  'surfacePlacementConsumesExactlyOneAndCannotBuildWithoutMaterial',
  'hotbarMaterialIsChargedAndRejectedTargetsDoNotConsumeIt',
@@ -57,7 +58,10 @@ AUDIT_NATIVE_CASES = ('multiCellPlacementCannotOverwriteAnUnvalidatedNeighbour',
  'collisionOnlyAtTheBedHeadCannotLeaveAPlacedFoot',
  'aMultiCellBatchCountsChangedCellsButChargesEachObjectOnce',
  'nativeQuietWriteFailureRollsBackEveryAttemptedCell',
- 'anUpperPartBeyondWorldHeightCannotPlaceOrConsumeTheLowerPart')
+ 'anUpperPartBeyondWorldHeightCannotPlaceOrConsumeTheLowerPart',
+ 'previewPlanIsReadOnlyAndMatchesTheCommittedDoorFootprint',
+ 'constructionModeSynchronizesEvenWithoutALockedScaffold',
+ 'oversizedScaffoldFramesAreRejectedBeforeAllocation')
 
 def verify_native_audit(root,started):
     names=[]

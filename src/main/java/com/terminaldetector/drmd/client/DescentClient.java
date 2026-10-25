@@ -73,6 +73,7 @@ public class DescentClient implements ClientModInitializer {
 		com.terminaldetector.drmd.client.render.SkyUfoHullRenderer.register();
 		com.terminaldetector.drmd.client.render.MegaBeamViewRenderer.register();
 		com.terminaldetector.drmd.client.render.ConstructScaffoldRenderer.register();
+        com.terminaldetector.drmd.client.render.BuildToolPreview.register();
 		com.terminaldetector.drmd.client.smoke.SmokeRenderer.register();
 		// First, so the frame's matrices are captured before either view can overwrite the context.
 		com.terminaldetector.drmd.client.portal.OffscreenWorldView.register();
@@ -120,7 +121,7 @@ public class DescentClient implements ClientModInitializer {
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ScaffoldPayload.ID, (payload, context) ->
 				context.client().execute(() -> com.terminaldetector.drmd.client.build.ScaffoldClientState.INSTANCE.set(
-						payload.active(), payload.shapeId(), payload.positions())));
+						payload.active(), payload.constructionMode(), payload.shapeId(), payload.positions())));
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SmokePayload.ID, (payload, context) ->
 				context.client().execute(() -> {

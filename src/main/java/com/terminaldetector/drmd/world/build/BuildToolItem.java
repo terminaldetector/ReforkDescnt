@@ -40,7 +40,7 @@ public class BuildToolItem extends Item {
 			BuildMode mode = readMode(stack).next();
 			writeMode(stack, mode);
 			if (!world.isClient) {
-				user.sendMessage(Text.literal("§bBuild mode: §f" + mode.label), true);
+				user.sendMessage(Text.translatable("message.drmd.build_mode_changed",Text.translatable("message.drmd.build_mode."+mode.name().toLowerCase(java.util.Locale.ROOT))),true);
 			}
 			return TypedActionResult.success(stack);
 		}
@@ -49,7 +49,7 @@ public class BuildToolItem extends Item {
 		writeAxis(stack, axis);
 		if (!world.isClient) {
 			String name = axis == 0 ? "PITCH" : axis == 1 ? "YAW" : "ROLL";
-			user.sendMessage(Text.literal("§bRotate axis: §f" + name + "  rot=" + readRotation(stack)), true);
+			user.sendMessage(Text.translatable("message.drmd.build_axis_changed",name,readRotation(stack)),true);
 		}
 		return TypedActionResult.success(stack);
 	}
@@ -67,38 +67,37 @@ public class BuildToolItem extends Item {
 			// Snap local orientation: hit face becomes "up" (floor)
 			LocalOrientation.setFromDirection(player.getUuid(), face);
 			if (!world.isClient) {
-				player.sendMessage(Text.literal("§aLocal UP = " + face.asString() + " (surface mode)"), true);
+				player.sendMessage(Text.translatable("message.drmd.build_surface_selected"),true);
 			}
 			writeMode(tool, BuildMode.SURFACE);
 			return ActionResult.success(world.isClient);
 		}
 
-		// Adaptive Construction Mode: always surface-normal placement
-		if (!world.isClient && player instanceof net.minecraft.server.network.ServerPlayerEntity sp
-				&& ConstructionMode.isActive(sp.getUuid())) {
-			BlockPos placed = AdaptivePlacement.placeOnSurface(world, player, hit, face);
-			return placed != null ? ActionResult.SUCCESS : ActionResult.FAIL;
-		}
+        if(world.isClient)return ActionResult.SUCCESS;
+        var proposal=propose(world,player,tool,hit,face,ConstructionMode.isActive(player.getUuid()));
+        if(!proposal.plan().ready()) {
+            player.sendMessage(Text.translatable("message.drmd.build_reason."+proposal.plan().reason().name().toLowerCase(java.util.Locale.ROOT)),true);
+            return ActionResult.FAIL;
+        }
+        if(AdaptivePlacement.commit(world,player,proposal.plan(),false)==0) {
+            player.sendMessage(Text.translatable("message.drmd.build_reason.changed"),true);return ActionResult.FAIL;
+        }
+        if(!proposal.adaptiveDefault())bumpRotation(tool);
+        return ActionResult.SUCCESS;
+    }
 
-		BuildMode mode = readMode(tool);
-		BlockPos placeAt = resolvePlacePos(player, hit, face, mode);
-        if(world.isOutOfHeightLimit(placeAt) || !world.isChunkLoaded(placeAt) || !world.getWorldBorder().contains(placeAt))return ActionResult.FAIL;
-		if (!world.getBlockState(placeAt).isReplaceable()) {
-			return ActionResult.FAIL;
-		}
+    public record Proposal(BlockPos anchor,Direction face,BuildMode mode,boolean adaptiveDefault,Block material,PlacementPlan plan) {}
 
-		Block material = AdaptivePlacement.resolveMaterial(player);
-        if(material==null)return ActionResult.FAIL;
-		BlockState state = material.getDefaultState();
-		// Apply facing if the block supports it — rotate by tool rotation on chosen axis
-		state = applyRotation(state, face, readAxis(tool), readRotation(tool));
-
-		if (!world.isClient) {
-            if(!AdaptivePlacement.placeState(world,player,placeAt,state,false))return ActionResult.FAIL;
-            bumpRotation(tool);
-		}
-		return ActionResult.success(world.isClient);
-	}
+    /** Shared effective mode, position, orientation and footprint for preview and server application. */
+    public static Proposal propose(World world,PlayerEntity player,ItemStack tool,BlockPos hit,Direction face,boolean adaptive) {
+        boolean adaptiveDefault=adaptive && !hasSelectedMode(tool);
+        BuildMode mode=adaptiveDefault?BuildMode.SURFACE:readMode(tool);
+        BlockPos anchor=resolvePlacePos(player,hit,face,mode);
+        Block material=AdaptivePlacement.resolveMaterial(player);
+        if(material==null)return new Proposal(anchor,face,mode,adaptiveDefault,null,PlacementPlan.rejected(PlacementPlan.Reason.NO_MATERIAL));
+        BlockState state=adaptiveDefault?AdaptivePlacement.orient(material.getDefaultState(),face):applyRotation(material.getDefaultState(),face,readAxis(tool),readRotation(tool));
+        return new Proposal(anchor,face,mode,adaptiveDefault,material,AdaptivePlacement.plan(world,player,anchor,state,false));
+    }
 
 	public static BlockPos resolvePlacePos(PlayerEntity player, BlockPos hit, Direction face, BuildMode mode) {
 		return switch (mode) {
@@ -147,6 +146,11 @@ public class BuildToolItem extends Item {
 		return state;
 	}
 
+    private static boolean hasSelectedMode(ItemStack tool) {
+        try {BuildMode.valueOf(custom(tool).getString("mode"));return true;}
+        catch(IllegalArgumentException invalid){return false;}
+    }
+
 	private static BuildMode readMode(ItemStack stack) {
 		NbtCompound nbt = custom(stack);
 		try {
@@ -163,7 +167,7 @@ public class BuildToolItem extends Item {
 	}
 
 	private static int readAxis(ItemStack stack) {
-		return custom(stack).getInt("axis");
+		return Math.floorMod(custom(stack).getInt("axis"),3);
 	}
 
 	private static void writeAxis(ItemStack stack, int axis) {

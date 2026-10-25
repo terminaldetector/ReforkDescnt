@@ -48,6 +48,7 @@ public final class DescentClientState {
 
 	/** Drop flight mirrors when leaving a world — avoids stale enabled/attitude across joins. */
 	public static void resetSession() {
+        com.terminaldetector.drmd.client.build.ScaffoldClientState.INSTANCE.clear();
         physicsProfile=null;physicsCanChange=false;
 		com.terminaldetector.drmd.client.flight.ShipAttitudeClient.portalEpoch = 0;
 		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clearAllClient();

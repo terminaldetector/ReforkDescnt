@@ -79,7 +79,7 @@ public final class AdaptivePlacement {
         return commit(world,player,plan(world,player,at,state,leftHandOnly),leftHandOnly)>0;
     }
 
-    private static int commit(World world,PlayerEntity player,PlacementPlan plan,boolean leftHandOnly) {
+    static int commit(World world,PlayerEntity player,PlacementPlan plan,boolean leftHandOnly) {
         if(world.isClient || !plan.ready())return 0;
         ItemStack material=materialStack(player,leftHandOnly),placedStack=material.copy();
         int available=material.getCount();Block selected=resolveMaterial(player,leftHandOnly);

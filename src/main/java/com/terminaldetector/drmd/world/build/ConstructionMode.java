@@ -23,6 +23,7 @@ public final class ConstructionMode {
 	public static void set(ServerPlayerEntity player, boolean on) {
 		if (on) ACTIVE.put(player.getUuid(), true);
 		else ACTIVE.remove(player.getUuid());
+        ConstructScaffold.sync(player);
 		player.sendMessage(Text.literal(on
 				? "§aConstruction Mode §fON — place on any surface (local normal)"
 				: "§7Construction Mode OFF"), false);

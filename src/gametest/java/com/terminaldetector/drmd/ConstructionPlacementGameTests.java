@@ -154,4 +154,52 @@ public final class ConstructionPlacementGameTests implements FabricGameTest {
             && player.getOffHandStack().getCount()==1 && world.getBlockState(at).isAir(),"complete height preflight precedes any write");player.discard();context.complete();
     }
 
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void previewPlanIsReadOnlyAndMatchesTheCommittedDoorFootprint(TestContext context) {
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+        var hit=context.getAbsolutePos(new BlockPos(4,4,4));player.setPosition(Vec3d.ofCenter(hit.east(3)));world.setBlockState(hit,Blocks.STONE.getDefaultState(),2);
+        var tool=new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.BUILD_TOOL);player.setStackInHand(Hand.MAIN_HAND,tool);player.setStackInHand(Hand.OFF_HAND,new ItemStack(Blocks.OAK_DOOR,1));
+        var proposal=com.terminaldetector.drmd.world.build.BuildToolItem.propose(world,player,tool,hit,Direction.UP,true);
+        context.assertTrue(proposal.mode()==com.terminaldetector.drmd.world.build.BuildMode.SURFACE && proposal.plan().ready() && proposal.plan().cells().size()==2,"server-effective mode and full preview footprint");
+        context.assertTrue(world.getBlockState(hit.up()).isAir() && world.getBlockState(hit.up(2)).isAir() && player.getOffHandStack().getCount()==1,"preview has no world/inventory writes");
+        context.assertTrue(AdaptivePlacement.placeState(world,player,proposal.anchor(),proposal.plan().cells().getFirst().after(),false),"same proposal can be applied");
+        for(var cell:proposal.plan().cells())context.assertTrue(world.getBlockState(cell.position()).equals(cell.after()),"actual cells match preview state");
+        player.discard();context.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void constructionModeSynchronizesEvenWithoutALockedScaffold(TestContext context) {
+        var buffer=new net.minecraft.network.RegistryByteBuf(io.netty.buffer.Unpooled.buffer(),context.getWorld().getRegistryManager());
+        try {
+            var payload=new com.terminaldetector.drmd.network.ModNetworking.ScaffoldPayload(false,true,"",List.of());
+            com.terminaldetector.drmd.network.ModNetworking.ScaffoldPayload.CODEC.encode(buffer,payload);
+            var decoded=com.terminaldetector.drmd.network.ModNetworking.ScaffoldPayload.CODEC.decode(buffer);
+            context.assertTrue(!decoded.active() && decoded.constructionMode() && decoded.positions().isEmpty(),"adaptive mode is independent of a draft’s active flag");
+        } finally {buffer.release();}
+        context.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void oversizedScaffoldFramesAreRejectedBeforeAllocation(TestContext context) {
+        var buffer=new net.minecraft.network.RegistryByteBuf(io.netty.buffer.Unpooled.buffer(),context.getWorld().getRegistryManager());boolean rejected=false;
+        try {
+            buffer.writeBoolean(false);buffer.writeBoolean(false);buffer.writeString("");buffer.writeVarInt(385);
+            try{com.terminaldetector.drmd.network.ModNetworking.ScaffoldPayload.CODEC.decode(buffer);}catch(IllegalArgumentException expected){rejected=true;}
+        } finally {buffer.release();}
+        context.assertTrue(rejected,"wire frame count is bounded before creating the positions list");context.complete();
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void explicitToolModesAreNotMaskedByAdaptiveDefaults(TestContext context) {
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();
+        var hit=context.getAbsolutePos(new BlockPos(4,4,4));player.setPosition(Vec3d.ofCenter(hit.east(3)));player.setStackInHand(Hand.OFF_HAND,new ItemStack(Blocks.IRON_BLOCK,1));
+        var tool=new ItemStack(com.terminaldetector.drmd.entity.ModWorldBlocks.BUILD_TOOL);
+        for(var mode:com.terminaldetector.drmd.world.build.BuildMode.values()) {
+            var nbt=new net.minecraft.nbt.NbtCompound();nbt.putString("mode",mode.name());
+            tool.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,net.minecraft.component.type.NbtComponent.of(nbt));
+            var persisted=tool.copy();
+            var proposal=com.terminaldetector.drmd.world.build.BuildToolItem.propose(world,player,persisted,hit,Direction.UP,true);
+            context.assertTrue(proposal.mode()==mode && !proposal.adaptiveDefault(),"explicit persisted "+mode+" wins over automatic surface default");
+        }
+        player.discard();context.complete();
+    }
+
 }

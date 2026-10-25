@@ -380,12 +380,13 @@ public final class ModNetworking {
 	}
 
 	/** Server → client construction scaffold frame (locked positions). */
-	public record ScaffoldPayload(boolean active, String shapeId, java.util.List<net.minecraft.util.math.BlockPos> positions)
+	public record ScaffoldPayload(boolean active, boolean constructionMode, String shapeId, java.util.List<net.minecraft.util.math.BlockPos> positions)
 			implements CustomPayload {
 		public static final Id<ScaffoldPayload> ID = new Id<>(SCAFFOLD_ID);
 		public static final PacketCodec<RegistryByteBuf, ScaffoldPayload> CODEC = PacketCodec.of(
 				(payload, buf) -> {
 					buf.writeBoolean(payload.active);
+                    buf.writeBoolean(payload.constructionMode);
 					buf.writeString(payload.shapeId == null ? "" : payload.shapeId);
 					buf.writeVarInt(payload.positions.size());
 					for (net.minecraft.util.math.BlockPos p : payload.positions) {
@@ -394,11 +395,13 @@ public final class ModNetworking {
 				},
 				buf -> {
 					boolean active = buf.readBoolean();
+                    boolean constructionMode=buf.readBoolean();
 					String shape = buf.readString();
 					int n = buf.readVarInt();
+                    if(n<0 || n>384)throw new IllegalArgumentException("Invalid scaffold cell count");
 					java.util.ArrayList<net.minecraft.util.math.BlockPos> list = new java.util.ArrayList<>(n);
 					for (int i = 0; i < n; i++) list.add(buf.readBlockPos());
-					return new ScaffoldPayload(active, shape, list);
+					return new ScaffoldPayload(active, constructionMode, shape, list);
 				}
 		);
 		@Override public Id<? extends CustomPayload> getId() { return ID; }

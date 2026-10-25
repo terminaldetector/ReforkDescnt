@@ -238,6 +238,7 @@ public class DescentMod implements ModInitializer {
 				com.terminaldetector.drmd.world.fate.WorldEndings.pushTo(handler.player);
 				com.terminaldetector.drmd.world.planet.PlanetSync.pushTo(handler.player);
 				com.terminaldetector.drmd.physics.PhysicsProfileState.sync(handler.player);
+				com.terminaldetector.drmd.world.build.ConstructScaffold.sync(handler.player);
 				unlockDrmdRecipes(handler.player);
 			});
 		});

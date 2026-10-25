@@ -98,7 +98,7 @@ public final class ConstructScaffoldRenderer {
 		}
 	}
 
-	private static void wireBox(BufferBuilder buf, Matrix4f mat,
+	static void wireBox(BufferBuilder buf, Matrix4f mat,
 			float x, float y, float z, float r, float g, float b, float a) {
 		float x1 = x + 1f, y1 = y + 1f, z1 = z + 1f;
 		// bottom
@@ -118,7 +118,7 @@ public final class ConstructScaffoldRenderer {
 		line(buf, mat, x, y, z1, x, y1, z1, r, g, b, a);
 	}
 
-	private static void line(BufferBuilder buf, Matrix4f mat,
+	static void line(BufferBuilder buf, Matrix4f mat,
 			float x0, float y0, float z0, float x1, float y1, float z1,
 			float r, float g, float b, float a) {
 		buf.vertex(mat, x0, y0, z0).color(r, g, b, a);

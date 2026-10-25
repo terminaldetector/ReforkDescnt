@@ -188,3 +188,23 @@ mutation,stale snapshot,invalidated first part,resource loss and failed rollback
 native GameTests are prepared (doors,all bed facings,tall plants,second-part collision,batches,
 native quiet rollback and upper world bound); NOT RUN. All25native audit methods are required
 by the distribution gate. Full Fabric/API/Mixin/client confirmation remains blocked locally.
+
+## M follow-up — shared build preview and effective mode (audit.3; client NOT RUN)
+
+The basic build tool now uses one proposal method for server placement and client prediction:
+selected mode,anchor,block orientation,full footprint and refusal reason. A bounded read-only
+preview runs once per client tick, shows both cells in green/red,local axes,material and cost,
+and hides beneath screens/F1/sneak or in nested mirror/portal views. World/player changes
+invalidate the rendered snapshot. New strings are RU/EN; no world or inventory writes in preview.
+
+Adaptive construction mode is explicitly mirrored in the existing scaffold payload even when
+no locked draft exists; client state is separate from server authority and cleared on disconnect.
+The frame decoder rejects negative/over384counts before allocation. Server join/mode changes
+push the effective flag. Explicit saved LOOK/SURFACE/PLANE choices on the tool override only the
+automatic surface default; existing scaffold mode stays intact. The blank fresh tool can still
+inherit that surface default. This prevents mode cycling from being silently ignored.
+
+Four additional native checks cover read-only plan/application equivalence,mode-only payload
+round-trip,oversized wire frames and explicit persisted mode choices. All29native audit IDs
+are now mandatory; these and visual preview/roll/GUI-scale checks remain NOT RUN. The earlier
+369-frame suite remains mandatory and does not claim to certify the new preview's appearance.
