@@ -264,9 +264,13 @@ public final class WeaponRenderCheck implements ClientModInitializer {
                     double distance = new double[]{12, 40, 90}[index];
                     Vec3d pos = scene < 6
                             ? player.getEyePos().add(f.multiply(distance)).add(right.multiply(new double[]{-3, 0, 5}[index]))
-                            : WeaponCore.allMuzzles(player, "laser").get(index);
-                    var cfg = config(player, pos, f, scene < 6 ? .06f : .5f,
+                            : WeaponCore.allMuzzles(player, "laser").get(index).add(f.multiply(40));
+                    // Range images must remain at their authored distances even when
+                    // software rendering takes longer than server simulation. Motion
+                    // and full-speed synchronization are verified separately in scene 9.
+                    var cfg = config(player, pos, f, 0,
                             scene < 2 ? 0 : scene < 4 ? 2 : scene < 6 ? 1 : 0);
+                    cfg.life = 120;
                     var shot = WeaponCore.fireProjectile(cfg);
                     if (shot == null) throw new IllegalStateException("Range projectile spawn rejected");
                     created.add(shot.getId());
