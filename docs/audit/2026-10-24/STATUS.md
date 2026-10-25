@@ -55,3 +55,18 @@ for 100 ticks. Notifications use the action bar and RU/EN translations. Its four
 regressions were compiled with Eclipse ECJ 3.40.0 and run via JUnit console 1.11.3 locally:
 4/4 PASS, XML at `/workspace/audit-evidence-2026-10-25/notice-junit/`.
 This is not a substitute for compiling the Fabric module or testing rendered camera behavior.
+
+## Package B — finite height / emergency recovery (local)
+
+The current source declares -784..1888, unlike the older README cited by the video audit.
+The cubic subsystem explicitly stores snapshots and does not implement unbounded physical
+vertical travel. HUD classification now checks the running world's actual bounds and shows
+Outside world above/below the Overworld instead of pretending Y=2150 is authored Oblivion.
+Ordinary above-column flight is not capped.
+
+A START_SERVER_TICK safeguard for the advanced Overworld remembers clear, fluid-free player
+positions and restores one before the lower void, clearing outward momentum and enabling
+existing free 6DoF. It is an emergency recovery path, not a claim that lower worldgen is fixed.
+The Nether floor remains diggable granite and is still being investigated with streaming.
+A GameTest exercises the actual recovery and HUD resolver. Four standalone JUnit boundary
+regressions PASS locally (`bounds-junit/`); Fabric/GameTests/client evidence remains pending.

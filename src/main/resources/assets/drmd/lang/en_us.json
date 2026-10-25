@@ -287,5 +287,6 @@
   "tooltip.drmd.gravity_rail.2": "Use again for a high-momentum launch",
   "tooltip.drmd.gravity_shift.1": "Throws a target along a new local gravity direction",
   "tooltip.drmd.gravity_shift.2": "Aim at terrain with no target to place an 8 s field",
-  "message.drmd.local_gravity_active": "Local gravity engaged · H: free 6DoF"
+  "message.drmd.local_gravity_active": "Local gravity engaged · H: free 6DoF",
+  "message.drmd.lower_world_recovery": "Lower world boundary reached · restored safe position and 6DoF"
 }

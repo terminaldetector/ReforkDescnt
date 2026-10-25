@@ -40,7 +40,9 @@ public final class LayerBridge {
 			return;
 		}
 
-		WorldLayer now = WorldLayer.at(player.getWorld(), player.getY());
+		if(!com.terminaldetector.drmd.world.level.VerticalBounds.contains(player.getY(),
+                player.getWorld().getBottomY(),player.getWorld().getTopY())) return;
+        WorldLayer now = WorldLayer.at(player.getWorld(), player.getY());
 		WorldLayer prev = LAST.put(id, now);
 		if (prev == null || prev == now) return;
 		if (cd > 0) return;

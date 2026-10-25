@@ -251,5 +251,6 @@
   "tooltip.drmd.gravity_rail.2": "Повторное применение даёт мощный импульс",
   "tooltip.drmd.gravity_shift.1": "Бросает цель вдоль нового направления локальной гравитации",
   "tooltip.drmd.gravity_shift.2": "Без цели ставит на поверхности поле на 8 секунд",
-  "message.drmd.local_gravity_active": "Локальная гравитация · H: свободный полёт"
+  "message.drmd.local_gravity_active": "Локальная гравитация · H: свободный полёт",
+  "message.drmd.lower_world_recovery": "Достигнута нижняя граница · безопасная позиция и полёт восстановлены"
 }

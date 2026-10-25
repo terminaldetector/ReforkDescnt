@@ -15,7 +15,8 @@
       "com.terminaldetector.drmd.DroneSwarmGameTests",
       "com.terminaldetector.drmd.ProjectileVisualGameTests",
       "com.terminaldetector.drmd.FlightRecoveryGameTests",
-      "com.terminaldetector.drmd.FootGravityRecoveryGameTests"
+      "com.terminaldetector.drmd.FootGravityRecoveryGameTests",
+      "com.terminaldetector.drmd.LowerWorldRecoveryGameTests"
     ]
   },
   "depends": {

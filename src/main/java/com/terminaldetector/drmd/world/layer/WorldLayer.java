@@ -56,6 +56,15 @@ public enum WorldLayer {
 		return at(y);
 	}
 
+    public record Display(String label,int color,boolean insideWorld) {}
+    public static Display display(World world,double y) {
+        if(world.getRegistryKey()==World.OVERWORLD &&
+                !com.terminaldetector.drmd.world.level.VerticalBounds.contains(y,world.getBottomY(),world.getTopY()))
+            return new Display("Outside world",0xffffaa44,false);
+        WorldLayer layer=at(world,y);
+        return new Display(layer.label,layer.hudColor,true);
+    }
+
 	public WorldLayer below() {
 		int i = ordinal() - 1;
 		return i < 0 ? this : values()[i];
