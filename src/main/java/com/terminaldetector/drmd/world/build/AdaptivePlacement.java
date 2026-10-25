@@ -69,6 +69,13 @@ public final class AdaptivePlacement {
         ItemStack material=materialStack(player,leftHandOnly);
         Block selected=resolveMaterial(player,leftHandOnly);
         if(selected==null || state.getBlock()!=selected)return false;
+        // Their onPlaced callback writes a second cell. Keep the item intact until the
+        // construction tool can validate and commit the entire footprint atomically.
+        if(state.contains(Properties.DOUBLE_BLOCK_HALF) || selected instanceof net.minecraft.block.BedBlock)return false;
+        boolean operator=state.isOf(Blocks.COMMAND_BLOCK) || state.isOf(Blocks.CHAIN_COMMAND_BLOCK)
+            || state.isOf(Blocks.REPEATING_COMMAND_BLOCK) || state.isOf(Blocks.STRUCTURE_BLOCK) || state.isOf(Blocks.JIGSAW);
+        if(operator && !(player.getAbilities().creativeMode && player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer
+                && serverPlayer.hasPermissionLevel(2)))return false;
         // The direct tool path cannot safely transfer container/block-entity item data yet.
         // Leave such stacks intact instead of placing an empty copy and destroying their contents.
         if(material.contains(DataComponentTypes.BLOCK_ENTITY_DATA) || material.contains(DataComponentTypes.CONTAINER))return false;

@@ -150,7 +150,7 @@ cells counts as a real break with the original breaker, rather than an uncounted
 
 Five profile JUnit cases and four cluster-budget JUnit cases PASS in the v3 stage. All26Python
 regressions PASS (20evidence-gate +6resource graph). Workflow actionlint and whitespace checks
-PASS. The distribution gate also requires all17new native GameTest identifiers and a fresh real
+PASS. The distribution gate also requires all18new native GameTest identifiers and a fresh real
 registry table, preventing unrelated passing tests from standing in for these changes.
 
 Full Fabric compile/GameTests/client execution remain NOT RUN because Loom1.10-SNAPSHOT is
@@ -160,3 +160,9 @@ user's current limits instruction. No new JAR, native frames or all31closed clai
 Final drill review preserves the distinction between containers and CarvedBlockEntity: mining
 continues through existing carved fragments, while container data stays protected. A dedicated
 native regression is added and mandatory in the gate; NOT RUN.
+
+Direct construction also rejects multi-cell doors/plants/beds until their complete footprint can
+be validated atomically: onPlaced must not overwrite an unchecked neighbour. Vanilla command/
+structure/jigsaw placement keeps its creative/operator restriction. Items remain intact on
+rejection; ordinary vanilla block-item placement remains available. Added native regression:
+NOT RUN. The18new native cases are mandatory before distribution.

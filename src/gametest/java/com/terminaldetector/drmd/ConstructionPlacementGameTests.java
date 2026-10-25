@@ -64,4 +64,17 @@ public final class ConstructionPlacementGameTests implements FabricGameTest {
         context.assertTrue(player.getOffHandStack().getCount()==3,"creative does not consume");
         player.discard();context.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void multiCellPlacementCannotOverwriteAnUnvalidatedNeighbour(TestContext context) {
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+        var at=context.getAbsolutePos(new BlockPos(4,5,4));player.setPosition(Vec3d.ofCenter(at.east(3)));
+        world.setBlockState(at.down(),Blocks.STONE.getDefaultState(),2);world.setBlockState(at.up(),Blocks.BEDROCK.getDefaultState(),2);
+        player.setStackInHand(Hand.OFF_HAND,new ItemStack(Blocks.OAK_DOOR,1));
+        context.assertTrue(!AdaptivePlacement.placeState(world,player,at,Blocks.OAK_DOOR.getDefaultState(),true),"multi-cell footprint is not silently written");
+        context.assertTrue(world.getBlockState(at.up()).isOf(Blocks.BEDROCK) && player.getOffHandStack().getCount()==1,"protected neighbour and item remain intact");
+        player.setStackInHand(Hand.OFF_HAND,new ItemStack(Blocks.COMMAND_BLOCK,1));
+        context.assertTrue(!AdaptivePlacement.placeState(world,player,at,Blocks.COMMAND_BLOCK.getDefaultState(),true),"survival cannot bypass vanilla operator placement");
+        player.discard();context.complete();
+    }
+
 }
