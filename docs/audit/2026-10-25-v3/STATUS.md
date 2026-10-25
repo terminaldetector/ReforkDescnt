@@ -276,3 +276,24 @@ chunk halo for shape queries. Template-laser anchoring now uses the same clipped
 side-correct local-up source. This is a conservative availability policy; it never requests
 new tickets and may defer an edit near the current loaded frontier. Native propagation and
 third-party block callbacks still need gameplay validation.
+
+## Portal partner availability checkpoint
+
+Native portal-panel and linked charged-mirror ticks were found to read the partner
+block before checking chunk availability. Two new GameTests reproduced forced loads
+(67 total: 65 passed, 2 failed). Both tick paths now return before reading an
+unavailable partner, preserving the saved link for a later loaded tick.
+
+A repeat passed **71/71 GameTests**: the previous 65 plus six new cases covering
+panel/mirror unavailable-partner ticks, NBT link/explicit-unlink round-trips, rotated
+native entity crossing with velocity/UUID preservation and arrival cooldown, and
+no teleport from merely standing on the plane. These checks do not establish actual
+chunk unload/reload lifecycle, player foot-frame or cross-dimension travel.
+
+Mirror geometry review confirms a remaining implementation gap: MirrorFramebuffer
+composites through a rectangular scissor bound. The exact slanted face and partial
+foreground occlusion still need a depth-aware exact-shape composite and real-client
+ON/OFF/roll images. Full portal see-through clipping, player/mount traversal and
+foot-frame/client synchronization remain open. No new visual PASS is claimed here.
+
+First-failure log/XML and subsequent results are retained in build/portal-audit.

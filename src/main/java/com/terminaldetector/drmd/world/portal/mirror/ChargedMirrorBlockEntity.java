@@ -136,6 +136,9 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 		}
 		if (!(state.getBlock() instanceof ChargedMirrorBlock)) return;
 
+		// A saved link is not permission to load its destination every server tick.
+		// Keep the link while the partner is unavailable and retry once it is loaded.
+		if (!world.isChunkLoaded(be.linkPartnerPos)) return;
 		BlockState partnerState = world.getBlockState(be.linkPartnerPos);
 		if (!(partnerState.getBlock() instanceof ChargedMirrorBlock)) {
 			DiagProblems.record("portal", "mirror at " + pos + " points at " + be.linkPartnerPos

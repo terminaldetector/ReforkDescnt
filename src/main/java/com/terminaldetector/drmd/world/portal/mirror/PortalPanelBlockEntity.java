@@ -115,6 +115,9 @@ public class PortalPanelBlockEntity extends BlockEntity {
 		}
 		if (!(state.getBlock() instanceof PortalPanelBlock)) return;
 
+		// A saved link is not permission to load its destination every server tick.
+		// Keep the link while the partner is unavailable and retry once it is loaded.
+		if (!world.isChunkLoaded(be.linkPartnerPos)) return;
 		BlockState partnerState = world.getBlockState(be.linkPartnerPos);
 		if (!(partnerState.getBlock() instanceof PortalPanelBlock)) {
 			DiagProblems.record("portal", "panel at " + pos + " points at " + be.linkPartnerPos
