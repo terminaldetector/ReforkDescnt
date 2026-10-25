@@ -102,7 +102,7 @@ public final class WeaponFx {
 	 */
 	public static boolean melt(ServerWorld world, BlockPos pos, int intensity, LivingEntity breaker) {
         if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,pos,breaker))return false;
-        if(world.getBlockEntity(pos)!=null)return false;
+        if(world.getBlockEntity(pos)!=null && !(world.getBlockEntity(pos) instanceof com.terminaldetector.drmd.world.micro.CarvedBlockEntity))return false;
 		BlockState st = world.getBlockState(pos);
 		if (st.isAir() || st.getHardness(world, pos) < 0 || st.isOf(Blocks.BEDROCK)) return false;
 		float hard = st.getHardness(world, pos);
@@ -222,7 +222,7 @@ public final class WeaponFx {
 			int dy = p.getY() - center.getY();
 			int dz = p.getZ() - center.getZ();
 			if (dx * dx + dy * dy + dz * dz > (r + 0.35f) * (r + 0.35f)) continue;
-            if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,breaker) || world.getBlockEntity(p)!=null)continue;
+            if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,breaker) || world.getBlockEntity(p)!=null && !(world.getBlockEntity(p) instanceof com.terminaldetector.drmd.world.micro.CarvedBlockEntity))continue;
 			BlockState st = world.getBlockState(p);
 			float h = st.getHardness(world, p);
 			if (!st.isAir() && h >= 0 && h < maxHard && !st.isOf(Blocks.BEDROCK)) {

@@ -33,6 +33,15 @@ public final class DrillSafetyGameTests implements FabricGameTest {
         context.assertTrue(first>0 && second==0,"same bore only counts real geometry changes");context.complete();
     }
     @GameTest(templateName=EMPTY_STRUCTURE)
+    public void carvedFragmentsRemainMineableWhileContainersAreProtected(TestContext context) {
+        var world=context.getWorld();var at=context.getAbsolutePos(new BlockPos(4,5,4));
+        world.setBlockState(at,Blocks.STONE.getDefaultState(),2);
+        var fragment=com.terminaldetector.drmd.world.micro.CarvedBlock.replace(world,at,Blocks.STONE.getDefaultState(),~1L);
+        context.assertTrue(fragment!=null,"fixture uses the real persistent microblock");
+        context.assertTrue(WeaponFx.melt(world,at,2,null) && world.getBlockState(at).isAir(),"container guard does not make an already carved wall unmineable");
+        context.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE)
     public void remoteMiningCannotPullAnUnloadedChunkIntoMemory(TestContext context) {
         var world=context.getWorld();var far=new BlockPos(500000,80,500000);
         context.assertTrue(!world.isChunkLoaded(far),"fixture remote target starts unloaded");
