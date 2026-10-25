@@ -27,10 +27,9 @@ import java.util.Set;
  * {@link HorizonProjection}, so all of it fits inside the projection's far plane while every point
  * keeps its exact bearing and elevation.
  *
- * <p>Because the compression is per-vertex and measured from the eye, geometry is built <em>around
- * the camera</em> and rebuilt when the ship leaves that origin. Between rebuilds the field is a
- * rigid body: the renderer shifts it and multiplies its colour, nothing more. The renderer this
- * replaces rebuilt up to ten thousand boxes on the render thread every frame.
+ * <p>Source geometry is built around a nearby origin and rebuilt when the ship leaves that area.
+ * Between rebuilds the shader reprojects the same world offsets from the current eye. The renderer
+ * this replaces rebuilt up to ten thousand boxes on the render thread every frame.
  */
 public final class PlanetSurfaceMesh {
 	/**

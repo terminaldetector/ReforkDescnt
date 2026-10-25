@@ -57,7 +57,7 @@ public final class PlanetClientState {
 		return thread;
 	});
 	/** Sections the server has sent — the world as actually seen, where it has been seen. */
-	private final SurfaceStore observed = new SurfaceStore(new MemorySectionStorage());
+	private volatile SurfaceStore observed = new SurfaceStore(new MemorySectionStorage());
 
 	private PlanetClientState() {}
 
@@ -72,6 +72,8 @@ public final class PlanetClientState {
 		boolean changed = false;
 		if (this.seed != seed || !hasSeed) {
             worldEpoch.incrementAndGet();
+			mesh = null;
+			observed = new SurfaceStore(new MemorySectionStorage());
 			this.seed = seed;
 			this.hasSeed = true;
 			changed = true;
@@ -135,7 +137,7 @@ public final class PlanetClientState {
 		seed = 0L;
 		scars.clear();
 		landmarks = List.of();
-		observed.reset();
+		observed = new SurfaceStore(new MemorySectionStorage());
 		// The one case where the field really does go: the world it described is gone.
 		mesh = null;
 		invalidate();
@@ -182,7 +184,7 @@ public final class PlanetClientState {
 	 * would spend the worker on fields that were obsolete before they started. Whichever build is
 	 * running was started for a nearby eye, and if it lands stale the next frame simply asks again.
 	 */
-	private void requestBuild(double camX, double eyeY, double camZ, double inner, double reach) {
+	private synchronized void requestBuild(double camX, double eyeY, double camZ, double inner, double reach) {
 		if (!hasSeed) return;
 		if (!building.compareAndSet(false, true)) return;
 

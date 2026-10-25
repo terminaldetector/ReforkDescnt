@@ -20,9 +20,8 @@ import org.joml.Matrix4f;
  * square of the refinement, so every step toward a VOXY-like field multiplies work that was already
  * being repeated for nothing.
  *
- * <p>Uploaded once per mesh, drawn with two matrices. The parallax the ship has flown since the build
- * is the model-view matrix rather than something baked into the vertices, which is what makes the
- * upload survive movement at all.
+ * <p>Uploaded once per mesh. The horizon shader rebases true source offsets to the current eye
+ * before compression; camera movement does not require another vertex upload.
  *
  * <p><b>The fade is a uniform, not a rebuild.</b> The map fades in across the climb, so its alpha
  * changes every frame — baking it into vertex colours would defeat the whole point. Each quad's own
@@ -69,7 +68,7 @@ public final class HorizonVertexBuffer {
 			float g = ((argb >> 8) & 0xFF) / 255f;
 			float b = (argb & 0xFF) / 255f;
 			int i = q * 12;
-			// No matrix: vertices stay in the mesh's own space and the model-view carries the parallax.
+			// Source offsets stay in mesh space; FieldOriginDelta carries current camera parallax.
 			builder.vertex(positions[i], positions[i + 1], positions[i + 2]).color(r, g, b, a);
 			builder.vertex(positions[i + 3], positions[i + 4], positions[i + 5]).color(r, g, b, a);
 			builder.vertex(positions[i + 6], positions[i + 7], positions[i + 8]).color(r, g, b, a);
@@ -89,9 +88,7 @@ public final class HorizonVertexBuffer {
 	/**
 	 * Draw what {@link #prepare} put on the GPU.
 	 *
-	 * @param modelView the field's placement this frame — the world render's own matrix with the
-	 *                  parallax since the build folded in. Passed here rather than baked into the
-	 *                  vertices, which is the whole reason the upload can be reused.
+	 * @param modelView world render orientation; the shader owns camera-relative rebasing
 	 */
 	public static void draw(Matrix4f modelView) {
 		buffer.bind();

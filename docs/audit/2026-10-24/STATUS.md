@@ -108,6 +108,11 @@ following disconnect or seed change. Vertex storage remains bounded at the exist
 This is a source fix requiring the ON/altitude/bank/motion real-client matrix; it is not certified
 by shader JSON validation or by the previous 1.1.13 screenshots. Actual DH interop is untested.
 
+Build-request snapshots now share the world-change lock, so an epoch from a new seed cannot
+be paired with old seed data. Replacing the world also drops its mesh and replaces the observed
+terrain store instead of clearing an object an older worker may still be reading. A regression
+checks that same-seed sync retains observations and a replacement seed does not; NOT RUN locally.
+
 ## Further control authority and swarm findings (local)
 
 `DescentPlayerData` also shared one UUID object between integrated server and client. A late
