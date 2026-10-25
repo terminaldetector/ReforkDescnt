@@ -183,6 +183,16 @@ class EvidenceGateTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'actual viewport'):
             checkpoint.verify_audit(self.root,self.started)
 
+    def test_native_audit_cannot_be_replaced_by_unrelated_passing_tests(self):
+        with self.assertRaisesRegex(ValueError,'Missing native audit GameTests'):
+            checkpoint.verify_native_audit(self.root,self.started)
+
+    def test_native_audit_accepts_actual_gametest_identifier_case(self):
+        cases=''.join('<testcase name="drmd.audit.'+name.lower()+'"/>' for name in checkpoint.AUDIT_NATIVE_CASES)
+        self.write('build/gametest/reports/audit.xml','<testsuite>'+cases+'</testsuite>')
+        self.write('build/gametest/item-resource-inventory.tsv','synthetic registry table, not real game evidence')
+        checkpoint.verify_native_audit(self.root,self.started)
+
     def test_failed_run_still_has_report_without_certifying_jar(self):
         with patch.dict(os.environ, {'VERIFY_OUTCOME': 'failure'}):
             checkpoint.report(self.root)

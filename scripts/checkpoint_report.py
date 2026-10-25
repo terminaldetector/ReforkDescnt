@@ -33,6 +33,34 @@ AUDIT_FRAMES = ('audit-flight-off','audit-lower-recovery','audit-inventory') + t
     f'audit-swarm-{n}' for n in (128,256,512,1024)) + tuple(f'audit-environment-{i}' for i in range(4)) + tuple(f'audit-profile-{i}' for i in range(4))
 
 
+AUDIT_NATIVE_CASES = ('surfacePlacementConsumesExactlyOneAndCannotBuildWithoutMaterial',
+ 'hotbarMaterialIsChargedAndRejectedTargetsDoNotConsumeIt',
+ 'batchDuplicatesAndExhaustionNeverDuplicateOrDoubleCharge',
+ 'creativeKeepsInventoryButCannotPlaceInsideThePlayer',
+ 'explicitStandardSurvivesSavedWorldState',
+ 'legacyStateUsesExpandedAndEachWorldStoresItsOwnChoice',
+ 'regularClusterCreatesSevenChildrenExactlyOnce',
+ 'heavyClusterCreatesFourteenChildrenExactlyOnce',
+ 'expiredAndVoidParentsCannotSpawnAnotherGeneration',
+ 'softenedStoneMakesProgressInsteadOfReturningCobblestoneForever',
+ 'hotRockDoesNotCreateLavaAndProtectedBlocksOrContainersStayIntact',
+ 'repeatingOneBoreDoesNotRewriteIdenticalBoundaryMasks',
+ 'remoteMiningCannotPullAnUnloadedChunkIntoMemory',
+ 'clearFeetDoNotPermitAnExitWithTheHeadInsideAStoneBlock',
+ 'heightAndUnloadedExitRejectionsPreserveTheTraveller',
+ 'everyRegisteredDrmdItemHasAnActualModelResource')
+
+def verify_native_audit(root,started):
+    names=[]
+    for path in (root/'build/gametest/reports').glob('**/*.xml'):
+        fresh(path,started)
+        for case in ET.parse(path).getroot().iter('testcase'):
+            names.append(re.sub('[^a-z0-9]','',case.get('name','').lower()))
+    missing=[name for name in AUDIT_NATIVE_CASES if not any(name.lower() in case for case in names)]
+    if missing: raise ValueError(f'Missing native audit GameTests: {missing}')
+    fresh(root/'build/gametest/item-resource-inventory.tsv',started)
+
+
 def verify_audit(root, started):
     marker=root/'build/shootcheck/audit-ok.json'
     fresh(marker,started)
@@ -168,6 +196,7 @@ def verify(root):
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
     audit=verify_audit(root,started) if version.startswith('1.1.14') else None
+    if audit: verify_native_audit(root,started)
     jar = root / f'build/libs/{base}-{version}.jar'
     fresh(jar, started)
     with zipfile.ZipFile(jar) as archive:

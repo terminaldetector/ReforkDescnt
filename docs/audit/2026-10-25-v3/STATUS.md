@@ -12,16 +12,16 @@ trigger Actions during this pause. These backups are not GHA checkpoints or test
 
 | ID | Scope | Source status / acceptance still required |
 |---|---|---|
-|022|Mirrors|Native reflection path exists; OFF in video proves neither failure nor success. Audit resource lifecycle/clipping; actual ON/OFF not run.|
-|023|Portals|Pairing, separate camera and traversal exist; review independently of mirror transforms. Actual destination/traversal checks not run.|
-|024|Weapon visibility|Confirmed unconditional vanilla hand suppression while flight is enabled, even for non-cluster items or weaponView OFF. Fix required.|
-|025|Item models|Previous16 asset changes retained. Add registry/resource/texture/display inventory and warnings, actual client still pending.|
-|026|Legacy|Reference/registration audit only; retain saved IDs and live mechanics. No blind deletion.|
-|027|Clusters|Counts7/14 already exist; inspect exactly-once/reload/owner/lifetime/collision and work bounds.|
-|028|Drill/melt|Whole-block excavation exists; smooth circular mesh/collision not implemented. Review material processing, permissions, loaded chunks and budget first.|
-|029|Construction|Confirmed source paths place without consumption; central server transaction and lifecycle cleanup required.|
-|030|Hybrid default|No separate profile toggle; implement persisted ON default, preserve explicit OFF and independent subflags.|
-|031|Expanded default|No explicit authoritative profile; define persisted server/world policy and actual hooked behaviors before claiming support.|
+|022|Mirrors|OFF scans/target lifecycle patched; exact mirror clipping and client proof remain open.|
+|023|Portals|Whole-body exit preflight patched; traversal/foot-frame/pair reload and see-through proof remain open.|
+|024|Weapon visibility|Main-hand-only replacement and fallback patched; four native view contexts remain unverified.|
+|025|Item models|180models/118itemresources pass static checks;9duplicate groups retained as warnings; native bindings/appearance pending.|
+|026|Legacy|Reference candidate report produced; no blind deletions or saved ID removal.|
+|027|Clusters|7/14whole-burst budgets, contact/arming/reload/lifetime source changes; native counts/scatter/detonation cost pending.|
+|028|Drill/melt|Existing quarter-cell geometry retained; safety/progress/write bounds patched; accumulated heat and smooth SDF surface remain open.|
+|029|Construction|Server transaction/consumption/lifecycle patched; native tests and complete preview/matrix remain pending.|
+|030|Hybrid default|Independent true default and explicitOFF persistence implemented; optional far/sky composition wired; native combinations pending.|
+|031|Expanded default|Independent persisted server/world profile and actual hooks implemented; migration tests pass; native/state/performance proof pending.|
 
 PriorP0 fixes and365-frame harness remain as in docs/audit/2026-10-24/STATUS.md.
 Fabric compilation is blocked locally by absent Loom1.10-SNAPSHOT; runtime evidence is
@@ -145,3 +145,14 @@ API inputs are finite and limited to the existing tool dimensions; each call wri
 actually changed cells, and later calls skip unchanged masks so they continue through the bore.
 This per-call ceiling is not a global server tick-time guarantee. Removing the final intersected
 cells counts as a real break with the original breaker, rather than an uncounted replacement.
+
+## Final local checks and distribution scope
+
+Five profile JUnit cases and four cluster-budget JUnit cases PASS in the v3 stage. All26Python
+regressions PASS (20evidence-gate +6resource graph). Workflow actionlint and whitespace checks
+PASS. The distribution gate also requires all16new native GameTest identifiers and a fresh real
+registry table, preventing unrelated passing tests from standing in for these changes.
+
+Full Fabric compile/GameTests/client execution remain NOT RUN because Loom1.10-SNAPSHOT is
+absent locally and its repository is unavailable in this managed network. GHA is paused by the
+user's current limits instruction. No new JAR, native frames or all31closed claim is supplied.

@@ -1,5 +1,8 @@
 # Cloud recovery — 24 October 2026
 
+Current user update (25 October): GitHub limits are exhausted; work locally with source
+commits and downloadable backups. GHA is paused until the user requests resumption.
+
 ## Preserved baseline
 
 - Repository: `terminaldetector/ReforkDescnt`.
@@ -121,7 +124,7 @@ wall. The latest harness removes that test obstacle and requires green projectil
 in each measured fast frame in addition to full velocity, three frames and 24 blocks of
 travel. `fastPixelsChecked` is a mandatory distribution proof, not a coordinate-only pass.
 
-## Every major milestone goes through GitHub Actions
+## Earlier GHA milestone workflow (currently paused)
 
 Commit and push each coherent milestone to this recovery branch. `build.yml` runs on
 every push, preserves its source archive independently of the game build, and retains

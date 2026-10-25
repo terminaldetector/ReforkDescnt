@@ -7,7 +7,8 @@ The earlier GHA checkpoint policy resumes only when the user asks to resume GitH
 
 - Read `docs/recovery/RECOVERY.md` before continuing recovery. The supplied historical handoff
   is context; current user instructions take precedence.
-- Keep coherent milestones in Git on the recovery branch and push them to trigger `build.yml`.
+- Keep coherent milestones in Git on the recovery branch. After the user resumes GHA, push
+  them to trigger `build.yml`.
   Do not treat local files or an unpushed commit as a durable checkpoint. Verify that the
   workflow exists and its source artifact was actually saved.
 - Preserve the original integration branch and PR #9. Do not force push, rewrite history,
