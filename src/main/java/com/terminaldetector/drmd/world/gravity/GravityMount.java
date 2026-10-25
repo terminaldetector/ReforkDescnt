@@ -93,7 +93,8 @@ public final class GravityMount {
 
 	/** The up this entity is actually standing against — its mount, or world up if it has none. */
 	private static Vec3d localUp(LivingEntity entity) {
-		Vec3d up = com.terminaldetector.drmd.world.LocalOrientation.getUp(entity.getUuid());
+		Vec3d up = entity instanceof net.minecraft.entity.player.PlayerEntity player && FootGravitySystem.isActive(player)
+                ? FootGravitySystem.getUp(player) : com.terminaldetector.drmd.world.LocalOrientation.getUp(entity.getUuid());
 		return up.lengthSquared() < 1e-6 ? new Vec3d(0, 1, 0) : up.normalize();
 	}
 

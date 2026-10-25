@@ -15,13 +15,20 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DescentPlayerData {
 	private static final Map<UUID, DescentPlayerData> STORE = new ConcurrentHashMap<>();
+    private static final Map<UUID, DescentPlayerData> CLIENT_STORE = new ConcurrentHashMap<>();
 
 	public static DescentPlayerData get(PlayerEntity player) {
-		return STORE.computeIfAbsent(player.getUuid(), id -> new DescentPlayerData());
+		return player.getWorld().isClient?client(player.getUuid()):
+                STORE.computeIfAbsent(player.getUuid(), id -> new DescentPlayerData());
 	}
 
-	public static void remove(UUID id) {
+    /** Packet mirror, never the authoritative server object even in an integrated game. */
+    public static DescentPlayerData client(UUID id) { return CLIENT_STORE.computeIfAbsent(id,key->new DescentPlayerData()); }
+    public static void clearClient() { CLIENT_STORE.clear(); }
+
+    public static void remove(UUID id) {
 		STORE.remove(id);
+        CLIENT_STORE.remove(id);
 	}
 
 	/**
@@ -36,6 +43,7 @@ public class DescentPlayerData {
 	 */
 	public static void clear() {
 		STORE.clear();
+        CLIENT_STORE.clear();
 	}
 
 	// Session-only generation of the portal frame; old in-flight input cannot undo teleport rotation.

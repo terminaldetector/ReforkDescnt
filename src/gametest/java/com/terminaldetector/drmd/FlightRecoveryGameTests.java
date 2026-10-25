@@ -60,4 +60,16 @@ public final class FlightRecoveryGameTests implements FabricGameTest {
         context.assertTrue(ship.getVelocity().squaredDistanceTo(new Vec3d(1,0,-.5))<1e-9,"20 m/s becomes one block/tick");
         FlightSystem.disable(player,data); ship.discard(); player.discard(); context.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void delayedClientStateCannotDisableOrMutateTheIntegratedServer(TestContext context) {
+        var player=context.createMockCreativeServerPlayerInWorld();
+        var server=DescentPlayerData.get(player); server.setEnabled(true); server.setEnergy(42);
+        var mirror=DescentPlayerData.client(player.getUuid()); mirror.setEnabled(false); mirror.setEnergy(99);
+        context.assertTrue(server!=mirror && server.isEnabled() && server.getEnergy()==42,
+                "client packet mirror cannot overwrite server flight authority or resources");
+        DescentPlayerData.clearClient();
+        context.assertTrue(server.isEnabled(),"client disconnect cleanup leaves live server state intact");
+        server.setEnabled(false); player.discard(); context.complete();
+    }
+
 }

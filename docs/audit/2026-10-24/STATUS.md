@@ -107,3 +107,17 @@ World epochs prevent an in-flight background build from publishing a previous wo
 following disconnect or seed change. Vertex storage remains bounded at the existing mesh budget.
 This is a source fix requiring the ON/altitude/bank/motion real-client matrix; it is not certified
 by shader JSON validation or by the previous 1.1.13 screenshots. Actual DH interop is untested.
+
+## Further control authority and swarm findings (local)
+
+`DescentPlayerData` also shared one UUID object between integrated server and client. A late
+client SyncPayload could therefore overwrite authoritative enabled/resources state, not only
+its own mirror. Server and client stores are now separate, with an actual player-state GameTest.
+Dimension changes clear old foot/body/input/cache state while preserving deliberate portal flight;
+non-death End respawn preserves flight intent, ordinary death respawn remains off.
+
+Perfectly coincident boids were explicitly skipped by the separation loop, leaving no escape
+vector. A deterministic antisymmetric pair direction now resolves zero-distance neighbours,
+without widening the 32-neighbour / 96-candidate work budget or changing role exclusions.
+Three standalone JUnit regressions pass over 128 identities, and an actual-compute GameTest
+covers coincident drone entities. These are not measured 128/1024-client movement results.

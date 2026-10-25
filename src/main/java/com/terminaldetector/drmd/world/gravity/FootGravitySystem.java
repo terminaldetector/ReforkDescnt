@@ -95,7 +95,7 @@ public final class FootGravitySystem {
 		boolean wasActive = isActive(player.getUuid());
 		if (field != null) {
 			Vec3d target = field.upDir().normalize();
-			Vec3d current = LocalOrientation.getUp(player.getUuid());
+			Vec3d current = getUp(player);
 			double align = current.dotProduct(target);
 			// Big reorient (wall/ceiling capture, ceiling flip): snap + safe place so the standing
 			// AABB is not crushed into the mount face (vanilla crawl ≈ 1-cube).
@@ -116,7 +116,7 @@ public final class FootGravitySystem {
 			// Out of reach — bleed back to world up and hand the player to vanilla gravity. Holding
 			// the last surface's up forever left them walking on thin air off the end of a walkway.
 			up = com.terminaldetector.drmd.flight.ShipAttitude.slerp(
-					LocalOrientation.getUp(player.getUuid()), new Vec3d(0, 1, 0), RELEASE_RATE);
+					getUp(player), new Vec3d(0, 1, 0), RELEASE_RATE);
 			label = "Local";
 			if (isWorldUp(up)) {
 				// Upright and out of reach: nothing to do. Guarded on having actually been held,

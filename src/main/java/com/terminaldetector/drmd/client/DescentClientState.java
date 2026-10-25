@@ -48,6 +48,7 @@ public final class DescentClientState {
 	public static void resetSession() {
 		com.terminaldetector.drmd.client.flight.ShipAttitudeClient.portalEpoch = 0;
 		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clearAllClient();
+        com.terminaldetector.drmd.DescentPlayerData.clearClient();
         enabled = false;
 		attitudeValid = false;
 		footGravity = false;

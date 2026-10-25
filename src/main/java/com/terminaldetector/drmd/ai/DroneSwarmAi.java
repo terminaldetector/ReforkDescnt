@@ -72,7 +72,13 @@ public final class DroneSwarmAi {
 			DroneSample other = hit.value();
 			Vec3d nPos = other.position();
 			double d = Math.sqrt(hit.squaredDistance());
-			if (d < 1e-4 || d > SWARM_RADIUS) continue;
+			if(d<1e-4) {
+                var escape=OverlapSeparation.between(drone.getUuid(),other.id());
+                separation=separation.add(escape.x(),escape.y(),escape.z());
+                center=center.add(nPos); avgVel=avgVel.add(other.velocity()); count++;
+                continue;
+            }
+            if(d>SWARM_RADIUS) continue;
 			if (d < SEPARATION_DIST) {
 				separation = separation.add(myPos.subtract(nPos).normalize().multiply(1.0 / d));
 			}

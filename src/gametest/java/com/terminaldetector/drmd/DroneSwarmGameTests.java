@@ -66,4 +66,21 @@ public final class DroneSwarmGameTests implements FabricGameTest {
 		}
 		context.complete();
 	}
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void perfectlyCoincidentDronesHaveARealEscapeDesire(TestContext context) {
+        var world=context.getWorld();
+        Vec3d origin=Vec3d.ofCenter(context.getAbsolutePos(new BlockPos(7,7,7)));
+        List<DroneEntity> drones=new ArrayList<>();
+        try {
+            for(int i=0;i<8;i++) {
+                var drone=ModEntities.DRONE.create(world); drone.setPosition(origin);
+                drone.applyRole(AiRole.ASSAULT); world.spawnEntity(drone); drones.add(drone);
+            }
+            DroneSwarmAi.clear();
+            for(var drone:drones) context.assertTrue(DroneSwarmAi.compute(drone,null).lengthSquared()>.9,
+                    "coincident boids escape instead of skipping every neighbour");
+        }finally {drones.forEach(DroneEntity::discard);DroneSwarmAi.clear();}
+        context.complete();
+    }
+
 }
