@@ -180,10 +180,14 @@ public final class LevelBuilder {
 
 		if (!com.terminaldetector.drmd.world.WorldFeatures.NETHER_BAND) return;
 		if (!MantleStream.shouldBuildFull(world, chunk.getPos().x, chunk.getPos().z)) return;
-		enqueue(world, chunk.getPos().x, chunk.getPos().z);
+		enqueue(world, chunk.getPos().x, chunk.getPos().z, chunk);
 	}
 
 	private static void enqueue(ServerWorld world, int chunkX, int chunkZ) {
+		enqueue(world, chunkX, chunkZ, null);
+	}
+
+	private static void enqueue(ServerWorld world, int chunkX, int chunkZ, WorldChunk loadingChunk) {
 		if (QUEUE.size() >= MAX_QUEUE) return;
 		long key = ChunkPos.toLong(chunkX, chunkZ);
 		if (QUEUED.contains(key)) return;
@@ -191,7 +195,11 @@ public final class LevelBuilder {
 			promote(key);
 			return;
 		}
-		if (world.isChunkLoaded(chunkX, chunkZ) && mantleBuilt(world.getChunk(chunkX, chunkZ))) return;
+		// CHUNK_LOAD fires before the chunk has finished loading. Requesting it again here
+		// can wait on its own load task and stall the server thread.
+		if (loadingChunk != null) {
+			if (mantleBuilt(loadingChunk)) return;
+		} else if (world.isChunkLoaded(chunkX, chunkZ) && mantleBuilt(world.getChunk(chunkX, chunkZ))) return;
 		QUEUED.add(key);
 		QUEUE.add(new Job(world, chunkX, chunkZ, 0, WorldLevels.ABYSS_TOP - 1));
 	}
