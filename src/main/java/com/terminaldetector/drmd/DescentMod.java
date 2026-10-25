@@ -91,6 +91,7 @@ public class DescentMod implements ModInitializer {
 		// was part of what carried over. Cleared at both ends: on stop for the ordinary case, on
 		// start in case a stop never happened.
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+            com.terminaldetector.drmd.world.build.ConstructionMode.clearAll();
 			com.terminaldetector.drmd.world.store.SurfaceIngest.close();
 			com.terminaldetector.drmd.world.cubic.CubicWorldSystem.close();
 			com.terminaldetector.drmd.world.portal.PortalTravel.clear();
@@ -104,6 +105,7 @@ public class DescentMod implements ModInitializer {
 		});
 
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            com.terminaldetector.drmd.world.build.ConstructionMode.clearAll();
 			// Column height is authoritative once a world is loaded — reconcile the WorldFeatures
 			// forced-off-in-Vanilla state against what actually loaded, in case it differs from the
 			// config-time guess (e.g. loading an existing Advanced save after the config was flipped
@@ -240,11 +242,14 @@ public class DescentMod implements ModInitializer {
 
         net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
             if(entity instanceof net.minecraft.server.network.ServerPlayerEntity player) {
+                com.terminaldetector.drmd.world.build.ConstructionMode.clear(player.getUuid());
                 FlightSystem.disable(player,DescentPlayerData.get(player));
                 com.terminaldetector.drmd.physics.GravyPhysics.release(player);
             }
         });
         net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+            com.terminaldetector.drmd.world.build.ConstructionMode.clear(newPlayer.getUuid());
+            com.terminaldetector.drmd.world.build.ConstructScaffold.sync(newPlayer);
             // A new player entity must not inherit a dead entity's thrust, roll or mount intent.
             var data=DescentPlayerData.get(newPlayer);
             boolean resume=alive&&data.isEnabled();
@@ -253,6 +258,8 @@ public class DescentMod implements ModInitializer {
         });
 
         net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player,origin,destination)->{
+            com.terminaldetector.drmd.world.build.ConstructionMode.clear(player.getUuid());
+            com.terminaldetector.drmd.world.build.ConstructScaffold.sync(player);
             com.terminaldetector.drmd.world.level.LowerWorldRecovery.clear(player.getUuid());
             com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(player.getUuid());
             com.terminaldetector.drmd.world.LocalOrientation.clear(player.getUuid());
@@ -261,6 +268,7 @@ public class DescentMod implements ModInitializer {
         });
 
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            com.terminaldetector.drmd.world.build.ConstructionMode.clear(handler.player.getUuid());
             FlightSystem.disable(handler.player,DescentPlayerData.get(handler.player));
             com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(handler.player.getUuid());
             com.terminaldetector.drmd.world.level.LowerWorldRecovery.clear(handler.player.getUuid());

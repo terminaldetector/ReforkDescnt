@@ -32,6 +32,10 @@ public final class ConstructionMode {
 		set(player, !isActive(player.getUuid()));
 	}
 
+    /** Lifecycle cleanup is silent: no messages or stale drafts survive a player/world session. */
+    public static void clear(UUID id) { ACTIVE.remove(id);ConstructScaffold.take(id); }
+    public static void clearAll() { ACTIVE.clear();ConstructScaffold.clearAll(); }
+
 	/** Called when pilot leaves / lands the Pyro GX. */
 	public static void onShipLanded(ServerPlayerEntity player) {
 		set(player, true);

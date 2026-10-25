@@ -26,3 +26,16 @@ trigger Actions during this pause. These backups are not GHA checkpoints or test
 PriorP0 fixes and365-frame harness remain as in docs/audit/2026-10-24/STATUS.md.
 Fabric compilation is blocked locally by absent Loom1.10-SNAPSHOT; runtime evidence is
 NOT RUN. Do not assert all31items fixed or use old1.1.13images as proof of this revision.
+
+## M construction source changes (local; runtime NOT RUN)
+
+Tool, surface, ray and batch construction share one server transaction: loaded/bordered/in-height
+target, vanilla modification permission, valid replaceable/collision-free state, successful write,
+then exactly one decrement from the selected offhand/hotbar stack. Survival has no invented iron
+fallback; creative retains its fallback and does not consume. Batch actions examine at most256
+cells (the existing purple tier cap). Full ship-forward and actual local-gravity up are shared.
+Construction/draft state is cleared at death,respawn,dimension change,disconnect and server stop.
+Block-entity/container item data cannot yet be transferred by this direct path; such stacks are
+rejected intact to avoid silently losing their contents. No claim-mod integration exists.
+Four real GameTests cover consumption,hotbar,rejected targets,batch duplicates,exhaustion and
+creative collision. Added but NOT RUN: Fabric/Loom remains unavailable locally.

@@ -82,53 +82,44 @@ public class BuildToolItem extends Item {
 
 		BuildMode mode = readMode(tool);
 		BlockPos placeAt = resolvePlacePos(player, hit, face, mode);
+        if(world.isOutOfHeightLimit(placeAt) || !world.isChunkLoaded(placeAt) || !world.getWorldBorder().contains(placeAt))return ActionResult.FAIL;
 		if (!world.getBlockState(placeAt).isReplaceable()) {
 			return ActionResult.FAIL;
 		}
 
-		Block material = resolveMaterial(player);
+		Block material = AdaptivePlacement.resolveMaterial(player);
+        if(material==null)return ActionResult.FAIL;
 		BlockState state = material.getDefaultState();
 		// Apply facing if the block supports it — rotate by tool rotation on chosen axis
 		state = applyRotation(state, face, readAxis(tool), readRotation(tool));
 
 		if (!world.isClient) {
-			world.setBlockState(placeAt, state, Block.NOTIFY_ALL);
-			bumpRotation(tool);
+            if(!AdaptivePlacement.placeState(world,player,placeAt,state,false))return ActionResult.FAIL;
+            bumpRotation(tool);
 		}
 		return ActionResult.success(world.isClient);
 	}
 
-	private static BlockPos resolvePlacePos(PlayerEntity player, BlockPos hit, Direction face, BuildMode mode) {
+	public static BlockPos resolvePlacePos(PlayerEntity player, BlockPos hit, Direction face, BuildMode mode) {
 		return switch (mode) {
 			case LOOK -> {
 				Vec3d eye = player.getEyePos();
-				Vec3d dir = player.getRotationVec(1f);
+				Vec3d dir = AdaptivePlacement.aim(player);
 				BlockPos aim = BlockPos.ofFloored(eye.add(dir.multiply(3.5)));
 				yield aim;
 			}
 			case SURFACE -> hit.offset(face);
 			case PLANE -> {
 				// Lock to the plane of the hit face: place adjacent in look projection on that plane
-				Vec3d up = LocalOrientation.getUp(player.getUuid());
+				Vec3d up = AdaptivePlacement.localUp(player);
 				Direction plane = Direction.getFacing(up.x, up.y, up.z);
-				Vec3d look = player.getRotationVec(1f);
+				Vec3d look = AdaptivePlacement.aim(player);
 				Vec3d projected = look.subtract(up.multiply(look.dotProduct(up)));
 				if (projected.lengthSquared() < 1e-4) yield hit.offset(face);
 				Direction step = Direction.getFacing(projected.x, projected.y, projected.z);
 				yield hit.offset(step);
 			}
 		};
-	}
-
-	private static Block resolveMaterial(PlayerEntity player) {
-		ItemStack off = player.getOffHandStack();
-		if (off.getItem() instanceof net.minecraft.item.BlockItem bi) return bi.getBlock();
-		// Hotbar scan for first block
-		for (int i = 0; i < 9; i++) {
-			ItemStack s = player.getInventory().getStack(i);
-			if (s.getItem() instanceof net.minecraft.item.BlockItem bi) return bi.getBlock();
-		}
-		return Blocks.IRON_BLOCK; // station default
 	}
 
 	private static BlockState applyRotation(BlockState state, Direction face, int axis, int rot) {
