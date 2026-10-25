@@ -173,8 +173,7 @@ public class DescentClient implements ClientModInitializer {
 					sawSync = false;
 					enableRetryCooldown = 0;
 					lastY = Double.NaN;
-					// Integrated SP shares DescentPlayerData STORE with the server — mirror enable
-					// immediately so flight/cockpit do not wait on a delayed SyncPayload.
+					// Reuse an already received client mirror; the server owns a separate store.
 					var p = client.player;
 					if (p != null && com.terminaldetector.drmd.DescentPlayerData.get(p).isEnabled()) {
 						DescentClientState.enabled = true;
@@ -184,7 +183,7 @@ public class DescentClient implements ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null || client.getNetworkHandler() == null) return;
-			// Integrated / late sync: pick up server enable if client mirror is still cold.
+			// Pick up an already received client mirror if the render state is still cold.
 			if (!DescentClientState.enabled
 					&& com.terminaldetector.drmd.DescentPlayerData.get(client.player).isEnabled()) {
 				DescentClientState.enabled = true;
@@ -294,7 +293,7 @@ public class DescentClient implements ClientModInitializer {
 		DescentClientState.afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers
 				.clamp(payload.afterburnerTier());
 
-		// Keep client STORE in lockstep — LivingEntityMixin foot-gravity gates on this.
+		// Keep only the client mirror in lockstep; never mutate server authority here.
 		var local = client.player;
 		if (local != null) {
 			com.terminaldetector.drmd.DescentPlayerData.get(local).setEnabled(payload.enabled());

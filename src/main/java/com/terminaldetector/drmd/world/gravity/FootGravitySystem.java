@@ -136,6 +136,9 @@ public final class FootGravitySystem {
 		LocalOrientation.setUp(player.getUuid(), up);
 		player.setNoGravity(true);
 		player.fallDistance = 0f;
+		// Mount/pose changes recalculate the actual box. Publish the new frame first,
+		// so those calculations cannot temporarily use the previous wall or world-up.
+		STATES.put(player.getUuid(), new State(up, true, false, label));
 		if (hardMount) {
 			GravityMount.safeMount(player, up);
 		}

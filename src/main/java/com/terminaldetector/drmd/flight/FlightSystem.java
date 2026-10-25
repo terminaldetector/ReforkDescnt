@@ -8,10 +8,8 @@ import com.terminaldetector.drmd.entity.PyroShipEntity;
 import com.terminaldetector.drmd.network.ModNetworking;
 import com.terminaldetector.drmd.world.atmosphere.AtmosphereBand;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
-import org.jetbrains.annotations.Nullable;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
@@ -72,9 +70,7 @@ public final class FlightSystem {
 		// otherwise — the ship carries no independent physics of its own (see PyroShipEntity.tick),
 		// only these four inputs to the same integrator below.
 		PyroShipEntity ship = player.getVehicle() instanceof PyroShipEntity ps ? ps : null;
-		// Keep the remembered hull's position current while it is being flown. Without this the
-		// position saved when the pilot boarded goes stale the moment they move, and the chunk loaded
-		// to find the hull again would be the one they took off from — see findRememberedHull.
+		// Remember explicit vehicles for diagnostics and later player interaction.
 		if (ship != null && !ship.getBlockPos().equals(data.getLastShipPos())) {
 			data.setLastShip(ship.getUuid(), ship.getBlockPos());
 		}
@@ -357,32 +353,17 @@ public final class FlightSystem {
 	public static void enable(ServerPlayerEntity player, DescentPlayerData data) {
         // Native 6DoF controls the player. A physical hull is an explicit optional vehicle;
         // toggling H or reconnecting must not manufacture another entity under the player.
-        enable(player, data, false);
+        enableFreeFlight(player, data);
 	}
 
-	/**
-	 * Force 6DoF on without summoning or remounting a hull.
-	 *
-	 * <p>Exists for exactly one caller: {@code PyroShipEntity.removePassenger}'s open-air branch,
-	 * which turns free flight back on for a pilot who just stepped out with nothing under them. That
-	 * path must not auto-mount, because {@code super.removePassenger} has already severed the vehicle
-	 * link by the time it runs — so {@link #autoMountPyroShip}'s {@code hasVehicle()} guard sees a
-	 * pilot with no vehicle, finds the very hull they just left sitting there un-passengered, and
-	 * puts them straight back in it. The pilot could never actually get out: every dismount in open
-	 * air instantly re-boarded, which read as the ship being welded to the player, and left
-	 * destroying the hull as the only way to separate from it.
-	 */
+	/** Explicit dismount alias: enabling flight never summons or remounts a hull. */
 	public static void enableWithoutMount(ServerPlayerEntity player, DescentPlayerData data) {
-		enable(player, data, false);
+		enableFreeFlight(player, data);
 	}
 
-    private static void enable(ServerPlayerEntity player, DescentPlayerData data, boolean mountHull) {
+    private static void enableFreeFlight(ServerPlayerEntity player, DescentPlayerData data) {
         if(!player.isAlive() || player.isSpectator()) return;
-		// mountHull is the flag the ship-glued-to-player bug turned on: a dismount that re-seated the
-		// pilot in the hull it had just left, same tick. Traced so a recurrence shows the sequence
-		// rather than only the end state, which is what made it hard to see the first time.
-		DiagTrace.record("flight", "6DoF on for " + player.getGameProfile().getName()
-				+ (mountHull ? " (will mount a hull)" : " (no mount — leaving one)"));
+		DiagTrace.record("flight", "6DoF on for " + player.getGameProfile().getName() + " (free flight)");
 		boolean releaseFoot=com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player);
         Vec3d previousUp=com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(player);
         com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
@@ -406,96 +387,7 @@ public final class FlightSystem {
 		}
 		if (dirty) player.sendAbilitiesUpdate();
 		player.setNoGravity(true);
-		if (mountHull) autoMountPyroShip(player);
 		ModNetworking.syncPlayer(player, data);
-	}
-
-	/**
-	 * Summon the Pyro GX under the pilot the moment 6DoF comes on, so flying always means visibly
-	 * flying it rather than the bare reoriented body. Guarded on {@code !hasVehicle()} rather than on
-	 * a call-site flag, so it is a safe no-op for every existing caller of {@code enable}: the join
-	 * path, the reactor-room/psychedelic/void-ending narrative triggers, {@code /d6}, and — this is
-	 * the one that matters for correctness, not just convenience — {@code PyroShipEntity} itself
-	 * calling {@code enable} from {@code interactMob}/{@code tick} always does so only after the
-	 * player is already riding it, so this never spawns a second ship out from under an existing one.
-	 *
-	 * <p><b>The one place that reasoning did not hold</b> was {@code removePassenger}: there the
-	 * vehicle link is already severed when {@code enable} runs, so the {@code hasVehicle()} guard
-	 * passed and the pilot was re-seated in the hull they had just left. That path now calls
-	 * {@link #enableWithoutMount} instead — see its own doc. Any future caller that enables 6DoF for
-	 * a player who is deliberately <em>not</em> in a hull has to do the same.
-	 *
-	 * <p>Tries to remount the pilot's last known hull before minting a fresh one — every join is
-	 * native 6DoF ({@code DescentSession.onPlayerJoin}), so without this a rejoin always spawned a
-	 * new ship and left the old one parked and un-piloted (harmless while the ship carried no state
-	 * of its own; not harmless once it carries equipped weapons/a propulsion module). Any lookup
-	 * failure — unloaded chunk, the hull was destroyed, or a pre-existing ship with no recorded UUID
-	 * — falls straight through to today's spawn-fresh behavior.
-	 */
-	/**
-	 * The remembered hull, loading its chunk first if that is what it takes to see it.
-	 *
-	 * <p>{@code ServerWorld.getEntity(UUID)} searches the <em>loaded</em> entity index, so a hull
-	 * parked and walked away from reads exactly like one that never existed — and the pilot silently
-	 * got a fresh ship while the old one stayed in the world. That is where the abandoned hulls came
-	 * from, and it was the branch the first live trace could not distinguish from a genuine loss.
-	 *
-	 * <p>So the position is remembered alongside the id, and one chunk is loaded before giving up.
-	 * Bounded and rare by construction: it runs only on a manual 6DoF toggle, only when the direct
-	 * lookup already failed, and only for one chunk that almost certainly exists on disk. A pilot who
-	 * asked to fly has accepted a chunk load.
-	 */
-	@Nullable
-	private static Entity findRememberedHull(ServerPlayerEntity player, java.util.UUID id,
-			@Nullable net.minecraft.util.math.BlockPos lastSeenAt) {
-		Entity direct = player.getServerWorld().getEntity(id);
-		if (direct != null || lastSeenAt == null) return direct;
-
-		// Touching the chunk brings its entities into the index; the retry then finds the hull.
-		player.getServerWorld().getChunk(lastSeenAt.getX() >> 4, lastSeenAt.getZ() >> 4);
-		Entity afterLoad = player.getServerWorld().getEntity(id);
-		if (afterLoad != null) {
-			DiagTrace.record("flight", "found the remembered hull after loading its chunk at " + lastSeenAt);
-		}
-		return afterLoad;
-	}
-
-	private static void autoMountPyroShip(ServerPlayerEntity player) {
-		if (player.hasVehicle()) {
-			// The guard that stops a re-seat. Worth a line: it firing means something tried to mount a
-			// pilot who was already riding, which is the shape of the bug that needed lava to undo.
-			DiagTrace.record("flight", "auto-mount skipped — already riding "
-					+ player.getVehicle().getType());
-			return;
-		}
-		DescentPlayerData data = DescentPlayerData.get(player);
-		java.util.UUID lastShipId = data.getLastShipUuid();
-		// Spelled out rather than left as one boolean, because the first live trace showed four hulls
-		// spawned and not one remount — and could not say which of these four conditions had refused.
-		// Each abandoned hull stays in the world, which is the litter that had to be burned off by hand.
-		if (lastShipId == null) {
-			DiagTrace.record("flight", "no remount: this pilot has no remembered hull");
-		} else if (!(findRememberedHull(player, lastShipId, data.getLastShipPos()) instanceof PyroShipEntity found)) {
-			DiagTrace.record("flight", "no remount: hull " + lastShipId + " not found in this world "
-					+ "(removed, or another dimension)");
-		} else if (found.hasPassengers()) {
-			DiagTrace.record("flight", "no remount: hull at " + found.getBlockPos() + " still has a passenger");
-		} else if (found.getOwnerUuid() != null && !found.getOwnerUuid().equals(player.getUuid())) {
-			DiagTrace.record("flight", "no remount: hull at " + found.getBlockPos() + " belongs to someone else");
-		} else {
-			found.setOwnerUuid(player.getUuid());
-			DiagTrace.record("flight", "remounted the existing Pyro hull at " + found.getBlockPos());
-			player.startRiding(found);
-			return;
-		}
-		var ship = com.terminaldetector.drmd.entity.ModEntities.PYRO_SHIP.create(player.getServerWorld());
-		if (ship == null) return;
-		ship.refreshPositionAndAngles(player.getX(), player.getY(), player.getZ(), player.getYaw(), 0);
-		ship.setOwnerUuid(player.getUuid());
-		data.setLastShip(ship.getUuid(), ship.getBlockPos());
-		player.getServerWorld().spawnEntity(ship);
-		DiagTrace.record("flight", "spawned a new Pyro hull at " + ship.getBlockPos());
-		player.startRiding(ship);
 	}
 
 	public static void tryDash(ServerPlayerEntity player) {

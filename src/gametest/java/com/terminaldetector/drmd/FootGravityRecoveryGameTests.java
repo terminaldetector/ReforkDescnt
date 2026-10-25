@@ -34,4 +34,26 @@ public final class FootGravityRecoveryGameTests implements FabricGameTest {
         context.assertTrue(player.getEyePos().y-player.getY()>1.5,"ordinary eye returned");
         FootGravitySystem.forget(player.getUuid()); player.discard(); context.complete();
     }
+
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void leavingEveryRoomFaceRestoresAClearStandingBody(TestContext context) {
+        var player=context.createMockCreativeServerPlayerInWorld();
+        var world=context.getWorld();
+        var centre=context.getAbsolutePos(new BlockPos(5,6,5));
+        for(var pos:BlockPos.iterate(centre.add(-3,-3,-3),centre.add(3,3,3))) {
+            boolean shell=Math.abs(pos.getX()-centre.getX())==3 || Math.abs(pos.getY()-centre.getY())==3 || Math.abs(pos.getZ()-centre.getZ())==3;
+            world.setBlockState(pos,shell?net.minecraft.block.Blocks.IRON_BLOCK.getDefaultState():net.minecraft.block.Blocks.AIR.getDefaultState(),2);
+        }
+        Vec3d middle=Vec3d.ofCenter(centre);
+        for(Vec3d up:new Vec3d[]{new Vec3d(1,0,0),new Vec3d(-1,0,0),new Vec3d(0,1,0),new Vec3d(0,-1,0),new Vec3d(0,0,1),new Vec3d(0,0,-1)}) {
+            player.setPosition(middle.subtract(up.multiply(2.44)));
+            FootGravitySystem.adoptServer(player.getUuid(),up,"room face");player.calculateDimensions();
+            context.assertTrue(world.isSpaceEmpty(player,player.getBoundingBox()),"local standing body fits on room face "+up);
+            com.terminaldetector.drmd.flight.FlightSystem.enableWithoutMount(player,DescentPlayerData.get(player));
+            context.assertTrue(!FootGravitySystem.isActive(player) && world.isSpaceEmpty(player,player.getBoundingBox()),"H release gives upright clearance for "+up);
+            context.assertTrue(player.getBoundingBox().getLengthY()>1.7,"standing height restored for "+up);
+            com.terminaldetector.drmd.flight.FlightSystem.disable(player,DescentPlayerData.get(player));
+        }
+        FootGravitySystem.forget(player.getUuid());player.discard();context.complete();
+    }
 }

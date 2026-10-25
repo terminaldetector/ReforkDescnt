@@ -116,6 +116,11 @@ its own mirror. Server and client stores are now separate, with an actual player
 Dimension changes clear old foot/body/input/cache state while preserving deliberate portal flight;
 non-death End respawn preserves flight intent, ordinary death respawn remains off.
 
+The unreachable private hull auto-mount path was removed; optional explicit ship interaction
+still exists. Mount/pose geometry now sees the new gravity frame before recalculating its box.
+A six-face room GameTest checks real standing-body clearance after releasing each local-up axis.
+These added Fabric checks remain NOT RUN until the cloud build can run.
+
 Perfectly coincident boids were explicitly skipped by the separation loop, leaving no escape
 vector. A deterministic antisymmetric pair direction now resolves zero-distance neighbours,
 without widening the 32-neighbour / 96-candidate work budget or changing role exclusions.
