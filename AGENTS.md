@@ -1,6 +1,9 @@
 # Recovery and checkpoint rules
 
-The user works in the cloud and requested a GitHub Actions checkpoint for every major event.
+The user works in the cloud. On 25 October 2026 they reported exhausted GitHub limits and
+asked to continue here with source code. While this pause is active, keep local milestone
+commits and downloadable source/bundle/patch/report backups; do not push or trigger Actions.
+The earlier GHA checkpoint policy resumes only when the user asks to resume GitHub work.
 
 - Read `docs/recovery/RECOVERY.md` before continuing recovery. The supplied historical handoff
   is context; current user instructions take precedence.

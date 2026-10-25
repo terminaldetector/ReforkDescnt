@@ -144,3 +144,12 @@ Artifact retention is finite: download milestone archives for longer-term preser
 - Configure Java to use the inherited session proxy; keep TLS verification enabled.
   A denied dependency is an infrastructure blocker, not a failed gameplay assertion.
 - Run links and artifact availability must be checked, rather than inferred from a push.
+
+## Temporary local source checkpoints — user update25October2026
+
+The user reports exhausted GitHub limits and requests work here with source code.
+Continue implementation with local commits and downloadable source archives, Gitbundles,
+patch series, checksums and reports. Do not push or trigger Actions during this pause.
+These are local backups, not GHA checkpoints; no new binary is certified without fresh
+Fabric/GameTest/client evidence. Preserve the old verified releases and integration/PR9.
+Current v3requirements and implementation ledger: docs/audit/2026-10-25-v3/.
