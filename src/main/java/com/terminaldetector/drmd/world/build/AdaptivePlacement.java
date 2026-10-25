@@ -125,12 +125,10 @@ public final class AdaptivePlacement {
         if(material==null)return null;
         range=Math.min(range,MAX_REACH);
         Vec3d eye=player.getEyePos(),direction=aim(player);
-        // A long ray must not synchronously pull unloaded chunks into the server.
-        double loadedRange=range;
-        for(double distance=0;distance<=range;distance+=1) {
-            if(!world.isChunkLoaded(BlockPos.ofFloored(eye.add(direction.multiply(distance))))) {loadedRange=Math.max(0,distance-1);break;}
-        }
-        var hit=world.raycast(new net.minecraft.world.RaycastContext(eye,eye.add(direction.multiply(loadedRange)),
+        if(!world.isChunkLoaded(BlockPos.ofFloored(eye)))return null;
+        Vec3d end=com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedEnd(world,eye,eye.add(direction.multiply(range)));
+        double loadedRange=end.distanceTo(eye);
+        var hit=world.raycast(new net.minecraft.world.RaycastContext(eye,end,
                 net.minecraft.world.RaycastContext.ShapeType.COLLIDER,net.minecraft.world.RaycastContext.FluidHandling.NONE,player));
         Vec3d up=localUp(player);
         Direction face=hit.getType()==net.minecraft.util.hit.HitResult.Type.BLOCK?hit.getSide():Direction.getFacing(up.x,up.y,up.z);

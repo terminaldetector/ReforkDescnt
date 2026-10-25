@@ -16,21 +16,13 @@ public final class WorldEditSafety {
             && player.getAbilities().allowModifyWorld && world.canPlayerModifyAt(player,at);
     }
     public static boolean loadedSegment(World world,Vec3d from,Vec3d to) {
-        Vec3d delta=to.subtract(from);double length=delta.length();
-        if(!Double.isFinite(length) || length>256)return false;
-        int steps=Math.max(1,(int)Math.ceil(length*2));
-        for(int i=0;i<=steps;i++)if(!world.isChunkLoaded(BlockPos.ofFloored(from.add(delta.multiply(i/(double)steps)))))return false;
-        return true;
+        double length=to.subtract(from).length();
+        return Double.isFinite(length) && length<=256 && LoadedChunkRay.fraction(from.x,from.z,to.x,to.z,(x,z)->world.isChunkLoaded(new BlockPos(x*16,world.getBottomY(),z*16)))==1;
     }
     public static Vec3d loadedEnd(World world,Vec3d from,Vec3d to) {
         Vec3d delta=to.subtract(from);double length=delta.length();
         if(!Double.isFinite(length) || length>256)return from;
-        int steps=Math.max(1,(int)Math.ceil(length*2));Vec3d last=from;
-        for(int i=0;i<=steps;i++) {
-            Vec3d at=from.add(delta.multiply(i/(double)steps));
-            if(!world.isChunkLoaded(BlockPos.ofFloored(at)))break;
-            last=at;
-        }
-        return last;
+        double fraction=LoadedChunkRay.fraction(from.x,from.z,to.x,to.z,(x,z)->world.isChunkLoaded(new BlockPos(x*16,world.getBottomY(),z*16)));
+        return from.add(delta.multiply(fraction));
     }
 }

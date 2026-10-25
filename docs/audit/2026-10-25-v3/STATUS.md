@@ -214,3 +214,12 @@ than being mistaken for a failed transaction when TNT immediately becomes an ent
 block reacts. One successful native insertion is charged once. Quiet commit/rollback applies
 to the explicitly handled multi-cell families. A powered-TNT native regression is added; all30
 native audit IDs are required. NOT RUN locally.
+
+## Loaded rays — exact chunk boundaries (audit.3)
+
+Regular half/one-block samples could miss a very thin unloaded chunk wedge on a diagonal.
+A bounded pure chunk-grid traversal now checks every crossing,including both side neighbours
+at corners,and clips just before the first unavailable chunk. It is shared by build rays,
+engineer rays and munition probes. Eight standalone JUnit cases PASS for thin wedges,negative
+coordinates,corners,zero length,invalid/oversized rays and stopping reads at the first refusal.
+This checks availability only; no chunk is requested/generated. Native integration NOT RUN.
