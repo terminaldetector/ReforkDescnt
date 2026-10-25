@@ -54,7 +54,8 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private static final Map<Integer, RenderProbe> RENDERED = new HashMap<>();
     private static final Map<Integer, String> VISIBILITY = new HashMap<>();
     private static volatile String fastServerState = "fast volley not observed";
-    private record RenderProbe(float x, float y, float fogStart, float fogEnd, long recorded) {}
+    private static long renderFrame;
+    private record RenderProbe(float x, float y, float fogStart, float fogEnd, long recorded, long frame) {}
 
     public static void recordVisibility(int id, String state) { VISIBILITY.put(id, state); }
 
@@ -67,11 +68,14 @@ public final class WeaponRenderCheck implements ClientModInitializer {
                 (clip.x / clip.w * .5f + .5f) * client.getFramebuffer().textureWidth,
                 (.5f - clip.y / clip.w * .5f) * client.getFramebuffer().textureHeight,
                 com.mojang.blaze3d.systems.RenderSystem.getShaderFogStart(),
-                com.mojang.blaze3d.systems.RenderSystem.getShaderFogEnd(), System.nanoTime()));
+                com.mojang.blaze3d.systems.RenderSystem.getShaderFogEnd(), System.nanoTime(), renderFrame));
     }
 
     @Override public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(this::tick);
+        WorldRenderEvents.START.register(context -> {
+            if (com.terminaldetector.drmd.client.portal.OffscreenWorldView.depth() == 0) renderFrame++;
+        });
         WorldRenderEvents.END.register(context -> {
             if (pendingCapture == null || com.terminaldetector.drmd.client.portal.OffscreenWorldView.depth() != 0) return;
             var request = pendingCapture;
@@ -337,7 +341,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
                             " chunkLoaded=" + client.world.isChunkLoaded(shot.getBlockPos()) +
                             " distanceMultiplier=" + ProjectileEntity.getRenderDistanceMultiplier() + " render=" + probe +
                             " visibility=" + VISIBILITY.get(id));
-                    if (probe == null || System.nanoTime() - probe.recorded() > 1_000_000_000L)
+                    if (probe == null || probe.frame() != renderFrame)
                         throw new IllegalStateException("Projectile did not reach the actual renderer: " + id);
                     Vec3d delta = shot.getPos().subtract(client.gameRenderer.getCamera().getPos());
                     double depth = delta.dotProduct(forward());
