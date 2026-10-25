@@ -68,7 +68,7 @@ public final class DescentHud {
 
 	public static void render(DrawContext ctx, float tickDelta) {
 		MinecraftClient mc = MinecraftClient.getInstance();
-		if (mc.player == null || mc.world == null || mc.options.hudHidden) return;
+		if (mc.player == null || mc.world == null || mc.options.hudHidden || mc.currentScreen != null) return;
 
 		renderReactorSyncStrip(ctx, mc);
 

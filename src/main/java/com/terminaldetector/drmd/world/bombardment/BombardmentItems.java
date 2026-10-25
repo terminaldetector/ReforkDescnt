@@ -64,7 +64,7 @@ public final class BombardmentItems {
 					.add(0, user.getHeight() * 0.45, 0)
 					.add(fwd.multiply(2.4))
 					.add(up.multiply(-1.65));
-			Vec3d inherit = data.isEnabled() ? data.getFlightVelocity() : user.getVelocity();
+			Vec3d inherit = data.isEnabled() ? data.getFlightVelocity().multiply(1.0 / com.terminaldetector.drmd.DescentMod.TICKS_PER_SECOND) : user.getVelocity();
 			// Eject forward + down so the round clears the ship before falling.
 			Vec3d eject = inherit.add(fwd.multiply(0.65)).add(up.multiply(-0.45));
 			if (ordnance.rocket) {
@@ -78,9 +78,8 @@ public final class BombardmentItems {
 			sw.spawnEntity(bomb);
 			SmokeSystemTrail(drop);
 			if (!user.getAbilities().creativeMode) stack.decrement(1);
-			String label = ordnance.rocket ? "Rocket" : "Ordnance";
-			user.sendMessage(Text.literal("§c" + label + " away: §f" + ordnance.name()
-					+ " §7@ Y=" + (int) user.getY()), true);
+			user.sendMessage(Text.translatable(ordnance.rocket?"message.drmd.rocket_launched":"message.drmd.ordnance_launched"),true);
+            com.terminaldetector.drmd.DescentMod.LOGGER.debug("Ordnance {} launched by {} at {}",ordnance,user.getUuid(),user.getPos());
 			return TypedActionResult.success(stack);
 		}
 

@@ -70,3 +70,16 @@ existing free 6DoF. It is an emergency recovery path, not a claim that lower wor
 The Nether floor remains diggable granite and is still being investigated with streaming.
 A GameTest exercises the actual recovery and HUD resolver. Four standalone JUnit boundary
 regressions PASS locally (`bounds-junit/`); Fabric/GameTests/client evidence remains pending.
+
+## Package D — modal UI and player messages (local)
+
+Flight HUD and 3D cockpit overlays now stop beneath modal screens. Settings keyboard hints
+wrap, button columns adapt to narrow scaled windows, single-column content remains scrollable,
+and long toggle/slider labels have full tooltips. Real screenshots at GUI scales are pending.
+Raw ordnance enum/Y output is moved to the logger's DEBUG level; localized action-bar launch
+messages replace it. The same source review found another real blocks/second inheritance bug
+in BombBayItem, fixed at the entity handoff and covered by an actual-use GameTest.
+
+Asset inspection found four cluster payload items sharing one icon; several ancestor/super
+weapon pairs also share models. Spawn egg/item UX remains open until actual model changes and
+an inventory rendering check; none is silently relabelled as fixed by the UI changes above.

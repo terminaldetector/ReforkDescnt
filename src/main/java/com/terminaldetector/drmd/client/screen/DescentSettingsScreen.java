@@ -23,7 +23,10 @@ import java.util.List;
  */
 public class DescentSettingsScreen extends Screen {
 	private static final int ROW = 22;
-	private static final int TOP = 36;
+	private int contentTop = 36;
+    private boolean singleColumn;
+    private int panelLeft,panelWidth,contentHeight;
+    private List<net.minecraft.text.OrderedText> hintLines=List.of();
 	private static final int SECTION = 14;
 	private static final int CONTENT_HEIGHT = 5 * SECTION + 13 * ROW + 3 * 6;
 	private final Screen parent;
@@ -45,15 +48,20 @@ public class DescentSettingsScreen extends Screen {
 		headings.clear();
 
 		int cx = this.width / 2;
-		int left = cx - 155;
-		int right = cx + 5;
+		singleColumn=width<360;
+        panelWidth=Math.min(420,width-20); panelLeft=(width-panelWidth)/2;
+        int left=panelLeft;
+        int right=panelLeft+(panelWidth+10)/2;
+        hintLines=textRenderer.wrapLines(Text.translatable("options.drmd.keys_hint"),Math.max(100,width-24));
+        contentTop=32+hintLines.size()*9+8;
+        contentHeight=CONTENT_HEIGHT+(singleColumn?9*ROW:0);
 		viewBottom = this.height - 32;
-		int contentH = CONTENT_HEIGHT;
-		int viewH = Math.max(ROW, viewBottom - TOP);
+		int contentH = contentHeight;
+		int viewH = Math.max(ROW, viewBottom - contentTop);
 		int minScroll = Math.min(0, viewH - contentH);
 		scroll = MathHelper.clamp(scroll, minScroll, 0);
 
-		int y = TOP + scroll;
+		int y = contentTop + scroll;
 		y = section(y, "options.drmd.settings.section.cockpit");
 		y = addRow(y, viewBottom,
 				toggle(left, y, "options.drmd.cockpit", DescentConfig.cockpit, v -> {
@@ -210,13 +218,19 @@ public class DescentSettingsScreen extends Screen {
 				.dimensions(cx - 100, this.height - 28, 200, 20).build());
 	}
 
-	private int addRow(int y, int viewBottom, ClickableWidget a, ClickableWidget b) {
-		if (y >= TOP && y + 20 <= viewBottom) {
-			if (a != null) addDrawableChild(a);
-			if (b != null) addDrawableChild(b);
-		}
-		return y + ROW;
-	}
+    private int addRow(int y,int viewBottom,ClickableWidget a,ClickableWidget b) {
+        int colWidth=singleColumn||b==null?panelWidth:(panelWidth-10)/2;
+        if(a!=null) {
+            a.setX(panelLeft); a.setY(y); a.setWidth(colWidth);
+            if(y>=contentTop && y+20<=viewBottom) addDrawableChild(a);
+        }
+        int secondY=singleColumn&&a!=null&&b!=null?y+ROW:y;
+        if(b!=null) {
+            b.setX(singleColumn?panelLeft:panelLeft+colWidth+10); b.setY(secondY); b.setWidth(colWidth);
+            if(secondY>=contentTop && secondY+20<=viewBottom) addDrawableChild(b);
+        }
+        return secondY+ROW;
+    }
 
 	private int section(int y, String key) {
 		headings.add(new Heading(y, Text.translatable(key)));
@@ -231,7 +245,8 @@ public class DescentSettingsScreen extends Screen {
 					setter.accept(state[0]);
 					b.setMessage(label(key, state[0]));
 				})
-				.dimensions(x, y, 150, 20).build();
+				.tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(Text.translatable(key)))
+                .dimensions(x, y, 150, 20).build();
 	}
 
 	private static Text label(String key, boolean on) {
@@ -241,13 +256,13 @@ public class DescentSettingsScreen extends Screen {
 
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-		if (mouseY < TOP || mouseY > viewBottom) {
+		if (mouseY < contentTop || mouseY > viewBottom) {
 			return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
 		}
 		int before = scroll;
 		scroll += Integer.signum((int) Math.signum(verticalAmount)) * ROW;
-		int contentH = CONTENT_HEIGHT;
-		int viewH = Math.max(ROW, viewBottom - TOP);
+		int contentH = contentHeight;
+		int viewH = Math.max(ROW, viewBottom - contentTop);
 		int minScroll = Math.min(0, viewH - contentH);
 		scroll = MathHelper.clamp(scroll, minScroll, 0);
 		if (scroll != before) {
@@ -261,11 +276,11 @@ public class DescentSettingsScreen extends Screen {
 	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
 		super.render(context, mouseX, mouseY, delta);
 		context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 12, 0x5FE08A);
-		context.drawCenteredTextWithShadow(this.textRenderer,
-				Text.translatable("options.drmd.keys_hint"), this.width / 2, 24, 0x7A8A80);
+		for(int i=0;i<hintLines.size();i++)
+            context.drawTextWithShadow(textRenderer,hintLines.get(i),12,28+i*9,0x7A8A80);
 		for (Heading heading : headings) {
-			if (heading.y() >= TOP && heading.y() + 9 <= viewBottom) {
-				context.drawTextWithShadow(this.textRenderer, heading.text(), this.width / 2 - 155,
+			if (heading.y() >= contentTop && heading.y() + 9 <= viewBottom) {
+				context.drawTextWithShadow(this.textRenderer, heading.text(), panelLeft,
 						heading.y(), 0x91BFA1);
 			}
 		}
@@ -303,8 +318,9 @@ public class DescentSettingsScreen extends Screen {
 
 		@Override
 		protected void updateMessage() {
-			setMessage(Text.translatable(key).append(": ")
-					.append(String.format(format, value() * displayScale)));
+			Text full=Text.translatable(key).append(": ").append(String.format(format,value()*displayScale));
+            setMessage(full);
+            setTooltip(net.minecraft.client.gui.tooltip.Tooltip.of(full));
 		}
 
 		@Override

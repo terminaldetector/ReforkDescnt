@@ -36,7 +36,7 @@ public final class CockpitRenderer {
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
 			MinecraftClient mc = MinecraftClient.getInstance();
 			if (mc.player == null || mc.options == null) return;
-			if (!DescentConfig.cockpit || !DescentClientState.enabled) return;
+			if (!DescentConfig.cockpit || !DescentClientState.enabled || mc.currentScreen != null) return;
 			if (!mc.options.getPerspective().isFirstPerson() || mc.options.hudHidden) return;
 
 			// Never hard-gate on attitude — prime if cold so the frame is not permanently missing.
