@@ -83,3 +83,13 @@ in BombBayItem, fixed at the entity handoff and covered by an actual-use GameTes
 Asset inspection found four cluster payload items sharing one icon; several ancestor/super
 weapon pairs also share models. Spawn egg/item UX remains open until actual model changes and
 an inventory rendering check; none is silently relabelled as fixed by the UI changes above.
+
+## UG-014 inventory assets (local)
+
+Sixteen duplicate/indistinguishable inventory meshes were given distinct silhouettes or
+class markers: five cluster bays/payloads, energy/shield pickups, portal stabilizer and eight
+ancestor/super weapon pairs. These are JSON voxel models using vanilla block materials;
+weapon behavior and world viewmodels are unchanged. `scripts/audit_item_models.py` regenerates
+them. JSON and element bounds passed local validation. Existing spawn eggs already have
+fourteen different model resources; actual perceptual differentiation still needs the fresh
+inventory screenshot scene, so the audit item remains open until that evidence exists.
