@@ -57,6 +57,7 @@ public final class PortalSeeThroughRenderer {
 	private static final int MAX_PORTALS_PER_FRAME = 2;
 
 	private static int scanAge = SCAN_PERIOD_TICKS;
+    private static net.minecraft.client.world.ClientWorld scannedWorld;
 	private static List<MirrorScanner.PortalFace> cachedPortals = List.of();
 
 	/** How many faces the last scan found — a fact the diagnostics report needs and a log line has not. */
@@ -71,6 +72,7 @@ public final class PortalSeeThroughRenderer {
 
 	/** Once a second, like the mirror scan: a link is placed and broken far more slowly than it is drawn. */
 	private static void onClientTick(MinecraftClient mc) {
+        if(mc.world!=scannedWorld){cachedPortals=List.of();scanAge=SCAN_PERIOD_TICKS;scannedWorld=mc.world;}
         if(!DescentConfig.portalSeeThrough){cachedPortals=List.of();scanAge=SCAN_PERIOD_TICKS;return;}
 		if (mc.player == null || mc.world == null) {
 			cachedPortals = List.of();

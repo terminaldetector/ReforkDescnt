@@ -56,6 +56,7 @@ public final class MirrorReflectionRenderer {
 	private static final int MAX_MIRRORS_PER_FRAME = 2;
 
 	private static int scanAge = SCAN_PERIOD_TICKS;
+    private static net.minecraft.client.world.ClientWorld scannedWorld;
 	private static List<MirrorScanner.MirrorFace> cachedMirrors = List.of();
 
 	/** How many faces the last scan found — a fact the diagnostics report needs and a log line has not. */
@@ -71,6 +72,7 @@ public final class MirrorReflectionRenderer {
 	/** Mirrors are static placed blocks — a once-a-second rescan is imperceptible lag between placing
 	 *  or breaking one and it dis/appearing from this system, same trade TerrainMap3d already makes. */
 	private static void onClientTick(MinecraftClient mc) {
+        if(mc.world!=scannedWorld){cachedMirrors=List.of();scanAge=SCAN_PERIOD_TICKS;scannedWorld=mc.world;}
         if(!DescentConfig.mirrorReflection){cachedMirrors=List.of();scanAge=SCAN_PERIOD_TICKS;return;}
 		if (mc.player == null || mc.world == null) {
 			cachedMirrors = List.of();

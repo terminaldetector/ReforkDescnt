@@ -139,3 +139,9 @@ CarvedBlockRenderer is the old per-box BER with no registration in the present s
 HybridTerrainModel supplies the active chunk model; retained until native regression. Do not
 remove saved aliases or recovery ZIP/JARs. Portal stabilizer is a live recipe ingredient in six
 crafts, not an invented interactive portal tool or dead item merely because it extends Item.
+
+Final source review also clears view-scan caches immediately on world replacement. Capsule
+API inputs are finite and limited to the existing tool dimensions; each call writes at most128
+actually changed cells, and later calls skip unchanged masks so they continue through the bore.
+This per-call ceiling is not a global server tick-time guarantee. Removing the final intersected
+cells counts as a real break with the original breaker, rather than an uncounted replacement.

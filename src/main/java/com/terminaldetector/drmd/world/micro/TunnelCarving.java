@@ -107,6 +107,8 @@ public final class TunnelCarving {
 	 */
 	public static int carveCapsule(ServerWorld world, Vec3d segStart, Vec3d segEnd, double radius,
 									LivingEntity breaker) {
+        if(!Double.isFinite(segStart.lengthSquared()) || !Double.isFinite(segEnd.lengthSquared())
+                || !Double.isFinite(radius) || radius<=0 || radius>4 || segStart.squaredDistanceTo(segEnd)>144)return 0;
 		int minX = (int) Math.floor(Math.min(segStart.x, segEnd.x) - radius - 1);
 		int maxX = (int) Math.floor(Math.max(segStart.x, segEnd.x) + radius + 1);
 		int minY = (int) Math.floor(Math.min(segStart.y, segEnd.y) - radius - 1);
@@ -121,6 +123,7 @@ public final class TunnelCarving {
 		for (int x = minX; x <= maxX; x++) {
 			for (int y = minY; y <= maxY; y++) {
 				for (int z = minZ; z <= maxZ; z++) {
+                    if(carved>=128)return carved;
 					double centerDist = Math.sqrt(distSqToSegment(x + 0.5, y + 0.5, z + 0.5, segStart, segEnd));
 					if (centerDist > radius + HALF_DIAGONAL) continue; // no corner can reach the capsule
 
@@ -139,7 +142,14 @@ public final class TunnelCarving {
 						continue;
 					}
 					BlockState state = world.getBlockState(pos);
-                    if(world.getBlockEntity(pos) instanceof CarvedBlockEntity existing && (existing.mask() & mask)==existing.mask())continue;
+                    if(world.getBlockEntity(pos) instanceof CarvedBlockEntity existing) {
+                        long remaining=existing.mask() & mask;
+                        if(remaining==existing.mask())continue;
+                        if(remaining==MicroGrid.EMPTY) {
+                            if(world.breakBlock(pos.toImmutable(),true,breaker))carved++;
+                            continue;
+                        }
+                    }
 					if (CarvedBlock.replace(world, pos, state, mask) != null) carved++;
 				}
 			}
