@@ -170,10 +170,10 @@ public final class ConstructionPlacementGameTests implements FabricGameTest {
     public void constructionModeSynchronizesEvenWithoutALockedScaffold(TestContext context) {
         var buffer=new net.minecraft.network.RegistryByteBuf(io.netty.buffer.Unpooled.buffer(),context.getWorld().getRegistryManager());
         try {
-            var payload=new com.terminaldetector.drmd.network.ModNetworking.ScaffoldPayload(false,true,"",List.of());
-            com.terminaldetector.drmd.network.ModNetworking.ScaffoldPayload.CODEC.encode(buffer,payload);
-            var decoded=com.terminaldetector.drmd.network.ModNetworking.ScaffoldPayload.CODEC.decode(buffer);
-            context.assertTrue(!decoded.active() && decoded.constructionMode() && decoded.positions().isEmpty(),"adaptive mode is independent of a draft’s active flag");
+            var payload=new com.terminaldetector.drmd.network.ModNetworking.ConstructionModePayload(true);
+            com.terminaldetector.drmd.network.ModNetworking.ConstructionModePayload.CODEC.encode(buffer,payload);
+            var decoded=com.terminaldetector.drmd.network.ModNetworking.ConstructionModePayload.CODEC.decode(buffer);
+            context.assertTrue(decoded.active(),"adaptive mode metadata exists independently of any locked draft");
         } finally {buffer.release();}
         context.complete();
     }
@@ -181,7 +181,7 @@ public final class ConstructionPlacementGameTests implements FabricGameTest {
     public void oversizedScaffoldFramesAreRejectedBeforeAllocation(TestContext context) {
         var buffer=new net.minecraft.network.RegistryByteBuf(io.netty.buffer.Unpooled.buffer(),context.getWorld().getRegistryManager());boolean rejected=false;
         try {
-            buffer.writeBoolean(false);buffer.writeBoolean(false);buffer.writeString("");buffer.writeVarInt(385);
+            buffer.writeBoolean(false);buffer.writeString("");buffer.writeVarInt(385);
             try{com.terminaldetector.drmd.network.ModNetworking.ScaffoldPayload.CODEC.decode(buffer);}catch(IllegalArgumentException expected){rejected=true;}
         } finally {buffer.release();}
         context.assertTrue(rejected,"wire frame count is bounded before creating the positions list");context.complete();
@@ -211,6 +211,18 @@ public final class ConstructionPlacementGameTests implements FabricGameTest {
         var primed=world.getEntitiesByClass(net.minecraft.entity.TntEntity.class,new net.minecraft.util.math.Box(at).expand(2),entity->true);
         context.assertTrue(primed.size()==1 && player.getOffHandStack().getCount()==1,"one TNT entity from one paid item");
         for(var entity:primed)entity.discard();player.discard();context.complete();
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void publishedScaffoldFrameFormatRemainsReadableWithoutAModeField(TestContext context) {
+        var buffer=new net.minecraft.network.RegistryByteBuf(io.netty.buffer.Unpooled.buffer(),context.getWorld().getRegistryManager());
+        try {
+            var position=context.getAbsolutePos(new BlockPos(4,5,4));
+            buffer.writeBoolean(true);buffer.writeString("line");buffer.writeVarInt(1);buffer.writeBlockPos(position);
+            var decoded=com.terminaldetector.drmd.network.ModNetworking.ScaffoldPayload.CODEC.decode(buffer);
+            context.assertTrue(decoded.active() && decoded.shapeId().equals("line") && decoded.positions().equals(List.of(position)),"existing scaffold channel has no inserted boolean");
+        } finally {buffer.release();}
+        context.complete();
     }
 
 }

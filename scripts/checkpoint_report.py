@@ -33,7 +33,8 @@ AUDIT_FRAMES = ('audit-flight-off','audit-lower-recovery','audit-inventory') + t
     f'audit-swarm-{n}' for n in (128,256,512,1024)) + tuple(f'audit-environment-{i}' for i in range(4)) + tuple(f'audit-profile-{i}' for i in range(4))
 
 
-AUDIT_NATIVE_CASES = ('poweredTntIsChargedOnceWhenItImmediatelyBecomesAnEntity',
+AUDIT_NATIVE_CASES = ('publishedScaffoldFrameFormatRemainsReadableWithoutAModeField',
+ 'poweredTntIsChargedOnceWhenItImmediatelyBecomesAnEntity',
  'explicitToolModesAreNotMaskedByAdaptiveDefaults',
  'multiCellPlacementCannotOverwriteAnUnvalidatedNeighbour',
  'carvedFragmentsRemainMineableWhileContainersAreProtected',

@@ -17,8 +17,8 @@ public final class ScaffoldClientState {
 
 	private ScaffoldClientState() {}
 
-	public void set(boolean active, boolean constructionMode, String shapeId, List<BlockPos> positions) {
-		this.active = active;this.constructionMode=constructionMode;this.modeKnown=true;
+	public void set(boolean active, String shapeId, List<BlockPos> positions) {
+		this.active = active;
 		this.shapeId = shapeId == null ? "" : shapeId;
 		if (positions == null || positions.isEmpty()) {
 			this.positions = List.of();
@@ -28,10 +28,11 @@ public final class ScaffoldClientState {
 	}
 
 	public void clear() {
-		set(false, false, "", List.of());modeKnown=false;
+		set(false, "", List.of());constructionMode=false;modeKnown=false;
 	}
 
-	public boolean constructionMode(){return constructionMode;}
+	public void setConstructionMode(boolean active){constructionMode=active;modeKnown=true;}
+    public boolean constructionMode(){return constructionMode;}
     public boolean modeKnown(){return modeKnown;}
 	public boolean active() { return active && !positions.isEmpty(); }
 	public String shapeId() { return shapeId; }

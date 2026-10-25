@@ -223,3 +223,9 @@ at corners,and clips just before the first unavailable chunk. It is shared by bu
 engineer rays and munition probes. Eight standalone JUnit cases PASS for thin wedges,negative
 coordinates,corners,zero length,invalid/oversized rays and stopping reads at the first refusal.
 This checks availability only; no chunk is requested/generated. Native integration NOT RUN.
+
+Mode-wire review preserves the existing published scaffold packet layout: the adaptive flag
+is now a separate optional ConstructionModePayload,sent only to clients advertising that
+channel. Clients lacking mode metadata do not guess a preview mode. Draft updates do not
+reset the mode mirror. An explicit legacy-frame decoder regression is mandatory,bringing the
+required native audit IDs to31. Native protocol/client checks remain NOT RUN.

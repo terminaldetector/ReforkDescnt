@@ -379,14 +379,21 @@ public final class ModNetworking {
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
 	}
 
+    /** Optional mode metadata; the published scaffold frame schema remains unchanged. */
+    public record ConstructionModePayload(boolean active) implements CustomPayload {
+        public static final Id<ConstructionModePayload> ID=new Id<>(Identifier.of(DescentMod.MOD_ID,"construction_mode"));
+        public static final PacketCodec<RegistryByteBuf,ConstructionModePayload> CODEC=PacketCodec.of(
+            (payload,buf)->buf.writeBoolean(payload.active),buf->new ConstructionModePayload(buf.readBoolean()));
+        @Override public Id<? extends CustomPayload> getId(){return ID;}
+    }
+
 	/** Server → client construction scaffold frame (locked positions). */
-	public record ScaffoldPayload(boolean active, boolean constructionMode, String shapeId, java.util.List<net.minecraft.util.math.BlockPos> positions)
+	public record ScaffoldPayload(boolean active, String shapeId, java.util.List<net.minecraft.util.math.BlockPos> positions)
 			implements CustomPayload {
 		public static final Id<ScaffoldPayload> ID = new Id<>(SCAFFOLD_ID);
 		public static final PacketCodec<RegistryByteBuf, ScaffoldPayload> CODEC = PacketCodec.of(
 				(payload, buf) -> {
 					buf.writeBoolean(payload.active);
-                    buf.writeBoolean(payload.constructionMode);
 					buf.writeString(payload.shapeId == null ? "" : payload.shapeId);
 					buf.writeVarInt(payload.positions.size());
 					for (net.minecraft.util.math.BlockPos p : payload.positions) {
@@ -395,13 +402,12 @@ public final class ModNetworking {
 				},
 				buf -> {
 					boolean active = buf.readBoolean();
-                    boolean constructionMode=buf.readBoolean();
 					String shape = buf.readString();
 					int n = buf.readVarInt();
                     if(n<0 || n>384)throw new IllegalArgumentException("Invalid scaffold cell count");
 					java.util.ArrayList<net.minecraft.util.math.BlockPos> list = new java.util.ArrayList<>(n);
 					for (int i = 0; i < n; i++) list.add(buf.readBlockPos());
-					return new ScaffoldPayload(active, constructionMode, shape, list);
+					return new ScaffoldPayload(active, shape, list);
 				}
 		);
 		@Override public Id<? extends CustomPayload> getId() { return ID; }
@@ -497,6 +503,7 @@ public final class ModNetworking {
 		PayloadTypeRegistry.playS2C().register(SyncPayload.ID, SyncPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ConstructionPayload.ID, ConstructionPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ScaffoldPayload.ID, ScaffoldPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ConstructionModePayload.ID,ConstructionModePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(SmokePayload.ID, SmokePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ReactorSyncPayload.ID, ReactorSyncPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(FatePayload.ID, FatePayload.CODEC);
