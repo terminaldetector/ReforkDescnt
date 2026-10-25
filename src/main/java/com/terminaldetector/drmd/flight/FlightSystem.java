@@ -201,9 +201,9 @@ public final class FlightSystem {
 			g += DescentMod.su(data.getGravity()) * field.strength() * 0.55;
 			com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(), field.upDir());
 		} else {
-			gravDir = onPyro
-					? new Vec3d(0, -1, 0) // ship ignores local station UP
-					: com.terminaldetector.drmd.world.LocalOrientation.gravityDir(player.getUuid());
+			gravDir = new Vec3d(0,-1,0);
+            // A field's last up is not permanent gravity after leaving its influence.
+            com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),new Vec3d(0,1,0));
 			if (onPyro) {
 				// Keep micro-g along world down only; no torch reorientation
 				g = endVacuum ? 0.0 : DescentMod.su(MICRO_GRAV) * 0.25;
@@ -380,7 +380,12 @@ public final class FlightSystem {
 		DiagTrace.record("flight", "6DoF on for " + player.getGameProfile().getName()
 				+ (mountHull ? " (will mount a hull)" : " (no mount — leaving one)"));
 		com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
-		data.setEnabled(true);
+        if(!data.isEnabled()) {
+            clearInput(player.getUuid());
+            com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),new Vec3d(0,1,0));
+        }
+        player.calculateDimensions();
+        data.setEnabled(true);
 		data.ensureInit();
 		boolean dirty = false;
 		if (player.getAbilities().flying) {
