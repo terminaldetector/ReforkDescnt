@@ -8,13 +8,17 @@ import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.Heightmap;
 
 public final class LowerWorldRecoveryGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE)
     public void lowerBoundaryReturnsToClearSpaceWithControlBeforeVoidDamage(TestContext context) {
         var player=context.createMockCreativeServerPlayerInWorld();
         var world=context.getWorld();
-        Vec3d safe=Vec3d.ofCenter(context.getAbsolutePos(new BlockPos(5,7,5)));
+        BlockPos anchor=context.getAbsolutePos(new BlockPos(5,7,5));
+        int clearY=Math.max(world.getBottomY()+64,
+                world.getTopY(Heightmap.Type.MOTION_BLOCKING,anchor.getX(),anchor.getZ())+2);
+        Vec3d safe=new Vec3d(anchor.getX()+.5,clearY,anchor.getZ()+.5);
         player.setPosition(safe);
         context.assertTrue(!LowerWorldRecovery.recoverOrRemember(player),"ordinary in-bounds play is untouched");
         player.setPosition(safe.x,world.getBottomY()-80,safe.z);
