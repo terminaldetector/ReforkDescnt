@@ -488,7 +488,8 @@ public class AerialBombEntity extends Entity {
 		}
 		if (nbt.containsUuid("owner")) ownerId = nbt.getUuid("owner");
 		if (nbt.contains("tx")) laserTarget = new BlockPos(nbt.getInt("tx"), nbt.getInt("ty"), nbt.getInt("tz"));
-		submunition = nbt.getBoolean("sub");
+		ageTicks = Math.clamp(nbt.getInt("FlightAge"),0,20*90+1);
+        submunition = nbt.getBoolean("sub");
 		dispensed = nbt.getBoolean("dispensed");
 		blastMul = nbt.contains("blastMul") ? nbt.getFloat("blastMul") : 1f;
 		laserHazardTicks = nbt.getInt("laserHazard");
@@ -504,7 +505,8 @@ public class AerialBombEntity extends Entity {
 			nbt.putInt("ty", laserTarget.getY());
 			nbt.putInt("tz", laserTarget.getZ());
 		}
-		nbt.putBoolean("sub", submunition);
+		nbt.putInt("FlightAge",ageTicks);
+        nbt.putBoolean("sub", submunition);
 		nbt.putBoolean("dispensed", dispensed);
 		nbt.putFloat("blastMul", blastMul);
 		nbt.putInt("laserHazard", laserHazardTicks);

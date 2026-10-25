@@ -121,3 +121,11 @@ vector. A deterministic antisymmetric pair direction now resolves zero-distance 
 without widening the 32-neighbour / 96-candidate work budget or changing role exclusions.
 Three standalone JUnit regressions pass over 128 identities, and an actual-compute GameTest
 covers coincident drone entities. These are not measured 128/1024-client movement results.
+
+## UG-019 munition persistence (local)
+
+AerialBombEntity did not save its spent flight age, so chunk unload/reload restarted its
+90-second expiry even though payload/hazard state persisted. FlightAge now round-trips and
+resumes; a GameTest checks save/reload followed by a real tick. Existing Ragdoll life already
+persists and expires at 1200 ticks. Persistent assembled construction bodies are intentionally
+not assigned an arbitrary debris lifetime.

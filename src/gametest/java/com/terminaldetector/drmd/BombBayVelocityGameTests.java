@@ -25,4 +25,17 @@ public final class BombBayVelocityGameTests implements FabricGameTest {
                 "20 m/s inherited as one block/tick, not twenty");
         bombs.getFirst().discard(); data.setEnabled(false); player.discard(); context.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void munitionLifetimeContinuesAcrossEntitySaveAndReload(TestContext context) {
+        var first=ModEntities.AERIAL_BOMB.create(context.getWorld());
+        first.setPosition(Vec3d.ofCenter(context.getAbsolutePos(new BlockPos(7,9,7))));
+        var saved=new net.minecraft.nbt.NbtCompound(); first.writeNbt(saved); saved.putInt("FlightAge",1234);
+        var loaded=ModEntities.AERIAL_BOMB.create(context.getWorld()); loaded.readNbt(saved);
+        var before=new net.minecraft.nbt.NbtCompound(); loaded.writeNbt(before);
+        context.assertTrue(before.getInt("FlightAge")==1234,"chunk reload preserves the spent flight lifetime");
+        loaded.tick(); var after=new net.minecraft.nbt.NbtCompound(); loaded.writeNbt(after);
+        context.assertTrue(after.getInt("FlightAge")==1235,"lifetime advances instead of restarting after reload");
+        first.discard(); loaded.discard(); context.complete();
+    }
+
 }
