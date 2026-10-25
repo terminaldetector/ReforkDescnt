@@ -71,6 +71,7 @@ public final class MirrorReflectionRenderer {
 	/** Mirrors are static placed blocks — a once-a-second rescan is imperceptible lag between placing
 	 *  or breaking one and it dis/appearing from this system, same trade TerrainMap3d already makes. */
 	private static void onClientTick(MinecraftClient mc) {
+        if(!DescentConfig.mirrorReflection){cachedMirrors=List.of();scanAge=SCAN_PERIOD_TICKS;return;}
 		if (mc.player == null || mc.world == null) {
 			cachedMirrors = List.of();
 			return;

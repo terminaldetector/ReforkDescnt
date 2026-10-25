@@ -79,12 +79,22 @@ public final class OffscreenWorldView {
 	 * ones that must not be captured.
 	 */
 	public static void register() {
+        net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc->{
+            if(mc.world!=lastWorld || !com.terminaldetector.drmd.client.config.DescentConfig.mirrorReflection
+                    && !com.terminaldetector.drmd.client.config.DescentConfig.portalSeeThrough) {
+                if(!busy()) {
+                    MirrorFramebuffer.release();frameProjection=null;framePosition=null;lastWorld=mc.world;
+                }
+            }
+        });
 		WorldRenderEvents.START.register(context -> {
 			if (busy()) return;
 			frameProjection = new Matrix4f(context.projectionMatrix());
 			framePosition = new Matrix4f(context.positionMatrix());
 		});
 	}
+
+    private static net.minecraft.client.world.ClientWorld lastWorld;
 
 	/** The frame's projection, or null before the first world render of a session. */
 	public static Matrix4f frameProjection() {

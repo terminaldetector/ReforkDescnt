@@ -71,6 +71,7 @@ public final class PortalSeeThroughRenderer {
 
 	/** Once a second, like the mirror scan: a link is placed and broken far more slowly than it is drawn. */
 	private static void onClientTick(MinecraftClient mc) {
+        if(!DescentConfig.portalSeeThrough){cachedPortals=List.of();scanAge=SCAN_PERIOD_TICKS;return;}
 		if (mc.player == null || mc.world == null) {
 			cachedPortals = List.of();
 			return;

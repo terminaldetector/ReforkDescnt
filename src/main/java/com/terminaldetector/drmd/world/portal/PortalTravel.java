@@ -102,6 +102,10 @@ public final class PortalTravel {
 
 			BlockPos destination = BlockPos.ofFloored(exit.position().x(), exit.position().y(), exit.position().z());
 			if (!world.isChunkLoaded(destination) || world.isOutOfHeightLimit(destination) || !world.getWorldBorder().contains(destination)) continue;
+            if(!(entity instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity)
+                    && !exitIsClear(world,entity,fromPure(exit.position()))) {
+                DiagTrace.count("portal.blockedExit");continue;
+            }
 			if (entity instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity blockBody
 				&& !blockBody.canCrossPortal(com.terminaldetector.drmd.d6.D6PortalTransform.of(
 					plane, n, toPure(partnerFace), toPure(partnerNormal)), exit.position())) continue;
@@ -138,6 +142,20 @@ public final class PortalTravel {
 			markArrived(entity.getUuid(), now);
 		}
 	}
+
+    /** Validate the whole existing body before mutating attitude, velocity, cooldown or position. */
+    public static boolean exitIsClear(ServerWorld world,Entity traveller,Vec3d destination) {
+        if(!Double.isFinite(destination.lengthSquared()))return false;
+        Box body=traveller.getBoundingBox().offset(destination.subtract(traveller.getPos()));
+        if(body.minY<world.getBottomY() || body.maxY>world.getTopY())return false;
+        var min=BlockPos.ofFloored(body.minX,body.minY,body.minZ);
+        var max=BlockPos.ofFloored(body.maxX-1e-7,body.maxY-1e-7,body.maxZ-1e-7);
+        if(!world.getWorldBorder().contains(min) || !world.getWorldBorder().contains(max))return false;
+        int x0=min.getX()>>4,x1=max.getX()>>4,z0=min.getZ()>>4,z1=max.getZ()>>4;
+        if((long)(x1-x0+1)*(z1-z0+1)>64)return false;
+        for(int x=x0;x<=x1;x++)for(int z=z0;z<=z1;z++)if(!world.isChunkLoaded(x,z))return false;
+        return world.isSpaceEmpty(traveller,body);
+    }
 
 	/**
 	 * Whether the crossing point is on the open part of the portal plane, rather than through the wall

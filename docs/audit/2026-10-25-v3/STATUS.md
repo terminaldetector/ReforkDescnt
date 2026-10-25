@@ -102,3 +102,21 @@ processing no longer creates a lava source. Four prepared native GameTests are N
 Still open: accumulated/persisted heat, complete drop/material economics, pooled tick budgets
 and the requested smooth signed-distance tunnel surface. The existing quarter-cell edge is a
 finer staircase, not a mathematically smooth NoCubes replacement. No new dependency was added.
+
+## F mirrors: resource lifecycle source change (NOT RUN)
+
+Disabled mirrors no longer scan nearby chunks. Turning them ON schedules a fresh scan. The
+shared offscreen target is deleted on world change/disconnect, or when both mirror and portal
+views are OFF; one still-active view keeps its target. Allocation is refused with both flags OFF.
+Reflection transforms/traversal were not conflated: native mirror image compositing still has
+the documented rectangular scissor/depth limitations. Exact clipping, reflections at roll and
+GPU-resource behavior require real client evidence and are not labelled fixed.
+
+## G portals: exit body preflight source change (NOT RUN)
+
+Ordinary travellers now validate their complete current AABB before any attitude/velocity/
+position/cooldown mutation: runtime height, world border, every intersected chunk and collision.
+Previously only the destination cell was checked. BlockBody keeps its existing transform-aware
+whole-hull check. Two prepared native GameTests cover clear feet/blocked head, valid body exit,
+height,unloaded target and no partial move. Foot-gravity reorientation, high-speed traversal,
+pair reload and actual see-through clipping remain independent acceptance work.

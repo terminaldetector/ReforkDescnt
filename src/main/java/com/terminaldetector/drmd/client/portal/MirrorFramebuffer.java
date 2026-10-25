@@ -32,16 +32,22 @@ public final class MirrorFramebuffer {
 
 	private MirrorFramebuffer() {}
 
+    public static void release() {
+        if(framebuffer!=null){framebuffer.delete();framebuffer=null;}
+        width=height=0;
+    }
+
 	/**
 	 * The target, sized to the window. Created on first use and resized when the window changes —
-	 * never deleted, since it lives as long as the client does and a mirror can come back into view
-	 * at any time.
+	 * released on world changes or when both view features are OFF.
 	 *
 	 * @return the framebuffer, or {@code null} if the window has no area yet (minimised, or called
 	 *         before the window is up) — the caller must treat that as "skip this frame" rather than
 	 *         as an error.
 	 */
 	public static Framebuffer get() {
+        if(!com.terminaldetector.drmd.client.config.DescentConfig.mirrorReflection
+                && !com.terminaldetector.drmd.client.config.DescentConfig.portalSeeThrough)return null;
 		MinecraftClient mc = MinecraftClient.getInstance();
 		int w = mc.getWindow().getFramebufferWidth();
 		int h = mc.getWindow().getFramebufferHeight();

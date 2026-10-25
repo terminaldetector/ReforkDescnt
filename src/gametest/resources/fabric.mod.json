@@ -21,7 +21,8 @@
       "com.terminaldetector.drmd.ConstructionPlacementGameTests",
       "com.terminaldetector.drmd.PhysicsProfileGameTests",
       "com.terminaldetector.drmd.ClusterLifecycleGameTests",
-      "com.terminaldetector.drmd.DrillSafetyGameTests"
+      "com.terminaldetector.drmd.DrillSafetyGameTests",
+      "com.terminaldetector.drmd.PortalExitSafetyGameTests"
     ]
   },
   "depends": {
