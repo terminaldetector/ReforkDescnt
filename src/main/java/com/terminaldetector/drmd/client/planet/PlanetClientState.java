@@ -39,6 +39,7 @@ public final class PlanetClientState {
 	 * {@link #dirty} is still set, so the next frame asks again.
 	 */
 	private final AtomicInteger generation = new AtomicInteger();
+    private final AtomicInteger worldEpoch = new AtomicInteger();
 	private final AtomicBoolean building = new AtomicBoolean();
 
 	/**
@@ -70,6 +71,7 @@ public final class PlanetClientState {
 	public void apply(long seed, List<Long> scarCells, List<HorizonLandmark> marks) {
 		boolean changed = false;
 		if (this.seed != seed || !hasSeed) {
+            worldEpoch.incrementAndGet();
 			this.seed = seed;
 			this.hasSeed = true;
 			changed = true;
@@ -128,6 +130,7 @@ public final class PlanetClientState {
 	}
 
 	public void clear() {
+        worldEpoch.incrementAndGet();
 		hasSeed = false;
 		seed = 0L;
 		scars.clear();
@@ -184,6 +187,7 @@ public final class PlanetClientState {
 		if (!building.compareAndSet(false, true)) return;
 
 		int startedGeneration = generation.get();
+        int startedWorld = worldEpoch.get();
 		long seedNow = seed;
 		// Snapshot rather than share: both are read on the worker while the network thread may be
 		// writing them. scars is a concurrent set, so copyOf sees a consistent-enough view; landmarks
@@ -205,9 +209,11 @@ public final class PlanetClientState {
 				//
 				// The field itself is published either way. A backdrop built from data one packet out
 				// of date is not something a pilot can see; a missing backdrop is.
-				dirty = false;
-				mesh = built;
-				if (generation.get() != startedGeneration) dirty = true;
+				if(worldEpoch.get()==startedWorld && hasSeed) {
+                    dirty = false;
+                    mesh = built;
+                    if (generation.get() != startedGeneration) dirty = true;
+                }
 			} catch (Throwable failure) {
 				// Throwable rather than Exception, and recorded rather than logged: a build that dies
 				// silently on a worker thread reads in-game as "the horizon just stopped updating",

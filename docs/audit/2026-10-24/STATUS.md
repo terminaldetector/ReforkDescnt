@@ -93,3 +93,17 @@ weapon behavior and world viewmodels are unchanged. `scripts/audit_item_models.p
 them. JSON and element bounds passed local validation. Existing spawn eggs already have
 fourteen different model resources; actual perceptual differentiation still needs the fresh
 inventory screenshot scene, so the audit item remains open until that evidence exists.
+
+## UG-003/005 horizon projection (local)
+
+Source inspection confirmed a projection error: the cached mesh compressed vertices relative
+to its previous eye, then translated those compressed positions in uncompressed world units.
+Those operations do not commute. The vertex buffer now retains true offsets and a registered
+horizon shader rebases to the current camera before radial compression. Source coverage includes
+the old inner disc; the current camera's terrain exclusion and near fade happen in the shader,
+so movement cannot reveal a stale hole where the prior eye excluded geometry.
+
+World epochs prevent an in-flight background build from publishing a previous world's mesh
+following disconnect or seed change. Vertex storage remains bounded at the existing mesh budget.
+This is a source fix requiring the ON/altitude/bank/motion real-client matrix; it is not certified
+by shader JSON validation or by the previous 1.1.13 screenshots. Actual DH interop is untested.

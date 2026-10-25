@@ -66,7 +66,7 @@ public final class PlanetSurfaceMesh {
 	 */
 	private static final double SEAM_SKIRT_DROP = 320.0;
 
-	/** Positions are compressed and relative to the build origin — see {@link HorizonProjection}. */
+	/** Positions are true world offsets from the build origin; compressed by the shader each frame — see {@link HorizonProjection}. */
 	public final float[] positions;
 	public final int[] colours;
 	public final int quads;
@@ -110,15 +110,17 @@ public final class PlanetSurfaceMesh {
 										  Set<Long> scarCells, List<HorizonLandmark> landmarks) {
 		float[] positions = new float[MAX_QUADS * 12];
 		int[] colours = new int[MAX_QUADS];
-		Builder b = new Builder(seed, camX, camY, camZ, innerRadius, reach, scarCells,
+		Builder b = new Builder(seed, camX, camY, camZ, 0, reach, scarCells,
 				positions, colours);
 
-		// Plan the rings before emitting any: the outermost one has to know where the field ends so
+		// Keep source coverage beneath the old eye as well: the current camera's near exclusion
+        // is evaluated in the shader, so movement cannot expose an old inner hole.
+        // Plan the rings before emitting any: the outermost one has to know where the field ends so
 		// it can fade out into it. A ring that stops at full opacity leaves a rim hanging in the air.
 		// The sizing rule itself lives in HorizonGrid, where it is directly testable — see that class
 		// for why altitude now refines the grid instead of coarsening it.
 		double drop = camY - PlanetMap.height(seed, camX, camZ);
-		HorizonGrid.Plan plan = HorizonGrid.plan(innerRadius, HorizonProjection.MAX_TRUE_RADIUS, drop);
+		HorizonGrid.Plan plan = HorizonGrid.plan(0, HorizonProjection.MAX_TRUE_RADIUS, drop);
 		b.fieldOuter = plan.outer();
 
 		for (int ring = 0; ring < plan.rings(); ring++) {
@@ -431,10 +433,9 @@ public final class PlanetSurfaceMesh {
 			double dx = worldX - camX;
 			double dy = worldY - camY;
 			double dz = worldZ - camZ;
-			double f = HorizonProjection.factor(dx, dy, dz, inner, reach);
-			positions[at] = (float) (dx * f);
-			positions[at + 1] = (float) (dy * f);
-			positions[at + 2] = (float) (dz * f);
+			positions[at] = (float) dx;
+            positions[at + 1] = (float) dy;
+            positions[at + 2] = (float) dz;
 		}
 	}
 

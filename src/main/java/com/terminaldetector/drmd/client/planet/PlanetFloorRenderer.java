@@ -39,7 +39,8 @@ public final class PlanetFloorRenderer {
 	private PlanetFloorRenderer() {}
 
 	public static void register() {
-		WorldRenderEvents.AFTER_TRANSLUCENT.register(PlanetFloorRenderer::render);
+		HorizonShader.register();
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(PlanetFloorRenderer::render);
 	}
 
 	private static void render(WorldRenderContext ctx) {
@@ -91,17 +92,18 @@ public final class PlanetFloorRenderer {
 		if (mesh == null || mesh.quads == 0) return;
 
 		Matrix4f mat = new Matrix4f(ctx.matrixStack().peek().getPositionMatrix());
-		// The field is a rigid body between rebuilds: shift it by the parallax the ship has flown
-		// since it was built. Vertically that applies only in the column, where the map is pinned to
-		// real heights — in the End it hangs from the camera and must not drift with it.
-		mat.translate((float) (mesh.originX - cam.x),
-				endDim ? 0f : (float) (mesh.originY - cam.y),
-				(float) (mesh.originZ - cam.z));
+        // The shader receives source-space parallax and compresses around this frame's eye.
+        // Translating already-compressed vertices was not the same projection and made the
+        // terrain swing/crawl between rebuilds, especially during fast lateral flight.
+        if(HorizonShader.program()==null) return;
+        HorizonShader.position((float)(mesh.originX-cam.x),endDim?0f:(float)(mesh.originY-cam.y),
+                (float)(mesh.originZ-cam.z),(float)inner,(float)reach);
 
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.disableCull(); // skirts are single quads seen from either side
-		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
+		RenderSystem.enableDepthTest();
+        RenderSystem.setShader(HorizonShader::program);
 		// The climb's fade as a uniform rather than per-vertex alpha, which is what lets the geometry
 		// stay on the GPU across frames — see HorizonVertexBuffer. Each quad's own alpha is already
 		// baked in there; this multiplies the whole field by how far the map has faded in.
