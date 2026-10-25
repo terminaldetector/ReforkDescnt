@@ -62,6 +62,9 @@ public class AerialBombEntity extends Entity {
 	/** Child bomblet — will not re-cluster. */
 	private boolean submunition;
 	private boolean dispensed;
+    private boolean landed;
+    private Vec3d launchDown=new Vec3d(0,-1,0);
+    private static final java.util.Map<ServerWorld,ClusterBurstBudget> BURST_BUDGETS=new java.util.WeakHashMap<>();
 	/** Multiplier on detonation blast for fragment bomblets. */
 	private float blastMul = 1f;
 	/** Countdown while a landed laser bomblet is sweeping; 0 = no hazard active. */
@@ -76,6 +79,9 @@ public class AerialBombEntity extends Entity {
 		this.type = ordnance;
 		if (owner != null) this.ownerId = owner.getUuid();
 		this.laserTarget = laserTarget;
+        if(owner!=null) launchDown=owner instanceof net.minecraft.entity.player.PlayerEntity player
+            && com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player)
+            ?com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(player).negate():LocalOrientation.gravityDir(owner.getUuid());
 		syncVisual();
 	}
 
@@ -83,7 +89,7 @@ public class AerialBombEntity extends Entity {
 		this.type = ordnance;
 		this.ownerId = owner;
 		this.submunition = true;
-		this.blastMul = blastMul;
+		this.blastMul = Float.isFinite(blastMul)?Math.clamp(blastMul,.05f,1f):1f;
 		this.laserTarget = null;
 		setVelocity(velocity);
 		syncVisual();
@@ -100,13 +106,14 @@ public class AerialBombEntity extends Entity {
 	}
 
 	/** Local DOWN for this round — owner's foot gravity when available, else world −Y. */
-	private Vec3d gravityDir() {
-		if (ownerId != null) {
-			Vec3d g = LocalOrientation.gravityDir(ownerId);
-			if (g.lengthSquared() > 1e-8) return g.normalize();
-		}
-		return new Vec3d(0, -1, 0);
-	}
+    private Vec3d gravityDir() {
+        if(ownerId!=null) {
+            var owner=getWorld().getPlayerByUuid(ownerId);
+            if(owner!=null && com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(owner))
+                return com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(owner).negate();
+        }
+        return launchDown;
+    }
 
 	@Override
 	protected void initDataTracker(DataTracker.Builder builder) {
@@ -116,6 +123,7 @@ public class AerialBombEntity extends Entity {
 
 	@Override
 	public void tick() {
+        if(isRemoved())return;
 		super.tick();
 		ageTicks++;
 		Vec3d vel = getVelocity();
@@ -148,6 +156,12 @@ public class AerialBombEntity extends Entity {
 			}
 			return;
 		}
+
+        if(dispensed || ageTicks>20*90 || getY()<getWorld().getBottomY()-16){discard();return;}
+        if(landed && laserHazardTicks<=0) {
+            if(ageTicks>=4)impact((ServerWorld)getWorld());
+            return;
+        }
 
 		if (laserHazardTicks > 0) {
 			tickLaserHazard((ServerWorld) getWorld());
@@ -209,9 +223,12 @@ public class AerialBombEntity extends Entity {
 			SmokeSystem.emit(from, SmokeSystem.Source.BOMB_TRAIL, 0.6f, 0.45f, 50, trailVel);
 		}
 
+        if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedSegment(getWorld(),from,lookAhead))return;
+
 		// Cluster: open bay when ground is close along fall / gravity axis (not world −Y).
 		if (type.cluster && !submunition && !dispensed && ageTicks > 14) {
 			Vec3d probeAxis = vel.lengthSquared() > 1e-4 ? vel.normalize() : gDir;
+            if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedSegment(getWorld(),from,from.add(probeAxis.multiply(22))))return;
 			BlockHitResult groundProbe = getWorld().raycast(new net.minecraft.world.RaycastContext(
 					from, from.add(probeAxis.multiply(22)),
 					net.minecraft.world.RaycastContext.ShapeType.COLLIDER,
@@ -232,26 +249,41 @@ public class AerialBombEntity extends Entity {
 
 		// Ground contact: prefer hit along velocity; block under feet uses local DOWN, not world.
 		BlockPos downProbe = BlockPos.ofFloored(getPos().add(gDir.multiply(0.35)));
+        if(!getWorld().isChunkLoaded(downProbe))return;
 		boolean grounded = hit.getType() == HitResult.Type.BLOCK
 				|| verticalCollision || horizontalCollision
 				|| (!getWorld().getBlockState(downProbe).isAir()
 				&& vel.dotProduct(gDir) > 0.05);
 
-		if (grounded || ageTicks > 20 * 90) {
-			if (type.cluster && !submunition && !dispensed) {
-				dispenseCluster((ServerWorld) getWorld());
-			} else if (submunition && type.payload == OrdnanceType.SubmunitionPayload.LASER) {
-				beginLaserHazard((ServerWorld) getWorld());
-			} else {
-				detonate();
-			}
-		}
-	}
+        if(grounded) {
+            if(hit.getType()==HitResult.Type.BLOCK) {
+                Vec3d direction=vel.lengthSquared()>1e-8?vel.normalize():gDir;
+                setPosition(hit.getPos().subtract(direction.multiply(.25)));
+            }
+            landed=true;
+            if(ageTicks>=4)impact((ServerWorld)getWorld());
+        }
+    }
+
+    private void impact(ServerWorld world) {
+        if(type.cluster && !submunition)dispenseCluster(world);
+        else if(submunition && type.payload==OrdnanceType.SubmunitionPayload.LASER)beginLaserHazard(world);
+        else detonate();
+    }
 
 	private void dispenseCluster(ServerWorld sw) {
-		dispensed = true;
-		Random rng = sw.getRandom();
-		int count = type.heavyCluster ? 14 : 7;
+        if(dispensed || submunition || isRemoved())return;
+        int count=type.heavyCluster?14:7;
+        var budget=BURST_BUDGETS.computeIfAbsent(sw,key->new ClusterBurstBudget());
+        if(!budget.reserve(sw.getServer().getTicks(),net.minecraft.util.math.ChunkPos.toLong(getBlockPos().getX()>>4,getBlockPos().getZ()>>4),count,()->{
+            int live=0;
+            for(var entity:sw.iterateEntities())if(entity instanceof AerialBombEntity bomb && bomb.submunition && !bomb.isRemoved()) {
+                if(++live>=ClusterBurstBudget.MAX_LIVE)break;
+            }
+            return live;
+        })) {landed=true;return;}
+        dispensed=true;
+        Random rng=sw.getRandom();
 		float outward = type.heavyCluster ? 1.25f : 0.62f;
 		float fragBlast = type.heavyCluster ? 0.95f : 0.58f;
 		Vec3d parentVel = getVelocity();
@@ -290,6 +322,8 @@ public class AerialBombEntity extends Entity {
 					0f, 0f);
 			frag.setVelocity(fragVel);
 			frag.configureSubmunition(this.type, ownerId, fragBlast, fragVel);
+            frag.launchDown=gravityDir();
+            if(!sw.isChunkLoaded(frag.getBlockPos()) || !sw.isSpaceEmpty(frag,frag.getBoundingBox()))frag.setPosition(getPos());
 			sw.spawnEntity(frag);
 		}
 		discard();
@@ -492,7 +526,11 @@ public class AerialBombEntity extends Entity {
         submunition = nbt.getBoolean("sub");
 		dispensed = nbt.getBoolean("dispensed");
 		blastMul = nbt.contains("blastMul") ? nbt.getFloat("blastMul") : 1f;
-		laserHazardTicks = nbt.getInt("laserHazard");
+        blastMul=Float.isFinite(blastMul)?Math.clamp(blastMul,.05f,1f):1f;
+		laserHazardTicks = Math.clamp(nbt.getInt("laserHazard"),0,LASER_HAZARD_TICKS);
+        landed=nbt.getBoolean("Landed");
+        Vec3d savedDown=new Vec3d(nbt.getDouble("DownX"),nbt.getDouble("DownY"),nbt.getDouble("DownZ"));
+        launchDown=Double.isFinite(savedDown.lengthSquared()) && savedDown.lengthSquared()>1e-8?savedDown.normalize():new Vec3d(0,-1,0);
 		syncVisual();
 	}
 
@@ -510,5 +548,6 @@ public class AerialBombEntity extends Entity {
 		nbt.putBoolean("dispensed", dispensed);
 		nbt.putFloat("blastMul", blastMul);
 		nbt.putInt("laserHazard", laserHazardTicks);
+        nbt.putBoolean("Landed",landed);nbt.putDouble("DownX",launchDown.x);nbt.putDouble("DownY",launchDown.y);nbt.putDouble("DownZ",launchDown.z);
 	}
 }

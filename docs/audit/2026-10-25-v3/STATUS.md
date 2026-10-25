@@ -73,3 +73,18 @@ Five actual standalone JUnit regressions PASS for default/migration/round-trip/i
 Two added NBT GameTests and four client profile combinations are NOT RUN. New client proof must
 include real Hybrid ON/OFF VBO behavior, actual server profile and config reload; the gate now
 requires369 fresh audit frames, retaining all earlier checks. UI localization is RU/EN.
+
+## K cluster lifecycle source changes (local; runtime NOT RUN)
+
+Ground contact now stops at the ray's surface before releasing children instead of using a
+position already inside terrain. A persisted landed state gives children an arming interval,
+and a saved spent parent is discarded without a second release. Expired/under-void rounds
+discard without spawning another generation. Launch-down survives owner loss/reload, with
+actual active foot gravity used while the owner is available. Payload multipliers and hazard
+ages are bounded on load. Probes defer at unloaded chunks; no extra generation is requested.
+
+A per-world admission budget preserves whole7/14bursts: max128children/tick,48/chunk/tick,
+512live children counted from actual loaded entities. Pressure defers the parent until budget
+is available or its finite lifetime ends. Four pure JUnit cases PASS. Three actual lifecycle/
+count GameTests are prepared but NOT RUN. Detonation/block-update timing and scatter images
+remain unmeasured; this is a spawn/lifecycle bound, not full explosion-cost certification.
