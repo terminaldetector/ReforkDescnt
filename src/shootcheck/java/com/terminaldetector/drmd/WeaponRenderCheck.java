@@ -97,7 +97,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private Vec3d up() { return scene == 7 ? new Vec3d(0, 0, 1) : scene == 6 ? new Vec3d(1, 0, 0) : new Vec3d(0, 1, 0); }
 
     private void tick(MinecraftClient client) {
-        if(hybridStarted) { if(HybridWeaponCheck.active()) HybridWeaponCheck.tick(client); return; }
+        if(hybridStarted) { if(HybridWeaponCheck.active()) HybridWeaponCheck.tick(client); else if(AuditRenderCheck.active()) AuditRenderCheck.tick(client); return; }
         ticks++;
         if (ticks % 200 == 0) System.out.println("DRMD shootcheck: scene=" + scene + " tick=" + sceneTick +
                 " ready=" + ready + " screen=" + client.currentScreen);

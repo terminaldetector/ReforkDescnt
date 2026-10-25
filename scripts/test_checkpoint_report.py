@@ -119,6 +119,70 @@ class EvidenceGateTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Incomplete hybrid verification'):
             checkpoint.verify(self.root)
 
+    def audit_fixture(self):
+        proof=dict(lifecycleRoundTrips=8,gravityAxes=6,gravityRelease=True,lowerRecovery=True,
+                   modalHud=True,inventoryDistinct=True,settingsScales=[2,3,4],horizonCases=168,
+                   horizonOnPixels=True,swarmProfiles=[128,256,512,1024],environmentComparisons=4,frames=365,dhInstalled=False)
+        proof['settingsViewports']=[dict(requested=n,actual=n,width=1920 if n==4 else 1280,height=1080 if n==4 else 720) for n in (2,3,4)]
+        self.write('build/shootcheck/audit-ok.json',json.dumps(proof))
+        for name in checkpoint.AUDIT_FRAMES:
+            self.write(f'build/shootcheck/screenshots/{name}.png',b'\x89PNG\r\n\x1a\nfixture')
+        for height in (100,320,640,880,1024,1500,2150):
+            for bank in (0,90,180):
+                for speed in (0,50,300,628):
+                    for dh in (0,1):
+                        for view in ('on','off'):
+                            self.write(f'build/shootcheck/screenshots/audit-horizon-{height}-{bank}-{speed}-{dh}-{view}.png',b'\x89PNG\r\n\x1a\nfixture')
+        header='requested,server_alive,client_synced,moving,exact_overlaps,max_candidates,server_work_mean_ms,server_work_p95_ms,tps,frames,fps,frame_p95_ms,cleanup_remaining'
+        rows=[f'{count},{count},{count},{count},0,96,10,15,20,60,30,34,0' for count in (128,256,512,1024)]
+        self.write('build/shootcheck/swarm-profile.csv','\n'.join([header]+rows)+'\n')
+        self.write('build/shootcheck/inventory-models.tsv','fixture model fingerprints, not actual rendered evidence')
+        return proof
+
+    def test_complete_audit_requires_real_matrix_and_load_profile_files(self):
+        self.audit_fixture()
+        result=checkpoint.verify_audit(self.root,self.started)
+        self.assertEqual(4,len(result['profiles']))
+        self.assertEqual(168,result['proof']['horizonCases'])
+
+    def test_audit_coordinates_without_horizon_pixels_are_rejected(self):
+        proof=self.audit_fixture();proof['horizonOnPixels']=False
+        self.write('build/shootcheck/audit-ok.json',json.dumps(proof))
+        with self.assertRaisesRegex(ValueError,'Incomplete video audit'):
+            checkpoint.verify_audit(self.root,self.started)
+
+    def test_one_missing_horizon_matrix_frame_rejects_the_audit(self):
+        self.audit_fixture()
+        (self.root/'build/shootcheck/screenshots/audit-horizon-2150-180-628-1-on.png').unlink()
+        with self.assertRaisesRegex(ValueError,'Missing or empty evidence'):
+            checkpoint.verify_audit(self.root,self.started)
+
+    def test_unmeasured_or_stalled_swarm_is_not_a_profile(self):
+        self.audit_fixture()
+        path=self.root/'build/shootcheck/swarm-profile.csv'
+        path.write_text(path.read_text().replace('128,128,128,128,','128,128,128,95,'))
+        with self.assertRaisesRegex(ValueError,'128-drone baseline stalled'):
+            checkpoint.verify_audit(self.root,self.started)
+
+    def test_non_png_audit_frame_is_rejected(self):
+        self.audit_fixture()
+        self.write('build/shootcheck/screenshots/audit-inventory.png','not an image')
+        with self.assertRaisesRegex(ValueError,'Invalid PNG evidence'):
+            checkpoint.verify_audit(self.root,self.started)
+
+    def test_non_finite_swarm_timing_is_rejected(self):
+        self.audit_fixture()
+        path=self.root/'build/shootcheck/swarm-profile.csv'
+        path.write_text(path.read_text().replace(',10,15,20,',',nan,15,20,'))
+        with self.assertRaisesRegex(ValueError,'Invalid measured swarm metric'):
+            checkpoint.verify_audit(self.root,self.started)
+
+    def test_requested_gui_scale_cannot_replace_actual_scale(self):
+        proof=self.audit_fixture();proof['settingsViewports'][2]['actual']=3
+        self.write('build/shootcheck/audit-ok.json',json.dumps(proof))
+        with self.assertRaisesRegex(ValueError,'actual viewport'):
+            checkpoint.verify_audit(self.root,self.started)
+
     def test_failed_run_still_has_report_without_certifying_jar(self):
         with patch.dict(os.environ, {'VERIFY_OUTCOME': 'failure'}):
             checkpoint.report(self.root)

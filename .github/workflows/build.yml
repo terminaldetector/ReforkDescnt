@@ -92,8 +92,11 @@ jobs:
       - name: Verify weapon images and client motion
         id: shootcheck
         run: |
-          rm -f build/shootcheck/shootcheck-ok.json build/shootcheck/hybrid-weapons-ok.json
-          LIBGL_ALWAYS_SOFTWARE=1 timeout 480s xvfb-run -a ./gradlew runShootcheck --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/shootcheck.log
+          rm -f build/shootcheck/shootcheck-ok.json build/shootcheck/hybrid-weapons-ok.json \
+            build/shootcheck/audit-ok.json \
+            build/shootcheck/swarm-profile.csv \
+            build/shootcheck/inventory-models.tsv
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 900s xvfb-run -a ./gradlew runShootcheck --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/shootcheck.log
       - name: Verify real client
         id: rendercheck
         run: |
@@ -137,6 +140,9 @@ jobs:
             build/shootcheck/crash-reports/
             build/shootcheck/shootcheck-ok.json
             build/shootcheck/hybrid-weapons-ok.json
+            build/shootcheck/audit-ok.json
+            build/shootcheck/swarm-profile.csv
+            build/shootcheck/inventory-models.tsv
           if-no-files-found: error
           retention-days: 90
       - name: Publish verified installable mod
@@ -173,19 +179,22 @@ jobs:
             --title "Recovery diagnostics: failed verification (${GITHUB_SHA:0:7})" \
             --notes "Failed experimental verification. Frames and diagnostics only; no certified mod binary." \
             --prerelease --latest=false
-      - name: Publish verified hybrid weapon test package
-        if: github.event_name == 'push' && github.ref == 'refs/heads/codex/ungravity-cloud-recovery-20261024' && steps.verify.outputs.version == '1.1.13'
+      - name: Publish verified audit checkpoint
+        if: github.event_name == 'push' && github.ref == 'refs/heads/codex/ungravity-cloud-recovery-20261024' && startsWith(steps.verify.outputs.version, '1.1.14')
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          VERSION: ${{ steps.verify.outputs.version }}
         run: |
-          tag="hybrid-1.1.13-${GITHUB_SHA:0:7}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          tag="audit-${VERSION}-${GITHUB_SHA:0:7}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           gh release create "$tag" \
             build/checkpoint/distribution/*.jar \
             build/checkpoint/distribution/SHA256SUMS \
+            build/checkpoint/distribution/swarm-profile.csv \
+            build/checkpoint/distribution/inventory-models.tsv \
             build/checkpoint/REPORT.md \
             build/checkpoint/screenshots.zip \
             --target "$GITHUB_SHA" \
-            --title "UNGRAVITY 1.1.13 hybrid weapons (${GITHUB_SHA:0:7})" \
+            --title "UNGRAVITY ${VERSION} video audit (${GITHUB_SHA:0:7})" \
             --notes-file build/checkpoint/REPORT.md \
             --prerelease --latest=false

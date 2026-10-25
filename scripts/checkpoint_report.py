@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Bind a milestone's test evidence and installable JAR to one source revision."""
 import argparse
+import csv
+import math
 import hashlib
 import json
 import os
@@ -25,6 +27,53 @@ SHOT_FRAMES = ('bolt-dark-ranges', 'bolt-light-ranges', 'orb-dark-ranges', 'orb-
 HYBRID_FRAMES = tuple(f'hybrid-{model}-{view}' for model in range(3)
                       for view in ('workshop','fov70','fov80','fov90','banked','vertical','external')) + ('hybrid-2-loaded',)
 
+AUDIT_FRAMES = ('audit-flight-off','audit-lower-recovery','audit-inventory') + tuple(
+    f'audit-gravity-{i}' for i in range(6)) + tuple(f'audit-gravity-release-{i}' for i in range(6)) + tuple(
+    f'audit-settings-scale-{i}' for i in (2,3,4)) + tuple(f'audit-settings-bottom-{i}' for i in (2,3,4)) + tuple(
+    f'audit-swarm-{n}' for n in (128,256,512,1024)) + tuple(f'audit-environment-{i}' for i in range(4))
+
+
+def verify_audit(root, started):
+    marker=root/'build/shootcheck/audit-ok.json'
+    fresh(marker,started)
+    proof=json.loads(marker.read_text())
+    expected=dict(lifecycleRoundTrips=8,gravityAxes=6,gravityRelease=True,lowerRecovery=True,
+                  modalHud=True,inventoryDistinct=True,settingsScales=[2,3,4],horizonCases=168,
+                  horizonOnPixels=True,swarmProfiles=[128,256,512,1024],environmentComparisons=4)
+    if (any(proof.get(key)!=value for key,value in expected.items()) or proof.get('frames',0)<365
+            or not isinstance(proof.get('dhInstalled'),bool)):
+        raise ValueError(f'Incomplete video audit verification: {proof}')
+    viewports=proof.get('settingsViewports',[])
+    if (len(viewports)!=3 or [v.get('requested') for v in viewports]!=[2,3,4]
+            or any(v.get('requested')!=v.get('actual') for v in viewports)
+            or [(v.get('width'),v.get('height')) for v in viewports]!=[(1280,720),(1280,720),(1920,1080)]):
+        raise ValueError(f'GUI scale was not tested at the actual viewport: {viewports}')
+    for name in AUDIT_FRAMES:
+        fresh_png(root/f'build/shootcheck/screenshots/{name}.png',started)
+    for height in (100,320,640,880,1024,1500,2150):
+        for bank in (0,90,180):
+            for speed in (0,50,300,628):
+                for dh in (0,1):
+                    for view in ('on','off'):
+                        fresh_png(root/f'build/shootcheck/screenshots/audit-horizon-{height}-{bank}-{speed}-{dh}-{view}.png',started)
+    metrics=root/'build/shootcheck/swarm-profile.csv';fresh(metrics,started)
+    fresh(root/'build/shootcheck/inventory-models.tsv',started)
+    with metrics.open() as stream: rows=list(csv.DictReader(stream))
+    if [int(row['requested']) for row in rows]!=[128,256,512,1024]:
+        raise ValueError('Missing real swarm load profiles')
+    for row in rows:
+        for key in ('server_work_mean_ms','server_work_p95_ms','tps','fps','frame_p95_ms'):
+            if not math.isfinite(float(row[key])) or float(row[key])<=0:
+                raise ValueError(f'Invalid measured swarm metric: {row}')
+        count=int(row['requested'])
+        if (int(row['server_alive'])!=count or int(row['client_synced'])!=count
+                or not 0<=int(row['max_candidates'])<=96 or int(row['cleanup_remaining'])!=0
+                or not 0<=int(row['moving'])<=count or not 0<=int(row['exact_overlaps'])<count
+                or int(row['frames'])<2):
+            raise ValueError(f'Incomplete real swarm profile: {row}')
+        if count==128 and int(row['moving'])<96: raise ValueError(f'128-drone baseline stalled: {row}')
+    return dict(proof=proof,profiles=rows)
+
 
 def properties(root):
     return dict(line.strip().split('=', 1) for line in
@@ -42,6 +91,13 @@ def fresh(path, started):
         raise ValueError(f'Missing or empty evidence: {path}')
     if path.stat().st_mtime < started:
         raise ValueError(f'Stale evidence: {path}')
+
+
+def fresh_png(path,started):
+    fresh(path,started)
+    with path.open('rb') as stream:
+        if stream.read(8)!=b'\x89PNG\r\n\x1a\n':
+            raise ValueError(f'Invalid PNG evidence: {path}')
 
 
 def junit(folder, started=None):
@@ -111,6 +167,7 @@ def verify(root):
 
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
+    audit=verify_audit(root,started) if version.startswith('1.1.14') else None
     jar = root / f'build/libs/{base}-{version}.jar'
     fresh(jar, started)
     with zipfile.ZipFile(jar) as archive:
@@ -119,7 +176,7 @@ def verify(root):
             raise ValueError('JAR metadata does not match this source version')
         if 'com/terminaldetector/drmd/DescentMod.class' not in archive.namelist():
             raise ValueError('Not a compiled DRMD binary JAR')
-        forbidden = ('HybridRenderCheck', 'HybridWeaponCheck', 'HybridMeshProbe', 'WorkshopPreviewProbe', 'WeaponRenderCheck', 'GameTests.class',
+        forbidden = ('AuditRenderCheck', 'AuditInventoryScreen', 'AuditSwarmProfile', 'AuditFrameProbe', 'AuditCameraProbe', 'AuditHorizonProbe', 'AuditHudProbe', 'HybridRenderCheck', 'HybridWeaponCheck', 'HybridMeshProbe', 'WorkshopPreviewProbe', 'WeaponRenderCheck', 'GameTests.class',
                      'ProjectileRendererProbe', 'ProjectileVisibilityProbe', 'WeaponCrosshairMask', 'drmd.shootcheck.mixins',
                      'drmd_gametest', 'drmd_rendercheck', 'drmd_shootcheck', '-ok.txt')
         if any(any(token in name for token in forbidden) for name in archive.namelist()):
@@ -132,9 +189,12 @@ def verify(root):
     target = distribution / f'{base}-{version}-fabric-1.21.1.jar'
     shutil.copy2(jar, target)
     shutil.copy2(root / 'dist/INSTALL_TLAUNCHER.txt', distribution)
+    if audit:
+        for name in ('swarm-profile.csv','inventory-models.tsv'):
+            shutil.copy2(root/'build/shootcheck'/name,distribution/name)
     digest = sha256(target)
     (distribution / 'SHA256SUMS').write_text(f'{digest}  {target.name}\n')
-    result = dict(source_sha=source, version=version, jar=target.name, sha256=digest,
+    result = dict(source_sha=source, version=version, audit=audit, jar=target.name, sha256=digest,
                   unit=results['unit'], gametest=results['gametest'], swarm=swarm.strip(),
                   hybrid=hybrid, hybrid_frames=[name + '.png' for name in HYBRID_FRAMES],
                   frames=[name + '.png' for name in FRAMES], shootcheck=shot,
@@ -178,6 +238,8 @@ def report(root):
                   f'- SHA-256: `{result["sha256"]}`', '- Rendercheck: 5/5 fresh markers.',
                   f'- {result["swarm"]}', '', '### Fresh frames', '']
         lines += ['- ' + name for name in result['frames']]
+        if result.get('audit'):
+            lines += ['', '### Video audit regression', '', str(result['audit']['proof']), '', '```csv', (root/'build/shootcheck/swarm-profile.csv').read_text().strip(), '```', '', 'DH installed: '+str(result['audit']['proof'].get('dhInstalled'))+'; installation=false does not certify actual DH interoperability.']
         lines += ['', '### Hybrid samples', '', f'- {result["hybrid"]}', ''] + ['- ' + name for name in result['hybrid_frames']]
         lines += ['', '### Weapon verification', '',
                   f'- {result["shootcheck"]}', ''] + ['- ' + name for name in result['shot_frames']]
@@ -187,6 +249,8 @@ def report(root):
     lines += ['', '## Limits', '',
               '- Historical 1.1.12 results in the supplied MHT are not results of this run.',
               '- Manual playability smoke test: NOT RUN.',
+              '- Audit camera sweeps up to 628 m/s stress the renderer; these are not production player-speed claims.',
+              '- Swarm profiles use invulnerable controlled actors, capped client FPS and software graphics in GHA. Larger counts report actual limits, not a general 1000+ performance guarantee.',
               '- Workshop Apply Build publishes construction/muzzles; Stats/Projectile/Flak/Guidance drafts are saved/exported, not runtime behavior overrides.',
               '- Three hybrid samples: laser_pulse (impulse), plasma, gravy_railgun. Models tab in the existing Workshop; Creative + server operator for publishing.',
               '- Local named presets: config/drmd/weapon-presets/*.nbt; authoritative layouts: world/data/drmd/visual/*.nbt.',

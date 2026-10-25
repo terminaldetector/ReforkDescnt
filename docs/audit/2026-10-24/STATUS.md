@@ -147,3 +147,33 @@ vanish inside 0.12 blocks. The heavy elite's cosmetic explosion emitter uses thi
 effect; damage and terrain behavior are unchanged. Three standalone JUnit cases pass for
 near-eye, ordinary-distance and invalid inputs. This does not remove vanilla fire or prove
 the video's lava overlay was caused by the mod. Fresh client visibility checks remain pending.
+
+## Prepared connected-client audit and release gate (NOT RUN)
+
+The disposable shootcheck now continues after the existing projectile/Workshop scenes:
+
+- Eight free-flight round trips plus an explicit hull H-off/tick regression on a connected player.
+- Six actual gravity axes, matching camera/interaction eyes and clear standing-body release.
+- Actual lower-bound recovery with synchronized free control.
+- Settings top/bottom and modal HUD guards at real scales 2/3 (1280x720) and 4 (1920x1080).
+  Minecraft clamps requested scale 4 at 720p, so the marker records actual scale and framebuffer.
+- 168 horizon cases: seven heights, three banks, four render-camera speeds and both DH fallback
+  flags; matching ON/OFF images, actual VBO submission and visible image difference are required.
+  This is a renderer stress sweep, not a production chunk-streaming/player-speed measurement.
+- A real item-model atlas with sprite fingerprints for duplicate pairs and fourteen eggs.
+- 128/256/512/1024 controlled drone scenes, actual server work/TPS and render frame intervals/FPS,
+  synchronized actor counts, displacement, exact overlap count, candidate budget and fixture cleanup.
+  The 128 baseline requires at least 96 movers. Larger counts report their measured result.
+- Four qualitative level-sky/cloud comparisons, separately from the numerical horizon isolation.
+
+Every new capture runs after the complete rendered frame. Swarm timing excludes PNG encoding.
+The release gate requires all 365 new frames, fresh audit proof, finite load metrics, exact
+viewports and the pre-existing unit/GameTest/terrain/projectile/Workshop proof. Test-only classes
+must be absent from the remapped production JAR. Raw swarm CSV and atlas TSV accompany any
+future verified release. No new certified JAR or client image exists yet.
+
+Local verification: 14 standalone Java JUnit cases PASS; 18 Python evidence-gate regressions
+PASS; official GLSL compilation/link PASS; all 507 Java files pass Java 21 syntax parsing.
+Syntax parsing does not resolve Minecraft/Fabric APIs or validate Mixin injection points.
+The full Fabric compile, GameTests and connected-client scenes remain blocked by the missing
+Loom dependency locally and rejected cloud GitHub credentials. No audit item is marked closed.

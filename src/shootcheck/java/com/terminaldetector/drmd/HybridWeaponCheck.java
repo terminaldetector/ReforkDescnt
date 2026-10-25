@@ -194,6 +194,6 @@ public final class HybridWeaponCheck {
         try {Files.writeString(client.runDirectory.toPath().resolve("hybrid-weapons-ok.json"),
                 "{\"models\":3,\"presetRoundTrips\":3,\"serverSaves\":3,\"muzzlePairs\":3,\"fovs\":[70,80,90],\"banked\":3,\"vertical\":3,\"realUseAnimated\":3,\"loadSynced\":true,\"external\":3,\"frames\":"+captures+"}\n");
         }catch(java.io.IOException e){throw new IllegalStateException(e);}
-        active=false; client.scheduleStop();
+        active=false; AuditRenderCheck.start(client);
     }
 }
