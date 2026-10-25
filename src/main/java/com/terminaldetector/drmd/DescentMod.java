@@ -233,7 +233,19 @@ public class DescentMod implements ModInitializer {
 			});
 		});
 
+        net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
+            if(entity instanceof net.minecraft.server.network.ServerPlayerEntity player) {
+                FlightSystem.disable(player,DescentPlayerData.get(player));
+                com.terminaldetector.drmd.physics.GravyPhysics.release(player);
+            }
+        });
+        net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+            // A new player entity must not inherit a dead entity's thrust, roll or mount intent.
+            FlightSystem.disable(newPlayer,DescentPlayerData.get(newPlayer));
+        });
+
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            FlightSystem.disable(handler.player,DescentPlayerData.get(handler.player));
 			com.terminaldetector.drmd.physics.GravyPhysics.release(handler.player);
 			com.terminaldetector.drmd.world.layer.LayerBridge.clear(handler.player.getUuid());
 			com.terminaldetector.drmd.world.store.SurfaceStreamer.forget(handler.player.getUuid());

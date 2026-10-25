@@ -494,7 +494,11 @@ public final class ModNetworking {
 
 		ServerPlayNetworking.registerGlobalReceiver(InputPayload.ID, (payload, context) -> {
 			ServerPlayerEntity player = context.player();
-			FlightSystem.InputState in = FlightSystem.input(player);
+            if(!player.isAlive() || !DescentPlayerData.get(player).isEnabled()) {
+                FlightSystem.clearInput(player.getUuid());
+                return;
+            }
+            FlightSystem.InputState in = FlightSystem.input(player);
 			in.forward = payload.forward();
 			in.strafe = payload.strafe();
 			in.vertical = payload.vertical();

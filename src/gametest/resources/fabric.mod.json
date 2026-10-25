@@ -13,7 +13,8 @@
       "com.terminaldetector.drmd.RagdollGameTests",
       "com.terminaldetector.drmd.GravityWeaponGameTests",
       "com.terminaldetector.drmd.DroneSwarmGameTests",
-      "com.terminaldetector.drmd.ProjectileVisualGameTests"
+      "com.terminaldetector.drmd.ProjectileVisualGameTests",
+      "com.terminaldetector.drmd.FlightRecoveryGameTests"
     ]
   },
   "depends": {

@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.entity;
 
+import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.flight.CrashDamage;
 import com.terminaldetector.drmd.flight.FlightSystem;
@@ -141,10 +142,13 @@ public class PyroShipEntity extends VehicleEntity {
 					pilot.damage(getWorld().getDamageSources().flyIntoWall(), crashDmg);
 				}
 			}
-			if (!data.isEnabled()) FlightSystem.enable(pilot, data);
+			if (!data.isEnabled() || !pilot.isAlive() || pilot.isSpectator()) {
+                FlightSystem.disable(pilot,data);
+                return;
+            }
 			FootGravitySystem.clear(pilot.getUuid());
 			Vec3d vel = data.getFlightVelocity();
-			this.setVelocity(vel);
+			this.setVelocity(vel.multiply(1.0 / DescentMod.TICKS_PER_SECOND));
 			this.velocityModified = true;
 			this.setYaw(pilot.getYaw());
 			this.setPitch(pilot.getPitch());
@@ -173,7 +177,13 @@ public class PyroShipEntity extends VehicleEntity {
 		this.velocityModified = true;
 		if (!getWorld().isClient && passenger instanceof ServerPlayerEntity sp) {
 			DescentPlayerData data = DescentPlayerData.get(sp);
-			if (isZeroGZone()) {
+            if(!data.isEnabled() || !sp.isAlive() || isRemoved() || sp.isSpectator()) {
+                // Passenger link is already severed; use the same complete cleanup as H-off.
+                FlightSystem.disable(sp,data);
+                ConstructionMode.set(sp,false);
+                return;
+            }
+            if (isZeroGZone()) {
 				LocalOrientation.setUp(sp.getUuid(), new Vec3d(0, 1, 0));
 				FootGravitySystem.clear(sp.getUuid());
 				ConstructionMode.set(sp, false);

@@ -61,10 +61,10 @@ public final class FlightSystem {
 
 	public static void tick(ServerPlayerEntity player, DescentPlayerData data) {
 		// Spectators own their own movement entirely — hijacking travel there strands them.
-		if (player.isSpectator()) {
-			if (player.hasNoGravity()) player.setNoGravity(false);
-			return;
-		}
+		if (player.isSpectator() || !player.isAlive()) {
+            disable(player, data);
+            return;
+        }
 		float dt = 1f / 20f;
 		InputState in = input(player);
 
@@ -308,8 +308,18 @@ public final class FlightSystem {
 	public static void disable(ServerPlayerEntity player, DescentPlayerData data) {
 		DiagTrace.record("flight", "6DoF off for " + player.getGameProfile().getName()
 				+ (player.hasVehicle() ? " while riding " + player.getVehicle().getType() : ""));
-		data.setEnabled(false);
-		data.clearShipAttitude();
+        // Clear authority before dismount: the passenger callback must observe an explicit stop,
+        // rather than re-enabling free flight while H is trying to turn it off.
+        data.setEnabled(false);
+        if(player.getVehicle() instanceof PyroShipEntity) player.stopRiding();
+        clearInput(player.getUuid());
+        data.setThrustSpool(0); data.setIdleTimer(0); data.setGravityFactor(0);
+        data.setDashTimer(0); data.setDashCooldown(0);
+        player.setVelocity(Vec3d.ZERO); player.velocityModified=true; player.fallDistance=0;
+        com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
+        com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),new Vec3d(0,1,0));
+        player.setNoGravity(false);
+        data.clearShipAttitude();
 		data.setRoll(0);
 		data.setRollVel(0);
 		data.setFlightVelocity(Vec3d.ZERO);
@@ -340,7 +350,9 @@ public final class FlightSystem {
 
 	/** Force 6DoF on and sync — join path / /d6 / void ending. */
 	public static void enable(ServerPlayerEntity player, DescentPlayerData data) {
-		enable(player, data, true);
+        // Native 6DoF controls the player. A physical hull is an explicit optional vehicle;
+        // toggling H or reconnecting must not manufacture another entity under the player.
+        enable(player, data, false);
 	}
 
 	/**
@@ -359,7 +371,8 @@ public final class FlightSystem {
 		enable(player, data, false);
 	}
 
-	private static void enable(ServerPlayerEntity player, DescentPlayerData data, boolean mountHull) {
+    private static void enable(ServerPlayerEntity player, DescentPlayerData data, boolean mountHull) {
+        if(!player.isAlive() || player.isSpectator()) return;
 		// mountHull is the flag the ship-glued-to-player bug turned on: a dismount that re-seated the
 		// pilot in the hull it had just left, same tick. Traced so a recurrence shows the sequence
 		// rather than only the end state, which is what made it hard to see the first time.
