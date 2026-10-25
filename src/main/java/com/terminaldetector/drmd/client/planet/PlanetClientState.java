@@ -68,7 +68,7 @@ public final class PlanetClientState {
 	 * one of the other two changes — where the map it replaces streamed six hundred cells of height
 	 * and tint every player tick.
 	 */
-	public void apply(long seed, List<Long> scarCells, List<HorizonLandmark> marks) {
+	public synchronized void apply(long seed, List<Long> scarCells, List<HorizonLandmark> marks) {
 		boolean changed = false;
 		if (this.seed != seed || !hasSeed) {
             worldEpoch.incrementAndGet();
@@ -129,7 +129,7 @@ public final class PlanetClientState {
 		return level;
 	}
 
-	public void clear() {
+	public synchronized void clear() {
         worldEpoch.incrementAndGet();
 		hasSeed = false;
 		seed = 0L;
@@ -209,10 +209,12 @@ public final class PlanetClientState {
 				//
 				// The field itself is published either way. A backdrop built from data one packet out
 				// of date is not something a pilot can see; a missing backdrop is.
-				if(worldEpoch.get()==startedWorld && hasSeed) {
-                    dirty = false;
-                    mesh = built;
-                    if (generation.get() != startedGeneration) dirty = true;
+				synchronized(PlanetClientState.this) {
+                    if(worldEpoch.get()==startedWorld && hasSeed) {
+                        dirty = false;
+                        mesh = built;
+                        if (generation.get() != startedGeneration) dirty = true;
+                    }
                 }
 			} catch (Throwable failure) {
 				// Throwable rather than Exception, and recorded rather than logged: a build that dies
