@@ -170,7 +170,7 @@ public class DroneEntity extends HostileEntity {
 		if (role == AiRole.HEAVY_ELITE && random.nextFloat() < 0.35f) {
 			if (getWorld() instanceof ServerWorld sw) {
 				WeaponCore.splashDamage(this, sw, getPos(), 200f, (float) DescentMod.su(340), DamageClass.EXPLOSIVE);
-				sw.spawnParticles(ParticleTypes.EXPLOSION_EMITTER, getX(), getY(), getZ(), 1, 0, 0, 0, 0);
+				com.terminaldetector.drmd.network.ModNetworking.shotFx(sw,getPos(),0xffc878,.65f,true);
 			}
 		}
 	}

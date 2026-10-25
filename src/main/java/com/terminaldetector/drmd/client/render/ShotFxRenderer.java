@@ -67,7 +67,8 @@ public final class ShotFxRenderer {
                 float life = flash.impact() ? 6f : 3f;
                 float age = ticks - flash.born() + context.tickCounter().getTickDelta(false);
                 float fade = Math.clamp(1 - age / life, 0f, 1f);
-                float radius = flash.scale() * (flash.impact() ? .48f : .24f) * (1 + (1 - fade) * .6f);
+                float radius = FxVisibility.radius(offset.length(),flash.scale() * (flash.impact() ? .48f : .24f) * (1 + (1 - fade) * .6f));
+                if(radius<=0) continue;
                 matrices.push(); matrices.translate(offset.x, offset.y, offset.z);
                 matrices.multiply(context.camera().getRotation());
                 ProjectileRenderer.billboard(buffer, matrices.peek(), radius * 2, radius * 2,

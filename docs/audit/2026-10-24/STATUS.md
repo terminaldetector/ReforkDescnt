@@ -129,3 +129,11 @@ AerialBombEntity did not save its spent flight age, so chunk unload/reload resta
 resumes; a GameTest checks save/reload followed by a real tick. Existing Ragdoll life already
 persists and expires at 1200 ticks. Persistent assembled construction bodies are intentionally
 not assigned an arbitrary debris lifetime.
+
+## UG-016 mod-owned flashes (local)
+
+Muzzle/impact billboards now have an angular radius bound of 0.18 times eye distance and
+vanish inside 0.12 blocks. The heavy elite's cosmetic explosion emitter uses this bounded
+effect; damage and terrain behavior are unchanged. Three standalone JUnit cases pass for
+near-eye, ordinary-distance and invalid inputs. This does not remove vanilla fire or prove
+the video's lava overlay was caused by the mod. Fresh client visibility checks remain pending.
