@@ -76,7 +76,7 @@ public final class HybridWeaponModels {
     private static List<Part> plasma() {
         var b = new Builder();
         b.shell("chamfered power housing",Material.STEEL,0,0,13,7,6,10,1.3f,false);
-        b.shell("rear ceramic cover",Material.CELL,0,.7f,18,5.8f,5,4,.9f,false);
+        b.shell("rear ceramic cover",Material.CELL,0,.85f,18,5.8f,5,4,.9f,false);
         b.ring("hollow emitter lip",Material.DARK,0,0,0,2.8f,1.75f,1.3f);
         b.ring("luminous aperture",Material.CYAN,0,0,.35f,1.8f,1.5f,.5f);
         b.ring("inner chamber",Material.DARK,0,0,1,2.2f,1.6f,8);
