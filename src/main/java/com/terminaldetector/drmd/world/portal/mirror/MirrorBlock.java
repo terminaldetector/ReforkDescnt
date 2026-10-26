@@ -1,7 +1,6 @@
 package com.terminaldetector.drmd.world.portal.mirror;
 
 import com.mojang.serialization.MapCodec;
-import com.terminaldetector.drmd.world.portal.PortalComplexity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
@@ -21,21 +20,25 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-/**
- * A block that ricochets laser projectiles ({@link ReflectiveBlock}) and, when Immersive Portals is
- * installed, is also a literal live mirror via an attached {@code qouteall.imm_ptl.core.portal.Mirror}
- * entity (see {@link ImmPtlMirrorBridge}). Placement, breaking, and laser bounce are all pure DRMD
- * physics with no ImmPtl dependency — the live-reflection half degrades honestly (block still exists,
- * still bounces lasers, just isn't a literal live mirror) when ImmPtl is absent at runtime.
- */
+/** Native reflective block; saved external attachments are retired without loading their API. */
 public class MirrorBlock extends BlockWithEntity implements ReflectiveBlock {
 	public static final DirectionProperty FACING = Properties.FACING;
 	public static final MapCodec<MirrorBlock> CODEC = createCodec(MirrorBlock::new);
 
 	public MirrorBlock(Settings settings) {
 		super(settings);
-		setDefaultState(getStateManager().getDefaultState().with(FACING, Direction.NORTH));
+		setDefaultState(disconnected(getStateManager().getDefaultState().with(FACING, Direction.NORTH)));
 	}
+
+    private static BlockState disconnected(BlockState state) {
+        for (var property : MirrorEdges.FRAME) state=state.with(property,true);
+        return state;
+    }
+    @Override
+    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighbour,
+            net.minecraft.world.WorldAccess world, BlockPos pos, BlockPos neighbourPos) {
+        return MirrorEdges.update(state,world,pos);
+    }
 
 	@Override
 	protected MapCodec<? extends BlockWithEntity> getCodec() {
@@ -50,12 +53,13 @@ public class MirrorBlock extends BlockWithEntity implements ReflectiveBlock {
 	@Override
 	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
 		builder.add(FACING);
+        builder.add(MirrorEdges.FRAME);
 	}
 
 	@Nullable
 	@Override
 	public BlockState getPlacementState(ItemPlacementContext ctx) {
-		return getDefaultState().with(FACING, ctx.getSide());
+		return MirrorEdges.update(getDefaultState().with(FACING, ctx.getSide()), ctx.getWorld(), ctx.getBlockPos());
 	}
 
 	@Override
@@ -72,26 +76,16 @@ public class MirrorBlock extends BlockWithEntity implements ReflectiveBlock {
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-		return null; // Nothing to tick: an attached Mirror entity just sits and saves with its chunk.
+		return world.isClient ? null : validateTicker(type,
+                com.terminaldetector.drmd.entity.ModBlockEntities.MIRROR,
+                (w,p,s,be) -> {LegacyPortalEntities.detach((ServerWorld)w, be.getMirrorEntityId());be.refreshConnections();});
 	}
 
-	@Override
-	protected void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
-		super.onBlockAdded(state, world, pos, oldState, notify);
-		if (world instanceof ServerWorld sw && PortalComplexity.hasImmersivePortals()
-				&& world.getBlockEntity(pos) instanceof MirrorBlockEntity be) {
-			UUID id = ImmPtlMirrorBridge.attach(sw, pos, state.get(FACING));
-			be.setMirrorEntityId(id);
-		}
-	}
-
-	@Override
-	protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-		if (!state.isOf(newState.getBlock()) && world instanceof ServerWorld sw
-				&& PortalComplexity.hasImmersivePortals()
-				&& world.getBlockEntity(pos) instanceof MirrorBlockEntity be) {
-			ImmPtlMirrorBridge.detach(sw, be.getMirrorEntityId());
-		}
-		super.onStateReplaced(state, world, pos, newState, moved);
-	}
+    @Override
+    protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState next, boolean moved) {
+        if(!state.isOf(next.getBlock()) && world instanceof ServerWorld server
+                && world.getBlockEntity(pos) instanceof MirrorBlockEntity be)
+            LegacyPortalEntities.detach(server,be.getMirrorEntityId());
+        super.onStateReplaced(state,world,pos,next,moved);
+    }
 }

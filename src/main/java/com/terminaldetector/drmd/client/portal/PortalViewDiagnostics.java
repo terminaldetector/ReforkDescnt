@@ -42,7 +42,7 @@ public final class PortalViewDiagnostics {
 	public static void report(String channel, String summary) {
 		String previous = LAST.put(channel, summary);
 		if (summary.equals(previous)) return;
-		DescentMod.LOGGER.info("[drmd view] {}: {}", channel, summary);
+		DescentMod.LOGGER.debug("[drmd view] {}: {}", channel, summary);
 	}
 
 	/**

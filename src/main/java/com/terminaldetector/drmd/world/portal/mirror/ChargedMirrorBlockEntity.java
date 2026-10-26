@@ -2,7 +2,6 @@ package com.terminaldetector.drmd.world.portal.mirror;
 
 import com.terminaldetector.drmd.diag.DiagProblems;
 import com.terminaldetector.drmd.entity.ModBlockEntities;
-import com.terminaldetector.drmd.world.portal.PortalComplexity;
 import com.terminaldetector.drmd.world.portal.PortalTravel;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -21,15 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-/**
- * Server-side link bookkeeping for {@link ChargedMirrorBlock}: which live ImmPtl entity is currently
- * attached (a plain {@code Mirror} before linking, a linked {@code Portal} after), and — once
- * linked — where the other end of the link is. Whether this block is linked at all stays a
- * {@code LINKED} blockstate property, because ordinary blockstate updates sync that bit for free; the
- * link itself is synced as block entity data ({@code toInitialChunkDataNbt}/{@code toUpdatePacket},
- * {@code CarvedBlockEntity}'s idiom), because a client drawing <em>through</em> a portal needs to know
- * where it goes, and a bit cannot say that.
- */
+/** Native charged-mirror link data, synchronized for same-dimension rendering and travel. */
 public class ChargedMirrorBlockEntity extends BlockEntity {
 	/**
 	 * How far from the face centre a crossing may land and still count. Half a block would be the
@@ -39,6 +30,7 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 	private static final double FACE_HALF_SPAN = 0.75;
 
 	private UUID attachedEntityId;
+    private int connectionAge;
 	private boolean linked;
 	private BlockPos linkPartnerPos;
 	private RegistryKey<World> linkPartnerDim;
@@ -104,28 +96,12 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 	}
 
 
-	/**
-	 * Native travel through a linked pair — no Immersive Portals needed.
-	 *
-	 * <p>Until this existed a linked charged mirror stored its partner and did nothing with it: the
-	 * travel was performed by an ImmPtl {@code Portal} entity spawned in
-	 * {@code ImmPtlMirrorBridge.linkPortals}, so without that mod the block was decorative and said so.
-	 *
-	 * <p>Everything but the guards lives in {@link PortalTravel}, shared with {@code PortalPanelBlock}:
-	 * a mirror is a one-block face and a panel is several across, but nothing else about travelling
-	 * through them differs, so only the span is passed in.
-	 *
-	 * <p>Stands aside for a real ImmPtl portal rather than testing whether the mod is installed. The
-	 * attached-entity id is the honest question — it is set only when a live {@code Portal} was spawned
-	 * here, and that portal does its own carrying, so both doing it would fight over the same traveller.
-	 * Asking it this way also gets both migrations right on its own: a world linked with ImmPtl and
-	 * opened without it has no portal to lose, and one linked natively keeps working if ImmPtl is
-	 * installed later.
-	 */
+		/** Retire the saved foreign attachment, refresh frames, then perform native travel. */
 	public static void tick(World world, BlockPos pos, BlockState state, ChargedMirrorBlockEntity be) {
 		if (!(world instanceof ServerWorld serverWorld)) return;
-		if (!be.linked || be.linkPartnerPos == null) return;
-		if (be.attachedEntityId != null && PortalComplexity.hasImmersivePortals()) return;
+		LegacyPortalEntities.detach(serverWorld, be.attachedEntityId);
+        if(be.connectionAge++%20==0)MirrorEdges.refresh(world,pos,state);
+        if (!be.linked || be.linkPartnerPos == null) return;
 		// Same dimension only — see PortalTravel for why a cross-dimension hop is not this call.
 		if (be.linkPartnerDim != null && !be.linkPartnerDim.equals(world.getRegistryKey())) {
 			// Silently doing nothing here is exactly the symptom that is impossible to diagnose from a

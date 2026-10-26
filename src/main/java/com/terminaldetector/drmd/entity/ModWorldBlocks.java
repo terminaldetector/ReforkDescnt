@@ -76,7 +76,7 @@ public final class ModWorldBlocks {
 			new com.terminaldetector.drmd.world.locator.LocatorPanelBlock(
 					AbstractBlock.Settings.copy(Blocks.OXIDIZED_COPPER).luminance(s -> 4).strength(3f)));
 
-	/** Ricochets lasers; a literal live mirror once Immersive Portals is installed. */
+	/** Ricochets lasers and reflects through the native joined-surface renderer. */
 	public static final Block MIRROR = registerBlock("mirror",
 			new com.terminaldetector.drmd.world.portal.mirror.MirrorBlock(
 					AbstractBlock.Settings.copy(Blocks.GLASS).nonOpaque().strength(3f)

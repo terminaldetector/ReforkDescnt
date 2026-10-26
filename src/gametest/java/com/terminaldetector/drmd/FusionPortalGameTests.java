@@ -22,6 +22,54 @@ public final class FusionPortalGameTests implements FabricGameTest {
             c.assertTrue(block.getDefaultState().getRenderType()==net.minecraft.block.BlockRenderType.MODEL,"placed frame has a visible model: "+block);
         c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void adjacentMirrorFramesJoinAndRestoreAfterRemovalOnAllFaces(TestContext c) {
+        var world=c.getWorld();var origin=c.getAbsolutePos(new BlockPos(2,7,2));
+        for(var block:new net.minecraft.block.Block[]{ModWorldBlocks.MIRROR,ModWorldBlocks.CHARGED_MIRROR})
+        for(var facing:Direction.values()) {
+            var direction=MirrorEdges.directions(facing)[1];var neighbour=origin.offset(direction);
+            var state=block.getDefaultState().with(net.minecraft.state.property.Properties.FACING,facing);
+            world.setBlockState(origin,state,3);world.setBlockState(neighbour,state,3);
+            c.assertTrue(!world.getBlockState(origin).get(MirrorEdges.FRAME[1]),"shared edge removed "+facing);
+            c.assertTrue(!world.getBlockState(neighbour).get(MirrorEdges.FRAME[0]),"reverse edge removed "+facing);
+            world.setBlockState(neighbour,Blocks.AIR.getDefaultState(),3);
+            c.assertTrue(world.getBlockState(origin).get(MirrorEdges.FRAME[1]),"frame restored after break "+facing);
+            world.setBlockState(origin,Blocks.AIR.getDefaultState(),3);
+        }
+        c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void linkedAndDifferentMirrorTypesKeepTheirOwnFrames(TestContext c) {
+        var world=c.getWorld();var a=c.getAbsolutePos(new BlockPos(2,7,2));var b=a.east();
+        world.setBlockState(a,ModWorldBlocks.MIRROR.getDefaultState(),3);
+        world.setBlockState(b,ModWorldBlocks.CHARGED_MIRROR.getDefaultState(),3);
+        c.assertTrue(world.getBlockState(a).get(MirrorEdges.FRAME[1]),"different materials retain frame");
+        world.setBlockState(a,ModWorldBlocks.CHARGED_MIRROR.getDefaultState(),3);
+        c.assertTrue(!world.getBlockState(a).get(MirrorEdges.FRAME[1]),"same materials join");
+        world.setBlockState(b,world.getBlockState(b).with(ChargedMirrorBlock.LINKED,true),3);
+        c.assertTrue(world.getBlockState(a).get(MirrorEdges.FRAME[1]),"portal does not join mirror");
+        c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void legacyDisconnectedFramesReconcileWithoutRebuildingTheWall(TestContext c) {
+        var world=c.getWorld();var a=c.getAbsolutePos(new BlockPos(2,7,2));var b=a.east();
+        world.setBlockState(a,ModWorldBlocks.MIRROR.getDefaultState(),net.minecraft.block.Block.NOTIFY_LISTENERS | net.minecraft.block.Block.FORCE_STATE);
+        world.setBlockState(b,ModWorldBlocks.MIRROR.getDefaultState(),net.minecraft.block.Block.NOTIFY_LISTENERS | net.minecraft.block.Block.FORCE_STATE);
+        c.assertTrue(world.getBlockState(a).get(MirrorEdges.FRAME[1]),"legacy state initially has its full frame");
+        c.waitAndRun(2,()->{
+            c.assertTrue(!world.getBlockState(a).get(MirrorEdges.FRAME[1]),"loaded wall is joined by native ticker");
+            c.assertTrue(!world.getBlockState(b).get(MirrorEdges.FRAME[0]),"both legacy edges reconciled");
+            c.complete();
+        });
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void legacyCleanupDoesNotDiscardAnUnrelatedEntityWithAStoredUuid(TestContext c) {
+        var world=c.getWorld();var entity=new net.minecraft.entity.decoration.ArmorStandEntity(world,0,0,0);
+        world.spawnEntity(entity);
+        LegacyPortalEntities.detach(world,entity.getUuid());
+        c.assertTrue(!entity.isRemoved(),"migration only retires the owned external entity type");
+        entity.discard();c.complete();
+    }
     private record Pair(BlockPos near,BlockPos far,boolean panels) {}
     private Pair pair(TestContext c,boolean panels) {
         var w=c.getWorld();var near=c.getAbsolutePos(new BlockPos(4,6,10));var far=near.north(6);

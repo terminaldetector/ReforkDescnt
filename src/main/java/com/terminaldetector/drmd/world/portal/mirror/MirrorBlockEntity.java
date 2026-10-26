@@ -9,14 +9,13 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.UUID;
 
-/**
- * Remembers which live ImmPtl {@link qouteall.imm_ptl.core.portal.Mirror} entity, if any, is
- * attached to this block — so it can be detached when the block breaks. One level simpler than
- * {@code GravityGeneratorBlockEntity}'s field bookkeeping: a spawned Mirror entity just sits and
- * saves with its own chunk, no periodic DRMD-side re-registration is needed to keep it alive.
- */
+/** Saved legacy attachment UUID and connection refresh for native mirrors. */
 public class MirrorBlockEntity extends BlockEntity {
 	private UUID mirrorEntityId;
+    private int connectionAge;
+    public void refreshConnections() {
+        if(world!=null && connectionAge++%20==0)MirrorEdges.refresh(world,pos,getCachedState());
+    }
 
 	public MirrorBlockEntity(BlockPos pos, BlockState state) {
 		super(ModBlockEntities.MIRROR, pos, state);

@@ -61,6 +61,7 @@ public class DescentClient implements ClientModInitializer {
 		DescentKeybinds.register();
 		ModEntityRenderers.register();
 		com.terminaldetector.drmd.client.render.ShotRenderLayers.register();
+        com.terminaldetector.drmd.client.portal.SurfaceComposite.register();
 		com.terminaldetector.drmd.client.render.ShotFxRenderer.register();
 		WeaponViewRenderer.register();
 		com.terminaldetector.drmd.client.render.CockpitRenderer.register();

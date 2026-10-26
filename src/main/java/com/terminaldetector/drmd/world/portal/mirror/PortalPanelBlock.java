@@ -2,7 +2,6 @@ package com.terminaldetector.drmd.world.portal.mirror;
 
 import com.mojang.serialization.MapCodec;
 import com.terminaldetector.drmd.diag.DiagTrace;
-import com.terminaldetector.drmd.world.portal.PortalComplexity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
@@ -35,21 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-/**
- * A thin, flush-mounted portal panel — {@link PortalGunItem}'s payload. Unlike {@link MirrorBlock}/
- * {@link ChargedMirrorBlock} (full cubes, since they double as physical mirrors {@link ReflectiveBlock}
- * bounces lasers off), this is deliberately not a {@link ReflectiveBlock}: it's not meant to be walked
- * into or reflect anything, only to mark the plane the portal actually occupies, painting- or
- * carpet-style against whichever of the 6 faces it lands on ({@link #FACING} exactly like the mirrors).
- * That plane is a live ImmPtl portal when the mod is installed and a natively carried link when it is
- * not — see {@link ChargedMirrorBlock}'s own class note, which this block follows exactly.
- *
- * <p>Its one real difference from {@link ChargedMirrorBlock}'s own pairing: the live portal it attaches
- * ({@link ImmPtlMirrorBridge#attach(ServerWorld, BlockPos, Direction, Box)}) is shaped from a 4-block-
- * wide {@link #panelBox}, not a single block — {@code PortalAPI.setPortalOrthodoxShape} already takes
- * an arbitrary {@link Box}, so one placed block can anchor a portal plane far bigger than itself, the
- * same way the existing call already anchors a 1-block mirror from a 1-block {@code new Box(pos)}.
- */
+/** A four-block native portal face anchored to one thin panel. Links activate through Fusion impacts. */
 public class PortalPanelBlock extends BlockWithEntity {
 	public static final DirectionProperty FACING = Properties.FACING;
 	/** Client-visible cue only — the actual link data lives in {@link PortalPanelBlockEntity}. */
@@ -103,12 +88,7 @@ public class PortalPanelBlock extends BlockWithEntity {
         };
 	}
 
-	/**
-	 * The box a live ImmPtl portal gets shaped from once attached here: full block thickness along
-	 * {@code facing}'s own axis (matching the 1-block thickness {@code new Box(pos)} already used for
-	 * plain mirrors — this changes span, not depth), {@link #HALF_SPAN} either side of the anchor along
-	 * both other axes.
-	 */
+		/** World-space bounds of the four-block panel, including its anchor thickness. */
 	static Box panelBox(BlockPos pos, Direction facing) {
 		Vec3d c = Vec3d.ofCenter(pos);
 		return switch (facing.getAxis()) {
@@ -127,10 +107,8 @@ public class PortalPanelBlock extends BlockWithEntity {
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-		// Only a linked pair needs ticking, and only on the server: that is where travel is decided.
-		// Was null while the attached ImmPtl Portal did the carrying; a linked panel now carries
-		// travellers itself when there is no such portal — see PortalPanelBlockEntity.tick.
-		if (world.isClient || !state.get(LINKED)) return null;
+		// Retire saved foreign attachments even on inactive panels.
+		if (world.isClient) return null;
 		return validateTicker(type, com.terminaldetector.drmd.entity.ModBlockEntities.PORTAL_PANEL,
 				PortalPanelBlockEntity::tick);
 	}
@@ -155,7 +133,7 @@ public class PortalPanelBlock extends BlockWithEntity {
 	protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
 		if (!state.isOf(newState.getBlock()) && world instanceof ServerWorld sw
 				&& world.getBlockEntity(pos) instanceof PortalPanelBlockEntity be) {
-			if (PortalComplexity.hasImmersivePortals()) ImmPtlMirrorBridge.detach(sw, be.getAttachedEntityId());
+			LegacyPortalEntities.detach(sw, be.getAttachedEntityId());
 			unlinkPartner(sw, pos, be.getLinkPartnerPos(), be.getLinkPartnerDim());
 		}
 		super.onStateReplaced(state, world, pos, newState, moved);
@@ -192,8 +170,8 @@ public class PortalPanelBlock extends BlockWithEntity {
 		if (!(partner.getBlock() instanceof PortalPanelBlock) || !partner.get(LINKED)) return;
 		if (world.getBlockEntity(partnerPos) instanceof PortalPanelBlockEntity partnerBe) {
 			if (partnerBe.getLinkPartnerPos() != null && !partnerBe.getLinkPartnerPos().equals(self)) return;
-			if (PortalComplexity.hasImmersivePortals()) {
-				ImmPtlMirrorBridge.detach(world, partnerBe.getAttachedEntityId());
+			{
+				LegacyPortalEntities.detach(world, partnerBe.getAttachedEntityId());
 			}
 			partnerBe.clearLink();
 		}

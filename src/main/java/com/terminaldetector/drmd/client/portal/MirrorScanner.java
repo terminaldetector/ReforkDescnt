@@ -1,6 +1,5 @@
 package com.terminaldetector.drmd.client.portal;
 
-import com.terminaldetector.drmd.world.portal.PortalComplexity;
 import com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlock;
 import com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlockEntity;
 import com.terminaldetector.drmd.world.portal.mirror.MirrorBlock;
@@ -45,7 +44,7 @@ public final class MirrorScanner {
 	 *                    {@link PortalTransform#reflectVector}'s {@code planePoint} argument.
 	 * @param normal      unit outward normal of that face — their {@code normal} argument.
 	 */
-	public record MirrorFace(BlockPos pos, Direction facing, Vec3d planePoint, Vec3d normal) {}
+	public record MirrorFace(BlockPos pos, Direction facing, Vec3d planePoint, Vec3d normal, Block kind) {}
 
 	/** Every loaded chunk within {@code chunkRadius} of {@code center}'s own chunk, inclusive. */
 	public static List<MirrorFace> findNearby(World world, BlockPos center, int chunkRadius) {
@@ -61,7 +60,7 @@ public final class MirrorScanner {
 					if (facing == null) continue;
 					Vec3d normal = MirrorReflection.normalFor(facing);
 					Vec3d planePoint = Vec3d.ofCenter(pos).add(normal.multiply(0.5));
-					found.add(new MirrorFace(pos, facing, planePoint, normal));
+					found.add(new MirrorFace(pos.toImmutable(), facing, planePoint, normal, world.getBlockState(pos).getBlock()));
 				}
 			}
 		}
@@ -98,13 +97,11 @@ public final class MirrorScanner {
 	 * mirrors, which reflect, and this one takes the linked pairs, which lead somewhere. No block is in
 	 * both lists, so the two renderers never fight over one face.
 	 *
-	 * <p>A face with a live ImmPtl portal attached is skipped: that portal draws itself, and drawing it
-	 * twice would be two different pictures of the same surface. The same question the block entity's
-	 * own tick asks before carrying anyone.
+	 * Saved legacy attachment IDs do not suppress native views.
 	 */
 	public static List<PortalFace> findLinkedNearby(World world, BlockPos center, int chunkRadius) {
 		List<PortalFace> found = new ArrayList<>();
-		boolean immPtl = PortalComplexity.hasImmersivePortals();
+
 		int centerChunkX = center.getX() >> 4;
 		int centerChunkZ = center.getZ() >> 4;
 		for (int cx = centerChunkX - chunkRadius; cx <= centerChunkX + chunkRadius; cx++) {
@@ -112,7 +109,7 @@ public final class MirrorScanner {
 				if (!world.isChunkLoaded(cx, cz)) continue;
 				WorldChunk chunk = world.getChunk(cx, cz);
 				for (Map.Entry<BlockPos, BlockEntity> entry : chunk.getBlockEntities().entrySet()) {
-					PortalFace face = linkedFace(world, entry.getKey(), entry.getValue(), immPtl);
+					PortalFace face = linkedFace(world, entry.getKey(), entry.getValue());
 					if (face != null) found.add(face);
 				}
 			}
@@ -120,22 +117,19 @@ public final class MirrorScanner {
 		return found;
 	}
 
-	private static PortalFace linkedFace(World world, BlockPos pos, BlockEntity be, boolean immPtl) {
-		UUID attached;
+	private static PortalFace linkedFace(World world, BlockPos pos, BlockEntity be) {
 		BlockPos partnerPos;
 		RegistryKey<World> partnerDim;
 		double faceSize;
 		Class<? extends Block> blockType;
 		if (be instanceof ChargedMirrorBlockEntity mirror) {
 			if (!mirror.isLinked()) return null;
-			attached = mirror.getAttachedEntityId();
 			partnerPos = mirror.getLinkPartnerPos();
 			partnerDim = mirror.getLinkPartnerDim();
 			faceSize = 1.0;
 			blockType = ChargedMirrorBlock.class;
 		} else if (be instanceof PortalPanelBlockEntity panel) {
 			if (!panel.isLinked()) return null;
-			attached = panel.getAttachedEntityId();
 			partnerPos = panel.getLinkPartnerPos();
 			partnerDim = panel.getLinkPartnerDim();
 			faceSize = PortalPanelBlock.HALF_SPAN * 2.0;
@@ -144,7 +138,7 @@ public final class MirrorScanner {
 			return null;
 		}
 
-		if (attached != null && immPtl) return null;
+
 		if (partnerPos == null) return null;
 		// Same world only, and the far end has to be loaded — there is nothing to render from a chunk
 		// the client does not have, and asking for one would hand back air and draw a blank portal.

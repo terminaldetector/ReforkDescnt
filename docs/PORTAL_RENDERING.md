@@ -1,3 +1,9 @@
+> Update 26 October 2026, `1.1.17-mirrors.1`: the historical scissor-only composite described
+> below was replaced by a native screen-space sampler on depth-tested aperture quads. Coplanar
+> edge-connected mirrors share one world render and retain frames only at exposed boundaries.
+> Immersive Portals is no longer on the build/runtime path. See `IMMPTL_STACK.md` and the v5
+> mirror milestone report for current verification and remaining renderer compatibility limits.
+
 # Свой see-through рендер порталов и зеркал
 
 План инициативы: DRMD рисует зеркала и порталы **сам**, без зависимости от Immersive Portals в рантайме.

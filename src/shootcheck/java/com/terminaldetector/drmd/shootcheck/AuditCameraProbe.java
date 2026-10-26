@@ -16,5 +16,6 @@ public class AuditCameraProbe {
         AuditRenderCheck.overrideCamera((Camera)(Object)this);
         com.terminaldetector.drmd.HorizonAnchorCheck.overrideCamera((Camera)(Object)this);
         com.terminaldetector.drmd.RepairVisualCheck.overrideCamera((Camera)(Object)this);
+        com.terminaldetector.drmd.MirrorJoinCheck.overrideCamera((Camera)(Object)this);
     }
 }

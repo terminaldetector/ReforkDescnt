@@ -2,7 +2,6 @@ package com.terminaldetector.drmd.world.portal.mirror;
 
 import com.terminaldetector.drmd.diag.DiagProblems;
 import com.terminaldetector.drmd.entity.ModBlockEntities;
-import com.terminaldetector.drmd.world.portal.PortalComplexity;
 import com.terminaldetector.drmd.world.portal.PortalTravel;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -94,19 +93,11 @@ public class PortalPanelBlockEntity extends BlockEntity {
 				: null;
 	}
 
-	/**
-	 * Native travel through a linked pair — the same call {@code ChargedMirrorBlockEntity.tick} makes,
-	 * with the panel's own span. Everything but these guards lives in {@link PortalTravel}: a mirror is
-	 * a one-block face and a panel is {@link PortalPanelBlock#HALF_SPAN} either side of its anchor, and
-	 * that is the whole difference between them.
-	 *
-	 * <p>Stands aside for a real ImmPtl portal by asking whether one is attached, not whether the mod is
-	 * installed — see the mirror's own tick for why that is the honest question.
-	 */
+		/** Retire the saved foreign attachment, then perform native travel across the panel span. */
 	public static void tick(World world, BlockPos pos, BlockState state, PortalPanelBlockEntity be) {
 		if (!(world instanceof ServerWorld serverWorld)) return;
-		if (!be.linked || be.linkPartnerPos == null) return;
-		if (be.attachedEntityId != null && PortalComplexity.hasImmersivePortals()) return;
+		LegacyPortalEntities.detach(serverWorld, be.attachedEntityId);
+        if (!be.linked || be.linkPartnerPos == null) return;
 		// Same dimension only — see PortalTravel for why a cross-dimension hop is not this call.
 		if (be.linkPartnerDim != null && !be.linkPartnerDim.equals(world.getRegistryKey())) {
 			DiagProblems.record("portal", "panel at " + pos + " links to " + be.linkPartnerDim.getValue()

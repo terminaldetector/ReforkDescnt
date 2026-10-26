@@ -17,24 +17,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Phase R1a of the native portal-rendering plan ({@code spicy-jumping-anchor.md}) — a same-dimension
- * literal mirror, reflected by actually re-rendering the world from a moved-and-turned camera, not a
- * flat texture or a fake reversed model.
- *
- * <p>This file owns only what is specific to a mirror: finding them, deciding which are worth drawing,
- * and reflecting the camera through the face. The re-render itself — off-screen target, scissored blit,
- * camera save and restore, the single-view rule — is {@link OffscreenWorldView}, shared with the portal
- * view, which wants exactly the same thing from a differently moved camera.
- *
- * <p><b>Why a rectangle and not the mirror's real outline</b> is a finding, not laziness; the reasons
- * live with the code that does the clipping, in {@link OffscreenWorldView} and
- * {@code docs/PORTAL_RENDERING.md}. Its known gaps, named rather than hidden: seen head-on the box
- * nearly coincides with the face, seen at a steep angle it is larger and the reflection spills past the
- * mirror's edges; and the blit ignores depth, so something between the eye and the mirror does not
- * occlude it. The second is partly answered by {@link #hasLineOfSight}; both close properly when the
- * shader composite lands.
- */
+/** Reflect edge-connected surfaces with one world render each; composite their individual depth-tested apertures. */
 public final class MirrorReflectionRenderer {
 	private MirrorReflectionRenderer() {}
 
@@ -43,12 +26,7 @@ public final class MirrorReflectionRenderer {
 	private static final double BASE_RENDER_RANGE = 24.0;
 	/** Covers {@link #BASE_RENDER_RANGE} (24 blocks) with margin against chunk-boundary rounding. */
 	private static final int SCAN_CHUNK_RADIUS = 2;
-	private static final int SCAN_PERIOD_TICKS = 20;
-	/**
-	 * Pixels the scissor box is grown by. A rectangle is already not the mirror's exact shape, so a
-	 * couple of pixels of slack costs nothing and keeps rounding from biting a line off the edge.
-	 */
-	private static final int SCISSOR_PAD = 0;
+	private static final int SCAN_PERIOD_TICKS = 5;
 	/**
 	 * Mirrors reflected per frame. Each one is a whole extra world render, so this — not the range gate —
 	 * is what actually bounds the cost of walking into a room with several of them.
@@ -57,9 +35,9 @@ public final class MirrorReflectionRenderer {
 
 	private static int scanAge = SCAN_PERIOD_TICKS;
     private static net.minecraft.client.world.ClientWorld scannedWorld;
-	private static List<MirrorScanner.MirrorFace> cachedMirrors = List.of();
+	private static List<MirrorSurface> cachedMirrors = List.of();
 
-	/** How many faces the last scan found — a fact the diagnostics report needs and a log line has not. */
+	/** How many joined surfaces the last scan found — a fact the diagnostics report needs and a log line has not. */
 	public static int scannedCount() {
 		return cachedMirrors.size();
 	}
@@ -69,7 +47,7 @@ public final class MirrorReflectionRenderer {
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(MirrorReflectionRenderer::onAfterTranslucent);
 	}
 
-	/** Mirrors are static placed blocks — a once-a-second rescan is imperceptible lag between placing
+	/** Mirrors are static placed blocks — a five-tick rescan is imperceptible lag between placing
 	 *  or breaking one and it dis/appearing from this system, same trade TerrainMap3d already makes. */
 	private static void onClientTick(MinecraftClient mc) {
         if(mc.world!=scannedWorld){cachedMirrors=List.of();scanAge=SCAN_PERIOD_TICKS;scannedWorld=mc.world;}
@@ -80,7 +58,7 @@ public final class MirrorReflectionRenderer {
 		}
 		if (++scanAge < SCAN_PERIOD_TICKS) return;
 		scanAge = 0;
-		cachedMirrors = MirrorScanner.findNearby(mc.world, mc.player.getBlockPos(), SCAN_CHUNK_RADIUS);
+		cachedMirrors = MirrorSurface.join(MirrorScanner.findNearby(mc.world, mc.player.getBlockPos(), SCAN_CHUNK_RADIUS));
 	}
 
 	private static void onAfterTranslucent(WorldRenderContext context) {
@@ -103,14 +81,14 @@ public final class MirrorReflectionRenderer {
 		Matrix4f outerPosition = OffscreenWorldView.framePosition();
 		if (outerProjection == null || outerPosition == null) return;
 
-		// Several mirrors can now be on screen at once — each blit is scissored to its own rectangle, so
+		// Several mirrors can now be on screen at once — each composite is masked by its depth-tested apertures, so
 		// they no longer overwrite each other the way full-screen draws did. Nearest first, capped:
 		// every mirror costs a full world render, so the cap is the real budget, not the range gate.
 		Vec3d cameraPos = camera.getPos();
 		int inRange = 0;
-		List<MirrorScanner.MirrorFace> visible = new ArrayList<>();
-		for (MirrorScanner.MirrorFace mirror : cachedMirrors) {
-			double distance = cameraPos.distanceTo(mirror.planePoint());
+		List<MirrorSurface> visible = new ArrayList<>();
+		for (MirrorSurface mirror : cachedMirrors) {
+			double distance = Math.sqrt(mirror.squaredDistance(cameraPos));
 			if (!MirrorRenderGate.shouldRender(OffscreenWorldView.depth(), MirrorRenderGate.DEFAULT_MAX_RECURSION_DEPTH,
 					distance, BASE_RENDER_RANGE)) {
 				continue;
@@ -119,10 +97,10 @@ public final class MirrorReflectionRenderer {
 			if (!hasLineOfSight(camera, mirror)) continue;
 			visible.add(mirror);
 		}
-		visible.sort(Comparator.comparingDouble(m -> cameraPos.squaredDistanceTo(m.planePoint())));
+		visible.sort(Comparator.comparingDouble(m -> m.squaredDistance(cameraPos)));
 
 		int drawn = 0;
-		for (MirrorScanner.MirrorFace mirror : visible) {
+		for (MirrorSurface mirror : visible) {
 			if (drawn >= MAX_MIRRORS_PER_FRAME) break;
 			// Counts only mirrors that actually rendered: one whose box is off-screen costs nothing and
 			// must not use up a slot a visible one behind it could have had.
@@ -140,7 +118,8 @@ public final class MirrorReflectionRenderer {
 	/** @return true when the reflection actually reached the screen, false when it was skipped. */
 	private static boolean renderReflection(WorldRenderContext context, CameraAccessor accessor, Camera camera,
 			Matrix4f outerProjection, Matrix4f outerPosition,
-			MirrorScanner.MirrorFace mirror) {
+			MirrorSurface surface) {
+        var mirror=surface.anchor();
 		Vec3d originalPos = camera.getPos();
 
 		PortalTransform.Vec3 normal = toPure(mirror.normal());
@@ -157,7 +136,7 @@ public final class MirrorReflectionRenderer {
 		// Where the mirror's own face lands on screen, measured with the OUTER camera and its matrices,
 		// before anything is reflected. Computed up front rather than after the render: an invalid box
 		// means there is nowhere to put the result, so bailing here also skips a whole world render.
-		MirrorScreenBounds.Box box = screenBox(outerProjection, outerPosition, mirror, originalPos);
+		MirrorScreenBounds.Box box = screenBox(outerProjection, outerPosition, surface, originalPos);
 		if (!box.valid()) return false;
 
 		// The mirror's own plane is also the clip plane: the reflected camera stands behind it, so
@@ -165,7 +144,7 @@ public final class MirrorReflectionRenderer {
 		// side the normal points at keeps the room and discards the mirror block and everything behind.
 		return OffscreenWorldView.render(context, accessor, camera, outerProjection, fromPure(reflectedPos),
 				(float) reflectedAngles.yawDegrees(), (float) reflectedAngles.pitchDegrees(),
-				mirror.planePoint(), mirror.normal(), box, PortalViewMatrix.reflected(outerPosition, normal), true);
+				mirror.planePoint(), mirror.normal(), box, PortalViewMatrix.reflected(outerPosition, normal), true, surface.apertures());
 	}
 
 	/**
@@ -175,27 +154,25 @@ public final class MirrorReflectionRenderer {
 	 * projecting, and the matrix is {@code projection × positionMatrix} — the same pair
 	 * {@code WorldRenderer.render} itself is handed, taken straight off the context rather than rebuilt.
 	 */
-	private static MirrorScreenBounds.Box screenBox(Matrix4f outerProjection, Matrix4f outerPosition,
-			MirrorScanner.MirrorFace mirror, Vec3d cameraPos) {
-		Matrix4f viewProjection = new Matrix4f(outerProjection).mul(outerPosition);
-		float[] m = new float[16];
-		viewProjection.get(m);
-
-		PortalTransform.Vec3 centre = new PortalTransform.Vec3(
-				mirror.planePoint().x - cameraPos.x,
-				mirror.planePoint().y - cameraPos.y,
-				mirror.planePoint().z - cameraPos.z);
-		PortalTransform.Vec3[] corners =
-				MirrorScreenBounds.faceCorners(centre, toPure(mirror.normal()), 0.75);
-
-		return MirrorScreenBounds.project(corners, m,
-				MirrorFramebuffer.width(), MirrorFramebuffer.height(), SCISSOR_PAD);
-	}
+    private static MirrorScreenBounds.Box screenBox(Matrix4f projection, Matrix4f view,
+            MirrorSurface surface, Vec3d camera) {
+        float[] matrix=new float[16];new Matrix4f(projection).mul(view).get(matrix);
+        int x0=Integer.MAX_VALUE,y0=Integer.MAX_VALUE,x1=0,y1=0;
+        for(var polygon:surface.apertures()) {
+            var relative=new PortalTransform.Vec3[4];
+            for(int i=0;i<4;i++)relative[i]=polygon[i].minus(toPure(camera));
+            var box=MirrorScreenBounds.project(relative,matrix,MirrorFramebuffer.width(),MirrorFramebuffer.height(),0);
+            if(!box.valid())continue;
+            x0=Math.min(x0,box.x());y0=Math.min(y0,box.y());
+            x1=Math.max(x1,box.x()+box.width());y1=Math.max(y1,box.y()+box.height());
+        }
+        return x1>x0 && y1>y0 ? new MirrorScreenBounds.Box(x0,y0,x1-x0,y1-y0,true) : MirrorScreenBounds.Box.INVALID;
+    }
 
 	/**
 	 * Whether anything solid stands between the eye and the mirror.
 	 *
-	 * <p>A partial answer to the blit ignoring depth, and worth having on its own: without it a mirror
+	 * <p>An early rejection before paying for an offscreen render: a mirror
 	 * in the next room reflects <em>through</em> the wall, which is the most obviously wrong thing the
 	 * scissor version can do. It does not help with something only partly covering the mirror — that
 	 * needs the depth-aware shader composite — but it removes the whole-mirror-should-not-be-there case
@@ -203,17 +180,16 @@ public final class MirrorReflectionRenderer {
 	 *
 	 * <p>The ray naturally ends on the mirror's own block, so hitting that counts as clear line.
 	 */
-	private static boolean hasLineOfSight(Camera camera, MirrorScanner.MirrorFace mirror) {
-		MinecraftClient mc = MinecraftClient.getInstance();
-		if (mc.world == null || mc.player == null) return false;
-		BlockHitResult hit = mc.world.raycast(new RaycastContext(
-				camera.getPos(), mirror.planePoint(),
-				RaycastContext.ShapeType.VISUAL,
-				RaycastContext.FluidHandling.NONE,
-				mc.player));
-		if (hit.getType() == HitResult.Type.MISS) return true;
-		return hit.getBlockPos().equals(mirror.pos());
-	}
+    private static boolean hasLineOfSight(Camera camera, MirrorSurface surface) {
+        MinecraftClient mc=MinecraftClient.getInstance();
+        if(mc.world==null || mc.player==null)return false;
+        for(var pane:surface.panes()) {
+            var hit=mc.world.raycast(new RaycastContext(camera.getPos(),pane.planePoint(),
+                    RaycastContext.ShapeType.VISUAL,RaycastContext.FluidHandling.NONE,mc.player));
+            if(hit.getType()==HitResult.Type.MISS || hit.getBlockPos().equals(pane.pos()))return true;
+        }
+        return false;
+    }
 
 	private static PortalTransform.Vec3 toPure(Vec3d v) {
 		return new PortalTransform.Vec3(v.x, v.y, v.z);

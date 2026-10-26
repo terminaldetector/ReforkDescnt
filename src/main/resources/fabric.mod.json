@@ -28,9 +28,7 @@
   "suggests": {
     "modmenu": "*",
     "distanthorizons": "*",
-    "sodium": "*",
-    "immersive_portals": "*",
-    "imm_ptl_core": "*"
+    "sodium": "*"
   },
   "custom": {
     "modmenu": {

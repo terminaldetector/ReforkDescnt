@@ -2,7 +2,6 @@ package com.terminaldetector.drmd.world.portal.mirror;
 
 import com.mojang.serialization.MapCodec;
 import com.terminaldetector.drmd.diag.DiagTrace;
-import com.terminaldetector.drmd.world.portal.PortalComplexity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
@@ -38,8 +37,18 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 
 	public ChargedMirrorBlock(Settings settings) {
 		super(settings);
-		setDefaultState(getStateManager().getDefaultState().with(FACING, Direction.NORTH).with(LINKED, false));
+		setDefaultState(disconnected(getStateManager().getDefaultState().with(FACING, Direction.NORTH).with(LINKED, false)));
 	}
+
+    private static BlockState disconnected(BlockState state) {
+        for (var property : MirrorEdges.FRAME) state=state.with(property,true);
+        return state;
+    }
+    @Override
+    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighbour,
+            net.minecraft.world.WorldAccess world, BlockPos pos, BlockPos neighbourPos) {
+        return MirrorEdges.update(state,world,pos);
+    }
 
 	@Override
 	protected MapCodec<? extends BlockWithEntity> getCodec() {
@@ -54,12 +63,13 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 	@Override
 	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
 		builder.add(FACING, LINKED);
+        builder.add(MirrorEdges.FRAME);
 	}
 
 	@Nullable
 	@Override
 	public BlockState getPlacementState(ItemPlacementContext ctx) {
-		return getDefaultState().with(FACING, ctx.getSide());
+		return MirrorEdges.update(getDefaultState().with(FACING, ctx.getSide()), ctx.getWorld(), ctx.getBlockPos());
 	}
 
 	@Override
@@ -76,10 +86,8 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-		// Only a linked pair needs ticking, and only on the server: that is where travel is decided.
-		// An unlinked charged mirror still has nothing to do — the attached Mirror entity, when ImmPtl
-		// is present, sits and saves with its chunk exactly as before.
-		if (world.isClient || !state.get(LINKED)) return null;
+		// Retire saved foreign attachments and refresh legacy frames before native travel.
+		if (world.isClient) return null;
 		return validateTicker(type, com.terminaldetector.drmd.entity.ModBlockEntities.CHARGED_MIRROR,
 				ChargedMirrorBlockEntity::tick);
 	}
@@ -88,25 +96,13 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 	protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
 		if (!state.isOf(newState.getBlock()) && world instanceof ServerWorld sw
 				&& world.getBlockEntity(pos) instanceof ChargedMirrorBlockEntity be) {
-			if (PortalComplexity.hasImmersivePortals()) ImmPtlMirrorBridge.detach(sw, be.getAttachedEntityId());
+			LegacyPortalEntities.detach(sw, be.getAttachedEntityId());
 			unlinkPartner(sw, pos, be.getLinkPartnerPos(), be.getLinkPartnerDim());
 		}
 		super.onStateReplaced(state, world, pos, newState, moved);
 	}
 
-	/**
-	 * Record a working link with no portal entity behind it — the same bookkeeping
-	 * {@link ImmPtlMirrorBridge#linkPortals} ends with, minus the two {@code Portal}s it spawns first.
-	 *
-	 * <p>This is what makes a linked pair mean anything without Immersive Portals installed. Before it,
-	 * both link paths refused outright when ImmPtl was absent, so {@code LINKED} was never set, and the
-	 * native travel in {@link com.terminaldetector.drmd.world.portal.PortalTravel} could not fire —
-	 * dead code exactly in the case it exists for.
-	 *
-	 * <p>A null entity id is not an oversight: it is the flag that says "nothing of ImmPtl's is carrying
-	 * anyone through here", which is what {@code ChargedMirrorBlockEntity.tick} reads to decide whether
-	 * to do the carrying itself.
-	 */
+		/** Record both ends of a native same-dimension link. */
 	static void linkNatively(ServerWorld world, BlockPos a, BlockPos b) {
 		markLinked(world, a, null, b, world.getRegistryKey());
 		markLinked(world, b, null, a, world.getRegistryKey());
@@ -134,22 +130,16 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 		if (!(partner.getBlock() instanceof ChargedMirrorBlock) || !partner.get(LINKED)) return;
 		if (world.getBlockEntity(partnerPos) instanceof ChargedMirrorBlockEntity partnerBe) {
 			if (partnerBe.getLinkPartnerPos() != null && !partnerBe.getLinkPartnerPos().equals(self)) return;
-			if (PortalComplexity.hasImmersivePortals()) {
-				ImmPtlMirrorBridge.detach(world, partnerBe.getAttachedEntityId());
+			{
+				LegacyPortalEntities.detach(world, partnerBe.getAttachedEntityId());
 			}
 			partnerBe.clearLink();
 		}
 		DiagTrace.record("portal", "link broken: " + self + " removed, so " + partnerPos + " unlinked");
-		world.setBlockState(partnerPos, partner.with(LINKED, false), Block.NOTIFY_LISTENERS);
+		world.setBlockState(partnerPos, MirrorEdges.update(partner.with(LINKED, false),world,partnerPos), Block.NOTIFY_ALL);
 	}
 
-	/**
-	 * Records the link and flips {@link #LINKED}, so every client sees the change through the ordinary
-	 * blockstate-update path. Called from all four link paths: automatic or manual, with a live
-	 * {@link ImmPtlMirrorBridge#linkPortals} portal behind it or with nothing behind it at all
-	 * ({@link #linkNatively}). {@code portalEntityId} is null in the latter case, and that null is the
-	 * signal the tick reads — see {@link #linkNatively}.
-	 */
+		/** Synchronize a native link and restore all boundary frames when it stops being a mirror. */
 	public static void markLinked(ServerWorld world, BlockPos pos, UUID portalEntityId,
 			BlockPos partnerPos, RegistryKey<World> partnerDim) {
 		if (world.getBlockEntity(pos) instanceof ChargedMirrorBlockEntity be) {
@@ -157,7 +147,7 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 		}
 		BlockState state = world.getBlockState(pos);
 		if (state.getBlock() instanceof ChargedMirrorBlock) {
-			world.setBlockState(pos, state.with(LINKED, true), Block.NOTIFY_LISTENERS);
+			world.setBlockState(pos, MirrorEdges.update(state.with(LINKED, true),world,pos), Block.NOTIFY_ALL);
 		}
 	}
 }

@@ -1,22 +1,6 @@
 package com.terminaldetector.drmd.client.portal;
 
-/**
- * Where a mirror's own face lands on screen, in pixels — pure arithmetic, zero Minecraft and zero JOML
- * imports, same idiom as {@link PortalTransform}: the caller hands over the matrix and the camera
- * offset already sampled, this file only projects.
- *
- * <p>Exists so the reflection can be clipped to the mirror instead of covering the whole screen. The
- * exact-shape composite needs a custom shader (see {@code docs/PORTAL_RENDERING.md}); a scissor
- * rectangle needs none, because the reflection is still drawn as a full-screen blit and only the
- * <em>clip</em> changes — so every pixel keeps the screen position it was rendered at and no texture
- * coordinates are involved at all. That sidesteps the whole reason ImmPtl needs a shader here: per-vertex
- * screen-space UVs get interpolated perspective-correctly across a quad and come out distorted.
- *
- * <p>Known gap, named rather than hidden: a rectangle is not the mirror's shape. Seen head-on the two
- * nearly coincide; seen at a steep angle the box is larger than the face and the reflection spills past
- * its edges. That is the price of not having a shader yet, and it is still a large step in from covering
- * the entire view.
- */
+/** Pure screen bounding-box projection, used only to reject off-screen surfaces before a world render. */
 public final class MirrorScreenBounds {
 	private MirrorScreenBounds() {}
 

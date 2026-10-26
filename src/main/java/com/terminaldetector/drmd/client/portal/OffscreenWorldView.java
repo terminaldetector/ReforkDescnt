@@ -13,48 +13,8 @@ import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-/**
- * Renders the world a second time from a moved camera and puts the result on screen inside one
- * rectangle. The whole of "see somewhere else through a surface", with no opinion about why the camera
- * moved — a mirror reflects it, a portal carries it to its partner, and both want exactly this.
- *
- * <p>Extracted when the portal view arrived rather than copied into it. The dance below is short but
- * every step of it is load-bearing in a way that would not survive being maintained twice: the order of
- * the restores, the depth-test line at the end, the single shared depth counter.
- *
- * <p><b>The camera lands behind the surface, always.</b> A mirror reflects it through the glass, a
- * portal carries it behind its partner — so in both cases the surface's own block, and the wall it is
- * mounted on, stand between the camera and everything worth seeing. {@link ObliqueNearPlane} bends the
- * projection so its near plane <em>is</em> that surface, which is what turns the result into a picture
- * of somewhere else instead of a picture of a wall. Without it this machinery renders correctly and
- * shows nothing useful.
- *
- * <p><b>The scissor is the trick that keeps this shader-free.</b> The result is blitted back
- * <em>full-screen</em> and only the clip is narrowed, so every pixel keeps the exact screen position it
- * was rendered at and no texture coordinates exist to interpolate. Texturing a quad instead is what
- * forces ImmPtl into its own {@code DrawFbInAreaShader}: per-vertex screen-space UVs get interpolated
- * perspective-correctly across the quad and come out distorted. Its other strategy, a stencil mask,
- * needs a stencil attachment vanilla's main framebuffer does not have and ImmPtl gets from Porting Lib
- * — another mod. See {@code docs/PORTAL_RENDERING.md}.
- *
- * <p><b>One view at a time, and that is correctness, not budget.</b> The re-render draws into the single
- * {@link MirrorFramebuffer}, and the callbacks that start these views fire again inside it — so a nested
- * view would bind that same target while its own blit reads from it. Sampling a framebuffer bound for
- * writing is undefined in GL, not merely slow. What is missing for nesting is one target per layer, not
- * a cleverer gate, so {@link #busy()} is shared by every caller rather than counted per feature.
- *
- * <p>{@code positionMatrix} is rebuilt here as {@code new Matrix4f().rotation(camera.getRotation())},
- * the same shape vanilla itself uses: ImmPtl's real (non-decompiled)
- * {@code MixinGameRenderer.wrapCameraTransformation} wraps exactly that call inside
- * {@code GameRenderer.renderLevel}, one level above {@code WorldRenderer.render}. Calling the world
- * renderer directly means building it here instead of going through {@code GameRenderer} — cross-checked
- * against real source, but still the first line to re-derive if a live test shows a view in the wrong
- * <em>orientation</em> rather than merely in the wrong place.
- *
- * <p>No exceptions are caught: swallowing one mid-render could leave GL state — bound shader, matrix
- * stack depth, blend and depth state — half-changed for every frame after, which is worse than a loud
- * failure while this is still opt-in and off by default.
- */
+/** Shared native offscreen world view. Reflect or transform the camera, clip at the source/destination plane,
+ * then composite depth-tested apertures with screen-space texture sampling. One target, no recursion. */
 public final class OffscreenWorldView {
 	private OffscreenWorldView() {}
 
@@ -117,7 +77,7 @@ public final class OffscreenWorldView {
 	}
 
 	/**
-	 * Draw the world from {@code viewPos}/{@code viewYaw}/{@code viewPitch}, clipped to {@code box}.
+	 * Draw the transformed world, then composite the aperture polygons. The box is an early visibility gate.
 	 *
 	 * @param outerProjection the frame's own projection, captured by the caller <b>before</b> any nested
 	 *                        render. It cannot be read from the context here: calling
@@ -137,7 +97,8 @@ public final class OffscreenWorldView {
 	 */
 	public static boolean render(WorldRenderContext context, CameraAccessor accessor, Camera camera,
 			Matrix4f outerProjection, Vec3d viewPos, float viewYaw, float viewPitch,
-			Vec3d clipPoint, Vec3d clipNormal, MirrorScreenBounds.Box box, Matrix4f viewMatrix, boolean reflected) {
+			Vec3d clipPoint, Vec3d clipNormal, MirrorScreenBounds.Box box, Matrix4f viewMatrix, boolean reflected,
+            java.util.List<PortalTransform.Vec3[]> apertures) {
 		if (!box.valid()) return false;
 		Framebuffer target = MirrorFramebuffer.get();
 		if (target == null) {
@@ -190,13 +151,7 @@ public final class OffscreenWorldView {
 			depth--;
 		}
 
-		// Outside the try/finally: the camera and the bound target must be back to normal first.
-		RenderSystem.enableScissor(box.x(), box.y(), box.width(), box.height());
-		try {
-			target.draw(MirrorFramebuffer.width(), MirrorFramebuffer.height());
-		} finally {
-			RenderSystem.disableScissor();
-		}
+        SurfaceComposite.draw(target, outerProjection, framePosition, originalPos, apertures);
 		DiagTrace.count("view.drawn");
 		// draw() leaves the depth test disabled (it restores the depth *mask* and the colour mask, but
 		// not this), and we are still inside the world render — anything drawn after us in the same frame

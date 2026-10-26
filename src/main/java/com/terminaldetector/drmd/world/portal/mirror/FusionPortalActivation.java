@@ -1,6 +1,5 @@
 package com.terminaldetector.drmd.world.portal.mirror;
 
-import com.terminaldetector.drmd.world.portal.PortalComplexity;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -39,17 +38,17 @@ public final class FusionPortalActivation {
             if(state.getBlock() instanceof PortalPanelBlock) {
                 if(!(world.getBlockEntity(pos) instanceof PortalPanelBlockEntity a)
                         || !(world.getBlockEntity(partner) instanceof PortalPanelBlockEntity b)) break;
-                if(PortalComplexity.hasImmersivePortals()) {
-                    ImmPtlMirrorBridge.detach(world,a.getAttachedEntityId());
-                    ImmPtlMirrorBridge.detach(world,b.getAttachedEntityId());
+                {
+                    LegacyPortalEntities.detach(world,a.getAttachedEntityId());
+                    LegacyPortalEntities.detach(world,b.getAttachedEntityId());
                 }
                 PortalPanelBlock.linkNatively(world,pos,partner);
             } else {
                 if(!(world.getBlockEntity(pos) instanceof ChargedMirrorBlockEntity a)
                         || !(world.getBlockEntity(partner) instanceof ChargedMirrorBlockEntity b)) break;
-                if(PortalComplexity.hasImmersivePortals()) {
-                    ImmPtlMirrorBridge.detach(world,a.getAttachedEntityId());
-                    ImmPtlMirrorBridge.detach(world,b.getAttachedEntityId());
+                {
+                    LegacyPortalEntities.detach(world,a.getAttachedEntityId());
+                    LegacyPortalEntities.detach(world,b.getAttachedEntityId());
                 }
                 ChargedMirrorBlock.linkNatively(world,pos,partner);
             }

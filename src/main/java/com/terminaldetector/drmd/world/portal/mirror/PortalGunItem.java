@@ -29,7 +29,7 @@ import net.minecraft.world.World;
  * com.terminaldetector.drmd.weapon.core.WeaponCore#hitscan} already uses for actual weapons.
  *
  * <p>Placement then reuses {@link PortalPanelBlock} unchanged: dropping the block via
- * {@code world.setBlockState} fires the same {@code onBlockAdded} → {@link ImmPtlMirrorBridge#attach}
+ * {@code world.setBlockState} fires the same {@code onBlockAdded} → the native panel renderer
  * → auto-link path a creative-mode hand placement already goes through, so the gun needs no pairing
  * logic of its own.
  */
@@ -46,7 +46,7 @@ public class PortalGunItem extends Item {
 		if (world.isClient || !(world instanceof ServerWorld sw)) return TypedActionResult.success(stack);
 		// No Immersive Portals check any more. The gun refused to fire without it because a placed panel
 		// could not link; panels pair and carry travellers on their own now, so the only thing a missing
-		// ImmPtl costs here is seeing through the panel — which is not a reason to refuse to place one.
+		// rendering and travel are native as well.
 		Vec3d start = user.getEyePos();
 		Vec3d end = start.add(user.getRotationVec(1f).multiply(RANGE));
 		BlockHitResult hit = world.raycast(new RaycastContext(start, end,

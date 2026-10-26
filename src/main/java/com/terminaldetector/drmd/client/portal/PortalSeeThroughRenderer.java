@@ -158,7 +158,9 @@ public final class PortalSeeThroughRenderer {
 		return OffscreenWorldView.render(context, accessor, camera, outerProjection, fromPure(movedPos),
 				(float) movedAngles.yawDegrees(), (float) movedAngles.pitchDegrees(),
 				portal.destPoint(), portal.destNormal(), box,
-				PortalViewMatrix.through(outerPosition, PortalTransform.cameraRotation(srcNormal, dstNormal)), false);
+				PortalViewMatrix.through(outerPosition, PortalTransform.cameraRotation(srcNormal, dstNormal)), false,
+                java.util.Collections.singletonList(MirrorScreenBounds.faceCorners(toPure(portal.planePoint().add(portal.normal().multiply(.002))),
+                    srcNormal, portal.faceSize()-.25)));
 	}
 
 	/** The portal face's pixel bounding box under the current view — the mirror's own method, at this face's size. */

@@ -1,10 +1,268 @@
 {
-  "variants": {
-    "facing=down":  { "model": "drmd:block/mirror_down" },
-    "facing=up":    { "model": "drmd:block/mirror_up" },
-    "facing=north": { "model": "drmd:block/mirror_north" },
-    "facing=south": { "model": "drmd:block/mirror_south" },
-    "facing=west":  { "model": "drmd:block/mirror_west" },
-    "facing=east":  { "model": "drmd:block/mirror_east" }
-  }
+  "multipart": [
+    {
+      "when": {
+        "facing": "down"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_down_backing"
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "frame_u_min": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_down_frame_u_min"
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "frame_u_max": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_down_frame_u_max"
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "frame_v_max": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_down_frame_v_max"
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "frame_v_min": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_down_frame_v_min"
+      }
+    },
+    {
+      "when": {
+        "facing": "up"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_up_backing"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "frame_u_min": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_up_frame_u_min"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "frame_u_max": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_up_frame_u_max"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "frame_v_min": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_up_frame_v_min"
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "frame_v_max": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_up_frame_v_max"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_north_backing"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "frame_u_min": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_north_frame_u_min"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "frame_u_max": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_north_frame_u_max"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "frame_v_min": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_north_frame_v_min"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "frame_v_max": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_north_frame_v_max"
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_south_backing"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "frame_u_max": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_south_frame_u_max"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "frame_u_min": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_south_frame_u_min"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "frame_v_min": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_south_frame_v_min"
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "frame_v_max": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_south_frame_v_max"
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_west_backing"
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "frame_u_max": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_west_frame_u_max"
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "frame_u_min": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_west_frame_u_min"
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "frame_v_min": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_west_frame_v_min"
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "frame_v_max": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_west_frame_v_max"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_east_backing"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "frame_u_min": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_east_frame_u_min"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "frame_u_max": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_east_frame_u_max"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "frame_v_min": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_east_frame_v_min"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "frame_v_max": "true"
+      },
+      "apply": {
+        "model": "drmd:block/mirror_east_frame_v_max"
+      }
+    }
+  ]
 }
