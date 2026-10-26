@@ -44,6 +44,7 @@ public final class AuditRenderCheck {
     private static final Set<String> SETTINGS_SEEN=new HashSet<>();
     private static final List<String> SETTINGS_VIEWPORTS=new ArrayList<>();
     private static final int[] SCALES={2,3,4};
+    private static boolean settingsResizeApplied;
     private AuditRenderCheck() {}
     public static boolean active() { return active; }
     public static void horizonDrawn() { if(active) {horizonDrawStamp=System.nanoTime();horizonDraws++;} }
@@ -113,6 +114,17 @@ public final class AuditRenderCheck {
             if(!serverPassed||!DescentClientState.enabled||client.player.hasVehicle())throw new IllegalStateException("Lower-world recovery did not synchronize control");
             queue("audit-lower-recovery",()->{phase=4;ticks=0;prepareSettings(client);});
         }else if(phase==4) {
+            int expectedWidth=scaleIndex==2?1920:1280,expectedHeight=scaleIndex==2?1080:720;
+            if(client.getWindow().getFramebufferWidth()!=expectedWidth || client.getWindow().getFramebufferHeight()!=expectedHeight) {
+                if(ticks<80)return;
+                throw new IllegalStateException("Requested settings viewport not reached: "+expectedWidth+"x"+expectedHeight);
+            }
+            if(!settingsResizeApplied) {
+                // GLFW reports the framebuffer size asynchronously. Recompute the GUI only after
+                // that callback, otherwise a real 1080p window retains its earlier 720p scale cap.
+                client.options.getGuiScale().setValue(SCALES[scaleIndex]);client.onResolutionChanged();
+                settingsResizeApplied=true;ticks=0;return;
+            }
             if(ticks<5)return;
             if(client.getWindow().getScaleFactor()!=SCALES[scaleIndex]) {
                 if(ticks<80)return;
@@ -210,7 +222,7 @@ public final class AuditRenderCheck {
         });
     }
     private static void prepareSettings(MinecraftClient client) {
-        settingsCaptured=false;
+        settingsCaptured=false;settingsResizeApplied=false;
         // Minecraft clamps scale 4 at 720p. Use 1080p for a real scale-4 check.
         org.lwjgl.glfw.GLFW.glfwSetWindowSize(client.getWindow().getHandle(),scaleIndex==2?1920:1280,scaleIndex==2?1080:720);
         client.options.getGuiScale().setValue(SCALES[scaleIndex]);client.onResolutionChanged();client.setScreen(new DescentSettingsScreen(null));
