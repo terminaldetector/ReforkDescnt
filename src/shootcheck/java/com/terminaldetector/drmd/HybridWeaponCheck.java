@@ -25,7 +25,7 @@ public final class HybridWeaponCheck {
     private static final String[] MODELS={HybridWeaponModels.IMPULSE,HybridWeaponModels.PLASMA,HybridWeaponModels.RAIL};
     private static final Vec3d POSITION=new Vec3d(12,205,30);
     private static boolean active;
-    private static int model, tick, total, captures, draws;
+    private static int model, tick, total, captures, draws, previewFrames;
     private static float maxRecoil;
     private static volatile boolean serverReady, diskVerified;
     private static volatile int fired, held;
@@ -55,6 +55,7 @@ public final class HybridWeaponCheck {
         prepare(client);
     }
     public static void guiRendered() {
+        if(active && workshop!=null && MinecraftClient.getInstance().currentScreen==workshop)previewFrames++;
         if(active && gui && pending!=null) capture(MinecraftClient.getInstance());
     }
     private static void prepare(MinecraftClient client) {
@@ -85,10 +86,12 @@ public final class HybridWeaponCheck {
         ShipAttitudeClient.acceptPortalFrame(client.player,forward,up);
         tick++;
         if(tick==20) {
-            workshop=new WorkshopScreen(); client.setScreen(workshop);
+            previewFrames=0;workshop=new WorkshopScreen(); client.setScreen(workshop);
             workshop.selectHybridSample(MODELS[model]); workshop.savePreset();
         }
         if(tick==25) {
+            // Several catch-up ticks can run before the first actual GUI frame on software GL.
+            if(previewFrames==0) {tick--;return;}
             if(workshop.previewFaceCount()<300) throw new IllegalStateException("No actual 3D preview mesh");
             queue("hybrid-"+model+"-workshop",true,()->{
                 String name=MODELS[model];
