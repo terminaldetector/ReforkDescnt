@@ -1,0 +1,718 @@
+Downloading Minecraft server
+Installing Fabric Loader 0.19.5(1.21.1) on the server
+Downloading required files
+Downloading library org.ow2.asm:asm:9.10.1
+Downloading library org.ow2.asm:asm-analysis:9.10.1
+Downloading library org.ow2.asm:asm-commons:9.10.1
+Downloading library org.ow2.asm:asm-tree:9.10.1
+Downloading library org.ow2.asm:asm-util:9.10.1
+Downloading library net.fabricmc:sponge-mixin:0.17.4+mixin.0.8.7
+Downloading library net.fabricmc:intermediary:1.21.1
+Downloading library net.fabricmc:fabric-loader:0.19.5
+Generating server launch JAR
+Unpacking 1.21.1/server-1.21.1.jar (versions:1.21.1) to versions/1.21.1/server-1.21.1.jar
+Starting net.fabricmc.loader.impl.game.minecraft.BundlerClassPathCapture
+[17:25:11] [main/INFO]: Loading Minecraft 1.21.1 with Fabric Loader 0.19.5
+[17:25:11] [main/INFO]: Fabric is preparing JARs on first launch, this may take a few seconds...
+[17:25:11] [main/INFO]: Loading 44 mods:
+	- bettercubicchunks 0.1.1+mc1.21.1
+	- drmd 1.1.16-physics.1
+	- fabric-api 0.116.15+1.21.1
+	   |-- fabric-api-base 0.4.42+6573ed8c19
+	   |-- fabric-api-lookup-api-v1 1.6.72+7b3d111d19
+	   |-- fabric-biome-api-v1 13.0.31+d527f9fd19
+	   |-- fabric-block-api-v1 1.1.0+0bc3503219
+	   |-- fabric-block-view-api-v2 1.0.11+ebb2264e19
+	   |-- fabric-command-api-v1 1.2.49+f71b366f19
+	   |-- fabric-command-api-v2 2.2.28+6ced4dd919
+	   |-- fabric-commands-v0 0.2.66+df3654b319
+	   |-- fabric-content-registries-v0 8.0.19+b559734419
+	   |-- fabric-convention-tags-v1 2.1.7+7f945d5b19
+	   |-- fabric-convention-tags-v2 2.12.0+c3656daa19
+	   |-- fabric-crash-report-info-v1 0.2.29+0af3f5a719
+	   |-- fabric-data-attachment-api-v1 1.4.7+5b36e0f719
+	   |-- fabric-data-generation-api-v1 20.3.0+1eb36c0719
+	   |-- fabric-dimensions-v1 4.0.1+65213ef819
+	   |-- fabric-entity-events-v1 1.8.0+2b27e0a419
+	   |-- fabric-events-interaction-v0 0.7.14+ba9dae0619
+	   |-- fabric-game-rule-api-v1 1.0.53+6ced4dd919
+	   |-- fabric-item-api-v1 11.3.0+467044f319
+	   |-- fabric-item-group-api-v1 4.1.7+def88e3a19
+	   |-- fabric-lifecycle-events-v1 2.6.0+0865547519
+	   |-- fabric-loot-api-v2 3.0.15+3f89f5a519
+	   |-- fabric-loot-api-v3 1.0.3+3f89f5a519
+	   |-- fabric-message-api-v1 6.0.14+8aaf3aca19
+	   |-- fabric-networking-api-v1 4.3.1+d30f6a7919
+	   |-- fabric-object-builder-api-v1 15.2.1+40875a9319
+	   |-- fabric-particles-v1 4.0.2+6573ed8c19
+	   |-- fabric-recipe-api-v1 5.0.16+2475392c19
+	   |-- fabric-registry-sync-v0 5.3.2+e3eddc2119
+	   |-- fabric-rendering-data-attachment-v1 0.3.49+73761d2e19
+	   |-- fabric-rendering-fluids-v1 3.1.6+1daea21519
+	   |-- fabric-resource-conditions-api-v1 4.3.0+8dc279b119
+	   |-- fabric-resource-loader-v0 1.3.1+5b5275af19
+	   |-- fabric-screen-handler-api-v1 1.3.91+b559734419
+	   |-- fabric-tag-api-v1 1.3.0+1eb36c0719
+	   |-- fabric-transfer-api-v1 5.4.4+7b3d111d19
+	   \-- fabric-transitive-access-wideners-v1 6.2.0+45b9699719
+	- fabricloader 0.19.5
+	   \-- mixinextras 0.5.5
+	- java 21
+	- minecraft 1.21.1
+[17:25:11] [main/INFO]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/workspace/ungravity-v5/world/build/cubic-fixed-gate/libraries/net/fabricmc/sponge-mixin/0.17.4+mixin.0.8.7/sponge-mixin-0.17.4+mixin.0.8.7.jar Service=Knot/Fabric Env=SERVER
+[17:25:11] [main/INFO]: Position packing: TALL (Y range -32768..32767, XZ range +/-8388607)
+[17:25:12] [main/INFO]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.5).
+[17:25:17] [main/INFO]: Better Cubic Chunks loading on Fabric (development environment: false)
+[17:25:17] [main/INFO]: DRMD 6DOF initializing — 6DoF world mode (volume-first)
+[17:25:17] [main/INFO]: [drmd] 1.1.16-physics.1 on Minecraft 1.21.1 / loader 0.19.5 / 44 mods
+[17:25:17] [main/INFO]: [drmd] optional: immersive_portals=no, dimlib=no, sodium=no, iris=no
+[17:25:17] [main/INFO]: [drmd] access widener applied
+[17:25:17] [main/INFO]: DRMD server config — worldKind=STOCK worldModLevel=ADVANCED netherBand=true endBand=true klondikeIslands=true macroWorldgen=true surfaceDistricts=true orbitJunk=true
+[17:25:17] [main/INFO]: Advanced-column pack registered, default activation=DEFAULT_ENABLED
+[17:25:17] [main/INFO]: Registered DRMD entities (ragdoll + End boss + Sky UFO + laser cart)
+[17:25:17] [main/INFO]: Registered DRMD map blocks
+[17:25:17] [main/INFO]: Registered closed Descent arsenal (41 open weapons)
+[17:25:17] [main/INFO]: Registered Phase3 world blocks & engineer tools
+[17:25:17] [main/INFO]: Registered DRMD block entities
+[17:25:17] [main/INFO]: Registered Industrial Underground worldgen (stock density)
+[17:25:17] [main/INFO]: Registered World Generation 2.0 (mega-structures + lunar/UFO + fauna)
+[17:25:17] [main/INFO]: Infinite megacity worldgen online — grid pitch 160
+[17:25:17] [main/INFO]: End Space (Layer 2) worldgen online — grid pitch 64
+[17:25:17] [main/INFO]: Orbit junk / techno-ring scaffold registered
+[17:25:17] [main/INFO]: Level builder online — diggable mantle / Core band (no bedrock border)
+[17:25:17] [main/INFO]: Portal complexity online — ImmPtl present=false
+[17:25:17] [main/INFO]: Registered ÆRis/Mirai step 6 density generator (drmd:aeris_test)
+[17:25:17] [main/INFO]: Distant Horizons not installed — install modrinth.com/mod/distanthorizons for max view distance
+[17:25:17] [main/INFO]: DRMD 6DOF ready — cubic body prototype + native portal frames + surface store
+[17:25:17] [main/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[17:25:18] [main/INFO]: No existing world data, creating new world
+[17:25:18] [main/INFO]: Loaded 1368 recipes
+[17:25:18] [main/INFO]: Loaded 1399 advancements
+[17:25:18] [main/INFO]: Loaded generation bands for [bettercubicchunks:cubic_default, bettercubicchunks:cubic_overworld]
+[17:25:19] [main/INFO]: Applied 0 biome modifications to 0 of 76 new biomes in 1.353 ms
+[17:25:19] [Server thread/INFO]: Starting minecraft server version 1.21.1
+[17:25:19] [Server thread/INFO]: Loading properties
+[17:25:19] [Server thread/INFO]: Default game type: SURVIVAL
+[17:25:19] [Server thread/INFO]: Generating keypair
+[17:25:19] [Server thread/INFO]: Starting Minecraft server on 127.0.0.1:25576
+[17:25:19] [Server thread/INFO]: Using epoll channel type
+[17:25:19] [Server thread/WARN]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[17:25:19] [Server thread/WARN]: The server will make no attempt to authenticate usernames. Beware.
+[17:25:19] [Server thread/WARN]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[17:25:19] [Server thread/WARN]: To change this, set "online-mode" to "true" in the server.properties file.
+[17:25:19] [Server thread/INFO]: Preparing level "gate-v5-cubic-fixed"
+[17:25:19] [Server thread/INFO]: Climate sampler: 8 height-independent parts are remembered per column
+[17:25:19] [Server thread/INFO]: Terrain densities: 8 height-independent parts are remembered per column
+[17:25:19] [Server thread/INFO]: Cubic streaming enabled for minecraft:overworld (1 worker threads, vertical load distance 8 cubes, cubes more than 3 below the ground wait to be seen)
+[17:25:22] [Yggdrasil Key Fetcher/ERROR]: Failed to request yggdrasil public key
+com.mojang.authlib.exceptions.MinecraftClientException: Failed to read from https://api.minecraftservices.com/publickeys due to Connection refused
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:108) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.get(MinecraftClient.java:57) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo.fetch(YggdrasilServicesKeyInfo.java:114) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo$1.run(YggdrasilServicesKeyInfo.java:89) ~[authlib-6.0.54.jar:?]
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572) ~[?:?]
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317) ~[?:?]
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[?:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[?:?]
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:694) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[?:?]
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[?:?]
+	at java.base/java.net.Socket.connect(Socket.java:751) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304) ~[?:?]
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:178) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:539) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:644) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:265) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:378) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:196) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1305) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1146) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:1075) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:181) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1707) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1632) ~[?:?]
+	at java.base/java.net.HttpURLConnection.getResponseCode(HttpURLConnection.java:531) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getResponseCode(HttpsURLConnectionImpl.java:307) ~[?:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:84) ~[authlib-6.0.54.jar:?]
+	... 9 more
+[17:25:27] [Server thread/INFO]: Stamped world with position packing TALL
+[17:25:27] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
+[17:25:27] [Server thread/INFO]: Time elapsed: 27 ms
+[17:25:27] [Server thread/INFO]: Done (7.913s)! For help, type "help"
+[17:25:27] [Server thread/INFO]: Megacity biome regions bound — megacity plate @ -2081 324 (2113 m) · biome drmd:megacity r=160
+[17:25:27] [Server thread/INFO]: Technogenic sea regions — drmd:technogenic_sea plate @ 3599 -2667 (4478 m) · r=220
+[17:25:27] [Server thread/INFO]: Scorched lands regions — drmd:scorched_lands plate @ 2828 -679 (2902 m) · r=180
+[17:25:27] [Server thread/INFO]: Iron guild regions — drmd:iron_guild plate @ 2157 -6966 (7298 m) · r=140
+[17:25:27] [Server thread/INFO]: Surface events bound — sparse UFO/outpost rolls (≥400m from spawn)
+[17:25:27] [Server thread/INFO]: Construction registry ready (0 overrides)
+[17:25:27] [Server thread/INFO]: Restored 0 facilities from dimension sync
+[17:25:27] [Server thread/INFO]: Restored 0 meteor falls from dimension sync
+[17:25:27] [Server thread/INFO]: Dimension sync loaded — facilities=0 falls=0 lastDet=-1
+[17:25:27] [Server thread/INFO]: Surface store open at ./gate-v5-cubic-fixed/./drmd/surface
+[17:25:27] [Server thread/INFO]: Descent stock worldgen seeded (districts=false macro=false)
+[17:25:36] [Server thread/INFO]: Seed: [261026]
+[17:25:36] [Server thread/INFO]: Started flight recorder profiling id(1):name(server-1.21.1-2026-10-26-172536) - will dump to debug/server-2026-10-26-172536.jfr on exit or stop command
+[17:25:36] [Server thread/INFO]: JFR profiling started
+[17:25:36] [Server thread/INFO]: /advancement (grant|revoke)
+[17:25:36] [Server thread/INFO]: /attribute <target> <attribute> (get|base|modifier)
+[17:25:36] [Server thread/INFO]: /execute (run|if|unless|as|at|store|positioned|rotated|facing|align|anchored|in|summon|on)
+[17:25:36] [Server thread/INFO]: /bossbar (add|remove|list|set|get)
+[17:25:36] [Server thread/INFO]: /clear [<targets>]
+[17:25:36] [Server thread/INFO]: /clone (<begin>|from)
+[17:25:36] [Server thread/INFO]: /damage <target> <amount> [<damageType>]
+[17:25:36] [Server thread/INFO]: /data (merge|get|remove|modify)
+[17:25:36] [Server thread/INFO]: /datapack (enable|disable|list)
+[17:25:36] [Server thread/INFO]: /debug (start|stop|function)
+[17:25:36] [Server thread/INFO]: /defaultgamemode <gamemode>
+[17:25:36] [Server thread/INFO]: /difficulty [peaceful|easy|normal|hard]
+[17:25:36] [Server thread/INFO]: /effect (clear|give)
+[17:25:36] [Server thread/INFO]: /me <action>
+[17:25:36] [Server thread/INFO]: /enchant <targets> <enchantment> [<level>]
+[17:25:36] [Server thread/INFO]: /experience (add|set|query)
+[17:25:36] [Server thread/INFO]: /xp -> experience
+[17:25:36] [Server thread/INFO]: /fill <from> <to> <block> [replace|keep|outline|hollow|destroy]
+[17:25:36] [Server thread/INFO]: /fillbiome <from> <to> <biome> [replace]
+[17:25:36] [Server thread/INFO]: /forceload (add|remove|query)
+[17:25:36] [Server thread/INFO]: /function <name> [<arguments>|with]
+[17:25:36] [Server thread/INFO]: /gamemode <gamemode> [<target>]
+[17:25:36] [Server thread/INFO]: /gamerule (announceAdvancements|blockExplosionDropDecay|commandBlockOutput|commandModificationBlockLimit|disableElytraMovementCheck|disableRaids|doDaylightCycle|doEntityDrops|doFireTick|doImmediateRespawn|doInsomnia|doLimitedCrafting|doMobLoot|doMobSpawning|doPatrolSpawning|doTileDrops|doTraderSpawning|doVinesSpread|doWardenSpawning|doWeatherCycle|drowningDamage|enderPearlsVanishOnDeath|fallDamage|fireDamage|forgiveDeadPlayers|freezeDamage|globalSoundEvents|keepInventory|lavaSourceConversion|logAdminCommands|maxCommandChainLength|maxCommandForkCount|maxEntityCramming|mobExplosionDropDecay|mobGriefing|naturalRegeneration|playersNetherPortalCreativeDelay|playersNetherPortalDefaultDelay|playersSleepingPercentage|projectilesCanBreakBlocks|randomTickSpeed|reducedDebugInfo|sendCommandFeedback|showDeathMessages|snowAccumulationHeight|spawnChunkRadius|spawnRadius|spectatorsGenerateChunks|tntExplosionDropDecay|universalAnger|waterSourceConversion)
+[17:25:36] [Server thread/INFO]: /give <targets> <item> [<count>]
+[17:25:36] [Server thread/INFO]: /help [<command>]
+[17:25:36] [Server thread/INFO]: /item (replace|modify)
+[17:25:36] [Server thread/INFO]: /kick <targets> [<reason>]
+[17:25:36] [Server thread/INFO]: /kill [<targets>]
+[17:25:36] [Server thread/INFO]: /list [uuids]
+[17:25:36] [Server thread/INFO]: /locate (structure|biome|poi)
+[17:25:36] [Server thread/INFO]: /loot (replace|insert|give|spawn)
+[17:25:36] [Server thread/INFO]: /msg <targets> <message>
+[17:25:36] [Server thread/INFO]: /tell -> msg
+[17:25:36] [Server thread/INFO]: /w -> msg
+[17:25:36] [Server thread/INFO]: /particle <name> [<pos>]
+[17:25:36] [Server thread/INFO]: /place (feature|jigsaw|structure|template)
+[17:25:36] [Server thread/INFO]: /playsound <sound> [master|music|record|weather|block|hostile|neutral|player|ambient|voice]
+[17:25:36] [Server thread/INFO]: /random (value|roll|reset)
+[17:25:36] [Server thread/INFO]: /reload
+[17:25:36] [Server thread/INFO]: /recipe (give|take)
+[17:25:36] [Server thread/INFO]: /return (<value>|fail|run)
+[17:25:36] [Server thread/INFO]: /ride <target> (mount|dismount)
+[17:25:36] [Server thread/INFO]: /say <message>
+[17:25:36] [Server thread/INFO]: /schedule (function|clear)
+[17:25:36] [Server thread/INFO]: /scoreboard (objectives|players)
+[17:25:36] [Server thread/INFO]: /seed
+[17:25:36] [Server thread/INFO]: /setblock <pos> <block> [destroy|keep|replace]
+[17:25:36] [Server thread/INFO]: /spawnpoint [<targets>]
+[17:25:36] [Server thread/INFO]: /setworldspawn [<pos>]
+[17:25:36] [Server thread/INFO]: /spectate [<target>]
+[17:25:36] [Server thread/INFO]: /spreadplayers <center> <spreadDistance> <maxRange> (<respectTeams>|under)
+[17:25:36] [Server thread/INFO]: /stopsound <targets> [*|master|music|record|weather|block|hostile|neutral|player|ambient|voice]
+[17:25:36] [Server thread/INFO]: /summon <entity> [<pos>]
+[17:25:36] [Server thread/INFO]: /tag <targets> (add|remove|list)
+[17:25:36] [Server thread/INFO]: /team (list|add|remove|empty|join|leave|modify)
+[17:25:36] [Server thread/INFO]: /teammsg <message>
+[17:25:36] [Server thread/INFO]: /tm -> teammsg
+[17:25:36] [Server thread/INFO]: /teleport (<location>|<destination>|<targets>)
+[17:25:36] [Server thread/INFO]: /tp -> teleport
+[17:25:36] [Server thread/INFO]: /tellraw <targets> <message>
+[17:25:36] [Server thread/INFO]: /tick (query|rate|step|sprint|unfreeze|freeze)
+[17:25:36] [Server thread/INFO]: /time (set|add|query)
+[17:25:36] [Server thread/INFO]: /title <targets> (clear|reset|title|subtitle|actionbar|times)
+[17:25:36] [Server thread/INFO]: /trigger <objective> [add|set]
+[17:25:36] [Server thread/INFO]: /weather (clear|rain|thunder)
+[17:25:36] [Server thread/INFO]: /worldborder (add|set|center|damage|get|warning)
+[17:25:36] [Server thread/INFO]: /jfr (start|stop)
+[17:25:36] [Server thread/INFO]: /ban-ip <target> [<reason>]
+[17:25:36] [Server thread/INFO]: /banlist [ips|players]
+[17:25:36] [Server thread/INFO]: /ban <targets> [<reason>]
+[17:25:36] [Server thread/INFO]: /deop <targets>
+[17:25:36] [Server thread/INFO]: /op <targets>
+[17:25:36] [Server thread/INFO]: /pardon <targets>
+[17:25:36] [Server thread/INFO]: /pardon-ip <target>
+[17:25:36] [Server thread/INFO]: /perf (start|stop)
+[17:25:36] [Server thread/INFO]: /save-all [flush]
+[17:25:36] [Server thread/INFO]: /save-off
+[17:25:36] [Server thread/INFO]: /save-on
+[17:25:36] [Server thread/INFO]: /setidletimeout <minutes>
+[17:25:36] [Server thread/INFO]: /stop
+[17:25:36] [Server thread/INFO]: /transfer <hostname> [<port>]
+[17:25:36] [Server thread/INFO]: /whitelist (on|off|list|add|remove|reload)
+[17:25:36] [Server thread/INFO]: /bcc (status|column|load|cube)
+[17:25:36] [Server thread/INFO]: /6dof (toggle|dash|alwaysrun|flightassist)
+[17:25:36] [Server thread/INFO]: /worldevent (flight|strike|history|list)
+[17:25:36] [Server thread/INFO]: /d6 (energy|set|afterburner|weapons|laserlevel|radar|reset_roll|orient|construct|level|worldgen|kit|start|ship|worldgen2|mega|scars|megacity|technogenic|scorched|guild|enclave|orbit|reactor|fate|psychedelic|bomb|laser|atmosphere|endreactor)
+[17:25:36] [Server thread/INFO]: /d6body (assemble|disassemble|impulse|spin)
+[17:25:36] [Server thread/INFO]: /d6terrain (smooth|rigid)
+[17:25:36] [Server thread/INFO]: /6dof_spawn (assault|interceptor|artillery|support|heavy_elite|mg|laser|rpg|heavy|seeker|grav)
+[17:25:36] [Server thread/INFO]: /6dof_spawn_squad <n>
+[17:25:36] [Server thread/INFO]: /6dof_spawn_mine
+[17:25:36] [Server thread/INFO]: /d6_kill_npcs
+[17:26:00] [Server thread/INFO]: minecraft:overworld: pending=0 inFlight=0 threads=1 nearest=2147483647 locked=0 unwanted=314 wanted=225 buried=25 [held=25 aboveFloor=197 near=3 inside=0 openedAtHold=0 releasedNear=0 releasedOpened=0 releasedWhere=0 releasedFinished=0] pendingWrites=0 spawn=8, 64, 8
+[17:26:00] [Server thread/INFO]: totals: materialized=1296 generated=2920 loaded=312 saved=1865 sent=0 lightUpdates=0 resent=0 droppedWrites=185864 lightRepairs=0/0/0/0 lightCleared=0 noise[n=1002 avg=3.56ms max=86.1ms cubes=1.3] terrain[n=851 avg=2.51ms max=47.5ms cubes=1.3] decorate[n=267 avg=5.23ms max=328.5ms cubes=1.8] apply[n=2632 avg=0.26ms max=54.9ms]
+[17:26:00] [Server thread/INFO]: Unknown or incomplete command, see below for error
+[17:26:00] [Server thread/INFO]: bcc load<--[HERE]
+[17:26:00] [Server thread/INFO]: cube [0, 4, 0] wanted=true
+[17:26:00] [Server thread/INFO]:   y=    64..    79  FULL      M-G  stonex3807 gravelx138 dirtx96 coal_orex39 (+2 more)
+[17:26:00] [Server thread/INFO]: light@centre sky=0 block=0 block=minecraft:stone
+[17:26:37] [Server thread/INFO]: /bcc load <x> <y> <z> [<radius>]
+[17:26:37] [Server thread/INFO]: /bcc cube [<x>] <y> <z>
+[17:27:02] [Server thread/INFO]: Loading cubes within 0 of [0, 134, 0] for 60 seconds
+[17:27:02] [Server thread/INFO]: cube [0, 8, 0] wanted=true
+[17:27:02] [Server thread/INFO]:   y=   128..   143  FULL      M-G  [air]
+[17:27:02] [Server thread/INFO]: light@centre sky=15 block=0 block=minecraft:air
+[17:27:31] [Server thread/INFO]: cube [0, 134, 0] wanted=false
+[17:27:31] [Server thread/INFO]:   y=  2144..  2159  EMPTY     ---  [sentinel]
+[17:27:31] [Server thread/INFO]: light@centre sky=15 block=0 block=minecraft:air
+[17:27:31] [Server thread/INFO]: Could not set the block
+[17:27:31] [Server thread/INFO]: The target block is not a block entity
+[17:27:31] [Server thread/INFO]: Loading cubes within 0 of [0, 135, 0] for 60 seconds
+[17:27:31] [Server thread/INFO]: Loading cubes within 0 of [0, -32, 0] for 60 seconds
+[17:27:55] [Server thread/INFO]: Loading cubes within 0 of [8, 2150, 8] for 60 seconds
+[17:27:55] [Server thread/INFO]: Loading cubes within 0 of [8, -512, 8] for 60 seconds
+[17:27:55] [Server thread/INFO]: Loading cubes within 0 of [0, 2160, 0] for 60 seconds
+[17:28:33] [Server thread/INFO]: cube [0, 134, 0] wanted=true
+[17:28:33] [Server thread/INFO]:   y=  2144..  2159  FULL      M-G  [air]
+[17:28:33] [Server thread/INFO]: light@centre sky=15 block=0 block=minecraft:air
+[17:28:33] [Server thread/INFO]: cube [0, -32, 0] wanted=true
+[17:28:33] [Server thread/INFO]:   y=  -512..  -497  FULL      M-G  deepslatex4022 deepslate_coal_orex44 deepslate_copper_orex20 deepslate_iron_orex9 (+1 more)
+[17:28:33] [Server thread/INFO]: light@centre sky=0 block=0 block=minecraft:deepslate
+[17:28:33] [Server thread/INFO]: Changed the block at 8, 2150, 8
+[17:28:33] [Server thread/INFO]: Changed the block at 8, -512, 8
+[17:28:33] [Server thread/INFO]: 8, 2150, 8 has the following block data: {CustomName: '"gate-v5-Y2150"', x: 8, y: 2150, Items: [], z: 8, id: "minecraft:chest"}
+[17:28:33] [Server thread/INFO]: 8, -512, 8 has the following block data: {CustomName: '"gate-v5-negative"', x: 8, y: -512, Items: [], z: 8, id: "minecraft:barrel"}
+[17:28:56] [Server thread/INFO]: Loading cubes within 0 of [8, 2150, 8] for 60 seconds
+[17:28:56] [Server thread/INFO]: Loading cubes within 0 of [8, -512, 8] for 60 seconds
+[17:28:56] [Server thread/INFO]: Loading cubes within 0 of [0, 2160, 0] for 60 seconds
+[17:28:56] [Server thread/INFO]: Changed the block at 1, 2159, 1
+[17:28:56] [Server thread/INFO]: Changed the block at 1, 2160, 1
+[17:28:56] [Server thread/INFO]: Saving the game (this may take a moment!)
+[17:28:56] [Server thread/INFO]: ThreadedAnvilChunkStorage (gate-v5-cubic-fixed): All chunks are saved
+[17:28:56] [Server thread/INFO]: ThreadedAnvilChunkStorage (aeris_test): All chunks are saved
+[17:28:56] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[17:28:56] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[17:28:56] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[17:28:56] [Server thread/INFO]: Saved the game
+[17:28:56] [Server thread/INFO]: minecraft:overworld: pending=0 inFlight=0 threads=1 nearest=2147483647 locked=0 unwanted=332 wanted=228 buried=0 [held=25 aboveFloor=199 near=5 inside=0 openedAtHold=0 releasedNear=25 releasedOpened=0 releasedWhere=0 releasedFinished=0] pendingWrites=0 spawn=8, 64, 8
+[17:28:56] [Server thread/INFO]: totals: materialized=1902 generated=4162 loaded=521 saved=2740 sent=0 lightUpdates=0 resent=0 droppedWrites=185865 lightRepairs=0/0/0/0 lightCleared=0 noise[n=1591 avg=2.65ms max=86.1ms cubes=1.2] terrain[n=1335 avg=2.23ms max=47.5ms cubes=1.2] decorate[n=376 avg=4.63ms max=328.5ms cubes=1.6] apply[n=4052 avg=0.20ms max=54.9ms]
+[17:28:57] [Server thread/INFO]: Dumped flight recorder profiling to debug/server-2026-10-26-172536.jfr
+[17:28:57] [Server thread/INFO]: {
+  "startedEpoch": 1793035536255,
+  "endedEpoch": 1793035737000,
+  "durationMs": 200744,
+  "heap": {
+    "allocationRateBytesPerSecond": 8067275.16,
+    "gcCount": 10,
+    "gcOverHeadPercent": 0.011158491,
+    "gcTotalDurationMs": 2240
+  },
+  "cpuPercent": {
+    "jvm": {
+      "min": 0.0,
+      "average": 0.00325895500739091,
+      "max": 0.013468013145029545
+    },
+    "userJvm": {
+      "min": 0.0,
+      "average": 0.05963364416667864,
+      "max": 0.6644067764282227
+    },
+    "system": {
+      "min": 0.0,
+      "average": 0.062942628416434,
+      "max": 0.6711864471435547
+    }
+  },
+  "network": {
+    "sent": {
+      "totalBytes": 0,
+      "count": 0,
+      "bytesPerSecond": 0.0,
+      "countPerSecond": 0.0,
+      "topContributors": []
+    },
+    "received": {
+      "totalBytes": 0,
+      "count": 0,
+      "bytesPerSecond": 0.0,
+      "countPerSecond": 0.0,
+      "topContributors": []
+    }
+  },
+  "fileIO": {
+    "write": {
+      "totalBytes": 14613934,
+      "count": 9014,
+      "bytesPerSecond": 73069.67,
+      "countPerSecond": 45.07,
+      "topContributors": [
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.0.0.0.mcr3d",
+          "totalBytes": 2212024
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.-1.0.0.mcr3d",
+          "totalBytes": 1690816
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.0.0.-1.mcr3d",
+          "totalBytes": 1645696
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.-1.0.-1.mcr3d",
+          "totalBytes": 1317368
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/region/r.0.0.mca",
+          "totalBytes": 1060458
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.0.-1.0.mcr3d",
+          "totalBytes": 759240
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/region/r.-1.0.mca",
+          "totalBytes": 752367
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/region/r.0.-1.mca",
+          "totalBytes": 734132
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/region/r.-1.-1.mca",
+          "totalBytes": 556335
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.-1.-1.0.mcr3d",
+          "totalBytes": 521208
+        }
+      ]
+    },
+    "read": {
+      "totalBytes": 2114806,
+      "count": 676,
+      "bytesPerSecond": 10574.03,
+      "countPerSecond": 3.38,
+      "topContributors": [
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.0.0.0.mcr3d",
+          "totalBytes": 679936
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.0.0.-1.mcr3d",
+          "totalBytes": 315392
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.-1.0.0.mcr3d",
+          "totalBytes": 294912
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.-1.0.-1.mcr3d",
+          "totalBytes": 184320
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.0.-1.0.mcr3d",
+          "totalBytes": 172032
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.0.-1.-1.mcr3d",
+          "totalBytes": 118784
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.-1.-1.0.mcr3d",
+          "totalBytes": 118784
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.-1.-1.-1.mcr3d",
+          "totalBytes": 94208
+        },
+        {
+          "path": "/workspace/ungravity-v5/world/build/cubic-fixed-gate/.fabric/remappedJars/minecraft-1.21.1-0.19.5/server-intermediary.jar",
+          "totalBytes": 84800
+        },
+        {
+          "path": "/workspace/ungravity-v5/world/build/cubic-fixed-gate/libraries/it/unimi/dsi/fastutil/8.5.12/fastutil-8.5.12.jar",
+          "totalBytes": 39823
+        }
+      ]
+    },
+    "chunksRead": {
+      "totalBytes": 0,
+      "count": 0,
+      "bytesPerSecond": 0.0,
+      "countPerSecond": 0.0,
+      "topContributors": []
+    },
+    "chunksWritten": {
+      "totalBytes": 491746,
+      "count": 330,
+      "bytesPerSecond": 2458.73,
+      "countPerSecond": 1.65,
+      "topContributors": [
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 3,
+          "z": 2,
+          "totalBytes": 58318,
+          "count": 6,
+          "averageSize": 9719.667
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": -3,
+          "z": 0,
+          "totalBytes": 15148,
+          "count": 6,
+          "averageSize": 2524.6667
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": -3,
+          "z": 2,
+          "totalBytes": 14666,
+          "count": 6,
+          "averageSize": 2444.3333
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 1,
+          "z": 3,
+          "totalBytes": 14341,
+          "count": 8,
+          "averageSize": 1792.625
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 2,
+          "z": 3,
+          "totalBytes": 14108,
+          "count": 6,
+          "averageSize": 2351.3333
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 3,
+          "z": 1,
+          "totalBytes": 13746,
+          "count": 6,
+          "averageSize": 2291.0
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 3,
+          "z": -1,
+          "totalBytes": 13687,
+          "count": 6,
+          "averageSize": 2281.1667
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 0,
+          "z": 3,
+          "totalBytes": 13668,
+          "count": 6,
+          "averageSize": 2278.0
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 3,
+          "z": 3,
+          "totalBytes": 13366,
+          "count": 6,
+          "averageSize": 2227.6667
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 2,
+          "z": -3,
+          "totalBytes": 12688,
+          "count": 7,
+          "averageSize": 1812.5714
+        }
+      ]
+    }
+  },
+  "serverTick": {
+    "minMs": 0.188712,
+    "averageMs": 0.8039316532663318,
+    "maxMs": 17.785014,
+    "p99": 14.8462815,
+    "p90": 0.8369938,
+    "p75": 0.3604735,
+    "p50": 0.286682
+  },
+  "threadAllocation": [
+    {
+      "thread": "BCC-CubeIO-overworld-1",
+      "bytesPerSecond": 263214.86315789475
+    },
+    {
+      "thread": "BCC-Worldgen-overworld-1",
+      "bytesPerSecond": 3026673.4736842103
+    },
+    {
+      "thread": "C1 CompilerThread0",
+      "bytesPerSecond": 6.189473684210526
+    },
+    {
+      "thread": "C2 CompilerThread0",
+      "bytesPerSecond": 0.29473684210526313
+    },
+    {
+      "thread": "Common-Cleaner",
+      "bytesPerSecond": 0.5052631578947369
+    },
+    {
+      "thread": "DestroyJavaVM",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Finalizer",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "IO-Worker-1",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "IO-Worker-10",
+      "bytesPerSecond": 10812.553846153845
+    },
+    {
+      "thread": "IO-Worker-11",
+      "bytesPerSecond": 9938.036363636364
+    },
+    {
+      "thread": "IO-Worker-2",
+      "bytesPerSecond": 1074.8307692307692
+    },
+    {
+      "thread": "IO-Worker-3",
+      "bytesPerSecond": 3213.1692307692306
+    },
+    {
+      "thread": "IO-Worker-4",
+      "bytesPerSecond": 299.2
+    },
+    {
+      "thread": "IO-Worker-5",
+      "bytesPerSecond": 4310.892307692307
+    },
+    {
+      "thread": "IO-Worker-6",
+      "bytesPerSecond": 7511.015384615384
+    },
+    {
+      "thread": "IO-Worker-7",
+      "bytesPerSecond": 15988.586666666666
+    },
+    {
+      "thread": "IO-Worker-8",
+      "bytesPerSecond": 3681.7066666666665
+    },
+    {
+      "thread": "IO-Worker-9",
+      "bytesPerSecond": 285.4153846153846
+    },
+    {
+      "thread": "JFR Periodic Tasks",
+      "bytesPerSecond": 180.0842105263158
+    },
+    {
+      "thread": "JFR Recorder Thread",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "JNA Cleaner",
+      "bytesPerSecond": 30.905263157894737
+    },
+    {
+      "thread": "Monitor Deflation Thread",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Netty Epoll Server IO #0",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Notification Thread",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Reference Handler",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Server Watchdog",
+      "bytesPerSecond": 0.9263157894736842
+    },
+    {
+      "thread": "Server console handler",
+      "bytesPerSecond": 34.863157894736844
+    },
+    {
+      "thread": "Server thread",
+      "bytesPerSecond": 1984320.0842105264
+    },
+    {
+      "thread": "Service Thread",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Signal Dispatcher",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Timer hack thread",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Worker-Main-1",
+      "bytesPerSecond": 477765.53846153844
+    },
+    {
+      "thread": "Worker-Main-2",
+      "bytesPerSecond": 339510.48421052634
+    },
+    {
+      "thread": "Yggdrasil Key Fetcher",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "process reaper",
+      "bytesPerSecond": 0.0
+    }
+  ],
+  "chunkGen": {
+    "durationNanosTotal": 0.0,
+    "status": []
+  }
+}
+[17:28:57] [Server thread/INFO]: Dumped recording summary to debug/jfr-report-server-2026-10-26-172536.json
+[17:28:57] [Server thread/INFO]: JFR profiling stopped and dumped to debug/server-2026-10-26-172536.jfr
+[17:28:57] [Server thread/INFO]: Stopping the server
+[17:28:57] [Server thread/INFO]: Stopping server
+[17:28:57] [Server thread/INFO]: Saving players
+[17:28:57] [Server thread/INFO]: Saving worlds
+[17:28:57] [Server thread/INFO]: Saving chunks for level 'ServerLevel[gate-v5-cubic-fixed]'/minecraft:overworld
+[17:28:57] [Server thread/INFO]: Saving chunks for level 'ServerLevel[gate-v5-cubic-fixed]'/drmd:aeris_test
+[17:28:57] [Server thread/INFO]: Saving chunks for level 'ServerLevel[gate-v5-cubic-fixed]'/minecraft:the_nether
+[17:28:57] [Server thread/INFO]: Saving chunks for level 'ServerLevel[gate-v5-cubic-fixed]'/minecraft:the_end
+[17:28:57] [Server thread/INFO]: ThreadedAnvilChunkStorage (gate-v5-cubic-fixed): All chunks are saved
+[17:28:57] [Server thread/INFO]: ThreadedAnvilChunkStorage (aeris_test): All chunks are saved
+[17:28:57] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[17:28:57] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[17:28:57] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[17:28:57] [Server thread/INFO]: Cubic level minecraft:overworld closed: pending=0 inFlight=0 threads=1 nearest=2147483647 locked=0 unwanted=329 wanted=228 buried=0 [held=25 aboveFloor=199 near=5 inside=0 openedAtHold=0 releasedNear=25 releasedOpened=0 releasedWhere=0 releasedFinished=0] pendingWrites=0 | materialized=1902 generated=4162 loaded=521 saved=2747 sent=0 lightUpdates=0 resent=0 droppedWrites=185865 lightRepairs=0/0/0/0 lightCleared=0 noise[n=1591 avg=2.65ms max=86.1ms cubes=1.2] terrain[n=1335 avg=2.23ms max=47.5ms cubes=1.2] decorate[n=376 avg=4.63ms max=328.5ms cubes=1.6] apply[n=4052 avg=0.20ms max=54.9ms]

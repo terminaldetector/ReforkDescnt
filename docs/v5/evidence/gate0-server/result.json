@@ -1,0 +1,33 @@
+{
+  "world_branch": "migration/cubic-world-v5",
+  "physics_source_sha": "3da4231510eabb350916530258d55f6326c0f6f0",
+  "candidate_version": "1.1.16-physics.1",
+  "candidate_sha256": "b7626c1faeb2c55ca844029775ba6fdfe6f3ca0820fdfb16e8e5b7792601fe57",
+  "seed": 261026,
+  "preset": "bettercubicchunks:cubic_default",
+  "loader": "0.19.5",
+  "java": "21",
+  "fabric_api": "0.116.15+1.21.1",
+  "bcc": "0.1.1+mc1.21.1",
+  "players": 0,
+  "unit_tests": 543,
+  "gametests": 82,
+  "client_gate": "NOT_RUN",
+  "status": "SERVER_SUBSET_PASS_FULL_GATE_PENDING",
+  "server-before.log": {
+    "lag_alerts": 1,
+    "dummy": 0,
+    "watchdog": true
+  },
+  "server-fixed.log": {
+    "lag_alerts": 0,
+    "dummy": 0,
+    "watchdog": false
+  },
+  "server-reload.log": {
+    "lag_alerts": 0,
+    "dummy": 0,
+    "watchdog": false
+  },
+  "jfr_note": "serverTick report percentiles are periodic tick-time samples, not independently measured per-tick percentiles; no player/AI/client load"
+}

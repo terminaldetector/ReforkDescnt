@@ -1,0 +1,402 @@
+{
+  "startedEpoch": 1793035536255,
+  "endedEpoch": 1793035737000,
+  "durationMs": 200744,
+  "heap": {
+    "allocationRateBytesPerSecond": 8067275.16,
+    "gcCount": 10,
+    "gcOverHeadPercent": 0.011158491,
+    "gcTotalDurationMs": 2240
+  },
+  "cpuPercent": {
+    "jvm": {
+      "min": 0.0,
+      "average": 0.00325895500739091,
+      "max": 0.013468013145029545
+    },
+    "userJvm": {
+      "min": 0.0,
+      "average": 0.05963364416667864,
+      "max": 0.6644067764282227
+    },
+    "system": {
+      "min": 0.0,
+      "average": 0.062942628416434,
+      "max": 0.6711864471435547
+    }
+  },
+  "network": {
+    "sent": {
+      "totalBytes": 0,
+      "count": 0,
+      "bytesPerSecond": 0.0,
+      "countPerSecond": 0.0,
+      "topContributors": []
+    },
+    "received": {
+      "totalBytes": 0,
+      "count": 0,
+      "bytesPerSecond": 0.0,
+      "countPerSecond": 0.0,
+      "topContributors": []
+    }
+  },
+  "fileIO": {
+    "write": {
+      "totalBytes": 14613934,
+      "count": 9014,
+      "bytesPerSecond": 73069.67,
+      "countPerSecond": 45.07,
+      "topContributors": [
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.0.0.0.mcr3d",
+          "totalBytes": 2212024
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.-1.0.0.mcr3d",
+          "totalBytes": 1690816
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.0.0.-1.mcr3d",
+          "totalBytes": 1645696
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.-1.0.-1.mcr3d",
+          "totalBytes": 1317368
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/region/r.0.0.mca",
+          "totalBytes": 1060458
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.0.-1.0.mcr3d",
+          "totalBytes": 759240
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/region/r.-1.0.mca",
+          "totalBytes": 752367
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/region/r.0.-1.mca",
+          "totalBytes": 734132
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/region/r.-1.-1.mca",
+          "totalBytes": 556335
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.-1.-1.0.mcr3d",
+          "totalBytes": 521208
+        }
+      ]
+    },
+    "read": {
+      "totalBytes": 2114806,
+      "count": 676,
+      "bytesPerSecond": 10574.03,
+      "countPerSecond": 3.38,
+      "topContributors": [
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.0.0.0.mcr3d",
+          "totalBytes": 679936
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.0.0.-1.mcr3d",
+          "totalBytes": 315392
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.-1.0.0.mcr3d",
+          "totalBytes": 294912
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.-1.0.-1.mcr3d",
+          "totalBytes": 184320
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.0.-1.0.mcr3d",
+          "totalBytes": 172032
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.0.-1.-1.mcr3d",
+          "totalBytes": 118784
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.-1.-1.0.mcr3d",
+          "totalBytes": 118784
+        },
+        {
+          "path": "./gate-v5-cubic-fixed/cubes/r.-1.-1.-1.mcr3d",
+          "totalBytes": 94208
+        },
+        {
+          "path": "/workspace/ungravity-v5/world/build/cubic-fixed-gate/.fabric/remappedJars/minecraft-1.21.1-0.19.5/server-intermediary.jar",
+          "totalBytes": 84800
+        },
+        {
+          "path": "/workspace/ungravity-v5/world/build/cubic-fixed-gate/libraries/it/unimi/dsi/fastutil/8.5.12/fastutil-8.5.12.jar",
+          "totalBytes": 39823
+        }
+      ]
+    },
+    "chunksRead": {
+      "totalBytes": 0,
+      "count": 0,
+      "bytesPerSecond": 0.0,
+      "countPerSecond": 0.0,
+      "topContributors": []
+    },
+    "chunksWritten": {
+      "totalBytes": 491746,
+      "count": 330,
+      "bytesPerSecond": 2458.73,
+      "countPerSecond": 1.65,
+      "topContributors": [
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 3,
+          "z": 2,
+          "totalBytes": 58318,
+          "count": 6,
+          "averageSize": 9719.667
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": -3,
+          "z": 0,
+          "totalBytes": 15148,
+          "count": 6,
+          "averageSize": 2524.6667
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": -3,
+          "z": 2,
+          "totalBytes": 14666,
+          "count": 6,
+          "averageSize": 2444.3333
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 1,
+          "z": 3,
+          "totalBytes": 14341,
+          "count": 8,
+          "averageSize": 1792.625
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 2,
+          "z": 3,
+          "totalBytes": 14108,
+          "count": 6,
+          "averageSize": 2351.3333
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 3,
+          "z": 1,
+          "totalBytes": 13746,
+          "count": 6,
+          "averageSize": 2291.0
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 3,
+          "z": -1,
+          "totalBytes": 13687,
+          "count": 6,
+          "averageSize": 2281.1667
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 0,
+          "z": 3,
+          "totalBytes": 13668,
+          "count": 6,
+          "averageSize": 2278.0
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 3,
+          "z": 3,
+          "totalBytes": 13366,
+          "count": 6,
+          "averageSize": 2227.6667
+        },
+        {
+          "level": "gate-v5-cubic-fixed",
+          "dimension": "minecraft:overworld",
+          "x": 2,
+          "z": -3,
+          "totalBytes": 12688,
+          "count": 7,
+          "averageSize": 1812.5714
+        }
+      ]
+    }
+  },
+  "serverTick": {
+    "minMs": 0.188712,
+    "averageMs": 0.8039316532663318,
+    "maxMs": 17.785014,
+    "p99": 14.8462815,
+    "p90": 0.8369938,
+    "p75": 0.3604735,
+    "p50": 0.286682
+  },
+  "threadAllocation": [
+    {
+      "thread": "BCC-CubeIO-overworld-1",
+      "bytesPerSecond": 263214.86315789475
+    },
+    {
+      "thread": "BCC-Worldgen-overworld-1",
+      "bytesPerSecond": 3026673.4736842103
+    },
+    {
+      "thread": "C1 CompilerThread0",
+      "bytesPerSecond": 6.189473684210526
+    },
+    {
+      "thread": "C2 CompilerThread0",
+      "bytesPerSecond": 0.29473684210526313
+    },
+    {
+      "thread": "Common-Cleaner",
+      "bytesPerSecond": 0.5052631578947369
+    },
+    {
+      "thread": "DestroyJavaVM",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Finalizer",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "IO-Worker-1",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "IO-Worker-10",
+      "bytesPerSecond": 10812.553846153845
+    },
+    {
+      "thread": "IO-Worker-11",
+      "bytesPerSecond": 9938.036363636364
+    },
+    {
+      "thread": "IO-Worker-2",
+      "bytesPerSecond": 1074.8307692307692
+    },
+    {
+      "thread": "IO-Worker-3",
+      "bytesPerSecond": 3213.1692307692306
+    },
+    {
+      "thread": "IO-Worker-4",
+      "bytesPerSecond": 299.2
+    },
+    {
+      "thread": "IO-Worker-5",
+      "bytesPerSecond": 4310.892307692307
+    },
+    {
+      "thread": "IO-Worker-6",
+      "bytesPerSecond": 7511.015384615384
+    },
+    {
+      "thread": "IO-Worker-7",
+      "bytesPerSecond": 15988.586666666666
+    },
+    {
+      "thread": "IO-Worker-8",
+      "bytesPerSecond": 3681.7066666666665
+    },
+    {
+      "thread": "IO-Worker-9",
+      "bytesPerSecond": 285.4153846153846
+    },
+    {
+      "thread": "JFR Periodic Tasks",
+      "bytesPerSecond": 180.0842105263158
+    },
+    {
+      "thread": "JFR Recorder Thread",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "JNA Cleaner",
+      "bytesPerSecond": 30.905263157894737
+    },
+    {
+      "thread": "Monitor Deflation Thread",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Netty Epoll Server IO #0",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Notification Thread",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Reference Handler",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Server Watchdog",
+      "bytesPerSecond": 0.9263157894736842
+    },
+    {
+      "thread": "Server console handler",
+      "bytesPerSecond": 34.863157894736844
+    },
+    {
+      "thread": "Server thread",
+      "bytesPerSecond": 1984320.0842105264
+    },
+    {
+      "thread": "Service Thread",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Signal Dispatcher",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Timer hack thread",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "Worker-Main-1",
+      "bytesPerSecond": 477765.53846153844
+    },
+    {
+      "thread": "Worker-Main-2",
+      "bytesPerSecond": 339510.48421052634
+    },
+    {
+      "thread": "Yggdrasil Key Fetcher",
+      "bytesPerSecond": 0.0
+    },
+    {
+      "thread": "process reaper",
+      "bytesPerSecond": 0.0
+    }
+  ],
+  "chunkGen": {
+    "durationNanosTotal": 0.0,
+    "status": []
+  }
+}
