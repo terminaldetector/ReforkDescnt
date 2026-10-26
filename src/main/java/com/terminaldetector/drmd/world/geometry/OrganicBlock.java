@@ -7,30 +7,21 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.loot.context.LootContextParameterSet;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.shape.*;
-import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.world.BlockView;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 /** Intact organic material lives in the ordinary chunk palette, without a block entity. */
 public final class OrganicBlock extends Block {
     public static final MapCodec<OrganicBlock> CODEC=RecordCodecBuilder.mapCodec(i -> i.group(
         BlockState.CODEC.fieldOf("source").forGetter(b -> b.source),
         OrganicBlock.<OrganicBlock>createSettingsCodec()).apply(i,OrganicBlock::new));
-    private static final ConcurrentHashMap<HybridMesh.Neighbourhood,VoxelShape> SHAPES=new ConcurrentHashMap<>();
     private final BlockState source;
     public OrganicBlock(BlockState source,Settings settings) {super(settings);this.source=source;}
     public BlockState source() {return source;}
     @Override protected MapCodec<? extends Block> getCodec() {return CODEC;}
     private VoxelShape shape(BlockView world,BlockPos pos) {
         var key=HybridTerrain.snapshot(world,pos,new HybridTerrain.Data(source,-1,true));
-        var cached=SHAPES.get(key);if(cached!=null)return cached;
-        var shape=VoxelShapes.empty();
-        // union() simplifies after every added fragment. Organic coordinates make that
-        // repeated decomposition expensive during neighbour updates; simplify once below.
-        for(var b:new HybridMesh(key).collisionBounds()) shape=VoxelShapes.combine(shape,
-            VoxelShapes.cuboid(b.minX(),b.minY(),b.minZ(),b.maxX(),b.maxY(),b.maxZ()),BooleanBiFunction.OR);
-        shape=shape.simplify();if(SHAPES.size()<4096)SHAPES.putIfAbsent(key,shape);return shape;
+        return NaturalGeometry.shape(key);
     }
     @Override public VoxelShape getOutlineShape(BlockState s,BlockView w,BlockPos p,ShapeContext c){return shape(w,p);}
     @Override public VoxelShape getCollisionShape(BlockState s,BlockView w,BlockPos p,ShapeContext c){return shape(w,p);}

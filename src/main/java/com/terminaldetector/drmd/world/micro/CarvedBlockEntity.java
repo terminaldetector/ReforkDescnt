@@ -47,12 +47,7 @@ public class CarvedBlockEntity extends BlockEntity {
 	public net.minecraft.util.shape.VoxelShape organicShape(net.minecraft.world.BlockView view) {
 		var key = com.terminaldetector.drmd.world.geometry.HybridTerrain.snapshot(view, pos, getRenderData());
 		if (!key.equals(shapeKey)) {
-			var built = net.minecraft.util.shape.VoxelShapes.empty();
-			for (var box : new com.terminaldetector.drmd.world.geometry.HybridMesh(key).collisionBounds()) {
-				built = net.minecraft.util.shape.VoxelShapes.union(built, net.minecraft.util.shape.VoxelShapes.cuboid(
-					box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ()));
-			}
-			cachedOrganicShape = built.simplify();
+			cachedOrganicShape = com.terminaldetector.drmd.world.geometry.NaturalGeometry.shape(key);
 			shapeKey = key;
 		}
 		return cachedOrganicShape;

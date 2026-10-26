@@ -4,7 +4,6 @@ import net.minecraft.block.*;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.shape.*;
-import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.world.BlockView;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,10 +26,7 @@ public final class NaturalGeometry {
     }
     public static VoxelShape shape(HybridMesh.Neighbourhood key) {
         var cached=SHAPES.get(key);if(cached!=null)return cached;
-        var shape=VoxelShapes.empty();
-        for(var b:new HybridMesh(key).collisionBounds()) shape=VoxelShapes.combine(shape,
-            VoxelShapes.cuboid(b.minX(),b.minY(),b.minZ(),b.maxX(),b.maxY(),b.maxZ()),BooleanBiFunction.OR);
-        shape=shape.simplify();
+        var shape=BoundedHybridShape.from(new HybridMesh(key).collisionBounds());
         if(SHAPES.size()<4096)SHAPES.putIfAbsent(key,shape);
         return shape;
     }
