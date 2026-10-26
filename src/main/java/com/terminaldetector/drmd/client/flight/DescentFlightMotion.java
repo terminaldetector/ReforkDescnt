@@ -76,8 +76,7 @@ public final class DescentFlightMotion {
 	}
 
 	public static void travel(PlayerEntity player) {
-		// Creative flight cannot co-drive the hull. `allowFlying` is left alone, so switching 6DoF
-		// off with H hands normal creative flight straight back for building.
+		// Belt-and-suspenders with ClientPlayerEntityMixin — never let creative flying co-drive.
 		if (player.getAbilities().flying) {
 			player.getAbilities().flying = false;
 		}
@@ -109,7 +108,13 @@ public final class DescentFlightMotion {
 	 */
 	private static Vec3d integrate(Vec3d vel) {
 		float dt = 1f / (float) DescentMod.TICKS_PER_SECOND;
-		if (!DescentClientState.attitudeValid || !ShipAttitudeClient.isPrimed()) return vel;
+		if (!DescentClientState.attitudeValid || !ShipAttitudeClient.isPrimed()) {
+			MinecraftClient mc = MinecraftClient.getInstance();
+			if (mc != null && mc.player != null) {
+				ShipAttitudeClient.resetFromPlayer(mc.player);
+			}
+			if (!DescentClientState.attitudeValid || !ShipAttitudeClient.isPrimed()) return vel;
+		}
 
 		var att = ShipAttitudeClient.get();
 		Vec3d look = att.forward();
@@ -120,11 +125,19 @@ public final class DescentFlightMotion {
 		float fwd = DescentKeybinds.inputForward();
 		float strafe = DescentKeybinds.inputStrafe();
 		float vert = DescentKeybinds.inputVertical();
+		boolean afterburner = DescentClientState.alwaysRun;
+		int abTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(DescentClientState.afterburnerTier);
+		// Descent afterburner cruise: hold R with idle stick still drives nose-forward.
+		if (afterburner && Math.abs(fwd) < 0.01f && Math.abs(strafe) < 0.01f && Math.abs(vert) < 0.01f) {
+			fwd = 1f;
+		}
 		boolean thrusting = Math.abs(fwd) > 0.01f || Math.abs(strafe) > 0.01f || Math.abs(vert) > 0.01f;
 
 		float engAlloc = DescentClientState.allocEngines;
-		float accelMult = DescentClientState.alwaysRun ? MathHelper.lerp(engAlloc, 1.3f, 1.9f) : 1f;
-		float speedMult = DescentClientState.alwaysRun ? MathHelper.lerp(engAlloc, 1.3f, 1.8f) : 1f;
+		float accelMult = afterburner
+				? com.terminaldetector.drmd.flight.AfterburnerTiers.accelMult(abTier, engAlloc) : 1f;
+		float speedMult = afterburner
+				? com.terminaldetector.drmd.flight.AfterburnerTiers.speedMult(abTier, engAlloc) : 1f;
 
 		double accel = DescentMod.su(DescentClientState.accel) * accelMult;
 		Vec3d wish = look.multiply(fwd)
@@ -132,6 +145,24 @@ public final class DescentFlightMotion {
 				.add(up.multiply(vert * FlightSystem.VERT_MULT));
 		if (wish.lengthSquared() > 1e-6) {
 			vel = vel.add(wish.normalize().multiply(accel * dt));
+		}
+
+		// Match server micro-g + idle gravity ramp so the predictor does not fight SyncPayload sink.
+		MinecraftClient mc = MinecraftClient.getInstance();
+		boolean endVacuum = false;
+		if (mc != null && mc.world != null && mc.player != null) {
+			var level = com.terminaldetector.drmd.world.level.WorldLevels.at(mc.player.getY());
+			endVacuum = mc.world.getRegistryKey() == net.minecraft.world.World.END
+					|| level == com.terminaldetector.drmd.world.level.WorldLevels.Level.END
+					|| level == com.terminaldetector.drmd.world.level.WorldLevels.Level.ORBITAL;
+		}
+		if (!endVacuum) {
+			// Server default ship gravity is 200 Source-units; only the idle factor is synced.
+			double g = DescentMod.su(FlightSystem.MICRO_GRAV)
+					+ DescentMod.su(200f) * MathHelper.clamp(DescentClientState.gravityFactor, 0f, 1f);
+			if (g > 0) {
+				vel = vel.add(0, -g * dt, 0);
+			}
 		}
 
 		double speed = vel.length();
@@ -147,5 +178,11 @@ public final class DescentFlightMotion {
 		double maxSpd = DescentMod.su(DescentClientState.maxSpeed) * speedMult;
 		if (vel.length() > maxSpd) vel = vel.normalize().multiply(maxSpd);
 		return vel;
+	}
+
+	/** Hard snap after seam teleport / large authority jump — blend would lurch for seconds. */
+	public static void snapToServerVelocity(float x, float y, float z) {
+		predicted = new Vec3d(x, y, z).multiply(DescentMod.TICKS_PER_SECOND);
+		primed = true;
 	}
 }

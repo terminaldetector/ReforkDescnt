@@ -855,33 +855,54 @@ def hazard(im, x0, y0, x1, y1, a, b):
 
 
 def ent_tripod():
-    """128×128 — cubic hull, sensor turret, plasma lance, one shared leg." """
+    """128×128 — 1953 / transistor-age WotW: polished copper chassis, swan neck, green lens."""
     im = img(128, 128)
-    box(im, 0, 0, 18, 18, 18, HULL_D, accent=PINK, stripe=True)     # hull
-    box(im, 72, 0, 10, 7, 10, HULL_M, accent=CYAN)                  # sensor turret
-    box(im, 72, 17, 3, 3, 12, (58, 44, 74, 255), accent=VIOLET)     # plasma lance
-    box(im, 0, 36, 5, 26, 5, HULL_M, accent=PINK)                   # leg
-    box(im, 20, 36, 7, 3, 7, HULL_L, accent=AMBER)                  # hip / foot pad
-    # Hull front face: armoured plate with a neon core slit and hazard banding.
-    for x in range(18, 36):
-        for y in range(18, 36):
-            px(im, x, y, shade(HULL_D, 0.92))
-    hazard(im, 18, 19, 36, 22, PINK, shade(HULL_D, 0.7))
-    for x in range(22, 32):
-        for y in range(26, 30):
-            px(im, x, y, shade(VIOLET, 1.0))
-    px(im, 26, 27, WHITE)
-    px(im, 27, 27, WHITE)
-    # Sensor eye on the turret's front face.
-    for x in range(82, 92):
-        for y in range(10, 17):
-            px(im, x, y, shade(CYAN, 0.55))
-    for x in range(85, 89):
-        px(im, x, 13, CYAN_L)
-    # Lance muzzle glows.
-    for x in range(75, 78):
-        for y in range(29, 32):
-            px(im, x, y, VIOLET)
+    COPPER = (168, 102, 62, 255)
+    COPPER_D = (96, 58, 36, 255)
+    COPPER_L = (210, 148, 96, 255)
+    LENS = (60, 220, 120, 255)
+    LENS_C = (200, 255, 180, 255)
+    HEAT = (255, 90, 40, 255)
+    # chassis 28×12×20 @ 0,0 — large copper body
+    box(im, 0, 0, 28, 12, 20, COPPER, accent=COPPER_L)
+    box(im, 0, 32, 20, 6, 14, COPPER_D, accent=COPPER)
+    box(im, 0, 52, 22, 4, 16, COPPER_D, accent=COPPER)
+    # wings / radiator
+    box(im, 68, 0, 16, 3, 12, COPPER_L, accent=COPPER)
+    box(im, 68, 16, 6, 2, 8, COPPER, accent=COPPER_D)
+    box(im, 68, 28, 16, 10, 4, COPPER_D, accent=LENS)
+    # swan neck + head bulb
+    box(im, 96, 0, 5, 20, 5, COPPER_D, accent=COPPER)
+    box(im, 96, 26, 6, 6, 6, COPPER, accent=LENS)
+    box(im, 96, 42, 10, 10, 10, COPPER_L, accent=LENS)
+    box(im, 68, 44, 7, 7, 3, LENS, accent=LENS_C)
+    # heat ray
+    box(im, 112, 0, 3, 3, 12, COPPER_D, accent=HEAT)
+    box(im, 112, 16, 5, 5, 4, HEAT, accent=LENS_C)
+    # legs
+    box(im, 0, 72, 7, 5, 7, COPPER, accent=COPPER_L)
+    box(im, 28, 72, 4, 22, 4, COPPER_D, accent=COPPER)
+    box(im, 44, 72, 5, 5, 5, COPPER_L, accent=AMBER)
+    box(im, 64, 72, 3, 24, 3, COPPER_D, accent=COPPER)
+    box(im, 76, 72, 8, 3, 10, COPPER, accent=COPPER_L)
+    box(im, 76, 86, 3, 2, 5, COPPER_D, accent=HEAT)
+    box(im, 92, 86, 3, 2, 5, COPPER_D, accent=HEAT)
+    # Chassis face: riveted copper + green valve glow
+    for x in range(28, 56):
+        for y in range(12, 32):
+            px(im, x, y, shade(COPPER_D, 0.95 + ((x + y) % 3) * 0.02))
+    for x in range(36, 48):
+        for y in range(18, 26):
+            dx, dy = x - 41.5, y - 21.5
+            if dx * dx + dy * dy < 20:
+                px(im, x, y, LENS if dx * dx + dy * dy < 6 else shade(LENS, 0.5))
+    # Head lens iris
+    for x in range(100, 112):
+        for y in range(48, 58):
+            dx, dy = x - 105.5, y - 52.5
+            if dx * dx + dy * dy < 16:
+                px(im, x, y, LENS_C if dx * dx + dy * dy < 4 else LENS)
+    px(im, 105, 52, WHITE)
     return im
 
 

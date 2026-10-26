@@ -23,6 +23,8 @@ public final class ShieldSystem {
 			return;
 		}
 		float rate = REGEN_BASE * (0.5f + data.getAllocShields());
+		rate *= com.terminaldetector.drmd.world.trap.ShieldProjectors.regenBoost(
+				player.getWorld(), player.getPos());
 		data.setShield(Math.min(data.getShieldMax(), data.getShield() + rate * dt));
 	}
 

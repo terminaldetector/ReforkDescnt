@@ -1,29 +1,17 @@
 package com.terminaldetector.drmd.world.level;
 
 /**
- * The world is one continuous column, not three dimensions.
+ * Tall Overworld bands — three layers form one parallelepiped in scale; display via hooks.
  *
- * <p>{@code data/minecraft/dimension_type/overworld.json} widens the Overworld to
- * −512 … 1024, and the Nether and the End become <em>levels</em> inside it: bands you fly to,
- * with no portal and no loading screen. Vanilla worldgen still fills −64 … 320; everything
- * outside that is built by {@link LevelBuilder}.
+ * <p>{@code overworld.json} keeps −512…1024. We do not build three solid cubes: seams are
+ * teleport zones ({@link com.terminaldetector.drmd.world.layer.LayerBridge}), boundaries use
+ * {@code BoundarySeamRenderer}, sky uses engine-driven drift (Oblivion-style). Bedrock → plasma
+ * granite; mantle via {@link MantleStream}.
  *
  * <pre>
- *   1024 ┐
- *        │ END          880 … 1024   end-stone shards, spires, void gaps
- *    880 ┤
- *        │ ORBITAL      640 …  880   megastructures, vacuum flight
- *    640 ┤
- *        │ SKY          320 …  640   floating archipelago
- *    320 ┤
- *        │ SURFACE       40 …  320   vanilla terrain and sky
- *     40 ┤
- *        │ INDUSTRIAL   −64 …   40   vanilla stone, DRMD complexes
- *    −64 ┤ ← old world floor; LevelBuilder cuts descent shafts through it
- *        │ ABYSS       −240 …  −64   open drop between levels
- *   −240 ┤
- *        │ NETHER      −420 … −240   basalt caverns, lava seas, fire
- *   −512 ┘
+ *   UPPER   Sky + Orbit + End     320 … 1024
+ *   MIDDLE  Surface                40 …  320
+ *   LOWER   Industrial + Abyss + Core  −512 … 40
  * </pre>
  */
 public final class WorldLevels {

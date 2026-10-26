@@ -65,6 +65,8 @@ public class SkyUfoEntity extends Entity {
 	private int moveCd;
 	private boolean hullReady;
 	private boolean destroyed;
+	/** True while intentionally clearing/rebuilding hull — ignore reactor onStateReplaced. */
+	private boolean suppressCoreNotify;
 	private BlockPos hullCenter = BlockPos.ORIGIN;
 	private BlockPos corePos = BlockPos.ORIGIN;
 	private final Set<BlockPos> hullBlocks = new HashSet<>();
@@ -195,13 +197,18 @@ public class SkyUfoEntity extends Entity {
 		List<Entity> carry = SkyUfoHull.collectInterior(sw, interior, this);
 		Vec3d delta = Vec3d.of(newCenter.subtract(hullCenter));
 		CORE_INDEX.remove(corePos.asLong());
-		SkyUfoHull.clear(sw, hullBlocks);
-		SkyUfoHull.Built built = SkyUfoHull.build(sw, newCenter);
-		hullCenter = built.center();
-		corePos = built.core();
-		hullBlocks.clear();
-		hullBlocks.addAll(built.blocks());
-		interior = built.interior();
+		suppressCoreNotify = true;
+		try {
+			SkyUfoHull.clear(sw, hullBlocks);
+			SkyUfoHull.Built built = SkyUfoHull.build(sw, newCenter);
+			hullCenter = built.center();
+			corePos = built.core();
+			hullBlocks.clear();
+			hullBlocks.addAll(built.blocks());
+			interior = built.interior();
+		} finally {
+			suppressCoreNotify = false;
+		}
 		CORE_INDEX.put(corePos.asLong(), getUuid());
 		SkyUfoHull.shiftEntities(carry, delta);
 	}
@@ -312,11 +319,15 @@ public class SkyUfoEntity extends Entity {
 		UUID id = CORE_INDEX.remove(pos.asLong());
 		if (id == null) {
 			SkyUfoEntity near = findNear(world, pos, 4);
-			if (near != null) near.destroyFromCore(world, null, "reactor core destroyed");
+			if (near != null && !near.suppressCoreNotify) {
+				near.destroyFromCore(world, null, "reactor core destroyed");
+			}
 			return;
 		}
 		SkyUfoEntity ufo = ACTIVE.get(id);
-		if (ufo != null) ufo.destroyFromCore(world, null, "reactor core destroyed");
+		if (ufo != null && !ufo.suppressCoreNotify) {
+			ufo.destroyFromCore(world, null, "reactor core destroyed");
+		}
 	}
 
 	public static void notifyBombDetonation(ServerWorld world, BlockPos pos, float power) {
@@ -342,7 +353,12 @@ public class SkyUfoEntity extends Entity {
 		CORE_INDEX.remove(corePos.asLong());
 		if (macroId != null) MacroWorld.remove(macroId);
 		if (!destroyed && getWorld() instanceof ServerWorld sw && hullReady) {
-			SkyUfoHull.clear(sw, hullBlocks);
+			suppressCoreNotify = true;
+			try {
+				SkyUfoHull.clear(sw, hullBlocks);
+			} finally {
+				suppressCoreNotify = false;
+			}
 		}
 		super.remove(reason);
 	}

@@ -80,6 +80,8 @@ public class DescentPlayerData {
 
 	// --- Combat ---
 	private int rocketSubmode; // 0..3
+	/** Afterburner accelerator grade 1..4 (traffic light). */
+	private int afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers.DEFAULT;
 	private int activeWeaponSlot;
 	private float gravyEnergy = 100f;
 	private boolean gravyGrabbing;
@@ -90,6 +92,10 @@ public class DescentPlayerData {
 
 	/** First-join tip already shown. */
 	private boolean sessionWelcomed;
+
+	/** Last Overworld XZ — planet-map focus while viewing from End / orbit. */
+	private int lastOverworldX;
+	private int lastOverworldZ;
 
 	public void ensureInit() {
 		if (energyMax <= 0) energyMax = 100f;
@@ -113,6 +119,7 @@ public class DescentPlayerData {
 		d.putFloat("shield", shield);
 		d.putFloat("shieldMax", shieldMax);
 		d.putInt("rocketSub", rocketSubmode);
+		d.putInt("abTier", afterburnerTier);
 		d.putFloat("gravity", gravity);
 		d.putFloat("accel", accel);
 		d.putFloat("drag", drag);
@@ -140,6 +147,9 @@ public class DescentPlayerData {
 		shield = d.getFloat("shield");
 		shieldMax = d.contains("shieldMax") ? d.getFloat("shieldMax") : 100f;
 		rocketSubmode = d.getInt("rocketSub");
+		afterburnerTier = d.contains("abTier")
+				? com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(d.getInt("abTier"))
+				: com.terminaldetector.drmd.flight.AfterburnerTiers.DEFAULT;
 		if (d.contains("gravity")) gravity = d.getFloat("gravity");
 		if (d.contains("accel")) accel = d.getFloat("accel");
 		if (d.contains("drag")) drag = d.getFloat("drag");
@@ -217,6 +227,12 @@ public class DescentPlayerData {
 
 	public int getRocketSubmode() { return rocketSubmode; }
 	public void setRocketSubmode(int rocketSubmode) { this.rocketSubmode = rocketSubmode & 3; }
+	public int getAfterburnerTier() {
+		return com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(afterburnerTier);
+	}
+	public void setAfterburnerTier(int afterburnerTier) {
+		this.afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(afterburnerTier);
+	}
 	public int getActiveWeaponSlot() { return activeWeaponSlot; }
 	public void setActiveWeaponSlot(int activeWeaponSlot) { this.activeWeaponSlot = activeWeaponSlot; }
 	public float getGravyEnergy() { return gravyEnergy; }
@@ -229,6 +245,13 @@ public class DescentPlayerData {
 	public void setWepRecoil(float wepRecoil) { this.wepRecoil = wepRecoil; }
 	public boolean isSessionWelcomed() { return sessionWelcomed; }
 	public void setSessionWelcomed(boolean sessionWelcomed) { this.sessionWelcomed = sessionWelcomed; }
+
+	public int getLastOverworldX() { return lastOverworldX; }
+	public int getLastOverworldZ() { return lastOverworldZ; }
+	public void setLastOverworldBlock(int x, int z) {
+		this.lastOverworldX = x;
+		this.lastOverworldZ = z;
+	}
 
 	public boolean hasShipAttitude() { return shipAttitudeValid; }
 

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "GGG",
+    "GEG",
+    "GGG"
+  ],
+  "key": {
+    "G": { "item": "minecraft:granite" },
+    "E": { "item": "drmd:energy_cell" }
+  },
+  "result": {
+    "id": "drmd:plasma_granite",
+    "count": 4
+  }
+}

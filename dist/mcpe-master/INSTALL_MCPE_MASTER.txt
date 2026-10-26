@@ -1,7 +1,7 @@
 DRMD 6DOF — установка в MCPE Master / Bedrock (Android)
 
 Способ A — авто (если открывается):
-  1) drmd-6dof-mcpe-master-1.0.3.mcaddon → открыть через Minecraft / Master
+  1) drmd-6dof-mcpe-master-1.0.5.mcaddon → открыть через Minecraft / Master
   2) Новый мир → Наборы ресурсов + Наборы поведения → активировать оба DRMD
   3) Эксперименты / Beta APIs = ВКЛ
 

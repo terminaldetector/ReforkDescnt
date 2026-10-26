@@ -139,6 +139,11 @@ public final class LunarBaseGenerator {
 			}
 		}
 
+		// Ring-embedded AA + shield projectors. Cyclic rail loops are kit-only —
+		// hub/End used to crash the server with powered_rail + south_east on join.
+		com.terminaldetector.drmd.world.trap.RingDefenseStructures.placeTurretRing(
+				world, origin, radius - 2, origin.getY(), 8, true);
+
 		MacroEntry e = new MacroEntry(UUID.randomUUID(), MacroEntry.Kind.LUNAR_BASE,
 				WorldRules.Layer.SKY_ARCHIPELAGO, origin.toImmutable(),
 				radius * 2 + 8, 18, radius * 2 + 8, 0xAAB8C8, "Abandoned Lunar Base");

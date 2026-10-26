@@ -9,9 +9,11 @@ Minecraft stays recognizable; physics **shifts by altitude** instead of becoming
 | Deep Pressure | −50k…−20k | −64…−20 | Higher blast scale, steam vents near magma, longer tunnel shockwaves |
 | Classic | 0…10k | −20…120 | Vanilla water/lava feel |
 | Thin | 10k…30k | 120…200 | Less air drag, longer smoke life, bombs accelerate |
-| Near Space | 30k+ | 200…320 | Free water sources suppressed, thrusters primary, full 6DoF combat |
+| Near Space | 30k+ | 200…320 / 420+ | Weightless fluid blobs (not deleted); thrusters primary; full 6DoF |
 
 Resolve with `AtmosphereBand.at(y)`. Flight applies `airDrag` / `thrustScale`. Explosions use `AtmosphereRules.scaleBlast`.
+
+**Weightless fluid:** End dim + orbital/End column bands + near-space — `FlowableFluid` velocity zeroed, entities lose fluid gravity sink (`AtmosphereRules.isWeightlessFluid`). See `RING_DEFENSE.md`.
 
 Commands: `/d6 atmosphere`
 

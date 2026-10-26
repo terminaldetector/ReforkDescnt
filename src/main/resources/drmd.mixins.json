@@ -4,13 +4,19 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "PlayerEntityMixin",
+    "ServerPlayerFlightTravelMixin",
     "LivingEntityMixin",
-    "EnderDragonFightMixin"
+    "EnderDragonFightMixin",
+    "FlowableFluidMixin",
+    "EntityFluidMixin",
+    "MultiNoiseBiomeSourceMixin"
   ],
   "client": [
     "client.CameraAccessor",
     "client.CameraMixin",
+    "client.ClientPlayerEntityMixin",
     "client.ClientWorldMixin",
+    "client.GameMenuScreenMixin",
     "client.GameRendererMixin",
     "client.InGameHudMixin",
     "client.LivingEntityRendererMixin",

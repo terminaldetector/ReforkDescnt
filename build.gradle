@@ -3,6 +3,10 @@ plugins {
 	id 'maven-publish'
 }
 
+loom {
+	accessWidenerPath = file("src/main/resources/drmd.accesswidener")
+}
+
 version = project.mod_version
 group = project.maven_group
 
@@ -87,7 +91,7 @@ tasks.register('packageTlauncher') {
 			into distDir
 			rename { "${project.archives_base_name}-${project.version}.jar" }
 		}
-		new File(distDir, 'INSTALL_TLAUNCHER.txt').text = """DRMD 6DOF — ПК TLauncher Fabric 1.21.1
+		new File(distDir, 'INSTALL_TLAUNCHER.txt').text = """DRMD 6DOF ${project.version} — ПК TLauncher Fabric 1.21.1
 =======================================
 Jar: ${outName}
 Он же: ${project.archives_base_name}-${project.version}.jar
@@ -95,16 +99,15 @@ Jar: ${outName}
 Установка
   1. Версии → Fabric Loader для Minecraft 1.21.1
   2. Java 21+ в настройках лаунчера
-  3. В mods/: этот jar + Fabric API 1.21.1
-  4. Запуск Fabric 1.21.1 → новый мир
+  3. УДАЛИ ВСЕ старые drmd-6dof*.jar из mods/ и versions/*/mods/
+  4. Положи ТОЛЬКО ${outName} + Fabric API 1.21.1
+  5. В логе должно быть: "DRMD 6DOF ${project.version} ready"
+  6. Новый мир
 
-Не класть *-sources.jar / *-dev.jar в mods — это не мод.
+Не класть *-sources.jar / *-dev.jar в mods.
 
-Если краш при заходе или зависание на «Preparing spawn»
-  - поставь свежий jar: чинились четыре отдельные причины —
-    nav_node (Blocks.LIGHT), форма overworld.json, негейченный
-    CHUNK_LOAD и сид мира на потоке сервера
-  - создай НОВЫЙ мир: старый сохранил повреждённое состояние
+В логе обязательно: "DRMD 6DOF ${project.version} ready"
+  Нет строки — в mods старый jar. 6DoF: H · кокпит FP · "," настройки.
 
 Сборка: ./gradlew build --no-daemon
 """

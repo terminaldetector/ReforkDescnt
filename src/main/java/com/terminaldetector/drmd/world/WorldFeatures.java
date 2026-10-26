@@ -14,14 +14,12 @@ package com.terminaldetector.drmd.world;
  */
 public final class WorldFeatures {
 	/**
-	 * The Nether band at the bottom of the column: bedrock floor, basalt crust, lava seas, a capped
-	 * ceiling and the pillars between them.
+	 * The Nether / Core band + diggable mantle under −64.
 	 *
-	 * <p>Parked. It is by far the most expensive thing the level builder does — roughly two thousand
-	 * block writes in every single chunk, each one costing a lighting update — and it is the part of
-	 * the column furthest from what is being worked on now.
+	 * <p>On: streamed near diggers via {@code MantleStream} (HL2 fragment load). Bedrock is rewritten
+	 * to plasma-resistant granite everywhere; full mantle/cavern fills only near pilots below industrial.
 	 */
-	public static final boolean NETHER_BAND = false;
+	public static final boolean NETHER_BAND = true;
 
 	/**
 	 * Custom End-band islands at the top of the Overworld column.
@@ -32,13 +30,52 @@ public final class WorldFeatures {
 	public static final boolean END_BAND = false;
 
 	/**
-	 * Megastructures, industrial complexes, the megacity and the landmark seeding around spawn.
+	 * Distant MacroWorld → voxel LLOD silhouette cubes.
 	 *
-	 * <p>Parked. These are the largest single pieces of work the server does, and every one of them
-	 * writes into chunks that are not loaded yet, so each forces terrain generation underneath
-	 * itself before it can start.
+	 * <p><b>Removed.</b> Inherited merge code caused errors/load. Far vista = Distant Horizons
+	 * soft-dep, not DRMD cubes. Do not flip on.
 	 */
-	public static final boolean MACRO_WORLDGEN = false;
+	public static final boolean MACRO_LLOD = false;
+
+	/**
+	 * Client hybrid fake-horizon plates + planet-floor voxel expand.
+	 *
+	 * <p><b>Removed.</b> Same reason — use Distant Horizons for distance; Spark skybox for orbit.
+	 */
+	public static final boolean VOXEL_HORIZON = false;
+
+	/**
+	 * Sparse Klondike floating islands (real blocks) in the sky band — not LLOD shells.
+	 */
+	public static final boolean KLONDIKE_ISLANDS = true;
+
+	/**
+	 * Techno-ring satellites + junk plates at R≈2048. Parked so the Spark skybox ring is the ring
+	 * (not competing abstract debris).
+	 */
+	public static final boolean ORBIT_JUNK = false;
+
+	/**
+	 * Megastructures / industrial complexes on CHUNK_LOAD (queued via landmark drain — not inline).
+	 *
+	 * <p>Was parked after spawn freezes; generators now go through {@code DescentSession} /
+	 * {@code server.execute} with live-gen gating so distant flyover content returns.
+	 */
+	public static final boolean MACRO_WORLDGEN = true;
+
+	/**
+	 * Surface campaign without full macro WG2: spawn lunar hub + hub satellites, and
+	 * biome plates elsewhere — {@code drmd:megacity}, {@code drmd:technogenic_sea},
+	 * {@code drmd:scorched_lands}, {@code drmd:iron_guild} (not at spawn).
+	 */
+	public static final boolean SURFACE_DISTRICTS = true;
+
+	/**
+	 * Compile-time force for psychedelic fractal stock worlds.
+	 * Prefer {@code config/drmd-server.properties} → {@code psychedelicWorlds=true}
+	 * so worlds can opt in at generation without rebuilding the mod.
+	 */
+	public static final boolean PSYCHEDELIC_WORLDS = false;
 
 	private WorldFeatures() {}
 }

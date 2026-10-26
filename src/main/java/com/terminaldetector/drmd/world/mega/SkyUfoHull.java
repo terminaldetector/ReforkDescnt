@@ -129,8 +129,12 @@ public final class SkyUfoHull {
 	}
 
 	public static void clear(ServerWorld world, Set<BlockPos> blocks) {
-		if (blocks == null) return;
-		for (BlockPos p : blocks) {
+		if (blocks == null || blocks.isEmpty()) return;
+		// Copy + empty first: setBlockState on the reactor fires onStateReplaced →
+		// SkyUfoEntity.notifyCoreBroken, which used to re-enter shatter/clear on the same Set (CME).
+		List<BlockPos> copy = new ArrayList<>(blocks);
+		blocks.clear();
+		for (BlockPos p : copy) {
 			BlockState st = world.getBlockState(p);
 			if (isHullMaterial(st) || st.isOf(ModWorldBlocks.UNSTABLE_REACTOR)
 					|| st.isOf(Blocks.OBSIDIAN) || st.isOf(Blocks.SEA_LANTERN)
@@ -138,13 +142,13 @@ public final class SkyUfoHull {
 				world.setBlockState(p, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS);
 			}
 		}
-		blocks.clear();
 	}
 
 	/** Shatter hull with leftover debris / fire. */
 	public static void shatter(ServerWorld world, Set<BlockPos> blocks, BlockPos epicenter) {
-		if (blocks == null) return;
+		if (blocks == null || blocks.isEmpty()) return;
 		List<BlockPos> copy = new ArrayList<>(blocks);
+		blocks.clear();
 		for (BlockPos p : copy) {
 			double d = p.getSquaredDistance(epicenter);
 			BlockState st = world.getBlockState(p);
@@ -160,7 +164,6 @@ public final class SkyUfoHull {
 				world.setBlockState(p, Blocks.COPPER_BLOCK.getDefaultState(), Block.NOTIFY_LISTENERS);
 			}
 		}
-		blocks.clear();
 	}
 
 	public static List<Entity> collectInterior(ServerWorld world, Box interior, Entity exclude) {

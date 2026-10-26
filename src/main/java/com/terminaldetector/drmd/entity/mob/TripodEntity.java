@@ -27,11 +27,10 @@ import net.minecraft.world.World;
 import java.util.EnumSet;
 
 /**
- * Tripod strider — a cubic hull carried by three articulated legs.
+ * Tripod strider — early War of the Worlds war machine (1953 / transistor-age).
  *
- * <p>The roster's heavy ground unit. It holds a mid standoff rather than closing, telegraphs its
- * plasma lance with a visible charge, and stamps a shockwave if anything gets underneath it. Turning
- * is eased about its own axis so the hull visibly pivots instead of sliding to face you.
+ * <p>Heavy ground unit: large copper chassis, swan-neck heat ray, tall spindly legs. Holds a mid
+ * standoff, telegraphs the lance with a visible charge, and stomps anything underneath.
  */
 public class TripodEntity extends CyberMobEntity {
 	private static final TrackedData<Float> CHARGE =

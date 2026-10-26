@@ -23,7 +23,7 @@ public final class SmokeSystem {
 	}
 
 	public static final class Cloud {
-		public final UUID id = UUID.randomUUID();
+		public final UUID id;
 		public Vec3d pos;
 		public Vec3d vel;
 		public float radius;
@@ -33,6 +33,11 @@ public final class SmokeSystem {
 		public final int colorRgb;
 
 		Cloud(Vec3d pos, Vec3d vel, float radius, float density, int life, Source source, int color) {
+			this(UUID.randomUUID(), pos, vel, radius, density, life, source, color);
+		}
+
+		Cloud(UUID id, Vec3d pos, Vec3d vel, float radius, float density, int life, Source source, int color) {
+			this.id = id;
 			this.pos = pos;
 			this.vel = vel;
 			this.radius = radius;
@@ -85,7 +90,28 @@ public final class SmokeSystem {
 			Iterator<UUID> it = CLOUDS.keySet().iterator();
 			if (it.hasNext()) CLOUDS.remove(it.next());
 		}
+		com.terminaldetector.drmd.world.sync.DimensionSync.markSmokeDirty();
 	}
+
+	/**
+	 * Dedicated-server clients replace local smoke from the authoritative snapshot.
+	 * Integrated SP shares the same {@link #CLOUDS} map with the logical server.
+	 */
+	public static void applyNetwork(Iterable<NetCloud> wire) {
+		CLOUDS.clear();
+		Source[] sources = Source.values();
+		for (NetCloud w : wire) {
+			Source src = w.sourceOrdinal >= 0 && w.sourceOrdinal < sources.length
+					? sources[w.sourceOrdinal] : Source.INDUSTRIAL;
+			UUID id = new UUID(w.idMsb, w.idLsb);
+			CLOUDS.put(id, new Cloud(id, new Vec3d(w.x, w.y, w.z), Vec3d.ZERO,
+					w.radius, w.density, w.life, src, w.colorRgb));
+		}
+	}
+
+	/** Wire-facing cloud snapshot (no velocity — visual only on remotes). */
+	public record NetCloud(long idMsb, long idLsb, float x, float y, float z,
+						   float radius, float density, int life, int sourceOrdinal, int colorRgb) {}
 
 	public static void emitExplosion(Vec3d pos, float power) {
 		emit(pos, Source.TNT, 2f + power, 0.8f, 80 + (int) (power * 20));

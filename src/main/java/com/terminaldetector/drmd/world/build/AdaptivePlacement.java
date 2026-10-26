@@ -107,4 +107,30 @@ public final class AdaptivePlacement {
 		ItemStack off = player.getOffHandStack();
 		if (off.getItem() instanceof BlockItem) off.decrement(1);
 	}
+
+	/**
+	 * Place many blocks from a scaffold / template. Returns count actually placed.
+	 * Consumes one off-hand block per placement when {@code leftHandOnly}.
+	 */
+	public static int placeMany(World world, PlayerEntity player, java.util.List<BlockPos> cells,
+			boolean leftHandOnly) {
+		Block material = resolveMaterial(player, leftHandOnly);
+		if (material == null || cells == null || cells.isEmpty()) return 0;
+		Direction face = Direction.getFacing(
+				LocalOrientation.getUp(player.getUuid()).x,
+				LocalOrientation.getUp(player.getUuid()).y,
+				LocalOrientation.getUp(player.getUuid()).z);
+		int placed = 0;
+		for (BlockPos at : cells) {
+			if (!world.getBlockState(at).isReplaceable()) continue;
+			if (leftHandOnly && !player.getAbilities().creativeMode) {
+				ItemStack off = player.getOffHandStack();
+				if (!(off.getItem() instanceof BlockItem) || off.isEmpty()) break;
+			}
+			world.setBlockState(at, orient(material.getDefaultState(), face), Block.NOTIFY_ALL);
+			consumeOneOffhand(player, leftHandOnly);
+			placed++;
+		}
+		return placed;
+	}
 }

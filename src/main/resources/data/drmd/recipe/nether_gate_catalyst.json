@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ONO",
+    "CSC",
+    "OTO"
+  ],
+  "key": {
+    "O": { "item": "minecraft:obsidian" },
+    "N": { "item": "minecraft:netherite_scrap" },
+    "C": { "item": "drmd:energy_cell" },
+    "S": { "item": "drmd:portal_stabilizer" },
+    "T": { "item": "drmd:targeting_core" }
+  },
+  "result": {
+    "id": "drmd:nether_gate_catalyst",
+    "count": 1
+  }
+}

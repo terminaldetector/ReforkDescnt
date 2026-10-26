@@ -36,6 +36,7 @@ public final class LlodSilhouetteRenderer {
 	}
 
 	private static void render(WorldRenderContext ctx) {
+		if (!com.terminaldetector.drmd.world.WorldFeatures.MACRO_LLOD) return;
 		MinecraftClient client = MinecraftClient.getInstance();
 		if (client.player == null || client.world == null) return;
 		var list = LlodClientState.INSTANCE.entries();

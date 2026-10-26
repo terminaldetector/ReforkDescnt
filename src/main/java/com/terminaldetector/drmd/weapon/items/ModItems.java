@@ -6,8 +6,10 @@ import com.terminaldetector.drmd.weapon.registry.ArsenalCatalog;
 import com.terminaldetector.drmd.weapon.registry.WeaponDef;
 import com.terminaldetector.drmd.weapon.registry.WeaponRegistry;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemGroups;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -99,10 +101,15 @@ public final class ModItems {
 	public static Item ALLOY_PLATE;
 	public static Item ENERGY_CELL;
 	public static Item TARGETING_CORE;
+	public static Item PORTAL_STABILIZER;
+	public static Item NETHER_GATE_CATALYST;
+	public static Item END_GATE_CATALYST;
+	public static Item DARK_ENERGY_BOMB;
 
 	public static Item EGG_TRIPOD;
 	public static Item EGG_SCANNER;
 	public static Item EGG_SPIDER_TURRET;
+	public static Item EGG_OBLIVION_SEEKER;
 
 	public static final RegistryKey<ItemGroup> GROUP_KEY = RegistryKey.of(RegistryKeys.ITEM_GROUP, Identifier.of(DescentMod.MOD_ID, "weapons"));
 
@@ -212,6 +219,11 @@ public final class ModItems {
 		ALLOY_PLATE = register("alloy_plate", new Item(new Item.Settings()));
 		ENERGY_CELL = register("energy_cell", new Item(new Item.Settings()));
 		TARGETING_CORE = register("targeting_core", new Item(new Item.Settings()));
+		PORTAL_STABILIZER = register("portal_stabilizer", new Item(new Item.Settings()));
+		NETHER_GATE_CATALYST = register("nether_gate_catalyst", new Item(new Item.Settings().maxCount(16)));
+		END_GATE_CATALYST = register("end_gate_catalyst", new Item(new Item.Settings().maxCount(16)));
+		DARK_ENERGY_BOMB = register("dark_energy_bomb",
+				new com.terminaldetector.drmd.world.fate.DarkEnergyBombItem(new Item.Settings().maxCount(1)));
 
 		EGG_TRIPOD = register("spawn_egg_tripod", new net.minecraft.item.SpawnEggItem(
 				com.terminaldetector.drmd.entity.ModEntities.TRIPOD, 0x3A4450, 0xFF3366, new Item.Settings()));
@@ -219,6 +231,8 @@ public final class ModItems {
 				com.terminaldetector.drmd.entity.ModEntities.SCANNER, 0x1E2A38, 0x35E0FF, new Item.Settings()));
 		EGG_SPIDER_TURRET = register("spawn_egg_spider_turret", new net.minecraft.item.SpawnEggItem(
 				com.terminaldetector.drmd.entity.ModEntities.SPIDER_TURRET, 0x2A3038, 0xFFC24D, new Item.Settings()));
+		EGG_OBLIVION_SEEKER = register("spawn_egg_oblivion_seeker", new net.minecraft.item.SpawnEggItem(
+				com.terminaldetector.drmd.entity.ModEntities.OBLIVION_SEEKER, 0x1A1420, 0xC040FF, new Item.Settings()));
 
 		Registry.register(Registries.ITEM_GROUP, GROUP_KEY, FabricItemGroup.builder()
 				.icon(() -> new ItemStack(PYRO_GX))
@@ -228,26 +242,36 @@ public final class ModItems {
 					entries.add(ALLOY_PLATE);
 					entries.add(ENERGY_CELL);
 					entries.add(TARGETING_CORE);
+					entries.add(PORTAL_STABILIZER);
+					entries.add(NETHER_GATE_CATALYST);
+					entries.add(END_GATE_CATALYST);
+					entries.add(DARK_ENERGY_BOMB);
 					entries.add(SHIELD_ORB);
 					entries.add(ENERGY_ORB_PICKUP);
 					for (Item w : ArsenalCatalog.creativeWeapons()) entries.add(w);
-					entries.add(EGG_ASSAULT);
-					entries.add(EGG_INTERCEPTOR);
-					entries.add(EGG_ARTILLERY);
-					entries.add(EGG_SUPPORT);
-					entries.add(EGG_HEAVY_ELITE);
-					entries.add(EGG_MG);
-					entries.add(EGG_LASER);
-					entries.add(EGG_RPG);
-					entries.add(EGG_HEAVY);
-					entries.add(EGG_SEEKER);
-					entries.add(EGG_TRIPOD);
-					entries.add(EGG_SCANNER);
-					entries.add(EGG_SPIDER_TURRET);
+					for (Item egg : creativeSpawnEggs()) entries.add(egg);
 				})
 				.build());
 
+		// Also surface in vanilla tabs — players look there first when "eggs/weapons fell off".
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(entries -> {
+			for (Item egg : creativeSpawnEggs()) entries.add(egg);
+		});
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {
+			entries.add(PYRO_GX);
+			for (Item w : ArsenalCatalog.creativeWeapons()) entries.add(w);
+		});
+
 		DescentMod.LOGGER.info("Registered closed Descent arsenal ({} open weapons)", ArsenalCatalog.all().size());
+	}
+
+	/** All creative-visible spawn eggs (drones + surface mobs). */
+	public static Item[] creativeSpawnEggs() {
+		return new Item[]{
+				EGG_ASSAULT, EGG_INTERCEPTOR, EGG_ARTILLERY, EGG_SUPPORT, EGG_HEAVY_ELITE,
+				EGG_MG, EGG_LASER, EGG_RPG, EGG_HEAVY, EGG_SEEKER,
+				EGG_TRIPOD, EGG_SCANNER, EGG_SPIDER_TURRET, EGG_OBLIVION_SEEKER
+		};
 	}
 
 	private static Item egg(String id, com.terminaldetector.drmd.ai.AiRole role, int primary, int secondary) {

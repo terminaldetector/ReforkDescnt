@@ -2,8 +2,6 @@ package com.terminaldetector.drmd.world.engineer;
 
 import com.terminaldetector.drmd.weapon.fx.WeaponFx;
 import com.terminaldetector.drmd.world.LocalOrientation;
-import com.terminaldetector.drmd.world.build.AdaptivePlacement;
-import com.terminaldetector.drmd.world.build.ConstructionMode;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -39,27 +37,14 @@ import org.joml.Vector3f;
 public final class EngineerTools {
 	private EngineerTools() {}
 
-	public static class ConstructionLaserItem extends Item {
-		public ConstructionLaserItem(Settings settings) { super(settings.maxCount(1)); }
-
-		@Override
-		public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-			ItemStack stack = user.getStackInHand(hand);
-			if (world.isClient) return TypedActionResult.success(stack);
-			if (!(user.getOffHandStack().getItem() instanceof net.minecraft.item.BlockItem)) {
-				user.sendMessage(Text.literal("§eСтроительный лазер: блок в левой руке"), true);
-				return TypedActionResult.fail(stack);
-			}
-			if (user instanceof ServerPlayerEntity sp && !ConstructionMode.isActive(sp.getUuid())) {
-				ConstructionMode.set(sp, true);
-			}
-			// Left-hand block only; placement follows ship aim / local UP in any orientation.
-			BlockPos placed = AdaptivePlacement.placeAlongLook(world, user, user.isSneaking() ? 32 : 12, true);
-			if (placed != null) {
-				beam(world, user, placed.toCenterPos(), new Vector3f(0.3f, 0.9f, 1f));
-				world.playSound(null, placed, SoundEvents.BLOCK_METAL_PLACE, SoundCategory.BLOCKS, 0.6f, 1.3f);
-			}
-			return TypedActionResult.success(stack);
+	/**
+	 * @deprecated Use {@link com.terminaldetector.drmd.world.build.ConstructLaserItem} tiers.
+	 * Kept as green-tier alias for old references.
+	 */
+	@Deprecated
+	public static class ConstructionLaserItem extends com.terminaldetector.drmd.world.build.ConstructLaserItem {
+		public ConstructionLaserItem(Settings settings) {
+			super(settings, com.terminaldetector.drmd.world.build.ConstructLaserTier.GREEN);
 		}
 	}
 

@@ -221,6 +221,42 @@ public final class VoxelLodMesh {
 				boolean keel = disk < 0.2f && y < 0 && y > -0.45f;
 				yield saucer || dome || keel;
 			}
+			case MEGACITY -> {
+				// Plate rim + tower grid silhouette for orbit LLOD.
+				float disk = x * x + z * z;
+				boolean plate = disk < 1.05f && y > -0.15f && y < 0.08f;
+				boolean tower = Math.abs(((x * 5f) % 1f) - 0.5f) < 0.18f
+						&& Math.abs(((z * 5f) % 1f) - 0.5f) < 0.18f
+						&& y > 0.05f && y < 0.85f && disk < 0.92f;
+				boolean pyramid = Math.abs(x) + Math.abs(z) < 0.35f * (1f - y) && y > 0 && y < 0.7f;
+				yield plate || tower || pyramid;
+			}
+			case MEGA_LOCATOR, LOCATOR -> {
+				// Spark seascape — mast + parabolic dish silhouette for horizon LLOD.
+				float disk = x * x + z * z;
+				boolean mast = disk < 0.12f && y > -0.9f && y < 0.55f;
+				float dishY = 0.55f + disk * 0.55f;
+				boolean dish = disk > 0.2f && disk < 1.0f && Math.abs(y - dishY) < 0.08f;
+				boolean pad = disk < 0.55f && y > -1.0f && y < -0.75f;
+				yield mast || dish || pad;
+			}
+			case SCORCHED_TOWN -> {
+				float disk = x * x + z * z;
+				boolean ash = disk < 1.0f && y > -0.2f && y < 0.05f;
+				boolean ruin = Math.abs(((x * 4f) % 1f) - 0.5f) < 0.2f
+						&& Math.abs(((z * 4f) % 1f) - 0.5f) < 0.2f
+						&& y > 0 && y < 0.55f && disk < 0.85f;
+				boolean crater = disk < 0.28f && y > -0.35f && y < 0.02f;
+				yield ash || ruin || crater;
+			}
+			case IRON_GUILD -> {
+				float disk = x * x + z * z;
+				boolean yard = disk < 1.0f && y > -0.15f && y < 0.06f;
+				boolean hall = Math.abs(x) < 0.35f && Math.abs(z) < 0.28f && y > 0 && y < 0.45f;
+				boolean stack = Math.abs(x - 0.35f) < 0.18f && Math.abs(z - 0.2f) < 0.18f
+						&& y > 0 && y < 0.7f;
+				yield yard || hall || stack;
+			}
 			case KEEPER -> r2 < 0.55f;
 			default -> r2 < 0.85f;
 		};

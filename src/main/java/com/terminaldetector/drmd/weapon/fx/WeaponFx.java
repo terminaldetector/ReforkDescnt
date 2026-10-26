@@ -71,6 +71,32 @@ public final class WeaponFx {
 	}
 
 	/**
+	 * Mega Beam FP look — thick white core + saturated cyan sheath (Mega Man-style).
+	 * Dense enough to read as a solid column, not a particle trickle.
+	 */
+	public static void megaBeam(ServerWorld world, Vec3d from, Vec3d to) {
+		Vec3d delta = to.subtract(from);
+		double len = delta.length();
+		if (len < 1e-4) return;
+		int n = MathHelper.clamp((int) (len * 5.5), 12, 160);
+		Vector3f sheath = new Vector3f(0.25f, 0.95f, 1f);
+		Vector3f core = new Vector3f(1f, 1f, 1f);
+		for (int i = 0; i <= n; i++) {
+			Vec3d p = from.add(delta.multiply(i / (double) n));
+			world.spawnParticles(new DustParticleEffect(sheath, 2.4f), p.x, p.y, p.z, 2, 0.08, 0.08, 0.08, 0);
+			world.spawnParticles(new DustParticleEffect(core, 1.15f), p.x, p.y, p.z, 1, 0.02, 0.02, 0.02, 0);
+			if (i % 3 == 0) {
+				world.spawnParticles(ParticleTypes.END_ROD, p.x, p.y, p.z, 1, 0.04, 0.04, 0.04, 0.0);
+			}
+		}
+		world.spawnParticles(ParticleTypes.FLASH, to.x, to.y, to.z, 1, 0, 0, 0, 0);
+		world.spawnParticles(ParticleTypes.CRIT, to.x, to.y, to.z, 10, 0.35, 0.35, 0.35, 0.08);
+		SmokeSystem.emit(to, SmokeSystem.Source.DAMAGE, 1.1f, 0.4f, 50);
+		world.playSound(null, to.x, to.y, to.z, SoundEvents.BLOCK_BEACON_ACTIVATE,
+				SoundCategory.PLAYERS, 0.35f, 1.85f);
+	}
+
+	/**
 	 * Soft “оплавление”: heat stage → soften → break. Intensity 1..3.
 	 * Reuses existing block palette (no new assets).
 	 */

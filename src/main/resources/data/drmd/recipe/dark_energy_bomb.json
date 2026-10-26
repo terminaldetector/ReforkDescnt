@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NSN",
+    "EBE",
+    "GTG"
+  ],
+  "key": {
+    "N": { "item": "minecraft:nether_star" },
+    "S": { "item": "drmd:end_gate_catalyst" },
+    "E": { "item": "minecraft:end_crystal" },
+    "B": { "item": "drmd:portal_stabilizer" },
+    "G": { "item": "drmd:plasma_granite" },
+    "T": { "item": "drmd:targeting_core" }
+  },
+  "result": {
+    "id": "drmd:dark_energy_bomb",
+    "count": 1
+  }
+}

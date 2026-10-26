@@ -151,6 +151,7 @@ public class EndReactorBossEntity extends HostileEntity {
 		WeaponFx.beamExotic(sw, from, to);
 		WeaponCore.directDamage(this, target, 14f, DamageClass.ENERGY);
 		sw.playSound(null, getBlockPos(), SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.HOSTILE, 1.2f, 0.6f);
+		scarPlanetFromOrbit(sw, target, 1);
 	}
 
 	private void pulse(ServerWorld sw) {
@@ -158,6 +159,33 @@ public class EndReactorBossEntity extends HostileEntity {
 		FireSystem.igniteBlast(sw, getBlockPos(), 6, 4);
 		SmokeSystem.emit(getPos(), SmokeSystem.Source.REACTOR, 3f, 0.7f, 80);
 		sw.playSound(null, getX(), getY(), getZ(), SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.HOSTILE, 1.5f, 0.5f);
+		scarPlanetFromOrbit(sw, getTarget() != null ? getTarget() : this, 2);
+	}
+
+	/**
+	 * Reactor fire paints a scar on the Overworld planet map at the pilot's last surface focus —
+	 * visible from End orbit and applied as terrain when that chunk is later loaded.
+	 */
+	private void scarPlanetFromOrbit(ServerWorld sw, LivingEntity focus, int intensity) {
+		ServerWorld ow = sw.getServer().getOverworld();
+		if (ow == null) return;
+		int x = focus.getBlockX();
+		int z = focus.getBlockZ();
+		if (focus instanceof net.minecraft.server.network.ServerPlayerEntity sp) {
+			var data = com.terminaldetector.drmd.DescentPlayerData.get(sp);
+			x = data.getLastOverworldX();
+			z = data.getLastOverworldZ();
+		}
+		// Spread a few cells so the orbital map reads a burn zone.
+		var map = com.terminaldetector.drmd.world.llod.planet.PlanetMapState.get(ow);
+		int cx = com.terminaldetector.drmd.world.llod.planet.PlanetCell.cellOf(x);
+		int cz = com.terminaldetector.drmd.world.llod.planet.PlanetCell.cellOf(z);
+		map.scar(cx, cz, intensity);
+		map.scar(cx + 1, cz, intensity);
+		map.scar(cx, cz - 1, intensity);
+		if (intensity > 1) {
+			map.scar(cx - 1, cz + 1, intensity);
+		}
 	}
 
 	@Override
@@ -183,10 +211,20 @@ public class EndReactorBossEntity extends HostileEntity {
 		Vec3d core = anchor.equals(Vec3d.ZERO) ? getPos() : anchor;
 		BlockPos pad = BlockPos.ofFloored(core.x, core.y - 12.0, core.z);
 		EndReactorSession.placeExitGateways(sw, pad);
+		// Final orbital/End fight: station break + asteroid rain on the planet map
+		com.terminaldetector.drmd.world.dungeon.ReactorAftermath.onGigaReactorDestroyed(sw, pad);
+		// Ending 1 — switch the machine off. Silence + slow decay (see WORLD_PHILOSOPHY.md).
+		if (sw.getServer() != null) {
+			com.terminaldetector.drmd.world.fate.WorldEndings.applySilence(sw.getServer(), pad);
+		}
 		boolean inEnd = sw.getRegistryKey() == net.minecraft.world.World.END;
-		String tail = inEnd ? "End exit gateways online." : "landing pad secured.";
+		String tail = inEnd
+				? "station breaking up — debris falling planetward. Exit gateways online."
+				: "landing pad secured; planet scars inbound.";
 		for (ServerPlayerEntity p : sw.getPlayers()) {
 			p.sendMessage(Text.literal("§dGiga-Reactor destroyed §7— " + tail), false);
+			p.sendMessage(Text.literal(
+					"§8Enable §ffall aftermath§8 in DRMD settings to corkscrew down and inspect impacts."), false);
 		}
 		bossBar.clearPlayers();
 	}

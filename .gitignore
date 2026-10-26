@@ -17,3 +17,4 @@ logs/
 
 # Loom
 remappedSrc/
+scripts/__pycache__/

@@ -68,6 +68,12 @@ once, at the hand-off:
 | afterburner, surface | 1.58 | 31.6 |
 | afterburner, near-space | 2.83 | 56.6 |
 
+### Afterburner cruise (Descent)
+
+Hold **R** — not a toggle. While held: energy drain, accel/speed boost, and if the stick is
+idle the hull still thrusts nose-forward (corridor cruise). Release R to cut the burn.
+`/d6 alwaysrun` remains a legacy toggle for scripts.
+
 For scale: vanilla sprint is 0.28 blocks/tick, elytra under rockets roughly 1.5–2.
 
 The wire format matters here too. Vanilla's velocity packet encodes each axis as a short scaled by
