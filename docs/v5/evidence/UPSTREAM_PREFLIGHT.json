@@ -1,0 +1,48 @@
+{
+  "sha256": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+  "bytes": 806910,
+  "metadata": {
+    "schemaVersion": 1,
+    "id": "bettercubicchunks",
+    "version": "0.1.1+mc1.21.1",
+    "name": "Better Cubic Chunks",
+    "description": "Cubic chunks for Minecraft 1.21.1: worlds that stream vertically as well as horizontally, with a new altitude-layered world generator.",
+    "authors": [
+      "fallingcloud"
+    ],
+    "contact": {
+      "sources": "https://github.com/rainerileon-cmyk/Better-Cubic-Chunks",
+      "issues": "https://github.com/rainerileon-cmyk/Better-Cubic-Chunks/issues"
+    },
+    "license": "All-Rights-Reserved",
+    "icon": "assets/bettercubicchunks/icon.png",
+    "environment": "*",
+    "entrypoints": {
+      "main": [
+        "dev.fallingcloud.bettercubicchunks.fabric.BetterCubicChunksFabric"
+      ],
+      "client": [
+        "dev.fallingcloud.bettercubicchunks.fabric.client.BetterCubicChunksFabricClient"
+      ]
+    },
+    "mixins": [
+      "bettercubicchunks.mixins.json",
+      "bettercubicchunks.fabric.mixins.json"
+    ],
+    "depends": {
+      "fabricloader": ">=0.19.5",
+      "minecraft": "~1.21.1",
+      "java": ">=21",
+      "fabric-api": "*"
+    },
+    "custom": {
+      "modmenu": {
+        "links": {
+          "modmenu.github_releases": "https://github.com/rainerileon-cmyk/Better-Cubic-Chunks/releases"
+        }
+      }
+    }
+  },
+  "local_loader": "0.16.14",
+  "runtime_gate": "NOT_RUN"
+}

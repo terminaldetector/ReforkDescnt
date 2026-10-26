@@ -1,0 +1,13 @@
+{
+  "pr": {
+    "url": "https://github.com/terminaldetector/ReforkDescnt/pull/9",
+    "head_sha": "963375bf60830461f338ed440dac1aed1d6b9aae",
+    "state": "open",
+    "draft": true,
+    "body": "## What changed\n\nThis draft consolidates the current DRMD work into one reviewable branch:\n\n- Integrates the cubic-coordinate primitives, limited rigid block bodies, portal transforms, mirror view math, quarter-block damage and the marked-material hybrid mesher.\n- Fixes Pyro rider rendering for every client and prevents an open-air dismount from immediately mounting the same hull again.\n- Groups both settings screens, adds scrolling/tooltips, exposes the remaining client options and separates saved world-feature choices from Vanilla-mode suppression.\n- Makes orbit debris independent of surface districts and removes obsolete branch-history notes from the project docs.\n\n## Current limits\n\nThis is not a complete CubicChunks engine. Vanilla still owns terrain generation, chunk lifecycle, lighting, networking and primary rendering. The cubic option records already-loaded terrain as supplemental 16³ snapshots. Hybrid smoothing applies only to explicitly marked materials; full-world NoCubes rendering and volumetric LOD are not implemented.\n\nThe Pyro still uses the project's procedural model. No exported DXX ship mesh is present in the repository or workspace, so an exact DXX replacement remains blocked on an OBJ/GLB/POF asset and textures.\n\n## Verification\n\nThe preceding integration commit passed GitHub Actions on Java 21. This revision is now running the same build and client checks. Local Gradle could not start because the required distribution download is blocked in this workspace."
+  },
+  "recovery": {
+    "sha": "93baf2a4926428e7a21f515c2927eb3a5a511413",
+    "message": "Show the upper mechanisms in the Workshop preview and retain both face windings"
+  }
+}

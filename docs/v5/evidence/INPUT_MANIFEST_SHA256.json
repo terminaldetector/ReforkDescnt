@@ -1,0 +1,223 @@
+{
+  "title": "UNGRAVITY MASTER consolidated technical specification",
+  "date": "2026-10-26",
+  "version": "MASTER-v5",
+  "description": "Research, code history and evidence. No working code patches or bundled full MKV.",
+  "files": [
+    {
+      "path": "00_MAIN/MASTER_SPEC.md",
+      "sha256": "134710676dc160a5f67cb7cbe3ece2e923dfb3566cbec921d9f5739718e11c23",
+      "bytes": 35103
+    },
+    {
+      "path": "01_ARCHITECTURE/PHYSICS_ENTITY_SHIPS.md",
+      "sha256": "41e7d943651afb45feeb20e7dc0323a00a3012394da5e140a7ce14c93de10e3d",
+      "bytes": 7896
+    },
+    {
+      "path": "01_ARCHITECTURE/WORLD_CUBIC_MIGRATION.md",
+      "sha256": "19d91bf4d0fd2323dd59da61ed07dbd6174c510c2064d9dcca6561c4c103845f",
+      "bytes": 7781
+    },
+    {
+      "path": "02_GAMEPLAY/COMBAT_AI_SURVIVAL_CITY.md",
+      "sha256": "4bfeb6431cf7e3752b483c6a9466b902946317b11ad12b14b817ded89184fa58",
+      "bytes": 6106
+    },
+    {
+      "path": "03_BUGS/ISSUE_REGISTER.md",
+      "sha256": "59b066a8922650baf064aad151f22a344af863a1363dbcc8b520c4c390652b76",
+      "bytes": 7367
+    },
+    {
+      "path": "03_BUGS/LOG_TRIAGE.md",
+      "sha256": "c61cf65fa3d5ab70b874d478a7febfd4f53c3ebb32b678977d0ed0c07b1ba063",
+      "bytes": 9529
+    },
+    {
+      "path": "03_BUGS/logs_summary.json",
+      "sha256": "84f13c0c5cedfd471011f3197cb520b5de5bccb9d1929f5ffa5ebb505721d81e",
+      "bytes": 7523
+    },
+    {
+      "path": "04_AGENT_AUDIT/PRE_OCT26_AGENT_WORK_AUDIT.md",
+      "sha256": "135d05beb5887ff767b2175c411fc4b7a0a343af7d33a9763ea0437a1c038c70",
+      "bytes": 7754
+    },
+    {
+      "path": "05_VALIDATION/CODEX_START_HERE.md",
+      "sha256": "864d0b398e5ff6afa5595c2c1acd157707a4a77c5a68c5a09bd0443791583505",
+      "bytes": 6161
+    },
+    {
+      "path": "05_VALIDATION/RECOUNT_LOGS.py",
+      "sha256": "61d2ac1112ecb8da2e2208390b5c8bf74a23925b3ea0b51b355647686fa5bee8",
+      "bytes": 940
+    },
+    {
+      "path": "06_RESEARCH/UPSTREAM_REFERENCES.md",
+      "sha256": "72d7a0316e6adf0355966fd455337f35e2d90da0b487d16821f4b4425e24baef",
+      "bytes": 3340
+    },
+    {
+      "path": "07_EVIDENCE/logs/2026-10-26-1.log(1).gz",
+      "sha256": "0aab6d52e8e508dcde40b859eb82431bcbad665cb606ecbde1b78044f8abb1c8",
+      "bytes": 4767
+    },
+    {
+      "path": "07_EVIDENCE/logs/2026-10-26-1.log.gz",
+      "sha256": "0aab6d52e8e508dcde40b859eb82431bcbad665cb606ecbde1b78044f8abb1c8",
+      "bytes": 4767
+    },
+    {
+      "path": "07_EVIDENCE/logs/2026-10-26-2.log.gz",
+      "sha256": "962836258e16258949609f32cf9b65987cd3e9bac6bbd97eecfec7255d472405",
+      "bytes": 9010
+    },
+    {
+      "path": "07_EVIDENCE/logs/latest(1).log",
+      "sha256": "bff41178a85e659077c364fa2abd8de849c69982434dcb29b5caf8a36844b020",
+      "bytes": 75479
+    },
+    {
+      "path": "07_EVIDENCE/logs/latest.log",
+      "sha256": "975edd9ee33597299fe39147b64bc80d59767f6f770237594c6a6a3ca5197730",
+      "bytes": 54384
+    },
+    {
+      "path": "07_EVIDENCE/screenshots/INVENTORY_CONTACT_SHEET.jpg",
+      "sha256": "e05b594f7f542f17e68af6ff2c17ef056f1bda13c8920c53c4df664f26d6d119",
+      "bytes": 77550
+    },
+    {
+      "path": "07_EVIDENCE/screenshots/OLDER_WORLD_LAVA_WALL.png",
+      "sha256": "a2ebe700e95b8521a92c7f9735b572438e9b4ac03980f036f722047a49cbd565",
+      "bytes": 813099
+    },
+    {
+      "path": "07_EVIDENCE/screenshots/SIX_PROBLEMS_CONTACT_SHEET.jpg",
+      "sha256": "0f2a45d2ec0d7a00fd8ed29e1601084400287eefab35eff36769104fb045194c",
+      "bytes": 223537
+    },
+    {
+      "path": "07_EVIDENCE/screenshots/image(1).png",
+      "sha256": "afbb210f14171a9b3ccf012a8f5bd39c0311b86745ecb90803931933f205b0cf",
+      "bytes": 726477
+    },
+    {
+      "path": "07_EVIDENCE/screenshots/image(2).png",
+      "sha256": "e62c15a20ff0eabb146564c64e232ac4116d3092c897c3986e315ad3270a353f",
+      "bytes": 824432
+    },
+    {
+      "path": "07_EVIDENCE/screenshots/image(3).png",
+      "sha256": "cf351c5d00935dcb32cf23d97b57a6f4f9993ef60390ce3e3bfe5b49b9c0a243",
+      "bytes": 638051
+    },
+    {
+      "path": "07_EVIDENCE/screenshots/image(4).png",
+      "sha256": "38735776ffa4bac69158d14f06a72edc18724fcacc7f9524e4547659117b5706",
+      "bytes": 541028
+    },
+    {
+      "path": "07_EVIDENCE/screenshots/image(5).png",
+      "sha256": "6adb8df78d0c362065da0a84c71796d4fb7cdc787685600a3a6b7e97db20b9fe",
+      "bytes": 604680
+    },
+    {
+      "path": "07_EVIDENCE/screenshots/image(6).png",
+      "sha256": "6adb8df78d0c362065da0a84c71796d4fb7cdc787685600a3a6b7e97db20b9fe",
+      "bytes": 604680
+    },
+    {
+      "path": "07_EVIDENCE/screenshots/image(7).png",
+      "sha256": "aae552f7bddaf5891632316878b2e521065d1c54b32b7d8339fc9aca5887890a",
+      "bytes": 733344
+    },
+    {
+      "path": "07_EVIDENCE/screenshots/image(8).png",
+      "sha256": "3b0d1c805b85654a9400986bd6f6b923aafbabfd3ee3a95f74c28acc44721d82",
+      "bytes": 573481
+    },
+    {
+      "path": "07_EVIDENCE/screenshots/image(9).png",
+      "sha256": "bc62ab754c2bd56b5dd2c53a57727b8f82f83e23d49a3a9c78a9d265b9370894",
+      "bytes": 596135
+    },
+    {
+      "path": "08_PREVIOUS_SPECS/CLUSTER_MUNITIONS_TZ.md",
+      "sha256": "d48b341f50f8db90336440b014f1506921542363000bd3ff32ad06692b49fcc8",
+      "bytes": 4731
+    },
+    {
+      "path": "08_PREVIOUS_SPECS/CONSTRUCTION_TOOLS_TZ.md",
+      "sha256": "96c1a85bfdb9974a0af73b372c09e5928811e160450a68334235e8a773428717",
+      "bytes": 4236
+    },
+    {
+      "path": "08_PREVIOUS_SPECS/DRILL_MELT_NOCUBES_TZ.md",
+      "sha256": "f171b5251b9dff9c2113dd69a4ba1eb098a702e690491753c0133bde0481bd0c",
+      "bytes": 8307
+    },
+    {
+      "path": "08_PREVIOUS_SPECS/EXPANDED_PHYSICS_DEFAULT_TZ.md",
+      "sha256": "034442073570e9cbd844f6e758330e32b60c2627cd29f81a5a8585ab18c537f5",
+      "bytes": 4493
+    },
+    {
+      "path": "08_PREVIOUS_SPECS/HYBRID_RENDER_DEFAULT_TZ.md",
+      "sha256": "abc5416cff4bed723d1670598b2c2ed0d32fdb7f95b6364e816dbfe868f51275",
+      "bytes": 4607
+    },
+    {
+      "path": "08_PREVIOUS_SPECS/INVENTORY_ITEM_MODELS_TZ.md",
+      "sha256": "fe3ba30e123186b702328e3d6044ef01eb67b9bb211ef75978fb203576e710f8",
+      "bytes": 3306
+    },
+    {
+      "path": "08_PREVIOUS_SPECS/LEGACY_DEAD_CODE_AUDIT_TZ.md",
+      "sha256": "a06e167cc28e2f386451bb20c331b11552a9911465c0e0ee40d0182ce26c1e1b",
+      "bytes": 3345
+    },
+    {
+      "path": "08_PREVIOUS_SPECS/MIRRORS_TZ.md",
+      "sha256": "dbf29c3764bc0651ee65eada5fdd3737589fb30bfbd491e70bfda8dffa7b24db",
+      "bytes": 5825
+    },
+    {
+      "path": "08_PREVIOUS_SPECS/PORTALS_TZ.md",
+      "sha256": "5fbf84a41d1a02e18264a59a098fe922dc4d407cd7d59f12c294ff6ee0219a42",
+      "bytes": 8008
+    },
+    {
+      "path": "08_PREVIOUS_SPECS/README_FOR_CODEX.md",
+      "sha256": "726e00cf3d31c3ca9be705c819d0ece3d5d89b752289d988467aab232b60493b",
+      "bytes": 2594
+    },
+    {
+      "path": "08_PREVIOUS_SPECS/UNGRAVITY_CUBIC_FULL_MIGRATION_TZ_2026-10-26.md",
+      "sha256": "fdb99257d8a65740e82872d08035d19c94b0003bd687f5529a24d1c4488b3899",
+      "bytes": 19671
+    },
+    {
+      "path": "08_PREVIOUS_SPECS/UNGRAVITY_CUBIC_WORLD_LOG_AUDIT_2026-10-26.md",
+      "sha256": "be412172e573c203cc96a0cadb8cdab5ea024a70c7f8fcd11a34a243ba0e105b",
+      "bytes": 13744
+    },
+    {
+      "path": "08_PREVIOUS_SPECS/UNGRAVITY_VIDEO_AUDIT.md",
+      "sha256": "9f2fd9b32c9f6eea0be329e2b0a5a0c57cc0101ad9fd1d9c61bbe1aafeacdcea",
+      "bytes": 36271
+    },
+    {
+      "path": "08_PREVIOUS_SPECS/WEAPON_VISIBILITY_TZ.md",
+      "sha256": "a62cd893032524e32ef8662ea68017b80eb38249658117b2edf418f18268e951",
+      "bytes": 4327
+    },
+    {
+      "path": "README.md",
+      "sha256": "a6f9fb269378a34fab93c8f4ac3d8baceb865d84a1df871dc8989dfa763f01a5",
+      "bytes": 2556
+    }
+  ]
+}

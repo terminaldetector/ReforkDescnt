@@ -1,0 +1,568 @@
+{
+  "base_sha": "ba8de3f4027d9c052eb5b2afd68feafd9d0eba84",
+  "branch": "codex/ungravity-cloud-recovery-20261024",
+  "status": "?? work/",
+  "historical_commits": [
+    {
+      "reference": "963375bf60830461f338ed440dac1aed1d6b9aae",
+      "sha": "963375bf60830461f338ed440dac1aed1d6b9aae",
+      "in_current_ancestry": true,
+      "subject": "Refresh dist jar from 18feed8 [skip ci]",
+      "files": [
+        "dist/rendercheck/collapse-after.png",
+        "dist/rendercheck/collapse-before.png",
+        "dist/rendercheck/collapse-flight.png",
+        "dist/rendercheck/drone-swarm-dense.png",
+        "dist/rendercheck/drone-swarm-flight.png",
+        "dist/rendercheck/gravity-rail-flight.png",
+        "dist/rendercheck/gravity-rail-held.png",
+        "dist/rendercheck/gravity-shift-flight.png",
+        "dist/rendercheck/gravity-shift-held.png",
+        "dist/rendercheck/gravity-swarm-flight.png",
+        "dist/rendercheck/gravity-swarm-held.png",
+        "dist/rendercheck/hybrid-after.png",
+        "dist/rendercheck/hybrid-before.png",
+        "dist/rendercheck/ragdoll-after.png",
+        "dist/rendercheck/ragdoll-flight.png",
+        "dist/rendercheck/swarm-ai-ok.txt"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "93baf2a4926428e7a21f515c2927eb3a5a511413",
+      "sha": "93baf2a4926428e7a21f515c2927eb3a5a511413",
+      "in_current_ancestry": true,
+      "subject": "Show the upper mechanisms in the Workshop preview and retain both face windings",
+      "files": [
+        "src/main/java/com/terminaldetector/drmd/client/render/WorkshopMeshPreview.java",
+        "src/main/java/com/terminaldetector/drmd/workshop/WorkshopScreen.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "9e15d8b",
+      "sha": "9e15d8b7f9ca79cd01f304ca90c1c1e0c8361a28",
+      "in_current_ancestry": true,
+      "subject": "Add cubic block bodies, repair portal frames and harden spatial systems",
+      "files": [
+        "build.gradle",
+        "dist/INSTALL_TLAUNCHER.txt",
+        "dist/drmd-6dof-1.1.7-spatial-alpha-fabric-1.21.1.jar",
+        "docs/ROADMAP.md",
+        "docs/WORLD_CONCEPT.md",
+        "docs/architecture/CUBIC_MIGRATION.md",
+        "gradle.properties",
+        "src/gametest/java/com/terminaldetector/drmd/BlockBodyGameTests.java",
+        "src/gametest/resources/fabric.mod.json",
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java",
+        "src/main/java/com/terminaldetector/drmd/DescentPlayerData.java",
+        "src/main/java/com/terminaldetector/drmd/client/DescentClient.java",
+        "src/main/java/com/terminaldetector/drmd/client/DescentClientState.java",
+        "src/main/java/com/terminaldetector/drmd/client/flight/ShipAttitudeClient.java",
+        "src/main/java/com/terminaldetector/drmd/client/input/DescentKeybinds.java",
+        "src/main/java/com/terminaldetector/drmd/client/portal/MirrorReflectionRenderer.java",
+        "src/main/java/com/terminaldetector/drmd/client/portal/OffscreenWorldView.java",
+        "src/main/java/com/terminaldetector/drmd/client/portal/PortalSeeThroughRenderer.java",
+        "src/main/java/com/terminaldetector/drmd/client/portal/PortalViewMatrix.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/BlockBodyRenderer.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java",
+        "src/main/java/com/terminaldetector/drmd/d6/D6Cube.java",
+        "src/main/java/com/terminaldetector/drmd/d6/D6MassProperties.java",
+        "src/main/java/com/terminaldetector/drmd/d6/D6PhysicsBody.java",
+        "src/main/java/com/terminaldetector/drmd/d6/D6PortalTransform.java",
+        "src/main/java/com/terminaldetector/drmd/d6/D6Volume.java",
+        "src/main/java/com/terminaldetector/drmd/entity/ModEntities.java",
+        "src/main/java/com/terminaldetector/drmd/mixin/CubicChunkMixin.java",
+        "src/main/java/com/terminaldetector/drmd/network/ModNetworking.java",
+        "src/main/java/com/terminaldetector/drmd/physics/GravyPhysics.java",
+        "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyCommands.java",
+        "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyEntity.java",
+        "src/main/java/com/terminaldetector/drmd/world/cubic/CubicBlockCodec.java",
+        "src/main/java/com/terminaldetector/drmd/world/cubic/CubicWorldSystem.java",
+        "src/main/java/com/terminaldetector/drmd/world/mega/SkyUfoEntity.java",
+        "src/main/java/com/terminaldetector/drmd/world/portal/PortalTravel.java",
+        "src/main/java/com/terminaldetector/drmd/world/store/SurfaceStore.java",
+        "src/main/java/com/terminaldetector/drmd/world/structure/StructureDelta.java",
+        "src/main/java/com/terminaldetector/drmd/world/structure/StructureMover.java",
+        "src/main/resources/drmd.mixins.json",
+        "src/test/java/com/terminaldetector/drmd/D6CubicStorageTest.java",
+        "src/test/java/com/terminaldetector/drmd/D6PhysicsBodyTest.java",
+        "src/test/java/com/terminaldetector/drmd/D6PortalTransformTest.java",
+        "src/test/java/com/terminaldetector/drmd/PortalViewMatrixTest.java",
+        "src/test/java/com/terminaldetector/drmd/StructureDeltaTest.java",
+        "src/test/java/com/terminaldetector/drmd/SurfaceStoreTest.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "0345128",
+      "sha": "034512891c9b09d0f3cad2f81fd2933a42f7c57f",
+      "in_current_ancestry": true,
+      "subject": "Add explicit hybrid terrain mesher and chunk-batched microdamage rendering",
+      "files": [
+        ".github/workflows/build.yml",
+        "build.gradle",
+        "docs/MICROBLOCKS.md",
+        "docs/architecture/HYBRID_RENDERING.md",
+        "gradle.properties",
+        "src/gametest/java/com/terminaldetector/drmd/HybridTerrainGameTests.java",
+        "src/gametest/resources/fabric.mod.json",
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/terrain/HybridTerrainModel.java",
+        "src/main/java/com/terminaldetector/drmd/entity/ModWorldBlocks.java",
+        "src/main/java/com/terminaldetector/drmd/world/geometry/HybridMesh.java",
+        "src/main/java/com/terminaldetector/drmd/world/geometry/HybridTerrain.java",
+        "src/main/java/com/terminaldetector/drmd/world/geometry/HybridTerrainCommands.java",
+        "src/main/java/com/terminaldetector/drmd/world/micro/CarvedBlock.java",
+        "src/main/java/com/terminaldetector/drmd/world/micro/CarvedBlockEntity.java",
+        "src/main/resources/data/drmd/tags/block/organic_materials.json",
+        "src/rendercheck/java/com/terminaldetector/drmd/HybridRenderCheck.java",
+        "src/rendercheck/resources/fabric.mod.json",
+        "src/test/java/com/terminaldetector/drmd/HybridMeshTest.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "82f3ec1",
+      "sha": "82f3ec19a579ca45f72ebfd13084b23c5c268f61",
+      "in_current_ancestry": true,
+      "subject": "Let rocket-cut trees and freestanding columns fall as gravity-driven block bodies",
+      "files": [
+        ".github/workflows/build.yml",
+        "docs/architecture/STRUCTURE_COLLAPSE.md",
+        "gradle.properties",
+        "src/gametest/java/com/terminaldetector/drmd/CollapseGameTests.java",
+        "src/gametest/resources/data/drmd/structure/collapse_lab.nbt",
+        "src/gametest/resources/fabric.mod.json",
+        "src/main/java/com/terminaldetector/drmd/d6/D6PhysicsBody.java",
+        "src/main/java/com/terminaldetector/drmd/entity/ProjectileEntity.java",
+        "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyEntity.java",
+        "src/main/java/com/terminaldetector/drmd/world/contraption/StructureCollapse.java",
+        "src/rendercheck/java/com/terminaldetector/drmd/HybridRenderCheck.java",
+        "src/test/java/com/terminaldetector/drmd/d6/ContactImpulseTest.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "30523be",
+      "sha": "30523beaf07569879e9ce7e5fa5ee83fff5dad1b",
+      "in_current_ancestry": true,
+      "subject": "Stabilize gravity torches and magnetic anomalies",
+      "files": [
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java",
+        "src/main/java/com/terminaldetector/drmd/world/gravity/GravityTorchBlock.java",
+        "src/main/java/com/terminaldetector/drmd/world/trap/MagneticAnomalySystem.java",
+        "src/main/java/com/terminaldetector/drmd/world/trap/TrapBlocks.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "8ef153d",
+      "sha": "8ef153df082b0cb1fd20a44a71ddfb48547359c4",
+      "in_current_ancestry": true,
+      "subject": "Connect collapse bodies to local gravity fields",
+      "files": [
+        "docs/PROJECT_STATUS.md",
+        "docs/UNIFIED_MERGE.md",
+        "docs/architecture/STRUCTURE_COLLAPSE.md",
+        "src/gametest/java/com/terminaldetector/drmd/BlockBodyGameTests.java",
+        "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyEntity.java",
+        "src/main/java/com/terminaldetector/drmd/world/gravity/GravityFields.java",
+        "src/test/java/com/terminaldetector/drmd/GravityFieldsTest.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "b72c735",
+      "sha": "b72c7355e745a634bbe08f49ae50d405f8643da5",
+      "in_current_ancestry": true,
+      "subject": "Isolate gravity torch fields by dimension",
+      "files": [
+        "docs/PROJECT_STATUS.md",
+        "src/main/java/com/terminaldetector/drmd/world/gravity/GravityTorchBlock.java",
+        "src/test/java/com/terminaldetector/drmd/world/gravity/GravityTorchIdentityTest.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "2633b7b",
+      "sha": "2633b7b92aa09df9bc2df201f9f024ebb5a764b8",
+      "in_current_ancestry": true,
+      "subject": "Decouple gravity field IDs from block bootstrap",
+      "files": [
+        "src/main/java/com/terminaldetector/drmd/world/gravity/GravityFieldIds.java",
+        "src/main/java/com/terminaldetector/drmd/world/gravity/GravityTorchBlock.java",
+        "src/test/java/com/terminaldetector/drmd/world/gravity/GravityTorchIdentityTest.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "0ac4ae0",
+      "sha": "0ac4ae079737deef79e8638f117ba49e08774801",
+      "in_current_ancestry": true,
+      "subject": "Add articulated ragdoll physics foundation",
+      "files": [
+        "docs/ROADMAP.md",
+        "src/main/java/com/terminaldetector/drmd/physics/ragdoll/RagdollRig.java",
+        "src/main/java/com/terminaldetector/drmd/physics/ragdoll/RagdollSimulation.java",
+        "src/test/java/com/terminaldetector/drmd/RagdollSimulationTest.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "c206342",
+      "sha": "c20634276122a57db60f7e533a5070b048436aa4",
+      "in_current_ancestry": true,
+      "subject": "Integrate networked physical ragdolls",
+      "files": [
+        "src/gametest/java/com/terminaldetector/drmd/RagdollGameTests.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/RagdollRenderer.java",
+        "src/main/java/com/terminaldetector/drmd/entity/DroneEntity.java",
+        "src/main/java/com/terminaldetector/drmd/entity/ModEntities.java",
+        "src/main/java/com/terminaldetector/drmd/entity/ProjectileEntity.java",
+        "src/main/java/com/terminaldetector/drmd/entity/RagdollEntity.java",
+        "src/main/java/com/terminaldetector/drmd/physics/GravyPhysics.java",
+        "src/main/java/com/terminaldetector/drmd/physics/PhysicsTarget.java",
+        "src/main/java/com/terminaldetector/drmd/physics/ragdoll/RagdollSimulation.java",
+        "src/main/java/com/terminaldetector/drmd/weapon/core/WeaponCore.java",
+        "src/main/java/com/terminaldetector/drmd/weapon/items/DescentWeaponItem.java",
+        "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyEntity.java",
+        "src/test/java/com/terminaldetector/drmd/RagdollSimulationTest.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "d0361b1",
+      "sha": "d0361b133cebf3cdec59aa07e1c0076976bd4752",
+      "in_current_ancestry": true,
+      "subject": "Verify ragdoll rendering in live client",
+      "files": [
+        ".github/workflows/build.yml",
+        "docs/PROJECT_STATUS.md",
+        "docs/ROADMAP.md",
+        "src/rendercheck/java/com/terminaldetector/drmd/HybridRenderCheck.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "8947b2b",
+      "sha": "8947b2b90624d62db10b502234ce62db6717a1aa",
+      "in_current_ancestry": true,
+      "subject": "Restore three-role gravity weapons",
+      "files": [
+        "src/gametest/java/com/terminaldetector/drmd/GravityWeaponGameTests.java",
+        "src/gametest/resources/fabric.mod.json",
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java",
+        "src/main/java/com/terminaldetector/drmd/energy/EnergySystem.java",
+        "src/main/java/com/terminaldetector/drmd/entity/RagdollEntity.java",
+        "src/main/java/com/terminaldetector/drmd/physics/GravyPhysics.java",
+        "src/main/java/com/terminaldetector/drmd/physics/PhysicsTarget.java",
+        "src/main/java/com/terminaldetector/drmd/weapon/items/DescentWeaponItem.java",
+        "src/main/java/com/terminaldetector/drmd/weapon/items/ModItems.java",
+        "src/main/java/com/terminaldetector/drmd/weapon/registry/ArsenalCatalog.java",
+        "src/main/java/com/terminaldetector/drmd/workshop/DefaultLayouts.java",
+        "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyEntity.java",
+        "src/main/java/com/terminaldetector/drmd/world/gravity/EntityGravitySystem.java",
+        "src/main/java/com/terminaldetector/drmd/world/gravity/TransientGravityFields.java",
+        "src/main/resources/assets/drmd/lang/en_us.json",
+        "src/main/resources/assets/drmd/lang/ru_ru.json",
+        "src/main/resources/assets/drmd/models/item/weapon_d6_gravity_shifter.json",
+        "src/main/resources/assets/drmd/models/item/weapon_d6_gravity_swarm.json",
+        "src/main/resources/data/drmd/recipe/weapon_d6_gravity_shifter.json",
+        "src/main/resources/data/drmd/recipe/weapon_d6_gravity_swarm.json",
+        "src/test/java/com/terminaldetector/drmd/physics/GravyPhysicsTest.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "c9ba3a7",
+      "sha": "c9ba3a76e475982d6d8516ca8368793cea4694f8",
+      "in_current_ancestry": true,
+      "subject": "Prevent ragdoll joint tunnelling",
+      "files": [
+        "src/gametest/java/com/terminaldetector/drmd/RagdollGameTests.java",
+        "src/main/java/com/terminaldetector/drmd/entity/RagdollEntity.java",
+        "src/main/java/com/terminaldetector/drmd/physics/GravyPhysics.java",
+        "src/main/java/com/terminaldetector/drmd/physics/PhysicsTarget.java",
+        "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyEntity.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "97142ff",
+      "sha": "97142ff0e1a4bdbae2ec1747028de042a04528c8",
+      "in_current_ancestry": true,
+      "subject": "Resolve ragdoll contacts during joint solving",
+      "files": [
+        "src/main/java/com/terminaldetector/drmd/physics/ragdoll/RagdollSimulation.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "550c87e",
+      "sha": "550c87ed4952667d29be98a858eae507339b26ac",
+      "in_current_ancestry": true,
+      "subject": "Use point effective mass for ragdoll joints",
+      "files": [
+        "src/main/java/com/terminaldetector/drmd/physics/ragdoll/RagdollSimulation.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "bd93127",
+      "sha": "bd93127bf85c56ee338820f157653615cd15517b",
+      "in_current_ancestry": true,
+      "subject": "Verify three gravity weapon roles",
+      "files": [
+        ".github/workflows/build.yml",
+        "src/main/java/com/terminaldetector/drmd/physics/GravyPhysics.java",
+        "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyEntity.java",
+        "src/rendercheck/java/com/terminaldetector/drmd/HybridRenderCheck.java",
+        "src/test/java/com/terminaldetector/drmd/physics/GravyPhysicsTest.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "f1d7904",
+      "sha": "f1d79040f26fb1f79b1e1b78001082b0299fcb24",
+      "in_current_ancestry": true,
+      "subject": "Bound drone swarm neighbour work",
+      "files": [
+        "src/gametest/java/com/terminaldetector/drmd/DroneSwarmGameTests.java",
+        "src/gametest/resources/fabric.mod.json",
+        "src/main/java/com/terminaldetector/drmd/DescentMod.java",
+        "src/main/java/com/terminaldetector/drmd/ai/BoundedSpatialIndex.java",
+        "src/main/java/com/terminaldetector/drmd/ai/DroneAi.java",
+        "src/main/java/com/terminaldetector/drmd/ai/DroneSwarmAi.java",
+        "src/test/java/com/terminaldetector/drmd/ai/BoundedSpatialIndexTest.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "18feed8",
+      "sha": "18feed8eb51095fdb6f58f675539f1ec328bc0ee",
+      "in_current_ancestry": true,
+      "subject": "Exercise 128-drone live swarm",
+      "files": [
+        ".github/workflows/build.yml",
+        "src/rendercheck/java/com/terminaldetector/drmd/HybridRenderCheck.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "4c7c696",
+      "sha": "4c7c6964ce2b7b86f8eed3ebdecaacacf9b571b1",
+      "in_current_ancestry": true,
+      "subject": "Synchronize range fixtures before measuring weapon frames",
+      "files": [
+        "docs/recovery/RECOVERY.md",
+        "scripts/checkpoint_report.py",
+        "src/shootcheck/java/com/terminaldetector/drmd/WeaponRenderCheck.java",
+        "src/shootcheck/java/com/terminaldetector/drmd/shootcheck/WeaponCrosshairMask.java",
+        "src/shootcheck/resources/drmd.shootcheck.mixins.json"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "b43d3c1",
+      "sha": "b43d3c1c28e305acac4a88e5023374034937a7c2",
+      "in_current_ancestry": true,
+      "subject": "Keep distant weapon fixtures within the active simulation volume",
+      "files": [
+        "build.gradle",
+        "docs/recovery/RECOVERY.md",
+        "src/shootcheck/java/com/terminaldetector/drmd/WeaponRenderCheck.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "46d6433",
+      "sha": "46d643381375be5585dad001fdf6194d9fa15e27",
+      "in_current_ancestry": true,
+      "subject": "Capture completed render frames before advancing weapon scenes",
+      "files": [
+        "docs/recovery/RECOVERY.md",
+        "scripts/checkpoint_report.py",
+        "scripts/test_checkpoint_report.py",
+        "src/shootcheck/java/com/terminaldetector/drmd/WeaponRenderCheck.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "2414fc1",
+      "sha": "2414fc1c38dbf1b737cff65f714a98dda47e19ef",
+      "in_current_ancestry": true,
+      "subject": "Bound visual projectile prediction when server positions stop arriving",
+      "files": [
+        "docs/recovery/RECOVERY.md",
+        "src/main/java/com/terminaldetector/drmd/entity/ProjectileEntity.java",
+        "src/main/java/com/terminaldetector/drmd/weapon/projectile/ProjectilePrediction.java",
+        "src/test/java/com/terminaldetector/drmd/ProjectilePredictionTest.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "7ac1005",
+      "sha": "7ac100505ddb721d381b769682135cf7ff034040",
+      "in_current_ancestry": true,
+      "subject": "Implement three shared hybrid weapon meshes and Workshop preset workflow",
+      "files": [
+        ".github/workflows/build.yml",
+        "gradle.properties",
+        "src/main/java/com/terminaldetector/drmd/client/DescentClient.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/HybridWeaponRenderer.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/PyroShipRenderer.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/ShotFxRenderer.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/WeaponViewRenderer.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/WorkshopMeshPreview.java",
+        "src/main/java/com/terminaldetector/drmd/network/ModNetworking.java",
+        "src/main/java/com/terminaldetector/drmd/weapon/items/DescentWeaponItem.java",
+        "src/main/java/com/terminaldetector/drmd/workshop/ConstructionRegistry.java",
+        "src/main/java/com/terminaldetector/drmd/workshop/ConstructionValidation.java",
+        "src/main/java/com/terminaldetector/drmd/workshop/DefaultLayouts.java",
+        "src/main/java/com/terminaldetector/drmd/workshop/HybridWeaponModels.java",
+        "src/main/java/com/terminaldetector/drmd/workshop/WorkshopPresets.java",
+        "src/main/java/com/terminaldetector/drmd/workshop/WorkshopScreen.java",
+        "src/test/java/com/terminaldetector/drmd/HybridWeaponModelsTest.java",
+        "src/test/java/com/terminaldetector/drmd/WorkshopPresetsTest.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "f7e46fa",
+      "sha": "f7e46faf72eb7f93325fd95fbd57008900912494",
+      "in_current_ancestry": true,
+      "subject": "Verify hybrid meshes, Workshop round trips and server gravity load in the real client",
+      "files": [
+        ".github/workflows/build.yml",
+        "scripts/checkpoint_report.py",
+        "scripts/test_checkpoint_report.py",
+        "src/main/java/com/terminaldetector/drmd/client/DescentClient.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/HybridWeaponRenderer.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/PyroShipRenderer.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/WeaponLoadState.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/WeaponViewRenderer.java",
+        "src/main/java/com/terminaldetector/drmd/network/ModNetworking.java",
+        "src/main/java/com/terminaldetector/drmd/physics/GravyPhysics.java",
+        "src/main/java/com/terminaldetector/drmd/workshop/WorkshopScreen.java",
+        "src/shootcheck/java/com/terminaldetector/drmd/HybridWeaponCheck.java",
+        "src/shootcheck/java/com/terminaldetector/drmd/WeaponRenderCheck.java",
+        "src/shootcheck/java/com/terminaldetector/drmd/shootcheck/HybridMeshProbe.java",
+        "src/shootcheck/java/com/terminaldetector/drmd/shootcheck/WorkshopPreviewProbe.java",
+        "src/shootcheck/resources/drmd.shootcheck.mixins.json"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "be0be13",
+      "sha": "be0be136429c0ee05277670e6d2e8ecc9449e04d",
+      "in_current_ancestry": true,
+      "subject": "Fix Workshop construction packet NBT root and test populated/reset round trips",
+      "files": [
+        "src/main/java/com/terminaldetector/drmd/network/ModNetworking.java",
+        "src/shootcheck/java/com/terminaldetector/drmd/HybridWeaponCheck.java",
+        "src/test/java/com/terminaldetector/drmd/ConstructionPayloadTest.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "ca85f4e",
+      "sha": "ca85f4e20d126ffcbb4a395fcfb42a6f11a13aee",
+      "in_current_ancestry": true,
+      "subject": "Render Workshop meshes after the vanilla Screen background pass",
+      "files": [
+        "src/main/java/com/terminaldetector/drmd/workshop/WorkshopScreen.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "dd9dea1",
+      "sha": "dd9dea1d122ef656f66b840ec4f2df9bd0dbe619",
+      "in_current_ancestry": true,
+      "subject": "Expose the rail carriage, remove coplanar plasma faces and attach external mounts",
+      "files": [
+        "src/main/java/com/terminaldetector/drmd/client/render/HybridWeaponRenderer.java",
+        "src/main/java/com/terminaldetector/drmd/client/render/PyroShipRenderer.java",
+        "src/main/java/com/terminaldetector/drmd/workshop/HybridWeaponModels.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    },
+    {
+      "reference": "93baf2a",
+      "sha": "93baf2a4926428e7a21f515c2927eb3a5a511413",
+      "in_current_ancestry": true,
+      "subject": "Show the upper mechanisms in the Workshop preview and retain both face windings",
+      "files": [
+        "src/main/java/com/terminaldetector/drmd/client/render/WorkshopMeshPreview.java",
+        "src/main/java/com/terminaldetector/drmd/workshop/WorkshopScreen.java"
+      ],
+      "current_runtime": "UNVERIFIED"
+    }
+  ],
+  "jars": [
+    {
+      "path": "/workspace/Refork-audit/build/libs/drmd-6dof-1.1.15-terrain.1.jar",
+      "sha256": "084e8aaac93a46e19544f6cf56a0f76ea7dcf6fff965f73f42d59ac69a6775a3",
+      "version": "1.1.15-terrain.1",
+      "user_tlauncher_binary": false
+    },
+    {
+      "path": "/workspace/Gjnv/drmd-6dof-1.1.14-audit.4.jar",
+      "sha256": "9be0f587ad8af834e08f4c13aa348a9b10cf57c455e66ba6464aa962279a5414",
+      "version": "1.1.14-audit.4",
+      "user_tlauncher_binary": false
+    }
+  ],
+  "logs": [
+    {
+      "file": "2026-10-26-1.log(1).gz",
+      "content_sha256": "0abdaf01186ee0a28da6d57f2a29a4fbdbdd56b6ff445d8da50cad10b4110a16",
+      "duplicate_of": null,
+      "lag_alerts": 0,
+      "max_alerted_lag_ms": 0,
+      "dummy": 0,
+      "mirror": 0
+    },
+    {
+      "file": "2026-10-26-1.log.gz",
+      "content_sha256": "0abdaf01186ee0a28da6d57f2a29a4fbdbdd56b6ff445d8da50cad10b4110a16",
+      "duplicate_of": "2026-10-26-1.log(1).gz",
+      "lag_alerts": 0,
+      "max_alerted_lag_ms": 0,
+      "dummy": 0,
+      "mirror": 0
+    },
+    {
+      "file": "2026-10-26-2.log.gz",
+      "content_sha256": "975edd9ee33597299fe39147b64bc80d59767f6f770237594c6a6a3ca5197730",
+      "duplicate_of": null,
+      "lag_alerts": 55,
+      "max_alerted_lag_ms": 152216,
+      "dummy": 33,
+      "mirror": 1
+    },
+    {
+      "file": "latest(1).log",
+      "content_sha256": "bff41178a85e659077c364fa2abd8de849c69982434dcb29b5caf8a36844b020",
+      "duplicate_of": null,
+      "lag_alerts": 41,
+      "max_alerted_lag_ms": 193148,
+      "dummy": 100,
+      "mirror": 21
+    },
+    {
+      "file": "latest.log",
+      "content_sha256": "975edd9ee33597299fe39147b64bc80d59767f6f770237594c6a6a3ca5197730",
+      "duplicate_of": "2026-10-26-2.log.gz",
+      "lag_alerts": 55,
+      "max_alerted_lag_ms": 152216,
+      "dummy": 33,
+      "mirror": 1
+    }
+  ],
+  "packet_sha256": "e945e52e462905e91689b5e7e5ae49ba77965b248a7f8aee6b4d1ae48f9e4b73",
+  "unique_log_sessions": 3,
+  "runtime_provenance": "TLauncher JAR checksum and original saves not supplied; user log version label is not binary identity"
+}
