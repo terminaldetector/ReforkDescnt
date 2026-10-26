@@ -16,13 +16,13 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.*;
 
 public final class FusionPortalGameTests implements FabricGameTest {
-    @GameTest(templateName=EMPTY_STRUCTURE)
+    @GameTest(templateName="drmd:portal_lab")
     public void mirrorAndPortalFramesUseVisibleBlockModels(TestContext c) {
         for(var block:new net.minecraft.block.Block[]{ModWorldBlocks.MIRROR,ModWorldBlocks.CHARGED_MIRROR,ModWorldBlocks.PORTAL_PANEL})
             c.assertTrue(block.getDefaultState().getRenderType()==net.minecraft.block.BlockRenderType.MODEL,"placed frame has a visible model: "+block);
         c.complete();
     }
-    @GameTest(templateName=EMPTY_STRUCTURE)
+    @GameTest(templateName="drmd:portal_lab")
     public void adjacentMirrorFramesJoinAndRestoreAfterRemovalOnAllFaces(TestContext c) {
         var world=c.getWorld();var origin=c.getAbsolutePos(new BlockPos(2,7,2));
         for(var block:new net.minecraft.block.Block[]{ModWorldBlocks.MIRROR,ModWorldBlocks.CHARGED_MIRROR})
@@ -38,7 +38,7 @@ public final class FusionPortalGameTests implements FabricGameTest {
         }
         c.complete();
     }
-    @GameTest(templateName=EMPTY_STRUCTURE)
+    @GameTest(templateName="drmd:portal_lab")
     public void linkedAndDifferentMirrorTypesKeepTheirOwnFrames(TestContext c) {
         var world=c.getWorld();var a=c.getAbsolutePos(new BlockPos(2,7,2));var b=a.east();
         world.setBlockState(a,ModWorldBlocks.MIRROR.getDefaultState(),3);
@@ -50,7 +50,7 @@ public final class FusionPortalGameTests implements FabricGameTest {
         c.assertTrue(world.getBlockState(a).get(MirrorEdges.FRAME[1]),"portal does not join mirror");
         c.complete();
     }
-    @GameTest(templateName=EMPTY_STRUCTURE)
+    @GameTest(templateName="drmd:portal_lab")
     public void legacyDisconnectedFramesReconcileWithoutRebuildingTheWall(TestContext c) {
         var world=c.getWorld();var a=c.getAbsolutePos(new BlockPos(2,7,2));var b=a.east();
         world.setBlockState(a,ModWorldBlocks.MIRROR.getDefaultState(),net.minecraft.block.Block.NOTIFY_LISTENERS | net.minecraft.block.Block.FORCE_STATE);
@@ -62,7 +62,7 @@ public final class FusionPortalGameTests implements FabricGameTest {
             c.complete();
         });
     }
-    @GameTest(templateName=EMPTY_STRUCTURE)
+    @GameTest(templateName="drmd:portal_lab")
     public void legacyCleanupDoesNotDiscardAnUnrelatedEntityWithAStoredUuid(TestContext c) {
         var world=c.getWorld();var entity=new net.minecraft.entity.decoration.ArmorStandEntity(world,0,0,0);
         world.spawnEntity(entity);
@@ -92,12 +92,12 @@ public final class FusionPortalGameTests implements FabricGameTest {
         player.setYaw(0);player.setPitch(0);player.setPosition(Vec3d.ofCenter(p.near().north(2)));
         return player;
     }
-    @GameTest(templateName=EMPTY_STRUCTURE)
+    @GameTest(templateName="drmd:portal_lab")
     public void placementAloneDoesNotActivateAPortalPair(TestContext c) {
         var p=pair(c,true);c.assertTrue(!linked(c,p),"panels stay inactive without a Fusion impact");
         c.complete();
     }
-    @GameTest(templateName=EMPTY_STRUCTURE)
+    @GameTest(templateName="drmd:portal_lab")
     public void oneMinimumFusionShotActivatesBothPanelsAfterSwitchingWeapons(TestContext c) {
         var p=pair(c,true);var player=player(c,p);
         var desired=Vec3d.ofCenter(p.near()).add(0,0,-2);
@@ -108,7 +108,7 @@ public final class FusionPortalGameTests implements FabricGameTest {
         player.setStackInHand(Hand.MAIN_HAND,ItemStack.EMPTY);
         c.waitAndRun(5,()->{c.assertTrue(linked(c,p),"one minimum-charge Fusion hit powers both ends even after a weapon switch");player.discard();c.complete();});
     }
-    @GameTest(templateName=EMPTY_STRUCTURE)
+    @GameTest(templateName="drmd:portal_lab")
     public void fusionProjectileKeepsActivationAndOwnerAfterNbtReload(TestContext c) {
         var p=pair(c,false);var player=player(c,p);
         var original=new ProjectileEntity(ModEntities.PROJECTILE,c.getWorld());
@@ -119,14 +119,14 @@ public final class FusionPortalGameTests implements FabricGameTest {
         c.getWorld().spawnEntity(restored);
         c.waitAndRun(5,()->{c.assertTrue(linked(c,p),"restored Fusion projectile powers charged mirrors without a key");player.discard();c.complete();});
     }
-    @GameTest(templateName=EMPTY_STRUCTURE)
+    @GameTest(templateName="drmd:portal_lab")
     public void holdingFusionDoesNotTurnAnotherProjectileIntoAnActivationShot(TestContext c) {
         var p=pair(c,true);var player=player(c,p);player.setStackInHand(Hand.MAIN_HAND,new ItemStack(ModItems.FUSION));
         var shot=new ProjectileEntity(ModEntities.PROJECTILE,c.getWorld());shot.setOwner(player);shot.setLifeTicks(100);
         shot.setPosition(Vec3d.ofCenter(p.near()).add(0,0,-2));shot.setVelocity(0,0,3);c.getWorld().spawnEntity(shot);
         c.waitAndRun(5,()->{c.assertTrue(!linked(c,p),"activation comes from the fired weapon, not the current hand");player.discard();c.complete();});
     }
-    @GameTest(templateName=EMPTY_STRUCTURE)
+    @GameTest(templateName="drmd:portal_lab")
     public void fusionDoesNotLinkThroughWallsOrWithoutModificationPermission(TestContext c) {
         var p=pair(c,true);var player=player(c,p);var w=c.getWorld();
         w.setBlockState(p.near().north(3),Blocks.STONE.getDefaultState(),2);
@@ -135,7 +135,7 @@ public final class FusionPortalGameTests implements FabricGameTest {
         c.assertTrue(!FusionPortalActivation.activate(w,p.near(),Direction.NORTH,player) && !linked(c,p),"adventure permissions are respected");
         player.getAbilities().allowModifyWorld=true;player.discard();c.complete();
     }
-    @GameTest(templateName=EMPTY_STRUCTURE)
+    @GameTest(templateName="drmd:portal_lab")
     public void legacyKeyDoesNotActivateOrConsumeItself(TestContext c) {
         var p=pair(c,false);var player=player(c,p);var key=new ItemStack(ModWorldBlocks.MIRROR_LINKER_SAME_DIMENSION);
         player.setStackInHand(Hand.MAIN_HAND,key);
@@ -143,7 +143,7 @@ public final class FusionPortalGameTests implements FabricGameTest {
         key.getItem().useOnBlock(use);
         c.assertTrue(!linked(c,p) && key.getCount()==1,"legacy keys remain inert and are not consumed");player.discard();c.complete();
     }
-    @GameTest(templateName=EMPTY_STRUCTURE)
+    @GameTest(templateName="drmd:portal_lab")
     public void fusionRequiresTheFrontFaceAndRepeatedActivationIsIdempotent(TestContext c) {
         var p=pair(c,true);var player=player(c,p);var w=c.getWorld();
         c.assertTrue(!FusionPortalActivation.activate(w,p.near(),Direction.SOUTH,player) && !linked(c,p),"back face is not an activation target");
