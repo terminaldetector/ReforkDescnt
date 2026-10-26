@@ -11,5 +11,5 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameRenderer.class)
 public class AuditFrameProbe {
     @Inject(method="render",at=@At("RETURN"))
-    private void auditFrame(RenderTickCounter counter,boolean tick,CallbackInfo ci) {com.terminaldetector.drmd.AuditSwarmProfile.frameFinished();AuditRenderCheck.rendered();}
+    private void auditFrame(RenderTickCounter counter,boolean tick,CallbackInfo ci) {com.terminaldetector.drmd.AuditSwarmProfile.frameFinished();AuditRenderCheck.rendered();com.terminaldetector.drmd.RepairVisualCheck.rendered();}
 }

@@ -23,7 +23,8 @@ public final class BlockBodyRenderer extends EntityRenderer<BlockBodyEntity> {
         matrices.translate(-centre.x(), -centre.y(), -centre.z());
         for (var cell : body.cells()) {
             matrices.push(); matrices.translate(cell.pos().getX(), cell.pos().getY(), cell.pos().getZ());
-            MinecraftClient.getInstance().getBlockRenderManager().renderBlockAsEntity(
+            if(body.surface(cell)!=null) SmoothBodySurface.render(body,cell,matrices,consumers,light);
+            else MinecraftClient.getInstance().getBlockRenderManager().renderBlockAsEntity(
                 cell.state(), matrices, consumers, light, OverlayTexture.DEFAULT_UV);
             matrices.pop();
         }

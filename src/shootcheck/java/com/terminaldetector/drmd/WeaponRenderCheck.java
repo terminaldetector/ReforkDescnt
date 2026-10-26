@@ -72,6 +72,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     }
 
     @Override public void onInitializeClient() {
+        if("1".equals(System.getenv("DRMD_HORIZON_CHECK"))) { HorizonAnchorCheck.register();return; }
         ClientTickEvents.END_CLIENT_TICK.register(this::tick);
         WorldRenderEvents.START.register(context -> {
             if (com.terminaldetector.drmd.client.portal.OffscreenWorldView.depth() == 0) renderFrame++;

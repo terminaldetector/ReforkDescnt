@@ -9,6 +9,19 @@ import java.util.*;
 /** Bounded support-cut adapter for a single trunk or freestanding one-block-wide column. */
 public final class StructureCollapse {
     private StructureCollapse() {}
+    /** Vanilla already decided which blocks this blast may destroy. Do not scan or load terrain. */
+    public static void explosion(ServerWorld world,List<BlockPos> affected,Vec3d centre,float power) {
+        if(!Float.isFinite(power) || power<=0 || !com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(world))return;
+        var ordered=new ArrayList<>(affected);ordered.sort(Comparator.comparingInt(BlockPos::getY));
+        int bodies=0;
+        for(var p:ordered) {
+            if(bodies>=4)break;
+            if(!world.isChunkLoaded(p) || !world.getBlockState(p).isIn(BlockTags.LOGS))continue;
+            Vec3d direction=Vec3d.ofCenter(p).subtract(centre);
+            if(direction.lengthSquared()<1e-6)direction=new Vec3d(1,0,0);
+            if(rocketCut(world,p,centre,direction,(float)(power*24))!=null)bodies++;
+        }
+    }
     public static BlockBodyEntity rocketCut(ServerWorld world,BlockPos root,Vec3d impact,Vec3d direction,float damage) {
         if(!com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(world))return null;
         if(!world.isChunkLoaded(root) || world.isOutOfHeightLimit(root))return null;
@@ -34,6 +47,26 @@ public final class StructureCollapse {
             var state=world.getBlockState(q);
             if(state.isIn(BlockTags.LOGS) && (q.getX()!=root.getX() || q.getZ()!=root.getZ()))return null;
             if(state.isIn(BlockTags.LEAVES))selected.put(q.toImmutable(),state);
+        }
+        // Follow the canopy beyond the old 5x5 top box. Reject oversized/foreign trunks
+        // before mutation instead of silently leaving a floating half-tree behind.
+        if(tree) {
+            var queue=new ArrayDeque<BlockPos>(selected.keySet());
+            var visited=new HashSet<BlockPos>(selected.keySet());visited.add(root);
+            while(!queue.isEmpty()) {
+                var p=queue.removeFirst();
+                for(var d:Direction.values()) {
+                    var q=p.offset(d);
+                    if(!visited.add(q))continue;
+                    if(!world.isChunkLoaded(q) || world.isOutOfHeightLimit(q))return null;
+                    var state=world.getBlockState(q);
+                    if(!state.isIn(BlockTags.LEAVES) && !state.isIn(BlockTags.LOGS))continue;
+                    if(state.isIn(BlockTags.LOGS) && q.getY()<=root.getY())return null;
+                    if(Math.abs(q.getX()-root.getX())>7 || Math.abs(q.getZ()-root.getZ())>7
+                        || q.getY()<=root.getY() || q.getY()>root.getY()+15 || selected.size()>=256)return null;
+                    selected.put(q,state);queue.addLast(q);
+                }
+            }
         }
         try {
             var body=BlockBodyEntity.assembleSelection(world,selected);

@@ -9,6 +9,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Exercises {@link HorizonGrid} directly — pure geometry, mirrors the {@code SkirtGeometryTest} idiom. */
 class HorizonGridTest {
+    @Test void lodPitchesStayNestedAndStableDuringSmallAltitudeChanges() {
+        for(double radius:new double[]{256,512,1024,2048,4096,8192}) {
+            int cell=HorizonGrid.cellSizeFor(radius,1800);
+            assertEquals(1,Integer.bitCount(cell));
+            assertEquals(cell,HorizonGrid.cellSizeFor(radius,1800.1));
+        }
+        assertTrue(HorizonGrid.cellSizeFor(2048,2000)<=64,"kilometre views need detail beyond the old 94-block cells");
+        assertEquals(MAX_RADIUS,HorizonGrid.plan(0,MAX_RADIUS,2000).outer());
+    }
 	private static final double MAX_RADIUS = 8_192.0;
 
 	@Test

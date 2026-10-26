@@ -78,7 +78,7 @@ public final class DescentConfig {
 	 * this is the first feature in the project where passing CI says nothing about whether it works.
 	 * Off means mirrors behave exactly as before (bounce lasers, nothing else).
 	 */
-	public static boolean mirrorReflection = false;
+	public static boolean mirrorReflection = true;
 
 	/**
 	 * Draw the far side of a linked portal on its face, instead of the block's own texture.
@@ -90,7 +90,7 @@ public final class DescentConfig {
 	 * <p>Off by default for the same reason, and worth stating together: with both on, a frame can pay
 	 * for four extra world renders. The per-frame caps, not the distance gates, are what bound that.
 	 */
-	public static boolean portalSeeThrough = false;
+	public static boolean portalSeeThrough = true;
 
 	private static final String FILE = DescentMod.MOD_ID + ".properties";
 	private static boolean loaded;

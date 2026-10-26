@@ -85,7 +85,7 @@ public final class HybridMesh {
             }
             for (int v=0;v<4;v++) for (int u=0;u<4;u++) if (visible[v][u]) {
                 int width=1,height=1;
-                if (!self.organic) {
+                if (!self.organic || planar(d,slice)) {
                     while (u+width<4 && visible[v][u+width]) width++;
                     outer: while (v+height<4) {
                         for (int i=0;i<width;i++) if (!visible[v+height][u+i]) break outer;
@@ -108,6 +108,23 @@ public final class HybridMesh {
             }
         }
         return List.copyOf(out);
+    }
+
+    /** Flat slopes and intact ground need one quad, not sixteen identical planar patches. */
+    private boolean planar(int direction,int slice) {
+        int plane=slice+(direction%2==1?1:0);
+        Point a=facePoint(direction,plane,0,0),b=facePoint(direction,plane,4,0),c=facePoint(direction,plane,0,4);
+        double ux=b.x-a.x,uy=b.y-a.y,uz=b.z-a.z,vx=c.x-a.x,vy=c.y-a.y,vz=c.z-a.z;
+        double nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
+        if(nx*nx+ny*ny+nz*nz<1e-16)return false;
+        for(int v=0;v<=4;v++)for(int u=0;u<=4;u++) {
+            Point p=facePoint(direction,plane,u,v);
+            if(Math.abs(nx*(p.x-a.x)+ny*(p.y-a.y)+nz*(p.z-a.z))>1e-10)return false;
+        }
+        return true;
+    }
+    private Point facePoint(int d,int plane,int u,int v) {
+        return d<2?vertex(u,plane,v):d<4?vertex(u,v,plane):vertex(plane,v,u);
     }
 
     /** Conservative cell AABBs of the same warped volume; not exact triangle collision. */

@@ -29,6 +29,8 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private static final double MAX_ANGULAR_SPEED = 2;
     private D6Volume<BlockState> volume = new D6Volume<>(Blocks.AIR.getDefaultState());
     private List<Cell> cells = List.of();
+    private Map<BlockPos,com.terminaldetector.drmd.world.geometry.HybridMesh> surfaces=Map.of();
+    public com.terminaldetector.drmd.world.geometry.HybridMesh surface(Cell cell) {return surfaces.get(cell.pos());}
     private Vec3 centre = new Vec3(0, 0, 0);
     private final D6PhysicsBody body = new D6PhysicsBody().withLimits(MAX_LINEAR_SPEED, MAX_ANGULAR_SPEED);
     private Quat previousRotation = Quat.IDENTITY;
@@ -73,6 +75,20 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             }
         }
         cells = List.copyOf(next); centre = mass.centreOfMass(); body.withMassProperties(mass);
+        var meshes=new HashMap<BlockPos,com.terminaldetector.drmd.world.geometry.HybridMesh>();
+        for(var cell:cells) if(com.terminaldetector.drmd.world.geometry.NaturalGeometry.applies(cell.state())) {
+            var neighbours=new ArrayList<com.terminaldetector.drmd.world.geometry.HybridMesh.Block>(27);
+            for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++)for(int x=-1;x<=1;x++) {
+                var state=volume.get(cell.pos().getX()+x,cell.pos().getY()+y,cell.pos().getZ()+z);
+                boolean natural=com.terminaldetector.drmd.world.geometry.NaturalGeometry.applies(state);
+                neighbours.add(state.isAir()?com.terminaldetector.drmd.world.geometry.HybridMesh.Block.AIR:
+                    new com.terminaldetector.drmd.world.geometry.HybridMesh.Block(-1L,natural,!natural,
+                        state.isOpaque() || state.equals(cell.state())));
+            }
+            meshes.put(cell.pos(),new com.terminaldetector.drmd.world.geometry.HybridMesh(
+                new com.terminaldetector.drmd.world.geometry.HybridMesh.Neighbourhood(neighbours)));
+        }
+        surfaces=Map.copyOf(meshes);
         int minX=Integer.MAX_VALUE,minY=Integer.MAX_VALUE,minZ=Integer.MAX_VALUE;
         int maxX=Integer.MIN_VALUE,maxY=Integer.MIN_VALUE,maxZ=Integer.MIN_VALUE;
         for(Cell c:cells) {
@@ -175,7 +191,10 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             original.forEach((p, state) -> world.setBlockState(p, state, Block.NOTIFY_LISTENERS));
             entity.discard(); throw failure;
         }
-        original.forEach((p, state) -> world.updateNeighbors(p, state.getBlock()));
+        original.forEach((p, state) -> {
+            world.updateNeighbors(p, state.getBlock());
+            com.terminaldetector.drmd.world.store.SurfaceIngest.onGroundChanged(world,p);
+        });
         return entity;
     }
     /** Snap to the nearest of the donor's 24 proper cube rotations. No reflections. */
@@ -206,7 +225,10 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             throw failure;
         }
         discard();
-        target.forEach((p, state) -> world.updateNeighbors(p, state.getBlock()));
+        target.forEach((p, state) -> {
+            world.updateNeighbors(p, state.getBlock());
+            com.terminaldetector.drmd.world.store.SurfaceIngest.onGroundChanged(world,p);
+        });
     }
     @Override public void tick() {
         super.tick();
@@ -250,8 +272,11 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
 
     private List<Vec3> corners(Cell cell,Vec3 position,Quat rotation) {
         var result=new ArrayList<Vec3>(8);
-        for(int x=0;x<=1;x++)for(int y=0;y<=1;y++)for(int z=0;z<=1;z++)
-            result.add(rotation.rotate(new Vec3(cell.pos.getX()+x,cell.pos.getY()+y,cell.pos.getZ()+z).minus(centre)).plus(position));
+        var mesh=surface(cell);
+        for(int x=0;x<=1;x++)for(int y=0;y<=1;y++)for(int z=0;z<=1;z++) {
+            var p=mesh==null?new com.terminaldetector.drmd.world.geometry.HybridMesh.Point(x,y,z):mesh.vertex(x*4,y*4,z*4);
+            result.add(rotation.rotate(new Vec3(cell.pos.getX()+p.x(),cell.pos.getY()+p.y(),cell.pos.getZ()+p.z()).minus(centre)).plus(position));
+        }
         return result;
     }
     /**
@@ -365,8 +390,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     private Box box(Cell cell) {
         double minX=Double.POSITIVE_INFINITY,minY=minX,minZ=minX,maxX=-minX,maxY=-minX,maxZ=-minX;
-        for (int x=0;x<=1;x++) for (int y=0;y<=1;y++) for (int z=0;z<=1;z++) {
-            Vec3 p=body.rotation().rotate(new Vec3(cell.pos.getX()+x,cell.pos.getY()+y,cell.pos.getZ()+z).minus(centre)).plus(body.position());
+        for (Vec3 p:corners(cell,body.position(),body.rotation())) {
             minX=Math.min(minX,p.x());minY=Math.min(minY,p.y());minZ=Math.min(minZ,p.z());
             maxX=Math.max(maxX,p.x());maxY=Math.max(maxY,p.y());maxZ=Math.max(maxZ,p.z());
         }

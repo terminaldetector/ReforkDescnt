@@ -76,6 +76,11 @@ public class PortalPanelBlock extends BlockWithEntity {
 	}
 
 	@Override
+	protected net.minecraft.block.BlockRenderType getRenderType(BlockState state) {
+		return net.minecraft.block.BlockRenderType.MODEL;
+	}
+
+	@Override
 	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
 		builder.add(FACING, LINKED);
 	}
@@ -89,13 +94,13 @@ public class PortalPanelBlock extends BlockWithEntity {
 	@Override
 	protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
 		return switch (state.get(FACING)) {
-			case DOWN -> VoxelShapes.cuboid(0.0, 0.9, 0.0, 1.0, 1.0, 1.0);
-			case UP -> VoxelShapes.cuboid(0.0, 0.0, 0.0, 1.0, 0.1, 1.0);
-			case NORTH -> VoxelShapes.cuboid(0.0, 0.0, 0.9, 1.0, 1.0, 1.0);
-			case SOUTH -> VoxelShapes.cuboid(0.0, 0.0, 0.0, 1.0, 1.0, 0.1);
-			case WEST -> VoxelShapes.cuboid(0.9, 0.0, 0.0, 1.0, 1.0, 1.0);
-			case EAST -> VoxelShapes.cuboid(0.0, 0.0, 0.0, 0.1, 1.0, 1.0);
-		};
+            case DOWN -> VoxelShapes.cuboid(-1.5,0,-1.5,2.5,.1,2.5);
+            case UP -> VoxelShapes.cuboid(-1.5,.9,-1.5,2.5,1,2.5);
+            case NORTH -> VoxelShapes.cuboid(-1.5,-1.5,0,2.5,2.5,.1);
+            case SOUTH -> VoxelShapes.cuboid(-1.5,-1.5,.9,2.5,2.5,1);
+            case WEST -> VoxelShapes.cuboid(0,-1.5,-1.5,.1,2.5,2.5);
+            case EAST -> VoxelShapes.cuboid(.9,-1.5,-1.5,1,2.5,2.5);
+        };
 	}
 
 	/**

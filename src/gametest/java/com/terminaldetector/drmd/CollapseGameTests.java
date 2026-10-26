@@ -10,6 +10,23 @@ import net.minecraft.util.math.*;
 
 public final class CollapseGameTests implements FabricGameTest {
     @GameTest(templateName="drmd:collapse_lab",tickLimit=400)
+    public void vanillaExplosionFellsTreeAndPreservesItsSmoothCanopy(TestContext ctx) {
+        var world=ctx.getWorld();var root=ctx.getAbsolutePos(new BlockPos(12,3,12));
+        for(var p:BlockPos.iterate(root.add(-5,-1,-5),root.add(5,9,5)))world.setBlockState(p,Blocks.AIR.getDefaultState());
+        for(int y=0;y<6;y++)world.setBlockState(root.up(y),Blocks.OAK_LOG.getDefaultState());
+        for(var p:BlockPos.iterate(root.add(-2,4,-2),root.add(2,6,2)))
+            if(world.getBlockState(p).isAir())world.setBlockState(p,Blocks.OAK_LEAVES.getDefaultState());
+        world.createExplosion(null,root.getX()+1.5,root.getY()+.5,root.getZ()+.5,4,net.minecraft.world.World.ExplosionSourceType.TNT);
+        var bodies=world.getEntitiesByClass(BlockBodyEntity.class,new Box(root).expand(16),e->e.physicsGravity());
+        ctx.assertTrue(bodies.size()==1,"vanilla explosion creates one falling tree");
+        var tree=bodies.getFirst();
+        ctx.assertTrue(tree.cells().stream().anyMatch(c->c.state().isIn(net.minecraft.registry.tag.BlockTags.LEAVES)),"canopy stays on physical tree");
+        ctx.assertTrue(tree.cells().stream().allMatch(c->tree.surface(c)!=null),"cached smoothed mesh moves with the tree");
+        double oldY=tree.getY();for(int i=0;i<12;i++)tree.tick();
+        ctx.assertTrue(tree.getY()<oldY,"tree falls under physical gravity");
+        tree.discard();ctx.complete();
+    }
+    @GameTest(templateName="drmd:collapse_lab",tickLimit=400)
     public void actualRocketCutsColumnAndGravityTipsItOntoFloor(TestContext ctx) {
         var world=ctx.getWorld();var root=ctx.getAbsolutePos(new BlockPos(12,2,12));
         for(BlockPos p:BlockPos.iterate(root.add(-7,-1,-7),root.add(7,12,10)))world.setBlockState(p,

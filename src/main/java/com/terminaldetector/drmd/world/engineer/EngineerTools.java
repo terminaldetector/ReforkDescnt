@@ -196,7 +196,7 @@ public final class EngineerTools {
 					: BlockPos.ofFloored(eye.add(dir.multiply(2.5)));
 			int radius = player.isSneaking() ? 3 : 2;
 			int length = player.isSneaking() ? 5 : 3;
-			int carved = WeaponFx.drillTunnel(sw, origin, dir, player, radius, length);
+			int carved = WeaponFx.drillTunnel(sw, origin, dir, player, radius, length,true);
 			if (carved > 0) {
 				player.sendMessage(Text.literal("§6Tunnel bore §f" + carved + " §7blocks"), true);
 			}

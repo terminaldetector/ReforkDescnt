@@ -33,7 +33,7 @@ class HybridMeshTest {
     }
     @Test void flatGroundRemainsFlatAndHasNoInternalFaces() {
         var m=mesh((x,y,z)->y<=0?SOFT:HybridMesh.Block.AIR,0,0,0);
-        assertEquals(16,m.faces().size());
+        assertEquals(1,m.faces().size(),"flat natural ground is merged rather than multiplying every face sixteen-fold");
         for(var f:m.faces()) {
             assertEquals(1,f.direction());
             for(var v:f.vertices()) assertEquals(1,v.position().y(),1e-12);
@@ -54,7 +54,12 @@ class HybridMeshTest {
         var centre=m.vertex(2,1,1);
         double tx=.5,ty=centre.y()+.0625,tz=centre.z()+.0625;
         assertFalse(m.collisionBounds().stream().anyMatch(b -> tx>b.minX()&&tx<b.maxX()&&ty>b.minY()&&ty<b.maxY()&&tz>b.minZ()&&tz<b.maxZ()));
-        assertTrue(m.faces().size()>96,"the cut has real interior faces");
+        for(int direction:new int[]{0,1,2,3}) {
+            double plane=direction%2==0?.5:.25;
+            assertTrue(m.faces().stream().anyMatch(f->f.direction()==direction && f.vertices().stream().allMatch(v->
+                Math.abs((direction<2?v.texturePosition().y():v.texturePosition().z())-plane)<1e-12)),
+                "the cut retains its actual interior wall in direction "+direction);
+        }
     }
     @Test void sharedVerticesMatchAcrossAllAxesAndNegativeSectionBoundaries() {
         Random random=new Random(71329);

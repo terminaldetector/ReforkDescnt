@@ -251,6 +251,10 @@ public final class WeaponFx {
 	 */
 	public static int drillTunnel(ServerWorld world, BlockPos origin, Vec3d dir,
 								  LivingEntity breaker, int radius, int length) {
+        return drillTunnel(world,origin,dir,breaker,radius,length,false);
+    }
+    public static int drillTunnel(ServerWorld world,BlockPos origin,Vec3d dir,
+            LivingEntity breaker,int radius,int length,boolean compactDrops) {
 		Vec3d n = dir.lengthSquared() < 1e-6 ? new Vec3d(0, 0, 1) : dir.normalize();
 		int r = MathHelper.clamp(radius, 1, 4);
 		int len = MathHelper.clamp(length, 1, 12);
@@ -264,7 +268,7 @@ public final class WeaponFx {
 		Vec3d segStart = Vec3d.ofCenter(origin);
 		Vec3d segEnd = segStart.add(n.multiply(len - 1));
 		int carved = com.terminaldetector.drmd.world.micro.TunnelCarving.carveCapsule(
-				world, segStart, segEnd, r, breaker);
+				world, segStart, segEnd, r, breaker,compactDrops);
 
 		for (int step = 0; step < len; step++) {
 			if (step % 2 != 0) continue;

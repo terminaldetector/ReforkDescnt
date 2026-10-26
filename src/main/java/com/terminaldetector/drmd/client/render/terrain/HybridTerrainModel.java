@@ -34,7 +34,9 @@ public final class HybridTerrainModel extends ForwardingBakedModel {
 
     public static void register() {
         ModelLoadingPlugin.register(plugin -> plugin.modifyModelAfterBake().register((model,context) ->
-            (MODEL.equals(context.resourceId()) || context.resourceId()!=null && context.resourceId().getNamespace().equals("drmd") && context.resourceId().getPath().startsWith("block/organic_")) && model!=null ? new HybridTerrainModel(model) : model));
+            (MODEL.equals(context.resourceId()) || context.resourceId()!=null && context.resourceId().getNamespace().equals("drmd") && context.resourceId().getPath().startsWith("block/organic_")
+                || context.topLevelId()!=null && !context.topLevelId().getVariant().equals("inventory"))
+                && model!=null && !(model instanceof HybridTerrainModel) ? new HybridTerrainModel(model) : model));
     }
     @Override public boolean isVanillaAdapter() { return false; }
     @Override public boolean isBuiltin() { return false; }
@@ -43,10 +45,26 @@ public final class HybridTerrainModel extends ForwardingBakedModel {
     @Override
     public void emitBlockQuads(BlockRenderView world, BlockState state, BlockPos pos,
             Supplier<Random> random, RenderContext context) {
+        if(state.getBlock() instanceof com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock) {
+            var axis=state.get(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.FACING).getAxis();
+            context.pushTransform(quad->{
+                for(int i=0;i<4;i++)quad.pos(i,
+                    axis==Direction.Axis.X?quad.x(i):.5f+(quad.x(i)-.5f)*4,
+                    axis==Direction.Axis.Y?quad.y(i):.5f+(quad.y(i)-.5f)*4,
+                    axis==Direction.Axis.Z?quad.z(i):.5f+(quad.z(i)-.5f)*4);
+                quad.cullFace(null);return true;
+            });
+            super.emitBlockQuads(world,state,pos,random,context);context.popTransform();return;
+        }
         Object attachment=world.getBlockEntityRenderData(pos);
+        boolean natural=com.terminaldetector.drmd.world.geometry.NaturalGeometry.applies(state);
+        if(!natural && !(state.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock)
+                && !(attachment instanceof HybridTerrain.Data)) {
+            super.emitBlockQuads(world,state,pos,random,context);return;
+        }
         HybridTerrain.Data data=state.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock organic ?
             new HybridTerrain.Data(organic.source(),MicroGrid.FULL,true) : attachment instanceof HybridTerrain.Data d ? d :
-            new HybridTerrain.Data(Blocks.STONE.getDefaultState(),MicroGrid.FULL,false);
+            new HybridTerrain.Data(state,MicroGrid.FULL,natural);
         if (data.mask()==0) return;
         MinecraftClient client=MinecraftClient.getInstance();
         BakedModel source=client.getBlockRenderManager().getModel(data.source());

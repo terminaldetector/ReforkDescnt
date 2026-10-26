@@ -91,7 +91,8 @@ public final class PlanetFloorRenderer {
 		// 26ms of one — see PlanetClientState.mesh.
 		if (mesh == null || mesh.quads == 0) return;
 
-		Matrix4f mat = new Matrix4f(ctx.matrixStack().peek().getPositionMatrix());
+		// In 1.21 the object stack is local; positionMatrix is the terrain view, including camera rotation.
+		Matrix4f mat = new Matrix4f(ctx.positionMatrix());
         // The shader receives source-space parallax and compresses around this frame's eye.
         // Translating already-compressed vertices was not the same projection and made the
         // terrain swing/crawl between rebuilds, especially during fast lateral flight.

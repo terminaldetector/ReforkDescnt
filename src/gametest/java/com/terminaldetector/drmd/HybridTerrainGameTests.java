@@ -11,6 +11,23 @@ import net.minecraft.util.math.Vec3d;
 
 public class HybridTerrainGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE)
+    public void ordinaryGroundAndTreesShareSmoothCollisionWithoutReplacingStates(TestContext ctx) {
+        var world=ctx.getWorld();var p=ctx.getAbsolutePos(new BlockPos(2,4,2));
+        for(BlockPos q:BlockPos.iterate(p.add(-1,-1,-1),p.add(1,1,1)))world.setBlockState(q,Blocks.AIR.getDefaultState());
+        for(var block:new net.minecraft.block.Block[]{Blocks.GRASS_BLOCK,Blocks.OAK_LOG,Blocks.OAK_LEAVES}) {
+            var state=block.getDefaultState();world.setBlockState(p,state);
+            var collision=state.getCollisionShape(world,p).getBoundingBox();
+            ctx.assertTrue(collision.minX>.1 && collision.maxX<.9,"ordinary natural block is smoothed: "+block);
+            ctx.assertTrue(state.getOutlineShape(world,p).getBoundingBox().equals(collision),"picking uses the same surface");
+            ctx.assertTrue(world.getBlockState(p).equals(state) && world.getBlockEntity(p)==null,"preserve vanilla identity and properties");
+        }
+        world.setBlockState(p,Blocks.OAK_PLANKS.getDefaultState());
+        ctx.assertTrue(world.getBlockState(p).getCollisionShape(world,p).getBoundingBox().minX==0,"authored planks stay rigid");
+        world.setBlockState(p,Blocks.STONE.getDefaultState());BlockDamage.hit(world,p,Vec3d.ofCenter(p).add(.4,0,0),12);
+        ctx.assertTrue(world.getBlockEntity(p) instanceof CarvedBlockEntity c && c.organic(),"damaged natural terrain retains smoothing");
+        ctx.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE)
     public void explicitOrganicModePreservesMaterialMaskAndSave(TestContext ctx) {
         var world=ctx.getWorld();var p=ctx.getAbsolutePos(new BlockPos(2,4,2));
         world.setBlockState(p,Blocks.STONE.getDefaultState());

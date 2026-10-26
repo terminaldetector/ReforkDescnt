@@ -10,5 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value=HorizonVertexBuffer.class,remap=false)
 public class AuditHorizonProbe {
     @Inject(method="draw",at=@At("HEAD"),remap=false)
-    private static void auditDraw(Matrix4f matrix,CallbackInfo ci) {AuditRenderCheck.horizonDrawn();}
+    private static void auditDraw(Matrix4f matrix,CallbackInfo ci) {
+        AuditRenderCheck.horizonDrawn();com.terminaldetector.drmd.HorizonAnchorCheck.drawn(matrix);
+    }
 }

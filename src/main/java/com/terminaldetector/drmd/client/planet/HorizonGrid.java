@@ -34,7 +34,7 @@ public final class HorizonGrid {
 	 * 10 (≈5.7°), now 12 (≈4.8°). Each step costs the square of itself in cells, which is why it moves
 	 * in steps rather than straight to the answer.
 	 */
-	public static final double CELLS_PER_RADIUS = 12.0;
+	public static final double CELLS_PER_RADIUS = 16.0;
 	/** Each ring reaches this many times further than the one inside it. */
 	public static final double RING_GROWTH = 1.8;
 	/** Finest cell, so the field never dissolves into tens of thousands of tiny columns underfoot. */
@@ -82,7 +82,8 @@ public final class HorizonGrid {
 	/** Cell edge length, in blocks, for a ring whose inner radius is {@code ringRadius}. */
 	public static int cellSizeFor(double ringRadius, double drop) {
 		double size = ringRadius / (CELLS_PER_RADIUS * refineForDrop(drop));
-		return (int) Math.max(MIN_CELL, size);
+		// Nested, world-aligned pitches remain stable across small altitude changes.
+		return Math.max(MIN_CELL, Integer.highestOneBit((int) Math.max(MIN_CELL, size)));
 	}
 
 	/**

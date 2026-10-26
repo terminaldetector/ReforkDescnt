@@ -28,6 +28,8 @@ public final class HybridTerrain {
                     boolean hides=data.source.isOpaque() || data.source.equals(self.source);
                     blocks.add(new HybridMesh.Block(data.mask,data.organic,!data.organic && data.mask!=0,hides));
                 } else blocks.add(new HybridMesh.Block(MicroGrid.FULL,false,true,true));
+            } else if (NaturalGeometry.applies(state)) {
+                blocks.add(new HybridMesh.Block(MicroGrid.FULL,true,false,state.isOpaque() || state.equals(self.source)));
             } else if (state.isAir()) blocks.add(HybridMesh.Block.AIR);
             else {
                 boolean full=state.isFullCube(world,p);

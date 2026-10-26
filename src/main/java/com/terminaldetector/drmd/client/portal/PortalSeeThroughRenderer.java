@@ -173,7 +173,7 @@ public final class PortalSeeThroughRenderer {
 				portal.planePoint().y - cameraPos.y,
 				portal.planePoint().z - cameraPos.z);
 		PortalTransform.Vec3[] corners =
-				MirrorScreenBounds.faceCorners(centre, toPure(portal.normal()), portal.faceSize());
+				MirrorScreenBounds.faceCorners(centre, toPure(portal.normal()), portal.faceSize()*0.75);
 
 		return MirrorScreenBounds.project(corners, m,
 				MirrorFramebuffer.width(), MirrorFramebuffer.height(), SCISSOR_PAD);

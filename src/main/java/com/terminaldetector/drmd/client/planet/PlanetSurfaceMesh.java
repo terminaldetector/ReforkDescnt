@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The distant world as voxels: a heightfield of columns, with the things built on it standing up
+ * The distant world as a continuous heightfield, with the things built on it standing up
  * out of that field.
  *
  * <p>The old flight-simulator trick rather than a mesh of real terrain — sample a height per cell,
@@ -32,38 +32,14 @@ import java.util.Set;
  * this replaces rebuilt up to ten thousand boxes on the render thread every frame.
  */
 public final class PlanetSurfaceMesh {
-	/**
-	 * Hard ceiling on geometry, whatever the rings ask for.
-	 *
-	 * <p>Sized against {@link HorizonGrid}'s own worst case rather than picked round: at the current
-	 * constants the grid tops out near 19,100 cells at full altitude refinement (measured by
-	 * {@code HorizonGridTest}'s own disc-area count, the same estimate this number is derived from),
-	 * and a cell emits a top plus up to four skirts — about 95,000 quads. Generous on purpose: running
-	 * out mid-plan drops the <em>outermost</em> rings, so the failure mode of a too-small budget is the
-	 * far horizon vanishing, which is worse than the blockiness this set out to fix.
-	 *
-	 * <p>It has grown with each step of the grid: 18,000 for the original seven-cells-per-radius field
-	 * (barely 650 columns from altitude), 36,000 at ten, and this at twelve with 1.8x altitude
-	 * refinement. The step was affordable only once the field stopped being re-sent every frame — see
-	 * {@code HorizonVertexBuffer}.
-	 */
-	private static final int MAX_QUADS = 110_000;
+	/** Bounded allocation; fine world-aligned rings emit one sloped quad per cell. */
+    private static final int MAX_QUADS = 160_000;
 	/** Landmarks drawn, nearest first — the rest are too far apart to tell from terrain. */
 	private static final int MAX_LANDMARKS = 96;
 	/** How far the ship may drift from the build origin before the field is rebuilt. */
 	private static final double ORIGIN_SLACK = 64.0;
 	/** And how far it may climb, since the compression is measured from the eye. */
 	private static final double ALTITUDE_SLACK = 48.0;
-	/**
-	 * How deep a ring-to-ring seam skirt drops, unconditionally, to guarantee no gap shows through a
-	 * misaligned LOD boundary regardless of what the far side's grid actually looks like. Comfortably
-	 * exceeds {@code PlanetMap.height()}'s own confirmed range (worked out from its fbm construction:
-	 * roughly Y 28 at the deepest ocean shelf to Y 259 at the tallest ridge, a ~231-block span) with
-	 * margin left over for observed/player-modified terrain via {@code SurfaceStore}, which isn't bounded
-	 * by the procedural formula at all. A taller quad costs nothing extra to render, so erring generous
-	 * here is free.
-	 */
-	private static final double SEAM_SKIRT_DROP = 320.0;
 
 	/** Positions are true world offsets from the build origin; compressed by the shader each frame — see {@link HorizonProjection}. */
 	public final float[] positions;
@@ -186,7 +162,9 @@ public final class PlanetSurfaceMesh {
 					double mx = centreX - camX;
 					double mz = centreZ - camZ;
 					double d2 = mx * mx + mz * mz;
-					if (d2 < inner2 || d2 >= outer2) continue;
+					// Cover cells intersecting either ring boundary; overlap closes T-junction gaps.
+                    double distance=Math.sqrt(d2), halfDiagonal=cell*Math.sqrt(.5);
+                    if (distance+halfDiagonal < ringInner || distance-halfDiagonal >= ringOuter) continue;
 
 					// What was actually seen wins over what the seed predicts. Where nobody has been,
 					// the procedural map fills in — so the horizon is never a hole, and the parts of
@@ -209,75 +187,12 @@ public final class PlanetSurfaceMesh {
 					double x1 = x0 + cell;
 					double z1 = z0 + cell;
 
-					quad(x0, top, z0, x1, top, z0, x1, top, z1, x0, top, z1, argb(rgb, 1f, alpha));
+					// A continuous heightfield, not one horizontal box top per cell. Shared
+                    // world corners sample the same heights across rebuilds and ring pitches.
+                    double y00 = surfaceHeight(x0,z0), y10 = surfaceHeight(x1,z0);
+                    double y11 = surfaceHeight(x1,z1), y01 = surfaceHeight(x0,z1);
+                    quad(x0,y00,z0,x1,y10,z0,x1,y11,z1,x0,y01,z1,argb(rgb,1f,alpha));
 
-					int side = argb(rgb, 0.68f, alpha);
-
-					// Ring-to-ring seam skirts: each ring plans its own independent grid pitch (see
-					// build()'s ring-planning loop), so a cell right at a ring boundary is generally
-					// phase-misaligned with its counterpart in the neighbouring ring — a classic LOD
-					// T-junction crack, not a height-difference problem. Unlike the same-ring skirts
-					// below, this runs regardless of water (a coverage gap hides whatever is behind it
-					// the same way over flat sea or dry land) and is unconditional rather than
-					// height-gated (a differently-phased neighbour grid cannot be trusted to reciprocate).
-					// Suppressed at the two edges that are deliberately alpha-handled instead of seamed:
-					// ring 0's own inner edge (ringInner <= inner — exact, both trace to the same
-					// innerRadius parameter — the real-chunk join, already ramped in alphaAt, no hard
-					// skirt wanted there) and the outermost ring's outer edge (ringOuter >= fieldOuter,
-					// exact by the same reasoning — fades to alpha 0 into haze, nothing to seam against).
-					// Both sides of every remaining seam draw, deliberately redundant: a single-sided
-					// wall cannot be proven gap-free at every viewing angle.
-					boolean nearRingInner = ringInner <= inner;
-					boolean nearRingOuter = ringOuter >= fieldOuter;
-					double seamBottom = top - SEAM_SKIRT_DROP;
-					double d2xPos = distSquared(centreX + cell, centreZ);
-					if ((d2xPos < inner2 && !nearRingInner) || (d2xPos >= outer2 && !nearRingOuter)) {
-						quad(x1, top, z0, x1, seamBottom, z0, x1, seamBottom, z1, x1, top, z1, side);
-					}
-					double d2xNeg = distSquared(centreX - cell, centreZ);
-					if ((d2xNeg < inner2 && !nearRingInner) || (d2xNeg >= outer2 && !nearRingOuter)) {
-						quad(x0, top, z0, x0, seamBottom, z0, x0, seamBottom, z1, x0, top, z1, side);
-					}
-					double d2zPos = distSquared(centreX, centreZ + cell);
-					if ((d2zPos < inner2 && !nearRingInner) || (d2zPos >= outer2 && !nearRingOuter)) {
-						quad(x0, top, z1, x0, seamBottom, z1, x1, seamBottom, z1, x1, top, z1, side);
-					}
-					double d2zNeg = distSquared(centreX, centreZ - cell);
-					if ((d2zNeg < inner2 && !nearRingInner) || (d2zNeg >= outer2 && !nearRingOuter)) {
-						quad(x0, top, z0, x0, seamBottom, z0, x1, seamBottom, z0, x1, top, z0, side);
-					}
-
-					if (water) continue; // the sea is flat; a skirt on it reads as a wall
-
-					// Skirts toward all 4 neighbours: whichever side of a shared edge is higher owns the
-					// wall down to its lower neighbour (SkirtGeometry.drawsSkirt is strict, so exactly
-					// one side ever fires, never both, never neither on a real step). The old 2-direction
-					// version (+X, +Z only) drew nothing for an "uphill" step — a lower cell facing a
-					// higher neighbour never looked at its own -X/-Z side, and the higher cell (once it
-					// became "current") only checked its own +X/+Z neighbour, one cell further out. All 4
-					// directions closes that: whichever cell is higher finds the shared edge from its own
-					// side regardless of which one the grid walk visits first.
-					double hxPos = sampleHeight(centreX + cell, centreZ, cell, level);
-					double hxNeg = sampleHeight(centreX - cell, centreZ, cell, level);
-					double hzPos = sampleHeight(centreX, centreZ + cell, cell, level);
-					double hzNeg = sampleHeight(centreX, centreZ - cell, cell, level);
-					double floor = PlanetMap.SEA_LEVEL - 6.0;
-					if (SkirtGeometry.drawsSkirt(top, hxPos)) {
-						double bottom = SkirtGeometry.skirtBottom(hxPos, floor);
-						quad(x1, top, z0, x1, bottom, z0, x1, bottom, z1, x1, top, z1, side);
-					}
-					if (SkirtGeometry.drawsSkirt(top, hxNeg)) {
-						double bottom = SkirtGeometry.skirtBottom(hxNeg, floor);
-						quad(x0, top, z0, x0, bottom, z0, x0, bottom, z1, x0, top, z1, side);
-					}
-					if (SkirtGeometry.drawsSkirt(top, hzPos)) {
-						double bottom = SkirtGeometry.skirtBottom(hzPos, floor);
-						quad(x0, top, z1, x0, bottom, z1, x1, bottom, z1, x1, top, z1, side);
-					}
-					if (SkirtGeometry.drawsSkirt(top, hzNeg)) {
-						double bottom = SkirtGeometry.skirtBottom(hzNeg, floor);
-						quad(x0, top, z0, x0, bottom, z0, x1, bottom, z0, x1, top, z0, side);
-					}
 				}
 			}
 		}
@@ -392,6 +307,19 @@ public final class PlanetSurfaceMesh {
 			return Math.max(0f, Math.min(1f, alpha));
 		}
 
+        private final java.util.Map<Long,Double> heights = new java.util.HashMap<>();
+        private double surfaceHeight(double x,double z) {
+            long key=((long)(int)x<<32)^((int)z&0xffffffffL);
+            return heights.computeIfAbsent(key,unused -> Math.max(PlanetMap.SEA_LEVEL,
+                SurfaceInterpolation.height(x,z,16,(sx,sz) -> {
+                    for(int level=0;level<=com.terminaldetector.drmd.world.store.SectionKey.MAX_LEVEL;level++) {
+                        short h=PlanetClientState.INSTANCE.observedHeight(sx,sz,level);
+                        if(h!=SurfaceSection.NO_HEIGHT)return h;
+                    }
+                    return PlanetMap.height(seed,sx,sz);
+                })));
+        }
+
 		/** Neighbour height for a skirt, from the same source the cell itself came from. */
 		private double sampleHeight(double worldX, double worldZ, int cell, int level) {
 			short seen = PlanetClientState.INSTANCE.observedHeight(worldX, worldZ, level);
@@ -414,7 +342,7 @@ public final class PlanetSurfaceMesh {
 			return scarCells.contains(((long) cx << 32) ^ (cz & 0xffffffffL));
 		}
 
-		/** Writes one quad, compressing each corner along its own sight line. */
+		/** Writes source offsets; compression is performed from the current eye in the shader. */
 		private void quad(double x0, double y0, double z0, double x1, double y1, double z1,
 						  double x2, double y2, double z2, double x3, double y3, double z3,
 						  int argb) {

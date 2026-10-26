@@ -16,6 +16,12 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.*;
 
 public final class FusionPortalGameTests implements FabricGameTest {
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void mirrorAndPortalFramesUseVisibleBlockModels(TestContext c) {
+        for(var block:new net.minecraft.block.Block[]{ModWorldBlocks.MIRROR,ModWorldBlocks.CHARGED_MIRROR,ModWorldBlocks.PORTAL_PANEL})
+            c.assertTrue(block.getDefaultState().getRenderType()==net.minecraft.block.BlockRenderType.MODEL,"placed frame has a visible model: "+block);
+        c.complete();
+    }
     private record Pair(BlockPos near,BlockPos far,boolean panels) {}
     private Pair pair(TestContext c,boolean panels) {
         var w=c.getWorld();var near=c.getAbsolutePos(new BlockPos(4,6,10));var far=near.north(6);

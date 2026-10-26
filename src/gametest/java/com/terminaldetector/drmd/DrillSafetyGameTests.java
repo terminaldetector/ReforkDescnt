@@ -10,6 +10,25 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 public final class DrillSafetyGameTests implements FabricGameTest {
+    @GameTest(templateName="drmd:collapse_lab")
+    public void heavyBoreBatchesLootAndStopsAddingEntitiesAtLocalCap(TestContext context) {
+        var world=context.getWorld();var at=context.getAbsolutePos(new BlockPos(12,8,12));
+        var area=new net.minecraft.util.math.Box(at).expand(12);
+        world.getEntitiesByClass(net.minecraft.entity.ItemEntity.class,area,e->true).forEach(net.minecraft.entity.Entity::discard);
+        for(var p:BlockPos.iterate(at.add(-3,-3,-3),at.add(3,3,3)))world.setBlockState(p,Blocks.STONE.getDefaultState(),2);
+        int changed=TunnelCarving.carveCapsule(world,Vec3d.ofCenter(at),Vec3d.ofCenter(at).add(0,0,2),3,null,true);
+        var items=world.getEntitiesByClass(net.minecraft.entity.ItemEntity.class,area,e->true);
+        context.assertTrue(changed>20 && !items.isEmpty() && items.size()<=8,"large bore emits at most eight stack entities");
+        context.assertTrue(items.stream().mapToInt(e->e.getStack().getCount()).sum()>items.size(),"resources are aggregated into stacks");
+        items.forEach(net.minecraft.entity.Entity::discard);
+        for(int i=0;i<32;i++)world.spawnEntity(new net.minecraft.entity.ItemEntity(world,at.getX()+.5,at.getY()+.5,at.getZ()+.5,
+            new net.minecraft.item.ItemStack(net.minecraft.item.Items.COBBLESTONE)));
+        for(var p:BlockPos.iterate(at.add(-3,-3,-3),at.add(3,3,3)))world.setBlockState(p,Blocks.STONE.getDefaultState(),2);
+        context.assertTrue(TunnelCarving.carveCapsule(world,Vec3d.ofCenter(at),Vec3d.ofCenter(at).add(0,0,2),3,null,true)>0,"bore still advances at the item cap");
+        context.assertTrue(world.getEntitiesByClass(net.minecraft.entity.ItemEntity.class,area,e->true).size()==32,"repeated heavy bore cannot grow local item population");
+        world.getEntitiesByClass(net.minecraft.entity.ItemEntity.class,area,e->true).forEach(net.minecraft.entity.Entity::discard);
+        context.complete();
+    }
     @GameTest(templateName=EMPTY_STRUCTURE)
     public void softenedStoneMakesProgressInsteadOfReturningCobblestoneForever(TestContext context) {
         var world=context.getWorld();var at=context.getAbsolutePos(new BlockPos(4,5,4));world.setBlockState(at,Blocks.STONE.getDefaultState(),2);

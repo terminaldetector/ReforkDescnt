@@ -48,7 +48,7 @@ public final class MirrorReflectionRenderer {
 	 * Pixels the scissor box is grown by. A rectangle is already not the mirror's exact shape, so a
 	 * couple of pixels of slack costs nothing and keeps rounding from biting a line off the edge.
 	 */
-	private static final int SCISSOR_PAD = 2;
+	private static final int SCISSOR_PAD = 0;
 	/**
 	 * Mirrors reflected per frame. Each one is a whole extra world render, so this — not the range gate —
 	 * is what actually bounds the cost of walking into a room with several of them.
@@ -186,7 +186,7 @@ public final class MirrorReflectionRenderer {
 				mirror.planePoint().y - cameraPos.y,
 				mirror.planePoint().z - cameraPos.z);
 		PortalTransform.Vec3[] corners =
-				MirrorScreenBounds.faceCorners(centre, toPure(mirror.normal()), 1.0);
+				MirrorScreenBounds.faceCorners(centre, toPure(mirror.normal()), 0.75);
 
 		return MirrorScreenBounds.project(corners, m,
 				MirrorFramebuffer.width(), MirrorFramebuffer.height(), SCISSOR_PAD);

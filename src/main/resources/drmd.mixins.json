@@ -6,6 +6,7 @@
     "PlayerEntityMixin",
     "CubicChunkMixin",
     "MicroExplosionMixin",
+    "NaturalGeometryMixin",
     "ServerPlayerFlightTravelMixin",
     "LivingEntityMixin",
     "EnderDragonFightMixin",

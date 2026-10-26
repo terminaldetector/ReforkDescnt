@@ -47,6 +47,11 @@ public class ChargedMirrorBlock extends BlockWithEntity implements ReflectiveBlo
 	}
 
 	@Override
+	protected net.minecraft.block.BlockRenderType getRenderType(BlockState state) {
+		return net.minecraft.block.BlockRenderType.MODEL;
+	}
+
+	@Override
 	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
 		builder.add(FACING, LINKED);
 	}

@@ -18,6 +18,8 @@ public abstract class MicroExplosionMixin {
         Explosion explosion=(Explosion)(Object)this;
         var type=explosion.getDestructionType();
         if(type!=Explosion.DestructionType.DESTROY && type!=Explosion.DestructionType.DESTROY_WITH_DECAY) return;
+        com.terminaldetector.drmd.world.contraption.StructureCollapse.explosion(
+            server,explosion.getAffectedBlocks(),explosion.getPosition(),explosion.getPower());
         explosion.getAffectedBlocks().removeIf(pos -> BlockDamage.fractureExplosion(
             server,pos,explosion.getPosition(),explosion.getPower()));
     }

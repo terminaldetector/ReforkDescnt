@@ -107,6 +107,10 @@ public final class TunnelCarving {
 	 */
 	public static int carveCapsule(ServerWorld world, Vec3d segStart, Vec3d segEnd, double radius,
 									LivingEntity breaker) {
+        return carveCapsule(world,segStart,segEnd,radius,breaker,false);
+    }
+    public static int carveCapsule(ServerWorld world, Vec3d segStart, Vec3d segEnd, double radius,
+            LivingEntity breaker,boolean compactDrops) {
         if(!Double.isFinite(segStart.lengthSquared()) || !Double.isFinite(segEnd.lengthSquared())
                 || !Double.isFinite(radius) || radius<=0 || radius>4 || segStart.squaredDistanceTo(segEnd)>144)return 0;
 		int minX = (int) Math.floor(Math.min(segStart.x, segEnd.x) - radius - 1);
@@ -119,7 +123,7 @@ public final class TunnelCarving {
 		double r2 = radius * radius;
 		int carved = 0;
 		BlockPos.Mutable pos = new BlockPos.Mutable();
-
+        try(var drops=compactDrops?new com.terminaldetector.drmd.world.engineer.HeavyDrillDrops(world,breaker,segStart):null) {
 		for (int x = minX; x <= maxX; x++) {
 			for (int y = minY; y <= maxY; y++) {
 				for (int z = minZ; z <= maxZ; z++) {
@@ -131,14 +135,14 @@ public final class TunnelCarving {
 					if (!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,pos,breaker) || !isBoreable(world, pos)) continue;
 
 					if (centerDist < radius - HALF_DIAGONAL) {
-						if (world.breakBlock(pos.toImmutable(), true, breaker)) carved++;
+						if (drops==null?world.breakBlock(pos.toImmutable(),true,breaker):drops.breakBlock(pos.toImmutable())) carved++;
 						continue;
 					}
 
 					long mask = capsuleMask(x, y, z, segStart, segEnd, r2);
 					if (mask == MicroGrid.FULL) continue;
 					if (mask == MicroGrid.EMPTY) {
-						if (world.breakBlock(pos.toImmutable(), true, breaker)) carved++;
+						if (drops==null?world.breakBlock(pos.toImmutable(),true,breaker):drops.breakBlock(pos.toImmutable())) carved++;
 						continue;
 					}
 					BlockState state = world.getBlockState(pos);
@@ -146,7 +150,7 @@ public final class TunnelCarving {
                         long remaining=existing.mask() & mask;
                         if(remaining==existing.mask())continue;
                         if(remaining==MicroGrid.EMPTY) {
-                            if(world.breakBlock(pos.toImmutable(),true,breaker))carved++;
+                            if(drops==null?world.breakBlock(pos.toImmutable(),true,breaker):drops.breakBlock(pos.toImmutable()))carved++;
                             continue;
                         }
                     }
@@ -156,6 +160,7 @@ public final class TunnelCarving {
 		}
 		return carved;
 	}
+    }
 
 	/** Mirrors the hardness/bedrock gate {@code WeaponFx.drillTunnel} already applied. */
 	private static boolean isBoreable(ServerWorld world, BlockPos pos) {
