@@ -94,6 +94,7 @@ public class DescentMod implements ModInitializer {
             com.terminaldetector.drmd.world.build.ConstructionMode.clearAll();
 			com.terminaldetector.drmd.world.store.SurfaceIngest.close();
 			com.terminaldetector.drmd.world.cubic.CubicWorldSystem.close();
+			com.terminaldetector.drmd.world.compat.NativeCubicSkylight.close();
 			com.terminaldetector.drmd.world.portal.PortalTravel.clear();
 			com.terminaldetector.drmd.physics.GravyPhysics.clear();
 			com.terminaldetector.drmd.ai.DroneSwarmAi.clear();
@@ -175,6 +176,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.planet.PlanetSync.tick(server);
 			com.terminaldetector.drmd.world.store.SurfaceIngest.tick(server);
 			com.terminaldetector.drmd.world.cubic.CubicWorldSystem.tick(server);
+			com.terminaldetector.drmd.world.compat.NativeCubicSkylight.tick(server);
 			com.terminaldetector.drmd.world.store.SurfaceStreamer.tick(server);
 			com.terminaldetector.drmd.world.fate.WorldEndings.tick(server);
 			com.terminaldetector.drmd.world.event.WorldEventSystem.tick(server);

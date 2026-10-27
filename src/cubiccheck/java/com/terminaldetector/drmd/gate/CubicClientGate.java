@@ -216,7 +216,23 @@ public final class CubicClientGate implements ClientModInitializer {
                     +" above="+client.world.getBlockState(SKY_PROBE.up()));
                 return;
             }
-            results.add("native_skylight_restoration");phase=2;age=0;pendingLowTeleport=true;
+            results.add("native_skylight_restoration");phase=14;age=0;
+        }else if(phase==14) {
+            // Recovery must cross the lower cube seam too; moving the phantom roof down
+            // to Y=2160 would pass the first probe while leaving another false shadow.
+            if(age%10==0)client.getServer().execute(()->{
+                var world=client.getServer().getOverworld();
+                serverSky=Math.min(world.getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE.down()),
+                    world.getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE.down(17)));
+            });
+            int below=Math.min(client.world.getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE.down()),
+                client.world.getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE.down(17)));
+            if(below!=15 || serverSky!=15) {
+                if(age>400)throw new IllegalStateException("Repair displaced a phantom sky occluder into a lower loaded cube: "+below+"/"+serverSky);
+                return;
+            }
+            results.add("native_skylight_restoration_two_lower_cubes");
+            phase=2;age=0;pendingLowTeleport=true;
         }else if(phase==2) {
             if(pendingLowTeleport) {
                 pendingLowTeleport=false;if(flightEnabled())toggleFlight();teleport(client,-509);return;

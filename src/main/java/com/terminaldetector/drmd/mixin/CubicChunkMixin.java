@@ -17,6 +17,9 @@ public abstract class CubicChunkMixin {
             CallbackInfoReturnable<BlockState> cir) {
         if (cir.getReturnValue() != null && ((WorldChunk) (Object) this).getWorld() instanceof ServerWorld world) {
             CubicWorldSystem.changed(world, pos);
+            if (state.isAir() && !cir.getReturnValue().isAir()) {
+                com.terminaldetector.drmd.world.compat.NativeCubicSkylight.removed(world, pos);
+            }
             com.terminaldetector.drmd.world.store.SurfaceIngest.onGroundChanged(world, pos);
         }
     }
