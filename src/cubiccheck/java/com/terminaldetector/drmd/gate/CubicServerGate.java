@@ -67,8 +67,10 @@ public final class CubicServerGate implements ModInitializer {
             }
             var chest=(ChestBlockEntity)world.getBlockEntity(HIGH);
             var barrel=(BarrelBlockEntity)world.getBlockEntity(LOW);
-            chest.setCustomName(Text.literal("gate-v5-Y2150"));
-            barrel.setCustomName(Text.literal("gate-v5-negative"));
+            var namedChest=new ItemStack(Items.CHEST);var namedBarrel=new ItemStack(Items.BARREL);
+            namedChest.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME,Text.literal("gate-v5-Y2150"));
+            namedBarrel.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME,Text.literal("gate-v5-negative"));
+            chest.readComponents(namedChest);barrel.readComponents(namedBarrel);
             chest.setStack(0,new ItemStack(Items.DIAMOND,37));barrel.setStack(0,new ItemStack(Items.EMERALD,19));
             chest.markDirty();barrel.markDirty();
         }
