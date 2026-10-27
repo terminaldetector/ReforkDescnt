@@ -79,8 +79,9 @@ public final class NativePortalGunCheck {
             aim(client,point);
             if(phase==0 || phase==2)((ProjectorInputAccess)client).drmd$attack();
             else {
-                client.player.setSneaking(phase==3);
-                ((ProjectorInputAccess)client).drmd$use();client.player.setSneaking(false);
+                boolean wasSneaking=client.player.input.sneaking;
+                client.player.input.sneaking=phase==3;
+                ((ProjectorInputAccess)client).drmd$use();client.player.input.sneaking=wasSneaking;
             }
             shot=true;age=0;return;
         }
