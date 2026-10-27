@@ -53,6 +53,8 @@ public class DescentClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+		com.terminaldetector.drmd.world.access.CubicAvailability.bindClientThread(
+				()->net.minecraft.client.MinecraftClient.getInstance().isOnThread());
 		DescentConfig.load();
         ClientPlayNetworking.registerGlobalReceiver(ModNetworking.PhysicsProfilePayload.ID,(payload,context)->context.client().execute(()->{
             DescentClientState.physicsProfile=com.terminaldetector.drmd.physics.PhysicsProfile.parse(payload.profile());

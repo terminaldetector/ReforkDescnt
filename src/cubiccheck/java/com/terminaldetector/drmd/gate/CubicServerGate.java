@@ -57,6 +57,22 @@ public final class CubicServerGate implements ModInitializer {
             return;
         }
         // Availability, writes and immediate readback run in this same authoritative server tick.
+        var access=com.terminaldetector.drmd.world.access.WorldAccess.of(world);
+        if(access.backend()!=com.terminaldetector.drmd.world.access.CubicAvailability.Backend.NATIVE_CUBIC)
+            throw new IllegalStateException("WorldAccess did not select the real cubic backend");
+        try {
+            var column=world.getChunkManager().getChunk(0,0,ChunkStatus.FULL,false);
+            var ext=Class.forName("dev.fallingcloud.bettercubicchunks.chunk.ISkyLightSourcesExt");
+            Object state=ext.getMethod("bcc$columnState").invoke(((WorldChunk)column).getChunkSkyLight());
+            var count=state.getClass().getMethod("loadedCubeCount");
+            int before=(Integer)count.invoke(state);
+            var unknown=new BlockPos(8,8192,8);
+            if(access.readIfLoaded(unknown).isPresent() || before!=(Integer)count.invoke(state))
+                throw new IllegalStateException("Unknown native volume became fake air or changed the loaded cube count");
+            for(var pos:markers.keySet())if(!access.readIfLoaded(pos).orElseThrow().equals(world.getBlockState(pos)))
+                throw new IllegalStateException("WorldAccess disagrees with native storage at "+pos);
+            System.out.println("CUBIC_WORLD_ACCESS native=true unknownEmpty=true loadedCountUnchanged="+before);
+        }catch(ReflectiveOperationException e){throw new IllegalStateException(e);}
         if(!reopen) {
             for(var entry:markers.entrySet()) {
                 if(!world.setBlockState(entry.getKey(),entry.getValue(),3)

@@ -118,6 +118,12 @@ public final class CubicClientGate implements ClientModInitializer {
             if(Math.abs(client.player.getY()-2152)>5 || !(client.world.getBlockEntity(HIGH) instanceof ChestBlockEntity))return;
             if(!signWritten) {publishSign(client,HIGH,"gate-v5-Y2150");return;}
             if(!signArrived(client,HIGH))return;
+            var nativeAccess=com.terminaldetector.drmd.world.access.WorldAccess.of(client.world);
+            if(nativeAccess.backend()!=com.terminaldetector.drmd.world.access.CubicAvailability.Backend.NATIVE_CUBIC
+                || !nativeAccess.readIfLoaded(HIGH).orElseThrow().isOf(Blocks.CHEST)
+                || nativeAccess.readIfLoaded(new BlockPos(8,8192,8)).isPresent())
+                throw new IllegalStateException("Client WorldAccess disagrees with native cube availability");
+            results.add("native_client_world_access_distinguishes_unknown_from_air");
             if(reopen && !persistedChecked) {
                 if(!cubeLoaded(client,WATER_PROBE) || !cubeLoaded(client,LIGHT_SOURCE))return;
                 if(!client.world.getFluidState(WATER_PROBE).isIn(net.minecraft.registry.tag.FluidTags.WATER)
