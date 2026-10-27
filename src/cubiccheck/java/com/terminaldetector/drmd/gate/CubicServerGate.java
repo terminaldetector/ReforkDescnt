@@ -98,6 +98,7 @@ public final class CubicServerGate implements ModInitializer {
                 || !barrel.getName().getString().equals("gate-v5-negative")
                 || !barrel.getStack(0).isOf(Items.EMERALD) || barrel.getStack(0).getCount()!=19)
             throw new IllegalStateException("Native barrel name/item inventory did not survive");
+        if(Boolean.getBoolean("drmd.gate.worldEdits"))NativeWorldEditsGate.verify(world,root);
         command(server,"bcc status");
         try {
             Files.writeString(root.resolve("server-gate-"+(reopen?"reopen":"write")+"-ok.json"),

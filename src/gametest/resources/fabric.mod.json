@@ -20,6 +20,7 @@
       "com.terminaldetector.drmd.BombBayVelocityGameTests",
       "com.terminaldetector.drmd.ConstructionPlacementGameTests",
       "com.terminaldetector.drmd.WorldAccessReadGameTests",
+      "com.terminaldetector.drmd.WorldAccessBatchGameTests",
       "com.terminaldetector.drmd.PhysicsProfileGameTests",
       "com.terminaldetector.drmd.ClusterLifecycleGameTests",
       "com.terminaldetector.drmd.DrillSafetyGameTests",

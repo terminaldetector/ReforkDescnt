@@ -6,11 +6,14 @@ import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import java.util.Optional;
+import java.util.List;
 
 /** Read boundary for a real backend. Unavailable volume is distinct from available air. */
 public interface CubicWorldAccess {
     CubicAvailability.Backend backend();
     boolean isVolumeAvailable(D6ChunkPos cube);
     Optional<BlockState> readIfLoaded(BlockPos pos);
+    Optional<ServerBlockEdits.Cell> snapshotIfLoaded(BlockPos pos);
+    ServerBlockEdits.Result modifyServerAuthoritative(List<ServerBlockEdits.Edit> edits);
     Optional<GravityFields.Sample> getGravityAt(Vec3d point);
 }

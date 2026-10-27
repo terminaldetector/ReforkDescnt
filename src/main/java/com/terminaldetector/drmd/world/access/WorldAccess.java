@@ -10,6 +10,7 @@ import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.List;
 
 /** This facade owns no blocks, snapshots, files or tickets. */
 public final class WorldAccess implements CubicWorldAccess {
@@ -27,4 +28,6 @@ public final class WorldAccess implements CubicWorldAccess {
         if(!CubicAvailability.onWorldThread(world) || !Double.isFinite(point.x) || !Double.isFinite(point.y) || !Double.isFinite(point.z))return Optional.empty();
         return Optional.ofNullable(GravityFields.sample(world,point));
     }
+    @Override public Optional<ServerBlockEdits.Cell> snapshotIfLoaded(BlockPos pos){return ServerBlockEdits.snapshot(world,pos);}
+    @Override public ServerBlockEdits.Result modifyServerAuthoritative(List<ServerBlockEdits.Edit> edits){return ServerBlockEdits.commit(world,edits);}
 }
