@@ -27,7 +27,8 @@ public final class CubicServerGate implements ModInitializer {
     private static final BlockPos HIGH=new BlockPos(8,2150,8),LOW=new BlockPos(8,-512,8);
     private final Map<BlockPos,BlockState> markers=new LinkedHashMap<>();
     private final boolean reopen=Boolean.getBoolean("drmd.gate.server.reopen");
-    private int ticks,stopAt=-1;
+    private int ticks;
+    private boolean checked;
     private Path root;
     @Override public void onInitialize() {
         if(!Boolean.getBoolean("drmd.gate.server"))return;
@@ -45,14 +46,11 @@ public final class CubicServerGate implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(this::tick);
     }
     private void tick(MinecraftServer server) {
-        if(stopAt>=0) {
-            if(++ticks>=stopAt){command(server,"jfr stop");server.stop(false);}
-            return;
-        }
         var world=server.getOverworld();
         if(world.getSeed()!=271026L || world.getBottomY()!=-16384 || world.getHeight()!=32768)
             throw new IllegalStateException("Wrong second-seed authoritative cubic world");
         if(ticks%200==0)for(int y:HEIGHTS)command(server,"bcc load 8 "+y+" 8 0");
+        if(checked){ticks++;return;}
         if(++ticks>4000)throw new IllegalStateException("Native cubes never became FULL for the server gate");
         for(var pos:markers.keySet())if(!full(world,pos)) {
             if(ticks%100==0)System.out.println("CUBIC_SERVER_GATE_WAIT pos="+pos+" tick="+ticks);
@@ -84,15 +82,15 @@ public final class CubicServerGate implements ModInitializer {
                 || !barrel.getName().getString().equals("gate-v5-negative")
                 || !barrel.getStack(0).isOf(Items.EMERALD) || barrel.getStack(0).getCount()!=19)
             throw new IllegalStateException("Native barrel name/item inventory did not survive");
-        command(server,"bcc status");command(server,"save-all flush");
+        command(server,"bcc status");
         try {
             Files.writeString(root.resolve("server-gate-"+(reopen?"reopen":"write")+"-ok.json"),
-                "{\"status\":\"SERVER_SUBSET_PASS_FULL_GATE_PENDING\",\"seed\":271026,\"mode\":\""+(reopen?"REOPEN_READ_ONLY":"WRITE_AND_VERIFY")
+                "{\"status\":\""+(reopen?"SERVER_SUBSET_PASS_FULL_GATE_PENDING":"SERVER_WRITE_READBACK_PASS_REOPEN_PENDING")+"\",\"seed\":271026,\"mode\":\""+(reopen?"REOPEN_READ_ONLY":"WRITE_AND_VERIFY")
                 +"\",\"markers\":"+markers.size()+",\"heights\":"+Arrays.toString(HEIGHTS)
                 +",\"chestDiamonds\":37,\"barrelEmeralds\":19,\"sameTickFullCheck\":true}\n");
         }catch(java.io.IOException e){throw new IllegalStateException(e);}
         System.out.println("CUBIC_SERVER_GATE_PASS mode="+(reopen?"REOPEN_READ_ONLY":"WRITE_AND_VERIFY")+" markers="+markers.size());
-        stopAt=ticks+20;
+        checked=true;
     }
     private static boolean full(ServerWorld world,BlockPos pos) {
         var chunk=world.getChunkManager().getChunk(pos.getX()>>4,pos.getZ()>>4,ChunkStatus.FULL,false);
