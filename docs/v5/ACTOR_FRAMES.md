@@ -83,3 +83,13 @@ a complete pass. New source changes require fresh regression evidence before dis
 The first client probe also ran before the production RETURN handler. It was moved to the
 caller's position after setupTransforms returns, so the assertion observes the complete
 transform including all handlers. That crash/log is retained; the failed run is not a pass.
+
+A later full weapon run observed the fast shot on the client, then lost it after the server
+ran 18 ticks beyond the tracking radius before three captures. Scene 9 now freezes only its
+disposable world's tick clock and advances one ordinary server/client tick per measured
+frame. Spawn velocity and tracked velocity remain 8 blocks/tick; no prediction or projectile
+code is replaced. At least three completed frames, three actual server ticks, 24 blocks of
+client travel and the same per-frame green-pixel checks remain mandatory. Backward corrections
+or jumps over two normal steps are rejected. The manifest identifies the stepped clock;
+this is a deterministic motion/metadata test, not a real-time throughput benchmark. The
+clock is restored before Workshop/audit scenes. The original failed frame/crash/log are retained.

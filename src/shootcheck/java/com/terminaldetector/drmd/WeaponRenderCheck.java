@@ -47,6 +47,9 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private double fastTravel;
     private int fastFrames;
     private int fastFixtureWait;
+    private volatile boolean fastStepped;
+    private volatile int fastServerAge;
+    private int fastExpectedServerAge=-1,fastExpectedClientAge;
     private CaptureRequest pendingCapture;
     private record CaptureRequest(String name, boolean colours, boolean mounts, Runnable after) {}
     private volatile net.minecraft.server.MinecraftServer fixtureServer;
@@ -80,6 +83,9 @@ public final class WeaponRenderCheck implements ClientModInitializer {
             if (com.terminaldetector.drmd.client.portal.OffscreenWorldView.depth() == 0) renderFrame++;
         });
         WorldRenderEvents.END.register(context -> {
+            if(scene==9 && fastStepped && com.terminaldetector.drmd.client.portal.OffscreenWorldView.depth()==0) {
+                measureSteppedFastFrame(MinecraftClient.getInstance());return;
+            }
             if (pendingCapture == null || com.terminaldetector.drmd.client.portal.OffscreenWorldView.depth() != 0) return;
             var request = pendingCapture;
             captureFrame(MinecraftClient.getInstance(), request.name(), request.colours(), request.mounts());
@@ -93,6 +99,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
             if (scene == 9 && !ids.isEmpty()) {
                 var shot = server.getOverworld().getEntityById(ids.getFirst());
                 if (shot != null) {
+                    fastServerAge=shot.age;
                     var hit = server.getOverworld().raycast(new net.minecraft.world.RaycastContext(
                             shot.getPos(), shot.getPos().add(shot.getVelocity()),
                             net.minecraft.world.RaycastContext.ShapeType.COLLIDER,
@@ -150,6 +157,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         DescentClientState.enabled = true; DescentClientState.attitudeValid = true;
         ShipAttitudeClient.acceptPortalFrame(client.player, forward(), up());
         if (pendingCapture != null) return;
+        if(scene==9 && sceneTick>=40)return; // completed render frames drive the isolated tick steps
         if (scene < 8 && sceneTick == 0 && (!rangeServerTicked || ids.stream().anyMatch(id ->
                 !(client.world.getEntityById(id) instanceof ProjectileEntity)))) return;
         if(scene==9 && sceneTick==0) {
@@ -184,9 +192,6 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         if (scene == 8 && sceneTick >= 41 && sceneTick <= 50)
             capture(client, "muzzle-impact-" + sceneTick, false, false);
         if (scene == 9 && sceneTick == 40) fireVolley(client, false, true);
-        if (scene == 9 && sceneTick >= 43 && sceneTick <= 49) {
-            capture(client, "fast-motion-" + sceneTick, false, false);
-        }
         if (scene < 8 && sceneTick == 75) {
             var checkedIds = List.copyOf(ids);
             client.getServer().execute(() -> {
@@ -219,10 +224,14 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         try {
             Files.writeString(client.runDirectory.toPath().resolve("shootcheck-ok.json"),
                     "{\"scenes\":10,\"fovs\":[70,80,90],\"rangePixelsChecked\":true,\"fastSpeed\":8," +
-                    "\"fastTravel\":" + fastTravel + ",\"fastFrames\":" + fastFrames + ",\"fastPixelsChecked\":true" +
+                    "\"fastTravel\":" + fastTravel + ",\"fastFrames\":" + fastFrames + ",\"fastPixelsChecked\":true,\"fastTickStepped\":true,\"fastServerTicks\":"+fastServerAge+
                     ",\"muzzleEvents\":" + ShotFxRenderer.muzzleEvents() +
                     ",\"impactEvents\":" + ShotFxRenderer.impactEvents() + "}\n");
         } catch (java.io.IOException error) { throw new IllegalStateException(error); }
+        if(fastStepped) {
+            fastStepped=false;
+            client.getServer().execute(()->client.getServer().getTickManager().setFrozen(false));
+        }
         fixtureServer=null; hybridStarted=true; HybridWeaponCheck.start(client);
     }
 
@@ -305,6 +314,11 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private void fireVolley(MinecraftClient client, boolean impact, boolean fast) {
         ready = false; var server = client.getServer(); var uuid = client.player.getUuid();
         server.execute(() -> {
+            if(fast) {
+                // Keep full spawn velocity/metadata. Only this disposable world's tick clock
+                // is stepped, so a slow readback cannot run the shot out of tracking range.
+                server.getTickManager().setFrozen(true);fastStepped=true;fastServerAge=0;
+            }
             var player = server.getPlayerManager().getPlayer(uuid);
             if (player == null) throw new IllegalStateException("Missing firing player");
             var positions = fast ? List.of(WeaponCore.muzzleFor(player, "laser", 1)) : WeaponCore.allMuzzles(player, "laser").subList(0, 2);
@@ -316,6 +330,30 @@ public final class WeaponRenderCheck implements ClientModInitializer {
             }
             ids = List.copyOf(created); ready = true;
         });
+    }
+
+    private void measureSteppedFastFrame(MinecraftClient client) {
+        if(!ready || client.world==null || ids.size()!=1 || !client.world.getTickManager().isFrozen())return;
+        var entity=client.world.getEntityById(ids.getFirst());
+        if(!(entity instanceof ProjectileEntity shot))return;
+        if(Math.abs(shot.getVisualVelocity().length()-8)>.001)
+            throw new IllegalStateException("Full-speed spawn metadata was clamped: "+shot.getVisualVelocity());
+        if(fastExpectedServerAge<0) {
+            fastExpectedServerAge=fastServerAge+1;fastExpectedClientAge=shot.age+1;
+            client.getServer().execute(()->{
+                if(!client.getServer().getTickManager().step(1))throw new IllegalStateException("Fast fixture tick step rejected");
+            });
+            return;
+        }
+        if(fastServerAge<fastExpectedServerAge || shot.age<fastExpectedClientAge
+                || client.world.getTickManager().isStepping())return;
+        if(previousFast!=null) {
+            Vec3d advance=shot.getPos().subtract(previousFast);
+            if(advance.dotProduct(forward())<=0 || advance.length()>16.001)
+                throw new IllegalStateException("Fast frame did not advance coherently: "+advance);
+        }
+        captureFrame(client,"fast-motion-step-"+fastFrames,false,false);
+        fastExpectedServerAge=-1;
     }
 
     private static WeaponCore.FireConfig config(ServerPlayerEntity player, Vec3d pos, Vec3d direction, float speed, int mesh) {
@@ -345,7 +383,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
                     throw new IllegalStateException("Client speed still clamped: " + shot.getVisualVelocity());
                 if (previousFast != null) fastTravel += shot.getPos().distanceTo(previousFast);
                 previousFast = shot.getPos(); fastFrames++;
-                fastComplete = fastFrames >= 3 && fastTravel >= 24;
+                fastComplete = fastFrames >= 3 && fastTravel >= 24 && fastServerAge >= 3;
             }
             if (colours || fastFrame) {
                 // A separate window per known range shot prevents a bright near bolt from hiding a
