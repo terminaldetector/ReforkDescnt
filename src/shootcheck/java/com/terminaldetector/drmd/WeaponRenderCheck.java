@@ -44,11 +44,13 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private int ticks, scene = -1, sceneTick;
     private int muzzleBefore, impactBefore;
     private Vec3d previousFast;
+    private Vec3d firstFast;
     private double fastTravel;
     private int fastFrames;
     private int fastFixtureWait;
     private volatile boolean fastStepped;
     private volatile int fastServerAge;
+    private volatile Vec3d fastServerOrigin,fastServerPosition;
     private int fastExpectedServerAge=-1,fastExpectedClientAge;
     private CaptureRequest pendingCapture;
     private record CaptureRequest(String name, boolean colours, boolean mounts, Runnable after) {}
@@ -100,6 +102,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
                 var shot = server.getOverworld().getEntityById(ids.getFirst());
                 if (shot != null) {
                     fastServerAge=shot.age;
+                    fastServerPosition=shot.getPos();
                     var hit = server.getOverworld().raycast(new net.minecraft.world.RaycastContext(
                             shot.getPos(), shot.getPos().add(shot.getVelocity()),
                             net.minecraft.world.RaycastContext.ShapeType.COLLIDER,
@@ -225,6 +228,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
             Files.writeString(client.runDirectory.toPath().resolve("shootcheck-ok.json"),
                     "{\"scenes\":10,\"fovs\":[70,80,90],\"rangePixelsChecked\":true,\"fastSpeed\":8," +
                     "\"fastTravel\":" + fastTravel + ",\"fastFrames\":" + fastFrames + ",\"fastPixelsChecked\":true,\"fastTickStepped\":true,\"fastServerTicks\":"+fastServerAge+
+                    ",\"fastServerTravel\":"+fastServerPosition.subtract(fastServerOrigin).dotProduct(forward())+
                     ",\"muzzleEvents\":" + ShotFxRenderer.muzzleEvents() +
                     ",\"impactEvents\":" + ShotFxRenderer.impactEvents() + "}\n");
         } catch (java.io.IOException error) { throw new IllegalStateException(error); }
@@ -326,6 +330,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
             for (Vec3d position : positions) {
                 var shot = WeaponCore.fireProjectile(config(player, position, forward(), fast ? 8 : 2, 0));
                 if (shot == null) throw new IllegalStateException("Shot spawn rejected");
+                if(fast){fastServerOrigin=shot.getPos();fastServerPosition=shot.getPos();}
                 created.add(shot.getId());
             }
             ids = List.copyOf(created); ready = true;
@@ -347,11 +352,11 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         }
         if(fastServerAge<fastExpectedServerAge || shot.age<fastExpectedClientAge
                 || client.world.getTickManager().isStepping())return;
-        if(previousFast!=null) {
-            Vec3d advance=shot.getPos().subtract(previousFast);
-            if(advance.dotProduct(forward())<=0 || advance.length()>16.001)
-                throw new IllegalStateException("Fast frame did not advance coherently: "+advance);
-        }
+        double serverTravel=fastServerPosition.subtract(fastServerOrigin).dotProduct(forward());
+        if(Math.abs(serverTravel-fastServerAge*8)>.01)
+            throw new IllegalStateException("Server did not integrate one full-speed step per tick: "+serverTravel+" age="+fastServerAge);
+        if(shot.getPos().distanceTo(fastServerPosition)>32.01)
+            throw new IllegalStateException("Client exceeded the four-tick prediction bound");
         captureFrame(client,"fast-motion-step-"+fastFrames,false,false);
         fastExpectedServerAge=-1;
     }
@@ -381,7 +386,10 @@ public final class WeaponRenderCheck implements ClientModInitializer {
                 var shot = clientShot(client, ids.getFirst());
                 if (Math.abs(shot.getVisualVelocity().length() - 8) > .001)
                     throw new IllegalStateException("Client speed still clamped: " + shot.getVisualVelocity());
-                if (previousFast != null) fastTravel += shot.getPos().distanceTo(previousFast);
+                if(firstFast==null)firstFast=shot.getPos();
+                // Network corrections can hold/revisit a position. Count net forward progress,
+                // never the sum of back-and-forth corrections as extra travelled distance.
+                fastTravel=shot.getPos().subtract(firstFast).dotProduct(forward());
                 previousFast = shot.getPos(); fastFrames++;
                 fastComplete = fastFrames >= 3 && fastTravel >= 24 && fastServerAge >= 3;
             }

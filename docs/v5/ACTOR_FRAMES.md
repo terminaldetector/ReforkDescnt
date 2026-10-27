@@ -89,7 +89,9 @@ ran 18 ticks beyond the tracking radius before three captures. Scene 9 now freez
 disposable world's tick clock and advances one ordinary server/client tick per measured
 frame. Spawn velocity and tracked velocity remain 8 blocks/tick; no prediction or projectile
 code is replaced. At least three completed frames, three actual server ticks, 24 blocks of
-client travel and the same per-frame green-pixel checks remain mandatory. Backward corrections
-or jumps over two normal steps are rejected. The manifest identifies the stepped clock;
+net forward client progress and the same per-frame green-pixel checks remain mandatory.
+Ordinary position corrections do not count as extra distance. Actual server displacement
+must equal eight blocks per simulated tick; client lead remains bounded to four ticks.
+The manifest identifies the stepped clock;
 this is a deterministic motion/metadata test, not a real-time throughput benchmark. The
 clock is restored before Workshop/audit scenes. The original failed frame/crash/log are retained.
