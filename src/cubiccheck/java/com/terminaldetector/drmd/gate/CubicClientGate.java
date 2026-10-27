@@ -206,13 +206,13 @@ public final class CubicClientGate implements ClientModInitializer {
                 client.getServer().execute(()->setRoof(client,false));return;
             }
             if(age%10==0)client.getServer().execute(()->serverSky=client.getServer().getOverworld().getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE));
-            if(Boolean.getBoolean("drmd.gate.tryNativeRelight") && (age==100 || age==200 || age==300)) {
+            if(Boolean.getBoolean("drmd.gate.tryNativeRelight") && (age==100 || age==200 || age==300 || age==400)) {
                 int step=age;
                 client.getServer().execute(()->probeNativeRelight(client,step));
             }
             int sky=client.world.getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE);
             if(sky!=15 || serverSky!=15) {
-                if(age>400)throw new IllegalStateException("Removed roof left stale native skylight: "+sky+"/"+serverSky+" probe="+client.world.getBlockState(SKY_PROBE)
+                if(age>(Boolean.getBoolean("drmd.gate.tryNativeRelight")?600:400))throw new IllegalStateException("Removed roof left stale native skylight: "+sky+"/"+serverSky+" probe="+client.world.getBlockState(SKY_PROBE)
                     +" above="+client.world.getBlockState(SKY_PROBE.up()));
                 return;
             }
@@ -257,6 +257,13 @@ public final class CubicClientGate implements ClientModInitializer {
             var api=Class.forName("dev.fallingcloud.bettercubicchunks.chunk.ISkyLightSourcesExt");
             var source=api.getMethod("bcc$loadedSourceY",int.class,int.class);
             Object before=source.invoke(sky,SKY_PROBE.getX()&15,SKY_PROBE.getZ()&15);
+            Object state=api.getMethod("bcc$columnState").invoke(sky);
+            var stateType=state.getClass();int x=SKY_PROBE.getX()&15,z=SKY_PROBE.getZ()&15;
+            Object occlusion=stateType.getMethod("occlusionHeight",int.class,int.class).invoke(state,x,z);
+            boolean above=(Boolean)stateType.getMethod("allGeneratedCubesLoadedAbove",int.class).invoke(state,world.getSectionIndex(SKY_PROBE.getY()));
+            System.out.println("CUBIC_SKY_SOURCE step="+step+" loaded="+before+" raw="+sky.get(x,z)+" occlusion="+occlusion
+                +" max="+sky.getMaxSurfaceY()+" allGeneratedAboveLoaded="+above);
+            if(step==400 && above)stateType.getMethod("setOcclusion",int.class,int.class,int.class).invoke(state,x,z,(Integer)before);
             api.getMethod("bcc$sectionChanged",net.minecraft.world.chunk.Chunk.class,int.class)
                 .invoke(sky,chunk,world.getSectionIndex(SKY_PROBE.getY()));
             Object after=source.invoke(sky,SKY_PROBE.getX()&15,SKY_PROBE.getZ()&15);
