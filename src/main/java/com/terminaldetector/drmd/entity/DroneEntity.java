@@ -65,17 +65,17 @@ public class DroneEntity extends HostileEntity {
 		this.resistE = role.resistEnergy;
 		this.resistX = role.resistExplosive;
 		if (!getWorld().isClient) {
-			setHealth(role.hullHp);
 			getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(role.hullHp);
+			setHealth(role.hullHp);
 			dataTracker.set(ROLE, role.id);
 			dataTracker.set(SHIELD, shield);
 			dataTracker.set(ARMOR, armor);
 		}
 	}
 
-	public AiRole getRole() { return role; }
-	public float getDroneShield() { return shield; }
-	public float getDroneArmor() { return armor; }
+	public AiRole getRole() { return getWorld().isClient ? AiRole.fromId(dataTracker.get(ROLE)) : role; }
+	public float getDroneShield() { return getWorld().isClient ? dataTracker.get(SHIELD) : shield; }
+	public float getDroneArmor() { return getWorld().isClient ? dataTracker.get(ARMOR) : armor; }
 	public float getFlightRoll() { return dataTracker.get(FLIGHT_ROLL); }
 	public void setFlightRoll(float roll) {
 		if (!getWorld().isClient) dataTracker.set(FLIGHT_ROLL, roll);
@@ -221,8 +221,13 @@ public class DroneEntity extends HostileEntity {
 	@Override
 	public void readCustomDataFromNbt(NbtCompound nbt) {
 		super.readCustomDataFromNbt(nbt);
+		float savedHealth=getHealth();
 		applyRole(AiRole.fromId(nbt.getString("role")));
-		shield = nbt.getFloat("shield");
-		armor = nbt.getFloat("armor");
+		if(nbt.contains("Health",net.minecraft.nbt.NbtElement.NUMBER_TYPE))setHealth(savedHealth);
+		if(nbt.contains("shield",net.minecraft.nbt.NbtElement.NUMBER_TYPE))shield=nbt.getFloat("shield");
+		if(nbt.contains("armor",net.minecraft.nbt.NbtElement.NUMBER_TYPE))armor=nbt.getFloat("armor");
+		if(!getWorld().isClient) {
+			dataTracker.set(SHIELD,shield);dataTracker.set(ARMOR,armor);
+		}
 	}
 }

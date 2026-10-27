@@ -20,6 +20,7 @@
       "com.terminaldetector.drmd.ActorFrameGameTests",
       "com.terminaldetector.drmd.FlyingRosterGravityGameTests",
       "com.terminaldetector.drmd.SurfaceCombatGameTests",
+      "com.terminaldetector.drmd.DroneLoadoutGameTests",
       "com.terminaldetector.drmd.LowerWorldRecoveryGameTests",
       "com.terminaldetector.drmd.BombBayVelocityGameTests",
       "com.terminaldetector.drmd.ConstructionPlacementGameTests",

@@ -83,6 +83,7 @@ public final class NativeActorFrameCheck {
                 GravityFields.put(new GravityFields.Field(id,world.getRegistryKey(),actor.getBlockPos(),up.negate(),2,1,FieldShape.SPHERE,"client pose"));
                 if(!ActorFrames.trySetUp(actor,up))throw new IllegalStateException("Native frame placement rejected "+types[i]+" "+up);
             } else {
+                if(actor instanceof DroneEntity drone)drone.applyRole(com.terminaldetector.drmd.ai.AiRole.values()[stage]);
                 float[] pose=FLIGHT[stage];actor.setYaw(pose[0]);actor.setPitch(pose[1]);actor.bodyYaw=pose[0];actor.setHeadYaw(pose[0]);
                 if(actor instanceof DroneEntity drone)drone.setFlightRoll(pose[2]);
                 if(actor instanceof CyberMobEntity cyber)cyber.setFlightRoll(pose[2]);
@@ -114,6 +115,11 @@ public final class NativeActorFrameCheck {
         if(ids.size()!=6 || ids.stream().anyMatch(id->client.world.getEntityById(id)==null))return;
         for(int id:ids) {
             var actor=(LivingEntity)client.world.getEntityById(id);
+            if(actor instanceof DroneEntity drone) {
+                var role=com.terminaldetector.drmd.ai.AiRole.values()[stage];
+                if(drone.getRole()!=role || drone.getDroneShield()!=role.shield || drone.getDroneArmor()!=role.armor)
+                    throw new IllegalStateException("Client loadout metadata disagrees with authored role "+role);
+            }
             if(ActorFrames.supported(actor)) {
                 Vec3d expected=Vec3d.of(Direction.values()[stage].getVector());
                 if(ActorFrames.up(actor).distanceTo(expected)>1e-6)throw new IllegalStateException("Initial spawn metadata lost frame "+actor.getType());

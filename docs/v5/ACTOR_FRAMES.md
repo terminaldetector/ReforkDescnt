@@ -53,6 +53,12 @@ All living machines are constructed with their normal AI enabled. Test fixtures 
 only while measuring isolated forces/transforms; that is not proof of autonomous combat.
 One separate live server case leaves Tripod's ordinary AI enabled, gives it a target on a
 wall and requires real pursuit, surface contact, local eyes and an owned fired projectile.
+All eleven Drone loadouts are checked through a smallest-to-largest hull transition. Maximum
+health must be assigned before filling health; otherwise Heavy Elite spawned at 200/800 HP.
+NBT reload preserves wounds instead of calling role initialization as a heal. Saved shield/
+armour pools are published into initial metadata immediately; missing legacy keys retain
+role defaults. Client getters read synchronized role/defence metadata instead of constructor
+defaults. The production-client fixture also checks six loadouts, including Heavy Elite.
 The existing targeting, weapons, swarms and drone ragdoll remain separate systems. Universal
 ragdoll, full-volume AI, all roster-specific physical hulls, Survival hunting/base destruction
 and large city stress acceptance remain open Master v5 work.
