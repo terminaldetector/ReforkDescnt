@@ -220,3 +220,23 @@ tasks.register('prepareShootcheckWorld', Sync) {
     }
 }
 tasks.named('runShootcheck') { dependsOn prepareShootcheckWorld }
+
+// Production-client gate harness. It compiles against public vanilla/Fabric APIs only;
+// the closed BCC artifact is installed unchanged in a separate production runtime.
+sourceSets {
+    cubiccheck {
+        compileClasspath += sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.compileClasspath
+    }
+}
+loom { mods { drmd_cubiccheck { sourceSet sourceSets.cubiccheck } } }
+tasks.register('cubiccheckJar', Jar) {
+    archiveClassifier = 'cubiccheck-dev'
+    from sourceSets.cubiccheck.output
+}
+tasks.register('remapCubiccheckJar', net.fabricmc.loom.task.RemapJarTask) {
+    dependsOn cubiccheckJar
+    inputFile = tasks.cubiccheckJar.archiveFile
+    archiveClassifier = 'cubiccheck'
+    addNestedDependencies = false
+}

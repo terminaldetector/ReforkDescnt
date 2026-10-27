@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "drmd_cubiccheck",
+  "version": "0.0.1",
+  "name": "DRMD cubic production gate",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.terminaldetector.drmd.gate.CubicClientGate"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~1.21.1",
+    "fabric-api": "*",
+    "drmd": "*",
+    "bettercubicchunks": "*"
+  },
+  "mixins": [
+    "drmd.cubiccheck.mixins.json"
+  ]
+}

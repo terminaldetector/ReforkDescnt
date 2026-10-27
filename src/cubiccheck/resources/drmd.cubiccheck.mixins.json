@@ -1,0 +1,1 @@
+{"required":true,"package":"com.terminaldetector.drmd.gate.mixin","compatibilityLevel":"JAVA_21","client":["CubicFrameProbe"],"injectors":{"defaultRequire":1}}
