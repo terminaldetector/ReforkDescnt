@@ -33,6 +33,7 @@ public final class CubicClientGate implements ClientModInitializer {
     private boolean fluidSetup,lightRemoval;
     private volatile boolean serverFluidReady;
     private volatile int serverLight,serverSky;
+    private volatile int serverLowLight=-1;
     private boolean roofPlaced,roofRemoved;
     private static final BlockPos SKY_PROBE=new BlockPos(-8,2160,-8);
     private static final BlockPos WATER_SOURCE=new BlockPos(16,2162,0),WATER_PROBE=new BlockPos(15,2158,-1),
@@ -264,6 +265,17 @@ public final class CubicClientGate implements ClientModInitializer {
             if(Math.abs(client.player.getY()+509)>5 || !(client.world.getBlockEntity(LOW) instanceof BarrelBlockEntity))return;
             if(!signWritten) {publishSign(client,LOW,"gate-v5-negative");return;}
             if(!signArrived(client,LOW))return;
+            var lightProbe=LOW.add(0,2,-1);
+            if(age%10==0)client.getServer().execute(()->serverLowLight=client.getServer().getOverworld()
+                .getLightLevel(net.minecraft.world.LightType.BLOCK,lightProbe));
+            int clientLowLight=client.world.getLightLevel(net.minecraft.world.LightType.BLOCK,lightProbe);
+            if(clientLowLight<13 || clientLowLight!=serverLowLight) {
+                if(age%100==0)System.out.println("CUBIC_LOW_LIGHT client="+clientLowLight+" server="+serverLowLight);
+                if(age>400)throw new IllegalStateException("Negative fixture light not synchronized: "+clientLowLight+"/"+serverLowLight);
+                return;
+            }
+            orient(client,new Vec3d(0,-1,-1),new Vec3d(0,1,-1));
+            results.add("native_negative_blocklight_synced");
             checkRaycast(client,LOW);results.add("negative_container_type_and_synced_sign_nbt");capture="negative-client";phase=3;age=0;
         }else if(phase==3) {
             // Allow the backend's normal unload grace period. Never inject /bcc load tickets.
@@ -394,6 +406,7 @@ public final class CubicClientGate implements ClientModInitializer {
             entity.setText(entity.getFrontText().withMessage(0,Text.literal("native-Y="+container.getY())),true);
             entity.markDirty();world.getChunkManager().markForUpdate(sign);
             world.setBlockState(container.add(-2,2,2),Blocks.GLOWSTONE.getDefaultState(),3);
+            if(container.getY()<0)world.setBlockState(container.add(0,4,-1),Blocks.GLOWSTONE.getDefaultState(),3);
             serverReady=true;
         });
     }
