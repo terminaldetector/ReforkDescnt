@@ -73,10 +73,16 @@ The native Y2156 mirror fixture first passed all14 scenes without Sodium but fai
 reflection check with Sodium, despite a successful direct view of the same wall. An offscreen
 render must prepare its own frustum, just as GameRenderer does for the main view. Reusing the
 main frustum culled the reflected wall. OffscreenWorldView now prepares visibility from the
-transformed position/view/projection and restores the main frustum in its finally block.
+transformed position/view and the original perspective projection, and restores the main
+frustum in its finally block. A first candidate used the oblique clipping projection for
+visibility too: the no-Sodium angled view then spun in vanilla's camera-box expansion.
+Visibility is now conservative and independent of the aperture's GPU clip plane. The failed
+thread dump and stopped test world are retained; passing Sodium alone was insufficient.
 This uses the vanilla public API, without an Immersive Portals or Sodium dependency. Preserve
 both failed controls and fresh fixed-run evidence; the full regression gate remains required
-before distributing this candidate.
+before distributing this candidate. The separate baseline fixture also waits for acknowledged
+6DoF exit before teleporting and enables ordinary creative flight for its fixed-camera views;
+otherwise the late disable packet/falling player could move the negative-Y wall out of view.
 
 This is a compatibility foundation, not completion of the v5 worldgen/content, 3D LOD, universal
 entity6DoF/ragdoll, combat/city or ship milestones. No original player save is converted.

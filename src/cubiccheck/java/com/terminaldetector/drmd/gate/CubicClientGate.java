@@ -25,7 +25,7 @@ import java.util.*;
 public final class CubicClientGate implements ClientModInitializer {
     private static final BlockPos HIGH=new BlockPos(8,2150,8),LOW=new BlockPos(8,-512,8);
     private static CubicClientGate instance;
-    private boolean started,forward,pendingLowTeleport,serverCrossRequested;
+    private boolean started,forward,pendingLowTeleport,lowFlightDisableRequested,serverCrossRequested;
     private final boolean reopen=Boolean.getBoolean("drmd.gate.reopen");
     private boolean persistedChecked;
     private volatile boolean serverCrossed;
@@ -66,9 +66,9 @@ public final class CubicClientGate implements ClientModInitializer {
                     int color=image.getColor(x,y),r=color&255,g=color>>8&255,b=color>>16&255;
                     if(r>60 && r>g*2.3 && r>b*2.3)red++;
                 }
-                if(red<100)throw new IllegalStateException("Native cube marker has no visible geometry: "+scene+" red="+red);
                 System.out.println("CUBIC_PIXELS "+scene+" red="+red+" camera="+client.gameRenderer.getCamera().getPos()
                     +" yaw="+client.gameRenderer.getCamera().getYaw()+" pitch="+client.gameRenderer.getCamera().getPitch());
+                if(red<100)throw new IllegalStateException("Native cube marker has no visible geometry: "+scene+" red="+red);
             }
             if(scene.equals("native-smoothed-terrain")) {
                 int green=0;
@@ -267,7 +267,11 @@ public final class CubicClientGate implements ClientModInitializer {
             phase=2;age=0;pendingLowTeleport=true;
         }else if(phase==2) {
             if(pendingLowTeleport) {
-                pendingLowTeleport=false;if(flightEnabled())toggleFlight();teleport(client,-509);return;
+                if(flightEnabled()) {
+                    if(!lowFlightDisableRequested){toggleFlight();lowFlightDisableRequested=true;}
+                    return;
+                }
+                pendingLowTeleport=false;teleport(client,-509);return;
             }
             if(Math.abs(client.player.getY()+509)>5 || !(client.world.getBlockEntity(LOW) instanceof BarrelBlockEntity))return;
             if(!signWritten) {publishSign(client,LOW,"gate-v5-negative");return;}
@@ -342,6 +346,8 @@ public final class CubicClientGate implements ClientModInitializer {
             var server=client.getServer();var player=server.getPlayerManager().getPlayer(client.player.getUuid());
             if(player==null)throw new IllegalStateException("No authoritative player");
             player.changeGameMode(GameMode.CREATIVE);
+            player.getAbilities().allowFlying=true;player.getAbilities().flying=true;player.sendAbilitiesUpdate();
+            player.setVelocity(Vec3d.ZERO);
             var world=player.getServerWorld();world.getGameRules().get(net.minecraft.world.GameRules.DO_DAYLIGHT_CYCLE).set(false,server);world.setTimeOfDay(6000);
             player.teleport(world,8.5,y,11.5,Set.of(),180,45);
             server.getCommandManager().executeWithPrefix(server.getCommandSource(),"bcc status");

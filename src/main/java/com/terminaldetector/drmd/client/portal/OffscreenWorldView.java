@@ -126,7 +126,10 @@ public final class OffscreenWorldView {
 			// GameRenderer prepares visibility before the main render. A nested render must do
 			// the same for its own camera; Sodium consumes this frustum when building its
 			// visible section list, so reusing the outer one drops geometry behind the player.
-			context.worldRenderer().setupFrustum(viewPos, positionMatrix, projection);
+			// Keep visibility conservative: vanilla expands this frustum around the camera.
+			// An oblique near plane excludes that box and can make the expansion loop forever.
+			// The actual draw still uses the oblique projection to clip at the aperture.
+			context.worldRenderer().setupFrustum(viewPos, positionMatrix, outerProjection);
 
 			target.setClearColor(0f, 0f, 0f, 1f);
 			target.clear(MinecraftClient.IS_SYSTEM_MAC);
