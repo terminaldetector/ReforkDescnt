@@ -101,8 +101,8 @@ public final class WeaponRenderCheck implements ClientModInitializer {
             if (scene == 9 && !ids.isEmpty()) {
                 var shot = server.getOverworld().getEntityById(ids.getFirst());
                 if (shot != null) {
-                    fastServerAge=shot.age;
                     fastServerPosition=shot.getPos();
+                    fastServerAge=shot.age; // publish position before the render thread observes this tick
                     var hit = server.getOverworld().raycast(new net.minecraft.world.RaycastContext(
                             shot.getPos(), shot.getPos().add(shot.getVelocity()),
                             net.minecraft.world.RaycastContext.ShapeType.COLLIDER,
