@@ -206,6 +206,10 @@ public final class CubicClientGate implements ClientModInitializer {
                 client.getServer().execute(()->setRoof(client,false));return;
             }
             if(age%10==0)client.getServer().execute(()->serverSky=client.getServer().getOverworld().getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE));
+            if(Boolean.getBoolean("drmd.gate.tryNativeRelight") && (age==100 || age==200 || age==300)) {
+                int step=age;
+                client.getServer().execute(()->probeNativeRelight(client,step));
+            }
             int sky=client.world.getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE);
             if(sky!=15 || serverSky!=15) {
                 if(age>400)throw new IllegalStateException("Removed roof left stale native skylight: "+sky+"/"+serverSky+" probe="+client.world.getBlockState(SKY_PROBE)
@@ -244,6 +248,27 @@ public final class CubicClientGate implements ClientModInitializer {
             server.getCommandManager().executeWithPrefix(server.getCommandSource(),"bcc status");
             serverReady=true;
         });
+    }
+    /** Experimental API probe only; a passing probe is not a shipped lighting fix. */
+    private static void probeNativeRelight(MinecraftClient client,int step) {
+        var world=client.getServer().getOverworld();var chunk=world.getWorldChunk(SKY_PROBE);
+        var sky=chunk.getChunkSkyLight();
+        try {
+            var api=Class.forName("dev.fallingcloud.bettercubicchunks.chunk.ISkyLightSourcesExt");
+            var source=api.getMethod("bcc$loadedSourceY",int.class,int.class);
+            Object before=source.invoke(sky,SKY_PROBE.getX()&15,SKY_PROBE.getZ()&15);
+            api.getMethod("bcc$sectionChanged",net.minecraft.world.chunk.Chunk.class,int.class)
+                .invoke(sky,chunk,world.getSectionIndex(SKY_PROBE.getY()));
+            Object after=source.invoke(sky,SKY_PROBE.getX()&15,SKY_PROBE.getZ()&15);
+            var light=world.getChunkManager().getLightingProvider();
+            light.checkBlock(SKY_PROBE.up());light.checkBlock(SKY_PROBE);
+            if(step>=200)light.propagateLight(chunk.getPos());
+            if(step>=300) {
+                light.setSectionStatus(net.minecraft.util.math.ChunkSectionPos.from(SKY_PROBE),false);
+                light.propagateLight(chunk.getPos());
+            }
+            System.out.println("CUBIC_RELIGHT_PROBE step="+step+" sourceBefore="+before+" sourceAfter="+after+" level="+world.getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE));
+        }catch(ReflectiveOperationException e){throw new IllegalStateException(e);}
     }
     private static void setRoof(MinecraftClient client,boolean opaque) {
         var world=client.getServer().getOverworld();
@@ -316,7 +341,7 @@ public final class CubicClientGate implements ClientModInitializer {
         phase=4;client.options.forwardKey.setPressed(false);
         try {
             Files.writeString(client.runDirectory.toPath().resolve("cubic-client-ok.json"),
-                "{\"status\":\"CLIENT_SUBSET_PASS_FULL_GATE_PENDING\",\"serverFlightY\":"+serverCrossY+",\"serverFlightVelocityY\":"+serverVelocityY+",\"renderedFrames\":"+renderedFrames+",\"checks\":[\""+String.join("\",\"",results)+"\"]}\n");
+                "{\"status\":\""+(Boolean.getBoolean("drmd.gate.tryNativeRelight")?"PASS_WITH_EXPERIMENTAL_RELIGHT_PROBE_NOT_SHIPPED":"CLIENT_SUBSET_PASS_FULL_GATE_PENDING")+"\",\"serverFlightY\":"+serverCrossY+",\"serverFlightVelocityY\":"+serverVelocityY+",\"renderedFrames\":"+renderedFrames+",\"checks\":[\""+String.join("\",\"",results)+"\"]}\n");
         }catch(java.io.IOException e){throw new IllegalStateException(e);}
         client.scheduleStop();
     }
