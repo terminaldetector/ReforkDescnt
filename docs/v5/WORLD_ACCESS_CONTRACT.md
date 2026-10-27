@@ -10,7 +10,10 @@ Stock worlds require an already loaded FULL column. Native server worlds additio
 the actual cube's FULL status from public native column metadata. Native clients additionally
 query `ClientCubes.isCubeLoaded`. Both paths reject coordinates that do not round-trip through
 the actual runtime BlockPos packing. Reads run on the world's owner thread. Metadata getters
-use `getChunk(..., FULL, false)`; they never request a new column or cube.
+use nonblocking loaded-column accessors (`getWorldChunk` for stock servers, public native
+`columnAt` for native servers, existing client arrays for clients). They never join generation
+futures or request a new column/cube. The native public getter was inspected for interoperability;
+its implementation is not copied into DRMD or redistributed with this checkpoint.
 
 Tool safety now traverses all three axes with a supercover ray. At an edge/corner it checks every
 touched cube and shape-neighbour availability. Old X/Z-only guards could read placeholder air in

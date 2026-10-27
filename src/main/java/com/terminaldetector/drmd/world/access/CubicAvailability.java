@@ -18,7 +18,7 @@ public final class CubicAvailability {
     private static BooleanSupplier clientThread=()->false;
     private static boolean initialized,present;
     private static volatile boolean failed;
-    private static Method isCubic,column,status,clientLoaded;
+    private static Method isCubic,column,status,clientLoaded,serverCubic,nativeColumn;
     private static Class<?> dimension,skyExtension;
     private CubicAvailability() {}
 
@@ -42,8 +42,8 @@ public final class CubicAvailability {
         if(!min.equals(BlockPos.fromLong(min.asLong())) || !max.equals(BlockPos.fromLong(max.asLong())))return false;
         Backend mode=backend(world);
         if(mode==Backend.UNSUPPORTED)return false;
-        var chunk=world.getChunkManager().getChunk(cube.x(),cube.z(),ChunkStatus.FULL,false);
-        if(!(chunk instanceof WorldChunk full))return false;
+        var full=loadedColumn(world,cube.x(),cube.z());
+        if(full==null)return false;
         if(mode==Backend.STOCK)return true;
         try {
             if(world.isClient) {
@@ -61,6 +61,21 @@ public final class CubicAvailability {
         long min=(long)cube.y()*16;
         return min>=world.getBottomY() && min+15<world.getTopY();
     }
+    /** Existing ready data only: vanilla getWorldChunk and native columnAt do not join futures. */
+    public static WorldChunk loadedColumn(World world,int x,int z) {
+        if(!onWorldThread(world))return null;
+        Backend mode=backend(world);if(mode==Backend.UNSUPPORTED)return null;
+        if(world instanceof ServerWorld server) {
+            if(mode==Backend.STOCK)return server.getChunkManager().getWorldChunk(x,z);
+            try {
+                Object cubic=serverCubic.invoke(server);
+                Object loaded=cubic==null?null:nativeColumn.invoke(cubic,x,z);
+                return loaded instanceof WorldChunk full?full:null;
+            }catch(ReflectiveOperationException | LinkageError failure){fail(failure);return null;}
+        }
+        var loaded=world.getChunkManager().getChunk(x,z,ChunkStatus.FULL,false);
+        return loaded instanceof WorldChunk full?full:null;
+    }
     private static synchronized void initialize() {
         if(initialized)return;
         initialized=true;present=FabricLoader.getInstance().isModLoaded("bettercubicchunks");
@@ -71,6 +86,8 @@ public final class CubicAvailability {
             skyExtension=Class.forName("dev.fallingcloud.bettercubicchunks.chunk.ISkyLightSourcesExt");
             column=skyExtension.getMethod("bcc$columnState");
             status=Class.forName("dev.fallingcloud.bettercubicchunks.chunk.CubicColumnState").getMethod("status",int.class);
+            serverCubic=Class.forName("dev.fallingcloud.bettercubicchunks.server.ICubicServerLevel").getMethod("bcc$cubic");
+            nativeColumn=Class.forName("dev.fallingcloud.bettercubicchunks.server.CubicServerLevel").getMethod("columnAt",int.class,int.class);
         }catch(ReflectiveOperationException | LinkageError failure){fail(failure);}
     }
     private static void fail(Throwable cause) {

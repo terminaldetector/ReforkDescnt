@@ -72,7 +72,8 @@ public final class NativeCubicSkylight {
             if (!watches.scans.isEmpty()) {
                 long key = watches.scans.removeFirst();watches.scanKeys.remove(key);
                 var pos = new ChunkPos(key);
-                if (world.getChunkManager().getChunk(pos.x, pos.z, ChunkStatus.FULL, false) instanceof WorldChunk full) {
+                var full = com.terminaldetector.drmd.world.access.CubicAvailability.loadedColumn(world, pos.x, pos.z);
+                if (full != null) {
                     scan(world, full, watches);
                 }
             }
@@ -99,7 +100,7 @@ public final class NativeCubicSkylight {
                 light.propagateLight(pos);
                 int from = entry.getValue()[0], to = entry.getValue()[1];
                 light.enqueue(pos.x, pos.z).thenRun(() -> server.execute(() -> {
-                    if (api == null || world.getChunkManager().getChunk(pos.x, pos.z, ChunkStatus.FULL, false) != chunk) return;
+                    if (api == null || com.terminaldetector.drmd.world.access.CubicAvailability.loadedColumn(world, pos.x, pos.z) != chunk) return;
                     try {
                         Object cubic = api.cubic.invoke(world);
                         if (cubic == null) return;
@@ -140,8 +141,8 @@ public final class NativeCubicSkylight {
 
     /** Return true while an unknown lower cube still bounds this watched column. */
     private static boolean repair(ServerWorld world, int x, int z, Map<WorldChunk, int[]> relight) {
-        var chunk = world.getChunkManager().getChunk(x >> 4, z >> 4, ChunkStatus.FULL, false);
-        if (!(chunk instanceof WorldChunk full)) return false;
+        var full = com.terminaldetector.drmd.world.access.CubicAvailability.loadedColumn(world, x >> 4, z >> 4);
+        if (full == null) return false;
         var sky = full.getChunkSkyLight();
         if (!api.ext.isInstance(sky)) return false; // Ordinary dimensions remain native vanilla.
         try {

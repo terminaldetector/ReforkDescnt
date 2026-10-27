@@ -130,8 +130,7 @@ public final class ServerBlockEdits {
             || type==ChestBlock.class || type==BarrelBlock.class;
     }
     private static WorldChunk chunk(World world,BlockPos pos) {
-        var found=world.getChunkManager().getChunk(pos.getX()>>4,pos.getZ()>>4,ChunkStatus.FULL,false);
-        return found instanceof WorldChunk full?full:null;
+        return CubicAvailability.loadedColumn(world,pos.getX()>>4,pos.getZ()>>4);
     }
     private static Result result(Status status,String detail){return new Result(status,0,detail==null?"":detail);}
 }

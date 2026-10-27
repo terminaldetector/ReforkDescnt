@@ -22,8 +22,8 @@ public final class WorldAccess implements CubicWorldAccess {
     @Override public boolean isVolumeAvailable(D6ChunkPos cube){return CubicAvailability.available(world,cube);}
     @Override public Optional<BlockState> readIfLoaded(BlockPos pos) {
         if(world.isOutOfHeightLimit(pos) || !isVolumeAvailable(D6ChunkPos.ofBlock(pos.getX(),pos.getY(),pos.getZ())))return Optional.empty();
-        var chunk=world.getChunkManager().getChunk(pos.getX()>>4,pos.getZ()>>4,ChunkStatus.FULL,false);
-        return chunk instanceof WorldChunk full?Optional.of(full.getBlockState(pos)):Optional.empty();
+        var chunk=CubicAvailability.loadedColumn(world,pos.getX()>>4,pos.getZ()>>4);
+        return chunk!=null?Optional.of(chunk.getBlockState(pos)):Optional.empty();
     }
     @Override public Optional<GravityFields.Sample> getGravityAt(Vec3d point) {
         if(!CubicAvailability.onWorldThread(world) || !Double.isFinite(point.x) || !Double.isFinite(point.y) || !Double.isFinite(point.z))return Optional.empty();
