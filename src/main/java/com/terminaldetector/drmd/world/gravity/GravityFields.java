@@ -4,11 +4,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Objects;
 
 /**
  * Runtime catalogue of gravity fields — generators, torches, station zones.
@@ -32,6 +30,14 @@ public final class GravityFields {
 		 */
 		boolean frontOnly
 	) {
+		public Field {
+			Objects.requireNonNull(id); Objects.requireNonNull(origin);
+			Objects.requireNonNull(downDir); Objects.requireNonNull(shape);
+			if(!finite(downDir) || downDir.lengthSquared()<1e-12 || !Double.isFinite(downDir.lengthSquared())
+					|| !Double.isFinite(radius) || radius<=0 || !Float.isFinite(power) || power<0)
+				throw new IllegalArgumentException("Invalid gravity field");
+			origin=origin.toImmutable();
+		}
 		public Field(UUID id, net.minecraft.registry.RegistryKey<World> worldKey, BlockPos origin,
 					 Vec3d downDir, double radius, float power, FieldShape shape, String label) {
 			this(id, worldKey, origin, downDir, radius, power, shape, label, false);
@@ -62,12 +68,12 @@ public final class GravityFields {
 		}
 	}
 
-	private static final Map<UUID, Field> FIELDS = new ConcurrentHashMap<>();
+	private static final GravityFieldIndex FIELDS = new GravityFieldIndex();
 
 	private GravityFields() {}
 
 	public static void put(Field field) {
-		FIELDS.put(field.id(), field);
+		FIELDS.put(field);
 	}
 
 	public static void remove(UUID id) {
@@ -79,7 +85,10 @@ public final class GravityFields {
 	}
 
 	public static List<Field> all() {
-		return new ArrayList<>(FIELDS.values());
+		return new java.util.ArrayList<>(FIELDS.all());
+	}
+	public static boolean hasFields(net.minecraft.registry.RegistryKey<World> dimension) {
+		return FIELDS.hasFields(dimension);
 	}
 
 	/**
@@ -92,6 +101,7 @@ public final class GravityFields {
 
 	/** Key-only variant used by diagnostics and pure tests; keeps dimension filtering explicit. */
 	public static Sample sample(net.minecraft.registry.RegistryKey<World> key, Vec3d pos) {
+		if(pos==null || !finite(pos))return null;
 		Vec3d sumDir = Vec3d.ZERO;
 		double weight = 0;
 		float maxPower = 0;
@@ -99,7 +109,7 @@ public final class GravityFields {
 		UUID dominantId = null;
 		Vec3d dominantDir = null;
 		String dominant = null;
-		for (Field f : FIELDS.values()) {
+		for (Field f : FIELDS.candidates(key,pos)) {
 			// Fields live in one map but belong to one world each: without this a torch bolted to a
 			// wall in the Nether would flip a player's "down" while they stood in the Overworld.
 			if (key != null && f.worldKey() != null && !f.worldKey().equals(key)) continue;
@@ -108,8 +118,8 @@ public final class GravityFields {
 			sumDir = sumDir.add(f.downDir().normalize().multiply(w));
 			weight += w;
 			maxPower = Math.max(maxPower, f.power());
-			// ConcurrentHashMap iteration has no stable order. Pick the strongest influence at this
-			// point, and use the UUID as a deterministic tie-break, so overlapping equal fields do
+			// Pick the strongest influence at this point and use UUID as a deterministic tie-break,
+			// so overlapping equal fields do
 			// not make labels and fallback direction flicker from tick to tick.
 			if (w > dominantWeight || (Math.abs(w - dominantWeight) < 1e-9
 					&& (dominantId == null || f.id().compareTo(dominantId) < 0))) {
@@ -126,6 +136,9 @@ public final class GravityFields {
 		Vec3d down = sumDir.lengthSquared() > 1e-10 ? sumDir.normalize() : dominantDir;
 		if (down == null || down.lengthSquared() < 1e-10) return null;
 		return new Sample(down, (float) Math.min(2.0, weight), maxPower, dominant, dominantId);
+	}
+	private static boolean finite(Vec3d point) {
+		return Double.isFinite(point.x) && Double.isFinite(point.y) && Double.isFinite(point.z);
 	}
 
 	public record Sample(Vec3d downDir, float strength, float maxPower, String label, UUID sourceId) {

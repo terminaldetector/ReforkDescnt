@@ -232,11 +232,19 @@ def verify(root):
     distribution.mkdir(exist_ok=True)
     target = distribution / f'{base}-{version}-fabric-1.21.1.jar'
     shutil.copy2(jar, target)
-    shutil.copy2(root / 'dist/INSTALL_TLAUNCHER.txt', distribution)
     if audit:
         for name in ('swarm-profile.csv','inventory-models.tsv'):
             shutil.copy2(root/'build/shootcheck'/name,distribution/name)
     digest = sha256(target)
+    (distribution / 'INSTALL_TLAUNCHER.txt').write_text(
+        f'DRMD {version} — Fabric / Minecraft 1.21.1 / Java 21\n'
+        f'Установочный JAR: {target.name}\nSHA-256: {digest}\n\n'
+        'Используйте отдельный профиль Fabric 1.21.1 с Fabric API для 1.21.1.\n'
+        'Оставьте в mods один DRMD JAR; sources/dev/test JAR туда не помещать.\n'
+        'Версию DRMD проверяйте в списке модов загрузчика.\n'
+        'Экспериментальные кубические миры и дополнительные моды устанавливаются\n'
+        'только по инструкции данного этапа; исходные сохранения не перезаписывать.\n',
+        encoding='utf-8')
     (distribution / 'SHA256SUMS').write_text(f'{digest}  {target.name}\n')
     result = dict(source_sha=source, version=version, audit=audit, jar=target.name, sha256=digest,
                   unit=results['unit'], gametest=results['gametest'], swarm=swarm.strip(),

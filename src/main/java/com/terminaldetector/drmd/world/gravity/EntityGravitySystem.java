@@ -8,8 +8,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 
@@ -45,14 +43,12 @@ public final class EntityGravitySystem {
 	public static void tick(MinecraftServer server) {
 		Set<UUID> active = new HashSet<>();
 		for (ServerWorld world : server.getWorlds()) {
-			for (GravityFields.Field field : GravityFields.all()) {
-				if (field.worldKey() != null && !field.worldKey().equals(world.getRegistryKey())) continue;
-				BlockPos o = field.origin();
-				double r = field.radius() + 1.0;
-				Box box = new Box(o).expand(r);
-				for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class, box, LivingEntity::isAlive)) {
-					if (!active.add(e.getUuid())) continue;
-					tickEntity(e);
+			if(!GravityFields.hasFields(world.getRegistryKey()))continue;
+			// Visit each loaded actor once. Overlapping emitters previously repeated world
+			// entity-section searches, then sampled the full field catalogue for each actor.
+			for(Entity candidate:world.iterateEntities()) {
+				if(candidate instanceof LivingEntity e && !(e instanceof PlayerEntity) && e.isAlive()) {
+					active.add(e.getUuid());tickEntity(e);
 				}
 			}
 		}

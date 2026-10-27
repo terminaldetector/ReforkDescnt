@@ -68,6 +68,17 @@ class EvidenceGateTest(unittest.TestCase):
         self.assertEqual(checkpoint.sha256(jars[0]), proof['sha256'])
         self.assertEqual('abc123', proof['source_sha'])
 
+    def test_installation_uses_verified_filename_version_and_digest(self):
+        self.write('dist/INSTALL_TLAUNCHER.txt', 'Obsolete release: drmd-6dof-1.1.11.jar\n')
+        checkpoint.verify(self.root)
+        out=self.root/'build/checkpoint'
+        proof=json.loads((out/'verified.json').read_text())
+        install=(out/'distribution/INSTALL_TLAUNCHER.txt').read_text()
+        self.assertIn('DRMD test',install)
+        self.assertIn(proof['jar'],install)
+        self.assertIn(proof['sha256'],install)
+        self.assertNotIn('1.1.11',install)
+
     def test_stale_marker_is_rejected(self):
         path = self.root / 'build/rendercheck/collapse-ok.txt'
         os.utime(path, (self.started - 10, self.started - 10))
