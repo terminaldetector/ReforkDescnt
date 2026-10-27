@@ -29,8 +29,8 @@ public final class CubicAvailability {
     public static Backend backend(World world) {
         initialize();
         if(!present)return Backend.STOCK;
-        if(failed || !dimension.isInstance(world))return Backend.UNSUPPORTED;
-        try{return (Boolean)isCubic.invoke(world)?Backend.NATIVE_CUBIC:Backend.STOCK;}
+        if(failed)return Backend.UNSUPPORTED;
+        try{return (Boolean)isCubic.invoke(null,world)?Backend.NATIVE_CUBIC:Backend.STOCK;}
         catch(ReflectiveOperationException | LinkageError failure){fail(failure);return Backend.UNSUPPORTED;}
     }
     public static boolean available(World world,D6ChunkPos cube) {
@@ -66,8 +66,8 @@ public final class CubicAvailability {
         initialized=true;present=FabricLoader.getInstance().isModLoaded("bettercubicchunks");
         if(!present)return;
         try {
-            dimension=Class.forName("dev.fallingcloud.bettercubicchunks.core.CubicDimensions$ICubicLevel");
-            isCubic=dimension.getMethod("bcc$isCubic");
+            dimension=Class.forName("dev.fallingcloud.bettercubicchunks.core.CubicDimensions");
+            isCubic=dimension.getMethod("isCubic",World.class);
             skyExtension=Class.forName("dev.fallingcloud.bettercubicchunks.chunk.ISkyLightSourcesExt");
             column=skyExtension.getMethod("bcc$columnState");
             status=Class.forName("dev.fallingcloud.bettercubicchunks.chunk.CubicColumnState").getMethod("status",int.class);
