@@ -45,3 +45,34 @@ NBT. Invalid legacy radius/power values recover defaults before registration; po
 authored radii and zero power survive unchanged. This avoids introducing a load-time exception
 through the stricter Field constructor. Tiny accepted directions normalize without becoming
 the zero vector. The weapon fixture's acknowledged-terrain change0f76a07 is also included.
+
+## Actor acceleration ownership
+
+The following stage removes EntityGravitySystem's writes to the persistent NoGravity flag.
+A common Entity.getFinalGravity mixin suppresses the vanilla scalar acceleration only while
+this exact server actor/world has a live field state. Weak actor/world references reject a
+reloaded copy with the same UUID and do not retain unloaded worlds. Player movement stays
+with FootGravitySystem. Mounting, leaving the field, death/removal and clear release only
+this runtime override. Entity NBT and flags owned by flying actors or another system remain
+untouched; server shutdown clears the runtime catalogue.
+
+Airborne normal velocity is preserved and acceleration scales with the sampled strength.
+The field pass updates velocity; LivingEntity.travel performs ordinary displacement on the
+actor's own tick. The old second position step has been removed. Surface remount/adhesion
+corrections are still the existing helper. This is not a replacement for arbitrary-orientation
+collision, navigation or custom flying-actor travel adapters. Vanilla axis-dependent drag,
+world-Y AI, oriented mob geometry/eyes, native ticking-volume policy and network orientation
+still need dedicated work before universal6DoF acceptance.
+
+Six new real-world tests cover NBT/UUID reload, natural/external weightlessness, field exit,
+vehicle mount/clear, six-axis accumulation/strength, actual vanilla travel and absence of a
+second integration. They run in separate basic/live batches: the initial shared-batch attempt
+allowed an asynchronous field to overlap a synchronous case and global clear. A subsequent
+NoAI fixture could not exercise vanilla travel; the live case now enables AI and explicitly
+holds one test column, releasing its own ticket afterward. One legacy portal case also failed
+under the changed mixed-batch layout; its XML is retained. Keeping all new cases outside the
+old default batches restored the previous101-case placement. All107 GameTests then passed.
+
+The first failed run also stalled in vanilla chunk-unload future completion during shutdown;
+its stack and disposable world are retained. A fresh isolated run shut down normally. This
+is not evidence that the historical193-second user stall or every shutdown case is fixed.

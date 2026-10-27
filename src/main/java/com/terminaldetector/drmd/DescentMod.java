@@ -91,6 +91,7 @@ public class DescentMod implements ModInitializer {
 		// was part of what carried over. Cleared at both ends: on stop for the ordinary case, on
 		// start in case a stop never happened.
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+            com.terminaldetector.drmd.world.gravity.EntityGravitySystem.clear();
             com.terminaldetector.drmd.world.build.ConstructionMode.clearAll();
 			com.terminaldetector.drmd.world.store.SurfaceIngest.close();
 			com.terminaldetector.drmd.world.cubic.CubicWorldSystem.close();

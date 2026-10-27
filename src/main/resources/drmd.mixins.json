@@ -13,6 +13,7 @@
     "EnderDragonFightMixin",
     "FlowableFluidMixin",
     "EntityFluidMixin",
+    "EntityFieldGravityMixin",
     "MultiNoiseBiomeSourceMixin",
     "FootGravityGeometryMixin"
   ],

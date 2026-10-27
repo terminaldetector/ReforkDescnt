@@ -16,6 +16,7 @@
       "com.terminaldetector.drmd.ProjectileVisualGameTests",
       "com.terminaldetector.drmd.FlightRecoveryGameTests",
       "com.terminaldetector.drmd.FootGravityRecoveryGameTests",
+      "com.terminaldetector.drmd.EntityFieldGravityGameTests",
       "com.terminaldetector.drmd.LowerWorldRecoveryGameTests",
       "com.terminaldetector.drmd.BombBayVelocityGameTests",
       "com.terminaldetector.drmd.ConstructionPlacementGameTests",

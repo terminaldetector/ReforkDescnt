@@ -1,6 +1,5 @@
 package com.terminaldetector.drmd.world.gravity;
 
-import com.terminaldetector.drmd.entity.PyroShipEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MovementType;
@@ -16,12 +15,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.lang.ref.WeakReference;
 
 /**
  * Local gravity for non-player living entities (mobs).
  *
  * <p>Players use {@link FootGravitySystem}. Mobs get the same field sample, a safe mount when
- * "down" changes, {@code noGravity}, and a soft pull/stick toward the surface — never a shove
+ * "down" changes, a runtime gravity override, and a soft pull/stick toward the surface — never a shove
  * into the wall that causes suffocation.
  */
 public final class EntityGravitySystem {
@@ -30,7 +30,15 @@ public final class EntityGravitySystem {
 	/** Remount when field up turns more than ~45°. */
 	private static final double REMOUNT_DOT = 0.70;
 
-	private record MobState(Vec3d fieldUp, boolean mounted) {}
+	private static final class MobState {
+		final WeakReference<LivingEntity> actor;
+		final WeakReference<net.minecraft.world.World> world;
+		Vec3d fieldUp;
+		MobState(LivingEntity entity,Vec3d up) {
+			actor=new WeakReference<>(entity);world=new WeakReference<>(entity.getWorld());fieldUp=up;
+		}
+		boolean owns(Entity entity){return actor.get()==entity && world.get()==entity.getWorld();}
+	}
 
 	private static final Map<UUID, MobState> STATE = new ConcurrentHashMap<>();
 
@@ -38,6 +46,14 @@ public final class EntityGravitySystem {
 
 	public static void clear() {
 		STATE.clear();
+	}
+
+	/** Suppress only the standard scalar acceleration, never the entity's saved NoGravity flag. */
+	public static boolean suppressesVanillaGravity(Entity entity) {
+		if(entity.getWorld().isClient || !(entity instanceof LivingEntity living)
+				|| living instanceof PlayerEntity || !living.isAlive() || living.hasVehicle())return false;
+		MobState state=STATE.get(entity.getUuid());
+		return state!=null && state.owns(entity);
 	}
 
 	public static void tick(MinecraftServer server) {
@@ -52,53 +68,40 @@ public final class EntityGravitySystem {
 				}
 			}
 		}
-		STATE.keySet().removeIf(id -> {
-			if (active.contains(id)) return false;
-			for (ServerWorld world : server.getWorlds()) {
-				Entity e = world.getEntity(id);
-				if (e instanceof LivingEntity le && !(le instanceof PlayerEntity)) {
-					le.setNoGravity(false);
-					break;
-				}
-			}
-			return true;
-		});
+		STATE.keySet().removeIf(id -> !active.contains(id));
 	}
 
 	private static void tickEntity(LivingEntity entity) {
 		if (entity instanceof PlayerEntity) return; // FootGravitySystem
-		if (entity.getVehicle() instanceof PyroShipEntity) return;
-		if (entity.hasVehicle()) return;
+		if (entity.hasVehicle()) {STATE.remove(entity.getUuid());return;}
 
 		GravityFields.Sample sample = GravityFields.sample(entity.getWorld(), entity.getPos());
 		if (sample == null || sample.strength() < 0.05f) {
-			MobState prev = STATE.remove(entity.getUuid());
-			if (prev != null) entity.setNoGravity(false);
+			STATE.remove(entity.getUuid());
 			return;
 		}
 
 		Vec3d up = sample.upDir().normalize();
 		MobState prev = STATE.get(entity.getUuid());
-		boolean remount = prev == null || prev.fieldUp().dotProduct(up) < REMOUNT_DOT;
+		if(prev!=null && !prev.owns(entity))prev=null;
+		boolean remount = prev == null || prev.fieldUp.dotProduct(up) < REMOUNT_DOT;
 		if (remount) {
 			GravityMount.safeMount(entity, up);
 		}
-		STATE.put(entity.getUuid(), new MobState(up, true));
+		if(prev==null)STATE.put(entity.getUuid(),new MobState(entity,up));
+		else prev.fieldUp=up;
 
-		entity.setNoGravity(true);
 		entity.fallDistance = 0f;
-		applyMobPhysics(entity, up);
+		applyMobPhysics(entity, up,sample.strength());
 	}
 
-	private static void applyMobPhysics(LivingEntity entity, Vec3d up) {
+	private static void applyMobPhysics(LivingEntity entity, Vec3d up,float strength) {
 		Vec3d down = up.negate();
 		boolean grounded = probe(entity, up);
 
 		Vec3d vel = entity.getVelocity();
-		// Kill into-up residue; keep tangent motion
-		vel = vel.subtract(up.multiply(vel.dotProduct(up)));
 		if (!grounded) {
-			vel = vel.add(down.multiply(GRAVITY));
+			vel = vel.add(down.multiply(GRAVITY*strength));
 		} else {
 			double into = vel.dotProduct(down);
 			if (into > 0) vel = vel.subtract(down.multiply(into));
@@ -106,7 +109,8 @@ public final class EntityGravitySystem {
 		}
 		vel = vel.multiply(grounded ? 0.86 : 0.96);
 		entity.setVelocity(vel);
-		entity.move(MovementType.SELF, vel);
+		// LivingEntity.travel integrates this velocity during the actor's own next tick.
+		// Advancing again here moved actors twice and bypassed their normal tick lifecycle.
 		entity.velocityModified = true;
 		entity.setOnGround(grounded);
 		entity.fallDistance = 0f;
