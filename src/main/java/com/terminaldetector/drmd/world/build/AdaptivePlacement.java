@@ -125,7 +125,7 @@ public final class AdaptivePlacement {
         if(material==null)return null;
         range=Math.min(range,MAX_REACH);
         Vec3d eye=player.getEyePos(),direction=aim(player);
-        if(!world.isChunkLoaded(BlockPos.ofFloored(eye)))return null;
+        if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.neighbourhoodLoaded(world,BlockPos.ofFloored(eye)))return null;
         Vec3d end=com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedEnd(world,eye,eye.add(direction.multiply(range)));
         double loadedRange=end.distanceTo(eye);
         var hit=world.raycast(new net.minecraft.world.RaycastContext(eye,end,

@@ -9,6 +9,7 @@ import net.minecraft.world.World;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.lang.ref.WeakReference;
 
 /** Bounded interest subscriptions, never a second source of blocks or load tickets. */
 public final class CubeLifecycle {
@@ -53,10 +54,13 @@ public final class CubeLifecycle {
             remove(state,entry,id);listener.callback=null;return Optional.empty();
         }
         if(state.closed || entry.listeners.get(id)!=listener)return Optional.empty();
+        var ownerReference=new WeakReference<>(world);
         return Optional.of(()->{
             if(state.closed)return;
-            if(!CubicAvailability.onWorldThread(world))throw new IllegalStateException("Cube subscription closes on its world thread");
-            if(owned.listeners.get(id)==listener){remove(state,owned,id);emit(world,state,owned,listener,Change.CLOSED);listener.callback=null;}
+            World owner=ownerReference.get();
+            if(owner==null){remove(state,owned,id);listener.callback=null;return;}
+            if(!CubicAvailability.onWorldThread(owner))throw new IllegalStateException("Cube subscription closes on its world thread");
+            if(owned.listeners.get(id)==listener){remove(state,owned,id);emit(owner,state,owned,listener,Change.CLOSED);listener.callback=null;}
         });
     }
     public static void tick(MinecraftServer server){for(var world:server.getWorlds())tick(world);}
