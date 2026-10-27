@@ -32,6 +32,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private List<Cell> cells = List.of();
     private Map<BlockPos,com.terminaldetector.drmd.world.geometry.HybridMesh> surfaces=Map.of();
     public com.terminaldetector.drmd.world.geometry.HybridMesh surface(Cell cell) {return surfaces.get(cell.pos());}
+    private Map<BlockPos,BodyBounds> cellBounds=Map.of();
     private CompoundCollider collider=new CompoundCollider(List.of());
     public CompoundCollider collider(){return collider;}
     private Vec3 centre = new Vec3(0, 0, 0);
@@ -93,17 +94,24 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         }
         surfaces=Map.copyOf(meshes);
         var solid=new ArrayList<CompoundCollider.Cell>();var shaped=new ArrayList<BodyBounds>();
+        var perCell=new HashMap<BlockPos,BodyBounds>();
         for(Cell cell:cells) {
-            if(surface(cell)==null)solid.add(new CompoundCollider.Cell(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()));
+            if(surface(cell)==null) {
+                solid.add(new CompoundCollider.Cell(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()));
+                perCell.put(cell.pos(),new BodyBounds(new Vec3(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()),
+                    new Vec3(cell.pos().getX()+1,cell.pos().getY()+1,cell.pos().getZ()+1)));
+            }
             else {
                 double x0=Double.POSITIVE_INFINITY,y0=x0,z0=x0,x1=-x0,y1=-x0,z1=-x0;
-                for(Vec3 v:corners(cell,new Vec3(0,0,0),Quat.IDENTITY)) {
+                for(Vec3 v:surfaceCorners(cell,new Vec3(0,0,0),Quat.IDENTITY)) {
                     v=v.plus(centre);x0=Math.min(x0,v.x());y0=Math.min(y0,v.y());z0=Math.min(z0,v.z());
                     x1=Math.max(x1,v.x());y1=Math.max(y1,v.y());z1=Math.max(z1,v.z());
                 }
-                shaped.add(new BodyBounds(new Vec3(x0,y0,z0),new Vec3(x1,y1,z1)));
+                var bounds=new BodyBounds(new Vec3(x0,y0,z0),new Vec3(x1,y1,z1));
+                shaped.add(bounds);perCell.put(cell.pos(),bounds);
             }
         }
+        cellBounds=Map.copyOf(perCell);
         shaped.addAll(CompoundCollider.cells(solid).boxes());collider=new CompoundCollider(shaped);
 
         int minX=Integer.MAX_VALUE,minY=Integer.MAX_VALUE,minZ=Integer.MAX_VALUE;
@@ -290,13 +298,22 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         return new Vec3(down.x,down.y,down.z);
     }
 
-    private List<Vec3> corners(Cell cell,Vec3 position,Quat rotation) {
+    private List<Vec3> surfaceCorners(Cell cell,Vec3 position,Quat rotation) {
         var result=new ArrayList<Vec3>(8);
         var mesh=surface(cell);
         for(int x=0;x<=1;x++)for(int y=0;y<=1;y++)for(int z=0;z<=1;z++) {
             var p=mesh==null?new com.terminaldetector.drmd.world.geometry.HybridMesh.Point(x,y,z):mesh.vertex(x*4,y*4,z*4);
             result.add(rotation.rotate(new Vec3(cell.pos.getX()+p.x(),cell.pos.getY()+p.y(),cell.pos.getZ()+p.z()).minus(centre)).plus(position));
         }
+        return result;
+    }
+    /** Support contacts and SAT must use the same conservative physical primitive. */
+    private List<Vec3> corners(Cell cell,Vec3 position,Quat rotation) {
+        BodyBounds bounds=cellBounds.get(cell.pos());var result=new ArrayList<Vec3>(8);
+        for(double x:new double[]{bounds.min().x(),bounds.max().x()})
+            for(double y:new double[]{bounds.min().y(),bounds.max().y()})
+                for(double z:new double[]{bounds.min().z(),bounds.max().z()})
+                    result.add(rotation.rotate(new Vec3(x,y,z).minus(centre)).plus(position));
         return result;
     }
     /**

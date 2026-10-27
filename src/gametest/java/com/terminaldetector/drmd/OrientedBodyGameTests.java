@@ -14,6 +14,23 @@ public final class OrientedBodyGameTests implements FabricGameTest {
         for(var b:BlockPos.iterate(p.add(-4,-4,-4),p.add(6,6,6)))w.setBlockState(b,Blocks.AIR.getDefaultState(),2);
         return p;
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="obb-natural-support",tickLimit=300)
+    public void smoothedTreeSupportUsesTheSameGeometryAsItsNarrowphase(TestContext c) {
+        var p=arena(c).up(40);var w=c.getWorld();
+        for(var cell:BlockPos.iterate(p.add(-10,-1,-10),p.add(10,10,10)))
+            w.setBlockState(cell,cell.getY()==p.getY()-1?Blocks.OBSIDIAN.getDefaultState():Blocks.AIR.getDefaultState(),2);
+        for(int y=0;y<=6;y++)w.setBlockState(p.up(y),Blocks.OAK_LOG.getDefaultState(),2);
+        for(var cell:BlockPos.iterate(p.add(-2,4,-2),p.add(2,8,2)))
+            if(w.getBlockState(cell).isAir() && Math.abs(cell.getX()-p.getX())+Math.abs(cell.getZ()-p.getZ())+Math.abs(cell.getY()-p.getY()-6)<=4)
+                w.setBlockState(cell,Blocks.OAK_LEAVES.getDefaultState().with(net.minecraft.state.property.Properties.PERSISTENT,true),2);
+        var b=com.terminaldetector.drmd.world.contraption.StructureCollapse.rocketCut(w,p,Vec3d.ofCenter(p),new Vec3d(0,0,-1),100);
+        c.assertTrue(b!=null,"real support cut assembles the full smoothed tree");
+        try {
+            for(int i=0;i<300;i++)b.tick();
+            c.assertTrue(Math.abs(b.rotation().x())>.35,"natural body physically tips instead of freezing on mismatched contact geometry: "+b.rotation());
+            c.assertTrue(b.getY()>p.getY()-1,"support does not let the tree fall through its floor");
+        } finally {b.discard();}c.complete();
+    }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="obb-empty-corner")
     public void rotatedHullCanMovePastTheEmptyCornerOfItsWorldAabb(TestContext c) {
         var p=arena(c);var w=c.getWorld();w.setBlockState(p,Blocks.IRON_BLOCK.getDefaultState(),2);
