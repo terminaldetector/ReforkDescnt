@@ -223,6 +223,7 @@ public class DescentMod implements ModInitializer {
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents.CHUNK_LOAD.register(
 				(world, chunk) -> {
 					com.terminaldetector.drmd.world.scar.ScarApplier.onChunkLoad(world, chunk);
+					com.terminaldetector.drmd.world.compat.NativeCubicSkylight.loaded(chunk);
 					com.terminaldetector.drmd.world.store.SurfaceIngest.onChunkLoad(world, chunk);
 				});
 

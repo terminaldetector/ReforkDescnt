@@ -26,6 +26,8 @@ public final class CubicClientGate implements ClientModInitializer {
     private static final BlockPos HIGH=new BlockPos(8,2150,8),LOW=new BlockPos(8,-512,8);
     private static CubicClientGate instance;
     private boolean started,forward,pendingLowTeleport,serverCrossRequested;
+    private final boolean reopen=Boolean.getBoolean("drmd.gate.reopen");
+    private boolean persistedChecked;
     private volatile boolean serverCrossed;
     private volatile double serverCrossY,serverVelocityY;
     private boolean fluidSetup,lightRemoval;
@@ -78,6 +80,8 @@ public final class CubicClientGate implements ClientModInitializer {
         if(!started) {
             if(!client.runDirectory.toPath().getFileName().toString().equals("cubic-client-automation"))throw new IllegalStateException("Disposable cubic runtime required");
             if(!FabricLoader.getInstance().isModLoaded("bettercubicchunks"))throw new IllegalStateException("No actual cubic backend");
+            if(reopen && !Files.isRegularFile(client.runDirectory.toPath().resolve("cubic-client-ok.json")))
+                throw new IllegalStateException("Reopen requires a completed earlier pass in this disposable runtime");
             if(client.world.getBottomY()!=-16384 || client.world.getHeight()!=32768)
                 throw new IllegalStateException("Wrong authoritative dimension bounds: "+client.world.getBottomY()+"/"+client.world.getHeight());
             started=true;client.setScreen(null);client.options.hudHidden=true;
@@ -100,6 +104,13 @@ public final class CubicClientGate implements ClientModInitializer {
             if(Math.abs(client.player.getY()-2152)>5 || !(client.world.getBlockEntity(HIGH) instanceof ChestBlockEntity))return;
             if(!signWritten) {publishSign(client,HIGH,"gate-v5-Y2150");return;}
             if(!signArrived(client,HIGH))return;
+            if(reopen && !persistedChecked) {
+                if(!cubeLoaded(client,WATER_PROBE) || !cubeLoaded(client,LIGHT_SOURCE))return;
+                if(!client.world.getFluidState(WATER_PROBE).isIn(net.minecraft.registry.tag.FluidTags.WATER)
+                        || !client.world.getBlockState(LIGHT_SOURCE).isAir())
+                    throw new IllegalStateException("Native saved fluid or removed glowstone changed across full client/server restart");
+                results.add("persisted_fluid_and_removed_light_after_reopen");persistedChecked=true;
+            }
             orient(client,new Vec3d(0,-1,-1),new Vec3d(0,1,-1));
             checkRaycast(client,HIGH);results.add("high_container_type_and_synced_sign_nbt");capture="high-client";phase=1;age=0;
             if(!flightEnabled())toggleFlight();
@@ -250,7 +261,18 @@ public final class CubicClientGate implements ClientModInitializer {
             }
             if(!cubeLoaded(client,LOW) || !(client.world.getBlockEntity(LOW) instanceof BarrelBlockEntity))throw new IllegalStateException("Near negative cube unloaded with distant cube");
             results.add("independent_vertical_be_unload");
-            finish(client);
+            teleport(client,2152);phase=15;age=0;
+        }else if(phase==15) {
+            if(!cubeLoaded(client,HIGH) || !cubeLoaded(client,SKY_PROBE.down(17)))return;
+            if(!(client.world.getBlockEntity(HIGH) instanceof ChestBlockEntity))return;
+            if(age%10==0)client.getServer().execute(()->serverSky=client.getServer().getOverworld()
+                .getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE.down(17)));
+            int light=client.world.getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE.down(17));
+            if(light!=15 || serverSky!=15) {
+                if(age>400)throw new IllegalStateException("Native skylight changed after vertical unload/reload: "+light+"/"+serverSky);
+                return;
+            }
+            results.add("native_skylight_after_vertical_reload");finish(client);
         }
     }
     private void teleport(MinecraftClient client,double y) {

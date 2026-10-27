@@ -5,6 +5,7 @@
   "mixins": [
     "PlayerEntityMixin",
     "CubicChunkMixin",
+    "NativeCubicCubeLoadMixin",
     "MicroExplosionMixin",
     "NaturalGeometryMixin",
     "ServerPlayerFlightTravelMixin",

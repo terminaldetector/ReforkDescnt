@@ -6,6 +6,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkSectionPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
@@ -35,9 +36,25 @@ public final class NativeCubicSkylight {
         if (api() == null || !world.getDimension().hasSkyLight()) return;
         var watches = WORLDS.computeIfAbsent(world, ignored -> new Watches());
         long key = ((long) pos.getX() << 32) | (pos.getZ() & 0xffffffffL);
+        watch(watches, key);
+    }
+
+    private static void watch(Watches watches, long key) {
         if (watches.keys.add(key)) {
             if (watches.queue.size() == MAX_COLUMNS) watches.keys.remove(watches.queue.removeFirst());
             watches.queue.addLast(key);
+        }
+    }
+
+    /** Native cube arrivals and column reopen can make a formerly unknown floor available. */
+    public static void loaded(WorldChunk chunk) {
+        if (api() == null || !(chunk.getWorld() instanceof ServerWorld world)
+                || !world.getDimension().hasSkyLight()) return;
+        var watches = WORLDS.computeIfAbsent(world, ignored -> new Watches());
+        long key = chunk.getPos().toLong();
+        if (watches.scanKeys.add(key)) {
+            if (watches.scans.size() == 128) watches.scanKeys.remove(watches.scans.removeFirst());
+            watches.scans.addLast(key);
         }
     }
 
@@ -46,6 +63,18 @@ public final class NativeCubicSkylight {
         for (ServerWorld world : server.getWorlds()) {
             var watches = WORLDS.get(world);
             if (watches == null) continue;
+            // At most one reopened column is scanned per tick. Native cube loading can
+            // call this repeatedly for one X/Z column; the queue deduplicates those calls.
+            if (!watches.scans.isEmpty()) {
+                long key = watches.scans.removeFirst();watches.scanKeys.remove(key);
+                var pos = new ChunkPos(key);
+                if (world.getChunkManager().getChunk(pos.x, pos.z, ChunkStatus.FULL, false) instanceof WorldChunk) {
+                    for (int x = 0; x < 16; x++) for (int z = 0; z < 16; z++) {
+                        long column = ((long) (pos.getStartX() + x) << 32) | ((pos.getStartZ() + z) & 0xffffffffL);
+                        watch(watches, column);
+                    }
+                }
+            }
             var relight = new HashMap<WorldChunk, int[]>();
             int count = Math.min(COLUMNS_PER_TICK, watches.queue.size());
             for (int n = 0; n < count; n++) {
@@ -149,6 +178,8 @@ public final class NativeCubicSkylight {
     private static final class Watches {
         final ArrayDeque<Long> queue = new ArrayDeque<>();
         final HashSet<Long> keys = new HashSet<>();
+        final ArrayDeque<Long> scans = new ArrayDeque<>();
+        final HashSet<Long> scanKeys = new HashSet<>();
     }
 
     private static final class Api {

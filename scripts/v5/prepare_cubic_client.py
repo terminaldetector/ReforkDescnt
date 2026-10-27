@@ -60,6 +60,8 @@ def main():
     parser.add_argument('--drmd',type=Path,required=True)
     parser.add_argument('--bcc',type=Path,required=True)
     parser.add_argument('--api',type=Path,required=True)
+    parser.add_argument('--gate',type=Path,help='Separate remapped test-only cubic client harness')
+    parser.add_argument('--sodium',type=Path,help='Optional exact Sodium A/B runtime artifact')
     parser.add_argument('--java',type=Path,required=True)
     parser.add_argument('--copy-test-world',action='store_true')
     parser.add_argument('--download-missing',action='store_true')
@@ -118,7 +120,7 @@ def main():
             target=verified_copy(source,runtime/'libraries'/relative)
             entries.append(str(target));manifest.append({'path':str(target.relative_to(runtime)),
                 'sha256':digest(target),'source':'previously staged official Fabric server runtime'})
-    for source in (args.drmd,args.bcc,args.api):
+    for source in filter(None,(args.drmd,args.bcc,args.api,args.gate,args.sodium)):
         target=verified_copy(source,runtime/'mods'/source.name)
         manifest.append({'path':str(target.relative_to(runtime)),'sha256':digest(target),'source':str(source)})
     if missing:
@@ -146,7 +148,8 @@ def main():
     if args.copy_test_world:
         argv+=['--quickPlaySingleplayer','Cubic-Gate']
     (runtime/'launch.json').write_text(json.dumps(argv,indent=2)+'\n')
-    (runtime/'inputs.json').write_text(json.dumps({'status':'STAGED_NOT_RUN','artifacts':manifest},indent=2)+'\n')
+    (runtime/'inputs.json').write_text(json.dumps({'status':'STAGED_NOT_RUN','artifacts':manifest,
+        'experimental_native_relight_probe':False},indent=2)+'\n')
     print(json.dumps({'status':'STAGED_NOT_RUN','classpath_entries':len(entries),'artifacts':len(manifest),'runtime':str(runtime)}))
 
 
