@@ -66,6 +66,16 @@ public final class CubicClientGate implements ClientModInitializer {
                 System.out.println("CUBIC_PIXELS "+capture+" red="+red+" camera="+client.gameRenderer.getCamera().getPos()
                     +" yaw="+client.gameRenderer.getCamera().getYaw()+" pitch="+client.gameRenderer.getCamera().getPitch());
             }
+            if(capture.equals("native-smoothed-terrain")) {
+                int green=0;
+                for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++) {
+                    int c=image.getColor(x,y),r=c&255,g=c>>8&255,b=c>>16&255;
+                    if(g>40 && g>r*1.2 && g>b*1.2)green++;
+                }
+                System.out.println("CUBIC_TERRAIN_PIXELS green="+green+" camera="+client.gameRenderer.getCamera().getPos()
+                    +" yaw="+client.gameRenderer.getCamera().getYaw()+" pitch="+client.gameRenderer.getCamera().getPitch());
+                if(green<1000)throw new IllegalStateException("Native smoothed terrain is not visible in the actual completed frame: green="+green);
+            }
             capture=null;captureFrames=0;
         }catch(java.io.IOException e){throw new IllegalStateException(e);}
     }
@@ -413,6 +423,11 @@ public final class CubicClientGate implements ClientModInitializer {
     }
     private static void orientUp(MinecraftClient client) {orient(client,new Vec3d(0,1,0),new Vec3d(0,0,1));}
     private static void orient(MinecraftClient client,Vec3d forward,Vec3d up) {
+        if(!flightEnabled()) {
+            Vec3d direction=forward.normalize();
+            client.player.setYaw((float)Math.toDegrees(Math.atan2(-direction.x,direction.z)));
+            client.player.setPitch((float)-Math.toDegrees(Math.asin(MathHelper.clamp(direction.y,-1,1))));
+        }
         try {
             Class.forName("com.terminaldetector.drmd.client.flight.ShipAttitudeClient")
                     .getMethod("acceptPortalFrame",net.minecraft.client.network.ClientPlayerEntity.class,Vec3d.class,Vec3d.class)
@@ -423,7 +438,9 @@ public final class CubicClientGate implements ClientModInitializer {
         phase=4;client.options.forwardKey.setPressed(false);
         try {
             Files.writeString(client.runDirectory.toPath().resolve("cubic-client-ok.json"),
-                "{\"status\":\""+(Boolean.getBoolean("drmd.gate.tryNativeRelight")?"PASS_WITH_EXPERIMENTAL_RELIGHT_PROBE_NOT_SHIPPED":"CLIENT_SUBSET_PASS_FULL_GATE_PENDING")+"\",\"serverFlightY\":"+serverCrossY+",\"serverFlightVelocityY\":"+serverVelocityY+",\"renderedFrames\":"+renderedFrames+",\"checks\":[\""+String.join("\",\"",results)+"\"]}\n");
+                "{\"status\":\""+(Boolean.getBoolean("drmd.gate.tryNativeRelight")?"PASS_WITH_EXPERIMENTAL_RELIGHT_PROBE_NOT_SHIPPED":"CLIENT_SUBSET_PASS_FULL_GATE_PENDING")+"\",\"serverFlightY\":"+serverCrossY+",\"serverFlightVelocityY\":"+serverVelocityY+",\"renderedFrames\":"+renderedFrames
+                +",\"terrainBlocks\":"+CubicTerrainCheck.blocks+",\"terrainQuads\":"+CubicTerrainCheck.quads+",\"warpedVertices\":"+CubicTerrainCheck.warped
+                +",\"checks\":[\""+String.join("\",\"",results)+"\"]}\n");
         }catch(java.io.IOException e){throw new IllegalStateException(e);}
         client.scheduleStop();
     }
