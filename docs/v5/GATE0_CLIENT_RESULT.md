@@ -1,16 +1,19 @@
 # GATE-0 client: native cubic authority, 27 October 2026
 
-**Current shipping gate: BLOCKED — skylight does not recover after roof removal.**
-The client, packets, movement and several boundary tests work. This is not a declaration that
+**Full GATE-0 remains incomplete. Native skylight reproducer: fixed in the 1.1.18 candidate.**
+The strict production-client subset passes on source `6494541`, without the experimental relight
+probe. It includes recovery through two lower cubes and vertical unload/reload. Save reopen and
+Sodium A/B are tracked separately below as they complete. This is not a declaration that
 Master v5 world migration or GATE-0 is complete. Original saves and the baseline branches are intact.
 
 ## Actual runtime
 
 An official production Minecraft 1.21.1 client, Fabric Loader 0.19.5, Fabric API 0.116.15+1.21.1,
-unmodified Better Cubic Chunks 0.1.1 and DRMD 1.1.17-mirrors.1. The DRMD JAR is from the separately
+unmodified Better Cubic Chunks 0.1.1. The original reproducer used DRMD 1.1.17-mirrors.1 from the separately
 verified mirror branch; its SHA-256 is
 `b8e23d5cee6d6bc2c40620c9787e57576158028b2082d65ef2033c5c65d0df85`.
-The world branch's main game sources are not substituted for that tested binary.
+The candidate now incorporates the tested collider, native mirror and licence commits into this
+world worktree, followed by the optional native skylight repair. Its version is 1.1.18-cubic.1.
 The small `drmd_cubiccheck` JAR is a separate, remapped test mod and contains no DescentMod class.
 
 The closed BCC artifact is installed unchanged, outside Git. Its Loom 1.17.21 metadata is retained.
@@ -43,11 +46,14 @@ bounds minY=-16384, height=32768. Graphics is Mesa llvmpipe via Xvfb, not the us
 - Glowstone at (16,2160,-3) produces block light 13 at (15,2159,-3), across X/Y cube boundaries;
   removing it reduces that light. Roof placement reduces skylight below 15 on both sides.
 
-These are individual passed checks, not a successful final marker for the expanded lighting gate.
+The original 1.1.17 runs only passed subsets. The strict 1.1.18 run now produces a successful
+`CLIENT_SUBSET_PASS_FULL_GATE_PENDING` marker with eleven checks and 698 completed frames.
+Its server flight sample is Y=2165.45406582087, velocity Y=22.121829796214364. Evidence is retained in
+`work/gate0/verified-native-priority/` and `client-production-native-priority.log`.
 Logs for the marker subset are `work/gate0/client-production-marker.log`; expanded boundary cases
 are `client-production-light.log` and `client-production-isolated-sky.log`.
 
-## Reproducible blocking case
+## Original reproducer and correction
 
 1. In the loaded native cube containing (-8,2160,-8), confirm air and sky light 15.
 2. Place a 3x3 opaque roof centred at (-8,2161,-8), x/z offsets -1..1. Confirm diminished skylight.
@@ -65,6 +71,12 @@ recorded in `client-production-relight-probe.log`. The subsequent occlusion cons
 explicitly flagged `drmd.gate.tryNativeRelight`; even a successful probe will not certify an
 unmodified runtime or a shipped fix. No upstream binary or foreign implementation was copied.
 The upstream GitHub source URLs currently return 404; public runtime API signatures are available.
+
+The successful experimental probe established that the cached occlusion height was 2162 after the
+roof became air, whereas the native loaded source height was 87. It did not constitute a shipped fix.
+The production correction and all failed intermediate attempts are documented in
+`NATIVE_SKYLIGHT_REPAIR.md`. In the accepted strict run no `drmd.gate.tryNativeRelight` property is set,
+and the harness never repairs light or writes light arrays itself.
 
 ## Corrected test assumptions / evidence limits
 

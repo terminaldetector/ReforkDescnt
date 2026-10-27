@@ -216,10 +216,11 @@ tasks.register('prepareShootcheckWorld', Sync) {
 }
 tasks.named('runShootcheck') { dependsOn prepareShootcheckWorld }
 
-// Production-client gate harness. It compiles against public vanilla/Fabric APIs only;
+// Production-client gate harness. It compiles against our game and public vanilla/Fabric APIs;
 // the closed BCC artifact is installed unchanged in a separate production runtime.
 sourceSets {
     cubiccheck {
+        compileClasspath += sourceSets.main.output
         compileClasspath += sourceSets.main.compileClasspath
         runtimeClasspath += sourceSets.main.compileClasspath
     }

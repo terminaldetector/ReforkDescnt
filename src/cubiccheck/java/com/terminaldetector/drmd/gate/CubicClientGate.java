@@ -272,7 +272,34 @@ public final class CubicClientGate implements ClientModInitializer {
                 if(age>400)throw new IllegalStateException("Native skylight changed after vertical unload/reload: "+light+"/"+serverSky);
                 return;
             }
-            results.add("native_skylight_after_vertical_reload");finish(client);
+            results.add("native_skylight_after_vertical_reload");
+            if(!Boolean.getBoolean("drmd.gate.terrain")){finish(client);return;}
+            phase=16;age=0;serverReady=false;
+            client.getServer().execute(()->{
+                var world=client.getServer().getOverworld();
+                for(var pos:BlockPos.iterate(new BlockPos(12,2156,4),new BlockPos(20,2164,12)))
+                    world.setBlockState(pos,Blocks.AIR.getDefaultState(),3);
+                for(int x=14;x<=18;x++)for(int z=6;z<=10;z++) {
+                    int top=2157+Math.abs(x-16)+Math.abs(z-8);
+                    for(int y=2156;y<=top;y++)world.setBlockState(new BlockPos(x,y,z),
+                        (y==top?Blocks.GRASS_BLOCK:Blocks.DIRT).getDefaultState(),3);
+                }
+                client.getServer().getPlayerManager().getPlayer(client.player.getUuid())
+                    .teleport(world,20.5,2165,14.5,Set.of(),0,45);
+                serverReady=true;
+            });
+        }else if(phase==16) {
+            if(Math.abs(client.player.getY()-2165)>3)return;
+            Vec3d direction=new Vec3d(16.5,2159,8.5).subtract(client.player.getEyePos()).normalize();
+            orient(client,direction,new Vec3d(0,1,0).subtract(direction.multiply(direction.y)));
+            if(CubicTerrainCheck.blocks.get()==0 || CubicTerrainCheck.quads.get()==0 || CubicTerrainCheck.warped.get()==0) {
+                if(age>400)throw new IllegalStateException("Native cube mesh bypassed hybrid smoothing: blocks="+CubicTerrainCheck.blocks+" quads="+CubicTerrainCheck.quads+" warped="+CubicTerrainCheck.warped);
+                return;
+            }
+            System.out.println("CUBIC_TERRAIN blocks="+CubicTerrainCheck.blocks+" quads="+CubicTerrainCheck.quads+" warped="+CubicTerrainCheck.warped);
+            capture="native-smoothed-terrain";phase=17;age=0;
+        }else if(phase==17) {
+            results.add("native_chunk_mesh_uses_warped_hybrid_terrain");finish(client);
         }
     }
     private void teleport(MinecraftClient client,double y) {
