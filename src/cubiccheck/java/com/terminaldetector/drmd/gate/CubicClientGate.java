@@ -263,7 +263,17 @@ public final class CubicClientGate implements ClientModInitializer {
             boolean above=(Boolean)stateType.getMethod("allGeneratedCubesLoadedAbove",int.class).invoke(state,world.getSectionIndex(SKY_PROBE.getY()));
             System.out.println("CUBIC_SKY_SOURCE step="+step+" loaded="+before+" raw="+sky.get(x,z)+" occlusion="+occlusion
                 +" max="+sky.getMaxSurfaceY()+" allGeneratedAboveLoaded="+above);
-            if(step==400 && above)stateType.getMethod("setOcclusion",int.class,int.class,int.class).invoke(state,x,z,(Integer)before);
+            if(step==400) {
+                int cached=(Integer)occlusion,index=world.getSectionIndex(cached-1);
+                Object status=stateType.getMethod("status",int.class).invoke(state,index);
+                boolean emptyTop=world.getBlockState(new BlockPos(SKY_PROBE.getX(),cached-1,SKY_PROBE.getZ())).isAir();
+                int conservativeFloor=Math.floorDiv(cached-1,16)*16;
+                System.out.println("CUBIC_OCCLUSION_REPAIR status="+status+" emptyTop="+emptyTop+" floor="+conservativeFloor);
+                if(String.valueOf(status).equals("FULL") && emptyTop) {
+                    int bound=Math.max((Integer)before,conservativeFloor);
+                    if(bound<cached)stateType.getMethod("setOcclusion",int.class,int.class,int.class).invoke(state,x,z,bound);
+                }
+            }
             api.getMethod("bcc$sectionChanged",net.minecraft.world.chunk.Chunk.class,int.class)
                 .invoke(sky,chunk,world.getSectionIndex(SKY_PROBE.getY()));
             Object after=source.invoke(sky,SKY_PROBE.getX()&15,SKY_PROBE.getZ()&15);
