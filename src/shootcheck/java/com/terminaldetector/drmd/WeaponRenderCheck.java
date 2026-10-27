@@ -46,6 +46,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     private Vec3d previousFast;
     private double fastTravel;
     private int fastFrames;
+    private int fastFixtureWait;
     private CaptureRequest pendingCapture;
     private record CaptureRequest(String name, boolean colours, boolean mounts, Runnable after) {}
     private volatile net.minecraft.server.MinecraftServer fixtureServer;
@@ -151,6 +152,21 @@ public final class WeaponRenderCheck implements ClientModInitializer {
         if (pendingCapture != null) return;
         if (scene < 8 && sceneTick == 0 && (!rangeServerTicked || ids.stream().anyMatch(id ->
                 !(client.world.getEntityById(id) instanceof ProjectileEntity)))) return;
+        if(scene==9 && sceneTick==0) {
+            int occupied=0;
+            for(int z:new int[]{24,-85})
+                for(var pos:BlockPos.iterate(new BlockPos(8,203,z),new BlockPos(16,209,z)))
+                    if(!client.world.getBlockState(pos).isAir())occupied++;
+            boolean terrainReady=client.worldRenderer.isTerrainRenderComplete();
+            if(occupied!=0 || !terrainReady) {
+                if(++fastFixtureWait%40==0)System.out.println("DRMD shootcheck: waiting for removed backdrop: blocks="
+                    +occupied+" terrainReady="+terrainReady+" ticks="+fastFixtureWait);
+                if(fastFixtureWait>400)throw new IllegalStateException("Fast fixture did not clear: blocks="
+                    +occupied+" terrainReady="+terrainReady);
+                return;
+            }
+            System.out.println("DRMD shootcheck: removed backdrops acknowledged and terrain complete after "+fastFixtureWait+" ticks");
+        }
         ++sceneTick;
         if (scene == 0) {
             if (sceneTick == 35) client.options.getFov().setValue(70);
