@@ -146,11 +146,13 @@ public abstract class CyberMobEntity extends HostileEntity {
 
 	protected Vec3d muzzle(double forwardOffset, double upOffset) {
 		Vec3d look = getRotationVec(1f);
-		return getPos().add(0, getHeight() * upOffset, 0).add(look.multiply(forwardOffset));
+		Vec3d up=com.terminaldetector.drmd.world.gravity.ActorFrames.active(this)
+			? com.terminaldetector.drmd.world.gravity.ActorFrames.up(this):new Vec3d(0,1,0);
+		return getPos().add(up.multiply(getHeight()*upOffset)).add(look.multiply(forwardOffset));
 	}
 
 	protected static Vec3d aimAt(Vec3d from, LivingEntity target) {
-		Vec3d to = target.getPos().add(0, target.getHeight() * 0.5, 0);
+		Vec3d to = target.getBoundingBox().getCenter();
 		Vec3d dir = to.subtract(from);
 		return dir.lengthSquared() < 1e-8 ? new Vec3d(0, 0, 1) : dir.normalize();
 	}

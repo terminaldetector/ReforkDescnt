@@ -40,8 +40,9 @@ public class DescentDroneModel<T extends Entity> extends EntityModel<T> {
 
 	@Override
 	public void setAngles(T entity, float limbAngle, float limbDistance, float animationProgress, float headYaw, float headPitch) {
-		root.yaw = headYaw * ((float) Math.PI / 180f);
-		root.pitch = headPitch * ((float) Math.PI / 180f);
+		// The complete hull attitude is applied once by setupTransforms, including pitch.
+		root.yaw = 0;
+		root.pitch = 0;
 		float spin = animationProgress * 0.15f;
 		var n = root.getChild("spar_n");
 		var s = root.getChild("spar_s");

@@ -26,7 +26,6 @@ public class OblivionSeekerRenderer extends MobEntityRenderer<OblivionSeekerEnti
 					   VertexConsumerProvider consumers, int light) {
 		matrices.push();
 		// Full 3D bank from FlightAttitude (GMod-style enemy roll).
-		matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(entity.getFlightRoll()));
 		float s = 1.15f;
 		matrices.scale(s, s, s);
 		super.render(entity, yaw, tickDelta, matrices, consumers, light);

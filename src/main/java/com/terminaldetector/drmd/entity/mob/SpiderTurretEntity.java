@@ -105,6 +105,8 @@ public class SpiderTurretEntity extends CyberMobEntity {
 	private void aimHead(LivingEntity target, float dt) {
 		Vec3d from = muzzle(0.0, 0.85);
 		Vec3d dir = aimAt(from, target);
+		if(com.terminaldetector.drmd.world.gravity.ActorFrames.active(this))
+			dir=com.terminaldetector.drmd.world.gravity.ActorFrameMath.toLocal(dir,com.terminaldetector.drmd.world.gravity.ActorFrames.up(this));
 		float yaw = FlightAttitude.approachAngle(getHeadYaw2(), FlightAttitude.yawOf(dir), 12f, dt);
 		float pitch = FlightAttitude.approachAngle(getHeadPitch2(), FlightAttitude.pitchOf(dir), 12f, dt);
 		dataTracker.set(HEAD_YAW, yaw);
@@ -192,19 +194,23 @@ public class SpiderTurretEntity extends CyberMobEntity {
 			turret.aimHead(target, dt);
 			// Legs still swing round to face, just far more slowly than the head.
 			Vec3d flat = target.getPos().subtract(turret.getPos());
-			FlightAttitude.steer(turret, new Vec3d(flat.x, 0, flat.z), 2.5f, dt);
+			FlightAttitude.steer(turret, com.terminaldetector.drmd.world.gravity.ActorFrames.tangent(turret,flat), 2.5f, dt);
 
 			boolean deployed = sight && dist < 40;
 			turret.dataTracker.set(DEPLOYED, deployed);
 			if (deployed) {
 				turret.getNavigation().stop();
+				if(com.terminaldetector.drmd.world.gravity.ActorFrames.active(turret))
+					com.terminaldetector.drmd.world.gravity.ActorFrames.driveSurface(turret,Vec3d.ZERO,0);
 				if (dist <= MG_RANGE) {
 					turret.beginBurst();
 				} else {
 					turret.fireLaser(target);
 				}
 			} else {
-				turret.getNavigation().startMovingTo(target, 1.0);
+				if(com.terminaldetector.drmd.world.gravity.ActorFrames.active(turret))
+					com.terminaldetector.drmd.world.gravity.ActorFrames.driveSurface(turret,flat,.18);
+				else turret.getNavigation().startMovingTo(target, 1.0);
 			}
 		}
 	}

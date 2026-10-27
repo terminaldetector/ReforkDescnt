@@ -22,6 +22,11 @@ import net.minecraft.util.math.Vec3d;
 public final class FlightAttitude {
 	private FlightAttitude() {}
 
+	/** Physical up for a full pitched/banked hull, shared with the model transform. */
+	public static Vec3d upOf(Vec3d forward,float bank) {
+		return ShipAttitude.rotate(ShipAttitude.levelUpOf(forward),forward,bank).normalize();
+	}
+
 	/** Minecraft yaw for a heading, in degrees. */
 	public static float yawOf(Vec3d dir) {
 		return (float) Math.toDegrees(MathHelper.atan2(-dir.x, dir.z));
@@ -63,6 +68,9 @@ public final class FlightAttitude {
 	 */
 	public static void steer(LivingEntity mob, Vec3d heading, float turnRate, float dt) {
 		if (heading.lengthSquared() < 1e-8) return;
+		if(com.terminaldetector.drmd.world.gravity.ActorFrames.active(mob))
+			heading=com.terminaldetector.drmd.world.gravity.ActorFrameMath.toLocal(heading,
+				com.terminaldetector.drmd.world.gravity.ActorFrames.up(mob));
 		Vec3d dir = heading.normalize();
 		float yaw = approachAngle(mob.getYaw(), yawOf(dir), turnRate, dt);
 		float pitch = approachAngle(mob.getPitch(), pitchOf(dir), turnRate, dt);

@@ -182,7 +182,7 @@ public class DroneEntity extends HostileEntity {
 		attackCooldown = role.weaponCooldown;
 
 		Vec3d from = getPos().add(0, getHeight() * 0.5, 0);
-		Vec3d dir = target.getPos().add(0, target.getHeight() * 0.5, 0).subtract(from).normalize();
+		Vec3d dir = target.getBoundingBox().getCenter().subtract(from).normalize();
 
 		WeaponCore.FireConfig cfg = new WeaponCore.FireConfig();
 		cfg.owner = this;

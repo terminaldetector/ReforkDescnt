@@ -26,7 +26,6 @@ public class ScannerRenderer extends MobEntityRenderer<ScannerEntity, ScannerMod
 					   VertexConsumerProvider consumers, int light) {
 		// Bank the whole hull the way the flight rules say it is leaning.
 		matrices.push();
-		matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(entity.getFlightRoll()));
 		super.render(entity, yaw, tickDelta, matrices, consumers, light);
 		matrices.pop();
 	}

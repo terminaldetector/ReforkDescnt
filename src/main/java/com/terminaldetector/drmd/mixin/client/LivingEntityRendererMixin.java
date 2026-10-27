@@ -4,6 +4,10 @@ import com.terminaldetector.drmd.client.DescentClientState;
 import com.terminaldetector.drmd.client.flight.ShipAttitudeClient;
 import com.terminaldetector.drmd.client.gravity.FootGravityCamera;
 import com.terminaldetector.drmd.client.render.ModelOrientation;
+import com.terminaldetector.drmd.world.gravity.ActorFrames;
+import com.terminaldetector.drmd.world.gravity.ActorFrameMath;
+import com.terminaldetector.drmd.world.gravity.ActorPhysicsProfile;
+import com.terminaldetector.drmd.ai.FlightAttitude;
 import com.terminaldetector.drmd.entity.PyroShipEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -35,6 +39,16 @@ public class LivingEntityRendererMixin {
 								   float animationProgress, float bodyYaw, float tickDelta, float scale,
 								   CallbackInfo ci) {
 		MinecraftClient mc = MinecraftClient.getInstance();
+		if(ActorPhysicsProfile.bankedModel(entity)) {
+			Vec3d forward=entity.getRotationVec(tickDelta);
+			ModelOrientation.applyBasis(matrices,bodyYaw,forward,FlightAttitude.upOf(forward,ActorPhysicsProfile.roll(entity)));
+			return;
+		}
+		if(ActorFrames.active(entity)) {
+			Vec3d up=ActorFrames.up(entity);
+			ModelOrientation.applyBasis(matrices,bodyYaw,ActorFrameMath.toWorld(Vec3d.fromPolar(0,bodyYaw),up),up);
+			return;
+		}
 		// Only the local pilot: nobody else's attitude is synced to this client, so a remote player
 		// has nothing to orient by and is left to vanilla.
 		if (mc.player != entity) return;

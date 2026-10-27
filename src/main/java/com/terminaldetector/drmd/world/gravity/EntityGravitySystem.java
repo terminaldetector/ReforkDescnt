@@ -9,6 +9,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
+import com.terminaldetector.drmd.world.edit.WorldEditSafety;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -45,6 +46,10 @@ public final class EntityGravitySystem {
 	private EntityGravitySystem() {}
 
 	public static void clear() {
+		for(MobState state:STATE.values()) {
+			LivingEntity entity=state.actor.get();
+			if(entity!=null && state.owns(entity))ActorFrames.tryRelease(entity);
+		}
 		STATE.clear();
 	}
 
@@ -59,7 +64,15 @@ public final class EntityGravitySystem {
 	public static void tick(MinecraftServer server) {
 		Set<UUID> active = new HashSet<>();
 		for (ServerWorld world : server.getWorlds()) {
-			if(!GravityFields.hasFields(world.getRegistryKey()))continue;
+			boolean fields=GravityFields.hasFields(world.getRegistryKey());
+			if(!fields) {
+				// No whole-world scan on ordinary worlds without emitters. Restored physical
+				// frames still need a safe release even when the runtime lease map is empty.
+				for(LivingEntity entity:ActorFrames.tracked(world)) {
+					active.add(entity.getUuid());tickEntity(entity);
+				}
+				continue;
+			}
 			// Visit each loaded actor once. Overlapping emitters previously repeated world
 			// entity-section searches, then sampled the full field catalogue for each actor.
 			for(Entity candidate:world.iterateEntities()) {
@@ -73,10 +86,15 @@ public final class EntityGravitySystem {
 
 	private static void tickEntity(LivingEntity entity) {
 		if (entity instanceof PlayerEntity) return; // FootGravitySystem
-		if (entity.hasVehicle()) {STATE.remove(entity.getUuid());return;}
+		if (entity.hasVehicle()) {ActorFrames.tryRelease(entity);STATE.remove(entity.getUuid());return;}
 
 		GravityFields.Sample sample = GravityFields.sample(entity.getWorld(), entity.getPos());
 		if (sample == null || sample.strength() < 0.05f) {
+			if(!ActorFrames.tryRelease(entity)) {
+				// Keep the safe body while its upright replacement is obstructed; retry next tick.
+				STATE.put(entity.getUuid(),new MobState(entity,ActorFrames.up(entity)));
+				entity.setVelocity(Vec3d.ZERO);entity.fallDistance=0;return;
+			}
 			STATE.remove(entity.getUuid());
 			return;
 		}
@@ -85,7 +103,10 @@ public final class EntityGravitySystem {
 		MobState prev = STATE.get(entity.getUuid());
 		if(prev!=null && !prev.owns(entity))prev=null;
 		boolean remount = prev == null || prev.fieldUp.dotProduct(up) < REMOUNT_DOT;
-		if (remount) {
+		if(ActorFrames.supported(entity)) {
+			if(!ActorFrames.trySetUp(entity,up))return;
+			up=ActorFrames.up(entity);
+		} else if (remount && !ActorPhysicsProfile.flying(entity)) {
 			GravityMount.safeMount(entity, up);
 		}
 		if(prev==null)STATE.put(entity.getUuid(),new MobState(entity,up));
@@ -97,6 +118,12 @@ public final class EntityGravitySystem {
 
 	private static void applyMobPhysics(LivingEntity entity, Vec3d up,float strength) {
 		Vec3d down = up.negate();
+		if(ActorPhysicsProfile.flying(entity)) {
+			// Propulsion/AI owns flight attitude and normal movement. A field adds a force,
+			// never a foot mount, artificial ground contact, snap or a velocity reset.
+			entity.setVelocity(entity.getVelocity().add(down.multiply(GRAVITY*strength)));
+			entity.velocityModified=true;entity.fallDistance=0;return;
+		}
 		boolean grounded = probe(entity, up);
 
 		Vec3d vel = entity.getVelocity();
@@ -118,6 +145,7 @@ public final class EntityGravitySystem {
 
 	private static boolean probe(LivingEntity entity, Vec3d up) {
 		Vec3d from = entity.getPos().add(up.multiply(0.08));
+		if(!WorldEditSafety.loadedSegment(entity.getWorld(),from,from.add(up.negate().multiply(STICK))))return false;
 		var hit = entity.getWorld().raycast(new RaycastContext(
 				from, from.add(up.negate().multiply(STICK)),
 				RaycastContext.ShapeType.COLLIDER,
@@ -129,6 +157,7 @@ public final class EntityGravitySystem {
 
 	private static void snap(LivingEntity entity, Vec3d up) {
 		Vec3d from = entity.getPos().add(up.multiply(0.08));
+		if(!WorldEditSafety.loadedSegment(entity.getWorld(),from,from.add(up.negate().multiply(STICK))))return;
 		var hit = entity.getWorld().raycast(new RaycastContext(
 				from, from.add(up.negate().multiply(STICK)),
 				RaycastContext.ShapeType.COLLIDER,

@@ -177,10 +177,13 @@ public class TripodEntity extends CyberMobEntity {
 
 			// Pivot the hull about its own axis toward the target before anything else.
 			Vec3d toTarget = target.getPos().subtract(tripod.getPos());
-			FlightAttitude.steer(tripod, new Vec3d(toTarget.x, 0, toTarget.z), 5f, dt);
-			tripod.getLookControl().lookAt(target, 30f, 30f);
+			FlightAttitude.steer(tripod, com.terminaldetector.drmd.world.gravity.ActorFrames.tangent(tripod,toTarget), 5f, dt);
+			if(!com.terminaldetector.drmd.world.gravity.ActorFrames.active(tripod))tripod.getLookControl().lookAt(target, 30f, 30f);
 
-			if (dist > STANDOFF + 3) {
+			if(com.terminaldetector.drmd.world.gravity.ActorFrames.active(tripod)) {
+				double speed=dist>STANDOFF+3?.2:dist<STANDOFF-4?-.18:0;
+				com.terminaldetector.drmd.world.gravity.ActorFrames.driveSurface(tripod,toTarget.multiply(Math.signum(speed)),Math.abs(speed));
+			} else if (dist > STANDOFF + 3) {
 				tripod.getNavigation().startMovingTo(target, 1.0);
 			} else if (dist < STANDOFF - 4) {
 				// Too close for the lance — walk backwards along the target vector.
