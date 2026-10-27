@@ -7,6 +7,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import java.util.Optional;
 import java.util.List;
+import java.util.function.Consumer;
 
 /** Read boundary for a real backend. Unavailable volume is distinct from available air. */
 public interface CubicWorldAccess {
@@ -16,4 +17,5 @@ public interface CubicWorldAccess {
     Optional<ServerBlockEdits.Cell> snapshotIfLoaded(BlockPos pos);
     ServerBlockEdits.Result modifyServerAuthoritative(List<ServerBlockEdits.Edit> edits);
     Optional<GravityFields.Sample> getGravityAt(Vec3d point);
+    Optional<CubeLifecycle.Subscription> watchCube(D6ChunkPos cube,Consumer<CubeLifecycle.Event> listener);
 }

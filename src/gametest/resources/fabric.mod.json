@@ -21,6 +21,7 @@
       "com.terminaldetector.drmd.ConstructionPlacementGameTests",
       "com.terminaldetector.drmd.WorldAccessReadGameTests",
       "com.terminaldetector.drmd.WorldAccessBatchGameTests",
+      "com.terminaldetector.drmd.CubeLifecycleGameTests",
       "com.terminaldetector.drmd.PhysicsProfileGameTests",
       "com.terminaldetector.drmd.ClusterLifecycleGameTests",
       "com.terminaldetector.drmd.DrillSafetyGameTests",

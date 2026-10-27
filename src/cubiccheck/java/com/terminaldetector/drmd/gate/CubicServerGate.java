@@ -32,6 +32,7 @@ public final class CubicServerGate implements ModInitializer {
     private Path root;
     @Override public void onInitialize() {
         if(!Boolean.getBoolean("drmd.gate.server"))return;
+        if(Boolean.getBoolean("drmd.gate.lifecycle"))NativeCubeLifecycleGate.register();
         root=FabricLoader.getInstance().getGameDir().toAbsolutePath().normalize();
         if(!root.getFileName().toString().equals("cubic-seed2-gate"))throw new IllegalStateException("Dedicated disposable second-seed runtime required");
         if(reopen && !Files.isRegularFile(root.resolve("server-gate-write-ok.json")))

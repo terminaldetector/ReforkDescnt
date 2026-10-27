@@ -94,6 +94,7 @@ public class DescentMod implements ModInitializer {
             com.terminaldetector.drmd.world.build.ConstructionMode.clearAll();
 			com.terminaldetector.drmd.world.store.SurfaceIngest.close();
 			com.terminaldetector.drmd.world.cubic.CubicWorldSystem.close();
+			com.terminaldetector.drmd.world.access.CubeLifecycle.closeServer(server);
 			com.terminaldetector.drmd.world.compat.NativeCubicSkylight.close();
 			com.terminaldetector.drmd.world.portal.PortalTravel.clear();
 			com.terminaldetector.drmd.physics.GravyPhysics.clear();
@@ -160,6 +161,7 @@ public class DescentMod implements ModInitializer {
 		});
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			com.terminaldetector.drmd.world.access.CubeLifecycle.tick(server);
 			int tick = server.getTicks();
 			// Two buckets rather than one: the world-wide systems and the per-player ones scale with
 			// different things — loaded chunks and entities on one side, player count on the other — so a

@@ -11,6 +11,7 @@ import net.minecraft.world.chunk.WorldChunk;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.List;
+import java.util.function.Consumer;
 
 /** This facade owns no blocks, snapshots, files or tickets. */
 public final class WorldAccess implements CubicWorldAccess {
@@ -30,4 +31,5 @@ public final class WorldAccess implements CubicWorldAccess {
     }
     @Override public Optional<ServerBlockEdits.Cell> snapshotIfLoaded(BlockPos pos){return ServerBlockEdits.snapshot(world,pos);}
     @Override public ServerBlockEdits.Result modifyServerAuthoritative(List<ServerBlockEdits.Edit> edits){return ServerBlockEdits.commit(world,edits);}
+    @Override public Optional<CubeLifecycle.Subscription> watchCube(D6ChunkPos cube,Consumer<CubeLifecycle.Event> listener){return CubeLifecycle.watch(world,cube,listener);}
 }
