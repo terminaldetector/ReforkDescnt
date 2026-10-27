@@ -51,10 +51,11 @@ public final class CubicClientGate implements ClientModInitializer {
                 int red=0;
                 for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++) {
                     int color=image.getColor(x,y),r=color&255,g=color>>8&255,b=color>>16&255;
-                    if(r>60 && r>g*1.5 && r>b*1.5)red++;
+                    if(r>60 && r>g*2.3 && r>b*2.3)red++;
                 }
                 if(red<100)throw new IllegalStateException("Native cube marker has no visible geometry: "+capture+" red="+red);
-                System.out.println("CUBIC_PIXELS "+capture+" red="+red);
+                System.out.println("CUBIC_PIXELS "+capture+" red="+red+" camera="+client.gameRenderer.getCamera().getPos()
+                    +" yaw="+client.gameRenderer.getCamera().getYaw()+" pitch="+client.gameRenderer.getCamera().getPitch());
             }
             capture=null;captureFrames=0;
         }catch(java.io.IOException e){throw new IllegalStateException(e);}
@@ -72,7 +73,8 @@ public final class CubicClientGate implements ClientModInitializer {
             if(!FabricLoader.getInstance().isModLoaded("bettercubicchunks"))throw new IllegalStateException("No actual cubic backend");
             if(client.world.getBottomY()!=-16384 || client.world.getHeight()!=32768)
                 throw new IllegalStateException("Wrong authoritative dimension bounds: "+client.world.getBottomY()+"/"+client.world.getHeight());
-            started=true;client.setScreen(null);
+            started=true;client.setScreen(null);client.options.hudHidden=true;
+            client.getToastManager().clear();
             for(String option:new String[]{"hud","cockpit","weaponView","planetFloor","levelSky"}) {
                 try {Class.forName("com.terminaldetector.drmd.client.config.DescentConfig").getField(option).setBoolean(null,false);}
                 catch(ReflectiveOperationException e){throw new IllegalStateException(e);}
@@ -91,6 +93,7 @@ public final class CubicClientGate implements ClientModInitializer {
             if(Math.abs(client.player.getY()-2152)>5 || !(client.world.getBlockEntity(HIGH) instanceof ChestBlockEntity))return;
             if(!signWritten) {publishSign(client,HIGH,"gate-v5-Y2150");return;}
             if(!signArrived(client,HIGH))return;
+            orient(client,new Vec3d(0,-1,-1),new Vec3d(0,1,-1));
             checkRaycast(client,HIGH);results.add("high_container_type_and_synced_sign_nbt");capture="high-client";phase=1;age=0;
             if(!flightEnabled())toggleFlight();
         }else if(phase==1) {
@@ -209,11 +212,12 @@ public final class CubicClientGate implements ClientModInitializer {
             ClientPlayNetworking.send(payload);
         }catch(ReflectiveOperationException e){throw new IllegalStateException(e);}
     }
-    private static void orientUp(MinecraftClient client) {
+    private static void orientUp(MinecraftClient client) {orient(client,new Vec3d(0,1,0),new Vec3d(0,0,1));}
+    private static void orient(MinecraftClient client,Vec3d forward,Vec3d up) {
         try {
             Class.forName("com.terminaldetector.drmd.client.flight.ShipAttitudeClient")
                     .getMethod("acceptPortalFrame",net.minecraft.client.network.ClientPlayerEntity.class,Vec3d.class,Vec3d.class)
-                    .invoke(null,client.player,new Vec3d(0,1,0),new Vec3d(0,0,1));
+                    .invoke(null,client.player,forward.normalize(),up.normalize());
         }catch(ReflectiveOperationException e){throw new IllegalStateException(e);}
     }
     private void finish(MinecraftClient client) {
