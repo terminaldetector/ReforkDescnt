@@ -3,8 +3,9 @@
   "id": "drmd_cubiccheck",
   "version": "0.0.1",
   "name": "DRMD cubic production gate",
-  "environment": "client",
+  "environment": "*",
   "entrypoints": {
+    "main": ["com.terminaldetector.drmd.gate.CubicServerGate"],
     "client": [
       "com.terminaldetector.drmd.gate.CubicClientGate"
     ]
