@@ -71,6 +71,13 @@ public final class PortalProjectorGameTests implements FabricGameTest {
         try {
             placed(c,p,1,wall(c,a,Direction.NORTH));placed(c,p,2,wall(c,b,Direction.EAST));
             var target=wall(c,far,Direction.WEST);
+            // The beam resumes beyond a portal, outside the player's usual fixture room.
+            // Load this explicit fixture corridor plus the collision-shape halo; do not rely
+            // on chunks left by another test or on an earlier runGametest invocation.
+            for(int x=(a.getX()>>4)-2;x<=(far.getX()>>4)+2;x++)
+                for(int z=(a.getZ()>>4)-2;z<=(a.getZ()>>4)+2;z++)c.getWorld().getChunk(x,z);
+            c.assertTrue(com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedSegment(c.getWorld(),
+                Vec3d.ofCenter(b).add(1,0,0),Vec3d.ofCenter(far)),"exit-side fixture corridor and shape halo loaded");
             var ray=PortalGunRay.trace(p,Vec3d.ofCenter(a).add(0,0,-3.5),new Vec3d(0,0,1));
             c.assertTrue(ray.hops()==1 && ray.hit()!=null && ray.hit().getBlockPos().equals(target.getBlockPos()),"beam reaches the wall beyond orange, not the blue backing: "+ray+" target="+target);
             c.assertTrue(ray.hit().getSide()==Direction.WEST,"destination surface normal retained");
