@@ -80,6 +80,9 @@ class GravityFieldIndexTest {
         assertNull(GravityFields.sample(A,new Vec3d(Double.NaN,0,0)));
         assertThrows(IllegalArgumentException.class,()->field(2,A,BlockPos.ORIGIN,Double.NaN,FieldShape.SPHERE,new Vec3d(0,-1,0)));
         assertThrows(IllegalArgumentException.class,()->field(2,A,BlockPos.ORIGIN,8,FieldShape.SPHERE,Vec3d.ZERO));
+        GravityFields.clear();
+        GravityFields.put(field(3,A,BlockPos.ORIGIN,8,FieldShape.SPHERE,new Vec3d(0,-2e-6,0)));
+        assertEquals(-1,GravityFields.sample(A,new Vec3d(.5,.5,.5)).downDir().y,1e-9);
     }
 
     @Test void indexedBlendMatchesLinearInfluenceAndIsInsertionOrderIndependent() {

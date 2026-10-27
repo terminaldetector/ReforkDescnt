@@ -10,6 +10,30 @@ import java.util.UUID;
 
 public final class FootGravityRecoveryGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE)
+    public void malformedLegacyGeneratorValuesCannotPoisonOrCrashTheFieldIndex(TestContext context) {
+        var world=context.getWorld();var pos=context.getAbsolutePos(new BlockPos(2,4,2));
+        world.setBlockState(pos,com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_GENERATOR.getDefaultState(),3);
+        var generator=(com.terminaldetector.drmd.world.gravity.GravityGeneratorBlockEntity)world.getBlockEntity(pos);
+        for(float bad:new float[]{Float.NaN,Float.POSITIVE_INFINITY,Float.NEGATIVE_INFINITY,-1}) {
+            var nbt=generator.createNbt(world.getRegistryManager());nbt.putFloat("radius",bad);nbt.putFloat("power",bad);
+            generator.read(nbt,world.getRegistryManager());generator.registerField();
+            context.assertTrue(Float.isFinite(generator.getRadius()) && generator.getRadius()>0,"radius repaired");
+            context.assertTrue(Float.isFinite(generator.getPower()) && generator.getPower()>=0,"power repaired");
+        }
+        world.setBlockState(pos,net.minecraft.block.Blocks.AIR.getDefaultState(),3);context.complete();
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void finiteAuthoredGeneratorRadiusSurvivesTheIndexMigration(TestContext context) {
+        var world=context.getWorld();var pos=context.getAbsolutePos(new BlockPos(2,4,2));
+        world.setBlockState(pos,com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_GENERATOR.getDefaultState(),3);
+        var generator=(com.terminaldetector.drmd.world.gravity.GravityGeneratorBlockEntity)world.getBlockEntity(pos);
+        var nbt=generator.createNbt(world.getRegistryManager());nbt.putFloat("radius",512);nbt.putFloat("power",0);
+        generator.read(nbt,world.getRegistryManager());generator.registerField();
+        context.assertTrue(generator.getRadius()==512 && generator.getPower()==0,"valid authored values preserved");
+        world.setBlockState(pos,net.minecraft.block.Blocks.AIR.getDefaultState(),3);context.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE)
     public void clientMirrorsCannotEraseOrReplaceServerGravity(TestContext context) {
         UUID id=UUID.randomUUID();
         FootGravitySystem.adoptServer(id,new Vec3d(1,0,0),"server wall");

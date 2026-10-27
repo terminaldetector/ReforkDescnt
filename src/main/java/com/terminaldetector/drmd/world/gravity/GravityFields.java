@@ -36,6 +36,7 @@ public final class GravityFields {
 			if(!finite(downDir) || downDir.lengthSquared()<1e-12 || !Double.isFinite(downDir.lengthSquared())
 					|| !Double.isFinite(radius) || radius<=0 || !Float.isFinite(power) || power<0)
 				throw new IllegalArgumentException("Invalid gravity field");
+			downDir=downDir.multiply(1.0/Math.sqrt(downDir.lengthSquared()));
 			origin=origin.toImmutable();
 		}
 		public Field(UUID id, net.minecraft.registry.RegistryKey<World> worldKey, BlockPos origin,

@@ -78,6 +78,9 @@ public class GravityGeneratorBlockEntity extends BlockEntity {
 		if (nbt.containsUuid("field")) fieldId = nbt.getUuid("field");
 		radius = nbt.contains("radius") ? nbt.getFloat("radius") : GravityGeneratorBlock.DEFAULT_RADIUS;
 		power = nbt.contains("power") ? nbt.getFloat("power") : GravityGeneratorBlock.DEFAULT_POWER;
+		// Legacy/edited NBT must not crash registration in the validated spatial index.
+		if(!Float.isFinite(radius) || radius<=0)radius=GravityGeneratorBlock.DEFAULT_RADIUS;
+		if(!Float.isFinite(power) || power<0)power=GravityGeneratorBlock.DEFAULT_POWER;
 		try {
 			shape = FieldShape.valueOf(nbt.getString("shape"));
 		} catch (Exception e) {

@@ -13,7 +13,7 @@ their influence, though queries still cost O(number of such oversized fields). N
 queries preserve the old cross-dimension diagnostic behaviour and are a full scan.
 
 Updates remove old memberships, moving fields replace their prior origin, and clear/remove
-release empty buckets. Field values snapshot mutable BlockPos inputs and reject non-finite
+release empty buckets. Field values normalize accepted directions, snapshot mutable BlockPos inputs and reject non-finite
 or undefined direction/radius/power data. Candidate UUID order is stable, so floating-point
 blend order does not depend on hash insertion order. No world storage, tickets or loaded
 cube state are owned by this index. Registry mutation/query are synchronized across the
@@ -39,3 +39,9 @@ First focused run:564 unit tests and99 GameTests passed;21 checkpoint-script tes
 passed too. The installer generator now takes the verified version, filename and
 digest instead of copying the historical1.1.11 instruction file. These focused results
 do not certify a1.1.20 binary or a full native6DoF entity milestone.
+
+Follow-up:564 unit tests and101 GameTests passed, including two checks of actual generator
+NBT. Invalid legacy radius/power values recover defaults before registration; positive finite
+authored radii and zero power survive unchanged. This avoids introducing a load-time exception
+through the stricter Field constructor. Tiny accepted directions normalize without becoming
+the zero vector. The weapon fixture's acknowledged-terrain change0f76a07 is also included.
