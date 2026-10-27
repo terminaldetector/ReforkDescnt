@@ -1,0 +1,13 @@
+UNGRAVITY / DRMD 1.1.21-actors.1 — Minecraft 1.21.1 / Fabric / Java 21
+Установочный JAR: drmd-6dof-1.1.21-actors.1-fabric-1.21.1.jar
+SHA-256: 13573dfc8661d45a547bc8abaf60a1baec47684f41f9c911d153275fb7722145
+
+Отдельный профиль Fabric 1.21.1 + Fabric API 0.116.15+1.21.1. Один DRMD JAR в mods.
+Immersive Portals для DRMD не требуется. Не устанавливать sources/dev/cubiccheck JAR.
+Исходные сохранения сохранить отдельно. Для экспериментального кубического мира:
+Fabric Loader 0.19.5+, Better Cubic Chunks 0.1.1+mc1.21.1 и НОВЫЙ мир с preset
+bettercubicchunks:cubic_default. Исходный обычный мир не превращать в кубический.
+BCC/Sodium в пакет не входят. Проверено на llvmpipe: без Sodium GL3.2/GLSL150,
+с Sodium0.8.13 GL3.3/GLSL330. Физическая Intel HD4400 здесь не проверена.
+Встроенные адаптеры дронов/бестиария включены по умолчанию. Полное Master v5
+ещё не выполнено; физические коллайдеры летающих корпусов/3D AI остаются в работе.

@@ -7,6 +7,11 @@ Target: **Minecraft 1.21.1, Fabric, Java 21**. Minecraft 26.3 is outside the dec
 range. The current implementation and its limits are tracked in
 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md); design and migration notes are linked there.
 
+Ready-to-install compiled mod: **[1.1.21-actors.1](dist/releases/1.1.21-actors.1/)**.
+The JAR is committed directly to this repository with installation notes, SHA-256 and the
+exact locally tested source revision. See [available builds](dist/README.md) for download links
+and acceptance limits. GitHub Actions results are recorded separately from the local checks.
+
 ## Build
 
 Use JDK 21:

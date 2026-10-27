@@ -1,0 +1,15 @@
+{
+  "sourceSha": "92d0d5bb5d737166f54ccbae42f792fd02bb3bcc",
+  "cases": [
+    "droneloadoutgametests.everyrolespawnsatitsfullauthoredhullanddefencepools",
+    "droneloadoutgametests.rolereloadpreserveswoundsanddoesnotinventmissingdefencedata",
+    "flyingrostergravitygametests.entireflyinglivingrosterkeepspropulsionandattitudeonallsixgravityaxes",
+    "actorframegametests.fieldexitreleasesbodyevenwhentheworldhasnoemittersleft",
+    "actorframegametests.groundbestiaryuseslocalbodyandsurfacesteeringonsixaxes",
+    "actorframegametests.obstructionrejectsturnandreleasewithoutchangingthesafebody",
+    "actorframegametests.savedposerestoresbuttemporaryaccelerationownershipdoesnot",
+    "actorframegametests.sixaxessharebodyeyeandlookwithoutteleporting",
+    "actorframegametests.unspawnednbtcopycannotacquireareleaselease",
+    "surfacecombatgametests.defaulttripodpursuesandfiresfromawallwithlocaleyes"
+  ]
+}

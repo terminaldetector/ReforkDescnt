@@ -1,17 +1,18 @@
-# Evening test — ready files
+# Готовые сборки UNGRAVITY / DRMD
 
-After CI (or local `./scripts/package_all.sh`):
+Текущая проверенная сборка: **1.1.21-actors.1**, Minecraft **1.21.1**, Fabric, Java **21**.
 
-| Artifact | Where | For |
-|----------|-------|-----|
-| `drmd-6dof-1.1.4.jar` | `dist/` / Actions **drmd-6dof-pc** | PC Fabric 1.21.1 |
-| `drmd-6dof-fast-test-1.0.0.mcaddon` | `dist/` / Actions **drmd-6dof-mcpe** | Bedrock / MCPE |
-| **drmd-evening-test** | Actions combined bundle | both |
+- **[Скачать готовый JAR](https://github.com/terminaldetector/ReforkDescnt/raw/refs/heads/codex/ungravity-cloud-recovery-20261024/dist/releases/1.1.21-actors.1/drmd-6dof-1.1.21-actors.1-fabric-1.21.1.jar)**
+- [Установка](releases/1.1.21-actors.1/INSTALL_TLAUNCHER.txt)
+- [SHA-256](releases/1.1.21-actors.1/SHA256SUMS)
+- [Исходная ревизия и результаты проверок](releases/1.1.21-actors.1/README.md)
+- [Подробный локальный отчёт](releases/1.1.21-actors.1/LOCAL_REPORT.md)
 
-## Local one-shot
+JAR хранится непосредственно в Git. Скачивать его из Actions или собирать проект для установки
+не требуется. Старые файлы в корне `dist/` сохранены как исторические версии; актуальная сборка
+находится в указанном каталоге `releases/`.
 
-```bash
-./scripts/package_all.sh
-# → dist/drmd-6dof-1.1.4.jar
-# → dist/drmd-6dof-fast-test-1.0.0.mcaddon
-```
+Все 11 ролей дронов проверены на полный запас здоровья и корректное сохранение повреждений.
+Новые адаптеры дронов и наземного бестиария включены по умолчанию. Полное Master ТЗ v5 ещё
+не выполнено: ориентированные коллайдеры летающих корпусов и полная маршрутизация AI в 3D
+остаются в работе. Результаты локальных проверок не означают прохождение GitHub Actions.

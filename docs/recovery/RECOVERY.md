@@ -1,7 +1,12 @@
 # Cloud recovery — 24 October 2026
 
-Current user update (25 October): GitHub limits are exhausted; work locally with source
-commits and downloadable backups. GHA is paused until the user requests resumption.
+Current user update (27 October): GitHub publication is resumed. The user explicitly requests
+the compiled mod directly in the repository. Store verified binaries in `dist/releases/<version>/`
+with a source SHA, checksum, installer and local evidence; update `dist/README.md`. Preserve older
+packages and the integration branch/PR #9. GitHub Actions status is separate from local verification.
+
+Historical update (25 October): GitHub limits were exhausted; publication was paused while
+work continued locally. That pause is superseded by the 27 October request.
 
 ## Preserved baseline
 
@@ -148,7 +153,7 @@ Artifact retention is finite: download milestone archives for longer-term preser
   A denied dependency is an infrastructure blocker, not a failed gameplay assertion.
 - Run links and artifact availability must be checked, rather than inferred from a push.
 
-## Temporary local source checkpoints — user update25October2026
+## Historical local-only pause — user update25October2026 (superseded)
 
 The user reports exhausted GitHub limits and requests work here with source code.
 Continue implementation with local commits and downloadable source archives, Gitbundles,

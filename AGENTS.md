@@ -1,9 +1,12 @@
 # Recovery and checkpoint rules
 
-The user works in the cloud. On 25 October 2026 they reported exhausted GitHub limits and
-asked to continue here with source code. While this pause is active, keep local milestone
-commits and downloadable source/bundle/patch/report backups; do not push or trigger Actions.
-The earlier GHA checkpoint policy resumes only when the user asks to resume GitHub work.
+The user works in the cloud. On 27 October 2026 they resumed GitHub publication and explicitly
+requested that the compiled mod be committed directly to the repository. The 25 October pause
+is superseded. Publish each verified installable JAR under `dist/releases/<version>/`, with
+its exact tested source SHA, SHA-256, installation notes and local verification report. Update
+`dist/README.md` to point to the latest verified package. Keep older versions and local backups.
+Source, binary and evidence commits are distinct: never imply that packaging changes were
+the source revision used by an earlier test run. Check GitHub Actions separately from local proof.
 
 - Read `docs/recovery/RECOVERY.md` before continuing recovery. The supplied historical handoff
   is context; current user instructions take precedence.

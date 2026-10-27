@@ -1,0 +1,192 @@
+{
+  "status": "NATIVE_SUBSET_PASS_FULL_MASTER_V5_PENDING",
+  "sourceSha": "92d0d5bb5d737166f54ccbae42f792fd02bb3bcc",
+  "jarSha256": "13573dfc8661d45a547bc8abaf60a1baec47684f41f9c911d153275fb7722145",
+  "softwareGraphics": true,
+  "scenarios": [
+    {
+      "name": "release-actors-gl32",
+      "gl": "3.2/150",
+      "dummyMessages": 0,
+      "result": {
+        "scenes": [
+          {
+            "stage": 0,
+            "models": 6,
+            "renderedFrames": 90
+          },
+          {
+            "stage": 1,
+            "models": 6,
+            "renderedFrames": 90
+          },
+          {
+            "stage": 2,
+            "models": 6,
+            "renderedFrames": 90
+          },
+          {
+            "stage": 3,
+            "models": 6,
+            "renderedFrames": 90
+          },
+          {
+            "stage": 4,
+            "models": 6,
+            "renderedFrames": 90
+          },
+          {
+            "stage": 5,
+            "models": 6,
+            "renderedFrames": 90
+          }
+        ]
+      }
+    },
+    {
+      "name": "release-actors-sodium",
+      "gl": "3.3/330",
+      "dummyMessages": 0,
+      "result": {
+        "scenes": [
+          {
+            "stage": 0,
+            "models": 6,
+            "renderedFrames": 90
+          },
+          {
+            "stage": 1,
+            "models": 6,
+            "renderedFrames": 90
+          },
+          {
+            "stage": 2,
+            "models": 6,
+            "renderedFrames": 90
+          },
+          {
+            "stage": 3,
+            "models": 6,
+            "renderedFrames": 90
+          },
+          {
+            "stage": 4,
+            "models": 6,
+            "renderedFrames": 90
+          },
+          {
+            "stage": 5,
+            "models": 6,
+            "renderedFrames": 90
+          }
+        ]
+      }
+    },
+    {
+      "name": "release-mirror-gl32",
+      "gl": "3.2/150",
+      "dummyMessages": 0,
+      "result": {
+        "frames": 14,
+        "scenes": [
+          {
+            "scene": "joined-on",
+            "changedPixels": 20736
+          },
+          {
+            "scene": "hole-on",
+            "changedPixels": 14112
+          },
+          {
+            "scene": "angled-on",
+            "changedPixels": 17240
+          },
+          {
+            "scene": "occluded-on",
+            "changedPixels": 15552
+          },
+          {
+            "scene": "charged-on",
+            "changedPixels": 20736
+          },
+          {
+            "scene": "portal-on",
+            "changedPixels": 90835
+          },
+          {
+            "scene": "banked-on",
+            "changedPixels": 26680
+          }
+        ]
+      }
+    },
+    {
+      "name": "release-baseline-sodium",
+      "gl": "3.3/330",
+      "dummyMessages": 0,
+      "result": {
+        "status": "CLIENT_SUBSET_PASS_FULL_GATE_PENDING",
+        "serverFlightY": 2165.957824208759,
+        "serverFlightVelocityY": 31.418747901916504,
+        "renderedFrames": 848,
+        "terrainBlocks": 68,
+        "terrainQuads": 4216,
+        "warpedVertices": 14040,
+        "checks": [
+          "native_client_world_access_distinguishes_unknown_from_air",
+          "high_container_type_and_synced_sign_nbt",
+          "six_dof_vertical_seam",
+          "native_water_cross_xyz_cube_boundaries",
+          "native_blocklight_cross_xy_boundary",
+          "native_blocklight_removal",
+          "native_skylight_occlusion",
+          "native_skylight_restoration",
+          "native_skylight_restoration_two_lower_cubes",
+          "native_negative_blocklight_synced",
+          "negative_container_type_and_synced_sign_nbt",
+          "independent_vertical_be_unload",
+          "native_skylight_after_vertical_reload",
+          "native_chunk_mesh_uses_warped_hybrid_terrain"
+        ]
+      }
+    },
+    {
+      "name": "release-mirror-sodium",
+      "gl": "3.3/330",
+      "dummyMessages": 0,
+      "result": {
+        "frames": 14,
+        "scenes": [
+          {
+            "scene": "joined-on",
+            "changedPixels": 20736
+          },
+          {
+            "scene": "hole-on",
+            "changedPixels": 14112
+          },
+          {
+            "scene": "angled-on",
+            "changedPixels": 17240
+          },
+          {
+            "scene": "occluded-on",
+            "changedPixels": 15552
+          },
+          {
+            "scene": "charged-on",
+            "changedPixels": 20736
+          },
+          {
+            "scene": "portal-on",
+            "changedPixels": 90837
+          },
+          {
+            "scene": "banked-on",
+            "changedPixels": 26680
+          }
+        ]
+      }
+    }
+  ]
+}
