@@ -98,10 +98,7 @@ public class DescentSettingsScreen extends Screen {
 					DescentConfig.levelSky = v;
 					DescentConfig.save();
 				}),
-				toggle(right, y, "options.drmd.sky_ufo_virtual_hull", DescentConfig.skyUfoVirtualHull, v -> {
-					DescentConfig.skyUfoVirtualHull = v;
-					DescentConfig.save();
-				}));
+                null);
 		y = addRow(y, viewBottom,
 				toggle(left, y, "options.drmd.planet_floor", DescentConfig.planetFloor, v -> {
 					DescentConfig.planetFloor = v;

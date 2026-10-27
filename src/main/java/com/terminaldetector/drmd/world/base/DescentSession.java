@@ -331,15 +331,8 @@ public final class DescentSession {
 		// Megacity is biome-region based ({@link com.terminaldetector.drmd.world.surface.MegacityRegions}),
 		// not a spawn-offset landmark — see MegacityBiomeWorldgen.
 
-		// One airborne UFO near spawn sky lane
-		enqueue(new BlockPos(spawn.getX() + 100, WorldRules.SKY_PRACTICAL_MIN + 48, spawn.getZ() + 40), () -> {
-			var ufo = ModEntities.SKY_UFO.create(world);
-			if (ufo != null) {
-				ufo.refreshPositionAndAngles(spawn.getX() + 100.5, WorldRules.SKY_PRACTICAL_MIN + 48,
-						spawn.getZ() + 40.5, 0, 0);
-				world.spawnEntity(ufo);
-			}
-		});
+		// The boarding UFO is command-only; do not seed an airborne legacy hull near spawn.
+
 	}
 
 	/** Queue one megastructure; the salt is mixed with the world seed at build time. */

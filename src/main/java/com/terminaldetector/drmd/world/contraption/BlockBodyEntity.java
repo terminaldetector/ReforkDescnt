@@ -5,6 +5,7 @@ import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
 import com.terminaldetector.drmd.d6.*;
 import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.physics.PhysicsTarget;
+import com.terminaldetector.drmd.physics.collision.*;
 import com.terminaldetector.drmd.vendor.immptl.ImmPtlAARotation;
 import com.terminaldetector.drmd.world.cubic.CubicBlockCodec;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
@@ -31,6 +32,8 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private List<Cell> cells = List.of();
     private Map<BlockPos,com.terminaldetector.drmd.world.geometry.HybridMesh> surfaces=Map.of();
     public com.terminaldetector.drmd.world.geometry.HybridMesh surface(Cell cell) {return surfaces.get(cell.pos());}
+    private CompoundCollider collider=new CompoundCollider(List.of());
+    public CompoundCollider collider(){return collider;}
     private Vec3 centre = new Vec3(0, 0, 0);
     private final D6PhysicsBody body = new D6PhysicsBody().withLimits(MAX_LINEAR_SPEED, MAX_ANGULAR_SPEED);
     private Quat previousRotation = Quat.IDENTITY;
@@ -89,6 +92,20 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
                 new com.terminaldetector.drmd.world.geometry.HybridMesh.Neighbourhood(neighbours)));
         }
         surfaces=Map.copyOf(meshes);
+        var solid=new ArrayList<CompoundCollider.Cell>();var shaped=new ArrayList<BodyBounds>();
+        for(Cell cell:cells) {
+            if(surface(cell)==null)solid.add(new CompoundCollider.Cell(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()));
+            else {
+                double x0=Double.POSITIVE_INFINITY,y0=x0,z0=x0,x1=-x0,y1=-x0,z1=-x0;
+                for(Vec3 v:corners(cell,new Vec3(0,0,0),Quat.IDENTITY)) {
+                    v=v.plus(centre);x0=Math.min(x0,v.x());y0=Math.min(y0,v.y());z0=Math.min(z0,v.z());
+                    x1=Math.max(x1,v.x());y1=Math.max(y1,v.y());z1=Math.max(z1,v.z());
+                }
+                shaped.add(new BodyBounds(new Vec3(x0,y0,z0),new Vec3(x1,y1,z1)));
+            }
+        }
+        shaped.addAll(CompoundCollider.cells(solid).boxes());collider=new CompoundCollider(shaped);
+
         int minX=Integer.MAX_VALUE,minY=Integer.MAX_VALUE,minZ=Integer.MAX_VALUE;
         int maxX=Integer.MIN_VALUE,maxY=Integer.MIN_VALUE,maxZ=Integer.MIN_VALUE;
         for(Cell c:cells) {
@@ -148,9 +165,10 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         Map<BlockPos, BlockState> original = new LinkedHashMap<>();
         for (BlockPos cursor : BlockPos.iterate(min, max)) {
             BlockPos p = cursor.toImmutable();
-            if (!world.isChunkLoaded(p) || !world.getWorldBorder().contains(p) || world.isOutOfHeightLimit(p))
+            var snapshot=com.terminaldetector.drmd.world.access.WorldAccess.of(world).snapshotIfLoaded(p);
+            if(snapshot.isEmpty() || !world.getWorldBorder().contains(p) || world.isOutOfHeightLimit(p))
                 throw new IllegalArgumentException("Selection must be inside loaded world bounds");
-            BlockState state = world.getBlockState(p);
+            BlockState state=snapshot.get().state();
             if (state.isAir()) continue;
             if (!supports(state) || world.getBlockEntity(p) != null || original.size() >= 256)
                 throw new IllegalArgumentException("Up to 256 supported inert blocks, including logs, leaves and planks");
@@ -170,8 +188,9 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         D6Volume<BlockState> shape=new D6Volume<>(Blocks.AIR.getDefaultState());
         for(var e:original.entrySet()) {
             var p=e.getKey();var state=e.getValue();var local=p.subtract(min);
-            if(!world.isChunkLoaded(p) || world.isOutOfHeightLimit(p) || !world.getWorldBorder().contains(p)
-                || !world.getBlockState(p).equals(state) || !supports(state) || world.getBlockEntity(p)!=null
+            var snapshot=com.terminaldetector.drmd.world.access.WorldAccess.of(world).snapshotIfLoaded(p);
+            if(snapshot.isEmpty() || world.isOutOfHeightLimit(p) || !world.getWorldBorder().contains(p)
+                || !snapshot.get().state().equals(state) || !supports(state) || snapshot.get().entityData()!=null
                 || local.getX()>15 || local.getY()>15 || local.getZ()>15)
                 throw new IllegalArgumentException("Unsupported, changed, unloaded or oversized selection");
             shape.set(local.getX(),local.getY(),local.getZ(),state);
@@ -209,8 +228,9 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         Map<BlockPos, BlockState> target = new LinkedHashMap<>();
         for (Cell cell : cells) {
             BlockPos p = origin.add(turn.transform(cell.pos));
-            if (!world.isChunkLoaded(p) || world.isOutOfHeightLimit(p) || !world.getWorldBorder().contains(p)
-                || !world.getBlockState(p).isAir()) throw new IllegalArgumentException("Landing obstructed at " + p);
+            var state=com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(p);
+            if(state.isEmpty() || world.isOutOfHeightLimit(p) || !world.getWorldBorder().contains(p)
+                || !state.get().isAir())throw new IllegalArgumentException("Landing obstructed at "+p);
             target.put(p, cell.state);
         }
         List<BlockPos> placed = new ArrayList<>();
@@ -291,6 +311,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         List<Vec3> contacts=new ArrayList<>();double lift=0;
         for(Cell cell:cells) {
             Box bounds=box(cell);
+            if(!collisionRegionAvailable(bounds))return false;
             List<Vec3> oldCorners=corners(cell,before,previous);
             double previousNear=sign>0
                 ? oldCorners.stream().mapToDouble(p->component(p,axis)).min().orElseThrow()
@@ -336,19 +357,20 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             && (axis==1||(p.y()>=b.minY-1e-6&&p.y()<=b.maxY+1e-6))
             && (axis==2||(p.z()>=b.minZ-1e-6&&p.z()<=b.maxZ+1e-6));
     }
-    /** Ray tests local occupied cubes, so hollow space in a body's broadphase remains passable. */
+    public Vec3d worldToLocal(Vec3d point) {
+        return minecraft(body.rotation().inverse().rotate(pure(point).minus(pure(getPos()))).plus(centre));
+    }
+    public Vec3d localToWorld(Vec3d point) {
+        return minecraft(body.rotation().rotate(pure(point).minus(centre)).plus(pure(getPos())));
+    }
+    /** World units per second, including angular velocity about the body's actual COM. */
+    public Vec3d surfaceVelocityAt(Vec3d point) {return minecraft(body.velocityAtPoint(pure(point).minus(pure(getPos()))));}
+    /** BVH stays in local space; holes in the hull never become solid broadphase volume. */
+    public Optional<CompoundCollider.RayHit> raycastLocal(Vec3d start,Vec3d end) {
+        return collider.raycast(pure(worldToLocal(start)),pure(worldToLocal(end)));
+    }
     public Optional<Vec3d> raycast(Vec3d start,Vec3d end) {
-        Vec3 a=body.rotation().inverse().rotate(pure(start).minus(pure(getPos()))).plus(centre);
-        Vec3 b=body.rotation().inverse().rotate(pure(end).minus(pure(getPos()))).plus(centre);
-        Vec3d from=new Vec3d(a.x(),a.y(),a.z()),to=new Vec3d(b.x(),b.y(),b.z());
-        Vec3d best=null;double distance=Double.POSITIVE_INFINITY;
-        for(Cell cell:cells) {
-            var hit=new Box(cell.pos).raycast(from,to);
-            if(hit.isPresent() && from.squaredDistanceTo(hit.get())<distance) {best=hit.get();distance=from.squaredDistanceTo(best);}
-        }
-        if(best==null)return Optional.empty();
-        Vec3 world=body.rotation().rotate(pure(best).minus(centre)).plus(pure(getPos()));
-        return Optional.of(new Vec3d(world.x(),world.y(),world.z()));
+        return raycastLocal(start,end).map(hit->localToWorld(minecraft(hit.point())));
     }
     @Override public Optional<Vec3d> physicsRaycast(Vec3d start,Vec3d end) {return raycast(start,end);}
     @Override public void applyPhysicsImpulse(Vec3d impact,Vec3d impulse) {
@@ -376,18 +398,37 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         if(getWorld().isClient || !Float.isFinite(damage) || damage<=0 || !Double.isFinite(direction.lengthSquared()))return;
         applyPhysicsImpulse(impact,direction.normalize().multiply(Math.min(80,damage*.15)));
     }
+    /** World shape boxes are candidates. Only an actual oriented overlap blocks the body. */
     private boolean blocked() {
-        for (Cell cell : cells) {
-            Box box = box(cell);
-            if (box.minY < getWorld().getBottomY() || box.maxY > getWorld().getTopY()) return true;
-            for (int x = MathHelper.floor(box.minX)>>4; x <= MathHelper.floor(box.maxX)>>4; x++)
-                for (int z = MathHelper.floor(box.minZ)>>4; z <= MathHelper.floor(box.maxZ)>>4; z++)
-                    if (!getWorld().isChunkLoaded(x,z)) return true;
-            if (!getWorld().getWorldBorder().contains(box)) return true;
-            if (getWorld().getBlockCollisions(this, box.contract(1e-6)).iterator().hasNext()) return true;
+        var localBounds=collider.bounds();if(localBounds.isEmpty())return false;
+        Box broad=minecraft(OrientedBox.local(localBounds.get(),body.position(),centre,body.rotation()).bounds());
+        if(!collisionRegionAvailable(broad))return true;
+        Quat inverse=body.rotation().inverse();
+        for(var shape:getWorld().getBlockCollisions(this,broad.contract(1e-6)))for(Box obstacle:shape.getBoundingBoxes()) {
+            BodyBounds worldBox=bounds(obstacle);
+            var localObstacle=new OrientedBox(inverse.rotate(worldBox.centre().minus(body.position())).plus(centre),worldBox.half(),inverse);
+            for(BodyBounds solid:collider.query(localObstacle.bounds()))
+                if(OrientedBox.axisAligned(solid).contact(localObstacle,0)
+                    .filter(contact->contact.penetration()>1e-6).isPresent())return true;
         }
         return false;
     }
+    private boolean collisionRegionAvailable(Box box) {
+        if(box.minY<getWorld().getBottomY() || box.maxY>getWorld().getTopY()
+            || !getWorld().getWorldBorder().contains(box))return false;
+        int x0=MathHelper.floor(box.minX-1)>>4,x1=MathHelper.floor(box.maxX+1)>>4;
+        int y0=MathHelper.floor(box.minY-1)>>4,y1=MathHelper.floor(box.maxY+1)>>4;
+        int z0=MathHelper.floor(box.minZ-1)>>4,z1=MathHelper.floor(box.maxZ+1)>>4;
+        if((long)(x1-x0+1)*(y1-y0+1)*(z1-z0+1)>64)return false;
+        var access=com.terminaldetector.drmd.world.access.WorldAccess.of(getWorld());
+        for(int x=x0;x<=x1;x++)for(int y=y0;y<=y1;y++)for(int z=z0;z<=z1;z++)
+            if(com.terminaldetector.drmd.world.access.CubicAvailability.withinHeight(getWorld(),new D6ChunkPos(x,y,z))
+                && !access.isVolumeAvailable(new D6ChunkPos(x,y,z)))return false;
+        return true;
+    }
+    private static BodyBounds bounds(Box b){return new BodyBounds(new Vec3(b.minX,b.minY,b.minZ),new Vec3(b.maxX,b.maxY,b.maxZ));}
+    private static Box minecraft(BodyBounds b){return new Box(b.min().x(),b.min().y(),b.min().z(),b.max().x(),b.max().y(),b.max().z());}
+    private static Vec3d minecraft(Vec3 v){return new Vec3d(v.x(),v.y(),v.z());}
     private Box box(Cell cell) {
         double minX=Double.POSITIVE_INFINITY,minY=minX,minZ=minX,maxX=-minX,maxY=-minX,maxZ=-minX;
         for (Vec3 p:corners(cell,body.position(),body.rotation())) {

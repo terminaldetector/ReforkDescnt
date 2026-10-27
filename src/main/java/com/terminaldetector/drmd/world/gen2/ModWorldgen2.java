@@ -4,7 +4,6 @@ import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.world.WorldRules;
 import com.terminaldetector.drmd.world.mega.DroneSwarmEntity;
 import com.terminaldetector.drmd.world.mega.ReactorKeeperEntity;
-import com.terminaldetector.drmd.world.mega.SkyUfoEntity;
 import com.terminaldetector.drmd.entity.ModEntities;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.minecraft.server.world.ServerWorld;
@@ -135,13 +134,7 @@ public final class ModWorldgen2 {
 					world.spawnEntity(swarm);
 				}
 			}
-			case 1 -> {
-				SkyUfoEntity ufo = ModEntities.SKY_UFO.create(world);
-				if (ufo != null) {
-					ufo.refreshPositionAndAngles(at.getX() + 0.5, at.getY() + 12, at.getZ() + 0.5, 0, 0);
-					world.spawnEntity(ufo);
-				}
-			}
+			case 1 -> { /* Boarding UFOs are spawned only through /d6 mega ufo. */ }
 			default -> {
 				ReactorKeeperEntity keeper = ModEntities.REACTOR_KEEPER.create(world);
 				if (keeper != null) {
@@ -155,15 +148,7 @@ public final class ModWorldgen2 {
 
 	/** Force-generate a named mega-structure at a position (commands). */
 	public static MacroEntry forceGenerate(ServerWorld world, BlockPos pos, MacroEntry.Kind kind) {
-		if (kind == MacroEntry.Kind.UFO) {
-			SkyUfoEntity ufo = ModEntities.SKY_UFO.create(world);
-			if (ufo != null) {
-				ufo.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0, 0);
-				world.spawnEntity(ufo);
-				return new MacroEntry(ufo.getUuid(), MacroEntry.Kind.UFO, WorldRules.Layer.SKY_ARCHIPELAGO,
-						pos.toImmutable(), 36, 10, 36, 0x55FFAA, "Sky UFO");
-			}
-		}
+        if(kind==MacroEntry.Kind.UFO)throw new IllegalArgumentException("Use /d6 mega ufo for the command-only boarding demo");
 		return MegaStructureGenerator.generate(world, pos, kind, world.getRandom());
 	}
 }

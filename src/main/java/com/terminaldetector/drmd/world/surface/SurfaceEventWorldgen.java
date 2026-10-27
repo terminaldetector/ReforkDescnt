@@ -78,7 +78,7 @@ public final class SurfaceEventWorldgen {
 
 		switch (roll) {
 			case 0 -> enqueueCrashedUfo(world, ax, az, seed);
-			case 1 -> enqueueSkyUfo(world, ax, az, seed);
+			case 1 -> { return; } // No natural flying UFO before boarding acceptance.
 			case 2 -> enqueueRuinedComplex(world, ax, az, seed);
 			case 3 -> enqueueSmallLocator(world, ax, az, seed);
 			default -> enqueueOutpostPair(world, ax, az, seed);
@@ -100,17 +100,6 @@ public final class SurfaceEventWorldgen {
 				IndustrialComplexGenerator.generateAt(world, under, style, vit, Random.create(seed ^ 0x11L)));
 	}
 
-	private static void enqueueSkyUfo(ServerWorld world, int ax, int az, long seed) {
-		int y = WorldRules.SKY_PRACTICAL_MIN + 24 + (int) Math.floorMod(seed, 48L);
-		BlockPos at = new BlockPos(ax, y, az);
-		DescentSession.enqueueLandmark(at, () -> {
-			var ufo = ModEntities.SKY_UFO.create(world);
-			if (ufo != null) {
-				ufo.refreshPositionAndAngles(ax + 0.5, y, az + 0.5, 0, 0);
-				world.spawnEntity(ufo);
-			}
-		});
-	}
 
 	private static void enqueueRuinedComplex(ServerWorld world, int ax, int az, long seed) {
 		WorldRules.ComplexStyle style = DungeonTerritory.primaryStyle(DungeonTerritory.Kind.SURFACE_EVENT, seed);
@@ -132,14 +121,6 @@ public final class SurfaceEventWorldgen {
 
 	private static void enqueueOutpostPair(ServerWorld world, int ax, int az, long seed) {
 		enqueueCrashedUfo(world, ax, az, seed);
-		int y = WorldRules.SKY_PRACTICAL_MIN + 40;
-		DescentSession.enqueueLandmark(new BlockPos(ax + 40, y, az + 30), () -> {
-			var ufo = ModEntities.SKY_UFO.create(world);
-			if (ufo != null) {
-				ufo.refreshPositionAndAngles(ax + 40.5, y, az + 30.5, 0, 0);
-				world.spawnEntity(ufo);
-			}
-		});
 	}
 
 	static BlockPos anchorAt(int blockX, int blockZ) {

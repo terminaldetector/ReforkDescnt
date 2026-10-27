@@ -379,6 +379,9 @@ public final class DescentCommands {
 										default -> com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.ARCH;
 									};
 								}
+                                if(kind==com.terminaldetector.drmd.world.gen2.MacroEntry.Kind.UFO) {
+                                    ctx.getSource().sendError(Text.literal("Use /d6 mega ufo"));return 0;
+                                }
 								var pos = p.getBlockPos().up(8);
 								var entry = com.terminaldetector.drmd.world.gen2.ModWorldgen2.forceGenerate(
 										p.getServerWorld(), pos, kind);
