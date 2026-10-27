@@ -53,20 +53,22 @@ public final class CubicClientGate implements ClientModInitializer {
         if(capture==null) {captureFrames=0;return;}
         if(++captureFrames<60)return;
         var client=MinecraftClient.getInstance();
+        String scene=capture;capture=null;captureFrames=0;
+        if(client.currentScreen!=null)throw new IllegalStateException("Proof frame contains a menu: "+scene);
         try(var image=ScreenshotRecorder.takeScreenshot(client.getFramebuffer())) {
             Path dir=client.runDirectory.toPath().resolve("gate-frames");Files.createDirectories(dir);
-            image.writeTo(dir.resolve(capture+".png"));
-            if(capture.equals("high-client") || capture.equals("negative-client")) {
+            image.writeTo(dir.resolve(scene+".png"));
+            if(scene.equals("high-client") || scene.equals("negative-client")) {
                 int red=0;
                 for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++) {
                     int color=image.getColor(x,y),r=color&255,g=color>>8&255,b=color>>16&255;
                     if(r>60 && r>g*2.3 && r>b*2.3)red++;
                 }
-                if(red<100)throw new IllegalStateException("Native cube marker has no visible geometry: "+capture+" red="+red);
-                System.out.println("CUBIC_PIXELS "+capture+" red="+red+" camera="+client.gameRenderer.getCamera().getPos()
+                if(red<100)throw new IllegalStateException("Native cube marker has no visible geometry: "+scene+" red="+red);
+                System.out.println("CUBIC_PIXELS "+scene+" red="+red+" camera="+client.gameRenderer.getCamera().getPos()
                     +" yaw="+client.gameRenderer.getCamera().getYaw()+" pitch="+client.gameRenderer.getCamera().getPitch());
             }
-            if(capture.equals("native-smoothed-terrain")) {
+            if(scene.equals("native-smoothed-terrain")) {
                 int green=0;
                 for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++) {
                     int c=image.getColor(x,y),r=c&255,g=c>>8&255,b=c>>16&255;
@@ -75,8 +77,9 @@ public final class CubicClientGate implements ClientModInitializer {
                 System.out.println("CUBIC_TERRAIN_PIXELS green="+green+" camera="+client.gameRenderer.getCamera().getPos()
                     +" yaw="+client.gameRenderer.getCamera().getYaw()+" pitch="+client.gameRenderer.getCamera().getPitch());
                 if(green<1000)throw new IllegalStateException("Native smoothed terrain is not visible in the actual completed frame: green="+green);
+                if(Math.abs(client.gameRenderer.getCamera().getPos().y-2166.62)>1)
+                    throw new IllegalStateException("Terrain fixture camera drifted away from the native sample");
             }
-            capture=null;captureFrames=0;
         }catch(java.io.IOException e){throw new IllegalStateException(e);}
     }
     private void tick(MinecraftClient client) {
@@ -294,8 +297,10 @@ public final class CubicClientGate implements ClientModInitializer {
                     for(int y=2156;y<=top;y++)world.setBlockState(new BlockPos(x,y,z),
                         (y==top?Blocks.GRASS_BLOCK:Blocks.DIRT).getDefaultState(),3);
                 }
-                client.getServer().getPlayerManager().getPlayer(client.player.getUuid())
-                    .teleport(world,20.5,2165,14.5,Set.of(),0,45);
+                var player=client.getServer().getPlayerManager().getPlayer(client.player.getUuid());
+                player.getAbilities().allowFlying=true;player.getAbilities().flying=true;
+                player.setVelocity(Vec3d.ZERO);player.sendAbilitiesUpdate();
+                player.teleport(world,20.5,2165,14.5,Set.of(),0,45);
                 serverReady=true;
             });
         }else if(phase==16) {
