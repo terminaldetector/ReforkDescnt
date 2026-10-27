@@ -16,7 +16,7 @@ import java.util.*;
 
 /** Real-client joined panes, hole mask, angled projection, occlusion and native portal regression. */
 public final class NativeMirrorCheck {
-    private static boolean started;
+    private static boolean started,warmed;
     private static volatile boolean ready,pendingPrepare;
     private static int ticks,age,stage;
     private static int[] on;
@@ -28,7 +28,7 @@ public final class NativeMirrorCheck {
         if(!started)return;
         var access=(CameraAccessor)camera;
         access.drmd$invokeSetPos(stage==4 || stage==5?new Vec3d(15,2156,30.5):new Vec3d(13,2156,30.5));
-        access.drmd$invokeSetRotation(stage==4 || stage==5?160:180,0);
+        access.drmd$invokeSetRotation(!warmed?0:stage==4 || stage==5?160:180,0);
     }
     private static void tick(MinecraftClient client) {
         if(++ticks>2400)throw new IllegalStateException("Mirror join timeout "+NAMES[stage]+" "+PortalViewDiagnostics.lastSummary("mirror"));
@@ -105,6 +105,21 @@ public final class NativeMirrorCheck {
     public static void rendered() {
         if(!started || !ready || age<50)return;
         var client=MinecraftClient.getInstance();
+        if(client.currentScreen!=null)return;
+        if(!warmed) {
+            try(var image=ScreenshotRecorder.takeScreenshot(client.getFramebuffer())) {
+                var dir=client.runDirectory.toPath().resolve("native-mirror-frames");Files.createDirectories(dir);
+                image.writeTo(dir.resolve("direct-gold-control.png"));int gold=0;
+                for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++) {
+                    int c=image.getColor(x,y),r=c&255,g=c>>8&255,b=c>>16&255;
+                    if(r>g && g>b*1.2 && r>80)gold++;
+                }
+                System.out.println("NATIVE_MIRROR_CONTROL gold="+gold+" camera="+client.gameRenderer.getCamera().getPos()
+                    +" yaw="+client.gameRenderer.getCamera().getYaw()+" pitch="+client.gameRenderer.getCamera().getPitch());
+                if(gold<1000){ready=false;throw new IllegalStateException("Direct native gold wall is not visible: "+gold);}
+                warmed=true;age=0;return;
+            }catch(java.io.IOException failure){ready=false;throw new IllegalStateException(failure);}
+        }
         if(stage%2==0) {
             var count=stage==10?com.terminaldetector.drmd.client.portal.PortalSeeThroughRenderer.scannedCount():MirrorReflectionRenderer.scannedCount();
             if(count!=1 && stage!=10){age=30;return;}
@@ -114,6 +129,9 @@ public final class NativeMirrorCheck {
         try(var image=ScreenshotRecorder.takeScreenshot(client.getFramebuffer())) {
             var root=client.runDirectory.toPath().resolve("native-mirror-frames");Files.createDirectories(root);
             image.writeTo(root.resolve(NAMES[stage]+".png"));
+            System.out.println("NATIVE_MIRROR_FRAME scene="+NAMES[stage]+" camera="+client.gameRenderer.getCamera().getPos()
+                +" yaw="+client.gameRenderer.getCamera().getYaw()+" pitch="+client.gameRenderer.getCamera().getPitch()
+                +" diagnostic="+PortalViewDiagnostics.lastSummary(stage==10?"portal":"mirror"));
             int w=image.getWidth(),h=image.getHeight();
             if(stage%2==0) {
                 on=new int[w*h];for(int y=0;y<h;y++)for(int x=0;x<w;x++)on[y*w+x]=image.getColor(x,y);
@@ -149,6 +167,7 @@ public final class NativeMirrorCheck {
                 started=false;client.scheduleStop();return;
             }
             prepare(client);
-        }catch(java.io.IOException e){throw new IllegalStateException(e);}
+        }catch(java.io.IOException e){ready=false;throw new IllegalStateException(e);}
+        catch(RuntimeException failure){ready=false;throw failure;}
     }
 }
