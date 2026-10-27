@@ -66,6 +66,7 @@ public final class PortalSeeThroughRenderer {
 	}
 
 	public static void register() {
+        com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlockEntity.bindClientInvalidation(()->scanAge=SCAN_PERIOD_TICKS);
 		ClientTickEvents.END_CLIENT_TICK.register(PortalSeeThroughRenderer::onClientTick);
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(PortalSeeThroughRenderer::onAfterTranslucent);
 	}

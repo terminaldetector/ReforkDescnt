@@ -118,6 +118,7 @@ public final class MirrorScanner {
 	}
 
 	private static PortalFace linkedFace(World world, BlockPos pos, BlockEntity be) {
+		if(com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(pos).isEmpty())return null;
 		BlockPos partnerPos;
 		RegistryKey<World> partnerDim;
 		double faceSize;
@@ -145,11 +146,16 @@ public final class MirrorScanner {
 		if (partnerDim != null && !partnerDim.equals(world.getRegistryKey())) return null;
 		if (!world.isChunkLoaded(partnerPos.getX() >> 4, partnerPos.getZ() >> 4)) return null;
 
+		if(com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(partnerPos).isEmpty())return null;
 		BlockState state = world.getBlockState(pos);
 		BlockState partnerState = world.getBlockState(partnerPos);
 		if (!blockType.isInstance(state.getBlock()) || !blockType.isInstance(partnerState.getBlock())) {
 			return null;
 		}
+		if(be instanceof PortalPanelBlockEntity panel && panel.projectorOwner()!=null
+			&& (!(world.getBlockEntity(partnerPos) instanceof PortalPanelBlockEntity partner)
+				|| !partner.ownedBy(panel.projectorOwner(),3-panel.projectorSlot()) || !partner.isLinked()
+				|| !pos.equals(partner.getLinkPartnerPos())))return null;
 
 		Direction facing = state.get(Properties.FACING);
 		Direction partnerFacing = partnerState.get(Properties.FACING);

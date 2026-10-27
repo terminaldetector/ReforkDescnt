@@ -28,10 +28,27 @@ import java.util.UUID;
  * itself isn't just {@code MirrorBlockEntity} with extra fields.
  */
 public class PortalPanelBlockEntity extends BlockEntity {
+    private static Runnable clientChanged=()->{};
+    public static void bindClientInvalidation(Runnable callback){clientChanged=callback;}
+    private void notifyClient(){if(world!=null && world.isClient)clientChanged.run();}
+    @Override public void markRemoved(){super.markRemoved();notifyClient();}
+    @Override public void setWorld(World world){
+        super.setWorld(world);
+        if(projectorOwner!=null && world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.gun.PortalGunState.get(server);
+    }
 	private UUID attachedEntityId;
 	private boolean linked;
 	private BlockPos linkPartnerPos;
 	private RegistryKey<World> linkPartnerDim;
+	private UUID projectorOwner;
+	private int projectorSlot;
+	public UUID projectorOwner(){return projectorOwner;}
+	public int projectorSlot(){return projectorSlot;}
+	public void claimProjector(UUID owner,int slot){
+		if(owner==null || slot<1 || slot>2)throw new IllegalArgumentException("projector owner/channel");
+		projectorOwner=owner;projectorSlot=slot;markDirty();
+	}
+	public boolean ownedBy(UUID owner,int slot){return owner.equals(projectorOwner) && slot==projectorSlot;}
 
 	public PortalPanelBlockEntity(BlockPos pos, BlockState state) {
 		super(ModBlockEntities.PORTAL_PANEL, pos, state);
@@ -70,6 +87,7 @@ public class PortalPanelBlockEntity extends BlockEntity {
 	@Override
 	protected void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
 		super.writeNbt(nbt, registryLookup);
+		if(projectorOwner!=null){nbt.putUuid("projectorOwner",projectorOwner);nbt.putInt("projectorSlot",projectorSlot);}
 		if (attachedEntityId != null) nbt.putUuid("attached", attachedEntityId);
 		nbt.putBoolean("linked", linked);
 		if (linkPartnerPos != null) {
@@ -83,6 +101,9 @@ public class PortalPanelBlockEntity extends BlockEntity {
 	@Override
 	protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
 		super.readNbt(nbt, registryLookup);
+		projectorSlot=nbt.getInt("projectorSlot");
+		projectorOwner=projectorSlot>=1 && projectorSlot<=2 && nbt.containsUuid("projectorOwner")?nbt.getUuid("projectorOwner"):null;
+		if(projectorOwner==null)projectorSlot=0;
 		attachedEntityId = nbt.containsUuid("attached") ? nbt.getUuid("attached") : null;
 		linked = nbt.getBoolean("linked");
 		linkPartnerPos = nbt.contains("partnerX")
@@ -91,6 +112,8 @@ public class PortalPanelBlockEntity extends BlockEntity {
 		linkPartnerDim = nbt.contains("partnerDim")
 				? RegistryKey.of(RegistryKeys.WORLD, Identifier.of(nbt.getString("partnerDim")))
 				: null;
+        notifyClient();
+        if(projectorOwner!=null && world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.gun.PortalGunState.get(server);
 	}
 
 		/** Retire the saved foreign attachment, then perform native travel across the panel span. */
@@ -108,13 +131,15 @@ public class PortalPanelBlockEntity extends BlockEntity {
 
 		// A saved link is not permission to load its destination every server tick.
 		// Keep the link while the partner is unavailable and retry once it is loaded.
-		if (!world.isChunkLoaded(be.linkPartnerPos)) return;
+		if (com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(be.linkPartnerPos).isEmpty()) return;
 		BlockState partnerState = world.getBlockState(be.linkPartnerPos);
 		if (!(partnerState.getBlock() instanceof PortalPanelBlock)) {
 			DiagProblems.record("portal", "panel at " + pos + " points at " + be.linkPartnerPos
 					+ " where there is no portal panel — the link is dead");
 			return;
 		}
+		if(be.projectorOwner!=null && (!(world.getBlockEntity(be.linkPartnerPos) instanceof PortalPanelBlockEntity partner)
+			|| !partner.ownedBy(be.projectorOwner,3-be.projectorSlot) || !partner.linked || !pos.equals(partner.linkPartnerPos)))return;
 
 		PortalTravel.carry(serverWorld, pos, state.get(PortalPanelBlock.FACING),
 				be.linkPartnerPos, partnerState.get(PortalPanelBlock.FACING), PortalPanelBlock.HALF_SPAN);

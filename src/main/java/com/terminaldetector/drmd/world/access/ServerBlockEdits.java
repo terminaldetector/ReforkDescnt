@@ -39,6 +39,19 @@ public final class ServerBlockEdits {
     }
 
     public static Result commit(World world,List<Edit> edits) {
+        return commit(world,edits,null);
+    }
+    /** Explicit adapter capability: generic build/copy edits still cannot move portal links. */
+    public static Result commitProjectorPair(World world,List<Edit> edits,UUID owner) {
+        if(owner==null || edits==null || edits.size()>3)return result(Status.REJECTED,"projector pair bounds");
+        for(var edit:edits)if(edit==null || !projectorCell(edit.expected()) || !projectorCell(edit.replacement()))
+            return result(Status.REJECTED,"projector pair cells only");
+        return commit(world,edits,owner);
+    }
+    private static boolean projectorCell(Cell cell) {
+        return cell.state().isAir() || cell.state().getBlock() instanceof com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock;
+    }
+    private static Result commit(World world,List<Edit> edits,UUID projectorOwner) {
         if(!(world instanceof ServerWorld server) || !CubicAvailability.onWorldThread(world))return result(Status.REJECTED,"server thread required");
         if(edits==null || edits.isEmpty() || edits.size()>MAX_CELLS)return result(Status.REJECTED,"batch bounds");
         var positions=new HashSet<BlockPos>();var changes=new ArrayList<PlacementTransaction.Change<BlockPos,Cell>>();
@@ -50,8 +63,9 @@ public final class ServerBlockEdits {
             var before=snapshot(world,at);
             if(before.isEmpty())return result(Status.UNAVAILABLE,"cell or valid block entity unavailable");
             if(!before.get().equals(edit.expected()))return result(Status.CONFLICT,"expected state/NBT changed");
-            if(!stable(before.get().state()) || !stable(edit.replacement().state()))return result(Status.UNSUPPORTED_BLOCK,"block callbacks require a dedicated adapter");
-            if(before.get().state().hasBlockEntity() && server.getPlayers().stream().anyMatch(player->
+            if(!stable(before.get(),projectorOwner) || !stable(edit.replacement(),projectorOwner))return result(Status.UNSUPPORTED_BLOCK,"block callbacks require a dedicated adapter");
+            if(before.get().state().hasBlockEntity() && !(before.get().state().getBlock() instanceof com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock)
+                && server.getPlayers().stream().anyMatch(player->
                     player.currentScreenHandler!=player.playerScreenHandler && player.squaredDistanceTo(at.toCenterPos())<64))
                 return result(Status.IN_USE,"nearby open container screen");
             Cell after;
@@ -124,8 +138,18 @@ public final class ServerBlockEdits {
         if(!canonical.equals(input))throw new IllegalArgumentException("NBT does not round trip without loss");
         return new Cell(cell.state(),canonical);
     }
-    private static boolean stable(BlockState state) {
+    private static boolean stable(Cell cell,UUID projectorOwner) {
+        BlockState state=cell.state();
         var type=state.getBlock().getClass();
+        if(type==com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.class) {
+            // Dedicated native-projector adapter: quietWrite detaches the old BE before its
+            // removal callback, and the caller includes both link ends in the same transaction.
+            var nbt=cell.entityData;
+            return projectorOwner!=null && nbt!=null && nbt.containsUuid("projectorOwner")
+                && projectorOwner.equals(nbt.getUuid("projectorOwner")) && !nbt.containsUuid("attached")
+                && nbt.getInt("projectorSlot")>=1 && nbt.getInt("projectorSlot")<=2
+                && state.get(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.CHANNEL)==nbt.getInt("projectorSlot");
+        }
         return type==Block.class || type==AirBlock.class || type==PillarBlock.class || type==GrassBlock.class
             || type==ChestBlock.class || type==BarrelBlock.class;
     }

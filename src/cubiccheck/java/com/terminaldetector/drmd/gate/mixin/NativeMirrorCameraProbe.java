@@ -8,7 +8,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class NativeMirrorCameraProbe {
     @Inject(method="update",at=@At("TAIL"))
     private void camera(CallbackInfo ci){
-        if(Boolean.getBoolean("drmd.gate.actors"))com.terminaldetector.drmd.gate.NativeActorFrameCheck.camera((Camera)(Object)this);
+        if(Boolean.getBoolean("drmd.gate.gun"))com.terminaldetector.drmd.gate.NativePortalGunCheck.camera((Camera)(Object)this);
+        else if(Boolean.getBoolean("drmd.gate.actors"))com.terminaldetector.drmd.gate.NativeActorFrameCheck.camera((Camera)(Object)this);
         else if(Boolean.getBoolean("drmd.gate.mirrors"))NativeMirrorCheck.overrideCamera((Camera)(Object)this);
     }
 }

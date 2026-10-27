@@ -1,0 +1,8 @@
+{
+  "parent": "drmd:block/portal_panel",
+  "textures": {
+    "panel": "minecraft:block/orange_stained_glass",
+    "edge": "minecraft:block/orange_concrete",
+    "particle": "minecraft:block/orange_concrete"
+  }
+}

@@ -63,6 +63,11 @@ public final class ActorFrames {
         return GravityMount.standingBox(feet,up,entity.getWidth()/2.0,
             entity.getDimensions(entity.getPose()).height());
     }
+    public static boolean canOccupy(LivingEntity entity,Vec3d feet,Vec3d up) {
+        if(!(entity.getWorld() instanceof ServerWorld world) || !world.getServer().isOnThread())return false;
+        Box box=body(entity,feet,up);
+        return loaded(world,box) && world.isSpaceEmpty(entity,box.contract(1e-6));
+    }
 
     /** No teleports, chunk tickets or speculative block reads when changing physical pose. */
     public static boolean trySetUp(LivingEntity entity, Vec3d requested) {

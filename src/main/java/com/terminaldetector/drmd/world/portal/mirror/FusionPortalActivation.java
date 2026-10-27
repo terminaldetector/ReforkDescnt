@@ -22,6 +22,7 @@ public final class FusionPortalActivation {
         if (!world.isChunkLoaded(pos)) return false;
         BlockState state=world.getBlockState(pos);
         if (!isSurface(state)) return false;
+        if(state.getBlock() instanceof PortalPanelBlock && state.get(PortalPanelBlock.CHANNEL)!=0)return false;
         Direction facing=state.get(net.minecraft.state.property.Properties.FACING);
         if (hitSide!=facing || !(owner instanceof PlayerEntity player) || !canModify(world,player,pos)) return false;
         if (isLinked(state)) return true;
@@ -29,6 +30,7 @@ public final class FusionPortalActivation {
             BlockPos partner=pos.offset(facing,distance);
             if(!world.isChunkLoaded(partner)) break;
             BlockState other=world.getBlockState(partner);
+            if(other.getBlock() instanceof PortalPanelBlock && other.get(PortalPanelBlock.CHANNEL)!=0)break;
             if(other.isAir()) continue;
             if(other.getBlock()!=state.getBlock() || isLinked(other)
                     || other.get(net.minecraft.state.property.Properties.FACING)!=facing.getOpposite()

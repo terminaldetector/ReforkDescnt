@@ -126,6 +126,7 @@ public final class ModWorldBlocks {
 	public static Item MIRROR_LINKER_ROTATED_SCALED;
 	public static Item MIRROR_LINKER_CROSS_DIMENSION;
 	public static Item PORTAL_GUN;
+	public static Item PORTAL_PROJECTOR;
 
 	private ModWorldBlocks() {}
 
@@ -204,6 +205,8 @@ public final class ModWorldBlocks {
 		PORTAL_GUN = Registry.register(Registries.ITEM,
 				Identifier.of(DescentMod.MOD_ID, "portal_gun"),
 				new com.terminaldetector.drmd.world.portal.mirror.PortalGunItem(new Item.Settings().maxCount(1)));
+		PORTAL_PROJECTOR=Registry.register(Registries.ITEM,Identifier.of(DescentMod.MOD_ID,"portal_projector"),
+			new com.terminaldetector.drmd.world.portal.gun.PortalProjectorItem(new Item.Settings()));
 
 		ItemGroupEvents.modifyEntriesEvent(ModItems.GROUP_KEY).register(entries -> {
 			entries.add(SIX_D_SOIL);
@@ -219,6 +222,7 @@ public final class ModWorldBlocks {
 			entries.add(CHARGED_MIRROR);
 			entries.add(PORTAL_PANEL);
 			entries.add(PORTAL_GUN);
+			entries.add(PORTAL_PROJECTOR);
 			entries.add(GRAVITY_GENERATOR);
 			entries.add(GRAVITY_TORCH);
 			entries.add(LOCATOR_CORE);

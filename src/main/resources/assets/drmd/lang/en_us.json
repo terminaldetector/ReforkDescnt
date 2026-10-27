@@ -319,5 +319,17 @@
   "message.drmd.build_surface_selected": "Surface selected",
   "message.drmd.portal.fusion_key_retired": "Keys are retired: hit a ready portal pair with the Fusion Cannon.",
   "message.drmd.portal.fusion_activated": "Fusion: portal pair activated.",
-  "message.drmd.portal.fusion_no_partner": "Place a matching portal facing this one across a clear corridor, within %s blocks."
+  "message.drmd.portal.fusion_no_partner": "Place a matching portal facing this one across a clear corridor, within %s blocks.",
+  "item.drmd.portal_projector": "Portal Gun",
+  "tooltip.drmd.portal_projector.controls": "Left click: blue portal · Right click: orange portal",
+  "tooltip.drmd.portal_projector.reset": "Sneak + right click: remove your pair",
+  "message.drmd.projector.placed": "Portal placed",
+  "message.drmd.projector.cleared": "Your portal pair was removed",
+  "message.drmd.projector.no_surface": "No surface within 48 blocks",
+  "message.drmd.projector.invalid_surface": "A solid flat wall, floor or ceiling must support the whole portal",
+  "message.drmd.projector.blocked": "Not enough room for a portal",
+  "message.drmd.projector.unavailable": "The shot area or previous pair is not loaded yet",
+  "message.drmd.projector.denied": "Portal placement is not allowed here",
+  "message.drmd.projector.conflict": "The surface changed; fire again",
+  "message.drmd.projector.full": "This dimension has reached its portal pair limit"
 }

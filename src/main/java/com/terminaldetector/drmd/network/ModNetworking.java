@@ -16,6 +16,13 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
 public final class ModNetworking {
+    public record PortalProjectorPayload(int slot,boolean reset,float x,float y,float z) implements CustomPayload {
+        public static final Id<PortalProjectorPayload> ID=new Id<>(Identifier.of(DescentMod.MOD_ID,"portal_projector"));
+        public static final PacketCodec<RegistryByteBuf,PortalProjectorPayload> CODEC=PacketCodec.of((p,b)->{
+            b.writeVarInt(p.slot);b.writeBoolean(p.reset);b.writeFloat(p.x);b.writeFloat(p.y);b.writeFloat(p.z);
+        },b->new PortalProjectorPayload(b.readVarInt(),b.readBoolean(),b.readFloat(),b.readFloat(),b.readFloat()));
+        @Override public Id<? extends CustomPayload> getId(){return ID;}
+    }
 	public static final Identifier INPUT_ID = Identifier.of(DescentMod.MOD_ID, "input_v2");
 	public static final Identifier SYNC_ID = Identifier.of(DescentMod.MOD_ID, "sync");
 	public static final Identifier ACTION_ID = Identifier.of(DescentMod.MOD_ID, "action");
@@ -493,6 +500,9 @@ public final class ModNetworking {
     }
 
 	public static void register() {
+        PayloadTypeRegistry.playC2S().register(PortalProjectorPayload.ID,PortalProjectorPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(PortalProjectorPayload.ID,(p,c)->c.server().execute(()->
+            com.terminaldetector.drmd.world.portal.gun.PortalProjectorItem.trigger(c.player(),p.slot(),p.reset(),new net.minecraft.util.math.Vec3d(p.x(),p.y(),p.z()))));
         PayloadTypeRegistry.playS2C().register(PhysicsProfilePayload.ID,PhysicsProfilePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(WeaponLoadPayload.ID,WeaponLoadPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ShotFxPayload.ID, ShotFxPayload.CODEC);

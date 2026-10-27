@@ -39,6 +39,7 @@ public class PortalPanelBlock extends BlockWithEntity {
 	public static final DirectionProperty FACING = Properties.FACING;
 	/** Client-visible cue only — the actual link data lives in {@link PortalPanelBlockEntity}. */
 	public static final BooleanProperty LINKED = BooleanProperty.of("linked");
+	public static final net.minecraft.state.property.IntProperty CHANNEL=net.minecraft.state.property.IntProperty.of("channel",0,2);
 	public static final MapCodec<PortalPanelBlock> CODEC = createCodec(PortalPanelBlock::new);
 
 	/**
@@ -52,7 +53,7 @@ public class PortalPanelBlock extends BlockWithEntity {
 
 	public PortalPanelBlock(Settings settings) {
 		super(settings);
-		setDefaultState(getStateManager().getDefaultState().with(FACING, Direction.NORTH).with(LINKED, false));
+		setDefaultState(getStateManager().getDefaultState().with(FACING, Direction.NORTH).with(LINKED, false).with(CHANNEL,0));
 	}
 
 	@Override
@@ -67,13 +68,18 @@ public class PortalPanelBlock extends BlockWithEntity {
 
 	@Override
 	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-		builder.add(FACING, LINKED);
+		builder.add(FACING, LINKED, CHANNEL);
 	}
 
 	@Nullable
 	@Override
 	public BlockState getPlacementState(ItemPlacementContext ctx) {
 		return getDefaultState().with(FACING, ctx.getSide());
+	}
+
+	@Override
+	protected VoxelShape getCollisionShape(BlockState state,BlockView world,BlockPos pos,ShapeContext context) {
+		return state.get(LINKED)?VoxelShapes.empty():getOutlineShape(state,world,pos,context);
 	}
 
 	@Override
@@ -89,7 +95,7 @@ public class PortalPanelBlock extends BlockWithEntity {
 	}
 
 		/** World-space bounds of the four-block panel, including its anchor thickness. */
-	static Box panelBox(BlockPos pos, Direction facing) {
+	public static Box panelBox(BlockPos pos, Direction facing) {
 		Vec3d c = Vec3d.ofCenter(pos);
 		return switch (facing.getAxis()) {
 			case X -> new Box(c.x - 0.5, c.y - HALF_SPAN, c.z - HALF_SPAN, c.x + 0.5, c.y + HALF_SPAN, c.z + HALF_SPAN);
@@ -134,6 +140,7 @@ public class PortalPanelBlock extends BlockWithEntity {
 		if (!state.isOf(newState.getBlock()) && world instanceof ServerWorld sw
 				&& world.getBlockEntity(pos) instanceof PortalPanelBlockEntity be) {
 			LegacyPortalEntities.detach(sw, be.getAttachedEntityId());
+			if(be.projectorOwner()!=null)com.terminaldetector.drmd.world.portal.gun.PortalGunState.get(sw).removed(be.projectorOwner(),be.projectorSlot(),pos);
 			unlinkPartner(sw, pos, be.getLinkPartnerPos(), be.getLinkPartnerDim());
 		}
 		super.onStateReplaced(state, world, pos, newState, moved);
@@ -166,6 +173,7 @@ public class PortalPanelBlock extends BlockWithEntity {
 			@Nullable BlockPos partnerPos, @Nullable RegistryKey<World> partnerDim) {
 		if (partnerPos == null) return;
 		if (partnerDim != null && !partnerDim.equals(world.getRegistryKey())) return;
+		if(com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(partnerPos).isEmpty())return;
 		BlockState partner = world.getBlockState(partnerPos);
 		if (!(partner.getBlock() instanceof PortalPanelBlock) || !partner.get(LINKED)) return;
 		if (world.getBlockEntity(partnerPos) instanceof PortalPanelBlockEntity partnerBe) {

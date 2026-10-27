@@ -283,5 +283,17 @@
   "message.drmd.build_surface_selected": "Поверхность выбрана",
   "message.drmd.portal.fusion_key_retired": "Ключи больше не нужны: попадите из Fusion Cannon в готовую пару порталов.",
   "message.drmd.portal.fusion_activated": "Fusion: пара порталов активирована.",
-  "message.drmd.portal.fusion_no_partner": "Нужен второй портал того же типа напротив, в свободном коридоре до %s блоков."
+  "message.drmd.portal.fusion_no_partner": "Нужен второй портал того же типа напротив, в свободном коридоре до %s блоков.",
+  "item.drmd.portal_projector": "Портальная пушка",
+  "tooltip.drmd.portal_projector.controls": "ЛКМ — синий портал · ПКМ — оранжевый",
+  "tooltip.drmd.portal_projector.reset": "Shift + ПКМ — убрать свою пару",
+  "message.drmd.projector.placed": "Портал установлен",
+  "message.drmd.projector.cleared": "Ваша пара порталов удалена",
+  "message.drmd.projector.no_surface": "Нет поверхности в пределах 48 блоков",
+  "message.drmd.projector.invalid_surface": "Нужна сплошная плоская стена, пол или потолок под весь портал",
+  "message.drmd.projector.blocked": "Недостаточно свободного места для портала",
+  "message.drmd.projector.unavailable": "Область выстрела или прежняя пара ещё не загружена",
+  "message.drmd.projector.denied": "В этом месте нельзя устанавливать портал",
+  "message.drmd.projector.conflict": "Поверхность изменилась — повторите выстрел",
+  "message.drmd.projector.full": "Достигнут предел пар порталов в этом измерении"
 }

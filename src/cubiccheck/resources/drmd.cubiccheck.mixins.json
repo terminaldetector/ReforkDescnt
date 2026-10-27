@@ -6,7 +6,8 @@
     "CubicFrameProbe",
     "CubicTerrainProbe",
     "NativeMirrorCameraProbe",
-    "ActorModelProbe"
+    "ActorModelProbe",
+    "ProjectorInputAccess"
   ],
   "injectors": {
     "defaultRequire": 1

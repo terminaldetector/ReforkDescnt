@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": ["IEI", "OQO", " I "],
+  "key": {
+    "I": {"item": "minecraft:iron_ingot"},
+    "E": {"item": "minecraft:ender_pearl"},
+    "O": {"item": "minecraft:obsidian"},
+    "Q": {"item": "minecraft:quartz"}
+  },
+  "result": {"id": "drmd:portal_projector", "count": 1}
+}

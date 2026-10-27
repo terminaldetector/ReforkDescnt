@@ -75,6 +75,9 @@ public final class PortalTravel {
 		// up to 32 blocks/tick. Faster native travel needs a swept spatial index.
 		Box reach = new Box(pos).expand(halfSpan + 1.0 + 32.0);
 		long now = world.getServer().getTicks();
+        var sourceState=com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(pos);
+        boolean gunAperture=sourceState.isPresent() && sourceState.get().getBlock() instanceof com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock
+            && sourceState.get().get(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.CHANNEL)>0;
 
 		// Keep both vehicle and passengers in place until whole riding-tree transforms are supported.
 		for (Entity entity : world.getEntitiesByClass(Entity.class, reach,
@@ -91,27 +94,36 @@ public final class PortalTravel {
 			if (hit == null) continue;
 			double margin = entity instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity b ? b.radius() : 0;
 			if (halfSpan <= margin || !PortalCrossing.withinFace(hit, plane, n, halfSpan - margin)) continue;
+            if(gunAperture && !(entity instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity)
+                && !bodyFitsFace(entity,hit,plane,n,halfSpan-.125))continue;
 			if (!faceIsOpenTo(world, entity, face, normal, hit)) {
 				DiagTrace.count("portal.blockedSpan");
 				continue;
 			}
 
 			PortalCrossing.Exit exit = PortalCrossing.exitFor(
-					nowPos, toPure(entity.getVelocity()),
+					nowPos, toPure(((com.terminaldetector.drmd.world.portal.gun.PortalMotionAccess)entity).drmd$portalVelocity(now)),
 					plane, n, toPure(partnerFace), toPure(partnerNormal));
 
 			BlockPos destination = BlockPos.ofFloored(exit.position().x(), exit.position().y(), exit.position().z());
+			var turn = com.terminaldetector.drmd.d6.D6PortalTransform.of(plane, n,
+				toPure(partnerFace), toPure(partnerNormal)).rotation();
+			Vec3d actorUp=com.terminaldetector.drmd.world.gravity.ActorFrames.up(entity);
+			Vec3d movedActorUp=actorUp.lengthSquared()>.5?fromPure(turn.rotate(toPure(actorUp))).normalize():Vec3d.ZERO;
 			if (!world.isChunkLoaded(destination) || world.isOutOfHeightLimit(destination) || !world.getWorldBorder().contains(destination)) continue;
+            if(movedActorUp.lengthSquared()>.5 && entity instanceof net.minecraft.entity.LivingEntity living
+                && !com.terminaldetector.drmd.world.gravity.ActorFrames.canOccupy(living,fromPure(exit.position()),movedActorUp))continue;
             if(!(entity instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity)
+                    && movedActorUp.lengthSquared()<.5
                     && !exitIsClear(world,entity,fromPure(exit.position()))) {
                 DiagTrace.count("portal.blockedExit");continue;
             }
 			if (entity instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity blockBody
 				&& !blockBody.canCrossPortal(com.terminaldetector.drmd.d6.D6PortalTransform.of(
 					plane, n, toPure(partnerFace), toPure(partnerNormal)), exit.position())) continue;
-			var turn = com.terminaldetector.drmd.d6.D6PortalTransform.of(plane, n,
-				toPure(partnerFace), toPure(partnerNormal)).rotation();
-			Vec3d forward = fromPure(turn.rotate(toPure(entity.getRotationVec(1))));
+			Vec3d forward = fromPure(turn.rotate(toPure(entity instanceof net.minecraft.entity.player.PlayerEntity
+                ?entity.getRotationVec(1):entity.getRotationVector())));
+            Vec3d headForward=fromPure(turn.rotate(toPure(entity.getRotationVec(1))));
 			if (entity instanceof net.minecraft.server.network.ServerPlayerEntity player) {
 				var data = com.terminaldetector.drmd.DescentPlayerData.get(player);
 				Vec3d f = fromPure(turn.rotate(toPure(data.shipForward(player))));
@@ -125,8 +137,15 @@ public final class PortalTravel {
 						data.isEnabled() ? data.getFlightVelocity().multiply(1.0 / 20) : fromPure(exit.velocity())));
 			}
 
+			if(movedActorUp.lengthSquared()>.5)forward=com.terminaldetector.drmd.world.gravity.ActorFrameMath.toLocal(forward,movedActorUp);
+            if(movedActorUp.lengthSquared()>.5)headForward=com.terminaldetector.drmd.world.gravity.ActorFrameMath.toLocal(headForward,movedActorUp);
 			entity.setYaw((float) Math.toDegrees(Math.atan2(-forward.x, forward.z)));
-			entity.setPitch((float) -Math.toDegrees(Math.asin(Math.max(-1, Math.min(1, forward.y)))));
+			entity.setPitch((float) -Math.toDegrees(Math.atan2(forward.y, Math.hypot(forward.x,forward.z))));
+            if(entity instanceof net.minecraft.entity.LivingEntity living && !(entity instanceof net.minecraft.entity.player.PlayerEntity)) {
+                living.bodyYaw=entity.getYaw();living.prevBodyYaw=living.bodyYaw;
+                living.setHeadYaw((float)Math.toDegrees(Math.atan2(-headForward.x,headForward.z)));
+                living.prevHeadYaw=living.getHeadYaw();
+            }
 
 			// The event the whole native-travel feature exists to produce. Written before the teleport so
 			// the record survives even if the move itself throws.
@@ -136,6 +155,7 @@ public final class PortalTravel {
 			if (entity instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity blockBody)
 				blockBody.crossPortal(com.terminaldetector.drmd.d6.D6PortalTransform.of(plane, n, toPure(partnerFace), toPure(partnerNormal)));
 			entity.requestTeleport(exit.position().x(), exit.position().y(), exit.position().z());
+			if(movedActorUp.lengthSquared()>.5)((com.terminaldetector.drmd.world.gravity.ActorFrameAccess)entity).drmd$setActorUp(movedActorUp);
 			entity.setVelocity(new Vec3d(exit.velocity().x(), exit.velocity().y(), exit.velocity().z()));
 			// Without this the client keeps its own predicted velocity and fights the new one.
 			entity.velocityModified = true;
@@ -144,6 +164,13 @@ public final class PortalTravel {
 	}
 
     /** Validate the whole existing body before mutating attitude, velocity, cooldown or position. */
+    private static boolean bodyFitsFace(Entity entity,PortalTransform.Vec3 hit,PortalTransform.Vec3 plane,PortalTransform.Vec3 normal,double halfSpan) {
+        Box body=entity.getBoundingBox().offset(fromPure(hit).subtract(entity.getPos()));
+        for(double x:new double[]{body.minX,body.maxX})for(double y:new double[]{body.minY,body.maxY})for(double z:new double[]{body.minZ,body.maxZ})
+            if(!PortalCrossing.withinFace(new PortalTransform.Vec3(x,y,z),plane,normal,halfSpan))return false;
+        return true;
+    }
+
     public static boolean exitIsClear(ServerWorld world,Entity traveller,Vec3d destination) {
         if(!Double.isFinite(destination.lengthSquared()))return false;
         Box body=traveller.getBoundingBox().offset(destination.subtract(traveller.getPos()));
@@ -151,9 +178,12 @@ public final class PortalTravel {
         var min=BlockPos.ofFloored(body.minX,body.minY,body.minZ);
         var max=BlockPos.ofFloored(body.maxX-1e-7,body.maxY-1e-7,body.maxZ-1e-7);
         if(!world.getWorldBorder().contains(min) || !world.getWorldBorder().contains(max))return false;
-        int x0=min.getX()>>4,x1=max.getX()>>4,z0=min.getZ()>>4,z1=max.getZ()>>4;
-        if((long)(x1-x0+1)*(z1-z0+1)>64)return false;
-        for(int x=x0;x<=x1;x++)for(int z=z0;z<=z1;z++)if(!world.isChunkLoaded(x,z))return false;
+        int x0=(min.getX()-1)>>4,x1=(max.getX()+1)>>4,z0=(min.getZ()-1)>>4,z1=(max.getZ()+1)>>4;
+        int y0=(min.getY()-1)>>4,y1=(max.getY()+1)>>4;
+        if((long)(x1-x0+1)*(z1-z0+1)*(y1-y0+1)>64)return false;
+        var access=com.terminaldetector.drmd.world.access.WorldAccess.of(world);
+        for(int x=x0;x<=x1;x++)for(int y=y0;y<=y1;y++)for(int z=z0;z<=z1;z++)
+            if(!access.isVolumeAvailable(new com.terminaldetector.drmd.d6.D6ChunkPos(x,y,z)))return false;
         return world.isSpaceEmpty(traveller,body);
     }
 
