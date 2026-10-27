@@ -32,7 +32,7 @@ public final class CubicClientGate implements ClientModInitializer {
     private volatile boolean serverFluidReady;
     private volatile int serverLight,serverSky;
     private boolean roofPlaced,roofRemoved;
-    private static final BlockPos SKY_PROBE=new BlockPos(15,2160,-3);
+    private static final BlockPos SKY_PROBE=new BlockPos(-8,2160,-8);
     private static final BlockPos WATER_SOURCE=new BlockPos(16,2162,0),WATER_PROBE=new BlockPos(15,2158,-1),
         LIGHT_SOURCE=new BlockPos(16,2160,-3),LIGHT_PROBE=new BlockPos(15,2159,-3);
     private int renderedFrames,captureFrames;
@@ -186,6 +186,8 @@ public final class CubicClientGate implements ClientModInitializer {
             results.add("native_blocklight_removal");phase=12;age=0;
         }else if(phase==12) {
             if(!roofPlaced) {
+                if(!cubeLoaded(client,SKY_PROBE))return;
+                if(!client.world.getBlockState(SKY_PROBE).isAir())throw new IllegalStateException("Sky probe fixture is not air before roof");
                 if(client.world.getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE)!=15)
                     throw new IllegalStateException("Native open-sky cube has no full skylight");
                 roofPlaced=true;serverSky=15;
@@ -206,7 +208,8 @@ public final class CubicClientGate implements ClientModInitializer {
             if(age%10==0)client.getServer().execute(()->serverSky=client.getServer().getOverworld().getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE));
             int sky=client.world.getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE);
             if(sky!=15 || serverSky!=15) {
-                if(age>400)throw new IllegalStateException("Removed roof left stale native skylight: "+sky+"/"+serverSky);
+                if(age>400)throw new IllegalStateException("Removed roof left stale native skylight: "+sky+"/"+serverSky+" probe="+client.world.getBlockState(SKY_PROBE)
+                    +" above="+client.world.getBlockState(SKY_PROBE.up()));
                 return;
             }
             results.add("native_skylight_restoration");phase=2;age=0;pendingLowTeleport=true;
@@ -244,7 +247,7 @@ public final class CubicClientGate implements ClientModInitializer {
     }
     private static void setRoof(MinecraftClient client,boolean opaque) {
         var world=client.getServer().getOverworld();
-        for(int x=14;x<=16;x++)for(int z=-4;z<=-2;z++)world.setBlockState(new BlockPos(x,2161,z),opaque?Blocks.REDSTONE_BLOCK.getDefaultState():Blocks.AIR.getDefaultState(),3);
+        for(int x=-1;x<=1;x++)for(int z=-1;z<=1;z++)world.setBlockState(SKY_PROBE.add(x,1,z),opaque?Blocks.REDSTONE_BLOCK.getDefaultState():Blocks.AIR.getDefaultState(),3);
     }
     private void publishSign(MinecraftClient client,BlockPos container,String expectedName) {
         // Vanilla containers do not include their private name/inventory in initial chunk NBT.
