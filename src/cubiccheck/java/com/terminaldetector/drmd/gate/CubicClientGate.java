@@ -28,6 +28,13 @@ public final class CubicClientGate implements ClientModInitializer {
     private boolean started,forward,pendingLowTeleport,serverCrossRequested;
     private volatile boolean serverCrossed;
     private volatile double serverCrossY,serverVelocityY;
+    private boolean fluidSetup,lightRemoval;
+    private volatile boolean serverFluidReady;
+    private volatile int serverLight,serverSky;
+    private boolean roofPlaced,roofRemoved;
+    private static final BlockPos SKY_PROBE=new BlockPos(15,2160,-3);
+    private static final BlockPos WATER_SOURCE=new BlockPos(16,2162,0),WATER_PROBE=new BlockPos(15,2158,-1),
+        LIGHT_SOURCE=new BlockPos(16,2160,-3),LIGHT_PROBE=new BlockPos(15,2159,-3);
     private int renderedFrames,captureFrames;
     private volatile boolean signWritten;
     private volatile boolean serverReady;
@@ -47,7 +54,7 @@ public final class CubicClientGate implements ClientModInitializer {
         try(var image=ScreenshotRecorder.takeScreenshot(client.getFramebuffer())) {
             Path dir=client.runDirectory.toPath().resolve("gate-frames");Files.createDirectories(dir);
             image.writeTo(dir.resolve(capture+".png"));
-            if(!capture.equals("seam-flight")) {
+            if(capture.equals("high-client") || capture.equals("negative-client")) {
                 int red=0;
                 for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++) {
                     int color=image.getColor(x,y),r=color&255,g=color>>8&255,b=color>>16&255;
@@ -123,8 +130,86 @@ public final class CubicClientGate implements ClientModInitializer {
             if(!client.world.getBlockState(new BlockPos(1,2159,1)).isOf(Blocks.GOLD_BLOCK)
                     || !client.world.getBlockState(new BlockPos(1,2160,1)).isOf(Blocks.DIAMOND_BLOCK))
                 throw new IllegalStateException("Adjacent native cube marker packets missing after flight");
-            results.add("six_dof_vertical_seam");capture="seam-flight";phase=2;age=0;
-            pendingLowTeleport=true;signWritten=false;
+            results.add("six_dof_vertical_seam");capture="seam-flight";phase=10;age=0;
+            signWritten=false;
+        }else if(phase==10) {
+            if(!fluidSetup) {
+                if(!cubeLoaded(client,WATER_SOURCE) || !cubeLoaded(client,WATER_PROBE) || !cubeLoaded(client,LIGHT_PROBE))return;
+                fluidSetup=true;serverReady=false;
+                client.getServer().execute(()->{
+                    var world=client.getServer().getOverworld();
+                    // The movement sample was recorded before this fixture-only stabilization.
+                    var player=client.getServer().getPlayerManager().getPlayer(client.player.getUuid());
+                    try {
+                        var type=Class.forName("com.terminaldetector.drmd.DescentPlayerData");
+                        var data=type.getMethod("get",net.minecraft.entity.player.PlayerEntity.class).invoke(null,player);
+                        type.getMethod("setFlightVelocity",Vec3d.class).invoke(data,Vec3d.ZERO);
+                    }catch(ReflectiveOperationException e){throw new IllegalStateException(e);}
+                    player.setVelocity(Vec3d.ZERO);
+                    for(int x=14;x<=18;x++)for(int z=-2;z<=2;z++)for(int y=2157;y<=2163;y++) {
+                        boolean boundary=y==2157 || x==14 || x==18 || z==-2 || z==2;
+                        world.setBlockState(new BlockPos(x,y,z),boundary?Blocks.GLASS.getDefaultState():Blocks.AIR.getDefaultState(),3);
+                    }
+                    world.setBlockState(WATER_SOURCE,Blocks.WATER.getDefaultState(),3);
+                    world.setBlockState(LIGHT_SOURCE,Blocks.GLOWSTONE.getDefaultState(),3);
+                    serverReady=true;
+                });return;
+            }
+            if(age%10==0)client.getServer().execute(()->{
+                var world=client.getServer().getOverworld();
+                serverFluidReady=world.getFluidState(WATER_PROBE).isIn(net.minecraft.registry.tag.FluidTags.WATER);
+                serverLight=world.getLightLevel(net.minecraft.world.LightType.BLOCK,LIGHT_PROBE);
+            });
+            int light=client.world.getLightLevel(net.minecraft.world.LightType.BLOCK,LIGHT_PROBE);
+            boolean water=client.world.getFluidState(WATER_PROBE).isIn(net.minecraft.registry.tag.FluidTags.WATER);
+            if(age%100==0)System.out.println("CUBIC_BOUNDARY water="+water+" serverWater="+serverFluidReady+" light="+light+" serverLight="+serverLight);
+            if(!water || !serverFluidReady || light!=13 || serverLight!=13) {
+                if(age>400)throw new IllegalStateException("Native fluid/light cross-cube propagation failed: water="+water+" serverWater="+serverFluidReady+" light="+light+" serverLight="+serverLight);
+                return;
+            }
+            results.add("native_water_cross_xyz_cube_boundaries");results.add("native_blocklight_cross_xy_boundary");
+            Vec3d direction=new Vec3d(16.5,2160.5,.5).subtract(client.player.getEyePos()).normalize();
+            orient(client,direction,new Vec3d(0,1,0).subtract(direction.multiply(direction.y)));
+            capture="fluid-boundaries";phase=11;age=0;
+        }else if(phase==11) {
+            if(!lightRemoval) {
+                lightRemoval=true;serverLight=15;
+                client.getServer().execute(()->client.getServer().getOverworld().setBlockState(LIGHT_SOURCE,Blocks.AIR.getDefaultState(),3));
+                return;
+            }
+            if(age%10==0)client.getServer().execute(()->serverLight=client.getServer().getOverworld().getLightLevel(net.minecraft.world.LightType.BLOCK,LIGHT_PROBE));
+            int light=client.world.getLightLevel(net.minecraft.world.LightType.BLOCK,LIGHT_PROBE);
+            if(light>=13 || serverLight>=13) {
+                if(age>400)throw new IllegalStateException("Removed blocklight persisted across cube boundary: "+light+"/"+serverLight);
+                return;
+            }
+            results.add("native_blocklight_removal");phase=12;age=0;
+        }else if(phase==12) {
+            if(!roofPlaced) {
+                if(client.world.getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE)!=15)
+                    throw new IllegalStateException("Native open-sky cube has no full skylight");
+                roofPlaced=true;serverSky=15;
+                client.getServer().execute(()->setRoof(client,true));return;
+            }
+            if(age%10==0)client.getServer().execute(()->serverSky=client.getServer().getOverworld().getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE));
+            int sky=client.world.getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE);
+            if(sky>=15 || serverSky>=15) {
+                if(age>400)throw new IllegalStateException("Opaque roof did not shadow native cube: "+sky+"/"+serverSky);
+                return;
+            }
+            results.add("native_skylight_occlusion");phase=13;age=0;
+        }else if(phase==13) {
+            if(!roofRemoved) {
+                roofRemoved=true;serverSky=0;
+                client.getServer().execute(()->setRoof(client,false));return;
+            }
+            if(age%10==0)client.getServer().execute(()->serverSky=client.getServer().getOverworld().getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE));
+            int sky=client.world.getLightLevel(net.minecraft.world.LightType.SKY,SKY_PROBE);
+            if(sky!=15 || serverSky!=15) {
+                if(age>400)throw new IllegalStateException("Removed roof left stale native skylight: "+sky+"/"+serverSky);
+                return;
+            }
+            results.add("native_skylight_restoration");phase=2;age=0;pendingLowTeleport=true;
         }else if(phase==2) {
             if(pendingLowTeleport) {
                 pendingLowTeleport=false;if(flightEnabled())toggleFlight();teleport(client,-509);return;
@@ -156,6 +241,10 @@ public final class CubicClientGate implements ClientModInitializer {
             server.getCommandManager().executeWithPrefix(server.getCommandSource(),"bcc status");
             serverReady=true;
         });
+    }
+    private static void setRoof(MinecraftClient client,boolean opaque) {
+        var world=client.getServer().getOverworld();
+        for(int x=14;x<=16;x++)for(int z=-4;z<=-2;z++)world.setBlockState(new BlockPos(x,2161,z),opaque?Blocks.REDSTONE_BLOCK.getDefaultState():Blocks.AIR.getDefaultState(),3);
     }
     private void publishSign(MinecraftClient client,BlockPos container,String expectedName) {
         // Vanilla containers do not include their private name/inventory in initial chunk NBT.
