@@ -37,6 +37,10 @@ public final class NativeCubicSkylight {
         var watches = WORLDS.computeIfAbsent(world, ignored -> new Watches());
         long key = ((long) pos.getX() << 32) | (pos.getZ() & 0xffffffffL);
         watch(watches, key);
+        if (watches.urgentKeys.add(key)) {
+            if (watches.urgent.size() == MAX_COLUMNS) watches.urgentKeys.remove(watches.urgent.removeFirst());
+            watches.urgent.addLast(key);
+        }
     }
 
     private static void watch(Watches watches, long key) {
@@ -68,15 +72,19 @@ public final class NativeCubicSkylight {
             if (!watches.scans.isEmpty()) {
                 long key = watches.scans.removeFirst();watches.scanKeys.remove(key);
                 var pos = new ChunkPos(key);
-                if (world.getChunkManager().getChunk(pos.x, pos.z, ChunkStatus.FULL, false) instanceof WorldChunk) {
-                    for (int x = 0; x < 16; x++) for (int z = 0; z < 16; z++) {
-                        long column = ((long) (pos.getStartX() + x) << 32) | ((pos.getStartZ() + z) & 0xffffffffL);
-                        watch(watches, column);
-                    }
+                if (world.getChunkManager().getChunk(pos.x, pos.z, ChunkStatus.FULL, false) instanceof WorldChunk full) {
+                    scan(world, full, watches);
                 }
             }
+            if (api == null) return;
             var relight = new HashMap<WorldChunk, int[]>();
-            int count = Math.min(COLUMNS_PER_TICK, watches.queue.size());
+            int urgentCount = Math.min(COLUMNS_PER_TICK, watches.urgent.size());
+            for (int n = 0; n < urgentCount; n++) {
+                long key = watches.urgent.removeFirst();watches.urgentKeys.remove(key);
+                if (repair(world, (int) (key >> 32), (int) key, relight)) watch(watches, key);
+                if (api == null) return;
+            }
+            int count = Math.min(COLUMNS_PER_TICK - urgentCount, watches.queue.size());
             for (int n = 0; n < count; n++) {
                 long key = watches.queue.removeFirst();
                 if (repair(world, (int) (key >> 32), (int) key, relight)) watches.queue.addLast(key);
@@ -108,6 +116,27 @@ public final class NativeCubicSkylight {
     }
 
     public static void close() { WORLDS.clear(); }
+
+    private static void scan(ServerWorld world, WorldChunk chunk, Watches watches) {
+        var sky = chunk.getChunkSkyLight();
+        if (!api.ext.isInstance(sky)) return;
+        try {
+            Object state = api.column.invoke(sky);
+            if (state == null) return;
+            for (int x = 0; x < 16; x++) for (int z = 0; z < 16; z++) {
+                int cached = (Integer) api.occlusion.invoke(state, x, z);
+                if (cached <= world.getBottomY() || cached > world.getTopY()
+                        || !isFull(state, world.getSectionIndex(cached - 1))) continue;
+                int blockX = chunk.getPos().getStartX() + x, blockZ = chunk.getPos().getStartZ() + z;
+                if (chunk.getBlockState(new BlockPos(blockX, cached - 1, blockZ)).isAir()) {
+                    watch(watches, ((long) blockX << 32) | (blockZ & 0xffffffffL));
+                }
+            }
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            DescentMod.LOGGER.error("[drmd cubic light] optional BCC sky-source scan failed; repair disabled", failure);
+            api = null;WORLDS.clear();
+        }
+    }
 
     /** Return true while an unknown lower cube still bounds this watched column. */
     private static boolean repair(ServerWorld world, int x, int z, Map<WorldChunk, int[]> relight) {
@@ -180,6 +209,8 @@ public final class NativeCubicSkylight {
         final HashSet<Long> keys = new HashSet<>();
         final ArrayDeque<Long> scans = new ArrayDeque<>();
         final HashSet<Long> scanKeys = new HashSet<>();
+        final ArrayDeque<Long> urgent = new ArrayDeque<>();
+        final HashSet<Long> urgentKeys = new HashSet<>();
     }
 
     private static final class Api {
