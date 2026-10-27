@@ -97,7 +97,7 @@ public final class FusionPortalGameTests implements FabricGameTest {
         var p=pair(c,true);c.assertTrue(!linked(c,p),"panels stay inactive without a Fusion impact");
         c.complete();
     }
-    @GameTest(templateName="drmd:portal_lab")
+    @GameTest(templateName="drmd:portal_lab",tickLimit=200)
     public void oneMinimumFusionShotActivatesBothPanelsAfterSwitchingWeapons(TestContext c) {
         var p=pair(c,true);var player=player(c,p);
         var desired=Vec3d.ofCenter(p.near()).add(0,0,-2);
@@ -106,9 +106,9 @@ public final class FusionPortalGameTests implements FabricGameTest {
         var stack=new ItemStack(ModItems.FUSION);player.setStackInHand(Hand.MAIN_HAND,stack);
         ModItems.FUSION.onStoppedUsing(stack,c.getWorld(),player,ModItems.FUSION.getMaxUseTime(stack,player));
         player.setStackInHand(Hand.MAIN_HAND,ItemStack.EMPTY);
-        c.waitAndRun(5,()->{c.assertTrue(linked(c,p),"one minimum-charge Fusion hit powers both ends even after a weapon switch");player.discard();c.complete();});
+        awaitOutcome(c,player,()->linked(c,p),"one minimum-charge Fusion hit powers both ends even after a weapon switch");
     }
-    @GameTest(templateName="drmd:portal_lab")
+    @GameTest(templateName="drmd:portal_lab",tickLimit=200)
     public void fusionProjectileKeepsActivationAndOwnerAfterNbtReload(TestContext c) {
         var p=pair(c,false);var player=player(c,p);
         var original=new ProjectileEntity(ModEntities.PROJECTILE,c.getWorld());
@@ -117,15 +117,37 @@ public final class FusionPortalGameTests implements FabricGameTest {
         var nbt=new NbtCompound();original.writeNbt(nbt);
         var restored=new ProjectileEntity(ModEntities.PROJECTILE,c.getWorld());restored.readNbt(nbt);
         c.getWorld().spawnEntity(restored);
-        c.waitAndRun(5,()->{c.assertTrue(linked(c,p),"restored Fusion projectile powers charged mirrors without a key");player.discard();c.complete();});
+        awaitOutcome(c,player,()->linked(c,p),"restored Fusion projectile powers charged mirrors without a key");
     }
-    @GameTest(templateName="drmd:portal_lab")
+    @GameTest(templateName="drmd:portal_lab",tickLimit=200)
     public void holdingFusionDoesNotTurnAnotherProjectileIntoAnActivationShot(TestContext c) {
         var p=pair(c,true);var player=player(c,p);player.setStackInHand(Hand.MAIN_HAND,new ItemStack(ModItems.FUSION));
         var shot=new ProjectileEntity(ModEntities.PROJECTILE,c.getWorld());shot.setOwner(player);shot.setLifeTicks(100);
         shot.setPosition(Vec3d.ofCenter(p.near()).add(0,0,-2));shot.setVelocity(0,0,3);c.getWorld().spawnEntity(shot);
-        c.waitAndRun(5,()->{c.assertTrue(!linked(c,p),"activation comes from the fired weapon, not the current hand");player.discard();c.complete();});
+        awaitOutcome(c,player,()->{
+            if(!shot.isRemoved() && shot.age<5)return false;
+            c.assertTrue(!linked(c,p),"activation comes from the fired weapon, not the current hand");return true;
+        },"ordinary projectile must actually tick or hit before checking non-activation");
     }
+    /** Chunk activation is asynchronous: observe the outcome rather than five global ticks. */
+    private void awaitOutcome(TestContext c,ServerPlayerEntity player,java.util.function.BooleanSupplier outcome,String message) {
+        boolean[] finished={false};
+        Runnable cleanup=()->{
+            for(var shot:c.getWorld().getEntitiesByClass(ProjectileEntity.class,player.getBoundingBox().expand(32),s->s.getOwnerLiving()==player))shot.discard();
+            player.discard();
+        };
+        for(int tick=1;tick<199;tick++)c.runAtTick(tick,()->{
+            if(finished[0])return;
+            try {
+                if(!outcome.getAsBoolean())return;
+                finished[0]=true;cleanup.run();c.complete();
+            } catch(Throwable failure){finished[0]=true;cleanup.run();throw failure;}
+        });
+        c.runAtTick(199,()->{
+            if(!finished[0])try {c.assertTrue(false,message);} finally {cleanup.run();}
+        });
+    }
+
     @GameTest(templateName="drmd:portal_lab")
     public void fusionDoesNotLinkThroughWallsOrWithoutModificationPermission(TestContext c) {
         var p=pair(c,true);var player=player(c,p);var w=c.getWorld();
