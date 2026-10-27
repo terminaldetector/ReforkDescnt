@@ -123,6 +123,10 @@ public final class OffscreenWorldView {
 			if (reflected) org.lwjgl.opengl.GL11.glFrontFace(originalWinding == org.lwjgl.opengl.GL11.GL_CCW
 				? org.lwjgl.opengl.GL11.GL_CW : org.lwjgl.opengl.GL11.GL_CCW);
 			Matrix4f projection = clipped(outerProjection, positionMatrix, viewPos, clipPoint, clipNormal);
+			// GameRenderer prepares visibility before the main render. A nested render must do
+			// the same for its own camera; Sodium consumes this frustum when building its
+			// visible section list, so reusing the outer one drops geometry behind the player.
+			context.worldRenderer().setupFrustum(viewPos, positionMatrix, projection);
 
 			target.setClearColor(0f, 0f, 0f, 1f);
 			target.clear(MinecraftClient.IS_SYSTEM_MAC);
@@ -148,6 +152,7 @@ public final class OffscreenWorldView {
 			mc.getFramebuffer().beginWrite(true);
 			accessor.drmd$invokeSetPos(originalPos);
 			accessor.drmd$invokeSetRotation(originalYaw, originalPitch);
+			context.worldRenderer().setupFrustum(originalPos, framePosition, outerProjection);
 			depth--;
 		}
 

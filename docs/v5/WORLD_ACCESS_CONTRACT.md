@@ -53,12 +53,30 @@ release callbacks. Closed handles use a weak world reference. Observers never in
 
 ## Evidence so far
 
-557 unit/96 GameTests passed before adding the lifecycle tests. Read-only native source60ee887
+557 unit/99 GameTests passed, including real-world state/NBT transactions, live reads and
+interest lifecycle tests. Read-only native source60ee887
 verified all15 markers and an unavailable Y8192 query without changing loaded cube count12.
 Native source0a33b4a moved a chest from Y2159 to2160, preserving its name and37 diamonds without
 scattered duplicates. Bad entity type, stale inventory and an unavailable-cube batch were rejected
 before partial mutation. Normal save/shutdown plus read-only reopen retained ownership and NBT.
-Full lifecycle/target graphics/regression acceptance is tracked separately as those runs finish.
+Source44c2fc1 observed UNAVAILABLE -> AVAILABLE -> UNAVAILABLE -> CLOSED for a Y2300 cube
+while its parent column remained available at Y2150. The single explicit test ticket expired;
+the observer inserted none. The observation ran for1300 server ticks. Sourcec1417ca repeated
+the native write/reopen and vertical lifecycle checks after removing blocking column access.
+Its native client passed14 checks with Sodium0.8.13/GL3.3, including negative-Y rendering,
+real warped terrain across cube seams, light, fluids, raycasts and flight. Test graphics use
+llvmpipe; actual IntelHD4400 acceptance remains pending.
+
+## Secondary world views
+
+The native Y2156 mirror fixture first passed all14 scenes without Sodium but failed its gold
+reflection check with Sodium, despite a successful direct view of the same wall. An offscreen
+render must prepare its own frustum, just as GameRenderer does for the main view. Reusing the
+main frustum culled the reflected wall. OffscreenWorldView now prepares visibility from the
+transformed position/view/projection and restores the main frustum in its finally block.
+This uses the vanilla public API, without an Immersive Portals or Sodium dependency. Preserve
+both failed controls and fresh fixed-run evidence; the full regression gate remains required
+before distributing this candidate.
 
 This is a compatibility foundation, not completion of the v5 worldgen/content, 3D LOD, universal
 entity6DoF/ragdoll, combat/city or ship milestones. No original player save is converted.
