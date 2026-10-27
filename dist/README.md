@@ -1,16 +1,20 @@
 # Готовые сборки UNGRAVITY / DRMD
 
-Текущая проверенная сборка: **1.1.21-actors.1**, Minecraft **1.21.1**, Fabric, Java **21**.
+Текущая проверенная сборка: **1.1.22-portals.1**, Minecraft **1.21.1**, Fabric, Java **21**.
 
-- **[Скачать готовый JAR](https://github.com/terminaldetector/ReforkDescnt/raw/refs/heads/codex/ungravity-cloud-recovery-20261024/dist/releases/1.1.21-actors.1/drmd-6dof-1.1.21-actors.1-fabric-1.21.1.jar)**
-- [Установка](releases/1.1.21-actors.1/INSTALL_TLAUNCHER.txt)
-- [SHA-256](releases/1.1.21-actors.1/SHA256SUMS)
-- [Исходная ревизия и результаты проверок](releases/1.1.21-actors.1/README.md)
-- [Подробный локальный отчёт](releases/1.1.21-actors.1/LOCAL_REPORT.md)
+- **[Скачать готовый JAR](https://github.com/terminaldetector/ReforkDescnt/raw/refs/heads/codex/ungravity-cloud-recovery-20261024/dist/releases/1.1.22-portals.1/drmd-6dof-1.1.22-portals.1-fabric-1.21.1.jar)**
+- [Установка](releases/1.1.22-portals.1/INSTALL_TLAUNCHER.txt)
+- [SHA-256](releases/1.1.22-portals.1/SHA256SUMS)
+- [Исходная ревизия и результаты проверок](releases/1.1.22-portals.1/README.md)
+- [Подробный локальный отчёт](releases/1.1.22-portals.1/LOCAL_REPORT.md)
 
 JAR хранится непосредственно в Git. Скачивать его из Actions или собирать проект для установки
 не требуется. Старые файлы в корне `dist/` сохранены как исторические версии; актуальная сборка
 находится в указанном каталоге `releases/`.
+
+Портальная пушка: ЛКМ — синий, ПКМ — оранжевый, Shift+ПКМ — удалить пару.
+Ровная опора5×5 и свободный воздух перед ней. Immersive Portals не требуется.
+[Управление, рецепт и ограничения](../docs/v5/PORTAL_GUN.md).
 
 Все 11 ролей дронов проверены на полный запас здоровья и корректное сохранение повреждений.
 Новые адаптеры дронов и наземного бестиария включены по умолчанию. Полное Master ТЗ v5 ещё

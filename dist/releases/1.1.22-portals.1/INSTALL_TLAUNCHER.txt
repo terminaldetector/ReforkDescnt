@@ -1,0 +1,16 @@
+UNGRAVITY / DRMD 1.1.22-portals.1 — Minecraft 1.21.1 / Fabric / Java 21
+Установочный JAR: drmd-6dof-1.1.22-portals.1-fabric-1.21.1.jar
+SHA-256: d73a94aaecc8e687436df25a2316c5447453e27b8d0dca1f7fe3b60b7f93bb2d
+Исходная ревизия: 36797d1ec60ad366df1d86061e69f2d749e27633
+
+Отдельный профиль Fabric 1.21.1 + Fabric API 0.116.15+1.21.1. Один DRMD JAR в mods.
+Immersive Portals не требуется. Не устанавливать sources/dev/cubiccheck JAR.
+Для экспериментального кубического мира: Fabric Loader 0.19.5+, отдельно установленный
+Better Cubic Chunks 0.1.1+mc1.21.1 и НОВЫЙ мир с preset bettercubicchunks:cubic_overworld.
+Закрытый сторонний BCC не включён в пакет. Исходные сохранения сохранить отдельно.
+Строгий OpenGL3.2 проверен без Sodium; Sodium0.8.13 проверен с GL3.3/GLSL330.
+Физическая Intel HD4400 недоступна, аппаратная производительность не подтверждена.
+
+Пушка drmd:portal_projector: ЛКМ синий / ПКМ оранжевый / Shift+ПКМ удалить пару.
+Ровная опора5×5, пустое место перед ней; дальность48. Стены не вырезаются.
+Ориентированные коллайдеры летающих корпусов и полный3D AI остаются в работе.

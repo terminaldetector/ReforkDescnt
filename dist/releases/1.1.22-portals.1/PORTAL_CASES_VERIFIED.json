@@ -1,0 +1,19 @@
+{
+  "sourceSha": "36797d1ec60ad366df1d86061e69f2d749e27633",
+  "cases": [
+    "portalprojectorgametests.gunaperturecannotteleportabodylargerthanitsvisibleopening",
+    "portalprojectorgametests.persistentpairandblockentitymetadataroundtripwithoutforeignentities",
+    "portalprojectorgametests.ungeneratedtargetisrejectedwithoutloadingorremovingoldportal",
+    "portalprojectorgametests.nativetravelcarriestheexistingmobframeandworldlooktogether",
+    "portalprojectorgametests.invalidbackingandoccupiedfrontpreservetheexistingpair",
+    "portalprojectorgametests.differentownerscannotoverlapfacesbeyondtheiranchorcells",
+    "portalprojectorgametests.supportsallsixsurfacenormalsandclearsbothends",
+    "portalprojectorgametests.replacingonecolourmovesonlyitsownedendpointatomically",
+    "portalprojectorgametests.differentplayerscannotrelinkorcleareachothersportals",
+    "portalprojectorgametests.twocolourslinkautomaticallywithoutfusionandkeepownership",
+    "portalprojectorgametests.linkedapertureallowsactualcollisionmovementandnativetravel",
+    "portalprojectorgametests.genericworldeditscannotbypasstheexplicitpairadapter",
+    "portalprojectorgametests.placementbeamusestheexistingtransformthroughanopenportal",
+    "portalprojectorgametests.packetentryvalidatesheldgundirectionandcooldownbeforefiring"
+  ]
+}

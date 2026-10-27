@@ -1,0 +1,109 @@
+{
+  "proof": {
+    "lifecycleRoundTrips": 8,
+    "gravityAxes": 6,
+    "gravityRelease": true,
+    "lowerRecovery": true,
+    "modalHud": true,
+    "inventoryDistinct": true,
+    "swarmProfiles": [
+      128,
+      256,
+      512,
+      1024
+    ],
+    "environmentComparisons": 4,
+    "profileCombinations": 4,
+    "settingsScales": [
+      2,
+      3,
+      4
+    ],
+    "settingsViewports": [
+      {
+        "requested": 2,
+        "actual": 2.0,
+        "width": 1280,
+        "height": 720
+      },
+      {
+        "requested": 3,
+        "actual": 3.0,
+        "width": 1280,
+        "height": 720
+      },
+      {
+        "requested": 4,
+        "actual": 4.0,
+        "width": 1920,
+        "height": 1080
+      }
+    ],
+    "horizonCases": 168,
+    "horizonOnPixels": true,
+    "dhInstalled": false,
+    "frames": 369
+  },
+  "profiles": [
+    {
+      "requested": "128",
+      "server_alive": "128",
+      "client_synced": "128",
+      "moving": "128",
+      "exact_overlaps": "0",
+      "max_candidates": "60",
+      "server_work_mean_ms": "11.6700",
+      "server_work_p95_ms": "23.1246",
+      "tps": "19.607",
+      "frames": "82",
+      "fps": "27.541",
+      "frame_p95_ms": "49.0088",
+      "cleanup_remaining": "0"
+    },
+    {
+      "requested": "256",
+      "server_alive": "256",
+      "client_synced": "256",
+      "moving": "256",
+      "exact_overlaps": "0",
+      "max_candidates": "95",
+      "server_work_mean_ms": "13.1063",
+      "server_work_p95_ms": "19.8942",
+      "tps": "20.073",
+      "frames": "75",
+      "fps": "25.383",
+      "frame_p95_ms": "69.9987",
+      "cleanup_remaining": "0"
+    },
+    {
+      "requested": "512",
+      "server_alive": "512",
+      "client_synced": "512",
+      "moving": "512",
+      "exact_overlaps": "0",
+      "max_candidates": "96",
+      "server_work_mean_ms": "27.9826",
+      "server_work_p95_ms": "59.9793",
+      "tps": "19.694",
+      "frames": "62",
+      "fps": "20.462",
+      "frame_p95_ms": "83.9236",
+      "cleanup_remaining": "0"
+    },
+    {
+      "requested": "1024",
+      "server_alive": "1024",
+      "client_synced": "1024",
+      "moving": "1024",
+      "exact_overlaps": "0",
+      "max_candidates": "96",
+      "server_work_mean_ms": "41.8175",
+      "server_work_p95_ms": "66.6512",
+      "tps": "23.000",
+      "frames": "39",
+      "fps": "15.264",
+      "frame_p95_ms": "91.1206",
+      "cleanup_remaining": "0"
+    }
+  ]
+}
