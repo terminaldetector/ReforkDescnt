@@ -12,7 +12,7 @@ import java.util.*;
 
 /** Actual ordinary AI ticks, rather than invoking the steering helper directly. */
 public final class SurfaceCombatGameTests implements FabricGameTest {
-    @GameTest(templateName=EMPTY_STRUCTURE,batchId="surface-combat-live",tickLimit=100)
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="surface-combat-live",tickLimit=300)
     public void defaultTripodPursuesAndFiresFromAWallWithLocalEyes(TestContext context) {
         var world=context.getWorld();BlockPos centre=context.getAbsolutePos(new BlockPos(6,80,6));
         Set<Long> added=new HashSet<>();
@@ -42,17 +42,28 @@ public final class SurfaceCombatGameTests implements FabricGameTest {
             EntityGravitySystem.tick(world.getServer());
         } catch(Throwable failure){cleanup.run();throw failure;}
         Set<UUID> shots=new HashSet<>();
-        for(int i=1;i<70;i++)context.runAtTick(i,()->{
+        boolean[] finished={false};
+        // Forced chunks become entity-ticking asynchronously. Count ordinary mob ticks,
+        // not global fixture ticks that can elapse while this entity is still frozen.
+        for(int i=1;i<299;i++)context.runAtTick(i,()->{
+            if(finished[0])return;
             for(var shot:world.getEntitiesByClass(ProjectileEntity.class,new Box(centre).expand(100),s->s.getOwnerLiving()==actor))shots.add(shot.getUuid());
-        });
-        context.runAtTick(70,()->{
+            if(actor.age<70)return;
+            finished[0]=true;
             try {
+                System.out.println("SURFACE_COMBAT entityTicks="+actor.age+" shots="+shots.size());
                 context.assertTrue(actor.isAlive() && actor.getZ()>start.z+1,"ordinary AI pursues along wall");
                 context.assertTrue(Math.abs(actor.getX()-start.x)<.1,"body remains on the surface");
                 context.assertTrue(actor.getEyePos().subtract(actor.getPos()).normalize().distanceTo(new Vec3d(1,0,0))<1e-6,"combat sight uses local eyes");
                 context.assertTrue(!shots.isEmpty(),"ordinary wall AI actually fired an owned projectile");
             } finally {cleanup.run();}
             context.complete();
+        });
+        context.runAtTick(299,()->{
+            if(!finished[0]) {
+                try {context.assertTrue(false,"Tripod did not receive 70 ordinary entity ticks; age="+actor.age);}
+                finally {cleanup.run();}
+            }
         });
     }
 }
