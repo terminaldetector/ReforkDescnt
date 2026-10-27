@@ -40,7 +40,8 @@ public final class ActorFrames {
     public static java.util.List<LivingEntity> tracked(ServerWorld world) {
         synchronized(TRACKED) {
             TRACKED.keySet().removeIf(entity->entity.isRemoved());
-            return TRACKED.keySet().stream().filter(entity->entity.getWorld()==world && entity.isAlive()).toList();
+            return TRACKED.keySet().stream().filter(entity->entity.getWorld()==world && entity.isAlive()
+                && world.getEntity(entity.getUuid())==entity).toList();
         }
     }
 

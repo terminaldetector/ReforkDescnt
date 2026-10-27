@@ -16,6 +16,8 @@ and one-block shape halo must be in already FULL volumes. An obstructed turn is 
 An obstructed upright release keeps the safe pose, pauses the actor and retries; it never
 teleports through the obstacle. Removing the last emitter still visits actors with a saved
 frame through a weak physical-pose index, without scanning all actors in worlds with no fields.
+Only the exact entity registered in that ServerWorld can be processed: an unspawned NBT copy
+with a duplicate UUID cannot acquire a deferred-release acceleration lease.
 An unchanged frame avoids repeating clearance queries or sending metadata.
 
 The box is the conservative axis-aligned envelope of the oriented standing cylinder, **not**

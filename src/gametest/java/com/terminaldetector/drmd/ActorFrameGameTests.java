@@ -13,6 +13,22 @@ import java.util.UUID;
 
 public final class ActorFrameGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="actor-frames")
+    public void unspawnedNbtCopyCannotAcquireAReleaseLease(TestContext context) {
+        var cow=actor(context);var copy=EntityType.COW.create(context.getWorld());
+        BlockPos overhead=cow.getBlockPos().up();
+        try {
+            context.assertTrue(ActorFrames.trySetUp(cow,new Vec3d(1,0,0)),"original physical pose set");
+            copy.readNbt(cow.writeNbt(new NbtCompound()));cow.discard();
+            context.getWorld().setBlockState(overhead,Blocks.STONE.getDefaultState(),2);
+            context.assertTrue(!ActorFrames.tryRelease(copy),"test copy has obstructed upright headroom");
+            EntityGravitySystem.tick(context.getWorld().getServer());
+            context.assertTrue(!EntityGravitySystem.suppressesVanillaGravity(copy) && copy.getFinalGravity()>0,
+                "physical-pose index cannot give an unregistered NBT object a runtime lease");
+        } finally {cow.discard();copy.discard();context.getWorld().setBlockState(overhead,Blocks.AIR.getDefaultState(),2);EntityGravitySystem.tick(context.getWorld().getServer());}
+        context.complete();
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="actor-frames")
     public void groundBestiaryUsesLocalBodyAndSurfaceSteeringOnSixAxes(TestContext context) {
         var world=context.getWorld();BlockPos centre=context.getAbsolutePos(new BlockPos(6,80,6));
         for(BlockPos p:BlockPos.iterate(centre.add(-8,-8,-8),centre.add(8,8,8)))world.setBlockState(p,Blocks.AIR.getDefaultState(),2);
