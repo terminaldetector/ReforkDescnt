@@ -1,0 +1,141 @@
+{
+  "sourceSha": "e800b439decc7070ecaa1e72c9216b72f40f70db",
+  "jarSha256": "d0c5dbee8ead36c704b6478b3758742a506486dfc2287692dbd40ab20210010d",
+  "run": "https://github.com/terminaldetector/ReforkDescnt/actions/runs/40657904862",
+  "snapshot": {
+    "actualWeaponInput": true,
+    "stableToolRoll": true,
+    "actualDroneInventory": true,
+    "scenes": [
+      {
+        "scene": "primary-fire",
+        "frames": 90
+      },
+      {
+        "scene": "secondary-fire",
+        "frames": 90
+      },
+      {
+        "scene": "tool-level",
+        "frames": 90
+      },
+      {
+        "scene": "tool-rolled",
+        "frames": 90
+      },
+      {
+        "scene": "drone-inventory",
+        "frames": 90
+      }
+    ]
+  },
+  "audit": {
+    "proof": {
+      "lifecycleRoundTrips": 8,
+      "gravityAxes": 6,
+      "gravityRelease": true,
+      "lowerRecovery": true,
+      "modalHud": true,
+      "inventoryDistinct": true,
+      "swarmProfiles": [
+        128,
+        256,
+        512,
+        1024
+      ],
+      "environmentComparisons": 4,
+      "profileCombinations": 4,
+      "settingsScales": [
+        2,
+        3,
+        4
+      ],
+      "settingsViewports": [
+        {
+          "requested": 2,
+          "actual": 2.0,
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "requested": 3,
+          "actual": 3.0,
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "requested": 4,
+          "actual": 4.0,
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "horizonCases": 168,
+      "horizonOnPixels": true,
+      "dhInstalled": false,
+      "frames": 369
+    },
+    "profiles": [
+      {
+        "requested": "128",
+        "server_alive": "128",
+        "client_synced": "128",
+        "moving": "128",
+        "exact_overlaps": "0",
+        "max_candidates": "61",
+        "server_work_mean_ms": "24.4727",
+        "server_work_p95_ms": "48.2799",
+        "tps": "20.090",
+        "frames": "76",
+        "fps": "25.745",
+        "frame_p95_ms": "50.2362",
+        "cleanup_remaining": "0"
+      },
+      {
+        "requested": "256",
+        "server_alive": "256",
+        "client_synced": "256",
+        "moving": "256",
+        "exact_overlaps": "0",
+        "max_candidates": "92",
+        "server_work_mean_ms": "9.2145",
+        "server_work_p95_ms": "12.5237",
+        "tps": "20.042",
+        "frames": "88",
+        "fps": "29.830",
+        "frame_p95_ms": "37.0354",
+        "cleanup_remaining": "0"
+      },
+      {
+        "requested": "512",
+        "server_alive": "512",
+        "client_synced": "512",
+        "moving": "512",
+        "exact_overlaps": "0",
+        "max_candidates": "96",
+        "server_work_mean_ms": "17.9928",
+        "server_work_p95_ms": "21.4575",
+        "tps": "20.017",
+        "frames": "89",
+        "fps": "29.928",
+        "frame_p95_ms": "38.0247",
+        "cleanup_remaining": "0"
+      },
+      {
+        "requested": "1024",
+        "server_alive": "1024",
+        "client_synced": "1024",
+        "moving": "1024",
+        "exact_overlaps": "0",
+        "max_candidates": "96",
+        "server_work_mean_ms": "57.9371",
+        "server_work_p95_ms": "76.2794",
+        "tps": "16.757",
+        "frames": "103",
+        "fps": "29.118",
+        "frame_p95_ms": "45.5598",
+        "cleanup_remaining": "0"
+      }
+    ]
+  }
+}
