@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "com.terminaldetector.drmd.boardingcheck",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["FrameProbe", "StateProbe"],
+  "injectors": {"defaultRequire": 1}
+}

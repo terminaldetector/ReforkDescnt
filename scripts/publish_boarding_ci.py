@@ -8,13 +8,13 @@ import shutil
 import subprocess
 import zipfile
 
-VERSION = '1.1.24-boarding.2'
+VERSION = '1.1.25-boarding.1'
 
 
 def validate_proof(proof, source):
     if proof['source_sha'] != source or proof['version'] != VERSION:
         raise ValueError('Unexpected tested source or boarding version')
-    if proof['unit']['tests'] < 598 or proof['gametest']['tests'] < 147:
+    if proof['unit']['tests'] < 606 or proof['gametest']['tests'] < 153:
         raise ValueError('Contact unit and world regressions are missing')
     if proof['jar'] != f'drmd-6dof-{VERSION}-fabric-1.21.1.jar':
         raise ValueError('Unexpected installable JAR')
@@ -36,6 +36,7 @@ def main():
     gate.verify_native_audit(root, started)
     proof = json.loads((root / 'build/checkpoint/verified.json').read_text())
     validate_proof(proof, source)
+    gate.verify_boarding(root, started)
     for name in ('snapshot', 'mirror-join', 'horizon-anchor', 'repair-visual'):
         gate.fresh(root / f'build/shootcheck/{name}-ok.json', started)
     snapshot = json.loads((root / 'build/shootcheck/snapshot-ok.json').read_text())
@@ -61,7 +62,8 @@ B — вспомогательное, G — режим ракет. Управл�
 Этот кандидат проверен CI в обычном мире; новый native BCC-клиент не проверен.
 Добавлены запросы контакта к BlockBody и взаимный импульсный решатель D6.
 Исправлено повторение старого поворота неподвижного корпуса при смене render tick.
-Ходьба по летящему UFO, DynamicBodyAttachment и полный3D AI ещё не реализованы.
+Добавлена первая серверная посадка, ходьба и прыжок по BlockBody с world-UP.
+Полная6DoF-гравитация пассажира, большой UFO и полный3D AI ещё не готовы.
 SHA-256: {proof['sha256']}
 Исходники: {source}
 ''')
@@ -72,8 +74,8 @@ SHA-256: {proof['sha256']}
 Промежуточный этап ТЗ: геометрические contact/sweep-запросы к локальному BVH
 BlockBody и контакт двух D6-тел с взаимной реакцией и ограниченным трением.
 Новый решатель применяется к опоре BlockBody на землю. Устранено повторение
-старого угла неподвижного корпуса при сбросе partial tick. Ходьба игрока/мобов на
-летящем корпусе, DynamicBodyAttachment, joints, ControlCore и полноценный3D AI
+старого угла неподвижного корпуса при сбросе partial tick. Первая серверная посадка/ходьба/прыжок игрока работает с world-UP, собственным
+C2S-вводом и предсказанием. Полная6DoF-гравитация пассажиров/мобов, joints, ControlCore и полноценный3D AI
 остаются открытыми. Все12 критериев Boarding и9 UFO по-прежнему OPEN.
 
 Проверенный source SHA: `{source}`. [Точный CI-прогон]({run}).
@@ -90,7 +92,8 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
     with zipfile.ZipFile(out / 'ci-evidence.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
         for pattern in ('build/checkpoint/logs/*', 'build/checkpoint/resources/*',
                         'build/checkpoint/verified.json', 'build/checkpoint/SOURCE_SHA.txt',
-                        'build/checkpoint/started-at.txt', 'build/test-results/test/*.xml',
+                        'build/checkpoint/started-at.txt', 'build/boardingcheck/boarding-ok.json',
+                        'build/boardingcheck/boarding-frames/*.png', 'build/test-results/test/*.xml',
                         'build/gametest/reports/*.xml', 'build/gametest/item-resource-inventory.tsv',
                         'build/rendercheck/*ok.*', 'build/rendercheck/screenshots/*.png',
                         'build/shootcheck/*ok.json', 'build/shootcheck/*.csv', 'build/shootcheck/*.tsv',
@@ -107,7 +110,8 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
 [Скачать JAR](releases/{VERSION}/{jar.name}) · [Установка](releases/{VERSION}/INSTALL_TLAUNCHER.txt)
 · [Проверки и ограничения](releases/{VERSION}/README.md) · [SHA-256](releases/{VERSION}/SHA256SUMS).
 
-Это основа контактов BlockBody; полноценный абордаж и3D AI ещё не готовы.
+Первая серверная посадка/ходьба/прыжок по BlockBody с world-UP.
+Полный абордаж с локальной гравитацией и3D AI ещё не готовы.
 Проверка CI использует обычный мир и программную графику Linux.
 
 Ниже сохранён предыдущий snapshot и его отдельные native BCC-проверки.

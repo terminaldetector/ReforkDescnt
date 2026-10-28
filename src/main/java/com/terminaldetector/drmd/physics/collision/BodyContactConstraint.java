@@ -12,12 +12,17 @@ public final class BodyContactConstraint {
     private static final Vec3 ZERO = new Vec3(0, 0, 0);
     private final D6PhysicsBody a, b;
     private final Vec3 ra, rb, normal;
+    private final Vec3 tangentTarget;
     private final double friction, normalMass;
     private double normalImpulse;
     private Vec3 tangentImpulse = ZERO;
 
     /** Normal points from b towards a; point is the common world-space contact point. */
     public BodyContactConstraint(D6PhysicsBody a, D6PhysicsBody b, Vec3 point, Vec3 normal, double friction) {
+        this(a,b,point,normal,friction,ZERO);
+    }
+    /** Optional powered tangential contact (walking feet); still bounded by the normal reaction. */
+    public BodyContactConstraint(D6PhysicsBody a, D6PhysicsBody b, Vec3 point, Vec3 normal, double friction, Vec3 tangentTarget) {
         if (a == null || b == null || a == b) throw new IllegalArgumentException("distinct contact bodies required");
         BodyBounds.finite(point); BodyBounds.finite(normal);
         if (!Double.isFinite(normal.length()) || normal.length() < 1e-10
@@ -25,6 +30,8 @@ public final class BodyContactConstraint {
         this.a = a; this.b = b;
         this.ra = point.minus(a.position()); this.rb = point.minus(b.position());
         this.normal = normal.scaled(1 / normal.length()); this.friction = friction;
+        BodyBounds.finite(tangentTarget);
+        this.tangentTarget=tangentTarget.minus(this.normal.scaled(tangentTarget.dot(this.normal)));
         normalMass = denominator(this.normal);
     }
 
@@ -39,7 +46,7 @@ public final class BodyContactConstraint {
         apply(normal.scaled(next - normalImpulse)); normalImpulse = next;
 
         Vec3 relative = relativeVelocity();
-        Vec3 tangent = relative.minus(normal.scaled(relative.dot(normal)));
+        Vec3 tangent = relative.minus(normal.scaled(relative.dot(normal))).minus(tangentTarget);
         double speed = tangent.length();
         Vec3 candidate = tangentImpulse;
         if (speed > 1e-10) {

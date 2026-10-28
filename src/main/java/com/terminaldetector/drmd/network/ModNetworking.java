@@ -510,6 +510,7 @@ public final class ModNetworking {
     }
 
 	public static void register() {
+        BoardingNetworking.register();
         PayloadTypeRegistry.playC2S().register(PortalProjectorPayload.ID,PortalProjectorPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(PortalProjectorPayload.ID,(p,c)->c.server().execute(()->
             com.terminaldetector.drmd.world.portal.gun.PortalProjectorItem.trigger(c.player(),p.slot(),p.reset(),new net.minecraft.util.math.Vec3d(p.x(),p.y(),p.z()))));

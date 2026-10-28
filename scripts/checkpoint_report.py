@@ -118,6 +118,28 @@ def verify_audit(root, started):
     return dict(proof=proof,profiles=rows)
 
 
+BOARDING_SCENES = ('landing', 'riding', 'walking', 'jump', 'sixdof-handoff')
+
+
+def verify_boarding(root, started):
+    marker = root / 'build/boardingcheck/boarding-ok.json'
+    fresh(marker, started)
+    proof = json.loads(marker.read_text())
+    if (any(proof.get(k) is not True for k in ('actualInputs', 'authoritativeContact', 'worldUpOnly'))
+            or proof.get('teleportFollow') is not False):
+        raise ValueError('Missing actual-input authoritative boarding verification')
+    for key, limit in (('jumpWorldVelocityError', .03), ('maxPredictionError', .8)):
+        value = proof.get(key)
+        if not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 <= value < limit:
+            raise ValueError(f'Invalid boarding metric {key}: {value}')
+    scenes = proof.get('scenes', [])
+    if [s.get('scene') for s in scenes] != list(BOARDING_SCENES) or any(s.get('frames', 0) < 3 for s in scenes):
+        raise ValueError('Missing completed boarding scenes')
+    for name in BOARDING_SCENES:
+        fresh_png(root / f'build/boardingcheck/boarding-frames/{name}.png', started)
+    return proof
+
+
 def properties(root):
     return dict(line.strip().split('=', 1) for line in
                 (root / 'gradle.properties').read_text().splitlines()
@@ -210,6 +232,7 @@ def verify(root):
 
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
+    boarding = verify_boarding(root, started) if version.startswith('1.1.25') else None
     audit=verify_audit(root,started) if version.startswith('1.1.14') else None
     if audit: verify_native_audit(root,started)
     jar = root / f'build/libs/{base}-{version}.jar'
@@ -251,6 +274,8 @@ def verify(root):
                   hybrid=hybrid, hybrid_frames=[name + '.png' for name in HYBRID_FRAMES],
                   frames=[name + '.png' for name in FRAMES], shootcheck=shot,
                   shot_frames=[name + '.png' for name in SHOT_FRAMES])
+    if boarding is not None:
+        result['boarding'] = boarding
     (out / 'verified.json').write_text(json.dumps(result, indent=2) + '\n')
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'], 'a') as output:

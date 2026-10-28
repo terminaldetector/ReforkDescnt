@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "drmd_boardingcheck",
+  "version": "0.0.1",
+  "name": "DRMD production boarding regression",
+  "environment": "client",
+  "entrypoints": {"client": ["com.terminaldetector.drmd.boardingcheck.BoardingCheck"]},
+  "depends": {"drmd": "*", "fabric-api": "*", "minecraft": "~1.21.1"},
+  "mixins": ["drmd.boardingcheck.mixins.json"]
+}

@@ -6,7 +6,7 @@ from publish_boarding_ci import VERSION, validate_proof
 class BoardingPackageProofTest(unittest.TestCase):
     def proof(self):
         return dict(source_sha='a' * 40, version=VERSION,
-                    unit=dict(tests=598), gametest=dict(tests=147),
+                    unit=dict(tests=606), gametest=dict(tests=153),
                     jar=f'drmd-6dof-{VERSION}-fabric-1.21.1.jar')
 
     def test_exact_tested_candidate_is_accepted(self):
@@ -14,8 +14,8 @@ class BoardingPackageProofTest(unittest.TestCase):
 
     def test_other_source_version_or_incomplete_tests_cannot_be_published(self):
         for field, value in (('source_sha', 'b' * 40), ('version', '1.1.23-snapshot.1'),
-                             ('jar', '../other.jar'), ('unit', dict(tests=597)),
-                             ('gametest', dict(tests=146))):
+                             ('jar', '../other.jar'), ('unit', dict(tests=605)),
+                             ('gametest', dict(tests=152))):
             with self.subTest(field=field), self.assertRaises(ValueError):
                 p = copy.deepcopy(self.proof())
                 p[field] = value

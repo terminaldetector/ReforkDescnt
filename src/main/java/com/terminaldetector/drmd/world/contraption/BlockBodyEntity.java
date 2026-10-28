@@ -38,6 +38,8 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private Vec3 centre = new Vec3(0, 0, 0);
     private final D6PhysicsBody body = new D6PhysicsBody().withLimits(MAX_LINEAR_SPEED, MAX_ANGULAR_SPEED);
     private Quat previousRotation = Quat.IDENTITY;
+    private Vec3 previousPhysicsPosition = new Vec3(0,0,0);
+    private long physicsTick = Long.MIN_VALUE;
     private final BodyRotationTimeline displayRotation = new BodyRotationTimeline();
     private double radius = .5;
     private Vec3 longAxis = new Vec3(0, 1, 0);
@@ -62,6 +64,19 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     public double radius() { return radius; }
     public D6PhysicsBody physics() { return body; }
+    public com.terminaldetector.drmd.world.contraption.boarding.BodyMotion boardingMotion() {
+        Vec3 end=pure(getPos());
+        boolean fresh=!getWorld().isClient && physicsTick==getWorld().getTime();
+        Vec3 start=fresh?previousPhysicsPosition:end.minus(body.linearVelocity().scaled(.05));
+        Quat before=fresh?previousRotation:body.rotation();
+        D6PhysicsBody dynamics=getWorld().isClient?new D6PhysicsBody().withMass(body.mass()).withInertia(body.inertia())
+            .withPosition(end).withRotation(body.rotation()).withLinearVelocity(body.linearVelocity()).withAngularMomentum(body.angularMomentum()):body;
+        return new com.terminaldetector.drmd.world.contraption.boarding.BodyMotion(getId(),collider,centre,
+            start,before,end,body.rotation(),dynamics);
+    }
+    public void publishPhysicsState() {
+        if(!getWorld().isClient){dataTracker.set(POSE,pose());velocityModified=true;}
+    }
     /** Current world pose plus the existing local BVH; no world blocks or chunk loads are read. */
     public BodyCollisionQuery collisionQuery() {
         return new BodyCollisionQuery(collider,pure(getPos()),centre,body.rotation());
@@ -275,6 +290,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         if (getWorld().isClient) { setBoundingBox(new Box(getPos(), getPos()).expand(radius)); return; }
         if (cells.isEmpty()) return;
         body.withPosition(pure(getPos())); previousRotation = body.rotation();
+        previousPhysicsPosition=body.position();physicsTick=getWorld().getTime();
         // Substeps bound corner travel to about 0.15 blocks, including rotation. Inelastic contact.
         int steps = Math.max(1, Math.min(32,
             (int)Math.ceil((MAX_LINEAR_SPEED + MAX_ANGULAR_SPEED*radius) * .05 / .15)));

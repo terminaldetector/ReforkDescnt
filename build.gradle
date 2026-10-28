@@ -243,3 +243,43 @@ tasks.withType(AbstractArchiveTask).configureEach {
     preserveFileTimestamps = false
     reproducibleFileOrder = true
 }
+
+// The same actual-input boarding harness runs in CI's ordinary world and the native BCC lab.
+sourceSets {
+    boardingcheck {
+        java.srcDir 'src/cubiccheck/java'
+        java.include 'com/terminaldetector/drmd/gate/NativeBoardingCheck.java'
+        java.include 'com/terminaldetector/drmd/boardingcheck/**'
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+loom {
+    mods { drmd_boardingcheck { sourceSet sourceSets.boardingcheck } }
+    runs {
+        boardingcheck {
+            client()
+            source sourceSets.boardingcheck
+            runDir 'build/boardingcheck'
+            vmArg '-Ddrmd.boarding.labY=140'
+            programArg '--quickPlaySingleplayer'
+            programArg 'DRMD-boarding-lab'
+            programArg '--width'
+            programArg '1280'
+            programArg '--height'
+            programArg '720'
+        }
+    }
+}
+tasks.register('prepareBoardingcheckWorld', Sync) {
+    dependsOn runGametest
+    from 'build/gametest/world'
+    into 'build/boardingcheck/saves/DRMD-boarding-lab'
+    exclude '**/session.lock'
+    doLast {
+        if(!file('build/boardingcheck/saves/DRMD-boarding-lab/level.dat').isFile())
+            throw new GradleException('Missing disposable boarding world')
+        file('build/boardingcheck/options.txt').text='onboardAccessibility:false\npauseOnLostFocus:false\nmaxFps:30\nrenderDistance:8\nsimulationDistance:8\n'
+    }
+}
+tasks.named('runBoardingcheck') { dependsOn prepareBoardingcheckWorld }

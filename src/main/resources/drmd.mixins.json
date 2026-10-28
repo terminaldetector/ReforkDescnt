@@ -17,7 +17,9 @@
     "ActorFrameTrackerMixin",
     "PortalMotionMixin",
     "MultiNoiseBiomeSourceMixin",
-    "FootGravityGeometryMixin"
+    "FootGravityGeometryMixin",
+    "BoardingServerMovementMixin",
+    "BoardingPlayerTravelMixin"
   ],
   "client": [
     "client.CameraAccessor",
@@ -36,7 +38,8 @@
     "client.PlayerFlightTravelMixin",
     "client.PortalProjectorInputMixin",
     "client.DroneCombatInputMixin",
-    "client.HeldWeaponFallbackMixin"
+    "client.HeldWeaponFallbackMixin",
+    "client.BoardingClientTravelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

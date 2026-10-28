@@ -129,6 +129,11 @@ jobs:
         run: |
           rm -f build/shootcheck/horizon-anchor-ok.json build/shootcheck/repair-visual-ok.json
           LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runShootcheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/horizon-anchor.log
+      - name: Verify actual boarding controls and authoritative movement
+        id: boardingcheck
+        run: |
+          rm -f build/boardingcheck/boarding-ok.json
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runBoardingcheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/boardingcheck.log
       - name: Validate fresh evidence and stage only the current JAR
         id: verify
         run: python3 scripts/checkpoint_report.py --verify 2>&1 | tee build/checkpoint/logs/verify.log
@@ -151,6 +156,10 @@ jobs:
           name: evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             build/checkpoint/
+            build/boardingcheck/boarding-ok.json
+            build/boardingcheck/boarding-frames/
+            build/boardingcheck/logs/
+            build/boardingcheck/crash-reports/
             build/test-results/test/
             build/gametest/item-resource-inventory.tsv
             build/gametest/reports/
@@ -254,8 +263,8 @@ jobs:
           python3 scripts/publish_boarding_ci.py
           git config user.name 'Ungravity checkpoint bot'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add dist/README.md dist/releases/1.1.24-boarding.2/*.jar dist/releases/1.1.24-boarding.2/README.md dist/releases/1.1.24-boarding.2/INSTALL_TLAUNCHER.txt dist/releases/1.1.24-boarding.2/SOURCE_SHA.txt
-          git commit -m '[boarding package] Publish verified 1.1.24-boarding.2 JAR'
-          git add dist/releases/1.1.24-boarding.2
+          git add dist/README.md dist/releases/1.1.25-boarding.1/*.jar dist/releases/1.1.25-boarding.1/README.md dist/releases/1.1.25-boarding.1/INSTALL_TLAUNCHER.txt dist/releases/1.1.25-boarding.1/SOURCE_SHA.txt
+          git commit -m '[boarding package] Publish verified 1.1.25-boarding.1 JAR'
+          git add dist/releases/1.1.25-boarding.1
           git commit -m '[boarding evidence] Preserve exact-source contact foundation proof'
           git -c 'credential.helper=!gh auth git-credential' push origin "HEAD:${GITHUB_REF#refs/heads/}"
