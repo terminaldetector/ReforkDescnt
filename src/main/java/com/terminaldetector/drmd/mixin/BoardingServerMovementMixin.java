@@ -25,7 +25,7 @@ public abstract class BoardingServerMovementMixin implements BoardingConnection 
         float yaw=packet.getYaw(player.getYaw()),pitch=packet.getPitch(player.getPitch());
         if(!Double.isFinite(x)||!Double.isFinite(y)||!Double.isFinite(z)||!Float.isFinite(yaw)||!Float.isFinite(pitch))
             handler.disconnect(Text.translatable("multiplayer.disconnect.invalid_player_movement"));
-        else {player.setYaw(yaw);player.setPitch(net.minecraft.util.math.MathHelper.clamp(pitch,-90,90));}
+        else if(BoardingSystem.state(player).gravityOwner()<0) {player.setYaw(yaw);player.setPitch(net.minecraft.util.math.MathHelper.clamp(pitch,-90,90));}
         drmd$bodyMovementOwned();ci.cancel();
     }
 }

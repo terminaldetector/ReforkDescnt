@@ -12,14 +12,23 @@ public final class BodyMotion {
     private final Vec3 localCom,from,to;
     private final Quat before,after;
     private final D6PhysicsBody dynamics;
+    private final BodyGravityField gravity;
     private final Vec3 velocity,momentum;
     private Vec3 reactionVelocity=new Vec3(0,0,0),reactionMomentum=new Vec3(0,0,0);
 
     public BodyMotion(int id,CompoundCollider shape,Vec3 localCom,Vec3 from,Quat before,Vec3 to,Quat after,D6PhysicsBody dynamics) {
+        this(id,shape,localCom,from,before,to,after,dynamics,BodyGravityField.NONE);
+    }
+    public BodyMotion(int id,CompoundCollider shape,Vec3 localCom,Vec3 from,Quat before,Vec3 to,Quat after,D6PhysicsBody dynamics,BodyGravityField gravity) {
+        this.gravity=java.util.Objects.requireNonNull(gravity);
         this.id=id;this.shape=shape;this.localCom=localCom;this.from=from;this.to=to;
         this.before=before;this.after=after;this.dynamics=dynamics;
         velocity=dynamics.linearVelocity();momentum=dynamics.angularMomentum();
     }
+    public java.util.Optional<Vec3> gravity(Vec3 point,double t) {return gravity.at(point,position(t),localCom,rotation(t));}
+    public boolean hasGravity(){return gravity.enabled();}
+    public Vec3 gravityUp(double t){return rotation(t).rotate(gravity.localAcceleration()).scaled(-1).normalized();}
+    public Vec3 acceleration(double t){return rotation(t).rotate(gravity.localAcceleration());}
     public Vec3 position(double t){return from.plus(to.minus(from).scaled(t));}
     public Quat rotation(double t){return ImmPtlQuaternions.interpolate(before,after,t).normalized();}
     public BodyCollisionQuery query(double t){return new BodyCollisionQuery(shape,position(t),localCom,rotation(t));}

@@ -49,6 +49,13 @@ public class LivingEntityRendererMixin {
 			ModelOrientation.applyBasis(matrices,bodyYaw,ActorFrameMath.toWorld(Vec3d.fromPolar(0,bodyYaw),up),up);
 			return;
 		}
+        if(entity instanceof net.minecraft.entity.player.PlayerEntity player&&com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(player)) {
+            var local=com.terminaldetector.drmd.world.contraption.boarding.PassengerFrame.up(com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.frame(player));
+            Vec3d up=new Vec3d(local.x(),local.y(),local.z()),look=entity.getRotationVec(tickDelta);
+            Vec3d forward=look.subtract(up.multiply(look.dotProduct(up)));
+            if(forward.lengthSquared()>1e-8)ModelOrientation.applyBasis(matrices,bodyYaw,forward.normalize(),up);
+            return;
+        }
 		// Only the local pilot: nobody else's attitude is synced to this client, so a remote player
 		// has nothing to orient by and is left to vanilla.
 		if (mc.player != entity) return;

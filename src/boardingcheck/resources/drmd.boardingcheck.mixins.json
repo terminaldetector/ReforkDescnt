@@ -2,6 +2,13 @@
   "required": true,
   "package": "com.terminaldetector.drmd.boardingcheck.mixin",
   "compatibilityLevel": "JAVA_21",
-  "client": ["FrameProbe", "StateProbe"],
-  "injectors": {"defaultRequire": 1}
+  "client": [
+    "FrameProbe",
+    "StateProbe",
+    "ShipModelProbe",
+    "ShipCameraProbe"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }

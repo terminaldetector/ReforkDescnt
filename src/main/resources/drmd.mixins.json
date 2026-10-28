@@ -19,7 +19,9 @@
     "MultiNoiseBiomeSourceMixin",
     "FootGravityGeometryMixin",
     "BoardingServerMovementMixin",
-    "BoardingPlayerTravelMixin"
+    "BoardingPlayerTravelMixin",
+    "BoardingPoseMixin",
+    "BoardingWorldMovementMixin"
   ],
   "client": [
     "client.CameraAccessor",

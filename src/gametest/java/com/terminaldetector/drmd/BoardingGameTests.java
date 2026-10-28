@@ -25,7 +25,7 @@ public final class BoardingGameTests implements FabricGameTest {
         var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);
         p.getAbilities().flying=false;p.setPosition(at.getX()+3,at.getY()+1,at.getZ()+3);p.setVelocity(Vec3d.ZERO);p.setYaw(0);p.setPitch(0);
         com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(p.getUuid());
-        BoardingSystem.ready(p,1);
+        BoardingSystem.ready(p,com.terminaldetector.drmd.network.BoardingNetworking.PROTOCOL);
         return new Fixture(c,p,body);
     }
     private BoardingNetworking.Input input(Fixture f,int sequence,float strafe,boolean jump) {

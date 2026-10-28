@@ -75,6 +75,9 @@ public final class FootGravitySystem {
 
 	/** Server tick — orientation / activation only (motion via {@link #travel}). */
 	public static void tick(ServerPlayerEntity player) {
+        if(com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.drives(player)) {
+            clear(player.getUuid());NOTICES.observe(player.getUuid(),null,player.getWorld().getTime());return;
+        }
 		if (player.getVehicle() instanceof PyroShipEntity || player.isSpectator() || !player.isAlive()) {
             NOTICES.observe(player.getUuid(),null,player.getWorld().getTime());
 			clear(player.getUuid());

@@ -8,6 +8,7 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 public final class BoardingNetworking {
+    public static final int PROTOCOL=2;
     private BoardingNetworking() {}
     public record Ready(int version) implements CustomPayload {
         public static final Id<Ready> ID=new Id<>(Identifier.of("drmd","boarding_ready"));
@@ -23,24 +24,29 @@ public final class BoardingNetworking {
         public Id<? extends CustomPayload> getId(){return ID;}
     }
     public record BodyState(double x,double y,double z,double qx,double qy,double qz,double qw,
-                            double vx,double vy,double vz,double lx,double ly,double lz) {
+                            double vx,double vy,double vz,double lx,double ly,double lz,double gx,double gy,double gz) {
         private void write(RegistryByteBuf b) {
             b.writeDouble(x);b.writeDouble(y);b.writeDouble(z);b.writeDouble(qx);b.writeDouble(qy);b.writeDouble(qz);b.writeDouble(qw);
-            b.writeDouble(vx);b.writeDouble(vy);b.writeDouble(vz);b.writeDouble(lx);b.writeDouble(ly);b.writeDouble(lz);
+            b.writeDouble(vx);b.writeDouble(vy);b.writeDouble(vz);b.writeDouble(lx);b.writeDouble(ly);b.writeDouble(lz);b.writeDouble(gx);b.writeDouble(gy);b.writeDouble(gz);
         }
         private static BodyState read(RegistryByteBuf b) {
             return new BodyState(b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),
-                b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble());
+                b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble());
         }
     }
-    public record State(int epoch,int acknowledgment,boolean active,int support,double x,double y,double z,double vx,double vy,double vz,boolean grounded,BodyState body,Identifier dimension) implements CustomPayload {
+    public record PassengerPose(double x,double y,double z,double w,int gravityOwner) {
+        public static final PassengerPose WORLD=new PassengerPose(0,0,0,1,-1);
+        public com.terminaldetector.drmd.client.portal.PortalTransform.Quat frame(){return new com.terminaldetector.drmd.client.portal.PortalTransform.Quat(x,y,z,w).normalized();}
+    }
+    public record State(int epoch,int acknowledgment,boolean active,int support,double x,double y,double z,double vx,double vy,double vz,boolean grounded,PassengerPose pose,BodyState body,Identifier dimension) implements CustomPayload {
         public static final Id<State> ID=new Id<>(Identifier.of("drmd","boarding_state"));
         public static final PacketCodec<RegistryByteBuf,State> CODEC=PacketCodec.of((p,b)->{
             b.writeVarInt(p.epoch);b.writeVarInt(p.acknowledgment);b.writeBoolean(p.active);b.writeVarInt(p.support);
             b.writeDouble(p.x);b.writeDouble(p.y);b.writeDouble(p.z);b.writeDouble(p.vx);b.writeDouble(p.vy);b.writeDouble(p.vz);b.writeBoolean(p.grounded);
+            b.writeDouble(p.pose.x);b.writeDouble(p.pose.y);b.writeDouble(p.pose.z);b.writeDouble(p.pose.w);b.writeVarInt(p.pose.gravityOwner);
             b.writeBoolean(p.body!=null);if(p.body!=null)p.body.write(b);
             b.writeIdentifier(p.dimension);
-        },b->new State(b.readVarInt(),b.readVarInt(),b.readBoolean(),b.readVarInt(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readBoolean(),b.readBoolean()?BodyState.read(b):null,b.readIdentifier()));
+        },b->new State(b.readVarInt(),b.readVarInt(),b.readBoolean(),b.readVarInt(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readBoolean(),new PassengerPose(b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readVarInt()),b.readBoolean()?BodyState.read(b):null,b.readIdentifier()));
         public Id<? extends CustomPayload> getId(){return ID;}
     }
     public static void register() {

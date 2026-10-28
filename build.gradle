@@ -249,6 +249,7 @@ sourceSets {
     boardingcheck {
         java.srcDir 'src/cubiccheck/java'
         java.include 'com/terminaldetector/drmd/gate/NativeBoardingCheck.java'
+        java.include 'com/terminaldetector/drmd/gate/NativeShipGravityCheck.java'
         java.include 'com/terminaldetector/drmd/boardingcheck/**'
         compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
         runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
@@ -283,3 +284,34 @@ tasks.register('prepareBoardingcheckWorld', Sync) {
     }
 }
 tasks.named('runBoardingcheck') { dependsOn prepareBoardingcheckWorld }
+
+// Same ship-gravity test source on a disposable ordinary world, independent of private BCC inputs.
+loom {
+    runs {
+        shipboardingcheck {
+            client()
+            source sourceSets.boardingcheck
+            runDir 'build/shipboardingcheck'
+            vmArg '-Ddrmd.boarding.labY=140'
+            vmArg '-Ddrmd.gate.shipGravity=true'
+            programArg '--quickPlaySingleplayer'
+            programArg 'DRMD-shipboarding-lab'
+            programArg '--width'
+            programArg '1280'
+            programArg '--height'
+            programArg '720'
+        }
+    }
+}
+tasks.register('prepareShipboardingcheckWorld', Sync) {
+    dependsOn runGametest
+    from 'build/gametest/world'
+    into 'build/shipboardingcheck/saves/DRMD-shipboarding-lab'
+    exclude '**/session.lock'
+    doLast {
+        if(!file('build/shipboardingcheck/saves/DRMD-shipboarding-lab/level.dat').isFile())
+            throw new GradleException('Missing disposable shipboarding world')
+        file('build/shipboardingcheck/options.txt').text='onboardAccessibility:false\npauseOnLostFocus:false\nmaxFps:30\nrenderDistance:8\nsimulationDistance:8\n'
+    }
+}
+tasks.named('runShipboardingcheck') { dependsOn prepareShipboardingcheckWorld }

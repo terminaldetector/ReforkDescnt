@@ -9,7 +9,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class CubicFrameProbe {
     @Inject(method="render",at=@At("RETURN"))
     private void completed(RenderTickCounter counter,boolean tick,CallbackInfo ci) {
-        if(Boolean.getBoolean("drmd.gate.boarding"))com.terminaldetector.drmd.gate.NativeBoardingCheck.rendered();
+        if(Boolean.getBoolean("drmd.gate.shipGravity"))com.terminaldetector.drmd.gate.NativeShipGravityCheck.rendered();
+        else if(Boolean.getBoolean("drmd.gate.boarding"))com.terminaldetector.drmd.gate.NativeBoardingCheck.rendered();
         else if(Boolean.getBoolean("drmd.gate.snapshot"))com.terminaldetector.drmd.gate.NativeSnapshotCheck.rendered();
         else if(Boolean.getBoolean("drmd.gate.contacts"))com.terminaldetector.drmd.gate.NativeBodyCollisionCheck.rendered();
         else if(Boolean.getBoolean("drmd.gate.gun"))com.terminaldetector.drmd.gate.NativePortalGunCheck.rendered();

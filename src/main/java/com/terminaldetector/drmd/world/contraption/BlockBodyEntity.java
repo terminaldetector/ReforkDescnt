@@ -45,6 +45,17 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private Vec3 longAxis = new Vec3(0, 1, 0);
     private Vec3 pendingTorque = new Vec3(0, 0, 0);
     private boolean gravity;
+    private Vec3 passengerGravity=new Vec3(0,0,0);
+    public Vec3 passengerGravity(){return passengerGravity;}
+    public com.terminaldetector.drmd.world.contraption.boarding.BodyGravityField passengerField(Vec3 acceleration) {
+        var bounds=collider.bounds().orElse(new BodyBounds(new Vec3(-.5,-.5,-.5),new Vec3(.5,.5,.5)));
+        var pad=new Vec3(4,4,4);
+        return new com.terminaldetector.drmd.world.contraption.boarding.BodyGravityField(acceleration,new BodyBounds(bounds.min().minus(pad),bounds.max().plus(pad)));
+    }
+    public void setPassengerGravity(Vec3 acceleration) {
+        if(getWorld().isClient)throw new IllegalStateException("Ship gravity is server-owned");
+        passengerField(acceleration);passengerGravity=acceleration;dataTracker.set(POSE,pose());
+    }
     public void setPhysicsGravity(boolean value) {gravity=value;dataTracker.set(POSE,pose());}
     public boolean physicsGravity() {return gravity;}
     public static boolean supports(BlockState state) {return SUPPORTED.contains(state.getBlock()) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
@@ -72,7 +83,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         D6PhysicsBody dynamics=getWorld().isClient?new D6PhysicsBody().withMass(body.mass()).withInertia(body.inertia())
             .withPosition(end).withRotation(body.rotation()).withLinearVelocity(body.linearVelocity()).withAngularMomentum(body.angularMomentum()):body;
         return new com.terminaldetector.drmd.world.contraption.boarding.BodyMotion(getId(),collider,centre,
-            start,before,end,body.rotation(),dynamics);
+            start,before,end,body.rotation(),dynamics,passengerField(passengerGravity));
     }
     public void publishPhysicsState() {
         if(!getWorld().isClient){dataTracker.set(POSE,pose());velocityModified=true;}
@@ -164,6 +175,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         Quat q = body.rotation(); tag.putDouble("qx", q.x()); tag.putDouble("qy", q.y());
         tag.putDouble("qz", q.z()); tag.putDouble("qw", q.w());
         tag.putBoolean("gravity",gravity);
+        vector(tag,"passengerGravity",passengerGravity);
         vector(tag, "v", body.linearVelocity()); vector(tag, "l", body.angularMomentum());
         return tag;
     }
@@ -178,6 +190,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private void readPose(NbtCompound n) {
         if (!n.contains("qw")) return;
         gravity=n.getBoolean("gravity");
+        passengerGravity=vector(n,"passengerGravity");passengerField(passengerGravity);
         Quat q = new Quat(n.getDouble("qx"), n.getDouble("qy"), n.getDouble("qz"), n.getDouble("qw"));
         if (!Double.isFinite(q.x()*q.x()+q.y()*q.y()+q.z()*q.z()+q.w()*q.w())) throw new IllegalArgumentException("non-finite rotation");
         body.withRotation(q).withLinearVelocity(vector(n, "v")).withAngularMomentum(vector(n, "l"));

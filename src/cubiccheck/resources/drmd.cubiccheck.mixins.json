@@ -9,7 +9,9 @@
     "ActorModelProbe",
     "BodyRenderProbe",
     "ProjectorInputAccess",
-    "BoardingStateProbe"
+    "BoardingStateProbe",
+    "ShipModelProbe",
+    "ShipCameraProbe"
   ],
   "injectors": {
     "defaultRequire": 1

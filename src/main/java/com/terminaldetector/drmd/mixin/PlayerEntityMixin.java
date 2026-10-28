@@ -40,6 +40,18 @@ public class PlayerEntityMixin {
 	@Inject(method = "canChangeIntoPose", at = @At("HEAD"), cancellable = true)
 	private void drmd$blockCrawlUnderFootGravity(EntityPose pose, CallbackInfoReturnable<Boolean> cir) {
 		PlayerEntity self = (PlayerEntity) (Object) this;
+        if(pose==EntityPose.SWIMMING&&!self.isTouchingWater()
+            &&com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(self)) {
+            var frame=com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.frame(self);
+            if(com.terminaldetector.drmd.world.contraption.boarding.PassengerFrame.up(frame).y()<.99999) {
+                var state=new com.terminaldetector.drmd.world.contraption.boarding.DynamicBodyAttachment.State(
+                    com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.pure(self.getPos()),
+                    new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(0,0,0),false,-1,frame,-1);
+                if(com.terminaldetector.drmd.world.contraption.boarding.BoardingWorldMotion.capture(self,state,true).canOrient(state.feet(),frame)) {
+                    cir.setReturnValue(false);return;
+                }
+            }
+        }
 		if (!FootGravitySystem.isActive(self)) return;
 		if (pose != EntityPose.SWIMMING) return;
 		if (!GravityMount.hasStandingClearance(self)) return;

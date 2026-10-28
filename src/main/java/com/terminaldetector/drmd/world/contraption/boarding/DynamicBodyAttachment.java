@@ -18,7 +18,20 @@ public final class DynamicBodyAttachment {
         }
         public static Input idle(){return new Input(0,0,false,new Vec3(0,0,1));}
     }
-    public record State(Vec3 feet,Vec3 velocity,boolean grounded,int support) {}
+    public record State(Vec3 feet,Vec3 velocity,boolean grounded,int support,Quat frame,int gravityOwner) {
+        public State {
+            BodyBounds.finite(feet);BodyBounds.finite(velocity);
+            new OrientedBox(feet,new Vec3(1,1,1),frame);frame=frame.normalized();
+        }
+        public State(Vec3 feet,Vec3 velocity,boolean grounded,int support){this(feet,velocity,grounded,support,Quat.IDENTITY,-1);}
+    }
+    public record Move(Vec3 displacement,List<Vec3> blockingNormals) {
+        public Move {BodyBounds.finite(displacement);blockingNormals=List.copyOf(blockingNormals);}
+    }
+    public interface Motion {
+        Move move(Vec3 feet,Quat frame,Vec3 requested);
+        default boolean canOrient(Vec3 feet,Quat frame){return true;}
+    }
     /** Return the actual displacement permitted by ordinary world collisions. */
     @FunctionalInterface public interface WorldMove {Vec3 move(Vec3 feet,Vec3 requested);}
     private static final Vec3 UP=new Vec3(0,1,0),ZERO=new Vec3(0,0,0);
@@ -29,40 +42,70 @@ public final class DynamicBodyAttachment {
     private static final double JUMP_SPEED=.42*20; // Vanilla .42 blocks/tick, expressed in world units/second.
     private DynamicBodyAttachment() {}
     public static OrientedBox box(Vec3 feet,double width,double height) {
-        return new OrientedBox(feet.plus(new Vec3(0,height/2,0)),new Vec3(width/2,height/2,width/2),Quat.IDENTITY);
+        return PassengerFrame.box(feet,width,height,Quat.IDENTITY);
     }
     public static State step(State state,Input input,List<BodyMotion> bodies,double width,double height,double seconds,WorldMove world) {
+        return step(state,input,bodies,width,height,seconds,new Motion() {
+            @Override public Move move(Vec3 feet,Quat frame,Vec3 requested) {
+                Vec3 allowed=world.move(feet,requested);var normals=new ArrayList<Vec3>();
+                if(requested.lengthSquared()>1e-7)for(int axis=0;axis<3;axis++) {
+                    double want=BodyBounds.component(requested,axis),got=BodyBounds.component(allowed,axis);
+                    if(Math.abs(want-got)>1e-7)normals.add(axis==0?new Vec3(-Math.signum(want),0,0):axis==1?new Vec3(0,-Math.signum(want),0):new Vec3(0,0,-Math.signum(want)));
+                }
+                return new Move(allowed,normals);
+            }
+        });
+    }
+    public static State step(State state,Input input,List<BodyMotion> bodies,double width,double height,double seconds,Motion world) {
         if(!Double.isFinite(seconds)||seconds<=0||seconds>.05)throw new IllegalArgumentException("one bounded tick required");
         BodyBounds.finite(state.feet);BodyBounds.finite(state.velocity);
+        Quat frame=state.frame;
+        new OrientedBox(state.feet,new Vec3(1,1,1),frame); // validate physical orientation
+        BodyMotion owner=null;
+        Vec3 centre=state.feet.plus(PassengerFrame.up(frame).scaled(height/2));
+        for(var b:bodies)if(b.gravity(centre,0).isPresent()) {
+            if(owner==null||b.id==state.gravityOwner||b.id==state.support)owner=b;
+            if(b.id==state.gravityOwner)break;
+        }
+        Vec3 targetUp=owner==null?UP:owner.gravityUp(1);
+        double turn=Math.acos(Math.max(-1,Math.min(1,PassengerFrame.up(frame).dot(targetUp))));
         int steps=Math.max(1,Math.min(32,(int)Math.ceil((state.velocity.length()*seconds+
-            bodies.stream().mapToDouble(BodyMotion::travelBound).max().orElse(0))/.08)));
+            bodies.stream().mapToDouble(BodyMotion::travelBound).max().orElse(0)+Math.min(turn,6*seconds)*height)/.08)));
         double dt=seconds/steps;Vec3 feet=state.feet,velocity=state.velocity;
         boolean grounded=state.grounded;int support=state.support;
         boolean jumping=input.jump&&grounded;
         // World velocity already contains the contact point's speed. Adding it again doubles it.
-        if(jumping){velocity=velocity.plus(UP.scaled(JUMP_SPEED));grounded=false;support=-1;}
-        Vec3 forward=new Vec3(input.look.x(),0,input.look.z()).normalized();
-        if(forward.lengthSquared()<1e-8)forward=new Vec3(0,0,1);
-        Vec3 wish=UP.cross(forward).scaled(input.strafe).plus(forward.scaled(input.forward));
-        if(wish.lengthSquared()>1)wish=wish.normalized();wish=wish.scaled(4.3);
+        if(jumping){velocity=velocity.plus(PassengerFrame.up(frame).scaled(JUMP_SPEED));grounded=false;support=-1;}
         for(int s=0;s<steps;s++) {
             double t=(double)s/steps,end=(double)(s+1)/steps;
-            Vec3 surface=ZERO;
-            for(var b:bodies)if(b.id==support){surface=b.surfaceVelocity(feet,t);break;}
+            Quat candidate=PassengerFrame.turn(frame,owner==null?UP:owner.gravityUp(end),6*dt);
+            if(!candidate.equals(frame)) {
+                if(canOrient(feet,candidate,bodies,t,width,height,world))frame=candidate;
+                else {
+                    Quat before=frame;double lo=0,hi=1;
+                    for(int i=0;i<10;i++) {
+                        double mid=(lo+hi)/2;
+                        var q=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.interpolate(before,candidate,mid).normalized();
+                        if(canOrient(feet,q,bodies,t,width,height,world))lo=mid;else hi=mid;
+                    }
+                    frame=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.interpolate(before,candidate,lo).normalized();
+                }
+            }
+            Vec3 up=PassengerFrame.up(frame),wish=PassengerFrame.wish(input,state.frame,frame);
             // Feet drive through friction at the contact, with the opposite impulse on the hull.
             // Neutral air input does not erase the carrier speed inherited at departure.
             if(!grounded&&wish.lengthSquared()>1e-8)velocity=velocity.plus(wish.normalized().scaled(2*dt));
-            velocity=velocity.plus(new Vec3(0,-32*dt,0));
+            velocity=velocity.plus((owner==null?new Vec3(0,-32,0):owner.acceleration((t+end)/2)).scaled(dt));
             grounded=false;support=-1;
             var actor=new D6PhysicsBody().withMass(1).withInertia(D6Mat3.diagonal(1e12,1e12,1e12))
-                .withPosition(feet.plus(new Vec3(0,height/2,0))).withLinearVelocity(velocity);
+                .withPosition(feet.plus(up.scaled(height/2))).withLinearVelocity(velocity);
             // Resolve a small old-pose overlap (e.g. bounded angular substeps), never chase an anchor.
-            for(var b:bodies)for(var c:b.query(t).contacts(box(feet,width,height),SKIN)) {
+            for(var b:bodies)for(var c:b.query(t).contacts(PassengerFrame.box(feet,width,height,frame),SKIN)) {
                 if(c.penetration()>.2)continue;
-                if(c.penetration()>1e-7)feet=feet.plus(world.move(feet,c.normal().scaled(c.penetration()+SEPARATION)));
-                actor.withPosition(feet.plus(new Vec3(0,height/2,0)));
-                contact(actor,b,t,c.point(),c.normal(),wish);
-                if(c.normal().dot(UP)>.6 && actor.linearVelocity().minus(b.surfaceVelocity(c.point(),t)).dot(c.normal())<.05) {
+                if(c.penetration()>1e-7)feet=feet.plus(world.move(feet,frame,c.normal().scaled(c.penetration()+SEPARATION)).displacement());
+                actor.withPosition(feet.plus(up.scaled(height/2)));
+                contact(actor,b,t,c.point(),c.normal(),wish,up);
+                if(c.normal().dot(up)>.6 && actor.linearVelocity().minus(b.surfaceVelocity(c.point(),t)).dot(c.normal())<.05) {
                     grounded=true;support=b.id;
                 }
             }
@@ -79,31 +122,31 @@ public final class DynamicBodyAttachment {
                 }
                 BodyMotion hitBody=null;BodyCollisionQuery.Sweep hit=null;
                 for(var b:bodies) {
-                    var sweep=b.query(current).sweep(box(feet,width,height),move,b.position(end).minus(b.position(current)));
+                    var sweep=b.query(current).sweep(PassengerFrame.box(feet,width,height,frame),move,b.position(end).minus(b.position(current)),true);
                     if(sweep.isPresent() && (hit==null||sweep.get().fraction()<hit.fraction())) {hit=sweep.get();hitBody=b;}
                 }
                 if(hit==null) {
-                    Vec3 allowed=world.move(feet,move);feet=feet.plus(allowed);
-                    actor.withLinearVelocity(blockedVelocity(actor.linearVelocity(),move,allowed));current=end;break;
+                    Move allowed=world.move(feet,frame,move);feet=feet.plus(allowed.displacement());
+                    actor.withLinearVelocity(blockedVelocity(actor.linearVelocity(),allowed.blockingNormals()));current=end;break;
                 }
                 double fraction=hit.fraction(),impact=current+(end-current)*fraction;
                 Vec3 partial=move.scaled(Math.max(0,fraction-1e-7));
-                Vec3 allowed=world.move(feet,partial);feet=feet.plus(allowed);
-                actor.withLinearVelocity(blockedVelocity(actor.linearVelocity(),partial,allowed));
-                actor.withPosition(feet.plus(new Vec3(0,height/2,0)));
-                var contacts=hitBody.query(impact).contacts(box(feet,width,height),.02);
+                Move allowed=world.move(feet,frame,partial);feet=feet.plus(allowed.displacement());
+                actor.withLinearVelocity(blockedVelocity(actor.linearVelocity(),allowed.blockingNormals()));
+                actor.withPosition(feet.plus(up.scaled(height/2)));
+                var contacts=hitBody.query(impact).contacts(PassengerFrame.box(feet,width,height,frame),.02);
                 final Vec3 sweptNormal=hit.normal();
                 var actual=contacts.stream().max(Comparator.comparingDouble(c->c.normal().dot(sweptNormal))).orElse(null);
                 Vec3 normal=actual==null?sweptNormal:actual.normal();
                 if(actual!=null&&actual.penetration()>1e-7&&actual.penetration()<=.2) {
-                    feet=feet.plus(world.move(feet,normal.scaled(actual.penetration()+SEPARATION)));
-                    actor.withPosition(feet.plus(new Vec3(0,height/2,0)));
+                    feet=feet.plus(world.move(feet,frame,normal.scaled(actual.penetration()+SEPARATION)).displacement());
+                    actor.withPosition(feet.plus(up.scaled(height/2)));
                 }
-                Vec3 point=actual==null?box(feet,width,height).supportCentre(normal.scaled(-1)):actual.point();
+                Vec3 point=actual==null?PassengerFrame.box(feet,width,height,frame).supportCentre(normal.scaled(-1)):actual.point();
                 double before=actor.linearVelocity().minus(hitBody.surfaceVelocity(point,impact)).dot(normal);
-                contact(actor,hitBody,impact,point,normal,wish);
+                contact(actor,hitBody,impact,point,normal,wish,up);
                 planes.add(new Plane(normal,hitBody));
-                if(normal.dot(UP)>.6 && before<=.05) {grounded=true;support=hitBody.id;}
+                if(normal.dot(up)>.6 && before<=.05) {grounded=true;support=hitBody.id;}
                 // A solved touching contact should slide on the next sweep. Bound a degenerate
                 // zero-progress corner instead of advancing through it or burning an unbounded loop.
                 if(fraction<1e-10 && actor.linearVelocity().minus(hitBody.surfaceVelocity(point,impact)).dot(normal)< -1e-6)break;
@@ -114,25 +157,33 @@ public final class DynamicBodyAttachment {
         // Grounding belongs to the final pose, not the start of the last angular substep. A small
         // resting margin preserves a genuine near contact while still letting an opening jump go.
         grounded=false;support=-1;
-        for(var b:bodies)for(var c:b.query(1).contacts(box(feet,width,height),.01))
-            if(c.normal().y()>.6&&c.penetration()<=.2&&velocity.minus(b.surfaceVelocity(c.point(),1)).dot(c.normal())<.1) {
+        Vec3 up=PassengerFrame.up(frame);
+        for(var b:bodies)for(var c:b.query(1).contacts(PassengerFrame.box(feet,width,height,frame),.01))
+            if(c.normal().dot(up)>.6&&c.penetration()<=.2&&velocity.minus(b.surfaceVelocity(c.point(),1)).dot(c.normal())<.1) {
                 grounded=true;support=b.id;
             }
-        return new State(feet,velocity,grounded,support);
+        int gravityOwner=owner!=null&&owner.gravity(feet.plus(up.scaled(height/2)),1).isPresent()?owner.id:-1;
+        if(gravityOwner<0&&up.dot(UP)>.99999&&world.canOrient(feet,Quat.IDENTITY))frame=Quat.IDENTITY;
+        return new State(feet,velocity,grounded,support,frame,gravityOwner);
     }
-    private static void contact(D6PhysicsBody actor,BodyMotion body,double t,Vec3 point,Vec3 normal,Vec3 wish) {
+    private static void contact(D6PhysicsBody actor,BodyMotion body,double t,Vec3 point,Vec3 normal,Vec3 wish,Vec3 up) {
         var proxy=body.proxy(t);Vec3 beforeV=proxy.linearVelocity();
-        var constraint=new BodyContactConstraint(actor,proxy,point,normal,.65,normal.y()>.6?wish:ZERO);
+        var constraint=new BodyContactConstraint(actor,proxy,point,normal,.65,normal.dot(up)>.6?wish:ZERO);
         for(int pass=0;pass<8;pass++)constraint.solve();
         Vec3 impulse=proxy.linearVelocity().minus(beforeV).scaled(proxy.mass());
         // The same contact point/offset generated this reaction on the pose-specific D6 proxy.
         body.react(impulse,point.minus(proxy.position()));
     }
-    private static Vec3 blockedVelocity(Vec3 velocity,Vec3 requested,Vec3 allowed) {
-        // A tiny time-of-impact displacement is ignored by Entity.move before it even queries
-        // world collisions. That is not a wall and must not erase the actor's momentum.
-        if(requested.lengthSquared()<=1e-7)return velocity;
-        return new Vec3(Math.abs(requested.x()-allowed.x())>1e-7?0:velocity.x(),
-            Math.abs(requested.y()-allowed.y())>1e-7?0:velocity.y(),Math.abs(requested.z()-allowed.z())>1e-7?0:velocity.z());
+    private static Vec3 blockedVelocity(Vec3 velocity,List<Vec3> normals) {
+        // An oblique world contact removes only its closing normal speed, never all XYZ axes.
+        for(var normal:normals){double closing=velocity.dot(normal);if(closing<0)velocity=velocity.minus(normal.scaled(closing));}
+        return velocity;
+    }
+    private static boolean canOrient(Vec3 feet,Quat frame,List<BodyMotion> bodies,double t,double width,double height,Motion world) {
+        if(!world.canOrient(feet,frame))return false;
+        Vec3 up=PassengerFrame.up(frame);
+        for(var b:bodies)for(var c:b.query(t).contacts(PassengerFrame.box(feet,width,height,frame),0))
+            if(c.penetration()>(c.normal().dot(up)>.6?.02:1e-5))return false;
+        return true;
     }
 }

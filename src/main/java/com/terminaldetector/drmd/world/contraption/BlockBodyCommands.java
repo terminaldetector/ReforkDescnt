@@ -30,7 +30,7 @@ public final class BlockBodyCommands {
                 try { selected(ctx).disassemble(); return 1; }
                 catch (IllegalArgumentException | IllegalStateException e) { return error(ctx, e); }
             })));
-            for (String action : new String[]{"impulse", "spin"}) {
+            for (String action : new String[]{"impulse", "spin", "gravity"}) {
                 root.then(literal(action).then(argument("body", EntityArgumentType.entity())
                     .then(argument("x", DoubleArgumentType.doubleArg(-10000, 10000))
                     .then(argument("y", DoubleArgumentType.doubleArg(-10000, 10000))
@@ -39,7 +39,8 @@ public final class BlockBodyCommands {
                             var body = selected(ctx).physics();
                             Vec3 v = new Vec3(DoubleArgumentType.getDouble(ctx,"x"), DoubleArgumentType.getDouble(ctx,"y"), DoubleArgumentType.getDouble(ctx,"z"));
                             if (action.equals("impulse")) body.applyImpulse(v, new Vec3(0,0,0));
-                            else body.withAngularMomentum(body.angularMomentum().plus(v));
+                            else if(action.equals("spin")) body.withAngularMomentum(body.angularMomentum().plus(v));
+                            else selected(ctx).setPassengerGravity(v);
                             return 1;
                         } catch (IllegalArgumentException e) { return error(ctx,e); }
                     }))))));

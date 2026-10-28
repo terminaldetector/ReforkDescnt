@@ -39,12 +39,19 @@ public final class BodyCollisionQuery {
 
     /** Exact translational CCD for fixed orientations, accounting for both sides' displacement. */
     public Optional<Sweep> sweep(OrientedBox actor, Vec3 movement, Vec3 bodyMovement) {
+        return sweep(actor,movement,bodyMovement,false);
+    }
+    /** A character may escape an existing overlap; closing motion still resolves every primitive. */
+    public Optional<Sweep> sweep(OrientedBox actor,Vec3 movement,Vec3 bodyMovement,boolean openingOverlaps) {
         BodyBounds.finite(movement); BodyBounds.finite(bodyMovement);
         Vec3 relative = movement.minus(bodyMovement);
         BodyBounds swept = actor.bounds().union(translate(actor.bounds(), relative));
         Sweep best = null;
         for (BodyBounds shape : collider.query(toLocal(swept))) {
-            var hit = actor.sweep(OrientedBox.local(shape, position, localCom, rotation), movement, bodyMovement);
+            var hull=OrientedBox.local(shape,position,localCom,rotation);
+            var overlap=openingOverlaps?actor.contact(hull,0):Optional.<OrientedBox.Contact>empty();
+            if(overlap.isPresent()&&overlap.get().penetration()>1e-9&&relative.dot(overlap.get().normal())>=-1e-12)continue;
+            var hit = actor.sweep(hull, movement, bodyMovement);
             if (hit.isPresent() && (best == null || hit.get().fraction() < best.fraction())) {
                 var h = hit.get(); best = new Sweep(shape, h.fraction(), h.normal());
             }

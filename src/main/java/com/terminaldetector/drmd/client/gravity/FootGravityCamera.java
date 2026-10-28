@@ -43,6 +43,11 @@ public final class FootGravityCamera {
 	}
 
 	public static void tickClient() {
+        var player=MinecraftClient.getInstance().player;
+        if(player!=null&&com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(player)) {
+            var up=com.terminaldetector.drmd.world.contraption.boarding.PassengerFrame.up(com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.frame(player));
+            visualUp=new Vec3d(up.x(),up.y(),up.z());return;
+        }
 		Vec3d target = DescentClientState.footGravity
 				? new Vec3d(DescentClientState.localUx, DescentClientState.localUy, DescentClientState.localUz)
 				: new Vec3d(0, 1, 0);
@@ -53,7 +58,7 @@ public final class FootGravityCamera {
 
 	/** True once the view is upright again and there is nothing left to correct. */
 	public static boolean settled() {
-		return !DescentClientState.footGravity && isNearWorldUp(visualUp);
+        return !DescentClientState.footGravity && isNearWorldUp(visualUp);
 	}
 
 	/**

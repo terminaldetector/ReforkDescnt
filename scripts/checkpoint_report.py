@@ -142,6 +142,35 @@ def verify_boarding(root, started):
     return proof
 
 
+
+SHIP_BOARDING_SCENES = ('ship-landing', 'ship-walking', 'roll-wall', 'roll-ceiling', 'roll-complete',
+                        'pitch-wall', 'pitch-ceiling', 'pitch-complete', 'combined-axes', 'combined-complete',
+                        'ship-jump', 'gravity-off-jump', 'flight-handoff')
+
+
+def verify_ship_boarding(root, started):
+    marker = root / 'build/shipboardingcheck/ship-boarding-ok.json'
+    fresh(marker, started)
+    proof = json.loads(marker.read_text())
+    if (any(proof.get(k) is not True for k in ('actualInputs', 'shipGravity', 'orientedCollision'))
+            or proof.get('teleportFollow') is not False):
+        raise ValueError('Missing actual-input oriented ship-gravity verification')
+    for key, limit in (('maxPredictionError', .8), ('jumpVelocityError', .1),
+                       ('maxFrameError', .01), ('maxModelUpError', .05)):
+        value = proof.get(key)
+        if not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 <= value < limit:
+            raise ValueError(f'Invalid ship-boarding metric {key}: {value}')
+    for key, minimum in (('predictionSamples', 250), ('modelFrames', 40), ('cameraFrames', 40)):
+        if not isinstance(proof.get(key), int) or proof[key] < minimum:
+            raise ValueError(f'Missing actual ship-boarding samples: {key}')
+    scenes = proof.get('scenes', [])
+    if [s.get('scene') for s in scenes] != list(SHIP_BOARDING_SCENES) or any(s.get('frames', 0) < 3 for s in scenes):
+        raise ValueError('Missing full roll/pitch/combined ship-gravity scenes')
+    for name in SHIP_BOARDING_SCENES:
+        fresh_png(root / f'build/shipboardingcheck/ship-boarding-frames/{name}.png', started)
+    return proof
+
+
 def properties(root):
     return dict(line.strip().split('=', 1) for line in
                 (root / 'gradle.properties').read_text().splitlines()
@@ -234,7 +263,8 @@ def verify(root):
 
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
-    boarding = verify_boarding(root, started) if version.startswith('1.1.25') else None
+    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26')) else None
+    ship_boarding = verify_ship_boarding(root, started) if version.startswith('1.1.26') else None
     audit=verify_audit(root,started) if version.startswith('1.1.14') else None
     if audit: verify_native_audit(root,started)
     jar = root / f'build/libs/{base}-{version}.jar'
@@ -247,7 +277,8 @@ def verify(root):
             raise ValueError('Not a compiled DRMD binary JAR')
         forbidden = ('AuditRenderCheck', 'AuditInventoryScreen', 'AuditSwarmProfile', 'AuditFrameProbe', 'AuditCameraProbe', 'AuditHorizonProbe', 'AuditHudProbe', 'HybridRenderCheck', 'HybridWeaponCheck', 'HybridMeshProbe', 'WorkshopPreviewProbe', 'WeaponRenderCheck', 'GameTests.class',
                      'ProjectileRendererProbe', 'ProjectileVisibilityProbe', 'WeaponCrosshairMask', 'drmd.shootcheck.mixins',
-                     'drmd_gametest', 'drmd_rendercheck', 'drmd_shootcheck', '-ok.txt')
+                     'drmd_gametest', 'drmd_rendercheck', 'drmd_shootcheck', 'com/terminaldetector/drmd/gate/',
+                     'com/terminaldetector/drmd/boardingcheck/', '-ok.txt')
         if any(any(token in name for token in forbidden) for name in archive.namelist()):
             raise ValueError('Test-only code or evidence leaked into the production JAR')
         if any('check' in key.lower() or 'gametest' in key.lower()
@@ -278,6 +309,8 @@ def verify(root):
                   shot_frames=[name + '.png' for name in SHOT_FRAMES])
     if boarding is not None:
         result['boarding'] = boarding
+    if ship_boarding is not None:
+        result['ship_boarding'] = ship_boarding
     (out / 'verified.json').write_text(json.dumps(result, indent=2) + '\n')
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
