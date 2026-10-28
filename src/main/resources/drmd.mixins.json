@@ -22,6 +22,7 @@
   "client": [
     "client.CameraAccessor",
     "client.ViewFramebufferAccess",
+    "client.WorldViewTargetsAccess",
     "client.NestedGraphicsMixin",
     "client.CameraMixin",
     "client.ClientPlayerEntityMixin",

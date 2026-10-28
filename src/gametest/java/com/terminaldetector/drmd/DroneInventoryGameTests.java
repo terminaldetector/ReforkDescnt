@@ -65,4 +65,14 @@ public final class DroneInventoryGameTests implements FabricGameTest {
   DescentPlayerData.get(f.p).droneLoadout().clear();
  }c.complete();}
 
+ @GameTest(templateName=EMPTY_STRUCTURE,batchId="drone-charge-menu-cancel")
+ public void openingAMenuCancelsFusionChargeWithoutAnAccidentalShot(TestContext c){try(var f=fixture(c)){
+  f.ship.setWeaponSlot(ShipWeaponSlot.SIDE_LEFT,new ItemStack(ModItems.FUSION));long n=shots(c,f.p);
+  DroneArsenal.receive(f.p,1);for(int i=0;i<12;i++)DroneArsenal.tick(f.p);
+  f.p.currentScreenHandler=new DroneInventoryHandler(9,f.p.getInventory(),new DroneInventory(f.ship));DroneArsenal.receive(f.p,0);DroneArsenal.tick(f.p);
+  c.assertTrue(shots(c,f.p)==n,"opening a GUI cancels charge instead of releasing a shot");
+  f.p.currentScreenHandler=f.p.playerScreenHandler;DroneArsenal.tick(f.p);
+  c.assertTrue(shots(c,f.p)==n,"closing GUI cannot revive the old trigger");
+ }c.complete();}
+
 }

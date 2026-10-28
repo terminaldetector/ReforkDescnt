@@ -120,6 +120,7 @@ public final class OffscreenWorldView {
         var savedShader=RenderSystem.getShader();
         int originalWinding = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_FRONT_FACE);
 		depth++;
+        var nestedTargets=new NestedViewTargets(context.worldRenderer());
 		try {
 			((com.terminaldetector.drmd.mixin.client.ViewFramebufferAccess)mc).drmd$framebuffer(target);
             accessor.drmd$invokeSetPos(viewPos);
@@ -156,7 +157,8 @@ public final class OffscreenWorldView {
 			// Restore in the reverse order of setup, and unconditionally: leaving the camera moved or the
 			// off-screen target bound would corrupt every system that reads either next frame, not just
 			// this one view's picture.
-			org.lwjgl.opengl.GL11.glFrontFace(originalWinding);
+			nestedTargets.close();
+            org.lwjgl.opengl.GL11.glFrontFace(originalWinding);
 			target.endWrite();
 			((com.terminaldetector.drmd.mixin.client.ViewFramebufferAccess)mc).drmd$framebuffer(mainTarget);
             mainTarget.beginWrite(true);

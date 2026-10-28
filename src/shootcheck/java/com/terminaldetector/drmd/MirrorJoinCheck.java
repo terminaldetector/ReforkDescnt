@@ -100,7 +100,7 @@ public final class MirrorJoinCheck {
             } else {
                 int changed=0;
                 for(int y=h/4;y<h*3/4;y++)for(int x=w/4;x<w*3/4;x++)if(on[y*w+x]!=image.getColor(x,y))changed++;
-                if(changed<100)throw new IllegalStateException("No visible native reflection "+NAMES[stage]+" changed="+changed);
+                if(changed<100){ready=false;throw new IllegalStateException("No visible native reflection "+NAMES[stage]+" changed="+changed);}
                 if(stage==3 || stage==7) {
                     Vec3d point=stage==3?new Vec3d(13.5,206.5,25):new Vec3d(12.5,205.5,28);
                     var relative=point.subtract(client.gameRenderer.getCamera().getPos());
@@ -109,7 +109,7 @@ public final class MirrorJoinCheck {
                     int px=(int)((clip.x/clip.w*.5+.5)*w),py=(int)((.5-clip.y/clip.w*.5)*h);
                     int leaked=0;
                     for(int y=py-4;y<py+4;y++)for(int x=px-4;x<px+4;x++)if(on[y*w+x]!=image.getColor(x,y))leaked++;
-                    if(leaked!=0)throw new IllegalStateException("Reflection leaked into "+NAMES[stage]+": "+leaked);
+                    if(leaked!=0){ready=false;throw new IllegalStateException("Reflection leaked into "+NAMES[stage]+": "+leaked);}
                     System.out.println("MIRROR_JOIN maskedPixels=64 unchanged "+NAMES[stage]);
                 }
                 RESULTS.add("{\"scene\":\""+NAMES[stage-1]+"\",\"changedPixels\":"+changed+"}");

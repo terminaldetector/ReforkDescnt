@@ -18,7 +18,7 @@ public final class NativeSnapshotCheck {
  private static final String[] NAMES={"primary-fire","secondary-fire","tool-level","tool-rolled","drone-inventory"};
  private static final List<String> RESULTS=new ArrayList<>();
  public static void register(){ClientTickEvents.END_CLIENT_TICK.register(NativeSnapshotCheck::tick);}
- private static void require(boolean b,String why){if(!b)throw new IllegalStateException(why);}
+ private static void require(boolean b,String why){if(!b){finished=true;throw new IllegalStateException(why);}}
  private static void tick(MinecraftClient c){
   if(finished)return;if(++ticks>2400)throw new IllegalStateException("snapshot timeout stage="+stage+" age="+age);
   if(c.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen prompt)
@@ -27,7 +27,7 @@ public final class NativeSnapshotCheck {
   com.terminaldetector.drmd.client.DescentClient.markUserFlightChoice();
   DescentConfig.cockpit=false;DescentConfig.hud=false;DescentConfig.planetFloor=false;DescentConfig.levelSky=false;
   DescentConfig.weaponView=true;c.options.hudHidden=false;
-  if(!started){started=true;c.setScreen(null);c.getServer().execute(()->{
+  if(!started){started=true;c.setScreen(null);c.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);c.getToastManager().clear();c.getServer().execute(()->{
    var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());com.terminaldetector.drmd.flight.FlightSystem.disable(p,DescentPlayerData.get(p));
    p.teleport(p.getServerWorld(),8.5,2156,28.5,Set.of(),180,0);
   });return;}
@@ -73,21 +73,23 @@ public final class NativeSnapshotCheck {
    c.getServer().execute(()->{
     var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new ItemStack(ModWorldBlocks.PORTAL_PROJECTOR));
     DescentPlayerData.get(p).setShipAttitude(0,0,-1,(float)up.x,(float)up.y,(float)up.z);
+    if(stage==2)for(var at:BlockPos.iterate(new BlockPos(-12,2136,8),new BlockPos(28,2176,8)))p.getServerWorld().setBlockState(at,net.minecraft.block.Blocks.WHITE_CONCRETE.getDefaultState(),2);
    });
   }
   if(stage==4)ClientPlayNetworking.send(new com.terminaldetector.drmd.network.ModNetworking.ActionPayload("drone_inventory"));
  }
  public static void rendered(){
-  if(!ready||finished||age<30||!verified)return;if(++frames<90)return;var c=MinecraftClient.getInstance();
+  if(!ready||finished||age<30||!verified)return;
+  if(stage<4 && MinecraftClient.getInstance().currentScreen!=null)return;if(++frames<90)return;var c=MinecraftClient.getInstance();
   try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){
    var path=c.runDirectory.toPath().resolve("snapshot-frames");Files.createDirectories(path);image.writeTo(path.resolve(NAMES[stage]+".png"));
    if(stage==2||stage==3){
     int x0=image.getWidth(),y0=image.getHeight(),x1=0,y1=0,pixels=0;
-    for(int y=image.getHeight()/3;y<image.getHeight()*4/5;y++)for(int x=image.getWidth()/4;x<image.getWidth()*3/4;x++){
-     int color=image.getColor(x,y);if((color&255)<100&&((color>>>8)&255)<100&&((color>>>16)&255)<100){pixels++;x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
+    for(int y=image.getHeight()/3;y<image.getHeight()*9/10;y++)for(int x=image.getWidth()/4;x<image.getWidth()*3/4;x++){
+     int color=image.getColor(x,y);if((color>>>16&255)>(color&255)*1.5 && (color>>>8&255)>(color&255)*1.3 && (color>>>16&255)>(color>>>8&255)*1.15 && (color>>>8&255)<180 && (color>>>16&255)<220){pixels++;x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
     }
     require(pixels>300,"fixed portal tool is missing from centre of the actual hand frame");
-    int[] box={x0,y0,x1,y1};if(stage==2)levelBox=box;else for(int i=0;i<4;i++)require(Math.abs(levelBox[i]-box[i])<=2,"hull-mounted tool moves when world bank changes");
+    int[] box={x0,y0,x1,y1};System.out.println("SNAPSHOT_TOOL_BOUNDS "+NAMES[stage]+" "+java.util.Arrays.toString(box)+" pixels="+pixels);if(stage==2)levelBox=box;else for(int i=0;i<4;i++)require(Math.abs(levelBox[i]-box[i])<=2,"hull-mounted tool moves when world bank changes: "+java.util.Arrays.toString(levelBox)+" -> "+java.util.Arrays.toString(box));
    }
    RESULTS.add("{\"scene\":\""+NAMES[stage]+"\",\"frames\":"+frames+"}");
    System.out.println("SNAPSHOT_CLIENT "+NAMES[stage]+" PASS");

@@ -27,6 +27,9 @@ public abstract class HeldWeaponFallbackMixin {
         boolean centre=stack.getItem() instanceof com.terminaldetector.drmd.world.portal.gun.PortalProjectorItem;
         matrices.push();
         try{
+            // HeldItemRenderer adds yaw/pitch inertia before this method. Fixed hull equipment
+            // must start in the eye frame, independently of that parent stack.
+            matrices.loadIdentity();
             matrices.translate(centre?0:left?-.45:.45,-.3,-.8);
             renderItem(player,stack,net.minecraft.client.render.model.json.ModelTransformationMode.FIXED,left,matrices,consumers,light);
         }finally{matrices.pop();}

@@ -33,7 +33,10 @@ public final class DroneArsenal {
  }
  public static void tick(ServerPlayerEntity p){
   var state=STATES.get(p.getUuid());if(state==null)return;
-  if(!p.isAlive()||p.isSpectator()||p.currentScreenHandler!=p.playerScreenHandler||p.getWorld().getTime()-state.received>6)state.mask=0;
+  if(!p.isAlive()||p.isSpectator()||p.currentScreenHandler!=p.playerScreenHandler||p.getWorld().getTime()-state.received>6){
+   if(p.isAlive() && java.util.Arrays.stream(state.holds).anyMatch(java.util.Objects::nonNull))com.terminaldetector.drmd.network.ModNetworking.weaponLoad(p,0);
+   state.mask=0;java.util.Arrays.fill(state.holds,null);return;
+  }
   for(int i=0;i<3;i++){
    var selected=weapon(p,i);var hold=state.holds[i];boolean pressed=(state.mask&(1<<i))!=0;
    if(i>0 && (state.mask&1)!=0 && selected==weapon(p,0))pressed=false;

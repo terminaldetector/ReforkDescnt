@@ -17,12 +17,10 @@ import net.minecraft.client.gl.SimpleFramebuffer;
  * for a mirror, and unverifiable without a live client. {@code RendererUsingFrameBuffer} needs no such
  * thing, which is exactly why ImmPtl keeps it as its compatibility path.
  *
- * <p>One deliberate simplification against ImmPtl: it also swaps {@code Minecraft}'s own framebuffer
- * field while rendering ({@code IEMinecraftClient.ip_setFrameBuffer}), because vanilla re-binds the
- * main target itself under "fabulous" graphics and shader packs. DRMD has scoped both of those out
- * (see {@code spicy-jumping-anchor.md}'s deliberate scope cuts), so binding is enough here and no
- * mixin into the client is needed. Under fabulous graphics this is expected to degrade rather than
- * work — named as a known gap, not an oversight.
+ * <p>OffscreenWorldView borrows Minecraft's main-target reference for each nested pass.
+ * NestedViewTargets detaches the outer frame's Fabulous transparency and outline targets,
+ * restores them without clearing/deleting them, then composites only the actual apertures.
+
  */
 public final class MirrorFramebuffer {
 	private static Framebuffer framebuffer;

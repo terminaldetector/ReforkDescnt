@@ -237,3 +237,9 @@ tasks.register('remapCubiccheckJar', net.fabricmc.loom.task.RemapJarTask) {
     archiveClassifier = 'cubiccheck'
     addNestedDependencies = false
 }
+
+// Bind local native-client evidence to the same bytes produced by CI.
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}

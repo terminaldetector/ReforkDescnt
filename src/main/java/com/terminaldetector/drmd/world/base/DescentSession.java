@@ -191,13 +191,7 @@ public final class DescentSession {
 			player.sendMessage(Text.literal(
 					"§bDRMD 6DOF §f— Descent session is part of this world."), false);
 			player.sendMessage(Text.literal(
-					"§7Pad: §fLunar Base§7 · §fR§7 afterburner · §fH§7 6DoF · §f,§7 settings · §fN§7 ship"), false);
-			String cityTip = com.terminaldetector.drmd.world.surface.MegacityRegions
-					.describeNearest(player.getBlockX(), player.getBlockZ());
-			player.sendMessage(Text.literal(
-					"§7Explore: UFO/outpost events · biome plates · 6DoF dungeons"), false);
-			player.sendMessage(Text.literal(
-					"§8" + cityTip + " · /d6 megacity|technogenic|scorched|guild|weapons give_all"), false);
+					"§fH§7 6DoF · §fN§7 оснащение дрона · §fЛКМ/ПКМ§7 оружие · §fB§7 вспомогательное · §fR§7 форсаж"), false);
 			if (player.isCreative()) {
 				player.giveItemStack(new ItemStack(ModItems.PYRO_GX));
 				for (Item w : com.terminaldetector.drmd.weapon.registry.ArsenalCatalog.creativeWeapons()) {
