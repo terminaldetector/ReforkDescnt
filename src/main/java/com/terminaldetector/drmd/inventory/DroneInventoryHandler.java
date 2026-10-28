@@ -18,7 +18,7 @@ public final class DroneInventoryHandler extends ScreenHandler {
  public DroneInventoryHandler(int id,PlayerInventory inventory,Inventory hull){super(TYPE,id);this.hull=hull;this.owner=inventory.player;checkSize(hull,5);
   for(int i=0;i<5;i++){final int index=i;addSlot(new Slot(hull,i,16+i*36,91){
    public int getMaxItemCount(){return 1;}
-   public boolean canInsert(ItemStack s){return index==4?s.getItem() instanceof com.terminaldetector.drmd.flight.AcceleratorModuleItem:index==3||s.getItem() instanceof DescentWeaponItem;}
+   public boolean canInsert(ItemStack s){return index==4?s.getItem() instanceof com.terminaldetector.drmd.flight.AcceleratorModuleItem:index==3||DroneArsenal.supported(s);}
   });}
   for(int y=0;y<3;y++)for(int x=0;x<9;x++)addSlot(new Slot(inventory,x+y*9+9,8+x*18,126+y*18));
   for(int x=0;x<9;x++)addSlot(new Slot(inventory,x,8+x*18,184));

@@ -75,4 +75,27 @@ public final class DroneInventoryGameTests implements FabricGameTest {
   c.assertTrue(shots(c,f.p)==n,"closing GUI cannot revive the old trigger");
  }c.complete();}
 
+ @GameTest(templateName=EMPTY_STRUCTURE,batchId="drone-secondary-mining")
+ public void secondarySocketAcceptsAndRunsTheRealMiningLaser(TestContext c){try(var f=fixture(c)){
+  var stack=new ItemStack(ModWorldBlocks.MINING_LASER);var h=new DroneInventoryHandler(10,f.p.getInventory(),new DroneInventory(f.ship));
+  c.assertTrue(h.getSlot(1).canInsert(stack),"secondary socket accepts the existing engineering laser");
+  f.ship.setWeaponSlot(ShipWeaponSlot.LOWER,stack);
+  // Aim through the solid centre, rather than the chamfered upper edge of an isolated natural cell.
+  double eyeY=f.p.getEyeY();f.p.setPosition(f.p.getX(),f.p.getY()+.5-(eyeY-Math.floor(eyeY)),f.p.getZ());
+  f.p.setYaw(0);f.p.setPitch(0);DescentPlayerData.get(f.p).setShipAttitude(0,0,1,0,1,0);
+  var target=BlockPos.ofFloored(f.p.getEyePos().add(com.terminaldetector.drmd.weapon.core.WeaponCore.aimDir(f.p).multiply(4)));
+  for(int x=(target.getX()>>4)-2;x<=(target.getX()>>4)+2;x++)for(int z=(target.getZ()>>4)-2;z<=(target.getZ()>>4)+2;z++)c.getWorld().getChunk(x,z);
+  c.assertTrue(com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedSegment(c.getWorld(),f.p.getEyePos(),Vec3d.ofCenter(target)),"mining fixture includes the full collision-query halo");
+  c.getWorld().setBlockState(target,net.minecraft.block.Blocks.STONE.getDefaultState(),2);
+  c.assertTrue(DroneArsenal.weapon(f.p,1)==stack,"secondary trigger selects the actual mining stack");
+  c.assertTrue(com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(c.getWorld(),target,f.p),"mining fixture permits terrain edits");
+  var eye=f.p.getEyePos();var end=eye.add(com.terminaldetector.drmd.weapon.core.WeaponCore.aimDir(f.p).multiply(26));
+  end=com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedEnd(c.getWorld(),eye,end);
+  var hit=c.getWorld().raycast(new net.minecraft.world.RaycastContext(eye,end,net.minecraft.world.RaycastContext.ShapeType.OUTLINE,net.minecraft.world.RaycastContext.FluidHandling.NONE,f.p));
+  c.assertTrue(hit.getBlockPos().equals(target),"mining fixture ray reaches the target: "+hit.getType()+" "+hit.getBlockPos()+" target="+target+" eye="+eye+" end="+end);
+
+  DroneArsenal.receive(f.p,2);for(int i=0;i<10;i++)DroneArsenal.tick(f.p);
+  c.assertTrue(!c.getWorld().getBlockState(target).isOf(net.minecraft.block.Blocks.STONE),"RMB uses the mining tool and changes real terrain");
+ }c.complete();}
+
 }

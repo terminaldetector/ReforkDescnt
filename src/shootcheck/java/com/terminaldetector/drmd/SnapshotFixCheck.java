@@ -57,6 +57,7 @@ public final class SnapshotFixCheck {
   var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());var w=p.getServerWorld();
   for(var b:BlockPos.iterate(new BlockPos(0,216,16),new BlockPos(16,230,32)))w.setBlockState(b,net.minecraft.block.Blocks.AIR.getDefaultState(),2);
   w.setTimeOfDay(6000);p.getInventory().clear();p.getInventory().selectedSlot=0;
+  p.changeGameMode(net.minecraft.world.GameMode.CREATIVE);
   var data=DescentPlayerData.get(p);data.setEnergyMax(10000);data.setEnergy(10000);
   com.terminaldetector.drmd.flight.FlightSystem.enable(p,data);
   require(!p.hasVehicle(),"H must preserve free 6DoF without manufacturing a hull");

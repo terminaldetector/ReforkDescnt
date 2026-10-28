@@ -9,15 +9,20 @@ import java.util.*;
 /** Server-owned button state and ordinary item firing, including charged/continuous item lifecycles. */
 public final class DroneArsenal {
  private DroneArsenal(){}
+ public static boolean supported(ItemStack stack){return stack.getItem() instanceof DescentWeaponItem
+  || stack.getItem() instanceof com.terminaldetector.drmd.world.engineer.EngineerTools.MiningLaserItem
+  || stack.getItem() instanceof com.terminaldetector.drmd.world.engineer.EngineerTools.TunnelLaserItem
+  || stack.getItem() instanceof com.terminaldetector.drmd.world.engineer.EngineerTools.RepairLaserItem;}
+
  private static final Map<UUID,Controls> STATES=new HashMap<>();
  private static final class Controls {int mask;long received;final Hold[] holds=new Hold[3];}
  private static final class Hold {ItemStack stack;int age,max;Hold(ItemStack s,int max){stack=s;this.max=max;}}
  public static ItemStack weapon(net.minecraft.entity.player.PlayerEntity p,int channel){
   if(channel<0||channel>2)return ItemStack.EMPTY;
   if(DescentPlayerData.get(p).isEnabled()){
-   var s=DroneLoadout.of(p).getStack(channel);if(s.getItem() instanceof DescentWeaponItem)return s;
+   var s=DroneLoadout.of(p).getStack(channel);if(supported(s))return s;
   }
-  return channel<2 && p.getMainHandStack().getItem() instanceof DescentWeaponItem?p.getMainHandStack():ItemStack.EMPTY;
+  return channel<2 && supported(p.getMainHandStack())?p.getMainHandStack():ItemStack.EMPTY;
  }
  public static void receive(ServerPlayerEntity p,int mask){
   var s=STATES.computeIfAbsent(p.getUuid(),id->new Controls());

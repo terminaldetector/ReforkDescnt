@@ -190,7 +190,7 @@ public class DescentMod implements ModInitializer {
 			if (tick % 40 == 0) {
 				if(!com.terminaldetector.drmd.world.LegacyGeneration.retired())com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);
 			}
-			com.terminaldetector.drmd.world.end.OblivionSeekerSpawner.onServerTick(server);
+			if(!com.terminaldetector.drmd.world.LegacyGeneration.retired())com.terminaldetector.drmd.world.end.OblivionSeekerSpawner.onServerTick(server);
 			server.getWorlds().forEach(world -> {
 				if (tick % 5 == 0) {
 					com.terminaldetector.drmd.world.fire.FireSystem.tick(world);

@@ -12,7 +12,7 @@ started=int((root/'build/checkpoint/started-at.txt').read_text())
 audit=gate.verify_audit(root,started);gate.verify_native_audit(root,started)
 proof=json.loads((root/'build/checkpoint/verified.json').read_text())
 assert proof['source_sha']==sha and proof['version']=='1.1.23-snapshot.1'
-assert proof['unit']['tests']>=578 and proof['gametest']['tests']>=143
+assert proof['unit']['tests']>=578 and proof['gametest']['tests']>=144
 snapshot=root/'build/shootcheck/snapshot-ok.json';gate.fresh(snapshot,started)
 result=json.loads(snapshot.read_text());assert all(result.get(k) for k in ('actualWeaponInput','stableToolRoll','actualDroneInventory'))
 assert len(result['scenes'])==5 and all(s['frames']>=90 for s in result['scenes'])
@@ -43,7 +43,7 @@ SHA-256: {proof['sha256']}
 
 Snapshot исправлений оружия, инвентаря дрона, Advanced и рендерной изоляции.
 Проверенные исходники: `{sha}`. [Точный прогон GitHub Actions]({run}).
-578+ unit, 143+ серверных GameTests, обычная полная регрессия и матрица видеоаудита,
+578+ unit, 144+ серверных GameTests, обычная полная регрессия и матрица видеоаудита,
 пять новых сцен настоящего ввода/инвентаря, зеркала с Fabulous и привязка горизонта.
 См. [доказательства](ci-evidence.zip) и [автоматический отчёт](CI_REPORT.md).
 
