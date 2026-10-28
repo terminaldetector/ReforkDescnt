@@ -16,7 +16,7 @@ import java.nio.file.*;
 
 /** Focused real-client terrain-view regression, separate from the full video acceptance audit. */
 public final class HorizonAnchorCheck {
-    private static boolean registered,started,off;
+    private static boolean registered,started,off,frameReady;
     private static int ticks,age,index,draws,checks;
     private static Matrix4f expected,onMatrix;
     private static int[] on;
@@ -32,7 +32,15 @@ public final class HorizonAnchorCheck {
             if(ctx.camera().getPos().distanceTo(wanted)>1e-5)throw new IllegalStateException("Horizon fixture camera was overwritten before terrain matrices: actual="+ctx.camera().getPos()+" wanted="+wanted);
             expected=new Matrix4f(ctx.positionMatrix());
         }});
-        WorldRenderEvents.END.register(ctx->{if(started && age>=30 && !com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())capture(MinecraftClient.getInstance());});
+        // END is still inside WorldRenderer: deferred transparency and the final framebuffer
+        // composition may not be complete. Read the image only at GameRenderer.render RETURN,
+        // as the other visual gates do, without changing the pixel or matrix assertions.
+        WorldRenderEvents.END.register(ctx->{frameReady=started && age>=30 && !com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy();});
+    }
+    public static void rendered() {
+        if(!frameReady)return;
+        frameReady=false;
+        if(started)capture(MinecraftClient.getInstance());
     }
     public static void overrideCamera(Camera camera) {
         if(started && camera==MinecraftClient.getInstance().gameRenderer.getCamera()) ((CameraAccessor)camera).drmd$invokeSetPos(new Vec3d(12.5+CASES[index][3],2000,30.5));
