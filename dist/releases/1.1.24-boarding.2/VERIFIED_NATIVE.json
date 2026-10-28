@@ -1,0 +1,100 @@
+{
+  "sourceSha": "a1b045cde046d2a9f3be932eae960ed28bd4e083",
+  "version": "1.1.24-boarding.2",
+  "jarSha256": "19dbbeb2eacde9d7d587bf77780b6342c2394147d2631a88614c5e3007eb7c6a",
+  "scenarios": [
+    {
+      "scenario": "rotation-contacts-gl32",
+      "sourceSha": "a1b045cde046d2a9f3be932eae960ed28bd4e083",
+      "jarSha256": "19dbbeb2eacde9d7d587bf77780b6342c2394147d2631a88614c5e3007eb7c6a",
+      "gateSha256": "b0fbc75c1c6ba2bebf33295f940f1c714e2d632b17b681ca5163d46acfc4acb4",
+      "glOverride": "3.2/150",
+      "sodium": false,
+      "proof": {
+        "orientedTerrain": true,
+        "hollowRay": true,
+        "unknownNativeYRejected": true,
+        "compoundContactQuery": true,
+        "relativeCCD": true,
+        "pairReaction": true,
+        "nativeGravitySupport": true,
+        "stableRenderedRotationFrames": 60,
+        "actualRenderer": true,
+        "playerBoarding": false,
+        "scenes": [
+          {
+            "scene": "diagonal-corner",
+            "renderedFrames": 90
+          },
+          {
+            "scene": "terrain-stop",
+            "renderedFrames": 90
+          },
+          {
+            "scene": "hollow-door",
+            "renderedFrames": 90
+          },
+          {
+            "scene": "compound-contact-query",
+            "renderedFrames": 90
+          },
+          {
+            "scene": "gravity-support",
+            "renderedFrames": 90
+          }
+        ]
+      },
+      "dummyLogLines": 0
+    },
+    {
+      "scenario": "rotation-contacts-sodium",
+      "sourceSha": "a1b045cde046d2a9f3be932eae960ed28bd4e083",
+      "jarSha256": "19dbbeb2eacde9d7d587bf77780b6342c2394147d2631a88614c5e3007eb7c6a",
+      "gateSha256": "b0fbc75c1c6ba2bebf33295f940f1c714e2d632b17b681ca5163d46acfc4acb4",
+      "glOverride": "3.3/330",
+      "sodium": true,
+      "proof": {
+        "orientedTerrain": true,
+        "hollowRay": true,
+        "unknownNativeYRejected": true,
+        "compoundContactQuery": true,
+        "relativeCCD": true,
+        "pairReaction": true,
+        "nativeGravitySupport": true,
+        "stableRenderedRotationFrames": 60,
+        "actualRenderer": true,
+        "playerBoarding": false,
+        "scenes": [
+          {
+            "scene": "diagonal-corner",
+            "renderedFrames": 90
+          },
+          {
+            "scene": "terrain-stop",
+            "renderedFrames": 90
+          },
+          {
+            "scene": "hollow-door",
+            "renderedFrames": 90
+          },
+          {
+            "scene": "compound-contact-query",
+            "renderedFrames": 90
+          },
+          {
+            "scene": "gravity-support",
+            "renderedFrames": 90
+          }
+        ]
+      },
+      "dummyLogLines": 0
+    }
+  ],
+  "negativeControl": {
+    "expectedFailure": true,
+    "exitCode": 255,
+    "oldJarSha256": "ddd94a30639af99a39c573354121d97ffb8a200046ae26ead514edd849c695fc"
+  },
+  "playerBoarding": false,
+  "full3DAI": false
+}
