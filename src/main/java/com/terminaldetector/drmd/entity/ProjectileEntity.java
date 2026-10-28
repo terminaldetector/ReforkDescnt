@@ -245,7 +245,7 @@ public class ProjectileEntity extends Entity {
 			}
 			if (target != null) {
 				vel = MissileSteering.steer(vel,
-						target.getPos().add(0, target.getHeight() * 0.5, 0).subtract(getPos()), turnRate);
+						(target instanceof PhysicsTarget physics?physics.physicsAimPoint():target.getPos().add(0, target.getHeight() * 0.5, 0)).subtract(getPos()), turnRate);
 			}
 		}
 
@@ -348,7 +348,7 @@ public class ProjectileEntity extends Entity {
 		double bestDist = radius * radius;
 		for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(radius),
 					ent -> (ent instanceof LivingEntity || ent instanceof PhysicsTarget) && ent.isAlive() && ent != own)) {
-			double d = e.squaredDistanceTo(this);
+			double d = (e instanceof PhysicsTarget physics?physics.physicsCentre():e.getPos()).squaredDistanceTo(getPos());
 			if (d < bestDist) {
 				bestDist = d;
 				best = e;
@@ -376,7 +376,7 @@ public class ProjectileEntity extends Entity {
 		Entity found = null;
 		for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(48),
 					ent -> (ent instanceof LivingEntity || ent instanceof PhysicsTarget) && ent.isAlive() && ent != own)) {
-			double d = e.squaredDistanceTo(this);
+			double d = (e instanceof PhysicsTarget physics?physics.physicsCentre():e.getPos()).squaredDistanceTo(getPos());
 			if (d < best) { best = d; found = e; }
 		}
 		return found;

@@ -53,6 +53,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private final BodyRotationTimeline displayRotation = new BodyRotationTimeline();
     private double radius = .5;
     private Vec3 longAxis = new Vec3(0, 1, 0);
+    private Vec3 localAim=new Vec3(0,0,0);
     private Vec3 pendingTorque = new Vec3(0, 0, 0);
     private boolean gravity;
     private Vec3 passengerGravity=new Vec3(0,0,0);
@@ -186,6 +187,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             if(surface(cell)!=null)shaped.add(perCell.get(cell.pos()));
         }
         cellBounds=Map.copyOf(perCell);
+        localAim=cellBounds.values().stream().min(Comparator.comparingDouble(b->b.centre().minus(centre).lengthSquared())).map(BodyBounds::centre).orElse(centre);
         shaped.addAll(CompoundCollider.cells(solid).boxes());collider=new CompoundCollider(shaped);
 
         int minX=Integer.MAX_VALUE,minY=Integer.MAX_VALUE,minZ=Integer.MAX_VALUE;
@@ -198,7 +200,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         longAxis=sx>=sy&&sx>=sz?new Vec3(1,0,0):sy>=sz?new Vec3(0,1,0):new Vec3(0,0,1);
         radius = .5;
         for (Cell c : cells) radius = Math.max(radius,
-            new Vec3(c.pos.getX() + .5, c.pos.getY() + .5, c.pos.getZ() + .5).minus(pivot).length() + centre.minus(pivot).length() + Math.sqrt(3) / 2);
+            Math.max(new Vec3(c.pos.getX()+.5,c.pos.getY()+.5,c.pos.getZ()+.5).minus(pivot).length(),new Vec3(c.pos.getX()+.5,c.pos.getY()+.5,c.pos.getZ()+.5).minus(centre).length()) + Math.sqrt(3) / 2);
     }
     public BlockState getLocalBlock(BlockPos pos){return !validLocal(pos)?Blocks.AIR.getDefaultState():volume.get(pos.getX(),pos.getY(),pos.getZ());}
     public Map<BlockPos,BodyBounds> localBlockBounds(){return cellBounds;}
@@ -395,7 +397,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             }
         }
         positionFromPhysics();
-        Vec3 v = body.linearVelocity(); setVelocity(v.x()/20, v.y()/20, v.z()/20);
+        Vec3 v = pure(surfaceVelocityAt(getPos())); setVelocity(v.x()/20, v.y()/20, v.z()/20);
         setBoundingBox(new Box(getPos(), getPos()).expand(radius));
         dataTracker.set(POSE, pose()); velocityModified = true;
     }
@@ -510,6 +512,8 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         body.applyImpulse(pure(impulse),pure(impact).minus(massPosition()));
         dataTracker.set(POSE,pose());velocityModified=true;
     }
+    @Override public Vec3d physicsCentre(){return minecraft(massPosition());}
+    @Override public Vec3d physicsAimPoint(){return localToWorld(minecraft(localAim));}
     @Override public Vec3d physicsVelocity() {
         Vec3 velocity=body.linearVelocity();return new Vec3d(velocity.x(),velocity.y(),velocity.z());
     }
@@ -572,7 +576,8 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public boolean canCrossPortal(D6PortalTransform transform, Vec3 exit) {
         Vec3 previous = body.position(); Quat rotation = body.rotation();
         try {
-            body.withPosition(exit).withRotation(transform.transformOrientation(rotation));
+            Quat turned=transform.transformOrientation(rotation);
+            body.withPosition(exit.plus(turned.rotate(centre.minus(pivot)))).withRotation(turned);
             return !blocked();
         } finally { body.withPosition(previous).withRotation(rotation); }
     }

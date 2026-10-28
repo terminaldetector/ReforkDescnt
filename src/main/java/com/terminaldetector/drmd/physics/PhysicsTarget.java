@@ -20,6 +20,11 @@ public interface PhysicsTarget {
 	/** Apply a world-space impulse at a world-space point. */
 	void applyPhysicsImpulse(Vec3d impact, Vec3d impulse);
 
+    /** World COM; an entity's tracking pivot may be different after geometry edits. */
+    default Vec3d physicsCentre(){return this instanceof net.minecraft.entity.Entity e?e.getPos():Vec3d.ZERO;}
+    /** Occupied aim point; keep the existing torso target for other physical entities. */
+    default Vec3d physicsAimPoint(){return this instanceof net.minecraft.entity.Entity e?e.getPos().add(0,e.getHeight()*.5,0):physicsCentre();}
+
 	/** Aggregate velocity in blocks per second, matching the D6 physics core. */
 	Vec3d physicsVelocity();
 

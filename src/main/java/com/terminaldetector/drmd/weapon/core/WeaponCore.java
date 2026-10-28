@@ -192,12 +192,13 @@ public final class WeaponCore {
 			e.velocityModified = true;
 		}
 		for (Entity e : world.getOtherEntities(attacker, box, entity -> entity instanceof PhysicsTarget && entity.isAlive())) {
-			double dist = e.getPos().distanceTo(pos);
+			var physics=(PhysicsTarget)e;Vec3d centre=physics.physicsCentre();
+			double dist = centre.distanceTo(pos);
 			if (dist > radius) continue;
 			float falloff = (float) (1.0 - dist / radius);
-			Vec3d direction = e.getPos().subtract(pos);
+			Vec3d direction = centre.subtract(pos);
 			if (direction.lengthSquared() < 1.0e-8) direction = new Vec3d(0, 1, 0);
-			((PhysicsTarget) e).applyPhysicsImpulse(e.getPos(),
+			physics.applyPhysicsImpulse(centre,
 					direction.normalize().multiply(Math.min(80, amount * falloff * .15)));
 		}
 	}

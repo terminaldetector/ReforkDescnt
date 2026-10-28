@@ -292,7 +292,7 @@ public final class GravyPhysics {
 	}
 
 	private static Vec3d centreOf(Entity target) {
-		return target instanceof PhysicsTarget ? target.getPos() : target.getBoundingBox().getCenter();
+		return target instanceof PhysicsTarget physics ? physics.physicsCentre() : target.getBoundingBox().getCenter();
 	}
 
 	private static Vec3d safeAim(ServerPlayerEntity player) {

@@ -72,7 +72,7 @@ public final class ShipGravityGameTests implements FabricGameTest {
                 c.assertTrue(restored.passengerGravity().minus(new Vec3(0,-32,0)).length()<1e-10,"local gravity is part of the saved physical hull");
                 c.assertTrue(!BoardingSystem.drives(f.p),"restoring a body alone cannot create a movement lease");
             } finally {restored.discard();}
-            c.assertTrue(!BoardingSystem.ready(f.p,1),"old state codec cannot opt into protocol 2");
+            c.assertTrue(!BoardingSystem.ready(f.p,1)&&!BoardingSystem.ready(f.p,2),"old state codecs cannot opt into geometry revision protocol3");
         }c.complete();
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ship-gravity-off")

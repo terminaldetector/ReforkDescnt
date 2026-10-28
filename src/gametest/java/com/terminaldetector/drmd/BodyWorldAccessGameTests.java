@@ -143,4 +143,30 @@ public final class BodyWorldAccessGameTests implements FabricGameTest {
   }finally{body.discard();p.discard();}});
  }
 
+ @GameTest(templateName=EMPTY_STRUCTURE,batchId="body-edit-portal")
+ public void portalExitChecksTheEditedMassOffsetAndTransformsTheWholeLocalGrid(TestContext c) {
+  var body=fixture(c,iron());try {
+   body.setLocalBlock(new BlockPos(3,0,0),Blocks.AIR.getDefaultState());
+   var from=BoardingSystem.pure(body.getPos());var exit=from.plus(new Vec3(8,0,8));
+   var transform=com.terminaldetector.drmd.d6.D6PortalTransform.of(from,new Vec3(0,0,1),exit,new Vec3(1,0,0));
+   var com=exit.plus(transform.transformOrientation(body.rotation()).rotate(body.localCentre().minus(body.localPivot())));
+   var obstacle=BlockPos.ofFloored(com.x(),com.y(),com.z());c.getWorld().setBlockState(obstacle,Blocks.IRON_BLOCK.getDefaultState(),2);
+   c.assertTrue(!body.canCrossPortal(transform,exit),"edited COM offset must not hide an occupied portal exit");
+   c.getWorld().setBlockState(obstacle,Blocks.AIR.getDefaultState(),2);c.assertTrue(body.canCrossPortal(transform,exit),"same edited grid fits a clear exit");
+   var before=body.localToWorld(new Vec3d(.5,.5,.5));body.crossPortal(transform);
+   near(c,body.getPos(),BoardingSystem.mc(exit),"portal maps the stable grid pivot once");
+   near(c,body.localToWorld(new Vec3d(.5,.5,.5)),BoardingSystem.mc(transform.transformPoint(BoardingSystem.pure(before))),"material point receives the same portal transform");
+  }finally{body.discard();}c.complete();
+ }
+ @GameTest(templateName=EMPTY_STRUCTURE,batchId="body-edit-explosion")
+ public void blastUsesTheEditedPhysicalCentreAndHomingAimStaysOnMaterial(TestContext c) {
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+   body.setLocalBlock(new BlockPos(3,0,0),Blocks.AIR.getDefaultState());
+   c.assertTrue(body.physicsCentre().distanceTo(body.getPos())>1,"edited body separates COM and tracking pivot");
+   var local=body.worldToLocal(body.physicsAimPoint());c.assertTrue(local.distanceTo(new Vec3d(.5,.5,.5))<1e-8,"homing aims at occupied material rather than the emptied grid pivot");
+   com.terminaldetector.drmd.weapon.core.WeaponCore.splashDamage(p,c.getWorld(),body.physicsCentre().add(0,0,-1),30,3,com.terminaldetector.drmd.weapon.core.DamageClass.KINETIC);
+   c.assertTrue(body.physics().linearVelocity().length()>0&&body.physics().angularMomentum().length()<1e-8,"centre blast translates the edited hull without artificial pivot torque");
+  }finally{body.discard();p.discard();}c.complete();
+ }
+
 }
