@@ -14,32 +14,38 @@ public final class BodyMotion {
     private final D6PhysicsBody dynamics;
     private final BodyGravityField gravity;
     private final Vec3 velocity,momentum;
+    private final boolean paused;
     private Vec3 reactionVelocity=new Vec3(0,0,0),reactionMomentum=new Vec3(0,0,0);
 
     public BodyMotion(int id,CompoundCollider shape,Vec3 localCom,Vec3 from,Quat before,Vec3 to,Quat after,D6PhysicsBody dynamics) {
         this(id,shape,localCom,from,before,to,after,dynamics,BodyGravityField.NONE);
     }
     public BodyMotion(int id,CompoundCollider shape,Vec3 localCom,Vec3 from,Quat before,Vec3 to,Quat after,D6PhysicsBody dynamics,BodyGravityField gravity) {
-        this.gravity=java.util.Objects.requireNonNull(gravity);
+        this(id,shape,localCom,from,before,to,after,dynamics,gravity,false);
+    }
+    public BodyMotion(int id,CompoundCollider shape,Vec3 localCom,Vec3 from,Quat before,Vec3 to,Quat after,D6PhysicsBody dynamics,BodyGravityField gravity,boolean paused) {
+        this.paused=paused;this.gravity=java.util.Objects.requireNonNull(gravity);
         this.id=id;this.shape=shape;this.localCom=localCom;this.from=from;this.to=to;
         this.before=before;this.after=after;this.dynamics=dynamics;
-        velocity=dynamics.linearVelocity();momentum=dynamics.angularMomentum();
+        velocity=paused?new Vec3(0,0,0):dynamics.linearVelocity();momentum=paused?new Vec3(0,0,0):dynamics.angularMomentum();
     }
     public java.util.Optional<Vec3> gravity(Vec3 point,double t) {return gravity.at(point,position(t),localCom,rotation(t));}
     public boolean hasGravity(){return gravity.enabled();}
     public Vec3 gravityUp(double t){return rotation(t).rotate(gravity.localAcceleration()).scaled(-1).normalized();}
     public Vec3 acceleration(double t){return rotation(t).rotate(gravity.localAcceleration());}
+    public Vec3 point(Vec3 localOffset,double t){return position(t).plus(rotation(t).rotate(localOffset));}
+    public Vec3 localOffset(Vec3 point,double t){return rotation(t).inverse().rotate(point.minus(position(t)));}
     public Vec3 position(double t){return from.plus(to.minus(from).scaled(t));}
     public Quat rotation(double t){return ImmPtlQuaternions.interpolate(before,after,t).normalized();}
     public BodyCollisionQuery query(double t){return new BodyCollisionQuery(shape,position(t),localCom,rotation(t));}
     public D6PhysicsBody proxy(double t) {
-        return new D6PhysicsBody().withMass(dynamics.mass()).withInertia(dynamics.inertia()).withPosition(position(t))
+        return new D6PhysicsBody().withMass(paused?0:dynamics.mass()).withInertia(dynamics.inertia()).withPosition(position(t))
             .withRotation(rotation(t)).withLinearVelocity(velocity.plus(reactionVelocity))
             .withAngularMomentum(momentum.plus(reactionMomentum));
     }
     public Vec3 surfaceVelocity(Vec3 point,double t) {var p=proxy(t);return p.velocityAtPoint(point.minus(p.position()));}
     public void react(Vec3 impulse,Vec3 offset) {
-        if(dynamics.mass()<=1e-9)return;
+        if(paused||dynamics.mass()<=1e-9)return;
         dynamics.applyImpulse(impulse,offset);
         reactionVelocity=reactionVelocity.plus(impulse.scaled(1/dynamics.mass()));
         reactionMomentum=reactionMomentum.plus(offset.cross(impulse));

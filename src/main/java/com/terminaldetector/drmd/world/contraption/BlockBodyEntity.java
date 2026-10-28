@@ -40,6 +40,9 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private Quat previousRotation = Quat.IDENTITY;
     private Vec3 previousPhysicsPosition = new Vec3(0,0,0);
     private long physicsTick = Long.MIN_VALUE;
+    private boolean remoteMotionPaused=true;
+    /** Non-ticking entities retain their momentum for resume, but their current contact surface is still. */
+    public boolean boardingMotionPaused(){return getWorld().isClient?remoteMotionPaused:physicsTick!=getWorld().getTime();}
     private final BodyRotationTimeline displayRotation = new BodyRotationTimeline();
     private double radius = .5;
     private Vec3 longAxis = new Vec3(0, 1, 0);
@@ -77,13 +80,13 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public D6PhysicsBody physics() { return body; }
     public com.terminaldetector.drmd.world.contraption.boarding.BodyMotion boardingMotion() {
         Vec3 end=pure(getPos());
-        boolean fresh=!getWorld().isClient && physicsTick==getWorld().getTime();
-        Vec3 start=fresh?previousPhysicsPosition:end.minus(body.linearVelocity().scaled(.05));
+        boolean fresh=!boardingMotionPaused();
+        Vec3 start=fresh?previousPhysicsPosition:end;
         Quat before=fresh?previousRotation:body.rotation();
         D6PhysicsBody dynamics=getWorld().isClient?new D6PhysicsBody().withMass(body.mass()).withInertia(body.inertia())
             .withPosition(end).withRotation(body.rotation()).withLinearVelocity(body.linearVelocity()).withAngularMomentum(body.angularMomentum()):body;
         return new com.terminaldetector.drmd.world.contraption.boarding.BodyMotion(getId(),collider,centre,
-            start,before,end,body.rotation(),dynamics,passengerField(passengerGravity));
+            start,before,end,body.rotation(),dynamics,passengerField(passengerGravity),!fresh);
     }
     public void publishPhysicsState() {
         if(!getWorld().isClient){dataTracker.set(POSE,pose());velocityModified=true;}
@@ -175,6 +178,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         Quat q = body.rotation(); tag.putDouble("qx", q.x()); tag.putDouble("qy", q.y());
         tag.putDouble("qz", q.z()); tag.putDouble("qw", q.w());
         tag.putBoolean("gravity",gravity);
+        tag.putBoolean("motionPaused",boardingMotionPaused());
         vector(tag,"passengerGravity",passengerGravity);
         vector(tag, "v", body.linearVelocity()); vector(tag, "l", body.angularMomentum());
         return tag;
@@ -190,6 +194,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private void readPose(NbtCompound n) {
         if (!n.contains("qw")) return;
         gravity=n.getBoolean("gravity");
+        remoteMotionPaused=n.getBoolean("motionPaused");
         passengerGravity=vector(n,"passengerGravity");passengerField(passengerGravity);
         Quat q = new Quat(n.getDouble("qx"), n.getDouble("qy"), n.getDouble("qz"), n.getDouble("qw"));
         if (!Double.isFinite(q.x()*q.x()+q.y()*q.y()+q.z()*q.z()+q.w()*q.w())) throw new IllegalArgumentException("non-finite rotation");

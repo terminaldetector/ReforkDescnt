@@ -15,7 +15,12 @@ public final class BlockBodyRenderer extends EntityRenderer<BlockBodyEntity> {
     @Override public void render(BlockBodyEntity body, float yaw, float delta, MatrixStack matrices,
             VertexConsumerProvider consumers, int light) {
         matrices.push();
-        var pose = body.renderRotation(delta);
+        var predicted=com.terminaldetector.drmd.client.flight.BoardingClient.bodyView(body,delta);
+        if(predicted!=null) {
+            var actual=body.getLerpedPos(delta);var position=predicted.position();
+            matrices.translate(position.x()-actual.x,position.y()-actual.y,position.z()-actual.z);
+        }
+        var pose = predicted==null?body.renderRotation(delta):predicted.rotation();
         Quaternionf q = new Quaternionf((float)pose.x(),(float)pose.y(),(float)pose.z(),(float)pose.w());
         matrices.multiply(q);
         var centre = body.localCentre();

@@ -14,7 +14,7 @@ VERSION = '1.1.26-boarding.1'
 def validate_proof(proof, source):
     if proof['source_sha'] != source or proof['version'] != VERSION:
         raise ValueError('Unexpected tested source or boarding version')
-    if proof['unit']['tests'] < 617 or proof['gametest']['tests'] < 159:
+    if proof['unit']['tests'] < 619 or proof['gametest']['tests'] < 160:
         raise ValueError('Contact unit and world regressions are missing')
     if proof['jar'] != f'drmd-6dof-{VERSION}-fabric-1.21.1.jar':
         raise ValueError('Unexpected installable JAR')
@@ -80,7 +80,7 @@ BlockBody и контакт двух D6-тел с взаимной реакци�
 Новый решатель применяется к опоре BlockBody на землю. Устранено повторение
 старого угла неподвижного корпуса при сбросе partial tick. Первая корабельная гравитация игрока использует ориентированный коллайдер, локальный
 C2S-ввод и предсказание. Полные крен/тангаж/комбинированное вращение, глаза, модель
-и проход через реальное отверстие проверяет клиент. Пассажиры-мобы/предметы, joints, ControlCore и полноценный3D AI
+и прыжок с проверкой просвета отверстия в потолке проверяет клиент. Пассажиры-мобы/предметы, joints, ControlCore и полноценный3D AI
 остаются открытыми. Все12 критериев Boarding и9 UFO по-прежнему OPEN.
 
 Проверенный source SHA: `{source}`. [Точный CI-прогон]({run}).
@@ -125,7 +125,7 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
 ---
 
 ''' + previous)
-    print('Verified world-UP boarding staged:', out)
+    print('Verified ship-gravity boarding staged:', out)
 
 
 if __name__ == '__main__':

@@ -24,6 +24,22 @@ public final class BoardingClient {
     private static BoardingNetworking.BodyState bodySnapshot;
     private static int snapshotId=-1;
     private static ClientPlayerEntity readyOwner;
+    public record BodyView(Vec3 position,Quat rotation) {}
+    private static BodyView beforeView,currentView;
+    private static int viewBody=-1,viewAge=-1;
+    public static BodyView bodyView(BlockBodyEntity body,float delta) {
+        if(body.getId()!=viewBody||currentView==null||state==null)return null;
+        double alpha=Math.max(0,Math.min(1,delta));
+        return new BodyView(beforeView.position().plus(currentView.position().minus(beforeView.position()).scaled(alpha)),
+            com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.interpolate(beforeView.rotation(),currentView.rotation(),alpha).normalized());
+    }
+    private static void publishBodyView(ClientPlayerEntity player,java.util.List<BodyMotion> bodies) {
+        for(var b:bodies)if(b.id==snapshotId&&(b.hasGravity()||b.id==viewBody)) {
+            var next=new BodyView(b.position(1),b.rotation(1));
+            beforeView=currentView==null||viewBody!=b.id?new BodyView(b.position(0),b.rotation(0)):viewAge==player.age?beforeView:currentView;
+            currentView=next;viewBody=b.id;viewAge=player.age;return;
+        }
+    }
     private BoardingClient() {}
     public static void register() {
         ClientPlayNetworking.registerGlobalReceiver(BoardingNetworking.State.ID,(p,c)->c.client().execute(()->apply(p)));
@@ -45,7 +61,7 @@ public final class BoardingClient {
     public static DynamicBodyAttachment.State predictedState(int acknowledgment){
         var p=HISTORY.get(acknowledgment);return p==null?null:p.state();
     }
-    public static void clear(){var p=MinecraftClient.getInstance().player;if(p!=null)BoardingPose.clear(p);state=null;world=null;epoch=-1;sequence=0;HISTORY.clear();correction=new Vec3(0,0,0);jumpHeld=false;bodySnapshot=null;snapshotId=-1;}
+    public static void clear(){var p=MinecraftClient.getInstance().player;if(p!=null)BoardingPose.clear(p);state=null;world=null;epoch=-1;sequence=0;HISTORY.clear();correction=new Vec3(0,0,0);jumpHeld=false;bodySnapshot=null;snapshotId=-1;beforeView=null;currentView=null;viewBody=-1;viewAge=-1;}
     private static void apply(BoardingNetworking.State p) {
         var mc=MinecraftClient.getInstance();var player=mc.player;
         if(player==null||mc.world==null)return;
@@ -81,7 +97,7 @@ public final class BoardingClient {
                 entry.setValue(new Prediction(command,replay));
             }
             correction=replay.feet().minus(BoardingSystem.pure(player.getPos()));
-            orientLook(player,state.frame(),replay.frame());
+            orientLook(player,state.frame(),replay.frame(),replay.gravityOwner());
             state=new DynamicBodyAttachment.State(BoardingSystem.pure(player.getPos()),replay.velocity(),replay.grounded(),replay.support(),replay.frame(),replay.gravityOwner());
             BoardingPose.publish(player,state.frame());
         }
@@ -111,7 +127,7 @@ public final class BoardingClient {
         var beforeFrame=state.frame();
         var worldInput=new DynamicBodyAttachment.Input(strafe,forward,input.jump(),beforeFrame.rotate(look));
         state=DynamicBodyAttachment.step(state,worldInput,bodies,player.getWidth(),player.getHeight(),.05,BoardingWorldMotion.capture(player,state,false));
-        orientLook(player,beforeFrame,state.frame());BoardingPose.publish(player,state.frame());
+        orientLook(player,beforeFrame,state.frame(),state.gravityOwner());BoardingPose.publish(player,state.frame());publishBodyView(player,bodies);
         player.setVelocity(BoardingSystem.mc(state.velocity().scaled(.05)));player.setOnGround(state.grounded());player.fallDistance=0;
         HISTORY.put(seq,new Prediction(input,state));while(HISTORY.size()>32)HISTORY.pollFirstEntry();
     }
@@ -123,8 +139,8 @@ public final class BoardingClient {
         entities.sort(Comparator.comparingInt(BlockBodyEntity::getId));for(var body:entities)bodies.add(predictedMotion(body,lead));
         return bodies;
     }
-    private static void orientLook(ClientPlayerEntity player,Quat before,Quat after) {
-        Vec3 look=PassengerFrame.transport(BoardingSystem.pure(player.getRotationVec(1)),before,after);
+    private static void orientLook(ClientPlayerEntity player,Quat before,Quat after,int gravityOwner) {
+        Vec3 look=PassengerFrame.releaseLook(BoardingSystem.pure(player.getRotationVec(1)),before,after,gravityOwner);
         var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(look);
         player.setYaw((float)angles.yawDegrees());player.setPitch((float)angles.pitchDegrees());
     }
@@ -137,9 +153,10 @@ public final class BoardingClient {
             .withAngularMomentum(new Vec3(snapshot.lx(),snapshot.ly(),snapshot.lz()));
         else p.withPosition(BoardingSystem.pure(body.getPos())).withRotation(body.rotation())
             .withLinearVelocity(body.physics().linearVelocity()).withAngularMomentum(body.physics().angularMomentum());
-        int lead=snapshot==null?0:Math.min(4,ticks);for(int i=0;i<lead;i++)p.step(.05);
-        Vec3 from=p.position();Quat before=p.rotation();p.step(.05);
+        boolean paused=snapshot==null?body.boardingMotionPaused():snapshot.paused();
+        int lead=snapshot==null?0:Math.min(4,ticks);if(!paused)for(int i=0;i<lead;i++)p.step(.05);
+        Vec3 from=p.position();Quat before=p.rotation();if(!paused)p.step(.05);
         Vec3 gravity=snapshot==null?body.passengerGravity():new Vec3(snapshot.gx(),snapshot.gy(),snapshot.gz());
-        return new BodyMotion(body.getId(),body.collider(),body.localCentre(),from,before,p.position(),p.rotation(),p,body.passengerField(gravity));
+        return new BodyMotion(body.getId(),body.collider(),body.localCentre(),from,before,p.position(),p.rotation(),p,body.passengerField(gravity),paused);
     }
 }

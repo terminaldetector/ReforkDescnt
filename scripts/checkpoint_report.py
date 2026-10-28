@@ -156,7 +156,7 @@ def verify_ship_boarding(root, started):
             or proof.get('teleportFollow') is not False):
         raise ValueError('Missing actual-input oriented ship-gravity verification')
     for key, limit in (('maxPredictionError', .8), ('jumpVelocityError', .1),
-                       ('maxFrameError', .01), ('maxModelUpError', .05)):
+                       ('maxFrameError', .01), ('maxModelUpError', .05), ('maxCameraUpError', .001)):
         value = proof.get(key)
         if not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 <= value < limit:
             raise ValueError(f'Invalid ship-boarding metric {key}: {value}')

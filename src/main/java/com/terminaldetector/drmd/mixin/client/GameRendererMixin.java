@@ -21,7 +21,8 @@ public class GameRendererMixin {
 	@Inject(method = "bobView", at = @At("HEAD"), cancellable = true)
 	private void drmd$cancelBob(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
 		// View bob walks the camera along world axes, which fights any tilted frame.
-		if (DescentClientState.enabled || !FootGravityCamera.settled()) ci.cancel();
+        var player=net.minecraft.client.MinecraftClient.getInstance().player;
+		if (DescentClientState.enabled || !FootGravityCamera.settled() || player!=null&&com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(player)) ci.cancel();
 	}
 
 	/**
@@ -45,6 +46,8 @@ public class GameRendererMixin {
 			ci.cancel();
 			return;
 		}
+        var player=net.minecraft.client.MinecraftClient.getInstance().player;
+        if(player!=null&&com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(player)){ci.cancel();return;}
 		if (!FootGravityCamera.settled()) {
 			FootGravityCamera.apply(matrices, tickDelta);
 			ci.cancel();

@@ -76,9 +76,16 @@ public final class DynamicBodyAttachment {
         boolean jumping=input.jump&&grounded;
         // World velocity already contains the contact point's speed. Adding it again doubles it.
         if(jumping){velocity=velocity.plus(PassengerFrame.up(frame).scaled(JUMP_SPEED));grounded=false;support=-1;}
+        Vec3 lastSpin=ZERO;
         for(int s=0;s<steps;s++) {
+            Quat frameBefore=frame;
             double t=(double)s/steps,end=(double)(s+1)/steps;
-            Quat candidate=PassengerFrame.turn(frame,owner==null?UP:owner.gravityUp(end),6*dt);
+            Quat carried=frame;
+            if(owner!=null) {
+                var delta=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.hamiltonProduct(owner.rotation(end),owner.rotation(t).inverse());
+                carried=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.hamiltonProduct(delta,frame).normalized();
+            }
+            Quat candidate=PassengerFrame.turn(carried,owner==null?UP:owner.gravityUp(end),6*dt);
             if(!candidate.equals(frame)) {
                 if(canOrient(feet,candidate,bodies,t,width,height,world))frame=candidate;
                 else {
@@ -92,47 +99,51 @@ public final class DynamicBodyAttachment {
                 }
             }
             Vec3 up=PassengerFrame.up(frame),wish=PassengerFrame.wish(input,state.frame,frame);
+            Vec3 spin=PassengerFrame.angularVelocity(frameBefore,frame,dt),centreOffset=up.scaled(height/2);lastSpin=spin;
             // Feet drive through friction at the contact, with the opposite impulse on the hull.
             // Neutral air input does not erase the carrier speed inherited at departure.
             if(!grounded&&wish.lengthSquared()>1e-8)velocity=velocity.plus(wish.normalized().scaled(2*dt));
             velocity=velocity.plus((owner==null?new Vec3(0,-32,0):owner.acceleration((t+end)/2)).scaled(dt));
             grounded=false;support=-1;
             var actor=new D6PhysicsBody().withMass(1).withInertia(D6Mat3.diagonal(1e12,1e12,1e12))
-                .withPosition(feet.plus(up.scaled(height/2))).withLinearVelocity(velocity);
+                .withPosition(feet.plus(centreOffset)).withRotation(frame).withAngularVelocity(spin)
+                .withLinearVelocity(velocity.plus(spin.cross(centreOffset)));
             // Resolve a small old-pose overlap (e.g. bounded angular substeps), never chase an anchor.
             for(var b:bodies)for(var c:b.query(t).contacts(PassengerFrame.box(feet,width,height,frame),SKIN)) {
                 if(c.penetration()>.2)continue;
                 if(c.penetration()>1e-7)feet=feet.plus(world.move(feet,frame,c.normal().scaled(c.penetration()+SEPARATION)).displacement());
                 actor.withPosition(feet.plus(up.scaled(height/2)));
                 contact(actor,b,t,c.point(),c.normal(),wish,up);
-                if(c.normal().dot(up)>.6 && actor.linearVelocity().minus(b.surfaceVelocity(c.point(),t)).dot(c.normal())<.05) {
+                if(c.normal().dot(up)>.6 && actor.velocityAtPoint(c.point().minus(actor.position())).minus(b.surfaceVelocity(c.point(),t)).dot(c.normal())<.05) {
                     grounded=true;support=b.id;
                 }
             }
             double current=t;
-            record Plane(Vec3 normal,BodyMotion body) {}
+            record Plane(Vec3 normal,Vec3 localPoint,Vec3 actorOffset,BodyBounds shape,BodyMotion body) {}
             var planes=new ArrayList<Plane>();
             for(int iteration=0;iteration<6 && current<end-1e-10;iteration++) {
                 double remaining=(end-current)*seconds;
-                Vec3 move=actor.linearVelocity().scaled(remaining);
+                Vec3 move=actor.linearVelocity().minus(spin.cross(centreOffset)).scaled(remaining);
                 for(var plane:planes) {
-                    Vec3 surfaceMove=plane.body.position(end).minus(plane.body.position(current));
-                    double closing=move.minus(surfaceMove).dot(plane.normal);
+                    Vec3 surfaceMove=plane.body.point(plane.localPoint,end).minus(plane.body.point(plane.localPoint,current));
+                    Vec3 actorTurn=spin.cross(plane.actorOffset).scaled(remaining);
+                    double closing=move.plus(actorTurn).minus(surfaceMove).dot(plane.normal);
                     if(closing<0)move=move.minus(plane.normal.scaled(closing));
                 }
                 BodyMotion hitBody=null;BodyCollisionQuery.Sweep hit=null;
                 for(var b:bodies) {
-                    var sweep=b.query(current).sweep(PassengerFrame.box(feet,width,height,frame),move,b.position(end).minus(b.position(current)),true);
+                    var sweep=b.query(current).sweep(PassengerFrame.box(feet,width,height,frame),move,b.position(end).minus(b.position(current)),true,candidateHit->planes.stream().noneMatch(
+                        plane->plane.body==b&&plane.shape.equals(candidateHit.localShape())&&plane.normal.dot(candidateHit.normal())>.99));
                     if(sweep.isPresent() && (hit==null||sweep.get().fraction()<hit.fraction())) {hit=sweep.get();hitBody=b;}
                 }
                 if(hit==null) {
                     Move allowed=world.move(feet,frame,move);feet=feet.plus(allowed.displacement());
-                    actor.withLinearVelocity(blockedVelocity(actor.linearVelocity(),allowed.blockingNormals()));current=end;break;
+                    actor.withLinearVelocity(blockedVelocity(actor.linearVelocity().minus(spin.cross(centreOffset)),allowed.blockingNormals()).plus(spin.cross(centreOffset)));current=end;break;
                 }
                 double fraction=hit.fraction(),impact=current+(end-current)*fraction;
                 Vec3 partial=move.scaled(Math.max(0,fraction-1e-7));
                 Move allowed=world.move(feet,frame,partial);feet=feet.plus(allowed.displacement());
-                actor.withLinearVelocity(blockedVelocity(actor.linearVelocity(),allowed.blockingNormals()));
+                actor.withLinearVelocity(blockedVelocity(actor.linearVelocity().minus(spin.cross(centreOffset)),allowed.blockingNormals()).plus(spin.cross(centreOffset)));
                 actor.withPosition(feet.plus(up.scaled(height/2)));
                 var contacts=hitBody.query(impact).contacts(PassengerFrame.box(feet,width,height,frame),.02);
                 final Vec3 sweptNormal=hit.normal();
@@ -143,27 +154,29 @@ public final class DynamicBodyAttachment {
                     actor.withPosition(feet.plus(up.scaled(height/2)));
                 }
                 Vec3 point=actual==null?PassengerFrame.box(feet,width,height,frame).supportCentre(normal.scaled(-1)):actual.point();
-                double before=actor.linearVelocity().minus(hitBody.surfaceVelocity(point,impact)).dot(normal);
+                double before=actor.velocityAtPoint(point.minus(actor.position())).minus(hitBody.surfaceVelocity(point,impact)).dot(normal);
                 contact(actor,hitBody,impact,point,normal,wish,up);
-                planes.add(new Plane(normal,hitBody));
+                // The solved moving plane owns this normal for the rest of the substep. Recasting
+                // its frozen old orientation would stop valid rotational surface movement.
+                planes.add(new Plane(normal,hitBody.localOffset(point,impact),point.minus(feet),hit.localShape(),hitBody));
                 if(normal.dot(up)>.6 && before<=.05) {grounded=true;support=hitBody.id;}
                 // A solved touching contact should slide on the next sweep. Bound a degenerate
                 // zero-progress corner instead of advancing through it or burning an unbounded loop.
-                if(fraction<1e-10 && actor.linearVelocity().minus(hitBody.surfaceVelocity(point,impact)).dot(normal)< -1e-6)break;
+                if(fraction<1e-10 && actor.velocityAtPoint(point.minus(actor.position())).minus(hitBody.surfaceVelocity(point,impact)).dot(normal)< -1e-6)break;
                 current=impact;
             }
-            velocity=actor.linearVelocity();
+            velocity=actor.linearVelocity().minus(spin.cross(centreOffset));
         }
         // Grounding belongs to the final pose, not the start of the last angular substep. A small
         // resting margin preserves a genuine near contact while still letting an opening jump go.
         grounded=false;support=-1;
         Vec3 up=PassengerFrame.up(frame);
         for(var b:bodies)for(var c:b.query(1).contacts(PassengerFrame.box(feet,width,height,frame),.01))
-            if(c.normal().dot(up)>.6&&c.penetration()<=.2&&velocity.minus(b.surfaceVelocity(c.point(),1)).dot(c.normal())<.1) {
+            if(c.normal().dot(up)>.6&&c.penetration()<=.2&&velocity.plus(lastSpin.cross(c.point().minus(feet))).minus(b.surfaceVelocity(c.point(),1)).dot(c.normal())<.1) {
                 grounded=true;support=b.id;
             }
         int gravityOwner=owner!=null&&owner.gravity(feet.plus(up.scaled(height/2)),1).isPresent()?owner.id:-1;
-        if(gravityOwner<0&&up.dot(UP)>.99999&&world.canOrient(feet,Quat.IDENTITY))frame=Quat.IDENTITY;
+        if(gravityOwner<0&&!grounded&&up.dot(UP)>.99999&&world.canOrient(feet,Quat.IDENTITY))frame=Quat.IDENTITY;
         return new State(feet,velocity,grounded,support,frame,gravityOwner);
     }
     private static void contact(D6PhysicsBody actor,BodyMotion body,double t,Vec3 point,Vec3 normal,Vec3 wish,Vec3 up) {

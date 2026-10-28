@@ -24,14 +24,14 @@ public final class BoardingNetworking {
         public Id<? extends CustomPayload> getId(){return ID;}
     }
     public record BodyState(double x,double y,double z,double qx,double qy,double qz,double qw,
-                            double vx,double vy,double vz,double lx,double ly,double lz,double gx,double gy,double gz) {
+                            double vx,double vy,double vz,double lx,double ly,double lz,double gx,double gy,double gz,boolean paused) {
         private void write(RegistryByteBuf b) {
             b.writeDouble(x);b.writeDouble(y);b.writeDouble(z);b.writeDouble(qx);b.writeDouble(qy);b.writeDouble(qz);b.writeDouble(qw);
-            b.writeDouble(vx);b.writeDouble(vy);b.writeDouble(vz);b.writeDouble(lx);b.writeDouble(ly);b.writeDouble(lz);b.writeDouble(gx);b.writeDouble(gy);b.writeDouble(gz);
+            b.writeDouble(vx);b.writeDouble(vy);b.writeDouble(vz);b.writeDouble(lx);b.writeDouble(ly);b.writeDouble(lz);b.writeDouble(gx);b.writeDouble(gy);b.writeDouble(gz);b.writeBoolean(paused);
         }
         private static BodyState read(RegistryByteBuf b) {
             return new BodyState(b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),
-                b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble());
+                b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readBoolean());
         }
     }
     public record PassengerPose(double x,double y,double z,double w,int gravityOwner) {

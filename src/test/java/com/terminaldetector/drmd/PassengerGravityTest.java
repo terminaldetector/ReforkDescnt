@@ -115,4 +115,29 @@ class PassengerGravityTest {
             assertEquals(floorTop,local.y(),.01);angle=nextAngle;spin=nextSpin;position=nextPosition;
         }
     }
+    @Test void shipYawCarriesTheWholeCharacterFrameWithoutCornerOrbitDrift() {
+        Vec3 axis=UP,initialFeet=v(-.25,.5,1.5);
+        var state=new DynamicBodyAttachment.State(initialFeet,axis.cross(initialFeet),true,1,Quat.IDENTITY,1);
+        for(int tick=0;tick<140;tick++) {
+            var before=q(axis,tick*.05);var after=q(axis,(tick+1)*.05);
+            state=DynamicBodyAttachment.step(state,DynamicBodyAttachment.Input.idle(),List.of(motion(before,after,ZERO,axis)),.6,1.8,.05,FREE);
+            assertTrue(state.grounded());
+            assertTrue(state.frame().rotate(v(0,0,1)).dot(after.rotate(v(0,0,1)))>.999,"yaw belongs to the character's physical frame");
+        }
+        Vec3 local=q(axis,7).inverse().rotate(state.feet());
+        assertTrue(local.minus(initialFeet).length()<.12,"foot-centre may not orbit a wrongly frozen corner: "+local);
+    }
+
+    @Test void aNonTickingShipCannotInventSurfaceMotionFromItsRetainedMomentum() {
+        Vec3 retained=v(2,.4,.3);var physics=new D6PhysicsBody().withMass(100).withInertia(D6Mat3.diagonal(20,20,20))
+            .withLinearVelocity(retained).withAngularVelocity(v(0,1,0));
+        var body=new BodyMotion(1,floor(),ZERO,ZERO,Quat.IDENTITY,ZERO,Quat.IDENTITY,physics,field(),true);
+        assertEquals(ZERO,body.surfaceVelocity(v(2,.5,0),1));
+        body.react(v(3,0,0),v(0,.5,0));
+        assertEquals(retained,physics.linearVelocity(),"paused geometry is a fixed constraint; retain state for its next actual tick");
+        var result=DynamicBodyAttachment.step(new DynamicBodyAttachment.State(v(0,.5,0),ZERO,true,1,Quat.IDENTITY,1),
+            DynamicBodyAttachment.Input.idle(),List.of(body),.6,1.8,.05,FREE);
+        assertTrue(result.grounded());assertTrue(result.feet().minus(v(0,.5,0)).length()<1e-5);
+    }
+
 }

@@ -43,6 +43,9 @@ public final class BodyCollisionQuery {
     }
     /** A character may escape an existing overlap; closing motion still resolves every primitive. */
     public Optional<Sweep> sweep(OrientedBox actor,Vec3 movement,Vec3 bodyMovement,boolean openingOverlaps) {
+        return sweep(actor,movement,bodyMovement,openingOverlaps,hit->true);
+    }
+    public Optional<Sweep> sweep(OrientedBox actor,Vec3 movement,Vec3 bodyMovement,boolean openingOverlaps,java.util.function.Predicate<Sweep> accepted) {
         BodyBounds.finite(movement); BodyBounds.finite(bodyMovement);
         Vec3 relative = movement.minus(bodyMovement);
         BodyBounds swept = actor.bounds().union(translate(actor.bounds(), relative));
@@ -53,7 +56,8 @@ public final class BodyCollisionQuery {
             if(overlap.isPresent()&&overlap.get().penetration()>1e-9&&relative.dot(overlap.get().normal())>=-1e-12)continue;
             var hit = actor.sweep(hull, movement, bodyMovement);
             if (hit.isPresent() && (best == null || hit.get().fraction() < best.fraction())) {
-                var h = hit.get(); best = new Sweep(shape, h.fraction(), h.normal());
+                var h = hit.get();var candidate=new Sweep(shape,h.fraction(),h.normal());
+                if(accepted.test(candidate))best=candidate;
             }
         }
         return Optional.ofNullable(best);

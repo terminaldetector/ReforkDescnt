@@ -26,7 +26,7 @@ public final class NativeShipGravityCheck {
     private static volatile int mode;
     private static volatile long modeStarted;
     private static int phase,age,ticks,bodyId=-1,stable,frames,predictionSamples,modelFrames,cameraFrames;
-    private static double maxError,modelError,jumpError,frameError,minUpY=1,maxUpX,maxUpZ;
+    private static double maxError,modelError,cameraError,jumpError,frameError,minUpY=1,maxUpX,maxUpZ;
     private static BoardingNetworking.State last;
     private static Vec3d walkStart;
     private static String scene;
@@ -63,12 +63,16 @@ public final class NativeShipGravityCheck {
     public static void model(Vec3d renderedUp) {
         var p=MinecraftClient.getInstance().player;
         if(p==null||!BoardingClient.drives(p))return;
-        var expected=PassengerFrame.up(BoardingClient.state().frame());
+        var expected=PassengerFrame.up(BoardingPose.renderFrame(p,MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(false)));
         modelError=Math.max(modelError,renderedUp.distanceTo(BoardingSystem.mc(expected)));modelFrames++;
     }
-    public static void camera() {
+    public static void camera(net.minecraft.client.render.Camera camera,float delta) {
         var p=MinecraftClient.getInstance().player;
-        if(p!=null&&BoardingClient.drives(p))cameraFrames++;
+        if(p!=null&&BoardingClient.drives(p)) {
+            cameraFrames++;var up=PassengerFrame.up(BoardingPose.renderFrame(p,delta));var actual=camera.getVerticalPlane();
+            var look=BoardingPose.renderLook(p,delta);up=up.minus(look.scaled(up.dot(look))).normalized();
+            cameraError=Math.max(cameraError,up.minus(new Vec3(actual.x,actual.y,actual.z)).length());
+        }
     }
     private static void tick(MinecraftClient c) {
         if(finished)return;if(++ticks>2400)require(false,"ship gravity client timeout phase="+phase+" age="+age+" state="+BoardingClient.state());
@@ -131,7 +135,7 @@ public final class NativeShipGravityCheck {
             if(released&&!BoardingClient.drives(c.player)){c.options.jumpKey.setPressed(false);request("gravity-off-jump");phase=8;age=0;ClientPlayNetworking.send(new ModNetworking.ActionPayload("toggle"));}
         } else if(phase==8&&com.terminaldetector.drmd.client.DescentClientState.enabled&&serverHandoff) {
             require(predictionSamples>=250&&maxError<.8,"ship prediction incomplete or diverged: n="+predictionSamples+" error="+maxError);
-            require(modelFrames>=40&&cameraFrames>=40&&modelError<.05,"actual model/camera passes disagree with character frame: model="+modelFrames+" camera="+cameraFrames+" error="+modelError);
+            require(modelFrames>=40&&cameraFrames>=40&&modelError<.05&&cameraError<.001,"actual model/camera passes disagree with character frame: model="+modelFrames+" camera="+cameraFrames+" error="+modelError);
             require(frameError<.01&&minUpY<-.98&&maxUpX>.98&&maxUpZ>.98,"physical full rotations not aligned: frameError="+frameError);
             request("flight-handoff");phase=9;
         }
@@ -150,7 +154,9 @@ public final class NativeShipGravityCheck {
             if(!(x>=3&&x<=4&&z>=5&&z<=6))w.setBlockState(DECK.add(x,3,z),Blocks.IRON_BLOCK.getDefaultState(),2);
         }
         var body=BlockBodyEntity.assemble(w,DECK,DECK.add(7,3,7));body.physics().withLinearVelocity(VELOCITY);body.setPassengerGravity(new Vec3(0,-32,0));entity(body).tick();bodyId=entity(body).getId();
-        var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());p.getAbilities().flying=false;p.getAbilities().allowFlying=false;p.sendAbilitiesUpdate();
+        var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());
+        // Only the disposable test pilot is an operator; exercise the actual permission-checked command.
+        c.getServer().getPlayerManager().addToOperators(p.getGameProfile());p.getAbilities().flying=false;p.getAbilities().allowFlying=false;p.sendAbilitiesUpdate();
         p.teleport(w,DECK.getX()+4,DECK.getY()+1.05,DECK.getZ()+3,Set.of(),0,0);w.setTimeOfDay(6000);ready=true;modeStarted=w.getTime();
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.START_WORLD_TICK.register(world->{
             if(world!=w||finished||!ready)return;
@@ -182,7 +188,7 @@ public final class NativeShipGravityCheck {
             if(scene.equals("roll-complete"))startMode(c,2);
             if(scene.equals("pitch-complete"))startMode(c,3);
             if(phase==9) {
-                Files.writeString(c.runDirectory.toPath().resolve("ship-boarding-ok.json"),"{\"actualInputs\":true,\"shipGravity\":true,\"orientedCollision\":true,\"teleportFollow\":false,\"predictionSamples\":"+predictionSamples+",\"maxPredictionError\":"+maxError+",\"jumpVelocityError\":"+jumpError+",\"maxFrameError\":"+frameError+",\"modelFrames\":"+modelFrames+",\"cameraFrames\":"+cameraFrames+",\"maxModelUpError\":"+modelError+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");
+                Files.writeString(c.runDirectory.toPath().resolve("ship-boarding-ok.json"),"{\"actualInputs\":true,\"shipGravity\":true,\"orientedCollision\":true,\"teleportFollow\":false,\"predictionSamples\":"+predictionSamples+",\"maxPredictionError\":"+maxError+",\"jumpVelocityError\":"+jumpError+",\"maxFrameError\":"+frameError+",\"modelFrames\":"+modelFrames+",\"cameraFrames\":"+cameraFrames+",\"maxCameraUpError\":"+cameraError+",\"maxModelUpError\":"+modelError+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");
                 finished=true;c.options.forwardKey.setPressed(false);c.options.jumpKey.setPressed(false);c.scheduleStop();
             }
         }catch(java.io.IOException e){throw new IllegalStateException(e);}

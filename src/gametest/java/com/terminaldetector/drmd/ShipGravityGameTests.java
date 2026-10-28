@@ -110,4 +110,21 @@ public final class ShipGravityGameTests implements FabricGameTest {
             c.assertTrue(chunks.getWorldChunk(x>>4,z>>4)==null,"oriented queries may not generate or join a chunk future");
         }c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ship-gravity-paused")
+    public void anUntickedHullKeepsItsSavedMomentumWithoutMovingItsContactSurface(TestContext c) {
+        try(var f=fixture(c,Quat.IDENTITY)) {
+            var restored=ModEntities.BLOCK_BODY.create(c.getWorld());
+            try {
+                restored.readNbt(f.body.writeNbt(new NbtCompound()));
+                Vec3 retained=new Vec3(2,.4,.3);restored.physics().withLinearVelocity(retained);
+                c.assertTrue(restored.boardingMotionPaused(),"a restored hull has not simulated this world tick");
+                c.assertTrue(restored.boardingMotion().surfaceVelocity(BoardingSystem.pure(restored.getPos()),1).length()<1e-10,"unticked geometry cannot push passengers with fictional motion");
+                c.assertTrue(restored.physics().linearVelocity().equals(retained),"stored momentum remains available for resume");
+                restored.tick();
+                c.assertTrue(!restored.boardingMotionPaused(),"a real hull tick resumes contact motion");
+                c.assertTrue(restored.boardingMotion().surfaceVelocity(BoardingSystem.pure(restored.getPos()),1).length()>1,"resumed hull exposes its actual motion");
+            }finally{restored.discard();}
+        }c.complete();
+    }
+
 }

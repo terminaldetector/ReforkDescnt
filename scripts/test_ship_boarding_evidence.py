@@ -17,7 +17,7 @@ class ShipBoardingEvidenceTest(unittest.TestCase):
         self.marker.parent.mkdir(parents=True)
         self.proof = dict(actualInputs=True, shipGravity=True, orientedCollision=True, teleportFollow=False,
                           predictionSamples=300, maxPredictionError=.1, jumpVelocityError=0,
-                          maxFrameError=.001, maxModelUpError=.001, modelFrames=100, cameraFrames=100,
+                          maxFrameError=.001, maxModelUpError=.001, maxCameraUpError=.0001, modelFrames=100, cameraFrames=100,
                           scenes=[dict(scene=n, frames=3) for n in SHIP_BOARDING_SCENES])
         for scene in SHIP_BOARDING_SCENES:
             p = self.root / f'build/shipboardingcheck/ship-boarding-frames/{scene}.png'
@@ -39,7 +39,7 @@ class ShipBoardingEvidenceTest(unittest.TestCase):
     def test_insufficient_samples_and_unbounded_errors_are_rejected(self):
         for key, value in (('predictionSamples', 0), ('modelFrames', 0), ('cameraFrames', 0),
                            ('maxPredictionError', .8), ('jumpVelocityError', .1),
-                           ('maxFrameError', .01), ('maxModelUpError', float('nan'))):
+                           ('maxFrameError', .01), ('maxCameraUpError', .001), ('maxModelUpError', float('nan'))):
             original = copy.deepcopy(self.proof)
             with self.subTest(key=key), self.assertRaises(ValueError):
                 self.proof[key] = value

@@ -50,8 +50,8 @@ public class LivingEntityRendererMixin {
 			return;
 		}
         if(entity instanceof net.minecraft.entity.player.PlayerEntity player&&com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(player)) {
-            var local=com.terminaldetector.drmd.world.contraption.boarding.PassengerFrame.up(com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.frame(player));
-            Vec3d up=new Vec3d(local.x(),local.y(),local.z()),look=entity.getRotationVec(tickDelta);
+            var local=com.terminaldetector.drmd.world.contraption.boarding.PassengerFrame.up(com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.renderFrame(player,tickDelta));
+            Vec3d up=new Vec3d(local.x(),local.y(),local.z()),look=com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.mc(com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.renderLook(player,tickDelta));
             Vec3d forward=look.subtract(up.multiply(look.dotProduct(up)));
             if(forward.lengthSquared()>1e-8)ModelOrientation.applyBasis(matrices,bodyYaw,forward.normalize(),up);
             return;

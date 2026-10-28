@@ -88,7 +88,7 @@ public final class BoardingSystem {
             var worldCommand=new DynamicBodyAttachment.Input(command.strafe(),command.forward(),command.jump(),beforeFrame.rotate(command.look()));
             l.state=DynamicBodyAttachment.step(l.state,worldCommand,near,p.getWidth(),p.getHeight(),.05,BoardingWorldMotion.capture(p,l.state,false));
             BoardingPose.publish(p,l.state.frame());
-            Vec3 look=PassengerFrame.transport(worldCommand.look(),beforeFrame,l.state.frame());
+            Vec3 look=PassengerFrame.releaseLook(worldCommand.look(),beforeFrame,l.state.frame(),l.state.gravityOwner());
             var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(look);
             p.setYaw((float)angles.yawDegrees());p.setPitch((float)angles.pitchDegrees());
             if(l.input.jump())l.input=new DynamicBodyAttachment.Input(l.input.strafe(),l.input.forward(),false,l.input.look());
@@ -152,7 +152,7 @@ public final class BoardingSystem {
         if(active&&p.getServerWorld().getEntityById(s.gravityOwner()>=0?s.gravityOwner():s.support()) instanceof BlockBodyEntity body) {
             var q=body.rotation();var v=body.physics().linearVelocity();var m=body.physics().angularMomentum();
             var g=body.passengerGravity();
-            snapshot=new BoardingNetworking.BodyState(body.getX(),body.getY(),body.getZ(),q.x(),q.y(),q.z(),q.w(),v.x(),v.y(),v.z(),m.x(),m.y(),m.z(),g.x(),g.y(),g.z());
+            snapshot=new BoardingNetworking.BodyState(body.getX(),body.getY(),body.getZ(),q.x(),q.y(),q.z(),q.w(),v.x(),v.y(),v.z(),m.x(),m.y(),m.z(),g.x(),g.y(),g.z(),body.boardingMotionPaused());
         }
         ServerPlayNetworking.send(p,new BoardingNetworking.State(l.epoch,l.sequence,active,s.support(),s.feet().x(),s.feet().y(),s.feet().z(),
             s.velocity().x(),s.velocity().y(),s.velocity().z(),s.grounded(),new BoardingNetworking.PassengerPose(s.frame().x(),s.frame().y(),s.frame().z(),s.frame().w(),s.gravityOwner()),snapshot,p.getWorld().getRegistryKey().getValue()));

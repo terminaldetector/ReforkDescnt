@@ -55,7 +55,12 @@ public class FootGravityGeometryMixin {
         if((Object)this instanceof PlayerEntity player && (FootGravitySystem.isActive(player)||com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(player))) {
             Vec3d feet=player.getLerpedPos(delta);
             double height=cir.getReturnValue().y-feet.y;
-            cir.setReturnValue(feet.add(surfaceUp(player).multiply(height)));
+            Vec3d up=surfaceUp(player);
+            if(com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(player)) {
+                var visual=com.terminaldetector.drmd.world.contraption.boarding.PassengerFrame.up(com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.renderFrame(player,delta));
+                up=new Vec3d(visual.x(),visual.y(),visual.z());
+            }
+            cir.setReturnValue(feet.add(up.multiply(height)));
         }
         else if((Object)this instanceof LivingEntity actor && ActorFrames.active(actor)) {
             Vec3d feet=actor.getLerpedPos(delta);
@@ -64,6 +69,14 @@ public class FootGravityGeometryMixin {
         }
     }
 
+    @Inject(method="getRotationVec",at=@At("RETURN"),cancellable=true)
+    private void boardingLook(float delta,CallbackInfoReturnable<Vec3d> cir) {
+        if(delta<.999999f&&(Object)this instanceof PlayerEntity player&&player.getWorld().isClient
+            &&com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(player)) {
+            var look=com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.renderLook(player,delta);
+            cir.setReturnValue(new Vec3d(look.x(),look.y(),look.z()));
+        }
+    }
     @Inject(method={"getRotationVector(FF)Lnet/minecraft/util/math/Vec3d;","getRotationVecClient"},
             at=@At("RETURN"),cancellable=true)
     private void drmd$actorLook(CallbackInfoReturnable<Vec3d> cir) {
