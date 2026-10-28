@@ -23,10 +23,11 @@ public final class NativeBoardingCheck {
     private static boolean started,prepared,finished,capture;
     private static volatile boolean ready,serverLanding,serverHandoff;
     private static int age,phase,ticks,frames,bodyId=-1;
-    private static int synchronizedTicks;
+    private static int synchronizedTicks,predictionSamples;
     private static Vec3d rideStart,walkStart;
     private static BoardingNetworking.State lastActive;
     private static volatile boolean jumpRelease;
+    private static boolean jumpSent;
     private static volatile double departureError,maxPredictionError;
     private static final List<String> RESULTS=new ArrayList<>();
     private static String scene;
@@ -35,8 +36,22 @@ public final class NativeBoardingCheck {
     private static void require(boolean yes,String why){if(!yes){finished=true;MinecraftClient.getInstance().scheduleStop();throw new IllegalStateException(why);}}
     public static void received(BoardingNetworking.State s) {
         if(finished)return;
-        if(s.active())lastActive=s;
-        else if(phase==3&&lastActive!=null) {
+        if(s.active()) {
+            // Compare the same command on both peers. Sampling live positions in a scheduled
+            // server task compared different simulation times (especially across a jump).
+            if(s.epoch()==BoardingClient.epoch()) {
+                var predicted=BoardingClient.predictedState(s.acknowledgment());
+                if(predicted!=null) {
+                    double error=predicted.feet().minus(new Vec3(s.x(),s.y(),s.z())).length();
+                    maxPredictionError=Math.max(maxPredictionError,error);predictionSamples++;
+                    if(error>.3)System.out.println("BOARDING_ACK_ERROR seq="+s.acknowledgment()+" error="+error+" predicted="+predicted+" authoritative="+s);
+                }
+            }
+            lastActive=s;
+        }
+        else if(phase==1||phase==2||(phase==3&&!jumpSent)) {
+            require(false,"support lease lost before jump: phase="+phase+" before="+lastActive+" after="+s);
+        } else if(phase==3&&lastActive!=null) {
             departureError=Math.hypot(s.vx()-lastActive.vx(),s.vz()-lastActive.vz());
             require(departureError<.03,"boarding jump lost carrier horizontal speed: "+departureError);
             require(Math.abs(s.vy()-lastActive.vy()-(.42*20-32*.05))<.08,"boarding jump inheritance incorrect: before="+lastActive+" after="+s);
@@ -72,10 +87,15 @@ public final class NativeBoardingCheck {
         if(!ready||capture)return;
         var body=c.world.getEntityById(bodyId);if(!(body instanceof BlockBodyEntity deck))return;
         age++;
+        if(phase==4&&age%20==0) {
+            System.out.println("BOARDING_AIR client="+c.player.getPos()+" velocity="+c.player.getVelocity()+" ground="+c.player.isOnGround()+" flying="+c.player.getAbilities().flying+" noGravity="+c.player.hasNoGravity()+" alive="+c.player.isAlive()+" screen="+c.currentScreen+" flight="+com.terminaldetector.drmd.client.DescentClientState.enabled);
+            c.getServer().execute(()->{var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());System.out.println("BOARDING_AIR server="+p.getPos()+" velocity="+p.getVelocity()+" ground="+p.isOnGround()+" flying="+p.getAbilities().flying+" noGravity="+p.hasNoGravity()+" alive="+p.isAlive());});
+        }
+        if(phase==4&&age>120)require(false,"jump did not return to a real deck contact");
         if(BoardingClient.drives(c.player)&&age%5==0) {
-            Vec3d predicted=c.player.getPos();c.getServer().execute(()->{
+            c.getServer().execute(()->{
                 var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());
-                if(BoardingSystem.drives(p))maxPredictionError=Math.max(maxPredictionError,p.getPos().distanceTo(predicted));
+
                 if(age%20==0&&p.getServerWorld().getEntityById(bodyId) instanceof BlockBodyEntity serverBody)
                     System.out.println("BOARDING_TRACE phase="+phase+" player="+p.getPos()+" state="+BoardingSystem.state(p)
                         +" body="+entity(serverBody).getPos()+" q="+serverBody.rotation()+" v="+serverBody.physics().linearVelocity()+" L="+serverBody.physics().angularMomentum());
@@ -93,19 +113,20 @@ public final class NativeBoardingCheck {
             require(BoardingClient.drives(c.player),"walking lease dropped while riding");
             var at=deck.worldToLocal(c.player.getPos());require(at.distanceTo(rideStart)<.8,"idle player slides off translating deck: "+at.subtract(rideStart));
             require(entity(deck).getX()>DECK.getX()+5,"actual deck translation was not simulated");
-            request("riding");phase=2;age=0;walkStart=at;c.options.forwardKey.setPressed(true);
+            request("riding");phase=2;age=0;walkStart=at;
         } else if(phase==2) {
-            if(age==12)c.options.forwardKey.setPressed(false);
-            if(age>=24) {
+            if(age==1)c.options.forwardKey.setPressed(true);
+            if(age==13)c.options.forwardKey.setPressed(false);
+            if(age>=25) {
                 require(BoardingClient.drives(c.player),"walking loses real deck contact");
                 double distance=deck.worldToLocal(c.player.getPos()).z-walkStart.z;
                 require(distance>1&&distance<3.5,"actual forward input did not walk relative to deck: "+distance);
                 request("walking");phase=3;age=0;
             }
         } else if(phase==3) {
-            if(age==1)c.options.jumpKey.setPressed(true);
+            if(age==1){jumpSent=true;c.options.jumpKey.setPressed(true);}
             if(age==3)c.options.jumpKey.setPressed(false);
-            if(jumpRelease) {request("jump");phase=4;age=0;}
+            if(jumpRelease) {c.options.jumpKey.setPressed(false);request("jump");phase=4;age=0;}
         } else if(phase==4&&BoardingClient.drives(c.player)&&age>12) {
             var p=c.player;
             c.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(p.getX()+100,p.getY()+100,p.getZ(),true));
@@ -117,6 +138,7 @@ public final class NativeBoardingCheck {
             ClientPlayNetworking.send(new ModNetworking.ActionPayload("toggle"));phase=6;age=0;
         } else if(phase==6&&com.terminaldetector.drmd.client.DescentClientState.enabled&&serverHandoff) {
             require(!BoardingClient.drives(c.player),"flight and contact motors run together");
+            require(predictionSamples>=30,"too few acknowledged prediction samples: "+predictionSamples);
             require(maxPredictionError<.8,"client/server boarding prediction diverged: "+maxPredictionError);
             request("sixdof-handoff");phase=7;
         }
@@ -174,7 +196,7 @@ public final class NativeBoardingCheck {
             RESULTS.add("{\"scene\":\""+scene+"\",\"frames\":"+frames+"}");
             System.out.println("BOARDING_CLIENT "+scene+" PASS state="+BoardingClient.state());capture=false;
             if(phase==7) {
-                Files.writeString(c.runDirectory.toPath().resolve("boarding-ok.json"),"{\"actualInputs\":true,\"authoritativeContact\":true,\"worldUpOnly\":true,\"physicalThrusters\":true,\"yawMotion\":true,\"teleportFollow\":false,\"jumpWorldVelocityError\":"+departureError+",\"maxPredictionError\":"+maxPredictionError+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");
+                Files.writeString(c.runDirectory.toPath().resolve("boarding-ok.json"),"{\"actualInputs\":true,\"authoritativeContact\":true,\"worldUpOnly\":true,\"physicalThrusters\":true,\"yawMotion\":true,\"teleportFollow\":false,\"jumpWorldVelocityError\":"+departureError+",\"predictionSamples\":"+predictionSamples+",\"maxPredictionError\":"+maxPredictionError+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");
                 finished=true;c.options.forwardKey.setPressed(false);c.options.jumpKey.setPressed(false);c.scheduleStop();
             }
         }catch(java.io.IOException e){throw new IllegalStateException(e);}

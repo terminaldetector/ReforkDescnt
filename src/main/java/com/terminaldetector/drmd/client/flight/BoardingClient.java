@@ -15,7 +15,8 @@ import java.util.*;
 /** Owner prediction; received positions correct prediction errors, never attach to a local anchor. */
 public final class BoardingClient {
     private static DynamicBodyAttachment.State state;
-    private static final NavigableMap<Integer,DynamicBodyAttachment.Input> HISTORY=new TreeMap<>();
+    private record Prediction(DynamicBodyAttachment.Input input,DynamicBodyAttachment.State state) {}
+    private static final NavigableMap<Integer,Prediction> HISTORY=new TreeMap<>();
     private static Object world;
     private static int epoch=-1,sequence;
     private static Vec3 correction=new Vec3(0,0,0);
@@ -40,6 +41,10 @@ public final class BoardingClient {
     public static DynamicBodyAttachment.State state(){return state;}
     public static int epoch(){return epoch;}
     public static int sequence(){return sequence;}
+    /** Prediction at the same processed input as a server acknowledgment, for diagnostics. */
+    public static DynamicBodyAttachment.State predictedState(int acknowledgment){
+        var p=HISTORY.get(acknowledgment);return p==null?null:p.state();
+    }
     public static void clear(){state=null;world=null;epoch=-1;sequence=0;HISTORY.clear();correction=new Vec3(0,0,0);jumpHeld=false;bodySnapshot=null;snapshotId=-1;}
     private static void apply(BoardingNetworking.State p) {
         var mc=MinecraftClient.getInstance();var player=mc.player;
@@ -66,10 +71,12 @@ public final class BoardingClient {
         } else {
             HISTORY.headMap(p.acknowledgment(),true).clear();
             var replay=authoritative;int lead=0;
-            for(var command:HISTORY.values()) {
+            for(var entry:HISTORY.entrySet()) {
+                var command=entry.getValue().input();
                 var bodies=nearby(player,replay,lead++);
                 replay=DynamicBodyAttachment.step(replay,command,bodies,player.getWidth(),player.getHeight(),.05,
                     (at,delta)->clipWorld(player,at,delta));
+                entry.setValue(new Prediction(command,replay));
             }
             correction=replay.feet().minus(BoardingSystem.pure(player.getPos()));
             state=new DynamicBodyAttachment.State(BoardingSystem.pure(player.getPos()),replay.velocity(),replay.grounded(),replay.support());
@@ -81,7 +88,12 @@ public final class BoardingClient {
         // the server's bounded command queue. Resume as soon as an acknowledgment arrives.
         if(HISTORY.size()>=16){player.fallDistance=0;return;}
         var mc=MinecraftClient.getInstance();
-        Vec3 offset=correction;double length=offset.length();if(length>.2)offset=offset.scaled(.2/length);
+        Vec3 offset=correction;double length=offset.length();
+        // Smooth normal prediction noise. After a loading stall, limiting a multi-block
+        // authoritative correction to .2 per input leaves the physical actor behind the deck.
+        // Recover that accumulated error through collision-checked movement before predicting
+        // the next command. This is network reconciliation, never a ship-local follow anchor.
+        if(length>.2&&length<=.5)offset=offset.scaled(.2/length);
         if(length>.002){Vec3d before=player.getPos();player.move(MovementType.SELF,BoardingSystem.mc(offset));correction=correction.minus(BoardingSystem.pure(player.getPos().subtract(before)));}
         Vec3 feet=BoardingSystem.pure(player.getPos());state=new DynamicBodyAttachment.State(feet,state.velocity(),state.grounded(),state.support());
         boolean jump=mc.currentScreen==null&&mc.options.jumpKey.isPressed();
@@ -96,7 +108,7 @@ public final class BoardingClient {
             Vec3d before=player.getPos();player.move(MovementType.SELF,BoardingSystem.mc(delta));return BoardingSystem.pure(player.getPos().subtract(before));
         });
         player.setVelocity(BoardingSystem.mc(state.velocity().scaled(.05)));player.setOnGround(state.grounded());player.fallDistance=0;
-        HISTORY.put(seq,input);while(HISTORY.size()>32)HISTORY.pollFirstEntry();
+        HISTORY.put(seq,new Prediction(input,state));while(HISTORY.size()>32)HISTORY.pollFirstEntry();
     }
     private static java.util.List<BodyMotion> nearby(ClientPlayerEntity player,DynamicBodyAttachment.State at,int lead) {
         var bodies=new ArrayList<BodyMotion>();

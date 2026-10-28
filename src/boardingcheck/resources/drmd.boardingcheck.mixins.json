@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "com.terminaldetector.drmd.boardingcheck",
+  "package": "com.terminaldetector.drmd.boardingcheck.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": ["FrameProbe", "StateProbe"],
   "injectors": {"defaultRequire": 1}

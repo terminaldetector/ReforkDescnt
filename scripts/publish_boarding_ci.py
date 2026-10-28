@@ -1,4 +1,4 @@
-"""Stage the contact-foundation candidate only after exact-source CI gameplay checks pass."""
+"""Stage the world-UP boarding candidate only after exact-source CI gameplay checks pass."""
 from pathlib import Path
 import hashlib
 import importlib.util
@@ -14,7 +14,7 @@ VERSION = '1.1.25-boarding.1'
 def validate_proof(proof, source):
     if proof['source_sha'] != source or proof['version'] != VERSION:
         raise ValueError('Unexpected tested source or boarding version')
-    if proof['unit']['tests'] < 606 or proof['gametest']['tests'] < 153:
+    if proof['unit']['tests'] < 608 or proof['gametest']['tests'] < 153:
         raise ValueError('Contact unit and world regressions are missing')
     if proof['jar'] != f'drmd-6dof-{VERSION}-fabric-1.21.1.jar':
         raise ValueError('Unexpected installable JAR')
@@ -60,7 +60,7 @@ Immersive Portals не требуется. N — инвентарь дрона, 
 B — вспомогательное, G — режим ракет. Управление портальной пушкой сохранено.
 Для native Cubic Chunks нужен отдельный Better Cubic Chunks и новый cubic_overworld.
 Этот кандидат проверен CI в обычном мире; новый native BCC-клиент не проверен.
-Добавлены запросы контакта к BlockBody и взаимный импульсный решатель D6.
+Проверены посадка, удержание, ходьба и прыжок игрока на движущемся BlockBody.
 Исправлено повторение старого поворота неподвижного корпуса при смене render tick.
 Добавлена первая серверная посадка, ходьба и прыжок по BlockBody с world-UP.
 Полная6DoF-гравитация пассажира, большой UFO и полный3D AI ещё не готовы.
@@ -81,7 +81,7 @@ C2S-вводом и предсказанием. Полная6DoF-гравита�
 Проверенный source SHA: `{source}`. [Точный CI-прогон]({run}).
 Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']['tests']}.
 Полная регрессия настоящего клиента, оружие, инвентарь, зеркала/Fabulous и LOD.
-[CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/CONTACT_STAGE_REPORT.md).
+[CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/ATTACHMENT_RUNTIME.md).
 
 Программная графика Linux; новая native BCC-сессия и Windows/RTX этим CI не
 подтверждены. Предыдущий snapshot с native-проверками сохранён отдельно.
@@ -119,7 +119,7 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
 ---
 
 ''' + previous)
-    print('Verified boarding foundation staged:', out)
+    print('Verified world-UP boarding staged:', out)
 
 
 if __name__ == '__main__':

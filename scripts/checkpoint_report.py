@@ -132,6 +132,8 @@ def verify_boarding(root, started):
         value = proof.get(key)
         if not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 <= value < limit:
             raise ValueError(f'Invalid boarding metric {key}: {value}')
+    if not isinstance(proof.get('predictionSamples'), int) or proof['predictionSamples'] < 30:
+        raise ValueError('Missing command-aligned boarding prediction samples')
     scenes = proof.get('scenes', [])
     if [s.get('scene') for s in scenes] != list(BOARDING_SCENES) or any(s.get('frames', 0) < 3 for s in scenes):
         raise ValueError('Missing completed boarding scenes')

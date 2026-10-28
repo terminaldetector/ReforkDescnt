@@ -255,7 +255,7 @@ jobs:
           git commit -m '[snapshot evidence] Preserve exact-source CI logs, frames and checksums'
           git -c 'credential.helper=!gh auth git-credential' push origin "HEAD:${GITHUB_REF#refs/heads/}"
 
-      - name: Commit the verified boarding foundation JAR and evidence directly to the repository
+      - name: Commit the verified world-UP boarding JAR and evidence directly to the repository
         if: success() && github.event_name == 'push' && github.ref == 'refs/heads/codex/ungravity-cloud-recovery-20261024' && startsWith(github.event.head_commit.message, '[boarding source]')
         env:
           GH_TOKEN: ${{ github.token }}
@@ -266,5 +266,5 @@ jobs:
           git add dist/README.md dist/releases/1.1.25-boarding.1/*.jar dist/releases/1.1.25-boarding.1/README.md dist/releases/1.1.25-boarding.1/INSTALL_TLAUNCHER.txt dist/releases/1.1.25-boarding.1/SOURCE_SHA.txt
           git commit -m '[boarding package] Publish verified 1.1.25-boarding.1 JAR'
           git add dist/releases/1.1.25-boarding.1
-          git commit -m '[boarding evidence] Preserve exact-source contact foundation proof'
+          git commit -m '[boarding evidence] Preserve exact-source world-UP boarding proof'
           git -c 'credential.helper=!gh auth git-credential' push origin "HEAD:${GITHUB_REF#refs/heads/}"

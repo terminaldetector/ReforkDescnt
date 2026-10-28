@@ -1,4 +1,4 @@
-package com.terminaldetector.drmd.boardingcheck;
+package com.terminaldetector.drmd.boardingcheck.mixin;
 import net.minecraft.client.render.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.*;

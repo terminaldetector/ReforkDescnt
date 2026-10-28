@@ -23,6 +23,9 @@ public final class DynamicBodyAttachment {
     @FunctionalInterface public interface WorldMove {Vec3 move(Vec3 feet,Vec3 requested);}
     private static final Vec3 UP=new Vec3(0,1,0),ZERO=new Vec3(0,0,0);
     private static final double SKIN=.002;
+    // Entity.move ignores displacements whose squared length is <=1e-7. A smaller
+    // depenetration silently leaves the real actor overlapping and wastes every CCD iteration.
+    private static final double SEPARATION=.0005;
     private static final double JUMP_SPEED=.42*20; // Vanilla .42 blocks/tick, expressed in world units/second.
     private DynamicBodyAttachment() {}
     public static OrientedBox box(Vec3 feet,double width,double height) {
@@ -56,7 +59,7 @@ public final class DynamicBodyAttachment {
             // Resolve a small old-pose overlap (e.g. bounded angular substeps), never chase an anchor.
             for(var b:bodies)for(var c:b.query(t).contacts(box(feet,width,height),SKIN)) {
                 if(c.penetration()>.2)continue;
-                if(c.penetration()>1e-7)feet=feet.plus(world.move(feet,c.normal().scaled(c.penetration()+1e-6)));
+                if(c.penetration()>1e-7)feet=feet.plus(world.move(feet,c.normal().scaled(c.penetration()+SEPARATION)));
                 actor.withPosition(feet.plus(new Vec3(0,height/2,0)));
                 contact(actor,b,t,c.point(),c.normal(),wish);
                 if(c.normal().dot(UP)>.6 && actor.linearVelocity().minus(b.surfaceVelocity(c.point(),t)).dot(c.normal())<.05) {
@@ -89,14 +92,21 @@ public final class DynamicBodyAttachment {
                 actor.withLinearVelocity(blockedVelocity(actor.linearVelocity(),partial,allowed));
                 actor.withPosition(feet.plus(new Vec3(0,height/2,0)));
                 var contacts=hitBody.query(impact).contacts(box(feet,width,height),.02);
-                Vec3 point=contacts.isEmpty()?box(feet,width,height).supportCentre(hit.normal().scaled(-1)):contacts.getFirst().point();
-                double before=actor.linearVelocity().minus(hitBody.surfaceVelocity(point,impact)).dot(hit.normal());
-                contact(actor,hitBody,impact,point,hit.normal(),wish);
-                planes.add(new Plane(hit.normal(),hitBody));
-                if(hit.normal().dot(UP)>.6 && before<=.05) {grounded=true;support=hitBody.id;}
+                final Vec3 sweptNormal=hit.normal();
+                var actual=contacts.stream().max(Comparator.comparingDouble(c->c.normal().dot(sweptNormal))).orElse(null);
+                Vec3 normal=actual==null?sweptNormal:actual.normal();
+                if(actual!=null&&actual.penetration()>1e-7&&actual.penetration()<=.2) {
+                    feet=feet.plus(world.move(feet,normal.scaled(actual.penetration()+SEPARATION)));
+                    actor.withPosition(feet.plus(new Vec3(0,height/2,0)));
+                }
+                Vec3 point=actual==null?box(feet,width,height).supportCentre(normal.scaled(-1)):actual.point();
+                double before=actor.linearVelocity().minus(hitBody.surfaceVelocity(point,impact)).dot(normal);
+                contact(actor,hitBody,impact,point,normal,wish);
+                planes.add(new Plane(normal,hitBody));
+                if(normal.dot(UP)>.6 && before<=.05) {grounded=true;support=hitBody.id;}
                 // A solved touching contact should slide on the next sweep. Bound a degenerate
                 // zero-progress corner instead of advancing through it or burning an unbounded loop.
-                if(fraction<1e-10 && actor.linearVelocity().minus(hitBody.surfaceVelocity(point,impact)).dot(hit.normal())< -1e-6)break;
+                if(fraction<1e-10 && actor.linearVelocity().minus(hitBody.surfaceVelocity(point,impact)).dot(normal)< -1e-6)break;
                 current=impact;
             }
             velocity=actor.linearVelocity();
@@ -119,6 +129,9 @@ public final class DynamicBodyAttachment {
         body.react(impulse,point.minus(proxy.position()));
     }
     private static Vec3 blockedVelocity(Vec3 velocity,Vec3 requested,Vec3 allowed) {
+        // A tiny time-of-impact displacement is ignored by Entity.move before it even queries
+        // world collisions. That is not a wall and must not erase the actor's momentum.
+        if(requested.lengthSquared()<=1e-7)return velocity;
         return new Vec3(Math.abs(requested.x()-allowed.x())>1e-7?0:velocity.x(),
             Math.abs(requested.y()-allowed.y())>1e-7?0:velocity.y(),Math.abs(requested.z()-allowed.z())>1e-7?0:velocity.z());
     }

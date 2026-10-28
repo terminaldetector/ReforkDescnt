@@ -98,4 +98,22 @@ class DynamicBodyAttachmentTest {
             assertTrue(Math.abs(local.x())<3.7&&Math.abs(local.z())<3.7,"walking unintentionally left the deck tick="+tick+" local="+local);
         }
     }
+    @Test void tinyContactCorrectionDoesNotDiscardWalkingTimeAtVanillaMovementThreshold() {
+        var body=rigid(0,v(0,0,0),v(3,0,0));
+        var initial=new DynamicBodyAttachment.State(v(0,.5-.00002,0),v(3,0,0),true,1);
+        DynamicBodyAttachment.WorldMove vanillaThreshold=(p,d)->d.lengthSquared()>1e-7?d:v(0,0,0);
+        var result=DynamicBodyAttachment.step(initial,DynamicBodyAttachment.Input.idle(),List.of(motion(body,v(0,0,0),v(.15,0,0))),
+            .6,1.8,.05,vanillaThreshold);
+        assertTrue(result.grounded());assertTrue(result.feet().x()>.149,"no CCD substep may silently lose its time");
+        assertTrue(result.feet().y()>=.5);assertEquals(0,result.velocity().y(),1e-9);
+    }
+    @Test void tinyTimeOfImpactMovementCannotBeMistakenForAWorldWall() {
+        var body=rigid(0,v(0,0,0),v(3,0,0));
+        var initial=new DynamicBodyAttachment.State(v(0,.50001,0),v(3,-1,0),false,-1);
+        DynamicBodyAttachment.WorldMove vanillaThreshold=(p,d)->d.lengthSquared()>1e-7?d:v(0,0,0);
+        var result=DynamicBodyAttachment.step(initial,DynamicBodyAttachment.Input.idle(),List.of(motion(body,v(0,0,0),v(.15,0,0))),
+            .6,1.8,.05,vanillaThreshold);
+        assertTrue(result.grounded());assertTrue(result.feet().x()>.149);
+        assertEquals(3,result.velocity().x(),1e-9,"the ignored tiny fraction cannot zero world momentum");
+    }
 }

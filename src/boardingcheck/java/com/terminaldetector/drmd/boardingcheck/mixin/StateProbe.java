@@ -1,4 +1,4 @@
-package com.terminaldetector.drmd.boardingcheck;
+package com.terminaldetector.drmd.boardingcheck.mixin;
 import com.terminaldetector.drmd.client.flight.BoardingClient;
 import com.terminaldetector.drmd.network.BoardingNetworking;
 import org.spongepowered.asm.mixin.Mixin;

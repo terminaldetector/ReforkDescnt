@@ -16,7 +16,7 @@ class BoardingEvidenceTest(unittest.TestCase):
         self.marker = self.root / 'build/boardingcheck/boarding-ok.json'
         self.marker.parent.mkdir(parents=True)
         self.proof = dict(actualInputs=True, authoritativeContact=True, worldUpOnly=True,
-                          teleportFollow=False, jumpWorldVelocityError=0, maxPredictionError=.1,
+                          teleportFollow=False, jumpWorldVelocityError=0, maxPredictionError=.1, predictionSamples=50,
                           scenes=[dict(scene=n, frames=3) for n in BOARDING_SCENES])
         for name in BOARDING_SCENES:
             p = self.root / f'build/boardingcheck/boarding-frames/{name}.png'
@@ -47,7 +47,7 @@ class BoardingEvidenceTest(unittest.TestCase):
 
     def test_nonfinite_or_out_of_bounds_prediction_and_jump_are_rejected(self):
         for key, value in (('maxPredictionError', float('nan')), ('maxPredictionError', .8),
-                           ('jumpWorldVelocityError', .03)):
+                           ('jumpWorldVelocityError', .03), ('predictionSamples', 0)):
             with self.subTest(key=key):
                 original = copy.deepcopy(self.proof)
                 self.proof[key] = value
