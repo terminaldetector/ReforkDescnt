@@ -14,6 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Per-player DRMD state — mirrors GMod NWVars / ply fields from d6_core, energy, shield.
  */
 public class DescentPlayerData {
+	private net.minecraft.inventory.SimpleInventory droneLoadout;
+    public net.minecraft.inventory.SimpleInventory droneLoadout(){if(droneLoadout==null)droneLoadout=new net.minecraft.inventory.SimpleInventory(5);return droneLoadout;}
 	private static final Map<UUID, DescentPlayerData> STORE = new ConcurrentHashMap<>();
     private static final Map<UUID, DescentPlayerData> CLIENT_STORE = new ConcurrentHashMap<>();
 
@@ -266,7 +268,7 @@ public class DescentPlayerData {
 	public int getRocketSubmode() { return rocketSubmode; }
 	public void setRocketSubmode(int rocketSubmode) { this.rocketSubmode = rocketSubmode & 3; }
 	public int getAfterburnerTier() {
-		return com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(afterburnerTier);
+		return droneLoadout!=null && droneLoadout.getStack(4).getItem() instanceof com.terminaldetector.drmd.flight.AcceleratorModuleItem module?module.tier():com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(afterburnerTier);
 	}
 	public void setAfterburnerTier(int afterburnerTier) {
 		this.afterburnerTier = com.terminaldetector.drmd.flight.AfterburnerTiers.clamp(afterburnerTier);

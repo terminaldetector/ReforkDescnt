@@ -62,7 +62,9 @@ public class DescentClient implements ClientModInitializer {
             DescentClientState.physicsProfile=com.terminaldetector.drmd.physics.PhysicsProfile.parse(payload.profile());
             DescentClientState.physicsCanChange=payload.canChange();
         }));
-		DescentKeybinds.register();
+		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.DroneLoadoutPayload.ID,(payload,context)->context.client().execute(()->{var p=context.client().player;if(p!=null)com.terminaldetector.drmd.inventory.DroneLoadout.load(p,payload.nbt());}));
+        DescentKeybinds.register();
+        net.minecraft.client.gui.screen.ingame.HandledScreens.register(com.terminaldetector.drmd.inventory.DroneInventoryHandler.TYPE,com.terminaldetector.drmd.client.screen.DroneInventoryScreen::new);
 		ModEntityRenderers.register();
 		com.terminaldetector.drmd.client.render.ShotRenderLayers.register();
         com.terminaldetector.drmd.client.portal.SurfaceComposite.register();
@@ -261,7 +263,7 @@ public class DescentClient implements ClientModInitializer {
 
 	public static void openShipCustomize() {
 		MinecraftClient mc = MinecraftClient.getInstance();
-		mc.setScreen(new com.terminaldetector.drmd.client.screen.ShipCustomizeScreen(mc.currentScreen));
+		ClientPlayNetworking.send(new ModNetworking.ActionPayload("drone_inventory"));
 	}
 
 	/** Pause / keybind entry into client 6DoF options. */

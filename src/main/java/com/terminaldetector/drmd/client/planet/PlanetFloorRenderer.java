@@ -40,7 +40,7 @@ public final class PlanetFloorRenderer {
 
 	public static void register() {
 		HorizonShader.register();
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(PlanetFloorRenderer::render);
+        WorldRenderEvents.BEFORE_ENTITIES.register(PlanetFloorRenderer::render);
 	}
 
 	private static void render(WorldRenderContext ctx) {
@@ -100,7 +100,10 @@ public final class PlanetFloorRenderer {
         HorizonShader.position((float)(mesh.originX-cam.x),endDim?0f:(float)(mesh.originY-cam.y),
                 (float)(mesh.originZ-cam.z),(float)inner,(float)reach);
 
-		RenderSystem.enableBlend();
+		boolean write=org.lwjgl.opengl.GL11.glGetBoolean(org.lwjgl.opengl.GL11.GL_DEPTH_WRITEMASK);
+        var previous=RenderSystem.getShader();
+        RenderSystem.depthMask(false);
+        RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.disableCull(); // skirts are single quads seen from either side
 		RenderSystem.enableDepthTest();
@@ -117,6 +120,8 @@ public final class PlanetFloorRenderer {
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 		RenderSystem.enableCull();
 		RenderSystem.disableBlend();
+        RenderSystem.depthMask(write);
+        RenderSystem.setShader(()->previous);
 	}
 
 	/**

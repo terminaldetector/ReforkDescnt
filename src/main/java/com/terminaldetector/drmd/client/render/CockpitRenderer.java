@@ -34,6 +34,7 @@ public final class CockpitRenderer {
 
 	public static void register() {
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
+            if(com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())return;
 			MinecraftClient mc = MinecraftClient.getInstance();
 			if (mc.player == null || mc.options == null) return;
 			if (!DescentConfig.cockpit || !DescentClientState.enabled || mc.currentScreen != null) return;

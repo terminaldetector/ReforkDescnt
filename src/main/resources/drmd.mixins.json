@@ -21,6 +21,8 @@
   ],
   "client": [
     "client.CameraAccessor",
+    "client.ViewFramebufferAccess",
+    "client.NestedGraphicsMixin",
     "client.CameraMixin",
     "client.ClientPlayerEntityMixin",
     "client.ClientWorldMixin",
@@ -32,6 +34,7 @@
     "client.MouseMixin",
     "client.PlayerFlightTravelMixin",
     "client.PortalProjectorInputMixin",
+    "client.DroneCombatInputMixin",
     "client.HeldWeaponFallbackMixin"
   ],
   "injectors": {

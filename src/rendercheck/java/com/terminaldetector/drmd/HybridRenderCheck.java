@@ -61,6 +61,7 @@ public final class HybridRenderCheck implements ClientModInitializer {
     private volatile boolean gravityArenaBuilt;
     private boolean setupQueued;
     private int ticks, sceneTicks;
+    private int collapseBeforePixels;
     @Override public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(this::tick);
     }
@@ -90,6 +91,9 @@ public final class HybridRenderCheck implements ClientModInitializer {
         if (client.world==null || client.player==null || client.getServer()==null) return;
         DescentClient.markUserFlightChoice();
         DescentPlayerData.get(client.player).setEnabled(false);
+        // Saved flight sync can leave the independent camera state enabled after the
+        // fixture disables PlayerData; pin both states before the next world render.
+        com.terminaldetector.drmd.client.DescentClientState.enabled=false;
         DescentConfig.cockpit=false;DescentConfig.hud=false;DescentConfig.weaponView=false;
         DescentConfig.planetFloor=false;DescentConfig.levelSky=false;DescentConfig.skyUfoVirtualHull=false;
         client.options.hudHidden=true;client.options.pauseOnLostFocus=false;
@@ -157,7 +161,7 @@ public final class HybridRenderCheck implements ClientModInitializer {
         });
         if(sceneTicks==340) {
             if(!collapseReady)throw new IllegalStateException("Collapse fixture setup incomplete");
-            capture(client,"collapse-before.png");
+            collapseBeforePixels=capture(client,"collapse-before.png");
             client.getServer().execute(() -> {
                 var world=client.getServer().getOverworld();var owner=client.getServer().getPlayerManager().getPlayer(client.player.getUuid());
                 for(int x:new int[]{10,25}) {
@@ -176,7 +180,10 @@ public final class HybridRenderCheck implements ClientModInitializer {
                 new net.minecraft.util.math.Box(1,200,4,35,216,31),b -> b.physicsGravity());
             if(bodies.size()!=2 || bodies.stream().anyMatch(b -> Math.abs(b.rotation().x())<.35))
                 throw new IllegalStateException("Rocket-cut tree/column did not physically tip on client: "+bodies.size());
-            capture(client,"collapse-after.png");
+            int afterPixels=capture(client,"collapse-after.png");
+            try {Files.writeString(client.runDirectory.toPath().resolve("collapse-view-ok.json"),
+                "{\"beforeArenaPixels\":"+collapseBeforePixels+",\"afterArenaPixels\":"+afterPixels+"}\n");}
+            catch(java.io.IOException e){throw new IllegalStateException(e);}
 			try {Files.writeString(client.runDirectory.toPath().resolve("collapse-ok.txt"),"Real rocket impacts detached tree and column; both gravity bodies tipped; flight and before/after frames captured.\n");}
             catch(java.io.IOException e){throw new IllegalStateException(e);}
 			client.getServer().execute(() -> {
@@ -537,10 +544,19 @@ public final class HybridRenderCheck implements ClientModInitializer {
         var glass=rigid.east(2);world.setBlockState(glass,Blocks.RED_STAINED_GLASS.getDefaultState());
         CarvedBlock.replace(world,glass,Blocks.RED_STAINED_GLASS.getDefaultState(),MicroGrid.carve(-1,.9,.8,.9,.45));
     }
-    private static void capture(MinecraftClient client,String name) {
+    private static int capture(MinecraftClient client,String name) {
         try(var image=ScreenshotRecorder.takeScreenshot(client.getFramebuffer())) {
             var directory=client.runDirectory.toPath().resolve("screenshots");Files.createDirectories(directory);
             image.writeTo(directory.resolve(name));
+            int arenaPixels=0;
+            if(name.equals("collapse-before.png") || name.equals("collapse-after.png")) {
+                for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++) {
+                    int color=image.getColor(x,y);
+                    if((color&255)<130 && ((color>>>8)&255)<130 && ((color>>>16)&255)<130)arenaPixels++;
+                }
+                if(arenaPixels<2000)throw new IllegalStateException("Collapse frame shows no arena: "+name+" pixels="+arenaPixels);
+            }
+            return arenaPixels;
         } catch(java.io.IOException e) {throw new IllegalStateException("Cannot save render verification",e);}
     }
 }

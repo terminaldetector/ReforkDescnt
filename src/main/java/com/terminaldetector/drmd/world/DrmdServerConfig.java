@@ -104,7 +104,7 @@ public final class DrmdServerConfig {
 
 	public static WorldKind worldKind = WorldKind.STOCK;
 
-	public static WorldModLevel worldModLevel = WorldModLevel.ADVANCED;
+	public static WorldModLevel worldModLevel = WorldModLevel.VANILLA;
 
 	/** Persist passive XYZ cube snapshots beside vanilla terrain; this does not replace vanilla chunks. */
 	public static boolean cubicSnapshots = Boolean.getBoolean("drmd.cubicSnapshots");
@@ -116,6 +116,7 @@ public final class DrmdServerConfig {
 	public static void load() {
 		if (loaded) return;
 		loaded = true;
+        forceFeaturesFor(false); // Applies even on a first launch without a properties file.
 		Path path = FabricLoader.getInstance().getConfigDir().resolve(FILE);
 		if (!Files.exists(path)) {
 			saveDefaults(path);
@@ -150,7 +151,7 @@ public final class DrmdServerConfig {
 			// the legacy boolean so it keeps meaning what it always meant.
 			worldKind = psychedelicWorlds ? WorldKind.PSYCHEDELIC : WorldKind.STOCK;
 		}
-		worldModLevel = parseModLevel(props.getProperty("worldModLevel"), WorldModLevel.ADVANCED);
+		worldModLevel = parseModLevel(props.getProperty("worldModLevel"), WorldModLevel.VANILLA);
 		cubicSnapshots = parseCubicSnapshots(props, Boolean.getBoolean("drmd.cubicSnapshots"));
 		configuredFeatures = parseFeatureSettings(props, FeatureSettings.fromWorldFeatures());
 
@@ -183,7 +184,7 @@ public final class DrmdServerConfig {
 	}
 
 	static FeatureSettings effectiveFeaturesFor(FeatureSettings configured, boolean advancedColumn) {
-		return advancedColumn ? configured : FeatureSettings.disabled();
+		return FeatureSettings.disabled(); // Legacy automatic generation retired; configured keys remain readable.
 	}
 
 	private static void applyFeatures(FeatureSettings settings) {
@@ -234,7 +235,7 @@ public final class DrmdServerConfig {
 	private static void saveDefaults(Path path) {
 		Properties props = new Properties();
 		props.setProperty("worldKind", WorldKind.STOCK.name());
-		props.setProperty("worldModLevel", WorldModLevel.ADVANCED.name());
+		props.setProperty("worldModLevel", WorldModLevel.VANILLA.name());
 		props.setProperty("cubicSnapshots", String.valueOf(cubicSnapshots));
 		props.setProperty("psychedelicWorlds", "false");
 		props.setProperty("netherBand", String.valueOf(configuredFeatures.netherBand()));

@@ -44,7 +44,7 @@ jobs:
     name: Unit, world, real client and JAR
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
     permissions:
       contents: write
       actions: read
@@ -107,6 +107,28 @@ jobs:
             rm -f "build/rendercheck/${marker}.txt"
           done
           LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runRendercheck --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/rendercheck.log
+      - name: Verify snapshot weapon input, fixed tools and drone inventory
+        if: contains(github.ref_name, 'ungravity-cloud-recovery') && startsWith(github.event.head_commit.message, '[snapshot source]')
+        env:
+          DRMD_SNAPSHOT_CHECK: '1'
+        run: |
+          rm -f build/shootcheck/snapshot-ok.json
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runShootcheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/snapshot.log
+      - name: Verify joined mirrors and portals with Fabulous transparency
+        if: contains(github.ref_name, 'ungravity-cloud-recovery') && startsWith(github.event.head_commit.message, '[snapshot source]')
+        env:
+          DRMD_MIRROR_JOIN_CHECK: '1'
+          DRMD_TEST_FABULOUS: '1'
+        run: |
+          rm -f build/shootcheck/mirror-join-ok.json
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runShootcheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/mirror-fabulous.log
+      - name: Verify horizon anchoring and repaired visuals
+        if: contains(github.ref_name, 'ungravity-cloud-recovery') && startsWith(github.event.head_commit.message, '[snapshot source]')
+        env:
+          DRMD_HORIZON_CHECK: '1'
+        run: |
+          rm -f build/shootcheck/horizon-anchor-ok.json build/shootcheck/repair-visual-ok.json
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 360s xvfb-run -a ./gradlew runShootcheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/horizon-anchor.log
       - name: Validate fresh evidence and stage only the current JAR
         id: verify
         run: python3 scripts/checkpoint_report.py --verify 2>&1 | tee build/checkpoint/logs/verify.log
@@ -138,6 +160,14 @@ jobs:
             build/rendercheck/logs/
             build/rendercheck/crash-reports/
             build/rendercheck/*-ok.txt
+            build/shootcheck/snapshot-frames/
+            build/shootcheck/snapshot-ok.json
+            build/shootcheck/mirror-join-frames/
+            build/shootcheck/mirror-join-ok.json
+            build/shootcheck/horizon-anchor-frames/
+            build/shootcheck/horizon-anchor-ok.json
+            build/shootcheck/repair-visual-frames/
+            build/shootcheck/repair-visual-ok.json
             build/shootcheck/screenshots/
             build/shootcheck/logs/
             build/shootcheck/crash-reports/
@@ -201,3 +231,17 @@ jobs:
             --title "UNGRAVITY ${VERSION} video audit (${GITHUB_SHA:0:7})" \
             --notes-file build/checkpoint/REPORT.md \
             --prerelease --latest=false
+
+      - name: Commit the verified snapshot JAR and evidence directly to the repository
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/codex/ungravity-cloud-recovery-20261024' && startsWith(github.event.head_commit.message, '[snapshot source]')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/publish_snapshot_ci.py
+          git config user.name 'Ungravity checkpoint bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add dist/README.md dist/releases/1.1.23-snapshot.1/*.jar dist/releases/1.1.23-snapshot.1/README.md dist/releases/1.1.23-snapshot.1/INSTALL_TLAUNCHER.txt dist/releases/1.1.23-snapshot.1/SOURCE_SHA.txt
+          git commit -m '[snapshot package] Publish verified 1.1.23-snapshot.1 JAR'
+          git add dist/releases/1.1.23-snapshot.1
+          git commit -m '[snapshot evidence] Preserve exact-source CI logs, frames and checksums'
+          git -c 'credential.helper=!gh auth git-credential' push origin "HEAD:${GITHUB_REF#refs/heads/}"

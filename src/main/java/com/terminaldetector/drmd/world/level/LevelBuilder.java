@@ -160,6 +160,7 @@ public final class LevelBuilder {
 	private LevelBuilder() {}
 
 	public static void register() {
+        if(com.terminaldetector.drmd.world.LegacyGeneration.retired())return;
 		ServerChunkEvents.CHUNK_LOAD.register(LevelBuilder::onChunkLoad);
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			// Timed against the tick it runs in, not only against its own budget: this fill was the

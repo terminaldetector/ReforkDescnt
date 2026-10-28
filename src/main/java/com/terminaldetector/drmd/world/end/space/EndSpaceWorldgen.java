@@ -58,6 +58,7 @@ public final class EndSpaceWorldgen {
 	private EndSpaceWorldgen() {}
 
 	public static void register() {
+        if(com.terminaldetector.drmd.world.LegacyGeneration.retired())return;
 		ServerChunkEvents.CHUNK_LOAD.register(EndSpaceWorldgen::onChunkLoad);
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			long started = com.terminaldetector.drmd.diag.DiagServerTick.begin();

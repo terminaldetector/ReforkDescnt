@@ -46,17 +46,6 @@ public class DescentWeaponItem extends Item {
 
 	public WeaponDef getDef() { return def; }
 
-	/** True if this weapon's type is socketed into any hardpoint on {@code ship} — compares by
-	 *  item type, not exact stack equality, since the socketed copy and a held duplicate can
-	 *  legitimately differ in per-stack state (laser level, fire-cooldown timestamp). */
-	private static boolean matchesEquippedSlot(PyroShipEntity ship, ItemStack heldStack) {
-		for (ShipWeaponSlot slot : ShipWeaponSlot.values()) {
-			ItemStack equipped = ship.getWeaponSlot(slot);
-			if (!equipped.isEmpty() && equipped.getItem() == heldStack.getItem()) return true;
-		}
-		return false;
-	}
-
 	@Override
 	public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
 		ItemStack stack = user.getStackInHand(hand);
@@ -69,18 +58,7 @@ public class DescentWeaponItem extends Item {
 
 		if (world.isClient) return TypedActionResult.pass(stack);
 
-		// Piloting a ship with hardpoints socketed gates firing to whatever's actually equipped —
-		// only reachable here, past the isClient return above: the client can't see slot contents
-		// (ItemStack persistence is NBT-only, not DataTracker-synced), so this stays server-only
-		// rather than risk a client/server disagreement. The Mega Beam's own hold-to-fire branch
-		// above runs before this and is deliberately not gated yet — it starts on both sides via
-		// setCurrentHand, and gating only the server half there would desync the client's held-item
-		// state; a real fix needs slot-content sync, out of scope for this pass.
-		if (user.getVehicle() instanceof PyroShipEntity ship && !matchesEquippedSlot(ship, stack)) {
-			user.sendMessage(Text.literal("§7Not equipped in a hardpoint §8— open the ship menu (N) to socket it."), true);
-			return TypedActionResult.fail(stack);
-		}
-
+        // A hand-held weapon is usable even when the hull has no socketed copy.
 		DescentPlayerData data = DescentPlayerData.get(user);
 
 		// Descent laser powerup: sneak + glowstone dust in offhand raises LASER LVL (max 4).
@@ -106,7 +84,7 @@ public class DescentWeaponItem extends Item {
 		var custom = stack.get(net.minecraft.component.DataComponentTypes.CUSTOM_DATA);
 		if (custom != null) last = custom.copyNbt().getLong("lastFire");
 		int cdTicks = Math.max(1, (int) (def.fireRate * 20));
-		if (now - last < cdTicks) return TypedActionResult.fail(stack);
+		if (last <= now && now - last < cdTicks) return TypedActionResult.fail(stack);
 
 		if (!fire(world, user, data, stack)) {
 			return TypedActionResult.fail(stack);

@@ -78,6 +78,7 @@ public final class WeaponRenderCheck implements ClientModInitializer {
     }
 
     @Override public void onInitializeClient() {
+        if("1".equals(System.getenv("DRMD_SNAPSHOT_CHECK"))){SnapshotFixCheck.register();return;}
         if("1".equals(System.getenv("DRMD_MIRROR_JOIN_CHECK"))) { MirrorJoinCheck.register();return; }
         if("1".equals(System.getenv("DRMD_HORIZON_CHECK"))) { HorizonAnchorCheck.register();return; }
         ClientTickEvents.END_CLIENT_TICK.register(this::tick);

@@ -60,6 +60,7 @@ public final class InfiniteMegacityWorldgen {
 	private InfiniteMegacityWorldgen() {}
 
 	public static void register() {
+        if(com.terminaldetector.drmd.world.LegacyGeneration.retired())return;
 		ServerChunkEvents.CHUNK_LOAD.register(InfiniteMegacityWorldgen::onChunkLoad);
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			long started = com.terminaldetector.drmd.diag.DiagServerTick.begin();

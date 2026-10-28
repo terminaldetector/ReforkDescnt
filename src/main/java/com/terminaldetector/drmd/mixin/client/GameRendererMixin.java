@@ -15,6 +15,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(GameRenderer.class)
 public class GameRendererMixin {
+ @Inject(method="renderHand",at=@At("HEAD"))private void handStart(CallbackInfo ci){com.terminaldetector.drmd.client.render.HandRenderFrame.active=true;}
+ @Inject(method="renderHand",at=@At("RETURN"))private void handEnd(CallbackInfo ci){com.terminaldetector.drmd.client.render.HandRenderFrame.active=false;}
+
 	@Inject(method = "bobView", at = @At("HEAD"), cancellable = true)
 	private void drmd$cancelBob(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
 		// View bob walks the camera along world axes, which fights any tilted frame.
@@ -28,6 +31,7 @@ public class GameRendererMixin {
 	@Inject(method = "tiltViewWhenHurt", at = @At("HEAD"), cancellable = true)
 	private void drmd$cameraBank(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
 		if (DescentClientState.enabled) {
+            if(com.terminaldetector.drmd.client.render.HandRenderFrame.active){ci.cancel();return;}
 			float roll = DescentCamera.viewRoll();
 			if (Math.abs(roll) > 0.05f) {
 				matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll));

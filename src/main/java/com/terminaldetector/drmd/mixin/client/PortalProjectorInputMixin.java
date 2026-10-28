@@ -20,7 +20,7 @@ public class PortalProjectorInputMixin {
             ? com.terminaldetector.drmd.client.flight.ShipAttitudeClient.get().forward():player.getRotationVec(1);
         ClientPlayNetworking.send(new ModNetworking.PortalProjectorPayload(slot,reset,(float)aim.x,(float)aim.y,(float)aim.z));
         player.getItemCooldownManager().set(player.getMainHandStack().getItem(),com.terminaldetector.drmd.world.portal.gun.PortalProjector.COOLDOWN);
-        player.swingHand(Hand.MAIN_HAND);
+        if(!com.terminaldetector.drmd.client.DescentClientState.enabled)player.swingHand(Hand.MAIN_HAND);
     }
     private boolean drmd$projector() {
         var client=(MinecraftClient)(Object)this;

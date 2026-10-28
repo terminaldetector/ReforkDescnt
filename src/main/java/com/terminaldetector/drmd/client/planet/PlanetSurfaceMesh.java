@@ -293,12 +293,6 @@ public final class PlanetSurfaceMesh {
 		 */
 		private float alphaAt(double distance) {
 			float alpha = 1f;
-			if (inner > 1.0) {
-				double band = inner * 0.2;
-				if (distance < inner + band) {
-					alpha *= (float) (0.25 + 0.75 * Math.max(0.0, distance - inner) / band);
-				}
-			}
 			double fadeFrom = fieldOuter * 0.55;
 			if (distance > fadeFrom) {
 				double tail = Math.max(1.0, fieldOuter - fadeFrom);

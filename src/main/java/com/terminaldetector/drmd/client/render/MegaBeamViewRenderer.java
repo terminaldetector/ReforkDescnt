@@ -28,7 +28,8 @@ public final class MegaBeamViewRenderer {
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(MegaBeamViewRenderer::render);
 		// Clear sticky flag if player stops holding without onStoppedUsing.
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(client -> {
-			if (client.player == null || !client.player.isUsingItem()
+			if (com.terminaldetector.drmd.client.input.DroneCombatInput.megaActive(client)){DescentClientState.megaBeamActive=true;return;}
+            if (client.player == null || !client.player.isUsingItem()
 					|| !(client.player.getActiveItem().getItem() instanceof DescentWeaponItem wep)
 					|| !"mega_laser".equals(wep.getDef().behavior)) {
 				DescentClientState.megaBeamActive = false;
@@ -37,6 +38,7 @@ public final class MegaBeamViewRenderer {
 	}
 
 	private static void render(WorldRenderContext ctx) {
+        if(com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())return;
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (mc.player == null || mc.world == null) return;
 		if (!DescentClientState.megaBeamActive && !isHoldingMega(mc)) return;

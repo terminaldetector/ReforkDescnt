@@ -14,16 +14,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerEntity.class)
 public class PlayerEntityMixin {
+ @Inject(method="dropInventory",at=@At("RETURN"))private void dropLoadout(CallbackInfo ci){
+  var p=(PlayerEntity)(Object)this;if(p.getWorld().isClient||p.getWorld().getGameRules().getBoolean(net.minecraft.world.GameRules.KEEP_INVENTORY))return;
+  var inv=DescentPlayerData.get(p).droneLoadout();for(int i=0;i<inv.size();i++){var stack=inv.removeStack(i);if(!stack.isEmpty())p.dropItem(stack,true,false);}
+ }
+
 	@Inject(method = "writeCustomDataToNbt", at = @At("RETURN"))
 	private void drmd$write(NbtCompound nbt, CallbackInfo ci) {
 		PlayerEntity self = (PlayerEntity) (Object) this;
 		DescentPlayerData.get(self).writeNbt(nbt);
+        nbt.put("DrmdLoadout",com.terminaldetector.drmd.inventory.DroneLoadout.save(self));
 	}
 
 	@Inject(method = "readCustomDataFromNbt", at = @At("RETURN"))
 	private void drmd$read(NbtCompound nbt, CallbackInfo ci) {
 		PlayerEntity self = (PlayerEntity) (Object) this;
 		DescentPlayerData.get(self).readNbt(nbt);
+        if(nbt.contains("DrmdLoadout"))com.terminaldetector.drmd.inventory.DroneLoadout.load(self,nbt.getCompound("DrmdLoadout"));
 	}
 
 	/**

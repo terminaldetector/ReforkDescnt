@@ -64,6 +64,8 @@ public final class MirrorFramebuffer {
 			width = w;
 			height = h;
 		}
+        // Allocation/resizing binds GL targets; queued outer geometry belongs to the main frame.
+        mc.getFramebuffer().beginWrite(true);
 		return framebuffer;
 	}
 

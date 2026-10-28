@@ -41,6 +41,14 @@ import java.util.UUID;
  * .LaserBarrierCartEntity} is this codebase's existing precedent for a non-mob rideable vehicle.
  */
 public class PyroShipEntity extends VehicleEntity {
+ private static final net.minecraft.entity.data.TrackedData<net.minecraft.nbt.NbtCompound> LOADOUT=net.minecraft.entity.data.DataTracker.registerData(PyroShipEntity.class,net.minecraft.entity.data.TrackedDataHandlerRegistry.NBT_COMPOUND);
+ @Override protected void initDataTracker(net.minecraft.entity.data.DataTracker.Builder builder){super.initDataTracker(builder);builder.add(LOADOUT,new NbtCompound());}
+ public void syncLoadout(){if(!getWorld().isClient){var n=new NbtCompound();writeLoadout(n);dataTracker.set(LOADOUT,n);}}
+ private void writeLoadout(NbtCompound n){Inventories.writeNbt(n,weaponSlots,getWorld().getRegistryManager());if(!propulsionModule.isEmpty())n.put("Propulsion",propulsionModule.encode(getWorld().getRegistryManager()));}
+ @Override public void onTrackedDataSet(net.minecraft.entity.data.TrackedData<?> key){super.onTrackedDataSet(key);if(key==LOADOUT && getWorld().isClient && weaponSlots!=null){
+  weaponSlots.clear();Inventories.readNbt(dataTracker.get(LOADOUT),weaponSlots,getWorld().getRegistryManager());
+  propulsionModule=dataTracker.get(LOADOUT).contains("Propulsion")?ItemStack.fromNbt(getWorld().getRegistryManager(),dataTracker.get(LOADOUT).getCompound("Propulsion")).orElse(ItemStack.EMPTY):ItemStack.EMPTY;
+ }}
 	private boolean wasPiloted;
 	private int landTicks;
 	/** Last pilot to board — lets {@code FlightSystem.autoMountPyroShip} find this hull again on
@@ -75,7 +83,7 @@ public class PyroShipEntity extends VehicleEntity {
 	public void setMaxSpeed(float maxSpeed) { this.maxSpeed = maxSpeed; }
 
 	public ItemStack getPropulsionModule() { return propulsionModule; }
-	public void setPropulsionModule(ItemStack propulsionModule) { this.propulsionModule = propulsionModule; }
+	public void setPropulsionModule(ItemStack propulsionModule) { this.propulsionModule = propulsionModule;syncLoadout(); }
 
 	/** 0 (no afterburner available) if the propulsion slot is empty, otherwise the socketed
 	 *  module's own tier — see {@link com.terminaldetector.drmd.flight.AcceleratorModuleItem}. Unlike
@@ -93,7 +101,7 @@ public class PyroShipEntity extends VehicleEntity {
 	}
 
 	public void setWeaponSlot(ShipWeaponSlot slot, ItemStack stack) {
-		weaponSlots.set(slot.ordinal(), stack);
+		weaponSlots.set(slot.ordinal(), stack);syncLoadout();
 	}
 
 	public PyroShipEntity(EntityType<? extends PyroShipEntity> type, World world) {
@@ -324,5 +332,6 @@ public class PyroShipEntity extends VehicleEntity {
 			Inventories.readNbt(nbt.getCompound("propulsion"), tmp, getWorld().getRegistryManager());
 			propulsionModule = tmp.get(0);
 		}
+        syncLoadout();
 	}
 }

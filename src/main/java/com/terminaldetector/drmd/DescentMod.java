@@ -42,6 +42,7 @@ public class DescentMod implements ModInitializer {
 		// distances are sampled a second apart rather than every tick: they change when a slider moves,
 		// and reading them 20 times a second to prove that would be its own small cost.
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for(var p:server.getPlayerManager().getPlayerList())com.terminaldetector.drmd.inventory.DroneArsenal.tick(p);
 			com.terminaldetector.drmd.diag.DiagServerTick.rollTick(System.nanoTime());
 			if (com.terminaldetector.drmd.diag.DiagServerTick.ticks() % 20 == 0) {
 				int chunks = 0;
@@ -59,6 +60,7 @@ public class DescentMod implements ModInitializer {
         com.terminaldetector.drmd.world.DrmdServerConfig.load();
 		com.terminaldetector.drmd.world.DrmdBuiltinPacks.register();
 		ModNetworking.register();
+        com.terminaldetector.drmd.inventory.DroneInventoryHandler.register();
 		ModEntities.register();
 		ModBlocks.register();
 		ModItems.register();
@@ -102,6 +104,7 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.ai.DroneSwarmAi.clear();
 			com.terminaldetector.drmd.world.gravity.TransientGravityFields.clear();
 			DescentPlayerData.clear();
+            com.terminaldetector.drmd.inventory.DroneArsenal.clear();
             com.terminaldetector.drmd.world.gravity.FootGravitySystem.clearAll();
             com.terminaldetector.drmd.world.level.LowerWorldRecovery.clearAll();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
@@ -119,6 +122,7 @@ public class DescentMod implements ModInitializer {
 						com.terminaldetector.drmd.world.level.WorldLevels.isAdvancedColumn(server.getOverworld()));
 			}
 			DescentPlayerData.clear();
+            com.terminaldetector.drmd.inventory.DroneArsenal.clear();
             com.terminaldetector.drmd.world.gravity.FootGravitySystem.clearAll();
             com.terminaldetector.drmd.world.level.LowerWorldRecovery.clearAll();
 			com.terminaldetector.drmd.world.layer.LayerBridge.clearAll();
@@ -158,7 +162,7 @@ public class DescentMod implements ModInitializer {
 				com.terminaldetector.drmd.world.gen.ModWorldgen.enableLiveGeneration();
 				com.terminaldetector.drmd.world.gen2.ModWorldgen2.enableLiveGeneration();
 			});
-			com.terminaldetector.drmd.world.end.EndReactorSession.onServerStarted(server);
+			if(!com.terminaldetector.drmd.world.LegacyGeneration.retired())com.terminaldetector.drmd.world.end.EndReactorSession.onServerStarted(server);
 		});
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
@@ -181,10 +185,10 @@ public class DescentMod implements ModInitializer {
 			com.terminaldetector.drmd.world.cubic.CubicWorldSystem.tick(server);
 			com.terminaldetector.drmd.world.compat.NativeCubicSkylight.tick(server);
 			com.terminaldetector.drmd.world.store.SurfaceStreamer.tick(server);
-			com.terminaldetector.drmd.world.fate.WorldEndings.tick(server);
-			com.terminaldetector.drmd.world.event.WorldEventSystem.tick(server);
+			if(!com.terminaldetector.drmd.world.LegacyGeneration.retired())com.terminaldetector.drmd.world.fate.WorldEndings.tick(server);
+			if(!com.terminaldetector.drmd.world.LegacyGeneration.retired())com.terminaldetector.drmd.world.event.WorldEventSystem.tick(server);
 			if (tick % 40 == 0) {
-				com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);
+				if(!com.terminaldetector.drmd.world.LegacyGeneration.retired())com.terminaldetector.drmd.world.end.EndReactorSession.onServerTick(server);
 			}
 			com.terminaldetector.drmd.world.end.OblivionSeekerSpawner.onServerTick(server);
 			server.getWorlds().forEach(world -> {
@@ -199,7 +203,7 @@ public class DescentMod implements ModInitializer {
 				DescentPlayerData data = DescentPlayerData.get(player);
 				com.terminaldetector.drmd.world.layer.LayerBridge.tick(player);
 				// Background Nether/End warm before ±10 of the parallelepiped faces.
-				com.terminaldetector.drmd.world.layer.SeamWarmup.tick(player);
+				if(!com.terminaldetector.drmd.world.LegacyGeneration.retired())com.terminaldetector.drmd.world.layer.SeamWarmup.tick(player);
 				if (data.isEnabled()) {
 					FlightSystem.tick(player, data);
 					EnergySystem.regenTick(player, data);
@@ -273,6 +277,7 @@ public class DescentMod implements ModInitializer {
             com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(player.getUuid());
             com.terminaldetector.drmd.world.LocalOrientation.clear(player.getUuid());
             FlightSystem.clearInput(player.getUuid());
+            com.terminaldetector.drmd.inventory.DroneArsenal.clear(player.getUuid());
             player.calculateDimensions();
         });
 

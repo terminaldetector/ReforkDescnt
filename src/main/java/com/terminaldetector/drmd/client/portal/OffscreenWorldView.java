@@ -113,10 +113,16 @@ public final class OffscreenWorldView {
 		float originalPitch = camera.getPitch();
 
 		MinecraftClient mc = MinecraftClient.getInstance();
-		int originalWinding = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_FRONT_FACE);
+		if(context.consumers() instanceof net.minecraft.client.render.VertexConsumerProvider.Immediate immediate)immediate.draw();
+        Framebuffer mainTarget=mc.getFramebuffer();
+        Matrix4f savedProjection=new Matrix4f(RenderSystem.getProjectionMatrix());
+        var savedSorting=RenderSystem.getVertexSorting();
+        var savedShader=RenderSystem.getShader();
+        int originalWinding = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_FRONT_FACE);
 		depth++;
 		try {
-			accessor.drmd$invokeSetPos(viewPos);
+			((com.terminaldetector.drmd.mixin.client.ViewFramebufferAccess)mc).drmd$framebuffer(target);
+            accessor.drmd$invokeSetPos(viewPos);
 			accessor.drmd$invokeSetRotation(viewYaw, viewPitch);
 
 			Matrix4f positionMatrix = new Matrix4f(viewMatrix);
@@ -152,11 +158,14 @@ public final class OffscreenWorldView {
 			// this one view's picture.
 			org.lwjgl.opengl.GL11.glFrontFace(originalWinding);
 			target.endWrite();
-			mc.getFramebuffer().beginWrite(true);
+			((com.terminaldetector.drmd.mixin.client.ViewFramebufferAccess)mc).drmd$framebuffer(mainTarget);
+            mainTarget.beginWrite(true);
 			accessor.drmd$invokeSetPos(originalPos);
 			accessor.drmd$invokeSetRotation(originalYaw, originalPitch);
 			context.worldRenderer().setupFrustum(originalPos, framePosition, outerProjection);
-			depth--;
+			RenderSystem.setProjectionMatrix(savedProjection,savedSorting);
+            RenderSystem.setShader(()->savedShader);
+            depth--;
 		}
 
         SurfaceComposite.draw(target, outerProjection, framePosition, originalPos, apertures);

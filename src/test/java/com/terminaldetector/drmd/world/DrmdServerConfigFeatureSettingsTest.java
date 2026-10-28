@@ -31,7 +31,8 @@ class DrmdServerConfigFeatureSettingsTest {
 		DrmdServerConfig.FeatureSettings effective = DrmdServerConfig.effectiveFeaturesFor(ALL_ON, false);
 		assertEquals(DrmdServerConfig.FeatureSettings.disabled(), effective);
 
-		// The configured record remains the source of truth, so Advanced restores all saved choices.
-		assertEquals(ALL_ON, DrmdServerConfig.effectiveFeaturesFor(ALL_ON, true));
+		// A stale Advanced selection must not reactivate any retired generator.
+		assertEquals(DrmdServerConfig.FeatureSettings.disabled(), DrmdServerConfig.effectiveFeaturesFor(ALL_ON, true));
+        assertTrue(ALL_ON.netherBand()); // Compatibility parsing retains the old stored choice.
 	}
 }

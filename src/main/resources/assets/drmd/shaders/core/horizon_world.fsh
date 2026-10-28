@@ -6,10 +6,12 @@ uniform vec4 ColorModulator;
 out vec4 fragColor;
 void main() {
     float horizontal = length(trueEyeVector.xz);
-    if (horizontal < InnerRadius) discard;
-    float nearFade = InnerRadius > 1.0 ? smoothstep(InnerRadius, InnerRadius * 1.2, horizontal) : 1.0;
+
+    float nearFade = 1.0;
     vec4 colour = vertexColor * ColorModulator;
     colour.a *= nearFade;
     if (colour.a < 0.01) discard;
+    // Real scene geometry owns every depth except the sky background.
+    gl_FragDepth = 0.999999;
     fragColor = colour;
 }

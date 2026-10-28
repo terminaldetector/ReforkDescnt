@@ -331,5 +331,6 @@
   "message.drmd.projector.unavailable": "The shot area or previous pair is not loaded yet",
   "message.drmd.projector.denied": "Portal placement is not allowed here",
   "message.drmd.projector.conflict": "The surface changed; fire again",
-  "message.drmd.projector.full": "This dimension has reached its portal pair limit"
+  "message.drmd.projector.full": "This dimension has reached its portal pair limit",
+  "key.drmd.auxiliary": "Drone auxiliary weapon"
 }

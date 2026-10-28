@@ -28,17 +28,18 @@ public final class WeaponViewRenderer {
         if(mc.player==null || mc.world==null || !mc.options.getPerspective().isFirstPerson()
                 || !DescentClientState.enabled || !com.terminaldetector.drmd.client.config.DescentConfig.weaponView
                 || mc.options.hudHidden || mc.currentScreen!=null)return false;
-        if(!(mc.player.getMainHandStack().getItem() instanceof DescentWeaponItem weapon))return false;
+        if(!(com.terminaldetector.drmd.client.input.DroneCombatInput.primary(mc).getItem() instanceof DescentWeaponItem weapon))return false;
         return ConstructionRegistry.getModules(weapon.getDef().id).stream()
                 .anyMatch(m->m.colorA>0 && m.scaleX>0 && m.scaleY>0 && m.scaleZ>0);
     }
 
 	public static void register() {
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
+            if(com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())return;
 			MinecraftClient mc = MinecraftClient.getInstance();
             if(!replacesVanillaHand(mc))return;
 
-			ItemStack stack = mc.player.getMainHandStack();
+			ItemStack stack = com.terminaldetector.drmd.client.input.DroneCombatInput.primary(mc);
 			if (!(stack.getItem() instanceof DescentWeaponItem wep)) return;
 
 			List<ClusterModule> modules = ConstructionRegistry.getModules(wep.getDef().id);

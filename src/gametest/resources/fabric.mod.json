@@ -34,7 +34,8 @@
       "com.terminaldetector.drmd.DrillSafetyGameTests",
       "com.terminaldetector.drmd.PortalExitSafetyGameTests",
       "com.terminaldetector.drmd.FusionPortalGameTests",
-      "com.terminaldetector.drmd.ItemResourceGameTests"
+      "com.terminaldetector.drmd.ItemResourceGameTests",
+      "com.terminaldetector.drmd.DroneInventoryGameTests"
     ]
   },
   "depends": {

@@ -29,6 +29,16 @@ public final class ModNetworking {
 	public static final Identifier PLANET_ID = Identifier.of(DescentMod.MOD_ID, "planet");
 	public static final Identifier SURFACE_ID = Identifier.of(DescentMod.MOD_ID, "surface");
 
+ public record DroneLoadoutPayload(net.minecraft.nbt.NbtCompound nbt) implements CustomPayload {
+  public static final Id<DroneLoadoutPayload> ID=new Id<>(Identifier.of("drmd","drone_loadout"));
+  public static final PacketCodec<RegistryByteBuf,DroneLoadoutPayload> CODEC=PacketCodec.of((p,b)->b.writeNbt(p.nbt),b->new DroneLoadoutPayload(b.readNbt()));
+  public Id<? extends CustomPayload> getId(){return ID;}
+ }
+ public record DroneTriggerPayload(int mask) implements CustomPayload {
+  public static final Id<DroneTriggerPayload> ID=new Id<>(Identifier.of("drmd","drone_trigger"));
+  public static final PacketCodec<RegistryByteBuf,DroneTriggerPayload> CODEC=PacketCodec.of((p,b)->b.writeVarInt(p.mask),b->new DroneTriggerPayload(b.readVarInt()));
+  public Id<? extends CustomPayload> getId(){return ID;}
+ }
 	public record InputPayload(int portalEpoch, float forward, float strafe, float vertical, float roll,
 							   boolean dash, boolean hook, boolean afterburner,
 							   boolean attitude, float fx, float fy, float fz,
@@ -504,10 +514,13 @@ public final class ModNetworking {
         ServerPlayNetworking.registerGlobalReceiver(PortalProjectorPayload.ID,(p,c)->c.server().execute(()->
             com.terminaldetector.drmd.world.portal.gun.PortalProjectorItem.trigger(c.player(),p.slot(),p.reset(),new net.minecraft.util.math.Vec3d(p.x(),p.y(),p.z()))));
         PayloadTypeRegistry.playS2C().register(PhysicsProfilePayload.ID,PhysicsProfilePayload.CODEC);
-		PayloadTypeRegistry.playS2C().register(WeaponLoadPayload.ID,WeaponLoadPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(DroneLoadoutPayload.ID,DroneLoadoutPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(WeaponLoadPayload.ID,WeaponLoadPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ShotFxPayload.ID, ShotFxPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(PortalFramePayload.ID, PortalFramePayload.CODEC);
-		PayloadTypeRegistry.playC2S().register(InputPayload.ID, InputPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(DroneTriggerPayload.ID,DroneTriggerPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(DroneTriggerPayload.ID,(payload,context)->context.server().execute(()->com.terminaldetector.drmd.inventory.DroneArsenal.receive(context.player(),payload.mask())));
+        PayloadTypeRegistry.playC2S().register(InputPayload.ID, InputPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(ActionPayload.ID, ActionPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(ConstructionPayload.ID, ConstructionPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(SyncPayload.ID, SyncPayload.CODEC);
@@ -590,7 +603,8 @@ public final class ModNetworking {
 				case "preset_assault" -> EnergySystem.setPreset(data, EnergyPreset.ASSAULT);
 				case "preset_interceptor" -> EnergySystem.setPreset(data, EnergyPreset.INTERCEPTOR);
 				case "preset_siege" -> EnergySystem.setPreset(data, EnergyPreset.SIEGE);
-				case "equip_propulsion" -> equipPropulsion(player);
+				case "drone_inventory" -> com.terminaldetector.drmd.inventory.DroneInventoryHandler.open(player);
+                case "equip_propulsion" -> equipPropulsion(player);
 				case "unequip_propulsion" -> unequipPropulsion(player);
 				case "equip_slot:UPPER" -> equipSlot(player, com.terminaldetector.drmd.entity.ShipWeaponSlot.UPPER);
 				case "equip_slot:LOWER" -> equipSlot(player, com.terminaldetector.drmd.entity.ShipWeaponSlot.LOWER);
@@ -723,6 +737,7 @@ public final class ModNetworking {
 	}
 
 	public static void syncPlayer(ServerPlayerEntity player, DescentPlayerData data) {
+        ServerPlayNetworking.send(player,new DroneLoadoutPayload(com.terminaldetector.drmd.inventory.DroneLoadout.save(player)));
 		// Ship velocity in blocks/tick, ready for the client to move on.
 		//
 		// It rides this payload rather than vanilla's EntityVelocityUpdateS2CPacket for two reasons:

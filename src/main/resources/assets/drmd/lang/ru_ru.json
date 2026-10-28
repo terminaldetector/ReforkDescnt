@@ -295,5 +295,6 @@
   "message.drmd.projector.unavailable": "Область выстрела или прежняя пара ещё не загружена",
   "message.drmd.projector.denied": "В этом месте нельзя устанавливать портал",
   "message.drmd.projector.conflict": "Поверхность изменилась — повторите выстрел",
-  "message.drmd.projector.full": "Достигнут предел пар порталов в этом измерении"
+  "message.drmd.projector.full": "Достигнут предел пар порталов в этом измерении",
+  "key.drmd.auxiliary": "Вспомогательное оружие дрона"
 }

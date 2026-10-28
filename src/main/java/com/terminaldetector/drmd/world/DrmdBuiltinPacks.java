@@ -46,9 +46,7 @@ public final class DrmdBuiltinPacks {
 	public static void register() {
 		ModContainer mod = FabricLoader.getInstance().getModContainer(DescentMod.MOD_ID)
 				.orElseThrow(() -> new IllegalStateException(DescentMod.MOD_ID + " has no ModContainer at init"));
-		ResourcePackActivationType activation = DrmdServerConfig.worldModLevel == DrmdServerConfig.WorldModLevel.ADVANCED
-				? ResourcePackActivationType.DEFAULT_ENABLED
-				: ResourcePackActivationType.NORMAL;
+		ResourcePackActivationType activation = ResourcePackActivationType.NORMAL;
 		boolean registered = ResourceManagerHelper.registerBuiltinResourcePack(
 				Identifier.of(DescentMod.MOD_ID, "advanced_column"), mod,
 				Text.translatable("pack.drmd.advanced_column"), activation);

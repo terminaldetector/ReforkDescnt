@@ -104,6 +104,7 @@ public final class DescentSession {
 
 	/** Called once when overworld is ready — seed hub + nearby stock features. */
 	public static void seedWorld(MinecraftServer server) {
+        if(com.terminaldetector.drmd.world.LegacyGeneration.retired())return;
 		ServerWorld world = server.getOverworld();
 		if (world == null) return;
 		DescentWorldState state = DescentWorldState.get(world);

@@ -30,6 +30,7 @@ public final class DescentKeybinds {
 	public static KeyBinding rocketMode;
 	public static KeyBinding resetRoll;
 	public static KeyBinding settings;
+    public static KeyBinding auxiliary;
 
 	private static boolean dashQueued;
 	private static boolean hookQueued;
@@ -75,7 +76,8 @@ public final class DescentKeybinds {
 	private DescentKeybinds() {}
 
 	public static void register() {
-		toggle = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "key.category.drmd"));
+		auxiliary=KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.auxiliary",InputUtil.Type.KEYSYM,GLFW.GLFW_KEY_B,"key.category.drmd"));
+        toggle = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "key.category.drmd"));
 		dash = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.dash", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_SHIFT, "key.category.drmd"));
 		alwaysRun = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.alwaysrun", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "key.category.drmd"));
 		flightAssist = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.flightassist", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F, "key.category.drmd"));
@@ -93,7 +95,8 @@ public final class DescentKeybinds {
 	}
 
 	public static void tick(MinecraftClient client) {
-		boolean en = DescentClientState.enabled;
+		com.terminaldetector.drmd.client.input.DroneCombatInput.tick(client);
+        boolean en = DescentClientState.enabled;
 		if (en && !wasEnabled && client.player != null) {
 			ShipAttitudeClient.resetFromPlayer(client.player);
 		}
