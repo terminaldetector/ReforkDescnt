@@ -18,7 +18,7 @@ import java.nio.file.*;
 public final class HorizonAnchorCheck {
     private static boolean registered,started,off;
     private static int ticks,age,index,draws,checks;
-    private static Matrix4f expected;
+    private static Matrix4f expected,onMatrix;
     private static int[] on;
     // yaw, pitch (positive down), bank, horizontal camera displacement
     private static final int[][] CASES={{0,55,0,0},{90,55,0,0},{180,55,0,0},{270,55,0,0},
@@ -27,13 +27,15 @@ public final class HorizonAnchorCheck {
         registered=true;
         RepairVisualCheck.register();
         ClientTickEvents.END_CLIENT_TICK.register(HorizonAnchorCheck::tick);
-        WorldRenderEvents.START.register(ctx->{if(started) {
-            overrideCamera(ctx.camera());expected=new Matrix4f(ctx.positionMatrix());
+        WorldRenderEvents.START.register(ctx->{if(started && !com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy()) {
+            var wanted=new Vec3d(12.5+CASES[index][3],2000,30.5);
+            if(ctx.camera().getPos().distanceTo(wanted)>1e-5)throw new IllegalStateException("Horizon fixture camera was overwritten before terrain matrices: actual="+ctx.camera().getPos()+" wanted="+wanted);
+            expected=new Matrix4f(ctx.positionMatrix());
         }});
-        WorldRenderEvents.END.register(ctx->{if(started && age>=30)capture(MinecraftClient.getInstance());});
+        WorldRenderEvents.END.register(ctx->{if(started && age>=30 && !com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())capture(MinecraftClient.getInstance());});
     }
     public static void overrideCamera(Camera camera) {
-        if(started) ((CameraAccessor)camera).drmd$invokeSetPos(new Vec3d(12.5+CASES[index][3],2000,30.5));
+        if(started && camera==MinecraftClient.getInstance().gameRenderer.getCamera()) ((CameraAccessor)camera).drmd$invokeSetPos(new Vec3d(12.5+CASES[index][3],2000,30.5));
     }
     public static void drawn(Matrix4f actual) {
         if(!registered || !started)return;
@@ -64,16 +66,25 @@ public final class HorizonAnchorCheck {
             client.options.getFov().setValue(80);client.options.hudHidden=true;
             prepare(client);
         }
+        applyAttitude(client);
+        age++;
+        if(ticks%100==0)System.out.println("HORIZON_STATE case="+index+" age="+age+" draws="+draws
+            +" seed="+com.terminaldetector.drmd.client.planet.PlanetClientState.INSTANCE.hasSeed()
+            +" camera="+client.gameRenderer.getCamera().getPos()+" dimension="+client.world.getRegistryKey());
+    }
+    /** Pin only the disposable outer-camera input before production CalcView reads it.
+     * Network packets may replace the attitude between a client tick and a rendered frame. */
+    public static void prepareView(Camera camera) {
+        var client=MinecraftClient.getInstance();
+        if(started && client.player!=null && camera==client.gameRenderer.getCamera())applyAttitude(client);
+    }
+    private static void applyAttitude(MinecraftClient client) {
         DescentClientState.enabled=true;
         var pose=CASES[index];double yaw=Math.toRadians(pose[0]),pitch=Math.toRadians(pose[1]);
         var forward=new Vec3d(-Math.sin(yaw)*Math.cos(pitch),-Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch));
         var up=new Vec3d(-Math.sin(yaw)*Math.sin(pitch),Math.cos(pitch),-Math.cos(yaw)*Math.sin(pitch));
         var attitude=new ShipAttitude();attitude.setForwardUp(forward,up);attitude.rollLocal(pose[2]);
         ShipAttitudeClient.acceptPortalFrame(client.player,attitude.forward(),attitude.up());
-        age++;
-        if(ticks%100==0)System.out.println("HORIZON_STATE case="+index+" age="+age+" draws="+draws
-            +" seed="+com.terminaldetector.drmd.client.planet.PlanetClientState.INSTANCE.hasSeed()
-            +" camera="+client.gameRenderer.getCamera().getPos()+" dimension="+client.world.getRegistryKey());
     }
     private static void prepare(MinecraftClient client) {age=0;draws=0;off=false;DescentConfig.planetFloor=true;}
     private static void capture(MinecraftClient client) {
@@ -82,10 +93,12 @@ public final class HorizonAnchorCheck {
             image.writeTo(directory.resolve(String.format("%02d-%s.png",index,off?"off":"on")));
             if(!off) {
                 if(draws==0){age=15;return;}
+                onMatrix=new Matrix4f(expected);
                 on=new int[image.getWidth()*image.getHeight()];
                 for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++)on[y*image.getWidth()+x]=image.getColor(x,y);
                 off=true;DescentConfig.planetFloor=false;age=15;return;
             }
+            if(!expected.equals(onMatrix,1e-5f))throw new IllegalStateException("Horizon on/off frames used different camera matrices: case="+index);
             int changed=0;
             for(int y=0;y<image.getHeight();y+=2)for(int x=0;x<image.getWidth();x+=2) {
                 int a=on[y*image.getWidth()+x],b=image.getColor(x,y);

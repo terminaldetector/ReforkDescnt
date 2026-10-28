@@ -108,10 +108,10 @@ public final class NativeBoardingCheck {
             if(age%10==0)System.out.println("BOARDING_TRACK_SYNC actor="+c.player.getPos()+" body="+entity(deck).getPos()+" packet="+lastActive);
             if(synchronizedTicks<8)return;
             System.out.println("BOARDING_BASELINE actor="+c.player.getPos()+" body="+entity(deck).getPos()+" packet="+lastActive);
-            rideStart=deck.worldToLocal(c.player.getPos());request("landing");phase=1;age=0;
+            rideStart=authoritativeFeet(deck,lastActive);request("landing");phase=1;age=0;
         } else if(phase==1&&age>=35) {
             require(BoardingClient.drives(c.player),"walking lease dropped while riding");
-            var at=deck.worldToLocal(c.player.getPos());require(at.distanceTo(rideStart)<.8,"idle player slides off translating deck: "+at.subtract(rideStart));
+            var at=authoritativeFeet(deck,lastActive);require(at.distanceTo(rideStart)<.8,"idle player slides off translating deck: "+at.subtract(rideStart));
             require(entity(deck).getX()>DECK.getX()+5,"actual deck translation was not simulated");
             request("riding");phase=2;age=0;walkStart=at;
         } else if(phase==2) {
@@ -119,7 +119,7 @@ public final class NativeBoardingCheck {
             if(age==13)c.options.forwardKey.setPressed(false);
             if(age>=25) {
                 require(BoardingClient.drives(c.player),"walking loses real deck contact");
-                double distance=deck.worldToLocal(c.player.getPos()).z-walkStart.z;
+                double distance=authoritativeFeet(deck,lastActive).z-walkStart.z;
                 require(distance>1&&distance<3.5,"actual forward input did not walk relative to deck: "+distance);
                 request("walking");phase=3;age=0;
             }
@@ -142,6 +142,11 @@ public final class NativeBoardingCheck {
             require(maxPredictionError<.8,"client/server boarding prediction diverged: "+maxPredictionError);
             request("sixdof-handoff");phase=7;
         }
+    }
+    private static Vec3d authoritativeFeet(BlockBodyEntity body,BoardingNetworking.State state) {
+        require(state!=null&&state.body()!=null,"same-tick authoritative hull required");
+        var b=state.body();var q=new com.terminaldetector.drmd.client.portal.PortalTransform.Quat(b.qx(),b.qy(),b.qz(),b.qw());
+        return BoardingSystem.mc(body.localCentre().plus(q.inverse().rotate(new Vec3(state.x()-b.x(),state.y()-b.y(),state.z()-b.z()))));
     }
     private static boolean loaded(MinecraftClient c) {
         var a=com.terminaldetector.drmd.world.access.WorldAccess.of(c.world);

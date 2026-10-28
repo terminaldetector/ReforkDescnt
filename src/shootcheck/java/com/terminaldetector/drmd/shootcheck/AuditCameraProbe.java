@@ -11,6 +11,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Render-only stress sweep; reported camera speed is not a production player speed claim. */
 @Mixin(value=Camera.class,priority=2000)
 public class AuditCameraProbe {
+    @Inject(method="update",at=@At("HEAD"))
+    private void horizonInput(BlockView area,Entity focused,boolean third,boolean inverse,float delta,CallbackInfo ci) {
+        com.terminaldetector.drmd.HorizonAnchorCheck.prepareView((Camera)(Object)this);
+    }
     @Inject(method="update",at=@At("RETURN"))
     private void auditCamera(BlockView area,Entity focused,boolean third,boolean inverse,float delta,CallbackInfo ci) {
         AuditRenderCheck.overrideCamera((Camera)(Object)this);
