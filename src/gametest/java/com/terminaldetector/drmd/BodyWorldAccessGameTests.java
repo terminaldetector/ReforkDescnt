@@ -63,8 +63,12 @@ public final class BodyWorldAccessGameTests implements FabricGameTest {
  public void minorDamageReusesDistantNaturalMeshesInsteadOfRebuildingEverySurface(TestContext c) {
   var body=fixture(c,Map.of(BlockPos.ORIGIN,Blocks.STONE.getDefaultState(),new BlockPos(8,0,0),Blocks.STONE.getDefaultState(),new BlockPos(9,0,0),Blocks.STONE.getDefaultState()));try {
    var far=body.cells().stream().filter(x->x.pos().getX()==8).findFirst().orElseThrow();var mesh=body.surface(far);
+   var receiver=ModEntities.BLOCK_BODY.create(c.getWorld());receiver.readNbt(body.writeNbt(new net.minecraft.nbt.NbtCompound()));
+   var received=receiver.surface(far);
    c.assertTrue(body.setLocalBlock(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState()),"bounded edit commits");
    c.assertTrue(body.surface(far)==mesh,"unaffected cached surface retains object identity");
+   try {receiver.readNbt(body.writeNbt(new net.minecraft.nbt.NbtCompound()));c.assertTrue(receiver.surface(far)==received,"receiving an updated shape also preserves unchanged meshes");}
+   finally{receiver.discard();}
    c.assertTrue(body.collider().bounds().isPresent(),"local spatial index is refreshed");
   }finally{body.discard();}c.complete();
  }

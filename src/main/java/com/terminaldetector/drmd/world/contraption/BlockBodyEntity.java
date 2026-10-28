@@ -114,6 +114,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
 
     private void loadShape(NbtCompound tag) {
+        Vec3 oldPivot=pivot;var previous=new HashMap<BlockPos,BlockState>();for(var c:cells)previous.put(c.pos(),c.state());
         volume = CubicBlockCodec.readVolume(tag, 27);
         List<Cell> next = new ArrayList<>();
         D6MassProperties mass = new D6MassProperties();
@@ -133,7 +134,16 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         }
         cells = List.copyOf(next); massProperties=mass;centre = mass.centreOfMass(); body.withMassProperties(mass);
         pivot=tag.contains("pivotx")?vector(tag,"pivot"):centre;shapeRevision=tag.getLong("revision");
-        rebuildGeometry(null);
+        Set<BlockPos> changed=null;
+        if(!previous.isEmpty()&&oldPivot.equals(pivot)) {
+            changed=new HashSet<>();var remaining=new HashMap<>(previous);
+            for(var cell:cells)if(!cell.state().equals(remaining.remove(cell.pos())))markGeometryNeighbours(changed,cell.pos());
+            for(var pos:remaining.keySet())markGeometryNeighbours(changed,pos);
+        }
+        rebuildGeometry(changed);
+    }
+    private static void markGeometryNeighbours(Set<BlockPos> dirty,BlockPos pos) {
+        for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++)dirty.add(pos.add(x,y,z));
     }
     /** Preserve unaffected surface meshes; rebuild only changed blocks and their 26 neighbours. */
     private void rebuildGeometry(Set<BlockPos> dirty) {
@@ -212,7 +222,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         body.withMassProperties(massProperties).withPosition(origin.plus(shift))
             .withLinearVelocity(velocity.plus(spin.cross(shift))).withAngularVelocity(spin);
         previousPhysicsPosition=previousPhysicsPosition.plus(previousRotation.rotate(centre.minus(oldCentre)));
-        var dirty=new HashSet<BlockPos>();for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++)dirty.add(pos.add(x,y,z));
+        var dirty=new HashSet<BlockPos>();markGeometryNeighbours(dirty,pos);
         rebuildGeometry(dirty);shapeRevision++;
         setBoundingBox(new Box(getPos(),getPos()).expand(radius));
         dataTracker.set(SHAPE,shapeTag());dataTracker.set(POSE,pose());velocityModified=true;
