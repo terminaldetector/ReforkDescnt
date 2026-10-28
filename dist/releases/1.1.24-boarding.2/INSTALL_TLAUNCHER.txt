@@ -1,0 +1,11 @@
+UNGRAVITY 1.1.24-boarding.2 — Minecraft1.21.1 / Fabric / Java21
+Установить один drmd-6dof-1.1.24-boarding.2-fabric-1.21.1.jar в mods вместе с Fabric API; удалить предыдущий DRMD JAR.
+Immersive Portals не требуется. N — инвентарь дрона, ЛКМ/ПКМ — выбранные оружия,
+B — вспомогательное, G — режим ракет. Управление портальной пушкой сохранено.
+Для native Cubic Chunks нужен отдельный Better Cubic Chunks и новый cubic_overworld.
+Этот кандидат проверен CI в обычном мире; новый native BCC-клиент не проверен.
+Добавлены запросы контакта к BlockBody и взаимный импульсный решатель D6.
+Исправлено повторение старого поворота неподвижного корпуса при смене render tick.
+Ходьба по летящему UFO, DynamicBodyAttachment и полный3D AI ещё не реализованы.
+SHA-256: 19dbbeb2eacde9d7d587bf77780b6342c2394147d2631a88614c5e3007eb7c6a
+Исходники: a1b045cde046d2a9f3be932eae960ed28bd4e083

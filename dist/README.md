@@ -1,3 +1,15 @@
+# Текущий проверенный этап ТЗ — 1.1.24-boarding.2
+
+[Скачать JAR](releases/1.1.24-boarding.2/drmd-6dof-1.1.24-boarding.2-fabric-1.21.1.jar) · [Установка](releases/1.1.24-boarding.2/INSTALL_TLAUNCHER.txt)
+· [Проверки и ограничения](releases/1.1.24-boarding.2/README.md) · [SHA-256](releases/1.1.24-boarding.2/SHA256SUMS).
+
+Это основа контактов BlockBody; полноценный абордаж и3D AI ещё не готовы.
+Проверка CI использует обычный мир и программную графику Linux.
+
+Ниже сохранён предыдущий snapshot и его отдельные native BCC-проверки.
+
+---
+
 # Текущий проверенный этап ТЗ — 1.1.24-boarding.1
 
 [Скачать JAR](releases/1.1.24-boarding.1/drmd-6dof-1.1.24-boarding.1-fabric-1.21.1.jar) · [Установка](releases/1.1.24-boarding.1/INSTALL_TLAUNCHER.txt)
