@@ -1,0 +1,24 @@
+{
+  "sourceSha": "c04365a693910644a623260343b92504d7f26f23",
+  "run": 40730492270,
+  "observedArtifacts": [
+    {
+      "id": 12836985170,
+      "name": "evidence",
+      "bytes": 108852661,
+      "digest": "sha256:bec3b2a928340784d0f18926b274b9c4e727354357dbd03f0485ea66865849c4"
+    },
+    {
+      "id": 12836121798,
+      "name": "drmd-pc",
+      "bytes": 1831923,
+      "digest": "sha256:bd8899c86e3ca6d0ed41bb26d5269a4ef417791ed3c484e603af88ee38de668b"
+    },
+    {
+      "id": 12834363478,
+      "name": "source",
+      "bytes": 202250334,
+      "digest": "sha256:e88b4370d55cfdd16d34fe422e51c14aabf99851143caa5b0c9370f293dcfd81"
+    }
+  ]
+}

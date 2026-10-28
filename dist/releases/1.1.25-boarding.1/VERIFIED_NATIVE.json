@@ -1,0 +1,108 @@
+{
+  "sourceSha": "c04365a693910644a623260343b92504d7f26f23",
+  "jarSha256": "3956d89496c80c5e33fb512708304879deeb7ddc9daa5c397d3541153d48c956",
+  "scope": "world-UP player boarding",
+  "fullBoarding": false,
+  "dedicatedTwoClient": false,
+  "runs": {
+    "gl32": {
+      "actualInputs": true,
+      "authoritativeContact": true,
+      "worldUpOnly": true,
+      "physicalThrusters": true,
+      "yawMotion": true,
+      "teleportFollow": false,
+      "jumpWorldVelocityError": 0.0,
+      "predictionSamples": 90,
+      "maxPredictionError": 0.05863442626678378,
+      "scenes": [
+        {
+          "scene": "landing",
+          "frames": 3
+        },
+        {
+          "scene": "riding",
+          "frames": 3
+        },
+        {
+          "scene": "walking",
+          "frames": 3
+        },
+        {
+          "scene": "jump",
+          "frames": 3
+        },
+        {
+          "scene": "sixdof-handoff",
+          "frames": 3
+        }
+      ]
+    },
+    "sodium": {
+      "actualInputs": true,
+      "authoritativeContact": true,
+      "worldUpOnly": true,
+      "physicalThrusters": true,
+      "yawMotion": true,
+      "teleportFollow": false,
+      "jumpWorldVelocityError": 0.0,
+      "predictionSamples": 93,
+      "maxPredictionError": 0.03360407703436239,
+      "scenes": [
+        {
+          "scene": "landing",
+          "frames": 3
+        },
+        {
+          "scene": "riding",
+          "frames": 3
+        },
+        {
+          "scene": "walking",
+          "frames": 3
+        },
+        {
+          "scene": "jump",
+          "frames": 3
+        },
+        {
+          "scene": "sixdof-handoff",
+          "frames": 3
+        }
+      ]
+    },
+    "ordinary": {
+      "actualInputs": true,
+      "authoritativeContact": true,
+      "worldUpOnly": true,
+      "physicalThrusters": true,
+      "yawMotion": true,
+      "teleportFollow": false,
+      "jumpWorldVelocityError": 0.0,
+      "predictionSamples": 96,
+      "maxPredictionError": 0.019584969344065062,
+      "scenes": [
+        {
+          "scene": "landing",
+          "frames": 3
+        },
+        {
+          "scene": "riding",
+          "frames": 3
+        },
+        {
+          "scene": "walking",
+          "frames": 3
+        },
+        {
+          "scene": "jump",
+          "frames": 3
+        },
+        {
+          "scene": "sixdof-handoff",
+          "frames": 3
+        }
+      ]
+    }
+  }
+}
