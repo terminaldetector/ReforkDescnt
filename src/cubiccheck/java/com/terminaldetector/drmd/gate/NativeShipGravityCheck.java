@@ -104,11 +104,11 @@ public final class NativeShipGravityCheck {
         if(phase==0) {
             if(state!=null&&state.grounded()&&state.gravityOwner()==bodyId&&last!=null&&last.body()!=null
                 &&entity(body).getPos().distanceTo(new Vec3d(last.body().x(),last.body().y(),last.body().z()))<.35)stable++;else stable=0;
-            if(stable>=8){walkStart=body.worldToLocal(c.player.getPos());request("ship-landing");phase=1;age=0;}
+            if(stable>=8){walkStart=authoritativeFeet(body,last);request("ship-landing");phase=1;age=0;}
         } else if(phase==1) {
             if(age==1)c.options.forwardKey.setPressed(true);if(age==13)c.options.forwardKey.setPressed(false);
-            if(age>=28){require(state!=null&&state.grounded(),"walking lost real interior support");double distance=body.worldToLocal(c.player.getPos()).z-walkStart.z;
-                require(distance>1&&distance<3.5,"actual keys did not walk in the ship frame: "+distance);request("ship-walking");phase=2;}
+            if(age>=28){require(state!=null&&state.grounded(),"walking lost real interior support");double distance=authoritativeFeet(body,last).z-walkStart.z;
+                require(distance>1&&distance<3.5,"actual keys did not walk in the ship frame: "+distance+" start="+walkStart+" last="+last+" predicted="+state);request("ship-walking");phase=2;}
         } else if(phase>=2&&phase<=4) {
             require(state!=null&&state.gravityOwner()==bodyId,"rotation lost the physical field");Vec3 up=body.rotation().rotate(UP);
             if(phase==2) {
@@ -139,6 +139,12 @@ public final class NativeShipGravityCheck {
             require(frameError<.01&&minUpY<-.98&&maxUpX>.98&&maxUpZ>.98,"physical full rotations not aligned: frameError="+frameError);
             request("flight-handoff");phase=9;
         }
+    }
+    /** Compare feet and hull pose from one acknowledged simulation tick, never mixed render timelines. */
+    private static Vec3d authoritativeFeet(BlockBodyEntity body,BoardingNetworking.State state) {
+        require(state!=null&&state.body()!=null,"same-tick server body snapshot required");
+        var b=state.body();var q=new Quat(b.qx(),b.qy(),b.qz(),b.qw());
+        return BoardingSystem.mc(body.localCentre().plus(q.inverse().rotate(new Vec3(state.x()-b.x(),state.y()-b.y(),state.z()-b.z()))));
     }
     private static boolean loaded(MinecraftClient c) {
         var a=com.terminaldetector.drmd.world.access.WorldAccess.of(c.world);

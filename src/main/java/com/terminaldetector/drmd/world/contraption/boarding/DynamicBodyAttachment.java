@@ -6,8 +6,8 @@ import com.terminaldetector.drmd.physics.collision.*;
 import java.util.*;
 
 /**
- * Contact motor for an upright walking actor. Owns world velocity, never a welded local position.
- * Ship-local gravity and arbitrary actor UP are separate following stages; this uses world gravity.
+ * Contact motor for an oriented walking actor. Owns world velocity, never a welded local position.
+ * Finite ship-local fields and ordinary world gravity share the same compound contact solver.
  */
 public final class DynamicBodyAttachment {
     public record Input(double strafe,double forward,boolean jump,Vec3 look) {
