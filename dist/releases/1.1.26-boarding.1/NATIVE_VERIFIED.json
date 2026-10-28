@@ -1,0 +1,397 @@
+{
+  "sourceSha": "0fa2f12531c7ec0ef3c765158ce2768bc7b605f4",
+  "jarSha256": "440c8b705a7c127246d7f3aa81fb617b7445c457a3a76a95989fe1186a7637b6",
+  "nativeClients": {
+    "ship-certified-gl32": {
+      "actualInputs": true,
+      "shipGravity": true,
+      "orientedCollision": true,
+      "teleportFollow": false,
+      "predictionSamples": 556,
+      "maxPredictionError": 0.00879989614708402,
+      "jumpVelocityError": 4.862679148232019e-10,
+      "maxFrameError": 3.3306690738754696e-16,
+      "modelFrames": 717,
+      "cameraFrames": 717,
+      "maxCameraUpError": 0.00047319347641887924,
+      "maxModelUpError": 0.0,
+      "scenes": [
+        {
+          "scene": "ship-landing",
+          "frames": 3
+        },
+        {
+          "scene": "ship-walking",
+          "frames": 3
+        },
+        {
+          "scene": "roll-wall",
+          "frames": 3
+        },
+        {
+          "scene": "roll-ceiling",
+          "frames": 3
+        },
+        {
+          "scene": "roll-complete",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-wall",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-ceiling",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-complete",
+          "frames": 3
+        },
+        {
+          "scene": "combined-axes",
+          "frames": 3
+        },
+        {
+          "scene": "combined-complete",
+          "frames": 3
+        },
+        {
+          "scene": "ship-jump",
+          "frames": 3
+        },
+        {
+          "scene": "gravity-off-jump",
+          "frames": 3
+        },
+        {
+          "scene": "flight-handoff",
+          "frames": 3
+        }
+      ]
+    },
+    "ship-certified-sodium": {
+      "actualInputs": true,
+      "shipGravity": true,
+      "orientedCollision": true,
+      "teleportFollow": false,
+      "predictionSamples": 555,
+      "maxPredictionError": 0.008799188104561338,
+      "jumpVelocityError": 4.862563685037458e-10,
+      "maxFrameError": 4.440892098500626e-16,
+      "modelFrames": 736,
+      "cameraFrames": 736,
+      "maxCameraUpError": 0.00046059016683875655,
+      "maxModelUpError": 0.0,
+      "scenes": [
+        {
+          "scene": "ship-landing",
+          "frames": 3
+        },
+        {
+          "scene": "ship-walking",
+          "frames": 3
+        },
+        {
+          "scene": "roll-wall",
+          "frames": 3
+        },
+        {
+          "scene": "roll-ceiling",
+          "frames": 3
+        },
+        {
+          "scene": "roll-complete",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-wall",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-ceiling",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-complete",
+          "frames": 3
+        },
+        {
+          "scene": "combined-axes",
+          "frames": 3
+        },
+        {
+          "scene": "combined-complete",
+          "frames": 3
+        },
+        {
+          "scene": "ship-jump",
+          "frames": 3
+        },
+        {
+          "scene": "gravity-off-jump",
+          "frames": 3
+        },
+        {
+          "scene": "flight-handoff",
+          "frames": 3
+        }
+      ]
+    },
+    "boarding-certified-gl32": {
+      "actualInputs": true,
+      "authoritativeContact": true,
+      "worldUpOnly": true,
+      "physicalThrusters": true,
+      "yawMotion": true,
+      "teleportFollow": false,
+      "jumpWorldVelocityError": 0.0,
+      "predictionSamples": 91,
+      "maxPredictionError": 0.007232656700688003,
+      "scenes": [
+        {
+          "scene": "landing",
+          "frames": 3
+        },
+        {
+          "scene": "riding",
+          "frames": 3
+        },
+        {
+          "scene": "walking",
+          "frames": 3
+        },
+        {
+          "scene": "jump",
+          "frames": 3
+        },
+        {
+          "scene": "sixdof-handoff",
+          "frames": 3
+        }
+      ]
+    }
+  },
+  "archiveSha256": "2712e62cadc5ae0d1651af34a7f47ed21290e1dd5a462b68786685083de1eb31",
+  "ciRun": {
+    "id": 40777929080,
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "0fa2f12531c7ec0ef3c765158ce2768bc7b605f4",
+    "html_url": "https://github.com/terminaldetector/ReforkDescnt/actions/runs/40777929080",
+    "created_at": "2026-10-28T22:10:44Z",
+    "updated_at": "2026-10-28T22:27:57Z"
+  },
+  "ciProof": {
+    "source_sha": "0fa2f12531c7ec0ef3c765158ce2768bc7b605f4",
+    "version": "1.1.26-boarding.1",
+    "audit": null,
+    "jar": "drmd-6dof-1.1.26-boarding.1-fabric-1.21.1.jar",
+    "sha256": "440c8b705a7c127246d7f3aa81fb617b7445c457a3a76a95989fe1186a7637b6",
+    "unit": {
+      "tests": 619,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "gametest": {
+      "tests": 160,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "swarm": "Live swarm synchronized 128 drones; indexed=128; moving=128; maximum candidates/query=96.",
+    "hybrid": {
+      "models": 3,
+      "presetRoundTrips": 3,
+      "serverSaves": 3,
+      "muzzlePairs": 3,
+      "fovs": [
+        70,
+        80,
+        90
+      ],
+      "banked": 3,
+      "vertical": 3,
+      "realUseAnimated": 3,
+      "loadSynced": true,
+      "external": 3,
+      "frames": 40
+    },
+    "hybrid_frames": [
+      "hybrid-0-workshop.png",
+      "hybrid-0-fov70.png",
+      "hybrid-0-fov80.png",
+      "hybrid-0-fov90.png",
+      "hybrid-0-banked.png",
+      "hybrid-0-vertical.png",
+      "hybrid-0-external.png",
+      "hybrid-1-workshop.png",
+      "hybrid-1-fov70.png",
+      "hybrid-1-fov80.png",
+      "hybrid-1-fov90.png",
+      "hybrid-1-banked.png",
+      "hybrid-1-vertical.png",
+      "hybrid-1-external.png",
+      "hybrid-2-workshop.png",
+      "hybrid-2-fov70.png",
+      "hybrid-2-fov80.png",
+      "hybrid-2-fov90.png",
+      "hybrid-2-banked.png",
+      "hybrid-2-vertical.png",
+      "hybrid-2-external.png",
+      "hybrid-2-loaded.png"
+    ],
+    "frames": [
+      "hybrid-before.png",
+      "hybrid-after.png",
+      "collapse-before.png",
+      "collapse-flight.png",
+      "collapse-after.png",
+      "ragdoll-flight.png",
+      "ragdoll-after.png",
+      "gravity-swarm-held.png",
+      "gravity-swarm-flight.png",
+      "gravity-rail-held.png",
+      "gravity-rail-flight.png",
+      "gravity-shift-held.png",
+      "gravity-shift-flight.png",
+      "drone-swarm-dense.png",
+      "drone-swarm-flight.png"
+    ],
+    "shootcheck": {
+      "scenes": 10,
+      "fovs": [
+        70,
+        80,
+        90
+      ],
+      "rangePixelsChecked": true,
+      "fastSpeed": 8,
+      "fastTravel": 24.0,
+      "fastFrames": 4,
+      "fastPixelsChecked": true,
+      "fastTickStepped": true,
+      "fastServerTicks": 4,
+      "fastServerTravel": 32.0,
+      "muzzleEvents": 27,
+      "impactEvents": 2
+    },
+    "shot_frames": [
+      "bolt-dark-ranges.png",
+      "bolt-light-ranges.png",
+      "orb-dark-ranges.png",
+      "orb-light-ranges.png",
+      "rocket-dark-ranges.png",
+      "rocket-light-ranges.png",
+      "banked-fire.png",
+      "vertical-fire.png",
+      "muzzle-impact.png",
+      "fast-motion.png",
+      "mounts-fov-70.png",
+      "mounts-fov-80.png",
+      "mounts-fov-90.png"
+    ],
+    "boarding": {
+      "actualInputs": true,
+      "authoritativeContact": true,
+      "worldUpOnly": true,
+      "physicalThrusters": true,
+      "yawMotion": true,
+      "teleportFollow": false,
+      "jumpWorldVelocityError": 1.3877787807814457e-17,
+      "predictionSamples": 88,
+      "maxPredictionError": 0.006781431889559012,
+      "scenes": [
+        {
+          "scene": "landing",
+          "frames": 3
+        },
+        {
+          "scene": "riding",
+          "frames": 3
+        },
+        {
+          "scene": "walking",
+          "frames": 3
+        },
+        {
+          "scene": "jump",
+          "frames": 3
+        },
+        {
+          "scene": "sixdof-handoff",
+          "frames": 3
+        }
+      ]
+    },
+    "ship_boarding": {
+      "actualInputs": true,
+      "shipGravity": true,
+      "orientedCollision": true,
+      "teleportFollow": false,
+      "predictionSamples": 555,
+      "maxPredictionError": 0.008799683321696531,
+      "jumpVelocityError": 1.964757245787041e-10,
+      "maxFrameError": 2.220446049250313e-16,
+      "modelFrames": 782,
+      "cameraFrames": 782,
+      "maxCameraUpError": 0.0004331005143856851,
+      "maxModelUpError": 0.0,
+      "scenes": [
+        {
+          "scene": "ship-landing",
+          "frames": 3
+        },
+        {
+          "scene": "ship-walking",
+          "frames": 3
+        },
+        {
+          "scene": "roll-wall",
+          "frames": 3
+        },
+        {
+          "scene": "roll-ceiling",
+          "frames": 3
+        },
+        {
+          "scene": "roll-complete",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-wall",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-ceiling",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-complete",
+          "frames": 3
+        },
+        {
+          "scene": "combined-axes",
+          "frames": 3
+        },
+        {
+          "scene": "combined-complete",
+          "frames": 3
+        },
+        {
+          "scene": "ship-jump",
+          "frames": 3
+        },
+        {
+          "scene": "gravity-off-jump",
+          "frames": 3
+        },
+        {
+          "scene": "flight-handoff",
+          "frames": 3
+        }
+      ]
+    }
+  }
+}

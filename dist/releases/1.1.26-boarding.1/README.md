@@ -15,6 +15,7 @@ Unit: 619; серверные GameTests: 160.
 Полная регрессия настоящего клиента, оружие, инвентарь, зеркала/Fabulous и LOD.
 [CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/SHIP_GRAVITY_STAGE.md).
 
-Программная графика Linux; новая native BCC-сессия и Windows/RTX этим CI не
-подтверждены. Предыдущий snapshot с native-проверками сохранён отдельно.
+Тот же JAR дополнительно прошёл два native BCC-клиента (GL3.2/Sodium) и прежние
+пять world-UP сцен. [Native-отчёт и ограничения](NATIVE_REPORT.md) · [31 кадр/логи](native-evidence.zip)
+· [Первые сбои](first-failures.zip). Windows/RTX не подтверждены этой проверкой.
 Упаковочные коммиты отличаются от проверенной исходной ревизии.
