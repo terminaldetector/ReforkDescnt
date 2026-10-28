@@ -24,9 +24,20 @@ public final class NativeBodyCollisionCheck {
     private static final List<String> RESULTS=new ArrayList<>();
     private static boolean started,preparing,finished;private static volatile boolean ready;
     private static int ticks,stage,frames;private static volatile int[] ids;
+    private static int settledRotationFrames;
+    private static final Quat STOPPED_TURN=new Quat(.35,-.1,.2,.85).normalized();
     private static net.minecraft.entity.Entity entity(BlockBodyEntity b){return b;}
     public static void register(){ClientTickEvents.END_CLIENT_TICK.register(NativeBodyCollisionCheck::tick);}
     public static void drew(BlockBodyEntity b){if(ready && !finished)DRAWN.add(entity(b).getId());}
+    /** Check the quaternion actually multiplied by the production renderer, not a second renderer. */
+    public static void drawRotation(BlockBodyEntity b,Quat rendered) {
+        if(!ready || finished || stage!=3 || frames<30 || entity(b).getId()!=ids[3])return;
+        require(Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(b.rotation(),STOPPED_TURN))>1-1e-9,
+            "post-spawn stopped rotation was not synchronized");
+        require(Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(rendered.normalized(),STOPPED_TURN))>1-1e-9,
+            "stationary hull replays its old rotation when partial tick wraps: "+rendered);
+        settledRotationFrames++;
+    }
     public static void camera(Camera camera) {
         if(!ready)return;BlockPos p=stage==0?A:stage==1?B.east():stage==2?C.add(1,1,0):stage==3?D:E;
         var a=(CameraAccessor)camera;a.drmd$invokeSetPos(Vec3d.ofCenter(p).add(7,4,10));a.drmd$invokeSetRotation(145,18);
@@ -132,8 +143,14 @@ public final class NativeBodyCollisionCheck {
             var path=c.runDirectory.toPath().resolve("body-contact-frames");Files.createDirectories(path);image.writeTo(path.resolve(NAMES[stage]+".png"));
             RESULTS.add("{\"scene\":\""+NAMES[stage]+"\",\"renderedFrames\":"+frames+"}");
             System.out.println("BODY_CONTACT_CLIENT "+NAMES[stage]+" PASS");
-            frames=0;if(++stage==NAMES.length) {
-                Files.writeString(c.runDirectory.toPath().resolve("body-contacts-ok.json"),"{\"orientedTerrain\":true,\"hollowRay\":true,\"unknownNativeYRejected\":true,\"compoundContactQuery\":true,\"relativeCCD\":true,\"pairReaction\":true,\"nativeGravitySupport\":true,\"actualRenderer\":true,\"playerBoarding\":false,\"scenes\":["+String.join(",",RESULTS)+"]}\n");
+            if(stage==3)require(settledRotationFrames>=50,"insufficient actual stationary rotation frames");
+            frames=0;if(++stage==3)c.getServer().execute(()->{
+                var body=c.getServer().getOverworld().getEntityById(ids[3]);
+                require(body instanceof BlockBodyEntity,"native deck disappeared before turn");
+                ((BlockBodyEntity)body).physics().withRotation(STOPPED_TURN);
+            });
+            if(stage==NAMES.length) {
+                Files.writeString(c.runDirectory.toPath().resolve("body-contacts-ok.json"),"{\"orientedTerrain\":true,\"hollowRay\":true,\"unknownNativeYRejected\":true,\"compoundContactQuery\":true,\"relativeCCD\":true,\"pairReaction\":true,\"nativeGravitySupport\":true,\"stableRenderedRotationFrames\":"+settledRotationFrames+",\"actualRenderer\":true,\"playerBoarding\":false,\"scenes\":["+String.join(",",RESULTS)+"]}\n");
                 finished=true;c.scheduleStop();
             }
         }catch(java.io.IOException error){throw new IllegalStateException(error);}

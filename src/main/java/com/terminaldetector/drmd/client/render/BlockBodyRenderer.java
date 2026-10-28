@@ -15,9 +15,8 @@ public final class BlockBodyRenderer extends EntityRenderer<BlockBodyEntity> {
     @Override public void render(BlockBodyEntity body, float yaw, float delta, MatrixStack matrices,
             VertexConsumerProvider consumers, int light) {
         matrices.push();
-        var before = body.previousRotation(); var after = body.rotation();
-        Quaternionf q = new Quaternionf((float)before.x(),(float)before.y(),(float)before.z(),(float)before.w());
-        q.slerp(new Quaternionf((float)after.x(),(float)after.y(),(float)after.z(),(float)after.w()), delta);
+        var pose = body.renderRotation(delta);
+        Quaternionf q = new Quaternionf((float)pose.x(),(float)pose.y(),(float)pose.z(),(float)pose.w());
         matrices.multiply(q);
         var centre = body.localCentre();
         matrices.translate(-centre.x(), -centre.y(), -centre.z());

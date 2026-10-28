@@ -8,13 +8,13 @@ import shutil
 import subprocess
 import zipfile
 
-VERSION = '1.1.24-boarding.1'
+VERSION = '1.1.24-boarding.2'
 
 
 def validate_proof(proof, source):
     if proof['source_sha'] != source or proof['version'] != VERSION:
         raise ValueError('Unexpected tested source or boarding version')
-    if proof['unit']['tests'] < 592 or proof['gametest']['tests'] < 147:
+    if proof['unit']['tests'] < 598 or proof['gametest']['tests'] < 147:
         raise ValueError('Contact unit and world regressions are missing')
     if proof['jar'] != f'drmd-6dof-{VERSION}-fabric-1.21.1.jar':
         raise ValueError('Unexpected installable JAR')
@@ -60,6 +60,7 @@ B — вспомогательное, G — режим ракет. Управл�
 Для native Cubic Chunks нужен отдельный Better Cubic Chunks и новый cubic_overworld.
 Этот кандидат проверен CI в обычном мире; новый native BCC-клиент не проверен.
 Добавлены запросы контакта к BlockBody и взаимный импульсный решатель D6.
+Исправлено повторение старого поворота неподвижного корпуса при смене render tick.
 Ходьба по летящему UFO, DynamicBodyAttachment и полный3D AI ещё не реализованы.
 SHA-256: {proof['sha256']}
 Исходники: {source}
@@ -70,7 +71,8 @@ SHA-256: {proof['sha256']}
 
 Промежуточный этап ТЗ: геометрические contact/sweep-запросы к локальному BVH
 BlockBody и контакт двух D6-тел с взаимной реакцией и ограниченным трением.
-Новый решатель применяется к опоре BlockBody на землю. Ходьба игрока/мобов на
+Новый решатель применяется к опоре BlockBody на землю. Устранено повторение
+старого угла неподвижного корпуса при сбросе partial tick. Ходьба игрока/мобов на
 летящем корпусе, DynamicBodyAttachment, joints, ControlCore и полноценный3D AI
 остаются открытыми. Все12 критериев Boarding и9 UFO по-прежнему OPEN.
 

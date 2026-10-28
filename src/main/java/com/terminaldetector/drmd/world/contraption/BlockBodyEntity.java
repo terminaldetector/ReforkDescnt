@@ -38,6 +38,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private Vec3 centre = new Vec3(0, 0, 0);
     private final D6PhysicsBody body = new D6PhysicsBody().withLimits(MAX_LINEAR_SPEED, MAX_ANGULAR_SPEED);
     private Quat previousRotation = Quat.IDENTITY;
+    private final BodyRotationTimeline displayRotation = new BodyRotationTimeline();
     private double radius = .5;
     private Vec3 longAxis = new Vec3(0, 1, 0);
     private Vec3 pendingTorque = new Vec3(0, 0, 0);
@@ -56,6 +57,9 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public Vec3 localCentre() { return centre; }
     public Quat rotation() { return body.rotation(); }
     public Quat previousRotation() { return previousRotation; }
+    public Quat renderRotation(float delta) {
+        return getWorld().isClient ? displayRotation.sample(age+MathHelper.clamp(delta,0,1)) : body.rotation();
+    }
     public double radius() { return radius; }
     public D6PhysicsBody physics() { return body; }
     /** Current world pose plus the existing local BVH; no world blocks or chunk loads are read. */
@@ -134,7 +138,10 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         super.onTrackedDataSet(data);
         if (getWorld().isClient && body != null) {
             if (SHAPE.equals(data)) loadShape(dataTracker.get(SHAPE));
-            if (POSE.equals(data)) { previousRotation = body.rotation(); readPose(dataTracker.get(POSE)); }
+            if (POSE.equals(data)) {
+                previousRotation = body.rotation(); readPose(dataTracker.get(POSE));
+                displayRotation.receive(body.rotation(),age);
+            }
         }
     }
     private NbtCompound pose() {
@@ -163,6 +170,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     @Override protected void readCustomDataFromNbt(NbtCompound n) {
         loadShape(n.getCompound("shape")); readPose(n.getCompound("body"));
         body.withPosition(pure(getPos())); previousRotation = body.rotation();
+        displayRotation.reset(body.rotation(),age);
         dataTracker.set(SHAPE, CubicBlockCodec.writeVolume(volume)); dataTracker.set(POSE, pose());
     }
     @Override protected void writeCustomDataToNbt(NbtCompound n) {
