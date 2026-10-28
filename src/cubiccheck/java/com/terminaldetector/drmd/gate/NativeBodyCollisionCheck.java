@@ -3,6 +3,7 @@ package com.terminaldetector.drmd.gate;
 import com.terminaldetector.drmd.world.contraption.BlockBodyEntity;
 import com.terminaldetector.drmd.client.portal.PortalTransform.*;
 import com.terminaldetector.drmd.d6.*;
+import com.terminaldetector.drmd.physics.collision.*;
 import com.terminaldetector.drmd.client.config.DescentConfig;
 import com.terminaldetector.drmd.mixin.client.CameraAccessor;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -16,9 +17,10 @@ import java.util.*;
 
 /** Production BlockBody + native world volumes + actual renderer, in a disposable high-altitude arena. */
 public final class NativeBodyCollisionCheck {
-    private static final BlockPos A=new BlockPos(8,2156,16),B=new BlockPos(16,2156,16),C=new BlockPos(8,2156,24);
+    private static final BlockPos A=new BlockPos(8,2156,16),B=new BlockPos(16,2156,16),C=new BlockPos(8,2156,24),
+        D=new BlockPos(18,2157,24),E=new BlockPos(16,2156,36);
     private static final Set<Integer> DRAWN=new HashSet<>();
-    private static final String[] NAMES={"diagonal-corner","terrain-stop","hollow-door"};
+    private static final String[] NAMES={"diagonal-corner","terrain-stop","hollow-door","compound-contact-query","gravity-support"};
     private static final List<String> RESULTS=new ArrayList<>();
     private static boolean started,preparing,finished;private static volatile boolean ready;
     private static int ticks,stage,frames;private static volatile int[] ids;
@@ -26,7 +28,7 @@ public final class NativeBodyCollisionCheck {
     public static void register(){ClientTickEvents.END_CLIENT_TICK.register(NativeBodyCollisionCheck::tick);}
     public static void drew(BlockBodyEntity b){if(ready && !finished)DRAWN.add(entity(b).getId());}
     public static void camera(Camera camera) {
-        if(!ready)return;BlockPos p=stage==0?A:stage==1?B.east():C.add(1,1,0);
+        if(!ready)return;BlockPos p=stage==0?A:stage==1?B.east():stage==2?C.add(1,1,0):stage==3?D:E;
         var a=(CameraAccessor)camera;a.drmd$invokeSetPos(Vec3d.ofCenter(p).add(7,4,10));a.drmd$invokeSetRotation(145,18);
     }
     private static void tick(MinecraftClient client) {
@@ -62,7 +64,7 @@ public final class NativeBodyCollisionCheck {
     private static void require(boolean value,String message){if(!value)throw new IllegalStateException(message);}
     private static void setup(MinecraftClient c) {
         var w=c.getServer().getOverworld();
-        for(var p:BlockPos.iterate(new BlockPos(3,2152,10),new BlockPos(25,2164,30)))w.setBlockState(p,Blocks.AIR.getDefaultState(),2);
+        for(var p:BlockPos.iterate(new BlockPos(3,2152,10),new BlockPos(27,2166,42)))w.setBlockState(p,Blocks.AIR.getDefaultState(),2);
         w.setTimeOfDay(6000);w.getGameRules().get(net.minecraft.world.GameRules.DO_DAYLIGHT_CYCLE).set(false,c.getServer());
         var q=new Quat(0,0,Math.sin(Math.PI/8),Math.cos(Math.PI/8));
         w.setBlockState(A,Blocks.IRON_BLOCK.getDefaultState(),2);var a=BlockBodyEntity.assemble(w,A,A);
@@ -85,9 +87,42 @@ public final class NativeBodyCollisionCheck {
         var turn=D6PortalTransform.of(old,new Vec3(0,0,1),far,new Vec3(0,0,-1));
         require(!a.canCrossPortal(turn,far),"unknown native Y cube accepted");
         require(!access.isVolumeAvailable(cube) && a.physics().position().equals(old),"rejected query loads volume or mutates pose");
-        ids=new int[]{entity(a).getId(),entity(b).getId(),entity(hollow).getId()};ready=true;
-        System.out.println("BODY_CONTACT_NATIVE server geometry, hole, collision and unknown-Y rejection PASS");
+        var deckCells=new LinkedHashMap<BlockPos,net.minecraft.block.BlockState>();
+        for(int x=0;x<4;x++)for(int z=0;z<4;z++) {
+            var p=D.add(x,0,z);w.setBlockState(p,Blocks.IRON_BLOCK.getDefaultState(),2);deckCells.put(p,Blocks.IRON_BLOCK.getDefaultState());
+        }
+        var deck=BlockBodyEntity.assembleSelection(w,deckCells);
+        var deckRotation=new Quat(.2,.3,.4,.7).normalized();deck.physics().withRotation(deckRotation);entity(deck).tick();
+        var actorBox=new OrientedBox(pure(deck.localToWorld(new Vec3d(2,1.89,2))),new Vec3(.3,.9,.3),deckRotation);
+        var contacts=deck.collisionQuery().contacts(actorBox,0);
+        Vec3 normal=deckRotation.rotate(new Vec3(0,1,0));
+        require(contacts.size()==1 && Math.abs(contacts.getFirst().penetration()-.01)<1e-8,"native compound resting contact missing");
+        require(contacts.getFirst().normal().minus(normal).length()<1e-8,"native rotated contact normal incorrect");
+        var fastActor=new OrientedBox(pure(deck.localToWorld(new Vec3d(2,4,2))),new Vec3(.3,.5,.3),deckRotation);
+        var sweep=deck.collisionQuery().sweep(fastActor,normal.scaled(-1),normal.scaled(4)).orElseThrow();
+        require(Math.abs(sweep.fraction()-.5)<1e-8,"native relative CCD missed moving support");
+        Vec3 point=pure(deck.localToWorld(new Vec3d(2,1,2)));
+        var actor=new D6PhysicsBody().withMass(1).withInertia(D6Mat3.diagonal(1,1,1))
+            .withPosition(point.plus(normal.scaled(.9))).withLinearVelocity(normal.scaled(-2).plus(deckRotation.rotate(new Vec3(2,0,0))));
+        Vec3 momentum=deck.physics().linearVelocity().scaled(deck.physicsMass()).plus(actor.linearVelocity());
+        var reaction=new BodyContactConstraint(actor,deck.physics(),point,normal,.65);
+        for(int i=0;i<32;i++)reaction.solve();
+        require(deck.physics().linearVelocity().scaled(deck.physicsMass()).plus(actor.linearVelocity()).minus(momentum).length()<1e-8,"native two-sided contact loses momentum");
+        require(Math.abs(reaction.relativeVelocity().dot(normal))<1e-7 && deck.physics().linearVelocity().dot(normal)<0,"native contact reaction missing");
+        deck.physics().withLinearVelocity(new Vec3(0,0,0)).withAngularMomentum(new Vec3(0,0,0));entity(deck).tick();
+        // Actual falling/tipping BlockBody exercises the changed terrain solver on native cubes.
+        for(var p:BlockPos.iterate(E.add(-4,-1,-4),E.add(4,-1,4)))w.setBlockState(p,Blocks.OBSIDIAN.getDefaultState(),2);
+        for(int y=0;y<6;y++)w.setBlockState(E.up(y),Blocks.IRON_BLOCK.getDefaultState(),2);
+        var column=BlockBodyEntity.assemble(w,E,E.up(5));column.setPhysicsGravity(true);
+        column.physics().withAngularVelocity(new Vec3(0,0,1));
+        for(int i=0;i<240;i++)entity(column).tick();
+        require(Math.abs(column.rotation().z())>.35,"native gravity support freezes the tipping column");
+        require(entity(column).getY()>E.getY()-1,"native terrain support lets the column fall through");
+        column.setPhysicsGravity(false);column.physics().withLinearVelocity(new Vec3(0,0,0)).withAngularMomentum(new Vec3(0,0,0));entity(column).tick();
+        ids=new int[]{entity(a).getId(),entity(b).getId(),entity(hollow).getId(),entity(deck).getId(),entity(column).getId()};ready=true;
+        System.out.println("BODY_CONTACT_NATIVE geometry, relative CCD, pair reaction, gravity support and unknown-Y rejection PASS");
     }
+    private static Vec3 pure(Vec3d p){return new Vec3(p.x,p.y,p.z);}
     public static void rendered() {
         if(!ready || finished)return;var c=MinecraftClient.getInstance();
         for(int id:ids)if(!(c.world.getEntityById(id) instanceof BlockBodyEntity))return;
@@ -97,8 +132,8 @@ public final class NativeBodyCollisionCheck {
             var path=c.runDirectory.toPath().resolve("body-contact-frames");Files.createDirectories(path);image.writeTo(path.resolve(NAMES[stage]+".png"));
             RESULTS.add("{\"scene\":\""+NAMES[stage]+"\",\"renderedFrames\":"+frames+"}");
             System.out.println("BODY_CONTACT_CLIENT "+NAMES[stage]+" PASS");
-            frames=0;if(++stage==3) {
-                Files.writeString(c.runDirectory.toPath().resolve("body-contacts-ok.json"),"{\"orientedTerrain\":true,\"hollowRay\":true,\"unknownNativeYRejected\":true,\"actualRenderer\":true,\"scenes\":["+String.join(",",RESULTS)+"]}\n");
+            frames=0;if(++stage==NAMES.length) {
+                Files.writeString(c.runDirectory.toPath().resolve("body-contacts-ok.json"),"{\"orientedTerrain\":true,\"hollowRay\":true,\"unknownNativeYRejected\":true,\"compoundContactQuery\":true,\"relativeCCD\":true,\"pairReaction\":true,\"nativeGravitySupport\":true,\"actualRenderer\":true,\"playerBoarding\":false,\"scenes\":["+String.join(",",RESULTS)+"]}\n");
                 finished=true;c.scheduleStop();
             }
         }catch(java.io.IOException error){throw new IllegalStateException(error);}
