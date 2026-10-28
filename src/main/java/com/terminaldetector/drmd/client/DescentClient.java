@@ -54,6 +54,7 @@ public class DescentClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
         com.terminaldetector.drmd.client.flight.BoardingClient.register();
+        com.terminaldetector.drmd.client.flight.BodyEditClient.register();
 		com.terminaldetector.drmd.world.access.CubicAvailability.bindClientThread(
 				()->net.minecraft.client.MinecraftClient.getInstance().isOnThread());
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(

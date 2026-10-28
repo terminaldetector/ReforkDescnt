@@ -8,7 +8,7 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 public final class BoardingNetworking {
-    public static final int PROTOCOL=2;
+    public static final int PROTOCOL=3;
     private BoardingNetworking() {}
     public record Ready(int version) implements CustomPayload {
         public static final Id<Ready> ID=new Id<>(Identifier.of("drmd","boarding_ready"));
@@ -24,14 +24,14 @@ public final class BoardingNetworking {
         public Id<? extends CustomPayload> getId(){return ID;}
     }
     public record BodyState(double x,double y,double z,double qx,double qy,double qz,double qw,
-                            double vx,double vy,double vz,double lx,double ly,double lz,double gx,double gy,double gz,boolean paused) {
+                            double vx,double vy,double vz,double lx,double ly,double lz,double gx,double gy,double gz,boolean paused,long shapeRevision) {
         private void write(RegistryByteBuf b) {
             b.writeDouble(x);b.writeDouble(y);b.writeDouble(z);b.writeDouble(qx);b.writeDouble(qy);b.writeDouble(qz);b.writeDouble(qw);
-            b.writeDouble(vx);b.writeDouble(vy);b.writeDouble(vz);b.writeDouble(lx);b.writeDouble(ly);b.writeDouble(lz);b.writeDouble(gx);b.writeDouble(gy);b.writeDouble(gz);b.writeBoolean(paused);
+            b.writeDouble(vx);b.writeDouble(vy);b.writeDouble(vz);b.writeDouble(lx);b.writeDouble(ly);b.writeDouble(lz);b.writeDouble(gx);b.writeDouble(gy);b.writeDouble(gz);b.writeBoolean(paused);b.writeVarLong(shapeRevision);
         }
         private static BodyState read(RegistryByteBuf b) {
             return new BodyState(b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),
-                b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readBoolean());
+                b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readDouble(),b.readBoolean(),b.readVarLong());
         }
     }
     public record PassengerPose(double x,double y,double z,double w,int gravityOwner) {

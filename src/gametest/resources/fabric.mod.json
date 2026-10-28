@@ -11,6 +11,7 @@
       "com.terminaldetector.drmd.BodyContactGameTests",
       "com.terminaldetector.drmd.BoardingGameTests",
       "com.terminaldetector.drmd.ShipGravityGameTests",
+      "com.terminaldetector.drmd.BodyWorldAccessGameTests",
       "com.terminaldetector.drmd.MicroDamageGameTests",
       "com.terminaldetector.drmd.HybridTerrainGameTests",
       "com.terminaldetector.drmd.CollapseGameTests",

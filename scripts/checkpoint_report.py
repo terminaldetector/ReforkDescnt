@@ -171,6 +171,27 @@ def verify_ship_boarding(root, started):
     return proof
 
 
+BODY_EDIT_SCENES = ('hull-intact','hull-cut','hull-patched','survival-cut','saved-state')
+
+
+def verify_body_edits(root, started):
+    marker=root/'build/bodyeditcheck/body-edit-ok.json'
+    fresh(marker,started)
+    proof=json.loads(marker.read_text())
+    for key in ('actualInputs','survivalMining','materialCharged','savedState','comRebased'):
+        if proof.get(key) is not True: raise ValueError(f'Missing body-edit proof: {key}')
+    for key,minimum in (('revisions',3),('predictionSamples',40)):
+        if type(proof.get(key)) is not int or proof[key]<minimum: raise ValueError(f'Missing body-edit samples: {key}')
+    for key,limit in (('maxPredictionError',.8),('maxPivotStep',.8)):
+        value=proof.get(key)
+        if not isinstance(value,(int,float)) or not math.isfinite(value) or not 0<=value<limit: raise ValueError(f'Invalid body-edit metric: {key}')
+    if proof.get('dropStacks')!=1 or proof.get('toolDamage')!=1: raise ValueError('Local mining loot/durability is incomplete')
+    scenes=proof.get('scenes',[])
+    if [s.get('scene') for s in scenes]!=list(BODY_EDIT_SCENES) or any(s.get('frames',0)<3 for s in scenes): raise ValueError('Missing body-edit input scenes')
+    for name in BODY_EDIT_SCENES: fresh_png(root/f'build/bodyeditcheck/body-edit-frames/{name}.png',started)
+    return proof
+
+
 def properties(root):
     return dict(line.strip().split('=', 1) for line in
                 (root / 'gradle.properties').read_text().splitlines()
@@ -263,8 +284,9 @@ def verify(root):
 
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
-    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26')) else None
-    ship_boarding = verify_ship_boarding(root, started) if version.startswith('1.1.26') else None
+    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27')) else None
+    body_edits = verify_body_edits(root,started) if version.startswith('1.1.27') else None
+    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27')) else None
     audit=verify_audit(root,started) if version.startswith('1.1.14') else None
     if audit: verify_native_audit(root,started)
     jar = root / f'build/libs/{base}-{version}.jar'
@@ -311,6 +333,7 @@ def verify(root):
         result['boarding'] = boarding
     if ship_boarding is not None:
         result['ship_boarding'] = ship_boarding
+    if body_edits is not None: result['body_edits']=body_edits
     (out / 'verified.json').write_text(json.dumps(result, indent=2) + '\n')
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'], 'a') as output:

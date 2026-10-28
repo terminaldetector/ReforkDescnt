@@ -19,9 +19,11 @@ import net.minecraft.world.World;
 import net.minecraft.registry.tag.BlockTags;
 import java.util.*;
 
-/** Experimental inert block assembly. All positions are COM positions; geometry is local cubic data. */
+/** Inert local block grid. Physics position is COM; Entity tracks a fixed grid pivot across mass edits. */
 public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public record Cell(BlockPos pos, BlockState state) {}
+    public static final int MIN_LOCAL=-8,MAX_LOCAL=24;
+    public static boolean validLocal(BlockPos p){return p.getX()>=MIN_LOCAL&&p.getY()>=MIN_LOCAL&&p.getZ()>=MIN_LOCAL&&p.getX()<MAX_LOCAL&&p.getY()<MAX_LOCAL&&p.getZ()<MAX_LOCAL;}
     private static final TrackedData<NbtCompound> SHAPE = DataTracker.registerData(BlockBodyEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
     private static final TrackedData<NbtCompound> POSE = DataTracker.registerData(BlockBodyEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
     private static final Set<Block> SUPPORTED = Set.of(Blocks.STONE, Blocks.COBBLESTONE, Blocks.IRON_BLOCK,
@@ -36,6 +38,9 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private CompoundCollider collider=new CompoundCollider(List.of());
     public CompoundCollider collider(){return collider;}
     private Vec3 centre = new Vec3(0, 0, 0);
+    private Vec3 pivot = new Vec3(0,0,0);
+    private long shapeRevision;
+    private D6MassProperties massProperties=new D6MassProperties();
     private final D6PhysicsBody body = new D6PhysicsBody().withLimits(MAX_LINEAR_SPEED, MAX_ANGULAR_SPEED);
     private Quat previousRotation = Quat.IDENTITY;
     private Vec3 previousPhysicsPosition = new Vec3(0,0,0);
@@ -71,6 +76,16 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     public List<Cell> cells() { return cells; }
     public Vec3 localCentre() { return centre; }
+    public Vec3 localPivot(){return pivot;}
+    public long shapeRevision(){return shapeRevision;}
+    public Vec3 massPosition(){return pure(getPos()).plus(body.rotation().rotate(centre.minus(pivot)));}
+    public Vec3 renderMassPosition(float delta){return pure(getLerpedPos(delta)).plus(renderRotation(delta).rotate(centre.minus(pivot)));}
+    private void positionFromPhysics(){
+        Vec3 at=body.position().plus(body.rotation().rotate(pivot.minus(centre)));setPosition(at.x(),at.y(),at.z());
+    }
+    private NbtCompound shapeTag(){
+        var n=CubicBlockCodec.writeVolume(volume);vector(n,"pivot",pivot);n.putLong("revision",shapeRevision);return n;
+    }
     public Quat rotation() { return body.rotation(); }
     public Quat previousRotation() { return previousRotation; }
     public Quat renderRotation(float delta) {
@@ -79,7 +94,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public double radius() { return radius; }
     public D6PhysicsBody physics() { return body; }
     public com.terminaldetector.drmd.world.contraption.boarding.BodyMotion boardingMotion() {
-        Vec3 end=pure(getPos());
+        Vec3 end=massPosition();
         boolean fresh=!boardingMotionPaused();
         Vec3 start=fresh?previousPhysicsPosition:end;
         Quat before=fresh?previousRotation:body.rotation();
@@ -93,11 +108,11 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     /** Current world pose plus the existing local BVH; no world blocks or chunk loads are read. */
     public BodyCollisionQuery collisionQuery() {
-        return new BodyCollisionQuery(collider,pure(getPos()),centre,body.rotation());
+        return new BodyCollisionQuery(collider,massPosition(),centre,body.rotation());
     }
 
     private void loadShape(NbtCompound tag) {
-        volume = CubicBlockCodec.readVolume(tag, 8);
+        volume = CubicBlockCodec.readVolume(tag, 27);
         List<Cell> next = new ArrayList<>();
         D6MassProperties mass = new D6MassProperties();
         for (long key : volume.keys()) {
@@ -108,16 +123,24 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
                 if (state.isAir()) continue;
                 BlockPos pos = new BlockPos(p.minBlockX() + x, p.minBlockY() + y, p.minBlockZ() + z);
                 if (!supports(state) || next.size() >= 256
-                    || pos.getX() < 0 || pos.getY() < 0 || pos.getZ() < 0
-                    || pos.getX() >= 16 || pos.getY() >= 16 || pos.getZ() >= 16)
+                    || !validLocal(pos))
                     throw new IllegalArgumentException("Unsupported or oversized body shape");
                 next.add(new Cell(pos, state));
-                mass.addBlock(new Vec3(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5), state.isIn(BlockTags.LEAVES)?.08:1);
+                mass.addBlock(new Vec3(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5), blockMass(state));
             }
         }
-        cells = List.copyOf(next); centre = mass.centreOfMass(); body.withMassProperties(mass);
-        var meshes=new HashMap<BlockPos,com.terminaldetector.drmd.world.geometry.HybridMesh>();
-        for(var cell:cells) if(com.terminaldetector.drmd.world.geometry.NaturalGeometry.applies(cell.state())) {
+        cells = List.copyOf(next); massProperties=mass;centre = mass.centreOfMass(); body.withMassProperties(mass);
+        pivot=tag.contains("pivotx")?vector(tag,"pivot"):centre;shapeRevision=tag.getLong("revision");
+        rebuildGeometry(null);
+    }
+    /** Preserve unaffected surface meshes; rebuild only changed blocks and their 26 neighbours. */
+    private void rebuildGeometry(Set<BlockPos> dirty) {
+        var meshes=new HashMap<BlockPos,com.terminaldetector.drmd.world.geometry.HybridMesh>(surfaces);
+        var occupied=new HashSet<BlockPos>();for(var cell:cells)occupied.add(cell.pos());
+        meshes.keySet().removeIf(p->!occupied.contains(p));
+        for(var cell:cells) {
+            if(dirty!=null&&!dirty.contains(cell.pos()))continue;
+            if(!com.terminaldetector.drmd.world.geometry.NaturalGeometry.applies(cell.state())){meshes.remove(cell.pos());continue;}
             var neighbours=new ArrayList<com.terminaldetector.drmd.world.geometry.HybridMesh.Block>(27);
             for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++)for(int x=-1;x<=1;x++) {
                 var state=volume.get(cell.pos().getX()+x,cell.pos().getY()+y,cell.pos().getZ()+z);
@@ -131,22 +154,24 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         }
         surfaces=Map.copyOf(meshes);
         var solid=new ArrayList<CompoundCollider.Cell>();var shaped=new ArrayList<BodyBounds>();
-        var perCell=new HashMap<BlockPos,BodyBounds>();
+        var perCell=new HashMap<BlockPos,BodyBounds>(cellBounds);
+        perCell.keySet().removeIf(p->!occupied.contains(p));
         for(Cell cell:cells) {
             if(surface(cell)==null) {
                 solid.add(new CompoundCollider.Cell(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()));
                 perCell.put(cell.pos(),new BodyBounds(new Vec3(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()),
                     new Vec3(cell.pos().getX()+1,cell.pos().getY()+1,cell.pos().getZ()+1)));
             }
-            else {
+            else if(dirty==null||dirty.contains(cell.pos())) {
                 double x0=Double.POSITIVE_INFINITY,y0=x0,z0=x0,x1=-x0,y1=-x0,z1=-x0;
                 for(Vec3 v:surfaceCorners(cell,new Vec3(0,0,0),Quat.IDENTITY)) {
                     v=v.plus(centre);x0=Math.min(x0,v.x());y0=Math.min(y0,v.y());z0=Math.min(z0,v.z());
                     x1=Math.max(x1,v.x());y1=Math.max(y1,v.y());z1=Math.max(z1,v.z());
                 }
                 var bounds=new BodyBounds(new Vec3(x0,y0,z0),new Vec3(x1,y1,z1));
-                shaped.add(bounds);perCell.put(cell.pos(),bounds);
+                perCell.put(cell.pos(),bounds);
             }
+            if(surface(cell)!=null)shaped.add(perCell.get(cell.pos()));
         }
         cellBounds=Map.copyOf(perCell);
         shaped.addAll(CompoundCollider.cells(solid).boxes());collider=new CompoundCollider(shaped);
@@ -161,12 +186,41 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         longAxis=sx>=sy&&sx>=sz?new Vec3(1,0,0):sy>=sz?new Vec3(0,1,0):new Vec3(0,0,1);
         radius = .5;
         for (Cell c : cells) radius = Math.max(radius,
-            new Vec3(c.pos.getX() + .5, c.pos.getY() + .5, c.pos.getZ() + .5).minus(centre).length() + Math.sqrt(3) / 2);
+            new Vec3(c.pos.getX() + .5, c.pos.getY() + .5, c.pos.getZ() + .5).minus(pivot).length() + centre.minus(pivot).length() + Math.sqrt(3) / 2);
     }
+    public BlockState getLocalBlock(BlockPos pos){return !validLocal(pos)?Blocks.AIR.getDefaultState():volume.get(pos.getX(),pos.getY(),pos.getZ());}
+    public Map<BlockPos,BodyBounds> localBlockBounds(){return cellBounds;}
+    /** Server-only local-grid mutation. COM rebasing preserves every remaining material point. */
+    public boolean setLocalBlock(BlockPos pos,BlockState state) {
+        if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())throw new IllegalStateException("Local edits are server-thread owned");
+        if(isRemoved()||!validLocal(pos)
+            ||(!state.isAir()&&!supports(state)))return false;
+        BlockState before=getLocalBlock(pos);if(before.equals(state))return false;
+        if(before.isAir()&&!state.isAir()&&cells.size()>=256)return false;
+        Vec3 origin=massPosition();Vec3 spin=body.angularVelocity(),velocity=body.linearVelocity();
+        Vec3 oldCentre=centre,blockCentre=new Vec3(pos.getX()+.5,pos.getY()+.5,pos.getZ()+.5);
+        if(!before.isAir())massProperties.addBlock(blockCentre,-blockMass(before));
+        if(!state.isAir())massProperties.addBlock(blockCentre,blockMass(state));
+        volume.set(pos.getX(),pos.getY(),pos.getZ(),state);
+        var next=new ArrayList<Cell>();for(var c:cells)if(!c.pos().equals(pos))next.add(c);
+        if(!state.isAir())next.add(new Cell(pos.toImmutable(),state));
+        next.sort(Comparator.comparingInt((Cell c)->c.pos().getX()).thenComparingInt(c->c.pos().getY()).thenComparingInt(c->c.pos().getZ()));
+        cells=List.copyOf(next);centre=massProperties.centreOfMass();
+        Vec3 shift=body.rotation().rotate(centre.minus(oldCentre));
+        body.withMassProperties(massProperties).withPosition(origin.plus(shift))
+            .withLinearVelocity(velocity.plus(spin.cross(shift))).withAngularVelocity(spin);
+        previousPhysicsPosition=previousPhysicsPosition.plus(previousRotation.rotate(centre.minus(oldCentre)));
+        var dirty=new HashSet<BlockPos>();for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++)dirty.add(pos.add(x,y,z));
+        rebuildGeometry(dirty);shapeRevision++;
+        setBoundingBox(new Box(getPos(),getPos()).expand(radius));
+        dataTracker.set(SHAPE,shapeTag());dataTracker.set(POSE,pose());velocityModified=true;
+        if(cells.isEmpty())discard();return true;
+    }
+    private static double blockMass(BlockState state){return state.isIn(BlockTags.LEAVES)?.08:1;}
     @Override public void onTrackedDataSet(TrackedData<?> data) {
         super.onTrackedDataSet(data);
         if (getWorld().isClient && body != null) {
-            if (SHAPE.equals(data)) loadShape(dataTracker.get(SHAPE));
+            if (SHAPE.equals(data)){loadShape(dataTracker.get(SHAPE));body.withPosition(massPosition());setBoundingBox(new Box(getPos(),getPos()).expand(radius));}
             if (POSE.equals(data)) {
                 previousRotation = body.rotation(); readPose(dataTracker.get(POSE));
                 displayRotation.receive(body.rotation(),age);
@@ -198,16 +252,16 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         passengerGravity=vector(n,"passengerGravity");passengerField(passengerGravity);
         Quat q = new Quat(n.getDouble("qx"), n.getDouble("qy"), n.getDouble("qz"), n.getDouble("qw"));
         if (!Double.isFinite(q.x()*q.x()+q.y()*q.y()+q.z()*q.z()+q.w()*q.w())) throw new IllegalArgumentException("non-finite rotation");
-        body.withRotation(q).withLinearVelocity(vector(n, "v")).withAngularMomentum(vector(n, "l"));
+        body.withRotation(q).withLinearVelocity(vector(n, "v")).withAngularMomentum(vector(n, "l")).withPosition(massPosition());
     }
     @Override protected void readCustomDataFromNbt(NbtCompound n) {
         loadShape(n.getCompound("shape")); readPose(n.getCompound("body"));
-        body.withPosition(pure(getPos())); previousRotation = body.rotation();
+        body.withPosition(massPosition()); previousRotation = body.rotation();
         displayRotation.reset(body.rotation(),age);
-        dataTracker.set(SHAPE, CubicBlockCodec.writeVolume(volume)); dataTracker.set(POSE, pose());
+        dataTracker.set(SHAPE, shapeTag()); dataTracker.set(POSE, pose());
     }
     @Override protected void writeCustomDataToNbt(NbtCompound n) {
-        n.put("shape", CubicBlockCodec.writeVolume(volume)); n.put("body", pose());
+        n.put("shape", shapeTag()); n.put("body", pose());
     }
     public static BlockBodyEntity assemble(ServerWorld world, BlockPos from, BlockPos to) {
         BlockPos min = new BlockPos(Math.min(from.getX(), to.getX()), Math.min(from.getY(), to.getY()), Math.min(from.getZ(), to.getZ()));
@@ -252,7 +306,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         entity.loadShape(CubicBlockCodec.writeVolume(shape));
         entity.setPosition(min.getX()+entity.centre.x(), min.getY()+entity.centre.y(), min.getZ()+entity.centre.z());
         entity.body.withPosition(pure(entity.getPos()));
-        entity.dataTracker.set(SHAPE, CubicBlockCodec.writeVolume(shape));
+        entity.dataTracker.set(SHAPE, entity.shapeTag());
         entity.dataTracker.set(POSE, entity.pose());
         if (!world.spawnEntity(entity)) throw new IllegalArgumentException("Could not spawn body");
         try {
@@ -276,7 +330,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             Quat q = r.quaternion, b = body.rotation();
             return Math.abs(q.x()*b.x()+q.y()*b.y()+q.z()*b.z()+q.w()*b.w());
         })).orElseThrow();
-        Vec3 pivot = pure(getPos()).minus(turn.quaternion.rotate(centre.minus(new Vec3(.5,.5,.5))));
+        Vec3 pivot = massPosition().minus(turn.quaternion.rotate(centre.minus(new Vec3(.5,.5,.5))));
         BlockPos origin = BlockPos.ofFloored(pivot.x(), pivot.y(), pivot.z());
         Map<BlockPos, BlockState> target = new LinkedHashMap<>();
         for (Cell cell : cells) {
@@ -307,7 +361,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         super.tick();
         if (getWorld().isClient) { setBoundingBox(new Box(getPos(), getPos()).expand(radius)); return; }
         if (cells.isEmpty()) return;
-        body.withPosition(pure(getPos())); previousRotation = body.rotation();
+        body.withPosition(massPosition()); previousRotation = body.rotation();
         previousPhysicsPosition=body.position();physicsTick=getWorld().getTime();
         // Substeps bound corner travel to about 0.15 blocks, including rotation. Inelastic contact.
         int steps = Math.max(1, Math.min(32,
@@ -328,7 +382,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
                 break;
             }
         }
-        Vec3 p = body.position(); setPosition(p.x(), p.y(), p.z());
+        positionFromPhysics();
         Vec3 v = body.linearVelocity(); setVelocity(v.x()/20, v.y()/20, v.z()/20);
         setBoundingBox(new Box(getPos(), getPos()).expand(radius));
         dataTracker.set(POSE, pose()); velocityModified = true;
@@ -424,13 +478,13 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             && (axis==2||(p.z()>=b.minZ-1e-6&&p.z()<=b.maxZ+1e-6));
     }
     public Vec3d worldToLocal(Vec3d point) {
-        return minecraft(body.rotation().inverse().rotate(pure(point).minus(pure(getPos()))).plus(centre));
+        return minecraft(body.rotation().inverse().rotate(pure(point).minus(massPosition())).plus(centre));
     }
     public Vec3d localToWorld(Vec3d point) {
-        return minecraft(body.rotation().rotate(pure(point).minus(centre)).plus(pure(getPos())));
+        return minecraft(body.rotation().rotate(pure(point).minus(centre)).plus(massPosition()));
     }
     /** World units per second, including angular velocity about the body's actual COM. */
-    public Vec3d surfaceVelocityAt(Vec3d point) {return minecraft(body.velocityAtPoint(pure(point).minus(pure(getPos()))));}
+    public Vec3d surfaceVelocityAt(Vec3d point) {return minecraft(body.velocityAtPoint(pure(point).minus(massPosition())));}
     /** BVH stays in local space; holes in the hull never become solid broadphase volume. */
     public Optional<CompoundCollider.RayHit> raycastLocal(Vec3d start,Vec3d end) {
         return collider.raycast(pure(worldToLocal(start)),pure(worldToLocal(end)));
@@ -441,7 +495,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     @Override public Optional<Vec3d> physicsRaycast(Vec3d start,Vec3d end) {return raycast(start,end);}
     @Override public void applyPhysicsImpulse(Vec3d impact,Vec3d impulse) {
         if(getWorld().isClient || !Double.isFinite(impact.lengthSquared()) || !Double.isFinite(impulse.lengthSquared()))return;
-        body.applyImpulse(pure(impulse),pure(impact).minus(pure(getPos())));
+        body.applyImpulse(pure(impulse),pure(impact).minus(massPosition()));
         dataTracker.set(POSE,pose());velocityModified=true;
     }
     @Override public Vec3d physicsVelocity() {
@@ -479,13 +533,13 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         }
         return false;
     }
-    private boolean collisionRegionAvailable(Box box) {
+    public boolean collisionRegionAvailable(Box box) {
         if(box.minY<getWorld().getBottomY() || box.maxY>getWorld().getTopY()
             || !getWorld().getWorldBorder().contains(box))return false;
         int x0=MathHelper.floor(box.minX-1)>>4,x1=MathHelper.floor(box.maxX+1)>>4;
         int y0=MathHelper.floor(box.minY-1)>>4,y1=MathHelper.floor(box.maxY+1)>>4;
         int z0=MathHelper.floor(box.minZ-1)>>4,z1=MathHelper.floor(box.maxZ+1)>>4;
-        if((long)(x1-x0+1)*(y1-y0+1)*(z1-z0+1)>64)return false;
+        if((long)(x1-x0+1)*(y1-y0+1)*(z1-z0+1)>216)return false;
         var access=com.terminaldetector.drmd.world.access.WorldAccess.of(getWorld());
         for(int x=x0;x<=x1;x++)for(int y=y0;y<=y1;y++)for(int z=z0;z<=z1;z++)
             if(com.terminaldetector.drmd.world.access.CubicAvailability.withinHeight(getWorld(),new D6ChunkPos(x,y,z))
@@ -511,8 +565,8 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         } finally { body.withPosition(previous).withRotation(rotation); }
     }
     public void crossPortal(D6PortalTransform transform) {
-        body.withPosition(pure(getPos())); transform.apply(body, null);
-        Vec3 p=body.position(); setPosition(p.x(),p.y(),p.z()); dataTracker.set(POSE,pose());
+        body.withPosition(massPosition()); transform.apply(body, null);
+        positionFromPhysics(); dataTracker.set(POSE,pose());
     }
     @Override public boolean canHit() { return true; }
     private static Vec3 pure(Vec3d v) { return new Vec3(v.x,v.y,v.z); }

@@ -152,7 +152,8 @@ public final class BoardingSystem {
         if(active&&p.getServerWorld().getEntityById(s.gravityOwner()>=0?s.gravityOwner():s.support()) instanceof BlockBodyEntity body) {
             var q=body.rotation();var v=body.physics().linearVelocity();var m=body.physics().angularMomentum();
             var g=body.passengerGravity();
-            snapshot=new BoardingNetworking.BodyState(body.getX(),body.getY(),body.getZ(),q.x(),q.y(),q.z(),q.w(),v.x(),v.y(),v.z(),m.x(),m.y(),m.z(),g.x(),g.y(),g.z(),body.boardingMotionPaused());
+            var position=body.massPosition();
+            snapshot=new BoardingNetworking.BodyState(position.x(),position.y(),position.z(),q.x(),q.y(),q.z(),q.w(),v.x(),v.y(),v.z(),m.x(),m.y(),m.z(),g.x(),g.y(),g.z(),body.boardingMotionPaused(),body.shapeRevision());
         }
         ServerPlayNetworking.send(p,new BoardingNetworking.State(l.epoch,l.sequence,active,s.support(),s.feet().x(),s.feet().y(),s.feet().z(),
             s.velocity().x(),s.velocity().y(),s.velocity().z(),s.grounded(),new BoardingNetworking.PassengerPose(s.frame().x(),s.frame().y(),s.frame().z(),s.frame().w(),s.gravityOwner()),snapshot,p.getWorld().getRegistryKey().getValue()));

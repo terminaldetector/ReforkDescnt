@@ -21,7 +21,8 @@
     "BoardingServerMovementMixin",
     "BoardingPlayerTravelMixin",
     "BoardingPoseMixin",
-    "BoardingWorldMovementMixin"
+    "BoardingWorldMovementMixin",
+    "BodyPickingMixin"
   ],
   "client": [
     "client.CameraAccessor",
@@ -41,7 +42,8 @@
     "client.PortalProjectorInputMixin",
     "client.DroneCombatInputMixin",
     "client.HeldWeaponFallbackMixin",
-    "client.BoardingClientTravelMixin"
+    "client.BoardingClientTravelMixin",
+    "client.BodyEditInputMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -22,6 +22,7 @@ public final class BoardingClient {
     private static Vec3 correction=new Vec3(0,0,0);
     private static boolean jumpHeld;
     private static BoardingNetworking.BodyState bodySnapshot;
+    private static BoardingNetworking.State waitingForShape;
     private static int snapshotId=-1;
     private static ClientPlayerEntity readyOwner;
     public record BodyView(Vec3 position,Quat rotation) {}
@@ -46,6 +47,10 @@ public final class BoardingClient {
         ClientPlayConnectionEvents.DISCONNECT.register((h,c)->{clear();BoardingPose.clearClient();readyOwner=null;});
         ClientPlayConnectionEvents.JOIN.register((h,s,c)->{clear();BoardingPose.clearClient();readyOwner=null;});
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c->{
+            if(waitingForShape!=null&&c.world!=null) {
+                var pending=waitingForShape;int id=pending.pose().gravityOwner()>=0?pending.pose().gravityOwner():pending.support();
+                if(c.world.getEntityById(id) instanceof BlockBodyEntity b&&b.shapeRevision()==pending.body().shapeRevision()){waitingForShape=null;apply(pending);}
+            }
             if(c.player!=null&&c.player!=readyOwner&&ClientPlayNetworking.canSend(BoardingNetworking.Ready.ID)) {
                 ClientPlayNetworking.send(new BoardingNetworking.Ready(BoardingNetworking.PROTOCOL));readyOwner=c.player;
             }
@@ -61,7 +66,7 @@ public final class BoardingClient {
     public static DynamicBodyAttachment.State predictedState(int acknowledgment){
         var p=HISTORY.get(acknowledgment);return p==null?null:p.state();
     }
-    public static void clear(){var p=MinecraftClient.getInstance().player;if(p!=null)BoardingPose.clear(p);state=null;world=null;epoch=-1;sequence=0;HISTORY.clear();correction=new Vec3(0,0,0);jumpHeld=false;bodySnapshot=null;snapshotId=-1;beforeView=null;currentView=null;viewBody=-1;viewAge=-1;}
+    public static void clear(){var p=MinecraftClient.getInstance().player;if(p!=null)BoardingPose.clear(p);state=null;world=null;epoch=-1;sequence=0;HISTORY.clear();correction=new Vec3(0,0,0);jumpHeld=false;bodySnapshot=null;waitingForShape=null;snapshotId=-1;beforeView=null;currentView=null;viewBody=-1;viewAge=-1;}
     private static void apply(BoardingNetworking.State p) {
         var mc=MinecraftClient.getInstance();var player=mc.player;
         if(player==null||mc.world==null)return;
@@ -79,6 +84,11 @@ public final class BoardingClient {
             }
             clear();return;
         }
+        if(p.body()!=null) {
+            int id=p.pose().gravityOwner()>=0?p.pose().gravityOwner():p.support();
+            if(!(mc.world.getEntityById(id) instanceof BlockBodyEntity b)||b.shapeRevision()!=p.body().shapeRevision()) {waitingForShape=p;return;}
+        }
+        waitingForShape=null;
         bodySnapshot=p.body();snapshotId=p.pose().gravityOwner()>=0?p.pose().gravityOwner():p.support();
         if(state==null||epoch!=p.epoch()) {
             world=mc.world;epoch=p.epoch();sequence=0;HISTORY.clear();correction=new Vec3(0,0,0);
@@ -103,7 +113,7 @@ public final class BoardingClient {
         }
     }
     public static void travel(ClientPlayerEntity player,Vec3d movement) {
-        if(!drives(player))return;
+        if(!drives(player)||waitingForShape!=null)return;
         // Backpressure keeps a stalled connection from growing history or permanently outrunning
         // the server's bounded command queue. Resume as soon as an acknowledgment arrives.
         if(HISTORY.size()>=16){player.fallDistance=0;return;}
@@ -151,7 +161,7 @@ public final class BoardingClient {
             .withRotation(new Quat(snapshot.qx(),snapshot.qy(),snapshot.qz(),snapshot.qw()))
             .withLinearVelocity(new Vec3(snapshot.vx(),snapshot.vy(),snapshot.vz()))
             .withAngularMomentum(new Vec3(snapshot.lx(),snapshot.ly(),snapshot.lz()));
-        else p.withPosition(BoardingSystem.pure(body.getPos())).withRotation(body.rotation())
+        else p.withPosition(body.massPosition()).withRotation(body.rotation())
             .withLinearVelocity(body.physics().linearVelocity()).withAngularMomentum(body.physics().angularMomentum());
         boolean paused=snapshot==null?body.boardingMotionPaused():snapshot.paused();
         int lead=snapshot==null?0:Math.min(4,ticks);if(!paused)for(int i=0;i<lead;i++)p.step(.05);

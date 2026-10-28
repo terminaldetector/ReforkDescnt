@@ -66,6 +66,9 @@ public final class CompoundCollider {
         if(boundsHit==null || best[0]!=null && boundsHit.fraction>=best[0].fraction)return;
         if(node.box>=0)best[0]=boundsHit;else{ray(node.left,from,delta,best);ray(node.right,from,delta,best);}
     }
+    public static Optional<RayHit> raycastBox(BodyBounds bounds,Vec3 from,Vec3 to) {
+        BodyBounds.finite(from);BodyBounds.finite(to);return Optional.ofNullable(rayBox(bounds,from,to.minus(from)));
+    }
     private static RayHit rayBox(BodyBounds b,Vec3 from,Vec3 delta) {
         double enter=0,exit=1;Vec3 normal=new Vec3(0,0,0);boolean inside=true;
         for(int axis=0;axis<3;axis++) {

@@ -49,7 +49,7 @@ public final class BoardingCamera {
         for(var body:player.getWorld().getEntitiesByClass(BlockBodyEntity.class,new Box(eye,target).expand(1),b->!b.isRemoved())) {
             var predicted=BoardingClient.bodyView(body,delta);
             Quat rotation=predicted==null?body.renderRotation(delta):predicted.rotation();
-            Vec3 centre=predicted==null?BoardingSystem.pure(body.getLerpedPos(delta)):predicted.position();
+            Vec3 centre=predicted==null?body.renderMassPosition(delta):predicted.position();
             Vec3 from=body.localCentre().plus(rotation.inverse().rotate(BoardingSystem.pure(eye).minus(centre)));
             Vec3 to=body.localCentre().plus(rotation.inverse().rotate(BoardingSystem.pure(target).minus(centre)));
             var hit=body.collider().raycast(from,to);

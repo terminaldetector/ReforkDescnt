@@ -17,13 +17,13 @@ public final class BlockBodyRenderer extends EntityRenderer<BlockBodyEntity> {
         matrices.push();
         var predicted=com.terminaldetector.drmd.client.flight.BoardingClient.bodyView(body,delta);
         if(predicted!=null) {
-            var actual=body.getLerpedPos(delta);var position=predicted.position();
+            var actual=body.getLerpedPos(delta);var position=predicted.position().plus(predicted.rotation().rotate(body.localPivot().minus(body.localCentre())));
             matrices.translate(position.x()-actual.x,position.y()-actual.y,position.z()-actual.z);
         }
         var pose = predicted==null?body.renderRotation(delta):predicted.rotation();
         Quaternionf q = new Quaternionf((float)pose.x(),(float)pose.y(),(float)pose.z(),(float)pose.w());
         matrices.multiply(q);
-        var centre = body.localCentre();
+        var centre = body.localPivot();
         matrices.translate(-centre.x(), -centre.y(), -centre.z());
         for (var cell : body.cells()) {
             matrices.push(); matrices.translate(cell.pos().getX(), cell.pos().getY(), cell.pos().getZ());
