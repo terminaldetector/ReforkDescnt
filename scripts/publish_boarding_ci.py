@@ -1,0 +1,120 @@
+"""Stage the contact-foundation candidate only after exact-source CI gameplay checks pass."""
+from pathlib import Path
+import hashlib
+import importlib.util
+import json
+import os
+import shutil
+import subprocess
+import zipfile
+
+VERSION = '1.1.24-boarding.1'
+
+
+def validate_proof(proof, source):
+    if proof['source_sha'] != source or proof['version'] != VERSION:
+        raise ValueError('Unexpected tested source or boarding version')
+    if proof['unit']['tests'] < 592 or proof['gametest']['tests'] < 147:
+        raise ValueError('Contact unit and world regressions are missing')
+    if proof['jar'] != f'drmd-6dof-{VERSION}-fabric-1.21.1.jar':
+        raise ValueError('Unexpected installable JAR')
+
+
+def main():
+    if os.environ.get('GITHUB_ACTIONS') != 'true':
+        raise RuntimeError('CI evidence required')
+    root = Path(__file__).resolve().parents[1]
+    source = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
+    if source != os.environ['GITHUB_SHA']:
+        raise ValueError('CI source mismatch')
+    spec = importlib.util.spec_from_file_location('checkpoint_report', root / 'scripts/checkpoint_report.py')
+    gate = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gate)
+    gate.verify(root)
+    started = int((root / 'build/checkpoint/started-at.txt').read_text())
+    gate.verify_audit(root, started)
+    gate.verify_native_audit(root, started)
+    proof = json.loads((root / 'build/checkpoint/verified.json').read_text())
+    validate_proof(proof, source)
+    for name in ('snapshot', 'mirror-join', 'horizon-anchor', 'repair-visual'):
+        gate.fresh(root / f'build/shootcheck/{name}-ok.json', started)
+    snapshot = json.loads((root / 'build/shootcheck/snapshot-ok.json').read_text())
+    if not all(snapshot.get(k) for k in ('actualWeaponInput', 'stableToolRoll', 'actualDroneInventory')):
+        raise ValueError('Snapshot input regression is incomplete')
+    if len(snapshot['scenes']) != 5 or any(s['frames'] < 90 for s in snapshot['scenes']):
+        raise ValueError('Snapshot frames are incomplete')
+    for scene in snapshot['scenes']:
+        gate.fresh_png(root / f'build/shootcheck/snapshot-frames/{scene["scene"]}.png', started)
+    jar = root / 'build/checkpoint/distribution' / proof['jar']
+    if hashlib.sha256(jar.read_bytes()).hexdigest() != proof['sha256']:
+        raise ValueError('JAR checksum mismatch')
+    out = root / 'dist/releases' / VERSION
+    out.mkdir()  # Existing verified packages are immutable.
+    shutil.copy2(jar, out / jar.name)
+    (out / 'SOURCE_SHA.txt').write_text(source + '\n')
+    run = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+    (out / 'INSTALL_TLAUNCHER.txt').write_text(f'''UNGRAVITY {VERSION} — Minecraft1.21.1 / Fabric / Java21
+Установить один {jar.name} в mods вместе с Fabric API; удалить предыдущий DRMD JAR.
+Immersive Portals не требуется. N — инвентарь дрона, ЛКМ/ПКМ — выбранные оружия,
+B — вспомогательное, G — режим ракет. Управление портальной пушкой сохранено.
+Для native Cubic Chunks нужен отдельный Better Cubic Chunks и новый cubic_overworld.
+Этот кандидат проверен CI в обычном мире; новый native BCC-клиент не проверен.
+Добавлены запросы контакта к BlockBody и взаимный импульсный решатель D6.
+Ходьба по летящему UFO, DynamicBodyAttachment и полный3D AI ещё не реализованы.
+SHA-256: {proof['sha256']}
+Исходники: {source}
+''')
+    (out / 'README.md').write_text(f'''# UNGRAVITY {VERSION}
+
+[Установочный JAR]({jar.name}) · [Установка](INSTALL_TLAUNCHER.txt) · [SHA-256](SHA256SUMS).
+
+Промежуточный этап ТЗ: геометрические contact/sweep-запросы к локальному BVH
+BlockBody и контакт двух D6-тел с взаимной реакцией и ограниченным трением.
+Новый решатель применяется к опоре BlockBody на землю. Ходьба игрока/мобов на
+летящем корпусе, DynamicBodyAttachment, joints, ControlCore и полноценный3D AI
+остаются открытыми. Все12 критериев Boarding и9 UFO по-прежнему OPEN.
+
+Проверенный source SHA: `{source}`. [Точный CI-прогон]({run}).
+Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']['tests']}.
+Полная регрессия настоящего клиента, оружие, инвентарь, зеркала/Fabulous и LOD.
+[CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/CONTACT_STAGE_REPORT.md).
+
+Программная графика Linux; новая native BCC-сессия и Windows/RTX этим CI не
+подтверждены. Предыдущий snapshot с native-проверками сохранён отдельно.
+Упаковочные коммиты отличаются от проверенной исходной ревизии.
+''')
+    shutil.copy2(root / 'build/checkpoint/REPORT.md', out / 'CI_REPORT.md')
+    (out / 'VERIFIED.json').write_text(json.dumps({'sourceSha': source, 'jarSha256': proof['sha256'], 'run': run, 'proof': proof}, indent=2))
+    with zipfile.ZipFile(out / 'ci-evidence.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
+        for pattern in ('build/checkpoint/logs/*', 'build/checkpoint/resources/*',
+                        'build/checkpoint/verified.json', 'build/checkpoint/SOURCE_SHA.txt',
+                        'build/checkpoint/started-at.txt', 'build/test-results/test/*.xml',
+                        'build/gametest/reports/*.xml', 'build/gametest/item-resource-inventory.tsv',
+                        'build/rendercheck/*ok.*', 'build/rendercheck/screenshots/*.png',
+                        'build/shootcheck/*ok.json', 'build/shootcheck/*.csv', 'build/shootcheck/*.tsv',
+                        'build/shootcheck/*-frames/*.png', 'build/shootcheck/screenshots/audit-*.png'):
+            for path in root.glob(pattern):
+                if path.is_file():
+                    archive.write(path, path.relative_to(root))
+    (out / 'SHA256SUMS').write_text(''.join(f'{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.name}\n'
+                                         for p in sorted(out.iterdir()) if p.is_file()))
+    readme = root / 'dist/README.md'
+    previous = readme.read_text()
+    readme.write_text(f'''# Текущий проверенный этап ТЗ — {VERSION}
+
+[Скачать JAR](releases/{VERSION}/{jar.name}) · [Установка](releases/{VERSION}/INSTALL_TLAUNCHER.txt)
+· [Проверки и ограничения](releases/{VERSION}/README.md) · [SHA-256](releases/{VERSION}/SHA256SUMS).
+
+Это основа контактов BlockBody; полноценный абордаж и3D AI ещё не готовы.
+Проверка CI использует обычный мир и программную графику Linux.
+
+Ниже сохранён предыдущий snapshot и его отдельные native BCC-проверки.
+
+---
+
+''' + previous)
+    print('Verified boarding foundation staged:', out)
+
+
+if __name__ == '__main__':
+    main()
