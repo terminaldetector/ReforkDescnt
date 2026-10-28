@@ -6,7 +6,7 @@
 - [Установка](releases/1.1.23-snapshot.1/INSTALL_TLAUNCHER.txt)
 - [SHA-256](releases/1.1.23-snapshot.1/SHA256SUMS)
 - [Исходная ревизия и результаты проверок](releases/1.1.23-snapshot.1/README.md)
-- [Подробный локальный отчёт](releases/1.1.23-snapshot.1/LOCAL_REPORT.md)
+- [Подробный локальный отчёт](releases/1.1.23-snapshot.1/NATIVE_REPORT.md)
 
 JAR хранится непосредственно в Git. Скачивать его из Actions или собирать проект для установки
 не требуется. Старые файлы в корне `dist/` сохранены как исторические версии; актуальная сборка
@@ -21,6 +21,6 @@ N — отдельный инвентарь дрона. ЛКМ / ПКМ — дв
 
 Все 11 ролей дронов проверены на полный запас здоровья и корректное сохранение повреждений.
 Новые адаптеры дронов и наземного бестиария включены по умолчанию. Полное Master ТЗ v5 ещё
-не выполнено: ориентированные коллайдеры летающих корпусов и полная маршрутизация AI в 3D
-остаются в работе. Исходники snapshot прошли [GitHub Actions](https://github.com/terminaldetector/ReforkDescnt/actions/runs/40657904862).
+не выполнено: интеграция коллайдеров в UFO, полноценный Dynamic Boarding и маршрутизация AI
+в 3D остаются в работе. Исходники snapshot прошли [GitHub Actions](https://github.com/terminaldetector/ReforkDescnt/actions/runs/40657904862).
 Тот же JAR прошёл12 [локальных кубических сценариев](releases/1.1.23-snapshot.1/NATIVE_REPORT.md).
