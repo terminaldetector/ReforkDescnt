@@ -1,0 +1,116 @@
+{
+  "sourceSha": "a1b045cde046d2a9f3be932eae960ed28bd4e083",
+  "jarSha256": "19dbbeb2eacde9d7d587bf77780b6342c2394147d2631a88614c5e3007eb7c6a",
+  "run": "https://github.com/terminaldetector/ReforkDescnt/actions/runs/40683605278",
+  "proof": {
+    "source_sha": "a1b045cde046d2a9f3be932eae960ed28bd4e083",
+    "version": "1.1.24-boarding.2",
+    "audit": null,
+    "jar": "drmd-6dof-1.1.24-boarding.2-fabric-1.21.1.jar",
+    "sha256": "19dbbeb2eacde9d7d587bf77780b6342c2394147d2631a88614c5e3007eb7c6a",
+    "unit": {
+      "tests": 598,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "gametest": {
+      "tests": 147,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "swarm": "Live swarm synchronized 128 drones; indexed=128; moving=128; maximum candidates/query=96.",
+    "hybrid": {
+      "models": 3,
+      "presetRoundTrips": 3,
+      "serverSaves": 3,
+      "muzzlePairs": 3,
+      "fovs": [
+        70,
+        80,
+        90
+      ],
+      "banked": 3,
+      "vertical": 3,
+      "realUseAnimated": 3,
+      "loadSynced": true,
+      "external": 3,
+      "frames": 40
+    },
+    "hybrid_frames": [
+      "hybrid-0-workshop.png",
+      "hybrid-0-fov70.png",
+      "hybrid-0-fov80.png",
+      "hybrid-0-fov90.png",
+      "hybrid-0-banked.png",
+      "hybrid-0-vertical.png",
+      "hybrid-0-external.png",
+      "hybrid-1-workshop.png",
+      "hybrid-1-fov70.png",
+      "hybrid-1-fov80.png",
+      "hybrid-1-fov90.png",
+      "hybrid-1-banked.png",
+      "hybrid-1-vertical.png",
+      "hybrid-1-external.png",
+      "hybrid-2-workshop.png",
+      "hybrid-2-fov70.png",
+      "hybrid-2-fov80.png",
+      "hybrid-2-fov90.png",
+      "hybrid-2-banked.png",
+      "hybrid-2-vertical.png",
+      "hybrid-2-external.png",
+      "hybrid-2-loaded.png"
+    ],
+    "frames": [
+      "hybrid-before.png",
+      "hybrid-after.png",
+      "collapse-before.png",
+      "collapse-flight.png",
+      "collapse-after.png",
+      "ragdoll-flight.png",
+      "ragdoll-after.png",
+      "gravity-swarm-held.png",
+      "gravity-swarm-flight.png",
+      "gravity-rail-held.png",
+      "gravity-rail-flight.png",
+      "gravity-shift-held.png",
+      "gravity-shift-flight.png",
+      "drone-swarm-dense.png",
+      "drone-swarm-flight.png"
+    ],
+    "shootcheck": {
+      "scenes": 10,
+      "fovs": [
+        70,
+        80,
+        90
+      ],
+      "rangePixelsChecked": true,
+      "fastSpeed": 8,
+      "fastTravel": 24.0,
+      "fastFrames": 4,
+      "fastPixelsChecked": true,
+      "fastTickStepped": true,
+      "fastServerTicks": 4,
+      "fastServerTravel": 32.0,
+      "muzzleEvents": 27,
+      "impactEvents": 2
+    },
+    "shot_frames": [
+      "bolt-dark-ranges.png",
+      "bolt-light-ranges.png",
+      "orb-dark-ranges.png",
+      "orb-light-ranges.png",
+      "rocket-dark-ranges.png",
+      "rocket-light-ranges.png",
+      "banked-fire.png",
+      "vertical-fire.png",
+      "muzzle-impact.png",
+      "fast-motion.png",
+      "mounts-fov-70.png",
+      "mounts-fov-80.png",
+      "mounts-fov-90.png"
+    ]
+  }
+}
