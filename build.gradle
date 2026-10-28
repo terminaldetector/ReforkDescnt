@@ -250,6 +250,7 @@ sourceSets {
         java.srcDir 'src/cubiccheck/java'
         java.include 'com/terminaldetector/drmd/gate/NativeBoardingCheck.java'
         java.include 'com/terminaldetector/drmd/gate/NativeShipGravityCheck.java'
+        java.include 'com/terminaldetector/drmd/gate/NativeBodyEditCheck.java'
         java.include 'com/terminaldetector/drmd/boardingcheck/**'
         compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
         runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
@@ -315,3 +316,29 @@ tasks.register('prepareShipboardingcheckWorld', Sync) {
     }
 }
 tasks.named('runShipboardingcheck') { dependsOn prepareShipboardingcheckWorld }
+
+// Real local-block editing in the same disposable ordinary/native player motor.
+loom { runs { bodyeditcheck {
+    client()
+    source sourceSets.boardingcheck
+    runDir 'build/bodyeditcheck'
+    vmArg '-Ddrmd.boarding.labY=140'
+    vmArg '-Ddrmd.gate.bodyEdit=true'
+    programArg '--quickPlaySingleplayer'
+    programArg 'DRMD-bodyedit-lab'
+    programArg '--width'
+    programArg '1280'
+    programArg '--height'
+    programArg '720'
+} } }
+tasks.register('prepareBodyeditcheckWorld', Sync) {
+    dependsOn runGametest
+    from 'build/gametest/world'
+    into 'build/bodyeditcheck/saves/DRMD-bodyedit-lab'
+    exclude '**/session.lock'
+    doLast {
+        if(!file('build/bodyeditcheck/saves/DRMD-bodyedit-lab/level.dat').isFile())throw new GradleException('Missing disposable body edit world')
+        file('build/bodyeditcheck/options.txt').text='onboardAccessibility:false\npauseOnLostFocus:false\nmaxFps:30\nrenderDistance:8\nsimulationDistance:8\n'
+    }
+}
+tasks.named('runBodyeditcheck') { dependsOn prepareBodyeditcheckWorld }

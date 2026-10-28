@@ -6,7 +6,8 @@
     "FrameProbe",
     "StateProbe",
     "ShipModelProbe",
-    "ShipCameraProbe"
+    "ShipCameraProbe",
+    "BodyEditInputProbe"
   ],
   "injectors": {
     "defaultRequire": 1

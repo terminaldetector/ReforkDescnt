@@ -22,6 +22,8 @@ import java.util.*;
 /** Inert local block grid. Physics position is COM; Entity tracks a fixed grid pivot across mass edits. */
 public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public record Cell(BlockPos pos, BlockState state) {}
+    private static java.util.function.BiConsumer<BlockBodyEntity,Vec3> clientShapeListener=(b,p)->{};
+    public static void clientShapeListener(java.util.function.BiConsumer<BlockBodyEntity,Vec3> listener){clientShapeListener=java.util.Objects.requireNonNull(listener);}
     public static final int MIN_LOCAL=-8,MAX_LOCAL=24;
     public static boolean validLocal(BlockPos p){return p.getX()>=MIN_LOCAL&&p.getY()>=MIN_LOCAL&&p.getZ()>=MIN_LOCAL&&p.getX()<MAX_LOCAL&&p.getY()<MAX_LOCAL&&p.getZ()<MAX_LOCAL;}
     private static final TrackedData<NbtCompound> SHAPE = DataTracker.registerData(BlockBodyEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
@@ -220,7 +222,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     @Override public void onTrackedDataSet(TrackedData<?> data) {
         super.onTrackedDataSet(data);
         if (getWorld().isClient && body != null) {
-            if (SHAPE.equals(data)){loadShape(dataTracker.get(SHAPE));body.withPosition(massPosition());setBoundingBox(new Box(getPos(),getPos()).expand(radius));}
+            if (SHAPE.equals(data)){Vec3 before=centre;loadShape(dataTracker.get(SHAPE));body.withPosition(massPosition());setBoundingBox(new Box(getPos(),getPos()).expand(radius));clientShapeListener.accept(this,before);}
             if (POSE.equals(data)) {
                 previousRotation = body.rotation(); readPose(dataTracker.get(POSE));
                 displayRotation.receive(body.rotation(),age);

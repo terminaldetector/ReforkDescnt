@@ -11,7 +11,8 @@
     "ProjectorInputAccess",
     "BoardingStateProbe",
     "ShipModelProbe",
-    "ShipCameraProbe"
+    "ShipCameraProbe",
+    "BodyEditInputProbe"
   ],
   "injectors": {
     "defaultRequire": 1

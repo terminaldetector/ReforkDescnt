@@ -41,8 +41,15 @@ public final class BoardingClient {
             currentView=next;viewBody=b.id;viewAge=player.age;return;
         }
     }
+    private static void shapeChanged(BlockBodyEntity body,Vec3 oldCentre) {
+        if(body.getId()!=viewBody||currentView==null)return;
+        Vec3 delta=body.localCentre().minus(oldCentre);
+        currentView=new BodyView(currentView.position().plus(currentView.rotation().rotate(delta)),currentView.rotation());
+        beforeView=new BodyView(beforeView.position().plus(beforeView.rotation().rotate(delta)),beforeView.rotation());
+    }
     private BoardingClient() {}
     public static void register() {
+        BlockBodyEntity.clientShapeListener(BoardingClient::shapeChanged);
         ClientPlayNetworking.registerGlobalReceiver(BoardingNetworking.State.ID,(p,c)->c.client().execute(()->apply(p)));
         ClientPlayConnectionEvents.DISCONNECT.register((h,c)->{clear();BoardingPose.clearClient();readyOwner=null;});
         ClientPlayConnectionEvents.JOIN.register((h,s,c)->{clear();BoardingPose.clearClient();readyOwner=null;});
