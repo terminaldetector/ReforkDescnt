@@ -27,6 +27,24 @@ public final class OrientedBox {
     }
     public Vec3 centre(){return centre;}
     public Vec3 half(){return half;}
+    /** Euclidean projection onto the occupied OBB, rather than onto its world broadphase. */
+    public Vec3 closestPoint(Vec3 point) {
+        BodyBounds.finite(point); Vec3 delta=point.minus(centre),result=centre;
+        for(int i=0;i<3;i++) {
+            double h=BodyBounds.component(half,i);
+            result=result.plus(axes[i].scaled(Math.max(-h,Math.min(h,delta.dot(axes[i])))));
+        }
+        return result;
+    }
+    /** Centre of the supporting face/edge/vertex; zero projection keeps that axis centred. */
+    public Vec3 supportCentre(Vec3 direction) {
+        BodyBounds.finite(direction); Vec3 result=centre;
+        for(int i=0;i<3;i++) {
+            double dot=direction.dot(axes[i]);
+            if(Math.abs(dot)>1e-10)result=result.plus(axes[i].scaled(Math.copySign(BodyBounds.component(half,i),dot)));
+        }
+        return result;
+    }
     public BodyBounds bounds() {
         Vec3 reach=new Vec3(radius(new Vec3(1,0,0)),radius(new Vec3(0,1,0)),radius(new Vec3(0,0,1)));
         return new BodyBounds(centre.minus(reach),centre.plus(reach));

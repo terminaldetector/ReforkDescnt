@@ -58,6 +58,10 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public Quat previousRotation() { return previousRotation; }
     public double radius() { return radius; }
     public D6PhysicsBody physics() { return body; }
+    /** Current world pose plus the existing local BVH; no world blocks or chunk loads are read. */
+    public BodyCollisionQuery collisionQuery() {
+        return new BodyCollisionQuery(collider,pure(getPos()),centre,body.rotation());
+    }
 
     private void loadShape(NbtCompound tag) {
         volume = CubicBlockCodec.readVolume(tag, 8);
@@ -352,8 +356,11 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         }
         if(contacts.isEmpty() || lift>.2)return false;
         body.withPosition(body.position().plus(normal.scaled(Math.max(0,lift)+1e-6)));
-        for(int pass=0;pass<4;pass++)for(Vec3 point:contacts)
-            body.contactImpulse(point.minus(body.position()),normal,.65);
+        // The same two-sided constraint will serve moving supports. Terrain is one immovable
+        // participant, never one RigidBody per block; keep accumulated impulses within this step.
+        var terrain=new D6PhysicsBody();
+        var constraints=contacts.stream().map(point->new BodyContactConstraint(body,terrain,point,normal,.65)).toList();
+        for(int pass=0;pass<4;pass++)for(var contact:constraints)contact.solve();
         return !blocked();
     }
     private static int dominantAxis(Vec3 v) {
