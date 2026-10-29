@@ -6,7 +6,7 @@ from publish_boarding_ci import VERSION, validate_proof
 class BoardingPackageProofTest(unittest.TestCase):
     def proof(self):
         return dict(source_sha='a' * 40, version=VERSION,
-                    unit=dict(tests=657), gametest=dict(tests=209),
+                    unit=dict(tests=657), gametest=dict(tests=212),
                     hull_contacts=dict(actualHullPairs=True,wholeTickIntegrated=True,sequentialThreeHulls=True,rotatedHullImpulse=True),
                     body_combat=dict(actualHitscanDamage=True,actualProjectileDamage=True,actualRadialDamage=True),
                     body_fractures=dict(actualFragments=True,continuousMaterialMotion=True,fastFragmentTickIntegrated=True,fragmentNbtRoundTrip=True),
