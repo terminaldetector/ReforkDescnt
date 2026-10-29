@@ -75,3 +75,9 @@ joints/ControlCore → полный игровой маршрут, dedicated/two
 216 подтверждений, max prediction error0.399694м при прежнем пороге0.8,
 физический перелёт33.396м. Прогон до фиксации source SHA; результаты не
 подменяют ожидаемый exact-source CI и native BCC.
+
+Первый exact-source native запуск79f61aa остановился на добавленном диагностическом
+вызове наследованного `BlockBodyEntity.getPos`: remapper test-only JAR не сопоставил
+его с Entity.method_19538. Production JAR не менялся. Временная verbose-диагностика
+убрана; обязательные метрики,300 правок и все пять кадров сохранены. Нужен новый
+source checkpoint и свежий native прогон, а не объявление старого успешным.

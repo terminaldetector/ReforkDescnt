@@ -38,7 +38,7 @@ public final class NativeBodyIndexCheck {
  private static int bodyId=-1,phase,age,ticks,stable,frames,samples,mineInputs,placeInputs;
  private static double error;private static boolean clientLegacyMiss,clientEdgePick,clientHole;
  private static String scene;
- private static volatile String clientTrace="";
+
  private static final List<String> SCENES=new ArrayList<>();private static final Set<Integer> ACKS=new HashSet<>();
  private static Entity entity(BlockBodyEntity b){return b;}
  private static BlockBodyEntity bodyServer(MinecraftClient c){return (BlockBodyEntity)c.getServer().getOverworld().getEntityById(bodyId);}
@@ -66,7 +66,6 @@ public final class NativeBodyIndexCheck {
   if(!prepared&&c.player.getY()>DECK.getY()-20&&loaded(c)){prepared=true;c.getServer().execute(()->setup(c));return;}
   if(!ready||capture)return;
   if(!(c.world.getEntityById(bodyId) instanceof BlockBodyEntity body))return;age++;
-  if(SCALE&&ticks%40==0)clientTrace="client feet="+c.player.getPos()+" raw="+body.getPos()+" view="+BoardingClient.bodyView(body,1)+" localEye="+body.worldToLocal(c.player.getEyePos())+" look="+c.player.getRotationVec(1)+" seq="+BoardingClient.sequence()+" error="+error;
   if(phase==0) {
    aim(c,body,new Vec3(EDGE+.5,1.5,2.5));
    Vec3d from=c.player.getEyePos(),to=from.add(c.player.getRotationVec(1).multiply(5));var area=new Box(from,to).expand(1);
@@ -88,7 +87,7 @@ public final class NativeBodyIndexCheck {
    if(body.shapeRevision()>baseRevision+2&&body.getLocalBlock(WALL).isAir()) {
     c.options.attackKey.setPressed(false);var from=body.localToWorld(new Vec3d(EDGE+.5,1.5,-2));var to=body.localToWorld(new Vec3d(EDGE+.5,1.5,5));
     var hit=ProjectileUtil.raycast(c.player,from,to,new Box(from,to).expand(1),e->e==body,49);clientHole=hit==null;
-    require(clientHole&&charged&&mineInputs>0&&placeInputs>0&&samples>=40&&error<.8&&travel>1,"far-wing input/revision/inventory/prediction proof incomplete: n="+samples+" err="+error+" charged="+charged);
+    require(clientHole&&charged&&mineInputs>0&&placeInputs>0&&samples>=40&&error<.8&&travel>1,"far-wing input/revision/inventory/prediction proof incomplete: n="+samples+" err="+error+" charged="+charged+" travel="+travel+" hole="+clientHole+" input="+mineInputs+"/"+placeInputs);
     request("edge-hole");phase=SCALE?5:4;
    }
   }else if(phase==5) {
@@ -147,7 +146,7 @@ public final class NativeBodyIndexCheck {
    }
    serverLegacyMiss|=!w.getEntitiesByClass(BlockBodyEntity.class,area,b->true).contains(body)&&BodySpatialIndex.query(w,area).contains(body);
    if(p.getMainHandStack().isOf(Blocks.GOLD_BLOCK.asItem())&&p.getMainHandStack().getCount()==2)charged=true;
-   if(w.getTime()%40==0)System.out.println("BODY_INDEX_TRACE "+clientTrace+" serverFeet="+p.getPos()+" height="+p.getEyeHeight(p.getPose())+" serverEye="+body.worldToLocal(p.getEyePos())+" serverLook="+p.getRotationVec(1)+" serverTarget="+BodyBlockInteraction.target(p,p.getEyePos(),p.getRotationVec(1),p.getBlockInteractionRange())+" phase="+phase+" age="+age+" legacy="+clientLegacyMiss+"/"+serverLegacyMiss+" picked="+clientEdgePick+" rev="+body.shapeRevision()+" input="+mineInputs+"/"+placeInputs+" state="+BoardingSystem.state(p));
+   if(w.getTime()%40==0)System.out.println("BODY_INDEX_TRACE phase="+phase+" age="+age+" legacy="+clientLegacyMiss+"/"+serverLegacyMiss+" picked="+clientEdgePick+" rev="+body.shapeRevision()+" input="+mineInputs+"/"+placeInputs+" actualFeetError="+actualFeetError+" paused="+body.boardingMotionPaused()+" velocity="+body.physics().linearVelocity()+" travel="+travel+" state="+BoardingSystem.state(p));
   });
  }
  private static void request(String name){scene=name;capture=true;frames=0;}
