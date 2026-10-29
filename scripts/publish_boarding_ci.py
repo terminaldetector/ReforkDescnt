@@ -8,16 +8,19 @@ import shutil
 import subprocess
 import zipfile
 
-VERSION = '1.1.30-volumes.1'
+VERSION = '1.1.31-contacts.1'
 
 
 def validate_proof(proof, source):
     if proof['source_sha'] != source or proof['version'] != VERSION:
         raise ValueError('Unexpected tested source or boarding version')
-    if proof['unit']['tests'] < 638 or proof['gametest']['tests'] < 186:
+    if proof['unit']['tests'] < 650 or proof['gametest']['tests'] < 195:
         raise ValueError('Contact unit and world regressions are missing')
     if proof['jar'] != f'drmd-6dof-{VERSION}-fabric-1.21.1.jar':
         raise ValueError('Unexpected installable JAR')
+    contact=proof.get('hull_contacts',{})
+    if not all(contact.get(key) is True for key in ('actualHullPairs','wholeTickIntegrated','sequentialThreeHulls','rotatedHullImpulse')):
+        raise ValueError('Actual physical hull contact proof is missing')
 
 
 def main():
@@ -41,6 +44,7 @@ def main():
     gate.verify_body_edits(root, started)
     gate.verify_body_index(root, started)
     gate.verify_body_scale(root, started)
+    gate.verify_hull_contacts(root, started)
     for name in ('snapshot', 'mirror-join', 'horizon-anchor', 'repair-visual'):
         gate.fresh(root / f'build/shootcheck/{name}-ok.json', started)
     snapshot = json.loads((root / 'build/shootcheck/snapshot-ok.json').read_text())
@@ -63,7 +67,10 @@ def main():
 Immersive Portals не требуется. N — инвентарь дрона, ЛКМ/ПКМ — выбранные оружия,
 B — вспомогательное, G — режим ракет. Управление портальной пушкой сохранено.
 Для native Cubic Chunks нужен отдельный Better Cubic Chunks и новый cubic_overworld.
-Этот кандидат проверен CI в обычном мире; новый native BCC-клиент не проверен.
+Этот CI подтверждает обычный мир; native BCC-проверка публикуется отдельно.
+Столкновения физических корпусов: обе скорости, вращение, трение и остаток тика.
+Последовательные и общие контакты трёх корпусов проверены клиентом.
+Пределы физики пока50м/с и2рад/с; за пределом ограничитель рассеивает импульс.
 Проверены посадка, удержание, ходьба и прыжок игрока на движущемся BlockBody.
 Исправлено повторение старого поворота неподвижного корпуса при смене render tick.
 Исправлен поиск дальних частей корпуса: объёмный индекс вместо секции центра.
@@ -83,7 +90,16 @@ SHA-256: {proof['sha256']}
 
 [Установочный JAR]({jar.name}) · [Установка](INSTALL_TLAUNCHER.txt) · [SHA-256](SHA256SUMS).
 
-Промежуточный этап ТЗ: общий объёмный индекс находит дальние края корпуса для
+Промежуточный этап ТЗ: ориентированные физические корпуса сталкиваются друг с другом.
+CCD учитывает движение обеих сторон и обнаруживает пролёт через чистые конечные позиции.
+Контактные площадки сохраняют края граней; ответный импульс и трение передаются обоим телам.
+После удара досчитывается остаток тика; новая траектория может ударить третий корпус.
+Есть защита телепортационных разрывов и неподвижной опоры при недоступных кубах мира.
+При исчерпании бюджета движение консервативно приостанавливается с сохранением импульса.
+Старые пределы50м/с и2рад/с пока сохранены; полный стресс-тест боевого флота ещё открыт.
+Клиент проверяет8 контактных сцен и минимум300 сравнений сетевой позиции.
+
+Общий объёмный индекс находит дальние края корпуса для
 посадки, камеры, прицела, редактирования и оружия. На корпус приходится один узел;
 сканирования чанков и отсечения физических контактов по лимиту кандидатов нет.
 Локальная сетка сохраняет разрушение и установку блоков
@@ -110,7 +126,7 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
 и6 сцен корпуса32768 блоков с300 сетевыми правками и освобождением leases
 с доказанным пропуском старым поиском на клиенте и сервере, реальным расходом материала
 и минимум1 блоком физического перелёта.
-[CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/BODY_VOLUME_STAGE.md).
+[CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/HULL_CONTACTS_1.1.31.md).
 
 Программная графика Linux; новая native BCC-сессия и Windows/RTX этим CI не
 подтверждены. Предыдущий snapshot с native-проверками сохранён отдельно.
@@ -122,6 +138,7 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
         for pattern in ('build/checkpoint/logs/*', 'build/checkpoint/resources/*',
                         'build/checkpoint/verified.json', 'build/checkpoint/SOURCE_SHA.txt',
                         'build/checkpoint/started-at.txt', 'build/shipboardingcheck/ship-boarding-ok.json',
+                        'build/hullcontactcheck/body-contacts-ok.json','build/hullcontactcheck/body-contact-frames/*.png',
                         'build/bodyindexcheck/body-index-ok.json','build/bodyindexcheck/body-index-frames/*.png',
                         'build/bodyscalecheck/body-scale-ok.json','build/bodyscalecheck/body-scale-frames/*.png',
                         'build/bodyeditcheck/body-edit-ok.json', 'build/bodyeditcheck/body-edit-frames/*.png',
@@ -143,7 +160,9 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
 [Скачать JAR](releases/{VERSION}/{jar.name}) · [Установка](releases/{VERSION}/INSTALL_TLAUNCHER.txt)
 · [Проверки и ограничения](releases/{VERSION}/README.md) · [SHA-256](releases/{VERSION}/SHA256SUMS).
 
-Общий объёмный индекс BlockBody исправляет выбор и контакты у дальнего края.
+Ориентированные корпуса сталкиваются с учётом обеих скоростей, вращения и трения.
+CCD сохраняет стороны, остаток тика и передачу импульса в цепочке из трёх корпусов.
+Общий объёмный индекс BlockBody сохраняет выбор и контакты у дальнего края.
 Обычное локальное редактирование инертных блоков сохранено.
 Центр масс меняется с сохранением положения и скорости оставшегося материала.
 Большой UFO, абордаж с механизмами/мобами и полный3D AI ещё не готовы.
