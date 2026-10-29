@@ -1,0 +1,243 @@
+{
+  "sourceSha": "45b11218e6189bdc65e43b3de34d525f3afe5819",
+  "jarSha256": "6265b0f4f969c58f96a83f65064f4ee7358711a0370031284b473277b97d0c95",
+  "nativeFrames": 35,
+  "nativeClients": {
+    "body-scale-volumes-final-gl32": {
+      "volumeLeasesReleased": true,
+      "maxLeasedColumns": 30,
+      "actualFeetError": 0.0,
+      "bodyBlocks": 32768,
+      "localEdge": 128,
+      "journalEdits": 300,
+      "actualInputs": true,
+      "legacyMissClient": true,
+      "legacyMissServer": true,
+      "edgePicked": true,
+      "holeClear": true,
+      "materialCharged": true,
+      "revisionChanges": 3,
+      "travelDistance": 26.196117219298245,
+      "teleportFollow": false,
+      "predictionSamples": 260,
+      "maxPredictionError": 0.038922741042189304,
+      "scenes": [
+        {
+          "scene": "edge-intact",
+          "frames": 3
+        },
+        {
+          "scene": "edge-cut",
+          "frames": 3
+        },
+        {
+          "scene": "edge-patched",
+          "frames": 3
+        },
+        {
+          "scene": "edge-hole",
+          "frames": 3
+        },
+        {
+          "scene": "edge-rebased",
+          "frames": 3
+        },
+        {
+          "scene": "edge-released",
+          "frames": 3
+        }
+      ]
+    },
+    "body-scale-volumes-final-sodium": {
+      "volumeLeasesReleased": true,
+      "maxLeasedColumns": 30,
+      "actualFeetError": 0.0,
+      "bodyBlocks": 32768,
+      "localEdge": 128,
+      "journalEdits": 300,
+      "actualInputs": true,
+      "legacyMissClient": true,
+      "legacyMissServer": true,
+      "edgePicked": true,
+      "holeClear": true,
+      "materialCharged": true,
+      "revisionChanges": 3,
+      "travelDistance": 26.296117219441754,
+      "teleportFollow": false,
+      "predictionSamples": 260,
+      "maxPredictionError": 0.038922741042189304,
+      "scenes": [
+        {
+          "scene": "edge-intact",
+          "frames": 3
+        },
+        {
+          "scene": "edge-cut",
+          "frames": 3
+        },
+        {
+          "scene": "edge-patched",
+          "frames": 3
+        },
+        {
+          "scene": "edge-hole",
+          "frames": 3
+        },
+        {
+          "scene": "edge-rebased",
+          "frames": 3
+        },
+        {
+          "scene": "edge-released",
+          "frames": 3
+        }
+      ]
+    },
+    "body-edit-volumes-final-gl32": {
+      "actualInputs": true,
+      "survivalMining": true,
+      "materialCharged": true,
+      "savedState": true,
+      "comRebased": true,
+      "revisions": 3,
+      "predictionSamples": 77,
+      "maxPredictionError": 0.0022736383391762016,
+      "maxPivotStep": 0.0012307916142295656,
+      "dropStacks": 1,
+      "toolDamage": 1,
+      "scenes": [
+        {
+          "scene": "hull-intact",
+          "frames": 3
+        },
+        {
+          "scene": "hull-cut",
+          "frames": 3
+        },
+        {
+          "scene": "hull-patched",
+          "frames": 3
+        },
+        {
+          "scene": "survival-cut",
+          "frames": 3
+        },
+        {
+          "scene": "saved-state",
+          "frames": 3
+        }
+      ]
+    },
+    "ship-volumes-final-gl32": {
+      "actualInputs": true,
+      "shipGravity": true,
+      "orientedCollision": true,
+      "teleportFollow": false,
+      "predictionSamples": 555,
+      "maxPredictionError": 0.04491171445011348,
+      "jumpVelocityError": 1.534610660769431e-09,
+      "maxFrameError": 5.551115123125783e-16,
+      "modelFrames": 781,
+      "cameraFrames": 781,
+      "maxCameraUpError": 0.00047667829478913415,
+      "maxModelUpError": 0.0,
+      "scenes": [
+        {
+          "scene": "ship-landing",
+          "frames": 3
+        },
+        {
+          "scene": "ship-walking",
+          "frames": 3
+        },
+        {
+          "scene": "roll-wall",
+          "frames": 3
+        },
+        {
+          "scene": "roll-ceiling",
+          "frames": 3
+        },
+        {
+          "scene": "roll-complete",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-wall",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-ceiling",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-complete",
+          "frames": 3
+        },
+        {
+          "scene": "combined-axes",
+          "frames": 3
+        },
+        {
+          "scene": "combined-complete",
+          "frames": 3
+        },
+        {
+          "scene": "ship-jump",
+          "frames": 3
+        },
+        {
+          "scene": "gravity-off-jump",
+          "frames": 3
+        },
+        {
+          "scene": "flight-handoff",
+          "frames": 3
+        }
+      ]
+    },
+    "boarding-volumes-final-gl32": {
+      "actualInputs": true,
+      "authoritativeContact": true,
+      "worldUpOnly": true,
+      "physicalThrusters": true,
+      "yawMotion": true,
+      "teleportFollow": false,
+      "sameStepJump": true,
+      "jumpReleaseNetworkError": 0.0,
+      "previousPacketJumpDifference": 1.3877787807814457e-17,
+      "jumpWorldVelocityError": 0.0,
+      "predictionSamples": 88,
+      "maxPredictionError": 0.008258149133806873,
+      "scenes": [
+        {
+          "scene": "landing",
+          "frames": 3
+        },
+        {
+          "scene": "riding",
+          "frames": 3
+        },
+        {
+          "scene": "walking",
+          "frames": 3
+        },
+        {
+          "scene": "jump",
+          "frames": 3
+        },
+        {
+          "scene": "sixdof-handoff",
+          "frames": 3
+        }
+      ]
+    }
+  },
+  "scope": "32768-cell hull, full-volume leases with removal, remote-edge input and prior boarding regression",
+  "fullBoarding": false,
+  "dedicatedTwoClient": false,
+  "cellBudget": 32768,
+  "initialEdge": 128,
+  "fullVolumeLeases": true,
+  "fullUfo": false
+}
