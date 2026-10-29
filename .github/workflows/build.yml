@@ -159,6 +159,11 @@ jobs:
         run: |
           rm -f build/hullcontactcheck/body-contacts-ok.json
           LIBGL_ALWAYS_SOFTWARE=1 timeout 600s xvfb-run -a ./gradlew runHullcontactcheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/hullcontactcheck.log
+      - name: Verify real hull fragments, high inherited velocity and saved local state
+        id: fracturecheck
+        run: |
+          rm -f build/fracturecheck/body-contacts-ok.json
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 600s xvfb-run -a ./gradlew runFracturecheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/fracturecheck.log
       - name: Validate fresh evidence and stage only the current JAR
         id: verify
         run: python3 scripts/checkpoint_report.py --verify 2>&1 | tee build/checkpoint/logs/verify.log
@@ -181,6 +186,10 @@ jobs:
           name: evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             build/checkpoint/
+            build/fracturecheck/body-contacts-ok.json
+            build/fracturecheck/body-contact-frames/
+            build/fracturecheck/logs/
+            build/fracturecheck/crash-reports/
             build/hullcontactcheck/body-contacts-ok.json
             build/hullcontactcheck/body-contact-frames/
             build/hullcontactcheck/logs/
@@ -308,8 +317,8 @@ jobs:
           python3 scripts/publish_boarding_ci.py
           git config user.name 'Ungravity checkpoint bot'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add dist/README.md dist/releases/1.1.31-contacts.1/*.jar dist/releases/1.1.31-contacts.1/README.md dist/releases/1.1.31-contacts.1/INSTALL_TLAUNCHER.txt dist/releases/1.1.31-contacts.1/SOURCE_SHA.txt
-          git commit -m '[boarding package] Publish verified 1.1.31-contacts.1 JAR'
-          git add dist/releases/1.1.31-contacts.1
-          git commit -m '[boarding evidence] Preserve exact-source oriented hull contact proof'
+          git add dist/README.md dist/releases/1.1.32-fragments.1/*.jar dist/releases/1.1.32-fragments.1/README.md dist/releases/1.1.32-fragments.1/INSTALL_TLAUNCHER.txt dist/releases/1.1.32-fragments.1/SOURCE_SHA.txt
+          git commit -m '[boarding package] Publish verified 1.1.32-fragments.1 JAR'
+          git add dist/releases/1.1.32-fragments.1
+          git commit -m '[boarding evidence] Preserve exact-source hull fracture and momentum proof'
           git -c 'credential.helper=!gh auth git-credential' push origin "HEAD:${GITHUB_REF#refs/heads/}"

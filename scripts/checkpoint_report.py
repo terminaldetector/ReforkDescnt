@@ -229,8 +229,10 @@ def verify_body_scale(root,started):
 HULL_CONTACT_SCENES=('diagonal-corner','terrain-stop','hollow-door','compound-contact-query',
                      'gravity-support','opposed-hull-impact','three-hull-chain','rotated-hull-impact')
 
-def verify_hull_contacts(root,started):
-    runtime=root/'build/hullcontactcheck'
+FRACTURE_SCENES=HULL_CONTACT_SCENES+('fracture-halves','fast-fragments','saved-fragment-state')
+
+def verify_hull_contacts(root,started,fracture=False):
+    runtime=root/('build/fracturecheck' if fracture else 'build/hullcontactcheck')
     marker=runtime/'body-contacts-ok.json';fresh(marker,started)
     proof=json.loads(marker.read_text())
     for key in ('orientedTerrain','hollowRay','unknownNativeYRejected','compoundContactQuery',
@@ -241,10 +243,26 @@ def verify_hull_contacts(root,started):
         if type(proof.get(key)) is not int or proof[key]<minimum: raise ValueError(f'Missing hull contact samples: {key}')
     error=proof.get('maxPairClientError')
     if type(error) not in (int,float) or not math.isfinite(error) or not 0<=error<1e-5: raise ValueError('Invalid hull contact client error')
+    expected=FRACTURE_SCENES if fracture else HULL_CONTACT_SCENES
     scenes=proof.get('scenes',[])
-    if [scene.get('scene') for scene in scenes]!=list(HULL_CONTACT_SCENES) or any(scene.get('renderedFrames',0)<90 for scene in scenes):
+    if [scene.get('scene') for scene in scenes]!=list(expected) or any(scene.get('renderedFrames',0)<90 for scene in scenes):
         raise ValueError('Missing actual rendered hull contact scenes')
-    for name in HULL_CONTACT_SCENES: fresh_png(runtime/f'body-contact-frames/{name}.png',started)
+    for name in expected: fresh_png(runtime/f'body-contact-frames/{name}.png',started)
+    return proof
+
+
+def verify_body_fractures(root,started):
+    proof=verify_hull_contacts(root,started,fracture=True)
+    for key in ('actualFragments','continuousMaterialMotion','fastFragmentTickIntegrated','fragmentNbtRoundTrip'):
+        if proof.get(key) is not True: raise ValueError(f'Missing physical fracture proof: {key}')
+    speed=proof.get('minFastFragmentSpeed')
+    if type(speed) not in (int,float) or not math.isfinite(speed) or not 60<speed<=512: raise ValueError('Missing unclipped fragment velocity')
+    if type(proof.get('pairClientSamples')) is not int or proof['pairClientSamples']<650: raise ValueError('Incomplete fragment client samples')
+    pixels=proof.get('fastVisiblePixels')
+    if not isinstance(pixels,list) or len(pixels)!=2 or any(type(n) is not int or n<8 for n in pixels): raise ValueError('Missing visible fast fragment pixels')
+    wire=proof.get('maxQuantizedPoseError');waits=proof.get('precisionWaitSamples')
+    if type(wire) not in (int,float) or not math.isfinite(wire) or not 0<=wire<=math.sqrt(3)/4096+1e-6 or type(waits) is not int or waits<0: raise ValueError('Invalid relative-packet precision evidence')
+    if proof.get('fullWorldReload') is not False: raise ValueError('Entity NBT inspection must not claim full world reload')
     return proof
 
 
@@ -340,12 +358,13 @@ def verify(root):
 
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
-    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31')) else None
-    body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28','1.1.29','1.1.30','1.1.31')) else None
-    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31')) else None
-    body_index = verify_body_index(root,started) if version.startswith(('1.1.28','1.1.29','1.1.30','1.1.31')) else None
-    body_scale=verify_body_scale(root,started) if version.startswith(('1.1.29','1.1.30','1.1.31')) else None
-    hull_contacts=verify_hull_contacts(root,started) if version.startswith('1.1.31') else None
+    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32')) else None
+    body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32')) else None
+    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32')) else None
+    body_index = verify_body_index(root,started) if version.startswith(('1.1.28','1.1.29','1.1.30','1.1.31','1.1.32')) else None
+    body_scale=verify_body_scale(root,started) if version.startswith(('1.1.29','1.1.30','1.1.31','1.1.32')) else None
+    hull_contacts=verify_hull_contacts(root,started) if version.startswith(('1.1.31','1.1.32')) else None
+    body_fractures=verify_body_fractures(root,started) if version.startswith('1.1.32') else None
     audit=verify_audit(root,started) if version.startswith('1.1.14') else None
     if audit: verify_native_audit(root,started)
     jar = root / f'build/libs/{base}-{version}.jar'
@@ -396,6 +415,7 @@ def verify(root):
     if body_index is not None: result['body_index']=body_index
     if body_scale is not None: result['body_scale']=body_scale
     if hull_contacts is not None: result['hull_contacts']=hull_contacts
+    if body_fractures is not None: result['body_fractures']=body_fractures
     (out / 'verified.json').write_text(json.dumps(result, indent=2) + '\n')
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'], 'a') as output:

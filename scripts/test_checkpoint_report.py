@@ -249,6 +249,65 @@ class EvidenceGateTest(unittest.TestCase):
         self.write('build/hullcontactcheck/body-contacts-ok.json',json.dumps(proof))
         with self.assertRaisesRegex(ValueError,'Missing hull contact samples'):checkpoint.verify_hull_contacts(self.root,self.started)
 
+    def fracture_fixture(self):
+        proof=self.hull_contact_fixture()
+        proof.update(actualFragments=True,continuousMaterialMotion=True,fastFragmentTickIntegrated=True,
+            fragmentNbtRoundTrip=True,minFastFragmentSpeed=64.,fastVisiblePixels=[40,40],maxQuantizedPoseError=0.,precisionWaitSamples=0,fullWorldReload=False,pairClientSamples=767,
+            scenes=[dict(scene=name,renderedFrames=90) for name in checkpoint.FRACTURE_SCENES])
+        for name in checkpoint.FRACTURE_SCENES:
+            self.write(f'build/fracturecheck/body-contact-frames/{name}.png',b'\x89PNG\r\n\x1a\nfixture')
+        self.write('build/fracturecheck/body-contacts-ok.json',json.dumps(proof));return proof
+
+    def test_fracture_gate_requires_actual_fragments_and_full_first_tick(self):
+        proof=self.fracture_fixture();checkpoint.verify_body_fractures(self.root,self.started)
+        for key in ('actualFragments','continuousMaterialMotion','fastFragmentTickIntegrated','fragmentNbtRoundTrip'):
+            p=proof.copy();p[key]=False;self.write('build/fracturecheck/body-contacts-ok.json',json.dumps(p))
+            with self.subTest(key=key),self.assertRaisesRegex(ValueError,'Missing physical fracture proof'):
+                checkpoint.verify_body_fractures(self.root,self.started)
+
+    def test_clipped_or_nonfinite_fragment_velocity_is_not_a_pass(self):
+        proof=self.fracture_fixture()
+        for value in (0,50,60,513,float('nan'),True):
+            p=proof.copy();p['minFastFragmentSpeed']=value;self.write('build/fracturecheck/body-contacts-ok.json',json.dumps(p))
+            with self.subTest(speed=value),self.assertRaisesRegex(ValueError,'Missing unclipped fragment velocity'):
+                checkpoint.verify_body_fractures(self.root,self.started)
+
+    def test_contact_frames_cannot_replace_new_fracture_frames(self):
+        proof=self.fracture_fixture();proof['scenes']=proof['scenes'][:8]
+        self.write('build/fracturecheck/body-contacts-ok.json',json.dumps(proof))
+        with self.assertRaisesRegex(ValueError,'Missing actual rendered hull contact scenes'):
+            checkpoint.verify_body_fractures(self.root,self.started)
+        self.fracture_fixture();(self.root/'build/fracturecheck/body-contact-frames/fast-fragments.png').unlink()
+        with self.assertRaisesRegex(ValueError,'Missing or empty evidence'):
+            checkpoint.verify_body_fractures(self.root,self.started)
+
+    def test_render_calls_cannot_replace_visible_fast_fragment_pixels(self):
+        proof=self.fracture_fixture()
+        for value in (None,[],[40],[40,0],[True,40]):
+            p=proof.copy();p['fastVisiblePixels']=value;self.write('build/fracturecheck/body-contacts-ok.json',json.dumps(p))
+            with self.subTest(pixels=value),self.assertRaisesRegex(ValueError,'Missing visible fast fragment pixels'):
+                checkpoint.verify_body_fractures(self.root,self.started)
+
+    def test_quantized_wait_does_not_relax_the_final_pose_tolerance(self):
+        proof=self.fracture_fixture();proof.update(maxQuantizedPoseError=1/4096,precisionWaitSamples=20)
+        self.write('build/fracturecheck/body-contacts-ok.json',json.dumps(proof));checkpoint.verify_body_fractures(self.root,self.started)
+        proof['maxPairClientError']=1/4096
+        self.write('build/fracturecheck/body-contacts-ok.json',json.dumps(proof))
+        with self.assertRaisesRegex(ValueError,'Invalid hull contact client error'):checkpoint.verify_body_fractures(self.root,self.started)
+
+    def test_large_or_nonfinite_waiting_error_is_not_relative_packet_precision(self):
+        proof=self.fracture_fixture()
+        for value in (0.001,float('nan'),True):
+            p=proof.copy();p['maxQuantizedPoseError']=value;self.write('build/fracturecheck/body-contacts-ok.json',json.dumps(p))
+            with self.subTest(error=value),self.assertRaisesRegex(ValueError,'Invalid relative-packet precision evidence'):
+                checkpoint.verify_body_fractures(self.root,self.started)
+
+    def test_entity_nbt_inspection_cannot_claim_full_world_reload(self):
+        proof=self.fracture_fixture();proof['fullWorldReload']=True
+        self.write('build/fracturecheck/body-contacts-ok.json',json.dumps(proof))
+        with self.assertRaisesRegex(ValueError,'must not claim full world reload'):
+            checkpoint.verify_body_fractures(self.root,self.started)
+
     def test_failed_run_still_has_report_without_certifying_jar(self):
         with patch.dict(os.environ, {'VERIFY_OUTCOME': 'failure'}):
             checkpoint.report(self.root)

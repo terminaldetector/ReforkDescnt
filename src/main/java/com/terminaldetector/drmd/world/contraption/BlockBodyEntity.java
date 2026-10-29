@@ -27,6 +27,8 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public static final int MAX_BLOCKS=32768,MAX_ASSEMBLY_EDGE=128;
     public static final int MIN_LOCAL=-32,MAX_LOCAL=128;
     public static final int PATCH_LIMIT=256;
+    /** Refuse an atomic damage batch before mutation if it would flood the world with entities. */
+    public static final int MAX_NEW_FRAGMENTS_PER_EDIT=256;
     public static boolean validLocal(BlockPos p){return p.getX()>=MIN_LOCAL&&p.getY()>=MIN_LOCAL&&p.getZ()>=MIN_LOCAL&&p.getX()<MAX_LOCAL&&p.getY()<MAX_LOCAL&&p.getZ()<MAX_LOCAL;}
     private static final TrackedData<NbtCompound> SHAPE = DataTracker.registerData(BlockBodyEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
     private static final TrackedData<NbtCompound> PATCHES = DataTracker.registerData(BlockBodyEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
@@ -35,7 +37,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private static final TrackedData<NbtCompound> POSE = DataTracker.registerData(BlockBodyEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
     private static final Set<Block> SUPPORTED = Set.of(Blocks.STONE, Blocks.COBBLESTONE, Blocks.IRON_BLOCK,
         Blocks.GOLD_BLOCK, Blocks.DIAMOND_BLOCK, Blocks.OBSIDIAN, Blocks.GLASS, Blocks.BRICKS);
-    private static final double MAX_LINEAR_SPEED = 50;
+    private static final double MAX_LINEAR_SPEED = BodyStepBudget.MAX_LINEAR_SPEED;
     private static final double MAX_ANGULAR_SPEED = 2;
     private D6Volume<BlockState> volume = new D6Volume<>(Blocks.AIR.getDefaultState());
     private List<Cell> cells = List.of();
@@ -339,16 +341,84 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         }
         if(changes.isEmpty()||occupied>MAX_BLOCKS)return false;
         changes.sort(Comparator.comparing((LocalEdit e)->!e.state().isAir()).thenComparingInt(e->e.pos().getX()).thenComparingInt(e->e.pos().getY()).thenComparingInt(e->e.pos().getZ()));
-        mutateLocalBlocks(changes);
-        if(shapePatches.size()+changes.size()>=PATCH_LIMIT)resetShapeBaseline();
-        else {
-            for(var edit:changes) {
-                var patch=new NbtCompound();patch.putInt("pos",BodyShapeCodec.pack(edit.pos()));patch.put("state",NbtHelper.fromBlockState(edit.state()));shapePatches.add(patch);
+        if(!admissibleRebase(changes))return false;
+        var prepared=prepareFracture(world,changes);if(prepared==null)return false;
+        changes=new ArrayList<>(prepared.edits());
+        var fragments=prepared.fragments();NbtCompound saved=fragments.isEmpty()?null:writeNbt(new NbtCompound());
+        Vec3 savedPrevious=previousPhysicsPosition,savedTorque=pendingTorque;Quat savedTurn=previousRotation;long savedTick=physicsTick;
+        try {
+            for(var fragment:fragments)if(!world.spawnEntity(fragment)){fragments.forEach(BlockBodyEntity::discard);return false;}
+        }catch(RuntimeException failure){fragments.forEach(BlockBodyEntity::discard);throw failure;}
+        try {
+            mutateLocalBlocks(changes);
+            if(shapePatches.size()+changes.size()>=PATCH_LIMIT)resetShapeBaseline();
+            else {
+                for(var edit:changes) {
+                    var patch=new NbtCompound();patch.putInt("pos",BodyShapeCodec.pack(edit.pos()));patch.put("state",NbtHelper.fromBlockState(edit.state()));shapePatches.add(patch);
+                }
+                var tag=new NbtCompound();tag.putLong("base",baseRevision);tag.putLong("revision",shapeRevision);tag.put("edits",shapePatches.copy());dataTracker.set(PATCHES,tag);
             }
-            var tag=new NbtCompound();tag.putLong("base",baseRevision);tag.putLong("revision",shapeRevision);tag.put("edits",shapePatches.copy());dataTracker.set(PATCHES,tag);
+            dataTracker.set(POSE,pose());velocityModified=true;
+            if(cells.isEmpty())discard();return true;
+        }catch(RuntimeException failure) {
+            fragments.forEach(BlockBodyEntity::discard);
+            if(saved!=null){readNbt(saved);previousPhysicsPosition=savedPrevious;previousRotation=savedTurn;pendingTorque=savedTorque;physicsTick=savedTick;publishPhysicsState();}
+            throw failure;
         }
-        dataTracker.set(POSE,pose());velocityModified=true;
-        if(cells.isEmpty())discard();return true;
+    }
+    private record PreparedEdit(List<LocalEdit> edits,List<BlockBodyEntity> fragments){}
+    private static BodyTopology.Cell topology(BlockPos p){return new BodyTopology.Cell(p.getX(),p.getY(),p.getZ());}
+    /** Refuse before mutation when rebasing would require a velocity outside the admitted
+     * collision budget. Returning false preserves material and momentum instead of clipping it. */
+    private boolean admissibleRebase(List<LocalEdit> edits) {
+        double mass=body.mass();Vec3 moment=centre.scaled(mass);
+        for(var edit:edits) {
+            var old=getLocalBlock(edit.pos());double delta=(edit.state().isAir()?0:blockMass(edit.state()))-(old.isAir()?0:blockMass(old));
+            mass+=delta;moment=moment.plus(new Vec3(edit.pos().getX()+.5,edit.pos().getY()+.5,edit.pos().getZ()+.5).scaled(delta));
+        }
+        if(mass<1e-9)return true;
+        Vec3 shift=body.rotation().rotate(moment.scaled(1/mass).minus(centre));
+        return body.linearVelocity().plus(body.angularVelocity().cross(shift)).length()<=MAX_LINEAR_SPEED+1e-8;
+    }
+    private PreparedEdit prepareFracture(ServerWorld world,List<LocalEdit> edits) {
+        if(edits.stream().noneMatch(e->e.state().isAir()))return new PreparedEdit(edits,List.of());
+        // A removed leaf cannot break a connection. Keep the ordinary one-block chip cheap.
+        if(edits.size()==1) {
+            int neighbours=0;for(var direction:Direction.values())if(!getLocalBlock(edits.getFirst().pos().offset(direction)).isAir())neighbours++;
+            if(neighbours<2)return new PreparedEdit(edits,List.of());
+        }
+        var before=new HashSet<BodyTopology.Cell>();var next=new HashMap<BlockPos,Cell>();
+        for(var cell:cells){before.add(topology(cell.pos()));next.put(cell.pos(),cell);}
+        var removed=new HashSet<BodyTopology.Cell>();
+        for(var edit:edits)if(edit.state().isAir()){removed.add(topology(edit.pos()));next.remove(edit.pos());}else next.put(edit.pos(),new Cell(edit.pos(),edit.state()));
+        var after=new HashSet<BodyTopology.Cell>();for(var pos:next.keySet())after.add(topology(pos));
+        var topology=BodyTopology.afterRemoval(before,after,removed);
+        if(topology.detached().isEmpty())return new PreparedEdit(edits,List.of());
+        if(topology.detached().size()>MAX_NEW_FRAGMENTS_PER_EDIT)return null;
+        var parentEdits=new HashMap<BlockPos,BlockState>();for(var edit:edits)parentEdits.put(edit.pos(),edit.state());
+        var fragments=new ArrayList<BlockBodyEntity>();
+        for(var component:topology.detached()) {
+            var fragmentCells=new ArrayList<Cell>();
+            for(var cell:component) {
+                var pos=new BlockPos(cell.x(),cell.y(),cell.z());fragmentCells.add(next.get(pos));parentEdits.put(pos,Blocks.AIR.getDefaultState());
+            }
+            fragmentCells.sort(Comparator.comparingInt((Cell c)->c.pos().getX()).thenComparingInt(c->c.pos().getY()).thenComparingInt(c->c.pos().getZ()));
+            var fragment=new BlockBodyEntity(ModEntities.BLOCK_BODY,world);fragment.loadShape(BodyShapeCodec.write(fragmentCells));
+            fragment.body.withRotation(body.rotation());
+            Vec3 shift=body.rotation().rotate(fragment.centre.minus(centre)),position=massPosition().plus(shift);
+            fragment.setPosition(position.x(),position.y(),position.z());
+            Vec3 velocity=body.linearVelocity().plus(body.angularVelocity().cross(shift));
+            if(velocity.length()>MAX_LINEAR_SPEED+1e-8)return null;
+            fragment.body.withLinearVelocity(velocity).withAngularVelocity(body.angularVelocity());
+            fragment.gravity=gravity; // Artificial gravity stays with the parent until ControlCore ownership exists.
+            fragment.resetShapeBaseline();fragment.dataTracker.set(POSE,fragment.pose());
+            fragment.setBoundingBox(new Box(fragment.getPos(),fragment.getPos()).expand(fragment.radius));fragments.add(fragment);
+        }
+        var finalEdits=new ArrayList<LocalEdit>();
+        for(var edit:parentEdits.entrySet())if(!getLocalBlock(edit.getKey()).equals(edit.getValue()))finalEdits.add(new LocalEdit(edit.getKey(),edit.getValue()));
+        finalEdits.sort(Comparator.comparing((LocalEdit e)->!e.state().isAir()).thenComparingInt(e->e.pos().getX()).thenComparingInt(e->e.pos().getY()).thenComparingInt(e->e.pos().getZ()));
+        if(!admissibleRebase(finalEdits))return null;
+        return new PreparedEdit(finalEdits,fragments);
     }
     private void resetShapeBaseline() {
         baseRevision=shapeRevision;shapePatches=new NbtList();

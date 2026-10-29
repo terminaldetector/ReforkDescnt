@@ -6,6 +6,8 @@ import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
 /** Conservative corner-travel subdivision for the existing D6 integrator. A tiny stabilizing
  * torque must not force every slow large ship to use the maximum angular speed each tick. */
 public final class BodyStepBudget {
+    public static final double MAX_LINEAR_SPEED=512;
+    public static final int MAX_STEPS=512;
     private BodyStepBudget(){}
     public static int steps(D6PhysicsBody body,Vec3 torque,double radius,boolean gravity) {
         double dt=.05,spin=body.angularVelocity().length();var inverse=body.worldInverseInertia();
@@ -17,7 +19,7 @@ public final class BodyStepBudget {
             spin=rate*dt>20?2:spin*Math.exp(rate*dt)+norm*torque.length()*(rate<1e-12?dt:Math.expm1(rate*dt)/rate);
         }
         spin=Math.min(2,spin);
-        double linear=Math.min(50,body.linearVelocity().length()+(gravity?9.81*dt:0));
-        return Math.max(1,Math.min(256,(int)Math.ceil((linear+spin*radius)*dt/.15)));
+        double linear=Math.min(MAX_LINEAR_SPEED,body.linearVelocity().length()+(gravity?9.81*dt:0));
+        return Math.max(1,Math.min(MAX_STEPS,(int)Math.ceil((linear+spin*radius)*dt/.15)));
     }
 }

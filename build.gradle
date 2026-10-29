@@ -423,3 +423,30 @@ tasks.register('prepareHullcontactcheckWorld', Sync) {
     }
 }
 tasks.named('runHullcontactcheck') { dependsOn prepareHullcontactcheckWorld }
+
+// Hull fracture uses the same production renderer and installed/native harness.
+loom { runs { fracturecheck {
+    client()
+    source sourceSets.boardingcheck
+    runDir 'build/fracturecheck'
+    vmArg '-Ddrmd.contacts.labY=140'
+    vmArg '-Ddrmd.gate.contacts=true'
+    vmArg '-Ddrmd.gate.fracture=true'
+    programArg '--quickPlaySingleplayer'
+    programArg 'DRMD-fracture-lab'
+    programArg '--width'
+    programArg '1280'
+    programArg '--height'
+    programArg '720'
+} } }
+tasks.register('prepareFracturecheckWorld', Sync) {
+    dependsOn runGametest
+    from 'build/gametest/world'
+    into 'build/fracturecheck/saves/DRMD-fracture-lab'
+    exclude '**/session.lock'
+    doLast {
+        if(!file('build/fracturecheck/saves/DRMD-fracture-lab/level.dat').isFile())throw new GradleException('Missing disposable hull fracture world')
+        file('build/fracturecheck/options.txt').text='onboardAccessibility:false\npauseOnLostFocus:false\nmaxFps:30\nrenderDistance:8\nsimulationDistance:8\n'
+    }
+}
+tasks.named('runFracturecheck') { dependsOn prepareFracturecheckWorld }

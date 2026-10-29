@@ -163,7 +163,7 @@ public final class BoardingClient {
     }
     private static BodyMotion predictedMotion(BlockBodyEntity body,int ticks) {
         var snapshot=body.getId()==snapshotId?bodySnapshot:null;
-        var p=new com.terminaldetector.drmd.d6.D6PhysicsBody().withMass(body.physicsMass()).withInertia(body.physics().inertia());
+        var p=new com.terminaldetector.drmd.d6.D6PhysicsBody().withLimits(com.terminaldetector.drmd.physics.collision.BodyStepBudget.MAX_LINEAR_SPEED,2).withMass(body.physicsMass()).withInertia(body.physics().inertia());
         if(snapshot!=null)p.withPosition(new Vec3(snapshot.x(),snapshot.y(),snapshot.z()))
             .withRotation(new Quat(snapshot.qx(),snapshot.qy(),snapshot.qz(),snapshot.qw()))
             .withLinearVelocity(new Vec3(snapshot.vx(),snapshot.vy(),snapshot.vz()))

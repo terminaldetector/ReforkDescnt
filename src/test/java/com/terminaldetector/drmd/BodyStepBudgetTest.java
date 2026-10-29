@@ -20,4 +20,10 @@ class BodyStepBudgetTest {
         assertTrue(BodyStepBudget.steps(body(),new Vec3(4e7,0,0),100,true)>50);
         assertEquals(1,BodyStepBudget.steps(body(),zero,100,true));
     }
+    @Test void expandedTranslationStillBoundsEveryLargeHullCornerWithoutASlowHullPenalty() {
+        var b=body().withLimits(512,2).withLinearVelocity(new Vec3(512,0,0)).withAngularVelocity(new Vec3(2,0,0));
+        int n=BodyStepBudget.steps(b,zero,277,false);assertTrue(n>256&&n<=512);
+        assertTrue((512+554)*.05/n<=.15,"the larger speed limit must also expand the real collision step budget");
+        assertEquals(1,BodyStepBudget.steps(body().withLimits(512,2),zero,277,false),"stopped hulls do not pay for the expanded limit");
+    }
 }
