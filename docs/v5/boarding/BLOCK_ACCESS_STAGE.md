@@ -1,7 +1,8 @@
 # Этап2d — локальные блоки движущегося корпуса
 
-Рабочий кандидат1.1.27-blocks.1. Последний проверенный пакет1.1.26-boarding.1
-сохранён. Полный этап пока не сертифицирован; нет нового опубликованного JAR.
+Опубликованный этап1.1.27-blocks.1: [точный исходник/JAR, полный CI и native-проверки](../../../dist/releases/1.1.27-blocks.1/NATIVE_REPORT.md).
+Предыдущие пакеты сохранены. Ниже сохранена история рабочего кандидата; итоговые
+показатели и ограничения приведены в отдельном отчёте.
 
 BlockBodyWorldAccess даёт raycastBlockBody/getLocalBlock/setLocalBlock/
 breakLocalBlock/placeLocalBlock/queryBodyCollision/transformHitResult. BodyHit

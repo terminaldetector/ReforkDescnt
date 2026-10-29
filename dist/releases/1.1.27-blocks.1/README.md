@@ -21,6 +21,8 @@ Unit: 619; серверные GameTests: 171.
 Дополнительно5 реальных mouse-сцен редактирования движущегося наклонённого корпуса.
 [CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/BLOCK_ACCESS_STAGE.md).
 
-Программная графика Linux; новая native BCC-сессия и Windows/RTX этим CI не
-подтверждены. Предыдущий snapshot с native-проверками сохранён отдельно.
+Тот же JAR прошёл четыре native BCC-прогона: редактирование GL3.2/Sodium,
+13 корабельных сцен и5 прежних world-UP сцен. [Native-отчёт и ограничения](NATIVE_REPORT.md)
+· [28 кадров и логи](native-evidence.zip) · [Первые сбои](first-failures.zip).
+Windows/RTX и dedicated/two-client остаются непроверенными.
 Упаковочные коммиты отличаются от проверенной исходной ревизии.

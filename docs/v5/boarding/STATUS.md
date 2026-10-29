@@ -144,3 +144,13 @@ Source `0fa2f12531c7ec0ef3c765158ce2768bc7b605f4`:619 unit,160 GameTests,37 Pyth
 Полигон124 инертных блока; реальная приёмка большого UFO, механизмы/редактирование,
 мобы/предметы, joints, ControlCore, полноценный3D AI и dedicated/two-client OPEN.
 Полная совокупность12+9 критериев остаётся OPEN.
+
+## Проверено в1.1.27-blocks.1
+
+Source `ae5b2e9b761d693d904db5c7c3cf69fb35af0f34`:619 unit,171 GameTests,41 Python, полный CI40790869398.
+Разрушение/установка инертных клеток в движении, Survival loot/material/durability,
+постоянный grid pivot, непрерывный COM, протокол3 с revision геометрии.
+Четыре native BCC-прогона дали28 кадров, включая GL3.2/Sodium и прежние boarding-
+регрессии. [Отчёт, точный JAR, наблюдаемые ошибки и пределы](../../../dist/releases/1.1.27-blocks.1/NATIVE_REPORT.md).
+Полная приёмка большого UFO, функциональные блоки, joints, ControlCore,3D AI,
+пассажиры-мобы/предметы и dedicated/two-client остаются OPEN.
