@@ -1,0 +1,477 @@
+{
+  "sourceSha": "005261ca5633dd27401883f7080643c355a40a53",
+  "jarSha256": "1881cfe0b7a0e4f15b27296bade4f68900816f5416350e534ffdc454e3960bee",
+  "run": "https://github.com/terminaldetector/ReforkDescnt/actions/runs/40931571448",
+  "proof": {
+    "source_sha": "005261ca5633dd27401883f7080643c355a40a53",
+    "version": "1.1.32-fragments.1",
+    "audit": null,
+    "jar": "drmd-6dof-1.1.32-fragments.1-fabric-1.21.1.jar",
+    "sha256": "1881cfe0b7a0e4f15b27296bade4f68900816f5416350e534ffdc454e3960bee",
+    "unit": {
+      "tests": 657,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "gametest": {
+      "tests": 201,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "swarm": "Live swarm synchronized 128 drones; indexed=128; moving=128; maximum candidates/query=96.",
+    "hybrid": {
+      "models": 3,
+      "presetRoundTrips": 3,
+      "serverSaves": 3,
+      "muzzlePairs": 3,
+      "fovs": [
+        70,
+        80,
+        90
+      ],
+      "banked": 3,
+      "vertical": 3,
+      "realUseAnimated": 3,
+      "loadSynced": true,
+      "external": 3,
+      "frames": 40
+    },
+    "hybrid_frames": [
+      "hybrid-0-workshop.png",
+      "hybrid-0-fov70.png",
+      "hybrid-0-fov80.png",
+      "hybrid-0-fov90.png",
+      "hybrid-0-banked.png",
+      "hybrid-0-vertical.png",
+      "hybrid-0-external.png",
+      "hybrid-1-workshop.png",
+      "hybrid-1-fov70.png",
+      "hybrid-1-fov80.png",
+      "hybrid-1-fov90.png",
+      "hybrid-1-banked.png",
+      "hybrid-1-vertical.png",
+      "hybrid-1-external.png",
+      "hybrid-2-workshop.png",
+      "hybrid-2-fov70.png",
+      "hybrid-2-fov80.png",
+      "hybrid-2-fov90.png",
+      "hybrid-2-banked.png",
+      "hybrid-2-vertical.png",
+      "hybrid-2-external.png",
+      "hybrid-2-loaded.png"
+    ],
+    "frames": [
+      "hybrid-before.png",
+      "hybrid-after.png",
+      "collapse-before.png",
+      "collapse-flight.png",
+      "collapse-after.png",
+      "ragdoll-flight.png",
+      "ragdoll-after.png",
+      "gravity-swarm-held.png",
+      "gravity-swarm-flight.png",
+      "gravity-rail-held.png",
+      "gravity-rail-flight.png",
+      "gravity-shift-held.png",
+      "gravity-shift-flight.png",
+      "drone-swarm-dense.png",
+      "drone-swarm-flight.png"
+    ],
+    "shootcheck": {
+      "scenes": 10,
+      "fovs": [
+        70,
+        80,
+        90
+      ],
+      "rangePixelsChecked": true,
+      "fastSpeed": 8,
+      "fastTravel": 24.0,
+      "fastFrames": 4,
+      "fastPixelsChecked": true,
+      "fastTickStepped": true,
+      "fastServerTicks": 4,
+      "fastServerTravel": 32.0,
+      "muzzleEvents": 27,
+      "impactEvents": 2
+    },
+    "shot_frames": [
+      "bolt-dark-ranges.png",
+      "bolt-light-ranges.png",
+      "orb-dark-ranges.png",
+      "orb-light-ranges.png",
+      "rocket-dark-ranges.png",
+      "rocket-light-ranges.png",
+      "banked-fire.png",
+      "vertical-fire.png",
+      "muzzle-impact.png",
+      "fast-motion.png",
+      "mounts-fov-70.png",
+      "mounts-fov-80.png",
+      "mounts-fov-90.png"
+    ],
+    "boarding": {
+      "actualInputs": true,
+      "authoritativeContact": true,
+      "worldUpOnly": true,
+      "physicalThrusters": true,
+      "yawMotion": true,
+      "teleportFollow": false,
+      "sameStepJump": true,
+      "jumpReleaseNetworkError": 0.0,
+      "previousPacketJumpDifference": 0.026866617964293172,
+      "jumpWorldVelocityError": 0.0,
+      "predictionSamples": 97,
+      "maxPredictionError": 0.006038681902601788,
+      "scenes": [
+        {
+          "scene": "landing",
+          "frames": 3
+        },
+        {
+          "scene": "riding",
+          "frames": 3
+        },
+        {
+          "scene": "walking",
+          "frames": 3
+        },
+        {
+          "scene": "jump",
+          "frames": 3
+        },
+        {
+          "scene": "sixdof-handoff",
+          "frames": 3
+        }
+      ]
+    },
+    "ship_boarding": {
+      "actualInputs": true,
+      "shipGravity": true,
+      "orientedCollision": true,
+      "teleportFollow": false,
+      "predictionSamples": 566,
+      "maxPredictionError": 0.044911714448233366,
+      "jumpVelocityError": 4.849978196830307e-10,
+      "maxFrameError": 5.551115123125783e-16,
+      "modelFrames": 702,
+      "cameraFrames": 702,
+      "maxCameraUpError": 0.0003476868290556494,
+      "maxModelUpError": 0.0,
+      "scenes": [
+        {
+          "scene": "ship-landing",
+          "frames": 3
+        },
+        {
+          "scene": "ship-walking",
+          "frames": 3
+        },
+        {
+          "scene": "roll-wall",
+          "frames": 3
+        },
+        {
+          "scene": "roll-ceiling",
+          "frames": 3
+        },
+        {
+          "scene": "roll-complete",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-wall",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-ceiling",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-complete",
+          "frames": 3
+        },
+        {
+          "scene": "combined-axes",
+          "frames": 3
+        },
+        {
+          "scene": "combined-complete",
+          "frames": 3
+        },
+        {
+          "scene": "ship-jump",
+          "frames": 3
+        },
+        {
+          "scene": "gravity-off-jump",
+          "frames": 3
+        },
+        {
+          "scene": "flight-handoff",
+          "frames": 3
+        }
+      ]
+    },
+    "body_edits": {
+      "actualInputs": true,
+      "survivalMining": true,
+      "materialCharged": true,
+      "savedState": true,
+      "comRebased": true,
+      "revisions": 3,
+      "predictionSamples": 85,
+      "maxPredictionError": 0.09292683595533523,
+      "maxPivotStep": 0.0012307895176645592,
+      "dropStacks": 1,
+      "toolDamage": 1,
+      "scenes": [
+        {
+          "scene": "hull-intact",
+          "frames": 3
+        },
+        {
+          "scene": "hull-cut",
+          "frames": 3
+        },
+        {
+          "scene": "hull-patched",
+          "frames": 3
+        },
+        {
+          "scene": "survival-cut",
+          "frames": 3
+        },
+        {
+          "scene": "saved-state",
+          "frames": 3
+        }
+      ]
+    },
+    "body_index": {
+      "volumeLeasesReleased": false,
+      "maxLeasedColumns": 6,
+      "actualFeetError": 0.0,
+      "bodyBlocks": 93,
+      "localEdge": 24,
+      "journalEdits": 0,
+      "actualInputs": true,
+      "legacyMissClient": true,
+      "legacyMissServer": true,
+      "edgePicked": true,
+      "holeClear": true,
+      "materialCharged": true,
+      "revisionChanges": 3,
+      "travelDistance": 8.98069334932364,
+      "teleportFollow": false,
+      "predictionSamples": 65,
+      "maxPredictionError": 0.004740301755484873,
+      "scenes": [
+        {
+          "scene": "edge-intact",
+          "frames": 3
+        },
+        {
+          "scene": "edge-cut",
+          "frames": 3
+        },
+        {
+          "scene": "edge-patched",
+          "frames": 3
+        },
+        {
+          "scene": "edge-hole",
+          "frames": 3
+        }
+      ]
+    },
+    "body_scale": {
+      "volumeLeasesReleased": true,
+      "maxLeasedColumns": 30,
+      "actualFeetError": 0.0,
+      "bodyBlocks": 32768,
+      "localEdge": 128,
+      "journalEdits": 300,
+      "actualInputs": true,
+      "legacyMissClient": true,
+      "legacyMissServer": true,
+      "edgePicked": true,
+      "holeClear": true,
+      "materialCharged": true,
+      "revisionChanges": 3,
+      "travelDistance": 35.39611723267007,
+      "teleportFollow": false,
+      "predictionSamples": 246,
+      "maxPredictionError": 0.2000000029400168,
+      "scenes": [
+        {
+          "scene": "edge-intact",
+          "frames": 3
+        },
+        {
+          "scene": "edge-cut",
+          "frames": 3
+        },
+        {
+          "scene": "edge-patched",
+          "frames": 3
+        },
+        {
+          "scene": "edge-hole",
+          "frames": 3
+        },
+        {
+          "scene": "edge-rebased",
+          "frames": 3
+        },
+        {
+          "scene": "edge-released",
+          "frames": 3
+        }
+      ]
+    },
+    "hull_contacts": {
+      "orientedTerrain": true,
+      "hollowRay": true,
+      "unknownNativeYRejected": true,
+      "compoundContactQuery": true,
+      "relativeCCD": true,
+      "pairReaction": true,
+      "nativeGravitySupport": true,
+      "stableRenderedRotationFrames": 60,
+      "actualRenderer": true,
+      "playerBoarding": false,
+      "actualHullPairs": true,
+      "wholeTickIntegrated": true,
+      "sequentialThreeHulls": true,
+      "rotatedHullImpulse": true,
+      "maxPairClientError": 3.4342458519095044e-09,
+      "maxQuantizedPoseError": 0.0,
+      "precisionWaitSamples": 0,
+      "pairClientSamples": 413,
+      "actualFragments": false,
+      "continuousMaterialMotion": false,
+      "fastFragmentTickIntegrated": false,
+      "minFastFragmentSpeed": 0.0,
+      "fastVisiblePixels": [
+        0,
+        0
+      ],
+      "fragmentNbtRoundTrip": false,
+      "fullWorldReload": false,
+      "scenes": [
+        {
+          "scene": "diagonal-corner",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "terrain-stop",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "hollow-door",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "compound-contact-query",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "gravity-support",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "opposed-hull-impact",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "three-hull-chain",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "rotated-hull-impact",
+          "renderedFrames": 90
+        }
+      ]
+    },
+    "body_fractures": {
+      "orientedTerrain": true,
+      "hollowRay": true,
+      "unknownNativeYRejected": true,
+      "compoundContactQuery": true,
+      "relativeCCD": true,
+      "pairReaction": true,
+      "nativeGravitySupport": true,
+      "stableRenderedRotationFrames": 60,
+      "actualRenderer": true,
+      "playerBoarding": false,
+      "actualHullPairs": true,
+      "wholeTickIntegrated": true,
+      "sequentialThreeHulls": true,
+      "rotatedHullImpulse": true,
+      "maxPairClientError": 3.4342458519095044e-09,
+      "maxQuantizedPoseError": 0.0,
+      "precisionWaitSamples": 0,
+      "pairClientSamples": 767,
+      "actualFragments": true,
+      "continuousMaterialMotion": true,
+      "fastFragmentTickIntegrated": true,
+      "minFastFragmentSpeed": 63.99999999999834,
+      "fastVisiblePixels": [
+        192,
+        197
+      ],
+      "fragmentNbtRoundTrip": true,
+      "fullWorldReload": false,
+      "scenes": [
+        {
+          "scene": "diagonal-corner",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "terrain-stop",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "hollow-door",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "compound-contact-query",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "gravity-support",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "opposed-hull-impact",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "three-hull-chain",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "rotated-hull-impact",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "fracture-halves",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "fast-fragments",
+          "renderedFrames": 90
+        },
+        {
+          "scene": "saved-fragment-state",
+          "renderedFrames": 90
+        }
+      ]
+    }
+  }
+}
