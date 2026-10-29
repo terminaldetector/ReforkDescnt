@@ -16,7 +16,7 @@ class BoardingEvidenceTest(unittest.TestCase):
         self.marker = self.root / 'build/boardingcheck/boarding-ok.json'
         self.marker.parent.mkdir(parents=True)
         self.proof = dict(actualInputs=True, authoritativeContact=True, worldUpOnly=True,
-                          teleportFollow=False, jumpWorldVelocityError=0, maxPredictionError=.1, predictionSamples=50,
+                          teleportFollow=False, sameStepJump=True,jumpReleaseNetworkError=0,jumpWorldVelocityError=0, maxPredictionError=.1, predictionSamples=50,
                           scenes=[dict(scene=n, frames=3) for n in BOARDING_SCENES])
         for name in BOARDING_SCENES:
             p = self.root / f'build/boardingcheck/boarding-frames/{name}.png'
@@ -36,7 +36,7 @@ class BoardingEvidenceTest(unittest.TestCase):
             verify_boarding(self.root, self.started)
 
     def test_missing_real_input_or_using_teleport_follow_is_rejected(self):
-        for key, value in (('actualInputs', False), ('teleportFollow', True)):
+        for key, value in (('actualInputs', False), ('teleportFollow', True),('sameStepJump',False)):
             with self.subTest(key=key):
                 original = copy.deepcopy(self.proof)
                 self.proof[key] = value
@@ -47,7 +47,7 @@ class BoardingEvidenceTest(unittest.TestCase):
 
     def test_nonfinite_or_out_of_bounds_prediction_and_jump_are_rejected(self):
         for key, value in (('maxPredictionError', float('nan')), ('maxPredictionError', .8),
-                           ('jumpWorldVelocityError', .03), ('predictionSamples', 0)):
+                           ('jumpWorldVelocityError', .03), ('predictionSamples', 0),('jumpReleaseNetworkError',float('nan')),('jumpReleaseNetworkError',1e-8)):
             with self.subTest(key=key):
                 original = copy.deepcopy(self.proof)
                 self.proof[key] = value

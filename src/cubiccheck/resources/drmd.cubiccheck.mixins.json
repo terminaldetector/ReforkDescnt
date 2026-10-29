@@ -12,7 +12,8 @@
     "BoardingStateProbe",
     "ShipModelProbe",
     "ShipCameraProbe",
-    "BodyEditInputProbe"
+    "BodyEditInputProbe",
+    "BoardingStepProbe"
   ],
   "injectors": {
     "defaultRequire": 1

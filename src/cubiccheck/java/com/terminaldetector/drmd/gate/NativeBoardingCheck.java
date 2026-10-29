@@ -22,18 +22,34 @@ public final class NativeBoardingCheck {
     private static final BlockPos DECK=new BlockPos(8,Integer.getInteger("drmd.boarding.labY",2156),16);
     private static boolean started,prepared,finished,capture;
     private static volatile boolean ready,serverLanding,serverHandoff;
-    private static int age,phase,ticks,frames,bodyId=-1;
+    private static int age,ticks,frames,bodyId=-1;
+    private static volatile int phase;
     private static int synchronizedTicks,predictionSamples;
     private static Vec3d rideStart,walkStart;
     private static BoardingNetworking.State lastActive;
     private static volatile boolean jumpRelease;
-    private static boolean jumpSent;
+    private static volatile boolean jumpSent;
+    private record JumpStart(com.terminaldetector.drmd.world.contraption.boarding.DynamicBodyAttachment.State state,double seconds) {}
+    private record JumpProof(JumpStart before,com.terminaldetector.drmd.world.contraption.boarding.DynamicBodyAttachment.State after) {}
+    private static final ThreadLocal<JumpStart> JUMP_STEP=new ThreadLocal<>();
+    private static volatile JumpProof jumpProof;
+    private static double jumpNetworkError,previousPacketJumpDifference;
     private static volatile double departureError,maxPredictionError;
     private static final List<String> RESULTS=new ArrayList<>();
     private static String scene;
     public static void register(){ClientTickEvents.END_CLIENT_TICK.register(NativeBoardingCheck::tick);}
     private static net.minecraft.entity.Entity entity(BlockBodyEntity b){return b;}
     private static void require(boolean yes,String why){if(!yes){finished=true;MinecraftClient.getInstance().scheduleStop();throw new IllegalStateException(why);}}
+    /** Test-only observation of the exact authoritative motor call, never an input/state override. */
+    public static void beforeJumpStep(com.terminaldetector.drmd.world.contraption.boarding.DynamicBodyAttachment.State state,
+            com.terminaldetector.drmd.world.contraption.boarding.DynamicBodyAttachment.Input input,double seconds) {
+        JUMP_STEP.remove();var server=MinecraftClient.getInstance().getServer();
+        if(!finished&&server!=null&&server.isOnThread()&&phase==3&&jumpSent&&input.jump()&&state.grounded()&&state.support()==bodyId)
+            JUMP_STEP.set(new JumpStart(state,seconds));
+    }
+    public static void afterJumpStep(com.terminaldetector.drmd.world.contraption.boarding.DynamicBodyAttachment.State state) {
+        var before=JUMP_STEP.get();JUMP_STEP.remove();if(before!=null)jumpProof=new JumpProof(before,state);
+    }
     public static void received(BoardingNetworking.State s) {
         if(finished)return;
         if(s.active()) {
@@ -52,9 +68,15 @@ public final class NativeBoardingCheck {
         else if(phase==1||phase==2||(phase==3&&!jumpSent)) {
             require(false,"support lease lost before jump: phase="+phase+" before="+lastActive+" after="+s);
         } else if(phase==3&&lastActive!=null) {
-            departureError=Math.hypot(s.vx()-lastActive.vx(),s.vz()-lastActive.vz());
-            require(departureError<.03,"boarding jump lost carrier horizontal speed: "+departureError);
-            require(Math.abs(s.vy()-lastActive.vy()-(.42*20-32*.05))<.08,"boarding jump inheritance incorrect: before="+lastActive+" after="+s);
+            var proof=jumpProof;require(proof!=null,"release packet has no observed authoritative jump step");
+            var before=proof.before().state();var after=proof.after();
+            departureError=Math.hypot(after.velocity().x()-before.velocity().x(),after.velocity().z()-before.velocity().z());
+            require(departureError<.03,"boarding jump lost carrier horizontal speed in one motor step: "+departureError);
+            require(Math.abs(after.velocity().y()-before.velocity().y()-(.42*20-32*proof.before().seconds()))<.08,"boarding jump inheritance incorrect in one motor step: before="+before+" after="+after);
+            jumpNetworkError=new Vec3(s.vx(),s.vy(),s.vz()).minus(after.velocity()).length();
+            require(jumpNetworkError<1e-8,"release packet differs from the actual authoritative jump: "+jumpNetworkError);
+            previousPacketJumpDifference=Math.hypot(s.vx()-lastActive.vx(),s.vz()-lastActive.vz());
+            System.out.println("BOARDING_JUMP_SAME_STEP before="+before+" after="+after+" networkError="+jumpNetworkError+" previousPacketDifference="+previousPacketJumpDifference);
             jumpRelease=true;
         }
     }
@@ -201,7 +223,7 @@ public final class NativeBoardingCheck {
             RESULTS.add("{\"scene\":\""+scene+"\",\"frames\":"+frames+"}");
             System.out.println("BOARDING_CLIENT "+scene+" PASS state="+BoardingClient.state());capture=false;
             if(phase==7) {
-                Files.writeString(c.runDirectory.toPath().resolve("boarding-ok.json"),"{\"actualInputs\":true,\"authoritativeContact\":true,\"worldUpOnly\":true,\"physicalThrusters\":true,\"yawMotion\":true,\"teleportFollow\":false,\"jumpWorldVelocityError\":"+departureError+",\"predictionSamples\":"+predictionSamples+",\"maxPredictionError\":"+maxPredictionError+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");
+                Files.writeString(c.runDirectory.toPath().resolve("boarding-ok.json"),"{\"actualInputs\":true,\"authoritativeContact\":true,\"worldUpOnly\":true,\"physicalThrusters\":true,\"yawMotion\":true,\"teleportFollow\":false,\"sameStepJump\":true,\"jumpReleaseNetworkError\":"+jumpNetworkError+",\"previousPacketJumpDifference\":"+previousPacketJumpDifference+",\"jumpWorldVelocityError\":"+departureError+",\"predictionSamples\":"+predictionSamples+",\"maxPredictionError\":"+maxPredictionError+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");
                 finished=true;c.options.forwardKey.setPressed(false);c.options.jumpKey.setPressed(false);c.scheduleStop();
             }
         }catch(java.io.IOException e){throw new IllegalStateException(e);}

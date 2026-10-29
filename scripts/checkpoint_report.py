@@ -125,10 +125,10 @@ def verify_boarding(root, started):
     marker = root / 'build/boardingcheck/boarding-ok.json'
     fresh(marker, started)
     proof = json.loads(marker.read_text())
-    if (any(proof.get(k) is not True for k in ('actualInputs', 'authoritativeContact', 'worldUpOnly'))
+    if (any(proof.get(k) is not True for k in ('actualInputs', 'authoritativeContact', 'worldUpOnly','sameStepJump'))
             or proof.get('teleportFollow') is not False):
         raise ValueError('Missing actual-input authoritative boarding verification')
-    for key, limit in (('jumpWorldVelocityError', .03), ('maxPredictionError', .8)):
+    for key, limit in (('jumpWorldVelocityError', .03), ('maxPredictionError', .8),('jumpReleaseNetworkError',1e-8)):
         value = proof.get(key)
         if not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 <= value < limit:
             raise ValueError(f'Invalid boarding metric {key}: {value}')
