@@ -187,3 +187,25 @@ Source `45b11218e6189bdc65e43b3de34d525f3afe5819`; CI40872232972 SUCCESS:638 uni
 корпуса удерживается и освобождается после удаления. SHA-256 JAR `6265b0f4f969c58f96a83f65064f4ee7358711a0370031284b473277b97d0c95`.
 [Доказательства и незакрытая область](../../../dist/releases/1.1.30-volumes.1/NATIVE_REPORT.md).
 Работа продолжается над общими контактами физических корпусов; полная приёмка OPEN.
+
+
+## 2026-10-29 —1.1.31 oriented hull contacts, verified and published
+
+Source67abad8905ef312f61bb06c968b3be16866d14a1; CI40885520435 SUCCESS:
+650 unit,195 server GameTests,54 Python checks, full prior client/weapon/inventory/
+Fabulous mirror+portal/LOD/boarding/ship/edit/index/32768-scale regression, plus8 hull-contact scenes.
+Installable JAR SHA-2563e86b4f22d0230f180e0aed4deb7405fbb21242d98e54067bf632eafdc1d440e.
+Actual saved source artifact12901539172 (549874120 bytes) confirmed.
+CI binary2106899 and CI evidence146fe7d are separate from the tested source.
+
+Three installed exact-source native runs passed:8 contact scenes on GL3.2,8 with Sodium,
+13 ship-gravity/input scenes;29 fresh frames,413+413+555 samples. Both contact position
+errors3.4342458519095044e-9; ship prediction error0.20703771020321973, jump error1.5280958720609306e-9,
+model up error0. No teleport-follow. First failures remain archived separately.
+Details and limits:dist/releases/1.1.31-contacts.1/NATIVE_REPORT.md.
+
+This closes the bounded hull/hull contact implementation, not the full master specification.
+Full Boarding12 / UFO9 acceptance remains OPEN. Physical fracture, joints, functional blocks,
+ControlCore, physical large UFO, full3D AI, multiplayer and full-world/module reload are separate
+unfinished work. Server-side fracture and higher translation limits are being developed in
+another worktree and are not included in this1.1.31 certification.
