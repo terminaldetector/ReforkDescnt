@@ -17,7 +17,7 @@ public class BodyPickingMixin {
     @Inject(method="raycast",at=@At("RETURN"),cancellable=true)
     private static void drmd$localGrid(Entity owner,Vec3d from,Vec3d to,Box area,Predicate<Entity> allowed,double limit,CallbackInfoReturnable<EntityHitResult> ci) {
         if(drmd$picking.get())return;
-        var bodies=owner.getWorld().getEntitiesByClass(BlockBodyEntity.class,area,b->allowed.test(b)&&!b.isRemoved());
+        var bodies=com.terminaldetector.drmd.world.contraption.BodySpatialIndex.query(owner.getWorld(),area).stream().filter(allowed).toList();
         if(bodies.isEmpty())return;
         EntityHitResult best;
         drmd$picking.set(true);

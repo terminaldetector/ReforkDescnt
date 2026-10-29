@@ -346,7 +346,7 @@ public class ProjectileEntity extends Entity {
 		LivingEntity own = getOwnerLiving();
 		Entity best = null;
 		double bestDist = radius * radius;
-		for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(radius),
+		for (Entity e : com.terminaldetector.drmd.world.contraption.BodySpatialIndex.otherEntities(getWorld(), this, getBoundingBox().expand(radius),
 					ent -> (ent instanceof LivingEntity || ent instanceof PhysicsTarget) && ent.isAlive() && ent != own)) {
 			double d = (e instanceof PhysicsTarget physics?physics.physicsCentre():e.getPos()).squaredDistanceTo(getPos());
 			if (d < bestDist) {
@@ -374,7 +374,7 @@ public class ProjectileEntity extends Entity {
 		LivingEntity own = getOwnerLiving();
 		double best = 64 * 64;
 		Entity found = null;
-		for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(48),
+		for (Entity e : com.terminaldetector.drmd.world.contraption.BodySpatialIndex.otherEntities(getWorld(), this, getBoundingBox().expand(48),
 					ent -> (ent instanceof LivingEntity || ent instanceof PhysicsTarget) && ent.isAlive() && ent != own)) {
 			double d = (e instanceof PhysicsTarget physics?physics.physicsCentre():e.getPos()).squaredDistanceTo(getPos());
 			if (d < best) { best = d; found = e; }
@@ -386,7 +386,7 @@ public class ProjectileEntity extends Entity {
 		LivingEntity own = getOwnerLiving();
 		EntityHitResult best = null;
 		double bestDist = Double.MAX_VALUE;
-		for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().stretch(end.subtract(start)).expand(0.5),
+		for (Entity e : com.terminaldetector.drmd.world.contraption.BodySpatialIndex.otherEntities(getWorld(), this, getBoundingBox().stretch(end.subtract(start)).expand(0.5),
 					ent -> (ent instanceof LivingEntity || ent instanceof PhysicsTarget) && ent.isAlive() && ent != own && !pierced.contains(ent.getId()))) {
 			var opt = e instanceof PhysicsTarget target ? target.physicsRaycast(start,end) : e.getBoundingBox().expand(0.3).raycast(start, end);
 			if (opt.isPresent()) {

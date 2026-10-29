@@ -65,7 +65,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     public void setPassengerGravity(Vec3 acceleration) {
         if(getWorld().isClient)throw new IllegalStateException("Ship gravity is server-owned");
-        passengerField(acceleration);passengerGravity=acceleration;dataTracker.set(POSE,pose());
+        passengerField(acceleration);passengerGravity=acceleration;dataTracker.set(POSE,pose());BodySpatialIndex.update(this);
     }
     public void setPhysicsGravity(boolean value) {gravity=value;dataTracker.set(POSE,pose());}
     public boolean physicsGravity() {return gravity;}
@@ -73,6 +73,20 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
 
     public BlockBodyEntity(EntityType<? extends BlockBodyEntity> type, World world) {
         super(type, world); setNoGravity(true);
+    }
+    @Override public void setPosition(double x,double y,double z) {
+        super.setPosition(x,y,z);
+        if(body!=null)BodySpatialIndex.update(this);
+    }
+    /** One conservative envelope per hull, including its last contact pose and finite gravity field.
+     * The client reserves the bounded32-command prediction window; no block/section entries. */
+    public Optional<BodyBounds> spatialBounds() {
+        if(cells.isEmpty())return Optional.empty();
+        Vec3 at=massPosition(),start=getWorld().isClient?pure(getLerpedPos(0)).plus(body.rotation().rotate(centre.minus(pivot))):boardingMotionPaused()?at:previousPhysicsPosition;
+        double reach=radius+(passengerGravity.lengthSquared()>0?4*Math.sqrt(3):0);
+        if(getWorld().isClient&&!remoteMotionPaused)reach+=MAX_LINEAR_SPEED*com.terminaldetector.drmd.network.BoardingNetworking.PREDICTION_HISTORY*.05;
+        Vec3 r=new Vec3(reach,reach,reach);
+        return Optional.of(new BodyBounds(start.minus(r),start.plus(r)).union(new BodyBounds(at.minus(r),at.plus(r))));
     }
     @Override protected void initDataTracker(DataTracker.Builder builder) {
         builder.add(SHAPE, new NbtCompound()); builder.add(POSE, new NbtCompound());
@@ -107,6 +121,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             start,before,end,body.rotation(),dynamics,passengerField(passengerGravity),!fresh);
     }
     public void publishPhysicsState() {
+        BodySpatialIndex.update(this);
         if(!getWorld().isClient){dataTracker.set(POSE,pose());velocityModified=true;}
     }
     /** Current world pose plus the existing local BVH; no world blocks or chunk loads are read. */
@@ -226,7 +241,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         previousPhysicsPosition=previousPhysicsPosition.plus(previousRotation.rotate(centre.minus(oldCentre)));
         var dirty=new HashSet<BlockPos>();markGeometryNeighbours(dirty,pos);
         rebuildGeometry(dirty);shapeRevision++;
-        setBoundingBox(new Box(getPos(),getPos()).expand(radius));
+        setBoundingBox(new Box(getPos(),getPos()).expand(radius));BodySpatialIndex.update(this);
         dataTracker.set(SHAPE,shapeTag());dataTracker.set(POSE,pose());velocityModified=true;
         if(cells.isEmpty())discard();return true;
     }
@@ -239,6 +254,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
                 previousRotation = body.rotation(); readPose(dataTracker.get(POSE));
                 displayRotation.receive(body.rotation(),age);
             }
+            BodySpatialIndex.update(this);
         }
     }
     private NbtCompound pose() {
@@ -272,7 +288,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         loadShape(n.getCompound("shape")); readPose(n.getCompound("body"));
         body.withPosition(massPosition()); previousRotation = body.rotation();
         displayRotation.reset(body.rotation(),age);
-        dataTracker.set(SHAPE, shapeTag()); dataTracker.set(POSE, pose());
+        dataTracker.set(SHAPE, shapeTag()); dataTracker.set(POSE, pose());BodySpatialIndex.update(this);
     }
     @Override protected void writeCustomDataToNbt(NbtCompound n) {
         n.put("shape", shapeTag()); n.put("body", pose());
@@ -373,7 +389,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     @Override public void tick() {
         super.tick();
-        if (getWorld().isClient) { setBoundingBox(new Box(getPos(), getPos()).expand(radius)); return; }
+        if (getWorld().isClient) { setBoundingBox(new Box(getPos(), getPos()).expand(radius));BodySpatialIndex.update(this); return; }
         if (cells.isEmpty()) return;
         body.withPosition(massPosition()); previousRotation = body.rotation();
         previousPhysicsPosition=body.position();physicsTick=getWorld().getTime();

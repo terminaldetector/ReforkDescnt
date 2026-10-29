@@ -17,7 +17,7 @@ public final class ShipGravityGameTests implements FabricGameTest {
     private static final Vec3 UP=new Vec3(0,1,0),ZERO=new Vec3(0,0,0);
     private record Fixture(TestContext c,ServerPlayerEntity p,BlockBodyEntity body) implements AutoCloseable {
         void step(){body.tick();BoardingSystem.tick(c.getWorld());}
-        void land(){for(int i=0;i<45;i++)step();c.assertTrue(BoardingSystem.drives(p)&&BoardingSystem.state(p).grounded(),"real character lands in the rotating ship field: state="+BoardingSystem.state(p)+" player="+p.getPos()+" local="+body.worldToLocal(p.getPos())+" body="+body.getPos()+" q="+body.rotation()+" velocity="+p.getVelocity());}
+        void land(){for(int i=0;i<45;i++)step();c.assertTrue(BoardingSystem.drives(p)&&BoardingSystem.state(p).grounded(),"real character lands in the rotating ship field: state="+BoardingSystem.state(p)+" player="+p.getPos()+" local="+body.worldToLocal(p.getPos())+" body="+body.getPos()+" q="+body.rotation()+" velocity="+p.getVelocity()+" indexed="+BodySpatialIndex.query(c.getWorld(),body.getBoundingBox()).contains(body)+" vanilla="+c.getWorld().getEntitiesByClass(BlockBodyEntity.class,body.getBoundingBox(),b->true).contains(body)+" loaded="+(c.getWorld().getEntityById(body.getId())==body));}
         public void close(){body.discard();p.discard();BoardingSystem.tick(c.getWorld());}
     }
     private static boolean canSwim(ServerPlayerEntity p) {

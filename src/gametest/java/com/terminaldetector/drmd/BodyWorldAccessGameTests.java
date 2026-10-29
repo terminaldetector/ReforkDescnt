@@ -110,6 +110,45 @@ public final class BodyWorldAccessGameTests implements FabricGameTest {
    c.assertTrue(hit!=null&&hit.getEntity()==body,"ordinary crosshair still selects real hull material");
   }finally{body.discard();p.discard();}c.complete();
  }
+ @GameTest(templateName=EMPTY_STRUCTURE,batchId="body-index-pick")
+ public void ordinaryPickingFindsAnEditedWingOutsideThePivotEntitySection(TestContext c) {
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+   body.setPosition((body.getBlockX()&~15)+2.5,body.getY(),body.getZ());
+   c.assertTrue(body.setLocalBlock(new BlockPos(23,0,0),Blocks.IRON_BLOCK.getDefaultState()),"extend a valid local wing");
+   var start=body.localToWorld(new Vec3d(23.5,.5,-2));var end=body.localToWorld(new Vec3d(23.5,.5,3));
+   c.assertTrue(body.raycast(start,end).isPresent(),"actual local wing geometry intersects the ray");
+   var hit=net.minecraft.entity.projectile.ProjectileUtil.raycast(p,start,end,new Box(start,end).expand(1),e->e.canHit(),25);
+   c.assertTrue(hit!=null&&hit.getEntity()==body,"crosshair must find the wing even when its pivot section is outside the ray query");
+  }finally{body.discard();p.discard();}c.complete();
+ }
+ @GameTest(templateName=EMPTY_STRUCTURE,batchId="body-edit-unloaded")
+ public void placementRejectsAnotherHullsFarWingWithoutCreatingAWorldBlock(TestContext c) {
+  var body=fixture(c,iron());var other=fixture(c,iron());try {
+   body.setPosition((body.getBlockX()&~15)+4.5,body.getY(),body.getZ());
+   c.assertTrue(other.setLocalBlock(new BlockPos(23,0,0),Blocks.IRON_BLOCK.getDefaultState()),"other hull has a far wing");
+   var destination=body.localToWorld(new Vec3d(1.5,.5,.5));
+   other.setPosition(destination.subtract(new Vec3d(23.5-other.localPivot().x(),.5-other.localPivot().y(),.5-other.localPivot().z())));
+   var access=new BlockBodyWorldAccess(body);
+   c.assertTrue(!access.placeLocalBlock(new BlockPos(1,0,0),Blocks.GOLD_BLOCK.getDefaultState()),"placement cannot overlap the far end of a second hull");
+   other.discard();
+   c.assertTrue(access.placeLocalBlock(new BlockPos(1,0,0),Blocks.GOLD_BLOCK.getDefaultState()),"unloaded/removed hull cannot leave a phantom collider");
+   c.assertTrue(c.getWorld().getBlockState(BlockPos.ofFloored(destination)).isAir(),"local edit never writes the world cell");
+  }finally{body.discard();other.discard();}c.complete();
+ }
+ @GameTest(templateName=EMPTY_STRUCTURE,batchId="body-index-lifecycle")
+ public void bodyIndexFollowsMovementUntrackingAndReloadWithoutLoadingChunks(TestContext c) {
+  var body=fixture(c,iron());try {
+   var old=body.getBoundingBox();c.assertTrue(BodySpatialIndex.query(c.getWorld(),old).contains(body),"actual entity-load enrolled the hull");
+   int loaded=c.getWorld().getChunkManager().getLoadedChunkCount();
+   body.setPosition(body.getPos().add(16,0,16));body.tick();
+   c.assertTrue(!BodySpatialIndex.query(c.getWorld(),old).contains(body),"old spatial extent expires after the next physical tick");
+   var at=body.getBoundingBox();c.assertTrue(BodySpatialIndex.query(c.getWorld(),at).contains(body),"new position is searchable in all axes");
+   BodySpatialIndex.query(c.getWorld(),at.offset(2048,0,2048));
+   BodySpatialIndex.untrack(body);c.assertTrue(!BodySpatialIndex.query(c.getWorld(),at).contains(body),"entity unload removes the leaf");
+   BodySpatialIndex.track(body);c.assertTrue(BodySpatialIndex.query(c.getWorld(),at).contains(body),"entity load restores exactly one leaf");
+   c.assertTrue(c.getWorld().getChunkManager().getLoadedChunkCount()==loaded,"spatial queries/move into an unknown region cannot force chunk generation");
+  }finally{body.discard();}c.complete();
+ }
  @GameTest(templateName=EMPTY_STRUCTURE,batchId="body-edit-unloaded")
  public void interactionRayCannotGenerateUnknownGeometry(TestContext c) {
   var p=c.createMockCreativeServerPlayerInWorld();try {

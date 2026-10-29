@@ -191,7 +191,7 @@ public final class WeaponCore {
 			e.addVelocity(knock.x, knock.y + 0.1, knock.z);
 			e.velocityModified = true;
 		}
-		for (Entity e : world.getOtherEntities(attacker, box, entity -> entity instanceof PhysicsTarget && entity.isAlive())) {
+		for (Entity e : com.terminaldetector.drmd.world.contraption.BodySpatialIndex.otherEntities(world, attacker, box, entity -> entity instanceof PhysicsTarget && entity.isAlive())) {
 			var physics=(PhysicsTarget)e;Vec3d centre=physics.physicsCentre();
 			double dist = centre.distanceTo(pos);
 			if (dist > radius) continue;
@@ -252,7 +252,7 @@ public final class WeaponCore {
 		Box box = owner.getBoundingBox().stretch(end.subtract(start)).expand(1.0);
 		EntityHitResult best = null;
 		double bestDist = Double.MAX_VALUE;
-		for (Entity e : owner.getWorld().getOtherEntities(owner, box,
+		for (Entity e : com.terminaldetector.drmd.world.contraption.BodySpatialIndex.otherEntities(owner.getWorld(), owner, box,
 				ent -> (ent instanceof LivingEntity || ent instanceof PhysicsTarget) && ent.isAlive())) {
 			var opt = e instanceof PhysicsTarget target
 					? target.physicsRaycast(start, end)

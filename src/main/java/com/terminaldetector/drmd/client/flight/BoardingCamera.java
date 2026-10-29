@@ -46,7 +46,7 @@ public final class BoardingCamera {
     }
     private static double hullFraction(PlayerEntity player,Vec3d eye,Vec3d target,float delta) {
         double fraction=1;
-        for(var body:player.getWorld().getEntitiesByClass(BlockBodyEntity.class,new Box(eye,target).expand(1),b->!b.isRemoved())) {
+        for(var body:com.terminaldetector.drmd.world.contraption.BodySpatialIndex.query(player.getWorld(),new Box(eye,target).expand(1))) {
             var predicted=BoardingClient.bodyView(body,delta);
             Quat rotation=predicted==null?body.renderRotation(delta):predicted.rotation();
             Vec3 centre=predicted==null?body.renderMassPosition(delta):predicted.position();

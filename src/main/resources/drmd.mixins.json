@@ -22,7 +22,9 @@
     "BoardingPlayerTravelMixin",
     "BoardingPoseMixin",
     "BoardingWorldMovementMixin",
-    "BodyPickingMixin"
+    "BodyPickingMixin",
+    "BodySpatialLoadMixin",
+    "BodySpatialRemovalMixin"
   ],
   "client": [
     "client.CameraAccessor",

@@ -146,13 +146,13 @@ public final class BoardingClient {
         state=DynamicBodyAttachment.step(state,worldInput,bodies,player.getWidth(),player.getHeight(),.05,BoardingWorldMotion.capture(player,state,false));
         orientLook(player,beforeFrame,state.frame(),state.gravityOwner());BoardingPose.publish(player,state.frame());publishBodyView(player,bodies);
         player.setVelocity(BoardingSystem.mc(state.velocity().scaled(.05)));player.setOnGround(state.grounded());player.fallDistance=0;
-        HISTORY.put(seq,new Prediction(input,state));while(HISTORY.size()>32)HISTORY.pollFirstEntry();
+        HISTORY.put(seq,new Prediction(input,state));while(HISTORY.size()>BoardingNetworking.PREDICTION_HISTORY)HISTORY.pollFirstEntry();
     }
     private static java.util.List<BodyMotion> nearby(ClientPlayerEntity player,DynamicBodyAttachment.State at,int lead) {
         var bodies=new ArrayList<BodyMotion>();
         Vec3d shift=BoardingSystem.mc(at.feet()).subtract(player.getPos());
-        var entities=new ArrayList<>(player.getWorld().getEntitiesByClass(BlockBodyEntity.class,player.getBoundingBox().offset(shift)
-            .expand(4+Math.min(8,at.velocity().length()*.05)),b->!b.isRemoved()));
+        var entities=new ArrayList<>(com.terminaldetector.drmd.world.contraption.BodySpatialIndex.query(player.getWorld(),player.getBoundingBox().offset(shift)
+            .expand(4+Math.min(8,at.velocity().length()*.05))));
         entities.sort(Comparator.comparingInt(BlockBodyEntity::getId));for(var body:entities)bodies.add(predictedMotion(body,lead));
         return bodies;
     }

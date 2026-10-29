@@ -251,6 +251,7 @@ sourceSets {
         java.include 'com/terminaldetector/drmd/gate/NativeBoardingCheck.java'
         java.include 'com/terminaldetector/drmd/gate/NativeShipGravityCheck.java'
         java.include 'com/terminaldetector/drmd/gate/NativeBodyEditCheck.java'
+        java.include 'com/terminaldetector/drmd/gate/NativeBodyIndexCheck.java'
         java.include 'com/terminaldetector/drmd/boardingcheck/**'
         compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
         runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
@@ -342,3 +343,29 @@ tasks.register('prepareBodyeditcheckWorld', Sync) {
     }
 }
 tasks.named('runBodyeditcheck') { dependsOn prepareBodyeditcheckWorld }
+
+// Real distant-wing indexing in the same disposable ordinary/native player motor.
+loom { runs { bodyindexcheck {
+    client()
+    source sourceSets.boardingcheck
+    runDir 'build/bodyindexcheck'
+    vmArg '-Ddrmd.boarding.labY=140'
+    vmArg '-Ddrmd.gate.bodyIndex=true'
+    programArg '--quickPlaySingleplayer'
+    programArg 'DRMD-bodyindex-lab'
+    programArg '--width'
+    programArg '1280'
+    programArg '--height'
+    programArg '720'
+} } }
+tasks.register('prepareBodyindexcheckWorld', Sync) {
+    dependsOn runGametest
+    from 'build/gametest/world'
+    into 'build/bodyindexcheck/saves/DRMD-bodyindex-lab'
+    exclude '**/session.lock'
+    doLast {
+        if(!file('build/bodyindexcheck/saves/DRMD-bodyindex-lab/level.dat').isFile())throw new GradleException('Missing disposable body edit world')
+        file('build/bodyindexcheck/options.txt').text='onboardAccessibility:false\npauseOnLostFocus:false\nmaxFps:30\nrenderDistance:8\nsimulationDistance:8\n'
+    }
+}
+tasks.named('runBodyindexcheck') { dependsOn prepareBodyindexcheckWorld }

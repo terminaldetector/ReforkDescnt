@@ -65,7 +65,7 @@ public final class BodyBlockInteraction {
         var terrain=p.getWorld().raycast(new RaycastContext(from,to,RaycastContext.ShapeType.COLLIDER,RaycastContext.FluidHandling.NONE,p));
         double limit=terrain.getType()==HitResult.Type.MISS?1:from.distanceTo(terrain.getPos())/reach;
         Target best=null;
-        for(var b:p.getWorld().getEntitiesByClass(BlockBodyEntity.class,new Box(from,to).expand(1),b->!b.isRemoved())) {
+        for(var b:BodySpatialIndex.query(p.getWorld(),new Box(from,to).expand(1))) {
             var frame=pose.apply(b);var hit=new BlockBodyWorldAccess(b).raycastBlockBody(from,to,frame.position(),frame.rotation());
             if(hit.isPresent()&&!hit.get().inside()&&hit.get().fraction()<limit-1e-7) {limit=hit.get().fraction();best=new Target(b,hit.get());}
         }

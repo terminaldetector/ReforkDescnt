@@ -67,7 +67,7 @@ public final class BoardingSystem {
         for(var p:players) {
             Lease l=LEASES.get(p.getUuid());Vec3 feet=pure(p.getPos());
             if(!eligible(p)||!ready(p)) {if(l!=null)release(p,l,pure(p.getVelocity()).scaled(20));PREVIOUS.put(p.getUuid(),new Previous(new WeakReference<>(world),feet));continue;}
-            var candidates=new ArrayList<>(world.getEntitiesByClass(BlockBodyEntity.class,p.getBoundingBox().expand(4+Math.min(8,p.getVelocity().length())),b->!b.isRemoved()));
+            var candidates=new ArrayList<>(com.terminaldetector.drmd.world.contraption.BodySpatialIndex.query(world,p.getBoundingBox().expand(4+Math.min(8,p.getVelocity().length()))));
             candidates.sort(Comparator.comparingInt(BlockBodyEntity::getId));
             var near=new ArrayList<BodyMotion>();
             for(var b:candidates){near.add(motions.computeIfAbsent(b.getId(),id->b.boardingMotion()));touched.add(b);}

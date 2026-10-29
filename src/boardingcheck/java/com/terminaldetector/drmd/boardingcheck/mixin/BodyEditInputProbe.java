@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(BodyEditClient.class)
 public class BodyEditInputProbe {
  @Inject(method="mine",at=@At("RETURN"),remap=false)
- private static void mine(MinecraftClient c,boolean held,CallbackInfoReturnable<Boolean> ci){if(held&&Boolean.getBoolean("drmd.gate.bodyEdit"))com.terminaldetector.drmd.gate.NativeBodyEditCheck.input(false,ci.getReturnValue());}
+ private static void mine(MinecraftClient c,boolean held,CallbackInfoReturnable<Boolean> ci){if(held&&Boolean.getBoolean("drmd.gate.bodyIndex"))com.terminaldetector.drmd.gate.NativeBodyIndexCheck.input(false,ci.getReturnValue());else if(held&&Boolean.getBoolean("drmd.gate.bodyEdit"))com.terminaldetector.drmd.gate.NativeBodyEditCheck.input(false,ci.getReturnValue());}
  @Inject(method="place",at=@At("RETURN"),remap=false)
- private static void place(MinecraftClient c,CallbackInfoReturnable<Boolean> ci){if(Boolean.getBoolean("drmd.gate.bodyEdit"))com.terminaldetector.drmd.gate.NativeBodyEditCheck.input(true,ci.getReturnValue());}
+ private static void place(MinecraftClient c,CallbackInfoReturnable<Boolean> ci){if(Boolean.getBoolean("drmd.gate.bodyIndex"))com.terminaldetector.drmd.gate.NativeBodyIndexCheck.input(true,ci.getReturnValue());else if(Boolean.getBoolean("drmd.gate.bodyEdit"))com.terminaldetector.drmd.gate.NativeBodyEditCheck.input(true,ci.getReturnValue());}
 }

@@ -9,6 +9,7 @@ import net.minecraft.util.Identifier;
 
 public final class BoardingNetworking {
     public static final int PROTOCOL=3;
+    public static final int PREDICTION_HISTORY=32;
     private BoardingNetworking() {}
     public record Ready(int version) implements CustomPayload {
         public static final Id<Ready> ID=new Id<>(Identifier.of("drmd","boarding_ready"));

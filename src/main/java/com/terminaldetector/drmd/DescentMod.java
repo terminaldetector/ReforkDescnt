@@ -84,6 +84,7 @@ public class DescentMod implements ModInitializer {
 		WeaponRegistry.bootstrap();
 		DescentCommands.register();
 		com.terminaldetector.drmd.world.contraption.BlockBodyCommands.register();
+        com.terminaldetector.drmd.world.contraption.BodySpatialIndex.registerServer();
         com.terminaldetector.drmd.world.contraption.BodyBlockInteraction.register();
 		com.terminaldetector.drmd.world.geometry.HybridTerrainCommands.register();
 		AiCommands.register();

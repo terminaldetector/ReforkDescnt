@@ -192,6 +192,26 @@ def verify_body_edits(root, started):
     return proof
 
 
+BODY_INDEX_SCENES = ('edge-intact','edge-cut','edge-patched','edge-hole')
+
+def verify_body_index(root, started):
+    marker=root/'build/bodyindexcheck/body-index-ok.json'
+    fresh(marker,started)
+    proof=json.loads(marker.read_text())
+    for key in ('actualInputs','legacyMissClient','legacyMissServer','edgePicked','holeClear','materialCharged'):
+        if proof.get(key) is not True: raise ValueError(f'Missing volume-index proof: {key}')
+    if proof.get('teleportFollow') is not False: raise ValueError('Volume-index client must use real contact motion')
+    for key,minimum in (('revisionChanges',3),('predictionSamples',40)):
+        if type(proof.get(key)) is not int or proof[key]<minimum: raise ValueError(f'Missing volume-index samples: {key}')
+    for key,minimum,maximum in (('maxPredictionError',0,.8),('travelDistance',1,1000)):
+        value=proof.get(key)
+        if type(value) not in (int,float) or not math.isfinite(value) or not minimum<=value<maximum: raise ValueError(f'Invalid volume-index metric: {key}')
+    scenes=proof.get('scenes',[])
+    if [s.get('scene') for s in scenes]!=list(BODY_INDEX_SCENES) or any(s.get('frames',0)<3 for s in scenes): raise ValueError('Missing distant-wing input scenes')
+    for name in BODY_INDEX_SCENES: fresh_png(root/f'build/bodyindexcheck/body-index-frames/{name}.png',started)
+    return proof
+
+
 def properties(root):
     return dict(line.strip().split('=', 1) for line in
                 (root / 'gradle.properties').read_text().splitlines()
@@ -284,9 +304,10 @@ def verify(root):
 
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
-    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27')) else None
-    body_edits = verify_body_edits(root,started) if version.startswith('1.1.27') else None
-    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27')) else None
+    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28')) else None
+    body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28')) else None
+    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28')) else None
+    body_index = verify_body_index(root,started) if version.startswith('1.1.28') else None
     audit=verify_audit(root,started) if version.startswith('1.1.14') else None
     if audit: verify_native_audit(root,started)
     jar = root / f'build/libs/{base}-{version}.jar'
@@ -334,6 +355,7 @@ def verify(root):
     if ship_boarding is not None:
         result['ship_boarding'] = ship_boarding
     if body_edits is not None: result['body_edits']=body_edits
+    if body_index is not None: result['body_index']=body_index
     (out / 'verified.json').write_text(json.dumps(result, indent=2) + '\n')
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'], 'a') as output:

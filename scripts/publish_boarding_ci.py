@@ -8,13 +8,13 @@ import shutil
 import subprocess
 import zipfile
 
-VERSION = '1.1.27-blocks.1'
+VERSION = '1.1.28-index.1'
 
 
 def validate_proof(proof, source):
     if proof['source_sha'] != source or proof['version'] != VERSION:
         raise ValueError('Unexpected tested source or boarding version')
-    if proof['unit']['tests'] < 619 or proof['gametest']['tests'] < 171:
+    if proof['unit']['tests'] < 625 or proof['gametest']['tests'] < 174:
         raise ValueError('Contact unit and world regressions are missing')
     if proof['jar'] != f'drmd-6dof-{VERSION}-fabric-1.21.1.jar':
         raise ValueError('Unexpected installable JAR')
@@ -39,6 +39,7 @@ def main():
     gate.verify_boarding(root, started)
     gate.verify_ship_boarding(root, started)
     gate.verify_body_edits(root, started)
+    gate.verify_body_index(root, started)
     for name in ('snapshot', 'mirror-join', 'horizon-anchor', 'repair-visual'):
         gate.fresh(root / f'build/shootcheck/{name}-ok.json', started)
     snapshot = json.loads((root / 'build/shootcheck/snapshot-ok.json').read_text())
@@ -64,7 +65,8 @@ B — вспомогательное, G — режим ракет. Управл�
 Этот кандидат проверен CI в обычном мире; новый native BCC-клиент не проверен.
 Проверены посадка, удержание, ходьба и прыжок игрока на движущемся BlockBody.
 Исправлено повторение старого поворота неподвижного корпуса при смене render tick.
-Добавлено локальное разрушение/установка инертных блоков летящего BlockBody.
+Исправлен поиск дальних частей корпуса: объёмный индекс вместо секции центра.
+Локальные разрушение/установка инертных блоков летящего BlockBody сохранены.
 Обычные ЛКМ/ПКМ работают вне оружейного6DoF-режима; Survival тратит блоки и прочность.
 Полные крен/тангаж и комбинированное вращение проверяются реальным клиентом.
 /d6body gravity <корпус> 0 -32 0 — включить поле; 0 0 0 — выключить.
@@ -77,7 +79,10 @@ SHA-256: {proof['sha256']}
 
 [Установочный JAR]({jar.name}) · [Установка](INSTALL_TLAUNCHER.txt) · [SHA-256](SHA256SUMS).
 
-Промежуточный этап ТЗ: локальная сетка допускает разрушение и установку блоков
+Промежуточный этап ТЗ: общий объёмный индекс находит дальние края корпуса для
+посадки, камеры, прицела, редактирования и оружия. На корпус приходится один узел;
+сканирования чанков и отсечения физических контактов по лимиту кандидатов нет.
+Локальная сетка сохраняет разрушение и установку блоков
 обычными ЛКМ/ПКМ. Сервер проверяет луч/дальность/revision, Survival платит
 материалом и прочностью инструмента; удалённый блок выдаёт vanilla loot.
 Постоянный pivot отделён от COM: правка массы сохраняет материальные точки.
@@ -93,7 +98,9 @@ C2S-ввод и предсказание. Полные крен/тангаж/к�
 Проверенный source SHA: `{source}`. [Точный CI-прогон]({run}).
 Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']['tests']}.
 Полная регрессия настоящего клиента, оружие, инвентарь, зеркала/Fabulous и LOD.
-Дополнительно5 реальных mouse-сцен редактирования движущегося наклонённого корпуса.
+Дополнительно5 mouse-сцен редактирования наклонённого корпуса и4 сцены дальнего края
+с доказанным пропуском старым поиском на клиенте и сервере, реальным расходом материала
+и минимум1 блоком физического перелёта.
 [CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/BLOCK_ACCESS_STAGE.md).
 
 Программная графика Linux; новая native BCC-сессия и Windows/RTX этим CI не
@@ -106,6 +113,7 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
         for pattern in ('build/checkpoint/logs/*', 'build/checkpoint/resources/*',
                         'build/checkpoint/verified.json', 'build/checkpoint/SOURCE_SHA.txt',
                         'build/checkpoint/started-at.txt', 'build/shipboardingcheck/ship-boarding-ok.json',
+                        'build/bodyindexcheck/body-index-ok.json','build/bodyindexcheck/body-index-frames/*.png',
                         'build/bodyeditcheck/body-edit-ok.json', 'build/bodyeditcheck/body-edit-frames/*.png',
                         'build/shipboardingcheck/ship-boarding-frames/*.png', 'build/boardingcheck/boarding-ok.json',
                         'build/boardingcheck/boarding-frames/*.png', 'build/test-results/test/*.xml',
@@ -125,7 +133,8 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
 [Скачать JAR](releases/{VERSION}/{jar.name}) · [Установка](releases/{VERSION}/INSTALL_TLAUNCHER.txt)
 · [Проверки и ограничения](releases/{VERSION}/README.md) · [SHA-256](releases/{VERSION}/SHA256SUMS).
 
-Локальное редактирование инертных блоков движущегося BlockBody.
+Общий объёмный индекс BlockBody исправляет выбор и контакты у дальнего края.
+Обычное локальное редактирование инертных блоков сохранено.
 Центр масс меняется с сохранением положения и скорости оставшегося материала.
 Большой UFO, абордаж с механизмами/мобами и полный3D AI ещё не готовы.
 Проверка CI использует обычный мир и программную графику Linux.
@@ -135,7 +144,7 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
 ---
 
 ''' + previous)
-    print('Verified local-block editing staged:', out)
+    print('Verified full-volume hull lookup staged:', out)
 
 
 if __name__ == '__main__':
