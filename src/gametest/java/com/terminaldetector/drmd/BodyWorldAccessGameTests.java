@@ -136,6 +136,18 @@ public final class BodyWorldAccessGameTests implements FabricGameTest {
   }finally{body.discard();other.discard();}c.complete();
  }
  @GameTest(templateName=EMPTY_STRUCTURE,batchId="body-index-lifecycle")
+ public void indexIncludesRotatedGravityFieldCornersOfADamagedSparseHull(TestContext c) {
+  var body=fixture(c,Map.of(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState()));try {
+   for(var pos:List.of(new BlockPos(23,0,0),new BlockPos(0,23,0),new BlockPos(0,0,23)))
+    c.assertTrue(body.setLocalBlock(pos,Blocks.IRON_BLOCK.getDefaultState()),"three surviving hull arms fit the supported grid");
+   body.physics().withRotation(com.terminaldetector.drmd.client.portal.PortalTransform.rotationBetween(new Vec3(1,1,1).normalized(),new Vec3(0,1,0)));
+   body.setPassengerGravity(new Vec3(0,-32,0));body.publishPhysicsState();
+   var at=body.localToWorld(new Vec3d(27.5,27.5,27.5));
+   c.assertTrue(body.boardingMotion().gravity(BoardingSystem.pure(at),1).isPresent(),"actual finite field includes its rotated empty corner");
+   c.assertTrue(BodySpatialIndex.query(c.getWorld(),new Box(at,at).expand(4)).contains(body),"boarding broadphase must not lose the true field corner of a sparse rotated hull");
+  }finally{body.discard();}c.complete();
+ }
+ @GameTest(templateName=EMPTY_STRUCTURE,batchId="body-index-lifecycle")
  public void bodyIndexFollowsMovementUntrackingAndReloadWithoutLoadingChunks(TestContext c) {
   var body=fixture(c,iron());try {
    var old=body.getBoundingBox();c.assertTrue(BodySpatialIndex.query(c.getWorld(),old).contains(body),"actual entity-load enrolled the hull");

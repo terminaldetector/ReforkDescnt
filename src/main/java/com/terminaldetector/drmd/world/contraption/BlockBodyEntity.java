@@ -83,7 +83,16 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public Optional<BodyBounds> spatialBounds() {
         if(cells.isEmpty())return Optional.empty();
         Vec3 at=massPosition(),start=getWorld().isClient?pure(getLerpedPos(0)).plus(body.rotation().rotate(centre.minus(pivot))):boardingMotionPaused()?at:previousPhysicsPosition;
-        double reach=radius+(passengerGravity.lengthSquared()>0?4*Math.sqrt(3):0);
+        double reach=radius;
+        if(passengerGravity.lengthSquared()>0) {
+            // A sparse damaged hull's field is a padded local BOX. Its empty corners can lie
+            // farther out than any material point, especially after a three-axis rotation.
+            var local=passengerField(passengerGravity).localVolume();
+            double x=Math.max(Math.abs(local.min().x()-centre.x()),Math.abs(local.max().x()-centre.x()));
+            double y=Math.max(Math.abs(local.min().y()-centre.y()),Math.abs(local.max().y()-centre.y()));
+            double z=Math.max(Math.abs(local.min().z()-centre.z()),Math.abs(local.max().z()-centre.z()));
+            reach=Math.max(reach,Math.sqrt(x*x+y*y+z*z));
+        }
         if(getWorld().isClient&&!remoteMotionPaused)reach+=MAX_LINEAR_SPEED*com.terminaldetector.drmd.network.BoardingNetworking.PREDICTION_HISTORY*.05;
         Vec3 r=new Vec3(reach,reach,reach);
         return Optional.of(new BodyBounds(start.minus(r),start.plus(r)).union(new BodyBounds(at.minus(r),at.plus(r))));
