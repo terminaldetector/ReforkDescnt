@@ -82,7 +82,7 @@ public final class BodyWorldAccessGameTests implements FabricGameTest {
    c.assertTrue(!access.placeLocalBlock(pos,Blocks.GOLD_BLOCK.getDefaultState()),"cannot place inside player");p.setPosition(body.getPos().add(0,5,0));
    c.assertTrue(access.placeLocalBlock(pos,Blocks.GOLD_BLOCK.getDefaultState()),"free local cube accepts item geometry");
    c.assertTrue(c.getWorld().getBlockState(world).isAir(),"ship placement never creates a vanilla world block");
-   c.assertTrue(!body.setLocalBlock(new BlockPos(24,0,0),Blocks.IRON_BLOCK.getDefaultState())&&!body.setLocalBlock(pos,Blocks.CHEST.getDefaultState()),"bounds and unsupported functional blocks are rejected");
+   c.assertTrue(!body.setLocalBlock(new BlockPos(BlockBodyEntity.MAX_LOCAL,0,0),Blocks.IRON_BLOCK.getDefaultState())&&!body.setLocalBlock(pos,Blocks.CHEST.getDefaultState()),"bounds and unsupported functional blocks are rejected");
   }finally{body.discard();p.discard();}c.complete();
  }
  @GameTest(templateName=EMPTY_STRUCTURE,batchId="body-edit-auth")

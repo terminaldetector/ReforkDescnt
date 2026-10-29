@@ -25,15 +25,25 @@ public final class BlockBodyRenderer extends EntityRenderer<BlockBodyEntity> {
         matrices.multiply(q);
         var centre = body.localPivot();
         matrices.translate(-centre.x(), -centre.y(), -centre.z());
-        for (var cell : body.cells()) {
+        for (var cell : body.visibleCells()) {
             matrices.push(); matrices.translate(cell.pos().getX(), cell.pos().getY(), cell.pos().getZ());
             if(body.surface(cell)!=null) SmoothBodySurface.render(body,cell,matrices,consumers,light);
-            else MinecraftClient.getInstance().getBlockRenderManager().renderBlockAsEntity(
-                cell.state(), matrices, consumers, light, OverlayTexture.DEFAULT_UV);
+            else renderFaces(body,cell,matrices,consumers,light);
             matrices.pop();
         }
         matrices.pop();
         super.render(body, yaw, delta, matrices, consumers, light);
+    }
+    private static void renderFaces(BlockBodyEntity body,BlockBodyEntity.Cell cell,MatrixStack matrices,VertexConsumerProvider consumers,int light) {
+        var client=MinecraftClient.getInstance();var model=client.getBlockRenderManager().getModel(cell.state());
+        var out=consumers.getBuffer(net.minecraft.client.render.RenderLayers.getEntityBlockLayer(cell.state(),false));
+        var random=net.minecraft.util.math.random.Random.create(42);
+        for(var face:net.minecraft.util.math.Direction.values()) {
+            if(!body.visibleFace(cell.pos(),face))continue;random.setSeed(42);
+            for(var quad:model.getQuads(cell.state(),face,random))out.quad(matrices.peek(),quad,1,1,1,1,light,OverlayTexture.DEFAULT_UV);
+        }
+        random.setSeed(42);
+        for(var quad:model.getQuads(cell.state(),null,random))out.quad(matrices.peek(),quad,1,1,1,1,light,OverlayTexture.DEFAULT_UV);
     }
     @Override public Identifier getTexture(BlockBodyEntity body) {
         return Identifier.ofVanilla("textures/atlas/blocks.png");

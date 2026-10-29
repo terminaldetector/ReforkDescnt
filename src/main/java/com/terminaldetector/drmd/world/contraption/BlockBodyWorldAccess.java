@@ -25,9 +25,13 @@ public final class BlockBodyWorldAccess {
         Vec3 end=rotation.inverse().rotate(BoardingSystem.pure(to).minus(worldCom)).plus(body.localCentre());
         if(body.collider().raycast(start,end).isEmpty())return Optional.empty();
         CompoundCollider.RayHit best=null;BlockPos block=null;
-        for(var cell:body.cells()) {
-            var hit=CompoundCollider.raycastBox(body.localBlockBounds().get(cell.pos()),start,end);
-            if(hit.isPresent()&&(best==null||hit.get().fraction()<best.fraction())){best=hit.get();block=cell.pos();}
+        var min=new Vec3(Math.min(start.x(),end.x())-1e-8,Math.min(start.y(),end.y())-1e-8,Math.min(start.z(),end.z())-1e-8);
+        var max=new Vec3(Math.max(start.x(),end.x())+1e-8,Math.max(start.y(),end.y())+1e-8,Math.max(start.z(),end.z())+1e-8);
+        var candidates=new ArrayList<>(body.localCollisionCandidates(new BodyBounds(min,max)));
+        candidates.sort(Comparator.comparingInt(BlockPos::getX).thenComparingInt(BlockPos::getY).thenComparingInt(BlockPos::getZ));
+        for(var pos:candidates) {
+            var hit=CompoundCollider.raycastBox(body.localBlockBounds().get(pos),start,end);
+            if(hit.isPresent()&&(best==null||hit.get().fraction()<best.fraction())){best=hit.get();block=pos;}
         }
         return best==null?Optional.empty():Optional.of(transformHitResult(block,best,worldCom,rotation));
     }

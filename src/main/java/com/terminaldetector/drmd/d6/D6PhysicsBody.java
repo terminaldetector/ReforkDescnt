@@ -246,7 +246,7 @@ public final class D6PhysicsBody {
 	}
 
 	/** Its inverse, or null when the body has no inertia to speak of yet. */
-	private D6Mat3 worldInverseInertia() {
+	public D6Mat3 worldInverseInertia() {
 		if (inverseInertia == null) return null;
 		D6Mat3 r = D6Mat3.rotationOf(rotation);
 		return r.multiply(inverseInertia).multiply(r.transposed());

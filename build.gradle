@@ -369,3 +369,30 @@ tasks.register('prepareBodyindexcheckWorld', Sync) {
     }
 }
 tasks.named('runBodyindexcheck') { dependsOn prepareBodyindexcheckWorld }
+
+// Full 32768-block /128-edge hull, real mouse input, bounded patch baseline rebase.
+loom { runs { bodyscalecheck {
+    client()
+    source sourceSets.boardingcheck
+    runDir 'build/bodyscalecheck'
+    vmArg '-Ddrmd.boarding.labY=140'
+    vmArg '-Ddrmd.gate.bodyIndex=true'
+    vmArg '-Ddrmd.gate.bodyScale=true'
+    programArg '--quickPlaySingleplayer'
+    programArg 'DRMD-bodyscale-lab'
+    programArg '--width'
+    programArg '1280'
+    programArg '--height'
+    programArg '720'
+} } }
+tasks.register('prepareBodyscalecheckWorld', Sync) {
+    dependsOn runGametest
+    from 'build/gametest/world'
+    into 'build/bodyscalecheck/saves/DRMD-bodyscale-lab'
+    exclude '**/session.lock'
+    doLast {
+        if(!file('build/bodyscalecheck/saves/DRMD-bodyscale-lab/level.dat').isFile())throw new GradleException('Missing disposable body edit world')
+        file('build/bodyscalecheck/options.txt').text='onboardAccessibility:false\npauseOnLostFocus:false\nmaxFps:30\nrenderDistance:8\nsimulationDistance:8\n'
+    }
+}
+tasks.named('runBodyscalecheck') { dependsOn prepareBodyscalecheckWorld }

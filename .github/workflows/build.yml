@@ -149,6 +149,11 @@ jobs:
         run: |
           rm -f build/bodyindexcheck/body-index-ok.json
           LIBGL_ALWAYS_SOFTWARE=1 timeout 600s xvfb-run -a ./gradlew runBodyindexcheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/bodyindexcheck.log
+      - name: Verify full 32768-block hull input and snapshot rebase
+        id: bodyscalecheck
+        run: |
+          rm -f build/bodyscalecheck/body-scale-ok.json
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 600s xvfb-run -a ./gradlew runBodyscalecheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/bodyscalecheck.log
       - name: Validate fresh evidence and stage only the current JAR
         id: verify
         run: python3 scripts/checkpoint_report.py --verify 2>&1 | tee build/checkpoint/logs/verify.log
@@ -171,6 +176,10 @@ jobs:
           name: evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             build/checkpoint/
+            build/bodyscalecheck/body-scale-ok.json
+            build/bodyscalecheck/body-scale-frames/
+            build/bodyscalecheck/logs/
+            build/bodyscalecheck/crash-reports/
             build/bodyindexcheck/body-index-ok.json
             build/bodyindexcheck/body-index-frames/
             build/bodyindexcheck/logs/
@@ -282,7 +291,7 @@ jobs:
           git commit -m '[snapshot evidence] Preserve exact-source CI logs, frames and checksums'
           git -c 'credential.helper=!gh auth git-credential' push origin "HEAD:${GITHUB_REF#refs/heads/}"
 
-      - name: Commit the verified full-volume hull lookup JAR and evidence directly to the repository
+      - name: Commit the verified expanded hull JAR and evidence directly to the repository
         if: success() && github.event_name == 'push' && github.ref == 'refs/heads/codex/ungravity-cloud-recovery-20261024' && startsWith(github.event.head_commit.message, '[boarding source]')
         env:
           GH_TOKEN: ${{ github.token }}
@@ -290,8 +299,8 @@ jobs:
           python3 scripts/publish_boarding_ci.py
           git config user.name 'Ungravity checkpoint bot'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add dist/README.md dist/releases/1.1.28-index.1/*.jar dist/releases/1.1.28-index.1/README.md dist/releases/1.1.28-index.1/INSTALL_TLAUNCHER.txt dist/releases/1.1.28-index.1/SOURCE_SHA.txt
-          git commit -m '[boarding package] Publish verified 1.1.28-index.1 JAR'
-          git add dist/releases/1.1.28-index.1
+          git add dist/README.md dist/releases/1.1.29-hulls.1/*.jar dist/releases/1.1.29-hulls.1/README.md dist/releases/1.1.29-hulls.1/INSTALL_TLAUNCHER.txt dist/releases/1.1.29-hulls.1/SOURCE_SHA.txt
+          git commit -m '[boarding package] Publish verified 1.1.29-hulls.1 JAR'
+          git add dist/releases/1.1.29-hulls.1
           git commit -m '[boarding evidence] Preserve exact-source ship-gravity boarding proof'
           git -c 'credential.helper=!gh auth git-credential' push origin "HEAD:${GITHUB_REF#refs/heads/}"

@@ -8,13 +8,13 @@ import shutil
 import subprocess
 import zipfile
 
-VERSION = '1.1.28-index.1'
+VERSION = '1.1.29-hulls.1'
 
 
 def validate_proof(proof, source):
     if proof['source_sha'] != source or proof['version'] != VERSION:
         raise ValueError('Unexpected tested source or boarding version')
-    if proof['unit']['tests'] < 625 or proof['gametest']['tests'] < 175:
+    if proof['unit']['tests'] < 633 or proof['gametest']['tests'] < 183:
         raise ValueError('Contact unit and world regressions are missing')
     if proof['jar'] != f'drmd-6dof-{VERSION}-fabric-1.21.1.jar':
         raise ValueError('Unexpected installable JAR')
@@ -40,6 +40,7 @@ def main():
     gate.verify_ship_boarding(root, started)
     gate.verify_body_edits(root, started)
     gate.verify_body_index(root, started)
+    gate.verify_body_scale(root, started)
     for name in ('snapshot', 'mirror-join', 'horizon-anchor', 'repair-visual'):
         gate.fresh(root / f'build/shootcheck/{name}-ok.json', started)
     snapshot = json.loads((root / 'build/shootcheck/snapshot-ok.json').read_text())
@@ -86,7 +87,11 @@ SHA-256: {proof['sha256']}
 обычными ЛКМ/ПКМ. Сервер проверяет луч/дальность/revision, Survival платит
 материалом и прочностью инструмента; удалённый блок выдаёт vanilla loot.
 Постоянный pivot отделён от COM: правка массы сохраняет материальные точки.
-Пересчитываются27 соседних поверхностей, BVH ограничен256 блоками.
+Лимит расширен до32768 блоков, исходная сборка до128×128×128, редактирование[-32,128).
+Пересчитываются27 соседних поверхностей и только затронутые16³ секции коллайдера.
+Сжатая разреженная сетка совместима со старыми сохранениями; журнал до255 правок
+передаётся отдельно от базового snapshot. Клиент проверяет300 правок и rebase.
+Серверный мотор начинает шаг из реальной позиции игрока; протокол boarding4.
 Сохраняются геометрические contact/sweep-запросы к локальному BVH
 BlockBody и контакт двух D6-тел с взаимной реакцией и ограниченным трением.
 Новый решатель применяется к опоре BlockBody на землю. Устранено повторение
@@ -98,7 +103,8 @@ C2S-ввод и предсказание. Полные крен/тангаж/к�
 Проверенный source SHA: `{source}`. [Точный CI-прогон]({run}).
 Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']['tests']}.
 Полная регрессия настоящего клиента, оружие, инвентарь, зеркала/Fabulous и LOD.
-Дополнительно5 mouse-сцен редактирования наклонённого корпуса и4 сцены дальнего края
+Дополнительно5 mouse-сцен редактирования наклонённого корпуса,4 сцены дальнего края
+и5 сцен корпуса32768 блоков с300 сетевыми правками
 с доказанным пропуском старым поиском на клиенте и сервере, реальным расходом материала
 и минимум1 блоком физического перелёта.
 [CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/BLOCK_ACCESS_STAGE.md).
@@ -114,6 +120,7 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
                         'build/checkpoint/verified.json', 'build/checkpoint/SOURCE_SHA.txt',
                         'build/checkpoint/started-at.txt', 'build/shipboardingcheck/ship-boarding-ok.json',
                         'build/bodyindexcheck/body-index-ok.json','build/bodyindexcheck/body-index-frames/*.png',
+                        'build/bodyscalecheck/body-scale-ok.json','build/bodyscalecheck/body-scale-frames/*.png',
                         'build/bodyeditcheck/body-edit-ok.json', 'build/bodyeditcheck/body-edit-frames/*.png',
                         'build/shipboardingcheck/ship-boarding-frames/*.png', 'build/boardingcheck/boarding-ok.json',
                         'build/boardingcheck/boarding-frames/*.png', 'build/test-results/test/*.xml',

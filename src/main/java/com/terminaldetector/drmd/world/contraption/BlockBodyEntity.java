@@ -24,9 +24,14 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public record Cell(BlockPos pos, BlockState state) {}
     private static java.util.function.BiConsumer<BlockBodyEntity,Vec3> clientShapeListener=(b,p)->{};
     public static void clientShapeListener(java.util.function.BiConsumer<BlockBodyEntity,Vec3> listener){clientShapeListener=java.util.Objects.requireNonNull(listener);}
-    public static final int MIN_LOCAL=-8,MAX_LOCAL=24;
+    public static final int MAX_BLOCKS=32768,MAX_ASSEMBLY_EDGE=128;
+    public static final int MIN_LOCAL=-32,MAX_LOCAL=128;
+    public static final int PATCH_LIMIT=256;
     public static boolean validLocal(BlockPos p){return p.getX()>=MIN_LOCAL&&p.getY()>=MIN_LOCAL&&p.getZ()>=MIN_LOCAL&&p.getX()<MAX_LOCAL&&p.getY()<MAX_LOCAL&&p.getZ()<MAX_LOCAL;}
     private static final TrackedData<NbtCompound> SHAPE = DataTracker.registerData(BlockBodyEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
+    private static final TrackedData<NbtCompound> PATCHES = DataTracker.registerData(BlockBodyEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
+    private long baseRevision;
+    private NbtList shapePatches=new NbtList();
     private static final TrackedData<NbtCompound> POSE = DataTracker.registerData(BlockBodyEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
     private static final Set<Block> SUPPORTED = Set.of(Blocks.STONE, Blocks.COBBLESTONE, Blocks.IRON_BLOCK,
         Blocks.GOLD_BLOCK, Blocks.DIAMOND_BLOCK, Blocks.OBSIDIAN, Blocks.GLASS, Blocks.BRICKS);
@@ -34,10 +39,18 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private static final double MAX_ANGULAR_SPEED = 2;
     private D6Volume<BlockState> volume = new D6Volume<>(Blocks.AIR.getDefaultState());
     private List<Cell> cells = List.of();
+    private List<Cell> visibleCells=List.of();
+    private Map<BlockPos,Integer> faceMasks=Map.of();
+    public List<Cell> visibleCells(){return visibleCells;}
+    public boolean visibleFace(BlockPos pos,Direction face){return (faceMasks.getOrDefault(pos,63)&(1<<face.getId()))!=0;}
     private Map<BlockPos,com.terminaldetector.drmd.world.geometry.HybridMesh> surfaces=Map.of();
     public com.terminaldetector.drmd.world.geometry.HybridMesh surface(Cell cell) {return surfaces.get(cell.pos());}
     private Map<BlockPos,BodyBounds> cellBounds=Map.of();
     private CompoundCollider collider=new CompoundCollider(List.of());
+    private Map<Long,CompoundCollider> colliderSections=Map.of();
+    private final AabbTree<BlockPos> blockIndex=new AabbTree<>();
+    public Optional<CompoundCollider> colliderSection(BlockPos pos){return Optional.ofNullable(colliderSections.get(D6ChunkPos.ofBlock(pos.getX(),pos.getY(),pos.getZ()).asLong()));}
+    public List<BlockPos> localCollisionCandidates(BodyBounds area){return blockIndex.query(area).values();}
     public CompoundCollider collider(){return collider;}
     private Vec3 centre = new Vec3(0, 0, 0);
     private Vec3 pivot = new Vec3(0,0,0);
@@ -48,6 +61,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private Vec3 previousPhysicsPosition = new Vec3(0,0,0);
     private long physicsTick = Long.MIN_VALUE;
     private boolean remoteMotionPaused=true;
+    private boolean collisionUnavailable;
     /** Non-ticking entities retain their momentum for resume, but their current contact surface is still. */
     public boolean boardingMotionPaused(){return getWorld().isClient?remoteMotionPaused:physicsTick!=getWorld().getTime();}
     private final BodyRotationTimeline displayRotation = new BodyRotationTimeline();
@@ -98,7 +112,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         return Optional.of(new BodyBounds(start.minus(r),start.plus(r)).union(new BodyBounds(at.minus(r),at.plus(r))));
     }
     @Override protected void initDataTracker(DataTracker.Builder builder) {
-        builder.add(SHAPE, new NbtCompound()); builder.add(POSE, new NbtCompound());
+        builder.add(SHAPE, new NbtCompound()); builder.add(PATCHES,new NbtCompound()); builder.add(POSE, new NbtCompound());
     }
     public List<Cell> cells() { return cells; }
     public Vec3 localCentre() { return centre; }
@@ -110,7 +124,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         Vec3 at=body.position().plus(body.rotation().rotate(pivot.minus(centre)));setPosition(at.x(),at.y(),at.z());
     }
     private NbtCompound shapeTag(){
-        var n=CubicBlockCodec.writeVolume(volume);vector(n,"pivot",pivot);n.putLong("revision",shapeRevision);return n;
+        var n=BodyShapeCodec.write(cells);vector(n,"pivot",pivot);n.putLong("revision",shapeRevision);return n;
     }
     public Quat rotation() { return body.rotation(); }
     public Quat previousRotation() { return previousRotation; }
@@ -140,23 +154,27 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
 
     private void loadShape(NbtCompound tag) {
         Vec3 oldPivot=pivot;var previous=new HashMap<BlockPos,BlockState>();for(var c:cells)previous.put(c.pos(),c.state());
-        volume = CubicBlockCodec.readVolume(tag, 27);
+        var nextVolume=new D6Volume<BlockState>(Blocks.AIR.getDefaultState());
         List<Cell> next = new ArrayList<>();
         D6MassProperties mass = new D6MassProperties();
-        for (long key : volume.keys()) {
-            D6ChunkPos p = D6ChunkPos.fromLong(key);
-            D6Cube<BlockState> cube = volume.cube(p);
-            for (int y = 0; y < 16; y++) for (int z = 0; z < 16; z++) for (int x = 0; x < 16; x++) {
-                BlockState state = cube.get(x, y, z);
-                if (state.isAir()) continue;
-                BlockPos pos = new BlockPos(p.minBlockX() + x, p.minBlockY() + y, p.minBlockZ() + z);
-                if (!supports(state) || next.size() >= 256
-                    || !validLocal(pos))
-                    throw new IllegalArgumentException("Unsupported or oversized body shape");
-                next.add(new Cell(pos, state));
-                mass.addBlock(new Vec3(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5), blockMass(state));
+        if(tag.getInt("format")==2)next.addAll(BodyShapeCodec.read(tag));
+        else {
+            var legacy=CubicBlockCodec.readVolume(tag,1000);
+            for(long key:legacy.keys()) {
+                var section=D6ChunkPos.fromLong(key);var cube=legacy.cube(section);
+                for(int y=0;y<16;y++)for(int z=0;z<16;z++)for(int x=0;x<16;x++) {
+                    var state=cube.get(x,y,z);if(state.isAir())continue;
+                    var pos=new BlockPos(section.minBlockX()+x,section.minBlockY()+y,section.minBlockZ()+z);
+                    if(!supports(state)||next.size()>=MAX_BLOCKS||!validLocal(pos))throw new IllegalArgumentException("Unsupported or oversized body shape");
+                    next.add(new Cell(pos,state));
+                }
             }
         }
+        for(var cell:next) {
+            var pos=cell.pos();nextVolume.set(pos.getX(),pos.getY(),pos.getZ(),cell.state());
+            mass.addBlock(new Vec3(pos.getX()+.5,pos.getY()+.5,pos.getZ()+.5),blockMass(cell.state()));
+        }
+        volume=nextVolume;
         cells = List.copyOf(next); massProperties=mass;centre = mass.centreOfMass(); body.withMassProperties(mass);
         pivot=tag.contains("pivotx")?vector(tag,"pivot"):centre;shapeRevision=tag.getLong("revision");
         Set<BlockPos> changed=null;
@@ -189,30 +207,63 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             meshes.put(cell.pos(),new com.terminaldetector.drmd.world.geometry.HybridMesh(
                 new com.terminaldetector.drmd.world.geometry.HybridMesh.Neighbourhood(neighbours)));
         }
-        surfaces=Map.copyOf(meshes);
-        var solid=new ArrayList<CompoundCollider.Cell>();var shaped=new ArrayList<BodyBounds>();
-        var perCell=new HashMap<BlockPos,BodyBounds>(cellBounds);
-        perCell.keySet().removeIf(p->!occupied.contains(p));
-        for(Cell cell:cells) {
-            if(surface(cell)==null) {
-                solid.add(new CompoundCollider.Cell(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()));
-                perCell.put(cell.pos(),new BodyBounds(new Vec3(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()),
-                    new Vec3(cell.pos().getX()+1,cell.pos().getY()+1,cell.pos().getZ()+1)));
+        // Map.copyOf uses a compact open-addressed table. Regular BlockPos grids have many
+        // equal/adjacent hashes and make that table pathological at ship scale. These maps
+        // are privately owned snapshots; wrap their HashMap buckets without exposing writes.
+        surfaces=Collections.unmodifiableMap(meshes);
+        var masks=new HashMap<BlockPos,Integer>(faceMasks);masks.keySet().removeIf(p->!occupied.contains(p));
+        for(var cell:cells) {
+            if(dirty!=null&&!dirty.contains(cell.pos()))continue;
+            int mask=0;
+            for(var direction:Direction.values()) {
+                var neighbour=cell.pos().offset(direction);var state=getLocalBlock(neighbour);
+                // Smoothed neighbours do not necessarily cover the whole shared face.
+                if(surfaces.containsKey(neighbour)||!state.isOpaque()&&!(cell.state().isOf(Blocks.GLASS)&&state.isOf(Blocks.GLASS)))mask|=1<<direction.getId();
             }
-            else if(dirty==null||dirty.contains(cell.pos())) {
+            masks.put(cell.pos(),mask);
+        }
+        faceMasks=Collections.unmodifiableMap(masks);
+        visibleCells=cells.stream().filter(c->surface(c)!=null?!surface(c).faces().isEmpty():faceMasks.getOrDefault(c.pos(),63)!=0).toList();
+        var perCell=new HashMap<BlockPos,BodyBounds>(cellBounds);
+        for(var old:cellBounds.keySet())if(!occupied.contains(old))blockIndex.remove(old);
+        perCell.keySet().removeIf(p->!occupied.contains(p));
+        var dirtySections=new HashSet<Long>();
+        if(dirty!=null)for(var p:dirty)dirtySections.add(D6ChunkPos.ofBlock(p.getX(),p.getY(),p.getZ()).asLong());
+        for(Cell cell:cells) {
+            if(dirty!=null&&!dirty.contains(cell.pos()))continue;
+            BodyBounds bounds;
+            if(surface(cell)==null)bounds=new BodyBounds(new Vec3(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()),
+                new Vec3(cell.pos().getX()+1,cell.pos().getY()+1,cell.pos().getZ()+1));
+            else {
                 double x0=Double.POSITIVE_INFINITY,y0=x0,z0=x0,x1=-x0,y1=-x0,z1=-x0;
                 for(Vec3 v:surfaceCorners(cell,new Vec3(0,0,0),Quat.IDENTITY)) {
                     v=v.plus(centre);x0=Math.min(x0,v.x());y0=Math.min(y0,v.y());z0=Math.min(z0,v.z());
                     x1=Math.max(x1,v.x());y1=Math.max(y1,v.y());z1=Math.max(z1,v.z());
                 }
-                var bounds=new BodyBounds(new Vec3(x0,y0,z0),new Vec3(x1,y1,z1));
-                perCell.put(cell.pos(),bounds);
+                bounds=new BodyBounds(new Vec3(x0,y0,z0),new Vec3(x1,y1,z1));
             }
-            if(surface(cell)!=null)shaped.add(perCell.get(cell.pos()));
+            perCell.put(cell.pos(),bounds);blockIndex.update(cell.pos(),bounds);
         }
-        cellBounds=Map.copyOf(perCell);
+        cellBounds=Collections.unmodifiableMap(perCell);
         localAim=cellBounds.values().stream().min(Comparator.comparingDouble(b->b.centre().minus(centre).lengthSquared())).map(BodyBounds::centre).orElse(centre);
-        shaped.addAll(CompoundCollider.cells(solid).boxes());collider=new CompoundCollider(shaped);
+        var sections=dirty==null?new HashMap<Long,CompoundCollider>():new HashMap<>(colliderSections);
+        if(dirty==null)dirtySections.addAll(volume.keys());
+        // Rebuild greedy solids and shaped primitives in touched 16-cubes only. The top-level
+        // immutable directory is small; unchanged section BVHs survive edits by identity.
+        for(long key:dirtySections) {
+            var solid=new ArrayList<CompoundCollider.Cell>();var shaped=new ArrayList<BodyBounds>();
+            var section=D6ChunkPos.fromLong(key);var cube=volume.cube(section);
+            if(cube==null){sections.remove(key);continue;}
+            for(int y=0;y<16;y++)for(int z=0;z<16;z++)for(int x=0;x<16;x++) {
+                if(cube.get(x,y,z).isAir())continue;
+                var pos=new BlockPos(section.minBlockX()+x,section.minBlockY()+y,section.minBlockZ()+z);
+                if(surfaces.containsKey(pos))shaped.add(cellBounds.get(pos));
+                else solid.add(new CompoundCollider.Cell(pos.getX(),pos.getY(),pos.getZ()));
+            }
+            shaped.addAll(CompoundCollider.cells(solid).boxes());sections.put(key,new CompoundCollider(shaped));
+        }
+        colliderSections=Map.copyOf(sections);
+        collider=CompoundCollider.sections(new TreeMap<>(sections).values());
 
         int minX=Integer.MAX_VALUE,minY=Integer.MAX_VALUE,minZ=Integer.MAX_VALUE;
         int maxX=Integer.MIN_VALUE,maxY=Integer.MIN_VALUE,maxZ=Integer.MIN_VALUE;
@@ -229,36 +280,93 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public BlockState getLocalBlock(BlockPos pos){return !validLocal(pos)?Blocks.AIR.getDefaultState():volume.get(pos.getX(),pos.getY(),pos.getZ());}
     public Map<BlockPos,BodyBounds> localBlockBounds(){return cellBounds;}
     /** Server-only local-grid mutation. COM rebasing preserves every remaining material point. */
-    public boolean setLocalBlock(BlockPos pos,BlockState state) {
+    public boolean setLocalBlock(BlockPos pos,BlockState state) {return setLocalBlocks(Map.of(pos,state));}
+    /** Atomic damage/construction batch: one mass rebase and one rebuild per dirty section.
+     * Validation completes before any grid mutation; no rigid body per block is introduced. */
+    public boolean setLocalBlocks(Map<BlockPos,BlockState> edits) {
         if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())throw new IllegalStateException("Local edits are server-thread owned");
-        if(isRemoved()||!validLocal(pos)
-            ||(!state.isAir()&&!supports(state)))return false;
-        BlockState before=getLocalBlock(pos);if(before.equals(state))return false;
-        if(before.isAir()&&!state.isAir()&&cells.size()>=256)return false;
-        Vec3 origin=massPosition();Vec3 spin=body.angularVelocity(),velocity=body.linearVelocity();
-        Vec3 oldCentre=centre,blockCentre=new Vec3(pos.getX()+.5,pos.getY()+.5,pos.getZ()+.5);
-        if(!before.isAir())massProperties.addBlock(blockCentre,-blockMass(before));
-        if(!state.isAir())massProperties.addBlock(blockCentre,blockMass(state));
-        volume.set(pos.getX(),pos.getY(),pos.getZ(),state);
-        var next=new ArrayList<Cell>();for(var c:cells)if(!c.pos().equals(pos))next.add(c);
-        if(!state.isAir())next.add(new Cell(pos.toImmutable(),state));
-        next.sort(Comparator.comparingInt((Cell c)->c.pos().getX()).thenComparingInt(c->c.pos().getY()).thenComparingInt(c->c.pos().getZ()));
-        cells=List.copyOf(next);centre=massProperties.centreOfMass();
+        if(isRemoved()||edits.size()>MAX_BLOCKS)return false;
+        var changes=new ArrayList<LocalEdit>();int occupied=cells.size();
+        for(var entry:edits.entrySet()) {
+            var pos=entry.getKey();var state=entry.getValue();
+            if(pos==null||state==null||!validLocal(pos)||!state.isAir()&&!supports(state))return false;
+            var before=getLocalBlock(pos);if(before.equals(state))continue;
+            occupied+=(before.isAir()?1:0)-(state.isAir()?1:0);changes.add(new LocalEdit(pos.toImmutable(),state));
+        }
+        if(changes.isEmpty()||occupied>MAX_BLOCKS)return false;
+        changes.sort(Comparator.comparing((LocalEdit e)->!e.state().isAir()).thenComparingInt(e->e.pos().getX()).thenComparingInt(e->e.pos().getY()).thenComparingInt(e->e.pos().getZ()));
+        mutateLocalBlocks(changes);
+        if(shapePatches.size()+changes.size()>=PATCH_LIMIT)resetShapeBaseline();
+        else {
+            for(var edit:changes) {
+                var patch=new NbtCompound();patch.putInt("pos",BodyShapeCodec.pack(edit.pos()));patch.put("state",NbtHelper.fromBlockState(edit.state()));shapePatches.add(patch);
+            }
+            var tag=new NbtCompound();tag.putLong("base",baseRevision);tag.putLong("revision",shapeRevision);tag.put("edits",shapePatches.copy());dataTracker.set(PATCHES,tag);
+        }
+        dataTracker.set(POSE,pose());velocityModified=true;
+        if(cells.isEmpty())discard();return true;
+    }
+    private void resetShapeBaseline() {
+        baseRevision=shapeRevision;shapePatches=new NbtList();
+        dataTracker.set(SHAPE,shapeTag());dataTracker.set(PATCHES,new NbtCompound());
+    }
+    private record LocalEdit(BlockPos pos,BlockState state) {}
+    /** One received journal batch rebuilds each dirty section once. Mass rebasing preserves the
+     * same material velocity field as sequential edits, without N full hull rebuilds on join. */
+    private void mutateLocalBlocks(List<LocalEdit> changes) {
+        if(changes.isEmpty())return;
+        var next=new HashMap<BlockPos,Cell>();for(var cell:cells)next.put(cell.pos(),cell);
+        for(var edit:changes) {
+            var before=next.get(edit.pos());
+            if(!validLocal(edit.pos())||!edit.state().isAir()&&!supports(edit.state())
+                ||(before==null?edit.state().isAir():before.state().equals(edit.state())))throw new IllegalArgumentException("invalid body patch state");
+            if(edit.state().isAir())next.remove(edit.pos());else next.put(edit.pos(),new Cell(edit.pos().toImmutable(),edit.state()));
+            if(next.size()>MAX_BLOCKS)throw new IllegalArgumentException("body patch block budget");
+        }
+        Vec3 origin=massPosition(),spin=body.angularVelocity(),velocity=body.linearVelocity(),oldCentre=centre;
+        var dirty=new HashSet<BlockPos>();
+        for(var edit:changes) {
+            var pos=edit.pos();var before=getLocalBlock(pos);var point=new Vec3(pos.getX()+.5,pos.getY()+.5,pos.getZ()+.5);
+            if(!before.isAir())massProperties.addBlock(point,-blockMass(before));
+            if(!edit.state().isAir())massProperties.addBlock(point,blockMass(edit.state()));
+            volume.set(pos.getX(),pos.getY(),pos.getZ(),edit.state());markGeometryNeighbours(dirty,pos);
+        }
+        var ordered=new ArrayList<>(next.values());ordered.sort(Comparator.comparingInt((Cell c)->c.pos().getX()).thenComparingInt(c->c.pos().getY()).thenComparingInt(c->c.pos().getZ()));
+        cells=List.copyOf(ordered);centre=massProperties.centreOfMass();
         Vec3 shift=body.rotation().rotate(centre.minus(oldCentre));
         body.withMassProperties(massProperties).withPosition(origin.plus(shift))
             .withLinearVelocity(velocity.plus(spin.cross(shift))).withAngularVelocity(spin);
         previousPhysicsPosition=previousPhysicsPosition.plus(previousRotation.rotate(centre.minus(oldCentre)));
-        var dirty=new HashSet<BlockPos>();markGeometryNeighbours(dirty,pos);
-        rebuildGeometry(dirty);shapeRevision++;
+        rebuildGeometry(dirty);shapeRevision+=changes.size();
         setBoundingBox(new Box(getPos(),getPos()).expand(radius));BodySpatialIndex.update(this);
-        dataTracker.set(SHAPE,shapeTag());dataTracker.set(POSE,pose());velocityModified=true;
-        if(cells.isEmpty())discard();return true;
+    }
+    private void receiveShape(boolean baselineChanged) {
+        Vec3 before=centre;
+        if(baselineChanged) {
+            var tag=dataTracker.get(SHAPE);loadShape(tag);baseRevision=shapeRevision;
+            body.withPosition(massPosition());
+        }
+        var patches=dataTracker.get(PATCHES);
+        if(patches.contains("base")&&patches.getLong("base")==baseRevision) {
+            var edits=patches.getList("edits",NbtElement.COMPOUND_TYPE);
+            if(edits.size()>=PATCH_LIMIT||patches.getLong("revision")!=baseRevision+edits.size())throw new IllegalArgumentException("invalid body patch journal");
+            int begin=(int)(shapeRevision-baseRevision);
+            if(begin<0||begin>edits.size())throw new IllegalArgumentException("body patch revision regression");
+            var changes=new ArrayList<LocalEdit>();
+            for(int i=begin;i<edits.size();i++) {
+                var edit=edits.getCompound(i);var pos=BodyShapeCodec.unpack(edit.getInt("pos"));
+                var state=NbtHelper.toBlockState(net.minecraft.registry.Registries.BLOCK.getReadOnlyWrapper(),edit.getCompound("state"));
+                changes.add(new LocalEdit(pos,state));
+            }
+            mutateLocalBlocks(changes);
+        }
+        setBoundingBox(new Box(getPos(),getPos()).expand(radius));BodySpatialIndex.update(this);clientShapeListener.accept(this,before);
     }
     private static double blockMass(BlockState state){return state.isIn(BlockTags.LEAVES)?.08:1;}
     @Override public void onTrackedDataSet(TrackedData<?> data) {
         super.onTrackedDataSet(data);
         if (getWorld().isClient && body != null) {
-            if (SHAPE.equals(data)){Vec3 before=centre;loadShape(dataTracker.get(SHAPE));body.withPosition(massPosition());setBoundingBox(new Box(getPos(),getPos()).expand(radius));clientShapeListener.accept(this,before);}
+            if (SHAPE.equals(data)||PATCHES.equals(data))receiveShape(SHAPE.equals(data));
             if (POSE.equals(data)) {
                 previousRotation = body.rotation(); readPose(dataTracker.get(POSE));
                 displayRotation.receive(body.rotation(),age);
@@ -297,7 +405,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         loadShape(n.getCompound("shape")); readPose(n.getCompound("body"));
         body.withPosition(massPosition()); previousRotation = body.rotation();
         displayRotation.reset(body.rotation(),age);
-        dataTracker.set(SHAPE, shapeTag()); dataTracker.set(POSE, pose());BodySpatialIndex.update(this);
+        resetShapeBaseline(); dataTracker.set(POSE, pose());BodySpatialIndex.update(this);
     }
     @Override protected void writeCustomDataToNbt(NbtCompound n) {
         n.put("shape", shapeTag()); n.put("body", pose());
@@ -305,9 +413,8 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public static BlockBodyEntity assemble(ServerWorld world, BlockPos from, BlockPos to) {
         BlockPos min = new BlockPos(Math.min(from.getX(), to.getX()), Math.min(from.getY(), to.getY()), Math.min(from.getZ(), to.getZ()));
         BlockPos max = new BlockPos(Math.max(from.getX(), to.getX()), Math.max(from.getY(), to.getY()), Math.max(from.getZ(), to.getZ()));
-        if (max.getX() - min.getX() >= 16 || max.getY() - min.getY() >= 16 || max.getZ() - min.getZ() >= 16)
-            throw new IllegalArgumentException("Selection must fit 16 x 16 x 16");
-        D6Volume<BlockState> shape = new D6Volume<>(Blocks.AIR.getDefaultState());
+        if (max.getX() - min.getX() >= MAX_ASSEMBLY_EDGE || max.getY() - min.getY() >= MAX_ASSEMBLY_EDGE || max.getZ() - min.getZ() >= MAX_ASSEMBLY_EDGE)
+            throw new IllegalArgumentException("Selection must fit 128 x 128 x 128");
         Map<BlockPos, BlockState> original = new LinkedHashMap<>();
         for (BlockPos cursor : BlockPos.iterate(min, max)) {
             BlockPos p = cursor.toImmutable();
@@ -316,17 +423,28 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
                 throw new IllegalArgumentException("Selection must be inside loaded world bounds");
             BlockState state=snapshot.get().state();
             if (state.isAir()) continue;
-            if (!supports(state) || world.getBlockEntity(p) != null || original.size() >= 256)
-                throw new IllegalArgumentException("Up to 256 supported inert blocks, including logs, leaves and planks");
+            if (!supports(state) || world.getBlockEntity(p) != null || original.size() >= MAX_BLOCKS)
+                throw new IllegalArgumentException("Up to 32768 supported inert blocks, including logs, leaves and planks");
             original.put(p, state);
-            shape.set(p.getX()-min.getX(), p.getY()-min.getY(), p.getZ()-min.getZ(), state);
         }
         if (original.isEmpty()) throw new IllegalArgumentException("Empty selection");
         return assembleSelection(world,original);
     }
+    /** Local blueprint construction for the existing BlockBody runtime. No temporary world
+     * copy, terrain scan, dimension or rigid body per block is involved. */
+    public static BlockBodyEntity createLocal(ServerWorld world,List<Cell> cells,Vec3d gridOrigin) {
+        BodyBounds.finite(pure(gridOrigin));
+        if(!world.getServer().isOnThread()||cells.isEmpty())throw new IllegalArgumentException("nonempty server-owned body required");
+        var entity=new BlockBodyEntity(ModEntities.BLOCK_BODY,world);
+        entity.loadShape(BodyShapeCodec.write(cells));
+        entity.setPosition(gridOrigin.x+entity.centre.x(),gridOrigin.y+entity.centre.y(),gridOrigin.z+entity.centre.z());
+        entity.body.withPosition(pure(entity.getPos()));entity.resetShapeBaseline();entity.dataTracker.set(POSE,entity.pose());
+        if(!world.spawnEntity(entity))throw new IllegalStateException("Could not spawn body");
+        return entity;
+    }
     /** Exact sparse selection: neighbouring machines and terrain outside the selection stay untouched. */
     public static BlockBodyEntity assembleSelection(ServerWorld world,Map<BlockPos,BlockState> original) {
-        if(original.isEmpty() || original.size()>256)throw new IllegalArgumentException("Select 1..256 inert blocks");
+        if(original.isEmpty() || original.size()>MAX_BLOCKS)throw new IllegalArgumentException("Select 1..32768 inert blocks");
         int mx=original.keySet().stream().mapToInt(BlockPos::getX).min().orElseThrow();
         int my=original.keySet().stream().mapToInt(BlockPos::getY).min().orElseThrow();
         int mz=original.keySet().stream().mapToInt(BlockPos::getZ).min().orElseThrow();
@@ -337,7 +455,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             var snapshot=com.terminaldetector.drmd.world.access.WorldAccess.of(world).snapshotIfLoaded(p);
             if(snapshot.isEmpty() || world.isOutOfHeightLimit(p) || !world.getWorldBorder().contains(p)
                 || !snapshot.get().state().equals(state) || !supports(state) || snapshot.get().entityData()!=null
-                || local.getX()>15 || local.getY()>15 || local.getZ()>15)
+                || local.getX()>=MAX_ASSEMBLY_EDGE || local.getY()>=MAX_ASSEMBLY_EDGE || local.getZ()>=MAX_ASSEMBLY_EDGE)
                 throw new IllegalArgumentException("Unsupported, changed, unloaded or oversized selection");
             shape.set(local.getX(),local.getY(),local.getZ(),state);
         }
@@ -345,7 +463,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         entity.loadShape(CubicBlockCodec.writeVolume(shape));
         entity.setPosition(min.getX()+entity.centre.x(), min.getY()+entity.centre.y(), min.getZ()+entity.centre.z());
         entity.body.withPosition(pure(entity.getPos()));
-        entity.dataTracker.set(SHAPE, entity.shapeTag());
+        entity.resetShapeBaseline();
         entity.dataTracker.set(POSE, entity.pose());
         if (!world.spawnEntity(entity)) throw new IllegalArgumentException("Could not spawn body");
         try {
@@ -397,17 +515,21 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         });
     }
     @Override public void tick() {
-        super.tick();
+        // Entity.baseTick performs fluid scans over getBoundingBox(). That box is a render/
+        // selection envelope, NOT a solid ship. Keep vanilla entity bookkeeping on its pivot
+        // proxy; all hull collision and movement use the section geometry below.
+        Box envelope=getBoundingBox();setBoundingBox(new Box(getPos(),getPos()).expand(.5));
+        try{super.tick();}finally{setBoundingBox(envelope);}
         if (getWorld().isClient) { setBoundingBox(new Box(getPos(), getPos()).expand(radius));BodySpatialIndex.update(this); return; }
         if (cells.isEmpty()) return;
         body.withPosition(massPosition()); previousRotation = body.rotation();
         previousPhysicsPosition=body.position();physicsTick=getWorld().getTime();
         // Substeps bound corner travel to about 0.15 blocks, including rotation. Inelastic contact.
-        int steps = Math.max(1, Math.min(32,
-            (int)Math.ceil((MAX_LINEAR_SPEED + MAX_ANGULAR_SPEED*radius) * .05 / .15)));
+        int steps=BodyStepBudget.steps(body,pendingTorque,radius,gravity);
         Vec3 externalTorque=pendingTorque;pendingTorque=new Vec3(0,0,0);
         for (int step = 0; step < steps; step++) {
             Vec3 before = body.position(); Quat rotation = body.rotation();
+            Vec3 velocityBefore=body.linearVelocity(),momentumBefore=body.angularMomentum();
             Vec3 gravityDown = gravityDirection();
             if(gravity)body.applyForce(gravityDown.scaled(9.81*body.mass()));
             // D6PhysicsBody clears force/torque after every integration step. Reapply the frame's
@@ -415,7 +537,14 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             // independent of body speed/radius and therefore of the chosen substep count.
             body.applyTorque(externalTorque);
             body.step(.05 / steps);
-            if (blocked() && !(gravity && gravityContacts(before,rotation,gravityDown.scaled(-1)))) {
+            boolean collision=blocked();
+            if(collisionUnavailable) {
+                // Unavailable terrain is not an impact. Pause with momentum intact; no
+                // synchronous generation or fake collision may destroy a ship's velocity.
+                body.withPosition(before).withRotation(rotation).withLinearVelocity(velocityBefore).withAngularMomentum(momentumBefore);
+                physicsTick=Long.MIN_VALUE;break;
+            }
+            if (collision && !(gravity && gravityContacts(before,rotation,gravityDown.scaled(-1)))) {
                 body.withPosition(before).withRotation(rotation)
                     .withLinearVelocity(new Vec3(0,0,0)).withAngularMomentum(new Vec3(0,0,0));
                 break;
@@ -561,16 +690,21 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     /** World shape boxes are candidates. Only an actual oriented overlap blocks the body. */
     private boolean blocked() {
-        var localBounds=collider.bounds();if(localBounds.isEmpty())return false;
-        Box broad=minecraft(OrientedBox.local(localBounds.get(),body.position(),centre,body.rotation()).bounds());
-        if(!collisionRegionAvailable(broad))return true;
+        collisionUnavailable=false;
         Quat inverse=body.rotation().inverse();
-        for(var shape:getWorld().getBlockCollisions(this,broad.contract(1e-6)))for(Box obstacle:shape.getBoundingBoxes()) {
-            BodyBounds worldBox=bounds(obstacle);
-            var localObstacle=new OrientedBox(inverse.rotate(worldBox.centre().minus(body.position())).plus(centre),worldBox.half(),inverse);
-            for(BodyBounds solid:collider.query(localObstacle.bounds()))
-                if(OrientedBox.axisAligned(solid).contact(localObstacle,0)
-                    .filter(contact->contact.penetration()>1e-6).isPresent())return true;
+        // Visit occupied section envelopes rather than the entire (possibly mostly empty)
+        // ship AABB. A long sparse hull must not scan millions of intervening world blocks.
+        for(var section:colliderSections.values()) {
+            var localBounds=section.bounds().orElseThrow();
+            Box broad=minecraft(OrientedBox.local(localBounds,body.position(),centre,body.rotation()).bounds());
+            if(!collisionRegionAvailable(broad)){collisionUnavailable=true;return true;}
+            for(var shape:getWorld().getBlockCollisions(this,broad.contract(1e-6)))for(Box obstacle:shape.getBoundingBoxes()) {
+                BodyBounds worldBox=bounds(obstacle);
+                var localObstacle=new OrientedBox(inverse.rotate(worldBox.centre().minus(body.position())).plus(centre),worldBox.half(),inverse);
+                for(BodyBounds solid:section.query(localObstacle.bounds()))
+                    if(OrientedBox.axisAligned(solid).contact(localObstacle,0)
+                        .filter(contact->contact.penetration()>1e-6).isPresent())return true;
+            }
         }
         return false;
     }

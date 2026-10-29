@@ -10,13 +10,25 @@ public final class CompoundCollider {
     public record RayHit(double fraction,Vec3 point,Vec3 normal,boolean inside) {}
     private record Node(BodyBounds bounds,Node left,Node right,int box) {}
     private final List<BodyBounds> boxes;
+    private final List<CompoundCollider> parts;
     private final Node root;
     public CompoundCollider(Collection<BodyBounds> bounds) {
         if(bounds.size()>MAX_CELLS)throw new IllegalArgumentException("collider geometry budget");
-        boxes=List.copyOf(bounds);var ids=new ArrayList<Integer>();for(int i=0;i<boxes.size();i++)ids.add(i);
+        parts=null;boxes=List.copyOf(bounds);var ids=new ArrayList<Integer>();for(int i=0;i<boxes.size();i++)ids.add(i);
         root=build(ids);
     }
-    public List<BodyBounds> boxes(){return boxes;}
+    private CompoundCollider(Collection<CompoundCollider> children,boolean directory) {
+        parts=children.stream().filter(c->c.root!=null).toList();
+        boxes=parts.stream().map(c->c.root.bounds).toList();
+        var ids=new ArrayList<Integer>();for(int i=0;i<boxes.size();i++)ids.add(i);root=build(ids);
+    }
+    /** Immutable directory over reusable section BVHs. Old BodyMotion snapshots retain their
+     * exact geometry while an edit replaces only the affected sections. */
+    public static CompoundCollider sections(Collection<CompoundCollider> children) {
+        return new CompoundCollider(children,true);
+    }
+    public List<BodyBounds> boxes(){return parts==null?boxes:parts.stream().flatMap(c->c.boxes().stream()).toList();}
+    public int sectionCount(){return parts==null?(root==null?0:1):parts.size();}
     public Optional<BodyBounds> bounds(){return root==null?Optional.empty():Optional.of(root.bounds);}
     public static CompoundCollider cells(Collection<Cell> source) {
         if(source.size()>MAX_CELLS)throw new IllegalArgumentException("collider cell budget");
@@ -54,7 +66,8 @@ public final class CompoundCollider {
     }
     private void query(Node node,BodyBounds area,List<BodyBounds> hits) {
         if(node==null || !node.bounds.intersects(area))return;
-        if(node.box>=0)hits.add(boxes.get(node.box));else{query(node.left,area,hits);query(node.right,area,hits);}
+        if(node.box>=0){if(parts==null)hits.add(boxes.get(node.box));else {var child=parts.get(node.box);child.query(child.root,area,hits);}}
+        else{query(node.left,area,hits);query(node.right,area,hits);}
     }
     public Optional<RayHit> raycast(Vec3 from,Vec3 to) {
         BodyBounds.finite(from);BodyBounds.finite(to);
@@ -64,7 +77,8 @@ public final class CompoundCollider {
         if(node==null)return;
         var boundsHit=rayBox(node.bounds,from,delta);
         if(boundsHit==null || best[0]!=null && boundsHit.fraction>=best[0].fraction)return;
-        if(node.box>=0)best[0]=boundsHit;else{ray(node.left,from,delta,best);ray(node.right,from,delta,best);}
+        if(node.box>=0){if(parts==null)best[0]=boundsHit;else {var child=parts.get(node.box);child.ray(child.root,from,delta,best);}}
+        else{ray(node.left,from,delta,best);ray(node.right,from,delta,best);}
     }
     public static Optional<RayHit> raycastBox(BodyBounds bounds,Vec3 from,Vec3 to) {
         BodyBounds.finite(from);BodyBounds.finite(to);return Optional.ofNullable(rayBox(bounds,from,to.minus(from)));

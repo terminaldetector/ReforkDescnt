@@ -84,7 +84,11 @@ public final class BoardingSystem {
             var command=world.getTime()-l.inputTick<=4?l.input:DynamicBodyAttachment.Input.idle();
             Quat beforeFrame=l.state.frame();
             // Preserve external impulses (knockback/explosions); the contact motor owns gravity.
-            l.state=new DynamicBodyAttachment.State(l.state.feet(),pure(p.getVelocity()).scaled(20),l.state.grounded(),l.state.support(),beforeFrame,l.state.gravityOwner());
+            // The real collision-checked actor is authoritative. Dimension/contact adjustments
+            // and external moves can alter it between steps. Starting from stale cached feet
+            // makes every subsequent displacement preserve that offset forever, separating
+            // interaction eyes from the position sent to clients. Never teleport to the cache.
+            l.state=new DynamicBodyAttachment.State(feet,pure(p.getVelocity()).scaled(20),l.state.grounded(),l.state.support(),beforeFrame,l.state.gravityOwner());
             var worldCommand=new DynamicBodyAttachment.Input(command.strafe(),command.forward(),command.jump(),beforeFrame.rotate(command.look()));
             l.state=DynamicBodyAttachment.step(l.state,worldCommand,near,p.getWidth(),p.getHeight(),.05,BoardingWorldMotion.capture(p,l.state,false));
             BoardingPose.publish(p,l.state.frame());

@@ -8,7 +8,7 @@ import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
 public final class BoardingNetworking {
-    public static final int PROTOCOL=3;
+    public static final int PROTOCOL=4;
     public static final int PREDICTION_HISTORY=32;
     private BoardingNetworking() {}
     public record Ready(int version) implements CustomPayload {

@@ -43,6 +43,18 @@ public final class BoardingGameTests implements FabricGameTest {
         }c.complete();
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-server-input")
+    public void anExternalCollisionCheckedMoveCannotSeparateServerEyesFromPublishedFeet(TestContext c) {
+        try(var f=fixture(c)) {
+            f.body.setPassengerGravity(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(0,-32,0));
+            BoardingSystem.tick(c.getWorld());c.assertTrue(BoardingSystem.drives(f.p),"physical contact acquired");
+            f.p.move(net.minecraft.entity.MovementType.SELF,new Vec3d(.25,.5,0));
+            var before=f.p.getPos();f.body.tick();BoardingSystem.tick(c.getWorld());
+            var feet=BoardingSystem.state(f.p).feet();
+            c.assertTrue(f.p.getPos().distanceTo(new Vec3d(feet.x(),feet.y(),feet.z()))<1e-7,"packet feet and the actual actor must share one world position");
+            c.assertTrue(f.p.getX()>before.x-.05,"external displacement is preserved through contact forces, not erased by teleport-follow");
+        }c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-server-input")
     public void staleInvalidAndForgedPositionPacketsCannotMoveTheContactPlayer(TestContext c) {
         try(var f=fixture(c)) {
             BoardingSystem.tick(c.getWorld());c.assertTrue(BoardingSystem.drives(f.p),"fixture acquired");

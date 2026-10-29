@@ -194,8 +194,11 @@ def verify_body_edits(root, started):
 
 BODY_INDEX_SCENES = ('edge-intact','edge-cut','edge-patched','edge-hole')
 
-def verify_body_index(root, started):
-    marker=root/'build/bodyindexcheck/body-index-ok.json'
+def verify_body_index(root, started, scale=False):
+    runtime='bodyscalecheck' if scale else 'bodyindexcheck'
+    label='body-scale' if scale else 'body-index'
+    expected=BODY_INDEX_SCENES+('edge-rebased',) if scale else BODY_INDEX_SCENES
+    marker=root/f'build/{runtime}/{label}-ok.json'
     fresh(marker,started)
     proof=json.loads(marker.read_text())
     for key in ('actualInputs','legacyMissClient','legacyMissServer','edgePicked','holeClear','materialCharged'):
@@ -207,9 +210,18 @@ def verify_body_index(root, started):
         value=proof.get(key)
         if type(value) not in (int,float) or not math.isfinite(value) or not minimum<=value<maximum: raise ValueError(f'Invalid volume-index metric: {key}')
     scenes=proof.get('scenes',[])
-    if [s.get('scene') for s in scenes]!=list(BODY_INDEX_SCENES) or any(s.get('frames',0)<3 for s in scenes): raise ValueError('Missing distant-wing input scenes')
-    for name in BODY_INDEX_SCENES: fresh_png(root/f'build/bodyindexcheck/body-index-frames/{name}.png',started)
+    if [s.get('scene') for s in scenes]!=list(expected) or any(s.get('frames',0)<3 for s in scenes): raise ValueError('Missing distant-wing input scenes')
+    if scale:
+        for key,minimum in (('bodyBlocks',32768),('localEdge',128),('journalEdits',300)):
+            if type(proof.get(key)) is not int or proof[key]<minimum: raise ValueError(f'Missing full hull proof: {key}')
+        value=proof.get('actualFeetError')
+        if type(value) not in (int,float) or not math.isfinite(value) or not 0<=value<1e-6: raise ValueError('Actual server actor and synchronized feet diverge')
+    for name in expected: fresh_png(root/f'build/{runtime}/{label}-frames/{name}.png',started)
     return proof
+
+
+def verify_body_scale(root,started):
+    return verify_body_index(root,started,scale=True)
 
 
 def properties(root):
@@ -304,10 +316,11 @@ def verify(root):
 
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
-    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28')) else None
-    body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28')) else None
-    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28')) else None
-    body_index = verify_body_index(root,started) if version.startswith('1.1.28') else None
+    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28','1.1.29')) else None
+    body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28','1.1.29')) else None
+    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28','1.1.29')) else None
+    body_index = verify_body_index(root,started) if version.startswith(('1.1.28','1.1.29')) else None
+    body_scale=verify_body_scale(root,started) if version.startswith('1.1.29') else None
     audit=verify_audit(root,started) if version.startswith('1.1.14') else None
     if audit: verify_native_audit(root,started)
     jar = root / f'build/libs/{base}-{version}.jar'
@@ -356,6 +369,7 @@ def verify(root):
         result['ship_boarding'] = ship_boarding
     if body_edits is not None: result['body_edits']=body_edits
     if body_index is not None: result['body_index']=body_index
+    if body_scale is not None: result['body_scale']=body_scale
     (out / 'verified.json').write_text(json.dumps(result, indent=2) + '\n')
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'], 'a') as output:

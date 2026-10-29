@@ -171,7 +171,10 @@ public final class BoardingClient {
         else p.withPosition(body.massPosition()).withRotation(body.rotation())
             .withLinearVelocity(body.physics().linearVelocity()).withAngularMomentum(body.physics().angularMomentum());
         boolean paused=snapshot==null?body.boardingMotionPaused():snapshot.paused();
-        int lead=snapshot==null?0:Math.min(4,ticks);if(!paused)for(int i=0;i<lead;i++)p.step(.05);
+        // The actor replays the complete bounded input history. Its support must advance
+        // through that SAME history; a four-tick hull cap leaves the actor and its visible
+        // deck in different times after a load/render stall.
+        int lead=snapshot==null?0:Math.min(BoardingNetworking.PREDICTION_HISTORY,ticks);if(!paused)for(int i=0;i<lead;i++)p.step(.05);
         Vec3 from=p.position();Quat before=p.rotation();if(!paused)p.step(.05);
         Vec3 gravity=snapshot==null?body.passengerGravity():new Vec3(snapshot.gx(),snapshot.gy(),snapshot.gz());
         return new BodyMotion(body.getId(),body.collider(),body.localCentre(),from,before,p.position(),p.rotation(),p,body.passengerField(gravity),paused);
