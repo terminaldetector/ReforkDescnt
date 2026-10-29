@@ -18,6 +18,15 @@ public abstract class MicroExplosionMixin {
         Explosion explosion=(Explosion)(Object)this;
         var type=explosion.getDestructionType();
         if(type!=Explosion.DestructionType.DESTROY && type!=Explosion.DestructionType.DESTROY_WITH_DECAY) return;
+        // Moving local grids are not world blocks in vanilla's affected-block list. Snapshot
+        // the hull index once, so fragments created by this blast cannot be hit a second time.
+        double radius=explosion.getPower()*2.;
+        if(Double.isFinite(radius)&&radius>0) {
+            var centre=explosion.getPosition();
+            for(var body:com.terminaldetector.drmd.world.contraption.BodySpatialIndex.query(server,
+                new net.minecraft.util.math.Box(centre,centre).expand(radius)))
+                body.weaponBlast(centre,explosion.getPower()*24, radius);
+        }
         com.terminaldetector.drmd.world.contraption.StructureCollapse.explosion(
             server,explosion.getAffectedBlocks(),explosion.getPosition(),explosion.getPower());
         explosion.getAffectedBlocks().removeIf(pos -> BlockDamage.fractureExplosion(

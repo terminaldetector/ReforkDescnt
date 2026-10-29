@@ -25,6 +25,22 @@ public interface PhysicsTarget {
     /** Occupied aim point; keep the existing torso target for other physical entities. */
     default Vec3d physicsAimPoint(){return this instanceof net.minecraft.entity.Entity e?e.getPos().add(0,e.getHeight()*.5,0):physicsCentre();}
 
+    /** Weapon contact, separate from gravity-tool impulses. Hulls may also damage local material. */
+    default void weaponHit(Vec3d impact, Vec3d incoming, float damage) {
+        if (!Float.isFinite(damage) || damage <= 0 || !Double.isFinite(incoming.lengthSquared())) return;
+        applyPhysicsImpulse(impact, incoming.normalize().multiply(Math.min(80, damage * .15)));
+    }
+
+    /** Radial weapon load; the default adapter keeps the former COM falloff. */
+    default void weaponBlast(Vec3d origin, float damage, double radius) {
+        if (!Float.isFinite(damage) || damage <= 0 || !Double.isFinite(radius) || radius <= 0) return;
+        Vec3d centre = physicsCentre(); double distance = centre.distanceTo(origin);
+        if (distance >= radius) return;
+        Vec3d direction = centre.subtract(origin);
+        if (direction.lengthSquared() < 1e-8) direction = new Vec3d(0, 1, 0);
+        applyPhysicsImpulse(centre, direction.normalize().multiply(Math.min(80, damage * (1-distance/radius) * .15)));
+    }
+
 	/** Aggregate velocity in blocks per second, matching the D6 physics core. */
 	Vec3d physicsVelocity();
 

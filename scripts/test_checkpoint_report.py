@@ -258,6 +258,15 @@ class EvidenceGateTest(unittest.TestCase):
             self.write(f'build/fracturecheck/body-contact-frames/{name}.png',b'\x89PNG\r\n\x1a\nfixture')
         self.write('build/fracturecheck/body-contacts-ok.json',json.dumps(proof));return proof
 
+    def test_combat_gate_cannot_certify_a_local_edit_only_fracture(self):
+        proof=self.fracture_fixture()
+        with self.assertRaisesRegex(ValueError,'Missing actual hull combat proof'):checkpoint.verify_body_combat(self.root,self.started)
+        proof.update(actualHitscanDamage=True,actualProjectileDamage=True,actualRadialDamage=True)
+        self.write('build/fracturecheck/body-contacts-ok.json',json.dumps(proof));checkpoint.verify_body_combat(self.root,self.started)
+        for key in ('actualHitscanDamage','actualProjectileDamage','actualRadialDamage'):
+            p=proof.copy();p[key]=False;self.write('build/fracturecheck/body-contacts-ok.json',json.dumps(p))
+            with self.subTest(key=key),self.assertRaisesRegex(ValueError,'Missing actual hull combat proof'):checkpoint.verify_body_combat(self.root,self.started)
+
     def test_fracture_gate_requires_actual_fragments_and_full_first_tick(self):
         proof=self.fracture_fixture();checkpoint.verify_body_fractures(self.root,self.started)
         for key in ('actualFragments','continuousMaterialMotion','fastFragmentTickIntegrated','fragmentNbtRoundTrip'):
