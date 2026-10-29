@@ -450,3 +450,30 @@ tasks.register('prepareFracturecheckWorld', Sync) {
     }
 }
 tasks.named('runFracturecheck') { dependsOn prepareFracturecheckWorld }
+
+// Player contact across a real physical deck fracture.
+loom { runs { fragmentboardingcheck {
+    client()
+    source sourceSets.boardingcheck
+    runDir 'build/fragmentboardingcheck'
+    vmArg '-Ddrmd.boarding.labY=140'
+    vmArg '-Ddrmd.gate.boarding=true'
+    vmArg '-Ddrmd.gate.fragmentBoarding=true'
+    programArg '--quickPlaySingleplayer'
+    programArg 'DRMD-fragment-boarding-lab'
+    programArg '--width'
+    programArg '1280'
+    programArg '--height'
+    programArg '720'
+} } }
+tasks.register('prepareFragmentboardingcheckWorld', Sync) {
+    dependsOn runGametest
+    from 'build/gametest/world'
+    into 'build/fragmentboardingcheck/saves/DRMD-fragment-boarding-lab'
+    exclude '**/session.lock'
+    doLast {
+        if(!file('build/fragmentboardingcheck/saves/DRMD-fragment-boarding-lab/level.dat').isFile())throw new GradleException('Missing disposable hull fracture world')
+        file('build/fragmentboardingcheck/options.txt').text='onboardAccessibility:false\npauseOnLostFocus:false\nmaxFps:30\nrenderDistance:8\nsimulationDistance:8\n'
+    }
+}
+tasks.named('runFragmentboardingcheck') { dependsOn prepareFragmentboardingcheckWorld }

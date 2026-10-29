@@ -121,8 +121,9 @@ def verify_audit(root, started):
 BOARDING_SCENES = ('landing', 'riding', 'walking', 'jump', 'sixdof-handoff')
 
 
-def verify_boarding(root, started):
-    marker = root / 'build/boardingcheck/boarding-ok.json'
+def verify_boarding(root, started, fragment=False):
+    runtime=root/('build/fragmentboardingcheck' if fragment else 'build/boardingcheck')
+    marker = runtime / 'boarding-ok.json'
     fresh(marker, started)
     proof = json.loads(marker.read_text())
     if (any(proof.get(k) is not True for k in ('actualInputs', 'authoritativeContact', 'worldUpOnly','sameStepJump'))
@@ -135,10 +136,19 @@ def verify_boarding(root, started):
     if not isinstance(proof.get('predictionSamples'), int) or proof['predictionSamples'] < 30:
         raise ValueError('Missing command-aligned boarding prediction samples')
     scenes = proof.get('scenes', [])
-    if [s.get('scene') for s in scenes] != list(BOARDING_SCENES) or any(s.get('frames', 0) < 3 for s in scenes):
+    expected=BOARDING_SCENES[:3]+('fragment-contact',)+BOARDING_SCENES[3:] if fragment else BOARDING_SCENES
+    if [s.get('scene') for s in scenes] != list(expected) or any(s.get('frames', 0) < 3 for s in scenes):
         raise ValueError('Missing completed boarding scenes')
-    for name in BOARDING_SCENES:
-        fresh_png(root / f'build/boardingcheck/boarding-frames/{name}.png', started)
+    for name in expected:
+        fresh_png(runtime / f'boarding-frames/{name}.png', started)
+    return proof
+
+
+def verify_fragment_boarding(root,started):
+    proof=verify_boarding(root,started,fragment=True)
+    if proof.get('fragmentContact') is not True: raise ValueError('Missing player fragment contact')
+    value=proof.get('fragmentSpeedError')
+    if type(value) not in (int,float) or not math.isfinite(value) or not 0<=value<.2: raise ValueError('Invalid player fragment speed error')
     return proof
 
 
@@ -373,6 +383,7 @@ def verify(root):
     hull_contacts=verify_hull_contacts(root,started) if version.startswith(('1.1.31','1.1.32','1.1.33')) else None
     body_fractures=verify_body_fractures(root,started) if version.startswith(('1.1.32','1.1.33')) else None
     body_combat=verify_body_combat(root,started) if version.startswith('1.1.33') else None
+    fragment_boarding=verify_fragment_boarding(root,started) if version.startswith('1.1.33') else None
     audit=verify_audit(root,started) if version.startswith('1.1.14') else None
     if audit: verify_native_audit(root,started)
     jar = root / f'build/libs/{base}-{version}.jar'
@@ -425,6 +436,7 @@ def verify(root):
     if hull_contacts is not None: result['hull_contacts']=hull_contacts
     if body_fractures is not None: result['body_fractures']=body_fractures
     if body_combat is not None: result['body_combat']=body_combat
+    if fragment_boarding is not None: result['fragment_boarding']=fragment_boarding
     (out / 'verified.json').write_text(json.dumps(result, indent=2) + '\n')
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'], 'a') as output:

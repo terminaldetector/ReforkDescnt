@@ -204,6 +204,30 @@ class EvidenceGateTest(unittest.TestCase):
         self.write('build/gametest/item-resource-inventory.tsv','synthetic registry table, not real game evidence')
         checkpoint.verify_native_audit(self.root,self.started)
 
+    def fragment_boarding_fixture(self):
+        names=checkpoint.BOARDING_SCENES[:3]+('fragment-contact',)+checkpoint.BOARDING_SCENES[3:]
+        proof=dict(actualInputs=True,authoritativeContact=True,worldUpOnly=True,sameStepJump=True,teleportFollow=False,
+            jumpWorldVelocityError=0.,maxPredictionError=.02,jumpReleaseNetworkError=0.,predictionSamples=100,
+            fragmentContact=True,fragmentSpeedError=.1,scenes=[dict(scene=name,frames=3) for name in names])
+        for name in names:self.write(f'build/fragmentboardingcheck/boarding-frames/{name}.png',b'\x89PNG\r\n\x1a\nfixture')
+        self.write('build/fragmentboardingcheck/boarding-ok.json',json.dumps(proof));return proof
+
+    def test_fragment_boarding_requires_the_actual_support_transition(self):
+        proof=self.fragment_boarding_fixture();checkpoint.verify_fragment_boarding(self.root,self.started)
+        proof['fragmentContact']=False;self.write('build/fragmentboardingcheck/boarding-ok.json',json.dumps(proof))
+        with self.assertRaisesRegex(ValueError,'Missing player fragment contact'):checkpoint.verify_fragment_boarding(self.root,self.started)
+
+    def test_fragment_boarding_rejects_speed_loss_and_invalid_metrics(self):
+        proof=self.fragment_boarding_fixture()
+        for value in (.2,-1,float('nan'),float('inf'),True):
+            p=proof.copy();p['fragmentSpeedError']=value;self.write('build/fragmentboardingcheck/boarding-ok.json',json.dumps(p))
+            with self.subTest(value=value),self.assertRaisesRegex(ValueError,'Invalid player fragment speed'):checkpoint.verify_fragment_boarding(self.root,self.started)
+
+    def test_original_boarding_frames_cannot_certify_fragment_handoff(self):
+        proof=self.fragment_boarding_fixture();proof['scenes']=[dict(scene=name,frames=3) for name in checkpoint.BOARDING_SCENES]
+        self.write('build/fragmentboardingcheck/boarding-ok.json',json.dumps(proof))
+        with self.assertRaisesRegex(ValueError,'Missing completed boarding scenes'):checkpoint.verify_fragment_boarding(self.root,self.started)
+
     def hull_contact_fixture(self):
         proof=dict(orientedTerrain=True,hollowRay=True,unknownNativeYRejected=True,
             compoundContactQuery=True,relativeCCD=True,pairReaction=True,nativeGravitySupport=True,

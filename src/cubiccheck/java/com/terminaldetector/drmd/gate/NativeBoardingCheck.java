@@ -19,10 +19,13 @@ import java.util.*;
 
 /** Actual pilot keys + production C2S/S2C + integrated authoritative server. No boarding teleport. */
 public final class NativeBoardingCheck {
+    private static final boolean FRAGMENT=Boolean.getBoolean("drmd.gate.fragmentBoarding");
+    private static volatile boolean fragmentReady;private static boolean fragmentObserved,fragmentRequested;private static int fragmentEpoch;private static double fragmentSpeedError;
     private static final BlockPos DECK=new BlockPos(8,Integer.getInteger("drmd.boarding.labY",2156),16);
     private static boolean started,prepared,finished,capture;
     private static volatile boolean ready,serverLanding,serverHandoff;
-    private static int age,ticks,frames,bodyId=-1;
+    private static volatile int bodyId=-1;
+    private static int age,ticks,frames;
     private static volatile int phase;
     private static int synchronizedTicks,predictionSamples;
     private static Vec3d rideStart,walkStart;
@@ -63,9 +66,18 @@ public final class NativeBoardingCheck {
                     if(error>.3)System.out.println("BOARDING_ACK_ERROR seq="+s.acknowledgment()+" error="+error+" predicted="+predicted+" authoritative="+s);
                 }
             }
+            if(FRAGMENT&&phase==30&&fragmentReady&&s.support()==bodyId&&s.grounded()) {
+                require(s.epoch()==fragmentEpoch,"fracture reset the active player's input epoch");
+                require(s.body()!=null&&!s.body().paused(),"new supporting fragment was reported as a paused surface");
+                if(!fragmentObserved&&lastActive!=null) {
+                    fragmentSpeedError=Math.hypot(s.vx()-lastActive.vx(),s.vz()-lastActive.vz());
+                    require(fragmentSpeedError<.2,"first fragment contact erased tangential carrier speed: "+fragmentSpeedError);
+                }
+                fragmentObserved=true;
+            }
             lastActive=s;
         }
-        else if(phase==1||phase==2||(phase==3&&!jumpSent)) {
+        else if(phase==1||phase==2||phase==30||(phase==3&&!jumpSent)) {
             require(false,"support lease lost before jump: phase="+phase+" before="+lastActive+" after="+s);
         } else if(phase==3&&lastActive!=null) {
             var proof=jumpProof;require(proof!=null,"release packet has no observed authoritative jump step");
@@ -89,7 +101,7 @@ public final class NativeBoardingCheck {
         com.terminaldetector.drmd.client.DescentClient.markUserFlightChoice();
         if(!started) {
             String runtime=c.runDirectory.toPath().getFileName().toString();
-            require(runtime.equals("cubic-client-automation")||runtime.equals("boardingcheck"),"disposable boarding runtime required");
+            require(runtime.equals("cubic-client-automation")||runtime.equals("boardingcheck")||runtime.equals("fragmentboardingcheck"),"disposable boarding runtime required");
             started=true;c.setScreen(null);c.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);
             c.inGameHud.getChatHud().clear(false);c.options.hudHidden=true;c.options.setPerspective(Perspective.THIRD_PERSON_BACK);
             com.terminaldetector.drmd.client.config.DescentConfig.cockpit=false;
@@ -143,7 +155,27 @@ public final class NativeBoardingCheck {
                 require(BoardingClient.drives(c.player),"walking loses real deck contact");
                 double distance=authoritativeFeet(deck,lastActive).z-walkStart.z;
                 require(distance>1&&distance<3.5,"actual forward input did not walk relative to deck: "+distance);
-                request("walking");phase=3;age=0;
+                request("walking");phase=FRAGMENT?30:3;age=0;
+            }
+        } else if(phase==30) {
+            if(!fragmentRequested) {
+                fragmentRequested=true;fragmentEpoch=BoardingClient.epoch();
+                c.getServer().execute(()->{
+                    var w=c.getServer().getOverworld();var original=(BlockBodyEntity)w.getEntityById(bodyId);int originalId=bodyId;
+                    var before=new HashSet<Integer>();for(var b:com.terminaldetector.drmd.world.contraption.BodySpatialIndex.loaded(w))before.add(entity(b).getId());
+                    var pilot=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());var local=original.worldToLocal(pilot.getPos());
+                    require(local.x>8.3&&local.x<11.7,"pilot must stand on the part which will become a new body: "+local);
+                    var cuts=new HashMap<BlockPos,net.minecraft.block.BlockState>();for(int z=0;z<8;z++)cuts.put(new BlockPos(7,0,z),Blocks.AIR.getDefaultState());
+                    require(original.setLocalBlocks(cuts),"real moving deck fracture rejected");
+                    var parts=com.terminaldetector.drmd.world.contraption.BodySpatialIndex.loaded(w).stream().filter(b->!before.contains(entity(b).getId())).toList();
+                    require(parts.size()==1,"boarding fracture did not create one coherent detached deck");
+                    bodyId=entity(parts.getFirst()).getId();require(bodyId!=originalId,"test player must transfer onto a new physical entity");fragmentReady=true;
+                });
+            }
+            var state=BoardingClient.state();
+            if(fragmentReady&&fragmentObserved&&state!=null&&state.grounded()&&state.support()==bodyId&&age>20) {
+                require(BoardingClient.epoch()==fragmentEpoch,"client reset inputs at support transition");
+                request("fragment-contact");phase=3;age=0;
             }
         } else if(phase==3) {
             if(age==1){jumpSent=true;c.options.jumpKey.setPressed(true);}
@@ -179,11 +211,11 @@ public final class NativeBoardingCheck {
     private static void setup(MinecraftClient c) {
         var w=c.getServer().getOverworld();
         for(var p:BlockPos.iterate(DECK.add(-4,-8,-4),DECK.add(20,10,16)))w.setBlockState(p,Blocks.AIR.getDefaultState(),2);
-        for(var p:BlockPos.iterate(DECK,DECK.add(7,0,7)))w.setBlockState(p,Blocks.IRON_BLOCK.getDefaultState(),2);
-        var body=BlockBodyEntity.assemble(w,DECK,DECK.add(7,0,7));body.physics().withLinearVelocity(new Vec3(3,0,0));entity(body).tick();bodyId=entity(body).getId();
+        for(var p:BlockPos.iterate(DECK,DECK.add(FRAGMENT?11:7,0,7)))w.setBlockState(p,Blocks.IRON_BLOCK.getDefaultState(),2);
+        var initialHull=BlockBodyEntity.assemble(w,DECK,DECK.add(FRAGMENT?11:7,0,7));var body=initialHull;body.physics().withLinearVelocity(new Vec3(3,0,0));entity(body).tick();bodyId=entity(body).getId();
         var player=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());
         player.getAbilities().allowFlying=false;player.getAbilities().flying=false;player.sendAbilitiesUpdate();
-        player.teleport(w,DECK.getX()+4,DECK.getY()+2.4,DECK.getZ()+4,Set.of(),0,15);
+        player.teleport(w,DECK.getX()+(FRAGMENT?11:4),DECK.getY()+(FRAGMENT?1.05:2.4),DECK.getZ()+4,Set.of(),0,15);
         w.setTimeOfDay(6000);ready=true;
         long launched=w.getTime();
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.START_WORLD_TICK.register(world->{
@@ -191,17 +223,18 @@ public final class NativeBoardingCheck {
             // A flying test ship has actual bounded propulsion and an attitude controller. A
             // freely floating plate correctly tips under an off-centre passenger in world gravity;
             // this fixture must not fake a stable ship by overwriting its pose or carrying players.
-            Vec3 desired=new Vec3(3,0,0),dv=desired.minus(body.physics().linearVelocity()).scaled(.3);
+            var driven=world.getEntityById(bodyId) instanceof BlockBodyEntity b?b:initialHull;
+            Vec3 desired=new Vec3(3,0,0),dv=desired.minus(driven.physics().linearVelocity()).scaled(.3);
             if(dv.length()>.25)dv=dv.scaled(.25/dv.length());
-            body.applyPhysicsImpulse(entity(body).getPos(),new Vec3d(dv.x(),dv.y(),dv.z()).multiply(body.physicsMass()));
+            driven.applyPhysicsImpulse(entity(driven).getPos(),new Vec3d(dv.x(),dv.y(),dv.z()).multiply(driven.physicsMass()));
             var target=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.rotationByRadians(new Vec3(0,1,0),(w.getTime()-launched)*.05*.1);
-            var error=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.hamiltonProduct(target,body.rotation().inverse()).normalized();
+            var error=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.hamiltonProduct(target,driven.rotation().inverse()).normalized();
             if(error.w()<0)error=new com.terminaldetector.drmd.client.portal.PortalTransform.Quat(-error.x(),-error.y(),-error.z(),-error.w());
             Vec3 axis=new Vec3(error.x(),error.y(),error.z());double angle=2*Math.acos(Math.max(-1,Math.min(1,error.w())));
-            Vec3 acceleration=axis.normalized().scaled(36*angle).minus(body.physics().angularVelocity().minus(new Vec3(0,.1,0)).scaled(12));
-            Vec3 torque=body.physics().worldInertia().transform(acceleration);double limit=body.physicsMass()*12;
+            Vec3 acceleration=axis.normalized().scaled(36*angle).minus(driven.physics().angularVelocity().minus(new Vec3(0,.1,0)).scaled(12));
+            Vec3 torque=driven.physics().worldInertia().transform(acceleration);double limit=driven.physicsMass()*12;
             if(torque.length()>limit)torque=torque.scaled(limit/torque.length());
-            body.applyPhysicsTorque(new Vec3d(torque.x(),torque.y(),torque.z()));
+            driven.applyPhysicsTorque(new Vec3d(torque.x(),torque.y(),torque.z()));
             if(BoardingSystem.drives(player))serverLanding=true;
             if(DescentPlayerData.get(player).isEnabled()&&!BoardingSystem.drives(player)&&!player.hasVehicle())serverHandoff=true;
         });
@@ -223,7 +256,7 @@ public final class NativeBoardingCheck {
             RESULTS.add("{\"scene\":\""+scene+"\",\"frames\":"+frames+"}");
             System.out.println("BOARDING_CLIENT "+scene+" PASS state="+BoardingClient.state());capture=false;
             if(phase==7) {
-                Files.writeString(c.runDirectory.toPath().resolve("boarding-ok.json"),"{\"actualInputs\":true,\"authoritativeContact\":true,\"worldUpOnly\":true,\"physicalThrusters\":true,\"yawMotion\":true,\"teleportFollow\":false,\"sameStepJump\":true,\"jumpReleaseNetworkError\":"+jumpNetworkError+",\"previousPacketJumpDifference\":"+previousPacketJumpDifference+",\"jumpWorldVelocityError\":"+departureError+",\"predictionSamples\":"+predictionSamples+",\"maxPredictionError\":"+maxPredictionError+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");
+                Files.writeString(c.runDirectory.toPath().resolve("boarding-ok.json"),"{\"actualInputs\":true,\"authoritativeContact\":true,\"worldUpOnly\":true,\"physicalThrusters\":true,\"yawMotion\":true,\"teleportFollow\":false,\"fragmentContact\":"+fragmentObserved+",\"fragmentSpeedError\":"+fragmentSpeedError+",\"sameStepJump\":true,\"jumpReleaseNetworkError\":"+jumpNetworkError+",\"previousPacketJumpDifference\":"+previousPacketJumpDifference+",\"jumpWorldVelocityError\":"+departureError+",\"predictionSamples\":"+predictionSamples+",\"maxPredictionError\":"+maxPredictionError+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");
                 finished=true;c.options.forwardKey.setPressed(false);c.options.jumpKey.setPressed(false);c.scheduleStop();
             }
         }catch(java.io.IOException e){throw new IllegalStateException(e);}

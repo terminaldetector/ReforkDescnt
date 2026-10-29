@@ -8,6 +8,7 @@ class BoardingPackageProofTest(unittest.TestCase):
         return dict(source_sha='a' * 40, version=VERSION,
                     unit=dict(tests=657), gametest=dict(tests=212),
                     hull_contacts=dict(actualHullPairs=True,wholeTickIntegrated=True,sequentialThreeHulls=True,rotatedHullImpulse=True),
+                    fragment_boarding=dict(fragmentContact=True),
                     body_combat=dict(actualHitscanDamage=True,actualProjectileDamage=True,actualRadialDamage=True),
                     body_fractures=dict(actualFragments=True,continuousMaterialMotion=True,fastFragmentTickIntegrated=True,fragmentNbtRoundTrip=True),
                     jar=f'drmd-6dof-{VERSION}-fabric-1.21.1.jar')
@@ -29,6 +30,10 @@ class BoardingPackageProofTest(unittest.TestCase):
         for key in ('actualFragments','continuousMaterialMotion','fastFragmentTickIntegrated','fragmentNbtRoundTrip'):
             p=self.proof();p['body_fractures'][key]=False
             with self.assertRaisesRegex(ValueError,'Physical fragment client proof'):validate_proof(p,'a'*40)
+
+    def test_combat_without_player_fragment_contact_cannot_be_published(self):
+        p=self.proof();p.pop('fragment_boarding')
+        with self.assertRaisesRegex(ValueError,'Player fragment boarding proof'):validate_proof(p,'a'*40)
 
     def test_local_edit_only_fractures_cannot_be_published_as_combat(self):
         p=self.proof();p.pop('body_combat')

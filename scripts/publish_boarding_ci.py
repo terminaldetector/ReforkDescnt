@@ -25,6 +25,7 @@ def validate_proof(proof, source):
     if not all(fragment.get(key) is True for key in ('actualFragments','continuousMaterialMotion','fastFragmentTickIntegrated','fragmentNbtRoundTrip')):
         raise ValueError('Physical fragment client proof is missing')
 
+    if proof.get('fragment_boarding',{}).get('fragmentContact') is not True: raise ValueError('Player fragment boarding proof is missing')
     combat=proof.get('body_combat',{})
     if not all(combat.get(key) is True for key in ('actualHitscanDamage','actualProjectileDamage','actualRadialDamage')):
         raise ValueError('Actual hull combat proof is missing')
@@ -54,6 +55,7 @@ def main():
     gate.verify_hull_contacts(root, started)
     gate.verify_body_fractures(root, started)
     gate.verify_body_combat(root, started)
+    gate.verify_fragment_boarding(root, started)
     for name in ('snapshot', 'mirror-join', 'horizon-anchor', 'repair-visual'):
         gate.fresh(root / f'build/shootcheck/{name}-ok.json', started)
     snapshot = json.loads((root / 'build/shootcheck/snapshot-ok.json').read_text())
@@ -165,6 +167,7 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
                         'build/checkpoint/verified.json', 'build/checkpoint/SOURCE_SHA.txt',
                         'build/checkpoint/started-at.txt', 'build/shipboardingcheck/ship-boarding-ok.json',
                         'build/hullcontactcheck/body-contacts-ok.json','build/hullcontactcheck/body-contact-frames/*.png',
+                        'build/fragmentboardingcheck/boarding-ok.json','build/fragmentboardingcheck/boarding-frames/*.png',
                         'build/fracturecheck/body-contacts-ok.json','build/fracturecheck/body-contact-frames/*.png',
                         'build/bodyindexcheck/body-index-ok.json','build/bodyindexcheck/body-index-frames/*.png',
                         'build/bodyscalecheck/body-scale-ok.json','build/bodyscalecheck/body-scale-frames/*.png',

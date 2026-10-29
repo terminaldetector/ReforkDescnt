@@ -53,7 +53,15 @@ proof cannot certify this stage: all three combat marker fields are mandatory fo
 Server player regressions also verify continuous contact on the separated deck, unchanged input
 epoch, ordinary collision-checked movement, jump/release with carrier speed inherited once, and
 paused-parent behavior. First failures retain the lost contact velocity and lost player speed.
-This is server acceptance; a rendered networked player-on-fragment scenario remains to be added.
+A separate real-client fixture lands, rides and walks on a moving deck, severs it into two
+physical bodies under the pilot, observes the new support ID with unchanged input epoch,
+then jumps, lands and switches to6DoF. It applies bounded physical thruster/controller forces
+to the supporting fixture body; no pose overwrite or teleport-follow is used. The first fixture
+failure retained a pilot on the larger remnant while the controller acted on the other part;
+its logs/frames are preserved. The fixture now verifies the pilot's actual local contact location
+before cutting, and controls the body that really supports it. Acceptance requires the new
+fragment-contact frame, sub0.2m/s tangential transition difference and normal prediction limits.
+This is an integrated client/server scenario; dedicated and multiple remote clients remain open.
 Exact source/JAR SHA, CI status and installed BCC/Sodium evidence are recorded separately.
 
 ## Remaining work
@@ -61,6 +69,6 @@ Exact source/JAR SHA, CI status and installed BCC/Sodium evidence are recorded s
 The radial model does not yet attenuate damage through intervening hull armor or terrain.
 Partial damage currently has no client crack/deformation visualization. No heat, pressure or
 automatic decompression subsystem is introduced. Huge bursts still need scheduling, simulation
-LOD and measured city-scale stress. Rendered/networked passenger transfer onto fragments, movable joints,
+LOD and measured city-scale stress. Movable joints,
 functional block entities, ControlCore, physical large UFO conversion, full3D AI/bestiary and
 dedicated/multiple-client/whole-world module persistence acceptance remain active.

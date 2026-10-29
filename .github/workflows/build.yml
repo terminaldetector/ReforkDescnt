@@ -164,6 +164,11 @@ jobs:
         run: |
           rm -f build/fracturecheck/body-contacts-ok.json
           LIBGL_ALWAYS_SOFTWARE=1 timeout 600s xvfb-run -a ./gradlew runFracturecheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/fracturecheck.log
+      - name: Verify actual player contact and jump across a detached deck
+        id: fragmentboardingcheck
+        run: |
+          rm -f build/fragmentboardingcheck/boarding-ok.json
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 600s xvfb-run -a ./gradlew runFragmentboardingcheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/fragmentboardingcheck.log
       - name: Validate fresh evidence and stage only the current JAR
         id: verify
         run: python3 scripts/checkpoint_report.py --verify 2>&1 | tee build/checkpoint/logs/verify.log
@@ -186,6 +191,10 @@ jobs:
           name: evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             build/checkpoint/
+            build/fragmentboardingcheck/boarding-ok.json
+            build/fragmentboardingcheck/boarding-frames/
+            build/fragmentboardingcheck/logs/
+            build/fragmentboardingcheck/crash-reports/
             build/fracturecheck/body-contacts-ok.json
             build/fracturecheck/body-contact-frames/
             build/fracturecheck/logs/
