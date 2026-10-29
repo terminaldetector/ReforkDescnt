@@ -111,6 +111,16 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         Vec3 r=new Vec3(reach,reach,reach);
         return Optional.of(new BodyBounds(start.minus(r),start.plus(r)).union(new BodyBounds(at.minus(r),at.plus(r))));
     }
+    /** Full interior plus the next two physical ticks; loading does not use a material-only
+     * sparse index or the client prediction margin. The plan adds its own two-block halo. */
+    public BodyBounds loadingBounds() {
+        var local=passengerGravity.lengthSquared()>0?passengerField(passengerGravity).localVolume():collider.bounds().orElseThrow();
+        var current=OrientedBox.local(local,massPosition(),centre,rotation()).bounds();
+        var predicted=new D6PhysicsBody().withLimits(MAX_LINEAR_SPEED,MAX_ANGULAR_SPEED).withMass(body.mass()).withInertia(body.inertia())
+            .withPosition(massPosition()).withRotation(rotation()).withLinearVelocity(body.linearVelocity()).withAngularMomentum(body.angularMomentum());
+        for(int i=0;i<2;i++){predicted.step(.05);current=current.union(OrientedBox.local(local,predicted.position(),centre,predicted.rotation()).bounds());}
+        return current;
+    }
     @Override protected void initDataTracker(DataTracker.Builder builder) {
         builder.add(SHAPE, new NbtCompound()); builder.add(PATCHES,new NbtCompound()); builder.add(POSE, new NbtCompound());
     }

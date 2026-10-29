@@ -6,7 +6,7 @@ from publish_boarding_ci import VERSION, validate_proof
 class BoardingPackageProofTest(unittest.TestCase):
     def proof(self):
         return dict(source_sha='a' * 40, version=VERSION,
-                    unit=dict(tests=633), gametest=dict(tests=183),
+                    unit=dict(tests=638), gametest=dict(tests=186),
                     jar=f'drmd-6dof-{VERSION}-fabric-1.21.1.jar')
 
     def test_exact_tested_candidate_is_accepted(self):

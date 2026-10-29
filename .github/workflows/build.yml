@@ -299,8 +299,8 @@ jobs:
           python3 scripts/publish_boarding_ci.py
           git config user.name 'Ungravity checkpoint bot'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add dist/README.md dist/releases/1.1.29-hulls.1/*.jar dist/releases/1.1.29-hulls.1/README.md dist/releases/1.1.29-hulls.1/INSTALL_TLAUNCHER.txt dist/releases/1.1.29-hulls.1/SOURCE_SHA.txt
-          git commit -m '[boarding package] Publish verified 1.1.29-hulls.1 JAR'
-          git add dist/releases/1.1.29-hulls.1
+          git add dist/README.md dist/releases/1.1.30-volumes.1/*.jar dist/releases/1.1.30-volumes.1/README.md dist/releases/1.1.30-volumes.1/INSTALL_TLAUNCHER.txt dist/releases/1.1.30-volumes.1/SOURCE_SHA.txt
+          git commit -m '[boarding package] Publish verified 1.1.30-volumes.1 JAR'
+          git add dist/releases/1.1.30-volumes.1
           git commit -m '[boarding evidence] Preserve exact-source ship-gravity boarding proof'
           git -c 'credential.helper=!gh auth git-credential' push origin "HEAD:${GITHUB_REF#refs/heads/}"

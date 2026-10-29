@@ -197,7 +197,7 @@ BODY_INDEX_SCENES = ('edge-intact','edge-cut','edge-patched','edge-hole')
 def verify_body_index(root, started, scale=False):
     runtime='bodyscalecheck' if scale else 'bodyindexcheck'
     label='body-scale' if scale else 'body-index'
-    expected=BODY_INDEX_SCENES+('edge-rebased',) if scale else BODY_INDEX_SCENES
+    expected=BODY_INDEX_SCENES+('edge-rebased','edge-released') if scale else BODY_INDEX_SCENES
     marker=root/f'build/{runtime}/{label}-ok.json'
     fresh(marker,started)
     proof=json.loads(marker.read_text())
@@ -212,7 +212,8 @@ def verify_body_index(root, started, scale=False):
     scenes=proof.get('scenes',[])
     if [s.get('scene') for s in scenes]!=list(expected) or any(s.get('frames',0)<3 for s in scenes): raise ValueError('Missing distant-wing input scenes')
     if scale:
-        for key,minimum in (('bodyBlocks',32768),('localEdge',128),('journalEdits',300)):
+        if proof.get('volumeLeasesReleased') is not True: raise ValueError('Removed hull retained volume leases')
+        for key,minimum in (('bodyBlocks',32768),('localEdge',128),('journalEdits',300),('maxLeasedColumns',27)):
             if type(proof.get(key)) is not int or proof[key]<minimum: raise ValueError(f'Missing full hull proof: {key}')
         value=proof.get('actualFeetError')
         if type(value) not in (int,float) or not math.isfinite(value) or not 0<=value<1e-6: raise ValueError('Actual server actor and synchronized feet diverge')
@@ -316,11 +317,11 @@ def verify(root):
 
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
-    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28','1.1.29')) else None
-    body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28','1.1.29')) else None
-    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28','1.1.29')) else None
-    body_index = verify_body_index(root,started) if version.startswith(('1.1.28','1.1.29')) else None
-    body_scale=verify_body_scale(root,started) if version.startswith('1.1.29') else None
+    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28','1.1.29','1.1.30')) else None
+    body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28','1.1.29','1.1.30')) else None
+    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28','1.1.29','1.1.30')) else None
+    body_index = verify_body_index(root,started) if version.startswith(('1.1.28','1.1.29','1.1.30')) else None
+    body_scale=verify_body_scale(root,started) if version.startswith(('1.1.29','1.1.30')) else None
     audit=verify_audit(root,started) if version.startswith('1.1.14') else None
     if audit: verify_native_audit(root,started)
     jar = root / f'build/libs/{base}-{version}.jar'

@@ -31,7 +31,13 @@ public final class BodySpatialIndex {
     public static void untrack(BlockBodyEntity body) {
         State s=WORLDS.get(body.getWorld());if(s==null)return;
         var ref=s.bodies.get(body.getId());
-        if(ref!=null&&ref.get()==body){s.bodies.remove(body.getId());s.tree.remove(body.getId());}
+        if(ref!=null&&ref.get()==body){s.bodies.remove(body.getId());s.tree.remove(body.getId());
+            if(body.getWorld() instanceof net.minecraft.server.world.ServerWorld world)BodyVolumeLeases.release(world,body.getUuid());}
+    }
+    public static List<BlockBodyEntity> loaded(World world) {
+        State state=WORLDS.get(world);if(state==null)return List.of();var result=new ArrayList<BlockBodyEntity>();
+        for(var ref:List.copyOf(state.bodies.values())) {var body=ref.get();if(body!=null&&!body.isRemoved()&&body.getWorld()==world)result.add(body);}
+        result.sort(Comparator.comparingInt(Entity::getId));return List.copyOf(result);
     }
     /** Does not enroll unspawned NBT clones or partially constructed entities. */
     public static void update(BlockBodyEntity body) {

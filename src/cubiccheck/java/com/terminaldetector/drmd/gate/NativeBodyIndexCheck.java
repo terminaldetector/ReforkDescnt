@@ -28,13 +28,16 @@ public final class NativeBodyIndexCheck {
  private static final int EDGE=SCALE?127:23;
  private static final BlockPos DECK=new BlockPos(8,Integer.getInteger("drmd.boarding.labY",2156),16),WALL=new BlockPos(EDGE,1,2);
  private static final Vec3 VELOCITY=new Vec3(2,0,0);
- private static boolean started,prepared,finished,capture,inventoryRequested;
+ private static boolean started,prepared,finished,capture,inventoryRequested,deleteSent;
+ private static volatile boolean leaseReleased;
+ private static volatile int maxLeasedColumns;
  private static volatile boolean ready,serverLegacyMiss,charged;
  private static volatile long baseRevision;
  private static volatile double travel,actualFeetError;
  private static volatile boolean journalStarted,journalFinished;
  private static int journalEdits;
  private static long journalRevision;
+ private static UUID bodyUuid;
  private static int bodyId=-1,phase,age,ticks,stable,frames,samples,mineInputs,placeInputs;
  private static double error;private static boolean clientLegacyMiss,clientEdgePick,clientHole;
  private static String scene;
@@ -65,6 +68,14 @@ public final class NativeBodyIndexCheck {
   }
   if(!prepared&&c.player.getY()>DECK.getY()-20&&loaded(c)){prepared=true;c.getServer().execute(()->setup(c));return;}
   if(!ready||capture)return;
+  if(phase==6) {
+   if(!deleteSent){deleteSent=true;c.getServer().execute(()->{var b=bodyServer(c);if(b!=null)entity(b).discard();leaseReleased=BodyVolumeLeases.heldColumns(c.getServer().getOverworld(),bodyUuid)==0;});}
+   if(c.world.getEntityById(bodyId)==null&&!BoardingClient.drives(c.player)) {
+    require(leaseReleased&&BodySpatialIndex.query(c.world,c.player.getBoundingBox().expand(200)).stream().noneMatch(b->entity(b).getId()==bodyId),"removed large hull retained tickets or phantom geometry");
+    request("edge-released");phase=4;
+   }
+   return;
+  }
   if(!(c.world.getEntityById(bodyId) instanceof BlockBodyEntity body))return;age++;
   if(phase==0) {
    aim(c,body,new Vec3(EDGE+.5,1.5,2.5));
@@ -73,7 +84,7 @@ public final class NativeBodyIndexCheck {
    var hit=ProjectileUtil.raycast(c.player,from,to,area,e->e.canHit(),25);
    clientEdgePick|=hit!=null&&hit.getEntity()==body;
    if(BoardingClient.drives(c.player)&&BoardingClient.state().grounded())stable++;else stable=0;
-   if(stable>=10&&clientLegacyMiss&&serverLegacyMiss&&clientEdgePick){request("edge-intact");phase=1;age=0;}
+   if(stable>=10&&clientLegacyMiss&&serverLegacyMiss&&clientEdgePick&&(!SCALE||travel>1)){request("edge-intact");phase=1;age=0;}
   }else if(phase==1) {
    aim(c,body,new Vec3(EDGE+.5,1.5,2.5));if(age>10)c.options.attackKey.setPressed(true);
    if(body.shapeRevision()>baseRevision&&body.getLocalBlock(WALL).isAir()){c.options.attackKey.setPressed(false);request("edge-cut");phase=2;age=0;inventoryRequested=false;}
@@ -94,7 +105,7 @@ public final class NativeBodyIndexCheck {
    if(!journalStarted){journalStarted=true;c.getServer().execute(()->journalRevision=bodyServer(c).shapeRevision());}
    if(journalFinished&&body.shapeRevision()==journalRevision) {
     require(body.cells().size()==32768&&body.getLocalBlock(new BlockPos(0,-15,0)).isOf(Blocks.GOLD_BLOCK),"rebased client lost full hull or final patch");
-    require(samples>=40&&error<.8&&actualFeetError<1e-6,"large hull prediction/actual actor coherence after baseline rebase: "+actualFeetError);request("edge-rebased");phase=4;
+    require(samples>=40&&error<.8&&actualFeetError<1e-6,"large hull prediction/actual actor coherence after baseline rebase: "+actualFeetError);require(maxLeasedColumns>=27,"full hull volume was not leased: "+maxLeasedColumns);request("edge-rebased");phase=6;
    }
   }
  }
@@ -123,7 +134,7 @@ public final class NativeBodyIndexCheck {
    require(body.setLocalBlock(WALL,Blocks.STONE.getDefaultState()),"wing wall rejected");
   }
   baseRevision=body.shapeRevision();
-  body.physics().withLinearVelocity(VELOCITY);body.setPassengerGravity(new Vec3(0,-32,0));entity(body).tick();bodyId=entity(body).getId();
+  body.physics().withLinearVelocity(VELOCITY);body.setPassengerGravity(new Vec3(0,-32,0));entity(body).tick();bodyId=entity(body).getId();bodyUuid=entity(body).getUuid();
   var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());p.changeGameMode(GameMode.CREATIVE);p.getAbilities().flying=false;p.getAbilities().allowFlying=false;p.sendAbilitiesUpdate();p.setStackInHand(Hand.MAIN_HAND,ItemStack.EMPTY);
   var feet=body.localToWorld(new Vec3d(EDGE-.7,2,1.5));p.teleport(w,feet.x,feet.y,feet.z,Set.of(),0,0);w.setTimeOfDay(6000);ready=true;Vec3 launch=body.massPosition();
   ServerTickEvents.START_WORLD_TICK.register(world->{if(world!=w||finished)return;
@@ -134,6 +145,7 @@ public final class NativeBodyIndexCheck {
   ServerTickEvents.END_WORLD_TICK.register(world->{if(world!=w||finished)return;
    Vec3d from=p.getEyePos(),to=from.add(p.getRotationVec(1).multiply(5));var area=new Box(from,to).expand(1);
    travel=body.massPosition().minus(launch).length();
+   maxLeasedColumns=Math.max(maxLeasedColumns,BodyVolumeLeases.heldColumns(w,bodyUuid));
    var motor=BoardingSystem.state(p);
    if(motor!=null)actualFeetError=Math.max(actualFeetError,p.getPos().distanceTo(BoardingSystem.mc(motor.feet())));
    if(SCALE&&journalStarted&&!journalFinished) {
@@ -153,7 +165,7 @@ public final class NativeBodyIndexCheck {
  public static void rendered(){if(!capture||finished)return;var c=MinecraftClient.getInstance();if(c.player==null||c.currentScreen!=null||++frames<3)return;
   try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){
    var dir=c.runDirectory.toPath().resolve(SCALE?"body-scale-frames":"body-index-frames");Files.createDirectories(dir);image.writeTo(dir.resolve(scene+".png"));SCENES.add("{\"scene\":\""+scene+"\",\"frames\":"+frames+"}");capture=false;System.out.println("BODY_INDEX_CLIENT "+scene+" PASS");
-   if(phase==4){Files.writeString(c.runDirectory.toPath().resolve(SCALE?"body-scale-ok.json":"body-index-ok.json"),"{\"actualFeetError\":"+actualFeetError+",\"bodyBlocks\":"+(SCALE?32768:93)+",\"localEdge\":"+(EDGE+1)+",\"journalEdits\":"+journalEdits+",\"actualInputs\":true,\"legacyMissClient\":"+clientLegacyMiss+",\"legacyMissServer\":"+serverLegacyMiss+",\"edgePicked\":"+clientEdgePick+",\"holeClear\":"+clientHole+",\"materialCharged\":"+charged+",\"revisionChanges\":3,\"travelDistance\":"+travel+",\"teleportFollow\":false,\"predictionSamples\":"+samples+",\"maxPredictionError\":"+error+",\"scenes\":["+String.join(",",SCENES)+"]}\n");finished=true;c.scheduleStop();}
+   if(phase==4){Files.writeString(c.runDirectory.toPath().resolve(SCALE?"body-scale-ok.json":"body-index-ok.json"),"{\"volumeLeasesReleased\":"+leaseReleased+",\"maxLeasedColumns\":"+maxLeasedColumns+",\"actualFeetError\":"+actualFeetError+",\"bodyBlocks\":"+(SCALE?32768:93)+",\"localEdge\":"+(EDGE+1)+",\"journalEdits\":"+journalEdits+",\"actualInputs\":true,\"legacyMissClient\":"+clientLegacyMiss+",\"legacyMissServer\":"+serverLegacyMiss+",\"edgePicked\":"+clientEdgePick+",\"holeClear\":"+clientHole+",\"materialCharged\":"+charged+",\"revisionChanges\":3,\"travelDistance\":"+travel+",\"teleportFollow\":false,\"predictionSamples\":"+samples+",\"maxPredictionError\":"+error+",\"scenes\":["+String.join(",",SCENES)+"]}\n");finished=true;c.scheduleStop();}
   }catch(java.io.IOException e){throw new IllegalStateException(e);}
  }
 }

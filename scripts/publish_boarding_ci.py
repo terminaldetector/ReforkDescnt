@@ -1,4 +1,4 @@
-"""Stage the local-block editing candidate only after exact-source CI gameplay checks pass."""
+"""Stage the full-volume physical hull only after exact-source CI gameplay checks pass."""
 from pathlib import Path
 import hashlib
 import importlib.util
@@ -8,13 +8,13 @@ import shutil
 import subprocess
 import zipfile
 
-VERSION = '1.1.29-hulls.1'
+VERSION = '1.1.30-volumes.1'
 
 
 def validate_proof(proof, source):
     if proof['source_sha'] != source or proof['version'] != VERSION:
         raise ValueError('Unexpected tested source or boarding version')
-    if proof['unit']['tests'] < 633 or proof['gametest']['tests'] < 183:
+    if proof['unit']['tests'] < 638 or proof['gametest']['tests'] < 186:
         raise ValueError('Contact unit and world regressions are missing')
     if proof['jar'] != f'drmd-6dof-{VERSION}-fabric-1.21.1.jar':
         raise ValueError('Unexpected installable JAR')
@@ -72,6 +72,9 @@ B — вспомогательное, G — режим ракет. Управл�
 Полные крен/тангаж и комбинированное вращение проверяются реальным клиентом.
 /d6body gravity <корпус> 0 -32 0 — включить поле; 0 0 0 — выключить.
 Поле действует на игрока; прочие физические сущности ещё не подключены.
+Полный объём корпуса удерживается серверными chunk tickets / native XYZ views.
+При уходе игрока или удалении корпуса удержание освобождается.
+Клиент и сервер должны использовать одну версию; boarding protocol4.
 Мобы/предметы на борту, большой UFO, joints, ControlCore и полный3D AI ещё не готовы.
 SHA-256: {proof['sha256']}
 Исходники: {source}
@@ -104,10 +107,10 @@ C2S-ввод и предсказание. Полные крен/тангаж/к�
 Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']['tests']}.
 Полная регрессия настоящего клиента, оружие, инвентарь, зеркала/Fabulous и LOD.
 Дополнительно5 mouse-сцен редактирования наклонённого корпуса,4 сцены дальнего края
-и5 сцен корпуса32768 блоков с300 сетевыми правками
+и6 сцен корпуса32768 блоков с300 сетевыми правками и освобождением leases
 с доказанным пропуском старым поиском на клиенте и сервере, реальным расходом материала
 и минимум1 блоком физического перелёта.
-[CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/BLOCK_ACCESS_STAGE.md).
+[CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/BODY_VOLUME_STAGE.md).
 
 Программная графика Linux; новая native BCC-сессия и Windows/RTX этим CI не
 подтверждены. Предыдущий snapshot с native-проверками сохранён отдельно.
