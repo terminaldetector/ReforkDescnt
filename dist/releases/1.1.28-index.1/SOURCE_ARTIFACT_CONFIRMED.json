@@ -1,0 +1,13 @@
+{
+  "run": 40830964844,
+  "sourceSha": "3dd80e1ddd60903b1582b81a6f909936869c0c9e",
+  "artifacts": [
+    {
+      "id": 12878956386,
+      "name": "source-3dd80e1ddd60903b1582b81a6f909936869c0c9e-40830964844-1",
+      "bytes": 376861930,
+      "digest": "sha256:d0a74124096b57697c58c925955802c3c79bd10e07a4f534b269758ad9954f37",
+      "expired": false
+    }
+  ]
+}
