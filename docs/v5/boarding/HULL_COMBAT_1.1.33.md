@@ -32,6 +32,12 @@ If the existing256-new-fragment or512m/s COM admission rejects a destruction bat
 revision and partial-damage changes are refused together; the physical impact impulse remains.
 This safety limit is unfinished queued destruction work, not proof of unlimited city destruction.
 
+A fresh fragment also inherits its parent's previous COM pose, previous quaternion and physical
+update stamp. Its contact query therefore sees the same continuous material trajectory instead
+of one artificial paused/infinite-mass frame. Stale or loading-paused parent material stays paused.
+The existing player contact motor can change support IDs without resetting its input epoch or
+following a teleported local anchor.
+
 ## Evidence requirements
 
 Actual server tests exercise hitscan, a physical projectile tick, near-end splash on a large
@@ -44,6 +50,10 @@ collision, respectively. Surviving-material momentum expectations include the we
 fast blast fragments must complete a full loaded physical tick above60m/s. The saved-fragment
 scene remains an entity-NBT round-trip, explicitly not a full-world reload test. Old local-edit
 proof cannot certify this stage: all three combat marker fields are mandatory for packaging.
+Server player regressions also verify continuous contact on the separated deck, unchanged input
+epoch, ordinary collision-checked movement, jump/release with carrier speed inherited once, and
+paused-parent behavior. First failures retain the lost contact velocity and lost player speed.
+This is server acceptance; a rendered networked player-on-fragment scenario remains to be added.
 Exact source/JAR SHA, CI status and installed BCC/Sodium evidence are recorded separately.
 
 ## Remaining work
@@ -51,6 +61,6 @@ Exact source/JAR SHA, CI status and installed BCC/Sodium evidence are recorded s
 The radial model does not yet attenuate damage through intervening hull armor or terrain.
 Partial damage currently has no client crack/deformation visualization. No heat, pressure or
 automatic decompression subsystem is introduced. Huge bursts still need scheduling, simulation
-LOD and measured city-scale stress. Passenger transfer onto fragments, movable joints,
+LOD and measured city-scale stress. Rendered/networked passenger transfer onto fragments, movable joints,
 functional block entities, ControlCore, physical large UFO conversion, full3D AI/bestiary and
 dedicated/multiple-client/whole-world module persistence acceptance remain active.

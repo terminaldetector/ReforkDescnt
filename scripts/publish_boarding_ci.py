@@ -14,7 +14,7 @@ VERSION = '1.1.33-combat.1'
 def validate_proof(proof, source):
     if proof['source_sha'] != source or proof['version'] != VERSION:
         raise ValueError('Unexpected tested source or boarding version')
-    if proof['unit']['tests'] < 657 or proof['gametest']['tests'] < 209:
+    if proof['unit']['tests'] < 657 or proof['gametest']['tests'] < 212:
         raise ValueError('Contact unit and world regressions are missing')
     if proof['jar'] != f'drmd-6dof-{VERSION}-fabric-1.21.1.jar':
         raise ValueError('Unexpected installable JAR')

@@ -410,6 +410,12 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             Vec3 velocity=body.linearVelocity().plus(body.angularVelocity().cross(shift));
             if(velocity.length()>MAX_LINEAR_SPEED+1e-8)return null;
             fragment.body.withLinearVelocity(velocity).withAngularVelocity(body.angularVelocity());
+            // A fragment is existing moving material, not an unstepped newly assembled floor.
+            // Preserve the original tick's material trajectory and freshness. A stale/paused
+            // parent remains stale, while a mid-tick cut cannot freeze contacts for one frame.
+            fragment.previousRotation=previousRotation;
+            fragment.previousPhysicsPosition=previousPhysicsPosition.plus(previousRotation.rotate(fragment.centre.minus(centre)));
+            fragment.physicsTick=physicsTick;
             for(var cell:fragmentCells)if(materialDamage.containsKey(cell.pos()))fragment.materialDamage.put(cell.pos(),materialDamage.get(cell.pos()));
             fragment.gravity=gravity; // Artificial gravity stays with the parent until ControlCore ownership exists.
             fragment.resetShapeBaseline();fragment.dataTracker.set(POSE,fragment.pose());
