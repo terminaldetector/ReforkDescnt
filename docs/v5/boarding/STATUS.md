@@ -209,3 +209,11 @@ Full Boarding12 / UFO9 acceptance remains OPEN. Physical fracture, joints, funct
 ControlCore, physical large UFO, full3D AI, multiplayer and full-world/module reload are separate
 unfinished work. Server-side fracture and higher translation limits are being developed in
 another worktree and are not included in this1.1.31 certification.
+
+##1.1.32 — установленный native-клиент
+
+Source `005261ca5633dd27401883f7080643c355a40a53`, CI40931571448 SUCCESS:657 unit/201 GameTests.
+Три прогона на том же JAR:35 свежих кадров,2087 сравнений/подтверждённых команд.
+Проверены фрагменты GL3.2 и Sodium, быстрые обломки, NBT и корабельная гравитация.
+Документация: dist/releases/1.1.32-fragments.1/NATIVE_REPORT.md.
+Боевой урон и перенос контактов фрагмента ведутся в1.1.33; полное ТЗ OPEN.

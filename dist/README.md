@@ -178,3 +178,5 @@ N — отдельный инвентарь дрона. ЛКМ / ПКМ — дв
 не выполнено: интеграция коллайдеров в UFO, полноценный Dynamic Boarding и маршрутизация AI
 в 3D остаются в работе. Исходники snapshot прошли [GitHub Actions](https://github.com/terminaldetector/ReforkDescnt/actions/runs/40657904862).
 Тот же JAR прошёл12 [локальных кубических сценариев](releases/1.1.23-snapshot.1/NATIVE_REPORT.md).
+
+Native-проверка1.1.32: [отчёт](releases/1.1.32-fragments.1/NATIVE_REPORT.md),35 новых кадров и3 точных прогона установленного JAR.
