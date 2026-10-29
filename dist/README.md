@@ -1,3 +1,17 @@
+# Текущий проверенный этап ТЗ — 1.1.27-blocks.1
+
+[Скачать JAR](releases/1.1.27-blocks.1/drmd-6dof-1.1.27-blocks.1-fabric-1.21.1.jar) · [Установка](releases/1.1.27-blocks.1/INSTALL_TLAUNCHER.txt)
+· [Проверки и ограничения](releases/1.1.27-blocks.1/README.md) · [SHA-256](releases/1.1.27-blocks.1/SHA256SUMS).
+
+Локальное редактирование инертных блоков движущегося BlockBody.
+Центр масс меняется с сохранением положения и скорости оставшегося материала.
+Большой UFO, абордаж с механизмами/мобами и полный3D AI ещё не готовы.
+Проверка CI использует обычный мир и программную графику Linux.
+
+Ниже сохранён предыдущий snapshot и его отдельные native BCC-проверки.
+
+---
+
 # Текущий проверенный этап ТЗ — 1.1.26-boarding.1
 
 [Скачать JAR](releases/1.1.26-boarding.1/drmd-6dof-1.1.26-boarding.1-fabric-1.21.1.jar) · [Установка](releases/1.1.26-boarding.1/INSTALL_TLAUNCHER.txt)
