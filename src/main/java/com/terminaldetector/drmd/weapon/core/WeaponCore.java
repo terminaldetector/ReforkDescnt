@@ -192,14 +192,7 @@ public final class WeaponCore {
 			e.velocityModified = true;
 		}
 		for (Entity e : com.terminaldetector.drmd.world.contraption.BodySpatialIndex.otherEntities(world, attacker, box, entity -> entity instanceof PhysicsTarget && entity.isAlive())) {
-			var physics=(PhysicsTarget)e;Vec3d centre=physics.physicsCentre();
-			double dist = centre.distanceTo(pos);
-			if (dist > radius) continue;
-			float falloff = (float) (1.0 - dist / radius);
-			Vec3d direction = centre.subtract(pos);
-			if (direction.lengthSquared() < 1.0e-8) direction = new Vec3d(0, 1, 0);
-			physics.applyPhysicsImpulse(centre,
-					direction.normalize().multiply(Math.min(80, amount * falloff * .15)));
+            ((PhysicsTarget)e).weaponBlast(pos, amount, radius);
 		}
 	}
 
@@ -221,7 +214,7 @@ public final class WeaponCore {
 		if (entityHit != null) {
 			impact = entityHit.getPos();
 			if (entityHit.getEntity() instanceof PhysicsTarget target)
-				target.applyPhysicsImpulse(impact, dir.normalize().multiply(Math.min(80, damage * .15)));
+				target.weaponHit(impact, dir, damage);
 			directDamage(owner, entityHit.getEntity(), damage, dmgClass);
 			if (onHit != null) onHit.accept(new HitContext(null, entityHit.getEntity(), entityHit.getPos(), dir.negate(), false));
 		} else if (blockHit.getType() != HitResult.Type.MISS) {

@@ -266,6 +266,13 @@ def verify_body_fractures(root,started):
     return proof
 
 
+def verify_body_combat(root,started):
+    proof=verify_body_fractures(root,started)
+    for key in ('actualHitscanDamage','actualProjectileDamage','actualRadialDamage'):
+        if proof.get(key) is not True: raise ValueError(f'Missing actual hull combat proof: {key}')
+    return proof
+
+
 def properties(root):
     return dict(line.strip().split('=', 1) for line in
                 (root / 'gradle.properties').read_text().splitlines()
@@ -358,13 +365,14 @@ def verify(root):
 
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
-    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32')) else None
-    body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32')) else None
-    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32')) else None
-    body_index = verify_body_index(root,started) if version.startswith(('1.1.28','1.1.29','1.1.30','1.1.31','1.1.32')) else None
-    body_scale=verify_body_scale(root,started) if version.startswith(('1.1.29','1.1.30','1.1.31','1.1.32')) else None
-    hull_contacts=verify_hull_contacts(root,started) if version.startswith(('1.1.31','1.1.32')) else None
-    body_fractures=verify_body_fractures(root,started) if version.startswith('1.1.32') else None
+    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33')) else None
+    body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33')) else None
+    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33')) else None
+    body_index = verify_body_index(root,started) if version.startswith(('1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33')) else None
+    body_scale=verify_body_scale(root,started) if version.startswith(('1.1.29','1.1.30','1.1.31','1.1.32','1.1.33')) else None
+    hull_contacts=verify_hull_contacts(root,started) if version.startswith(('1.1.31','1.1.32','1.1.33')) else None
+    body_fractures=verify_body_fractures(root,started) if version.startswith(('1.1.32','1.1.33')) else None
+    body_combat=verify_body_combat(root,started) if version.startswith('1.1.33') else None
     audit=verify_audit(root,started) if version.startswith('1.1.14') else None
     if audit: verify_native_audit(root,started)
     jar = root / f'build/libs/{base}-{version}.jar'
@@ -416,6 +424,7 @@ def verify(root):
     if body_scale is not None: result['body_scale']=body_scale
     if hull_contacts is not None: result['hull_contacts']=hull_contacts
     if body_fractures is not None: result['body_fractures']=body_fractures
+    if body_combat is not None: result['body_combat']=body_combat
     (out / 'verified.json').write_text(json.dumps(result, indent=2) + '\n')
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'], 'a') as output:

@@ -404,8 +404,7 @@ public class ProjectileEntity extends Entity {
 		impactVisual(hit.getPos());
 		LivingEntity own = getOwnerLiving();
 		if (hit.getEntity() instanceof PhysicsTarget target && getVelocity().lengthSquared() > 1.0e-12) {
-			Vec3d impulse = getVelocity().normalize().multiply(Math.min(80, directDamage * .15));
-			target.applyPhysicsImpulse(hit.getPos(), impulse);
+            target.weaponHit(hit.getPos(), getVelocity(), directDamage);
 		}
 		if (own != null) {
 			WeaponCore.directDamage(own, hit.getEntity(), directDamage, dmgClass);

@@ -8,13 +8,13 @@ import shutil
 import subprocess
 import zipfile
 
-VERSION = '1.1.32-fragments.1'
+VERSION = '1.1.33-combat.1'
 
 
 def validate_proof(proof, source):
     if proof['source_sha'] != source or proof['version'] != VERSION:
         raise ValueError('Unexpected tested source or boarding version')
-    if proof['unit']['tests'] < 657 or proof['gametest']['tests'] < 201:
+    if proof['unit']['tests'] < 657 or proof['gametest']['tests'] < 209:
         raise ValueError('Contact unit and world regressions are missing')
     if proof['jar'] != f'drmd-6dof-{VERSION}-fabric-1.21.1.jar':
         raise ValueError('Unexpected installable JAR')
@@ -24,6 +24,10 @@ def validate_proof(proof, source):
     fragment=proof.get('body_fractures',{})
     if not all(fragment.get(key) is True for key in ('actualFragments','continuousMaterialMotion','fastFragmentTickIntegrated','fragmentNbtRoundTrip')):
         raise ValueError('Physical fragment client proof is missing')
+
+    combat=proof.get('body_combat',{})
+    if not all(combat.get(key) is True for key in ('actualHitscanDamage','actualProjectileDamage','actualRadialDamage')):
+        raise ValueError('Actual hull combat proof is missing')
 
 
 def main():
@@ -49,6 +53,7 @@ def main():
     gate.verify_body_scale(root, started)
     gate.verify_hull_contacts(root, started)
     gate.verify_body_fractures(root, started)
+    gate.verify_body_combat(root, started)
     for name in ('snapshot', 'mirror-join', 'horizon-anchor', 'repair-visual'):
         gate.fresh(root / f'build/shootcheck/{name}-ok.json', started)
     snapshot = json.loads((root / 'build/shootcheck/snapshot-ok.json').read_text())
@@ -99,8 +104,12 @@ SHA-256: {proof['sha256']}
 материальных точек и скорость v+omega×radius; исходная идентичность остаётся у большой
 связной части. Повторный урон не создаёт дубли; сетка и физическое состояние каждой
 части сохраняются независимо. Проверка NBT не объявляется полной перезагрузкой мира.
-Сейчас фрагментация подключена к локальному редактированию/добыче; оружейный выбор
-повреждённых ячеек и взрывные пакеты ещё требуют интеграции.
+Попадания hitscan и реальных снарядов повреждают конкретные локальные блоки.
+Взрывы выбирают материал по расстоянию до поверхности, а не до центра масс корабля;
+один пакет разрушений проходит через общую атомарную фрагментацию.
+Частичный урон сохраняется в NBT и переносится вместе с отделившимися блоками.
+Повреждение пока блочное: деформация, микросетка и экранирование взрыва бронёй
+внутри движущегося корпуса остаются отдельной работой.
 Скорость корпусов расширена до512м/с вместе с бюджетом512 подшагов; обломки свыше60м/с
 сохраняют импульс на следующем физическом тике. Пакеты свыше256 новых частей либо
 требующие скорости свыше512м/с отклоняются до изменения материала; очереди массового
@@ -143,7 +152,7 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
 и6 сцен корпуса32768 блоков с300 сетевыми правками и освобождением leases
 с доказанным пропуском старым поиском на клиенте и сервере, реальным расходом материала
 и минимум1 блоком физического перелёта.
-[CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/HULL_FRACTURES_1.1.32.md).
+[CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/HULL_COMBAT_1.1.33.md).
 
 Программная графика Linux; новая native BCC-сессия и Windows/RTX этим CI не
 подтверждены. Предыдущий snapshot с native-проверками сохранён отдельно.

@@ -181,9 +181,9 @@ public final class NativeBodyCollisionCheck {
         for(var body:List.of(offset,striker)){body.physics().withLinearVelocity(new Vec3(0,0,0)).withAngularMomentum(new Vec3(0,0,0));body.publishPhysicsState();}
         var pairBodies=new ArrayList<BlockBodyEntity>(List.of(fastA,fastB));pairBodies.addAll(chain);pairBodies.add(offset);pairBodies.add(striker);
         if(FRACTURE) {
-            var split=fracture(c,BlockBodyEntity.createLocal(w,line(5),Vec3d.of(J)),5,2,new Quat(.2,.3,.4,.7).normalized(),new Vec3(1.5,-2,.3),new Vec3(.4,.2,-.1));
+            var split=fracture(c,BlockBodyEntity.createLocal(w,line(5),Vec3d.of(J)),5,2,new Quat(.2,.3,.4,.7).normalized(),new Vec3(1.5,-2,.3),new Vec3(.4,.2,-.1),1);
             freeze(split);pairBodies.addAll(split);
-            var fast=fracture(c,loadingHull,128,64,Quat.IDENTITY,new Vec3(0,0,0),new Vec3(0,0,2));
+            var fast=fracture(c,loadingHull,128,64,Quat.IDENTITY,new Vec3(0,0,0),new Vec3(0,0,2),2);
             for(var part:fast) {
                 var v=part.physics().linearVelocity();var position=part.massPosition();require(v.length()>60,"native fragment did not inherit its true tangential speed");
                 minFastFragmentSpeed=Math.min(minFastFragmentSpeed,v.length());entity(part).tick();
@@ -191,7 +191,7 @@ public final class NativeBodyCollisionCheck {
                 require(part.physics().linearVelocity().minus(v).length()<1e-8&&part.massPosition().minus(position.plus(v.scaled(.05))).length()<1e-7,"native fragment momentum was clipped after its first whole tick");
             }
             freeze(fast);pairBodies.addAll(fast);
-            var saved=fracture(c,BlockBodyEntity.createLocal(w,line(5),Vec3d.of(L)),5,2,new Quat(.2,.3,.4,.7).normalized(),new Vec3(2,1,0),new Vec3(.1,.2,.3));
+            var saved=fracture(c,BlockBodyEntity.createLocal(w,line(5),Vec3d.of(L)),5,2,new Quat(.2,.3,.4,.7).normalized(),new Vec3(2,1,0),new Vec3(.1,.2,.3),3);
             int indexed=BodySpatialIndex.loaded(w).size();
             for(var part:saved) {
                 var clone=com.terminaldetector.drmd.entity.ModEntities.BLOCK_BODY.create(w);
@@ -212,16 +212,41 @@ public final class NativeBodyCollisionCheck {
     private static List<BlockBodyEntity.Cell> line(int size) {
         var cells=new ArrayList<BlockBodyEntity.Cell>();for(int x=0;x<size;x++)cells.add(new BlockBodyEntity.Cell(new BlockPos(x,0,0),Blocks.IRON_BLOCK.getDefaultState()));return cells;
     }
-    private static List<BlockBodyEntity> fracture(MinecraftClient c,BlockBodyEntity root,int count,int cut,Quat turn,Vec3 velocity,Vec3 spin) {
+    private static List<BlockBodyEntity> fracture(MinecraftClient c,BlockBodyEntity root,int count,int cut,Quat turn,Vec3 velocity,Vec3 spin,int weaponKind) {
         var world=c.getServer().getOverworld();var before=new HashSet<Integer>();for(var body:BodySpatialIndex.loaded(world))before.add(entity(body).getId());
         root.physics().withRotation(turn).withLinearVelocity(velocity).withAngularVelocity(spin);
+        var removed=new BlockPos(cut,0,0);
+        var direction=weaponKind==2?new Vec3(-1,0,0):turn.rotate(new Vec3(0,0,1));
+        var impulse=direction.scaled(9);var delta=impulse.scaled(1/root.physicsMass());
+        // All three fixture loads pass through the COM line, so they add9N*s without torque.
+        // Include that actual weapon impulse in the surviving-material expectation.
         var points=new HashMap<BlockPos,Vec3d>();var speeds=new HashMap<BlockPos,Vec3d>();
-        for(var cell:root.cells()){var point=root.localToWorld(Vec3d.ofCenter(cell.pos()));points.put(cell.pos(),point);speeds.put(cell.pos(),root.surfaceVelocityAt(point));}
-        var origin=root.massPosition();var removed=new BlockPos(cut,0,0);double mass=root.physicsMass()/count;
+        for(var cell:root.cells()){var point=root.localToWorld(Vec3d.ofCenter(cell.pos()));points.put(cell.pos(),point);var old=root.surfaceVelocityAt(point);speeds.put(cell.pos(),old.add(delta.x(),delta.y(),delta.z()));}
+        velocity=velocity.plus(delta);
+        var origin=root.massPosition();double mass=root.physicsMass()/count;
         var removedVelocity=pure(speeds.get(removed));
         var expectedP=velocity.scaled(root.physicsMass()).minus(removedVelocity.scaled(mass));
         var expectedL=root.physics().angularMomentum().minus(pure(points.get(removed)).minus(origin).cross(removedVelocity.scaled(mass))).minus(spin.scaled(mass/6));
-        require(root.setLocalBlock(removed,Blocks.AIR.getDefaultState()),"native bridge edit failed");
+        var impact=root.localToWorld(new Vec3d(cut+.5,.5,weaponKind==2?.5:0));
+        var incoming=new Vec3d(direction.x(),direction.y(),direction.z());
+        if(weaponKind==2)root.weaponBlast(impact,60,.49);
+        else if(weaponKind==1) {
+            var owner=net.minecraft.entity.EntityType.ZOMBIE.create(world);
+            try {
+                var start=impact.subtract(incoming.multiply(2));((net.minecraft.entity.Entity)owner).setPosition(start);
+                com.terminaldetector.drmd.weapon.core.WeaponCore.hitscan(owner,start,incoming,1000,60,
+                    com.terminaldetector.drmd.weapon.core.DamageClass.KINETIC,null,false,false);
+            }finally{((net.minecraft.entity.Entity)owner).discard();}
+        }else {
+            var shot=com.terminaldetector.drmd.entity.ModEntities.PROJECTILE.create(world);
+            try {
+                ((net.minecraft.entity.Entity)shot).setPosition(impact.subtract(incoming.multiply(2)));
+                ((net.minecraft.entity.Entity)shot).setVelocity(incoming.multiply(4));shot.setDirectDamage(60);
+                require(world.spawnEntity(shot),"native combat projectile spawn failed");((net.minecraft.entity.Entity)shot).tick();
+                require(((net.minecraft.entity.Entity)shot).isRemoved(),"native projectile never reached its hull contact");
+            }finally{((net.minecraft.entity.Entity)shot).discard();}
+        }
+        require(root.getLocalBlock(removed).isAir(),"actual native weapon did not cut its local bridge");
         var parts=new ArrayList<BlockBodyEntity>();parts.add(root);for(var body:BodySpatialIndex.loaded(world))if(!before.contains(entity(body).getId()))parts.add(body);
         require(parts.size()==2,"native fracture did not create exactly one independent connected child");
         var owned=new HashSet<BlockPos>();Vec3 momentum=new Vec3(0,0,0),angular=momentum;
@@ -287,7 +312,7 @@ public final class NativeBodyCollisionCheck {
                 ((BlockBodyEntity)body).physics().withRotation(STOPPED_TURN);
             });
             if(stage==NAMES.length) {
-                Files.writeString(c.runDirectory.toPath().resolve("body-contacts-ok.json"),"{\"orientedTerrain\":true,\"hollowRay\":true,\"unknownNativeYRejected\":true,\"compoundContactQuery\":true,\"relativeCCD\":true,\"pairReaction\":true,\"nativeGravitySupport\":true,\"stableRenderedRotationFrames\":"+settledRotationFrames+",\"actualRenderer\":true,\"playerBoarding\":false,\"actualHullPairs\":true,\"wholeTickIntegrated\":true,\"sequentialThreeHulls\":true,\"rotatedHullImpulse\":true,\"maxPairClientError\":"+maxPairClientError+",\"maxQuantizedPoseError\":"+maxQuantizedPoseError+",\"precisionWaitSamples\":"+precisionWaitSamples+",\"pairClientSamples\":"+pairClientSamples+",\"actualFragments\":"+FRACTURE+",\"continuousMaterialMotion\":"+FRACTURE+",\"fastFragmentTickIntegrated\":"+FRACTURE+",\"minFastFragmentSpeed\":"+(FRACTURE?minFastFragmentSpeed:0)+",\"fastVisiblePixels\":"+Arrays.toString(fastVisiblePixels)+",\"fragmentNbtRoundTrip\":"+FRACTURE+",\"fullWorldReload\":false,\"scenes\":["+String.join(",",RESULTS)+"]}\n");
+                Files.writeString(c.runDirectory.toPath().resolve("body-contacts-ok.json"),"{\"orientedTerrain\":true,\"hollowRay\":true,\"unknownNativeYRejected\":true,\"compoundContactQuery\":true,\"relativeCCD\":true,\"pairReaction\":true,\"nativeGravitySupport\":true,\"stableRenderedRotationFrames\":"+settledRotationFrames+",\"actualRenderer\":true,\"playerBoarding\":false,\"actualHullPairs\":true,\"wholeTickIntegrated\":true,\"sequentialThreeHulls\":true,\"rotatedHullImpulse\":true,\"maxPairClientError\":"+maxPairClientError+",\"maxQuantizedPoseError\":"+maxQuantizedPoseError+",\"precisionWaitSamples\":"+precisionWaitSamples+",\"pairClientSamples\":"+pairClientSamples+",\"actualHitscanDamage\":"+FRACTURE+",\"actualProjectileDamage\":"+FRACTURE+",\"actualRadialDamage\":"+FRACTURE+",\"actualFragments\":"+FRACTURE+",\"continuousMaterialMotion\":"+FRACTURE+",\"fastFragmentTickIntegrated\":"+FRACTURE+",\"minFastFragmentSpeed\":"+(FRACTURE?minFastFragmentSpeed:0)+",\"fastVisiblePixels\":"+Arrays.toString(fastVisiblePixels)+",\"fragmentNbtRoundTrip\":"+FRACTURE+",\"fullWorldReload\":false,\"scenes\":["+String.join(",",RESULTS)+"]}\n");
                 finished=true;c.scheduleStop();
             }
         }catch(java.io.IOException error){throw new IllegalStateException(error);}

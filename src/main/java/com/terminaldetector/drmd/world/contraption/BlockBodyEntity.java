@@ -410,6 +410,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             Vec3 velocity=body.linearVelocity().plus(body.angularVelocity().cross(shift));
             if(velocity.length()>MAX_LINEAR_SPEED+1e-8)return null;
             fragment.body.withLinearVelocity(velocity).withAngularVelocity(body.angularVelocity());
+            for(var cell:fragmentCells)if(materialDamage.containsKey(cell.pos()))fragment.materialDamage.put(cell.pos(),materialDamage.get(cell.pos()));
             fragment.gravity=gravity; // Artificial gravity stays with the parent until ControlCore ownership exists.
             fragment.resetShapeBaseline();fragment.dataTracker.set(POSE,fragment.pose());
             fragment.setBoundingBox(new Box(fragment.getPos(),fragment.getPos()).expand(fragment.radius));fragments.add(fragment);
@@ -443,7 +444,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             var pos=edit.pos();var before=getLocalBlock(pos);var point=new Vec3(pos.getX()+.5,pos.getY()+.5,pos.getZ()+.5);
             if(!before.isAir())massProperties.addBlock(point,-blockMass(before));
             if(!edit.state().isAir())massProperties.addBlock(point,blockMass(edit.state()));
-            volume.set(pos.getX(),pos.getY(),pos.getZ(),edit.state());markGeometryNeighbours(dirty,pos);
+            volume.set(pos.getX(),pos.getY(),pos.getZ(),edit.state());materialDamage.remove(pos);markGeometryNeighbours(dirty,pos);
         }
         var ordered=new ArrayList<>(next.values());ordered.sort(Comparator.comparingInt((Cell c)->c.pos().getX()).thenComparingInt(c->c.pos().getY()).thenComparingInt(c->c.pos().getZ()));
         cells=List.copyOf(ordered);centre=massProperties.centreOfMass();
@@ -517,12 +518,20 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     @Override protected void readCustomDataFromNbt(NbtCompound n) {
         loadShape(n.getCompound("shape")); readPose(n.getCompound("body"));
+        materialDamage.clear();var damage=n.getList("materialDamage",net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
+        for(int i=0;i<Math.min(damage.size(),MAX_BLOCKS);i++) {
+            var entry=damage.getCompound(i);var pos=BodyShapeCodec.unpack(entry.getInt("pos"));double amount=entry.getDouble("damage");
+            if(validLocal(pos)&&!getLocalBlock(pos).isAir()&&Double.isFinite(amount)&&amount>0&&amount<materialStrength(pos))materialDamage.put(pos,amount);
+        }
         body.withPosition(massPosition()); previousRotation = body.rotation();
         displayRotation.reset(body.rotation(),age);
         resetShapeBaseline(); dataTracker.set(POSE, pose());BodySpatialIndex.update(this);
     }
     @Override protected void writeCustomDataToNbt(NbtCompound n) {
         n.put("shape", shapeTag()); n.put("body", pose());
+        var damage=new NbtList();
+        materialDamage.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry->{var cell=new NbtCompound();cell.putInt("pos",BodyShapeCodec.pack(entry.getKey()));cell.putDouble("damage",entry.getValue());damage.add(cell);});
+        n.put("materialDamage",damage);
     }
     public static BlockBodyEntity assemble(ServerWorld world, BlockPos from, BlockPos to) {
         BlockPos min = new BlockPos(Math.min(from.getX(), to.getX()), Math.min(from.getY(), to.getY()), Math.min(from.getZ(), to.getZ()));
@@ -773,6 +782,56 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     public Optional<Vec3d> raycast(Vec3d start,Vec3d end) {
         return raycastLocal(start,end).map(hit->localToWorld(minecraft(hit.point())));
+    }
+    /** Server-owned partial damage belongs to local material, never world block coordinates. */
+    private final Map<BlockPos,Double> materialDamage = new HashMap<>();
+    public double materialDamage(BlockPos pos){return materialDamage.getOrDefault(pos,0.);}
+    private double materialStrength(BlockPos pos) {
+        // Supported inert materials have position-independent hardness. Never query world state
+        // at a local-grid coordinate: the ship may be rotated or outside vanilla world height.
+        float hardness=getLocalBlock(pos).getHardness(net.minecraft.world.EmptyBlockView.INSTANCE,pos);
+        return hardness<0?Double.POSITIVE_INFINITY:Math.max(4,hardness*12.);
+    }
+    @Override public void weaponHit(Vec3d impact,Vec3d incoming,float damage) {
+        if(!(getWorld() instanceof ServerWorld)||!Float.isFinite(damage)||damage<=0
+            ||!Double.isFinite(impact.lengthSquared())||!Double.isFinite(incoming.lengthSquared())||incoming.lengthSquared()<1e-12)return;
+        PhysicsTarget.super.weaponHit(impact,incoming,damage);
+        var direction=incoming.normalize();
+        var hit=new BlockBodyWorldAccess(this).raycastBlockBody(impact.subtract(direction.multiply(.001)),impact.add(direction.multiply(.001)));
+        hit.ifPresent(h->damageLocalMaterial(Map.of(h.localBlock(),(double)damage)));
+    }
+    @Override public void weaponBlast(Vec3d origin,float damage,double radius) {
+        if(!(getWorld() instanceof ServerWorld)||!Float.isFinite(damage)||damage<=0||!Double.isFinite(radius)||radius<=0
+            ||!Double.isFinite(origin.lengthSquared()))return;
+        Vec3d local=worldToLocal(origin);Vec3 a=new Vec3(local.x-radius,local.y-radius,local.z-radius),b=new Vec3(local.x+radius,local.y+radius,local.z+radius);
+        var loads=new HashMap<BlockPos,Double>();Vec3d closest=null;double nearest=radius;
+        for(var pos:localCollisionCandidates(new BodyBounds(a,b))) {
+            // Exact sphere/unit-box distance in the rotated grid, not distance to the hull COM.
+            var point=new Vec3d(MathHelper.clamp(local.x,pos.getX(),pos.getX()+1),MathHelper.clamp(local.y,pos.getY(),pos.getY()+1),MathHelper.clamp(local.z,pos.getZ(),pos.getZ()+1));
+            double distance=point.distanceTo(local);if(distance>=radius)continue;
+            loads.put(pos,(double)damage*(1-distance/radius));
+            if(closest==null||distance<nearest){nearest=distance;closest=localToWorld(point);}
+        }
+        if(closest==null)return;
+        Vec3d direction=closest.subtract(origin);if(direction.lengthSquared()<1e-8)direction=physicsCentre().subtract(origin);
+        if(direction.lengthSquared()<1e-8)direction=new Vec3d(0,1,0);
+        applyPhysicsImpulse(closest,direction.normalize().multiply(Math.min(80,damage*(1-nearest/radius)*.15)));
+        damageLocalMaterial(loads);
+    }
+    /** One blast performs one atomic topology/mass/collider edit; no item entity per lost cell. */
+    private void damageLocalMaterial(Map<BlockPos,Double> loads) {
+        var next=new HashMap<BlockPos,Double>();var edits=new HashMap<BlockPos,BlockState>();
+        for(var load:loads.entrySet()) {
+            var pos=load.getKey();if(getLocalBlock(pos).isAir()||!Double.isFinite(load.getValue())||load.getValue()<=0)continue;
+            double total=materialDamage(pos)+load.getValue();
+            if(total>=materialStrength(pos))edits.put(pos,Blocks.AIR.getDefaultState());else next.put(pos,total);
+        }
+        // A refused fragment/speed admission cannot partially consume material damage either.
+        if(edits.isEmpty()){materialDamage.putAll(next);return;}
+        var before=new HashMap<>(materialDamage);materialDamage.putAll(next);
+        try {
+            if(!edits.isEmpty()&&!setLocalBlocks(edits)){materialDamage.clear();materialDamage.putAll(before);}
+        }catch(RuntimeException failure){materialDamage.clear();materialDamage.putAll(before);throw failure;}
     }
     @Override public Optional<Vec3d> physicsRaycast(Vec3d start,Vec3d end) {return raycast(start,end);}
     @Override public void applyPhysicsImpulse(Vec3d impact,Vec3d impulse) {
