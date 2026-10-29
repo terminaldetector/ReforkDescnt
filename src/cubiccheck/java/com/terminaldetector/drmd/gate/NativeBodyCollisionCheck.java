@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.gate;
 
 import com.terminaldetector.drmd.world.contraption.BlockBodyEntity;
+import com.terminaldetector.drmd.world.contraption.BodyContactSystem;
 import com.terminaldetector.drmd.client.portal.PortalTransform.*;
 import com.terminaldetector.drmd.d6.*;
 import com.terminaldetector.drmd.physics.collision.*;
@@ -17,14 +18,18 @@ import java.util.*;
 
 /** Production BlockBody + native world volumes + actual renderer, in a disposable high-altitude arena. */
 public final class NativeBodyCollisionCheck {
-    private static final BlockPos A=new BlockPos(8,2156,16),B=new BlockPos(16,2156,16),C=new BlockPos(8,2156,24),
-        D=new BlockPos(18,2157,24),E=new BlockPos(16,2156,36);
+    private static final int LAB_Y=Integer.getInteger("drmd.contacts.labY",2156);
+    private static BlockPos lab(int x,int y,int z){return new BlockPos(x,LAB_Y+y-2156,z);}
+    private static final BlockPos A=lab(8,2156,16),B=lab(16,2156,16),C=lab(8,2156,24),
+        D=lab(18,2157,24),E=lab(16,2156,36),F=lab(8,2156,44),G=lab(18,2156,44),H=lab(8,2156,54);
     private static final Set<Integer> DRAWN=new HashSet<>();
-    private static final String[] NAMES={"diagonal-corner","terrain-stop","hollow-door","compound-contact-query","gravity-support"};
+    private static final String[] NAMES={"diagonal-corner","terrain-stop","hollow-door","compound-contact-query","gravity-support","opposed-hull-impact","three-hull-chain","rotated-hull-impact"};
     private static final List<String> RESULTS=new ArrayList<>();
     private static boolean started,preparing,finished;private static volatile boolean ready;
     private static int ticks,stage,frames;private static volatile int[] ids;
     private static int settledRotationFrames;
+    private static Vec3[] pairPositions;private static Quat[] pairRotations;
+    private static double maxPairClientError;private static int pairClientSamples;
     private static final Quat STOPPED_TURN=new Quat(.35,-.1,.2,.85).normalized();
     private static net.minecraft.entity.Entity entity(BlockBodyEntity b){return b;}
     public static void register(){ClientTickEvents.END_CLIENT_TICK.register(NativeBodyCollisionCheck::tick);}
@@ -39,7 +44,7 @@ public final class NativeBodyCollisionCheck {
         settledRotationFrames++;
     }
     public static void camera(Camera camera) {
-        if(!ready)return;BlockPos p=stage==0?A:stage==1?B.east():stage==2?C.add(1,1,0):stage==3?D:E;
+        if(!ready)return;BlockPos p=stage==0?A:stage==1?B.east():stage==2?C.add(1,1,0):stage==3?D:stage==4?E:stage==5?F:stage==6?G:H;
         var a=(CameraAccessor)camera;a.drmd$invokeSetPos(Vec3d.ofCenter(p).add(7,4,10));a.drmd$invokeSetRotation(145,18);
     }
     private static void tick(MinecraftClient client) {
@@ -51,7 +56,7 @@ public final class NativeBodyCollisionCheck {
         if(client.player==null || client.world==null || client.getServer()==null)return;
         com.terminaldetector.drmd.client.DescentClient.markUserFlightChoice();com.terminaldetector.drmd.client.DescentClientState.enabled=false;
         if(!started) {
-            if(!client.runDirectory.toPath().getFileName().toString().equals("cubic-client-automation"))throw new IllegalStateException("Disposable runtime required");
+            if(!Set.of("cubic-client-automation","hullcontactcheck").contains(client.runDirectory.toPath().getFileName().toString()))throw new IllegalStateException("Disposable runtime required");
             started=true;client.setScreen(null);client.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);client.options.hudHidden=true;
             DescentConfig.hud=false;DescentConfig.cockpit=false;DescentConfig.weaponView=false;DescentConfig.planetFloor=false;DescentConfig.levelSky=false;
             DescentConfig.portalSeeThrough=false;DescentConfig.mirrorReflection=false;
@@ -59,23 +64,23 @@ public final class NativeBodyCollisionCheck {
                 var p=client.getServer().getPlayerManager().getPlayer(client.player.getUuid());
                 com.terminaldetector.drmd.flight.FlightSystem.disable(p,com.terminaldetector.drmd.DescentPlayerData.get(p));
                 p.getAbilities().allowFlying=true;p.getAbilities().flying=true;p.sendAbilitiesUpdate();
-                p.teleport(p.getServerWorld(),14.5,2156,28.5,Set.of(),145,18);
+                p.teleport(p.getServerWorld(),14.5,LAB_Y,28.5,Set.of(),145,18);
             });return;
         }
-        if(!ready && !preparing && client.player.getY()>2100 && loaded(client)) {
+        if(!ready && !preparing && client.player.getY()>LAB_Y-10 && loaded(client)) {
             preparing=true;client.getServer().execute(()->setup(client));
         }
     }
     private static boolean loaded(MinecraftClient c) {
         var access=com.terminaldetector.drmd.world.access.WorldAccess.of(c.world);
-        for(int x=0;x<=1;x++)for(int y=133;y<=135;y++)for(int z=0;z<=2;z++)
+        for(int x=0;x<=1;x++)for(int y=(LAB_Y-4)>>4;y<=(LAB_Y+10)>>4;y++)for(int z=0;z<=3;z++)
             if(!access.isVolumeAvailable(new D6ChunkPos(x,y,z)))return false;
         return true;
     }
     private static void require(boolean value,String message){if(!value)throw new IllegalStateException(message);}
     private static void setup(MinecraftClient c) {
         var w=c.getServer().getOverworld();
-        for(var p:BlockPos.iterate(new BlockPos(3,2152,10),new BlockPos(27,2166,42)))w.setBlockState(p,Blocks.AIR.getDefaultState(),2);
+        for(var p:BlockPos.iterate(lab(3,2152,10),lab(30,2166,60)))w.setBlockState(p,Blocks.AIR.getDefaultState(),2);
         w.setTimeOfDay(6000);w.getGameRules().get(net.minecraft.world.GameRules.DO_DAYLIGHT_CYCLE).set(false,c.getServer());
         var q=new Quat(0,0,Math.sin(Math.PI/8),Math.cos(Math.PI/8));
         w.setBlockState(A,Blocks.IRON_BLOCK.getDefaultState(),2);var a=BlockBodyEntity.assemble(w,A,A);
@@ -130,14 +135,46 @@ public final class NativeBodyCollisionCheck {
         require(Math.abs(column.rotation().z())>.35,"native gravity support freezes the tipping column");
         require(entity(column).getY()>E.getY()-1,"native terrain support lets the column fall through");
         column.setPhysicsGravity(false);column.physics().withLinearVelocity(new Vec3(0,0,0)).withAngularMomentum(new Vec3(0,0,0));entity(column).tick();
-        ids=new int[]{entity(a).getId(),entity(b).getId(),entity(hollow).getId(),entity(deck).getId(),entity(column).getId()};ready=true;
+        var unitCells=List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState()));
+        var fastA=BlockBodyEntity.createLocal(w,unitCells,Vec3d.of(F));var fastB=BlockBodyEntity.createLocal(w,unitCells,Vec3d.of(F.east(3)));
+        fastA.physics().withLinearVelocity(new Vec3(50,0,0));fastB.physics().withLinearVelocity(new Vec3(-50,0,0));
+        entity(fastA).tick();entity(fastB).tick();require(entity(fastA).getX()>entity(fastB).getX(),"native fast fixture endpoints did not cross");
+        require(BodyContactSystem.solve(w)>0&&!BodyContactSystem.stats(w).budgetPaused(),"native physical hull/hull CCD did not settle");
+        require(entity(fastB).getX()-entity(fastA).getX()>=.999999&&fastA.physics().linearVelocity().length()<1e-6&&fastB.physics().linearVelocity().length()<1e-6,"native opposing hulls tunneled or lost their inelastic contact");
+        var chain=new ArrayList<BlockBodyEntity>();for(int i=0;i<3;i++)chain.add(BlockBodyEntity.createLocal(w,unitCells,Vec3d.of(G).add(i*1.4,0,0)));
+        chain.getFirst().physics().withLinearVelocity(new Vec3(50,0,0));for(var body:chain)entity(body).tick();
+        require(BodyContactSystem.solve(w)>=2&&!BodyContactSystem.stats(w).budgetPaused(),"native changed trajectory did not reach third hull");
+        for(int i=0;i<3;i++) {
+            var body=chain.get(i);require(Math.abs(body.physics().linearVelocity().x()-50./3)<1e-4,"native three-body contact lost momentum");
+            require(Math.abs(entity(body).getX()-(G.getX()+1.7333333333333334+i))<1e-4,"native collision discarded the rest of its tick");
+            body.physics().withLinearVelocity(new Vec3(0,0,0));body.publishPhysicsState();
+        }
+        var offset=BlockBodyEntity.createLocal(w,List.of(unitCells.getFirst(),new BlockBodyEntity.Cell(BlockPos.ORIGIN.up(),Blocks.IRON_BLOCK.getDefaultState())),Vec3d.of(H));
+        var orientation=new Quat(.2,.3,.4,.7).normalized();offset.physics().withRotation(orientation);entity(offset).tick();
+        var target=offset.localToWorld(new Vec3d(1.53,1.1,.5));var striker=BlockBodyEntity.createLocal(w,unitCells,target.subtract(.5,.5,.5));
+        striker.physics().withRotation(orientation).withLinearVelocity(orientation.rotate(new Vec3(-1,0,0)));
+        Vec3 pairMomentum=offset.physics().linearVelocity().scaled(offset.physicsMass()).plus(striker.physics().linearVelocity().scaled(striker.physicsMass()));
+        entity(offset).tick();entity(striker).tick();require(BodyContactSystem.solve(w)>0&&!BodyContactSystem.stats(w).budgetPaused(),"native rotated actual hull contact missing");
+        require(offset.physics().angularVelocity().length()>1e-4&&striker.physics().angularVelocity().length()>1e-4,"native offset contact failed to spin both hulls");
+        require(offset.physics().linearVelocity().scaled(offset.physicsMass()).plus(striker.physics().linearVelocity().scaled(striker.physicsMass())).minus(pairMomentum).length()<1e-7,"native rotated contact lost linear momentum");
+        for(var body:List.of(offset,striker)){body.physics().withLinearVelocity(new Vec3(0,0,0)).withAngularMomentum(new Vec3(0,0,0));body.publishPhysicsState();}
+        var pairBodies=new ArrayList<BlockBodyEntity>(List.of(fastA,fastB));pairBodies.addAll(chain);pairBodies.add(offset);pairBodies.add(striker);
+        pairPositions=pairBodies.stream().map(BlockBodyEntity::massPosition).toArray(Vec3[]::new);pairRotations=pairBodies.stream().map(BlockBodyEntity::rotation).toArray(Quat[]::new);
+        ids=new int[]{entity(a).getId(),entity(b).getId(),entity(hollow).getId(),entity(deck).getId(),entity(column).getId(),entity(fastA).getId(),entity(fastB).getId(),entity(chain.get(0)).getId(),entity(chain.get(1)).getId(),entity(chain.get(2)).getId(),entity(offset).getId(),entity(striker).getId()};ready=true;
         System.out.println("BODY_CONTACT_NATIVE geometry, relative CCD, pair reaction, gravity support and unknown-Y rejection PASS");
     }
     private static Vec3 pure(Vec3d p){return new Vec3(p.x,p.y,p.z);}
     public static void rendered() {
         if(!ready || finished)return;var c=MinecraftClient.getInstance();
         for(int id:ids)if(!(c.world.getEntityById(id) instanceof BlockBodyEntity))return;
-        boolean visible=DRAWN.contains(ids[stage]);DRAWN.clear();
+        int start=stage<5?stage:stage==5?5:stage==6?7:10,end=stage<5?start+1:stage==5?7:stage==6?10:12;
+        boolean visible=true;for(int i=start;i<end;i++)visible&=DRAWN.contains(ids[i]);DRAWN.clear();
+        if(stage>=5&&frames>30)for(int i=start;i<end;i++) {
+            var body=(BlockBodyEntity)c.world.getEntityById(ids[i]);double error=body.massPosition().minus(pairPositions[i-5]).length();
+            require(error<1e-5,"native client hull pose diverged from its post-contact server pose: "+error);
+            require(Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(body.rotation(),pairRotations[i-5]))>1-1e-8,"native contact rotation was not synchronized");
+            maxPairClientError=Math.max(maxPairClientError,error);pairClientSamples++;
+        }
         if(!visible || ++frames<90)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             var path=c.runDirectory.toPath().resolve("body-contact-frames");Files.createDirectories(path);image.writeTo(path.resolve(NAMES[stage]+".png"));
@@ -150,7 +187,7 @@ public final class NativeBodyCollisionCheck {
                 ((BlockBodyEntity)body).physics().withRotation(STOPPED_TURN);
             });
             if(stage==NAMES.length) {
-                Files.writeString(c.runDirectory.toPath().resolve("body-contacts-ok.json"),"{\"orientedTerrain\":true,\"hollowRay\":true,\"unknownNativeYRejected\":true,\"compoundContactQuery\":true,\"relativeCCD\":true,\"pairReaction\":true,\"nativeGravitySupport\":true,\"stableRenderedRotationFrames\":"+settledRotationFrames+",\"actualRenderer\":true,\"playerBoarding\":false,\"scenes\":["+String.join(",",RESULTS)+"]}\n");
+                Files.writeString(c.runDirectory.toPath().resolve("body-contacts-ok.json"),"{\"orientedTerrain\":true,\"hollowRay\":true,\"unknownNativeYRejected\":true,\"compoundContactQuery\":true,\"relativeCCD\":true,\"pairReaction\":true,\"nativeGravitySupport\":true,\"stableRenderedRotationFrames\":"+settledRotationFrames+",\"actualRenderer\":true,\"playerBoarding\":false,\"actualHullPairs\":true,\"wholeTickIntegrated\":true,\"sequentialThreeHulls\":true,\"rotatedHullImpulse\":true,\"maxPairClientError\":"+maxPairClientError+",\"pairClientSamples\":"+pairClientSamples+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");
                 finished=true;c.scheduleStop();
             }
         }catch(java.io.IOException error){throw new IllegalStateException(error);}

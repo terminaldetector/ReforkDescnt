@@ -154,6 +154,11 @@ jobs:
         run: |
           rm -f build/bodyscalecheck/body-scale-ok.json
           LIBGL_ALWAYS_SOFTWARE=1 timeout 600s xvfb-run -a ./gradlew runBodyscalecheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/bodyscalecheck.log
+      - name: Verify actual oriented hull contacts and synchronized client poses
+        id: hullcontactcheck
+        run: |
+          rm -f build/hullcontactcheck/body-contacts-ok.json
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 600s xvfb-run -a ./gradlew runHullcontactcheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/hullcontactcheck.log
       - name: Validate fresh evidence and stage only the current JAR
         id: verify
         run: python3 scripts/checkpoint_report.py --verify 2>&1 | tee build/checkpoint/logs/verify.log
@@ -176,6 +181,10 @@ jobs:
           name: evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             build/checkpoint/
+            build/hullcontactcheck/body-contacts-ok.json
+            build/hullcontactcheck/body-contact-frames/
+            build/hullcontactcheck/logs/
+            build/hullcontactcheck/crash-reports/
             build/bodyscalecheck/body-scale-ok.json
             build/bodyscalecheck/body-scale-frames/
             build/bodyscalecheck/logs/

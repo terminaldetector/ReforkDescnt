@@ -9,6 +9,7 @@
       "com.terminaldetector.drmd.BlockBodyGameTests",
       "com.terminaldetector.drmd.BodyScaleGameTests",
       "com.terminaldetector.drmd.BodyVolumeGameTests",
+      "com.terminaldetector.drmd.HullContactGameTests",
       "com.terminaldetector.drmd.OrientedBodyGameTests",
       "com.terminaldetector.drmd.BodyContactGameTests",
       "com.terminaldetector.drmd.BoardingGameTests",

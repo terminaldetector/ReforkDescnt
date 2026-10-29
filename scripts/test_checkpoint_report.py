@@ -204,6 +204,51 @@ class EvidenceGateTest(unittest.TestCase):
         self.write('build/gametest/item-resource-inventory.tsv','synthetic registry table, not real game evidence')
         checkpoint.verify_native_audit(self.root,self.started)
 
+    def hull_contact_fixture(self):
+        proof=dict(orientedTerrain=True,hollowRay=True,unknownNativeYRejected=True,
+            compoundContactQuery=True,relativeCCD=True,pairReaction=True,nativeGravitySupport=True,
+            actualRenderer=True,actualHullPairs=True,wholeTickIntegrated=True,sequentialThreeHulls=True,
+            rotatedHullImpulse=True,stableRenderedRotationFrames=60,pairClientSamples=350,
+            maxPairClientError=0.,scenes=[dict(scene=name,renderedFrames=90) for name in checkpoint.HULL_CONTACT_SCENES])
+        for name in checkpoint.HULL_CONTACT_SCENES:
+            self.write(f'build/hullcontactcheck/body-contact-frames/{name}.png',b'\x89PNG\r\n\x1a\nfixture')
+        self.write('build/hullcontactcheck/body-contacts-ok.json',json.dumps(proof));return proof
+
+    def test_hull_contact_gate_requires_real_pairs_and_complete_tick(self):
+        proof=self.hull_contact_fixture()
+        checkpoint.verify_hull_contacts(self.root,self.started)
+        for key in ('actualHullPairs','wholeTickIntegrated','sequentialThreeHulls','rotatedHullImpulse'):
+            with self.subTest(key=key):
+                invalid=proof.copy();invalid[key]=False
+                self.write('build/hullcontactcheck/body-contacts-ok.json',json.dumps(invalid))
+                with self.assertRaisesRegex(ValueError,'Missing hull contact proof'):
+                    checkpoint.verify_hull_contacts(self.root,self.started)
+
+    def test_hull_contact_gate_rejects_missing_or_stale_scene(self):
+        self.hull_contact_fixture()
+        frame=self.root/'build/hullcontactcheck/body-contact-frames/three-hull-chain.png'
+        os.utime(frame,(self.started-10,self.started-10))
+        with self.assertRaisesRegex(ValueError,'Stale evidence'):checkpoint.verify_hull_contacts(self.root,self.started)
+        frame.unlink()
+        with self.assertRaisesRegex(ValueError,'Missing or empty evidence'):checkpoint.verify_hull_contacts(self.root,self.started)
+
+    def test_hull_contact_gate_rejects_unsynchronized_or_nonfinite_pose(self):
+        proof=self.hull_contact_fixture()
+        for value in (1.,float('nan'),float('inf'),-1,True):
+            with self.subTest(error=value):
+                proof['maxPairClientError']=value
+                self.write('build/hullcontactcheck/body-contacts-ok.json',json.dumps(proof))
+                with self.assertRaisesRegex(ValueError,'Invalid hull contact client error'):
+                    checkpoint.verify_hull_contacts(self.root,self.started)
+
+    def test_hull_contact_gate_requires_every_rendered_scene_and_samples(self):
+        proof=self.hull_contact_fixture();proof['scenes']=proof['scenes'][:-1]
+        self.write('build/hullcontactcheck/body-contacts-ok.json',json.dumps(proof))
+        with self.assertRaisesRegex(ValueError,'Missing actual rendered'):checkpoint.verify_hull_contacts(self.root,self.started)
+        proof=self.hull_contact_fixture();proof['pairClientSamples']=12
+        self.write('build/hullcontactcheck/body-contacts-ok.json',json.dumps(proof))
+        with self.assertRaisesRegex(ValueError,'Missing hull contact samples'):checkpoint.verify_hull_contacts(self.root,self.started)
+
     def test_failed_run_still_has_report_without_certifying_jar(self):
         with patch.dict(os.environ, {'VERIFY_OUTCOME': 'failure'}):
             checkpoint.report(self.root)

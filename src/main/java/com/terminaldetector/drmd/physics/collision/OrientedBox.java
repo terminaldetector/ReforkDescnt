@@ -27,6 +27,8 @@ public final class OrientedBox {
     }
     public Vec3 centre(){return centre;}
     public Vec3 half(){return half;}
+    /** Immutable world-space local basis, for clipped face and edge manifolds. */
+    public Vec3 basis(int axis){return axes[axis];}
     /** Euclidean projection onto the occupied OBB, rather than onto its world broadphase. */
     public Vec3 closestPoint(Vec3 point) {
         BodyBounds.finite(point); Vec3 delta=point.minus(centre),result=centre;

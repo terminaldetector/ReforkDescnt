@@ -252,6 +252,7 @@ sourceSets {
         java.include 'com/terminaldetector/drmd/gate/NativeShipGravityCheck.java'
         java.include 'com/terminaldetector/drmd/gate/NativeBodyEditCheck.java'
         java.include 'com/terminaldetector/drmd/gate/NativeBodyIndexCheck.java'
+        java.include 'com/terminaldetector/drmd/gate/NativeBodyCollisionCheck.java'
         java.include 'com/terminaldetector/drmd/boardingcheck/**'
         compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
         runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
@@ -396,3 +397,29 @@ tasks.register('prepareBodyscalecheckWorld', Sync) {
     }
 }
 tasks.named('runBodyscalecheck') { dependsOn prepareBodyscalecheckWorld }
+
+// Actual oriented hull/hull contacts, CCD, remaining time and synchronized renderer.
+loom { runs { hullcontactcheck {
+    client()
+    source sourceSets.boardingcheck
+    runDir 'build/hullcontactcheck'
+    vmArg '-Ddrmd.contacts.labY=140'
+    vmArg '-Ddrmd.gate.contacts=true'
+    programArg '--quickPlaySingleplayer'
+    programArg 'DRMD-hullcontact-lab'
+    programArg '--width'
+    programArg '1280'
+    programArg '--height'
+    programArg '720'
+} } }
+tasks.register('prepareHullcontactcheckWorld', Sync) {
+    dependsOn runGametest
+    from 'build/gametest/world'
+    into 'build/hullcontactcheck/saves/DRMD-hullcontact-lab'
+    exclude '**/session.lock'
+    doLast {
+        if(!file('build/hullcontactcheck/saves/DRMD-hullcontact-lab/level.dat').isFile())throw new GradleException('Missing disposable hull contact world')
+        file('build/hullcontactcheck/options.txt').text='onboardAccessibility:false\npauseOnLostFocus:false\nmaxFps:30\nrenderDistance:8\nsimulationDistance:8\n'
+    }
+}
+tasks.named('runHullcontactcheck') { dependsOn prepareHullcontactcheckWorld }

@@ -61,6 +61,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private Vec3 previousPhysicsPosition = new Vec3(0,0,0);
     private long physicsTick = Long.MIN_VALUE;
     private boolean remoteMotionPaused=true;
+    private boolean publishingPhysicsPosition;
     private boolean collisionUnavailable;
     /** Non-ticking entities retain their momentum for resume, but their current contact surface is still. */
     public boolean boardingMotionPaused(){return getWorld().isClient?remoteMotionPaused:physicsTick!=getWorld().getTime();}
@@ -90,7 +91,14 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     @Override public void setPosition(double x,double y,double z) {
         super.setPosition(x,y,z);
-        if(body!=null)BodySpatialIndex.update(this);
+        if(body!=null) {
+            if(!publishingPhysicsPosition) {
+                // An explicit entity placement/teleport is a discontinuity, not a swept
+                // path through all intervening chunks and other ships. Momentum is kept.
+                body.withPosition(massPosition());previousPhysicsPosition=body.position();previousRotation=body.rotation();
+            }
+            BodySpatialIndex.update(this);
+        }
     }
     /** One conservative envelope per hull, including its last contact pose and finite gravity field.
      * The client reserves the bounded32-command prediction window; no block/section entries. */
@@ -131,7 +139,8 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public Vec3 massPosition(){return pure(getPos()).plus(body.rotation().rotate(centre.minus(pivot)));}
     public Vec3 renderMassPosition(float delta){return pure(getLerpedPos(delta)).plus(renderRotation(delta).rotate(centre.minus(pivot)));}
     private void positionFromPhysics(){
-        Vec3 at=body.position().plus(body.rotation().rotate(pivot.minus(centre)));setPosition(at.x(),at.y(),at.z());
+        Vec3 at=body.position().plus(body.rotation().rotate(pivot.minus(centre)));
+        publishingPhysicsPosition=true;try{setPosition(at.x(),at.y(),at.z());}finally{publishingPhysicsPosition=false;}
     }
     private NbtCompound shapeTag(){
         var n=BodyShapeCodec.write(cells);vector(n,"pivot",pivot);n.putLong("revision",shapeRevision);return n;
@@ -156,6 +165,31 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     public void publishPhysicsState() {
         BodySpatialIndex.update(this);
         if(!getWorld().isClient){dataTracker.set(POSE,pose());velocityModified=true;}
+    }
+    /** Physical contact/CCD correction in the same world. Terrain remains authoritative;
+     * this never moves a passenger or rebuilds local geometry. */
+    public boolean resolveContactPose(Vec3 position,Quat rotation) {
+        if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())throw new IllegalStateException("Contact correction is server-owned");
+        Vec3 before=body.position();Quat turn=body.rotation();body.withPosition(position).withRotation(rotation);
+        if(blocked()){body.withPosition(before).withRotation(turn);return false;}
+        positionFromPhysics();setBoundingBox(new Box(getPos(),getPos()).expand(radius));BodySpatialIndex.update(this);return true;
+    }
+    /** Complete the unelapsed part of a collision tick with the new contact velocity.
+     * Frame force impulses were already applied by tick(); do not apply them twice. */
+    public void advanceContactRemainder(double seconds) {
+        if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||!Double.isFinite(seconds)||seconds<0||seconds>.05)
+            throw new IllegalArgumentException("one server collision remainder required");
+        if(seconds<1e-10)return;
+        int steps=Math.max(1,(int)Math.ceil(BodyStepBudget.steps(body,new Vec3(0,0,0),radius,false)*seconds/.05));
+        for(int i=0;i<steps;i++) {
+            Vec3 before=body.position(),velocity=body.linearVelocity(),momentum=body.angularMomentum();Quat q=body.rotation();body.step(seconds/steps);
+            boolean collision=blocked();
+            if(collisionUnavailable){body.withPosition(before).withRotation(q).withLinearVelocity(velocity).withAngularMomentum(momentum);physicsTick=Long.MIN_VALUE;break;}
+            if(collision&&!(gravity&&gravityContacts(before,q,gravityDirection().scaled(-1)))) {
+                body.withPosition(before).withRotation(q).withLinearVelocity(new Vec3(0,0,0)).withAngularMomentum(new Vec3(0,0,0));break;
+            }
+        }
+        positionFromPhysics();setBoundingBox(new Box(getPos(),getPos()).expand(radius));BodySpatialIndex.update(this);
     }
     /** Current world pose plus the existing local BVH; no world blocks or chunk loads are read. */
     public BodyCollisionQuery collisionQuery() {
@@ -752,6 +786,8 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     public void crossPortal(D6PortalTransform transform) {
         body.withPosition(massPosition()); transform.apply(body, null);
+        // Portal discontinuities are not straight trajectories through intervening terrain.
+        previousPhysicsPosition=body.position();previousRotation=body.rotation();
         positionFromPhysics(); dataTracker.set(POSE,pose());
     }
     @Override public boolean canHit() { return true; }

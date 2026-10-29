@@ -225,6 +225,29 @@ def verify_body_scale(root,started):
     return verify_body_index(root,started,scale=True)
 
 
+
+HULL_CONTACT_SCENES=('diagonal-corner','terrain-stop','hollow-door','compound-contact-query',
+                     'gravity-support','opposed-hull-impact','three-hull-chain','rotated-hull-impact')
+
+def verify_hull_contacts(root,started):
+    runtime=root/'build/hullcontactcheck'
+    marker=runtime/'body-contacts-ok.json';fresh(marker,started)
+    proof=json.loads(marker.read_text())
+    for key in ('orientedTerrain','hollowRay','unknownNativeYRejected','compoundContactQuery',
+                'relativeCCD','pairReaction','nativeGravitySupport','actualRenderer',
+                'actualHullPairs','wholeTickIntegrated','sequentialThreeHulls','rotatedHullImpulse'):
+        if proof.get(key) is not True: raise ValueError(f'Missing hull contact proof: {key}')
+    for key,minimum in (('stableRenderedRotationFrames',50),('pairClientSamples',300)):
+        if type(proof.get(key)) is not int or proof[key]<minimum: raise ValueError(f'Missing hull contact samples: {key}')
+    error=proof.get('maxPairClientError')
+    if type(error) not in (int,float) or not math.isfinite(error) or not 0<=error<1e-5: raise ValueError('Invalid hull contact client error')
+    scenes=proof.get('scenes',[])
+    if [scene.get('scene') for scene in scenes]!=list(HULL_CONTACT_SCENES) or any(scene.get('renderedFrames',0)<90 for scene in scenes):
+        raise ValueError('Missing actual rendered hull contact scenes')
+    for name in HULL_CONTACT_SCENES: fresh_png(runtime/f'body-contact-frames/{name}.png',started)
+    return proof
+
+
 def properties(root):
     return dict(line.strip().split('=', 1) for line in
                 (root / 'gradle.properties').read_text().splitlines()
@@ -317,11 +340,12 @@ def verify(root):
 
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
-    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28','1.1.29','1.1.30')) else None
-    body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28','1.1.29','1.1.30')) else None
-    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28','1.1.29','1.1.30')) else None
-    body_index = verify_body_index(root,started) if version.startswith(('1.1.28','1.1.29','1.1.30')) else None
-    body_scale=verify_body_scale(root,started) if version.startswith(('1.1.29','1.1.30')) else None
+    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31')) else None
+    body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28','1.1.29','1.1.30','1.1.31')) else None
+    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31')) else None
+    body_index = verify_body_index(root,started) if version.startswith(('1.1.28','1.1.29','1.1.30','1.1.31')) else None
+    body_scale=verify_body_scale(root,started) if version.startswith(('1.1.29','1.1.30','1.1.31')) else None
+    hull_contacts=verify_hull_contacts(root,started) if version.startswith('1.1.31') else None
     audit=verify_audit(root,started) if version.startswith('1.1.14') else None
     if audit: verify_native_audit(root,started)
     jar = root / f'build/libs/{base}-{version}.jar'
@@ -371,6 +395,7 @@ def verify(root):
     if body_edits is not None: result['body_edits']=body_edits
     if body_index is not None: result['body_index']=body_index
     if body_scale is not None: result['body_scale']=body_scale
+    if hull_contacts is not None: result['hull_contacts']=hull_contacts
     (out / 'verified.json').write_text(json.dumps(result, indent=2) + '\n')
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'], 'a') as output:

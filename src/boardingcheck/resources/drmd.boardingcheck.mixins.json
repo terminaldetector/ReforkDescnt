@@ -8,7 +8,9 @@
     "ShipModelProbe",
     "ShipCameraProbe",
     "BodyEditInputProbe",
-    "BoardingStepProbe"
+    "BoardingStepProbe",
+    "HullContactProbe",
+    "HullCameraProbe"
   ],
   "injectors": {
     "defaultRequire": 1
