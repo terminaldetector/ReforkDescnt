@@ -19,13 +19,23 @@ public final class HullContactGameTests implements FabricGameTest {
     private List<BlockBodyEntity.Cell> cube(){return List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState()));}
     private Vec3 momentum(BlockBodyEntity b){return b.physics().linearVelocity().scaled(b.physicsMass());}
     private Vec3 angular(BlockBodyEntity b,Vec3 origin){return b.physics().angularMomentum().plus(b.massPosition().minus(origin).cross(momentum(b)));}
-    @GameTest(templateName=EMPTY_STRUCTURE,batchId="hull-pair-world-phase",tickLimit=100)
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="hull-pair-world-phase",tickLimit=240)
     public void normalServerTicksRunTheRegisteredContactPhaseWithoutAManualSolverCall(TestContext c) {
         var at=arena(c);var w=c.getWorld();var a=BlockBodyEntity.createLocal(w,cube(),at);var b=BlockBodyEntity.createLocal(w,cube(),at.add(3,0,0));
-        var player=c.createMockCreativeServerPlayerInWorld();player.setPosition(at.add(0,3,5));
+        var player=c.createMockCreativeServerPlayerInWorld();player.setPosition(at.add(0,3,5));player.setNoGravity(true);player.getAbilities().flying=true;
+        awaitWorldTicks(c,a,b,player,at,0);
+    }
+    private void awaitWorldTicks(TestContext c,BlockBodyEntity a,BlockBodyEntity b,net.minecraft.server.network.ServerPlayerEntity player,Vec3d at,int attempts) {
+        // FULL data is not ENTITY_TICKING readiness. The previous test sometimes launched
+        // before asynchronous chunk tickets became active in a second fresh CI server.
+        if(a.age<2||b.age<2) {
+            if(attempts>=100){try{c.assertTrue(false,"fixture never reached actual entity ticking: a="+a.age+" b="+b.age);}finally{a.discard();b.discard();player.discard();}return;}
+            c.waitAndRun(2,()->awaitWorldTicks(c,a,b,player,at,attempts+1));return;
+        }
+        int ageA=a.age,ageB=b.age;
         a.physics().withLinearVelocity(new Vec3(20,0,0));b.physics().withLinearVelocity(new Vec3(-20,0,0));
-        c.waitAndRun(12,()->{try {
-            c.assertTrue(a.age>1&&b.age>1,"both hulls really tick in the server world");
+        c.waitAndRun(5,()->{try {
+            c.assertTrue(a.age>ageA+1&&b.age>ageB+1,"both hulls really tick during the measured flight");
             c.assertTrue(b.getX()-a.getX()>=.999&&a.getX()>at.x+.6,"registered world contact stops crossing after actual flight");
             c.assertTrue(a.physics().linearVelocity().length()<1e-6&&b.physics().linearVelocity().length()<1e-6,"END_WORLD_TICK actually solves both physical bodies");
         }finally{a.discard();b.discard();player.discard();}c.complete();});
