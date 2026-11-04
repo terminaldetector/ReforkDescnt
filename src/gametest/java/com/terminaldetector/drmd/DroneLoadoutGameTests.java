@@ -19,10 +19,10 @@ public final class DroneLoadoutGameTests implements FabricGameTest {
             original.setPhase(com.terminaldetector.drmd.ai.DroneAi.Phase.RUN);original.addPhaseTimer(.75f);
             c.assertTrue(original.tryFireAt(target),"real weapon fire starts the authored cooldown and spends energy");
             float energy=original.getModEnergy(),shield=original.getDroneShield();var tag=original.writeNbt(new NbtCompound());copy.readNbt(tag);
-            boolean unexpectedFire=copy.tryFireAt(target);
+            float restoredEnergy=copy.getModEnergy();boolean unexpectedFire=copy.tryFireAt(target);
             c.assertTrue(copy.getRole()==AiRole.HEAVY_ELITE&&copy.getHealth()==500&&copy.getDroneShield()==shield&&copy.getDroneArmor()==original.getDroneArmor(),"preserve the already-fixed role, health and defence pools");
-            c.assertTrue(copy.getFlightRoll()==32.5f&&copy.getModEnergy()==energy&&copy.getPhase()==original.getPhase()&&copy.getPhaseTimer()==.75f&&!unexpectedFire,
-                "combat restore: bank="+copy.getFlightRoll()+" energy="+copy.getModEnergy()+" phase="+copy.getPhase()+" timer="+copy.getPhaseTimer()+" unexpectedFire="+unexpectedFire);
+            c.assertTrue(copy.getFlightRoll()==32.5f&&restoredEnergy==energy&&copy.getPhase()==original.getPhase()&&copy.getPhaseTimer()==.75f&&!unexpectedFire,
+                "combat restore: bank="+copy.getFlightRoll()+" energy="+restoredEnergy+" phase="+copy.getPhase()+" timer="+copy.getPhaseTimer()+" unexpectedFire="+unexpectedFire);
         } finally {original.discard();copy.discard();target.discard();for(var e:w.getOtherEntities(null,area))if(!before.contains(e.getUuid()))e.discard();}c.complete();
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="drone-corpse-roundtrip")
@@ -35,9 +35,23 @@ public final class DroneLoadoutGameTests implements FabricGameTest {
             c.assertTrue(original.getHealth()==0&&original.isInvisible(),"death hands visible ownership to the ragdoll path");
             long count=w.getEntitiesByClass(com.terminaldetector.drmd.entity.RagdollEntity.class,area,e->true).size();
             copy.readNbt(original.writeNbt(new NbtCompound()));
+            copy.tick();
             c.assertTrue(copy.getHealth()==0&&copy.isInvisible(),"loaded corpse must retain hidden vanilla mesh ownership");
             c.assertTrue(count==w.getEntitiesByClass(com.terminaldetector.drmd.entity.RagdollEntity.class,area,e->true).size(),"NBT restore cannot manufacture another ragdoll");
         } finally {original.discard();copy.discard();for(var e:w.getOtherEntities(null,area))if(!before.contains(e.getUuid()))e.discard();}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="drone-legacy-state")
+    public void oldDroneSavesStillActWithoutTheNewTransientStateFields(TestContext c) {
+        var w=c.getWorld();var at=Vec3d.ofCenter(c.getAbsolutePos(new BlockPos(7,8,7)));var area=new Box(at.add(-16,-16,-16),at.add(16,16,16));
+        var before=w.getOtherEntities(null,area).stream().map(net.minecraft.entity.Entity::getUuid).collect(java.util.stream.Collectors.toSet());
+        var original=ModEntities.DRONE.create(w);var copy=ModEntities.DRONE.create(w);var target=net.minecraft.entity.EntityType.COW.create(w);
+        try {
+            original.applyRole(AiRole.MG);original.setPosition(at);original.setHealth(75);target.setPosition(at.add(5,0,0));target.setInvulnerable(true);
+            var tag=original.writeNbt(new NbtCompound());for(String key:new String[]{"modEnergy","attackCooldown","flightRoll","aiPhase","aiPhaseTime"})tag.remove(key);
+            copy.readNbt(tag);
+            c.assertTrue(copy.getRole()==AiRole.MG&&copy.getHealth()==75&&!copy.isAiDisabled(),"old saves retain their authored role and damaged hull with active AI");
+            c.assertTrue(copy.tryFireAt(target),"missing transient fields must not lock a legacy drone's weapon");
+        } finally {original.discard();copy.discard();target.discard();for(var e:w.getOtherEntities(null,area))if(!before.contains(e.getUuid()))e.discard();}c.complete();
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="drone-loadouts")
     public void everyRoleSpawnsAtItsFullAuthoredHullAndDefencePools(TestContext context) {

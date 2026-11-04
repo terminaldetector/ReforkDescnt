@@ -104,6 +104,7 @@ public class DroneEntity extends HostileEntity {
 		super.tick();
 		this.setNoGravity(true);
 		if (!getWorld().isClient) {
+			if(ragdollSpawned&&!isAlive())setInvisible(true);
 			modEnergy = Math.min(100f, modEnergy + 20f / 20f);
 			if (attackCooldown > 0) attackCooldown -= 1f / 20f;
 			dataTracker.set(SHIELD, shield);
@@ -216,6 +217,10 @@ public class DroneEntity extends HostileEntity {
 		nbt.putString("role", role.id);
 		nbt.putFloat("shield", shield);
 		nbt.putFloat("armor", armor);
+        nbt.putFloat("modEnergy",modEnergy);
+        nbt.putFloat("attackCooldown",Math.max(0,attackCooldown));
+        nbt.putFloat("flightRoll",net.minecraft.util.math.MathHelper.wrapDegrees(getFlightRoll()));
+        nbt.putString("aiPhase",phase.name());nbt.putFloat("aiPhaseTime",phaseTimer);
 	}
 
 	@Override
@@ -226,8 +231,21 @@ public class DroneEntity extends HostileEntity {
 		if(nbt.contains("Health",net.minecraft.nbt.NbtElement.NUMBER_TYPE))setHealth(savedHealth);
 		if(nbt.contains("shield",net.minecraft.nbt.NbtElement.NUMBER_TYPE))shield=nbt.getFloat("shield");
 		if(nbt.contains("armor",net.minecraft.nbt.NbtElement.NUMBER_TYPE))armor=nbt.getFloat("armor");
+        modEnergy=stateFloat(nbt,"modEnergy",100,0,100);
+        attackCooldown=stateFloat(nbt,"attackCooldown",0,0,Math.max(0,role.weaponCooldown));
+        setFlightRoll(net.minecraft.util.math.MathHelper.wrapDegrees(stateFloat(nbt,"flightRoll",0,-Float.MAX_VALUE,Float.MAX_VALUE)));
+        try{phase=DroneAi.Phase.valueOf(nbt.getString("aiPhase"));phaseTimer=stateFloat(nbt,"aiPhaseTime",0,0,Float.MAX_VALUE);}
+        catch(IllegalArgumentException unknown){phase=DroneAi.Phase.ORBIT;phaseTimer=0;}
+        // Dead drones have already handed visual ownership to their physical corpse.
+        // This also repairs old saves whose transient invisible flag was not stored.
+        ragdollSpawned=getHealth()<=0;
+        if(ragdollSpawned)setInvisible(true);
 		if(!getWorld().isClient) {
 			dataTracker.set(SHIELD,shield);dataTracker.set(ARMOR,armor);
 		}
 	}
+    private static float stateFloat(NbtCompound tag,String key,float fallback,float min,float max) {
+        if(!tag.contains(key,net.minecraft.nbt.NbtElement.NUMBER_TYPE))return fallback;
+        float value=tag.getFloat(key);return Float.isFinite(value)?net.minecraft.util.math.MathHelper.clamp(value,min,max):fallback;
+    }
 }
