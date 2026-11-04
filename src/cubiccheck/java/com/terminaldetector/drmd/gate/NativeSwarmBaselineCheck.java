@@ -34,6 +34,7 @@ public final class NativeSwarmBaselineCheck {
     private static boolean requested,spawnRequested;private static volatile int stage,age;
     private static int ticks,frames,alive,moving,active,lookup,maxCandidates,shots,sampledShots,sampledShooters,indexed,targeting;
     private static long tickStart,sampleStart,lastFrame;private static double seconds;
+    private static long captureStart;
     private static Entity cow;
     private NativeSwarmBaselineCheck(){}
     private static Entity entity(DroneEntity d){return d;}
@@ -81,8 +82,10 @@ public final class NativeSwarmBaselineCheck {
             com.terminaldetector.drmd.client.config.DescentConfig.weaponView=false;com.terminaldetector.drmd.client.config.DescentConfig.cockpit=false;
             com.terminaldetector.drmd.client.config.DescentConfig.planetFloor=false;com.terminaldetector.drmd.client.config.DescentConfig.levelSky=false;
             c.getServer().execute(()->{
-                var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());var at=centre();p.teleport(p.getServerWorld(),at.x,at.y+3,at.z+20,Set.of(),180,8);p.setInvulnerable(true);
-                var d=DescentPlayerData.get(p);d.setGravity(0);d.setDrag(0);d.setFlightVelocity(Vec3d.ZERO);com.terminaldetector.drmd.flight.FlightSystem.enableWithoutMount(p,d);
+                var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());var d=DescentPlayerData.get(p);var at=centre();
+                com.terminaldetector.drmd.flight.FlightSystem.disable(p,d);
+                p.teleport(p.getServerWorld(),at.x,at.y+12,at.z+6,Set.of(),180,40);p.setInvulnerable(true);
+                d.setGravity(0);d.setDrag(0);d.setFlightVelocity(Vec3d.ZERO);com.terminaldetector.drmd.flight.FlightSystem.enableWithoutMount(p,d);
                 c.getServer().setDifficulty(Difficulty.NORMAL,true);p.getServerWorld().setTimeOfDay(6000);located=true;
             });return;
         }
@@ -97,7 +100,7 @@ public final class NativeSwarmBaselineCheck {
             d.applyRole(switch(i&3){case 0->AiRole.SUPPORT;case 1->AiRole.ASSAULT;case 2->AiRole.MG;default->AiRole.INTERCEPTOR;});
             ((MobEntity)d).setPersistent();entity(d).setInvulnerable(true);require(w.spawnEntity(d),"drone spawn accepted");((MobEntity)d).setTarget(target);DRONES.add(d);
         }
-        expected=Set.copyOf(DRONES.stream().map(d->entity(d).getUuid()).toList());DroneSwarmAi.clear();age=0;resultReady=false;running=true;
+        expected=Set.copyOf(DRONES.stream().map(d->entity(d).getUuid()).toList());DroneSwarmAi.clear();age=0;captureStart=0;resultReady=false;running=true;
     }
     public static void shot(WeaponCore.FireConfig config,ProjectileEntity shot) {
         if(!running||done||shot==null||config.owner==null||!expected.contains(config.owner.getUuid()))return;
@@ -108,10 +111,12 @@ public final class NativeSwarmBaselineCheck {
         if(done)return;long now=System.nanoTime();if(sampling){if(lastFrame!=0)FRAMES.add(now-lastFrame);lastFrame=now;}else lastFrame=0;
         if(!resultReady)return;var c=MinecraftClient.getInstance();if(c.currentScreen!=null||++frames<3)return;
         int synced=c.world.getEntitiesByClass(DroneEntity.class,new Box(centre().add(-128,-128,-128),centre().add(128,128,128)),d->expected.contains(entity(d).getUuid())).size();
-        require(synced==COUNT&&DRAWN.size()>=32,"all live actors must synchronize and models must render: synced="+synced+" drawn="+DRAWN.size());
+        if(captureStart==0){captureStart=now;System.out.println("SWARM_CAMERA pos="+c.player.getPos()+" yaw="+c.player.getYaw()+" pitch="+c.player.getPitch()+" camera="+c.gameRenderer.getCamera().getRotation());}
+        if((synced!=COUNT||DRAWN.size()<32)&&now-captureStart<8_000_000_000L)return;
         require(FRAMES.size()>=2&&!WORK.isEmpty(),"real timing samples");
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             image.writeTo(c.runDirectory.toPath().resolve("swarm-128-height-"+(int)centre().y+".png"));
+            require(synced==COUNT&&DRAWN.size()>=32,"all live actors must synchronize and models must render: synced="+synced+" drawn="+DRAWN.size());
             String row=String.format(Locale.ROOT,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%.4f,%.4f,%.4f,%.3f,%d,%.4f,",(int)centre().y,COUNT,alive,active,moving,lookup,synced,DRAWN.size(),sampledShots,sampledShooters,indexed,targeting,maxCandidates,percentile(WORK,.5)/1e6,percentile(WORK,.95)/1e6,percentile(WORK,.99)/1e6,WORK.size()/seconds,FRAMES.size(),percentile(FRAMES,.95)/1e6);
             resultReady=false;running=false;frames=0;c.getServer().execute(()->cleanup(c,row));
         }catch(Exception e){throw new IllegalStateException(e);}
