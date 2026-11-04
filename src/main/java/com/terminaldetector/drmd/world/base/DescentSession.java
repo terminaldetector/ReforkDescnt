@@ -163,9 +163,8 @@ public final class DescentSession {
 	/**
 	 * Soft player onboarding — 6DoF is native every join.
 	 *
-	 * <p>Saving {@code enabled=false} + {@code sessionWelcomed} used to leave pilots stuck on
-	 * vanilla walk until they found H; after reconnect the client attitude often never primed.
-	 * This world <em>is</em> Descent — re-assert flight each login; H still toggles for the session.
+	 * <p>New players start in 6DoF. Returning players retain their saved movement mode:
+     * rearming a saved walker prevents physical boarding from reacquiring after a restart.
 	 */
 	public static void onPlayerJoin(ServerPlayerEntity player) {
 		DescentPlayerData data = DescentPlayerData.get(player);
@@ -178,12 +177,11 @@ public final class DescentSession {
 				PsychedelicWorldgen.onPlayerJoin(player, state);
 			}
 			// Psychedelic tip path only setEnabled(true) — still need noGravity + sync + abilities.
-			com.terminaldetector.drmd.flight.FlightSystem.enable(player, data);
+			resumeMovement(player,data);
 			return;
 		}
 
-		// Native session: always 6DoF on join (H toggles off until next login).
-		com.terminaldetector.drmd.flight.FlightSystem.enable(player, data);
+		resumeMovement(player,data);
 
 		boolean first = !data.isSessionWelcomed();
 		if (first) {
@@ -205,6 +203,17 @@ public final class DescentSession {
 			}
 		}
 	}
+
+    private static void resumeMovement(ServerPlayerEntity player,DescentPlayerData data) {
+        if(!data.hasSavedFlightMode()||data.isEnabled()) {
+            com.terminaldetector.drmd.flight.FlightSystem.enable(player,data);
+        } else {
+            // This is restoration, not an H-off command: retain saved world momentum
+            // and vehicle state. Foot/local-body gravity can reclaim the next step.
+            player.setNoGravity(false);
+            com.terminaldetector.drmd.network.ModNetworking.syncPlayer(player,data);
+        }
+    }
 
 	/**
 	 * Descent 1 lunar-base hub at spawn — grey disc, turrets, micro-reactor, Keeper —

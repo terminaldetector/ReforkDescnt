@@ -56,6 +56,9 @@ public class DescentPlayerData {
 
 	// --- Flight (d6_core.lua CFG) ---
 	private boolean enabled;
+    /** Presence of a persisted mode distinguishes a returning walker from a new player. */
+    private boolean savedFlightMode;
+    public boolean hasSavedFlightMode(){return savedFlightMode;}
 	private boolean flightAssist = true;
 	private boolean alwaysRun;
 	private boolean thirdPerson;
@@ -170,8 +173,10 @@ public class DescentPlayerData {
 	}
 
 	public void readNbt(NbtCompound nbt) {
+		savedFlightMode=false;
 		if (!nbt.contains("DrmdData")) return;
 		NbtCompound d = nbt.getCompound("DrmdData");
+		savedFlightMode=d.contains("enabled");
 		enabled = d.getBoolean("enabled");
 		flightAssist = d.contains("flightAssist") ? d.getBoolean("flightAssist") : true;
 		alwaysRun = d.getBoolean("alwaysRun");

@@ -101,6 +101,29 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
         } finally {com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);p.discard();b.discard();}c.complete();
     }
     private static final DynamicBodyAttachment.Motion FREE=(p,q,d)->new DynamicBodyAttachment.Move(d,java.util.List.of());
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-reload-walker")
+    public void rejoiningWithSavedWalkingDoesNotArmSuitFlightOrResetMomentum(TestContext c) {
+        var p=c.createMockCreativeServerPlayerInWorld();try {
+            var d=DescentPlayerData.get(p);d.setSessionWelcomed(true);d.setEnabled(false);
+            var saved=new NbtCompound();d.writeNbt(saved);d.readNbt(saved);
+            var velocity=new Vec3d(.1,.2,-.3);p.setVelocity(velocity);p.setNoGravity(true);
+            com.terminaldetector.drmd.world.base.DescentSession.onPlayerJoin(p);
+            c.assertTrue(d.hasSavedFlightMode()&&!d.isEnabled()&&!p.hasNoGravity(),"a persisted walker remains available to the physical boarding motor");
+            c.assertTrue(velocity.equals(p.getVelocity()),"restoration is not an H-off command and must preserve saved world momentum");
+        } finally {p.discard();}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-reload-flight")
+    public void newPilotsAndSavedFlyingPilotsStillInitializeActualFreeFlight(TestContext c) {
+        var p=c.createMockCreativeServerPlayerInWorld();try {
+            var d=DescentPlayerData.get(p);d.setSessionWelcomed(true);
+            c.assertTrue(!d.hasSavedFlightMode(),"new player has no persisted movement choice");
+            com.terminaldetector.drmd.world.base.DescentSession.onPlayerJoin(p);
+            c.assertTrue(d.isEnabled()&&p.hasNoGravity()&&!p.getAbilities().allowFlying,"new players still start in native 6DoF");
+            var saved=new NbtCompound();d.writeNbt(saved);d.readNbt(saved);p.setNoGravity(false);
+            com.terminaldetector.drmd.world.base.DescentSession.onPlayerJoin(p);
+            c.assertTrue(d.hasSavedFlightMode()&&d.isEnabled()&&p.hasNoGravity(),"saved flight is reinitialized, including its actual gravity/ability state");
+        } finally {p.discard();}c.complete();
+    }
     private SkyUfoEntity create(TestContext c) {
         var at=c.getAbsolutePos(new BlockPos(8,190,8));var w=c.getWorld();
         for(int x=-2;x<=2;x++)for(int z=-2;z<=2;z++)w.getChunk((at.getX()>>4)+x,(at.getZ()>>4)+z);
