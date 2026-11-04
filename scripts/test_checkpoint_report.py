@@ -411,3 +411,16 @@ class PendingHullGeometryProofTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class InheritedPhysicsGateTest(unittest.TestCase):
+    def test_later_releases_keep_all_previous_body_requirements(self):
+        for version in ['1.1.34-joints.1', '1.1.35-ufo.1', '1.1.100', '2.0.0']:
+            for stage in [25,26,27,28,29,31,32,33,34]:
+                self.assertTrue(checkpoint.requires_body_stage(version,stage), (version,stage))
+
+    def test_earlier_release_does_not_acquire_future_stage_requirements(self):
+        self.assertFalse(checkpoint.requires_body_stage('1.1.33-combat.1',34))
+        self.assertTrue(checkpoint.requires_body_stage('1.1.33-combat.1',33))
+        self.assertFalse(checkpoint.requires_body_stage('1.1.24',25))
+        self.assertFalse(checkpoint.requires_body_stage('test',25))

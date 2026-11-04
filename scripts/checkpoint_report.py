@@ -355,6 +355,12 @@ def junit(folder, started=None):
     return counts
 
 
+def requires_body_stage(version, introduced):
+    """Keep inherited physics evidence mandatory for later releases as well."""
+    match = re.match(r'^(\d+)\.(\d+)\.(\d+)(?:[-+.]|$)', version)
+    return bool(match and tuple(map(int, match.groups())) >= (1, 1, introduced))
+
+
 def verify(root):
     out = root / 'build/checkpoint'
     started = int((out / 'started-at.txt').read_text().strip())
@@ -409,17 +415,17 @@ def verify(root):
     version, base = props['mod_version'], props['archives_base_name']
     if '-dev.' in version:
         raise ValueError('Development build is not an accepted distribution')
-    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33','1.1.34')) else None
-    body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33','1.1.34')) else None
-    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33','1.1.34')) else None
-    body_index = verify_body_index(root,started) if version.startswith(('1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33','1.1.34')) else None
-    body_scale=verify_body_scale(root,started) if version.startswith(('1.1.29','1.1.30','1.1.31','1.1.32','1.1.33','1.1.34')) else None
-    hull_contacts=verify_hull_contacts(root,started) if version.startswith(('1.1.31','1.1.32','1.1.33','1.1.34')) else None
-    body_fractures=verify_body_fractures(root,started) if version.startswith(('1.1.32','1.1.33','1.1.34')) else None
-    body_combat=verify_body_combat(root,started) if version.startswith(('1.1.33','1.1.34')) else None
-    fragment_boarding=verify_fragment_boarding(root,started) if version.startswith(('1.1.33','1.1.34')) else None
-    body_joints=verify_body_joints(root,started) if version.startswith('1.1.34') else None
-    if version.startswith('1.1.34'):verify_pending_hull_geometry(body_scale)
+    boarding = verify_boarding(root, started) if requires_body_stage(version,25) else None
+    body_edits = verify_body_edits(root,started) if requires_body_stage(version,27) else None
+    ship_boarding = verify_ship_boarding(root, started) if requires_body_stage(version,26) else None
+    body_index = verify_body_index(root,started) if requires_body_stage(version,28) else None
+    body_scale=verify_body_scale(root,started) if requires_body_stage(version,29) else None
+    hull_contacts=verify_hull_contacts(root,started) if requires_body_stage(version,31) else None
+    body_fractures=verify_body_fractures(root,started) if requires_body_stage(version,32) else None
+    body_combat=verify_body_combat(root,started) if requires_body_stage(version,33) else None
+    fragment_boarding=verify_fragment_boarding(root,started) if requires_body_stage(version,33) else None
+    body_joints=verify_body_joints(root,started) if requires_body_stage(version,34) else None
+    if requires_body_stage(version,34):verify_pending_hull_geometry(body_scale)
     audit=verify_audit(root,started) if version.startswith('1.1.14') else None
     if audit: verify_native_audit(root,started)
     jar = root / f'build/libs/{base}-{version}.jar'
