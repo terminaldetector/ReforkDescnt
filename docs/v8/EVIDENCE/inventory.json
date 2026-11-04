@@ -1,0 +1,106 @@
+{
+  "worktrees": [
+    {
+      "path": "/workspace/Refork-audit",
+      "head": "ba8de3f4027d9c052eb5b2afd68feafd9d0eba84",
+      "status": "?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/actor-frames",
+      "head": "aaa1241fa6d4d899355d34e5abeda9c8af00d6bb",
+      "status": "?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/boarding",
+      "head": "1df4e1a2c4bb93c9194d43e56b39337c8290db2d",
+      "status": "?? dist/drmd-6dof-1.1.23-contacts.1-fabric-1.21.1.jar\n?? dist/drmd-6dof-1.1.23-snapshot.1-fabric-1.21.1.jar\n?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/boarding-attachment",
+      "head": "368a5e2417b6d0e09d8ffe80ad34da188c80828f",
+      "status": "?? dist/drmd-6dof-1.1.25-boarding.1-fabric-1.21.1.jar\n?? dist/drmd-6dof-1.1.26-boarding.1-fabric-1.21.1.jar\n?? dist/drmd-6dof-1.1.27-blocks.1-fabric-1.21.1.jar\n?? dist/drmd-6dof-1.1.28-index.1-fabric-1.21.1.jar\n?? dist/drmd-6dof-1.1.29-hulls.1-fabric-1.21.1.jar\n?? dist/drmd-6dof-1.1.30-volumes.1-fabric-1.21.1.jar\n?? dist/drmd-6dof-1.1.32-fragments.1-fabric-1.21.1.jar\n?? dist/drmd-6dof-1.1.33-combat.1-fabric-1.21.1.jar\n?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/boarding-runtime",
+      "head": "8fcd11e9cee5858db90599a41c92ed46f2116675",
+      "status": "?? dist/drmd-6dof-1.1.24-boarding.1-fabric-1.21.1.jar\n?? dist/drmd-6dof-1.1.24-boarding.2-fabric-1.21.1.jar\n?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/cleanup",
+      "head": "ba8de3f4027d9c052eb5b2afd68feafd9d0eba84",
+      "status": ""
+    },
+    {
+      "path": "/workspace/ungravity-v5/combat",
+      "head": "ba8de3f4027d9c052eb5b2afd68feafd9d0eba84",
+      "status": ""
+    },
+    {
+      "path": "/workspace/ungravity-v5/fragment-boarding",
+      "head": "95f38f0c9d7bd55d2f8cfa667357503fc3b7286b",
+      "status": "?? dist/drmd-6dof-1.1.34-joints.1-fabric-1.21.1.jar\n?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/gravity-runtime",
+      "head": "54637997f7e88da1c8c0fc1736c0a0f3dc4cb27a",
+      "status": "?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/hull-combat",
+      "head": "0de794d4c54797bc1abf195d57d52f73c1fb3a09",
+      "status": "?? dist/drmd-6dof-1.1.32-fragments.1-fabric-1.21.1.jar\n?? dist/drmd-6dof-1.1.33-combat.1-fabric-1.21.1.jar\n?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/hull-fragments",
+      "head": "6fed7c88c0f702c162372407d06d36115d8df2f6",
+      "status": "?? dist/drmd-6dof-1.1.31-contacts.1-fabric-1.21.1.jar\n?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/physics",
+      "head": "3da4231510eabb350916530258d55f6326c0f6f0",
+      "status": "?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/portal-ci",
+      "head": "c11213a1b96ebba70c50c5f8cedbe1399fa2c3a6",
+      "status": ""
+    },
+    {
+      "path": "/workspace/ungravity-v5/portal-gun",
+      "head": "36797d1ec60ad366df1d86061e69f2d749e27633",
+      "status": " M dist/README.md\n?? dist/drmd-6dof-1.1.22-portals.1-fabric-1.21.1.jar\n?? dist/releases/1.1.22-portals.1/\n?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/render",
+      "head": "179d81e7967f90da39d6acb786b39bb11abe0536",
+      "status": "?? dist/drmd-6dof-1.1.17-mirrors.1-fabric-1.21.1.jar\n?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/snapshot-ci",
+      "head": "e800b439decc7070ecaa1e72c9216b72f40f70db",
+      "status": "?? dist/drmd-6dof-1.1.23-snapshot.1-fabric-1.21.1.jar\n?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/snapshot-delivery",
+      "head": "ae66ae27755e2ca2b93d9081c57d3a8e6ae5170c",
+      "status": ""
+    },
+    {
+      "path": "/workspace/ungravity-v5/ufo-body-physics",
+      "head": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
+      "status": "?? .gradle\n?? dist/drmd-6dof-1.1.34-joints.1-fabric-1.21.1.jar\n?? dist/drmd-6dof-1.1.35-ufo-dev.1-fabric-1.21.1.jar\n?? docs/v8/\n?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/world",
+      "head": "5243ea9a03ae742360cacae579a3547e663a06d9",
+      "status": "?? work/\n"
+    },
+    {
+      "path": "/workspace/ungravity-v5/world-access",
+      "head": "0f76a0789fe8cb62ff98c3e08d6232f222d72cb8",
+      "status": "?? work/\n"
+    }
+  ],
+  "branches": "+ cleanup/legacy-items-v5                                ba8de3f (/workspace/ungravity-v5/cleanup) Anchor horizon terrain, smooth natural surfaces and bound heavy drill loot\n+ codex/ungravity-cloud-recovery-20261024                ba8de3f (/workspace/Refork-audit) Anchor horizon terrain, smooth natural surfaces and bound heavy drill loot\n+ feature/actor-frames-v5                                aaa1241 (/workspace/ungravity-v5/actor-frames) Publish verified 1.1.21 JAR and local evidence directly in repository\n  feature/boarding-attachment-20261028                   c04365a [origin/codex/ungravity-cloud-recovery-20261024: behind 59] [boarding source] Stabilize authoritative player boarding and verify real walking input\n  feature/boarding-gravity-proof-40777929080             3f96f6f [origin/codex/ungravity-cloud-recovery-20261024: behind 49] [boarding evidence] Preserve native ship gravity frames, first failures and exact JAR verification\n  feature/boarding-local-blocks-20261029                 ae5b2e9 [boarding source] Capture horizon comparisons after the completed client frame\n  feature/boarding-local-gravity-20261028                0fa2f12 [boarding source] Keep regression measurements on one simulation and render frame\n  feature/body-block-proof-40790869398                   92e16eb [origin/codex/ungravity-cloud-recovery-20261024: behind 41] [boarding evidence] Preserve exact-JAR native block editing and acceptance scope\n  feature/body-index-proof-40830964844                   0bf129e [origin/codex/ungravity-cloud-recovery-20261024: ahead 1, behind 34] [boarding source] Remove unmapped inherited diagnostic call from installed hull gate\n  feature/body-joint-runtime-after-1.1.33                5fbff1b [joint work in progress] Exercise live renderer and pilot on a motor platform\n  feature/body-spatial-index-20261029                    3dd80e1 [boarding source] Verify jump inheritance and release against the same authoritative step\n+ feature/combat-ai-survival-v5                          ba8de3f (/workspace/ungravity-v5/combat) Anchor horizon terrain, smooth natural surfaces and bound heavy drill loot\n+ feature/combat-native-proof-40936529658                368a5e2 (/workspace/ungravity-v5/boarding-attachment) [boarding evidence] Preserve installed combat and detached-deck client proof\n  feature/combat-source-on-certified-32                  8115658 [boarding source] Verify rendered player handoff and jump onto a detached deck\n+ feature/contacts-native-proof-40885520435              6fed7c8 (/workspace/ungravity-v5/hull-fragments) [boarding evidence] Preserve exact-source native contacts and full ship rotation proof\n  feature/dynamic-attachment-v5                          4c3da1d Gate direct publication of the verified boarding contact candidate\n  feature/dynamic-boarding-v5                            4b49f61 Pin regression camera out of flight and reject empty collapse frames\n  feature/fractures-native-proof-40931571448             1cf32cc [boarding evidence] Preserve installed native fracture and ship contact proof\n+ feature/gravity-runtime-v5                             5463799 (/workspace/ungravity-v5/gravity-runtime) Keep actor gravity ownership out of saves and integrate field velocity once\n+ feature/hull-combat-after-1.1.32                       0de794d (/workspace/ungravity-v5/hull-combat) [boarding source] Verify rendered player handoff and jump onto a detached deck\n  feature/hull-contacts-1.1.31                           67abad8 [boarding source] Await real entity ticking before the automatic world contact regression\n  feature/hull-fractures-after-1.1.31                    005261c [boarding source] Preserve connected hull fragments and their material motion\n  feature/hull-scale-gate-0bf129e                        0bf129e [boarding source] Remove unmapped inherited diagnostic call from installed hull gate\n  feature/hull-scale-proof-40839180888                   45b1121 [origin/codex/ungravity-cloud-recovery-20261024: behind 30] [boarding source] Hold complete moving hull volumes with native XYZ and lifetime-bound chunk leases\n  feature/joints-1.1.34-candidate                        5d5c2b8 [boarding source] Synchronize loaded physical hulls outside vanilla pivot tracking\n+ feature/joints-native-proof-41798456108                95f38f0 (/workspace/ungravity-v5/fragment-boarding) [origin/codex/ungravity-cloud-recovery-20261024] [boarding evidence] Include native run inputs, logs and all44 original frames\n  feature/passenger-fragment-validation                  e9f5cdd [boarding source] Keep passenger contacts continuous on separated hull material\n+ feature/physical-6dof-entities-v5                      3da4231 (/workspace/ungravity-v5/physics) Bound warped terrain collider complexity on a fixed voxel grid\n  feature/physical-fracture-1.1.32                       309cc60 [boarding source] Bind physical contact publication to the new version and require its actual client proof\n  feature/physical-fracture-with-ready-world             67abad8 [boarding source] Await real entity ticking before the automatic world contact regression\n  feature/physical-hull-fragments                        45b1121 [boarding source] Hold complete moving hull volumes with native XYZ and lifetime-bound chunk leases\n+ feature/portal-gun-v5                                  36797d1 (/workspace/ungravity-v5/portal-gun) Measure ordinary actor ticks after asynchronous fixture chunk activation\n* feature/ufo-body-after-1.1.34                          68250d7 [UFO checkpoint] Preserve observed native flight results after worker disconnect\n  feature/volume-native-proof-40872232972                5c9444d [origin/codex/ungravity-cloud-recovery-20261024: behind 27] [boarding evidence] Preserve35 exact-JAR native frames and full hull-volume lifetime proof\n+ fix/mirrors-portals-v5                                 179d81e (/workspace/ungravity-v5/render) Record verified native mirror milestone and complete client regression\n+ fix/portal-fixture-ticks-v5                            c11213a (/workspace/ungravity-v5/portal-ci) Publish verified 1.1.22 portal gun JAR directly in the repository\n+ fix/snapshot-ci-20261028                               e800b43 (/workspace/ungravity-v5/snapshot-ci) [snapshot source] Allow engineering tools in drone sockets and retire legacy height-band spawns\n+ fix/snapshot-input-worldgen-20261028                   1df4e1a (/workspace/ungravity-v5/boarding) [snapshot source] Restore weapon controls, persist drone equipment and retire legacy Advanced generation\n+ migration/cubic-world-v5                               5243ea9 (/workspace/ungravity-v5/world) Keep persistence commands outside tick callbacks and require a separate reopen result\n+ migration/world-access-v5                              0f76a07 (/workspace/ungravity-v5/world-access) Wait for acknowledged backdrop removal and completed terrain before fast-shot capture\n  proof/boarding-native-20261028                         a1b045c [boarding source] Stop stationary hull rotation replay on partial-tick resets\n  publish/boarding-attachment-results-20261028           4dbf688 [origin/codex/ungravity-cloud-recovery-20261024: behind 56] [boarding native evidence] Verify player walking on native BCC and Sodium\n+ publish/boarding-native-results-20261028               8fcd11e (/workspace/ungravity-v5/boarding-runtime) [origin/codex/ungravity-cloud-recovery-20261024: behind 61] [boarding native evidence] Verify fixed hull rotation on two native BCC clients\n+ publish/snapshot-delivery-20261028                     ae66ae2 (/workspace/ungravity-v5/snapshot-delivery) [snapshot docs] Fix the native report link and clarify remaining hull integration\n  verify/boarding-source-20261028                        0b22267 [boarding source] Gate exact-source contact candidate and preserve compiled JAR in repository\n  remotes/origin/claude/trusting-dijkstra-xuin48         74d5006 Add files via upload\n  remotes/origin/codex/ungravity-cloud-recovery-20261024 95f38f0 [boarding evidence] Include native run inputs, logs and all44 original frames\n  remotes/origin/feature/body-joint-runtime-after-1.1.33 2a410af [joint work in progress] Preserve shared D6 constraints and persistent material links\n  remotes/origin/feature/ufo-body-after-1.1.34           68250d7 [UFO checkpoint] Preserve observed native flight results after worker disconnect\n",
+  "scope": "Tracked patches preserved; untracked paths inventoried, not all large untracked runtimes archived."
+}

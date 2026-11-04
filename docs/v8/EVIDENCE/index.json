@@ -1,0 +1,137 @@
+{
+  "releaseAccepted": false,
+  "nativeRuns": [
+    {
+      "scenario": "flight-body-current-phase-gl32",
+      "marker": {
+        "actualUfo": true,
+        "externalEntry": true,
+        "actualThrust": true,
+        "walkingHandoff": true,
+        "roofContacts": 15,
+        "teleportFollow": false,
+        "renderedFrames": 127,
+        "predictionSamples": 110,
+        "maxPredictionError": 0.34198911344663996,
+        "scenes": [
+          "external-approach",
+          "moving-bay-entry",
+          "flight-to-boarding",
+          "boarded-walking",
+          "rotating-roof-contact"
+        ]
+      },
+      "source": "22f3c10dc01a0f3be4d8b91730a965a7045ef145"
+    },
+    {
+      "scenario": "flight-body-current-phase-sodium",
+      "marker": {
+        "actualUfo": true,
+        "externalEntry": true,
+        "actualThrust": true,
+        "walkingHandoff": true,
+        "roofContacts": 14,
+        "teleportFollow": false,
+        "renderedFrames": 110,
+        "predictionSamples": 117,
+        "maxPredictionError": 0.02672344887009359,
+        "scenes": [
+          "external-approach",
+          "moving-bay-entry",
+          "flight-to-boarding",
+          "boarded-walking",
+          "rotating-roof-contact"
+        ]
+      },
+      "source": "22f3c10dc01a0f3be4d8b91730a965a7045ef145"
+    }
+  ],
+  "inputArchiveSha256": "5bb303436fd0bfcaa73c6848aa565ff69b9b3360d7180c99e5dc9a98874cfe63",
+  "files": {
+    "local-changes.zip": "e312b388325b722d94fffbbc6e23b5065178bcb70eaef99986ee5f20fff1b072",
+    "inventory.json": "b878cfb2c2ad918e9215db7294ddc04b1c8dbdf54b106e82c16210745d476971",
+    "ufo-flight-22f3c10.zip": "38c4f2e51b7d3ee8f519c4f9f234aadc2d08dc5ed10d97c3f49c171386ea94fa",
+    "ufo-full-rotation-regression.zip": "e0c3fac740ec94bc9088c8ff370c3f20925303d628bb9f65a469e2d83c79df2b"
+  },
+  "fullRotationRegression": {
+    "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
+    "marker": {
+      "actualUfo": true,
+      "ufoRenderedFrames": 510,
+      "ufoGridCells": 1046,
+      "actualInputs": true,
+      "shipGravity": true,
+      "orientedCollision": true,
+      "teleportFollow": false,
+      "predictionSamples": 572,
+      "maxPredictionError": 0.014091274882449392,
+      "jumpVelocityError": 7.123190925995004e-13,
+      "maxFrameError": 2.220446049250313e-16,
+      "modelFrames": 503,
+      "cameraFrames": 503,
+      "maxCameraUpError": 0.00048816507129021113,
+      "maxModelUpError": 0.00010963941579073355,
+      "scenes": [
+        {
+          "scene": "ship-landing",
+          "frames": 3
+        },
+        {
+          "scene": "ship-walking",
+          "frames": 3
+        },
+        {
+          "scene": "roll-wall",
+          "frames": 3
+        },
+        {
+          "scene": "roll-ceiling",
+          "frames": 3
+        },
+        {
+          "scene": "roll-complete",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-wall",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-ceiling",
+          "frames": 3
+        },
+        {
+          "scene": "pitch-complete",
+          "frames": 3
+        },
+        {
+          "scene": "combined-axes",
+          "frames": 3
+        },
+        {
+          "scene": "combined-complete",
+          "frames": 3
+        },
+        {
+          "scene": "ship-jump",
+          "frames": 3
+        },
+        {
+          "scene": "gravity-off-jump",
+          "frames": 3
+        },
+        {
+          "scene": "flight-handoff",
+          "frames": 3
+        }
+      ]
+    },
+    "frames": 13,
+    "scope": "Fresh restored-worker runtime. Same33028ec6 game JAR; report-only source68250d7, not the later Python gate commit."
+  },
+  "releaseGateTests": {
+    "source": "f6fa6e4",
+    "tests": 47,
+    "failures": 0
+  }
+}

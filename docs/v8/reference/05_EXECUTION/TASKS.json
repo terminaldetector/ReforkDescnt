@@ -1,0 +1,1555 @@
+{
+  "schema": "ungravity.master.tasks.v8",
+  "date": "2026-11-04",
+  "count": 99,
+  "tasks": [
+    {
+      "id": "S00-T01",
+      "stage": "S00",
+      "stage_title": "History & executable truth",
+      "title": "Capture all branches/worktrees and uncommitted patches without overwriting Sol/UFO work",
+      "owner": "CODEX",
+      "gate": "G0",
+      "depends_on_stages": [],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S00-T02",
+      "stage": "S00",
+      "stage_title": "History & executable truth",
+      "title": "Identify exact running DRMD jar SHA256, fabric.mod.json and matched Git source SHA",
+      "owner": "CODEX",
+      "gate": "G0",
+      "depends_on_stages": [],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S00-T03",
+      "stage": "S00",
+      "stage_title": "History & executable truth",
+      "title": "Audit pre-Oct26 agent changes in PR9, recovery branch and local logs",
+      "owner": "CODEX",
+      "gate": "G0",
+      "depends_on_stages": [],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S00-T04",
+      "stage": "S00",
+      "stage_title": "History & executable truth",
+      "title": "Classify legacy classes and commits KEEP/ADAPT/REMOVE_AFTER_PARITY/UNKNOWN",
+      "owner": "CODEX",
+      "gate": "G0",
+      "depends_on_stages": [],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S00-T05",
+      "stage": "S00",
+      "stage_title": "History & executable truth",
+      "title": "Create STATE, DECISIONS, REGRESSIONS and evidence index with real version metadata",
+      "owner": "CODEX",
+      "gate": "G0",
+      "depends_on_stages": [],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S00-T06",
+      "stage": "S00",
+      "stage_title": "History & executable truth",
+      "title": "Record unresolved assumptions and replay instructions for next agent",
+      "owner": "CODEX",
+      "gate": "G0",
+      "depends_on_stages": [],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S01-T01",
+      "stage": "S01",
+      "stage_title": "Reproduce and instrument baseline",
+      "title": "Reproduce player-proxy stuck/must-die-in-lava scenario with entity ownership logs",
+      "owner": "CODEX",
+      "gate": "G0",
+      "depends_on_stages": [
+        "S00"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S01-T02",
+      "stage": "S01",
+      "stage_title": "Reproduce and instrument baseline",
+      "title": "Reproduce vertical terrain breaks and world void death with fixed seed/flight path",
+      "owner": "CODEX",
+      "gate": "G0",
+      "depends_on_stages": [
+        "S00"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S01-T03",
+      "stage": "S01",
+      "stage_title": "Reproduce and instrument baseline",
+      "title": "Reproduce missing mirror slab and render-target diagnostics",
+      "owner": "CODEX",
+      "gate": "G0",
+      "depends_on_stages": [
+        "S00"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S01-T04",
+      "stage": "S01",
+      "stage_title": "Reproduce and instrument baseline",
+      "title": "Reproduce gravity torch camera clipping and 6DoF viewmodel hand sweep",
+      "owner": "CODEX",
+      "gate": "G0",
+      "depends_on_stages": [
+        "S00"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S01-T05",
+      "stage": "S01",
+      "stage_title": "Reproduce and instrument baseline",
+      "title": "Inspect invalid spawner BlockEntity and DUMMY NBT creation sources",
+      "owner": "CODEX",
+      "gate": "G0",
+      "depends_on_stages": [
+        "S00"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S01-T06",
+      "stage": "S01",
+      "stage_title": "Reproduce and instrument baseline",
+      "title": "Record stall profiler MSPT/JFR baseline under sim distance 8 and 24",
+      "owner": "CODEX",
+      "gate": "G0",
+      "depends_on_stages": [
+        "S00"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S02-T01",
+      "stage": "S02",
+      "stage_title": "Choose actual CubicWorld backend",
+      "title": "Verify Better Cubic Chunks Fabric 1.21.1 exact jar/version/license/metadata",
+      "owner": "WORLD",
+      "gate": "G1",
+      "depends_on_stages": [
+        "S00",
+        "S01"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S02-T02",
+      "stage": "S02",
+      "stage_title": "Choose actual CubicWorld backend",
+      "title": "Run isolated Fabric + cubic world new-save smoke test and detect actual cubic preset",
+      "owner": "WORLD",
+      "gate": "G1",
+      "depends_on_stages": [
+        "S00",
+        "S01"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S02-T03",
+      "stage": "S02",
+      "stage_title": "Choose actual CubicWorld backend",
+      "title": "Compare true world bounds/16³ load state against historic fake cubic snapshots",
+      "owner": "WORLD",
+      "gate": "G1",
+      "depends_on_stages": [
+        "S00",
+        "S01"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S02-T04",
+      "stage": "S02",
+      "stage_title": "Choose actual CubicWorld backend",
+      "title": "Create VolumetricWorldAccess contract with signed coordinate and loaded-state API",
+      "owner": "WORLD",
+      "gate": "G1",
+      "depends_on_stages": [
+        "S00",
+        "S01"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S02-T05",
+      "stage": "S02",
+      "stage_title": "Choose actual CubicWorld backend",
+      "title": "Prove save/reload, fluids, lighting and BlockEntity parity in clean cubic world",
+      "owner": "WORLD",
+      "gate": "G1",
+      "depends_on_stages": [
+        "S00",
+        "S01"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S02-T06",
+      "stage": "S02",
+      "stage_title": "Choose actual CubicWorld backend",
+      "title": "Record upstream limits/blocked combinations with Sodium/Intel GL3.2",
+      "owner": "WORLD",
+      "gate": "G1",
+      "depends_on_stages": [
+        "S00",
+        "S01"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S03-T01",
+      "stage": "S03",
+      "stage_title": "Migrate world gameplay and structures",
+      "title": "Redirect block edits, explosions and fluid queries through WorldAccessAdapter",
+      "owner": "WORLD",
+      "gate": "G1",
+      "depends_on_stages": [
+        "S02"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S03-T02",
+      "stage": "S03",
+      "stage_title": "Migrate world gameplay and structures",
+      "title": "Port biome/structure placement from legacy height/column assumptions to cubic bounds",
+      "owner": "WORLD",
+      "gate": "G1",
+      "depends_on_stages": [
+        "S02"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S03-T03",
+      "stage": "S03",
+      "stage_title": "Migrate world gameplay and structures",
+      "title": "Repair generation producing stale mob_spawner and DUMMY BlockEntity NBT",
+      "owner": "WORLD",
+      "gate": "G1",
+      "depends_on_stages": [
+        "S02"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S03-T04",
+      "stage": "S03",
+      "stage_title": "Migrate world gameplay and structures",
+      "title": "Validate negative Y and Y 1024/1640/2150 across flight and cold save/reload",
+      "owner": "WORLD",
+      "gate": "G1",
+      "depends_on_stages": [
+        "S02"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S03-T05",
+      "stage": "S03",
+      "stage_title": "Migrate world gameplay and structures",
+      "title": "Remove obsolete shadow world/column emulation only after parity and guarded tests",
+      "owner": "WORLD",
+      "gate": "G1",
+      "depends_on_stages": [
+        "S02"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S04-T01",
+      "stage": "S04",
+      "stage_title": "Hybrid/NoCubes meshing and LOD",
+      "title": "Classify SMOOTH_NATURAL versus HARD_ENGINEERED material masks and transitions",
+      "owner": "RENDER",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S02"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S04-T02",
+      "stage": "S04",
+      "stage_title": "Hybrid/NoCubes meshing and LOD",
+      "title": "Prototype feature-aware polygonal mesh on terrain and natural tree trunks",
+      "owner": "RENDER",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S02"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S04-T03",
+      "stage": "S04",
+      "stage_title": "Hybrid/NoCubes meshing and LOD",
+      "title": "Support round cavities and mesh seam continuity across adjacent cubic sections",
+      "owner": "RENDER",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S02"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S04-T04",
+      "stage": "S04",
+      "stage_title": "Hybrid/NoCubes meshing and LOD",
+      "title": "Match server collision/nav/fluids to visible smooth surfaces and tunnels",
+      "owner": "RENDER",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S02"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S04-T05",
+      "stage": "S04",
+      "stage_title": "Hybrid/NoCubes meshing and LOD",
+      "title": "Prototype 3D LOD with Better Distant Horizons under separate compatibility gate",
+      "owner": "RENDER",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S02"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S04-T06",
+      "stage": "S04",
+      "stage_title": "Hybrid/NoCubes meshing and LOD",
+      "title": "Prove high-altitude ground remains visible with smoothly decaying LOD",
+      "owner": "RENDER",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S02"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S05-T01",
+      "stage": "S05",
+      "stage_title": "PS1 Hybrid presentation profile",
+      "title": "Build 640x360 internal target with nearest upscale and runtime toggle",
+      "owner": "RENDER",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S05-T02",
+      "stage": "S05",
+      "stage_title": "PS1 Hybrid presentation profile",
+      "title": "Implement configurable vertex snap/quantized color/dither/affine-like UV",
+      "owner": "RENDER",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S05-T03",
+      "stage": "S05",
+      "stage_title": "PS1 Hybrid presentation profile",
+      "title": "Implement altitude-dependent PS1 fog with sky-ground/asteroid fade continuity",
+      "owner": "RENDER",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S05-T04",
+      "stage": "S05",
+      "stage_title": "PS1 Hybrid presentation profile",
+      "title": "Keep crosshair HUD and UI stable at readable resolution",
+      "owner": "RENDER",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S05-T05",
+      "stage": "S05",
+      "stage_title": "PS1 Hybrid presentation profile",
+      "title": "Ensure profile toggles never mutate physics, world geometry or collision state",
+      "owner": "RENDER",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S05-T06",
+      "stage": "S05",
+      "stage_title": "PS1 Hybrid presentation profile",
+      "title": "Run native/PS1/debug visual regression and GL3.2 fallback checks",
+      "owner": "RENDER",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S06-T01",
+      "stage": "S06",
+      "stage_title": "Core gravity and player 6DoF",
+      "title": "Consolidate quaternion-based motion state and local gravity field coordinate transforms",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S00",
+        "S01"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S06-T02",
+      "stage": "S06",
+      "stage_title": "Core gravity and player 6DoF",
+      "title": "Fix 6DoF proxy/mount lifecycle to make normal exit safe without lava",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S00",
+        "S01"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S06-T03",
+      "stage": "S06",
+      "stage_title": "Core gravity and player 6DoF",
+      "title": "Fix camera anchor, eye offset and viewmodel at all roll/pitch/yaw positions",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S00",
+        "S01"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S06-T04",
+      "stage": "S06",
+      "stage_title": "Core gravity and player 6DoF",
+      "title": "Make gravity torch field creation/removal deterministic and dimension-scoped",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S00",
+        "S01"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S06-T05",
+      "stage": "S06",
+      "stage_title": "Core gravity and player 6DoF",
+      "title": "Replace Local gravity chat spam with state-transition feedback",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S00",
+        "S01"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S06-T06",
+      "stage": "S06",
+      "stage_title": "Core gravity and player 6DoF",
+      "title": "Prove local/world collision and reset after death, teleport, unload and reload",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S00",
+        "S01"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S07-T01",
+      "stage": "S07",
+      "stage_title": "Universal 6DoF for all mob families",
+      "title": "Implement C1–C7 species adapters and universal fallback without breaking vanilla AI",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S07-T02",
+      "stage": "S07",
+      "stage_title": "Universal 6DoF for all mob families",
+      "title": "Make ground/wall/ceiling navigation relative to each entity local gravity",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S07-T03",
+      "stage": "S07",
+      "stage_title": "Universal 6DoF for all mob families",
+      "title": "Extend target sight/raycast/attacks to arbitrary local orientation",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S07-T04",
+      "stage": "S07",
+      "stage_title": "Universal 6DoF for all mob families",
+      "title": "Implement spatial gravity clusters with bounded neighbor queries and interest levels",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S07-T05",
+      "stage": "S07",
+      "stage_title": "Universal 6DoF for all mob families",
+      "title": "Test cross-family mob rotation/contact/save/reload under gravity torches",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S08-T01",
+      "stage": "S08",
+      "stage_title": "Articulated ragdoll and destructible bodies",
+      "title": "Reconcile prior Oct8–10 ragdoll solver commits and collision regressions",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S08-T02",
+      "stage": "S08",
+      "stage_title": "Articulated ragdoll and destructible bodies",
+      "title": "Validate articulated joint limits, impulses and off-centre effective mass",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S08-T03",
+      "stage": "S08",
+      "stage_title": "Articulated ragdoll and destructible bodies",
+      "title": "Eliminate wall tunneling and duplicate death ragdolls on player/drone impacts",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S08-T04",
+      "stage": "S08",
+      "stage_title": "Articulated ragdoll and destructible bodies",
+      "title": "Implement debris aggregation/cleanup and sleeping in 128 death stress fixture",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S08-T05",
+      "stage": "S08",
+      "stage_title": "Articulated ragdoll and destructible bodies",
+      "title": "Verify local gravity ragdoll orientation with heavy rail weapon and block collision",
+      "owner": "PHYSICS",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S09-T01",
+      "stage": "S09",
+      "stage_title": "BlockBody / UFO boarding and reactor",
+      "title": "Reconcile Sol/Codex UFO branch and preserve current worktree before edits",
+      "owner": "UFO_OWNER",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06",
+        "S08"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S09-T02",
+      "stage": "S09",
+      "stage_title": "BlockBody / UFO boarding and reactor",
+      "title": "Verify rigid block hull, thrusters and six-axis inertia in live client",
+      "owner": "UFO_OWNER",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06",
+        "S08"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S09-T03",
+      "stage": "S09",
+      "stage_title": "BlockBody / UFO boarding and reactor",
+      "title": "Verify mounted lasers/rockets/hinged actuators maintain transforms during roll",
+      "owner": "UFO_OWNER",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06",
+        "S08"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S09-T04",
+      "stage": "S09",
+      "stage_title": "BlockBody / UFO boarding and reactor",
+      "title": "Implement boarding/capture/control override and deterministic pilot exit",
+      "owner": "UFO_OWNER",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06",
+        "S08"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S09-T05",
+      "stage": "S09",
+      "stage_title": "BlockBody / UFO boarding and reactor",
+      "title": "Implement reactor damage, sabotage, bounded fracture and escape window",
+      "owner": "UFO_OWNER",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06",
+        "S08"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S09-T06",
+      "stage": "S09",
+      "stage_title": "BlockBody / UFO boarding and reactor",
+      "title": "Save/reload UFO in flight and test optional VS unofficial backend only in isolated stand",
+      "owner": "UFO_OWNER",
+      "gate": "G2",
+      "depends_on_stages": [
+        "S06",
+        "S08"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S10-T01",
+      "stage": "S10",
+      "stage_title": "Weapons, cluster, drill and building",
+      "title": "Repair held weapon 6DoF and normal first person visibility and inventory model JSON",
+      "owner": "WEAPONS",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S06",
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S10-T02",
+      "stage": "S10",
+      "stage_title": "Weapons, cluster, drill and building",
+      "title": "Verify three separate gravity gun behaviours and ballistic rail accuracy",
+      "owner": "WEAPONS",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S06",
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S10-T03",
+      "stage": "S10",
+      "stage_title": "Weapons, cluster, drill and building",
+      "title": "Implement first-person cluster carrier/staged structured spread/impact and cleanup",
+      "owner": "WEAPONS",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S06",
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S10-T04",
+      "stage": "S10",
+      "stage_title": "Weapons, cluster, drill and building",
+      "title": "Build weak chunky versus strong thermal circular drill with collision/lighting parity",
+      "owner": "WEAPONS",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S06",
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S10-T05",
+      "stage": "S10",
+      "stage_title": "Weapons, cluster, drill and building",
+      "title": "Repair construction resource accounting, server permission and batch invalidation",
+      "owner": "WEAPONS",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S06",
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S11-T01",
+      "stage": "S11",
+      "stage_title": "ORB/ROCKET/JET swarms",
+      "title": "Keep independent ORB, ROCKET and JET entity class identities separate from UFO",
+      "owner": "AI",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S06",
+        "S08"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S11-T02",
+      "stage": "S11",
+      "stage_title": "ORB/ROCKET/JET swarms",
+      "title": "Verify spatial-hash bounded neighbours, group steering and collision avoidance",
+      "owner": "AI",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S06",
+        "S08"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S11-T03",
+      "stage": "S11",
+      "stage_title": "ORB/ROCKET/JET swarms",
+      "title": "Run active128 moving96 proof with exact AI measures and two attack roles",
+      "owner": "AI",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S06",
+        "S08"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S11-T04",
+      "stage": "S11",
+      "stage_title": "ORB/ROCKET/JET swarms",
+      "title": "Scale 256/512/1024 with explicit physics/AI/render LOD and profiler",
+      "owner": "AI",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S06",
+        "S08"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S11-T05",
+      "stage": "S11",
+      "stage_title": "ORB/ROCKET/JET swarms",
+      "title": "Add robust projectile/path/target handling for rockets, lasers and obstacle destruction",
+      "owner": "AI",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S06",
+        "S08"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S11-T06",
+      "stage": "S11",
+      "stage_title": "ORB/ROCKET/JET swarms",
+      "title": "Run settlement destruction and debris cleanup after save/reload",
+      "owner": "AI",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S06",
+        "S08"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S12-T01",
+      "stage": "S12",
+      "stage_title": "Survival threat and minimal armament economy",
+      "title": "Create stateful search→hunt→siege→cooldown threat director with faction attribution",
+      "owner": "GAMEPLAY",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S10",
+        "S11"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S12-T02",
+      "stage": "S12",
+      "stage_title": "Survival threat and minimal armament economy",
+      "title": "Balance two rocket infantry against a base with telegraph, defense and escape options",
+      "owner": "GAMEPLAY",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S10",
+        "S11"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S12-T03",
+      "stage": "S12",
+      "stage_title": "Survival threat and minimal armament economy",
+      "title": "Implement simple player gun/plasma/anti-missile resource progression without Create factory",
+      "owner": "GAMEPLAY",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S10",
+        "S11"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S12-T04",
+      "stage": "S12",
+      "stage_title": "Survival threat and minimal armament economy",
+      "title": "Define base repair/resource loss rules and prevent irreversible early survival softlocks",
+      "owner": "GAMEPLAY",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S10",
+        "S11"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S12-T05",
+      "stage": "S12",
+      "stage_title": "Survival threat and minimal armament economy",
+      "title": "Test one coherent day-night hunt event with player decision branches",
+      "owner": "GAMEPLAY",
+      "gate": "G4",
+      "depends_on_stages": [
+        "S10",
+        "S11"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S13-T01",
+      "stage": "S13",
+      "stage_title": "World architecture: core to Citadel",
+      "title": "Create deterministic planetary spatial zones including core and upper atmosphere",
+      "owner": "WORLD_DESIGN",
+      "gate": "G5",
+      "depends_on_stages": [
+        "S02",
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S13-T02",
+      "stage": "S13",
+      "stage_title": "World architecture: core to Citadel",
+      "title": "Prototype Xenogears-like underground laboratories/shafts with proper permissions",
+      "owner": "WORLD_DESIGN",
+      "gate": "G5",
+      "depends_on_stages": [
+        "S02",
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S13-T03",
+      "stage": "S13",
+      "stage_title": "World architecture: core to Citadel",
+      "title": "Prototype deserted stations and asteroid bodies at near/mid/far LOD",
+      "owner": "WORLD_DESIGN",
+      "gate": "G5",
+      "depends_on_stages": [
+        "S02",
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S13-T04",
+      "stage": "S13",
+      "stage_title": "World architecture: core to Citadel",
+      "title": "Block out ruined orbit ring and central faction Citadel with flight routes",
+      "owner": "WORLD_DESIGN",
+      "gate": "G5",
+      "depends_on_stages": [
+        "S02",
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S13-T05",
+      "stage": "S13",
+      "stage_title": "World architecture: core to Citadel",
+      "title": "Implement smooth ground-sky atmosphere/LOD gradation, no floating random junk",
+      "owner": "WORLD_DESIGN",
+      "gate": "G5",
+      "depends_on_stages": [
+        "S02",
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S13-T06",
+      "stage": "S13",
+      "stage_title": "World architecture: core to Citadel",
+      "title": "Validate physical navigation across layers and compact mission pacing",
+      "owner": "WORLD_DESIGN",
+      "gate": "G5",
+      "depends_on_stages": [
+        "S02",
+        "S04"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S14-T01",
+      "stage": "S14",
+      "stage_title": "Factions, Shapes and mission framework",
+      "title": "Design five proposed tech levels, keep them candidates until author approval",
+      "owner": "GAMEPLAY",
+      "gate": "G5",
+      "depends_on_stages": [
+        "S11",
+        "S12",
+        "S13"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S14-T02",
+      "stage": "S14",
+      "stage_title": "Factions, Shapes and mission framework",
+      "title": "Prototype Shapes as armed physical infantry with squad AI and no vanilla teleport",
+      "owner": "GAMEPLAY",
+      "gate": "G5",
+      "depends_on_stages": [
+        "S11",
+        "S12",
+        "S13"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S14-T03",
+      "stage": "S14",
+      "stage_title": "Factions, Shapes and mission framework",
+      "title": "Assign teleport ability to a distinct flying enemy archetype and validate counter-play",
+      "owner": "GAMEPLAY",
+      "gate": "G5",
+      "depends_on_stages": [
+        "S11",
+        "S12",
+        "S13"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S14-T04",
+      "stage": "S14",
+      "stage_title": "Factions, Shapes and mission framework",
+      "title": "Prototype heavy laser operator with shoulder rockets on BlockBody machinery",
+      "owner": "GAMEPLAY",
+      "gate": "G5",
+      "depends_on_stages": [
+        "S11",
+        "S12",
+        "S13"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S14-T05",
+      "stage": "S14",
+      "stage_title": "Factions, Shapes and mission framework",
+      "title": "Write Strife-style mission contracts for lab infiltration, UFO boarding and convoy defense",
+      "owner": "GAMEPLAY",
+      "gate": "G5",
+      "depends_on_stages": [
+        "S11",
+        "S12",
+        "S13"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S15-T01",
+      "stage": "S15",
+      "stage_title": "Cleanup / asset and UI integration",
+      "title": "Identify six red-marked item registry IDs and their actual use graph",
+      "owner": "CLEANUP",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S00",
+        "S10"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S15-T02",
+      "stage": "S15",
+      "stage_title": "Cleanup / asset and UI integration",
+      "title": "Remove only approved dead items/models/textures with save-safe migration mapping",
+      "owner": "CLEANUP",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S00",
+        "S10"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S15-T03",
+      "stage": "S15",
+      "stage_title": "Cleanup / asset and UI integration",
+      "title": "Fix mirror slab and portal separate render passes with correct FBO behavior",
+      "owner": "CLEANUP",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S00",
+        "S10"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S15-T04",
+      "stage": "S15",
+      "stage_title": "Cleanup / asset and UI integration",
+      "title": "Remove confirmed legacy sky junk without deleting approved asteroid concept",
+      "owner": "CLEANUP",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S00",
+        "S10"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S15-T05",
+      "stage": "S15",
+      "stage_title": "Cleanup / asset and UI integration",
+      "title": "Audit GUI tooltips, HUD scaling, battle debug lines and PS1 readability",
+      "owner": "CLEANUP",
+      "gate": "G3",
+      "depends_on_stages": [
+        "S00",
+        "S10"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S16-T01",
+      "stage": "S16",
+      "stage_title": "Full performance and regression testing",
+      "title": "Run source-level unit + GameTest + actual client rendercheck on same exact JAR",
+      "owner": "QA",
+      "gate": "G6",
+      "depends_on_stages": [
+        "S03",
+        "S05",
+        "S09",
+        "S11",
+        "S15"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S16-T02",
+      "stage": "S16",
+      "stage_title": "Full performance and regression testing",
+      "title": "Benchmark mspt/fps/heap/loaded cubes/draw calls across 32→1024 drone tests",
+      "owner": "QA",
+      "gate": "G6",
+      "depends_on_stages": [
+        "S03",
+        "S05",
+        "S09",
+        "S11",
+        "S15"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S16-T03",
+      "stage": "S16",
+      "stage_title": "Full performance and regression testing",
+      "title": "Run high altitude full-mesh/camera/LOD pressure with roll and fast vehicle",
+      "owner": "QA",
+      "gate": "G6",
+      "depends_on_stages": [
+        "S03",
+        "S05",
+        "S09",
+        "S11",
+        "S15"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S16-T04",
+      "stage": "S16",
+      "stage_title": "Full performance and regression testing",
+      "title": "Run city/dungeon explosions, ragdoll/debris and save/reload for hours",
+      "owner": "QA",
+      "gate": "G6",
+      "depends_on_stages": [
+        "S03",
+        "S05",
+        "S09",
+        "S11",
+        "S15"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S16-T05",
+      "stage": "S16",
+      "stage_title": "Full performance and regression testing",
+      "title": "Record unsupported beta/driver/upstream failures and rollback paths",
+      "owner": "QA",
+      "gate": "G6",
+      "depends_on_stages": [
+        "S03",
+        "S05",
+        "S09",
+        "S11",
+        "S15"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S17-T01",
+      "stage": "S17",
+      "stage_title": "Integration, handoff and release candidate",
+      "title": "Merge isolated worktrees via reviewed integration branch without losing active UFO work",
+      "owner": "CODEX",
+      "gate": "G6",
+      "depends_on_stages": [
+        "S16"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S17-T02",
+      "stage": "S17",
+      "stage_title": "Integration, handoff and release candidate",
+      "title": "Update STATE/TASKS/DECISIONS/REGRESSIONS and exact evidence index on final SHA",
+      "owner": "CODEX",
+      "gate": "G6",
+      "depends_on_stages": [
+        "S16"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S17-T03",
+      "stage": "S17",
+      "stage_title": "Integration, handoff and release candidate",
+      "title": "Package release candidate JAR/modlist/test save only when passes relevant gates",
+      "owner": "CODEX",
+      "gate": "G6",
+      "depends_on_stages": [
+        "S16"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S17-T04",
+      "stage": "S17",
+      "stage_title": "Integration, handoff and release candidate",
+      "title": "Write honest user-facing PASS/FAIL/BLOCKED status for every P0/P1 and test",
+      "owner": "CODEX",
+      "gate": "G6",
+      "depends_on_stages": [
+        "S16"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    },
+    {
+      "id": "S17-T05",
+      "stage": "S17",
+      "stage_title": "Integration, handoff and release candidate",
+      "title": "Deliver reproducible run steps, full diffs and follow-on worldbuilding backlog",
+      "owner": "CODEX",
+      "gate": "G6",
+      "depends_on_stages": [
+        "S16"
+      ],
+      "status": "pending_reverification",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "evidence": [],
+      "notes": "Do not assume complete from historic PR/summary."
+    }
+  ]
+}

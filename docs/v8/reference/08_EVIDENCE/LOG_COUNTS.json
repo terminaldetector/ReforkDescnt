@@ -1,0 +1,121 @@
+{
+  "logs": [
+    {
+      "file": "latest.log",
+      "sha256": "975edd9ee33597299fe39147b64bc80d59767f6f770237594c6a6a3ca5197730",
+      "bytes": 54384,
+      "lines": 513,
+      "start": "[15:06:02] [main/INFO]: Loading Minecraft 1.21.1 with Fabric Loa",
+      "end": "[15:52:38] [Render thread/INFO]: Stopping!",
+      "lag_count": 55,
+      "lag_max_ms": 152216,
+      "lag_max_ticks": 3044,
+      "dummy_be_count": 33,
+      "dummy_y_min": -51,
+      "dummy_y_max": -2,
+      "errors": [],
+      "mirrors": [
+        "[15:46:39] [Render thread/INFO]: [drmd view] mirror: nothing drawn: none in range of the scan"
+      ]
+    },
+    {
+      "file": "latest(1).log",
+      "sha256": "bff41178a85e659077c364fa2abd8de849c69982434dcb29b5caf8a36844b020",
+      "bytes": 75479,
+      "lines": 622,
+      "start": "[16:09:32] [main/INFO]: Loading Minecraft 1.21.1 with Fabric Loa",
+      "end": "[16:55:25] [Render thread/INFO]: Stopping!",
+      "lag_count": 41,
+      "lag_max_ms": 193148,
+      "lag_max_ticks": 3862,
+      "dummy_be_count": 100,
+      "dummy_y_min": -48,
+      "dummy_y_max": -1,
+      "errors": [
+        "[16:29:50] [Server thread/ERROR]: Failed to create block entity minecraft:mob_spawner"
+      ],
+      "mirrors": [
+        "[16:13:44] [Render thread/INFO]: [drmd view] mirror: nothing drawn: none in range of the scan",
+        "[16:53:32] [Render thread/INFO]: [drmd view] mirror: drawing 1 of 1",
+        "[16:53:34] [Render thread/INFO]: [drmd view] mirror: nothing drawn: 1 visible but measured off-screen or no render target",
+        "[16:53:35] [Render thread/INFO]: [drmd view] mirror: drawing 1 of 1",
+        "[16:54:07] [Render thread/INFO]: [drmd view] mirror: nothing drawn: 1 visible but measured off-screen or no render target",
+        "[16:54:08] [Render thread/INFO]: [drmd view] mirror: drawing 1 of 2",
+        "[16:54:09] [Render thread/INFO]: [drmd view] mirror: drawing 2 of 2",
+        "[16:54:12] [Render thread/INFO]: [drmd view] mirror: drawing 1 of 2",
+        "[16:54:13] [Render thread/INFO]: [drmd view] mirror: drawing 2 of 2",
+        "[16:54:14] [Render thread/INFO]: [drmd view] mirror: drawing 1 of 2",
+        "[16:54:14] [Render thread/INFO]: [drmd view] mirror: nothing drawn: 2 visible but measured off-screen or no render target",
+        "[16:54:15] [Render thread/INFO]: [drmd view] mirror: drawing 1 of 2",
+        "[16:54:15] [Render thread/INFO]: [drmd view] mirror: drawing 2 of 2",
+        "[16:54:55] [Render thread/INFO]: [drmd view] mirror: nothing drawn: 2 visible but measured off-screen or no render target",
+        "[16:54:57] [Render thread/INFO]: [drmd view] mirror: drawing 1 of 2",
+        "[16:54:58] [Render thread/INFO]: [drmd view] mirror: nothing drawn: 2 visible but measured off-screen or no render target",
+        "[16:55:00] [Render thread/INFO]: [drmd view] mirror: drawing 1 of 2",
+        "[16:55:00] [Render thread/INFO]: [drmd view] mirror: nothing drawn: 2 visible but measured off-screen or no render target",
+        "[16:55:02] [Render thread/INFO]: [drmd view] mirror: drawing 1 of 2",
+        "[16:55:02] [Render thread/INFO]: [drmd view] mirror: drawing 2 of 2",
+        "[16:55:09] [Render thread/INFO]: [drmd view] mirror: nothing drawn: 2 visible but measured off-screen or no render target"
+      ]
+    },
+    {
+      "file": "2026-10-26-1.log.gz",
+      "sha256": "0aab6d52e8e508dcde40b859eb82431bcbad665cb606ecbde1b78044f8abb1c8",
+      "bytes": 4767,
+      "lines": 215,
+      "start": "[15:02:00] [main/INFO]: Loading Minecraft 1.21.1 with Fabric Loa",
+      "end": "\tat java.base/java.lang.Thread.run(Thread.java:1583) [?:?]",
+      "lag_count": 0,
+      "lag_max_ms": 0,
+      "lag_max_ticks": 0,
+      "dummy_be_count": 0,
+      "dummy_y_min": null,
+      "dummy_y_max": null,
+      "errors": [
+        "[15:05:39] [Server thread/ERROR]: Encountered an unexpected exception"
+      ],
+      "mirrors": []
+    },
+    {
+      "file": "2026-10-26-1.log(1).gz",
+      "sha256": "0aab6d52e8e508dcde40b859eb82431bcbad665cb606ecbde1b78044f8abb1c8",
+      "bytes": 4767,
+      "lines": 215,
+      "start": "[15:02:00] [main/INFO]: Loading Minecraft 1.21.1 with Fabric Loa",
+      "end": "\tat java.base/java.lang.Thread.run(Thread.java:1583) [?:?]",
+      "lag_count": 0,
+      "lag_max_ms": 0,
+      "lag_max_ticks": 0,
+      "dummy_be_count": 0,
+      "dummy_y_min": null,
+      "dummy_y_max": null,
+      "errors": [
+        "[15:05:39] [Server thread/ERROR]: Encountered an unexpected exception"
+      ],
+      "mirrors": []
+    },
+    {
+      "file": "2026-10-26-2.log.gz",
+      "sha256": "962836258e16258949609f32cf9b65987cd3e9bac6bbd97eecfec7255d472405",
+      "bytes": 9010,
+      "lines": 513,
+      "start": "[15:06:02] [main/INFO]: Loading Minecraft 1.21.1 with Fabric Loa",
+      "end": "[15:52:38] [Render thread/INFO]: Stopping!",
+      "lag_count": 55,
+      "lag_max_ms": 152216,
+      "lag_max_ticks": 3044,
+      "dummy_be_count": 33,
+      "dummy_y_min": -51,
+      "dummy_y_max": -2,
+      "errors": [],
+      "mirrors": [
+        "[15:46:39] [Render thread/INFO]: [drmd view] mirror: nothing drawn: none in range of the scan"
+      ]
+    }
+  ],
+  "duplicates_by_uncompressed_text": {
+    "2026-10-26-1.log.gz": "0abdaf01186ee0a28da6d57f2a29a4fbdbdd56b6ff445d8da50cad10b4110a16",
+    "2026-10-26-1.log(1).gz": "0abdaf01186ee0a28da6d57f2a29a4fbdbdd56b6ff445d8da50cad10b4110a16",
+    "2026-10-26-2.log.gz": "975edd9ee33597299fe39147b64bc80d59767f6f770237594c6a6a3ca5197730"
+  }
+}

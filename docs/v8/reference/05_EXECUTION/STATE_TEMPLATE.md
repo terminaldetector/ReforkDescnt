@@ -1,0 +1,15 @@
+# STATE.md — replace placeholders with exact evidence
+- Last updated: NOT VERIFIED
+- Owner agent and worktree: UNKNOWN
+- Source HEAD SHA: UNKNOWN
+- Built JAR SHA256: UNKNOWN
+- Runtime Fabric/Minecraft/Java versions: 1.21.1/Fabric/Java21 TARGET, ACTUAL UNKNOWN
+- Stage/task in progress: S00-T01
+- Last verified GameTest / unit / client rendercheck: UNKNOWN
+- Safety backups/test world identity: UNKNOWN
+- Open P0/P1 issues: list from `04_BUGS/ISSUE_REGISTER.md`, all initially UNVERIFIED
+- Successful reproducible commands: NONE RECORDED YET
+- Failed experiments with reason: NONE RECORDED YET
+- External dependency versions and checksums: UNKNOWN
+- Next executable operation: inspect actual worktrees, active UFO agent state and binaries
+- Resume point if interrupted: RECONCILE FIRST, DO NOT OVERWRITE

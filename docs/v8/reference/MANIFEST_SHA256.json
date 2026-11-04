@@ -1,0 +1,289 @@
+{
+  "version": "8.0",
+  "generated": "2026-11-04",
+  "type": "engineering_specification_not_code",
+  "task_count": 99,
+  "recorded_jars": "unknown actual latest; old log drmd 1.1.14-audit.4",
+  "contents": [
+    {
+      "path": "00_MASTER_SPEC.md",
+      "bytes": 32424,
+      "sha256": "c98fe04f5592d5afcc9ddc34414c4d3032287944905718cf2fd17b4e2770d082"
+    },
+    {
+      "path": "00_README.md",
+      "bytes": 2645,
+      "sha256": "5b96fc8522aa17bde5036fa953a00adc46f0a8891da024023e60a28dcc24e3d6"
+    },
+    {
+      "path": "01_CONTEXT/RECOVERED_BRANCHES_AND_DIFF.md",
+      "bytes": 5598,
+      "sha256": "b29a3391d1d6c7b9bd7163faf8963cfed18f1e9f3ad308bea8c6ddb8a9366811"
+    },
+    {
+      "path": "02_ENGINE/CUBIC_WORLD_MIGRATION.md",
+      "bytes": 4862,
+      "sha256": "6ea30532b118ba542d9b2368365f81f4398fe6b5015d037e43a58ff329f3c150"
+    },
+    {
+      "path": "02_ENGINE/PHYSICS_UNIVERSAL_6DOF_RAGDOLL.md",
+      "bytes": 3795,
+      "sha256": "fd4bef538d2bb4e5ff68a882b8f07fdddcf60b05092cff879d807db8b5b00b30"
+    },
+    {
+      "path": "02_ENGINE/RENDER_NOCUBES_PS1.md",
+      "bytes": 4164,
+      "sha256": "169972c76de085fd7db2e135e002ebaf9f84818c694b0205ae16000d62bc5115"
+    },
+    {
+      "path": "03_GAMEPLAY/BLOCKBODY_UFO_AND_MOTHERSHIP.md",
+      "bytes": 3561,
+      "sha256": "6f549346c4447685d3c8e205d591998ec77a78aaddcbf8b7a30c5fd913de7903"
+    },
+    {
+      "path": "03_GAMEPLAY/GUNPLAY_BURST_DRILLS_AND_BUILDING.md",
+      "bytes": 2881,
+      "sha256": "5180b8128caabbb0e107e5163820728cc4d2d4c6728a671248863b371b00c136"
+    },
+    {
+      "path": "03_GAMEPLAY/SWARM_FACTIONS_SURVIVAL.md",
+      "bytes": 3421,
+      "sha256": "c90dcd268b7dcd1601ea150355f8771267d7661316f8e134181a55e86ff6753e"
+    },
+    {
+      "path": "04_BUGS/ISSUE_REGISTER.md",
+      "bytes": 5442,
+      "sha256": "69942953fc22cc8431c45bc42e2f0f30633eb519047a0d057e2faeda1e3d776f"
+    },
+    {
+      "path": "04_BUGS/LOG_TRIAGE_AND_INSTRUMENTATION.md",
+      "bytes": 2269,
+      "sha256": "6775395063979c340b422c54ad0c21d178b54fae34f28bf1c15df0765d892eb0"
+    },
+    {
+      "path": "04_WORLD/CITY_ASSET_PIPELINE.md",
+      "bytes": 2071,
+      "sha256": "a265ac5e17559b948a027c1c461a82fc47757ea87dda33f2d0129f46ae665332"
+    },
+    {
+      "path": "04_WORLD/PLANET_RING_CITADEL_LABS.md",
+      "bytes": 3919,
+      "sha256": "074f2cbd13cab875736a58a57678d6b57169ffc60d04906891c61dec5ae72702"
+    },
+    {
+      "path": "05_EXECUTION/AGENTS_AND_GATES.md",
+      "bytes": 2502,
+      "sha256": "8a2e87f3ece890ee958a06453fccc1157e8865c25b1cba9abbc339759e0dc9e0"
+    },
+    {
+      "path": "05_EXECUTION/AGENT_LINEAGE_PRE_OCT26.md",
+      "bytes": 3621,
+      "sha256": "190c64881b9eecf40b5d787d20f1304d031f5fa6b44d96735ca4ff391c523f05"
+    },
+    {
+      "path": "05_EXECUTION/CODEX_START_HERE.md",
+      "bytes": 4782,
+      "sha256": "8555beffd2ded0471d09f4cccd1e8be98359f2431270dd6b0ed8d1ae5b346528"
+    },
+    {
+      "path": "05_EXECUTION/DECISIONS_TEMPLATE.md",
+      "bytes": 557,
+      "sha256": "93f0c265ab7785621618eef110743f31c132fb4e67c5a20343b8443f17f55e3a"
+    },
+    {
+      "path": "05_EXECUTION/REGRESSIONS_TEMPLATE.md",
+      "bytes": 443,
+      "sha256": "d29465bb9761b5ed8fb95d3c233b6286c5c587d08a069029bea8bd811c1d9173"
+    },
+    {
+      "path": "05_EXECUTION/STATE_TEMPLATE.md",
+      "bytes": 805,
+      "sha256": "cb7fa440e1f7660f883a040935e47f72fdd7db6b262ee2c7c84f2253c6309e51"
+    },
+    {
+      "path": "05_EXECUTION/TASKS.json",
+      "bytes": 58643,
+      "sha256": "1022dcf25f77ad051130b4dd2ccf4215ddc154323adeed2be3fd5077bfeb8495"
+    },
+    {
+      "path": "05_EXECUTION/TASKS.yaml",
+      "bytes": 45997,
+      "sha256": "ea67605be62e053132df15e5188ae6e7b830f4741cd1a4d527bbd20bbe403428"
+    },
+    {
+      "path": "06_VALIDATION/METRICS_AND_EVIDENCE.md",
+      "bytes": 1625,
+      "sha256": "5f732dd0735b1b07d4134a03f279c82a9715cc0767f91350dfa992507f90c01f"
+    },
+    {
+      "path": "06_VALIDATION/REGRESSION_MATRIX.md",
+      "bytes": 4861,
+      "sha256": "7d2a570083ec278928b7259c52f2d0bd6b352db3a6c33df31b60e402928a4345"
+    },
+    {
+      "path": "07_REFERENCES/UPSTREAM.md",
+      "bytes": 2600,
+      "sha256": "c0a00e9ca3d8ab54d606d9ee483d56abe4595b824d1d815fd71a3b113ace521d"
+    },
+    {
+      "path": "08_EVIDENCE/LOG_COUNTS.json",
+      "bytes": 5508,
+      "sha256": "0887e7e09a763b28d4fe8ba69fbd1d6ed89cfae0b45abe026f9a64ca12816c50"
+    },
+    {
+      "path": "08_EVIDENCE/logs/2026-10-26-1.log(1).gz",
+      "bytes": 4767,
+      "sha256": "0aab6d52e8e508dcde40b859eb82431bcbad665cb606ecbde1b78044f8abb1c8"
+    },
+    {
+      "path": "08_EVIDENCE/logs/2026-10-26-1.log.gz",
+      "bytes": 4767,
+      "sha256": "0aab6d52e8e508dcde40b859eb82431bcbad665cb606ecbde1b78044f8abb1c8"
+    },
+    {
+      "path": "08_EVIDENCE/logs/2026-10-26-2.log.gz",
+      "bytes": 9010,
+      "sha256": "962836258e16258949609f32cf9b65987cd3e9bac6bbd97eecfec7255d472405"
+    },
+    {
+      "path": "08_EVIDENCE/logs/latest(1).log",
+      "bytes": 75479,
+      "sha256": "bff41178a85e659077c364fa2abd8de849c69982434dcb29b5caf8a36844b020"
+    },
+    {
+      "path": "08_EVIDENCE/logs/latest.log",
+      "bytes": 54384,
+      "sha256": "975edd9ee33597299fe39147b64bc80d59767f6f770237594c6a6a3ca5197730"
+    },
+    {
+      "path": "08_EVIDENCE/screenshots/USER_SIX_CASES_CONTACT_SHEET.jpg",
+      "bytes": 129286,
+      "sha256": "29d75285f0619570e7dc324310339f8ed02e5072c429cad306aca2526c3d7f89"
+    },
+    {
+      "path": "08_EVIDENCE/screenshots/image(1).png",
+      "bytes": 726477,
+      "sha256": "afbb210f14171a9b3ccf012a8f5bd39c0311b86745ecb90803931933f205b0cf"
+    },
+    {
+      "path": "08_EVIDENCE/screenshots/image(2).png",
+      "bytes": 824432,
+      "sha256": "e62c15a20ff0eabb146564c64e232ac4116d3092c897c3986e315ad3270a353f"
+    },
+    {
+      "path": "08_EVIDENCE/screenshots/image(3).png",
+      "bytes": 638051,
+      "sha256": "cf351c5d00935dcb32cf23d97b57a6f4f9993ef60390ce3e3bfe5b49b9c0a243"
+    },
+    {
+      "path": "08_EVIDENCE/screenshots/image(4).png",
+      "bytes": 541028,
+      "sha256": "38735776ffa4bac69158d14f06a72edc18724fcacc7f9524e4547659117b5706"
+    },
+    {
+      "path": "08_EVIDENCE/screenshots/image(5).png",
+      "bytes": 604680,
+      "sha256": "6adb8df78d0c362065da0a84c71796d4fb7cdc787685600a3a6b7e97db20b9fe"
+    },
+    {
+      "path": "08_EVIDENCE/screenshots/image(6).png",
+      "bytes": 604680,
+      "sha256": "6adb8df78d0c362065da0a84c71796d4fb7cdc787685600a3a6b7e97db20b9fe"
+    },
+    {
+      "path": "08_EVIDENCE/screenshots/image(7).png",
+      "bytes": 733344,
+      "sha256": "aae552f7bddaf5891632316878b2e521065d1c54b32b7d8339fc9aca5887890a"
+    },
+    {
+      "path": "08_EVIDENCE/screenshots/image(8).png",
+      "bytes": 573481,
+      "sha256": "3b0d1c805b85654a9400986bd6f6b923aafbabfd3ee3a95f74c28acc44721d82"
+    },
+    {
+      "path": "08_EVIDENCE/screenshots/image(9).png",
+      "bytes": 596135,
+      "sha256": "bc62ab754c2bd56b5dd2c53a57727b8f82f83e23d49a3a9c78a9d265b9370894"
+    },
+    {
+      "path": "08_EVIDENCE/screenshots/image.png",
+      "bytes": 813099,
+      "sha256": "a2ebe700e95b8521a92c7f9735b572438e9b4ac03980f036f722047a49cbd565"
+    },
+    {
+      "path": "09_LEGACY_V5/00_MAIN/MASTER_SPEC.md",
+      "bytes": 35103,
+      "sha256": "134710676dc160a5f67cb7cbe3ece2e923dfb3566cbec921d9f5739718e11c23"
+    },
+    {
+      "path": "09_LEGACY_V5/08_PREVIOUS_SPECS/CLUSTER_MUNITIONS_TZ.md",
+      "bytes": 4731,
+      "sha256": "d48b341f50f8db90336440b014f1506921542363000bd3ff32ad06692b49fcc8"
+    },
+    {
+      "path": "09_LEGACY_V5/08_PREVIOUS_SPECS/CONSTRUCTION_TOOLS_TZ.md",
+      "bytes": 4236,
+      "sha256": "96c1a85bfdb9974a0af73b372c09e5928811e160450a68334235e8a773428717"
+    },
+    {
+      "path": "09_LEGACY_V5/08_PREVIOUS_SPECS/DRILL_MELT_NOCUBES_TZ.md",
+      "bytes": 8307,
+      "sha256": "f171b5251b9dff9c2113dd69a4ba1eb098a702e690491753c0133bde0481bd0c"
+    },
+    {
+      "path": "09_LEGACY_V5/08_PREVIOUS_SPECS/EXPANDED_PHYSICS_DEFAULT_TZ.md",
+      "bytes": 4493,
+      "sha256": "034442073570e9cbd844f6e758330e32b60c2627cd29f81a5a8585ab18c537f5"
+    },
+    {
+      "path": "09_LEGACY_V5/08_PREVIOUS_SPECS/HYBRID_RENDER_DEFAULT_TZ.md",
+      "bytes": 4607,
+      "sha256": "abc5416cff4bed723d1670598b2c2ed0d32fdb7f95b6364e816dbfe868f51275"
+    },
+    {
+      "path": "09_LEGACY_V5/08_PREVIOUS_SPECS/INVENTORY_ITEM_MODELS_TZ.md",
+      "bytes": 3306,
+      "sha256": "fe3ba30e123186b702328e3d6044ef01eb67b9bb211ef75978fb203576e710f8"
+    },
+    {
+      "path": "09_LEGACY_V5/08_PREVIOUS_SPECS/LEGACY_DEAD_CODE_AUDIT_TZ.md",
+      "bytes": 3345,
+      "sha256": "a06e167cc28e2f386451bb20c331b11552a9911465c0e0ee40d0182ce26c1e1b"
+    },
+    {
+      "path": "09_LEGACY_V5/08_PREVIOUS_SPECS/MIRRORS_TZ.md",
+      "bytes": 5825,
+      "sha256": "dbf29c3764bc0651ee65eada5fdd3737589fb30bfbd491e70bfda8dffa7b24db"
+    },
+    {
+      "path": "09_LEGACY_V5/08_PREVIOUS_SPECS/PORTALS_TZ.md",
+      "bytes": 8008,
+      "sha256": "5fbf84a41d1a02e18264a59a098fe922dc4d407cd7d59f12c294ff6ee0219a42"
+    },
+    {
+      "path": "09_LEGACY_V5/08_PREVIOUS_SPECS/README_FOR_CODEX.md",
+      "bytes": 2594,
+      "sha256": "726e00cf3d31c3ca9be705c819d0ece3d5d89b752289d988467aab232b60493b"
+    },
+    {
+      "path": "09_LEGACY_V5/08_PREVIOUS_SPECS/UNGRAVITY_CUBIC_FULL_MIGRATION_TZ_2026-10-26.md",
+      "bytes": 19671,
+      "sha256": "fdb99257d8a65740e82872d08035d19c94b0003bd687f5529a24d1c4488b3899"
+    },
+    {
+      "path": "09_LEGACY_V5/08_PREVIOUS_SPECS/UNGRAVITY_CUBIC_WORLD_LOG_AUDIT_2026-10-26.md",
+      "bytes": 13744,
+      "sha256": "be412172e573c203cc96a0cadb8cdab5ea024a70c7f8fcd11a34a243ba0e105b"
+    },
+    {
+      "path": "09_LEGACY_V5/08_PREVIOUS_SPECS/UNGRAVITY_VIDEO_AUDIT.md",
+      "bytes": 36271,
+      "sha256": "9f2fd9b32c9f6eea0be329e2b0a5a0c57cc0101ad9fd1d9c61bbe1aafeacdcea"
+    },
+    {
+      "path": "09_LEGACY_V5/08_PREVIOUS_SPECS/WEAPON_VISIBILITY_TZ.md",
+      "bytes": 4327,
+      "sha256": "a62cd893032524e32ef8662ea68017b80eb38249658117b2edf418f18268e951"
+    }
+  ]
+}
