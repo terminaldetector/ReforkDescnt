@@ -32,7 +32,10 @@ public final class BodySpatialIndex {
         State s=WORLDS.get(body.getWorld());if(s==null)return;
         var ref=s.bodies.get(body.getId());
         if(ref!=null&&ref.get()==body){s.bodies.remove(body.getId());s.tree.remove(body.getId());
-            if(body.getWorld() instanceof net.minecraft.server.world.ServerWorld world)BodyVolumeLeases.release(world,body.getUuid());}
+            if(body.getWorld() instanceof net.minecraft.server.world.ServerWorld world) {
+                BodyVolumeLeases.release(world,body.getUuid());
+                var reason=body.getRemovalReason();if(reason!=null&&(reason.shouldDestroy()||reason==Entity.RemovalReason.CHANGED_DIMENSION))BodyJointRegistry.get(world).removeBody(body.getUuid());
+            }}
     }
     public static List<BlockBodyEntity> loaded(World world) {
         State state=WORLDS.get(world);if(state==null)return List.of();var result=new ArrayList<BlockBodyEntity>();
