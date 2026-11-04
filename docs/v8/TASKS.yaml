@@ -669,11 +669,11 @@ tasks:
   owner: UFO_OWNER
   gate: G2
   depends_on_stages: *id010
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [CONTROL_CORE_WIP.md, EVIDENCE/ufo-control-0dff43b.zip]
+  notes: Partial capture/pilot-exit native proof only; lifecycle edges and full boarding acceptance remain open.
 - id: S09-T05
   stage: S09
   stage_title: BlockBody / UFO boarding and reactor

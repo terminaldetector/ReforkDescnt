@@ -133,5 +133,75 @@
     "source": "f6fa6e4",
     "tests": 47,
     "failures": 0
+  },
+  "controlCoreIncrement": {
+    "source": "0dff43bd9547ac9b3d0c6ff6dab391de03ae8616",
+    "gameJarSha256": "88a68aab75f6ad101966c5fac4badac57f9f5621dcf4b8e39f7aec0217cbdacf",
+    "gateJarSha256": "65d62807b9207abf564e2b64c81284711965bbd81c308b8dc6640a1349f535e0",
+    "archive": "ufo-control-0dff43b.zip",
+    "sha256": "f80893a9f9f84bf2803394cf32adfd46d5c5631e1682894ad595c262226e8f64",
+    "runs": [
+      {
+        "scenario": "flight-body-control-pause-verified-gl32",
+        "source": "0dff43bd9547ac9b3d0c6ff6dab391de03ae8616",
+        "marker": {
+          "pauseResumed": true,
+          "controlCore": true,
+          "actualUfo": true,
+          "externalEntry": true,
+          "actualThrust": true,
+          "walkingHandoff": true,
+          "roofContacts": 0,
+          "teleportFollow": false,
+          "renderedFrames": 181,
+          "predictionSamples": 64,
+          "maxPredictionError": 0.03785049391456852,
+          "scenes": [
+            "external-approach",
+            "moving-bay-entry",
+            "flight-to-boarding",
+            "boarded-walking",
+            "control-acquired",
+            "control-thrust-and-roll",
+            "control-release"
+          ]
+        }
+      },
+      {
+        "scenario": "flight-body-control-pause-verified-sodium",
+        "source": "0dff43bd9547ac9b3d0c6ff6dab391de03ae8616",
+        "marker": {
+          "pauseResumed": true,
+          "controlCore": true,
+          "actualUfo": true,
+          "externalEntry": true,
+          "actualThrust": true,
+          "walkingHandoff": true,
+          "roofContacts": 0,
+          "teleportFollow": false,
+          "renderedFrames": 679,
+          "predictionSamples": 72,
+          "maxPredictionError": 0.03099139156530839,
+          "scenes": [
+            "external-approach",
+            "moving-bay-entry",
+            "flight-to-boarding",
+            "boarded-walking",
+            "control-acquired",
+            "control-thrust-and-roll",
+            "control-release"
+          ]
+        }
+      }
+    ],
+    "unitTests": 679,
+    "gameTests": 243,
+    "releaseAccepted": false,
+    "sourceArtifact": {
+      "run": 41912607546,
+      "id": 13363905902,
+      "expired": false,
+      "digest": "sha256:17c9b0a3a373c41b1563389c6d5818474dbe1dff34088ac73a9197d1afe201ec"
+    }
   }
 }
