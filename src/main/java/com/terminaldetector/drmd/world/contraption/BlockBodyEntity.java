@@ -20,7 +20,7 @@ import net.minecraft.registry.tag.BlockTags;
 import java.util.*;
 
 /** Inert local block grid. Physics position is COM; Entity tracks a fixed grid pivot across mass edits. */
-public final class BlockBodyEntity extends Entity implements PhysicsTarget {
+public class BlockBodyEntity extends Entity implements PhysicsTarget {
     public record Cell(BlockPos pos, BlockState state) {}
     private static java.util.function.BiConsumer<BlockBodyEntity,Vec3> clientShapeListener=(b,p)->{};
     public static void clientShapeListener(java.util.function.BiConsumer<BlockBodyEntity,Vec3> listener){clientShapeListener=java.util.Objects.requireNonNull(listener);}
@@ -36,7 +36,8 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     private NbtList shapePatches=new NbtList();
     private static final TrackedData<NbtCompound> POSE = DataTracker.registerData(BlockBodyEntity.class, TrackedDataHandlerRegistry.NBT_COMPOUND);
     private static final Set<Block> SUPPORTED = Set.of(Blocks.STONE, Blocks.COBBLESTONE, Blocks.IRON_BLOCK,
-        Blocks.GOLD_BLOCK, Blocks.DIAMOND_BLOCK, Blocks.OBSIDIAN, Blocks.GLASS, Blocks.BRICKS);
+        Blocks.GOLD_BLOCK, Blocks.DIAMOND_BLOCK, Blocks.OBSIDIAN, Blocks.GLASS, Blocks.BRICKS,
+        Blocks.OXIDIZED_COPPER,Blocks.PRISMARINE_BRICKS,Blocks.DARK_PRISMARINE,Blocks.CYAN_STAINED_GLASS,Blocks.SEA_LANTERN);
     private static final double MAX_LINEAR_SPEED = BodyStepBudget.MAX_LINEAR_SPEED;
     private static final double MAX_ANGULAR_SPEED = 2;
     private D6Volume<BlockState> volume = new D6Volume<>(Blocks.AIR.getDefaultState());
@@ -86,7 +87,7 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     public void setPhysicsGravity(boolean value) {gravity=value;dataTracker.set(POSE,pose());}
     public boolean physicsGravity() {return gravity;}
-    public static boolean supports(BlockState state) {return SUPPORTED.contains(state.getBlock()) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
+    public static boolean supports(BlockState state) {return SUPPORTED.contains(state.getBlock()) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
 
     public BlockBodyEntity(EntityType<? extends BlockBodyEntity> type, World world) {
         super(type, world); setNoGravity(true);
@@ -360,13 +361,16 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
             }
             dataTracker.set(POSE,pose());velocityModified=true;
             if(cells.isEmpty())discard();
-            BodyJointRegistry.get(world).materialChanged(this,fragments);BodyJointSystem.materialChanged(this,fragments);return true;
+            BodyJointRegistry.get(world).materialChanged(this,fragments);BodyJointSystem.materialChanged(this,fragments);
         }catch(RuntimeException failure) {
             fragments.forEach(BlockBodyEntity::discard);
             if(saved!=null){readNbt(saved);previousPhysicsPosition=savedPrevious;previousRotation=savedTurn;pendingTorque=savedTorque;physicsTick=savedTick;publishPhysicsState();}
             throw failure;
         }
+        onLocalMaterialChanged(List.copyOf(fragments));return true;
     }
+    /** Owner modules observe committed material edits, after the rollback boundary. */
+    protected void onLocalMaterialChanged(List<BlockBodyEntity> fragments) {}
     private record PreparedEdit(List<LocalEdit> edits,List<BlockBodyEntity> fragments){}
     private static BodyTopology.Cell topology(BlockPos p){return new BodyTopology.Cell(p.getX(),p.getY(),p.getZ());}
     /** Refuse before mutation when rebasing would require a velocity outside the admitted
@@ -566,11 +570,18 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         BodyBounds.finite(pure(gridOrigin));
         if(!world.getServer().isOnThread()||cells.isEmpty())throw new IllegalArgumentException("nonempty server-owned body required");
         var entity=new BlockBodyEntity(ModEntities.BLOCK_BODY,world);
-        entity.loadShape(BodyShapeCodec.write(cells));
-        entity.setPosition(gridOrigin.x+entity.centre.x(),gridOrigin.y+entity.centre.y(),gridOrigin.z+entity.centre.z());
-        entity.body.withPosition(pure(entity.getPos()));entity.resetShapeBaseline();entity.dataTracker.set(POSE,entity.pose());
+        entity.initializeLocal(cells,gridOrigin);
         if(!world.spawnEntity(entity))throw new IllegalStateException("Could not spawn body");
         return entity;
+    }
+    /** Initialize an existing registered hull subtype without spawning a second entity or writing world blocks. */
+    protected final void initializeLocal(List<Cell> blueprint,Vec3d gridOrigin) {
+        BodyBounds.finite(pure(gridOrigin));
+        if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||blueprint.isEmpty()||!cells.isEmpty())throw new IllegalStateException("An empty server-owned hull is required");
+        loadShape(BodyShapeCodec.write(blueprint));
+        setPosition(gridOrigin.x+centre.x(),gridOrigin.y+centre.y(),gridOrigin.z+centre.z());
+        body.withPosition(massPosition());previousPhysicsPosition=body.position();previousRotation=body.rotation();
+        resetShapeBaseline();dataTracker.set(POSE,pose());setBoundingBox(new Box(getPos(),getPos()).expand(radius));BodySpatialIndex.update(this);
     }
     /** Exact sparse selection: neighbouring machines and terrain outside the selection stay untouched. */
     public static BlockBodyEntity assembleSelection(ServerWorld world,Map<BlockPos,BlockState> original) {

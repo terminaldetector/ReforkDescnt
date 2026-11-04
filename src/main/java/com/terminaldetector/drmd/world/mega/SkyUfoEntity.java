@@ -1,691 +1,165 @@
 package com.terminaldetector.drmd.world.mega;
 
 import com.terminaldetector.drmd.ai.AiRole;
-import com.terminaldetector.drmd.entity.DroneEntity;
-import com.terminaldetector.drmd.entity.ModEntities;
-import com.terminaldetector.drmd.entity.ModWorldBlocks;
-import com.terminaldetector.drmd.world.WorldRules;
-import com.terminaldetector.drmd.world.fire.FireSystem;
-import com.terminaldetector.drmd.world.gen2.MacroEntry;
-import com.terminaldetector.drmd.world.gen2.MacroWorld;
-import com.terminaldetector.drmd.world.structure.DestructionMode;
-import com.terminaldetector.drmd.world.structure.StructureCrash;
-import com.terminaldetector.drmd.world.structure.StructureDelta;
-import com.terminaldetector.drmd.world.structure.StructureInstance;
-import com.terminaldetector.drmd.world.structure.StructureMover;
-import com.terminaldetector.drmd.world.structure.StructureOccupants;
-import com.terminaldetector.drmd.world.structure.StructureShockwave;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
+import com.terminaldetector.drmd.client.portal.PortalTransform.*;
+import com.terminaldetector.drmd.entity.*;
+import com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions;
+import com.terminaldetector.drmd.world.contraption.BlockBodyEntity;
+import com.terminaldetector.drmd.world.structure.*;
 import net.minecraft.block.Blocks;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
+import net.minecraft.entity.*;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.*;
 import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.Heightmap;
+import net.minecraft.util.math.*;
 import net.minecraft.world.World;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.lang.ref.WeakReference;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * XCOM-style airborne UFO — a real enterable flying hull, not a distant prop.
- * Cruise while carrying interior entities; destroy by reactor dump / bomb / core break.
- *
- * <p>Placement/movement is delegated to {@code world.structure} infra ({@link StructureInstance} +
- * {@code StructureMover}/{@code StructureOccupants}) instead of the old from-scratch
- * clear-and-rebuild-every-move — see {@link SkyUfoHull} for the captured shape. Every public method here
- * kept its exact old signature; every external caller (weapons, worldgen, commands, the renderer) only
- * ever touched this stable surface, never the removed internal fields, so nothing outside this file and
- * {@code SkyUfoHull.java} needed to change.
- */
-public class SkyUfoEntity extends Entity {
-	public static final int SWARM_CAP = 12;
-	/**
-	 * Ticks between hull relocations, and the look-ahead window {@code tick()} projects velocity over to
-	 * pick the next anchor ({@code pos + velocity*MOVE_INTERVAL}) — this one constant controls both how
-	 * often the hull re-evaluates its position and how big each jump is. Shrunk from the old build()-era
-	 * value of 18: back when every relocation meant a full clear+rebuild, fewer/bigger jumps meant less
-	 * total rebuild work; now that {@code StructureMover.moveTo} only touches the diff shell, frequent
-	 * small jumps cost about the same per-tick as infrequent big ones, so there's no reason not to prefer
-	 * the smoother motion. First-guess value pending live-client feedback, per the plan's own explicit
-	 * "cannot be verified without a live client" note on this exact constant.
-	 */
-	public static final int MOVE_INTERVAL = 6;
+/** The existing registered UFO is one real BlockBody, including its hollow interior.
+ * Propulsion applies forces/torques; passenger motion belongs to DynamicBodyAttachment. */
+public class SkyUfoEntity extends BlockBodyEntity {
+    public static final int SWARM_CAP=12;
+    /** Retained source compatibility; physical integration now runs every world tick. */
+    public static final int MOVE_INTERVAL=1;
+    private static final BlockPos CORE=new BlockPos(0,1,0);
+    private static final Vec3 ZERO=new Vec3(0,0,0);
+    private static final Map<UUID,WeakReference<SkyUfoEntity>> ACTIVE=new ConcurrentHashMap<>();
+    private final List<UUID> swarm=new ArrayList<>();
+    private boolean initialized,crashing,detonated,autopilot=true;
+    private int spawnCooldown,crashTicks;
+    private double cruiseYaw,cruiseAltitude;
+    private DestructionMode destructionMode=DestructionMode.CRASH;
 
-	private static final TrackedData<Boolean> MATERIALIZED =
-			DataTracker.registerData(SkyUfoEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-
-	/** Active UFOs for bomb/reactor/core lookups. */
-	private static final Map<UUID, SkyUfoEntity> ACTIVE = new ConcurrentHashMap<>();
-	private static final Map<Long, UUID> CORE_INDEX = new ConcurrentHashMap<>();
-
-	private final List<UUID> swarm = new ArrayList<>();
-	private UUID macroId;
-	private float cruiseYaw;
-	/**
-	 * Continuous double-precision position, integrated from {@code vel} every tick — independent of
-	 * {@code instance.anchor()}, which only advances in whole-block jumps every {@link #MOVE_INTERVAL}
-	 * ticks. This is the position the render rewrite's client-side interpolation actually tracks;
-	 * relying on vanilla's own entity-tracker interpolation is a dead end here regardless (this entity
-	 * is registered with a coarse {@code trackingTickInterval(2)} and a hitbox far smaller than the
-	 * real hull, per this feature's plan) — kept and broadcast starting here so later phases have a
-	 * real, already-synced value to render from once they stop relying on the block anchor.
-	 */
-	private double motionX, motionY, motionZ;
-	private int burnCd;
-	private int spawnCd;
-	private int moveCd;
-	private boolean hullReady;
-	/**
-	 * True once the hull's real blocks have been cleared in favour of the client-side interpolated
-	 * mesh ({@code SkyUfoHullRenderer}) — server-only bookkeeping, not synced: nothing client-side
-	 * reads this directly, since a client already knows to draw the virtual mesh purely from having a
-	 * live motion sample for this entity id (see {@code SkyUfoEntity.broadcastMotion}, which only
-	 * ever broadcasts while this is true).
-	 */
-	private boolean virtualFlight;
-	private boolean destroyed;
-	/** True while intentionally clearing/rebuilding hull — ignore reactor onStateReplaced. */
-	private boolean suppressCoreNotify;
-	private StructureInstance instance;
-
-	/** How this hull dies once destroyFromCore fires — chosen once at materialize time. */
-	private DestructionMode destructionMode = DestructionMode.SHOCKWAVE;
-	private boolean crashing;
-	private int crashTicks;
-	private double crashFallAccumulator;
-	private PlayerEntity crashCulprit;
-	private String crashReason = "structural failure";
-
-	public SkyUfoEntity(EntityType<? extends SkyUfoEntity> type, World world) {
-		super(type, world);
-		this.noClip = true;
-		this.setNoGravity(true);
-	}
-
-	@Override
-	protected void initDataTracker(DataTracker.Builder builder) {
-		builder.add(MATERIALIZED, false);
-	}
-
-	public boolean isMaterialized() {
-		return dataTracker.get(MATERIALIZED);
-	}
-
-	public boolean isVirtualFlight() {
-		return virtualFlight;
-	}
-
-	public Box getInterior() {
-		return instance != null ? instance.interior() : new Box(0, 0, 0, 0, 0, 0);
-	}
-
-	public BlockPos getCorePos() {
-		BlockPos core = instance != null ? instance.markerPos("core") : null;
-		return core != null ? core : BlockPos.ORIGIN;
-	}
-
-	public boolean containsPos(Vec3d pos) {
-		return hullReady && instance != null && instance.interior().contains(pos);
-	}
-
-	/** Debug/testing hook: overrides the destruction outcome the next {@link #destroyFromCore} call picks. */
-	public void forceDestructionMode(DestructionMode mode) {
-		this.destructionMode = mode;
-	}
-
-	@Override
-	public void tick() {
-		super.tick();
-		if (getWorld().isClient || destroyed) return;
-		if (!(getWorld() instanceof ServerWorld sw)) return;
-
-		ACTIVE.put(getUuid(), this);
-
-		if (crashing) {
-			tickCrash(sw);
-			return;
-		}
-
-		if (!hullReady) {
-			materialize(sw, getBlockPos());
-		}
-
-		boolean occupied = hasOccupants(sw);
-		cruiseYaw += occupied ? 0.12f : 0.35f;
-		double rad = Math.toRadians(cruiseYaw);
-		double speed = occupied ? 0.08 : 0.28;
-		Vec3d vel = new Vec3d(-Math.sin(rad) * speed, Math.sin(age * 0.015) * 0.02, Math.cos(rad) * speed);
-		setVelocity(vel);
-		setYaw(cruiseYaw);
-
-		double y = MathHelper.clamp(getY(), WorldRules.SKY_PRACTICAL_MIN + 14.0, WorldRules.SKY_PRACTICAL_MAX - 10.0);
-		if (Math.abs(y - getY()) > 0.5) setPosition(getX(), y, getZ());
-
-		motionX += vel.x;
-		motionY = MathHelper.clamp(motionY + vel.y,
-				WorldRules.SKY_PRACTICAL_MIN + 14.0, WorldRules.SKY_PRACTICAL_MAX - 10.0);
-		motionZ += vel.z;
-		// Half-rate — see FlightSystem's own SyncPayload precedent for why every-tick sync hitched.
-		if (virtualFlight && (age & 1) == 0) broadcastMotion(sw, vel);
-
-		if (virtualFlight) {
-			// No real blocks to move — just keep the anchor's bookkeeping honest (so a later real
-			// placement, e.g. the destruction handoff, starts from where the ship actually is, not a
-			// stale spawn-time position) and carry any riders every tick, since motion is continuous
-			// now rather than a once-per-MOVE_INTERVAL jump.
-			BlockPos want = BlockPos.ofFloored(motionX, motionY, motionZ);
-			if (!want.equals(instance.anchor())) {
-				relocateAnchorOnly(sw, want);
-			}
-			setPosition(motionX, motionY, motionZ);
-		} else {
-			// Grid-crawl hull so interior stays coherent Minecraft blocks
-			if (moveCd > 0) moveCd--;
-			else {
-				BlockPos want = BlockPos.ofFloored(getX() + vel.x * MOVE_INTERVAL,
-						getY() + vel.y * MOVE_INTERVAL, getZ() + vel.z * MOVE_INTERVAL);
-				want = new BlockPos(want.getX(),
-						MathHelper.clamp(want.getY(), WorldRules.SKY_PRACTICAL_MIN + 14, WorldRules.SKY_PRACTICAL_MAX - 10),
-						want.getZ());
-				if (!want.equals(instance.anchor())) {
-					relocateHull(sw, want);
-				}
-				moveCd = occupied ? MOVE_INTERVAL + 8 : MOVE_INTERVAL;
-			}
-			// Keep entity anchored to hull center
-			setPosition(instance.anchor().getX() + 0.5, instance.anchor().getY() + 0.5, instance.anchor().getZ() + 0.5);
-		}
-
-		if (macroId == null) macroId = UUID.randomUUID();
-		MacroWorld.put(new MacroEntry(macroId, MacroEntry.Kind.UFO, WorldRules.Layer.SKY_ARCHIPELAGO,
-				instance.anchor(), 28, 12, 28, 0x55FFAA, "Sky UFO"));
-
-		// Core still present? A landed-hull backstop for direct mining: TrapBlocks.UnstableReactorBlock
-		// .onStateReplaced already calls destroyFromCore the instant the real reactor block is replaced,
-		// so this poll mostly re-confirms the same event a tick later rather than being the only path.
-		// Traced, not assumed, before deciding this needs no synced coreIntact flag as first planned:
-		// while virtual there is no real reactor block anywhere for either mechanism to observe, so
-		// direct mining simply cannot happen against a virtual hull; the two mechanisms that CAN still
-		// kill one, reactor dump (tryReactorDump) and bomb detonation (notifyBombDetonation), both call
-		// destroyFromCore(...) directly and never touch this check at all. No call site was found that
-		// could ever flip such a flag false while virtual — it would only ever read true, dead state
-		// rather than a fix — so skipping this poll while virtual is the correct final behavior, not an
-		// interim gap. Direct mining ends up landed-only, a named narrowing, not a silent regression.
-		if (hullReady && !virtualFlight && !sw.getBlockState(getCorePos()).isOf(ModWorldBlocks.UNSTABLE_REACTOR)) {
-			destroyFromCore(sw, null, "core ruptured");
-			return;
-		}
-
-		if (burnCd > 0) burnCd--;
-		else {
-			burnGround(sw);
-			burnCd = 40 + random.nextInt(30);
-		}
-		if (spawnCd > 0) spawnCd--;
-		else {
-			pruneSwarm(sw);
-			if (swarm.size() < SWARM_CAP) {
-				dropDrone(sw);
-				spawnCd = occupied ? 28 : 16;
-			} else spawnCd = 40;
-		}
-		if (age % 14 == 0) {
-			sw.spawnParticles(ParticleTypes.END_ROD, getX(), getY() - 2.0, getZ(), 5, 1.2, 0.2, 1.2, 0.01);
-			sw.spawnParticles(ParticleTypes.FLAME, getX(), getY() - 2.5, getZ(), 3, 0.6, 0.3, 0.6, 0.02);
-		}
-	}
-
-	private boolean hasOccupants(ServerWorld sw) {
-		if (!hullReady || instance == null) return false;
-		return !sw.getEntitiesByClass(PlayerEntity.class, instance.interior(), PlayerEntity::isAlive).isEmpty();
-	}
-
-	private void materialize(ServerWorld sw, BlockPos at) {
-		BlockPos center = at.toImmutable();
-		instance = new StructureInstance(SkyUfoHull.TEMPLATE, center);
-		// Virtual assembly must never place/clear terrain at the spawn location.
-		hullReady = true;
-		destructionMode = random.nextInt(2) == 0 ? DestructionMode.CRASH : DestructionMode.SHOCKWAVE;
-		dataTracker.set(MATERIALIZED, true);
-		setPosition(center.getX() + 0.5, center.getY() + 0.5, center.getZ() + 0.5);
-		motionX = center.getX() + 0.5;
-		motionY = center.getY() + 0.5;
-		motionZ = center.getZ() + 0.5;
-		for (ServerPlayerEntity p : sw.getPlayers()) {
-			if (squaredDistanceTo(p) < 96 * 96) {
-				p.sendMessage(Text.literal("§aSky UFO hull online §7— fly the bay, dump reactor on the core."), false);
-			}
-		}
-		virtualFlight = true;
-	}
-
-	/**
-	 * Broadcasts the continuous position this tick just integrated, to whoever is close enough to
-	 * plausibly have this entity tracked client-side — matches {@code ModEntities.SKY_UFO}'s own
-	 * registered {@code maxTrackingRange(256)}, so this never sends to a player who couldn't have the
-	 * entity spawned locally in the first place.
-	 */
-	private void broadcastMotion(ServerWorld sw, Vec3d vel) {
-		var payload = new com.terminaldetector.drmd.network.ModNetworking.UfoMotionPayload(
-				getId(), motionX, motionY, motionZ, cruiseYaw,
-				(float) vel.x, (float) vel.y, (float) vel.z, sw.getTime());
-		for (ServerPlayerEntity p : sw.getPlayers()) {
-			if (squaredDistanceTo(p) < 256 * 256) {
-				net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking.send(p, payload);
-			}
-		}
-	}
-
-	/**
-	 * Like {@link #relocateHull}, but only updates the anchor's bookkeeping via
-	 * {@link StructureMover#moveAnchorOnly} — no real block writes, since there's nothing physically
-	 * there to move while {@link #virtualFlight}. Riders still need carrying every tick this runs, or
-	 * they're left behind the moment the anchor (and so {@code instance.interior()}) moves out from
-	 * under them — same reasoning {@code relocateHull}'s own carry logic already follows, just against
-	 * a cheap anchor update instead of a real diff-and-write move.
-	 */
-	private void relocateAnchorOnly(ServerWorld sw, BlockPos newCenter) {
-		if (!hullReady || destroyed || instance == null) return;
-		BlockPos before = instance.anchor();
-		List<Entity> carry = StructureOccupants.collect(sw, instance, this).stream()
-				.filter(e -> !(e instanceof SkyUfoEntity))
-				.toList();
-		StructureMover.moveAnchorOnly(instance, newCenter);
-		StructureOccupants.shiftBy(carry, Vec3d.of(newCenter.subtract(before)));
-	}
-
-	private void relocateHull(ServerWorld sw, BlockPos newCenter) {
-		if (!hullReady || destroyed || instance == null) return;
-		BlockPos before = instance.anchor();
-		List<Entity> carry = StructureOccupants.collect(sw, instance, this).stream()
-				.filter(e -> !(e instanceof SkyUfoEntity))
-				.toList();
-		BlockPos oldCore = instance.markerPos("core");
-		if (oldCore != null) CORE_INDEX.remove(oldCore.asLong());
-		suppressCoreNotify = true;
-		try {
-			StructureMover.moveTo(sw, instance, newCenter);
-		} finally {
-			suppressCoreNotify = false;
-		}
-		BlockPos newCore = instance.markerPos("core");
-		if (newCore != null) CORE_INDEX.put(newCore.asLong(), getUuid());
-		StructureOccupants.shiftBy(carry, Vec3d.of(newCenter.subtract(before)));
-	}
-
-	/** Advances a CRASH-mode destruction by one tick: fall + carry occupants + detect ground contact. */
-	private void tickCrash(ServerWorld sw) {
-		if (instance == null) {
-			finishDestruction(sw, crashCulprit, crashReason, getBlockPos());
-			return;
-		}
-		if (virtualFlight) {
-			tickCrashVirtual(sw);
-			return;
-		}
-		BlockPos before = instance.anchor();
-		List<Entity> carry = StructureOccupants.collect(sw, instance, this).stream()
-				.filter(e -> !(e instanceof SkyUfoEntity))
-				.toList();
-		StructureMover.DescentTick result = StructureMover.tickCrashDescent(sw, instance, crashTicks, crashFallAccumulator);
-		crashTicks++;
-		crashFallAccumulator = result.remainder();
-		if (!instance.anchor().equals(before)) {
-			StructureOccupants.shiftBy(carry, Vec3d.of(instance.anchor().subtract(before)));
-		}
-		setPosition(instance.anchor().getX() + 0.5, instance.anchor().getY() + 0.5, instance.anchor().getZ() + 0.5);
-		if (result.touchedGround()) {
-			finishDestruction(sw, crashCulprit, crashReason, getCorePos());
-		}
-	}
-
-	/**
-	 * Continuous-motion counterpart to the real-block descent above, extending virtual flight through
-	 * the crash arc instead of snapping back to a diffed {@code moveTo} the moment one starts:
-	 * integrates {@link StructureCrash}'s own fall-speed curve straight into {@code motionY} every tick
-	 * rather than quantizing it into whole-block steps — the same relationship virtual cruise already
-	 * has to grid-crawl cruise (see {@code tick()}), just applied to the fall instead. Riders are still
-	 * carried, via the same {@link #relocateAnchorOnly} cruise already calls, whenever the floored
-	 * position crosses into a new anchor block. {@link #finishDestruction} (unchanged since Phase 4)
-	 * still does the one real {@code StructureMover.place} handoff the instant this ends, so {@code
-	 * SkyUfoHull.shatter}/{@code StructureShockwave.detonate} always see real blocks to act on.
-	 */
-	private void tickCrashVirtual(ServerWorld sw) {
-		double speed = StructureCrash.fallSpeed(crashTicks);
-		crashTicks++;
-		motionY -= speed;
-		BlockPos want = BlockPos.ofFloored(motionX, motionY, motionZ);
-		if (!want.equals(instance.anchor())) {
-			relocateAnchorOnly(sw, want);
-		}
-		setPosition(motionX, motionY, motionZ);
-		if ((crashTicks & 1) == 0) broadcastMotion(sw, new Vec3d(0, -speed, 0));
-		if (StructureMover.hasTouchedGround(sw, instance)) {
-			finishDestruction(sw, crashCulprit, crashReason, getCorePos());
-		}
-	}
-
-	private void burnGround(ServerWorld world) {
-		BlockPos anchor = instance.anchor();
-		int sx = anchor.getX();
-		int sz = anchor.getZ();
-		int top = world.getTopY(Heightmap.Type.MOTION_BLOCKING, sx, sz);
-		BlockPos focus = new BlockPos(sx, top, sz);
-		FireSystem.igniteBlast(world, focus, 8, 7);
-		for (int dx = -5; dx <= 5; dx++) {
-			for (int dz = -5; dz <= 5; dz++) {
-				if (dx * dx + dz * dz > 30) continue;
-				if (random.nextInt(4) != 0) continue;
-				int ty = world.getTopY(Heightmap.Type.MOTION_BLOCKING, sx + dx, sz + dz);
-				BlockPos p = new BlockPos(sx + dx, ty - 1, sz + dz);
-				BlockState st = world.getBlockState(p);
-				if (st.isAir() || st.getHardness(world, p) < 0) continue;
-				float hard = st.getHardness(world, p);
-				if (hard >= 0 && hard <= 3.5f && !st.isOf(Blocks.BEDROCK) && !st.isOf(Blocks.LODESTONE)) {
-					if (hard <= 2.0f && random.nextBoolean()) {
-						world.setBlockState(p, Blocks.AIR.getDefaultState(), Block.NOTIFY_ALL);
-						FireSystem.ignite(world, p, 2);
-					} else {
-						world.setBlockState(p, Blocks.FIRE.getDefaultState(), Block.NOTIFY_ALL);
-					}
-				}
-			}
-		}
-	}
-
-	private void pruneSwarm(ServerWorld world) {
-		swarm.removeIf(id -> {
-			Entity e = world.getEntity(id);
-			return e == null || !e.isAlive();
-		});
-	}
-
-	private void dropDrone(ServerWorld world) {
-		DroneEntity drone = ModEntities.DRONE.create(world);
-		if (drone == null) return;
-		Vec3d off = new Vec3d((random.nextDouble() - 0.5) * 14, -3 - random.nextDouble() * 3, (random.nextDouble() - 0.5) * 14);
-		Vec3d p = getPos().add(off);
-		drone.refreshPositionAndAngles(p.x, p.y, p.z, random.nextFloat() * 360, 0);
-		AiRole[] roles = {AiRole.ASSAULT, AiRole.INTERCEPTOR, AiRole.LASER, AiRole.MG, AiRole.SEEKER};
-		drone.applyRole(roles[random.nextInt(roles.length)]);
-		world.spawnEntity(drone);
-		swarm.add(drone.getUuid());
-	}
-
-	/**
-	 * Reactor dump / bomb / core break — catastrophic hull failure. Picks a destruction outcome chosen at
-	 * materialize time: {@link DestructionMode#SHOCKWAVE} detonates immediately (the same explosion/fire/
-	 * sound sequence this method always ran, now via {@link StructureShockwave}); {@link DestructionMode#CRASH}
-	 * instead falls to the ground over subsequent ticks ({@link #tickCrash}) before detonating a smaller
-	 * impact shockwave.
-	 */
-	public void destroyFromCore(ServerWorld sw, PlayerEntity culprit, String reason) {
-		if (destroyed || crashing) return;
-		if (destructionMode == DestructionMode.CRASH && instance != null) {
-			crashing = true;
-			crashTicks = 0;
-			crashFallAccumulator = 0;
-			crashCulprit = culprit;
-			crashReason = reason;
-			// virtualFlight is left exactly as it was: tickCrash now has its own continuous-fall path
-			// for a virtual hull (see below), so a crash starting mid-cruise stays smooth all the way
-			// down instead of snapping back to the old real-block descent. The only remaining real-block
-			// handoff is finishDestruction's own (already in place since Phase 4), right before shatter/
-			// detonate need real blocks to act on.
-			for (ServerPlayerEntity p : sw.getPlayers()) {
-				if (squaredDistanceTo(p) < 128 * 128) {
-					p.sendMessage(Text.literal("§cSky UFO reactor failing §7— it's going down."), false);
-				}
-			}
-			return;
-		}
-		finishDestruction(sw, culprit, reason, getCorePos());
-	}
-
-	private void finishDestruction(ServerWorld sw, PlayerEntity culprit, String reason, BlockPos epicenter) {
-		if (destroyed) return;
-		destroyed = true;
-		Vec3d epic = Vec3d.ofCenter(epicenter);
-		StructureShockwave.detonate(sw, epic, this, culprit, 9f, 6.5f, 8f, 16, 10);
-		CORE_INDEX.remove(epicenter.asLong());
-		if (instance != null) {
-			// The hull has been virtual (real blocks cleared) since materialize — SkyUfoHull.shatter
-			// reads real world block state per cell, so without this it would find nothing but air at
-			// every position and skip all of them. One real placement at the instance's current
-			// (anchor-tracked) position is the clean handoff back from virtual to real, right before
-			// the two calls that actually need real blocks to act on.
-			if (virtualFlight) {
-				suppressCoreNotify = true;
-				try {
-					StructureMover.place(sw, instance);
-				} finally {
-					suppressCoreNotify = false;
-				}
-			}
-			Set<BlockPos> positions = new HashSet<>();
-			for (StructureDelta.Cell c : instance.occupiedCells().keySet()) {
-				positions.add(new BlockPos(c.x(), c.y(), c.z()));
-			}
-			SkyUfoHull.shatter(sw, positions, epicenter);
-		}
-		hullReady = false;
-		crashing = false;
-		dataTracker.set(MATERIALIZED, false);
-		for (UUID id : swarm) {
-			Entity e = sw.getEntity(id);
-			if (e != null) e.discard();
-		}
-		swarm.clear();
-		for (ServerPlayerEntity p : sw.getPlayers()) {
-			p.sendMessage(Text.literal("§cSky UFO destroyed §7(" + reason + ") — fly clear of the debris."), false);
-		}
-		if (macroId != null) MacroWorld.remove(macroId);
-		ACTIVE.remove(getUuid());
-		discard();
-	}
-
-	// —— static hooks ——
-
-	public static SkyUfoEntity findContaining(ServerWorld world, Vec3d pos) {
-		for (SkyUfoEntity ufo : ACTIVE.values()) {
-			if (ufo.getWorld() == world && !ufo.destroyed && ufo.containsPos(pos)) return ufo;
-		}
-		return null;
-	}
-
-	public static SkyUfoEntity findNear(ServerWorld world, BlockPos pos, double range) {
-		double r2 = range * range;
-		SkyUfoEntity best = null;
-		double bestD = Double.MAX_VALUE;
-		for (SkyUfoEntity ufo : ACTIVE.values()) {
-			if (ufo.getWorld() != world || ufo.destroyed) continue;
-			double d = ufo.getCorePos().getSquaredDistance(pos);
-			if (d < r2 && d < bestD) {
-				bestD = d;
-				best = ufo;
-			}
-		}
-		return best;
-	}
-
-	public static void notifyCoreBroken(ServerWorld world, BlockPos pos) {
-		UUID id = CORE_INDEX.remove(pos.asLong());
-		if (id == null) {
-			SkyUfoEntity near = findNear(world, pos, 4);
-			if (near != null && !near.suppressCoreNotify) {
-				near.destroyFromCore(world, null, "reactor core destroyed");
-			}
-			return;
-		}
-		SkyUfoEntity ufo = ACTIVE.get(id);
-		if (ufo != null && !ufo.suppressCoreNotify) {
-			ufo.destroyFromCore(world, null, "reactor core destroyed");
-		}
-	}
-
-	public static void notifyBombDetonation(ServerWorld world, BlockPos pos, float power) {
-		SkyUfoEntity ufo = findNear(world, pos, 6 + power);
-		if (ufo != null && (ufo.containsPos(Vec3d.ofCenter(pos)) || pos.isWithinDistance(ufo.getCorePos(), 7))) {
-			ufo.destroyFromCore(world, null, "ordnance impact");
-		}
-	}
-
-	public static boolean tryReactorDump(ServerWorld world, PlayerEntity user) {
-		SkyUfoEntity ufo = findContaining(world, user.getPos());
-		if (ufo == null) {
-			ufo = findNear(world, user.getBlockPos(), 5);
-		}
-		if (ufo == null) return false;
-		ufo.destroyFromCore(world, user, "reactor dump");
-		return true;
-	}
-
-	@Override
-	public void remove(RemovalReason reason) {
-		ACTIVE.remove(getUuid());
-		CORE_INDEX.remove(getCorePos().asLong());
-		if (macroId != null) MacroWorld.remove(macroId);
-		if (!destroyed && getWorld() instanceof ServerWorld sw && hullReady && instance != null) {
-			suppressCoreNotify = true;
-			try {
-				StructureMover.clear(sw, instance);
-			} finally {
-				suppressCoreNotify = false;
-			}
-		}
-		super.remove(reason);
-	}
-
-	@Override
-	protected void readCustomDataFromNbt(NbtCompound nbt) {
-		if (nbt.containsUuid("macro")) macroId = nbt.getUuid("macro");
-		cruiseYaw = nbt.getFloat("cruise");
-		hullReady = false; // rebuild on next tick
-		crashing = nbt.getBoolean("crashing");
-		crashTicks = nbt.getInt("crashTicks");
-		if (nbt.contains("crashReason")) crashReason = nbt.getString("crashReason");
-	}
-
-	@Override
-	protected void writeCustomDataToNbt(NbtCompound nbt) {
-		if (macroId != null) nbt.putUuid("macro", macroId);
-		nbt.putFloat("cruise", cruiseYaw);
-		nbt.putBoolean("hull", hullReady);
-		nbt.putBoolean("crashing", crashing);
-		nbt.putInt("crashTicks", crashTicks);
-		if (crashReason != null) nbt.putString("crashReason", crashReason);
-	}
-
-	/**
-	 * True once materialized: the hull's own blocks stopped providing collision the moment they were
-	 * cleared in favour of the virtual-flight mesh (see {@link #materialize}), so the entity's own box
-	 * has to stand in for it instead — mirrors {@code PyroShipEntity}'s "large vehicle is its own
-	 * collision" pattern. Stays true through a CRASH-mode fall too, where real blocks are briefly back
-	 * ({@link #destroyFromCore}): the two mechanisms simply agree while that overlap lasts.
-	 */
-	@Override
-	public boolean isCollidable() {
-		return isMaterialized();
-	}
-
-	@Override
-	public boolean collidesWith(Entity other) {
-		return true;
-	}
-
-	/**
-	 * The hull's real footprint, not {@code EntityType}'s declarative box: {@link SkyUfoHull}'s cells
-	 * run x/z over {@code [-MAJOR, MAJOR]} (23 wide, symmetric — a plain {@code dimensions()} width
-	 * already covers this exactly) but y over {@code [-MINOR, MINOR+1]}, an asymmetric range vanilla's
-	 * feet-anchored box (always {@code [Y, Y+height)}) cannot express through the builder alone. Built
-	 * fresh from live position + the template's own constants every call, never by decomposing an
-	 * existing {@code Box}'s fields (see {@code StructureTemplate}'s own comment on why that's avoided
-	 * here) — matches whether the hull is real or virtual, since the visual/physical footprint is the
-	 * same shape either way.
-	 */
-	@Override
-	public Box getBoundingBox() {
-		double[] b = hullBounds();
-		return new Box(b[0], b[1], b[2], b[3], b[4], b[5]);
-	}
-
-	/** {@code {minX, minY, minZ, maxX, maxY, maxZ}} — the raw numbers behind {@link #getBoundingBox()}, shared with {@link #debugOutlineBox} so neither has to decompose the other's {@code Box}. */
-	private double[] hullBounds() {
-		double half = SkyUfoHull.MAJOR + 0.5;
-		double bottom = getY() - (SkyUfoHull.MINOR + 0.5);
-		double top = getY() + (SkyUfoHull.MINOR + 1.5);
-		return new double[] {getX() - half, bottom, getZ() - half, getX() + half, top, getZ() + half};
-	}
-
-	/**
-	 * Debug/testing hook: forces a live toggle between virtual-flight and real-block hull state,
-	 * without waiting for {@link #destroyFromCore} — same guarded clear/place calls {@link #materialize}
-	 * and the CRASH branch already use, just runnable on demand while cruising normally.
-	 */
-	public void forceVirtualFlight(ServerWorld sw, boolean virtual) {
-		if (!hullReady || instance == null || virtual == virtualFlight) return;
-		suppressCoreNotify = true;
-		try {
-			if (virtual) {
-				StructureMover.clear(sw, instance);
-			} else {
-				StructureMover.place(sw, instance);
-			}
-		} finally {
-			suppressCoreNotify = false;
-		}
-		virtualFlight = virtual;
-	}
-
-	/**
-	 * Debug/testing hook: traces {@link #getBoundingBox()}'s current 12 edges in particles, so a
-	 * synthetic collision volume (Phase 5) can be checked against the visible hull from a live client —
-	 * the one thing this sandbox can never render to confirm itself.
-	 */
-	public void debugOutlineBox(ServerWorld sw) {
-		double[] b = hullBounds();
-		double minX = b[0], minY = b[1], minZ = b[2], maxX = b[3], maxY = b[4], maxZ = b[5];
-		for (double x : new double[] {minX, maxX}) {
-			for (double y : new double[] {minY, maxY}) {
-				outlineEdge(sw, x, y, minZ, x, y, maxZ);
-			}
-		}
-		for (double x : new double[] {minX, maxX}) {
-			for (double z : new double[] {minZ, maxZ}) {
-				outlineEdge(sw, x, minY, z, x, maxY, z);
-			}
-		}
-		for (double y : new double[] {minY, maxY}) {
-			for (double z : new double[] {minZ, maxZ}) {
-				outlineEdge(sw, minX, y, z, maxX, y, z);
-			}
-		}
-	}
-
-	private static void outlineEdge(ServerWorld sw, double x0, double y0, double z0, double x1, double y1, double z1) {
-		int steps = 20;
-		for (int i = 0; i <= steps; i++) {
-			double t = (double) i / steps;
-			sw.spawnParticles(ParticleTypes.ELECTRIC_SPARK,
-					x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, z0 + (z1 - z0) * t, 1, 0, 0, 0, 0);
-		}
-	}
+    public SkyUfoEntity(EntityType<? extends SkyUfoEntity> type,World world){super(type,world);}
+    public boolean isMaterialized(){return !cells().isEmpty();}
+    public boolean isVirtualFlight(){return false;}
+    public boolean isCrashing(){return crashing;}
+    public void setAutopilot(boolean value){autopilot=value;}
+    public void forceDestructionMode(DestructionMode mode){destructionMode=Objects.requireNonNull(mode);}
+    public BlockPos getCorePos(){return BlockPos.ofFloored(localToWorld(Vec3d.ofCenter(CORE)));}
+    public Box getInterior() {
+        Vec3d first=localToWorld(new Vec3d(-7.5,0,-7.5));Box result=new Box(first,first);
+        for(double x:new double[]{-7.5,7.5})for(double y:new double[]{0,3})for(double z:new double[]{-7.5,7.5})result=result.union(new Box(localToWorld(new Vec3d(x,y,z)),localToWorld(new Vec3d(x,y,z))));
+        return result;
+    }
+    public boolean containsPos(Vec3d world) {
+        if(!isMaterialized())return false;var p=worldToLocal(world);
+        return p.x>=-7.5&&p.x<=7.5&&p.y>=0&&p.y<=3&&p.z>=-7.5&&p.z<=7.5;
+    }
+    @Override public void tick() {
+        if(getWorld().isClient){super.tick();return;}
+        var world=(ServerWorld)getWorld();
+        if(!initialized) {
+            var blueprint=SkyUfoHull.TEMPLATE.cells().entrySet().stream().filter(e->!e.getValue().isAir())
+                .map(e->new Cell(new BlockPos(e.getKey().x(),e.getKey().y(),e.getKey().z()),e.getValue())).toList();
+            // The legacy spawn position named the template origin; no world block is ever placed.
+            var origin=getPos();initializeLocal(blueprint,origin);initialized=true;cruiseAltitude=massPosition().y();
+            setPassengerGravity(new Vec3(0,-16,0));
+        } else if(cells().isEmpty()){discard();return;}
+        ACTIVE.put(getUuid(),new WeakReference<>(this));
+        if(!crashing&&getLocalBlock(CORE).isAir())destroyFromCore(world,null,"local reactor destroyed");
+        if(!crashing&&autopilot)propel();
+        if(crashing&&!detonated&&++crashTicks>=100)detonate(world);
+        super.tick();
+        if(crashing)return;
+        if(spawnCooldown>0)spawnCooldown--;
+        else if(world.getPlayers().stream().anyMatch(p->p.isAlive()&&!p.isSpectator()&&squaredDistanceTo(p)<128*128)) {
+            pruneSwarm(world);
+            if(swarm.size()<SWARM_CAP&&dropDrone(world))spawnCooldown=60;else spawnCooldown=100;
+        }
+    }
+    private void propel() {
+        cruiseYaw+=.15;double yaw=Math.toRadians(cruiseYaw);
+        var desired=new Vec3(-Math.sin(yaw)*3,MathHelper.clamp((cruiseAltitude-massPosition().y())*.4,-2,2),Math.cos(yaw)*3);
+        Vec3 dv=desired.minus(physics().linearVelocity()).scaled(.2);if(dv.length()>.2)dv=dv.scaled(.2/dv.length());
+        applyPhysicsImpulse(physicsCentre(),new Vec3d(dv.x()*physicsMass(),dv.y()*physicsMass(),dv.z()*physicsMass()));
+        var pitch=ImmPtlQuaternions.rotationByDegrees(new Vec3(1,0,0),12*Math.sin(age*.012));
+        var roll=ImmPtlQuaternions.rotationByDegrees(new Vec3(0,0,1),18*Math.sin(age*.009));
+        var heading=ImmPtlQuaternions.rotationByDegrees(new Vec3(0,1,0),-cruiseYaw);
+        var target=ImmPtlQuaternions.hamiltonProduct(heading,ImmPtlQuaternions.hamiltonProduct(pitch,roll)).normalized();
+        var error=ImmPtlQuaternions.hamiltonProduct(target,rotation().inverse()).normalized();
+        if(error.w()<0)error=new Quat(-error.x(),-error.y(),-error.z(),-error.w());
+        var axis=new Vec3(error.x(),error.y(),error.z());double sine=axis.length();
+        var turn=sine<1e-10?ZERO:axis.scaled(2*Math.atan2(sine,error.w())/sine);
+        var acceleration=turn.scaled(8).minus(physics().angularVelocity().scaled(5));
+        var torque=physics().worldInertia().transform(acceleration);double cap=physicsMass()*16;
+        if(torque.length()>cap)torque=torque.scaled(cap/torque.length());applyPhysicsTorque(new Vec3d(torque.x(),torque.y(),torque.z()));
+    }
+    private void pruneSwarm(ServerWorld world) {
+        // Unloaded drones retain their UUID and occupy their bay slot: absence is not death.
+        swarm.removeIf(id->{var e=world.getEntity(id);return e!=null&&(!e.isAlive()||e.isRemoved());});
+    }
+    private boolean dropDrone(ServerWorld world) {
+        var at=localToWorld(new Vec3d(0,-5,0));
+        var access=com.terminaldetector.drmd.world.access.WorldAccess.of(world);
+        for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++) {
+            var state=access.readIfLoaded(BlockPos.ofFloored(at).add(x,y,z));if(state.isEmpty()||!state.get().isAir())return false;
+        }
+        var drone=ModEntities.DRONE.create(world);if(drone==null)return false;
+        drone.applyRole(AiRole.ASSAULT);drone.refreshPositionAndAngles(at.x,at.y,at.z,getYaw(),0);
+        var v=physics().velocityAtPoint(new Vec3(at.x-massPosition().x(),at.y-massPosition().y(),at.z-massPosition().z()));
+        drone.setVelocity(v.x()*.05,v.y()*.05,v.z()*.05);
+        if(!world.spawnEntity(drone))return false;swarm.add(drone.getUuid());return true;
+    }
+    @Override protected void onLocalMaterialChanged(List<BlockBodyEntity> fragments) {
+        if(initialized&&!isRemoved()&&getLocalBlock(CORE).isAir())enterCrash(fragments);
+    }
+    private void enterCrash(List<BlockBodyEntity> fragments) {
+        if(crashing)return;crashing=true;setPassengerGravity(ZERO);setPhysicsGravity(true);
+        for(var fragment:fragments)fragment.setPhysicsGravity(true);
+        if(destructionMode==DestructionMode.SHOCKWAVE)crashTicks=100;
+    }
+    public void destroyFromCore(ServerWorld world,PlayerEntity culprit,String reason) {
+        if(crashing||getWorld()!=world)return;
+        if(!getLocalBlock(CORE).isAir()&&!setLocalBlock(CORE,Blocks.AIR.getDefaultState()))return;
+        enterCrash(List.of());
+    }
+    private void detonate(ServerWorld world) {
+        if(detonated)return;detonated=true;
+        StructureShockwave.detonate(world,localToWorld(Vec3d.ofCenter(CORE)),this,null,4,4,5,0,0);
+        // Remaining material stays as an inert, destructible physical wreck. No real-block handoff.
+    }
+    public static SkyUfoEntity findContaining(ServerWorld world,Vec3d pos) {
+        for(var weak:ACTIVE.values()){var ufo=weak.get();if(ufo!=null&&ufo.getWorld()==world&&!ufo.isRemoved()&&!ufo.crashing&&ufo.containsPos(pos))return ufo;}return null;
+    }
+    public static SkyUfoEntity findNear(ServerWorld world,BlockPos pos,double range) {
+        SkyUfoEntity best=null;double distance=range*range;
+        for(var weak:ACTIVE.values()){var ufo=weak.get();if(ufo==null||ufo.getWorld()!=world||ufo.isRemoved()||ufo.crashing)continue;double d=ufo.getCorePos().getSquaredDistance(pos);if(d<distance){distance=d;best=ufo;}}return best;
+    }
+    /** Physical local cells are damaged by BlockBody's weapon/explosion adapter, not world block callbacks. */
+    public static void notifyCoreBroken(ServerWorld world,BlockPos pos){}
+    public static void notifyBombDetonation(ServerWorld world,BlockPos pos,float power){}
+    public static boolean tryReactorDump(ServerWorld world,PlayerEntity user) {
+        var ufo=findContaining(world,user.getPos());if(ufo==null)return false;
+        var core=ufo.localToWorld(Vec3d.ofCenter(CORE));if(user.getEyePos().squaredDistanceTo(core)>25)return false;
+        var hit=new com.terminaldetector.drmd.world.contraption.BlockBodyWorldAccess(ufo).raycastBlockBody(user.getEyePos(),core);
+        if(hit.isEmpty()||!hit.get().localBlock().equals(CORE))return false;
+        ufo.destroyFromCore(world,user,"reactor dump");return ufo.crashing;
+    }
+    /** Legacy debug mode can no longer convert this hull into a world block copy. */
+    public void forceVirtualFlight(ServerWorld world,boolean virtual){}
+    public void debugOutlineBox(ServerWorld world){var p=physicsCentre();world.spawnParticles(ParticleTypes.END_ROD,p.x,p.y,p.z,8,radius(),1,radius(),0);}
+    @Override public void remove(RemovalReason reason) {
+        var ref=ACTIVE.get(getUuid());if(ref!=null&&ref.get()==this)ACTIVE.remove(getUuid());super.remove(reason);
+    }
+    @Override protected void readCustomDataFromNbt(NbtCompound n) {
+        if(n.contains("shape",NbtElement.COMPOUND_TYPE)&&n.contains("body",NbtElement.COMPOUND_TYPE))super.readCustomDataFromNbt(n);
+        if(n.getInt("physicalUfoSchema")>1)throw new IllegalArgumentException("unsupported physical UFO schema");
+        initialized=n.getInt("physicalUfoSchema")==1;crashing=n.getBoolean("crashing");detonated=n.getBoolean("detonated");
+        cruiseYaw=n.getDouble("cruise");cruiseAltitude=n.getDouble("cruiseAltitude");autopilot=!n.contains("autopilot")||n.getBoolean("autopilot");
+        crashTicks=Math.max(0,n.getInt("crashTicks"));spawnCooldown=Math.max(0,n.getInt("bayCooldown"));
+        if(!Double.isFinite(cruiseYaw)||!Double.isFinite(cruiseAltitude))throw new IllegalArgumentException("non-finite UFO controller");
+        if(n.contains("destructionMode"))destructionMode=DestructionMode.valueOf(n.getString("destructionMode"));
+        swarm.clear();var saved=n.getList("swarm",NbtElement.COMPOUND_TYPE);
+        for(int i=0;i<Math.min(saved.size(),SWARM_CAP);i++)if(saved.getCompound(i).containsUuid("id"))swarm.add(saved.getCompound(i).getUuid("id"));
+    }
+    @Override protected void writeCustomDataToNbt(NbtCompound n) {
+        super.writeCustomDataToNbt(n);n.putInt("physicalUfoSchema",initialized?1:0);n.putBoolean("crashing",crashing);n.putBoolean("detonated",detonated);
+        n.putDouble("cruise",cruiseYaw);n.putDouble("cruiseAltitude",cruiseAltitude);n.putBoolean("autopilot",autopilot);n.putInt("crashTicks",crashTicks);n.putInt("bayCooldown",spawnCooldown);
+        n.putString("destructionMode",destructionMode.name());
+        var list=new NbtList();for(var id:swarm){var item=new NbtCompound();item.putUuid("id",id);list.add(item);}n.put("swarm",list);
+    }
 }

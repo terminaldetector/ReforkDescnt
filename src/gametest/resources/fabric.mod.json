@@ -48,7 +48,8 @@
       "com.terminaldetector.drmd.PortalExitSafetyGameTests",
       "com.terminaldetector.drmd.FusionPortalGameTests",
       "com.terminaldetector.drmd.ItemResourceGameTests",
-      "com.terminaldetector.drmd.DroneInventoryGameTests"
+      "com.terminaldetector.drmd.DroneInventoryGameTests",
+      "com.terminaldetector.drmd.PhysicalUfoGameTests"
     ]
   },
   "depends": {

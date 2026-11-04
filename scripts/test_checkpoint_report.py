@@ -68,6 +68,11 @@ class EvidenceGateTest(unittest.TestCase):
         self.assertEqual(checkpoint.sha256(jars[0]), proof['sha256'])
         self.assertEqual('abc123', proof['source_sha'])
 
+    def test_development_version_cannot_publish_distribution(self):
+        self.write('gradle.properties','mod_version=1.1.35-ufo-dev.1\narchives_base_name=drmd-6dof\n')
+        with self.assertRaisesRegex(ValueError,'Development build is not an accepted distribution'):
+            checkpoint.verify(self.root)
+
     def test_installation_uses_verified_filename_version_and_digest(self):
         self.write('dist/INSTALL_TLAUNCHER.txt', 'Obsolete release: drmd-6dof-1.1.11.jar\n')
         checkpoint.verify(self.root)

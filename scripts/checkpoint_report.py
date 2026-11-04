@@ -407,6 +407,8 @@ def verify(root):
 
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
+    if '-dev.' in version:
+        raise ValueError('Development build is not an accepted distribution')
     boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33','1.1.34')) else None
     body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33','1.1.34')) else None
     ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33','1.1.34')) else None

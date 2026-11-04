@@ -17,6 +17,6 @@ public class HullContactProbe {
     }
     @Inject(method="render(Lcom/terminaldetector/drmd/world/contraption/BlockBodyEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V",at=@At("RETURN"))
     private void drawn(BlockBodyEntity b,float yaw,float delta,MatrixStack matrices,VertexConsumerProvider consumers,int light,CallbackInfo ci) {
-        if(Boolean.getBoolean("drmd.gate.joints"))com.terminaldetector.drmd.gate.NativeJointCheck.drew(b);else if(Boolean.getBoolean("drmd.gate.contacts"))NativeBodyCollisionCheck.drew(b);
+        if(Boolean.getBoolean("drmd.gate.ufo"))com.terminaldetector.drmd.gate.NativeShipGravityCheck.drew(b);else if(Boolean.getBoolean("drmd.gate.joints"))com.terminaldetector.drmd.gate.NativeJointCheck.drew(b);else if(Boolean.getBoolean("drmd.gate.contacts"))NativeBodyCollisionCheck.drew(b);
     }
 }

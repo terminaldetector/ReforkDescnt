@@ -10,7 +10,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import org.joml.Quaternionf;
 
-public final class BlockBodyRenderer extends EntityRenderer<BlockBodyEntity> {
+public class BlockBodyRenderer extends EntityRenderer<BlockBodyEntity> {
     public BlockBodyRenderer(EntityRendererFactory.Context context) { super(context); }
     @Override public void render(BlockBodyEntity body, float yaw, float delta, MatrixStack matrices,
             VertexConsumerProvider consumers, int light) {

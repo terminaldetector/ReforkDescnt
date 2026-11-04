@@ -19,6 +19,9 @@ import java.util.*;
 
 /** Real controls, real server contacts and actual model/camera passes through full hull rotations. */
 public final class NativeShipGravityCheck {
+    private static final boolean UFO=Boolean.getBoolean("drmd.gate.ufo");
+    private static int ufoRenderedFrames,ufoGridCells;
+    public static void drew(BlockBodyEntity body){if(UFO&&entity(body).getId()==bodyId&&body instanceof com.terminaldetector.drmd.world.mega.SkyUfoEntity){ufoRenderedFrames++;ufoGridCells=Math.max(ufoGridCells,body.cells().size());}}
     private static final BlockPos DECK=new BlockPos(8,Integer.getInteger("drmd.boarding.labY",2156),16);
     private static final Vec3 UP=new Vec3(0,1,0),ZERO=new Vec3(0,0,0),VELOCITY=new Vec3(2,.4,.3);
     private static boolean started,prepared,finished,capture,jumpSent,jumpObserved,expectedRelease,released,commandSent;
@@ -106,7 +109,8 @@ public final class NativeShipGravityCheck {
                 &&entity(body).getPos().distanceTo(new Vec3d(last.body().x(),last.body().y(),last.body().z()))<.35)stable++;else stable=0;
             if(stable>=8){walkStart=authoritativeFeet(body,last);request("ship-landing");phase=1;age=0;}
         } else if(phase==1) {
-            if(age==1)c.options.forwardKey.setPressed(true);if(age==13)c.options.forwardKey.setPressed(false);
+            if(age==1)c.options.forwardKey.setPressed(true);
+            if(age==13||(last!=null&&last.body()!=null&&authoritativeFeet(body,last).z-walkStart.z>=1.4))c.options.forwardKey.setPressed(false);
             if(age>=28){require(state!=null&&state.grounded(),"walking lost real interior support");double distance=authoritativeFeet(body,last).z-walkStart.z;
                 require(distance>1&&distance<3.5,"actual keys did not walk in the ship frame: "+distance+" start="+walkStart+" last="+last+" predicted="+state);request("ship-walking");phase=2;}
         } else if(phase>=2&&phase<=4) {
@@ -154,16 +158,24 @@ public final class NativeShipGravityCheck {
     }
     private static void startMode(MinecraftClient c,int next){settled=false;c.getServer().execute(()->{mode=next;settled=false;modeStarted=c.getServer().getOverworld().getTime();});}
     private static void setup(MinecraftClient c) {
-        var w=c.getServer().getOverworld();for(var p:BlockPos.iterate(DECK.add(-8,-10,-8),DECK.add(18,14,18)))w.setBlockState(p,Blocks.AIR.getDefaultState(),2);
-        for(int x=0;x<8;x++)for(int z=0;z<8;z++){
-            w.setBlockState(DECK.add(x,0,z),Blocks.IRON_BLOCK.getDefaultState(),2);
-            if(!(x>=3&&x<=4&&z>=5&&z<=6))w.setBlockState(DECK.add(x,3,z),Blocks.IRON_BLOCK.getDefaultState(),2);
+        var w=c.getServer().getOverworld();final BlockBodyEntity body;
+        if(UFO) {
+            var ufo=com.terminaldetector.drmd.entity.ModEntities.SKY_UFO.create(w);ufo.setAutopilot(false);
+            entity(ufo).refreshPositionAndAngles(DECK.getX(),DECK.getY(),DECK.getZ(),0,0);
+            require(w.spawnEntity(ufo),"actual registered UFO spawn failed");entity(ufo).tick();body=ufo;
+        } else {
+            for(var at:BlockPos.iterate(DECK.add(-8,-10,-8),DECK.add(18,14,18)))w.setBlockState(at,Blocks.AIR.getDefaultState(),2);
+            for(int x=0;x<8;x++)for(int z=0;z<8;z++){
+                w.setBlockState(DECK.add(x,0,z),Blocks.IRON_BLOCK.getDefaultState(),2);
+                if(!(x>=3&&x<=4&&z>=5&&z<=6))w.setBlockState(DECK.add(x,3,z),Blocks.IRON_BLOCK.getDefaultState(),2);
+            }
+            body=BlockBodyEntity.assemble(w,DECK,DECK.add(7,3,7));
         }
-        var body=BlockBodyEntity.assemble(w,DECK,DECK.add(7,3,7));body.physics().withLinearVelocity(VELOCITY);body.setPassengerGravity(new Vec3(0,-32,0));entity(body).tick();bodyId=entity(body).getId();
+        body.physics().withLinearVelocity(VELOCITY);body.setPassengerGravity(new Vec3(0,-32,0));entity(body).tick();bodyId=entity(body).getId();
         var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());
         // Only the disposable test pilot is an operator; exercise the actual permission-checked command.
         c.getServer().getPlayerManager().addToOperators(p.getGameProfile());p.getAbilities().flying=false;p.getAbilities().allowFlying=false;p.sendAbilitiesUpdate();
-        p.teleport(w,DECK.getX()+4,DECK.getY()+1.05,DECK.getZ()+3,Set.of(),0,0);w.setTimeOfDay(6000);ready=true;modeStarted=w.getTime();
+        p.teleport(w,DECK.getX()+(UFO?2:4),DECK.getY()+1.05,DECK.getZ()+(UFO?0:3),Set.of(),0,0);w.setTimeOfDay(6000);ready=true;modeStarted=w.getTime();
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.START_WORLD_TICK.register(world->{
             if(world!=w||finished||!ready)return;
             Vec3 dv=VELOCITY.minus(body.physics().linearVelocity()).scaled(.3);if(dv.length()>.25)dv=dv.scaled(.25/dv.length());
@@ -175,7 +187,7 @@ public final class NativeShipGravityCheck {
             if(error.w()<0)error=new Quat(-error.x(),-error.y(),-error.z(),-error.w());
             Vec3 turn=new Vec3(error.x(),error.y(),error.z());double radians=2*Math.acos(Math.max(-1,Math.min(1,error.w())));
             Vec3 acceleration=turn.normalized().scaled(36*radians).minus(body.physics().angularVelocity().minus(spin).scaled(12));
-            Vec3 torque=body.physics().worldInertia().transform(acceleration);double cap=body.physicsMass()*16;if(torque.length()>cap)torque=torque.scaled(cap/torque.length());
+            Vec3 torque=body.physics().worldInertia().transform(acceleration);double cap=body.physicsMass()*16*(UFO?100:1);if(torque.length()>cap)torque=torque.scaled(cap/torque.length());
             body.applyPhysicsTorque(BoardingSystem.mc(torque));
             if(mode!=0&&elapsed>160)settled=true;
             if(DescentPlayerData.get(p).isEnabled()&&!BoardingSystem.drives(p))serverHandoff=true;
@@ -194,7 +206,8 @@ public final class NativeShipGravityCheck {
             if(scene.equals("roll-complete"))startMode(c,2);
             if(scene.equals("pitch-complete"))startMode(c,3);
             if(phase==9) {
-                Files.writeString(c.runDirectory.toPath().resolve("ship-boarding-ok.json"),"{\"actualInputs\":true,\"shipGravity\":true,\"orientedCollision\":true,\"teleportFollow\":false,\"predictionSamples\":"+predictionSamples+",\"maxPredictionError\":"+maxError+",\"jumpVelocityError\":"+jumpError+",\"maxFrameError\":"+frameError+",\"modelFrames\":"+modelFrames+",\"cameraFrames\":"+cameraFrames+",\"maxCameraUpError\":"+cameraError+",\"maxModelUpError\":"+modelError+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");
+                if(UFO)require(ufoRenderedFrames>=40&&ufoGridCells>500,"actual physical UFO renderer/grid proof missing");
+                Files.writeString(c.runDirectory.toPath().resolve("ship-boarding-ok.json"),"{\"actualUfo\":"+UFO+",\"ufoRenderedFrames\":"+ufoRenderedFrames+",\"ufoGridCells\":"+ufoGridCells+",\"actualInputs\":true,\"shipGravity\":true,\"orientedCollision\":true,\"teleportFollow\":false,\"predictionSamples\":"+predictionSamples+",\"maxPredictionError\":"+maxError+",\"jumpVelocityError\":"+jumpError+",\"maxFrameError\":"+frameError+",\"modelFrames\":"+modelFrames+",\"cameraFrames\":"+cameraFrames+",\"maxCameraUpError\":"+cameraError+",\"maxModelUpError\":"+modelError+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");
                 finished=true;c.options.forwardKey.setPressed(false);c.options.jumpKey.setPressed(false);c.scheduleStop();
             }
         }catch(java.io.IOException e){throw new IllegalStateException(e);}

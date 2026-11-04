@@ -486,7 +486,7 @@ public final class DescentCommands {
 													return 0;
 												}
 												ufo.forceVirtualFlight(world, virtual);
-												ctx.getSource().sendFeedback(() -> Text.literal("Sky UFO virtual flight: " + virtual), true);
+												ctx.getSource().sendFeedback(() -> Text.literal("Sky UFO uses a physical block hull; virtual/world-copy switching is retired."), false);
 												return 1;
 											})))
 									.then(CommandManager.literal("box").executes(ctx -> {
