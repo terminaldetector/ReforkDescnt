@@ -59,6 +59,23 @@ public final class FlightBodyPlayerGameTests implements FabricGameTest {
             } finally {if(removed&&!f.p.isRemoved()&&!tracked.contains(f.p))tracked.add(f.p);}
         }c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="flight-body-after-world-phase",tickLimit=40)
+    public void aRequestDeferredAfterTheWorldPhaseCannotStrandTheNextTicksCommands(TestContext c) {
+        var f=fixture(c);var done=new java.util.concurrent.atomic.AtomicBoolean();var sent=new java.util.concurrent.atomic.AtomicBoolean();
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(server->{
+            if(done.get()||server!=c.getWorld().getServer())return;
+            // Reproduce the actual network-player ordering, later than the world's contact phase.
+            FlightBodySystem.defer(f.p);int epoch=FlightBodySystem.epoch(f.p);
+            if(epoch>0&&!sent.get())sent.set(FlightBodySystem.receive(f.p,new FlightBodyNetworking.Input(epoch,0)));
+        });
+        c.runAtTick(6,()->{
+            try {
+                c.assertTrue(sent.get(),"a genuine end-of-server-tick command must be admitted");
+                c.assertTrue(FlightBodySystem.acknowledgment(f.p)==0,"previous-tick deferral cannot prevent current-phase command processing");
+            } finally {done.set(true);f.close();}
+            c.complete();
+        });
+    }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="flight-body-portal-clock")
     public void portalFrameDiscontinuityDropsOnlyTheOldClockAndRetainsPhysicalMomentum(TestContext c) {
         try(var f=fixture(c)) {

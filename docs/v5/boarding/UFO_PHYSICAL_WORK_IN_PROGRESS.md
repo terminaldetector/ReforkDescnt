@@ -81,8 +81,8 @@ approach through the real moving UFO bay, H-off boarding, walking and roof colli
 three-axis spin. Until its real-client evidence and broader regression are verified, the
 integration remains WIP. Dedicated/latency/multiclient/reload acceptance remains open.
 
-The first native external approach timed out before acquiring a lease: real network
-ServerPlayers do not normally call `travel`, unlike the explicit test invocation.
+The first native external approach timed out before acquiring a lease: an explicit
+`travel` invocation in a test did not reproduce the real network-player phase ordering.
 The authoritative world phase now enrolls eligible nearby pilots itself. Two additional
 registered regressions prove that no travel call is needed and that a portal discards
 only the obsolete prediction clock, preserving momentum and rejecting its old commands.
@@ -97,3 +97,11 @@ identities rather than relying on vanilla world tracking. A registered test expl
 removes a connected test pilot from that world list and requires material contact and
 command acknowledgment to continue. All679 unit and237 GameTests pass on this update.
 Native proof of the complete external approach remains outstanding.
+
+Further native diagnostics confirmed that inputs were admitted and world geometry allowed
+movement. The stall was a stale deferral timestamp: network-player travel after the world
+phase left the previous tick's request in place; `putIfAbsent` retained it and the next
+phase rejected it forever. Enrollment now refreshes that request for the actual phase.
+A new asynchronous GameTest defers from END_SERVER_TICK and requires acknowledgment in
+later real world ticks. All679 unit and238 GameTests pass. The connection-identity guard
+above remains independently useful; vanilla tracking loss was not the native stall's cause.

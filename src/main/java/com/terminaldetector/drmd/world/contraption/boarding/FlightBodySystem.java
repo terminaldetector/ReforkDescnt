@@ -64,10 +64,12 @@ public final class FlightBodySystem {
      * Momentum and entity pose belong to PortalTravel; only the obsolete clock is released here. */
     public static void discontinuity(ServerPlayerEntity p){LEASES.remove(p.getUuid());PENDING.remove(p.getUuid());}
     public static void tick(ServerWorld world) {
-        // A network ServerPlayer normally reports movement through packets rather than running
-        // PlayerEntity.travel. Enroll real pilots in this phase too, not just explicit travel
-        // calls from vehicles/fixtures. owns() already rejects positional packet overwrite.
-        for(var player:BoardingSystem.players(world))if(owns(player))PENDING.putIfAbsent(player.getUuid(),
+        // A network player's travel can run later than the world's body phase. Enroll real
+        // pilots here too, independently of explicit travel calls from vehicles/fixtures.
+        // owns() already rejects positional packet overwrite.
+        // ServerPlayer travel may defer after END_WORLD_TICK. Its previous-tick request
+        // contains no pose/velocity; refresh that enrollment for the CURRENT world phase.
+        for(var player:BoardingSystem.players(world))if(owns(player))PENDING.put(player.getUuid(),
             new Deferred(new WeakReference<>(player),world.getTime(),world));
         var touched=new HashSet<BlockBodyEntity>();var motions=new HashMap<Integer,BodyMotion>();
         for(var d:PENDING.values().stream().filter(d->d.world==world).sorted(Comparator.comparing(d->{var p=d.player.get();return p==null?"":p.getUuid().toString();})).toList()) {
