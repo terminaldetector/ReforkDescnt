@@ -88,7 +88,9 @@ public final class NativeFlightBodyCheck {
             if(CONTROL){
                 if(controlStep==0){
                     var hull=(BlockBodyEntity)c.world.getEntityById(bodyId);var view=BoardingClient.bodyView(hull,1);
-                    var offset=new Vec3(3.5,-.5,.5).minus(hull.localCentre());var aim=(view==null?hull.localToWorld(new Vec3d(3.5,-.5,.5)):BoardingSystem.mc(view.position().plus(view.rotation().rotate(offset)))).subtract(c.player.getEyePos());
+                    // Aim through the visible top, not the buried block centre:
+                    // from farther back the latter ray first hits a neighbouring deck cell.
+                    var offset=new Vec3(3.5,-.001,.5).minus(hull.localCentre());var aim=(view==null?hull.localToWorld(new Vec3d(3.5,-.001,.5)):BoardingSystem.mc(view.position().plus(view.rotation().rotate(offset)))).subtract(c.player.getEyePos());
                     var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(BoardingSystem.pure(aim));c.player.setYaw((float)angles.yawDegrees());c.player.setPitch((float)angles.pitchDegrees());c.options.useKey.setPressed(true);
                     if(serverControl&&UfoControlClient.active()){c.options.useKey.setPressed(false);beforeControl=controlVelocity;beforePilot=BoardingSystem.pure(local);walkStart=local.x;c.options.forwardKey.setPressed(true);com.terminaldetector.drmd.client.input.DescentKeybinds.rollRight.setPressed(true);controlStep=1;request("control-acquired");age=0;}
                 }else if(controlStep==1&&age>=14){
@@ -103,8 +105,8 @@ public final class NativeFlightBodyCheck {
             }else{c.getServer().execute(()->roof(c));phase=6;age=0;}
         } else if(phase==9&&age>4) {
             var hull=(BlockBodyEntity)c.world.getEntityById(bodyId);var view=BoardingClient.bodyView(hull,1);
-            var offset=new Vec3(3.5,-.5,.5).minus(hull.localCentre());
-            var target=view==null?hull.localToWorld(new Vec3d(3.5,-.5,.5)):BoardingSystem.mc(view.position().plus(view.rotation().rotate(offset)));
+            var offset=new Vec3(3.5,-.001,.5).minus(hull.localCentre());
+            var target=view==null?hull.localToWorld(new Vec3d(3.5,-.001,.5)):BoardingSystem.mc(view.position().plus(view.rotation().rotate(offset)));
             var aim=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(BoardingSystem.pure(target.subtract(c.player.getEyePos())));
             c.player.setYaw((float)aim.yawDegrees());c.player.setPitch((float)aim.pitchDegrees());c.options.useKey.setPressed(true);
             if(serverControl&&UfoControlClient.active()){c.options.useKey.setPressed(false);request("control-reacquired");phase=10;age=0;}
