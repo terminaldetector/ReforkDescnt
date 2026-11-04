@@ -73,6 +73,33 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
             c.assertTrue(!com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p)&&b.autopilotEnabled(),"material commit releases ownership and restores AI without a later polling tick");
         } finally {com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);p.discard();b.discard();}c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-control-exit")
+    public void leavingTheHullReleasesAndOldInputsCannotControlARecapturedShip(TestContext c) {
+        var b=create(c);var p=pilot(c,b);try {
+            b.setAutopilot(true);c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.claim(p,b),"initial capture");
+            int oldEpoch=com.terminaldetector.drmd.world.mega.UfoControlSystem.epoch(p);
+            b.physics().withLinearVelocity(new Vec3(4,2,-3)).withAngularVelocity(new Vec3(.2,.1,-.3));
+            var velocity=b.physics().linearVelocity();var momentum=b.physics().angularMomentum();
+            p.setPosition(b.localToWorld(new Vec3d(30,8,30)));
+            c.assertTrue(!com.terminaldetector.drmd.world.mega.UfoControlSystem.drive(b)&&!com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p)&&b.autopilotEnabled(),"leaving the real local hull releases authority and restores AI");
+            c.assertTrue(velocity.equals(b.physics().linearVelocity())&&momentum.equals(b.physics().angularMomentum()),"exit does not reset either hull momentum");
+            p.setPosition(b.localToWorld(new Vec3d(3.5,.1,-1)));
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.claim(p,b),"returning pilot can capture again");
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.epoch(p)>oldEpoch,"recapture gets a fresh authority epoch");
+            c.assertTrue(!com.terminaldetector.drmd.world.mega.UfoControlSystem.receive(p,new com.terminaldetector.drmd.world.mega.UfoControlSystem.Input(oldEpoch,10000,1,0,0,0,0,1)),"late commands from the previous capture cannot drive the current ship");
+        } finally {com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);p.discard();b.discard();}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-control-mode")
+    public void EnablingSuitFlightOrRemovingTheHullCannotLeaveAnOwner(TestContext c) {
+        var b=create(c);var p=pilot(c,b);try {
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.claim(p,b),"capture before suit transition");
+            DescentPlayerData.get(p).setEnabled(true);
+            c.assertTrue(!com.terminaldetector.drmd.world.mega.UfoControlSystem.drive(b)&&!com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p),"suit flight and ship piloting cannot own input simultaneously");
+            DescentPlayerData.get(p).setEnabled(false);
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.claim(p,b),"capture after suit transition");
+            b.discard();c.assertTrue(!com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p),"actual entity removal releases the pilot immediately");
+        } finally {com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);p.discard();b.discard();}c.complete();
+    }
     private static final DynamicBodyAttachment.Motion FREE=(p,q,d)->new DynamicBodyAttachment.Move(d,java.util.List.of());
     private SkyUfoEntity create(TestContext c) {
         var at=c.getAbsolutePos(new BlockPos(8,190,8));var w=c.getWorld();

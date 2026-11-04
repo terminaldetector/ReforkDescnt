@@ -20,6 +20,8 @@ import java.util.*;
 /** External entry, real free-flight authority, H-off boarding and roof CCD on the registered UFO. */
 public final class NativeFlightBodyCheck {
     private static final boolean CONTROL=Boolean.getBoolean("drmd.gate.ufoControl");
+    private static final boolean LIFECYCLE=Boolean.getBoolean("drmd.gate.ufoControlLifecycle");
+    private static boolean deathReleased;
     private static boolean pauseChecking,pauseVerified;private static int pauseTicks;
     private static int controlStep;private static volatile boolean serverControl;private static volatile Vec3 controlVelocity,controlSpin;private static Vec3 beforeControl,beforePilot;
     private static final BlockPos AT=new BlockPos(8,2156,16);
@@ -99,6 +101,15 @@ public final class NativeFlightBodyCheck {
                     require(controlVelocity.length()>.5,"release must retain real carrier velocity");require(samples>=25&&maxError<.8&&draws>=40,"missing flight/render proof before core capture");request("control-release");phase=8;
                 }
             }else{c.getServer().execute(()->roof(c));phase=6;age=0;}
+        } else if(phase==9&&age>4) {
+            var hull=(BlockBodyEntity)c.world.getEntityById(bodyId);var view=BoardingClient.bodyView(hull,1);
+            var offset=new Vec3(3.5,-.5,.5).minus(hull.localCentre());
+            var target=view==null?hull.localToWorld(new Vec3d(3.5,-.5,.5)):BoardingSystem.mc(view.position().plus(view.rotation().rotate(offset)));
+            var aim=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(BoardingSystem.pure(target.subtract(c.player.getEyePos())));
+            c.player.setYaw((float)aim.yawDegrees());c.player.setPitch((float)aim.pitchDegrees());c.options.useKey.setPressed(true);
+            if(serverControl&&UfoControlClient.active()){c.options.useKey.setPressed(false);request("control-reacquired");phase=10;age=0;}
+        } else if(phase==11&&age>4&&!c.player.isAlive()&&!serverControl&&!UfoControlClient.active()) {
+            deathReleased=true;request("control-death-release");phase=8;
         } else if(phase==6&&roofReady&&com.terminaldetector.drmd.client.DescentClientState.enabled&&FlightBodyClient.active()) {
             com.terminaldetector.drmd.client.input.DescentKeybinds.descend.setPressed(true);phase=7;age=0;
         } else if(phase==7&&roofContacts>=8) {
@@ -137,13 +148,18 @@ public final class NativeFlightBodyCheck {
     }
     private static void request(String s){scene=s;capturing=true;frames=0;}
     public static void rendered() {
-        if(!capturing||finished)return;var c=MinecraftClient.getInstance();if(c.player==null||c.currentScreen!=null||++frames<3)return;
+        if(!capturing||finished)return;var c=MinecraftClient.getInstance();if(c.player==null||(c.currentScreen!=null&&!scene.equals("control-death-release"))||++frames<3)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             var out=c.runDirectory.toPath().resolve("flight-body-frames");Files.createDirectories(out);image.writeTo(out.resolve(scene+".png"));scenes.add(scene);capturing=false;
             System.out.println("FLIGHT_BODY_CLIENT "+scene+" PASS local="+local);
             if(CONTROL&&scene.equals("control-acquired")){pauseChecking=true;pauseTicks=0;c.setScreen(new net.minecraft.client.gui.screen.GameMenuScreen(true));}
+            if(LIFECYCLE&&scene.equals("control-release")){phase=9;age=0;return;}
+            if(LIFECYCLE&&scene.equals("control-reacquired")){
+                phase=11;age=0;c.getServer().execute(()->c.getServer().getPlayerManager().getPlayer(c.player.getUuid()).setHealth(0));return;
+            }
             if(phase==8) {
-                Files.writeString(c.runDirectory.toPath().resolve(CONTROL?"ufo-control-ok.json":"flight-body-ok.json"),"{\"pauseResumed\":"+pauseVerified+",\"controlCore\":"+CONTROL+",\"actualUfo\":true,\"externalEntry\":true,\"actualThrust\":true,\"walkingHandoff\":true,\"roofContacts\":"+roofContacts+",\"teleportFollow\":false,\"renderedFrames\":"+draws+",\"predictionSamples\":"+samples+",\"maxPredictionError\":"+maxError+",\"scenes\":[\""+String.join("\",\"",scenes)+"\"]}\n");
+                require(!LIFECYCLE||deathReleased,"lifecycle run must release both client and server ownership after actual player death");
+                Files.writeString(c.runDirectory.toPath().resolve(CONTROL?"ufo-control-ok.json":"flight-body-ok.json"),"{\"deathReleased\":"+deathReleased+",\"pauseResumed\":"+pauseVerified+",\"controlCore\":"+CONTROL+",\"actualUfo\":true,\"externalEntry\":true,\"actualThrust\":true,\"walkingHandoff\":true,\"roofContacts\":"+roofContacts+",\"teleportFollow\":false,\"renderedFrames\":"+draws+",\"predictionSamples\":"+samples+",\"maxPredictionError\":"+maxError+",\"scenes\":[\""+String.join("\",\"",scenes)+"\"]}\n");
                 finished=true;c.scheduleStop();
             }
         }catch(java.io.IOException e){throw new IllegalStateException(e);}
