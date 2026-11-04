@@ -22,6 +22,7 @@ public final class NativeFlightBodyCheck {
     private static final boolean CONTROL=Boolean.getBoolean("drmd.gate.ufoControl");
     private static final boolean LIFECYCLE=Boolean.getBoolean("drmd.gate.ufoControlLifecycle");
     private static boolean deathReleased;
+    private static volatile boolean reloadAutoPrimed;
     private static boolean pauseChecking,pauseVerified;private static int pauseTicks;
     private static int controlStep;private static volatile boolean serverControl;private static volatile Vec3 controlVelocity,controlSpin;private static Vec3 beforeControl,beforePilot;
     private static final BlockPos AT=new BlockPos(8,2156,16);
@@ -86,6 +87,7 @@ public final class NativeFlightBodyCheck {
             if(age>=24){require(walking&&local.x-walkStart>.5,"ordinary keys must walk inside the moving UFO");request("boarded-walking");phase=5;age=0;}
         } else if(phase==5&&age>4) {
             if(CONTROL){
+                if(NativeUfoReloadCheck.WRITE&&!reloadAutoPrimed){c.getServer().execute(()->{((SkyUfoEntity)c.getServer().getOverworld().getEntityById(bodyId)).setAutopilot(true);reloadAutoPrimed=true;});return;}
                 if(controlStep==0){
                     var hull=(BlockBodyEntity)c.world.getEntityById(bodyId);var view=BoardingClient.bodyView(hull,1);
                     // Aim through the visible top, not the buried block centre:
@@ -154,6 +156,9 @@ public final class NativeFlightBodyCheck {
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             var out=c.runDirectory.toPath().resolve("flight-body-frames");Files.createDirectories(out);image.writeTo(out.resolve(scene+".png"));scenes.add(scene);capturing=false;
             System.out.println("FLIGHT_BODY_CLIENT "+scene+" PASS local="+local);
+            if(NativeUfoReloadCheck.WRITE&&scene.equals("control-acquired")){
+                NativeUfoReloadCheck.watch(c.world.getEntityById(bodyId).getUuid());finished=true;c.scheduleStop();return;
+            }
             if(CONTROL&&scene.equals("control-acquired")){pauseChecking=true;pauseTicks=0;c.setScreen(new net.minecraft.client.gui.screen.GameMenuScreen(true));}
             if(LIFECYCLE&&scene.equals("control-release")){phase=9;age=0;return;}
             if(LIFECYCLE&&scene.equals("control-reacquired")){
