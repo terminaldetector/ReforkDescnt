@@ -20,6 +20,7 @@ public class MouseMixin {
 	)
 	private void drmd$descentLook(ClientPlayerEntity player, double cursorDeltaX, double cursorDeltaY) {
 		boolean open = MinecraftClient.getInstance().currentScreen == null;
+		if(open&&com.terminaldetector.drmd.client.flight.UfoControlClient.active()&&!net.minecraft.client.util.InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(),org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_ALT)){com.terminaldetector.drmd.client.flight.UfoControlClient.mouse(cursorDeltaX,cursorDeltaY);return;}
 		if (DescentClientState.enabled && open) {
 			ShipAttitudeClient.applyMouse(player, cursorDeltaX, cursorDeltaY);
 		} else if (open && !com.terminaldetector.drmd.client.gravity.FootGravityCamera.settled()) {

@@ -87,6 +87,7 @@ public final class BoardingSystem {
                 var next=l.pending.removeFirst();l.sequence=next.sequence();l.input=next.input();l.inputTick=world.getTime();
             }
             var command=world.getTime()-l.inputTick<=4?l.input:DynamicBodyAttachment.Input.idle();
+            if(com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p))command=new DynamicBodyAttachment.Input(0,0,false,command.look());
             Quat beforeFrame=l.state.frame();
             // Preserve external impulses (knockback/explosions); the contact motor owns gravity.
             // The real collision-checked actor is authoritative. Dimension/contact adjustments

@@ -8,3 +8,5 @@ No supplied task is marked completed: three inventory tasks are in_progress and 
 Current focus: finish UFO/BlockBody continuity; add mandatory newer-version physics gates; then ControlCore/module gameplay. Offline singleplayer is the current acceptance target; dedicated/multiplayer testing is deferred per v8, not claimed passed. No accepted1.1.35 binary.
 
 Release evidence gates now inherit their required physics stages into future versions;47 Python checks passed. This changes packaging validation only, not game code.
+
+ControlCore increment is implemented but not yet accepted: right-click capture, exclusive ownership, bounded thrust/torque, H release, lifecycle cleanup and nonpersistent pilot connection.679 unit/243 GameTests passed; native control proof is pending. See CONTROL_CORE_WIP.md.

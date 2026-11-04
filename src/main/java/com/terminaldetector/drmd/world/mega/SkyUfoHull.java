@@ -80,6 +80,7 @@ public final class SkyUfoHull {
 		}
 
 		// Reactor core pedestal + ring lights
+        cells.put(new StructureDelta.Cell(3,-1,0),Blocks.GOLD_BLOCK.getDefaultState());
 		cells.put(new StructureDelta.Cell(0, 0, 0), Blocks.OBSIDIAN.getDefaultState());
 		StructureDelta.Cell core = new StructureDelta.Cell(0, 1, 0);
 		cells.put(core, ModWorldBlocks.UNSTABLE_REACTOR.getDefaultState());

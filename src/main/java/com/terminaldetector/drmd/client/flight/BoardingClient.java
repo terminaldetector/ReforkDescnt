@@ -141,9 +141,10 @@ public final class BoardingClient {
         if(length>.2&&length<=.5)offset=offset.scaled(.2/length);
         if(length>.002){Vec3d before=player.getPos();BoardingWorldMotion.capture(player,state,false).move(BoardingSystem.pure(before),state.frame(),offset);correction=correction.minus(BoardingSystem.pure(player.getPos().subtract(before)));}
         Vec3 feet=BoardingSystem.pure(player.getPos());state=new DynamicBodyAttachment.State(feet,state.velocity(),state.grounded(),state.support(),state.frame(),state.gravityOwner());
-        boolean jump=mc.currentScreen==null&&mc.options.jumpKey.isPressed();
-        double strafe=mc.currentScreen==null?Math.max(-1,Math.min(1,movement.x)):0;
-        double forward=mc.currentScreen==null?Math.max(-1,Math.min(1,movement.z)):0;
+        boolean piloting=UfoControlClient.active();
+        boolean jump=!piloting&&mc.currentScreen==null&&mc.options.jumpKey.isPressed();
+        double strafe=!piloting&&mc.currentScreen==null?Math.max(-1,Math.min(1,movement.x)):0;
+        double forward=!piloting&&mc.currentScreen==null?Math.max(-1,Math.min(1,movement.z)):0;
         Vec3 look=state.frame().inverse().rotate(BoardingSystem.pure(player.getRotationVec(1)));
         var input=new DynamicBodyAttachment.Input(strafe,forward,jump&&!jumpHeld,look);jumpHeld=jump;
         int seq=sequence++;

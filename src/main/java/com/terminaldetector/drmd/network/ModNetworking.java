@@ -510,6 +510,7 @@ public final class ModNetworking {
     }
 
 	public static void register() {
+        com.terminaldetector.drmd.world.mega.UfoControlSystem.register();
         FlightBodyNetworking.register();
         BoardingNetworking.register();
         PayloadTypeRegistry.playC2S().register(PortalProjectorPayload.ID,PortalProjectorPayload.CODEC);
@@ -564,7 +565,7 @@ public final class ModNetworking {
 			switch (payload.action()) {
 				case "physics_standard" -> com.terminaldetector.drmd.physics.PhysicsProfileState.request(player,com.terminaldetector.drmd.physics.PhysicsProfile.STANDARD);
                 case "physics_expanded" -> com.terminaldetector.drmd.physics.PhysicsProfileState.request(player,com.terminaldetector.drmd.physics.PhysicsProfile.EXPANDED);
-				case "toggle" -> FlightSystem.toggle(player);
+                case "toggle" -> {if(!com.terminaldetector.drmd.world.mega.UfoControlSystem.release(player))FlightSystem.toggle(player);}
 				case "enable" -> FlightSystem.enable(player, data);
 				case "dash" -> FlightSystem.tryDash(player);
 				// Legacy toggle kept for /d6 alwaysrun; hold-R is the Descent path via InputPayload.

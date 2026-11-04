@@ -55,6 +55,7 @@ public class DescentClient implements ClientModInitializer {
 	public void onInitializeClient() {
         com.terminaldetector.drmd.client.flight.BodySpatialClient.register();
         com.terminaldetector.drmd.client.flight.BoardingClient.register();
+        com.terminaldetector.drmd.client.flight.UfoControlClient.register();
         com.terminaldetector.drmd.client.flight.FlightBodyClient.register();
         com.terminaldetector.drmd.client.flight.BodyEditClient.register();
 		com.terminaldetector.drmd.world.access.CubicAvailability.bindClientThread(

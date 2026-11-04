@@ -14,6 +14,63 @@ import net.minecraft.util.math.*;
 
 /** Real registered UFO geometry and state; not a replacement decorative fixture. */
 public final class PhysicalUfoGameTests implements FabricGameTest {
+    private net.minecraft.server.network.ServerPlayerEntity pilot(TestContext c,SkyUfoEntity ufo) {
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.getAbilities().flying=false;
+        p.setPosition(ufo.localToWorld(new Vec3d(3.5,.1,-1)));return p;
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-control-ray")
+    public void actualLocalConsoleUseCapturesWithoutRespawnOrVelocityReset(TestContext c) {
+        var b=create(c);var p=pilot(c,b);try {
+            b.setAutopilot(true);b.physics().withLinearVelocity(new Vec3(9,2,-3)).withAngularVelocity(new Vec3(.1,.2,-.1));
+            var id=b.getUuid();var position=b.massPosition();var v=b.physics().linearVelocity();var momentum=b.physics().angularMomentum();
+            var aim=b.localToWorld(Vec3d.ofCenter(com.terminaldetector.drmd.world.mega.UfoControlSystem.CONSOLE)).subtract(p.getEyePos());
+            var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(new Vec3(aim.x,aim.y,aim.z));p.setYaw((float)angles.yawDegrees());p.setPitch((float)angles.pitchDegrees());
+            c.assertTrue(BodyBlockInteraction.receive(p,new BodyBlockInteraction.Edit(id,b.shapeRevision(),com.terminaldetector.drmd.world.mega.UfoControlSystem.CONSOLE,BodyBlockInteraction.USE)),"real authoritative local-block use ray must acquire the console");
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p)&&!b.autopilotEnabled(),"player ownership suppresses AI");
+            c.assertTrue(id.equals(b.getUuid())&&position.equals(b.massPosition())&&v.equals(b.physics().linearVelocity())&&momentum.equals(b.physics().angularMomentum()),"capture preserves physical identity, position and both momenta");
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p)&&b.autopilotEnabled(),"release restores previous AI mode");
+            c.assertTrue(v.equals(b.physics().linearVelocity())&&momentum.equals(b.physics().angularMomentum()),"release cannot stop the existing hull");
+        } finally {com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);p.discard();b.discard();}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-control-owner")
+    public void consoleHasOneOwnerAndHeldUseIsIdempotent(TestContext c) {
+        var b=create(c);var p=pilot(c,b);var other=pilot(c,b);try {
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.claim(p,b),"first pilot");int epoch=com.terminaldetector.drmd.world.mega.UfoControlSystem.epoch(p);
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.claim(p,b)&&com.terminaldetector.drmd.world.mega.UfoControlSystem.epoch(p)==epoch,"held use does not release/reset ownership");
+            c.assertTrue(!com.terminaldetector.drmd.world.mega.UfoControlSystem.claim(other,b),"second pilot cannot steal an occupied console");
+            com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.claim(other,b),"released console can be captured again");
+        } finally {com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);com.terminaldetector.drmd.world.mega.UfoControlSystem.release(other);p.discard();other.discard();b.discard();}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-control-input")
+    public void boundedPilotCommandsApplyOnceThroughTheExistingPhysicsBody(TestContext c) {
+        var b=create(c);var p=pilot(c,b);try {
+            var control=com.terminaldetector.drmd.world.mega.UfoControlSystem.claim(p,b);int epoch=com.terminaldetector.drmd.world.mega.UfoControlSystem.epoch(p);var before=b.physics().linearVelocity();
+            c.assertTrue(control&&!com.terminaldetector.drmd.world.mega.UfoControlSystem.receive(p,new com.terminaldetector.drmd.world.mega.UfoControlSystem.Input(epoch+1,0,1,0,0,0,0,0)),"stale owner frame rejected");
+            c.assertTrue(!com.terminaldetector.drmd.world.mega.UfoControlSystem.receive(p,new com.terminaldetector.drmd.world.mega.UfoControlSystem.Input(epoch,0,Float.NaN,0,0,0,0,0)),"nonfinite thrust rejected");
+            var input=new com.terminaldetector.drmd.world.mega.UfoControlSystem.Input(epoch,0,1,0,0,0,0,0);
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.receive(p,input)&&before.equals(b.physics().linearVelocity()),"packet receipt alone never advances physics");
+            c.assertTrue(!com.terminaldetector.drmd.world.mega.UfoControlSystem.receive(p,input),"duplicate rejected");com.terminaldetector.drmd.world.mega.UfoControlSystem.drive(b);var after=b.physics().linearVelocity();
+            c.assertTrue(Math.abs(after.z()-before.z()-.25)<1e-8,"bounded thrust changes actual hull momentum");com.terminaldetector.drmd.world.mega.UfoControlSystem.drive(b);
+            c.assertTrue(after.equals(b.physics().linearVelocity()),"a repeated same-tick drive cannot multiply thrust");
+        } finally {com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);p.discard();b.discard();}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-control-save")
+    public void savingAPilotedHullDoesNotPersistAnAbsentConnectionOrDisableItsAI(TestContext c) {
+        var b=create(c);var p=pilot(c,b);SkyUfoEntity copy=null;try {
+            b.setAutopilot(true);com.terminaldetector.drmd.world.mega.UfoControlSystem.claim(p,b);var tag=b.writeNbt(new NbtCompound());
+            c.assertTrue(tag.getBoolean("autopilot"),"save retains intended AI mode rather than transient takeover suppression");
+            copy=ModEntities.SKY_UFO.create(c.getWorld());copy.readNbt(tag);copy.discard();
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p),"unspawned NBT clone cannot release the real hull's pilot");
+        } finally {if(copy!=null)copy.discard();com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);p.discard();b.discard();}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-control-damage")
+    public void miningTheConsoleReleasesControlImmediately(TestContext c) {
+        var b=create(c);var p=pilot(c,b);try {
+            b.setAutopilot(true);c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.claim(p,b),"pilot acquired");
+            c.assertTrue(b.setLocalBlock(com.terminaldetector.drmd.world.mega.UfoControlSystem.CONSOLE,Blocks.AIR.getDefaultState()),"actual console material removed");
+            c.assertTrue(!com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p)&&b.autopilotEnabled(),"material commit releases ownership and restores AI without a later polling tick");
+        } finally {com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);p.discard();b.discard();}c.complete();
+    }
     private static final DynamicBodyAttachment.Motion FREE=(p,q,d)->new DynamicBodyAttachment.Move(d,java.util.List.of());
     private SkyUfoEntity create(TestContext c) {
         var at=c.getAbsolutePos(new BlockPos(8,190,8));var w=c.getWorld();

@@ -19,6 +19,8 @@ import java.util.*;
 
 /** External entry, real free-flight authority, H-off boarding and roof CCD on the registered UFO. */
 public final class NativeFlightBodyCheck {
+    private static final boolean CONTROL=Boolean.getBoolean("drmd.gate.ufoControl");
+    private static int controlStep;private static volatile boolean serverControl;private static volatile Vec3 controlVelocity,controlSpin;private static Vec3 beforeControl;
     private static final BlockPos AT=new BlockPos(8,2156,16);
     private static boolean started,prepared,finished,capturing,flightStarted;
     private static volatile boolean ready,roofReady;private static volatile Vec3d local,serverFeet,bodyStart,bodyNow;
@@ -75,7 +77,22 @@ public final class NativeFlightBodyCheck {
             if(age>=9)c.options.leftKey.setPressed(false);
             if(age>=24){require(walking&&local.x-walkStart>.5,"ordinary keys must walk inside the moving UFO");request("boarded-walking");phase=5;age=0;}
         } else if(phase==5&&age>4) {
-            c.getServer().execute(()->roof(c));phase=6;age=0;
+            if(CONTROL){
+                if(controlStep==0){
+                    var hull=(BlockBodyEntity)c.world.getEntityById(bodyId);var view=BoardingClient.bodyView(hull,1);
+                    var offset=new Vec3(3.5,-.5,.5).minus(hull.localCentre());var aim=(view==null?hull.localToWorld(new Vec3d(3.5,-.5,.5)):BoardingSystem.mc(view.position().plus(view.rotation().rotate(offset)))).subtract(c.player.getEyePos());
+                    var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(BoardingSystem.pure(aim));c.player.setYaw((float)angles.yawDegrees());c.player.setPitch((float)angles.pitchDegrees());c.options.useKey.setPressed(true);
+                    if(serverControl&&UfoControlClient.active()){c.options.useKey.setPressed(false);beforeControl=controlVelocity;walkStart=local.x;c.options.forwardKey.setPressed(true);com.terminaldetector.drmd.client.input.DescentKeybinds.rollRight.setPressed(true);controlStep=1;request("control-acquired");age=0;}
+                }else if(controlStep==1&&age>=14){
+                    c.options.forwardKey.setPressed(false);com.terminaldetector.drmd.client.input.DescentKeybinds.rollRight.setPressed(false);
+                    require(serverControl&&controlVelocity.minus(beforeControl).length()>1&&Math.abs(controlSpin.z())>.2,"actual control inputs must accelerate and turn the existing UFO");
+                    require(Math.abs(local.x-walkStart)<.4,"pilot input must drive the hull rather than walk the character");request("control-thrust-and-roll");controlStep=2;age=0;
+                }else if(controlStep==2&&age>=5){ClientPlayNetworking.send(new ModNetworking.ActionPayload("toggle"));controlStep=3;age=0;
+                }else if(controlStep==3&&age>=8&&!serverControl&&!UfoControlClient.active()){
+                    require(!com.terminaldetector.drmd.client.DescentClientState.enabled&&walking,"H release must return to physical walking without enabling suit flight");
+                    require(controlVelocity.length()>.5,"release must retain real carrier velocity");require(samples>=25&&maxError<.8&&draws>=40,"missing flight/render proof before core capture");request("control-release");phase=8;
+                }
+            }else{c.getServer().execute(()->roof(c));phase=6;age=0;}
         } else if(phase==6&&roofReady&&com.terminaldetector.drmd.client.DescentClientState.enabled&&FlightBodyClient.active()) {
             com.terminaldetector.drmd.client.input.DescentKeybinds.descend.setPressed(true);phase=7;age=0;
         } else if(phase==7&&roofContacts>=8) {
@@ -95,7 +112,7 @@ public final class NativeFlightBodyCheck {
         ufo.physics().withLinearVelocity(new Vec3(.5,0,0)).withAngularVelocity(new Vec3(0,.08,0));ufo.setPassengerGravity(new Vec3(0,-32,0));ufo.publishPhysicsState();bodyStart=entity(ufo).getPos();
         var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());p.teleport(w,AT.getX(),AT.getY()+.1,AT.getZ()-14,Set.of(),0,0);configure(p);w.setTimeOfDay(6000);ready=true;
         ServerTickEvents.END_WORLD_TICK.register(world->{
-            if(world!=w||finished)return;local=ufo.worldToLocal(p.getPos());serverFeet=p.getPos();bodyNow=entity(ufo).getPos();serverEpoch=FlightBodySystem.epoch(p);walking=BoardingSystem.drives(p);
+            if(world!=w||finished)return;local=ufo.worldToLocal(p.getPos());serverFeet=p.getPos();bodyNow=entity(ufo).getPos();serverEpoch=FlightBodySystem.epoch(p);walking=BoardingSystem.drives(p);serverControl=com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p);controlVelocity=ufo.physics().linearVelocity();controlSpin=ufo.physics().angularVelocity();
             if(phase>=7&&DescentPlayerData.get(p).isEnabled()&&local.y>1) {
                 var velocity=DescentPlayerData.get(p).getFlightVelocity();
                 if(ufo.boardingMotion().query(1).contacts(DynamicBodyAttachment.box(BoardingSystem.pure(p.getPos()),p.getWidth(),p.getHeight()),.03).stream().anyMatch(contact->contact.normal().y()>.3)&&velocity.y> -2)roofContacts++;
@@ -119,7 +136,7 @@ public final class NativeFlightBodyCheck {
             var out=c.runDirectory.toPath().resolve("flight-body-frames");Files.createDirectories(out);image.writeTo(out.resolve(scene+".png"));scenes.add(scene);capturing=false;
             System.out.println("FLIGHT_BODY_CLIENT "+scene+" PASS local="+local);
             if(phase==8) {
-                Files.writeString(c.runDirectory.toPath().resolve("flight-body-ok.json"),"{\"actualUfo\":true,\"externalEntry\":true,\"actualThrust\":true,\"walkingHandoff\":true,\"roofContacts\":"+roofContacts+",\"teleportFollow\":false,\"renderedFrames\":"+draws+",\"predictionSamples\":"+samples+",\"maxPredictionError\":"+maxError+",\"scenes\":[\""+String.join("\",\"",scenes)+"\"]}\n");
+                Files.writeString(c.runDirectory.toPath().resolve(CONTROL?"ufo-control-ok.json":"flight-body-ok.json"),"{\"controlCore\":"+CONTROL+",\"actualUfo\":true,\"externalEntry\":true,\"actualThrust\":true,\"walkingHandoff\":true,\"roofContacts\":"+roofContacts+",\"teleportFollow\":false,\"renderedFrames\":"+draws+",\"predictionSamples\":"+samples+",\"maxPredictionError\":"+maxError+",\"scenes\":[\""+String.join("\",\"",scenes)+"\"]}\n");
                 finished=true;c.scheduleStop();
             }
         }catch(java.io.IOException e){throw new IllegalStateException(e);}

@@ -371,6 +371,8 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     /** Owner modules observe committed material edits, after the rollback boundary. */
     protected void onLocalMaterialChanged(List<BlockBodyEntity> fragments) {}
+    public boolean canUseLocalBlock(BlockPos local){return false;}
+    public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){return false;}
     private record PreparedEdit(List<LocalEdit> edits,List<BlockBodyEntity> fragments){}
     private static BodyTopology.Cell topology(BlockPos p){return new BodyTopology.Cell(p.getX(),p.getY(),p.getZ());}
     /** Refuse before mutation when rebasing would require a velocity outside the admitted

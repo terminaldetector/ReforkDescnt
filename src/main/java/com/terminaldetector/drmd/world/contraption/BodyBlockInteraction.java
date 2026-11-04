@@ -20,7 +20,7 @@ import java.util.*;
 
 /** Server-authoritative mining/placement into a loaded moving local grid, never vanilla world edits. */
 public final class BodyBlockInteraction {
-    public static final int MINE=0,STOP=1,PLACE=2;
+    public static final int MINE=0,STOP=1,PLACE=2,USE=3;
     public record Edit(UUID body,long revision,BlockPos local,int action) implements CustomPayload {
         public static final Id<Edit> ID=new Id<>(Identifier.of("drmd","body_edit"));
         public static final PacketCodec<RegistryByteBuf,Edit> CODEC=PacketCodec.of((p,b)->{
@@ -84,12 +84,13 @@ public final class BodyBlockInteraction {
         return target;
     }
     public static boolean receive(ServerPlayerEntity p,Edit e) {
-        if(!p.getServer().isOnThread()||e.action<0||e.action>2)return false;
+        if(!p.getServer().isOnThread()||e.action<0||e.action>USE)return false;
         if(e.action==STOP){MINING.remove(p.getUuid());return true;}
         long now=p.getServer().getTicks();var budget=BUDGET.get(p.getUuid());
         int count=budget!=null&&budget.tick()==now?budget.count():0;if(count>=4)return false;
         BUDGET.put(p.getUuid(),new Budget(now,count+1));
         var target=validated(p,e);if(target.isEmpty())return false;
+        if(e.action==USE){if(now-LAST_ACTION.getOrDefault(p.getUuid(),Long.MIN_VALUE/2)<4)return false;var t=target.get();boolean used=t.body().useLocalBlock(p,t.hit().localBlock());if(used){LAST_ACTION.put(p.getUuid(),now);MINING.remove(p.getUuid());}return used;}
         if(e.action==MINE&&!creative(p)) {
             var old=MINING.get(p.getUuid());
             if(old==null||!old.edit.equals(e)||!ItemStack.areItemsAndComponentsEqual(old.tool,p.getMainHandStack()))MINING.put(p.getUuid(),new Mining(p,e,now));

@@ -30,10 +30,11 @@ public final class BodyEditClient {
   if(c.player.age-lastMine<2)return true;lastMine=c.player.age;
   ClientPlayNetworking.send(packet);mining=packet;c.player.swingHand(Hand.MAIN_HAND);return true;
  }
- public static boolean place(MinecraftClient c){if(c.player==null||!(c.player.getMainHandStack().getItem() instanceof net.minecraft.item.BlockItem))return false;var target=target(c);if(target==null)return false;
+ public static boolean place(MinecraftClient c){var target=target(c);if(target==null)return false;
+  var hit=target.hit();boolean use=target.body().canUseLocalBlock(hit.localBlock());
+  if(!use&&!(c.player.getMainHandStack().getItem() instanceof net.minecraft.item.BlockItem))return false;
   if(c.player.age-lastPlace<4)return true;lastPlace=c.player.age;
-  var hit=target.hit();ClientPlayNetworking.send(new BodyBlockInteraction.Edit(target.body().getUuid(),hit.revision(),hit.localBlock(),BodyBlockInteraction.PLACE));
-  c.player.swingHand(Hand.MAIN_HAND);return true;
+  ClientPlayNetworking.send(new BodyBlockInteraction.Edit(target.body().getUuid(),hit.revision(),hit.localBlock(),use?BodyBlockInteraction.USE:BodyBlockInteraction.PLACE));c.player.swingHand(Hand.MAIN_HAND);return true;
  }
  private static void stop(){if(mining!=null){var c=MinecraftClient.getInstance();if(c.player!=null&&ClientPlayNetworking.canSend(BodyBlockInteraction.Edit.ID))ClientPlayNetworking.send(new BodyBlockInteraction.Edit(mining.body(),mining.revision(),mining.local(),BodyBlockInteraction.STOP));mining=null;}}
 }

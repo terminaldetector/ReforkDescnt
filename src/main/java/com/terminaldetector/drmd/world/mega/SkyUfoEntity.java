@@ -38,6 +38,10 @@ public class SkyUfoEntity extends BlockBodyEntity {
     public boolean isVirtualFlight(){return false;}
     public boolean isCrashing(){return crashing;}
     public void setAutopilot(boolean value){autopilot=value;}
+    public boolean autopilotEnabled(){return autopilot;}
+    public boolean hasControlConsole(){return getLocalBlock(UfoControlSystem.CONSOLE).isOf(Blocks.GOLD_BLOCK);}
+    @Override public boolean canUseLocalBlock(BlockPos local){return local.equals(UfoControlSystem.CONSOLE)&&hasControlConsole();}
+    @Override public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){return canUseLocalBlock(local)&&UfoControlSystem.claim(player,this);}
     public void forceDestructionMode(DestructionMode mode){destructionMode=Objects.requireNonNull(mode);}
     public BlockPos getCorePos(){return BlockPos.ofFloored(localToWorld(Vec3d.ofCenter(CORE)));}
     public Box getInterior() {
@@ -61,7 +65,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
         } else if(cells().isEmpty()){discard();return;}
         ACTIVE.put(getUuid(),new WeakReference<>(this));
         if(!crashing&&getLocalBlock(CORE).isAir())destroyFromCore(world,null,"local reactor destroyed");
-        if(!crashing&&autopilot)propel();
+        if(!crashing&&!UfoControlSystem.drive(this)&&autopilot)propel();
         if(crashing&&!detonated&&++crashTicks>=100)detonate(world);
         super.tick();
         if(crashing)return;
@@ -105,10 +109,11 @@ public class SkyUfoEntity extends BlockBodyEntity {
         if(!world.spawnEntity(drone))return false;swarm.add(drone.getUuid());return true;
     }
     @Override protected void onLocalMaterialChanged(List<BlockBodyEntity> fragments) {
+        if(!hasControlConsole())UfoControlSystem.releaseBody(this);
         if(initialized&&!isRemoved()&&getLocalBlock(CORE).isAir())enterCrash(fragments);
     }
     private void enterCrash(List<BlockBodyEntity> fragments) {
-        if(crashing)return;crashing=true;setPassengerGravity(ZERO);setPhysicsGravity(true);
+        if(crashing)return;crashing=true;UfoControlSystem.releaseBody(this);setPassengerGravity(ZERO);setPhysicsGravity(true);
         for(var fragment:fragments)fragment.setPhysicsGravity(true);
         if(destructionMode==DestructionMode.SHOCKWAVE)crashTicks=100;
     }
@@ -143,6 +148,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
     public void forceVirtualFlight(ServerWorld world,boolean virtual){}
     public void debugOutlineBox(ServerWorld world){var p=physicsCentre();world.spawnParticles(ParticleTypes.END_ROD,p.x,p.y,p.z,8,radius(),1,radius(),0);}
     @Override public void remove(RemovalReason reason) {
+        UfoControlSystem.releaseBody(this);
         var ref=ACTIVE.get(getUuid());if(ref!=null&&ref.get()==this)ACTIVE.remove(getUuid());super.remove(reason);
     }
     @Override protected void readCustomDataFromNbt(NbtCompound n) {
@@ -158,7 +164,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
     }
     @Override protected void writeCustomDataToNbt(NbtCompound n) {
         super.writeCustomDataToNbt(n);n.putInt("physicalUfoSchema",initialized?1:0);n.putBoolean("crashing",crashing);n.putBoolean("detonated",detonated);
-        n.putDouble("cruise",cruiseYaw);n.putDouble("cruiseAltitude",cruiseAltitude);n.putBoolean("autopilot",autopilot);n.putInt("crashTicks",crashTicks);n.putInt("bayCooldown",spawnCooldown);
+        n.putDouble("cruise",cruiseYaw);n.putDouble("cruiseAltitude",cruiseAltitude);n.putBoolean("autopilot",UfoControlSystem.savedAutopilot(this,autopilot));n.putInt("crashTicks",crashTicks);n.putInt("bayCooldown",spawnCooldown);
         n.putString("destructionMode",destructionMode.name());
         var list=new NbtList();for(var id:swarm){var item=new NbtCompound();item.putUuid("id",id);list.add(item);}n.put("swarm",list);
     }
