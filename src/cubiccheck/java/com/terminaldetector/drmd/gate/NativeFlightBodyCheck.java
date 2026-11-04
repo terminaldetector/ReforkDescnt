@@ -141,7 +141,7 @@ public final class NativeFlightBodyCheck {
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             var out=c.runDirectory.toPath().resolve("flight-body-frames");Files.createDirectories(out);image.writeTo(out.resolve(scene+".png"));scenes.add(scene);capturing=false;
             System.out.println("FLIGHT_BODY_CLIENT "+scene+" PASS local="+local);
-            if(CONTROL&&scene.equals("control-acquired")){pauseChecking=true;pauseTicks=0;c.openPauseMenu(false);}
+            if(CONTROL&&scene.equals("control-acquired")){pauseChecking=true;pauseTicks=0;c.setScreen(new net.minecraft.client.gui.screen.GameMenuScreen(true));}
             if(phase==8) {
                 Files.writeString(c.runDirectory.toPath().resolve(CONTROL?"ufo-control-ok.json":"flight-body-ok.json"),"{\"pauseResumed\":"+pauseVerified+",\"controlCore\":"+CONTROL+",\"actualUfo\":true,\"externalEntry\":true,\"actualThrust\":true,\"walkingHandoff\":true,\"roofContacts\":"+roofContacts+",\"teleportFollow\":false,\"renderedFrames\":"+draws+",\"predictionSamples\":"+samples+",\"maxPredictionError\":"+maxError+",\"scenes\":[\""+String.join("\",\"",scenes)+"\"]}\n");
                 finished=true;c.scheduleStop();
