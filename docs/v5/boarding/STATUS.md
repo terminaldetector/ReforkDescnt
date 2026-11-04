@@ -228,3 +228,18 @@ Hitscan, снаряды и взрывы повреждают локальные 
 Отчёт: dist/releases/1.1.33-combat.1/NATIVE_REPORT.md.
 Механические соединения, ControlCore, большой физический UFO, полный3D AI/бестиарий,
 массовое разрушение/LOD и dedicated/two-client/world-reload остаются OPEN.
+
+## 1.1.34-joints.1 — physical mechanical components
+
+Exact source5d5c2b8; CI41798456108 SUCCESS:671 unit/222 GameTests/77 Python.
+The published JAR matches all six installed BCC runs by SHA-256.44 fresh frames and2337
+comparisons/acks cover mechanisms, real platform passenger input, overloaded release, delayed
+32768-block geometry, detached deck, full ship rotations and combat fragments. The first failed
+ship walk (3.585m versus the unchanged3.5m upper bound) is retained beside the successful
+13-scene repeat; see dist/releases/1.1.34-joints.1/NATIVE_REPORT.md.
+
+Missing geometry immediately owns client movement; the prior1.373m loading fall is0m with
+29 measured waiting ticks. Snapshot body identity also uses the physical index.
+Full Boarding12/UFO9/master acceptance remains OPEN. Existing-UFO migration, functional
+modules/ControlCore, full3D AI, dense islands and complete world/dedicated/multiclient reload
+are not certified by this mechanical-component stage.
