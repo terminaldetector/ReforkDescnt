@@ -5,3 +5,5 @@ Late travel deferral: previous tick stamp stranded accepted commands; current-ph
 Identified release gate issue: literal version-prefix lists stop at1.1.34 and could silently omit inherited physics checks for1.1.35+. Fixed in f6fa6e4;47 release-gate tests pass.
 
 Actual UFO restart:1c200fd native run restored the serialized hull and physical state but failed to reacquire physical walking (contact0 timeout). Reproduction and first attempts in UFO_RELOAD_WIP.md; remains OPEN.
+
+Restart follow-up: source9c461cc fixes forced suit rearming; dc13381 fixes initial body-load admission for saved context-bearing passengers. Native08d61c3 passes actual restart/Ready-delay/grounded contact/keyboard walk on Mesa+Sodium. Pre-context legacy admission and modules/unload transitions remain OPEN; see UFO_RELOAD_2026-11-04.md.

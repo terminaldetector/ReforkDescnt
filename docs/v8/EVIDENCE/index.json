@@ -279,5 +279,60 @@
       "expired": false,
       "digest": "sha256:e3e1584bbffc43cd8cf12eb9a1f042ce5bace41071a3210ff139acf9e7f2096b"
     }
+  },
+  "actualUfoReload": {
+    "releaseAccepted": false,
+    "scope": "Current registered1046-cell UFO: two real client processes per renderer, same world and exact game/test JARs, physical load admission with delayed Ready, grounded contact and actual keyboard walking. Offline singleplayer only; no complete UFO/v8/module/legacy-migration acceptance.",
+    "source": "08d61c3a2bdc758924252ed1e7d28e8f9c3ff826",
+    "unitGameTestsMainSource": "dc1338112c0c01101883d36ee8907b0a05029034",
+    "gameJarSha256": "4609134fc38f4d856507e4cba47743cdc84674a7674988a49571e547b33a1962",
+    "gateJarSha256": "fac68364a1f03a4f84f6a4d86c664595f4526956d4b650e7b0b863cc40888eba",
+    "unitTests": 679,
+    "gameTests": 250,
+    "runs": [
+      {
+        "renderer": "gl32",
+        "source": "08d61c3a2bdc758924252ed1e7d28e8f9c3ff826",
+        "marker": {
+          "postLoadWalking": true,
+          "postLoadDistance": 4.021809150375003,
+          "admissionTicks": 34,
+          "actualProcessRestart": true,
+          "serializedDataExact": true,
+          "restoredPhysicsTolerance": 1e-10,
+          "sameUuid": "f1a0c680-0664-45f4-b1ff-a50e10cdef0f",
+          "noDuplicateHull": true,
+          "restoredWalkingTicks": 40,
+          "renderedFrames": 22,
+          "stalePilotAbsent": true
+        }
+      },
+      {
+        "renderer": "sodium",
+        "source": "08d61c3a2bdc758924252ed1e7d28e8f9c3ff826",
+        "marker": {
+          "postLoadWalking": true,
+          "postLoadDistance": 2.9644526861574603,
+          "admissionTicks": 44,
+          "actualProcessRestart": true,
+          "serializedDataExact": true,
+          "restoredPhysicsTolerance": 1e-10,
+          "sameUuid": "5664bdb8-0440-42dc-ae1a-e10f318bbe7f",
+          "noDuplicateHull": true,
+          "restoredWalkingTicks": 40,
+          "renderedFrames": 22,
+          "stalePilotAbsent": true
+        }
+      }
+    ],
+    "archive": "ufo-reload-08d61c3.zip",
+    "archiveSha256": "02520e8748b9ca62126ea227b6cb03df52cdf01301054545a608a1470aa79a02",
+    "frames": 12,
+    "sourceArtifact": {
+      "run": 41921156739,
+      "id": 13366438284,
+      "expired": false,
+      "digest": "sha256:e599063b8ef69a363b64963a08b439badc1498f9b6d9269781ba99121042efaa"
+    }
   }
 }
