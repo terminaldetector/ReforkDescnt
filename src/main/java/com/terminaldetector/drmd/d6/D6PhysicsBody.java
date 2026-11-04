@@ -259,10 +259,17 @@ public final class D6PhysicsBody {
 	 * then move by the velocity. Integrating position before applying this step's force would make a
 	 * body respond one step late, which is invisible at sixty steps a second and obvious at twenty.
 	 */
-	public void step(double seconds) {
-		if (!Double.isFinite(seconds)) throw new IllegalArgumentException("non-finite timestep");
-		if (seconds <= 0) return;
+    public void step(double seconds) {
+        if (!Double.isFinite(seconds)) throw new IllegalArgumentException("non-finite timestep");
+        if (seconds <= 0) return;
+        integrateForces(seconds);
+        integratePose(seconds);
+    }
 
+    /** Consume this substep's forces once, before joint/contact velocity constraints. */
+    public void integrateForces(double seconds) {
+        if (!Double.isFinite(seconds)) throw new IllegalArgumentException("non-finite timestep");
+        if (seconds <= 0) return;
 		// Torque goes straight into momentum: no inertia tensor is involved, which is the whole reason
 		// momentum is the state. The tensor only appears when velocity is wanted.
 		angularMomentum = angularMomentum.plus(torque.scaled(seconds));
@@ -271,6 +278,12 @@ public final class D6PhysicsBody {
 		force = new Vec3(0, 0, 0);
 		torque = new Vec3(0, 0, 0);
 
+    }
+
+    /** Integrate the constrained velocity. No forces or torques are applied a second time. */
+    public void integratePose(double seconds) {
+        if (!Double.isFinite(seconds)) throw new IllegalArgumentException("non-finite timestep");
+        if (seconds <= 0) return;
 		linearVelocity = clamped(linearVelocity, maxSpeed);
 
 		Vec3 angular = angularVelocity();
@@ -285,6 +298,16 @@ public final class D6PhysicsBody {
 		position = position.plus(linearVelocity.scaled(seconds));
 		integrateRotation(angular, seconds);
 	}
+
+    /** Opaque bounded-step rollback, including unconsumed forces and quaternion bookkeeping. */
+    public static final class Snapshot {
+        private final Vec3 position,velocity,momentum,force,torque;private final Quat rotation;private final int steps;
+        private Snapshot(D6PhysicsBody b){position=b.position;rotation=b.rotation;velocity=b.linearVelocity;momentum=b.angularMomentum;force=b.force;torque=b.torque;steps=b.stepsSinceFix;}
+        public Vec3 position(){return position;}public Quat rotation(){return rotation;}
+    }
+    public Snapshot snapshot(){return new Snapshot(this);}
+    public void restore(Snapshot s){position=s.position;rotation=s.rotation;linearVelocity=s.velocity;angularMomentum=s.momentum;force=s.force;torque=s.torque;stepsSinceFix=s.steps;}
+    public void clearAccumulators(){force=new Vec3(0,0,0);torque=new Vec3(0,0,0);}
 
 	private void integrateRotation(Vec3 angular, double seconds) {
 		double angularSpeed = angular.length();

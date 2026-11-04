@@ -36,6 +36,7 @@ public final class BodyContactSystem {
     public static Stats stats(ServerWorld world){return LAST.getOrDefault(world,new Stats(0,0,false));}
     public static int solve(ServerWorld world) {
         if(!world.getServer().isOnThread())throw new IllegalStateException("Hull contacts belong to the server world thread");
+        BodyJointSystem.solve(world);
         var frames=new ArrayList<Frame>();for(var body:BodySpatialIndex.loaded(world))if(!body.cells().isEmpty())frames.add(new Frame(body));
         var index=new AabbTree<Frame>();for(var frame:frames)update(index,frame);
         var changed=new LinkedHashSet<BlockBodyEntity>();var ignored=new HashSet<Pair>();

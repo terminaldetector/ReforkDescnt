@@ -13,6 +13,8 @@
       "com.terminaldetector.drmd.BodyFractureGameTests",
       "com.terminaldetector.drmd.BodyCombatGameTests",
       "com.terminaldetector.drmd.FragmentBoardingGameTests",
+      "com.terminaldetector.drmd.BodyJointRegistryGameTests",
+      "com.terminaldetector.drmd.BodyJointRuntimeGameTests",
       "com.terminaldetector.drmd.OrientedBodyGameTests",
       "com.terminaldetector.drmd.BodyContactGameTests",
       "com.terminaldetector.drmd.BoardingGameTests",

@@ -359,7 +359,8 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
                 var tag=new NbtCompound();tag.putLong("base",baseRevision);tag.putLong("revision",shapeRevision);tag.put("edits",shapePatches.copy());dataTracker.set(PATCHES,tag);
             }
             dataTracker.set(POSE,pose());velocityModified=true;
-            if(cells.isEmpty())discard();return true;
+            if(cells.isEmpty())discard();
+            BodyJointRegistry.get(world).materialChanged(this,fragments);BodyJointSystem.materialChanged(this,fragments);return true;
         }catch(RuntimeException failure) {
             fragments.forEach(BlockBodyEntity::discard);
             if(saved!=null){readNbt(saved);previousPhysicsPosition=savedPrevious;previousRotation=savedTurn;pendingTorque=savedTorque;physicsTick=savedTick;publishPhysicsState();}
@@ -653,6 +654,10 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         if (cells.isEmpty()) return;
         body.withPosition(massPosition()); previousRotation = body.rotation();
         previousPhysicsPosition=body.position();physicsTick=getWorld().getTime();
+        if(BodyJointRegistry.get((ServerWorld)getWorld()).activeBody(getUuid(),getWorld().getTime())) {
+            Vec3 torque=pendingTorque;pendingTorque=new Vec3(0,0,0);BodyJointSystem.defer(this,torque);return;
+        }
+        BodyJointSystem.cancelDeferred(this);
         // Substeps bound corner travel to about 0.15 blocks, including rotation. Inelastic contact.
         int steps=BodyStepBudget.steps(body,pendingTorque,radius,gravity);
         Vec3 externalTorque=pendingTorque;pendingTorque=new Vec3(0,0,0);
@@ -683,6 +688,23 @@ public final class BlockBodyEntity extends Entity implements PhysicsTarget {
         Vec3 v = pure(surfaceVelocityAt(getPos())); setVelocity(v.x()/20, v.y()/20, v.z()/20);
         setBoundingBox(new Box(getPos(), getPos()).expand(radius));
         dataTracker.set(POSE, pose()); velocityModified = true;
+    }
+
+    /** Joint-island phase: force integration, shared constraints, then terrain-checked pose. */
+    public void integrateJointForces(double seconds,Vec3 torque) {
+        if(gravity)body.applyForce(gravityDirection().scaled(9.81*body.mass()));body.applyTorque(torque);body.integrateForces(seconds);
+    }
+    public boolean integrateJointPose(double seconds,D6PhysicsBody.Snapshot before) {
+        body.integratePose(seconds);boolean collision=blocked();if(collisionUnavailable)return false;
+        if(collision&&!(gravity&&gravityContacts(before.position(),before.rotation(),gravityDirection().scaled(-1))))
+            body.withPosition(before.position()).withRotation(before.rotation()).withLinearVelocity(new Vec3(0,0,0)).withAngularMomentum(new Vec3(0,0,0));
+        return true;
+    }
+    public void restoreJointStep(D6PhysicsBody.Snapshot snapshot){body.restore(snapshot);publishJointPose();}
+    public void pauseJointMotion(){physicsTick=Long.MIN_VALUE;body.clearAccumulators();publishJointPose();}
+    public void publishJointPose() {
+        positionFromPhysics();var v=pure(surfaceVelocityAt(getPos()));setVelocity(v.x()/20,v.y()/20,v.z()/20);
+        setBoundingBox(new Box(getPos(),getPos()).expand(radius));publishPhysicsState();
     }
 
     /** A falling assembly follows station gravity, but remains ordinary world-gravity debris outside it. */
