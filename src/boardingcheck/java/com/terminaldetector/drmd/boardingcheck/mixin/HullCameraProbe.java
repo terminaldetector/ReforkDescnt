@@ -6,5 +6,5 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value=Camera.class,priority=2000)
 public class HullCameraProbe {
     @Inject(method="update",at=@At("TAIL"))
-    private void camera(CallbackInfo ci){if(Boolean.getBoolean("drmd.gate.contacts"))com.terminaldetector.drmd.gate.NativeBodyCollisionCheck.camera((Camera)(Object)this);}
+    private void camera(CallbackInfo ci){if(Boolean.getBoolean("drmd.gate.joints"))com.terminaldetector.drmd.gate.NativeJointCheck.camera((Camera)(Object)this);else if(Boolean.getBoolean("drmd.gate.contacts"))com.terminaldetector.drmd.gate.NativeBodyCollisionCheck.camera((Camera)(Object)this);}
 }

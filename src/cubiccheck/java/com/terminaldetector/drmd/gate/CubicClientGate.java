@@ -46,6 +46,7 @@ public final class CubicClientGate implements ClientModInitializer {
     private final List<String> results=new ArrayList<>();
     @Override public void onInitializeClient() {
         if(Boolean.getBoolean("drmd.gate.bodyIndex")){com.terminaldetector.drmd.gate.NativeBodyIndexCheck.register();return;}else if(Boolean.getBoolean("drmd.gate.bodyEdit")){com.terminaldetector.drmd.gate.NativeBodyEditCheck.register();return;}else if(Boolean.getBoolean("drmd.gate.shipGravity")){NativeShipGravityCheck.register();return;}
+        if(Boolean.getBoolean("drmd.gate.joints")){NativeJointCheck.register();return;}
         if(Boolean.getBoolean("drmd.gate.boarding")){NativeBoardingCheck.register();return;}
         if(Boolean.getBoolean("drmd.gate.snapshot")){NativeSnapshotCheck.register();return;}
         if(Boolean.getBoolean("drmd.gate.contacts")){NativeBodyCollisionCheck.register();return;}

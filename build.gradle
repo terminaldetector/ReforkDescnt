@@ -253,6 +253,7 @@ sourceSets {
         java.include 'com/terminaldetector/drmd/gate/NativeBodyEditCheck.java'
         java.include 'com/terminaldetector/drmd/gate/NativeBodyIndexCheck.java'
         java.include 'com/terminaldetector/drmd/gate/NativeBodyCollisionCheck.java'
+        java.include 'com/terminaldetector/drmd/gate/NativeJointCheck.java'
         java.include 'com/terminaldetector/drmd/boardingcheck/**'
         compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
         runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
@@ -477,3 +478,26 @@ tasks.register('prepareFragmentboardingcheckWorld', Sync) {
     }
 }
 tasks.named('runFragmentboardingcheck') { dependsOn prepareFragmentboardingcheckWorld }
+
+// Joint/island physics and a real pilot on a moving child component.
+loom { runs { jointcheck {
+    client()
+    source sourceSets.boardingcheck
+    runDir 'build/jointcheck'
+    vmArg '-Ddrmd.joints.labY=140'
+    vmArg '-Ddrmd.gate.joints=true'
+    programArg '--quickPlaySingleplayer'
+    programArg 'DRMD-joint-lab'
+    programArg '--width'
+    programArg '1280'
+    programArg '--height'
+    programArg '720'
+} } }
+tasks.register('prepareJointcheckWorld', Sync) {
+    dependsOn runGametest
+    from 'build/gametest/world'
+    into 'build/jointcheck/saves/DRMD-joint-lab'
+    exclude '**/session.lock'
+    doLast {file('build/jointcheck/options.txt').text='onboardAccessibility:false\npauseOnLostFocus:false\nmaxFps:30\nrenderDistance:8\nsimulationDistance:8\n'}
+}
+tasks.named('runJointcheck') {dependsOn prepareJointcheckWorld}

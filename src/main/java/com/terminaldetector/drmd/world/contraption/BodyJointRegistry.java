@@ -30,6 +30,11 @@ public final class BodyJointRegistry extends PersistentState {
         if(links.containsKey(link.id())||links.size()>=MAX_JOINTS||forBody(a.getUuid()).size()>=MAX_PER_BODY||forBody(b.getUuid()).size()>=MAX_PER_BODY)throw new IllegalArgumentException("joint admission exceeded");
         var next=new LinkedHashMap<>(links);next.put(link.id(),link);replace(next,Map.of(link.id(),world.getTime()+1));
     }
+    public boolean configure(UUID id,double speed,double motorForce,double breakForce,double breakTorque) {
+        var old=links.get(id);if(old==null)return false;
+        var updated=new BodyJointLink(old.id(),old.a(),old.b(),old.kind(),old.lower(),old.upper(),speed,motorForce,breakForce,breakTorque);
+        if(updated.equals(old))return true;var next=new LinkedHashMap<>(links);next.put(id,updated);replace(next);return true;
+    }
     public boolean remove(UUID id){if(!links.containsKey(id))return false;var next=new LinkedHashMap<>(links);next.remove(id);replace(next);return true;}
     public void removeBody(UUID body){if(!containsBody(body))return;var next=new LinkedHashMap<>(links);for(var link:forBody(body))next.remove(link.id());replace(next);}
     /** Called only after a successful atomic local edit. Anchors follow their actual cells. */
