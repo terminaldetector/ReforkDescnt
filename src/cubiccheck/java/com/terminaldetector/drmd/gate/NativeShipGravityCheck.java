@@ -63,11 +63,13 @@ public final class NativeShipGravityCheck {
         }
         last=s;
     }
-    public static void model(Vec3d renderedUp) {
+    public static void model(net.minecraft.entity.LivingEntity actor,org.joml.Matrix4f before,org.joml.Matrix4f after,float delta) {
         var p=MinecraftClient.getInstance().player;
-        if(p==null||!BoardingClient.drives(p))return;
-        var expected=PassengerFrame.up(BoardingPose.renderFrame(p,MinecraftClient.getInstance().getRenderTickCounter().getTickDelta(false)));
-        modelError=Math.max(modelError,renderedUp.distanceTo(BoardingSystem.mc(expected)));modelFrames++;
+        if(p==null||actor!=p||before==null||!BoardingClient.drives(p))return;
+        var expected=PassengerFrame.up(BoardingPose.renderFrame(p,delta));
+        var relative=new org.joml.Matrix4f(before).invert().mul(after);
+        var actual=relative.transformDirection(new org.joml.Vector3f(0,1,0)).normalize();
+        modelError=Math.max(modelError,expected.minus(new Vec3(actual.x,actual.y,actual.z)).length());modelFrames++;
     }
     public static void camera(net.minecraft.client.render.Camera camera,float delta) {
         var p=MinecraftClient.getInstance().player;
@@ -139,7 +141,7 @@ public final class NativeShipGravityCheck {
             if(released&&!BoardingClient.drives(c.player)){c.options.jumpKey.setPressed(false);request("gravity-off-jump");phase=8;age=0;ClientPlayNetworking.send(new ModNetworking.ActionPayload("toggle"));}
         } else if(phase==8&&com.terminaldetector.drmd.client.DescentClientState.enabled&&serverHandoff) {
             require(predictionSamples>=250&&maxError<.8,"ship prediction incomplete or diverged: n="+predictionSamples+" error="+maxError);
-            require(modelFrames>=40&&cameraFrames>=40&&modelError<.05&&cameraError<.001,"actual model/camera passes disagree with character frame: model="+modelFrames+" camera="+cameraFrames+" error="+modelError);
+            require(modelFrames>=40&&cameraFrames>=40&&modelError<.05&&cameraError<.001,"actual model/camera passes disagree with character frame: model="+modelFrames+" camera="+cameraFrames+" modelError="+modelError+" cameraError="+cameraError);
             require(frameError<.01&&minUpY<-.98&&maxUpX>.98&&maxUpZ>.98,"physical full rotations not aligned: frameError="+frameError);
             request("flight-handoff");phase=9;
         }

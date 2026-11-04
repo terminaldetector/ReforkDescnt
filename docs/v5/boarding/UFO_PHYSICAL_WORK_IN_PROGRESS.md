@@ -31,3 +31,9 @@ support during the final pitch correction. Its larger mass-based torque allowanc
 accelerate the surface away faster than the32m/s² field. The stand now bounds its commanded
 angular acceleration to4rad/s² before applying torque through the actual inertia tensor.
 Contact assertions remain unchanged; the runtime is not forced to keep impossible contact.
+
+The bounded native pass retained contact through all full rotations and both jump modes.
+Its final model assertion revealed a test-probe bug: every ModelOrientation call, including
+launched escorts, was compared with the local player frame. The probe now samples the
+actual appended matrix of the local player renderer, using that draw call’s tick delta.
+The model/camera tolerances are unchanged. Full native rerun remains mandatory.
