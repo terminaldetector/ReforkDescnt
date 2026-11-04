@@ -781,11 +781,11 @@ tasks:
   owner: AI
   gate: G4
   depends_on_stages: *id012
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [SWARM_BASELINE_2026-11-04.md, EVIDENCE/swarm-baseline-f3b7cac.zip]
+  notes: Bounded index and moving mixed-role generic drones pass; actual obstacle avoidance remains open.
 - id: S11-T03
   stage: S11
   stage_title: ORB/ROCKET/JET swarms
@@ -793,11 +793,11 @@ tasks:
   owner: AI
   gate: G4
   depends_on_stages: *id012
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [SWARM_BASELINE_2026-11-04.md, EVIDENCE/swarm-baseline-f3b7cac.zip]
+  notes: 128 active/moving, real shots and rendering pass four native cases; separately measured attack roles and persistence remain open.
 - id: S11-T04
   stage: S11
   stage_title: ORB/ROCKET/JET swarms

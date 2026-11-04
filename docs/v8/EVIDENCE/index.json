@@ -334,5 +334,122 @@
       "expired": false,
       "digest": "sha256:e599063b8ef69a363b64963a08b439badc1498f9b6d9269781ba99121042efaa"
     }
+  },
+  "swarmBaseline": {
+    "releaseAccepted": false,
+    "scope": "Inherited generic DroneEntity load profile, mixed SUPPORT/ASSAULT/MG/INTERCEPTOR; forced invulnerable cow target. Not autonomous Survival, persistence or full bestiary acceptance. Cold/warm software-rendered timing windows; performance remains open.",
+    "source": "f3b7cac6f59ccd877b9d71eccd72aeb268600ac0",
+    "gameJarSha256": "4609134fc38f4d856507e4cba47743cdc84674a7674988a49571e547b33a1962",
+    "gateJarSha256": "72c83931dccc11e0799b25a1e20322099ab555e0748344bfea068bbf5f74262d",
+    "runs": [
+      {
+        "renderer": "gl32",
+        "source": "f3b7cac6f59ccd877b9d71eccd72aeb268600ac0",
+        "rows": [
+          {
+            "height": "207",
+            "requested": "128",
+            "alive": "128",
+            "active_ticks": "128",
+            "moving": "128",
+            "server_lookup": "128",
+            "client_synced": "128",
+            "unique_rendered": "128",
+            "shots": "811",
+            "shooters": "40",
+            "indexed": "128",
+            "targeting": "128",
+            "max_candidates": "60",
+            "server_p50_ms": "25.7360",
+            "server_p95_ms": "74.1263",
+            "server_p99_ms": "77.9768",
+            "observed_tps": "25.886",
+            "frames": "15",
+            "frame_p95_ms": "197.2221",
+            "cleanup_remaining": "0"
+          },
+          {
+            "height": "2156",
+            "requested": "128",
+            "alive": "128",
+            "active_ticks": "128",
+            "moving": "128",
+            "server_lookup": "128",
+            "client_synced": "128",
+            "unique_rendered": "128",
+            "shots": "815",
+            "shooters": "40",
+            "indexed": "128",
+            "targeting": "128",
+            "max_candidates": "60",
+            "server_p50_ms": "14.4370",
+            "server_p95_ms": "25.0212",
+            "server_p99_ms": "50.4459",
+            "observed_tps": "20.343",
+            "frames": "74",
+            "frame_p95_ms": "66.5309",
+            "cleanup_remaining": "0"
+          }
+        ]
+      },
+      {
+        "renderer": "sodium",
+        "source": "f3b7cac6f59ccd877b9d71eccd72aeb268600ac0",
+        "rows": [
+          {
+            "height": "207",
+            "requested": "128",
+            "alive": "128",
+            "active_ticks": "128",
+            "moving": "128",
+            "server_lookup": "128",
+            "client_synced": "128",
+            "unique_rendered": "128",
+            "shots": "731",
+            "shooters": "40",
+            "indexed": "128",
+            "targeting": "128",
+            "max_candidates": "59",
+            "server_p50_ms": "26.7372",
+            "server_p95_ms": "65.4535",
+            "server_p99_ms": "69.1599",
+            "observed_tps": "20.718",
+            "frames": "43",
+            "frame_p95_ms": "110.2290",
+            "cleanup_remaining": "0"
+          },
+          {
+            "height": "2156",
+            "requested": "128",
+            "alive": "128",
+            "active_ticks": "128",
+            "moving": "128",
+            "server_lookup": "128",
+            "client_synced": "128",
+            "unique_rendered": "128",
+            "shots": "782",
+            "shooters": "41",
+            "indexed": "128",
+            "targeting": "128",
+            "max_candidates": "60",
+            "server_p50_ms": "15.7589",
+            "server_p95_ms": "50.9098",
+            "server_p99_ms": "66.1452",
+            "observed_tps": "20.151",
+            "frames": "65",
+            "frame_p95_ms": "94.3560",
+            "cleanup_remaining": "0"
+          }
+        ]
+      }
+    ],
+    "archive": "swarm-baseline-f3b7cac.zip",
+    "sha256": "0e16671109ad789ca2a312b31b8c5960d97bb7817fe0ce57873bc3fecc53d435",
+    "sourceArtifact": {
+      "id": 13369246538,
+      "run": 41924857387,
+      "expired": false,
+      "digest": "sha256:0c0dd9a152ed0aa16deaf8731cd438f35b7b32c2063a66db5b50d0ed63152d62"
+    }
   }
 }
