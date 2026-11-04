@@ -7,3 +7,7 @@ Raw attempts remain under build/cubic-client-failed-reload-contact-gl32 and work
 Earlier a9c19f1 first-save stand failed with NoSuchMethodError on an inherited Entity method. Corrected by calling inherited methods through a vanilla Entity reference, matching the existing native stand convention. Its logs and failed runtime remain separately preserved. This was a harness mapping failure, not save/load acceptance.
 
 No production fix is asserted yet. Preserve both failures and reproduce the initial contact loss before choosing the implementation.
+
+The instrumented reproduction found the cause: the loaded player was still inside the hull (local1.97,-0.02,-1.73) but suit=true because DescentSession unconditionally rearmed free flight on every login. Boarding correctly refuses suit flight, so no walking lease formed. Complete closed first-process world and raw diagnostics are preserved in EVIDENCE/ufo-reload-mode-repro.zip.
+
+Source9c461cc preserves a saved enabled=false choice on join; new players still arm flight, and saved enabled=true still initializes noGravity/abilities/sync. Returning walkers retain world momentum.679 unit/247 GameTests passed, including new/returning flight and saved-walking cases. Actual native regression and fresh same-candidate restart pairs remain pending. Candidate JAR SHA256e61072c7ee39133f9d21cb949cde2396348fbd6684078d32e601c310722d0e91.
