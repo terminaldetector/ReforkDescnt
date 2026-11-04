@@ -228,6 +228,38 @@ class EvidenceGateTest(unittest.TestCase):
         self.write('build/fragmentboardingcheck/boarding-ok.json',json.dumps(proof))
         with self.assertRaisesRegex(ValueError,'Missing completed boarding scenes'):checkpoint.verify_fragment_boarding(self.root,self.started)
 
+    def joint_fixture(self):
+        proof=dict(actualJoints=True,actualRenderer=True,actualPlatformPlayer=True,forceBreak=True,teleportFollow=False,
+            maxServerAnchorError=.00001,maxClientAnchorError=.001,motorSpeedError=0.,breakVelocityError=0.,platformTravel=1.,
+            platformSamples=60,predictionSamples=100,maxPredictionError=.04,scenes=[dict(scene=name,frames=90) for name in checkpoint.JOINT_SCENES])
+        for name in checkpoint.JOINT_SCENES:self.write(f'build/jointcheck/joint-frames/{name}.png',b'\x89PNG\r\n\x1a\nfixture')
+        self.write('build/jointcheck/joints-ok.json',json.dumps(proof));return proof
+
+    def test_joints_require_actual_mechanics_and_player_contact(self):
+        proof=self.joint_fixture();checkpoint.verify_body_joints(self.root,self.started)
+        for key in ('actualJoints','actualRenderer','actualPlatformPlayer','forceBreak'):
+            p=proof.copy();p[key]=False;self.write('build/jointcheck/joints-ok.json',json.dumps(p))
+            with self.subTest(key=key),self.assertRaisesRegex(ValueError,'Missing real joint'):checkpoint.verify_body_joints(self.root,self.started)
+
+    def test_joints_reject_drift_speed_loss_and_nonfinite_metrics(self):
+        proof=self.joint_fixture()
+        for key,limit in (('maxServerAnchorError',.02),('maxClientAnchorError',.12),('motorSpeedError',.03),('maxPredictionError',.8),('breakVelocityError',1e-7)):
+            for value in (limit,-1,True,float('nan'),float('inf')):
+                p=proof.copy();p[key]=value;self.write('build/jointcheck/joints-ok.json',json.dumps(p))
+                with self.subTest(key=key,value=value),self.assertRaisesRegex(ValueError,'Invalid joint metric'):checkpoint.verify_body_joints(self.root,self.started)
+
+    def test_joint_player_cannot_pass_without_physical_platform_travel(self):
+        proof=self.joint_fixture()
+        for value in (0,.4,3.1,True,float('nan')):
+            p=proof.copy();p['platformTravel']=value;self.write('build/jointcheck/joints-ok.json',json.dumps(p))
+            with self.subTest(value=value),self.assertRaisesRegex(ValueError,'Missing actual sliding travel'):checkpoint.verify_body_joints(self.root,self.started)
+
+    def test_old_or_stale_joint_frames_cannot_be_published(self):
+        proof=self.joint_fixture();proof['scenes']=proof['scenes'][:3];self.write('build/jointcheck/joints-ok.json',json.dumps(proof))
+        with self.assertRaisesRegex(ValueError,'Missing actual rendered joint scenes'):checkpoint.verify_body_joints(self.root,self.started)
+        self.joint_fixture();p=self.root/'build/jointcheck/joint-frames/moving-platform.png';os.utime(p,(self.started-10,self.started-10))
+        with self.assertRaisesRegex(ValueError,'Stale evidence'):checkpoint.verify_body_joints(self.root,self.started)
+
     def hull_contact_fixture(self):
         proof=dict(orientedTerrain=True,hollowRay=True,unknownNativeYRejected=True,
             compoundContactQuery=True,relativeCCD=True,pairReaction=True,nativeGravitySupport=True,

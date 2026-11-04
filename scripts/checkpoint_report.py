@@ -283,6 +283,27 @@ def verify_body_combat(root,started):
     return proof
 
 
+JOINT_SCENES=('fixed-components','hinge-motor','moving-platform','broken-joint')
+
+
+def verify_body_joints(root,started):
+    runtime=root/'build/jointcheck';fresh(runtime/'joints-ok.json',started)
+    proof=json.loads((runtime/'joints-ok.json').read_text())
+    if any(proof.get(k) is not True for k in ('actualJoints','actualRenderer','actualPlatformPlayer','forceBreak')) or proof.get('teleportFollow') is not False:
+        raise ValueError('Missing real joint/player/render verification')
+    for key,limit in (('maxServerAnchorError',.02),('maxClientAnchorError',.12),('motorSpeedError',.03),('maxPredictionError',.8),('breakVelocityError',1e-7)):
+        value=proof.get(key)
+        if type(value) not in (int,float) or not math.isfinite(value) or not 0<=value<limit: raise ValueError(f'Invalid joint metric: {key}')
+    travel=proof.get('platformTravel')
+    if type(travel) not in (int,float) or not math.isfinite(travel) or not .4<travel<3.1: raise ValueError('Missing actual sliding travel')
+    for key in ('platformSamples','predictionSamples'):
+        if type(proof.get(key)) is not int or proof[key]<30: raise ValueError('Missing joint player samples')
+    scenes=proof.get('scenes',[])
+    if [s.get('scene') for s in scenes]!=list(JOINT_SCENES) or any(type(s.get('frames')) is not int or s['frames']<90 for s in scenes): raise ValueError('Missing actual rendered joint scenes')
+    for name in JOINT_SCENES:fresh_png(runtime/f'joint-frames/{name}.png',started)
+    return proof
+
+
 def properties(root):
     return dict(line.strip().split('=', 1) for line in
                 (root / 'gradle.properties').read_text().splitlines()
@@ -375,15 +396,16 @@ def verify(root):
 
     props = properties(root)
     version, base = props['mod_version'], props['archives_base_name']
-    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33')) else None
-    body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33')) else None
-    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33')) else None
-    body_index = verify_body_index(root,started) if version.startswith(('1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33')) else None
-    body_scale=verify_body_scale(root,started) if version.startswith(('1.1.29','1.1.30','1.1.31','1.1.32','1.1.33')) else None
-    hull_contacts=verify_hull_contacts(root,started) if version.startswith(('1.1.31','1.1.32','1.1.33')) else None
-    body_fractures=verify_body_fractures(root,started) if version.startswith(('1.1.32','1.1.33')) else None
-    body_combat=verify_body_combat(root,started) if version.startswith('1.1.33') else None
-    fragment_boarding=verify_fragment_boarding(root,started) if version.startswith('1.1.33') else None
+    boarding = verify_boarding(root, started) if version.startswith(('1.1.25', '1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33','1.1.34')) else None
+    body_edits = verify_body_edits(root,started) if version.startswith(('1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33','1.1.34')) else None
+    ship_boarding = verify_ship_boarding(root, started) if version.startswith(('1.1.26','1.1.27','1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33','1.1.34')) else None
+    body_index = verify_body_index(root,started) if version.startswith(('1.1.28','1.1.29','1.1.30','1.1.31','1.1.32','1.1.33','1.1.34')) else None
+    body_scale=verify_body_scale(root,started) if version.startswith(('1.1.29','1.1.30','1.1.31','1.1.32','1.1.33','1.1.34')) else None
+    hull_contacts=verify_hull_contacts(root,started) if version.startswith(('1.1.31','1.1.32','1.1.33','1.1.34')) else None
+    body_fractures=verify_body_fractures(root,started) if version.startswith(('1.1.32','1.1.33','1.1.34')) else None
+    body_combat=verify_body_combat(root,started) if version.startswith(('1.1.33','1.1.34')) else None
+    fragment_boarding=verify_fragment_boarding(root,started) if version.startswith(('1.1.33','1.1.34')) else None
+    body_joints=verify_body_joints(root,started) if version.startswith('1.1.34') else None
     audit=verify_audit(root,started) if version.startswith('1.1.14') else None
     if audit: verify_native_audit(root,started)
     jar = root / f'build/libs/{base}-{version}.jar'
@@ -437,6 +459,7 @@ def verify(root):
     if body_fractures is not None: result['body_fractures']=body_fractures
     if body_combat is not None: result['body_combat']=body_combat
     if fragment_boarding is not None: result['fragment_boarding']=fragment_boarding
+    if body_joints is not None: result['body_joints']=body_joints
     (out / 'verified.json').write_text(json.dumps(result, indent=2) + '\n')
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'], 'a') as output:

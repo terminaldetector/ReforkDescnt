@@ -6,9 +6,10 @@ from publish_boarding_ci import VERSION, validate_proof
 class BoardingPackageProofTest(unittest.TestCase):
     def proof(self):
         return dict(source_sha='a' * 40, version=VERSION,
-                    unit=dict(tests=657), gametest=dict(tests=212),
+                    unit=dict(tests=671), gametest=dict(tests=221),
                     hull_contacts=dict(actualHullPairs=True,wholeTickIntegrated=True,sequentialThreeHulls=True,rotatedHullImpulse=True),
                     fragment_boarding=dict(fragmentContact=True),
+                    body_joints=dict(actualJoints=True,actualRenderer=True,actualPlatformPlayer=True,forceBreak=True),
                     body_combat=dict(actualHitscanDamage=True,actualProjectileDamage=True,actualRadialDamage=True),
                     body_fractures=dict(actualFragments=True,continuousMaterialMotion=True,fastFragmentTickIntegrated=True,fragmentNbtRoundTrip=True),
                     jar=f'drmd-6dof-{VERSION}-fabric-1.21.1.jar')
@@ -41,6 +42,13 @@ class BoardingPackageProofTest(unittest.TestCase):
         for key in ('actualHitscanDamage','actualProjectileDamage','actualRadialDamage'):
             p=self.proof();p['body_combat'][key]=False
             with self.subTest(key=key),self.assertRaisesRegex(ValueError,'Actual hull combat proof'):validate_proof(p,'a'*40)
+
+    def test_motion_only_evidence_cannot_certify_joints(self):
+        p=self.proof();p.pop('body_joints')
+        with self.assertRaisesRegex(ValueError,'Actual joint/player client proof'):validate_proof(p,'a'*40)
+        for key in ('actualJoints','actualRenderer','actualPlatformPlayer','forceBreak'):
+            p=self.proof();p['body_joints'][key]=False
+            with self.subTest(key=key),self.assertRaisesRegex(ValueError,'Actual joint/player client proof'):validate_proof(p,'a'*40)
 
     def test_other_source_version_or_incomplete_tests_cannot_be_published(self):
         for field, value in (('source_sha', 'b' * 40), ('version', '1.1.23-snapshot.1'),

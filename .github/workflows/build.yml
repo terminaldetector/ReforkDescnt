@@ -169,6 +169,11 @@ jobs:
         run: |
           rm -f build/fragmentboardingcheck/boarding-ok.json
           LIBGL_ALWAYS_SOFTWARE=1 timeout 600s xvfb-run -a ./gradlew runFragmentboardingcheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/fragmentboardingcheck.log
+      - name: Verify physical joints, motor/slider movement and real player support
+        id: jointcheck
+        run: |
+          rm -f build/jointcheck/joints-ok.json
+          LIBGL_ALWAYS_SOFTWARE=1 timeout 600s xvfb-run -a ./gradlew runJointcheck -x runGametest --no-daemon --console=plain --stacktrace 2>&1 | tee build/checkpoint/logs/jointcheck.log
       - name: Validate fresh evidence and stage only the current JAR
         id: verify
         run: python3 scripts/checkpoint_report.py --verify 2>&1 | tee build/checkpoint/logs/verify.log
@@ -191,6 +196,10 @@ jobs:
           name: evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             build/checkpoint/
+            build/jointcheck/joints-ok.json
+            build/jointcheck/joint-frames/
+            build/jointcheck/logs/
+            build/jointcheck/crash-reports/
             build/fragmentboardingcheck/boarding-ok.json
             build/fragmentboardingcheck/boarding-frames/
             build/fragmentboardingcheck/logs/
@@ -326,8 +335,8 @@ jobs:
           python3 scripts/publish_boarding_ci.py
           git config user.name 'Ungravity checkpoint bot'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add dist/README.md dist/releases/1.1.33-combat.1/*.jar dist/releases/1.1.33-combat.1/README.md dist/releases/1.1.33-combat.1/INSTALL_TLAUNCHER.txt dist/releases/1.1.33-combat.1/SOURCE_SHA.txt
-          git commit -m '[boarding package] Publish verified 1.1.33-combat.1 JAR'
-          git add dist/releases/1.1.33-combat.1
-          git commit -m '[boarding evidence] Preserve exact-source local hull combat and fracture proof'
+          git add dist/README.md dist/releases/1.1.34-joints.1/*.jar dist/releases/1.1.34-joints.1/README.md dist/releases/1.1.34-joints.1/INSTALL_TLAUNCHER.txt dist/releases/1.1.34-joints.1/SOURCE_SHA.txt
+          git commit -m '[boarding package] Publish verified 1.1.34-joints.1 JAR'
+          git add dist/releases/1.1.34-joints.1
+          git commit -m '[boarding evidence] Preserve exact-source physical joint and platform proof'
           git -c 'credential.helper=!gh auth git-credential' push origin "HEAD:${GITHUB_REF#refs/heads/}"

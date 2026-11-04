@@ -30,6 +30,7 @@ public final class NativeJointCheck {
     private static volatile int[] ids;private static volatile BlockBodyEntity[] bodies;private static volatile BodyJointLink[] links;
     private static double predictionError,platformStart=Double.NaN,platformTravel,maxAnchorError,breakVelocityError;
     private static volatile double serverAnchorError,serverMotorError,serverBreakVelocityError;
+    private static volatile Vec3 expectedBreakVelocity;
     private static BoardingNetworking.State last;
     private static net.minecraft.entity.Entity entity(BlockBodyEntity b){return b;}
     private static void require(boolean value,String message){if(!value){finished=true;MinecraftClient.getInstance().scheduleStop();throw new IllegalStateException(message);}}
@@ -105,7 +106,7 @@ public final class NativeJointCheck {
                 var acceleration=axis.normalized().scaled(-36*angle).minus(body.physics().angularVelocity().scaled(12));var torque=body.physics().worldInertia().transform(acceleration);double cap=body.physicsMass()*16;if(torque.length()>cap)torque=torque.scaled(cap/torque.length());body.applyPhysicsTorque(BoardingSystem.mc(torque));
             }
             registry.configure(links[2].id(),phase==2?.8:0,60,Double.POSITIVE_INFINITY,Double.POSITIVE_INFINITY);
-            if(phase==3&&!broken&&registry.find(links[0].id()).isPresent()){registry.configure(links[0].id(),0,0,1,Double.POSITIVE_INFINITY);bodies[1].applyPhysicsImpulse(bodies[1].physicsCentre(),new Vec3d(40,0,0));}
+            if(phase==3&&!broken&&registry.find(links[0].id()).isPresent()){registry.configure(links[0].id(),0,0,1,Double.POSITIVE_INFINITY);bodies[1].applyPhysicsImpulse(bodies[1].physicsCentre(),new Vec3d(40,0,0));expectedBreakVelocity=bodies[1].physics().linearVelocity();}
         });
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_WORLD_TICK.register(world->{
             if(world!=w||finished||!ready)return;
@@ -113,7 +114,7 @@ public final class NativeJointCheck {
             if(phase==1)serverMotorError=Math.abs(bodies[3].physics().angularVelocity().x()-bodies[2].physics().angularVelocity().x()-1.2);
             if(phase==3&&!broken&&registry.find(links[0].id()).isEmpty()) {
                 require(BodyJointSystem.stats(w).broken()>0,"native connection vanished without an actual force break");
-                serverBreakVelocityError=Math.abs(bodies[1].physics().linearVelocity().x()-5);require(bodies[1].physics().linearVelocity().x()>4,"broken component lost its real launch momentum");broken=true;
+                serverBreakVelocityError=bodies[1].physics().linearVelocity().minus(expectedBreakVelocity).length();require(serverBreakVelocityError<1e-8&&bodies[1].physics().linearVelocity().x()>4,"broken component lost its real launch momentum: "+serverBreakVelocityError);broken=true;
             }
             if(phase==3&&broken&&phaseAge>12){for(int i=0;i<2;i++){bodies[i].physics().withLinearVelocity(ZERO).withAngularMomentum(ZERO);bodies[i].publishPhysicsState();}}
         });
@@ -135,7 +136,7 @@ public final class NativeJointCheck {
             var dir=c.runDirectory.toPath().resolve("joint-frames");Files.createDirectories(dir);image.writeTo(dir.resolve(NAMES[phase]+".png"));RESULTS.add("{\"scene\":\""+NAMES[phase]+"\",\"frames\":"+frames+"}");System.out.println("JOINT_CLIENT "+NAMES[phase]+" PASS");
             phase++;frames=0;phaseAge=0;
             if(phase==2){var pa=(BlockBodyEntity)c.world.getEntityById(ids[4]);var ch=(BlockBodyEntity)c.world.getEntityById(ids[5]);platformStart=anchor(ch,links[2].b()).subtract(anchor(pa,links[2].a())).x;}
-            if(phase==4){Files.writeString(c.runDirectory.toPath().resolve("joints-ok.json"),"{\"actualJoints\":true,\"actualRenderer\":true,\"actualPlatformPlayer\":true,\"forceBreak\":true,\"teleportFollow\":false,\"maxServerAnchorError\":"+serverAnchorError+",\"maxClientAnchorError\":"+maxAnchorError+",\"motorSpeedError\":"+serverMotorError+",\"platformTravel\":"+platformTravel+",\"platformSamples\":"+platformSamples+",\"predictionSamples\":"+predictionSamples+",\"maxPredictionError\":"+predictionError+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");finished=true;c.options.forwardKey.setPressed(false);c.scheduleStop();}
+            if(phase==4){Files.writeString(c.runDirectory.toPath().resolve("joints-ok.json"),"{\"actualJoints\":true,\"actualRenderer\":true,\"actualPlatformPlayer\":true,\"forceBreak\":true,\"teleportFollow\":false,\"maxServerAnchorError\":"+serverAnchorError+",\"maxClientAnchorError\":"+maxAnchorError+",\"motorSpeedError\":"+serverMotorError+",\"platformTravel\":"+platformTravel+",\"breakVelocityError\":"+serverBreakVelocityError+",\"platformSamples\":"+platformSamples+",\"predictionSamples\":"+predictionSamples+",\"maxPredictionError\":"+predictionError+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");finished=true;c.options.forwardKey.setPressed(false);c.scheduleStop();}
         }catch(java.io.IOException e){throw new IllegalStateException(e);}
     }
 }

@@ -45,6 +45,7 @@ public final class BlockBodyCommands {
                         } catch (IllegalArgumentException e) { return error(ctx,e); }
                     }))))));
             }
+            BlockBodyJointCommands.add(root);
             dispatcher.register(root);
         });
     }

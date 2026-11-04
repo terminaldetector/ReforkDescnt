@@ -1,6 +1,7 @@
-# Joint runtime — work in progress
+# Historical joint runtime checkpoint — work in progress
 
-This development branch is based on the earlier1.1.33 source checkpoint. Its version metadata
+This note records checkpoint2a410af before the live joint client was added. See JOINTS_1.1.34.md
+for the current candidate scope. That checkpoint was based on the earlier1.1.33 source. Its version metadata
 is inherited; it is not the certified1.1.33 release. No new installable JAR is published by this
 checkpoint. The verified release lives on codex/ungravity-cloud-recovery-20261024.
 

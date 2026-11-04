@@ -8,13 +8,13 @@ import shutil
 import subprocess
 import zipfile
 
-VERSION = '1.1.33-combat.1'
+VERSION = '1.1.34-joints.1'
 
 
 def validate_proof(proof, source):
     if proof['source_sha'] != source or proof['version'] != VERSION:
         raise ValueError('Unexpected tested source or boarding version')
-    if proof['unit']['tests'] < 657 or proof['gametest']['tests'] < 212:
+    if proof['unit']['tests'] < 671 or proof['gametest']['tests'] < 221:
         raise ValueError('Contact unit and world regressions are missing')
     if proof['jar'] != f'drmd-6dof-{VERSION}-fabric-1.21.1.jar':
         raise ValueError('Unexpected installable JAR')
@@ -29,6 +29,10 @@ def validate_proof(proof, source):
     combat=proof.get('body_combat',{})
     if not all(combat.get(key) is True for key in ('actualHitscanDamage','actualProjectileDamage','actualRadialDamage')):
         raise ValueError('Actual hull combat proof is missing')
+
+    joint=proof.get('body_joints',{})
+    if not all(joint.get(key) is True for key in ('actualJoints','actualRenderer','actualPlatformPlayer','forceBreak')):
+        raise ValueError('Actual joint/player client proof is missing')
 
 
 def main():
@@ -56,6 +60,7 @@ def main():
     gate.verify_body_fractures(root, started)
     gate.verify_body_combat(root, started)
     gate.verify_fragment_boarding(root, started)
+    gate.verify_body_joints(root, started)
     for name in ('snapshot', 'mirror-join', 'horizon-anchor', 'repair-visual'):
         gate.fresh(root / f'build/shootcheck/{name}-ok.json', started)
     snapshot = json.loads((root / 'build/shootcheck/snapshot-ok.json').read_text())
@@ -93,7 +98,8 @@ B — вспомогательное, G — режим ракет. Управл�
 Полный объём корпуса удерживается серверными chunk tickets / native XYZ views.
 При уходе игрока или удалении корпуса удержание освобождается.
 Клиент и сервер должны использовать одну версию; boarding protocol4.
-Мобы/предметы на борту, большой UFO, joints, ControlCore и полный3D AI ещё не готовы.
+Механические fixed/hinge/slider/motor соединения — /d6body joint.
+Мобы/предметы на борту, большой UFO, ControlCore и полный3D AI ещё не готовы.
 SHA-256: {proof['sha256']}
 Исходники: {source}
 ''')
@@ -101,7 +107,12 @@ SHA-256: {proof['sha256']}
 
 [Установочный JAR]({jar.name}) · [Установка](INSTALL_TLAUNCHER.txt) · [SHA-256](SHA256SUMS).
 
-Промежуточный этап ТЗ: разрушение связующего блока отделяет независимые физические
+Механические части используют общий решатель D6: fixed, hinge, slider и motor.
+Реальный клиент проверяет выдвижную платформу с игроком и разрыв под нагрузкой.
+Привязка к материалу и единый серверный реестр сохраняют соединения при изменении
+центра масс и расколе корпуса. Управление оператора: /d6body joint.
+
+Разрушение связующего блока отделяет независимые физические
 компоненты существующего BlockBody. Каждая часть сохраняет мировые положения
 материальных точек и скорость v+omega×radius; исходная идентичность остаётся у большой
 связной части. Повторный урон не создаёт дубли; сетка и физическое состояние каждой
@@ -154,7 +165,7 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
 и6 сцен корпуса32768 блоков с300 сетевыми правками и освобождением leases
 с доказанным пропуском старым поиском на клиенте и сервере, реальным расходом материала
 и минимум1 блоком физического перелёта.
-[CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/HULL_COMBAT_1.1.33.md).
+[CI-отчёт](CI_REPORT.md) · [Доказательства](ci-evidence.zip) · [Детали этапа](../../../docs/v5/boarding/JOINTS_1.1.34.md).
 
 Программная графика Linux; новая native BCC-сессия и Windows/RTX этим CI не
 подтверждены. Предыдущий snapshot с native-проверками сохранён отдельно.
@@ -167,6 +178,7 @@ Unit: {proof['unit']['tests']}; серверные GameTests: {proof['gametest']
                         'build/checkpoint/verified.json', 'build/checkpoint/SOURCE_SHA.txt',
                         'build/checkpoint/started-at.txt', 'build/shipboardingcheck/ship-boarding-ok.json',
                         'build/hullcontactcheck/body-contacts-ok.json','build/hullcontactcheck/body-contact-frames/*.png',
+                        'build/jointcheck/joints-ok.json','build/jointcheck/joint-frames/*.png',
                         'build/fragmentboardingcheck/boarding-ok.json','build/fragmentboardingcheck/boarding-frames/*.png',
                         'build/fracturecheck/body-contacts-ok.json','build/fracturecheck/body-contact-frames/*.png',
                         'build/bodyindexcheck/body-index-ok.json','build/bodyindexcheck/body-index-frames/*.png',

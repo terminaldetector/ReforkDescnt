@@ -94,4 +94,11 @@ class BodyJointConstraintTest {
         a.integrateForces(.05);same(a.linearVelocity(),new Vec3(.5,0,0));
     }
 
+    @Test void adaptiveRollbackRestoresUnconsumedForcesAndTheExactPhysicalState() {
+        var a=body(2).withLinearVelocity(new Vec3(1,2,3)).withAngularVelocity(new Vec3(.2,.3,.4));a.applyForce(new Vec3(4,5,6));a.applyTorque(new Vec3(.1,.2,.3));var saved=a.snapshot();
+        a.integrateForces(.01);a.integratePose(.01);var p=a.position();var q=a.rotation();var v=a.linearVelocity();var l=a.angularMomentum();
+        a.applyForce(new Vec3(100,0,0));a.step(.05);a.restore(saved);a.integrateForces(.01);a.integratePose(.01);
+        assertEquals(p,a.position());assertEquals(q,a.rotation());assertEquals(v,a.linearVelocity());assertEquals(l,a.angularMomentum());
+    }
+
 }

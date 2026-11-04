@@ -61,4 +61,28 @@ public final class BodyJointRuntimeGameTests implements FabricGameTest {
             c.assertTrue(f.b.getX()>48001.9,"freed component completes the remaining physical tick");
         }finally{f.close();}c.complete();});
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="joint-world-free-hinge")
+    public void anUnpoweredHingeKeepsItsFreeAxisWithoutWeldingTheParts(TestContext c) {
+        var f=fixture(c,BodyJointConstraint.Kind.HINGE,0,0,Double.POSITIVE_INFINITY);
+        c.waitAndRun(1,()->{try {
+            f.b.physics().withAngularVelocity(new Vec3(1,0,0));
+            for(int i=0;i<20;i++)step(f);
+            c.assertTrue(Math.abs(f.b.physics().angularVelocity().x()-1)<.001&&f.a.physics().angularVelocity().length()<.001,"passive hinge does not motor or lock its free rotation");
+            c.assertTrue(anchor(f.a,f.link.a()).distanceTo(anchor(f.b,f.link.b()))<.015,"free rotation keeps the real material anchor");
+        }finally{f.close();}c.complete();});
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="joint-world-missing-endpoint")
+    public void anUnloadedEndpointPausesItsIslandWithoutDestroyingMomentum(TestContext c) {
+        var f=fixture(c,BodyJointConstraint.Kind.FIXED,0,0,Double.POSITIVE_INFINITY);
+        c.waitAndRun(1,()->{try {
+            var velocity=new Vec3(3,1,2);f.a.physics().withLinearVelocity(velocity);var before=f.a.getPos();
+            f.b.remove(net.minecraft.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK);f.a.tick();BodyContactSystem.solve(c.getWorld());
+            c.assertTrue(f.registry.find(f.link.id()).isPresent(),"ordinary unloading cannot destroy the saved connection");
+            c.assertTrue(f.a.boardingMotionPaused()&&f.a.getPos().equals(before)&&f.a.physics().linearVelocity().equals(velocity),"unavailable partner pauses motion with actual momentum intact");
+            c.assertTrue(BodyJointSystem.stats(c.getWorld()).paused()>0,"world phase records the unavailable island");
+            f.registry.remove(f.link.id());f.a.tick();BodyContactSystem.solve(c.getWorld());
+            c.assertTrue(!f.a.boardingMotionPaused()&&f.a.getPos().distanceTo(before.add(velocity.x()*.05,velocity.y()*.05,velocity.z()*.05))<1e-8,"removing the unresolved link resumes free physics exactly once");
+        }finally{f.close();}c.complete();});
+    }
+
 }
