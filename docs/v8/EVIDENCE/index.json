@@ -203,5 +203,81 @@
       "expired": false,
       "digest": "sha256:17c9b0a3a373c41b1563389c6d5818474dbe1dff34088ac73a9197d1afe201ec"
     }
+  },
+  "controlCoreLifecycle": {
+    "source": "ea9c9eb6c2e8a004ccbe016ea4221b4cf183fbd9",
+    "gameJarSha256": "8155bfc90682679d550fee7c11a891e008b0460dac2f44e7d27c7e5e71c0effe",
+    "gateJarSha256": "b67ec599cc664e79a7845cb38b0536c6be3db749e6f8c5e04d987e7cd02ea8b2",
+    "archive": "ufo-control-lifecycle-ea9c9eb.zip",
+    "sha256": "4ada392599a9a5b6528febcbca4d0ca943480a074b987c6b0f88242b570c9e63",
+    "runs": [
+      {
+        "scenario": "flight-body-control-lifecycle-visible-gl32",
+        "source": "ea9c9eb6c2e8a004ccbe016ea4221b4cf183fbd9",
+        "marker": {
+          "deathReleased": true,
+          "pauseResumed": true,
+          "controlCore": true,
+          "actualUfo": true,
+          "externalEntry": true,
+          "actualThrust": true,
+          "walkingHandoff": true,
+          "roofContacts": 0,
+          "teleportFollow": false,
+          "renderedFrames": 187,
+          "predictionSamples": 59,
+          "maxPredictionError": 0.031923907426763876,
+          "scenes": [
+            "external-approach",
+            "moving-bay-entry",
+            "flight-to-boarding",
+            "boarded-walking",
+            "control-acquired",
+            "control-thrust-and-roll",
+            "control-release",
+            "control-reacquired",
+            "control-death-release"
+          ]
+        }
+      },
+      {
+        "scenario": "flight-body-control-lifecycle-space-sodium",
+        "source": "ea9c9eb6c2e8a004ccbe016ea4221b4cf183fbd9",
+        "marker": {
+          "deathReleased": true,
+          "pauseResumed": true,
+          "controlCore": true,
+          "actualUfo": true,
+          "externalEntry": true,
+          "actualThrust": true,
+          "walkingHandoff": true,
+          "roofContacts": 0,
+          "teleportFollow": false,
+          "renderedFrames": 215,
+          "predictionSamples": 73,
+          "maxPredictionError": 0.0252428635199049,
+          "scenes": [
+            "external-approach",
+            "moving-bay-entry",
+            "flight-to-boarding",
+            "boarded-walking",
+            "control-acquired",
+            "control-thrust-and-roll",
+            "control-release",
+            "control-reacquired",
+            "control-death-release"
+          ]
+        }
+      }
+    ],
+    "unitTests": 679,
+    "gameTests": 245,
+    "releaseAccepted": false,
+    "sourceArtifact": {
+      "run": 41914150548,
+      "id": 13362489923,
+      "expired": false,
+      "digest": "sha256:e3e1584bbffc43cd8cf12eb9a1f042ce5bace41071a3210ff139acf9e7f2096b"
+    }
   }
 }
