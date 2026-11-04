@@ -60,7 +60,15 @@ public final class FlightBodySystem {
     }
     public static int epoch(ServerPlayerEntity p){var l=LEASES.get(p.getUuid());return l!=null&&l.player.get()==p?l.epoch:-1;}
     public static int acknowledgment(ServerPlayerEntity p){var l=LEASES.get(p.getUuid());return l!=null&&l.player.get()==p?l.ack:-1;}
+    /** A portal is an explicit simulation-frame discontinuity, not another prediction command.
+     * Momentum and entity pose belong to PortalTravel; only the obsolete clock is released here. */
+    public static void discontinuity(ServerPlayerEntity p){LEASES.remove(p.getUuid());PENDING.remove(p.getUuid());}
     public static void tick(ServerWorld world) {
+        // A network ServerPlayer normally reports movement through packets rather than running
+        // PlayerEntity.travel. Enroll real pilots in this phase too, not just explicit travel
+        // calls from vehicles/fixtures. owns() already rejects positional packet overwrite.
+        for(var player:world.getPlayers())if(owns(player))PENDING.putIfAbsent(player.getUuid(),
+            new Deferred(new WeakReference<>(player),world.getTime(),world));
         var touched=new HashSet<BlockBodyEntity>();var motions=new HashMap<Integer,BodyMotion>();
         for(var d:PENDING.values().stream().filter(d->d.world==world).sorted(Comparator.comparing(d->{var p=d.player.get();return p==null?"":p.getUuid().toString();})).toList()) {
             var p=d.player.get();if(p==null||p.getWorld()!=world||!eligible(p)||d.tick!=world.getTime())continue;

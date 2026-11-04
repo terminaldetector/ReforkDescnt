@@ -93,9 +93,12 @@ public final class FlightBodyClient {
         waitingForShape=null;
         var velocity=new Vec3(packet.vx(),packet.vy(),packet.vz());var feet=new Vec3(packet.x(),packet.y(),packet.z());
         if(!Double.isFinite(feet.lengthSquared())||!Double.isFinite(velocity.lengthSquared()))return;
-        if(epoch!=packet.epoch()||!active) {
-            world=mc.world;epoch=packet.epoch();sequence=0;HISTORY.clear();
-        } else if(packet.acknowledgment()>=sequence)return;
+        if(epoch!=packet.epoch()||!active||packet.acknowledgment()>=sequence) {
+            // A portal/authoritative placement can clear local prediction while an old clock
+            // still drains. Resume above the acknowledged sequence instead of deadlocking a
+            // new zero-based history behind already accepted commands.
+            world=mc.world;epoch=packet.epoch();sequence=Math.max(0,packet.acknowledgment()+1);HISTORY.clear();
+        }
         active=packet.active();HISTORY.headMap(packet.acknowledgment(),true).clear();
         var replay=new DynamicBodyAttachment.State(feet,velocity,false,-1);int lead=0;
         for(var entry:HISTORY.entrySet()) {

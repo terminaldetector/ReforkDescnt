@@ -80,3 +80,11 @@ The new native external-entry stand must still run on this exact candidate. It e
 approach through the real moving UFO bay, H-off boarding, walking and roof collision during
 three-axis spin. Until its real-client evidence and broader regression are verified, the
 integration remains WIP. Dedicated/latency/multiclient/reload acceptance remains open.
+
+The first native external approach timed out before acquiring a lease: real network
+ServerPlayers do not normally call `travel`, unlike the explicit test invocation.
+The authoritative world phase now enrolls eligible nearby pilots itself. Two additional
+registered regressions prove that no travel call is needed and that a portal discards
+only the obsolete prediction clock, preserving momentum and rejecting its old commands.
+The client can resume above a server acknowledgment after a local predictor reset.
+All679 unit and236 server tests passed after this correction; a native rerun is required.

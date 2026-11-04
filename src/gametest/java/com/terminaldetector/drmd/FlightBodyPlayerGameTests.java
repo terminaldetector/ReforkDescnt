@@ -39,6 +39,24 @@ public final class FlightBodyPlayerGameTests implements FabricGameTest {
             c.assertTrue(FlightBodySystem.epoch(f.p)>0&&!BoardingSystem.drives(f.p),"flight remains the single player movement owner");
         }c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="flight-body-network-player-phase")
+    public void realNetworkPlayerDoesNotNeedToInvokeTravelToEnterThePhysicalPhase(TestContext c) {
+        try(var f=fixture(c)) {
+            var before=f.p.getPos();f.phase();
+            c.assertTrue(FlightBodySystem.epoch(f.p)>0&&f.p.getY()<before.y&&f.p.getY()>=f.at.getY()+1-1e-5,"world phase itself must enroll network-controlled pilots and resolve real deck contact");
+        }c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="flight-body-portal-clock")
+    public void portalFrameDiscontinuityDropsOnlyTheOldClockAndRetainsPhysicalMomentum(TestContext c) {
+        try(var f=fixture(c)) {
+            f.phase();int old=FlightBodySystem.epoch(f.p);var position=f.p.getPos();var v=DescentPlayerData.get(f.p).getFlightVelocity();
+            c.assertTrue(FlightBodySystem.receive(f.p,new FlightBodyNetworking.Input(old,0)),"old frame has a real pending command");
+            FlightBodySystem.discontinuity(f.p);
+            c.assertTrue(f.p.getPos().equals(position)&&DescentPlayerData.get(f.p).getFlightVelocity().equals(v),"clock reset must not move or stop the physical player");
+            f.phase();int next=FlightBodySystem.epoch(f.p);
+            c.assertTrue(next>old&&!FlightBodySystem.receive(f.p,new FlightBodyNetworking.Input(old,1))&&FlightBodySystem.receive(f.p,new FlightBodyNetworking.Input(next,0)),"old portal-frame commands cannot poison a new lease");
+        }c.complete();
+    }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="flight-body-network")
     public void vanillaPositionCannotOverwriteARealFlightContactAndClockIsBounded(TestContext c) {
         try(var f=fixture(c)) {

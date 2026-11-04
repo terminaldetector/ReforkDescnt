@@ -125,6 +125,7 @@ public final class PortalTravel {
                 ?entity.getRotationVec(1):entity.getRotationVector())));
             Vec3d headForward=fromPure(turn.rotate(toPure(entity.getRotationVec(1))));
 			if (entity instanceof net.minecraft.server.network.ServerPlayerEntity player) {
+				com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.discontinuity(player);
 				var data = com.terminaldetector.drmd.DescentPlayerData.get(player);
 				Vec3d f = fromPure(turn.rotate(toPure(data.shipForward(player))));
 				Vec3d u = fromPure(turn.rotate(toPure(data.shipUp(player))));
