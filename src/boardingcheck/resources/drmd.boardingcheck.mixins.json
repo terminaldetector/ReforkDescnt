@@ -10,7 +10,8 @@
     "BodyEditInputProbe",
     "BoardingStepProbe",
     "HullContactProbe",
-    "HullCameraProbe"
+    "HullCameraProbe",
+    "BodyShapeDelayProbe"
   ],
   "injectors": {
     "defaultRequire": 1

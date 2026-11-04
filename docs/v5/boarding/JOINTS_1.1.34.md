@@ -67,6 +67,15 @@ Samples of the broken pair are held after the observed physical break for a clea
 Old motion-only or boarding-only evidence cannot satisfy the joint distribution gate. Existing
 weapon, inventory, mirror/portal, LOD, swarm, boarding, edit, index and full hull-scale gates remain.
 
+The full hull stand also delays actual tracked geometry by30 client ticks. During this wait,
+an authoritative boarding state owns client movement even before its collider is available.
+An empty revision0 client hull is not usable geometry. Vanilla gravity and prediction remain
+paused until the shape arrives; ordinary contact prediction then resumes without teleporting
+the passenger to a ship-local anchor. Certification requires at least20 measured waiting ticks,
+authoritative movement ownership and less than0.05m of fall, in addition to the unchanged
+full hull prediction/error and300-edit rebase checks. The retained before-fix experiment fell
+1.3733333253330784m; the same delayed delivery after the fix measured0m.
+
 ## Remaining limits
 
 Current admission is64 joints per body and4096 per world. Force/torque and body speed limits

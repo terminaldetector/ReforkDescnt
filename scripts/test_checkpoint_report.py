@@ -382,5 +382,27 @@ class EvidenceGateTest(unittest.TestCase):
         self.assertNotIn('## Verified distribution', report)
 
 
+class PendingHullGeometryProofTest(unittest.TestCase):
+    def proof(self):
+        return dict(pendingMovementOwned=True,pendingShapeSamples=30,maxPendingShapeDrop=0.0)
+
+    def test_actual_delayed_geometry_proof_is_accepted(self):
+        checkpoint.verify_pending_hull_geometry(self.proof())
+
+    def test_loading_without_authoritative_movement_ownership_is_rejected(self):
+        proof=self.proof();proof['pendingMovementOwned']=False
+        with self.assertRaises(ValueError):checkpoint.verify_pending_hull_geometry(proof)
+
+    def test_missing_or_insufficient_delay_cannot_pass(self):
+        for value in (None,True,19,30.0):
+            proof=self.proof();proof['pendingShapeSamples']=value
+            with self.subTest(value=value),self.assertRaises(ValueError):checkpoint.verify_pending_hull_geometry(proof)
+
+    def test_fall_or_invalid_measurement_cannot_pass(self):
+        for value in (.05,1.3733333253330784,-1,True,float('nan'),float('inf')):
+            proof=self.proof();proof['maxPendingShapeDrop']=value
+            with self.subTest(value=value),self.assertRaises(ValueError):checkpoint.verify_pending_hull_geometry(proof)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -55,7 +55,7 @@ def main():
     gate.verify_ship_boarding(root, started)
     gate.verify_body_edits(root, started)
     gate.verify_body_index(root, started)
-    gate.verify_body_scale(root, started)
+    gate.verify_pending_hull_geometry(gate.verify_body_scale(root, started))
     gate.verify_hull_contacts(root, started)
     gate.verify_body_fractures(root, started)
     gate.verify_body_combat(root, started)

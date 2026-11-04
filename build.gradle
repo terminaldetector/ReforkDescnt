@@ -377,6 +377,7 @@ loom { runs { bodyscalecheck {
     client()
     source sourceSets.boardingcheck
     runDir 'build/bodyscalecheck'
+    vmArg '-Ddrmd.gate.shapeDelayTicks=30'
     vmArg '-Ddrmd.boarding.labY=140'
     vmArg '-Ddrmd.gate.bodyIndex=true'
     vmArg '-Ddrmd.gate.bodyScale=true'

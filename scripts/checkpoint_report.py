@@ -235,6 +235,17 @@ def verify_body_scale(root,started):
     return verify_body_index(root,started,scale=True)
 
 
+def verify_pending_hull_geometry(proof):
+    if proof.get('pendingMovementOwned') is not True:
+        raise ValueError('Server must own movement while hull geometry is pending')
+    samples=proof.get('pendingShapeSamples')
+    if type(samples) is not int or samples<20:
+        raise ValueError('Missing delayed real hull geometry samples')
+    drop=proof.get('maxPendingShapeDrop')
+    if type(drop) not in (int,float) or not math.isfinite(drop) or not 0<=drop<.05:
+        raise ValueError('Actor fell under a second motor while hull geometry was pending')
+
+
 
 HULL_CONTACT_SCENES=('diagonal-corner','terrain-stop','hollow-door','compound-contact-query',
                      'gravity-support','opposed-hull-impact','three-hull-chain','rotated-hull-impact')
@@ -406,6 +417,7 @@ def verify(root):
     body_combat=verify_body_combat(root,started) if version.startswith(('1.1.33','1.1.34')) else None
     fragment_boarding=verify_fragment_boarding(root,started) if version.startswith(('1.1.33','1.1.34')) else None
     body_joints=verify_body_joints(root,started) if version.startswith('1.1.34') else None
+    if version.startswith('1.1.34'):verify_pending_hull_geometry(body_scale)
     audit=verify_audit(root,started) if version.startswith('1.1.14') else None
     if audit: verify_native_audit(root,started)
     jar = root / f'build/libs/{base}-{version}.jar'

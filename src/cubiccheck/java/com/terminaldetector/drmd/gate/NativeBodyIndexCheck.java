@@ -42,6 +42,25 @@ public final class NativeBodyIndexCheck {
  private static double error;private static boolean clientLegacyMiss,clientEdgePick,clientHole;
  private static String scene;
 
+ private record DelayedShape(BlockBodyEntity body,int release,Runnable apply){}
+ private static final Map<BlockBodyEntity,DelayedShape> DELAYED=new IdentityHashMap<>();
+ private static final Set<BlockBodyEntity> RELEASED=Collections.newSetFromMap(new IdentityHashMap<>());
+ private static Double pendingStartY;private static int pendingShapeSamples;private static double maxPendingShapeDrop;private static boolean pendingMovementOwned=true;
+ public static boolean delayShape(BlockBodyEntity body,Runnable apply) {
+  int delay=Integer.getInteger("drmd.gate.shapeDelayTicks",0);
+  if(delay<=0||!Boolean.getBoolean("drmd.gate.bodyIndex")||RELEASED.contains(body)||!body.cells().isEmpty())return false;
+  DELAYED.putIfAbsent(body,new DelayedShape(body,ticks+delay,apply));return true;
+ }
+ private static void flushShapes(MinecraftClient c) {
+  if(pendingStartY!=null&&DELAYED.keySet().stream().anyMatch(b->b.getId()==bodyId)) {
+   pendingShapeSamples++;maxPendingShapeDrop=Math.max(maxPendingShapeDrop,pendingStartY-c.player.getY());
+   pendingMovementOwned&=BoardingClient.ownsMovement(c.player);
+  }
+  for(var delayed:List.copyOf(DELAYED.values()))if(ticks>=delayed.release()) {
+   if(delayed.body().getId()==bodyId&&pendingStartY!=null){System.out.println("BODY_SHAPE_PENDING_FALL "+maxPendingShapeDrop+" samples="+pendingShapeSamples+" owned="+pendingMovementOwned);require(maxPendingShapeDrop<.05&&pendingMovementOwned,"actor moved under a second gravity motor while authoritative geometry was pending: "+maxPendingShapeDrop);pendingStartY=null;}
+   RELEASED.add(delayed.body());DELAYED.remove(delayed.body());delayed.apply().run();
+  }
+ }
  private static final List<String> SCENES=new ArrayList<>();private static final Set<Integer> ACKS=new HashSet<>();
  private static Entity entity(BlockBodyEntity b){return b;}
  private static BlockBodyEntity bodyServer(MinecraftClient c){return (BlockBodyEntity)c.getServer().getOverworld().getEntityById(bodyId);}
@@ -50,14 +69,16 @@ public final class NativeBodyIndexCheck {
  public static void input(boolean place,boolean handled){if(!finished&&handled){if(place)placeInputs++;else mineInputs++;}}
  public static void received(BoardingNetworking.State s) {
   var c=MinecraftClient.getInstance();if(finished||!s.active()||c.world==null||s.body()==null)return;
+  if(c.world.getEntityById(bodyId) instanceof BlockBodyEntity initial&&initial.cells().isEmpty()&&pendingStartY==null)pendingStartY=c.player.getY();
   if(!(c.world.getEntityById(bodyId) instanceof BlockBodyEntity b)||b.shapeRevision()!=s.body().shapeRevision())return;
+  if(s.epoch()!=BoardingClient.epoch())return;
   var prediction=BoardingClient.predictedState(s.acknowledgment());
-  if(prediction!=null&&ACKS.add(s.acknowledgment())){samples++;error=Math.max(error,prediction.feet().minus(new Vec3(s.x(),s.y(),s.z())).length());}
+  if(prediction!=null&&ACKS.add(s.acknowledgment())){samples++;double e=prediction.feet().minus(new Vec3(s.x(),s.y(),s.z())).length();if(e>.8)System.out.println("BODY_PREDICTION_TRACE sample="+samples+" error="+e+" phase="+phase+" epoch="+BoardingClient.epoch()+"/"+s.epoch()+" ack="+s.acknowledgment()+" seq="+BoardingClient.sequence()+" revision="+b.shapeRevision()+"/"+s.body().shapeRevision()+" predicted="+prediction+" authoritative="+s);error=Math.max(error,e);}
  }
  private static void tick(MinecraftClient c) {
   if(finished)return;if(++ticks>1600)require(false,"body index timeout phase="+phase+" age="+age+" input="+mineInputs+"/"+placeInputs+" state="+BoardingClient.state());
   if(c.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen p)for(var x:p.children())if(x instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("I know what I'm doing!"))b.onPress();
-  if(c.player==null||c.world==null||c.getServer()==null)return;
+  if(c.player==null||c.world==null||c.getServer()==null)return;flushShapes(c);
   com.terminaldetector.drmd.client.DescentClient.markUserFlightChoice();
   if(!started) {
    String name=c.runDirectory.toPath().getFileName().toString();require(name.equals("bodyindexcheck")||name.equals("bodyscalecheck")||name.equals("cubic-client-automation"),"disposable index runtime required");
@@ -165,7 +186,7 @@ public final class NativeBodyIndexCheck {
  public static void rendered(){if(!capture||finished)return;var c=MinecraftClient.getInstance();if(c.player==null||c.currentScreen!=null||++frames<3)return;
   try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){
    var dir=c.runDirectory.toPath().resolve(SCALE?"body-scale-frames":"body-index-frames");Files.createDirectories(dir);image.writeTo(dir.resolve(scene+".png"));SCENES.add("{\"scene\":\""+scene+"\",\"frames\":"+frames+"}");capture=false;System.out.println("BODY_INDEX_CLIENT "+scene+" PASS");
-   if(phase==4){Files.writeString(c.runDirectory.toPath().resolve(SCALE?"body-scale-ok.json":"body-index-ok.json"),"{\"volumeLeasesReleased\":"+leaseReleased+",\"maxLeasedColumns\":"+maxLeasedColumns+",\"actualFeetError\":"+actualFeetError+",\"bodyBlocks\":"+(SCALE?32768:93)+",\"localEdge\":"+(EDGE+1)+",\"journalEdits\":"+journalEdits+",\"actualInputs\":true,\"legacyMissClient\":"+clientLegacyMiss+",\"legacyMissServer\":"+serverLegacyMiss+",\"edgePicked\":"+clientEdgePick+",\"holeClear\":"+clientHole+",\"materialCharged\":"+charged+",\"revisionChanges\":3,\"travelDistance\":"+travel+",\"teleportFollow\":false,\"predictionSamples\":"+samples+",\"maxPredictionError\":"+error+",\"scenes\":["+String.join(",",SCENES)+"]}\n");finished=true;c.scheduleStop();}
+   if(phase==4){Files.writeString(c.runDirectory.toPath().resolve(SCALE?"body-scale-ok.json":"body-index-ok.json"),"{\"pendingMovementOwned\":"+pendingMovementOwned+",\"pendingShapeSamples\":"+pendingShapeSamples+",\"maxPendingShapeDrop\":"+maxPendingShapeDrop+",\"volumeLeasesReleased\":"+leaseReleased+",\"maxLeasedColumns\":"+maxLeasedColumns+",\"actualFeetError\":"+actualFeetError+",\"bodyBlocks\":"+(SCALE?32768:93)+",\"localEdge\":"+(EDGE+1)+",\"journalEdits\":"+journalEdits+",\"actualInputs\":true,\"legacyMissClient\":"+clientLegacyMiss+",\"legacyMissServer\":"+serverLegacyMiss+",\"edgePicked\":"+clientEdgePick+",\"holeClear\":"+clientHole+",\"materialCharged\":"+charged+",\"revisionChanges\":3,\"travelDistance\":"+travel+",\"teleportFollow\":false,\"predictionSamples\":"+samples+",\"maxPredictionError\":"+error+",\"scenes\":["+String.join(",",SCENES)+"]}\n");finished=true;c.scheduleStop();}
   }catch(java.io.IOException e){throw new IllegalStateException(e);}
  }
 }

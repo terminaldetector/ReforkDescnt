@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class BoardingClientTravelMixin {
     @Inject(method="travel",at=@At("HEAD"),cancellable=true)
     private void bodyTravel(Vec3d input,CallbackInfo ci) {
-        if((Object)this instanceof ClientPlayerEntity p&&BoardingClient.drives(p)){BoardingClient.travel(p,input);ci.cancel();}
+        if((Object)this instanceof ClientPlayerEntity p&&BoardingClient.ownsMovement(p)){BoardingClient.travel(p,input);ci.cancel();}
     }
 }

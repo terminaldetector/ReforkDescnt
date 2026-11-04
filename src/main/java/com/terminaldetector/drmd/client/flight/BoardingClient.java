@@ -56,7 +56,7 @@ public final class BoardingClient {
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c->{
             if(waitingForShape!=null&&c.world!=null) {
                 var pending=waitingForShape;int id=pending.pose().gravityOwner()>=0?pending.pose().gravityOwner():pending.support();
-                if(c.world.getEntityById(id) instanceof BlockBodyEntity b&&b.shapeRevision()==pending.body().shapeRevision()){waitingForShape=null;apply(pending);}
+                if(c.world.getEntityById(id) instanceof BlockBodyEntity b&&!b.cells().isEmpty()&&b.shapeRevision()==pending.body().shapeRevision()){waitingForShape=null;apply(pending);}
             }
             if(c.player!=null&&c.player!=readyOwner&&ClientPlayNetworking.canSend(BoardingNetworking.Ready.ID)) {
                 ClientPlayNetworking.send(new BoardingNetworking.Ready(BoardingNetworking.PROTOCOL));readyOwner=c.player;
@@ -65,6 +65,13 @@ public final class BoardingClient {
     }
     public static boolean drives(ClientPlayerEntity p) {
         return state!=null&&p.getWorld()==world&&!DescentPlayerData.get(p).isEnabled()&&!p.isSpectator()&&!p.hasVehicle();
+    }
+    /** Server ownership starts before a large hull's tracked geometry finishes loading.
+     * Vanilla gravity must not run a second motor while that authoritative state waits. */
+    public static boolean ownsMovement(ClientPlayerEntity p) {
+        return drives(p)||(waitingForShape!=null&&waitingForShape.active()
+            &&p.getWorld().getRegistryKey().getValue().equals(waitingForShape.dimension())
+            &&!DescentPlayerData.get(p).isEnabled()&&!p.isSpectator()&&!p.hasVehicle());
     }
     public static DynamicBodyAttachment.State state(){return state;}
     public static int epoch(){return epoch;}
@@ -93,7 +100,7 @@ public final class BoardingClient {
         }
         if(p.body()!=null) {
             int id=p.pose().gravityOwner()>=0?p.pose().gravityOwner():p.support();
-            if(!(mc.world.getEntityById(id) instanceof BlockBodyEntity b)||b.shapeRevision()!=p.body().shapeRevision()) {waitingForShape=p;return;}
+            if(!(mc.world.getEntityById(id) instanceof BlockBodyEntity b)||b.cells().isEmpty()||b.shapeRevision()!=p.body().shapeRevision()) {waitingForShape=p;return;}
         }
         waitingForShape=null;
         bodySnapshot=p.body();snapshotId=p.pose().gravityOwner()>=0?p.pose().gravityOwner():p.support();
@@ -120,7 +127,8 @@ public final class BoardingClient {
         }
     }
     public static void travel(ClientPlayerEntity player,Vec3d movement) {
-        if(!drives(player)||waitingForShape!=null)return;
+        if(!ownsMovement(player))return;
+        if(waitingForShape!=null||state==null){player.setVelocity(Vec3d.ZERO);player.fallDistance=0;return;}
         // Backpressure keeps a stalled connection from growing history or permanently outrunning
         // the server's bounded command queue. Resume as soon as an acknowledgment arrives.
         if(HISTORY.size()>=16){player.fallDistance=0;return;}
