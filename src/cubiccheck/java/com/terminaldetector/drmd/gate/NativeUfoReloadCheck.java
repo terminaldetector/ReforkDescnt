@@ -49,6 +49,8 @@ public final class NativeUfoReloadCheck {
             require(expected.getBoolean("autopilot")&&body.autopilotEnabled(),"reload restores the pre-capture AI mode");
             require(body.physics().linearVelocity().length()>.1&&body.physics().angularVelocity().length()>.01,"fixture must save a translating and rotating ship");
             watched=id;restored=true;System.out.println("UFO_RELOAD_NBT PASS uuid="+id+" cells="+body.cells().size());
+            for(var p:((net.minecraft.server.world.ServerWorld)entity(body).getWorld()).getPlayers())
+                System.out.println("UFO_RELOAD_INITIAL_PLAYER local="+body.worldToLocal(p.getPos())+" velocity="+p.getVelocity()+" flying="+p.getAbilities().flying+" suit="+com.terminaldetector.drmd.DescentPlayerData.get(p).isEnabled()+" ready="+BoardingSystem.ready(p));
         }catch(Exception e){throw new IllegalStateException("actual UFO reload verification failed",e);}
     }
     public static void register() {
@@ -59,12 +61,14 @@ public final class NativeUfoReloadCheck {
             var players=s.getPlayerManager().getPlayerList();if(players.isEmpty())return;var p=players.getFirst();
             require(!UfoControlSystem.controls(p),"old pilot connection must not survive a process restart");
             require(w.getEntitiesByClass(SkyUfoEntity.class,entity(body).getBoundingBox().expand(64),u->true).size()==1,"reload must not duplicate the local UFO");
+            if(s.getTicks()%20==0)System.out.println("UFO_RELOAD_CONTACT local="+body.worldToLocal(p.getPos())+" walking="+BoardingSystem.drives(p)+" stable="+stable+" playerWorld="+p.getWorld().getRegistryKey().getValue());
             if(body.containsPos(p.getPos())&&BoardingSystem.drives(p))stable++;else stable=0;
             if(stable>=40)serverReady=true;
         });
         ClientTickEvents.END_CLIENT_TICK.register(c->{
             if(done)return;if(++ticks>1800)throw new IllegalStateException("UFO reload timeout: restored="+restored+" contact="+stable+" draws="+draws);
             com.terminaldetector.drmd.client.DescentClient.markUserFlightChoice();
+            if(ticks%100==0)System.out.println("UFO_RELOAD_CLIENT restored="+restored+" ready="+serverReady+" stable="+stable+" draws="+draws+" screen="+(c.currentScreen==null?null:c.currentScreen.getClass().getName()));
             if(c.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen prompt)for(var child:prompt.children())
                 if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("I know what I'm doing!"))b.onPress();
             if(c.player!=null&&c.world!=null&&serverReady){require(!UfoControlClient.active(),"client cannot retain a previous process's pilot input");require(BoardingClient.drives(c.player),"saved player must resume physical walking on the saved UFO");}

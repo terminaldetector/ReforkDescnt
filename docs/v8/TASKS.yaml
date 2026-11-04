@@ -693,11 +693,11 @@ tasks:
   owner: UFO_OWNER
   gate: G2
   depends_on_stages: *id010
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [UFO_RELOAD_WIP.md]
+  notes: Actual same-world restart restores physics data but loses walking contact; open regression, not accepted.
 - id: S10-T01
   stage: S10
   stage_title: Weapons, cluster, drill and building
