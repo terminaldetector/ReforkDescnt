@@ -36,4 +36,17 @@ The bounded native pass retained contact through all full rotations and both jum
 Its final model assertion revealed a test-probe bug: every ModelOrientation call, including
 launched escorts, was compared with the local player frame. The probe now samples the
 actual appended matrix of the local player renderer, using that draw call’s tick delta.
-The model/camera tolerances are unchanged. Full native rerun remains mandatory.
+The model/camera tolerances are unchanged. Both exact-source native reruns passed:
+Mesa GL3.2 and Sodium GL3.3,13 scenes each and26 fresh frames in total. Each run
+compared569 acknowledged predictions; maximum position error was0.01410m. The actual
+registered1046-cell UFO was rendered513/527 times. Camera error stayed below0.000469
+and model up error below0.00000372. See `evidence/ufo-d4aa411-native/VERIFIED.json` and
+its checksum-verified archive for raw frames, inputs, logs and retained first failures.
+Exact tested source is `d4aa41101dfe29d7b8a7ef406775586c3f7fffd2`, main JAR SHA-256
+`bbaf09f7faa782261d489ee1e0d622fc3059065b5a8746009b122d6523846db5`.
+
+The stand places its pilot inside the UFO initially. It does not prove entering from
+outside while free flight is active. Inspection found that free-flight travel still
+uses ordinary Minecraft collision rather than the BlockBody contact kernel. Fixing
+that movement/authority boundary and proving an external approach is the next step.
+This is still a development checkpoint, not an accepted1.1.35 distribution.

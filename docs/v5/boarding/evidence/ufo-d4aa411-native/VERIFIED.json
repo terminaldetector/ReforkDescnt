@@ -1,0 +1,164 @@
+{
+  "sourceSha": "d4aa41101dfe29d7b8a7ef406775586c3f7fffd2",
+  "developmentVersion": "1.1.35-ufo-dev.1",
+  "jarSha256": "bbaf09f7faa782261d489ee1e0d622fc3059065b5a8746009b122d6523846db5",
+  "releaseAccepted": false,
+  "scope": "Real registered UFO interior contact/rotations/jump/handoff only. Outside flight entry, functional modules, expanded hull, takeover, full 3D AI and world reload remain open.",
+  "runs": [
+    {
+      "scenario": "ship-ufo-matrix-gl32",
+      "sourceSha": "d4aa41101dfe29d7b8a7ef406775586c3f7fffd2",
+      "jarSha256": "bbaf09f7faa782261d489ee1e0d622fc3059065b5a8746009b122d6523846db5",
+      "frames": 13,
+      "proof": {
+        "actualUfo": true,
+        "ufoRenderedFrames": 513,
+        "ufoGridCells": 1046,
+        "actualInputs": true,
+        "shipGravity": true,
+        "orientedCollision": true,
+        "teleportFollow": false,
+        "predictionSamples": 569,
+        "maxPredictionError": 0.014092539353722913,
+        "jumpVelocityError": 1.0444978215673473e-12,
+        "maxFrameError": 3.3306690738754696e-16,
+        "modelFrames": 506,
+        "cameraFrames": 506,
+        "maxCameraUpError": 0.0004687283724963235,
+        "maxModelUpError": 3.711802775405318e-06,
+        "scenes": [
+          {
+            "scene": "ship-landing",
+            "frames": 3
+          },
+          {
+            "scene": "ship-walking",
+            "frames": 3
+          },
+          {
+            "scene": "roll-wall",
+            "frames": 3
+          },
+          {
+            "scene": "roll-ceiling",
+            "frames": 3
+          },
+          {
+            "scene": "roll-complete",
+            "frames": 3
+          },
+          {
+            "scene": "pitch-wall",
+            "frames": 3
+          },
+          {
+            "scene": "pitch-ceiling",
+            "frames": 3
+          },
+          {
+            "scene": "pitch-complete",
+            "frames": 3
+          },
+          {
+            "scene": "combined-axes",
+            "frames": 3
+          },
+          {
+            "scene": "combined-complete",
+            "frames": 3
+          },
+          {
+            "scene": "ship-jump",
+            "frames": 3
+          },
+          {
+            "scene": "gravity-off-jump",
+            "frames": 3
+          },
+          {
+            "scene": "flight-handoff",
+            "frames": 3
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "ship-ufo-matrix-sodium",
+      "sourceSha": "d4aa41101dfe29d7b8a7ef406775586c3f7fffd2",
+      "jarSha256": "bbaf09f7faa782261d489ee1e0d622fc3059065b5a8746009b122d6523846db5",
+      "frames": 13,
+      "proof": {
+        "actualUfo": true,
+        "ufoRenderedFrames": 527,
+        "ufoGridCells": 1046,
+        "actualInputs": true,
+        "shipGravity": true,
+        "orientedCollision": true,
+        "teleportFollow": false,
+        "predictionSamples": 569,
+        "maxPredictionError": 0.014091615381089793,
+        "jumpVelocityError": 7.123190925995004e-13,
+        "maxFrameError": 5.551115123125783e-16,
+        "modelFrames": 520,
+        "cameraFrames": 520,
+        "maxCameraUpError": 0.0004387990378626683,
+        "maxModelUpError": 9.554657534319603e-07,
+        "scenes": [
+          {
+            "scene": "ship-landing",
+            "frames": 3
+          },
+          {
+            "scene": "ship-walking",
+            "frames": 3
+          },
+          {
+            "scene": "roll-wall",
+            "frames": 3
+          },
+          {
+            "scene": "roll-ceiling",
+            "frames": 3
+          },
+          {
+            "scene": "roll-complete",
+            "frames": 3
+          },
+          {
+            "scene": "pitch-wall",
+            "frames": 3
+          },
+          {
+            "scene": "pitch-ceiling",
+            "frames": 3
+          },
+          {
+            "scene": "pitch-complete",
+            "frames": 3
+          },
+          {
+            "scene": "combined-axes",
+            "frames": 3
+          },
+          {
+            "scene": "combined-complete",
+            "frames": 3
+          },
+          {
+            "scene": "ship-jump",
+            "frames": 3
+          },
+          {
+            "scene": "gravity-off-jump",
+            "frames": 3
+          },
+          {
+            "scene": "flight-handoff",
+            "frames": 3
+          }
+        ]
+      }
+    }
+  ],
+  "archiveSha256": "610746c616bdf1ffd33870f65138817a22692f203782ed2d5e9f5ccad6305320"
+}
