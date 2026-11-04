@@ -11,6 +11,7 @@
     "ProjectorInputAccess",
     "BoardingStateProbe",
     "FlightBodyStateProbe",
+    "FlightClockReceiveProbe",
     "ShipModelProbe",
     "ShipCameraProbe",
     "BodyEditInputProbe",

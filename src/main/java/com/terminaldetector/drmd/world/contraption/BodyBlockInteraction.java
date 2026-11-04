@@ -44,7 +44,7 @@ public final class BodyBlockInteraction {
     public static void register() {
         PayloadTypeRegistry.playC2S().register(Edit.ID,Edit.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(Edit.ID,(e,c)->c.server().execute(()->receive(c.player(),e)));
-        ServerTickEvents.END_WORLD_TICK.register(w->{for(var p:w.getPlayers())tick(p);});
+        ServerTickEvents.END_WORLD_TICK.register(w->{for(var p:com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.players(w))tick(p);});
         ServerPlayConnectionEvents.DISCONNECT.register((h,s)->{MINING.remove(h.player.getUuid());LAST_ACTION.remove(h.player.getUuid());BUDGET.remove(h.player.getUuid());});
         ServerLifecycleEvents.SERVER_STOPPED.register(s->{MINING.clear();LAST_ACTION.clear();BUDGET.clear();});
     }

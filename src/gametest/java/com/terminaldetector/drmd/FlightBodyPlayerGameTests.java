@@ -46,6 +46,19 @@ public final class FlightBodyPlayerGameTests implements FabricGameTest {
             c.assertTrue(FlightBodySystem.epoch(f.p)>0&&f.p.getY()<before.y&&f.p.getY()>=f.at.getY()+1-1e-5,"world phase itself must enroll network-controlled pilots and resolve real deck contact");
         }c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="flight-body-untracked-player")
+    public void connectedPlayerKeepsContactAndCommandProgressOutsideVanillaWorldTracking(TestContext c) {
+        try(var f=fixture(c)) {
+            var tracked=c.getWorld().getPlayers();boolean removed=tracked.remove(f.p);
+            try {
+                c.assertTrue(removed&&c.getWorld().getServer().getPlayerManager().getPlayerList().contains(f.p),"fixture separates connection ownership from vanilla world tracking");
+                f.phase();int epoch=FlightBodySystem.epoch(f.p);
+                c.assertTrue(epoch>0&&f.p.getY()>=f.at.getY()+1-1e-5&&f.p.getY()<f.at.getY()+3,"connected untracked pilot actually reaches the material contact");
+                c.assertTrue(FlightBodySystem.receive(f.p,new FlightBodyNetworking.Input(epoch,0)),"actual connection owns a bounded command");
+                f.phase();c.assertTrue(FlightBodySystem.acknowledgment(f.p)==0,"untracked world pivot must not strand the prediction queue");
+            } finally {if(removed&&!f.p.isRemoved()&&!tracked.contains(f.p))tracked.add(f.p);}
+        }c.complete();
+    }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="flight-body-portal-clock")
     public void portalFrameDiscontinuityDropsOnlyTheOldClockAndRetainsPhysicalMomentum(TestContext c) {
         try(var f=fixture(c)) {

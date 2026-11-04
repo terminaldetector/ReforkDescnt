@@ -59,11 +59,12 @@ public final class NativeFlightBodyCheck {
         if(!prepared&&c.player.getY()>AT.getY()-20&&loaded(c)){prepared=true;c.getServer().execute(()->setup(c));return;}
         if(!ready||capturing||!(c.world.getEntityById(bodyId) instanceof BlockBodyEntity))return;
         age++;
+        if(age%20==0)System.out.println("FLIGHT_BODY_CLIENT_CLOCK canSend="+ClientPlayNetworking.canSend(FlightBodyNetworking.Input.ID)+" pending="+FlightBodyClient.pending()+" sequence="+FlightBodyClient.sequence());
         if(phase==0&&FlightBodyClient.active()&&serverEpoch>0&&local!=null) {
             require(local.z< -11,"fixture must begin outside the actual UFO, not inside");
             c.options.forwardKey.setPressed(true);flightStarted=true;request("external-approach");phase=1;age=0;
         } else if(phase==1&&local!=null&&local.z> -4) {
-            c.options.forwardKey.setPressed(false);require(local.z<0&&local.y>-.1,"entry must pass through the real side bay");
+            c.options.forwardKey.setPressed(false);require(local.z<0&&local.y>-.1&&Math.abs(local.x)<2,"entry must pass through the real side bay, not just rotate past the stationary pilot: "+local);
             require(bodyNow.distanceTo(bodyStart)>.2,"UFO must remain moving during the approach");request("moving-bay-entry");phase=2;age=0;
         } else if(phase==2&&age>12) {
             ClientPlayNetworking.send(new ModNetworking.ActionPayload("toggle"));phase=3;age=0;
@@ -99,7 +100,11 @@ public final class NativeFlightBodyCheck {
                 var velocity=DescentPlayerData.get(p).getFlightVelocity();
                 if(ufo.boardingMotion().query(1).contacts(DynamicBodyAttachment.box(BoardingSystem.pure(p.getPos()),p.getWidth(),p.getHeight()),.03).stream().anyMatch(contact->contact.normal().y()>.3)&&velocity.y> -2)roofContacts++;
             }
-            if(w.getTime()%20==0)System.out.println("FLIGHT_BODY_TRACE phase="+phase+" local="+local+" p="+p.getPos()+" v="+DescentPlayerData.get(p).getFlightVelocity()+" lease="+serverEpoch+" ack="+FlightBodySystem.acknowledgment(p)+" clientPending="+FlightBodyClient.pending()+" maxError="+maxError);
+            if(w.getTime()%20==0) {
+                var state=new DynamicBodyAttachment.State(BoardingSystem.pure(p.getPos()),BoardingSystem.pure(DescentPlayerData.get(p).getFlightVelocity()),false,-1);
+                var clip=BoardingWorldMotion.captureFlight(p,state,true).move(state.feet(),Quat.IDENTITY,state.velocity().scaled(.05));
+                System.out.println("FLIGHT_BODY_TRACE phase="+phase+" local="+local+" p="+p.getPos()+" v="+DescentPlayerData.get(p).getFlightVelocity()+" lease="+serverEpoch+" ack="+FlightBodySystem.acknowledgment(p)+" clientPending="+FlightBodyClient.pending()+" maxError="+maxError+" clip="+clip+" box="+p.getBoundingBox()+" worldTracked="+w.getPlayers().contains(p)+" connected="+w.getServer().getPlayerManager().getPlayerList().contains(p)+" sameWorld="+(p.getWorld()==w));
+            }
         });
     }
     private static void roof(MinecraftClient c) {

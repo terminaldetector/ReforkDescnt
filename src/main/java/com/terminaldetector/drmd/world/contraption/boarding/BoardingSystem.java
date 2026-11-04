@@ -32,6 +32,11 @@ public final class BoardingSystem {
     private static final Map<UUID,WeakReference<ServerPlayerEntity>> READY=new HashMap<>();
     private static int epoch;
     private BoardingSystem() {}
+    /** Connected pilots remain authoritative even when a distant cubic pivot is absent from
+     * vanilla world entity tracking. The player manager owns the connection's actual identity. */
+    public static List<ServerPlayerEntity> players(ServerWorld world) {
+        return world.getServer().getPlayerManager().getPlayerList().stream().filter(p->!p.isRemoved()&&p.getWorld()==world).toList();
+    }
     public static void register() {
         ServerTickEvents.END_WORLD_TICK.register(BoardingSystem::tick);
         ServerLifecycleEvents.SERVER_STOPPED.register(s->{LEASES.clear();PREVIOUS.clear();READY.clear();});
@@ -63,7 +68,7 @@ public final class BoardingSystem {
     public static void tick(ServerWorld world) {
         var motions=new HashMap<Integer,BodyMotion>();var touched=new HashSet<BlockBodyEntity>();
         var publish=new LinkedHashMap<ServerPlayerEntity,Lease>();
-        var players=new ArrayList<>(world.getPlayers());players.sort(Comparator.comparing(p->p.getUuid().toString()));
+        var players=new ArrayList<>(players(world));players.sort(Comparator.comparing(p->p.getUuid().toString()));
         for(var p:players) {
             Lease l=LEASES.get(p.getUuid());Vec3 feet=pure(p.getPos());
             if(!eligible(p)||!ready(p)) {if(l!=null)release(p,l,pure(p.getVelocity()).scaled(20));PREVIOUS.put(p.getUuid(),new Previous(new WeakReference<>(world),feet));continue;}

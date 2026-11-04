@@ -67,7 +67,7 @@ public final class FlightBodySystem {
         // A network ServerPlayer normally reports movement through packets rather than running
         // PlayerEntity.travel. Enroll real pilots in this phase too, not just explicit travel
         // calls from vehicles/fixtures. owns() already rejects positional packet overwrite.
-        for(var player:world.getPlayers())if(owns(player))PENDING.putIfAbsent(player.getUuid(),
+        for(var player:BoardingSystem.players(world))if(owns(player))PENDING.putIfAbsent(player.getUuid(),
             new Deferred(new WeakReference<>(player),world.getTime(),world));
         var touched=new HashSet<BlockBodyEntity>();var motions=new HashMap<Integer,BodyMotion>();
         for(var d:PENDING.values().stream().filter(d->d.world==world).sorted(Comparator.comparing(d->{var p=d.player.get();return p==null?"":p.getUuid().toString();})).toList()) {

@@ -88,3 +88,12 @@ registered regressions prove that no travel call is needed and that a portal dis
 only the obsolete prediction clock, preserving momentum and rejecting its old commands.
 The client can resume above a server acknowledgment after a local predictor reset.
 All679 unit and236 server tests passed after this correction; a native rerun is required.
+
+The next native run reached the initial flight lease but stalled with accepted input
+and no acknowledgments; its real side-bay test now also requires the pilot to be within
+the opening's lateral bounds, so a rotating hull cannot fake entry past an idle pilot.
+World-phase enrollment, boarding and local mining now enumerate actual connected player
+identities rather than relying on vanilla world tracking. A registered test explicitly
+removes a connected test pilot from that world list and requires material contact and
+command acknowledgment to continue. All679 unit and237 GameTests pass on this update.
+Native proof of the complete external approach remains outstanding.
