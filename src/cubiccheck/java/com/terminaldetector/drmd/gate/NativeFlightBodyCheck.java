@@ -44,7 +44,10 @@ public final class NativeFlightBodyCheck {
         if(finished)return;if(++ticks>1800)require(false,"external UFO flight timeout: phase="+phase+" age="+age+" local="+local+" client="+(c.player==null?null:c.player.getPos())+" authority="+FlightBodyClient.active()+" serverEpoch="+serverEpoch);
         if(c.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen p)for(var child:p.children())
             if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("I know what I'm doing!"))b.onPress();
-        if(c.player==null||c.world==null||c.getServer()==null)return;
+        if(c.player==null||c.world==null||c.getServer()==null) {
+            if(ticks%200==0)System.out.println("FLIGHT_BODY_STARTUP screen="+(c.currentScreen==null?null:c.currentScreen.getClass().getName()+" title="+c.currentScreen.getTitle()+" children="+c.currentScreen.children().stream().filter(child->child instanceof net.minecraft.client.gui.widget.ButtonWidget).map(child->((net.minecraft.client.gui.widget.ButtonWidget)child).getMessage().getString()).toList()));
+            return;
+        }
         com.terminaldetector.drmd.client.DescentClient.markUserFlightChoice();
         if(!started) {
             require(c.runDirectory.toPath().getFileName().toString().equals("cubic-client-automation"),"disposable native runtime only");started=true;
