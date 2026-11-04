@@ -20,10 +20,17 @@ public final class NativeUfoReloadCheck {
     private static volatile UUID watched;
     private static volatile boolean restored,serverReady;
     private static boolean done;private static int ticks,draws,stable,frames;
+    private static final int READY_DELAY=Integer.getInteger("drmd.gate.restoreReadyDelay",0);
+    private static final java.util.Map<net.minecraft.server.network.ServerPlayerEntity,Integer> DELAYED=new java.util.HashMap<>();
+    private static boolean releasingReady;private static int admissionTicks;
     private static Path file(String name){return MinecraftClient.getInstance().runDirectory.toPath().resolve(name);}
     private static void require(boolean b,String why){if(!b)throw new IllegalStateException(why);}
     private NativeUfoReloadCheck(){}
     private static net.minecraft.entity.Entity entity(BlockBodyEntity body){return body;}
+    public static boolean delayReady(net.minecraft.server.network.ServerPlayerEntity p,int version) {
+        if(!READ||READY_DELAY<=0||releasingReady||version!=com.terminaldetector.drmd.network.BoardingNetworking.PROTOCOL)return false;
+        DELAYED.putIfAbsent(p,-1);return true;
+    }
     public static void watch(UUID id) {
         watched=id;try{Files.writeString(file("ufo-reload-target.txt"),id.toString());}catch(Exception e){throw new IllegalStateException(e);}
     }
@@ -57,13 +64,20 @@ public final class NativeUfoReloadCheck {
         require(READ,"reload reader stand only");
         require(MinecraftClient.getInstance().runDirectory.toPath().getFileName().toString().equals("cubic-client-automation"),"disposable native runtime only");
         ServerTickEvents.END_SERVER_TICK.register(s->{
+            if(restored)for(var p:java.util.List.copyOf(DELAYED.keySet())) {
+                int due=DELAYED.get(p);if(due<0){DELAYED.put(p,s.getTicks()+READY_DELAY);continue;}
+                if(s.getTicks()>=due){DELAYED.remove(p);releasingReady=true;try{BoardingSystem.ready(p,com.terminaldetector.drmd.network.BoardingNetworking.PROTOCOL);}finally{releasingReady=false;}}
+            }
             if(!restored||serverReady)return;var w=s.getOverworld();var e=w.getEntity(watched);if(!(e instanceof SkyUfoEntity body))return;
             var players=s.getPlayerManager().getPlayerList();if(players.isEmpty())return;var p=players.getFirst();
             require(!UfoControlSystem.controls(p),"old pilot connection must not survive a process restart");
+            if(READY_DELAY>0&&!BoardingSystem.ready(p)) {
+                require(com.terminaldetector.drmd.DescentPlayerData.get(p).pendingBoardingResume()!=null&&!body.hasSimulatedPhysics(),"saved passenger and newly loaded hull must wait together for admission");admissionTicks++;
+            }
             require(w.getEntitiesByClass(SkyUfoEntity.class,entity(body).getBoundingBox().expand(64),u->true).size()==1,"reload must not duplicate the local UFO");
             if(s.getTicks()%20==0)System.out.println("UFO_RELOAD_CONTACT local="+body.worldToLocal(p.getPos())+" walking="+BoardingSystem.drives(p)+" stable="+stable+" playerWorld="+p.getWorld().getRegistryKey().getValue());
             if(body.containsPos(p.getPos())&&BoardingSystem.drives(p))stable++;else stable=0;
-            if(stable>=40)serverReady=true;
+            if(stable>=40){require(READY_DELAY<=0||admissionTicks>=20,"delayed native handshake must exercise the load barrier");serverReady=true;}
         });
         ClientTickEvents.END_CLIENT_TICK.register(c->{
             if(done)return;if(++ticks>1800)throw new IllegalStateException("UFO reload timeout: restored="+restored+" contact="+stable+" draws="+draws);
@@ -79,7 +93,7 @@ public final class NativeUfoReloadCheck {
         var c=MinecraftClient.getInstance();if(done||!serverReady||draws<20||c.currentScreen!=null||++frames<3)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             image.writeTo(file("ufo-reloaded.png"));
-            Files.writeString(file("ufo-reload-ok.json"),"{\"actualProcessRestart\":true,\"serializedDataExact\":true,\"restoredPhysicsTolerance\":1e-10,\"sameUuid\":\""+watched+"\",\"noDuplicateHull\":true,\"restoredWalkingTicks\":"+stable+",\"renderedFrames\":"+draws+",\"stalePilotAbsent\":true}\n");
+            Files.writeString(file("ufo-reload-ok.json"),"{\"admissionTicks\":"+admissionTicks+",\"actualProcessRestart\":true,\"serializedDataExact\":true,\"restoredPhysicsTolerance\":1e-10,\"sameUuid\":\""+watched+"\",\"noDuplicateHull\":true,\"restoredWalkingTicks\":"+stable+",\"renderedFrames\":"+draws+",\"stalePilotAbsent\":true}\n");
             done=true;c.scheduleStop();
         }catch(Exception e){throw new IllegalStateException(e);}
     }

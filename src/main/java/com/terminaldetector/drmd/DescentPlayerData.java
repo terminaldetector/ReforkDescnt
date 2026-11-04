@@ -59,6 +59,12 @@ public class DescentPlayerData {
     /** Presence of a persisted mode distinguishes a returning walker from a new player. */
     private boolean savedFlightMode;
     public boolean hasSavedFlightMode(){return savedFlightMode;}
+    public record BoardingResume(UUID body,String dimension,com.terminaldetector.drmd.client.portal.PortalTransform.Quat frame) {}
+    private BoardingResume boardingResume;
+    private boolean boardingResumePending;
+    public BoardingResume pendingBoardingResume(){return boardingResumePending?boardingResume:null;}
+    public void rememberBoarding(UUID body,String dimension,com.terminaldetector.drmd.client.portal.PortalTransform.Quat frame){boardingResume=new BoardingResume(body,dimension,frame);boardingResumePending=false;}
+    public void clearBoardingResume(){boardingResume=null;boardingResumePending=false;}
 	private boolean flightAssist = true;
 	private boolean alwaysRun;
 	private boolean thirdPerson;
@@ -167,6 +173,10 @@ public class DescentPlayerData {
 		d.putFloat("wepRecoil", wepRecoil);
 		d.putBoolean("radar", radarEnabled);
 		d.putBoolean("sessionWelcomed", sessionWelcomed);
+        if(boardingResume!=null&&!enabled) {
+            d.putInt("boardingResumeSchema",1);d.putUuid("boardingBody",boardingResume.body());d.putString("boardingDimension",boardingResume.dimension());
+            var q=boardingResume.frame();d.putDouble("boardingQx",q.x());d.putDouble("boardingQy",q.y());d.putDouble("boardingQz",q.z());d.putDouble("boardingQw",q.w());
+        }
 		if (lastShipUuid != null) d.putUuid("lastShip", lastShipUuid);
 		if (lastShipPos != null) d.putLong("lastShipPos", lastShipPos.asLong());
 		nbt.put("DrmdData", d);
@@ -174,10 +184,16 @@ public class DescentPlayerData {
 
 	public void readNbt(NbtCompound nbt) {
 		savedFlightMode=false;
+        clearBoardingResume();
 		if (!nbt.contains("DrmdData")) return;
 		NbtCompound d = nbt.getCompound("DrmdData");
 		savedFlightMode=d.contains("enabled");
 		enabled = d.getBoolean("enabled");
+        if(!enabled&&d.getInt("boardingResumeSchema")==1&&d.containsUuid("boardingBody")&&net.minecraft.util.Identifier.tryParse(d.getString("boardingDimension"))!=null) {
+            var q=new com.terminaldetector.drmd.client.portal.PortalTransform.Quat(d.getDouble("boardingQx"),d.getDouble("boardingQy"),d.getDouble("boardingQz"),d.getDouble("boardingQw"));
+            double norm=q.x()*q.x()+q.y()*q.y()+q.z()*q.z()+q.w()*q.w();
+            if(Double.isFinite(norm)&&norm>1e-8){boardingResume=new BoardingResume(d.getUuid("boardingBody"),d.getString("boardingDimension"),q.normalized());boardingResumePending=true;}
+        }
 		flightAssist = d.contains("flightAssist") ? d.getBoolean("flightAssist") : true;
 		alwaysRun = d.getBoolean("alwaysRun");
 		roll = d.getFloat("roll");

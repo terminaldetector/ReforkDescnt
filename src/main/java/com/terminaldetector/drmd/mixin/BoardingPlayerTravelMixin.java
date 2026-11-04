@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class BoardingPlayerTravelMixin {
     @Inject(method="travel",at=@At("HEAD"),cancellable=true)
     private void bodyTravel(Vec3d input,CallbackInfo ci) {
-        if((Object)this instanceof ServerPlayerEntity p&&BoardingSystem.drives(p))ci.cancel();
+        if((Object)this instanceof ServerPlayerEntity p&&(BoardingSystem.drives(p)||com.terminaldetector.drmd.world.contraption.boarding.BoardingRestore.holds(p)))ci.cancel();
     }
 }

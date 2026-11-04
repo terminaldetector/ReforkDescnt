@@ -65,6 +65,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
         } else if(cells().isEmpty()){discard();return;}
         ACTIVE.put(getUuid(),new WeakReference<>(this));
         if(!crashing&&getLocalBlock(CORE).isAir())destroyFromCore(world,null,"local reactor destroyed");
+        if(!crashing&&com.terminaldetector.drmd.world.contraption.boarding.BoardingRestore.waiting(this)){super.tick();return;}
         if(!crashing&&!UfoControlSystem.drive(this)&&autopilot)propel();
         if(crashing&&!detonated&&++crashTicks>=100)detonate(world);
         super.tick();

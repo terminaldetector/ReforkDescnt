@@ -39,8 +39,8 @@ public final class BoardingSystem {
     }
     public static void register() {
         ServerTickEvents.END_WORLD_TICK.register(BoardingSystem::tick);
-        ServerLifecycleEvents.SERVER_STOPPED.register(s->{LEASES.clear();PREVIOUS.clear();READY.clear();});
-        ServerPlayConnectionEvents.DISCONNECT.register((h,s)->{LEASES.remove(h.player.getUuid());PREVIOUS.remove(h.player.getUuid());READY.remove(h.player.getUuid());});
+        ServerLifecycleEvents.SERVER_STOPPED.register(s->{LEASES.clear();PREVIOUS.clear();READY.clear();BoardingRestore.clearAll();});
+        ServerPlayConnectionEvents.DISCONNECT.register((h,s)->{LEASES.remove(h.player.getUuid());PREVIOUS.remove(h.player.getUuid());READY.remove(h.player.getUuid());BoardingRestore.forgetConnection(h.player);});
     }
     public static boolean ready(ServerPlayerEntity p,int version) {
         if(version!=BoardingNetworking.PROTOCOL)return false;READY.put(p.getUuid(),new WeakReference<>(p));return true;
@@ -70,6 +70,7 @@ public final class BoardingSystem {
         var publish=new LinkedHashMap<ServerPlayerEntity,Lease>();
         var players=new ArrayList<>(players(world));players.sort(Comparator.comparing(p->p.getUuid().toString()));
         for(var p:players) {
+            BoardingRestore.holds(p);
             Lease l=LEASES.get(p.getUuid());Vec3 feet=pure(p.getPos());
             if(!eligible(p)||!ready(p)) {if(l!=null)release(p,l,pure(p.getVelocity()).scaled(20));PREVIOUS.put(p.getUuid(),new Previous(new WeakReference<>(world),feet));continue;}
             var candidates=new ArrayList<>(com.terminaldetector.drmd.world.contraption.BodySpatialIndex.query(world,p.getBoundingBox().expand(4+Math.min(8,p.getVelocity().length()))));
@@ -77,7 +78,7 @@ public final class BoardingSystem {
             var near=new ArrayList<BodyMotion>();
             for(var b:candidates){near.add(motions.computeIfAbsent(b.getId(),id->b.boardingMotion()));touched.add(b);}
             if(l==null) {
-                l=acquire(p,near);if(l!=null){LEASES.put(p.getUuid(),l);publish.put(p,l);}
+                l=acquire(p,near);if(l!=null){LEASES.put(p.getUuid(),l);BoardingRestore.remember(p,l.state);publish.put(p,l);}
                 PREVIOUS.put(p.getUuid(),new Previous(new WeakReference<>(world),pure(p.getPos())));continue;
             }
             if(!drives(p)||feet.minus(l.state.feet()).length()>2) {
@@ -97,6 +98,7 @@ public final class BoardingSystem {
             l.state=new DynamicBodyAttachment.State(feet,pure(p.getVelocity()).scaled(20),l.state.grounded(),l.state.support(),beforeFrame,l.state.gravityOwner());
             var worldCommand=new DynamicBodyAttachment.Input(command.strafe(),command.forward(),command.jump(),beforeFrame.rotate(command.look()));
             l.state=DynamicBodyAttachment.step(l.state,worldCommand,near,p.getWidth(),p.getHeight(),.05,BoardingWorldMotion.capture(p,l.state,false));
+            BoardingRestore.remember(p,l.state);
             BoardingPose.publish(p,l.state.frame());
             Vec3 look=PassengerFrame.releaseLook(worldCommand.look(),beforeFrame,l.state.frame(),l.state.gravityOwner());
             var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(look);
@@ -116,9 +118,11 @@ public final class BoardingSystem {
     }
     private static Lease acquire(ServerPlayerEntity p,List<BodyMotion> bodies) {
         Vec3 feet=pure(p.getPos());
-        for(var body:bodies)if(body.gravity(feet.plus(new Vec3(0,p.getHeight()/2,0)),1).isPresent()) {
-            var l=new Lease(p,new DynamicBodyAttachment.State(feet,pure(p.getVelocity()).scaled(20),false,-1,Quat.IDENTITY,body.id),++epoch);
-            BoardingPose.publish(p,Quat.IDENTITY);return l;
+        for(var body:bodies) {
+            Quat frame=BoardingRestore.frame(p,body.id);
+            if(body.gravity(feet.plus(PassengerFrame.up(frame).scaled(p.getHeight()/2)),1).isEmpty())continue;
+            var l=new Lease(p,new DynamicBodyAttachment.State(feet,pure(p.getVelocity()).scaled(20),false,-1,frame,body.id),++epoch);
+            BoardingPose.publish(p,frame);return l;
         }
         Previous prev=PREVIOUS.get(p.getUuid());
         Vec3 from=prev!=null&&prev.world.get()==p.getWorld()?prev.feet:feet;
@@ -151,6 +155,7 @@ public final class BoardingSystem {
         if(p.networkHandler instanceof BoardingConnection connection)connection.drmd$bodyMovementOwned();return l;
     }
     private static void release(ServerPlayerEntity p,Lease l,Vec3 velocity) {
+        BoardingRestore.clear(p);
         LEASES.remove(p.getUuid());l.state=new DynamicBodyAttachment.State(pure(p.getPos()),velocity,false,-1);
         BoardingPose.clear(p);
         p.setVelocity(mc(velocity.scaled(.05)));p.setOnGround(false);

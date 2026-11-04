@@ -22,6 +22,7 @@ public class PlayerEntityMixin {
 	@Inject(method = "writeCustomDataToNbt", at = @At("RETURN"))
 	private void drmd$write(NbtCompound nbt, CallbackInfo ci) {
 		PlayerEntity self = (PlayerEntity) (Object) this;
+		if(!self.isAlive()||self.isSpectator())DescentPlayerData.get(self).clearBoardingResume();
 		DescentPlayerData.get(self).writeNbt(nbt);
         nbt.put("DrmdLoadout",com.terminaldetector.drmd.inventory.DroneLoadout.save(self));
 	}

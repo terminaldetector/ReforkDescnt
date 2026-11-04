@@ -17,7 +17,8 @@
     "BodyEditInputProbe",
     "BoardingStepProbe",
     "BodyShapeDelayProbe",
-    "UfoPersistenceProbe"
+    "UfoPersistenceProbe",
+    "BoardingReadyDelayProbe"
   ],
   "injectors": {
     "defaultRequire": 1

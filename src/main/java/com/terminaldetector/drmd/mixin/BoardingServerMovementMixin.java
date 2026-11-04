@@ -21,12 +21,13 @@ public abstract class BoardingServerMovementMixin implements BoardingConnection 
         var handler=(ServerPlayNetworkHandler)(Object)this;
         NetworkThreadUtils.forceMainThread(packet,handler,player.getServerWorld());
         boolean flight=FlightBodySystem.owns(player);
-        if(!flight&&!BoardingSystem.drives(player))return;
+        boolean restoring=BoardingRestore.holds(player);
+        if(!flight&&!BoardingSystem.drives(player)&&!restoring)return;
         double x=packet.getX(player.getX()),y=packet.getY(player.getY()),z=packet.getZ(player.getZ());
         float yaw=packet.getYaw(player.getYaw()),pitch=packet.getPitch(player.getPitch());
         if(!Double.isFinite(x)||!Double.isFinite(y)||!Double.isFinite(z)||!Float.isFinite(yaw)||!Float.isFinite(pitch))
             handler.disconnect(Text.translatable("multiplayer.disconnect.invalid_player_movement"));
-        else if(flight||BoardingSystem.state(player).gravityOwner()<0) {player.setYaw(yaw);player.setPitch(net.minecraft.util.math.MathHelper.clamp(pitch,-90,90));}
+        else if(!restoring&&(flight||BoardingSystem.state(player).gravityOwner()<0)) {player.setYaw(yaw);player.setPitch(net.minecraft.util.math.MathHelper.clamp(pitch,-90,90));}
         drmd$bodyMovementOwned();ci.cancel();
     }
 }

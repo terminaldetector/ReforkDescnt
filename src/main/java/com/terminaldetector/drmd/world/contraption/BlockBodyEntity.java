@@ -63,6 +63,8 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     private Quat previousRotation = Quat.IDENTITY;
     private Vec3 previousPhysicsPosition = new Vec3(0,0,0);
     private long physicsTick = Long.MIN_VALUE;
+    private boolean simulatedPhysics;
+    public boolean hasSimulatedPhysics(){return simulatedPhysics;}
     private boolean remoteMotionPaused=true;
     private boolean publishingPhysicsPosition;
     private boolean collisionUnavailable;
@@ -666,7 +668,11 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         if (getWorld().isClient) { setBoundingBox(new Box(getPos(), getPos()).expand(radius));BodySpatialIndex.update(this); return; }
         if (cells.isEmpty()) return;
         body.withPosition(massPosition()); previousRotation = body.rotation();
-        previousPhysicsPosition=body.position();physicsTick=getWorld().getTime();
+        previousPhysicsPosition=body.position();
+        if(com.terminaldetector.drmd.world.contraption.boarding.BoardingRestore.waiting(this)) {
+            physicsTick=Long.MIN_VALUE;body.clearAccumulators();pendingTorque=new Vec3(0,0,0);publishPhysicsState();return;
+        }
+        physicsTick=getWorld().getTime();simulatedPhysics=true;
         if(BodyJointRegistry.get((ServerWorld)getWorld()).activeBody(getUuid(),getWorld().getTime())) {
             Vec3 torque=pendingTorque;pendingTorque=new Vec3(0,0,0);BodyJointSystem.defer(this,torque);return;
         }
