@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.client.portal.PortalTransform.*;
 import com.terminaldetector.drmd.entity.ModEntities;
 import com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions;
 import com.terminaldetector.drmd.world.contraption.*;
+import com.terminaldetector.drmd.world.contraption.boarding.*;
 import com.terminaldetector.drmd.world.mega.SkyUfoEntity;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.block.Blocks;
@@ -13,11 +14,37 @@ import net.minecraft.util.math.*;
 
 /** Real registered UFO geometry and state; not a replacement decorative fixture. */
 public final class PhysicalUfoGameTests implements FabricGameTest {
+    private static final DynamicBodyAttachment.Motion FREE=(p,q,d)->new DynamicBodyAttachment.Move(d,java.util.List.of());
     private SkyUfoEntity create(TestContext c) {
         var at=c.getAbsolutePos(new BlockPos(8,190,8));var w=c.getWorld();
         for(int x=-2;x<=2;x++)for(int z=-2;z<=2;z++)w.getChunk((at.getX()>>4)+x,(at.getZ()>>4)+z);
         var ufo=ModEntities.SKY_UFO.create(w);ufo.setAutopilot(false);ufo.refreshPositionAndAngles(at.getX(),at.getY(),at.getZ(),0,0);
         c.assertTrue(w.spawnEntity(ufo),"spawn existing UFO registration");ufo.tick();return ufo;
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="physical-ufo-flight-ccd",tickLimit=60)
+    public void freeFlightKernelStopsAtTheActualRotatedUfoDeck(TestContext c) {
+        var ufo=create(c);try {
+            var q=ImmPtlQuaternions.hamiltonProduct(ImmPtlQuaternions.rotationByDegrees(new Vec3(1,0,0),67),ImmPtlQuaternions.rotationByDegrees(new Vec3(0,0,1),123));
+            ufo.physics().withRotation(q);ufo.publishPhysicsState();
+            var pos=ufo.localToWorld(new Vec3d(3,8,3));var velocity=q.rotate(new Vec3(0,-320,0));
+            var s=new DynamicBodyAttachment.State(new Vec3(pos.x,pos.y,pos.z),velocity,false,-1,q,-1);
+            var stopped=DynamicBodyAttachment.freeFlight(s,java.util.List.of(ufo.boardingMotion()),.6,1.8,.05,FREE);
+            var local=ufo.worldToLocal(new Vec3d(stopped.feet().x(),stopped.feet().y(),stopped.feet().z()));
+            c.assertTrue(local.y>=-1e-5,"fast flight cannot cross the real rotated deck material");
+            c.assertTrue(stopped.velocity().minus(velocity).length()>100,"actual compound contact changes normal velocity");
+            c.assertTrue(Math.abs(ImmPtlQuaternions.dot(stopped.frame(),q.normalized()))>1-1e-12&&stopped.gravityOwner()<0,"flight does not silently become a walking gravity motor");
+        } finally {ufo.discard();}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="physical-ufo-flight-entrance",tickLimit=60)
+    public void freeFlightKernelPassesThroughTheActualUfoEntrance(TestContext c) {
+        var ufo=create(c);try {
+            var pos=ufo.localToWorld(new Vec3d(0,.1,-14));var velocity=new Vec3(0,0,240);
+            var s=new DynamicBodyAttachment.State(new Vec3(pos.x,pos.y,pos.z),velocity,false,-1);
+            var passed=DynamicBodyAttachment.freeFlight(s,java.util.List.of(ufo.boardingMotion()),.6,1.8,.05,FREE);
+            var local=ufo.worldToLocal(new Vec3d(passed.feet().x(),passed.feet().y(),passed.feet().z()));
+            c.assertTrue(local.z>-2.01,"actual hollow entrance stays open to the actor shape");
+            c.assertTrue(passed.velocity().minus(velocity).length()<1e-8,"empty space cannot act as the UFO envelope collider");
+        } finally {ufo.discard();}c.complete();
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="physical-ufo-single-hull",tickLimit=60)
     public void existingRegistrationCreatesOnePhysicalGridWithoutWorldBlocks(TestContext c) {

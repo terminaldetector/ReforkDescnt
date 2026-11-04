@@ -57,23 +57,32 @@ public final class DynamicBodyAttachment {
         });
     }
     public static State step(State state,Input input,List<BodyMotion> bodies,double width,double height,double seconds,Motion world) {
+        return step(state,input,bodies,width,height,seconds,world,false);
+    }
+    /** Already integrated suit velocity: shared moving-hull CCD without a second gravity,
+     * walking motor, automatic frame turn or tangential foot friction. The flight model
+     * remains the sole source of thrust and orientation. Reactions still reach the hull. */
+    public static State freeFlight(State state,List<BodyMotion> bodies,double width,double height,double seconds,Motion world) {
+        return step(state,Input.idle(),bodies,width,height,seconds,world,true);
+    }
+    private static State step(State state,Input input,List<BodyMotion> bodies,double width,double height,double seconds,Motion world,boolean flight) {
         if(!Double.isFinite(seconds)||seconds<=0||seconds>.05)throw new IllegalArgumentException("one bounded tick required");
         BodyBounds.finite(state.feet);BodyBounds.finite(state.velocity);
         Quat frame=state.frame;
         new OrientedBox(state.feet,new Vec3(1,1,1),frame); // validate physical orientation
         BodyMotion owner=null;
         Vec3 centre=state.feet.plus(PassengerFrame.up(frame).scaled(height/2));
-        for(var b:bodies)if(b.gravity(centre,0).isPresent()) {
+        for(var b:bodies)if(!flight&&b.gravity(centre,0).isPresent()) {
             if(owner==null||b.id==state.gravityOwner||b.id==state.support)owner=b;
             if(b.id==state.gravityOwner)break;
         }
-        Vec3 targetUp=owner==null?UP:owner.gravityUp(1);
+        Vec3 targetUp=flight?PassengerFrame.up(frame):owner==null?UP:owner.gravityUp(1);
         double turn=Math.acos(Math.max(-1,Math.min(1,PassengerFrame.up(frame).dot(targetUp))));
         int steps=Math.max(1,Math.min(32,(int)Math.ceil((state.velocity.length()*seconds+
             bodies.stream().mapToDouble(BodyMotion::travelBound).max().orElse(0)+Math.min(turn,6*seconds)*height)/.08)));
         double dt=seconds/steps;Vec3 feet=state.feet,velocity=state.velocity;
         boolean grounded=state.grounded;int support=state.support;
-        boolean jumping=input.jump&&grounded;
+        boolean jumping=!flight&&input.jump&&grounded;
         // World velocity already contains the contact point's speed. Adding it again doubles it.
         if(jumping){velocity=velocity.plus(PassengerFrame.up(frame).scaled(JUMP_SPEED));grounded=false;support=-1;}
         Vec3 lastSpin=ZERO;
@@ -85,7 +94,7 @@ public final class DynamicBodyAttachment {
                 var delta=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.hamiltonProduct(owner.rotation(end),owner.rotation(t).inverse());
                 carried=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.hamiltonProduct(delta,frame).normalized();
             }
-            Quat candidate=PassengerFrame.turn(carried,owner==null?UP:owner.gravityUp(end),6*dt);
+            Quat candidate=flight?frame:PassengerFrame.turn(carried,owner==null?UP:owner.gravityUp(end),6*dt);
             if(!candidate.equals(frame)) {
                 if(canOrient(feet,candidate,bodies,t,width,height,world))frame=candidate;
                 else {
@@ -102,8 +111,10 @@ public final class DynamicBodyAttachment {
             Vec3 spin=PassengerFrame.angularVelocity(frameBefore,frame,dt),centreOffset=up.scaled(height/2);lastSpin=spin;
             // Feet drive through friction at the contact, with the opposite impulse on the hull.
             // Neutral air input does not erase the carrier speed inherited at departure.
-            if(!grounded&&wish.lengthSquared()>1e-8)velocity=velocity.plus(wish.normalized().scaled(2*dt));
-            velocity=velocity.plus((owner==null?new Vec3(0,-32,0):owner.acceleration((t+end)/2)).scaled(dt));
+            if(!flight) {
+                if(!grounded&&wish.lengthSquared()>1e-8)velocity=velocity.plus(wish.normalized().scaled(2*dt));
+                velocity=velocity.plus((owner==null?new Vec3(0,-32,0):owner.acceleration((t+end)/2)).scaled(dt));
+            }
             grounded=false;support=-1;
             var actor=new D6PhysicsBody().withMass(1).withInertia(D6Mat3.diagonal(1e12,1e12,1e12))
                 .withPosition(feet.plus(centreOffset)).withRotation(frame).withAngularVelocity(spin)
@@ -113,7 +124,7 @@ public final class DynamicBodyAttachment {
                 if(c.penetration()>.2)continue;
                 if(c.penetration()>1e-7)feet=feet.plus(world.move(feet,frame,c.normal().scaled(c.penetration()+SEPARATION)).displacement());
                 actor.withPosition(feet.plus(up.scaled(height/2)));
-                contact(actor,b,t,c.point(),c.normal(),wish,up);
+                contact(actor,b,t,c.point(),c.normal(),wish,up,flight);
                 if(c.normal().dot(up)>.6 && actor.velocityAtPoint(c.point().minus(actor.position())).minus(b.surfaceVelocity(c.point(),t)).dot(c.normal())<.05) {
                     grounded=true;support=b.id;
                 }
@@ -155,7 +166,7 @@ public final class DynamicBodyAttachment {
                 }
                 Vec3 point=actual==null?PassengerFrame.box(feet,width,height,frame).supportCentre(normal.scaled(-1)):actual.point();
                 double before=actor.velocityAtPoint(point.minus(actor.position())).minus(hitBody.surfaceVelocity(point,impact)).dot(normal);
-                contact(actor,hitBody,impact,point,normal,wish,up);
+                contact(actor,hitBody,impact,point,normal,wish,up,flight);
                 // The solved moving plane owns this normal for the rest of the substep. Recasting
                 // its frozen old orientation would stop valid rotational surface movement.
                 planes.add(new Plane(normal,hitBody.localOffset(point,impact),point.minus(feet),hit.localShape(),hitBody));
@@ -175,13 +186,14 @@ public final class DynamicBodyAttachment {
             if(c.normal().dot(up)>.6&&c.penetration()<=.2&&velocity.plus(lastSpin.cross(c.point().minus(feet))).minus(b.surfaceVelocity(c.point(),1)).dot(c.normal())<.1) {
                 grounded=true;support=b.id;
             }
+        if(flight)return new State(feet,velocity,false,-1,frame,-1);
         int gravityOwner=owner!=null&&owner.gravity(feet.plus(up.scaled(height/2)),1).isPresent()?owner.id:-1;
         if(gravityOwner<0&&!grounded&&up.dot(UP)>.99999&&world.canOrient(feet,Quat.IDENTITY))frame=Quat.IDENTITY;
         return new State(feet,velocity,grounded,support,frame,gravityOwner);
     }
-    private static void contact(D6PhysicsBody actor,BodyMotion body,double t,Vec3 point,Vec3 normal,Vec3 wish,Vec3 up) {
+    private static void contact(D6PhysicsBody actor,BodyMotion body,double t,Vec3 point,Vec3 normal,Vec3 wish,Vec3 up,boolean flight) {
         var proxy=body.proxy(t);Vec3 beforeV=proxy.linearVelocity();
-        var constraint=new BodyContactConstraint(actor,proxy,point,normal,.65,normal.dot(up)>.6?wish:ZERO);
+        var constraint=new BodyContactConstraint(actor,proxy,point,normal,flight?0:.65,!flight&&normal.dot(up)>.6?wish:ZERO);
         for(int pass=0;pass<8;pass++)constraint.solve();
         Vec3 impulse=proxy.linearVelocity().minus(beforeV).scaled(proxy.mass());
         // The same contact point/offset generated this reaction on the pose-specific D6 proxy.

@@ -50,3 +50,33 @@ outside while free flight is active. Inspection found that free-flight travel st
 uses ordinary Minecraft collision rather than the BlockBody contact kernel. Fixing
 that movement/authority boundary and proving an external approach is the next step.
 This is still a development checkpoint, not an accepted1.1.35 distribution.
+
+## Free-flight contact integration (development)
+
+The suit now shares `DynamicBodyAttachment.freeFlight` with the existing D6/BlockBody
+contact kernel. This mode consumes the suit integrator's world velocity without adding
+walking gravity, field alignment or tangential foot friction. It retains moving/rotating
+compound CCD and opposite hull reactions. The server defers nearby suit travel until
+after joints/hull contacts and before boarding acquisition. While it owns this contact
+region, ordinary movement packets cannot replace the resolved player position.
+
+The client predicts through the same kernel, with a bounded16-command history and
+32-command server queue. Prediction clocks carry no client pose or velocity authority.
+Outgoing shape dependencies pause prediction until the actual matching grids arrive.
+Loaded-world collision snapshots include the flight path, never generate unknown cubes,
+and fence extreme displacement beyond32m per axis. Suit collision geometry retains the
+existing upright character shape; this does not certify an arbitrarily oriented suit OBB.
+
+Local checks:679 unit tests and234 server GameTests passed. Eight new unit cases cover
+thin-hull CCD at512m/s, moving hull approach, open/rotated doors, momentum reaction,
+separation and absence of a second gravity/frame motor. Two tests use real UFO geometry.
+Three registered server-player tests exercise actual travel deferral, blocked position
+overwrite, epoch/replay/queue admission and transfer to the existing walking motor.
+The first server-player handoff fixture omitted the ordinary movement step and erased
+the moving deck's normal velocity; its retained failure was corrected by executing the
+real phase order and retaining contact-point velocity. No contact tolerance was widened.
+
+The new native external-entry stand must still run on this exact candidate. It exercises
+approach through the real moving UFO bay, H-off boarding, walking and roof collision during
+three-axis spin. Until its real-client evidence and broader regression are verified, the
+integration remains WIP. Dedicated/latency/multiclient/reload acceptance remains open.

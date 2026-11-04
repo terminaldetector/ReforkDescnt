@@ -71,9 +71,12 @@ public final class DescentFlightMotion {
 	}
 
 	public static void clear() {
+		FlightBodyClient.clear();
 		predicted = Vec3d.ZERO;
 		primed = false;
 	}
+    /** Authoritative hull-contact replay has already accounted for flight prediction. */
+    public static void contactVelocity(Vec3d velocity){predicted=velocity;primed=true;}
 
 	public static void travel(PlayerEntity player) {
 		// Belt-and-suspenders with ClientPlayerEntityMixin — never let creative flying co-drive.
@@ -82,6 +85,8 @@ public final class DescentFlightMotion {
 		}
 
 		predicted = integrate(predicted);
+        var contact=FlightBodyClient.travel(player,predicted);
+        if(contact!=null){predicted=contact;player.fallDistance=0;return;}
 
 		Vec3d perTick = predicted.multiply(1.0 / DescentMod.TICKS_PER_SECOND);
 		player.setVelocity(perTick);

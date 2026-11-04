@@ -61,6 +61,7 @@ public class DescentMod implements ModInitializer {
 		com.terminaldetector.drmd.world.DrmdBuiltinPacks.register();
 		ModNetworking.register();
         com.terminaldetector.drmd.world.contraption.BodyContactSystem.register();
+        com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.register();
         com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.register();
         com.terminaldetector.drmd.inventory.DroneInventoryHandler.register();
 		ModEntities.register();

@@ -17,12 +17,26 @@ public final class BoardingWorldMotion implements DynamicBodyAttachment.Motion {
     private final boolean replay;
     private BoardingWorldMotion(PlayerEntity player,OrientedCharacterClip clip,boolean replay){this.player=player;this.clip=clip;this.replay=replay;}
     public static BoardingWorldMotion capture(PlayerEntity player,DynamicBodyAttachment.State state,boolean replay) {
+        return capture(player,state,replay,false);
+    }
+    public static BoardingWorldMotion captureFlight(PlayerEntity player,DynamicBodyAttachment.State state,boolean replay) {
+        return capture(player,state,replay,true);
+    }
+    private static BoardingWorldMotion capture(PlayerEntity player,DynamicBodyAttachment.State state,boolean replay,boolean flight) {
         var world=player.getWorld();
         if(!CubicAvailability.onWorldThread(world))throw new IllegalStateException("Passenger geometry requires the world thread");
         double reach=3+Math.min(3,state.velocity().length()*.05);
         var p=state.feet();int x0=MathHelper.floor(p.x()-reach),x1=MathHelper.floor(p.x()+reach);
         int y0=MathHelper.floor(p.y()-reach),y1=MathHelper.floor(p.y()+reach);
         int z0=MathHelper.floor(p.z()-reach),z1=MathHelper.floor(p.z()+reach);
+        if(flight) {
+            var delta=state.velocity().scaled(.05);
+            // Bound snapshot work on each axis. An extreme administrative speed reaches the
+            // solid snapshot fence instead of reading/generating an unbounded world volume.
+            x0=MathHelper.floor(p.x()+Math.min(0,Math.max(-32,delta.x()))-3);x1=MathHelper.floor(p.x()+Math.max(0,Math.min(32,delta.x()))+3);
+            y0=MathHelper.floor(p.y()+Math.min(0,Math.max(-32,delta.y()))-3);y1=MathHelper.floor(p.y()+Math.max(0,Math.min(32,delta.y()))+3);
+            z0=MathHelper.floor(p.z()+Math.min(0,Math.max(-32,delta.z()))-3);z1=MathHelper.floor(p.z()+Math.max(0,Math.min(32,delta.z()))+3);
+        }
         var access=WorldAccess.of(world);var shapes=new ArrayList<BodyBounds>();
         var available=new HashMap<D6ChunkPos,Boolean>();
         for(int x=(x0-1)>>4;x<=(x1+1)>>4;x++)for(int y=(y0-1)>>4;y<=(y1+1)>>4;y++)for(int z=(z0-1)>>4;z<=(z1+1)>>4;z++) {

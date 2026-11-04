@@ -10,6 +10,7 @@
     "BodyRenderProbe",
     "ProjectorInputAccess",
     "BoardingStateProbe",
+    "FlightBodyStateProbe",
     "ShipModelProbe",
     "ShipCameraProbe",
     "BodyEditInputProbe",

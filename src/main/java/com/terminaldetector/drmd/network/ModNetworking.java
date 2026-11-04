@@ -510,6 +510,7 @@ public final class ModNetworking {
     }
 
 	public static void register() {
+        FlightBodyNetworking.register();
         BoardingNetworking.register();
         PayloadTypeRegistry.playC2S().register(PortalProjectorPayload.ID,PortalProjectorPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(PortalProjectorPayload.ID,(p,c)->c.server().execute(()->

@@ -48,6 +48,10 @@ public class ServerPlayerFlightTravelMixin {
 
 		DescentPlayerData data = DescentPlayerData.get(sp);
 		if (!data.isEnabled()) return;
+        if(com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.defer(sp)) {
+            if(sp.getAbilities().flying){sp.getAbilities().flying=false;sp.sendAbilitiesUpdate();}
+            sp.fallDistance=0;ci.cancel();return;
+        }
 
 		if (sp.getAbilities().flying) {
 			sp.getAbilities().flying = false;
