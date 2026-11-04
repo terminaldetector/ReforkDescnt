@@ -10,5 +10,5 @@ public class UfoPersistenceProbe {
     @Inject(method="writeCustomDataToNbt",at=@At("RETURN"))
     private void saved(NbtCompound n,CallbackInfo ci){NativeUfoReloadCheck.saved((SkyUfoEntity)(Object)this,n);}
     @Inject(method="readCustomDataFromNbt",at=@At("RETURN"))
-    private void loaded(NbtCompound n,CallbackInfo ci){NativeUfoReloadCheck.loaded((SkyUfoEntity)(Object)this);}
+    private void loaded(NbtCompound n,CallbackInfo ci){NativeUfoReloadCheck.loaded((SkyUfoEntity)(Object)this,n);}
 }
