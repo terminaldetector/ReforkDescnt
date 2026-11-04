@@ -53,17 +53,21 @@ public final class UfoControlSystem {
     public static boolean controls(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());return l!=null&&l.pilot.get()==p;}
     public static int epoch(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());return l==null?-1:l.epoch;}
     public static boolean release(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());if(l==null||l.pilot.get()!=p)return false;drop(p.getUuid(),l);return true;}
-    public static void releaseBody(SkyUfoEntity b){for(var id:List.copyOf(PILOTS.keySet())){var l=PILOTS.get(id);if(l!=null&&l.body.get()==b)drop(id,l);}}
+    public static void releaseBody(SkyUfoEntity b){if(b.getWorld().isClient)return;for(var id:List.copyOf(PILOTS.keySet())){var l=PILOTS.get(id);if(l!=null&&l.body.get()==b)drop(id,l);}}
     private static void drop(UUID id,Lease l){PILOTS.remove(id);var b=l.body.get();var p=l.pilot.get();if(b!=null){b.setAutopilot(l.previousAuto);if(p!=null&&!p.isRemoved())sync(p,b,l,false);}}
-    public static boolean savedAutopilot(SkyUfoEntity b,boolean fallback){for(var l:PILOTS.values())if(l.body.get()==b)return l.previousAuto;return fallback;}
+    public static boolean savedAutopilot(SkyUfoEntity b,boolean fallback){if(b.getWorld().isClient)return fallback;for(var l:PILOTS.values())if(l.body.get()==b)return l.previousAuto;return fallback;}
     private static void sync(ServerPlayerEntity p,SkyUfoEntity b,Lease l,boolean active){if(ServerPlayNetworking.canSend(p,State.ID))ServerPlayNetworking.send(p,new State(b.getUuid(),l.epoch,active,p.getWorld().getRegistryKey().getValue()));}
     public static boolean receive(ServerPlayerEntity p,Input input) {
-        var l=PILOTS.get(p.getUuid());if(l==null||l.pilot.get()!=p||l.body.get()==null||!p.getServer().isOnThread()||!valid(p,l.body.get())||input.epoch!=l.epoch||input.sequence<0||input.sequence<=l.sequence||(long)input.sequence-l.sequence>128)return false;
+        // This is a latest-input snapshot, never a queued simulation step. Allow sequence
+        // gaps after a paused/lagged integrated server; epoch, replay, per-tick admission
+        // and the single physical drive step still bound authority and work.
+        var l=PILOTS.get(p.getUuid());if(l==null||l.pilot.get()!=p||l.body.get()==null||!p.getServer().isOnThread()||!valid(p,l.body.get())||input.epoch!=l.epoch||input.sequence<0||input.sequence<=l.sequence)return false;
         for(float v:new float[]{input.forward,input.strafe,input.vertical,input.pitch,input.yaw,input.roll})if(!Float.isFinite(v)||Math.abs(v)>1)return false;
         long now=p.getServer().getTicks();if(l.budgetTick!=now){l.budgetTick=now;l.count=0;}if(l.count>=4)return false;l.count++;
         l.sequence=input.sequence;l.input=input;l.received=now;return true;
     }
     public static boolean drive(SkyUfoEntity b) {
+        if(b.getWorld().isClient)return false;
         for(var entry:List.copyOf(PILOTS.entrySet())){var l=entry.getValue();if(l.body.get()!=b)continue;var p=l.pilot.get();if(p==null||!valid(p,b)){drop(entry.getKey(),l);return false;}
             long tick=p.getServer().getTicks();if(l.drivenTick==tick)return true;l.drivenTick=tick;
             var in=l.input;if(in!=null&&tick-l.received<=4){

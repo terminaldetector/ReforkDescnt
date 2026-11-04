@@ -52,6 +52,8 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
             c.assertTrue(!com.terminaldetector.drmd.world.mega.UfoControlSystem.receive(p,input),"duplicate rejected");com.terminaldetector.drmd.world.mega.UfoControlSystem.drive(b);var after=b.physics().linearVelocity();
             c.assertTrue(Math.abs(after.z()-before.z()-.25)<1e-8,"bounded thrust changes actual hull momentum");com.terminaldetector.drmd.world.mega.UfoControlSystem.drive(b);
             c.assertTrue(after.equals(b.physics().linearVelocity()),"a repeated same-tick drive cannot multiply thrust");
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.receive(p,new com.terminaldetector.drmd.world.mega.UfoControlSystem.Input(epoch,4096,0,0,0,0,0,0)),"latest input may resume above a large pause/backpressure gap without a simulation backlog");
+            c.assertTrue(!com.terminaldetector.drmd.world.mega.UfoControlSystem.receive(p,new com.terminaldetector.drmd.world.mega.UfoControlSystem.Input(epoch,1,1,0,0,0,0,0))&&after.equals(b.physics().linearVelocity()),"older snapshot cannot restore thrust or advance physics");
         } finally {com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);p.discard();b.discard();}c.complete();
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-control-save")

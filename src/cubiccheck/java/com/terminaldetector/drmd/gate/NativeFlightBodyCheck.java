@@ -20,7 +20,8 @@ import java.util.*;
 /** External entry, real free-flight authority, H-off boarding and roof CCD on the registered UFO. */
 public final class NativeFlightBodyCheck {
     private static final boolean CONTROL=Boolean.getBoolean("drmd.gate.ufoControl");
-    private static int controlStep;private static volatile boolean serverControl;private static volatile Vec3 controlVelocity,controlSpin;private static Vec3 beforeControl;
+    private static boolean pauseChecking,pauseVerified;private static int pauseTicks;
+    private static int controlStep;private static volatile boolean serverControl;private static volatile Vec3 controlVelocity,controlSpin;private static Vec3 beforeControl,beforePilot;
     private static final BlockPos AT=new BlockPos(8,2156,16);
     private static boolean started,prepared,finished,capturing,flightStarted;
     private static volatile boolean ready,roofReady;private static volatile Vec3d local,serverFeet,bodyStart,bodyNow;
@@ -60,6 +61,11 @@ public final class NativeFlightBodyCheck {
         }
         if(!prepared&&c.player.getY()>AT.getY()-20&&loaded(c)){prepared=true;c.getServer().execute(()->setup(c));return;}
         if(!ready||capturing||!(c.world.getEntityById(bodyId) instanceof BlockBodyEntity))return;
+        if(pauseChecking){
+            if(c.isPaused())pauseTicks++;
+            if(pauseTicks>=160){c.setScreen(null);pauseChecking=false;pauseVerified=true;age=0;c.options.forwardKey.setPressed(true);com.terminaldetector.drmd.client.input.DescentKeybinds.rollRight.setPressed(true);}
+            return;
+        }
         age++;
         if(age%20==0)System.out.println("FLIGHT_BODY_CLIENT_CLOCK canSend="+ClientPlayNetworking.canSend(FlightBodyNetworking.Input.ID)+" pending="+FlightBodyClient.pending()+" sequence="+FlightBodyClient.sequence());
         if(phase==0&&FlightBodyClient.active()&&serverEpoch>0&&local!=null) {
@@ -82,11 +88,11 @@ public final class NativeFlightBodyCheck {
                     var hull=(BlockBodyEntity)c.world.getEntityById(bodyId);var view=BoardingClient.bodyView(hull,1);
                     var offset=new Vec3(3.5,-.5,.5).minus(hull.localCentre());var aim=(view==null?hull.localToWorld(new Vec3d(3.5,-.5,.5)):BoardingSystem.mc(view.position().plus(view.rotation().rotate(offset)))).subtract(c.player.getEyePos());
                     var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(BoardingSystem.pure(aim));c.player.setYaw((float)angles.yawDegrees());c.player.setPitch((float)angles.pitchDegrees());c.options.useKey.setPressed(true);
-                    if(serverControl&&UfoControlClient.active()){c.options.useKey.setPressed(false);beforeControl=controlVelocity;walkStart=local.x;c.options.forwardKey.setPressed(true);com.terminaldetector.drmd.client.input.DescentKeybinds.rollRight.setPressed(true);controlStep=1;request("control-acquired");age=0;}
+                    if(serverControl&&UfoControlClient.active()){c.options.useKey.setPressed(false);beforeControl=controlVelocity;beforePilot=BoardingSystem.pure(local);walkStart=local.x;c.options.forwardKey.setPressed(true);com.terminaldetector.drmd.client.input.DescentKeybinds.rollRight.setPressed(true);controlStep=1;request("control-acquired");age=0;}
                 }else if(controlStep==1&&age>=14){
                     c.options.forwardKey.setPressed(false);com.terminaldetector.drmd.client.input.DescentKeybinds.rollRight.setPressed(false);
-                    require(serverControl&&controlVelocity.minus(beforeControl).length()>1&&Math.abs(controlSpin.z())>.2,"actual control inputs must accelerate and turn the existing UFO");
-                    require(Math.abs(local.x-walkStart)<.4,"pilot input must drive the hull rather than walk the character");request("control-thrust-and-roll");controlStep=2;age=0;
+                    require(pauseVerified&&serverControl&&controlVelocity.minus(beforeControl).length()>1&&Math.abs(controlSpin.z())>.2,"actual control inputs must accelerate and turn the existing UFO");
+                    require(BoardingSystem.pure(local).minus(beforePilot).length()<.4,"pilot input must drive the hull rather than walk the character");request("control-thrust-and-roll");controlStep=2;age=0;
                 }else if(controlStep==2&&age>=5){ClientPlayNetworking.send(new ModNetworking.ActionPayload("toggle"));controlStep=3;age=0;
                 }else if(controlStep==3&&age>=8&&!serverControl&&!UfoControlClient.active()){
                     require(!com.terminaldetector.drmd.client.DescentClientState.enabled&&walking,"H release must return to physical walking without enabling suit flight");
@@ -135,8 +141,9 @@ public final class NativeFlightBodyCheck {
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             var out=c.runDirectory.toPath().resolve("flight-body-frames");Files.createDirectories(out);image.writeTo(out.resolve(scene+".png"));scenes.add(scene);capturing=false;
             System.out.println("FLIGHT_BODY_CLIENT "+scene+" PASS local="+local);
+            if(CONTROL&&scene.equals("control-acquired")){pauseChecking=true;pauseTicks=0;c.openPauseMenu(false);}
             if(phase==8) {
-                Files.writeString(c.runDirectory.toPath().resolve(CONTROL?"ufo-control-ok.json":"flight-body-ok.json"),"{\"controlCore\":"+CONTROL+",\"actualUfo\":true,\"externalEntry\":true,\"actualThrust\":true,\"walkingHandoff\":true,\"roofContacts\":"+roofContacts+",\"teleportFollow\":false,\"renderedFrames\":"+draws+",\"predictionSamples\":"+samples+",\"maxPredictionError\":"+maxError+",\"scenes\":[\""+String.join("\",\"",scenes)+"\"]}\n");
+                Files.writeString(c.runDirectory.toPath().resolve(CONTROL?"ufo-control-ok.json":"flight-body-ok.json"),"{\"pauseResumed\":"+pauseVerified+",\"controlCore\":"+CONTROL+",\"actualUfo\":true,\"externalEntry\":true,\"actualThrust\":true,\"walkingHandoff\":true,\"roofContacts\":"+roofContacts+",\"teleportFollow\":false,\"renderedFrames\":"+draws+",\"predictionSamples\":"+samples+",\"maxPredictionError\":"+maxError+",\"scenes\":[\""+String.join("\",\"",scenes)+"\"]}\n");
                 finished=true;c.scheduleStop();
             }
         }catch(java.io.IOException e){throw new IllegalStateException(e);}
