@@ -1,0 +1,306 @@
+[08:35:13] [main/INFO]: Loading Minecraft 1.21.1 with Fabric Loader 0.19.5
+[08:35:13] [main/INFO]: Fabric is preparing JARs on first launch, this may take a few seconds...
+[08:35:14] [main/INFO]: Loading 57 mods:
+	- bettercubicchunks 0.1.1+mc1.21.1
+	- drmd 1.1.34-joints.1
+	- drmd_cubiccheck 0.0.1
+	- fabric-api 0.116.15+1.21.1
+	   |-- fabric-api-base 0.4.42+6573ed8c19
+	   |-- fabric-api-lookup-api-v1 1.6.72+7b3d111d19
+	   |-- fabric-biome-api-v1 13.0.31+d527f9fd19
+	   |-- fabric-block-api-v1 1.1.0+0bc3503219
+	   |-- fabric-block-view-api-v2 1.0.11+ebb2264e19
+	   |-- fabric-blockrenderlayer-v1 1.1.52+0af3f5a719
+	   |-- fabric-client-tags-api-v1 1.2.0+1eb36c0719
+	   |-- fabric-command-api-v1 1.2.49+f71b366f19
+	   |-- fabric-command-api-v2 2.2.28+6ced4dd919
+	   |-- fabric-commands-v0 0.2.66+df3654b319
+	   |-- fabric-content-registries-v0 8.0.19+b559734419
+	   |-- fabric-convention-tags-v1 2.1.7+7f945d5b19
+	   |-- fabric-convention-tags-v2 2.12.0+c3656daa19
+	   |-- fabric-crash-report-info-v1 0.2.29+0af3f5a719
+	   |-- fabric-data-attachment-api-v1 1.4.7+5b36e0f719
+	   |-- fabric-data-generation-api-v1 20.3.0+1eb36c0719
+	   |-- fabric-dimensions-v1 4.0.1+65213ef819
+	   |-- fabric-entity-events-v1 1.8.0+2b27e0a419
+	   |-- fabric-events-interaction-v0 0.7.14+ba9dae0619
+	   |-- fabric-game-rule-api-v1 1.0.53+6ced4dd919
+	   |-- fabric-item-api-v1 11.3.0+467044f319
+	   |-- fabric-item-group-api-v1 4.1.7+def88e3a19
+	   |-- fabric-key-binding-api-v1 1.0.47+0af3f5a719
+	   |-- fabric-keybindings-v0 0.2.45+df3654b319
+	   |-- fabric-lifecycle-events-v1 2.6.0+0865547519
+	   |-- fabric-loot-api-v2 3.0.15+3f89f5a519
+	   |-- fabric-loot-api-v3 1.0.3+3f89f5a519
+	   |-- fabric-message-api-v1 6.0.14+8aaf3aca19
+	   |-- fabric-model-loading-api-v1 2.1.0+b4d813fc19
+	   |-- fabric-networking-api-v1 4.3.1+d30f6a7919
+	   |-- fabric-object-builder-api-v1 15.2.1+40875a9319
+	   |-- fabric-particles-v1 4.0.2+6573ed8c19
+	   |-- fabric-recipe-api-v1 5.0.16+2475392c19
+	   |-- fabric-registry-sync-v0 5.3.2+e3eddc2119
+	   |-- fabric-renderer-api-v1 3.4.1+b4d813fc19
+	   |-- fabric-renderer-indigo 1.7.1+c705a49c19
+	   |-- fabric-renderer-registries-v1 3.2.69+df3654b319
+	   |-- fabric-rendering-data-attachment-v1 0.3.49+73761d2e19
+	   |-- fabric-rendering-fluids-v1 3.1.6+1daea21519
+	   |-- fabric-rendering-v0 1.1.72+df3654b319
+	   |-- fabric-rendering-v1 5.1.0+ab4c25a019
+	   |-- fabric-resource-conditions-api-v1 4.3.0+8dc279b119
+	   |-- fabric-resource-loader-v0 1.3.1+5b5275af19
+	   |-- fabric-screen-api-v1 2.0.26+639b4c0719
+	   |-- fabric-screen-handler-api-v1 1.3.91+b559734419
+	   |-- fabric-sound-api-v1 1.0.23+6573ed8c19
+	   |-- fabric-tag-api-v1 1.3.0+1eb36c0719
+	   |-- fabric-transfer-api-v1 5.4.4+7b3d111d19
+	   \-- fabric-transitive-access-wideners-v1 6.2.0+45b9699719
+	- fabricloader 0.19.5
+	   \-- mixinextras 0.5.5
+	- java 21
+	- minecraft 1.21.1
+[08:35:14] [main/INFO]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/workspace/ungravity-v5/fragment-boarding/build/cubic-client-automation/libraries/net/fabricmc/sponge-mixin/0.17.4+mixin.0.8.7/sponge-mixin-0.17.4+mixin.0.8.7.jar Service=Knot/Fabric Env=CLIENT
+[08:35:14] [main/INFO]: Wrote default config to /workspace/ungravity-v5/fragment-boarding/build/cubic-client-automation/config/bettercubicchunks.json
+[08:35:14] [main/INFO]: Position packing: TALL (Y range -32768..32767, XZ range +/-8388607)
+[08:35:15] [main/INFO]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.5).
+[08:35:17] [Datafixer Bootstrap/INFO]: 226 Datafixer optimizations took 746 milliseconds
+[08:35:23] [Render thread/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[08:35:23] [Render thread/INFO]: Setting user: CubicGate
+[08:35:23] [Render thread/INFO]: Better Cubic Chunks loading on Fabric (development environment: false)
+[08:35:23] [Yggdrasil Key Fetcher/ERROR]: Failed to request yggdrasil public key
+com.mojang.authlib.exceptions.MinecraftClientException: Failed to read from https://api.minecraftservices.com/publickeys due to Connection refused
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:108) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.get(MinecraftClient.java:57) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo.fetch(YggdrasilServicesKeyInfo.java:114) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo$1.run(YggdrasilServicesKeyInfo.java:89) ~[authlib-6.0.54.jar:?]
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572) ~[?:?]
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317) ~[?:?]
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[?:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[?:?]
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:694) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[?:?]
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[?:?]
+	at java.base/java.net.Socket.connect(Socket.java:751) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304) ~[?:?]
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:178) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:539) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:644) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:265) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:378) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:196) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1305) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1146) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:1075) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:181) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1707) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1632) ~[?:?]
+	at java.base/java.net.HttpURLConnection.getResponseCode(HttpURLConnection.java:531) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getResponseCode(HttpsURLConnectionImpl.java:307) ~[?:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:84) ~[authlib-6.0.54.jar:?]
+	... 9 more
+[08:35:23] [Render thread/INFO]: DRMD 6DOF initializing — 6DoF world mode (volume-first)
+[08:35:23] [Render thread/INFO]: [drmd] 1.1.34-joints.1 on Minecraft 1.21.1 / loader 0.19.5 / 57 mods
+[08:35:23] [Render thread/INFO]: [drmd] optional: immersive_portals=no, dimlib=no, sodium=no, iris=no
+[08:35:23] [Render thread/INFO]: [drmd] access widener applied
+[08:35:23] [Render thread/INFO]: Advanced-column pack registered, default activation=NORMAL
+[08:35:23] [Render thread/INFO]: Registered DRMD entities (ragdoll + End boss + Sky UFO + laser cart)
+[08:35:23] [Render thread/INFO]: Registered DRMD map blocks
+[08:35:23] [Render thread/INFO]: Registered closed Descent arsenal (41 open weapons)
+[08:35:23] [Render thread/INFO]: Registered Phase3 world blocks & engineer tools
+[08:35:23] [Render thread/INFO]: Registered DRMD block entities
+[08:35:23] [Render thread/INFO]: Industrial Underground worldgen parked (WorldFeatures.MACRO_WORLDGEN)
+[08:35:23] [Render thread/INFO]: World Generation 2.0 parked (WorldFeatures.MACRO_WORLDGEN)
+[08:35:23] [Render thread/INFO]: Orbit junk / techno-ring scaffold registered
+[08:35:23] [Render thread/INFO]: Portal complexity online — ImmPtl present=false
+[08:35:23] [Render thread/INFO]: Registered ÆRis/Mirai step 6 density generator (drmd:aeris_test)
+[08:35:23] [Render thread/INFO]: Distant Horizons not installed — install modrinth.com/mod/distanthorizons for max view distance
+[08:35:23] [Render thread/INFO]: DRMD 6DOF ready — cubic body prototype + native portal frames + surface store
+[08:35:24] [Render thread/INFO]: [Indigo] Registering Indigo renderer!
+[08:35:24] [Render thread/INFO]: Backend library: LWJGL version 3.3.3-snapshot
+[W][08:35:24.821005] pw.conf      | [          conf.c: 1204 pw_conf_load_conf_for_context()] setting config.name to client-rt.conf is deprecated, using client.conf
+[W][08:35:24.821036] pw.conf      | [          conf.c: 1182 try_load_conf()] can't load config client.conf: No such file or directory
+[E][08:35:24.821038] pw.conf      | [          conf.c: 1215 pw_conf_load_conf_for_context()] can't load config client.conf: No such file or directory
+[ALSOFT] (EE) Failed to create PipeWire event context (errno: 2)
+Failed to symlink /home/agent/.config/pulse/f09796fd086547da9ddf7488d4386bdf-runtime.tmp to /tmp/pulse-PKdhtXMmr18n: Read-only file system
+Failed to symlink /home/agent/.config/pulse/f09796fd086547da9ddf7488d4386bdf-runtime.tmp: Read-only file system
+[08:35:25] [Render thread/INFO]: Reloading ResourceManager: vanilla, fabric, bettercubicchunks, drmd, fabric-api, fabric-api-base, fabric-api-lookup-api-v1, fabric-biome-api-v1, fabric-block-api-v1, fabric-block-view-api-v2, fabric-blockrenderlayer-v1, fabric-client-tags-api-v1, fabric-command-api-v1, fabric-command-api-v2, fabric-commands-v0, fabric-content-registries-v0, fabric-convention-tags-v1, fabric-convention-tags-v2, fabric-crash-report-info-v1, fabric-data-attachment-api-v1, fabric-data-generation-api-v1, fabric-dimensions-v1, fabric-entity-events-v1, fabric-events-interaction-v0, fabric-game-rule-api-v1, fabric-item-api-v1, fabric-item-group-api-v1, fabric-key-binding-api-v1, fabric-keybindings-v0, fabric-lifecycle-events-v1, fabric-loot-api-v2, fabric-loot-api-v3, fabric-message-api-v1, fabric-model-loading-api-v1, fabric-networking-api-v1, fabric-object-builder-api-v1, fabric-particles-v1, fabric-recipe-api-v1, fabric-registry-sync-v0, fabric-renderer-api-v1, fabric-renderer-indigo, fabric-renderer-registries-v1, fabric-rendering-data-attachment-v1, fabric-rendering-fluids-v1, fabric-rendering-v0, fabric-rendering-v1, fabric-resource-conditions-api-v1, fabric-resource-loader-v0, fabric-screen-api-v1, fabric-screen-handler-api-v1, fabric-sound-api-v1, fabric-tag-api-v1, fabric-transfer-api-v1, fabric-transitive-access-wideners-v1, fabricloader
+[08:35:25] [Worker-Main-1/INFO]: Found unifont_all_no_pua-15.1.05.hex, loading
+[08:35:26] [Worker-Main-1/INFO]: Found unifont_jp_patch-15.1.05.hex, loading
+[08:35:28] [Download-1/WARN]: Couldn't look up profile properties for 9f3fe083-b69b-4dfa-a4cc-261026261026
+com.mojang.authlib.exceptions.MinecraftClientException: Failed to read from https://sessionserver.mojang.com/session/minecraft/profile/9f3fe083b69b4dfaa4cc261026261026?unsigned=false due to Connection refused
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:108) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.get(MinecraftClient.java:57) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilMinecraftSessionService.fetchProfileUncached(YggdrasilMinecraftSessionService.java:201) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilMinecraftSessionService.fetchProfile(YggdrasilMinecraftSessionService.java:171) ~[authlib-6.0.54.jar:?]
+	at knot/net.minecraft.class_310.method_53464(class_310.java:454) ~[client-intermediary.jar:?]
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[?:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[?:?]
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:694) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[?:?]
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[?:?]
+	at java.base/java.net.Socket.connect(Socket.java:751) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304) ~[?:?]
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:178) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:539) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:644) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:265) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:378) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:196) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1305) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1146) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:1075) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:181) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1707) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1632) ~[?:?]
+	at java.base/java.net.HttpURLConnection.getResponseCode(HttpURLConnection.java:531) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getResponseCode(HttpsURLConnectionImpl.java:307) ~[?:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:84) ~[authlib-6.0.54.jar:?]
+	... 8 more
+[08:35:31] [Render thread/WARN]: Missing sound for event: minecraft:item.goat_horn.play
+[08:35:31] [Render thread/WARN]: Missing sound for event: minecraft:entity.goat.screaming.horn_break
+ALSA lib confmisc.c:855:(parse_card) cannot find card '0'
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_card_inum returned error: No such file or directory
+ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_concat returned error: No such file or directory
+ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5728:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) Unknown PCM default
+ALSA lib confmisc.c:855:(parse_card) cannot find card '0'
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_card_inum returned error: No such file or directory
+ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_concat returned error: No such file or directory
+ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5728:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) Unknown PCM default
+[08:35:31] [Render thread/ERROR]: Error starting SoundSystem. Turning off sounds & music
+java.lang.IllegalStateException: Failed to open OpenAL device
+	at knot/net.minecraft.class_4225.method_38501(class_4225.java:302) ~[client-intermediary.jar:?]
+	at knot/net.minecraft.class_4225.method_19661(class_4225.java:154) ~[client-intermediary.jar:?]
+	at knot/net.minecraft.class_1140.method_4846(class_1140.java:116) ~[client-intermediary.jar:?]
+	at knot/net.minecraft.class_1140.method_4837(class_1140.java:106) ~[client-intermediary.jar:?]
+	at knot/net.minecraft.class_1144.method_18182(class_1144.java:128) ~[client-intermediary.jar:?]
+	at knot/net.minecraft.class_1144.method_18788(class_1144.java:42) ~[client-intermediary.jar:?]
+	at knot/net.minecraft.class_4080.method_18790(class_4080.java:13) ~[client-intermediary.jar:?]
+	at java.base/java.util.concurrent.CompletableFuture$UniAccept.tryFire(CompletableFuture.java:718) ~[?:?]
+	at java.base/java.util.concurrent.CompletableFuture$Completion.run(CompletableFuture.java:482) ~[?:?]
+	at knot/net.minecraft.class_4014.method_18365(class_4014.java:69) ~[client-intermediary.jar:?]
+	at knot/net.minecraft.class_1255.method_18859(class_1255.java:162) [client-intermediary.jar:?]
+	at knot/net.minecraft.class_4093.method_18859(class_4093.java:23) [client-intermediary.jar:?]
+	at knot/net.minecraft.class_1255.method_16075(class_1255.java:136) [client-intermediary.jar:?]
+	at knot/net.minecraft.class_1255.method_5383(class_1255.java:121) [client-intermediary.jar:?]
+	at knot/net.minecraft.class_310.method_1523(class_310.java:1240) [client-intermediary.jar:?]
+	at knot/net.minecraft.class_310.method_1514(class_310.java:882) [client-intermediary.jar:?]
+	at knot/net.minecraft.client.main.Main.main(Main.java:256) [client-intermediary.jar:?]
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:517) [fabric-loader-0.19.5.jar:?]
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72) [fabric-loader-0.19.5.jar:?]
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23) [fabric-loader-0.19.5.jar:?]
+[08:35:31] [Render thread/INFO]: Created: 1024x512x4 minecraft:textures/atlas/blocks.png-atlas
+[08:35:31] [Render thread/INFO]: Created: 256x256x4 minecraft:textures/atlas/signs.png-atlas
+[08:35:31] [Render thread/INFO]: Created: 512x512x4 minecraft:textures/atlas/banner_patterns.png-atlas
+[08:35:31] [Render thread/INFO]: Created: 512x512x4 minecraft:textures/atlas/shield_patterns.png-atlas
+[08:35:31] [Render thread/INFO]: Created: 1024x1024x4 minecraft:textures/atlas/armor_trims.png-atlas
+[08:35:31] [Render thread/INFO]: Created: 256x256x4 minecraft:textures/atlas/chest.png-atlas
+[08:35:31] [Render thread/INFO]: Created: 128x64x4 minecraft:textures/atlas/decorated_pot.png-atlas
+[08:35:31] [Render thread/INFO]: Created: 512x256x4 minecraft:textures/atlas/shulker_boxes.png-atlas
+[08:35:31] [Render thread/INFO]: Created: 512x256x4 minecraft:textures/atlas/beds.png-atlas
+[08:35:31] [Render thread/INFO]: Created: 512x256x0 minecraft:textures/atlas/particles.png-atlas
+[08:35:31] [Render thread/INFO]: Created: 512x256x0 minecraft:textures/atlas/paintings.png-atlas
+[08:35:31] [Render thread/INFO]: Created: 256x128x0 minecraft:textures/atlas/mob_effects.png-atlas
+[08:35:31] [Render thread/INFO]: Created: 64x64x0 minecraft:textures/atlas/map_decorations.png-atlas
+[08:35:31] [Render thread/INFO]: Created: 1024x512x0 minecraft:textures/atlas/gui.png-atlas
+[08:35:31] [Render thread/WARN]: Shader rendertype_entity_translucent_emissive could not find sampler named Sampler2 in the specified shader program.
+[08:35:33] [Render thread/INFO]: Loaded 1369 recipes
+[08:35:33] [Render thread/INFO]: Loaded 1399 advancements
+[08:35:33] [Render thread/INFO]: Loaded generation bands for [bettercubicchunks:cubic_default, bettercubicchunks:cubic_overworld]
+[08:35:34] [Render thread/INFO]: Applied 0 biome modifications to 0 of 76 new biomes in 1.370 ms
+[08:35:34] [Server thread/INFO]: Starting integrated minecraft server version 1.21.1
+[08:35:34] [Server thread/INFO]: Generating keypair
+[08:35:35] [Server thread/INFO]: Climate sampler: 8 height-independent parts are remembered per column
+[08:35:36] [Server thread/INFO]: Terrain densities: 8 height-independent parts are remembered per column
+[08:35:36] [Server thread/INFO]: Cubic streaming enabled for minecraft:overworld (1 worker threads, vertical load distance 8 cubes, cubes more than 3 below the ground wait to be seen)
+[08:35:46] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
+[08:35:47] [Render thread/INFO]: Preparing spawn area: 0%
+[08:35:47] [Server thread/INFO]: [drmd cubic light] bounded native sky-source repair enabled
+[08:35:47] [Server thread/INFO]: Megacity biome regions bound — megacity plate @ -5139 -1834 (5440 m) · biome drmd:megacity r=160
+[08:35:47] [Server thread/INFO]: Technogenic sea regions — drmd:technogenic_sea plate @ 3241 -4639 (5776 m) · r=220
+[08:35:47] [Server thread/INFO]: Scorched lands regions — drmd:scorched_lands plate @ 2101 935 (2312 m) · r=180
+[08:35:47] [Server thread/INFO]: Iron guild regions — drmd:iron_guild plate @ -6196 -5302 (8181 m) · r=140
+[08:35:47] [Server thread/INFO]: Surface events bound — sparse UFO/outpost rolls (≥400m from spawn)
+[08:35:47] [Server thread/INFO]: Construction registry ready (0 overrides)
+[08:35:47] [Server thread/INFO]: Restored 0 facilities from dimension sync
+[08:35:47] [Server thread/INFO]: Restored 0 meteor falls from dimension sync
+[08:35:47] [Server thread/INFO]: Dimension sync loaded — facilities=0 falls=0 lastDet=-1
+[08:35:47] [Server thread/INFO]: Surface store open at /workspace/ungravity-v5/fragment-boarding/build/cubic-client-automation/saves/Cubic-Gate/./drmd/surface
+[08:35:47] [Server thread/INFO]: Changing view distance to 4, from 10
+[08:35:47] [Server thread/INFO]: Changing simulation distance to 5, from 0
+[08:35:48] [Render thread/INFO]: Preparing spawn area: 0%
+[08:35:48] [Render thread/INFO]: Preparing spawn area: 0%
+[08:35:48] [Render thread/INFO]: Time elapsed: 1352 ms
+[08:35:49] [Server thread/INFO]: CubicGate[local:E:8d21ef20] logged in with entity id 1 at (-59.5, 63.0, 94.5)
+[08:35:49] [Server thread/INFO]: CubicGate joined the game
+[08:35:49] [Render thread/INFO]: Connected to a Better Cubic Chunks server (packing TALL, vertical distance up to 8 cubes)
+[08:35:49] [Render thread/WARN]: Ignoring chat session from CubicGate due to missing Services public key
+[08:35:49] [Render thread/INFO]: Loaded 2 advancements
+[08:35:49] [Render thread/INFO]: [System] [CHAT] §bDRMD 6DOF §f— Descent session is part of this world.
+[08:35:49] [Render thread/INFO]: [System] [CHAT] §fH§7 6DoF · §fN§7 оснащение дрона · §fЛКМ/ПКМ§7 оружие · §fB§7 вспомогательное · §fR§7 форсаж
+[08:35:51] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2356ms or 47 ticks behind
+[08:35:52] [BCC-Worldgen-overworld-1/WARN]: Cube generation for [-1, 0] read unloaded column [-1, -6]; treating it as empty
+[08:36:04] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=0 mode=0 elapsed=0 player=(12.0, 2157.05, 19.0) local=(3.900000000000001, 1.0300000000001126, 2.9850000000000003) state=null body=(12.099999999999916, 2157.971612903226, 19.95048387096767) q=Quat[x=0.0, y=0.0, z=0.0, w=1.0]
+[08:36:04] [Render thread/INFO]: [STDOUT]: SHIP_GRAVITY_CLIENT ship-landing PASS state=State[feet=Vec3[x=13.33557025375163, y=2157.301667646968, z=19.202203883176], velocity=Vec3[x=2.0017854017319716, y=0.33867885858561364, z=0.30431666390506346], grounded=true, support=23, frame=Quat[x=-3.225538925434321E-4, y=2.4570535690622232E-6, z=1.2584698289746534E-4, w=0.9999999400577414], gravityOwner=23]
+[08:36:05] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=1 mode=0 elapsed=40 player=(15.834792918182014, 2157.765313633092, 22.105717582201518) local=(3.7364411456096978, 1.0001835346655144, 5.491769364611938) state=State[feet=Vec3[x=15.834792918182014, y=2157.765313633092, z=22.105717582201518], velocity=Vec3[x=2.0007556099961086, y=0.3495449897713463, z=0.29885026787037605], grounded=true, support=23, frame=Quat[x=2.554209897961691E-4, y=1.0160521243419005E-5, z=1.0280003417307793E-4, w=0.9999999620445168], gravityOwner=23] body=(16.09812445087975, 2158.7175920591662, 20.54991298202372) q=Quat[x=2.5542098979616914E-4, y=1.0160521243418973E-5, z=1.0280003417307792E-4, w=0.9999999620445168]
+[08:36:06] [Render thread/INFO]: [STDOUT]: SHIP_GRAVITY_CLIENT ship-walking PASS state=State[feet=Vec3[x=16.535537292556736, y=2157.8898292278905, z=22.21007170645921], velocity=Vec3[x=2.0016643484043137, y=0.3318963025372648, z=0.2947636002261708], grounded=true, support=23, frame=Quat[x=7.377912966263551E-4, y=-2.059071579645063E-6, z=2.1945348946013493E-4, w=0.9999997037499206], gravityOwner=23]
+[08:36:06] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=2 mode=1 elapsed=0 player=(16.534103534445304, 2157.894886000223, 22.210028047278325) local=(3.7357740828761967, 1.0005010087492932, 5.490940861187913) state=State[feet=Vec3[x=16.534103534445304, y=2157.894886000223, z=22.210028047278325], velocity=Vec3[x=2.0008415221765583, y=0.3503754799008532, z=0.2970194148650312], grounded=true, support=23, frame=Quat[x=3.2206666045694985E-4, y=2.0501561863431758E-6, z=1.0316824065020232E-4, w=0.9999999428125871], gravityOwner=23] body=(16.79812671690206, 2158.847054117894, 20.65518295713734) q=Quat[x=3.220666604569497E-4, y=2.050156186343138E-6, z=1.0316824065020228E-4, w=0.9999999428125871]
+[08:36:07] [Render thread/INFO]: [STDOUT]: SHIP_GRAVITY_CLIENT roll-wall PASS state=State[feet=Vec3[x=21.005896975354432, y=2159.387385556736, z=22.687805195120795], velocity=Vec3[x=2.1459081801278868, y=1.5749954815860479, z=0.2955570447474806], grounded=true, support=23, frame=Quat[x=6.011848630613027E-4, y=9.54836365668293E-4, z=0.7716809925942012, w=0.6360087833773239], gravityOwner=23]
+[08:36:08] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=2 mode=1 elapsed=40 player=(21.749217303677856, 2159.969879795497, 22.808886396328944) local=(3.749421648729359, 1.0019120375294126, 5.49059185379967) state=State[feet=Vec3[x=21.749217303677856, y=2159.969879795497, z=22.808886396328944], velocity=Vec3[x=1.6518079627958988, y=1.4374738400303064, z=0.29898036823487545], grounded=true, support=23, frame=Quat[x=2.7466652042823893E-4, y=5.675060129141379E-4, z=0.8909745274742653, w=0.454052853627458], gravityOwner=23] body=(20.831995114038197, 2159.613325829056, 21.254970437679468) q=Quat[x=2.7466652042823844E-4, y=5.675060129141379E-4, z=0.8909745274742653, w=0.45405285362745795]
+[08:36:09] [Render thread/INFO]: [STDOUT]: SHIP_GRAVITY_CLIENT roll-ceiling PASS state=State[feet=Vec3[x=22.901559507888916, y=2160.992367916084, z=23.092014630225076], velocity=Vec3[x=0.9403579910362135, y=0.643211424383012, z=0.29223932500487526], grounded=true, support=23, frame=Quat[x=-1.1451029040063222E-5, y=8.473004532609812E-4, z=0.9986520948701305, w=-0.051896776030076475], gravityOwner=23]
+[08:36:10] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=2 mode=1 elapsed=80 player=(24.004787213150017, 2160.9936933743006, 23.4073322588488) local=(3.7496909739412247, 1.0021575636245914, 5.4893359559968795) state=State[feet=Vec3[x=24.004787213150017, y=2160.9936933743006, z=23.4073322588488], velocity=Vec3[x=1.3671220360867977, y=-0.4869064254579616, z=0.29781637189873483], grounded=true, support=23, frame=Quat[x=-4.2947828342140555E-4, y=6.064423047358317E-4, z=0.8084014729097276, w=-0.5886310443508042], gravityOwner=23] body=(24.83372054349481, 2160.4632284203985, 21.85489777742989) q=Quat[x=-4.2947828342140604E-4, y=6.064423047358308E-4, z=0.8084014729097276, w=-0.5886310443508039]
+[08:36:12] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=2 mode=1 elapsed=120 player=(28.775790396573907, 2160.2467596197976, 24.004604801250604) local=(3.7390496322443063, 1.0029105483179235, 5.488257517475295) state=State[feet=Vec3[x=28.775790396573907, y=2160.2467596197976, z=24.004604801250604], velocity=Vec3[x=2.5977227236084035, y=0.3313088100684248, z=0.2862067169822455], grounded=true, support=23, frame=Quat[x=-0.0015494599721224728, y=-1.6023365311300524E-4, z=-0.12482537985414581, w=-0.9921775032942641], gravityOwner=23] body=(28.79252337002632, 2161.2352423886023, 22.454811565588614) q=Quat[x=-0.001549459972122472, y=-1.6023365311300424E-4, z=-0.12482537985414575, w=-0.9921775032942641]
+[08:36:14] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=2 mode=1 elapsed=160 player=(32.53224604521407, 2161.0232962709943, 24.60503915448361) local=(3.730142214593757, 1.0000903569843493, 5.486454365711719) state=State[feet=Vec3[x=32.53224604521407, y=2161.0232962709943, z=24.60503915448361], velocity=Vec3[x=1.99587954811485, y=0.35588421639357254, z=0.29818813884799167], grounded=true, support=23, frame=Quat[x=-2.6024889018629195E-4, y=-4.73281305333586E-6, z=-4.985865091492496E-4, w=-0.9999998418297918], gravityOwner=23] body=(32.80113978292396, 2161.9758945800454, 23.054561655346667) q=Quat[x=-2.6024889018629195E-4, y=-4.732813053330948E-6, z=-4.985865091492496E-4, w=-0.9999998418297918]
+[08:36:14] [Render thread/INFO]: [STDOUT]: SHIP_GRAVITY_CLIENT roll-complete PASS state=State[feet=Vec3[x=33.229968232003856, y=2161.1498126215133, z=24.708222212594332], velocity=Vec3[x=1.99761988574926, y=0.3359735892810223, z=0.29512909881429056], grounded=true, support=23, frame=Quat[x=-4.452384872602432E-4, y=-5.617339883379584E-7, z=-3.293611520175064E-5, w=-0.9999999003387882], gravityOwner=23]
+[08:36:14] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=3 mode=2 elapsed=0 player=(33.03164176346999, 2161.1159703550484, 24.679730008020144) local=(3.730133180550126, 1.0000696710110166, 5.486118682858633) state=State[feet=Vec3[x=33.03164176346999, y=2161.1159703550484, z=24.679730008020144], velocity=Vec3[x=1.9983930299521824, y=0.35494855236627, z=0.2980615865648847], grounded=true, support=23, frame=Quat[x=-2.4350070663186506E-4, y=-1.8680555606009522E-6, z=-1.875171760707836E-4, w=-0.9999999527706115], gravityOwner=23] body=(33.301145768472885, 2162.068369777298, 23.12955779995811) q=Quat[x=-2.435007066318652E-4, y=-1.8680555605960415E-6, z=-1.8751717607078366E-4, w=-0.9999999527706114]
+[08:36:16] [Render thread/INFO]: [STDOUT]: SHIP_GRAVITY_CLIENT pitch-wall PASS state=State[feet=Vec3[x=36.2299011008525, y=2161.3332674963876, z=22.358309150347004], velocity=Vec3[x=2.002385246178144, y=1.8385759794532017, z=-1.3569093496461202], grounded=true, support=23, frame=Quat[x=-0.7719240808210597, y=1.7663774585097424E-4, z=-1.9212761202849432E-4, w=-0.6357146728955135], gravityOwner=23]
+[08:36:16] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=3 mode=2 elapsed=40 player=(37.02962104589045, 2162.138406315338, 22.017035779773032) local=(3.7281230185641174, 1.0032441778987111, 5.486544797225639) state=State[feet=Vec3[x=37.02962104589045, y=2162.138406315338, z=22.017035779773032], velocity=Vec3[x=2.000625030520491, y=2.2727503876197273, z=-0.5218006592039011], grounded=true, support=23, frame=Quat[x=-0.8911960887065554, y=1.4879706007511534E-4, z=-8.478545548471408E-5, w=-0.4536182339203296], gravityOwner=23] body=(37.30114852741031, 2162.8343496523094, 23.69663276348141) q=Quat[x=-0.8911960887065553, y=1.4879706007511756E-4, z=-8.478545548470965E-5, w=-0.4536182339203297]
+[08:36:17] [Render thread/INFO]: [STDOUT]: SHIP_GRAVITY_CLIENT pitch-ceiling PASS state=State[feet=Vec3[x=38.93002138652369, y=2164.3458129570495, z=22.515487335882685], velocity=Vec3[x=2.0018683527934953, y=2.063855517605795, z=1.500013260141956], grounded=true, support=23, frame=Quat[x=-0.9986253058652834, y=2.3331559883417268E-4, z=-3.274501468001254E-6, w=0.05241606660727457], gravityOwner=23]
+[08:36:18] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=3 mode=2 elapsed=80 player=(41.03000081736863, 2165.4610816310833, 24.718357172578237) local=(3.7284872153226982, 1.0020907005109032, 5.496546843080037) state=State[feet=Vec3[x=41.03000081736863, y=2165.4610816310833, z=24.718357172578237], velocity=Vec3[x=2.0006380060665094, y=-0.035048052225807425, z=2.2998231519218413], grounded=true, support=23, frame=Quat[x=-0.8081757812912684, y=1.4202635158833948E-4, z=9.587840138940317E-5, w=0.5889413189529966], gravityOwner=23] body=(41.30116914874868, 2163.6841824875382, 24.292532821093523) q=Quat[x=-0.8081757812912687, y=1.4202635158833645E-4, z=9.587840138940729E-5, w=0.5889413189529966]
+[08:36:20] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=3 mode=2 elapsed=120 player=(45.030338618994826, 2163.1465970565887, 26.22801500250781) local=(3.7282497218805015, 1.0035901320109832, 5.51419800752041) state=State[feet=Vec3[x=45.030338618994826, y=2163.1465970565887, z=26.22801500250781], velocity=Vec3[x=2.004582462356947, y=-0.4173965871976205, z=-0.488359161445549], grounded=true, support=23, frame=Quat[x=0.12542001711460743, y=-3.127835400229279E-5, z=4.3521857726589266E-4, w=0.9921036381918102], gravityOwner=23] body=(45.30118830808257, 2164.457904625865, 24.934938586347155) q=Quat[x=0.12542001711460743, y=-3.127835400229815E-5, z=4.3521857726589195E-4, w=0.9921036381918102]
+[08:36:22] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=3 mode=2 elapsed=160 player=(49.02959075849324, 2164.243570104632, 27.109802653070286) local=(3.728329660645932, 1.0000866840267275, 5.52064780281516) state=State[feet=Vec3[x=49.02959075849324, y=2164.243570104632, z=27.109802653070286], velocity=Vec3[x=1.9999106804119937, y=0.3613233344754409, z=0.3020961375493679], grounded=true, support=23, frame=Quat[x=7.614845496279227E-4, y=-1.1941800316068479E-6, z=2.582037214188422E-6, w=0.9999997100665519], gravityOwner=23] body=(49.30125996206919, 2165.1975107777434, 25.526090354087227) q=Quat[x=7.614845496279229E-4, y=-1.1941800316122225E-6, z=2.58203721418842E-6, w=0.9999997100665519]
+[08:36:22] [Render thread/INFO]: [STDOUT]: SHIP_GRAVITY_CLIENT pitch-complete PASS state=State[feet=Vec3[x=49.72923602043462, y=2164.3717163551014, z=27.21564640671315], velocity=Vec3[x=1.9998868721025775, y=0.34190685387518893, z=0.2982005630765134], grounded=true, support=23, frame=Quat[x=4.997427934639341E-4, y=-1.3755734668411437E-8, z=-9.184704142951382E-6, w=0.999999875086383], gravityOwner=23]
+[08:36:22] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=4 mode=3 elapsed=0 player=(49.52957670448781, 2164.3370625442085, 27.185063922258394) local=(3.728322267239115, 1.0000725515647035, 5.520304137941389) state=State[feet=Vec3[x=49.52957670448781, y=2164.3370625442085, z=27.185063922258394], velocity=Vec3[x=1.9999384264736333, y=0.3569401932234494, z=0.2995213805658441], grounded=true, support=23, frame=Quat[x=4.392807319627705E-4, y=-4.2684543130966184E-7, z=-2.211243769117956E-6, w=0.9999999035136787], gravityOwner=23] body=(49.80126000108926, 2165.2899936889107, 25.601080484929515) q=Quat[x=4.392807319627707E-4, y=-4.268454313150371E-7, z=-2.211243769117959E-6, w=0.9999999035136788]
+[08:36:23] [Render thread/INFO]: [STDOUT]: SHIP_GRAVITY_CLIENT combined-axes PASS state=State[feet=Vec3[x=50.827808633095394, y=2164.327749147551, z=27.22224835754849], velocity=Vec3[x=2.8013622801207068, y=-0.14532154607741454, z=-0.09211542284171334], grounded=true, support=23, frame=Quat[x=0.05941038383159916, y=0.05589398408878126, z=0.055511664025983766, w=0.9951204570265509], gravityOwner=23]
+[08:36:24] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=4 mode=3 elapsed=40 player=(55.35294387417979, 2165.948434473282, 25.115129145307762) local=(3.7534683077788236, 1.0037616651728065, 5.532448831858932) state=State[feet=Vec3[x=55.35294387417979, y=2165.948434473282, z=25.115129145307762], velocity=Vec3[x=1.3945855045189701, y=2.0688261759569118, z=-0.8036437327279278], grounded=true, support=23, frame=Quat[x=0.5141943870689529, y=0.5169418870162661, z=0.5117573973192884, w=0.45440024652703886], gravityOwner=23] body=(53.81093691307657, 2166.045623856748, 26.174499565280396) q=Quat[x=0.5141943870689526, y=0.5169418870162666, z=0.5117573973192883, w=0.4544002465270391]
+[08:36:26] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=4 mode=3 elapsed=80 player=(56.62039811189359, 2168.3476543258284, 26.80503836260512) local=(3.7546282572226684, 1.0030444685892712, 5.546683639310679) state=State[feet=Vec3[x=56.62039811189359, y=2168.3476543258284, z=26.80503836260512], velocity=Vec3[x=1.0406879364366408, y=-0.37143923922922006, z=1.9790930033069438], grounded=true, support=23, frame=Quat[x=0.4644260935667055, y=0.46869615277381604, z=0.46680588878854, w=-0.5888332380069374], gravityOwner=23] body=(57.77617904412718, 2166.8592996128687, 26.73486182844685) q=Quat[x=0.46442609356670544, y=0.4686961527738163, z=0.4668058887885402, w=-0.5888332380069372]
+[08:36:28] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=4 mode=3 elapsed=120 player=(61.87142343682235, 2166.4182257843213, 28.81181174635862) local=(3.743405722318151, 1.003629828284707, 5.5606512473112595) state=State[feet=Vec3[x=61.87142343682235, y=2166.4182257843213, z=28.81181174635862], velocity=Vec3[x=2.9997623248964396, y=-0.19287211736699503, z=-0.24722006223267295], grounded=true, support=23, frame=Quat[x=-0.07899929806259892, y=-0.07514025794913981, z=-0.07102188543784183, w=-0.991498332993963], gravityOwner=23] body=(61.73988464644476, 2167.6212423510624, 27.34855161172169) q=Quat[x=-0.07899929806259895, y=-0.07514025794913937, z=-0.07102188543784177, w=-0.9914983329939632]
+[08:36:30] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=4 mode=3 elapsed=160 player=(65.47755123896039, 2167.4063346569746, 29.567563411013104) local=(3.7285996023871983, 1.000019737964688, 5.563373376465945) state=State[feet=Vec3[x=65.47755123896039, y=2167.4063346569746, z=29.567563411013104], velocity=Vec3[x=1.9878131800554146, y=0.3645732985332722, z=0.30189896467937594], grounded=true, support=23, frame=Quat[x=-9.198617045832032E-4, y=-5.798354392060563E-4, z=-5.028159382991324E-4, w=-0.9999992824104627], gravityOwner=23] body=(65.74610605964646, 2168.361192863958, 27.941114492986404) q=Quat[x=-9.198617045832033E-4, y=-5.798354392056187E-4, z=-5.028159382991323E-4, w=-0.9999992824104627]
+[08:36:31] [Render thread/INFO]: [STDOUT]: SHIP_GRAVITY_CLIENT combined-complete PASS state=State[feet=Vec3[x=66.17426763938606, y=2167.5347354963646, z=29.67250608156464], velocity=Vec3[x=1.993093491416165, y=0.3434549883956779, z=0.29797861243049506], grounded=true, support=23, frame=Quat[x=-5.277822587364628E-4, y=-5.0019592380647685E-5, z=-3.3263467856265424E-5, w=-0.9999998589187249], gravityOwner=23]
+[08:36:31] [Render thread/INFO]: [STDOUT]: SHIP_GRAVITY_CLIENT ship-jump PASS state=State[feet=Vec3[x=66.97399058348987, y=2168.5887725105526, z=29.793232725595132], velocity=Vec3[x=1.9966506183429507, y=-2.4436962943676948, z=0.2995372625036643], grounded=false, support=-1, frame=Quat[x=-1.0804487472286156E-4, y=4.9183828983459475E-6, z=6.7921770099415626E-6, w=-0.9999999941279905], gravityOwner=23]
+[08:36:32] [Render thread/INFO]: [STDOUT]: SHIP_GRAVITY_CLIENT gravity-off-jump PASS state=null
+[08:36:32] [Server thread/INFO]: [STDOUT]: SHIP_GRAVITY_TRACE phase=9 mode=3 elapsed=200 player=(68.57324039668887, 2168.6954373287303, 30.031198603914717) local=(2.827142434780405, 1.52665925661361, 5.425637402317314) state=null body=(69.74609583730572, 2169.1205475176034, 28.54108805104047) q=Quat[x=-5.1256152588429304E-5, y=-2.525996653419709E-7, z=-1.6137481670826247E-6, w=-0.9999999986850694]
+[08:36:32] [Render thread/INFO]: [STDOUT]: SHIP_GRAVITY_CLIENT flight-handoff PASS state=null
+[08:36:32] [Render thread/INFO]: Stopping!
+[08:36:32] [Server thread/INFO]: CubicGate lost connection: Disconnected
+[08:36:32] [Server thread/INFO]: CubicGate left the game
+[08:36:33] [Server thread/INFO]: Stopping singleplayer server as player logged out
+[08:36:33] [Server thread/INFO]: Stopping server
+[08:36:33] [Server thread/INFO]: Saving players
+[08:36:33] [Server thread/INFO]: Saving worlds
+[08:36:33] [Server thread/INFO]: Saving chunks for level 'ServerLevel[gate-v5-cubic-fixed]'/minecraft:overworld
+[08:36:33] [Server thread/INFO]: Saving chunks for level 'ServerLevel[gate-v5-cubic-fixed]'/drmd:aeris_test
+[08:36:33] [Server thread/INFO]: Saving chunks for level 'ServerLevel[gate-v5-cubic-fixed]'/minecraft:the_end
+[08:36:33] [Server thread/INFO]: Saving chunks for level 'ServerLevel[gate-v5-cubic-fixed]'/minecraft:the_nether
+[08:36:33] [Server thread/INFO]: ThreadedAnvilChunkStorage (Cubic-Gate): All chunks are saved
+[08:36:33] [Server thread/INFO]: ThreadedAnvilChunkStorage (aeris_test): All chunks are saved
+[08:36:33] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[08:36:33] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[08:36:33] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[08:36:33] [Server thread/INFO]: Cubic level minecraft:overworld closed: pending=0 inFlight=0 threads=1 nearest=2147483647 locked=0 unwanted=2955 wanted=225 buried=0 [held=334 aboveFloor=2969 near=0 inside=0 openedAtHold=0 releasedNear=0 releasedOpened=0 releasedWhere=0 releasedFinished=0] pendingWrites=0 | materialized=7078 generated=12644 loaded=2722 saved=8900 sent=1985 lightUpdates=121 resent=0 droppedWrites=1287 lightRepairs=0/0/0/0 lightCleared=0 noise[n=3557 avg=0.17ms max=113.7ms cubes=1.4] terrain[n=3123 avg=0.08ms max=4.2ms cubes=1.5] decorate[n=1288 avg=0.40ms max=10.4ms cubes=2.2] apply[n=12686 avg=0.08ms max=200.4ms]
