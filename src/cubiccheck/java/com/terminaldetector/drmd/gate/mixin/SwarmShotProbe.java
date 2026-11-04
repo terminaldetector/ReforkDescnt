@@ -1,0 +1,12 @@
+package com.terminaldetector.drmd.gate.mixin;
+import com.terminaldetector.drmd.weapon.core.WeaponCore;
+import com.terminaldetector.drmd.entity.ProjectileEntity;
+import com.terminaldetector.drmd.gate.NativeSwarmBaselineCheck;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+@Mixin(WeaponCore.class)
+public class SwarmShotProbe {
+    @Inject(method="fireProjectile",at=@At("RETURN"),remap=false)
+    private static void shot(WeaponCore.FireConfig cfg,CallbackInfoReturnable<ProjectileEntity> ci){if(Boolean.getBoolean("drmd.gate.swarm"))NativeSwarmBaselineCheck.shot(cfg,ci.getReturnValue());}
+}

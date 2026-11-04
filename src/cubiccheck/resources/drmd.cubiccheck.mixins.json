@@ -18,7 +18,9 @@
     "BoardingStepProbe",
     "BodyShapeDelayProbe",
     "UfoPersistenceProbe",
-    "BoardingReadyDelayProbe"
+    "BoardingReadyDelayProbe",
+    "DroneRenderProbe",
+    "SwarmShotProbe"
   ],
   "injectors": {
     "defaultRequire": 1
