@@ -52,12 +52,12 @@ public final class NativeBodyIndexCheck {
   DELAYED.putIfAbsent(body,new DelayedShape(body,ticks+delay,apply));return true;
  }
  private static void flushShapes(MinecraftClient c) {
-  if(pendingStartY!=null&&DELAYED.keySet().stream().anyMatch(b->b.getId()==bodyId)) {
+  if(pendingStartY!=null&&DELAYED.keySet().stream().anyMatch(b->entity(b).getId()==bodyId)) {
    pendingShapeSamples++;maxPendingShapeDrop=Math.max(maxPendingShapeDrop,pendingStartY-c.player.getY());
    pendingMovementOwned&=BoardingClient.ownsMovement(c.player);
   }
   for(var delayed:List.copyOf(DELAYED.values()))if(ticks>=delayed.release()) {
-   if(delayed.body().getId()==bodyId&&pendingStartY!=null){System.out.println("BODY_SHAPE_PENDING_FALL "+maxPendingShapeDrop+" samples="+pendingShapeSamples+" owned="+pendingMovementOwned);require(maxPendingShapeDrop<.05&&pendingMovementOwned,"actor moved under a second gravity motor while authoritative geometry was pending: "+maxPendingShapeDrop);pendingStartY=null;}
+   if(entity(delayed.body()).getId()==bodyId&&pendingStartY!=null){System.out.println("BODY_SHAPE_PENDING_FALL "+maxPendingShapeDrop+" samples="+pendingShapeSamples+" owned="+pendingMovementOwned);require(maxPendingShapeDrop<.05&&pendingMovementOwned,"actor moved under a second gravity motor while authoritative geometry was pending: "+maxPendingShapeDrop);pendingStartY=null;}
    RELEASED.add(delayed.body());DELAYED.remove(delayed.body());delayed.apply().run();
   }
  }
