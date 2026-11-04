@@ -23,6 +23,8 @@ public final class NativeUfoReloadCheck {
     private static final int READY_DELAY=Integer.getInteger("drmd.gate.restoreReadyDelay",0);
     private static final java.util.Map<net.minecraft.server.network.ServerPlayerEntity,Integer> DELAYED=new java.util.HashMap<>();
     private static boolean releasingReady;private static int admissionTicks;
+    private static volatile boolean walkRequested,walkObserved;private static int walkTicks;
+    private static volatile net.minecraft.util.math.Vec3d walkFrom;private static volatile double walked;
     private static Path file(String name){return MinecraftClient.getInstance().runDirectory.toPath().resolve(name);}
     private static void require(boolean b,String why){if(!b)throw new IllegalStateException(why);}
     private NativeUfoReloadCheck(){}
@@ -68,16 +70,21 @@ public final class NativeUfoReloadCheck {
                 int due=DELAYED.get(p);if(due<0){DELAYED.put(p,s.getTicks()+READY_DELAY);continue;}
                 if(s.getTicks()>=due){DELAYED.remove(p);releasingReady=true;try{BoardingSystem.ready(p,com.terminaldetector.drmd.network.BoardingNetworking.PROTOCOL);}finally{releasingReady=false;}}
             }
-            if(!restored||serverReady)return;var w=s.getOverworld();var e=w.getEntity(watched);if(!(e instanceof SkyUfoEntity body))return;
+            if(!restored)return;var w=s.getOverworld();var e=w.getEntity(watched);if(!(e instanceof SkyUfoEntity body))return;
             var players=s.getPlayerManager().getPlayerList();if(players.isEmpty())return;var p=players.getFirst();
             require(!UfoControlSystem.controls(p),"old pilot connection must not survive a process restart");
+            var state=BoardingSystem.state(p);
+            if(serverReady){
+                var local=body.worldToLocal(p.getPos());walked=Math.hypot(local.x-walkFrom.x,local.z-walkFrom.z);
+                if(walkRequested&&walked>.3&&BoardingSystem.drives(p)&&state!=null&&state.grounded())walkObserved=true;return;
+            }
             if(READY_DELAY>0&&!BoardingSystem.ready(p)) {
                 require(com.terminaldetector.drmd.DescentPlayerData.get(p).pendingBoardingResume()!=null&&!body.hasSimulatedPhysics(),"saved passenger and newly loaded hull must wait together for admission");admissionTicks++;
             }
             require(w.getEntitiesByClass(SkyUfoEntity.class,entity(body).getBoundingBox().expand(64),u->true).size()==1,"reload must not duplicate the local UFO");
             if(s.getTicks()%20==0)System.out.println("UFO_RELOAD_CONTACT local="+body.worldToLocal(p.getPos())+" walking="+BoardingSystem.drives(p)+" stable="+stable+" playerWorld="+p.getWorld().getRegistryKey().getValue());
-            if(body.containsPos(p.getPos())&&BoardingSystem.drives(p))stable++;else stable=0;
-            if(stable>=40){require(READY_DELAY<=0||admissionTicks>=20,"delayed native handshake must exercise the load barrier");serverReady=true;}
+            if(body.containsPos(p.getPos())&&BoardingSystem.drives(p)&&state!=null&&state.grounded())stable++;else stable=0;
+            if(stable>=40){require(READY_DELAY<=0||admissionTicks>=20,"delayed native handshake must exercise the load barrier");walkFrom=body.worldToLocal(p.getPos());serverReady=true;}
         });
         ClientTickEvents.END_CLIENT_TICK.register(c->{
             if(done)return;if(++ticks>1800)throw new IllegalStateException("UFO reload timeout: restored="+restored+" contact="+stable+" draws="+draws);
@@ -85,15 +92,20 @@ public final class NativeUfoReloadCheck {
             if(ticks%100==0)System.out.println("UFO_RELOAD_CLIENT restored="+restored+" ready="+serverReady+" stable="+stable+" draws="+draws+" screen="+(c.currentScreen==null?null:c.currentScreen.getClass().getName()));
             if(c.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen prompt)for(var child:prompt.children())
                 if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("I know what I'm doing!"))b.onPress();
-            if(c.player!=null&&c.world!=null&&serverReady){require(!UfoControlClient.active(),"client cannot retain a previous process's pilot input");require(BoardingClient.drives(c.player),"saved player must resume physical walking on the saved UFO");}
+            if(c.player!=null&&c.world!=null&&serverReady){
+                require(!UfoControlClient.active(),"client cannot retain a previous process's pilot input");require(BoardingClient.drives(c.player),"saved player must resume physical walking on the saved UFO");
+                if(!walkRequested){walkRequested=true;walkTicks=0;c.options.leftKey.setPressed(true);}
+                else if(++walkTicks>=14)c.options.leftKey.setPressed(false);
+                require(walkTicks<80||walkObserved,"ordinary keys must walk after the actual world restart");
+            }
         });
     }
     public static void drew(BlockBodyEntity body){if(READ&&entity(body).getUuid().equals(watched))draws++;}
     public static void rendered() {
-        var c=MinecraftClient.getInstance();if(done||!serverReady||draws<20||c.currentScreen!=null||++frames<3)return;
+        var c=MinecraftClient.getInstance();if(done||!serverReady||!walkObserved||walkTicks<14||draws<20||c.currentScreen!=null||++frames<3)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             image.writeTo(file("ufo-reloaded.png"));
-            Files.writeString(file("ufo-reload-ok.json"),"{\"admissionTicks\":"+admissionTicks+",\"actualProcessRestart\":true,\"serializedDataExact\":true,\"restoredPhysicsTolerance\":1e-10,\"sameUuid\":\""+watched+"\",\"noDuplicateHull\":true,\"restoredWalkingTicks\":"+stable+",\"renderedFrames\":"+draws+",\"stalePilotAbsent\":true}\n");
+            Files.writeString(file("ufo-reload-ok.json"),"{\"postLoadWalking\":true,\"postLoadDistance\":"+walked+",\"admissionTicks\":"+admissionTicks+",\"actualProcessRestart\":true,\"serializedDataExact\":true,\"restoredPhysicsTolerance\":1e-10,\"sameUuid\":\""+watched+"\",\"noDuplicateHull\":true,\"restoredWalkingTicks\":"+stable+",\"renderedFrames\":"+draws+",\"stalePilotAbsent\":true}\n");
             done=true;c.scheduleStop();
         }catch(Exception e){throw new IllegalStateException(e);}
     }
