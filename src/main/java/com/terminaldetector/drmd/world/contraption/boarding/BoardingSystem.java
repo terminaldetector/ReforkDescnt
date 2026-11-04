@@ -150,15 +150,18 @@ public final class BoardingSystem {
         p.setVelocity(mc(velocity.scaled(.05)));p.setOnGround(false);
         if(p.networkHandler instanceof BoardingConnection c)c.drmd$bodyMovementOwned();sync(p,l,false);
     }
-    private static void sync(ServerPlayerEntity p,Lease l,boolean active) {
-        if(p.networkHandler==null||!ServerPlayNetworking.canSend(p,BoardingNetworking.State.ID))return;
-        var s=l.state;BoardingNetworking.BodyState snapshot=null;
-        if(active&&p.getServerWorld().getEntityById(s.gravityOwner()>=0?s.gravityOwner():s.support()) instanceof BlockBodyEntity body) {
+    /** Snapshot the live physical identity even while its vanilla pivot section is untracked. */
+    public static BoardingNetworking.BodyState bodySnapshot(ServerWorld world,int id) {
+        var body=com.terminaldetector.drmd.world.contraption.BodySpatialIndex.find(world,id).orElse(null);
+        if(body==null)return null;
             var q=body.rotation();var v=body.physics().linearVelocity();var m=body.physics().angularMomentum();
             var g=body.passengerGravity();
             var position=body.massPosition();
-            snapshot=new BoardingNetworking.BodyState(position.x(),position.y(),position.z(),q.x(),q.y(),q.z(),q.w(),v.x(),v.y(),v.z(),m.x(),m.y(),m.z(),g.x(),g.y(),g.z(),body.boardingMotionPaused(),body.shapeRevision());
-        }
+        return new BoardingNetworking.BodyState(position.x(),position.y(),position.z(),q.x(),q.y(),q.z(),q.w(),v.x(),v.y(),v.z(),m.x(),m.y(),m.z(),g.x(),g.y(),g.z(),body.boardingMotionPaused(),body.shapeRevision());
+    }
+    private static void sync(ServerPlayerEntity p,Lease l,boolean active) {
+        if(p.networkHandler==null||!ServerPlayNetworking.canSend(p,BoardingNetworking.State.ID))return;
+        var s=l.state;var snapshot=active?bodySnapshot(p.getServerWorld(),s.gravityOwner()>=0?s.gravityOwner():s.support()):null;
         ServerPlayNetworking.send(p,new BoardingNetworking.State(l.epoch,l.sequence,active,s.support(),s.feet().x(),s.feet().y(),s.feet().z(),
             s.velocity().x(),s.velocity().y(),s.velocity().z(),s.grounded(),new BoardingNetworking.PassengerPose(s.frame().x(),s.frame().y(),s.frame().z(),s.frame().w(),s.gravityOwner()),snapshot,p.getWorld().getRegistryKey().getValue()));
     }

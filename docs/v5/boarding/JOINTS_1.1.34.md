@@ -75,6 +75,10 @@ the passenger to a ship-local anchor. Certification requires at least20 measured
 authoritative movement ownership and less than0.05m of fall, in addition to the unchanged
 full hull prediction/error and300-edit rebase checks. The retained before-fix experiment fell
 1.3733333253330784m; the same delayed delivery after the fix measured0m.
+Outgoing boarding snapshots resolve their body ID through the same physical index, rather
+than vanilla's pivot-section entity lookup. A server GameTest requires an actually loaded
+hull absent from that vanilla lookup, verifies its COM, shape revision, gravity and velocity,
+then removes it and checks that it cannot supply a phantom snapshot.
 
 ## Remaining limits
 

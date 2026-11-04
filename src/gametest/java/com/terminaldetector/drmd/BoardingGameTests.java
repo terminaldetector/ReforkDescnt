@@ -13,6 +13,19 @@ import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 
 /** Real server-owned player motor. Full rotated local gravity/UFO acceptance remains open. */
 public final class BoardingGameTests implements FabricGameTest {
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-untracked-pivot-snapshot")
+    public void untrackedPivotStillSendsItsRealBodySnapshot(TestContext c) {
+        var w=c.getWorld();w.getChunk(3125,3125);
+        var body=BlockBodyEntity.createLocal(w,java.util.List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState())),new Vec3d(50000,160,50000));
+        try {
+            c.assertTrue(w.getEntityById(body.getId())==null,"fixture must exercise a loaded physical hull outside vanilla pivot tracking");
+            body.physics().withLinearVelocity(new Vec3(17,3,-4));body.setPassengerGravity(new Vec3(0,-23,0));
+            var snapshot=BoardingSystem.bodySnapshot(w,body.getId());
+            c.assertTrue(snapshot!=null&&snapshot.vx()==17&&snapshot.vy()==3&&snapshot.vz()==-4&&snapshot.gy()==-23,"real outgoing snapshot cannot omit an untracked physical identity");
+            c.assertTrue(snapshot.shapeRevision()==body.shapeRevision()&&snapshot.x()==body.massPosition().x(),"geometry and COM come from the same physical body");
+            body.discard();c.assertTrue(BoardingSystem.bodySnapshot(w,body.getId())==null,"removed hull cannot supply phantom boarding geometry");
+        } finally {body.discard();}c.complete();
+    }
     private record Fixture(TestContext c,ServerPlayerEntity p,BlockBodyEntity body) implements AutoCloseable {
         public void close(){body.discard();p.discard();BoardingSystem.tick(c.getWorld());}
     }

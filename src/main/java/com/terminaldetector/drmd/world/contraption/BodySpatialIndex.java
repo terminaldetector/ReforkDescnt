@@ -37,6 +37,11 @@ public final class BodySpatialIndex {
                 var reason=body.getRemovalReason();if(reason!=null&&(reason.shouldDestroy()||reason==Entity.RemovalReason.CHANGED_DIMENSION))BodyJointRegistry.get(world).removeBody(body.getUuid());
             }}
     }
+    /** Loaded physical identity, independent of vanilla pivot-section visibility. */
+    public static Optional<BlockBodyEntity> find(World world,int id) {
+        State state=WORLDS.get(world);var ref=state==null?null:state.bodies.get(id);var body=ref==null?null:ref.get();
+        return body!=null&&!body.isRemoved()&&body.getWorld()==world?Optional.of(body):Optional.empty();
+    }
     public static List<BlockBodyEntity> loaded(World world) {
         State state=WORLDS.get(world);if(state==null)return List.of();var result=new ArrayList<BlockBodyEntity>();
         for(var ref:List.copyOf(state.bodies.values())) {var body=ref.get();if(body!=null&&!body.isRemoved()&&body.getWorld()==world)result.add(body);}
