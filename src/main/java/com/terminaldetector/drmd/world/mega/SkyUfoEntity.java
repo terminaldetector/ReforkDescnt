@@ -57,7 +57,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
                 .map(e->new Cell(new BlockPos(e.getKey().x(),e.getKey().y(),e.getKey().z()),e.getValue())).toList();
             // The legacy spawn position named the template origin; no world block is ever placed.
             var origin=getPos();initializeLocal(blueprint,origin);initialized=true;cruiseAltitude=massPosition().y();
-            setPassengerGravity(new Vec3(0,-16,0));
+            setPassengerGravity(crashing?ZERO:new Vec3(0,-16,0));setPhysicsGravity(crashing);
         } else if(cells().isEmpty()){discard();return;}
         ACTIVE.put(getUuid(),new WeakReference<>(this));
         if(!crashing&&getLocalBlock(CORE).isAir())destroyFromCore(world,null,"local reactor destroyed");

@@ -11,7 +11,7 @@ Source compilation or generic boarding evidence cannot certify these requirement
 
 The development version is1.1.35-ufo-dev.1. Its distribution gate rejects development
 metadata; it cannot replace the accepted1.1.34 package. Initial local checks:671 unit,
-228 server GameTests, including six tests of the actual registered UFO. These cover one
+229 server GameTests, including seven tests of the actual registered UFO. These cover one
 physical identity/no terrain writes, a rotated real bay/deck, local mining, damaged-grid
 entity NBT, retained material-point velocity and immediate reactor power loss/fragments.
 The first reactor fixture incorrectly compared COM before/after removing material; its
@@ -25,3 +25,9 @@ the UFO. Completion of those scenes still does not establish functional turret/b
 sphere modules, expanded interior, core capture or full3D combat AI. The compatibility bay
 currently retains unknown/unloaded escort IDs rather than refilling them without evidence
 of death; durable escort death reconciliation remains open.
+
+The first native fixture retained contact through full roll and most of pitch, then lost
+support during the final pitch correction. Its larger mass-based torque allowance could
+accelerate the surface away faster than the32m/s² field. The stand now bounds its commanded
+angular acceleration to4rad/s² before applying torque through the actual inertia tensor.
+Contact assertions remain unchanged; the runtime is not forced to keep impossible contact.

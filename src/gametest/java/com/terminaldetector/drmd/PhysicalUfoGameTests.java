@@ -81,4 +81,14 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
             c.assertTrue(!fragments.isEmpty()&&fragments.stream().allMatch(BlockBodyEntity::physicsGravity),"separated stabilizer material inherits the powered-down fall state");
         } finally {for(var b:BodySpatialIndex.loaded(c.getWorld()))if(!before.contains(b.getUuid()))b.discard();}c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="physical-ufo-legacy-fall",tickLimit=60)
+    public void legacyCrashingSaveMigratesToAPhysicalFallWithoutRecreatingWorldBlocks(TestContext c) {
+        var original=create(c);SkyUfoEntity migrated=null;
+        try {
+            var old=original.writeNbt(new NbtCompound());old.remove("shape");old.remove("body");old.remove("physicalUfoSchema");old.putBoolean("crashing",true);
+            migrated=ModEntities.SKY_UFO.create(c.getWorld());migrated.readNbt(old);migrated.setUuid(java.util.UUID.randomUUID());migrated.setAutopilot(false);
+            c.assertTrue(c.getWorld().spawnEntity(migrated),"load legacy UFO as the same registered entity class");migrated.tick();
+            c.assertTrue(migrated.isMaterialized()&&migrated.isCrashing()&&migrated.physicsGravity()&&migrated.passengerGravity().lengthSquared()==0,"legacy crash cannot turn into an artificially powered hovering wreck");
+        } finally {if(migrated!=null)migrated.discard();original.discard();}c.complete();
+    }
 }

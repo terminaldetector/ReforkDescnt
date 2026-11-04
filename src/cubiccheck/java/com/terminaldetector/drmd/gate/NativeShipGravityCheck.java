@@ -187,6 +187,7 @@ public final class NativeShipGravityCheck {
             if(error.w()<0)error=new Quat(-error.x(),-error.y(),-error.z(),-error.w());
             Vec3 turn=new Vec3(error.x(),error.y(),error.z());double radians=2*Math.acos(Math.max(-1,Math.min(1,error.w())));
             Vec3 acceleration=turn.normalized().scaled(36*radians).minus(body.physics().angularVelocity().minus(spin).scaled(12));
+            if(UFO&&acceleration.length()>4)acceleration=acceleration.scaled(4/acceleration.length());
             Vec3 torque=body.physics().worldInertia().transform(acceleration);double cap=body.physicsMass()*16*(UFO?100:1);if(torque.length()>cap)torque=torque.scaled(cap/torque.length());
             body.applyPhysicsTorque(BoardingSystem.mc(torque));
             if(mode!=0&&elapsed>160)settled=true;
