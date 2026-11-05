@@ -45,6 +45,7 @@ public final class CubicClientGate implements ClientModInitializer {
     private String capture;
     private final List<String> results=new ArrayList<>();
     @Override public void onInitializeClient() {
+        if(NativeDroneRouteCheck.ENABLED){NativeDroneRouteCheck.register();return;}
         if(NativeDroneStateCheck.READ){NativeDroneStateCheck.register();return;}
         if(Boolean.getBoolean("drmd.gate.swarm")){NativeSwarmBaselineCheck.register();return;}
         if(NativeUfoReloadCheck.READ){NativeUfoReloadCheck.register();return;}

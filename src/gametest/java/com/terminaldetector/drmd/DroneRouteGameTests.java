@@ -26,20 +26,27 @@ public final class DroneRouteGameTests implements FabricGameTest {
         var wall=new ArrayList<BlockPos>();
         for(int a=-20;a<=20;a++)for(int b=-20;b<=20;b++) {
             // Both apertures require a three-block detour perpendicular to the direct pursuit.
-            if((a==3||a==4)&&b==0)continue;
+            if(a==3&&b==0)continue;
             var p=base.add(vertical?a:3,vertical?3:a,b);wall.add(p);w.setBlockState(p,Blocks.BEDROCK.getDefaultState(),3);
         }
         var drone=ModEntities.DRONE.create(w);var ally=ModEntities.DRONE.create(w);var threat=EntityType.COW.create(w);
-        drone.applyRole(AiRole.SUPPORT);drone.setPosition(start);drone.setPersistent();drone.setInvulnerable(true);
+        drone.applyRole(AiRole.SUPPORT);drone.setPosition(start);drone.setPersistent();drone.setInvulnerable(true);drone.setAiDisabled(true);
         ally.applyRole(AiRole.MG);ally.setPosition(goal);ally.setHealth(1);ally.setAiDisabled(true);ally.setPersistent();ally.setInvulnerable(true);
         threat.setPosition(start.add(0,0,-6));threat.setAiDisabled(true);threat.setNoGravity(true);threat.setInvulnerable(true);
         c.assertTrue(w.spawnEntity(drone)&&w.spawnEntity(ally)&&w.spawnEntity(threat),"real route actors spawned");
         // One threat assignment isolates routing from detection; no manual ticks, velocity or follow teleports.
         drone.setTarget(threat);DroneSwarmAi.clear();
-        int[] ticks={0};boolean[] finished={false};
+        int[] ticks={0},admission={0};boolean[] finished={false},started={false};
         Runnable cleanup=()->{drone.discard();ally.discard();threat.discard();for(var p:wall)w.setBlockState(p,Blocks.AIR.getDefaultState(),3);for(var ch:chunks)w.setChunkForced(ch.x,ch.z,false);DroneSwarmAi.clear();};
         c.runAtEveryTick(()->{
-            if(finished[0])return;int tick=++ticks[0];var at=drone.getPos();
+            if(finished[0])return;
+            if(!started[0]) {
+                c.assertTrue(++admission[0]<80,"fixture actors admitted before routing");
+                if(drone.age<5||ally.age<5||w.getEntity(drone.getUuid())!=drone||w.getEntity(ally.getUuid())!=ally)return;
+                DroneSwarmAi.clear();drone.setAiDisabled(false);started[0]=true;
+            }
+            int tick=++ticks[0];var at=drone.getPos();
+            if(Boolean.getBoolean("drmd.debugDroneNavigation")&&(tick%40==0||tick<12))System.out.println("ROUTE_ACTOR tick="+tick+" age="+drone.age+" vertical="+vertical+" local="+at.subtract(Vec3d.of(base))+" velocity="+drone.getVelocity()+" collision="+drone.horizontalCollision+","+drone.verticalCollision+" role="+drone.getRole()+" health="+drone.getHealth()+" aiDisabled="+drone.isAiDisabled()+" alive="+drone.isAlive()+" allyPos="+ally.getPos()+" ally="+ally.getHealth()+" target="+drone.getTarget());
             boolean crossed=vertical?at.y>base.getY()+4.5:at.x>base.getX()+4.5;
             if(crossed||tick>=380) {
                 finished[0]=true;boolean intact=wall.stream().allMatch(p->w.getBlockState(p).isOf(Blocks.BEDROCK));cleanup.run();

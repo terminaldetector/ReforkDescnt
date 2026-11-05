@@ -1,0 +1,61 @@
+package com.terminaldetector.drmd.ai;
+
+import com.terminaldetector.drmd.entity.DroneEntity;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
+import java.util.*;
+
+/** Reactive route recovery for a physically blocked drone; unobstructed flight performs no geometry search. */
+final class DroneNavigation {
+    private static final boolean TRACE=Boolean.getBoolean("drmd.debugDroneNavigation");
+    private static final Map<World,RouteWorkBudget> BUDGETS=new WeakHashMap<>();
+    private final DroneEntity drone;
+    private final Entity actor;
+    private Vec3d previous,issued=Vec3d.ZERO,destination;
+    private int stalled,index;
+    private long retryAt,expires;
+    private BoundedFlightPath search;
+    private FlightRouteSpace space;
+    private List<BoundedFlightPath.Cell> route=List.of();
+    DroneNavigation(DroneEntity drone){this.drone=drone;actor=drone;}
+    private RouteWorkBudget budget(){return BUDGETS.computeIfAbsent(actor.getWorld(),w->new RouteWorkBudget(16,48,8));}
+    void stop(){budget().release(actor.getUuid());search=null;space=null;route=List.of();previous=null;issued=Vec3d.ZERO;stalled=0;}
+    Vec3d steer(Vec3d velocity,Vec3d target) {
+        if(actor.getWorld().isClient)return velocity;
+        var centre=actor.getBoundingBox().getCenter();long tick=actor.getWorld().getTime();
+        if(previous!=null&&issued.lengthSquared()>1e-5) {
+            double progress=centre.subtract(previous).dotProduct(issued.normalize());
+            stalled=progress<issued.length()*.5?stalled+1:0;
+        }
+        if((search!=null||!route.isEmpty())&&(tick>expires||destination.squaredDistanceTo(target)>64))cancel(tick,2);
+        Vec3d result=velocity;
+        if(!route.isEmpty()) {
+            while(index<route.size()&&space.point(route.get(index)).squaredDistanceTo(centre)<.0004)index++;
+            if(index>=route.size())cancel(tick,20);
+            else {
+                var delta=space.point(route.get(index)).subtract(centre);
+                if(!space.clearActual(delta)){trace("blocked waypoint delta="+delta);cancel(tick,4);}
+                else result=delta.normalize().multiply(Math.min(velocity.length(),delta.length()*.4));
+            }
+        }
+        if(search!=null) {
+            if(!budget().begin(actor.getUuid(),tick)){cancel(tick,4);previous=centre;issued=velocity;return velocity;}
+            search.step(budget().take(actor.getUuid(),tick));
+            if(search.status()==BoundedFlightPath.Status.FOUND) {
+                route=search.path();trace("found "+route);index=1;search=null;budget().release(actor.getUuid());
+            }else if(search.status()!=BoundedFlightPath.Status.SEARCHING){trace("search ended "+search.status()+" visited="+search.visitedCells());cancel(tick,40);}
+            result=Vec3d.ZERO;
+        }else if(route.isEmpty()&&stalled>=3&&tick>=retryAt&&target.squaredDistanceTo(centre)>1) {
+            if(budget().begin(actor.getUuid(),tick)) {
+                var delta=target.subtract(centre);if(delta.length()>24)delta=delta.normalize().multiply(24);
+                destination=target;space=new FlightRouteSpace(drone);expires=tick+200;
+                var goal=new BoundedFlightPath.Cell((int)Math.round(delta.x),(int)Math.round(delta.y),(int)Math.round(delta.z));
+                search=new BoundedFlightPath(new BoundedFlightPath.Cell(0,0,0),goal,32,512,space);trace("begin goal="+goal);result=Vec3d.ZERO;
+            }else retryAt=tick+2+(actor.getUuid().getLeastSignificantBits()&3);
+        }
+        previous=centre;issued=result;return result;
+    }
+    private void trace(String message){if(TRACE)com.terminaldetector.drmd.DescentMod.LOGGER.info("[drmd route] {} role={} pos={} stalled={}",message,drone.getRole().id,actor.getPos(),stalled);}
+    private void cancel(long tick,int delay){trace("cancel delay="+delay);budget().release(actor.getUuid());search=null;route=List.of();space=null;retryAt=tick+delay;}
+}

@@ -30,11 +30,15 @@ public final class DroneAi {
 		private static final float FLEE_HEALTH_FRACTION = 0.22f;
 
 		private final DroneEntity drone;
+        private final DroneNavigation navigation;
 
 		public CombatGoal(DroneEntity drone) {
 			this.drone = drone;
+            this.navigation=new DroneNavigation(drone);
 			this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
 		}
+
+        @Override public void stop(){navigation.stop();super.stop();}
 
 		@Override
 		public boolean canStart() {
@@ -96,7 +100,7 @@ public final class DroneAi {
 			double maxSpd = DescentMod.su(drone.getRole().speed);
 			if ("standoff".equals(style)) maxSpd *= 0.9;
 			if ("anchor".equals(style)) maxSpd *= 0.75;
-			Vec3d vel = desire.multiply(maxSpd / 20.0);
+			Vec3d vel = navigation.steer(desire.multiply(maxSpd / 20.0),drone.getPhase()==Phase.BREAK?pos.add(desire.multiply(16)):tpos);
 			drone.setVelocity(vel);
 			drone.velocityModified = true;
 			alignAttitude(drone, vel, desire, dt);
@@ -181,7 +185,7 @@ public final class DroneAi {
 				if (desire.lengthSquared() > 1e-6) desire = desire.normalize();
 			}
 			double maxSpd = DescentMod.su(drone.getRole().speed);
-			drone.setVelocity(desire.multiply(maxSpd / 20.0));
+			drone.setVelocity(navigation.steer(desire.multiply(maxSpd / 20.0),ally!=null&&worst<.85f?ally.getBoundingBox().getCenter():pos.add(desire.multiply(16))));
 			drone.velocityModified = true;
 			alignAttitude(drone, drone.getVelocity(), desire, dt);
 			// Support still snipes if something is already on them.
@@ -208,7 +212,7 @@ public final class DroneAi {
 			// Fear beats the patrol speed a role cruises at — this is the one moment a drone is
 			// trying to survive rather than hold a formation.
 			double maxSpd = DescentMod.su(drone.getRole().speed) * 1.15;
-			Vec3d vel = desire.multiply(maxSpd / 20.0);
+			Vec3d vel = navigation.steer(desire.multiply(maxSpd / 20.0),pos.add(desire.multiply(16)));
 			drone.setVelocity(vel);
 			drone.velocityModified = true;
 			alignAttitude(drone, vel, desire, dt);
