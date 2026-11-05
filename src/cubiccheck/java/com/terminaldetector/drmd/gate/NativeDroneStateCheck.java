@@ -28,6 +28,7 @@ public final class NativeDroneStateCheck {
     private static long captureStart;
     private static final Set<UUID> DRAWN=new HashSet<>(),SHOOTERS=new HashSet<>();
     private static final Map<String,Integer> DAMAGING_ROLES=new TreeMap<>();
+    private static Map<String,Integer> acceptedRoles=Map.of();
     private static volatile boolean ready,done;private static int ticks,age,frames,shots,moving,targets;
     private NativeDroneStateCheck(){}
     private static Entity entity(DroneEntity d){return d;}
@@ -60,7 +61,7 @@ public final class NativeDroneStateCheck {
         }catch(Exception e){throw new IllegalStateException("actual drone state restore failed",e);}
     }
     public static void shot(WeaponCore.FireConfig cfg,ProjectileEntity projectile) {
-        if(!READ||done||projectile==null||!(cfg.owner instanceof DroneEntity d)||!ids.contains(entity(d).getUuid()))return;
+        if(!READ||done||ready||projectile==null||!(cfg.owner instanceof DroneEntity d)||!ids.contains(entity(d).getUuid())||entity(d).getWorld().isClient)return;
         shots++;SHOOTERS.add(entity(d).getUuid());if(cfg.directDamage>0)DAMAGING_ROLES.merge(d.getRole().id,1,Integer::sum);
     }
     public static void register() {
@@ -87,7 +88,8 @@ public final class NativeDroneStateCheck {
             if(alive==128&&active==128&&moving>=96&&targets>=96&&SHOOTERS.size()>=16&&DAMAGING_ROLES.size()>=2) {
                 var w=s.getOverworld();
                 require(LOADED.values().stream().allMatch(d->w.getEntity(entity(d).getUuid())==d&&!((MobEntity)d).isAiDisabled()),"restored objects must be real registered active actors");
-                require(w.getEntitiesByClass(DroneEntity.class,new Box(-128,2028,-128,140,2284,160),d->true).size()==128,"no duplicate local swarm after restart");ready=true;
+                require(w.getEntitiesByClass(DroneEntity.class,new Box(-128,2028,-128,140,2284,160),d->true).size()==128,"no duplicate local swarm after restart");
+                acceptedRoles=Map.copyOf(DAMAGING_ROLES);require(acceptedRoles.values().stream().mapToInt(Integer::intValue).sum()==shots,"exact snapshot totals for this all-direct-damage fixture");ready=true;
             }
         });
         ClientTickEvents.END_CLIENT_TICK.register(c->{
@@ -120,7 +122,7 @@ public final class NativeDroneStateCheck {
         require(actors.stream().allMatch(d->d.getRole().id.equals(ROLES.get(entity(d).getUuid()))),"client role metadata matches the saved identities");
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             image.writeTo(file("drone-state-reloaded.png"));
-            Files.writeString(file("drone-state-ok.json"),new com.google.gson.Gson().toJson(Map.of("actualRestart",true,"restoredComponents",128,"clientSynced",actors.size(),"renderedIdentities",DRAWN.size(),"moving",moving,"naturalTargets",targets,"shots",shots,"shooters",SHOOTERS.size(),"damagingRoles",DAMAGING_ROLES))+"\n");done=true;c.scheduleStop();
+            Files.writeString(file("drone-state-ok.json"),new com.google.gson.Gson().toJson(Map.of("actualRestart",true,"restoredComponents",128,"clientSynced",actors.size(),"renderedIdentities",DRAWN.size(),"moving",moving,"naturalTargets",targets,"shots",shots,"shooters",SHOOTERS.size(),"damagingRoles",acceptedRoles))+"\n");done=true;c.scheduleStop();
         }catch(Exception e){throw new IllegalStateException(e);}
     }
 }
