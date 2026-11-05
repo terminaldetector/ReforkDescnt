@@ -51,11 +51,24 @@ public final class HostileEnvironment {
 	 */
 	public static void installTargets(PathAwareEntity mob, GoalSelector targetSelector) {
 		targetSelector.add(1, new RevengeGoal(mob));
-		targetSelector.add(2, new ActiveTargetGoal<>(mob, PlayerEntity.class, true));
-		targetSelector.add(3, new ActiveTargetGoal<>(mob, VillagerEntity.class, true));
-		targetSelector.add(3, new ActiveTargetGoal<>(mob, IronGolemEntity.class, true));
-		targetSelector.add(5, new ActiveTargetGoal<>(mob, AnimalEntity.class, true));
+		targetSelector.add(2, targetGoal(mob, PlayerEntity.class));
+		targetSelector.add(3, targetGoal(mob, VillagerEntity.class));
+		targetSelector.add(3, targetGoal(mob, IronGolemEntity.class));
+		targetSelector.add(5, targetGoal(mob, AnimalEntity.class));
 	}
+
+    private static <T extends LivingEntity> ActiveTargetGoal<T> targetGoal(PathAwareEntity mob,Class<T> type) {
+        return mob instanceof DroneEntity ? new VolumeTargetGoal<>(mob,type) : new ActiveTargetGoal<>(mob,type,true);
+    }
+
+    /** Free-flight actors search in XYZ; vanilla's four-block Y band belongs to ground mobs. */
+    private static final class VolumeTargetGoal<T extends LivingEntity> extends ActiveTargetGoal<T> {
+        private final PathAwareEntity flyer;
+        private VolumeTargetGoal(PathAwareEntity mob,Class<T> type){super(mob,type,true);flyer=mob;}
+        @Override protected net.minecraft.util.math.Box getSearchBox(double distance) {
+            return flyer.getBoundingBox().expand(distance);
+        }
+    }
 
 	/** Convenience for HostileEntity subclasses calling from initGoals. */
 	public static void installTargets(HostileEntity mob, GoalSelector targetSelector) {

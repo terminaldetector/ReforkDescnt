@@ -32,6 +32,7 @@ public final class NativeSwarmBaselineCheck {
     private static final List<String> ROWS=new ArrayList<>();
     private static volatile boolean located,running,sampling,resultReady,done;
     private static boolean requested,spawnRequested;private static volatile int stage,age;
+    private static final boolean VERTICAL=Boolean.getBoolean("drmd.gate.verticalTargets");
     private static int ticks,frames,alive,moving,active,lookup,maxCandidates,shots,sampledShots,sampledShooters,indexed,targeting;
     private static long tickStart,sampleStart,lastFrame;private static double seconds;
     private static long captureStart;
@@ -92,13 +93,13 @@ public final class NativeSwarmBaselineCheck {
         if(located&&!spawnRequested&&loaded(c)){spawnRequested=true;DRAWN.clear();FRAMES.clear();lastFrame=0;c.getServer().execute(()->spawn(c.getServer().getOverworld()));}
     }
     private static void spawn(ServerWorld w) {
-        System.out.println("SWARM_CONFIG seed="+w.getSeed()+" centre="+centre()+" difficulty="+w.getDifficulty()+" doMobSpawning="+w.getGameRules().getBoolean(net.minecraft.world.GameRules.DO_MOB_SPAWNING)+" roles=SUPPORT,ASSAULT,MG,INTERCEPTOR target="+(NativeDroneStateCheck.WRITE?"targetable-resistance-cow":"invulnerable-invisible-cow")+" backgroundLOD=false manualDroneTicks=false");
-        var at=centre();var target=EntityType.COW.create(w);require(target!=null,"real passive target");target.setPosition(at.add(0,0,-30));target.setNoGravity(true);target.setInvulnerable(!NativeDroneStateCheck.WRITE);if(NativeDroneStateCheck.WRITE)target.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.RESISTANCE,-1,4,false,false));target.setInvisible(!NativeDroneStateCheck.WRITE);target.setAiDisabled(true);target.setPersistent();require(w.spawnEntity(target),"target spawned");cow=target;
+        System.out.println("SWARM_CONFIG seed="+w.getSeed()+" centre="+centre()+" difficulty="+w.getDifficulty()+" doMobSpawning="+w.getGameRules().getBoolean(net.minecraft.world.GameRules.DO_MOB_SPAWNING)+" roles=SUPPORT,ASSAULT,MG,INTERCEPTOR target="+((NativeDroneStateCheck.WRITE||VERTICAL)?"targetable-resistance-cow":"invulnerable-invisible-cow")+" verticalTargets="+VERTICAL+" manualTargets="+!VERTICAL+" backgroundLOD=false manualDroneTicks=false");
+        var at=centre();var target=EntityType.COW.create(w);require(target!=null,"real passive target");target.setPosition(at.add(0,VERTICAL?(stage==0?20:-20):0,VERTICAL?0:-30));target.setNoGravity(true);target.setInvulnerable(!(NativeDroneStateCheck.WRITE||VERTICAL));if(NativeDroneStateCheck.WRITE||VERTICAL)target.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.RESISTANCE,-1,4,false,false));target.setInvisible(!(NativeDroneStateCheck.WRITE||VERTICAL));target.setAiDisabled(true);target.setPersistent();require(w.spawnEntity(target),"target spawned");cow=target;
         DRONES.clear();PROJECTILES.clear();SHOOTERS.clear();shots=0;
         for(int i=0;i<COUNT;i++) {
             var d=ModEntities.DRONE.create(w);require(d!=null,"registered drone created");entity(d).setPosition(at.add(((i&15)-7.5)*1.2,(((i>>8)&3)-1.5)*1.2,(((i>>4)&15)-7.5)*1.2));
             d.applyRole(switch(i&3){case 0->AiRole.SUPPORT;case 1->AiRole.ASSAULT;case 2->AiRole.MG;default->AiRole.INTERCEPTOR;});
-            ((MobEntity)d).setPersistent();entity(d).setInvulnerable(true);require(w.spawnEntity(d),"drone spawn accepted");((MobEntity)d).setTarget(target);DRONES.add(d);
+            ((MobEntity)d).setPersistent();entity(d).setInvulnerable(true);require(w.spawnEntity(d),"drone spawn accepted");if(!VERTICAL)((MobEntity)d).setTarget(target);DRONES.add(d);
         }
         expected=Set.copyOf(DRONES.stream().map(d->entity(d).getUuid()).toList());DroneSwarmAi.clear();age=0;captureStart=0;resultReady=false;running=true;
     }
@@ -135,7 +136,7 @@ public final class NativeSwarmBaselineCheck {
         long remaining=DRONES.stream().filter(d->!entity(d).isRemoved()).count();require(remaining==0,"fixture actors removed");ROWS.add(row+remaining);DRONES.clear();PROJECTILES.clear();expected=Set.of();DroneSwarmAi.clear();
         c.execute(()->{
             if(++stage<2){located=false;requested=false;spawnRequested=false;return;}
-            try{Files.writeString(c.runDirectory.toPath().resolve("swarm-baseline.csv"),String.join("\n",ROWS)+"\n");Files.writeString(c.runDirectory.toPath().resolve("swarm-baseline-ok.json"),"{\"heights\":[207,2156],\"actorsPerCase\":128,\"minimumMoving\":96,\"realTicksAndShots\":true,\"fullSurvivalOrPersistenceAcceptance\":false}\n");done=true;c.scheduleStop();}catch(Exception e){throw new IllegalStateException(e);}
+            try{Files.writeString(c.runDirectory.toPath().resolve("swarm-baseline.csv"),String.join("\n",ROWS)+"\n");Files.writeString(c.runDirectory.toPath().resolve("swarm-baseline-ok.json"),"{\"naturalVerticalTargets\":"+VERTICAL+",\"heights\":[207,2156],\"actorsPerCase\":128,\"minimumMoving\":96,\"realTicksAndShots\":true,\"fullSurvivalOrPersistenceAcceptance\":false}\n");done=true;c.scheduleStop();}catch(Exception e){throw new IllegalStateException(e);}
         });
     }
     private static double percentile(List<Long> values,double fraction){var sorted=new ArrayList<>(values);Collections.sort(sorted);return sorted.get(Math.max(0,(int)Math.ceil(fraction*sorted.size())-1));}
