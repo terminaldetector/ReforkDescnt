@@ -90,7 +90,8 @@ public final class DroneAi {
 			else if (phase == Phase.BREAK && drone.getPhaseTimer() > 1.2f) drone.setPhase(Phase.ORBIT);
 
 			Vec3d desire = styleDesire(style, pos, tpos, toTarget, dist, preferred);
-			Vec3d swarm = DroneSwarmAi.compute(drone, target);
+			// Role steering already owns target attraction; add flock forces without a second pursuit vector.
+            Vec3d swarm = DroneSwarmAi.compute(drone, null);
 			if (swarm.lengthSquared() > 1e-6) {
 				desire = desire.add(swarm.multiply(1.15));
 			}
@@ -132,14 +133,14 @@ public final class DroneAi {
 					side = side.normalize();
 					if (((drone.getId() >> 1) & 1) == 0) side = side.multiply(-1);
 					double radialErr = MathHelper.clamp((dist - preferred) / preferred, -1, 1);
-					yield side.multiply(2.6).add(radial.multiply(-radialErr * 1.4)).add(0, 0.25, 0);
+					yield side.multiply(2.6).add(radial.multiply(radialErr * 1.4)).add(0, 0.25, 0);
 				}
 				case "standoff" -> {
 					double radialErr = MathHelper.clamp((dist - preferred) / preferred, -1.2, 1.2);
 					Vec3d upHint = Math.abs(radial.y) < 0.9 ? new Vec3d(0, 1, 0) : new Vec3d(1, 0, 0);
 					Vec3d tangent = radial.crossProduct(upHint).normalize();
 					// Hold the ring; back off hard if the target closes.
-					Vec3d hold = tangent.multiply(1.4).add(radial.multiply(-radialErr * 2.2));
+					Vec3d hold = tangent.multiply(1.4).add(radial.multiply(radialErr * 2.2));
 					if (dist < preferred * 0.55) hold = radial.multiply(-2.8).add(0, 0.8, 0);
 					yield hold;
 				}
@@ -157,7 +158,7 @@ public final class DroneAi {
 						if (tangent.lengthSquared() < 1e-4) tangent = new Vec3d(1, 0, 0);
 						tangent = tangent.normalize();
 						double radialErr = MathHelper.clamp((dist - preferred) / preferred, -1, 1);
-						yield tangent.multiply(2.2).add(radial.multiply(-radialErr));
+						yield tangent.multiply(2.2).add(radial.multiply(radialErr));
 					}
 					case RUN -> radial.add(0, drone.getRandom().nextBoolean() ? 0.4 : -0.4, 0);
 					case BREAK -> pos.subtract(tpos).normalize().add(0, 0.6, 0)
@@ -181,7 +182,8 @@ public final class DroneAi {
 				// Keep clear of the threat, orbit the flock.
 				desire = pos.subtract(tpos);
 				if (desire.lengthSquared() < 1e-4) desire = new Vec3d(0, 1, 0);
-				desire = desire.normalize().add(DroneSwarmAi.compute(drone, target));
+				// Enemy attraction would cancel this retreat and turn tiny rounding residue into a dive.
+                desire = desire.normalize().add(DroneSwarmAi.compute(drone, null));
 				if (desire.lengthSquared() > 1e-6) desire = desire.normalize();
 			}
 			double maxSpd = DescentMod.su(drone.getRole().speed);
