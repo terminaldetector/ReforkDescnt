@@ -784,8 +784,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [SWARM_BASELINE_2026-11-04.md, EVIDENCE/swarm-baseline-f3b7cac.zip]
-  notes: Bounded index and moving mixed-role generic drones pass; actual obstacle avoidance remains open.
+  evidence: [SWARM_BASELINE_2026-11-04.md, EVIDENCE/swarm-baseline-f3b7cac.zip, DRONE_ROUTES_WORLD_GRID_2026-11-05.md, EVIDENCE/drone-route-world-grid-5623e0a.zip]
+  notes: Bounded index and moving mixed-role generic drones pass; bounded loaded-terrain Support routes now pass two off-grid one-cell apertures on Mesa/Sodium. Dense shared passages, all combat roles and moving hull timing remain open.
 - id: S11-T03
   stage: S11
   stage_title: ORB/ROCKET/JET swarms

@@ -24,3 +24,5 @@ Drone persistence increment6cb317e:679 unit/253 GameTests pass. Native cdb2572 M
 Latest drone target increment8fd19bc:679 unit/255 GameTests; natural vertical target acquisition plus128 moving/synchronized/rendered actors passed four fresh Mesa/Sodium scenes. See DRONE_VOLUME_TARGETS_2026-11-05.md. Performance remains open; next implement bounded obstacle routes.
 
 Bounded route prototype1ff65c8 passes690 unit/257 GameTests plus aligned wall/ceiling scenes on Mesa and Sodium. See DRONE_ROUTES_WIP_2026-11-05.md. Arbitrary fractional starts are an explicit next regression; full swarm obstacle/hull/bestiary acceptance remains open.
+
+Off-grid route fix5623e0a passes690 unit/257 GameTests and four fresh narrow-aperture native scenes, with actual collider entry. See DRONE_ROUTES_WORLD_GRID_2026-11-05.md. Exact-current128 restart passed functional checks but exposed a non-atomic measurement/report race; the counter fix and fresh measurements are in progress. No complete stage or new accepted release.

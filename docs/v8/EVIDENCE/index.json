@@ -728,5 +728,110 @@
       "expired": false,
       "digest": "sha256:3c98d3d9b747deacc7e868f11bca2f9a56cf542c7405f6781fb2b9c7d4c00681"
     }
+  },
+  "droneWorldGridRoutes": {
+    "source": "5623e0ad7fb8f2ce8aa8c4b1ca545a23457868e9",
+    "gameJarSha256": "c911bd5d57cb9dccfd0c346b5d92c9280e9c7bad30a7c99b6f13cd725422d302",
+    "gateJarSha256": "4f247eda3bedad00ad5a2725011a5cec577b04b88dd1204e432dbf6d1320f839",
+    "unitTests": 690,
+    "gameTests": 257,
+    "releaseAccepted": false,
+    "runs": [
+      {
+        "renderer": "gl32",
+        "marker": {
+          "intactOneCellApertures": true,
+          "noTeleportFollowing": true,
+          "cases": [
+            {
+              "manualEntityTicks": false,
+              "ticks": 66,
+              "apertureEntered": true,
+              "height": 207,
+              "manualVelocity": false,
+              "actualAi": true,
+              "vertical": false,
+              "blockedSamples": 25,
+              "crossing": [
+                4.858315971901625,
+                3.0498453038436253,
+                0.500001725102841
+              ]
+            },
+            {
+              "manualEntityTicks": false,
+              "ticks": 85,
+              "apertureEntered": true,
+              "height": 2156,
+              "manualVelocity": false,
+              "actualAi": true,
+              "vertical": true,
+              "blockedSamples": 25,
+              "crossing": [
+                0.5047503061075567,
+                4.792340562300524,
+                0.5000000198239718
+              ]
+            }
+          ],
+          "actualClient": true
+        }
+      },
+      {
+        "renderer": "sodium",
+        "marker": {
+          "actualClient": true,
+          "intactOneCellApertures": true,
+          "noTeleportFollowing": true,
+          "cases": [
+            {
+              "blockedSamples": 25,
+              "crossing": [
+                4.858315971901625,
+                3.0498453038436253,
+                0.500001725102841
+              ],
+              "manualEntityTicks": false,
+              "ticks": 66,
+              "apertureEntered": true,
+              "height": 207,
+              "manualVelocity": false,
+              "actualAi": true,
+              "vertical": false
+            },
+            {
+              "blockedSamples": 25,
+              "crossing": [
+                0.5047503061075567,
+                4.792340562300524,
+                0.5000000198239718
+              ],
+              "manualEntityTicks": false,
+              "ticks": 85,
+              "apertureEntered": true,
+              "height": 2156,
+              "manualVelocity": false,
+              "actualAi": true,
+              "vertical": true
+            }
+          ]
+        }
+      }
+    ],
+    "scope": "Loaded-only static-terrain route recovery by actual Support AI from off-grid starts. Not universal/combat-role/dynamic-hull/group-maze/performance acceptance.",
+    "archive": "drone-route-world-grid-5623e0a.zip",
+    "archiveSha256": "5e1da635d22a2df85fe9a705c909ae3310d09c0682075e8cf8e2be235e280d98",
+    "sourceArtifact": {
+      "run": 41986390704,
+      "id": 13396122381,
+      "expired": false,
+      "digest": "sha256:aeb5369bd6833460638ab3ced04f97b179d0fcc3794965499baf5ba3d4d1b931"
+    }
+  },
+  "droneStateCounterRace": {
+    "archive": "drone-state-world-grid-first-nonatomic.zip",
+    "sha256": "6ea9b612ede3571a175c449cf5cf0fbddd7f834936cdf450176d0b364d24d9c4",
+    "acceptedCounterMetrics": false,
+    "reason": "Live server counters changed during client JSON construction. Retained as diagnostic; final snapshot recheck pending."
   }
 }
