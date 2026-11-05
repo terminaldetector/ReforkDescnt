@@ -633,5 +633,94 @@
       "expired": false,
       "digest": "sha256:59a62f4480eac6408a9871a00bbdf0b7521a941da4b59324d185203247eadaaf"
     }
+  },
+  "droneAlignedRoutes": {
+    "source": "1ff65c82f95d79bd96fea38af58c6be53aa6b286",
+    "gameJarSha256": "758aeb00ac0790b6b80702343ba79aa6bb903fa4f6252ddeb620b408bdfa2d1b",
+    "gateJarSha256": "4dcddaadedced0a99ccbd74b705f728cfa7334c5b668b739526ee530f9996378",
+    "unitTests": 690,
+    "gameTests": 257,
+    "releaseAccepted": false,
+    "scope": "Aligned support-role recovery on two static aperture fixtures per renderer; not full combat/bestiary/rotating hull/performance or arbitrary-start admission acceptance.",
+    "runs": [
+      {
+        "renderer": "gl32",
+        "marker": {
+          "cases": [
+            {
+              "vertical": false,
+              "height": 207,
+              "ticks": 59,
+              "actualAi": true,
+              "blockedSamples": 24,
+              "manualEntityTicks": false,
+              "crossing": [
+                4.50758276576553,
+                3.09975483429929,
+                0.5
+              ],
+              "manualVelocity": false
+            },
+            {
+              "vertical": true,
+              "height": 2156,
+              "ticks": 80,
+              "actualAi": true,
+              "blockedSamples": 24,
+              "manualEntityTicks": false,
+              "crossing": [
+                0.5047503061059366,
+                4.842340574012724,
+                0.5
+              ],
+              "manualVelocity": false
+            }
+          ],
+          "noTeleportFollowing": true,
+          "intactOneCellApertures": true,
+          "actualClient": true
+        }
+      },
+      {
+        "renderer": "sodium",
+        "marker": {
+          "noTeleportFollowing": true,
+          "cases": [
+            {
+              "actualAi": true,
+              "ticks": 59,
+              "height": 207,
+              "vertical": false,
+              "manualVelocity": false,
+              "crossing": [
+                4.50758276576553,
+                3.09975483429929,
+                0.5
+              ],
+              "manualEntityTicks": false,
+              "blockedSamples": 24
+            },
+            {
+              "actualAi": true,
+              "ticks": 80,
+              "height": 2156,
+              "vertical": true,
+              "manualVelocity": false,
+              "crossing": [
+                0.5047503061059366,
+                4.842340574012724,
+                0.5
+              ],
+              "manualEntityTicks": false,
+              "blockedSamples": 24
+            }
+          ],
+          "actualClient": true,
+          "intactOneCellApertures": true
+        }
+      }
+    ],
+    "archive": "drone-routes-1ff65c8.zip",
+    "archiveSha256": "1a43a00cad4ed6a055ccf947143cb1bb4a4799108dcc133f7e1c503384c7d203"
   }
 }

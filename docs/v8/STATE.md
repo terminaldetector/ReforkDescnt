@@ -22,3 +22,5 @@ Pre-refactor generic drone baseline f3b7cac passed four actual native cases:128 
 Drone persistence increment6cb317e:679 unit/253 GameTests pass. Native cdb2572 Mesa actual restart passed128 restored/active/moving/client-synchronized, natural targeting and two measured attack roles; Sodium actual restart also passed128 restored/active/moving/synchronized,127 natural targets and1414 actual shots from two damaging roles. See DRONE_STATE_2026-11-05.md. Full bestiary/Survival/3D obstacle navigation remain open.
 
 Latest drone target increment8fd19bc:679 unit/255 GameTests; natural vertical target acquisition plus128 moving/synchronized/rendered actors passed four fresh Mesa/Sodium scenes. See DRONE_VOLUME_TARGETS_2026-11-05.md. Performance remains open; next implement bounded obstacle routes.
+
+Bounded route prototype1ff65c8 passes690 unit/257 GameTests plus aligned wall/ceiling scenes on Mesa and Sodium. See DRONE_ROUTES_WIP_2026-11-05.md. Arbitrary fractional starts are an explicit next regression; full swarm obstacle/hull/bestiary acceptance remains open.
