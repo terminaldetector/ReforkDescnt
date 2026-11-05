@@ -74,6 +74,10 @@ public class DroneEntity extends HostileEntity {
 	}
 
 	protected AiRole defaultRole(){return AiRole.ASSAULT;}
+
+    /** Goal input before navigation; generic drones keep their existing direct steering. */
+    public Vec3d steerFlightVelocity(Vec3d desired){return desired;}
+    public boolean continuousFlightSteering(){return false;}
 	public AiRole getRole() { return getWorld().isClient ? AiRole.fromId(dataTracker.get(ROLE)) : role; }
 	public float getDroneShield() { return getWorld().isClient ? dataTracker.get(SHIELD) : shield; }
 	public float getDroneArmor() { return getWorld().isClient ? dataTracker.get(ARMOR) : armor; }

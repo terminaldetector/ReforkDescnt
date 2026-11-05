@@ -27,7 +27,7 @@ public final class JetMotorGameTests implements FabricGameTest {
         c.runAtEveryTick(()->{
             if(finished[0])return;
             if(!started[0]){c.assertTrue(++admission[0]<80,"JET fixture admitted");if(jet.age<5||target.age<5)return;DroneSwarmAi.clear();jet.setPhase(DroneAi.Phase.ORBIT);previous[0]=reversing?new Vec3d(.5,0,0):Vec3d.ZERO;jet.setVelocity(previous[0]);jet.setAiDisabled(false);started[0]=true;return;}
-            var v=jet.getVelocity();double change=v.subtract(previous[0]).length();step[0]=Math.max(step[0],change);previous[0]=v;peak[0]=Math.max(peak[0],v.length());if(++ticks[0]==1)first[0]=v.length();
+            var v=jet.getVelocity();double change=v.subtract(previous[0]).length();step[0]=Math.max(step[0],change);previous[0]=v;peak[0]=Math.max(peak[0],v.length());if(first[0]==0&&v.length()>1e-5)first[0]=v.length();ticks[0]++;
             boolean violation=reversing?change>.12:first[0]>.075;
             if(!violation&&ticks[0]<40)return;finished[0]=true;double distance=jet.getPos().distanceTo(start);boolean alive=jet.isAlive(),locked=jet.getTarget()==target;
             for(var e:java.util.stream.StreamSupport.stream(w.iterateEntities().spliterator(),false).toList())if(e instanceof ProjectileEntity p&&p.getOwnerLiving()==jet)e.discard();
