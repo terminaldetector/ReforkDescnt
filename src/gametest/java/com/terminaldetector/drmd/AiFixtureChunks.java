@@ -15,6 +15,9 @@ final class AiFixtureChunks implements AutoCloseable {
     private boolean closed;
     AiFixtureChunks(ServerWorld world,BlockPos centre,int radius){
         this.world=world;
+        // Custom tickets do not reset Vanilla's300-tick empty-world entity idle timer.
+        // This fixture lasts at most80 admission+40 measured ticks, as an active player world.
+        world.resetIdleTimeout();
         for(int x=(centre.getX()>>4)-radius;x<=(centre.getX()>>4)+radius;x++)for(int z=(centre.getZ()>>4)-radius;z<=(centre.getZ()>>4)+radius;z++){
             var pos=new ChunkPos(x,z);columns.add(pos);world.getChunkManager().addTicket(TICKET,pos,2,owner);world.getChunk(x,z);
         }
