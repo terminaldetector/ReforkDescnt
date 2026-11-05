@@ -58,11 +58,15 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 
 	/** Spawn the current five-part scout wreck at a world-space centre. */
 	public static RagdollEntity spawnScout(ServerWorld world, Vec3d origin, Vec3d velocityPerTick) {
+        return spawnScout(world,origin,velocityPerTick,Quat.IDENTITY);
+    }
+
+    private static RagdollEntity spawnScout(ServerWorld world,Vec3d origin,Vec3d velocityPerTick,Quat rotation) {
 		RagdollEntity ragdoll = ModEntities.RAGDOLL.create(world);
 		if (ragdoll == null) return null;
 		Vec3 originD6 = pure(origin);
 		Vec3 velocityD6 = pure(velocityPerTick).scaled(20);
-		ragdoll.simulation = new RagdollSimulation(ragdoll.rig, originD6, Quat.IDENTITY, velocityD6);
+		ragdoll.simulation = new RagdollSimulation(ragdoll.rig, originD6, rotation, velocityD6);
 		ragdoll.syncEntityFromSimulation();
 		ragdoll.dataTracker.set(POSE, ragdoll.trackedPose());
 		return world.spawnEntity(ragdoll) ? ragdoll : null;
@@ -72,7 +76,8 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	public static RagdollEntity spawnFromDrone(DroneEntity drone, DamageSource source) {
 		if (!(drone.getWorld() instanceof ServerWorld world) || !com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(world)) return null;
 		Vec3d origin = drone.getPos().add(0, drone.getHeight() * .5, 0);
-		RagdollEntity ragdoll = spawnScout(world, origin, drone.getVelocity());
+		var rotation=com.terminaldetector.drmd.entity.model.FlightHullPose.physicalRotation(drone.getYaw(),drone.getPitch(),drone.getFlightRoll());
+		RagdollEntity ragdoll = spawnScout(world, origin, drone.getVelocity(),rotation);
 		if (ragdoll == null) return null;
 
 		Entity cause = source.getSource();
