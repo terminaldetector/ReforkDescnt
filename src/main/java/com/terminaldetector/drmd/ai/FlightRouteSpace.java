@@ -16,7 +16,7 @@ final class FlightRouteSpace implements BoundedFlightPath.Space {
     private final World world;
     private final Vec3d origin;
     private final Box initial;
-    FlightRouteSpace(DroneEntity drone){actor=drone;world=actor.getWorld();initial=actor.getBoundingBox();origin=initial.getCenter();}
+    FlightRouteSpace(DroneEntity drone){actor=drone;world=actor.getWorld();var actual=actor.getBoundingBox();origin=Vec3d.ofCenter(BlockPos.ofFloored(actual.getCenter()));initial=actual.offset(origin.subtract(actual.getCenter()));}
     Vec3d point(BoundedFlightPath.Cell c){return origin.add(c.x(),c.y(),c.z());}
     @Override public boolean clear(BoundedFlightPath.Cell a,BoundedFlightPath.Cell b) {
         return clear(initial.offset(a.x(),a.y(),a.z()),point(b).subtract(point(a)));

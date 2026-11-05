@@ -43,13 +43,16 @@ final class DroneNavigation {
             if(!budget().begin(actor.getUuid(),tick)){cancel(tick,4);previous=centre;issued=velocity;return velocity;}
             search.step(budget().take(actor.getUuid(),tick));
             if(search.status()==BoundedFlightPath.Status.FOUND) {
-                route=search.path();trace("found "+route);index=1;search=null;budget().release(actor.getUuid());
+                route=search.path();trace("found "+route);index=0;search=null;budget().release(actor.getUuid());
             }else if(search.status()!=BoundedFlightPath.Status.SEARCHING){trace("search ended "+search.status()+" visited="+search.visitedCells());cancel(tick,40);}
             result=Vec3d.ZERO;
         }else if(route.isEmpty()&&stalled>=3&&tick>=retryAt&&target.squaredDistanceTo(centre)>1) {
             if(budget().begin(actor.getUuid(),tick)) {
-                var delta=target.subtract(centre);if(delta.length()>24)delta=delta.normalize().multiply(24);
-                destination=target;space=new FlightRouteSpace(drone);expires=tick+200;
+                destination=target;space=new FlightRouteSpace(drone);
+                var anchor=space.point(new BoundedFlightPath.Cell(0,0,0));
+                if(!space.clearActual(anchor.subtract(centre))){cancel(tick,20);previous=centre;issued=velocity;return velocity;}
+                var delta=target.subtract(anchor);if(delta.length()>24)delta=delta.normalize().multiply(24);
+                expires=tick+200;
                 var goal=new BoundedFlightPath.Cell((int)Math.round(delta.x),(int)Math.round(delta.y),(int)Math.round(delta.z));
                 search=new BoundedFlightPath(new BoundedFlightPath.Cell(0,0,0),goal,32,512,space);trace("begin goal="+goal);result=Vec3d.ZERO;
             }else retryAt=tick+2+(actor.getUuid().getLeastSignificantBits()&3);

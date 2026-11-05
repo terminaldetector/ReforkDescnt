@@ -22,7 +22,7 @@ import java.util.*;
 public final class NativeDroneRouteCheck {
     public static final boolean ENABLED=Boolean.getBoolean("drmd.gate.droneRoutes");
     private static volatile boolean located,running,ready,done;
-    private static boolean requested,spawnRequested,activated;
+    private static boolean requested,spawnRequested,activated,apertureEntered;
     private static int stage,ticks,age,blockedSamples,viewFrames;
     private static Vec3d previous;
     private static DroneEntity drone,ally;
@@ -43,13 +43,18 @@ public final class NativeDroneRouteCheck {
             age++;var at=entity(drone).getPos();
             if(previous!=null&&at.squaredDistanceTo(previous)<1e-5&&Math.abs((vertical()?at.y-base().getY():at.x-base().getX())-(vertical()?2.1:2.55))<.02)blockedSamples++;
             previous=at;
+            var box=entity(drone).getBoundingBox();double epsilon=1e-5;
+            boolean slab=vertical()?box.maxY>base().getY()+3+epsilon&&box.minY<base().getY()+4-epsilon:box.maxX>base().getX()+3+epsilon&&box.minX<base().getX()+4-epsilon;
+            boolean inHole=vertical()?box.minX>=base().getX()+3-epsilon&&box.maxX<=base().getX()+4+epsilon:box.minY>=base().getY()+3-epsilon&&box.maxY<=base().getY()+4+epsilon;
+            if(slab&&inHole&&box.minZ>=base().getZ()-epsilon&&box.maxZ<=base().getZ()+1+epsilon)apertureEntered=true;
             boolean crossed=vertical()?at.y>base().getY()+4.5:at.x>base().getX()+4.5;
             require(entity(drone).isAlive()&&entity(ally).isAlive(),"both actual route actors remain alive");
             require(age<400,"native support route timeout stage="+stage+" local="+at.subtract(Vec3d.of(base()))+" blocked="+blockedSamples);
             if(crossed) {
                 require(blockedSamples>=3,"actual collision stall must precede the detour");
+                require(apertureEntered,"actual actor box must occupy the one-cell aperture while crossing the wall slab");
                 require(WALL.keySet().stream().allMatch(p->s.getOverworld().getBlockState(p).isOf(Blocks.BEDROCK)),"route crosses an intact wall through its aperture");
-                RESULTS.add(new LinkedHashMap<>(Map.of("height",base().getY(),"vertical",vertical(),"ticks",age,"blockedSamples",blockedSamples,"crossing",List.of(at.x-base().getX(),at.y-base().getY(),at.z-base().getZ()),"actualAi",true,"manualEntityTicks",false,"manualVelocity",false)));
+                RESULTS.add(new LinkedHashMap<>(Map.of("height",base().getY(),"vertical",vertical(),"ticks",age,"blockedSamples",blockedSamples,"crossing",List.of(at.x-base().getX(),at.y-base().getY(),at.z-base().getZ()),"actualAi",true,"manualEntityTicks",false,"manualVelocity",false,"apertureEntered",apertureEntered)));
                 DRAWN.clear();ready=true;
             }
         });
@@ -82,11 +87,11 @@ public final class NativeDroneRouteCheck {
         for(int a=-8;a<=8;a++)for(int z=-8;z<=8;z++)if(a!=3||z!=0) {
             var p=b.add(vertical()?a:3,vertical()?3:a,z);WALL.put(p,w.getBlockState(p));w.setBlockState(p,Blocks.BEDROCK.getDefaultState(),3);
         }
-        var start=Vec3d.ofBottomCenter(b).add(0,.1,0);drone=ModEntities.DRONE.create(w);ally=ModEntities.DRONE.create(w);var cow=EntityType.COW.create(w);
+        var start=Vec3d.ofBottomCenter(b).add(.27,.37,.19);drone=ModEntities.DRONE.create(w);ally=ModEntities.DRONE.create(w);var cow=EntityType.COW.create(w);
         drone.applyRole(AiRole.SUPPORT);entity(drone).setPosition(start);((MobEntity)drone).setPersistent();entity(drone).setInvulnerable(true);((MobEntity)drone).setAiDisabled(true);
         ally.applyRole(AiRole.MG);entity(ally).setPosition(start.add(vertical()?0:6,vertical()?6:0,0));((LivingEntity)ally).setHealth(1);((MobEntity)ally).setAiDisabled(true);((MobEntity)ally).setPersistent();entity(ally).setInvulnerable(true);
         cow.setPosition(start.add(0,0,-6));cow.setAiDisabled(true);cow.setNoGravity(true);cow.setInvulnerable(true);threat=cow;
-        require(w.spawnEntity(drone)&&w.spawnEntity(ally)&&w.spawnEntity(cow),"registered actors spawn");((MobEntity)drone).setTarget(cow);DroneSwarmAi.clear();previous=null;activated=false;age=blockedSamples=viewFrames=0;DRAWN.clear();running=true;
+        require(w.spawnEntity(drone)&&w.spawnEntity(ally)&&w.spawnEntity(cow),"registered actors spawn");((MobEntity)drone).setTarget(cow);DroneSwarmAi.clear();previous=null;activated=apertureEntered=false;age=blockedSamples=viewFrames=0;DRAWN.clear();running=true;
         System.out.println("DRONE_ROUTE stage="+stage+" height="+b.getY()+" initialThreatAssignedOnce=true supportGoalAutomatic=true manualTicks=false oneCellAperture=true");
     }
     public static void drew(DroneEntity d){if(ready&&drone!=null&&entity(d).getUuid().equals(entity(drone).getUuid()))DRAWN.add(entity(d).getUuid());}
