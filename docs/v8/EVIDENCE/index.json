@@ -721,6 +721,12 @@
       }
     ],
     "archive": "drone-routes-1ff65c8.zip",
-    "archiveSha256": "1a43a00cad4ed6a055ccf947143cb1bb4a4799108dcc133f7e1c503384c7d203"
+    "archiveSha256": "1a43a00cad4ed6a055ccf947143cb1bb4a4799108dcc133f7e1c503384c7d203",
+    "sourceArtifact": {
+      "run": 41984567203,
+      "id": 13395831193,
+      "expired": false,
+      "digest": "sha256:3c98d3d9b747deacc7e868f11bca2f9a56cf542c7405f6781fb2b9c7d4c00681"
+    }
   }
 }
