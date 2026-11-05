@@ -18,6 +18,8 @@ public final class JetMotorGameTests implements FabricGameTest {
         var w=c.getWorld();var base=c.getAbsolutePos(new BlockPos(7000,130,1000));var start=Vec3d.ofBottomCenter(base);var chunks=new HashSet<ChunkPos>();
         for(int x=(base.getX()>>4)-2;x<=(base.getX()>>4)+2;x++)for(int z=(base.getZ()>>4)-2;z<=(base.getZ()>>4)+2;z++) {
             var ch=new ChunkPos(x,z);if(!w.getForcedChunks().contains(ch.toLong())){w.setChunkForced(x,z,true);chunks.add(ch);}
+            // Finish this disposable fixture terrain before admitting actors; tickets alone schedule async loading.
+            w.getChunk(x,z);
         }
         var jet=ModEntities.JET.create(w);var target=EntityType.COW.create(w);
         jet.setPosition(start);jet.setPersistent();jet.setInvulnerable(true);jet.setAiDisabled(true);
