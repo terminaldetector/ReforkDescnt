@@ -19,13 +19,19 @@ final class AiFixtureChunks implements AutoCloseable {
         // This fixture lasts at most80 admission+40 measured ticks, as an active player world.
         world.resetIdleTimeout();
         for(int x=(centre.getX()>>4)-radius;x<=(centre.getX()>>4)+radius;x++)for(int z=(centre.getZ()>>4)-radius;z<=(centre.getZ()>>4)+radius;z++){
-            var pos=new ChunkPos(x,z);columns.add(pos);world.getChunkManager().addTicket(TICKET,pos,2,owner);world.getChunk(x,z);
+            var pos=new ChunkPos(x,z);columns.add(pos);world.getChunkManager().addTicket(TICKET,pos,2,owner);
         }
+        // Vanilla's ENTITY_TICKING future requires a FULL region two chunks beyond each ticket centre.
+        for(int x=(centre.getX()>>4)-radius-2;x<=(centre.getX()>>4)+radius+2;x++)for(int z=(centre.getZ()>>4)-radius-2;z<=(centre.getZ()>>4)+radius+2;z++)world.getChunk(x,z);
+        world.resetIdleTimeout();
     }
     boolean entityTicking(BlockPos... positions){
         if(closed)return false;
         for(var p:positions)if(!world.shouldTickEntity(p))return false;
         return true;
+    }
+    String readiness(BlockPos... positions){
+        var out=new StringBuilder();for(var p:positions)out.append(p).append(" loaded=").append(world.isChunkLoaded(ChunkPos.toLong(p))).append(" tracked=").append(world.shouldTick(p)).append(" ticking=").append(world.shouldTickEntity(p)).append(';');return out.toString();
     }
     @Override public void close(){
         if(closed)return;closed=true;

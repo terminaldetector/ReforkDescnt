@@ -35,7 +35,7 @@ public final class DroneRangeControlGameTests implements FabricGameTest {
         c.runAtEveryTick(()->{
             if(finished[0])return;
             if(!started[0]){
-                if(++admission[0]>=80){finished[0]=true;boolean ready=chunks.entityTicking(drone.getBlockPos(),target.getBlockPos());int da=drone.age,ta=target.age;drone.discard();target.discard();chunks.close();c.assertTrue(false,"range fixture admission: spawned="+spawned[0]+" ticking="+ready+" droneAge="+da+" targetAge="+ta);return;}
+                if(++admission[0]>=80){finished[0]=true;boolean ready=chunks.entityTicking(drone.getBlockPos(),target.getBlockPos());String detail=chunks.readiness(drone.getBlockPos(),target.getBlockPos());int da=drone.age,ta=target.age;drone.discard();target.discard();chunks.close();c.assertTrue(false,"range fixture admission: spawned="+spawned[0]+" ticking="+ready+" droneAge="+da+" targetAge="+ta+" "+detail);return;}
                 if(!spawned[0]){if(!chunks.entityTicking(drone.getBlockPos(),target.getBlockPos()))return;boolean ok=w.spawnEntity(drone)&&w.spawnEntity(target);if(!ok){finished[0]=true;drone.discard();target.discard();chunks.close();c.assertTrue(false,"real range-control actors spawned");return;}drone.setTarget(target);spawned[0]=true;return;}
                 if(drone.age<5||target.age<5)return;DroneSwarmAi.clear();drone.setPhase(DroneAi.Phase.ORBIT);drone.setAiDisabled(false);started[0]=true;
             }

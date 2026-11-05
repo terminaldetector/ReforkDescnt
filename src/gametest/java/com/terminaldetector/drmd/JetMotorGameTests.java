@@ -24,7 +24,7 @@ public final class JetMotorGameTests implements FabricGameTest {
         c.runAtEveryTick(()->{
             if(finished[0])return;
             if(!started[0]){
-                if(++admission[0]>=80){finished[0]=true;boolean ready=chunks.entityTicking(jet.getBlockPos(),target.getBlockPos());int da=jet.age,ta=target.age;jet.discard();target.discard();chunks.close();c.assertTrue(false,"JET fixture admission: spawned="+spawned[0]+" ticking="+ready+" droneAge="+da+" targetAge="+ta);return;}
+                if(++admission[0]>=80){finished[0]=true;boolean ready=chunks.entityTicking(jet.getBlockPos(),target.getBlockPos());String detail=chunks.readiness(jet.getBlockPos(),target.getBlockPos());int da=jet.age,ta=target.age;jet.discard();target.discard();chunks.close();c.assertTrue(false,"JET fixture admission: spawned="+spawned[0]+" ticking="+ready+" droneAge="+da+" targetAge="+ta+" "+detail);return;}
                 if(!spawned[0]){if(!chunks.entityTicking(jet.getBlockPos(),target.getBlockPos()))return;boolean ok=w.spawnEntity(jet)&&w.spawnEntity(target);if(!ok){finished[0]=true;jet.discard();target.discard();chunks.close();c.assertTrue(false,"real JET motor actors spawned");return;}jet.setTarget(target);spawned[0]=true;return;}
                 if(jet.age<5||target.age<5)return;DroneSwarmAi.clear();jet.setPhase(DroneAi.Phase.ORBIT);previous[0]=reversing?new Vec3d(.5,0,0):Vec3d.ZERO;jet.setVelocity(previous[0]);jet.setAiDisabled(false);started[0]=true;return;
             }
