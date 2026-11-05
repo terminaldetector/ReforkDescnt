@@ -23,6 +23,8 @@ public final class NativeDroneStateCheck {
     private static final Map<UUID,DroneEntity> LOADED=new ConcurrentHashMap<>();
     private static final Map<UUID,String> ROLES=new ConcurrentHashMap<>();
     private static final Map<UUID,Vec3d> INITIAL=new HashMap<>();
+    private static final Map<UUID,Integer> INITIAL_AGES=new HashMap<>();
+    private static boolean observerReady;
     private static final Set<UUID> DRAWN=new HashSet<>(),SHOOTERS=new HashSet<>();
     private static final Map<String,Integer> DAMAGING_ROLES=new TreeMap<>();
     private static volatile boolean ready,done;private static int ticks,age,frames,shots,moving,targets;
@@ -64,17 +66,23 @@ public final class NativeDroneStateCheck {
         require(READ&&file("").getFileName().toString().equals("cubic-client-automation"),"disposable reader only");
         try{ids=Set.copyOf(Files.readAllLines(file("drone-state-ids.txt")).stream().filter(s->!s.isBlank()).map(UUID::fromString).toList());require(ids.size()==128,"exact saved set");}catch(Exception e){throw new IllegalStateException(e);}
         ServerTickEvents.END_SERVER_TICK.register(s->{
+            if(!observerReady&&!s.getPlayerManager().getPlayerList().isEmpty()) {
+                var p=s.getPlayerManager().getPlayerList().getFirst();
+                com.terminaldetector.drmd.flight.FlightSystem.disable(p,com.terminaldetector.drmd.DescentPlayerData.get(p));
+                p.getAbilities().allowFlying=true;p.getAbilities().flying=true;p.setNoGravity(true);p.sendAbilitiesUpdate();observerReady=true;
+            }
             if(done||ready||LOADED.size()!=128)return;age++;
-            if(age==30)for(var d:LOADED.values())INITIAL.put(entity(d).getUuid(),entity(d).getPos());
-            if(age<100)return;moving=targets=0;int alive=0;
+            if(age==30)for(var d:LOADED.values()){INITIAL.put(entity(d).getUuid(),entity(d).getPos());INITIAL_AGES.put(entity(d).getUuid(),entity(d).age);}
+            if(age<100)return;moving=targets=0;int alive=0,active=0;
             for(var d:LOADED.values()) {
                 if(entity(d).isAlive()&&!entity(d).isRemoved())alive++;
+                if(entity(d).age>INITIAL_AGES.get(entity(d).getUuid()))active++;
                 if(entity(d).getPos().squaredDistanceTo(INITIAL.get(entity(d).getUuid()))>.04)moving++;
                 var target=((MobEntity)d).getTarget();if(target!=null&&HostileEnvironment.isHostileTarget(d,target))targets++;
             }
-            if(age%20==0)System.out.println("DRONE_RELOAD active="+alive+" moving="+moving+" targets="+targets+" shots="+shots+" attackRoles="+DAMAGING_ROLES);
+            if(age%20==0)System.out.println("DRONE_RELOAD alive="+alive+" active="+active+" moving="+moving+" targets="+targets+" shots="+shots+" attackRoles="+DAMAGING_ROLES);
             require(age<300,"autonomous drone resume timeout");
-            if(alive==128&&moving>=96&&targets>=96&&SHOOTERS.size()>=16&&DAMAGING_ROLES.size()>=2) {
+            if(alive==128&&active==128&&moving>=96&&targets>=96&&SHOOTERS.size()>=16&&DAMAGING_ROLES.size()>=2) {
                 var w=s.getOverworld();
                 require(LOADED.values().stream().allMatch(d->w.getEntity(entity(d).getUuid())==d&&!((MobEntity)d).isAiDisabled()),"restored objects must be real registered active actors");
                 require(w.getEntitiesByClass(DroneEntity.class,new Box(-128,2028,-128,140,2284,160),d->true).size()==128,"no duplicate local swarm after restart");ready=true;
@@ -83,6 +91,7 @@ public final class NativeDroneStateCheck {
         ClientTickEvents.END_CLIENT_TICK.register(c->{
             if(done)return;require(++ticks<4800,"drone world reload timeout loaded="+LOADED.size()+" age="+age);
             com.terminaldetector.drmd.client.DescentClient.markUserFlightChoice();
+            if(c.player!=null)c.player.getAbilities().flying=true;
             if(c.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen prompt)for(var child:prompt.children())
                 if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("I know what I'm doing!"))b.onPress();
         });

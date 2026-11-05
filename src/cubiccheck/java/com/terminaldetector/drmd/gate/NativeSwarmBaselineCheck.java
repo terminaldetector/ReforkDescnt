@@ -93,7 +93,7 @@ public final class NativeSwarmBaselineCheck {
     }
     private static void spawn(ServerWorld w) {
         System.out.println("SWARM_CONFIG seed="+w.getSeed()+" centre="+centre()+" difficulty="+w.getDifficulty()+" doMobSpawning="+w.getGameRules().getBoolean(net.minecraft.world.GameRules.DO_MOB_SPAWNING)+" roles=SUPPORT,ASSAULT,MG,INTERCEPTOR target="+(NativeDroneStateCheck.WRITE?"invulnerable-visible-cow":"invulnerable-invisible-cow")+" backgroundLOD=false manualDroneTicks=false");
-        var at=centre();var target=EntityType.COW.create(w);require(target!=null,"real passive target");target.setPosition(at.add(0,0,-30));target.setNoGravity(true);target.setInvulnerable(true);target.setInvisible(!NativeDroneStateCheck.WRITE);target.setAiDisabled(true);target.setPersistent();require(w.spawnEntity(target),"target spawned");cow=target;
+        var at=centre();var target=EntityType.COW.create(w);require(target!=null,"real passive target");target.setPosition(at.add(0,0,-30));target.setNoGravity(true);target.setInvulnerable(!NativeDroneStateCheck.WRITE);if(NativeDroneStateCheck.WRITE)target.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.RESISTANCE,-1,4,false,false));target.setInvisible(!NativeDroneStateCheck.WRITE);target.setAiDisabled(true);target.setPersistent();require(w.spawnEntity(target),"target spawned");cow=target;
         DRONES.clear();PROJECTILES.clear();SHOOTERS.clear();shots=0;
         for(int i=0;i<COUNT;i++) {
             var d=ModEntities.DRONE.create(w);require(d!=null,"registered drone created");entity(d).setPosition(at.add(((i&15)-7.5)*1.2,(((i>>8)&3)-1.5)*1.2,(((i>>4)&15)-7.5)*1.2));
