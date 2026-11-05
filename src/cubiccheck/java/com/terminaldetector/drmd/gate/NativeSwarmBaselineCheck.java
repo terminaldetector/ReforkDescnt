@@ -136,8 +136,10 @@ public final class NativeSwarmBaselineCheck {
         if(done)return;long now=System.nanoTime();if(sampling){if(lastFrame!=0)FRAMES.add(now-lastFrame);lastFrame=now;}else lastFrame=0;
         if(!resultReady)return;var c=MinecraftClient.getInstance();if(c.currentScreen!=null||++frames<3)return;
         int synced=c.world.getEntitiesByClass(DroneEntity.class,new Box(centre().add(-128,-128,-128),centre().add(128,128,128)),d->expected.contains(entity(d).getUuid())).size();
+        var visibleKinds=new HashSet<FlightEnemyKind>();
+        if(TYPED)for(var e:c.world.getEntities())if(e instanceof FlightEnemyEntity d&&expected.contains(entity(d).getUuid())&&DRAWN.contains(entity(d).getUuid()))visibleKinds.add(d.kind());
         if(captureStart==0){captureStart=now;System.out.println("SWARM_CAMERA pos="+c.player.getPos()+" yaw="+c.player.getYaw()+" pitch="+c.player.getPitch()+" camera="+c.gameRenderer.getCamera().getRotation());}
-        if((synced!=COUNT||DRAWN.size()<32)&&now-captureStart<8_000_000_000L)return;
+        if((synced!=COUNT||DRAWN.size()<32||(TYPED&&visibleKinds.size()!=3))&&now-captureStart<8_000_000_000L)return;
         require(FRAMES.size()>=2&&!WORK.isEmpty(),"real timing samples");
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             image.writeTo(c.runDirectory.toPath().resolve("swarm-128-height-"+(int)centre().y+".png"));

@@ -120,10 +120,11 @@ public final class NativeDroneStateCheck {
         }
         if(captureStart==0)captureStart=System.nanoTime();
         if(frames%60==0)System.out.println("DRONE_RELOAD_VIEW synced="+actors.size()+" drawn="+DRAWN.size()+" camera="+c.player.getPos());
-        if(actors.size()!=128||DRAWN.size()<32) {
+        long drawnKinds=actors.stream().filter(d->DRAWN.contains(entity(d).getUuid())&&d instanceof FlightEnemyEntity).map(d->((FlightEnemyEntity)d).kind()).distinct().count();
+        if(actors.size()!=128||DRAWN.size()<32||(NativeSwarmBaselineCheck.TYPED&&drawnKinds!=3)) {
             if(System.nanoTime()-captureStart<15_000_000_000L)return;
             try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){image.writeTo(file("drone-state-view-failed.png"));}catch(Exception e){throw new IllegalStateException(e);}
-            throw new IllegalStateException("restored drone client visibility timeout: synced="+actors.size()+" drawn="+DRAWN.size());
+            throw new IllegalStateException("restored drone client visibility timeout: synced="+actors.size()+" drawn="+DRAWN.size()+" kinds="+drawnKinds);
         }
         require(actors.stream().allMatch(d->d.getRole().id.equals(ROLES.get(entity(d).getUuid()))),"client role metadata matches the saved identities");
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
