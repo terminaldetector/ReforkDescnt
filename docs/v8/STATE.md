@@ -1,5 +1,7 @@
 # v8 intake and ongoing UFO work
 
+Current typed128 proof d1d92e9 / gamefe3d500a:43 ORB/43 ROCKET/42 JET,128 active/moving/natural targets at both heights on Mesa/Sodium; actual restart128 active/moving,127/128 targets and125/128 shooters, exact classes and three renderers. See TYPED_SWARM_2026-11-05.md. Tasks remain2 completed/6 in_progress/91 pending. Matching wrecks, dense routes,256+ scaling and full v8 remain open. Fatal test assertion exposed BCC shutdown scheduler livelock: diagnostic retained; runner kill-after is containment, not a game fix.
+
 Latest main b042d9f:701 unit/269 GameTests locally, bounded JET thrust and outward hull normals; two fresh three-type native restart pairs pass. CI268/269 exposes old artillery fixture admission before its measurement; investigation next. See JET_MOTOR_2026-11-05.md. Typed128 swarm and matching wrecks remain open.
 
 Latest identity increment388eb84:696 unit/267 GameTests and two actual three-type restart pairs on Mesa/Sodium pass. S11-T01 is completed;2 tasks completed,6 in_progress,91 pending_reverification. JET acceleration and type-specific wrecks are next; fullG4/v8 remains open. See FLIGHT_ENEMY_IDENTITIES_2026-11-05.md.

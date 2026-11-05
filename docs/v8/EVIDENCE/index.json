@@ -980,5 +980,18 @@
       "expired": false,
       "digest": "sha256:cd8568e5b18aed8eae28c299a3ff25aaf60c3d26d79f2c9634af2ada922e213c"
     }
+  },
+  "typedSwarm20261105": {
+    "source": "d1d92e9e278e7ebe59f3850974b17280ac0211e4",
+    "gameSource": "b042d9f66cd72c875efb2070560e3af94d139c24",
+    "report": "TYPED_SWARM_2026-11-05.md",
+    "archive": "typed-swarm-d1d92e9.zip",
+    "sha256": "cba4c9d0beed1e88adaf90371a5d34d467ea2e97950c7870f2d5f8c36264def3",
+    "sourceArtifact": {
+      "run": 42079452394,
+      "id": 13439823552,
+      "expired": false,
+      "digest": "sha256:c1c5d04ad2bfe66d4a0a173106653ade60e960b5e6dcc4e29def7db4e2aa3966"
+    }
   }
 }
