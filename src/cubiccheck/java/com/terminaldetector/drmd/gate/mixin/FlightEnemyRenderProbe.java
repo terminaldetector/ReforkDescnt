@@ -10,5 +10,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(FlightEnemyRenderer.class)
 public class FlightEnemyRenderProbe {
     @Inject(method="render(Lcom/terminaldetector/drmd/entity/FlightEnemyEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V",at=@At("RETURN"))
-    private void drew(FlightEnemyEntity e,float yaw,float delta,MatrixStack m,VertexConsumerProvider v,int light,CallbackInfo ci){NativeFlightEnemyCheck.drew(e);}
+    private void drew(FlightEnemyEntity e,float yaw,float delta,MatrixStack m,VertexConsumerProvider v,int light,CallbackInfo ci){
+        if(NativeFlightEnemyCheck.ENABLED)NativeFlightEnemyCheck.drew(e);
+        else if(com.terminaldetector.drmd.gate.NativeDroneStateCheck.READ)com.terminaldetector.drmd.gate.NativeDroneStateCheck.drew(e);
+        else if(Boolean.getBoolean("drmd.gate.swarm"))com.terminaldetector.drmd.gate.NativeSwarmBaselineCheck.drew(e);
+    }
 }

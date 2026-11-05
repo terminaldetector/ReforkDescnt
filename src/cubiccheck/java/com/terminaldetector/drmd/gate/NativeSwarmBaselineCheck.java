@@ -21,6 +21,9 @@ import java.util.*;
 
 /** Inherited 128/96 load baseline at ordinary and cubic altitude. Not Survival acceptance. */
 public final class NativeSwarmBaselineCheck {
+    public static final boolean TYPED=Boolean.getBoolean("drmd.gate.typedSwarm");
+    private static final Map<String,Integer> TYPED_SHOTS=new TreeMap<>();
+    private static Map<String,Object> acceptedTyped=Map.of();
     private static final int COUNT=128;
     private static final List<DroneEntity> DRONES=new ArrayList<>();
     private static final List<Entity> PROJECTILES=new ArrayList<>();
@@ -42,6 +45,7 @@ public final class NativeSwarmBaselineCheck {
     private static Vec3d centre(){return new Vec3d(12.5,stage==0?207:2156,20.5);}
     private static void require(boolean b,String why){if(!b)throw new IllegalStateException(why);}
     public static void register() {
+        require(!TYPED||VERTICAL,"typed fixture uses autonomous vertical target acquisition");
         ROWS.add("height,requested,alive,active_ticks,moving,server_lookup,client_synced,unique_rendered,shots,shooters,indexed,targeting,max_candidates,server_p50_ms,server_p95_ms,server_p99_ms,observed_tps,frames,frame_p95_ms,cleanup_remaining");
         ServerTickEvents.START_SERVER_TICK.register(s->{if(running)tickStart=System.nanoTime();});
         ServerTickEvents.END_SERVER_TICK.register(s->{
@@ -63,7 +67,24 @@ public final class NativeSwarmBaselineCheck {
             require(alive==COUNT&&active==COUNT&&moving>=96,"128 baseline must actually tick and move: alive="+alive+" active="+active+" moving="+moving);
             require(maxCandidates<=DroneSwarmAi.MAX_BOID_CANDIDATES,"bounded swarm neighbour work");
             require(indexed>=COUNT&&targeting>=96,"live drones must remain indexed and engaged: indexed="+indexed+" targeting="+targeting);
-            require(sampledShots>0&&sampledShooters>=16,"baseline AI must spawn real shots from multiple agents");resultReady=true;
+            require(sampledShots>0&&sampledShooters>=16,"baseline AI must spawn real shots from multiple agents");
+            if(TYPED){
+                var kinds=new TreeMap<String,Map<String,Integer>>();
+                for(var kind:FlightEnemyKind.values()){
+                    int count=0,live=0,moved=0,targets=0;
+                    for(var d:DRONES){require(d instanceof FlightEnemyEntity,"independent flight class in typed swarm");var typed=(FlightEnemyEntity)d;if(typed.kind()!=kind)continue;
+                        require(d.getRole()==kind.defaultRole,"authored role retained by typed swarm");count++;
+                        if(entity(d).isAlive()&&entity(d).age-initialAge.get(entity(d).getUuid())>=20)live++;
+                        if(entity(d).getPos().squaredDistanceTo(initial.get(entity(d).getUuid()))>.04)moved++;
+                        var target=((MobEntity)d).getTarget();if(target!=null&&HostileEnvironment.isHostileTarget(d,target))targets++;
+                    }
+                    int wanted=kind==FlightEnemyKind.JET?42:43,fire=TYPED_SHOTS.getOrDefault(kind.id,0);
+                    require(count==wanted&&live==wanted&&moved>=20&&targets>=20&&fire>0,"each real flight kind participates: "+kind+" count="+count+" active="+live+" moving="+moved+" targets="+targets+" shots="+fire);
+                    kinds.put(kind.id,Map.of("count",count,"active",live,"moving",moved,"naturalTargets",targets,"shots",fire));
+                }
+                acceptedTyped=Map.of("kinds",Map.copyOf(kinds),"active",active,"moving",moving,"naturalTargets",targeting,"maxCandidates",maxCandidates,"noManualEntityTicks",true);
+            }
+            resultReady=true;
         });
         ClientTickEvents.END_CLIENT_TICK.register(NativeSwarmBaselineCheck::tick);
     }
@@ -93,19 +114,20 @@ public final class NativeSwarmBaselineCheck {
         if(located&&!spawnRequested&&loaded(c)){spawnRequested=true;DRAWN.clear();FRAMES.clear();lastFrame=0;c.getServer().execute(()->spawn(c.getServer().getOverworld()));}
     }
     private static void spawn(ServerWorld w) {
-        System.out.println("SWARM_CONFIG seed="+w.getSeed()+" centre="+centre()+" difficulty="+w.getDifficulty()+" doMobSpawning="+w.getGameRules().getBoolean(net.minecraft.world.GameRules.DO_MOB_SPAWNING)+" roles=SUPPORT,ASSAULT,MG,INTERCEPTOR target="+((NativeDroneStateCheck.WRITE||VERTICAL)?"targetable-resistance-cow":"invulnerable-invisible-cow")+" verticalTargets="+VERTICAL+" manualTargets="+!VERTICAL+" backgroundLOD=false manualDroneTicks=false");
+        System.out.println("SWARM_CONFIG seed="+w.getSeed()+" centre="+centre()+" difficulty="+w.getDifficulty()+" doMobSpawning="+w.getGameRules().getBoolean(net.minecraft.world.GameRules.DO_MOB_SPAWNING)+" roles="+(TYPED?"ORB,ROCKET,JET":"SUPPORT,ASSAULT,MG,INTERCEPTOR")+" target="+((NativeDroneStateCheck.WRITE||VERTICAL)?"targetable-resistance-cow":"invulnerable-invisible-cow")+" verticalTargets="+VERTICAL+" manualTargets="+!VERTICAL+" backgroundLOD=false manualDroneTicks=false");
         var at=centre();var target=EntityType.COW.create(w);require(target!=null,"real passive target");target.setPosition(at.add(0,VERTICAL?(stage==0?20:-20):0,VERTICAL?0:-30));target.setNoGravity(true);target.setInvulnerable(!(NativeDroneStateCheck.WRITE||VERTICAL));if(NativeDroneStateCheck.WRITE||VERTICAL)target.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.RESISTANCE,-1,4,false,false));target.setInvisible(!(NativeDroneStateCheck.WRITE||VERTICAL));target.setAiDisabled(true);target.setPersistent();require(w.spawnEntity(target),"target spawned");cow=target;
-        DRONES.clear();PROJECTILES.clear();SHOOTERS.clear();shots=0;
+        DRONES.clear();PROJECTILES.clear();SHOOTERS.clear();TYPED_SHOTS.clear();shots=0;
         for(int i=0;i<COUNT;i++) {
-            var d=ModEntities.DRONE.create(w);require(d!=null,"registered drone created");entity(d).setPosition(at.add(((i&15)-7.5)*1.2,(((i>>8)&3)-1.5)*1.2,(((i>>4)&15)-7.5)*1.2));
-            d.applyRole(switch(i&3){case 0->AiRole.SUPPORT;case 1->AiRole.ASSAULT;case 2->AiRole.MG;default->AiRole.INTERCEPTOR;});
+            var d=TYPED?FlightEnemyKind.values()[i%3].create(w):ModEntities.DRONE.create(w);require(d!=null,"registered drone created");
+            entity(d).setPosition(TYPED?at.add(((i&7)-3.5)*3,(((i>>3)&3)-1.5)*3,(((i>>5)&3)-1.5)*3):at.add(((i&15)-7.5)*1.2,(((i>>8)&3)-1.5)*1.2,(((i>>4)&15)-7.5)*1.2));
+            if(!TYPED)d.applyRole(switch(i&3){case 0->AiRole.SUPPORT;case 1->AiRole.ASSAULT;case 2->AiRole.MG;default->AiRole.INTERCEPTOR;});
             ((MobEntity)d).setPersistent();entity(d).setInvulnerable(true);require(w.spawnEntity(d),"drone spawn accepted");if(!VERTICAL)((MobEntity)d).setTarget(target);DRONES.add(d);
         }
         expected=Set.copyOf(DRONES.stream().map(d->entity(d).getUuid()).toList());DroneSwarmAi.clear();age=0;captureStart=0;resultReady=false;running=true;
     }
     public static void shot(WeaponCore.FireConfig config,ProjectileEntity shot) {
         if(!running||done||shot==null||config.owner==null||!expected.contains(config.owner.getUuid()))return;
-        PROJECTILES.add(shot);if(!resultReady){shots++;SHOOTERS.add(config.owner.getUuid());}
+        PROJECTILES.add(shot);if(!resultReady){shots++;SHOOTERS.add(config.owner.getUuid());if(TYPED){require(config.owner instanceof FlightEnemyEntity,"typed real shooter");var d=(FlightEnemyEntity)config.owner;if(d.kind()==FlightEnemyKind.ROCKET)require(shot.getMeshKind()==ProjectileEntity.MESH_ROCKET,"actual rocket projectiles");TYPED_SHOTS.merge(d.kind().id,1,Integer::sum);}}
     }
     public static void drew(DroneEntity d){if(expected.contains(entity(d).getUuid()))DRAWN.add(entity(d).getUuid());}
     public static void rendered() {
@@ -118,6 +140,12 @@ public final class NativeSwarmBaselineCheck {
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             image.writeTo(c.runDirectory.toPath().resolve("swarm-128-height-"+(int)centre().y+".png"));
             require(synced==COUNT&&DRAWN.size()>=32,"all live actors must synchronize and models must render: synced="+synced+" drawn="+DRAWN.size());
+            if(TYPED){
+                var counts=new TreeMap<String,Integer>();var drawn=new TreeMap<String,Integer>();
+                for(var e:c.world.getEntities())if(e instanceof FlightEnemyEntity d&&expected.contains(entity(d).getUuid())){require(d.getRole()==d.kind().defaultRole,"typed client default role");counts.merge(d.kind().id,1,Integer::sum);if(DRAWN.contains(entity(d).getUuid()))drawn.merge(d.kind().id,1,Integer::sum);}
+                require(counts.equals(Map.of("orb",43,"rocket",43,"jet",42))&&drawn.size()==3,"all independent client types and three real renderers");
+                Files.writeString(c.runDirectory.toPath().resolve("typed-swarm-height-"+(int)centre().y+".json"),new com.google.gson.Gson().toJson(Map.of("server",acceptedTyped,"clientKinds",counts,"renderedKinds",drawn))+"\n");
+            }
             String row=String.format(Locale.ROOT,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%.4f,%.4f,%.4f,%.3f,%d,%.4f,",(int)centre().y,COUNT,alive,active,moving,lookup,synced,DRAWN.size(),sampledShots,sampledShooters,indexed,targeting,maxCandidates,percentile(WORK,.5)/1e6,percentile(WORK,.95)/1e6,percentile(WORK,.99)/1e6,WORK.size()/seconds,FRAMES.size(),percentile(FRAMES,.95)/1e6);
             if(NativeDroneStateCheck.WRITE&&stage==1) {
                 running=false;sampling=false;done=true;ROWS.add(row+128);
