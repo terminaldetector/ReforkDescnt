@@ -49,14 +49,26 @@ public final class RagdollRenderer extends EntityRenderer<RagdollEntity> {
 					(float) b.rotation().z(), (float) b.rotation().w()), tickDelta);
 			matrices.multiply(rotation);
 
-			int colour = i == 0 ? 0xFF33434B : (i % 2 == 0 ? 0xFF9B382E : 0xFF6F2B2B);
-			drawBox(vertices, matrices.peek(),
-					(float) segment.halfExtents().x(), (float) segment.halfExtents().y(),
-					(float) segment.halfExtents().z(), colour, light);
+            if(entity.flightHullKind()==null){
+                int colour=i==0?0xFF33434B:(i%2==0?0xFF9B382E:0xFF6F2B2B);
+                drawBox(vertices,matrices.peek(),(float)segment.halfExtents().x(),(float)segment.halfExtents().y(),(float)segment.halfExtents().z(),colour,light);
+            }else{
+                matrices.translate(-segment.restPosition().x(),-segment.restPosition().y(),-segment.restPosition().z());
+                float scale=entity.hullScale();matrices.scale(scale,scale,scale);
+                drawHull(entity.flightHullKind(),i,consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(WHITE)),matrices.peek(),light);
+            }
 			matrices.pop();
 		}
 		super.render(entity, yaw, tickDelta, matrices, consumers, light);
 	}
+
+    private static void drawHull(com.terminaldetector.drmd.entity.FlightEnemyKind kind,int part,VertexConsumer vertices,MatrixStack.Entry entry,int light){
+        var faces=com.terminaldetector.drmd.entity.model.FlightEnemyMesh.faces(kind);
+        for(int i=0;i<faces.size();i++)if(com.terminaldetector.drmd.entity.model.FlightWreckRig.partForFace(kind,i)==part){
+            var face=faces.get(i);var normal=face.normal();
+            for(int j=0;j<4;j++){var p=face.vertices().get(Math.min(j,face.vertices().size()-1));vertices.vertex(entry,p.x(),p.y(),p.z()).color(0xff000000|face.rgb()).texture(0,0).overlay(net.minecraft.client.render.OverlayTexture.DEFAULT_UV).light(light).normal(entry,normal.x(),normal.y(),normal.z());}
+        }
+    }
 
 	private static void drawBox(VertexConsumer vertices, MatrixStack.Entry entry,
 			float hx, float hy, float hz, int argb, int light) {

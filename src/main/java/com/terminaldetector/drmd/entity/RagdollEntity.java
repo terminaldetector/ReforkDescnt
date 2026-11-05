@@ -39,7 +39,10 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	public record RenderPart(Vec3 position, Quat rotation) {}
 	private record Push(Vec3 normal, double depth) {}
 
-	private final RagdollRig rig = RagdollRig.scoutDrone();
+	private RagdollRig rig = RagdollRig.scoutDrone();
+    private FlightEnemyKind flightHull;
+    private float hullScale=1;
+    private boolean hasRenderPose;
 	private RagdollSimulation simulation = new RagdollSimulation(
 			rig, new Vec3(0, 0, 0), Quat.IDENTITY, new Vec3(0, 0, 0));
 	private List<RenderPart> previousRenderParts = restRenderParts();
@@ -62,8 +65,13 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
     }
 
     private static RagdollEntity spawnScout(ServerWorld world,Vec3d origin,Vec3d velocityPerTick,Quat rotation) {
+        return spawnHull(world,origin,velocityPerTick,rotation,null,1);
+    }
+
+    private static RagdollEntity spawnHull(ServerWorld world,Vec3d origin,Vec3d velocityPerTick,Quat rotation,FlightEnemyKind kind,float scale) {
 		RagdollEntity ragdoll = ModEntities.RAGDOLL.create(world);
 		if (ragdoll == null) return null;
+        ragdoll.configureHull(kind,scale);
 		Vec3 originD6 = pure(origin);
 		Vec3 velocityD6 = pure(velocityPerTick).scaled(20);
 		ragdoll.simulation = new RagdollSimulation(ragdoll.rig, originD6, rotation, velocityD6);
@@ -77,7 +85,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 		if (!(drone.getWorld() instanceof ServerWorld world) || !com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(world)) return null;
 		Vec3d origin = drone.getPos().add(0, drone.getHeight() * .5, 0);
 		var rotation=com.terminaldetector.drmd.entity.model.FlightHullPose.physicalRotation(drone.getYaw(),drone.getPitch(),drone.getFlightRoll());
-		RagdollEntity ragdoll = spawnScout(world, origin, drone.getVelocity(),rotation);
+		RagdollEntity ragdoll = spawnHull(world, origin, drone.getVelocity(),rotation,drone instanceof FlightEnemyEntity typed?typed.kind():null,drone.getScale());
 		if (ragdoll == null) return null;
 
 		Entity cause = source.getSource();
@@ -240,8 +248,24 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 		setBoundingBox(bounds == null ? new Box(getPos(), getPos()).expand(.5) : bounds);
 	}
 
+    /** Null identifies a legacy scout, including old saves without hull metadata. */
+    public FlightEnemyKind flightHullKind(){return flightHull;}
+    public float hullScale(){return hullScale;}
+    private boolean configureHull(FlightEnemyKind kind,float scale){
+        if(flightHull==kind&&Float.compare(hullScale,scale)==0)return false;
+        flightHull=kind;hullScale=scale;rig=com.terminaldetector.drmd.entity.model.FlightWreckRig.create(kind,scale);
+        previousRenderParts=restRenderParts();currentRenderParts=previousRenderParts;return true;
+    }
+    private void writeHullIdentity(NbtCompound tag){tag.putInt("hullVersion",1);tag.putString("flightHull",flightHull==null?"":flightHull.id);tag.putFloat("hullScale",hullScale);}
+    private boolean readHullIdentity(NbtCompound tag){
+        FlightEnemyKind kind=null;float scale=1;
+        if(tag.getInt("hullVersion")==1){for(var value:FlightEnemyKind.values())if(value.id.equals(tag.getString("flightHull"))){kind=value;break;}scale=tag.contains("hullScale",NbtElement.NUMBER_TYPE)?tag.getFloat("hullScale"):1;if(!com.terminaldetector.drmd.entity.model.FlightWreckRig.validScale(scale))scale=1;}
+        return configureHull(kind,scale);
+    }
+
 	private NbtCompound trackedPose() {
 		NbtCompound tag = new NbtCompound();
+        writeHullIdentity(tag);
 		NbtList parts = new NbtList();
 		Vec3 centre = simulation.centreOfMass();
 		for (RagdollSimulation.Part part : simulation.parts()) {
@@ -286,11 +310,15 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	public void onTrackedDataSet(TrackedData<?> data) {
 		super.onTrackedDataSet(data);
 		if (!getWorld().isClient || !POSE.equals(data) || currentRenderParts == null) return;
-		List<RenderPart> decoded = decodeTrackedPose(dataTracker.get(POSE));
-		if (decoded.size() != rig.segments().size()) return;
-		previousRenderParts = currentRenderParts.size() == decoded.size() ? currentRenderParts : decoded;
-		currentRenderParts = decoded;
-		updateClientBounds();
+        var tag=dataTracker.get(POSE);boolean changed=readHullIdentity(tag);
+        List<RenderPart> decoded=decodeTrackedPose(tag);
+        if(decoded.size()!=rig.segments().size())return;
+        previousRenderParts=hasRenderPose&&!changed&&currentRenderParts.size()==decoded.size()?currentRenderParts:decoded;
+        currentRenderParts=decoded;hasRenderPose=true;
+        // Geometry-only client mirror; simulation/impulses remain server authoritative.
+        if(simulation.parts().size()!=rig.segments().size()||changed)simulation=new RagdollSimulation(rig,pure(getPos()),Quat.IDENTITY,new Vec3(0,0,0));
+        for(int i=0;i<decoded.size();i++)simulation.parts().get(i).body().withPosition(pure(getPos()).plus(decoded.get(i).position())).withRotation(decoded.get(i).rotation());
+        updateClientBounds();
 	}
 
 	private List<RenderPart> decodeTrackedPose(NbtCompound tag) {
@@ -319,6 +347,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 
 	@Override
 	protected void readCustomDataFromNbt(NbtCompound nbt) {
+        readHullIdentity(nbt);
 		lifeTicks = Math.max(0, nbt.getInt("life"));
 		simulation = new RagdollSimulation(rig, pure(getPos()), Quat.IDENTITY, new Vec3(0, 0, 0));
 		loadPersistentState(nbt.getCompound("ragdoll"));
@@ -328,6 +357,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 
 	@Override
 	protected void writeCustomDataToNbt(NbtCompound nbt) {
+        writeHullIdentity(nbt);
 		nbt.putInt("life", lifeTicks);
 		nbt.put("ragdoll", persistentState());
 	}
