@@ -53,7 +53,8 @@
       "com.terminaldetector.drmd.FlightBodyPlayerGameTests",
       "com.terminaldetector.drmd.DroneTargetVolumeGameTests",
       "com.terminaldetector.drmd.DroneRouteGameTests",
-      "com.terminaldetector.drmd.DroneRangeControlGameTests"
+      "com.terminaldetector.drmd.DroneRangeControlGameTests",
+      "com.terminaldetector.drmd.FlightEnemyIdentityGameTests"
     ]
   },
   "depends": {
