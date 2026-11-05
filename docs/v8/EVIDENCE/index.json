@@ -965,5 +965,20 @@
       "expired": false,
       "digest": "sha256:51970e86c62993cbcc69d96190654bbef944de3ce719976c7fde7a1243f56fe4"
     }
+  },
+  "jetMotorAndNormals20261105": {
+    "source": "b042d9f66cd72c875efb2070560e3af94d139c24",
+    "report": "JET_MOTOR_2026-11-05.md",
+    "archive": "jet-motor-and-hull-normals-b042d9f.zip",
+    "sha256": "f457e2181b69e6ca865a0854d97aac65caa412c7be92b431089a50373f8f1808",
+    "unitTests": 701,
+    "gameTests": 269,
+    "githubServer": "268 pass; existing artillery range fixture admission failed",
+    "sourceArtifact": {
+      "run": 42023584356,
+      "id": 13413360262,
+      "expired": false,
+      "digest": "sha256:cd8568e5b18aed8eae28c299a3ff25aaf60c3d26d79f2c9634af2ada922e213c"
+    }
   }
 }
