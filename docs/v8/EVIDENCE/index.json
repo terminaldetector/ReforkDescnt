@@ -1017,5 +1017,21 @@
       "expired": false,
       "digest": "sha256:9484b66b93c607547d16ee1e88be8b74d7dd06e35f7ea4cd8b8709a997185d80"
     }
+  },
+  "droneWreckPose20261105": {
+    "gameSource": "0217840a91ec3dc21c421e77d93ca50f743b5c14",
+    "observerSource": "0529e4c2150c15537e7b732da017c6fb304a55d0",
+    "report": "DRONE_WRECK_POSE_2026-11-05.md",
+    "archive": "drone-wreck-poses-0529e4c.zip",
+    "sha256": "860c905819c0b3de4b7745b074688b910cdc7558e83aa8c3b230ee2074c71ff5",
+    "unitTests": 706,
+    "gameTests": 272,
+    "matchingTypedRigGeometry": false,
+    "sourceArtifact": {
+      "run": 42089463622,
+      "id": 13444312819,
+      "expired": false,
+      "digest": "sha256:5323dc58dc02c255d3ec9bbdee0799cf9e7fbf8348ea36d55a6219441cd37c00"
+    }
   }
 }
