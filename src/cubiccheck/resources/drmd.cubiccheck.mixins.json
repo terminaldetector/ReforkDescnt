@@ -25,7 +25,8 @@
     "FlightItemColoursAccess",
     "FlightEnemyRenderProbe",
     "CubicScheduleBudgetProbe",
-    "RagdollRenderProbe"
+    "RagdollRenderProbe",
+    "RagdollPersistenceProbe"
   ],
   "injectors": {
     "defaultRequire": 1
