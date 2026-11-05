@@ -332,5 +332,11 @@
   "message.drmd.projector.denied": "Portal placement is not allowed here",
   "message.drmd.projector.conflict": "The surface changed; fire again",
   "message.drmd.projector.full": "This dimension has reached its portal pair limit",
-  "key.drmd.auxiliary": "Drone auxiliary weapon"
+  "key.drmd.auxiliary": "Drone auxiliary weapon",
+  "entity.drmd.orb": "Orb Drone",
+  "item.drmd.spawn_egg_orb": "Orb Drone Spawn Egg",
+  "entity.drmd.rocket": "Rocket Drone",
+  "item.drmd.spawn_egg_rocket": "Rocket Drone Spawn Egg",
+  "entity.drmd.jet": "Jet Interceptor",
+  "item.drmd.spawn_egg_jet": "Jet Interceptor Spawn Egg"
 }

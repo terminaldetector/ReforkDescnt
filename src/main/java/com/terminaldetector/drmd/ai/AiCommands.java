@@ -18,6 +18,12 @@ public final class AiCommands {
 	public static void register() {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			LiteralArgumentBuilder<ServerCommandSource> root = CommandManager.literal("6dof_spawn");
+            for(var kind:com.terminaldetector.drmd.entity.FlightEnemyKind.values())
+                root.then(CommandManager.literal(kind.id).executes(ctx->{
+                    var player=ctx.getSource().getPlayer();if(player==null){ctx.getSource().sendError(Text.literal("This spawn command requires a player"));return 0;}
+                    return spawnKind(player,kind);
+                }));
+
 			for (AiRole role : AiRole.values()) {
 				AiRole r = role;
 				root.then(CommandManager.literal(r.id).executes(ctx -> {
@@ -64,6 +70,15 @@ public final class AiCommands {
 					}));
 		});
 	}
+
+    private static int spawnKind(ServerPlayerEntity player,com.terminaldetector.drmd.entity.FlightEnemyKind kind) {
+        var world=player.getServerWorld();var enemy=kind.create(world);if(enemy==null)return 0;
+        var at=player.getPos().add(player.getRotationVec(1).multiply(6)).add(0,1,0);
+        enemy.refreshPositionAndAngles(at.x,at.y,at.z,player.getYaw(),0);
+        if(!world.getWorldBorder().contains(enemy.getBoundingBox())||!world.isSpaceEmpty(enemy)){enemy.discard();return 0;}
+        if(HostileEnvironment.isHostileTarget(enemy,player))enemy.setTarget(player);
+        return world.spawnEntity(enemy)?1:0;
+    }
 
 	private static void spawn(ServerPlayerEntity player, AiRole role, int count) {
 		for (int i = 0; i < count; i++) {

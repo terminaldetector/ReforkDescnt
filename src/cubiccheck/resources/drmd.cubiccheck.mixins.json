@@ -21,7 +21,9 @@
     "BoardingReadyDelayProbe",
     "DroneRenderProbe",
     "SwarmShotProbe",
-    "DronePersistenceProbe"
+    "DronePersistenceProbe",
+    "FlightItemColoursAccess",
+    "FlightEnemyRenderProbe"
   ],
   "injectors": {
     "defaultRequire": 1

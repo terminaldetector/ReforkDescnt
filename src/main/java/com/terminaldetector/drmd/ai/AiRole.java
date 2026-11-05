@@ -52,9 +52,10 @@ public enum AiRole {
 		this.villageBomber = villageBomber;
 	}
 
-	public static AiRole fromId(String id) {
-		if (id == null || id.isEmpty()) return ASSAULT;
-		for (AiRole r : values()) if (r.id.equalsIgnoreCase(id)) return r;
-		return ASSAULT;
-	}
+    public static AiRole fromId(String id){return fromId(id,ASSAULT);}
+    public static AiRole fromId(String id,AiRole fallback) {
+        java.util.Objects.requireNonNull(fallback);
+        if(id!=null)for(AiRole r:values())if(r.id.equalsIgnoreCase(id))return r;
+        return fallback;
+    }
 }

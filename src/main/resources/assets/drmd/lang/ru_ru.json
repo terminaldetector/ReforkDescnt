@@ -296,5 +296,11 @@
   "message.drmd.projector.denied": "В этом месте нельзя устанавливать портал",
   "message.drmd.projector.conflict": "Поверхность изменилась — повторите выстрел",
   "message.drmd.projector.full": "Достигнут предел пар порталов в этом измерении",
-  "key.drmd.auxiliary": "Вспомогательное оружие дрона"
+  "key.drmd.auxiliary": "Вспомогательное оружие дрона",
+  "entity.drmd.orb": "Дрон ORB",
+  "item.drmd.spawn_egg_orb": "Дрон ORB — создание",
+  "entity.drmd.rocket": "Ракетный дрон",
+  "item.drmd.spawn_egg_rocket": "Ракетный дрон — создание",
+  "entity.drmd.jet": "Реактивный перехватчик",
+  "item.drmd.spawn_egg_jet": "Реактивный перехватчик — создание"
 }

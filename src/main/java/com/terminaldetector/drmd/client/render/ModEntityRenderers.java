@@ -29,6 +29,8 @@ public final class ModEntityRenderers {
 
 		EntityRendererRegistry.register(ModEntities.PROJECTILE, ProjectileRenderer::new);
 		EntityRendererRegistry.register(ModEntities.DRONE, DroneRenderer::new);
+        for(var kind:com.terminaldetector.drmd.entity.FlightEnemyKind.values())
+            EntityRendererRegistry.register(kind.entityType(),ctx->new FlightEnemyRenderer(ctx,kind));
 		EntityRendererRegistry.register(ModEntities.AIR_MINE, AirMineRenderer::new);
 		EntityRendererRegistry.register(ModEntities.PYRO_SHIP, PyroShipRenderer::new);
 		EntityRendererRegistry.register(ModEntities.REACTOR_DISPLAY, ReactorDisplayRenderer::new);

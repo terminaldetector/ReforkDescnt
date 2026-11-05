@@ -46,6 +46,18 @@ public final class ModEntities {
 					.build()
 	);
 
+    public static final EntityType<OrbEntity> ORB=Registry.register(Registries.ENTITY_TYPE,Identifier.of(DescentMod.MOD_ID,"orb"),
+        EntityType.Builder.<OrbEntity>create(OrbEntity::new,SpawnGroup.MONSTER)
+            .dimensions(FlightEnemyKind.ORB.diameter,FlightEnemyKind.ORB.diameter).maxTrackingRange(96).trackingTickInterval(1).build());
+
+    public static final EntityType<RocketDroneEntity> ROCKET=Registry.register(Registries.ENTITY_TYPE,Identifier.of(DescentMod.MOD_ID,"rocket"),
+        EntityType.Builder.<RocketDroneEntity>create(RocketDroneEntity::new,SpawnGroup.MONSTER)
+            .dimensions(FlightEnemyKind.ROCKET.diameter,FlightEnemyKind.ROCKET.diameter).maxTrackingRange(96).trackingTickInterval(1).build());
+
+    public static final EntityType<JetEntity> JET=Registry.register(Registries.ENTITY_TYPE,Identifier.of(DescentMod.MOD_ID,"jet"),
+        EntityType.Builder.<JetEntity>create(JetEntity::new,SpawnGroup.MONSTER)
+            .dimensions(FlightEnemyKind.JET.diameter,FlightEnemyKind.JET.diameter).maxTrackingRange(96).trackingTickInterval(1).build());
+
 	public static final EntityType<AirMineEntity> AIR_MINE = Registry.register(
 			Registries.ENTITY_TYPE,
 			Identifier.of(DescentMod.MOD_ID, "air_mine"),
@@ -189,6 +201,7 @@ public final class ModEntities {
 
 	public static void register() {
 		FabricDefaultAttributeRegistry.register(DRONE, DroneEntity.createDroneAttributes());
+        for(var kind:FlightEnemyKind.values())FabricDefaultAttributeRegistry.register(kind.entityType(),DroneEntity.createDroneAttributes());
 		FabricDefaultAttributeRegistry.register(TRIPOD,
 				com.terminaldetector.drmd.entity.mob.TripodEntity.createTripodAttributes());
 		FabricDefaultAttributeRegistry.register(SCANNER,

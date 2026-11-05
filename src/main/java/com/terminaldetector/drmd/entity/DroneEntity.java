@@ -73,6 +73,7 @@ public class DroneEntity extends HostileEntity {
 		}
 	}
 
+	protected AiRole defaultRole(){return AiRole.ASSAULT;}
 	public AiRole getRole() { return getWorld().isClient ? AiRole.fromId(dataTracker.get(ROLE)) : role; }
 	public float getDroneShield() { return getWorld().isClient ? dataTracker.get(SHIELD) : shield; }
 	public float getDroneArmor() { return getWorld().isClient ? dataTracker.get(ARMOR) : armor; }
@@ -227,7 +228,7 @@ public class DroneEntity extends HostileEntity {
 	public void readCustomDataFromNbt(NbtCompound nbt) {
 		super.readCustomDataFromNbt(nbt);
 		float savedHealth=getHealth();
-		applyRole(AiRole.fromId(nbt.getString("role")));
+		applyRole(AiRole.fromId(nbt.getString("role"),defaultRole()));
 		if(nbt.contains("Health",net.minecraft.nbt.NbtElement.NUMBER_TYPE))setHealth(savedHealth);
 		if(nbt.contains("shield",net.minecraft.nbt.NbtElement.NUMBER_TYPE))shield=nbt.getFloat("shield");
 		if(nbt.contains("armor",net.minecraft.nbt.NbtElement.NUMBER_TYPE))armor=nbt.getFloat("armor");

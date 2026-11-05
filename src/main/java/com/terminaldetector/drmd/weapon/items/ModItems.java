@@ -89,6 +89,7 @@ public final class ModItems {
 
 	public static Item PYRO_GX;
 	public static Item EGG_ASSAULT;
+    public static Item EGG_ORB,EGG_ROCKET,EGG_JET;
 	public static Item EGG_INTERCEPTOR;
 	public static Item EGG_ARTILLERY;
 	public static Item EGG_SUPPORT;
@@ -221,6 +222,10 @@ public final class ModItems {
 
 		PYRO_GX = register("pyro_gx", new com.terminaldetector.drmd.entity.PyroShipItem(new Item.Settings().maxCount(1)));
 
+        EGG_ORB=register("spawn_egg_orb",new net.minecraft.item.SpawnEggItem(com.terminaldetector.drmd.entity.ModEntities.ORB,com.terminaldetector.drmd.entity.FlightEnemyKind.ORB.primaryColour,com.terminaldetector.drmd.entity.FlightEnemyKind.ORB.secondaryColour,new Item.Settings()));
+        EGG_ROCKET=register("spawn_egg_rocket",new net.minecraft.item.SpawnEggItem(com.terminaldetector.drmd.entity.ModEntities.ROCKET,com.terminaldetector.drmd.entity.FlightEnemyKind.ROCKET.primaryColour,com.terminaldetector.drmd.entity.FlightEnemyKind.ROCKET.secondaryColour,new Item.Settings()));
+        EGG_JET=register("spawn_egg_jet",new net.minecraft.item.SpawnEggItem(com.terminaldetector.drmd.entity.ModEntities.JET,com.terminaldetector.drmd.entity.FlightEnemyKind.JET.primaryColour,com.terminaldetector.drmd.entity.FlightEnemyKind.JET.secondaryColour,new Item.Settings()));
+
 		EGG_ASSAULT = egg("spawn_egg_assault", com.terminaldetector.drmd.ai.AiRole.ASSAULT, 0xCC3333, 0x442222);
 		EGG_INTERCEPTOR = egg("spawn_egg_interceptor", com.terminaldetector.drmd.ai.AiRole.INTERCEPTOR, 0x33AACC, 0x224455);
 		EGG_ARTILLERY = egg("spawn_egg_artillery", com.terminaldetector.drmd.ai.AiRole.ARTILLERY, 0xCCAA33, 0x554422);
@@ -318,6 +323,7 @@ public final class ModItems {
 	/** All creative-visible spawn eggs (drones + surface mobs). */
 	public static Item[] creativeSpawnEggs() {
 		return new Item[]{
+                EGG_ORB,EGG_ROCKET,EGG_JET,
 				EGG_ASSAULT, EGG_INTERCEPTOR, EGG_ARTILLERY, EGG_SUPPORT, EGG_HEAVY_ELITE,
 				EGG_MG, EGG_LASER, EGG_RPG, EGG_HEAVY, EGG_SEEKER,
 				EGG_TRIPOD, EGG_SCANNER, EGG_SPIDER_TURRET, EGG_OBLIVION_SEEKER
