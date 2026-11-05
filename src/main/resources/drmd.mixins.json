@@ -6,6 +6,7 @@
     "PlayerEntityMixin",
     "CubicChunkMixin",
     "NativeCubicCubeLoadMixin",
+    "NativeCubicScheduleBudgetMixin",
     "MicroExplosionMixin",
     "NaturalGeometryMixin",
     "ServerPlayerFlightTravelMixin",
