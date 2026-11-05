@@ -26,24 +26,23 @@ public final class DroneRangeControlGameTests implements FabricGameTest {
     public void unaccompaniedSupportRetreatsInsteadOfCancellingItsOwnThrust(TestContext c){check(c,AiRole.SUPPORT,6,10,1000);}
     private static void check(TestContext c,AiRole role,double initial,double min,double max) {
         var w=c.getWorld();var base=c.getAbsolutePos(new BlockPos(5000,120,1000));var start=Vec3d.ofBottomCenter(base);
-        var chunks=new HashSet<ChunkPos>();
-        for(int x=(base.getX()>>4)-2;x<=(base.getX()>>4)+2;x++)for(int z=(base.getZ()>>4)-2;z<=(base.getZ()>>4)+2;z++) {
-            var ch=new ChunkPos(x,z);if(!w.getForcedChunks().contains(ch.toLong())){w.setChunkForced(x,z,true);chunks.add(ch);}
-            // Finish this disposable fixture terrain before admitting actors; tickets alone schedule async loading.
-            w.getChunk(x,z);
-        }
+        var chunks=new AiFixtureChunks(w,base,2);
         var drone=ModEntities.DRONE.create(w);var target=EntityType.COW.create(w);
         drone.applyRole(role);drone.setPosition(start);drone.setPersistent();drone.setInvulnerable(true);drone.setAiDisabled(true);
         target.setPosition(start.add(initial,0,0));target.setNoGravity(true);target.setAiDisabled(true);target.setInvulnerable(true);
-        c.assertTrue(w.spawnEntity(drone)&&w.spawnEntity(target),"real range-control actors spawned");drone.setTarget(target);DroneSwarmAi.clear();
-        int[] ticks={0},admission={0};boolean[] started={false},finished={false};
+        DroneSwarmAi.clear();
+        int[] ticks={0},admission={0};boolean[] started={false},finished={false},spawned={false};
         c.runAtEveryTick(()->{
             if(finished[0])return;
-            if(!started[0]){c.assertTrue(++admission[0]<80,"range fixture admitted");if(drone.age<5||target.age<5)return;DroneSwarmAi.clear();drone.setPhase(DroneAi.Phase.ORBIT);drone.setAiDisabled(false);started[0]=true;}
+            if(!started[0]){
+                if(++admission[0]>=80){finished[0]=true;boolean ready=chunks.entityTicking(drone.getBlockPos(),target.getBlockPos());int da=drone.age,ta=target.age;drone.discard();target.discard();chunks.close();c.assertTrue(false,"range fixture admission: spawned="+spawned[0]+" ticking="+ready+" droneAge="+da+" targetAge="+ta);return;}
+                if(!spawned[0]){if(!chunks.entityTicking(drone.getBlockPos(),target.getBlockPos()))return;boolean ok=w.spawnEntity(drone)&&w.spawnEntity(target);if(!ok){finished[0]=true;drone.discard();target.discard();chunks.close();c.assertTrue(false,"real range-control actors spawned");return;}drone.setTarget(target);spawned[0]=true;return;}
+                if(drone.age<5||target.age<5)return;DroneSwarmAi.clear();drone.setPhase(DroneAi.Phase.ORBIT);drone.setAiDisabled(false);started[0]=true;
+            }
             if(++ticks[0]<40)return;finished[0]=true;
             double distance=drone.getPos().distanceTo(target.getPos());boolean alive=drone.isAlive(),locked=drone.getTarget()==target;var phase=drone.getPhase();
             for(var e:java.util.stream.StreamSupport.stream(w.iterateEntities().spliterator(),false).toList())if(e instanceof com.terminaldetector.drmd.entity.ProjectileEntity p&&p.getOwnerLiving()==drone)e.discard();
-            drone.discard();target.discard();for(var ch:chunks)w.setChunkForced(ch.x,ch.z,false);DroneSwarmAi.clear();
+            drone.discard();target.discard();chunks.close();DroneSwarmAi.clear();
             c.assertTrue(alive&&locked&&phase==DroneAi.Phase.ORBIT&&distance>=min&&distance<=max,"actual role range control in40 ticks before RUN: role="+role+" initial="+initial+" expected="+min+".."+max+" distance="+distance+" phase="+phase+" locked="+locked);c.complete();
         });
     }
