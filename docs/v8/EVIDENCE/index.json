@@ -832,6 +832,64 @@
     "archive": "drone-state-world-grid-first-nonatomic.zip",
     "sha256": "6ea9b612ede3571a175c449cf5cf0fbddd7f834936cdf450176d0b364d24d9c4",
     "acceptedCounterMetrics": false,
-    "reason": "Live server counters changed during client JSON construction. Retained as diagnostic; final snapshot recheck pending."
+    "reason": "Live server counters changed during client JSON construction. Retained as diagnostic; final snapshot recheck pending.",
+    "finalRecheck": "DRONE_STATE_CURRENT_2026-11-05.md"
+  },
+  "droneCurrentRestart": {
+    "archive": "drone-state-atomic-grid-dbc5a0c.zip",
+    "sha256": "91bcc51e469b139504052f2d0059aa8e01f607a84a047ea8adefd08fa97b0f17",
+    "runs": [
+      {
+        "renderer": "gl32",
+        "source": "dbc5a0cdb0a44832f408a1c6d9e10d79ba8664d7",
+        "marker": {
+          "actualRestart": true,
+          "shots": 1321,
+          "naturalTargets": 128,
+          "restoredComponents": 128,
+          "shooters": 64,
+          "renderedIdentities": 110,
+          "moving": 128,
+          "damagingRoles": {
+            "assault": 461,
+            "mg": 860
+          },
+          "clientSynced": 128
+        },
+        "jars": {
+          "drmd-6dof-1.1.35-ufo-dev.1.jar": "c911bd5d57cb9dccfd0c346b5d92c9280e9c7bad30a7c99b6f13cd725422d302",
+          "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "aaad79ca1c48c9177934b2aa445e42b352af21e7cccdaaacc88d4558c38ef5f8"
+        }
+      },
+      {
+        "renderer": "sodium",
+        "source": "dbc5a0cdb0a44832f408a1c6d9e10d79ba8664d7",
+        "marker": {
+          "naturalTargets": 128,
+          "restoredComponents": 128,
+          "shooters": 62,
+          "renderedIdentities": 107,
+          "moving": 128,
+          "damagingRoles": {
+            "mg": 684,
+            "assault": 406
+          },
+          "clientSynced": 128,
+          "actualRestart": true,
+          "shots": 1090
+        },
+        "jars": {
+          "drmd-6dof-1.1.35-ufo-dev.1.jar": "c911bd5d57cb9dccfd0c346b5d92c9280e9c7bad30a7c99b6f13cd725422d302",
+          "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "aaad79ca1c48c9177934b2aa445e42b352af21e7cccdaaacc88d4558c38ef5f8"
+        }
+      }
+    ],
+    "mainSource": "5623e0ad7fb8f2ce8aa8c4b1ca545a23457868e9",
+    "sourceArtifact": {
+      "run": 41988014377,
+      "id": 13396892564,
+      "expired": false,
+      "digest": "sha256:7c32ccf8096956c7785258dc13dde61a152b2e943d1c54fe6bf984b9ea2840f9"
+    }
   }
 }

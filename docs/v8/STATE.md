@@ -1,5 +1,7 @@
 # v8 intake and ongoing UFO work
 
+Latest verified game JAR c911bd5d (main5623e0a; native observer dbc5a0c):690 unit/257 GameTests; four off-grid static-aperture route scenes; two actual128-drone world restarts on Mesa/Sodium with128 active/moving/naturally targeting/client-synced and consistent two-role shot counts. See DRONE_ROUTES_WORLD_GRID_2026-11-05.md and DRONE_STATE_CURRENT_2026-11-05.md. Full bestiary/3D combat/shared passages/performance/v8 acceptance remain open; no accepted1.1.35 release.
+
 Historical flight foundation: tested source22f3c10; development JAR SHA25633028ec6b4aa18b18d95763a7b0aa1b7149c37994f1829a9bef07f288d045655.
 679 unit/238 GameTests passed previously on this source. Recovered raw native evidence now archived: five external boarding scenes each on Mesa and Sodium, ten frames total. These are recovered runs, not fresh reruns. Fresh full-rotation regression also passed all13 scenes on the same game JAR; its source metadata is recorded separately in EVIDENCE/index.json. Total23 frames preserved.
 
