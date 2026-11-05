@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class CubicFrameProbe {
     @Inject(method="render",at=@At("RETURN"))
     private void completed(RenderTickCounter counter,boolean tick,CallbackInfo ci) {
+        if(com.terminaldetector.drmd.gate.NativeDroneWreckCheck.ENABLED){com.terminaldetector.drmd.gate.NativeDroneWreckCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeFlightEnemyCheck.ENABLED){com.terminaldetector.drmd.gate.NativeFlightEnemyCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeDroneRouteCheck.ENABLED){com.terminaldetector.drmd.gate.NativeDroneRouteCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeDroneStateCheck.READ){com.terminaldetector.drmd.gate.NativeDroneStateCheck.rendered();return;}
