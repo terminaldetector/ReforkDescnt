@@ -51,7 +51,8 @@
       "com.terminaldetector.drmd.DroneInventoryGameTests",
       "com.terminaldetector.drmd.PhysicalUfoGameTests",
       "com.terminaldetector.drmd.FlightBodyPlayerGameTests",
-      "com.terminaldetector.drmd.DroneTargetVolumeGameTests"
+      "com.terminaldetector.drmd.DroneTargetVolumeGameTests",
+      "com.terminaldetector.drmd.DroneRouteGameTests"
     ]
   },
   "depends": {
