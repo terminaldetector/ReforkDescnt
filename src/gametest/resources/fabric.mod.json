@@ -56,7 +56,8 @@
       "com.terminaldetector.drmd.DroneRangeControlGameTests",
       "com.terminaldetector.drmd.FlightEnemyIdentityGameTests",
       "com.terminaldetector.drmd.JetMotorGameTests",
-      "com.terminaldetector.drmd.DroneWreckPoseGameTests"
+      "com.terminaldetector.drmd.DroneWreckPoseGameTests",
+      "com.terminaldetector.drmd.DroneWreckKindGameTests"
     ]
   },
   "depends": {
