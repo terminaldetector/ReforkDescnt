@@ -17,7 +17,7 @@ public final class DroneRouteGameTests implements FabricGameTest {
     public void supportMovesSidewaysToAnOpeningAboveIt(TestContext c){route(c,true);}
     private static void route(TestContext c,boolean vertical) {
         var w=c.getWorld();var base=c.getAbsolutePos(new BlockPos(vertical?2000:1000,80,1000));
-        var start=Vec3d.ofBottomCenter(base).add(.0,.1,.0);
+        var start=Vec3d.ofBottomCenter(base).add(.27,.37,.19);
         var goal=start.add(vertical?0:6,vertical?6:0,0);
         var chunks=new HashSet<ChunkPos>();
         for(int x=(base.getX()>>4)-2;x<=(base.getX()>>4)+2;x++)for(int z=(base.getZ()>>4)-2;z<=(base.getZ()>>4)+2;z++) {
@@ -36,7 +36,7 @@ public final class DroneRouteGameTests implements FabricGameTest {
         c.assertTrue(w.spawnEntity(drone)&&w.spawnEntity(ally)&&w.spawnEntity(threat),"real route actors spawned");
         // One threat assignment isolates routing from detection; no manual ticks, velocity or follow teleports.
         drone.setTarget(threat);DroneSwarmAi.clear();
-        int[] ticks={0},admission={0};boolean[] finished={false},started={false};
+        int[] ticks={0},admission={0};boolean[] finished={false},started={false},entered={false};
         Runnable cleanup=()->{drone.discard();ally.discard();threat.discard();for(var p:wall)w.setBlockState(p,Blocks.AIR.getDefaultState(),3);for(var ch:chunks)w.setChunkForced(ch.x,ch.z,false);DroneSwarmAi.clear();};
         c.runAtEveryTick(()->{
             if(finished[0])return;
@@ -47,10 +47,14 @@ public final class DroneRouteGameTests implements FabricGameTest {
             }
             int tick=++ticks[0];var at=drone.getPos();
             if(Boolean.getBoolean("drmd.debugDroneNavigation")&&(tick%40==0||tick<12))System.out.println("ROUTE_ACTOR tick="+tick+" age="+drone.age+" vertical="+vertical+" local="+at.subtract(Vec3d.of(base))+" velocity="+drone.getVelocity()+" collision="+drone.horizontalCollision+","+drone.verticalCollision+" role="+drone.getRole()+" health="+drone.getHealth()+" aiDisabled="+drone.isAiDisabled()+" alive="+drone.isAlive()+" allyPos="+ally.getPos()+" ally="+ally.getHealth()+" target="+drone.getTarget());
+            var box=drone.getBoundingBox();double epsilon=1e-5;
+            boolean slab=vertical?box.maxY>base.getY()+3+epsilon&&box.minY<base.getY()+4-epsilon:box.maxX>base.getX()+3+epsilon&&box.minX<base.getX()+4-epsilon;
+            boolean inHole=vertical?box.minX>=base.getX()+3-epsilon&&box.maxX<=base.getX()+4+epsilon:box.minY>=base.getY()+3-epsilon&&box.maxY<=base.getY()+4+epsilon;
+            if(slab&&inHole&&box.minZ>=base.getZ()-epsilon&&box.maxZ<=base.getZ()+1+epsilon)entered[0]=true;
             boolean crossed=vertical?at.y>base.getY()+4.5:at.x>base.getX()+4.5;
             if(crossed||tick>=380) {
                 finished[0]=true;boolean intact=wall.stream().allMatch(p->w.getBlockState(p).isOf(Blocks.BEDROCK));cleanup.run();
-                c.assertTrue(crossed&&intact,"physical route through intact aperture: vertical="+vertical+" tick="+tick+" local="+at.subtract(Vec3d.of(base)));
+                c.assertTrue(crossed&&intact&&entered[0],"physical route through intact aperture: vertical="+vertical+" tick="+tick+" local="+at.subtract(Vec3d.of(base)));
                 c.complete();
             }
         });
