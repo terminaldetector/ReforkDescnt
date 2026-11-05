@@ -26,4 +26,13 @@ class FlightEnemyMeshTest {
     @Test void meshesStayInsideTheSmallPerAgentFaceBudget() {
         for(var kind:FlightEnemyKind.values()){int n=FlightEnemyMesh.faces(kind).size();assertTrue(n>=8&&n<=24);}
     }
+    @Test void orbClosedHullNormalsPointOutward(){outward(FlightEnemyKind.ORB);}
+    @Test void jetClosedHullNormalsPointOutward(){outward(FlightEnemyKind.JET);}
+    private static void outward(FlightEnemyKind kind){
+        // Both convex hulls contain the local origin; each outward plane must face away from it.
+        for(var face:FlightEnemyMesh.faces(kind).subList(0,8)){
+            var p=face.vertices().getFirst();var n=face.normal();
+            assertTrue(p.x()*n.x()+p.y()*n.y()+p.z()*n.z()>0,"outward lit surface: "+kind+" face="+face);
+        }
+    }
 }
