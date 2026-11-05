@@ -1,5 +1,7 @@
 # v8 intake and ongoing UFO work
 
+Current production f234822 / gamedc996a30: native recursive requests now inherit the existing generation deadline.706 unit/269 local GameTests and typed128 normal Mesa/Sodium restart pairs pass. Deliberate client crash saves all dimensions; independent actual read-back restores128 exact types,128 active/moving. The original pending-generation-zero wrapper failed and is retained; disk-write and actual restoration evidence are separate. See CUBIC_RECURSION_BUDGET_2026-11-05.md. Recurrent remote Artillery fixture admission remains under verification; test-only1001f1b adds owned leases/prespawn readiness,269 local tests pass. Full streaming/performance, wreck rigs and v8 remain open.
+
 Current typed128 proof d1d92e9 / gamefe3d500a:43 ORB/43 ROCKET/42 JET,128 active/moving/natural targets at both heights on Mesa/Sodium; actual restart128 active/moving,127/128 targets and125/128 shooters, exact classes and three renderers. See TYPED_SWARM_2026-11-05.md. Tasks remain2 completed/6 in_progress/91 pending. Matching wrecks, dense routes,256+ scaling and full v8 remain open. Fatal test assertion exposed BCC shutdown scheduler livelock: diagnostic retained; runner kill-after is containment, not a game fix.
 
 Latest main b042d9f:701 unit/269 GameTests locally, bounded JET thrust and outward hull normals; two fresh three-type native restart pairs pass. CI268/269 exposes old artillery fixture admission before its measurement; investigation next. See JET_MOTOR_2026-11-05.md. Typed128 swarm and matching wrecks remain open.

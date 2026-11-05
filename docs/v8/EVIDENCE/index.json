@@ -993,5 +993,29 @@
       "expired": false,
       "digest": "sha256:c1c5d04ad2bfe66d4a0a173106653ade60e960b5e6dcc4e29def7db4e2aa3966"
     }
+  },
+  "cubicRecursiveBudget20261105": {
+    "gameSource": "f2348221abf64ebe167726f29cca130c74bc53c1",
+    "normalObserverSource": "b4c879b617ee74904209cb96b1a2c503351ffe7a",
+    "faultObserverSource": "f01996ad1e5b99c268e0476d5898fefb4b9752c3",
+    "report": "CUBIC_RECURSION_BUDGET_2026-11-05.md",
+    "archives": [
+      {
+        "file": "cubic-recursive-budget-b4c879b.zip",
+        "sha256": "acd91095040499f238089fe39f534a962b1d6cfcb09b864d2c96b6c066fd104d"
+      },
+      {
+        "file": "cubic-abort-recovery-f01996a.zip",
+        "sha256": "1611650a758695b0a569e285372b9b3848aa4992103faba24c7fae4c4df17481"
+      }
+    ],
+    "unitTests": 706,
+    "gameTests": 269,
+    "sourceArtifact": {
+      "run": 42083412968,
+      "id": 13440524153,
+      "expired": false,
+      "digest": "sha256:9484b66b93c607547d16ee1e88be8b74d7dd06e35f7ea4cd8b8709a997185d80"
+    }
   }
 }
