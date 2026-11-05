@@ -101,12 +101,14 @@ public final class NativeSwarmBaselineCheck {
         if(c.player==null||c.world==null||c.getServer()==null)return;
         if(!requested) {
             require(c.runDirectory.toPath().getFileName().toString().equals("cubic-client-automation"),"disposable runtime only");requested=true;c.setScreen(null);c.options.hudHidden=true;c.options.setPerspective(Perspective.FIRST_PERSON);
+            if(TYPED){c.options.getViewDistance().setValue(8);c.options.sendClientSettings();}
             com.terminaldetector.drmd.client.config.DescentConfig.weaponView=false;com.terminaldetector.drmd.client.config.DescentConfig.cockpit=false;
             com.terminaldetector.drmd.client.config.DescentConfig.planetFloor=false;com.terminaldetector.drmd.client.config.DescentConfig.levelSky=false;
             c.getServer().execute(()->{
                 var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());var d=DescentPlayerData.get(p);var at=centre();
                 com.terminaldetector.drmd.flight.FlightSystem.disable(p,d);
-                p.teleport(p.getServerWorld(),at.x,at.y+12,at.z+6,Set.of(),180,40);p.setInvulnerable(true);
+                if(TYPED)c.getServer().getPlayerManager().setViewDistance(8);
+                p.teleport(p.getServerWorld(),at.x,at.y+(TYPED?24:12),at.z+(TYPED?48:6),Set.of(),180,TYPED?26:40);p.setInvulnerable(true);
                 d.setGravity(0);d.setDrag(0);d.setFlightVelocity(Vec3d.ZERO);com.terminaldetector.drmd.flight.FlightSystem.enableWithoutMount(p,d);
                 c.getServer().setDifficulty(Difficulty.NORMAL,true);p.getServerWorld().setTimeOfDay(6000);located=true;
             });return;
