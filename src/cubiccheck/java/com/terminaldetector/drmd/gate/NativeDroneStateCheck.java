@@ -24,7 +24,7 @@ public final class NativeDroneStateCheck {
     private static final Map<UUID,String> ROLES=new ConcurrentHashMap<>();
     private static final Map<UUID,Vec3d> INITIAL=new HashMap<>();
     private static final Map<UUID,Integer> INITIAL_AGES=new HashMap<>();
-    private static boolean observerReady;
+    private static boolean observerReady,viewReady;
     private static long captureStart;
     private static final Set<UUID> DRAWN=new HashSet<>(),SHOOTERS=new HashSet<>();
     private static final Map<String,Integer> DAMAGING_ROLES=new TreeMap<>();
@@ -70,6 +70,7 @@ public final class NativeDroneStateCheck {
             if(!observerReady&&!s.getPlayerManager().getPlayerList().isEmpty()) {
                 var p=s.getPlayerManager().getPlayerList().getFirst();
                 com.terminaldetector.drmd.flight.FlightSystem.disable(p,com.terminaldetector.drmd.DescentPlayerData.get(p));
+                s.getPlayerManager().setViewDistance(8);
                 p.getAbilities().allowFlying=true;p.getAbilities().flying=true;p.setNoGravity(true);p.sendAbilitiesUpdate();observerReady=true;
             }
             if(done||ready||LOADED.size()!=128)return;age++;
@@ -92,7 +93,7 @@ public final class NativeDroneStateCheck {
         ClientTickEvents.END_CLIENT_TICK.register(c->{
             if(done)return;require(++ticks<4800,"drone world reload timeout loaded="+LOADED.size()+" age="+age);
             com.terminaldetector.drmd.client.DescentClient.markUserFlightChoice();
-            if(c.player!=null)c.player.getAbilities().flying=true;
+            if(c.player!=null){c.player.getAbilities().flying=true;if(!viewReady){c.options.getViewDistance().setValue(8);c.options.sendClientSettings();viewReady=true;}}
             if(c.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen prompt)for(var child:prompt.children())
                 if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("I know what I'm doing!"))b.onPress();
         });
@@ -100,7 +101,7 @@ public final class NativeDroneStateCheck {
     public static void drew(DroneEntity d){if(ids.contains(entity(d).getUuid()))DRAWN.add(entity(d).getUuid());}
     public static void rendered() {
         if(!ready||done)return;var c=MinecraftClient.getInstance();if(c.world==null||c.currentScreen!=null||++frames<3)return;
-        var actors=c.world.getEntitiesByClass(DroneEntity.class,new Box(-128,2028,-128,140,2284,160),d->ids.contains(entity(d).getUuid()));
+        var actors=new ArrayList<DroneEntity>();for(var e:c.world.getEntities())if(e instanceof DroneEntity d&&ids.contains(e.getUuid()))actors.add(d);
         if(c.player!=null&&!actors.isEmpty()) {
             Vec3d centre=Vec3d.ZERO;for(var d:actors)centre=centre.add(entity(d).getBoundingBox().getCenter());
             var aim=centre.multiply(1.0/actors.size()).subtract(c.player.getEyePos());
