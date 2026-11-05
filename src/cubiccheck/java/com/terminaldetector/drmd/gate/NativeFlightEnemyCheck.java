@@ -37,7 +37,7 @@ public final class NativeFlightEnemyCheck {
     private static final Set<UUID> DRAWN=new HashSet<>(),SAVED=ConcurrentHashMap.newKeySet();
     private static volatile boolean located,running,ready,watching,done;
     private static volatile Map<String,Object> accepted=Map.of();
-    private static boolean requested,spawnRequested,activated,observerReady;
+    private static boolean requested,spawnRequested,activated,observerReady,visualReady;
     private static int phase,ticks,age,frames;
     private static Entity target;
     private static Entity entity(DroneEntity d){return d;}
@@ -99,10 +99,13 @@ public final class NativeFlightEnemyCheck {
         if(done)return;require(++ticks<4800,"typed scene timeout actors="+ACTORS.size()+" phase="+phase+" age="+age);com.terminaldetector.drmd.client.DescentClient.markUserFlightChoice();
         if(c.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen prompt)for(var child:prompt.children())if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("I know what I'm doing!"))b.onPress();
         if(c.player==null||c.world==null||c.getServer()==null)return;c.player.getAbilities().flying=true;
+        if(!visualReady){visualReady=true;c.options.hudHidden=false;c.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);c.getToastManager().clear();c.inGameHud.getChatHud().clear(false);
+            com.terminaldetector.drmd.client.config.DescentConfig.cockpit=false;com.terminaldetector.drmd.client.config.DescentConfig.weaponView=false;com.terminaldetector.drmd.client.config.DescentConfig.planetFloor=false;com.terminaldetector.drmd.client.config.DescentConfig.levelSky=false;}
+
         if(READ)return;
         if(!requested){requested=true;c.setScreen(null);c.options.hudHidden=false;
             com.terminaldetector.drmd.client.config.DescentConfig.cockpit=false;com.terminaldetector.drmd.client.config.DescentConfig.weaponView=false;com.terminaldetector.drmd.client.config.DescentConfig.planetFloor=false;com.terminaldetector.drmd.client.config.DescentConfig.levelSky=false;
-            c.getServer().execute(()->{var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());p.changeGameMode(GameMode.CREATIVE);FlightSystem.disable(p,DescentPlayerData.get(p));p.teleport(c.getServer().getOverworld(),CENTRE.x,CENTRE.y+10,CENTRE.z+22,Set.of(),180,20);p.getAbilities().allowFlying=true;p.getAbilities().flying=true;p.setNoGravity(true);p.sendAbilitiesUpdate();p.getServerWorld().setTimeOfDay(6000);located=true;});return;
+            c.getServer().execute(()->{var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());p.changeGameMode(GameMode.CREATIVE);FlightSystem.disable(p,DescentPlayerData.get(p));p.teleport(c.getServer().getOverworld(),CENTRE.x,CENTRE.y+3.5,CENTRE.z+9,Set.of(),180,15);p.getAbilities().allowFlying=true;p.getAbilities().flying=true;p.setNoGravity(true);p.sendAbilitiesUpdate();p.getServerWorld().setTimeOfDay(6000);located=true;});return;
         }
         if(located&&!spawnRequested&&loaded(c)){spawnRequested=true;c.getServer().execute(()->spawn(c));}
     }
@@ -137,11 +140,12 @@ public final class NativeFlightEnemyCheck {
             require(c.getItemRenderer().getModel(stack,c.world,c.player,0)!=c.getBakedModelManager().getMissingModel(),"actual bound spawn egg model");
             require((colors.getColor(stack,0)&0xffffff)==kind.primaryColour&&(colors.getColor(stack,1)&0xffffff)==kind.secondaryColour,"actual spawn egg tint provider");
         }
+        c.inGameHud.getChatHud().clear(false);c.getToastManager().clear();
         if(++frames<4||DRAWN.size()!=3)return;
         String imageName=READ?"flight-enemy-reloaded.png":phase==0?"flight-enemy-poses.png":"flight-enemy-active.png";
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){image.writeTo(file(imageName));}catch(Exception e){throw new IllegalStateException(e);}
         if(READ){try{Files.writeString(file("flight-enemy-reload-ok.json"),new com.google.gson.Gson().toJson(accepted)+"\n");done=true;c.scheduleStop();}catch(Exception e){throw new IllegalStateException(e);}return;}
-        if(phase==0){ready=running=false;frames=0;DRAWN.clear();c.getServer().execute(()->{var w=c.getServer().getOverworld();var cow=EntityType.COW.create(w);cow.setPosition(CENTRE.add(0,0,-12));cow.setAiDisabled(true);cow.setNoGravity(true);cow.setPersistent();cow.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE,-1,4,false,false));require(w.spawnEntity(cow),"targetable live cow");target=cow;phase=1;running=true;});return;}
+        if(phase==0){ready=running=false;frames=0;DRAWN.clear();c.getServer().execute(()->{var w=c.getServer().getOverworld();var observer=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());observer.teleport(w,CENTRE.x,CENTRE.y+10,CENTRE.z+22,Set.of(),180,20);var cow=EntityType.COW.create(w);cow.setPosition(CENTRE.add(0,0,-12));cow.setAiDisabled(true);cow.setNoGravity(true);cow.setPersistent();cow.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE,-1,4,false,false));require(w.spawnEntity(cow),"targetable live cow");target=cow;phase=1;running=true;});return;}
         try{Files.writeString(file("flight-enemy-live-ok.json"),new com.google.gson.Gson().toJson(accepted)+"\n");}catch(Exception e){throw new IllegalStateException(e);}
         ready=running=false;done=true;c.getServer().execute(()->{try {
             for(var e:java.util.stream.StreamSupport.stream(c.getServer().getOverworld().iterateEntities().spliterator(),false).toList())if(e instanceof ProjectileEntity shot&&shot.getOwnerLiving() instanceof FlightEnemyEntity d&&IDS.containsKey(entity(d).getUuid()))e.discard();
