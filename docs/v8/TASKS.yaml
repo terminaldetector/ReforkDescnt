@@ -769,11 +769,11 @@ tasks:
   depends_on_stages: &id012
   - S06
   - S08
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [FLIGHT_ENEMY_IDENTITIES_2026-11-05.md, EVIDENCE/flight-enemy-identities-388eb84.zip]
+  notes: Independent classes/types, authored defaults, real models/icons, autonomous combat and actual saved-world restoration verified on388eb84 in Mesa/Sodium. Atomic identity scope only; JET motor, typed wrecks, swarm scaling and full G4 remain open.
 - id: S11-T02
   stage: S11
   stage_title: ORB/ROCKET/JET swarms

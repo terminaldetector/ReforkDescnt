@@ -1,6 +1,8 @@
 # v8 intake and ongoing UFO work
 
-Latest verified main d9d0fd8 / game4214bda3:690 unit/264 GameTests; seven combat-role range/retreat regressions fixed; actual128 restarts on Mesa/Sodium with125/128 moving and96 shooters across three roles. S11-T03 atomic proof is completed (ACCEPTANCE_S11_T03.md);6 tasks in_progress,92 pending_reverification. FullG4/v8 and accepted1.1.35 release remain open. See DRONE_COMBAT_RINGS_2026-11-05.md.
+Latest identity increment388eb84:696 unit/267 GameTests and two actual three-type restart pairs on Mesa/Sodium pass. S11-T01 is completed;2 tasks completed,6 in_progress,91 pending_reverification. JET acceleration and type-specific wrecks are next; fullG4/v8 remains open. See FLIGHT_ENEMY_IDENTITIES_2026-11-05.md.
+
+Latest verified main d9d0fd8 / game4214bda3:690 unit/264 GameTests; seven combat-role range/retreat regressions fixed; actual128 restarts on Mesa/Sodium with125/128 moving and96 shooters across three roles. S11-T03 atomic proof is completed (ACCEPTANCE_S11_T03.md); the identity increment above updates the task totals. FullG4/v8 and accepted1.1.35 release remain open. See DRONE_COMBAT_RINGS_2026-11-05.md.
 
 Latest verified game JAR c911bd5d (main5623e0a; native observer dbc5a0c):690 unit/257 GameTests; four off-grid static-aperture route scenes; two actual128-drone world restarts on Mesa/Sodium with128 active/moving/naturally targeting/client-synced and consistent two-role shot counts. See DRONE_ROUTES_WORLD_GRID_2026-11-05.md and DRONE_STATE_CURRENT_2026-11-05.md. Full bestiary/3D combat/shared passages/performance/v8 acceptance remain open; no accepted1.1.35 release.
 

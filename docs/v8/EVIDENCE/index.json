@@ -951,5 +951,19 @@
       "expired": false,
       "digest": "sha256:3757cf027b8cb90d857f81045f1e4510dd3af99874d505519aaaa6d53d788535"
     }
+  },
+  "flightEnemyIdentities20261105": {
+    "source": "388eb845099ff4d400759f0e01e42bee1181322e",
+    "report": "FLIGHT_ENEMY_IDENTITIES_2026-11-05.md",
+    "archive": "flight-enemy-identities-388eb84.zip",
+    "sha256": "0b5920859be0ab023f5b6b96745f61ee3c0692c1719534586e78e423e784911c",
+    "unitTests": 696,
+    "gameTests": 267,
+    "sourceArtifact": {
+      "run": 42021487071,
+      "id": 13411532511,
+      "expired": false,
+      "digest": "sha256:51970e86c62993cbcc69d96190654bbef944de3ce719976c7fde7a1243f56fe4"
+    }
   }
 }
