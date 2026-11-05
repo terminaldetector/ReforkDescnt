@@ -20,7 +20,8 @@
     "UfoPersistenceProbe",
     "BoardingReadyDelayProbe",
     "DroneRenderProbe",
-    "SwarmShotProbe"
+    "SwarmShotProbe",
+    "DronePersistenceProbe"
   ],
   "injectors": {
     "defaultRequire": 1

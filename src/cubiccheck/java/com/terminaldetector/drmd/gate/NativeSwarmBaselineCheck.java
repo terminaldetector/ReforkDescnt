@@ -54,7 +54,7 @@ public final class NativeSwarmBaselineCheck {
                 if(entity(d).age-initialAge.get(id)>=20)active++;
                 if(s.getOverworld().getEntity(id)==d)lookup++;
                 var stats=DroneSwarmAi.queryStats(d);maxCandidates=Math.max(maxCandidates,stats.examinedCandidates());indexed=Math.min(indexed,stats.indexedDrones());
-                if(((MobEntity)d).getTarget()==cow)targeting++;
+                var target=((MobEntity)d).getTarget();if(NativeDroneStateCheck.WRITE?target!=null&&HostileEnvironment.isHostileTarget(d,target):target==cow)targeting++;
             }
             sampledShots=shots;sampledShooters=SHOOTERS.size();
             require(cow!=null&&cow.isAlive(),"the inherited invulnerable target must remain available throughout sampling");
@@ -92,8 +92,8 @@ public final class NativeSwarmBaselineCheck {
         if(located&&!spawnRequested&&loaded(c)){spawnRequested=true;DRAWN.clear();FRAMES.clear();lastFrame=0;c.getServer().execute(()->spawn(c.getServer().getOverworld()));}
     }
     private static void spawn(ServerWorld w) {
-        System.out.println("SWARM_CONFIG seed="+w.getSeed()+" centre="+centre()+" difficulty="+w.getDifficulty()+" doMobSpawning="+w.getGameRules().getBoolean(net.minecraft.world.GameRules.DO_MOB_SPAWNING)+" roles=SUPPORT,ASSAULT,MG,INTERCEPTOR target=invulnerable-invisible-cow backgroundLOD=false manualDroneTicks=false");
-        var at=centre();var target=EntityType.COW.create(w);require(target!=null,"real passive target");target.setPosition(at.add(0,0,-30));target.setNoGravity(true);target.setInvulnerable(true);target.setInvisible(true);target.setAiDisabled(true);target.setPersistent();require(w.spawnEntity(target),"target spawned");cow=target;
+        System.out.println("SWARM_CONFIG seed="+w.getSeed()+" centre="+centre()+" difficulty="+w.getDifficulty()+" doMobSpawning="+w.getGameRules().getBoolean(net.minecraft.world.GameRules.DO_MOB_SPAWNING)+" roles=SUPPORT,ASSAULT,MG,INTERCEPTOR target="+(NativeDroneStateCheck.WRITE?"invulnerable-visible-cow":"invulnerable-invisible-cow")+" backgroundLOD=false manualDroneTicks=false");
+        var at=centre();var target=EntityType.COW.create(w);require(target!=null,"real passive target");target.setPosition(at.add(0,0,-30));target.setNoGravity(true);target.setInvulnerable(true);target.setInvisible(!NativeDroneStateCheck.WRITE);target.setAiDisabled(true);target.setPersistent();require(w.spawnEntity(target),"target spawned");cow=target;
         DRONES.clear();PROJECTILES.clear();SHOOTERS.clear();shots=0;
         for(int i=0;i<COUNT;i++) {
             var d=ModEntities.DRONE.create(w);require(d!=null,"registered drone created");entity(d).setPosition(at.add(((i&15)-7.5)*1.2,(((i>>8)&3)-1.5)*1.2,(((i>>4)&15)-7.5)*1.2));
@@ -118,6 +118,15 @@ public final class NativeSwarmBaselineCheck {
             image.writeTo(c.runDirectory.toPath().resolve("swarm-128-height-"+(int)centre().y+".png"));
             require(synced==COUNT&&DRAWN.size()>=32,"all live actors must synchronize and models must render: synced="+synced+" drawn="+DRAWN.size());
             String row=String.format(Locale.ROOT,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%.4f,%.4f,%.4f,%.3f,%d,%.4f,",(int)centre().y,COUNT,alive,active,moving,lookup,synced,DRAWN.size(),sampledShots,sampledShooters,indexed,targeting,maxCandidates,percentile(WORK,.5)/1e6,percentile(WORK,.95)/1e6,percentile(WORK,.99)/1e6,WORK.size()/seconds,FRAMES.size(),percentile(FRAMES,.95)/1e6);
+            if(NativeDroneStateCheck.WRITE&&stage==1) {
+                running=false;sampling=false;done=true;ROWS.add(row+128);
+                Files.writeString(c.runDirectory.toPath().resolve("swarm-before-restart.csv"),String.join("\n",ROWS)+"\n");
+                c.getServer().execute(()->{
+                    PROJECTILES.forEach(Entity::discard);
+                    for(int i=0;i<DRONES.size();i++){var d=DRONES.get(i);((LivingEntity)d).setHealth(((LivingEntity)d).getMaxHealth()*.63f);d.setFlightRoll((i&1)==0?25:-25);}
+                    NativeDroneStateCheck.watch(expected);c.execute(c::scheduleStop);
+                });return;
+            }
             resultReady=false;running=false;frames=0;c.getServer().execute(()->cleanup(c,row));
         }catch(Exception e){throw new IllegalStateException(e);}
     }
