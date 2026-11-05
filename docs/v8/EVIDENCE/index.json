@@ -451,5 +451,70 @@
       "expired": false,
       "digest": "sha256:0c0dd9a152ed0aa16deaf8731cd438f35b7b32c2063a66db5b50d0ed63152d62"
     }
+  },
+  "droneCombatPersistence": {
+    "archive": "drone-state-cdb2572.zip",
+    "sha256": "ac28495705bb4495ead134a0e81a5e6572686686d846839144322701218584ca",
+    "runs": [
+      {
+        "renderer": "gl32",
+        "source": "cdb25720e8d4f9ff3aee9d029f02ec2dd167dce8",
+        "marker": {
+          "restoredComponents": 128,
+          "shooters": 63,
+          "renderedIdentities": 103,
+          "moving": 128,
+          "damagingRoles": {
+            "assault": 429,
+            "mg": 788
+          },
+          "clientSynced": 128,
+          "actualRestart": true,
+          "shots": 1217,
+          "naturalTargets": 127
+        },
+        "jars": {
+          "drmd-6dof-1.1.35-ufo-dev.1.jar": "affc24082bb1600219a52faa14d86e94dc8382804e321cc07e7c7e6a7d4e9be9",
+          "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "75428c1787670adc4d81fe7ae74f0feb186255874016a6b743e1e9054cb4e7e9"
+        }
+      },
+      {
+        "renderer": "sodium",
+        "source": "cdb25720e8d4f9ff3aee9d029f02ec2dd167dce8",
+        "marker": {
+          "moving": 128,
+          "damagingRoles": {
+            "assault": 496,
+            "mg": 918
+          },
+          "clientSynced": 128,
+          "actualRestart": true,
+          "shots": 1414,
+          "naturalTargets": 127,
+          "restoredComponents": 128,
+          "shooters": 64,
+          "renderedIdentities": 119
+        },
+        "jars": {
+          "drmd-6dof-1.1.35-ufo-dev.1.jar": "affc24082bb1600219a52faa14d86e94dc8382804e321cc07e7c7e6a7d4e9be9",
+          "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "75428c1787670adc4d81fe7ae74f0feb186255874016a6b743e1e9054cb4e7e9"
+        }
+      }
+    ],
+    "unitTests": 679,
+    "gameTests": 253,
+    "mainSource": "6cb317e",
+    "releaseAccepted": false,
+    "sourceArtifact": {
+      "run": 41978993309,
+      "id": 13393157061,
+      "expired": false,
+      "digest": "sha256:9912933ee754055c6c3407e5f489dd9b05c123a8a865c770b784210c6370d4c9"
+    },
+    "failures": {
+      "drone-reload-third-range-failure.zip": "5fed2f05e92ec121208cb64cef5a41fc764aecd05a727df23648f0683ae91702",
+      "drone-reload-first-fixture-failure.zip": "3d0fd7a263b6eefb612a08e2940828bebde53b76025a36df6c0241db6c23990f",
+      "drone-reload-second-camera-failure.zip": "74e69d7419b9b5c224123ceab209c952ad3b69498eaaf909ab3e6521a54f2b22"
+    }
   }
 }
