@@ -25,6 +25,7 @@ public final class NativeDroneStateCheck {
     private static final Map<UUID,Vec3d> INITIAL=new HashMap<>();
     private static final Map<UUID,Integer> INITIAL_AGES=new HashMap<>();
     private static boolean observerReady;
+    private static long captureStart;
     private static final Set<UUID> DRAWN=new HashSet<>(),SHOOTERS=new HashSet<>();
     private static final Map<String,Integer> DAMAGING_ROLES=new TreeMap<>();
     private static volatile boolean ready,done;private static int ticks,age,frames,shots,moving,targets;
@@ -100,7 +101,21 @@ public final class NativeDroneStateCheck {
     public static void rendered() {
         if(!ready||done)return;var c=MinecraftClient.getInstance();if(c.world==null||c.currentScreen!=null||++frames<3)return;
         var actors=c.world.getEntitiesByClass(DroneEntity.class,new Box(-128,2028,-128,140,2284,160),d->ids.contains(entity(d).getUuid()));
-        if(actors.size()!=128||DRAWN.size()<32)return;
+        if(c.player!=null&&!actors.isEmpty()) {
+            Vec3d centre=Vec3d.ZERO;for(var d:actors)centre=centre.add(entity(d).getBoundingBox().getCenter());
+            var aim=centre.multiply(1.0/actors.size()).subtract(c.player.getEyePos());
+            float yaw=(float)Math.toDegrees(Math.atan2(-aim.x,aim.z));
+            float pitch=(float)-Math.toDegrees(Math.atan2(aim.y,Math.hypot(aim.x,aim.z)));
+            c.player.setYaw(yaw);c.player.prevYaw=yaw;c.player.setPitch(pitch);c.player.prevPitch=pitch;
+            c.options.hudHidden=true;
+        }
+        if(captureStart==0)captureStart=System.nanoTime();
+        if(frames%60==0)System.out.println("DRONE_RELOAD_VIEW synced="+actors.size()+" drawn="+DRAWN.size()+" camera="+c.player.getPos());
+        if(actors.size()!=128||DRAWN.size()<32) {
+            if(System.nanoTime()-captureStart<15_000_000_000L)return;
+            try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){image.writeTo(file("drone-state-view-failed.png"));}catch(Exception e){throw new IllegalStateException(e);}
+            throw new IllegalStateException("restored drone client visibility timeout: synced="+actors.size()+" drawn="+DRAWN.size());
+        }
         require(actors.stream().allMatch(d->d.getRole().id.equals(ROLES.get(entity(d).getUuid()))),"client role metadata matches the saved identities");
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             image.writeTo(file("drone-state-reloaded.png"));
