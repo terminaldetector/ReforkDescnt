@@ -34,6 +34,7 @@ public final class NativeSwarmBaselineCheck {
     private static final List<Long> WORK=new ArrayList<>(),FRAMES=new ArrayList<>();
     private static final List<String> ROWS=new ArrayList<>();
     private static volatile boolean located,running,sampling,resultReady,done;
+    private static volatile boolean abortPending;
     private static boolean requested,spawnRequested;private static volatile int stage,age;
     private static final boolean VERTICAL=Boolean.getBoolean("drmd.gate.verticalTargets");
     private static int ticks,frames,alive,moving,active,lookup,maxCandidates,shots,sampledShots,sampledShooters,indexed,targeting;
@@ -133,6 +134,7 @@ public final class NativeSwarmBaselineCheck {
     }
     public static void drew(DroneEntity d){if(expected.contains(entity(d).getUuid()))DRAWN.add(entity(d).getUuid());}
     public static void rendered() {
+        if(abortPending)throw new IllegalStateException("Deliberate typed-swarm renderer fault for shutdown recovery proof");
         if(done)return;long now=System.nanoTime();if(sampling){if(lastFrame!=0)FRAMES.add(now-lastFrame);lastFrame=now;}else lastFrame=0;
         if(!resultReady)return;var c=MinecraftClient.getInstance();if(c.currentScreen!=null||++frames<3)return;
         int synced=c.world.getEntitiesByClass(DroneEntity.class,new Box(centre().add(-128,-128,-128),centre().add(128,128,128)),d->expected.contains(entity(d).getUuid())).size();
@@ -158,7 +160,11 @@ public final class NativeSwarmBaselineCheck {
                 c.getServer().execute(()->{
                     PROJECTILES.forEach(Entity::discard);
                     for(int i=0;i<DRONES.size();i++){var d=DRONES.get(i);((LivingEntity)d).setHealth(((LivingEntity)d).getMaxHealth()*.63f);d.setFlightRoll((i&1)==0?25:-25);}
-                    NativeDroneStateCheck.watch(expected);c.execute(c::scheduleStop);
+                    NativeDroneStateCheck.watch(expected);
+                    if(Boolean.getBoolean("drmd.gate.abortAfterSwarm")){
+                        NativeScheduleBudgetCheck.write("abort-before-stop",true);
+                        c.execute(()->{try{Files.writeString(c.runDirectory.toPath().resolve("deliberate-swarm-abort.json"),"{\"deliberateRendererFault\":true,\"watchedSavedIdentities\":128}\n");abortPending=true;}catch(Exception e){throw new IllegalStateException(e);}});
+                    }else c.execute(c::scheduleStop);
                 });return;
             }
             resultReady=false;running=false;frames=0;c.getServer().execute(()->cleanup(c,row));
