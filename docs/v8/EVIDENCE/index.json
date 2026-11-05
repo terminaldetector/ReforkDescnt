@@ -516,5 +516,122 @@
       "drone-reload-first-fixture-failure.zip": "3d0fd7a263b6eefb612a08e2940828bebde53b76025a36df6c0241db6c23990f",
       "drone-reload-second-camera-failure.zip": "74e69d7419b9b5c224123ceab209c952ad3b69498eaaf909ab3e6521a54f2b22"
     }
+  },
+  "droneVerticalTargets": {
+    "source": "8fd19bc31778eb4899e4264885092f122fa26534",
+    "unitTests": 679,
+    "gameTests": 255,
+    "releaseAccepted": false,
+    "runs": [
+      {
+        "renderer": "gl32",
+        "rows": [
+          {
+            "height": "207",
+            "requested": "128",
+            "alive": "128",
+            "active_ticks": "128",
+            "moving": "128",
+            "server_lookup": "128",
+            "client_synced": "128",
+            "unique_rendered": "128",
+            "shots": "1311",
+            "shooters": "85",
+            "indexed": "128",
+            "targeting": "128",
+            "max_candidates": "68",
+            "server_p50_ms": "30.7815",
+            "server_p95_ms": "82.8626",
+            "server_p99_ms": "134.9848",
+            "observed_tps": "21.094",
+            "frames": "4",
+            "frame_p95_ms": "653.2146",
+            "cleanup_remaining": "0"
+          },
+          {
+            "height": "2156",
+            "requested": "128",
+            "alive": "128",
+            "active_ticks": "128",
+            "moving": "128",
+            "server_lookup": "128",
+            "client_synced": "128",
+            "unique_rendered": "128",
+            "shots": "2852",
+            "shooters": "96",
+            "indexed": "128",
+            "targeting": "128",
+            "max_candidates": "73",
+            "server_p50_ms": "30.2716",
+            "server_p95_ms": "72.7837",
+            "server_p99_ms": "96.2326",
+            "observed_tps": "20.006",
+            "frames": "19",
+            "frame_p95_ms": "278.2555",
+            "cleanup_remaining": "0"
+          }
+        ]
+      },
+      {
+        "renderer": "sodium",
+        "rows": [
+          {
+            "height": "207",
+            "requested": "128",
+            "alive": "128",
+            "active_ticks": "128",
+            "moving": "128",
+            "server_lookup": "128",
+            "client_synced": "128",
+            "unique_rendered": "128",
+            "shots": "1256",
+            "shooters": "87",
+            "indexed": "128",
+            "targeting": "128",
+            "max_candidates": "75",
+            "server_p50_ms": "53.9745",
+            "server_p95_ms": "108.7587",
+            "server_p99_ms": "140.5566",
+            "observed_tps": "15.977",
+            "frames": "7",
+            "frame_p95_ms": "694.3526",
+            "cleanup_remaining": "0"
+          },
+          {
+            "height": "2156",
+            "requested": "128",
+            "alive": "128",
+            "active_ticks": "128",
+            "moving": "128",
+            "server_lookup": "128",
+            "client_synced": "128",
+            "unique_rendered": "128",
+            "shots": "2678",
+            "shooters": "96",
+            "indexed": "128",
+            "targeting": "128",
+            "max_candidates": "57",
+            "server_p50_ms": "28.0364",
+            "server_p95_ms": "73.4083",
+            "server_p99_ms": "105.2412",
+            "observed_tps": "20.145",
+            "frames": "25",
+            "frame_p95_ms": "386.3811",
+            "cleanup_remaining": "0"
+          }
+        ]
+      }
+    ],
+    "gameJarSha256": "6141868e01effa5233f1593704c3b28041fab89c9e79213947fa26a8731ae2ee",
+    "gateJarSha256": "3e596f509ad170e8855106ac29da5233f0566d21a46756da8f5dc4d8ac3546bb",
+    "scope": "Natural vertical target acquisition, controlled128 generic drones, four fresh scenes; no routes/Survival/bestiary/performance acceptance.",
+    "archive": "drone-volume-target-8fd19bc.zip",
+    "archiveSha256": "b0f2a7e662d21ba074a31a7374ed29ce2a99aff6bb0d7d634db5c36fe6eba2f6",
+    "sourceArtifact": {
+      "run": 41980416324,
+      "id": 13393597943,
+      "expired": false,
+      "digest": "sha256:59a62f4480eac6408a9871a00bbdf0b7521a941da4b59324d185203247eadaaf"
+    }
   }
 }
