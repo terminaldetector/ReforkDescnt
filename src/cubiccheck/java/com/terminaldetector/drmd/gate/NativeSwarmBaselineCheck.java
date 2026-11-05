@@ -142,6 +142,7 @@ public final class NativeSwarmBaselineCheck {
         if((synced!=COUNT||DRAWN.size()<32||(TYPED&&visibleKinds.size()!=3))&&now-captureStart<8_000_000_000L)return;
         require(FRAMES.size()>=2&&!WORK.isEmpty(),"real timing samples");
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
+            NativeScheduleBudgetCheck.write("height-"+(int)centre().y,true);
             image.writeTo(c.runDirectory.toPath().resolve("swarm-128-height-"+(int)centre().y+".png"));
             require(synced==COUNT&&DRAWN.size()>=32,"all live actors must synchronize and models must render: synced="+synced+" drawn="+DRAWN.size());
             if(TYPED){

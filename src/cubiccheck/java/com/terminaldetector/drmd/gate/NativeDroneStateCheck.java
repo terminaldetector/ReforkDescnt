@@ -134,6 +134,7 @@ public final class NativeDroneStateCheck {
                 require(counts.equals(Map.of("orb",43,"rocket",43,"jet",42))&&drawn.size()==3,"three independently rendered restored flight kinds");
                 Files.writeString(file("typed-swarm-reload-ok.json"),new com.google.gson.Gson().toJson(Map.of("actualRestart",true,"classesBeforeFirstTick",128,"clientKinds",counts,"renderedKinds",drawn,"active",128,"moving",moving,"naturalTargets",targets,"shooters",SHOOTERS.size(),"shotsByRole",acceptedRoles))+"\n");
             }
+            NativeScheduleBudgetCheck.write("reload",false);
             image.writeTo(file("drone-state-reloaded.png"));
             Files.writeString(file("drone-state-ok.json"),new com.google.gson.Gson().toJson(Map.of("actualRestart",true,"restoredComponents",128,"clientSynced",actors.size(),"renderedIdentities",DRAWN.size(),"moving",moving,"naturalTargets",targets,"shots",shots,"shooters",SHOOTERS.size(),"damagingRoles",acceptedRoles))+"\n");done=true;c.scheduleStop();
         }catch(Exception e){throw new IllegalStateException(e);}

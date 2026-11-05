@@ -23,7 +23,8 @@
     "SwarmShotProbe",
     "DronePersistenceProbe",
     "FlightItemColoursAccess",
-    "FlightEnemyRenderProbe"
+    "FlightEnemyRenderProbe",
+    "CubicScheduleBudgetProbe"
   ],
   "injectors": {
     "defaultRequire": 1
