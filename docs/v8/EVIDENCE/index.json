@@ -891,5 +891,65 @@
       "expired": false,
       "digest": "sha256:7c32ccf8096956c7785258dc13dde61a152b2e943d1c54fe6bf984b9ea2840f9"
     }
+  },
+  "droneCombatRings": {
+    "archive": "drone-combat-rings-d9d0fd8.zip",
+    "sha256": "54d2f6b6f655800a109b188e676dfe561dd106f12870d717b2526cbc743d4b70",
+    "runs": [
+      {
+        "renderer": "gl32",
+        "source": "d9d0fd82cbd060dbe95d432e501042eb6de44f4d",
+        "marker": {
+          "shooters": 96,
+          "renderedIdentities": 98,
+          "moving": 125,
+          "damagingRoles": {
+            "interceptor": 1260,
+            "assault": 634,
+            "mg": 1290
+          },
+          "clientSynced": 128,
+          "actualRestart": true,
+          "shots": 3184,
+          "naturalTargets": 128,
+          "restoredComponents": 128
+        },
+        "jars": {
+          "drmd-6dof-1.1.35-ufo-dev.1.jar": "4214bda36aac4935215fcc788db4beda9eccd382b9ec35fee08bb5ff909bcd4d",
+          "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "aaad79ca1c48c9177934b2aa445e42b352af21e7cccdaaacc88d4558c38ef5f8"
+        }
+      },
+      {
+        "renderer": "sodium",
+        "source": "d9d0fd82cbd060dbe95d432e501042eb6de44f4d",
+        "marker": {
+          "moving": 128,
+          "renderedIdentities": 96,
+          "shooters": 96,
+          "restoredComponents": 128,
+          "naturalTargets": 128,
+          "shots": 3134,
+          "actualRestart": true,
+          "clientSynced": 128,
+          "damagingRoles": {
+            "mg": 1313,
+            "assault": 665,
+            "interceptor": 1156
+          }
+        },
+        "jars": {
+          "drmd-6dof-1.1.35-ufo-dev.1.jar": "4214bda36aac4935215fcc788db4beda9eccd382b9ec35fee08bb5ff909bcd4d",
+          "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "aaad79ca1c48c9177934b2aa445e42b352af21e7cccdaaacc88d4558c38ef5f8"
+        }
+      }
+    ],
+    "unitTests": 690,
+    "gameTests": 264,
+    "sourceArtifact": {
+      "run": 41990504757,
+      "id": 13397996808,
+      "expired": false,
+      "digest": "sha256:3757cf027b8cb90d857f81045f1e4510dd3af99874d505519aaaa6d53d788535"
+    }
   }
 }

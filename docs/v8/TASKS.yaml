@@ -793,11 +793,11 @@ tasks:
   owner: AI
   gate: G4
   depends_on_stages: *id012
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [SWARM_BASELINE_2026-11-04.md, EVIDENCE/swarm-baseline-f3b7cac.zip, DRONE_STATE_2026-11-05.md, EVIDENCE/drone-state-cdb2572.zip, DRONE_STATE_CURRENT_2026-11-05.md, EVIDENCE/drone-state-atomic-grid-dbc5a0c.zip]
-  notes: 128 active/moving, real shots and rendering pass four native cases; actual restart now also verifies128 restored/active/moving/synchronized, natural reacquisition and two separately measured damaging roles on Mesa+Sodium. The current route game JAR also passes actual128 restarts with exact server snapshots. Independent ORB/ROCKET/JET acceptance remains open.
+  evidence: [SWARM_BASELINE_2026-11-04.md, EVIDENCE/swarm-baseline-f3b7cac.zip, DRONE_STATE_2026-11-05.md, EVIDENCE/drone-state-cdb2572.zip, DRONE_STATE_CURRENT_2026-11-05.md, EVIDENCE/drone-state-atomic-grid-dbc5a0c.zip, ACCEPTANCE_S11_T03.md, DRONE_COMBAT_RINGS_2026-11-05.md, EVIDENCE/drone-combat-rings-d9d0fd8.zip]
+  notes: Atomic generic128 proof completed on d9d0fd8:128 active,125/128 moving after actual restart,128 synced/natural targets and96 shooters across three damaging roles. Scope mapping in ACCEPTANCE_S11_T03.md; independent class identities, other stage tasks, dependencies and full G4 remain open.
 - id: S11-T04
   stage: S11
   stage_title: ORB/ROCKET/JET swarms

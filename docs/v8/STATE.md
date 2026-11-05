@@ -1,11 +1,13 @@
 # v8 intake and ongoing UFO work
 
+Latest verified main d9d0fd8 / game4214bda3:690 unit/264 GameTests; seven combat-role range/retreat regressions fixed; actual128 restarts on Mesa/Sodium with125/128 moving and96 shooters across three roles. S11-T03 atomic proof is completed (ACCEPTANCE_S11_T03.md);6 tasks in_progress,92 pending_reverification. FullG4/v8 and accepted1.1.35 release remain open. See DRONE_COMBAT_RINGS_2026-11-05.md.
+
 Latest verified game JAR c911bd5d (main5623e0a; native observer dbc5a0c):690 unit/257 GameTests; four off-grid static-aperture route scenes; two actual128-drone world restarts on Mesa/Sodium with128 active/moving/naturally targeting/client-synced and consistent two-role shot counts. See DRONE_ROUTES_WORLD_GRID_2026-11-05.md and DRONE_STATE_CURRENT_2026-11-05.md. Full bestiary/3D combat/shared passages/performance/v8 acceptance remain open; no accepted1.1.35 release.
 
 Historical flight foundation: tested source22f3c10; development JAR SHA25633028ec6b4aa18b18d95763a7b0aa1b7149c37994f1829a9bef07f288d045655.
 679 unit/238 GameTests passed previously on this source. Recovered raw native evidence now archived: five external boarding scenes each on Mesa and Sodium, ten frames total. These are recovered runs, not fresh reruns. Fresh full-rotation regression also passed all13 scenes on the same game JAR; its source metadata is recorded separately in EVIDENCE/index.json. Total23 frames preserved.
 
-No supplied task is marked completed: seven tasks (S00-T01/T02/T05, S09-T04/T06, S11-T02/T03) are in_progress and the other92 remain pending_reverification until their complete acceptance is mapped and checked. S00 inventory is in progress: tracked patches preserved, untracked runtime paths inventoried only. Old source/PR9/other branches are retained.
+At intake no supplied task was marked completed: seven tasks (S00-T01/T02/T05, S09-T04/T06, S11-T02/T03) are in_progress and the other92 remain pending_reverification until their complete acceptance is mapped and checked. S00 inventory is in progress: tracked patches preserved, untracked runtime paths inventoried only. Old source/PR9/other branches are retained.
 
 Current focus: finish UFO/BlockBody continuity; add mandatory newer-version physics gates; then ControlCore/module gameplay. Offline singleplayer is the current acceptance target; dedicated/multiplayer testing is deferred per v8, not claimed passed. No accepted1.1.35 binary.
 
