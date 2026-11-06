@@ -119,20 +119,35 @@ public final class NativeDroneWreckCheck {
         kinds=Map.copyOf(map);wreckIds=Set.copyOf(WRECKS.stream().map(d->entity(d).getUuid()).toList());phase=2;age=0;
     }
     public static void rendered(){
+        var drawnThisFrame=Set.copyOf(WRECK_DRAWN);WRECK_DRAWN.clear();
         if(!ready||done)return;var c=MinecraftClient.getInstance();if(c.world==null||c.currentScreen!=null)return;
         if(phase==0){if(++frames<4||LIVE_DRAWN.size()!=3)return;capture(c,"drone-before-death.png");ready=false;phase=1;frames=0;c.getServer().execute(()->kill(c.getServer().getOverworld()));return;}
         if(phase!=2)return;var children=new ArrayList<RagdollEntity>();int visibleParents=0;
         for(var e:c.world.getEntities()){if(liveIds.contains(e.getUuid())&&!e.isInvisible())visibleParents++;if(e instanceof RagdollEntity r&&wreckIds.contains(e.getUuid()))children.add(r);}
         if(READ&&children.size()==3){var centre=Vec3d.ZERO;for(var r:children)centre=centre.add(entity(r).getPos());var aim=centre.multiply(1.0/3).subtract(c.player.getEyePos());float yaw=(float)Math.toDegrees(Math.atan2(-aim.x,aim.z)),pitch=(float)-Math.toDegrees(Math.atan2(aim.y,Math.hypot(aim.x,aim.z)));c.player.setYaw(yaw);c.player.prevYaw=yaw;c.player.setPitch(pitch);c.player.prevPitch=pitch;}
-        if(children.size()!=3||visibleParents!=0||WRECK_DRAWN.size()!=3||++frames<4)return;
+        if(children.size()!=3||visibleParents!=0||drawnThisFrame.size()!=3){frames=0;return;}
+        if(++frames<4)return;
+        var pixels=wreckPixels(c);if(pixels.values().stream().anyMatch(n->n<3))return;
         for(var r:children)require(r.flightHullKind()==kinds.get(entity(r).getUuid())&&r.hullScale()==expectedScale(r.flightHullKind())&&r.rig().segments().size()==expectedParts(r.flightHullKind())&&r.currentRenderParts().size()==expectedParts(r.flightHullKind())&&r.simulation().parts().size()==expectedParts(r.flightHullKind())&&r.currentRenderParts().stream().allMatch(p->Double.isFinite(p.position().x())&&Double.isFinite(p.position().y())&&Double.isFinite(p.position().z())&&Math.abs(p.rotation().x()*p.rotation().x()+p.rotation().y()*p.rotation().y()+p.rotation().z()*p.rotation().z()+p.rotation().w()*p.rotation().w()-1)<1e-5),"finite replicated articulated render pose");
         capture(c,READ?"drone-wreck-reloaded.png":"drone-physical-wrecks.png");
         try{
-            var marker=new LinkedHashMap<String,Object>();marker.put("actualLethalDamage",!READ);marker.put("actualRestart",READ);marker.put("initialPhysicalAxesChecked",READ?0:WRECKS.stream().mapToInt(r->r.rig().segments().size()).sum());marker.put("restoredBeforeFirstTick",READ?RESTORED.size():0);marker.put("clientParentsRendered",LIVE_DRAWN.size());marker.put("clientWrecksRendered",WRECK_DRAWN.size());marker.put("visibleDeadParents",visibleParents);marker.put("physicalWrecks",3);marker.put("partsByKind",Map.of("orb",1,"rocket",5,"jet",3));marker.put("scalesByKind",Map.of("orb",1,"rocket",1,"jet",2));marker.put("matchingTypedRigGeometry",true);
+            var marker=new LinkedHashMap<String,Object>();marker.put("actualLethalDamage",!READ);marker.put("actualRestart",READ);marker.put("initialPhysicalAxesChecked",READ?0:WRECKS.stream().mapToInt(r->r.rig().segments().size()).sum());marker.put("restoredBeforeFirstTick",READ?RESTORED.size():0);marker.put("clientParentsRendered",LIVE_DRAWN.size());marker.put("clientWrecksRendered",drawnThisFrame.size());marker.put("consecutiveFreshFrames",frames);marker.put("visibleHullPixels",pixels);marker.put("visibleDeadParents",visibleParents);marker.put("physicalWrecks",3);marker.put("partsByKind",Map.of("orb",1,"rocket",5,"jet",3));marker.put("scalesByKind",Map.of("orb",1,"rocket",1,"jet",2));marker.put("matchingTypedRigGeometry",true);
             Files.writeString(file(READ?"drone-wreck-reload-ok.json":"drone-wreck-ok.json"),new com.google.gson.Gson().toJson(marker)+"\n");done=true;
             if(READ){c.scheduleStop();return;}
             c.getServer().execute(()->{try{Files.createDirectories(file("drone-wreck-nbt"));var ids=new TreeMap<String,String>();for(var e:kinds.entrySet())ids.put(e.getKey().toString(),e.getValue().id);Files.writeString(file("drone-wreck-ids.json"),new com.google.gson.Gson().toJson(Map.of("wrecks",ids,"parents",liveIds.stream().map(UUID::toString).sorted().toList()))+"\n");watching=true;c.execute(c::scheduleStop);}catch(Exception e){throw new IllegalStateException(e);}});
         }catch(Exception e){throw new IllegalStateException(e);}
+    }
+    private static Map<String,Integer> wreckPixels(MinecraftClient c){
+        int green=0,orange=0,blue=0;
+        try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){
+            for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++){
+                int colour=image.getColor(x,y),r=colour&255,g=(colour>>>8)&255,b=(colour>>>16)&255;
+                if(r<g*.8&&g>b*1.05&&b>20)green++;
+                if(r>g*1.2&&g>b*1.2&&r>30)orange++;
+                if(b>g*1.1&&g>r*1.03&&b<180)blue++;
+            }
+        }
+        return Map.of("orb",green,"rocket",orange,"jet",blue);
     }
     private static void capture(MinecraftClient c,String name){try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){image.writeTo(file(name));}catch(Exception e){throw new IllegalStateException(e);}}
 }
