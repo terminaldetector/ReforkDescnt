@@ -1,5 +1,7 @@
 # Regressions
 
+Boarding seams: negative tests reproduce order-dependent support/field selection and a tilted-face solver-corner ownership error.48a5e97 fixes deterministic field priority and actual bearing-surface selection; ffe7e75 observes the real joined-deck transition.719 unit/284 GameTests and five fresh native scenes each on Mesa/Sodium pass. First server ownership assertion was overconstrained for a separating toe contact (0.1292m/s >0.1); diagnostics and corrected full-foot crossing fixture are preserved. Full module reload and free-ship/portal boarding remain OPEN; see BOARDING_SUPPORT_TRANSFER_2026-11-06.md.
+
 Late travel deferral: previous tick stamp stranded accepted commands; current-phase refresh and asynchronous GameTest guard it. External bay acceptance also checks lateral bounds.
 
 Identified release gate issue: literal version-prefix lists stop at1.1.34 and could silently omit inherited physics checks for1.1.35+. Fixed in f6fa6e4;47 release-gate tests pass.

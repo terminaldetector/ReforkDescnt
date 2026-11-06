@@ -51,7 +51,8 @@
     "local-changes.zip": "e312b388325b722d94fffbbc6e23b5065178bcb70eaef99986ee5f20fff1b072",
     "inventory.json": "b878cfb2c2ad918e9215db7294ddc04b1c8dbdf54b106e82c16210745d476971",
     "ufo-flight-22f3c10.zip": "38c4f2e51b7d3ee8f519c4f9f234aadc2d08dc5ed10d97c3f49c171386ea94fa",
-    "ufo-full-rotation-regression.zip": "e0c3fac740ec94bc9088c8ff370c3f20925303d628bb9f65a469e2d83c79df2b"
+    "ufo-full-rotation-regression.zip": "e0c3fac740ec94bc9088c8ff370c3f20925303d628bb9f65a469e2d83c79df2b",
+    "boarding-seam-ffe7e75.zip": "4dd383316e6f4b6f12c40acee506e79625da0e998c9e3c2057a6629fd81de767"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -1033,5 +1034,113 @@
       "expired": false,
       "digest": "sha256:5323dc58dc02c255d3ec9bbdee0799cf9e7fbf8348ea36d55a6219441cd37c00"
     }
+  },
+  "boardingSupportTransfer": {
+    "source": "ffe7e75435d87b4d06584d7a7aa150f93efed794",
+    "production": "48a5e97682f59ea7d48e8897ccc804db33f7cda9",
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "9f0b45dc4449fe3c28b3e290bdd374406dd8b69665b847361ba720458ff003eb",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "59fae2f96a67683ef8f1912a55aff1a3326081228d42f1f44c51f18522423fa3"
+    },
+    "unit": {
+      "tests": 719,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "server": {
+      "tests": 284,
+      "failures": 0,
+      "errors": 0
+    },
+    "native": {
+      "joints-seam1-gl32": {
+        "actualJoints": true,
+        "actualRenderer": true,
+        "actualPlatformPlayer": true,
+        "forceBreak": true,
+        "teleportFollow": false,
+        "maxServerAnchorError": 1.3922266486179233e-05,
+        "maxClientAnchorError": 0.0002809862969583337,
+        "motorSpeedError": 0.0,
+        "platformTravel": 2.995268839036193,
+        "breakVelocityError": 0.0,
+        "seamLeftSamples": 328,
+        "seamRightSamples": 79,
+        "seamSupportChanges": 1,
+        "seamAssemblyTravel": 30.032176193469518,
+        "platformSamples": 93,
+        "predictionSamples": 766,
+        "maxPredictionError": 0.051783363371267446,
+        "scenes": [
+          {
+            "scene": "fixed-components",
+            "frames": 90
+          },
+          {
+            "scene": "hinge-motor",
+            "frames": 90
+          },
+          {
+            "scene": "moving-platform",
+            "frames": 90
+          },
+          {
+            "scene": "broken-joint",
+            "frames": 90
+          },
+          {
+            "scene": "joined-deck-transfer",
+            "frames": 90
+          }
+        ]
+      },
+      "joints-seam1-sodium": {
+        "actualJoints": true,
+        "actualRenderer": true,
+        "actualPlatformPlayer": true,
+        "forceBreak": true,
+        "teleportFollow": false,
+        "maxServerAnchorError": 1.3922266486179233e-05,
+        "maxClientAnchorError": 0.0002809862969583337,
+        "motorSpeedError": 0.0,
+        "platformTravel": 2.9956061403092633,
+        "breakVelocityError": 0.0,
+        "seamLeftSamples": 6,
+        "seamRightSamples": 86,
+        "seamSupportChanges": 1,
+        "seamAssemblyTravel": 6.482786236610323,
+        "platformSamples": 83,
+        "predictionSamples": 447,
+        "maxPredictionError": 0.16781163172691815,
+        "scenes": [
+          {
+            "scene": "fixed-components",
+            "frames": 90
+          },
+          {
+            "scene": "hinge-motor",
+            "frames": 90
+          },
+          {
+            "scene": "moving-platform",
+            "frames": 90
+          },
+          {
+            "scene": "broken-joint",
+            "frames": 90
+          },
+          {
+            "scene": "joined-deck-transfer",
+            "frames": 90
+          }
+        ]
+      }
+    },
+    "releaseAccepted": false,
+    "publication": "Local only; user publication pause in force",
+    "scope": "Boarding contact ownership and joined moving-deck transition only; not full Dynamic Boarding or master v8 acceptance",
+    "archive": "docs/v8/EVIDENCE/boarding-seam-ffe7e75.zip",
+    "archiveSha256": "4dd383316e6f4b6f12c40acee506e79625da0e998c9e3c2057a6629fd81de767"
   }
 }
