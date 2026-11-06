@@ -93,6 +93,43 @@ public final class BoardingGameTests implements FabricGameTest {
             c.assertTrue(f.p.getVelocity().y>.1&&!f.p.isOnGround(),"world-up jump and ordinary airborne handoff");
         }c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-connected-deck-transfer")
+    public void walkingAcrossJoinedMovingDecksTransfersTheActualServerContact(TestContext c) {
+        var w=c.getWorld();var at=c.getAbsolutePos(new BlockPos(8,140,8));
+        for(int x=-1;x<=1;x++)for(int z=-1;z<=1;z++)w.getChunk((at.getX()>>4)+x,(at.getZ()>>4)+z);
+        for(var pos:BlockPos.iterate(at.add(-4,-4,-4),at.add(12,8,12)))w.setBlockState(pos,Blocks.AIR.getDefaultState(),2);
+        var cells=new java.util.ArrayList<BlockBodyEntity.Cell>();
+        for(int x=0;x<3;x++)for(int z=0;z<6;z++)cells.add(new BlockBodyEntity.Cell(new BlockPos(x,0,z),Blocks.IRON_BLOCK.getDefaultState()));
+        var a=BlockBodyEntity.createLocal(w,cells,Vec3d.of(at));var b=BlockBodyEntity.createLocal(w,cells,Vec3d.of(at.add(3,0,0)));
+        var q=com.terminaldetector.drmd.client.portal.PortalTransform.Quat.IDENTITY;
+        var link=new com.terminaldetector.drmd.world.contraption.BodyJointLink(java.util.UUID.randomUUID(),
+            new com.terminaldetector.drmd.world.contraption.BodyJointLink.Endpoint(a.getUuid(),new BlockPos(2,0,3),new Vec3(3,.5,3),q),
+            new com.terminaldetector.drmd.world.contraption.BodyJointLink.Endpoint(b.getUuid(),new BlockPos(0,0,3),new Vec3(0,.5,3),q),
+            com.terminaldetector.drmd.physics.collision.BodyJointConstraint.Kind.FIXED,0,0,0,0,Double.POSITIVE_INFINITY,Double.POSITIVE_INFINITY);
+        var registry=com.terminaldetector.drmd.world.contraption.BodyJointRegistry.get(w);registry.add(w,a,b,link);
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.getAbilities().flying=false;
+        p.setPosition(at.getX()+2.4,at.getY()+1,at.getZ()+3);p.setVelocity(0,0,.15);p.setYaw(0);p.setPitch(0);
+        com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(p.getUuid());BoardingSystem.ready(p,BoardingNetworking.PROTOCOL);
+        a.physics().withLinearVelocity(new Vec3(0,0,3));b.physics().withLinearVelocity(new Vec3(0,0,3));
+        BoardingSystem.tick(w);
+        c.assertTrue(BoardingSystem.drives(p)&&BoardingSystem.state(p).support()==a.getId(),"initial contact acquired on the first real deck: "+BoardingSystem.state(p));
+        c.waitAndRun(1,()->{try {
+            a.tick();b.tick();com.terminaldetector.drmd.world.contraption.BodyContactSystem.solve(w);BoardingSystem.tick(w);
+            c.assertTrue(BoardingSystem.drives(p)&&BoardingSystem.state(p).support()==a.getId(),"server retains first moving deck beside its joined edge: state="+BoardingSystem.state(p)+" feet="+p.getPos()+" a="+a.getPos()+" b="+b.getPos());
+            int leftSamples=0,rightSamples=0;double zBefore=p.getZ();
+            for(int i=0;i<16;i++) {
+                c.assertTrue(BoardingSystem.receive(p,new BoardingNetworking.Input(BoardingSystem.epoch(p),i,1,0,false,0,0,1)),"bounded real walking command accepted");
+                a.tick();b.tick();com.terminaldetector.drmd.world.contraption.BodyContactSystem.solve(w);BoardingSystem.tick(w);
+                var state=BoardingSystem.state(p);c.assertTrue(state!=null&&state.grounded(),"joined seam cannot release a walking player's server contact");
+                double localX=a.worldToLocal(p.getPos()).x;
+                if(localX<2.65){leftSamples++;c.assertTrue(state.support()==a.getId(),"a neighbouring toe contact cannot steal support before the seam");}
+                if(localX>3.35){rightSamples++;c.assertTrue(state.support()==b.getId(),"walking beyond the seam transfers support to the second physical component");}
+                c.assertTrue(p.getPos().distanceTo(new Vec3d(state.feet().x(),state.feet().y(),state.feet().z()))<1e-7,"actual actor and outgoing contact state agree throughout transfer");
+            }
+            c.assertTrue(leftSamples>0&&rightSamples>0&&p.getZ()>zBefore+1,"walk crosses both real decks while the joined assembly continues translating");
+            c.assertTrue(registry.find(link.id()).isPresent(),"contact transfer does not replace or sever the moving physical assembly");
+        } finally {registry.remove(link.id());a.discard();b.discard();p.discard();BoardingSystem.tick(w);}c.complete();});
+    }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-flight-handoff")
     public void enablingSixDofReleasesBoardingWithoutRearmingOrSpawningAHull(TestContext c) {
         try(var f=fixture(c)) {

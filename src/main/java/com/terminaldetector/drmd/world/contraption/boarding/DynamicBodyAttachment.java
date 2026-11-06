@@ -73,8 +73,10 @@ public final class DynamicBodyAttachment {
         BodyMotion owner=null;
         Vec3 centre=state.feet.plus(PassengerFrame.up(frame).scaled(height/2));
         for(var b:bodies)if(!flight&&b.gravity(centre,0).isPresent()) {
-            if(owner==null||b.id==state.gravityOwner||b.id==state.support)owner=b;
-            if(b.id==state.gravityOwner)break;
+            // Keep an existing local frame while inside its field. A fresh overlap must
+            // resolve identically on server and client even if their spatial index order differs.
+            if(owner==null||gravityPriority(b.id,state)<gravityPriority(owner.id,state)
+                ||gravityPriority(b.id,state)==gravityPriority(owner.id,state)&&b.id<owner.id)owner=b;
         }
         Vec3 targetUp=flight?PassengerFrame.up(frame):owner==null?UP:owner.gravityUp(1);
         double turn=Math.acos(Math.max(-1,Math.min(1,PassengerFrame.up(frame).dot(targetUp))));
@@ -182,14 +184,37 @@ public final class DynamicBodyAttachment {
         // resting margin preserves a genuine near contact while still letting an opening jump go.
         grounded=false;support=-1;
         Vec3 up=PassengerFrame.up(frame);
-        for(var b:bodies)for(var c:b.query(1).contacts(PassengerFrame.box(feet,width,height,frame),.01))
-            if(c.normal().dot(up)>.6&&c.penetration()<=.2&&velocity.plus(lastSpin.cross(c.point().minus(feet))).minus(b.surfaceVelocity(c.point(),1)).dot(c.normal())<.1) {
-                grounded=true;support=b.id;
+        double supportAlignment=-1,supportDistance=Double.POSITIVE_INFINITY;
+        for(var b:bodies) {
+            var query=b.query(1);
+            for(var c:query.contacts(PassengerFrame.box(feet,width,height,frame),.01)) {
+                double alignment=c.normal().dot(up),distance=query.closestPoint(c.localShape(),feet).minus(feet).lengthSquared();
+                if(alignment>.6&&c.penetration()<=.2&&velocity.plus(lastSpin.cross(c.point().minus(feet))).minus(b.surfaceVelocity(c.point(),1)).dot(c.normal())<.1) {
+                    // The bearing surface is nearest the feet, not necessarily the solver's
+                    // impulse point on a tilted face. A toe on another deck must not steal it.
+                    boolean equidistant=Math.abs(distance-supportDistance)<=1e-8;
+                    boolean aligned=Math.abs(alignment-supportAlignment)<=1e-7;
+                    if(!grounded||distance<supportDistance-1e-8
+                        ||equidistant&&(alignment>supportAlignment+1e-7
+                            ||aligned&&preferSupport(b.id,support,state.support))) {
+                        support=b.id;supportAlignment=alignment;supportDistance=distance;
+                    }
+                    grounded=true;
+                }
             }
+        }
         if(flight)return new State(feet,velocity,false,-1,frame,-1);
         int gravityOwner=owner!=null&&owner.gravity(feet.plus(up.scaled(height/2)),1).isPresent()?owner.id:-1;
         if(gravityOwner<0&&!grounded&&up.dot(UP)>.99999&&world.canOrient(feet,Quat.IDENTITY))frame=Quat.IDENTITY;
         return new State(feet,velocity,grounded,support,frame,gravityOwner);
+    }
+    private static boolean preferSupport(int candidate,int selected,int previous) {
+        if(candidate==previous)return true;
+        if(selected==previous)return false;
+        return candidate<selected;
+    }
+    private static int gravityPriority(int id,State state) {
+        return id==state.gravityOwner?0:id==state.support?1:2;
     }
     private static void contact(D6PhysicsBody actor,BodyMotion body,double t,Vec3 point,Vec3 normal,Vec3 wish,Vec3 up,boolean flight) {
         var proxy=body.proxy(t);Vec3 beforeV=proxy.linearVelocity();

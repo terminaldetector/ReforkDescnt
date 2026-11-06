@@ -37,6 +37,12 @@ public final class BodyCollisionQuery {
         return List.copyOf(hits);
     }
 
+    /** Projection onto a queried primitive in this pose. Unlike a solver's representative
+     * impulse point, this measures which surface is actually beneath the actor's feet. */
+    public Vec3 closestPoint(BodyBounds localShape,Vec3 worldPoint) {
+        return OrientedBox.local(localShape,position,localCom,rotation).closestPoint(worldPoint);
+    }
+
     /** Exact translational CCD for fixed orientations, accounting for both sides' displacement. */
     public Optional<Sweep> sweep(OrientedBox actor, Vec3 movement, Vec3 bodyMovement) {
         return sweep(actor,movement,bodyMovement,false);
