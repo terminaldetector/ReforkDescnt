@@ -39,7 +39,7 @@ public final class NativeIslandLoadCheck {
     private static Path file(String name){return MinecraftClient.getInstance().runDirectory.toPath().resolve(name);}
     private static void require(boolean ok,String why){if(!ok){done=true;MinecraftClient.getInstance().scheduleStop();throw new IllegalStateException(why);}}
     public static void saved(BlockBodyEntity b,NbtCompound tag){
-        if(!ENABLED||phase<2||entity(b).getWorld().isClient||!ids.contains(entity(b).getUuid()))return;
+        if(!ENABLED||phase!=2||entity(b).getWorld().isClient||!ids.contains(entity(b).getUuid()))return;
         try{Files.createDirectories(file("island-nbt"));Files.writeString(file("island-nbt/"+entity(b).getUuid()+".snbt"),tag.toString());SAVED.add(entity(b).getUuid());}catch(Exception e){throw new IllegalStateException(e);}
     }
     public static void loaded(BlockBodyEntity b,NbtCompound tag){
