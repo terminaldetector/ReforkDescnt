@@ -33,7 +33,7 @@ public final class TypedCombatRouteGameTests implements FabricGameTest {
         }
         var drone=kind.create(w);var target=EntityType.COW.create(w);
         Entity actor=drone;actor.setPosition(start);drone.setPersistent();drone.setInvulnerable(true);drone.setAiDisabled(true);
-        target.setPosition(destination);target.setAiDisabled(true);target.setNoGravity(true);target.setInvulnerable(true);
+        target.setPosition(destination);target.setAiDisabled(true);target.setNoGravity(true);target.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(1000);target.setHealth(1000);
         int[] admission={0},ticks={0};boolean[] spawned={false},started={false},finished={false},lane={false},shotThrough={false};
         Runnable cleanup=()->{
             for(var e:java.util.stream.StreamSupport.stream(w.iterateEntities().spliterator(),false).toList())if(e instanceof ProjectileEntity p&&p.getOwnerLiving()==drone)e.discard();
@@ -50,10 +50,11 @@ public final class TypedCombatRouteGameTests implements FabricGameTest {
             if(Math.abs(dx)>1e-8){double t=(plane-from.x)/dx;var at=from.lerp(to,t);
                 if(t>=0&&t<=1&&at.y>=base.getY()+4&&at.y<=base.getY()+4+width&&at.z>=base.getZ()&&at.z<=base.getZ()+width&&w.raycast(new RaycastContext(from,to,RaycastContext.ShapeType.COLLIDER,RaycastContext.FluidHandling.NONE,actor)).getType()==HitResult.Type.MISS)lane[0]=true;
             }
-            for(var e:w.iterateEntities())if(e instanceof ProjectileEntity p&&p.getOwnerLiving()==drone&&e.getX()>base.getX()+7&&e.getPos().squaredDistanceTo(to)<9)shotThrough[0]=true;
+            // A fast bolt can hit and be removed between samples; verify damage attributed to this shooter.
+            if(target.getHealth()<1000&&target.getAttacker()==drone)shotThrough[0]=true;
             if(!(lane[0]&&shotThrough[0])&&ticks[0]<380)return;
             finished[0]=true;boolean intact=wall.stream().allMatch(p->w.getBlockState(p).isOf(Blocks.BEDROCK));var position=actor.getPos().subtract(Vec3d.of(base));boolean live=actor.isAlive(),role=drone.getRole()==kind.defaultRole;cleanup.run();
-            c.assertTrue(live&&role&&intact&&lane[0]&&shotThrough[0],"autonomous typed firing lane: touching="+touching+" kind="+kind+" ticks="+ticks[0]+" lane="+lane[0]+" actualShotBeyondCover="+shotThrough[0]+" position="+position);c.complete();
+            c.assertTrue(live&&role&&intact&&lane[0]&&shotThrough[0],"autonomous typed firing lane: touching="+touching+" kind="+kind+" ticks="+ticks[0]+" lane="+lane[0]+" actualAttributedTargetDamage="+shotThrough[0]+" position="+position);c.complete();
         });
     }
 }
