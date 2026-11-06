@@ -159,23 +159,32 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-load-admission")
     public void savedPassengerWaitsForTheRealHullAndHandshakeWithoutTeleportFollowing(TestContext c) {
-        var original=create(c);var p=pilot(c,original);SkyUfoEntity loaded=null;try {
+        var original=create(c);var p=pilot(c,original);p.getAbilities().flying=true;
+        // Let the real world admit and tick this live hull first. Calling tick twice at
+        // one world timestamp must not be used as evidence of another physical step.
+        c.waitAndRun(8,()->{try {
+            c.assertTrue(original.hasSimulatedPhysics(),"the live-hull fixture must have actually simulated before returning-passenger admission");
+            p.getAbilities().flying=false;p.setPosition(original.localToWorld(new Vec3d(3.5,.1,-1)));
             var d=DescentPlayerData.get(p);original.physics().withLinearVelocity(new Vec3(3,0,0)).withAngularVelocity(new Vec3(0,.1,0));
             d.rememberBoarding(original.getUuid(),p.getWorld().getRegistryKey().getValue().toString(),original.rotation());
             var playerData=new NbtCompound();d.writeNbt(playerData);d.readNbt(playerData);
             c.assertTrue(d.pendingBoardingResume()!=null&&BoardingRestore.holds(p),"saved physical context admits a bounded load wait");
             var feet=p.getPos();p.travel(Vec3d.ZERO);c.assertTrue(feet.equals(p.getPos()),"pending travel cannot fall through a hull that has not loaded");
-            var before=original.massPosition();original.tick();c.assertTrue(!before.equals(original.massPosition()),"a body that already simulates is never frozen by a returning passenger");
-            var saved=original.writeNbt(new NbtCompound());original.discard();
-            loaded=ModEntities.SKY_UFO.create(c.getWorld());loaded.readNbt(saved);c.assertTrue(c.getWorld().spawnEntity(loaded),"load the same real physical identity");
-            var position=loaded.massPosition();var velocity=loaded.physics().linearVelocity();var momentum=loaded.physics().angularMomentum();var rotation=loaded.rotation();
-            loaded.tick();
-            c.assertTrue(!loaded.hasSimulatedPhysics()&&position.equals(loaded.massPosition())&&rotation.equals(loaded.rotation()),"newly loaded hull waits at its saved pose until physical passenger admission");
-            c.assertTrue(velocity.equals(loaded.physics().linearVelocity())&&momentum.equals(loaded.physics().angularMomentum()),"load admission preserves both momenta");
-            BoardingSystem.ready(p,com.terminaldetector.drmd.network.BoardingNetworking.PROTOCOL);BoardingSystem.tick(c.getWorld());
-            c.assertTrue(BoardingSystem.drives(p)&&d.pendingBoardingResume()==null,"real local gravity/contact acquisition ends the wait");
-            loaded.tick();c.assertTrue(loaded.hasSimulatedPhysics()&&!position.equals(loaded.massPosition()),"normal D6 integration resumes after acquisition");
-        } finally {BoardingRestore.clear(p);p.discard();original.discard();if(loaded!=null)loaded.discard();BoardingSystem.tick(c.getWorld());}c.complete();
+            var before=original.massPosition();
+            c.waitAndRun(2,()->{SkyUfoEntity loaded=null;try {
+                c.assertTrue(!before.equals(original.massPosition()),"a body that already simulates is never frozen by a returning passenger");
+                var saved=original.writeNbt(new NbtCompound());original.discard();
+                loaded=ModEntities.SKY_UFO.create(c.getWorld());loaded.readNbt(saved);c.assertTrue(c.getWorld().spawnEntity(loaded),"load the same real physical identity");
+                var position=loaded.massPosition();var velocity=loaded.physics().linearVelocity();var momentum=loaded.physics().angularMomentum();var rotation=loaded.rotation();
+                loaded.tick();
+                c.assertTrue(!loaded.hasSimulatedPhysics()&&position.equals(loaded.massPosition())&&rotation.equals(loaded.rotation()),"newly loaded hull waits at its saved pose until physical passenger admission");
+                c.assertTrue(velocity.equals(loaded.physics().linearVelocity())&&momentum.equals(loaded.physics().angularMomentum()),"load admission preserves both momenta");
+                BoardingSystem.ready(p,com.terminaldetector.drmd.network.BoardingNetworking.PROTOCOL);BoardingSystem.tick(c.getWorld());
+                c.assertTrue(BoardingSystem.drives(p)&&d.pendingBoardingResume()==null,"real local gravity/contact acquisition ends the wait");
+                loaded.tick();c.assertTrue(loaded.hasSimulatedPhysics()&&!position.equals(loaded.massPosition()),"normal D6 integration resumes after acquisition");
+                c.complete();
+            } finally {BoardingRestore.clear(p);p.discard();original.discard();if(loaded!=null)loaded.discard();BoardingSystem.tick(c.getWorld());}});
+        } catch(Throwable failure) {BoardingRestore.clear(p);p.discard();original.discard();throw failure;}});
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-load-timeout",tickLimit=130)
     public void absentSavedHullCannotTrapAPlayerInALoadWait(TestContext c) {
