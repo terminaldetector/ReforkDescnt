@@ -595,11 +595,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id009
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [DRONE_WRECK_KINDS_2026-11-06.md, EVIDENCE/drone-wreck-kinds-7635dd8.zip]
+  notes: Typed drone death replacement, matching compound hulls/scale, no visible parent duplicates and actual world restoration pass on7635dd8 with consecutive frame/pixel proof. Player impacts, complete wall tunneling and universal ragdoll remain open.
 - id: S08-T04
   stage: S08
   stage_title: Articulated ragdoll and destructible bodies
