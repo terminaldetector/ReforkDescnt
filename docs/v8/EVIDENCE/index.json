@@ -52,7 +52,8 @@
     "inventory.json": "b878cfb2c2ad918e9215db7294ddc04b1c8dbdf54b106e82c16210745d476971",
     "ufo-flight-22f3c10.zip": "38c4f2e51b7d3ee8f519c4f9f234aadc2d08dc5ed10d97c3f49c171386ea94fa",
     "ufo-full-rotation-regression.zip": "e0c3fac740ec94bc9088c8ff370c3f20925303d628bb9f65a469e2d83c79df2b",
-    "boarding-seam-ffe7e75.zip": "4dd383316e6f4b6f12c40acee506e79625da0e998c9e3c2057a6629fd81de767"
+    "boarding-seam-ffe7e75.zip": "4dd383316e6f4b6f12c40acee506e79625da0e998c9e3c2057a6629fd81de767",
+    "module-restart-0c9faa6.zip": "72c107f9bc354e2c0cbaa444b658e23815ca2e96968f7929167aafc798ad9e43"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -1142,5 +1143,143 @@
     "scope": "Boarding contact ownership and joined moving-deck transition only; not full Dynamic Boarding or master v8 acceptance",
     "archive": "docs/v8/EVIDENCE/boarding-seam-ffe7e75.zip",
     "archiveSha256": "4dd383316e6f4b6f12c40acee506e79625da0e998c9e3c2057a6629fd81de767"
+  },
+  "moduleRestart": {
+    "source": "0c9faa642643e601db8b75248090cf5a6d2076eb",
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "9bc30c4039c3ff1bff3dbaf7d765f43007074eb0ae0dc7e8ff557f11832d5ab5",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "05b24d2426a67dbe65472f38ea29eaf78a09a92ea0073d5fe371d8442c11e5c1"
+    },
+    "unit": {
+      "tests": 722,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "server": {
+      "tests": 285,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "pairs": {
+      "sodium": {
+        "writer": {
+          "actualJoints": true,
+          "actualRenderer": true,
+          "actualPlatformPlayer": true,
+          "forceBreak": true,
+          "teleportFollow": false,
+          "maxServerAnchorError": 1.3922266486179233e-05,
+          "maxClientAnchorError": 7.942453325358202e-05,
+          "motorSpeedError": 0.0,
+          "platformTravel": 2.9955121248697267,
+          "breakVelocityError": 0.0,
+          "seamLeftSamples": 8,
+          "seamRightSamples": 81,
+          "seamSupportChanges": 1,
+          "seamAssemblyTravel": 6.18783514251345,
+          "platformSamples": 82,
+          "predictionSamples": 391,
+          "maxPredictionError": 0.04054175255950751,
+          "scenes": [
+            {
+              "scene": "fixed-components",
+              "frames": 90
+            },
+            {
+              "scene": "hinge-motor",
+              "frames": 90
+            },
+            {
+              "scene": "moving-platform",
+              "frames": 90
+            },
+            {
+              "scene": "broken-joint",
+              "frames": 90
+            },
+            {
+              "scene": "joined-deck-transfer",
+              "frames": 90
+            }
+          ]
+        },
+        "reader": {
+          "maxAnchorError": 1.7478710716469158e-05,
+          "freshFrames": 6,
+          "noReplacementBodies": true,
+          "actualProcessRestart": true,
+          "beforeFirstTickBodies": 8,
+          "brokenJointAbsent": true,
+          "exactJointRegistry": true,
+          "survivingJoints": 3,
+          "stableContactTicks": 30,
+          "ordinaryKeyboardWalkDistance": 1.707588343842588
+        },
+        "worldSnapshotSha256": "3316136cb03c212a8b9c92dba927b1b8223cc8ac658d9e5a97fb4d7cd1583c2d"
+      },
+      "gl32": {
+        "writer": {
+          "actualJoints": true,
+          "actualRenderer": true,
+          "actualPlatformPlayer": true,
+          "forceBreak": true,
+          "teleportFollow": false,
+          "maxServerAnchorError": 1.3922266486179233e-05,
+          "maxClientAnchorError": 0.00041199237810213816,
+          "motorSpeedError": 0.0,
+          "platformTravel": 2.6368916019562434,
+          "breakVelocityError": 0.0,
+          "seamLeftSamples": 6,
+          "seamRightSamples": 81,
+          "seamSupportChanges": 1,
+          "seamAssemblyTravel": 6.026273985698072,
+          "platformSamples": 71,
+          "predictionSamples": 427,
+          "maxPredictionError": 0.16262240450518278,
+          "scenes": [
+            {
+              "scene": "fixed-components",
+              "frames": 90
+            },
+            {
+              "scene": "hinge-motor",
+              "frames": 90
+            },
+            {
+              "scene": "moving-platform",
+              "frames": 90
+            },
+            {
+              "scene": "broken-joint",
+              "frames": 90
+            },
+            {
+              "scene": "joined-deck-transfer",
+              "frames": 90
+            }
+          ]
+        },
+        "reader": {
+          "ordinaryKeyboardWalkDistance": 0.482904364199876,
+          "stableContactTicks": 30,
+          "survivingJoints": 3,
+          "exactJointRegistry": true,
+          "brokenJointAbsent": true,
+          "beforeFirstTickBodies": 8,
+          "actualProcessRestart": true,
+          "noReplacementBodies": true,
+          "freshFrames": 6,
+          "maxAnchorError": 4.993587765476954e-06
+        },
+        "worldSnapshotSha256": "14303a8fc4f6882570cbb90b03d54e936de4c99070ec0cf9358c250a10da1cf1"
+      }
+    },
+    "releaseAccepted": false,
+    "publication": "Local only; no GitHub publication",
+    "scope": "External vanilla transfer authority and actual generic physical module restart; full master v8, UFO modules/control and Dynamic Boarding remain open",
+    "archive": "docs/v8/EVIDENCE/module-restart-0c9faa6.zip",
+    "archiveSha256": "72c107f9bc354e2c0cbaa444b658e23815ca2e96968f7929167aafc798ad9e43"
   }
 }
