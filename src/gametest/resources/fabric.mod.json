@@ -58,7 +58,8 @@
       "com.terminaldetector.drmd.JetMotorGameTests",
       "com.terminaldetector.drmd.DroneWreckPoseGameTests",
       "com.terminaldetector.drmd.DroneWreckKindGameTests",
-      "com.terminaldetector.drmd.TypedCombatRouteGameTests"
+      "com.terminaldetector.drmd.TypedCombatRouteGameTests",
+      "com.terminaldetector.drmd.SharedCombatPassageGameTests"
     ]
   },
   "depends": {
