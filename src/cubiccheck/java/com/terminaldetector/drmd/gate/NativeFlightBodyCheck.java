@@ -21,7 +21,8 @@ import java.util.*;
 public final class NativeFlightBodyCheck {
     private static final boolean CONTROL=Boolean.getBoolean("drmd.gate.ufoControl");
     private static final boolean LIFECYCLE=Boolean.getBoolean("drmd.gate.ufoControlLifecycle");
-    private static boolean deathReleased;
+    private static boolean deathReleased,bayWasControlled,bayResumed;
+    private static int heldBayCooldown,heldBaySwarm,bayHeldSamples;
     private static volatile boolean reloadAutoPrimed;
     private static boolean pauseChecking,pauseVerified;private static int pauseTicks;
     private static int controlStep;private static volatile boolean serverControl;private static volatile Vec3 controlVelocity,controlSpin;private static Vec3 beforeControl,beforePilot;
@@ -134,6 +135,15 @@ public final class NativeFlightBodyCheck {
         var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());p.teleport(w,AT.getX(),AT.getY()+.1,AT.getZ()-14,Set.of(),0,0);configure(p);w.setTimeOfDay(6000);ready=true;
         ServerTickEvents.END_WORLD_TICK.register(world->{
             if(world!=w||finished)return;local=ufo.worldToLocal(p.getPos());serverFeet=p.getPos();bodyNow=entity(ufo).getPos();serverEpoch=FlightBodySystem.epoch(p);walking=BoardingSystem.drives(p);serverControl=com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p);controlVelocity=ufo.physics().linearVelocity();controlSpin=ufo.physics().angularVelocity();
+            if(CONTROL&&(serverControl||bayHeldSamples>0)) {
+                var saved=entity(ufo).writeNbt(new net.minecraft.nbt.NbtCompound());int cooldown=saved.getInt("bayCooldown"),count=saved.getList("swarm",net.minecraft.nbt.NbtElement.COMPOUND_TYPE).size();
+                if(serverControl){
+                    if(!bayWasControlled){heldBayCooldown=cooldown;heldBaySwarm=count;}
+                    else require(cooldown==heldBayCooldown&&count==heldBaySwarm,"captured carrier must pause its autonomous hostile bay without resetting its timer or deleting existing drones");
+                    bayHeldSamples++;
+                } else if(cooldown!=heldBayCooldown||count!=heldBaySwarm)bayResumed=true;
+                bayWasControlled=serverControl;
+            }
             if(phase>=7&&DescentPlayerData.get(p).isEnabled()&&local.y>1) {
                 var velocity=DescentPlayerData.get(p).getFlightVelocity();
                 if(ufo.boardingMotion().query(1).contacts(DynamicBodyAttachment.box(BoardingSystem.pure(p.getPos()),p.getWidth(),p.getHeight()),.03).stream().anyMatch(contact->contact.normal().y()>.3)&&velocity.y> -2)roofContacts++;
@@ -165,8 +175,9 @@ public final class NativeFlightBodyCheck {
                 phase=11;age=0;c.getServer().execute(()->c.getServer().getPlayerManager().getPlayer(c.player.getUuid()).setHealth(0));return;
             }
             if(phase==8) {
+                if(CONTROL)require(bayHeldSamples>=8&&bayResumed,"native bay ownership pause/resume proof incomplete: samples="+bayHeldSamples+" resumed="+bayResumed);
                 require(!LIFECYCLE||deathReleased,"lifecycle run must release both client and server ownership after actual player death");
-                Files.writeString(c.runDirectory.toPath().resolve(CONTROL?"ufo-control-ok.json":"flight-body-ok.json"),"{\"deathReleased\":"+deathReleased+",\"pauseResumed\":"+pauseVerified+",\"controlCore\":"+CONTROL+",\"actualUfo\":true,\"externalEntry\":true,\"actualThrust\":true,\"walkingHandoff\":true,\"roofContacts\":"+roofContacts+",\"teleportFollow\":false,\"renderedFrames\":"+draws+",\"predictionSamples\":"+samples+",\"maxPredictionError\":"+maxError+",\"scenes\":[\""+String.join("\",\"",scenes)+"\"]}\n");
+                Files.writeString(c.runDirectory.toPath().resolve(CONTROL?"ufo-control-ok.json":"flight-body-ok.json"),"{\"bayPausedSamples\":"+bayHeldSamples+",\"bayResumed\":"+bayResumed+",\"deathReleased\":"+deathReleased+",\"pauseResumed\":"+pauseVerified+",\"controlCore\":"+CONTROL+",\"actualUfo\":true,\"externalEntry\":true,\"actualThrust\":true,\"walkingHandoff\":true,\"roofContacts\":"+roofContacts+",\"teleportFollow\":false,\"renderedFrames\":"+draws+",\"predictionSamples\":"+samples+",\"maxPredictionError\":"+maxError+",\"scenes\":[\""+String.join("\",\"",scenes)+"\"]}\n");
                 finished=true;c.scheduleStop();
             }
         }catch(java.io.IOException e){throw new IllegalStateException(e);}

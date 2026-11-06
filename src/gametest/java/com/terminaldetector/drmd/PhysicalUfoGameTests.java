@@ -174,6 +174,7 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
             var before=original.massPosition();
             c.waitAndRun(2,()->{SkyUfoEntity loaded=null;try {
                 original.tick();
+                if(before.equals(original.massPosition()))System.out.println("UFO_LIVE_ADMISSION_DIAGNOSTIC at="+before+" velocity="+original.physics().linearVelocity()+" paused="+original.boardingMotionPaused()+" waiting="+BoardingRestore.waiting(original)+" available="+original.collisionRegionAvailable(original.getBoundingBox())+" terrain="+java.util.stream.StreamSupport.stream(c.getWorld().getBlockCollisions(original,original.getBoundingBox()).spliterator(),false).limit(8).map(shape->shape.getBoundingBoxes().toString()).toList());
                 c.assertTrue(!before.equals(original.massPosition()),"a body that already simulates is never frozen by a returning passenger");
                 var saved=original.writeNbt(new NbtCompound());original.discard();
                 loaded=ModEntities.SKY_UFO.create(c.getWorld());loaded.readNbt(saved);c.assertTrue(c.getWorld().spawnEntity(loaded),"load the same real physical identity");
