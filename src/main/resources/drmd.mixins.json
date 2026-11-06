@@ -25,7 +25,8 @@
     "BoardingWorldMovementMixin",
     "BodyPickingMixin",
     "BodySpatialLoadMixin",
-    "BodySpatialRemovalMixin"
+    "BodySpatialRemovalMixin",
+    "VanillaChunkUnloadBudgetMixin"
   ],
   "client": [
     "client.CameraAccessor",
