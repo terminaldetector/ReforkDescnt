@@ -63,6 +63,7 @@ public final class NativeIslandLoadCheck {
             com.terminaldetector.drmd.client.DescentClient.markUserFlightChoice();
             if(c.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen p)for(var child:p.children())if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("I know what I'm doing!"))b.onPress();
             if(c.player==null||c.world==null||c.getServer()==null)return;
+            if(ticks%60==0&&phase==3)System.out.println("ISLAND_CLIENT at="+c.player.getPos()+" flying="+c.player.getAbilities().flying+" drives="+BoardingClient.drives(c.player)+" epoch="+BoardingClient.epoch()+" seq="+BoardingClient.sequence()+" state="+BoardingClient.state());
             if(!started){started=true;c.setScreen(null);c.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);c.inGameHud.getChatHud().clear(false);c.options.hudHidden=true;c.options.setPerspective(Perspective.THIRD_PERSON_BACK);com.terminaldetector.drmd.client.config.DescentConfig.cockpit=false;com.terminaldetector.drmd.client.config.DescentConfig.weaponView=false;com.terminaldetector.drmd.client.config.DescentConfig.planetFloor=false;com.terminaldetector.drmd.client.config.DescentConfig.levelSky=false;
                 c.getServer().execute(()->{var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());com.terminaldetector.drmd.flight.FlightSystem.disable(p,DescentPlayerData.get(p));p.getAbilities().allowFlying=true;p.getAbilities().flying=true;p.setInvulnerable(true);p.sendAbilitiesUpdate();p.teleport(p.getServerWorld(),10,Y+5,17.5,Set.of(),0,15);});return;
             }
@@ -78,6 +79,7 @@ public final class NativeIslandLoadCheck {
         ServerTickEvents.END_WORLD_TICK.register(w->{
             if(!prepared||done||phase==0||w!=w.getServer().getOverworld())return;age++;
             var p=w.getServer().getPlayerManager().getPlayerList().getFirst();var bodies=current(w);
+            if(phase==3&&(age%20==0||age<15))System.out.println("ISLAND_RETURN age="+age+" player="+p.getPos()+" v="+p.getVelocity()+" flying="+p.getAbilities().flying+" tracked="+w.getPlayers().contains(p)+" ready="+BoardingSystem.ready(p)+" drives="+BoardingSystem.drives(p)+" state="+BoardingSystem.state(p)+" bodies="+bodies.stream().map(b->entity(b).getUuid()+":"+b.massPosition()+":held="+BodyVolumeLeases.heldColumns(w,entity(b).getUuid())).toList());
             if(phase==2){
                 if(age<3||p.getX()<1000)return;
                 require(ids.stream().allMatch(id->BodyVolumeLeases.heldColumns(w,id)==0),"leaving all components releases every volume lease");
@@ -99,7 +101,7 @@ public final class NativeIslandLoadCheck {
                 double error=first.localToWorld(BoardingSystem.mc(link.a().point())).distanceTo(second.localToWorld(BoardingSystem.mc(link.b().point())));maxAnchorError=Math.max(maxAnchorError,error);require(error<.02,"connected material anchors must retain physical continuity");
             }
             if(!placeRequested){
-                if(++stable<10)return;placeRequested=true;stable=0;launch=a.massPosition();var at=a.localToWorld(new Vec3d(2,1.05,1.5));p.getAbilities().flying=false;p.getAbilities().allowFlying=false;p.sendAbilitiesUpdate();p.teleport(w,at.x,at.y,at.z,Set.of(),0,15);p.setVelocity(BoardingSystem.mc(a.physics().linearVelocity().scaled(.05)));return;
+                if(++stable<10)return;placeRequested=true;stable=0;launch=a.massPosition();var at=a.localToWorld(new Vec3d(2,1.05,1.5));p.getAbilities().flying=false;p.getAbilities().allowFlying=false;p.sendAbilitiesUpdate();p.teleport(w,at.x,at.y,at.z,Set.of(),0,15);p.setVelocity(BoardingSystem.mc(a.physics().linearVelocity().scaled(.05)));System.out.println("ISLAND_LANDING phase="+phase+" age="+age+" at="+at+" body="+a.massPosition()+" rotation="+a.rotation());return;
             }
             var state=BoardingSystem.state(p);boolean supported=BoardingSystem.drives(p)&&state!=null&&state.grounded()&&state.support()==entity(a).getId();
             if(!ready){if(supported)stable++;else stable=0;if(stable>=20){walkFrom=a.worldToLocal(p.getPos());ready=true;}}else{
