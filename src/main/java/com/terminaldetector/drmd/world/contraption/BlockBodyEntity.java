@@ -128,11 +128,17 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
      * sparse index or the client prediction margin. The plan adds its own two-block halo. */
     public BodyBounds loadingBounds() {
         var local=passengerGravity.lengthSquared()>0?passengerField(passengerGravity).localVolume():collider.bounds().orElseThrow();
-        var current=OrientedBox.local(local,massPosition(),centre,rotation()).bounds();
+        var current=loadingEnvelope(local,massPosition(),rotation());
         var predicted=new D6PhysicsBody().withLimits(MAX_LINEAR_SPEED,MAX_ANGULAR_SPEED).withMass(body.mass()).withInertia(body.inertia())
             .withPosition(massPosition()).withRotation(rotation()).withLinearVelocity(body.linearVelocity()).withAngularMomentum(body.angularMomentum());
-        for(int i=0;i<2;i++){predicted.step(.05);current=current.union(OrientedBox.local(local,predicted.position(),centre,predicted.rotation()).bounds());}
+        for(int i=0;i<2;i++){predicted.step(.05);current=current.union(loadingEnvelope(local,predicted.position(),predicted.rotation()));}
         return current;
+    }
+    private BodyBounds loadingEnvelope(BodyBounds local,Vec3 position,Quat rotation) {
+        // After damage the saved entity pivot may lie outside the remaining material.
+        // Include its actual section so loading geometry can also restore the real UUID.
+        var at=position.plus(rotation.rotate(pivot.minus(centre)));var pad=new Vec3(.0001,.0001,.0001);
+        return OrientedBox.local(local,position,centre,rotation).bounds().union(new BodyBounds(at.minus(pad),at.plus(pad)));
     }
     @Override protected void initDataTracker(DataTracker.Builder builder) {
         builder.add(SHAPE, new NbtCompound()); builder.add(PATCHES,new NbtCompound()); builder.add(POSE, new NbtCompound());

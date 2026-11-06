@@ -31,6 +31,7 @@ public final class BodyVolumeLeases {
     private BodyVolumeLeases(){}
     public static void register() {
         ServerTickEvents.START_WORLD_TICK.register(BodyVolumeLeases::tick);
+        ServerLifecycleEvents.SERVER_STOPPING.register(server->{for(var world:server.getWorlds())close(world);});
         ServerWorldEvents.UNLOAD.register((server,world)->close(world));
     }
     public static int heldColumns(ServerWorld world,UUID body) {
@@ -40,31 +41,45 @@ public final class BodyVolumeLeases {
         var state=WORLDS.get(world);var lease=state==null?null:state.leases.get(body);return lease==null?List.of():List.copyOf(lease.columns.values());
     }
     private static void tick(ServerWorld world) {
-        var bodies=BodySpatialIndex.loaded(world);var active=new ArrayList<BlockBodyEntity>();
+        var bodies=BodySpatialIndex.loaded(world);var loaded=new HashMap<UUID,BlockBodyEntity>();
+        var activeIds=new LinkedHashSet<UUID>();var queue=new ArrayDeque<UUID>();
         for(var body:bodies)if(!body.cells().isEmpty()) {
-            double reach=body.radius()+128;
-            if(world.getPlayers().stream().anyMatch(p->p.isAlive()&&!p.isSpectator()&&p.getPos().squaredDistanceTo(body.physicsCentre())<=reach*reach))active.add(body);
+            loaded.put(body.getUuid(),body);double reach=body.radius()+128;
+            if(world.getPlayers().stream().anyMatch(p->p.isAlive()&&!p.isSpectator()&&p.getPos().squaredDistanceTo(body.physicsCentre())<=reach*reach)) {
+                activeIds.add(body.getUuid());queue.addLast(body.getUuid());
+            }
+        }
+        var registry=BodyJointRegistry.get(world);
+        // Occupancy belongs to an entire constraint island. Include unloaded endpoints:
+        // their saved real volumes bootstrap normal world loading without NBT clones.
+        while(!queue.isEmpty())for(var link:registry.forBody(queue.removeFirst()))if(registry.active(link.id(),world.getTime()))
+            for(var id:List.of(link.a().body(),link.b().body()))if(activeIds.add(id))queue.addLast(id);
+        record Request(UUID id,BodyBounds bounds,long revision){}
+        var active=new ArrayList<Request>();
+        for(var id:activeIds) {
+            var body=loaded.get(id);var bounds=body==null?registry.lastBounds(id).orElse(null):body.loadingBounds();
+            if(bounds!=null)active.add(new Request(id,bounds,body==null?-1:body.shapeRevision()));
         }
         State state=WORLDS.get(world);
         if(active.isEmpty()){if(state!=null)close(world);return;}
         if(state==null){state=new State();WORLDS.put(world,state);}
-        var ids=new HashSet<UUID>();for(var body:active)ids.add(body.getUuid());
+        var ids=new HashSet<UUID>();for(var body:active)ids.add(body.id());
         for(var id:List.copyOf(state.leases.keySet()))if(!ids.contains(id))release(world,id);
         int budget=REQUESTS_PER_TICK,start=Math.floorMod(state.cursor++,active.size());
         for(int n=0;n<active.size();n++) {
-            var body=active.get((start+n)%active.size());var lease=state.leases.computeIfAbsent(body.getUuid(),id->new Lease());
-            BodyBounds bounds=body.loadingBounds();
+            var body=active.get((start+n)%active.size());var lease=state.leases.computeIfAbsent(body.id(),id->new Lease());
+            BodyBounds bounds=body.bounds();
             // Round-trip cache tolerance is protected by the two-block planning halo. This
             // avoids rebuilding hundreds of plans for sub-millimetre contact reactions.
-            if(lease.planned==null||lease.revision!=body.shapeRevision()||!near(lease.planned,bounds)) {
-                lease.wanted=BodyVolumePlan.columns(bounds,world.getBottomY(),world.getTopY());lease.planned=bounds;lease.revision=body.shapeRevision();
+            if(lease.planned==null||lease.revision!=body.revision()||!near(lease.planned,bounds)) {
+                lease.wanted=BodyVolumePlan.columns(bounds,world.getBottomY(),world.getTopY());lease.planned=bounds;lease.revision=body.revision();
             }
             var desired=new HashMap<Long,BodyVolumePlan.Column>();for(var column:lease.wanted)desired.put(column.key(),column);
-            for(var key:List.copyOf(lease.columns.keySet()))if(!desired.containsKey(key))drop(world,body.getUuid(),lease,lease.columns.get(key));
+            for(var key:List.copyOf(lease.columns.keySet()))if(!desired.containsKey(key))drop(world,body.id(),lease,lease.columns.get(key));
             for(var column:lease.wanted) {
                 if(column.equals(lease.columns.get(column.key())))continue;
                 if(budget==0)break;
-                if(hold(world,body.getUuid(),column)) {lease.columns.put(column.key(),column);budget--;}
+                if(hold(world,body.id(),column)) {lease.columns.put(column.key(),column);budget--;}
             }
         }
     }

@@ -47,7 +47,7 @@ public final class BodyJointSystem {
                 var frame=pending.get(id);var body=frame==null?null:frame.body.get();
                 if(body==null||body.isRemoved()||body.getWorld()!=world||frame.tick!=world.getTime()){ready=false;continue;}bodies.put(id,body);
             }
-            if(!ready){bodies.values().forEach(BlockBodyEntity::pauseJointMotion);paused++;continue;}
+            if(!ready){bodies.values().forEach(BlockBodyEntity::pauseJointMotion);bodies.values().forEach(registry::rememberLocation);paused++;continue;}
             double remaining=.05;boolean stop=false;
             for(int step=0;step<512&&remaining>1e-10;step++) {
                 double dt=Math.min(remaining,.05/16);var saved=new LinkedHashMap<UUID,D6PhysicsBody.Snapshot>();for(var e:bodies.entrySet())saved.put(e.getKey(),e.getValue().physics().snapshot());
@@ -77,6 +77,7 @@ public final class BodyJointSystem {
                 remaining-=dt;steps++;
             }
             if(!stop&&remaining>1e-10){bodies.values().forEach(BlockBodyEntity::pauseJointMotion);paused++;}
+            bodies.values().forEach(registry::rememberLocation);
         }
         LAST.put(world,new Stats(islands,steps,paused,broken));return steps;
     }

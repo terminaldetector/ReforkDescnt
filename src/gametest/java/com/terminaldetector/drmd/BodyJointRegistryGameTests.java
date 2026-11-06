@@ -59,4 +59,33 @@ public final class BodyJointRegistryGameTests implements FabricGameTest {
             c.assertTrue(!f.a.isRemoved()&&!f.b.isRemoved()&&f.a.cells().size()==5&&f.b.cells().size()==1,"breaking a joint does not rebuild, replace or consume either hull");
         }c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="joint-registry-location-save")
+    public void lastRealVolumesSurviveAnEndpointUnloadAndLegacyDataNeedsNoInventedLocation(TestContext c) {
+        try(var f=fixture(c)) {
+            f.a.setLocalBlock(BlockPos.ORIGIN,Blocks.AIR.getDefaultState());
+            c.assertTrue(f.registry.lastBounds(f.a.getUuid()).orElseThrow().equals(f.a.loadingBounds()),"a material edit refreshes the real volume even without endpoint migration");
+            var saved=f.registry.writeNbt(new NbtCompound(),c.getWorld().getRegistryManager());var id=f.b.getUuid();var bounds=f.registry.lastBounds(id).orElseThrow();
+            f.b.remove(net.minecraft.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK);
+            var restored=BodyJointRegistry.fromNbt(saved,c.getWorld().getRegistryManager());
+            c.assertTrue(restored.lastBounds(id).orElseThrow().equals(bounds)&&restored.find(f.link.id()).isPresent(),"saved numeric volume and stable joint survive independent entity unloading");
+            var old=saved.copy();old.putInt("schema",1);old.remove("locations");var legacy=BodyJointRegistry.fromNbt(old,c.getWorld().getRegistryManager());
+            c.assertTrue(legacy.find(f.link.id()).isPresent()&&legacy.lastBounds(id).isEmpty(),"legacy joints load without inventing a location for a missing hull");
+            f.registry.remove(f.link.id());c.assertTrue(f.registry.lastBounds(id).isEmpty()&&f.registry.lastBounds(f.a.getUuid()).isEmpty(),"removing the last connection releases its location metadata");
+        }c.complete();
+    }
+    private void rejectsLocation(TestContext c,NbtCompound data) {
+        boolean rejected=false;try{BodyJointRegistry.fromNbt(data,c.getWorld().getRegistryManager());}catch(IllegalArgumentException expected){rejected=true;}
+        c.assertTrue(rejected,"malformed or unrelated locations rejected before loading requests");
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="joint-registry-location-invalid")
+    public void invalidLocationRecordsCannotRequestChunksOrCorruptTheLiveRegistry(TestContext c) {
+        try(var f=fixture(c)) {
+            var saved=f.registry.writeNbt(new NbtCompound(),c.getWorld().getRegistryManager());
+            var bad=saved.copy();bad.getList("locations",net.minecraft.nbt.NbtElement.COMPOUND_TYPE).getCompound(0).putDouble("minx",Double.NaN);rejectsLocation(c,bad);
+            bad=saved.copy();var list=bad.getList("locations",net.minecraft.nbt.NbtElement.COMPOUND_TYPE);list.add(list.getCompound(0).copy());rejectsLocation(c,bad);
+            bad=saved.copy();bad.getList("locations",net.minecraft.nbt.NbtElement.COMPOUND_TYPE).getCompound(0).putUuid("body",UUID.randomUUID());rejectsLocation(c,bad);
+            c.assertTrue(f.registry.find(f.link.id()).isPresent()&&f.registry.lastBounds(f.a.getUuid()).isPresent(),"invalid serialized input cannot mutate the live world registry");
+        }c.complete();
+    }
+
 }
