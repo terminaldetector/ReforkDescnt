@@ -66,10 +66,13 @@ public class SkyUfoEntity extends BlockBodyEntity {
         ACTIVE.put(getUuid(),new WeakReference<>(this));
         if(!crashing&&getLocalBlock(CORE).isAir())destroyFromCore(world,null,"local reactor destroyed");
         if(!crashing&&com.terminaldetector.drmd.world.contraption.boarding.BoardingRestore.waiting(this)){super.tick();return;}
-        if(!crashing&&!UfoControlSystem.drive(this)&&autopilot)propel();
+        boolean piloted=!crashing&&UfoControlSystem.drive(this);
+        if(!crashing&&!piloted&&autopilot)propel();
         if(crashing&&!detonated&&++crashTicks>=100)detonate(world);
         super.tick();
-        if(crashing)return;
+        // The captured carrier cannot keep deploying hostile AI against its pilot.
+        // Preserve the existing bay timer so releasing control resumes the same cycle.
+        if(crashing||piloted)return;
         if(spawnCooldown>0)spawnCooldown--;
         else if(world.getPlayers().stream().anyMatch(p->p.isAlive()&&!p.isSpectator()&&squaredDistanceTo(p)<128*128)) {
             pruneSwarm(world);
