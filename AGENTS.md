@@ -1,5 +1,8 @@
 # Recovery and checkpoint rules
 
+Current user instruction (6 November): development is local only. Do not push, publish, upload to GitHub or trigger Actions. Preserve local source/evidence checkpoints and continue both master v8 and Dynamic Boarding/BlockBody work. This supersedes the historical publication instructions below until the user explicitly resumes publication.
+
+
 The user works in the cloud. On 27 October 2026 they resumed GitHub publication and explicitly
 requested that the compiled mod be committed directly to the repository. The 25 October pause
 is superseded. Publish each verified installable JAR under `dist/releases/<version>/`, with

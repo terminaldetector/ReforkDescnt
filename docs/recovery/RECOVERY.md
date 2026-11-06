@@ -1,5 +1,8 @@
 # Cloud recovery — 24 October 2026
 
+Current user instruction (6 November): development is local only. Do not push, publish, upload to GitHub or trigger Actions. Preserve local source/evidence checkpoints and continue both master v8 and Dynamic Boarding/BlockBody work. This supersedes the historical publication instructions below until the user explicitly resumes publication.
+
+
 Current user update (27 October): GitHub publication is resumed. The user explicitly requests
 the compiled mod directly in the repository. Store verified binaries in `dist/releases/<version>/`
 with a source SHA, checksum, installer and local evidence; update `dist/README.md`. Preserve older
