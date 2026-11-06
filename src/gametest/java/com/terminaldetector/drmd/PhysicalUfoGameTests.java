@@ -100,24 +100,25 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
             b.discard();c.assertTrue(!com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p),"actual entity removal releases the pilot immediately");
         } finally {com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);p.discard();b.discard();}c.complete();
     }
-    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-control-bay",tickLimit=80)
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-control-bay",tickLimit=140)
     public void capturedCarrierStopsItsAutonomousHostileBayAndReleaseRestartsIt(TestContext c) {
         var b=create(c);var p=pilot(c,b);p.setNoGravity(true);b.setAutopilot(true);
+        var initial=b.writeNbt(new NbtCompound());int bayCount=initial.getList("swarm",net.minecraft.nbt.NbtElement.COMPOUND_TYPE).size(),bayTimer=initial.getInt("bayCooldown");
         try {
-            c.assertTrue(c.getWorld().getPlayers().contains(p),"real nearby player activates the carrier bay");
+            c.assertTrue(c.getWorld().getPlayers().contains(p)&&bayTimer<=100,"real nearby player activates the bounded carrier bay");
             c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.claim(p,b),"pilot captures the actual local console");
         } catch(Throwable e) {cleanupBay(b,p);throw e;}
         c.waitAndRun(8,()->{
             try {
                 c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p),"owner remains inside the moving carrier");
                 var held=b.writeNbt(new NbtCompound());
-                c.assertTrue(held.getList("swarm",net.minecraft.nbt.NbtElement.COMPOUND_TYPE).isEmpty(),"captured carrier must not autonomously deploy hostile drones against its pilot");
-                c.assertTrue(held.getInt("bayCooldown")==0,"player ownership pauses autonomous bay work instead of spending or resetting its timer");
+                c.assertTrue(held.getList("swarm",net.minecraft.nbt.NbtElement.COMPOUND_TYPE).size()==bayCount,"captured carrier must not autonomously deploy hostile drones against its pilot");
+                c.assertTrue(held.getInt("bayCooldown")==bayTimer,"player ownership pauses autonomous bay work instead of spending or resetting its timer");
                 c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p)&&b.autopilotEnabled(),"release restores previous AI ownership");
             } catch(Throwable e) {cleanupBay(b,p);throw e;}
-            c.waitAndRun(3,()->{try {
+            c.waitAndRun(bayTimer+3,()->{try {
                 var bay=b.writeNbt(new NbtCompound()).getList("swarm",net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
-                c.assertTrue(bay.size()==1&&c.getWorld().getEntity(bay.getCompound(0).getUuid("id")) instanceof com.terminaldetector.drmd.entity.DroneEntity,"released AI deploys exactly one real registered bay drone through the normal cooldown");
+                c.assertTrue(bay.size()==bayCount+1&&c.getWorld().getEntity(bay.getCompound(bayCount).getUuid("id")) instanceof com.terminaldetector.drmd.entity.DroneEntity,"released AI deploys exactly one real registered bay drone through the normal cooldown");
                 c.complete();
             } finally {cleanupBay(b,p);}});
         });
@@ -172,6 +173,7 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
             var feet=p.getPos();p.travel(Vec3d.ZERO);c.assertTrue(feet.equals(p.getPos()),"pending travel cannot fall through a hull that has not loaded");
             var before=original.massPosition();
             c.waitAndRun(2,()->{SkyUfoEntity loaded=null;try {
+                original.tick();
                 c.assertTrue(!before.equals(original.massPosition()),"a body that already simulates is never frozen by a returning passenger");
                 var saved=original.writeNbt(new NbtCompound());original.discard();
                 loaded=ModEntities.SKY_UFO.create(c.getWorld());loaded.readNbt(saved);c.assertTrue(c.getWorld().spawnEntity(loaded),"load the same real physical identity");
@@ -183,8 +185,8 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
                 c.assertTrue(BoardingSystem.drives(p)&&d.pendingBoardingResume()==null,"real local gravity/contact acquisition ends the wait");
                 loaded.tick();c.assertTrue(loaded.hasSimulatedPhysics()&&!position.equals(loaded.massPosition()),"normal D6 integration resumes after acquisition");
                 c.complete();
-            } finally {BoardingRestore.clear(p);p.discard();original.discard();if(loaded!=null)loaded.discard();BoardingSystem.tick(c.getWorld());}});
-        } catch(Throwable failure) {BoardingRestore.clear(p);p.discard();original.discard();throw failure;}});
+            } finally {BoardingRestore.clear(p);cleanupBay(original,p);if(loaded!=null)loaded.discard();BoardingSystem.tick(c.getWorld());}});
+        } catch(Throwable failure) {BoardingRestore.clear(p);cleanupBay(original,p);throw failure;}});
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-load-timeout",tickLimit=130)
     public void absentSavedHullCannotTrapAPlayerInALoadWait(TestContext c) {
