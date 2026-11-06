@@ -23,6 +23,18 @@ public final class RagdollRenderer extends EntityRenderer<RagdollEntity> {
 		shadowRadius = .55f;
 	}
 
+    /** Cubic air volumes have no terrain render section to certify Sodium's section occlusion.
+     * Test the authoritative compound bounds directly; normal depth testing still hides walls. */
+    @Override
+    public boolean shouldRender(RagdollEntity entity, net.minecraft.client.render.Frustum frustum,
+                                double cameraX, double cameraY, double cameraZ) {
+        if (com.terminaldetector.drmd.world.access.CubicAvailability.backend(entity.getWorld())
+                != com.terminaldetector.drmd.world.access.CubicAvailability.Backend.NATIVE_CUBIC)
+            return super.shouldRender(entity, frustum, cameraX, cameraY, cameraZ);
+        return entity.shouldRender(cameraX, cameraY, cameraZ)
+                && (entity.ignoreCameraFrustum || frustum.isVisible(entity.getVisibilityBoundingBox().expand(.5)));
+    }
+
 	@Override
 	public void render(RagdollEntity entity, float yaw, float tickDelta, MatrixStack matrices,
 			VertexConsumerProvider consumers, int light) {
