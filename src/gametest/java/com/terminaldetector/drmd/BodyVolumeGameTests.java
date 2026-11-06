@@ -92,4 +92,18 @@ public final class BodyVolumeGameTests implements FabricGameTest {
         }finally{b.discard();p.discard();}c.complete();});
     }
 
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="body-volume-cold-root",tickLimit=200)
+    public void approachingACompletelyUnloadedAssemblyRequestsItsStoredRootVolume(TestContext c) {
+        var f=fleet(c,30000,30000);var ids=f.bodies.subList(0,3).stream().map(BlockBodyEntity::getUuid).toList();
+        c.waitAndRun(8,()->{
+            for(var b:f.bodies.subList(0,3))b.remove(net.minecraft.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK);
+            c.waitAndRun(5,()->{try {
+                c.assertTrue(BodySpatialIndex.loaded(c.getWorld()).stream().noneMatch(b->ids.contains(b.getUuid())),"fixture has no loaded root or module to seed the activity graph");
+                c.assertTrue(BodyVolumeLeases.heldColumns(c.getWorld(),ids.getFirst())>0,"approaching the real saved root volume bootstraps an entirely unloaded assembly");
+                c.assertTrue(BodyVolumeLeases.heldColumns(c.getWorld(),ids.get(2))>0,"the missing far endpoint is requested through the same persisted island");
+                c.assertTrue(BodyVolumeLeases.heldColumns(c.getWorld(),f.bodies.get(3).getUuid())==0,"unconnected distant material is not loaded");
+            }finally{f.close();}c.complete();});
+        });
+    }
+
 }

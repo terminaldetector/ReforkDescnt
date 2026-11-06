@@ -50,6 +50,18 @@ public final class BodyVolumeLeases {
             }
         }
         var registry=BodyJointRegistry.get(world);
+        // A fully unloaded island has no live body to seed the graph. Query numeric saved
+        // bounds through the spatial index; never scan chunks or instantiate a substitute.
+        for(var p:world.getPlayers())if(p.isAlive()&&!p.isSpectator()) {
+            var at=new Vec3(p.getX(),p.getY(),p.getZ());var reach=new Vec3(128,128,128);
+            for(var id:registry.locationsNear(new BodyBounds(at.minus(reach),at.plus(reach))))if(!loaded.containsKey(id)) {
+                var bounds=registry.lastBounds(id).orElseThrow();
+                double dx=Math.max(0,Math.max(bounds.min().x()-at.x(),at.x()-bounds.max().x()));
+                double dy=Math.max(0,Math.max(bounds.min().y()-at.y(),at.y()-bounds.max().y()));
+                double dz=Math.max(0,Math.max(bounds.min().z()-at.z(),at.z()-bounds.max().z()));
+                if(dx*dx+dy*dy+dz*dz<=128*128&&activeIds.add(id))queue.addLast(id);
+            }
+        }
         // Occupancy belongs to an entire constraint island. Include unloaded endpoints:
         // their saved real volumes bootstrap normal world loading without NBT clones.
         while(!queue.isEmpty())for(var link:registry.forBody(queue.removeFirst()))if(registry.active(link.id(),world.getTime()))

@@ -3,6 +3,7 @@ package com.terminaldetector.drmd.world.contraption;
 import com.terminaldetector.drmd.client.portal.PortalTransform.*;
 import com.terminaldetector.drmd.physics.collision.BodyJointConstraint;
 import com.terminaldetector.drmd.physics.collision.BodyBounds;
+import com.terminaldetector.drmd.physics.collision.AabbTree;
 import net.minecraft.nbt.*;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.world.ServerWorld;
@@ -16,6 +17,7 @@ public final class BodyJointRegistry extends PersistentState {
     private Map<UUID,BodyJointLink> links=new LinkedHashMap<>();
     private Map<UUID,Long> starts=new HashMap<>();
     private final Map<UUID,BodyBounds> locations=new HashMap<>();
+    private final AabbTree<UUID> locationIndex=new AabbTree<>();
     private Map<UUID,Set<UUID>> endpoints=new HashMap<>();
     public static BodyJointRegistry get(ServerWorld world){return world.getPersistentStateManager().getOrCreate(new Type<>(BodyJointRegistry::new,BodyJointRegistry::fromNbt,null),"drmd_body_joints");}
     public List<BodyJointLink> links(){return links.values().stream().sorted(Comparator.comparing(l->l.id().toString())).toList();}
@@ -23,9 +25,10 @@ public final class BodyJointRegistry extends PersistentState {
     /** Last real complete volume, retained when an endpoint unloads. Numeric data only;
      * it locates loading requests, never creates bodies or assigns a restored pose. */
     public Optional<BodyBounds> lastBounds(UUID body){return Optional.ofNullable(locations.get(body));}
+    public List<UUID> locationsNear(BodyBounds area){return locationIndex.query(area).values().stream().sorted(Comparator.comparing(UUID::toString)).toList();}
     void rememberLocation(BlockBodyEntity body) {
-        if(!containsBody(body.getUuid())||body.isRemoved()||body.cells().isEmpty())return;
-        var bounds=body.loadingBounds();if(!bounds.equals(locations.put(body.getUuid(),bounds)))markDirty();
+        if(!containsBody(body.getUuid())||body.isRemoved()||body.cells().isEmpty()||BodySpatialIndex.find(body.getWorld(),body.getId()).orElse(null)!=body)return;
+        var bounds=body.loadingBounds();if(!bounds.equals(locations.put(body.getUuid(),bounds))){locationIndex.update(body.getUuid(),bounds);markDirty();}
     }
     public boolean containsBody(UUID body){return endpoints.containsKey(body);}
     public boolean active(UUID id,long tick){return links.containsKey(id)&&tick>=starts.getOrDefault(id,Long.MIN_VALUE);}
@@ -67,7 +70,7 @@ public final class BodyJointRegistry extends PersistentState {
         var times=new HashMap<UUID,Long>();for(var id:next.keySet())times.put(id,updates.getOrDefault(id,starts.getOrDefault(id,Long.MIN_VALUE)));
         var index=new HashMap<UUID,Set<UUID>>();
         for(var link:next.values())for(var body:List.of(link.a().body(),link.b().body()))index.computeIfAbsent(body,k->new HashSet<>()).add(link.id());
-        links=next;endpoints=index;starts=times;locations.keySet().retainAll(index.keySet());markDirty();
+        links=next;endpoints=index;starts=times;for(var id:List.copyOf(locations.keySet()))if(!index.containsKey(id)){locations.remove(id);locationIndex.remove(id);}markDirty();
     }
     public static BodyJointRegistry fromNbt(NbtCompound n,RegistryWrapper.WrapperLookup lookup) {
         if(n.getInt("schema")>2)throw new IllegalArgumentException("unsupported joint registry schema");
@@ -87,6 +90,7 @@ public final class BodyJointRegistry extends PersistentState {
             // Validate the existing plan limits once at load, before any ticket mutation.
             BodyVolumePlan.columns(bounds,-30000000,30000000);
             if(state.locations.putIfAbsent(id,bounds)!=null)throw new IllegalArgumentException("duplicate body location");
+            state.locationIndex.update(id,bounds);
         }
         return state;
     }
