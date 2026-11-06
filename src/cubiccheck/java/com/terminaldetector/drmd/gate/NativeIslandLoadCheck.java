@@ -32,6 +32,8 @@ public final class NativeIslandLoadCheck {
     private static final Set<UUID> SAVED=ConcurrentHashMap.newKeySet(),DRAWN=new HashSet<>();
     private static final List<String> SCENES=new ArrayList<>();
     private static volatile int phase,age,stable;private static int ticks,frames,keys;
+    private static volatile float frameDelta;
+    public static void beforeFrame(float delta){frameDelta=delta;}
     private static boolean started,prepared;private static volatile boolean ready,done,placeRequested,walking,walked;
     private static volatile int unloadedTicks,maxFarColumns;private static volatile double walkDistance,maxAnchorError;
     private static Vec3d walkFrom;private static volatile Vec3 launch;
@@ -123,6 +125,12 @@ public final class NativeIslandLoadCheck {
         var drawn=Set.copyOf(DRAWN);DRAWN.clear();if(done||!ready||!walked||(phase!=1&&phase!=3)||!drawn.contains(ids.get(0)))return;
         var c=MinecraftClient.getInstance();if(c.currentScreen!=null||++frames<6)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){
+            var root=java.util.stream.StreamSupport.stream(c.world.getEntities().spliterator(),false).filter(e->e instanceof BlockBodyEntity&&e.getUuid().equals(ids.get(0))).map(e->(BlockBodyEntity)e).findFirst().orElseThrow();
+            var view=BoardingClient.bodyView(root,frameDelta);var q=view==null?root.renderRotation(frameDelta):view.rotation();
+            var pivot=view==null?BoardingSystem.pure(entity(root).getLerpedPos(frameDelta)):view.position().plus(q.rotate(root.localPivot().minus(root.localCentre())));
+            var local=q.inverse().rotate(BoardingSystem.pure(c.player.getLerpedPos(frameDelta)).minus(pivot)).plus(root.localPivot());
+            Files.writeString(file(phase==1?"island-view-occupied.json":"island-view-restored.json"),new com.google.gson.Gson().toJson(Map.of("renderedLocalFeet",local,"predictedBodyView",view!=null,"clientLocalFeet",root.worldToLocal(c.player.getPos()),"delta",frameDelta))+"\n");
+            require(Math.abs(local.y()-1)<.2&&local.x()>0&&local.x()<128&&local.z()>0&&local.z()<3,"rendered player feet must lie on the actual visible deck: "+local);
             image.writeTo(file(phase==1?"island-occupied.png":"island-restored.png"));SCENES.add(phase==1?"occupied-chain":"cold-return");frames=0;
             if(phase==1){ready=false;phase=2;age=0;c.options.leftKey.setPressed(false);c.getServer().execute(()->{var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());p.getAbilities().allowFlying=true;p.getAbilities().flying=true;p.sendAbilitiesUpdate();p.teleport(p.getServerWorld(),1200,Y+5,16,Set.of(),0,15);});}
             else{require(RESTORED.size()==3&&maxFarColumns>0&&unloadedTicks>=20,"actual native cold-return proof incomplete");Files.writeString(file("island-load-ok.json"),new com.google.gson.Gson().toJson(Map.of("actualUnload",true,"actualColdRestore",RESTORED.size(),"savedBodies",SAVED.size(),"farModuleBeyondPlayerHalo",true,"maxFarColumns",maxFarColumns,"maxAnchorError",maxAnchorError,"postLoadWalkDistance",walkDistance,"stableContactTicks",stable,"unloadedTicks",unloadedTicks,"scenes",SCENES))+"\n");done=true;c.options.leftKey.setPressed(false);c.scheduleStop();}
