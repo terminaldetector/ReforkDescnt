@@ -72,14 +72,19 @@ public final class NativeIslandLoadCheck {
         });
         ServerTickEvents.START_WORLD_TICK.register(w->{
             if(!started||done||w!=w.getServer().getOverworld()||phase==0||phase==2)return;
-            var bodies=current(w);if(bodies.size()!=3)return;var b=bodies.get(0);
+            var bodies=current(w);if(bodies.size()!=3)return;
+            // Distributed bounded thrusters translate this fixture. Pulling only one end
+            // of a 256m assembly introduces real yaw and can slide a world-gravity rider
+            // off the narrow deck; that is a different experiment from island loading.
+            for(var b:bodies){
             var dv=new Vec3(0,0,1.5).minus(b.physics().linearVelocity()).scaled(.25);if(dv.length()>.12)dv=dv.scaled(.12/dv.length());b.applyPhysicsImpulse(b.physicsCentre(),BoardingSystem.mc(dv.scaled(b.physicsMass())));
             var q=b.rotation();if(q.w()<0)q=new Quat(-q.x(),-q.y(),-q.z(),-q.w());var a=new Vec3(q.x(),q.y(),q.z()).normalized().scaled(-30*2*Math.acos(Math.max(-1,Math.min(1,q.w())))).minus(b.physics().angularVelocity().scaled(10));var torque=b.physics().worldInertia().transform(a);double cap=b.physicsMass()*16;if(torque.length()>cap)torque=torque.scaled(cap/torque.length());b.applyPhysicsTorque(BoardingSystem.mc(torque));
+            }
         });
         ServerTickEvents.END_WORLD_TICK.register(w->{
             if(!prepared||done||phase==0||w!=w.getServer().getOverworld())return;age++;
             var p=w.getServer().getPlayerManager().getPlayerList().getFirst();var bodies=current(w);
-            if(phase==3&&(age%20==0||age<15))System.out.println("ISLAND_RETURN age="+age+" player="+p.getPos()+" v="+p.getVelocity()+" flying="+p.getAbilities().flying+" tracked="+w.getPlayers().contains(p)+" ready="+BoardingSystem.ready(p)+" drives="+BoardingSystem.drives(p)+" state="+BoardingSystem.state(p)+" bodies="+bodies.stream().map(b->entity(b).getUuid()+":"+b.massPosition()+":held="+BodyVolumeLeases.heldColumns(w,entity(b).getUuid())).toList());
+            if(phase==3&&(age%20==0||age<15))System.out.println("ISLAND_RETURN age="+age+" player="+p.getPos()+" v="+p.getVelocity()+" flying="+p.getAbilities().flying+" tracked="+w.getPlayers().contains(p)+" ready="+BoardingSystem.ready(p)+" drives="+BoardingSystem.drives(p)+" state="+BoardingSystem.state(p)+" bodies="+bodies.stream().map(b->entity(b).getUuid()+":"+b.massPosition()+":q="+b.rotation()+":feet="+b.worldToLocal(p.getPos())+":held="+BodyVolumeLeases.heldColumns(w,entity(b).getUuid())).toList());
             if(phase==2){
                 if(age<3||p.getX()<1000)return;
                 require(ids.stream().allMatch(id->BodyVolumeLeases.heldColumns(w,id)==0),"leaving all components releases every volume lease");
