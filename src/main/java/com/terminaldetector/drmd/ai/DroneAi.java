@@ -98,11 +98,13 @@ public final class DroneAi {
 			}
 			if (desire.lengthSquared() < 1e-6) desire = toTarget;
 			desire = desire.normalize();
+            boolean seekSight=navigation.occluded(tpos);
+            if(seekSight&&toTarget.lengthSquared()>1e-6)desire=toTarget.normalize();
 
 			double maxSpd = DescentMod.su(drone.getRole().speed);
 			if ("standoff".equals(style)) maxSpd *= 0.9;
 			if ("anchor".equals(style)) maxSpd *= 0.75;
-			Vec3d vel = navigation.steer(drone.steerFlightVelocity(desire.multiply(maxSpd / 20.0)),drone.getPhase()==Phase.BREAK?pos.add(desire.multiply(16)):tpos);
+			Vec3d vel = navigation.steer(drone.steerFlightVelocity(desire.multiply(maxSpd / 20.0)),!seekSight&&drone.getPhase()==Phase.BREAK?pos.add(desire.multiply(16)):tpos,seekSight);
 			drone.setVelocity(vel);
 			drone.velocityModified = true;
 			alignAttitude(drone, vel, desire, dt);

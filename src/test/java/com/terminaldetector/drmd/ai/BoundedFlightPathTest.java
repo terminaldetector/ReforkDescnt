@@ -39,4 +39,26 @@ class BoundedFlightPathTest {
     @Test void alreadyAtGoalNeedsNoGeometryQueries() {
         var s=new BoundedFlightPath(p(1,2,3),p(1,2,3),2,8,(a,b)->{fail("no movement");return false;});finish(s);assertEquals(List.of(p(1,2,3)),s.path());
     }
+    @Test void combatSizedBodiesReachAnOffsetOpeningWithinTheExisting512CellBudget(){
+        for(double half:new double[]{.45,.9,1.2}){
+            int width=(int)Math.ceil(half*2)+1;double originY=half==.45?.5:1.5;int[] calls={0};
+            BoundedFlightPath.Space space=(a,b)->{
+                calls[0]++;
+                if(.5+Math.max(a.x(),b.x())+half<=6||.5+Math.min(a.x(),b.x())-half>=7)return true;
+                return originY+Math.min(a.y(),b.y())-half>=4&&originY+Math.max(a.y(),b.y())+half<=4+width
+                        &&.5+Math.min(a.z(),b.z())-half>=0&&.5+Math.max(a.z(),b.z())+half<=width;
+            };
+            var search=new BoundedFlightPath(p(0,0,0),p(18,half==.45?1:0,0),32,512,space,2);
+            for(int i=0;i<1000&&search.status()==BoundedFlightPath.Status.SEARCHING;i++){
+                int before=calls[0];assertTrue(search.step(8)<=8);assertTrue(calls[0]-before<=48);assertTrue(search.visitedCells()<=512);
+            }
+            assertEquals(BoundedFlightPath.Status.FOUND,search.status(),"actual compound clearance half="+half);
+            for(int i=1;i<search.path().size();i++)assertTrue(space.clear(search.path().get(i-1),search.path().get(i)));
+        }
+    }
+    @Test void rejectsUnboundedCombatHeuristicConfiguration(){
+        assertThrows(IllegalArgumentException.class,()->new BoundedFlightPath(p(0,0,0),p(1,0,0),8,512,(a,b)->true,0));
+        assertThrows(IllegalArgumentException.class,()->new BoundedFlightPath(p(0,0,0),p(1,0,0),8,512,(a,b)->true,5));
+    }
+
 }

@@ -13,7 +13,7 @@ public final class BoundedFlightPath {
     private record Entry(Cell cell,int distance,long score,long order){}
     private static final int[][] AXES={{1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1}};
     private final Cell start,goal;
-    private final int radius,nodeLimit;
+    private final int radius,nodeLimit,heuristicWeight;
     private final Space space;
     private final Map<Cell,Node> nodes=new HashMap<>();
     private final Set<Cell> closed=new HashSet<>();
@@ -23,11 +23,17 @@ public final class BoundedFlightPath {
     private boolean trimmed;
     private List<Cell> path=List.of();
     public BoundedFlightPath(Cell start,Cell goal,int radius,int nodeLimit,Space space) {
+        this(start,goal,radius,nodeLimit,space,1);
+    }
+    /** Weighted local combat recovery favors reaching a firing lane within the same memory/work cap.
+     * Values above one trade shortest-path guarantees for earlier feasible paths. */
+    public BoundedFlightPath(Cell start,Cell goal,int radius,int nodeLimit,Space space,int heuristicWeight) {
         this.start=Objects.requireNonNull(start);this.goal=Objects.requireNonNull(goal);this.space=Objects.requireNonNull(space);
         if(radius<1||radius>48||nodeLimit<2||nodeLimit>4096)throw new IllegalArgumentException("flight search bounds");
-        this.radius=radius;this.nodeLimit=nodeLimit;
+        if(heuristicWeight<1||heuristicWeight>4)throw new IllegalArgumentException("flight heuristic weight");
+        this.radius=radius;this.nodeLimit=nodeLimit;this.heuristicWeight=heuristicWeight;
         if(!inside(goal)){status=Status.LIMIT_REACHED;return;}
-        nodes.put(start,new Node(0,null));open.add(new Entry(start,0,distance(start,goal),order++));
+        nodes.put(start,new Node(0,null));open.add(new Entry(start,0,heuristicWeight*distance(start,goal),order++));
     }
     /** Returns queue pops consumed, including stale entries; at most six clearance calls per pop. */
     public int step(int budget) {
@@ -46,7 +52,7 @@ public final class BoundedFlightPath {
                 if(old!=null&&old.distance()<=cost)continue;
                 if(old==null&&nodes.size()>=nodeLimit){trimmed=true;continue;}
                 if(!space.clear(entry.cell(),next))continue;
-                nodes.put(next,new Node(cost,entry.cell()));open.add(new Entry(next,cost,cost+distance(next,goal),order++));
+                nodes.put(next,new Node(cost,entry.cell()));open.add(new Entry(next,cost,cost+heuristicWeight*distance(next,goal),order++));
             }
         }
         if(status==Status.SEARCHING&&open.isEmpty())status=trimmed?Status.LIMIT_REACHED:Status.NO_ROUTE;

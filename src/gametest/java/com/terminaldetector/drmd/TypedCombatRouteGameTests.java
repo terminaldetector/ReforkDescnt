@@ -20,9 +20,12 @@ public final class TypedCombatRouteGameTests implements FabricGameTest {
     public void rocketFindsFiringLaneThroughOffsetCover(TestContext c){check(c,FlightEnemyKind.ROCKET);}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="typed-route-jet",tickLimit=500)
     public void jetFindsFiringLaneThroughOffsetCover(TestContext c){check(c,FlightEnemyKind.JET);}
-    private static void check(TestContext c,FlightEnemyKind kind){
-        var w=c.getWorld();var base=c.getAbsolutePos(new BlockPos(11000+kind.ordinal()*1000,100,1000));
-        var start=Vec3d.ofBottomCenter(base).add(.27,.37,.19);var destination=start.add(18,0,0);var lease=new AiFixtureChunks(w,base,3);
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="typed-route-rocket-contact",tickLimit=500)
+    public void rocketFindsALaneWhileAlreadyTouchingTheWall(TestContext c){check(c,FlightEnemyKind.ROCKET,true);}
+    private static void check(TestContext c,FlightEnemyKind kind){check(c,kind,false);}
+    private static void check(TestContext c,FlightEnemyKind kind,boolean touching){
+        var w=c.getWorld();var base=c.getAbsolutePos(new BlockPos(11000+kind.ordinal()*1000+(touching?500:0),100,1000));
+        var original=Vec3d.ofBottomCenter(base).add(.27,.37,.19);var start=touching?new Vec3d(base.getX()+6-kind.diameter*.5-.001,original.y,original.z):original;var destination=original.add(18,0,0);var lease=new AiFixtureChunks(w,base,3);
         int width=(int)Math.ceil(kind.diameter)+1;var wall=new ArrayList<BlockPos>();
         for(int y=-20;y<=20;y++)for(int z=-20;z<=20;z++){
             if(y>=4&&y<4+width&&z>=0&&z<width)continue;
@@ -50,7 +53,7 @@ public final class TypedCombatRouteGameTests implements FabricGameTest {
             for(var e:w.iterateEntities())if(e instanceof ProjectileEntity p&&p.getOwnerLiving()==drone&&e.getX()>base.getX()+7&&e.getPos().squaredDistanceTo(to)<9)shotThrough[0]=true;
             if(!(lane[0]&&shotThrough[0])&&ticks[0]<380)return;
             finished[0]=true;boolean intact=wall.stream().allMatch(p->w.getBlockState(p).isOf(Blocks.BEDROCK));var position=actor.getPos().subtract(Vec3d.of(base));boolean live=actor.isAlive(),role=drone.getRole()==kind.defaultRole;cleanup.run();
-            c.assertTrue(live&&role&&intact&&lane[0]&&shotThrough[0],"autonomous typed firing lane: kind="+kind+" ticks="+ticks[0]+" lane="+lane[0]+" actualShotBeyondCover="+shotThrough[0]+" position="+position);c.complete();
+            c.assertTrue(live&&role&&intact&&lane[0]&&shotThrough[0],"autonomous typed firing lane: touching="+touching+" kind="+kind+" ticks="+ticks[0]+" lane="+lane[0]+" actualShotBeyondCover="+shotThrough[0]+" position="+position);c.complete();
         });
     }
 }
