@@ -31,9 +31,9 @@ public final class DroneSwarmAi {
 	private static final float WEIGHT_TARGET = 2.2f;
 	private static final Map<ServerWorld, FrameSnapshot> SNAPSHOTS = new WeakHashMap<>();
 
-	private record DroneSample(UUID id, Vec3d position, Vec3d velocity, AiRole role) {}
+	private record DroneSample(UUID id, Vec3d position, Vec3d velocity, AiRole role,double halfWidth) {}
 	private record FrameSnapshot(long tick, BoundedSpatialIndex<DroneSample> all,
-			BoundedSpatialIndex<DroneSample> flock) {}
+			BoundedSpatialIndex<DroneSample> flock,Map<UUID,BoundedSpatialIndex.Query<DroneSample>> queries) {}
 	public record NeighbourQueryStats(long snapshotTick, int indexedDrones, int neighbours,
 			int examinedCandidates, int occupiedBuckets) {}
 
@@ -142,6 +142,20 @@ public final class DroneSwarmAi {
 		return worst;
 	}
 
+    /** Short-range repulsion shares the exact bounded flock query used by combat steering. */
+    static Vec3d closeSeparation(DroneEntity drone){
+        if(!participates(drone.getRole())||!(drone.getWorld() instanceof ServerWorld world))return Vec3d.ZERO;
+        Vec3d result=Vec3d.ZERO;var pos=drone.getPos();
+        for(var hit:flockQuery(snapshot(world),drone).hits()){
+            var other=hit.value();var delta=pos.subtract(other.position());double distance=delta.length(),clearance=(drone.getWidth()*.5+other.halfWidth())*1.1;
+            if(distance>=clearance||clearance<=0)continue;
+            if(distance<1e-5){var escape=OverlapSeparation.between(drone.getUuid(),other.id());delta=new Vec3d(escape.x(),escape.y(),escape.z());}
+            else delta=delta.multiply(1/distance);
+            result=result.add(delta.multiply(1-distance/clearance));
+        }
+        return result.lengthSquared()>1?result.normalize():result;
+    }
+
 	/** Observable work bound for GameTests and performance diagnostics. */
 	public static NeighbourQueryStats queryStats(DroneEntity drone) {
 		if (!(drone.getWorld() instanceof ServerWorld world)) return new NeighbourQueryStats(-1, 0, 0, 0, 0);
@@ -152,9 +166,9 @@ public final class DroneSwarmAi {
 	}
 
 	private static BoundedSpatialIndex.Query<DroneSample> flockQuery(FrameSnapshot snapshot, DroneEntity drone) {
-		return snapshot.flock.nearest(drone.getX(), drone.getY(), drone.getZ(), SWARM_RADIUS, MAX_BOID_NEIGHBOURS,
+		return snapshot.queries.computeIfAbsent(drone.getUuid(),id->snapshot.flock.nearest(drone.getX(), drone.getY(), drone.getZ(), SWARM_RADIUS, MAX_BOID_NEIGHBOURS,
 				MAX_BOID_CANDIDATES, querySeed(drone, snapshot.tick),
-				sample -> !sample.id.equals(drone.getUuid()));
+				sample -> !sample.id.equals(drone.getUuid())));
 	}
 
 	private static FrameSnapshot snapshot(ServerWorld world) {
@@ -167,13 +181,13 @@ public final class DroneSwarmAi {
 			for (Entity entity : world.iterateEntities()) {
 				if (!(entity instanceof DroneEntity drone) || !drone.isAlive()) continue;
 				DroneSample sample = new DroneSample(drone.getUuid(), drone.getPos(),
-						drone.getVelocity(), drone.getRole());
+						drone.getVelocity(), drone.getRole(),drone.getWidth()*.5);
 				all.add(sample, sample.position().x, sample.position().y, sample.position().z);
 				if (participates(sample.role())) {
 					flock.add(sample, sample.position().x, sample.position().y, sample.position().z);
 				}
 			}
-			FrameSnapshot rebuilt = new FrameSnapshot(tick, all, flock);
+			FrameSnapshot rebuilt = new FrameSnapshot(tick, all, flock,new java.util.HashMap<>());
 			SNAPSHOTS.put(world, rebuilt);
 			return rebuilt;
 		}

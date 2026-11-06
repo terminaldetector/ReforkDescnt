@@ -64,7 +64,7 @@ public final class HostileEnvironment {
     /** Free-flight actors search in XYZ; vanilla's four-block Y band belongs to ground mobs. */
     private static final class VolumeTargetGoal<T extends LivingEntity> extends ActiveTargetGoal<T> {
         private final PathAwareEntity flyer;
-        private VolumeTargetGoal(PathAwareEntity mob,Class<T> type){super(mob,type,true);flyer=mob;}
+        private VolumeTargetGoal(PathAwareEntity mob,Class<T> type){super(mob,type,true);flyer=mob;setMaxTimeWithoutVisibility(200);}
         @Override protected net.minecraft.util.math.Box getSearchBox(double distance) {
             return flyer.getBoundingBox().expand(distance);
         }

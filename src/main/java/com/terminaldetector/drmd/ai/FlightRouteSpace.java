@@ -45,7 +45,9 @@ final class FlightRouteSpace implements BoundedFlightPath.Space {
         return clear(initial.offset(a.x(),a.y(),a.z()),point(b).subtract(point(a)));
     }
     boolean clearActual(Vec3d displacement){return clear(actor.getBoundingBox(),displacement);}
-    private boolean clear(Box from,Vec3d delta) {
+    static boolean clearMovement(DroneEntity drone,Vec3d delta){return clear(drone,drone.getWorld(),drone.getBoundingBox(),delta);}
+    private boolean clear(Box from,Vec3d delta){return clear(actor,world,from,delta);}
+    private static boolean clear(Entity actor,World world,Box from,Vec3d delta) {
         if(!CubicAvailability.onWorldThread(world)||!Double.isFinite(delta.lengthSquared())||delta.lengthSquared()>16)return false;
         Box swept=from.union(from.offset(delta)).contract(1e-6),halo=swept.expand(1);
         if(swept.minY<world.getBottomY()||swept.maxY>world.getTopY()||!world.getWorldBorder().contains(swept))return false;

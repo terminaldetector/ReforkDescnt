@@ -41,8 +41,15 @@ final class DroneNavigation {
         }
         if((search!=null||!route.isEmpty())&&(tick>expires||destination.squaredDistanceTo(target)>64))cancel(tick,2);
         Vec3d result=velocity;
+        Vec3d separation=DroneSwarmAi.closeSeparation(drone);
         if(!route.isEmpty()) {
             while(index<route.size()&&space.point(route.get(index)).squaredDistanceTo(centre)<.0004)index++;
+            // Accept the next waypoint only when the complete swept actor volume can reach it.
+            // This avoids making several actors converge exactly on the same grid corner.
+            for(int look=0;separation.lengthSquared()>1e-8&&look<2&&index+1<route.size();look++){
+                if(!space.clearActual(space.point(route.get(index+1)).subtract(centre)))break;
+                index++;
+            }
             if(index>=route.size())cancel(tick,20);
             else {
                 var delta=space.point(route.get(index)).subtract(centre);
@@ -67,6 +74,12 @@ final class DroneNavigation {
                 var goal=new BoundedFlightPath.Cell((int)Math.round(delta.x),(int)Math.round(delta.y),(int)Math.round(delta.z));
                 search=new BoundedFlightPath(new BoundedFlightPath.Cell(0,0,0),goal,32,512,space,seekSight?2:1);trace("begin goal="+goal);result=Vec3d.ZERO;
             }else retryAt=tick+2+(actor.getUuid().getLeastSignificantBits()&3);
+        }
+        if(search==null&&separation.lengthSquared()>1e-8&&velocity.lengthSquared()>1e-8){
+            double speed=velocity.length();var adjusted=result.add(separation.multiply(Math.min(.12,speed*.4)));
+            if(adjusted.lengthSquared()>speed*speed)adjusted=adjusted.normalize().multiply(speed);
+            if(FlightRouteSpace.clearMovement(drone,adjusted))result=adjusted;
+            else{var escape=separation.multiply(Math.min(.12,speed*.4));if(FlightRouteSpace.clearMovement(drone,escape))result=escape;}
         }
         previous=centre;issued=result;return result;
     }
