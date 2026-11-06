@@ -100,6 +100,33 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
             b.discard();c.assertTrue(!com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p),"actual entity removal releases the pilot immediately");
         } finally {com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);p.discard();b.discard();}c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-control-bay",tickLimit=80)
+    public void capturedCarrierStopsItsAutonomousHostileBayAndReleaseRestartsIt(TestContext c) {
+        var b=create(c);var p=pilot(c,b);p.setNoGravity(true);b.setAutopilot(true);
+        try {
+            c.assertTrue(c.getWorld().getPlayers().contains(p),"real nearby player activates the carrier bay");
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.claim(p,b),"pilot captures the actual local console");
+        } catch(Throwable e) {cleanupBay(b,p);throw e;}
+        c.waitAndRun(8,()->{
+            try {
+                c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p),"owner remains inside the moving carrier");
+                var held=b.writeNbt(new NbtCompound());
+                c.assertTrue(held.getList("swarm",net.minecraft.nbt.NbtElement.COMPOUND_TYPE).isEmpty(),"captured carrier must not autonomously deploy hostile drones against its pilot");
+                c.assertTrue(held.getInt("bayCooldown")==0,"player ownership pauses autonomous bay work instead of spending or resetting its timer");
+                c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p)&&b.autopilotEnabled(),"release restores previous AI ownership");
+            } catch(Throwable e) {cleanupBay(b,p);throw e;}
+            c.waitAndRun(3,()->{try {
+                var bay=b.writeNbt(new NbtCompound()).getList("swarm",net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
+                c.assertTrue(bay.size()==1&&c.getWorld().getEntity(bay.getCompound(0).getUuid("id")) instanceof com.terminaldetector.drmd.entity.DroneEntity,"released AI deploys exactly one real registered bay drone through the normal cooldown");
+                c.complete();
+            } finally {cleanupBay(b,p);}});
+        });
+    }
+    private void cleanupBay(SkyUfoEntity b,net.minecraft.server.network.ServerPlayerEntity p) {
+        var bay=b.writeNbt(new NbtCompound()).getList("swarm",net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
+        for(int i=0;i<bay.size();i++){if(b.getWorld() instanceof net.minecraft.server.world.ServerWorld world){var drone=world.getEntity(bay.getCompound(i).getUuid("id"));if(drone!=null)drone.discard();}}
+        com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);p.discard();b.discard();
+    }
     private static final DynamicBodyAttachment.Motion FREE=(p,q,d)->new DynamicBodyAttachment.Move(d,java.util.List.of());
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-reload-walker")
     public void rejoiningWithSavedWalkingDoesNotArmSuitFlightOrResetMomentum(TestContext c) {
