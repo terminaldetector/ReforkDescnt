@@ -36,7 +36,10 @@ public final class BoardingClient {
             com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.interpolate(beforeView.rotation(),currentView.rotation(),alpha).normalized());
     }
     private static void publishBodyView(ClientPlayerEntity player,java.util.List<BodyMotion> bodies) {
-        for(var b:bodies)if(b.id==snapshotId&&(b.hasGravity()||b.id==viewBody)) {
+        // The rendered support and predicted contact must share a timeline even without
+        // artificial gravity. Otherwise a loading stall leaves the visible deck behind
+        // the player while the contact solver already stands on the advanced hull.
+        for(var b:bodies)if(b.id==snapshotId) {
             var next=new BodyView(b.position(1),b.rotation(1));
             beforeView=currentView==null||viewBody!=b.id?new BodyView(b.position(0),b.rotation(0)):viewAge==player.age?beforeView:currentView;
             currentView=next;viewBody=b.id;viewAge=player.age;return;
