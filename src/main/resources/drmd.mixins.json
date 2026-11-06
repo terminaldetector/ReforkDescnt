@@ -46,7 +46,8 @@
     "client.DroneCombatInputMixin",
     "client.HeldWeaponFallbackMixin",
     "client.BoardingClientTravelMixin",
-    "client.BodyEditInputMixin"
+    "client.BodyEditInputMixin",
+    "client.BoardingClientTeleportMixin"
   ],
   "injectors": {
     "defaultRequire": 1

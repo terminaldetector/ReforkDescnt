@@ -19,6 +19,7 @@ public final class BoardingClient {
     private static final NavigableMap<Integer,Prediction> HISTORY=new TreeMap<>();
     private static Object world;
     private static int epoch=-1,sequence;
+    private static final BoardingEpochBarrier TRANSFERS=new BoardingEpochBarrier();
     private static Vec3 correction=new Vec3(0,0,0);
     private static boolean jumpHeld;
     private static BoardingNetworking.BodyState bodySnapshot;
@@ -51,8 +52,8 @@ public final class BoardingClient {
     public static void register() {
         BlockBodyEntity.clientShapeListener(BoardingClient::shapeChanged);
         ClientPlayNetworking.registerGlobalReceiver(BoardingNetworking.State.ID,(p,c)->c.client().execute(()->apply(p)));
-        ClientPlayConnectionEvents.DISCONNECT.register((h,c)->{clear();BoardingPose.clearClient();readyOwner=null;});
-        ClientPlayConnectionEvents.JOIN.register((h,s,c)->{clear();BoardingPose.clearClient();readyOwner=null;});
+        ClientPlayConnectionEvents.DISCONNECT.register((h,c)->{clear();TRANSFERS.reset();BoardingPose.clearClient();readyOwner=null;});
+        ClientPlayConnectionEvents.JOIN.register((h,s,c)->{clear();TRANSFERS.reset();BoardingPose.clearClient();readyOwner=null;});
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c->{
             if(waitingForShape!=null&&c.world!=null) {
                 var pending=waitingForShape;int id=pending.pose().gravityOwner()>=0?pending.pose().gravityOwner():pending.support();
@@ -81,22 +82,26 @@ public final class BoardingClient {
         var p=HISTORY.get(acknowledgment);return p==null?null:p.state();
     }
     public static void clear(){var p=MinecraftClient.getInstance().player;if(p!=null)BoardingPose.clear(p);state=null;world=null;epoch=-1;sequence=0;HISTORY.clear();correction=new Vec3(0,0,0);jumpHeld=false;bodySnapshot=null;waitingForShape=null;snapshotId=-1;beforeView=null;currentView=null;viewBody=-1;viewAge=-1;}
+    /** Vanilla owns an explicit transfer. Retire old corrections and pending geometry;
+     * the next server boarding lease has a new epoch and may acquire normally. */
+    public static void externalTeleport(){TRANSFERS.retireSeen();clear();}
     private static void apply(BoardingNetworking.State p) {
         var mc=MinecraftClient.getInstance();var player=mc.player;
         if(player==null||mc.world==null)return;
         if(!mc.world.getRegistryKey().getValue().equals(p.dimension()))return;
         if(DescentPlayerData.get(player).isEnabled()){clear();return;}
         if(world!=null&&world!=mc.world)clear();
-        if(p.epoch()<epoch)return;
+        if(p.epoch()<epoch||!TRANSFERS.accepts(p.epoch()))return;
         Vec3 feet=new Vec3(p.x(),p.y(),p.z()),velocity=new Vec3(p.vx(),p.vy(),p.vz());
         if(!Double.isFinite(feet.lengthSquared())||!Double.isFinite(velocity.lengthSquared()))return;
         var authoritative=new DynamicBodyAttachment.State(feet,velocity,p.grounded(),p.support(),p.pose().frame(),p.pose().gravityOwner());
+        TRANSFERS.observe(p.epoch());
         if(!p.active()) {
             if(state!=null) {
                 player.move(MovementType.SELF,BoardingSystem.mc(feet.minus(BoardingSystem.pure(player.getPos()))));
                 player.setVelocity(BoardingSystem.mc(velocity.scaled(.05)));player.setOnGround(false);
             }
-            clear();return;
+            TRANSFERS.retireThrough(p.epoch());clear();return;
         }
         if(p.body()!=null) {
             int id=p.pose().gravityOwner()>=0?p.pose().gravityOwner():p.support();

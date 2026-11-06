@@ -130,6 +130,17 @@ public final class BoardingGameTests implements FabricGameTest {
             c.assertTrue(registry.find(link.id()).isPresent(),"contact transfer does not replace or sever the moving physical assembly");
         } finally {registry.remove(link.id());a.discard();b.discard();p.discard();BoardingSystem.tick(w);}c.complete();});
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-external-teleport")
+    public void anExternalTeleportRetiresOldWalkingCommandsBeforeSendingTheNewPosition(TestContext c) {
+        try(var f=fixture(c)) {
+            BoardingSystem.tick(c.getWorld());c.assertTrue(BoardingSystem.drives(f.p),"initial physical contact acquired");
+            int epoch=BoardingSystem.epoch(f.p);var target=f.p.getPos().add(20,4,20);
+            f.p.teleport(c.getWorld(),target.x,target.y,target.z,java.util.Set.of(),0,0);
+            c.assertTrue(!BoardingSystem.drives(f.p)&&BoardingSystem.state(f.p)==null,"explicit vanilla transfer must retire old movement authority immediately");
+            c.assertTrue(!BoardingSystem.receive(f.p,new BoardingNetworking.Input(epoch,0,1,0,false,0,0,1)),"old walking input cannot act during the teleport handoff");
+            c.assertTrue(f.p.getPos().distanceTo(target)<1e-7,"old boarding state cannot overwrite the external target");
+        }c.complete();
+    }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-flight-handoff")
     public void enablingSixDofReleasesBoardingWithoutRearmingOrSpawningAHull(TestContext c) {
         try(var f=fixture(c)) {

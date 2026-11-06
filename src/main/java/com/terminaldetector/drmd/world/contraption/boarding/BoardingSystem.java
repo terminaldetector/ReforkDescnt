@@ -154,6 +154,11 @@ public final class BoardingSystem {
         p.setOnGround(true);p.setVelocity(mc(l.state.velocity().scaled(.05)));p.fallDistance=0;
         if(p.networkHandler instanceof BoardingConnection connection)connection.drmd$bodyMovementOwned();return l;
     }
+    /** End old input authority before vanilla sends an external position transfer. Pending
+     * saved-world admission is untouched; it does not yet have an active lease. */
+    public static void externalTeleport(ServerPlayerEntity p) {
+        var lease=LEASES.get(p.getUuid());if(lease!=null)release(p,lease,pure(p.getVelocity()).scaled(20));
+    }
     private static void release(ServerPlayerEntity p,Lease l,Vec3 velocity) {
         BoardingRestore.clear(p);
         LEASES.remove(p.getUuid());l.state=new DynamicBodyAttachment.State(pure(p.getPos()),velocity,false,-1);
