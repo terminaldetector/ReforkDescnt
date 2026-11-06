@@ -45,6 +45,7 @@ public final class CubicClientGate implements ClientModInitializer {
     private String capture;
     private final List<String> results=new ArrayList<>();
     @Override public void onInitializeClient() {
+        if(NativeJointReloadCheck.READ){NativeJointReloadCheck.register();return;}
         if(NativeScheduleBudgetCheck.ENABLED)NativeScheduleBudgetCheck.register();
         if(NativeSharedCombatCheck.ENABLED){NativeSharedCombatCheck.register();return;}
         if(NativeTypedCombatRouteCheck.ENABLED){NativeTypedCombatRouteCheck.register();return;}

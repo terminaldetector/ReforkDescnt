@@ -27,7 +27,8 @@
     "CubicScheduleBudgetProbe",
     "RagdollRenderProbe",
     "RagdollPersistenceProbe",
-    "WreckCullingProbe"
+    "WreckCullingProbe",
+    "JointBodyPersistenceProbe"
   ],
   "injectors": {
     "defaultRequire": 1

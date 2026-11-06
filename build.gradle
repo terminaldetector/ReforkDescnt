@@ -254,6 +254,7 @@ sourceSets {
         java.include 'com/terminaldetector/drmd/gate/NativeBodyIndexCheck.java'
         java.include 'com/terminaldetector/drmd/gate/NativeBodyCollisionCheck.java'
         java.include 'com/terminaldetector/drmd/gate/NativeJointCheck.java'
+        java.include 'com/terminaldetector/drmd/gate/NativeJointReloadCheck.java'
         java.include 'com/terminaldetector/drmd/boardingcheck/**'
         compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
         runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath

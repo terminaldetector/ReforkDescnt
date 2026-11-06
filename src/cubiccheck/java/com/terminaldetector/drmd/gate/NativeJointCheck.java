@@ -37,7 +37,7 @@ public final class NativeJointCheck {
     private static double seamAssemblyStart,seamAssemblyTravel;
     private static net.minecraft.entity.Entity entity(BlockBodyEntity b){return b;}
     private static void require(boolean value,String message){if(!value){finished=true;MinecraftClient.getInstance().scheduleStop();throw new IllegalStateException(message);}}
-    public static void register(){ClientTickEvents.END_CLIENT_TICK.register(NativeJointCheck::tick);}
+    public static void register(){NativeJointReloadCheck.registerWriter();ClientTickEvents.END_CLIENT_TICK.register(NativeJointCheck::tick);}
     public static void drew(BlockBodyEntity b){if(ready&&!finished)DRAWN.add(entity(b).getId());}
     public static void received(BoardingNetworking.State s) {
         if(!ready||finished)return;
@@ -171,7 +171,7 @@ public final class NativeJointCheck {
                     p.teleport(p.getServerWorld(),at.x,at.y,at.z,Set.of(),0,15);p.setVelocity(BoardingSystem.mc(body.physics().linearVelocity().scaled(.05)));seamPlaced=true;
                 });
             }
-            if(phase==5){Files.writeString(c.runDirectory.toPath().resolve("joints-ok.json"),"{\"actualJoints\":true,\"actualRenderer\":true,\"actualPlatformPlayer\":true,\"forceBreak\":true,\"teleportFollow\":false,\"maxServerAnchorError\":"+serverAnchorError+",\"maxClientAnchorError\":"+maxAnchorError+",\"motorSpeedError\":"+serverMotorError+",\"platformTravel\":"+platformTravel+",\"breakVelocityError\":"+serverBreakVelocityError+",\"seamLeftSamples\":"+seamLeftSamples+",\"seamRightSamples\":"+seamRightSamples+",\"seamSupportChanges\":"+seamChanges+",\"seamAssemblyTravel\":"+seamAssemblyTravel+",\"platformSamples\":"+platformSamples+",\"predictionSamples\":"+predictionSamples+",\"maxPredictionError\":"+predictionError+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");finished=true;c.options.forwardKey.setPressed(false);c.options.leftKey.setPressed(false);c.scheduleStop();}
+            if(phase==5){NativeJointReloadCheck.watch(bodies);Files.writeString(c.runDirectory.toPath().resolve("joints-ok.json"),"{\"actualJoints\":true,\"actualRenderer\":true,\"actualPlatformPlayer\":true,\"forceBreak\":true,\"teleportFollow\":false,\"maxServerAnchorError\":"+serverAnchorError+",\"maxClientAnchorError\":"+maxAnchorError+",\"motorSpeedError\":"+serverMotorError+",\"platformTravel\":"+platformTravel+",\"breakVelocityError\":"+serverBreakVelocityError+",\"seamLeftSamples\":"+seamLeftSamples+",\"seamRightSamples\":"+seamRightSamples+",\"seamSupportChanges\":"+seamChanges+",\"seamAssemblyTravel\":"+seamAssemblyTravel+",\"platformSamples\":"+platformSamples+",\"predictionSamples\":"+predictionSamples+",\"maxPredictionError\":"+predictionError+",\"scenes\":["+String.join(",",RESULTS)+"]}\n");finished=true;c.options.forwardKey.setPressed(false);c.options.leftKey.setPressed(false);c.scheduleStop();}
         }catch(java.io.IOException e){throw new IllegalStateException(e);}
     }
 }
