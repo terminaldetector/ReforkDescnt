@@ -54,7 +54,8 @@
     "ufo-full-rotation-regression.zip": "e0c3fac740ec94bc9088c8ff370c3f20925303d628bb9f65a469e2d83c79df2b",
     "boarding-seam-ffe7e75.zip": "4dd383316e6f4b6f12c40acee506e79625da0e998c9e3c2057a6629fd81de767",
     "module-restart-0c9faa6.zip": "72c107f9bc354e2c0cbaa444b658e23815ca2e96968f7929167aafc798ad9e43",
-    "island-load-1a848d5.zip": "a8f6f579e8914628a8e6878551b0803161793475fc48f9bdeaf898bc020987af"
+    "island-load-1a848d5.zip": "a8f6f579e8914628a8e6878551b0803161793475fc48f9bdeaf898bc020987af",
+    "ufo-bay-84ff1a5.zip": "e97a71525d2cf6d60a80d8b3b77ee17e050dbac16a7e221af4feaefd85d71dc9"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -1411,5 +1412,82 @@
     "scope": "Occupied constraint-island loading, true cold return, saved-volume schema2, damaged entity pivot, world-gravity predicted support rendering and bounded vanilla unload retries; full v8 and Dynamic Boarding remain open",
     "archive": "docs/v8/EVIDENCE/island-load-1a848d5.zip",
     "archiveSha256": "a8f6f579e8914628a8e6878551b0803161793475fc48f9bdeaf898bc020987af"
+  },
+  "ufoBayControl": {
+    "source": "84ff1a586a229d7ea0495dffc10cd914463a1726",
+    "productionSource": "d63ca2141ef6bb92f21c6c7690b2d68684e3bbf0",
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "302d150dc514a5cc4ebaabc42a7673b30c14e5616885fe46bd89beadffa703b2",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "1eb897e27f5b50fab607da5dee9f4a7b6bd6d509316f0c069ff50f746e55d6f6"
+    },
+    "unit": {
+      "tests": 722,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "server": {
+      "tests": 292,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "native": {
+      "gl32": {
+        "bayPausedSamples": 24,
+        "bayResumed": true,
+        "deathReleased": false,
+        "pauseResumed": true,
+        "controlCore": true,
+        "actualUfo": true,
+        "externalEntry": true,
+        "actualThrust": true,
+        "walkingHandoff": true,
+        "roofContacts": 0,
+        "teleportFollow": false,
+        "renderedFrames": 199,
+        "predictionSamples": 74,
+        "maxPredictionError": 0.025434222622060076,
+        "scenes": [
+          "external-approach",
+          "moving-bay-entry",
+          "flight-to-boarding",
+          "boarded-walking",
+          "control-acquired",
+          "control-thrust-and-roll",
+          "control-release"
+        ]
+      },
+      "sodium": {
+        "bayPausedSamples": 26,
+        "bayResumed": true,
+        "deathReleased": false,
+        "pauseResumed": true,
+        "controlCore": true,
+        "actualUfo": true,
+        "externalEntry": true,
+        "actualThrust": true,
+        "walkingHandoff": true,
+        "roofContacts": 0,
+        "teleportFollow": false,
+        "renderedFrames": 195,
+        "predictionSamples": 68,
+        "maxPredictionError": 0.025049488495355376,
+        "scenes": [
+          "external-approach",
+          "moving-bay-entry",
+          "flight-to-boarding",
+          "boarded-walking",
+          "control-acquired",
+          "control-thrust-and-roll",
+          "control-release"
+        ]
+      }
+    },
+    "releaseAccepted": false,
+    "publication": "Local only",
+    "scope": "Captured UFO pauses autonomous hostile bay/timer and restores AI bay cycle at release; physical identity/momentum and existing independently deployed drones are preserved. Full v8/Dynamic Boarding remain open.",
+    "archive": "docs/v8/EVIDENCE/ufo-bay-84ff1a5.zip",
+    "archiveSha256": "e97a71525d2cf6d60a80d8b3b77ee17e050dbac16a7e221af4feaefd85d71dc9"
   }
 }

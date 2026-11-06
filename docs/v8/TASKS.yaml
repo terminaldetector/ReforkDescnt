@@ -672,8 +672,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [CONTROL_CORE_WIP.md, CONTROL_CORE_LIFECYCLE_2026-11-04.md, EVIDENCE/ufo-control-0dff43b.zip, EVIDENCE/ufo-control-lifecycle-ea9c9eb.zip, BOARDING_SUPPORT_TRANSFER_2026-11-06.md, EVIDENCE/boarding-seam-ffe7e75.zip, MODULE_RESTART_2026-11-06.md, EVIDENCE/module-restart-0c9faa6.zip, ISLAND_LOADING_2026-11-06.md, EVIDENCE/island-load-1a848d5.zip]
-  notes: Partial capture/pilot exit, joined-deck transfer, external-transfer retirement, generic module restart and bounded connected-island cold-return proof on Mesa/Sodium; arbitrary long-assembly maneuvers/delayed landing, free-ship/portal-group transitions and full functional UFO controls remain open.
+  evidence: [CONTROL_CORE_WIP.md, CONTROL_CORE_LIFECYCLE_2026-11-04.md, EVIDENCE/ufo-control-0dff43b.zip, EVIDENCE/ufo-control-lifecycle-ea9c9eb.zip, BOARDING_SUPPORT_TRANSFER_2026-11-06.md, EVIDENCE/boarding-seam-ffe7e75.zip, MODULE_RESTART_2026-11-06.md, EVIDENCE/module-restart-0c9faa6.zip, ISLAND_LOADING_2026-11-06.md, EVIDENCE/island-load-1a848d5.zip, UFO_BAY_CONTROL_2026-11-06.md, EVIDENCE/ufo-bay-84ff1a5.zip]
+  notes: Partial capture/pilot exit, joined-deck/external transfer, module restart, bounded island cold return and autonomous bay ownership pause/resume proof on Mesa/Sodium; mounted weapons, damaged engines, full functional modules/control restart and free-ship/portal groups remain open.
 - id: S09-T05
   stage: S09
   stage_title: BlockBody / UFO boarding and reactor
