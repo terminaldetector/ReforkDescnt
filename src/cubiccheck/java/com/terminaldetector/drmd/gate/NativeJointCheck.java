@@ -41,7 +41,7 @@ public final class NativeJointCheck {
     public static void drew(BlockBodyEntity b){if(ready&&!finished)DRAWN.add(entity(b).getId());}
     public static void received(BoardingNetworking.State s) {
         if(!ready||finished)return;
-        if(phase==4&&seamLeftSamples>0)require(s.active(),"joined deck transition released the actual boarding lease");
+        if(phase==4&&seamLeftSamples>0)require(s.active(),"joined deck transition released the actual boarding lease: before="+last+" after="+s);
         if(!s.active())return;
         if(phase==4&&s.grounded()&&(s.support()==ids[6]||s.support()==ids[7])) {
             if(seamEpoch<0)seamEpoch=s.epoch();require(s.epoch()==seamEpoch,"support transition reset the input epoch");
