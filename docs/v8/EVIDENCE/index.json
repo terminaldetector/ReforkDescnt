@@ -53,7 +53,8 @@
     "ufo-flight-22f3c10.zip": "38c4f2e51b7d3ee8f519c4f9f234aadc2d08dc5ed10d97c3f49c171386ea94fa",
     "ufo-full-rotation-regression.zip": "e0c3fac740ec94bc9088c8ff370c3f20925303d628bb9f65a469e2d83c79df2b",
     "boarding-seam-ffe7e75.zip": "4dd383316e6f4b6f12c40acee506e79625da0e998c9e3c2057a6629fd81de767",
-    "module-restart-0c9faa6.zip": "72c107f9bc354e2c0cbaa444b658e23815ca2e96968f7929167aafc798ad9e43"
+    "module-restart-0c9faa6.zip": "72c107f9bc354e2c0cbaa444b658e23815ca2e96968f7929167aafc798ad9e43",
+    "island-load-1a848d5.zip": "a8f6f579e8914628a8e6878551b0803161793475fc48f9bdeaf898bc020987af"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -1281,5 +1282,134 @@
     "scope": "External vanilla transfer authority and actual generic physical module restart; full master v8, UFO modules/control and Dynamic Boarding remain open",
     "archive": "docs/v8/EVIDENCE/module-restart-0c9faa6.zip",
     "archiveSha256": "72c107f9bc354e2c0cbaa444b658e23815ca2e96968f7929167aafc798ad9e43"
+  },
+  "islandLoading": {
+    "source": "1a848d5a68ee048ee33b9d0c33a674a6ea8b634e",
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "c6edcd5d0b7a25b6489cfca64bc90aeb99e196b4ac208231769a1a525f5d7ffb",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "09be991b644d0e3b0edf14759599c7ffeb1b3559d7b64f9f809feec7bd4a066f"
+    },
+    "unit": {
+      "tests": 722,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "server": {
+      "tests": 291,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "native": {
+      "island-final4-sodium": {
+        "maxFarColumns": 10,
+        "stableContactTicks": 20,
+        "unloadedTicks": 20,
+        "postLoadWalkDistance": 7.814246757249881,
+        "actualColdRestore": 3,
+        "actualUnload": true,
+        "farModuleBeyondPlayerHalo": true,
+        "savedBodies": 3,
+        "scenes": [
+          "occupied-chain",
+          "cold-return"
+        ],
+        "maxAnchorError": 2.7642996243313847e-08,
+        "renderViews": {
+          "occupied": {
+            "renderedLocalFeet": {
+              "x": 6.315600243924344,
+              "y": 1.0002256027492358,
+              "z": 1.3467921600845494
+            },
+            "delta": 0.38000154,
+            "predictedBodyView": true,
+            "clientLocalFeet": {
+              "field_1352": 6.446126517578094,
+              "field_1351": 0.9961069201548765,
+              "field_1350": 1.721559193420803
+            }
+          },
+          "restored": {
+            "renderedLocalFeet": {
+              "x": 9.308305528765551,
+              "y": 1.0000782717179857,
+              "z": 1.1933094087493605
+            },
+            "delta": 0.6000016,
+            "predictedBodyView": true,
+            "clientLocalFeet": {
+              "field_1352": 9.392643873713851,
+              "field_1351": 0.9973294845341616,
+              "field_1350": 1.4934012466403608
+            }
+          }
+        }
+      },
+      "island-final4-gl32": {
+        "savedBodies": 3,
+        "farModuleBeyondPlayerHalo": true,
+        "actualUnload": true,
+        "actualColdRestore": 3,
+        "postLoadWalkDistance": 16.236346197320394,
+        "unloadedTicks": 20,
+        "stableContactTicks": 20,
+        "maxFarColumns": 10,
+        "maxAnchorError": 1.3941812011011517e-05,
+        "scenes": [
+          "occupied-chain",
+          "cold-return"
+        ],
+        "renderViews": {
+          "occupied": {
+            "predictedBodyView": true,
+            "delta": 0.30000782,
+            "renderedLocalFeet": {
+              "x": 33.89548887554044,
+              "y": 1.0002238183636036,
+              "z": 1.2653021619203764
+            },
+            "clientLocalFeet": {
+              "field_1352": 34.0428808322887,
+              "field_1351": 0.9969180804244305,
+              "field_1350": 1.715426680335213
+            }
+          },
+          "restored": {
+            "predictedBodyView": true,
+            "delta": 0.16000783,
+            "renderedLocalFeet": {
+              "x": 17.42724239264284,
+              "y": 1.000073467327422,
+              "z": 1.1913119130101641
+            },
+            "clientLocalFeet": {
+              "field_1352": 17.60428243934966,
+              "field_1351": 0.9970011827721156,
+              "field_1350": 1.5663105230015066
+            }
+          }
+        }
+      }
+    },
+    "moduleRestart": {
+      "actualProcessRestart": true,
+      "beforeFirstTickBodies": 8,
+      "brokenJointAbsent": true,
+      "exactJointRegistry": true,
+      "survivingJoints": 3,
+      "stableContactTicks": 30,
+      "ordinaryKeyboardWalkDistance": 0.8334153830494244,
+      "maxAnchorError": 7.358818894923708e-06,
+      "freshFrames": 6,
+      "noReplacementBodies": true
+    },
+    "restartSnapshotSha256": "4f0c756eeabb2f96c7c120085db139284c39f6df8c9e090f9c72c34fbf4a7f18",
+    "publication": "Local only",
+    "releaseAccepted": false,
+    "scope": "Occupied constraint-island loading, true cold return, saved-volume schema2, damaged entity pivot, world-gravity predicted support rendering and bounded vanilla unload retries; full v8 and Dynamic Boarding remain open",
+    "archive": "docs/v8/EVIDENCE/island-load-1a848d5.zip",
+    "archiveSha256": "a8f6f579e8914628a8e6878551b0803161793475fc48f9bdeaf898bc020987af"
   }
 }
