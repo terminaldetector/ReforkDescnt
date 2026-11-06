@@ -46,6 +46,7 @@ public final class CubicClientGate implements ClientModInitializer {
     private final List<String> results=new ArrayList<>();
     @Override public void onInitializeClient() {
         if(NativeScheduleBudgetCheck.ENABLED)NativeScheduleBudgetCheck.register();
+        if(NativeSharedCombatCheck.ENABLED){NativeSharedCombatCheck.register();return;}
         if(NativeTypedCombatRouteCheck.ENABLED){NativeTypedCombatRouteCheck.register();return;}
         if(NativeDroneWreckCheck.ENABLED){NativeDroneWreckCheck.register();return;}
         if(NativeFlightEnemyCheck.ENABLED){NativeFlightEnemyCheck.register();return;}
