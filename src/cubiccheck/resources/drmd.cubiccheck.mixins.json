@@ -26,7 +26,8 @@
     "FlightEnemyRenderProbe",
     "CubicScheduleBudgetProbe",
     "RagdollRenderProbe",
-    "RagdollPersistenceProbe"
+    "RagdollPersistenceProbe",
+    "WreckCullingProbe"
   ],
   "injectors": {
     "defaultRequire": 1
