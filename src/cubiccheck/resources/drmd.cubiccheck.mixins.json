@@ -30,7 +30,8 @@
     "WreckCullingProbe",
     "JointBodyPersistenceProbe",
     "UfoControlInputProbe",
-    "UfoProjectileRenderProbe"
+    "UfoProjectileRenderProbe",
+    "UfoProjectileHitProbe"
   ],
   "injectors": {
     "defaultRequire": 1

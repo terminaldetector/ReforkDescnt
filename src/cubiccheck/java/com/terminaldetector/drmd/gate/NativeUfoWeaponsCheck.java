@@ -54,6 +54,12 @@ public final class NativeUfoWeaponsCheck {
         require(muzzleError<1e-8&&launchError<1e-8&&pointVelocityError<1e-8,"actual muzzle/direction/linear+angular inheritance mismatch");
         if(stage==1){if(cfg.meshKind==1)rockets++;else lasers++;}else{if(cfg.meshKind==1)repairRockets++;else repairLasers++;}
     }
+    public static void hit(ProjectileEntity shot,net.minecraft.util.hit.EntityHitResult hit){
+        if(!ENABLED||body==null||hit.getEntity()!=body&&shot.getOwnerLiving()!=pilot)return;
+        var data=Map.of("owner",String.valueOf(shot.getOwnerLiving()),"target",String.valueOf(hit.getEntity()),"localImpact",String.valueOf(body.worldToLocal(hit.getPos())),"projectile",entity(shot).writeNbt(new net.minecraft.nbt.NbtCompound()).toString());
+        System.out.println("UFO_WEAPON_ACTUAL_HIT "+data);
+        try{Files.writeString(MinecraftClient.getInstance().runDirectory.toPath().resolve("native-weapon-hits.jsonl"),new com.google.gson.Gson().toJson(data)+"\n",StandardOpenOption.CREATE,StandardOpenOption.APPEND);}catch(java.io.IOException e){throw new IllegalStateException(e);}
+    }
     public static void drew(ProjectileEntity p){if(ENABLED&&SHOTS.containsKey(entity(p).getUuid()))RENDERED.add(entity(p).getUuid());}
     private static void held(MinecraftClient c,boolean b){c.options.attackKey.setPressed(b);c.options.useKey.setPressed(b);}
     public static boolean complete(){return stage==5;}
