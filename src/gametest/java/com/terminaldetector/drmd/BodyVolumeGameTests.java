@@ -78,10 +78,20 @@ public final class BodyVolumeGameTests implements FabricGameTest {
         var f=fleet(c,26000,26000);var missing=f.bodies.get(2);
         c.waitAndRun(8,()->{
             missing.remove(net.minecraft.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK);
+            // Observe the request/absence before the real chunk loader can restore the
+            // saved entity. A normal reload during the following five ticks is legitimate.
+            try{c.assertTrue(BodySpatialIndex.loaded(c.getWorld()).stream().noneMatch(b->b.getUuid().equals(missing.getUuid())),"ordinary unload establishes actual absence before asynchronous demand loading");}
+            catch(Throwable failure){f.close();throw failure;}
             c.waitAndRun(5,()->{try {
                 c.assertTrue(BodyJointRegistry.get(c.getWorld()).forBody(missing.getUuid()).size()==1,"ordinary unload preserves the connection to the missing physical identity");
                 c.assertTrue(BodyVolumeLeases.heldColumns(c.getWorld(),missing.getUuid())>0,"occupied island must request the real stored volume of its unloaded partner");
-                c.assertTrue(BodySpatialIndex.loaded(c.getWorld()).stream().noneMatch(b->b.getUuid().equals(missing.getUuid())),"loading request cannot manufacture a replacement body");
+                var restored=BodySpatialIndex.loaded(c.getWorld()).stream().filter(b->b.getUuid().equals(missing.getUuid())).toList();
+                c.assertTrue(restored.size()<=1,"loading request cannot duplicate the stored physical identity");
+                if(!restored.isEmpty()){
+                    var actual=restored.getFirst();
+                    c.assertTrue(actual!=missing&&c.getWorld().getEntity(missing.getUuid())==actual&&actual.getType()==missing.getType()&&actual.cells().equals(missing.cells()),"a legitimate reload is the canonical server entity with the original type and material grid");
+                    c.assertTrue(actual.massPosition().minus(missing.massPosition()).length()<1e-7&&actual.physics().linearVelocity().minus(missing.physics().linearVelocity()).length()<1e-8&&actual.physics().angularMomentum().minus(missing.physics().angularMomentum()).length()<1e-8,"read-back preserves the actual unloaded body's position and physical momentum");
+                }
             }finally{f.close();}c.complete();});
         });
     }
