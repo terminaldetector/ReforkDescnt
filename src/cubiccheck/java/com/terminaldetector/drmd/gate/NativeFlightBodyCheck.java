@@ -72,6 +72,7 @@ public final class NativeFlightBodyCheck {
         }
         age++;
         if(age%20==0)System.out.println("FLIGHT_BODY_CLIENT_CLOCK canSend="+ClientPlayNetworking.canSend(FlightBodyNetworking.Input.ID)+" pending="+FlightBodyClient.pending()+" sequence="+FlightBodyClient.sequence());
+        if(phase==13){if(NativeUfoWeaponsCheck.exteriorReady(c)){request("mounted-weapon-parts-exterior");phase=8;}return;}
         if(phase==12){if(NativeUfoEngineCheck.exteriorReady(c)){request("engine-pods-exterior");phase=8;}return;}
         if(phase==0&&FlightBodyClient.active()&&serverEpoch>0&&local!=null) {
             require(local.z< -11,"fixture must begin outside the actual UFO, not inside");
@@ -103,6 +104,7 @@ public final class NativeFlightBodyCheck {
                     require(BoardingSystem.pure(local).minus(beforePilot).length()<.4,"pilot input must drive the hull rather than walk the character");request("control-thrust-and-roll");controlStep=2;age=0;
                 }else if(controlStep==2&&age>=5){
                     if(NativeUfoEngineCheck.ENABLED&&!NativeUfoEngineCheck.complete()){var extra=NativeUfoEngineCheck.tick(c);if(extra!=null)request(extra);return;}
+                    if(NativeUfoWeaponsCheck.ENABLED&&!NativeUfoWeaponsCheck.complete()){var extra=NativeUfoWeaponsCheck.tick(c);if(extra!=null)request(extra);return;}
                     ClientPlayNetworking.send(new ModNetworking.ActionPayload("toggle"));controlStep=3;age=0;
                 }else if(controlStep==3&&age>=8&&!serverControl&&!UfoControlClient.active()){
                     require(!com.terminaldetector.drmd.client.DescentClientState.enabled&&walking,"H release must return to physical walking without enabling suit flight");
@@ -136,7 +138,7 @@ public final class NativeFlightBodyCheck {
         entity(ufo).refreshPositionAndAngles(AT.getX(),AT.getY(),AT.getZ(),0,0);require(w.spawnEntity(ufo),"spawn real UFO");entity(ufo).tick();bodyId=entity(ufo).getId();
         ufo.physics().withLinearVelocity(new Vec3(.5,0,0)).withAngularVelocity(new Vec3(0,.08,0));ufo.setPassengerGravity(new Vec3(0,-32,0));ufo.publishPhysicsState();bodyStart=entity(ufo).getPos();
         var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());p.teleport(w,AT.getX(),AT.getY()+.1,AT.getZ()-14,Set.of(),0,0);configure(p);w.setTimeOfDay(6000);ready=true;
-        NativeUfoEngineCheck.watch(ufo,p);
+        NativeUfoEngineCheck.watch(ufo,p);NativeUfoWeaponsCheck.watch(ufo,p);
         ServerTickEvents.END_WORLD_TICK.register(world->{
             if(world!=w||finished)return;local=ufo.worldToLocal(p.getPos());serverFeet=p.getPos();bodyNow=entity(ufo).getPos();serverEpoch=FlightBodySystem.epoch(p);walking=BoardingSystem.drives(p);serverControl=com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p);controlVelocity=ufo.physics().linearVelocity();controlSpin=ufo.physics().angularVelocity();
             if(CONTROL&&(serverControl||bayHeldSamples>0)) {
@@ -166,7 +168,7 @@ public final class NativeFlightBodyCheck {
     }
     private static void request(String s){scene=s;capturing=true;frames=0;captureDrawStart=draws;}
     public static void rendered() {
-        if(!capturing||finished)return;if(scene.equals("engine-pods-exterior")&&draws-captureDrawStart<3)return;var c=MinecraftClient.getInstance();if(c.player==null||(c.currentScreen!=null&&!scene.equals("control-death-release"))||++frames<3)return;
+        if(!capturing||finished)return;if((scene.equals("engine-pods-exterior")||scene.equals("mounted-weapon-parts-exterior"))&&draws-captureDrawStart<3)return;var c=MinecraftClient.getInstance();if(c.player==null||(c.currentScreen!=null&&!scene.equals("control-death-release"))||++frames<3)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             var out=c.runDirectory.toPath().resolve("flight-body-frames");Files.createDirectories(out);image.writeTo(out.resolve(scene+".png"));scenes.add(scene);capturing=false;
             System.out.println("FLIGHT_BODY_CLIENT "+scene+" PASS local="+local);
@@ -175,6 +177,7 @@ public final class NativeFlightBodyCheck {
             }
             if(CONTROL&&scene.equals("control-acquired")){pauseChecking=true;pauseTicks=0;c.setScreen(new net.minecraft.client.gui.screen.GameMenuScreen(true));}
             if(NativeUfoEngineCheck.ENABLED&&scene.equals("control-release")){NativeUfoEngineCheck.prepareExterior(c);phase=12;age=0;return;}
+            if(NativeUfoWeaponsCheck.ENABLED&&scene.equals("control-release")){NativeUfoWeaponsCheck.prepareExterior(c);phase=13;age=0;return;}
             if(LIFECYCLE&&scene.equals("control-release")){phase=9;age=0;return;}
             if(LIFECYCLE&&scene.equals("control-reacquired")){
                 phase=11;age=0;c.getServer().execute(()->c.getServer().getPlayerManager().getPlayer(c.player.getUuid()).setHealth(0));return;
@@ -184,6 +187,7 @@ public final class NativeFlightBodyCheck {
                 require(!LIFECYCLE||deathReleased,"lifecycle run must release both client and server ownership after actual player death");
                 Files.writeString(c.runDirectory.toPath().resolve(CONTROL?"ufo-control-ok.json":"flight-body-ok.json"),"{\"bayPausedSamples\":"+bayHeldSamples+",\"bayResumed\":"+bayResumed+",\"deathReleased\":"+deathReleased+",\"pauseResumed\":"+pauseVerified+",\"controlCore\":"+CONTROL+",\"actualUfo\":true,\"externalEntry\":true,\"actualThrust\":true,\"walkingHandoff\":true,\"roofContacts\":"+roofContacts+",\"teleportFollow\":false,\"renderedFrames\":"+draws+",\"predictionSamples\":"+samples+",\"maxPredictionError\":"+maxError+",\"scenes\":[\""+String.join("\",\"",scenes)+"\"]}\n");
                 NativeUfoEngineCheck.append(c.runDirectory.toPath().resolve("ufo-control-ok.json"));
+                NativeUfoWeaponsCheck.append(c.runDirectory.toPath().resolve("ufo-control-ok.json"));
                 finished=true;c.scheduleStop();
             }
         }catch(java.io.IOException e){throw new IllegalStateException(e);}

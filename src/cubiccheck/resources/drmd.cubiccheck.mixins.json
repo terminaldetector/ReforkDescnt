@@ -29,7 +29,8 @@
     "RagdollPersistenceProbe",
     "WreckCullingProbe",
     "JointBodyPersistenceProbe",
-    "UfoControlInputProbe"
+    "UfoControlInputProbe",
+    "UfoProjectileRenderProbe"
   ],
   "injectors": {
     "defaultRequire": 1

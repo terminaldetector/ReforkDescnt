@@ -17,4 +17,6 @@ public class UfoControlInputProbe {
     private static void accepted(ServerPlayerEntity player,UfoControlSystem.Input input,CallbackInfoReturnable<Boolean> result){
         if(result.getReturnValueZ())NativeUfoEngineCheck.accepted(player,input);
     }
+    @Inject(method="receiveFire",at=@At("RETURN"),remap=false)
+    private static void fire(ServerPlayerEntity player,UfoControlSystem.Fire input,CallbackInfoReturnable<Boolean> result){if(result.getReturnValueZ())com.terminaldetector.drmd.gate.NativeUfoWeaponsCheck.accepted(player,input);}
 }
