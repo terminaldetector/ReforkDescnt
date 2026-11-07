@@ -16,14 +16,17 @@ import java.util.*;
 
 public final class UfoWeaponGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-detached-contact",tickLimit=140)
-    public void actualDetachedCapAndTurretCannotFreezeTheirCarrier(TestContext c){admitted(c,()->{
-        detachedFixture(c,"turret-detach-collision");detachedFixture(c,"turret-detach-first-tick");var lease=LEASES.remove(c);if(lease!=null)lease.close();c.complete();
+    public void actualDetachedCapAndTurretCannotFreezeTheirCarrier(TestContext c){
+        // Keep the native near-origin fixture near the origin: strict absolute momentum
+        // tolerances must not measure quantization of a multi-million-block test-grid offset.
+        var at=new BlockPos(8,c.getAbsolutePos(new BlockPos(8,220,8)).getY(),8);admittedAt(c,at,()->{
+        detachedFixture(c,"turret-detach-collision",Vec3d.of(at));detachedFixture(c,"turret-detach-first-tick",Vec3d.of(at));var lease=LEASES.remove(c);if(lease!=null)lease.close();c.complete();
     });}
-    private void detachedFixture(TestContext c,String fixture){
+    private void detachedFixture(TestContext c,String fixture,Vec3d target){
         var bodies=new ArrayList<BlockBodyEntity>();
         try(var input=getClass().getResourceAsStream("/fixtures/"+fixture+".snbt")){
             var tags=net.minecraft.nbt.StringNbtReader.parse(new String(input.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8)).getList("bodies",net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
-            var target=Vec3d.of(c.getAbsolutePos(new BlockPos(8,220,8)));var first=tags.getCompound(0).getList("Pos",net.minecraft.nbt.NbtElement.DOUBLE_TYPE);var shift=target.subtract(first.getDouble(0),first.getDouble(1),first.getDouble(2));
+            var first=tags.getCompound(0).getList("Pos",net.minecraft.nbt.NbtElement.DOUBLE_TYPE);var shift=target.subtract(first.getDouble(0),first.getDouble(1),first.getDouble(2));
             for(int i=0;i<tags.size();i++){var b=ModEntities.BLOCK_BODY.create(c.getWorld());b.readNbt(tags.getCompound(i));b.setPosition(b.getPos().add(shift));c.assertTrue(c.getWorld().spawnEntity(b),"real saved collision body");bodies.add(b);}
             var start=bodies.getFirst().massPosition();
             for(int tick=0;tick<12;tick++){
@@ -38,8 +41,9 @@ public final class UfoWeaponGameTests implements FabricGameTest {
         }catch(java.io.IOException|com.mojang.brigadier.exceptions.CommandSyntaxException e){throw new IllegalStateException(e);}finally{bodies.forEach(net.minecraft.entity.Entity::discard);}
     }
     private static final Map<TestContext,AiFixtureChunks> LEASES=new IdentityHashMap<>();
-    private void admitted(TestContext c,Runnable action) {
-        var base=c.getAbsolutePos(new BlockPos(8,220,8));var chunks=new AiFixtureChunks(c.getWorld(),base,3);LEASES.put(c,chunks);
+    private void admitted(TestContext c,Runnable action) {admittedAt(c,c.getAbsolutePos(new BlockPos(8,220,8)),action);}
+    private void admittedAt(TestContext c,BlockPos base,Runnable action) {
+        var chunks=new AiFixtureChunks(c.getWorld(),base,3);LEASES.put(c,chunks);
         var positions=new ArrayList<BlockPos>();for(int x=-3;x<=3;x++)for(int z=-3;z<=3;z++)positions.add(base.add(x*16,0,z*16));
         boolean[] started={false};int[] ticks={0};
         c.runAtEveryTick(()->{
