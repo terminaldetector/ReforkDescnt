@@ -30,7 +30,7 @@ public final class NativeUfoWeaponsCheck {
     private static net.minecraft.entity.Entity entity(net.minecraft.entity.Entity e){return e;}
     private static List<BlockPos> slots(){var s=new ArrayList<>(SkyUfoWeapons.LASERS);s.addAll(SkyUfoWeapons.ROCKETS);return s;}
     private static Map<BlockPos,BlockState> grid(){var m=new HashMap<BlockPos,BlockState>();for(var c:body.cells())m.put(c.pos(),c.state());return m;}
-    private static void require(boolean b,String why){if(!b)throw new IllegalStateException("UFO mounted weapons: "+why);}
+    private static void require(boolean b,String why){if(!b){MinecraftClient.getInstance().scheduleStop();throw new IllegalStateException("UFO mounted weapons: "+why);}}
     public static void watch(SkyUfoEntity b,ServerPlayerEntity p){
         if(!ENABLED)return;body=b;pilot=p;original=grid();
         ServerTickEvents.END_WORLD_TICK.register(w->{if(w!=entity(b).getWorld()||stage<1||stage>=5)return;
@@ -59,7 +59,7 @@ public final class NativeUfoWeaponsCheck {
     public static boolean complete(){return stage==5;}
     public static String tick(MinecraftClient c){
         for(var e:c.world.getEntities())if(e instanceof ProjectileEntity&&SHOTS.containsKey(e.getUuid()))SYNCHRONIZED.add(e.getUuid());
-        if(stage==0){stage=1;startRotation=body.rotation();held(c,true);}
+        if(stage==0){startRotation=body.rotation();stage=1;held(c,true);}
         else if(stage==1&&lasers>=6&&rockets>=2){
             stage=4;c.getServer().execute(()->{
                 var p=new Vec3d(3.5,-.5,3.5);var at=body.localToWorld(p);var v=body.surfaceVelocityAt(at);var cuts=new HashMap<BlockPos,BlockState>();for(var s:slots())cuts.put(s,Blocks.AIR.getDefaultState());
@@ -71,7 +71,9 @@ public final class NativeUfoWeaponsCheck {
                 var point=new Vec3d(3.5,-.5,3.5);var at=body.localToWorld(point);var v=body.surfaceVelocityAt(at);var access=new BlockBodyWorldAccess(body);
                 for(var s:slots())require(access.placeLocalBlock(s,original.get(s)),"real collision-checked repair of mounted part");
                 materialError=Math.max(materialError,Math.max(at.distanceTo(body.localToWorld(point)),v.distanceTo(body.surfaceVelocityAt(body.localToWorld(point)))));
-                require(materialError<1e-8&&grid().equals(original),"repair preserves material motion and exact original grid");repairRevision=body.shapeRevision();stage=3;
+                var current=grid();var changed=new java.util.TreeMap<String,String>();var all=new HashSet<>(original.keySet());all.addAll(current.keySet());for(var s:all)if(!Objects.equals(original.get(s),current.get(s)))changed.put(s.toString(),original.get(s)+" -> "+current.get(s));
+                try{Files.writeString(c.runDirectory.toPath().resolve("native-weapon-repair-diagnostic.json"),new com.google.gson.Gson().toJson(Map.of("materialError",materialError,"changed",changed,"expectedCells",original.size(),"actualCells",current.size())));Files.writeString(c.runDirectory.toPath().resolve("native-weapon-repaired-body.snbt"),entity(body).writeNbt(new net.minecraft.nbt.NbtCompound()).toString());}catch(java.io.IOException e){throw new IllegalStateException(e);}
+                require(materialError<1e-8&&current.equals(original),"repair preserves material motion and exact original grid: error="+materialError+" changes="+changed);repairRevision=body.shapeRevision();stage=3;
             });
         }else if(stage==3&&repairLasers>=4&&repairRockets>=2){
             require(rotationTravel>.3,"mounted fire must be observed during genuine hull rotation");
