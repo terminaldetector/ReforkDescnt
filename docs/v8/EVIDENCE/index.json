@@ -56,7 +56,8 @@
     "module-restart-0c9faa6.zip": "72c107f9bc354e2c0cbaa444b658e23815ca2e96968f7929167aafc798ad9e43",
     "island-load-1a848d5.zip": "a8f6f579e8914628a8e6878551b0803161793475fc48f9bdeaf898bc020987af",
     "ufo-bay-84ff1a5.zip": "e97a71525d2cf6d60a80d8b3b77ee17e050dbac16a7e221af4feaefd85d71dc9",
-    "engines-fd8950f.zip": "82da058dd152270c12a48a57ff26a7c08e953e1aa8a647e65f2ccf0726c88d2b"
+    "engines-fd8950f.zip": "82da058dd152270c12a48a57ff26a7c08e953e1aa8a647e65f2ccf0726c88d2b",
+    "mounted-weapons-479719e.zip": "276a244d37f9162917306980a5fff352945ef799a30a64edb35156db2138ff39"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -1677,5 +1678,124 @@
     "scope": "Reference rigid UFO with four actual destructible vector-engine blocks, fixed capacity, mounted impulses, independent six-axis native inertia response, repair, schema2 and real schema1 saved-world restore. Full v8/G2/Dynamic Boarding are not closed.",
     "archive": "docs/v8/EVIDENCE/engines-fd8950f.zip",
     "archiveSha256": "82da058dd152270c12a48a57ff26a7c08e953e1aa8a647e65f2ccf0726c88d2b"
+  },
+  "ufoMountedWeapons": {
+    "source": "479719ee4a2824fd6645b4dffd2c957df6599840",
+    "nativeSource": "f3ae888d1f086ab022163c7b1b1e83c70281c6a1",
+    "nativeTestOnlyDelta": [
+      "src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java",
+      "src/gametest/java/com/terminaldetector/drmd/UfoWeaponGameTests.java"
+    ],
+    "identicalNativeArtifactBytesVerified": true,
+    "productionSource": "b33247b81378b65fd6f9727bc594a322f7eff8e8",
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "45d6a87a05422e5d099325aa9271e63317a042b33df1f8adde6442436f08acb4",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "da88753dbf3db8eed24c271a9940339e3fbce89f1af6ea58b841f5fb6f327ef9"
+    },
+    "unit": {
+      "tests": 732,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "server": {
+      "tests": 308,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "native": {
+      "gl32": {
+        "bayPausedSamples": 104,
+        "bayResumed": true,
+        "deathReleased": false,
+        "pauseResumed": true,
+        "controlCore": true,
+        "actualUfo": true,
+        "externalEntry": true,
+        "actualThrust": true,
+        "walkingHandoff": true,
+        "roofContacts": 0,
+        "teleportFollow": false,
+        "renderedFrames": 262,
+        "predictionSamples": 72,
+        "maxPredictionError": 0.02570688301012325,
+        "scenes": [
+          "external-approach",
+          "moving-bay-entry",
+          "flight-to-boarding",
+          "boarded-walking",
+          "control-acquired",
+          "control-thrust-and-roll",
+          "mounted-weapons-rotating-fire",
+          "mounted-weapons-destroyed",
+          "mounted-weapons-repaired-fire",
+          "control-release",
+          "mounted-weapon-parts-exterior"
+        ],
+        "mountedLaserShots": 6,
+        "mountedRocketShots": 2,
+        "repairedLaserShots": 4,
+        "repairedRocketShots": 2,
+        "destroyedBankTicks": 29,
+        "acceptedFireSnapshots": 63,
+        "maxMuzzleError": 0.0,
+        "maxLaunchVelocityError": 4.972820174300706e-16,
+        "maxPointVelocityError": 0.0,
+        "weaponMaterialContinuityError": 4.547473508864641e-13,
+        "weaponRotationTravel": 2.9461121937411465,
+        "synchronizedMountedShots": 16,
+        "renderedMountedShots": 14,
+        "actualWeaponItemsObserved": true
+      },
+      "sodium": {
+        "bayPausedSamples": 94,
+        "bayResumed": true,
+        "deathReleased": false,
+        "pauseResumed": true,
+        "controlCore": true,
+        "actualUfo": true,
+        "externalEntry": true,
+        "actualThrust": true,
+        "walkingHandoff": true,
+        "roofContacts": 0,
+        "teleportFollow": false,
+        "renderedFrames": 272,
+        "predictionSamples": 71,
+        "maxPredictionError": 0.025408345274186672,
+        "scenes": [
+          "external-approach",
+          "moving-bay-entry",
+          "flight-to-boarding",
+          "boarded-walking",
+          "control-acquired",
+          "control-thrust-and-roll",
+          "mounted-weapons-rotating-fire",
+          "mounted-weapons-destroyed",
+          "mounted-weapons-repaired-fire",
+          "control-release",
+          "mounted-weapon-parts-exterior"
+        ],
+        "mountedLaserShots": 6,
+        "mountedRocketShots": 2,
+        "repairedLaserShots": 4,
+        "repairedRocketShots": 2,
+        "destroyedBankTicks": 28,
+        "acceptedFireSnapshots": 59,
+        "maxMuzzleError": 0.0,
+        "maxLaunchVelocityError": 0.0,
+        "maxPointVelocityError": 0.0,
+        "weaponMaterialContinuityError": 4.548028586499771e-13,
+        "weaponRotationTravel": 2.679678694507978,
+        "synchronizedMountedShots": 14,
+        "renderedMountedShots": 12,
+        "actualWeaponItemsObserved": true
+      }
+    },
+    "releaseAccepted": false,
+    "publication": "Local only",
+    "scope": "Partial S09-T03: authored rigid hull-mounted laser/rocket banks, physical muzzle and material-point launch velocity/recoil, real pilot buttons and damage/repair. Hinged weapon assemblies, complete module restart/AI and full v8/Dynamic Boarding remain open.",
+    "archive": "docs/v8/EVIDENCE/mounted-weapons-479719e.zip",
+    "archiveSha256": "276a244d37f9162917306980a5fff352945ef799a30a64edb35156db2138ff39"
   }
 }
