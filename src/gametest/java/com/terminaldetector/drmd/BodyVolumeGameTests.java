@@ -44,7 +44,11 @@ public final class BodyVolumeGameTests implements FabricGameTest {
         });
     }
     private record Fleet(TestContext c,List<BlockBodyEntity> bodies,List<UUID> joints,net.minecraft.server.network.ServerPlayerEntity player) implements AutoCloseable {
-        public void close(){for(var id:joints)BodyJointRegistry.get(c.getWorld()).remove(id);for(var b:bodies)b.discard();player.discard();}
+        public void close(){for(var id:joints)BodyJointRegistry.get(c.getWorld()).remove(id);
+            var ids=bodies.stream().map(BlockBodyEntity::getUuid).toList();
+            // A real demand-load may have already restored a different object with the same UUID.
+            for(var b:BodySpatialIndex.loaded(c.getWorld()))if(ids.contains(b.getUuid()))b.discard();
+            for(var b:bodies)b.discard();player.discard();}
     }
     private Fleet fleet(TestContext c,int x,int z) {
         var w=c.getWorld();for(int cx=(x-16)>>4;cx<=(x+544)>>4;cx++)for(int cz=(z-16)>>4;cz<=(z+16)>>4;cz++)w.getChunk(cx,cz);
@@ -96,13 +100,21 @@ public final class BodyVolumeGameTests implements FabricGameTest {
     public void approachingACompletelyUnloadedAssemblyRequestsItsStoredRootVolume(TestContext c) {
         var f=fleet(c,30000,30000);var ids=f.bodies.subList(0,3).stream().map(BlockBodyEntity::getUuid).toList();
         c.waitAndRun(8,()->{
+            // Establish actual absence before demand resumes. A player left at the root can
+            // legitimately cause a fast reload before a fixed five-tick observation.
+            f.player.setPosition(0,180,0);
             for(var b:f.bodies.subList(0,3))b.remove(net.minecraft.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK);
-            c.waitAndRun(5,()->{try {
-                c.assertTrue(BodySpatialIndex.loaded(c.getWorld()).stream().noneMatch(b->ids.contains(b.getUuid())),"fixture has no loaded root or module to seed the activity graph");
-                c.assertTrue(BodyVolumeLeases.heldColumns(c.getWorld(),ids.getFirst())>0,"approaching the real saved root volume bootstraps an entirely unloaded assembly");
-                c.assertTrue(BodyVolumeLeases.heldColumns(c.getWorld(),ids.get(2))>0,"the missing far endpoint is requested through the same persisted island");
-                c.assertTrue(BodyVolumeLeases.heldColumns(c.getWorld(),f.bodies.get(3).getUuid())==0,"unconnected distant material is not loaded");
-            }finally{f.close();}c.complete();});
+            c.waitAndRun(5,()->{
+                try {
+                    c.assertTrue(BodySpatialIndex.loaded(c.getWorld()).stream().noneMatch(b->ids.contains(b.getUuid())),"fixture has no loaded root or module to seed the activity graph");
+                    f.player.setPosition(30000.5,182,30000.5);
+                }catch(Throwable e){f.close();throw e;}
+                c.waitAndRun(2,()->{try {
+                    c.assertTrue(BodyVolumeLeases.heldColumns(c.getWorld(),ids.getFirst())>0,"approaching the real saved root volume bootstraps an entirely unloaded assembly");
+                    c.assertTrue(BodyVolumeLeases.heldColumns(c.getWorld(),ids.get(2))>0,"the missing far endpoint is requested through the same persisted island");
+                    c.assertTrue(BodyVolumeLeases.heldColumns(c.getWorld(),f.bodies.get(3).getUuid())==0,"unconnected distant material is not loaded");
+                }finally{f.close();}c.complete();});
+            });
         });
     }
 
