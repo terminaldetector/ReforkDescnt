@@ -26,6 +26,11 @@ public final class UfoControlSystem {
         public static final PacketCodec<RegistryByteBuf,Fire> CODEC=PacketCodec.of((p,b)->{b.writeVarInt(p.epoch);b.writeVarInt(p.sequence);b.writeByte(p.mask);},b->new Fire(b.readVarInt(),b.readVarInt(),b.readUnsignedByte()));
         public Id<? extends CustomPayload> getId(){return ID;}
     }
+    public record TurretInput(int epoch,int sequence,float yaw) implements CustomPayload {
+        public static final Id<TurretInput> ID=new Id<>(Identifier.of("drmd","ufo_turret"));
+        public static final PacketCodec<RegistryByteBuf,TurretInput> CODEC=PacketCodec.of((p,b)->{b.writeVarInt(p.epoch);b.writeVarInt(p.sequence);b.writeFloat(p.yaw);},b->new TurretInput(b.readVarInt(),b.readVarInt(),b.readFloat()));
+        public Id<? extends CustomPayload> getId(){return ID;}
+    }
     public record State(UUID body,int epoch,boolean active,Identifier dimension) implements CustomPayload {
         public static final Id<State> ID=new Id<>(Identifier.of("drmd","ufo_control_state"));
         public static final PacketCodec<RegistryByteBuf,State> CODEC=PacketCodec.of((p,b)->{b.writeUuid(p.body);b.writeVarInt(p.epoch);b.writeBoolean(p.active);b.writeIdentifier(p.dimension);},b->new State(b.readUuid(),b.readVarInt(),b.readBoolean(),b.readIdentifier()));
@@ -33,12 +38,15 @@ public final class UfoControlSystem {
     }
     private static final class Lease {
         final WeakReference<ServerPlayerEntity> pilot;final WeakReference<SkyUfoEntity> body;final boolean previousAuto;final int epoch;
+        int turretSequence=-1,turretCount;long turretTick=Long.MIN_VALUE,turretBudget=Long.MIN_VALUE;float turretYaw;
         int sequence=-1,count,fireSequence=-1,fireMask,fireCount;long fireTick=Long.MIN_VALUE,fireBudget=Long.MIN_VALUE,firedTick=Long.MIN_VALUE;long received,budgetTick=Long.MIN_VALUE,drivenTick=Long.MIN_VALUE;Input input;
         Lease(ServerPlayerEntity p,SkyUfoEntity b,int e){pilot=new WeakReference<>(p);body=new WeakReference<>(b);previousAuto=b.autopilotEnabled();epoch=e;received=p.getServer().getTicks();}
     }
     private static final Map<UUID,Lease> PILOTS=new HashMap<>();private static int epoch;
     private UfoControlSystem(){}
     public static void register() {
+        PayloadTypeRegistry.playC2S().register(TurretInput.ID,TurretInput.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(TurretInput.ID,(p,c)->c.server().execute(()->receiveTurret(c.player(),p)));
         PayloadTypeRegistry.playC2S().register(Fire.ID,Fire.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(Fire.ID,(p,c)->c.server().execute(()->receiveFire(c.player(),p)));
         PayloadTypeRegistry.playC2S().register(Input.ID,Input.CODEC);PayloadTypeRegistry.playS2C().register(State.ID,State.CODEC);
@@ -61,7 +69,7 @@ public final class UfoControlSystem {
     public static int epoch(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());return l==null?-1:l.epoch;}
     public static boolean release(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());if(l==null||l.pilot.get()!=p)return false;drop(p.getUuid(),l);return true;}
     public static void releaseBody(SkyUfoEntity b){if(b.getWorld().isClient)return;for(var id:List.copyOf(PILOTS.keySet())){var l=PILOTS.get(id);if(l!=null&&l.body.get()==b)drop(id,l);}}
-    private static void drop(UUID id,Lease l){PILOTS.remove(id);var b=l.body.get();var p=l.pilot.get();if(b!=null){b.setAutopilot(l.previousAuto);if(p!=null&&!p.isRemoved())sync(p,b,l,false);}}
+    private static void drop(UUID id,Lease l){PILOTS.remove(id);var b=l.body.get();var p=l.pilot.get();if(b!=null){b.aimTurret(0);b.setAutopilot(l.previousAuto);if(p!=null&&!p.isRemoved())sync(p,b,l,false);}}
     public static boolean savedAutopilot(SkyUfoEntity b,boolean fallback){if(b.getWorld().isClient)return fallback;for(var l:PILOTS.values())if(l.body.get()==b)return l.previousAuto;return fallback;}
     private static void sync(ServerPlayerEntity p,SkyUfoEntity b,Lease l,boolean active){if(ServerPlayNetworking.canSend(p,State.ID))ServerPlayNetworking.send(p,new State(b.getUuid(),l.epoch,active,p.getWorld().getRegistryKey().getValue()));}
     public static boolean receive(ServerPlayerEntity p,Input input) {
@@ -75,9 +83,14 @@ public final class UfoControlSystem {
     }
     public static boolean controls(ServerPlayerEntity p,SkyUfoEntity b){var l=PILOTS.get(p.getUuid());return l!=null&&l.pilot.get()==p&&l.body.get()==b&&valid(p,b);}
     public static boolean receiveFire(ServerPlayerEntity p,Fire input) {
-        var l=PILOTS.get(p.getUuid());if(l==null||!p.getServer().isOnThread()||l.body.get()==null||!controls(p,l.body.get())||input.epoch!=l.epoch||input.sequence<0||input.sequence<=l.fireSequence||input.mask<0||input.mask>3)return false;
+        var l=PILOTS.get(p.getUuid());if(l==null||!p.getServer().isOnThread()||l.body.get()==null||!controls(p,l.body.get())||input.epoch!=l.epoch||input.sequence<0||input.sequence<=l.fireSequence||input.mask<0||input.mask>7)return false;
         long now=p.getServer().getTicks();if(l.fireBudget!=now){l.fireBudget=now;l.fireCount=0;}if(l.fireCount>=4)return false;l.fireCount++;
         l.fireSequence=input.sequence;l.fireMask=input.mask;l.fireTick=now;return true;
+    }
+    public static boolean receiveTurret(ServerPlayerEntity p,TurretInput input) {
+        var l=PILOTS.get(p.getUuid());if(l==null||!p.getServer().isOnThread()||l.body.get()==null||!controls(p,l.body.get())||input.epoch!=l.epoch||input.sequence<0||input.sequence<=l.turretSequence||!Float.isFinite(input.yaw)||Math.abs(input.yaw)>1)return false;
+        long now=p.getServer().getTicks();if(l.turretBudget!=now){l.turretBudget=now;l.turretCount=0;}if(l.turretCount>=4)return false;l.turretCount++;
+        l.turretSequence=input.sequence;l.turretYaw=input.yaw;l.turretTick=now;return true;
     }
     /** Launch after the hull has integrated: a newly ticked projectile starts at the same
      * material phase used as the next tick's previous collision pose. */
@@ -93,6 +106,7 @@ public final class UfoControlSystem {
         if(b.getWorld().isClient)return false;
         for(var entry:List.copyOf(PILOTS.entrySet())){var l=entry.getValue();if(l.body.get()!=b)continue;var p=l.pilot.get();if(p==null||!valid(p,b)){drop(entry.getKey(),l);return false;}
             long tick=p.getServer().getTicks();if(l.drivenTick==tick)return true;l.drivenTick=tick;
+            b.aimTurret(l.turretTick!=Long.MIN_VALUE&&tick-l.turretTick<=4?l.turretYaw:0);
             var in=l.input;if(in!=null&&tick-l.received<=4){
                 var thrust=new Vec3(-in.strafe,in.vertical,in.forward);if(thrust.length()>1)thrust=thrust.normalized();
                 var force=b.rotation().rotate(thrust).scaled(b.physicsMass()*5);

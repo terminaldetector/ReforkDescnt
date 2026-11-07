@@ -31,6 +31,7 @@ public final class DescentKeybinds {
 	public static KeyBinding resetRoll;
 	public static KeyBinding settings;
     public static KeyBinding auxiliary;
+    public static KeyBinding turretLeft,turretRight;
 
 	private static boolean dashQueued;
 	private static boolean hookQueued;
@@ -77,6 +78,8 @@ public final class DescentKeybinds {
 
 	public static void register() {
 		auxiliary=KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.auxiliary",InputUtil.Type.KEYSYM,GLFW.GLFW_KEY_B,"key.category.drmd"));
+        turretLeft=KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.turret_left",InputUtil.Type.KEYSYM,GLFW.GLFW_KEY_LEFT,"key.category.drmd"));
+        turretRight=KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.turret_right",InputUtil.Type.KEYSYM,GLFW.GLFW_KEY_RIGHT,"key.category.drmd"));
         toggle = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_H, "key.category.drmd"));
 		dash = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.dash", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_SHIFT, "key.category.drmd"));
 		alwaysRun = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.drmd.alwaysrun", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "key.category.drmd"));

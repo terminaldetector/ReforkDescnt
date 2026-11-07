@@ -577,12 +577,19 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     /** Local blueprint construction for the existing BlockBody runtime. No temporary world
      * copy, terrain scan, dimension or rigid body per block is involved. */
     public static BlockBodyEntity createLocal(ServerWorld world,List<Cell> cells,Vec3d gridOrigin) {
-        BodyBounds.finite(pure(gridOrigin));
+        return createLocal(world,cells,gridOrigin,Quat.IDENTITY,Vec3d.ZERO,Vec3d.ZERO);
+    }
+    /** Spawn a real local grid in an already moving frame, initialized before tracking. */
+    public static BlockBodyEntity createLocal(ServerWorld world,List<Cell> cells,Vec3d gridOrigin,Quat rotation,Vec3d originVelocity,Vec3d angularVelocity) {
+        BodyBounds.finite(pure(gridOrigin));BodyBounds.finite(pure(originVelocity));BodyBounds.finite(pure(angularVelocity));
+        new OrientedBox(new Vec3(0,0,0),new Vec3(1,1,1),rotation);
         if(!world.getServer().isOnThread()||cells.isEmpty())throw new IllegalArgumentException("nonempty server-owned body required");
-        var entity=new BlockBodyEntity(ModEntities.BLOCK_BODY,world);
-        entity.initializeLocal(cells,gridOrigin);
-        if(!world.spawnEntity(entity))throw new IllegalStateException("Could not spawn body");
-        return entity;
+        var entity=new BlockBodyEntity(ModEntities.BLOCK_BODY,world);entity.initializeLocal(cells,gridOrigin);
+        var offset=rotation.rotate(entity.centre);entity.body.withRotation(rotation).withPosition(pure(gridOrigin).plus(offset))
+            .withLinearVelocity(pure(originVelocity).plus(pure(angularVelocity).cross(offset))).withAngularVelocity(pure(angularVelocity));
+        entity.positionFromPhysics();entity.previousPhysicsPosition=entity.body.position();entity.previousRotation=entity.body.rotation();
+        entity.dataTracker.set(POSE,entity.pose());entity.setBoundingBox(new Box(entity.getPos(),entity.getPos()).expand(entity.radius));
+        if(!world.spawnEntity(entity))throw new IllegalStateException("Could not spawn body");return entity;
     }
     /** Initialize an existing registered hull subtype without spawning a second entity or writing world blocks. */
     protected final void initializeLocal(List<Cell> blueprint,Vec3d gridOrigin) {

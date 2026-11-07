@@ -36,7 +36,7 @@ public final class UfoWeaponGameTests implements FabricGameTest {
         var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.setPosition(b.localToWorld(new Vec3d(3.5,.1,-1)));c.assertTrue(UfoControlSystem.claim(p,b),"actual console capture");return p;
     }
     private List<ProjectileEntity> shots(TestContext c,SkyUfoEntity b,ServerPlayerEntity p){return c.getWorld().getEntitiesByClass(ProjectileEntity.class,b.getBoundingBox().expand(256),e->e.getOwnerLiving()==p);}
-    private void clean(TestContext c,SkyUfoEntity b,ServerPlayerEntity p){for(var s:shots(c,b,p))s.discard();UfoControlSystem.release(p);p.discard();b.discard();var lease=LEASES.remove(c);if(lease!=null)lease.close();}
+    private void clean(TestContext c,SkyUfoEntity b,ServerPlayerEntity p){b.turretModule().flatMap(m->m.body(b)).ifPresent(net.minecraft.entity.Entity::discard);for(var s:shots(c,b,p))s.discard();UfoControlSystem.release(p);p.discard();b.discard();var lease=LEASES.remove(c);if(lease!=null)lease.close();}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-weapon-transform",tickLimit=140)
     public void rotatedMountedShotsInheritSurfaceVelocityAndRecoilTheHull(TestContext c){admitted(c,()->rotatedMountedShotsInheritSurfaceVelocityAndRecoilTheHullReady(c));}
     private void rotatedMountedShotsInheritSurfaceVelocityAndRecoilTheHullReady(TestContext c) {
@@ -63,7 +63,7 @@ public final class UfoWeaponGameTests implements FabricGameTest {
     private void fireSnapshotsRejectReplayWrongOwnerEpochAndFloodReady(TestContext c) {
         var b=body(c);var p=pilot(c,b);var other=c.createMockCreativeServerPlayerInWorld();try {
             int e=UfoControlSystem.epoch(p);
-            c.assertTrue(!UfoControlSystem.receiveFire(other,new UfoControlSystem.Fire(e,0,3))&&!UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e+1,0,3))&&!UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e,0,4)),"unknown owner, stale epoch and invalid button mask rejected");
+            c.assertTrue(!UfoControlSystem.receiveFire(other,new UfoControlSystem.Fire(e,0,3))&&!UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e+1,0,3))&&!UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e,0,8)),"unknown owner, stale epoch and invalid button mask rejected");
             c.assertTrue(UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e,0,3))&&!UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e,0,3)),"replayed command rejected");
             for(int i=1;i<4;i++)c.assertTrue(UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e,i,0)),"bounded latest snapshot");
             c.assertTrue(!UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e,4,3)),"flood above four snapshots per tick rejected");
@@ -154,6 +154,49 @@ public final class UfoWeaponGameTests implements FabricGameTest {
             p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(net.minecraft.registry.Registries.ITEM.get(id)));
             c.assertTrue(b.useLocalBlock(p,UfoControlSystem.CONSOLE),"actual console use installs the held turret kit");
             c.assertTrue(BodyJointRegistry.get(c.getWorld()).forBody(b.getUuid()).stream().anyMatch(j->j.kind()==com.terminaldetector.drmd.physics.collision.BodyJointConstraint.Kind.MOTOR),"a real independent motor joint connects the turret to its carrier");
+        }finally{clean(c,b,p);}c.complete();
+    });}
+    private SkyUfoTurret installTurret(TestContext c,SkyUfoEntity b,net.minecraft.server.network.ServerPlayerEntity p) {
+        p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(ModWorldBlocks.SHIP_TURRET_KIT));
+        c.assertTrue(b.useLocalBlock(p,UfoControlSystem.CONSOLE),"real kit installation through local console use");return b.turretModule().orElseThrow();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-install-state",tickLimit=140)
+    public void movingInstallConsumesOneKitAndInheritsEveryMaterialPoint(TestContext c){admitted(c,()->{
+        var b=body(c);var q=ImmPtlQuaternions.hamiltonProduct(ImmPtlQuaternions.rotationByDegrees(new Vec3(1,0,0),67),ImmPtlQuaternions.rotationByDegrees(new Vec3(0,0,1),123));b.physics().withRotation(q);b.publishPhysicsState();var p=pilot(c,b);p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
+        try {
+            b.physics().withLinearVelocity(new Vec3(4,2,-3)).withAngularVelocity(new Vec3(.1,.2,.3));var old=b.physics().snapshot();var id=b.getUuid();
+            var module=installTurret(c,b,p);var child=module.body(b).orElseThrow();
+            c.assertTrue(p.getMainHandStack().isEmpty()&&child.cells().size()==5&&module.connected(b),"one kit becomes one five-cell physical module");
+            c.assertTrue(id.equals(b.getUuid())&&b.massPosition().equals(old.position())&&b.physics().linearVelocity().equals(old.linearVelocity())&&b.physics().angularMomentum().equals(old.angularMomentum()),"installation preserves the carrier's physical state");
+            for(var cell:child.cells()){var at=child.localToWorld(Vec3d.ofCenter(cell.pos()));c.assertTrue(child.surfaceVelocityAt(at).distanceTo(b.surfaceVelocityAt(at))<1e-8,"new module inherits the full original material velocity field");}
+            var tag=b.writeNbt(new NbtCompound());var copy=ModEntities.SKY_UFO.create(c.getWorld());try{copy.readNbt(tag);c.assertTrue(copy.turretModule().orElseThrow().bodyId().equals(child.getUuid())&&!copy.turretModule().orElseThrow().connected(copy),"saved identity is retained without granting authority to an unspawned clone");}finally{copy.discard();}
+            p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(ModWorldBlocks.SHIP_TURRET_KIT));c.assertTrue(!b.useLocalBlock(p,UfoControlSystem.CONSOLE)&&p.getMainHandStack().getCount()==1,"a second kit cannot duplicate an existing joint/module");
+        }finally{clean(c,b,p);}c.complete();
+    });}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-obstructed",tickLimit=140)
+    public void blockedModuleInstallationPreservesTheKitAndWorld(TestContext c){admitted(c,()->{
+        var b=body(c);var p=pilot(c,b);p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);var at=BlockPos.ofFloored(b.localToWorld(new Vec3d(.5,4.5,.5)));var before=c.getWorld().getBlockState(at);
+        try{c.getWorld().setBlockState(at,Blocks.IRON_BLOCK.getDefaultState(),2);p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(ModWorldBlocks.SHIP_TURRET_KIT));c.assertTrue(!b.useLocalBlock(p,UfoControlSystem.CONSOLE)&&b.turretModule().isEmpty()&&p.getMainHandStack().getCount()==1,"occupied geometry cannot consume a kit or spawn a module");}
+        finally{c.getWorld().setBlockState(at,before,2);clean(c,b,p);}c.complete();
+    });}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-authority",tickLimit=140)
+    public void turretCommandsRejectWrongEpochReplayNonFiniteAndFlood(TestContext c){admitted(c,()->{
+        var b=body(c);var p=pilot(c,b);try{var t=installTurret(c,b,p);int e=UfoControlSystem.epoch(p);
+            c.assertTrue(!UfoControlSystem.receiveTurret(p,new UfoControlSystem.TurretInput(e+1,0,1))&&!UfoControlSystem.receiveTurret(p,new UfoControlSystem.TurretInput(e,0,Float.NaN))&&!UfoControlSystem.receiveTurret(p,new UfoControlSystem.TurretInput(e,0,2)),"wrong epoch and invalid motor command rejected");
+            c.assertTrue(UfoControlSystem.receiveTurret(p,new UfoControlSystem.TurretInput(e,0,1))&&!UfoControlSystem.receiveTurret(p,new UfoControlSystem.TurretInput(e,0,1)),"duplicate motor snapshot rejected");
+            for(int i=1;i<4;i++)c.assertTrue(UfoControlSystem.receiveTurret(p,new UfoControlSystem.TurretInput(e,i,1)),"bounded accepted snapshot");c.assertTrue(!UfoControlSystem.receiveTurret(p,new UfoControlSystem.TurretInput(e,4,1)),"motor packet budget");
+            UfoControlSystem.drive(b);c.assertTrue(BodyJointRegistry.get(c.getWorld()).find(t.jointId()).orElseThrow().speed()==.6,"input configures a real bounded motor");UfoControlSystem.release(p);c.assertTrue(BodyJointRegistry.get(c.getWorld()).find(t.jointId()).orElseThrow().speed()==0,"release retires motor command through forces");
+        }finally{clean(c,b,p);}c.complete();
+    });}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-detach",tickLimit=140)
+    public void breakingTheActualRoofAnchorDetachesWithoutResetOrPhantomFire(TestContext c){admitted(c,()->{
+        var b=body(c);var p=pilot(c,b);var t=installTurret(c,b,p);var child=t.body(b).orElseThrow();
+        try{
+            child.physics().withLinearVelocity(new Vec3(3,2,1)).withAngularVelocity(new Vec3(.1,.2,.3));var state=child.physics().snapshot();
+            c.assertTrue(b.setLocalBlock(SkyUfoTurret.ROOF,Blocks.AIR.getDefaultState()),"actual roof anchor damage");t.tick(b);
+            c.assertTrue(!t.connected(b)&&BodyJointRegistry.get(c.getWorld()).find(t.jointId()).isEmpty()&&child.physicsGravity(),"broken material releases the real joint and power");
+            c.assertTrue(child.massPosition().equals(state.position())&&child.physics().linearVelocity().equals(state.linearVelocity())&&child.physics().angularMomentum().equals(state.angularMomentum()),"free module retains pose, velocity and angular momentum at separation");
+            b.fireMountedWeapons(p,4);c.assertTrue(shots(c,b,p).isEmpty(),"a disconnected module cannot fire from its old parent");
         }finally{clean(c,b,p);}c.complete();
     });}
 }

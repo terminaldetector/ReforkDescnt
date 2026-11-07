@@ -135,6 +135,7 @@ public final class ModWorldBlocks {
 	public static Item MIRROR_LINKER_CROSS_DIMENSION;
 	public static Item PORTAL_GUN;
 	public static Item PORTAL_PROJECTOR;
+    public static Item SHIP_TURRET_KIT;
 
 	private ModWorldBlocks() {}
 
@@ -216,6 +217,8 @@ public final class ModWorldBlocks {
 		PORTAL_PROJECTOR=Registry.register(Registries.ITEM,Identifier.of(DescentMod.MOD_ID,"portal_projector"),
 			new com.terminaldetector.drmd.world.portal.gun.PortalProjectorItem(new Item.Settings()));
 
+        SHIP_TURRET_KIT=Registry.register(Registries.ITEM,Identifier.of(DescentMod.MOD_ID,"ship_turret_kit"),new Item(new Item.Settings().maxCount(1)));
+
 		ItemGroupEvents.modifyEntriesEvent(ModItems.GROUP_KEY).register(entries -> {
 			entries.add(SIX_D_SOIL);
 			entries.add(HERMETIC_GATE);
@@ -227,7 +230,7 @@ public final class ModWorldBlocks {
 			entries.add(MAGNETIC_ANOMALY);
 			entries.add(UNSTABLE_REACTOR);
 			entries.add(SHIP_THRUSTER);
-            entries.add(SHIP_LASER);entries.add(SHIP_ROCKET);
+            entries.add(SHIP_LASER);entries.add(SHIP_ROCKET);entries.add(SHIP_TURRET_KIT);
 			entries.add(MIRROR);
 			entries.add(CHARGED_MIRROR);
 			entries.add(PORTAL_PANEL);

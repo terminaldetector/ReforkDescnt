@@ -46,14 +46,21 @@ public final class BodyJointConstraint {
             else {linearImpulse=candidate;if(a.mass()>1e-9)a.applyImpulse(delta.scaled(-1),ra);if(b.mass()>1e-9)b.applyImpulse(delta,rb);}
         }
     }
-    public BodyJointConstraint(D6PhysicsBody a,D6PhysicsBody b,Config config,double seconds) {
+    public BodyJointConstraint(D6PhysicsBody a,D6PhysicsBody b,Config config,double seconds) {this(a,b,config,seconds,true);}
+    /** Instantaneous passive constraint response; no extra motor work or position correction. */
+    public static BodyJointConstraint velocityOnly(D6PhysicsBody a,D6PhysicsBody b,Config c,double seconds) {
+        var passive=new Config(c.kind==Kind.MOTOR?Kind.HINGE:c.kind,c.anchorA,c.anchorB,c.frameA,c.frameB,
+            Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,0,0,c.breakForce,c.breakTorque);
+        return new BodyJointConstraint(a,b,passive,seconds,false);
+    }
+    private BodyJointConstraint(D6PhysicsBody a,D6PhysicsBody b,Config config,double seconds,boolean correctPosition) {
         if(a==null||b==null||a==b||!Double.isFinite(seconds)||seconds<=0||seconds>.05)throw new IllegalArgumentException("distinct bodies and bounded step required");
         this.a=a;this.b=b;this.config=Objects.requireNonNull(config);this.seconds=seconds;
         Vec3 wa=a.position().plus(a.rotation().rotate(config.anchorA)),wb=b.position().plus(b.rotation().rotate(config.anchorB));
         BodyBounds.finite(wa);BodyBounds.finite(wb);
         // Equal/opposite loads meet at the joint, retaining total angular momentum even while
         // a bounded positional error is being repaired. Never pull entities to an anchor pose.
-        Vec3 point=wa.plus(wb).scaled(.5);ra=point.minus(a.position());rb=point.minus(b.position());Vec3 error=wb.minus(wa);
+        Vec3 point=wa.plus(wb).scaled(.5);ra=point.minus(a.position());rb=point.minus(b.position());Vec3 error=correctPosition?wb.minus(wa):ZERO;
         Quat qa=multiply(a.rotation(),config.frameA),qb=multiply(b.rotation(),config.frameB);
         Vec3 x=qa.rotate(X),y=qa.rotate(Y),z=qa.rotate(Z);
         if(config.kind==Kind.SLIDER) {
@@ -67,12 +74,12 @@ public final class BodyJointConstraint {
             Vec3 axisB=qb.rotate(X),swing=x.cross(axisB);double sine=swing.length(),cosine=Math.max(-1,Math.min(1,x.dot(axisB)));
             // Antiparallel axes need a deterministic correction rather than a zero cross product.
             Vec3 turn=sine>1e-10?swing.scaled(Math.atan2(sine,cosine)/sine):cosine<0?y.scaled(Math.PI):ZERO;
-            angular(y,turn.dot(y));angular(z,turn.dot(z));
+            angular(y,correctPosition?turn.dot(y):0);angular(z,correctPosition?turn.dot(z):0);
             if(config.kind==Kind.MOTOR&&config.motorForce>0)row(x,true,0,config.speed,-config.motorForce*seconds,config.motorForce*seconds);
         }else {
             Quat q=multiply(qb,qa.inverse());if(q.w()<0)q=new Quat(-q.x(),-q.y(),-q.z(),-q.w());
             Vec3 axis=new Vec3(q.x(),q.y(),q.z());double sine=axis.length();Vec3 turn=sine<1e-10?ZERO:axis.scaled(2*Math.atan2(sine,q.w())/sine);
-            angular(x,turn.dot(x));angular(y,turn.dot(y));angular(z,turn.dot(z));
+            angular(x,correctPosition?turn.dot(x):0);angular(y,correctPosition?turn.dot(y):0);angular(z,correctPosition?turn.dot(z):0);
         }
     }
     private static Quat multiply(Quat a,Quat b){return ImmPtlQuaternions.hamiltonProduct(a,b).normalized();}

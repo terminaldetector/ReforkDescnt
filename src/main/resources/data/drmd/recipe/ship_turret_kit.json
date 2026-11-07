@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "ILI",
+    " R ",
+    " I "
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "L": {
+      "item": "drmd:ship_laser"
+    },
+    "R": {
+      "item": "drmd:ship_rocket"
+    }
+  },
+  "result": {
+    "id": "drmd:ship_turret_kit",
+    "count": 1
+  }
+}

@@ -29,6 +29,22 @@ public final class BodyJointSystem {
         if(source==null||source.tick!=w.getTime()||source.body.get()!=original)return;
         for(var fragment:fragments)frames.putIfAbsent(fragment.getUuid(),new Frame(new WeakReference<>(fragment),new Vec3(0,0,0),w.getTime()));
     }
+    /** Late collision/weapon impulse response through existing loaded constraints. No force
+     * integration, motor budget or pose advancement is repeated after the world solve. */
+    public static void reconcileImpulse(ServerWorld world,BlockBodyEntity seed) {
+        if(!world.getServer().isOnThread())throw new IllegalStateException("server-owned joint impulses required");
+        var registry=BodyJointRegistry.get(world);var bodies=new HashMap<UUID,BlockBodyEntity>();for(var b:BodySpatialIndex.loaded(world))bodies.put(b.getUuid(),b);
+        if(bodies.get(seed.getUuid())!=seed)return;
+        var queue=new ArrayDeque<UUID>();var seen=new HashSet<UUID>();var links=new LinkedHashMap<UUID,BodyJointLink>();queue.add(seed.getUuid());seen.add(seed.getUuid());
+        while(!queue.isEmpty())for(var link:registry.forBody(queue.removeFirst()))if(registry.active(link.id(),world.getTime())&&bodies.containsKey(link.a().body())&&bodies.containsKey(link.b().body())) {
+            links.put(link.id(),link);for(var id:List.of(link.a().body(),link.b().body()))if(seen.add(id))queue.addLast(id);
+        }
+        var constraints=new LinkedHashMap<UUID,BodyJointConstraint>();
+        for(var link:links.values()){var a=bodies.get(link.a().body());var b=bodies.get(link.b().body());constraints.put(link.id(),BodyJointConstraint.velocityOnly(a.physics(),b.physics(),link.bind(a,b),.05));}
+        for(int pass=0;pass<32;pass++)for(var constraint:constraints.values())constraint.solve();
+        for(var e:constraints.entrySet())if(e.getValue().broken())registry.remove(e.getKey());
+        for(var id:seen)bodies.get(id).publishPhysicsState();
+    }
     public static Stats stats(ServerWorld world){return LAST.getOrDefault(world,new Stats(0,0,0,0));}
     public static int solve(ServerWorld world) {
         if(!world.getServer().isOnThread())throw new IllegalStateException("server-owned joint phase required");

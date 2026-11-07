@@ -305,5 +305,8 @@
   "item.drmd.spawn_egg_jet": "Реактивный перехватчик — создание",
   "block.drmd.ship_thruster": "Маневровый двигатель",
   "block.drmd.ship_laser": "Бортовой лазер",
-  "block.drmd.ship_rocket": "Бортовая ракетная установка"
+  "block.drmd.ship_rocket": "Бортовая ракетная установка",
+  "item.drmd.ship_turret_kit": "Поворотная турель UFO",
+  "key.drmd.turret_left": "Турель влево",
+  "key.drmd.turret_right": "Турель вправо"
 }

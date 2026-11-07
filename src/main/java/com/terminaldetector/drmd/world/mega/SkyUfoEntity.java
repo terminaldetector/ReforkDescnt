@@ -30,6 +30,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
     private final List<UUID> swarm=new ArrayList<>();
     private boolean initialized,crashing,detonated,legacyThrusters,autopilot=true;
     private int spawnCooldown,crashTicks,laserCooldown,rocketCooldown;
+    private SkyUfoTurret turret;
     private double cruiseYaw,cruiseAltitude;
     private DestructionMode destructionMode=DestructionMode.CRASH;
 
@@ -41,13 +42,23 @@ public class SkyUfoEntity extends BlockBodyEntity {
     public boolean autopilotEnabled(){return autopilot;}
     public boolean hasControlConsole(){return getLocalBlock(UfoControlSystem.CONSOLE).isOf(Blocks.GOLD_BLOCK);}
     @Override public boolean canUseLocalBlock(BlockPos local){return local.equals(UfoControlSystem.CONSOLE)&&hasControlConsole();}
-    @Override public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){return canUseLocalBlock(local)&&UfoControlSystem.claim(player,this);}
+    @Override public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){
+        if(!canUseLocalBlock(local)||!UfoControlSystem.claim(player,this))return false;
+        if(player.getMainHandStack().isOf(ModWorldBlocks.SHIP_TURRET_KIT)){
+            var installed=SkyUfoTurret.install(this,player);if(installed==null)return false;turret=installed;
+            if(!player.isCreative())player.getMainHandStack().decrement(1);return true;
+        }return true;
+    }
+    public Optional<SkyUfoTurret> turretModule(){return Optional.ofNullable(turret);}
+    public void aimTurret(float input){if(turret!=null)turret.aim(this,input);}
+
     public int activeThrusters(){return SkyUfoThrusters.active(this,legacyThrusters);}
     public boolean hasPoweredReactor(){return !isRemoved()&&!crashing&&getLocalBlock(CORE).isOf(ModWorldBlocks.UNSTABLE_REACTOR);}
     public void fireMountedWeapons(net.minecraft.server.network.ServerPlayerEntity pilot,int mask) {
         if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||!UfoControlSystem.controls(pilot,this))return;
         if((mask&1)!=0&&laserCooldown==0&&SkyUfoWeapons.fire(this,pilot,false)>0)laserCooldown=8;
         if((mask&2)!=0&&rocketCooldown==0&&SkyUfoWeapons.fire(this,pilot,true)>0)rocketCooldown=24;
+        if((mask&4)!=0&&turret!=null)turret.fire(this,pilot);
     }
     public void applyThrusterWrench(Vec3 worldForce,Vec3 worldTorque) {
         if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||isRemoved()||crashing
@@ -79,8 +90,10 @@ public class SkyUfoEntity extends BlockBodyEntity {
         ACTIVE.put(getUuid(),new WeakReference<>(this));
         if(!crashing&&getLocalBlock(CORE).isAir())destroyFromCore(world,null,"local reactor destroyed");
         if(!crashing&&com.terminaldetector.drmd.world.contraption.boarding.BoardingRestore.waiting(this)){super.tick();return;}
+        if(turret!=null)turret.tick(this);
         if(laserCooldown>0)laserCooldown--;if(rocketCooldown>0)rocketCooldown--;
         boolean piloted=!crashing&&UfoControlSystem.drive(this);
+        if(!piloted)aimTurret(0);
         if(!crashing&&!piloted&&autopilot)propel();
         if(crashing&&!detonated&&++crashTicks>=100)detonate(world);
         super.tick();
@@ -167,6 +180,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
     public void debugOutlineBox(ServerWorld world){var p=physicsCentre();world.spawnParticles(ParticleTypes.END_ROD,p.x,p.y,p.z,8,radius(),1,radius(),0);}
     @Override public void remove(RemovalReason reason) {
         UfoControlSystem.releaseBody(this);
+        if(turret!=null&&(reason.shouldDestroy()||reason==RemovalReason.CHANGED_DIMENSION))turret.detach(this);
         var ref=ACTIVE.get(getUuid());if(ref!=null&&ref.get()==this)ACTIVE.remove(getUuid());super.remove(reason);
     }
     @Override protected void readCustomDataFromNbt(NbtCompound n) {
@@ -178,6 +192,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
         if(!Double.isFinite(cruiseYaw)||!Double.isFinite(cruiseAltitude))throw new IllegalArgumentException("non-finite UFO controller");
         if(n.contains("destructionMode"))destructionMode=DestructionMode.valueOf(n.getString("destructionMode"));
         laserCooldown=MathHelper.clamp(n.getInt("laserCooldown"),0,8);rocketCooldown=MathHelper.clamp(n.getInt("rocketCooldown"),0,24);
+        turret=n.contains("turret",NbtElement.COMPOUND_TYPE)?SkyUfoTurret.read(n.getCompound("turret")):null;
         swarm.clear();var saved=n.getList("swarm",NbtElement.COMPOUND_TYPE);
         for(int i=0;i<Math.min(saved.size(),SWARM_CAP);i++)if(saved.getCompound(i).containsUuid("id"))swarm.add(saved.getCompound(i).getUuid("id"));
     }
@@ -185,6 +200,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
         super.writeCustomDataToNbt(n);n.putInt("physicalUfoSchema",initialized?2:0);n.putBoolean("legacyThrusters",legacyThrusters);n.putBoolean("crashing",crashing);n.putBoolean("detonated",detonated);
         n.putDouble("cruise",cruiseYaw);n.putDouble("cruiseAltitude",cruiseAltitude);n.putBoolean("autopilot",UfoControlSystem.savedAutopilot(this,autopilot));n.putInt("crashTicks",crashTicks);n.putInt("bayCooldown",spawnCooldown);
         n.putString("destructionMode",destructionMode.name());n.putInt("laserCooldown",laserCooldown);n.putInt("rocketCooldown",rocketCooldown);
+        if(turret!=null)n.put("turret",turret.write());
         var list=new NbtList();for(var id:swarm){var item=new NbtCompound();item.putUuid("id",id);list.add(item);}n.put("swarm",list);
     }
 }

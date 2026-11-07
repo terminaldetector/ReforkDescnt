@@ -341,5 +341,8 @@
   "item.drmd.spawn_egg_jet": "Jet Interceptor Spawn Egg",
   "block.drmd.ship_thruster": "Maneuvering Thruster",
   "block.drmd.ship_laser": "Hull Laser",
-  "block.drmd.ship_rocket": "Hull Rocket Launcher"
+  "block.drmd.ship_rocket": "Hull Rocket Launcher",
+  "item.drmd.ship_turret_kit": "UFO Yaw Turret Kit",
+  "key.drmd.turret_left": "Turret left",
+  "key.drmd.turret_right": "Turret right"
 }
