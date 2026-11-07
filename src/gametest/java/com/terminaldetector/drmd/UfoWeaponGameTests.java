@@ -145,4 +145,15 @@ public final class UfoWeaponGameTests implements FabricGameTest {
             c.assertTrue(shots(c,b,p).size()==4,"both banks escaped the source through ordinary world ticks: count="+shots(c,b,p).size()+" mesh="+shots(c,b,p).stream().map(s->s.getMeshKind()).toList()+" controls="+UfoControlSystem.controls(p,b));c.complete();
         }finally{clean(c,b,p);}});
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-kit",tickLimit=140)
+    public void realTurretKitInstallsAnIndependentMotorJoint(TestContext c){admitted(c,()->{
+        var b=body(c);var p=pilot(c,b);
+        try{
+            var id=net.minecraft.util.Identifier.of("drmd","ship_turret_kit");
+            c.assertTrue(net.minecraft.registry.Registries.ITEM.containsId(id),"a real craftable turret kit is registered");
+            p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(net.minecraft.registry.Registries.ITEM.get(id)));
+            c.assertTrue(b.useLocalBlock(p,UfoControlSystem.CONSOLE),"actual console use installs the held turret kit");
+            c.assertTrue(BodyJointRegistry.get(c.getWorld()).forBody(b.getUuid()).stream().anyMatch(j->j.kind()==com.terminaldetector.drmd.physics.collision.BodyJointConstraint.Kind.MOTOR),"a real independent motor joint connects the turret to its carrier");
+        }finally{clean(c,b,p);}c.complete();
+    });}
 }
