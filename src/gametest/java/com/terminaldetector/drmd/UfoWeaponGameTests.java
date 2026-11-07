@@ -25,12 +25,16 @@ public final class UfoWeaponGameTests implements FabricGameTest {
             var tags=net.minecraft.nbt.StringNbtReader.parse(new String(input.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8)).getList("bodies",net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
             var target=Vec3d.of(c.getAbsolutePos(new BlockPos(8,220,8)));var first=tags.getCompound(0).getList("Pos",net.minecraft.nbt.NbtElement.DOUBLE_TYPE);var shift=target.subtract(first.getDouble(0),first.getDouble(1),first.getDouble(2));
             for(int i=0;i<tags.size();i++){var b=ModEntities.BLOCK_BODY.create(c.getWorld());b.readNbt(tags.getCompound(i));b.setPosition(b.getPos().add(shift));c.assertTrue(c.getWorld().spawnEntity(b),"real saved collision body");bodies.add(b);}
-            var start=bodies.getFirst().massPosition();bodies.forEach(BlockBodyEntity::tick);BodyContactSystem.solve(c.getWorld());
-            if(BodyContactSystem.stats(c.getWorld()).budgetPaused())for(int i=0;i<bodies.size();i++)for(int j=i+1;j<bodies.size();j++){
-                var a=bodies.get(i);var b=bodies.get(j);var am=a.boardingMotion();var bm=b.boardingMotion();var ma=new com.terminaldetector.drmd.physics.collision.BodyPairQuery.Motion(a.collider(),a.localCentre(),am.position(0),am.rotation(0),am.position(1),am.rotation(1));var mb=new com.terminaldetector.drmd.physics.collision.BodyPairQuery.Motion(b.collider(),b.localCentre(),bm.position(0),bm.rotation(0),bm.position(1),bm.rotation(1));
-                System.out.println("TURRET_CONTACT_REPRO pair="+i+"/"+j+" contacts="+com.terminaldetector.drmd.physics.collision.BodyPairQuery.contacts(ma,mb,0)+" moved="+a.massPosition().minus(start)+" physics="+a.physics().position().minus(a.massPosition()));
+            var start=bodies.getFirst().massPosition();
+            for(int tick=0;tick<12;tick++){
+                bodies.forEach(BlockBodyEntity::tick);Vec3 momentum=new Vec3(0,0,0),angular=momentum;
+                for(var body:bodies){var p=body.physics().linearVelocity().scaled(body.physicsMass());momentum=momentum.plus(p);angular=angular.plus(body.physics().angularMomentum()).plus(body.massPosition().minus(start).cross(p));}
+                BodyContactSystem.solve(c.getWorld());Vec3 afterP=new Vec3(0,0,0),afterL=afterP;
+                for(var body:bodies){var p=body.physics().linearVelocity().scaled(body.physicsMass());afterP=afterP.plus(p);afterL=afterL.plus(body.physics().angularMomentum()).plus(body.massPosition().minus(start).cross(p));}
+                c.assertTrue(!BodyContactSystem.stats(c.getWorld()).budgetPaused(),fixture+" detached bodies must retain physical time at step "+tick+": "+BodyContactSystem.stats(c.getWorld()));
+                c.assertTrue(afterP.minus(momentum).length()<1e-7&&afterL.minus(angular).length()<1e-6,"contact phase preserves linear and spin-plus-orbital angular momentum: "+afterP.minus(momentum).length()+" / "+afterL.minus(angular).length());
             }
-            c.assertTrue(!BodyContactSystem.stats(c.getWorld()).budgetPaused()&&bodies.getFirst().massPosition().minus(start).length()>.1,"actual detached roof cap and turret must retain physical time without exhausting contact events: "+BodyContactSystem.stats(c.getWorld()));
+            c.assertTrue(bodies.getFirst().massPosition().minus(start).length()>1,"actual detached roof cap and turret cannot freeze their moving carrier");
         }catch(java.io.IOException|com.mojang.brigadier.exceptions.CommandSyntaxException e){throw new IllegalStateException(e);}finally{bodies.forEach(net.minecraft.entity.Entity::discard);}
     }
     private static final Map<TestContext,AiFixtureChunks> LEASES=new IdentityHashMap<>();
