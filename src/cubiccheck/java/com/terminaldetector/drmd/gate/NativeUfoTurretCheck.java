@@ -30,7 +30,9 @@ public final class NativeUfoTurretCheck {
         p.getInventory().selectedSlot=0;p.getInventory().setStack(0,new ItemStack(ModWorldBlocks.SHIP_TURRET_KIT));p.getInventory().markDirty();p.currentScreenHandler.sendContentUpdates();
         ServerTickEvents.END_WORLD_TICK.register(w->{if(w!=entity(root).getWorld()||stage>=5)return;
             if(module==null&&root.turretModule().isPresent()){module=root.turretModule().orElseThrow();head=module.body(root).orElseThrow();installed=true;require(pilot.getMainHandStack().isEmpty(),"real survival console use consumes the installation kit");}
-            if(stage<1)return;require(UfoControlSystem.controls(pilot,root),"pilot remains aboard its moving carrier");
+            if(stage<1)return;
+            if(stage==4||!UfoControlSystem.controls(pilot,root))System.out.println("TURRET_DETACH_TRACE stage="+stage+" free="+freeSamples+" local="+root.worldToLocal(pilot.getPos())+" player="+pilot.isAlive()+"/"+pilot.getHealth()+" contains="+root.containsPos(pilot.getPos())+" console="+root.hasControlConsole()+" rootRemoved="+entity(root).isRemoved()+" crashing="+root.isCrashing()+" boarded="+com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.drives(pilot)+" contacts="+BodyContactSystem.stats(w)+" offset="+root.worldToLocal(head.physicsCentre())+" rootV="+root.physics().linearVelocity()+" childV="+head.physics().linearVelocity());
+            require(UfoControlSystem.controls(pilot,root),"pilot remains aboard its moving carrier");
             if(stage==1||stage==2){require(module.connected(root),"real motor remains connected");anchorError=Math.max(anchorError,root.localToWorld(new Vec3d(.5,4,.5)).distanceTo(head.localToWorld(new Vec3d(.5,0,.5))));require(anchorError<.03,"motor anchor drift: "+anchorError);
                 relativeAngle=Math.max(relativeAngle,2*Math.acos(Math.min(1,Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(root.rotation(),head.rotation())))));
                 relativeSpeed=Math.abs(head.physics().angularVelocity().minus(root.physics().angularVelocity()).dot(root.rotation().rotate(new Vec3(0,1,0))));if(stage==1)samples++;else brakeSamples++;
