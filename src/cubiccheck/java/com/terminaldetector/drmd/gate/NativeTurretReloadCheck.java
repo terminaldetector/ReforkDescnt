@@ -30,7 +30,7 @@ public final class NativeTurretReloadCheck {
     private static volatile int phase,writerSamples,lasers,rockets,aimPackets,firePackets,postSamples,barrierSamples,headDraws,exteriorDraws;
     private static int ticks,controlAge,imageFrames,aimTicks;private static boolean walkingDone,exteriorAimed,done;
     private static double maxAnchor,muzzleError,velocityError,angleTravel,brakedSpeed;private static Vec3d camera;private static int subjectPixels;
-    private static NbtCompound expectedRoot;private static final List<String> scenes=new ArrayList<>();
+    private static Quat relativeStart;private static NbtCompound expectedRoot;private static final List<String> scenes=new ArrayList<>();
     private static net.minecraft.entity.Entity entity(net.minecraft.entity.Entity e){return e;}
     private static Path file(String n){return MinecraftClient.getInstance().runDirectory.toPath().resolve(n);}
     private static void require(boolean b,String why){if(!b){MinecraftClient.getInstance().scheduleStop();throw new IllegalStateException("Turret restart: "+why);}}
@@ -102,7 +102,7 @@ public final class NativeTurretReloadCheck {
             }
             maxAnchor=Math.max(maxAnchor,root.localToWorld(new Vec3d(.5,4,.5)).distanceTo(head.localToWorld(new Vec3d(.5,0,.5))));require(maxAnchor<.03&&!BodyContactSystem.stats(w).budgetPaused(),"loaded anchor/contact continuity");
             if(phase==0||phase==1&&!UfoControlSystem.controls(pilot,root)){require(!UfoControlSystem.controls(pilot)&&link.speed()==0,"no stale pilot or saved motor command resumes without new ownership");}
-            if(phase==2){postSamples++;angleTravel=Math.max(angleTravel,2*Math.acos(Math.min(1,Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(root.rotation(),head.rotation())))));}
+            if(phase==2){var relative=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.hamiltonProduct(root.rotation().inverse(),head.rotation()).normalized();if(relativeStart==null)relativeStart=relative;postSamples++;angleTravel=Math.max(angleTravel,2*Math.acos(Math.min(1,Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(relativeStart,relative)))));}
             if(phase==3)brakedSpeed=Math.abs(head.physics().angularVelocity().minus(root.physics().angularVelocity()).dot(root.rotation().rotate(new Vec3(0,1,0))));
         });
         ClientTickEvents.END_CLIENT_TICK.register(NativeTurretReloadCheck::tick);
