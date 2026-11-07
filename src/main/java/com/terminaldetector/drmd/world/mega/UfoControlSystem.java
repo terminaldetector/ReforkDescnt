@@ -114,6 +114,9 @@ public final class UfoControlSystem {
                 var torque=b.physics().worldInertia().transform(b.rotation().rotate(turn));b.applyThrusterWrench(force,torque);
             }
             return true;
-        }return false;
+        }
+        // Saved joint targets are not a persisted pilot lease. An unowned hull brakes
+        // the module through its motor instead of replaying the previous connection.
+        b.aimTurret(0);return false;
     }
 }
