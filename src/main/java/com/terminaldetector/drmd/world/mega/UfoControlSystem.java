@@ -44,7 +44,7 @@ public final class UfoControlSystem {
         PayloadTypeRegistry.playC2S().register(Input.ID,Input.CODEC);PayloadTypeRegistry.playS2C().register(State.ID,State.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(Input.ID,(p,c)->c.server().execute(()->receive(c.player(),p)));
         ServerPlayConnectionEvents.DISCONNECT.register((h,s)->release(h.player));
-        ServerTickEvents.END_SERVER_TICK.register(s->{for(var id:List.copyOf(PILOTS.keySet())){var l=PILOTS.get(id);if(l==null)continue;var p=l.pilot.get();var b=l.body.get();if(p==null||b==null||!valid(p,b)||s.getTicks()-l.received>60)drop(id,l);}});
+        ServerTickEvents.END_SERVER_TICK.register(s->{for(var id:List.copyOf(PILOTS.keySet())){var l=PILOTS.get(id);if(l==null)continue;var p=l.pilot.get();var b=l.body.get();if(p==null||b==null||!valid(p,b)||s.getTicks()-l.received>60)drop(id,l);else fire(b);}});
         ServerLifecycleEvents.SERVER_STOPPED.register(s->{for(var id:List.copyOf(PILOTS.keySet()))drop(id,PILOTS.get(id));});
     }
     private static boolean valid(ServerPlayerEntity p,SkyUfoEntity b) {

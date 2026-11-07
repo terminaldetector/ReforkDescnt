@@ -111,14 +111,18 @@ public final class UfoWeaponGameTests implements FabricGameTest {
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-moving-launch",tickLimit=60)
     public void normalWorldTicksCannotExplodeAnOutgoingRocketInsideItsMovingLauncher(TestContext c) {
-        var b=body(c);var p=pilot(c,b);p.setNoGravity(true);var original=b.cells();
+        var b=body(c);var p=pilot(c,b);p.getAbilities().flying=false;p.setPosition(b.localToWorld(new Vec3d(3.5,.001,-1)));var original=b.cells();
+        com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(p.getUuid());
+        com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.ready(p,com.terminaldetector.drmd.network.BoardingNetworking.PROTOCOL);
+        com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.tick(c.getWorld());
+        c.assertTrue(com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.drives(p),"the moving-launch fixture uses real physical boarding");
         try{
             b.physics().withLinearVelocity(new Vec3(12,4,8)).withAngularVelocity(new Vec3(.2,.7,.8));
             c.assertTrue(UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(UfoControlSystem.epoch(p),0,3)),"real laser/rocket snapshot");
         }catch(Throwable e){clean(c,b,p);throw e;}
         c.waitAndRun(8,()->{try{
             c.assertTrue(b.cells().equals(original)&&b.writeNbt(new NbtCompound()).getList("materialDamage",net.minecraft.nbt.NbtElement.COMPOUND_TYPE).isEmpty(),"outgoing rounds must not hit and splash their own moving source in the first tick");
-            c.assertTrue(shots(c,b,p).size()==4,"both banks escaped the source through ordinary world ticks");c.complete();
+            c.assertTrue(shots(c,b,p).size()==4,"both banks escaped the source through ordinary world ticks: count="+shots(c,b,p).size()+" controls="+UfoControlSystem.controls(p,b));c.complete();
         }finally{clean(c,b,p);}});
     }
 }
