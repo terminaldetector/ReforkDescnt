@@ -19,6 +19,7 @@ public final class NativeUfoReloadCheck {
     public static final boolean READ=Boolean.getBoolean("drmd.gate.ufoReloadRead");
     private static volatile UUID watched;
     private static volatile boolean restored,serverReady;
+    private static volatile int restoredEngines,savedUfoSchema;
     private static boolean done;private static int ticks,draws,stable,frames;
     private static final int READY_DELAY=Integer.getInteger("drmd.gate.restoreReadyDelay",0);
     private static final java.util.Map<net.minecraft.server.network.ServerPlayerEntity,Integer> DELAYED=new java.util.HashMap<>();
@@ -55,6 +56,11 @@ public final class NativeUfoReloadCheck {
             require(before.getBoolean("gravity")==after.getBoolean("gravity"),"restored gravity mode");
             require(expected.getList("Pos",NbtElement.DOUBLE_TYPE).equals(actual.getList("Pos",NbtElement.DOUBLE_TYPE)),"restored world position");
             require(expected.getCompound("shape").equals(actual.getCompound("shape")),"actual world reload must retain the local block grid");
+            require(!body.hasSimulatedPhysics(),"restored engine grid observed before the first physical tick");
+            var engineCells=com.terminaldetector.drmd.world.contraption.BodyShapeCodec.read(expected.getCompound("shape"));
+            savedUfoSchema=expected.getInt("physicalUfoSchema");boolean legacy=savedUfoSchema==1||expected.getBoolean("legacyThrusters");
+            int expectedEngines=(int)engineCells.stream().filter(cell->SkyUfoThrusters.SLOTS.contains(cell.pos())&&(cell.state().isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_THRUSTER)||legacy&&cell.state().isOf(net.minecraft.block.Blocks.PRISMARINE_BRICKS))).count();
+            restoredEngines=body.activeThrusters();require(restoredEngines==expectedEngines&&actual.getInt("physicalUfoSchema")==2&&actual.getBoolean("legacyThrusters")==legacy,"actual new/legacy engine availability must restore without repairing the saved material");
             require(expected.getBoolean("autopilot")&&body.autopilotEnabled(),"reload restores the pre-capture AI mode");
             require(body.physics().linearVelocity().length()>.1&&body.physics().angularVelocity().length()>.01,"fixture must save a translating and rotating ship");
             watched=id;restored=true;System.out.println("UFO_RELOAD_NBT PASS uuid="+id+" cells="+body.cells().size());
@@ -105,7 +111,7 @@ public final class NativeUfoReloadCheck {
         var c=MinecraftClient.getInstance();if(done||!serverReady||!walkObserved||walkTicks<14||draws<20||c.currentScreen!=null||++frames<3)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             image.writeTo(file("ufo-reloaded.png"));
-            Files.writeString(file("ufo-reload-ok.json"),"{\"postLoadWalking\":true,\"postLoadDistance\":"+walked+",\"admissionTicks\":"+admissionTicks+",\"actualProcessRestart\":true,\"serializedDataExact\":true,\"restoredPhysicsTolerance\":1e-10,\"sameUuid\":\""+watched+"\",\"noDuplicateHull\":true,\"restoredWalkingTicks\":"+stable+",\"renderedFrames\":"+draws+",\"stalePilotAbsent\":true}\n");
+            Files.writeString(file("ufo-reload-ok.json"),"{\"restoredEngines\":"+restoredEngines+",\"sourceUfoSchema\":"+savedUfoSchema+",\"postLoadWalking\":true,\"postLoadDistance\":"+walked+",\"admissionTicks\":"+admissionTicks+",\"actualProcessRestart\":true,\"serializedDataExact\":true,\"restoredPhysicsTolerance\":1e-10,\"sameUuid\":\""+watched+"\",\"noDuplicateHull\":true,\"restoredWalkingTicks\":"+stable+",\"renderedFrames\":"+draws+",\"stalePilotAbsent\":true}\n");
             done=true;c.scheduleStop();
         }catch(Exception e){throw new IllegalStateException(e);}
     }
