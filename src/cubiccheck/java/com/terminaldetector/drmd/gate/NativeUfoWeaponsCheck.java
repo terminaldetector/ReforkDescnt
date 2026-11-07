@@ -27,7 +27,7 @@ public final class NativeUfoWeaponsCheck {
     private static final Set<UUID> SYNCHRONIZED=ConcurrentHashMap.newKeySet(),RENDERED=ConcurrentHashMap.newKeySet();
     private static Map<BlockPos,BlockState> original;
     private static List<BlockPos> slots(){var s=new ArrayList<>(SkyUfoWeapons.LASERS);s.addAll(SkyUfoWeapons.ROCKETS);return s;}
-    private static Map<BlockPos,BlockState> grid(){var m=new HashMap<BlockPos,BlockState>();for(var c:body.cells())m.put(c.local(),c.state());return m;}
+    private static Map<BlockPos,BlockState> grid(){var m=new HashMap<BlockPos,BlockState>();for(var c:body.cells())m.put(c.pos(),c.state());return m;}
     private static void require(boolean b,String why){if(!b)throw new IllegalStateException("UFO mounted weapons: "+why);}
     public static void watch(SkyUfoEntity b,ServerPlayerEntity p){
         if(!ENABLED)return;body=b;pilot=p;original=grid();
@@ -54,7 +54,7 @@ public final class NativeUfoWeaponsCheck {
     }
     public static void drew(ProjectileEntity p){if(ENABLED&&SHOTS.containsKey(p.getUuid()))RENDERED.add(p.getUuid());}
     private static void held(MinecraftClient c,boolean b){c.options.attackKey.setPressed(b);c.options.useKey.setPressed(b);}
-    public static boolean complete(){return stage>=5;}
+    public static boolean complete(){return stage==5;}
     public static String tick(MinecraftClient c){
         for(var e:c.world.getEntities())if(e instanceof ProjectileEntity&&SHOTS.containsKey(e.getUuid()))SYNCHRONIZED.add(e.getUuid());
         if(stage==0){stage=1;startRotation=body.rotation();held(c,true);}

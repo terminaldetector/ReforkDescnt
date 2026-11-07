@@ -89,4 +89,24 @@ public final class UfoWeaponGameTests implements FabricGameTest {
             }
         } finally {for(var t:targets)t.discard();clean(c,b,p);}c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-weapon-input-expiry",tickLimit=60)
+    public void missingFireSnapshotsCannotKeepAnAutomaticGunHeld(TestContext c) {
+        var b=body(c);var p=pilot(c,b);p.setNoGravity(true);
+        try {c.assertTrue(UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(UfoControlSystem.epoch(p),0,1)),"initial fire input");}
+        catch(Throwable e){clean(c,b,p);throw e;}
+        c.waitAndRun(14,()->{try{c.assertTrue(UfoControlSystem.controls(p,b)&&shots(c,b,p).size()==2,"one stale snapshot expires before the next eight-tick laser cycle");c.complete();}finally{clean(c,b,p);}});
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-weapon-mouse-owner")
+    public void pilotMouseCannotAlsoFireHeldItemsOrPortalProjector(TestContext c) {
+        var b=body(c);var p=pilot(c,b);try {
+            // Use a registered real weapon rather than assuming an old item alias survives.
+            var item=net.minecraft.registry.Registries.ITEM.stream().filter(i->i instanceof com.terminaldetector.drmd.weapon.items.DescentWeaponItem).findFirst().orElseThrow();
+            p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(item));
+            com.terminaldetector.drmd.inventory.DroneArsenal.receive(p,3);com.terminaldetector.drmd.inventory.DroneArsenal.tick(p);
+            c.assertTrue(shots(c,b,p).isEmpty()&&!p.isUsingItem(),"ordinary held weapons cannot consume a ship pilot's trigger");
+            p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(ModWorldBlocks.PORTAL_PROJECTOR));
+            com.terminaldetector.drmd.world.portal.gun.PortalProjectorItem.trigger(p,1,false);
+            c.assertTrue(!p.getItemCooldownManager().isCoolingDown(ModWorldBlocks.PORTAL_PROJECTOR),"ship trigger does not activate the held portal projector");
+        } finally {com.terminaldetector.drmd.inventory.DroneArsenal.clear(p.getUuid());clean(c,b,p);}c.complete();
+    }
 }

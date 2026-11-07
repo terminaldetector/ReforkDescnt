@@ -9,7 +9,7 @@ import com.terminaldetector.drmd.network.ModNetworking;
 public final class DroneCombatInput {
  private static int last,age;
  public static boolean ownsMouse(MinecraftClient c){
-  if(c.player==null||c.player.isSpectator()||c.currentScreen!=null)return false;
+  if(com.terminaldetector.drmd.client.flight.UfoControlClient.active()||c.player==null||c.player.isSpectator()||c.currentScreen!=null)return false;
   var stack=c.player.getMainHandStack();
   if(stack.getItem() instanceof PortalProjectorItem)return false;
   return stack.getItem() instanceof DescentWeaponItem || DescentClientState.enabled && (stack.isEmpty() || com.terminaldetector.drmd.inventory.DroneArsenal.supported(stack));

@@ -55,7 +55,7 @@ public final class UfoControlSystem {
         if(!p.getServer().isOnThread()||!valid(p,b)||p.getEyePos().distanceTo(b.localToWorld(Vec3d.ofCenter(CONSOLE)))>p.getBlockInteractionRange())return false;
         var old=PILOTS.get(p.getUuid());if(old!=null)return old.body.get()==b;
         for(var l:PILOTS.values())if(l.body.get()==b)return false;
-        var l=new Lease(p,b,++epoch);PILOTS.put(p.getUuid(),l);b.setAutopilot(false);sync(p,b,l,true);return true;
+        var l=new Lease(p,b,++epoch);PILOTS.put(p.getUuid(),l);com.terminaldetector.drmd.inventory.DroneArsenal.clear(p.getUuid());b.setAutopilot(false);sync(p,b,l,true);return true;
     }
     public static boolean controls(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());return l!=null&&l.pilot.get()==p;}
     public static int epoch(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());return l==null?-1:l.epoch;}

@@ -24,6 +24,7 @@ public final class PortalProjectorItem extends Item {
         trigger(player,slot,reset,com.terminaldetector.drmd.weapon.core.WeaponCore.aimDir(player));
     }
     public static void trigger(ServerPlayerEntity player,int slot,boolean reset,net.minecraft.util.math.Vec3d aim) {
+        if(com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(player))return;
         double length=aim.lengthSquared();
         if(slot<1 || slot>2 || !Double.isFinite(length) || length<.9 || length>1.1)return;
         if(!(player.getMainHandStack().getItem() instanceof PortalProjectorItem) || player.isSpectator()

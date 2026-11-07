@@ -26,7 +26,7 @@ public final class DroneArsenal {
  }
  public static void receive(ServerPlayerEntity p,int mask){
   var s=STATES.computeIfAbsent(p.getUuid(),id->new Controls());
-  s.mask=(p.isAlive()&&!p.isSpectator()&&p.currentScreenHandler==p.playerScreenHandler)?mask&7:0;s.received=p.getWorld().getTime();
+  s.mask=(!com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p)&&p.isAlive()&&!p.isSpectator()&&p.currentScreenHandler==p.playerScreenHandler)?mask&7:0;s.received=p.getWorld().getTime();
  }
  private static void withHand(ServerPlayerEntity p,ItemStack stack,Runnable action){
   var previous=p.getMainHandStack();p.setStackInHand(Hand.MAIN_HAND,stack);
@@ -38,7 +38,7 @@ public final class DroneArsenal {
  }
  public static void tick(ServerPlayerEntity p){
   var state=STATES.get(p.getUuid());if(state==null)return;
-  if(!p.isAlive()||p.isSpectator()||p.currentScreenHandler!=p.playerScreenHandler||p.getWorld().getTime()-state.received>6){
+  if(com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p)||!p.isAlive()||p.isSpectator()||p.currentScreenHandler!=p.playerScreenHandler||p.getWorld().getTime()-state.received>6){
    if(p.isAlive() && java.util.Arrays.stream(state.holds).anyMatch(java.util.Objects::nonNull))com.terminaldetector.drmd.network.ModNetworking.weaponLoad(p,0);
    state.mask=0;java.util.Arrays.fill(state.holds,null);return;
   }
