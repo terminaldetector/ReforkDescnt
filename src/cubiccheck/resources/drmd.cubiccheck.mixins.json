@@ -29,6 +29,7 @@
     "RagdollPersistenceProbe",
     "WreckCullingProbe",
     "JointBodyPersistenceProbe",
+    "TurretRegistryPersistenceProbe",
     "UfoControlInputProbe",
     "UfoTurretRecoilProbe",
     "UfoProjectileRenderProbe",

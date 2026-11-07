@@ -61,7 +61,7 @@ public final class NativeUfoReloadCheck {
             savedUfoSchema=expected.getInt("physicalUfoSchema");boolean legacy=savedUfoSchema==1||expected.getBoolean("legacyThrusters");
             int expectedEngines=(int)engineCells.stream().filter(cell->SkyUfoThrusters.SLOTS.contains(cell.pos())&&(cell.state().isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_THRUSTER)||legacy&&cell.state().isOf(net.minecraft.block.Blocks.PRISMARINE_BRICKS))).count();
             restoredEngines=body.activeThrusters();require(restoredEngines==expectedEngines&&actual.getInt("physicalUfoSchema")==2&&actual.getBoolean("legacyThrusters")==legacy,"actual new/legacy engine availability must restore without repairing the saved material");
-            require(expected.getBoolean("autopilot")&&body.autopilotEnabled(),"reload restores the pre-capture AI mode");
+            require((NativeTurretReloadCheck.READ?expected.getBoolean("autopilot")==body.autopilotEnabled():expected.getBoolean("autopilot")&&body.autopilotEnabled()),"reload restores the pre-capture AI mode");
             require(body.physics().linearVelocity().length()>.1&&body.physics().angularVelocity().length()>.01,"fixture must save a translating and rotating ship");
             watched=id;restored=true;System.out.println("UFO_RELOAD_NBT PASS uuid="+id+" cells="+body.cells().size());
             for(var p:((net.minecraft.server.world.ServerWorld)entity(body).getWorld()).getPlayers())
@@ -76,6 +76,7 @@ public final class NativeUfoReloadCheck {
                 int due=DELAYED.get(p);if(due<0){DELAYED.put(p,s.getTicks()+READY_DELAY);continue;}
                 if(s.getTicks()>=due){DELAYED.remove(p);releasingReady=true;try{BoardingSystem.ready(p,com.terminaldetector.drmd.network.BoardingNetworking.PROTOCOL);}finally{releasingReady=false;}}
             }
+            if(NativeTurretReloadCheck.playing())return;
             if(!restored)return;var w=s.getOverworld();var e=w.getEntity(watched);if(!(e instanceof SkyUfoEntity body))return;
             var players=s.getPlayerManager().getPlayerList();if(players.isEmpty())return;var p=players.getFirst();
             require(!UfoControlSystem.controls(p),"old pilot connection must not survive a process restart");
@@ -112,7 +113,7 @@ public final class NativeUfoReloadCheck {
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
             image.writeTo(file("ufo-reloaded.png"));
             Files.writeString(file("ufo-reload-ok.json"),"{\"restoredEngines\":"+restoredEngines+",\"sourceUfoSchema\":"+savedUfoSchema+",\"postLoadWalking\":true,\"postLoadDistance\":"+walked+",\"admissionTicks\":"+admissionTicks+",\"actualProcessRestart\":true,\"serializedDataExact\":true,\"restoredPhysicsTolerance\":1e-10,\"sameUuid\":\""+watched+"\",\"noDuplicateHull\":true,\"restoredWalkingTicks\":"+stable+",\"renderedFrames\":"+draws+",\"stalePilotAbsent\":true}\n");
-            done=true;c.scheduleStop();
+            done=true;if(NativeTurretReloadCheck.READ)NativeTurretReloadCheck.afterWalking();else c.scheduleStop();
         }catch(Exception e){throw new IllegalStateException(e);}
     }
 }

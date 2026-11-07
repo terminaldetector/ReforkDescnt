@@ -20,7 +20,7 @@ public class CubicFrameProbe {
         if(com.terminaldetector.drmd.gate.NativeDroneRouteCheck.ENABLED){com.terminaldetector.drmd.gate.NativeDroneRouteCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeDroneStateCheck.READ){com.terminaldetector.drmd.gate.NativeDroneStateCheck.rendered();return;}
         if(Boolean.getBoolean("drmd.gate.swarm")){com.terminaldetector.drmd.gate.NativeSwarmBaselineCheck.rendered();return;}
-        if(com.terminaldetector.drmd.gate.NativeUfoReloadCheck.READ){com.terminaldetector.drmd.gate.NativeUfoReloadCheck.rendered();return;}
+        if(com.terminaldetector.drmd.gate.NativeUfoReloadCheck.READ){com.terminaldetector.drmd.gate.NativeUfoReloadCheck.rendered();com.terminaldetector.drmd.gate.NativeTurretReloadCheck.rendered();return;}
         if(Boolean.getBoolean("drmd.gate.flightBody")){com.terminaldetector.drmd.gate.NativeFlightBodyCheck.rendered();return;}
         if(Boolean.getBoolean("drmd.gate.joints")){com.terminaldetector.drmd.gate.NativeJointCheck.rendered();}else if(Boolean.getBoolean("drmd.gate.bodyIndex")){com.terminaldetector.drmd.gate.NativeBodyIndexCheck.rendered();}else if(Boolean.getBoolean("drmd.gate.bodyEdit")){com.terminaldetector.drmd.gate.NativeBodyEditCheck.rendered();}else if(Boolean.getBoolean("drmd.gate.shipGravity"))com.terminaldetector.drmd.gate.NativeShipGravityCheck.rendered();
         else if(Boolean.getBoolean("drmd.gate.boarding"))com.terminaldetector.drmd.gate.NativeBoardingCheck.rendered();

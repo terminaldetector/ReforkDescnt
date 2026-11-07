@@ -105,6 +105,7 @@ public final class NativeFlightBodyCheck {
                     require(pauseVerified&&serverControl&&controlVelocity.minus(beforeControl).length()>1&&Math.abs(controlSpin.z())>.2,"actual control inputs must accelerate and turn the existing UFO");
                     require(BoardingSystem.pure(local).minus(beforePilot).length()<.4,"pilot input must drive the hull rather than walk the character");request("control-thrust-and-roll");controlStep=2;age=0;
                 }else if(controlStep==2&&age>=5){
+                    if(NativeTurretReloadCheck.WRITE){NativeTurretReloadCheck.writerTick(c);if(NativeTurretReloadCheck.writerReady()){request("turret-before-save");phase=15;}return;}
                     if(NativeUfoTurretCheck.ENABLED&&!NativeUfoTurretCheck.complete()){var extra=NativeUfoTurretCheck.tick(c);if(extra!=null)request(extra);return;}
                     if(NativeUfoEngineCheck.ENABLED&&!NativeUfoEngineCheck.complete()){var extra=NativeUfoEngineCheck.tick(c);if(extra!=null)request(extra);return;}
                     if(NativeUfoWeaponsCheck.ENABLED&&!NativeUfoWeaponsCheck.complete()){var extra=NativeUfoWeaponsCheck.tick(c);if(extra!=null)request(extra);return;}
@@ -141,7 +142,7 @@ public final class NativeFlightBodyCheck {
         entity(ufo).refreshPositionAndAngles(AT.getX(),AT.getY(),AT.getZ(),0,0);require(w.spawnEntity(ufo),"spawn real UFO");entity(ufo).tick();bodyId=entity(ufo).getId();
         ufo.physics().withLinearVelocity(new Vec3(.5,0,0)).withAngularVelocity(new Vec3(0,.08,0));ufo.setPassengerGravity(new Vec3(0,-32,0));ufo.publishPhysicsState();bodyStart=entity(ufo).getPos();
         var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());p.teleport(w,AT.getX(),AT.getY()+.1,AT.getZ()-14,Set.of(),0,0);configure(p);w.setTimeOfDay(6000);ready=true;
-        NativeUfoTurretCheck.watch(ufo,p);NativeUfoEngineCheck.watch(ufo,p);NativeUfoWeaponsCheck.watch(ufo,p);
+        NativeTurretReloadCheck.watch(ufo,p);NativeUfoTurretCheck.watch(ufo,p);NativeUfoEngineCheck.watch(ufo,p);NativeUfoWeaponsCheck.watch(ufo,p);
         ServerTickEvents.END_WORLD_TICK.register(world->{
             if(world!=w||finished)return;local=ufo.worldToLocal(p.getPos());serverFeet=p.getPos();bodyNow=entity(ufo).getPos();serverEpoch=FlightBodySystem.epoch(p);walking=BoardingSystem.drives(p);serverControl=com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p);controlVelocity=ufo.physics().linearVelocity();controlSpin=ufo.physics().angularVelocity();
             if(CONTROL&&(serverControl||bayHeldSamples>0)) {
@@ -176,6 +177,7 @@ public final class NativeFlightBodyCheck {
             if(scene.equals("turret-module-exterior")&&!NativeUfoTurretCheck.verifyExteriorImage(image))return;
             var out=c.runDirectory.toPath().resolve("flight-body-frames");Files.createDirectories(out);image.writeTo(out.resolve(scene+".png"));scenes.add(scene);capturing=false;
             System.out.println("FLIGHT_BODY_CLIENT "+scene+" PASS local="+local);
+            if(NativeTurretReloadCheck.WRITE&&scene.equals("turret-before-save")){NativeTurretReloadCheck.closeWriter(c);finished=true;return;}
             if(NativeUfoReloadCheck.WRITE&&scene.equals("control-acquired")){
                 NativeUfoReloadCheck.watch(c.world.getEntityById(bodyId).getUuid());finished=true;c.scheduleStop();return;
             }

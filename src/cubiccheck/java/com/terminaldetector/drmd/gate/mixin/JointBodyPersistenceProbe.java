@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(BlockBodyEntity.class)
 public class JointBodyPersistenceProbe {
     @Inject(method="writeCustomDataToNbt",at=@At("RETURN"))
-    private void saved(NbtCompound n,CallbackInfo ci){NativeJointReloadCheck.saved((BlockBodyEntity)(Object)this,n);com.terminaldetector.drmd.gate.NativeIslandLoadCheck.saved((BlockBodyEntity)(Object)this,n);}
+    private void saved(NbtCompound n,CallbackInfo ci){com.terminaldetector.drmd.gate.NativeTurretReloadCheck.savedBody((BlockBodyEntity)(Object)this,n);NativeJointReloadCheck.saved((BlockBodyEntity)(Object)this,n);com.terminaldetector.drmd.gate.NativeIslandLoadCheck.saved((BlockBodyEntity)(Object)this,n);}
     @Inject(method="readCustomDataFromNbt",at=@At("RETURN"))
-    private void loaded(NbtCompound n,CallbackInfo ci){NativeJointReloadCheck.loaded((BlockBodyEntity)(Object)this,n);com.terminaldetector.drmd.gate.NativeIslandLoadCheck.loaded((BlockBodyEntity)(Object)this,n);}
+    private void loaded(NbtCompound n,CallbackInfo ci){com.terminaldetector.drmd.gate.NativeTurretReloadCheck.loadedBody((BlockBodyEntity)(Object)this,n);NativeJointReloadCheck.loaded((BlockBodyEntity)(Object)this,n);com.terminaldetector.drmd.gate.NativeIslandLoadCheck.loaded((BlockBodyEntity)(Object)this,n);}
 }
