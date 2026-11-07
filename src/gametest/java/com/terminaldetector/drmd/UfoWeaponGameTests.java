@@ -80,7 +80,7 @@ public final class UfoWeaponGameTests implements FabricGameTest {
         var b=body(c);var p=pilot(c,b);var targets=new ArrayList<net.minecraft.entity.passive.CowEntity>();try {
             int cells=b.cells().size();
             for(boolean rocket:new boolean[]{false,true}) {
-                var slot=(rocket?SkyUfoWeapons.ROCKETS:SkyUfoWeapons.LASERS).getFirst();var muzzle=SkyUfoWeapons.muzzle(b,slot);var cow=EntityType.COW.create(c.getWorld());cow.setNoAi(true);cow.setNoGravity(true);cow.setPosition(muzzle.add(0,-.5,5));c.assertTrue(c.getWorld().spawnEntity(cow),"real target");targets.add(cow);float health=cow.getHealth();
+                var slot=(rocket?SkyUfoWeapons.ROCKETS:SkyUfoWeapons.LASERS).getFirst();var muzzle=SkyUfoWeapons.muzzle(b,slot);var cow=EntityType.COW.create(c.getWorld());cow.setAiDisabled(true);cow.setNoGravity(true);cow.setPosition(muzzle.add(0,-.5,5));c.assertTrue(c.getWorld().spawnEntity(cow),"real target");targets.add(cow);float health=cow.getHealth();
                 b.fireMountedWeapons(p,rocket?2:1);var projectile=shots(c,b,p).stream().filter(s->s.getPos().distanceTo(muzzle)<1e-8).findFirst().orElseThrow();
                 for(int i=0;i<5&&!projectile.isRemoved();i++)projectile.tick();
                 c.assertTrue(cow.getHealth()<health,"real projectile collision damages target: "+rocket);
