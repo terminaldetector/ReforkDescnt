@@ -2,6 +2,7 @@ package com.terminaldetector.drmd;
 
 import com.terminaldetector.drmd.client.portal.PortalTransform.*;
 import com.terminaldetector.drmd.entity.ModEntities;
+import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions;
 import com.terminaldetector.drmd.world.contraption.*;
 import com.terminaldetector.drmd.world.contraption.boarding.*;
@@ -163,9 +164,9 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
             var at=slots.getFirst();var access=new BlockBodyWorldAccess(b);
             c.assertTrue(access.placeLocalBlock(at,Blocks.PRISMARINE_BRICKS.getDefaultState())&&b.activeThrusters()==0,"decorative shell replacement cannot power a new ship engine");
             c.assertTrue(access.breakLocalBlock(at),"remove the ordinary replacement");
-            var position=b.massPosition();var velocity=b.physics().linearVelocity();var momentum=b.physics().angularMomentum();var id=b.getUuid();
+            var point=new Vec3d(3.5,-.5,3.5);var position=b.localToWorld(point);var velocity=b.physics().linearVelocity();var momentum=b.physics().angularMomentum();var id=b.getUuid();
             c.assertTrue(access.placeLocalBlock(at,node)&&b.activeThrusters()==1,"repair installs the actual engine part in the local grid");
-            c.assertTrue(id.equals(b.getUuid())&&b.physics().linearVelocity().minus(velocity).length()<1e-9&&b.physics().angularMomentum().minus(momentum).length()<1e-9&&b.massPosition().minus(position).length()<.01,"stationary repair preserves the existing physical identity without a velocity reset");
+            c.assertTrue(id.equals(b.getUuid())&&b.physics().linearVelocity().minus(velocity).length()<1e-9&&b.physics().angularMomentum().minus(momentum).length()<1e-9&&b.localToWorld(point).distanceTo(position)<1e-8,"stationary repair preserves the existing physical identity without a velocity reset");
             var before=b.physics().linearVelocity();var spin=b.physics().angularMomentum();b.applyThrusterWrench(new Vec3(0,b.physicsMass()*4,0),new Vec3(0,0,0));
             c.assertTrue(b.physics().linearVelocity().minus(before).length()>0&&b.physics().angularMomentum().minus(spin).length()>0,"a lone repaired motor pushes at its real off-centre mount instead of a hidden COM force");
         } finally {b.discard();}c.complete();
