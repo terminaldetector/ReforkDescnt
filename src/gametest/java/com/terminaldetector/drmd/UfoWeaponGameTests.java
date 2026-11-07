@@ -154,6 +154,11 @@ public final class UfoWeaponGameTests implements FabricGameTest {
             p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(net.minecraft.registry.Registries.ITEM.get(id)));
             c.assertTrue(b.useLocalBlock(p,UfoControlSystem.CONSOLE),"actual console use installs the held turret kit");
             c.assertTrue(BodyJointRegistry.get(c.getWorld()).forBody(b.getUuid()).stream().anyMatch(j->j.kind()==com.terminaldetector.drmd.physics.collision.BodyJointConstraint.Kind.MOTOR),"a real independent motor joint connects the turret to its carrier");
+            var module=b.turretModule().orElseThrow();var child=module.body(b).orElseThrow();var registry=BodyJointRegistry.get(c.getWorld());var link=registry.find(module.jointId()).orElseThrow();
+            c.assertTrue(!link.collideConnected()&&!BodyJointLink.read(link.write()).collideConnected()&&!registry.collisionAllowed(b.getUuid(),child.getUuid())&&registry.collisionAllowed(child.getUuid(),UUID.randomUUID()),"bearing suppresses only the directly connected pair and persists that choice");
+            var legacy=link.write();legacy.remove("collideConnected");c.assertTrue(BodyJointLink.read(legacy).collideConnected(),"old links keep their original collision behavior");
+            var centre=child.localToWorld(new Vec3d(.5,.5,.5));var actor=new com.terminaldetector.drmd.physics.collision.OrientedBox(new Vec3(centre.x,centre.y,centre.z),new Vec3(.2,.2,.2),child.rotation());
+            c.assertTrue(!child.collisionQuery().contacts(actor,0).isEmpty(),"bearing mask does not remove the actual module collider");
         }finally{clean(c,b,p);}c.complete();
     });}
     private SkyUfoTurret installTurret(TestContext c,SkyUfoEntity b,net.minecraft.server.network.ServerPlayerEntity p) {
@@ -210,7 +215,9 @@ public final class UfoWeaponGameTests implements FabricGameTest {
             c.assertTrue(UfoControlSystem.receive(p,new UfoControlSystem.Input(e,tick,.2f,0,0,.1f,.1f,.3f))&&UfoControlSystem.receiveTurret(p,new UfoControlSystem.TurretInput(e,tick,1))&&UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e,tick,4)),"actual controlled carrier and turret snapshots");
             for(var shot:shots(c,b,p))seen.put(shot.getUuid(),shot);
             error[0]=Math.max(error[0],b.localToWorld(new Vec3d(.5,4,.5)).distanceTo(child.localToWorld(new Vec3d(.5,0,.5))));
-            if(ticks[0]<32){c.waitAndRun(1,step[0]);return;}
+            // GameTestState removes a Runnable after invoking it. Re-enqueue a fresh wrapper,
+            // otherwise reusing this same map key deletes the next scheduled invocation.
+            if(ticks[0]<32){c.waitAndRun(1,()->step[0].run());return;}
             double dot=Math.abs(ImmPtlQuaternions.dot(b.rotation(),child.rotation()));
             c.assertTrue(t.connected(b)&&error[0]<.03&&2*Math.acos(Math.min(1,dot))>.25,"motor changes the real child orientation while the physical anchor stays attached: "+error[0]);
             c.assertTrue(b.massPosition().minus(start).length()>.1&&seen.values().stream().anyMatch(s->s.getMeshKind()==0)&&seen.values().stream().anyMatch(s->s.getMeshKind()==1),"moving carrier emits real laser and rocket entities from its module");
