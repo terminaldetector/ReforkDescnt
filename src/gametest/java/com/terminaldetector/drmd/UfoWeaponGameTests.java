@@ -166,7 +166,7 @@ public final class UfoWeaponGameTests implements FabricGameTest {
         try {
             b.physics().withLinearVelocity(new Vec3(4,2,-3)).withAngularVelocity(new Vec3(.1,.2,.3));var old=b.physics().snapshot();var savedV=b.physics().linearVelocity();var savedL=b.physics().angularMomentum();var id=b.getUuid();
             var module=installTurret(c,b,p);var child=module.body(b).orElseThrow();
-            c.assertTrue(p.getMainHandStack().isEmpty()&&child.cells().size()==5&&module.connected(b),"one kit becomes one five-cell physical module");
+            c.assertTrue(p.getMainHandStack().isEmpty()&&child.cells().size()==5&&module.connected(b),"one kit becomes one five-cell physical module: empty="+p.getMainHandStack().isEmpty()+" cells="+child.cells().size()+" connected="+module.connected(b));
             c.assertTrue(id.equals(b.getUuid())&&b.massPosition().equals(old.position())&&b.physics().linearVelocity().equals(savedV)&&b.physics().angularMomentum().equals(savedL),"installation preserves the carrier's physical state");
             for(var cell:child.cells()){var at=child.localToWorld(Vec3d.ofCenter(cell.pos()));c.assertTrue(child.surfaceVelocityAt(at).distanceTo(b.surfaceVelocityAt(at))<1e-8,"new module inherits the full original material velocity field");}
             var tag=b.writeNbt(new NbtCompound());var copy=ModEntities.SKY_UFO.create(c.getWorld());try{copy.readNbt(tag);c.assertTrue(copy.turretModule().orElseThrow().bodyId().equals(child.getUuid())&&!copy.turretModule().orElseThrow().connected(copy),"saved identity is retained without granting authority to an unspawned clone");}finally{copy.discard();}
@@ -198,5 +198,24 @@ public final class UfoWeaponGameTests implements FabricGameTest {
             c.assertTrue(child.massPosition().equals(state.position())&&child.physics().linearVelocity().equals(savedV)&&child.physics().angularMomentum().equals(savedL),"free module retains pose, velocity and angular momentum at separation");
             b.fireMountedWeapons(p,4);c.assertTrue(shots(c,b,p).isEmpty(),"a disconnected module cannot fire from its old parent");
         }finally{clean(c,b,p);}c.complete();
+    });}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-live",tickLimit=160)
+    public void realMotorAndFiringRemainAttachedDuringCarrierMotion(TestContext c){admitted(c,()->{
+        var b=body(c);var p=pilot(c,b);var t=installTurret(c,b,p);var child=t.body(b).orElseThrow();var start=b.massPosition();
+        p.getAbilities().flying=false;p.setPosition(b.localToWorld(new Vec3d(3.5,.001,-1)));com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(p.getUuid());
+        com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.ready(p,com.terminaldetector.drmd.network.BoardingNetworking.PROTOCOL);com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.tick(c.getWorld());
+        var seen=new HashMap<java.util.UUID,ProjectileEntity>();int[] ticks={0};double[] error={0};Runnable[] step={null};
+        step[0]=()->{try{
+            int tick=ticks[0]++,e=UfoControlSystem.epoch(p);
+            c.assertTrue(UfoControlSystem.receive(p,new UfoControlSystem.Input(e,tick,.2f,0,0,.1f,.1f,.3f))&&UfoControlSystem.receiveTurret(p,new UfoControlSystem.TurretInput(e,tick,1))&&UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e,tick,4)),"actual controlled carrier and turret snapshots");
+            for(var shot:shots(c,b,p))seen.put(shot.getUuid(),shot);
+            error[0]=Math.max(error[0],b.localToWorld(new Vec3d(.5,4,.5)).distanceTo(child.localToWorld(new Vec3d(.5,0,.5))));
+            if(ticks[0]<32){c.waitAndRun(1,step[0]);return;}
+            double dot=Math.abs(ImmPtlQuaternions.dot(b.rotation(),child.rotation()));
+            c.assertTrue(t.connected(b)&&error[0]<.03&&2*Math.acos(Math.min(1,dot))>.25,"motor changes the real child orientation while the physical anchor stays attached: "+error[0]);
+            c.assertTrue(b.massPosition().minus(start).length()>.1&&seen.values().stream().anyMatch(s->s.getMeshKind()==0)&&seen.values().stream().anyMatch(s->s.getMeshKind()==1),"moving carrier emits real laser and rocket entities from its module");
+            for(var shot:seen.values())shot.discard();clean(c,b,p);c.complete();
+        }catch(Throwable ex){for(var shot:seen.values())shot.discard();clean(c,b,p);throw ex;}};
+        c.waitAndRun(1,step[0]);
     });}
 }
