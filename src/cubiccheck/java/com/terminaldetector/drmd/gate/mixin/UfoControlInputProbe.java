@@ -18,5 +18,8 @@ public class UfoControlInputProbe {
         if(result.getReturnValueZ())NativeUfoEngineCheck.accepted(player,input);
     }
     @Inject(method="receiveFire",at=@At("RETURN"),remap=false)
-    private static void fire(ServerPlayerEntity player,UfoControlSystem.Fire input,CallbackInfoReturnable<Boolean> result){if(result.getReturnValueZ())com.terminaldetector.drmd.gate.NativeUfoWeaponsCheck.accepted(player,input);}
+    private static void fire(ServerPlayerEntity player,UfoControlSystem.Fire input,CallbackInfoReturnable<Boolean> result){if(result.getReturnValueZ()){com.terminaldetector.drmd.gate.NativeUfoTurretCheck.trigger(player,input);com.terminaldetector.drmd.gate.NativeUfoWeaponsCheck.accepted(player,input);}}
+    @Inject(method="receiveTurret",at=@At("RETURN"),remap=false)
+    private static void turret(ServerPlayerEntity player,UfoControlSystem.TurretInput input,CallbackInfoReturnable<Boolean> result){if(result.getReturnValueZ())com.terminaldetector.drmd.gate.NativeUfoTurretCheck.aim(player,input);}
 }
+

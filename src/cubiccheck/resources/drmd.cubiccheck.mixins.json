@@ -30,6 +30,7 @@
     "WreckCullingProbe",
     "JointBodyPersistenceProbe",
     "UfoControlInputProbe",
+    "UfoTurretRecoilProbe",
     "UfoProjectileRenderProbe",
     "UfoProjectileHitProbe"
   ],
