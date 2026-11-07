@@ -6,6 +6,11 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 class BodyPairQueryTest {
+    @Test void restingSkinCannotTurnASeparatedApproachingPairIntoAZeroTimeImpact(){
+        var a=motion(cube(),ZERO,new Vec3(.1,0,0));var b=motion(cube(),new Vec3(1.0000005,0,0),new Vec3(1.0000005,0,0));
+        assertFalse(BodyPairQuery.contacts(a,b,0,true).isEmpty());
+        var hit=BodyPairQuery.impact(a,b).orElseThrow();assertTrue(hit.fraction()>1e-6);assertEquals(5e-6,hit.fraction(),1e-8);
+    }
     private static final Vec3 ZERO=new Vec3(0,0,0);
     private BodyPairQuery.Motion motion(CompoundCollider c,Vec3 start,Vec3 end){return new BodyPairQuery.Motion(c,ZERO,start,Quat.IDENTITY,end,Quat.IDENTITY);}
     private CompoundCollider cube(){return new CompoundCollider(List.of(new BodyBounds(new Vec3(-.5,-.5,-.5),new Vec3(.5,.5,.5))));}
