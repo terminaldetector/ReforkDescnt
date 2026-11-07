@@ -36,7 +36,7 @@ public final class BodyContactSystem {
     public static Stats stats(ServerWorld world){return LAST.getOrDefault(world,new Stats(0,0,false));}
     public static int solve(ServerWorld world) {
         if(!world.getServer().isOnThread())throw new IllegalStateException("Hull contacts belong to the server world thread");
-        BodyJointSystem.solve(world);
+        BodyJointSystem.solve(world);var joints=BodyJointRegistry.get(world);
         var frames=new ArrayList<Frame>();for(var body:BodySpatialIndex.loaded(world))if(!body.cells().isEmpty())frames.add(new Frame(body));
         var index=new AabbTree<Frame>();for(var frame:frames)update(index,frame);
         var changed=new LinkedHashSet<BlockBodyEntity>();var ignored=new HashSet<Pair>();
@@ -45,7 +45,7 @@ public final class BodyContactSystem {
         for(int event=0;event<eventBudget;event++) {
             Candidate first=null;
             for(var a:frames)for(var b:near(index,a)) {
-                if(b.id()<=a.id()||!a.dynamic&&!b.dynamic||ignored.contains(new Pair(a.id(),b.id())))continue;
+                if(b.id()<=a.id()||!a.dynamic&&!b.dynamic||ignored.contains(new Pair(a.id(),b.id()))||!joints.collisionAllowed(a.body.getUuid(),b.body.getUuid()))continue;
                 tested++;var hit=BodyPairQuery.impact(a.motion,b.motion);
                 if(hit.isPresent()&&(first==null||hit.get().fraction()<first.impact.fraction()))first=new Candidate(a,b,hit.get());
             }
@@ -55,7 +55,7 @@ public final class BodyContactSystem {
             for(var frame:frames){frame.slice(fraction);update(index,frame);}
             var touching=new ArrayList<Touch>();var participants=new LinkedHashSet<Frame>();
             for(var a:frames)for(var b:near(index,a)) {
-                if(b.id()<=a.id()||!a.dynamic&&!b.dynamic||ignored.contains(new Pair(a.id(),b.id())))continue;
+                if(b.id()<=a.id()||!a.dynamic&&!b.dynamic||ignored.contains(new Pair(a.id(),b.id()))||!joints.collisionAllowed(a.body.getUuid(),b.body.getUuid()))continue;
                 var contacts=BodyPairQuery.contacts(a.motion,b.motion,0,true);
                 if(!contacts.isEmpty()){touching.add(new Touch(a,b,contacts));participants.add(a);participants.add(b);}
             }

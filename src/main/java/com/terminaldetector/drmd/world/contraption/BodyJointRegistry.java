@@ -30,6 +30,8 @@ public final class BodyJointRegistry extends PersistentState {
         if(!containsBody(body.getUuid())||body.isRemoved()||body.cells().isEmpty()||BodySpatialIndex.find(body.getWorld(),body.getId()).orElse(null)!=body)return;
         var bounds=body.loadingBounds();if(!bounds.equals(locations.put(body.getUuid(),bounds))){locationIndex.update(body.getUuid(),bounds);markDirty();}
     }
+    /** A bearing may suppress contact only with its directly connected partner. */
+    public boolean collisionAllowed(UUID a,UUID b){for(var id:endpoints.getOrDefault(a,Set.of())){var l=links.get(id);if(!l.collideConnected()&&(l.a().body().equals(b)||l.b().body().equals(b)))return false;}return true;}
     public boolean containsBody(UUID body){return endpoints.containsKey(body);}
     public boolean active(UUID id,long tick){return links.containsKey(id)&&tick>=starts.getOrDefault(id,Long.MIN_VALUE);}
     public boolean activeBody(UUID body,long tick){return endpoints.getOrDefault(body,Set.of()).stream().anyMatch(id->active(id,tick));}
@@ -44,7 +46,7 @@ public final class BodyJointRegistry extends PersistentState {
     }
     public boolean configure(UUID id,double speed,double motorForce,double breakForce,double breakTorque) {
         var old=links.get(id);if(old==null)return false;
-        var updated=new BodyJointLink(old.id(),old.a(),old.b(),old.kind(),old.lower(),old.upper(),speed,motorForce,breakForce,breakTorque);
+        var updated=new BodyJointLink(old.id(),old.a(),old.b(),old.kind(),old.lower(),old.upper(),speed,motorForce,breakForce,breakTorque,old.collideConnected());
         if(updated.equals(old))return true;var next=new LinkedHashMap<>(links);next.put(id,updated);replace(next);return true;
     }
     public boolean remove(UUID id){if(!links.containsKey(id))return false;var next=new LinkedHashMap<>(links);next.remove(id);replace(next);return true;}
@@ -56,7 +58,7 @@ public final class BodyJointRegistry extends PersistentState {
         for(var link:affected) {
             BodyJointLink.Endpoint a=migrate(link.a(),original,fragments),b=migrate(link.b(),original,fragments);
             if(a==null||b==null){next.remove(link.id());changed=true;}
-            else if(!a.equals(link.a())||!b.equals(link.b())){next.put(link.id(),new BodyJointLink(link.id(),a,b,link.kind(),link.lower(),link.upper(),link.speed(),link.motorForce(),link.breakForce(),link.breakTorque()));changed=true;}
+            else if(!a.equals(link.a())||!b.equals(link.b())){next.put(link.id(),new BodyJointLink(link.id(),a,b,link.kind(),link.lower(),link.upper(),link.speed(),link.motorForce(),link.breakForce(),link.breakTorque(),link.collideConnected()));changed=true;}
         }
         if(changed)replace(next);rememberLocation(original);for(var fragment:fragments)rememberLocation(fragment);
     }

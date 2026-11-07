@@ -215,7 +215,7 @@ public final class UfoWeaponGameTests implements FabricGameTest {
             c.assertTrue(t.connected(b)&&error[0]<.03&&2*Math.acos(Math.min(1,dot))>.25,"motor changes the real child orientation while the physical anchor stays attached: "+error[0]);
             c.assertTrue(b.massPosition().minus(start).length()>.1&&seen.values().stream().anyMatch(s->s.getMeshKind()==0)&&seen.values().stream().anyMatch(s->s.getMeshKind()==1),"moving carrier emits real laser and rocket entities from its module");
             for(var shot:seen.values())shot.discard();clean(c,b,p);c.complete();
-        }catch(Throwable ex){for(var shot:seen.values())shot.discard();clean(c,b,p);throw ex;}};
+        }catch(Throwable ex){System.out.println("TURRET_LIVE_FAILURE "+ex+" tick="+ticks[0]+" anchor="+error[0]+" root="+b.massPosition()+" child="+child.massPosition()+" connected="+t.connected(b));for(var shot:seen.values())shot.discard();clean(c,b,p);throw ex;}};
         c.waitAndRun(1,step[0]);
     });}
 }

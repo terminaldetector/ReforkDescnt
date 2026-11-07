@@ -58,7 +58,7 @@ public final class SkyUfoTurret {
             var w=root.physics().angularVelocity();body=BlockBodyEntity.createLocal(world,cells,origin,q,root.surfaceVelocityAt(origin),new Vec3d(w.x(),w.y(),w.z()));
             body.setPassengerGravity(new Vec3(0,-16,0));body.setPhysicsGravity(false);
             var link=new BodyJointLink(joint,new BodyJointLink.Endpoint(root.getUuid(),ROOF,ROOT_POINT,AXIS),new BodyJointLink.Endpoint(body.getUuid(),BASE,CHILD_POINT,AXIS),
-                BodyJointConstraint.Kind.MOTOR,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,0,40,50000,50000);
+                BodyJointConstraint.Kind.MOTOR,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,0,40,50000,50000,false);
             BodyJointRegistry.get(world).add(world,root,body,link);
             var result=new SkyUfoTurret(body.getUuid(),joint);result.cached=new WeakReference<>(body);return result;
         }catch(RuntimeException failure){BodyJointRegistry.get(world).remove(joint);if(body!=null)body.discard();throw failure;}
