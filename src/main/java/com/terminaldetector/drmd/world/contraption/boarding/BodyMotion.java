@@ -50,6 +50,22 @@ public final class BodyMotion {
         reactionVelocity=reactionVelocity.plus(impulse.scaled(1/dynamics.mass()));
         reactionMomentum=reactionMomentum.plus(offset.cross(impulse));
     }
+    /** Point trace against this tick's actual material trajectory. Translation is exact;
+     * rotation uses at most32 short local-space chords, retaining the existing immutable BVH. */
+    public record RayHit(double fraction,Vec3 localPoint,Vec3 worldPoint) {}
+    public java.util.Optional<RayHit> traceProjectile(Vec3 start,Vec3 end) {
+        BodyBounds.finite(start);BodyBounds.finite(end);
+        double angle=2*Math.acos(Math.min(1,Math.abs(ImmPtlQuaternions.dot(before,after))));
+        int steps=Math.max(1,Math.min(32,(int)Math.ceil(angle/.005)));var delta=end.minus(start);
+        for(int i=0;i<steps;i++) {
+            double a=(double)i/steps,b=(double)(i+1)/steps;
+            var from=localOffset(start.plus(delta.scaled(a)),a).plus(localCom);
+            var to=localOffset(start.plus(delta.scaled(b)),b).plus(localCom);
+            var hit=shape.raycast(from,to);
+            if(hit.isPresent()) {double fraction=a+(b-a)*hit.get().fraction();return java.util.Optional.of(new RayHit(fraction,hit.get().point(),start.plus(delta.scaled(fraction))));}
+        }
+        return java.util.Optional.empty();
+    }
     public double travelBound() {
         double dot=Math.min(1,Math.abs(ImmPtlQuaternions.dot(before,after)));
         double radius=shape.bounds().map(b->b.half().length()+b.centre().minus(localCom).length()).orElse(0.);

@@ -886,6 +886,9 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             if(!edits.isEmpty()&&!setLocalBlocks(edits)){materialDamage.clear();materialDamage.putAll(before);}
         }catch(RuntimeException failure){materialDamage.clear();materialDamage.putAll(before);throw failure;}
     }
+    @Override public Optional<PhysicsTarget.ProjectileHit> physicsProjectileRaycast(Vec3d start,Vec3d end) {
+        return boardingMotion().traceProjectile(pure(start),pure(end)).map(h->new PhysicsTarget.ProjectileHit(minecraft(h.worldPoint()),localToWorld(minecraft(h.localPoint()))));
+    }
     @Override public Optional<Vec3d> physicsRaycast(Vec3d start,Vec3d end) {return raycast(start,end);}
     @Override public void applyPhysicsImpulse(Vec3d impact,Vec3d impulse) {
         if(getWorld().isClient || !Double.isFinite(impact.lengthSquared()) || !Double.isFinite(impulse.lengthSquared()))return;

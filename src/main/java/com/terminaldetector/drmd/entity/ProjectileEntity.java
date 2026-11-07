@@ -382,18 +382,23 @@ public class ProjectileEntity extends Entity {
 		return found;
 	}
 
+    private static final class MovingBodyHit extends EntityHitResult {
+        final Vec3d materialPoint;
+        MovingBodyHit(Entity body,PhysicsTarget.ProjectileHit hit){super(body,hit.tracePoint());materialPoint=hit.materialPoint();}
+    }
+
 	private EntityHitResult raycastEntity(Vec3d start, Vec3d end) {
 		LivingEntity own = getOwnerLiving();
 		EntityHitResult best = null;
 		double bestDist = Double.MAX_VALUE;
 		for (Entity e : com.terminaldetector.drmd.world.contraption.BodySpatialIndex.otherEntities(getWorld(), this, getBoundingBox().stretch(end.subtract(start)).expand(0.5),
 					ent -> (ent instanceof LivingEntity || ent instanceof PhysicsTarget) && ent.isAlive() && ent != own && !pierced.contains(ent.getId()))) {
-			var opt = e instanceof PhysicsTarget target ? target.physicsRaycast(start,end) : e.getBoundingBox().expand(0.3).raycast(start, end);
+			var opt = e instanceof PhysicsTarget target ? target.physicsProjectileRaycast(start,end) : e.getBoundingBox().expand(0.3).raycast(start, end).map(p->new PhysicsTarget.ProjectileHit(p,p));
 			if (opt.isPresent()) {
-				double d = start.squaredDistanceTo(opt.get());
+				double d = start.squaredDistanceTo(opt.get().tracePoint());
 				if (d < bestDist) {
 					bestDist = d;
-					best = new EntityHitResult(e, opt.get());
+					best = new MovingBodyHit(e, opt.get());
 				}
 			}
 		}
@@ -401,23 +406,24 @@ public class ProjectileEntity extends Entity {
 	}
 
 	private void onEntityHit(EntityHitResult hit) {
-		impactVisual(hit.getPos());
+        Vec3d impact=hit instanceof MovingBodyHit moving?moving.materialPoint:hit.getPos();
+		impactVisual(impact);
 		LivingEntity own = getOwnerLiving();
 		if (hit.getEntity() instanceof PhysicsTarget target && getVelocity().lengthSquared() > 1.0e-12) {
-            target.weaponHit(hit.getPos(), getVelocity(), directDamage);
+            target.weaponHit(impact, getVelocity(), directDamage);
 		}
 		if (own != null) {
 			WeaponCore.directDamage(own, hit.getEntity(), directDamage, dmgClass);
-			detonate(own, hit.getPos());
+			detonate(own, impact);
 		}
 		if (igniteOnHit) {
 			hit.getEntity().setOnFireFor(4);
 		}
-		if (onHit != null) onHit.accept(new WeaponCore.HitContext(this, hit.getEntity(), hit.getPos(), getVelocity().negate().normalize(), false));
+		if (onHit != null) onHit.accept(new WeaponCore.HitContext(this, hit.getEntity(), impact, getVelocity().negate().normalize(), false));
 		pierced.add(hit.getEntity().getId());
 		if (pierceCount > 0) {
 			pierceCount--;
-			setPosition(hit.getPos().add(getVelocity().normalize().multiply(0.5)));
+			setPosition(impact.add(getVelocity().normalize().multiply(0.5)));
 		} else {
 			discard();
 		}

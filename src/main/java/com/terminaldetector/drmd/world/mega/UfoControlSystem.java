@@ -33,7 +33,7 @@ public final class UfoControlSystem {
     }
     private static final class Lease {
         final WeakReference<ServerPlayerEntity> pilot;final WeakReference<SkyUfoEntity> body;final boolean previousAuto;final int epoch;
-        int sequence=-1,count,fireSequence=-1,fireMask,fireCount;long fireTick=Long.MIN_VALUE,fireBudget=Long.MIN_VALUE;long received,budgetTick=Long.MIN_VALUE,drivenTick=Long.MIN_VALUE;Input input;
+        int sequence=-1,count,fireSequence=-1,fireMask,fireCount;long fireTick=Long.MIN_VALUE,fireBudget=Long.MIN_VALUE,firedTick=Long.MIN_VALUE;long received,budgetTick=Long.MIN_VALUE,drivenTick=Long.MIN_VALUE;Input input;
         Lease(ServerPlayerEntity p,SkyUfoEntity b,int e){pilot=new WeakReference<>(p);body=new WeakReference<>(b);previousAuto=b.autopilotEnabled();epoch=e;received=p.getServer().getTicks();}
     }
     private static final Map<UUID,Lease> PILOTS=new HashMap<>();private static int epoch;
@@ -79,6 +79,16 @@ public final class UfoControlSystem {
         long now=p.getServer().getTicks();if(l.fireBudget!=now){l.fireBudget=now;l.fireCount=0;}if(l.fireCount>=4)return false;l.fireCount++;
         l.fireSequence=input.sequence;l.fireMask=input.mask;l.fireTick=now;return true;
     }
+    /** Launch after the hull has integrated: a newly ticked projectile starts at the same
+     * material phase used as the next tick's previous collision pose. */
+    public static void fire(SkyUfoEntity b) {
+        if(b.getWorld().isClient)return;
+        for(var l:PILOTS.values())if(l.body.get()==b){
+            var p=l.pilot.get();if(p==null||!valid(p,b))return;long tick=p.getServer().getTicks();
+            if(l.firedTick==tick||l.drivenTick!=tick)return;l.firedTick=tick;
+            if(l.fireTick!=Long.MIN_VALUE&&tick-l.fireTick<=4)b.fireMountedWeapons(p,l.fireMask);return;
+        }
+    }
     public static boolean drive(SkyUfoEntity b) {
         if(b.getWorld().isClient)return false;
         for(var entry:List.copyOf(PILOTS.entrySet())){var l=entry.getValue();if(l.body.get()!=b)continue;var p=l.pilot.get();if(p==null||!valid(p,b)){drop(entry.getKey(),l);return false;}
@@ -89,7 +99,6 @@ public final class UfoControlSystem {
                 var turn=new Vec3(in.pitch,in.yaw,in.roll);if(turn.length()>1)turn=turn.normalized();
                 var torque=b.physics().worldInertia().transform(b.rotation().rotate(turn));b.applyThrusterWrench(force,torque);
             }
-            if(tick-l.fireTick<=4&&l.fireTick!=Long.MIN_VALUE)b.fireMountedWeapons(p,l.fireMask);
             return true;
         }return false;
     }

@@ -84,6 +84,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
         if(!crashing&&!piloted&&autopilot)propel();
         if(crashing&&!detonated&&++crashTicks>=100)detonate(world);
         super.tick();
+        if(piloted)UfoControlSystem.fire(this);
         // The captured carrier cannot keep deploying hostile AI against its pilot.
         // Preserve the existing bay timer so releasing control resumes the same cycle.
         if(crashing||piloted)return;

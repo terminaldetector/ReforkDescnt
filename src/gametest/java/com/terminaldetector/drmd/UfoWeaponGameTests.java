@@ -33,14 +33,14 @@ public final class UfoWeaponGameTests implements FabricGameTest {
             var muzzle=SkyUfoWeapons.muzzle(b,SkyUfoWeapons.LASERS.getFirst());var dir=q.rotate(new Vec3(0,0,1));var expected=b.surfaceVelocityAt(muzzle).multiply(.05).add(new Vec3d(dir.x(),dir.y(),dir.z()).multiply(2.5));
             var velocity=b.physics().linearVelocity();var momentum=b.physics().angularMomentum();var pv=p.getVelocity();
             c.assertTrue(UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(UfoControlSystem.epoch(p),0,3))&&shots(c,b,p).isEmpty(),"receipt is input only, never queued simulation or shooting");
-            UfoControlSystem.drive(b);var all=shots(c,b,p);c.assertTrue(all.size()==4,"both actual laser and rocket banks fire");
+            UfoControlSystem.drive(b);UfoControlSystem.fire(b);var all=shots(c,b,p);c.assertTrue(all.size()==4,"both actual laser and rocket banks fire");
             var first=all.stream().filter(s->s.getPos().distanceTo(muzzle)<1e-8).findFirst().orElseThrow();c.assertTrue(first.getVelocity().distanceTo(expected)<1e-8,"launch inherits v+omega cross r, not stale player flight velocity");
             Vec3 impulse=new Vec3(0,0,0),torque=new Vec3(0,0,0);
             for(var slot:SkyUfoWeapons.LASERS){var at=SkyUfoWeapons.muzzle(b,slot);var j=dir.scaled(-24);impulse=impulse.plus(j);torque=torque.plus(new Vec3(at.x-b.massPosition().x(),at.y-b.massPosition().y(),at.z-b.massPosition().z()).cross(j));}
             for(var slot:SkyUfoWeapons.ROCKETS){var at=SkyUfoWeapons.muzzle(b,slot);var j=dir.scaled(-160);impulse=impulse.plus(j);torque=torque.plus(new Vec3(at.x-b.massPosition().x(),at.y-b.massPosition().y(),at.z-b.massPosition().z()).cross(j));}
             c.assertTrue(b.physics().linearVelocity().minus(velocity).minus(impulse.scaled(1/b.physicsMass())).length()<1e-8&&b.physics().angularMomentum().minus(momentum).minus(torque).length()<1e-8,"all recoil applies at real mounts on the hull");
             c.assertTrue(pv.equals(p.getVelocity()),"hull recoil must not jerk the pilot's hands/body");
-            UfoControlSystem.drive(b);c.assertTrue(shots(c,b,p).size()==4,"duplicate drive in a tick cannot multiply shots");
+            UfoControlSystem.drive(b);UfoControlSystem.fire(b);c.assertTrue(shots(c,b,p).size()==4,"duplicate drive in a tick cannot multiply shots");
             var tag=b.writeNbt(new NbtCompound());c.assertTrue(tag.getInt("laserCooldown")==8&&tag.getInt("rocketCooldown")==24,"cooldowns belong to the hull");
             var restored=ModEntities.SKY_UFO.create(c.getWorld());try{restored.readNbt(tag);var saved=restored.writeNbt(new NbtCompound());c.assertTrue(saved.getInt("laserCooldown")==8&&saved.getInt("rocketCooldown")==24,"read retains both firing cooldowns");}finally{restored.discard();}
         } finally {clean(c,b,p);}c.complete();
@@ -53,7 +53,7 @@ public final class UfoWeaponGameTests implements FabricGameTest {
             c.assertTrue(UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e,0,3))&&!UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e,0,3)),"replayed command rejected");
             for(int i=1;i<4;i++)c.assertTrue(UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e,i,0)),"bounded latest snapshot");
             c.assertTrue(!UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e,4,3)),"flood above four snapshots per tick rejected");
-            UfoControlSystem.drive(b);c.assertTrue(shots(c,b,p).isEmpty(),"latest zero mask cancels pending fire before simulation");
+            UfoControlSystem.drive(b);UfoControlSystem.fire(b);c.assertTrue(shots(c,b,p).isEmpty(),"latest zero mask cancels pending fire before simulation");
             UfoControlSystem.release(p);c.assertTrue(UfoControlSystem.claim(p,b)&&!UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(e,9999,3)),"reclaimed console rejects previous authority");
         } finally {other.discard();clean(c,b,p);}c.complete();
     }
@@ -108,5 +108,17 @@ public final class UfoWeaponGameTests implements FabricGameTest {
             com.terminaldetector.drmd.world.portal.gun.PortalProjectorItem.trigger(p,1,false);
             c.assertTrue(!p.getItemCooldownManager().isCoolingDown(ModWorldBlocks.PORTAL_PROJECTOR),"ship trigger does not activate the held portal projector");
         } finally {com.terminaldetector.drmd.inventory.DroneArsenal.clear(p.getUuid());clean(c,b,p);}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-moving-launch",tickLimit=60)
+    public void normalWorldTicksCannotExplodeAnOutgoingRocketInsideItsMovingLauncher(TestContext c) {
+        var b=body(c);var p=pilot(c,b);p.setNoGravity(true);var original=b.cells();
+        try{
+            b.physics().withLinearVelocity(new Vec3(12,4,8)).withAngularVelocity(new Vec3(.2,.7,.8));
+            c.assertTrue(UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(UfoControlSystem.epoch(p),0,3)),"real laser/rocket snapshot");
+        }catch(Throwable e){clean(c,b,p);throw e;}
+        c.waitAndRun(8,()->{try{
+            c.assertTrue(b.cells().equals(original)&&b.writeNbt(new NbtCompound()).getList("materialDamage",net.minecraft.nbt.NbtElement.COMPOUND_TYPE).isEmpty(),"outgoing rounds must not hit and splash their own moving source in the first tick");
+            c.assertTrue(shots(c,b,p).size()==4,"both banks escaped the source through ordinary world ticks");c.complete();
+        }finally{clean(c,b,p);}});
     }
 }

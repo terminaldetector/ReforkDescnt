@@ -17,6 +17,10 @@ public interface PhysicsTarget {
 	/** Exact shape raycast in world coordinates. */
 	Optional<Vec3d> physicsRaycast(Vec3d start, Vec3d end);
 
+    /** Trace position orders impacts; material position follows the struck moving cell to now. */
+    record ProjectileHit(Vec3d tracePoint,Vec3d materialPoint) {}
+    default Optional<ProjectileHit> physicsProjectileRaycast(Vec3d start,Vec3d end){return physicsRaycast(start,end).map(p->new ProjectileHit(p,p));}
+
 	/** Apply a world-space impulse at a world-space point. */
 	void applyPhysicsImpulse(Vec3d impact, Vec3d impulse);
 
