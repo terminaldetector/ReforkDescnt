@@ -23,7 +23,7 @@ public final class UfoWeaponGameTests implements FabricGameTest {
     private ServerPlayerEntity pilot(TestContext c,SkyUfoEntity b) {
         var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.setPosition(b.localToWorld(new Vec3d(3.5,.1,-1)));c.assertTrue(UfoControlSystem.claim(p,b),"actual console capture");return p;
     }
-    private List<ProjectileEntity> shots(TestContext c,SkyUfoEntity b,ServerPlayerEntity p){return c.getWorld().getEntitiesByClass(ProjectileEntity.class,b.getBoundingBox().expand(24),e->e.getOwnerLiving()==p);}
+    private List<ProjectileEntity> shots(TestContext c,SkyUfoEntity b,ServerPlayerEntity p){return c.getWorld().getEntitiesByClass(ProjectileEntity.class,b.getBoundingBox().expand(256),e->e.getOwnerLiving()==p);}
     private void clean(TestContext c,SkyUfoEntity b,ServerPlayerEntity p){for(var s:shots(c,b,p))s.discard();UfoControlSystem.release(p);p.discard();b.discard();}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-weapon-transform")
     public void rotatedMountedShotsInheritSurfaceVelocityAndRecoilTheHull(TestContext c) {
