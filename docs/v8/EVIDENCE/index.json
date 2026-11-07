@@ -55,7 +55,8 @@
     "boarding-seam-ffe7e75.zip": "4dd383316e6f4b6f12c40acee506e79625da0e998c9e3c2057a6629fd81de767",
     "module-restart-0c9faa6.zip": "72c107f9bc354e2c0cbaa444b658e23815ca2e96968f7929167aafc798ad9e43",
     "island-load-1a848d5.zip": "a8f6f579e8914628a8e6878551b0803161793475fc48f9bdeaf898bc020987af",
-    "ufo-bay-84ff1a5.zip": "e97a71525d2cf6d60a80d8b3b77ee17e050dbac16a7e221af4feaefd85d71dc9"
+    "ufo-bay-84ff1a5.zip": "e97a71525d2cf6d60a80d8b3b77ee17e050dbac16a7e221af4feaefd85d71dc9",
+    "engines-fd8950f.zip": "82da058dd152270c12a48a57ff26a7c08e953e1aa8a647e65f2ccf0726c88d2b"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -1489,5 +1490,192 @@
     "scope": "Captured UFO pauses autonomous hostile bay/timer and restores AI bay cycle at release; physical identity/momentum and existing independently deployed drones are preserved. Full v8/Dynamic Boarding remain open.",
     "archive": "docs/v8/EVIDENCE/ufo-bay-84ff1a5.zip",
     "archiveSha256": "e97a71525d2cf6d60a80d8b3b77ee17e050dbac16a7e221af4feaefd85d71dc9"
+  },
+  "ufoEngines": {
+    "source": "fd8950fa4be0aad8a97daa87220226b44c02311e",
+    "productionSource": "cfbedc91acc5255dd347b31de9a378ef2b82710e",
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "591427732955cb00f7541f6026573b2d3feafd7b26bd9d68208e9546ba892d23",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "0f4f4e0ae58ed5c1e2c006e66d3d122558c42ce3c4eb7800a17ead9433e3f10d"
+    },
+    "unit": {
+      "tests": 728,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "server": {
+      "tests": 298,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "native": {
+      "gl32": {
+        "bayPausedSamples": 108,
+        "bayResumed": true,
+        "deathReleased": false,
+        "pauseResumed": true,
+        "controlCore": true,
+        "actualUfo": true,
+        "externalEntry": true,
+        "actualThrust": true,
+        "walkingHandoff": true,
+        "roofContacts": 0,
+        "teleportFollow": false,
+        "renderedFrames": 273,
+        "predictionSamples": 76,
+        "maxPredictionError": 0.0262222974463171,
+        "scenes": [
+          "external-approach",
+          "moving-bay-entry",
+          "flight-to-boarding",
+          "boarded-walking",
+          "control-acquired",
+          "control-thrust-and-roll",
+          "engines-off-inertial-flight",
+          "engines-restored-thrust",
+          "six-axis-isolated-inertia",
+          "control-release",
+          "engine-pods-exterior"
+        ],
+        "independentAxisSamples": [
+          4,
+          5,
+          4,
+          5,
+          4,
+          5
+        ],
+        "maxEngineVelocityLawError": 2.040034807748725e-15,
+        "maxEngineMomentumLawError": 4.658886054991198e-11,
+        "engineOffSixAxisInputs": 12,
+        "engineOnSixAxisInputs": 12,
+        "localVelocityDelta": {
+          "x": 1.2135608576987895,
+          "y": 2.2453168371890557,
+          "z": 1.9237997867484848
+        },
+        "localMomentumDelta": {
+          "x": 3000.78159270389,
+          "y": 11659.19647892685,
+          "z": 22029.046265287907
+        },
+        "engineOffSamples": 12,
+        "engineOnSamples": 13,
+        "engineOffMaxVelocityDelta": 0.01810326923096378,
+        "engineOnVelocityDelta": 3.1961200343849416,
+        "materialPointError": 6.238781697062714e-14,
+        "inertialTravel": 3.0240916753606206,
+        "inertialTurn": 0.5723068760623325,
+        "restoredEngines": 4,
+        "newEngineItemObserved": true
+      },
+      "sodium": {
+        "bayPausedSamples": 105,
+        "bayResumed": true,
+        "deathReleased": false,
+        "pauseResumed": true,
+        "controlCore": true,
+        "actualUfo": true,
+        "externalEntry": true,
+        "actualThrust": true,
+        "walkingHandoff": true,
+        "roofContacts": 0,
+        "teleportFollow": false,
+        "renderedFrames": 261,
+        "predictionSamples": 71,
+        "maxPredictionError": 0.02541146702252206,
+        "scenes": [
+          "external-approach",
+          "moving-bay-entry",
+          "flight-to-boarding",
+          "boarded-walking",
+          "control-acquired",
+          "control-thrust-and-roll",
+          "engines-off-inertial-flight",
+          "engines-restored-thrust",
+          "six-axis-isolated-inertia",
+          "control-release",
+          "engine-pods-exterior"
+        ],
+        "independentAxisSamples": [
+          4,
+          4,
+          4,
+          4,
+          6,
+          4
+        ],
+        "maxEngineVelocityLawError": 9.243065094059318e-16,
+        "maxEngineMomentumLawError": 6.25328247736871e-11,
+        "engineOffSixAxisInputs": 11,
+        "engineOnSixAxisInputs": 13,
+        "localVelocityDelta": {
+          "x": 1.2968802063707738,
+          "y": 2.0151114045642906,
+          "z": 1.7478074481945345
+        },
+        "localMomentumDelta": {
+          "x": 3576.0820632551736,
+          "y": 10894.648802716467,
+          "z": 20171.40941445542
+        },
+        "engineOffSamples": 12,
+        "engineOnSamples": 12,
+        "engineOffMaxVelocityDelta": 0.018213776337758364,
+        "engineOnVelocityDelta": 2.9660416582451536,
+        "materialPointError": 4.547612284625202e-13,
+        "inertialTravel": 2.4233205686339367,
+        "inertialTurn": 0.4525453092254346,
+        "restoredEngines": 4,
+        "newEngineItemObserved": true
+      }
+    },
+    "reload": {
+      "2": {
+        "marker": {
+          "restoredEngines": 4,
+          "sourceUfoSchema": 2,
+          "postLoadWalking": true,
+          "postLoadDistance": 2.9630025434223133,
+          "admissionTicks": 30,
+          "actualProcessRestart": true,
+          "serializedDataExact": true,
+          "restoredPhysicsTolerance": 1e-10,
+          "sameUuid": "5ed617da-160a-42bb-9d77-f9d5c95cd2dd",
+          "noDuplicateHull": true,
+          "restoredWalkingTicks": 40,
+          "renderedFrames": 22,
+          "stalePilotAbsent": true
+        },
+        "snapshotSha256": "8e96ea0f72182b74cd562fc56f89eb0ca3bbee4ef774a267c7c889b283387c3a",
+        "originalWriter": "fd8950fa4be0aad8a97daa87220226b44c02311e"
+      },
+      "1": {
+        "marker": {
+          "restoredEngines": 4,
+          "sourceUfoSchema": 1,
+          "postLoadWalking": true,
+          "postLoadDistance": 2.959025985451598,
+          "admissionTicks": 33,
+          "actualProcessRestart": true,
+          "serializedDataExact": true,
+          "restoredPhysicsTolerance": 1e-10,
+          "sameUuid": "5664bdb8-0440-42dc-ae1a-e10f318bbe7f",
+          "noDuplicateHull": true,
+          "restoredWalkingTicks": 40,
+          "renderedFrames": 22,
+          "stalePilotAbsent": true
+        },
+        "snapshotSha256": "4f1a159a771e9c032980c88033b5bfcd5f253592fabcdc4460037f5d1ac4beaa",
+        "originalWriter": "08d61c3a2bdc758924252ed1e7d28e8f9c3ff826"
+      }
+    },
+    "releaseAccepted": false,
+    "publication": "Local only",
+    "scope": "Reference rigid UFO with four actual destructible vector-engine blocks, fixed capacity, mounted impulses, independent six-axis native inertia response, repair, schema2 and real schema1 saved-world restore. Full v8/G2/Dynamic Boarding are not closed.",
+    "archive": "docs/v8/EVIDENCE/engines-fd8950f.zip",
+    "archiveSha256": "82da058dd152270c12a48a57ff26a7c08e953e1aa8a647e65f2ccf0726c88d2b"
   }
 }
