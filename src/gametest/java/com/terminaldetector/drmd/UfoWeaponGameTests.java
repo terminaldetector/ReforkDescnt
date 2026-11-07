@@ -191,6 +191,17 @@ public final class UfoWeaponGameTests implements FabricGameTest {
         p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(ModWorldBlocks.SHIP_TURRET_KIT));
         c.assertTrue(b.useLocalBlock(p,UfoControlSystem.CONSOLE),"real kit installation through local console use");return b.turretModule().orElseThrow();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-ownerless-command",tickLimit=140)
+    public void unownedCarrierCannotResumeAPersistedMotorCommand(TestContext c){admitted(c,()->{
+        var b=body(c);var p=pilot(c,b);try{
+            var t=installTurret(c,b,p);t.aim(b,1);var registry=BodyJointRegistry.get(c.getWorld());var saved=BodyJointLink.read(registry.find(t.jointId()).orElseThrow().write());
+            c.assertTrue(saved.speed()==.6&&UfoControlSystem.release(p),"persisted motor input and real ownership release");
+            registry.configure(saved.id(),saved.speed(),saved.motorForce(),saved.breakForce(),saved.breakTorque());
+            var pose=b.massPosition();var v=b.physics().linearVelocity();var l=b.physics().angularMomentum();
+            c.assertTrue(!UfoControlSystem.drive(b)&&registry.find(saved.id()).orElseThrow().speed()==0,"an ownerless loaded controller must retire a persisted motor command");
+            c.assertTrue(pose.equals(b.massPosition())&&v.equals(b.physics().linearVelocity())&&l.equals(b.physics().angularMomentum()),"retiring a motor target cannot reset physical state");
+        }finally{clean(c,b,p);}c.complete();
+    });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-install-state",tickLimit=140)
     public void movingInstallConsumesOneKitAndInheritsEveryMaterialPoint(TestContext c){admitted(c,()->{
         var b=body(c);var q=ImmPtlQuaternions.hamiltonProduct(ImmPtlQuaternions.rotationByDegrees(new Vec3(1,0,0),67),ImmPtlQuaternions.rotationByDegrees(new Vec3(0,0,1),123));b.physics().withRotation(q);b.publishPhysicsState();var p=pilot(c,b);p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
