@@ -45,6 +45,11 @@ public final class ModWorldBlocks {
 	public static final Block MAGNETIC_ANOMALY = registerBlock("magnetic_anomaly",
 			new TrapBlocks.MagneticAnomalyBlock(AbstractBlock.Settings.copy(Blocks.LODESTONE).ticksRandomly()));
 
+	public static final Block SHIP_LASER = registerBlock("ship_laser",
+            new Block(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f).luminance(state -> 5)));
+    public static final Block SHIP_ROCKET = registerBlock("ship_rocket",
+            new Block(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));
+
 	public static final Block SHIP_THRUSTER = registerBlock("ship_thruster",
 			new Block(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f).luminance(state -> 6)));
 
@@ -222,6 +227,7 @@ public final class ModWorldBlocks {
 			entries.add(MAGNETIC_ANOMALY);
 			entries.add(UNSTABLE_REACTOR);
 			entries.add(SHIP_THRUSTER);
+            entries.add(SHIP_LASER);entries.add(SHIP_ROCKET);
 			entries.add(MIRROR);
 			entries.add(CHARGED_MIRROR);
 			entries.add(PORTAL_PANEL);

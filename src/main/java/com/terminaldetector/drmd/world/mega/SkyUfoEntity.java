@@ -29,7 +29,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
     private static final Map<UUID,WeakReference<SkyUfoEntity>> ACTIVE=new ConcurrentHashMap<>();
     private final List<UUID> swarm=new ArrayList<>();
     private boolean initialized,crashing,detonated,legacyThrusters,autopilot=true;
-    private int spawnCooldown,crashTicks;
+    private int spawnCooldown,crashTicks,laserCooldown,rocketCooldown;
     private double cruiseYaw,cruiseAltitude;
     private DestructionMode destructionMode=DestructionMode.CRASH;
 
@@ -43,6 +43,12 @@ public class SkyUfoEntity extends BlockBodyEntity {
     @Override public boolean canUseLocalBlock(BlockPos local){return local.equals(UfoControlSystem.CONSOLE)&&hasControlConsole();}
     @Override public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){return canUseLocalBlock(local)&&UfoControlSystem.claim(player,this);}
     public int activeThrusters(){return SkyUfoThrusters.active(this,legacyThrusters);}
+    public boolean hasPoweredReactor(){return !isRemoved()&&!crashing&&getLocalBlock(CORE).isOf(ModWorldBlocks.UNSTABLE_REACTOR);}
+    public void fireMountedWeapons(net.minecraft.server.network.ServerPlayerEntity pilot,int mask) {
+        if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||!UfoControlSystem.controls(pilot,this))return;
+        if((mask&1)!=0&&laserCooldown==0&&SkyUfoWeapons.fire(this,pilot,false)>0)laserCooldown=8;
+        if((mask&2)!=0&&rocketCooldown==0&&SkyUfoWeapons.fire(this,pilot,true)>0)rocketCooldown=24;
+    }
     public void applyThrusterWrench(Vec3 worldForce,Vec3 worldTorque) {
         if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||isRemoved()||crashing
             ||!getLocalBlock(CORE).isOf(ModWorldBlocks.UNSTABLE_REACTOR)
@@ -73,6 +79,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
         ACTIVE.put(getUuid(),new WeakReference<>(this));
         if(!crashing&&getLocalBlock(CORE).isAir())destroyFromCore(world,null,"local reactor destroyed");
         if(!crashing&&com.terminaldetector.drmd.world.contraption.boarding.BoardingRestore.waiting(this)){super.tick();return;}
+        if(laserCooldown>0)laserCooldown--;if(rocketCooldown>0)rocketCooldown--;
         boolean piloted=!crashing&&UfoControlSystem.drive(this);
         if(!crashing&&!piloted&&autopilot)propel();
         if(crashing&&!detonated&&++crashTicks>=100)detonate(world);
@@ -170,13 +177,14 @@ public class SkyUfoEntity extends BlockBodyEntity {
         crashTicks=Math.max(0,n.getInt("crashTicks"));spawnCooldown=Math.max(0,n.getInt("bayCooldown"));
         if(!Double.isFinite(cruiseYaw)||!Double.isFinite(cruiseAltitude))throw new IllegalArgumentException("non-finite UFO controller");
         if(n.contains("destructionMode"))destructionMode=DestructionMode.valueOf(n.getString("destructionMode"));
+        laserCooldown=MathHelper.clamp(n.getInt("laserCooldown"),0,8);rocketCooldown=MathHelper.clamp(n.getInt("rocketCooldown"),0,24);
         swarm.clear();var saved=n.getList("swarm",NbtElement.COMPOUND_TYPE);
         for(int i=0;i<Math.min(saved.size(),SWARM_CAP);i++)if(saved.getCompound(i).containsUuid("id"))swarm.add(saved.getCompound(i).getUuid("id"));
     }
     @Override protected void writeCustomDataToNbt(NbtCompound n) {
         super.writeCustomDataToNbt(n);n.putInt("physicalUfoSchema",initialized?2:0);n.putBoolean("legacyThrusters",legacyThrusters);n.putBoolean("crashing",crashing);n.putBoolean("detonated",detonated);
         n.putDouble("cruise",cruiseYaw);n.putDouble("cruiseAltitude",cruiseAltitude);n.putBoolean("autopilot",UfoControlSystem.savedAutopilot(this,autopilot));n.putInt("crashTicks",crashTicks);n.putInt("bayCooldown",spawnCooldown);
-        n.putString("destructionMode",destructionMode.name());
+        n.putString("destructionMode",destructionMode.name());n.putInt("laserCooldown",laserCooldown);n.putInt("rocketCooldown",rocketCooldown);
         var list=new NbtList();for(var id:swarm){var item=new NbtCompound();item.putUuid("id",id);list.add(item);}n.put("swarm",list);
     }
 }

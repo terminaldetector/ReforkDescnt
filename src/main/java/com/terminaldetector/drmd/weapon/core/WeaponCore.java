@@ -42,6 +42,8 @@ public final class WeaponCore {
 		public float gravity = 0f;
 		public float drag = 0f;
 		public float inherit = 1f;
+		/** Optional launcher material-point velocity, in blocks per tick. */
+		public Vec3d inheritedVelocity;
 		public float recoil = 0f;
 		public float life = 5f;
 		public float directDamage = 0f;
@@ -103,7 +105,9 @@ public final class WeaponCore {
 		float inheritFactor = cfg.inherit;
 		float recoilFactor = cfg.recoil;
 
-		if (cfg.owner instanceof PlayerEntity player) {
+		if (cfg.inheritedVelocity != null) {
+			shipVel = cfg.inheritedVelocity;
+		} else if (cfg.owner instanceof PlayerEntity player) {
 			DescentPlayerData data = DescentPlayerData.get(player);
 			shipVel = data.getFlightVelocity().multiply(1.0 / DescentMod.TICKS_PER_SECOND);
 			inheritFactor *= data.getWepInherit();

@@ -21,6 +21,11 @@ public final class UfoControlSystem {
         public static final PacketCodec<RegistryByteBuf,Input> CODEC=PacketCodec.of((p,b)->{b.writeVarInt(p.epoch);b.writeVarInt(p.sequence);b.writeFloat(p.forward);b.writeFloat(p.strafe);b.writeFloat(p.vertical);b.writeFloat(p.pitch);b.writeFloat(p.yaw);b.writeFloat(p.roll);},b->new Input(b.readVarInt(),b.readVarInt(),b.readFloat(),b.readFloat(),b.readFloat(),b.readFloat(),b.readFloat(),b.readFloat()));
         public Id<? extends CustomPayload> getId(){return ID;}
     }
+    public record Fire(int epoch,int sequence,int mask) implements CustomPayload {
+        public static final Id<Fire> ID=new Id<>(Identifier.of("drmd","ufo_fire"));
+        public static final PacketCodec<RegistryByteBuf,Fire> CODEC=PacketCodec.of((p,b)->{b.writeVarInt(p.epoch);b.writeVarInt(p.sequence);b.writeByte(p.mask);},b->new Fire(b.readVarInt(),b.readVarInt(),b.readUnsignedByte()));
+        public Id<? extends CustomPayload> getId(){return ID;}
+    }
     public record State(UUID body,int epoch,boolean active,Identifier dimension) implements CustomPayload {
         public static final Id<State> ID=new Id<>(Identifier.of("drmd","ufo_control_state"));
         public static final PacketCodec<RegistryByteBuf,State> CODEC=PacketCodec.of((p,b)->{b.writeUuid(p.body);b.writeVarInt(p.epoch);b.writeBoolean(p.active);b.writeIdentifier(p.dimension);},b->new State(b.readUuid(),b.readVarInt(),b.readBoolean(),b.readIdentifier()));
@@ -28,12 +33,14 @@ public final class UfoControlSystem {
     }
     private static final class Lease {
         final WeakReference<ServerPlayerEntity> pilot;final WeakReference<SkyUfoEntity> body;final boolean previousAuto;final int epoch;
-        int sequence=-1,count;long received,budgetTick=Long.MIN_VALUE,drivenTick=Long.MIN_VALUE;Input input;
+        int sequence=-1,count,fireSequence=-1,fireMask,fireCount;long fireTick=Long.MIN_VALUE,fireBudget=Long.MIN_VALUE;long received,budgetTick=Long.MIN_VALUE,drivenTick=Long.MIN_VALUE;Input input;
         Lease(ServerPlayerEntity p,SkyUfoEntity b,int e){pilot=new WeakReference<>(p);body=new WeakReference<>(b);previousAuto=b.autopilotEnabled();epoch=e;received=p.getServer().getTicks();}
     }
     private static final Map<UUID,Lease> PILOTS=new HashMap<>();private static int epoch;
     private UfoControlSystem(){}
     public static void register() {
+        PayloadTypeRegistry.playC2S().register(Fire.ID,Fire.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(Fire.ID,(p,c)->c.server().execute(()->receiveFire(c.player(),p)));
         PayloadTypeRegistry.playC2S().register(Input.ID,Input.CODEC);PayloadTypeRegistry.playS2C().register(State.ID,State.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(Input.ID,(p,c)->c.server().execute(()->receive(c.player(),p)));
         ServerPlayConnectionEvents.DISCONNECT.register((h,s)->release(h.player));
@@ -66,6 +73,12 @@ public final class UfoControlSystem {
         long now=p.getServer().getTicks();if(l.budgetTick!=now){l.budgetTick=now;l.count=0;}if(l.count>=4)return false;l.count++;
         l.sequence=input.sequence;l.input=input;l.received=now;return true;
     }
+    public static boolean controls(ServerPlayerEntity p,SkyUfoEntity b){var l=PILOTS.get(p.getUuid());return l!=null&&l.pilot.get()==p&&l.body.get()==b&&valid(p,b);}
+    public static boolean receiveFire(ServerPlayerEntity p,Fire input) {
+        var l=PILOTS.get(p.getUuid());if(l==null||!p.getServer().isOnThread()||l.body.get()==null||!controls(p,l.body.get())||input.epoch!=l.epoch||input.sequence<0||input.sequence<=l.fireSequence||input.mask<0||input.mask>3)return false;
+        long now=p.getServer().getTicks();if(l.fireBudget!=now){l.fireBudget=now;l.fireCount=0;}if(l.fireCount>=4)return false;l.fireCount++;
+        l.fireSequence=input.sequence;l.fireMask=input.mask;l.fireTick=now;return true;
+    }
     public static boolean drive(SkyUfoEntity b) {
         if(b.getWorld().isClient)return false;
         for(var entry:List.copyOf(PILOTS.entrySet())){var l=entry.getValue();if(l.body.get()!=b)continue;var p=l.pilot.get();if(p==null||!valid(p,b)){drop(entry.getKey(),l);return false;}
@@ -75,7 +88,9 @@ public final class UfoControlSystem {
                 var force=b.rotation().rotate(thrust).scaled(b.physicsMass()*5);
                 var turn=new Vec3(in.pitch,in.yaw,in.roll);if(turn.length()>1)turn=turn.normalized();
                 var torque=b.physics().worldInertia().transform(b.rotation().rotate(turn));b.applyThrusterWrench(force,torque);
-            }return true;
+            }
+            if(tick-l.fireTick<=4&&l.fireTick!=Long.MIN_VALUE)b.fireMountedWeapons(p,l.fireMask);
+            return true;
         }return false;
     }
 }

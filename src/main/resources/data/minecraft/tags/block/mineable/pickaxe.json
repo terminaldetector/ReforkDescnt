@@ -12,6 +12,8 @@
     "drmd:organic_netherrack",
     "drmd:organic_end_stone",
     "drmd:organic_terracotta",
-    "drmd:ship_thruster"
+    "drmd:ship_thruster",
+    "drmd:ship_laser",
+    "drmd:ship_rocket"
   ]
 }

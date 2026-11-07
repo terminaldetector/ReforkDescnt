@@ -83,6 +83,9 @@ public final class SkyUfoHull {
 			cells.put(new StructureDelta.Cell(slot.getX(),slot.getY(),slot.getZ()),ModWorldBlocks.SHIP_THRUSTER.getDefaultState());
 		}
 
+        for(var slot:SkyUfoWeapons.LASERS)cells.put(new StructureDelta.Cell(slot.getX(),slot.getY(),slot.getZ()),ModWorldBlocks.SHIP_LASER.getDefaultState());
+        for(var slot:SkyUfoWeapons.ROCKETS)cells.put(new StructureDelta.Cell(slot.getX(),slot.getY(),slot.getZ()),ModWorldBlocks.SHIP_ROCKET.getDefaultState());
+
 		// Reactor core pedestal + ring lights
         cells.put(new StructureDelta.Cell(3,-1,0),Blocks.GOLD_BLOCK.getDefaultState());
 		cells.put(new StructureDelta.Cell(0, 0, 0), Blocks.OBSIDIAN.getDefaultState());

@@ -48,7 +48,8 @@
     "client.HeldWeaponFallbackMixin",
     "client.BoardingClientTravelMixin",
     "client.BodyEditInputMixin",
-    "client.BoardingClientTeleportMixin"
+    "client.BoardingClientTeleportMixin",
+    "client.UfoWeaponInputMixin"
   ],
   "injectors": {
     "defaultRequire": 1

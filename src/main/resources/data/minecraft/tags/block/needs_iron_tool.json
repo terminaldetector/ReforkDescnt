@@ -1,6 +1,8 @@
 {
   "replace": false,
   "values": [
-    "drmd:ship_thruster"
+    "drmd:ship_thruster",
+    "drmd:ship_laser",
+    "drmd:ship_rocket"
   ]
 }
