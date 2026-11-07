@@ -16,9 +16,9 @@ import java.util.*;
 public final class NativeUfoTurretCheck {
     public static final boolean ENABLED=Boolean.getBoolean("drmd.gate.ufoTurret");
     private static SkyUfoEntity root;private static ServerPlayerEntity pilot;private static BlockBodyEntity head;private static SkyUfoTurret module;
-    private static volatile int stage,samples,brakeSamples,freeSamples,aimPackets,firePackets,lasers,rockets,draws,maxContacts;
-    private static volatile double anchorError,relativeAngle,relativeSpeed,muzzleError,velocityError,momentumError,angularError,separationError,freeTravel;
-    private static volatile boolean installed,exterior;private static volatile Vec3d camera;
+    private static volatile int stage,samples,brakeSamples,freeSamples,aimPackets,firePackets,lasers,rockets,draws,maxContacts,exteriorDraws,aimTicks,captureDrawStart,exteriorFrames,subjectPixels;
+    private static volatile double anchorError,relativeAngle,relativeSpeed,muzzleError,velocityError,momentumError,angularError,separationError,freeTravel,exteriorLookDot;
+    private static volatile boolean installed,exterior,exteriorAimed;private static volatile Vec3d camera;
     private static Vec3 preP,preL,expectedP,expectedL,cutOffset;private static int beforeFree;
     private static net.minecraft.entity.Entity entity(net.minecraft.entity.Entity e){return e;}
     private static void require(boolean b,String why){if(!b){MinecraftClient.getInstance().scheduleStop();throw new IllegalStateException("Native turret: "+why);}}
@@ -55,7 +55,7 @@ public final class NativeUfoTurretCheck {
         momentumError=Math.max(momentumError,momentum(root).plus(momentum(head)).minus(preP).minus(expectedP).length());angularError=Math.max(angularError,angular(root).plus(angular(head)).minus(preL).minus(expectedL).length());
         require(momentumError<1e-7&&angularError<1e-6,"late recoil must conserve island momentum without pose integration: "+momentumError+" / "+angularError);preP=null;
     }
-    public static void drew(BlockBodyEntity b){if(ENABLED&&head!=null&&entity(b).getId()==entity(head).getId())draws++;}
+    public static void drew(BlockBodyEntity b){if(ENABLED&&head!=null&&entity(b).getId()==entity(head).getId()){draws++;if(exteriorAimed)exteriorDraws++;}}
     public static boolean complete(){return stage==5;}
     public static String tick(MinecraftClient c){
         if(stage==0){require(installed&&module!=null&&head!=null,"real input installed the physical module");DescentKeybinds.turretRight.setPressed(true);DescentKeybinds.auxiliary.setPressed(true);stage=1;}
@@ -74,17 +74,30 @@ public final class NativeUfoTurretCheck {
         c.options.hudHidden=false;c.options.setPerspective(Perspective.FIRST_PERSON);c.getServer().execute(()->{
             require(!UfoControlSystem.controls(pilot),"external observation follows H release");pilot.changeGameMode(net.minecraft.world.GameMode.CREATIVE);pilot.getAbilities().flying=true;pilot.sendAbilitiesUpdate();
             pilot.getInventory().setStack(0,new ItemStack(ModWorldBlocks.SHIP_TURRET_KIT));pilot.getInventory().selectedSlot=0;pilot.getInventory().markDirty();pilot.currentScreenHandler.sendContentUpdates();
-            var at=head.localToWorld(new Vec3d(4,3,8));pilot.teleport(pilot.getServerWorld(),at.x,at.y,at.z,Set.of(),180,0);pilot.setVelocity(Vec3d.ZERO);camera=at;exterior=true;
+            var at=head.localToWorld(new Vec3d(4,3,8));var target=head.localToWorld(new Vec3d(.5,1.5,.5));var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(pure(target.subtract(at.add(0,pilot.getStandingEyeHeight(),0))));pilot.teleport(pilot.getServerWorld(),at.x,at.y,at.z,Set.of(),(float)angles.yawDegrees(),(float)angles.pitchDegrees());pilot.setVelocity(Vec3d.ZERO);camera=at;exterior=true;
         });
+    }
+    private static Vec3d renderTarget(BlockBodyEntity b){return new Vec3d(b.renderMassPosition(1).x(),b.renderMassPosition(1).y(),b.renderMassPosition(1).z()).add(new Vec3d(b.renderRotation(1).rotate(new Vec3(.5,1.5,.5).minus(b.localCentre())).x(),b.renderRotation(1).rotate(new Vec3(.5,1.5,.5).minus(b.localCentre())).y(),b.renderRotation(1).rotate(new Vec3(.5,1.5,.5).minus(b.localCentre())).z()));}
+    public static void trackExterior(MinecraftClient c){
+        if(!ENABLED||!exterior||c.player==null||c.world==null||com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(c.player))return;
+        var e=c.world.getEntityById(entity(head).getId());if(!(e instanceof BlockBodyEntity b))return;
+        var a=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(pure(renderTarget(b).subtract(c.player.getEyePos())));
+        c.player.setYaw((float)a.yawDegrees());c.player.prevYaw=c.player.getYaw();c.player.setPitch((float)a.pitchDegrees());c.player.prevPitch=c.player.getPitch();exteriorAimed=true;aimTicks++;
     }
     public static boolean exteriorReady(MinecraftClient c){
         if(!exterior||camera==null||c.player.squaredDistanceTo(camera)>.5||!c.player.getMainHandStack().isOf(ModWorldBlocks.SHIP_TURRET_KIT))return false;
         if(!c.player.getAbilities().flying){c.player.setOnGround(false);c.player.getAbilities().flying=true;c.player.sendAbilitiesUpdate();}
-        var e=c.world.getEntityById(entity(head).getId());if(!(e instanceof BlockBodyEntity b)||!entity(b).getUuid().equals(entity(head).getUuid()))return false;
-        var d=b.localToWorld(new Vec3d(.5,1.5,.5)).subtract(c.player.getEyePos());var a=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(pure(d));c.player.setYaw((float)a.yawDegrees());c.player.setPitch((float)a.pitchDegrees());return draws>=3;
+        var e=c.world.getEntityById(entity(head).getId());if(!(e instanceof BlockBodyEntity b)||!entity(b).getUuid().equals(entity(head).getUuid())||aimTicks<4||exteriorDraws<3)return false;
+        captureDrawStart=exteriorDraws;return true;
+    }
+    public static boolean verifyExteriorImage(net.minecraft.client.texture.NativeImage image){
+        var c=MinecraftClient.getInstance();var e=c.world.getEntityById(entity(head).getId());if(!(e instanceof BlockBodyEntity b)||exteriorDraws-captureDrawStart<3)return false;
+        var cam=c.gameRenderer.getCamera();var f=cam.getHorizontalPlane();var d=renderTarget(b).subtract(cam.getPos()).normalize();double dot=d.dotProduct(new Vec3d(f.x,f.y,f.z));
+        int pixels=0;for(int y=image.getHeight()/2-110;y<image.getHeight()/2+110;y++)for(int x=image.getWidth()/2-110;x<image.getWidth()/2+110;x++){int color=image.getColor(x,y),r=color&255,g=(color>>>8)&255,blue=(color>>>16)&255;if(r>50&&g>50&&blue>50&&Math.abs(r-g)<25&&Math.abs(g-blue)<25)pixels++;}
+        if(dot<.98||pixels<256){exteriorFrames=0;return false;}exteriorLookDot=dot;subjectPixels=pixels;return ++exteriorFrames>=3;
     }
     public static void append(Path p)throws java.io.IOException {
-        if(!ENABLED)return;require(complete()&&exterior&&installed&&draws>=3,"all actual turret observations completed");var j=com.google.gson.JsonParser.parseString(Files.readString(p)).getAsJsonObject();
-        j.addProperty("contactBudgetExhausted",false);j.addProperty("maxContactEvents",maxContacts);j.addProperty("turretKitConsumed",true);j.addProperty("turretBody",entity(head).getUuid().toString());j.addProperty("turretJoint",module.jointId().toString());j.addProperty("turretAimPackets",aimPackets);j.addProperty("turretFirePackets",firePackets);j.addProperty("turretLaserShots",lasers);j.addProperty("turretRocketShots",rockets);j.addProperty("turretSamples",samples);j.addProperty("brakeSamples",brakeSamples);j.addProperty("freeSamples",freeSamples);j.addProperty("maxTurretAnchorError",anchorError);j.addProperty("relativeTurretAngle",relativeAngle);j.addProperty("brakedRelativeSpeed",relativeSpeed);j.addProperty("turretMuzzleError",muzzleError);j.addProperty("turretVelocityError",velocityError);j.addProperty("maxRecoilMomentumError",momentumError);j.addProperty("maxRecoilAngularError",angularError);j.addProperty("separationError",separationError);j.addProperty("freeModuleTravel",freeTravel);j.addProperty("turretRenderedFrames",draws);j.addProperty("brokenJointAbsent",true);j.addProperty("turretKitItemObserved",true);Files.writeString(p,new com.google.gson.Gson().toJson(j)+"\n");
+        if(!ENABLED)return;require(complete()&&exterior&&installed&&exteriorFrames>=3&&subjectPixels>=256&&exteriorLookDot>.98,"all actual turret observations completed");var j=com.google.gson.JsonParser.parseString(Files.readString(p)).getAsJsonObject();
+        j.addProperty("exteriorSubjectPixels",subjectPixels);j.addProperty("exteriorLookDot",exteriorLookDot);j.addProperty("exteriorVerifiedFrames",exteriorFrames);j.addProperty("exteriorRenderedFrames",exteriorDraws);j.addProperty("contactBudgetExhausted",false);j.addProperty("maxContactEvents",maxContacts);j.addProperty("turretKitConsumed",true);j.addProperty("turretBody",entity(head).getUuid().toString());j.addProperty("turretJoint",module.jointId().toString());j.addProperty("turretAimPackets",aimPackets);j.addProperty("turretFirePackets",firePackets);j.addProperty("turretLaserShots",lasers);j.addProperty("turretRocketShots",rockets);j.addProperty("turretSamples",samples);j.addProperty("brakeSamples",brakeSamples);j.addProperty("freeSamples",freeSamples);j.addProperty("maxTurretAnchorError",anchorError);j.addProperty("relativeTurretAngle",relativeAngle);j.addProperty("brakedRelativeSpeed",relativeSpeed);j.addProperty("turretMuzzleError",muzzleError);j.addProperty("turretVelocityError",velocityError);j.addProperty("maxRecoilMomentumError",momentumError);j.addProperty("maxRecoilAngularError",angularError);j.addProperty("separationError",separationError);j.addProperty("freeModuleTravel",freeTravel);j.addProperty("turretRenderedFrames",draws);j.addProperty("brokenJointAbsent",true);j.addProperty("turretKitItemObserved",true);Files.writeString(p,new com.google.gson.Gson().toJson(j)+"\n");
     }
 }

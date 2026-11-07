@@ -64,6 +64,7 @@ public final class NativeFlightBodyCheck {
             c.getServer().execute(()->{var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());com.terminaldetector.drmd.flight.FlightSystem.disable(p,DescentPlayerData.get(p));p.setInvulnerable(true);p.getAbilities().flying=true;p.getAbilities().allowFlying=true;p.sendAbilitiesUpdate();p.teleport(p.getServerWorld(),8,AT.getY()+5,2,Set.of(),0,0);});return;
         }
         if(!prepared&&c.player.getY()>AT.getY()-20&&loaded(c)){prepared=true;c.getServer().execute(()->setup(c));return;}
+        NativeUfoTurretCheck.trackExterior(c);
         if(!ready||capturing||!(c.world.getEntityById(bodyId) instanceof BlockBodyEntity))return;
         if(pauseChecking){
             if(c.isPaused())pauseTicks++;
@@ -172,6 +173,7 @@ public final class NativeFlightBodyCheck {
     public static void rendered() {
         if(!capturing||finished)return;if((scene.equals("engine-pods-exterior")||scene.equals("mounted-weapon-parts-exterior"))&&draws-captureDrawStart<3)return;var c=MinecraftClient.getInstance();if(c.player==null||(c.currentScreen!=null&&!scene.equals("control-death-release"))||++frames<3)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())) {
+            if(scene.equals("turret-module-exterior")&&!NativeUfoTurretCheck.verifyExteriorImage(image))return;
             var out=c.runDirectory.toPath().resolve("flight-body-frames");Files.createDirectories(out);image.writeTo(out.resolve(scene+".png"));scenes.add(scene);capturing=false;
             System.out.println("FLIGHT_BODY_CLIENT "+scene+" PASS local="+local);
             if(NativeUfoReloadCheck.WRITE&&scene.equals("control-acquired")){
