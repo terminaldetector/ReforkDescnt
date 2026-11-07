@@ -128,6 +128,32 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
         for(int i=0;i<bay.size();i++){if(b.getWorld() instanceof net.minecraft.server.world.ServerWorld world){var drone=world.getEntity(bay.getCompound(i).getUuid("id"));if(drone!=null)drone.discard();}}
         com.terminaldetector.drmd.world.mega.UfoControlSystem.release(p);p.discard();b.discard();
     }
+    private java.util.Map<BlockPos,net.minecraft.block.BlockState> lostEngines() {
+        var cut=new java.util.HashMap<BlockPos,net.minecraft.block.BlockState>();
+        for(int x:new int[]{-5,5})for(int z:new int[]{-5,5})cut.put(new BlockPos(x,-2,z),Blocks.AIR.getDefaultState());
+        return cut;
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-damaged-engines")
+    public void pilotCannotCreateThrustAfterEveryEngineMountIsDestroyed(TestContext c) {
+        var b=create(c);var p=pilot(c,b);try {
+            c.assertTrue(b.setLocalBlocks(lostEngines()),"actual engine mount material is removed");
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.claim(p,b),"the undamaged console can still be controlled");
+            var velocity=b.physics().linearVelocity();var momentum=b.physics().angularMomentum();
+            int epoch=com.terminaldetector.drmd.world.mega.UfoControlSystem.epoch(p);
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.receive(p,new com.terminaldetector.drmd.world.mega.UfoControlSystem.Input(epoch,0,1,0,0,0,0,1)),"valid thrust and roll input is accepted");
+            c.assertTrue(com.terminaldetector.drmd.world.mega.UfoControlSystem.drive(b),"engine failure does not revoke console ownership");
+            c.assertTrue(velocity.equals(b.physics().linearVelocity())&&momentum.equals(b.physics().angularMomentum()),"destroyed engines cannot create pilot thrust or turn impulse");
+        } finally {cleanupBay(b,p);}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-damaged-engines")
+    public void autopilotCannotBypassMissingEngineMaterial(TestContext c) {
+        var b=create(c);try {
+            c.assertTrue(b.setLocalBlocks(lostEngines()),"remove the four real engine mounts");
+            b.physics().withLinearVelocity(new Vec3(.5,0,0));var velocity=b.physics().linearVelocity();var momentum=b.physics().angularMomentum();
+            b.setAutopilot(true);b.tick();
+            c.assertTrue(b.physics().linearVelocity().minus(velocity).length()<1e-9&&b.physics().angularMomentum().minus(momentum).length()<1e-9,"unpowered AI must preserve free momentum instead of applying invisible engines");
+        } finally {b.discard();}c.complete();
+    }
     private static final DynamicBodyAttachment.Motion FREE=(p,q,d)->new DynamicBodyAttachment.Move(d,java.util.List.of());
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-reload-walker")
     public void rejoiningWithSavedWalkingDoesNotArmSuitFlightOrResetMomentum(TestContext c) {
