@@ -660,7 +660,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MOUNTED_WEAPONS_2026-11-07.md, EVIDENCE/mounted-weapons-479719e.zip]
+  evidence: [MOUNTED_WEAPONS_2026-11-07.md, EVIDENCE/mounted-weapons-479719e.zip, TURRET_2026-11-07.md, EVIDENCE/turret-ecde7af.zip]
   notes: Partial rigid laser/rocket mounts now pass physical inheritance/recoil, pilot buttons, real damage/repair and moving launch on Mesa/Sodium; hinged weapon bodies, complete module lifecycle/cold restart and AI firing remain open.
 - id: S09-T04
   stage: S09
