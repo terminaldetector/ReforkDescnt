@@ -26,12 +26,14 @@ public final class NativeUfoWeaponsCheck {
     private static final Map<UUID,Integer> SHOTS=new ConcurrentHashMap<>();
     private static final Set<UUID> SYNCHRONIZED=ConcurrentHashMap.newKeySet(),RENDERED=ConcurrentHashMap.newKeySet();
     private static Map<BlockPos,BlockState> original;
+    // Resolve inherited vanilla calls through its mapped base in the separate observer JAR.
+    private static net.minecraft.entity.Entity entity(net.minecraft.entity.Entity e){return e;}
     private static List<BlockPos> slots(){var s=new ArrayList<>(SkyUfoWeapons.LASERS);s.addAll(SkyUfoWeapons.ROCKETS);return s;}
     private static Map<BlockPos,BlockState> grid(){var m=new HashMap<BlockPos,BlockState>();for(var c:body.cells())m.put(c.pos(),c.state());return m;}
     private static void require(boolean b,String why){if(!b)throw new IllegalStateException("UFO mounted weapons: "+why);}
     public static void watch(SkyUfoEntity b,ServerPlayerEntity p){
         if(!ENABLED)return;body=b;pilot=p;original=grid();
-        ServerTickEvents.END_WORLD_TICK.register(w->{if(w!=b.getWorld()||stage<1||stage>=5)return;
+        ServerTickEvents.END_WORLD_TICK.register(w->{if(w!=entity(b).getWorld()||stage<1||stage>=5)return;
             require(UfoControlSystem.controls(p,b),"normal pilot authority must survive rotating fire/damage/repair");
             rotationTravel=Math.max(rotationTravel,2*Math.acos(Math.min(1,Math.abs(startRotation.x()*b.rotation().x()+startRotation.y()*b.rotation().y()+startRotation.z()*b.rotation().z()+startRotation.w()*b.rotation().w()))));
             if(stage==2){require(slots().stream().allMatch(s->body.getLocalBlock(s).isAir()),"disabled bank remains real empty material");offTicks++;}
@@ -40,19 +42,19 @@ public final class NativeUfoWeaponsCheck {
     public static void accepted(ServerPlayerEntity p,UfoControlSystem.Fire input){if(ENABLED&&p==pilot&&stage>=1&&stage<=3&&input.mask()==3)accepted++;}
     public static void fired(WeaponCore.FireConfig cfg,ProjectileEntity shot){
         if(!ENABLED||cfg.owner!=pilot||shot==null)return;
-        SHOTS.put(shot.getUuid(),shot.getMeshKind());
+        SHOTS.put(entity(shot).getUuid(),shot.getMeshKind());
         if(stage<1||stage>3)return;require(stage!=2,"a destroyed bank emitted a phantom shot");
         var bank=cfg.meshKind==1?SkyUfoWeapons.ROCKETS:SkyUfoWeapons.LASERS;
         var mount=bank.stream().min(Comparator.comparingDouble(s->SkyUfoWeapons.muzzle(body,s).squaredDistanceTo(cfg.pos))).orElseThrow();
         var block=cfg.meshKind==1?ModWorldBlocks.SHIP_ROCKET:ModWorldBlocks.SHIP_LASER;
         require(body.getLocalBlock(mount).isOf(block),"emission comes from a real weapon cell");
         var at=SkyUfoWeapons.muzzle(body,mount);var f=body.rotation().rotate(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(0,0,1));var dir=new Vec3d(f.x(),f.y(),f.z());
-        muzzleError=Math.max(muzzleError,at.distanceTo(cfg.pos));launchError=Math.max(launchError,Math.max(dir.distanceTo(cfg.dir),shot.getVelocity().distanceTo(dir.multiply(cfg.speed).add(body.surfaceVelocityAt(at).multiply(.05)))));
+        muzzleError=Math.max(muzzleError,at.distanceTo(cfg.pos));launchError=Math.max(launchError,Math.max(dir.distanceTo(cfg.dir),entity(shot).getVelocity().distanceTo(dir.multiply(cfg.speed).add(body.surfaceVelocityAt(at).multiply(.05)))));
         pointVelocityError=Math.max(pointVelocityError,cfg.inheritedVelocity.distanceTo(body.surfaceVelocityAt(at).multiply(.05)));
         require(muzzleError<1e-8&&launchError<1e-8&&pointVelocityError<1e-8,"actual muzzle/direction/linear+angular inheritance mismatch");
         if(stage==1){if(cfg.meshKind==1)rockets++;else lasers++;}else{if(cfg.meshKind==1)repairRockets++;else repairLasers++;}
     }
-    public static void drew(ProjectileEntity p){if(ENABLED&&SHOTS.containsKey(p.getUuid()))RENDERED.add(p.getUuid());}
+    public static void drew(ProjectileEntity p){if(ENABLED&&SHOTS.containsKey(entity(p).getUuid()))RENDERED.add(entity(p).getUuid());}
     private static void held(MinecraftClient c,boolean b){c.options.attackKey.setPressed(b);c.options.useKey.setPressed(b);}
     public static boolean complete(){return stage==5;}
     public static String tick(MinecraftClient c){
@@ -90,7 +92,7 @@ public final class NativeUfoWeaponsCheck {
     public static boolean exteriorReady(MinecraftClient c){
         if(camera==null||c.player.squaredDistanceTo(camera)>.5||!c.player.getMainHandStack().isOf(ModWorldBlocks.SHIP_LASER.asItem())||!c.player.getInventory().getStack(1).isOf(ModWorldBlocks.SHIP_ROCKET.asItem()))return false;
         if(!c.player.getAbilities().flying){c.player.setOnGround(false);c.player.getAbilities().flying=true;c.player.sendAbilitiesUpdate();}
-        var e=c.world.getEntityById(body.getId());if(!(e instanceof SkyUfoEntity b)||b.shapeRevision()!=repairRevision||slots().stream().anyMatch(s->!b.getLocalBlock(s).equals(original.get(s))))return false;
+        var e=c.world.getEntityById(entity(body).getId());if(!(e instanceof SkyUfoEntity b)||b.shapeRevision()!=repairRevision||slots().stream().anyMatch(s->!b.getLocalBlock(s).equals(original.get(s))))return false;
         var at=b.localToWorld(new Vec3d(0,.5,9));var d=at.subtract(c.player.getEyePos());var a=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(d.x,d.y,d.z));c.player.setYaw((float)a.yawDegrees());c.player.setPitch((float)a.pitchDegrees());return true;
     }
     public static void append(Path p)throws java.io.IOException{
