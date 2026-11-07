@@ -226,6 +226,18 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
             c.assertTrue(d.hasSavedFlightMode()&&d.isEnabled()&&p.hasNoGravity(),"saved flight is reinitialized, including its actual gravity/ability state");
         } finally {p.discard();}c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-mounted-laser")
+    public void freshUfoHasRealLaserBlocksAtItsNose(TestContext c) {
+        var b=create(c);try {
+            for(int x:new int[]{-3,3})c.assertTrue(net.minecraft.registry.Registries.BLOCK.getId(b.getLocalBlock(new BlockPos(x,0,10)).getBlock()).toString().equals("drmd:ship_laser"),"fresh UFO needs real destructible nose laser material");
+        } finally {b.discard();}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-mounted-rocket")
+    public void freshUfoHasRealRocketBlocksAtItsNose(TestContext c) {
+        var b=create(c);try {
+            for(int x:new int[]{-6,6})c.assertTrue(net.minecraft.registry.Registries.BLOCK.getId(b.getLocalBlock(new BlockPos(x,0,9)).getBlock()).toString().equals("drmd:ship_rocket"),"fresh UFO needs real destructible nose rocket launcher material");
+        } finally {b.discard();}c.complete();
+    }
     private SkyUfoEntity create(TestContext c) {
         var at=c.getAbsolutePos(new BlockPos(8,190,8));var w=c.getWorld();
         for(int x=-2;x<=2;x++)for(int z=-2;z<=2;z++)w.getChunk((at.getX()>>4)+x,(at.getZ()>>4)+z);
