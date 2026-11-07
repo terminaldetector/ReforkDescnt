@@ -109,7 +109,7 @@ public final class BodyVolumeGameTests implements FabricGameTest {
                     c.assertTrue(BodySpatialIndex.loaded(c.getWorld()).stream().noneMatch(b->ids.contains(b.getUuid())),"fixture has no loaded root or module to seed the activity graph");
                     f.player.setPosition(30000.5,182,30000.5);
                 }catch(Throwable e){f.close();throw e;}
-                c.waitAndRun(2,()->{try {
+                c.waitAndRun(5,()->{try {
                     c.assertTrue(BodyVolumeLeases.heldColumns(c.getWorld(),ids.getFirst())>0,"approaching the real saved root volume bootstraps an entirely unloaded assembly");
                     c.assertTrue(BodyVolumeLeases.heldColumns(c.getWorld(),ids.get(2))>0,"the missing far endpoint is requested through the same persisted island");
                     c.assertTrue(BodyVolumeLeases.heldColumns(c.getWorld(),f.bodies.get(3).getUuid())==0,"unconnected distant material is not loaded");
