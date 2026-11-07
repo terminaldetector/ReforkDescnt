@@ -15,6 +15,21 @@ import net.minecraft.util.math.*;
 import java.util.*;
 
 public final class UfoWeaponGameTests implements FabricGameTest {
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-detached-contact",tickLimit=140)
+    public void actualDetachedCapAndTurretCannotFreezeTheirCarrier(TestContext c){admitted(c,()->{
+        var bodies=new ArrayList<BlockBodyEntity>();
+        try(var input=getClass().getResourceAsStream("/fixtures/turret-detach-collision.snbt")){
+            var tags=net.minecraft.nbt.StringNbtReader.parse(new String(input.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8)).getList("bodies",net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
+            var target=Vec3d.of(c.getAbsolutePos(new BlockPos(8,220,8)));var first=tags.getCompound(0).getList("Pos",net.minecraft.nbt.NbtElement.DOUBLE_TYPE);var shift=target.subtract(first.getDouble(0),first.getDouble(1),first.getDouble(2));
+            for(int i=0;i<tags.size();i++){var b=ModEntities.BLOCK_BODY.create(c.getWorld());b.readNbt(tags.getCompound(i));b.setPosition(b.getPos().add(shift));c.assertTrue(c.getWorld().spawnEntity(b),"real saved collision body");bodies.add(b);}
+            var start=bodies.getFirst().massPosition();bodies.forEach(BlockBodyEntity::tick);BodyContactSystem.solve(c.getWorld());
+            if(BodyContactSystem.stats(c.getWorld()).budgetPaused())for(int i=0;i<bodies.size();i++)for(int j=i+1;j<bodies.size();j++){
+                var a=bodies.get(i);var b=bodies.get(j);var am=a.boardingMotion();var bm=b.boardingMotion();var ma=new com.terminaldetector.drmd.physics.collision.BodyPairQuery.Motion(a.collider(),a.localCentre(),am.position(0),am.rotation(0),am.position(1),am.rotation(1));var mb=new com.terminaldetector.drmd.physics.collision.BodyPairQuery.Motion(b.collider(),b.localCentre(),bm.position(0),bm.rotation(0),bm.position(1),bm.rotation(1));
+                System.out.println("TURRET_CONTACT_REPRO pair="+i+"/"+j+" contacts="+com.terminaldetector.drmd.physics.collision.BodyPairQuery.contacts(ma,mb,0)+" moved="+a.massPosition().minus(start)+" physics="+a.physics().position().minus(a.massPosition()));
+            }
+            c.assertTrue(!BodyContactSystem.stats(c.getWorld()).budgetPaused()&&bodies.getFirst().massPosition().minus(start).length()>.1,"actual detached roof cap and turret must retain physical time without exhausting contact events: "+BodyContactSystem.stats(c.getWorld()));
+        }catch(java.io.IOException|com.mojang.brigadier.exceptions.CommandSyntaxException e){throw new IllegalStateException(e);}finally{bodies.forEach(net.minecraft.entity.Entity::discard);var lease=LEASES.remove(c);if(lease!=null)lease.close();}c.complete();
+    });}
     private static final Map<TestContext,AiFixtureChunks> LEASES=new IdentityHashMap<>();
     private void admitted(TestContext c,Runnable action) {
         var base=c.getAbsolutePos(new BlockPos(8,220,8));var chunks=new AiFixtureChunks(c.getWorld(),base,3);LEASES.put(c,chunks);
