@@ -33,7 +33,7 @@ public final class UfoWeaponGameTests implements FabricGameTest {
             var muzzle=SkyUfoWeapons.muzzle(b,SkyUfoWeapons.LASERS.getFirst());var dir=q.rotate(new Vec3(0,0,1));var expected=b.surfaceVelocityAt(muzzle).multiply(.05).add(new Vec3d(dir.x(),dir.y(),dir.z()).multiply(2.5));
             var velocity=b.physics().linearVelocity();var momentum=b.physics().angularMomentum();var pv=p.getVelocity();
             c.assertTrue(UfoControlSystem.receiveFire(p,new UfoControlSystem.Fire(UfoControlSystem.epoch(p),0,3))&&shots(c,b,p).isEmpty(),"receipt is input only, never queued simulation or shooting");
-            UfoControlSystem.drive(b);UfoControlSystem.fire(b);var all=shots(c,b,p);c.assertTrue(all.size()==4,"both actual laser and rocket banks fire");
+            UfoControlSystem.drive(b);UfoControlSystem.fire(b);var all=shots(c,b,p);c.assertTrue(all.size()==4,"both actual laser and rocket banks fire: count="+all.size()+" mesh="+all.stream().map(s->s.getMeshKind()).toList()+" tag="+b.writeNbt(new NbtCompound()).getInt("laserCooldown")+"/"+b.writeNbt(new NbtCompound()).getInt("rocketCooldown"));
             var first=all.stream().filter(s->s.getPos().distanceTo(muzzle)<1e-8).findFirst().orElseThrow();c.assertTrue(first.getVelocity().distanceTo(expected)<1e-8,"launch inherits v+omega cross r, not stale player flight velocity");
             Vec3 impulse=new Vec3(0,0,0),torque=new Vec3(0,0,0);
             for(var slot:SkyUfoWeapons.LASERS){var at=SkyUfoWeapons.muzzle(b,slot);var j=dir.scaled(-24);impulse=impulse.plus(j);torque=torque.plus(new Vec3(at.x-b.massPosition().x(),at.y-b.massPosition().y(),at.z-b.massPosition().z()).cross(j));}
@@ -122,7 +122,7 @@ public final class UfoWeaponGameTests implements FabricGameTest {
         }catch(Throwable e){clean(c,b,p);throw e;}
         c.waitAndRun(8,()->{try{
             c.assertTrue(b.cells().equals(original)&&b.writeNbt(new NbtCompound()).getList("materialDamage",net.minecraft.nbt.NbtElement.COMPOUND_TYPE).isEmpty(),"outgoing rounds must not hit and splash their own moving source in the first tick");
-            c.assertTrue(shots(c,b,p).size()==4,"both banks escaped the source through ordinary world ticks: count="+shots(c,b,p).size()+" controls="+UfoControlSystem.controls(p,b));c.complete();
+            c.assertTrue(shots(c,b,p).size()==4,"both banks escaped the source through ordinary world ticks: count="+shots(c,b,p).size()+" mesh="+shots(c,b,p).stream().map(s->s.getMeshKind()).toList()+" controls="+UfoControlSystem.controls(p,b));c.complete();
         }finally{clean(c,b,p);}});
     }
 }
