@@ -39,7 +39,7 @@ public final class BodyContactSystem {
         BodyJointSystem.solve(world);var joints=BodyJointRegistry.get(world);
         var frames=new ArrayList<Frame>();for(var body:BodySpatialIndex.loaded(world))if(!body.cells().isEmpty())frames.add(new Frame(body));
         var index=new AabbTree<Frame>();for(var frame:frames)update(index,frame);
-        var changed=new LinkedHashSet<BlockBodyEntity>();var ignored=new HashSet<Pair>();
+        var changed=new LinkedHashSet<BlockBodyEntity>();var ignored=new HashSet<Pair>();var resolved=new HashSet<Pair>();
         int collisions=0,tested=0;double remaining=.05;boolean paused=false;
         int eventBudget=MAX_CONTACT_TIMES_PER_BODY*Math.max(1,frames.size());
         for(int event=0;event<eventBudget;event++) {
@@ -76,7 +76,13 @@ public final class BodyContactSystem {
             var constraints=new ArrayList<BodyContactConstraint>();
             for(var touch:touching)for(var c:touch.contacts)constraints.add(new BodyContactConstraint(proxies.get(touch.a),proxies.get(touch.b),c.point(),c.normal(),.65));
             for(int pass=0;pass<32;pass++)for(var constraint:constraints)constraint.solve();
-            for(var touch:touching)separate(touch,proxies.get(touch.a),proxies.get(touch.b));
+            for(var touch:touching){var pair=new Pair(touch.a.id(),touch.b.id());
+                // Curved, torque-free trajectories can immediately close the same resolved
+                // touching faces again. A 0.1mm separation only on this zero-time recurrence
+                // gives CCD a positive interval; ordinary first impacts retain their exact TOI.
+                boolean recurring=resolved.contains(pair)&&fraction<1e-7;
+                separate(touch,proxies.get(touch.a),proxies.get(touch.b),recurring?1e-4:0);resolved.add(pair);
+            }
             for(var frame:participants) {
                 if(!frame.dynamic)continue;
                 Vec3 start=frame.body.massPosition();Quat rotation=frame.body.rotation();
@@ -101,13 +107,21 @@ public final class BodyContactSystem {
         return a.motion.sweptBounds().map(bounds->{var result=new ArrayList<>(index.query(bounds).values());result.sort(Comparator.comparingInt(Frame::id));return (List<Frame>)result;}).orElse(List.of());
     }
     private static void update(AabbTree<Frame> index,Frame frame){frame.motion.sweptBounds().ifPresentOrElse(b->index.update(frame,b),()->index.remove(frame));}
-    private static void separate(Touch touch,D6PhysicsBody a,D6PhysicsBody b) {
+    private static void separate(Touch touch,D6PhysicsBody a,D6PhysicsBody b,double gap) {
         var contact=touch.contacts.stream().max(Comparator.comparingDouble(BodyPairQuery.Contact::penetration)).orElseThrow();
-        if(contact.penetration()<=1e-7)return;
+        if(contact.penetration()<=1e-7&&gap==0)return;
         double ia=touch.a.dynamic?1/Math.max(1e-9,a.mass()):0,ib=touch.b.dynamic?1/Math.max(1e-9,b.mass()):0;
         if(ia+ib==0)return;
-        var delta=contact.normal().scaled(Math.min(.25,contact.penetration()+1e-7)/(ia+ib));
-        if(touch.a.dynamic)touch.a.body.resolveContactPose(touch.a.body.massPosition().plus(delta.scaled(ia)),touch.a.body.rotation());
-        if(touch.b.dynamic)touch.b.body.resolveContactPose(touch.b.body.massPosition().minus(delta.scaled(ib)),touch.b.body.rotation());
+        var delta=contact.normal().scaled(Math.min(.25,contact.penetration()+1e-7+gap)/(ia+ib));
+        if(touch.a.dynamic)separate(touch.a.body,a,delta.scaled(ia));
+        if(touch.b.dynamic)separate(touch.b.body,b,delta.scaled(-ib));
+    }
+    private static void separate(BlockBodyEntity body,D6PhysicsBody dynamics,Vec3 displacement){
+        var before=body.massPosition();
+        if(body.resolveContactPose(before.plus(displacement),body.rotation())){
+            // A COM correction changes orbital momentum. Retain total world angular
+            // momentum by moving the equal contribution into the body's spin.
+            var moved=body.massPosition().minus(before);dynamics.withAngularMomentum(dynamics.angularMomentum().minus(moved.cross(dynamics.linearVelocity().scaled(dynamics.mass()))));
+        }
     }
 }
