@@ -308,5 +308,8 @@
   "block.drmd.ship_rocket": "Бортовая ракетная установка",
   "item.drmd.ship_turret_kit": "Поворотная турель UFO",
   "key.drmd.turret_left": "Турель влево",
-  "key.drmd.turret_right": "Турель вправо"
+  "key.drmd.turret_right": "Турель вправо",
+  "message.drmd.turret.blocked": "Турель уже установлена или место над крышей занято.",
+  "tooltip.drmd.turret.install": "Используйте комплект на пульте UFO.",
+  "tooltip.drmd.turret.controls": "←/→ — поворот, B — лазер и ракета."
 }

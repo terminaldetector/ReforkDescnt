@@ -344,5 +344,8 @@
   "block.drmd.ship_rocket": "Hull Rocket Launcher",
   "item.drmd.ship_turret_kit": "UFO Yaw Turret Kit",
   "key.drmd.turret_left": "Turret left",
-  "key.drmd.turret_right": "Turret right"
+  "key.drmd.turret_right": "Turret right",
+  "message.drmd.turret.blocked": "Turret already installed or roof space obstructed.",
+  "tooltip.drmd.turret.install": "Use this kit on a UFO control console.",
+  "tooltip.drmd.turret.controls": "Left/Right arrows: rotate. B: fire laser and rocket."
 }

@@ -33,7 +33,7 @@ public final class SkyUfoTurret {
     public Optional<BlockBodyEntity> body(SkyUfoEntity root) {
         if(!live(root))return Optional.empty();var b=cached.get();
         if(b!=null&&!b.isRemoved()&&b.getWorld()==root.getWorld()&&b.getUuid().equals(child))return Optional.of(b);
-        for(var candidate:BodySpatialIndex.loaded(root.getWorld()))if(candidate.getUuid().equals(child)){cached=new WeakReference<>(candidate);return Optional.of(candidate);}
+        for(var candidate:BodySpatialIndex.loaded(root.getWorld()))if(candidate!=root&&candidate.getUuid().equals(child)){cached=new WeakReference<>(candidate);return Optional.of(candidate);}
         return Optional.empty();
     }
     public boolean connected(SkyUfoEntity root){return link(root).isPresent()&&body(root).filter(b->!b.getLocalBlock(BASE).isAir()).isPresent()&&!root.getLocalBlock(ROOF).isAir();}
@@ -64,7 +64,7 @@ public final class SkyUfoTurret {
         }catch(RuntimeException failure){BodyJointRegistry.get(world).remove(joint);if(body!=null)body.discard();throw failure;}
     }
     private static boolean overlaps(OrientedBox a,OrientedBox b){return a.contact(b,0).filter(c->c.penetration()>1e-6).isPresent();}
-    public void tick(SkyUfoEntity root){if(laserCooldown>0)laserCooldown--;if(rocketCooldown>0)rocketCooldown--;if(link(root).isEmpty())detach(root);}
+    public void tick(SkyUfoEntity root){if(laserCooldown>0)laserCooldown--;if(rocketCooldown>0)rocketCooldown--;if(link(root).isEmpty())detach(root);else body(root).ifPresent(b->{var gravity=root.hasPoweredReactor()?new Vec3(0,-16,0):new Vec3(0,0,0);if(!b.passengerGravity().equals(gravity))b.setPassengerGravity(gravity);});}
     public void aim(SkyUfoEntity root,float input) {
         if(!Float.isFinite(input)||Math.abs(input)>1)return;var l=link(root).orElse(null);if(l==null)return;
         boolean powered=root.hasPoweredReactor();BodyJointRegistry.get((ServerWorld)root.getWorld()).configure(joint,powered?input*.6:0,powered?40:0,l.breakForce(),l.breakTorque());

@@ -217,7 +217,9 @@ public final class ModWorldBlocks {
 		PORTAL_PROJECTOR=Registry.register(Registries.ITEM,Identifier.of(DescentMod.MOD_ID,"portal_projector"),
 			new com.terminaldetector.drmd.world.portal.gun.PortalProjectorItem(new Item.Settings()));
 
-        SHIP_TURRET_KIT=Registry.register(Registries.ITEM,Identifier.of(DescentMod.MOD_ID,"ship_turret_kit"),new Item(new Item.Settings().maxCount(1)));
+        SHIP_TURRET_KIT=Registry.register(Registries.ITEM,Identifier.of(DescentMod.MOD_ID,"ship_turret_kit"),new Item(new Item.Settings().maxCount(1)){
+            @Override public void appendTooltip(net.minecraft.item.ItemStack stack,TooltipContext context,java.util.List<net.minecraft.text.Text> tooltip,net.minecraft.item.tooltip.TooltipType type){tooltip.add(net.minecraft.text.Text.translatable("tooltip.drmd.turret.install"));tooltip.add(net.minecraft.text.Text.translatable("tooltip.drmd.turret.controls"));}
+        });
 
 		ItemGroupEvents.modifyEntriesEvent(ModItems.GROUP_KEY).register(entries -> {
 			entries.add(SIX_D_SOIL);

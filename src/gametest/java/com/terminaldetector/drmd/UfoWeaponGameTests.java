@@ -164,10 +164,10 @@ public final class UfoWeaponGameTests implements FabricGameTest {
     public void movingInstallConsumesOneKitAndInheritsEveryMaterialPoint(TestContext c){admitted(c,()->{
         var b=body(c);var q=ImmPtlQuaternions.hamiltonProduct(ImmPtlQuaternions.rotationByDegrees(new Vec3(1,0,0),67),ImmPtlQuaternions.rotationByDegrees(new Vec3(0,0,1),123));b.physics().withRotation(q);b.publishPhysicsState();var p=pilot(c,b);p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
         try {
-            b.physics().withLinearVelocity(new Vec3(4,2,-3)).withAngularVelocity(new Vec3(.1,.2,.3));var old=b.physics().snapshot();var id=b.getUuid();
+            b.physics().withLinearVelocity(new Vec3(4,2,-3)).withAngularVelocity(new Vec3(.1,.2,.3));var old=b.physics().snapshot();var savedV=b.physics().linearVelocity();var savedL=b.physics().angularMomentum();var id=b.getUuid();
             var module=installTurret(c,b,p);var child=module.body(b).orElseThrow();
             c.assertTrue(p.getMainHandStack().isEmpty()&&child.cells().size()==5&&module.connected(b),"one kit becomes one five-cell physical module");
-            c.assertTrue(id.equals(b.getUuid())&&b.massPosition().equals(old.position())&&b.physics().linearVelocity().equals(old.linearVelocity())&&b.physics().angularMomentum().equals(old.angularMomentum()),"installation preserves the carrier's physical state");
+            c.assertTrue(id.equals(b.getUuid())&&b.massPosition().equals(old.position())&&b.physics().linearVelocity().equals(savedV)&&b.physics().angularMomentum().equals(savedL),"installation preserves the carrier's physical state");
             for(var cell:child.cells()){var at=child.localToWorld(Vec3d.ofCenter(cell.pos()));c.assertTrue(child.surfaceVelocityAt(at).distanceTo(b.surfaceVelocityAt(at))<1e-8,"new module inherits the full original material velocity field");}
             var tag=b.writeNbt(new NbtCompound());var copy=ModEntities.SKY_UFO.create(c.getWorld());try{copy.readNbt(tag);c.assertTrue(copy.turretModule().orElseThrow().bodyId().equals(child.getUuid())&&!copy.turretModule().orElseThrow().connected(copy),"saved identity is retained without granting authority to an unspawned clone");}finally{copy.discard();}
             p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(ModWorldBlocks.SHIP_TURRET_KIT));c.assertTrue(!b.useLocalBlock(p,UfoControlSystem.CONSOLE)&&p.getMainHandStack().getCount()==1,"a second kit cannot duplicate an existing joint/module");
@@ -192,10 +192,10 @@ public final class UfoWeaponGameTests implements FabricGameTest {
     public void breakingTheActualRoofAnchorDetachesWithoutResetOrPhantomFire(TestContext c){admitted(c,()->{
         var b=body(c);var p=pilot(c,b);var t=installTurret(c,b,p);var child=t.body(b).orElseThrow();
         try{
-            child.physics().withLinearVelocity(new Vec3(3,2,1)).withAngularVelocity(new Vec3(.1,.2,.3));var state=child.physics().snapshot();
+            child.physics().withLinearVelocity(new Vec3(3,2,1)).withAngularVelocity(new Vec3(.1,.2,.3));var state=child.physics().snapshot();var savedV=child.physics().linearVelocity();var savedL=child.physics().angularMomentum();
             c.assertTrue(b.setLocalBlock(SkyUfoTurret.ROOF,Blocks.AIR.getDefaultState()),"actual roof anchor damage");t.tick(b);
             c.assertTrue(!t.connected(b)&&BodyJointRegistry.get(c.getWorld()).find(t.jointId()).isEmpty()&&child.physicsGravity(),"broken material releases the real joint and power");
-            c.assertTrue(child.massPosition().equals(state.position())&&child.physics().linearVelocity().equals(state.linearVelocity())&&child.physics().angularMomentum().equals(state.angularMomentum()),"free module retains pose, velocity and angular momentum at separation");
+            c.assertTrue(child.massPosition().equals(state.position())&&child.physics().linearVelocity().equals(savedV)&&child.physics().angularMomentum().equals(savedL),"free module retains pose, velocity and angular momentum at separation");
             b.fireMountedWeapons(p,4);c.assertTrue(shots(c,b,p).isEmpty(),"a disconnected module cannot fire from its old parent");
         }finally{clean(c,b,p);}c.complete();
     });}

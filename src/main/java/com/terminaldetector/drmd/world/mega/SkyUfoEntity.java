@@ -45,7 +45,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
     @Override public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){
         if(!canUseLocalBlock(local)||!UfoControlSystem.claim(player,this))return false;
         if(player.getMainHandStack().isOf(ModWorldBlocks.SHIP_TURRET_KIT)){
-            var installed=SkyUfoTurret.install(this,player);if(installed==null)return false;turret=installed;
+            var installed=SkyUfoTurret.install(this,player);if(installed==null){player.sendMessage(net.minecraft.text.Text.translatable("message.drmd.turret.blocked"),true);return false;}turret=installed;
             if(!player.isCreative())player.getMainHandStack().decrement(1);return true;
         }return true;
     }
