@@ -338,5 +338,6 @@
   "entity.drmd.rocket": "Rocket Drone",
   "item.drmd.spawn_egg_rocket": "Rocket Drone Spawn Egg",
   "entity.drmd.jet": "Jet Interceptor",
-  "item.drmd.spawn_egg_jet": "Jet Interceptor Spawn Egg"
+  "item.drmd.spawn_egg_jet": "Jet Interceptor Spawn Egg",
+  "block.drmd.ship_thruster": "Maneuvering Thruster"
 }

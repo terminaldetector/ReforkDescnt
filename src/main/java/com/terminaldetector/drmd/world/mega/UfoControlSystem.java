@@ -72,9 +72,9 @@ public final class UfoControlSystem {
             long tick=p.getServer().getTicks();if(l.drivenTick==tick)return true;l.drivenTick=tick;
             var in=l.input;if(in!=null&&tick-l.received<=4){
                 var thrust=new Vec3(-in.strafe,in.vertical,in.forward);if(thrust.length()>1)thrust=thrust.normalized();
-                var impulse=b.rotation().rotate(thrust).scaled(b.physicsMass()*5*.05);b.applyPhysicsImpulse(b.physicsCentre(),new Vec3d(impulse.x(),impulse.y(),impulse.z()));
+                var force=b.rotation().rotate(thrust).scaled(b.physicsMass()*5);
                 var turn=new Vec3(in.pitch,in.yaw,in.roll);if(turn.length()>1)turn=turn.normalized();
-                var torque=b.physics().worldInertia().transform(b.rotation().rotate(turn));b.applyPhysicsTorque(new Vec3d(torque.x(),torque.y(),torque.z()));
+                var torque=b.physics().worldInertia().transform(b.rotation().rotate(turn));b.applyThrusterWrench(force,torque);
             }return true;
         }return false;
     }

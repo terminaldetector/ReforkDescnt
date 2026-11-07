@@ -28,7 +28,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
     private static final Vec3 ZERO=new Vec3(0,0,0);
     private static final Map<UUID,WeakReference<SkyUfoEntity>> ACTIVE=new ConcurrentHashMap<>();
     private final List<UUID> swarm=new ArrayList<>();
-    private boolean initialized,crashing,detonated,autopilot=true;
+    private boolean initialized,crashing,detonated,legacyThrusters,autopilot=true;
     private int spawnCooldown,crashTicks;
     private double cruiseYaw,cruiseAltitude;
     private DestructionMode destructionMode=DestructionMode.CRASH;
@@ -42,6 +42,13 @@ public class SkyUfoEntity extends BlockBodyEntity {
     public boolean hasControlConsole(){return getLocalBlock(UfoControlSystem.CONSOLE).isOf(Blocks.GOLD_BLOCK);}
     @Override public boolean canUseLocalBlock(BlockPos local){return local.equals(UfoControlSystem.CONSOLE)&&hasControlConsole();}
     @Override public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){return canUseLocalBlock(local)&&UfoControlSystem.claim(player,this);}
+    public int activeThrusters(){return SkyUfoThrusters.active(this,legacyThrusters);}
+    public void applyThrusterWrench(Vec3 worldForce,Vec3 worldTorque) {
+        if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||isRemoved()||crashing
+            ||!getLocalBlock(CORE).isOf(ModWorldBlocks.UNSTABLE_REACTOR)
+            ||com.terminaldetector.drmd.world.contraption.BodySpatialIndex.find(world,getId()).orElse(null)!=this)return;
+        SkyUfoThrusters.apply(this,legacyThrusters,worldForce,worldTorque);
+    }
     public void forceDestructionMode(DestructionMode mode){destructionMode=Objects.requireNonNull(mode);}
     public BlockPos getCorePos(){return BlockPos.ofFloored(localToWorld(Vec3d.ofCenter(CORE)));}
     public Box getInterior() {
@@ -83,7 +90,6 @@ public class SkyUfoEntity extends BlockBodyEntity {
         cruiseYaw+=.15;double yaw=Math.toRadians(cruiseYaw);
         var desired=new Vec3(-Math.sin(yaw)*3,MathHelper.clamp((cruiseAltitude-massPosition().y())*.4,-2,2),Math.cos(yaw)*3);
         Vec3 dv=desired.minus(physics().linearVelocity()).scaled(.2);if(dv.length()>.2)dv=dv.scaled(.2/dv.length());
-        applyPhysicsImpulse(physicsCentre(),new Vec3d(dv.x()*physicsMass(),dv.y()*physicsMass(),dv.z()*physicsMass()));
         var pitch=ImmPtlQuaternions.rotationByDegrees(new Vec3(1,0,0),12*Math.sin(age*.012));
         var roll=ImmPtlQuaternions.rotationByDegrees(new Vec3(0,0,1),18*Math.sin(age*.009));
         var heading=ImmPtlQuaternions.rotationByDegrees(new Vec3(0,1,0),-cruiseYaw);
@@ -94,7 +100,8 @@ public class SkyUfoEntity extends BlockBodyEntity {
         var turn=sine<1e-10?ZERO:axis.scaled(2*Math.atan2(sine,error.w())/sine);
         var acceleration=turn.scaled(8).minus(physics().angularVelocity().scaled(5));
         var torque=physics().worldInertia().transform(acceleration);double cap=physicsMass()*16;
-        if(torque.length()>cap)torque=torque.scaled(cap/torque.length());applyPhysicsTorque(new Vec3d(torque.x(),torque.y(),torque.z()));
+        if(torque.length()>cap)torque=torque.scaled(cap/torque.length());
+        applyThrusterWrench(dv.scaled(physicsMass()/.05),torque);
     }
     private void pruneSwarm(ServerWorld world) {
         // Unloaded drones retain their UUID and occupy their bay slot: absence is not death.
@@ -157,8 +164,8 @@ public class SkyUfoEntity extends BlockBodyEntity {
     }
     @Override protected void readCustomDataFromNbt(NbtCompound n) {
         if(n.contains("shape",NbtElement.COMPOUND_TYPE)&&n.contains("body",NbtElement.COMPOUND_TYPE))super.readCustomDataFromNbt(n);
-        if(n.getInt("physicalUfoSchema")>1)throw new IllegalArgumentException("unsupported physical UFO schema");
-        initialized=n.getInt("physicalUfoSchema")==1;crashing=n.getBoolean("crashing");detonated=n.getBoolean("detonated");
+        if(n.getInt("physicalUfoSchema")>2)throw new IllegalArgumentException("unsupported physical UFO schema");
+        initialized=n.getInt("physicalUfoSchema")>=1;legacyThrusters=n.getInt("physicalUfoSchema")==1||n.getBoolean("legacyThrusters");crashing=n.getBoolean("crashing");detonated=n.getBoolean("detonated");
         cruiseYaw=n.getDouble("cruise");cruiseAltitude=n.getDouble("cruiseAltitude");autopilot=!n.contains("autopilot")||n.getBoolean("autopilot");
         crashTicks=Math.max(0,n.getInt("crashTicks"));spawnCooldown=Math.max(0,n.getInt("bayCooldown"));
         if(!Double.isFinite(cruiseYaw)||!Double.isFinite(cruiseAltitude))throw new IllegalArgumentException("non-finite UFO controller");
@@ -167,7 +174,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
         for(int i=0;i<Math.min(saved.size(),SWARM_CAP);i++)if(saved.getCompound(i).containsUuid("id"))swarm.add(saved.getCompound(i).getUuid("id"));
     }
     @Override protected void writeCustomDataToNbt(NbtCompound n) {
-        super.writeCustomDataToNbt(n);n.putInt("physicalUfoSchema",initialized?1:0);n.putBoolean("crashing",crashing);n.putBoolean("detonated",detonated);
+        super.writeCustomDataToNbt(n);n.putInt("physicalUfoSchema",initialized?2:0);n.putBoolean("legacyThrusters",legacyThrusters);n.putBoolean("crashing",crashing);n.putBoolean("detonated",detonated);
         n.putDouble("cruise",cruiseYaw);n.putDouble("cruiseAltitude",cruiseAltitude);n.putBoolean("autopilot",UfoControlSystem.savedAutopilot(this,autopilot));n.putInt("crashTicks",crashTicks);n.putInt("bayCooldown",spawnCooldown);
         n.putString("destructionMode",destructionMode.name());
         var list=new NbtList();for(var id:swarm){var item=new NbtCompound();item.putUuid("id",id);list.add(item);}n.put("swarm",list);

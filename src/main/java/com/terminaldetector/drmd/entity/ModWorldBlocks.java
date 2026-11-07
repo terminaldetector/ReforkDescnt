@@ -45,6 +45,9 @@ public final class ModWorldBlocks {
 	public static final Block MAGNETIC_ANOMALY = registerBlock("magnetic_anomaly",
 			new TrapBlocks.MagneticAnomalyBlock(AbstractBlock.Settings.copy(Blocks.LODESTONE).ticksRandomly()));
 
+	public static final Block SHIP_THRUSTER = registerBlock("ship_thruster",
+			new Block(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f).luminance(state -> 6)));
+
 	public static final Block UNSTABLE_REACTOR = registerBlock("unstable_reactor",
 			new TrapBlocks.UnstableReactorBlock(AbstractBlock.Settings.copy(Blocks.RESPAWN_ANCHOR).ticksRandomly()));
 
@@ -218,6 +221,7 @@ public final class ModWorldBlocks {
 			entries.add(POINT_DEFENSE_TURRET);
 			entries.add(MAGNETIC_ANOMALY);
 			entries.add(UNSTABLE_REACTOR);
+			entries.add(SHIP_THRUSTER);
 			entries.add(MIRROR);
 			entries.add(CHARGED_MIRROR);
 			entries.add(PORTAL_PANEL);

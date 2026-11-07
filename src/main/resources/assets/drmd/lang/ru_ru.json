@@ -302,5 +302,6 @@
   "entity.drmd.rocket": "Ракетный дрон",
   "item.drmd.spawn_egg_rocket": "Ракетный дрон — создание",
   "entity.drmd.jet": "Реактивный перехватчик",
-  "item.drmd.spawn_egg_jet": "Реактивный перехватчик — создание"
+  "item.drmd.spawn_egg_jet": "Реактивный перехватчик — создание",
+  "block.drmd.ship_thruster": "Маневровый двигатель"
 }

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "AAA",
+    "AEA",
+    "AAA"
+  ],
+  "key": {
+    "A": {
+      "item": "drmd:alloy_plate"
+    },
+    "E": {
+      "item": "drmd:energy_cell"
+    }
+  },
+  "result": {
+    "id": "drmd:ship_thruster",
+    "count": 1
+  }
+}

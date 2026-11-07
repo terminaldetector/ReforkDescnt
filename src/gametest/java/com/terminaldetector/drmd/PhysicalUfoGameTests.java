@@ -154,6 +154,53 @@ public final class PhysicalUfoGameTests implements FabricGameTest {
             c.assertTrue(b.physics().linearVelocity().minus(velocity).length()<1e-9&&b.physics().angularMomentum().minus(momentum).length()<1e-9,"unpowered AI must preserve free momentum instead of applying invisible engines");
         } finally {b.discard();}c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-engine-material")
+    public void actualThrusterBlocksCanBeRemovedAndRepairedWithoutResettingTheHull(TestContext c) {
+        var b=create(c);try {
+            var slots=com.terminaldetector.drmd.world.mega.SkyUfoThrusters.SLOTS;var node=ModWorldBlocks.SHIP_THRUSTER.getDefaultState();
+            c.assertTrue(b.activeThrusters()==4&&slots.stream().allMatch(pos->b.getLocalBlock(pos).equals(node)),"fresh UFO carries four real functional engine blocks");
+            c.assertTrue(b.setLocalBlocks(lostEngines())&&b.activeThrusters()==0,"all destroyed motors immediately cease contributing");
+            var at=slots.getFirst();var access=new BlockBodyWorldAccess(b);
+            c.assertTrue(access.placeLocalBlock(at,Blocks.PRISMARINE_BRICKS.getDefaultState())&&b.activeThrusters()==0,"decorative shell replacement cannot power a new ship engine");
+            c.assertTrue(access.breakLocalBlock(at),"remove the ordinary replacement");
+            var position=b.massPosition();var velocity=b.physics().linearVelocity();var momentum=b.physics().angularMomentum();var id=b.getUuid();
+            c.assertTrue(access.placeLocalBlock(at,node)&&b.activeThrusters()==1,"repair installs the actual engine part in the local grid");
+            c.assertTrue(id.equals(b.getUuid())&&b.physics().linearVelocity().minus(velocity).length()<1e-9&&b.physics().angularMomentum().minus(momentum).length()<1e-9&&b.massPosition().minus(position).length()<.01,"stationary repair preserves the existing physical identity without a velocity reset");
+            var before=b.physics().linearVelocity();var spin=b.physics().angularMomentum();b.applyThrusterWrench(new Vec3(0,b.physicsMass()*4,0),new Vec3(0,0,0));
+            c.assertTrue(b.physics().linearVelocity().minus(before).length()>0&&b.physics().angularMomentum().minus(spin).length()>0,"a lone repaired motor pushes at its real off-centre mount instead of a hidden COM force");
+        } finally {b.discard();}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-engine-weapon")
+    public void aRotatedEngineIsHitThroughItsRealMaterialFace(TestContext c) {
+        var b=create(c);try {
+            var q=ImmPtlQuaternions.hamiltonProduct(ImmPtlQuaternions.rotationByDegrees(new Vec3(1,0,0),67),ImmPtlQuaternions.rotationByDegrees(new Vec3(0,0,1),123));b.physics().withRotation(q);b.publishPhysicsState();
+            var slot=com.terminaldetector.drmd.world.mega.SkyUfoThrusters.SLOTS.getFirst();var from=b.localToWorld(Vec3d.ofCenter(slot).add(0,-3,0));var to=b.localToWorld(Vec3d.ofCenter(slot));
+            var hit=new BlockBodyWorldAccess(b).raycastBlockBody(from,to).orElseThrow();
+            c.assertTrue(hit.localBlock().equals(slot)&&hit.worldNormal().dot(q.rotate(new Vec3(0,-1,0)))>.999999,"engine hit normal and local material follow all three body axes");
+            b.weaponHit(new Vec3d(hit.worldPoint().x(),hit.worldPoint().y(),hit.worldPoint().z()),to.subtract(from),1000);
+            c.assertTrue(b.getLocalBlock(slot).isAir()&&b.activeThrusters()==3,"real weapon damage disables only the hit engine slot");
+        } finally {b.discard();}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-engine-save")
+    public void disabledNewEnginesStayDisabledAcrossPhysicalSaveRead(TestContext c) {
+        var b=create(c);SkyUfoEntity copy=null;try {
+            b.setLocalBlocks(lostEngines());b.physics().withLinearVelocity(new Vec3(3,2,-1)).withAngularVelocity(new Vec3(.1,.2,.3));
+            var n=b.writeNbt(new NbtCompound());copy=ModEntities.SKY_UFO.create(c.getWorld());copy.readNbt(n);
+            c.assertTrue(n.getInt("physicalUfoSchema")==2&&!n.getBoolean("legacyThrusters")&&copy.activeThrusters()==0,"new save cannot regain engines via the legacy compatibility path");
+            c.assertTrue(copy.cells().equals(b.cells())&&copy.physics().linearVelocity().equals(b.physics().linearVelocity())&&copy.physics().angularMomentum().equals(b.physics().angularMomentum()),"damaged engine grid and momentum are restored exactly");
+        } finally {if(copy!=null)copy.discard();b.discard();}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-engine-legacy")
+    public void oldHullEngineCellsMigrateWithoutRepairingMaterialOrChangingMomentum(TestContext c) {
+        var b=create(c);SkyUfoEntity copy=null;try {
+            var old=new java.util.HashMap<BlockPos,net.minecraft.block.BlockState>();for(var at:com.terminaldetector.drmd.world.mega.SkyUfoThrusters.SLOTS)old.put(at,Blocks.PRISMARINE_BRICKS.getDefaultState());
+            old.put(com.terminaldetector.drmd.world.mega.SkyUfoThrusters.SLOTS.getFirst(),Blocks.AIR.getDefaultState());b.setLocalBlocks(old);
+            b.physics().withLinearVelocity(new Vec3(3,2,-1)).withAngularVelocity(new Vec3(.1,.2,.3));var n=b.writeNbt(new NbtCompound());n.putInt("physicalUfoSchema",1);n.remove("legacyThrusters");
+            copy=ModEntities.SKY_UFO.create(c.getWorld());copy.readNbt(n);var again=copy.writeNbt(new NbtCompound());
+            c.assertTrue(copy.activeThrusters()==3&&again.getInt("physicalUfoSchema")==2&&again.getBoolean("legacyThrusters"),"only actual surviving original shell slots keep legacy engine function");
+            c.assertTrue(copy.cells().equals(b.cells())&&copy.shapeRevision()==b.shapeRevision()&&copy.physics().linearVelocity().equals(b.physics().linearVelocity())&&copy.physics().angularMomentum().equals(b.physics().angularMomentum()),"migration neither inserts repaired blocks nor alters saved physical state");
+        } finally {if(copy!=null)copy.discard();b.discard();}c.complete();
+    }
     private static final DynamicBodyAttachment.Motion FREE=(p,q,d)->new DynamicBodyAttachment.Move(d,java.util.List.of());
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-reload-walker")
     public void rejoiningWithSavedWalkingDoesNotArmSuitFlightOrResetMomentum(TestContext c) {
