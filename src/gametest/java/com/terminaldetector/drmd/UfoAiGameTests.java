@@ -10,6 +10,11 @@ import net.minecraft.util.math.*;
 import java.util.*;
 
 public final class UfoAiGameTests implements FabricGameTest {
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-source-launch",tickLimit=220)
+    public void autonomousShotsDoNotDestroyTheirOwnRotatingGunCells(TestContext c){admitted(c,f->{
+        f.body.physics().withAngularVelocity(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(.2,.3,.1));f.body.setAutopilot(true);
+        c.waitAndRun(100,()->{try{for(var slot:SkyUfoWeapons.LASERS)c.assertTrue(f.body.getLocalBlock(slot).isOf(ModWorldBlocks.SHIP_LASER),"own autonomous launch cannot destroy laser mount "+slot);for(var slot:SkyUfoWeapons.ROCKETS)c.assertTrue(f.body.getLocalBlock(slot).isOf(ModWorldBlocks.SHIP_ROCKET),"own autonomous launch cannot destroy rocket mount "+slot);}finally{f.close();}c.complete();});
+    });}
     private void admitted(TestContext c,java.util.function.Consumer<Fixture> action){
         var at=c.getAbsolutePos(new BlockPos(8,220,8));var chunks=new AiFixtureChunks(c.getWorld(),at,3);boolean[] started={false};int[] wait={0};
         var positions=new ArrayList<BlockPos>();for(int x=-3;x<=3;x++)for(int z=-3;z<=3;z++)positions.add(at.add(16*x,0,16*z));
