@@ -26,6 +26,7 @@ public final class NativeUfoReloadCheck {
     private static boolean releasingReady;private static int admissionTicks;
     private static volatile boolean walkRequested,walkObserved;private static int walkTicks;
     private static volatile net.minecraft.util.math.Vec3d walkFrom;private static volatile double walked;
+    public static boolean walkingStarted(){return walkRequested;}
     private static Path file(String name){return MinecraftClient.getInstance().runDirectory.toPath().resolve(name);}
     private static void require(boolean b,String why){if(!b)throw new IllegalStateException(why);}
     private NativeUfoReloadCheck(){}

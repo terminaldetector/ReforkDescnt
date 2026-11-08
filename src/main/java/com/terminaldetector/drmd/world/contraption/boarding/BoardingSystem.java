@@ -118,12 +118,22 @@ public final class BoardingSystem {
     }
     private static Lease acquire(ServerPlayerEntity p,List<BodyMotion> bodies) {
         Vec3 feet=pure(p.getPos());
+        var resume=DescentPlayerData.get(p).pendingBoardingResume();
         for(var body:bodies) {
+            // Restored entity IDs depend on load order. An overlapping module must
+            // not steal the saved carrier or replace its rotated passenger frame.
+            if(resume!=null) {
+                var live=com.terminaldetector.drmd.world.contraption.BodySpatialIndex.find(p.getWorld(),body.id).orElse(null);
+                if(live==null||!resume.body().equals(live.getUuid()))continue;
+            }
             Quat frame=BoardingRestore.frame(p,body.id);
             if(body.gravity(feet.plus(PassengerFrame.up(frame).scaled(p.getHeight()/2)),1).isEmpty())continue;
             var l=new Lease(p,new DynamicBodyAttachment.State(feet,pure(p.getVelocity()).scaled(20),false,-1,frame,body.id),++epoch);
             BoardingPose.publish(p,frame);return l;
         }
+        // holds() bounds this wait. Admission still requires the real carrier's
+        // gravity volume; a saved UUID alone cannot create contact or move feet.
+        if(resume!=null)return null;
         Previous prev=PREVIOUS.get(p.getUuid());
         Vec3 from=prev!=null&&prev.world.get()==p.getWorld()?prev.feet:feet;
         Vec3 delta=feet.minus(from);boolean swept=delta.length()<8;

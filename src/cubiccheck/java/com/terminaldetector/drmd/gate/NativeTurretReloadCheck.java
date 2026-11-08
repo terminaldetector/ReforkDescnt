@@ -31,6 +31,7 @@ public final class NativeTurretReloadCheck {
     private static int ticks,controlAge,imageFrames,aimTicks;private static boolean walkingDone,exteriorAimed,done;
     private static double maxAnchor,muzzleError,velocityError,angleTravel,brakedSpeed;private static Vec3d camera;private static int subjectPixels;
     private static Quat relativeStart;private static NbtCompound expectedRoot;private static final List<String> scenes=new ArrayList<>();
+    private static Vec3d idleLocal;private static int restoredOwnerSamples;private static double idleDrift;
     private static net.minecraft.entity.Entity entity(net.minecraft.entity.Entity e){return e;}
     private static Path file(String n){return MinecraftClient.getInstance().runDirectory.toPath().resolve(n);}
     private static void require(boolean b,String why){if(!b){MinecraftClient.getInstance().scheduleStop();throw new IllegalStateException("Turret restart: "+why);}}
@@ -98,7 +99,15 @@ public final class NativeTurretReloadCheck {
             require(t.bodyId().equals(headId)&&t.jointId().equals(jointId)&&t.connected(root),"actual saved module and original joint remain connected");
             var link=BodyJointRegistry.get(w).find(jointId).orElseThrow();require(!link.collideConnected(),"bearing collision mask restored");
             if(!BoardingSystem.ready(pilot)){
+                var resume=com.terminaldetector.drmd.DescentPlayerData.get(pilot).pendingBoardingResume();require(resume!=null&&resume.body().equals(rootId),"saved passenger still names the real carrier, never its earlier-loaded module");
+                if(idleLocal==null)idleLocal=root.worldToLocal(pilot.getPos());
                 require(t.write().equals(expectedRoot.getCompound("turret")),"admission barrier retains saved cooldowns");barrierSamples++;return;
+            }
+            if(phase==0){
+                var state=BoardingSystem.state(pilot);require(BoardingSystem.drives(pilot)&&state!=null&&state.gravityOwner()==entity(root).getId(),"first and subsequent restored contacts keep the original carrier gravity owner");restoredOwnerSamples++;
+                if(!NativeUfoReloadCheck.walkingStarted()){
+                    var local=root.worldToLocal(pilot.getPos());idleDrift=Math.max(idleDrift,local.distanceTo(idleLocal));require(local.y>-.03&&idleDrift<.4,"idle returning passenger cannot sink through or slide off the rotating deck");
+                }
             }
             maxAnchor=Math.max(maxAnchor,root.localToWorld(new Vec3d(.5,4,.5)).distanceTo(head.localToWorld(new Vec3d(.5,0,.5))));require(maxAnchor<.03&&!BodyContactSystem.stats(w).budgetPaused(),"loaded anchor/contact continuity");
             if(phase==0||phase==1&&!UfoControlSystem.controls(pilot,root)){require(!UfoControlSystem.controls(pilot)&&link.speed()==0,"no stale pilot or saved motor command resumes without new ownership");}
@@ -133,6 +142,6 @@ public final class NativeTurretReloadCheck {
         var e=c.world.getEntityById(entity(head).getId());if(!(e instanceof BlockBodyEntity b))return;var f=c.gameRenderer.getCamera().getHorizontalPlane();var d=renderTarget(b).subtract(c.gameRenderer.getCamera().getPos()).normalize();if(d.dotProduct(new Vec3d(f.x,f.y,f.z))<.98)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){int n=0;for(int y=image.getHeight()/2-110;y<image.getHeight()/2+110;y++)for(int x=image.getWidth()/2-110;x<image.getWidth()/2+110;x++){int col=image.getColor(x,y),r=col&255,g=(col>>>8)&255,blue=(col>>>16)&255;if(r>50&&g>50&&blue>50&&Math.abs(r-g)<25&&Math.abs(g-blue)<25)n++;}if(n<256){imageFrames=0;return;}subjectPixels=n;if(++imageFrames<3)return;image.writeTo(file("turret-restart-module.png"));}
         catch(Exception failure){throw new IllegalStateException(failure);}require(rootExact&&headExact&&registryExact&&barrierSamples>=20,"all actual reload observations required");
-        var j=new com.google.gson.JsonObject();j.addProperty("actualTwoProcessRestart",true);j.addProperty("rootExact",rootExact);j.addProperty("headExact",headExact);j.addProperty("registryExact",registryExact);j.addProperty("barrierCooldownSamples",barrierSamples);j.addProperty("postLoadSamples",postSamples);j.addProperty("lasers",lasers);j.addProperty("rockets",rockets);j.addProperty("aimPackets",aimPackets);j.addProperty("firePackets",firePackets);j.addProperty("maxAnchorError",maxAnchor);j.addProperty("muzzleError",muzzleError);j.addProperty("launchVelocityError",velocityError);j.addProperty("relativeAngle",angleTravel);j.addProperty("brakedRelativeSpeed",brakedSpeed);j.addProperty("headRenderedFrames",headDraws);j.addProperty("exteriorRenderedFrames",exteriorDraws);j.addProperty("subjectPixels",subjectPixels);j.addProperty("noDuplicates",true);j.addProperty("postLoadControlRelease",true);write("turret-restart-ok.json",new com.google.gson.Gson().toJson(j));done=true;c.scheduleStop();
+        var j=new com.google.gson.JsonObject();j.addProperty("actualTwoProcessRestart",true);j.addProperty("rootExact",rootExact);j.addProperty("headExact",headExact);j.addProperty("registryExact",registryExact);j.addProperty("barrierCooldownSamples",barrierSamples);j.addProperty("restoredCarrierOwnerSamples",restoredOwnerSamples);j.addProperty("idleLocalDrift",idleDrift);j.addProperty("postLoadSamples",postSamples);j.addProperty("lasers",lasers);j.addProperty("rockets",rockets);j.addProperty("aimPackets",aimPackets);j.addProperty("firePackets",firePackets);j.addProperty("maxAnchorError",maxAnchor);j.addProperty("muzzleError",muzzleError);j.addProperty("launchVelocityError",velocityError);j.addProperty("relativeAngle",angleTravel);j.addProperty("brakedRelativeSpeed",brakedSpeed);j.addProperty("headRenderedFrames",headDraws);j.addProperty("exteriorRenderedFrames",exteriorDraws);j.addProperty("subjectPixels",subjectPixels);j.addProperty("noDuplicates",true);j.addProperty("postLoadControlRelease",true);write("turret-restart-ok.json",new com.google.gson.Gson().toJson(j));done=true;c.scheduleStop();
     }
 }
