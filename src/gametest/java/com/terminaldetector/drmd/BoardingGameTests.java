@@ -13,6 +13,25 @@ import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 
 /** Real server-owned player motor. Full rotated local gravity/UFO acceptance remains open. */
 public final class BoardingGameTests implements FabricGameTest {
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-restored-world-contact")
+    public void savedWorldGravityDeckAcquiresThroughRealContactWithoutAField(TestContext c){restoredWorldContact(c,false);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-restored-world-contact-wait")
+    public void pendingMissingCarrierCannotStealAnUnrelatedWorldGravityDeck(TestContext c){restoredWorldContact(c,true);}
+    private void restoredWorldContact(TestContext c,boolean missing){
+        try(var f=fixture(c)){
+            c.assertTrue(f.body.passengerGravity().lengthSquared()==0,"fixture uses ordinary world gravity, not an artificial field");
+            var data=DescentPlayerData.get(f.p);var id=missing?java.util.UUID.randomUUID():f.body.getUuid();
+            data.rememberBoarding(id,f.p.getWorld().getRegistryKey().getValue().toString(),com.terminaldetector.drmd.client.portal.PortalTransform.Quat.IDENTITY);
+            var saved=new net.minecraft.nbt.NbtCompound();data.writeNbt(saved);data.readNbt(saved);var feet=f.p.getPos();
+            BoardingSystem.tick(c.getWorld());
+            if(missing)c.assertTrue(!BoardingSystem.drives(f.p)&&data.pendingBoardingResume()!=null&&data.pendingBoardingResume().body().equals(id),"a real neighbouring contact cannot replace the still-missing saved carrier");
+            else{
+                var state=BoardingSystem.state(f.p);c.assertTrue(BoardingSystem.drives(f.p)&&state!=null&&state.grounded()&&state.support()==f.body.getId(),"the saved real world-gravity deck acquires immediately through physical contact");
+                c.assertTrue(data.pendingBoardingResume()==null,"real contact completes bounded admission without waiting for an absent field");
+            }
+            c.assertTrue(f.p.getPos().distanceTo(feet)<1e-8,"saved identity never teleports the passenger to a deck");
+        }c.complete();
+    }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-restored-field-owner")
     public void savedCarrierWinsOverAnEarlierLoadedOverlappingModuleField(TestContext c){restoredFieldOwner(c,false);}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-restored-field-wait")
