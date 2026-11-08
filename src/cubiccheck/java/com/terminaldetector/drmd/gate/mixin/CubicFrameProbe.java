@@ -8,9 +8,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameRenderer.class)
 public class CubicFrameProbe {
     @Inject(method="render",at=@At("HEAD"))
-    private void before(RenderTickCounter counter,boolean tick,CallbackInfo ci){com.terminaldetector.drmd.gate.NativeTurretReloadCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeIslandLoadCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeSharedCombatCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeTypedCombatRouteCheck.beforeFrame(counter.getTickDelta(false));}
+    private void before(RenderTickCounter counter,boolean tick,CallbackInfo ci){com.terminaldetector.drmd.gate.NativeUfoAiCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeTurretReloadCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeIslandLoadCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeSharedCombatCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeTypedCombatRouteCheck.beforeFrame(counter.getTickDelta(false));}
     @Inject(method="render",at=@At("RETURN"))
     private void completed(RenderTickCounter counter,boolean tick,CallbackInfo ci) {
+        if(com.terminaldetector.drmd.gate.NativeUfoAiCheck.ENABLED){com.terminaldetector.drmd.gate.NativeUfoAiCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeIslandLoadCheck.ENABLED){com.terminaldetector.drmd.gate.NativeIslandLoadCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeJointReloadCheck.READ){com.terminaldetector.drmd.gate.NativeJointReloadCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeSharedCombatCheck.ENABLED){com.terminaldetector.drmd.gate.NativeSharedCombatCheck.rendered();return;}
