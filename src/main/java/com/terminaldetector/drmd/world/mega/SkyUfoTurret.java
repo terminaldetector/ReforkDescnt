@@ -27,8 +27,9 @@ public final class SkyUfoTurret {
     private SkyUfoTurret(UUID child,UUID joint){this.child=child;this.joint=joint;}
     public UUID bodyId(){return child;}public UUID jointId(){return joint;}
     private static boolean live(SkyUfoEntity root){return root.getWorld() instanceof ServerWorld&&!root.isRemoved()&&BodySpatialIndex.find(root.getWorld(),root.getId()).orElse(null)==root;}
+    private boolean installed(SkyUfoEntity root){return live(root)&&root.turretModule().orElse(null)==this;}
     private Optional<BodyJointLink> link(SkyUfoEntity root) {
-        if(!live(root))return Optional.empty();return BodyJointRegistry.get((ServerWorld)root.getWorld()).find(joint)
+        if(!installed(root))return Optional.empty();return BodyJointRegistry.get((ServerWorld)root.getWorld()).find(joint)
             .filter(l->l.kind()==BodyJointConstraint.Kind.MOTOR&&l.a().body().equals(root.getUuid())&&l.a().cell().equals(ROOF)&&l.b().body().equals(child)&&l.b().cell().equals(BASE));
     }
     public Optional<BlockBodyEntity> body(SkyUfoEntity root) {
@@ -66,7 +67,7 @@ public final class SkyUfoTurret {
         }catch(RuntimeException failure){BodyJointRegistry.get(world).remove(joint);if(body!=null)body.discard();throw failure;}
     }
     private static boolean overlaps(OrientedBox a,OrientedBox b){return a.contact(b,0).filter(c->c.penetration()>1e-6).isPresent();}
-    public void tick(SkyUfoEntity root){if(laserCooldown>0)laserCooldown--;if(rocketCooldown>0)rocketCooldown--;if(link(root).isEmpty())detach(root);else body(root).ifPresent(b->{var gravity=root.hasPoweredReactor()?new Vec3(0,-16,0):new Vec3(0,0,0);if(!b.passengerGravity().equals(gravity))b.setPassengerGravity(gravity);});}
+    public void tick(SkyUfoEntity root){if(!installed(root))return;if(laserCooldown>0)laserCooldown--;if(rocketCooldown>0)rocketCooldown--;if(link(root).isEmpty())detach(root);else body(root).ifPresent(b->{var gravity=root.hasPoweredReactor()?new Vec3(0,-16,0):new Vec3(0,0,0);if(!b.passengerGravity().equals(gravity))b.setPassengerGravity(gravity);});}
     public void aim(SkyUfoEntity root,float input) {
         if(!Float.isFinite(input)||Math.abs(input)>1)return;var l=link(root).orElse(null);if(l==null)return;
         boolean powered=root.hasPoweredReactor();BodyJointRegistry.get((ServerWorld)root.getWorld()).configure(joint,powered?input*.6:0,powered?40:0,l.breakForce(),l.breakTorque());
@@ -78,8 +79,9 @@ public final class SkyUfoTurret {
         return SkyUfoCombat.aim(b,rocketAim?ROCKET:LASER,target,rocketAim?1.4:2.5,rocketAim?100:80);
     }
     public void aimAutonomous(SkyUfoEntity root){
+        if(UfoControlSystem.hasPilot(root))return;
         var target=root.autonomousTarget().orElse(null);
-        if(!SkyUfoCombat.allowed(root)||target==null||!functional(root)){stopAutonomous(root);return;}
+        if(!SkyUfoCombat.allowed(root)||!SkyUfoCombat.eligible(root,target)||!functional(root)){stopAutonomous(root);return;}
         long now=root.getWorld().getTime();if(!target.getUuid().equals(autonomousTarget)){autonomousTarget=target.getUuid();rocketAim=false;burst=0;selectedSince=now;}
         if(now-selectedSince>=160){rocketAim=!rocketAim;burst=0;selectedSince=now;}
         var b=body(root).orElseThrow();var desired=cooperativeAim(root,target);if(desired==null){aim(root,0);return;}
@@ -89,7 +91,7 @@ public final class SkyUfoTurret {
         double speed=com.terminaldetector.drmd.weapon.core.HingeAim.velocity(b.rotation().rotate(new Vec3(0,0,1)),desired,axis,feed,.6);aim(root,(float)(speed/.6));
     }
     public int fireAutonomous(SkyUfoEntity root){
-        if(!SkyUfoCombat.allowed(root)||!functional(root))return 0;var target=root.autonomousTarget().orElse(null);if(target==null)return 0;
+        if(!SkyUfoCombat.allowed(root)||!functional(root))return 0;var target=root.autonomousTarget().orElse(null);if(!SkyUfoCombat.eligible(root,target))return 0;
         var b=body(root).orElseThrow();var world=(ServerWorld)root.getWorld();if(!b.hasSimulatedPhysics()||b.boardingMotionPaused()||!BodyJointRegistry.get(world).active(joint,world.getTime()))return 0;
         int mask=0;
         if(laserCooldown==0&&SkyUfoCombat.clearShot(b,LASER,target,2.5,80)&&SkyUfoWeapons.emit(b,b,List.of(LASER),ModWorldBlocks.SHIP_LASER,false)>0){laserCooldown=8;mask|=1;emitted(root,false);BodyJointSystem.reconcileImpulse(world,b);}
@@ -104,7 +106,7 @@ public final class SkyUfoTurret {
         if(laserCooldown==0&&SkyUfoWeapons.emit(b,pilot,List.of(LASER),ModWorldBlocks.SHIP_LASER,false)>0){laserCooldown=8;BodyJointSystem.reconcileImpulse(world,b);}
         if(rocketCooldown==0&&SkyUfoWeapons.emit(b,pilot,List.of(ROCKET),ModWorldBlocks.SHIP_ROCKET,true)>0){rocketCooldown=24;BodyJointSystem.reconcileImpulse(world,b);}
     }
-    public void detach(SkyUfoEntity root){body(root).ifPresent(b->{b.setPhysicsGravity(true);b.setPassengerGravity(new Vec3(0,0,0));});}
+    public void detach(SkyUfoEntity root){if(installed(root))body(root).ifPresent(b->{b.setPhysicsGravity(true);b.setPassengerGravity(new Vec3(0,0,0));});}
     public NbtCompound write(){var n=new NbtCompound();n.putInt("schema",1);n.putUuid("body",child);n.putUuid("joint",joint);n.putInt("laserCooldown",laserCooldown);n.putInt("rocketCooldown",rocketCooldown);return n;}
     public static SkyUfoTurret read(NbtCompound n){if(n.getInt("schema")!=1||!n.containsUuid("body")||!n.containsUuid("joint"))throw new IllegalArgumentException("invalid UFO turret reference");var t=new SkyUfoTurret(n.getUuid("body"),n.getUuid("joint"));t.laserCooldown=MathHelper.clamp(n.getInt("laserCooldown"),0,8);t.rocketCooldown=MathHelper.clamp(n.getInt("rocketCooldown"),0,24);return t;}
 }
