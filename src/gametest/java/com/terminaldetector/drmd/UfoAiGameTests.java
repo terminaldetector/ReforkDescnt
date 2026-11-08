@@ -11,9 +11,13 @@ import java.util.*;
 
 public final class UfoAiGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-battery-progress",tickLimit=340)
-    public void physicalAimCanCompleteBothLaserAndRocketBursts(TestContext c){admitted(c,f->{
-        var q=new com.terminaldetector.drmd.client.portal.PortalTransform.Quat(-.4900137814472482,.19754841070792994,.18852243580489392,.82784081236475);c.assertTrue(f.body.resolveContactPose(f.body.massPosition(),q),"saved native fixture orientation clears real world geometry");f.target.setInvulnerable(true);f.body.setAutopilot(true);var lasers=new HashSet<UUID>();var rockets=new HashSet<UUID>();
-        c.runAtEveryTick(()->{for(var shot:f.shots())(shot.getMeshKind()==1?rockets:lasers).add(shot.getUuid());});
+    public void physicalAimCanCompleteBothLaserAndRocketBursts(TestContext c){
+        var lasers=new HashSet<UUID>();var rockets=new HashSet<UUID>();Fixture[] fixture={null};
+        // Register the repeating observation before the test starts ticking. Adding
+        // hundreds of callbacks inside GameTestState's callback-map iterator rehashes it.
+        c.runAtEveryTick(()->{if(fixture[0]!=null)for(var shot:fixture[0].shots())(shot.getMeshKind()==1?rockets:lasers).add(shot.getUuid());});
+        admitted(c,f->{fixture[0]=f;
+        var q=new com.terminaldetector.drmd.client.portal.PortalTransform.Quat(-.4900137814472482,.19754841070792994,.18852243580489392,.82784081236475);c.assertTrue(f.body.resolveContactPose(f.body.massPosition(),q),"saved native fixture orientation clears real world geometry");f.target.setInvulnerable(true);f.body.setAutopilot(true);
         c.waitAndRun(210,()->{try{c.assertTrue(lasers.size()>=3&&rockets.size()>=1,"finite-inertia aiming cannot starve either real battery: "+lasers.size()+" / "+rockets.size());}finally{f.close();}c.complete();});
     });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-source-launch",tickLimit=220)
