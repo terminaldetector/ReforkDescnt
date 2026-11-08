@@ -30,6 +30,8 @@ public final class BoardingGameTests implements FabricGameTest {
             DescentPlayerData.get(p).setEnabled(false);p.getAbilities().flying=false;p.setPosition(root.localToWorld(new Vec3d(1.5,1.001,1.5)));p.setVelocity(Vec3d.ZERO);
             com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(p.getUuid());
             var id=missing?java.util.UUID.randomUUID():root.getUuid();DescentPlayerData.get(p).rememberBoarding(id,w.getRegistryKey().getValue().toString(),q);
+            var saved=new net.minecraft.nbt.NbtCompound();DescentPlayerData.get(p).writeNbt(saved);DescentPlayerData.get(p).readNbt(saved);
+            c.assertTrue(DescentPlayerData.get(p).pendingBoardingResume()!=null,"actual persisted player data restores a pending carrier admission");
             com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.publish(p,q);var feet=p.getPos();BoardingSystem.ready(p,BoardingNetworking.PROTOCOL);BoardingSystem.tick(w);
             if(missing)c.assertTrue(!BoardingSystem.drives(p)&&DescentPlayerData.get(p).pendingBoardingResume().body().equals(id),"saved missing carrier keeps admission pending instead of stealing the module's field");
             else{var state=BoardingSystem.state(p);c.assertTrue(state!=null&&state.gravityOwner()==root.getId(),"restore must prefer the saved carrier UUID over an earlier module");c.assertTrue(Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(state.frame(),q))>1-1e-10,"saved rotated passenger frame is retained");}
