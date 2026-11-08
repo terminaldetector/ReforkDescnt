@@ -61,6 +61,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
         if((mask&2)!=0&&rocketCooldown==0&&SkyUfoWeapons.fire(this,pilot,true)>0)rocketCooldown=24;
         if((mask&4)!=0&&turret!=null)turret.fire(this,pilot);
     }
+    public Optional<net.minecraft.server.network.ServerPlayerEntity> autonomousTarget(){return Optional.ofNullable(combat.target(this));}
     public void fireAutonomousWeapons(){
         if(!combat.ready(this))return;combat.fired(this);var target=combat.target(this);
         if(laserCooldown==0&&SkyUfoWeapons.fireAutonomous(this,target,false)>0)laserCooldown=8;
