@@ -13,6 +13,29 @@ import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 
 /** Real server-owned player motor. Full rotated local gravity/UFO acceptance remains open. */
 public final class BoardingGameTests implements FabricGameTest {
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-restored-field-owner")
+    public void savedCarrierWinsOverAnEarlierLoadedOverlappingModuleField(TestContext c){restoredFieldOwner(c,false);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-restored-field-wait")
+    public void pendingSavedCarrierCannotBeReplacedByAnOverlappingModuleField(TestContext c){restoredFieldOwner(c,true);}
+    private void restoredFieldOwner(TestContext c,boolean missing){
+        var w=c.getWorld();var at=c.getAbsolutePos(new BlockPos(8,140,8));for(int x=-2;x<=2;x++)for(int z=-2;z<=2;z++)w.getChunk((at.getX()>>4)+x,(at.getZ()>>4)+z);
+        var q=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.rotationByDegrees(new Vec3(0,0,1),140);
+        var origin=Vec3d.of(at);var childOrigin=origin.add(com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.mc(q.rotate(new Vec3(0,3,0))));
+        var child=BlockBodyEntity.createLocal(w,java.util.List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState())),childOrigin,q,Vec3d.ZERO,Vec3d.ZERO);
+        var cells=new java.util.ArrayList<BlockBodyEntity.Cell>();for(int x=0;x<4;x++)for(int z=0;z<4;z++)cells.add(new BlockBodyEntity.Cell(new BlockPos(x,0,z),Blocks.IRON_BLOCK.getDefaultState()));
+        var root=BlockBodyEntity.createLocal(w,cells,origin,q,Vec3d.ZERO,Vec3d.ZERO);var p=c.createMockCreativeServerPlayerInWorld();
+        try{
+            child.setPassengerGravity(new Vec3(0,-16,0));root.setPassengerGravity(new Vec3(0,-32,0));child.tick();root.tick();
+            c.assertTrue(child.getId()<root.getId(),"module must be encountered before the saved carrier");
+            DescentPlayerData.get(p).setEnabled(false);p.getAbilities().flying=false;p.setPosition(root.localToWorld(new Vec3d(1.5,1.001,1.5)));p.setVelocity(Vec3d.ZERO);
+            com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(p.getUuid());
+            var id=missing?java.util.UUID.randomUUID():root.getUuid();DescentPlayerData.get(p).rememberBoarding(id,w.getRegistryKey().getValue().toString(),q);
+            com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.publish(p,q);var feet=p.getPos();BoardingSystem.ready(p,BoardingNetworking.PROTOCOL);BoardingSystem.tick(w);
+            if(missing)c.assertTrue(!BoardingSystem.drives(p)&&DescentPlayerData.get(p).pendingBoardingResume().body().equals(id),"saved missing carrier keeps admission pending instead of stealing the module's field");
+            else{var state=BoardingSystem.state(p);c.assertTrue(state!=null&&state.gravityOwner()==root.getId(),"restore must prefer the saved carrier UUID over an earlier module");c.assertTrue(Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(state.frame(),q))>1-1e-10,"saved rotated passenger frame is retained");}
+            c.assertTrue(p.getPos().distanceTo(feet)<1e-8,"restored owner selection cannot teleport or reposition the passenger");
+        }finally{root.discard();child.discard();p.discard();BoardingSystem.tick(w);}c.complete();
+    }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="boarding-untracked-pivot-snapshot")
     public void untrackedPivotStillSendsItsRealBodySnapshot(TestContext c) {
         var w=c.getWorld();w.getChunk(3125,3125);
