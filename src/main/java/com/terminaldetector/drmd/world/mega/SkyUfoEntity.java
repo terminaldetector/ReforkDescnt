@@ -39,7 +39,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
     public boolean isMaterialized(){return !cells().isEmpty();}
     public boolean isVirtualFlight(){return false;}
     public boolean isCrashing(){return crashing;}
-    public void setAutopilot(boolean value){autopilot=value;}
+    public void setAutopilot(boolean value){autopilot=value;if(!value&&turret!=null)turret.stopAutonomous(this);}
     public boolean autopilotEnabled(){return autopilot;}
     public boolean hasControlConsole(){return getLocalBlock(UfoControlSystem.CONSOLE).isOf(Blocks.GOLD_BLOCK);}
     @Override public boolean canUseLocalBlock(BlockPos local){return local.equals(UfoControlSystem.CONSOLE)&&hasControlConsole();}
@@ -66,6 +66,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
         if(!combat.ready(this))return;combat.fired(this);var target=combat.target(this);
         if(laserCooldown==0){int count=SkyUfoWeapons.fireAutonomous(this,target,false);if(count>0){laserCooldown=8;combat.emitted(this,false,count);}}
         if(rocketCooldown==0){int count=SkyUfoWeapons.fireAutonomous(this,target,true);if(count>0){rocketCooldown=24;combat.emitted(this,true,count);}}
+        if(turret!=null)combat.moduleEmitted(this,turret.fireAutonomous(this));
     }
     public void applyThrusterWrench(Vec3 worldForce,Vec3 worldTorque) {
         if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||isRemoved()||crashing
@@ -115,6 +116,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
     }
     private void propel() {
         var combatAim=combat.prepare(this);
+        if(turret!=null)turret.aimAutonomous(this);
         cruiseYaw+=.15;double yaw=Math.toRadians(cruiseYaw);
         var desired=new Vec3(-Math.sin(yaw)*3,MathHelper.clamp((cruiseAltitude-massPosition().y())*.4,-2,2),Math.cos(yaw)*3);
         if(combatAim!=null){

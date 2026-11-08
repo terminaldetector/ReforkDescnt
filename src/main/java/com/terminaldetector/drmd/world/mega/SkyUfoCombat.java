@@ -16,6 +16,7 @@ import java.util.*;
 /** Reference-UFO weapon controller; target intent never assigns physical poses or velocities. */
 public final class SkyUfoCombat {
     private UUID target;private long nextSearch,prepared=Long.MIN_VALUE,lastFire=Long.MIN_VALUE,selectedSince;private boolean rocketBattery;private int burst;
+    private boolean modulePhase;private int moduleLasers,moduleRockets;private long moduleSince;
     public static void register(){ServerTickEvents.END_WORLD_TICK.register(w->{for(var body:BodySpatialIndex.loaded(w))if(body instanceof SkyUfoEntity ufo)ufo.fireAutonomousWeapons();});}
     public static boolean allowed(SkyUfoEntity b){return b.getWorld() instanceof ServerWorld w&&w.getServer().isOnThread()&&!b.isRemoved()&&b.hasPoweredReactor()&&b.autopilotEnabled()&&!UfoControlSystem.hasPilot(b)&&w.getDifficulty()!=Difficulty.PEACEFUL&&BodySpatialIndex.find(w,b.getId()).orElse(null)==b;}
     private static boolean eligible(SkyUfoEntity b,ServerPlayerEntity p){return p!=null&&p.getWorld()==b.getWorld()&&!p.isRemoved()&&p.isAlive()&&(p.interactionManager.getGameMode()==GameMode.SURVIVAL||p.interactionManager.getGameMode()==GameMode.ADVENTURE)&&!b.containsPos(p.getPos())&&p.getPos().squaredDistanceTo(b.physicsCentre())<=96*96;}
@@ -24,7 +25,10 @@ public final class SkyUfoCombat {
         prepared=b.getWorld().getTime();if(!allowed(b)){target=null;return null;}
         var current=target(b);if(!eligible(b,current)){target=null;current=null;}
         if(current==null&&prepared>=nextSearch){nextSearch=prepared+10;current=com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.players((ServerWorld)b.getWorld()).stream().filter(p->eligible(b,p)).min(Comparator.<ServerPlayerEntity>comparingDouble(p->p.getPos().squaredDistanceTo(b.physicsCentre())).thenComparing(p->p.getUuid().toString())).orElse(null);target=current==null?null:current.getUuid();rocketBattery=false;burst=0;selectedSince=prepared;}
-        if(current==null)return null;
+        if(current==null){modulePhase=false;return null;}
+        var module=b.turretModule().filter(t->t.functional(b)).orElse(null);
+        if(modulePhase&&(module==null||prepared-moduleSince>=160))endModule(prepared);
+        if(modulePhase){var aim=module.cooperativeAim(b,current);if(aim!=null)return aim;endModule(prepared);}
         // Complete an actual burst before asking the finite-inertia hull to aim
         // another parallel mount. A wall clock alone can starve a battery forever.
         boolean lasers=SkyUfoWeapons.LASERS.stream().anyMatch(p->b.getLocalBlock(p).isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER));
@@ -32,7 +36,8 @@ public final class SkyUfoCombat {
         if(prepared-selectedSince>=160){rocketBattery=!rocketBattery;burst=0;selectedSince=prepared;}
         if(!lasers)rocketBattery=true;else if(!rockets)rocketBattery=false;
         var selected=preferredAim(b,rocketBattery,current);
-        return selected!=null?selected:preferredAim(b,!rocketBattery,current);
+        if(selected==null)selected=preferredAim(b,!rocketBattery,current);
+        return selected!=null?selected:module==null?null:module.cooperativeAim(b,current);
     }
     private static Vec3 preferredAim(SkyUfoEntity b,boolean rockets,ServerPlayerEntity target){
         var slots=rockets?SkyUfoWeapons.ROCKETS:SkyUfoWeapons.LASERS;var block=rockets?com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET:com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER;double speed=rockets?1.4:2.5,life=rockets?100:80;Vec3 fallback=null;
@@ -66,7 +71,13 @@ public final class SkyUfoCombat {
     }
     public boolean ready(SkyUfoEntity b){return allowed(b)&&prepared==b.getWorld().getTime()&&lastFire!=prepared&&b.hasSimulatedPhysics()&&!b.boardingMotionPaused()&&eligible(b,target(b));}
     public void fired(SkyUfoEntity b){lastFire=b.getWorld().getTime();}
-    void emitted(SkyUfoEntity b,boolean rockets,int count){if(count>0&&rockets==rocketBattery){burst+=count;if(burst>=(rockets?1:3)){rocketBattery=!rocketBattery;burst=0;selectedSince=b.getWorld().getTime();}}}
+    void emitted(SkyUfoEntity b,boolean rockets,int count){if(!modulePhase&&count>0&&rockets==rocketBattery){burst+=count;if(burst>=(rockets?1:3)){rocketBattery=!rocketBattery;burst=0;selectedSince=b.getWorld().getTime();if(rockets&&b.turretModule().filter(t->t.functional(b)).isPresent()){modulePhase=true;moduleLasers=0;moduleRockets=0;moduleSince=selectedSince;}}}}
+    void moduleEmitted(SkyUfoEntity b,int mask){
+        if(!modulePhase||mask==0)return;if((mask&1)!=0)moduleLasers++;if((mask&2)!=0)moduleRockets++;
+        var child=b.turretModule().flatMap(t->t.body(b)).orElse(null);
+        if(child==null||(moduleLasers>=3||!child.getLocalBlock(SkyUfoTurret.LASER).isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER))&&(moduleRockets>=1||!child.getLocalBlock(SkyUfoTurret.ROCKET).isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET)))endModule(b.getWorld().getTime());
+    }
+    private void endModule(long now){modulePhase=false;rocketBattery=false;burst=0;selectedSince=now;}
     public static boolean clearShot(BlockBodyEntity launcher,BlockPos slot,ServerPlayerEntity target,double speed,double life){
         var from=SkyUfoWeapons.muzzle(launcher,slot);var f=launcher.rotation().rotate(new Vec3(0,0,1));var launch=new Vec3d(f.x(),f.y(),f.z()).multiply(speed).add(launcher.surfaceVelocityAt(from).multiply(.05));
         var velocity=targetVelocity(target);var relative=launch.subtract(velocity);var r=target.getBoundingBox().getCenter().subtract(from);double length=relative.lengthSquared();if(length<1e-12)return false;

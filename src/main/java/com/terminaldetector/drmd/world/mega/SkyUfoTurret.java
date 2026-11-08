@@ -23,6 +23,7 @@ public final class SkyUfoTurret {
     private final UUID child,joint;
     private WeakReference<BlockBodyEntity> cached=new WeakReference<>(null);
     private int laserCooldown,rocketCooldown;
+    private UUID autonomousTarget;private boolean rocketAim;private int burst;private long selectedSince;
     private SkyUfoTurret(UUID child,UUID joint){this.child=child;this.joint=joint;}
     public UUID bodyId(){return child;}public UUID jointId(){return joint;}
     private static boolean live(SkyUfoEntity root){return root.getWorld() instanceof ServerWorld&&!root.isRemoved()&&BodySpatialIndex.find(root.getWorld(),root.getId()).orElse(null)==root;}
@@ -37,6 +38,7 @@ public final class SkyUfoTurret {
         return Optional.empty();
     }
     public boolean connected(SkyUfoEntity root){return link(root).isPresent()&&body(root).filter(b->!b.getLocalBlock(BASE).isAir()).isPresent()&&!root.getLocalBlock(ROOF).isAir();}
+    boolean functional(SkyUfoEntity root){return connected(root)&&body(root).filter(b->b.getLocalBlock(LASER).isOf(ModWorldBlocks.SHIP_LASER)||b.getLocalBlock(ROCKET).isOf(ModWorldBlocks.SHIP_ROCKET)).isPresent();}
     public static SkyUfoTurret install(SkyUfoEntity root,ServerPlayerEntity player) {
         if(!live(root)||!UfoControlSystem.controls(player,root)||!root.hasPoweredReactor()||root.getLocalBlock(ROOF).isAir())return null;
         if(root.turretModule().filter(t->t.link(root).isPresent()).isPresent())return null;
@@ -69,6 +71,30 @@ public final class SkyUfoTurret {
         if(!Float.isFinite(input)||Math.abs(input)>1)return;var l=link(root).orElse(null);if(l==null)return;
         boolean powered=root.hasPoweredReactor();BodyJointRegistry.get((ServerWorld)root.getWorld()).configure(joint,powered?input*.6:0,powered?40:0,l.breakForce(),l.breakTorque());
     }
+    public void stopAutonomous(SkyUfoEntity root){autonomousTarget=null;rocketAim=false;burst=0;aim(root,0);}
+    Vec3 cooperativeAim(SkyUfoEntity root,ServerPlayerEntity target){
+        if(target==null||!functional(root))return null;var b=body(root).orElseThrow();
+        if(!b.getLocalBlock(LASER).isOf(ModWorldBlocks.SHIP_LASER))rocketAim=true;else if(!b.getLocalBlock(ROCKET).isOf(ModWorldBlocks.SHIP_ROCKET))rocketAim=false;
+        return SkyUfoCombat.aim(b,rocketAim?ROCKET:LASER,target,rocketAim?1.4:2.5,rocketAim?100:80);
+    }
+    public void aimAutonomous(SkyUfoEntity root){
+        var target=root.autonomousTarget().orElse(null);
+        if(!SkyUfoCombat.allowed(root)||target==null||!functional(root)){stopAutonomous(root);return;}
+        long now=root.getWorld().getTime();if(!target.getUuid().equals(autonomousTarget)){autonomousTarget=target.getUuid();rocketAim=false;burst=0;selectedSince=now;}
+        if(now-selectedSince>=160){rocketAim=!rocketAim;burst=0;selectedSince=now;}
+        var b=body(root).orElseThrow();var desired=cooperativeAim(root,target);if(desired==null){aim(root,0);return;}
+        var axis=root.rotation().rotate(link(root).orElseThrow().a().frame().rotate(new Vec3(1,0,0)));
+        double speed=com.terminaldetector.drmd.weapon.core.HingeAim.velocity(b.rotation().rotate(new Vec3(0,0,1)),desired,axis,.6);aim(root,(float)(speed/.6));
+    }
+    public int fireAutonomous(SkyUfoEntity root){
+        if(!SkyUfoCombat.allowed(root)||!functional(root))return 0;var target=root.autonomousTarget().orElse(null);if(target==null)return 0;
+        var b=body(root).orElseThrow();var world=(ServerWorld)root.getWorld();if(!b.hasSimulatedPhysics()||b.boardingMotionPaused()||!BodyJointRegistry.get(world).active(joint,world.getTime()))return 0;
+        int mask=0;
+        if(laserCooldown==0&&SkyUfoCombat.clearShot(b,LASER,target,2.5,80)&&SkyUfoWeapons.emit(b,b,List.of(LASER),ModWorldBlocks.SHIP_LASER,false)>0){laserCooldown=8;mask|=1;emitted(root,false);BodyJointSystem.reconcileImpulse(world,b);}
+        if(rocketCooldown==0&&SkyUfoCombat.clearShot(b,ROCKET,target,1.4,100)&&SkyUfoWeapons.emit(b,b,List.of(ROCKET),ModWorldBlocks.SHIP_ROCKET,true)>0){rocketCooldown=24;mask|=2;emitted(root,true);BodyJointSystem.reconcileImpulse(world,b);}
+        return mask;
+    }
+    private void emitted(SkyUfoEntity root,boolean rocket){if(rocket==rocketAim&&++burst>=(rocket?1:3)){rocketAim=!rocketAim;burst=0;selectedSince=root.getWorld().getTime();}}
     public void fire(SkyUfoEntity root,ServerPlayerEntity pilot) {
         if(!root.hasPoweredReactor()||!UfoControlSystem.controls(pilot,root)||!connected(root))return;
         var b=body(root).orElseThrow();var world=(ServerWorld)root.getWorld();
