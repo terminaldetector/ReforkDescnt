@@ -12,12 +12,14 @@ import java.util.*;
 public final class UfoTurretAiGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-ai-natural",tickLimit=400)
     public void aRealInstalledModuleAimsAndFiresAtANaturalElevatedSideTarget(TestContext c){
-        Fixture[] live={null};var lasers=new HashSet<UUID>();var rockets=new HashSet<UUID>();double[] angle={0},anchor={0};
-        c.runAtEveryTick(()->{var f=live[0];if(f==null)return;for(var shot:f.shots())(shot.getMeshKind()==1?rockets:lasers).add(shot.getUuid());angle[0]=Math.max(angle[0],2*Math.acos(Math.min(1,Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(f.root.rotation(),f.head.rotation())))));anchor[0]=Math.max(anchor[0],f.root.localToWorld(new Vec3d(.5,4,.5)).distanceTo(f.head.localToWorld(new Vec3d(.5,0,.5))));});
+        Fixture[] live={null};var lasers=new HashSet<UUID>();var rockets=new HashSet<UUID>();var rootLasers=new HashSet<UUID>();var rootRockets=new HashSet<UUID>();double[] angle={0},anchor={0};int[] observed={0};
+        c.runAtEveryTick(()->{var f=live[0];if(f==null)return;for(var shot:f.shots())(shot.getMeshKind()==1?rockets:lasers).add(shot.getUuid());for(var shot:c.getWorld().getEntitiesByClass(ProjectileEntity.class,f.root.getBoundingBox().expand(150),s->s.getOwnerEntity()==f.root))(shot.getMeshKind()==1?rootRockets:rootLasers).add(shot.getUuid());angle[0]=Math.max(angle[0],2*Math.acos(Math.min(1,Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(f.root.rotation(),f.head.rotation())))));anchor[0]=Math.max(anchor[0],f.root.localToWorld(new Vec3d(.5,4,.5)).distanceTo(f.head.localToWorld(new Vec3d(.5,0,.5))));
+            if(++observed[0]%20==0)System.out.println("TURRET_AI tick="+observed[0]+" shots="+lasers.size()+"/"+rockets.size()+" rootShots="+rootLasers.size()+"/"+rootRockets.size()+" motor="+BodyJointRegistry.get(c.getWorld()).find(f.module.jointId()).map(BodyJointLink::speed)+" simulated="+f.head.hasSimulatedPhysics()+" paused="+f.head.boardingMotionPaused()+" rootQ="+f.root.rotation()+" headQ="+f.head.rotation()+" target="+f.root.autonomousTarget()+" laserAim="+SkyUfoCombat.aim(f.head,SkyUfoTurret.LASER,f.target,2.5,80)+" laserClear="+SkyUfoCombat.clearShot(f.head,SkyUfoTurret.LASER,f.target,2.5,80)+" rocketClear="+SkyUfoCombat.clearShot(f.head,SkyUfoTurret.ROCKET,f.target,1.4,100));});
         admitted(c,f->{live[0]=f;f.target.setInvulnerable(true);f.root.setAutopilot(true);
             c.waitAndRun(260,()->{try{
                 c.assertTrue(f.root.autonomousTarget().orElse(null)==f.target,"normal carrier AI acquires the external Survival player");
                 c.assertTrue(lasers.size()>=3&&rockets.size()>=1,"an actual unpiloted child module must emit both real batteries: "+lasers.size()+" / "+rockets.size());
+                c.assertTrue(rootLasers.size()>=3&&rootRockets.size()>=1,"cooperation cannot starve the carrier batteries: "+rootLasers.size()+" / "+rootRockets.size());
                 c.assertTrue(angle[0]>.25&&anchor[0]<.03&&f.module.connected(f.root),"real yaw motor turns while its physical joint remains connected: "+angle[0]+" / "+anchor[0]);
             }finally{f.close();live[0]=null;}c.complete();});
         });
