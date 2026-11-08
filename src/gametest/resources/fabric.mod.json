@@ -60,7 +60,8 @@
       "com.terminaldetector.drmd.DroneWreckKindGameTests",
       "com.terminaldetector.drmd.TypedCombatRouteGameTests",
       "com.terminaldetector.drmd.SharedCombatPassageGameTests",
-      "com.terminaldetector.drmd.UfoWeaponGameTests"
+      "com.terminaldetector.drmd.UfoWeaponGameTests",
+      "com.terminaldetector.drmd.UfoAiGameTests"
     ]
   },
   "depends": {
