@@ -121,7 +121,13 @@ public final class NativeTurretReloadCheck {
         var e=c.world.getEntityById(entity(root).getId());if(!(e instanceof SkyUfoEntity b))return;var view=BoardingClient.bodyView(b,1);var off=new Vec3(3.5,-.001,.5).minus(b.localCentre());
         var at=view==null?b.localToWorld(new Vec3d(3.5,-.001,.5)):BoardingSystem.mc(view.position().plus(view.rotation().rotate(off)));var a=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(BoardingSystem.pure(at.subtract(c.player.getEyePos())));c.player.setYaw((float)a.yawDegrees());c.player.setPitch((float)a.pitchDegrees());
     }
-    private static Vec3d renderTarget(BlockBodyEntity b,float delta){var view=BoardingClient.bodyView(b,delta);var at=view==null?b.renderMassPosition(delta):view.position();var q=view==null?b.renderRotation(delta):view.rotation();return BoardingSystem.mc(at.plus(q.rotate(new Vec3(.5,1.5,.5).minus(b.localCentre()))));}
+    private static Vec3d renderTarget(BlockBodyEntity b,float delta){
+        // WorldRenderer interpolates lastRender*, whereas Entity.getLerpedPos uses
+        // prev*. Follow the actual renderer, including its prediction translation.
+        var rendered=new Vec3d(MathHelper.lerp(delta,b.lastRenderX,b.getX()),MathHelper.lerp(delta,b.lastRenderY,b.getY()),MathHelper.lerp(delta,b.lastRenderZ,b.getZ()));
+        var view=BoardingClient.bodyView(b,delta);if(view==null)return rendered.add(BoardingSystem.mc(b.renderRotation(delta).rotate(new Vec3(.5,1.5,.5).minus(b.localPivot()))));
+        return rendered.subtract(b.getLerpedPos(delta)).add(BoardingSystem.mc(view.position().plus(view.rotation().rotate(new Vec3(.5,1.5,.5).minus(b.localCentre())))));
+    }
     public static void beforeFrame(float delta){
         if(!READ)return;frameDelta=delta;projectedHead=false;var c=MinecraftClient.getInstance();
         if(done||phase!=5||camera==null||c.player==null||c.world==null||c.player.getPos().distanceTo(camera)>=.5||BoardingPose.active(c.player))return;
@@ -132,7 +138,7 @@ public final class NativeTurretReloadCheck {
     /** Observe the actual model/view transform after its real quaternion is applied. */
     public static void renderedHead(BlockBodyEntity b,net.minecraft.client.util.math.MatrixStack matrices){
         if(!READ||phase!=5||!entity(b).getUuid().equals(headId))return;var p=new Vec3(.5,1.5,.5).minus(b.localPivot());
-        var clip=new org.joml.Vector4f((float)p.x(),(float)p.y(),(float)p.z(),1).mul(matrices.peek().getPositionMatrix()).mul(com.mojang.blaze3d.systems.RenderSystem.getProjectionMatrix());
+        var clip=new org.joml.Vector4f((float)p.x(),(float)p.y(),(float)p.z(),1).mul(matrices.peek().getPositionMatrix()).mul(com.mojang.blaze3d.systems.RenderSystem.getModelViewMatrix()).mul(com.mojang.blaze3d.systems.RenderSystem.getProjectionMatrix());
         projectedHead=clip.w>0;projectedX=clip.x/clip.w;projectedY=clip.y/clip.w;
     }
     private static void tick(MinecraftClient c){
