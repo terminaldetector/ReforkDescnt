@@ -64,8 +64,8 @@ public class SkyUfoEntity extends BlockBodyEntity {
     public Optional<net.minecraft.server.network.ServerPlayerEntity> autonomousTarget(){return Optional.ofNullable(combat.target(this));}
     public void fireAutonomousWeapons(){
         if(!combat.ready(this))return;combat.fired(this);var target=combat.target(this);
-        if(laserCooldown==0&&SkyUfoWeapons.fireAutonomous(this,target,false)>0)laserCooldown=8;
-        if(rocketCooldown==0&&SkyUfoWeapons.fireAutonomous(this,target,true)>0)rocketCooldown=24;
+        if(laserCooldown==0){int count=SkyUfoWeapons.fireAutonomous(this,target,false);if(count>0){laserCooldown=8;combat.emitted(this,false,count);}}
+        if(rocketCooldown==0){int count=SkyUfoWeapons.fireAutonomous(this,target,true);if(count>0){rocketCooldown=24;combat.emitted(this,true,count);}}
     }
     public void applyThrusterWrench(Vec3 worldForce,Vec3 worldTorque) {
         if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||isRemoved()||crashing
