@@ -2117,5 +2117,156 @@
     "scope": "Actual hot connected turret save/load and post-load walking/capture/yaw/fire/braking/release. AI, compound modules, damaged/absent endpoints and full master v8 remain open.",
     "archive": "docs/v8/EVIDENCE/turret-restart-97d6f59.zip",
     "archiveSha256": "cd9d1b437d28db16add1975bcaa1d666f65676299f29bffd0338a38dfb7b4431"
+  },
+  "ufoAutonomousCombat": {
+    "source": "3dd2263e3655bcd8c941a99b6fcca067d478f897",
+    "productionSource": "3dd2263e3655bcd8c941a99b6fcca067d478f897",
+    "base": "19bb10f",
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "cac3ed622e1e37738bf1c8cc86b57e1fa2223ed14857c9e3f4656693c6370e30",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "3543452dc0a97c2627856f98258703ab56ca1eb71abace5c7864c8c7cc521cef"
+    },
+    "unit": {
+      "tests": 743,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "server": {
+      "tests": 335,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "focused": {
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "native": {
+      "sodium": {
+        "targetFixtureMaxHealth": 200,
+        "targetFixtureKnockbackResistance": 1,
+        "actualDefaultHull": true,
+        "naturalSurvivalTarget": true,
+        "noAssignedTarget": true,
+        "noScriptedShots": true,
+        "realPhysicalOwner": true,
+        "lasers": 6,
+        "rockets": 1,
+        "actualDamagingHits": 5,
+        "initialAimDot": 0.7640910688263354,
+        "bestAimDot": 0.9999829380689236,
+        "muzzleError": 0.0,
+        "launchVelocityError": 2.220446049250313e-16,
+        "disabledTicks": 27,
+        "disabledInertialTravel": 0.19084064924700356,
+        "actualProjectedShotPixels": 706,
+        "ownedShotRenderCalls": 98,
+        "scenes": [
+          "autonomous-targeting",
+          "autonomous-fire",
+          "autopilot-disabled",
+          "autopilot-resumed"
+        ],
+        "height": 2156
+      },
+      "gl32": {
+        "targetFixtureMaxHealth": 200,
+        "targetFixtureKnockbackResistance": 1,
+        "actualDefaultHull": true,
+        "naturalSurvivalTarget": true,
+        "noAssignedTarget": true,
+        "noScriptedShots": true,
+        "realPhysicalOwner": true,
+        "lasers": 6,
+        "rockets": 1,
+        "actualDamagingHits": 5,
+        "initialAimDot": 0.7640910688263357,
+        "bestAimDot": 0.9999829380689236,
+        "muzzleError": 0.0,
+        "launchVelocityError": 2.237726045655905e-16,
+        "disabledTicks": 27,
+        "disabledInertialTravel": 0.19362692010344315,
+        "actualProjectedShotPixels": 1158,
+        "ownedShotRenderCalls": 88,
+        "scenes": [
+          "autonomous-targeting",
+          "autonomous-fire",
+          "autopilot-disabled",
+          "autopilot-resumed"
+        ],
+        "height": 2156
+      }
+    },
+    "pilotRestart": {
+      "writer": {
+        "actualSerializedRoot": true,
+        "laserCooldown": 8,
+        "rocketCooldown": 24,
+        "lasers": 4,
+        "rockets": 2,
+        "samples": 26,
+        "aimPackets": 29,
+        "firePackets": 29
+      },
+      "reader": {
+        "initialConsoleDistance": 3.996935338911234,
+        "consoleApproachTicks": 23,
+        "actualHeadProjectionVerified": true,
+        "headNdcX": -3.9374131688418856e-07,
+        "headNdcY": -7.555702268291498e-07,
+        "observerPositionVerified": true,
+        "observerPositionError": 0.0,
+        "actualTwoProcessRestart": true,
+        "rootExact": true,
+        "headExact": true,
+        "registryExact": true,
+        "barrierCooldownSamples": 32,
+        "restoredCarrierOwnerSamples": 82,
+        "idleLocalDrift": 0.0039442567583594015,
+        "postLoadSamples": 35,
+        "lasers": 5,
+        "rockets": 2,
+        "aimPackets": 52,
+        "firePackets": 52,
+        "maxAnchorError": 9.652741503588993e-05,
+        "muzzleError": 0.0,
+        "launchVelocityError": 4.996003610813204e-16,
+        "relativeAngle": 1.0082127651150932,
+        "brakedRelativeSpeed": 0.0007275348978238546,
+        "headRenderedFrames": 118,
+        "exteriorRenderedFrames": 8,
+        "subjectPixels": 17823,
+        "noDuplicates": true,
+        "postLoadControlRelease": true
+      },
+      "walking": {
+        "restoredEngines": 4,
+        "sourceUfoSchema": 2,
+        "postLoadWalking": true,
+        "postLoadDistance": 2.3642347914471737,
+        "admissionTicks": 31,
+        "actualProcessRestart": true,
+        "serializedDataExact": true,
+        "restoredPhysicsTolerance": 1e-10,
+        "sameUuid": "9f9b978d-c015-4dff-80f1-c6ffa89939aa",
+        "noDuplicateHull": true,
+        "restoredWalkingTicks": 40,
+        "renderedFrames": 23,
+        "stalePilotAbsent": true
+      },
+      "processes": {
+        "writerPid": 14207,
+        "readerPid": 14328,
+        "distinctProcesses": true
+      }
+    },
+    "releaseAccepted": false,
+    "publication": "Local only",
+    "scope": "Reference-UFO autonomous rigid batteries and actual nonliving weapon ownership. Full 3D AI, child-turret AI, pitch/compound modules, energy/ammunition economy and full master v8 remain open.",
+    "archive": "docs/v8/EVIDENCE/ufo-autonomous-3dd2263.zip",
+    "archiveSha256": "5bed1235100dd54ae5ccab317e8f87d5bde188ea765908ff656a4900137df956"
   }
 }
