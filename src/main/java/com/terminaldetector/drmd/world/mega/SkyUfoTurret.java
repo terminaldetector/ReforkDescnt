@@ -84,7 +84,9 @@ public final class SkyUfoTurret {
         if(now-selectedSince>=160){rocketAim=!rocketAim;burst=0;selectedSince=now;}
         var b=body(root).orElseThrow();var desired=cooperativeAim(root,target);if(desired==null){aim(root,0);return;}
         var axis=root.rotation().rotate(link(root).orElseThrow().a().frame().rotate(new Vec3(1,0,0)));
-        double speed=com.terminaldetector.drmd.weapon.core.HingeAim.velocity(b.rotation().rotate(new Vec3(0,0,1)),desired,axis,.6);aim(root,(float)(speed/.6));
+        var muzzle=SkyUfoWeapons.muzzle(b,rocketAim?ROCKET:LASER);var offset=target.getBoundingBox().getCenter().subtract(muzzle);var velocity=SkyUfoCombat.targetVelocity(target).multiply(20).subtract(b.surfaceVelocityAt(muzzle));var r=new Vec3(offset.x,offset.y,offset.z);var v=new Vec3(velocity.x,velocity.y,velocity.z);
+        double feed=com.terminaldetector.drmd.weapon.core.HingeAim.bearingRate(r,v.minus(root.physics().angularVelocity().cross(r)),axis);
+        double speed=com.terminaldetector.drmd.weapon.core.HingeAim.velocity(b.rotation().rotate(new Vec3(0,0,1)),desired,axis,feed,.6);aim(root,(float)(speed/.6));
     }
     public int fireAutonomous(SkyUfoEntity root){
         if(!SkyUfoCombat.allowed(root)||!functional(root))return 0;var target=root.autonomousTarget().orElse(null);if(target==null)return 0;

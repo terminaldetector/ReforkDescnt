@@ -11,9 +11,17 @@ public final class HingeAim {
         return projected.lengthSquared()>1e-12?projected.normalized():fallback;
     }
     public static double velocity(Vec3 forward,Vec3 desired,Vec3 hinge,double limit){
-        if(!Double.isFinite(forward.lengthSquared())||!Double.isFinite(desired.lengthSquared())||!Double.isFinite(hinge.lengthSquared())||hinge.lengthSquared()<1e-12||!Double.isFinite(limit)||limit<0)throw new IllegalArgumentException("finite directions, hinge and motor limit required");
+        return velocity(forward,desired,hinge,0,limit);
+    }
+    public static double velocity(Vec3 forward,Vec3 desired,Vec3 hinge,double feedForward,double limit){
+        if(!Double.isFinite(forward.lengthSquared())||!Double.isFinite(desired.lengthSquared())||!Double.isFinite(hinge.lengthSquared())||hinge.lengthSquared()<1e-12||!Double.isFinite(feedForward)||!Double.isFinite(limit)||limit<0)throw new IllegalArgumentException("finite directions, hinge and motor limit required");
         var axis=hinge.normalized();var a=forward.minus(axis.scaled(forward.dot(axis)));var b=desired.minus(axis.scaled(desired.dot(axis)));
         if(a.lengthSquared()<1e-12||b.lengthSquared()<1e-12)return 0;
-        double angle=Math.atan2(axis.dot(a.cross(b)),a.dot(b));return Math.max(-limit,Math.min(limit,angle*2));
+        double angle=Math.atan2(axis.dot(a.cross(b)),a.dot(b));return Math.max(-limit,Math.min(limit,angle*2+feedForward));
+    }
+    /** Angular bearing rate in radians/second; relative velocity uses the carrier frame. */
+    public static double bearingRate(Vec3 offset,Vec3 relativeVelocity,Vec3 hinge){
+        var axis=hinge.normalized();double d=offset.dot(axis),squared=offset.lengthSquared()-d*d;
+        return squared>1e-12?axis.dot(offset.cross(relativeVelocity))/squared:0;
     }
 }
