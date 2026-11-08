@@ -75,4 +75,15 @@ public final class UfoAiGameTests implements FabricGameTest {
         c.waitAndRun(1,()->c.assertTrue(Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(initial,f.body.rotation()))>.999,"one physical tick cannot snap the hull to its target"));
         c.waitAndRun(80,()->{try{var forward=f.body.rotation().rotate(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(0,0,1));var goal=f.target.getBoundingBox().getCenter().subtract(f.body.physicsCentre()).normalize();double after=forward.x()*goal.x+forward.y()*goal.y+forward.z()*goal.z;c.assertTrue(after>before+.3,"finite physical engine torque improves the full XYZ aim toward a rear elevated target: "+before+" -> "+after);}finally{f.close();}c.complete();});
     });}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-stand-off",tickLimit=330)
+    public void anAutonomousEngagementMaintainsSeparationInsteadOfRammingItsTarget(TestContext c){admitted(c,f->{
+        f.target.setInvulnerable(true);f.body.setAutopilot(true);
+        c.waitAndRun(200,()->{try{double distance=f.body.physicsCentre().distanceTo(f.target.getBoundingBox().getCenter());c.assertTrue(distance>=32&&distance<=42,"physical engagement settles around the stand-off rather than ramming: "+distance);}finally{f.close();}c.complete();});
+    });}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-source-return",tickLimit=140)
+    public void aPhysicalOwnerDoesNotMakeItsReturningProjectileImmuneToTheHull(TestContext c){admitted(c,f->{
+        var before=com.terminaldetector.drmd.world.contraption.BodySpatialIndex.loaded(c.getWorld()).stream().map(b->b.getUuid()).collect(java.util.stream.Collectors.toSet());ProjectileEntity shot=null;
+        try{int cells=f.body.cells().size();var cfg=new com.terminaldetector.drmd.weapon.core.WeaponCore.FireConfig();cfg.owner=f.body;cfg.pos=SkyUfoWeapons.muzzle(f.body,SkyUfoWeapons.LASERS.getFirst()).add(0,0,4);cfg.dir=new Vec3d(0,0,-1);cfg.speedIsSourceUnits=false;cfg.speed=4;cfg.directDamage=200;shot=com.terminaldetector.drmd.weapon.core.WeaponCore.fireProjectile(cfg);for(int i=0;i<3&&!shot.isRemoved();i++)shot.tick();c.assertTrue(shot.isRemoved()&&f.body.cells().size()<cells,"real returning body-owned projectile hits and damages its source geometry");}
+        finally{if(shot!=null)shot.discard();for(var b:com.terminaldetector.drmd.world.contraption.BodySpatialIndex.loaded(c.getWorld()))if(!before.contains(b.getUuid()))b.discard();f.close();}c.complete();
+    });}
 }
