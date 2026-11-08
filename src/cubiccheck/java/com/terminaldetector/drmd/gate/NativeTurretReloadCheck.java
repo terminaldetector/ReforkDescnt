@@ -124,7 +124,7 @@ public final class NativeTurretReloadCheck {
     private static Vec3d renderTarget(BlockBodyEntity b,float delta){
         // WorldRenderer interpolates lastRender*, whereas Entity.getLerpedPos uses
         // prev*. Follow the actual renderer, including its prediction translation.
-        var rendered=new Vec3d(MathHelper.lerp(delta,b.lastRenderX,b.getX()),MathHelper.lerp(delta,b.lastRenderY,b.getY()),MathHelper.lerp(delta,b.lastRenderZ,b.getZ()));
+        var e=entity(b);var rendered=new Vec3d(MathHelper.lerp(delta,e.lastRenderX,e.getX()),MathHelper.lerp(delta,e.lastRenderY,e.getY()),MathHelper.lerp(delta,e.lastRenderZ,e.getZ()));
         var view=BoardingClient.bodyView(b,delta);if(view==null)return rendered.add(BoardingSystem.mc(b.renderRotation(delta).rotate(new Vec3(.5,1.5,.5).minus(b.localPivot()))));
         return rendered.subtract(b.getLerpedPos(delta)).add(BoardingSystem.mc(view.position().plus(view.rotation().rotate(new Vec3(.5,1.5,.5).minus(b.localCentre())))));
     }
