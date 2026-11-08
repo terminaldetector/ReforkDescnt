@@ -10,6 +10,12 @@ import net.minecraft.util.math.*;
 import java.util.*;
 
 public final class UfoAiGameTests implements FabricGameTest {
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-mount-choice",tickLimit=140)
+    public void anObstructedFirstBarrelCannotStarveItsUnobstructedPartner(TestContext c){admitted(c,f->{
+        var left=SkyUfoWeapons.LASERS.getFirst();var right=SkyUfoWeapons.LASERS.getLast();var from=SkyUfoWeapons.muzzle(f.body,left);var at=BlockPos.ofFloored(from.add(0,0,12));var old=c.getWorld().getBlockState(at);f.body.setAutopilot(true);
+        try{c.getWorld().setBlockState(at,net.minecraft.block.Blocks.BEDROCK.getDefaultState(),3);var expected=SkyUfoCombat.aim(f.body,right,f.target,2.5,80);var selected=new SkyUfoCombat().prepare(f.body);c.assertTrue(selected!=null&&selected.minus(expected).length()<1e-8,"physical aiming chooses the unoccluded actual partner instead of waiting forever on a blocked first gun: "+selected+" expected "+expected);}
+        finally{c.getWorld().setBlockState(at,old,3);f.close();}c.complete();
+    });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-motion-modes",tickLimit=140)
     public void targetPredictionPreservesAirborneJumpFlightAndLocalGravityMotion(TestContext c){admitted(c,f->{
         var falling=new Vec3d(.12,-.0784000015258789,.22);f.target.setVelocity(falling);
