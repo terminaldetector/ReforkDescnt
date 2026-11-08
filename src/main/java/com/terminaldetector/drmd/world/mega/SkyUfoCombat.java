@@ -31,14 +31,27 @@ public final class SkyUfoCombat {
         boolean rockets=SkyUfoWeapons.ROCKETS.stream().anyMatch(p->b.getLocalBlock(p).isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET));
         if(prepared-selectedSince>=160){rocketBattery=!rocketBattery;burst=0;selectedSince=prepared;}
         if(!lasers)rocketBattery=true;else if(!rockets)rocketBattery=false;
-        if(rocketBattery)for(var slot:SkyUfoWeapons.ROCKETS)if(b.getLocalBlock(slot).isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET))return aim(b,slot,current,1.4,100);
-        for(var slot:SkyUfoWeapons.LASERS)if(b.getLocalBlock(slot).isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER))return aim(b,slot,current,2.5,80);
-        for(var slot:SkyUfoWeapons.ROCKETS)if(b.getLocalBlock(slot).isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET))return aim(b,slot,current,1.4,100);
-        return null;
+        var selected=preferredAim(b,rocketBattery,current);
+        return selected!=null?selected:preferredAim(b,!rocketBattery,current);
+    }
+    private static Vec3 preferredAim(SkyUfoEntity b,boolean rockets,ServerPlayerEntity target){
+        var slots=rockets?SkyUfoWeapons.ROCKETS:SkyUfoWeapons.LASERS;var block=rockets?com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET:com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER;double speed=rockets?1.4:2.5,life=rockets?100:80;Vec3 fallback=null;
+        for(var slot:slots){
+            if(!b.getLocalBlock(slot).isOf(block))continue;var solution=intercept(b,slot,target,speed,life);if(solution.isEmpty())continue;var s=solution.get();if(fallback==null)fallback=s.direction();
+            var from=SkyUfoWeapons.muzzle(b,slot);var d=s.direction();var velocity=new Vec3d(d.x(),d.y(),d.z()).multiply(speed).add(b.surfaceVelocityAt(from).multiply(.05));
+            // Intent may turn away from the current hull; actual firing still tests
+            // its real barrel and includes the source collider. Prefer an open
+            // partner over a gun whose ideal trajectory runs through terrain.
+            if(clearLane(b,target,from,from.add(velocity.multiply(s.ticks())),false))return s.direction();
+        }
+        return fallback;
     }
     public static Vec3 aim(BlockBodyEntity launcher,BlockPos slot,ServerPlayerEntity p,double speed,double life){
+        return intercept(launcher,slot,p,speed,life).map(InterceptAim.Solution::direction).orElse(null);
+    }
+    private static Optional<InterceptAim.Solution> intercept(BlockBodyEntity launcher,BlockPos slot,ServerPlayerEntity p,double speed,double life){
         var muzzle=SkyUfoWeapons.muzzle(launcher,slot);var r=p.getBoundingBox().getCenter().subtract(muzzle);var v=targetVelocity(p).subtract(launcher.surfaceVelocityAt(muzzle).multiply(.05));
-        return InterceptAim.solve(new Vec3(r.x,r.y,r.z),new Vec3(v.x,v.y,v.z),speed,life).map(InterceptAim.Solution::direction).orElse(null);
+        return InterceptAim.solve(new Vec3(r.x,r.y,r.z),new Vec3(v.x,v.y,v.z),speed,life);
     }
     /** Read contact-constrained world motion without changing the player's physics. */
     public static Vec3d targetVelocity(ServerPlayerEntity p){
@@ -59,10 +72,13 @@ public final class SkyUfoCombat {
         var velocity=targetVelocity(target);var relative=launch.subtract(velocity);var r=target.getBoundingBox().getCenter().subtract(from);double length=relative.lengthSquared();if(length<1e-12)return false;
         double t=r.dotProduct(relative)/length;if(t<=0||t>life)return false;var end=from.add(launch.multiply(t));
         if(!target.getBoundingBox().offset(velocity.multiply(t)).expand(.25).contains(end))return false;
+        return clearLane(launcher,target,from,end,true);
+    }
+    private static boolean clearLane(BlockBodyEntity launcher,ServerPlayerEntity target,Vec3d from,Vec3d end,boolean includeSource){
         var world=launcher.getWorld();if(!WorldEditSafety.loadedSegment(world,from,end))return false;
         if(world.raycast(new RaycastContext(from,end,RaycastContext.ShapeType.COLLIDER,RaycastContext.FluidHandling.NONE,launcher)).getType()!=HitResult.Type.MISS)return false;
         var area=new Box(from,end).expand(.3);var bodies=BodySpatialIndex.query(world,area);if(bodies.size()>32)return false;
-        for(var b:bodies)if(b.physicsRaycast(from,end).isPresent())return false;
+        for(var b:bodies)if((includeSource||b!=launcher)&&b.physicsRaycast(from,end).isPresent())return false;
         for(var e:world.getOtherEntities(launcher,area,e->e instanceof LivingEntity&&e!=target&&e.isAlive()&&!e.isSpectator()))if(e.getBoundingBox().expand(.3).raycast(from,end).isPresent())return false;
         return true;
     }
