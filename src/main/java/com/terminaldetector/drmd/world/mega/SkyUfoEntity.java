@@ -130,7 +130,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
         var roll=ImmPtlQuaternions.rotationByDegrees(new Vec3(0,0,1),18*Math.sin(age*.009));
         var heading=ImmPtlQuaternions.rotationByDegrees(new Vec3(0,1,0),-cruiseYaw);
         var target=ImmPtlQuaternions.hamiltonProduct(heading,ImmPtlQuaternions.hamiltonProduct(pitch,roll)).normalized();
-        if(combatAim!=null){var forward=rotation().rotate(new Vec3(0,0,1));target=ImmPtlQuaternions.hamiltonProduct(com.terminaldetector.drmd.client.portal.PortalTransform.rotationBetween(forward,combatAim),rotation()).normalized();}
+        if(combatAim!=null){var forward=combat.aimReference(this,combatAim);target=ImmPtlQuaternions.hamiltonProduct(com.terminaldetector.drmd.client.portal.PortalTransform.rotationBetween(forward,combatAim),rotation()).normalized();}
         var error=ImmPtlQuaternions.hamiltonProduct(target,rotation().inverse()).normalized();
         if(error.w()<0)error=new Quat(-error.x(),-error.y(),-error.z(),-error.w());
         var axis=new Vec3(error.x(),error.y(),error.z());double sine=axis.length();

@@ -16,19 +16,19 @@ import java.util.*;
 /** Reference-UFO weapon controller; target intent never assigns physical poses or velocities. */
 public final class SkyUfoCombat {
     private UUID target;private long nextSearch,prepared=Long.MIN_VALUE,lastFire=Long.MIN_VALUE,selectedSince;private boolean rocketBattery;private int burst;
-    private boolean modulePhase;private int moduleLasers,moduleRockets;private long moduleSince;
+    private boolean modulePhase,moduleAim;private int moduleLasers,moduleRockets;private long moduleSince;
     public static void register(){ServerTickEvents.END_WORLD_TICK.register(w->{for(var body:BodySpatialIndex.loaded(w))if(body instanceof SkyUfoEntity ufo)ufo.fireAutonomousWeapons();});}
     public static boolean allowed(SkyUfoEntity b){return b.getWorld() instanceof ServerWorld w&&w.getServer().isOnThread()&&!b.isRemoved()&&b.hasPoweredReactor()&&b.autopilotEnabled()&&!UfoControlSystem.hasPilot(b)&&w.getDifficulty()!=Difficulty.PEACEFUL&&BodySpatialIndex.find(w,b.getId()).orElse(null)==b;}
     private static boolean eligible(SkyUfoEntity b,ServerPlayerEntity p){return p!=null&&p.getWorld()==b.getWorld()&&!p.isRemoved()&&p.isAlive()&&(p.interactionManager.getGameMode()==GameMode.SURVIVAL||p.interactionManager.getGameMode()==GameMode.ADVENTURE)&&!b.containsPos(p.getPos())&&p.getPos().squaredDistanceTo(b.physicsCentre())<=96*96;}
     public ServerPlayerEntity target(SkyUfoEntity b){return target==null?null:com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.players((ServerWorld)b.getWorld()).stream().filter(p->p.getUuid().equals(target)).findFirst().orElse(null);}
     public Vec3 prepare(SkyUfoEntity b){
-        prepared=b.getWorld().getTime();if(!allowed(b)){target=null;return null;}
+        moduleAim=false;prepared=b.getWorld().getTime();if(!allowed(b)){target=null;return null;}
         var current=target(b);if(!eligible(b,current)){target=null;current=null;}
         if(current==null&&prepared>=nextSearch){nextSearch=prepared+10;current=com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.players((ServerWorld)b.getWorld()).stream().filter(p->eligible(b,p)).min(Comparator.<ServerPlayerEntity>comparingDouble(p->p.getPos().squaredDistanceTo(b.physicsCentre())).thenComparing(p->p.getUuid().toString())).orElse(null);target=current==null?null:current.getUuid();rocketBattery=false;burst=0;selectedSince=prepared;}
         if(current==null){modulePhase=false;return null;}
         var module=b.turretModule().filter(t->t.functional(b)).orElse(null);
         if(modulePhase&&(module==null||prepared-moduleSince>=160))endModule(prepared);
-        if(modulePhase){var aim=module.cooperativeAim(b,current);if(aim!=null)return aim;endModule(prepared);}
+        if(modulePhase){var aim=module.cooperativeAim(b,current);if(aim!=null){moduleAim=true;return aim;}endModule(prepared);}
         // Complete an actual burst before asking the finite-inertia hull to aim
         // another parallel mount. A wall clock alone can starve a battery forever.
         boolean lasers=SkyUfoWeapons.LASERS.stream().anyMatch(p->b.getLocalBlock(p).isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER));
@@ -37,7 +37,11 @@ public final class SkyUfoCombat {
         if(!lasers)rocketBattery=true;else if(!rockets)rocketBattery=false;
         var selected=preferredAim(b,rocketBattery,current);
         if(selected==null)selected=preferredAim(b,!rocketBattery,current);
-        return selected!=null?selected:module==null?null:module.cooperativeAim(b,current);
+        if(selected!=null||module==null)return selected;moduleAim=true;return module.cooperativeAim(b,current);
+    }
+    Vec3 aimReference(SkyUfoEntity root,Vec3 direction){
+        var head=moduleAim?root.turretModule().flatMap(t->t.body(root)).orElse(null):null;
+        return head==null?root.rotation().rotate(new Vec3(0,0,1)):com.terminaldetector.drmd.weapon.core.HingeAim.swingReference(direction,root.rotation().rotate(new Vec3(0,1,0)),head.rotation().rotate(new Vec3(0,0,1)));
     }
     private static Vec3 preferredAim(SkyUfoEntity b,boolean rockets,ServerPlayerEntity target){
         var slots=rockets?SkyUfoWeapons.ROCKETS:SkyUfoWeapons.LASERS;var block=rockets?com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET:com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER;double speed=rockets?1.4:2.5,life=rockets?100:80;Vec3 fallback=null;
