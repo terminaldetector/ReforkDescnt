@@ -10,6 +10,14 @@ import net.minecraft.util.math.*;
 import java.util.*;
 
 public final class UfoAiGameTests implements FabricGameTest {
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-grounded-lead",tickLimit=140)
+    public void aGroundedTargetsResidualGravityCannotAimTheLaserIntoTheFloor(TestContext c){admitted(c,f->{
+        var from=SkyUfoWeapons.muzzle(f.body,SkyUfoWeapons.LASERS.getFirst());double floor=Math.ceil(f.target.getY());double dy=floor+f.target.getHeight()*.5-from.y;
+        c.assertTrue(f.body.resolveContactPose(f.body.massPosition().plus(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(0,dy,0)),f.body.rotation()),"initial floor fixture clears physical geometry");from=SkyUfoWeapons.muzzle(f.body,SkyUfoWeapons.LASERS.getFirst());
+        f.target.setPosition(from.x,floor,from.z+32);f.target.setVelocity(0,-.0784000015258789,0);f.target.setOnGround(true);var at=BlockPos.ofFloored(f.target.getPos().add(0,-.1,0));var old=c.getWorld().getBlockState(at);
+        try{c.getWorld().setBlockState(at,net.minecraft.block.Blocks.BEDROCK.getDefaultState(),3);c.assertTrue(SkyUfoCombat.clearShot(f.body,SkyUfoWeapons.LASERS.getFirst(),f.target,2.5,80),"real grounded target remains reachable above its actual bedrock support despite vanilla residual gravity");}
+        finally{c.getWorld().setBlockState(at,old,3);f.close();}c.complete();
+    });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-battery-progress",tickLimit=340)
     public void physicalAimCanCompleteBothLaserAndRocketBursts(TestContext c){
         var lasers=new HashSet<UUID>();var rockets=new HashSet<UUID>();Fixture[] fixture={null};
@@ -43,11 +51,11 @@ public final class UfoAiGameTests implements FabricGameTest {
         }
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-autonomous-fire",tickLimit=180)
-    public void anUnpilotedDefaultHullFiresItsRealBatteriesAtASurvivalTarget(TestContext c){admitted(c,f->{
+    public void anUnpilotedDefaultHullFiresItsRealBatteriesAtASurvivalTarget(TestContext c){var seen=new HashSet<UUID>();Fixture[] fixture={null};c.runAtEveryTick(()->{if(fixture[0]!=null)for(var shot:fixture[0].shots())seen.add(shot.getUuid());});admitted(c,f->{fixture[0]=f;
         c.assertTrue(f.target.interactionManager.getGameMode()==net.minecraft.world.GameMode.SURVIVAL,"fixture must use the authoritative Survival game mode despite the mock creative override");f.body.setAutopilot(true);
         c.waitAndRun(35,()->{try{
             c.assertTrue(!UfoControlSystem.controls(f.target),"target cannot be a fabricated pilot");
-            c.assertTrue(!f.shots().isEmpty(),"unpiloted default UFO must fire actual hull-owned projectiles: allowed="+SkyUfoCombat.allowed(f.body)+" target="+f.body.autonomousTarget()+" difficulty="+c.getWorld().getDifficulty()+" paused="+f.body.boardingMotionPaused()+" p="+f.target.getPos()+" local="+f.body.worldToLocal(f.target.getPos())+" mode="+f.target.interactionManager.getGameMode()+" aim="+SkyUfoCombat.aim(f.body,SkyUfoWeapons.LASERS.getFirst(),f.target,2.5,80)+" clear="+SkyUfoCombat.clearShot(f.body,SkyUfoWeapons.LASERS.getFirst(),f.target,2.5,80));
+            c.assertTrue(!seen.isEmpty(),"unpiloted default UFO must fire actual hull-owned projectiles before tick 35, including already impacted shots: allowed="+SkyUfoCombat.allowed(f.body)+" target="+f.body.autonomousTarget()+" difficulty="+c.getWorld().getDifficulty()+" paused="+f.body.boardingMotionPaused()+" p="+f.target.getPos()+" local="+f.body.worldToLocal(f.target.getPos())+" mode="+f.target.interactionManager.getGameMode()+" aim="+SkyUfoCombat.aim(f.body,SkyUfoWeapons.LASERS.getFirst(),f.target,2.5,80)+" clear="+SkyUfoCombat.clearShot(f.body,SkyUfoWeapons.LASERS.getFirst(),f.target,2.5,80));
         }finally{f.close();}c.complete();});
     });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-source-save",tickLimit=140)
@@ -78,11 +86,11 @@ public final class UfoAiGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-damaged",tickLimit=180)
     public void missingRealWeaponCellsCannotCreateInvisibleAiFire(TestContext c){admitted(c,f->{for(var p:SkyUfoWeapons.LASERS)f.body.setLocalBlock(p,net.minecraft.block.Blocks.AIR.getDefaultState());for(var p:SkyUfoWeapons.ROCKETS)f.body.setLocalBlock(p,net.minecraft.block.Blocks.AIR.getDefaultState());f.body.setAutopilot(true);c.waitAndRun(35,()->{try{c.assertTrue(f.shots().isEmpty(),"destroyed physical guns have no autonomous substitute");}finally{f.close();}c.complete();});});}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-pilot",tickLimit=180)
-    public void actualPilotCapturePreemptsAiAndReleaseRestoresTheSameHull(TestContext c){admitted(c,f->{
+    public void actualPilotCapturePreemptsAiAndReleaseRestoresTheSameHull(TestContext c){var seen=new HashSet<UUID>();Fixture[] fixture={null};c.runAtEveryTick(()->{if(fixture[0]!=null)for(var shot:fixture[0].shots())seen.add(shot.getUuid());});admitted(c,f->{fixture[0]=f;
         f.body.setAutopilot(true);var id=f.body.getUuid();var velocity=f.body.physics().linearVelocity();var angular=f.body.physics().angularMomentum();f.target.setPosition(f.body.localToWorld(new Vec3d(3.5,.1,.5)));
         c.assertTrue(UfoControlSystem.claim(f.target,f.body)&&!SkyUfoCombat.allowed(f.body),"actual console ownership preempts AI immediately");f.body.fireAutonomousWeapons();c.assertTrue(f.shots().isEmpty(),"capture cannot leak a pending autonomous shot");
         c.assertTrue(UfoControlSystem.release(f.target)&&f.body.autopilotEnabled()&&id.equals(f.body.getUuid())&&velocity.equals(f.body.physics().linearVelocity())&&angular.equals(f.body.physics().angularMomentum()),"release restores AI without replacing the hull or resetting momentum");
-        f.target.setPosition(f.body.localToWorld(new Vec3d(-2.5,-.4,44)));f.target.setVelocity(Vec3d.ZERO);c.waitAndRun(35,()->{try{c.assertTrue(!f.shots().isEmpty(),"same released hull resumes actual autonomous fire");}finally{f.close();}c.complete();});
+        f.target.setPosition(f.body.localToWorld(new Vec3d(-2.5,-.4,44)));f.target.setVelocity(Vec3d.ZERO);c.waitAndRun(35,()->{try{c.assertTrue(!seen.isEmpty(),"same released hull resumes actual autonomous fire, including shots already impacted by tick 35");}finally{f.close();}c.complete();});
     });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-spatial-aim",tickLimit=230)
     public void aHullUsesItsPhysicalThrustersToAimAtAnElevatedRearTarget(TestContext c){admitted(c,f->{
