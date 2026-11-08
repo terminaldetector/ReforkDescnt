@@ -15,7 +15,7 @@ public final class UfoAiGameTests implements FabricGameTest {
         var from=SkyUfoWeapons.muzzle(f.body,SkyUfoWeapons.LASERS.getFirst());double floor=Math.ceil(f.target.getY());double dy=floor+f.target.getHeight()*.5-from.y;
         c.assertTrue(f.body.resolveContactPose(f.body.massPosition().plus(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(0,dy,0)),f.body.rotation()),"initial floor fixture clears physical geometry");from=SkyUfoWeapons.muzzle(f.body,SkyUfoWeapons.LASERS.getFirst());
         f.target.setPosition(from.x,floor,from.z+32);f.target.setVelocity(0,-.0784000015258789,0);f.target.setOnGround(true);var at=BlockPos.ofFloored(f.target.getPos().add(0,-.1,0));var old=c.getWorld().getBlockState(at);
-        try{c.getWorld().setBlockState(at,net.minecraft.block.Blocks.BEDROCK.getDefaultState(),3);c.assertTrue(SkyUfoCombat.clearShot(f.body,SkyUfoWeapons.LASERS.getFirst(),f.target,2.5,80),"real grounded target remains reachable above its actual bedrock support despite vanilla residual gravity");}
+        try{c.getWorld().setBlockState(at,net.minecraft.block.Blocks.BEDROCK.getDefaultState(),3);var aim=SkyUfoCombat.aim(f.body,SkyUfoWeapons.LASERS.getFirst(),f.target,2.5,80);c.assertTrue(aim!=null&&Math.abs(aim.y())<1e-7,"ground contact must keep the predicted target above its bedrock support instead of aiming below the floor: "+aim);c.assertTrue(SkyUfoCombat.clearShot(f.body,SkyUfoWeapons.LASERS.getFirst(),f.target,2.5,80),"real grounded target remains reachable above its actual bedrock support despite vanilla residual gravity");}
         finally{c.getWorld().setBlockState(at,old,3);f.close();}c.complete();
     });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-battery-progress",tickLimit=340)
