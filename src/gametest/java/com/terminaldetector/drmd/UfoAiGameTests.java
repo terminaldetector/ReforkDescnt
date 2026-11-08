@@ -10,6 +10,18 @@ import net.minecraft.util.math.*;
 import java.util.*;
 
 public final class UfoAiGameTests implements FabricGameTest {
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-motion-modes",tickLimit=140)
+    public void targetPredictionPreservesAirborneJumpFlightAndLocalGravityMotion(TestContext c){admitted(c,f->{
+        var falling=new Vec3d(.12,-.0784000015258789,.22);f.target.setVelocity(falling);
+        try{
+            f.target.setOnGround(false);c.assertTrue(SkyUfoCombat.targetVelocity(f.target).equals(falling),"airborne falling velocity remains three-dimensional");
+            f.target.setOnGround(true);c.assertTrue(SkyUfoCombat.targetVelocity(f.target).equals(new Vec3d(falling.x,0,falling.z)),"ordinary support removes only the blocked downward prediction");
+            var jumping=new Vec3d(.12,.42,.22);f.target.setVelocity(jumping);c.assertTrue(SkyUfoCombat.targetVelocity(f.target).equals(jumping),"positive jump velocity cannot be clipped by an old ground flag");
+            f.target.setVelocity(falling);DescentPlayerData.get(f.target).setEnabled(true);c.assertTrue(SkyUfoCombat.targetVelocity(f.target).equals(falling),"free 6DoF retains vertical motion despite an old ground flag");
+            DescentPlayerData.get(f.target).setEnabled(false);com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptServer(f.target.getUuid(),new Vec3d(1,0,0),"AI wall target fixture");c.assertTrue(SkyUfoCombat.targetVelocity(f.target).equals(falling),"local gravity cannot be projected onto world UP");
+            c.assertTrue(f.target.getVelocity().equals(falling),"prediction never changes the actual target velocity");
+        }finally{com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(f.target.getUuid());f.close();}c.complete();
+    });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-ai-grounded-lead",tickLimit=140)
     public void aGroundedTargetsResidualGravityCannotAimTheLaserIntoTheFloor(TestContext c){admitted(c,f->{
         var from=SkyUfoWeapons.muzzle(f.body,SkyUfoWeapons.LASERS.getFirst());double floor=Math.ceil(f.target.getY());double dy=floor+f.target.getHeight()*.5-from.y;

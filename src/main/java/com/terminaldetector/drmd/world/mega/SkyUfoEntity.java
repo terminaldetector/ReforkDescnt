@@ -121,7 +121,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
             var enemy=combat.target(this);var offset=enemy.getBoundingBox().getCenter().subtract(physicsCentre());double distance=offset.length();
             // Existing bounded propulsion keeps separation instead of flying through
             // the target while the finite-inertia hull is still aiming its guns.
-            if(distance>1e-8){var closing=MathHelper.clamp((distance-36)*.3,-3,3);var v=offset.multiply(closing/distance).add(enemy.getVelocity().multiply(20));if(v.length()>3)v=v.normalize().multiply(3);desired=new Vec3(v.x,v.y,v.z);}
+            if(distance>1e-8){var closing=MathHelper.clamp((distance-36)*.3,-3,3);var v=offset.multiply(closing/distance).add(SkyUfoCombat.targetVelocity(enemy).multiply(20));if(v.length()>3)v=v.normalize().multiply(3);desired=new Vec3(v.x,v.y,v.z);}
         }
         Vec3 dv=desired.minus(physics().linearVelocity()).scaled(.2);if(dv.length()>.2)dv=dv.scaled(.2/dv.length());
         var pitch=ImmPtlQuaternions.rotationByDegrees(new Vec3(1,0,0),12*Math.sin(age*.012));
