@@ -14,7 +14,7 @@ public class BodyRenderProbe {
     private void actualRotation(MatrixStack stack,Quaternionf q,BlockBodyEntity body,float yaw,float delta,
             MatrixStack matrices,VertexConsumerProvider consumers,int light) {
         stack.multiply(q);
-        com.terminaldetector.drmd.gate.NativeUfoAiCheck.drewRoot(body,stack);
+        com.terminaldetector.drmd.gate.NativeUfoAiCheck.drewRoot(body,stack);com.terminaldetector.drmd.gate.NativeTurretAiCheck.drewRoot(body,stack);
         com.terminaldetector.drmd.gate.NativeTurretReloadCheck.renderedHead(body,stack);
         if(Boolean.getBoolean("drmd.gate.contacts"))com.terminaldetector.drmd.gate.NativeBodyCollisionCheck.drawRotation(
             body,new com.terminaldetector.drmd.client.portal.PortalTransform.Quat(q.x,q.y,q.z,q.w));

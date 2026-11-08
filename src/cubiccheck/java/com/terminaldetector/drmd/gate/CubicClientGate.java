@@ -45,6 +45,7 @@ public final class CubicClientGate implements ClientModInitializer {
     private String capture;
     private final List<String> results=new ArrayList<>();
     @Override public void onInitializeClient() {
+        if(NativeTurretAiCheck.ENABLED){NativeTurretAiCheck.register();return;}
         if(NativeUfoAiCheck.ENABLED){NativeUfoAiCheck.register();return;}
         if(NativeIslandLoadCheck.ENABLED){NativeIslandLoadCheck.register();return;}
         if(NativeJointReloadCheck.READ){NativeJointReloadCheck.register();return;}
