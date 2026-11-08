@@ -44,12 +44,12 @@ public final class NativeTurretReloadCheck {
             if(root.turretModule().isEmpty())return;var t=root.turretModule().orElseThrow();head=t.body(root).orElseThrow();headId=entity(head).getUuid();jointId=t.jointId();
             if(!writerActive||writerClosed)return;writerSamples++;require(t.connected(root)&&UfoControlSystem.controls(pilot,root),"writer remains physically attached and piloted");
             if(writerSamples>=24&&lasers>=4&&rockets>=2&&root.physics().linearVelocity().length()>.1&&root.physics().angularVelocity().length()>.01){
-                var n=t.write();if(n.getInt("laserCooldown")>0&&n.getInt("rocketCooldown")>0)writerStop=true;
+                var n=t.write();if(n.getInt("laserCooldown")>0&&n.getInt("rocketCooldown")>0){writerStop=true;closeWriter(MinecraftClient.getInstance());s.stop(false);}
             }
         });
     }
-    public static void writerTick(MinecraftClient c){
-        if(!writerActive){writerActive=true;DescentKeybinds.turretRight.setPressed(true);DescentKeybinds.auxiliary.setPressed(true);}
+    public static boolean writerTick(MinecraftClient c){
+        if(!writerActive){writerActive=true;DescentKeybinds.turretRight.setPressed(true);DescentKeybinds.auxiliary.setPressed(true);return true;}return false;
     }
     public static boolean writerReady(){return writerStop;}
     public static void closeWriter(MinecraftClient c){

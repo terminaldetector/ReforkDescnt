@@ -105,7 +105,7 @@ public final class NativeFlightBodyCheck {
                     require(pauseVerified&&serverControl&&controlVelocity.minus(beforeControl).length()>1&&Math.abs(controlSpin.z())>.2,"actual control inputs must accelerate and turn the existing UFO");
                     require(BoardingSystem.pure(local).minus(beforePilot).length()<.4,"pilot input must drive the hull rather than walk the character");request("control-thrust-and-roll");controlStep=2;age=0;
                 }else if(controlStep==2&&age>=5){
-                    if(NativeTurretReloadCheck.WRITE){NativeTurretReloadCheck.writerTick(c);if(NativeTurretReloadCheck.writerReady()){request("turret-before-save");phase=15;}return;}
+                    if(NativeTurretReloadCheck.WRITE){if(NativeTurretReloadCheck.writerTick(c))request("turret-firing-before-save");return;}
                     if(NativeUfoTurretCheck.ENABLED&&!NativeUfoTurretCheck.complete()){var extra=NativeUfoTurretCheck.tick(c);if(extra!=null)request(extra);return;}
                     if(NativeUfoEngineCheck.ENABLED&&!NativeUfoEngineCheck.complete()){var extra=NativeUfoEngineCheck.tick(c);if(extra!=null)request(extra);return;}
                     if(NativeUfoWeaponsCheck.ENABLED&&!NativeUfoWeaponsCheck.complete()){var extra=NativeUfoWeaponsCheck.tick(c);if(extra!=null)request(extra);return;}
@@ -177,7 +177,6 @@ public final class NativeFlightBodyCheck {
             if(scene.equals("turret-module-exterior")&&!NativeUfoTurretCheck.verifyExteriorImage(image))return;
             var out=c.runDirectory.toPath().resolve("flight-body-frames");Files.createDirectories(out);image.writeTo(out.resolve(scene+".png"));scenes.add(scene);capturing=false;
             System.out.println("FLIGHT_BODY_CLIENT "+scene+" PASS local="+local);
-            if(NativeTurretReloadCheck.WRITE&&scene.equals("turret-before-save")){NativeTurretReloadCheck.closeWriter(c);finished=true;return;}
             if(NativeUfoReloadCheck.WRITE&&scene.equals("control-acquired")){
                 NativeUfoReloadCheck.watch(c.world.getEntityById(bodyId).getUuid());finished=true;c.scheduleStop();return;
             }
