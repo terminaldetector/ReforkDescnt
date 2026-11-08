@@ -77,7 +77,7 @@ public final class BodyVolumeGameTests implements FabricGameTest {
     public void anUnloadedConnectedModuleRetainsARequestForItsActualLastVolume(TestContext c) {
         var f=fleet(c,26000,26000);var missing=f.bodies.get(2);
         c.waitAndRun(8,()->{
-            missing.remove(net.minecraft.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK);
+            unloadCurrent(c,missing);
             // Observe the request/absence before the real chunk loader can restore the
             // saved entity. A normal reload during the following five ticks is legitimate.
             try{c.assertTrue(BodySpatialIndex.loaded(c.getWorld()).stream().noneMatch(b->b.getUuid().equals(missing.getUuid())),"ordinary unload establishes actual absence before asynchronous demand loading");}
@@ -94,6 +94,14 @@ public final class BodyVolumeGameTests implements FabricGameTest {
                 }
             }finally{f.close();}c.complete();});
         });
+    }
+    private void unloadCurrent(TestContext c,BlockBodyEntity original){
+        var current=BodySpatialIndex.loaded(c.getWorld()).stream().filter(b->b.getUuid().equals(original.getUuid())).toList();
+        c.assertTrue(current.size()<=1,"ordinary demand loading must retain a unique physical identity");
+        System.out.println("BODY_VOLUME_UNLOAD original="+original.getId()+" removed="+original.isRemoved()+" current="+current.stream().map(b->b.getId()+":"+(b==original)).toList());
+        // The same legitimate read-back already handled by Fleet.close can occur
+        // before this observation. Removing its old object cannot unload the live one.
+        for(var body:current)body.remove(net.minecraft.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK);
     }
 
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="body-volume-damaged-pivot",tickLimit=200)
@@ -113,7 +121,7 @@ public final class BodyVolumeGameTests implements FabricGameTest {
             // Establish actual absence before demand resumes. A player left at the root can
             // legitimately cause a fast reload before a fixed five-tick observation.
             f.player.setPosition(0,180,0);
-            for(var b:f.bodies.subList(0,3))b.remove(net.minecraft.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK);
+            for(var b:f.bodies.subList(0,3))unloadCurrent(c,b);
             c.waitAndRun(5,()->{
                 try {
                     c.assertTrue(BodySpatialIndex.loaded(c.getWorld()).stream().noneMatch(b->ids.contains(b.getUuid())),"fixture has no loaded root or module to seed the activity graph");
