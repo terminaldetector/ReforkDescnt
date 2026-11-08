@@ -2268,5 +2268,201 @@
     "scope": "Reference-UFO autonomous rigid batteries and actual nonliving weapon ownership. Full 3D AI, child-turret AI, pitch/compound modules, energy/ammunition economy and full master v8 remain open.",
     "archive": "docs/v8/EVIDENCE/ufo-autonomous-3dd2263.zip",
     "archiveSha256": "5bed1235100dd54ae5ccab317e8f87d5bde188ea765908ff656a4900137df956"
+  },
+  "physicalTurretAutonomous": {
+    "source": "d54d71f8c7600d6862aa55513dc1deb7a15a0b73",
+    "productionSource": "8bc60b80c2cdf9053c1e321fd40bbd2da4769c7b",
+    "nativeSource": "670bb118045d30a60128f018f2b23a1f2e772ed4",
+    "nativeGameTestOnlyDelta": [
+      "src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java"
+    ],
+    "base": "a533087",
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "05d40a0b610772788a755878856a2af23dae7a3f32b401ffda0ce5fbe38cd5a2",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "7c0233c474a585f8f8f993916523130a40c25c9e66dca9e95de6a5153f5eab90"
+    },
+    "unit": {
+      "tests": 756,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "server": {
+      "tests": 346,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "focused": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "native": {
+      "sodium": {
+        "actualKitInstalled": true,
+        "physicalYawMotor": true,
+        "rootLasers": 3,
+        "rootRockets": 1,
+        "maxRelativeAngle": 0.35522642957385925,
+        "maxAnchorError": 1.6407067498897938e-05,
+        "subjectPixels": 874,
+        "targetFixtureMaxHealth": 200,
+        "targetFixtureKnockbackResistance": 1,
+        "actualDefaultHull": true,
+        "naturalSurvivalTarget": true,
+        "noAssignedTarget": true,
+        "noScriptedShots": true,
+        "realPhysicalOwner": true,
+        "lasers": 5,
+        "rockets": 3,
+        "actualDamagingHits": 5,
+        "initialAimDot": 0.7936616353027138,
+        "bestAimDot": 0.9999995921439183,
+        "muzzleError": 0.0,
+        "launchVelocityError": 4.475989973903898e-16,
+        "disabledTicks": 49,
+        "disabledInertialTravel": 0.4293703898298696,
+        "actualProjectedShotPixels": 321,
+        "ownedShotRenderCalls": 73,
+        "scenes": [
+          "autonomous-targeting",
+          "autonomous-fire",
+          "autopilot-disabled",
+          "autopilot-resumed"
+        ],
+        "height": 2156
+      },
+      "gl32": {
+        "actualKitInstalled": true,
+        "physicalYawMotor": true,
+        "rootLasers": 6,
+        "rootRockets": 2,
+        "maxRelativeAngle": 0.35522642957385797,
+        "maxAnchorError": 1.6407067498897938e-05,
+        "subjectPixels": 978,
+        "targetFixtureMaxHealth": 200,
+        "targetFixtureKnockbackResistance": 1,
+        "actualDefaultHull": true,
+        "naturalSurvivalTarget": true,
+        "noAssignedTarget": true,
+        "noScriptedShots": true,
+        "realPhysicalOwner": true,
+        "lasers": 7,
+        "rockets": 3,
+        "actualDamagingHits": 6,
+        "initialAimDot": 0.7936616353027138,
+        "bestAimDot": 0.9999999726079942,
+        "muzzleError": 0.0,
+        "launchVelocityError": 2.797157557069881e-17,
+        "disabledTicks": 38,
+        "disabledInertialTravel": 0.3759460735889846,
+        "actualProjectedShotPixels": 878,
+        "ownedShotRenderCalls": 63,
+        "scenes": [
+          "autonomous-targeting",
+          "autonomous-fire",
+          "autopilot-disabled",
+          "autopilot-resumed"
+        ],
+        "height": 2156
+      }
+    },
+    "rigidNativeRegression": {
+      "targetFixtureMaxHealth": 200,
+      "targetFixtureKnockbackResistance": 1,
+      "actualDefaultHull": true,
+      "naturalSurvivalTarget": true,
+      "noAssignedTarget": true,
+      "noScriptedShots": true,
+      "realPhysicalOwner": true,
+      "lasers": 6,
+      "rockets": 1,
+      "actualDamagingHits": 5,
+      "initialAimDot": 0.7640910688263354,
+      "bestAimDot": 0.9999604075702515,
+      "muzzleError": 0.0,
+      "launchVelocityError": 3.925231146709438e-17,
+      "disabledTicks": 28,
+      "disabledInertialTravel": 0.20159464837546434,
+      "actualProjectedShotPixels": 1168,
+      "ownedShotRenderCalls": 100,
+      "scenes": [
+        "autonomous-targeting",
+        "autonomous-fire",
+        "autopilot-disabled",
+        "autopilot-resumed"
+      ],
+      "height": 2156
+    },
+    "pilotRestart": {
+      "writer": {
+        "actualSerializedRoot": true,
+        "laserCooldown": 8,
+        "rocketCooldown": 24,
+        "lasers": 4,
+        "rockets": 2,
+        "samples": 26,
+        "aimPackets": 40,
+        "firePackets": 40
+      },
+      "reader": {
+        "initialConsoleDistance": 3.964721025822507,
+        "consoleApproachTicks": 26,
+        "actualHeadProjectionVerified": true,
+        "headNdcX": 3.3482982075838663e-07,
+        "headNdcY": 3.225998739253555e-07,
+        "observerPositionVerified": true,
+        "observerPositionError": 0.0,
+        "actualTwoProcessRestart": true,
+        "rootExact": true,
+        "headExact": true,
+        "registryExact": true,
+        "barrierCooldownSamples": 31,
+        "restoredCarrierOwnerSamples": 69,
+        "idleLocalDrift": 0.22133365646665326,
+        "postLoadSamples": 34,
+        "lasers": 5,
+        "rockets": 2,
+        "aimPackets": 28,
+        "firePackets": 28,
+        "maxAnchorError": 8.875439737227907e-05,
+        "muzzleError": 0.0,
+        "launchVelocityError": 0.0,
+        "relativeAngle": 0.9180582455040109,
+        "brakedRelativeSpeed": 0.000631513389575295,
+        "headRenderedFrames": 91,
+        "exteriorRenderedFrames": 8,
+        "subjectPixels": 8163,
+        "noDuplicates": true,
+        "postLoadControlRelease": true
+      },
+      "walking": {
+        "restoredEngines": 4,
+        "sourceUfoSchema": 2,
+        "postLoadWalking": true,
+        "postLoadDistance": 1.4996618494348268,
+        "admissionTicks": 30,
+        "actualProcessRestart": true,
+        "serializedDataExact": true,
+        "restoredPhysicsTolerance": 1e-10,
+        "sameUuid": "946df0e1-09b9-4171-a16e-0cfafb2bcb96",
+        "noDuplicateHull": true,
+        "restoredWalkingTicks": 40,
+        "renderedFrames": 44,
+        "stalePilotAbsent": true
+      },
+      "processes": {
+        "writerPid": 18998,
+        "readerPid": 19099,
+        "distinctProcesses": true
+      }
+    },
+    "releaseAccepted": false,
+    "publication": "Local only",
+    "scope": "Reference yaw-module autonomous combat with carrier swing, real material bearing-rate feed-forward, observed ordinary player motion and installed-controller authority. Independent pitch/compound modules, arbitrary navigation, energy/ammunition and full master v8 remain open.",
+    "archive": "docs/v8/EVIDENCE/turret-autonomous-d54d71f.zip",
+    "archiveSha256": "a6181b516a4030af0afdd225a8a91c42e6e7b32c22f7d2c05e9e800c34009e50"
   }
 }
