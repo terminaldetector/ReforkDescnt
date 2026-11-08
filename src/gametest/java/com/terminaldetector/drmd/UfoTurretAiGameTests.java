@@ -109,7 +109,9 @@ public final class UfoTurretAiGameTests implements FabricGameTest {
         List<ProjectileEntity> shots(){return c.getWorld().getEntitiesByClass(ProjectileEntity.class,root.getBoundingBox().expand(150),s->s.getOwnerEntity()==head);}
         public void close(){
             var ids=new HashSet<UUID>();ids.add(root.getUuid());ids.add(head.getUuid());var roster=root.writeNbt(new net.minecraft.nbt.NbtCompound()).getList("swarm",net.minecraft.nbt.NbtElement.COMPOUND_TYPE);for(int i=0;i<roster.size();i++)if(roster.getCompound(i).containsUuid("id"))ids.add(roster.getCompound(i).getUuid("id"));
+            var registry=BodyJointRegistry.get(c.getWorld());var queue=new ArrayDeque<>(ids);while(!queue.isEmpty())for(var link:registry.forBody(queue.removeFirst()))for(var id:List.of(link.a().body(),link.b().body()))if(ids.add(id))queue.addLast(id);
             var remove=new ArrayList<net.minecraft.entity.Entity>();for(var e:c.getWorld().iterateEntities())if(ids.contains(e.getUuid())||e instanceof ProjectileEntity shot&&shot.getOwnerEntity()!=null&&ids.contains(shot.getOwnerEntity().getUuid()))remove.add(e);for(var e:remove)e.discard();
+            for(var body:BodySpatialIndex.loaded(c.getWorld()))if(ids.contains(body.getUuid()))body.discard();
             BodyJointRegistry.get(c.getWorld()).remove(module.jointId());UfoControlSystem.release(target);target.discard();head.discard();root.discard();chunks.close();
         }
     }

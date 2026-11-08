@@ -69,7 +69,7 @@ public final class SkyUfoTurret {
     private static boolean overlaps(OrientedBox a,OrientedBox b){return a.contact(b,0).filter(c->c.penetration()>1e-6).isPresent();}
     public void tick(SkyUfoEntity root){if(!installed(root))return;if(laserCooldown>0)laserCooldown--;if(rocketCooldown>0)rocketCooldown--;if(link(root).isEmpty())detach(root);else body(root).ifPresent(b->{var gravity=root.hasPoweredReactor()?new Vec3(0,-16,0):new Vec3(0,0,0);if(!b.passengerGravity().equals(gravity))b.setPassengerGravity(gravity);});}
     public void aim(SkyUfoEntity root,float input) {
-        if(!Float.isFinite(input)||Math.abs(input)>1)return;var l=link(root).orElse(null);if(l==null)return;
+        if(!Float.isFinite(input)||Math.abs(input)>1)return;var l=link(root).orElse(null);if(l==null){retireMotor(root);return;}
         boolean powered=root.hasPoweredReactor();BodyJointRegistry.get((ServerWorld)root.getWorld()).configure(joint,powered?input*.6:0,powered?40:0,l.breakForce(),l.breakTorque());
     }
     public void stopAutonomous(SkyUfoEntity root){autonomousTarget=null;rocketAim=false;burst=0;aim(root,0);}
@@ -106,7 +106,14 @@ public final class SkyUfoTurret {
         if(laserCooldown==0&&SkyUfoWeapons.emit(b,pilot,List.of(LASER),ModWorldBlocks.SHIP_LASER,false)>0){laserCooldown=8;BodyJointSystem.reconcileImpulse(world,b);}
         if(rocketCooldown==0&&SkyUfoWeapons.emit(b,pilot,List.of(ROCKET),ModWorldBlocks.SHIP_ROCKET,true)>0){rocketCooldown=24;BodyJointSystem.reconcileImpulse(world,b);}
     }
-    public void detach(SkyUfoEntity root){if(installed(root))body(root).ifPresent(b->{b.setPhysicsGravity(true);b.setPassengerGravity(new Vec3(0,0,0));});}
+    private void retireMotor(SkyUfoEntity root){
+        if(!installed(root))return;var registry=BodyJointRegistry.get((ServerWorld)root.getWorld());
+        // A fracture can rebind the bearing to a roof fragment. Keep that real
+        // mechanical joint, but its former reactor/controller supplies no power.
+        registry.find(joint).filter(l->l.kind()==BodyJointConstraint.Kind.MOTOR&&((l.a().body().equals(child)&&l.a().cell().equals(BASE))||(l.b().body().equals(child)&&l.b().cell().equals(BASE))))
+            .ifPresent(l->registry.configure(joint,0,0,l.breakForce(),l.breakTorque()));
+    }
+    public void detach(SkyUfoEntity root){if(installed(root)){retireMotor(root);body(root).ifPresent(b->{b.setPhysicsGravity(true);b.setPassengerGravity(new Vec3(0,0,0));});}}
     public NbtCompound write(){var n=new NbtCompound();n.putInt("schema",1);n.putUuid("body",child);n.putUuid("joint",joint);n.putInt("laserCooldown",laserCooldown);n.putInt("rocketCooldown",rocketCooldown);return n;}
     public static SkyUfoTurret read(NbtCompound n){if(n.getInt("schema")!=1||!n.containsUuid("body")||!n.containsUuid("joint"))throw new IllegalArgumentException("invalid UFO turret reference");var t=new SkyUfoTurret(n.getUuid("body"),n.getUuid("joint"));t.laserCooldown=MathHelper.clamp(n.getInt("laserCooldown"),0,8);t.rocketCooldown=MathHelper.clamp(n.getInt("rocketCooldown"),0,24);return t;}
 }
