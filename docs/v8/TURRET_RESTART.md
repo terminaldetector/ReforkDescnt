@@ -1,0 +1,46 @@
+# Hot turret restart and saved carrier admission
+
+The actual moving UFO, its connected five-cell yaw turret and its MOTOR registry now survive a normal closed-world restart with hot laser/rocket cooldowns. A second JVM opens the same saved world, observes real state before the first physical tick, resumes deck walking and accepts a new pilot's yaw/fire/brake/release commands. Two production admission bugs are fixed: a module loaded first cannot steal the saved carrier's gravity frame, and a saved world-gravity deck can still acquire through real contact without an artificial field.
+
+**Partial S09-T03/T04/T06, all remain in_progress.** Full v8 and Dynamic Boarding, autonomous mounted AI, pitch/compound actuators, complete reactor/damage lifecycle, ammunition/energy economy and general portal/island/migration coverage remain open. No accepted 1.1.35 release, publication or GitHub Actions. The accepted 1.1.34 distribution is unchanged.
+
+## Exact source and artifacts
+
+- Final source/native source: `97d6f59ebb17a542e4f1b733158e3b178a68740c`. Full server source: `3f359ecc4ffabe1c9e1be8f1629948fc1852b1a1`. Production admission follow-up: `aa5d79660e735785f4a7a1a72cbb6f0449aad416`, following `be370102467166a22b222f245991996101d95bb0`. Production and observer artifact identity is checked independently of documentation commits.
+- Only the cubiccheck observer differs from the full server source; the tested game JAR bytes are identical.
+- Installable development game JAR: `build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar`, SHA-256 `ecff4c649b5ea4cf0453f0c2be5e58cffbb8a5958596d916b8367f10ad349890`. The game JAR does not contain the test observer. Existing Fabric/Better Cubic Chunks installation requirements apply.
+- Separate test-only observer: `build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar`, SHA-256 `c1a975d8f3d50e9f9b69a40abcc31c39c5da011c4a62ca3b6f08cdb57b7fca99`.
+- [Raw evidence](EVIDENCE/turret-restart-97d6f59.zip), SHA-256 `cd9d1b437d28db16add1975bcaa1d666f65676299f29bffd0338a38dfb7b4431`. Includes both exact JARs, changed sources, complete local source patch series, full/focused XML and logs, first failures, real first-process world snapshots with per-file hashes, actual NBT/registry observations, distinct process IDs and fresh frames. Every manifest hash and ZIP CRC is verified after writing.
+
+## Production correction
+
+Entity IDs reflect load order. The real failed reader loaded the turret before the carrier; their padded gravity volumes overlap. Initial admission previously picked the earlier entity, used an identity passenger frame for that different UUID and overwrote the persisted carrier hint. The passenger then fell through the rotated deck despite exact restoration of both physical bodies and their joint.
+
+While a saved boarding hint remains pending, acquisition now restricts candidate bodies to that UUID before either field or contact selection. It retains the existing 100-tick bounded wait, eligibility/dimension checks and actual geometry requirements. A saved identity cannot create support, move feet or respawn a missing body. Once a real lease is acquired, ordinary physical transfer between bodies resumes. Normal admission without a saved hint is unchanged.
+
+The first version restricted only field admission and returned early if the carrier had no field. A new negative regression reproduced a needless wait on an ordinary world-gravity deck. Filtering the shared candidate list allows its real support contact immediately while still rejecting an unrelated deck. No player-follow teleport, pose reset, velocity reset, extra rigid body or new physics engine was introduced.
+
+## Actual two-process acceptance
+
+The writer approaches/boards the existing moving UFO, acquires the actual console, installs the optional kit and fires/rotates the real module. The server stops normally at a firing tick with both cooldowns nonzero; cooldown values are observed, never assigned by the fixture. Players, entities, cubes and registry save through the game's normal shutdown path. The complete closed world is hashed before a distinct reader JVM opens it. No saved NBT is inserted into a new world.
+
+The reader compares the actual root/child grids, positions, quaternions, linear velocities, angular momenta, gravity and module/joint UUIDs before their first simulation tick. It also compares the complete real persistent joint registry. A delayed Ready handshake retains the saved cooldowns. The first and subsequent admitted contacts must name the original carrier; idle feet cannot sink through its deck. Forty consecutive grounded ticks precede ordinary keyboard walking. Only a new actual console capture can resume piloted yaw/fire; no saved pilot or motor command grants authority.
+
+After the independent keyboard-walking check, the observer uses ordinary forward walking toward the actual console if it is more than 3.25m from the server eye, with an 80-tick bound. It then presses the normal use key; interaction range and claim validation are unchanged. The earlier Mesa phase1 timeout and live console image are retained rather than treating a visible console as a successful capture. Real arrows/B then rotate and fire the restored child. Actual muzzles and point velocities must match within `1e-8`, anchor error stays below 0.03m, relative yaw must change by more than 0.25rad from the newly restored starting orientation, and motor braking must reduce relative speed below 0.08rad/s. H releases control back to actual walking. Root and child UUIDs remain unique; the connected-pair collision mask and original bearing survive.
+
+| Renderer | Saved laser/rocket cooldown | Barrier ticks | Original carrier samples | Keyboard travel, m | Post-load laser/rocket shots | Max anchor error, m | Center subject pixels |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| sodium | 8/24 | 44 | 71 | 0.8632 | 5/2 | 0.0001289 | 11007 |
+| gl32 | 8/24 | 31 | 75 | 3.0615 | 5/2 | 0.0001361 | 8234 |
+
+Final verification: **736 unit tests, 320 complete server GameTests, 14 focused boarding cases**, no failures/errors/skips. The complete 55-entrypoint GameTest manifest matches source. There are eleven fresh native frames per renderer, from two writer/reader pairs on Sodium GL3.3 and Mesa GL3.2, both software llvmpipe. This is functional local singleplayer evidence, not Intel HD performance or dedicated/multiplayer certification.
+
+## Visual evidence and retained failures
+
+One exterior observation teleport is used only after actual H release. It never implements boarding. Acceptance waits for its real client arrival and cleared boarding pose. Camera aim follows the current render delta and actual entity `lastRender*` interpolation. A probe observes the complete model/view/projection transform at real turret rendering; the laser's center must project within ±0.08 NDC of screen center in the captured frame. Three consecutive qualified frames still require at least 256 central neutral body pixels, fresh head render calls and camera alignment above 0.98. Both final exterior images were inspected.
+
+Retained diagnostic rounds include writer observation after disconnect, legitimate console-click hull rockets, an expired laser cooldown during delayed shutdown, the real saved-owner failure, the initially incorrect pending-hint test fixture, the ordinary-gravity contact regression, low-disk startup interruption and superseded exterior captures. Earlier functional markers do not certify those pictures. The first stronger projection observer omitted vanilla's global model-view matrix and failed while the unoccupied carrier later unloaded; that raw crash is preserved. A subsequent observer-only inherited-field remapping failure is also retained and corrected by accessing the Minecraft Entity declaration. Final projection uses the complete actual transform; UUID/geometry/cooldown/contact assertions were not relaxed.
+
+A Mesa reader startup stopped on the vanilla low-disk confirmation before world entry. Its timeout, screenshot and process ID are retained separately. After preservation reclaimed space, every saved-world file hash still matched the original writer snapshot; a fresh reader opened those unchanged bytes but later timed out during console recapture. That retry remains rejected. The accepted source above uses fresh writer/reader pairs with the ordinary walking approach. No physics timeout or image threshold was extended. Closed disposable test worlds were archived and checked per file/CRC before reclaiming their working copies; original logs, frames and manifests remain. Replay helpers in the archive are `native/build-verified.sh`, `native/run-turret-restart-pair.sh`, `native/verify-build-stamp.py`, the focused boarding init script and the full regression script. Use Java21, offline Gradle and fresh scenario names. Source/JAR stamps are frozen during each build/native run; native and Gradle processes are not run concurrently.
+
+This closes the connected hot-turret restart gap for the reference fixture. Damaged/missing endpoints in a complete world restart, arbitrary module assemblies, legacy migration, occupied portal-group transfers, broader collision timing/precision, LOD/cloud defects, autonomous mounted combat and the remaining drone/bestiary/master-v8 work remain separate acceptance.

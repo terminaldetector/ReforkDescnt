@@ -1946,5 +1946,176 @@
     "scope": "Partial S09-T03: installable yaw MOTOR weapon module, real pilot controls and physical recoil/detachment. New turret cold-world restart, pitch gimbal, AI control and full master v8/Dynamic Boarding remain open.",
     "archive": "docs/v8/EVIDENCE/turret-ecde7af.zip",
     "archiveSha256": "fe05d066269f35e121a8c04a00bda6995b320f42687a68b924f96eb2a4754c4d"
+  },
+  "physicalTurretRestart": {
+    "source": "97d6f59ebb17a542e4f1b733158e3b178a68740c",
+    "fullServerSource": "3f359ecc4ffabe1c9e1be8f1629948fc1852b1a1",
+    "fullServerObserverOnlyDelta": [
+      "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeTurretReloadCheck.java"
+    ],
+    "nativeSource": "97d6f59ebb17a542e4f1b733158e3b178a68740c",
+    "nativeTestOnlyDelta": [],
+    "productionJarUnchangedFromTurretMilestone": false,
+    "productionSource": "aa5d79660e735785f4a7a1a72cbb6f0449aad416",
+    "productionFix": "Bounded saved-UUID admission rejects earlier loaded module fields while retaining immediate real world-gravity deck contacts",
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "ecff4c649b5ea4cf0453f0c2be5e58cffbb8a5958596d916b8367f10ad349890",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c1a975d8f3d50e9f9b69a40abcc31c39c5da011c4a62ca3b6f08cdb57b7fca99"
+    },
+    "unit": {
+      "tests": 736,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "server": {
+      "tests": 320,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "focusedBoarding": {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "native": {
+      "sodium": {
+        "writer": {
+          "actualSerializedRoot": true,
+          "laserCooldown": 8,
+          "rocketCooldown": 24,
+          "lasers": 4,
+          "rockets": 2,
+          "samples": 27,
+          "aimPackets": 31,
+          "firePackets": 31
+        },
+        "walking": {
+          "restoredEngines": 4,
+          "sourceUfoSchema": 2,
+          "postLoadWalking": true,
+          "postLoadDistance": 0.8631518726088607,
+          "admissionTicks": 43,
+          "actualProcessRestart": true,
+          "serializedDataExact": true,
+          "restoredPhysicsTolerance": 1e-10,
+          "sameUuid": "b5f37dcd-95d6-40e1-9e45-e090fe483a75",
+          "noDuplicateHull": true,
+          "restoredWalkingTicks": 40,
+          "renderedFrames": 29,
+          "stalePilotAbsent": true
+        },
+        "reader": {
+          "initialConsoleDistance": 4.140687695010443,
+          "consoleApproachTicks": 20,
+          "actualHeadProjectionVerified": true,
+          "headNdcX": 9.157154181593796e-07,
+          "headNdcY": -9.067800874618115e-07,
+          "observerPositionVerified": true,
+          "observerPositionError": 0.0,
+          "actualTwoProcessRestart": true,
+          "rootExact": true,
+          "headExact": true,
+          "registryExact": true,
+          "barrierCooldownSamples": 44,
+          "restoredCarrierOwnerSamples": 71,
+          "idleLocalDrift": 0.29943041736615866,
+          "postLoadSamples": 33,
+          "lasers": 5,
+          "rockets": 2,
+          "aimPackets": 30,
+          "firePackets": 30,
+          "maxAnchorError": 0.00012889729517499704,
+          "muzzleError": 0.0,
+          "launchVelocityError": 0.0,
+          "relativeAngle": 0.9480599501565699,
+          "brakedRelativeSpeed": 0.0010800831587396238,
+          "headRenderedFrames": 64,
+          "exteriorRenderedFrames": 8,
+          "subjectPixels": 11007,
+          "noDuplicates": true,
+          "postLoadControlRelease": true
+        },
+        "processes": {
+          "writerPid": 7473,
+          "readerPid": 7582,
+          "distinctProcesses": true
+        },
+        "frames": 11,
+        "closedWorldSha256": "5c6a397c89dc6d113afe2630ffc98ffc0685caa28479b2379b8928b351240ccd"
+      },
+      "gl32": {
+        "writer": {
+          "actualSerializedRoot": true,
+          "laserCooldown": 8,
+          "rocketCooldown": 24,
+          "lasers": 4,
+          "rockets": 2,
+          "samples": 27,
+          "aimPackets": 26,
+          "firePackets": 26
+        },
+        "walking": {
+          "restoredEngines": 4,
+          "sourceUfoSchema": 2,
+          "postLoadWalking": true,
+          "postLoadDistance": 3.0615132113311567,
+          "admissionTicks": 30,
+          "actualProcessRestart": true,
+          "serializedDataExact": true,
+          "restoredPhysicsTolerance": 1e-10,
+          "sameUuid": "1a687527-41a6-461a-b9d9-adc59094090a",
+          "noDuplicateHull": true,
+          "restoredWalkingTicks": 40,
+          "renderedFrames": 24,
+          "stalePilotAbsent": true
+        },
+        "reader": {
+          "initialConsoleDistance": 4.43602418451428,
+          "consoleApproachTicks": 20,
+          "actualHeadProjectionVerified": true,
+          "headNdcX": -3.93457526115526e-07,
+          "headNdcY": 5.347541520706045e-09,
+          "observerPositionVerified": true,
+          "observerPositionError": 0.0,
+          "actualTwoProcessRestart": true,
+          "rootExact": true,
+          "headExact": true,
+          "registryExact": true,
+          "barrierCooldownSamples": 31,
+          "restoredCarrierOwnerSamples": 75,
+          "idleLocalDrift": 0.2083435716709452,
+          "postLoadSamples": 36,
+          "lasers": 5,
+          "rockets": 2,
+          "aimPackets": 37,
+          "firePackets": 37,
+          "maxAnchorError": 0.00013607017198909293,
+          "muzzleError": 0.0,
+          "launchVelocityError": 1.2609709600486848e-15,
+          "relativeAngle": 1.0378657083665335,
+          "brakedRelativeSpeed": 0.00036162189635773013,
+          "headRenderedFrames": 95,
+          "exteriorRenderedFrames": 8,
+          "subjectPixels": 8234,
+          "noDuplicates": true,
+          "postLoadControlRelease": true
+        },
+        "processes": {
+          "writerPid": 7274,
+          "readerPid": 7370,
+          "distinctProcesses": true
+        },
+        "frames": 11,
+        "closedWorldSha256": "db9872a0c4c0a2773c9e044ee65e3cc930f1e9b9763dccc867dd4b785d767282"
+      }
+    },
+    "releaseAccepted": false,
+    "publication": "Local only",
+    "scope": "Actual hot connected turret save/load and post-load walking/capture/yaw/fire/braking/release. AI, compound modules, damaged/absent endpoints and full master v8 remain open.",
+    "archive": "docs/v8/EVIDENCE/turret-restart-97d6f59.zip",
+    "archiveSha256": "cd9d1b437d28db16add1975bcaa1d666f65676299f29bffd0338a38dfb7b4431"
   }
 }
