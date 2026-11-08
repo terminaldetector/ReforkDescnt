@@ -83,7 +83,7 @@ public final class NativeTurretReloadCheck {
     public static void acceptedFire(ServerPlayerEntity p,UfoControlSystem.Fire in){if((WRITE&&writerActive||READ&&phase==2)&&p==pilot&&(in.mask()&4)!=0)firePackets++;}
     public static void fired(WeaponCore.FireConfig cfg,ProjectileEntity shot){
         if((!WRITE&&!READ)||WRITE&&writerClosed||shot==null||head==null||cfg.owner!=pilot)return;
-        if(READ&&phase>=1&&phase<=2&&UfoControlSystem.controls(pilot,root)&&(SkyUfoWeapons.ROCKETS.stream().anyMatch(slot->SkyUfoWeapons.muzzle(root,slot).distanceTo(cfg.pos)<1e-8)))return;
+        if((WRITE&&!writerActive||READ&&phase>=1&&phase<=2)&&UfoControlSystem.controls(pilot,root)&&SkyUfoWeapons.ROCKETS.stream().anyMatch(slot->SkyUfoWeapons.muzzle(root,slot).distanceTo(cfg.pos)<1e-8))return;
         require(WRITE&&writerActive||READ&&(phase==2||phase==3),"no phantom trigger or stale pilot after restart");
         var slot=cfg.meshKind==1?SkyUfoTurret.ROCKET:SkyUfoTurret.LASER;var at=SkyUfoWeapons.muzzle(head,slot);var d=head.rotation().rotate(new Vec3(0,0,1));
         muzzleError=Math.max(muzzleError,at.distanceTo(cfg.pos));velocityError=Math.max(velocityError,entity(shot).getVelocity().distanceTo(new Vec3d(d.x(),d.y(),d.z()).multiply(cfg.speed).add(head.surfaceVelocityAt(at).multiply(.05))));require(muzzleError<1e-8&&velocityError<1e-8,"loaded module uses real transformed muzzle and surface velocity");if(cfg.meshKind==1)rockets++;else lasers++;
