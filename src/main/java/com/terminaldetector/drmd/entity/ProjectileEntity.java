@@ -52,7 +52,7 @@ public class ProjectileEntity extends Entity {
 	private static final TrackedData<Vector3f> VISUAL_VELOCITY = DataTracker.registerData(ProjectileEntity.class, TrackedDataHandlerRegistry.VECTOR3F);
 
 	private UUID ownerUuid;
-	private LivingEntity owner;
+	private Entity owner;
 	private DamageClass dmgClass = DamageClass.KINETIC;
 	private float directDamage;
 	private float splashDamage;
@@ -90,22 +90,21 @@ public class ProjectileEntity extends Entity {
 		this.noClip = false;
 	}
 
-	public void setOwner(LivingEntity owner) {
+	public void setOwner(Entity owner) {
 		this.owner = owner;
 		this.ownerUuid = owner.getUuid();
 	}
 
-	public LivingEntity getOwnerLiving() {
-		if (owner != null && owner.isAlive()) return owner;
+	public Entity getOwnerEntity() {
+		if (owner != null && owner.getWorld()==getWorld()) return owner;
 		if (ownerUuid != null && getWorld() instanceof ServerWorld sw) {
 			Entity e = sw.getEntity(ownerUuid);
-			if (e instanceof LivingEntity le) {
-				owner = le;
-				return le;
-			}
+			if(e==null)for(var body:com.terminaldetector.drmd.world.contraption.BodySpatialIndex.loaded(sw))if(body.getUuid().equals(ownerUuid)){e=body;break;}
+			if(e!=null){owner=e;return e;}
 		}
 		return null;
 	}
+	public LivingEntity getOwnerLiving(){return getOwnerEntity() instanceof LivingEntity living&&living.isAlive()?living:null;}
 
 	public void setDamageClass(DamageClass c) {
 		this.dmgClass = c;
@@ -360,7 +359,7 @@ public class ProjectileEntity extends Entity {
 	/** Go off where it sits — timed air-burst and proximity trigger both land here. */
 	private void detonateInPlace() {
 		impactVisual(getPos());
-		LivingEntity own = getOwnerLiving();
+		Entity own = getOwnerEntity();if(own==null)own=this;
 		if (own != null) {
 			detonate(own, getPos());
 		}
@@ -408,7 +407,7 @@ public class ProjectileEntity extends Entity {
 	private void onEntityHit(EntityHitResult hit) {
         Vec3d impact=hit instanceof MovingBodyHit moving?moving.materialPoint:hit.getPos();
 		impactVisual(impact);
-		LivingEntity own = getOwnerLiving();
+		Entity own = getOwnerEntity();if(own==null)own=this;
 		if (hit.getEntity() instanceof PhysicsTarget target && getVelocity().lengthSquared() > 1.0e-12) {
             target.weaponHit(impact, getVelocity(), directDamage);
 		}
@@ -473,7 +472,7 @@ public class ProjectileEntity extends Entity {
 			return;
 		}
 
-		LivingEntity own = getOwnerLiving();
+		Entity own = getOwnerEntity();if(own==null)own=this;
 		if (own != null && getWorld() instanceof ServerWorld sw) {
 			impactVisual(hit.getPos().add(Vec3d.of(hit.getSide().getVector()).multiply(.03)));
 			detonate(own, hit.getPos());
@@ -492,7 +491,7 @@ public class ProjectileEntity extends Entity {
 		discard();
 	}
 
-	private void detonate(LivingEntity own, Vec3d pos) {
+	private void detonate(Entity own, Vec3d pos) {
 		if (!(getWorld() instanceof ServerWorld sw)) return;
 		if (splashRadius <= 0) return;
 		float splash = splashDamage > 0 ? splashDamage : directDamage * 0.5f;

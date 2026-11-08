@@ -30,7 +30,7 @@ public final class WeaponCore {
 
 	public static class FireConfig {
 		public boolean fusionPortalCharge;
-		public LivingEntity owner;
+		public Entity owner;
 		public Vec3d pos;
 		public Vec3d dir;
 		public float speed = 40f; // already in MC units preferred; if from Source use DescentMod.su
@@ -154,7 +154,7 @@ public final class WeaponCore {
 		return proj;
 	}
 
-	public static void applyRecoil(LivingEntity owner, Vec3d dir, float recoilSource) {
+	public static void applyRecoil(Entity owner, Vec3d dir, float recoilSource) {
 		if (recoilSource <= 0) return;
 		Vec3d push = dir.normalize().multiply(-DescentMod.su(recoilSource) * 0.15);
 		if (owner instanceof PlayerEntity player) {
@@ -168,21 +168,22 @@ public final class WeaponCore {
 		owner.velocityModified = true;
 	}
 
-	public static void directDamage(LivingEntity attacker, Entity target, float amount, DamageClass dmgClass) {
+	public static void directDamage(Entity attacker, Entity target, float amount, DamageClass dmgClass) {
 		if (amount <= 0 || target == null || !target.isAlive()) return;
 		if (target instanceof PlayerEntity ply) {
 			DescentPlayerData data = DescentPlayerData.get(ply);
 			amount = ShieldSystem.absorb(data, amount, dmgClass);
 			if (amount <= 0) return;
 		}
-		DamageSource src = attacker.getDamageSources().mobAttack(attacker);
+		DamageSource src = attacker instanceof LivingEntity living ? attacker.getDamageSources().mobAttack(living)
+            : new DamageSource(attacker.getWorld().getRegistryManager().get(net.minecraft.registry.RegistryKeys.DAMAGE_TYPE).entryOf(net.minecraft.entity.damage.DamageTypes.MOB_PROJECTILE),attacker);
 		if (attacker instanceof PlayerEntity p) {
 			src = attacker.getDamageSources().playerAttack(p);
 		}
 		target.damage(src, amount);
 	}
 
-	public static void splashDamage(LivingEntity attacker, ServerWorld world, Vec3d pos, float amount, float radius, DamageClass dmgClass) {
+	public static void splashDamage(Entity attacker, ServerWorld world, Vec3d pos, float amount, float radius, DamageClass dmgClass) {
 		if (amount <= 0 || radius <= 0) return;
 		Box box = new Box(pos, pos).expand(radius);
 		List<LivingEntity> list = world.getEntitiesByClass(LivingEntity.class, box, e -> e.isAlive() && e != attacker);
@@ -195,7 +196,8 @@ public final class WeaponCore {
 			e.addVelocity(knock.x, knock.y + 0.1, knock.z);
 			e.velocityModified = true;
 		}
-		for (Entity e : com.terminaldetector.drmd.world.contraption.BodySpatialIndex.otherEntities(world, attacker, box, entity -> entity instanceof PhysicsTarget && entity.isAlive())) {
+		// A physical launcher remains vulnerable to its own returning blast.
+		for (Entity e : com.terminaldetector.drmd.world.contraption.BodySpatialIndex.otherEntities(world, attacker instanceof LivingEntity?attacker:null, box, entity -> entity instanceof PhysicsTarget && entity.isAlive())) {
             ((PhysicsTarget)e).weaponBlast(pos, amount, radius);
 		}
 	}

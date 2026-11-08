@@ -9,6 +9,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
@@ -100,7 +101,7 @@ public final class WeaponFx {
 	 * Soft “оплавление”: heat stage → soften → break. Intensity 1..3.
 	 * Reuses existing block palette (no new assets).
 	 */
-	public static boolean melt(ServerWorld world, BlockPos pos, int intensity, LivingEntity breaker) {
+	public static boolean melt(ServerWorld world, BlockPos pos, int intensity, Entity breaker) {
         if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,pos,breaker))return false;
         if(world.getBlockEntity(pos)!=null && !(world.getBlockEntity(pos) instanceof com.terminaldetector.drmd.world.micro.CarvedBlockEntity))return false;
 		BlockState st = world.getBlockState(pos);
@@ -169,7 +170,7 @@ public final class WeaponFx {
 	 * Heavy-weapon blast — shield-aware splash + smoke/fire + optional soft crater.
 	 * Avoids stacking vanilla explosion entity damage on top of WeaponCore splash.
 	 */
-	public static void explode(LivingEntity attacker, ServerWorld world, Vec3d pos,
+	public static void explode(Entity attacker, ServerWorld world, Vec3d pos,
 							   float splashDamage, float splashRadiusBlocks,
 							   DamageClass dmgClass, boolean breakBlocks) {
 		if (splashDamage > 0 && splashRadiusBlocks > 0) {
@@ -205,7 +206,7 @@ public final class WeaponFx {
 	}
 
 	/** Soft carve — default 3×3×3 (radius 1). */
-	public static void drillCarve(ServerWorld world, BlockPos center, LivingEntity breaker) {
+	public static void drillCarve(ServerWorld world, BlockPos center, Entity breaker) {
 		drillCarve(world, center, breaker, 1);
 	}
 
@@ -213,7 +214,7 @@ public final class WeaponFx {
 	 * Soft carve sphere-ish cube of {@code radius} (1 → 3³, 2 → 5³).
 	 * Emits industrial smoke from the cut face.
 	 */
-	public static void drillCarve(ServerWorld world, BlockPos center, LivingEntity breaker, int radius) {
+	public static void drillCarve(ServerWorld world, BlockPos center, Entity breaker, int radius) {
 		int r = MathHelper.clamp(radius, 1, 4);
 		float maxHard = r >= 2 ? 35f : 20f;
 		int melted = 0;

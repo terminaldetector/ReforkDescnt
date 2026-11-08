@@ -31,6 +31,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
     private boolean initialized,crashing,detonated,legacyThrusters,autopilot=true;
     private int spawnCooldown,crashTicks,laserCooldown,rocketCooldown;
     private SkyUfoTurret turret;
+    private final SkyUfoCombat combat=new SkyUfoCombat();
     private double cruiseYaw,cruiseAltitude;
     private DestructionMode destructionMode=DestructionMode.CRASH;
 
@@ -59,6 +60,11 @@ public class SkyUfoEntity extends BlockBodyEntity {
         if((mask&1)!=0&&laserCooldown==0&&SkyUfoWeapons.fire(this,pilot,false)>0)laserCooldown=8;
         if((mask&2)!=0&&rocketCooldown==0&&SkyUfoWeapons.fire(this,pilot,true)>0)rocketCooldown=24;
         if((mask&4)!=0&&turret!=null)turret.fire(this,pilot);
+    }
+    public void fireAutonomousWeapons(){
+        if(!combat.ready(this))return;combat.fired(this);var target=combat.target(this);
+        if(laserCooldown==0&&SkyUfoWeapons.fireAutonomous(this,target,false)>0)laserCooldown=8;
+        if(rocketCooldown==0&&SkyUfoWeapons.fireAutonomous(this,target,true)>0)rocketCooldown=24;
     }
     public void applyThrusterWrench(Vec3 worldForce,Vec3 worldTorque) {
         if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||isRemoved()||crashing
@@ -107,6 +113,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
         }
     }
     private void propel() {
+        var combatAim=combat.prepare(this);
         cruiseYaw+=.15;double yaw=Math.toRadians(cruiseYaw);
         var desired=new Vec3(-Math.sin(yaw)*3,MathHelper.clamp((cruiseAltitude-massPosition().y())*.4,-2,2),Math.cos(yaw)*3);
         Vec3 dv=desired.minus(physics().linearVelocity()).scaled(.2);if(dv.length()>.2)dv=dv.scaled(.2/dv.length());
@@ -114,6 +121,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
         var roll=ImmPtlQuaternions.rotationByDegrees(new Vec3(0,0,1),18*Math.sin(age*.009));
         var heading=ImmPtlQuaternions.rotationByDegrees(new Vec3(0,1,0),-cruiseYaw);
         var target=ImmPtlQuaternions.hamiltonProduct(heading,ImmPtlQuaternions.hamiltonProduct(pitch,roll)).normalized();
+        if(combatAim!=null){var forward=rotation().rotate(new Vec3(0,0,1));target=ImmPtlQuaternions.hamiltonProduct(com.terminaldetector.drmd.client.portal.PortalTransform.rotationBetween(forward,combatAim),rotation()).normalized();}
         var error=ImmPtlQuaternions.hamiltonProduct(target,rotation().inverse()).normalized();
         if(error.w()<0)error=new Quat(-error.x(),-error.y(),-error.z(),-error.w());
         var axis=new Vec3(error.x(),error.y(),error.z());double sine=axis.length();

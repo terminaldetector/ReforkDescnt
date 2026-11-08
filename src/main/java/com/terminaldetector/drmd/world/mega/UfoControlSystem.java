@@ -66,6 +66,7 @@ public final class UfoControlSystem {
         var l=new Lease(p,b,++epoch);PILOTS.put(p.getUuid(),l);com.terminaldetector.drmd.inventory.DroneArsenal.clear(p.getUuid());b.setAutopilot(false);sync(p,b,l,true);return true;
     }
     public static boolean controls(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());return l!=null&&l.pilot.get()==p;}
+    public static boolean hasPilot(SkyUfoEntity b){for(var l:PILOTS.values()){var p=l.pilot.get();if(l.body.get()==b&&p!=null&&valid(p,b))return true;}return false;}
     public static int epoch(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());return l==null?-1:l.epoch;}
     public static boolean release(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());if(l==null||l.pilot.get()!=p)return false;drop(p.getUuid(),l);return true;}
     public static void releaseBody(SkyUfoEntity b){if(b.getWorld().isClient)return;for(var id:List.copyOf(PILOTS.keySet())){var l=PILOTS.get(id);if(l!=null&&l.body.get()==b)drop(id,l);}}

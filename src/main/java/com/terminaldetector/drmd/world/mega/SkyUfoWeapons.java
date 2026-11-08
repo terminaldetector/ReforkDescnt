@@ -5,6 +5,7 @@ import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import com.terminaldetector.drmd.weapon.core.*;
 import com.terminaldetector.drmd.world.contraption.*;
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.*;
@@ -22,7 +23,13 @@ public final class SkyUfoWeapons {
         var slots=rockets?ROCKETS:LASERS;Block block=rockets?ModWorldBlocks.SHIP_ROCKET:ModWorldBlocks.SHIP_LASER;
         return emit(body,pilot,slots,block,rockets);
     }
-    static int emit(BlockBodyEntity body,ServerPlayerEntity pilot,List<BlockPos> slots,Block block,boolean rockets) {
+    static int fireAutonomous(SkyUfoEntity body,ServerPlayerEntity target,boolean rockets){
+        if(!SkyUfoCombat.allowed(body)||target==null)return 0;
+        var block=rockets?ModWorldBlocks.SHIP_ROCKET:ModWorldBlocks.SHIP_LASER;
+        var slots=(rockets?ROCKETS:LASERS).stream().filter(p->body.getLocalBlock(p).isOf(block)&&SkyUfoCombat.clearShot(body,p,target,rockets?1.4:2.5,rockets?100:80)).toList();
+        return emit(body,body,slots,block,rockets);
+    }
+    static int emit(BlockBodyEntity body,Entity pilot,List<BlockPos> slots,Block block,boolean rockets) {
         var dir=body.rotation().rotate(new Vec3(0,0,1));var forward=new Vec3d(dir.x(),dir.y(),dir.z());int count=0;
         var access=new BlockBodyWorldAccess(body);
         for(var slot:slots) {

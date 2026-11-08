@@ -1,6 +1,6 @@
 package com.terminaldetector.drmd.world.edit;
 
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -13,7 +13,7 @@ import com.terminaldetector.drmd.world.access.WorldAccess;
 /** Bounds before block reads: handheld/machine excavation must not force chunk generation. */
 public final class WorldEditSafety {
     private WorldEditSafety() {}
-    public static boolean mayChange(ServerWorld world,BlockPos at,LivingEntity actor) {
+    public static boolean mayChange(ServerWorld world,BlockPos at,Entity actor) {
         if(world.isOutOfHeightLimit(at) || !world.getWorldBorder().contains(at) || !neighbourhoodLoaded(world,at))return false;
         return !(actor instanceof PlayerEntity player) || player.isAlive() && !player.isSpectator()
             && player.getAbilities().allowModifyWorld && world.canPlayerModifyAt(player,at);
