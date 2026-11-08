@@ -10,6 +10,67 @@ import net.minecraft.util.math.*;
 import java.util.*;
 
 public final class UfoTurretAiGameTests implements FabricGameTest {
+    private double motor(Fixture f){return BodyJointRegistry.get(f.c.getWorld()).find(f.module.jointId()).orElseThrow().speed();}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-ai-pilot",tickLimit=170)
+    public void actualPilotCaptureImmediatelyPreemptsAiWithoutErasingManualMotorCommands(TestContext c){admitted(c,f->{f.root.setAutopilot(true);c.waitAndRun(3,()->{try{
+        c.assertTrue(Math.abs(motor(f))>.1,"real AI motor command before capture");var v=f.root.physics().linearVelocity();var l=f.root.physics().angularMomentum();var cv=f.head.physics().linearVelocity();var cl=f.head.physics().angularMomentum();
+        f.target.setPosition(f.root.localToWorld(new Vec3d(3.5,.1,.5)));c.assertTrue(UfoControlSystem.claim(f.target,f.root)&&motor(f)==0,"actual console ownership retires the AI motor immediately");
+        c.assertTrue(UfoControlSystem.receiveTurret(f.target,new UfoControlSystem.TurretInput(UfoControlSystem.epoch(f.target),0,-1))&&UfoControlSystem.drive(f.root),"actual pilot motor snapshot");f.module.aimAutonomous(f.root);
+        c.assertTrue(motor(f)==-.6&&f.module.fireAutonomous(f.root)==0,"AI cannot overwrite an owned manual motor or leak a shot");
+        c.assertTrue(v.equals(f.root.physics().linearVelocity())&&l.equals(f.root.physics().angularMomentum())&&cv.equals(f.head.physics().linearVelocity())&&cl.equals(f.head.physics().angularMomentum()),"authority changes preserve both bodies' actual momenta");
+        c.assertTrue(UfoControlSystem.release(f.target)&&f.root.autopilotEnabled(),"release resumes the same assembly's previous AI mode");f.target.setPosition(f.root.localToWorld(new Vec3d(30,12,12)));f.target.setVelocity(Vec3d.ZERO);
+        c.waitAndRun(3,()->{try{c.assertTrue(Math.abs(motor(f))>.1&&f.module.connected(f.root),"the same real motor resumes after release");}finally{f.close();}c.complete();});
+    }catch(Throwable e){f.close();throw e;}});});}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-ai-disable",tickLimit=190)
+    public void explicitDisableRetiresTheMotorAndBothPhysicalWeapons(TestContext c){admitted(c,f->{f.root.setAutopilot(true);c.waitAndRun(3,()->{try{
+        var v=f.root.physics().linearVelocity();var l=f.root.physics().angularMomentum();var cv=f.head.physics().linearVelocity();var cl=f.head.physics().angularMomentum();f.root.setAutopilot(false);
+        c.assertTrue(motor(f)==0&&f.module.fireAutonomous(f.root)==0,"disabled autonomy has no persistent motor or firing command");c.assertTrue(v.equals(f.root.physics().linearVelocity())&&l.equals(f.root.physics().angularMomentum())&&cv.equals(f.head.physics().linearVelocity())&&cl.equals(f.head.physics().angularMomentum()),"disable cannot reset physical motion");
+        c.waitAndRun(35,()->{try{c.assertTrue(motor(f)==0&&f.module.fireAutonomous(f.root)==0&&f.module.connected(f.root),"disabled joint stays physical and inactive");}finally{f.close();}c.complete();});
+    }catch(Throwable e){f.close();throw e;}});});}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-ai-creative",tickLimit=170)
+    public void aCreativeModeChangeCannotReuseAStaleTargetToken(TestContext c){admitted(c,f->{f.root.setAutopilot(true);c.waitAndRun(3,()->{try{
+        c.assertTrue(Math.abs(motor(f))>.1,"natural Survival target drives the real motor");f.target.changeGameMode(net.minecraft.world.GameMode.CREATIVE);f.module.aimAutonomous(f.root);c.assertTrue(motor(f)==0&&f.module.fireAutonomous(f.root)==0,"an old cached target cannot authorize tracking or fire after a mode change");
+    }finally{f.close();}c.complete();});});}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-ai-copy",tickLimit=170)
+    public void aSavedReferenceCopyCannotCommandOrDetachTheActualModule(TestContext c){admitted(c,f->{f.root.setAutopilot(true);c.waitAndRun(3,()->{try{
+        var copy=SkyUfoTurret.read(f.module.write());double before=motor(f);boolean gravity=f.head.physicsGravity();var v=f.head.physics().linearVelocity();var l=f.head.physics().angularMomentum();copy.aim(f.root,-1);
+        c.assertTrue(motor(f)==before,"serialized identity cannot grant an extra motor controller");copy.detach(f.root);copy.tick(f.root);c.assertTrue(f.head.physicsGravity()==gravity&&v.equals(f.head.physics().linearVelocity())&&l.equals(f.head.physics().angularMomentum())&&copy.fireAutonomous(f.root)==0,"a copied saved reference has no physical or firing authority");
+    }finally{f.close();}c.complete();});});}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-ai-detach",tickLimit=170)
+    public void breakingTheRealAnchorStopsAutonomyAndPreservesSeparationMotion(TestContext c){admitted(c,f->{f.root.setAutopilot(true);c.waitAndRun(3,()->{try{
+        var at=f.head.massPosition();var q=f.head.rotation();var v=f.head.physics().linearVelocity();var l=f.head.physics().angularMomentum();c.assertTrue(f.root.setLocalBlock(SkyUfoTurret.ROOF,net.minecraft.block.Blocks.AIR.getDefaultState()),"real material anchor cut");f.module.tick(f.root);f.module.aimAutonomous(f.root);
+        c.assertTrue(!f.module.connected(f.root)&&BodyJointRegistry.get(c.getWorld()).find(f.module.jointId()).isEmpty()&&f.head.physicsGravity()&&f.module.fireAutonomous(f.root)==0,"actual broken joint has no inherited autonomous authority");
+        c.assertTrue(at.equals(f.head.massPosition())&&q.equals(f.head.rotation())&&v.equals(f.head.physics().linearVelocity())&&l.equals(f.head.physics().angularMomentum()),"separation keeps the real child state");
+    }finally{f.close();}c.complete();});});}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-ai-guns",tickLimit=230)
+    public void missingModuleGunCellsCannotCreateInvisibleShotsOrReplacementMaterial(TestContext c){Fixture[] live={null};var seen=new HashSet<UUID>();c.runAtEveryTick(()->{if(live[0]!=null)for(var s:live[0].shots())seen.add(s.getUuid());});admitted(c,f->{live[0]=f;
+        f.head.setLocalBlock(SkyUfoTurret.LASER,net.minecraft.block.Blocks.AIR.getDefaultState());f.head.setLocalBlock(SkyUfoTurret.ROCKET,net.minecraft.block.Blocks.AIR.getDefaultState());f.root.setAutopilot(true);
+        c.waitAndRun(80,()->{try{c.assertTrue(seen.isEmpty()&&f.head.cells().size()==3&&f.module.connected(f.root),"autonomy cannot invent missing weapons or respawn the module");}finally{live[0]=null;f.close();}c.complete();});
+    });}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-ai-independent",tickLimit=310)
+    public void aDamagedCarrierStillUsesTheIndependentPhysicalYawMotor(TestContext c){Fixture[] live={null};var lasers=new HashSet<UUID>();var rockets=new HashSet<UUID>();c.runAtEveryTick(()->{if(live[0]!=null)for(var s:live[0].shots())(s.getMeshKind()==1?rockets:lasers).add(s.getUuid());});admitted(c,f->{live[0]=f;
+        for(var p:SkyUfoThrusters.SLOTS)f.root.setLocalBlock(p,net.minecraft.block.Blocks.AIR.getDefaultState());for(var p:SkyUfoWeapons.LASERS)f.root.setLocalBlock(p,net.minecraft.block.Blocks.AIR.getDefaultState());for(var p:SkyUfoWeapons.ROCKETS)f.root.setLocalBlock(p,net.minecraft.block.Blocks.AIR.getDefaultState());
+        f.target.setPosition(f.root.localToWorld(new Vec3d(30,5,12)));f.target.setVelocity(Vec3d.ZERO);f.target.setInvulnerable(true);var q=f.root.rotation();f.root.setAutopilot(true);
+        c.waitAndRun(180,()->{try{double rootTurn=2*Math.acos(Math.min(1,Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(q,f.root.rotation()))));double relative=2*Math.acos(Math.min(1,Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(f.root.rotation(),f.head.rotation()))));c.assertTrue(f.root.activeThrusters()==0&&rootTurn<.08&&relative>.5&&lasers.size()>=3&&rockets.size()>=1,"real motor fires independently without invisible hull thrust: "+rootTurn+" / "+relative+" / "+lasers.size()+" / "+rockets.size());}finally{live[0]=null;f.close();}c.complete();});
+    });}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-ai-observed-motion",tickLimit=170)
+    public void ordinaryPredictionUsesRealPacketMotionAndRejectsDiscontinuousTransfers(TestContext c){admitted(c,f->{
+        f.target.setVelocity(.4,-.2,.1);SkyUfoCombat.observePlayers(c.getWorld());var start=f.target.getPos();c.waitAndRun(1,()->{try{
+            var delta=new Vec3d(.2,.1,-.3);f.target.setPosition(start.add(delta));SkyUfoCombat.observePlayers(c.getWorld());c.assertTrue(SkyUfoCombat.targetVelocity(f.target).distanceTo(delta)<1e-8&&f.target.getVelocity().distanceTo(new Vec3d(.4,-.2,.1))<1e-8,"observed packet movement replaces stale prediction without editing physical velocity");SkyUfoCombat.observePlayers(c.getWorld());c.assertTrue(SkyUfoCombat.targetVelocity(f.target).distanceTo(delta)<1e-8,"one frame is observed once");
+            f.target.setPosition(f.target.getPos().add(100,0,0));f.target.setVelocity(Vec3d.ZERO);c.waitAndRun(1,()->{try{SkyUfoCombat.observePlayers(c.getWorld());c.assertTrue(SkyUfoCombat.targetVelocity(f.target).lengthSquared()==0,"a discontinuous transfer cannot become a target velocity");}finally{f.close();}c.complete();});
+        }catch(Throwable e){f.close();throw e;}});
+    });}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-ai-power",tickLimit=170)
+    public void reactorLossRemovesMotorPowerAndFiringWithoutResettingTheChild(TestContext c){admitted(c,f->{f.root.setAutopilot(true);c.waitAndRun(3,()->{try{
+        var v=f.head.physics().linearVelocity();var l=f.head.physics().angularMomentum();c.assertTrue(f.root.setLocalBlock(new BlockPos(0,1,0),net.minecraft.block.Blocks.AIR.getDefaultState()),"real reactor damage");f.module.aimAutonomous(f.root);f.module.tick(f.root);var link=BodyJointRegistry.get(c.getWorld()).find(f.module.jointId()).orElseThrow();
+        c.assertTrue(!f.root.hasPoweredReactor()&&link.speed()==0&&link.motorForce()==0&&f.module.fireAutonomous(f.root)==0&&f.head.passengerGravity().lengthSquared()==0,"a connected but unpowered module cannot receive hidden power or fire");c.assertTrue(v.equals(f.head.physics().linearVelocity())&&l.equals(f.head.physics().angularMomentum()),"power loss preserves material momentum");
+    }finally{f.close();}c.complete();});});}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-ai-cover",tickLimit=250)
+    public void actualCoverStopsTheModuleUntilTheSamePhysicalLaneReopens(TestContext c){Fixture[] live={null};var seen=new HashSet<UUID>();c.runAtEveryTick(()->{if(live[0]!=null)for(var s:live[0].shots())seen.add(s.getUuid());});admitted(c,f->{live[0]=f;
+        for(var p:SkyUfoThrusters.SLOTS)f.root.setLocalBlock(p,net.minecraft.block.Blocks.AIR.getDefaultState());f.target.setPosition(f.root.localToWorld(new Vec3d(.5,5,34)));f.target.setVelocity(Vec3d.ZERO);f.target.setInvulnerable(true);
+        c.assertTrue(SkyUfoCombat.clearShot(f.head,SkyUfoTurret.LASER,f.target,2.5,80),"actual unobstructed initial child barrel has a positive firing lane");var origin=BlockPos.ofFloored(SkyUfoWeapons.muzzle(f.head,SkyUfoTurret.LASER).add(0,0,12));var old=new HashMap<BlockPos,net.minecraft.block.BlockState>();for(int x=-1;x<=1;x++)for(int y=0;y<=2;y++){var p=origin.add(x,y,0);old.put(p,c.getWorld().getBlockState(p));c.getWorld().setBlockState(p,net.minecraft.block.Blocks.BEDROCK.getDefaultState(),3);}f.root.setAutopilot(true);
+        c.waitAndRun(40,()->{try{c.assertTrue(seen.isEmpty()&&f.module.connected(f.root),"real wall blocks both actual module guns for the complete window");old.forEach((p,s)->c.getWorld().setBlockState(p,s,3));c.waitAndRun(35,()->{try{c.assertTrue(!seen.isEmpty(),"same module naturally fires after the real wall is removed");}finally{live[0]=null;f.close();}c.complete();});}catch(Throwable e){old.forEach((p,s)->c.getWorld().setBlockState(p,s,3));live[0]=null;f.close();throw e;}});
+    });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ufo-turret-ai-natural",tickLimit=400)
     public void aRealInstalledModuleAimsAndFiresAtANaturalElevatedSideTarget(TestContext c){
         Fixture[] live={null};var lasers=new HashSet<UUID>();var rockets=new HashSet<UUID>();var rootLasers=new HashSet<UUID>();var rootRockets=new HashSet<UUID>();double[] angle={0},anchor={0};int[] observed={0};
