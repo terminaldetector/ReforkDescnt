@@ -26,7 +26,7 @@ import java.util.*;
 public final class NativeTurretReloadCheck {
     public static final boolean WRITE=Boolean.getBoolean("drmd.gate.turretReloadWrite"),READ=Boolean.getBoolean("drmd.gate.turretReloadRead");
     private static SkyUfoEntity root;private static BlockBodyEntity head;private static ServerPlayerEntity pilot;
-    private static UUID rootId,headId,jointId;private static volatile boolean registryExact,rootExact,headExact,writerActive,writerStop;
+    private static UUID rootId,headId,jointId;private static volatile boolean registryExact,rootExact,headExact,writerActive,writerStop,writerClosed;
     private static volatile int phase,writerSamples,lasers,rockets,aimPackets,firePackets,postSamples,barrierSamples,headDraws,exteriorDraws;
     private static int ticks,controlAge,imageFrames,aimTicks;private static boolean walkingDone,exteriorAimed,done;
     private static double maxAnchor,muzzleError,velocityError,angleTravel,brakedSpeed;private static Vec3d camera;private static int subjectPixels;
@@ -42,7 +42,7 @@ public final class NativeTurretReloadCheck {
         p.getInventory().selectedSlot=0;p.getInventory().setStack(0,new ItemStack(ModWorldBlocks.SHIP_TURRET_KIT));p.getInventory().markDirty();p.currentScreenHandler.sendContentUpdates();
         ServerTickEvents.END_SERVER_TICK.register(s->{
             if(root.turretModule().isEmpty())return;var t=root.turretModule().orElseThrow();head=t.body(root).orElseThrow();headId=entity(head).getUuid();jointId=t.jointId();
-            if(!writerActive)return;writerSamples++;require(t.connected(root)&&UfoControlSystem.controls(pilot,root),"writer remains physically attached and piloted");
+            if(!writerActive||writerClosed)return;writerSamples++;require(t.connected(root)&&UfoControlSystem.controls(pilot,root),"writer remains physically attached and piloted");
             if(writerSamples>=24&&lasers>=4&&rockets>=2&&root.physics().linearVelocity().length()>.1&&root.physics().angularVelocity().length()>.01){
                 var n=t.write();if(n.getInt("laserCooldown")>0&&n.getInt("rocketCooldown")>0)writerStop=true;
             }
@@ -55,7 +55,7 @@ public final class NativeTurretReloadCheck {
     public static void closeWriter(MinecraftClient c){
         require(writerStop&&head!=null,"writer saves after real mounted fire");
         write("turret-restart-ids.json","{\"root\":\""+rootId+"\",\"head\":\""+headId+"\",\"joint\":\""+jointId+"\"}");
-        NativeUfoReloadCheck.watch(rootId);c.scheduleStop();
+        NativeUfoReloadCheck.watch(rootId);writerClosed=true;c.scheduleStop();
     }
     public static void savedRoot(SkyUfoEntity b,NbtCompound n){
         if(!WRITE||!writerStop||!entity(b).getUuid().equals(rootId)||entity(b).getWorld().isClient)return;
@@ -82,7 +82,7 @@ public final class NativeTurretReloadCheck {
     public static void acceptedAim(ServerPlayerEntity p,UfoControlSystem.TurretInput in){if((WRITE&&writerActive||READ&&phase==2)&&p==pilot&&in.yaw()>.5)aimPackets++;}
     public static void acceptedFire(ServerPlayerEntity p,UfoControlSystem.Fire in){if((WRITE&&writerActive||READ&&phase==2)&&p==pilot&&(in.mask()&4)!=0)firePackets++;}
     public static void fired(WeaponCore.FireConfig cfg,ProjectileEntity shot){
-        if((!WRITE&&!READ)||shot==null||head==null||cfg.owner!=pilot)return;
+        if((!WRITE&&!READ)||WRITE&&writerClosed||shot==null||head==null||cfg.owner!=pilot)return;
         if(READ&&phase>=1&&phase<=2&&UfoControlSystem.controls(pilot,root)&&(SkyUfoWeapons.ROCKETS.stream().anyMatch(slot->SkyUfoWeapons.muzzle(root,slot).distanceTo(cfg.pos)<1e-8)))return;
         require(WRITE&&writerActive||READ&&(phase==2||phase==3),"no phantom trigger or stale pilot after restart");
         var slot=cfg.meshKind==1?SkyUfoTurret.ROCKET:SkyUfoTurret.LASER;var at=SkyUfoWeapons.muzzle(head,slot);var d=head.rotation().rotate(new Vec3(0,0,1));
