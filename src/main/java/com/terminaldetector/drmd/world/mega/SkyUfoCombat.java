@@ -17,7 +17,7 @@ import java.util.*;
 public final class SkyUfoCombat {
     private UUID target;private long nextSearch,prepared=Long.MIN_VALUE,lastFire=Long.MIN_VALUE;
     public static void register(){ServerTickEvents.END_WORLD_TICK.register(w->{for(var body:BodySpatialIndex.loaded(w))if(body instanceof SkyUfoEntity ufo)ufo.fireAutonomousWeapons();});}
-    public static boolean allowed(SkyUfoEntity b){return b.getWorld() instanceof ServerWorld w&&!b.isRemoved()&&b.hasPoweredReactor()&&b.autopilotEnabled()&&!UfoControlSystem.hasPilot(b)&&w.getDifficulty()!=Difficulty.PEACEFUL&&BodySpatialIndex.find(w,b.getId()).orElse(null)==b;}
+    public static boolean allowed(SkyUfoEntity b){return b.getWorld() instanceof ServerWorld w&&w.getServer().isOnThread()&&!b.isRemoved()&&b.hasPoweredReactor()&&b.autopilotEnabled()&&!UfoControlSystem.hasPilot(b)&&w.getDifficulty()!=Difficulty.PEACEFUL&&BodySpatialIndex.find(w,b.getId()).orElse(null)==b;}
     private static boolean eligible(SkyUfoEntity b,ServerPlayerEntity p){return p!=null&&p.getWorld()==b.getWorld()&&!p.isRemoved()&&p.isAlive()&&(p.interactionManager.getGameMode()==GameMode.SURVIVAL||p.interactionManager.getGameMode()==GameMode.ADVENTURE)&&!b.containsPos(p.getPos())&&p.getPos().squaredDistanceTo(b.physicsCentre())<=96*96;}
     public ServerPlayerEntity target(SkyUfoEntity b){return target==null?null:com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.players((ServerWorld)b.getWorld()).stream().filter(p->p.getUuid().equals(target)).findFirst().orElse(null);}
     public Vec3 prepare(SkyUfoEntity b){
