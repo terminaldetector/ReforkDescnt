@@ -4,7 +4,7 @@ import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
 import com.terminaldetector.drmd.weapon.core.InterceptAim;
 import com.terminaldetector.drmd.world.contraption.*;
 import com.terminaldetector.drmd.world.edit.WorldEditSafety;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.*;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -12,12 +12,32 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.*;
 import net.minecraft.world.*;
 import java.util.*;
+import java.lang.ref.WeakReference;
 
 /** Reference-UFO weapon controller; target intent never assigns physical poses or velocities. */
 public final class SkyUfoCombat {
     private UUID target;private long nextSearch,prepared=Long.MIN_VALUE,lastFire=Long.MIN_VALUE,selectedSince;private boolean rocketBattery;private int burst;
     private boolean modulePhase,moduleAim;private int moduleLasers,moduleRockets;private long moduleSince;
-    public static void register(){ServerTickEvents.END_WORLD_TICK.register(w->{for(var body:BodySpatialIndex.loaded(w))if(body instanceof SkyUfoEntity ufo)ufo.fireAutonomousWeapons();});}
+    private record Motion(WeakReference<ServerPlayerEntity> owner,Vec3d position,int tick,Vec3d observed){}
+    private static final Map<ServerWorld,Map<UUID,Motion>> MOTION=new WeakHashMap<>();
+    public static void register(){
+        ServerTickEvents.START_WORLD_TICK.register(SkyUfoCombat::observePlayers);
+        ServerLifecycleEvents.SERVER_STOPPED.register(s->MOTION.clear());ServerWorldEvents.UNLOAD.register((s,w)->MOTION.remove(w));
+        ServerTickEvents.END_WORLD_TICK.register(w->{for(var body:BodySpatialIndex.loaded(w))if(body instanceof SkyUfoEntity ufo)ufo.fireAutonomousWeapons();});
+    }
+    /** Ordinary ServerPlayers move through position packets; cached impulse velocity can persist. */
+    public static void observePlayers(ServerWorld world){
+        if(!world.getServer().isOnThread())throw new IllegalStateException("server-owned player motion observation required");
+        int tick=world.getServer().getTicks();var old=MOTION.getOrDefault(world,Map.of());var next=new HashMap<UUID,Motion>();
+        for(var p:com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.players(world)){
+            var before=old.get(p.getUuid());if(before!=null&&before.owner.get()==p&&before.tick==tick){next.put(p.getUuid(),before);continue;}
+            var delta=before==null?null:p.getPos().subtract(before.position);
+            // Unknown continuity, respawn and large transfers cannot become a predicted speed.
+            var observed=before!=null&&before.owner.get()==p&&tick-before.tick==1&&delta.lengthSquared()<=64?delta:null;
+            next.put(p.getUuid(),new Motion(new WeakReference<>(p),p.getPos(),tick,observed));
+        }
+        MOTION.put(world,next);
+    }
     public static boolean allowed(SkyUfoEntity b){return b.getWorld() instanceof ServerWorld w&&w.getServer().isOnThread()&&!b.isRemoved()&&b.hasPoweredReactor()&&b.autopilotEnabled()&&!UfoControlSystem.hasPilot(b)&&w.getDifficulty()!=Difficulty.PEACEFUL&&BodySpatialIndex.find(w,b.getId()).orElse(null)==b;}
     private static boolean eligible(SkyUfoEntity b,ServerPlayerEntity p){return p!=null&&p.getWorld()==b.getWorld()&&!p.isRemoved()&&p.isAlive()&&(p.interactionManager.getGameMode()==GameMode.SURVIVAL||p.interactionManager.getGameMode()==GameMode.ADVENTURE)&&!b.containsPos(p.getPos())&&p.getPos().squaredDistanceTo(b.physicsCentre())<=96*96;}
     public ServerPlayerEntity target(SkyUfoEntity b){return target==null?null:com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.players((ServerWorld)b.getWorld()).stream().filter(p->p.getUuid().equals(target)).findFirst().orElse(null);}
@@ -67,6 +87,10 @@ public final class SkyUfoCombat {
         var state=com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.state(p);
         if(state!=null&&com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.drives(p)){var v=state.velocity().scaled(.05);return new Vec3d(v.x(),v.y(),v.z());}
         var v=p.getVelocity();
+        if(!com.terminaldetector.drmd.DescentPlayerData.get(p).isEnabled()&&!com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(p)){
+            var sample=MOTION.getOrDefault(p.getServerWorld(),Map.of()).get(p.getUuid());
+            if(sample!=null&&sample.owner.get()==p&&sample.tick==p.getServer().getTicks()&&sample.observed!=null)return sample.observed;
+        }
         // Vanilla leaves -0.0784 after an ordinary floor collision. Extrapolating
         // it predicts a stationary target through the floor and prevents firing.
         // Boarding, local gravity, jumps and free 6DoF retain their real XYZ motion.
