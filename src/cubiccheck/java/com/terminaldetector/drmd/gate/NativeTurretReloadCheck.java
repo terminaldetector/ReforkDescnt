@@ -33,6 +33,7 @@ public final class NativeTurretReloadCheck {
     private static Quat relativeStart;private static NbtCompound expectedRoot;private static final List<String> scenes=new ArrayList<>();
     private static Vec3d idleLocal;private static int restoredOwnerSamples;private static double idleDrift,observerPositionError;
     private static float frameDelta;private static boolean projectedHead;private static double projectedX,projectedY;
+    private static int consoleApproachTicks;private static double initialConsoleDistance;
     private static net.minecraft.entity.Entity entity(net.minecraft.entity.Entity e){return e;}
     private static Path file(String n){return MinecraftClient.getInstance().runDirectory.toPath().resolve(n);}
     private static void require(boolean b,String why){if(!b){MinecraftClient.getInstance().scheduleStop();throw new IllegalStateException("Turret restart: "+why);}}
@@ -117,9 +118,10 @@ public final class NativeTurretReloadCheck {
         });
         ClientTickEvents.END_CLIENT_TICK.register(NativeTurretReloadCheck::tick);
     }
-    private static void aimConsole(MinecraftClient c){
-        var e=c.world.getEntityById(entity(root).getId());if(!(e instanceof SkyUfoEntity b))return;var view=BoardingClient.bodyView(b,1);var off=new Vec3(3.5,-.001,.5).minus(b.localCentre());
+    private static double aimConsole(MinecraftClient c){
+        var e=c.world.getEntityById(entity(root).getId());if(!(e instanceof SkyUfoEntity b))return Double.POSITIVE_INFINITY;var view=BoardingClient.bodyView(b,1);var off=new Vec3(3.5,-.001,.5).minus(b.localCentre());
         var at=view==null?b.localToWorld(new Vec3d(3.5,-.001,.5)):BoardingSystem.mc(view.position().plus(view.rotation().rotate(off)));var a=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(BoardingSystem.pure(at.subtract(c.player.getEyePos())));c.player.setYaw((float)a.yawDegrees());c.player.setPitch((float)a.pitchDegrees());
+        return pilot.getEyePos().distanceTo(root.localToWorld(new Vec3d(3.5,-.5,.5)));
     }
     private static Vec3d renderTarget(BlockBodyEntity b,float delta){
         // WorldRenderer interpolates lastRender*, whereas Entity.getLerpedPos uses
@@ -144,7 +146,13 @@ public final class NativeTurretReloadCheck {
     private static void tick(MinecraftClient c){
         if(done)return;if(++ticks>2400)require(false,"reader timeout phase="+phase+" root="+rootExact+" head="+headExact+" registry="+registryExact+" samples="+postSamples);
         if(c.player==null||c.world==null||!walkingDone)return;controlAge++;
-        if(phase==1){aimConsole(c);c.options.useKey.setPressed(true);if(UfoControlClient.active()&&UfoControlSystem.controls(pilot,root)){c.options.useKey.setPressed(false);phase=2;controlAge=0;DescentKeybinds.turretRight.setPressed(true);DescentKeybinds.auxiliary.setPressed(true);}}
+        if(phase==1){
+            double distance=aimConsole(c);if(initialConsoleDistance==0&&Double.isFinite(distance))initialConsoleDistance=distance;
+            boolean approach=!UfoControlClient.active()&&distance>3.25;c.options.forwardKey.setPressed(approach);c.options.useKey.setPressed(!approach);
+            if(approach){consoleApproachTicks++;require(consoleApproachTicks<=80,"ordinary approach must reach the real console within its existing interaction range");}
+            if(controlAge%20==0)System.out.println("TURRET_RESTART_CONSOLE distance="+distance+" approach="+consoleApproachTicks+" local="+root.worldToLocal(pilot.getPos()));
+            if(UfoControlClient.active()&&UfoControlSystem.controls(pilot,root)){c.options.forwardKey.setPressed(false);c.options.useKey.setPressed(false);phase=2;controlAge=0;DescentKeybinds.turretRight.setPressed(true);DescentKeybinds.auxiliary.setPressed(true);}
+        }
         else if(phase==2&&postSamples>=32&&lasers>=3&&rockets>=1&&aimPackets>=8&&firePackets>=8&&angleTravel>.25){DescentKeybinds.turretRight.setPressed(false);DescentKeybinds.auxiliary.setPressed(false);capture("post-load-controlled-fire");phase=3;controlAge=0;}
         else if(phase==3&&controlAge>=24&&brakedSpeed<.08){ClientPlayNetworking.send(new com.terminaldetector.drmd.network.ModNetworking.ActionPayload("toggle"));phase=4;controlAge=0;}
         else if(phase==4&&controlAge>=8&&!UfoControlClient.active()&&!UfoControlSystem.controls(pilot)){
@@ -166,6 +174,6 @@ public final class NativeTurretReloadCheck {
         var e=c.world.getEntityById(entity(head).getId());if(!(e instanceof BlockBodyEntity b))return;var f=c.gameRenderer.getCamera().getHorizontalPlane();var d=renderTarget(b,frameDelta).subtract(c.gameRenderer.getCamera().getPos()).normalize();if(d.dotProduct(new Vec3d(f.x,f.y,f.z))<.98)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){int n=0;for(int y=image.getHeight()/2-110;y<image.getHeight()/2+110;y++)for(int x=image.getWidth()/2-110;x<image.getWidth()/2+110;x++){int col=image.getColor(x,y),r=col&255,g=(col>>>8)&255,blue=(col>>>16)&255;if(r>50&&g>50&&blue>50&&Math.abs(r-g)<25&&Math.abs(g-blue)<25)n++;}if(n<256){imageFrames=0;return;}subjectPixels=n;if(++imageFrames<3)return;image.writeTo(file("turret-restart-module.png"));}
         catch(Exception failure){throw new IllegalStateException(failure);}require(rootExact&&headExact&&registryExact&&barrierSamples>=20,"all actual reload observations required");
-        var j=new com.google.gson.JsonObject();j.addProperty("actualHeadProjectionVerified",true);j.addProperty("headNdcX",projectedX);j.addProperty("headNdcY",projectedY);j.addProperty("observerPositionVerified",true);j.addProperty("observerPositionError",observerPositionError);j.addProperty("actualTwoProcessRestart",true);j.addProperty("rootExact",rootExact);j.addProperty("headExact",headExact);j.addProperty("registryExact",registryExact);j.addProperty("barrierCooldownSamples",barrierSamples);j.addProperty("restoredCarrierOwnerSamples",restoredOwnerSamples);j.addProperty("idleLocalDrift",idleDrift);j.addProperty("postLoadSamples",postSamples);j.addProperty("lasers",lasers);j.addProperty("rockets",rockets);j.addProperty("aimPackets",aimPackets);j.addProperty("firePackets",firePackets);j.addProperty("maxAnchorError",maxAnchor);j.addProperty("muzzleError",muzzleError);j.addProperty("launchVelocityError",velocityError);j.addProperty("relativeAngle",angleTravel);j.addProperty("brakedRelativeSpeed",brakedSpeed);j.addProperty("headRenderedFrames",headDraws);j.addProperty("exteriorRenderedFrames",exteriorDraws);j.addProperty("subjectPixels",subjectPixels);j.addProperty("noDuplicates",true);j.addProperty("postLoadControlRelease",true);write("turret-restart-ok.json",new com.google.gson.Gson().toJson(j));done=true;c.scheduleStop();
+        var j=new com.google.gson.JsonObject();j.addProperty("initialConsoleDistance",initialConsoleDistance);j.addProperty("consoleApproachTicks",consoleApproachTicks);j.addProperty("actualHeadProjectionVerified",true);j.addProperty("headNdcX",projectedX);j.addProperty("headNdcY",projectedY);j.addProperty("observerPositionVerified",true);j.addProperty("observerPositionError",observerPositionError);j.addProperty("actualTwoProcessRestart",true);j.addProperty("rootExact",rootExact);j.addProperty("headExact",headExact);j.addProperty("registryExact",registryExact);j.addProperty("barrierCooldownSamples",barrierSamples);j.addProperty("restoredCarrierOwnerSamples",restoredOwnerSamples);j.addProperty("idleLocalDrift",idleDrift);j.addProperty("postLoadSamples",postSamples);j.addProperty("lasers",lasers);j.addProperty("rockets",rockets);j.addProperty("aimPackets",aimPackets);j.addProperty("firePackets",firePackets);j.addProperty("maxAnchorError",maxAnchor);j.addProperty("muzzleError",muzzleError);j.addProperty("launchVelocityError",velocityError);j.addProperty("relativeAngle",angleTravel);j.addProperty("brakedRelativeSpeed",brakedSpeed);j.addProperty("headRenderedFrames",headDraws);j.addProperty("exteriorRenderedFrames",exteriorDraws);j.addProperty("subjectPixels",subjectPixels);j.addProperty("noDuplicates",true);j.addProperty("postLoadControlRelease",true);write("turret-restart-ok.json",new com.google.gson.Gson().toJson(j));done=true;c.scheduleStop();
     }
 }
