@@ -42,7 +42,7 @@ public final class NativeUfoAiCheck {
             if(age==1)require(Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(initial,body.rotation()))>.999,"first engine tick cannot snap orientation");
             if(phase==0)require(body.autonomousTarget().orElse(null)==player,"normal AI acquires actual Survival player without a target setter");
             if(phase==2){paused++;require(lasers+rockets==shotsAtPause,"disabled autopilot cannot emit a stale shot");pauseTravel=Math.max(pauseTravel,body.massPosition().minus(pauseAt).length());}
-            if(age%40==0)System.out.println("UFO_AI phase="+phase+" age="+age+" shots="+lasers+"/"+rockets+" hits="+hits+" aim="+bestDot+" distance="+body.physicsCentre().distanceTo(player.getPos()));
+            if(age%40==0)System.out.println("UFO_AI phase="+phase+" age="+age+" shots="+lasers+"/"+rockets+" hits="+hits+" aim="+bestDot+" distance="+body.physicsCentre().distanceTo(player.getPos())+" rotation="+body.rotation()+" angular="+body.physics().angularVelocity()+" targetMotion="+player.getVelocity()+" laserAim="+SkyUfoCombat.aim(body,SkyUfoWeapons.LASERS.getFirst(),player,2.5,80)+" laserClear="+SkyUfoCombat.clearShot(body,SkyUfoWeapons.LASERS.getFirst(),player,2.5,80)+" rocketClear="+SkyUfoCombat.clearShot(body,SkyUfoWeapons.ROCKETS.getFirst(),player,1.4,100));
         });
         ClientTickEvents.END_CLIENT_TICK.register(c->{
             if(done)return;require(++ticks<4800,"client timeout");com.terminaldetector.drmd.client.DescentClient.markUserFlightChoice();
