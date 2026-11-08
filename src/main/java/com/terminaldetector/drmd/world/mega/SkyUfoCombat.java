@@ -24,7 +24,7 @@ public final class SkyUfoCombat {
     public Vec3 prepare(SkyUfoEntity b){
         moduleAim=false;prepared=b.getWorld().getTime();if(!allowed(b)){target=null;return null;}
         var current=target(b);if(!eligible(b,current)){target=null;current=null;}
-        if(current==null&&prepared>=nextSearch){nextSearch=prepared+10;current=com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.players((ServerWorld)b.getWorld()).stream().filter(p->eligible(b,p)).min(Comparator.<ServerPlayerEntity>comparingDouble(p->p.getPos().squaredDistanceTo(b.physicsCentre())).thenComparing(p->p.getUuid().toString())).orElse(null);target=current==null?null:current.getUuid();rocketBattery=false;burst=0;selectedSince=prepared;}
+        if(current==null&&prepared>=nextSearch){nextSearch=prepared+10;current=com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.players((ServerWorld)b.getWorld()).stream().filter(p->eligible(b,p)).min(Comparator.<ServerPlayerEntity>comparingDouble(p->p.getPos().squaredDistanceTo(b.physicsCentre())).thenComparing(p->p.getUuid().toString())).orElse(null);target=current==null?null:current.getUuid();rocketBattery=false;modulePhase=false;burst=0;selectedSince=prepared;}
         if(current==null){modulePhase=false;return null;}
         var module=b.turretModule().filter(t->t.functional(b)).orElse(null);
         if(modulePhase&&(module==null||prepared-moduleSince>=160))endModule(prepared);
@@ -33,7 +33,7 @@ public final class SkyUfoCombat {
         // another parallel mount. A wall clock alone can starve a battery forever.
         boolean lasers=SkyUfoWeapons.LASERS.stream().anyMatch(p->b.getLocalBlock(p).isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER));
         boolean rockets=SkyUfoWeapons.ROCKETS.stream().anyMatch(p->b.getLocalBlock(p).isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET));
-        if(prepared-selectedSince>=160){rocketBattery=!rocketBattery;burst=0;selectedSince=prepared;}
+        if(prepared-selectedSince>=160){rocketBattery=!rocketBattery;burst=0;selectedSince=prepared;if(module!=null){startModule(prepared);moduleAim=true;return module.cooperativeAim(b,current);}}
         if(!lasers)rocketBattery=true;else if(!rockets)rocketBattery=false;
         var selected=preferredAim(b,rocketBattery,current);
         if(selected==null)selected=preferredAim(b,!rocketBattery,current);
@@ -75,13 +75,14 @@ public final class SkyUfoCombat {
     }
     public boolean ready(SkyUfoEntity b){return allowed(b)&&prepared==b.getWorld().getTime()&&lastFire!=prepared&&b.hasSimulatedPhysics()&&!b.boardingMotionPaused()&&eligible(b,target(b));}
     public void fired(SkyUfoEntity b){lastFire=b.getWorld().getTime();}
-    void emitted(SkyUfoEntity b,boolean rockets,int count){if(!modulePhase&&count>0&&rockets==rocketBattery){burst+=count;if(burst>=(rockets?1:3)){rocketBattery=!rocketBattery;burst=0;selectedSince=b.getWorld().getTime();if(rockets&&b.turretModule().filter(t->t.functional(b)).isPresent()){modulePhase=true;moduleLasers=0;moduleRockets=0;moduleSince=selectedSince;}}}}
+    void emitted(SkyUfoEntity b,boolean rockets,int count){if(!modulePhase&&count>0&&rockets==rocketBattery){burst+=count;if(burst>=(rockets?1:3)){rocketBattery=!rocketBattery;burst=0;selectedSince=b.getWorld().getTime();if(!rockets&&b.turretModule().filter(t->t.functional(b)).isPresent())startModule(selectedSince);}}}
     void moduleEmitted(SkyUfoEntity b,int mask){
         if(!modulePhase||mask==0)return;if((mask&1)!=0)moduleLasers++;if((mask&2)!=0)moduleRockets++;
         var child=b.turretModule().flatMap(t->t.body(b)).orElse(null);
         if(child==null||(moduleLasers>=3||!child.getLocalBlock(SkyUfoTurret.LASER).isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER))&&(moduleRockets>=1||!child.getLocalBlock(SkyUfoTurret.ROCKET).isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET)))endModule(b.getWorld().getTime());
     }
-    private void endModule(long now){modulePhase=false;rocketBattery=false;burst=0;selectedSince=now;}
+    private void startModule(long now){modulePhase=true;moduleLasers=0;moduleRockets=0;moduleSince=now;}
+    private void endModule(long now){modulePhase=false;burst=0;selectedSince=now;}
     public static boolean clearShot(BlockBodyEntity launcher,BlockPos slot,ServerPlayerEntity target,double speed,double life){
         var from=SkyUfoWeapons.muzzle(launcher,slot);var f=launcher.rotation().rotate(new Vec3(0,0,1));var launch=new Vec3d(f.x(),f.y(),f.z()).multiply(speed).add(launcher.surfaceVelocityAt(from).multiply(.05));
         var velocity=targetVelocity(target);var relative=launch.subtract(velocity);var r=target.getBoundingBox().getCenter().subtract(from);double length=relative.lengthSquared();if(length<1e-12)return false;
