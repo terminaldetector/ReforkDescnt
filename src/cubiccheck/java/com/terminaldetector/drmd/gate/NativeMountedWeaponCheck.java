@@ -40,7 +40,8 @@ public final class NativeMountedWeaponCheck {
     private static long offTick=Long.MIN_VALUE,lastLaser=Long.MIN_VALUE,lastRocket=Long.MIN_VALUE;
     private static int shotsAtOff;
     private static boolean requested,spawnRequested,capture,rootDrawn,rotorDrawn;
-    private static int ticks,age,frames,draws,pixelCount,approachTicks;
+    private static int ticks,age,frames,draws,pixelCount,approachTicks,lastJumpPress=-100;
+    private static boolean jumpHeld;
     private static String scene;
     private static final List<String> SCENES=new ArrayList<>();
     private static final Set<UUID> SHOTS=Collections.synchronizedSet(new HashSet<>());
@@ -104,7 +105,9 @@ public final class NativeMountedWeaponCheck {
         }
         if(located&&!spawnRequested&&loaded(c)){spawnRequested=true;c.getServer().execute(NativeMountedWeaponCheck::spawn);}
         if(!ready||!(c.world.getEntityById(e(root).getId()) instanceof BlockBodyEntity a)||!(c.world.getEntityById(e(rotor).getId()) instanceof BlockBodyEntity b)||!c.player.getMainHandStack().isOf(ModWorldBlocks.MECHANISM_WRENCH))return;
+        jumpHeld=c.options.jumpKey.isPressed();
         c.options.useKey.setPressed(false);c.options.sneakKey.setPressed(false);c.options.forwardKey.setPressed(false);c.options.backKey.setPressed(false);c.options.leftKey.setPressed(false);c.options.rightKey.setPressed(false);c.options.jumpKey.setPressed(false);
+        if(phase>=2)require(c.player.getAbilities().flying,"operator retains its initial ordinary Creative flight mode");
         var focus=phase>=3&&phase<=6?b:a;
         var look=phase>=3&&phase<=6?new Vec3(phase==4||phase==6?2.5:1.5,1.2,.5):new Vec3(-.5,.5,.5);
         aim(c,focus,capture?new Vec3(1.5,.5,.5):look);
@@ -134,13 +137,16 @@ public final class NativeMountedWeaponCheck {
         if(delta.length()<.85)return false;
         double yaw=Math.toRadians(c.player.getYaw()),forward=delta.x()*-Math.sin(yaw)+delta.z()*Math.cos(yaw),left=delta.x()*Math.cos(yaw)+delta.z()*Math.sin(yaw);
         c.options.forwardKey.setPressed(forward>.35);c.options.backKey.setPressed(forward<-.35);c.options.leftKey.setPressed(left>.35);c.options.rightKey.setPressed(left<-.35);
-        c.options.jumpKey.setPressed(delta.y()>.35);c.options.sneakKey.setPressed(delta.y()<-.35);approachTicks++;
+        // Separate upward key presses by more than vanilla's seven-tick double-tap window.
+        // Actual movement still belongs entirely to the ordinary Creative input path.
+        boolean jump=delta.y()>.35&&(jumpHeld||ticks-lastJumpPress>8);if(jump&&!jumpHeld)lastJumpPress=ticks;
+        c.options.jumpKey.setPressed(jump);c.options.sneakKey.setPressed(delta.y()<-.35);approachTicks++;
         return true;
     }
     private static void clickOff(MinecraftClient c,BlockBodyEntity body,BlockPos cell,boolean serverOn){
         var bounds=body.localBlockBounds().get(cell);aim(c,body,bounds.centre());
         if(!serverOn||!body.getLocalBlock(cell).get(Properties.POWERED)||age<12||age%8!=4)return;
-        var hit=BodyBlockInteraction.target(c.player,c.player.getEyePos(),c.player.getRotationVec(1),Math.min(16,c.player.getBlockInteractionRange()),candidate->{var view=BoardingClient.bodyView(candidate,1);return view==null?new BodyBlockInteraction.BodyPose(candidate.massPosition(),candidate.rotation()):new BodyBlockInteraction.BodyPose(view.position(),view.rotation());}).orElse(null);
+        var hit=BodyBlockInteraction.target(c.player,c.player.getEyePos(),BodyBlockInteraction.viewDirection(c.player),Math.min(16,c.player.getBlockInteractionRange()),candidate->{var view=BoardingClient.bodyView(candidate,1);return view==null?new BodyBlockInteraction.BodyPose(candidate.massPosition(),candidate.rotation()):new BodyBlockInteraction.BodyPose(view.position(),view.rotation());}).orElse(null);
         boolean matches=hit!=null&&hit.body()==body&&hit.hit().localBlock().equals(cell);
         System.out.println("MOUNTED_CLICK_OFF phase="+phase+" age="+age+" matchingMaterialRay="+matches+" hit="+hit);
         if(matches)c.options.useKey.setPressed(true);
@@ -148,7 +154,7 @@ public final class NativeMountedWeaponCheck {
     public static void input(boolean handled){if(ready&&!done)System.out.println("MOUNTED_CLIENT_USE phase="+phase+" age="+age+" handled="+handled);}
     public static void validated(ServerPlayerEntity p,BodyBlockInteraction.Edit edit,boolean accepted){
         if(!ready||done)return;
-        var ray=BodyBlockInteraction.target(p,p.getEyePos(),p.getRotationVec(1),Math.min(16,p.getBlockInteractionRange()));
+        var ray=BodyBlockInteraction.target(p,p.getEyePos(),BodyBlockInteraction.viewDirection(p),Math.min(16,p.getBlockInteractionRange()));
         System.out.println("MOUNTED_SERVER_USE phase="+phase+" accepted="+accepted+" edit="+edit+" ray="+ray+" yaw="+p.getYaw()+" head="+p.getHeadYaw()+" pitch="+p.getPitch());
     }
     public static void fired(WeaponCore.FireConfig cfg,ProjectileEntity shot){
@@ -177,7 +183,7 @@ public final class NativeMountedWeaponCheck {
                 }}if(pixels<3){frames=0;return;}pixelCount=Math.max(pixelCount,pixels);
             }
             if(++frames<3)return;var folder=c.runDirectory.toPath().resolve("mounted-mechanism-frames");Files.createDirectories(folder);image.writeTo(folder.resolve(scene+".png"));SCENES.add(scene);capture=false;
-            if(phase==9){var result=new LinkedHashMap<String,Object>();result.put("actualUseAndSneakKeys",true);result.put("fixtureSuppliedJointOrShots",false);result.put("ordinaryPhysicalGunOwner",true);result.put("lasers",lasers);result.put("rockets",rockets);result.put("maxMuzzleError",muzzleError);result.put("maxLaunchVelocityError",velocityError);result.put("maxAnchorError",maxError);result.put("maxRelativeAngle",maxAngle);result.put("stoppedTicks",stoppedTicks);result.put("preservedSpinAfterRelease",detached);result.put("projectileDrawCalls",draws);result.put("projectedShotPixels",pixelCount);result.put("frames",SCENES);Files.writeString(c.runDirectory.toPath().resolve("mounted-mechanisms-ok.json"),new com.google.gson.Gson().toJson(result));done=true;c.scheduleStop();}
+            if(phase==9){var result=new LinkedHashMap<String,Object>();result.put("actualUseAndSneakKeys",true);result.put("keyboardApproachTicks",approachTicks);result.put("operatorFollowTeleport",false);result.put("fixtureSuppliedJointOrShots",false);result.put("ordinaryPhysicalGunOwner",true);result.put("lasers",lasers);result.put("rockets",rockets);result.put("maxMuzzleError",muzzleError);result.put("maxLaunchVelocityError",velocityError);result.put("maxAnchorError",maxError);result.put("maxRelativeAngle",maxAngle);result.put("stoppedTicks",stoppedTicks);result.put("preservedSpinAfterRelease",detached);result.put("projectileDrawCalls",draws);result.put("projectedShotPixels",pixelCount);result.put("frames",SCENES);Files.writeString(c.runDirectory.toPath().resolve("mounted-mechanisms-ok.json"),new com.google.gson.Gson().toJson(result));done=true;c.scheduleStop();}
         }catch(java.io.IOException failure){throw new IllegalStateException(failure);}
     }
 }
