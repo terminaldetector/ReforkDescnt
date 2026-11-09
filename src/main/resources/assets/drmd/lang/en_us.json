@@ -363,5 +363,6 @@
   "message.drmd.mechanism.cancelled": "Assembly selection cancelled.",
   "message.drmd.mechanism.corner_selected": "First corner selected. Click the other corner to assemble; sneak-click cancels.",
   "message.drmd.mechanism.selection_blocked": "Cannot assemble: use a loaded, editable selection up to 16 × 16 × 16 without block entities.",
-  "message.drmd.mechanism.assembled": "Selected blocks assembled into a physical body."
+  "message.drmd.mechanism.assembled": "Selected blocks assembled into a physical body.",
+  "tooltip.drmd.mechanism.weapons": "Ship weapons: attach a lever to the barrel block; placement sets its firing direction."
 }

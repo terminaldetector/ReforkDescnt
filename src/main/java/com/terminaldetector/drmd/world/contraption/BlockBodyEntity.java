@@ -42,6 +42,8 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     private static final double MAX_ANGULAR_SPEED = 2;
     private D6Volume<BlockState> volume = new D6Volume<>(Blocks.AIR.getDefaultState());
     private List<Cell> cells = List.of();
+    private final com.terminaldetector.drmd.world.contraption.mechanism.BodyMountedWeapons mountedWeapons=new com.terminaldetector.drmd.world.contraption.mechanism.BodyMountedWeapons();
+    public com.terminaldetector.drmd.world.contraption.mechanism.BodyMountedWeapons mountedWeapons(){return mountedWeapons;}
     private List<Cell> visibleCells=List.of();
     private Map<BlockPos,Integer> faceMasks=Map.of();
     public List<Cell> visibleCells(){return visibleCells;}
@@ -89,7 +91,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     public void setPhysicsGravity(boolean value) {gravity=value;dataTracker.set(POSE,pose());}
     public boolean physicsGravity() {return gravity;}
-    public static boolean supports(BlockState state) {return state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock || SUPPORTED.contains(state.getBlock()) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_THRUSTER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
+    public static boolean supports(BlockState state) {return state.isOf(Blocks.LEVER) || state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock || SUPPORTED.contains(state.getBlock()) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_THRUSTER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
 
     public BlockBodyEntity(EntityType<? extends BlockBodyEntity> type, World world) {
         super(type, world); setNoGravity(true);
@@ -287,7 +289,8 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         for(Cell cell:cells) {
             if(dirty!=null&&!dirty.contains(cell.pos()))continue;
             BodyBounds bounds;
-            if(surface(cell)==null)bounds=new BodyBounds(new Vec3(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()),
+            if(cell.state().isOf(Blocks.LEVER))bounds=bounds(cell.state().getOutlineShape(net.minecraft.world.EmptyBlockView.INSTANCE,BlockPos.ORIGIN).getBoundingBox().offset(cell.pos()));
+            else if(surface(cell)==null)bounds=new BodyBounds(new Vec3(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()),
                 new Vec3(cell.pos().getX()+1,cell.pos().getY()+1,cell.pos().getZ()+1));
             else {
                 double x0=Double.POSITIVE_INFINITY,y0=x0,z0=x0,x1=-x0,y1=-x0,z1=-x0;
@@ -312,7 +315,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             for(int y=0;y<16;y++)for(int z=0;z<16;z++)for(int x=0;x<16;x++) {
                 if(cube.get(x,y,z).isAir())continue;
                 var pos=new BlockPos(section.minBlockX()+x,section.minBlockY()+y,section.minBlockZ()+z);
-                if(surfaces.containsKey(pos))shaped.add(cellBounds.get(pos));
+                if(surfaces.containsKey(pos)||cube.get(x,y,z).isOf(Blocks.LEVER))shaped.add(cellBounds.get(pos));
                 else solid.add(new CompoundCollider.Cell(pos.getX(),pos.getY(),pos.getZ()));
             }
             shaped.addAll(CompoundCollider.cells(solid).boxes());sections.put(key,new CompoundCollider(shaped));
@@ -375,12 +378,13 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             if(saved!=null){readNbt(saved);previousPhysicsPosition=savedPrevious;previousRotation=savedTurn;pendingTorque=savedTorque;physicsTick=savedTick;publishPhysicsState();}
             throw failure;
         }
+        mountedWeapons.materialChanged(this,fragments,changes.stream().map(LocalEdit::pos).toList());
         onLocalMaterialChanged(List.copyOf(fragments));return true;
     }
     /** Owner modules observe committed material edits, after the rollback boundary. */
     protected void onLocalMaterialChanged(List<BlockBodyEntity> fragments) {}
-    public boolean canUseLocalBlock(BlockPos local){return com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.usable(getLocalBlock(local));}
-    public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){return com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.use(player,this,local);}
+    public boolean canUseLocalBlock(BlockPos local){return getLocalBlock(local).isOf(Blocks.LEVER)||com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.usable(getLocalBlock(local));}
+    public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){return getLocalBlock(local).isOf(Blocks.LEVER)?com.terminaldetector.drmd.world.contraption.mechanism.BodyMountedWeapons.useLever(player,this,local):com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.use(player,this,local);}
     private record PreparedEdit(List<LocalEdit> edits,List<BlockBodyEntity> fragments){}
     private static BodyTopology.Cell topology(BlockPos p){return new BodyTopology.Cell(p.getX(),p.getY(),p.getZ());}
     /** Refuse before mutation when rebasing would require a velocity outside the admitted
@@ -539,6 +543,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     @Override protected void readCustomDataFromNbt(NbtCompound n) {
         loadShape(n.getCompound("shape")); readPose(n.getCompound("body"));
+        mountedWeapons.read(this,n.getCompound("mountedWeapons"));
         materialDamage.clear();var damage=n.getList("materialDamage",net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
         for(int i=0;i<Math.min(damage.size(),MAX_BLOCKS);i++) {
             var entry=damage.getCompound(i);var pos=BodyShapeCodec.unpack(entry.getInt("pos"));double amount=entry.getDouble("damage");
@@ -549,7 +554,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         resetShapeBaseline(); dataTracker.set(POSE, pose());BodySpatialIndex.update(this);
     }
     @Override protected void writeCustomDataToNbt(NbtCompound n) {
-        n.put("shape", shapeTag()); n.put("body", pose());
+        n.put("shape", shapeTag()); n.put("body", pose());n.put("mountedWeapons",mountedWeapons.write(this));
         var damage=new NbtList();
         materialDamage.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry->{var cell=new NbtCompound();cell.putInt("pos",BodyShapeCodec.pack(entry.getKey()));cell.putDouble("damage",entry.getValue());damage.add(cell);});
         n.put("materialDamage",damage);

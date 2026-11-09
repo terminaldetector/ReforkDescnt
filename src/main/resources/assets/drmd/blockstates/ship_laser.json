@@ -1,7 +1,34 @@
 {
   "variants": {
-    "": {
-      "model": "drmd:block/ship_laser"
+    "facing=south": {
+      "model": "drmd:block/ship_laser",
+      "x": 0,
+      "y": 0
+    },
+    "facing=north": {
+      "model": "drmd:block/ship_laser",
+      "x": 0,
+      "y": 180
+    },
+    "facing=east": {
+      "model": "drmd:block/ship_laser",
+      "x": 0,
+      "y": 270
+    },
+    "facing=west": {
+      "model": "drmd:block/ship_laser",
+      "x": 0,
+      "y": 90
+    },
+    "facing=up": {
+      "model": "drmd:block/ship_laser",
+      "x": 90,
+      "y": 0
+    },
+    "facing=down": {
+      "model": "drmd:block/ship_laser",
+      "x": 270,
+      "y": 0
     }
   }
 }

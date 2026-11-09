@@ -46,13 +46,13 @@ public final class ModWorldBlocks {
 			new TrapBlocks.MagneticAnomalyBlock(AbstractBlock.Settings.copy(Blocks.LODESTONE).ticksRandomly()));
 
 	public static final Block SHIP_LASER = registerBlock("ship_laser",
-            new Block(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f).luminance(state -> 5)));
+            new com.terminaldetector.drmd.world.contraption.mechanism.MountedWeaponBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f).luminance(state -> 5)));
     public static final Block MECHANICAL_BEARING=registerBlock("mechanical_bearing",
             new com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));
     public static final Block ROTARY_DRIVE=registerBlock("rotary_drive",
             new com.terminaldetector.drmd.world.contraption.mechanism.RotaryDriveBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));
     public static final Block SHIP_ROCKET = registerBlock("ship_rocket",
-            new Block(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));
+            new com.terminaldetector.drmd.world.contraption.mechanism.MountedWeaponBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));
 
 	public static final Block SHIP_THRUSTER = registerBlock("ship_thruster",
 			new Block(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f).luminance(state -> 6)));

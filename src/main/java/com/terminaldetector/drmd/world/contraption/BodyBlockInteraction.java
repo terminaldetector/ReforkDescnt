@@ -127,7 +127,12 @@ public final class BodyBlockInteraction {
         var state=item.getBlock().getDefaultState();
         // Orient existing vanilla pillar states in the local grid; world UP cannot orient a ship log.
         if(state.contains(net.minecraft.state.property.Properties.AXIS))state=state.with(net.minecraft.state.property.Properties.AXIS,t.hit().localFace().getAxis());
-        if(state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock)state=state.with(net.minecraft.state.property.Properties.FACING,t.hit().localFace());
+        if(state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock||state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MountedWeaponBlock)state=state.with(net.minecraft.state.property.Properties.FACING,t.hit().localFace());
+        if(state.isOf(net.minecraft.block.Blocks.LEVER)){
+            var face=t.hit().localFace();
+            state=state.with(net.minecraft.state.property.Properties.BLOCK_FACE,face==net.minecraft.util.math.Direction.UP?net.minecraft.block.enums.WallMountLocation.FLOOR:face==net.minecraft.util.math.Direction.DOWN?net.minecraft.block.enums.WallMountLocation.CEILING:net.minecraft.block.enums.WallMountLocation.WALL);
+            if(face.getAxis().isHorizontal())state=state.with(net.minecraft.state.property.Properties.HORIZONTAL_FACING,face);
+        }
         if(!new BlockBodyWorldAccess(t.body()).placeLocalBlock(t.hit().localBlock().offset(t.hit().localFace()),state))return false;
         if(!creative(p)){stack.decrement(1);p.getInventory().markDirty();}return true;
     }
