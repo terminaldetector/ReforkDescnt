@@ -78,17 +78,25 @@ public final class ScenePresentation {
     public static boolean deferOverlay(WorldRenderContext context,Consumer<WorldRenderContext> render){
         if(active==null||OffscreenWorldView.busy())return false;
         active.overlays.add(new Overlay(OverlayContext.copy(context),render,new Matrix4f(RenderSystem.getProjectionMatrix()),
-                new Matrix4f(RenderSystem.getModelViewMatrix()),RenderSystem.getVertexSorting()));return true;
+                new Matrix4f(RenderSystem.getModelViewMatrix()),RenderSystem.getVertexSorting(),GL11.glIsEnabled(GL11.GL_DEPTH_TEST),
+                GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK),GL11.glIsEnabled(GL11.GL_CULL_FACE),GL11.glIsEnabled(GL11.GL_BLEND)));return true;
     }
-    private record Overlay(OverlayContext context,Consumer<WorldRenderContext> render,Matrix4f projection,Matrix4f modelView,VertexSorter sorting){
+    private static void depth(boolean enabled){if(enabled)RenderSystem.enableDepthTest();else RenderSystem.disableDepthTest();}
+    private static void cull(boolean enabled){if(enabled)RenderSystem.enableCull();else RenderSystem.disableCull();}
+    private static void blend(boolean enabled){if(enabled)RenderSystem.enableBlend();else RenderSystem.disableBlend();}
+    private record Overlay(OverlayContext context,Consumer<WorldRenderContext> render,Matrix4f projection,Matrix4f modelView,VertexSorter sorting,
+                           boolean depthTest,boolean depthWrite,boolean culling,boolean blending){
         void draw(){
             var before=new Matrix4f(RenderSystem.getProjectionMatrix());var sortingBefore=RenderSystem.getVertexSorting();var shader=RenderSystem.getShader();
+            boolean oldDepth=GL11.glIsEnabled(GL11.GL_DEPTH_TEST),oldWrite=GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK),oldCull=GL11.glIsEnabled(GL11.GL_CULL_FACE),oldBlend=GL11.glIsEnabled(GL11.GL_BLEND);
             var stack=RenderSystem.getModelViewStack();stack.pushMatrix();
             try{
-                stack.set(modelView);RenderSystem.applyModelViewMatrix();RenderSystem.setProjectionMatrix(projection,sorting);RenderSystem.enableDepthTest();
+                stack.set(modelView);RenderSystem.applyModelViewMatrix();RenderSystem.setProjectionMatrix(projection,sorting);
+                depth(depthTest);RenderSystem.depthMask(depthWrite);cull(culling);blend(blending);
                 render.accept(context);
                 if(context.consumers() instanceof VertexConsumerProvider.Immediate immediate)immediate.draw();
-            }finally{stack.popMatrix();RenderSystem.applyModelViewMatrix();RenderSystem.setProjectionMatrix(before,sortingBefore);RenderSystem.setShader(()->shader);}
+            }finally{stack.popMatrix();RenderSystem.applyModelViewMatrix();RenderSystem.setProjectionMatrix(before,sortingBefore);RenderSystem.setShader(()->shader);
+                depth(oldDepth);RenderSystem.depthMask(oldWrite);cull(oldCull);blend(oldBlend);}
         }
     }
     public static final class Frame implements AutoCloseable{
@@ -97,18 +105,19 @@ public final class ScenePresentation {
         private final SceneTargets scene;
         private final SceneTargets.Borrow borrowed;
         private final PresentationProfile profile;
-        private final int polygonMode;
+        private final int[] polygonModes=new int[2];
         private final List<Overlay> overlays=new ArrayList<>();
         private boolean complete;
         private Frame(MinecraftClient client,Framebuffer output,SceneTargets scene,SceneTargets.Borrow borrowed,PresentationProfile profile){
             this.client=client;this.output=output;this.scene=scene;this.borrowed=borrowed;this.profile=profile;
-            polygonMode=GL11.glGetInteger(GL11.GL_POLYGON_MODE);
+            GL11.glGetIntegerv(GL11.GL_POLYGON_MODE,polygonModes);
             if(profile==PresentationProfile.RENDER_DEBUG)GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK,GL11.GL_LINE);
         }
         public void complete(){complete=true;}
         @Override public void close(){
             try{
-                GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK,polygonMode);
+                if(polygonModes[0]==polygonModes[1])GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK,polygonModes[0]);
+                else{GL11.glPolygonMode(GL11.GL_FRONT,polygonModes[0]);GL11.glPolygonMode(GL11.GL_BACK,polygonModes[1]);}
                 try{if(complete&&scene!=null)scene.compositeOutlines(client);}
                 finally{
                     if(borrowed!=null)borrowed.close();((ViewFramebufferAccess)client).drmd$framebuffer(output);output.beginWrite(true);active=null;

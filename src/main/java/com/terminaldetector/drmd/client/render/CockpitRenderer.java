@@ -41,7 +41,6 @@ public final class CockpitRenderer {
 			if (mc.player == null || mc.options == null) return;
 			if (!DescentConfig.cockpit || !DescentClientState.enabled || mc.currentScreen != null) return;
 			if (!mc.options.getPerspective().isFirstPerson() || mc.options.hudHidden) return;
-            if(com.terminaldetector.drmd.client.presentation.ScenePresentation.deferOverlay(context,CockpitRenderer::render))return;
 
 			// Never hard-gate on attitude — prime if cold so the frame is not permanently missing.
 			if (!ShipAttitudeClient.isPrimed() || !DescentClientState.attitudeValid) {
@@ -51,6 +50,7 @@ public final class CockpitRenderer {
 
 			var matrices = context.matrixStack();
 			if (matrices == null) return;
+            if(com.terminaldetector.drmd.client.presentation.ScenePresentation.deferOverlay(context,CockpitRenderer::render))return;
 
 			var att = ShipAttitudeClient.get();
 			Vec3d f = att.forward();

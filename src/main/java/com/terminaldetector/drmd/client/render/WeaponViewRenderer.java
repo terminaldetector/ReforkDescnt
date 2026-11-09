@@ -40,7 +40,6 @@ public final class WeaponViewRenderer {
             if(com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())return;
 			MinecraftClient mc = MinecraftClient.getInstance();
             if(!replacesVanillaHand(mc))return;
-            if(com.terminaldetector.drmd.client.presentation.ScenePresentation.deferOverlay(context,WeaponViewRenderer::render))return;
 
 			ItemStack stack = com.terminaldetector.drmd.client.input.DroneCombatInput.primary(mc);
 			if (!(stack.getItem() instanceof DescentWeaponItem wep)) return;
@@ -51,6 +50,7 @@ public final class WeaponViewRenderer {
 			MatrixStack matrices = context.matrixStack();
 			VertexConsumerProvider consumers = context.consumers();
 			if (matrices == null || consumers == null) return;
+            if(com.terminaldetector.drmd.client.presentation.ScenePresentation.deferOverlay(context,WeaponViewRenderer::render))return;
 
 			matrices.push();
 			// Camera-relative: origin at eye, looking down -Z in view space via camera transform already applied.
