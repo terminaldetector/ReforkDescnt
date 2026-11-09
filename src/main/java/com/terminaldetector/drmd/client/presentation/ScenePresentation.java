@@ -57,6 +57,7 @@ public final class ScenePresentation {
             last=new Stats(profile,output.textureWidth,output.textureHeight,output.textureWidth,output.textureHeight,0,frames,fallbackFrames,false);return null;
         }
         if(client.world==null||client.gameRenderer.isRenderingPanorama()||active!=null||OffscreenWorldView.busy())return null;
+        if(client.getWindow().getFramebufferWidth()<=0||client.getWindow().getFramebufferHeight()<=0)return null;
         if(profile==PresentationProfile.RENDER_DEBUG){active=new Frame(client,output,null,null,profile);return active;}
         var size=PresentationSize.fit(output.textureWidth,output.textureHeight,DescentConfig.ps1SceneHeight,RenderSystem.maxSupportedTextureSize());
         if(!size.valid()||failed){fallbackFrames++;return null;}

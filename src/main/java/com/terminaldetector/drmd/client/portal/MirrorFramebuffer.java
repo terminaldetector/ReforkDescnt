@@ -47,6 +47,7 @@ public final class MirrorFramebuffer {
         if(!com.terminaldetector.drmd.client.config.DescentConfig.mirrorReflection
                 && !com.terminaldetector.drmd.client.config.DescentConfig.portalSeeThrough)return null;
 		MinecraftClient mc = MinecraftClient.getInstance();
+        if(mc.getWindow().getFramebufferWidth()<=0||mc.getWindow().getFramebufferHeight()<=0)return null;
         // The current outer target can be the PS1 scene. Projection/scissor coordinates
         // and the reflected target must use that same raster, never the UI/window size.
 		int w = mc.getFramebuffer().textureWidth;
@@ -82,11 +83,11 @@ public final class MirrorFramebuffer {
 	 * the target to.
 	 */
 	public static int width() {
-		return MinecraftClient.getInstance().getFramebuffer().textureWidth;
+        var mc=MinecraftClient.getInstance();return mc.getWindow().getFramebufferWidth()<=0?0:mc.getFramebuffer().textureWidth;
 	}
 
 	/** Height the next render will use — see {@link #width()}. */
 	public static int height() {
-		return MinecraftClient.getInstance().getFramebuffer().textureHeight;
+        var mc=MinecraftClient.getInstance();return mc.getWindow().getFramebufferHeight()<=0?0:mc.getFramebuffer().textureHeight;
 	}
 }
