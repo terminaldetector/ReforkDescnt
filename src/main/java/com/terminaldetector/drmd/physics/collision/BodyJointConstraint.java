@@ -27,7 +27,7 @@ public final class BodyJointConstraint {
         }
     }
     private static final Vec3 ZERO=new Vec3(0,0,0),X=new Vec3(1,0,0),Y=new Vec3(0,1,0),Z=new Vec3(0,0,1);
-    private final D6PhysicsBody a,b;private final Vec3 ra,rb;private final Config config;private final double seconds;
+    private final D6PhysicsBody a,b;private final Vec3 ra,rb;private final Config config;private final double seconds,strengthSeconds,biasSeconds;
     private final List<Row> rows=new ArrayList<>();private Vec3 linearImpulse=ZERO,angularImpulse=ZERO;private boolean broken;
     private final class Row {
         final Vec3 axis;final boolean angular;final double bias,target,lower,upper,denominator;double impulse;
@@ -40,7 +40,7 @@ public final class BodyJointConstraint {
             Vec3 relative=angular?b.angularVelocity().minus(a.angularVelocity()):b.velocityAtPoint(rb).minus(a.velocityAtPoint(ra));
             double next=Math.max(lower,Math.min(upper,impulse-(relative.dot(axis)-target+bias)/denominator));
             Vec3 delta=axis.scaled(next-impulse),candidate=(angular?angularImpulse:linearImpulse).plus(delta);
-            if(candidate.length()>(angular?config.breakTorque:config.breakForce)*seconds+1e-12){broken=true;return;}
+            if(candidate.length()>(angular?config.breakTorque:config.breakForce)*strengthSeconds+1e-12){broken=true;return;}
             impulse=next;
             if(angular){angularImpulse=candidate;angular(a,delta.scaled(-1));angular(b,delta);}
             else {linearImpulse=candidate;if(a.mass()>1e-9)a.applyImpulse(delta.scaled(-1),ra);if(b.mass()>1e-9)b.applyImpulse(delta,rb);}
@@ -55,14 +55,20 @@ public final class BodyJointConstraint {
     }
     /** Contact-time continuation repairs the existing passive attachment and hard stops,
      * without applying another motor/actuator budget for the already integrated tick. */
-    public static BodyJointConstraint passiveContinuation(D6PhysicsBody a,D6PhysicsBody b,Config c,double seconds) {
+    public static BodyJointConstraint passiveContinuation(D6PhysicsBody a,D6PhysicsBody b,Config c,double seconds,double frameSeconds) {
+        if(!Double.isFinite(frameSeconds)||frameSeconds<seconds||frameSeconds>.05)throw new IllegalArgumentException("bounded enclosing contact frame required");
         var passive=new Config(c.kind==Kind.MOTOR?Kind.HINGE:c.kind,c.anchorA,c.anchorB,c.frameA,c.frameB,
             c.lower,c.upper,0,0,c.breakForce,c.breakTorque);
-        return new BodyJointConstraint(a,b,passive,seconds,true);
+        // A CCD split can leave nanoseconds of physical time. Its instantaneous impact is
+        // still a load in this frame, not an infinite force or a new stabilization frequency.
+        return new BodyJointConstraint(a,b,passive,seconds,true,frameSeconds,Math.max(seconds,frameSeconds/16));
     }
     private BodyJointConstraint(D6PhysicsBody a,D6PhysicsBody b,Config config,double seconds,boolean correctPosition) {
+        this(a,b,config,seconds,correctPosition,seconds,seconds);
+    }
+    private BodyJointConstraint(D6PhysicsBody a,D6PhysicsBody b,Config config,double seconds,boolean correctPosition,double strengthSeconds,double biasSeconds) {
         if(a==null||b==null||a==b||!Double.isFinite(seconds)||seconds<=0||seconds>.05)throw new IllegalArgumentException("distinct bodies and bounded step required");
-        this.a=a;this.b=b;this.config=Objects.requireNonNull(config);this.seconds=seconds;
+        this.a=a;this.b=b;this.config=Objects.requireNonNull(config);this.seconds=seconds;this.strengthSeconds=strengthSeconds;this.biasSeconds=biasSeconds;
         Vec3 wa=a.position().plus(a.rotation().rotate(config.anchorA)),wb=b.position().plus(b.rotation().rotate(config.anchorB));
         BodyBounds.finite(wa);BodyBounds.finite(wb);
         // Equal/opposite loads meet at the joint, retaining total angular momentum even while
@@ -90,9 +96,9 @@ public final class BodyJointConstraint {
         }
     }
     private static Quat multiply(Quat a,Quat b){return ImmPtlQuaternions.hamiltonProduct(a,b).normalized();}
-    private void linear(Vec3 axis,double error){row(axis,false,clamp(.2*error/seconds,20),0,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY);}
-    private void angular(Vec3 axis,double error){row(axis,true,clamp(.2*error/seconds,4),0,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY);}
-    private double limitBias(double error,boolean violated){return clamp((violated?.2:1)*error/seconds,20);}
+    private void linear(Vec3 axis,double error){row(axis,false,clamp(.2*error/biasSeconds,20),0,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY);}
+    private void angular(Vec3 axis,double error){row(axis,true,clamp(.2*error/biasSeconds,4),0,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY);}
+    private double limitBias(double error,boolean violated){return clamp((violated?.2:1)*error/biasSeconds,20);}
     private static double clamp(double value,double limit){return Math.max(-limit,Math.min(limit,value));}
     private void row(Vec3 axis,boolean angular,double bias,double target,double lower,double upper){rows.add(new Row(axis,angular,bias,target,lower,upper));}
     private static double angularDenominator(D6PhysicsBody body,Vec3 axis){var inverse=body.worldInverseInertia();return body.mass()<=1e-9||inverse==null?0:axis.dot(inverse.transform(axis));}

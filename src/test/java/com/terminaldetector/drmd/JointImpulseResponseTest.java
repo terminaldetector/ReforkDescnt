@@ -39,4 +39,12 @@ class JointImpulseResponseTest {
         assertTrue(p(a).plus(p(b)).minus(pa).length()<1e-9&&a.angularMomentum().minus(la).length()<1e-9&&b.angularMomentum().minus(lb).length()<1e-9,"pose advancement must retain the already solved impulses");
         assertTrue(a.position().plus(a.rotation().rotate(new Vec3(1,0,0))).minus(b.position().plus(b.rotation().rotate(new Vec3(-1,0,0)))).length()<.001,"material anchors continue with the projected contact velocities");
     }
+    @Test void aTinyCcdRemainderDoesNotTurnAnOrdinaryImpactIntoAnInfiniteBreakingLoad(){
+        var a=body(1000,ZERO);var b=body(5,new Vec3(0,2,0));b.applyImpulse(new Vec3(0,0,-160),ZERO);var before=p(a).plus(p(b));
+        var contact=BodyJointConstraint.passiveContinuation(a,b,config(50000),1e-7,.05);for(int i=0;i<32;i++)contact.solve();
+        assertFalse(contact.broken(),"the impact strength belongs to the enclosing physics frame, not its CCD remainder");
+        assertTrue(p(a).plus(p(b)).minus(before).length()<1e-8,"the passive continuation preserves real linear momentum");
+        var weakA=body(1000,ZERO);var weakB=body(5,new Vec3(0,2,0));weakB.applyImpulse(new Vec3(0,0,-160),ZERO);
+        var overload=BodyJointConstraint.passiveContinuation(weakA,weakB,config(1),1e-7,.05);for(int i=0;i<32;i++)overload.solve();assertTrue(overload.broken(),"actual overload still breaks the finite joint");
+    }
 }

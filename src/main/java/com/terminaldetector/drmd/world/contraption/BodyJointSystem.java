@@ -59,7 +59,7 @@ public final class BodyJointSystem {
             var constraints=new LinkedHashMap<UUID,BodyJointConstraint>();
             for(var link:links)if(registry.find(link.id()).isPresent()){
                 var a=bodies.get(link.a().body());var b=bodies.get(link.b().body());
-                if(a!=null&&b!=null)constraints.put(link.id(),BodyJointConstraint.passiveContinuation(a.physics(),b.physics(),link.bind(a,b),dt));
+                if(a!=null&&b!=null)constraints.put(link.id(),BodyJointConstraint.passiveContinuation(a.physics(),b.physics(),link.bind(a,b),dt,.05));
             }
             for(int pass=0;pass<32;pass++)for(var constraint:constraints.values())constraint.solve();
             boolean available=true;for(var entry:bodies.entrySet())if(!entry.getValue().integrateJointPose(dt,saved.get(entry.getKey())))available=false;
