@@ -106,7 +106,7 @@ public final class BodyJointSystem {
                     }
                     for(int pass=0;pass<32;pass++)for(var constraint:constraints.values())constraint.solve();
                     double rate=0;
-                    for(var body:bodies.values())rate=Math.max(rate,Math.min(512,body.physics().linearVelocity().length())+Math.min(2,body.physics().angularVelocity().length())*body.radius());
+                    for(var body:bodies.values())rate=Math.max(rate,body.physics().linearVelocity().length()+body.physics().angularVelocity().length()*body.radius());
                     if(!Double.isFinite(rate))throw new IllegalStateException("non-finite joint island velocity");
                     if(rate*dt>.150000001) {
                         for(var e:bodies.entrySet())e.getValue().restoreJointStep(saved.get(e.getKey()));dt=Math.min(dt*.5,.135/rate);continue;

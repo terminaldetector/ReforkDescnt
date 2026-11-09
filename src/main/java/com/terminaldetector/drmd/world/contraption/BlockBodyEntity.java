@@ -729,10 +729,10 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
 
     /** Joint-island phase: force integration, shared constraints, then terrain-checked pose. */
     public void integrateJointForces(double seconds,Vec3 torque) {
-        if(gravity)body.applyForce(gravityDirection().scaled(9.81*body.mass()));body.applyTorque(torque);body.integrateForces(seconds);
+        if(gravity)body.applyForce(gravityDirection().scaled(9.81*body.mass()));body.applyTorque(torque);body.integrateForces(seconds);body.limitMotion();
     }
     public boolean integrateJointPose(double seconds,D6PhysicsBody.Snapshot before) {
-        body.integratePose(seconds);boolean collision=blocked();if(collisionUnavailable)return false;
+        body.integrateSolvedPose(seconds);boolean collision=blocked();if(collisionUnavailable)return false;
         if(collision&&!(gravity&&gravityContacts(before.position(),before.rotation(),gravityDirection().scaled(-1))))
             body.withPosition(before.position()).withRotation(before.rotation()).withLinearVelocity(new Vec3(0,0,0)).withAngularMomentum(new Vec3(0,0,0));
         return true;

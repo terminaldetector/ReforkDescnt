@@ -284,6 +284,12 @@ public final class D6PhysicsBody {
     public void integratePose(double seconds) {
         if (!Double.isFinite(seconds)) throw new IllegalArgumentException("non-finite timestep");
         if (seconds <= 0) return;
+		limitMotion();
+        integrateSolvedPose(seconds);
+    }
+
+    /** Limit the unconstrained motion before a contact/joint impulse solve. */
+    public void limitMotion() {
 		linearVelocity = clamped(linearVelocity, maxSpeed);
 
 		Vec3 angular = angularVelocity();
@@ -294,9 +300,15 @@ public final class D6PhysicsBody {
 			angularMomentum = worldInertia().transform(limited);
 			angular = limited;
 		}
+    }
 
+    /** Advance an already projected constraint solution. A late per-body clamp would
+     * invalidate its shared contact-point velocities and discard angular momentum. */
+    public void integrateSolvedPose(double seconds) {
+        if (!Double.isFinite(seconds)) throw new IllegalArgumentException("non-finite timestep");
+        if (seconds <= 0) return;
 		position = position.plus(linearVelocity.scaled(seconds));
-		integrateRotation(angular, seconds);
+		integrateRotation(angularVelocity(), seconds);
 	}
 
     /** Opaque bounded-step rollback, including unconsumed forces and quaternion bookkeeping. */

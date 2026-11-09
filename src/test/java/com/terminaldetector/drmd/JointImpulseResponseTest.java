@@ -27,4 +27,16 @@ class JointImpulseResponseTest {
         var a=body(1000,ZERO);var b=body(5,new Vec3(0,2,0));b.applyImpulse(new Vec3(0,0,-160),ZERO);var p=p(a).plus(p(b));
         var c=BodyJointConstraint.velocityOnly(a,b,config(1),.05);for(int i=0;i<32;i++)c.solve();assertTrue(c.broken());assertTrue(p.minus(p(a).plus(p(b))).length()<1e-8);
     }
+    @Test void projectedContactMotionIsNotClampedAgainDuringPoseIntegration(){
+        var a=new D6PhysicsBody().withMass(1).withInertia(D6Mat3.diagonal(1,1,1)).withLimits(1000,1);
+        var b=new D6PhysicsBody().withMass(1).withInertia(D6Mat3.diagonal(1,1,1)).withLimits(1000,1).withPosition(new Vec3(2,0,0));
+        b.applyImpulse(new Vec3(0,0,20),new Vec3(0,1,0));a.limitMotion();b.limitMotion();
+        var config=new BodyJointConstraint.Config(BodyJointConstraint.Kind.FIXED,new Vec3(1,0,0),new Vec3(-1,0,0),Quat.IDENTITY,Quat.IDENTITY,0,0,0,0,Double.POSITIVE_INFINITY,Double.POSITIVE_INFINITY);
+        var constraint=new BodyJointConstraint(a,b,config,.001);for(int i=0;i<64;i++)constraint.solve();
+        assertTrue(a.angularVelocity().length()>1||b.angularVelocity().length()>1,"the contact solution legitimately contains orbital angular momentum above a free-motion cap");
+        var pa=p(a).plus(p(b));var la=a.angularMomentum();var lb=b.angularMomentum();
+        a.integrateSolvedPose(.001);b.integrateSolvedPose(.001);
+        assertTrue(p(a).plus(p(b)).minus(pa).length()<1e-9&&a.angularMomentum().minus(la).length()<1e-9&&b.angularMomentum().minus(lb).length()<1e-9,"pose advancement must retain the already solved impulses");
+        assertTrue(a.position().plus(a.rotation().rotate(new Vec3(1,0,0))).minus(b.position().plus(b.rotation().rotate(new Vec3(-1,0,0)))).length()<.001,"material anchors continue with the projected contact velocities");
+    }
 }
