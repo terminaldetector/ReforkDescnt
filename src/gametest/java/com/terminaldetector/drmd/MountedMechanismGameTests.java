@@ -18,7 +18,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.*;
 import net.minecraft.world.GameMode;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 /** Existing physical barrels, real lever material and the production post-contact schedule. */
 public final class MountedMechanismGameTests implements FabricGameTest {
@@ -42,12 +42,16 @@ public final class MountedMechanismGameTests implements FabricGameTest {
     private List<ProjectileEntity> shots(TestContext c,BlockBodyEntity b){return c.getWorld().getEntitiesByClass(ProjectileEntity.class,b.getBoundingBox().expand(256),p->p.getOwnerEntity()==b);}
     private void clean(TestContext c,BlockBodyEntity b){for(var shot:shots(c,b))shot.discard();BodyJointRegistry.get(c.getWorld()).removeBody(b.getUuid());b.discard();}
     private ServerPlayerEntity player(TestContext c,BlockBodyEntity b){var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.setPosition(b.localToWorld(new Vec3d(.5,-1,-2)));return p;}
-    private void admitted(TestContext c,Consumer<AiFixtureChunks> run){
-        var base=c.getAbsolutePos(new BlockPos(8,220,8));var lease=new AiFixtureChunks(c.getWorld(),base,3);boolean[] started={false};int[] ticks={0};
+    private void admitted(TestContext c,Function<AiFixtureChunks,Runnable> setup){
+        var base=c.getAbsolutePos(new BlockPos(8,220,8));var lease=new AiFixtureChunks(c.getWorld(),base,3);boolean[] started={false};int[] ticks={0};Runnable[] scene={null};
+        // Register once: adding another runAtEveryTick from inside this callback mutates
+        // GameTestState's active Fastutil task map while it is being iterated.
         c.runAtEveryTick(()->{
-            if(started[0])return;
-            if(!lease.entityTicking(base.add(-32,0,-32),base.add(32,0,32))){if(++ticks[0]<80)return;started[0]=true;lease.close();c.assertTrue(false,"mounted fixture needs actual entity-ticking columns");return;}
-            started[0]=true;try{run.accept(lease);}catch(Throwable failure){lease.close();throw failure;}
+            if(!started[0]){
+                if(!lease.entityTicking(base.add(-32,0,-32),base.add(32,0,32))){if(++ticks[0]<80)return;started[0]=true;lease.close();c.assertTrue(false,"mounted fixture needs actual entity-ticking columns");return;}
+                started[0]=true;try{scene[0]=setup.apply(lease);}catch(Throwable failure){lease.close();throw failure;}
+            }
+            if(scene[0]!=null)scene[0].run();
         });
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-direction")
@@ -104,7 +108,7 @@ public final class MountedMechanismGameTests implements FabricGameTest {
     public void realPostContactScheduleUsesIndependentLaserRocketCooldownsAndOffDoesNotResetThem(TestContext c){admitted(c,lease->{
         var cells=heavy(mount(false,Direction.SOUTH,true));var rocket=new BlockPos(3,0,0);cells.put(rocket,gun(true,Direction.SOUTH));cells.put(rocket.north(),lever(Direction.SOUTH,true));
         var b=body(c,cells,at(c),Quat.IDENTITY);long start=c.getTick();long[] first={-1};int[] previous={0};var times=new ArrayList<Long>();
-        c.runAtEveryTick(()->{
+        return ()->{
             if(b.isRemoved())return;int lasers=(int)shots(c,b).stream().filter(s->s.getMeshKind()==0).count();
             if(lasers>previous[0]){times.add(c.getTick());previous[0]=lasers;if(first[0]<0)first[0]=c.getTick();}
             if(first[0]>=0&&c.getTick()==first[0]+1)b.setLocalBlock(new BlockPos(0,0,-1),lever(Direction.SOUTH,false));
@@ -116,29 +120,29 @@ public final class MountedMechanismGameTests implements FabricGameTest {
                 for(int i=1;i<times.size();i++)c.assertTrue(times.get(i)-times.get(i-1)>=8,"off/on cannot reset a gun's eight-tick material cooldown");
                 c.assertTrue(BodyMountedWeapons.stats(c.getWorld()).checks()<=64&&BodyMountedWeapons.stats(c.getWorld()).shots()<=32,"world work remains bounded");
             }finally{clean(c,b);lease.close();}c.complete();
-        });
+        };
     });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-real-hit",tickLimit=160)
     public void ordinaryLeverPoweredBodyDamagesARealEntityWithoutAFakePilot(TestContext c){admitted(c,lease->{
         var origin=at(c);var b=body(c,heavy(mount(false,Direction.SOUTH,true)),origin,Quat.IDENTITY);
         var target=EntityType.ZOMBIE.create(c.getWorld());target.setAiDisabled(true);target.setNoGravity(true);target.setPosition(origin.add(.5,-.5,8.5));c.assertTrue(c.getWorld().spawnEntity(target),"real damage target");long started=c.getTick();
-        c.runAtEveryTick(()->{
+        return ()->{
             if(b.isRemoved())return;if(target.getHealth()>=20&&c.getTick()-started<30)return;
             try{c.assertTrue(target.getHealth()<20,"naturally scheduled physical-body projectile causes real damage: health="+target.getHealth());}
             finally{target.discard();clean(c,b);lease.close();}c.complete();
-        });
+        };
     });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-off",tickLimit=150)
     public void offAndUnattachedLeversNeverCreateScheduledShots(TestContext c){admitted(c,lease->{
         var b=body(c,heavy(mount(false,Direction.SOUTH,false)),at(c),Quat.IDENTITY);long start=c.getTick();
-        c.runAtEveryTick(()->{if(b.isRemoved())return;if(c.getTick()-start==12){c.assertTrue(shots(c,b).isEmpty(),"default off weapon has no autonomous trigger");b.setLocalBlock(new BlockPos(0,0,-1),lever(Direction.NORTH,true));}if(c.getTick()-start<24)return;try{c.assertTrue(shots(c,b).isEmpty(),"powered lever mounted away from the gun cannot emit scheduled shots");}
-            finally{clean(c,b);lease.close();}c.complete();});
+        return ()->{if(b.isRemoved())return;if(c.getTick()-start==12){c.assertTrue(shots(c,b).isEmpty(),"default off weapon has no autonomous trigger");b.setLocalBlock(new BlockPos(0,0,-1),lever(Direction.NORTH,true));}if(c.getTick()-start<24)return;try{c.assertTrue(shots(c,b).isEmpty(),"powered lever mounted away from the gun cannot emit scheduled shots");}
+            finally{clean(c,b);lease.close();}c.complete();};
     });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-fragment-state",tickLimit=170)
     public void gunCooldownFollowsActualMaterialIntoAFragmentAndSurvivesItsCodecRoundTrip(TestContext c){admitted(c,lease->{
         var cells=new LinkedHashMap<BlockPos,BlockState>();for(int x=-2;x<=1;x++)cells.put(new BlockPos(x,0,0),Blocks.IRON_BLOCK.getDefaultState());var slot=new BlockPos(2,0,0);cells.put(slot,gun(false,Direction.SOUTH));cells.put(slot.north(),lever(Direction.SOUTH,true));
         var b=body(c,cells,at(c),Quat.IDENTITY);long start=c.getTick();
-        c.runAtEveryTick(()->{
+        return ()->{
             if(b.isRemoved())return;var saved=b.mountedWeapons().write(b);if(saved.getList("cooldowns",NbtElement.COMPOUND_TYPE).isEmpty()&&c.getTick()-start<20)return;
             var before=new HashSet<>(BodySpatialIndex.loaded(c.getWorld()));BlockBodyEntity fragment=null;
             try{
@@ -149,7 +153,7 @@ public final class MountedMechanismGameTests implements FabricGameTest {
                 c.assertTrue(b.mountedWeapons().write(b).getList("cooldowns",NbtElement.COMPOUND_TYPE).isEmpty(),"former parent cannot keep duplicate firing authority");
                 var read=new BodyMountedWeapons();read.read(fragment,after);c.assertTrue(read.write(fragment).equals(after),"actual material codec restores its timer without a live-body alias");
             }finally{if(fragment!=null)clean(c,fragment);clean(c,b);lease.close();}c.complete();
-        });
+        };
     });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-budget",tickLimit=180)
     public void boundedWorldBudgetEventuallyServesEveryIndependentArmedBody(TestContext c){admitted(c,lease->{
@@ -159,14 +163,14 @@ public final class MountedMechanismGameTests implements FabricGameTest {
                 var slot=new BlockPos(x*2,0,z*3);cells.put(slot,gun(false,Direction.SOUTH));cells.put(slot.north(),lever(Direction.SOUTH,true));
             }bodies.add(body(c,cells,origin.add(0,0,k*20),Quat.IDENTITY));
         }
-        c.runAtEveryTick(()->{
+        return ()->{
             if(bodies.getFirst().isRemoved())return;
             var stats=BodyMountedWeapons.stats(c.getWorld());c.assertTrue(stats.checks()<=64&&stats.shots()<=32,"real production per-world admission bounds");
             for(var b:bodies)if(!b.mountedWeapons().write(b).getList("cooldowns",NbtElement.COMPOUND_TYPE).isEmpty())fired.add(b.getUuid());
             if(fired.size()<3&&c.getTick()-start<20)return;
             try{c.assertTrue(fired.size()==3,"bounded schedule serves all three actual weapon bodies without starvation");}
             finally{bodies.forEach(b->clean(c,b));lease.close();}c.complete();
-        });
+        };
     });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-placement")
     public void survivalPlacementUsesLocalBarrelAxisOnARolledBody(TestContext c){
@@ -207,7 +211,7 @@ public final class MountedMechanismGameTests implements FabricGameTest {
         var middle=body(c,Map.of(GUN,ModWorldBlocks.MECHANICAL_BEARING.getDefaultState().with(Properties.FACING,Direction.WEST),new BlockPos(1,0,0),ModWorldBlocks.MECHANICAL_BEARING.getDefaultState().with(Properties.FACING,Direction.UP),new BlockPos(1,-1,0),ModWorldBlocks.ROTARY_DRIVE.getDefaultState().with(Properties.FACING,Direction.UP).with(Properties.POWER,5)),origin.add(1,0,0),Quat.IDENTITY);
         var tip=body(c,Map.of(GUN,ModWorldBlocks.MECHANICAL_BEARING.getDefaultState().with(Properties.FACING,Direction.DOWN),new BlockPos(0,1,0),gun(false,Direction.SOUTH),new BlockPos(0,1,-1),lever(Direction.SOUTH,true)),origin.add(2,1,0),Quat.IDENTITY);
         c.assertTrue(MechanicalBearingSystem.connect(c.getWorld(),root,GUN,middle,GUN)&&MechanicalBearingSystem.connect(c.getWorld(),middle,new BlockPos(1,0,0),tip,GUN),"ordinary parts create two independent axes");long start=c.getTick();var initial=tip.rotation();
-        c.runAtEveryTick(()->{
+        return ()->{
             if(root.isRemoved()||c.getTick()-start<20)return;
             try{
                 c.assertTrue(!shots(c,tip).isEmpty()&&shots(c,root).isEmpty()&&shots(c,middle).isEmpty(),"real post-contact shots belong to the physical armed tip");
@@ -216,6 +220,6 @@ public final class MountedMechanismGameTests implements FabricGameTest {
                 for(var link:links){var a=link.a().body().equals(root.getUuid())?root:middle;var b=link.b().body().equals(tip.getUuid())?tip:middle;
                     var pa=link.a().point();var pb=link.b().point();c.assertTrue(a.localToWorld(new Vec3d(pa.x(),pa.y(),pa.z())).distanceTo(b.localToWorld(new Vec3d(pb.x(),pb.y(),pb.z())))<.03,"post-shot passive reconciliation preserves actual anchors");}
             }finally{clean(c,tip);clean(c,middle);clean(c,root);lease.close();}c.complete();
-        });
+        };
     });}
 }
