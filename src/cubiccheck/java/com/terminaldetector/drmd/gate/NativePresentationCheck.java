@@ -39,6 +39,7 @@ public final class NativePresentationCheck {
     private static volatile boolean located,ready,requestedFixture,done;
     private static boolean requested,witness,originalHybrid,exceptionRestored;
     private static volatile int phase;
+    private static volatile int outlineEntity;
     private static int ticks,frames;
     private static long geometryHash;
     private NativePresentationCheck(){}
@@ -66,6 +67,8 @@ public final class NativePresentationCheck {
         for(int x=-7;x<=7;x++)for(int z=0;z<=8;z++)world.setBlockState(BASE.add(x,-1,z),Blocks.IRON_BLOCK.getDefaultState(),2);
         for(int x=-7;x<=7;x++)for(int y=0;y<=8;y++)world.setBlockState(BASE.add(x,y,-4),Blocks.GOLD_BLOCK.getDefaultState(),2);
         for(int x=-2;x<=-1;x++)for(int y=0;y<=3;y++)world.setBlockState(BASE.add(x,y,6),ModWorldBlocks.MIRROR.getDefaultState().with(net.minecraft.state.property.Properties.FACING,Direction.NORTH),2);
+        var husk=new net.minecraft.entity.mob.HuskEntity(net.minecraft.entity.EntityType.HUSK,world);husk.setAiDisabled(true);husk.setGlowing(true);husk.refreshPositionAndAngles(BASE.getX()+3.5,BASE.getY(),BASE.getZ()+5.5,180,0);
+        require(world.spawnEntity(husk),"real glowing actor for outline target coverage");outlineEntity=husk.getId();
         player.setStackInHand(Hand.MAIN_HAND,new ItemStack(ModItems.LASER));player.getInventory().markDirty();player.currentScreenHandler.sendContentUpdates();
         var data=DescentPlayerData.get(player);FlightSystem.enableWithoutMount(player,data);data.setFlightVelocity(Vec3d.ZERO);data.setShipAttitude(0,0,1,0,1,0);
         geometryHash=hash();ready=true;
@@ -107,6 +110,7 @@ public final class NativePresentationCheck {
     }
     public static void rendered(){
         if(!ENABLED||!ready||done)return;var c=MinecraftClient.getInstance();if(c.currentScreen!=null||!DescentClientState.enabled||!WeaponViewRenderer.replacesVanillaHand(c)||!witness)return;
+        var outlined=c.world.getEntityById(outlineEntity);if(outlined==null||!outlined.isGlowing())return;
         var state=ScenePresentation.stats();var wanted=PROFILES[phase];int width=phase==4?960:1280,height=phase==4?540:720;
         if(state.profile()!=wanted||state.outputWidth()!=width||state.outputHeight()!=height)return;
         require(!state.inWorldPass()&&c.getFramebuffer().textureWidth==width&&c.getFramebuffer().textureHeight==height,"main framebuffer restored before HUD/frame capture");
