@@ -20,7 +20,7 @@ public final class BodyEditClient {
   &&ClientPlayNetworking.canSend(BodyBlockInteraction.Edit.ID);}
  private static BodyBlockInteraction.Target target(MinecraftClient c){
   if(owner!=c.player){owner=c.player;lastMine=lastPlace=-100;mining=null;}
-  return eligible(c)?BodyBlockInteraction.target(c.player,c.player.getEyePos(),c.player.getRotationVec(1),Math.min(16,c.player.getBlockInteractionRange()),b->{
+  return eligible(c)?BodyBlockInteraction.target(c.player,c.player.getEyePos(),BodyBlockInteraction.viewDirection(c.player),Math.min(16,c.player.getBlockInteractionRange()),b->{
    var predicted=BoardingClient.bodyView(b,1);return predicted==null?new BodyBlockInteraction.BodyPose(b.massPosition(),b.rotation()):new BodyBlockInteraction.BodyPose(predicted.position(),predicted.rotation());
   }).orElse(null):null;
  }

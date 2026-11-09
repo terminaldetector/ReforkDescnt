@@ -29,7 +29,11 @@ public final class MechanismGameTests implements FabricGameTest {
         public void close(){registry().removeBody(a.getUuid());registry().removeBody(b.getUuid());a.discard();b.discard();}
     }
     private Pair pair(TestContext c,Quat rotation){
-        var at=origin(c);var offset=rotation.rotate(new Vec3(1,0,0));
+        return pair(c,rotation,origin(c));
+    }
+    private Pair pair(TestContext c,Quat rotation,Vec3d at){
+        for(int x=-1;x<=1;x++)for(int z=-1;z<=1;z++)c.getWorld().getChunk((MathHelper.floor(at.x)>>4)+x,(MathHelper.floor(at.z)>>4)+z);
+        var offset=rotation.rotate(new Vec3(1,0,0));
         var a=BlockBodyEntity.createLocal(c.getWorld(),List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,bearing(Direction.EAST)),new BlockBodyEntity.Cell(DRIVE,drive(Direction.EAST,15))),at,rotation,Vec3d.ZERO,Vec3d.ZERO);
         var b=BlockBodyEntity.createLocal(c.getWorld(),List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,bearing(Direction.WEST)),new BlockBodyEntity.Cell(new BlockPos(1,0,0),Blocks.IRON_BLOCK.getDefaultState())),at.add(offset.x(),offset.y(),offset.z()),rotation,Vec3d.ZERO,Vec3d.ZERO);
         a.setPhysicsGravity(false);b.setPhysicsGravity(false);return new Pair(c,a,b);
@@ -159,8 +163,14 @@ public final class MechanismGameTests implements FabricGameTest {
         }finally{f.registry().removeBody(child.getUuid());child.discard();f.close();}c.complete();});
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mechanism-placement")
-    public void survivalPlacementPacketOrientsSeparateDriveInTheActualHitLocalFrame(TestContext c){
-        var f=pair(c,ImmPtlQuaternions.rotationByRadians(new Vec3(0,0,1),.7));
+    public void survivalPlacementPacketOrientsSeparateDriveInTheActualHitLocalFrame(TestContext c)throws Exception{
+        verifyPlacement(c,pair(c,ImmPtlQuaternions.rotationByRadians(new Vec3(0,0,1),.7)));
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="mechanism-placement-replay")
+    public void survivalPlacementReplaysTheExactPreviouslyRejectedWorldCoordinates(TestContext c)throws Exception{
+        verifyPlacement(c,pair(c,ImmPtlQuaternions.rotationByRadians(new Vec3(0,0,1),.7),new Vec3d(7603783,90,5662252)));
+    }
+    private void verifyPlacement(TestContext c,Pair f)throws Exception{
         var p=player(c,f.a.localToWorld(new Vec3d(.5,-1,2.8)));p.changeGameMode(GameMode.SURVIVAL);
         try{
             var delta=f.a.localToWorld(new Vec3d(.5,.5,.5)).subtract(p.getEyePos()).normalize();
@@ -171,7 +181,14 @@ public final class MechanismGameTests implements FabricGameTest {
             c.assertTrue(target.body()==f.a,"authoritative ray selects actual rolled carrier material");
             p.setStackInHand(Hand.MAIN_HAND,new ItemStack(ModWorldBlocks.ROTARY_DRIVE,2));p.setSneaking(true);
             var hit=target.hit();var edit=new BodyBlockInteraction.Edit(f.a.getUuid(),hit.revision(),hit.localBlock(),BodyBlockInteraction.PLACE);
-            c.assertTrue(BodyBlockInteraction.receive(p,edit),"normal validated placement packet installs a real independent drive block: hit="+hit+" current="+BodyBlockInteraction.target(p,p.getEyePos(),p.getRotationVec(1),p.getBlockInteractionRange())+" otherEntities="+BodySpatialIndex.otherEntities(c.getWorld(),f.a,f.a.getBoundingBox().expand(4),e->e.isAlive())+" player="+p.getBoundingBox());
+            boolean edited=BodyBlockInteraction.receive(p,edit);
+            if(!edited){
+                var validator=BodyBlockInteraction.class.getDeclaredMethod("validated",net.minecraft.server.network.ServerPlayerEntity.class,BodyBlockInteraction.Edit.class);validator.setAccessible(true);
+                var placement=hit.localBlock().offset(hit.localFace());var shape=new com.terminaldetector.drmd.physics.collision.BodyBounds(new Vec3(placement.getX(),placement.getY(),placement.getZ()),new Vec3(placement.getX()+1,placement.getY()+1,placement.getZ()+1));
+                var cube=com.terminaldetector.drmd.physics.collision.OrientedBox.local(shape,f.a.massPosition(),f.a.localCentre(),f.a.rotation());
+                System.out.println("PLACEMENT_REPLAY validated="+validator.invoke(null,p,edit)+" view="+BodyBlockInteraction.viewDirection(p)+" animated="+p.getRotationVec(1)+" loaded="+f.a.collisionRegionAvailable(new Box(cube.bounds().min().x(),cube.bounds().min().y(),cube.bounds().min().z(),cube.bounds().max().x(),cube.bounds().max().y(),cube.bounds().max().z()))+" otherContacts="+f.b.collisionQuery().contacts(cube,0));
+            }
+            c.assertTrue(edited,"normal validated placement packet installs a real independent drive block: hit="+hit+" current="+BodyBlockInteraction.target(p,p.getEyePos(),BodyBlockInteraction.viewDirection(p),p.getBlockInteractionRange())+" otherEntities="+BodySpatialIndex.otherEntities(c.getWorld(),f.a,f.a.getBoundingBox().expand(4),e->e.isAlive())+" player="+p.getBoundingBox());
             var placed=f.a.getLocalBlock(hit.localBlock().offset(hit.localFace()));
             c.assertTrue(placed.isOf(ModWorldBlocks.ROTARY_DRIVE)&&placed.get(MechanicalBearingBlock.FACING)==hit.localFace(),"drive axis follows local surface rather than global UP");
             c.assertTrue(p.getMainHandStack().getCount()==1,"Survival construction consumes exactly one held component");

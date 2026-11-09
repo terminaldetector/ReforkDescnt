@@ -51,6 +51,9 @@ public final class BodyBlockInteraction {
     public static Optional<Target> target(PlayerEntity p,Vec3d from,Vec3d direction,double reach) {
         return target(p,from,direction,reach,b->new BodyPose(b.massPosition(),b.rotation()));
     }
+    /** Player camera/network angles own interaction aim; animated LivingEntity head yaw may lag.
+     * Keep the existing gravity-aware rotation-vector method, without its head interpolation. */
+    public static Vec3d viewDirection(PlayerEntity player){return player.getRotationVector(player.getPitch(),player.getYaw());}
     public static Optional<Target> target(PlayerEntity p,Vec3d from,Vec3d direction,double reach,java.util.function.Function<BlockBodyEntity,BodyPose> pose) {
         if(!Double.isFinite(from.lengthSquared())||!Double.isFinite(direction.lengthSquared())||!Double.isFinite(reach)||reach<=0||reach>64||direction.lengthSquared()<1e-8)return Optional.empty();
         Vec3d to=from.add(direction.normalize().multiply(reach));
@@ -77,7 +80,7 @@ public final class BodyBlockInteraction {
     }
     private static Optional<Target> validated(ServerPlayerEntity p,Edit e) {
         if(p.isSpectator()||!p.isAlive()||p.hasVehicle()||!(creative(p)||p.interactionManager.getGameMode()==GameMode.SURVIVAL))return Optional.empty();
-        var target=target(p,p.getEyePos(),p.getRotationVec(1),Math.min(16,p.getBlockInteractionRange()));
+        var target=target(p,p.getEyePos(),viewDirection(p),Math.min(16,p.getBlockInteractionRange()));
         if(target.isEmpty())return Optional.empty();var t=target.get();
         if(!t.body().getUuid().equals(e.body)||t.hit().revision()!=e.revision||!t.hit().localBlock().equals(e.local)
             ||!p.getServerWorld().canPlayerModifyAt(p,BlockPos.ofFloored(t.hit().worldPoint().x(),t.hit().worldPoint().y(),t.hit().worldPoint().z())))return Optional.empty();
