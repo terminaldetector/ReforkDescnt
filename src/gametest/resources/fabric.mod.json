@@ -64,7 +64,8 @@
       "com.terminaldetector.drmd.UfoAiGameTests",
       "com.terminaldetector.drmd.UfoTurretAiGameTests",
       "com.terminaldetector.drmd.MechanismGameTests",
-      "com.terminaldetector.drmd.MountedMechanismGameTests"
+      "com.terminaldetector.drmd.MountedMechanismGameTests",
+      "com.terminaldetector.drmd.ArmedContactGameTests"
     ]
   },
   "depends": {
