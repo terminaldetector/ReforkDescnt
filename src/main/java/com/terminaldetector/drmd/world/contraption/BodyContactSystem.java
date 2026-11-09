@@ -32,6 +32,7 @@ public final class BodyContactSystem {
     public static void register(){
         ServerTickEvents.END_WORLD_TICK.register(BodyContactSystem::solve);
         ServerWorldEvents.UNLOAD.register((server,world)->LAST.remove(world));
+        ServerLifecycleEvents.SERVER_STOPPED.register(server->BearingContactGeometry.clear());
     }
     public static Stats stats(ServerWorld world){return LAST.getOrDefault(world,new Stats(0,0,false));}
     public static int solve(ServerWorld world) {
@@ -40,6 +41,7 @@ public final class BodyContactSystem {
         var frames=new ArrayList<Frame>();for(var body:BodySpatialIndex.loaded(world))if(!body.cells().isEmpty())frames.add(new Frame(body));
         var byBody=new HashMap<UUID,Frame>();for(var frame:frames)byBody.put(frame.body.getUuid(),frame);
         var index=new AabbTree<Frame>();for(var frame:frames)update(index,frame);
+        var pairGeometry=new HashMap<Pair,BearingContactGeometry>();
         var changed=new LinkedHashSet<BlockBodyEntity>();var ignored=new HashSet<Pair>();var resolved=new HashSet<Pair>();
         int collisions=0,tested=0;double remaining=.05;boolean paused=false;
         int eventBudget=MAX_CONTACT_TIMES_PER_BODY*Math.max(1,frames.size());
@@ -47,7 +49,7 @@ public final class BodyContactSystem {
             Candidate first=null;
             for(var a:frames)for(var b:near(index,a)) {
                 if(b.id()<=a.id()||!a.dynamic&&!b.dynamic||ignored.contains(new Pair(a.id(),b.id()))||!joints.collisionAllowed(a.body.getUuid(),b.body.getUuid()))continue;
-                tested++;var hit=BodyPairQuery.impact(a.motion,b.motion);
+                tested++;var hit=pairGeometry.computeIfAbsent(new Pair(a.id(),b.id()),key->BearingContactGeometry.of(world,a.body,b.body)).impact(a.motion,b.motion);
                 if(hit.isPresent()&&(first==null||hit.get().fraction()<first.impact.fraction()))first=new Candidate(a,b,hit.get());
             }
             if(first==null)break;
@@ -57,7 +59,7 @@ public final class BodyContactSystem {
             var touching=new ArrayList<Touch>();var participants=new LinkedHashSet<Frame>();
             for(var a:frames)for(var b:near(index,a)) {
                 if(b.id()<=a.id()||!a.dynamic&&!b.dynamic||ignored.contains(new Pair(a.id(),b.id()))||!joints.collisionAllowed(a.body.getUuid(),b.body.getUuid()))continue;
-                var contacts=BodyPairQuery.contacts(a.motion,b.motion,0,true);
+                var contacts=pairGeometry.computeIfAbsent(new Pair(a.id(),b.id()),key->BearingContactGeometry.of(world,a.body,b.body)).contacts(a.motion,b.motion,0,true);
                 if(!contacts.isEmpty()){touching.add(new Touch(a,b,contacts));participants.add(a);participants.add(b);}
             }
             if(touching.isEmpty()){ignored.add(new Pair(first.a.id(),first.b.id()));continue;}

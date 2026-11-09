@@ -54,12 +54,14 @@ public final class BodyPairQuery {
     }
     public record Contact(Vec3 point,Vec3 normal,double penetration){}
     public record Impact(double fraction,List<Contact> contacts){public Impact{contacts=List.copyOf(contacts);}}
+    private static final java.util.function.BiPredicate<BodyBounds,BodyBounds> ALL=(a,b)->true;
     private BodyPairQuery(){}
 
-    public static Optional<Impact> impact(Motion a,Motion b) {
+    public static Optional<Impact> impact(Motion a,Motion b) {return impact(a,b,ALL);}
+    public static Optional<Impact> impact(Motion a,Motion b,java.util.function.BiPredicate<BodyBounds,BodyBounds> admitted) {
         if(a.shape.bounds().isEmpty()||b.shape.bounds().isEmpty())return Optional.empty();
         if(!a.sweptBounds().orElseThrow().intersects(b.sweptBounds().orElseThrow()))return Optional.empty();
-        var initial=impactContacts(a,b,0);if(!initial.isEmpty())return Optional.of(new Impact(0,initial));
+        var initial=impactContacts(a,b,0,admitted);if(!initial.isEmpty())return Optional.of(new Impact(0,initial));
         int steps=Math.max(1,(int)Math.ceil((a.travelBound()+b.travelBound())/.15));
         // COM rebasing after damage can add the old angular point velocity. The expanded
         // grid and both participants' trajectories fit1024. Invalid callers must split their
@@ -74,20 +76,20 @@ public final class BodyPairQuery {
             for(var primitive:a.shape.query(a.local(broad,start))) {
                 var actor=OrientedBox.local(primitive,a.position(start),a.centre,a.rotation(start));
                 Vec3 movement=a.point(primitive.centre(),end).minus(a.point(primitive.centre(),start));
-                var swept=b.query(start).sweep(actor,movement,b.position(end).minus(b.position(start)),true);
+                var swept=b.query(start).sweep(actor,movement,b.position(end).minus(b.position(start)),true,hit->admitted.test(primitive,hit.localShape()));
                 if(swept.isPresent())first=Math.min(first,start+(end-start)*swept.get().fraction());
             }
             if(Double.isFinite(first)) {
-                var hit=impactContacts(a,b,first);
+                var hit=impactContacts(a,b,first,admitted);
                 if(!hit.isEmpty())return Optional.of(new Impact(first,hit));
             }
             // Angular SAT is checked with each actual quaternion; frozen-orientation
             // broadphase/sweep hits cannot manufacture a contact in a rotated hole.
-            var atEnd=impactContacts(a,b,end);
+            var atEnd=impactContacts(a,b,end,admitted);
             if(!atEnd.isEmpty()) {
                 double lo=start,hi=end;
-                for(int i=0;i<16;i++){double mid=(lo+hi)/2;if(impactContacts(a,b,mid).isEmpty())lo=mid;else hi=mid;}
-                return Optional.of(new Impact(hi,impactContacts(a,b,hi)));
+                for(int i=0;i<16;i++){double mid=(lo+hi)/2;if(impactContacts(a,b,mid,admitted).isEmpty())lo=mid;else hi=mid;}
+                return Optional.of(new Impact(hi,impactContacts(a,b,hi,admitted)));
             }
         }
         return Optional.empty();
@@ -98,19 +100,21 @@ public final class BodyPairQuery {
         return contacts(a,b,t,false);
     }
     public static List<Contact> contacts(Motion a,Motion b,double t,boolean resting) {
-        return contacts(a,b,t,resting,1e-6);
+        return contacts(a,b,t,resting,1e-6,ALL);
     }
+    public static List<Contact> contacts(Motion a,Motion b,double t,boolean resting,java.util.function.BiPredicate<BodyBounds,BodyBounds> admitted){return contacts(a,b,t,resting,1e-6,admitted);}
     // A resting manifold may include nearby separated faces so a simultaneous impact can
     // propagate through them. That skin must never become a zero-time impact itself: a
     // resolved rotating pair can remain inside it forever without consuming physical time.
-    private static List<Contact> impactContacts(Motion a,Motion b,double t){return contacts(a,b,t,false,0);}
-    private static List<Contact> contacts(Motion a,Motion b,double t,boolean resting,double skin) {
+    private static List<Contact> impactContacts(Motion a,Motion b,double t,java.util.function.BiPredicate<BodyBounds,BodyBounds> admitted){return contacts(a,b,t,false,0,admitted);}
+    private static List<Contact> contacts(Motion a,Motion b,double t,boolean resting,double skin,java.util.function.BiPredicate<BodyBounds,BodyBounds> admitted) {
         if(b.shape.bounds().isEmpty())return List.of();
         var bounds=OrientedBox.local(b.shape.bounds().orElseThrow(),b.position(t),b.centre,b.rotation(t)).bounds();
         var manifold=new Manifold();
         for(var primitive:a.shape.query(a.local(expand(bounds,1e-6),t))) {
             var actor=OrientedBox.local(primitive,a.position(t),a.centre,a.rotation(t));
             for(var shape:b.shape.query(b.local(expand(actor.bounds(),1e-6),t))) {
+                if(!admitted.test(primitive,shape))continue;
                 var hull=OrientedBox.local(shape,b.position(t),b.centre,b.rotation(t));
                 for(var hit:BoxContactManifold.contacts(actor,hull,skin)) {
                     double closing=a.velocity(hit.point(),t).minus(b.velocity(hit.point(),t)).dot(hit.normal());

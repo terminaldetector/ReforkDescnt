@@ -1,6 +1,10 @@
 package com.terminaldetector.drmd;
 
 import com.terminaldetector.drmd.entity.ModEntities;
+import com.terminaldetector.drmd.entity.ModWorldBlocks;
+import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
+import com.terminaldetector.drmd.physics.collision.BodyPairQuery;
+import com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem;
 import com.terminaldetector.drmd.world.contraption.*;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.block.Blocks;
@@ -37,9 +41,38 @@ public final class ArmedContactGameTests implements FabricGameTest {
                         c.assertTrue(error<.03,"native connected-contact anchor error at tick "+tick+": "+error+" contacts="+BodyContactSystem.stats(c.getWorld())+" joints="+BodyJointSystem.stats(c.getWorld()));
                         c.assertTrue(!BodyContactSystem.stats(c.getWorld()).budgetPaused()&&BodyJointSystem.stats(c.getWorld()).paused()==0,"contact correction cannot freeze or discard physical time");
                     }
-                    c.assertTrue(collisions>0&&root.massPosition().minus(start).length()>1&&registry.find(link.id()).isPresent(),"real colliding island keeps moving and retains its material joint: max="+maximum);
+                    c.assertTrue(collisions==0&&root.massPosition().minus(start).length()>1&&registry.find(link.id()).isPresent(),"mating bearing cells form the moving joint without false housing impacts: max="+maximum);
                 }finally{bodies.forEach(body->{registry.removeBody(body.getUuid());body.discard();});}c.complete();
             });
         }catch(Throwable failure){bodies.forEach(body->{registry.removeBody(body.getUuid());body.discard();});throw failure;}
+    }
+    private BodyPairQuery.Motion motion(BlockBodyEntity body){return new BodyPairQuery.Motion(body.collider(),body.localCentre(),body.massPosition(),body.rotation(),body.massPosition(),body.rotation());}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="bearing-material-contact")
+    public void bearingInterfaceFilterKeepsCollisionsBetweenAllOtherMaterial(TestContext c){
+        var w=c.getWorld();var origin=Vec3d.of(c.getAbsolutePos(new BlockPos(8,220,8)));for(int x=-2;x<=2;x++)for(int z=-2;z<=2;z++)w.getChunk(((int)origin.x>>4)+x,((int)origin.z>>4)+z);
+        var a=BlockBodyEntity.createLocal(w,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,ModWorldBlocks.MECHANICAL_BEARING.getDefaultState().with(Properties.FACING,Direction.EAST)),new BlockBodyEntity.Cell(new BlockPos(2,0,0),Blocks.IRON_BLOCK.getDefaultState())),origin);
+        var b=BlockBodyEntity.createLocal(w,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,ModWorldBlocks.MECHANICAL_BEARING.getDefaultState().with(Properties.FACING,Direction.WEST)),new BlockBodyEntity.Cell(new BlockPos(1,0,0),ModWorldBlocks.SHIP_LASER.getDefaultState())),origin.add(1,0,0));a.setPhysicsGravity(false);b.setPhysicsGravity(false);
+        c.assertTrue(MechanicalBearingSystem.connect(w,a,BlockPos.ORIGIN,b,BlockPos.ORIGIN),"real hardware joint created");
+        c.waitAndRun(1,()->{try{
+            var geometry=BearingContactGeometry.of(w,a,b);var contacts=geometry.contacts(motion(a),motion(b),0,true);
+            c.assertTrue(!contacts.isEmpty()&&BodyJointRegistry.get(w).collisionAllowed(a.getUuid(),b.getUuid()),"parent material overlapping the other gun remains in physical narrowphase");
+        }finally{BodyJointRegistry.get(w).removeBody(a.getUuid());a.discard();b.discard();}c.complete();});
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="bearing-external-contact",tickLimit=80)
+    public void aCollisionOnOneMemberContinuesItsUntouchedJointNeighbourAtTheSameTime(TestContext c){
+        var w=c.getWorld();var origin=Vec3d.of(c.getAbsolutePos(new BlockPos(8,220,8)));for(int x=-3;x<=3;x++)for(int z=-3;z<=3;z++)w.getChunk(((int)origin.x>>4)+x,((int)origin.z>>4)+z);
+        var a=BlockBodyEntity.createLocal(w,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,ModWorldBlocks.MECHANICAL_BEARING.getDefaultState().with(Properties.FACING,Direction.EAST))),origin);
+        var b=BlockBodyEntity.createLocal(w,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,ModWorldBlocks.MECHANICAL_BEARING.getDefaultState().with(Properties.FACING,Direction.WEST))),origin.add(1,0,0));
+        var wallCells=new ArrayList<BlockBodyEntity.Cell>();for(int x=-9;x<=0;x++)for(int y=-4;y<=5;y++)wallCells.add(new BlockBodyEntity.Cell(new BlockPos(x,y,0),Blocks.IRON_BLOCK.getDefaultState()));
+        var wall=BlockBodyEntity.createLocal(w,wallCells,origin.add(-.2,0,4));var bodies=List.of(a,b,wall);bodies.forEach(body->body.setPhysicsGravity(false));a.physics().withLinearVelocity(new Vec3(0,0,3));b.physics().withLinearVelocity(new Vec3(0,0,3));
+        c.assertTrue(MechanicalBearingSystem.connect(w,a,BlockPos.ORIGIN,b,BlockPos.ORIGIN),"free coupled pair aimed at an independent massive wall");
+        c.waitAndRun(1,()->{try{
+            int collisions=0;var start=a.massPosition();for(int tick=0;tick<55;tick++){
+                bodies.forEach(BlockBodyEntity::tick);collisions+=BodyContactSystem.solve(w);
+                c.assertTrue(a.localToWorld(new Vec3d(1,.5,.5)).distanceTo(b.localToWorld(new Vec3d(0,.5,.5)))<.03,"non-touching neighbour follows the same contact-time constraints at tick "+tick);
+                c.assertTrue(!BodyContactSystem.stats(w).budgetPaused()&&!a.boardingMotionPaused()&&!b.boardingMotionPaused(),"external contact consumes physical time without stalling the mechanism");
+            }
+            c.assertTrue(collisions>0&&wall.physics().linearVelocity().length()>.001&&a.massPosition().minus(start).length()>1,"the independent wall receives a real impact while the mechanism advances");
+        }finally{bodies.forEach(body->{BodyJointRegistry.get(w).removeBody(body.getUuid());body.discard();});}c.complete();});
     }
 }
