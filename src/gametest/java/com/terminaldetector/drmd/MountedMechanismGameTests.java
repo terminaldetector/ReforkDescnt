@@ -96,6 +96,23 @@ public final class MountedMechanismGameTests implements FabricGameTest {
         }finally{clean(c,b);}c.complete();
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-lever-auth")
+    public void constructionMayTouchAnotherHullButCannotPenetrateItsMaterial(TestContext c){
+        var origin=at(c);var cell=new BlockPos(1,0,0);
+        for(var q:List.of(Quat.IDENTITY,ImmPtlQuaternions.rotationByRadians(new Vec3(0,0,1),.7),ImmPtlQuaternions.rotationByRadians(new Vec3(1,2,3).normalized(),1.1))){
+            var a=body(c,Map.of(GUN,Blocks.IRON_BLOCK.getDefaultState()),origin,q);var axis=q.rotate(new Vec3(1,0,0));
+            var b=body(c,Map.of(GUN,Blocks.IRON_BLOCK.getDefaultState()),origin.add(axis.x()*2,axis.y()*2,axis.z()*2),q);
+            try{
+                var cube=com.terminaldetector.drmd.physics.collision.OrientedBox.local(new com.terminaldetector.drmd.physics.collision.BodyBounds(new Vec3(1,0,0),new Vec3(2,1,1)),a.massPosition(),a.localCentre(),q);
+                var contacts=b.collisionQuery().contacts(cube,0);
+                c.assertTrue(contacts.stream().allMatch(hit->hit.penetration()<1e-6),"initial geometry only touches the independent hull: "+contacts);
+                c.assertTrue(new BlockBodyWorldAccess(a).placeLocalBlock(cell,Blocks.GOLD_BLOCK.getDefaultState()),"mere shared-face contact cannot prohibit real local construction: "+contacts);
+                c.assertTrue(a.setLocalBlock(cell,Blocks.AIR.getDefaultState()),"remove only the newly constructed cell for the true-overlap check");
+                b.setPosition(b.getPos().add(-axis.x()*.02,-axis.y()*.02,-axis.z()*.02));
+                c.assertTrue(!new BlockBodyWorldAccess(a).placeLocalBlock(cell,Blocks.GOLD_BLOCK.getDefaultState())&&a.getLocalBlock(cell).isAir(),"a real two-centimetre overlap remains blocked under each body orientation");
+            }finally{clean(c,a);clean(c,b);}
+        }c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-lever-auth")
     public void animatedHeadYawCannotRedirectThePlayersActualLeverUse(TestContext c){
         var cell=GUN.up();var b=body(c,Map.of(GUN,gun(false,Direction.SOUTH),cell,lever(Direction.DOWN,false)),at(c),Quat.IDENTITY);var p=player(c,b);
         try{
