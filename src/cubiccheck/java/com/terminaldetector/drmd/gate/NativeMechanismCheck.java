@@ -38,13 +38,14 @@ public final class NativeMechanismCheck {
     private static String scene;
     private static final List<String> SCENES=new ArrayList<>();
     private NativeMechanismCheck(){}
+    private static net.minecraft.entity.Entity entity(BlockBodyEntity body){return body;}
     private static void require(boolean condition,String why){if(!condition){done=true;MinecraftClient.getInstance().scheduleStop();throw new IllegalStateException("MECHANISM_NATIVE "+why);}}
     public static void register(){
         ClientTickEvents.END_CLIENT_TICK.register(NativeMechanismCheck::tick);
         ServerTickEvents.END_SERVER_TICK.register(server->{
             if(!ready||done)return;
             require(CubicAvailability.backend(player.getServerWorld())==CubicAvailability.Backend.NATIVE_CUBIC,"native cubic backend required");
-            var links=BodyJointRegistry.get(player.getServerWorld()).forBody(root.getUuid());
+            var links=BodyJointRegistry.get(player.getServerWorld()).forBody(entity(root).getUuid());
             if(!links.isEmpty()){
                 require(links.size()==1&&links.getFirst().blockDriven(),"one actual block-driven joint");var link=links.getFirst();linked=true;
                 maxError=Math.max(maxError,root.localToWorld(new Vec3d(1,.5,.5)).distanceTo(rotor.localToWorld(new Vec3d(0,.5,.5))));
@@ -70,7 +71,7 @@ public final class NativeMechanismCheck {
         root.setPhysicsGravity(false);rotor.setPhysicsGravity(false);
         var feet=root.localToWorld(new Vec3d(.5,-.6,3.5));player.teleport(world,feet.x,feet.y,feet.z,Set.of(),180,0);
         player.setStackInHand(Hand.MAIN_HAND,new ItemStack(ModWorldBlocks.MECHANISM_WRENCH));player.getInventory().markDirty();player.currentScreenHandler.sendContentUpdates();
-        require(BodyJointRegistry.get(world).forBody(root.getUuid()).isEmpty(),"fixture cannot supply a ready-made joint");ready=true;
+        require(BodyJointRegistry.get(world).forBody(entity(root).getUuid()).isEmpty(),"fixture cannot supply a ready-made joint");ready=true;
     }
     private static void tick(MinecraftClient c){
         if(done)return;require(++ticks<1600,"timeout phase="+phase+" age="+age+" linked="+linked+" positive="+positive+" reversed="+reversed+" detached="+detached);
@@ -85,7 +86,7 @@ public final class NativeMechanismCheck {
             c.getServer().execute(()->{player=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());FlightSystem.disable(player,DescentPlayerData.get(player));player.changeGameMode(GameMode.CREATIVE);player.getAbilities().allowFlying=true;player.getAbilities().flying=true;player.sendAbilitiesUpdate();player.teleport(player.getServerWorld(),BASE.getX()+.5,BASE.getY()+1,BASE.getZ()+4,Set.of(),180,0);player.getServerWorld().setTimeOfDay(6000);located=true;});return;
         }
         if(located&&!spawnRequested&&loaded(c)){spawnRequested=true;c.getServer().execute(NativeMechanismCheck::spawn);}
-        if(!ready||!(c.world.getEntityById(root.getId()) instanceof BlockBodyEntity a)||!(c.world.getEntityById(rotor.getId()) instanceof BlockBodyEntity b)||!c.player.getMainHandStack().isOf(ModWorldBlocks.MECHANISM_WRENCH))return;
+        if(!ready||!(c.world.getEntityById(entity(root).getId()) instanceof BlockBodyEntity a)||!(c.world.getEntityById(entity(rotor).getId()) instanceof BlockBodyEntity b)||!c.player.getMainHandStack().isOf(ModWorldBlocks.MECHANISM_WRENCH))return;
         c.options.useKey.setPressed(false);c.options.sneakKey.setPressed(false);if(capture){aim(c,a,new Vec3(.5,.5,.5));return;}age++;
         switch(phase){
             case 0->{aim(c,a,new Vec3(.5,.5,.5));c.options.useKey.setPressed(age==12);if(age>20){phase=1;age=0;}}
@@ -102,7 +103,7 @@ public final class NativeMechanismCheck {
     }
     private static void request(String name){scene=name;capture=true;frames=0;}
     public static void beforeFrame(){if(ENABLED){rootDrawn=false;rotorDrawn=false;}}
-    public static void drew(BlockBodyEntity body){if(!ENABLED||!ready||done)return;if(body.getId()==root.getId())rootDrawn=true;if(body.getId()==rotor.getId())rotorDrawn=true;}
+    public static void drew(BlockBodyEntity body){if(!ENABLED||!ready||done)return;if(entity(body).getId()==entity(root).getId())rootDrawn=true;if(entity(body).getId()==entity(rotor).getId())rotorDrawn=true;}
     public static void rendered(){
         if(!ENABLED||!capture||done||!rootDrawn||!rotorDrawn)return;var c=MinecraftClient.getInstance();if(c.currentScreen!=null||++frames<3)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){
