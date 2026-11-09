@@ -96,6 +96,18 @@ public final class MountedMechanismGameTests implements FabricGameTest {
         }finally{clean(c,b);}c.complete();
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-lever-auth")
+    public void animatedHeadYawCannotRedirectThePlayersActualLeverUse(TestContext c){
+        var cell=GUN.up();var b=body(c,Map.of(GUN,gun(false,Direction.SOUTH),cell,lever(Direction.DOWN,false)),at(c),Quat.IDENTITY);var p=player(c,b);
+        try{
+            p.setPosition(b.localToWorld(new Vec3d(.5,0,-2)));var bounds=b.localBlockBounds().get(cell);var point=b.localToWorld(new Vec3d(bounds.centre().x(),bounds.centre().y(),bounds.centre().z()));
+            var look=point.subtract(p.getEyePos()).normalize();var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(pure(look));p.setYaw((float)angles.yawDegrees());p.setPitch((float)angles.pitchDegrees());p.setHeadYaw(p.getYaw()+90);
+            c.assertTrue(p.getRotationVec(1).dotProduct(look)<.3,"fixture retains an independently lagging animated head");
+            var edit=new BodyBlockInteraction.Edit(b.getUuid(),b.shapeRevision(),cell,BodyBlockInteraction.USE);
+            c.assertTrue(BodyBlockInteraction.receive(p,edit)&&b.getLocalBlock(cell).get(Properties.POWERED),"the actual player view, not its animated head, controls the real lever");
+            c.assertTrue(!BodyBlockInteraction.receive(p,edit),"view correction does not admit stale material revisions");
+        }finally{clean(c,b);p.discard();}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-lever-auth")
     public void leverUseChangesActualMaterialWhileWrongSupportAndSpectatorsDoNotControlGuns(TestContext c){
         var cells=mount(false,Direction.SOUTH,false);var pos=new BlockPos(0,0,-1);var b=body(c,cells,at(c),Quat.IDENTITY);var p=player(c,b);
         try{
