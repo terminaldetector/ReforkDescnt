@@ -125,10 +125,10 @@ public final class MountedMechanismGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-real-hit",tickLimit=160)
     public void ordinaryLeverPoweredBodyDamagesARealEntityWithoutAFakePilot(TestContext c){admitted(c,lease->{
         var origin=at(c);var b=body(c,heavy(mount(false,Direction.SOUTH,true)),origin,Quat.IDENTITY);
-        var target=EntityType.ZOMBIE.create(c.getWorld());target.setAiDisabled(true);target.setNoGravity(true);target.setPosition(origin.add(.5,-.5,8.5));c.assertTrue(c.getWorld().spawnEntity(target),"real damage target");long started=c.getTick();
+        var target=EntityType.HUSK.create(c.getWorld());target.setAiDisabled(true);target.setNoGravity(true);target.setPosition(origin.add(.5,-.5,8.5));c.assertTrue(c.getWorld().spawnEntity(target),"real damage target");long started=c.getTick();
         return ()->{
             if(b.isRemoved())return;if(target.getHealth()>=20&&c.getTick()-started<30)return;
-            try{c.assertTrue(target.getHealth()<20,"naturally scheduled physical-body projectile causes real damage: health="+target.getHealth());}
+            try{c.assertTrue(target.getHealth()<20&&target.getRecentDamageSource()!=null&&target.getRecentDamageSource().getSource()==b,"naturally scheduled projectile damage retains the physical gun owner: health="+target.getHealth()+" source="+target.getRecentDamageSource());}
             finally{target.discard();clean(c,b);lease.close();}c.complete();
         };
     });}
