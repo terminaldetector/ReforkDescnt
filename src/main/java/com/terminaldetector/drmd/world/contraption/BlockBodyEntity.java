@@ -89,7 +89,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     public void setPhysicsGravity(boolean value) {gravity=value;dataTracker.set(POSE,pose());}
     public boolean physicsGravity() {return gravity;}
-    public static boolean supports(BlockState state) {return SUPPORTED.contains(state.getBlock()) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_THRUSTER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
+    public static boolean supports(BlockState state) {return state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock || SUPPORTED.contains(state.getBlock()) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_THRUSTER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
 
     public BlockBodyEntity(EntityType<? extends BlockBodyEntity> type, World world) {
         super(type, world); setNoGravity(true);
@@ -379,8 +379,8 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     /** Owner modules observe committed material edits, after the rollback boundary. */
     protected void onLocalMaterialChanged(List<BlockBodyEntity> fragments) {}
-    public boolean canUseLocalBlock(BlockPos local){return false;}
-    public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){return false;}
+    public boolean canUseLocalBlock(BlockPos local){return com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.usable(getLocalBlock(local));}
+    public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){return com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.use(player,this,local);}
     private record PreparedEdit(List<LocalEdit> edits,List<BlockBodyEntity> fragments){}
     private static BodyTopology.Cell topology(BlockPos p){return new BodyTopology.Cell(p.getX(),p.getY(),p.getZ());}
     /** Refuse before mutation when rebasing would require a velocity outside the admitted

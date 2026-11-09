@@ -42,8 +42,9 @@ public class SkyUfoEntity extends BlockBodyEntity {
     public void setAutopilot(boolean value){autopilot=value;if(!value&&turret!=null)turret.stopAutonomous(this);}
     public boolean autopilotEnabled(){return autopilot;}
     public boolean hasControlConsole(){return getLocalBlock(UfoControlSystem.CONSOLE).isOf(Blocks.GOLD_BLOCK);}
-    @Override public boolean canUseLocalBlock(BlockPos local){return local.equals(UfoControlSystem.CONSOLE)&&hasControlConsole();}
+    @Override public boolean canUseLocalBlock(BlockPos local){return local.equals(UfoControlSystem.CONSOLE)&&hasControlConsole()||super.canUseLocalBlock(local);}
     @Override public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){
+        if(!local.equals(UfoControlSystem.CONSOLE))return super.useLocalBlock(player,local);
         if(!canUseLocalBlock(local)||!UfoControlSystem.claim(player,this))return false;
         if(player.getMainHandStack().isOf(ModWorldBlocks.SHIP_TURRET_KIT)){
             var installed=SkyUfoTurret.install(this,player);if(installed==null){player.sendMessage(net.minecraft.text.Text.translatable("message.drmd.turret.blocked"),true);return false;}turret=installed;

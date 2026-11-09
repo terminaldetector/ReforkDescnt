@@ -2,6 +2,8 @@
 
 Current user instruction (6 November): development is local only. Do not push, publish, upload to GitHub or trigger Actions. Preserve local source/evidence checkpoints and continue both master v8 and Dynamic Boarding/BlockBody work. This supersedes the historical publication instructions below until the user explicitly resumes publication.
 
+Current turret direction (8–9 November): use Create-style player-built mechanisms with separate weapon, bearing and drive blocks, on the existing BlockBody/joint solver. Do not continue adding UFO-specific turret recipes/controllers as the main implementation. This is an assembly principle, not authorization to add a Create dependency. Existing UFO proof remains regression evidence; generic construction, world anchoring and reusable weapon control need their own acceptance.
+
 
 The user works in the cloud. On 27 October 2026 they resumed GitHub publication and explicitly
 requested that the compiled mod be committed directly to the repository. The 25 October pause

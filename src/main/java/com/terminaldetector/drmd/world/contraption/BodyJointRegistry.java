@@ -46,7 +46,7 @@ public final class BodyJointRegistry extends PersistentState {
     }
     public boolean configure(UUID id,double speed,double motorForce,double breakForce,double breakTorque) {
         var old=links.get(id);if(old==null)return false;
-        var updated=new BodyJointLink(old.id(),old.a(),old.b(),old.kind(),old.lower(),old.upper(),speed,motorForce,breakForce,breakTorque,old.collideConnected());
+        var updated=new BodyJointLink(old.id(),old.a(),old.b(),old.kind(),old.lower(),old.upper(),speed,motorForce,breakForce,breakTorque,old.collideConnected(),old.blockDriven());
         if(updated.equals(old))return true;var next=new LinkedHashMap<>(links);next.put(id,updated);replace(next);return true;
     }
     public boolean remove(UUID id){if(!links.containsKey(id))return false;var next=new LinkedHashMap<>(links);next.remove(id);replace(next);return true;}
@@ -58,7 +58,7 @@ public final class BodyJointRegistry extends PersistentState {
         for(var link:affected) {
             BodyJointLink.Endpoint a=migrate(link.a(),original,fragments),b=migrate(link.b(),original,fragments);
             if(a==null||b==null){next.remove(link.id());changed=true;}
-            else if(!a.equals(link.a())||!b.equals(link.b())){next.put(link.id(),new BodyJointLink(link.id(),a,b,link.kind(),link.lower(),link.upper(),link.speed(),link.motorForce(),link.breakForce(),link.breakTorque(),link.collideConnected()));changed=true;}
+            else if(!a.equals(link.a())||!b.equals(link.b())){next.put(link.id(),new BodyJointLink(link.id(),a,b,link.kind(),link.lower(),link.upper(),link.speed(),link.motorForce(),link.breakForce(),link.breakTorque(),link.collideConnected(),link.blockDriven()));changed=true;}
         }
         if(changed)replace(next);rememberLocation(original);for(var fragment:fragments)rememberLocation(fragment);
     }

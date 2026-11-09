@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "drmd:block/rotary_drive",
+      "x": 0,
+      "y": 0
+    },
+    "facing=south": {
+      "model": "drmd:block/rotary_drive",
+      "x": 0,
+      "y": 180
+    },
+    "facing=east": {
+      "model": "drmd:block/rotary_drive",
+      "x": 0,
+      "y": 90
+    },
+    "facing=west": {
+      "model": "drmd:block/rotary_drive",
+      "x": 0,
+      "y": 270
+    },
+    "facing=up": {
+      "model": "drmd:block/rotary_drive",
+      "x": 270,
+      "y": 0
+    },
+    "facing=down": {
+      "model": "drmd:block/rotary_drive",
+      "x": 90,
+      "y": 0
+    }
+  }
+}

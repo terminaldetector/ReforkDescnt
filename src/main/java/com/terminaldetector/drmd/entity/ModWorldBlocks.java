@@ -47,6 +47,10 @@ public final class ModWorldBlocks {
 
 	public static final Block SHIP_LASER = registerBlock("ship_laser",
             new Block(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f).luminance(state -> 5)));
+    public static final Block MECHANICAL_BEARING=registerBlock("mechanical_bearing",
+            new com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));
+    public static final Block ROTARY_DRIVE=registerBlock("rotary_drive",
+            new com.terminaldetector.drmd.world.contraption.mechanism.RotaryDriveBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));
     public static final Block SHIP_ROCKET = registerBlock("ship_rocket",
             new Block(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));
 
@@ -136,6 +140,7 @@ public final class ModWorldBlocks {
 	public static Item PORTAL_GUN;
 	public static Item PORTAL_PROJECTOR;
     public static Item SHIP_TURRET_KIT;
+    public static Item MECHANISM_WRENCH;
 
 	private ModWorldBlocks() {}
 
@@ -221,7 +226,10 @@ public final class ModWorldBlocks {
             @Override public void appendTooltip(net.minecraft.item.ItemStack stack,TooltipContext context,java.util.List<net.minecraft.text.Text> tooltip,net.minecraft.item.tooltip.TooltipType type){tooltip.add(net.minecraft.text.Text.translatable("tooltip.drmd.turret.install"));tooltip.add(net.minecraft.text.Text.translatable("tooltip.drmd.turret.controls"));}
         });
 
+        MECHANISM_WRENCH=Registry.register(Registries.ITEM,Identifier.of(DescentMod.MOD_ID,"mechanism_wrench"),
+            new com.terminaldetector.drmd.world.contraption.mechanism.MechanismWrenchItem(new Item.Settings().maxCount(1)));
 		ItemGroupEvents.modifyEntriesEvent(ModItems.GROUP_KEY).register(entries -> {
+			entries.add(MECHANICAL_BEARING);entries.add(ROTARY_DRIVE);entries.add(MECHANISM_WRENCH);
 			entries.add(SIX_D_SOIL);
 			entries.add(HERMETIC_GATE);
 			entries.add(LASER_BARRIER);

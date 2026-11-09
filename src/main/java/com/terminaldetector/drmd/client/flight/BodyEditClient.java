@@ -31,7 +31,7 @@ public final class BodyEditClient {
   ClientPlayNetworking.send(packet);mining=packet;c.player.swingHand(Hand.MAIN_HAND);return true;
  }
  public static boolean place(MinecraftClient c){var target=target(c);if(target==null)return false;
-  var hit=target.hit();boolean use=target.body().canUseLocalBlock(hit.localBlock());
+  var hit=target.hit();boolean use=target.body().canUseLocalBlock(hit.localBlock())&&!(c.player.isSneaking()&&c.player.getMainHandStack().getItem() instanceof net.minecraft.item.BlockItem);
   if(!use&&!(c.player.getMainHandStack().getItem() instanceof net.minecraft.item.BlockItem))return false;
   if(c.player.age-lastPlace<4)return true;lastPlace=c.player.age;
   ClientPlayNetworking.send(new BodyBlockInteraction.Edit(target.body().getUuid(),hit.revision(),hit.localBlock(),use?BodyBlockInteraction.USE:BodyBlockInteraction.PLACE));c.player.swingHand(Hand.MAIN_HAND);return true;

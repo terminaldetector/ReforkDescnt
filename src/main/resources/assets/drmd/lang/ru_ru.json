@@ -311,5 +311,21 @@
   "key.drmd.turret_right": "Турель вправо",
   "message.drmd.turret.blocked": "Турель уже установлена или место над крышей занято.",
   "tooltip.drmd.turret.install": "Используйте комплект на пульте UFO.",
-  "tooltip.drmd.turret.controls": "←/→ — поворот, B — лазер и ракета."
+  "tooltip.drmd.turret.controls": "←/→ — поворот, B — лазер и ракета.",
+  "block.drmd.mechanical_bearing": "Механический подшипник",
+  "block.drmd.rotary_drive": "Вращательный привод",
+  "item.drmd.mechanism_wrench": "Монтажный ключ",
+  "tooltip.drmd.mechanism.world": "В мире: выберите два угла для сборки до 16 × 16 × 16 блоков. С Shift — отмена.",
+  "tooltip.drmd.mechanism.bearings": "На корпусах: выберите два встречных подшипника. С Shift — отсоединение.",
+  "tooltip.drmd.mechanism.drive": "Привод за подшипником: 0/0,2/0,4/0,6 рад/с; с Shift — реверс.",
+  "message.drmd.mechanism.drive": "Привод настроен. Нулевая скорость отключает усилие двигателя.",
+  "message.drmd.mechanism.unlinked": "Подшипник отсоединён, движение сохранено.",
+  "message.drmd.mechanism.bearing_selected": "Первый подшипник выбран. Укажите встречный подшипник другого корпуса.",
+  "message.drmd.mechanism.stale": "Первый подшипник изменился или слишком далеко. Выберите заново.",
+  "message.drmd.mechanism.alignment": "Подшипники разных корпусов должны соприкасаться встречными гранями и быть свободны.",
+  "message.drmd.mechanism.linked": "Подшипники соединены. За одним из них установите соосный привод.",
+  "message.drmd.mechanism.cancelled": "Выбор для сборки отменён.",
+  "message.drmd.mechanism.corner_selected": "Первый угол выбран. Укажите второй для сборки; Shift отменяет выбор.",
+  "message.drmd.mechanism.selection_blocked": "Нужна загруженная доступная область до 16 × 16 × 16 без блоков с внутренними данными.",
+  "message.drmd.mechanism.assembled": "Выбранные блоки собраны в физический корпус."
 }

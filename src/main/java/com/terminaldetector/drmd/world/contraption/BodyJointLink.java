@@ -8,7 +8,8 @@ import java.util.*;
 
 /** Persistent material anchors; COM rebasing must not move a mechanical attachment. */
 public record BodyJointLink(UUID id,Endpoint a,Endpoint b,BodyJointConstraint.Kind kind,
-                            double lower,double upper,double speed,double motorForce,double breakForce,double breakTorque,boolean collideConnected) {
+                            double lower,double upper,double speed,double motorForce,double breakForce,double breakTorque,boolean collideConnected,boolean blockDriven) {
+    public BodyJointLink(UUID id,Endpoint a,Endpoint b,BodyJointConstraint.Kind kind,double lower,double upper,double speed,double motorForce,double breakForce,double breakTorque,boolean collideConnected){this(id,a,b,kind,lower,upper,speed,motorForce,breakForce,breakTorque,collideConnected,false);}
     /** Legacy/operator links keep their existing collision behavior. */
     public BodyJointLink(UUID id,Endpoint a,Endpoint b,BodyJointConstraint.Kind kind,double lower,double upper,double speed,double motorForce,double breakForce,double breakTorque){this(id,a,b,kind,lower,upper,speed,motorForce,breakForce,breakTorque,true);}
     public record Endpoint(UUID body,BlockPos cell,Vec3 point,Quat frame) {
@@ -34,13 +35,14 @@ public record BodyJointLink(UUID id,Endpoint a,Endpoint b,BodyJointConstraint.Ki
         if(Double.isFinite(lower))n.putDouble("lower",lower);if(Double.isFinite(upper))n.putDouble("upper",upper);
         n.putDouble("speed",speed);n.putDouble("motor",motorForce);
         if(!collideConnected)n.putBoolean("collideConnected",false);
+        if(blockDriven)n.putBoolean("blockDriven",true);
         if(Double.isFinite(breakForce))n.putDouble("breakForce",breakForce);if(Double.isFinite(breakTorque))n.putDouble("breakTorque",breakTorque);return n;
     }
     public static BodyJointLink read(NbtCompound n) {
         if(!n.containsUuid("id"))throw new IllegalArgumentException("joint identity missing");
         return new BodyJointLink(n.getUuid("id"),readEndpoint(n.getCompound("a")),readEndpoint(n.getCompound("b")),BodyJointConstraint.Kind.valueOf(n.getString("kind")),
             n.contains("lower")?n.getDouble("lower"):Double.NEGATIVE_INFINITY,n.contains("upper")?n.getDouble("upper"):Double.POSITIVE_INFINITY,
-            n.getDouble("speed"),n.getDouble("motor"),n.contains("breakForce")?n.getDouble("breakForce"):Double.POSITIVE_INFINITY,n.contains("breakTorque")?n.getDouble("breakTorque"):Double.POSITIVE_INFINITY,!n.contains("collideConnected")||n.getBoolean("collideConnected"));
+            n.getDouble("speed"),n.getDouble("motor"),n.contains("breakForce")?n.getDouble("breakForce"):Double.POSITIVE_INFINITY,n.contains("breakTorque")?n.getDouble("breakTorque"):Double.POSITIVE_INFINITY,!n.contains("collideConnected")||n.getBoolean("collideConnected"),n.getBoolean("blockDriven"));
     }
     private static NbtCompound write(Endpoint e) {
         var n=new NbtCompound();n.putUuid("body",e.body);n.putLong("cell",e.cell.asLong());

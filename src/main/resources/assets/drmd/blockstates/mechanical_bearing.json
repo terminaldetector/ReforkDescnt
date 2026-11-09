@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "drmd:block/mechanical_bearing",
+      "x": 0,
+      "y": 0
+    },
+    "facing=south": {
+      "model": "drmd:block/mechanical_bearing",
+      "x": 0,
+      "y": 180
+    },
+    "facing=east": {
+      "model": "drmd:block/mechanical_bearing",
+      "x": 0,
+      "y": 90
+    },
+    "facing=west": {
+      "model": "drmd:block/mechanical_bearing",
+      "x": 0,
+      "y": 270
+    },
+    "facing=up": {
+      "model": "drmd:block/mechanical_bearing",
+      "x": 270,
+      "y": 0
+    },
+    "facing=down": {
+      "model": "drmd:block/mechanical_bearing",
+      "x": 90,
+      "y": 0
+    }
+  }
+}

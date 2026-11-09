@@ -64,6 +64,11 @@ public final class BodyJointSystem {
                 if(body==null||body.isRemoved()||body.getWorld()!=world||frame.tick!=world.getTime()){ready=false;continue;}bodies.put(id,body);
             }
             if(!ready){bodies.values().forEach(BlockBodyEntity::pauseJointMotion);bodies.values().forEach(registry::rememberLocation);paused++;continue;}
+            for(var iterator=links.entrySet().iterator();iterator.hasNext();){
+                var entry=iterator.next();var link=entry.getValue();
+                var updated=com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.refresh(world,link,bodies.get(link.a().body()),bodies.get(link.b().body()));
+                if(updated==null)iterator.remove();else entry.setValue(updated);
+            }
             double remaining=.05;boolean stop=false;
             for(int step=0;step<512&&remaining>1e-10;step++) {
                 double dt=Math.min(remaining,.05/16);var saved=new LinkedHashMap<UUID,D6PhysicsBody.Snapshot>();for(var e:bodies.entrySet())saved.put(e.getKey(),e.getValue().physics().snapshot());

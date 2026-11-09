@@ -347,5 +347,21 @@
   "key.drmd.turret_right": "Turret right",
   "message.drmd.turret.blocked": "Turret already installed or roof space obstructed.",
   "tooltip.drmd.turret.install": "Use this kit on a UFO control console.",
-  "tooltip.drmd.turret.controls": "Left/Right arrows: rotate. B: fire laser and rocket."
+  "tooltip.drmd.turret.controls": "Left/Right arrows: rotate. B: fire laser and rocket.",
+  "block.drmd.mechanical_bearing": "Mechanical bearing",
+  "block.drmd.rotary_drive": "Rotary drive",
+  "item.drmd.mechanism_wrench": "Mechanism wrench",
+  "tooltip.drmd.mechanism.world": "World: click two corners to assemble up to 16 × 16 × 16 blocks. Sneak to cancel.",
+  "tooltip.drmd.mechanism.bearings": "Bodies: click two facing bearings to connect. Sneak-click to disconnect.",
+  "tooltip.drmd.mechanism.drive": "Drive behind bearing: click for 0/0.2/0.4/0.6 rad/s; sneak-click to reverse.",
+  "message.drmd.mechanism.drive": "Drive updated. Zero speed releases motor power.",
+  "message.drmd.mechanism.unlinked": "Bearing disconnected; motion preserved.",
+  "message.drmd.mechanism.bearing_selected": "First bearing selected. Click the facing bearing on another body.",
+  "message.drmd.mechanism.stale": "First bearing changed or is no longer within reach. Select it again.",
+  "message.drmd.mechanism.alignment": "Bearings must meet face to face on distinct bodies, with no existing attachment.",
+  "message.drmd.mechanism.linked": "Bearings connected. Place an aligned drive behind either bearing.",
+  "message.drmd.mechanism.cancelled": "Assembly selection cancelled.",
+  "message.drmd.mechanism.corner_selected": "First corner selected. Click the other corner to assemble; sneak-click cancels.",
+  "message.drmd.mechanism.selection_blocked": "Cannot assemble: use a loaded, editable selection up to 16 × 16 × 16 without block entities.",
+  "message.drmd.mechanism.assembled": "Selected blocks assembled into a physical body."
 }
