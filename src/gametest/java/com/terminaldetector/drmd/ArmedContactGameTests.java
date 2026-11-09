@@ -35,8 +35,13 @@ public final class ArmedContactGameTests implements FabricGameTest {
             c.waitAndRun(1,()->{
                 try{
                     var root=bodies.getFirst();var start=root.massPosition();double maximum=0;int collisions=0;
+                    for(var body:bodies){var bounds=com.terminaldetector.drmd.physics.collision.OrientedBox.local(body.collider().bounds().orElseThrow(),body.massPosition(),body.localCentre(),body.rotation()).bounds();var box=new Box(bounds.min().x(),bounds.min().y(),bounds.min().z(),bounds.max().x(),bounds.max().y(),bounds.max().z());System.out.println("ARMED_REPLAY initial "+describe(body)+" worldShape="+wShapes(c,body,box));}
                     for(int tick=0;tick<80;tick++){
-                        bodies.forEach(BlockBodyEntity::tick);collisions+=BodyContactSystem.solve(c.getWorld());
+                        if(tick<3)System.out.println("ARMED_REPLAY before "+tick+" "+describe(root)+" / "+describe(bodies.get(1)));
+                        bodies.forEach(BlockBodyEntity::tick);BodyJointSystem.solve(c.getWorld());
+                        if(tick<3)System.out.println("ARMED_REPLAY joint "+tick+" "+describe(root)+" / "+describe(bodies.get(1)));
+                        collisions+=BodyContactSystem.solve(c.getWorld());
+                        if(tick<3)System.out.println("ARMED_REPLAY contact "+tick+" "+describe(root)+" / "+describe(bodies.get(1)));
                         var a=link.a().point();var b=link.b().point();double error=root.localToWorld(new Vec3d(a.x(),a.y(),a.z())).distanceTo(bodies.get(1).localToWorld(new Vec3d(b.x(),b.y(),b.z())));maximum=Math.max(maximum,error);
                         c.assertTrue(error<.03,"native connected-contact anchor error at tick "+tick+": "+error+" contacts="+BodyContactSystem.stats(c.getWorld())+" joints="+BodyJointSystem.stats(c.getWorld()));
                         c.assertTrue(!BodyContactSystem.stats(c.getWorld()).budgetPaused()&&BodyJointSystem.stats(c.getWorld()).paused()==0,"contact correction cannot freeze or discard physical time");
@@ -46,6 +51,8 @@ public final class ArmedContactGameTests implements FabricGameTest {
             });
         }catch(Throwable failure){bodies.forEach(body->{registry.removeBody(body.getUuid());body.discard();});throw failure;}
     }
+    private String describe(BlockBodyEntity body){return "mass="+body.physicsMass()+" pos="+body.massPosition()+" phys="+body.physics().position()+" q="+body.rotation()+" v="+body.physics().linearVelocity()+" omega="+body.physics().angularVelocity();}
+    private boolean wShapes(TestContext c,BlockBodyEntity body,Box box){return c.getWorld().getBlockCollisions(body,box).iterator().hasNext();}
     private BodyPairQuery.Motion motion(BlockBodyEntity body){return new BodyPairQuery.Motion(body.collider(),body.localCentre(),body.massPosition(),body.rotation(),body.massPosition(),body.rotation());}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="bearing-material-contact")
     public void bearingInterfaceFilterKeepsCollisionsBetweenAllOtherMaterial(TestContext c){
