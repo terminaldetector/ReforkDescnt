@@ -45,7 +45,7 @@ public final class MechanismGameTests implements FabricGameTest {
             f.a.physics().withLinearVelocity(new Vec3(2,1,-.5)).withAngularVelocity(new Vec3(.1,.2,.3));
             var pa=f.a.getPos();var pb=f.b.getPos();var va=f.a.physics().linearVelocity();var spin=f.a.physics().angularMomentum();
             c.assertTrue(connect(f),"separate material bearing blocks connect on ordinary BlockBody instances");var link=f.link();
-            c.assertTrue(link.blockDriven()&&!link.collideConnected()&&link.speed()==.6&&link.motorForce()==40,"one separate drive supplies bounded speed/torque through the existing registry");
+            c.assertTrue(link.blockDriven()&&link.collideConnected()&&link.speed()==.6&&link.motorForce()==40,"one separate drive supplies bounded speed/torque through the existing registry");
             c.assertTrue(pa.equals(f.a.getPos())&&pb.equals(f.b.getPos())&&va.equals(f.a.physics().linearVelocity())&&spin.equals(f.a.physics().angularMomentum()),"assembly cannot snap poses or reset world motion");
             c.assertTrue(!connect(f)&&f.registry().forBody(f.a.getUuid()).size()==1,"occupied bearing cannot receive a duplicate mechanical attachment");
         }finally{f.close();}c.complete();
@@ -158,7 +158,7 @@ public final class MechanismGameTests implements FabricGameTest {
             for(var link:links){var a=link.a().body().equals(f.a.getUuid())?f.a:f.b;var b=link.b().body().equals(child.getUuid())?child:f.b;c.assertTrue(anchor(a,link.a()).distanceTo(anchor(b,link.b()))<.025,"both orthogonal anchors stay attached");}
         }finally{f.registry().removeBody(child.getUuid());child.discard();f.close();}c.complete();});
     }
-    @GameTest(templateName=EMPTY_STRUCTURE,batchId="mechanisms")
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="mechanism-placement")
     public void survivalPlacementPacketOrientsSeparateDriveInTheActualHitLocalFrame(TestContext c){
         var f=pair(c,ImmPtlQuaternions.rotationByRadians(new Vec3(0,0,1),.7));
         var p=player(c,f.a.localToWorld(new Vec3d(.5,-1,2.8)));p.changeGameMode(GameMode.SURVIVAL);
@@ -171,7 +171,7 @@ public final class MechanismGameTests implements FabricGameTest {
             c.assertTrue(target.body()==f.a,"authoritative ray selects actual rolled carrier material");
             p.setStackInHand(Hand.MAIN_HAND,new ItemStack(ModWorldBlocks.ROTARY_DRIVE,2));p.setSneaking(true);
             var hit=target.hit();var edit=new BodyBlockInteraction.Edit(f.a.getUuid(),hit.revision(),hit.localBlock(),BodyBlockInteraction.PLACE);
-            c.assertTrue(BodyBlockInteraction.receive(p,edit),"normal validated placement packet installs a real independent drive block");
+            c.assertTrue(BodyBlockInteraction.receive(p,edit),"normal validated placement packet installs a real independent drive block: hit="+hit+" current="+BodyBlockInteraction.target(p,p.getEyePos(),p.getRotationVec(1),p.getBlockInteractionRange())+" otherEntities="+BodySpatialIndex.otherEntities(c.getWorld(),f.a,f.a.getBoundingBox().expand(4),e->e.isAlive())+" player="+p.getBoundingBox());
             var placed=f.a.getLocalBlock(hit.localBlock().offset(hit.localFace()));
             c.assertTrue(placed.isOf(ModWorldBlocks.ROTARY_DRIVE)&&placed.get(MechanicalBearingBlock.FACING)==hit.localFace(),"drive axis follows local surface rather than global UP");
             c.assertTrue(p.getMainHandStack().getCount()==1,"Survival construction consumes exactly one held component");

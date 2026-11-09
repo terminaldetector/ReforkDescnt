@@ -116,7 +116,7 @@ public final class MechanicalBearingSystem {
         var frameA=PortalTransform.rotationBetween(X,direction(sa));
         var frameB=ImmPtlQuaternions.hamiltonProduct(b.rotation().inverse(),ImmPtlQuaternions.hamiltonProduct(a.rotation(),frameA));
         var link=new BodyJointLink(UUID.randomUUID(),new BodyJointLink.Endpoint(a.getUuid(),ca,pa,frameA),new BodyJointLink.Endpoint(b.getUuid(),cb,pb,frameB),BodyJointConstraint.Kind.MOTOR,
-            Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,0,0,50000,50000,false,true);
+            Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,0,0,50000,50000,true,true);
         try{registry.add(world,a,b,link);}catch(IllegalArgumentException invalid){return false;}
         refresh(world,link,a,b);return true;
     }
