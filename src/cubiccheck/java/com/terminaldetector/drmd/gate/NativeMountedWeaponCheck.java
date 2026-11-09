@@ -34,7 +34,7 @@ public final class NativeMountedWeaponCheck {
     private static final BlockPos BASE=new BlockPos(8,2200,8),DRIVE=new BlockPos(-1,0,0),LASER=new BlockPos(1,0,0),ROCKET=new BlockPos(2,0,0);
     private static volatile BlockBodyEntity root,rotor;
     private static volatile ServerPlayerEntity player;
-    private static volatile boolean located,ready,done,linked,moving,reversed,detached;
+    private static volatile boolean located,ready,done,linked,moving,reversed,detached,laserOn,rocketOn;
     private static volatile int phase,lasers,rockets,stoppedTicks;
     private static volatile double maxAngle,maxError,muzzleError,velocityError;
     private static long offTick=Long.MIN_VALUE,lastLaser=Long.MIN_VALUE,lastRocket=Long.MIN_VALUE;
@@ -53,6 +53,7 @@ public final class NativeMountedWeaponCheck {
         ServerTickEvents.END_SERVER_TICK.register(server->{
             if(!ready||done)return;
             if(server.getTicks()%20==0)System.out.println("MOUNTED_STATE phase="+phase+" shots="+lasers+"/"+rockets+" anchor="+maxError+" root="+e(root).getPos()+" tip="+e(rotor).getPos()+" player="+e(player).getPos());
+            laserOn=rotor.getLocalBlock(LASER.up()).get(Properties.POWERED);rocketOn=rotor.getLocalBlock(ROCKET.up()).get(Properties.POWERED);
             require(CubicAvailability.backend(player.getServerWorld())==CubicAvailability.Backend.NATIVE_CUBIC,"native cubic backend");
             var links=BodyJointRegistry.get(player.getServerWorld()).forBody(e(root).getUuid());
             if(!links.isEmpty()){
@@ -86,8 +87,8 @@ public final class NativeMountedWeaponCheck {
         var lever=Blocks.LEVER.getDefaultState().with(Properties.BLOCK_FACE,BlockFace.FLOOR);
         rotor=BlockBodyEntity.createLocal(world,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,ModWorldBlocks.MECHANICAL_BEARING.getDefaultState().with(Properties.FACING,Direction.WEST)),
             new BlockBodyEntity.Cell(LASER,ModWorldBlocks.SHIP_LASER.getDefaultState()),new BlockBodyEntity.Cell(ROCKET,ModWorldBlocks.SHIP_ROCKET.getDefaultState()),
-            new BlockBodyEntity.Cell(LASER.up(),lever),new BlockBodyEntity.Cell(ROCKET.up(),lever)),at.add(offset.x(),offset.y(),offset.z()),q,Vec3d.ZERO,Vec3d.ZERO);
-        root.setPhysicsGravity(false);rotor.setPhysicsGravity(false);var feet=root.localToWorld(new Vec3d(.5,-.6,-3.5));
+            new BlockBodyEntity.Cell(LASER.up(),lever),new BlockBodyEntity.Cell(ROCKET.up(),lever),new BlockBodyEntity.Cell(LASER.down(),Blocks.IRON_BLOCK.getDefaultState()),new BlockBodyEntity.Cell(ROCKET.down(),Blocks.IRON_BLOCK.getDefaultState())),at.add(offset.x(),offset.y(),offset.z()),q,Vec3d.ZERO,Vec3d.ZERO);
+        root.setPhysicsGravity(false);rotor.setPhysicsGravity(false);var feet=root.localToWorld(new Vec3d(.5,-.6,-2.5));
         player.teleport(world,feet.x,feet.y,feet.z,Set.of(),0,0);player.setStackInHand(Hand.MAIN_HAND,new ItemStack(ModWorldBlocks.MECHANISM_WRENCH));player.getInventory().markDirty();player.currentScreenHandler.sendContentUpdates();
         require(BodyJointRegistry.get(world).forBody(e(root).getUuid()).isEmpty(),"fixture supplies no ready-made joint");ready=true;
     }
@@ -110,15 +111,23 @@ public final class NativeMountedWeaponCheck {
             case 2->{aim(c,a,new Vec3(-.5,.5,.5));c.options.useKey.setPressed(age==12);if(moving){phase=3;age=0;}}
             case 3->{aim(c,b,new Vec3(1.5,1.2,.5));c.options.useKey.setPressed(age==12);if(lasers>=3){phase=4;age=0;request("laser-fire");}}
             case 4->{aim(c,b,new Vec3(2.5,1.2,.5));c.options.useKey.setPressed(age==12);if(rockets>=1){phase=5;age=0;request("rocket-fire");}}
-            case 5->{aim(c,b,new Vec3(1.5,1.2,.5));c.options.useKey.setPressed(age==12);if(age>15&&!rotor.getLocalBlock(LASER.up()).get(Properties.POWERED)){phase=6;age=0;}}
-            case 6->{aim(c,b,new Vec3(2.5,1.2,.5));c.options.useKey.setPressed(age==12);if(age>15&&!rotor.getLocalBlock(ROCKET.up()).get(Properties.POWERED)){phase=7;age=0;}}
+            case 5->{clickOff(c,b,LASER.up(),laserOn);if(age>15&&!laserOn){phase=6;age=0;}}
+            case 6->{clickOff(c,b,ROCKET.up(),rocketOn);if(age>15&&!rocketOn){phase=7;age=0;}}
             case 7->{aim(c,a,new Vec3(-.5,.5,.5));c.options.sneakKey.setPressed(age>=8&&age<=14);c.options.useKey.setPressed(age==12);if(reversed&&stoppedTicks>=16){phase=8;age=0;request("fire-off-reversed");}}
             case 8->{aim(c,a,new Vec3(.5,.5,.5));c.options.sneakKey.setPressed(age>=8&&age<=14);c.options.useKey.setPressed(age==12);if(detached){phase=9;request("bearing-detached");}}
         }
     }
     private static void aim(MinecraftClient c,BlockBodyEntity body,Vec3 local){
         var view=BoardingClient.bodyView(body,1);var p=view==null?body.massPosition():view.position();var q=view==null?body.rotation():view.rotation();var eye=c.player.getEyePos();
-        var look=p.plus(q.rotate(local.minus(body.localCentre()))).minus(new Vec3(eye.x,eye.y,eye.z));var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(look);c.player.setYaw((float)angles.yawDegrees());c.player.setPitch((float)angles.pitchDegrees());
+        var look=p.plus(q.rotate(local.minus(body.localCentre()))).minus(new Vec3(eye.x,eye.y,eye.z));var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(look);c.player.setYaw((float)angles.yawDegrees());c.player.setHeadYaw((float)angles.yawDegrees());c.player.setPitch((float)angles.pitchDegrees());
+    }
+    private static void clickOff(MinecraftClient c,BlockBodyEntity body,BlockPos cell,boolean serverOn){
+        var bounds=body.localBlockBounds().get(cell);aim(c,body,bounds.centre());
+        if(!serverOn||!body.getLocalBlock(cell).get(Properties.POWERED)||age<12||age%8!=4)return;
+        var hit=BodyBlockInteraction.target(c.player,c.player.getEyePos(),c.player.getRotationVec(1),Math.min(16,c.player.getBlockInteractionRange()),candidate->{var view=BoardingClient.bodyView(candidate,1);return view==null?new BodyBlockInteraction.BodyPose(candidate.massPosition(),candidate.rotation()):new BodyBlockInteraction.BodyPose(view.position(),view.rotation());}).orElse(null);
+        boolean matches=hit!=null&&hit.body()==body&&hit.hit().localBlock().equals(cell);
+        System.out.println("MOUNTED_CLICK_OFF phase="+phase+" age="+age+" matchingMaterialRay="+matches+" hit="+hit);
+        if(matches)c.options.useKey.setPressed(true);
     }
     public static void fired(WeaponCore.FireConfig cfg,ProjectileEntity shot){
         if(!ENABLED||!ready||done||shot==null||cfg.owner!=rotor)return;require(offTick==Long.MIN_VALUE,"no delayed emission after off");
