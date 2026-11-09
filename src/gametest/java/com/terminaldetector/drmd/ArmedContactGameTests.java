@@ -39,9 +39,9 @@ public final class ArmedContactGameTests implements FabricGameTest {
                     for(int tick=0;tick<80;tick++){
                         if(tick<3)System.out.println("ARMED_REPLAY before "+tick+" "+describe(root)+" / "+describe(bodies.get(1)));
                         bodies.forEach(BlockBodyEntity::tick);BodyJointSystem.solve(c.getWorld());
-                        if(tick<3)System.out.println("ARMED_REPLAY joint "+tick+" "+describe(root)+" / "+describe(bodies.get(1)));
+                        if(tick<3)System.out.println("ARMED_REPLAY joint "+tick+" link="+registry.find(link.id())+" stats="+BodyJointSystem.stats(c.getWorld())+" "+describe(root)+" / "+describe(bodies.get(1)));
                         collisions+=BodyContactSystem.solve(c.getWorld());
-                        if(tick<3)System.out.println("ARMED_REPLAY contact "+tick+" "+describe(root)+" / "+describe(bodies.get(1)));
+                        if(tick<3)System.out.println("ARMED_REPLAY contact "+tick+" link="+registry.find(link.id())+" stats="+BodyContactSystem.stats(c.getWorld())+" "+describe(root)+" / "+describe(bodies.get(1)));
                         var a=link.a().point();var b=link.b().point();double error=root.localToWorld(new Vec3d(a.x(),a.y(),a.z())).distanceTo(bodies.get(1).localToWorld(new Vec3d(b.x(),b.y(),b.z())));maximum=Math.max(maximum,error);
                         c.assertTrue(error<.03,"native connected-contact anchor error at tick "+tick+": "+error+" contacts="+BodyContactSystem.stats(c.getWorld())+" joints="+BodyJointSystem.stats(c.getWorld()));
                         c.assertTrue(!BodyContactSystem.stats(c.getWorld()).budgetPaused()&&BodyJointSystem.stats(c.getWorld()).paused()==0,"contact correction cannot freeze or discard physical time");
