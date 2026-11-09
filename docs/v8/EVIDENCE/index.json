@@ -2464,5 +2464,49 @@
     "scope": "Reference yaw-module autonomous combat with carrier swing, real material bearing-rate feed-forward, observed ordinary player motion and installed-controller authority. Independent pitch/compound modules, arbitrary navigation, energy/ammunition and full master v8 remain open.",
     "archive": "docs/v8/EVIDENCE/turret-autonomous-d54d71f.zip",
     "archiveSha256": "a6181b516a4030af0afdd225a8a91c42e6e7b32c22f7d2c05e9e800c34009e50"
+  },
+  "playerBuiltMechanisms": {
+    "nativeSource": "a160efb8e6ed34b7dd555a921880104290ac9ec9",
+    "fullServerSource": "f04d15b3210d16651f576541498a6bf9a90f1671",
+    "productionSource": "f04d15b",
+    "unit": {
+      "tests": 756,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "gameTests": {
+      "tests": 357,
+      "failures": 0
+    },
+    "focusedCases": 11,
+    "gameSha256": "ae9de4722e439506b89d1007d78591820549f5f8dac6c60d24b5e5735e81e941",
+    "observerSha256": "61f7313b307a564a9e52103473b53f645a1c09c4fc608e4e6084b7215d16b69d",
+    "sameGameBytesForFullAndNative": true,
+    "nativeScenario": "player-mechanisms-input-sodium",
+    "native": {
+      "actualClientUseAndSneakKeys": true,
+      "fixtureCreatedJoint": false,
+      "ordinaryBlockBodies": true,
+      "worldAssemblyCoveredByGameTestsOnly": true,
+      "physicalMotorPositiveAndReverse": true,
+      "detachPreservesSpin": true,
+      "maxRelativeAngle": 0.26000000000000095,
+      "maxAnchorError": 4.748723811367412e-13,
+      "freshDrawsOfBothBodies": true,
+      "frames": [
+        "connected-idle",
+        "drive-powered",
+        "drive-reversed",
+        "bearing-detached"
+      ]
+    },
+    "scope": "Player-built generic bearings/drives and real client controls. Generic weapons, world anchoring, power economy and complete saved-world/multiplayer lifecycle remain open.",
+    "releaseAccepted": false,
+    "publication": "Local only",
+    "archive": "docs/v8/EVIDENCE/player-mechanisms-a160efb.zip",
+    "archiveSha256": "1614e071c9b8e020a0af3662da566725f31291dd16aea6b60ae0bfbd79286ddc",
+    "verifiedFiles": 183,
+    "crcAndHashesVerified": true
   }
 }
