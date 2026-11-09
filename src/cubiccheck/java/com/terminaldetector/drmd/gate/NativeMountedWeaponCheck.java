@@ -34,7 +34,7 @@ public final class NativeMountedWeaponCheck {
     private static final BlockPos BASE=new BlockPos(8,2200,8),DRIVE=new BlockPos(-1,0,0),LASER=new BlockPos(1,0,0),ROCKET=new BlockPos(2,0,0);
     private static volatile BlockBodyEntity root,rotor;
     private static volatile ServerPlayerEntity player;
-    private static volatile boolean located,ready,done,linked,moving,reversed,detached,laserOn,rocketOn;
+    private static volatile boolean located,ready,done,linked,moving,reversed,detached,laserOn,rocketOn,reverseCommanded;
     private static volatile int phase,lasers,rockets,stoppedTicks;
     private static volatile double maxAngle,maxError,muzzleError,velocityError;
     private static long offTick=Long.MIN_VALUE,lastLaser=Long.MIN_VALUE,lastRocket=Long.MIN_VALUE;
@@ -58,7 +58,7 @@ public final class NativeMountedWeaponCheck {
             require(CubicAvailability.backend(player.getServerWorld())==CubicAvailability.Backend.NATIVE_CUBIC,"native cubic backend");
             var links=BodyJointRegistry.get(player.getServerWorld()).forBody(e(root).getUuid());
             if(!links.isEmpty()){
-                require(links.size()==1&&links.getFirst().blockDriven()&&links.getFirst().collideConnected(),"one material bearing with connected collisions");var link=links.getFirst();linked=true;
+                require(links.size()==1&&links.getFirst().blockDriven()&&links.getFirst().collideConnected(),"one material bearing with connected collisions");var link=links.getFirst();linked=true;reverseCommanded=link.speed()>0;
                 maxError=Math.max(maxError,root.localToWorld(new Vec3d(1,.5,.5)).distanceTo(rotor.localToWorld(new Vec3d(0,.5,.5))));
                 if(maxError>=.03||Math.abs(link.speed())>.600001||link.motorForce()>40){
                     try{var dump=new LinkedHashMap<String,Object>();dump.put("phase",phase);dump.put("shots",List.of(lasers,rockets));dump.put("anchorError",maxError);dump.put("link",link.write().toString());dump.put("root",e(root).writeNbt(new net.minecraft.nbt.NbtCompound()).toString());dump.put("tip",e(rotor).writeNbt(new net.minecraft.nbt.NbtCompound()).toString());dump.put("contacts",BodyContactSystem.stats(player.getServerWorld()).toString());dump.put("joints",BodyJointSystem.stats(player.getServerWorld()).toString());dump.put("player",e(player).getPos().toString());Files.writeString(MinecraftClient.getInstance().runDirectory.toPath().resolve("mounted-failure-state.json"),new com.google.gson.Gson().toJson(dump));}catch(java.io.IOException failure){throw new IllegalStateException(failure);}
@@ -108,12 +108,12 @@ public final class NativeMountedWeaponCheck {
         jumpHeld=c.options.jumpKey.isPressed();
         c.options.useKey.setPressed(false);c.options.sneakKey.setPressed(false);c.options.forwardKey.setPressed(false);c.options.backKey.setPressed(false);c.options.leftKey.setPressed(false);c.options.rightKey.setPressed(false);c.options.jumpKey.setPressed(false);
         if(phase>=2)require(c.player.getAbilities().flying,"operator retains its initial ordinary Creative flight mode");
-        var focus=phase>=3&&phase<=6?b:a;
+        var focus=phase>=3&&phase<=6||phase==9?b:a;
         var look=phase>=3&&phase<=6?new Vec3(phase==4||phase==6?2.5:1.5,1.2,.5):new Vec3(-.5,.5,.5);
         aim(c,focus,capture?new Vec3(1.5,.5,.5):look);
         boolean approaching=phase>=2&&phase<=8&&approach(c,focus,focus==b?new Vec3(1.5,2.6,-2.5):new Vec3(0,1.8,-2.5));
         if(capture)return;
-        if(approaching){age=0;return;}age++;
+        if(approaching&&phase<7){age=0;return;}age++;
         switch(phase){
             case 0->{aim(c,a,new Vec3(.5,.5,.5));c.options.useKey.setPressed(age==12);if(age>20){phase=1;age=0;}}
             case 1->{aim(c,b,new Vec3(.5,.5,.5));c.options.useKey.setPressed(age==12);if(linked&&age>15){phase=2;age=0;request("connected-off");}}
@@ -122,8 +122,8 @@ public final class NativeMountedWeaponCheck {
             case 4->{aim(c,b,new Vec3(2.5,1.2,.5));c.options.useKey.setPressed(age==12);if(rockets>=1){phase=5;age=0;request("rocket-fire");}}
             case 5->{clickOff(c,b,LASER.up(),laserOn);if(age>15&&!laserOn){phase=6;age=0;}}
             case 6->{clickOff(c,b,ROCKET.up(),rocketOn);if(age>15&&!rocketOn){phase=7;age=0;}}
-            case 7->{aim(c,a,new Vec3(-.5,.5,.5));c.options.sneakKey.setPressed(age>=8&&age<=14);c.options.useKey.setPressed(age==12);if(reversed&&stoppedTicks>=16){phase=8;age=0;request("fire-off-reversed");}}
-            case 8->{aim(c,a,new Vec3(.5,.5,.5));c.options.sneakKey.setPressed(age>=8&&age<=14);c.options.useKey.setPressed(age==12);if(detached){phase=9;request("bearing-detached");}}
+            case 7->{clickMechanism(c,a,DRIVE,!reverseCommanded);if(reversed&&stoppedTicks>=16){phase=8;age=0;request("fire-off-reversed");}}
+            case 8->{clickMechanism(c,a,BlockPos.ORIGIN,!detached);if(detached){phase=9;request("bearing-detached");}}
         }
     }
     private static void aim(MinecraftClient c,BlockBodyEntity body,Vec3 local){
@@ -150,6 +150,14 @@ public final class NativeMountedWeaponCheck {
         boolean matches=hit!=null&&hit.body()==body&&hit.hit().localBlock().equals(cell);
         System.out.println("MOUNTED_CLICK_OFF phase="+phase+" age="+age+" matchingMaterialRay="+matches+" hit="+hit);
         if(matches)c.options.useKey.setPressed(true);
+    }
+    private static void clickMechanism(MinecraftClient c,BlockBodyEntity body,BlockPos cell,boolean needed){
+        aim(c,body,body.localBlockBounds().get(cell).centre());
+        if(!needed||age<8)return;
+        var hit=BodyBlockInteraction.target(c.player,c.player.getEyePos(),BodyBlockInteraction.viewDirection(c.player),Math.min(16,c.player.getBlockInteractionRange()),candidate->{var view=BoardingClient.bodyView(candidate,1);return view==null?new BodyBlockInteraction.BodyPose(candidate.massPosition(),candidate.rotation()):new BodyBlockInteraction.BodyPose(view.position(),view.rotation());}).orElse(null);
+        if(hit==null||hit.body()!=body||!hit.hit().localBlock().equals(cell))return;
+        c.options.sneakKey.setPressed(age%8<=4);
+        if(age>=12&&age%8==4){c.options.useKey.setPressed(true);System.out.println("MOUNTED_MECHANISM_CLICK phase="+phase+" age="+age+" cell="+cell);}
     }
     public static void input(boolean handled){if(ready&&!done)System.out.println("MOUNTED_CLIENT_USE phase="+phase+" age="+age+" handled="+handled);}
     public static void validated(ServerPlayerEntity p,BodyBlockInteraction.Edit edit,boolean accepted){
