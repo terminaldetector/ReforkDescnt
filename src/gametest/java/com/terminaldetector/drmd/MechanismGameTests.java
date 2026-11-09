@@ -165,6 +165,8 @@ public final class MechanismGameTests implements FabricGameTest {
         try{
             var delta=f.a.localToWorld(new Vec3d(.5,.5,.5)).subtract(p.getEyePos()).normalize();
             var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(new Vec3(delta.x,delta.y,delta.z));p.setYaw((float)angles.yawDegrees());p.setPitch((float)angles.pitchDegrees());
+            p.setHeadYaw((float)angles.yawDegrees());
+            c.assertTrue(p.getRotationVec(1).dotProduct(delta)>.999,"mock head yaw and body yaw both face the actual material target");
             var target=BodyBlockInteraction.target(p,p.getEyePos(),p.getRotationVec(1),p.getBlockInteractionRange()).orElseThrow();
             c.assertTrue(target.body()==f.a,"authoritative ray selects actual rolled carrier material");
             p.setStackInHand(Hand.MAIN_HAND,new ItemStack(ModWorldBlocks.ROTARY_DRIVE,2));p.setSneaking(true);
