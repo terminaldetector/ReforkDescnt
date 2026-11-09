@@ -72,9 +72,9 @@ public final class ArmedContactGameTests implements FabricGameTest {
         var wallCells=new ArrayList<BlockBodyEntity.Cell>();for(int x=-9;x<=0;x++)for(int y=-4;y<=5;y++)wallCells.add(new BlockBodyEntity.Cell(new BlockPos(x,y,0),Blocks.IRON_BLOCK.getDefaultState()));
         var wall=BlockBodyEntity.createLocal(w,wallCells,origin.add(-.2,0,4));var bodies=List.of(a,b,wall);bodies.forEach(body->body.setPhysicsGravity(false));a.physics().withLinearVelocity(new Vec3(0,0,3));b.physics().withLinearVelocity(new Vec3(0,0,3));
         c.assertTrue(MechanicalBearingSystem.connect(w,a,BlockPos.ORIGIN,b,BlockPos.ORIGIN),"free coupled pair aimed at an independent massive wall");
-        c.assertTrue(!BodyPairQuery.contacts(motion(a),motion(b),0,true).isEmpty(),"the two unfiltered bearing cubes touch");
-        c.assertTrue(BearingContactGeometry.of(w,a,b).contacts(motion(a),motion(b),0,true).isEmpty(),"only the actual mating bearing pair is excluded from contact geometry");
         c.waitAndRun(1,()->{try{
+            c.assertTrue(!BodyPairQuery.contacts(motion(a),motion(b),0,true).isEmpty(),"the two unfiltered bearing cubes touch");
+            c.assertTrue(BearingContactGeometry.of(w,a,b).contacts(motion(a),motion(b),0,true).isEmpty(),"only the admitted mating bearing pair is excluded from contact geometry");
             int collisions=0;var start=a.massPosition();for(int tick=0;tick<55;tick++){
                 bodies.forEach(BlockBodyEntity::tick);collisions+=BodyContactSystem.solve(w);
                 c.assertTrue(a.localToWorld(new Vec3d(1,.5,.5)).distanceTo(b.localToWorld(new Vec3d(0,.5,.5)))<.03,"non-touching neighbour follows the same contact-time constraints at tick "+tick);
