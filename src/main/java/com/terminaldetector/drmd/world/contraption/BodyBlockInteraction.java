@@ -130,7 +130,7 @@ public final class BodyBlockInteraction {
         if(state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock||state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MountedWeaponBlock)state=state.with(net.minecraft.state.property.Properties.FACING,t.hit().localFace());
         if(state.isOf(net.minecraft.block.Blocks.LEVER)){
             var face=t.hit().localFace();
-            state=state.with(net.minecraft.state.property.Properties.BLOCK_FACE,face==net.minecraft.util.math.Direction.UP?net.minecraft.block.enums.WallMountLocation.FLOOR:face==net.minecraft.util.math.Direction.DOWN?net.minecraft.block.enums.WallMountLocation.CEILING:net.minecraft.block.enums.WallMountLocation.WALL);
+            state=state.with(net.minecraft.state.property.Properties.BLOCK_FACE,face==net.minecraft.util.math.Direction.UP?net.minecraft.block.enums.BlockFace.FLOOR:face==net.minecraft.util.math.Direction.DOWN?net.minecraft.block.enums.BlockFace.CEILING:net.minecraft.block.enums.BlockFace.WALL);
             if(face.getAxis().isHorizontal())state=state.with(net.minecraft.state.property.Properties.HORIZONTAL_FACING,face);
         }
         if(!new BlockBodyWorldAccess(t.body()).placeLocalBlock(t.hit().localBlock().offset(t.hit().localFace()),state))return false;

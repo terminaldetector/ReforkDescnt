@@ -7,7 +7,7 @@ import com.terminaldetector.drmd.world.contraption.*;
 import com.terminaldetector.drmd.world.contraption.mechanism.*;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.block.*;
-import net.minecraft.block.enums.WallMountLocation;
+import net.minecraft.block.enums.BlockFace;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
@@ -27,7 +27,7 @@ public final class MountedMechanismGameTests implements FabricGameTest {
     private BlockState gun(boolean rocket,Direction facing){return (rocket?ModWorldBlocks.SHIP_ROCKET:ModWorldBlocks.SHIP_LASER).getDefaultState().with(Properties.FACING,facing);}
     private BlockState lever(Direction support,boolean on){
         return Blocks.LEVER.getDefaultState().with(Properties.POWERED,on)
-            .with(Properties.BLOCK_FACE,support==Direction.UP?WallMountLocation.CEILING:support==Direction.DOWN?WallMountLocation.FLOOR:WallMountLocation.WALL)
+            .with(Properties.BLOCK_FACE,support==Direction.UP?BlockFace.CEILING:support==Direction.DOWN?BlockFace.FLOOR:BlockFace.WALL)
             .with(Properties.HORIZONTAL_FACING,support.getAxis().isHorizontal()?support.getOpposite():Direction.NORTH);
     }
     private Map<BlockPos,BlockState> mount(boolean rocket,Direction facing,boolean on){return new LinkedHashMap<>(Map.of(GUN,gun(rocket,facing),GUN.offset(facing.getOpposite()),lever(facing,on)));}
@@ -103,7 +103,7 @@ public final class MountedMechanismGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-cadence",tickLimit=180)
     public void realPostContactScheduleUsesIndependentLaserRocketCooldownsAndOffDoesNotResetThem(TestContext c){admitted(c,lease->{
         var cells=heavy(mount(false,Direction.SOUTH,true));var rocket=new BlockPos(3,0,0);cells.put(rocket,gun(true,Direction.SOUTH));cells.put(rocket.north(),lever(Direction.SOUTH,true));
-        var b=body(c,cells,at(c),Quat.IDENTITY);int start=c.getTick();int[] first={-1},previous={0};var times=new ArrayList<Integer>();
+        var b=body(c,cells,at(c),Quat.IDENTITY);long start=c.getTick();long[] first={-1};int[] previous={0};var times=new ArrayList<Long>();
         c.runAtEveryTick(()->{
             if(b.isRemoved())return;int lasers=(int)shots(c,b).stream().filter(s->s.getMeshKind()==0).count();
             if(lasers>previous[0]){times.add(c.getTick());previous[0]=lasers;if(first[0]<0)first[0]=c.getTick();}
@@ -121,7 +121,7 @@ public final class MountedMechanismGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-real-hit",tickLimit=160)
     public void ordinaryLeverPoweredBodyDamagesARealEntityWithoutAFakePilot(TestContext c){admitted(c,lease->{
         var origin=at(c);var b=body(c,heavy(mount(false,Direction.SOUTH,true)),origin,Quat.IDENTITY);
-        var target=EntityType.ZOMBIE.create(c.getWorld());target.setAiDisabled(true);target.setNoGravity(true);target.setPosition(origin.add(.5,-.5,8.5));c.assertTrue(c.getWorld().spawnEntity(target),"real damage target");int started=c.getTick();
+        var target=EntityType.ZOMBIE.create(c.getWorld());target.setAiDisabled(true);target.setNoGravity(true);target.setPosition(origin.add(.5,-.5,8.5));c.assertTrue(c.getWorld().spawnEntity(target),"real damage target");long started=c.getTick();
         c.runAtEveryTick(()->{
             if(b.isRemoved())return;if(target.getHealth()>=20&&c.getTick()-started<30)return;
             try{c.assertTrue(target.getHealth()<20,"naturally scheduled physical-body projectile causes real damage: health="+target.getHealth());}
@@ -130,14 +130,14 @@ public final class MountedMechanismGameTests implements FabricGameTest {
     });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-off",tickLimit=150)
     public void offAndUnattachedLeversNeverCreateScheduledShots(TestContext c){admitted(c,lease->{
-        var b=body(c,heavy(mount(false,Direction.SOUTH,false)),at(c),Quat.IDENTITY);int start=c.getTick();
+        var b=body(c,heavy(mount(false,Direction.SOUTH,false)),at(c),Quat.IDENTITY);long start=c.getTick();
         c.runAtEveryTick(()->{if(b.isRemoved())return;if(c.getTick()-start==12){c.assertTrue(shots(c,b).isEmpty(),"default off weapon has no autonomous trigger");b.setLocalBlock(new BlockPos(0,0,-1),lever(Direction.NORTH,true));}if(c.getTick()-start<24)return;try{c.assertTrue(shots(c,b).isEmpty(),"powered lever mounted away from the gun cannot emit scheduled shots");}
             finally{clean(c,b);lease.close();}c.complete();});
     });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-fragment-state",tickLimit=170)
     public void gunCooldownFollowsActualMaterialIntoAFragmentAndSurvivesItsCodecRoundTrip(TestContext c){admitted(c,lease->{
         var cells=new LinkedHashMap<BlockPos,BlockState>();for(int x=-2;x<=1;x++)cells.put(new BlockPos(x,0,0),Blocks.IRON_BLOCK.getDefaultState());var slot=new BlockPos(2,0,0);cells.put(slot,gun(false,Direction.SOUTH));cells.put(slot.north(),lever(Direction.SOUTH,true));
-        var b=body(c,cells,at(c),Quat.IDENTITY);int start=c.getTick();
+        var b=body(c,cells,at(c),Quat.IDENTITY);long start=c.getTick();
         c.runAtEveryTick(()->{
             if(b.isRemoved())return;var saved=b.mountedWeapons().write(b);if(saved.getList("cooldowns",NbtElement.COMPOUND_TYPE).isEmpty()&&c.getTick()-start<20)return;
             var before=new HashSet<>(BodySpatialIndex.loaded(c.getWorld()));BlockBodyEntity fragment=null;
@@ -153,7 +153,7 @@ public final class MountedMechanismGameTests implements FabricGameTest {
     });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-budget",tickLimit=180)
     public void boundedWorldBudgetEventuallyServesEveryIndependentArmedBody(TestContext c){admitted(c,lease->{
-        var origin=at(c);var bodies=new ArrayList<BlockBodyEntity>();var fired=new HashSet<UUID>();int start=c.getTick();
+        var origin=at(c);var bodies=new ArrayList<BlockBodyEntity>();var fired=new HashSet<UUID>();long start=c.getTick();
         for(int k=-1;k<=1;k++){
             var cells=new LinkedHashMap<BlockPos,BlockState>();for(int x=0;x<8;x++)for(int z=0;z<4;z++){
                 var slot=new BlockPos(x*2,0,z*3);cells.put(slot,gun(false,Direction.SOUTH));cells.put(slot.north(),lever(Direction.SOUTH,true));
@@ -201,11 +201,12 @@ public final class MountedMechanismGameTests implements FabricGameTest {
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="mounted-compound",tickLimit=180)
     public void ordinaryTwoAxisMechanismFiresFromItsActualTipAndKeepsBothPhysicalBearings(TestContext c){admitted(c,lease->{
-        var origin=at(c);var rootCells=heavy(Map.of(GUN,ModWorldBlocks.MECHANICAL_BEARING.getDefaultState().with(Properties.FACING,Direction.EAST),new BlockPos(-1,0,0),ModWorldBlocks.ROTARY_DRIVE.getDefaultState().with(Properties.FACING,Direction.EAST).with(Properties.POWER,5)));
+        var origin=at(c);var rootCells=new LinkedHashMap<BlockPos,BlockState>(Map.of(GUN,ModWorldBlocks.MECHANICAL_BEARING.getDefaultState().with(Properties.FACING,Direction.EAST),new BlockPos(-1,0,0),ModWorldBlocks.ROTARY_DRIVE.getDefaultState().with(Properties.FACING,Direction.EAST).with(Properties.POWER,5)));
+        for(int x=-4;x<=5;x++)for(int z=-4;z<=5;z++)rootCells.put(new BlockPos(x,-3,z),Blocks.IRON_BLOCK.getDefaultState());rootCells.put(new BlockPos(0,-1,0),Blocks.IRON_BLOCK.getDefaultState());rootCells.put(new BlockPos(0,-2,0),Blocks.IRON_BLOCK.getDefaultState());
         var root=body(c,rootCells,origin,Quat.IDENTITY);
         var middle=body(c,Map.of(GUN,ModWorldBlocks.MECHANICAL_BEARING.getDefaultState().with(Properties.FACING,Direction.WEST),new BlockPos(1,0,0),ModWorldBlocks.MECHANICAL_BEARING.getDefaultState().with(Properties.FACING,Direction.UP),new BlockPos(1,-1,0),ModWorldBlocks.ROTARY_DRIVE.getDefaultState().with(Properties.FACING,Direction.UP).with(Properties.POWER,5)),origin.add(1,0,0),Quat.IDENTITY);
         var tip=body(c,Map.of(GUN,ModWorldBlocks.MECHANICAL_BEARING.getDefaultState().with(Properties.FACING,Direction.DOWN),new BlockPos(0,1,0),gun(false,Direction.SOUTH),new BlockPos(0,1,-1),lever(Direction.SOUTH,true)),origin.add(2,1,0),Quat.IDENTITY);
-        c.assertTrue(MechanicalBearingSystem.connect(c.getWorld(),root,GUN,middle,GUN)&&MechanicalBearingSystem.connect(c.getWorld(),middle,new BlockPos(1,0,0),tip,GUN),"ordinary parts create two independent axes");int start=c.getTick();var initial=tip.rotation();
+        c.assertTrue(MechanicalBearingSystem.connect(c.getWorld(),root,GUN,middle,GUN)&&MechanicalBearingSystem.connect(c.getWorld(),middle,new BlockPos(1,0,0),tip,GUN),"ordinary parts create two independent axes");long start=c.getTick();var initial=tip.rotation();
         c.runAtEveryTick(()->{
             if(root.isRemoved()||c.getTick()-start<20)return;
             try{
