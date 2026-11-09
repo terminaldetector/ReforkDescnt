@@ -53,7 +53,7 @@ public final class BlockBodyWorldAccess {
         for(var entity:BodySpatialIndex.otherEntities(body.getWorld(),body,broad,entity->entity.isAlive()&&!entity.isSpectator())) {
             OrientedBox actor;
             if(entity instanceof PlayerEntity player)actor=PassengerFrame.box(BoardingSystem.pure(player.getPos()),player.getWidth(),player.getHeight(),BoardingPose.frame(player));
-            else if(entity instanceof BlockBodyEntity other){if(!other.collisionQuery().contacts(cube,0).isEmpty())return false;else continue;}
+            else if(entity instanceof BlockBodyEntity other){if(other.collisionQuery().contacts(cube,0).stream().anyMatch(contact->contact.penetration()>1e-6))return false;else continue;}
             else {var box=entity.getBoundingBox();actor=OrientedBox.axisAligned(new BodyBounds(new Vec3(box.minX,box.minY,box.minZ),new Vec3(box.maxX,box.maxY,box.maxZ)));}
             if(overlaps(cube,actor))return false;
         }
