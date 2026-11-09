@@ -33,7 +33,8 @@ public final class NativeMechanismCheck {
     private static volatile boolean located,ready,done,linked,positive,reversed,detached;
     private static volatile double maxAngle,maxError;
     private static boolean requested,spawnRequested,capture,rootDrawn,rotorDrawn;
-    private static int ticks,phase,age,frames;
+    private static volatile int phase;
+    private static int ticks,age,frames;
     private static String scene;
     private static final List<String> SCENES=new ArrayList<>();
     private NativeMechanismCheck(){}
