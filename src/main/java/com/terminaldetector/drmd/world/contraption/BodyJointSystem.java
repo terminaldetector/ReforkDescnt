@@ -46,6 +46,31 @@ public final class BodyJointSystem {
         for(var id:seen)bodies.get(id).publishPhysicsState();
     }
     public static Stats stats(ServerWorld world){return LAST.getOrDefault(world,new Stats(0,0,0,0));}
+    /** Continue a rewound contact island through its remaining time. Forces and motor work
+     * already belong to the full world phase, so only passive constraints and poses advance. */
+    public static boolean advanceContactRemainder(ServerWorld world,Map<UUID,BlockBodyEntity> bodies,Collection<BodyJointLink> links,double remaining) {
+        if(!world.getServer().isOnThread()||!Double.isFinite(remaining)||remaining<0||remaining>.05)throw new IllegalArgumentException("bounded server contact remainder required");
+        var registry=BodyJointRegistry.get(world);
+        for(int step=0;step<512&&remaining>1e-10;step++){
+            double rate=0;for(var body:bodies.values())rate=Math.max(rate,body.physics().linearVelocity().length()+body.physics().angularVelocity().length()*body.radius());
+            if(!Double.isFinite(rate))throw new IllegalStateException("non-finite contact island velocity");
+            double dt=Math.min(remaining,Math.min(.05/16,rate>1e-12?.135/rate:.05));
+            var saved=new LinkedHashMap<UUID,D6PhysicsBody.Snapshot>();for(var entry:bodies.entrySet())saved.put(entry.getKey(),entry.getValue().physics().snapshot());
+            var constraints=new LinkedHashMap<UUID,BodyJointConstraint>();
+            for(var link:links)if(registry.find(link.id()).isPresent()){
+                var a=bodies.get(link.a().body());var b=bodies.get(link.b().body());
+                if(a!=null&&b!=null)constraints.put(link.id(),BodyJointConstraint.passiveContinuation(a.physics(),b.physics(),link.bind(a,b),dt));
+            }
+            for(int pass=0;pass<32;pass++)for(var constraint:constraints.values())constraint.solve();
+            boolean available=true;for(var entry:bodies.entrySet())if(!entry.getValue().integrateJointPose(dt,saved.get(entry.getKey())))available=false;
+            if(!available){for(var entry:bodies.entrySet())entry.getValue().restoreJointStep(saved.get(entry.getKey()));bodies.values().forEach(BlockBodyEntity::pauseJointMotion);return false;}
+            bodies.values().forEach(BlockBodyEntity::publishJointPose);
+            for(var entry:constraints.entrySet())if(entry.getValue().broken())registry.remove(entry.getKey());
+            remaining-=dt;
+        }
+        if(remaining>1e-10){bodies.values().forEach(BlockBodyEntity::pauseJointMotion);return false;}
+        bodies.values().forEach(registry::rememberLocation);return true;
+    }
     public static int solve(ServerWorld world) {
         if(!world.getServer().isOnThread())throw new IllegalStateException("server-owned joint phase required");
         var pending=PENDING.remove(world);if(pending==null||pending.isEmpty())return 0;

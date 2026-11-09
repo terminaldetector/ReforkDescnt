@@ -53,6 +53,13 @@ public final class BodyJointConstraint {
             Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,0,0,c.breakForce,c.breakTorque);
         return new BodyJointConstraint(a,b,passive,seconds,false);
     }
+    /** Contact-time continuation repairs the existing passive attachment and hard stops,
+     * without applying another motor/actuator budget for the already integrated tick. */
+    public static BodyJointConstraint passiveContinuation(D6PhysicsBody a,D6PhysicsBody b,Config c,double seconds) {
+        var passive=new Config(c.kind==Kind.MOTOR?Kind.HINGE:c.kind,c.anchorA,c.anchorB,c.frameA,c.frameB,
+            c.lower,c.upper,0,0,c.breakForce,c.breakTorque);
+        return new BodyJointConstraint(a,b,passive,seconds,true);
+    }
     private BodyJointConstraint(D6PhysicsBody a,D6PhysicsBody b,Config config,double seconds,boolean correctPosition) {
         if(a==null||b==null||a==b||!Double.isFinite(seconds)||seconds<=0||seconds>.05)throw new IllegalArgumentException("distinct bodies and bounded step required");
         this.a=a;this.b=b;this.config=Objects.requireNonNull(config);this.seconds=seconds;

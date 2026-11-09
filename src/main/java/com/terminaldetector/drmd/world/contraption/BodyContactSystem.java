@@ -38,6 +38,7 @@ public final class BodyContactSystem {
         if(!world.getServer().isOnThread())throw new IllegalStateException("Hull contacts belong to the server world thread");
         BodyJointSystem.solve(world);var joints=BodyJointRegistry.get(world);
         var frames=new ArrayList<Frame>();for(var body:BodySpatialIndex.loaded(world))if(!body.cells().isEmpty())frames.add(new Frame(body));
+        var byBody=new HashMap<UUID,Frame>();for(var frame:frames)byBody.put(frame.body.getUuid(),frame);
         var index=new AabbTree<Frame>();for(var frame:frames)update(index,frame);
         var changed=new LinkedHashSet<BlockBodyEntity>();var ignored=new HashSet<Pair>();var resolved=new HashSet<Pair>();
         int collisions=0,tested=0;double remaining=.05;boolean paused=false;
@@ -60,6 +61,13 @@ public final class BodyContactSystem {
                 if(!contacts.isEmpty()){touching.add(new Touch(a,b,contacts));participants.add(a);participants.add(b);}
             }
             if(touching.isEmpty()){ignored.add(new Pair(first.a.id(),first.b.id()));continue;}
+            // Contact time belongs to the entire active mechanism, including members that
+            // did not directly touch this pair. Rewind and continue the same material phase.
+            var jointLinks=new LinkedHashMap<UUID,BodyJointLink>();var queue=new ArrayDeque<>(participants);
+            while(!queue.isEmpty())for(var link:joints.forBody(queue.removeFirst().body.getUuid()))if(joints.active(link.id(),world.getTime())){
+                var a=byBody.get(link.a().body());var b=byBody.get(link.b().body());if(a==null||b==null)continue;
+                jointLinks.put(link.id(),link);if(participants.add(a))queue.add(a);if(participants.add(b))queue.add(b);
+            }
             var originals=new LinkedHashMap<Frame,Pose>();boolean accepted=true;
             for(var frame:participants)if(frame.dynamic) {
                 originals.put(frame,new Pose(frame.body.massPosition(),frame.body.rotation()));
@@ -75,7 +83,14 @@ public final class BodyContactSystem {
             for(var frame:participants)proxies.put(frame,frame.dynamic?frame.body.physics():new D6PhysicsBody().withPosition(frame.body.massPosition()).withRotation(frame.body.rotation()));
             var constraints=new ArrayList<BodyContactConstraint>();
             for(var touch:touching)for(var c:touch.contacts)constraints.add(new BodyContactConstraint(proxies.get(touch.a),proxies.get(touch.b),c.point(),c.normal(),.65));
-            for(int pass=0;pass<32;pass++)for(var constraint:constraints)constraint.solve();
+            var passive=new LinkedHashMap<UUID,BodyJointConstraint>();var coupled=new LinkedHashMap<UUID,BlockBodyEntity>();
+            for(var link:jointLinks.values()){
+                var a=byBody.get(link.a().body());var b=byBody.get(link.b().body());if(!a.dynamic||!b.dynamic)continue;
+                coupled.put(link.a().body(),a.body);coupled.put(link.b().body(),b.body);
+                passive.put(link.id(),BodyJointConstraint.velocityOnly(proxies.get(a),proxies.get(b),link.bind(a.body,b.body),.05));
+            }
+            for(int pass=0;pass<32;pass++){for(var constraint:constraints)constraint.solve();for(var constraint:passive.values())constraint.solve();}
+            for(var entry:passive.entrySet())if(entry.getValue().broken())joints.remove(entry.getKey());
             for(var touch:touching){var pair=new Pair(touch.a.id(),touch.b.id());
                 // Curved, torque-free trajectories can immediately close the same resolved
                 // touching faces again. A 0.1mm separation only on this zero-time recurrence
@@ -83,11 +98,13 @@ public final class BodyContactSystem {
                 boolean recurring=resolved.contains(pair)&&fraction<1e-7;
                 separate(touch,proxies.get(touch.a),proxies.get(touch.b),recurring?1e-4:0);resolved.add(pair);
             }
+            var starts=new IdentityHashMap<Frame,Pose>();for(var frame:participants)if(frame.dynamic)starts.put(frame,new Pose(frame.body.massPosition(),frame.body.rotation()));
+            if(!coupled.isEmpty()&&!BodyJointSystem.advanceContactRemainder(world,coupled,jointLinks.values(),remaining))paused=true;
             for(var frame:participants) {
                 if(!frame.dynamic)continue;
-                Vec3 start=frame.body.massPosition();Quat rotation=frame.body.rotation();
-                frame.body.advanceContactRemainder(remaining);frame.dynamic=!frame.body.boardingMotionPaused();
-                frame.motion=new BodyPairQuery.Motion(frame.motion.shape(),frame.motion.centre(),start,rotation,frame.body.massPosition(),frame.body.rotation());
+                var start=starts.get(frame);
+                if(!coupled.containsKey(frame.body.getUuid()))frame.body.advanceContactRemainder(remaining);frame.dynamic=!frame.body.boardingMotionPaused();
+                frame.motion=new BodyPairQuery.Motion(frame.motion.shape(),frame.motion.centre(),start.position,start.rotation,frame.body.massPosition(),frame.body.rotation());
                 changed.add(frame.body);update(index,frame);
             }
             collisions+=touching.size();
