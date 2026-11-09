@@ -40,7 +40,7 @@ public final class NativeMountedWeaponCheck {
     private static long offTick=Long.MIN_VALUE,lastLaser=Long.MIN_VALUE,lastRocket=Long.MIN_VALUE;
     private static int shotsAtOff;
     private static boolean requested,spawnRequested,capture,rootDrawn,rotorDrawn;
-    private static int ticks,age,frames,draws,pixelCount;
+    private static int ticks,age,frames,draws,pixelCount,approachTicks;
     private static String scene;
     private static final List<String> SCENES=new ArrayList<>();
     private static final Set<UUID> SHOTS=Collections.synchronizedSet(new HashSet<>());
@@ -104,7 +104,13 @@ public final class NativeMountedWeaponCheck {
         }
         if(located&&!spawnRequested&&loaded(c)){spawnRequested=true;c.getServer().execute(NativeMountedWeaponCheck::spawn);}
         if(!ready||!(c.world.getEntityById(e(root).getId()) instanceof BlockBodyEntity a)||!(c.world.getEntityById(e(rotor).getId()) instanceof BlockBodyEntity b)||!c.player.getMainHandStack().isOf(ModWorldBlocks.MECHANISM_WRENCH))return;
-        c.options.useKey.setPressed(false);c.options.sneakKey.setPressed(false);if(capture){aim(c,b,new Vec3(1.5,.5,.5));return;}age++;
+        c.options.useKey.setPressed(false);c.options.sneakKey.setPressed(false);c.options.forwardKey.setPressed(false);c.options.backKey.setPressed(false);c.options.leftKey.setPressed(false);c.options.rightKey.setPressed(false);c.options.jumpKey.setPressed(false);
+        var focus=phase>=3&&phase<=6?b:a;
+        var look=phase>=3&&phase<=6?new Vec3(phase==4||phase==6?2.5:1.5,1.2,.5):new Vec3(-.5,.5,.5);
+        aim(c,focus,capture?new Vec3(1.5,.5,.5):look);
+        boolean approaching=phase>=2&&phase<=8&&approach(c,focus,focus==b?new Vec3(1.5,2.6,-2.5):new Vec3(0,1.8,-2.5));
+        if(capture)return;
+        if(approaching){age=0;return;}age++;
         switch(phase){
             case 0->{aim(c,a,new Vec3(.5,.5,.5));c.options.useKey.setPressed(age==12);if(age>20){phase=1;age=0;}}
             case 1->{aim(c,b,new Vec3(.5,.5,.5));c.options.useKey.setPressed(age==12);if(linked&&age>15){phase=2;age=0;request("connected-off");}}
@@ -120,6 +126,16 @@ public final class NativeMountedWeaponCheck {
     private static void aim(MinecraftClient c,BlockBodyEntity body,Vec3 local){
         var view=BoardingClient.bodyView(body,1);var p=view==null?body.massPosition():view.position();var q=view==null?body.rotation():view.rotation();var eye=c.player.getEyePos();
         var look=p.plus(q.rotate(local.minus(body.localCentre()))).minus(new Vec3(eye.x,eye.y,eye.z));var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(look);c.player.setYaw((float)angles.yawDegrees());c.player.setHeadYaw((float)angles.yawDegrees());c.player.setPitch((float)angles.pitchDegrees());
+    }
+    /** Follow an accessible observation point using ordinary Creative flight keys only. */
+    private static boolean approach(MinecraftClient c,BlockBodyEntity body,Vec3 localEye){
+        var view=BoardingClient.bodyView(body,1);var p=view==null?body.massPosition():view.position();var q=view==null?body.rotation():view.rotation();var eye=c.player.getEyePos();
+        var delta=p.plus(q.rotate(localEye.minus(body.localCentre()))).minus(new Vec3(eye.x,eye.y,eye.z));
+        if(delta.length()<.85)return false;
+        double yaw=Math.toRadians(c.player.getYaw()),forward=delta.x()*-Math.sin(yaw)+delta.z()*Math.cos(yaw),left=delta.x()*Math.cos(yaw)+delta.z()*Math.sin(yaw);
+        c.options.forwardKey.setPressed(forward>.35);c.options.backKey.setPressed(forward<-.35);c.options.leftKey.setPressed(left>.35);c.options.rightKey.setPressed(left<-.35);
+        c.options.jumpKey.setPressed(delta.y()>.35);c.options.sneakKey.setPressed(delta.y()<-.35);approachTicks++;
+        return true;
     }
     private static void clickOff(MinecraftClient c,BlockBodyEntity body,BlockPos cell,boolean serverOn){
         var bounds=body.localBlockBounds().get(cell);aim(c,body,bounds.centre());
