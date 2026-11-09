@@ -63,6 +63,7 @@ public class DescentClient implements ClientModInitializer {
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(
 				client->com.terminaldetector.drmd.world.access.CubeLifecycle.clientTick(client.world));
 		DescentConfig.load();
+        com.terminaldetector.drmd.client.presentation.ScenePresentation.register();
         ClientPlayNetworking.registerGlobalReceiver(ModNetworking.PhysicsProfilePayload.ID,(payload,context)->context.client().execute(()->{
             DescentClientState.physicsProfile=com.terminaldetector.drmd.physics.PhysicsProfile.parse(payload.profile());
             DescentClientState.physicsCanChange=payload.canChange();

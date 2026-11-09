@@ -44,6 +44,7 @@ public final class MegaBeamViewRenderer {
 		if (!DescentClientState.megaBeamActive && !isHoldingMega(mc)) return;
 		if (!mc.options.getPerspective().isFirstPerson()) return;
 		if (!DescentConfig.weaponView) return;
+        if(com.terminaldetector.drmd.client.presentation.ScenePresentation.deferOverlay(ctx,MegaBeamViewRenderer::render))return;
 
 		Vec3d cam = ctx.camera().getPos();
 		Vec3d look = Vec3d.fromPolar(ctx.camera().getPitch(), ctx.camera().getYaw());

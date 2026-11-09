@@ -47,8 +47,10 @@ public final class MirrorFramebuffer {
         if(!com.terminaldetector.drmd.client.config.DescentConfig.mirrorReflection
                 && !com.terminaldetector.drmd.client.config.DescentConfig.portalSeeThrough)return null;
 		MinecraftClient mc = MinecraftClient.getInstance();
-		int w = mc.getWindow().getFramebufferWidth();
-		int h = mc.getWindow().getFramebufferHeight();
+        // The current outer target can be the PS1 scene. Projection/scissor coordinates
+        // and the reflected target must use that same raster, never the UI/window size.
+		int w = mc.getFramebuffer().textureWidth;
+		int h = mc.getFramebuffer().textureHeight;
 		if (w <= 0 || h <= 0) return null;
 
 		if (framebuffer == null) {
@@ -68,23 +70,23 @@ public final class MirrorFramebuffer {
 	}
 
 	/**
-	 * Width the next render will use — the window's, not the world's, and read from the window rather
-	 * than from the field {@link #get()} caches.
+	 * Width of the current outer scene target, read independently of the cached reflection target.
+     * Normally this is the window raster; PS1 presentation supplies its smaller scene raster.
 	 *
 	 * <p>Reading the field instead was a deadlock, and a silent one. Callers measure a face on screen
 	 * before deciding whether to render it, and that measurement needs a size; the field is only set by
 	 * {@link #get()}, which is only reached after the measurement succeeds. Starting at zero, the
 	 * measurement always failed, so {@code get()} was never called, so the field stayed zero — no mirror
 	 * and no portal would ever have drawn, on any frame, with nothing in a log to say why. Asking the
-	 * window removes the ordering question entirely, and the answer is the same one {@code get()} sizes
+	 * current outer target removes that ordering question, and the answer is the same one {@code get()} sizes
 	 * the target to.
 	 */
 	public static int width() {
-		return MinecraftClient.getInstance().getWindow().getFramebufferWidth();
+		return MinecraftClient.getInstance().getFramebuffer().textureWidth;
 	}
 
 	/** Height the next render will use — see {@link #width()}. */
 	public static int height() {
-		return MinecraftClient.getInstance().getWindow().getFramebufferHeight();
+		return MinecraftClient.getInstance().getFramebuffer().textureHeight;
 	}
 }

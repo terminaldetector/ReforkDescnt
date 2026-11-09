@@ -33,12 +33,15 @@ public final class CockpitRenderer {
 	private CockpitRenderer() {}
 
 	public static void register() {
-		WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(CockpitRenderer::render);
+    }
+    private static void render(net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext context) {
             if(com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())return;
 			MinecraftClient mc = MinecraftClient.getInstance();
 			if (mc.player == null || mc.options == null) return;
 			if (!DescentConfig.cockpit || !DescentClientState.enabled || mc.currentScreen != null) return;
 			if (!mc.options.getPerspective().isFirstPerson() || mc.options.hudHidden) return;
+            if(com.terminaldetector.drmd.client.presentation.ScenePresentation.deferOverlay(context,CockpitRenderer::render))return;
 
 			// Never hard-gate on attitude — prime if cold so the frame is not permanently missing.
 			if (!ShipAttitudeClient.isPrimed() || !DescentClientState.attitudeValid) {
@@ -81,7 +84,6 @@ public final class CockpitRenderer {
 			RenderSystem.enableCull();
 			RenderSystem.disableBlend();
 			matrices.pop();
-		});
 	}
 
 	private static void frame(BufferBuilder buf, Matrix4f m, Vec3d f, Vec3d u, Vec3d r, float a) {

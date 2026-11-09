@@ -28,7 +28,7 @@ public class DescentSettingsScreen extends Screen {
     private int panelLeft,panelWidth,contentHeight;
     private List<net.minecraft.text.OrderedText> hintLines=List.of();
 	private static final int SECTION = 14;
-	private static final int CONTENT_HEIGHT = 5 * SECTION + 14 * ROW + 3 * 6;
+	private static final int CONTENT_HEIGHT = 5 * SECTION + 15 * ROW + 3 * 6;
 	private final Screen parent;
 	private final List<Heading> headings = new ArrayList<>();
 	private int scroll;
@@ -55,7 +55,7 @@ public class DescentSettingsScreen extends Screen {
         int right=panelLeft+(panelWidth+10)/2;
         hintLines=textRenderer.wrapLines(Text.translatable("options.drmd.keys_hint"),Math.max(100,width-24));
         contentTop=32+hintLines.size()*9+8;
-        contentHeight=CONTENT_HEIGHT+(singleColumn?10*ROW:0);
+        contentHeight=CONTENT_HEIGHT+(singleColumn?11*ROW:0);
 		viewBottom = this.height - 32;
 		int contentH = contentHeight;
 		int viewH = Math.max(ROW, viewBottom - contentTop);
@@ -92,6 +92,14 @@ public class DescentSettingsScreen extends Screen {
         y=addRow(y,viewBottom,toggle(left,y,"options.drmd.hybrid_render",DescentConfig.hybridRender,v->{
             DescentConfig.hybridRender=v;DescentConfig.save();
         }),physicsButton);
+        y=addRow(y,viewBottom,
+                ButtonWidget.builder(presentationLabel(),b->{
+                    DescentConfig.presentationProfile=DescentConfig.presentationProfile.next();DescentConfig.save();b.setMessage(presentationLabel());
+                }).dimensions(left,y,150,20).tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(Text.translatable("options.drmd.presentation.tip"))).build(),
+                ButtonWidget.builder(presentationSizeLabel(),b->{
+                    DescentConfig.ps1SceneHeight=new com.terminaldetector.drmd.client.presentation.PresentationOptions(DescentConfig.presentationProfile,DescentConfig.ps1SceneHeight).nextHeight();
+                    DescentConfig.save();b.setMessage(presentationSizeLabel());
+                }).dimensions(right,y,150,20).tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(Text.translatable("options.drmd.presentation_size.tip"))).build());
 
 		y = addRow(y, viewBottom,
 				toggle(left, y, "options.drmd.level_sky", DescentConfig.levelSky, v -> {
@@ -245,6 +253,8 @@ public class DescentSettingsScreen extends Screen {
         return Text.translatable("options.drmd.physics").append(": ").append(Text.translatable(profile==null?
             "options.drmd.physics.syncing":"options.drmd.physics."+profile.name().toLowerCase(java.util.Locale.ROOT)));
     }
+    private Text presentationLabel(){return Text.translatable("options.drmd.presentation",Text.translatable("options.drmd.presentation."+DescentConfig.presentationProfile.name().toLowerCase(java.util.Locale.ROOT)));}
+    private Text presentationSizeLabel(){return Text.translatable("options.drmd.presentation_size",DescentConfig.ps1SceneHeight);}
     private void refreshPhysicsButton() {
         if(physicsButton==null)return;
         physicsButton.setMessage(physicsLabel());
