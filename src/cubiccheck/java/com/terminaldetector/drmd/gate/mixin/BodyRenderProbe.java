@@ -21,6 +21,7 @@ public class BodyRenderProbe {
     }
     @Inject(method="render(Lcom/terminaldetector/drmd/world/contraption/BlockBodyEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V",at=@At("RETURN"))
     private void drawn(BlockBodyEntity body,float yaw,float delta,MatrixStack matrices,VertexConsumerProvider consumers,int light,CallbackInfo ci) {
+        com.terminaldetector.drmd.gate.NativeMountedWeaponCheck.drew(body);
         com.terminaldetector.drmd.gate.NativeMechanismCheck.drew(body);
         com.terminaldetector.drmd.gate.NativeUfoTurretCheck.drew(body);com.terminaldetector.drmd.gate.NativeTurretReloadCheck.drew(body);
         if(com.terminaldetector.drmd.gate.NativeIslandLoadCheck.ENABLED)com.terminaldetector.drmd.gate.NativeIslandLoadCheck.drew(body);

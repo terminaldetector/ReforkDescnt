@@ -77,7 +77,7 @@ public final class MountedMechanismGameTests implements FabricGameTest {
         var front=new BlockPos(0,0,1);var terrain=BlockPos.ofFloored(origin).add(front);
         try{
             b.setLocalBlock(front,Blocks.IRON_BLOCK.getDefaultState());c.assertTrue(MountedWeaponEmitter.emit(b,b,GUN)==null,"local armor blocks muzzle corridor");b.setLocalBlock(front,Blocks.AIR.getDefaultState());
-            c.getWorld().setBlockState(terrain,Blocks.STONE.getDefaultState(),2);c.assertTrue(MountedWeaponEmitter.emit(b,b,GUN)==null,"world wall blocks muzzle corridor");c.getWorld().setBlockState(terrain,Blocks.AIR.getDefaultState(),2);
+            c.getWorld().setBlockState(terrain,Blocks.IRON_BLOCK.getDefaultState(),2);c.assertTrue(MountedWeaponEmitter.emit(b,b,GUN)==null,"world wall blocks muzzle corridor");c.getWorld().setBlockState(terrain,Blocks.AIR.getDefaultState(),2);
             other=body(c,Map.of(GUN,Blocks.IRON_BLOCK.getDefaultState()),origin.add(0,0,1),Quat.IDENTITY);c.assertTrue(MountedWeaponEmitter.emit(b,b,GUN)==null,"unrelated physical body blocks muzzle corridor");other.discard();
             c.assertTrue(MountedWeaponEmitter.emit(b,b,GUN)!=null,"removing obstruction restores a real shot");
         }finally{if(other!=null)other.discard();c.getWorld().setBlockState(terrain,Blocks.AIR.getDefaultState(),2);clean(c,b);}c.complete();
