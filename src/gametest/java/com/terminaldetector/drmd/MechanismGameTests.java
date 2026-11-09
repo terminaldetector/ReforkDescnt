@@ -110,9 +110,9 @@ public final class MechanismGameTests implements FabricGameTest {
     public void alignmentAndCanonicalAuthorityRejectFakeOrDistantAssembly(TestContext c){
         var f=pair(c,Quat.IDENTITY);try{
             c.assertTrue(!MechanicalBearingSystem.connect(c.getWorld(),f.a,BlockPos.ORIGIN,f.a,BlockPos.ORIGIN),"one grid cannot hinge to itself");
-            f.b.physics().withPosition(f.b.physics().position().plus(new Vec3(.1,0,0)));
+            f.b.setPosition(f.b.getPos().add(.1,0,0));
             c.assertTrue(!connect(f)&&f.registry().forBody(f.a.getUuid()).isEmpty(),"distant anchors cannot be snapped together");
-            f.b.physics().withPosition(f.b.physics().position().minus(new Vec3(.1,0,0)));f.b.setLocalBlock(BlockPos.ORIGIN,bearing(Direction.UP));
+            f.b.setPosition(f.b.getPos().add(-.1,0,0));f.b.setLocalBlock(BlockPos.ORIGIN,bearing(Direction.UP));
             c.assertTrue(!connect(f),"orthogonal bearing faces cannot form an invented axis");
         }finally{f.close();}c.complete();
     }
@@ -157,5 +157,23 @@ public final class MechanismGameTests implements FabricGameTest {
             c.assertTrue(Math.abs(ImmPtlQuaternions.dot(before,child.rotation()))<.999,"weapon-carrying final component moves through actual joints");
             for(var link:links){var a=link.a().body().equals(f.a.getUuid())?f.a:f.b;var b=link.b().body().equals(child.getUuid())?child:f.b;c.assertTrue(anchor(a,link.a()).distanceTo(anchor(b,link.b()))<.025,"both orthogonal anchors stay attached");}
         }finally{f.registry().removeBody(child.getUuid());child.discard();f.close();}c.complete();});
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="mechanisms")
+    public void survivalPlacementPacketOrientsSeparateDriveInTheActualHitLocalFrame(TestContext c){
+        var f=pair(c,ImmPtlQuaternions.rotationByRadians(new Vec3(0,0,1),.7));
+        var p=player(c,f.a.localToWorld(new Vec3d(.5,-1,2.8)));p.changeGameMode(GameMode.SURVIVAL);
+        try{
+            var delta=f.a.localToWorld(new Vec3d(.5,.5,.5)).subtract(p.getEyePos()).normalize();
+            var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(new Vec3(delta.x,delta.y,delta.z));p.setYaw((float)angles.yawDegrees());p.setPitch((float)angles.pitchDegrees());
+            var target=BodyBlockInteraction.target(p,p.getEyePos(),p.getRotationVec(1),p.getBlockInteractionRange()).orElseThrow();
+            c.assertTrue(target.body()==f.a,"authoritative ray selects actual rolled carrier material");
+            p.setStackInHand(Hand.MAIN_HAND,new ItemStack(ModWorldBlocks.ROTARY_DRIVE,2));p.setSneaking(true);
+            var hit=target.hit();var edit=new BodyBlockInteraction.Edit(f.a.getUuid(),hit.revision(),hit.localBlock(),BodyBlockInteraction.PLACE);
+            c.assertTrue(BodyBlockInteraction.receive(p,edit),"normal validated placement packet installs a real independent drive block");
+            var placed=f.a.getLocalBlock(hit.localBlock().offset(hit.localFace()));
+            c.assertTrue(placed.isOf(ModWorldBlocks.ROTARY_DRIVE)&&placed.get(MechanicalBearingBlock.FACING)==hit.localFace(),"drive axis follows local surface rather than global UP");
+            c.assertTrue(p.getMainHandStack().getCount()==1,"Survival construction consumes exactly one held component");
+            c.assertTrue(!BodyBlockInteraction.receive(p,new BodyBlockInteraction.Edit(f.a.getUuid(),hit.revision(),hit.localBlock(),BodyBlockInteraction.USE)),"stale revision cannot use the changed mechanism through a forged packet");
+        }finally{p.discard();f.close();}c.complete();
     }
 }
