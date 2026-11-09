@@ -2508,5 +2508,77 @@
     "archiveSha256": "1614e071c9b8e020a0af3662da566725f31291dd16aea6b60ae0bfbd79286ddc",
     "verifiedFiles": 183,
     "crcAndHashesVerified": true
+  },
+  "playerBuiltWeapons": {
+    "nativeSource": "8e5111b2fbe80d7fa8a99ee7b8884188bb0211f1",
+    "fullServerSource": "4fede1d762dc0619c9f894518afcedef6bd2a4c1",
+    "productionSource": "4fede1d",
+    "base": "4913c04",
+    "unit": {
+      "tests": 758,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "server": {
+      "tests": 376,
+      "failures": 0,
+      "errors": 0
+    },
+    "focusedContacts": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0
+    },
+    "playerViewFocused": {
+      "tests": 30,
+      "failures": 0,
+      "errors": 0
+    },
+    "exactPlacementFocused": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0
+    },
+    "earlierWeaponFocused": {
+      "source": "87e392e",
+      "tests": 29,
+      "scope": "Historical focused run before contact fixes; all cases rerun in current complete suite"
+    },
+    "gameSha256": "328307bc4b8db3b41d47f4b1b2bce8de9eb03eb0ccde78d46b9d33dcda0c02a7",
+    "observerSha256": "61050740a522323fd34394aea7086bf2977ec5b27a87b369213cbbbe4e65db7f",
+    "sameFullAndNativeGameBytes": true,
+    "nativeScenario": "mounted-weapons-release-keys-sodium",
+    "native": {
+      "actualUseAndSneakKeys": true,
+      "keyboardApproachTicks": 112,
+      "operatorFollowTeleport": false,
+      "fixtureSuppliedJointOrShots": false,
+      "ordinaryPhysicalGunOwner": true,
+      "lasers": 3,
+      "rockets": 10,
+      "maxMuzzleError": 0.0,
+      "maxLaunchVelocityError": 3.1432500083045447e-16,
+      "maxAnchorError": 0.00018992707977179987,
+      "maxRelativeAngle": 3.1414061964760376,
+      "stoppedTicks": 52,
+      "preservedSpinAfterRelease": true,
+      "projectileDrawCalls": 275,
+      "projectedShotPixels": 592,
+      "frames": [
+        "connected-off",
+        "laser-fire",
+        "rocket-fire",
+        "fire-off-reversed",
+        "bearing-detached"
+      ]
+    },
+    "releaseAccepted": false,
+    "publication": "Local only",
+    "scope": "Generic six-axis physical weapon blocks, lever controls, bounded scheduling/cooldowns, compound contact continuation. Automatic aiming, world anchoring, ammo/power, generic cold restart/multiplayer and full v8 remain open.",
+    "archive": "docs/v8/EVIDENCE/player-weapons-8e5111b.zip",
+    "archiveSha256": "493a17c77edac806ef940adaa7e7ef0e4fb4c8faa98bf3510959623a81e4f734",
+    "verifiedFiles": 289,
+    "crcAndHashesVerified": true
   }
 }
