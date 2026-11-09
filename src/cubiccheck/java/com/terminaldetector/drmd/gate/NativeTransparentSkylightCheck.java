@@ -28,8 +28,8 @@ public final class NativeTransparentSkylightCheck {
     private static final List<Map<String,Object>> RESULTS=new ArrayList<>();
     private static volatile ServerPlayerEntity player;
     private static volatile int[] serverSky={-1,-1,-1};
-    private static volatile boolean located,ready,applied,done;
-    private static boolean requested,setupRequested,capture;
+    private static volatile boolean modePrepared,located,ready,applied,done;
+    private static boolean requested,teleportRequested,setupRequested,capture;
     private static int ticks,age,frames;
     private static volatile int phase;
     private static int[] lastClient={-1,-1,-1};
@@ -85,10 +85,14 @@ public final class NativeTransparentSkylightCheck {
             client.inGameHud.getChatHud().clear(false);client.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);
             DescentConfig.cockpit=false;DescentConfig.weaponView=false;
             client.getServer().execute(()->{
-                player=client.getServer().getPlayerManager().getPlayer(e(client.player).getUuid());FlightSystem.disable(player,DescentPlayerData.get(player));
+                player=client.getServer().getPlayerManager().getPlayer(e(client.player).getUuid());player.stopRiding();FlightSystem.disable(player,DescentPlayerData.get(player));
                 player.changeGameMode(GameMode.CREATIVE);player.getAbilities().allowFlying=true;player.getAbilities().flying=true;player.sendAbilitiesUpdate();
-                player.teleport(player.getServerWorld(),8.5,2206,3.5,Set.of(),0,18);player.getServerWorld().setTimeOfDay(6000);located=true;
+                player.getServerWorld().setTimeOfDay(6000);modePrepared=true;
             });return;
+        }
+        // A saved 6DoF correction must be acknowledged before placing the fixture camera.
+        if(modePrepared&&!located&&!teleportRequested&&!com.terminaldetector.drmd.client.DescentClientState.enabled&&!client.player.hasVehicle()){
+            teleportRequested=true;client.getServer().execute(()->{player.teleport(player.getServerWorld(),8.5,2206,3.5,Set.of(),0,18);located=true;});
         }
         if(located&&!setupRequested&&loaded(client.world)){setupRequested=true;client.getServer().execute(NativeTransparentSkylightCheck::setup);}
         if(!ready||failurePending!=null||!applied||!loaded(client.world))return;
@@ -106,7 +110,7 @@ public final class NativeTransparentSkylightCheck {
     private static void fail(String why){
         if(done)return;done=true;
         var client=MinecraftClient.getInstance();
-        try{var report=new LinkedHashMap<String,Object>();report.put("phase",phase);report.put("scene",SCENES[Math.min(phase,SCENES.length-1)]);report.put("material",MATERIALS[Math.min(phase,MATERIALS.length-1)].toString());report.put("clientSky",lastClient);report.put("serverSky",serverSky);report.put("reason",why);Files.writeString(client.runDirectory.toPath().resolve("transparent-skylight-failure.json"),new com.google.gson.Gson().toJson(report));}
+        try{var report=new LinkedHashMap<String,Object>();report.put("phase",phase);report.put("scene",SCENES[Math.min(phase,SCENES.length-1)]);report.put("material",MATERIALS[Math.min(phase,MATERIALS.length-1)].toString());report.put("clientSky",lastClient);report.put("serverSky",serverSky);report.put("clientCameraPlayer",client.player==null?null:e(client.player).getPos().toString());report.put("serverCameraPlayer",player==null?null:e(player).getPos().toString());report.put("reason",why);Files.writeString(client.runDirectory.toPath().resolve("transparent-skylight-failure.json"),new com.google.gson.Gson().toJson(report));}
         catch(java.io.IOException failure){throw new IllegalStateException(failure);}
         finally{client.scheduleStop();}
         throw new IllegalStateException("TRANSPARENT_SKY_NATIVE "+why);
