@@ -52,12 +52,16 @@ public final class NativeMountedWeaponCheck {
         ClientTickEvents.END_CLIENT_TICK.register(NativeMountedWeaponCheck::tick);
         ServerTickEvents.END_SERVER_TICK.register(server->{
             if(!ready||done)return;
+            if(server.getTicks()%20==0)System.out.println("MOUNTED_STATE phase="+phase+" shots="+lasers+"/"+rockets+" anchor="+maxError+" root="+e(root).getPos()+" tip="+e(rotor).getPos()+" player="+e(player).getPos());
             require(CubicAvailability.backend(player.getServerWorld())==CubicAvailability.Backend.NATIVE_CUBIC,"native cubic backend");
             var links=BodyJointRegistry.get(player.getServerWorld()).forBody(e(root).getUuid());
             if(!links.isEmpty()){
                 require(links.size()==1&&links.getFirst().blockDriven()&&links.getFirst().collideConnected(),"one material bearing with connected collisions");var link=links.getFirst();linked=true;
                 maxError=Math.max(maxError,root.localToWorld(new Vec3d(1,.5,.5)).distanceTo(rotor.localToWorld(new Vec3d(0,.5,.5))));
-                require(maxError<.03&&Math.abs(link.speed())<=.600001&&link.motorForce()<=40,"bounded physical motor");
+                if(maxError>=.03||Math.abs(link.speed())>.600001||link.motorForce()>40){
+                    try{var dump=new LinkedHashMap<String,Object>();dump.put("phase",phase);dump.put("shots",List.of(lasers,rockets));dump.put("anchorError",maxError);dump.put("link",link.write().toString());dump.put("root",e(root).writeNbt(new net.minecraft.nbt.NbtCompound()).toString());dump.put("tip",e(rotor).writeNbt(new net.minecraft.nbt.NbtCompound()).toString());dump.put("contacts",BodyContactSystem.stats(player.getServerWorld()).toString());dump.put("joints",BodyJointSystem.stats(player.getServerWorld()).toString());dump.put("player",e(player).getPos().toString());Files.writeString(MinecraftClient.getInstance().runDirectory.toPath().resolve("mounted-failure-state.json"),new com.google.gson.Gson().toJson(dump));}catch(java.io.IOException failure){throw new IllegalStateException(failure);}
+                }
+                require(maxError<.03&&Math.abs(link.speed())<=.600001&&link.motorForce()<=40,"bounded physical motor: phase="+phase+" error="+maxError+" speed="+link.speed()+" torque="+link.motorForce()+" shots="+lasers+"/"+rockets);
                 maxAngle=Math.max(maxAngle,2*Math.acos(Math.min(1,Math.abs(ImmPtlQuaternions.dot(root.rotation(),rotor.rotation())))));
                 var axis=root.rotation().rotate(new Vec3(1,0,0));double relative=rotor.physics().angularVelocity().minus(root.physics().angularVelocity()).dot(axis);
                 moving|=link.speed()<0&&relative<-.1&&maxAngle>.08;reversed|=phase>=7&&link.speed()>0&&relative>.1;
