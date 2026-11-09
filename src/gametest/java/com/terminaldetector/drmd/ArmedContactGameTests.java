@@ -32,8 +32,10 @@ public final class ArmedContactGameTests implements FabricGameTest {
                 if(!edits.isEmpty())c.assertTrue(body.setLocalBlocks(edits),"only switches change; saved body poses and momenta remain intact");
             }
             var link=BodyJointLink.read(saved.getCompound("joint"));registry.add(c.getWorld(),bodies.get(0),bodies.get(1),link);
+            c.assertTrue(MechanicalBearingSystem.refresh(c.getWorld(),link,bodies.get(0),bodies.get(1))!=null,"restored hardware validates before simulation: "+bodies.get(0).getLocalBlock(link.a().cell())+" / "+bodies.get(1).getLocalBlock(link.b().cell())+" frames="+link.a().frame()+" / "+link.b().frame());
             c.waitAndRun(1,()->{
                 try{
+                    c.assertTrue(registry.find(link.id()).isPresent(),"restored joint still exists on first admitted frame: removed="+bodies.stream().map(body->body.isRemoved()+"/"+body.getRemovalReason()).toList()+" stats="+BodyJointSystem.stats(c.getWorld()));
                     var root=bodies.getFirst();var start=root.massPosition();double maximum=0;int collisions=0;
                     for(var body:bodies){var bounds=com.terminaldetector.drmd.physics.collision.OrientedBox.local(body.collider().bounds().orElseThrow(),body.massPosition(),body.localCentre(),body.rotation()).bounds();var box=new Box(bounds.min().x(),bounds.min().y(),bounds.min().z(),bounds.max().x(),bounds.max().y(),bounds.max().z());System.out.println("ARMED_REPLAY initial "+describe(body)+" worldShape="+wShapes(c,body,box));}
                     for(int tick=0;tick<80;tick++){
