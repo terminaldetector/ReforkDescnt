@@ -15,6 +15,7 @@
     "ShipModelProbe",
     "ShipCameraProbe",
     "BodyEditInputProbe",
+    "BodyUseValidationProbe",
     "BoardingStepProbe",
     "BodyShapeDelayProbe",
     "UfoPersistenceProbe",

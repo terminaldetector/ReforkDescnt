@@ -129,6 +129,12 @@ public final class NativeMountedWeaponCheck {
         System.out.println("MOUNTED_CLICK_OFF phase="+phase+" age="+age+" matchingMaterialRay="+matches+" hit="+hit);
         if(matches)c.options.useKey.setPressed(true);
     }
+    public static void input(boolean handled){if(ready&&!done)System.out.println("MOUNTED_CLIENT_USE phase="+phase+" age="+age+" handled="+handled);}
+    public static void validated(ServerPlayerEntity p,BodyBlockInteraction.Edit edit,boolean accepted){
+        if(!ready||done)return;
+        var ray=BodyBlockInteraction.target(p,p.getEyePos(),p.getRotationVec(1),Math.min(16,p.getBlockInteractionRange()));
+        System.out.println("MOUNTED_SERVER_USE phase="+phase+" accepted="+accepted+" edit="+edit+" ray="+ray+" yaw="+p.getYaw()+" head="+p.getHeadYaw()+" pitch="+p.getPitch());
+    }
     public static void fired(WeaponCore.FireConfig cfg,ProjectileEntity shot){
         if(!ENABLED||!ready||done||shot==null||cfg.owner!=rotor)return;require(offTick==Long.MIN_VALUE,"no delayed emission after off");
         var slot=cfg.meshKind==1?ROCKET:LASER;var muzzle=MountedWeaponEmitter.muzzle(rotor,slot);muzzleError=Math.max(muzzleError,muzzle.distanceTo(cfg.pos));
