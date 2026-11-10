@@ -41,6 +41,9 @@ public final class NativePresentationCheck {
     private static volatile int phase;
     private static volatile int outlineEntity;
     private static int ticks,frames;
+    private static int samplePhase=-1;
+    private static double worldGrid=-1;
+    private static NativeImage beforeOverlays;
     private static long geometryHash;
     private NativePresentationCheck(){}
     private static void require(boolean value,String why){if(!value){done=true;MinecraftClient.getInstance().scheduleStop();throw new IllegalStateException("PRESENTATION_NATIVE "+why);}}
@@ -89,7 +92,17 @@ public final class NativePresentationCheck {
         if(located&&!requestedFixture&&loaded(c.world)){requestedFixture=true;c.getServer().execute(NativePresentationCheck::fixture);}
         if(ready)require(DescentConfig.hybridRender==originalHybrid,"PS1 profiles preserve the independent hybrid/mesher choice");
     }
-    public static void beforeFrame(){if(ENABLED)witness=false;}
+    public static void beforeFrame(){
+        if(!ENABLED)return;witness=false;samplePhase=-1;worldGrid=-1;
+        if(beforeOverlays!=null){beforeOverlays.close();beforeOverlays=null;}
+    }
+    public static void beforeOverlay(){
+        if(!ready||done||samplePhase>=0||DescentConfig.presentationProfile!=PresentationProfile.PS1_HYBRID)return;
+        var c=MinecraftClient.getInstance();samplePhase=phase;
+        beforeOverlays=ScreenshotRecorder.takeScreenshot(c.getFramebuffer());
+        int factor=beforeOverlays.getHeight()/DescentConfig.ps1SceneHeight;
+        require(factor>=1,"bounded scale in composite observation");worldGrid=pixelGrid(beforeOverlays,factor);
+    }
     private static boolean cyan(int value){return (value&255)<8&&((value>>>8)&255)>247&&((value>>>16)&255)>247;}
     private static double pixelGrid(NativeImage image,int factor){
         int same=0,total=0;
@@ -97,6 +110,23 @@ public final class NativePresentationCheck {
             int color=image.getColor(x,y);boolean matches=true;for(int dy=0;dy<factor;dy++)for(int dx=0;dx<factor;dx++)matches&=image.getColor(x+dx,y+dy)==color;
             if(matches)same++;total++;
         }return total==0?0:(double)same/total;
+    }
+    private static List<Map<String,Object>> mismatchedGroups(NativeImage image,int factor){
+        var groups=new ArrayList<Map<String,Object>>();
+        for(int y=(image.getHeight()/6/factor)*factor;y<image.getHeight()/3;y+=factor)for(int x=(image.getWidth()*3/8/factor)*factor;x<image.getWidth()*5/8;x+=factor){
+            int color=image.getColor(x,y);boolean same=true;var pixels=new ArrayList<String>();
+            for(int dy=0;dy<factor;dy++)for(int dx=0;dx<factor;dx++){int value=image.getColor(x+dx,y+dy);same&=value==color;pixels.add(Integer.toUnsignedString(value,16));}
+            if(!same)groups.add(Map.of("x",x,"y",y,"pixels",pixels));
+        }return groups;
+    }
+    private static void captureGridFailure(MinecraftClient c,NativeImage finalImage,int factor,double finalGrid)throws java.io.IOException{
+        var dir=c.runDirectory.toPath().resolve("presentation-failure");Files.createDirectories(dir);
+        finalImage.writeTo(dir.resolve("final-"+SCENES[phase]+".png"));
+        if(beforeOverlays!=null)beforeOverlays.writeTo(dir.resolve("world-before-overlays-"+SCENES[phase]+".png"));
+        var data=new LinkedHashMap<String,Object>();data.put("scene",SCENES[phase]);data.put("phase",phase);data.put("samplePhase",samplePhase);data.put("factor",factor);
+        data.put("finalGrid",finalGrid);data.put("worldGrid",worldGrid);data.put("finalMismatches",mismatchedGroups(finalImage,factor));
+        if(beforeOverlays!=null)data.put("worldMismatches",mismatchedGroups(beforeOverlays,factor));
+        Files.writeString(dir.resolve("grid-"+SCENES[phase]+".json"),new com.google.gson.Gson().toJson(data));
     }
     private static int gold(NativeImage image){int pixels=0;for(int y=image.getHeight()/5;y<image.getHeight()*2/3;y++)for(int x=image.getWidth()/4;x<image.getWidth()*7/16;x++){int c=image.getColor(x,y);if((c&255)>170&&((c>>>8)&255)>145&&((c>>>16)&255)<110)pixels++;}return pixels;}
     private static Object[] auxiliary(WorldViewTargetsAccess a){return new Object[]{a.drmd$transparency(),a.drmd$outlines(),a.drmd$translucent(),a.drmd$entities(),a.drmd$particles(),a.drmd$weather(),a.drmd$clouds(),a.drmd$outlineTarget()};}
@@ -121,7 +151,9 @@ public final class NativePresentationCheck {
         if(wanted==PresentationProfile.PS1_HYBRID)require(state.sceneWidth()==width/factor&&state.sceneHeight()==height/factor&&state.overlayPasses()>=2,"real low-resolution scene and eligible full-resolution cockpit/weapon passes");
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){
             require(cyan(image.getColor(17,24))&&!cyan(image.getColor(18,24)),"one-physical-pixel HUD witness survives scene nearest upscale");
-            double grid=factor>1?pixelGrid(image,factor):1;if(factor>1)require(grid>.97,"world colour groups use nearest-neighbour upscale: "+grid);
+            double grid=factor>1?pixelGrid(image,factor):1;
+            if(factor>1&&grid<=.97)captureGridFailure(c,image,factor,grid);
+            if(factor>1)require(grid>.97,"world colour groups use nearest-neighbour upscale: "+grid);
             int gold=gold(image);String mirror=PortalViewDiagnostics.lastSummary("mirror");
             if(wanted!=PresentationProfile.RENDER_DEBUG&&(mirror==null||!mirror.startsWith("drawing")||gold<30)){frames=0;return;}
             if(++frames<3)return;frames=0;var folder=c.runDirectory.toPath().resolve("presentation-frames");Files.createDirectories(folder);image.writeTo(folder.resolve(SCENES[phase]+".png"));
