@@ -12,6 +12,7 @@ import net.minecraft.world.World;
 
 /** Loaded-only swept clearance. Routes are advisory; normal entity/hull collisions remain authoritative. */
 final class FlightRouteSpace implements BoundedFlightPath.Space {
+    private static final int MAX_COVER_BODIES=32;
     private final Entity actor;
     private final World world;
     private final Vec3d origin;
@@ -40,6 +41,23 @@ final class FlightRouteSpace implements BoundedFlightPath.Space {
         var bodies=BodySpatialIndex.query(world,new Box(from,target).expand(1e-6));if(bodies.size()>32)return false;
         for(var body:bodies)if(body.raycast(from,target).isPresent())return true;
         return false;
+    }
+    /** Known cover only. Clamp queries to the existing loaded collision-shape halo before
+     * asking Vanilla or actual physical hull geometry; an unavailable tail is not a wall. */
+    static double coverDistance(DroneEntity drone,Vec3d from,Vec3d direction,double range){
+        Entity actor=drone;World world=actor.getWorld();double length=direction.lengthSquared();
+        if(!CubicAvailability.onWorldThread(world)||!Double.isFinite(from.lengthSquared())
+            ||!Double.isFinite(length)||length<1e-8||!Double.isFinite(range)||range<=0||range>32)return Double.POSITIVE_INFINITY;
+        var end=com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedEnd(world,from,from.add(direction.normalize().multiply(range)));
+        if(from.squaredDistanceTo(end)<1e-10)return Double.POSITIVE_INFINITY;
+        var hit=world.raycast(new net.minecraft.world.RaycastContext(from,end,net.minecraft.world.RaycastContext.ShapeType.COLLIDER,net.minecraft.world.RaycastContext.FluidHandling.NONE,actor));
+        double nearest=hit.getType()==net.minecraft.util.hit.HitResult.Type.BLOCK?from.distanceTo(hit.getPos()):Double.POSITIVE_INFINITY;
+        var bodies=BodySpatialIndex.query(world,new Box(from,end).expand(1e-6));
+        // Too many physical candidates leave their cover unknown. Ordinary movement still
+        // performs its own conservative hull collision checks; no route becomes free here.
+        if(bodies.size()>MAX_COVER_BODIES)return nearest;
+        for(var body:bodies){var point=body.raycast(from,end);if(point.isPresent())nearest=Math.min(nearest,from.distanceTo(point.get()));}
+        return nearest;
     }
     @Override public boolean clear(BoundedFlightPath.Cell a,BoundedFlightPath.Cell b) {
         return clear(initial.offset(a.x(),a.y(),a.z()),point(b).subtract(point(a)));
