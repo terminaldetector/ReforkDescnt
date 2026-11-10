@@ -34,6 +34,16 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
     private static ThreatProgress warning(Vec3d at,long now,long until){return new ThreatProgress(new Snapshot(Phase.WARNING,GRACE_TICKS,now,until,0,now,-1,false,0,point(at),point(at)));}
     private static ThreatProgress searching(Vec3d at,long now){return new ThreatProgress(new Snapshot(Phase.SEARCHING,GRACE_TICKS,now,now+SEARCH_TICKS,now+SEARCH_TICKS+HUNT_TICKS,now,-1,false,0,point(at),point(at)));}
 
+    /** Vanilla TestServer disables mob spawning by default. Temporarily exercise the
+     * real Survival rule and restore it after the last test-owned fixture leaves. */
+    private static final class Rules implements AutoCloseable {
+        private static final Map<ServerWorld,Rules> ACTIVE=new IdentityHashMap<>();
+        final ServerWorld world;final boolean original;int users;
+        private Rules(ServerWorld w){world=w;original=w.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING);}
+        static Rules acquire(ServerWorld w){var r=ACTIVE.computeIfAbsent(w,Rules::new);r.users++;w.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(true,w.getServer());return r;}
+        public void close(){if(--users==0){ACTIVE.remove(world);world.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(original,world.getServer());}}
+    }
+
     /** Exactly Vanilla's TestContext connection recipe, using a normal player instead of
      * its permanently-creative anonymous subclass. Existing enemy predicates remain unmodified. */
     private static final class Player implements AutoCloseable {
@@ -66,9 +76,9 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
         public void close(){for(var p:columns)world.getChunkManager().removeTicket(TYPE,p,2,id);}
     }
     private static final class Fixture implements AutoCloseable {
-        final TestContext c;final ServerWorld w;final Vec3d at;final Player player;final Lease lease;
+        final TestContext c;final ServerWorld w;final Vec3d at;final Player player;final Lease lease;final Rules rules;
         final List<Entity> owned=new ArrayList<>();final Map<BlockPos,BlockState> blocks=new HashMap<>();boolean closed;
-        Fixture(TestContext c,Vec3d at,Lease lease){this.c=c;w=c.getWorld();this.at=at;this.lease=lease;player=new Player(c,at);}
+        Fixture(TestContext c,Vec3d at,Lease lease){this.c=c;w=c.getWorld();this.at=at;this.lease=lease;rules=Rules.acquire(w);try{player=new Player(c,at);}catch(Throwable failure){rules.close();if(lease!=null)lease.close();throw failure;}}
         SurvivalThreatState state(){return SurvivalThreatState.get(w);}
         List<DroneEntity> patrol(){var out=new ArrayList<DroneEntity>();for(var actor:state().actors())if(actor.getValue().owner().equals(player.entity.getUuid())){var entity=w.getEntity(actor.getKey());if(entity instanceof DroneEntity drone)out.add(drone);}return out;}
         DroneEntity victim(){var d=ModEntities.ORB.create(w);d.setPosition(at.add(3,0,0));d.setAiDisabled(true);c.assertTrue(w.spawnEntity(d),"real canonical victim spawned");owned.add(d);return d;}
@@ -82,7 +92,7 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
             if(closed)return;closed=true;
             for(var actor:state().actors())if(actor.getValue().owner().equals(player.entity.getUuid())){var e=w.getEntity(actor.getKey());if(e!=null)e.discard();state().removeActor(actor.getKey());}
             for(var e:owned)e.discard();for(var e:blocks.entrySet())w.setBlockState(e.getKey(),e.getValue(),3);
-            player.close();if(lease!=null)lease.close();
+            try{player.close();}finally{rules.close();if(lease!=null)lease.close();}
         }
     }
     private void admitted(TestContext c,Consumer<Fixture> start){
@@ -100,6 +110,7 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
             c.assertTrue(!SurvivalThreatDirector.confirmedKill(f.w,p,live)&&state.progress(p.getUuid()).isEmpty(),"live damage or an arbitrary nearest player cannot fabricate a kill");
             p.changeGameMode(GameMode.CREATIVE);f.kill(live,p.getDamageSources().playerAttack(p));c.assertTrue(state.progress(p.getUuid()).isEmpty(),"real creative kill is ignored");
             p.changeGameMode(GameMode.SURVIVAL);var environmental=f.victim();f.kill(environmental,f.w.getDamageSources().generic());c.assertTrue(state.progress(p.getUuid()).isEmpty(),"environmental death is not attributed to a nearby player");
+            f.w.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(false,f.w.getServer());var disabled=f.victim();f.kill(disabled,p.getDamageSources().playerAttack(p));c.assertTrue(state.progress(p.getUuid()).isEmpty(),"the actual disabled Survival spawn rule prevents threat creation");f.w.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(true,f.w.getServer());
             var actual=f.victim();var at=point(actual.getPos());f.kill(actual,p.getDamageSources().playerAttack(p));
             var alarm=state.progress(p.getUuid()).orElseThrow();c.assertTrue(alarm.pending()&&alarm.phase()==Phase.QUIET&&alarm.origin().equals(at),"registered real death records the actual alarm location while preserving novice grace");
             c.assertTrue(!SurvivalThreatDirector.confirmedKill(f.w,p,actual)&&state.progress(p.getUuid()).orElseThrow().equals(alarm),"repeated callback cannot reset the persisted alarm");
