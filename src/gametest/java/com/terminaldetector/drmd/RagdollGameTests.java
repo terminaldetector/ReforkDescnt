@@ -17,6 +17,54 @@ import net.minecraft.util.math.Vec3d;
 import java.util.UUID;
 
 public final class RagdollGameTests implements FabricGameTest {
+	@GameTest(templateName = EMPTY_STRUCTURE, batchId = "ragdoll-field-default")
+	public void removingTheFieldRestoresWorldDownWithoutErasingRagdollMomentum(TestContext context) {
+		var world=context.getWorld();var centre=context.getAbsolutePos(new BlockPos(7,80,7));var origin=Vec3d.ofCenter(centre);
+		for(var pos:BlockPos.iterate(centre.add(-6,-6,-6),centre.add(6,6,6)))world.setBlockState(pos,Blocks.AIR.getDefaultState(),2);
+		var fresh=RagdollEntity.spawnScout(world,origin,Vec3d.ZERO);context.assertTrue(fresh!=null,"fresh world-gravity scout spawned");
+		try {
+			context.assertTrue(fresh.simulation().centreVelocity().length()<1e-12,"default comparison starts without residual momentum");fresh.tick();var velocity=fresh.simulation().centreVelocity();
+			context.assertTrue(velocity.y()<-.4&&velocity.y()>-.6&&Math.abs(velocity.x())+Math.abs(velocity.z())<1e-6,"the existing no-field9.81m/s2 default remains world-down over50ms");
+			context.assertTrue(fresh.getVelocity().multiply(20).distanceTo(new Vec3d(velocity.x(),velocity.y(),velocity.z()))<1e-9,"world-down boundary retains m/s to blocks/tick conversion");
+		} finally {fresh.discard();}
+		var field=UUID.randomUUID();RagdollEntity moving=null;
+		try {
+			GravityFields.put(new GravityFields.Field(field,world.getRegistryKey(),centre,new Vec3d(1,0,0),32,1,FieldShape.SPHERE,"ragdoll release"));
+			moving=RagdollEntity.spawnScout(world,origin,Vec3d.ZERO);context.assertTrue(moving!=null,"sideways field scout spawned");moving.tick();var sideways=moving.simulation().centreVelocity();
+			context.assertTrue(sideways.x()>.4&&Math.abs(sideways.y())<1e-6,"one sideways field step has no inherited world-down impulse");
+			GravityFields.remove(field);moving.tick();var released=moving.simulation().centreVelocity();
+			context.assertTrue(released.x()>sideways.x()*.9&&released.y()<-.4&&released.y()>-.6,"removal restores default force while retaining prior horizontal momentum");
+		} finally {GravityFields.remove(field);if(moving!=null)moving.discard();}
+		context.complete();
+	}
+
+	@GameTest(templateName = EMPTY_STRUCTURE, batchId = "ragdoll-field-strength")
+	public void localGravityUsesSampledStrengthOnAllSixRagdollAxes(TestContext context) {
+		var world=context.getWorld();var centre=context.getAbsolutePos(new BlockPos(7,80,7));var origin=Vec3d.ofCenter(centre);
+		for(var pos:BlockPos.iterate(centre.add(-6,-6,-6),centre.add(6,6,6)))world.setBlockState(pos,Blocks.AIR.getDefaultState(),2);
+		var field=UUID.randomUUID();float[] powers={.25f,.5f,1f,4f};
+		try {
+			for(var direction:net.minecraft.util.math.Direction.values()) {
+				var axis=Vec3d.of(direction.getVector());double[] speeds=new double[powers.length],strengths=new double[powers.length];
+				for(int i=0;i<powers.length;i++) {
+					GravityFields.put(new GravityFields.Field(field,world.getRegistryKey(),centre,axis,32,powers[i],FieldShape.SPHERE,"ragdoll strength"));
+					strengths[i]=GravityFields.sample(world,origin).strength();
+					var ragdoll=RagdollEntity.spawnScout(world,origin,Vec3d.ZERO);context.assertTrue(ragdoll!=null,"real scout rig spawned");
+					try {
+						context.assertTrue(ragdoll.simulation().centreVelocity().length()<1e-12,"fresh rig has no residual impulse");
+						ragdoll.tick();var velocity=ragdoll.simulation().centreVelocity();var actual=new Vec3d(velocity.x(),velocity.y(),velocity.z());speeds[i]=actual.dotProduct(axis);
+						// D6 COM velocity is metres/second; ordinary Entity velocity is blocks/tick.
+						context.assertTrue(ragdoll.getVelocity().multiply(20).distanceTo(actual)<1e-9,"entity boundary converts physical velocity once");
+						context.assertTrue(speeds[i]>.01&&actual.subtract(axis.multiply(speeds[i])).length()<1e-6,"uniform gravity changes COM motion only along its field axis: "+direction);
+					} finally {ragdoll.discard();}
+				}
+				context.assertTrue(Math.abs(strengths[3]-2)<1e-6,"overpowered emitter is sampled through the existing strength cap");
+				for(int i=0;i<powers.length;i++)context.assertTrue(Math.abs(speeds[i]-speeds[2]*strengths[i]/strengths[2])<1e-6,"ragdoll acceleration follows sampled field strength: "+direction+" power="+powers[i]+" sampled="+strengths[i]+" speed="+speeds[i]+" baseline="+speeds[2]);
+			}
+		} finally {GravityFields.remove(field);}
+		context.complete();
+	}
+
 	@GameTest(templateName = EMPTY_STRUCTURE, tickLimit = 200)
 	public void scoutRagdollFallsConnectsAndSettles(TestContext context) {
 		var world = context.getWorld();
