@@ -23,7 +23,13 @@ The two added cases exercise:
 
 The original six-mod flight roster is included in both focused runs. Tests observe that native AI starts enabled and retains its navigation/control instances after field exit. AI is disabled inside the force-measurement fixture to isolate physical behavior; these cases do **not** establish natural AI navigation, rendered roll or universal C1–C7 support. NBT aliases are not a two-process saved-world restart proof.
 
-The source GameTest manifest retains all 60 entrypoints. The focused Gradle init script changes only built test resources and explicitly identifies the run as focused. Related sixteen-case gravity/actor/wall-combat validation, a complete new suite and native client verification remain pending for this delta. The earlier canonical758-unit/376-GameTest results belong to the unmodified baseline, not this correction. No installable JAR or release is certified here.
+The source GameTest manifest retains all 60 entrypoints. The focused Gradle init script changes only built test resources and explicitly identifies the run as focused. A complete new suite and native client verification remain pending for this delta. The earlier canonical758-unit/376-GameTest results belong to the unmodified baseline, not this correction. No installable JAR or release is certified here.
+
+## Related integration regression
+
+The separate related run on exact documentation checkpoint `1008b61508d3503ca2d756e6748cbf83fe58b4ec` passes all sixteen GameTests with zero failures/errors and Gradle exit0. Its gameplay source is unchanged from the focused production correction `8b545af`: three flyer cases, six entity-field cases, six actor-frame cases and one live surface-combat case. This also checks that native C3 classification leaves field lease ownership, local body/eye frames and actual surface combat intact.
+
+Original related log, XML, exit, tested source, init and the two tested source files are retained in [gravity-c3-related-1008b61.zip](EVIDENCE/gravity-c3-related-1008b61.zip). This is a focused regression set, not a complete suite or native-client visual/AI acceptance. The original negative and focused-positive archive remains unchanged.
 
 ## Replay
 
@@ -34,6 +40,8 @@ JAVA_HOME=/workspace/jdk21-complete PATH=/workspace/jdk21-complete/bin:$PATH GRA
 ```
 
 The exact focused init and source patch are included in [gravity-c3-focused-8b545af.zip](EVIDENCE/gravity-c3-focused-8b545af.zip), together with both original result sets, source identities and mapped class-contract evidence. All archived hashes and CRC are checked independently.
+
+For the sixteen-case regression, replace the init argument with `-I work/gravity-roster/related.init.gradle`.
 
 ## Remaining acceptance
 
