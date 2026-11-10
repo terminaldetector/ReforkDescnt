@@ -364,5 +364,10 @@
   "message.drmd.mechanism.corner_selected": "First corner selected. Click the other corner to assemble; sneak-click cancels.",
   "message.drmd.mechanism.selection_blocked": "Cannot assemble: use a loaded, editable selection up to 16 × 16 × 16 without block entities.",
   "message.drmd.mechanism.assembled": "Selected blocks assembled into a physical body.",
-  "tooltip.drmd.mechanism.weapons": "Ship weapons: attach a lever to the barrel block; placement sets its firing direction."
+  "tooltip.drmd.mechanism.weapons": "Ship weapons: attach a lever to the barrel block; placement sets its firing direction.",
+  "faction.drmd.hostile_machines": "Hostile machine network",
+  "message.drmd.threat.warning": "%s received your combat alarm. Recon is approaching; hide or leave the area.",
+  "message.drmd.threat.search": "%s is searching the alarm area. Break sight or intercept the recon drones.",
+  "message.drmd.threat.hunt": "%s confirmed visual contact. Take cover or escape the search area.",
+  "message.drmd.threat.cooldown": "%s ended its search. No further recon wave is queued."
 }
