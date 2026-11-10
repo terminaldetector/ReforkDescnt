@@ -204,11 +204,11 @@ tasks:
   owner: WORLD
   gate: G1
   depends_on_stages: *id003
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
   evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  notes: "Multi-agent world_cubic lane: reproduce opaque roof to clear-glass skylight at native cube seam; bounded parity correction and exact native evidence pending."
 - id: S02-T06
   stage: S02
   stage_title: Choose actual CubicWorld backend
@@ -363,11 +363,11 @@ tasks:
   gate: G3
   depends_on_stages: &id006
   - S04
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
   evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  notes: "Multi-agent ps1_render lane: combined a923442 implements scoped scene target and runtime profiles;763 unit/376 server cases pass, actual native nearest-grid failure retained and being measured. Full visual acceptance pending."
 - id: S05-T02
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -399,11 +399,11 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id006
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
   evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  notes: "Multi-agent ps1_render lane: custom cockpit/weapon overlays deferred to full resolution; native HUD witness passes initial scene, complete profile/resize/GL proof pending."
 - id: S05-T05
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -411,11 +411,11 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id006
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
   evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  notes: "Multi-agent ps1_render lane: presentation and world/physics interfaces separated; existing source/unit proof plus representative wall/flight witness is partial, not universal invariance acceptance."
 - id: S05-T06
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -423,11 +423,11 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id006
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
   evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  notes: "Multi-agent ps1_render lane: six-scene native/profile/resize harness compiles; first Sodium native run fails pixel-grid0.9697917 versus0.97, exact first failure retained. GL3.2/Fabulous and full matrix remain open."
 - id: S06-T01
   stage: S06
   stage_title: Core gravity and player 6DoF
@@ -510,11 +510,11 @@ tasks:
   gate: G2
   depends_on_stages: &id008
   - S06
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
   evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  notes: "Multi-agent gravity_ragdoll lane: explicit vanilla C3 FlyingEntity/Bee/Allay/Vex contract gap identified; test-only negative75ab292 queued. Mixed Parrot/Bat and full C1-C7 acceptance remain open."
 - id: S07-T02
   stage: S07
   stage_title: Universal 6DoF for all mob families
@@ -843,11 +843,11 @@ tasks:
   depends_on_stages: &id013
   - S10
   - S11
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
   evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  notes: "Multi-agent world_content lane: independent persisted confirmed-alarm warning/recon/search/hunt/cooldown increment being implemented; full unprovoked hunt and siege remain open."
 - id: S12-T02
   stage: S12
   stage_title: Survival threat and minimal armament economy
@@ -1168,11 +1168,11 @@ tasks:
   gate: G6
   depends_on_stages: &id018
   - S16
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
   evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  notes: "Root coordinates isolated reviewed branches and single-source verification; PS1 candidate includes verified mechanism core, full integration acceptance remains open."
 - id: S17-T02
   stage: S17
   stage_title: Integration, handoff and release candidate
@@ -1180,11 +1180,11 @@ tasks:
   owner: CODEX
   gate: G6
   depends_on_stages: *id018
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
   evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  notes: "Root maintains per-task ownership for all99 tasks, verified milestone reports and one Java/native lease queue; final merged-source evidence remains open."
 - id: S17-T03
   stage: S17
   stage_title: Integration, handoff and release candidate

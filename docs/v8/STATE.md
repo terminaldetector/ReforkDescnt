@@ -1,4 +1,6 @@
-# v8 intake and ongoing UFO work
+# v8 multi-agent execution and verified checkpoints
+
+Current multi-agent round (9 November): six isolated workers plus root cover all18 stages/99 tasks, including earlier specifications and Dynamic Boarding. World/Cubic, PS1/NoCubes/LOD, gravity/ragdoll, combat/bestiary, Survival/content and audit/integration proceed independently; root retains S09 and one Java/Gradle/native queue. Concrete first gaps and ownership are in MULTI_AGENT_PLAN.md and MULTI_AGENT_ASSIGNMENTS.json. Ledger now3 completed/18 in_progress/78 pending_reverification; this is work assignment, not full acceptance. Combined PS1 sourcea923442 passes763 unit/376 full server tests, but its first actual native pixel-grid check fails and remains under investigation; no finished PS1 profile is claimed.
 
 Current user direction (8–9 November): build turrets as Create-style mechanisms from separate reusable weapon/bearing/drive blocks on the existing BlockBody/D6 solver. No Create dependency. Further bespoke UFO kit/controller expansion is superseded as the primary route.
 
