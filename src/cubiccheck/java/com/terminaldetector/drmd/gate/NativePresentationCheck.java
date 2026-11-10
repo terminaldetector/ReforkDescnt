@@ -45,7 +45,7 @@ public final class NativePresentationCheck {
     private static int samplePhase=-1;
     private static double worldGrid=-1;
     private static NativeImage beforeOverlays;
-    private static long frameEpoch,mirrorEpoch=-1;
+    private static long frameEpoch,mirrorEpoch=-1,sampleEpoch=-1;
     private static int mirrorPhase=-1;
     private static List<double[][]> mirrorPolygons=List.of();
     private static long geometryHash;
@@ -118,12 +118,12 @@ public final class NativePresentationCheck {
         if(ready)require(DescentConfig.hybridRender==originalHybrid,"PS1 profiles preserve the independent hybrid/mesher choice");
     }
     public static void beforeFrame(){
-        if(!ENABLED)return;witness=false;samplePhase=-1;worldGrid=-1;frameEpoch++;
+        if(!ENABLED)return;witness=false;samplePhase=-1;sampleEpoch=-1;worldGrid=-1;frameEpoch++;
         if(beforeOverlays!=null){beforeOverlays.close();beforeOverlays=null;}
     }
     public static void beforeOverlay(){
         if(!ready||done||samplePhase>=0||DescentConfig.presentationProfile!=PresentationProfile.PS1_HYBRID)return;
-        var c=MinecraftClient.getInstance();samplePhase=phase;
+        var c=MinecraftClient.getInstance();samplePhase=phase;sampleEpoch=frameEpoch;
         beforeOverlays=ScreenshotRecorder.takeScreenshot(c.getFramebuffer());
         int factor=beforeOverlays.getHeight()/DescentConfig.ps1SceneHeight;
         require(factor>=1,"bounded scale in composite observation");worldGrid=pixelGrid(beforeOverlays,factor);
@@ -148,7 +148,7 @@ public final class NativePresentationCheck {
         var dir=c.runDirectory.toPath().resolve("presentation-failure");Files.createDirectories(dir);
         finalImage.writeTo(dir.resolve("final-"+SCENES[phase]+".png"));
         if(beforeOverlays!=null)beforeOverlays.writeTo(dir.resolve("world-before-overlays-"+SCENES[phase]+".png"));
-        var data=new LinkedHashMap<String,Object>();data.put("scene",SCENES[phase]);data.put("phase",phase);data.put("samplePhase",samplePhase);data.put("factor",factor);
+        var data=new LinkedHashMap<String,Object>();data.put("scene",SCENES[phase]);data.put("phase",phase);data.put("samplePhase",samplePhase);data.put("sampleEpoch",sampleEpoch);data.put("factor",factor);
         data.put("finalGrid",finalGrid);data.put("worldGrid",worldGrid);data.put("finalMismatches",mismatchedGroups(finalImage,factor));
         data.put("frameEpoch",frameEpoch);data.put("mirrorEpoch",mirrorEpoch);data.put("mirrorPhase",mirrorPhase);data.put("mirrorPolygons",mirrorPolygons);
         data.put("legacyGoldPixels",gold(finalImage));data.put("projectedApertureGoldPixels",projectedGold(finalImage));
@@ -189,13 +189,17 @@ public final class NativePresentationCheck {
         if(wanted==PresentationProfile.PS1_HYBRID)require(state.sceneWidth()==width/factor&&state.sceneHeight()==height/factor&&state.overlayPasses()>=2,"real low-resolution scene and eligible full-resolution cockpit/weapon passes");
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){
             require(cyan(image.getColor(17,24))&&!cyan(image.getColor(18,24)),"one-physical-pixel HUD witness survives scene nearest upscale");
-            double grid=factor>1?pixelGrid(image,factor):1;
-            if(factor>1&&grid<=.97)captureGridFailure(c,image,factor,grid);
-            if(factor>1)require(grid>.97,"world colour groups use nearest-neighbour upscale: "+grid);
-            int gold=gold(image);String mirror=PortalViewDiagnostics.lastSummary("mirror");
-            if(wanted!=PresentationProfile.RENDER_DEBUG&&(mirror==null||!mirror.startsWith("drawing")||gold<30)){frames=0;return;}
+            double finalGrid=factor>1?pixelGrid(image,factor):1,grid=factor>1?worldGrid:1;
+            if(factor>1){
+                require(samplePhase==phase&&sampleEpoch==frameEpoch&&beforeOverlays!=null,"fresh pure-world composite observed before this frame's first native overlay");
+                if(grid<=.97)captureGridFailure(c,image,factor,finalGrid);
+                require(grid>.97,"world colour groups use nearest-neighbour upscale: "+grid);
+            }
+            int gold=projectedGold(image);String mirror=PortalViewDiagnostics.lastSummary("mirror");
+            int surfaces=com.terminaldetector.drmd.client.portal.MirrorReflectionRenderer.scannedCount();
+            if(wanted!=PresentationProfile.RENDER_DEBUG&&(mirrorEpoch!=frameEpoch||mirrorPhase!=phase||mirrorPolygons.size()!=8||surfaces!=1||mirror==null||!mirror.startsWith("drawing")||gold<30)){frames=0;return;}
             if(++frames<3)return;frames=0;var folder=c.runDirectory.toPath().resolve("presentation-frames");Files.createDirectories(folder);image.writeTo(folder.resolve(SCENES[phase]+".png"));
-            var result=new LinkedHashMap<String,Object>();result.put("scene",SCENES[phase]);result.put("profile",wanted.name());result.put("sceneWidth",state.sceneWidth());result.put("sceneHeight",state.sceneHeight());result.put("outputWidth",width);result.put("outputHeight",height);result.put("deferredOverlayPasses",state.overlayPasses());result.put("worldNearestGridRatio",grid);result.put("nativeHudPixel",true);result.put("mirror",mirror);result.put("reflectedGoldPixels",gold);result.put("glError",error);RESULTS.add(result);
+            var result=new LinkedHashMap<String,Object>();result.put("scene",SCENES[phase]);result.put("profile",wanted.name());result.put("sceneWidth",state.sceneWidth());result.put("sceneHeight",state.sceneHeight());result.put("outputWidth",width);result.put("outputHeight",height);result.put("deferredOverlayPasses",state.overlayPasses());result.put("worldNearestGridRatio",grid);result.put("finalCompositeGridRatio",finalGrid);result.put("nativeHudPixel",true);result.put("mirror",mirror);result.put("reflectedGoldPixels",gold);result.put("mergedMirrorSurfaces",surfaces);result.put("projectedMirrorPanes",mirrorPolygons.size());result.put("frameEpoch",frameEpoch);result.put("mirrorEpoch",mirrorEpoch);result.put("sampleEpoch",sampleEpoch);result.put("glError",error);RESULTS.add(result);
             if(phase==1)checkExceptionRestore(c);
             if(++phase==SCENES.length){var report=new LinkedHashMap<String,Object>();report.put("runtimeToggleWithoutReload",true);report.put("actualWindowResizeAndRestore",true);report.put("exceptionTargetsRestored",exceptionRestored);report.put("blockstoreHashUnchanged",true);report.put("independentHybridChoiceUnchanged",true);report.put("scenes",RESULTS);Files.writeString(c.runDirectory.toPath().resolve("presentation-ok.json"),new com.google.gson.Gson().toJson(report));done=true;c.scheduleStop();return;}
             DescentConfig.presentationProfile=PROFILES[phase];DescentConfig.ps1SceneHeight=phase==4?180:360;
