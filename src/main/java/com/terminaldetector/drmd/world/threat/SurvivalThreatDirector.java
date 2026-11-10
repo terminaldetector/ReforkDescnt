@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.entity.*;
 import com.terminaldetector.drmd.physics.collision.*;
 import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
 import com.terminaldetector.drmd.world.access.*;
+import com.terminaldetector.drmd.world.access.WorldAccess;
 import com.terminaldetector.drmd.world.contraption.BodySpatialIndex;
 import com.terminaldetector.drmd.world.edit.WorldEditSafety;
 import net.fabricmc.fabric.api.entity.event.v1.*;

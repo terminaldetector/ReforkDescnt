@@ -43,11 +43,13 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
             entity=new ServerPlayerEntity(w.getServer(),w,client.gameProfile(),client.syncedOptions());
             var connection=new ClientConnection(NetworkSide.SERVERBOUND);channel=new EmbeddedChannel(connection);
             w.getServer().getPlayerManager().onPlayerConnect(connection,entity,client);
-            entity.changeGameMode(GameMode.SURVIVAL);entity.getAbilities().flying=false;entity.setNoGravity(true);
-            entity.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE,2_000,4,false,false));
-            DescentPlayerData.get(entity).setEnabled(false);entity.setPosition(at);entity.setVelocity(Vec3d.ZERO);
-            c.assertTrue(!entity.isCreative()&&!entity.isSpectator()&&entity.interactionManager.getGameMode()==GameMode.SURVIVAL,"ordinary server player really is Survival for the existing natural drone AI");
-            c.assertTrue(w.getDifficulty()!=Difficulty.PEACEFUL&&w.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING),"fixture requires normal enabled Survival encounters");
+            try{
+                entity.changeGameMode(GameMode.SURVIVAL);entity.getAbilities().flying=false;entity.setNoGravity(true);
+                entity.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE,2_000,4,false,false));
+                DescentPlayerData.get(entity).setEnabled(false);entity.setPosition(at);entity.setVelocity(Vec3d.ZERO);
+                c.assertTrue(!entity.isCreative()&&!entity.isSpectator()&&entity.interactionManager.getGameMode()==GameMode.SURVIVAL,"ordinary server player really is Survival for the existing natural drone AI");
+                c.assertTrue(w.getDifficulty()!=Difficulty.PEACEFUL&&w.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING),"fixture requires normal enabled Survival encounters");
+            }catch(Throwable failure){close();throw failure;}
         }
         public void close(){if(closed)return;closed=true;entity.getServer().getPlayerManager().remove(entity);entity.discard();channel.finishAndReleaseAll();}
     }
