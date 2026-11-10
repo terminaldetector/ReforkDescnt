@@ -6,6 +6,7 @@
     "CubicFrameProbe",
     "TransparentSkylightBootstrapProbe",
     "TransparentSkylightFrameProbe",
+    "TransparentSkylightProjectionAccess",
     "CubicTerrainProbe",
     "NativeMirrorCameraProbe",
     "ActorModelProbe",
