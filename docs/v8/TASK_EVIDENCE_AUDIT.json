@@ -1,0 +1,3738 @@
+{
+  "schema": "ungravity.task-evidence-audit.v1",
+  "audit_date": "2026-11-09",
+  "source_snapshot": "4b2e243010d0bba21b322d1999b559efcbaac270",
+  "ledger_path": "docs/v8/TASKS.yaml",
+  "ledger_sha256": "f46c792602030667ad7065cbf31490549895ae02c14bc5cf148ee7662afab885",
+  "task_definition_path": "docs/v8/reference/05_EXECUTION/TASKS.json",
+  "release_accepted": false,
+  "scope": "Pinned canonical core4b2e243. Source/test presence and scoped regression counts are not whole-task acceptance. Runtime remains source-specific. Root alone owns ledger transitions/merges.",
+  "owners": {
+    "S00": "audit_integration",
+    "S01": "audit_integration",
+    "S15": "audit_integration",
+    "S16": "audit_integration",
+    "S17": "audit_integration",
+    "S02": "world_cubic",
+    "S03": "world_cubic",
+    "S04": "ps1_render",
+    "S05": "ps1_render",
+    "S06": "gravity_ragdoll",
+    "S07": "gravity_ragdoll",
+    "S08": "gravity_ragdoll",
+    "S09": "root",
+    "S10": "combat_ai",
+    "S11": "combat_ai",
+    "S12": "world_content",
+    "S13": "world_content",
+    "S14": "world_content"
+  },
+  "owner_overrides": {
+    "S01-T01": "gravity_ragdoll",
+    "S01-T02": "world_cubic",
+    "S01-T03": "ps1_render",
+    "S01-T04": "gravity_ragdoll",
+    "S01-T05": "world_cubic",
+    "S15-T03": "ps1_render",
+    "S15-T04": "world_content",
+    "S15-T05": "ps1_render"
+  },
+  "current_core_bundle": {
+    "nativeSource": "8e5111b2fbe80d7fa8a99ee7b8884188bb0211f1",
+    "fullServerSource": "4fede1d762dc0619c9f894518afcedef6bd2a4c1",
+    "gameSha256": "328307bc4b8db3b41d47f4b1b2bce8de9eb03eb0ccde78d46b9d33dcda0c02a7",
+    "observerSha256": "61050740a522323fd34394aea7086bf2977ec5b27a87b369213cbbbe4e65db7f",
+    "archive": "docs/v8/EVIDENCE/player-weapons-8e5111b.zip",
+    "archiveSha256": "493a17c77edac806ef940adaa7e7ef0e4fb4c8faa98bf3510959623a81e4f734",
+    "expected_unit_tests": 758,
+    "expected_game_tests": 376,
+    "game_jar": "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar",
+    "observer_jar": "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar",
+    "game_test_xml": "work/mounted-mechanisms/current-full.xml",
+    "unit_xml_prefix": "build/test-results/test/TEST-",
+    "native_marker": "build/cubic-client-final-mounted-weapons-release-keys-sodium/mounted-mechanisms-ok.json",
+    "native_frames_prefix": "build/cubic-client-final-mounted-weapons-release-keys-sodium/mounted-mechanism-frames/",
+    "frame_review": "work/mounted-mechanisms/native-frame-review.json",
+    "expected_mod_id": "drmd",
+    "expected_version": "1.1.35-ufo-dev.1"
+  },
+  "external_workstreams": [
+    {
+      "owner": "ps1_render",
+      "branch": "experiment/render-ps1-20261109",
+      "scope": "Separate candidate is outside this pinned source snapshot. Parent reports combined763unit/376server pass and first PS1 native pixel-grid failure. No PS1 client acceptance is inferred here."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "S00-T01",
+      "stage": "S00",
+      "stage_title": "History & executable truth",
+      "title": "Capture all branches/worktrees and uncommitted patches without overwriting Sol/UFO work",
+      "gate": "G0",
+      "ledger_status": "in_progress",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "metadata_or_process",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "scripts/v5_baseline_inventory.py",
+          "sha256": "7f5ba90151f2c54e98f92bf7e5da205df952513b1d635f26fc6867ff92974b5c"
+        },
+        {
+          "path": "AGENTS.md",
+          "sha256": "a2419192657faa9891329d470ae81544cd530600384e4d830e0e6af697abae50"
+        }
+      ],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/STATE.md",
+          "sha256": "71358ebaa266c67d2f3f306648255c3615230c3301ee5478ba2bfccea4b38257"
+        }
+      ],
+      "remaining_acceptance": "Live worktrees are active; historical captures exist but a new synchronized all-tree dirty-source preservation pass is still required.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S00-T02",
+      "stage": "S00",
+      "stage_title": "History & executable truth",
+      "title": "Identify exact running DRMD jar SHA256, fabric.mod.json and matched Git source SHA",
+      "gate": "G0",
+      "ledger_status": "in_progress",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "metadata_or_process",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "scripts/checkpoint_report.py",
+          "sha256": "237919e86427a1bae9074505725fe440c729f42c12ae94253057470bb67885b9"
+        },
+        {
+          "path": "gradle.properties",
+          "sha256": "4207e583b26eb82f179932d0bf3b0009e2b76e359561c50b6aa279200569202b"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "scripts/test_checkpoint_report.py",
+          "sha256": "479f08416db112fd268a0ed8d572e62aaa7cb480d7ba032c48cfa886371d6890"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "The8e core archive has exact full/native source and game bytes; the historical user1.1.14 runtime remains unlinked and active experimental processes are separate.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S00-T03",
+      "stage": "S00",
+      "stage_title": "History & executable truth",
+      "title": "Audit pre-Oct26 agent changes in PR9, recovery branch and local logs",
+      "gate": "G0",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "metadata_or_process",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "docs/v8/reference/05_EXECUTION/AGENT_LINEAGE_PRE_OCT26.md",
+          "sha256": "190c64881b9eecf40b5d787d20f1304d031f5fa6b44d96735ca4ff391c523f05"
+        }
+      ],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/recovery/RECOVERY.md",
+          "sha256": "881a5907aba40047728d71d879f0ecc2a31a5fd584d323f9530af47501f37923"
+        }
+      ],
+      "remaining_acceptance": "Known PR9/recovery refs and selected regressions are preserved; not every pre-Oct26 effect has a current before/after parity mapping.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S00-T04",
+      "stage": "S00",
+      "stage_title": "History & executable truth",
+      "title": "Classify legacy classes and commits KEEP/ADAPT/REMOVE_AFTER_PARITY/UNKNOWN",
+      "gate": "G0",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "scripts/audit_resources.py",
+          "sha256": "542a5cf415c2097c109817fd97201122bffe9e0f991b9d14300ec1e2b87b042b"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/LegacyGeneration.java",
+          "sha256": "85cccb7a00cd36c0aa54d16cd04fcf31570e9f2c1688affb97435d5ff1d08749"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "scripts/test_audit_resources.py",
+          "sha256": "2776da390f86630e8f5ae6cc9c1e3908af0306eb61ab23a9e485f02b03c11340"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/source-audit/README.md",
+          "sha256": "9681c0d3c2bf76f539c9d16bce48c16d6f01bc496a1ff7269b9c1d0fe0876ec6"
+        }
+      ],
+      "remaining_acceptance": "A low-reference candidate is not dead code; dynamic registration and save migration still need class-by-class KEEP/ADAPT/REMOVE_AFTER_PARITY decisions.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S00-T05",
+      "stage": "S00",
+      "stage_title": "History & executable truth",
+      "title": "Create STATE, DECISIONS, REGRESSIONS and evidence index with real version metadata",
+      "gate": "G0",
+      "ledger_status": "in_progress",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "metadata_or_process",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "docs/v8/STATE.md",
+          "sha256": "71358ebaa266c67d2f3f306648255c3615230c3301ee5478ba2bfccea4b38257"
+        },
+        {
+          "path": "docs/v8/DECISIONS.md",
+          "sha256": "ec68995f0299151d709a6b64a9814c54b1651a109d71abcb7c0358dc27f8dc4c"
+        },
+        {
+          "path": "docs/v8/REGRESSIONS.md",
+          "sha256": "f84897b50adbb7a91f32ecdbcdde75180d8222a3fc18a477d9872335af05eb46"
+        }
+      ],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Ledger and hashed bundles exist; continue exact integration ownership and do not infer all99 acceptances from aggregate tests.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S00-T06",
+      "stage": "S00",
+      "stage_title": "History & executable truth",
+      "title": "Record unresolved assumptions and replay instructions for next agent",
+      "gate": "G0",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "metadata_or_process",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "AGENTS.md",
+          "sha256": "a2419192657faa9891329d470ae81544cd530600384e4d830e0e6af697abae50"
+        },
+        {
+          "path": "docs/v8/STATE.md",
+          "sha256": "71358ebaa266c67d2f3f306648255c3615230c3301ee5478ba2bfccea4b38257"
+        }
+      ],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Current scope and replay commands exist but full-stage next-agent instructions and reproducible inputs remain distributed across reports and archives.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S01-T01",
+      "stage": "S01",
+      "stage_title": "Reproduce and instrument baseline",
+      "title": "Reproduce player-proxy stuck/must-die-in-lava scenario with entity ownership logs",
+      "gate": "G0",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/flight/FlightSystem.java",
+          "sha256": "2f0badd390b3f44b0755a7a688649ace44a956bb34d4e89b1b84ba57b20dbe21"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/FlightBodyPlayerGameTests.java",
+          "sha256": "147da7d816bcb6b1d3823631bdf9e9cbf8c8b87e20dd57fabcf03161ea2e2abf"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java",
+          "sha256": "13aff87ab9896738566609ac95c963b84c91f742577698325393fd2a273ef76e"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/FootGravityRecoveryGameTests.java",
+          "sha256": "086d541abb7f17d9d4281124324fd62fdf0682d99d9fa6633e66e3097e67f7c9"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/CONTROL_CORE_LIFECYCLE_2026-11-04.md",
+          "sha256": "b4b4cf9f9ff921999f3fc2fd5de165ac751bb672bd92c865a1347e5775bd3cc3"
+        }
+      ],
+      "remaining_acceptance": "Several real mount/death/release lifecycles are tested; the exact original user lava/proxy world and all ownership paths are not current full acceptance.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S01-T02",
+      "stage": "S01",
+      "stage_title": "Reproduce and instrument baseline",
+      "title": "Reproduce vertical terrain breaks and world void death with fixed seed/flight path",
+      "gate": "G0",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_cubic",
+      "implementation_assessment": "partial",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/access/CubicAvailability.java",
+          "sha256": "b1cbf86b54d8abe5696517c389f484db99b4583c80f037a8956b6b5d2749021e"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/level/LowerWorldRecovery.java",
+          "sha256": "b0812a597fa142908f8d2237f9165911aab0275fb19e5d087c5fd7bf51cd61ec"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/LowerWorldRecoveryGameTests.java",
+          "sha256": "b364ec4b5a9f587d0a54e5fb493a00d6b69bb00836df172337838c0a61d8e565"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/VerticalBoundsTest.java",
+          "sha256": "3558d0d1272568d3662f3d6497ff55e809c07ff2a8a9a7252b5346e048778f18"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/CUBIC_RECURSION_BUDGET_2026-11-05.md",
+          "sha256": "1b8355c7a97dffb6b231c2fdaea4dac1e94f59df547484923c7da9a0efe25447"
+        }
+      ],
+      "remaining_acceptance": "Native high/low volume and restart subsets exist; the complete fixed-seed original break/fast-flight route remains a dedicated repro gate.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S01-T03",
+      "stage": "S01",
+      "stage_title": "Reproduce and instrument baseline",
+      "title": "Reproduce missing mirror slab and render-target diagnostics",
+      "gate": "G0",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/portal/MirrorReflectionRenderer.java",
+          "sha256": "3b880d1160899eea20eb1fcfd8bf570030cb58ece66c8a04f0f521c6f9514962"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/portal/MirrorRenderGate.java",
+          "sha256": "d8a6989233c35f5bacbc498a8b5f3fa31687d17f69f923dc0570ef6e2f9474c4"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/MirrorSurfaceTest.java",
+          "sha256": "0d57a09845c7131fa99aacf9ccb08b7e9f71420bbeb63169424c841e700a880d"
+        },
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeMirrorCheck.java",
+          "sha256": "c2112333a0cd425ae5e026430564168444aa773a15e81ded555cd8d1c0928966"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Real mirror geometry/FBO paths exist; exact original slab diagnostics and current1/2/4-mirror compatibility matrix are not a complete accepted repro.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S01-T04",
+      "stage": "S01",
+      "stage_title": "Reproduce and instrument baseline",
+      "title": "Reproduce gravity torch camera clipping and 6DoF viewmodel hand sweep",
+      "gate": "G0",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/gravity/FootGravityCamera.java",
+          "sha256": "8b53777ec02aed3bb051375d72f0993becb194516e97f3c42f4be58f360c7886"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/render/HandRenderFrame.java",
+          "sha256": "6401c6b162270eaac840bb035aaaf596aeb2127070cd96d60e48b52c9a997936"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/ActorFrameMathTest.java",
+          "sha256": "80a64cc6391f055e6869c5d997abab71d26e1934d1f41142fe345d24337f8fc9"
+        },
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeActorFrameCheck.java",
+          "sha256": "5028503766f4be9ef4f7447886c2d58ada8113098c352752b26869349f055516"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/04_BUGS/ISSUE_REGISTER.md",
+          "sha256": "69942953fc22cc8431c45bc42e2f0f30633eb519047a0d057e2faeda1e3d776f"
+        }
+      ],
+      "remaining_acceptance": "Camera/pose adapters and real-client harness exist; all required torch axes and full hand rotation sweeps need matched current captures.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S01-T05",
+      "stage": "S01",
+      "stage_title": "Reproduce and instrument baseline",
+      "title": "Inspect invalid spawner BlockEntity and DUMMY NBT creation sources",
+      "gate": "G0",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_cubic",
+      "implementation_assessment": "partial",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/access/ServerBlockEdits.java",
+          "sha256": "63ef328789a8a25bce561c3fe35667aec60854fd779b8080564d90993575168f"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/mixin/NativeCubicCubeLoadMixin.java",
+          "sha256": "58b94117613e05c77eec494b80d70a464a5f8f926557510e1f4880a939a54d76"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/WorldAccessBatchGameTests.java",
+          "sha256": "ff5044f1584182cec78f787763dbf9454a3cacf0e36f6a86576ea24f0c75b2ab"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/CubeLifecycleGameTests.java",
+          "sha256": "d53083c014fbd5ab503c5d9617c009fa09efab1c93606c6c5deae4699343777f"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/04_BUGS/LOG_TRIAGE_AND_INSTRUMENTATION.md",
+          "sha256": "6775395063979c340b422c54ad0c21d178b54fae34f28bf1c15df0765d892eb0"
+        }
+      ],
+      "remaining_acceptance": "Safer edit/BE paths exist; reproduce the exact negative-Y spawner-on-air/DUMMY origin rather than assuming aggregate no-crash tests identify its cause.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S01-T06",
+      "stage": "S01",
+      "stage_title": "Reproduce and instrument baseline",
+      "title": "Record stall profiler MSPT/JFR baseline under sim distance 8 and 24",
+      "gate": "G0",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/diag/DiagServerTick.java",
+          "sha256": "fa8b4ed6f7cc9adca284e380417dec3ada2c4c1200e1544a530ddf198705ee78"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/diag/DiagReport.java",
+          "sha256": "ef1e9e9f168c61dac7ac4c68aedbda0e1681c7392273c56825d713b9310ff71c"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/DiagServerTickTest.java",
+          "sha256": "1e8325b539cf63212c56ef1685213376ef07dd425ebd75aa22dce61fcef36360"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/BENCHMARKS.csv",
+          "sha256": "84e725928eca3f283044746257317d8b9162459628d83e25aaef0d7ae35da3ca"
+        }
+      ],
+      "remaining_acceptance": "Short software-renderer MSPT windows exist; matched sim8/24 JFR, heap and complete percentile baseline are not supplied.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S02-T01",
+      "stage": "S02",
+      "stage_title": "Choose actual CubicWorld backend",
+      "title": "Verify Better Cubic Chunks Fabric 1.21.1 exact jar/version/license/metadata",
+      "gate": "G1",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_cubic",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/access/CubicAvailability.java",
+          "sha256": "b1cbf86b54d8abe5696517c389f484db99b4583c80f037a8956b6b5d2749021e"
+        },
+        {
+          "path": "docs/source-audit/cubic-chunks.md",
+          "sha256": "f01bbdb81a1eaf4f3823c4eda1b28946d29f8c5ae47d65da08ab048cb78cd24e"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/CubeLifecycleGameTests.java",
+          "sha256": "d53083c014fbd5ab503c5d9617c009fa09efab1c93606c6c5deae4699343777f"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/CUBIC_RECURSION_BUDGET_2026-11-05.md",
+          "sha256": "1b8355c7a97dffb6b231c2fdaea4dac1e94f59df547484923c7da9a0efe25447"
+        }
+      ],
+      "remaining_acceptance": "Exact external BCC dependency is pinned in native inputs; retain ARR licensing boundary and record its full current metadata/license audit.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S02-T02",
+      "stage": "S02",
+      "stage_title": "Choose actual CubicWorld backend",
+      "title": "Run isolated Fabric + cubic world new-save smoke test and detect actual cubic preset",
+      "gate": "G1",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_cubic",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/access/CubicWorldAccess.java",
+          "sha256": "c6cd04c110f7c5e4ca86be0ead96db4e387653d55ac957b65a26ce0ca3455443"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/access/WorldAccess.java",
+          "sha256": "913a59867c17001ccf9edaa7686b6d0720397dda232fd917d11fcd254b0866b3"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeSnapshotCheck.java",
+          "sha256": "282cd4d72386addd5e00be5f496edf5a9d5c833972bd621790018cc36a91ef43"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/CubeLifecycleGameTests.java",
+          "sha256": "d53083c014fbd5ab503c5d9617c009fa09efab1c93606c6c5deae4699343777f"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/CUBIC_RECURSION_BUDGET_2026-11-05.md",
+          "sha256": "1b8355c7a97dffb6b231c2fdaea4dac1e94f59df547484923c7da9a0efe25447"
+        }
+      ],
+      "remaining_acceptance": "Real native Cubic runs are established, but copied lab-world runs do not automatically prove every clean new-save/preset path.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S02-T03",
+      "stage": "S02",
+      "stage_title": "Choose actual CubicWorld backend",
+      "title": "Compare true world bounds/16³ load state against historic fake cubic snapshots",
+      "gate": "G1",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_cubic",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/access/CubicAvailability.java",
+          "sha256": "b1cbf86b54d8abe5696517c389f484db99b4583c80f037a8956b6b5d2749021e"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/d6/D6ChunkPos.java",
+          "sha256": "5376acce446701946823790dc933bd21ba5ecb7e920dee6fe023f23c03358dba"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/D6ChunkPosTest.java",
+          "sha256": "d319ffc7d3f1fc964cbd628adb581cca7f25a44f1c6993ef42b55e2ad865524a"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/LoadedCubeRayTest.java",
+          "sha256": "cb515bddabf19603f6ed4e1a09816d836b3b91a38faadf6303c6b311950dde17"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Current real Y2200 demonstrates non-vanilla backend; complete signed16cube bounds and old snapshot comparison still require the world owner acceptance map.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S02-T04",
+      "stage": "S02",
+      "stage_title": "Choose actual CubicWorld backend",
+      "title": "Create VolumetricWorldAccess contract with signed coordinate and loaded-state API",
+      "gate": "G1",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_cubic",
+      "implementation_assessment": "present",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/access/WorldAccess.java",
+          "sha256": "913a59867c17001ccf9edaa7686b6d0720397dda232fd917d11fcd254b0866b3"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/access/CubicWorldAccess.java",
+          "sha256": "c6cd04c110f7c5e4ca86be0ead96db4e387653d55ac957b65a26ce0ca3455443"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/WorldAccessReadGameTests.java",
+          "sha256": "de165887384c6e0d3eb42a3844d90641a80117c934a551994ee39e671f0a4acf"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/WorldAccessBatchGameTests.java",
+          "sha256": "ff5044f1584182cec78f787763dbf9454a3cacf0e36f6a86576ea24f0c75b2ab"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/CubeLifecycleGameTests.java",
+          "sha256": "d53083c014fbd5ab503c5d9617c009fa09efab1c93606c6c5deae4699343777f"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Signed loaded-only adapters have current server coverage; owner must map every required operation and backend boundary before atomic closure.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S02-T05",
+      "stage": "S02",
+      "stage_title": "Choose actual CubicWorld backend",
+      "title": "Prove save/reload, fluids, lighting and BlockEntity parity in clean cubic world",
+      "gate": "G1",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_cubic",
+      "implementation_assessment": "partial",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/compat/NativeCubicSkylight.java",
+          "sha256": "2ec73c423ac0455286fed2f60445054291edc5f3bfec143409a866315c3142c8"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/access/ServerBlockEdits.java",
+          "sha256": "63ef328789a8a25bce561c3fe35667aec60854fd779b8080564d90993575168f"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeSnapshotCheck.java",
+          "sha256": "282cd4d72386addd5e00be5f496edf5a9d5c833972bd621790018cc36a91ef43"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/WorldAccessBatchGameTests.java",
+          "sha256": "ff5044f1584182cec78f787763dbf9454a3cacf0e36f6a86576ea24f0c75b2ab"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/MODULE_RESTART_2026-11-06.md",
+          "sha256": "caaafe0476e642744d7f212ade6d7a989da0a75f3fc3f745144250b5c473e82f"
+        }
+      ],
+      "remaining_acceptance": "Real closed-world persistence subsets exist; complete fresh cubic fluid/light/BlockEntity parity is not inferred from body or drone restart proof.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S02-T06",
+      "stage": "S02",
+      "stage_title": "Choose actual CubicWorld backend",
+      "title": "Record upstream limits/blocked combinations with Sodium/Intel GL3.2",
+      "gate": "G1",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_cubic",
+      "implementation_assessment": "partial",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/access/CubicAvailability.java",
+          "sha256": "b1cbf86b54d8abe5696517c389f484db99b4583c80f037a8956b6b5d2749021e"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/portal/MirrorFramebuffer.java",
+          "sha256": "4ac86f7791f31db81c11d93ba1581e1b9837915d3dc61228c7d2c5742331a413"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeMirrorCheck.java",
+          "sha256": "c2112333a0cd425ae5e026430564168444aa773a15e81ded555cd8d1c0928966"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/BENCHMARKS.csv",
+          "sha256": "84e725928eca3f283044746257317d8b9162459628d83e25aaef0d7ae35da3ca"
+        }
+      ],
+      "remaining_acceptance": "GL3.2 llvmpipe is representative API fallback, not the user's physical IntelHD4400; beta/Sodium/driver combinations remain bounded observations.",
+      "task_acceptance_changed": false,
+      "platform_limit": "Current retained native evidence uses software Mesa/llvmpipe. Physical IntelHD4400 and a modern reference GPU are not attested by this snapshot."
+    },
+    {
+      "id": "S03-T01",
+      "stage": "S03",
+      "stage_title": "Migrate world gameplay and structures",
+      "title": "Redirect block edits, explosions and fluid queries through WorldAccessAdapter",
+      "gate": "G1",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_cubic",
+      "implementation_assessment": "partial",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/access/ServerBlockEdits.java",
+          "sha256": "63ef328789a8a25bce561c3fe35667aec60854fd779b8080564d90993575168f"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/edit/WorldEditSafety.java",
+          "sha256": "92fb59e5c361b9bc6177a19df041db3dee643a01b115b252fd4c4411c5e8e41d"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/mixin/MicroExplosionMixin.java",
+          "sha256": "1ebce52b944e7c8858550a3a036809efa386f6276f308e60e953f0dc3f2568b8"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/WorldAccessBatchGameTests.java",
+          "sha256": "ff5044f1584182cec78f787763dbf9454a3cacf0e36f6a86576ea24f0c75b2ab"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/DrillSafetyGameTests.java",
+          "sha256": "d8d7dca0dbee2d32dcd2d31e870fbae83e39fc731e9bf0c75d876f8621b03c2e"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Current edit tests cover guarded paths; remaining direct legacy world edits and fluid/explosion call sites need complete migration audit.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S03-T02",
+      "stage": "S03",
+      "stage_title": "Migrate world gameplay and structures",
+      "title": "Port biome/structure placement from legacy height/column assumptions to cubic bounds",
+      "gate": "G1",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_cubic",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gen/ModWorldgen.java",
+          "sha256": "cef047485a7e564769855da40fb4e84fbe33cbf2d8798e4f88c31671ddf6f72e"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gen2/ModWorldgen2.java",
+          "sha256": "5ccb5fb446159965db8ca529733c9aed2a1c086f664cfce770b546fd007dd736"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/level/VerticalBounds.java",
+          "sha256": "f5dd140f82bb54bcd34a9a221ca2c4e71817938f6e81d95ce0afc2804b7a03cb"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/WorldLevelsTest.java",
+          "sha256": "b9f70c1ab86104097913d315a67706f3f3ea8dde6d5a109003b30d2f33297c9c"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/LevelBuilderFairnessTest.java",
+          "sha256": "748f231c1083957b3f835a26a45d592cce110983357dee884827da5255e9c8f5"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/CUBIC_WORLD_MIGRATION.md",
+          "sha256": "6ea30532b118ba542d9b2368365f81f4398fe6b5015d037e43a58ff329f3c150"
+        }
+      ],
+      "remaining_acceptance": "Height-aware modules exist but all biome/structure legacy column assumptions are not exhaustively ported or parity-accepted.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S03-T03",
+      "stage": "S03",
+      "stage_title": "Migrate world gameplay and structures",
+      "title": "Repair generation producing stale mob_spawner and DUMMY BlockEntity NBT",
+      "gate": "G1",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_cubic",
+      "implementation_assessment": "partial",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/access/ServerBlockEdits.java",
+          "sha256": "63ef328789a8a25bce561c3fe35667aec60854fd779b8080564d90993575168f"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/LegacyGeneration.java",
+          "sha256": "85cccb7a00cd36c0aa54d16cd04fcf31570e9f2c1688affb97435d5ff1d08749"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/WorldAccessBatchGameTests.java",
+          "sha256": "ff5044f1584182cec78f787763dbf9454a3cacf0e36f6a86576ea24f0c75b2ab"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/04_BUGS/ISSUE_REGISTER.md",
+          "sha256": "69942953fc22cc8431c45bc42e2f0f30633eb519047a0d057e2faeda1e3d776f"
+        }
+      ],
+      "remaining_acceptance": "Historical DUMMY/spawner logs identify real corruption; safe adapter presence is not complete origin tracing and clean cold-world proof.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S03-T04",
+      "stage": "S03",
+      "stage_title": "Migrate world gameplay and structures",
+      "title": "Validate negative Y and Y 1024/1640/2150 across flight and cold save/reload",
+      "gate": "G1",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_cubic",
+      "implementation_assessment": "partial",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/level/LowerWorldRecovery.java",
+          "sha256": "b0812a597fa142908f8d2237f9165911aab0275fb19e5d087c5fd7bf51cd61ec"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/level/VerticalBounds.java",
+          "sha256": "f5dd140f82bb54bcd34a9a221ca2c4e71817938f6e81d95ce0afc2804b7a03cb"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/LowerWorldRecoveryGameTests.java",
+          "sha256": "b364ec4b5a9f587d0a54e5fb493a00d6b69bb00836df172337838c0a61d8e565"
+        },
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeSnapshotCheck.java",
+          "sha256": "282cd4d72386addd5e00be5f496edf5a9d5c833972bd621790018cc36a91ef43"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/ISLAND_LOADING_2026-11-06.md",
+          "sha256": "ade34c8cf4c91b4c99a83f667b5a7627a040c6f69a6a2e8f44fbb482f8a7fa6c"
+        }
+      ],
+      "remaining_acceptance": "High/low and true cold-return subsets exist; the exact negativeY/1024/1640/2150 matrix remains broader than current mechanism proof.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S03-T05",
+      "stage": "S03",
+      "stage_title": "Migrate world gameplay and structures",
+      "title": "Remove obsolete shadow world/column emulation only after parity and guarded tests",
+      "gate": "G1",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_cubic",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/LegacyGeneration.java",
+          "sha256": "85cccb7a00cd36c0aa54d16cd04fcf31570e9f2c1688affb97435d5ff1d08749"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/cubic/CubicWorldSystem.java",
+          "sha256": "6f14f360564b70d570767451f11e5e6ff42c2a6081d23c14c5b59050c1293b5c"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/DrmdServerConfig.java",
+          "sha256": "6d912062883d4f51328098ab177c4ce86ae08c46ff8a6bc625fab4a7119643c1"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/AdvancedColumnGateTest.java",
+          "sha256": "ef72e9f7b832d3f8e866c9f694eec025f530585561bc1f5a8d4058b5daf1b613"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/world/CubicSnapshotConfigTest.java",
+          "sha256": "c796bea3e68780c380100c6f3406b8921f1a5ee113eab8383d8269950b9fcf59"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/source-audit/algorithm-map.md",
+          "sha256": "8dffed75a83b37b6c05c8af5a60c4b4ae5bf1f5ee8460ba0648bd49da01dd2db"
+        }
+      ],
+      "remaining_acceptance": "Legacy activation is guarded; old supplemental stores can be intentional. Remove only after an explicit use/parity/migration map.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S04-T01",
+      "stage": "S04",
+      "stage_title": "Hybrid/NoCubes meshing and LOD",
+      "title": "Classify SMOOTH_NATURAL versus HARD_ENGINEERED material masks and transitions",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "present",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/geometry/OrganicMaterials.java",
+          "sha256": "3258eae3ad2488738a5ac72492a621d9af7669c41462e8c3e0f839592e984d2e"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/micro/TerrainClassifier.java",
+          "sha256": "a2cc0925d370df2aff4be6f1c204b47c3c1279bf9a3ad11abaa9ea66feffacac"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/TerrainClassifierTest.java",
+          "sha256": "3cca798ba81069f7650889aa6780893fab2776e963a5d1ebaeee4ce2833d4909"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/HybridTerrainGameTests.java",
+          "sha256": "8924e9638f03aaaf1cb5922ca4a6388cfb1e87253375f63bfbb9a0ab6c7e942a"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/architecture/HYBRID_RENDERING.md",
+          "sha256": "9f093db4f68baa1f35a400fdb2071cbdcef52441644850fc21e32b78696e5905"
+        }
+      ],
+      "remaining_acceptance": "Material policies have source/current server coverage; all specified tree/fracture/transition classifications need visual/collision acceptance.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S04-T02",
+      "stage": "S04",
+      "stage_title": "Hybrid/NoCubes meshing and LOD",
+      "title": "Prototype feature-aware polygonal mesh on terrain and natural tree trunks",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/geometry/HybridMesh.java",
+          "sha256": "98ab73532ab05d7172e2317658ff86eb803bef4a1b128d0ddad69d18412b1542"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/render/terrain/HybridTerrainModel.java",
+          "sha256": "b51638f53f7977b17c8e27ba17378b9d3061aa99faab7fa115c723579d5c28c1"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/render/SmoothBodySurface.java",
+          "sha256": "85d5e590cb181052fc95c1ba89b4bdb56e39c44b37d5c143ba3d079691d88908"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/HybridMeshTest.java",
+          "sha256": "31264c9f6131ebc94fdbd836addf38c98334c37ce4753331a7a090c4f874ddb3"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/HybridTerrainGameTests.java",
+          "sha256": "8924e9638f03aaaf1cb5922ca4a6388cfb1e87253375f63bfbb9a0ab6c7e942a"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/architecture/HYBRID_RENDERING.md",
+          "sha256": "9f093db4f68baa1f35a400fdb2071cbdcef52441644850fc21e32b78696e5905"
+        }
+      ],
+      "remaining_acceptance": "Smoothing prototypes exist; feature-aware natural tree/terrain silhouette and cost must be demonstrated rather than equated with full NoCubes parity.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S04-T03",
+      "stage": "S04",
+      "stage_title": "Hybrid/NoCubes meshing and LOD",
+      "title": "Support round cavities and mesh seam continuity across adjacent cubic sections",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/micro/TunnelCarving.java",
+          "sha256": "6afad8cff9091f8d16ba13249aa6b490bf9ac6fb0b8e75e128b4782ce30b9888"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/geometry/BoundedHybridShape.java",
+          "sha256": "b166f96056bd38e2c9acda2afb84645ea454974c243e8d16643cd0813a2ded83"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/TunnelCarvingCapsuleTest.java",
+          "sha256": "64dca7486654c7efc2ee3ff1c233fc113bd4927d2165d4ce10d69200ea09bf0c"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/HybridTerrainGameTests.java",
+          "sha256": "8924e9638f03aaaf1cb5922ca4a6388cfb1e87253375f63bfbb9a0ab6c7e942a"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/architecture/HYBRID_RENDERING.md",
+          "sha256": "9f093db4f68baa1f35a400fdb2071cbdcef52441644850fc21e32b78696e5905"
+        }
+      ],
+      "remaining_acceptance": "Round/microdamage and bounded mesh code exists; watertight adjacent native cube seams and rounded mixed cavities remain acceptance work.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S04-T04",
+      "stage": "S04",
+      "stage_title": "Hybrid/NoCubes meshing and LOD",
+      "title": "Match server collision/nav/fluids to visible smooth surfaces and tunnels",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "partial",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/geometry/NaturalGeometry.java",
+          "sha256": "1146dc7b4ca81f223f05b406254097ab5e7db3bbbcb50f9b1e060d7f5ac6e745"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/geometry/BoundedHybridShape.java",
+          "sha256": "b166f96056bd38e2c9acda2afb84645ea454974c243e8d16643cd0813a2ded83"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/HybridTerrainGameTests.java",
+          "sha256": "8924e9638f03aaaf1cb5922ca4a6388cfb1e87253375f63bfbb9a0ab6c7e942a"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/DrillSafetyGameTests.java",
+          "sha256": "d8d7dca0dbee2d32dcd2d31e870fbae83e39fc731e9bf0c75d876f8621b03c2e"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/RENDER_NOCUBES_PS1.md",
+          "sha256": "169972c76de085fd7db2e135e002ebaf9f84818c694b0205ae16000d62bc5115"
+        }
+      ],
+      "remaining_acceptance": "Selected visible/collision geometry shares math; all nav/fluid/tunnel passage cases and native mesher combinations are not fully validated.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S04-T05",
+      "stage": "S04",
+      "stage_title": "Hybrid/NoCubes meshing and LOD",
+      "title": "Prototype 3D LOD with Better Distant Horizons under separate compatibility gate",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/planet/PlanetSurfaceMesh.java",
+          "sha256": "a8684e5a88557f70d7c359c5289a314c4959945b278b0340793bb9c51f102f9d"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/store/SurfaceStore.java",
+          "sha256": "041cb66991f73f4b12ca4efbb058aa586bb12fe506c15d7233c598497bc06777"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/store/SurfaceStreamer.java",
+          "sha256": "e9c6e9095d65424d451ea08ab2fa6842478435715cf7b7ba279112ec876c39f7"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/HorizonGridTest.java",
+          "sha256": "c89ae6e7b354cc407b959c7c5cc1be4eba11080ccf44f9fdbb242e60e278af50"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/SurfaceStoreTest.java",
+          "sha256": "2c074bc96916fcbad0f4b4a8b814fd587d3e022a5b620da679a1ea5dedbe20a7"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/07_REFERENCES/UPSTREAM.md",
+          "sha256": "c0a00e9ca3d8ab54d606d9ee483d56abe4595b824d1d815fd71a3b113ace521d"
+        }
+      ],
+      "remaining_acceptance": "Existing heightfield/surface LOD is not proof of true3D BetterDistantHorizons integration; isolated external compatibility remains open.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S04-T06",
+      "stage": "S04",
+      "stage_title": "Hybrid/NoCubes meshing and LOD",
+      "title": "Prove high-altitude ground remains visible with smoothly decaying LOD",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "partial",
+      "verification_assessment": "known_unresolved_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/planet/PlanetFloorRenderer.java",
+          "sha256": "4eda0b67736719209ad124e3fee161df819c17eb55b3868245f0ba501965a711"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/planet/HorizonProjection.java",
+          "sha256": "826245f7e5d31a30a411146d3b76da3b7655bb85fd145d3159d22635af1e0ff6"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/sky/LevelSky.java",
+          "sha256": "30fbeb338e85e81408d1bf2b96d30dcdac99bdec2c88b75f67c123485cd41c29"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/HorizonProjectionTest.java",
+          "sha256": "2cdf5924ca9b4c470fdb2dadcee08f9a3580b99e93b9a5e25148d4668510ecf6"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/SkyOcclusionRampTest.java",
+          "sha256": "12c25865fc8bd30a67da3ab5417eb0d2e3ac732cf37e19765586ad62e8770172"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Fresh core frames still show sky/LOD black wedges; ground continuity and smooth decay remain unresolved, cause not identified by this audit.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S05-T01",
+      "stage": "S05",
+      "stage_title": "PS1 Hybrid presentation profile",
+      "title": "Build 640x360 internal target with nearest upscale and runtime toggle",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "not_located_in_snapshot",
+      "verification_assessment": "specific_evidence_not_located",
+      "source_anchors": [],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/RENDER_NOCUBES_PS1.md",
+          "sha256": "169972c76de085fd7db2e135e002ebaf9f84818c694b0205ae16000d62bc5115"
+        }
+      ],
+      "remaining_acceptance": "No presentation target in pinned4b tree; separate PS1 branch now implements it, but that candidate and its native gate are distinct from this snapshot.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S05-T02",
+      "stage": "S05",
+      "stage_title": "PS1 Hybrid presentation profile",
+      "title": "Implement configurable vertex snap/quantized color/dither/affine-like UV",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "not_located_in_snapshot",
+      "verification_assessment": "specific_evidence_not_located",
+      "source_anchors": [],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/RENDER_NOCUBES_PS1.md",
+          "sha256": "169972c76de085fd7db2e135e002ebaf9f84818c694b0205ae16000d62bc5115"
+        }
+      ],
+      "remaining_acceptance": "Configurable PS1 vertex snapping/color quantization/dither/affine warp not located in audited tree; initial resolution-only external work does not close this.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S05-T03",
+      "stage": "S05",
+      "stage_title": "PS1 Hybrid presentation profile",
+      "title": "Implement altitude-dependent PS1 fog with sky-ground/asteroid fade continuity",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/sky/LevelSky.java",
+          "sha256": "30fbeb338e85e81408d1bf2b96d30dcdac99bdec2c88b75f67c123485cd41c29"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/atmosphere/AtmosphereRules.java",
+          "sha256": "db55b24f08dd495e2a9561c4feb78f5a5f1e7320fa77af4d9c2b661ddf11f70f"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/LevelSkyTest.java",
+          "sha256": "75afc81d3e93c42161c6a44db523e7498609b14b6412db2410e0ae02287faef6"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/SkyOcclusionRampTest.java",
+          "sha256": "12c25865fc8bd30a67da3ab5417eb0d2e3ac732cf37e19765586ad62e8770172"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/RENDER_NOCUBES_PS1.md",
+          "sha256": "169972c76de085fd7db2e135e002ebaf9f84818c694b0205ae16000d62bc5115"
+        }
+      ],
+      "remaining_acceptance": "Generic altitude sky/atmosphere exists; PS1 fog plus ground/asteroid fade continuity is not a completed profile feature.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S05-T04",
+      "stage": "S05",
+      "stage_title": "PS1 Hybrid presentation profile",
+      "title": "Keep crosshair HUD and UI stable at readable resolution",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/hud/DescentHud.java",
+          "sha256": "ba4b52ae17890947ff0c58f8c98f6f0bef113eeb2dd68f5b730b1a4e86f8c266"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/render/HandRenderFrame.java",
+          "sha256": "6401c6b162270eaac840bb035aaaf596aeb2127070cd96d60e48b52c9a997936"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/render/WeaponViewRenderer.java",
+          "sha256": "befbc357753b9c7cb2d0cdfdd1eb1bb07830f87f4b57f8d2b2d0bc43cd4d9749"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/WeaponMountFovTest.java",
+          "sha256": "cede66b1b7be8c8875e217846522e557e5eb478449838b6389199e512868713a"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/HybridWeaponModelsTest.java",
+          "sha256": "7d7b08b73bc152e7de0dd795bf4395f1d51762143149dd713241ad2f6d468269"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/RENDER_NOCUBES_PS1.md",
+          "sha256": "169972c76de085fd7db2e135e002ebaf9f84818c694b0205ae16000d62bc5115"
+        }
+      ],
+      "remaining_acceptance": "Native UI/viewmodel code exists; low-resolution-world/full-resolution-overlay split is under separate PS1 branch verification.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S05-T05",
+      "stage": "S05",
+      "stage_title": "PS1 Hybrid presentation profile",
+      "title": "Ensure profile toggles never mutate physics, world geometry or collision state",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "not_located_in_snapshot",
+      "verification_assessment": "specific_evidence_not_located",
+      "source_anchors": [],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/RENDER_NOCUBES_PS1.md",
+          "sha256": "169972c76de085fd7db2e135e002ebaf9f84818c694b0205ae16000d62bc5115"
+        }
+      ],
+      "remaining_acceptance": "No profile switch in pinned4b source. Separate candidate's wall hash/flight flag is representative, not universal physics/cache/world invariance.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S05-T06",
+      "stage": "S05",
+      "stage_title": "PS1 Hybrid presentation profile",
+      "title": "Run native/PS1/debug visual regression and GL3.2 fallback checks",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "not_located_in_snapshot",
+      "verification_assessment": "specific_evidence_not_located",
+      "source_anchors": [],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/06_VALIDATION/REGRESSION_MATRIX.md",
+          "sha256": "7d2a570083ec278928b7259c52f2d0bd6b352db3a6c33df31b60e402928a4345"
+        }
+      ],
+      "remaining_acceptance": "Full Native/PS1/Debug plus GL3.2 visual matrix is not accepted in audited source; external branch's current client result must be recorded independently.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S06-T01",
+      "stage": "S06",
+      "stage_title": "Core gravity and player 6DoF",
+      "title": "Consolidate quaternion-based motion state and local gravity field coordinate transforms",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "present",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/flight/ShipAttitude.java",
+          "sha256": "d541694ee3f27163ad8da10f15f6faf64307e3ee77a0407eac8552ab0946136b"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/FootGravitySystem.java",
+          "sha256": "09f853f9c9a596362003610d2490956ba9cc3e3db7b423b577100e1b60617fee"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/contraption/boarding/BoardingPose.java",
+          "sha256": "d41beea0c6c7db8ea68dcfcbad98e9ad66517c2e456cc3ff4cea763fdfd7dd5e"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/ShipAttitudeTest.java",
+          "sha256": "5f80aacf3467dfc66435bc32a0fdc648f88aedd62aca1b1e550972077c05ac86"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/ActorFrameMathTest.java",
+          "sha256": "80a64cc6391f055e6869c5d997abab71d26e1934d1f41142fe345d24337f8fc9"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/ShipGravityGameTests.java",
+          "sha256": "53a72d400b3c163cd44d9760c39c9f94098e6427ef4804c65807761fcb283650"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/BOARDING_SUPPORT_TRANSFER_2026-11-06.md",
+          "sha256": "af61aa16dac8d2672fa353af11e93d26653b808c6c237cc52f5ce1fdb334cd9f"
+        }
+      ],
+      "remaining_acceptance": "Shared math/adapters and server checks exist; universal consolidated coordinate ownership still needs full cross-subsystem acceptance.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S06-T02",
+      "stage": "S06",
+      "stage_title": "Core gravity and player 6DoF",
+      "title": "Fix 6DoF proxy/mount lifecycle to make normal exit safe without lava",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/flight/FlightSystem.java",
+          "sha256": "2f0badd390b3f44b0755a7a688649ace44a956bb34d4e89b1b84ba57b20dbe21"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/entity/PyroShipEntity.java",
+          "sha256": "787cfbc422c65dedc26a1f7851e2f3c6fd8c4823c8199286c717b41b0d9d1c39"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java",
+          "sha256": "13aff87ab9896738566609ac95c963b84c91f742577698325393fd2a273ef76e"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/FlightBodyPlayerGameTests.java",
+          "sha256": "147da7d816bcb6b1d3823631bdf9e9cbf8c8b87e20dd57fabcf03161ea2e2abf"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/CONTROL_CORE_LIFECYCLE_2026-11-04.md",
+          "sha256": "b4b4cf9f9ff921999f3fc2fd5de165ac751bb672bd92c865a1347e5775bd3cc3"
+        }
+      ],
+      "remaining_acceptance": "Recorded real capture/death/release proof is scoped; original user proxy/lava repro and all normal exit conditions remain a distinct gate.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S06-T03",
+      "stage": "S06",
+      "stage_title": "Core gravity and player 6DoF",
+      "title": "Fix camera anchor, eye offset and viewmodel at all roll/pitch/yaw positions",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/flight/BoardingCamera.java",
+          "sha256": "470d0707d8c848041dcacdd78ad48456dc873dd80c976161d0b7ea67d590a243"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/gravity/FootGravityCamera.java",
+          "sha256": "8b53777ec02aed3bb051375d72f0993becb194516e97f3c42f4be58f360c7886"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/render/HandRenderFrame.java",
+          "sha256": "6401c6b162270eaac840bb035aaaf596aeb2127070cd96d60e48b52c9a997936"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeActorFrameCheck.java",
+          "sha256": "5028503766f4be9ef4f7447886c2d58ada8113098c352752b26869349f055516"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/WeaponMountFovTest.java",
+          "sha256": "cede66b1b7be8c8875e217846522e557e5eb478449838b6389199e512868713a"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/UFO_RELOAD_2026-11-04.md",
+          "sha256": "41ce84e93b44d1f09a3b801219655f4efddb80fc06086d48041fa84cef4f0ed6"
+        }
+      ],
+      "remaining_acceptance": "Camera/viewmodel fixes have subsets of proof; full pitch/yaw/roll all-angle torch/mount/reload image regression remains open.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S06-T04",
+      "stage": "S06",
+      "stage_title": "Core gravity and player 6DoF",
+      "title": "Make gravity torch field creation/removal deterministic and dimension-scoped",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "present",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/GravityTorchBlock.java",
+          "sha256": "35ebc6ee90d0054f3926c25120fd644948ac6935207bc93d1560924e199533a9"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/GravityFieldIds.java",
+          "sha256": "58114353f2df1b93196c23232353ace0b401139d39a4d08ffe2f8c866731fa01"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/GravityFieldIndex.java",
+          "sha256": "016e871cc88f3e00af64d8867bfe732bba7f3dc29497db87ff30ef6b4e190bd8"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/world/gravity/GravityTorchIdentityTest.java",
+          "sha256": "89a3e42092f2a003d5c57131b87d36241bdd294653ef2687476240d9e6186cfe"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/world/gravity/GravityFieldIndexTest.java",
+          "sha256": "d22dd64458a48beb0efb9cd5cec441c29b59e9e70bde675e2bffa4d718c61124"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/EntityFieldGravityGameTests.java",
+          "sha256": "f655c086a5e78b410bc0a9fd0c7e2aba27b8ed7e048cc394d4d61aeb2977fea8"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Deterministic identity/index tests are current; dimension lifecycle and overlapping-field native acceptance need explicit owner mapping.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S06-T05",
+      "stage": "S06",
+      "stage_title": "Core gravity and player 6DoF",
+      "title": "Replace Local gravity chat spam with state-transition feedback",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "present",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/GravityNoticeGate.java",
+          "sha256": "4aaea5b8caa0a9566ca81bae56e48698203b19d0fbaf2a4927cd8780b003d9e1"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/FootGravitySystem.java",
+          "sha256": "09f853f9c9a596362003610d2490956ba9cc3e3db7b423b577100e1b60617fee"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/GravityNoticeGateTest.java",
+          "sha256": "cb6c0e5e7d589a1009bfae3e4cee7be6be832dd3eaec0bb70b4b4bc8e66b23fb"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "State-transition gate is implemented/tested; actual repeated player feedback under every field transition has not been independently runtime-audited here.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S06-T06",
+      "stage": "S06",
+      "stage_title": "Core gravity and player 6DoF",
+      "title": "Prove local/world collision and reset after death, teleport, unload and reload",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/mixin/client/BoardingClientTeleportMixin.java",
+          "sha256": "42f64836b8e75690288dfa26f1a0d1e78a7913374f9b43137d38fe779d026544"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/FootGravitySystem.java",
+          "sha256": "09f853f9c9a596362003610d2490956ba9cc3e3db7b423b577100e1b60617fee"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/FootGravityRecoveryGameTests.java",
+          "sha256": "086d541abb7f17d9d4281124324fd62fdf0682d99d9fa6633e66e3097e67f7c9"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java",
+          "sha256": "13aff87ab9896738566609ac95c963b84c91f742577698325393fd2a273ef76e"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/MODULE_RESTART_2026-11-06.md",
+          "sha256": "caaafe0476e642744d7f212ade6d7a989da0a75f3fc3f745144250b5c473e82f"
+        }
+      ],
+      "remaining_acceptance": "External-transfer and saved-world subsets are proven at recorded SHAs; all death/teleport/unload/local-world combinations remain wider acceptance.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S07-T01",
+      "stage": "S07",
+      "stage_title": "Universal 6DoF for all mob families",
+      "title": "Implement C1–C7 species adapters and universal fallback without breaking vanilla AI",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "partial",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/ActorFrames.java",
+          "sha256": "24f0c5f45135adddd5b0d61dcd934384a332af2acbd85c5fbd090a6c11bc4b4e"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/ActorPhysicsProfile.java",
+          "sha256": "ee0bdef0760ad1f65ed31852fca1799e255d6aabebaf326fad9fb008b11db831"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/FlyingRosterGravityGameTests.java",
+          "sha256": "bb891b50dcd9734791af0186fa2ef4e94c96b3e5d9027df57c9788cf8c8a0c7b"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/SurfaceCombatGameTests.java",
+          "sha256": "a5d8a29f67fd92c2555146ebb414e82434a20b5fe1330753f69df7b165cb311c"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/PHYSICS_UNIVERSAL_6DOF_RAGDOLL.md",
+          "sha256": "fd4bef538d2bb4e5ff68a882b8f07fdddcf60b05092cff879d807db8b5b00b30"
+        }
+      ],
+      "remaining_acceptance": "Explicit supported families and fallbacks exist; C1-C7, aquatic/bee/villager/spider/boss breadth is not universal current parity.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S07-T02",
+      "stage": "S07",
+      "stage_title": "Universal 6DoF for all mob families",
+      "title": "Make ground/wall/ceiling navigation relative to each entity local gravity",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "partial",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/ActorFrames.java",
+          "sha256": "24f0c5f45135adddd5b0d61dcd934384a332af2acbd85c5fbd090a6c11bc4b4e"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/EntityGravitySystem.java",
+          "sha256": "68bb13205929fb08e7fc6d78adcfda80741089b7503d3e965f798ac97c266eea"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/EntityFieldGravityGameTests.java",
+          "sha256": "f655c086a5e78b410bc0a9fd0c7e2aba27b8ed7e048cc394d4d61aeb2977fea8"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/SurfaceCombatGameTests.java",
+          "sha256": "a5d8a29f67fd92c2555146ebb414e82434a20b5fe1330753f69df7b165cb311c"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/PHYSICS_UNIVERSAL_6DOF_RAGDOLL.md",
+          "sha256": "fd4bef538d2bb4e5ff68a882b8f07fdddcf60b05092cff879d807db8b5b00b30"
+        }
+      ],
+      "remaining_acceptance": "Selected surface pursuit/ground adapters work; complete local-frame wall/ceiling pathfinding for all families is not implemented acceptance.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S07-T03",
+      "stage": "S07",
+      "stage_title": "Universal 6DoF for all mob families",
+      "title": "Extend target sight/raycast/attacks to arbitrary local orientation",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "partial",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/ActorFrames.java",
+          "sha256": "24f0c5f45135adddd5b0d61dcd934384a332af2acbd85c5fbd090a6c11bc4b4e"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/mixin/LivingEntityMixin.java",
+          "sha256": "a162a43ff3371ce8b127a97b2aa058ee51ed7cc01acd683662d25761b9bff237"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/SurfaceCombatGameTests.java",
+          "sha256": "a5d8a29f67fd92c2555146ebb414e82434a20b5fe1330753f69df7b165cb311c"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/PHYSICS_UNIVERSAL_6DOF_RAGDOLL.md",
+          "sha256": "fd4bef538d2bb4e5ff68a882b8f07fdddcf60b05092cff879d807db8b5b00b30"
+        }
+      ],
+      "remaining_acceptance": "Some look/attack adapters have current server coverage; full family-specific sight/raycast/attack and complex boss behavior remain.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S07-T04",
+      "stage": "S07",
+      "stage_title": "Universal 6DoF for all mob families",
+      "title": "Implement spatial gravity clusters with bounded neighbor queries and interest levels",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "partial",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/GravityFieldIndex.java",
+          "sha256": "016e871cc88f3e00af64d8867bfe732bba7f3dc29497db87ff30ef6b4e190bd8"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/ActorFrames.java",
+          "sha256": "24f0c5f45135adddd5b0d61dcd934384a332af2acbd85c5fbd090a6c11bc4b4e"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/ai/BoundedSpatialIndex.java",
+          "sha256": "26c6b3b079c2856971539ce6ae2f6a6eeca8328f2e2813de382512bbac87249c"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/world/gravity/GravityFieldIndexTest.java",
+          "sha256": "d22dd64458a48beb0efb9cd5cec441c29b59e9e70bde675e2bffa4d718c61124"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/ai/BoundedSpatialIndexTest.java",
+          "sha256": "5fe34a84cfd667d9eb53fef4e0548751080cf9bc762e1bcf65892ab558ab1d67"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/PHYSICS_UNIVERSAL_6DOF_RAGDOLL.md",
+          "sha256": "fd4bef538d2bb4e5ff68a882b8f07fdddcf60b05092cff879d807db8b5b00b30"
+        }
+      ],
+      "remaining_acceptance": "Spatial indexes/budgets are present; universal gravity clusters and distant simulation/interest tiers need explicit integration and measurements.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S07-T05",
+      "stage": "S07",
+      "stage_title": "Universal 6DoF for all mob families",
+      "title": "Test cross-family mob rotation/contact/save/reload under gravity torches",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/mixin/ActorFrameTrackerMixin.java",
+          "sha256": "59f4ebe52eaa81111c56cd9d360b1728a08b8c47ef2ee9b4a72d24927d55d755"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/EntityGravitySystem.java",
+          "sha256": "68bb13205929fb08e7fc6d78adcfda80741089b7503d3e965f798ac97c266eea"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeActorFrameCheck.java",
+          "sha256": "5028503766f4be9ef4f7447886c2d58ada8113098c352752b26869349f055516"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/FlyingRosterGravityGameTests.java",
+          "sha256": "bb891b50dcd9734791af0186fa2ef4e94c96b3e5d9027df57c9788cf8c8a0c7b"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/06_VALIDATION/REGRESSION_MATRIX.md",
+          "sha256": "7d2a570083ec278928b7259c52f2d0bd6b352db3a6c33df31b60e402928a4345"
+        }
+      ],
+      "remaining_acceptance": "Representative real-client harness exists; cross-family torch rotation/contact/cold save-load matrix is not established for all C1-C7 classes.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S08-T01",
+      "stage": "S08",
+      "stage_title": "Articulated ragdoll and destructible bodies",
+      "title": "Reconcile prior Oct8–10 ragdoll solver commits and collision regressions",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/physics/ragdoll/RagdollSimulation.java",
+          "sha256": "b0a6b7b6747e3c96e30e8c9b9713499c28e2149bfdcfea38e92fc3ac688a84fd"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/physics/ragdoll/RagdollRig.java",
+          "sha256": "6ae8ec01a9a6989a021f9a5998b83452495aba49c834a9910a60a31bfd775e09"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/RagdollSimulationTest.java",
+          "sha256": "8ef3ba77f024d429113139bdc5482285237197c30e81a7a0517e92336d4aa24b"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/RagdollGameTests.java",
+          "sha256": "86dfe6308205388ee17bd77db0f001bb59836561b26afca1f0d705baed4e5893"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/05_EXECUTION/AGENT_LINEAGE_PRE_OCT26.md",
+          "sha256": "190c64881b9eecf40b5d787d20f1304d031f5fa6b44d96735ca4ff391c523f05"
+        }
+      ],
+      "remaining_acceptance": "Solver lineage is documented; reconcile each historic collision effect against current source before declaring the entire old ragdoll work valid.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S08-T02",
+      "stage": "S08",
+      "stage_title": "Articulated ragdoll and destructible bodies",
+      "title": "Validate articulated joint limits, impulses and off-centre effective mass",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "present",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/physics/ragdoll/RagdollSimulation.java",
+          "sha256": "b0a6b7b6747e3c96e30e8c9b9713499c28e2149bfdcfea38e92fc3ac688a84fd"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/physics/collision/BodyJointConstraint.java",
+          "sha256": "c5b367b4009f8fdf0caedf3962042fdc0ea690dbb971d8782f6b5379104846e5"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/RagdollSimulationTest.java",
+          "sha256": "8ef3ba77f024d429113139bdc5482285237197c30e81a7a0517e92336d4aa24b"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/BodyJointConstraintTest.java",
+          "sha256": "0d2e7125a6249fac5a8563f058459ed2b38964d19efb0f656ab828c7b80071e6"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/d6/ContactImpulseTest.java",
+          "sha256": "ecf6e46c76935a35ee822210a7ac306a6f323f586b4fe0193229f28195550e91"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Current numeric/contact tests cover several joint/effective-mass cases; complete articulated multi-family limits and real impacts remain broader acceptance.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S08-T03",
+      "stage": "S08",
+      "stage_title": "Articulated ragdoll and destructible bodies",
+      "title": "Eliminate wall tunneling and duplicate death ragdolls on player/drone impacts",
+      "gate": "G2",
+      "ledger_status": "in_progress",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "partial",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/entity/RagdollEntity.java",
+          "sha256": "88327e07ebd07cf863f54fea10ee2da297cc55f30d5c13e50f827f6b72f1bd14"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/entity/model/FlightWreckRig.java",
+          "sha256": "669514dac38d91ebf0bc217fde6fb1deb2ef89f6b09242b553dcb68d70926564"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/RagdollGameTests.java",
+          "sha256": "86dfe6308205388ee17bd77db0f001bb59836561b26afca1f0d705baed4e5893"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/DroneWreckKindGameTests.java",
+          "sha256": "b6abdb6bfc43bfd206b69fe9db4c8d74a04abf5385717dde6b65b04a66aa2ef1"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/DRONE_WRECK_KINDS_2026-11-06.md",
+          "sha256": "6ddba2eecb6878e3c92cebdc9be5cfa421af718332a719bc96004da4ea48ea2f"
+        }
+      ],
+      "remaining_acceptance": "Authored typed wreck/death/restart proof exists; universal ragdoll wall CCD and player/drone multi-impact duplication/stress remain open.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S08-T04",
+      "stage": "S08",
+      "stage_title": "Articulated ragdoll and destructible bodies",
+      "title": "Implement debris aggregation/cleanup and sleeping in 128 death stress fixture",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/entity/RagdollEntity.java",
+          "sha256": "88327e07ebd07cf863f54fea10ee2da297cc55f30d5c13e50f827f6b72f1bd14"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/physics/GravyPhysics.java",
+          "sha256": "e42e7ec545a1e160c95000924daedc7d391cbcdc02574fa672b8ade94aaddc05"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/RagdollGameTests.java",
+          "sha256": "86dfe6308205388ee17bd77db0f001bb59836561b26afca1f0d705baed4e5893"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/PHYSICS_UNIVERSAL_6DOF_RAGDOLL.md",
+          "sha256": "fd4bef538d2bb4e5ff68a882b8f07fdddcf60b05092cff879d807db8b5b00b30"
+        }
+      ],
+      "remaining_acceptance": "Basic life/sleep/removal code is not a measured128-simultaneous-death aggregation/cleanup acceptance.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S08-T05",
+      "stage": "S08",
+      "stage_title": "Articulated ragdoll and destructible bodies",
+      "title": "Verify local gravity ragdoll orientation with heavy rail weapon and block collision",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "gravity_ragdoll",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/physics/ragdoll/RagdollSimulation.java",
+          "sha256": "b0a6b7b6747e3c96e30e8c9b9713499c28e2149bfdcfea38e92fc3ac688a84fd"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/GravityFields.java",
+          "sha256": "908517f7c73bf24d366faa303c8f29779b3493bfca1e16ed75faf8a9b458d6be"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/RagdollGameTests.java",
+          "sha256": "86dfe6308205388ee17bd77db0f001bb59836561b26afca1f0d705baed4e5893"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/GravityWeaponGameTests.java",
+          "sha256": "9f4ff7857dc5b7515d5a2b4731d55c29a4de805ceef5f1d8a41f0c844119e729"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/PHYSICS_UNIVERSAL_6DOF_RAGDOLL.md",
+          "sha256": "fd4bef538d2bb4e5ff68a882b8f07fdddcf60b05092cff879d807db8b5b00b30"
+        }
+      ],
+      "remaining_acceptance": "Related physics and weapon tests exist; combined local-gravity articulated rail-hit/block-contact fixture is not located as complete current runtime proof.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S09-T01",
+      "stage": "S09",
+      "stage_title": "BlockBody / UFO boarding and reactor",
+      "title": "Reconcile Sol/Codex UFO branch and preserve current worktree before edits",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "root",
+      "implementation_assessment": "metadata_or_process",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "AGENTS.md",
+          "sha256": "a2419192657faa9891329d470ae81544cd530600384e4d830e0e6af697abae50"
+        },
+        {
+          "path": "docs/v8/STATE.md",
+          "sha256": "71358ebaa266c67d2f3f306648255c3615230c3301ee5478ba2bfccea4b38257"
+        }
+      ],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Active UFO lineage is preserved; full Sol/local-work reconciliation remains audit scope, not inferred from the latest gameplay increment.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S09-T02",
+      "stage": "S09",
+      "stage_title": "BlockBody / UFO boarding and reactor",
+      "title": "Verify rigid block hull, thrusters and six-axis inertia in live client",
+      "gate": "G2",
+      "ledger_status": "completed",
+      "execution_owner": "root",
+      "implementation_assessment": "present",
+      "verification_assessment": "recorded_atomic_acceptance",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyEntity.java",
+          "sha256": "4d37aa3219921913a9cd1e9f6a2cc641f3e4f3caf97f484a18faf98b753ca38d"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/mega/SkyUfoThrusters.java",
+          "sha256": "3b36f2ed1f94ca218b055d6dc4eb78761bcb0b52a27fbdaeed70da7f979e672b"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java",
+          "sha256": "01b173d4d06c95938f07c4cf61176a4cc7a16e67d75b27f761dbf4cfd8156651"
+        },
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeUfoEngineCheck.java",
+          "sha256": "16eb431af7c330f06d161c96c052bfdcb3469014a2d2dea5c6b3133dc134feeb"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/ACCEPTANCE_S09_T02.md",
+          "sha256": "875a13ab049cfa9a0d2ccc9aaa74b3e8afe376dea569d89894d3201c51fa14a9"
+        }
+      ],
+      "remaining_acceptance": "Retain recorded atomic reference-UFO engine/six-axis acceptance; arbitrary assemblies, wholeS09/G2 and release remain open.",
+      "task_acceptance_changed": false,
+      "recorded_atomic": {
+        "index_key": "ufoEngines",
+        "source": "fd8950fa4be0aad8a97daa87220226b44c02311e",
+        "report_scope": "Atomic task only, not complete stage/gate/release; not rerun natively by this audit"
+      }
+    },
+    {
+      "id": "S09-T03",
+      "stage": "S09",
+      "stage_title": "BlockBody / UFO boarding and reactor",
+      "title": "Verify mounted lasers/rockets/hinged actuators maintain transforms during roll",
+      "gate": "G2",
+      "ledger_status": "in_progress",
+      "execution_owner": "root",
+      "implementation_assessment": "present",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/contraption/mechanism/BodyMountedWeapons.java",
+          "sha256": "28fd82858d33925537256d9fa516db85355c7fd38695113225e70a6d23a2a431"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/contraption/mechanism/MountedWeaponEmitter.java",
+          "sha256": "473c5270e551feda670969251ad488beafc81cc125e3ff2b0258f976cc88c553"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/contraption/BodyJointSystem.java",
+          "sha256": "6770cbb124e5128e78a8874508485b96f9e4f806720088dc3330b2292c8b1bdd"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/MountedMechanismGameTests.java",
+          "sha256": "1029c6f2d5fc0036fe5f301303ba9f388afc19104516c8dd5bc5feb82e8a1edb"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/ArmedContactGameTests.java",
+          "sha256": "1839a2d4279544bd948db17986048be1890c5b9a2084e472fd30c483e0667e93"
+        },
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeMountedWeaponCheck.java",
+          "sha256": "41ea6aa745ea607caa7a326e19adac5b384924934719cb77ca0ba271cd59a7b7"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Current generic lever-fired blocks pass exact scoped proof; automatic generic aiming, world anchoring, economy and full module lifecycle remain open.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S09-T04",
+      "stage": "S09",
+      "stage_title": "BlockBody / UFO boarding and reactor",
+      "title": "Implement boarding/capture/control override and deterministic pilot exit",
+      "gate": "G2",
+      "ledger_status": "in_progress",
+      "execution_owner": "root",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/mega/UfoControlSystem.java",
+          "sha256": "9023c46f1eeaa219889fd0c2b089ee2f42ce24460af358f7888176d7933e807c"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/contraption/boarding/DynamicBodyAttachment.java",
+          "sha256": "7aaa3e44b3255f98c1175622b7b8b3c304c86c285d503b8537f54f71bbfdf1b2"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/contraption/boarding/BoardingSystem.java",
+          "sha256": "19a59a3528764100fef259886d2de86a42b1bb71ef9bcc65d085d826e5b7b0f0"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java",
+          "sha256": "01b173d4d06c95938f07c4cf61176a4cc7a16e67d75b27f761dbf4cfd8156651"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/BoardingGameTests.java",
+          "sha256": "c2e89208b6e1e9713d9ed830199a10b40c9f4d453b4ea03f0dc5e8cd4a53862a"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/TURRET_RESTART.md",
+          "sha256": "6804ad5f1546c214b721437214f09992131fa5eb2445cffdd7e94a25877e6284"
+        }
+      ],
+      "remaining_acceptance": "Boarding/capture/release and recorded hot restart work; complete module/control/portal-group/multiplayer lifecycle is not closed.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S09-T05",
+      "stage": "S09",
+      "stage_title": "BlockBody / UFO boarding and reactor",
+      "title": "Implement reactor damage, sabotage, bounded fracture and escape window",
+      "gate": "G2",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "root",
+      "implementation_assessment": "partial",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyEntity.java",
+          "sha256": "4d37aa3219921913a9cd1e9f6a2cc641f3e4f3caf97f484a18faf98b753ca38d"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/mega/SkyUfoEntity.java",
+          "sha256": "e442e050918691217e350758ea8e2e874d4d7c4462d8b0d8717b2b9674cf96a1"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/micro/BlockDamage.java",
+          "sha256": "d9ca09cdd8994e8e7fb7fbc1bf96bb70e23a41877f7bcd22f21cb683788308d7"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/BodyCombatGameTests.java",
+          "sha256": "c1bfd7ea1e0f02b07e50c574b348511a002d3955f578db42ed94e45cd632d7da"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/BodyFractureGameTests.java",
+          "sha256": "95c93f87f6422859bb1c7d0de7c59c913ba4036415dc7acbb82694b31f235ed1"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/ENGINES_2026-11-07.md",
+          "sha256": "a19f97918bdbf435cee3846b8ddf3665fc8e844a4c10c1819afe832e05788dea"
+        }
+      ],
+      "remaining_acceptance": "Damage and bounded fracture exist; a complete playable sabotage/reactor/escape-window loop is not proven.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S09-T06",
+      "stage": "S09",
+      "stage_title": "BlockBody / UFO boarding and reactor",
+      "title": "Save/reload UFO in flight and test optional VS unofficial backend only in isolated stand",
+      "gate": "G2",
+      "ledger_status": "in_progress",
+      "execution_owner": "root",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/contraption/BodyJointRegistry.java",
+          "sha256": "8b47d022f2590dc930081d9fe4d0e1d5d9e3193d6a121b6961c21ec81c0ca730"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/contraption/BodyVolumeLeases.java",
+          "sha256": "d9d37284362766a20615b19c60e62a83fecfac709181da5e7c6f16773973270e"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java",
+          "sha256": "c9262f1d0923777f6eaf4efd1e8fc32dbbf076316b7487b03df9a82e8d3c8eee"
+        },
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeJointReloadCheck.java",
+          "sha256": "45318f70971f3ba84585170593dd76f51085e0772590dc950f0b0e8368117f00"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/TURRET_RESTART.md",
+          "sha256": "6804ad5f1546c214b721437214f09992131fa5eb2445cffdd7e94a25877e6284"
+        }
+      ],
+      "remaining_acceptance": "Actual world reload/island cold-return subsets are proven; generic hot mechanisms, damage/legacy/portal migration and optional isolated VS gate remain open.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S10-T01",
+      "stage": "S10",
+      "stage_title": "Weapons, cluster, drill and building",
+      "title": "Repair held weapon 6DoF and normal first person visibility and inventory model JSON",
+      "gate": "G4",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "combat_ai",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/render/HandRenderFrame.java",
+          "sha256": "6401c6b162270eaac840bb035aaaf596aeb2127070cd96d60e48b52c9a997936"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/render/WeaponViewRenderer.java",
+          "sha256": "befbc357753b9c7cb2d0cdfdd1eb1bb07830f87f4b57f8d2b2d0bc43cd4d9749"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/workshop/HybridWeaponModels.java",
+          "sha256": "a5df2337756afda7aedb46813e7f1f07c37e925eb6eeef043380c21eed3c8714"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/HybridWeaponModelsTest.java",
+          "sha256": "7d7b08b73bc152e7de0dd795bf4395f1d51762143149dd713241ad2f6d468269"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/WeaponMountFovTest.java",
+          "sha256": "cede66b1b7be8c8875e217846522e557e5eb478449838b6389199e512868713a"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/MOUNTED_WEAPONS_2026-11-07.md",
+          "sha256": "bccd7f5cd8a7016bbd01033d356effa65b707ece346e1ab0cd1125308a8e3840"
+        }
+      ],
+      "remaining_acceptance": "Native weapon/atlas fixes exist; full held/inventory all-angle/normal/6DoF/current profile visual matrix remains.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S10-T02",
+      "stage": "S10",
+      "stage_title": "Weapons, cluster, drill and building",
+      "title": "Verify three separate gravity gun behaviours and ballistic rail accuracy",
+      "gate": "G4",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "combat_ai",
+      "implementation_assessment": "present",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/physics/GravyPhysics.java",
+          "sha256": "e42e7ec545a1e160c95000924daedc7d391cbcdc02574fa672b8ade94aaddc05"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gravity/TransientGravityFields.java",
+          "sha256": "841e6690e5a9d2ac055920b6aee67d906b7551a68bdba4903c10787331200212"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/weapon/core/WeaponCore.java",
+          "sha256": "c9c37edf249957f423bf5b89c9b01b338e4d4e8cdcf5ae3537c4ead4ae168aac"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/GravityWeaponGameTests.java",
+          "sha256": "9f4ff7857dc5b7515d5a2b4731d55c29a4de805ceef5f1d8a41f0c844119e729"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/ProjectileVisualGameTests.java",
+          "sha256": "e277d8f59f8403a5e7bbcc42ad66bf7fad924f329bc81f45d7b0eef80cacaf09"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Current server tests cover related behaviors; all three distinct gun modes and ballistic rail accuracy need explicit matched native acceptance.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S10-T03",
+      "stage": "S10",
+      "stage_title": "Weapons, cluster, drill and building",
+      "title": "Implement first-person cluster carrier/staged structured spread/impact and cleanup",
+      "gate": "G4",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "combat_ai",
+      "implementation_assessment": "present",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/bombardment/AerialBombEntity.java",
+          "sha256": "375ca46a9ce4a7ae36368a83ef46b3eecbe61ecd1a59dd52b9e4f9012c1903c7"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/bombardment/ClusterBurstBudget.java",
+          "sha256": "78a1cd7acf457a5c63c329e068785687a8ed4cfe821f5793e6c07ec075c5cb4b"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/workshop/WeaponClusters.java",
+          "sha256": "84ee24a42cfb2be5e9b111fd490499ed299a329f2d20df0aaab3cb2a720173ad"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/ClusterLifecycleGameTests.java",
+          "sha256": "4806eb893322966017e1ea14af9f374b24b4f30709f7c2afb2d75397f282b077"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/BombBayVelocityGameTests.java",
+          "sha256": "e8bdf1de8c67729c1706969d42f0edb71be650bf78ac7e42105d9c956e6d5d43"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Structured bounded ordnance code/current lifecycle tests exist; exact first-person staged carrier/split/impact visual workflow is not fully accepted.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S10-T04",
+      "stage": "S10",
+      "stage_title": "Weapons, cluster, drill and building",
+      "title": "Build weak chunky versus strong thermal circular drill with collision/lighting parity",
+      "gate": "G4",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "combat_ai",
+      "implementation_assessment": "partial",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/engineer/TunnelDrillRigBlock.java",
+          "sha256": "52446ae80f56a5beb6ad777423e041a156b7f709352478f28683f0ee086d859a"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/micro/TunnelCarving.java",
+          "sha256": "6afad8cff9091f8d16ba13249aa6b490bf9ac6fb0b8e75e128b4782ce30b9888"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/engineer/HeavyDrillDrops.java",
+          "sha256": "fb93a23f550074ec8ed6a4f963d21c865185460c1508b9d7017fdc802df0684d"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/DrillSafetyGameTests.java",
+          "sha256": "d8d7dca0dbee2d32dcd2d31e870fbae83e39fc731e9bf0c75d876f8621b03c2e"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/TunnelCarvingCapsuleTest.java",
+          "sha256": "64dca7486654c7efc2ee3ff1c233fc113bd4927d2165d4ce10d69200ea09bf0c"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/03_GAMEPLAY/GUNPLAY_BURST_DRILLS_AND_BUILDING.md",
+          "sha256": "5180b8128caabbb0e107e5163820728cc4d2d4c6728a671248863b371b00c136"
+        }
+      ],
+      "remaining_acceptance": "Strong/weak drilling and drop limits exist; full visible thermal rim/circular accessible tunnel/light/fluid parity remains open.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S10-T05",
+      "stage": "S10",
+      "stage_title": "Weapons, cluster, drill and building",
+      "title": "Repair construction resource accounting, server permission and batch invalidation",
+      "gate": "G4",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "combat_ai",
+      "implementation_assessment": "present",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/build/BuildToolItem.java",
+          "sha256": "e59f04a423fce2afb264ff0749abbce402250a7c2c533c231b1ef9ee95ec19c8"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/build/ConstructScaffold.java",
+          "sha256": "15f44df7a662b93b8ef83ca5eba89e3e87ae35ac17440f953b09a2a78bb0186d"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/access/ServerBlockEdits.java",
+          "sha256": "63ef328789a8a25bce561c3fe35667aec60854fd779b8080564d90993575168f"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java",
+          "sha256": "277263db44ed2f337ba1d7c76a59e787c86e30a4ccffcb009cf06678cdf0a5ed"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/ItemResourceGameTests.java",
+          "sha256": "d58c86a822905d636b010ab1adbcce08ef50d9d3007b9ba062ceace889171f1a"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Actual Survival/resource/permission tests are current; every construction mode and batch invalidation path still needs complete mapping.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S11-T01",
+      "stage": "S11",
+      "stage_title": "ORB/ROCKET/JET swarms",
+      "title": "Keep independent ORB, ROCKET and JET entity class identities separate from UFO",
+      "gate": "G4",
+      "ledger_status": "completed",
+      "execution_owner": "combat_ai",
+      "implementation_assessment": "present",
+      "verification_assessment": "recorded_atomic_acceptance",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/entity/OrbEntity.java",
+          "sha256": "af0882d7308db7ebb4a0bf65164f98f1b47e550ff515ef23484cd0a4c1d29a2d"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/entity/RocketDroneEntity.java",
+          "sha256": "1bbd0dd909a73914ecfcde87be87fb50e7ca811605a42d5484bc81cc45e474cc"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/entity/JetEntity.java",
+          "sha256": "0834cea2c0ad3486f432dcad1bd581c733cab9cf56ff9f56e767c0fd17d7c2b4"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/FlightEnemyIdentityGameTests.java",
+          "sha256": "d4a13a058821db2c29b17e1d6b9449cceee347181344c10321bc7a1f573b86ec"
+        },
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeFlightEnemyCheck.java",
+          "sha256": "8790f3e57cac9c10dd6677af1d70da30edc15737076586e85aa24202d4e3d4c7"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/FLIGHT_ENEMY_IDENTITIES_2026-11-05.md",
+          "sha256": "8888bb463b3e30937fb1b7c5fced6f719f0d918c99b2d8268f2dd989e4b6c775"
+        }
+      ],
+      "remaining_acceptance": "Retain exact recorded independent-class atomic acceptance; whole bestiary/performance/AI lifecycle remains separate.",
+      "task_acceptance_changed": false,
+      "recorded_atomic": {
+        "index_key": "flightEnemyIdentities20261105",
+        "source": "388eb845099ff4d400759f0e01e42bee1181322e",
+        "report_scope": "Atomic task only, not complete stage/gate/release; not rerun natively by this audit"
+      }
+    },
+    {
+      "id": "S11-T02",
+      "stage": "S11",
+      "stage_title": "ORB/ROCKET/JET swarms",
+      "title": "Verify spatial-hash bounded neighbours, group steering and collision avoidance",
+      "gate": "G4",
+      "ledger_status": "in_progress",
+      "execution_owner": "combat_ai",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/ai/BoundedSpatialIndex.java",
+          "sha256": "26c6b3b079c2856971539ce6ae2f6a6eeca8328f2e2813de382512bbac87249c"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/ai/DroneNavigation.java",
+          "sha256": "8833a9b0b268562137adb9399a375f91066335e8708024003abaddc7ca865813"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/ai/OverlapSeparation.java",
+          "sha256": "ed0d286c52933ea584aeb6711eed81fd362c11acaddfc2ef28b74b81bbc70bf7"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/SharedCombatPassageGameTests.java",
+          "sha256": "7c656365ab5be74accfa11a39605f157a01a24e2347c21d994023d1f7f0b9f49"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/DroneRouteGameTests.java",
+          "sha256": "6f2d386b3d7c81e5f2527db3a069f812a9457642646a092eda2f1b0b64336e6c"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/SHARED_COMBAT_PASSAGES_2026-11-06.md",
+          "sha256": "e48a472ad83781f1ca409c64e74e726400949fe3e40d95baad196f1fefefce38"
+        }
+      ],
+      "remaining_acceptance": "Current source and recorded mixed128/passages work; dense/bidirectional/mixed-size/moving-hull behavior and group performance remain open.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S11-T03",
+      "stage": "S11",
+      "stage_title": "ORB/ROCKET/JET swarms",
+      "title": "Run active128 moving96 proof with exact AI measures and two attack roles",
+      "gate": "G4",
+      "ledger_status": "completed",
+      "execution_owner": "combat_ai",
+      "implementation_assessment": "present",
+      "verification_assessment": "recorded_atomic_acceptance",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/ai/DroneAi.java",
+          "sha256": "b6dd388a710ae8d67910ab1c6698a5aaf82d1ffa5fde6507583859328ec89396"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/entity/DroneEntity.java",
+          "sha256": "46c9e84c12f6a3d34e0ceb27c7638504c324d6ac3c089b5a253f3f32b6893490"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/DroneSwarmGameTests.java",
+          "sha256": "05f91017f10978da34384bb40ab8fe21de1cbf4a9645e8d0705c8e868f8d7567"
+        },
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeSwarmBaselineCheck.java",
+          "sha256": "6d792fb44ea8dc0fb2f0f4d0633cf254904149406d5951869292104785d7a10c"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/ACCEPTANCE_S11_T03.md",
+          "sha256": "ea9d31592ec60fc23335507005687e22569b9528ee4a2f719198faf924e62025"
+        }
+      ],
+      "remaining_acceptance": "Retain recorded128-active96-moving/two-role atomic proof; current native rerun and full stage/performance are not implied.",
+      "task_acceptance_changed": false,
+      "recorded_atomic": {
+        "index_key": "droneCombatRings",
+        "source": "d9d0fd82cbd060dbe95d432e501042eb6de44f4d",
+        "report_scope": "Atomic task only, not complete stage/gate/release; not rerun natively by this audit"
+      }
+    },
+    {
+      "id": "S11-T04",
+      "stage": "S11",
+      "stage_title": "ORB/ROCKET/JET swarms",
+      "title": "Scale 256/512/1024 with explicit physics/AI/render LOD and profiler",
+      "gate": "G4",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "combat_ai",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/ai/DroneSwarmAi.java",
+          "sha256": "e8d5a26b8c67c1830187a827b63d578451df582e3bd5fc307f22f31dbda46647"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/ai/RouteWorkBudget.java",
+          "sha256": "3221f0383484f40e420678ceaafdefd801b13a03f9bb1eccee4df5911d0d2f15"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/DroneSwarmGameTests.java",
+          "sha256": "05f91017f10978da34384bb40ab8fe21de1cbf4a9645e8d0705c8e868f8d7567"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/BENCHMARKS.csv",
+          "sha256": "84e725928eca3f283044746257317d8b9162459628d83e25aaef0d7ae35da3ca"
+        }
+      ],
+      "remaining_acceptance": "Existing bounded128 work is not measured256/512/1024 physics/AI/render LOD with profiler and memory.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S11-T05",
+      "stage": "S11",
+      "stage_title": "ORB/ROCKET/JET swarms",
+      "title": "Add robust projectile/path/target handling for rockets, lasers and obstacle destruction",
+      "gate": "G4",
+      "ledger_status": "in_progress",
+      "execution_owner": "combat_ai",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/ai/DroneNavigation.java",
+          "sha256": "8833a9b0b268562137adb9399a375f91066335e8708024003abaddc7ca865813"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/weapon/projectile/ProjectileFramework.java",
+          "sha256": "91be84aa7deaf89ebf7ea0b53046556429e09cba3523c4e8b1cc633f3afb05ea"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/weapon/core/MissileSteering.java",
+          "sha256": "7c62ef18cee3158d8032fa0bb343413a93ffcbaf45bb0c66165ca63cf1286a75"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/TypedCombatRouteGameTests.java",
+          "sha256": "c67fe427fb21472ebbf3a3bb4764f89f9bfd5430592f3f860b6a075ba54b5802"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/DroneRangeControlGameTests.java",
+          "sha256": "a6601b2ec8ae1439ed9b93ba39d3a56f237eb13f083ce1173cb03f609be2be94"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/TYPED_COMBAT_LANES_2026-11-06.md",
+          "sha256": "cc06187b9cce6aaf6f7a55b7e4e32ed78f44a3c22afff80f9e933c1c63edbefd"
+        }
+      ],
+      "remaining_acceptance": "Real damaging paths and aperture recovery exist; complete destruction/moving-hull/dense-role projectile/path/target handling remains open.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S11-T06",
+      "stage": "S11",
+      "stage_title": "ORB/ROCKET/JET swarms",
+      "title": "Run settlement destruction and debris cleanup after save/reload",
+      "gate": "G4",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "combat_ai",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/ai/BombardVillageGoal.java",
+          "sha256": "c2547a4bdad111677563f773f5711dfb0d9e4cea474fd5cc425bbc2630b6433b"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/pickup/EnemyDrops.java",
+          "sha256": "c4a3461fa97f3137b29d8600362b7645397ce5bb77aebac989766f072c5c2d7a"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/entity/RagdollEntity.java",
+          "sha256": "88327e07ebd07cf863f54fea10ee2da297cc55f30d5c13e50f827f6b72f1bd14"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/DroneWreckKindGameTests.java",
+          "sha256": "b6abdb6bfc43bfd206b69fe9db4c8d74a04abf5385717dde6b65b04a66aa2ef1"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/CollapseGameTests.java",
+          "sha256": "971fa90269ae59bcc4495b91a988236992a4a8ac55527ea02da830e0b4b71bac"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/03_GAMEPLAY/SWARM_FACTIONS_SURVIVAL.md",
+          "sha256": "c90dcd268b7dcd1601ea150355f8771267d7661316f8e134181a55e86ff6753e"
+        }
+      ],
+      "remaining_acceptance": "Destruction/debris/restart pieces exist; a settlement siege with bounded cleanup after actual save/reload is not established.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S12-T01",
+      "stage": "S12",
+      "stage_title": "Survival threat and minimal armament economy",
+      "title": "Create stateful search→hunt→siege→cooldown threat director with faction attribution",
+      "gate": "G4",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "not_located_in_snapshot",
+      "verification_assessment": "specific_evidence_not_located",
+      "source_anchors": [],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/03_GAMEPLAY/SWARM_FACTIONS_SURVIVAL.md",
+          "sha256": "c90dcd268b7dcd1601ea150355f8771267d7661316f8e134181a55e86ff6753e"
+        }
+      ],
+      "remaining_acceptance": "Specific persisted search-hunt-siege-cooldown faction threat director not located; existing aggro/bombardment goals are not this state machine.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S12-T02",
+      "stage": "S12",
+      "stage_title": "Survival threat and minimal armament economy",
+      "title": "Balance two rocket infantry against a base with telegraph, defense and escape options",
+      "gate": "G4",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/ai/BombardVillageGoal.java",
+          "sha256": "c2547a4bdad111677563f773f5711dfb0d9e4cea474fd5cc425bbc2630b6433b"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/ai/DroneAi.java",
+          "sha256": "b6dd388a710ae8d67910ab1c6698a5aaf82d1ffa5fde6507583859328ec89396"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/DroneRangeControlGameTests.java",
+          "sha256": "a6601b2ec8ae1439ed9b93ba39d3a56f237eb13f083ce1173cb03f609be2be94"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/03_GAMEPLAY/SWARM_FACTIONS_SURVIVAL.md",
+          "sha256": "c90dcd268b7dcd1601ea150355f8771267d7661316f8e134181a55e86ff6753e"
+        }
+      ],
+      "remaining_acceptance": "Rocket actors exist; coherent two-infantry/base encounter with telegraph/defense/escape balance is not accepted.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S12-T03",
+      "stage": "S12",
+      "stage_title": "Survival threat and minimal armament economy",
+      "title": "Implement simple player gun/plasma/anti-missile resource progression without Create factory",
+      "gate": "G4",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/energy/EnergySystem.java",
+          "sha256": "d55917a962539c6cd23d71da7af1a9a3a840b27385e933f9ac01b47f9e35face"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/weapon/items/ModItems.java",
+          "sha256": "535ff80a238c618d8353b8537fb98f27fe3148ea3e959bee41f8686ab2b0ce8f"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/inventory/DroneArsenal.java",
+          "sha256": "68dd983ad89ac88ea9c780db9f1c61325991d024051eb953b1571c860a83d4f5"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/ItemResourceGameTests.java",
+          "sha256": "d58c86a822905d636b010ab1adbcce08ef50d9d3007b9ba062ceace889171f1a"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/DroneInventoryGameTests.java",
+          "sha256": "d173878cd0cbc4c0f98a0b956318a9557f244f026e4bdac54564fec5b039b0a0"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/03_GAMEPLAY/SWARM_FACTIONS_SURVIVAL.md",
+          "sha256": "c90dcd268b7dcd1601ea150355f8771267d7661316f8e134181a55e86ff6753e"
+        }
+      ],
+      "remaining_acceptance": "Energy/items/loadouts exist; a complete minimal player/plasma/anti-missile resource progression is not located as an accepted gameplay loop.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S12-T04",
+      "stage": "S12",
+      "stage_title": "Survival threat and minimal armament economy",
+      "title": "Define base repair/resource loss rules and prevent irreversible early survival softlocks",
+      "gate": "G4",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "not_located_in_snapshot",
+      "verification_assessment": "specific_evidence_not_located",
+      "source_anchors": [],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/03_GAMEPLAY/SWARM_FACTIONS_SURVIVAL.md",
+          "sha256": "c90dcd268b7dcd1601ea150355f8771267d7661316f8e134181a55e86ff6753e"
+        }
+      ],
+      "remaining_acceptance": "Specific base repair/loss/anti-softlock rules and persisted recoverability system not located; generic resource checks do not substitute for it.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S12-T05",
+      "stage": "S12",
+      "stage_title": "Survival threat and minimal armament economy",
+      "title": "Test one coherent day-night hunt event with player decision branches",
+      "gate": "G4",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "not_located_in_snapshot",
+      "verification_assessment": "specific_evidence_not_located",
+      "source_anchors": [],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/03_GAMEPLAY/SWARM_FACTIONS_SURVIVAL.md",
+          "sha256": "c90dcd268b7dcd1601ea150355f8771267d7661316f8e134181a55e86ff6753e"
+        }
+      ],
+      "remaining_acceptance": "No complete measured day-night hunt event with player decision branches located in the audited source/evidence.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S13-T01",
+      "stage": "S13",
+      "stage_title": "World architecture: core to Citadel",
+      "title": "Create deterministic planetary spatial zones including core and upper atmosphere",
+      "gate": "G5",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/level/WorldLevels.java",
+          "sha256": "d904afb46669bad3b7f3c0449979e6c306d66e12bd1c431318119913f3738655"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/planet/PlanetMap.java",
+          "sha256": "a360994df5cfaaf2ff9c9cebbceb432e34d6b6c54bff8c3f7e1d35de4a358a2d"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/orbit/OrbitBands.java",
+          "sha256": "374baa184a3641185d02d26cbfab97ad4ed46611c55f887613a8aa314dc12382"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/WorldLevelsTest.java",
+          "sha256": "b9f70c1ab86104097913d315a67706f3f3ea8dde6d5a109003b30d2f33297c9c"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/PlanetWorldBoundaryTest.java",
+          "sha256": "87f14e8198fc9cd5c8c3dc4985da7e2fba4cf0d2ce60ce558c4beea6f6437372"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/04_WORLD/PLANET_RING_CITADEL_LABS.md",
+          "sha256": "074f2cbd13cab875736a58a57678d6b57169ffc60d04906891c61dec5ae72702"
+        }
+      ],
+      "remaining_acceptance": "Deterministic level/band pieces exist; complete physical planetary zones under actual cubic backend remain world-design parity work.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S13-T02",
+      "stage": "S13",
+      "stage_title": "World architecture: core to Citadel",
+      "title": "Prototype Xenogears-like underground laboratories/shafts with proper permissions",
+      "gate": "G5",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gen/IndustrialComplexGenerator.java",
+          "sha256": "64c7e045a8969c5a66ceab75fc1eb236bcb881edda476979225c5fd3be6b2b80"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gen/IndustrialUndergroundFeature.java",
+          "sha256": "107e11c51c3b6046f349a8b2307b651f5b81b0ed6369b6b0ab49537c6d9a283a"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/LevelBuilderPriorityStreamTest.java",
+          "sha256": "749def42137559735f4ca1ecd19dedf8ac2bbe90eef8f3c3c913cb78a6ad0c44"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/04_WORLD/PLANET_RING_CITADEL_LABS.md",
+          "sha256": "074f2cbd13cab875736a58a57678d6b57169ffc60d04906891c61dec5ae72702"
+        }
+      ],
+      "remaining_acceptance": "Old lab/complex generators are prototypes, not accepted permission-safe cubic authored laboratories/shafts.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S13-T03",
+      "stage": "S13",
+      "stage_title": "World architecture: core to Citadel",
+      "title": "Prototype deserted stations and asteroid bodies at near/mid/far LOD",
+      "gate": "G5",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gen2/LunarBaseGenerator.java",
+          "sha256": "fcd867fbaf498a93e371e2b4fc92283416e233042d34ad17c894297773ed38a3"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gen2/EndIslandGenerator.java",
+          "sha256": "84656abcadefc9edd57b04d4b5629fc982e4cefbc4d43407ba72681b4bb8b2a0"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/planet/PlanetSurfaceMesh.java",
+          "sha256": "a8684e5a88557f70d7c359c5289a314c4959945b278b0340793bb9c51f102f9d"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/EndSpaceRegionsGridTest.java",
+          "sha256": "1c5ef5192df47517b26009b592834e5d3b2fd3cdf25278ea7d92c540cad63b5a"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/04_WORLD/PLANET_RING_CITADEL_LABS.md",
+          "sha256": "074f2cbd13cab875736a58a57678d6b57169ffc60d04906891c61dec5ae72702"
+        }
+      ],
+      "remaining_acceptance": "Legacy station/island and surface LOD code is not verified near/mid/far volumetric asteroid/station gameplay.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S13-T04",
+      "stage": "S13",
+      "stage_title": "World architecture: core to Citadel",
+      "title": "Block out ruined orbit ring and central faction Citadel with flight routes",
+      "gate": "G5",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/orbit/OrbitBands.java",
+          "sha256": "374baa184a3641185d02d26cbfab97ad4ed46611c55f887613a8aa314dc12382"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/trap/RingDefenseStructures.java",
+          "sha256": "ff01b6bcec25113bc647ed8b174c71738a70b55b7c1ffaf7ce449f7cd0f96d01"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/structure/StructureTemplate.java",
+          "sha256": "3e9c26938626c8bcd8d85941fb43ed63c39a40b49d8ba0c19d4d69da9c21d7a2"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/CitadelDeckShapeTest.java",
+          "sha256": "89c8358d23c81d7dc9493ffc2e1c7178c5860e90f30377161de8eafbb05345d5"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/04_WORLD/PLANET_RING_CITADEL_LABS.md",
+          "sha256": "074f2cbd13cab875736a58a57678d6b57169ffc60d04906891c61dec5ae72702"
+        }
+      ],
+      "remaining_acceptance": "Ring/Citadel-related scaffolds exist; an approved coherent ruined-ring/Citadel blockout and flight-route proof is not complete.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S13-T05",
+      "stage": "S13",
+      "stage_title": "World architecture: core to Citadel",
+      "title": "Implement smooth ground-sky atmosphere/LOD gradation, no floating random junk",
+      "gate": "G5",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "partial",
+      "verification_assessment": "known_unresolved_regression",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/sky/LevelSky.java",
+          "sha256": "30fbeb338e85e81408d1bf2b96d30dcdac99bdec2c88b75f67c123485cd41c29"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/atmosphere/AtmosphereRules.java",
+          "sha256": "db55b24f08dd495e2a9561c4feb78f5a5f1e7320fa77af4d9c2b661ddf11f70f"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/orbit/OrbitJunkWorldgen.java",
+          "sha256": "7b89d41941bb2bfbdaa5e458e901ed92d3f6b38fe056fb1458e2e164a47d464f"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/SkyOcclusionRampTest.java",
+          "sha256": "12c25865fc8bd30a67da3ab5417eb0d2e3ac732cf37e19765586ad62e8770172"
+        },
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/LevelSkyTest.java",
+          "sha256": "75afc81d3e93c42161c6a44db523e7498609b14b6412db2410e0ae02287faef6"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Fresh sky/LOD wedges remain and legacy junk requires origin mapping; atmosphere/ground continuity is not accepted.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S13-T06",
+      "stage": "S13",
+      "stage_title": "World architecture: core to Citadel",
+      "title": "Validate physical navigation across layers and compact mission pacing",
+      "gate": "G5",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/level/WorldLevels.java",
+          "sha256": "d904afb46669bad3b7f3c0449979e6c306d66e12bd1c431318119913f3738655"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/level/LowerWorldRecovery.java",
+          "sha256": "b0812a597fa142908f8d2237f9165911aab0275fb19e5d087c5fd7bf51cd61ec"
+        }
+      ],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/04_WORLD/PLANET_RING_CITADEL_LABS.md",
+          "sha256": "074f2cbd13cab875736a58a57678d6b57169ffc60d04906891c61dec5ae72702"
+        }
+      ],
+      "remaining_acceptance": "Layer helpers do not prove compact mission pacing and physical traversal across the complete authored world.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S14-T01",
+      "stage": "S14",
+      "stage_title": "Factions, Shapes and mission framework",
+      "title": "Design five proposed tech levels, keep them candidates until author approval",
+      "gate": "G5",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "design_only",
+      "verification_assessment": "specific_evidence_not_located",
+      "source_anchors": [
+        {
+          "path": "docs/v8/reference/03_GAMEPLAY/SWARM_FACTIONS_SURVIVAL.md",
+          "sha256": "c90dcd268b7dcd1601ea150355f8771267d7661316f8e134181a55e86ff6753e"
+        }
+      ],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/04_WORLD/PLANET_RING_CITADEL_LABS.md",
+          "sha256": "074f2cbd13cab875736a58a57678d6b57169ffc60d04906891c61dec5ae72702"
+        }
+      ],
+      "remaining_acceptance": "Five tech tiers remain proposed candidates requiring author review; no approved gameplay tier assignment is inferred.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S14-T02",
+      "stage": "S14",
+      "stage_title": "Factions, Shapes and mission framework",
+      "title": "Prototype Shapes as armed physical infantry with squad AI and no vanilla teleport",
+      "gate": "G5",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "not_located_in_snapshot",
+      "verification_assessment": "specific_evidence_not_located",
+      "source_anchors": [],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/03_GAMEPLAY/SWARM_FACTIONS_SURVIVAL.md",
+          "sha256": "c90dcd268b7dcd1601ea150355f8771267d7661316f8e134181a55e86ff6753e"
+        }
+      ],
+      "remaining_acceptance": "Distinct armed physical Shapes infantry/squad implementation without vanilla teleport is not located.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S14-T03",
+      "stage": "S14",
+      "stage_title": "Factions, Shapes and mission framework",
+      "title": "Assign teleport ability to a distinct flying enemy archetype and validate counter-play",
+      "gate": "G5",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/entity/mob/OblivionSeekerEntity.java",
+          "sha256": "1a2ab913e7fcdadae715b634c1382b957e2b43112ee8d711e4ad8345d497a73c"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/ai/HostileEnvironment.java",
+          "sha256": "188e41d65401772e9ba96575b479db1c4d1f08d2c76f3318f2ddab994602088b"
+        }
+      ],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/03_GAMEPLAY/SWARM_FACTIONS_SURVIVAL.md",
+          "sha256": "c90dcd268b7dcd1601ea150355f8771267d7661316f8e134181a55e86ff6753e"
+        }
+      ],
+      "remaining_acceptance": "A flying Seeker exists, but a distinct teleport archetype with counter-play and reassigned infantry teleport is not verified.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S14-T04",
+      "stage": "S14",
+      "stage_title": "Factions, Shapes and mission framework",
+      "title": "Prototype heavy laser operator with shoulder rockets on BlockBody machinery",
+      "gate": "G5",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/contraption/mechanism/MountedWeaponEmitter.java",
+          "sha256": "473c5270e551feda670969251ad488beafc81cc125e3ff2b0258f976cc88c553"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/mega/SkyUfoTurret.java",
+          "sha256": "0cb15a2817c56a18d2f1f9c7a370a21466a1d6b33024a4fd3edea85ca79adec4"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/MountedMechanismGameTests.java",
+          "sha256": "1029c6f2d5fc0036fe5f301303ba9f388afc19104516c8dd5bc5feb82e8a1edb"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Mounted physical weapons exist; authored heavy infantry/operator with shoulder rockets on machinery is not a complete combat archetype.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S14-T05",
+      "stage": "S14",
+      "stage_title": "Factions, Shapes and mission framework",
+      "title": "Write Strife-style mission contracts for lab infiltration, UFO boarding and convoy defense",
+      "gate": "G5",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "design_only",
+      "verification_assessment": "specific_evidence_not_located",
+      "source_anchors": [
+        {
+          "path": "docs/v8/reference/04_WORLD/PLANET_RING_CITADEL_LABS.md",
+          "sha256": "074f2cbd13cab875736a58a57678d6b57169ffc60d04906891c61dec5ae72702"
+        }
+      ],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/03_GAMEPLAY/BLOCKBODY_UFO_AND_MOTHERSHIP.md",
+          "sha256": "6f549346c4447685d3c8e205d591998ec77a78aaddcbf8b7a30c5fd913de7903"
+        }
+      ],
+      "remaining_acceptance": "Mission concepts are specified; executable Strife-style infiltration/boarding/convoy contracts and branch acceptance are not located.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S15-T01",
+      "stage": "S15",
+      "stage_title": "Cleanup / asset and UI integration",
+      "title": "Identify six red-marked item registry IDs and their actual use graph",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "scripts/audit_resources.py",
+          "sha256": "542a5cf415c2097c109817fd97201122bffe9e0f991b9d14300ec1e2b87b042b"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/weapon/items/ModItems.java",
+          "sha256": "535ff80a238c618d8353b8537fb98f27fe3148ea3e959bee41f8686ab2b0ce8f"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/entity/ModWorldBlocks.java",
+          "sha256": "6e697ff155081a0c29ce095c85d502c3651989dcd5c9787dd409ff7f0a6e7375"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "scripts/test_audit_resources.py",
+          "sha256": "2776da390f86630e8f5ae6cc9c1e3908af0306eb61ab23a9e485f02b03c11340"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/04_BUGS/ISSUE_REGISTER.md",
+          "sha256": "69942953fc22cc8431c45bc42e2f0f30633eb519047a0d057e2faeda1e3d776f"
+        }
+      ],
+      "remaining_acceptance": "Static IDs/use candidates exist; six red-marked screenshot slots are not mapped with enough evidence for deletion.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S15-T02",
+      "stage": "S15",
+      "stage_title": "Cleanup / asset and UI integration",
+      "title": "Remove only approved dead items/models/textures with save-safe migration mapping",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "scripts/audit_resources.py",
+          "sha256": "542a5cf415c2097c109817fd97201122bffe9e0f991b9d14300ec1e2b87b042b"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/portal/mirror/LegacyPortalEntities.java",
+          "sha256": "c1049e2071d682423b007ad31ead357c8ea0056373e9a284296176cc0d5bd72d"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "scripts/test_audit_resources.py",
+          "sha256": "2776da390f86630e8f5ae6cc9c1e3908af0306eb61ab23a9e485f02b03c11340"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/source-audit/repository-map.md",
+          "sha256": "f3c9ec7ca5cc58bd1a8af4c1ae5113a73acf802af973888a6db2e2ed06b2025a"
+        }
+      ],
+      "remaining_acceptance": "Save-aware migrations exist for selected systems; no blanket approved dead-item/model/texture removal map is established.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S15-T03",
+      "stage": "S15",
+      "stage_title": "Cleanup / asset and UI integration",
+      "title": "Fix mirror slab and portal separate render passes with correct FBO behavior",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/portal/MirrorReflectionRenderer.java",
+          "sha256": "3b880d1160899eea20eb1fcfd8bf570030cb58ece66c8a04f0f521c6f9514962"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/portal/PortalSeeThroughRenderer.java",
+          "sha256": "09157fca2da81606cb0e1023331677ad1ac68e52f2543457a7e9d2a57f50fc1a"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/portal/OffscreenWorldView.java",
+          "sha256": "2b2d0358875ee1378d6c1f30da6b232a6311e69ee525d5fd49c7121899e8f2d8"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeMirrorCheck.java",
+          "sha256": "c2112333a0cd425ae5e026430564168444aa773a15e81ded555cd8d1c0928966"
+        },
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativePortalGunCheck.java",
+          "sha256": "db7619e662d4fbff606981cd2cf4f3e522cc5e754d94058d39afdc9699c8d161"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/PORTAL_RENDERING.md",
+          "sha256": "c9f73db123f8b0387b212916d0cf6bfee7eba61f78739727c788d71aa5b202d5"
+        }
+      ],
+      "remaining_acceptance": "Separate offscreen passes/frame fallback exist; current1/2/4 mirror and portal/PS1/Fabulous matrix remains open in render ownership.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S15-T04",
+      "stage": "S15",
+      "stage_title": "Cleanup / asset and UI integration",
+      "title": "Remove confirmed legacy sky junk without deleting approved asteroid concept",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "world_content",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/orbit/OrbitJunkWorldgen.java",
+          "sha256": "7b89d41941bb2bfbdaa5e458e901ed92d3f6b38fe056fb1458e2e164a47d464f"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/LegacyGeneration.java",
+          "sha256": "85cccb7a00cd36c0aa54d16cd04fcf31570e9f2c1688affb97435d5ff1d08749"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/gen2/ModWorldgen2.java",
+          "sha256": "5ccb5fb446159965db8ca529733c9aed2a1c086f664cfce770b546fd007dd736"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/AdvancedColumnGateTest.java",
+          "sha256": "ef72e9f7b832d3f8e866c9f694eec025f530585561bc1f5a8d4058b5daf1b613"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/04_BUGS/ISSUE_REGISTER.md",
+          "sha256": "69942953fc22cc8431c45bc42e2f0f30633eb519047a0d057e2faeda1e3d776f"
+        }
+      ],
+      "remaining_acceptance": "Activation guards do not classify every visible sky object; retain approved asteroid/ring concepts and remove only proven origins.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S15-T05",
+      "stage": "S15",
+      "stage_title": "Cleanup / asset and UI integration",
+      "title": "Audit GUI tooltips, HUD scaling, battle debug lines and PS1 readability",
+      "gate": "G3",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "ps1_render",
+      "implementation_assessment": "present",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/hud/DescentHud.java",
+          "sha256": "ba4b52ae17890947ff0c58f8c98f6f0bef113eeb2dd68f5b730b1a4e86f8c266"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/screen/DescentSettingsScreen.java",
+          "sha256": "da4d9df7d366bbd638059e724435409dc23c28a5aef9e55333689b928648d8f0"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/client/screen/DroneInventoryScreen.java",
+          "sha256": "95e1f41ef709700ec2e513391d7d21a2bca8b2566abcc1e6d85471051063d782"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/HybridWeaponModelsTest.java",
+          "sha256": "7d7b08b73bc152e7de0dd795bf4395f1d51762143149dd713241ad2f6d468269"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/06_VALIDATION/REGRESSION_MATRIX.md",
+          "sha256": "7d2a570083ec278928b7259c52f2d0bd6b352db3a6c33df31b60e402928a4345"
+        }
+      ],
+      "remaining_acceptance": "UI exists and Native core frames are inspected; tooltip/scale/PS1 readability matrix and debug-line audit remain incomplete.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S16-T01",
+      "stage": "S16",
+      "stage_title": "Full performance and regression testing",
+      "title": "Run source-level unit + GameTest + actual client rendercheck on same exact JAR",
+      "gate": "G6",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "metadata_or_process",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "scripts/checkpoint_report.py",
+          "sha256": "237919e86427a1bae9074505725fe440c729f42c12ae94253057470bb67885b9"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "scripts/test_checkpoint_report.py",
+          "sha256": "479f08416db112fd268a0ed8d572e62aaa7cb480d7ba032c48cfa886371d6890"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Exact4f/full8e Native game equivalence is independently checkable; full all-subsystem rendercheck/release gate is not satisfied by that scoped mechanism pass.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S16-T02",
+      "stage": "S16",
+      "stage_title": "Full performance and regression testing",
+      "title": "Benchmark mspt/fps/heap/loaded cubes/draw calls across 32→1024 drone tests",
+      "gate": "G6",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/diag/DiagServerTick.java",
+          "sha256": "fa8b4ed6f7cc9adca284e380417dec3ada2c4c1200e1544a530ddf198705ee78"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/diag/DiagReport.java",
+          "sha256": "ef1e9e9f168c61dac7ac4c68aedbda0e1681c7392273c56825d713b9310ff71c"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/DiagServerTickTest.java",
+          "sha256": "1e8325b539cf63212c56ef1685213376ef07dd425ebd75aa22dce61fcef36360"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/BENCHMARKS.csv",
+          "sha256": "84e725928eca3f283044746257317d8b9162459628d83e25aaef0d7ae35da3ca"
+        }
+      ],
+      "remaining_acceptance": "Existing CSV has short MSPT subsets and UNKNOWN FPS; required context/heap/cubes/draw calls and32-1024 matrix are incomplete.",
+      "task_acceptance_changed": false,
+      "platform_limit": "Current retained native evidence uses software Mesa/llvmpipe. Physical IntelHD4400 and a modern reference GPU are not attested by this snapshot."
+    },
+    {
+      "id": "S16-T03",
+      "stage": "S16",
+      "stage_title": "Full performance and regression testing",
+      "title": "Run high altitude full-mesh/camera/LOD pressure with roll and fast vehicle",
+      "gate": "G6",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "partial",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeSnapshotCheck.java",
+          "sha256": "282cd4d72386addd5e00be5f496edf5a9d5c833972bd621790018cc36a91ef43"
+        },
+        {
+          "path": "src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeFlightBodyCheck.java",
+          "sha256": "e417610fa0bd0502a1fd8e1f728e6951095dfb73d8390eb846d33c9406017612"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/test/java/com/terminaldetector/drmd/HorizonProjectionTest.java",
+          "sha256": "2cdf5924ca9b4c470fdb2dadcee08f9a3580b99e93b9a5e25148d4668510ecf6"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Recorded high-altitude motion exists; dedicated full-mesh/camera/LOD pressure under roll/fast vehicle remains open and visible wedges remain.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S16-T04",
+      "stage": "S16",
+      "stage_title": "Full performance and regression testing",
+      "title": "Run city/dungeon explosions, ragdoll/debris and save/reload for hours",
+      "gate": "G6",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "partial",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/structure/StructureShockwave.java",
+          "sha256": "d92511b5937280ea16e5123184ddb74dfbe20320d300e21d58931f8aaa347aa9"
+        },
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/CollapseGameTests.java",
+          "sha256": "971fa90269ae59bcc4495b91a988236992a4a8ac55527ea02da830e0b4b71bac"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "src/gametest/java/com/terminaldetector/drmd/RagdollGameTests.java",
+          "sha256": "86dfe6308205388ee17bd77db0f001bb59836561b26afca1f0d705baed4e5893"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/reference/06_VALIDATION/REGRESSION_MATRIX.md",
+          "sha256": "7d2a570083ec278928b7259c52f2d0bd6b352db3a6c33df31b60e402928a4345"
+        }
+      ],
+      "remaining_acceptance": "Short bounded fixtures are not hours-long city/dungeon explosion/ragdoll128/debris/cold-save endurance proof.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S16-T05",
+      "stage": "S16",
+      "stage_title": "Full performance and regression testing",
+      "title": "Record unsupported beta/driver/upstream failures and rollback paths",
+      "gate": "G6",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "metadata_or_process",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/world/access/CubicAvailability.java",
+          "sha256": "b1cbf86b54d8abe5696517c389f484db99b4583c80f037a8956b6b5d2749021e"
+        },
+        {
+          "path": "src/main/java/com/terminaldetector/drmd/diag/DiagStartup.java",
+          "sha256": "b884a06ba80f87be445f6a5d2b28fb38dbc2814285a2e639da689f3a16893a40"
+        }
+      ],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/CUBIC_RECURSION_BUDGET_2026-11-05.md",
+          "sha256": "1b8355c7a97dffb6b231c2fdaea4dac1e94f59df547484923c7da9a0efe25447"
+        }
+      ],
+      "remaining_acceptance": "Known beta/shutdown/software-renderer limits are retained; full platform-specific rollback and real hardware matrix remain incomplete.",
+      "task_acceptance_changed": false,
+      "platform_limit": "Current retained native evidence uses software Mesa/llvmpipe. Physical IntelHD4400 and a modern reference GPU are not attested by this snapshot."
+    },
+    {
+      "id": "S17-T01",
+      "stage": "S17",
+      "stage_title": "Integration, handoff and release candidate",
+      "title": "Merge isolated worktrees via reviewed integration branch without losing active UFO work",
+      "gate": "G6",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "metadata_or_process",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "AGENTS.md",
+          "sha256": "a2419192657faa9891329d470ae81544cd530600384e4d830e0e6af697abae50"
+        },
+        {
+          "path": "docs/v8/STATE.md",
+          "sha256": "71358ebaa266c67d2f3f306648255c3615230c3301ee5478ba2bfccea4b38257"
+        }
+      ],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Isolated branches preserve work; latest parallel candidates are not all reviewed/integrated/accepted in pinned4b source.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S17-T02",
+      "stage": "S17",
+      "stage_title": "Integration, handoff and release candidate",
+      "title": "Update STATE/TASKS/DECISIONS/REGRESSIONS and exact evidence index on final SHA",
+      "gate": "G6",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "metadata_or_process",
+      "verification_assessment": "current_scoped_regression",
+      "source_anchors": [
+        {
+          "path": "docs/v8/TASKS.yaml",
+          "sha256": "f46c792602030667ad7065cbf31490549895ae02c14bc5cf148ee7662afab885"
+        },
+        {
+          "path": "docs/v8/STATE.md",
+          "sha256": "71358ebaa266c67d2f3f306648255c3615230c3301ee5478ba2bfccea4b38257"
+        }
+      ],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Latest core ledger and source/JAR evidence are coherent; final all-stream SHA/ledger reconciliation is still coordinator work.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S17-T03",
+      "stage": "S17",
+      "stage_title": "Integration, handoff and release candidate",
+      "title": "Package release candidate JAR/modlist/test save only when passes relevant gates",
+      "gate": "G6",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "metadata_or_process",
+      "verification_assessment": "validation_missing",
+      "source_anchors": [
+        {
+          "path": "scripts/checkpoint_report.py",
+          "sha256": "237919e86427a1bae9074505725fe440c729f42c12ae94253057470bb67885b9"
+        }
+      ],
+      "test_anchors": [
+        {
+          "path": "scripts/test_checkpoint_report.py",
+          "sha256": "479f08416db112fd268a0ed8d572e62aaa7cb480d7ba032c48cfa886371d6890"
+        }
+      ],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "No accepted1.1.35 release; same-candidate all-gate modlist/test-save package remains blocked by open gameplay/visual/performance work.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S17-T04",
+      "stage": "S17",
+      "stage_title": "Integration, handoff and release candidate",
+      "title": "Write honest user-facing PASS/FAIL/BLOCKED status for every P0/P1 and test",
+      "gate": "G6",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "metadata_or_process",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "docs/v8/REGRESSIONS.md",
+          "sha256": "f84897b50adbb7a91f32ecdbcdde75180d8222a3fc18a477d9872335af05eb46"
+        },
+        {
+          "path": "docs/v8/STATE.md",
+          "sha256": "71358ebaa266c67d2f3f306648255c3615230c3301ee5478ba2bfccea4b38257"
+        }
+      ],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Reports state scoped passes/failures honestly; this99-row audit adds coverage but final P0/P1 acceptance report is not automatically complete.",
+      "task_acceptance_changed": false
+    },
+    {
+      "id": "S17-T05",
+      "stage": "S17",
+      "stage_title": "Integration, handoff and release candidate",
+      "title": "Deliver reproducible run steps, full diffs and follow-on worldbuilding backlog",
+      "gate": "G6",
+      "ledger_status": "pending_reverification",
+      "execution_owner": "audit_integration",
+      "implementation_assessment": "metadata_or_process",
+      "verification_assessment": "partial_recorded_evidence",
+      "source_anchors": [
+        {
+          "path": "docs/v8/STATE.md",
+          "sha256": "71358ebaa266c67d2f3f306648255c3615230c3301ee5478ba2bfccea4b38257"
+        },
+        {
+          "path": "scripts/checkpoint_report.py",
+          "sha256": "237919e86427a1bae9074505725fe440c729f42c12ae94253057470bb67885b9"
+        }
+      ],
+      "test_anchors": [],
+      "report_anchors": [
+        {
+          "path": "docs/v8/PLAYER_BUILT_WEAPONS.md",
+          "sha256": "4885ddecdc1279979cdbc59444f3cac4cc5165fb5852eb452b2b6279fe093c6c"
+        }
+      ],
+      "remaining_acceptance": "Core archive includes patches/replay helpers; full integrated reproducible candidate/backlog remains to be finalized after all required gates.",
+      "task_acceptance_changed": false
+    }
+  ],
+  "summary": {
+    "tasks": 99,
+    "ledger_status": {
+      "in_progress": 9,
+      "pending_reverification": 87,
+      "completed": 3
+    },
+    "implementation": {
+      "metadata_or_process": 13,
+      "partial": 46,
+      "present": 30,
+      "not_located_in_snapshot": 8,
+      "design_only": 2
+    },
+    "verification": {
+      "partial_recorded_evidence": 33,
+      "current_scoped_regression": 22,
+      "validation_missing": 29,
+      "known_unresolved_regression": 2,
+      "specific_evidence_not_located": 10,
+      "recorded_atomic_acceptance": 3
+    }
+  },
+  "atomic_index_path": "docs/v8/EVIDENCE/index.json",
+  "atomic_index_sha256": "75f6e5568cd753910be3968ef176f2263abf6571ec933db3a61e71210678e225"
+}
