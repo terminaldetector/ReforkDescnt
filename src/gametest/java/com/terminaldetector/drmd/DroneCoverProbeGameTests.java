@@ -72,7 +72,9 @@ public final class DroneCoverProbeGameTests implements FabricGameTest {
         ServerWorld w=c.getWorld();var base=c.getAbsolutePos(new BlockPos(38000,150,1000));var lease=new AiFixtureChunks(w,base,2);
         var at=Vec3d.ofCenter(base);var drone=FlightEnemyKind.ORB.create(w);var target=EntityType.COW.create(w);
         drone.setPosition(at);drone.setHealth(20);drone.setPersistent();drone.setInvulnerable(true);drone.setAiDisabled(true);
-        target.setPosition(at.add(-10,0,0));target.setNoGravity(true);target.setAiDisabled(true);target.setInvulnerable(true);
+        // CombatGoal uses the target's middle, not its feet. Keep the original away line
+        // exactly horizontal so any measured descent must come from selecting lower cover.
+        target.setPosition(at.add(-10,-target.getHeight()*.5,0));target.setNoGravity(true);target.setAiDisabled(true);target.setInvulnerable(true);
         var cover=BlockPos.ofFloored(at.add(new Vec3d(1,-.5,0).normalize().multiply(8)));var before=w.getBlockState(cover);w.setBlockState(cover,Blocks.BEDROCK.getDefaultState(),3);
         int[] admission={0},ticks={0};double[] lowest={at.y};boolean[] spawned={false},started={false},done={false},fired={false};
         Runnable cleanup=()->{for(var shot:w.getEntitiesByClass(ProjectileEntity.class,new Box(at,at).expand(32),p->p.getOwnerLiving()==drone))shot.discard();drone.discard();target.discard();w.setBlockState(cover,before,3);lease.close();DroneSwarmAi.clear();};
@@ -83,7 +85,7 @@ public final class DroneCoverProbeGameTests implements FabricGameTest {
                 if(!lease.entityTicking(drone.getBlockPos(),target.getBlockPos()))return;
                 c.assertTrue(w.spawnEntity(drone)&&w.spawnEntity(target),"real default ORB and threat are registered");drone.setTarget(target);spawned[0]=true;return;
             }
-            if(!started[0]){if(drone.age<5||target.age<5)return;DroneSwarmAi.clear();drone.setAiDisabled(false);started[0]=true;}
+            if(!started[0]){if(drone.age<5||target.age<5)return;c.assertTrue(Math.abs(target.getY()+target.getHeight()*.5-drone.getY())<1e-6,"the actual threat centre, not its feet, lies on the initial horizontal retreat line");DroneSwarmAi.clear();drone.setAiDisabled(false);started[0]=true;}
             ticks[0]++;lowest[0]=Math.min(lowest[0],drone.getY());
             fired[0]|=!w.getEntitiesByClass(ProjectileEntity.class,new Box(at,at).expand(32),p->p.getOwnerLiving()==drone).isEmpty();
             if(ticks[0]<20)return;
