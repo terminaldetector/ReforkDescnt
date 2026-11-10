@@ -13,6 +13,7 @@ import com.terminaldetector.drmd.weapon.items.ModItems;
 import com.terminaldetector.drmd.world.access.*;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
@@ -44,11 +45,35 @@ public final class NativePresentationCheck {
     private static int samplePhase=-1;
     private static double worldGrid=-1;
     private static NativeImage beforeOverlays;
+    private static long frameEpoch,mirrorEpoch=-1;
+    private static int mirrorPhase=-1;
+    private static List<double[][]> mirrorPolygons=List.of();
     private static long geometryHash;
     private NativePresentationCheck(){}
     private static void require(boolean value,String why){if(!value){done=true;MinecraftClient.getInstance().scheduleStop();throw new IllegalStateException("PRESENTATION_NATIVE "+why);}}
     public static void register(){
         ClientTickEvents.END_CLIENT_TICK.register(NativePresentationCheck::tick);
+        WorldRenderEvents.START.register(context->{
+            if(!ready||done||com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())return;
+            mirrorEpoch=frameEpoch;mirrorPhase=phase;mirrorPolygons=List.of();
+            var c=MinecraftClient.getInstance();var faces=new ArrayList<com.terminaldetector.drmd.client.portal.MirrorScanner.MirrorFace>();
+            for(int x=-2;x<=-1;x++)for(int y=0;y<=3;y++){
+                var pos=BASE.add(x,y,6);var state=c.world.getBlockState(pos);if(!state.isOf(ModWorldBlocks.MIRROR))return;
+                var facing=state.get(net.minecraft.state.property.Properties.FACING);var normal=Vec3d.of(facing.getVector());
+                faces.add(new com.terminaldetector.drmd.client.portal.MirrorScanner.MirrorFace(pos,facing,Vec3d.ofCenter(pos).add(normal.multiply(.5)),normal,state.getBlock()));
+            }
+            // Snapshot the real primary pass before the shared context can be reused by a mirror.
+            var matrix=new org.joml.Matrix4f(context.projectionMatrix()).mul(context.positionMatrix());var camera=context.camera().getPos();
+            var polygons=new ArrayList<double[][]>();int width=c.getWindow().getFramebufferWidth(),height=c.getWindow().getFramebufferHeight();
+            for(var aperture:new com.terminaldetector.drmd.client.portal.MirrorSurface(faces).apertures()){
+                var polygon=new double[4][2];boolean front=true;
+                for(int i=0;i<4;i++){
+                    var p=aperture[i];var clip=new org.joml.Vector4f((float)(p.x()-camera.x),(float)(p.y()-camera.y),(float)(p.z()-camera.z),1).mul(matrix);
+                    if(clip.w<=1e-6){front=false;break;}
+                    polygon[i][0]=(clip.x/clip.w*.5+.5)*width;polygon[i][1]=(.5-clip.y/clip.w*.5)*height;
+                }if(front)polygons.add(polygon);
+            }mirrorPolygons=List.copyOf(polygons);
+        });
         ServerTickEvents.END_SERVER_TICK.register(server->{if(ready&&!done){require(hash()==geometryHash,"profile toggle preserves the actual blockstore");require(DescentPlayerData.get(player).isEnabled(),"presentation preserves authoritative 6DoF mode");}});
         HudRenderCallback.EVENT.register((draw,counter)->{
             if(!ready||done)return;
@@ -93,7 +118,7 @@ public final class NativePresentationCheck {
         if(ready)require(DescentConfig.hybridRender==originalHybrid,"PS1 profiles preserve the independent hybrid/mesher choice");
     }
     public static void beforeFrame(){
-        if(!ENABLED)return;witness=false;samplePhase=-1;worldGrid=-1;
+        if(!ENABLED)return;witness=false;samplePhase=-1;worldGrid=-1;frameEpoch++;
         if(beforeOverlays!=null){beforeOverlays.close();beforeOverlays=null;}
     }
     public static void beforeOverlay(){
@@ -125,10 +150,23 @@ public final class NativePresentationCheck {
         if(beforeOverlays!=null)beforeOverlays.writeTo(dir.resolve("world-before-overlays-"+SCENES[phase]+".png"));
         var data=new LinkedHashMap<String,Object>();data.put("scene",SCENES[phase]);data.put("phase",phase);data.put("samplePhase",samplePhase);data.put("factor",factor);
         data.put("finalGrid",finalGrid);data.put("worldGrid",worldGrid);data.put("finalMismatches",mismatchedGroups(finalImage,factor));
+        data.put("frameEpoch",frameEpoch);data.put("mirrorEpoch",mirrorEpoch);data.put("mirrorPhase",mirrorPhase);data.put("mirrorPolygons",mirrorPolygons);
+        data.put("legacyGoldPixels",gold(finalImage));data.put("projectedApertureGoldPixels",projectedGold(finalImage));
         if(beforeOverlays!=null)data.put("worldMismatches",mismatchedGroups(beforeOverlays,factor));
         Files.writeString(dir.resolve("grid-"+SCENES[phase]+".json"),new com.google.gson.Gson().toJson(data));
     }
     private static int gold(NativeImage image){int pixels=0;for(int y=image.getHeight()/5;y<image.getHeight()*2/3;y++)for(int x=image.getWidth()/4;x<image.getWidth()*7/16;x++){int c=image.getColor(x,y);if((c&255)>170&&((c>>>8)&255)>145&&((c>>>16)&255)<110)pixels++;}return pixels;}
+    private static int projectedGold(NativeImage image){
+        if(mirrorEpoch!=frameEpoch||mirrorPhase!=phase)return 0;int pixels=0;
+        for(var polygon:mirrorPolygons){
+            double area=0,minX=Double.POSITIVE_INFINITY,minY=minX,maxX=Double.NEGATIVE_INFINITY,maxY=maxX;
+            for(int i=0;i<4;i++){var a=polygon[i];var b=polygon[(i+1)%4];area+=a[0]*b[1]-b[0]*a[1];minX=Math.min(minX,a[0]);minY=Math.min(minY,a[1]);maxX=Math.max(maxX,a[0]);maxY=Math.max(maxY,a[1]);}
+            for(int y=Math.max(0,(int)Math.ceil(minY));y<Math.min(image.getHeight(),(int)Math.floor(maxY));y++)for(int x=Math.max(0,(int)Math.ceil(minX));x<Math.min(image.getWidth(),(int)Math.floor(maxX));x++){
+                boolean inside=true;for(int i=0;i<4;i++){var a=polygon[i];var b=polygon[(i+1)%4];double dx=b[0]-a[0],dy=b[1]-a[1];if(Math.signum(area)*(dx*(y+.5-a[1])-dy*(x+.5-a[0]))<3*Math.hypot(dx,dy)){inside=false;break;}}
+                if(inside){int c=image.getColor(x,y);if((c&255)>170&&((c>>>8)&255)>145&&((c>>>16)&255)<110)pixels++;}
+            }
+        }return pixels;
+    }
     private static Object[] auxiliary(WorldViewTargetsAccess a){return new Object[]{a.drmd$transparency(),a.drmd$outlines(),a.drmd$translucent(),a.drmd$entities(),a.drmd$particles(),a.drmd$weather(),a.drmd$clouds(),a.drmd$outlineTarget()};}
     private static void checkExceptionRestore(MinecraftClient c){
         var original=c.getFramebuffer();var access=(WorldViewTargetsAccess)c.worldRenderer;var saved=auxiliary(access);
