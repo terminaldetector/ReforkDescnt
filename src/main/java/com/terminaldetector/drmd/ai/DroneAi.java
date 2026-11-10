@@ -224,27 +224,24 @@ public final class DroneAi {
 		}
 
 		/**
-		 * Among a few directions biased away from the threat, the one whose ray hits solid ground
-		 * soonest — the nearest thing to duck behind, rather than open sky in roughly the right
-		 * direction. Falls back to running straight away when nothing is close enough to reach for.
+		 * Five bounded rays biased away from the threat choose the nearest actual cover.
+		 * The perpendicular basis includes both sides of a vertical retreat, as well as upper
+		 * and lower cover in horizontal flight. Unknown space never substitutes for material.
 		 */
 		private Vec3d nearestCoverDirection(Vec3d pos, Vec3d away) {
 			Vec3d upHint = Math.abs(away.y) < 0.9 ? new Vec3d(0, 1, 0) : new Vec3d(1, 0, 0);
 			Vec3d side = away.crossProduct(upHint);
 			side = side.lengthSquared() > 1e-6 ? side.normalize() : new Vec3d(1, 0, 0);
+			Vec3d rise=side.crossProduct(away).normalize();
 
 			Vec3d best = away;
 			double bestDist = Double.MAX_VALUE;
 			double range = DescentMod.su(2000);
 			for (Vec3d dir : new Vec3d[]{
 					away, away.add(side.multiply(0.6)).normalize(),
-					away.subtract(side.multiply(0.6)).normalize(), away.add(0, 0.5, 0).normalize()}) {
-				var hit = drone.getWorld().raycast(new net.minecraft.world.RaycastContext(
-						pos, pos.add(dir.multiply(range)),
-						net.minecraft.world.RaycastContext.ShapeType.COLLIDER,
-						net.minecraft.world.RaycastContext.FluidHandling.NONE, drone));
-				if (hit.getType() != net.minecraft.util.hit.HitResult.Type.BLOCK) continue;
-				double d = pos.distanceTo(hit.getPos());
+					away.subtract(side.multiply(0.6)).normalize(), away.add(rise.multiply(.5)).normalize(),
+					away.subtract(rise.multiply(.5)).normalize()}) {
+				double d=FlightRouteSpace.coverDistance(drone,pos,dir,range);
 				if (d < bestDist) {
 					bestDist = d;
 					best = dir;
