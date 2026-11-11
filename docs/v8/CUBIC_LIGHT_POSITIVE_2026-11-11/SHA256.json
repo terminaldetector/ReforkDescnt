@@ -1,0 +1,19 @@
+{
+  "REPORT.md": "05c0012be40fb27ff841808d9bc901ddcfdf2165f9f77f0e65680adfed28d2d0",
+  "build.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+  "build.log": "a7c15a24c9e00742a3c5e6b5cf1247badbb2c2686cec5bcf947b480a7f17b925",
+  "frames/air-restored.png": "8913608756c2f851fc1f1c5b0c1b9c6359098b6025135413b4d08c0cf56cdd29",
+  "frames/glass-restored.png": "6d2da10c3bfb81287900eb5afac4bc147f498a3d839db9893526aae7893710ab",
+  "frames/opaque-replacement-control.png": "aba28df9861b2c9d0aa84c65d05c76d6179361d70931fd8056343df1ad558dbe",
+  "frames/opaque-roof.png": "aba28df9861b2c9d0aa84c65d05c76d6179361d70931fd8056343df1ad558dbe",
+  "frames/open-sky.png": "2901defaee47d2bfb88bdc0f4fa65555bce09d1678f21580ab68e93a570cdbe5",
+  "frames/tinted-glass-control.png": "1cbedc22f5a2c3bd47973704496775e496e495af666df2baad8d866e9d4d485f",
+  "native-wrapper.log": "78ce1dbcdfeee5be8f5d0003e53699d32e064a17a145fd107ff2855223e9ac32",
+  "native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+  "native.log": "1fa5f28bcf11b3e382db2e009ad3e506a07a9b0d55a7d2dd0d688dca0c65622c",
+  "prepare.log": "7a6a1f01b00325d08fc74bfde84ba6ebbf45596cbe9672be46994dd25cf41532",
+  "runtime-inputs.json": "b89d7c8e24f8c8a988b64f7a28b8de42c719c342d9f6e3c334d1d9c4e6ee5fa3",
+  "source.txt": "8a4b5383b3d0b569e1bcedc93a5df87fddad69f4ca1978a3f75046fdef9db14f",
+  "transparent-skylight-ok.json": "78573adde51170f07e74944041b8c3507edeb4b8719a28951a25727842fb7f7c",
+  "verified-build.json": "858387336335f6c94aec877c9d2ebb6a30e3cfff9f92c5ebf08dbbc7fa077d41"
+}
