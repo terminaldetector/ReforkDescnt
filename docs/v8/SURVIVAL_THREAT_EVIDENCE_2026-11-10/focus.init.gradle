@@ -1,0 +1,12 @@
+gradle.projectsEvaluated {
+ rootProject.tasks.named('processGametestResources') {
+  outputs.upToDateWhen { false }
+  doLast {
+   def manifest = new File(destinationDir, 'fabric.mod.json')
+   def data = new groovy.json.JsonSlurper().parse(manifest)
+   data.entrypoints['fabric-gametest'] = ['com.terminaldetector.drmd.world.threat.SurvivalThreatGameTests']
+   manifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(data))
+   println 'FOCUSED THREAT ONLY: 5 real Survival threat cases; this is not the full regression suite'
+  }
+ }
+}
