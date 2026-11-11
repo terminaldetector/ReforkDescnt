@@ -128,7 +128,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 		if (field == null || field.strength() < .05f || field.downDir().lengthSquared() < 1.0e-10)
 			return new Vec3(0, -9.81, 0);
 		Vec3d down = field.downDir().normalize();
-		return new Vec3(down.x, down.y, down.z).scaled(9.81);
+		return new Vec3(down.x, down.y, down.z).scaled(9.81 * field.strength());
 	}
 
 	private void resolveTerrain(RagdollSimulation.Part part, Vec3 fallbackPosition) {
