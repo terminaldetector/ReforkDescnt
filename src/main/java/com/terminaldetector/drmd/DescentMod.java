@@ -94,6 +94,7 @@ public class DescentMod implements ModInitializer {
         com.terminaldetector.drmd.world.contraption.mechanism.BodyMountedWeapons.register();
 		com.terminaldetector.drmd.world.geometry.HybridTerrainCommands.register();
 		AiCommands.register();
+        com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.register();
 
 		// Player state is keyed by UUID in a process-wide map, so it outlives the world unless it is
 		// cleared. Leaving it behind meant a new world inherited the previous one's data — and since

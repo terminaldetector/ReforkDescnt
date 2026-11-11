@@ -1,0 +1,12 @@
+Source: 24462277964ab81bd8d343267f5433234567fb38
+JAVA_HOME=/workspace/jdk21-complete
+GRADLE_USER_HOME=/workspace/.gradle
+
+./gradlew --offline --no-daemon --max-workers=1 -Dorg.gradle.jvmargs=-Xmx768m compileJava compileGametestJava test --tests com.terminaldetector.drmd.world.threat.ThreatProgressTest
+Observed BUILD SUCCESSFUL in 30s; unit XML 9 tests, 0 failures/errors.
+
+./gradlew --offline --no-daemon --max-workers=1 -Dorg.gradle.jvmargs=-Xmx768m --init-script work/threat-gate/focus.init.gradle runGametest
+Recorded process exit 0; BUILD SUCCESSFUL in 41s; GameTest XML 5 cases, no failure/error elements.
+The init script focuses only built test resources; tracked input files stayed unchanged.
+
+No installable JAR, native/client or complete regression suite was built/run by this lease.

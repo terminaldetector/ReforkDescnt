@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.terminaldetector.drmd.world.threat.ThreatProgressTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-10T19:22:17" hostname="d100841c24b1" time="0.053">
+  <properties/>
+  <testcase name="reloadingSearchKeepsTheLifetimePatrolAllowanceEvenAfterActorsDisappear()" classname="com.terminaldetector.drmd.world.threat.ThreatProgressTest" time="0.024"/>
+  <testcase name="earlyNaturalDetectionDoesNotCancelTheSecondInitialPatrolSlot()" classname="com.terminaldetector.drmd.world.threat.ThreatProgressTest" time="0.001"/>
+  <testcase name="defeatedPatrolStartsOnePersistedCooldownAndCannotBeReplaced()" classname="com.terminaldetector.drmd.world.threat.ThreatProgressTest" time="0.001"/>
+  <testcase name="lateAlarmProcessingStillGivesTheEntireWarning()" classname="com.terminaldetector.drmd.world.threat.ThreatProgressTest" time="0.014"/>
+  <testcase name="offlineWorldClockCannotSpendNoviceProtectionOrSkipTheWarning()" classname="com.terminaldetector.drmd.world.threat.ThreatProgressTest" time="0.001"/>
+  <testcase name="lostSightSearchesTheLastActualObservationWithoutFollowingHiddenMovement()" classname="com.terminaldetector.drmd.world.threat.ThreatProgressTest" time="0.001"/>
+  <testcase name="snapshotsRejectNonfiniteLocationsAndImpossibleAllowances()" classname="com.terminaldetector.drmd.world.threat.ThreatProgressTest" time="0.001"/>
+  <testcase name="leavingTheAlarmAreaRetiresAnActiveEncounterAndExpiredQuietAlarmsDoNothing()" classname="com.terminaldetector.drmd.world.threat.ThreatProgressTest" time="0.001"/>
+  <testcase name="hideAndReacquireNeverExtendTheFiniteEncounter()" classname="com.terminaldetector.drmd.world.threat.ThreatProgressTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

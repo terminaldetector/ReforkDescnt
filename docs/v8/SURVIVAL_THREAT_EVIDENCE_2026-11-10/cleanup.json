@@ -1,0 +1,10 @@
+{
+  "source_sha": "24462277964ab81bd8d343267f5433234567fb38",
+  "own_java_processes": [],
+  "deleted_only": "build/gametest/world",
+  "archive": "closed-threat-world-2446227.zip",
+  "archive_sha256": "931d8ffd2dbcf1fc589f9b493cb3224d0094d93742ed98dea35f619d05cd223e",
+  "files": 77,
+  "crc_and_all_file_hashes_verified_before_delete": true,
+  "user_saves_or_dependency_caches_deleted": false
+}

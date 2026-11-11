@@ -1,0 +1,17 @@
+{
+  "tested_source_sha": "24462277964ab81bd8d343267f5433234567fb38",
+  "clean_at_input_capture": true,
+  "verified_unchanged_build_inputs": 1445,
+  "verified_compiled_runtime_outputs": 1708,
+  "unit_tests": 9,
+  "unit_failures": 0,
+  "unit_errors": 0,
+  "focused_gametests": 5,
+  "gametest_failures": 0,
+  "gametest_errors": 0,
+  "gametest_process_exit": 0,
+  "world_archive_files": 77,
+  "archive_crc_and_all_file_sha256_pass": true,
+  "raw_closed_fixture_world_removed_after_verification": true,
+  "full_regression_native_client_or_installable_jar_claimed": false
+}
