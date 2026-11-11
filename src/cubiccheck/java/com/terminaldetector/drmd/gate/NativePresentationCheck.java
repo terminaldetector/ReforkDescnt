@@ -163,7 +163,8 @@ public final class NativePresentationCheck {
             samples++;boolean found=false;
             for(int dy=-2;dy<=2;dy++)for(int dx=-2;dx<=2;dx++){
                 int c=image.getColor(x+dx,y+dy),r=c&255,g=(c>>>8)&255,b=(c>>>16)&255;
-                found|=Math.max(r,Math.max(g,b))>=80&&r+g+b>=192;
+                // Include the dark-blue authored material; dark background still fails.
+                found|=Math.max(r,Math.max(g,b))>=60&&r+g+b>=100;
             }
             if(found){hits++;bins[Math.min(2,x*3/image.getWidth())]++;}else misses.add(Map.of("x",x,"y",y));
         }
@@ -176,7 +177,7 @@ public final class NativePresentationCheck {
         if(!useful){
             var folder=c.runDirectory.toPath().resolve("presentation-failure");Files.createDirectories(folder);
             finalImage.writeTo(folder.resolve("final-debug-wireframe.png"));beforeOverlays.writeTo(folder.resolve("world-before-overlays-debug-wireframe.png"));
-            var evidence=new LinkedHashMap<String,Object>(measured);evidence.put("frameEpoch",frameEpoch);evidence.put("sampleEpoch",sampleEpoch);evidence.put("projectionEpoch",debugProjectionEpoch);evidence.put("projectedEdges",debugWallEdges);evidence.put("mirrorPolygons",mirrorPolygons);evidence.put("threshold",Map.of("minSamples",100,"minHitRatio",.70,"minHitsEachHorizontalThird",20));
+            var evidence=new LinkedHashMap<String,Object>(measured);evidence.put("frameEpoch",frameEpoch);evidence.put("sampleEpoch",sampleEpoch);evidence.put("projectionEpoch",debugProjectionEpoch);evidence.put("projectedEdges",debugWallEdges);evidence.put("mirrorPolygons",mirrorPolygons);evidence.put("threshold",Map.of("minSamples",100,"minHitRatio",.70,"minHitsEachHorizontalThird",20,"minMaxRgb",60,"minRgbSum",100,"pixelRadius",2));
             Files.writeString(folder.resolve("debug-world-edges.json"),new com.google.gson.Gson().toJson(evidence));
         }
         require(useful,"Debug must show distributed authored 3D wall edges, not only a fullscreen-quad diagonal: "+measured);
