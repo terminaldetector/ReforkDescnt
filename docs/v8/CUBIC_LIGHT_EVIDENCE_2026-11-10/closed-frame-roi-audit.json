@@ -1,0 +1,74 @@
+[
+  {
+    "frame": "failed-air-restored.png",
+    "width": 1280,
+    "height": 720,
+    "roiPixels": 5000,
+    "roiMean": 165.126,
+    "center": [
+      172,
+      172,
+      172
+    ]
+  },
+  {
+    "frame": "glass-restored.png",
+    "width": 1280,
+    "height": 720,
+    "roiPixels": 5000,
+    "roiMean": 141.15213333333332,
+    "center": [
+      147,
+      147,
+      147
+    ]
+  },
+  {
+    "frame": "opaque-replacement-control.png",
+    "width": 1280,
+    "height": 720,
+    "roiPixels": 5000,
+    "roiMean": 116.48013333333333,
+    "center": [
+      121,
+      121,
+      121
+    ]
+  },
+  {
+    "frame": "opaque-roof.png",
+    "width": 1280,
+    "height": 720,
+    "roiPixels": 5000,
+    "roiMean": 116.48013333333333,
+    "center": [
+      121,
+      121,
+      121
+    ]
+  },
+  {
+    "frame": "open-sky.png",
+    "width": 1280,
+    "height": 720,
+    "roiPixels": 5000,
+    "roiMean": 140.0048,
+    "center": [
+      153,
+      154,
+      145
+    ]
+  },
+  {
+    "frame": "tinted-glass-control.png",
+    "width": 1280,
+    "height": 720,
+    "roiPixels": 5000,
+    "roiMean": 116.48013333333333,
+    "center": [
+      121,
+      121,
+      121
+    ]
+  }
+]

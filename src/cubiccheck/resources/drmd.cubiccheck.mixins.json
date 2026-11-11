@@ -5,6 +5,9 @@
   "client": [
     "CubicFrameProbe",
     "PresentationOverlayProbe",
+    "TransparentSkylightBootstrapProbe",
+    "TransparentSkylightFrameProbe",
+    "TransparentSkylightProjectionAccess",
     "CubicTerrainProbe",
     "NativeMirrorCameraProbe",
     "ActorModelProbe",

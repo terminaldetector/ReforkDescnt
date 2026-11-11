@@ -1,0 +1,48 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.12/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.10.5
+
+> Task :compileJava
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :processResources
+> Task :classes
+> Task :compileBoardingcheckJava
+
+> Task :compileCubiccheckJava
+/workspace/ungravity-v5/cubic-next-20261109/src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeTransparentSkylightCheck.java:52: error: reference to WorldAccess is ambiguous
+        var access=WorldAccess.of(world);
+                   ^
+  both interface net.minecraft.world.WorldAccess in net.minecraft.world and class com.terminaldetector.drmd.world.access.WorldAccess in com.terminaldetector.drmd.world.access match
+1 error
+
+> Task :compileCubiccheckJava FAILED
+
+[Incubating] Problems report is available at: file:///workspace/ungravity-v5/cubic-next-20261109/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileCubiccheckJava'.
+> Compilation failed; see the compiler output below.
+  /workspace/ungravity-v5/cubic-next-20261109/src/cubiccheck/java/com/terminaldetector/drmd/gate/NativeTransparentSkylightCheck.java:52: error: reference to WorldAccess is ambiguous
+          var access=WorldAccess.of(world);
+                     ^
+    both interface net.minecraft.world.WorldAccess in net.minecraft.world and class com.terminaldetector.drmd.world.access.WorldAccess in com.terminaldetector.drmd.world.access match
+  1 error
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.12/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 25s
+4 actionable tasks: 4 executed
