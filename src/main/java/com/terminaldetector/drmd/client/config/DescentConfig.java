@@ -18,6 +18,9 @@ import java.util.Properties;
 public final class DescentConfig {
     /** Compose optional far terrain and level-sky passes; essential near geometry stays present. */
     public static volatile boolean hybridRender=true;
+    /** Optional client presentation; existing/new clients retain full-resolution Native. */
+    public static com.terminaldetector.drmd.client.presentation.PresentationProfile presentationProfile = com.terminaldetector.drmd.client.presentation.PresentationProfile.HYBRID_NATIVE;
+    public static int ps1SceneHeight = com.terminaldetector.drmd.client.presentation.PresentationOptions.DEFAULT_HEIGHT;
 	/** Draw the 3D cockpit frame in first person. */
 	public static boolean cockpit = true;
 	/** Cockpit opacity, 0.2..1.0. */
@@ -120,6 +123,9 @@ public final class DescentConfig {
 			return;
 		}
 		hybridRender=com.terminaldetector.drmd.config.ProfileDefaults.hybrid(props);
+        var presentation = com.terminaldetector.drmd.client.presentation.PresentationOptions.read(props);
+        presentationProfile = presentation.profile();
+        ps1SceneHeight = presentation.sceneHeight();
 		cockpit = bool(props, "cockpit", cockpit);
 		cockpitOpacity = clamp(num(props, "cockpitOpacity", cockpitOpacity), 0.2f, 1f);
 		cockpitInstruments = bool(props, "cockpitInstruments", cockpitInstruments);
@@ -140,6 +146,7 @@ public final class DescentConfig {
 	public static void save() {
 		Properties props = new Properties();
 		props.setProperty("hybridRender",Boolean.toString(hybridRender));
+        new com.terminaldetector.drmd.client.presentation.PresentationOptions(presentationProfile, ps1SceneHeight).write(props);
 		props.setProperty("cockpit", Boolean.toString(cockpit));
 		props.setProperty("cockpitOpacity", Float.toString(cockpitOpacity));
 		props.setProperty("cockpitInstruments", Boolean.toString(cockpitInstruments));

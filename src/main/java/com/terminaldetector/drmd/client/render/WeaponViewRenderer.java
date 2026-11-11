@@ -34,7 +34,9 @@ public final class WeaponViewRenderer {
     }
 
 	public static void register() {
-		WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(WeaponViewRenderer::render);
+    }
+    private static void render(net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext context) {
             if(com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())return;
 			MinecraftClient mc = MinecraftClient.getInstance();
             if(!replacesVanillaHand(mc))return;
@@ -48,6 +50,7 @@ public final class WeaponViewRenderer {
 			MatrixStack matrices = context.matrixStack();
 			VertexConsumerProvider consumers = context.consumers();
 			if (matrices == null || consumers == null) return;
+            if(com.terminaldetector.drmd.client.presentation.ScenePresentation.deferOverlay(context,WeaponViewRenderer::render))return;
 
 			matrices.push();
 			// Camera-relative: origin at eye, looking down -Z in view space via camera transform already applied.
@@ -125,7 +128,6 @@ public final class WeaponViewRenderer {
 				matrices.pop();
 			}
 			matrices.pop();
-		});
 	}
 
 	/** Gravy manipulator — fork/claw silhouette (MC is simple enough for procedural barrels). */

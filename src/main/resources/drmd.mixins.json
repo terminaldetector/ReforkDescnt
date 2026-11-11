@@ -39,6 +39,7 @@
     "client.CreateWorldScreenMixin",
     "client.GameMenuScreenMixin",
     "client.GameRendererMixin",
+    "client.PresentationRendererMixin",
     "client.InGameHudMixin",
     "client.LivingEntityRendererMixin",
     "client.MouseMixin",
