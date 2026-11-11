@@ -1,0 +1,26 @@
+{
+  "archive": "docs/v8/EVIDENCE/ps1-target-703ea85.zip",
+  "archiveSha256": "a9617e1d7bc36ec7889a8ccf0c26b37ed834531f02e327420270cd0372aea38b",
+  "verifiedFiles": 237,
+  "crcAndHashesVerified": true,
+  "nativeSource": "703ea8565dd7f7d37e821e5b0050041225857b90",
+  "fullSource": "a923442fc3ef04b0b1c089a79883666670bb8146",
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "4f78433814c707b1199cde406dc8ea4469613a3ad93923ce29ae2428b0d859ad",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "8623ed991381c304a1d67a8e5c42bfad014bb46598458bea31fd68cca39a8737"
+  },
+  "unit": {
+    "tests": 763,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "server": {
+    "tests": 376,
+    "failures": 0,
+    "errors": 0
+  },
+  "scope": "Initial scene target/profile and stable-overlay increment only; front-wall hash and enabled-mode assertion are representative. Full S04/S05/v8 remain open.",
+  "debugKnownNegative": "Fabulous wireframe frame is mostly black with a fullscreen diagonal; useful world-edge visualization remains unaccepted.",
+  "releaseAccepted": false
+}
