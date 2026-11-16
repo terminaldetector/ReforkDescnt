@@ -50,6 +50,8 @@ public final class NativePresentationCheck {
     private static List<double[][]> mirrorPolygons=List.of();
     private static List<double[][]> debugWallEdges=List.of();
     private static long debugProjectionEpoch=-1;
+    private static boolean debugExceptionRestored;
+    private static Map<String,Object> debugEdgeResult=Map.of();
     private static long geometryHash;
     private NativePresentationCheck(){}
     private static void require(boolean value,String why){if(!value){done=true;MinecraftClient.getInstance().scheduleStop();throw new IllegalStateException("PRESENTATION_NATIVE "+why);}}
@@ -57,6 +59,8 @@ public final class NativePresentationCheck {
         ClientTickEvents.END_CLIENT_TICK.register(NativePresentationCheck::tick);
         WorldRenderEvents.START.register(context->{
             if(!ready||done||com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())return;
+            if(DescentConfig.presentationProfile==PresentationProfile.RENDER_DEBUG){if(!debugExceptionRestored)checkDebugPostprocessException();}
+            else require(ScenePresentation.fillDebugPostprocess()==null,"Native/PS1 never borrow the Debug composite raster guard");
             mirrorEpoch=frameEpoch;mirrorPhase=phase;mirrorPolygons=List.of();
             var c=MinecraftClient.getInstance();var faces=new ArrayList<com.terminaldetector.drmd.client.portal.MirrorScanner.MirrorFace>();
             for(int x=-2;x<=-1;x++)for(int y=0;y<=3;y++){
@@ -170,9 +174,22 @@ public final class NativePresentationCheck {
         }
         var result=new LinkedHashMap<String,Object>();result.put("samples",samples);result.put("hits",hits);result.put("ratio",samples==0?0:(double)hits/samples);result.put("horizontalBins",bins);result.put("misses",misses);return result;
     }
+    private static void checkDebugPostprocessException(){
+        int[] before=new int[2];GL11.glGetIntegerv(GL11.GL_POLYGON_MODE,before);
+        require(before[0]==GL11.GL_LINE&&before[1]==GL11.GL_LINE,"actual Debug world raster is wireframe before composite guard");
+        class ExpectedFailure extends RuntimeException{}
+        try(var filled=ScenePresentation.fillDebugPostprocess()){
+            require(filled!=null,"real Debug compositor raster guard");
+            int[] inside=new int[2];GL11.glGetIntegerv(GL11.GL_POLYGON_MODE,inside);
+            require(inside[0]==GL11.GL_FILL&&inside[1]==GL11.GL_FILL,"compositor guard fills both polygon faces");throw new ExpectedFailure();
+        }catch(ExpectedFailure expected){ }
+        int[] after=new int[2];GL11.glGetIntegerv(GL11.GL_POLYGON_MODE,after);
+        require(Arrays.equals(before,after)&&GL11.glGetError()==GL11.GL_NO_ERROR,"Debug guard restores both polygon modes even when its pass throws");debugExceptionRestored=true;
+    }
     private static void checkDebugWorldEdges(MinecraftClient c,NativeImage finalImage)throws java.io.IOException{
         require(beforeOverlays!=null&&samplePhase==phase&&sampleEpoch==frameEpoch&&debugProjectionEpoch==frameEpoch,"fresh main-world Debug raster and authored-edge projection");
         var measured=wallEdgePixels(beforeOverlays);int samples=(int)measured.get("samples");double ratio=(double)measured.get("ratio");var bins=(int[])measured.get("horizontalBins");
+        debugEdgeResult=Map.of("samples",samples,"hits",measured.get("hits"),"ratio",ratio,"horizontalBins",bins,"frameEpoch",frameEpoch,"sampleEpoch",sampleEpoch,"projectionEpoch",debugProjectionEpoch);
         boolean useful=samples>=100&&ratio>=.70&&bins[0]>=20&&bins[1]>=20&&bins[2]>=20;
         if(!useful){
             var folder=c.runDirectory.toPath().resolve("presentation-failure");Files.createDirectories(folder);
@@ -255,8 +272,9 @@ public final class NativePresentationCheck {
             if(++frames<3)return;frames=0;var folder=c.runDirectory.toPath().resolve("presentation-frames");Files.createDirectories(folder);image.writeTo(folder.resolve(SCENES[phase]+".png"));
             if(factor>1)beforeOverlays.writeTo(folder.resolve(SCENES[phase]+"-world-before-overlays.png"));
             var result=new LinkedHashMap<String,Object>();result.put("scene",SCENES[phase]);result.put("profile",wanted.name());result.put("sceneWidth",state.sceneWidth());result.put("sceneHeight",state.sceneHeight());result.put("outputWidth",width);result.put("outputHeight",height);result.put("deferredOverlayPasses",state.overlayPasses());result.put("worldNearestGridRatio",grid);result.put("finalCompositeGridRatio",finalGrid);result.put("nativeHudPixel",true);result.put("mirror",mirror);result.put("reflectedGoldPixels",gold);result.put("mergedMirrorSurfaces",surfaces);result.put("projectedMirrorPanes",mirrorPolygons.size());result.put("frameEpoch",frameEpoch);result.put("mirrorEpoch",mirrorEpoch);result.put("sampleEpoch",sampleEpoch);result.put("glError",error);RESULTS.add(result);
+            if(wanted==PresentationProfile.RENDER_DEBUG)result.put("debugWorldEdges",debugEdgeResult);
             if(phase==1)checkExceptionRestore(c);
-            if(++phase==SCENES.length){var report=new LinkedHashMap<String,Object>();report.put("runtimeToggleWithoutReload",true);report.put("actualWindowResizeAndRestore",true);report.put("exceptionTargetsRestored",exceptionRestored);report.put("blockstoreHashUnchanged",true);report.put("independentHybridChoiceUnchanged",true);report.put("scenes",RESULTS);Files.writeString(c.runDirectory.toPath().resolve("presentation-ok.json"),new com.google.gson.Gson().toJson(report));done=true;c.scheduleStop();return;}
+            if(++phase==SCENES.length){var report=new LinkedHashMap<String,Object>();report.put("runtimeToggleWithoutReload",true);report.put("actualWindowResizeAndRestore",true);report.put("exceptionTargetsRestored",exceptionRestored);report.put("debugPostprocessExceptionRestored",debugExceptionRestored);report.put("blockstoreHashUnchanged",true);report.put("independentHybridChoiceUnchanged",true);report.put("scenes",RESULTS);Files.writeString(c.runDirectory.toPath().resolve("presentation-ok.json"),new com.google.gson.Gson().toJson(report));done=true;c.scheduleStop();return;}
             DescentConfig.presentationProfile=PROFILES[phase];DescentConfig.ps1SceneHeight=phase==4?180:360;
             if(phase==4)c.getWindow().setWindowedSize(960,540);if(phase==5)c.getWindow().setWindowedSize(1280,720);
         }catch(java.io.IOException failure){throw new IllegalStateException(failure);}

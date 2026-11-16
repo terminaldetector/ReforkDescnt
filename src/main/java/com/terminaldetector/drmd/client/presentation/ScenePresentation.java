@@ -85,6 +85,18 @@ public final class ScenePresentation {
     private static void depth(boolean enabled){if(enabled)RenderSystem.enableDepthTest();else RenderSystem.disableDepthTest();}
     private static void cull(boolean enabled){if(enabled)RenderSystem.enableCull();else RenderSystem.disableCull();}
     private static void blend(boolean enabled){if(enabled)RenderSystem.enableBlend();else RenderSystem.disableBlend();}
+    /** Fullscreen postprocessing composites pixels, not world polygons. Native/PS1 do not enter. */
+    public static DebugPostprocess fillDebugPostprocess(){
+        return active!=null&&active.profile==PresentationProfile.RENDER_DEBUG?new DebugPostprocess():null;
+    }
+    public static final class DebugPostprocess implements AutoCloseable{
+        private final int[] modes=new int[2];
+        private DebugPostprocess(){GL11.glGetIntegerv(GL11.GL_POLYGON_MODE,modes);GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK,GL11.GL_FILL);}
+        @Override public void close(){
+            if(modes[0]==modes[1])GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK,modes[0]);
+            else{GL11.glPolygonMode(GL11.GL_FRONT,modes[0]);GL11.glPolygonMode(GL11.GL_BACK,modes[1]);}
+        }
+    }
     private record Overlay(OverlayContext context,Consumer<WorldRenderContext> render,Matrix4f projection,Matrix4f modelView,VertexSorter sorting,
                            boolean depthTest,boolean depthWrite,boolean culling,boolean blending){
         void draw(){
