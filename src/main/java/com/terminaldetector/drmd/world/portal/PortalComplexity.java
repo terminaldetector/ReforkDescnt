@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.world.portal;
 
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.weapon.items.ModItems;
+import com.terminaldetector.drmd.world.LegacyGeneration;
 import com.terminaldetector.drmd.world.level.WorldLevels;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.loader.api.FabricLoader;
@@ -34,8 +35,8 @@ public final class PortalComplexity {
 	public static void register() {
 		UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
 			if (world.isClient) return ActionResult.PASS;
-			// Vanilla mode: normal portals, no catalyst gate.
-			if (!WorldLevels.isAdvancedColumn((ServerWorld) world)) return ActionResult.PASS;
+			// Retirement applies to old/manual Advanced saves before any catalyst check.
+			if (LegacyGeneration.retired() || !WorldLevels.isAdvancedColumn((ServerWorld) world)) return ActionResult.PASS;
 			ItemStack stack = player.getStackInHand(hand);
 			BlockPos pos = hit.getBlockPos();
 			BlockState state = world.getBlockState(pos);
