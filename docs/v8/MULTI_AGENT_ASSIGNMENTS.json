@@ -459,7 +459,7 @@
       "stage": "S08",
       "title": "Verify local gravity ragdoll orientation with heavy rail weapon and block collision",
       "worker": "gravity_ragdoll",
-      "ledgerStatus": "pending_reverification",
+      "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
       "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
     },
@@ -531,7 +531,7 @@
       "stage": "S10",
       "title": "Verify three separate gravity gun behaviours and ballistic rail accuracy",
       "worker": "combat_ai",
-      "ledgerStatus": "pending_reverification",
+      "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
       "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
     },
@@ -819,7 +819,7 @@
       "stage": "S16",
       "title": "Benchmark mspt/fps/heap/loaded cubes/draw calls across 32→1024 drone tests",
       "worker": "audit_integration",
-      "ledgerStatus": "pending_reverification",
+      "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
       "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
     },

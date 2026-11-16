@@ -207,8 +207,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: "Multi-agent world_cubic lane: reproduce opaque roof to clear-glass skylight at native cube seam; bounded parity correction and exact native evidence pending."
+  evidence: [CUBIC_LIGHT_POSITIVE_2026-11-11/REPORT.md, EVIDENCE/integrated-5839062.zip]
+  notes: "Exact670 native BCC all six roof states pass actual wall readiness. Prior observer baseline failure retained; no production lighting change. Full fluid/BE parity open."
 - id: S02-T06
   stage: S02
   stage_title: Choose actual CubicWorld backend
@@ -366,8 +366,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: "Multi-agent ps1_render lane: combined a923442 implements scoped scene target and runtime profiles;763 unit/376 server cases pass, actual native nearest-grid failure retained and being measured. Full visual acceptance pending."
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip]
+  notes: "Combined5839062 passes772unit/391GT and fresh current Sodium target/toggle/resize proof; earlier703 Sodium+GL3.2 proof separately retained. S04 dependency and full PS1 effects open."
 - id: S05-T02
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -402,8 +402,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: "Multi-agent ps1_render lane: custom cockpit/weapon overlays deferred to full resolution; native HUD witness passes initial scene, complete profile/resize/GL proof pending."
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip]
+  notes: "Current583 eight fresh images verify native HUD, deferred overlays, resize and zero GL errors. Full roll/pitch/yaw and ordinary UI remain open."
 - id: S05-T05
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -414,8 +414,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: "Multi-agent ps1_render lane: presentation and world/physics interfaces separated; existing source/unit proof plus representative wall/flight witness is partial, not universal invariance acceptance."
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip]
+  notes: "Presentation separation and representative wall/flight checks pass; universal geometry/physics/cache invariance open."
 - id: S05-T06
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -426,8 +426,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: "Multi-agent ps1_render lane: six-scene native/profile/resize harness compiles; first Sodium native run fails pixel-grid0.9697917 versus0.97, exact first failure retained. GL3.2/Fabulous and full matrix remain open."
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip]
+  notes: "Current Sodium pass;09b Fabulous Debug negative has3/346 world-edge hits with black/fullscreen diagonal. Narrow correction separate and unaccepted."
 - id: S06-T01
   stage: S06
   stage_title: Core gravity and player 6DoF
@@ -513,8 +513,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: "Multi-agent gravity_ragdoll lane: explicit vanilla C3 FlyingEntity/Bee/Allay/Vex contract gap identified; test-only negative75ab292 queued. Mixed Parrot/Bat and full C1-C7 acceptance remain open."
+  evidence: [GRAVITY_VANILLA_FLYERS_2026-11-10.md, EVIDENCE/integrated-5839062.zip]
+  notes: "Five vanilla flyers corrected with original3 and related16 proof, rerun in current391 full suite. Remaining locomotion families, AI and visuals open."
 - id: S07-T02
   stage: S07
   stage_title: Universal 6DoF for all mob families
@@ -619,11 +619,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id009
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [RAGDOLL_FIELD_STRENGTH_2026-11-11.md, EVIDENCE/integrated-5839062.zip]
+  notes: "Reproduced0c quarter-strength bug;9c correction passes6focused and current391 full suite. Six-axis strength/cap and momentum verified; heavy-rail, orientation, block collision and cubic envelope open."
 - id: S09-T01
   stage: S09
   stage_title: BlockBody / UFO boarding and reactor
@@ -719,11 +719,11 @@ tasks:
   owner: WEAPONS
   gate: G4
   depends_on_stages: *id011
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip]
+  notes: "Actual first1ecca2FAIL4PASS: unknown-column load reproduced.40f diagnostics identify duplicate same-tick RAIL test callback and scheduler-map crash; first real launch succeeds, no complete ballistic/XML acceptance. Corrected driver pending."
 - id: S10-T03
   stage: S10
   stage_title: Weapons, cluster, drill and building
@@ -784,8 +784,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [SWARM_BASELINE_2026-11-04.md, EVIDENCE/swarm-baseline-f3b7cac.zip, DRONE_ROUTES_WORLD_GRID_2026-11-05.md, EVIDENCE/drone-route-world-grid-5623e0a.zip, TYPED_SWARM_2026-11-05.md, EVIDENCE/typed-swarm-d1d92e9.zip, TYPED_COMBAT_LANES_2026-11-06.md, EVIDENCE/typed-combat-lanes-b59884b.zip, EVIDENCE/combat-lanes-swarm-restart-8aeb559.zip, SHARED_COMBAT_PASSAGES_2026-11-06.md, EVIDENCE/shared-combat-81c0ceb.zip, EVIDENCE/crowd-swarm-restart-81c0ceb.zip]
-  notes: Six default ORBs now share an intact two-by-two firing aperture on both native renderers without sustained centre coincidence; bounded known-target memory and actual damage are checked. Current mixed128 native restart also passes. Mixed-size roles, single-file/bidirectional traffic, moving hull timing, exact body contacts and broader group performance remain open.
+  evidence: [SWARM_BASELINE_2026-11-04.md, EVIDENCE/swarm-baseline-f3b7cac.zip, DRONE_ROUTES_WORLD_GRID_2026-11-05.md, EVIDENCE/drone-route-world-grid-5623e0a.zip, TYPED_SWARM_2026-11-05.md, EVIDENCE/typed-swarm-d1d92e9.zip, TYPED_COMBAT_LANES_2026-11-06.md, EVIDENCE/typed-combat-lanes-b59884b.zip, EVIDENCE/combat-lanes-swarm-restart-8aeb559.zip, SHARED_COMBAT_PASSAGES_2026-11-06.md, EVIDENCE/shared-combat-81c0ceb.zip, EVIDENCE/crowd-swarm-restart-81c0ceb.zip, DRONE_CRITICAL_COVER_2026-11-10.md, EVIDENCE/integrated-5839062.zip]
+  notes: "Loaded3D cover aa2 passes6focused and current391full. Full moving-cover/navigation/bestiary/performance open."
 - id: S11-T03
   stage: S11
   stage_title: ORB/ROCKET/JET swarms
@@ -846,8 +846,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: "Multi-agent world_content lane: independent persisted confirmed-alarm warning/recon/search/hunt/cooldown increment being implemented; full unprovoked hunt and siege remain open."
+  evidence: [SURVIVAL_THREAT_2026-11-10.md, EVIDENCE/integrated-5839062.zip]
+  notes: "Confirmed Survival alarm/recon/search/hunt/cooldown passes9unit/5focused and current772/391 full suite. Complete siege/economy/faction progression open."
 - id: S12-T02
   stage: S12
   stage_title: Survival threat and minimal armament economy
@@ -1119,11 +1119,11 @@ tasks:
   owner: QA
   gate: G6
   depends_on_stages: *id017
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [BENCHMARK_CONTEXT.md, EVIDENCE/integrated-5839062.zip]
+  notes: "Collector has20Python tests; missing measurements remain null/reason. Native producer and real hardware/32-to1024 benchmarks open."
 - id: S16-T03
   stage: S16
   stage_title: Full performance and regression testing
