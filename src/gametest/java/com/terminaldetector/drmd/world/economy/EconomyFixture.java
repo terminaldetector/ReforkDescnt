@@ -90,7 +90,13 @@ final class EconomyFixture implements AutoCloseable {
         var d=target.subtract(p.getEyePos()).normalize();var q=PortalTransform.vectorToYawPitch(new Vec3(d.x,d.y,d.z));p.setYaw((float)q.yawDegrees());p.setPitch((float)q.pitchDegrees());p.setHeadYaw(p.getYaw());
     }
     void setWorld(BlockPos pos,BlockState state){previous.putIfAbsent(pos.toImmutable(),w.getBlockState(pos));w.setBlockState(pos,state,3);}
-    private BlockHitResult worldHit(BlockPos block,Direction face){var point=Vec3d.ofCenter(block).add(Vec3d.of(face.getVector()).multiply(.5));aim(point.add(Vec3d.of(face.getVector()).multiply(2)),point);return new BlockHitResult(point,face,block,false);}
+    private BlockHitResult worldHit(BlockPos block,Direction face){
+        var point=Vec3d.ofCenter(block).add(Vec3d.of(face.getVector()).multiply(.5));
+        // Approach side faces from above neighbouring supports, so the test player
+        // does not stand inside another placed block while clicking the correct face.
+        var stand=point.add(Vec3d.of(face.getVector()).multiply(2));if(face.getAxis().isHorizontal())stand=stand.add(0,2.5,0);
+        aim(stand,point);return new BlockHitResult(point,face,block,false);
+    }
     void placeWorld(BlockPos support,Direction face,Item item){
         hold(item);int before=count(item);var hit=worldHit(support,face);var target=support.offset(face);previous.putIfAbsent(target,w.getBlockState(target));
         c.assertTrue(p.interactionManager.interactBlock(p,w,p.getMainHandStack(),Hand.MAIN_HAND,hit).isAccepted(),"actual Survival BlockItem use accepted");
@@ -139,7 +145,8 @@ final class EconomyFixture implements AutoCloseable {
         var b=BlockBodyEntity.createLocal(w,cells,Vec3d.of(origin),Quat.IDENTITY,Vec3d.ZERO,Vec3d.ZERO);b.setPhysicsGravity(false);bodies.add(b);return b;
     }
     void aimCell(BlockBodyEntity b,BlockPos cell,Direction face){
-        var normal=b.rotation().rotate(new Vec3(face.getOffsetX(),face.getOffsetY(),face.getOffsetZ()));var v=new Vec3d(normal.x(),normal.y(),normal.z());var point=b.localToWorld(Vec3d.ofCenter(cell).add(Vec3d.of(face.getVector()).multiply(.5)));aim(point.add(v.multiply(2.5)),point);
+        var normal=b.rotation().rotate(new Vec3(face.getOffsetX(),face.getOffsetY(),face.getOffsetZ()));var v=new Vec3d(normal.x(),normal.y(),normal.z());var point=b.localToWorld(Vec3d.ofCenter(cell).add(Vec3d.of(face.getVector()).multiply(.5)));
+        var stand=point.add(v.multiply(2.5));if(face.getAxis().isHorizontal())stand=stand.add(0,2.2,0);aim(stand,point);
     }
     void placeLocal(BlockBodyEntity b,BlockPos support,Direction face,Item item){
         closeTable();hold(item);int before=count(item);aimCell(b,support,face);
