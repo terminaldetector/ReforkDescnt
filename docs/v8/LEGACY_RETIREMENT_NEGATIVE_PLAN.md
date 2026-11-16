@@ -1,6 +1,6 @@
 # Retired Advanced callbacks — isolated negative preparation, 16 November 2026
 
-This is **test-only, not compiled/run yet**. Production files `EnderDragonFightMixin.java` and `PortalComplexity.java` remain unchanged and byte-identical to current canonical source. No content-generator authoring or central task ledger is edited.
+This plan was committed as test-only source `e930a8f` before any production correction. Its first actual focused negative reproduced six failures with two controls passing. Only then were the two production guards changed in `39ae637`; a fresh run of the same eight tests passed. [First negative](LEGACY_RETIREMENT_NEGATIVE_2026-11-16/REPORT.md) and [positive](LEGACY_RETIREMENT_POSITIVE_2026-11-16/REPORT.md) preserve exact source/input hashes, logs, XML and generated resources. No content-generator authoring or central task ledger is edited. The remainder records the original prepared fixture/acceptance contract.
 
 The old/manual Advanced-save callback scope remains reproducible even though the normal UI/default automatic builders are retired. Both dragon callbacks and the portal catalyst callback gate only on `WorldLevels.isAdvancedColumn`, bypassing `LegacyGeneration.retired()`. The following negative must execute before adding the narrow retirement guards.
 
