@@ -29,3 +29,8 @@ The fixture adds GameTest tasks while the task-map iterator is executing (`c.run
 Correction is confined to test scheduling: one per-tick driver registered before execution, with test-owned due-action and observer queues. The eight-tick launch delay, body mass, aim, 42 m/s velocity assertion and twelve-block/1.2-block trajectory bound must remain unchanged. No RAIL gameplay correction is indicated by these state events.
 
 First crash evidence: `EVIDENCE/gravity-gun-fixture-crash-40f7b6f.zip`, SHA-256 `4ef80e7850b0a0fe6e4f885c847ed670fe83172a0a54854a73c6ff07aecd199a`. Raw log/crash, no-XML receipt, exact source/inputs, both rail state events and the crashed disposable world are preserved. CRC and every-file hashes were verified before reclaiming its generated directory. A crashed-world archive is not a clean save/reload result.
+
+
+## Corrected focused acceptance
+
+Exact `9441318b7dedc7aa198baa59afee046ee47598bc` later completed six actual-use cases, all PASS, after a test-only owned-driver correction. The production loaded-ray regression now passes. The original negative/crash artifacts remain unchanged. Full scope, zero-G trajectory limitation, source diffs and combined evidence are recorded in `GRAVITY_GUN_LOADED_QUERIES_2026-11-16.md`; this does not close full S10-T02.
