@@ -164,12 +164,14 @@ public final class NativePresentationCheck {
             double px=edge[0][0]*(1-t)+edge[1][0]*t,py=edge[0][1]*(1-t)+edge[1][1]*t;
             int x=(int)Math.round(px),y=(int)Math.round(py);
             if(x<4||x>=image.getWidth()-4||y<4||y>=image.getHeight()-4||insideMirror(px,py))continue;
-            samples++;boolean found=false;
+            samples++;boolean found=false;int minSum=765,maxSum=0;
             for(int dy=-2;dy<=2;dy++)for(int dx=-2;dx<=2;dx++){
                 int c=image.getColor(x+dx,y+dy),r=c&255,g=(c>>>8)&255,b=(c>>>16)&255;
-                // Include the dark-blue authored material; dark background still fails.
+                int sum=r+g+b;minSum=Math.min(minSum,sum);maxSum=Math.max(maxSum,sum);
+                // Bright sky alone is insufficient: the projected edge needs local contrast too.
                 found|=Math.max(r,Math.max(g,b))>=60&&r+g+b>=100;
             }
+            found&=maxSum-minSum>=96;
             if(found){hits++;bins[Math.min(2,x*3/image.getWidth())]++;}else misses.add(Map.of("x",x,"y",y));
         }
         var result=new LinkedHashMap<String,Object>();result.put("samples",samples);result.put("hits",hits);result.put("ratio",samples==0?0:(double)hits/samples);result.put("horizontalBins",bins);result.put("misses",misses);return result;
@@ -194,7 +196,7 @@ public final class NativePresentationCheck {
         if(!useful){
             var folder=c.runDirectory.toPath().resolve("presentation-failure");Files.createDirectories(folder);
             finalImage.writeTo(folder.resolve("final-debug-wireframe.png"));beforeOverlays.writeTo(folder.resolve("world-before-overlays-debug-wireframe.png"));
-            var evidence=new LinkedHashMap<String,Object>(measured);evidence.put("frameEpoch",frameEpoch);evidence.put("sampleEpoch",sampleEpoch);evidence.put("projectionEpoch",debugProjectionEpoch);evidence.put("projectedEdges",debugWallEdges);evidence.put("mirrorPolygons",mirrorPolygons);evidence.put("threshold",Map.of("minSamples",100,"minHitRatio",.70,"minHitsEachHorizontalThird",20,"minMaxRgb",60,"minRgbSum",100,"pixelRadius",2));
+            var evidence=new LinkedHashMap<String,Object>(measured);evidence.put("frameEpoch",frameEpoch);evidence.put("sampleEpoch",sampleEpoch);evidence.put("projectionEpoch",debugProjectionEpoch);evidence.put("projectedEdges",debugWallEdges);evidence.put("mirrorPolygons",mirrorPolygons);evidence.put("threshold",Map.of("minSamples",100,"minHitRatio",.70,"minHitsEachHorizontalThird",20,"minMaxRgb",60,"minRgbSum",100,"minLocalRgbSumContrast",96,"pixelRadius",2));
             Files.writeString(folder.resolve("debug-world-edges.json"),new com.google.gson.Gson().toJson(evidence));
         }
         require(useful,"Debug must show distributed authored 3D wall edges, not only a fullscreen-quad diagonal: "+measured);
@@ -270,7 +272,7 @@ public final class NativePresentationCheck {
             int surfaces=com.terminaldetector.drmd.client.portal.MirrorReflectionRenderer.scannedCount();
             if(wanted!=PresentationProfile.RENDER_DEBUG&&(mirrorEpoch!=frameEpoch||mirrorPhase!=phase||mirrorPolygons.size()!=8||surfaces!=1||mirror==null||!mirror.startsWith("drawing")||gold<30)){frames=0;return;}
             if(++frames<3)return;frames=0;var folder=c.runDirectory.toPath().resolve("presentation-frames");Files.createDirectories(folder);image.writeTo(folder.resolve(SCENES[phase]+".png"));
-            if(factor>1)beforeOverlays.writeTo(folder.resolve(SCENES[phase]+"-world-before-overlays.png"));
+            if(factor>1||wanted==PresentationProfile.RENDER_DEBUG)beforeOverlays.writeTo(folder.resolve(SCENES[phase]+"-world-before-overlays.png"));
             var result=new LinkedHashMap<String,Object>();result.put("scene",SCENES[phase]);result.put("profile",wanted.name());result.put("sceneWidth",state.sceneWidth());result.put("sceneHeight",state.sceneHeight());result.put("outputWidth",width);result.put("outputHeight",height);result.put("deferredOverlayPasses",state.overlayPasses());result.put("worldNearestGridRatio",grid);result.put("finalCompositeGridRatio",finalGrid);result.put("nativeHudPixel",true);result.put("mirror",mirror);result.put("reflectedGoldPixels",gold);result.put("mergedMirrorSurfaces",surfaces);result.put("projectedMirrorPanes",mirrorPolygons.size());result.put("frameEpoch",frameEpoch);result.put("mirrorEpoch",mirrorEpoch);result.put("sampleEpoch",sampleEpoch);result.put("glError",error);RESULTS.add(result);
             if(wanted==PresentationProfile.RENDER_DEBUG)result.put("debugWorldEdges",debugEdgeResult);
             if(phase==1)checkExceptionRestore(c);
