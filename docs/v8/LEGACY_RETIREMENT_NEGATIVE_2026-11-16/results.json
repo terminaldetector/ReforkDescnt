@@ -1,0 +1,46 @@
+{
+  "sourceSha": "e930a8f4d179dd73843cbe6192ef95717a04b1e8",
+  "scope": "Focused real tall STOCK world; DEV GameTest classes, not native-Cubic parity or installable JAR",
+  "tests": [
+    {
+      "name": "legacyretirementgametests.realoldtallworldfixtureandretiredfeaturecontrol",
+      "outcome": "PASS",
+      "reason": null
+    },
+    {
+      "name": "legacyretirementgametests.retiredendeyedoesnotconsumelegacycatalyst",
+      "outcome": "FAIL",
+      "reason": "(-14621737, -60, -1237423) retired callback consumed a legacy catalyst: 2"
+    },
+    {
+      "name": "legacyretirementgametests.retiredendeyewithoutcatalystreachesvanilla",
+      "outcome": "FAIL",
+      "reason": "(-14621724, -60, -1237423) retired legacy callback must delegate ordinary item use, got FAIL"
+    },
+    {
+      "name": "legacyretirementgametests.retirednetherignitiondoesnotconsumelegacycatalyst",
+      "outcome": "FAIL",
+      "reason": "(-14621711, -60, -1237423) retired callback consumed a legacy catalyst: 2"
+    },
+    {
+      "name": "legacyretirementgametests.retirednetherignitionwithoutcatalystreachesvanilla",
+      "outcome": "FAIL",
+      "reason": "(-14621698, -60, -1237423) retired legacy callback must delegate ordinary item use, got FAIL"
+    },
+    {
+      "name": "legacyretirementgametests.unrelateditemcallbackpreservesinventorycontrol",
+      "outcome": "PASS",
+      "reason": null
+    },
+    {
+      "name": "legacyretirementgametests.retireddragontickneverentersautomaticcitadelordiscardsdragon",
+      "outcome": "FAIL",
+      "reason": "(-14621672, -60, -1237423) retired dragon tick entered automatic Citadel generation 1 time(s); test sentinel prevented bulk writes"
+    },
+    {
+      "name": "legacyretirementgametests.retiredrespawnrequestreachesactualvanillabody",
+      "outcome": "FAIL",
+      "reason": "(-14621659, -60, -1237423) retired mod cancelled the actual vanilla respawn request before its normal field read"
+    }
+  ]
+}

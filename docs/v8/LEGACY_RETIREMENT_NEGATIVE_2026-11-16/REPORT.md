@@ -1,0 +1,13 @@
+# Retired Advanced routing — first negative, 16 November 2026
+
+**Confirmed negative: six failures, two controls passed.** Test-only exact source `e930a8f4d179dd73843cbe6192ef95717a04b1e8`; main production guards remained unchanged. Gradle exited1 because the focused GameTest process exited6. Compilation/setup succeeded; eight actual cases executed in8.179s, total Gradle40s. This is a DEV-class STOCK GameTest run, not a native Cubic/client or installable-JAR result.
+
+The loaded-world fixture/retired control passed: the real Overworld registry reports bottomY=-784, height2672, stock backend and retired flagtrue. Every case checks that same actual scope. Generated old dimension JSON and focused manifest/mixin registration are preserved with complete source-input hashes. The unrelated-item callback/inventory control also passed.
+
+Four actual portal callback failures reproduce the bypass. End eye and fire starter without catalyst returnFAIL. With three matching catalysts, each callback returnsPASS but consumes one, leaving2. These are actual `UseBlockCallback` result/inventory observations, not a mirrored predicate. No assertions were weakened.
+
+The real EnderDragonFight tick entered automatic Citadel generation once while retired. The test-only HEAD observer incremented its entry counter and threw its explicit sentinel before the unwanted bulk writes; existing ensureBase catches that sentinel, and the test fails on counter1 instead of0. No arena was generated. The logged dragon witness remained alive in this immediate call, so this negative does not claim an observed dragon discard. The separate real respawn request never reached the normal vanilla dragonKilled field read(counter0), showing the old mod HEAD cancelled it. That case does not simulate a complete crystal/portal respawn sequence.
+
+This proves the retirement guard/callback-routing defect. The disclosed generator-entry sentinel prevents the forbidden baseline bulk mutation; it does **not** prove actual generated-arena geometry or content parity. Content generator source is unchanged. Ordinary vanilla item-use follow-up assertions remain in the same tests and must pass after the guard correction; the failing callbacks did not reach those follow-up assertions in this negative.
+
+See `results.json`/originalXML for all eight exact outcomes, `negative.log` for callback/probe values, `source-inputs.json` for exact pre-run source/helper inputs, generated resources and `SHA256.json`. The original disposable world is retained locally under this worktree's `build/gametest-final-legacy-negative/world` after closing all processes; no original user save was opened or overwritten.
