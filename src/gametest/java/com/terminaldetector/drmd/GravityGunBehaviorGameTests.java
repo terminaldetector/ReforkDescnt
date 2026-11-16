@@ -27,6 +27,10 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
         final AiFixtureChunks chunks;
         final List<BlockBodyEntity> bodies=new ArrayList<>();
         final Set<UUID> fields=new HashSet<>();
+        private record Due(long tick,long order,Runnable action){}
+        private final PriorityQueue<Due> due=new PriorityQueue<>(Comparator.comparingLong(Due::tick).thenComparingLong(Due::order));
+        private final List<Runnable> observers=new ArrayList<>();
+        private long nextOrder;
         private boolean closed;
         Rig(TestContext c,AiFixtureChunks chunks,BlockPos at,Vec3d forward){
             this.c=c;this.chunks=chunks;player=c.createMockCreativeServerPlayerInWorld();
@@ -63,10 +67,21 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
                 +" bodyPos="+body.physicsCentre()+" velocity="+body.physicsVelocity()+" gravity="+body.physicsGravity()+" tether="+body.distanceTo(player);
         }
         UUID field(BlockBodyEntity body){var id=UUID.nameUUIDFromBytes(("drmd:gravity-projector:"+body.getUuid()).getBytes(StandardCharsets.UTF_8));fields.add(id);return id;}
-        void later(long ticks,Runnable action){c.waitAndRun(ticks,()->{try{action.run();}catch(Throwable failure){close();throw failure;}});}
+        // The GameTest task map is being iterated when this driver runs. Keep delayed work
+        // and observations here rather than adding GameTest callbacks from another callback.
+        void later(long ticks,Runnable action){
+            if(ticks<=0)throw new IllegalArgumentException("fixture work must wait for a normal world tick");
+            due.add(new Due(c.getWorld().getTime()+ticks,nextOrder++,action));
+        }
+        void observe(Runnable action){observers.add(action);}
+        void tick(){
+            for(var observer:List.copyOf(observers)){if(closed)return;observer.run();}
+            long now=c.getWorld().getTime();
+            while(!closed&&!due.isEmpty()&&due.peek().tick()<=now)due.remove().action().run();
+        }
         void complete(){close();c.complete();}
         public void close(){
-            if(closed)return;closed=true;
+            if(closed)return;closed=true;due.clear();observers.clear();
             try{GravyPhysics.release(player);fields.forEach(TransientGravityFields::remove);bodies.forEach(BlockBodyEntity::discard);}
             finally{
                 try{
@@ -78,12 +93,17 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
     }
     private void admitted(TestContext c,int offset,Vec3d aim,Consumer<Rig> action){
         var at=c.getAbsolutePos(new BlockPos(78000+offset,160,2000));var lease=new AiFixtureChunks(c.getWorld(),at,2);
-        boolean[] started={false};int[] admission={0};
+        boolean[] started={false};int[] admission={0};Rig[] live={null};
+        // Register the sole driver at test entry, before GameTestState starts iterating tasks.
         c.runAtEveryTick(()->{
-            if(started[0])return;c.getWorld().resetIdleTimeout();
+            if(started[0]){
+                if(live[0]!=null&&!live[0].closed)try{live[0].tick();}catch(Throwable failure){live[0].close();throw failure;}
+                return;
+            }
+            c.getWorld().resetIdleTimeout();
             if(!lease.entityTicking(at,at.add(24,24,24),at.add(-24,-24,-24))){if(++admission[0]<80)return;started[0]=true;lease.close();c.assertTrue(false,"gravity item fixture obtains real entity-ticking columns");return;}
             started[0]=true;Rig rig=null;
-            try{rig=new Rig(c,lease,at,aim);action.accept(rig);}catch(Throwable failure){if(rig==null)lease.close();else rig.close();throw failure;}
+            try{rig=new Rig(c,lease,at,aim);live[0]=rig;action.accept(rig);}catch(Throwable failure){if(rig==null)lease.close();else rig.close();throw failure;}
         });
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="gravity-item-swarm",tickLimit=150)
@@ -123,7 +143,7 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
                 c.assertTrue(launched,"normal second rail use launches the held mass: before="+before+" after="+after+" holdTrace="+holdTrace);
                 c.assertTrue(body.physicsVelocity().distanceTo(aim.multiply(42))<1e-5,"actual rail impulse produces its precise 6DoF launch velocity");
                 Vec3d[] previous={start};boolean[] crossed={false};double[] miss={Double.POSITIVE_INFINITY};
-                c.runAtEveryTick(()->{
+                r.observe(()->{
                     if(crossed[0]||body.isRemoved())return;
                     var now=body.physicsCentre();double a=previous[0].subtract(start).dotProduct(aim),b=now.subtract(start).dotProduct(aim);
                     if(a<12&&b>=12){var at=previous[0].lerp(now,(12-a)/(b-a));miss[0]=at.subtract(start.add(aim.multiply(12))).length();crossed[0]=true;}
