@@ -1,0 +1,19 @@
+{
+    "schemaVersion": 1,
+    "id": "drmd_gametest",
+    "version": "1.0.0",
+    "name": "DRMD regression tests",
+    "environment": "*",
+    "entrypoints": {
+        "fabric-gametest": [
+            "com.terminaldetector.drmd.legacy.LegacyRetirementGameTests"
+        ]
+    },
+    "depends": {
+        "drmd": "*",
+        "fabric-gametest-api-v1": "*"
+    },
+    "mixins": [
+        "drmd.legacy_retirement_test.mixins.json"
+    ]
+}

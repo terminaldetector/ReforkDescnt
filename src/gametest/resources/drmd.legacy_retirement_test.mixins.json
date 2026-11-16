@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "com.terminaldetector.drmd.legacy.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": ["LegacyArenaEntryProbe", "LegacyDragonRespawnProbe"],
+  "injectors": {"defaultRequire": 1}
+}

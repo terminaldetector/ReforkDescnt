@@ -1,0 +1,30 @@
+// Test-only fixture: no source manifest, build.gradle or production resource edits.
+// Use only in this lane's fresh disposable build/gametest directory. The generated
+// resource output is focused and includes the old tall registry overrides; it is
+// not an ordinary full-suite or production world configuration.
+gradle.projectsEvaluated {
+    rootProject.loom.runs.getByName('gametest').vmArg('-Ddrmd.test.legacyRetirement=true')
+    rootProject.tasks.named('runGametest') {
+        doFirst {
+            if (rootProject.file('build/gametest/world/level.dat').exists()) {
+                throw new GradleException('Preserve the closed disposable legacy world before starting a fresh focused run; never overwrite an existing save')
+            }
+        }
+    }
+    rootProject.tasks.named('processGametestResources') {
+        outputs.upToDateWhen { false }
+        doLast {
+            def manifest = new File(destinationDir, 'fabric.mod.json')
+            def data = new groovy.json.JsonSlurper().parse(manifest)
+            data.entrypoints['fabric-gametest'] = ['com.terminaldetector.drmd.legacy.LegacyRetirementGameTests']
+            data.mixins = (data.mixins ?: []) + ['drmd.legacy_retirement_test.mixins.json']
+            manifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(data))
+            ['overworld', 'the_end'].each { dimension ->
+                def generated = new File(destinationDir, "data/minecraft/dimension_type/${dimension}.json")
+                generated.parentFile.mkdirs()
+                generated.text = rootProject.file("src/main/resources/resourcepacks/advanced_column/data/minecraft/dimension_type/${dimension}.json").getText('UTF-8')
+            }
+            println 'LEGACY RETIREMENT FOCUSED FIXTURE: actual tall registry; 8 tests; generator-entry sentinel observation; no production edits'
+        }
+    }
+}

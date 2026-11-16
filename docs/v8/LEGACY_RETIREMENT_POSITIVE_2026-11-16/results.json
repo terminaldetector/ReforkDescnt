@@ -1,0 +1,51 @@
+{
+  "sourceSha": "39ae637b18d17f6064ba2b8708839af4eed76b98",
+  "onlyChangedInputs": [
+    "src/main/java/com/terminaldetector/drmd/mixin/EnderDragonFightMixin.java",
+    "src/main/java/com/terminaldetector/drmd/world/portal/PortalComplexity.java"
+  ],
+  "unchangedFocusedFixtureAndGeneratedResources": true,
+  "scope": "DEV GameTest classes, real tall STOCK world; not native-Cubic or complete respawn/arena parity",
+  "tests": [
+    {
+      "name": "legacyretirementgametests.realoldtallworldfixtureandretiredfeaturecontrol",
+      "outcome": "PASS",
+      "time": "0.008"
+    },
+    {
+      "name": "legacyretirementgametests.retiredendeyedoesnotconsumelegacycatalyst",
+      "outcome": "PASS",
+      "time": "0.708"
+    },
+    {
+      "name": "legacyretirementgametests.retiredendeyewithoutcatalystreachesvanilla",
+      "outcome": "PASS",
+      "time": "0.037"
+    },
+    {
+      "name": "legacyretirementgametests.retirednetherignitiondoesnotconsumelegacycatalyst",
+      "outcome": "PASS",
+      "time": "0.047"
+    },
+    {
+      "name": "legacyretirementgametests.retirednetherignitionwithoutcatalystreachesvanilla",
+      "outcome": "PASS",
+      "time": "0.061"
+    },
+    {
+      "name": "legacyretirementgametests.unrelateditemcallbackpreservesinventorycontrol",
+      "outcome": "PASS",
+      "time": "0.028"
+    },
+    {
+      "name": "legacyretirementgametests.retireddragontickneverentersautomaticcitadelordiscardsdragon",
+      "outcome": "PASS",
+      "time": "0.039"
+    },
+    {
+      "name": "legacyretirementgametests.retiredrespawnrequestreachesactualvanillabody",
+      "outcome": "PASS",
+      "time": "0.0"
+    }
+  ]
+}
