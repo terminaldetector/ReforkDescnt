@@ -2,6 +2,7 @@ package com.terminaldetector.drmd;
 
 import com.terminaldetector.drmd.physics.GravyPhysics;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
+import com.terminaldetector.drmd.weapon.items.DescentWeaponItem;
 import com.terminaldetector.drmd.weapon.items.ModItems;
 import com.terminaldetector.drmd.world.contraption.BlockBodyEntity;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
@@ -26,14 +27,17 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
         final AiFixtureChunks chunks;
         final List<BlockBodyEntity> bodies=new ArrayList<>();
         final Set<UUID> fields=new HashSet<>();
+        private boolean closed;
         Rig(TestContext c,AiFixtureChunks chunks,BlockPos at,Vec3d forward){
             this.c=c;this.chunks=chunks;player=c.createMockCreativeServerPlayerInWorld();
-            player.setPosition(Vec3d.ofCenter(at));player.setNoGravity(true);player.getAbilities().flying=true;
-            player.setYaw(180);player.setPitch(0);
-            var data=DescentPlayerData.get(player);data.setEnabled(false);data.setGravyEnergy(100);
-            var f=forward.normalize();var side=f.crossProduct(Math.abs(f.y)<.9?new Vec3d(0,1,0):new Vec3d(1,0,0)).normalize();
-            data.setShipAttitude((float)f.x,(float)f.y,(float)f.z,(float)side.x,(float)side.y,(float)side.z);
-            c.assertTrue(WeaponCore.aimDir(player).dotProduct(player.getRotationVector())<.9,"fixture uses a banked ship frame distinct from vanilla yaw/pitch");
+            try{
+                player.setPosition(Vec3d.ofCenter(at));player.setNoGravity(true);player.getAbilities().flying=true;
+                player.setYaw(180);player.setPitch(0);
+                var data=DescentPlayerData.get(player);data.setEnabled(false);data.setGravyEnergy(100);
+                var f=forward.normalize();var side=f.crossProduct(Math.abs(f.y)<.9?new Vec3d(0,1,0):new Vec3d(1,0,0)).normalize();
+                data.setShipAttitude((float)f.x,(float)f.y,(float)f.z,(float)side.x,(float)side.y,(float)side.z);
+                c.assertTrue(WeaponCore.aimDir(player).dotProduct(player.getRotationVector())<.9,"fixture uses a banked ship frame distinct from vanilla yaw/pitch");
+            }catch(Throwable failure){close();throw failure;}
         }
         Vec3d aim(){return WeaponCore.aimDir(player).normalize();}
         BlockBodyEntity body(Vec3d centre,int sx,int sy,int sz){
@@ -45,10 +49,32 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
             if(equip)player.setStackInHand(Hand.MAIN_HAND,new ItemStack(item));
             return item.use(c.getWorld(),player,Hand.MAIN_HAND).getResult().isAccepted();
         }
+        String state(BlockBodyEntity body){
+            var stack=player.getMainHandStack();var custom=stack.get(net.minecraft.component.DataComponentTypes.CUSTOM_DATA);
+            long now=c.getWorld().getTime(),last=custom==null?0:custom.copyNbt().getLong("lastFire");
+            int cooldown=stack.getItem() instanceof DescentWeaponItem weapon?Math.max(1,(int)(weapon.getDef().fireRate*20)):-1;
+            var data=DescentPlayerData.get(player);
+            return "time="+now+" stack="+net.minecraft.registry.Registries.ITEM.getId(stack.getItem())+" lastFire="+last+" elapsed="+(now-last)+" cooldown="+cooldown
+                +" managerCooling="+player.getItemCooldownManager().isCoolingDown(ModItems.GRAVY_RAILGUN)
+                +" mode="+GravyPhysics.activeMode(player)+" held="+GravyPhysics.heldCount(player)+" mass="+GravyPhysics.heldMass(player)+" energy="+data.getGravyEnergy()
+                +" playerAlive="+player.isAlive()+" playerPos="+player.getPos()+" enabled="+data.isEnabled()+" savedMode="+data.hasSavedFlightMode()
+                +" attitude="+data.hasShipAttitude()+" aim="+aim()+" up="+data.shipUp(player)
+                +" bodyAlive="+body.isAlive()+" removed="+body.getRemovalReason()+" lookup="+(c.getWorld().getEntity(body.getUuid())==body)+" age="+body.age
+                +" bodyPos="+body.physicsCentre()+" velocity="+body.physicsVelocity()+" gravity="+body.physicsGravity()+" tether="+body.distanceTo(player);
+        }
         UUID field(BlockBodyEntity body){var id=UUID.nameUUIDFromBytes(("drmd:gravity-projector:"+body.getUuid()).getBytes(StandardCharsets.UTF_8));fields.add(id);return id;}
         void later(long ticks,Runnable action){c.waitAndRun(ticks,()->{try{action.run();}catch(Throwable failure){close();throw failure;}});}
         void complete(){close();c.complete();}
-        public void close(){GravyPhysics.release(player);fields.forEach(TransientGravityFields::remove);bodies.forEach(BlockBodyEntity::discard);player.discard();chunks.close();}
+        public void close(){
+            if(closed)return;closed=true;
+            try{GravyPhysics.release(player);fields.forEach(TransientGravityFields::remove);bodies.forEach(BlockBodyEntity::discard);}
+            finally{
+                try{
+                    if(c.getWorld().getServer().getPlayerManager().getPlayerList().contains(player))
+                        player.networkHandler.onDisconnected(new net.minecraft.network.DisconnectionInfo(net.minecraft.text.Text.literal("gravity-item fixture closed")));
+                }finally{player.discard();chunks.close();}
+            }
+        }
     }
     private void admitted(TestContext c,int offset,Vec3d aim,Consumer<Rig> action){
         var at=c.getAbsolutePos(new BlockPos(78000+offset,160,2000));var lease=new AiFixtureChunks(c.getWorld(),at,2);
@@ -88,9 +114,13 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
             c.assertTrue(body.physicsMass()>96&&body.physicsMass()<384,"real hundred-cell mass exceeds field-thrower capacity but fits rail");
             c.assertTrue(r.use(ModItems.GRAVY_RAILGUN,true),"registered heavy rail captures real material with exact ship aim");
             c.assertTrue(GravyPhysics.activeMode(r.player).orElse(null)==GravyPhysics.Mode.RAIL&&GravyPhysics.heldCount(r.player)==1&&Math.abs(GravyPhysics.heldMass(r.player)-100)<1e-5,"rail keeps exactly one aggregate heavy body");
+            var holdTrace=new ArrayList<String>();holdTrace.add(r.state(body));
+            for(int tick=1;tick<8;tick++)r.later(tick,()->holdTrace.add(r.state(body)));
             r.later(8,()->{
                 var start=body.physicsCentre();var aim=r.aim();
-                c.assertTrue(r.use(ModItems.GRAVY_RAILGUN,false),"normal second rail use launches the held mass");
+                var before=r.state(body);boolean launched=r.use(ModItems.GRAVY_RAILGUN,false);var after=r.state(body);
+                DescentMod.LOGGER.info("[gravity-item rail] launched={} holdTrace={} before={} after={}",launched,holdTrace,before,after);
+                c.assertTrue(launched,"normal second rail use launches the held mass: before="+before+" after="+after+" holdTrace="+holdTrace);
                 c.assertTrue(body.physicsVelocity().distanceTo(aim.multiply(42))<1e-5,"actual rail impulse produces its precise 6DoF launch velocity");
                 Vec3d[] previous={start};boolean[] crossed={false};double[] miss={Double.POSITIVE_INFINITY};
                 c.runAtEveryTick(()->{
