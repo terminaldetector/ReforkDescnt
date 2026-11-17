@@ -151,6 +151,14 @@ public final class DefenseTurrets {
 			super(settings, 4f, 12, new Vector3f(1f, 0.7f, 0.2f), DamageClass.KINETIC, 6);
 		}
 
+		/** Reuse the exact current station identity for a loaded missile shooter. */
+		public boolean acceptsMissileOwner(LivingEntity owner){return isValidTarget(owner);}
+
+		@Override
+		protected void fire(ServerWorld world,BlockPos pos){
+			if(!PointDefenseInterception.tryFire(world,pos))super.fire(world,pos);
+		}
+
 		@Override
 		protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
 			fire(world, pos);

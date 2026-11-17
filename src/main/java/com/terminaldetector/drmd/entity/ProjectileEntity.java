@@ -85,6 +85,13 @@ public class ProjectileEntity extends Entity {
 	private int ageTicks;
 	private boolean igniteOnHit;
 
+	/** Optional server-only identity for the bounded static defensive round. Old shots have none. */
+	public record DefenseSource(BlockPos anchor,UUID target,long bornAt,long eligibleFrom){}
+	public record DefenseContact(Vec3d tracePoint,Vec3d materialPoint,UUID entityUuid,int entityId,
+			BlockPos block,net.minecraft.util.math.Direction side){}
+	private DefenseSource defenseSource;
+	private long lastMissileStep=Long.MIN_VALUE;
+
 	public ProjectileEntity(EntityType<? extends ProjectileEntity> type, World world) {
 		super(type, world);
 		this.noClip = false;
@@ -105,6 +112,47 @@ public class ProjectileEntity extends Entity {
 		return null;
 	}
 	public LivingEntity getOwnerLiving(){return getOwnerEntity() instanceof LivingEntity living&&living.isAlive()?living:null;}
+	/** Identity only: callers needing a loaded living owner need not scan body-owner fallbacks. */
+	public UUID getOwnerUuid(){return ownerUuid;}
+	public DefenseSource pointDefenseSource(){return defenseSource;}
+	public long lastMissileStep(){return lastMissileStep;}
+	public int remainingLifeTicks(){return lifeTicks;}
+	public float splashRadius(){return splashRadius;}
+	public boolean isPointDefenseMissile(){return defenseSource==null&&getMeshKind()==MESH_ROCKET
+			&&dmgClass==DamageClass.EXPLOSIVE&&lifeTicks>0&&!fusionPortalCharge
+			&&(directDamage>0||splashDamage>0)
+			&&(fuse==com.terminaldetector.drmd.weapon.projectile.FuseType.IMPACT
+			||fuse==com.terminaldetector.drmd.weapon.projectile.FuseType.DELAYED_IMPACT);}
+	public void configurePointDefense(BlockPos anchor,UUID target){
+		if(!(getWorld() instanceof ServerWorld world)||ownerUuid!=null||anchor==null||target==null)return;
+		long now=world.getTime();
+		// Conservative full-frame birth guard: even a just-born round cannot catch
+		// a segment already processed earlier in its birth tick, in either order.
+		defenseSource=new DefenseSource(anchor.toImmutable(),target,now,now+1);
+	}
+	/** Exact non-homing step used both for prediction and normal tagged-round integration. */
+	public Vec3d pointDefenseStepVelocity(){
+		if(defenseSource==null||homing||pilotGuided||ownerUuid!=null)return null;
+		Vec3d velocity=getVelocity();
+		if(gravityStrength!=0)velocity=velocity.add(0,-gravityStrength*.05,0);
+		if(drag>0&&velocity.lengthSquared()>1e-6)velocity=velocity.multiply(Math.max(0,1-drag*.02));
+		return velocity;
+	}
+	/** The service supplies only its already validated real material collision. Normal hit behavior is shared. */
+	public void pointDefensePairHit(ProjectileEntity other,Vec3d point){
+		if(!isAlive()||other==null||!isArmed()||!(defenseSource!=null||isPointDefenseMissile()))return;
+		onEntityHit(new EntityHitResult(other,point));
+	}
+	public void pointDefenseOrdinaryHit(DefenseContact contact){
+		if(defenseSource==null||!isAlive()||contact==null)return;
+		if(contact.entityUuid()!=null&&getWorld() instanceof ServerWorld world){
+			Entity entity=world.getEntity(contact.entityUuid());
+			if(entity==null)entity=com.terminaldetector.drmd.world.contraption.BodySpatialIndex.find(world,contact.entityId()).orElse(null);
+			if(entity!=null&&entity.isAlive()&&entity.getUuid().equals(contact.entityUuid()))
+				onEntityHit(new MovingBodyHit(entity,new PhysicsTarget.ProjectileHit(contact.tracePoint(),contact.materialPoint())));
+			else discard();
+		}else if(contact.block()!=null)onBlockHit(new BlockHitResult(contact.tracePoint(),contact.side(),contact.block(),false));
+	}
 
 	public void setDamageClass(DamageClass c) {
 		this.dmgClass = c;
@@ -212,6 +260,10 @@ public class ProjectileEntity extends Entity {
 			return;
 		}
 		ageTicks++;
+		if(defenseSource!=null){
+			com.terminaldetector.drmd.world.trap.PointDefenseInterception.tickRound(this);
+			return;
+		}
 
 		// Fuses that do not need contact get their chance before the movement trace.
 		if (isArmed()) {
@@ -262,6 +314,7 @@ public class ProjectileEntity extends Entity {
 		synchronizeVisualVelocity();
 
 		Vec3d next = getPos().add(vel);
+		if(isPointDefenseMissile())lastMissileStep=getWorld().getTime();
 		HitResult hit = getWorld().raycast(new net.minecraft.world.RaycastContext(
 				getPos(), next,
 				net.minecraft.world.RaycastContext.ShapeType.COLLIDER,
@@ -280,8 +333,11 @@ public class ProjectileEntity extends Entity {
 				&& fuse != com.terminaldetector.drmd.weapon.projectile.FuseType.TIMED;
 		if (contactLive) {
 			EntityHitResult eHit = raycastEntity(getPos(), next);
-			if (eHit != null && (hit.getType() == HitResult.Type.MISS
-					|| eHit.getPos().squaredDistanceTo(getPos()) < hit.getPos().squaredDistanceTo(getPos()))) {
+			boolean entityFirst=eHit!=null&&(hit.getType()==HitResult.Type.MISS
+					||eHit.getPos().squaredDistanceTo(getPos())<hit.getPos().squaredDistanceTo(getPos()));
+			if(isPointDefenseMissile()&&com.terminaldetector.drmd.world.trap.PointDefenseInterception.intercept(this,getPos(),next,
+					entityFirst?eHit:hit.getType()==HitResult.Type.BLOCK?hit:null))return;
+			if (entityFirst) {
 				onEntityHit(eHit);
 				return;
 			}
@@ -531,6 +587,15 @@ public class ProjectileEntity extends Entity {
 		setVisualScale(nbt.contains("scale") ? nbt.getFloat("scale") : 1f);
 		setMeshKind(nbt.getInt("mesh"));
 		setColorRgb(dmgClass.r, dmgClass.g, dmgClass.b);
+		defenseSource=null;
+		if(ownerUuid==null&&dmgClass==DamageClass.KINETIC&&nbt.contains("pdAnchor")&&nbt.containsUuid("pdTarget")){
+			float savedGravity=nbt.getFloat("pdGravity"),savedDrag=nbt.getFloat("pdDrag");
+			if(Float.isFinite(savedGravity)&&savedGravity>=0&&savedGravity<=1&&Float.isFinite(savedDrag)&&savedDrag>=0&&savedDrag<=1){
+				gravityStrength=savedGravity;drag=savedDrag;lifeTicks=Math.min(lifeTicks,10);
+				long now=getWorld().getTime();defenseSource=new DefenseSource(BlockPos.fromLong(nbt.getLong("pdAnchor")),nbt.getUuid("pdTarget"),now,now+1);
+				int color=nbt.getInt("pdColor");setColorRgb((color>>16)&255,(color>>8)&255,color&255);
+			}
+		}
 	}
 
 	@Override
@@ -546,6 +611,10 @@ public class ProjectileEntity extends Entity {
 		nbt.putBoolean("drill", drillCarve);
 		nbt.putFloat("scale", getVisualScale());
 		nbt.putInt("mesh", getMeshKind());
+		if(defenseSource!=null){
+			nbt.putLong("pdAnchor",defenseSource.anchor().asLong());nbt.putUuid("pdTarget",defenseSource.target());
+			nbt.putFloat("pdGravity",gravityStrength);nbt.putFloat("pdDrag",drag);nbt.putInt("pdColor",getColorRgb());
+		}
 	}
 
 	@Override

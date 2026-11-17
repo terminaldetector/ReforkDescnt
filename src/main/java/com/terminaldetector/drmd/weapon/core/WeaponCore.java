@@ -117,10 +117,24 @@ public final class WeaponCore {
 		}
 
 		Vec3d vel = dir.multiply(spd).add(shipVel.multiply(inheritFactor));
+		return spawnConfigured(world,cfg,vel,dir,recoilFactor,null,null);
+	}
+
+	/** Explicit ownerless static muzzle. The original owner-based API still rejects null owners. */
+	public static ProjectileEntity fireAnchoredProjectile(ServerWorld world,net.minecraft.util.math.BlockPos source,
+			FireConfig cfg,java.util.UUID target) {
+		if(!com.terminaldetector.drmd.world.trap.PointDefenseInterception.mayLaunch(world,source,cfg,target))return null;
+		float speed=cfg.speedIsSourceUnits?(float)(DescentMod.su(cfg.speed)/DescentMod.TICKS_PER_SECOND):cfg.speed;
+		Vec3d dir=cfg.dir.normalize();
+		return spawnConfigured(world,cfg,dir.multiply(speed),dir,0,source,target);
+	}
+
+	private static ProjectileEntity spawnConfigured(ServerWorld world,FireConfig cfg,Vec3d vel,Vec3d dir,
+			float recoilFactor,net.minecraft.util.math.BlockPos anchor,java.util.UUID target) {
 
 		ProjectileEntity proj = ModEntities.PROJECTILE.create(world);
 		if (proj == null) return null;
-		proj.setOwner(cfg.owner);
+		if(cfg.owner!=null)proj.setOwner(cfg.owner);
 		proj.setPosition(cfg.pos);
 		proj.setVelocity(vel);
 		proj.setDamageClass(cfg.dmgClass);
@@ -145,12 +159,14 @@ public final class WeaponCore {
 		proj.setDrillCarve(cfg.drillCarve);
 		proj.setFuse(cfg.fuse, cfg.fuseSeconds, cfg.armSeconds, cfg.proximityRadius);
 		proj.setIgniteOnHit(cfg.igniteOnHit);
+		if(anchor!=null)proj.configurePointDefense(anchor,target);
 		proj.synchronizeVisualVelocity();
 		if (!world.spawnEntity(proj)) return null;
+		if(anchor!=null)com.terminaldetector.drmd.world.trap.PointDefenseInterception.track(proj);
 		com.terminaldetector.drmd.network.ModNetworking.shotFx(world, cfg.pos,
 				proj.getColorRgb(), cfg.visualScale, false);
 
-		applyRecoil(cfg.owner, dir, recoilFactor);
+		if(cfg.owner!=null)applyRecoil(cfg.owner, dir, recoilFactor);
 		return proj;
 	}
 
