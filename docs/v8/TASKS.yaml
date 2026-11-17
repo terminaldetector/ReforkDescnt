@@ -1028,11 +1028,11 @@ tasks:
   owner: GAMEPLAY
   gate: G5
   depends_on_stages: *id015
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [MISSION_U05_LEDGER_FC54C41_2026-11-17.md, EVIDENCE/mission-ledger-fc54c41-units.json]
+  notes: Isolated lab contract/catalog/owner ledger and live-event adapter compile and pass18 protocol/NBT units on fc54c416. Actual six-case gameplay/cold reopening and UFO/convoy adapters remain open; no complete-task acceptance.
 - id: S15-T01
   stage: S15
   stage_title: Cleanup / asset and UI integration

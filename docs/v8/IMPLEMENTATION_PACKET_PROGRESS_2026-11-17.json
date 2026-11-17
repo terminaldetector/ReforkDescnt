@@ -1,7 +1,7 @@
 {
   "schema": "ungravity.implementation-packet-progress.v1",
   "date": "2026-11-17",
-  "canonicalServerSource": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
+  "canonicalServerSource": "30959990c104543a78940a3baecf95ee4f73517d",
   "lastTwoClientSource": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
   "originalMap": "docs/v8/UNTOUCHED_IMPLEMENTATION_PACKETS_2026-11-17.json",
   "originalMapSha256": "f387b0d7ef5b04d8b75883ff2c13fa0bab114ff26028df64ef20025bf3d2e9d1",
@@ -37,7 +37,7 @@
       "status": "active_candidate",
       "owner": "audit_integration",
       "source": "e0478ce / 2ace809",
-      "remaining": "Five synchronized sockets exist. Preview production compiles/six units; two native observer attempts have0accepted scenes (startup deadline/ProcessInfo unavailable), so actual equip/remove/held client acceptance remains open.",
+      "remaining": "Preview source compiles and6geometry units pass; actual menu/bare model observed, but first same-JAR XTest run has0accepted scenes because final cursor callback is unacknowledged. Full equip/remove/held pixel gate remains open.",
       "report": null,
       "acceptedAsWhole": false
     },
@@ -68,7 +68,7 @@
       "status": "partial_integrated",
       "owner": "combat_ai",
       "source": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
-      "remaining": "Non-autostart saved intent/order guards retained in885units/450ordinaryGameTests and two same-JAR clients. Automatic siege stays absent. Manual-axis friendly AA is an isolated uncompiled candidate after genuine1FAIL/1PASS baseline.",
+      "remaining": "Saved non-autostart intent remains integrated. Separate player-AA c5 natural2/retained68+5guards pass; first79 phase rerun interrupted on witnessed test-harness completion deadlock. Success-relay correction is frozen, full79 and opaque-ownership refusal remain open.",
       "report": "MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md",
       "acceptedAsWhole": false
     },
@@ -79,11 +79,11 @@
         "S14-T05",
         "S13-T06"
       ],
-      "status": "active_source",
+      "status": "isolated protocol candidate",
       "owner": "world_content",
-      "source": "f9aa4e0 / 79bf55a",
-      "remaining": "Genuine real Survival3-use baseline gives0→3→6→9; production actual-event/extraction/same-state once-only reward implementation is now authorized. Candidate is not integrated or accepted.",
-      "report": "MISSION_U05_RUNTIME_CONTRACT_2026-11-17.md",
+      "source": "fc54c416fdf1ba77339a909162cad21a32e122dd",
+      "remaining": "Real original3-use baseline grants+9. Bounded catalog/ordered owner ledger/same-FactionMemory claim+rep and actual-event adapter now compile and pass18fresh protocol/NBT units. Six ordinary gameplay cases and genuine cold reopen are pending; other mission families are unimplemented.",
+      "report": "docs/v8/MISSION_U05_LEDGER_FC54C41_2026-11-17.md",
       "acceptedAsWhole": false
     },
     {
@@ -311,12 +311,13 @@
         "S13-T03",
         "S13-T05"
       ],
-      "status": "active_candidate",
+      "status": "isolated cloud candidate",
       "owner": "ps1_render / world_cubic",
-      "source": "68fb20a / e2fda77 / f6d8ac1",
-      "remaining": "Canonical saved-surface arrival passes; isolated cloud production17units pass, original near frames pass, first far observer boundary fails before completed frame. Private executed-draw observer repair awaits native; generalized volumetric tiers remain open.",
-      "report": "MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md",
+      "source": "7317ddb055d9096a0208257607fd1e446d373894",
+      "remaining": "Isolated7317/f035 passes18units and five-pose Sodium high-cloud visibility/occlusion. First FabulousGL3.2 exposes unsupported actual28B VBO and invalid sampler query; corrections and baseline compositor depth remain separate. No canonical/backend/volumetric atmosphere completion.",
+      "report": "docs/v8/ALTITUDE_CLOUD_FIRST_SODIUM_POSITIVE_2026-11-17.md",
       "acceptedAsWhole": false
     }
-  ]
+  ],
+  "supplementalClauseAudit": "docs/v8/SUPPLEMENTAL_CLAUSE_AUDIT_3095999_2026-11-17.json"
 }
