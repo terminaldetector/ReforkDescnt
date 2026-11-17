@@ -51,6 +51,10 @@ public final class ModWorldBlocks {
             new com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));
     public static final Block ROTARY_DRIVE=registerBlock("rotary_drive",
             new com.terminaldetector.drmd.world.contraption.mechanism.RotaryDriveBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));
+    public static final Block SLIDING_BEARING=registerBlock("sliding_bearing",
+            new com.terminaldetector.drmd.world.contraption.mechanism.SlidingBearingBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));
+    public static final Block LINEAR_DRIVE=registerBlock("linear_drive",
+            new com.terminaldetector.drmd.world.contraption.mechanism.LinearDriveBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));
     public static final Block SHIP_ROCKET = registerBlock("ship_rocket",
             new com.terminaldetector.drmd.world.contraption.mechanism.MountedWeaponBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));
 
@@ -229,7 +233,7 @@ public final class ModWorldBlocks {
         MECHANISM_WRENCH=Registry.register(Registries.ITEM,Identifier.of(DescentMod.MOD_ID,"mechanism_wrench"),
             new com.terminaldetector.drmd.world.contraption.mechanism.MechanismWrenchItem(new Item.Settings().maxCount(1)));
 		ItemGroupEvents.modifyEntriesEvent(ModItems.GROUP_KEY).register(entries -> {
-			entries.add(MECHANICAL_BEARING);entries.add(ROTARY_DRIVE);entries.add(MECHANISM_WRENCH);
+			entries.add(MECHANICAL_BEARING);entries.add(ROTARY_DRIVE);entries.add(SLIDING_BEARING);entries.add(LINEAR_DRIVE);entries.add(MECHANISM_WRENCH);
 			entries.add(SIX_D_SOIL);
 			entries.add(HERMETIC_GATE);
 			entries.add(LASER_BARRIER);

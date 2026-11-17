@@ -376,5 +376,8 @@
   "message.drmd.threat.warning": "%s received your combat alarm. Recon is approaching; hide or leave the area.",
   "message.drmd.threat.search": "%s is searching the alarm area. Break sight or intercept the recon drones.",
   "message.drmd.threat.hunt": "%s confirmed visual contact. Take cover or escape the search area.",
-  "message.drmd.threat.cooldown": "%s ended its search. No further recon wave is queued."
+  "message.drmd.threat.cooldown": "%s ended its search. No further recon wave is queued.",
+  "block.drmd.sliding_bearing": "Sliding Bearing",
+  "block.drmd.linear_drive": "Linear Drive",
+  "tooltip.drmd.mechanism.linear": "Linear stage: two opposing sliding bearings, matching drive behind either. Stroke 2 m; sneak-use reverses."
 }

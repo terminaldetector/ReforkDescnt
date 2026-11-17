@@ -21,6 +21,7 @@ public final class MechanismWrenchItem extends Item {
         tooltip.add(Text.translatable("tooltip.drmd.mechanism.world"));
         tooltip.add(Text.translatable("tooltip.drmd.mechanism.bearings"));
         tooltip.add(Text.translatable("tooltip.drmd.mechanism.drive"));
+        tooltip.add(Text.translatable("tooltip.drmd.mechanism.linear"));
         tooltip.add(Text.translatable("tooltip.drmd.mechanism.weapons"));
     }
 }

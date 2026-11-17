@@ -5,6 +5,8 @@
     "drmd:ship_laser",
     "drmd:ship_rocket",
     "drmd:mechanical_bearing",
-    "drmd:rotary_drive"
+    "drmd:rotary_drive",
+    "drmd:sliding_bearing",
+    "drmd:linear_drive"
   ]
 }

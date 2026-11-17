@@ -1,0 +1,15 @@
+// Dedicated component and retained rotary regressions; ordinary manifest stays root-owned.
+gradle.projectsEvaluated {
+    rootProject.tasks.named('processGametestResources') {
+        outputs.upToDateWhen { false }
+        doLast {
+            def manifest = new File(destinationDir, 'fabric.mod.json')
+            def data = new groovy.json.JsonSlurper().parse(manifest)
+            data.entrypoints['fabric-gametest'] = [
+                'com.terminaldetector.drmd.LinearMechanismGameTests',
+                'com.terminaldetector.drmd.MechanismGameTests'
+            ]
+            manifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(data))
+        }
+    }
+}

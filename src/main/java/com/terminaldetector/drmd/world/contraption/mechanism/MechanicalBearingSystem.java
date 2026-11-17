@@ -24,6 +24,7 @@ import java.util.*;
  * No controller entity, duplicate rigid body, automatic turret blueprint or pose snapping. */
 public final class MechanicalBearingSystem {
     public static final double MAX_SPEED=.6,MAX_TORQUE=40;
+    public static final double MAX_LINEAR_SPEED=.6,MAX_LINEAR_FORCE=40,LINEAR_TRAVEL=2;
     private static final Vec3 X=new Vec3(1,0,0);
     private record Selection(RegistryKey<World> world,long tick,BlockPos corner,UUID body,BlockPos cell,long revision){}
     private static final Map<UUID,Selection> SELECTIONS=new HashMap<>();
@@ -44,6 +45,11 @@ public final class MechanicalBearingSystem {
     }
     private static void message(ServerPlayerEntity player,String key){player.sendMessage(Text.translatable("message.drmd.mechanism."+key),true);}
     public static boolean usable(BlockState state){return state.getBlock() instanceof MechanicalBearingBlock;}
+    private static boolean isDrive(BlockState state){return state.isOf(ModWorldBlocks.ROTARY_DRIVE)||state.isOf(ModWorldBlocks.LINEAR_DRIVE);}
+    private static boolean bearing(BlockState state,BodyJointConstraint.Kind kind){
+        return kind==BodyJointConstraint.Kind.MOTOR?state.isOf(ModWorldBlocks.MECHANICAL_BEARING)
+            :kind==BodyJointConstraint.Kind.SLIDER&&state.isOf(ModWorldBlocks.SLIDING_BEARING);
+    }
     private static Vec3 direction(BlockState state){var d=state.get(MechanicalBearingBlock.FACING);return new Vec3(d.getOffsetX(),d.getOffsetY(),d.getOffsetZ());}
     private static Vec3 point(BlockPos cell,BlockState state){return new Vec3(cell.getX()+.5,cell.getY()+.5,cell.getZ()+.5).plus(direction(state).scaled(.5));}
     private static Vec3d vanilla(Vec3 v){return new Vec3d(v.x(),v.y(),v.z());}
@@ -58,7 +64,7 @@ public final class MechanicalBearingSystem {
     public static boolean use(ServerPlayerEntity player,BlockBodyEntity body,BlockPos cell){
         if(!eligible(player)||!editable(player,body,cell))return false;
         var state=body.getLocalBlock(cell);if(!usable(state))return false;
-        if(state.isOf(ModWorldBlocks.ROTARY_DRIVE)){
+        if(isDrive(state)){
             var updated=player.isSneaking()?state.cycle(Properties.INVERTED):state.with(Properties.POWER,((state.get(Properties.POWER)/5+1)%4)*5);
             if(!body.setLocalBlock(cell,updated))return false;
             refreshBody(body);message(player,"drive");return true;
@@ -108,36 +114,38 @@ public final class MechanicalBearingSystem {
     public static boolean connect(ServerWorld world,BlockBodyEntity a,BlockPos ca,BlockBodyEntity b,BlockPos cb){
         if(!world.getServer().isOnThread()||a==b||a.getWorld()!=world||b.getWorld()!=world||a.isRemoved()||b.isRemoved())return false;
         var sa=a.getLocalBlock(ca);var sb=b.getLocalBlock(cb);
-        if(!sa.isOf(ModWorldBlocks.MECHANICAL_BEARING)||!sb.isOf(ModWorldBlocks.MECHANICAL_BEARING))return false;
+        var kind=sa.isOf(ModWorldBlocks.SLIDING_BEARING)?BodyJointConstraint.Kind.SLIDER:BodyJointConstraint.Kind.MOTOR;
+        if(!bearing(sa,kind)||!bearing(sb,kind))return false;
         var pa=point(ca,sa);var pb=point(cb,sb);var na=a.rotation().rotate(direction(sa));var nb=b.rotation().rotate(direction(sb));
         if(a.localToWorld(vanilla(pa)).distanceTo(b.localToWorld(vanilla(pb)))>.04||na.dot(nb)>-.999)return false;
         var registry=BodyJointRegistry.get(world);
         if(registry.forBody(a.getUuid()).stream().anyMatch(l->owns(l,a,ca))||registry.forBody(b.getUuid()).stream().anyMatch(l->owns(l,b,cb)))return false;
         var frameA=PortalTransform.rotationBetween(X,direction(sa));
         var frameB=ImmPtlQuaternions.hamiltonProduct(b.rotation().inverse(),ImmPtlQuaternions.hamiltonProduct(a.rotation(),frameA));
-        var link=new BodyJointLink(UUID.randomUUID(),new BodyJointLink.Endpoint(a.getUuid(),ca,pa,frameA),new BodyJointLink.Endpoint(b.getUuid(),cb,pb,frameB),BodyJointConstraint.Kind.MOTOR,
-            Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,0,0,50000,50000,true,true);
+        var link=new BodyJointLink(UUID.randomUUID(),new BodyJointLink.Endpoint(a.getUuid(),ca,pa,frameA),new BodyJointLink.Endpoint(b.getUuid(),cb,pb,frameB),kind,
+            kind==BodyJointConstraint.Kind.SLIDER?0:Double.NEGATIVE_INFINITY,kind==BodyJointConstraint.Kind.SLIDER?LINEAR_TRAVEL:Double.POSITIVE_INFINITY,0,0,50000,50000,true,true);
         try{registry.add(world,a,b,link);}catch(IllegalArgumentException invalid){return false;}
         refresh(world,link,a,b);return true;
     }
-    private static BlockState drive(BlockBodyEntity body,BodyJointLink.Endpoint endpoint){
-        var bearing=body.getLocalBlock(endpoint.cell());
-        if(!bearing.isOf(ModWorldBlocks.MECHANICAL_BEARING))return null;
-        var state=body.getLocalBlock(endpoint.cell().offset(bearing.get(MechanicalBearingBlock.FACING).getOpposite()));
-        return state.isOf(ModWorldBlocks.ROTARY_DRIVE)&&state.get(MechanicalBearingBlock.FACING)==bearing.get(MechanicalBearingBlock.FACING)?state:null;
+    private static BlockState drive(BlockBodyEntity body,BodyJointLink.Endpoint endpoint,BodyJointConstraint.Kind kind){
+        var support=body.getLocalBlock(endpoint.cell());
+        if(!bearing(support,kind))return null;
+        var state=body.getLocalBlock(endpoint.cell().offset(support.get(MechanicalBearingBlock.FACING).getOpposite()));
+        var type=kind==BodyJointConstraint.Kind.SLIDER?ModWorldBlocks.LINEAR_DRIVE:ModWorldBlocks.ROTARY_DRIVE;
+        return state.isOf(type)&&state.get(MechanicalBearingBlock.FACING)==support.get(MechanicalBearingBlock.FACING)?state:null;
     }
     /** Once per existing island solve, before integrating any forces. The registry owns all state.
      * Destroyed drives coast; destroyed/replaced bearing material breaks the attachment. */
     public static BodyJointLink refresh(ServerWorld world,BodyJointLink link,BlockBodyEntity a,BlockBodyEntity b){
         if(!link.blockDriven())return link;
         var registry=BodyJointRegistry.get(world);var sa=a.getLocalBlock(link.a().cell());var sb=b.getLocalBlock(link.b().cell());
-        if(!sa.isOf(ModWorldBlocks.MECHANICAL_BEARING)||!sb.isOf(ModWorldBlocks.MECHANICAL_BEARING)
+        if(!bearing(sa,link.kind())||!bearing(sb,link.kind())
             ||direction(sa).dot(link.a().frame().rotate(X))<.999||direction(sb).dot(link.b().frame().rotate(X))>-.999){registry.remove(link.id());return null;}
-        var da=drive(a,link.a());var db=drive(b,link.b());
+        var da=drive(a,link.a(),link.kind());var db=drive(b,link.b(),link.kind());
         // Two sources on one axle are ambiguous: coast rather than grant extra torque.
         var source=da==null?db:db==null?da:null;
-        double speed=source==null?0:source.get(Properties.POWER)*MAX_SPEED/15*(source.get(Properties.INVERTED)?-1:1);
-        double force=speed==0?0:MAX_TORQUE;
+        double speed=source==null?0:source.get(Properties.POWER)*(link.kind()==BodyJointConstraint.Kind.SLIDER?MAX_LINEAR_SPEED:MAX_SPEED)/15*(source.get(Properties.INVERTED)?-1:1);
+        double force=speed==0?0:link.kind()==BodyJointConstraint.Kind.SLIDER?MAX_LINEAR_FORCE:MAX_TORQUE;
         registry.configure(link.id(),speed,force,link.breakForce(),link.breakTorque());return registry.find(link.id()).orElse(null);
     }
     private static void refreshBody(BlockBodyEntity body){
