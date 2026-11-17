@@ -1,0 +1,114 @@
+{
+  "source": "4849402e321769a1a0542f2bcf77dbbc23b9baca",
+  "wireFormat": 1,
+  "heightBigEndianSignedShortOffset": 1,
+  "colourRgbOffset": 2049,
+  "packets": {
+    "2": {
+      "bytes": 5121,
+      "sha256": "1540d14455e92af9de9d2076c0364eab567837d4a47445b99c5d7891b2c8c17c",
+      "cell": {
+        "height": 2160,
+        "colour": 0
+      }
+    },
+    "3": {
+      "bytes": 5121,
+      "sha256": "1540d14455e92af9de9d2076c0364eab567837d4a47445b99c5d7891b2c8c17c",
+      "cell": {
+        "height": 2160,
+        "colour": 0
+      }
+    },
+    "4": {
+      "bytes": 5121,
+      "sha256": "694c71ed3c4d9ff87d69c2a94f3481ca504bbbbcdfd9c71aa7d60104bda60bfd",
+      "cell": {
+        "height": 2301,
+        "colour": 16445005
+      }
+    },
+    "5": {
+      "bytes": 5121,
+      "sha256": "e93131ff5002b20e236c3fc7414fd54c7c437bf2a57493d2ce421ad0f4ce1bad",
+      "cell": {
+        "height": 2299,
+        "colour": 8375321
+      }
+    },
+    "6": {
+      "bytes": 5121,
+      "sha256": "694c71ed3c4d9ff87d69c2a94f3481ca504bbbbcdfd9c71aa7d60104bda60bfd",
+      "cell": {
+        "height": 2301,
+        "colour": 16445005
+      }
+    },
+    "7": {
+      "bytes": 5121,
+      "sha256": "694c71ed3c4d9ff87d69c2a94f3481ca504bbbbcdfd9c71aa7d60104bda60bfd",
+      "cell": {
+        "height": 2301,
+        "colour": 16445005
+      }
+    },
+    "8": {
+      "bytes": 5121,
+      "sha256": "694c71ed3c4d9ff87d69c2a94f3481ca504bbbbcdfd9c71aa7d60104bda60bfd",
+      "cell": {
+        "height": 2301,
+        "colour": 16445005
+      }
+    }
+  },
+  "scenes": [
+    {
+      "scene": "loaded-known-gold",
+      "packet": 4,
+      "cell": {
+        "height": 2301,
+        "colour": 16445005
+      },
+      "actualPacketSha256": "694c71ed3c4d9ff87d69c2a94f3481ca504bbbbcdfd9c71aa7d60104bda60bfd"
+    },
+    {
+      "scene": "loaded-demolition-lime",
+      "packet": 5,
+      "cell": {
+        "height": 2299,
+        "colour": 8375321
+      },
+      "actualPacketSha256": "e93131ff5002b20e236c3fc7414fd54c7c437bf2a57493d2ce421ad0f4ce1bad"
+    },
+    {
+      "scene": "loaded-restored-gold",
+      "packet": 6,
+      "cell": {
+        "height": 2301,
+        "colour": 16445005
+      },
+      "actualPacketSha256": "694c71ed3c4d9ff87d69c2a94f3481ca504bbbbcdfd9c71aa7d60104bda60bfd"
+    },
+    {
+      "scene": "unknown-winner-preserved",
+      "packet": 7,
+      "cell": {
+        "height": 2301,
+        "colour": 16445005
+      },
+      "actualPacketSha256": "694c71ed3c4d9ff87d69c2a94f3481ca504bbbbcdfd9c71aa7d60104bda60bfd"
+    }
+  ],
+  "finalPacket": 8,
+  "finalSavedSection": {
+    "compressedBytes": 76,
+    "compressedSha256": "e66779cf270b661c8897b1b34c6e085e0da941626e34454be601f150af30a715",
+    "decodedBytes": 5121,
+    "cell": {
+      "height": 2301,
+      "colour": 16445005
+    }
+  },
+  "allAssertionsPassed": true,
+  "scope": "Independent Python decoding of original actual received bytes and saved compressed section; no generated substitute values"
+}

@@ -1,0 +1,54 @@
+{
+  "REPORT.md": {
+    "bytes": 2037,
+    "sha256": "c2dadad59f8ec7073b4ad235109e988358abe45bd614c7a948be5270146b9729"
+  },
+  "closed-disposable-world.tar.gz": {
+    "bytes": 464186,
+    "sha256": "94221236ab78a722f1404ea07393012c8b2fdc1ec5f45000edf9d740eae63884"
+  },
+  "closed-world-receipt.json": {
+    "bytes": 4485,
+    "sha256": "691ff24e7f00ce825b1f8fca7c5fdbdaaf21b8b52765c8f65bd0bfd5587b1eee"
+  },
+  "fixture-mixins.json": {
+    "bytes": 195,
+    "sha256": "b7481de914d04e8278b19ebac23ba90ac670fbcea7dedc38d70aad018ce196de"
+  },
+  "freshness.json": {
+    "bytes": 174,
+    "sha256": "6433503e87f4206857299521570702bcac959a1913b2e374bc2a00af49795b46"
+  },
+  "gametest-results.xml": {
+    "bytes": 452,
+    "sha256": "a31de9d23a39e635821c345ae2c58e707aeeac9e1fdc10bc34867551705608ef"
+  },
+  "generated-fabric.mod.json": {
+    "bytes": 429,
+    "sha256": "7fd17358dd1332f725f0fd9564eb8da1d393f31bf20c5223a177c9387d70b8c9"
+  },
+  "gradle.exit": {
+    "bytes": 2,
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+  },
+  "original-level.dat": {
+    "bytes": 1685,
+    "sha256": "e8bd083646cb895508a8bf518a4da389e47ed275256d55e62934790ac506dd5f"
+  },
+  "run.log": {
+    "bytes": 41492,
+    "sha256": "e8de291cf7091049fc56df5e6a5ad5c0bd2f48e40705100f268f2f44b30478d3"
+  },
+  "source-inputs.json": {
+    "bytes": 215178,
+    "sha256": "5d56aba37de5c560f31ea6bacdf6adbb2f9e2616ec68b8b1d48f91c4b51d532f"
+  },
+  "source.txt": {
+    "bytes": 41,
+    "sha256": "b61888f6e159884afe21bee89da3781ac4751b30dceb8b1993419789fa0d0675"
+  },
+  "unit-results.xml": {
+    "bytes": 1164,
+    "sha256": "b2d916d50f9efbc145a71782d0deda6dca7730b51de228b1d9756046abca09b6"
+  }
+}

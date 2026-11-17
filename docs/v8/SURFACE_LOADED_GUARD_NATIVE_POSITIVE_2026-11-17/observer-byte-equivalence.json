@@ -1,0 +1,48 @@
+{
+  "negativeObserverJarSha256": "a456314bd97b610dfbca379b36344e80d83c8f677f6d6b3c4ab58fabb2893da0",
+  "candidateObserverJarSha256": "a456314bd97b610dfbca379b36344e80d83c8f677f6d6b3c4ab58fabb2893da0",
+  "allSurfaceGateAndProbeClassesByteIdentical": true,
+  "fullMixinJsonByteIdentical": true,
+  "classes": {
+    "com/terminaldetector/drmd/gate/NativeSurfaceIngestCheck$Cell.class": {
+      "negative": "dd61a984c5a9561b98822584c05a15f947a7696db37b04671a797d65bdcd18eb",
+      "candidate": "dd61a984c5a9561b98822584c05a15f947a7696db37b04671a797d65bdcd18eb"
+    },
+    "com/terminaldetector/drmd/gate/NativeSurfaceIngestCheck$ClientSample.class": {
+      "negative": "85fcfcaa79b301f736c0937e4c5d49d5e5bf0c5f3979c3b560f75d29ed1c2c75",
+      "candidate": "85fcfcaa79b301f736c0937e4c5d49d5e5bf0c5f3979c3b560f75d29ed1c2c75"
+    },
+    "com/terminaldetector/drmd/gate/NativeSurfaceIngestCheck$IngestEvent.class": {
+      "negative": "f1755857a5ce5279def7ec07b4adba1841d9e2ece2398678f80336472f4fcf84",
+      "candidate": "f1755857a5ce5279def7ec07b4adba1841d9e2ece2398678f80336472f4fcf84"
+    },
+    "com/terminaldetector/drmd/gate/NativeSurfaceIngestCheck$Packet.class": {
+      "negative": "027f165da445f8d9acdae6606a15c307acbc63a8aa3f821969a22fd56250a7c8",
+      "candidate": "027f165da445f8d9acdae6606a15c307acbc63a8aa3f821969a22fd56250a7c8"
+    },
+    "com/terminaldetector/drmd/gate/NativeSurfaceIngestCheck$Phase.class": {
+      "negative": "8467c0c17ab1703af30bc9d529e7a767bff387ddb8d1ac4a3182745ff5feffd3",
+      "candidate": "8467c0c17ab1703af30bc9d529e7a767bff387ddb8d1ac4a3182745ff5feffd3"
+    },
+    "com/terminaldetector/drmd/gate/NativeSurfaceIngestCheck.class": {
+      "negative": "eddd28f15b729618b3bf3eb74e3bfff7fbe15ff46da9f1622565e423af7836c8",
+      "candidate": "eddd28f15b729618b3bf3eb74e3bfff7fbe15ff46da9f1622565e423af7836c8"
+    },
+    "com/terminaldetector/drmd/gate/mixin/SurfaceIngestBootstrapProbe.class": {
+      "negative": "4f77cf61e701bb317f9d7df32064eb444a315f8ef43d1124e8411082679741ba",
+      "candidate": "4f77cf61e701bb317f9d7df32064eb444a315f8ef43d1124e8411082679741ba"
+    },
+    "com/terminaldetector/drmd/gate/mixin/SurfaceIngestFrameProbe.class": {
+      "negative": "b0c608c1dcbf1e37a71b3f175e31c4bf5ed6f4303799b1467591959bdb2bb1fc",
+      "candidate": "b0c608c1dcbf1e37a71b3f175e31c4bf5ed6f4303799b1467591959bdb2bb1fc"
+    },
+    "com/terminaldetector/drmd/gate/mixin/SurfaceIngestPacketProbe.class": {
+      "negative": "48276bfea778665331bdbfd4780d2416e741be563f55e9cb4b9b05bb4dff0f9e",
+      "candidate": "48276bfea778665331bdbfd4780d2416e741be563f55e9cb4b9b05bb4dff0f9e"
+    },
+    "com/terminaldetector/drmd/gate/mixin/SurfaceIngestServerProbe.class": {
+      "negative": "eb8b5e04b4408058052592418e25117ebc4b496566b6405a256a8315f8045cdb",
+      "candidate": "eb8b5e04b4408058052592418e25117ebc4b496566b6405a256a8315f8045cdb"
+    }
+  }
+}
