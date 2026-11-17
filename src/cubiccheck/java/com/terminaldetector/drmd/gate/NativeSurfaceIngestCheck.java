@@ -61,9 +61,9 @@ public final class NativeSurfaceIngestCheck {
     private record ClientSample(double y,boolean highFull,boolean lowFull,Cell cell,Packet packet) {}
     private static final class IngestEvent {
         final int sequence;final Cell before;final boolean highBefore,lowBefore;final int metadataHeight;
-        BlockPos actualWinner;boolean winnerFull;Integer returnedColour;Cell after;boolean highAfter;
+        BlockPos actualWinner;String actualWinnerState;boolean winnerFull;Integer returnedColour;Cell after;boolean highAfter;
         IngestEvent(ServerWorld world,WorldChunk chunk){sequence=++ingestSequence;before=serverCell();var access=WorldAccess.of(world);highBefore=access.isVolumeAvailable(HIGH_CUBE);lowBefore=access.isVolumeAvailable(LOW_CUBE);metadataHeight=chunk.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,8,8);}
-        Map<String,Object> json(){var m=new LinkedHashMap<String,Object>();m.put("sequence",sequence);m.put("before",before);m.put("after",after);m.put("highFullBefore",highBefore);m.put("highFullAfter",highAfter);m.put("lowFull",lowBefore);m.put("metadataHeightAtAuthoredHigh",metadataHeight);m.put("actualWinner",actualWinner==null?null:actualWinner.toShortString());m.put("actualWinnerFull",winnerFull);m.put("returnedColour",returnedColour);return m;}
+        Map<String,Object> json(){var m=new LinkedHashMap<String,Object>();m.put("sequence",sequence);m.put("before",before);m.put("after",after);m.put("highFullBefore",highBefore);m.put("highFullAfter",highAfter);m.put("lowFull",lowBefore);m.put("metadataHeightAtAuthoredHigh",metadataHeight);m.put("actualWinner",actualWinner==null?null:actualWinner.toShortString());m.put("actualWinnerFull",winnerFull);m.put("actualWinnerStateIfLoaded",actualWinnerState);m.put("returnedColour",returnedColour);return m;}
     }
     private NativeSurfaceIngestCheck(){}
     public static void register(){
@@ -78,7 +78,7 @@ public final class NativeSurfaceIngestCheck {
     }
     public static void colourEntering(ServerWorld world,WorldChunk chunk,BlockPos pos){
         if(!ENABLED||!CubicAvailability.onWorldThread(world)||ENTERED.isEmpty()||world!=player.getServerWorld()||chunk.getPos().x!=0||chunk.getPos().z!=0)return;
-        var e=ENTERED.peek();e.actualWinner=pos.toImmutable();e.winnerFull=WorldAccess.of(world).isVolumeAvailable(D6ChunkPos.ofBlock(pos.getX(),pos.getY(),pos.getZ()));
+        var e=ENTERED.peek();e.actualWinner=pos.toImmutable();var access=WorldAccess.of(world);e.winnerFull=access.isVolumeAvailable(D6ChunkPos.ofBlock(pos.getX(),pos.getY(),pos.getZ()));e.actualWinnerState=access.readIfLoaded(pos).map(Object::toString).orElse(null);
     }
     public static void colourReturned(ServerWorld world,WorldChunk chunk,int rgb){
         if(ENABLED&&CubicAvailability.onWorldThread(world)&&!ENTERED.isEmpty()&&world==player.getServerWorld()&&chunk.getPos().x==0&&chunk.getPos().z==0)ENTERED.peek().returnedColour=rgb;
@@ -113,10 +113,10 @@ public final class NativeSurfaceIngestCheck {
     private static void capture(String name){if(!name.equals(captureName)){frames=0;captureName=name;}}
     private static Map<String,Object> snapshot(String scene){
         var world=player.getServerWorld();var access=WorldAccess.of(world);var column=CubicAvailability.loadedColumn(world,0,0);
-        var row=new LinkedHashMap<String,Object>();row.put("scene",scene);row.put("phase",phase);row.put("serverPlayer",player.getPos().toString());row.put("client",clientSample);row.put("serverCell",serverCell());row.put("diskCell",diskCell());row.put("highFull",access.isVolumeAvailable(HIGH_CUBE));row.put("lowFull",access.isVolumeAvailable(LOW_CUBE));row.put("retainedLowMarker",is(LOW,Blocks.CYAN_CONCRETE));row.put("parentColumnPresent",column!=null);row.put("parentColumnIdentity",column==null?0:System.identityHashCode(column));row.put("metadataHeightAtHigh",column==null?null:column.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,8,8));row.put("lastIngest",lastIngest==null?null:lastIngest.json());row.put("firstViolation",firstViolation==null?null:firstViolation.json());return row;
+        var row=new LinkedHashMap<String,Object>();row.put("scene",scene);row.put("phase",phase);row.put("serverPlayer",player.getPos().toString());row.put("client",clientSample);row.put("serverCell",serverCell());row.put("diskCell",diskCell());row.put("authoredHighBlockY",HIGH.getY());row.put("actualHighStateIfLoaded",access.readIfLoaded(HIGH).map(Object::toString).orElse(null));row.put("expectedGoldSurface",gold);row.put("highFull",access.isVolumeAvailable(HIGH_CUBE));row.put("lowFull",access.isVolumeAvailable(LOW_CUBE));row.put("retainedLowMarker",is(LOW,Blocks.CYAN_CONCRETE));row.put("parentColumnPresent",column!=null);row.put("parentColumnIdentity",column==null?0:System.identityHashCode(column));row.put("metadataHeightAtHigh",column==null?null:column.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,8,8));row.put("lastIngest",lastIngest==null?null:lastIngest.json());row.put("firstViolation",firstViolation==null?null:firstViolation.json());return row;
     }
     private static void finish(String status,String why){
-        if(phase==Phase.CLOSE)return;finalSnapshot=snapshot(status);closingStatus=status;closingReason=why;phase=Phase.CLOSE;frames=0;captureName=status.equals("PASS")?"returned-high-known":status.equals("PREMISE_NOT_OBSERVED")?"premise-not-observed":"failed-unknown-winner";
+        if(phase==Phase.CLOSE)return;finalSnapshot=snapshot(status);closingStatus=status;closingReason=why;phase=Phase.CLOSE;frames=0;captureName=switch(status){case "PASS"->"returned-high-known";case "PREMISE_NOT_OBSERVED"->"premise-not-observed";case "CONTROL_FAILURE"->"loaded-contract-failure";default->"failed-unknown-winner";};
     }
     private static void pump(){
         int budget=phase==Phase.UNLOAD?1800:600;
@@ -133,9 +133,17 @@ public final class NativeSurfaceIngestCheck {
         if(phase==Phase.GOLD){
             if(c==null||Math.abs(c.y()-2303)>1||!c.highFull()||!full(HIGH))return;
             if(gold==null){
-                requiredPacket=packet.sequence();place(UNDER_HIGH,Blocks.LIME_CONCRETE);place(HIGH,Blocks.GOLD_BLOCK);
+                requiredPacket=packet.sequence();requiredIngest=ingestSequence;place(UNDER_HIGH,Blocks.LIME_CONCRETE);place(HIGH,Blocks.GOLD_BLOCK);
                 gold=new Cell(HIGH.getY()+1,world.getBlockState(HIGH).getMapColor(world,HIGH).color);
                 lime=new Cell(UNDER_HIGH.getY()+1,world.getBlockState(UNDER_HIGH).getMapColor(world,UNDER_HIGH).color);return;
+            }
+            // Diagnose the real loaded contract before any unavailable-Y assertion.
+            // The actual native sampled number is recorded, never calibrated to make
+            // an incorrect selected block or palette value pass.
+            if(is(HIGH,Blocks.GOLD_BLOCK)&&lastIngest!=null&&lastIngest.sequence>requiredIngest&&lastIngest.actualWinner!=null&&c.packet().sequence()>requiredPacket&&serverCell().equals(c.cell())&&serverCell().equals(c.packet().cell())){
+                var selected=lastIngest.actualWinner;
+                if(selected.getX()!=HIGH.getX()||selected.getZ()!=HIGH.getZ()||selected.getY()>HIGH.getY()){finish("PREMISE_NOT_OBSERVED","authored GOLD is not the actual production-selected highest sample; unavailable-winner test not established");return;}
+                if(!HIGH.equals(selected)||!Objects.equals(lastIngest.returnedColour,gold.colour())||!gold.equals(serverCell())){finish("CONTROL_FAILURE","loaded FULL GOLD source contract mismatch: actual sampled height/winner/state/colour and stored/received cell preserved; unavailable-Y premise not reached");return;}
             }
             if(!synchronizedCell(gold))return;
             capture("loaded-known-gold");if(!captured("loaded-known-gold"))return;
@@ -203,7 +211,7 @@ public final class NativeSurfaceIngestCheck {
         var client=MinecraftClient.getInstance();if(client.currentScreen!=null||++frames<3)return;
         try(var image=ScreenshotRecorder.takeScreenshot(client.getFramebuffer())){
             var folder=runtime.resolve("surface-ingest-frames");Files.createDirectories(folder);image.writeTo(folder.resolve(captureName+".png"));capturedName=captureName;
-            if(phase==Phase.CLOSE){writeOutcome();if("FAIL".equals(closingStatus))fail(closingReason);else{done=true;client.scheduleStop();}}
+            if(phase==Phase.CLOSE){writeOutcome();if("FAIL".equals(closingStatus)||"CONTROL_FAILURE".equals(closingStatus))fail(closingReason);else{done=true;client.scheduleStop();}}
         }catch(java.io.IOException e){throw new IllegalStateException(e);}
     }
     private static void writeOutcome()throws java.io.IOException{
