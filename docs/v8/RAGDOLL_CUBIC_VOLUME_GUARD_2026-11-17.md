@@ -1,4 +1,4 @@
-# Ragdoll native cube availability — reproduced negative
+# Ragdoll native cube availability — negative and correction
 
 The corrected native observer on exact source `fcf17b76f756b67b9c9537357a711c814f5c8941` reproduces a ragdoll entering a Y cube that the real BCC backend still considers unavailable. This is separate from the retained first `20fb873` observer linkage failure.
 
@@ -12,10 +12,33 @@ The loaded-air control moves upward0.084671875blocks. A separate real five-part 
 
 The native status hash, loaded/materialized counts17/17, pending818, in-flight16 and temporary-viewer/region counts0 remain identical across the read queries and production tick. The observer adds no preload, ticket, block write or native metadata mutation. The only recorded violation is entry into an unavailable Y volume. The raw native exit is255, marker validation1, with an explicit `failureKind=GAMEPLAY` marker. Both temporary rigs are discarded before another normal world tick.
 
-The cause is local to `RagdollEntity.insideLoadedWorld`: it checks global height and loaded X/Z columns but does not require the occupied Y cubes to be FULL. The approved next correction queries the existing `WorldAccess.isVolumeAvailable(D6ChunkPos)` contract for occupied XYZ cubes, preserving height/border checks and the existing rollback policy. No production change or positive result is included in this negative checkpoint.
+The cause is local to `RagdollEntity.insideLoadedWorld`: it checks global height and loaded X/Z columns but does not require the occupied Y cubes to be FULL. The immutable negative archive contains the original report and no production correction.
+
+## Minimal guard and scoped positive
+
+Production correction `5f1e18ab1f71d4e9b3b63f92c3b175f75778825e` changes only `RagdollEntity` imports and `insideLoadedWorld`. It queries the existing `WorldAccess.isVolumeAvailable(D6ChunkPos)` contract for every occupied XYZ cube of the current part box. Half-open maxima exclude mere face contact. Existing world-height/border checks, rejection/rollback, force integration, damping, velocity units and solver remain unchanged. No generation, ticket, translated sweep or shared D6 change is added.
+
+The fresh main JAR is `f33176cde91cbf9610790c55310f07974892098fcfbb560e3bd86a6244453d8b`. The observer JAR remains **byte-identical** to the actual negative, `f553e766833b0a752fdd06dce61cf3ebee08766fb3e704e3031b58251aab27bf`, and source observer/assertions do not change. The positive native process and marker validation both exit0, with no crash.
+
+The same boundary-property scenario is observed in a different naturally streamed Z column: negative X=-4,Z=5; positive X=-4,Z=6. Both have FULL cubeY8 and unavailable DECORATED cubeY9, the same Y144 boundary, initial rig COM Y143.5 and upward velocity40blocks/second. These are property-matched runs, not an identical-coordinate replay.
+
+| Observation | Negative `fcf17b7` | Positive `5f1e18a` |
+| --- | --- | --- |
+| Loaded-air control movement Y, blocks | 0.084671875 | 0.084671875 |
+| Final rig COM Y, blocks | 145.240803125 | 143.490803125 |
+| Final physical velocity Y, blocks/second | 34.56286075 | -0.36713925 |
+| Occupied unavailable Y cube | Yes | No |
+| Native pending/in-flight, unchanged during atomic observation | 818 / 16 | 897 / 17 |
+| Loaded/materialized counts, unchanged | 17 / 17 | 17 / 17 |
+| Temporary viewers/regions, unchanged | 0 / 0 | 0 / 0 |
+| Same real entity/simulation ownership | Yes | Yes |
+
+The guard retains the existing rollback semantics: the first rejected upward part step restores its prior position and clears velocity, after which the remaining substeps apply world-down gravity. It does not promise momentum retention against unavailable space. In the positive run all parts stay in available cubes, the unknown read remains empty, the native status/admission snapshot stays identical before/query/after and the violation list is empty. The loaded-air control prevents a global freeze from satisfying the gate. Both temporary rigs are discarded before another normal world tick.
 
 ## Evidence and limits
 
 [ragdoll-cubic-volumes-fcf17b7-negative.zip](EVIDENCE/ragdoll-cubic-volumes-fcf17b7-negative.zip) retains original logs, crash report, raw failure marker, input/build hashes, exact source and JARs, launcher helpers and the complete closed disposable save, with verified CRC and per-file SHA-256. The first observer-failure archive remains immutable. Only a completely archived, hash-verified closed save may be removed to reclaim space.
 
-This is an atomic production-tick reproduction on the real server owner thread. It is not natural multi-frame entity streaming, continuous collision detection, native visual acceptance or full S08 completion. No shared D6 solver, force/unit conversion, ticket or loading code was changed. Work remains local.
+[ragdoll-cubic-volumes-5f1e18a-positive.zip](EVIDENCE/ragdoll-cubic-volumes-5f1e18a-positive.zip) retains the corresponding positive inputs, raw log/exits/marker, source/guard patch, both exact JARs, launcher helpers and complete closed positive save. Archive CRC and every manifest hash are checked before removing only the archived disposable save. The closed November11 strength-test world is separately retained in [ragdoll-strength-9c5b6e1-closed-world.zip](EVIDENCE/ragdoll-strength-9c5b6e1-closed-world.zip); its active report matched the preserved positive6 XML and save timestamps. This is preservation, not a new restart test.
+
+This is an atomic production-tick negative/positive verification on the real server owner thread. It is not natural multi-frame entity streaming, continuous collision detection, native visual acceptance or full S08 completion. Canonical full-suite verification after integrating this guard remains pending; prior full772/391 results do not belong to this correction. No shared D6 solver, force/unit conversion, ticket or loading code was changed. Work remains local.
