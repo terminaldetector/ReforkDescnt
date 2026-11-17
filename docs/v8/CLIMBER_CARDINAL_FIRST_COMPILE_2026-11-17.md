@@ -1,0 +1,11 @@
+# Cardinal force/pounce candidate: first compiler outcome
+
+Exactsource`ba8d551225cd951865ef9ed8bf4365a9e473aeb7`, actualexecutinghelperSHA`04513d8dd7b0bb2c11dbad11a43280235c8aef7f15d1d90117c7fc764a34f164`, ran once: **main compile and10puremath tests PASS; GameTest fixture compile FAIL; zero GameTests ran**. Gradleexit1/29seconds. FreshunitXMLtimestamp`2026-11-17T17:24:25` reports10tests/0failures/0errors. No runtime mixin, nativepounce, material block query, airarc, route, client, broader suite or JAR result is established.
+
+The error is at`ClimberJumpGravityGameTests.java:163`: `new Box(min,max.add(1,1,1))` uses two`BlockPos` arguments; this1.21.1 Box constructor expects`Vec3d`. It is a fixture constructor/API mismatch, not a production force or AI failure. Proposed subsequent correction is only explicit`Vec3d.of` conversion with identical numeric bounds; it has not run under this receipt. All firstsource/log/exit/units and source identities are preserved before any correction.
+
+Production commits are dryoperator/material`833b1e4`+primitivecontext`f87e227`, separatepounce`5634a14`, cardinalaxisreuse`e450c8e`; additional3testcases/observers`ba8d551`. SixcardinalnativeSpider/Cave only; no broader family/oblique/levitationdirection/movinghull acceptance. The unchangedold5source SHA is`a4b11c68ed7724409a418e528c2afd960b448b35a0b633d4f896171422793f69`; ordinarymanifest remains unchanged. Existingactual062/952 evidence is independent and immutable. No strictsupport assertion was skipped or weakened; none of the eight planned gameplay cases executed.
+
+Preservation: [climber-cardinal-ba8d551-first-compile.zip](EVIDENCE/climber-cardinal-ba8d551-first-compile.zip), SHA-256`6bde6760c9ac74f19a0b005c05de4782369a5416648c2f7712ee0735466b534f`, 312261bytes / 44payloads, allSHA256+ZIPCRCverified. It contains exactchangedsource/patch, unchangedold5source+ordinarymanifest, actualexecutinghelper/contract, originalfirstlog/exit/fresh10unitXML,1530source/input hashes,1344preclass identities and postcompile class identities, actualnewcompiledmainmath/mixin classes and unitclass. No GameTest world was created and no installableJAR was generated. Existing08:36JARs are not this candidate.
+
+This firstoutcome is sealed; no correctionretry occurred within its Java lease. Candidate remains isolated/unaccepted pending fresh gameplay evidence.
