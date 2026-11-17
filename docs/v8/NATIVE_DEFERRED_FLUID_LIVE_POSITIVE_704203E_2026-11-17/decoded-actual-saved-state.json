@@ -1,0 +1,108 @@
+{
+  "data": {
+    "schema": 1,
+    "entries": [
+      {
+        "tx": -16,
+        "sx": -17,
+        "ty": 17,
+        "sy": 17,
+        "tz": 95,
+        "created": 9142,
+        "sz": 95,
+        "family": "minecraft:water"
+      },
+      {
+        "tx": -16,
+        "sx": -17,
+        "ty": 17,
+        "sy": 17,
+        "tz": 96,
+        "created": 9147,
+        "sz": 96,
+        "family": "minecraft:water"
+      },
+      {
+        "tx": -16,
+        "sx": -17,
+        "ty": 17,
+        "sy": 17,
+        "tz": 97,
+        "created": 9152,
+        "sz": 97,
+        "family": "minecraft:water"
+      },
+      {
+        "tx": -16,
+        "sx": -17,
+        "ty": 17,
+        "sy": 17,
+        "tz": 98,
+        "created": 9157,
+        "sz": 98,
+        "family": "minecraft:water"
+      },
+      {
+        "tx": 21,
+        "sx": 21,
+        "ty": 15,
+        "sy": 16,
+        "tz": 40,
+        "created": 9269,
+        "sz": 40,
+        "family": "minecraft:water"
+      },
+      {
+        "tx": 21,
+        "sx": 21,
+        "ty": 15,
+        "sy": 16,
+        "tz": 41,
+        "created": 9269,
+        "sz": 41,
+        "family": "minecraft:water"
+      },
+      {
+        "tx": 48,
+        "sx": 47,
+        "ty": 1,
+        "sy": 1,
+        "tz": 4,
+        "created": 9299,
+        "sz": 4,
+        "family": "minecraft:water"
+      },
+      {
+        "tx": 12,
+        "sx": 12,
+        "ty": 15,
+        "sy": 16,
+        "tz": 51,
+        "created": 9321,
+        "sz": 51,
+        "family": "minecraft:lava"
+      },
+      {
+        "tx": -18,
+        "sx": -18,
+        "ty": -1,
+        "sy": 0,
+        "tz": 98,
+        "created": 9326,
+        "sz": 98,
+        "family": "minecraft:water"
+      },
+      {
+        "tx": -19,
+        "sx": -19,
+        "ty": -1,
+        "sy": 0,
+        "tz": 97,
+        "created": 9326,
+        "sz": 97,
+        "family": "minecraft:water"
+      }
+    ]
+  },
+  "DataVersion": 3955
+}

@@ -1,0 +1,2 @@
+{"status": "STAGED_NOT_RUN", "classpath_entries": 65, "artifacts": 70, "runtime": "/workspace/ungravity-v5/cubic-next-20261109/build/cubic-fluid-unknown-writer-automation"}
+Verified isolated unknown-fluid writer inputs; ordinary prelaunch VD2/load2, unchanged lookahead2; no runtime backend state injection

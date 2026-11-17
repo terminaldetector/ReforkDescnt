@@ -1,0 +1,824 @@
+{
+  "sourceSha": "704203e9e809af8a388356eefa65d4c1642f609a",
+  "status": "WRITER_UNKNOWN_EDGE_ARRIVAL_SAVED",
+  "oldNegativeSource": "7ca67d7cbb727105c69e2025806759aed06da45d",
+  "wholeObserverByteIdentical": true,
+  "gameSha256": "60ca40f42a746bd60d77d6ca89679057b375bafea98775f1ab80517b671252d8",
+  "observerSha256": "cf776cf6b53150f23cd76eb05cf5d7d95105c1e8b11595616085be48ee0ee634",
+  "sourceAdmissionTick": 276,
+  "unknownStableTicks": 20,
+  "edgeEnterReturnTick": 291,
+  "actualFullArrivalTick": 297,
+  "firstNormalResumedEdgeTick": 300,
+  "requestedPassTick": 387,
+  "ticksAfterReadiness": 90,
+  "deadlineTicks": 400,
+  "actualStoppingTick": 402,
+  "scheduledEnterTickY": [
+    [
+      281,
+      34
+    ],
+    [
+      286,
+      33
+    ],
+    [
+      286,
+      34
+    ],
+    [
+      291,
+      32
+    ],
+    [
+      291,
+      33
+    ],
+    [
+      300,
+      32
+    ],
+    [
+      305,
+      31
+    ],
+    [
+      305,
+      32
+    ],
+    [
+      310,
+      30
+    ],
+    [
+      310,
+      31
+    ],
+    [
+      315,
+      29
+    ],
+    [
+      315,
+      30
+    ],
+    [
+      320,
+      28
+    ],
+    [
+      320,
+      29
+    ],
+    [
+      325,
+      27
+    ],
+    [
+      325,
+      28
+    ],
+    [
+      330,
+      26
+    ],
+    [
+      330,
+      27
+    ],
+    [
+      335,
+      25
+    ],
+    [
+      335,
+      26
+    ],
+    [
+      340,
+      24
+    ],
+    [
+      340,
+      25
+    ],
+    [
+      345,
+      23
+    ],
+    [
+      345,
+      24
+    ],
+    [
+      350,
+      22
+    ],
+    [
+      350,
+      23
+    ],
+    [
+      355,
+      21
+    ],
+    [
+      355,
+      22
+    ],
+    [
+      360,
+      20
+    ],
+    [
+      360,
+      21
+    ],
+    [
+      365,
+      19
+    ],
+    [
+      365,
+      20
+    ],
+    [
+      370,
+      18
+    ],
+    [
+      370,
+      19
+    ],
+    [
+      375,
+      17
+    ],
+    [
+      375,
+      18
+    ],
+    [
+      380,
+      16
+    ],
+    [
+      380,
+      17
+    ],
+    [
+      385,
+      15
+    ],
+    [
+      385,
+      16
+    ]
+  ],
+  "actualStoppingWitness": {
+    "serverTick": 402,
+    "worldTime": 9340,
+    "phase": "CLOSE",
+    "backend": "NATIVE_CUBIC",
+    "dimension": "minecraft:overworld",
+    "bottomY": -16384,
+    "topY": 16384,
+    "parentColumnReady": true,
+    "neighbourWithinHeight": true,
+    "sourceFull": true,
+    "neighbourFull": true,
+    "bottomFull": true,
+    "neighbourReadUnavailable": false,
+    "source": "Block{minecraft:water}[level=0]",
+    "edge": "Block{minecraft:water}[level=8]",
+    "neighbour": "Block{minecraft:water}[level=8]",
+    "target": "Block{minecraft:water}[level=8]",
+    "gold": "Block{minecraft:gold_block}",
+    "diamond": "Block{minecraft:diamond_block}",
+    "sourceWater": true,
+    "targetWater": true,
+    "admission": {
+      "config": {
+        "verticalViewDistance": "2",
+        "verticalLoadDistance": "2",
+        "verticalGenerationLookahead": "2",
+        "positionPacking": "TALL",
+        "depthBelowSurface": "3"
+      },
+      "nativeVerticalLoadDistance": 2,
+      "actualPlayerVerticalDistance": 2,
+      "sourceWanted": true,
+      "neighbourWanted": true,
+      "source27Wanted": [
+        {
+          "nativeKey": "-1048575",
+          "z": -1,
+          "y": 1,
+          "x": -1,
+          "dz": -1,
+          "dy": -1,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-4398046511103",
+          "z": 0,
+          "y": 1,
+          "x": -1,
+          "dz": 0,
+          "dy": -1,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-4398045462527",
+          "z": 1,
+          "y": 1,
+          "x": -1,
+          "dz": 1,
+          "dy": -1,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-1048574",
+          "z": -1,
+          "y": 2,
+          "x": -1,
+          "dz": -1,
+          "dy": 0,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-4398046511102",
+          "z": 0,
+          "y": 2,
+          "x": -1,
+          "dz": 0,
+          "dy": 0,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-4398045462526",
+          "z": 1,
+          "y": 2,
+          "x": -1,
+          "dz": 1,
+          "dy": 0,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-1048573",
+          "z": -1,
+          "y": 3,
+          "x": -1,
+          "dz": -1,
+          "dy": 1,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-4398046511101",
+          "z": 0,
+          "y": 3,
+          "x": -1,
+          "dz": 0,
+          "dy": 1,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-4398045462525",
+          "z": 1,
+          "y": 3,
+          "x": -1,
+          "dz": 1,
+          "dy": 1,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398045462529",
+          "z": -1,
+          "y": 1,
+          "x": 0,
+          "dz": -1,
+          "dy": -1,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "1",
+          "z": 0,
+          "y": 1,
+          "x": 0,
+          "dz": 0,
+          "dy": -1,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "1048577",
+          "z": 1,
+          "y": 1,
+          "x": 0,
+          "dz": 1,
+          "dy": -1,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398045462530",
+          "z": -1,
+          "y": 2,
+          "x": 0,
+          "dz": -1,
+          "dy": 0,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "2",
+          "z": 0,
+          "y": 2,
+          "x": 0,
+          "dz": 0,
+          "dy": 0,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "1048578",
+          "z": 1,
+          "y": 2,
+          "x": 0,
+          "dz": 1,
+          "dy": 0,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398045462531",
+          "z": -1,
+          "y": 3,
+          "x": 0,
+          "dz": -1,
+          "dy": 1,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "3",
+          "z": 0,
+          "y": 3,
+          "x": 0,
+          "dz": 0,
+          "dy": 1,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "1048579",
+          "z": 1,
+          "y": 3,
+          "x": 0,
+          "dz": 1,
+          "dy": 1,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "8796091973633",
+          "z": -1,
+          "y": 1,
+          "x": 1,
+          "dz": -1,
+          "dy": -1,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398046511105",
+          "z": 0,
+          "y": 1,
+          "x": 1,
+          "dz": 0,
+          "dy": -1,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398047559681",
+          "z": 1,
+          "y": 1,
+          "x": 1,
+          "dz": 1,
+          "dy": -1,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "8796091973634",
+          "z": -1,
+          "y": 2,
+          "x": 1,
+          "dz": -1,
+          "dy": 0,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398046511106",
+          "z": 0,
+          "y": 2,
+          "x": 1,
+          "dz": 0,
+          "dy": 0,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398047559682",
+          "z": 1,
+          "y": 2,
+          "x": 1,
+          "dz": 1,
+          "dy": 0,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "8796091973635",
+          "z": -1,
+          "y": 3,
+          "x": 1,
+          "dz": -1,
+          "dy": 1,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398046511107",
+          "z": 0,
+          "y": 3,
+          "x": 1,
+          "dz": 0,
+          "dy": 1,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398047559683",
+          "z": 1,
+          "y": 3,
+          "x": 1,
+          "dz": 1,
+          "dy": 1,
+          "dx": 1,
+          "wanted": true
+        }
+      ],
+      "neighbour27Wanted": [
+        {
+          "nativeKey": "-1048576",
+          "z": -1,
+          "y": 0,
+          "x": -1,
+          "dz": -1,
+          "dy": -1,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-4398046511104",
+          "z": 0,
+          "y": 0,
+          "x": -1,
+          "dz": 0,
+          "dy": -1,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-4398045462528",
+          "z": 1,
+          "y": 0,
+          "x": -1,
+          "dz": 1,
+          "dy": -1,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-1048575",
+          "z": -1,
+          "y": 1,
+          "x": -1,
+          "dz": -1,
+          "dy": 0,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-4398046511103",
+          "z": 0,
+          "y": 1,
+          "x": -1,
+          "dz": 0,
+          "dy": 0,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-4398045462527",
+          "z": 1,
+          "y": 1,
+          "x": -1,
+          "dz": 1,
+          "dy": 0,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-1048574",
+          "z": -1,
+          "y": 2,
+          "x": -1,
+          "dz": -1,
+          "dy": 1,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-4398046511102",
+          "z": 0,
+          "y": 2,
+          "x": -1,
+          "dz": 0,
+          "dy": 1,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "-4398045462526",
+          "z": 1,
+          "y": 2,
+          "x": -1,
+          "dz": 1,
+          "dy": 1,
+          "dx": -1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398045462528",
+          "z": -1,
+          "y": 0,
+          "x": 0,
+          "dz": -1,
+          "dy": -1,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "0",
+          "z": 0,
+          "y": 0,
+          "x": 0,
+          "dz": 0,
+          "dy": -1,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "1048576",
+          "z": 1,
+          "y": 0,
+          "x": 0,
+          "dz": 1,
+          "dy": -1,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398045462529",
+          "z": -1,
+          "y": 1,
+          "x": 0,
+          "dz": -1,
+          "dy": 0,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "1",
+          "z": 0,
+          "y": 1,
+          "x": 0,
+          "dz": 0,
+          "dy": 0,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "1048577",
+          "z": 1,
+          "y": 1,
+          "x": 0,
+          "dz": 1,
+          "dy": 0,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398045462530",
+          "z": -1,
+          "y": 2,
+          "x": 0,
+          "dz": -1,
+          "dy": 1,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "2",
+          "z": 0,
+          "y": 2,
+          "x": 0,
+          "dz": 0,
+          "dy": 1,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "1048578",
+          "z": 1,
+          "y": 2,
+          "x": 0,
+          "dz": 1,
+          "dy": 1,
+          "dx": 0,
+          "wanted": true
+        },
+        {
+          "nativeKey": "8796091973632",
+          "z": -1,
+          "y": 0,
+          "x": 1,
+          "dz": -1,
+          "dy": -1,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398046511104",
+          "z": 0,
+          "y": 0,
+          "x": 1,
+          "dz": 0,
+          "dy": -1,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398047559680",
+          "z": 1,
+          "y": 0,
+          "x": 1,
+          "dz": 1,
+          "dy": -1,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "8796091973633",
+          "z": -1,
+          "y": 1,
+          "x": 1,
+          "dz": -1,
+          "dy": 0,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398046511105",
+          "z": 0,
+          "y": 1,
+          "x": 1,
+          "dz": 0,
+          "dy": 0,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398047559681",
+          "z": 1,
+          "y": 1,
+          "x": 1,
+          "dz": 1,
+          "dy": 0,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "8796091973634",
+          "z": -1,
+          "y": 2,
+          "x": 1,
+          "dz": -1,
+          "dy": 1,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398046511106",
+          "z": 0,
+          "y": 2,
+          "x": 1,
+          "dz": 0,
+          "dy": 1,
+          "dx": 1,
+          "wanted": true
+        },
+        {
+          "nativeKey": "4398047559682",
+          "z": 1,
+          "y": 2,
+          "x": 1,
+          "dz": 1,
+          "dy": 1,
+          "dx": 1,
+          "wanted": true
+        }
+      ],
+      "wantedQueryCount": 56,
+      "sourceHaloWantedCount": 27,
+      "neighbourHaloWantedCount": 27,
+      "allViews": [
+        {
+          "centerX": 0,
+          "centerY": 2,
+          "centerZ": 0,
+          "horizontalRadius": 4,
+          "verticalRadius": 2,
+          "minY": 0,
+          "maxY": 4,
+          "groundMinY": -2,
+          "groundMaxY": -1,
+          "hasGround": true,
+          "containsSource": true,
+          "containsNeighbour": true
+        },
+        {
+          "centerX": -4,
+          "centerY": 4,
+          "centerZ": 6,
+          "horizontalRadius": 2,
+          "verticalRadius": 2,
+          "minY": 2,
+          "maxY": 6,
+          "groundMinY": 0,
+          "groundMaxY": -1,
+          "hasGround": false,
+          "containsSource": false,
+          "containsNeighbour": false
+        }
+      ],
+      "viewCount": 2,
+      "anyViewContainsNeighbour": true,
+      "anyViewContainsSource": true
+    },
+    "client": {
+      "x": 12.5,
+      "y": 32.0,
+      "z": 8.5,
+      "sourceFull": true,
+      "neighbourFull": true,
+      "allFull": true,
+      "sourceWater": true,
+      "targetWater": true,
+      "gold": "Block{minecraft:gold_block}",
+      "diamond": "Block{minecraft:diamond_block}"
+    },
+    "player": "(12.5, 32.0, 8.5)",
+    "stableUnknownTicks": 20,
+    "fixtureWrites": 273,
+    "sourcePlaced": true,
+    "actualFullWaterTickWitnesses": 40,
+    "postEdgeWitnesses": 33,
+    "atmosphere": "CLASSIC",
+    "weightlessFluidPolicy": false,
+    "queuedAvailableWater": []
+  },
+  "archivedFileCount": 95,
+  "allArchivedBytesMatchOriginal": true,
+  "gzipReadThroughEof": true,
+  "exclusiveFcntlLockAcquired": true,
+  "savedQueueStateFileSha256": "060359beff24f8479b37e4ebc50cdfe255466a505dd41e31d36cd71e79c491a2",
+  "savedUnrelatedPendingCount": 10,
+  "completedTestedBoundaryAbsentFromSavedQueue": true,
+  "noDurableUnknownColdClaim": true
+}
