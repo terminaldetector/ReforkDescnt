@@ -123,14 +123,24 @@ public class DescentClient implements ClientModInitializer {
 		// Seed, scars and the landmark catalogue: everything the voxel horizon needs, sent once
 		// rather than streamed.
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.PlanetPayload.ID, (payload, context) ->
-				context.client().execute(() ->
+				{
+					var receivingConnection = context.client().getNetworkHandler();
+					context.client().execute(() -> {
+						if (receivingConnection == null || context.client().getNetworkHandler() != receivingConnection) return;
 						com.terminaldetector.drmd.client.planet.PlanetClientState.INSTANCE.apply(
-								payload.seed(), payload.scarCells(), horizonLandmarks(payload))));
+								payload.seed(), payload.scarCells(), horizonLandmarks(payload));
+					});
+				});
 
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SurfacePayload.ID, (payload, context) ->
-				context.client().execute(() ->
+				{
+					var receivingConnection = context.client().getNetworkHandler();
+					context.client().execute(() -> {
+						if (receivingConnection == null || context.client().getNetworkHandler() != receivingConnection) return;
 						com.terminaldetector.drmd.client.planet.PlanetClientState.INSTANCE.acceptSection(
-								payload.key(), payload.data())));
+								payload.key(), payload.data());
+					});
+				});
 
         ClientPlayNetworking.registerGlobalReceiver(ModNetworking.ConstructionModePayload.ID,(payload,context)->
             context.client().execute(()->com.terminaldetector.drmd.client.build.ScaffoldClientState.INSTANCE.setConstructionMode(payload.active())));

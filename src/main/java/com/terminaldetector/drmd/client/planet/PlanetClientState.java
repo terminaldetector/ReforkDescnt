@@ -73,7 +73,10 @@ public final class PlanetClientState {
 		if (this.seed != seed || !hasSeed) {
             worldEpoch.incrementAndGet();
 			mesh = null;
-			observed = new SurfaceStore(new MemorySectionStorage());
+			// Sections can arrive before the first seed snapshot of this session.
+			// Disconnect clears the previous session; only a known seed replacement
+			// invalidates observations that have already been accepted here.
+			if (hasSeed) observed = new SurfaceStore(new MemorySectionStorage());
 			this.seed = seed;
 			this.hasSeed = true;
 			changed = true;
