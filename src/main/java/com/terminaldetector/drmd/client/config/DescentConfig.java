@@ -21,6 +21,8 @@ public final class DescentConfig {
     /** Optional client presentation; existing/new clients retain full-resolution Native. */
     public static com.terminaldetector.drmd.client.presentation.PresentationProfile presentationProfile = com.terminaldetector.drmd.client.presentation.PresentationProfile.HYBRID_NATIVE;
     public static int ps1SceneHeight = com.terminaldetector.drmd.client.presentation.PresentationOptions.DEFAULT_HEIGHT;
+    public static int ps1ColorLevels = com.terminaldetector.drmd.client.presentation.Ps1ColorOptions.DEFAULT_LEVELS;
+    public static float ps1DitherStrength = com.terminaldetector.drmd.client.presentation.Ps1ColorOptions.DEFAULT_DITHER;
 	/** Draw the 3D cockpit frame in first person. */
 	public static boolean cockpit = true;
 	/** Cockpit opacity, 0.2..1.0. */
@@ -126,6 +128,9 @@ public final class DescentConfig {
         var presentation = com.terminaldetector.drmd.client.presentation.PresentationOptions.read(props);
         presentationProfile = presentation.profile();
         ps1SceneHeight = presentation.sceneHeight();
+        var colour = com.terminaldetector.drmd.client.presentation.Ps1ColorOptions.read(props);
+        ps1ColorLevels = colour.levels();
+        ps1DitherStrength = colour.ditherStrength();
 		cockpit = bool(props, "cockpit", cockpit);
 		cockpitOpacity = clamp(num(props, "cockpitOpacity", cockpitOpacity), 0.2f, 1f);
 		cockpitInstruments = bool(props, "cockpitInstruments", cockpitInstruments);
@@ -147,6 +152,7 @@ public final class DescentConfig {
 		Properties props = new Properties();
 		props.setProperty("hybridRender",Boolean.toString(hybridRender));
         new com.terminaldetector.drmd.client.presentation.PresentationOptions(presentationProfile, ps1SceneHeight).write(props);
+        new com.terminaldetector.drmd.client.presentation.Ps1ColorOptions(ps1ColorLevels, ps1DitherStrength).write(props);
 		props.setProperty("cockpit", Boolean.toString(cockpit));
 		props.setProperty("cockpitOpacity", Float.toString(cockpitOpacity));
 		props.setProperty("cockpitInstruments", Boolean.toString(cockpitInstruments));

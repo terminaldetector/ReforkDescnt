@@ -379,5 +379,11 @@
   "message.drmd.threat.cooldown": "%s ended its search. No further recon wave is queued.",
   "block.drmd.sliding_bearing": "Sliding Bearing",
   "block.drmd.linear_drive": "Linear Drive",
-  "tooltip.drmd.mechanism.linear": "Linear stage: two opposing sliding bearings, matching drive behind either. Stroke 2 m; sneak-use reverses."
+  "tooltip.drmd.mechanism.linear": "Linear stage: two opposing sliding bearings, matching drive behind either. Stroke 2 m; sneak-use reverses.",
+  "options.drmd.ps1_palette": "PS1 colours: %s",
+  "options.drmd.ps1_palette.raw": "Raw",
+  "options.drmd.ps1_palette.levels": "%s/channel",
+  "options.drmd.ps1_palette.tip": "PS1 world colour depth. Raw restores the original colours; cockpit, HUD and held items stay sharp.",
+  "options.drmd.ps1_dither": "PS1 dither: %s%%",
+  "options.drmd.ps1_dither.tip": "A fixed pixel pattern smooths PS1 colour steps. Only affects the PS1 world palette."
 }

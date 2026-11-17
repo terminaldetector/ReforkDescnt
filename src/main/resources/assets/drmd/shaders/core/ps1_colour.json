@@ -1,0 +1,12 @@
+{
+  "vertex": "drmd:ps1_colour",
+  "fragment": "drmd:ps1_colour",
+  "attributes": ["Position"],
+  "samplers": [{"name": "Sampler0"}],
+  "uniforms": [
+    {"name": "SceneSize", "type": "float", "count": 2, "values": [1, 1]},
+    {"name": "OutputSize", "type": "float", "count": 2, "values": [1, 1]},
+    {"name": "ColorLevels", "type": "float", "count": 1, "values": [32]},
+    {"name": "DitherStrength", "type": "float", "count": 1, "values": [0.5]}
+  ]
+}

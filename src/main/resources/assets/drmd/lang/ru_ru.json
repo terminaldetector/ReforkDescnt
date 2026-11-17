@@ -343,5 +343,11 @@
   "message.drmd.threat.cooldown": "%s прекратила поиск. Новая волна разведчиков не запланирована.",
   "block.drmd.sliding_bearing": "Линейная направляющая",
   "block.drmd.linear_drive": "Линейный привод",
-  "tooltip.drmd.mechanism.linear": "Две встречные направляющие и линейный привод сзади. Ход 2 м; Shift + использование меняет направление."
+  "tooltip.drmd.mechanism.linear": "Две встречные направляющие и линейный привод сзади. Ход 2 м; Shift + использование меняет направление.",
+  "options.drmd.ps1_palette": "PS1 цвет: %s",
+  "options.drmd.ps1_palette.raw": "Исходный",
+  "options.drmd.ps1_palette.levels": "%s/канал",
+  "options.drmd.ps1_palette.tip": "Глубина цвета мира PS1. Исходный цвет отключает эффект; кабина, интерфейс и предметы остаются чёткими.",
+  "options.drmd.ps1_dither": "PS1 дизеринг: %s%%",
+  "options.drmd.ps1_dither.tip": "Неподвижный пиксельный узор смягчает переходы цвета. Работает только с палитрой мира PS1."
 }

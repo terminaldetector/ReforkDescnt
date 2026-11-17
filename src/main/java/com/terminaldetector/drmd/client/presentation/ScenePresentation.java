@@ -38,6 +38,7 @@ public final class ScenePresentation {
     public static void frameStarted(){outlinesPresented=false;}
     public static boolean outlinesPresented(){return outlinesPresented;}
     public static void register(){
+        Ps1ColorPass.register();
         ClientTickEvents.END_CLIENT_TICK.register(c->{
             if(lastWorld!=c.world||DescentConfig.presentationProfile!=PresentationProfile.PS1_HYBRID){release();lastWorld=c.world;}
         });
@@ -145,8 +146,13 @@ public final class ScenePresentation {
                     boolean scissor=GL11.glIsEnabled(GL11.GL_SCISSOR_TEST);if(scissor)GL11.glDisable(GL11.GL_SCISSOR_TEST);
                     try{
                         GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER,scene.scene.fbo);GlStateManager._glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER,output.fbo);
+                        var colour=new Ps1ColorOptions(DescentConfig.ps1ColorLevels,DescentConfig.ps1DitherStrength);
                         GlStateManager._glBlitFrameBuffer(0,0,scene.size.width(),scene.size.height(),0,0,output.textureWidth,output.textureHeight,
-                                GL11.GL_COLOR_BUFFER_BIT|GL11.GL_DEPTH_BUFFER_BIT,GL11.GL_NEAREST);
+                                GL11.GL_DEPTH_BUFFER_BIT|(colour.enabled()?0:GL11.GL_COLOR_BUFFER_BIT),GL11.GL_NEAREST);
+                        if(colour.enabled()&&!Ps1ColorPass.draw(scene.scene,output,colour)){
+                            fallbackFrames++;
+                            GlStateManager._glBlitFrameBuffer(0,0,scene.size.width(),scene.size.height(),0,0,output.textureWidth,output.textureHeight,GL11.GL_COLOR_BUFFER_BIT,GL11.GL_NEAREST);
+                        }
                     }finally{if(scissor)GL11.glEnable(GL11.GL_SCISSOR_TEST);output.beginWrite(true);}
                     outlinesPresented=true;
                 }
