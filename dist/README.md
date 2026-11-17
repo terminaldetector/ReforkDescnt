@@ -1,3 +1,9 @@
+# Локальный снимок разработки
+
+[ae1bd82 — проверенный JAR и отчёт](local-snapshots/ae1bd82/README.md). 837 unit /430 GameTests +два клиента на одинаковых JAR. Полное ТЗ остаётся в работе; это локальный пакет.
+
+---
+
 # Текущий проверенный этап ТЗ — 1.1.33-combat.1
 
 [Скачать JAR](releases/1.1.33-combat.1/drmd-6dof-1.1.33-combat.1-fabric-1.21.1.jar) · [Установка](releases/1.1.33-combat.1/INSTALL_TLAUNCHER.txt)

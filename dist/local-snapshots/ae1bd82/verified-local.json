@@ -1,0 +1,18 @@
+{
+  "source": "ae1bd821fcc0a7d7e16b0284bfa25355902c5077",
+  "internalVersion": "1.1.35-ufo-dev.1",
+  "gameJar": "drmd-6dof-1.1.35-ufo-dev.1-ae1bd82.jar",
+  "gameJarSha256": "7917b2b6454b3abe41f10b927a49f825c7f3ec2e4278b9eaf4d3d35409b0d1d6",
+  "unitTests": 837,
+  "ordinaryGameTests": 430,
+  "entrypoints": 69,
+  "nativeCases": [
+    "actual noedit saved-cache surface arrival",
+    "actual PS1 colour/profile/mirror/HUD/viewmodel"
+  ],
+  "nativeFrames": 40,
+  "actualDepthArrays": 10,
+  "report": "../../../docs/v8/MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md",
+  "releaseAccepted": false,
+  "published": false
+}
