@@ -1,0 +1,517 @@
+{
+  "source": "e4470f5f973760d3db431ba336d5cbdfcd73fd76",
+  "firstBuildExit": 0,
+  "wholeGameParityExit": 0,
+  "ownerAuditExit": 0,
+  "capacityAdmissionExit": 0,
+  "nativeExit": 255,
+  "allFiveActualCapturesPreserved": true,
+  "actualPngs": 29,
+  "allEightFrozenHelpersUnchanged": true,
+  "externalOfficialStagerUnchanged": true,
+  "classification": "All five captures, both physical objects FULL/readback/normal packet and both genuine512/2200 LOD ray orders pass; near224 has zero visible world/body depth pixels, so whole prerequisite is NOT accepted. Cause not attributed; no production change.",
+  "jars": {
+    "drmd-6dof-1.1.35-ufo-dev.1.jar": "b6c653a4729e7dd4a8158ba1b8704fc31434c89d0c7cabaefbee4e1266d3df8c",
+    "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "27c9f0d8d2f2cbc995f898fd6943166bb496d6bf1cd5e25098e5ff2be12079c8"
+  },
+  "readbackBytes": 180582456,
+  "totalPhysicalAndBodyWrites": 459,
+  "worldArchive": {
+    "original": "/workspace/ungravity-v5/ps1-render/build/cubic-client-failed-cloud-near-control-e4470f5/saves",
+    "archive": "/workspace/ungravity-v5/ps1-render/work/preserved-disposable-worlds/cubic-client-failed-cloud-near-control-e4470f5-saves.zip",
+    "files": 130,
+    "originalBytes": 66215334,
+    "archiveBytes": 2448141,
+    "sha256": "651206d72305663813a9e9c7124280af760a047b02dd5f7de63a8c7d4d8deb38",
+    "sessionLockExclusiveLockfVerified": true,
+    "fullFileShaAndZipCrcVerified": true,
+    "rawSavesReclaimedOnlyAfterVerification": true
+  },
+  "actualNearDepthComparison": {
+    "classification": "Read-only actual first-capture comparison; cause not yet attributed. Real geometry missing from e447 pre-cloud depth ROIs; no colour-threshold or cloud-occlusion verdict from zero visible controls.",
+    "sameSemanticRois": true,
+    "rows": [
+      {
+        "runtime": "cubic-client-failed-cloud-near-control-e4470f5",
+        "actualPoseAdmission": {
+          "pose": "near224",
+          "expectedControlMode": "creative-hover-H-off",
+          "requestedPlayerY": 224.0,
+          "clientPosition": [
+            714.0,
+            224.0,
+            1050.0
+          ],
+          "clientVelocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "clientRotationYawPitch": [
+            0.0,
+            90.0
+          ],
+          "clientSixDof": false,
+          "clientFlying": true,
+          "clientAllowFlying": true,
+          "clientNoGravity": false,
+          "serverControl": {
+            "position": [
+              714.0,
+              224.0,
+              1050.0
+            ],
+            "velocity": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotationYawPitch": [
+              0.0,
+              90.0
+            ],
+            "sixDof": false,
+            "flying": true,
+            "allowFlying": true,
+            "noGravity": false,
+            "volumesReady": true,
+            "attitudeValid": false,
+            "forward": [
+              0.0,
+              -1.0,
+              1.2246468525851679e-16
+            ],
+            "up": [
+              0.0,
+              -1.2246468525851679e-16,
+              -1.0
+            ],
+            "portalEpoch": 0
+          },
+          "poseReady": true,
+          "age": 16,
+          "screen": "none",
+          "frameRequested": false,
+          "frameRequest": {}
+        },
+        "actualCloudCamera": [
+          714.0,
+          225.61999988555908,
+          1050.0
+        ],
+        "actualCloudView": [
+          -0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.99999994,
+          0.0,
+          0.0,
+          0.99999994,
+          0.0,
+          0.0,
+          3.9491994,
+          -6.3299994,
+          -30.289991,
+          1.0
+        ],
+        "actualCloudProjection": [
+          0.70715946,
+          0.0,
+          -0.0,
+          -0.0,
+          0.0,
+          1.2571725,
+          -0.0,
+          -0.0,
+          0.0,
+          0.0,
+          -1.0003906,
+          -1.0,
+          0.0,
+          -0.0,
+          -0.10001954,
+          -0.0
+        ],
+        "nearControls": {
+          "world": {
+            "roi": [
+              669,
+              333,
+              38,
+              38
+            ],
+            "actualDepthSha256": "1532ba9855f6e8b04b733cd5c1ecfc619781dc3111767876ae695b3bd56e178a",
+            "actualMinimum": 1.0,
+            "actualMaximum": 1.0,
+            "actualNonclearPixels": 0,
+            "independentlyVisiblePixels": 0
+          },
+          "body": {
+            "roi": [
+              801,
+              331,
+              45,
+              39
+            ],
+            "actualDepthSha256": "ccb38a0a5840fc14f2a0db40c1a5c11dafec75940724da6f0a105bd930a47698",
+            "actualMinimum": 1.0,
+            "actualMaximum": 1.0,
+            "actualNonclearPixels": 0,
+            "independentlyVisiblePixels": 0
+          }
+        }
+      },
+      {
+        "runtime": "cubic-client-failed-cloud-upper-lod-d57bba0",
+        "actualPoseAdmission": {
+          "pose": "near224",
+          "expectedControlMode": "creative-hover-H-off",
+          "requestedPlayerY": 224.0,
+          "clientPosition": [
+            714.0,
+            224.0,
+            1050.0
+          ],
+          "clientVelocity": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "clientRotationYawPitch": [
+            0.0,
+            90.0
+          ],
+          "clientSixDof": false,
+          "clientFlying": true,
+          "clientAllowFlying": true,
+          "clientNoGravity": false,
+          "serverControl": {
+            "position": [
+              714.0,
+              224.0,
+              1050.0
+            ],
+            "velocity": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotationYawPitch": [
+              0.0,
+              90.0
+            ],
+            "sixDof": false,
+            "flying": true,
+            "allowFlying": true,
+            "noGravity": false,
+            "volumesReady": true,
+            "attitudeValid": false,
+            "forward": [
+              0.0,
+              -1.0,
+              1.2246468525851679e-16
+            ],
+            "up": [
+              0.0,
+              -1.2246468525851679e-16,
+              -1.0
+            ],
+            "portalEpoch": 0
+          },
+          "poseReady": true,
+          "age": 17,
+          "screen": "none",
+          "frameRequested": false,
+          "frameRequest": {}
+        },
+        "actualCloudCamera": [
+          714.0,
+          225.61999988555908,
+          1050.0
+        ],
+        "actualCloudView": [
+          -0.99999994,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.99999994,
+          0.0,
+          0.0,
+          0.99999994,
+          0.0,
+          0.0,
+          5.4113994,
+          -6.3299994,
+          -30.289991,
+          1.0
+        ],
+        "actualCloudProjection": [
+          0.70715946,
+          0.0,
+          -0.0,
+          -0.0,
+          0.0,
+          1.2571725,
+          -0.0,
+          -0.0,
+          0.0,
+          0.0,
+          -1.0003906,
+          -1.0,
+          0.0,
+          -0.0,
+          -0.10001954,
+          -0.0
+        ],
+        "nearControls": {
+          "world": {
+            "roi": [
+              669,
+              333,
+              38,
+              38
+            ],
+            "actualDepthSha256": "bea6401b61a4d56a68c06d387b10ad5c2cf924ee5f4d9daef4ebf755fb9bd671",
+            "actualMinimum": 0.9971863031387329,
+            "actualMaximum": 1.0,
+            "actualNonclearPixels": 1280,
+            "independentlyVisiblePixels": 1106
+          },
+          "body": {
+            "roi": [
+              801,
+              331,
+              45,
+              39
+            ],
+            "actualDepthSha256": "33296dc5dce3620c3a4ca5164f482e9c287d2d2af193e5ce0a7df0ae68c50969",
+            "actualMinimum": 0.9970971941947937,
+            "actualMaximum": 1.0,
+            "actualNonclearPixels": 1550,
+            "independentlyVisiblePixels": 1396
+          }
+        }
+      }
+    ]
+  },
+  "poses": [
+    {
+      "pose": "near224",
+      "cloudDomain": 68744,
+      "cloudChanged": 68744,
+      "glError": 0,
+      "world": {
+        "changedDepthPixels": 0,
+        "minimumVisiblePixels": 9,
+        "roi": [
+          669,
+          333,
+          38,
+          38
+        ],
+        "changedColourPixels": 0,
+        "independentlyVisibleNativePixels": 0,
+        "pass": false
+      },
+      "body": {
+        "changedDepthPixels": 0,
+        "minimumVisiblePixels": 9,
+        "roi": [
+          801,
+          331,
+          45,
+          39
+        ],
+        "changedColourPixels": 0,
+        "independentlyVisibleNativePixels": 0,
+        "pass": false
+      },
+      "landmark": {},
+      "occlusionControlPass": false
+    },
+    {
+      "pose": "above384",
+      "cloudDomain": 23052,
+      "cloudChanged": 22258,
+      "glError": 0,
+      "world": {
+        "changedDepthPixels": 0,
+        "minimumVisiblePixels": 9,
+        "roi": [
+          718,
+          382,
+          18,
+          18
+        ],
+        "changedColourPixels": 0,
+        "independentlyVisibleNativePixels": 268,
+        "pass": true
+      },
+      "body": {
+        "changedDepthPixels": 0,
+        "minimumVisiblePixels": 9,
+        "roi": [
+          785,
+          381,
+          23,
+          19
+        ],
+        "changedColourPixels": 0,
+        "independentlyVisibleNativePixels": 339,
+        "pass": true
+      },
+      "landmark": {},
+      "occlusionControlPass": true
+    },
+    {
+      "pose": "far512",
+      "cloudDomain": 13984,
+      "cloudChanged": 0,
+      "glError": 0,
+      "world": {
+        "changedDepthPixels": 0,
+        "minimumVisiblePixels": 9,
+        "roi": [
+          718,
+          382,
+          18,
+          18
+        ],
+        "changedColourPixels": 0,
+        "independentlyVisibleNativePixels": 253,
+        "pass": true
+      },
+      "body": {
+        "changedDepthPixels": 0,
+        "minimumVisiblePixels": 9,
+        "roi": [
+          785,
+          381,
+          23,
+          19
+        ],
+        "changedColourPixels": 0,
+        "independentlyVisibleNativePixels": 339,
+        "pass": true
+      },
+      "landmark": {
+        "actualVisibleNearerPixels": 222,
+        "actualVisibleBehindPixels": 656,
+        "nearerPaintedByCloud": 0,
+        "actualMainDepthChangedPixels": 0,
+        "invalidDepthPixels": 0,
+        "minimumPixelsPerRayOrder": 4,
+        "pass": true,
+        "mainDepthWitnessExists": false,
+        "roi": [
+          702,
+          366,
+          105,
+          49
+        ],
+        "sourceColourReferenceMismatches": 0
+      },
+      "occlusionControlPass": true
+    },
+    {
+      "pose": "orbit2200",
+      "cloudDomain": 671,
+      "cloudChanged": 0,
+      "glError": 0,
+      "world": {
+        "changedDepthPixels": 0,
+        "minimumVisiblePixels": 9,
+        "roi": [
+          804,
+          468,
+          21,
+          21
+        ],
+        "changedColourPixels": 0,
+        "independentlyVisibleNativePixels": 14,
+        "pass": true
+      },
+      "body": {
+        "changedDepthPixels": 0,
+        "minimumVisiblePixels": 9,
+        "roi": [
+          723,
+          468,
+          26,
+          22
+        ],
+        "changedColourPixels": 0,
+        "independentlyVisibleNativePixels": 197,
+        "pass": true
+      },
+      "landmark": {
+        "actualVisibleNearerPixels": 20,
+        "actualVisibleBehindPixels": 16,
+        "nearerPaintedByCloud": 0,
+        "actualMainDepthChangedPixels": 0,
+        "invalidDepthPixels": 0,
+        "minimumPixelsPerRayOrder": 4,
+        "pass": true,
+        "mainDepthWitnessExists": false,
+        "roi": [
+          758,
+          436,
+          21,
+          7
+        ],
+        "sourceColourReferenceMismatches": 0
+      },
+      "occlusionControlPass": true
+    },
+    {
+      "pose": "orbit2200-roll90",
+      "cloudDomain": 693,
+      "cloudChanged": 0,
+      "glError": 0,
+      "world": {
+        "changedDepthPixels": 0,
+        "minimumVisiblePixels": 9,
+        "roi": [
+          804,
+          375,
+          21,
+          21
+        ],
+        "changedColourPixels": 0,
+        "independentlyVisibleNativePixels": 14,
+        "pass": true
+      },
+      "body": {
+        "changedDepthPixels": 0,
+        "minimumVisiblePixels": 9,
+        "roi": [
+          804,
+          451,
+          22,
+          26
+        ],
+        "changedColourPixels": 0,
+        "independentlyVisibleNativePixels": 194,
+        "pass": true
+      },
+      "landmark": {},
+      "occlusionControlPass": true
+    }
+  ],
+  "actualFixtureEvents": 16,
+  "physicalPrefabCells": 449,
+  "scope": "Actual two-object prerequisite only; near224 real geometry missing from saved pre-cloud depth ROIs despite loaded cell/body readiness. Other four controls and both LOD order pairs pass. Whole prerequisite NONPASS; causal draw/depth diagnostic and production altitude/fog correction remain open.",
+  "evidence": {
+    "path": "docs/v8/EVIDENCE/cloud-occlusion-e4470f5-near-control.zip",
+    "files": 200,
+    "bytes": 2045130,
+    "sha256": "4adbb7ac326656918e356fe60b23a54fc53972072bfdd12b8006a224642be3e3",
+    "perFileShaAndZipCrcVerified": true,
+    "actualPoseAndHorizonPngs": 29
+  }
+}

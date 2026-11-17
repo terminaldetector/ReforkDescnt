@@ -1,0 +1,25 @@
+# Two real cloud landmarks: LOD premises pass, first near geometry control fails
+
+Source `e4470f5f973760d3db431ba336d5cbdfcd73fd76` implements only the fixture amendment pinned in `4145407`. Its first compile/remap, whole-game byte parity, actual 15-class remapped owner audit and post-build capacity admission all passed. One actual Sodium case, `ps1-cloud-attribution-occlusion-two-e4470f5-sodium`, closed **255** after all five captures. The first outcome is retained without retry; no production source or threshold changed.
+
+Actual normal authoring placed 449 unique physical cells: a 402-cell high arch and a separate 48-cell low beam, sharing one cell. Both objects passed genuine FULL availability and exact server readbacks before ordinary catalogue registration. The actual normal accepted packet contains both exact descriptors, and the actual uploaded Horizon mesh has five marker faces at each real object location. High physical bounds are [706,63,1074]–[770,233,1075], descriptor centre [738,148,1074], size [64,170,1]. Low physical bounds are [666,70,1074]–[714,71,1075], descriptor centre [690,70,1074], size [48,1,1]. Its production eight-block proxy normalization is disclosed; its descriptor is not artificially enlarged. All five world/body controls bring the total to459writes, below the tightened490cap.
+
+| Pose | Original valid cloud domain | Changed samples | World visible pixels | Body visible pixels | LOD nearer / behind |
+| --- | ---: | ---: | ---: | ---: | --- |
+| 224 | 68,744 | 68,744 | **0** | **0** | Not required |
+| 384 | 23,052 | 22,258 | 268 | 339 | Not required |
+| 512 | 13,984 | 0 | 253 | 339 | 222 / 656: passes |
+| 2200 | 671 | 0 | 14 | 197 | 20 / 16: passes |
+| 2200, roll 90° | 693 | 0 | 14 | 194 | Not required |
+
+The two-object change makes both LOD ray-order premises genuinely visible on the GPU, including the previously missing upper behind-cloud class. Both landmark colour-reference comparisons have zero mismatches and actual main-depth writes remain zero at512/2200. Nearer landmark pixels and every independently visible world/body domain have zero cloud colour/depth changes. All GL checks pass, and all five actual1536×864 window/main-target/viewport and strict pose/mode/orientation checks pass. No cloud visibility positive is claimed: the unchanged high-altitude domains still have zero cloud contribution.
+
+The whole prerequisite remains **NONPASS** because the first224capture has no independently visible world or body pixel (required≥9each). Its original cloud-before image is pure sky. Actual world ROI[669,333,38,38] and body ROI[801,331,45,39] contain only depth1.0. In the separately preserved d57 first result, the same exact ROIs and admitted pose contain1,280and1,550nonclear pixels and pass. This directly establishes missing actual near geometry in this new capture; it does not establish whether it was never drawn, culled, still pending in a renderer queue, or overwritten. A later bounded observer draw/depth-stage diagnostic must distinguish those causes before changing production or capture admission. Zero visible occluders is never accepted as successful occlusion.
+
+Actual readback180,582,456bytes remains below192MiB; cloud source458,816bytes across five uploads/five draws; all original500domain/5%high visibility, stride4, per-order≥4 and near≥9criteria remain unchanged. The freely simulated one-cell IRON bodies use their existing gravity-off setting and one initial zero velocity, not anchoring or per-frame following. All29fresh PNGs, raw cloud/Horizon sources, depth arrays, masks, actual packets/events and source/matrix/helper proofs are retained. Five final pose images and the first pre-cloud image were visually inspected; this is not a claim of manually reviewing everyPNG.
+
+Game SHA256`b6c653a4729e7dd4a8158ba1b8704fc31434c89d0c7cabaefbee4e1266d3df8c`; observer SHA256`27c9f0d8d2f2cbc995f898fd6943166bb496d6bf1cd5e25098e5ff2be12079c8`. All eight executing helpers matched manifest`011919cbca35b9ed85ba1e202dab36bb4cc6283d76c7f10d8a73d85888b67b2c`after close; external official stager`8a0967489aedaa127c4f479b17aa19006607a26fe43c99ad9d3256a9a9e2e274`unchanged. Exact JARs/stamp remain at`work/cloud-occlusion/two-first-artifacts/`.
+
+[Compact evidence](EVIDENCE/cloud-occlusion-e4470f5-near-control.zip):200files/29freshPNGs/2,045,130bytes, SHA256`4adbb7ac326656918e356fe60b23a54fc53972072bfdd12b8006a224642be3e3`. Every member SHA256and full ZIP CRC verified. [Machine summary](EVIDENCE/cloud-occlusion-e4470f5-near-control.json). The original d57 single-object result remains separate and immutable.
+
+The closed130-file world was separately archived and verified under an exclusive nonblocking session`lockf`before reclaiming raw saves; archiveSHA256`651206d72305663813a9e9c7124280af760a047b02dd5f7de63a8c7d4d8deb38`. All other evidence/mod/input/event paths remain in`build/cubic-client-failed-cloud-near-control-e4470f5/`; archive remains under`work/preserved-disposable-worlds/`. No full cloud/atmosphere, PS1 or v8 completion is implied.
