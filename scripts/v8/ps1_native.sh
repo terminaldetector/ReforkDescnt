@@ -32,5 +32,7 @@ r=Path('build/cubic-client-automation');marker=json.loads((r/'presentation-ok.js
 assert len(marker['scenes'])==6 and marker['exceptionTargetsRestored'] and marker['actualWindowResizeAndRestore']
 assert not list((r/'crash-reports').glob('*.txt'))
 assert all((r/'presentation-frames'/(s['scene']+'.png')).is_file() for s in marker['scenes'])
+args=json.loads((r/'launch.json').read_text())
+if '-Ddrmd.gate.viewmodel=true' in args:assert (r/'viewmodel-proof/viewmodel-visibility.json').is_file(),'viewmodel observer did not establish visible actual geometry'
 PY
 mv build/cubic-client-automation "build/cubic-client-final-${scenario}"

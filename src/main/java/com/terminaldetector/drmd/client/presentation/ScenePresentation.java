@@ -100,14 +100,19 @@ public final class ScenePresentation {
     private record Overlay(OverlayContext context,Consumer<WorldRenderContext> render,Matrix4f projection,Matrix4f modelView,VertexSorter sorting,
                            boolean depthTest,boolean depthWrite,boolean culling,boolean blending){
         void draw(){
+            withState(()->render.accept(context));
+        }
+        void flush(VertexConsumerProvider.Immediate immediate){
+            withState(immediate::draw);
+        }
+        private void withState(Runnable action){
             var before=new Matrix4f(RenderSystem.getProjectionMatrix());var sortingBefore=RenderSystem.getVertexSorting();var shader=RenderSystem.getShader();
             boolean oldDepth=GL11.glIsEnabled(GL11.GL_DEPTH_TEST),oldWrite=GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK),oldCull=GL11.glIsEnabled(GL11.GL_CULL_FACE),oldBlend=GL11.glIsEnabled(GL11.GL_BLEND);
             var stack=RenderSystem.getModelViewStack();stack.pushMatrix();
             try{
                 stack.set(modelView);RenderSystem.applyModelViewMatrix();RenderSystem.setProjectionMatrix(projection,sorting);
                 depth(depthTest);RenderSystem.depthMask(depthWrite);cull(culling);blend(blending);
-                render.accept(context);
-                if(context.consumers() instanceof VertexConsumerProvider.Immediate immediate)immediate.draw();
+                action.run();
             }finally{stack.popMatrix();RenderSystem.applyModelViewMatrix();RenderSystem.setProjectionMatrix(before,sortingBefore);RenderSystem.setShader(()->shader);
                 depth(oldDepth);RenderSystem.depthMask(oldWrite);cull(oldCull);blend(oldBlend);}
         }
@@ -146,6 +151,10 @@ public final class ScenePresentation {
                     outlinesPresented=true;
                 }
                 for(var overlay:overlays)overlay.draw();
+                // Native world callbacks queue weapon vertices, draw the immediate cockpit,
+                // then flush the shared provider. Preserve that ordering after the upscale too.
+                var flushed=Collections.newSetFromMap(new IdentityHashMap<VertexConsumerProvider.Immediate,Boolean>());
+                for(var overlay:overlays)if(overlay.context.consumers() instanceof VertexConsumerProvider.Immediate immediate&&flushed.add(immediate))overlay.flush(immediate);
                 frames++;last=new Stats(profile,scene==null?output.textureWidth:scene.size.width(),scene==null?output.textureHeight:scene.size.height(),
                         output.textureWidth,output.textureHeight,overlays.size(),frames,fallbackFrames,false);
             }finally{active=null;overlays.clear();if(releaseRequested)release();}
