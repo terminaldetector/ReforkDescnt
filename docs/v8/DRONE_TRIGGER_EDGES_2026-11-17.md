@@ -103,3 +103,24 @@ its physically held bank, consume competing requests without replay, stop
 genuinely released or replaced charges before another use, and honor the real
 cooldown resulting from that stop. Distinct stack banks remain independent.
 The unchanged ten-case positive and native route are still open here.
+
+## First corrected ten-case positive
+
+Exact source `5f8eae13817256fdda4aebad7a57383877feaae5` passed all
+**10/10 unchanged cases**, exit **0**, in its first separately granted positive
+run (48 seconds). Production correction `da3a5d3` prefers a valid already held
+same-stack charge's bank, consumes the competing request, and stops genuinely
+released/replaced charges before checking a new use's real cooldown. Different
+stack banks retain independent requests. No hold-age, TTL, energy or fire-rate
+rebalance was made. The Java lease was returned immediately at first close.
+
+Bundle: `EVIDENCE/drone-charge-bank-positive-5f8eae1.zip`.
+SHA-256: `a943607f4b669749a94c98056f9b857ad1b8a0670aba352b8ff26e863f423d88`.
+All 135 payload hashes and ZIP CRC were verified, including unchanged test
+source, actual compiled test/arsenal classes, focused manifest, first raw
+inputs/log/XML/runner/exit and all 108 closed-world files (8,670,648 bytes).
+
+The separate real-client six-scene result on the same exact source is recorded
+in `GRAVITY_NATIVE_INPUT_ACCEPTANCE_2026-11-17.md`. Combined ordinary-suite
+integration remains a separate root-owned gate; neither scoped run certifies
+the entire weapon system or the full technical specification.
