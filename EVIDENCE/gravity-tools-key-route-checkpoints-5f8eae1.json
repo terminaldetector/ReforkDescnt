@@ -1,0 +1,78 @@
+{
+  "testedSource": "5f8eae13817256fdda4aebad7a57383877feaae5",
+  "productionSource": "da3a5d3562baf9877a3da3221ea7ceb7e254a025",
+  "initialLatchSource": "347cf76c5ea6997f191a909c0806ce27afab3a4d",
+  "observerOrderingSource": "5f8eae13817256fdda4aebad7a57383877feaae5",
+  "evidenceOnlyTipIsNotTestedSource": true,
+  "archives": [
+    {
+      "path": "native-gravity-input-first-c76.zip",
+      "source": "c76c984984b4a601132e9566fcabf64fd3b0f916",
+      "result": "Native255 beforeworld: required observer mapping failure; no gameplay claim",
+      "sha256": "086d7ff0a9d4ac90b63cbe2d88678e995d7ce37b53da6df3769be57d0fe04a49",
+      "bytes": 5434042,
+      "payloadsVerified": 124,
+      "crcAndAllPayloadSHA256": "PASS"
+    },
+    {
+      "path": "native-gravity-input-short-click-07b.zip",
+      "source": "07b2fa8a999c66bfb38893e276592c0dd959a4ca",
+      "result": "Native255 scene0CAPTURE: real decoded same-tick1->0 without item use; five later scenes unexecuted",
+      "sha256": "a0efa7a7d24f75715961e46acd2daf7d4ec0abef99a09cbccd0141f2e919cab2",
+      "bytes": 5727266,
+      "payloadsVerified": 136,
+      "crcAndAllPayloadSHA256": "PASS"
+    },
+    {
+      "path": "drone-trigger-edge-negative-ac1de75.zip",
+      "source": "ac1de7588f50946ae39097ff3f5856602fe3c630",
+      "result": "Stock9:7FAIL/2PASS; cooldown/owner/selection failures at later fresh-click controls",
+      "sha256": "d1fb5945199474d43bbbc522c3fdb8d6fcd160c7f6e64a80ff95c12f8503643c",
+      "bytes": 2626197,
+      "payloadsVerified": 113,
+      "crcAndAllPayloadSHA256": "PASS"
+    },
+    {
+      "path": "drone-trigger-edge-positive-347cf76.zip",
+      "source": "347cf76c5ea6997f191a909c0806ce27afab3a4d",
+      "result": "Stock9:9PASS; charged crossbank boundary not yet tested",
+      "sha256": "cde25af4260ae333a526b39f6a090fe5ee5bb2e065cfbfd0e44ce0296281d527",
+      "bytes": 2841127,
+      "payloadsVerified": 130,
+      "crcAndAllPayloadSHA256": "PASS"
+    },
+    {
+      "path": "drone-charge-bank-negative-4aff9c5.zip",
+      "source": "4aff9c5d0cbf32b00c7ddecfe39640f00de5cf73",
+      "result": "Stock10:9PASS/1FAIL; existing RMBFusion charge prematurely releases on2->3->2",
+      "sha256": "ab8a9a19e79fd464910d870fe417222b853a49315c9027d0f9c354a02a9fb5bc",
+      "bytes": 2584020,
+      "payloadsVerified": 139,
+      "crcAndAllPayloadSHA256": "PASS"
+    },
+    {
+      "path": "drone-charge-bank-positive-5f8eae1.zip",
+      "source": "5f8eae13817256fdda4aebad7a57383877feaae5",
+      "result": "Stock10:10PASS, unchanged assertions",
+      "sha256": "a943607f4b669749a94c98056f9b857ad1b8a0670aba352b8ff26e863f423d88",
+      "bytes": 2783949,
+      "payloadsVerified": 135,
+      "crcAndAllPayloadSHA256": "PASS"
+    },
+    {
+      "path": "native-gravity-input-positive-5f8eae1.zip",
+      "source": "5f8eae13817256fdda4aebad7a57383877feaae5",
+      "result": "Native0:6actual key/UI/socket scenesPASS,12freshframes, allpairedreceipts postchecked",
+      "sha256": "ce7f562cb64ae23f6dc3ddd0b425d2c36ece89a8fcd6351940ce96e782c5237f",
+      "bytes": 6154954,
+      "payloadsVerified": 151,
+      "crcAndAllPayloadSHA256": "PASS"
+    }
+  ],
+  "installableCandidateJarSha256": "1d5b9364c9ba1e4bce7c256f8acd757480e238e5bf1d65ec071662a475393e9c",
+  "testObserverJarSha256": "362494302950d51991744774b39de0423052ca1ee0191ee3850b22e656d7b6c6",
+  "nativeSuccessMarkerSha256": "7861468eaaf2cc78aa55583f54f1676e7c9eef1c5667b9c9a5d2932b77c829c5",
+  "ordinarySuiteRegistrationForRoot": "com.terminaldetector.drmd.DroneTriggerEdgeGameTests (10 tests)",
+  "combinedOrdinary824unit418GameTests": "PENDING root integration; not run under this lane",
+  "publication": "none; local development only"
+}
