@@ -1,0 +1,90 @@
+{
+  "REPORT.md": {
+    "bytes": 1868,
+    "sha256": "503ebc9080d666959ebaabe1b38ba9f05da8ca852d8facd7b21d6bd2de19099b"
+  },
+  "actual-execution/TEST-com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest.xml": {
+    "bytes": 3491,
+    "sha256": "ea370818a1ae5fe2321b37010b1172b1b460988129f4dbd984acb3216321b247"
+  },
+  "actual-execution/actual-executed-gametest-manifest.json": {
+    "bytes": 447,
+    "sha256": "b9cf426213aa48cdffba8f0b08724a90400a60f3091ffaca1501d3fe3143808a"
+  },
+  "actual-execution/actual-helper-snapshots/deferred_fluid_stock_focus.init.gradle": {
+    "bytes": 1866,
+    "sha256": "535431a41b7458e50dc7fe70d454d70d60d2740fcf834bc7f82c10bac240b8e0"
+  },
+  "actual-execution/actual-helper-snapshots/run_once.py": {
+    "bytes": 4666,
+    "sha256": "d2d0451b716b4001eef646caee81c61f91600b9160ff51ddaa383f5bcf240c94"
+  },
+  "actual-execution/before.json": {
+    "bytes": 218861,
+    "sha256": "bf5e422c3e29acf3305cf28222f503e25a84364b8dd85faae723eb3ed461be35"
+  },
+  "actual-execution/final-close.json": {
+    "bytes": 795,
+    "sha256": "95e8491b805d213e4dcfc1cebb0047a0a7ccb1264d6362fa91a7cebbcf44d921"
+  },
+  "actual-execution/gametest-results.xml": {
+    "bytes": 467,
+    "sha256": "eaa920d358a61fab427e85561948229dae5908c96eae7c0be816e9f1f88dc351"
+  },
+  "actual-execution/generated-resource-cleanup.json": {
+    "bytes": 275,
+    "sha256": "a79c0b1c72dd1d1978f7f0f39f03b91eaf64fcc17de04fc2824fb0cb070e6021"
+  },
+  "actual-execution/run_once.py": {
+    "bytes": 4666,
+    "sha256": "d2d0451b716b4001eef646caee81c61f91600b9160ff51ddaa383f5bcf240c94"
+  },
+  "actual-execution/stock-child-close.json": {
+    "bytes": 74,
+    "sha256": "f6a77a37eb896cdaf7d014ddc84f4a97830e12c76de6c874918a5a1e8bac0547"
+  },
+  "actual-execution/stock-start.json": {
+    "bytes": 244,
+    "sha256": "66ba4dcb911a93617142efea16b944dd5d1c06eb7388472e2db988f7f19b7da8"
+  },
+  "actual-execution/stock.log": {
+    "bytes": 41529,
+    "sha256": "d2a73e71d70ecf006e63efeb4490ea95d97403658d51ef50778fdb3dedad9a77"
+  },
+  "actual-execution/units-child-close.json": {
+    "bytes": 74,
+    "sha256": "9b68a2add6b609da8d788e77bef72b20e3b637169bb09b186fc0cdff448cd823"
+  },
+  "actual-execution/units-start.json": {
+    "bytes": 256,
+    "sha256": "fdf2a57a9bb22764ac88d1482f4f6c6798893bad052cffc034c0d0b81623de64"
+  },
+  "actual-execution/units.log": {
+    "bytes": 1179,
+    "sha256": "bd8a867e8a023ed14e8c9d785f688e8dac9efff5727b654df36700c406fc267d"
+  },
+  "closed-stock-world-proof.json": {
+    "bytes": 4304,
+    "sha256": "d38683a8c615b1d629db8eca4c41bd0f85e4fbb1b7e5540a8d088f8177159815"
+  },
+  "closed-stock-world.tar.gz": {
+    "bytes": 334612,
+    "sha256": "73255dd16366722932d266e4d92e9215e66dc1cd4f0fff46caa7f2e229dcda11"
+  },
+  "logs/debug.log": {
+    "bytes": 347070,
+    "sha256": "ce4a69204f44ac7be28a71e145eea983873536d10a583c4b43b3d063797808c5"
+  },
+  "logs/latest.log": {
+    "bytes": 14086,
+    "sha256": "249e6e622779990113ac110100beb7f0fd61ef8e3a4b8f8965343619ba8e126c"
+  },
+  "outer-tool-close.json": {
+    "bytes": 241,
+    "sha256": "9c47184290a4e7054627739b01ad1b69900b70acf8a31e0c5676449ac9b8fbd0"
+  },
+  "reports/gametest-results.xml": {
+    "bytes": 467,
+    "sha256": "eaa920d358a61fab427e85561948229dae5908c96eae7c0be816e9f1f88dc351"
+  }
+}

@@ -1,0 +1,9 @@
+# Deferred-fluid focused component checks:19 units +2 actual STOCK PASS
+
+Exact source704203e9e809af8a388356eefa65d4c1642f609a; runnerd2d0451b716b4001eef646caee81c61f91600b9160ff51ddaa383f5bcf240c94. Both first Gradle children, wrapper and outer exec closed0. Fresh XML19unit/0failure and2realGameTest/0failure hashes are recorded in the actual final-close receipt. No retry, remap or native case ran under this short lease. Source/helpers were unchanged before/after.
+
+Unit cases cover fullXYZ/farY2301vs-1795 and +/-65k codec identity, coalescing, hard4096 capacity refusal without eviction, fair16 traversal, temporarily unknown source/target retention, invalid bounds versus unknown, proven fluid replacement, future-queued-only acknowledgement despite current tick, failed queue handoff retention, long-lived work/coldNBT roundtrip, schema/malformed-data preservation and independent world state.
+
+Actual Fabric TestServer selected ordinary profile before registry load, disabling only drmd:advanced_column with all other pack order preserved. Both tests asserted actual STOCK backend and[-64,320) bounds in the dedicated fresh runDir. They exercised real scheduled water flow to a lower chamber target with zero native pending state/file, and actual bootstrapped water/lava canonical families/rates5/30. These2 dedicated Vanilla-profile controls are not registered in the ordinary full-suite Advanced-profile manifest, and do not certify native behavior.
+
+The executed generated manifest was saved, then restored from unchanged tracked source after closure to prevent a focused-entrypoint leak. The closed disposable STOCK world was archived with every file length/SHA, gzip EOF and exclusive lock verification. Original logs/XML/helper snapshots/inputs/exits remain intact. Live native negative→positive and durable midunknown cold restart are separate gates.

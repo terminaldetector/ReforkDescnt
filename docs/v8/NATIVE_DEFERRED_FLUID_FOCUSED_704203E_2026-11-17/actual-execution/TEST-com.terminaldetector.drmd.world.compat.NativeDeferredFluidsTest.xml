@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" tests="19" skipped="0" failures="0" errors="0" timestamp="2026-11-17T19:47:07" hostname="be18a16f9741" time="0.805">
+  <properties/>
+  <testcase name="fairBudgetEventuallyInspectsEveryUnknownEntry()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.717"/>
+  <testcase name="malformedIdentityDoesNotBecomeAZeroCoordinateJob()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.023"/>
+  <testcase name="independentStatesDoNotShareWorldWork()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.002"/>
+  <testcase name="alreadyQueuedFutureWorkAcknowledgesWithoutAddingAnotherTick()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.001"/>
+  <testcase name="currentTickDoesNotAcknowledgeRefusedFutureScheduling()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.001"/>
+  <testcase name="canonicalFamiliesRemainSeparateEvenAtIdenticalCoordinates()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.001"/>
+  <testcase name="nonAdjacentOrSameCubeTargetsCannotEnterTheMetadataQueue()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.001"/>
+  <testcase name="loadedSourceReplacementInvalidatesOnlyThatFluidWork()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.001"/>
+  <testcase name="provablyInvalidTargetRetiresWithoutLoadingEitherCell()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.001"/>
+  <testcase name="ancientUnknownWorkSurvivesRepeatedPollingAndColdCodecRoundtrip()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.01"/>
+  <testcase name="duplicateKeepsOriginalWorkInsteadOfRefreshingItsAge()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.001"/>
+  <testcase name="unsupportedSchemaPreservesOriginalDataAndRefusesNewAdmission()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.0"/>
+  <testcase name="invalidSourceIsNotConfusedWithTemporarilyUnloadedSource()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.0"/>
+  <testcase name="emptyStateAndFairPollingDoNotProduceSaveWrites()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.0"/>
+  <testcase name="farPositiveAndNegativeBlockYKeepDistinctIdentityAndExplicitNbtInts()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.001"/>
+  <testcase name="unavailableSourceIsRetainedWithoutTargetReadsOrScheduling()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.0"/>
+  <testcase name="fullCapacityRefusesNewWorkWithoutEvictingAnyOldIdentity()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.033"/>
+  <testcase name="unavailableTargetKeepsAValidatedSourcePending()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.001"/>
+  <testcase name="positionsBeyondExplicitCubeBoundsCannotAliasAStoredJob()" classname="com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

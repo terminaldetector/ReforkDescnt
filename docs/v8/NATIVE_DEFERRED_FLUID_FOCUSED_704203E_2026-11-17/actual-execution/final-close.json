@@ -1,0 +1,22 @@
+{
+  "sourceSha": "704203e9e809af8a388356eefa65d4c1642f609a",
+  "actualFinalChildExit": 0,
+  "results": {
+    "units": {
+      "path": "/workspace/ungravity-v5/cubic-next-20261109/build/test-results/test/TEST-com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest.xml",
+      "sha256": "ea370818a1ae5fe2321b37010b1172b1b460988129f4dbd984acb3216321b247",
+      "tests": 19,
+      "failures": 0
+    },
+    "stock": {
+      "path": "/workspace/ungravity-v5/cubic-next-20261109/build/deferred-fluid-stock-control/reports/gametest-results.xml",
+      "sha256": "eaa920d358a61fab427e85561948229dae5908c96eae7c0be816e9f1f88dc351",
+      "tests": 2,
+      "failures": 0
+    }
+  },
+  "sourceHelpersUnchanged": true,
+  "nativeNotRun": true,
+  "wrapperFinalCode": 0,
+  "nanoTime": 41357809211390
+}

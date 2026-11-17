@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "./gradlew",
+    "runGametest",
+    "--offline",
+    "--no-daemon",
+    "-I",
+    "scripts/v8/deferred_fluid_stock_focus.init.gradle"
+  ],
+  "cwd": "/workspace/ungravity-v5/cubic-next-20261109",
+  "nanoTime": 41321796431133
+}

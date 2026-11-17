@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "./gradlew",
+    "test",
+    "--tests",
+    "com.terminaldetector.drmd.world.compat.NativeDeferredFluidsTest",
+    "--offline",
+    "--no-daemon"
+  ],
+  "cwd": "/workspace/ungravity-v5/cubic-next-20261109",
+  "nanoTime": 41295107644839
+}
