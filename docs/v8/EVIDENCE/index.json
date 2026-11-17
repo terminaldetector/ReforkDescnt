@@ -74,7 +74,14 @@
     "linear-stage-3920768.zip": "30bf2934c495aa5485cd37a7f4026c5945e23860924d54701d3086c8b5430297",
     "ps1-color-8f1b3b1.zip": "7fc5bbc6e6e2ed6a77dbb8a4d106188ebfa3606a59454e84e1a65baeb431ef77",
     "ps1-color-0741805-negative.zip": "2705d400ab77ed83eed7c8651d3966f4284f01a79da735054b2949cf0e6030a0",
-    "integrated-ed458a8.zip": "ed78390f1b1c10b89eb012e675a6ca5f23907a7aa85c748391fa59fba6cb8639"
+    "integrated-ed458a8.zip": "ed78390f1b1c10b89eb012e675a6ca5f23907a7aa85c748391fa59fba6cb8639",
+    "integrated-ae1bd82.zip": "c8a9e18ea01945ab12b43e3721f5efaeea6d1ad295832de682a2aec463b976d3",
+    "integrated-ae1bd82.json": "f5caa5ee959d541b41dd554d96e19674cce718d14669a1d9c66db8fd9894c506",
+    "fluid-component-byte-parity-ae1bd82.json": "0674428798ee64e4442d6f9648cd0688de4afeb1cb374287bea93e1830d5e298",
+    "resource-usegraph-9b7cf9b.zip": "bedf28aa9fc980c5160119a2d05517b7cbcb5e1c303d19bb7f6f37af86cfe958",
+    "native-recorder-9426-disabled-v1.zip": "080c41148505fbe43cd10a8f0b35b5f5117b6b0cc0dd7860bdeea1b31d84d382",
+    "native-recorder-9426-capacity16-v1.zip": "b6b1c57fc1949255afa233fc5576198db97e03f6b2d653b5a7adf392b9e5239b",
+    "cloud-e7213db-partial-attribution.zip": "bccd19da9c4b255659d8ffe0c9a119ad6a0885e3d8c829dd7916f768590871a5"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -3308,5 +3315,36 @@
     "gameJarSha256": "3e98be00df312efccb1bc73ed6d6edc7475750c3960aced058a66ad170ef3e70",
     "observerJarSha256": "ffd6c6da18201a51fa17ea948eab1847e1650fe578d6118478112a97d47b4093",
     "scope": "linear and palette integration; no whole-spec/release acceptance"
+  },
+  "multiAgentIntegrationAe1bd82": {
+    "source": "ae1bd821fcc0a7d7e16b0284bfa25355902c5077",
+    "report": "MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md",
+    "receipt": "EVIDENCE/integrated-ae1bd82.json",
+    "unitTests": 837,
+    "ordinaryGameTests": 430,
+    "entrypoints": 69,
+    "freshFrames": 40,
+    "actualDepthArrays": 10,
+    "gameJarSha256": "7917b2b6454b3abe41f10b927a49f825c7f3ec2e4278b9eaf4d3d35409b0d1d6",
+    "observerJarSha256": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4",
+    "scope": "four integrated increments; no whole-task/release acceptance"
+  },
+  "nativePendingWater20261117": {
+    "source": "6c23897d721aaf4429e2bd0054644838ddc1dd5c",
+    "gameJarSha256": "0855f657e53742e3a5b95bce8f30b60a76bc93020574dc5826bccb86514f8df9",
+    "writer": "NATIVE_FLUID_WRITER_2026-11-17/REPORT.md",
+    "reader": "NATIVE_FLUID_READER_2026-11-17/REPORT.md",
+    "readerTicks": 96,
+    "maxReaderTicks": 400,
+    "readerFixtureWrites": 0,
+    "scope": "actual natural pendingwater coldrestart component; lava/unknown-neighbour/general parity open"
+  },
+  "resourceUseGraph20261117": {
+    "source": "9b7cf9b0709a47c181d113923f7ac59a4b62fd3c",
+    "report": "RESOURCE_USEGRAPH_2026-11-17.md",
+    "itemRoots": 131,
+    "blocks": 47,
+    "brokenReferencedAssets": 0,
+    "scope": "static source/resource usegraph, not all-model rendered atlas/marked6ID identification"
   }
 }

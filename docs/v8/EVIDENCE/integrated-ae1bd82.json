@@ -1,0 +1,129 @@
+{
+  "source": "ae1bd821fcc0a7d7e16b0284bfa25355902c5077",
+  "archiveSHA256": "c8a9e18ea01945ab12b43e3721f5efaeea6d1ad295832de682a2aec463b976d3",
+  "archiveBytes": 4656746,
+  "payloadFiles": 135,
+  "pngFiles": 40,
+  "depthArrays": 10,
+  "counts": {
+    "unit": {
+      "tests": 837,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "game": {
+      "tests": 430,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "entrypoints": 69,
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "7917b2b6454b3abe41f10b927a49f825c7f3ec2e4278b9eaf4d3d35409b0d1d6",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+  },
+  "nativePair": {
+    "source": "ae1bd821fcc0a7d7e16b0284bfa25355902c5077",
+    "endSource": "ae1bd821fcc0a7d7e16b0284bfa25355902c5077",
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "7917b2b6454b3abe41f10b927a49f825c7f3ec2e4278b9eaf4d3d35409b0d1d6",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+    },
+    "jarsUnchanged": true,
+    "helpersUnchanged": true,
+    "results": [
+      {
+        "kind": "arrival",
+        "scenario": "cubic-surface-arrival-integrated-ae1bd82-sodium",
+        "helperExit": 0,
+        "javaExit": 0,
+        "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-surface-arrival-final-cubic-surface-arrival-integrated-ae1bd82-sodium",
+        "observed": [
+          "inputs.json",
+          "launch.json",
+          "surface-arrival-outcome.json"
+        ],
+        "pngCount": 2,
+        "gatePassed": true
+      },
+      {
+        "kind": "presentation",
+        "scenario": "ps1-color-integrated-ae1bd82-sodium",
+        "helperExit": 0,
+        "javaExit": 0,
+        "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-ae1bd82-sodium",
+        "observed": [
+          "inputs.json",
+          "launch.json",
+          "presentation-ok.json",
+          "ps1-color-ok.json",
+          "viewmodel-proof/viewmodel-visibility.json"
+        ],
+        "pngCount": 38,
+        "gatePassed": true
+      }
+    ],
+    "endNs": 1794929925039573697,
+    "gatePassed": true
+  },
+  "colourReference": {
+    "states": 5,
+    "allAgreement": true,
+    "maximumChannelError": 0,
+    "maximumDepthDelta": 5.960464477539063e-08,
+    "minimumDitherSensitive": 8170
+  },
+  "viewmodel": {
+    "nativePixels": 166,
+    "ps1Pixels": 166,
+    "requiredPixels": 125,
+    "sameCamera": true,
+    "sameModules": true,
+    "maximumProjectedVertexDeltaPixels": 0.0
+  },
+  "arrival": {
+    "status": "PASS",
+    "firstServerFullTick": 105,
+    "firstBothFullTick": 115,
+    "observationTicksAfterFull": 36,
+    "fixtureBlockEdits": 0,
+    "mutationsAfterBaseline": 0,
+    "droppedEventCount": 0,
+    "contextFramesNotRenderedSmoothingProof": true
+  },
+  "independentSurfaceBytes": {
+    "source": "ae1bd821fcc0a7d7e16b0284bfa25355902c5077",
+    "scope": "Independent Python decode of actual accepted network payloads and closed native disk; no fixture editing",
+    "packets": [
+      {
+        "sequence": 1,
+        "bytes": 5121,
+        "sha256": "2214c13e203e6d6c172a9e7a4452019960935564e57f51162c2d546ec34d32d3",
+        "cell": {
+          "height": 2301,
+          "colour": 0
+        }
+      },
+      {
+        "sequence": 2,
+        "bytes": 5121,
+        "sha256": "7fe32b531018119e62f5a3cccdcbe0eb3bea228b1fc30fa08fee75e0fd781552",
+        "cell": {
+          "height": 2301,
+          "colour": 16445005
+        }
+      }
+    ],
+    "disk": {
+      "path": "build/cubic-surface-arrival-final-cubic-surface-arrival-integrated-ae1bd82-sodium/saves/Cubic-Gate/drmd/surface/L0/0_0.bin",
+      "sha256": "fcd86e75d203aeb2d3d620ebe00813a8cc6f80a354f6e17c8253fad7da785d17",
+      "decodedCell": {
+        "height": 2301,
+        "colour": 16445005
+      }
+    }
+  },
+  "scope": "Four integrated increments; full specifications/release/performance remain open"
+}

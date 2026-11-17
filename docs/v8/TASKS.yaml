@@ -45,10 +45,10 @@ tasks:
   owner: CODEX
   gate: G0
   depends_on_stages: *id001
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
+  evidence: [RESOURCE_USEGRAPH_2026-11-17.md, EVIDENCE/resource-usegraph-9b7cf9b.json]
   notes: Do not assume complete from historic PR/summary.
 - id: S00-T05
   stage: S00
@@ -207,7 +207,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [CUBIC_LIGHT_POSITIVE_2026-11-11/REPORT.md, EVIDENCE/integrated-5839062.zip]
+  evidence: [CUBIC_LIGHT_POSITIVE_2026-11-11/REPORT.md, EVIDENCE/integrated-5839062.zip, NATIVE_FLUID_WRITER_2026-11-17/REPORT.md, NATIVE_FLUID_READER_2026-11-17/REPORT.md, EVIDENCE/fluid-component-byte-parity-ae1bd82.json]
   notes: "Exact670 native BCC all six roof states pass actual wall readiness. Prior observer baseline failure retained; no production lighting change. Full fluid/BE parity open."
 - id: S02-T06
   stage: S02
@@ -353,7 +353,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, SKY_LOD_BACKGROUND_FIX_2026-11-17.md, SURFACE_LOADED_GUARD_NATIVE_POSITIVE_2026-11-17/REPORT.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
+  evidence: [MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, SKY_LOD_BACKGROUND_FIX_2026-11-17.md, SURFACE_LOADED_GUARD_NATIVE_POSITIVE_2026-11-17/REPORT.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json]
   notes: Do not assume complete from historic PR/summary.
 - id: S05-T01
   stage: S05
@@ -378,7 +378,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [PS1_COLOR_CHECKPOINT_2026-11-17.md, EVIDENCE/ps1-color-8f1b3b1.json, MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json]
+  evidence: [PS1_COLOR_CHECKPOINT_2026-11-17.md, EVIDENCE/ps1-color-8f1b3b1.json, MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json]
   notes: Do not assume complete from historic PR/summary.
 - id: S05-T03
   stage: S05
@@ -387,10 +387,10 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id006
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
+  evidence: [CLOUD_ATTRIBUTION_PARTIAL_2026-11-17.md, EVIDENCE/cloud-e7213db-partial-attribution.json]
   notes: Do not assume complete from historic PR/summary.
 - id: S05-T04
   stage: S05
@@ -660,7 +660,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MOUNTED_WEAPONS_2026-11-07.md, EVIDENCE/mounted-weapons-479719e.zip, TURRET_2026-11-07.md, EVIDENCE/turret-ecde7af.zip, TURRET_RESTART.md, EVIDENCE/turret-restart-97d6f59.zip, UFO_AUTONOMOUS_COMBAT.md, EVIDENCE/ufo-autonomous-3dd2263.zip, TURRET_AUTONOMOUS_COMBAT.md, EVIDENCE/turret-autonomous-d54d71f.zip, PLAYER_BUILT_MECHANISMS.md, EVIDENCE/player-mechanisms-a160efb.zip, PLAYER_BUILT_WEAPONS.md, EVIDENCE/player-weapons-8e5111b.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json]
+  evidence: [MOUNTED_WEAPONS_2026-11-07.md, EVIDENCE/mounted-weapons-479719e.zip, TURRET_2026-11-07.md, EVIDENCE/turret-ecde7af.zip, TURRET_RESTART.md, EVIDENCE/turret-restart-97d6f59.zip, UFO_AUTONOMOUS_COMBAT.md, EVIDENCE/ufo-autonomous-3dd2263.zip, TURRET_AUTONOMOUS_COMBAT.md, EVIDENCE/turret-autonomous-d54d71f.zip, PLAYER_BUILT_MECHANISMS.md, EVIDENCE/player-mechanisms-a160efb.zip, PLAYER_BUILT_WEAPONS.md, EVIDENCE/player-weapons-8e5111b.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json]
   notes: Reference rigid mounts and physical yaw MOTOR module now pass actual hot two-process restart, new pilot capture/yaw/fire/braking/release and projected-model visual proof on Mesa/Sodium. Rigid autonomous batteries now also pass natural Survival targeting, real physical XYZ aiming/stand-off, damaging fire and inertial pause/resume on Mesa/Sodium (3dd2263). Reference yaw-module AI now also passes physical swing/yaw aiming, child-owned damage, rigid-bank cooperation and pause/resume on Mesa/Sodium. The d54d71f reference increment passed a fresh manual hot restart. User now requires Create-style separate blocks as the main direction. Generic player-built bearings/drives/wrench, physical two-axis composition, destruction/coast and actual native key control pass on a160efb (756 unit/357 GameTests; identical full/native game bytes). Generic directional guns with real lever control now pass full4fede1d/native8e5111b (758 unit/376 full GameTests, five actual-key fresh inspected client frames, identical full/native game bytes). Contact-time constraints, animated-head view rays and zero-penetration construction contacts are fixed with retained exact negatives. Generic automatic aiming, world anchoring, energy/ammo and complete module lifecycle remain open.
 - id: S09-T04
   stage: S09
@@ -784,7 +784,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [SWARM_BASELINE_2026-11-04.md, EVIDENCE/swarm-baseline-f3b7cac.zip, DRONE_ROUTES_WORLD_GRID_2026-11-05.md, EVIDENCE/drone-route-world-grid-5623e0a.zip, TYPED_SWARM_2026-11-05.md, EVIDENCE/typed-swarm-d1d92e9.zip, TYPED_COMBAT_LANES_2026-11-06.md, EVIDENCE/typed-combat-lanes-b59884b.zip, EVIDENCE/combat-lanes-swarm-restart-8aeb559.zip, SHARED_COMBAT_PASSAGES_2026-11-06.md, EVIDENCE/shared-combat-81c0ceb.zip, EVIDENCE/crowd-swarm-restart-81c0ceb.zip, DRONE_CRITICAL_COVER_2026-11-10.md, EVIDENCE/integrated-5839062.zip]
+  evidence: [SWARM_BASELINE_2026-11-04.md, EVIDENCE/swarm-baseline-f3b7cac.zip, DRONE_ROUTES_WORLD_GRID_2026-11-05.md, EVIDENCE/drone-route-world-grid-5623e0a.zip, TYPED_SWARM_2026-11-05.md, EVIDENCE/typed-swarm-d1d92e9.zip, TYPED_COMBAT_LANES_2026-11-06.md, EVIDENCE/typed-combat-lanes-b59884b.zip, EVIDENCE/combat-lanes-swarm-restart-8aeb559.zip, SHARED_COMBAT_PASSAGES_2026-11-06.md, EVIDENCE/shared-combat-81c0ceb.zip, EVIDENCE/crowd-swarm-restart-81c0ceb.zip, DRONE_CRITICAL_COVER_2026-11-10.md, EVIDENCE/integrated-5839062.zip, DRONE_SQUAD_INVESTIGATION_2026-11-17.md, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json]
   notes: "Loaded3D cover aa2 passes6focused and current391full. Full moving-cover/navigation/bestiary/performance open."
 - id: S11-T03
   stage: S11
@@ -820,7 +820,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [TYPED_COMBAT_LANES_2026-11-06.md, EVIDENCE/typed-combat-lanes-b59884b.zip, EVIDENCE/combat-lanes-swarm-restart-8aeb559.zip, SHARED_COMBAT_PASSAGES_2026-11-06.md, EVIDENCE/shared-combat-81c0ceb.zip, EVIDENCE/crowd-swarm-restart-81c0ceb.zip]
+  evidence: [TYPED_COMBAT_LANES_2026-11-06.md, EVIDENCE/typed-combat-lanes-b59884b.zip, EVIDENCE/combat-lanes-swarm-restart-8aeb559.zip, SHARED_COMBAT_PASSAGES_2026-11-06.md, EVIDENCE/shared-combat-81c0ceb.zip, EVIDENCE/crowd-swarm-restart-81c0ceb.zip, DRONE_SQUAD_INVESTIGATION_2026-11-17.md, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json]
   notes: Local loaded-only firing-lane recovery for three default roles and actual projectiles through intact offset cover pass712 unit/280 GameTests and four native cases per renderer. Complete weapon/destruction handling, moving bodies and all roles remain open.
 - id: S11-T06
   stage: S11
@@ -1110,7 +1110,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json]
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json]
   notes: "Exact699b749772unit/404ordinaryGT/64entrypoints and both same-JAR BCC/Sodium native clients pass;28PNG retained. All official older rendercheck scenarios, hardware and full-release gates are not inferred."
 - id: S16-T02
   stage: S16
@@ -1171,7 +1171,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json]
+  evidence: [MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json]
   notes: "Root coordinates isolated reviewed branches and single-source verification; PS1 candidate includes verified mechanism core, full integration acceptance remains open."
 - id: S17-T02
   stage: S17

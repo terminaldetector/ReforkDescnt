@@ -1,3 +1,5 @@
+Latest verified combined code ae1bd82 passes837 unit tests,430 ordinary GameTests and two actual same-JAR native clients, with40 fresh frames and10 depth arrays. See MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md and MULTI_AGENT_NEXT_2026-11-17.md. The two-primary-spec crosswalk covers99 tasks,10 Boarding sections and12 criteria. Live ledger:3 completed /27 in progress /69 pending. Remaining isolated work includes native climber movement, cloud/fog attribution, real city commands, physical point defense and broader fluid parity. Earlier entries below are historical.
+
 Latest combined verifieded458a8:828unit/423ordinaryGT/67entrypoints and same-JAR actual Sodium fivecolour/sixprofile/viewmodel client PASS;38freshPNG/10depth arrays. See MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md. Both-primary99task/10section/12criteria crosswalk active;3completed/25in_progress/71pending. World29 no-edit arrival repair is separately positive, squad coordination is under firstpositive test, wall locomotion and city runtime remain open. Earlier rounds below are historical.
 
 # Parallel execution of all specifications

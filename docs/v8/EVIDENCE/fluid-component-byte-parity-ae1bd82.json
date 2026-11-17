@@ -1,0 +1,17 @@
+{
+  "canonicalSource": "ae1bd821fcc0a7d7e16b0284bfa25355902c5077",
+  "canonicalGameSHA256": "7917b2b6454b3abe41f10b927a49f825c7f3ec2e4278b9eaf4d3d35409b0d1d6",
+  "componentGameSHA256": "0855f657e53742e3a5b95bce8f30b60a76bc93020574dc5826bccb86514f8df9",
+  "scope": "Selected fluid/atmosphere/native availability classes only; does not re-label component writer/reader as canonical artifact runs",
+  "matchedClasses": {
+    "com/terminaldetector/drmd/mixin/EntityFluidMixin.class": "3e1994dcb506f3525582694d6386904285758d33945a4aa509a9a9fa16f6c3a3",
+    "com/terminaldetector/drmd/mixin/FlowableFluidMixin.class": "0e0e18d22875def3d16d2c564fb7133bde177877ddac3ae15b5d96ff8ad6d525",
+    "com/terminaldetector/drmd/mixin/NativeCubicCubeLoadMixin.class": "bbef8a2eef579e68fcaa060075b057f2b8b4ae7d385e1430e867d6e92ed728de",
+    "com/terminaldetector/drmd/world/access/CubicAvailability$Backend.class": "f197109860bf8049a8bf20a85b7d2b69d213fb22c8c3c09cf3cff9ee732cc01e",
+    "com/terminaldetector/drmd/world/access/CubicAvailability.class": "22042d5607fe610bc0bfa658f0944b65fc5eb52e4e6204f6b49901927af11bb6",
+    "com/terminaldetector/drmd/world/access/CubicWorldAccess.class": "673e31987e06f22a853200356d425bcac767c1be722f0aa7e77d60f3f6ead941",
+    "com/terminaldetector/drmd/world/atmosphere/AtmosphereBand.class": "7bc33dcbb4911d0597608424b24f65b198bc4f116dc179e09a591b8e62bfdfb0",
+    "com/terminaldetector/drmd/world/atmosphere/AtmosphereRules.class": "9955b11575e9ca54922947a655416025c9f196e4ec169a7678703fe94e823c45"
+  },
+  "differentOrMissing": []
+}

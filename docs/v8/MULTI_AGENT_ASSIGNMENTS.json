@@ -44,9 +44,13 @@
       "stage": "S00",
       "title": "Classify legacy classes and commits KEEP/ADAPT/REMOVE_AFTER_PARITY/UNKNOWN",
       "worker": "audit_integration",
-      "ledgerStatus": "pending_reverification",
-      "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "ledgerStatus": "in_progress",
+      "executionStatus": "resource_consumer_subset_audited_legacy_matrix_open",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "RESOURCE_USEGRAPH_2026-11-17.md",
+        "EVIDENCE/resource-usegraph-9b7cf9b.json"
+      ]
     },
     {
       "id": "S00-T05",
@@ -167,7 +171,12 @@
       "worker": "world_cubic",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "NATIVE_FLUID_WRITER_2026-11-17/REPORT.md",
+        "NATIVE_FLUID_READER_2026-11-17/REPORT.md",
+        "EVIDENCE/fluid-component-byte-parity-ae1bd82.json"
+      ]
     },
     {
       "id": "S02-T06",
@@ -275,7 +284,11 @@
       "worker": "ps1_render",
       "ledgerStatus": "in_progress",
       "executionStatus": "actual_failure_diagnosis_or_verification",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md",
+        "EVIDENCE/integrated-ae1bd82.json"
+      ]
     },
     {
       "id": "S05-T01",
@@ -300,7 +313,9 @@
       "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
       "scopedEvidence": [
         "PS1_COLOR_CHECKPOINT_2026-11-17.md",
-        "EVIDENCE/ps1-color-8f1b3b1.json"
+        "EVIDENCE/ps1-color-8f1b3b1.json",
+        "MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md",
+        "EVIDENCE/integrated-ae1bd82.json"
       ]
     },
     {
@@ -308,9 +323,13 @@
       "stage": "S05",
       "title": "Implement altitude-dependent PS1 fog with sky-ground/asteroid fade continuity",
       "worker": "ps1_render",
-      "ledgerStatus": "pending_reverification",
-      "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "ledgerStatus": "in_progress",
+      "executionStatus": "three_pose_cloud_attribution_complete_five_pose_control_open",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "CLOUD_ATTRIBUTION_PARTIAL_2026-11-17.md",
+        "EVIDENCE/cloud-e7213db-partial-attribution.json"
+      ]
     },
     {
       "id": "S05-T04",
@@ -532,7 +551,9 @@
       "scopedEvidence": [
         "MULTI_AGENT_INTEGRATION_2026-11-17.md",
         "EVIDENCE/integrated-699b749.json",
-        "PLAYER_BUILT_LINEAR_STAGE_2026-11-17.md"
+        "PLAYER_BUILT_LINEAR_STAGE_2026-11-17.md",
+        "MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md",
+        "EVIDENCE/integrated-ae1bd82.json"
       ]
     },
     {
@@ -627,7 +648,12 @@
       "worker": "combat_ai",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "DRONE_SQUAD_INVESTIGATION_2026-11-17.md",
+        "MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md",
+        "EVIDENCE/integrated-ae1bd82.json"
+      ]
     },
     {
       "id": "S11-T03",
@@ -654,7 +680,12 @@
       "worker": "combat_ai",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "DRONE_SQUAD_INVESTIGATION_2026-11-17.md",
+        "MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md",
+        "EVIDENCE/integrated-ae1bd82.json"
+      ]
     },
     {
       "id": "S11-T06",
@@ -868,7 +899,9 @@
       "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
       "scopedEvidence": [
         "MULTI_AGENT_INTEGRATION_2026-11-17.md",
-        "EVIDENCE/integrated-699b749.json"
+        "EVIDENCE/integrated-699b749.json",
+        "MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md",
+        "EVIDENCE/integrated-ae1bd82.json"
       ]
     },
     {
@@ -914,7 +947,11 @@
       "worker": "root",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md",
+        "EVIDENCE/integrated-ae1bd82.json"
+      ]
     },
     {
       "id": "S17-T02",
@@ -954,21 +991,29 @@
     }
   ],
   "latestIntegratedCheckpoint": {
-    "source": "ed458a8b0ceaaa06b6ec153d2c051e7dcb1b6c5c",
-    "report": "MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md",
-    "receipt": "EVIDENCE/integrated-ed458a8.json",
-    "unitTests": 828,
-    "ordinaryGameTests": 423,
-    "entrypoints": 67,
-    "nativeScope": "one same-JAR BCC/Sodium fivecolour/sixprofile/viewmodel client",
+    "source": "ae1bd821fcc0a7d7e16b0284bfa25355902c5077",
+    "report": "MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md",
+    "receipt": "EVIDENCE/integrated-ae1bd82.json",
+    "unitTests": 837,
+    "ordinaryGameTests": 430,
+    "entrypoints": 69,
+    "nativeScope": "two SAME-JAR BCC/Sodium actual clients: noeditarrival and PS1fivecolour/sixprofile/viewmodel",
+    "freshFrames": 40,
+    "actualDepthArrays": 10,
     "fullTaskPromotion": false
   },
   "latestIntegratedServerIncrement": {
-    "source": "bd29aab11f6fcba71f5234b64616d2284bf0aec8",
-    "report": "MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md",
-    "receipt": "EVIDENCE/integrated-bd29aab-server.json",
-    "nativeStatus": "retained unavailable-winner failure",
-    "fullTaskPromotion": false
+    "source": "ae1bd821fcc0a7d7e16b0284bfa25355902c5077",
+    "report": "MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md",
+    "receipt": "EVIDENCE/integrated-ae1bd82.json",
+    "unitTests": 837,
+    "ordinaryGameTests": 430,
+    "entrypoints": 69,
+    "nativeScope": "two SAME-JAR BCC/Sodium actual clients: noeditarrival and PS1fivecolour/sixprofile/viewmodel",
+    "freshFrames": 40,
+    "actualDepthArrays": 10,
+    "fullTaskPromotion": false,
+    "scope": "ae1bd82 complete ordinary suite plus two same-JAR native clients; experimental main remains isolated; both specifications open"
   },
   "twoPrimarySpecCoverage": {
     "reviewSource": "1a8593846bed3b02d03d68236c6698d26a5116d4",
@@ -992,6 +1037,25 @@
       ],
       "report": "PS1_COLOR_CHECKPOINT_2026-11-17.md"
     },
-    "combinedAcceptance": "pending; prior combined source11513cd remains824/418"
+    "combinedAcceptance": "exact ae1bd82 837unit/430ordinaryGT plus2same-JARnativeclients; whole specifications open",
+    "surfaceArrival": {
+      "source": "29f848d84f517263267748307518c04196cb7000",
+      "native": "PASS first same-observer600tick case; canonical ae1 additionally PASS36ticks",
+      "report": "SURFACE_NATIVE_ARRIVAL_POSITIVE_2026-11-17/REPORT.md"
+    },
+    "squad": {
+      "source": "075c2c1931030b2d68fda06b2e9ed7fd06caa20a",
+      "targetedUnits": 4,
+      "focusedGameTests": 20,
+      "report": "DRONE_SQUAD_INVESTIGATION_2026-11-17.md"
+    },
+    "pendingWaterColdRestart": {
+      "compiledSource": "6c23897d721aaf4429e2bd0054644838ddc1dd5c",
+      "gameJar": "0855f657e53742e3a5b95bce8f30b60a76bc93020574dc5826bccb86514f8df9",
+      "readerTicks": 96,
+      "fixtureWrites": 0,
+      "report": "NATIVE_FLUID_READER_2026-11-17/REPORT.md",
+      "scope": "separate component, selected8classbyteparity; not canonical artifact run"
+    }
   }
 }
