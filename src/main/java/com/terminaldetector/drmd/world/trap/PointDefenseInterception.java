@@ -121,6 +121,9 @@ public final class PointDefenseInterception {
             ||!Float.isFinite(cfg.life)||cfg.life<=0||cfg.life>.5f||!finite(cfg.pos)||!finite(cfg.dir)||cfg.dir.lengthSquared()<1e-12
             ||cfg.pos.squaredDistanceTo(muzzle(source))>1e-12||!Float.isFinite(cfg.speed)||cfg.speed<=0
             ||!Float.isFinite(cfg.gravity)||cfg.gravity<0||cfg.gravity>1||!Float.isFinite(cfg.drag)||cfg.drag<0||cfg.drag>1)return false;
+        var loaded=world.getEntity(target);
+        if(!(loaded instanceof ProjectileEntity missile)||!hostileMissile(world,missile)
+            ||missile.getBoundingBox().getCenter().squaredDistanceTo(cfg.pos)>12*12)return false;
         var s=state(world);if(s.rounds.size()>=MAX_ROUNDS)return false;var b=s.emission==null?new Budget():s.emission;
         var exit=Vec3d.ofCenter(source).add(0,.501,0);var clearance=trace(world,null,exit,cfg.pos,b);
         if(s.emission==null)metrics(s,b);
@@ -172,7 +175,8 @@ public final class PointDefenseInterception {
 
     /** Invoked only with the incoming missile's actual computed movement and ordinary nearest hit. */
     public static boolean intercept(ProjectileEntity missile,Vec3d from,Vec3d to,HitResult ordinary){
-        if(!(missile.getWorld() instanceof ServerWorld world)||!registered||!hostileMissile(world,missile)||!missile.isArmed())return false;
+        if(!(missile.getWorld() instanceof ServerWorld world)||!registered||!hostileMissile(world,missile)||!missile.isArmed()
+            ||!WorldEditSafety.loadedSegment(world,from,to))return false;
         var s=WORLDS.get(world);if(s==null)return false;var associated=s.targets.get(missile.getUuid());if(associated==null)return false;
         double cover=ordinary==null?Double.POSITIVE_INFINITY:fraction(from,to,ordinary.getPos());
         Round winner=null;ProjectileEntity round=null;RelativeProjectileSweep.Contact earliest=null;
