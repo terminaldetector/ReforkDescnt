@@ -56,4 +56,14 @@ class CityBatchJournalTest {
             assertThrows(IllegalArgumentException.class,()->new CityBatchJournal.Batch(0,0,2,List.of(batch().changes().getFirst(),batch().changes().getFirst())));assertEquals(empty,Files.size(file));
         }
     }
+    @Test void absentParentIsNotSilentlyCreatedOrClaimedDurable(){
+        var parent=directory.resolve("not-provisioned");
+        assertThrows(IOException.class,()->CityBatchJournal.open(parent.resolve("city.journal"),OWNER));
+        assertFalse(Files.exists(parent));
+    }
+    @Test void completeCorruptFrameFailsClosedAndPreservesOriginalBytes() throws IOException {
+        var file=directory.resolve("city.journal");try(var writer=CityBatchJournal.open(file,OWNER)){writer.prepare(batch());}
+        var bytes=Files.readAllBytes(file);bytes[bytes.length-1]^=1;Files.write(file,bytes);
+        assertThrows(IOException.class,()->CityBatchJournal.open(file,OWNER));assertArrayEquals(bytes,Files.readAllBytes(file));
+    }
 }

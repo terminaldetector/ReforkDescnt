@@ -1,0 +1,47 @@
+// Deliberately standalone: no Loom, Minecraft, remapping, resource copy or downloads.
+plugins { id 'java' }
+
+def cachedJar = { String group, String module, String version ->
+    def matches = fileTree(new File(gradle.gradleUserHomeDir,
+        "caches/modules-2/files-2.1/${group}/${module}/${version}")) {
+        include '**/*.jar'
+    }.files
+    if (matches.size() != 1) throw new GradleException("Expected one cached ${module}:${version}, found ${matches.size()}")
+    return matches.iterator().next()
+}
+
+dependencies {
+    testImplementation files(cachedJar('org.junit.jupiter','junit-jupiter-api','5.11.3'))
+    testImplementation files(cachedJar('org.junit.platform','junit-platform-commons','1.11.3'))
+    testImplementation files(cachedJar('org.opentest4j','opentest4j','1.3.0'))
+    testImplementation files(cachedJar('org.apiguardian','apiguardian-api','1.1.2'))
+    testRuntimeOnly files(cachedJar('org.junit.jupiter','junit-jupiter-engine','5.11.3'))
+    testRuntimeOnly files(cachedJar('org.junit.platform','junit-platform-engine','1.11.3'))
+    testRuntimeOnly files(cachedJar('org.junit.platform','junit-platform-launcher','1.11.3'))
+}
+
+sourceSets {
+    main.java {
+        srcDirs = ['../../src/main/java/com/terminaldetector/drmd/world/fixture/city']
+        include 'CityBlueprint.java','CityBatchJournal.java','CityAuthoringJob.java'
+    }
+    test.java {
+        srcDirs = ['../../src/test/java/com/terminaldetector/drmd/world/fixture/city']
+        include 'CityBlueprintTest.java','CityBatchJournalTest.java','CityAuthoringJobTest.java'
+    }
+}
+
+tasks.withType(JavaCompile).configureEach { options.release = 21 }
+test {
+    useJUnitPlatform()
+    maxHeapSize = '384m'
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    filter {
+        includeTestsMatching 'com.terminaldetector.drmd.world.fixture.city.CityBlueprintTest'
+        includeTestsMatching 'com.terminaldetector.drmd.world.fixture.city.CityBatchJournalTest'
+        includeTestsMatching 'com.terminaldetector.drmd.world.fixture.city.CityAuthoringJobTest'
+    }
+    testLogging { events 'passed','failed','skipped'; exceptionFormat = 'full' }
+    doFirst { println 'SCOPE: 26 pure city controls; no Minecraft/production-build/runtime acceptance' }
+}

@@ -39,4 +39,25 @@ class CityBlueprintTest {
         assertThrows(IllegalArgumentException.class,()->CityBlueprint.create(0,new CityBlueprint.Point(Integer.MAX_VALUE,64,0),LIMITS));
         assertThrows(IllegalArgumentException.class,()->new CityBlueprint.Limits(100,99,-1,1,-1,1));
     }
+    @Test void publicPlanCannotBypassBoundsCountsDuplicatesPaletteOrHashBeforeWal(){
+        var p=plan(20);var duplicate=new ArrayList<>(p.cells());duplicate.add(p.cells().getFirst());
+        assertThrows(IllegalArgumentException.class,()->new CityBlueprint.Plan(p.seed(),p.anchor(),p.limits(),p.buildings(),duplicate,p.solidCount(),p.cutCount(),p.hash()));
+        assertThrows(IllegalArgumentException.class,()->new CityBlueprint.Plan(p.seed(),p.anchor(),p.limits(),p.buildings(),p.cells(),p.solidCount()+1,p.cutCount(),p.hash()));
+        assertThrows(IllegalArgumentException.class,()->new CityBlueprint.Plan(p.seed(),new CityBlueprint.Point(500,64,500),p.limits(),p.buildings(),p.cells(),p.solidCount(),p.cutCount(),p.hash()));
+        assertThrows(IllegalArgumentException.class,()->new CityBlueprint.Plan(p.seed(),p.anchor(),p.limits(),p.buildings(),p.cells(),p.solidCount(),p.cutCount(),"b".repeat(64)));
+        assertThrows(IllegalArgumentException.class,()->new CityBlueprint.Cell(p.anchor(),"minecraft:sand"));
+    }
+    @Test void solidAndAirBudgetsAreEnforcedIndependentlyBeforeJournalCreation(){
+        var p=plan(10);var points=new ArrayList<CityBlueprint.Point>();
+        for(int x=-128;x<128;x++)for(int z=-128;z<128;z++)points.add(new CityBlueprint.Point(x,64,z));
+        points.add(new CityBlueprint.Point(-128,65,-128));
+        points.sort(Comparator.comparingInt((CityBlueprint.Point q)->Math.floorDiv(q.y(),16))
+            .thenComparingInt(q->Math.floorDiv(q.z(),16)).thenComparingInt(q->Math.floorDiv(q.x(),16)).thenComparing(Comparator.naturalOrder()));
+        for(var material:List.of(CityBlueprint.STONE,CityBlueprint.AIR)){
+            var cells=points.stream().map(q->new CityBlueprint.Cell(q,material)).toList();
+            int solids=material.equals(CityBlueprint.AIR)?0:65_537,cuts=material.equals(CityBlueprint.AIR)?65_537:0;
+            var failure=assertThrows(IllegalArgumentException.class,()->new CityBlueprint.Plan(p.seed(),p.anchor(),p.limits(),p.buildings(),cells,solids,cuts,p.hash()));
+            assertTrue(failure.getMessage().contains("material/cut budget"));
+        }
+    }
 }

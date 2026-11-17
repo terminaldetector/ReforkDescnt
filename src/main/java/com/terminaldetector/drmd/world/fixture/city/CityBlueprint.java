@@ -24,13 +24,25 @@ public final class CityBlueprint {
         public Building{Objects.requireNonNull(archetype);Objects.requireNonNull(entry);Objects.requireNonNull(exit);if(solidCount<=0||solidCount>MAX_INSTANCE_SOLID)throw new IllegalArgumentException("building budget");}
     }
     public record Plan(long seed,Point anchor,Limits limits,List<Building> buildings,List<Cell> cells,int solidCount,int cutCount,String hash){
-        public Plan{buildings=List.copyOf(buildings);cells=List.copyOf(cells);Objects.requireNonNull(hash);}
+        public Plan{
+            buildings=List.copyOf(buildings);cells=List.copyOf(cells);
+            validateBounds(Objects.requireNonNull(anchor),Objects.requireNonNull(limits));
+            if(cells.size()>MAX_SOLID+MAX_CUT)throw new IllegalArgumentException("city cell budget");
+            var unique=new HashSet<Point>();int solids=0,cuts=0;Point previous=null;
+            for(var cell:cells){
+                Point p=cell.position();
+                if(!unique.add(p)||previous!=null&&PAGE_ORDER.compare(previous,p)>=0)throw new IllegalArgumentException("duplicate or noncanonical city cells");
+                if((long)p.x<anchor.x-128L||(long)p.x>anchor.x+127L||(long)p.z<anchor.z-128L||(long)p.z>anchor.z+127L
+                    ||(long)p.y<anchor.y-24L||(long)p.y>anchor.y+47L)throw new IllegalArgumentException("city cell outside reviewed bounds");
+                if(cell.state().equals(AIR))cuts++;else solids++;previous=p;
+            }
+            if(solids>MAX_SOLID||cuts>MAX_CUT||solidCount!=solids||cutCount!=cuts)throw new IllegalArgumentException("city material/cut budget");
+            if(hash==null||!hash.equals(CityBlueprint.hash(seed,anchor,limits,cells)))throw new IllegalArgumentException("city content hash mismatch");
+        }
     }
     private CityBlueprint(){}
     public static Plan create(long seed,Point anchor,Limits limits){
-        Objects.requireNonNull(anchor);Objects.requireNonNull(limits);
-        if((long)anchor.x-128<limits.minX||(long)anchor.x+127>limits.maxX||(long)anchor.z-128<limits.minZ||(long)anchor.z+127>limits.maxZ
-            ||(long)anchor.y-24<limits.bottomY||(long)anchor.y+47>=limits.topY)throw new IllegalArgumentException("city outside actual world bounds");
+        Objects.requireNonNull(anchor);Objects.requireNonNull(limits);validateBounds(anchor,limits);
         var layout=new ArrayList<Archetype>();for(var a:Archetype.values()){layout.add(a);layout.add(a);}Collections.shuffle(layout,new Random(seed));
         var all=new TreeMap<Point,String>(PAGE_ORDER);var buildings=new ArrayList<Building>();var random=new Random(seed^0x434954595f56314cL);
         for(int i=0;i<16;i++){
@@ -79,8 +91,11 @@ public final class CityBlueprint {
         }
         var cells=all.entrySet().stream().map(e->new Cell(e.getKey(),e.getValue())).toList();int solid=(int)cells.stream().filter(c->!c.state.equals(AIR)).count(),cut=cells.size()-solid;
         if(solid>MAX_SOLID||cut>MAX_CUT)throw new IllegalArgumentException("city material/cut budget");
-        for(var cell:cells){var p=cell.position;if(p.x<anchor.x-128||p.x>=anchor.x+128||p.z<anchor.z-128||p.z>=anchor.z+128||p.y<anchor.y-24||p.y>anchor.y+47)throw new IllegalArgumentException("template outside reviewed envelope");}
         return new Plan(seed,anchor,limits,buildings,cells,solid,cut,hash(seed,anchor,limits,cells));
+    }
+    private static void validateBounds(Point anchor,Limits limits){
+        if((long)anchor.x-128<limits.minX||(long)anchor.x+127>limits.maxX||(long)anchor.z-128<limits.minZ||(long)anchor.z+127>limits.maxZ
+            ||(long)anchor.y-24<limits.bottomY||(long)anchor.y+47>=limits.topY)throw new IllegalArgumentException("city outside actual world bounds");
     }
     private static void put(Map<Point,String> cells,int x,int y,int z,String state){cells.put(new Point(x,y,z),state);}
     private static void merge(Map<Point,String> cells,Point p,String state){String old=cells.putIfAbsent(p,state);if(old!=null&&!old.equals(state))throw new IllegalArgumentException("overlapping city modules at "+p);}

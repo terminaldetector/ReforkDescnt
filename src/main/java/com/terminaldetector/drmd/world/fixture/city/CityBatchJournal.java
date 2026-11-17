@@ -40,13 +40,20 @@ public final class CityBatchJournal implements AutoCloseable {
     private CityBatchJournal(FileChannel channel,FileLock lock,Identity identity){this.channel=channel;this.lock=lock;this.identity=identity;}
     /** Open is explicit operator/test I/O, not a registration/startup hook. */
     public static CityBatchJournal open(Path path,Identity expected) throws IOException {
-        Objects.requireNonNull(path);Objects.requireNonNull(expected);Path parent=path.toAbsolutePath().getParent();if(parent!=null)Files.createDirectories(parent);
+        Objects.requireNonNull(path);Objects.requireNonNull(expected);Path parent=path.toAbsolutePath().getParent();
+        // Provisioning ancestors is separate operator I/O: do not claim durability for
+        // directory entries created outside this journal's explicit force boundary.
+        if(parent==null||!Files.isDirectory(parent))throw new IOException("city journal requires an existing durable directory");
         var channel=FileChannel.open(path,StandardOpenOption.CREATE,StandardOpenOption.READ,StandardOpenOption.WRITE);FileLock lock=null;
         try{
             try{lock=channel.tryLock();}catch(OverlappingFileLockException busy){throw new IOException("city journal already owned",busy);}
             if(lock==null)throw new IOException("city journal already owned");var journal=new CityBatchJournal(channel,lock,expected);
             if(channel.size()==0){journal.append(0,out->{out.writeInt(MAGIC);out.writeInt(VERSION);writeIdentity(out,expected);});}
-            else journal.load();return journal;
+            else journal.load();
+            // A forced file alone does not persist its new directory entry. Require
+            // this on reopen too, so failed initial directory sync cannot be bypassed.
+            try(var directory=FileChannel.open(parent,StandardOpenOption.READ)){directory.force(true);}
+            return journal;
         }catch(IOException|RuntimeException failure){if(lock!=null)lock.release();channel.close();throw failure;}
     }
     public Snapshot snapshot(){return new Snapshot(identity,cursor,nextBatch,Optional.ofNullable(pending),incomplete);}
