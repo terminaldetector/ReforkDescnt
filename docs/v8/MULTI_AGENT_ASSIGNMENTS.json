@@ -11,7 +11,11 @@
       "worker": "audit_integration",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_2026-11-17.md",
+        "EVIDENCE/integrated-699b749.json"
+      ]
     },
     {
       "id": "S00-T02",
@@ -20,7 +24,11 @@
       "worker": "audit_integration",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_2026-11-17.md",
+        "EVIDENCE/integrated-699b749.json"
+      ]
     },
     {
       "id": "S00-T03",
@@ -47,7 +55,11 @@
       "worker": "audit_integration",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_2026-11-17.md",
+        "EVIDENCE/integrated-699b749.json"
+      ]
     },
     {
       "id": "S00-T06",
@@ -133,7 +145,7 @@
     {
       "id": "S02-T03",
       "stage": "S02",
-      "title": "Compare true world bounds/16³ load state against historic fake cubic snapshots",
+      "title": "Compare true world bounds/16\u00b3 load state against historic fake cubic snapshots",
       "worker": "world_cubic",
       "ledgerStatus": "pending_reverification",
       "executionStatus": "audit_or_existing_work",
@@ -272,7 +284,11 @@
       "worker": "ps1_render",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_2026-11-17.md",
+        "EVIDENCE/integrated-699b749.json"
+      ]
     },
     {
       "id": "S05-T02",
@@ -299,7 +315,11 @@
       "worker": "ps1_render",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_2026-11-17.md",
+        "EVIDENCE/integrated-699b749.json"
+      ]
     },
     {
       "id": "S05-T05",
@@ -308,7 +328,11 @@
       "worker": "ps1_render",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_2026-11-17.md",
+        "EVIDENCE/integrated-699b749.json"
+      ]
     },
     {
       "id": "S05-T06",
@@ -317,7 +341,11 @@
       "worker": "ps1_render",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_2026-11-17.md",
+        "EVIDENCE/integrated-699b749.json"
+      ]
     },
     {
       "id": "S06-T01",
@@ -376,7 +404,7 @@
     {
       "id": "S07-T01",
       "stage": "S07",
-      "title": "Implement C1–C7 species adapters and universal fallback without breaking vanilla AI",
+      "title": "Implement C1\u2013C7 species adapters and universal fallback without breaking vanilla AI",
       "worker": "gravity_ragdoll",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
@@ -421,7 +449,7 @@
     {
       "id": "S08-T01",
       "stage": "S08",
-      "title": "Reconcile prior Oct8–10 ragdoll solver commits and collision regressions",
+      "title": "Reconcile prior Oct8\u201310 ragdoll solver commits and collision regressions",
       "worker": "gravity_ragdoll",
       "ledgerStatus": "pending_reverification",
       "executionStatus": "audit_or_existing_work",
@@ -443,7 +471,11 @@
       "worker": "gravity_ragdoll",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_2026-11-17.md",
+        "EVIDENCE/integrated-699b749.json"
+      ]
     },
     {
       "id": "S08-T04",
@@ -461,7 +493,11 @@
       "worker": "gravity_ragdoll",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_2026-11-17.md",
+        "EVIDENCE/integrated-699b749.json"
+      ]
     },
     {
       "id": "S09-T01",
@@ -488,7 +524,11 @@
       "worker": "root",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_2026-11-17.md",
+        "EVIDENCE/integrated-699b749.json"
+      ]
     },
     {
       "id": "S09-T04",
@@ -533,7 +573,11 @@
       "worker": "combat_ai",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_2026-11-17.md",
+        "EVIDENCE/integrated-699b749.json"
+      ]
     },
     {
       "id": "S10-T03",
@@ -619,11 +663,15 @@
     {
       "id": "S12-T01",
       "stage": "S12",
-      "title": "Create stateful search→hunt→siege→cooldown threat director with faction attribution",
+      "title": "Create stateful search\u2192hunt\u2192siege\u2192cooldown threat director with faction attribution",
       "worker": "world_content",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_2026-11-17.md",
+        "EVIDENCE/integrated-699b749.json"
+      ]
     },
     {
       "id": "S12-T02",
@@ -812,12 +860,16 @@
       "worker": "audit_integration",
       "ledgerStatus": "pending_reverification",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_2026-11-17.md",
+        "EVIDENCE/integrated-699b749.json"
+      ]
     },
     {
       "id": "S16-T02",
       "stage": "S16",
-      "title": "Benchmark mspt/fps/heap/loaded cubes/draw calls across 32→1024 drone tests",
+      "title": "Benchmark mspt/fps/heap/loaded cubes/draw calls across 32\u21921024 drone tests",
       "worker": "audit_integration",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
@@ -895,5 +947,11 @@
       "executionStatus": "audit_or_existing_work",
       "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
     }
-  ]
+  ],
+  "latestIntegratedCheckpoint": {
+    "source": "699b749045edde2722f0ae9685b2a3674c1a1041",
+    "report": "MULTI_AGENT_INTEGRATION_2026-11-17.md",
+    "receipt": "EVIDENCE/integrated-699b749.json",
+    "fullTaskPromotion": false
+  }
 }

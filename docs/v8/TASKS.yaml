@@ -12,7 +12,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/index.json, STATE.md]
+  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
   notes: Do not assume complete from historic PR/summary.
 - id: S00-T02
   stage: S00
@@ -24,7 +24,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/index.json, STATE.md]
+  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
   notes: Do not assume complete from historic PR/summary.
 - id: S00-T03
   stage: S00
@@ -60,7 +60,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/index.json, STATE.md]
+  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
   notes: Do not assume complete from historic PR/summary.
 - id: S00-T06
   stage: S00
@@ -366,8 +366,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip]
-  notes: "Combined5839062 passes772unit/391GT and fresh current Sodium target/toggle/resize proof; earlier703 Sodium+GL3.2 proof separately retained. S04 dependency and full PS1 effects open."
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
+  notes: "Current699b749:772unit/404GT/64entrypoints plus same-JAR Sodium target/toggle/resize pass; pure-world nearest-grid1.0. Earlier GL3.2 proof separate. Full S04 dependency/artistic PS1 effects remain open."
 - id: S05-T02
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -402,8 +402,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip]
-  notes: "Current583 eight fresh images verify native HUD, deferred overlays, resize and zero GL errors. Full roll/pitch/yaw and ordinary UI remain open."
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
+  notes: "Current699b749 native HUD witness stays1physicalpixel; projected weapon166Native/166PS1 with same camera/modules. Full roll/pitch/yaw and ordinary UI remain open."
 - id: S05-T05
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -414,8 +414,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip]
-  notes: "Presentation separation and representative wall/flight checks pass; universal geometry/physics/cache invariance open."
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
+  notes: "Current699b749 presentation separation and representative physical checks pass; universal geometry/physics/cache invariance remains open."
 - id: S05-T06
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -426,8 +426,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip]
-  notes: "Current Sodium pass;09b Fabulous Debug negative has3/346 world-edge hits with black/fullscreen diagonal. Narrow correction separate and unaccepted."
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
+  notes: "Current699b749 Sodium transitions/Debug world geometry pass. Original09b GL3.2 negative3/346 is preserved; separate7df contrast proof327/346 passes both renderers. Full style/sky/visual acceptance remains open."
 - id: S06-T01
   stage: S06
   stage_title: Core gravity and player 6DoF
@@ -598,7 +598,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [DRONE_WRECK_KINDS_2026-11-06.md, EVIDENCE/drone-wreck-kinds-7635dd8.zip]
+  evidence: [DRONE_WRECK_KINDS_2026-11-06.md, EVIDENCE/drone-wreck-kinds-7635dd8.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
   notes: Typed drone death replacement, matching compound hulls/scale, no visible parent duplicates and actual world restoration pass on7635dd8 with consecutive frame/pixel proof. Player impacts, complete wall tunneling and universal ragdoll remain open.
 - id: S08-T04
   stage: S08
@@ -622,8 +622,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [RAGDOLL_FIELD_STRENGTH_2026-11-11.md, EVIDENCE/integrated-5839062.zip]
-  notes: "Reproduced0c quarter-strength bug;9c correction passes6focused and current391 full suite. Six-axis strength/cap and momentum verified; heavy-rail, orientation, block collision and cubic envelope open."
+  evidence: [RAGDOLL_FIELD_STRENGTH_2026-11-11.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
+  notes: "Current699b749 includes sampled strength and occupiedXYZ admission. Separate actual BCC negative/positive proves atomic ragdoll rollback at non-FULLY; not swept/rotationalCCD or all heavy-rail orientation/collision acceptance."
 - id: S09-T01
   stage: S09
   stage_title: BlockBody / UFO boarding and reactor
@@ -660,7 +660,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MOUNTED_WEAPONS_2026-11-07.md, EVIDENCE/mounted-weapons-479719e.zip, TURRET_2026-11-07.md, EVIDENCE/turret-ecde7af.zip, TURRET_RESTART.md, EVIDENCE/turret-restart-97d6f59.zip, UFO_AUTONOMOUS_COMBAT.md, EVIDENCE/ufo-autonomous-3dd2263.zip, TURRET_AUTONOMOUS_COMBAT.md, EVIDENCE/turret-autonomous-d54d71f.zip, PLAYER_BUILT_MECHANISMS.md, EVIDENCE/player-mechanisms-a160efb.zip, PLAYER_BUILT_WEAPONS.md, EVIDENCE/player-weapons-8e5111b.zip]
+  evidence: [MOUNTED_WEAPONS_2026-11-07.md, EVIDENCE/mounted-weapons-479719e.zip, TURRET_2026-11-07.md, EVIDENCE/turret-ecde7af.zip, TURRET_RESTART.md, EVIDENCE/turret-restart-97d6f59.zip, UFO_AUTONOMOUS_COMBAT.md, EVIDENCE/ufo-autonomous-3dd2263.zip, TURRET_AUTONOMOUS_COMBAT.md, EVIDENCE/turret-autonomous-d54d71f.zip, PLAYER_BUILT_MECHANISMS.md, EVIDENCE/player-mechanisms-a160efb.zip, PLAYER_BUILT_WEAPONS.md, EVIDENCE/player-weapons-8e5111b.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
   notes: Reference rigid mounts and physical yaw MOTOR module now pass actual hot two-process restart, new pilot capture/yaw/fire/braking/release and projected-model visual proof on Mesa/Sodium. Rigid autonomous batteries now also pass natural Survival targeting, real physical XYZ aiming/stand-off, damaging fire and inertial pause/resume on Mesa/Sodium (3dd2263). Reference yaw-module AI now also passes physical swing/yaw aiming, child-owned damage, rigid-bank cooperation and pause/resume on Mesa/Sodium. The d54d71f reference increment passed a fresh manual hot restart. User now requires Create-style separate blocks as the main direction. Generic player-built bearings/drives/wrench, physical two-axis composition, destruction/coast and actual native key control pass on a160efb (756 unit/357 GameTests; identical full/native game bytes). Generic directional guns with real lever control now pass full4fede1d/native8e5111b (758 unit/376 full GameTests, five actual-key fresh inspected client frames, identical full/native game bytes). Contact-time constraints, animated-head view rays and zero-penetration construction contacts are fixed with retained exact negatives. Generic automatic aiming, world anchoring, energy/ammo and complete module lifecycle remain open.
 - id: S09-T04
   stage: S09
@@ -722,8 +722,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip]
-  notes: "Actual first1ecca2FAIL4PASS: unknown-column load reproduced.40f diagnostics identify duplicate same-tick RAIL test callback and scheduler-map crash; first real launch succeeds, no complete ballistic/XML acceptance. Corrected driver pending."
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
+  notes: "Current699b749 includes7actual Item.use tests: three behaviors, loaded-only queries, empty-energy retention and funded retry. RAIL same-tick duplicate fixture failure retained. Real keyboard/network route, all masses and ballistic material-hit accuracy remain open."
 - id: S10-T03
   stage: S10
   stage_title: Weapons, cluster, drill and building
@@ -846,7 +846,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [SURVIVAL_THREAT_2026-11-10.md, EVIDENCE/integrated-5839062.zip]
+  evidence: [SURVIVAL_THREAT_2026-11-10.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
   notes: "Confirmed Survival alarm/recon/search/hunt/cooldown passes9unit/5focused and current772/391 full suite. Complete siege/economy/faction progression open."
 - id: S12-T02
   stage: S12
@@ -1110,8 +1110,8 @@ tasks:
   status: pending_reverification
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
+  notes: "Exact699b749772unit/404ordinaryGT/64entrypoints and both same-JAR BCC/Sodium native clients pass;28PNG retained. All official older rendercheck scenarios, hardware and full-release gates are not inferred."
 - id: S16-T02
   stage: S16
   stage_title: Full performance and regression testing

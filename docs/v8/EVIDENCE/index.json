@@ -60,7 +60,8 @@
     "mounted-weapons-479719e.zip": "276a244d37f9162917306980a5fff352945ef799a30a64edb35156db2138ff39",
     "integrated-5839062.zip": "63ed8bd756d61d89dd2aabea50f9b6c56aa112c1caff6dcd6cc10e392b14b1b7",
     "ps1-target-703ea85.zip": "a9617e1d7bc36ec7889a8ccf0c26b37ed834531f02e327420270cd0372aea38b",
-    "ragdoll-field-strength-9c5b6e1.zip": "83fbfb188ca0c4f9861a25af6ec63a54cb5eff87033e2ea52d8f8d726ff321b8"
+    "ragdoll-field-strength-9c5b6e1.zip": "83fbfb188ca0c4f9861a25af6ec63a54cb5eff87033e2ea52d8f8d726ff321b8",
+    "integrated-699b749.zip": "4412ea6da9b281bc1da36e4c43a1c90b2efc77d88f2a18d725b9681c0215e324"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -2773,6 +2774,220 @@
       }
     ],
     "scope": "Current combined source, stock Fabric complete server suite and real BCC/Sodium GL3.3 software-Mesa clients. No full specification, physical GPU, performance, full Debug/Fabulous or release acceptance.",
+    "releaseAccepted": false
+  },
+  "multiAgentIntegration20261117": {
+    "archive": "docs/v8/EVIDENCE/integrated-699b749.zip",
+    "sha256": "4412ea6da9b281bc1da36e4c43a1c90b2efc77d88f2a18d725b9681c0215e324",
+    "payloadFiles": 69,
+    "bytes": 3669806,
+    "allHashesAndCrcVerified": true,
+    "source": "699b749045edde2722f0ae9685b2a3674c1a1041",
+    "unit": {
+      "tests": 772,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "game": {
+      "tests": 404,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "entrypoints": 64,
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "cce6a9bb60a275542ab64b8f347757880718e2b76f609578e9562f70567baad2",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "da6789f14f2076918ed9fdc0a18064b5e042637bc6a5dbe2e9005c6c7afb4994"
+    },
+    "freshFrames": 28,
+    "viewmodel": {
+      "nativeObserved": true,
+      "nativePixels": 166,
+      "ps1Pixels": 166,
+      "requiredPixels": 125,
+      "sameCamera": true,
+      "sameModules": true,
+      "maximumProjectedVertexDeltaPixels": 0.0
+    },
+    "native": [
+      {
+        "scenario": "ps1-viewmodel-integrated-699b749-sodium",
+        "marker": {
+          "runtimeToggleWithoutReload": true,
+          "actualWindowResizeAndRestore": true,
+          "exceptionTargetsRestored": true,
+          "debugPostprocessExceptionRestored": true,
+          "blockstoreHashUnchanged": true,
+          "independentHybridChoiceUnchanged": true,
+          "scenes": [
+            {
+              "scene": "native-baseline",
+              "profile": "HYBRID_NATIVE",
+              "sceneWidth": 1280,
+              "sceneHeight": 720,
+              "outputWidth": 1280,
+              "outputHeight": 720,
+              "deferredOverlayPasses": 0,
+              "worldNearestGridRatio": 1.0,
+              "finalCompositeGridRatio": 1.0,
+              "nativeHudPixel": true,
+              "mirror": "drawing 1 of 1",
+              "reflectedGoldPixels": 28558,
+              "mergedMirrorSurfaces": 1,
+              "projectedMirrorPanes": 8,
+              "frameEpoch": 270,
+              "mirrorEpoch": 270,
+              "sampleEpoch": -1,
+              "glError": 0
+            },
+            {
+              "scene": "ps1-360",
+              "profile": "PS1_HYBRID",
+              "sceneWidth": 640,
+              "sceneHeight": 360,
+              "outputWidth": 1280,
+              "outputHeight": 720,
+              "deferredOverlayPasses": 2,
+              "worldNearestGridRatio": 1.0,
+              "finalCompositeGridRatio": 0.97125,
+              "nativeHudPixel": true,
+              "mirror": "drawing 1 of 1",
+              "reflectedGoldPixels": 27772,
+              "mergedMirrorSurfaces": 1,
+              "projectedMirrorPanes": 8,
+              "frameEpoch": 273,
+              "mirrorEpoch": 273,
+              "sampleEpoch": 273,
+              "glError": 0
+            },
+            {
+              "scene": "native-restored",
+              "profile": "HYBRID_NATIVE",
+              "sceneWidth": 1280,
+              "sceneHeight": 720,
+              "outputWidth": 1280,
+              "outputHeight": 720,
+              "deferredOverlayPasses": 0,
+              "worldNearestGridRatio": 1.0,
+              "finalCompositeGridRatio": 1.0,
+              "nativeHudPixel": true,
+              "mirror": "drawing 1 of 1",
+              "reflectedGoldPixels": 28558,
+              "mergedMirrorSurfaces": 1,
+              "projectedMirrorPanes": 8,
+              "frameEpoch": 276,
+              "mirrorEpoch": 276,
+              "sampleEpoch": -1,
+              "glError": 0
+            },
+            {
+              "scene": "debug-wireframe",
+              "profile": "RENDER_DEBUG",
+              "sceneWidth": 1280,
+              "sceneHeight": 720,
+              "outputWidth": 1280,
+              "outputHeight": 720,
+              "deferredOverlayPasses": 2,
+              "worldNearestGridRatio": 1.0,
+              "finalCompositeGridRatio": 1.0,
+              "nativeHudPixel": true,
+              "mirror": "drawing 1 of 1",
+              "reflectedGoldPixels": 15,
+              "mergedMirrorSurfaces": 1,
+              "projectedMirrorPanes": 8,
+              "frameEpoch": 279,
+              "mirrorEpoch": 279,
+              "sampleEpoch": 279,
+              "glError": 0,
+              "debugWorldEdges": {
+                "frameEpoch": 279,
+                "ratio": 0.9450867052023122,
+                "sampleEpoch": 279,
+                "projectionEpoch": 279,
+                "samples": 346,
+                "horizontalBins": [
+                  104,
+                  118,
+                  105
+                ],
+                "hits": 327
+              }
+            },
+            {
+              "scene": "ps1-180-resized",
+              "profile": "PS1_HYBRID",
+              "sceneWidth": 320,
+              "sceneHeight": 180,
+              "outputWidth": 960,
+              "outputHeight": 540,
+              "deferredOverlayPasses": 2,
+              "worldNearestGridRatio": 1.0,
+              "finalCompositeGridRatio": 0.9141666666666667,
+              "nativeHudPixel": true,
+              "mirror": "drawing 1 of 1",
+              "reflectedGoldPixels": 15159,
+              "mergedMirrorSurfaces": 1,
+              "projectedMirrorPanes": 8,
+              "frameEpoch": 282,
+              "mirrorEpoch": 282,
+              "sampleEpoch": 282,
+              "glError": 0
+            },
+            {
+              "scene": "native-window-restored",
+              "profile": "HYBRID_NATIVE",
+              "sceneWidth": 1280,
+              "sceneHeight": 720,
+              "outputWidth": 1280,
+              "outputHeight": 720,
+              "deferredOverlayPasses": 0,
+              "worldNearestGridRatio": 1.0,
+              "finalCompositeGridRatio": 1.0,
+              "nativeHudPixel": true,
+              "mirror": "drawing 1 of 1",
+              "reflectedGoldPixels": 28558,
+              "mergedMirrorSurfaces": 1,
+              "projectedMirrorPanes": 8,
+              "frameEpoch": 285,
+              "mirrorEpoch": 285,
+              "sampleEpoch": -1,
+              "glError": 0
+            }
+          ]
+        },
+        "source": "699b749045edde2722f0ae9685b2a3674c1a1041"
+      },
+      {
+        "scenario": "mounted-integrated-699b749-keys-sodium",
+        "marker": {
+          "actualUseAndSneakKeys": true,
+          "keyboardApproachTicks": 106,
+          "operatorFollowTeleport": false,
+          "fixtureSuppliedJointOrShots": false,
+          "ordinaryPhysicalGunOwner": true,
+          "lasers": 3,
+          "rockets": 8,
+          "maxMuzzleError": 0.0,
+          "maxLaunchVelocityError": 6.304854800243424e-16,
+          "maxAnchorError": 6.48816765294133e-05,
+          "maxRelativeAngle": 2.448370825096279,
+          "stoppedTicks": 74,
+          "preservedSpinAfterRelease": true,
+          "projectileDrawCalls": 253,
+          "projectedShotPixels": 227,
+          "frames": [
+            "connected-off",
+            "laser-fire",
+            "rocket-fire",
+            "fire-off-reversed",
+            "bearing-detached"
+          ]
+        },
+        "source": "699b749045edde2722f0ae9685b2a3674c1a1041"
+      }
+    ],
+    "scope": "Exact combined source; complete ordinary stock Fabric server suite; same-JAR real BCC/Sodium GL3.3 software-Mesa clients. Twenty-eight saved PNGs include intermediate viewmodel stages. No full specification, physical GPU, performance, full Fabulous or release acceptance.",
     "releaseAccepted": false
   }
 }
