@@ -1,0 +1,20 @@
+# PS1 colour / dither — first actual feature negative
+
+Exact observer source `07418058ce053b9c3099da791475613943b290ad` implements the [frozen reference contract](PS1_COLOR_DITHER_CONTRACT_2026-11-17.md). No production class/resource, unit test, GameTest or build configuration changes. The first compile/remap/stamp passes, and the game JAR remains byte-identical to accepted sky source: `1dbb11d34293889fc04bc6a49b421b00caac18ff02cfae53f242cba78d4a6e71`. Observer JAR is `f6712df320502a4ff6e0412e031bbebffc4d081f018da00751bc3cddc215406f`.
+
+The first real Sodium client saves all four states before rejecting requested palette/dither (exit 255). This is the expected missing-feature negative, not a compiler, launch, Mixin, geometry or readback-control failure. Existing production has no colour settings and does no quantization/dither; the observer records the missing fields and never draws a replacement GPU image. The unchanged fixture contains actual world blocks, merged mirror and reflected gold wall, outlined Husk, native cockpit/HUD and gun. Each reference samples the real `640×360` scene after outline composition and the actual `1280×720` main world before deferred overlays, with matching frame epochs.
+
+| Requested state | Epoch | RGB agreement (required ≥99.5%, error ≤1/channel) | Bad samples | Maximum channel error |
+| --- | ---: | ---: | ---: | ---: |
+| Raw256 | 288 | 100% | 0 | 0 |
+| 32 levels, no dither | 291 | 45.674045% | 125,167 | 4 |
+| 32 levels, dither 0.5 | 294 | 45.679253% | 125,155 | 6 |
+| Raw256 restored | 297 | 100% | 0 | 0 |
+
+All four states have nearest world groups ratio 1.0, zero invalid depth samples, maximum nearest depth delta `5.960464477539063e-8` (limit `1e-6`), actual main framebuffer/full viewport, GL error 0 and preserved texture/pack/read-framebuffer state. Actual driver reports OpenGL `3.3 (Core Profile) Mesa 25.0.7-2+deb13u1`, GLSL `3.30`. Every state contains over 125,000 quantization-sensitive and 33,000 dither-sensitive source texels, above the fixed 500-texel minimum. Both raw controls establish exact colour mapping/orientation; the other two reject by actual world pixels. No HUD or weapon pixel supplies world-style evidence.
+
+The reference remains fixed before production: channel quantization `floor(c*(L-1)+0.5+dither*((Bayer+0.5)/16-0.5))/(L-1)` with a 4×4 Bayer matrix indexed in internal scene texels, preserved raw256 bypass, ≥99.5% RGB agreement within one byte per channel, depth delta ≤`1e-6` and world nearest ratio >0.97. The PS1 preset will use 32 levels/dither 0.5; Native remains the default profile and raw256 is explicit off. Missing-field migration and all other choices are specified in the contract. Resized reference and full six-scene/viewmodel completion are not reached by this negative and are not claimed.
+
+[`ps1-color-0741805-negative.zip`](EVIDENCE/ps1-color-0741805-negative.zip), SHA-256 `2705d400ab77ed83eed7c8651d3966f4284f01a79da735054b2949cf0e6030a0`, preserves 59 files (1,414,022 bytes): 12 colour source/world/final PNGs plus the fresh Native baseline PNG, eight actual depth float arrays, per-state reference metrics/mismatch coordinates, original negative marker/crash/log/exits, complete build stamp, helper snapshots/receipts, source and fixed contract. Every entry SHA-256 and ZIP CRC was verified. Three key images were directly inspected; all 13 remain available. The adjacent JSON contains exact per-state metrics. There are no JAR, dependency, world or cache payloads in this compact archive.
+
+The closed runtime is retained at `build/cubic-client-failed-ps1-color-0741805`; both exact JARs/stamp are preserved under `work/ps1-color/negative-074-artifacts`. All eight actual executing helpers still match their frozen pre-run hashes. Its disposable 101-file saves alone were archived after full per-file SHA/ZIP CRC checks, archive SHA-256 `85197c77fd9a9bfe89709b5294131731beda74bfcfce568d260f5e1eb1204ff4`; frames, inputs, mods and logs remain intact. Earlier sky/PS1/Debug/viewmodel acceptance remains separately scoped and unchanged.
