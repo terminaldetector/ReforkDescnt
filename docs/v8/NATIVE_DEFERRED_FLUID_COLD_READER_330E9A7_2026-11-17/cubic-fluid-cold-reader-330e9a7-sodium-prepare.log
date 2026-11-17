@@ -1,0 +1,2 @@
+{"status": "STAGED_NOT_RUN", "classpath_entries": 65, "artifacts": 70, "runtime": "/workspace/ungravity-v5/cubic-next-20261109/build/cubic-fluid-cold-reader-automation"}
+Verified isolated cold unknown-work inputs: cold-reader ; reader archive baseline before world load; ordinary VD2/load2/lookahead2

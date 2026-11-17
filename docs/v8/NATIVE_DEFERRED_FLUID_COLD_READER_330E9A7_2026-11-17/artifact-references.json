@@ -1,0 +1,9 @@
+{
+  "compiledSourceSha": "330e9a721293df7eac489ae3e62f4d4972275f7b",
+  "actualReaderDocumentationHead": "3d8ffcf694cb2b9a550d10874a6622cdfde3dc36",
+  "noBuild": true,
+  "gameSha256": "60ca40f42a746bd60d77d6ca89679057b375bafea98775f1ab80517b671252d8",
+  "observerSha256": "c74c79136dc1412b59195661833e34ed5794e9946a6647ae81d5037479e5706a",
+  "exactExistingArtifacts": "../NATIVE_DEFERRED_FLUID_COLD_WRITER_330E9A7_2026-11-17/artifacts",
+  "writerEvidenceCommit": "3d8ffcf694cb2b9a550d10874a6622cdfde3dc36"
+}

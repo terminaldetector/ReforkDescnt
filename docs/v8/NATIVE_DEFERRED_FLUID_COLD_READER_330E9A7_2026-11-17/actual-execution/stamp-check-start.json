@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "python3",
+    "scripts/v8/cubic_cold_build_stamp.py",
+    "check"
+  ],
+  "cwd": "/workspace/ungravity-v5/cubic-next-20261109",
+  "nanoTime": 44168064327494
+}

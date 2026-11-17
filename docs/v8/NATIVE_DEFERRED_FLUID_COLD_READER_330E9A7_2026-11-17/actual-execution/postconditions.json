@@ -1,0 +1,38 @@
+{
+  "scope": "Cold reader zero edits; saved exact UNKNOWN key restored then normal future handoff/flow",
+  "mode": "cold-reader",
+  "savedPendingKeyBefore": {
+    "tx": 8,
+    "sx": 8,
+    "ty": 31,
+    "sy": 32,
+    "tz": 8,
+    "created": 9229,
+    "sz": 8,
+    "family": "minecraft:water"
+  },
+  "savedStateAfterSha256": "34112d9045874bccdfce3b9d35a4dab878bb52c164932123db791e78d46706dd",
+  "savedStateAfterDecoded": {
+    "data": {
+      "schema": 1,
+      "entries": []
+    },
+    "DataVersion": 3955
+  },
+  "deferredCounters": {
+    "pending": 0,
+    "added": 7,
+    "coalesced": 0,
+    "capRefused": 0,
+    "budgetRefused": 0,
+    "backpressureQueued": 0,
+    "backpressureRefused": 0,
+    "resumed": 8,
+    "stale": 0,
+    "unsupported": 0
+  },
+  "arrivalReadyTick": 96,
+  "passTick": 177,
+  "zeroFixtureWrites": true,
+  "zeroFixtureReschedules": true
+}
