@@ -1,0 +1,184 @@
+{
+  "schema": "ungravity.recorder-capacity16-control.v1",
+  "created_utc": "2026-11-17T15:02:31.592733+00:00",
+  "tested_java_source": "9426a6549fc91abc8c7e060a2eef9f184742dc3d",
+  "host_head": "74722eefa2b8c1d2637e0109052986bbf6783cd9",
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "cf3701b529b21633a8a3e910e6755d006d97d6349e8938d7701c82671027138d",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "cb1056d89d1435a5211c5a1c1728934fde2caf92c3c85e28016e2c5ff4bce70a"
+  },
+  "source_inputs": 1438,
+  "native_exit": {
+    "child_pid": 76542,
+    "returncode": 0,
+    "timed_out": false,
+    "forced_kill": false,
+    "observed_at": "2026-11-17T14:59:19.937210+00:00"
+  },
+  "observer": {
+    "case": "capacity16",
+    "source": "9426a6549fc91abc8c7e060a2eef9f184742dc3d",
+    "run_id": "9426-capacity16-v1",
+    "polls": 365,
+    "armed_lines": 1,
+    "wrote_lines": 1,
+    "child_exit": {
+      "child_pid": 76542,
+      "returncode": 0,
+      "timed_out": false,
+      "forced_kill": false,
+      "observed_at": "2026-11-17T14:59:19.937210+00:00"
+    },
+    "native_log_sha256": "bac33646c7ec7a442800aeadab10b619b08ad2ff9d708b8962c66524939ce1e0",
+    "full_s16_accepted": false,
+    "performance_accepted": false,
+    "release_accepted": false,
+    "scope": "Instrumentation output/lifecycle only; software rendering, no hardware/performance certificate",
+    "status": "PASS_CAPACITY16_CLOSED_OUTPUT",
+    "output_identity": {
+      "sha256": "82d8dbc23251597ad4209a2d3b00056fa596bef497dde21b0fd9cbab2eb52c30",
+      "bytes": 5758,
+      "device": 27,
+      "inode": 1613212,
+      "modified_ns": 1794927526782952007,
+      "changed_ns": 1794927526782952007
+    },
+    "later_client_frames": [
+      "bearing-detached.png",
+      "connected-off.png",
+      "fire-off-reversed.png",
+      "laser-fire.png",
+      "rocket-fire.png"
+    ],
+    "raw_summary": {
+      "counts": {
+        "frame_time_ms": 13,
+        "server_tick_ms": 16,
+        "heap_used_bytes": 13
+      },
+      "utc_window_seconds": 1.254306,
+      "frame_interval_sum_ms": 1254.295633,
+      "server_tick_span_sum_ms": 445.886009,
+      "coverage_is_complete": false
+    },
+    "timing_counts_are_deterministic": false,
+    "closure_contract_is_interleaving_independent": true,
+    "observer_sha256": "6352a0991733890e35dbd6c51985cd3601887778649d6fd4a47972b938032fc9",
+    "observer_config_sha256": "e9294463a529246c09cc6efe8c40b501b3d9d829c4f625e2371b515b6d975c58"
+  },
+  "first_complete_output": {
+    "event": "first_complete_output",
+    "observed_utc": "2026-11-17T14:58:46.790779+00:00",
+    "observed_monotonic_ns": 24019356322201,
+    "identity": {
+      "sha256": "82d8dbc23251597ad4209a2d3b00056fa596bef497dde21b0fd9cbab2eb52c30",
+      "bytes": 5758,
+      "device": 27,
+      "inode": 1613212,
+      "modified_ns": 1794927526782952007,
+      "changed_ns": 1794927526782952007
+    },
+    "existing_png_names": [],
+    "native_log_bytes": 25290,
+    "raw_summary": {
+      "counts": {
+        "frame_time_ms": 13,
+        "server_tick_ms": 16,
+        "heap_used_bytes": 13
+      },
+      "utc_window_seconds": 1.254306,
+      "frame_interval_sum_ms": 1254.295633,
+      "server_tick_span_sum_ms": 445.886009,
+      "coverage_is_complete": false
+    }
+  },
+  "later_completed_frames": [
+    {
+      "event": "later_completed_client_frame",
+      "observed_utc": "2026-11-17T14:58:53.488739+00:00",
+      "observed_monotonic_ns": 24026054287996,
+      "name": "connected-off.png",
+      "sha256": "94a14436caaa8408f5373bb638c955dcd7e1776adf89770e878d726934947068",
+      "bytes": 145543
+    },
+    {
+      "event": "later_completed_client_frame",
+      "observed_utc": "2026-11-17T14:58:58.331557+00:00",
+      "observed_monotonic_ns": 24030897104849,
+      "name": "laser-fire.png",
+      "sha256": "34f9663d566f20a08caf3f8fb5e8d9ef1fa873abf62e594841f41ff0e2c3d06c",
+      "bytes": 147827
+    },
+    {
+      "event": "later_completed_client_frame",
+      "observed_utc": "2026-11-17T14:59:06.831615+00:00",
+      "observed_monotonic_ns": 24039397162674,
+      "name": "rocket-fire.png",
+      "sha256": "b51f7179a4d48eea5cf47b3f8d324d9b3f85e86199bac14ca170bdbce632f99a",
+      "bytes": 117360
+    },
+    {
+      "event": "later_completed_client_frame",
+      "observed_utc": "2026-11-17T14:59:17.577543+00:00",
+      "observed_monotonic_ns": 24050143090273,
+      "name": "fire-off-reversed.png",
+      "sha256": "ab12f3b04090b30add364728a729045eefc8c97a668212e2e92956b282e0a3bc",
+      "bytes": 193774
+    },
+    {
+      "event": "later_completed_client_frame",
+      "observed_utc": "2026-11-17T14:59:18.592063+00:00",
+      "observed_monotonic_ns": 24051157609600,
+      "name": "bearing-detached.png",
+      "sha256": "0b685aa3911daf252c2e2e6ce266ae0877990115ea749a224e460484930efa85",
+      "bytes": 147705
+    }
+  ],
+  "raw": {
+    "path": "benchmark-9426-capacity16-v1.json",
+    "sha256": "82d8dbc23251597ad4209a2d3b00056fa596bef497dde21b0fd9cbab2eb52c30",
+    "bytes": 5758,
+    "window": {
+      "ended_at": "2026-11-17T14:58:46.742002014Z",
+      "warmup_seconds": 1.075192469,
+      "started_at": "2026-11-17T14:58:45.487696366Z"
+    },
+    "utc_window_nanoseconds": 1254305648,
+    "sample_counts": {
+      "frame_time_ms": 13,
+      "server_tick_ms": 16,
+      "heap_used_bytes": 13,
+      "gpu_frame_ms": 0,
+      "cubes_loaded": 0,
+      "draw_calls": 0,
+      "mesh_queue": 0
+    },
+    "frame_interval_sum_ms": 1254.295633,
+    "server_tick_span_sum_ms": 445.886009,
+    "clock_domains_compared_as_equal": false,
+    "full_window_coverage": false
+  },
+  "context_values_are_raw_start_observations": true,
+  "cohort_or_route_readiness_attested": false,
+  "wrapper_sha256": "9439b2087f063f90f5ddec6a3f8282eb483d205d61a0f0bbc730c3f5e88ce84f",
+  "native_executor_sha256": "1946e64f61de6d676f1cf4e09e519e59174fad3356de3eea56e13ed5ab56fc64",
+  "archive": {
+    "path": "docs/v8/EVIDENCE/native-recorder-9426-capacity16-v1.zip",
+    "sha256": "b6b1c57fc1949255afa233fc5576198db97e03f6b2d653b5a7adf392b9e5239b",
+    "bytes": 808201,
+    "payload_members": 54,
+    "total_members": 55,
+    "all_crc_and_member_hashes_verified": true
+  },
+  "closed_save": {
+    "path": "/workspace/ungravity-v5/audit-next-20261109/build/native-benchmark-9426/9426-capacity16-v1/cubic-client-automation/saves/Cubic-Gate",
+    "preserved_in_place": true,
+    "deleted": false,
+    "new_restore_acceptance": false
+  },
+  "manual_frame_review_performed": false,
+  "performance_accepted": false,
+  "full_s16_accepted": false,
+  "release_accepted": false,
+  "scope": "Actual16-cap overflow/closed-output/later-client-activity/clean-exit control, softwareMesa historical9426component only; not current canonical game or benchmark acceptance."
+}
