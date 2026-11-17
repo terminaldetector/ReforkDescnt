@@ -1,0 +1,266 @@
+{
+  "source": "d57bba007597b8d42f0dad994da482fdfd76e132",
+  "firstBuildExit": 0,
+  "wholeGameParityExit": 0,
+  "ownerAuditExit": 0,
+  "capacityAdmissionExit": 0,
+  "nativeExit": 255,
+  "allFiveActualCapturesPreserved": true,
+  "allWorldAndBodyControlsPass": true,
+  "allOcclusionControlsPass": false,
+  "classification": "All five actual captures and genuine world/body controls; upper single-solid landmark has no visible behind-cloud owner. Whole occlusion prerequisite NOT accepted; not a cloud/LOD defect verdict for the missing class.",
+  "allEightFrozenHelpersUnchanged": true,
+  "externalOfficialStagerUnchanged": true,
+  "jars": {
+    "drmd-6dof-1.1.35-ufo-dev.1.jar": "b6c653a4729e7dd4a8158ba1b8704fc31434c89d0c7cabaefbee4e1266d3df8c",
+    "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "679ad4ad61e553d080b071daf59c207c50555a29255ca8154303b2df14c56610"
+  },
+  "readbackBytes": 180562144,
+  "actualPngs": 29,
+  "worldArchive": {
+    "original": "/workspace/ungravity-v5/ps1-render/build/cubic-client-failed-cloud-upper-lod-d57bba0/saves",
+    "archive": "/workspace/ungravity-v5/ps1-render/work/preserved-disposable-worlds/cubic-client-failed-cloud-upper-lod-d57bba0-saves.zip",
+    "files": 131,
+    "originalBytes": 67171570,
+    "archiveBytes": 2465730,
+    "sha256": "c55bc958ccdf2d775b83a1a1ef9776b53c6065dec64562e5cf68efd479028bf7",
+    "sessionLockExclusiveLockfVerified": true,
+    "fullFileShaAndZipCrcVerified": true,
+    "rawSavesReclaimedOnlyAfterVerification": true
+  },
+  "actualGpuRayAttribution": {
+    "source": "d57bba007597b8d42f0dad994da482fdfd76e132",
+    "scope": "Read-only actual uploaded5face proxy and recorded7x7GPU ROI; no camera/geometry/pixel mutation, no JVM",
+    "roi": [
+      772,
+      436,
+      7,
+      7
+    ],
+    "actualSourceQuads": 5,
+    "candidatePixels": 48,
+    "visibleGpuMarkerPixels": 47,
+    "visibleGpuMarkerAndOpaqueCloudPixels": 28,
+    "visibleBehindCloudPixels": 0,
+    "visibleOwnerWorldYRange": [
+      227.34849401772613,
+      249.0002392019735
+    ]
+  },
+  "poses": [
+    {
+      "pose": "near224",
+      "cloudDomain": 66726,
+      "cloudChanged": 66726,
+      "glError": 0,
+      "world": {
+        "minimumVisiblePixels": 9,
+        "changedDepthPixels": 0,
+        "pass": true,
+        "independentlyVisibleNativePixels": 1106,
+        "changedColourPixels": 0,
+        "roi": [
+          669,
+          333,
+          38,
+          38
+        ]
+      },
+      "body": {
+        "minimumVisiblePixels": 9,
+        "changedDepthPixels": 0,
+        "pass": true,
+        "independentlyVisibleNativePixels": 1396,
+        "changedColourPixels": 0,
+        "roi": [
+          801,
+          331,
+          45,
+          39
+        ]
+      },
+      "landmark": {},
+      "occlusionControlPass": true
+    },
+    {
+      "pose": "above384",
+      "cloudDomain": 22918,
+      "cloudChanged": 22165,
+      "glError": 0,
+      "world": {
+        "minimumVisiblePixels": 9,
+        "changedDepthPixels": 0,
+        "pass": true,
+        "independentlyVisibleNativePixels": 268,
+        "changedColourPixels": 0,
+        "roi": [
+          718,
+          382,
+          18,
+          18
+        ]
+      },
+      "body": {
+        "minimumVisiblePixels": 9,
+        "changedDepthPixels": 0,
+        "pass": true,
+        "independentlyVisibleNativePixels": 339,
+        "changedColourPixels": 0,
+        "roi": [
+          785,
+          381,
+          23,
+          19
+        ]
+      },
+      "landmark": {},
+      "occlusionControlPass": true
+    },
+    {
+      "pose": "far512",
+      "cloudDomain": 14058,
+      "cloudChanged": 0,
+      "glError": 0,
+      "world": {
+        "minimumVisiblePixels": 9,
+        "changedDepthPixels": 0,
+        "pass": true,
+        "independentlyVisibleNativePixels": 222,
+        "changedColourPixels": 0,
+        "roi": [
+          718,
+          382,
+          18,
+          18
+        ]
+      },
+      "body": {
+        "minimumVisiblePixels": 9,
+        "changedDepthPixels": 0,
+        "pass": true,
+        "independentlyVisibleNativePixels": 339,
+        "changedColourPixels": 0,
+        "roi": [
+          785,
+          381,
+          23,
+          19
+        ]
+      },
+      "landmark": {
+        "actualVisibleNearerPixels": 339,
+        "actualVisibleBehindPixels": 343,
+        "nearerPaintedByCloud": 0,
+        "actualMainDepthChangedPixels": 0,
+        "invalidDepthPixels": 0,
+        "minimumPixelsPerRayOrder": 4,
+        "pass": true,
+        "mainDepthWitnessExists": false,
+        "roi": [
+          699,
+          363,
+          52,
+          52
+        ],
+        "sourceColourReferenceMismatches": 0
+      },
+      "occlusionControlPass": true
+    },
+    {
+      "pose": "orbit2200",
+      "cloudDomain": 675,
+      "cloudChanged": 0,
+      "glError": 0,
+      "world": {
+        "minimumVisiblePixels": 9,
+        "changedDepthPixels": 0,
+        "pass": true,
+        "independentlyVisibleNativePixels": 14,
+        "changedColourPixels": 0,
+        "roi": [
+          804,
+          468,
+          21,
+          21
+        ]
+      },
+      "body": {
+        "minimumVisiblePixels": 9,
+        "changedDepthPixels": 0,
+        "pass": true,
+        "independentlyVisibleNativePixels": 194,
+        "changedColourPixels": 0,
+        "roi": [
+          723,
+          468,
+          26,
+          22
+        ]
+      },
+      "landmark": {
+        "actualVisibleNearerPixels": 22,
+        "actualVisibleBehindPixels": 0,
+        "nearerPaintedByCloud": 0,
+        "actualMainDepthChangedPixels": 0,
+        "invalidDepthPixels": 0,
+        "minimumPixelsPerRayOrder": 4,
+        "pass": false,
+        "mainDepthWitnessExists": false,
+        "roi": [
+          772,
+          436,
+          7,
+          7
+        ],
+        "sourceColourReferenceMismatches": 0
+      },
+      "occlusionControlPass": false
+    },
+    {
+      "pose": "orbit2200-roll90",
+      "cloudDomain": 674,
+      "cloudChanged": 0,
+      "glError": 0,
+      "world": {
+        "minimumVisiblePixels": 9,
+        "changedDepthPixels": 0,
+        "pass": true,
+        "independentlyVisibleNativePixels": 14,
+        "changedColourPixels": 0,
+        "roi": [
+          804,
+          375,
+          21,
+          21
+        ]
+      },
+      "body": {
+        "minimumVisiblePixels": 9,
+        "changedDepthPixels": 0,
+        "pass": true,
+        "independentlyVisibleNativePixels": 204,
+        "changedColourPixels": 0,
+        "roi": [
+          804,
+          451,
+          22,
+          26
+        ]
+      },
+      "landmark": {},
+      "occlusionControlPass": true
+    }
+  ],
+  "actualFixtureEvents": 14,
+  "physicalPrefabCells": 434,
+  "totalPhysicalAndBodyWrites": 444,
+  "scope": "Prerequisite control and attribution only; no production change. CPU hypothetical two-object placement forecast is rationale, never native evidence. Near224/384 unchanged; full altitude/fog/cloud correction remains open.",
+  "evidence": {
+    "path": "docs/v8/EVIDENCE/cloud-occlusion-d57bba0-upper-premise.zip",
+    "files": 202,
+    "bytes": 2142954,
+    "sha256": "ed6a2146e5e9b3d970e5c2de8c375474dbf4e31a6436a4f4e551fecc29a740d0",
+    "perFileShaAndZipCrcVerified": true,
+    "actualPoseAndHorizonPngs": 29
+  }
+}
