@@ -1,0 +1,9 @@
+DO NOT RUN BEFORE ROOT GRANTS THE NEXT JAVA LEASE.
+Candidate16a25a96e2d3b51c425a04534e15fe81f6881f95. Scope: existing metal miningtags bearing+drive, fixtureUPstand3.0m.
+Capture fresh inputs+runner/helper hashes; require no old world/diagnostics and fresh XML. Preserve prior1/5,3/3,4/2 evidence unchanged.
+
+JAVA_HOME=/workspace/jdk21-complete GRADLE_USER_HOME=/workspace/.gradle ./gradlew --offline --no-daemon --max-workers=1 -Dorg.gradle.jvmargs=-Xmx768m compileJava compileGametestJava > work/economy-gate/compile-final6.log 2>&1
+Record exit. Only after successful compile with same frozen source/helpers:
+JAVA_HOME=/workspace/jdk21-complete GRADLE_USER_HOME=/workspace/.gradle ./gradlew --offline --no-daemon --max-workers=1 -Dorg.gradle.jvmargs=-Xmx768m --init-script work/economy-gate/focus.init.gradle runGametest > work/economy-gate/gametest-final6.log 2>&1
+Record process exit; preserve XML/reports/economy-*.txt, logs, helper/source inputs and closedfixture before any edits.
+All6 actual assertions remain: recipe consumption, mechanism use, firing, timed salvage/pickup/reuse, guarded moving-body repair, family repair. No production placement change, timeout/reach/hardness/drop/cost change.
