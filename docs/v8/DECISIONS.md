@@ -1,5 +1,7 @@
 # Decisions
 
+17 November deferred-fluid integration: retain valid UNKNOWN work without TTL, distinguish invalid bounds/material, and acknowledge only ordinary future queued ticks. Bind68fb885/450 and both native clients to the same artifacts; keep component cold proof explicitly distinct while verifying its14 actual class entries. No promotion of lava/fullCubic, graphical candidates, all3D AI or both complete specifications.
+
 17 November intent integration: keep the optional saved siege DTO non-executable; actual observation/counterplay and player-built friendly AA precede automatic activation. Record522ee07 full866/450 server proof separately from20ef2c4 two-client installable proof. Preserve the original21-packet audit and add a live overlay; original reference task definitions remain immutable.
 
 17 November finalintegration: preserve all first negatives; reject the globalnavigation shortcut after its rocketdamage regression. Enable bounded sweptlookahead onlyfornewSquad investigation, with nativeown-LOS combat and copiedlast-seen coordinates. Bind both nativeprotocols before the same full837/430build, verify identicalgame/observer bytes across both clients, independently decode actualsurfacepacket/disk bytes. Treat componentcoldfluid/recorder/city proofs separately from the canonicalartifactrun. Resourceexistence is not a renderedatlas and hiddencreativeitems with realrecipes are not dead. Newcloud/usegraphwork moves to in_progress only; no fulltask promotion.

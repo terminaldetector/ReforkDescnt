@@ -1,0 +1,56 @@
+{
+  "source": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
+  "arrival": {
+    "status": "PASS",
+    "firstServerFullTick": 104,
+    "firstBothFullTick": 108,
+    "observationTicksAfterFull": 17,
+    "fixtureBlockEdits": 0,
+    "mutationsAfterBaseline": 0,
+    "droppedEventCount": 0
+  },
+  "palette": {
+    "states": 5,
+    "rgbAgreement": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "maxChannelError": 0,
+    "minimumDitherSensitive": 8172,
+    "maximumNearestDepthDelta": 5.960464477539063e-08
+  },
+  "presentation": {
+    "sceneCount": 6,
+    "allGl0": true,
+    "panes": [
+      8,
+      8,
+      8,
+      8,
+      8,
+      8
+    ],
+    "surfaces": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "worldGrid": 1.0
+  },
+  "viewmodel": {
+    "nativePixels": 166,
+    "ps1Pixels": 166,
+    "requiredPixels": 125,
+    "sameCamera": true,
+    "sameModules": true,
+    "maximumProjectedVertexDeltaPixels": 0.0
+  },
+  "independentSurfaceReadback": "surface-byte-readback-68fb20a.json",
+  "directRootImageViewed": "ps1-180-resized.png"
+}

@@ -2,15 +2,15 @@
 
 The original [21-packet source audit](UNTOUCHED_IMPLEMENTATION_PACKETS_2026-11-17.md) remains immutable historical evidence. This overlay records which proposals have actually advanced; it does not turn prerequisites or contracts into implemented features. Both latest specifications, PS1 rendering and direct Dynamic Boarding/Create-style constraints retain coverage. No packet or whole task is accepted from this table.
 
-Canonical server source522ee07 passes866 units/450 ordinary GameTests. The last two-client installable source is20ef2c4. Original99-task ledger remains3 completed /28 in progress /68 pending. Six source lanes remain assigned; one Java/Gradle/native lease controls runtime work.
+Canonical source68fb20a passes885units/450ordinaryGameTests and two same-JAR clients. Original99-task ledger remains3 completed /28 in progress /68 pending. Six source lanes remain assigned; one Java/Gradle/native lease controls runtime work.
 
 | Packet | Current state / owner | Actual boundary |
 | --- | --- | --- |
 | U01 — Read-only saved registry/use references | pending; audit_integration | Packet remains queued under the pinned original map; existing related code is not reclassified as absent. |
 | U02 — Actual equipped drone preview | active candidate; audit_integration | Five actual synchronized sockets already exist; equipped-geometry preview compiles with six units. Observer first build/ABI pending; actual equip/remove/held five-scene client still open. |
 | U03 — Perception/time driven Survival encounter admission | pending; world_content with combat_ai | Packet remains queued under the pinned original map; existing related code is not reclassified as absent. |
-| U04 — Real siege, retreat and recoverable base pressure | partial integrated; combat_ai | Non-autostart saved intent/order guards integrated:866 units/450 ordinary GameTests. Actual automatic siege is absent. Player-friendly manual-axis AA is a separate source contract, not a station relabel. |
-| U05 — Data-driven objectives with actual completion | source audit; world_content | Acceptance currently grants reputation without completing objectives. Preparing actual-event/extraction/atomic once-only reward contract in existing FactionMemory; retired world events stay parked. |
+| U04 — Real siege, retreat and recoverable base pressure | partial integrated; combat_ai | Non-autostart saved intent/order guards retained in885units/450ordinaryGameTests and two same-JAR clients. Actual automatic siege is absent. Player-friendly manual-axis AA is a separate source contract, not a station relabel. |
+| U05 — Data-driven objectives with actual completion | source audit; world_content | Actual3-use Survival baseline grants0→3→6→9. Actual-event/extraction/once-only reward implementation in existing FactionMemory is authorized; retired world events stay parked. |
 | U06 — Shapes infantry role | pending; combat_ai | Packet remains queued under the pinned original map; existing related code is not reclassified as absent. |
 | U07 — Separate flying teleport enemy | pending; combat_ai | Packet remains queued under the pinned original map; existing related code is not reclassified as absent. |
 | U08 — Heavy Operator from reusable mechanisms | pending; combat_ai coordinated with root physics | Packet remains queued under the pinned original map; existing related code is not reclassified as absent. |

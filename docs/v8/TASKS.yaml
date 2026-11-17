@@ -12,7 +12,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json]
+  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
   notes: Do not assume complete from historic PR/summary.
 - id: S00-T02
   stage: S00
@@ -24,7 +24,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json]
+  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
   notes: Do not assume complete from historic PR/summary.
 - id: S00-T03
   stage: S00
@@ -60,7 +60,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json]
+  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
   notes: Do not assume complete from historic PR/summary.
 - id: S00-T06
   stage: S00
@@ -207,8 +207,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [CUBIC_LIGHT_POSITIVE_2026-11-11/REPORT.md, EVIDENCE/integrated-5839062.zip, NATIVE_FLUID_WRITER_2026-11-17/REPORT.md, NATIVE_FLUID_READER_2026-11-17/REPORT.md, EVIDENCE/fluid-component-byte-parity-ae1bd82.json]
-  notes: "Exact670 native BCC all six roof states pass actual wall readiness. Prior observer baseline failure retained; no production lighting change. Full fluid/BE parity open."
+  evidence: [CUBIC_LIGHT_POSITIVE_2026-11-11/REPORT.md, EVIDENCE/integrated-5839062.zip, NATIVE_FLUID_WRITER_2026-11-17/REPORT.md, NATIVE_FLUID_READER_2026-11-17/REPORT.md, EVIDENCE/fluid-component-byte-parity-ae1bd82.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
+  notes: "Native water UNKNOWN continuation:19unit+2dedicatedVanillaSTOCK, unchanged-observer LIVE and genuine saved-UNKNOWN cold writer/reader PASS; canonical68fb885/450+two same-JAR clients pass. Fourteen fluid class entries equal component704; lava, multi-Y, lighting and general BlockEntity parity remain open."
 - id: S02-T06
   stage: S02
   stage_title: Choose actual CubicWorld backend
@@ -341,7 +341,7 @@ tasks:
   status: pending_reverification
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
+  evidence: [MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
   notes: Do not assume complete from historic PR/summary.
 - id: S04-T06
   stage: S04
@@ -353,7 +353,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, SKY_LOD_BACKGROUND_FIX_2026-11-17.md, SURFACE_LOADED_GUARD_NATIVE_POSITIVE_2026-11-17/REPORT.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json]
+  evidence: [MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, SKY_LOD_BACKGROUND_FIX_2026-11-17.md, SURFACE_LOADED_GUARD_NATIVE_POSITIVE_2026-11-17/REPORT.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
   notes: Do not assume complete from historic PR/summary.
 - id: S05-T01
   stage: S05
@@ -426,7 +426,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, SKY_LOD_BACKGROUND_FIX_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, SKY_LOD_BACKGROUND_FIX_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
   notes: "Current699b749 Sodium transitions/Debug world geometry pass. Original09b GL3.2 negative3/346 is preserved; separate7df contrast proof327/346 passes both renderers. Full style/sky/visual acceptance remains open."
 - id: S06-T01
   stage: S06
@@ -846,8 +846,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [SURVIVAL_THREAT_2026-11-10.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json]
-  notes: "Scoped recon plus non-autostart saved intent/order guards pass866unit/450ordinaryGT/73entrypoints at522ee07. No automatic siege, ground rocket infantry or friendly modular AA acceptance; whole task remains open."
+  evidence: [SURVIVAL_THREAT_2026-11-10.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
+  notes: "Scoped recon plus non-autostart saved intent/order guards retained in exact68fb885unit/450ordinaryGT/73entries+two same-JAR clients. No automatic siege/ground rocket infantry/friendly modular AA acceptance; whole task remains open."
 - id: S12-T02
   stage: S12
   stage_title: Survival threat and minimal armament economy
@@ -1110,7 +1110,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json]
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
   notes: "Exact699b749772unit/404ordinaryGT/64entrypoints and both same-JAR BCC/Sodium native clients pass;28PNG retained. All official older rendercheck scenarios, hardware and full-release gates are not inferred."
 - id: S16-T02
   stage: S16
@@ -1171,7 +1171,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json]
+  evidence: [MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
   notes: "Root coordinates isolated reviewed branches and single-source verification; PS1 candidate includes verified mechanism core, full integration acceptance remains open."
 - id: S17-T02
   stage: S17
@@ -1183,7 +1183,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json]
+  evidence: [MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
   notes: "Root maintains per-task ownership for all99 tasks, verified milestone reports and one Java/native lease queue; final merged-source evidence remains open."
 - id: S17-T03
   stage: S17

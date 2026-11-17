@@ -3428,8 +3428,92 @@
   },
   "implementationPacketProgress20261117": {
     "path": "../IMPLEMENTATION_PACKET_PROGRESS_2026-11-17.json",
-    "sha256": "5ba069380c570b51c671bd229c0bfebf067d97316b7a23760686b57f52bc10c1",
+    "sha256": "17fbd09697fefd37285bf21a4d3df46ad1670e620618cebed4ab6e5435290d0d",
     "originalPacketCount": 21,
     "wholePacketsAccepted": 0
+  },
+  "multiAgentIntegration68fb20a": {
+    "source": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
+    "archiveSHA256": "357859ba1fdc657ac0944e93084dca5e2973c2f1aae8a139dfe292a161725ae0",
+    "archiveBytes": 4789015,
+    "payloadFiles": 132,
+    "pngFiles": 40,
+    "depthArrays": 10,
+    "counts": {
+      "unit": {
+        "tests": 885,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "game": {
+        "tests": 450,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "entrypoints": 73,
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "7e35d702e098b780d7499645bdf1a5f73524e8f195a0a63f4f5a198cb9b5f064",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+    },
+    "nativePair": {
+      "source": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
+      "endSource": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
+      "jars": {
+        "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "7e35d702e098b780d7499645bdf1a5f73524e8f195a0a63f4f5a198cb9b5f064",
+        "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+      },
+      "jarsUnchanged": true,
+      "helpersUnchanged": true,
+      "results": [
+        {
+          "kind": "arrival",
+          "scenario": "cubic-surface-arrival-integrated-68fb20a-sodium",
+          "helperExit": 0,
+          "javaExit": 0,
+          "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-surface-arrival-final-cubic-surface-arrival-integrated-68fb20a-sodium",
+          "observed": [
+            "inputs.json",
+            "launch.json",
+            "surface-arrival-outcome.json"
+          ],
+          "pngCount": 2,
+          "gatePassed": true
+        },
+        {
+          "kind": "presentation",
+          "scenario": "ps1-color-integrated-68fb20a-sodium",
+          "helperExit": 0,
+          "javaExit": 0,
+          "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-68fb20a-sodium",
+          "observed": [
+            "inputs.json",
+            "launch.json",
+            "presentation-ok.json",
+            "ps1-color-ok.json",
+            "viewmodel-proof/viewmodel-visibility.json"
+          ],
+          "pngCount": 38,
+          "gatePassed": true
+        }
+      ],
+      "endNs": 1794946552446968854,
+      "gatePassed": true
+    },
+    "releaseAccepted": false,
+    "fullSpecificationAccepted": false
+  },
+  "nativeDeferredFluidCold20261117": {
+    "productionSource": "704203e9e809af8a388356eefa65d4c1642f609a",
+    "observerSource": "330e9a721293df7eac489ae3e62f4d4972275f7b",
+    "writerReport": "../NATIVE_DEFERRED_FLUID_COLD_WRITER_330E9A7_2026-11-17/REPORT.md",
+    "readerReport": "../NATIVE_DEFERRED_FLUID_COLD_READER_330E9A7_2026-11-17/REPORT.md",
+    "canonicalSameCriticalClassEntries": 14,
+    "classParity": "deferred-fluid-class-parity-68fb20a.json",
+    "fixtureEdits": 0,
+    "manualReschedules": 0,
+    "fullS02Accepted": false
   }
 }

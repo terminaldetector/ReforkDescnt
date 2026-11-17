@@ -1,8 +1,8 @@
 {
   "schema": "ungravity.implementation-packet-progress.v1",
   "date": "2026-11-17",
-  "canonicalServerSource": "522ee0765fe1a439b0a079120d5282f498c64533",
-  "lastTwoClientSource": "20ef2c4c8fd551e4326d2841601f9c56fa4a3a0a",
+  "canonicalServerSource": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
+  "lastTwoClientSource": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
   "originalMap": "docs/v8/UNTOUCHED_IMPLEMENTATION_PACKETS_2026-11-17.json",
   "originalMapSha256": "f387b0d7ef5b04d8b75883ff2c13fa0bab114ff26028df64ef20025bf3d2e9d1",
   "scope": [
@@ -37,7 +37,7 @@
       "status": "active_candidate",
       "owner": "audit_integration",
       "source": "e0478ce / 2ace809",
-      "remaining": "Five actual synchronized sockets already exist; equipped-geometry preview compiles with six units. Observer first build/ABI pending; actual equip/remove/held five-scene client still open.",
+      "remaining": "Five synchronized sockets exist. Preview production compiles/six units; two native observer attempts have0accepted scenes (startup deadline/ProcessInfo unavailable), so actual equip/remove/held client acceptance remains open.",
       "report": null,
       "acceptedAsWhole": false
     },
@@ -67,9 +67,9 @@
       ],
       "status": "partial_integrated",
       "owner": "combat_ai",
-      "source": "522ee0765fe1a439b0a079120d5282f498c64533",
-      "remaining": "Non-autostart saved intent/order guards integrated:866 units/450 ordinary GameTests. Actual automatic siege is absent. Player-friendly manual-axis AA is a separate source contract, not a station relabel.",
-      "report": "MULTI_AGENT_SERVER_522EE07_2026-11-17.md",
+      "source": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
+      "remaining": "Non-autostart saved intent/order guards retained in885units/450ordinaryGameTests and two same-JAR clients. Automatic siege stays absent. Manual-axis friendly AA is an isolated uncompiled candidate after genuine1FAIL/1PASS baseline.",
+      "report": "MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md",
       "acceptedAsWhole": false
     },
     {
@@ -79,11 +79,11 @@
         "S14-T05",
         "S13-T06"
       ],
-      "status": "source_audit",
+      "status": "active_source",
       "owner": "world_content",
-      "source": "522ee0765fe1a439b0a079120d5282f498c64533",
-      "remaining": "Acceptance currently grants reputation without completing objectives. Preparing actual-event/extraction/atomic once-only reward contract in existing FactionMemory; retired world events stay parked.",
-      "report": null,
+      "source": "f9aa4e0 / 79bf55a",
+      "remaining": "Genuine real Survival3-use baseline gives0→3→6→9; production actual-event/extraction/same-state once-only reward implementation is now authorized. Candidate is not integrated or accepted.",
+      "report": "MISSION_U05_RUNTIME_CONTRACT_2026-11-17.md",
       "acceptedAsWhole": false
     },
     {
@@ -311,11 +311,11 @@
         "S13-T03",
         "S13-T05"
       ],
-      "status": "active_prerequisite",
+      "status": "active_candidate",
       "owner": "ps1_render / world_cubic",
-      "source": "20ef2c4 / 49e9c2c",
-      "remaining": "Surface-arrival/cache ordering passes same-JAR clients. Five real cloud occlusion controls now pass in an isolated observer while high clouds remain absent; generalized volumetric far tiers and altitude transmittance still need code.",
-      "report": "CLOUD_OCCLUSION_TWO_OBJECTS_2026-11-17.md",
+      "source": "68fb20a / e2fda77 / f6d8ac1",
+      "remaining": "Canonical saved-surface arrival passes; isolated cloud production17units pass, original near frames pass, first far observer boundary fails before completed frame. Private executed-draw observer repair awaits native; generalized volumetric tiers remain open.",
+      "report": "MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md",
       "acceptedAsWhole": false
     }
   ]
