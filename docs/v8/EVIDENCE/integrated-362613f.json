@@ -1,0 +1,75 @@
+{
+  "source": "362613f51ba8d6c18cef9e2c75aadb5cef3f8849",
+  "archiveSHA256": "f7dfa1ab50fd29b3278d7489babd587acf5edbfc62f7f0491dc0f6c4e4b21a86",
+  "archiveBytes": 4731456,
+  "payloadFiles": 133,
+  "pngFiles": 39,
+  "depthArrays": 10,
+  "counts": {
+    "unit": {
+      "tests": 851,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "game": {
+      "tests": 442,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "entrypoints": 71,
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "0b18b9b84a092f1e362d91a4cec27f03fabec9e242b4d587701dc912491f6b99",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+  },
+  "nativePair": {
+    "source": "362613f51ba8d6c18cef9e2c75aadb5cef3f8849",
+    "endSource": "362613f51ba8d6c18cef9e2c75aadb5cef3f8849",
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "0b18b9b84a092f1e362d91a4cec27f03fabec9e242b4d587701dc912491f6b99",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+    },
+    "jarsUnchanged": true,
+    "helpersUnchanged": true,
+    "results": [
+      {
+        "kind": "arrival",
+        "scenario": "cubic-surface-arrival-integrated-362613f-sodium",
+        "helperExit": 2,
+        "javaExit": 0,
+        "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-surface-arrival-automation",
+        "observed": [
+          "inputs.json",
+          "launch.json",
+          "surface-arrival-outcome.json"
+        ],
+        "pngCount": 1,
+        "gatePassed": false
+      },
+      {
+        "kind": "presentation",
+        "scenario": "ps1-color-integrated-362613f-sodium",
+        "helperExit": 0,
+        "javaExit": 0,
+        "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-362613f-sodium",
+        "observed": [
+          "inputs.json",
+          "launch.json",
+          "presentation-ok.json",
+          "ps1-color-ok.json",
+          "viewmodel-proof/viewmodel-visibility.json"
+        ],
+        "pngCount": 38,
+        "gatePassed": true
+      }
+    ],
+    "endNs": 1794939770547405274,
+    "gatePassed": false
+  },
+  "nativePairPassed": false,
+  "nativeArrivalStatus": "PREMISE_NOT_OBSERVED",
+  "releaseAccepted": false,
+  "fullSpecificationAccepted": false
+}

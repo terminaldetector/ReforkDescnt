@@ -85,7 +85,14 @@
     "integrated-6b50273.json": "e6db194638fa4f45330e3d6582c0c9847facc32d6f42a6e3f504d0ea7028ae75",
     "integrated-6b50273.zip": "7b1124ef07eae6dae167fe6e1a14851eaa9ff0ec04ed78c88f33035b3fb7341a",
     "surface-byte-readback-6b50273.py": "1cef24505a02eaf4170b97fceca2c0868f9987518d1a0f0031661b428b42dbec",
-    "surface-byte-readback-6b50273.json": "b6fc013ee61d6dbfb4bec8525d958d5019495b919b551e7e900e6f30a8de0b5e"
+    "surface-byte-readback-6b50273.json": "b6fc013ee61d6dbfb4bec8525d958d5019495b919b551e7e900e6f30a8de0b5e",
+    "integrated-20ef2c4.json": "73c4dca449cd671f2b12b5ed645c29364acee66d1054b16b8530b400b869aeff",
+    "integrated-20ef2c4.zip": "9b3d018d22ec2aca98246329fcef06daf44182e694c13f488eb9dffb6a2bb282",
+    "integrated-362613f.json": "37fcb875eb214304f2e9b86d9bae0406b1c9e9c5828ce0919a5664281b2b3a32",
+    "integrated-362613f.zip": "f7dfa1ab50fd29b3278d7489babd587acf5edbfc62f7f0491dc0f6c4e4b21a86",
+    "planet-first-snapshot-order.zip": "91634ac2304d8af8c501d783ca2759082d3cdcf3f4bc879ca3854df8210123c4",
+    "surface-byte-readback-20ef2c4.py": "eff0cefc9d352f791ab3b484ee23fee4a8a26ec340403cab1d4cfe0a5e2df5ac",
+    "surface-byte-readback-20ef2c4.json": "2031d6fe8f2bb1684d5271a6ea8f1f461c9283d5addfac09e323911e3a5c83ce"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -3365,5 +3372,30 @@
     "gameJarSha256": "5ae9d0cae2223e110f993a23554010ad2159fd45ca3e9dbe7e1ddb2e7ea2bb68",
     "observerJarSha256": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4",
     "scope": "physical stationary interception plus prior four increments; no whole task/release acceptance"
+  },
+  "multiAgentIntegration20ef2c4": {
+    "source": "20ef2c4c8fd551e4326d2841601f9c56fa4a3a0a",
+    "report": "MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md",
+    "receipt": "EVIDENCE/integrated-20ef2c4.json",
+    "unitTests": 853,
+    "ordinaryGameTests": 442,
+    "entrypoints": 71,
+    "nativeScope": "two SAME-JAR BCC/Sodium clients: unchanged surface arrival and PS1 colour/profile/mirror/HUD/viewmodel",
+    "freshFrames": 40,
+    "actualDepthArrays": 10,
+    "fullTaskPromotion": false,
+    "gameJarSha256": "ae446ebfe83258eb336c96ec2452418fe9357e661feae1f4a87ce776242d1dff",
+    "observerJarSha256": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4",
+    "scope": "seven integrated increments; no whole-task/release acceptance"
+  },
+  "initialPlanetOrder20261117": {
+    "negativeSource": "cb3a8da",
+    "negativeTests": 3,
+    "negativeFailures": 2,
+    "positiveSource": "20ef2c4c8fd551e4326d2841601f9c56fa4a3a0a",
+    "positiveTests": 3,
+    "positiveFailures": 0,
+    "report": "CLIENT_FIRST_SNAPSHOT_ORDER_2026-11-17.md",
+    "previousNative362": "arrival PREMISE_NOT_OBSERVED/presentation PASS, not a paired pass"
   }
 }

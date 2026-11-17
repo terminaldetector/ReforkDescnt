@@ -16,7 +16,9 @@
         "MULTI_AGENT_INTEGRATION_2026-11-17.md",
         "EVIDENCE/integrated-699b749.json",
         "MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md",
-        "EVIDENCE/integrated-6b50273.json"
+        "EVIDENCE/integrated-6b50273.json",
+        "MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md",
+        "EVIDENCE/integrated-20ef2c4.json"
       ]
     },
     {
@@ -31,7 +33,9 @@
         "MULTI_AGENT_INTEGRATION_2026-11-17.md",
         "EVIDENCE/integrated-699b749.json",
         "MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md",
-        "EVIDENCE/integrated-6b50273.json"
+        "EVIDENCE/integrated-6b50273.json",
+        "MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md",
+        "EVIDENCE/integrated-20ef2c4.json"
       ]
     },
     {
@@ -291,7 +295,9 @@
       "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
       "scopedEvidence": [
         "MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md",
-        "EVIDENCE/integrated-ae1bd82.json"
+        "EVIDENCE/integrated-ae1bd82.json",
+        "MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md",
+        "EVIDENCE/integrated-20ef2c4.json"
       ]
     },
     {
@@ -892,9 +898,15 @@
       "stage": "S15",
       "title": "Audit GUI tooltips, HUD scaling, battle debug lines and PS1 readability",
       "worker": "audit_integration",
-      "ledgerStatus": "pending_reverification",
+      "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedStatus": "slot-backed UI candidate e047 compiled6; native GUI images open; current PS1/HUD profile evidence retained",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md",
+        "EVIDENCE/integrated-20ef2c4.json",
+        "DRONE_LOADOUT_PREVIEW_FIRST_COMPILE_2026-11-17.md"
+      ]
     },
     {
       "id": "S16-T01",
@@ -910,7 +922,9 @@
         "MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md",
         "EVIDENCE/integrated-ae1bd82.json",
         "MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md",
-        "EVIDENCE/integrated-6b50273.json"
+        "EVIDENCE/integrated-6b50273.json",
+        "MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md",
+        "EVIDENCE/integrated-20ef2c4.json"
       ]
     },
     {
@@ -938,7 +952,11 @@
       "worker": "audit_integration",
       "ledgerStatus": "pending_reverification",
       "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md",
+        "EVIDENCE/integrated-20ef2c4.json"
+      ]
     },
     {
       "id": "S16-T05",
@@ -961,7 +979,9 @@
         "MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md",
         "EVIDENCE/integrated-ae1bd82.json",
         "MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md",
-        "EVIDENCE/integrated-6b50273.json"
+        "EVIDENCE/integrated-6b50273.json",
+        "MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md",
+        "EVIDENCE/integrated-20ef2c4.json"
       ]
     },
     {
@@ -1002,29 +1022,29 @@
     }
   ],
   "latestIntegratedCheckpoint": {
-    "source": "6b50273c6896433a2d5caf68991150126e897245",
-    "report": "MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md",
-    "receipt": "EVIDENCE/integrated-6b50273.json",
-    "unitTests": 843,
+    "source": "20ef2c4c8fd551e4326d2841601f9c56fa4a3a0a",
+    "report": "MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md",
+    "receipt": "EVIDENCE/integrated-20ef2c4.json",
+    "unitTests": 853,
     "ordinaryGameTests": 442,
     "entrypoints": 71,
-    "nativeScope": "two SAME-JAR BCC/Sodium clients: saved-surface arrival and PS1 colour/profile/mirror/HUD/viewmodel",
+    "nativeScope": "two SAME-JAR BCC/Sodium clients: unchanged surface arrival and PS1 colour/profile/mirror/HUD/viewmodel",
     "freshFrames": 40,
     "actualDepthArrays": 10,
     "fullTaskPromotion": false
   },
   "latestIntegratedServerIncrement": {
-    "source": "6b50273c6896433a2d5caf68991150126e897245",
-    "report": "MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md",
-    "receipt": "EVIDENCE/integrated-6b50273.json",
-    "unitTests": 843,
+    "source": "20ef2c4c8fd551e4326d2841601f9c56fa4a3a0a",
+    "report": "MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md",
+    "receipt": "EVIDENCE/integrated-20ef2c4.json",
+    "unitTests": 853,
     "ordinaryGameTests": 442,
     "entrypoints": 71,
-    "nativeScope": "two SAME-JAR BCC/Sodium clients: saved-surface arrival and PS1 colour/profile/mirror/HUD/viewmodel",
+    "nativeScope": "two SAME-JAR BCC/Sodium clients: unchanged surface arrival and PS1 colour/profile/mirror/HUD/viewmodel",
     "freshFrames": 40,
     "actualDepthArrays": 10,
     "fullTaskPromotion": false,
-    "scope": "ordinary initializer point defense, no test bootstrap; both specifications open"
+    "scope": "manual inert city authoring and first-seed surface-cache order correction; full specifications open"
   },
   "twoPrimarySpecCoverage": {
     "reviewSource": "1a8593846bed3b02d03d68236c6698d26a5116d4",

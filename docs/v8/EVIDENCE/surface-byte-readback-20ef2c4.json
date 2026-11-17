@@ -1,0 +1,32 @@
+{
+  "source": "20ef2c4c8fd551e4326d2841601f9c56fa4a3a0a",
+  "scope": "Independent Python decode of actual accepted network payloads and closed native disk; no fixture editing",
+  "packets": [
+    {
+      "sequence": 1,
+      "bytes": 5121,
+      "sha256": "2214c13e203e6d6c172a9e7a4452019960935564e57f51162c2d546ec34d32d3",
+      "cell": {
+        "height": 2301,
+        "colour": 0
+      }
+    },
+    {
+      "sequence": 2,
+      "bytes": 5121,
+      "sha256": "7fe32b531018119e62f5a3cccdcbe0eb3bea228b1fc30fa08fee75e0fd781552",
+      "cell": {
+        "height": 2301,
+        "colour": 16445005
+      }
+    }
+  ],
+  "disk": {
+    "path": "build/cubic-surface-arrival-final-cubic-surface-arrival-integrated-20ef2c4-sodium/saves/Cubic-Gate/drmd/surface/L0/0_0.bin",
+    "sha256": "fcd86e75d203aeb2d3d620ebe00813a8cc6f80a354f6e17c8253fad7da785d17",
+    "decodedCell": {
+      "height": 2301,
+      "colour": 16445005
+    }
+  }
+}
