@@ -1,0 +1,322 @@
+{
+  "schema": "ungravity.implementation-packet-progress.v1",
+  "date": "2026-11-17",
+  "canonicalServerSource": "522ee0765fe1a439b0a079120d5282f498c64533",
+  "lastTwoClientSource": "20ef2c4c8fd551e4326d2841601f9c56fa4a3a0a",
+  "originalMap": "docs/v8/UNTOUCHED_IMPLEMENTATION_PACKETS_2026-11-17.json",
+  "originalMapSha256": "f387b0d7ef5b04d8b75883ff2c13fa0bab114ff26028df64ef20025bf3d2e9d1",
+  "scope": [
+    "Both latest specifications, with equal PS1-render coverage",
+    "Direct Dynamic Boarding and separate Create-style gun/bearing/drive requirements"
+  ],
+  "wholePacketsAccepted": 0,
+  "rows": [
+    {
+      "id": "U01",
+      "title": "Read-only saved registry/use references",
+      "taskIds": [
+        "S00-T03",
+        "S00-T04",
+        "S15-T01",
+        "S15-T02"
+      ],
+      "status": "pending",
+      "owner": "audit_integration",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U02",
+      "title": "Actual equipped drone preview",
+      "taskIds": [
+        "S10-T01",
+        "S15-T05"
+      ],
+      "status": "active_candidate",
+      "owner": "audit_integration",
+      "source": "e0478ce / 2ace809",
+      "remaining": "Five actual synchronized sockets already exist; equipped-geometry preview compiles with six units. Observer first build/ABI pending; actual equip/remove/held five-scene client still open.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U03",
+      "title": "Perception/time driven Survival encounter admission",
+      "taskIds": [
+        "S12-T01",
+        "S12-T05"
+      ],
+      "status": "pending",
+      "owner": "world_content with combat_ai",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U04",
+      "title": "Real siege, retreat and recoverable base pressure",
+      "taskIds": [
+        "S12-T01",
+        "S12-T02",
+        "S12-T03",
+        "S12-T04",
+        "S12-T05"
+      ],
+      "status": "partial_integrated",
+      "owner": "combat_ai",
+      "source": "522ee0765fe1a439b0a079120d5282f498c64533",
+      "remaining": "Non-autostart saved intent/order guards integrated:866 units/450 ordinary GameTests. Actual automatic siege is absent. Player-friendly manual-axis AA is a separate source contract, not a station relabel.",
+      "report": "MULTI_AGENT_SERVER_522EE07_2026-11-17.md",
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U05",
+      "title": "Data-driven objectives with actual completion",
+      "taskIds": [
+        "S14-T05",
+        "S13-T06"
+      ],
+      "status": "source_audit",
+      "owner": "world_content",
+      "source": "522ee0765fe1a439b0a079120d5282f498c64533",
+      "remaining": "Acceptance currently grants reputation without completing objectives. Preparing actual-event/extraction/atomic once-only reward contract in existing FactionMemory; retired world events stay parked.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U06",
+      "title": "Shapes infantry role",
+      "taskIds": [
+        "S14-T02"
+      ],
+      "status": "pending",
+      "owner": "combat_ai",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U07",
+      "title": "Separate flying teleport enemy",
+      "taskIds": [
+        "S14-T03"
+      ],
+      "status": "pending",
+      "owner": "combat_ai",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U08",
+      "title": "Heavy Operator from reusable mechanisms",
+      "taskIds": [
+        "S14-T04",
+        "S09-T03"
+      ],
+      "status": "pending",
+      "owner": "combat_ai coordinated with root physics",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U09",
+      "title": "Bounded same-world authored lab/zone graph",
+      "taskIds": [
+        "S13-T01",
+        "S13-T02",
+        "S13-T06"
+      ],
+      "status": "supporting_infrastructure",
+      "owner": "world_content",
+      "source": "20ef2c4c8fd551e4326d2841601f9c56fa4a3a0a",
+      "remaining": "Manual city authoring is integrated and small bounded CAS cases pass. A same-world authored lab/zone graph, full85520-cell city and native CAS are not implemented/accepted by that support.",
+      "report": "MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md",
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U10",
+      "title": "Authored upper station/ring route modules",
+      "taskIds": [
+        "S13-T03",
+        "S13-T04",
+        "S13-T06"
+      ],
+      "status": "pending",
+      "owner": "world_content with ps1_render",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U11",
+      "title": "Non-player contacts and body-local fields",
+      "taskIds": [
+        "S07-T05",
+        "S08-T05",
+        "S09-T04"
+      ],
+      "status": "pending",
+      "owner": "gravity_ragdoll with root Boarding",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U12",
+      "title": "Functional moving local blocks and apertures",
+      "taskIds": [
+        "S09-T04",
+        "S09-T05"
+      ],
+      "status": "pending",
+      "owner": "root Boarding",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U13",
+      "title": "Ragdoll angular limits and family rig data",
+      "taskIds": [
+        "S08-T02",
+        "S07-T05"
+      ],
+      "status": "pending",
+      "owner": "gravity_ragdoll",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U14",
+      "title": "Interest tiers and sleeping/aggregation",
+      "taskIds": [
+        "S07-T04",
+        "S08-T04",
+        "S11-T04",
+        "S16-T02"
+      ],
+      "status": "pending",
+      "owner": "gravity_ragdoll with combat_ai",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U15",
+      "title": "Transactional connected-body portal transition",
+      "taskIds": [
+        "S09-T04",
+        "S15-T03"
+      ],
+      "status": "pending",
+      "owner": "root physics after combat/render coordination",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U16",
+      "title": "PS1 vertex snapping and affine-like UV",
+      "taskIds": [
+        "S05-T02",
+        "S05-T05",
+        "S05-T06"
+      ],
+      "status": "pending",
+      "owner": "ps1_render",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U17",
+      "title": "PS1 low-poly selection, debug domains and pacing options",
+      "taskIds": [
+        "S05-T04",
+        "S05-T06",
+        "S15-T05"
+      ],
+      "status": "pending",
+      "owner": "ps1_render",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U18",
+      "title": "Log-axis round/branch morphology",
+      "taskIds": [
+        "S04-T01",
+        "S04-T02",
+        "S04-T04"
+      ],
+      "status": "pending",
+      "owner": "ps1_render coordinated with gravity_ragdoll",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U19",
+      "title": "Strong drill thermal rim and controlled circular opening",
+      "taskIds": [
+        "S10-T04"
+      ],
+      "status": "pending",
+      "owner": "combat_ai with ps1_render",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U20",
+      "title": "Programmed first-person cluster carrier",
+      "taskIds": [
+        "S10-T03"
+      ],
+      "status": "pending",
+      "owner": "combat_ai",
+      "source": null,
+      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "report": null,
+      "acceptedAsWhole": false
+    },
+    {
+      "id": "U21",
+      "title": "Volumetric far objects and altitude transmittance",
+      "taskIds": [
+        "S04-T05",
+        "S04-T06",
+        "S05-T03",
+        "S05-T06",
+        "S13-T03",
+        "S13-T05"
+      ],
+      "status": "active_prerequisite",
+      "owner": "ps1_render / world_cubic",
+      "source": "20ef2c4 / 49e9c2c",
+      "remaining": "Surface-arrival/cache ordering passes same-JAR clients. Five real cloud occlusion controls now pass in an isolated observer while high clouds remain absent; generalized volumetric far tiers and altitude transmittance still need code.",
+      "report": "CLOUD_OCCLUSION_TWO_OBJECTS_2026-11-17.md",
+      "acceptedAsWhole": false
+    }
+  ]
+}

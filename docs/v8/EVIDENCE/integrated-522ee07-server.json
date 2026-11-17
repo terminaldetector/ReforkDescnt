@@ -1,0 +1,28 @@
+{
+  "archive": "docs/v8/EVIDENCE/integrated-522ee07-server.zip",
+  "sha256": "a4193662747980c9811e508ce3535d517e9e473c250c9b0567a3ba42676f720d",
+  "payloadFiles": 26,
+  "bytes": 3391792,
+  "allHashesAndCrcVerified": true,
+  "source": "522ee0765fe1a439b0a079120d5282f498c64533",
+  "unit": {
+    "tests": 866,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "game": {
+    "tests": 450,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "entrypoints": 73,
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "9e53eae734a7c4a0ac6ce42c0a4124c348c7d62e11a71eb3ed34316fdb107417",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+  },
+  "gameReportFresh": true,
+  "scope": "Actual866-unit/450-ordinary-server/73-entrypoint source522ee07 and remapped artifacts. Three non-autostart siege data/state files are the only production delta from accepted20ef2c4. No new candidate client was executed; accepted20ef2c4 two-client proof belongs to its own earlier bytes. TestServer enables discoverable legacy Advanced registry pack; this does not establish default Vanilla bounds. Dedicated surface Vanilla2 and legacy tall8 remain separate. No native/performance/full specification/release acceptance inherited.",
+  "releaseAccepted": false
+}
