@@ -1,0 +1,150 @@
+{
+  "REPORT.md": {
+    "bytes": 2950,
+    "sha256": "84fd2d216ce340b2844baa87753f7bbeec72df85136266a5f25d992545e1b04a"
+  },
+  "actual-execution/actual-helper-snapshots/cubic_fluid_build.sh": {
+    "bytes": 413,
+    "sha256": "11deaccab0d2e2c47fe5fb0ee6711a67906235e4987c29f7a89c49e46915d462"
+  },
+  "actual-execution/actual-helper-snapshots/cubic_fluid_build_stamp.py": {
+    "bytes": 2326,
+    "sha256": "e801349cd7d3573f6c7c0764d12b3714d2838f9547008416b11231befdf7c8b5"
+  },
+  "actual-execution/actual-helper-snapshots/cubic_fluid_native.sh": {
+    "bytes": 4876,
+    "sha256": "1c06cf474cde342216c3bc35dc5d7f241b631d28482ee50d1598caaccbe5302f"
+  },
+  "actual-execution/actual-helper-snapshots/cubic_fluid_prepare.py": {
+    "bytes": 5198,
+    "sha256": "3e5ad2fc291669b7ca102aa82eebf9675b13874d474960ae9e3d2d79951492fc"
+  },
+  "actual-execution/actual-helper-snapshots/run_build_and_writer_once.py": {
+    "bytes": 4574,
+    "sha256": "0fb25e5604e9b736fa32bf1ed4355d64d163906298f21c557fcb4a2420f36863"
+  },
+  "actual-execution/before.json": {
+    "bytes": 217990,
+    "sha256": "5dc08f414ff2521136c66f75d8083df2f309fd1ac7973f5989931878a9d20574"
+  },
+  "actual-execution/build-child-close.json": {
+    "bytes": 84,
+    "sha256": "72e88a066c7e7af90371b7287b63e24d5924f55468b59b1d8cc6975a90df2220"
+  },
+  "actual-execution/build-start.json": {
+    "bytes": 156,
+    "sha256": "d1402635cdfcca81fdc608e9c0a6661c145676f54fd885e006fab6a89cc62d1f"
+  },
+  "actual-execution/build-stdout-stderr.log": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "actual-execution/final-close.json": {
+    "bytes": 13501,
+    "sha256": "bd22bc51efdc0fe0a3a34a37931babdc5c5140cb432ce7ce5ade4c04bba76b35"
+  },
+  "actual-execution/run_build_and_writer_once.py": {
+    "bytes": 4574,
+    "sha256": "0fb25e5604e9b736fa32bf1ed4355d64d163906298f21c557fcb4a2420f36863"
+  },
+  "actual-execution/writer-before.json": {
+    "bytes": 221240,
+    "sha256": "840a9908703d0a303c01f658373318f56c92f62c5a386ea0727122c108f6b4e0"
+  },
+  "actual-execution/writer-child-close.json": {
+    "bytes": 84,
+    "sha256": "036b689c20c7b7fae6f3028511ef11e62be7883b2323562837e1ea6a8e42012f"
+  },
+  "actual-execution/writer-start.json": {
+    "bytes": 212,
+    "sha256": "18cb9954e3975b92fbaf5befae006763b52d8ee52a64c1f4c0a822fda6ce53cd"
+  },
+  "actual-execution/writer-stdout-stderr.log": {
+    "bytes": 230,
+    "sha256": "4b7fc1268fd4c0226ec76d7c31e661d019fc7032518df05628a6319b204b5a28"
+  },
+  "artifacts/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": {
+    "bytes": 582782,
+    "sha256": "6c6263aeb0ebeba11f0c61b0b12520b9dd60842beccbeb115da7f826a9db810a"
+  },
+  "artifacts/drmd-6dof-1.1.35-ufo-dev.1.jar": {
+    "bytes": 2554240,
+    "sha256": "0855f657e53742e3a5b95bce8f30b60a76bc93020574dc5826bccb86514f8df9"
+  },
+  "cubic-fluid-writer-6c23897-sodium-display.txt": {
+    "bytes": 2,
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+  },
+  "cubic-fluid-writer-6c23897-sodium-prepare.log": {
+    "bytes": 228,
+    "sha256": "6844b5ca86ac84bd08482ca49e1adb82b01efe008548fcc1c2608d50b1cba164"
+  },
+  "cubic-fluid-writer-6c23897-sodium-writer-proof.json": {
+    "bytes": 14386,
+    "sha256": "a0ae09671fd318786722ec7a5be77aca684736cb0e28fa009d41198e2bb1043a"
+  },
+  "cubic-fluid-writer-6c23897-sodium-writer-world.tar.gz": {
+    "bytes": 1374863,
+    "sha256": "860e0793fa8a7373ec124f40d7f8dc3c71a3949e509df5266ad0e7922337caba"
+  },
+  "cubic-fluid-writer-6c23897-sodium-xvfb.log": {
+    "bytes": 64,
+    "sha256": "87e9572cf030493a1f7ba83d385129046b224374ca1414911674b30fc44276d7"
+  },
+  "cubic-fluid-writer-6c23897-sodium.exit": {
+    "bytes": 2,
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+  },
+  "cubic-fluid-writer-6c23897-sodium.log": {
+    "bytes": 27063,
+    "sha256": "1f4ec0bc65cddc07c47edf13333dd473e4280fe4b889b48194e4ad9c9ea780ad"
+  },
+  "fluid-pending-outcome.json": {
+    "bytes": 8220,
+    "sha256": "1f8c2d583d6ca0e65577326c3201f6dbbcea473dd0cd460a8efeccc4935b180b"
+  },
+  "fluid-pending-requested-outcome.json": {
+    "bytes": 4193,
+    "sha256": "64b32a87e0948568138750a51b3f5736cb0b7d75b8abde26254104e74a68eb14"
+  },
+  "fluid-writer-request-close.json": {
+    "bytes": 1541,
+    "sha256": "36aa944b129ef3eb7fbe291c91c838682fa1d89bad0774d8be95720675d53b87"
+  },
+  "frames/writer-mid-flow.png": {
+    "bytes": 300843,
+    "sha256": "ca9abfc5417c20fc1cb9201667c56ab6c0625461b5aa200166455cbfe1843da4"
+  },
+  "independent-recheck.json": {
+    "bytes": 3328,
+    "sha256": "a78bced10acc8ad06ac30023e6ae415f32c1d4ce16f2d22b660ce9747c9b3acc"
+  },
+  "inputs.json": {
+    "bytes": 24892,
+    "sha256": "2b913eeff493653e1dfce6bfd2d674f7ebfedeb8150b7f46b095db9d9f89637a"
+  },
+  "launch.json": {
+    "bytes": 10398,
+    "sha256": "e95f6369ebc84bf1b7c2c415687b40be4b19fb01dc03fabccac8250077574b25"
+  },
+  "options.txt": {
+    "bytes": 98,
+    "sha256": "6752030dc969e48093621ee6280871336ce74986e265c40f660cf1f5268771ab"
+  },
+  "outer-tool-close.json": {
+    "bytes": 268,
+    "sha256": "7ce5e8f30d7ed1cc165086ed549c32857e80a7b9f4b9d1b0bfd37100832a8deb"
+  },
+  "verified-build.inputs.json": {
+    "bytes": 211788,
+    "sha256": "6742bc4b368ec2f9019ef064ee68793db709726122d49d8eaf538f63f2cc8b09"
+  },
+  "verified-build.json": {
+    "bytes": 218129,
+    "sha256": "cb88c7b254da77b799f13565e3b9fcdd1a4588df6955f1fc525f654cb2963774"
+  },
+  "verified-build.log": {
+    "bytes": 2471,
+    "sha256": "6a880a249ebf9a361a7f91cc7fda4e86bc4981b5afb9ad1b9bc92552b8f77008"
+  }
+}

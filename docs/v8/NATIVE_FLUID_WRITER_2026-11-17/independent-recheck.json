@@ -1,0 +1,168 @@
+{
+  "compiledSource": "6c23897d721aaf4429e2bd0054644838ddc1dd5c",
+  "status": "WRITER_QUALIFIED_READER_NOT_RUN",
+  "archiveBytes": 1374863,
+  "archiveSha256": "860e0793fa8a7373ec124f40d7f8dc3c71a3949e509df5266ad0e7922337caba",
+  "archiveFileCount": 93,
+  "archiveAllMemberBytesAndHashesMatchOriginalSave": true,
+  "gzipReadThroughEof": true,
+  "actualScheduledEnterTickY": [
+    [
+      192,
+      82
+    ],
+    [
+      197,
+      81
+    ],
+    [
+      197,
+      82
+    ],
+    [
+      202,
+      80
+    ],
+    [
+      202,
+      81
+    ],
+    [
+      207,
+      79
+    ],
+    [
+      207,
+      80
+    ]
+  ],
+  "allScheduledEventsActualFull": true,
+  "actualStoppingWitness": {
+    "serverTick": 210,
+    "worldTime": 9148,
+    "phase": "CLOSE",
+    "nativeBackend": "NATIVE_CUBIC",
+    "allRelevantFull": true,
+    "sourceWater": true,
+    "seamWater": true,
+    "targetWater": false,
+    "targetLoadedAir": true,
+    "queuedFront": [
+      {
+        "stillQueued": false,
+        "flowingQueued": true,
+        "x": 8,
+        "y": 78,
+        "z": 8
+      },
+      {
+        "stillQueued": false,
+        "flowingQueued": true,
+        "x": 8,
+        "y": 79,
+        "z": 8
+      }
+    ],
+    "schedulerTickCount": 47,
+    "actualFluidWitnessCount": 7,
+    "writerWitnessBaseline": 0,
+    "readerFrontierY": 82,
+    "readerRelevantWitnesses": 0,
+    "observerFixtureWrites": 271,
+    "atmosphere": "CLASSIC",
+    "weightlessFluidPolicy": false,
+    "player": "(12.5, 80.0, 8.5)",
+    "client": {
+      "x": 12.5,
+      "y": 80.0,
+      "z": 8.5,
+      "full": true,
+      "sourceWater": true,
+      "seamWater": true,
+      "targetWater": false
+    },
+    "shaft": [
+      {
+        "y": 63,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 64,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 65,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 66,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 67,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 68,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 69,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 70,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 71,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 72,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 73,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 74,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 75,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 76,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 77,
+        "state": "Block{minecraft:air}"
+      },
+      {
+        "y": 78,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 79,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 80,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 81,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 82,
+        "state": "Block{minecraft:water}[level=0]"
+      }
+    ]
+  },
+  "contextFrameVisualReview": "Glass shaft and water visible; context only, not a pixel acceptance oracle."
+}
