@@ -14,7 +14,7 @@ import java.util.*;
 /** Natural scout/wingman behavior, before adding the missing squad-task layer.
  * No target assignment, mailbox injection, manual entity tick or following teleport. */
 public final class DroneSquadTaskGameTests implements FabricGameTest {
-    private static final class Rig implements AutoCloseable {
+    static final class Rig implements AutoCloseable {
         final TestContext c;
         final AiFixtureChunks chunks;
         final DroneEntity scout,wingman;
