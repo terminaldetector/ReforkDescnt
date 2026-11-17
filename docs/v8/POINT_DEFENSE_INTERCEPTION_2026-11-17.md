@@ -93,3 +93,54 @@ cases**. Preserve the first compile/unit/fixture/gameplay outcome. Root still
 owns final central `PointDefenseInterception.register()` integration; tests
 explicitly bootstrap END_WORLD_TICK/unload. No central registration, renderer,
 BlockBody, mounted-controller, registry/stat or recipe files were changed.
+
+## First component candidate result:6 unit and41 server cases passed
+
+Exact `4bafa39e142fb9519bba49f4baaaf531c1d6094a` passed the first declared
+six pure tests and then all41 GameTests, both child exits0; no failures, errors
+or skips. No retry, source or assertion change occurred during the lease. The
+lease was returned at actual process close with no executing JVM remaining.
+
+The original scheduled Point Defense case passed at eight real transaction
+ticks, incoming age4, one observed emitted kinetic and one actual incoming
+terminal entity hit. Its normal missile parameters and protected-source/
+3.75-radius clearance criteria are unchanged. The unprotected trajectory
+control still passed by an ordinary block impact at missile age8.
+
+Both actual ticker orders passed. Incoming-first recorded
+`roundMovedFirst=false`, missileAge3/roundAge2; genuine loaded-to-ticking
+promotion recorded `roundMovedFirst=true`, missileAge3/roundAge3. Both contacts
+had normalized fraction0.36990574920743563, and both real hit callbacks ran
+exactly once with the actual counterpart identity. The latter fixture passed
+explicit loaded UUID and **not entity-ticking** assertions before its normal
+engine ticket promotion, then observed the real order receipt. A ticket-radius
+argument or reversed pure geometry alone is not used as the order proof.
+
+Both actual wall and rotated physical-hull material blocked the two flight
+paths before any false pair contact. Actual station-friendly and unresolved
+living owners were refused by the anchored primitive and ordinary controller;
+their rockets retained ordinary flight/impact. The unknown-source column stayed
+unavailable. Old null-owner factory rejection/NBT stayed ordinary. Real direct
+component admission reached256 rounds and refused257, while120 loaded ordinary
+candidates produced96 admissions/32 detailed checks at the scheduled controller.
+These are finite-work/admission proofs, not a256-missile combat benchmark.
+All29 retained projectile, mounted/UFO weapon and Fusion Portal cases passed.
+
+Bundle: `EVIDENCE/point-defense-first-candidate-4bafa39.zip`.
+SHA-256: `4ed8e6483383356d24c880bc1516227cc75d18666c569bd0a8311cfe47bcf4a7`.
+All266 payload hashes and ZIP CRC passed: exact source/diff, initial inputs/
+snapshots, executed frozen helpers, compiled actual production/unit/GameTest
+classes, all fresh XML/case classifications, immediate exit receipts, every
+order/cover/natural/cap/API row, and all195 closed-world files (52,632,147 bytes).
+The paired index preserves both first outcomes,351 verified payload hashes.
+This lease ran a compiled classpath, so no standalone installable JAR/remap
+result is claimed or substituted from a stale package.
+
+This is **component-bootstrap acceptance**. Root has authorized a separate
+production lifecycle commit removing both test bootstraps and adding the one
+main initializer registration. That different source still needs an unmasked
+full gate before any ordinary-startup/package claim. Dedicated native/client
+interception, the complete owner-mode/flood matrix, arbitrary moving-hull
+timing, large barrages, player ownership/economy/mechanical mounts and complete
+S12/S11/master/boarding remain open. No other production feature is changed
+as part of the lifecycle activation.

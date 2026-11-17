@@ -1,0 +1,514 @@
+{
+  "base": "b745eb806788e2ca16f87514f56d4b68577887f9",
+  "firstCandidateTestedSource": "4bafa39e142fb9519bba49f4baaaf531c1d6094a",
+  "checkpoints": [
+    {
+      "archive": "EVIDENCE/point-defense-first-negative-f4a03f7.zip",
+      "sha256": "ad6fcad902f9bfc3e1e7b0cea9d28f258f9a56c3f7a55021f49fb427ef8483d4",
+      "verifiedPayloadHashes": 85,
+      "allPayloadShaAndCrc": "PASS",
+      "classification": {
+        "source": "f4a03f76d7b327ebb008d8cda30529313ba3e127",
+        "productionUnchangedFrom": "b745eb806788e2ca16f87514f56d4b68577887f9",
+        "compile": "PASS",
+        "stockGameTestPassed": 1,
+        "stockGameTestFailed": 1,
+        "exit": 1,
+        "scope": "First actual scheduled-block/stock-missile2 baseline; no production interception code, no native or full S12 acceptance",
+        "firstOutcomeNoRetry": true,
+        "cases": [
+          {
+            "name": "pointdefenseinterceptiongametests.unprotectedcubeactuallyreceivesthesamestockrocket",
+            "failed": false,
+            "failure": null
+          },
+          {
+            "name": "pointdefenseinterceptiongametests.scheduledpointdefensephysicallyinterceptsanincomingstockrocket",
+            "failed": true,
+            "failure": "(-12388569, -60, 9271059) point defense must physically intercept the real missile before an ordinary base hit: defended=true ticks=12 worldTime=114 placedAt=102 launchAt=106 launchTick=4 impactAt=114 missileAge=8 missileAlive=false missilePos=(-1.230056712115077E7, 140.38803359746242, 9277059.5) emitted=0 hitCount=1 hitBlock=true hitEntity=none impact=(-1.2300568E7, 140.36757321869456, 9277059.5)"
+          }
+        ],
+        "actualFlight": {
+          "initialSpeedBlocksPerTick": 1.375,
+          "splashRadius": 3.75,
+          "bothActualMissileAgesAtImpact": 8,
+          "bothMeasuredTransactionTicks": 12,
+          "terminalPayloadCountEach": 1,
+          "interceptorsObservedEach": 0,
+          "activePlacedWorldTime": 102,
+          "activeLaunchWorldTime": 106,
+          "activeImpactWorldTime": 114
+        },
+        "fixtureAdmission": "PASS actual entity-ticking positions, loaded collision halo, current BaseTurret threat predicate and shooter outside12-block range",
+        "scheduledBlockCallbackDirectlyInstrumented": false,
+        "executingJavaOnClose": 0,
+        "worldFiles": 45,
+        "worldBytes": 14531921,
+        "failureClassification": "Genuine absent physical interception: actual incoming missile hits actual turret block; inert trajectory/arming control passes."
+      }
+    },
+    {
+      "archive": "EVIDENCE/point-defense-first-candidate-4bafa39.zip",
+      "sha256": "4ed8e6483383356d24c880bc1516227cc75d18666c569bd0a8311cfe47bcf4a7",
+      "verifiedPayloadHashes": 266,
+      "allPayloadShaAndCrc": "PASS",
+      "classification": {
+        "source": "4bafa39e142fb9519bba49f4baaaf531c1d6094a",
+        "unitPassed": 6,
+        "gameTestPassed": 41,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "unitExit": 0,
+        "gameTestExit": 0,
+        "firstOutcomeNoRetry": true,
+        "cases": {
+          "unit": [
+            {
+              "name": "skewPassIsNotAnInterceptDespiteCrossingWorldXAxis()",
+              "classname": "com.terminaldetector.drmd.RelativeProjectileSweepTest",
+              "time": "0.045",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "name": "equalVelocitySeparatedBoxesStaySeparatedWhileAnOverlapStartsAtZero()",
+              "classname": "com.terminaldetector.drmd.RelativeProjectileSweepTest",
+              "time": "0.002",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "name": "fastOpposingRoundsContactBetweenBothEndpointBoxes()",
+              "classname": "com.terminaldetector.drmd.RelativeProjectileSweepTest",
+              "time": "0.0",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "name": "translationAndAxisPermutationPreserveTheContactFraction()",
+              "classname": "com.terminaldetector.drmd.RelativeProjectileSweepTest",
+              "time": "0.0",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "name": "invalidDimensionsAndNonfiniteTrajectoriesNeverAuthorizeContact()",
+              "classname": "com.terminaldetector.drmd.RelativeProjectileSweepTest",
+              "time": "0.0",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "name": "swappedActualTickOrdersReturnTheSameTimeAndMaterialPoint()",
+              "classname": "com.terminaldetector.drmd.RelativeProjectileSweepTest",
+              "time": "0.001",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            }
+          ],
+          "gametest": [
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "pointdefenseguardgametests.actualrotatedhullpreventsafalsepaircontact",
+              "time": "0.544",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.materialinfrontofamuzzleblocksthatbarrel",
+              "time": "2.137",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.missingfiresnapshotscannotkeepanautomaticgunheld",
+              "time": "0.758",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.reallasersandrocketsdamagetargetsoutsidethesourcehull",
+              "time": "0.314",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.rotatedmountedshotsinheritsurfacevelocityandrecoilthehull",
+              "time": "0.62",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.realmotorandfiringremainattachedduringcarriermotion",
+              "time": "1.473",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.normalworldtickscannotexplodeanoutgoingrocketinsideitsmovinglauncher",
+              "time": "0.483",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.realturretkitinstallsanindependentmotorjoint",
+              "time": "0.264",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.turretcommandsrejectwrongepochreplaynonfiniteandflood",
+              "time": "0.687",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "pointdefenseguardgametests.existingloadedmissileticksbeforeitsactualdefensiveround",
+              "time": "0.476",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "pointdefenseguardgametests.unresolvablelivingownercannotbeintercepted",
+              "time": "0.409",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.destroyedweaponmaterialcannotshootandrealrepairrestoresonebarrel",
+              "time": "0.756",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "pointdefenseguardgametests.nearersolidmaterialpreventsafalsepaircontact",
+              "time": "0.294",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.pilotmousecannotalsofirehelditemsorportalprojector",
+              "time": "0.119",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.firesnapshotsrejectreplaywrongownerepochandflood",
+              "time": "0.119",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.unownedcarriercannotresumeapersistedmotorcommand",
+              "time": "0.089",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.blockedmoduleinstallationpreservesthekitandworld",
+              "time": "0.279",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "pointdefenseinterceptiongametests.unprotectedcubeactuallyreceivesthesamestockrocket",
+              "time": "0.544",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "pointdefenseguardgametests.unknownanchorcannotloadcolumnsoremit",
+              "time": "0.297",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "pointdefenseguardgametests.actualscheduledqueriesboundloadedcandidateanddetailedwork",
+              "time": "0.52",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "projectilevisualgametests.visualvelocityandrangedonotusevanillasmallprojectilelimits",
+              "time": "0.001",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "drmd:portal_lab",
+              "name": "fusionportalgametests.adjacentmirrorframesjoinandrestoreafterremovalonallfaces",
+              "time": "0.01",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "drmd:portal_lab",
+              "name": "fusionportalgametests.fusiondoesnotlinkthroughwallsorwithoutmodificationpermission",
+              "time": "0.017",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "drmd:portal_lab",
+              "name": "fusionportalgametests.fusionrequiresthefrontfaceandrepeatedactivationisidempotent",
+              "time": "0.012",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "drmd:portal_lab",
+              "name": "fusionportalgametests.legacycleanupdoesnotdiscardanunrelatedentitywithastoreduuid",
+              "time": "0.0",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "drmd:portal_lab",
+              "name": "fusionportalgametests.legacykeydoesnotactivateorconsumeitself",
+              "time": "0.011",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "drmd:portal_lab",
+              "name": "fusionportalgametests.fusionprojectilekeepsactivationandownerafternbtreload",
+              "time": "0.084",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "drmd:portal_lab",
+              "name": "fusionportalgametests.holdingfusiondoesnotturnanotherprojectileintoanactivationshot",
+              "time": "0.059",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "drmd:portal_lab",
+              "name": "fusionportalgametests.legacydisconnectedframesreconcilewithoutrebuildingthewall",
+              "time": "0.152",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "drmd:portal_lab",
+              "name": "fusionportalgametests.linkedanddifferentmirrortypeskeeptheirownframes",
+              "time": "0.002",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "drmd:portal_lab",
+              "name": "fusionportalgametests.mirrorandportalframesusevisibleblockmodels",
+              "time": "0.002",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "drmd:portal_lab",
+              "name": "fusionportalgametests.oneminimumfusionshotactivatesbothpanelsafterswitchingweapons",
+              "time": "0.079",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "drmd:portal_lab",
+              "name": "fusionportalgametests.placementalonedoesnotactivateaportalpair",
+              "time": "0.0",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "pointdefenseguardgametests.ordinarynullownerandlegacynbtkeeptheiroriginalsemantics",
+              "time": "0.42",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.movinginstallconsumesonekitandinheritseverymaterialpoint",
+              "time": "0.167",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.breakingtheactualroofanchordetacheswithoutresetorphantomfire",
+              "time": "0.165",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "pointdefenseguardgametests.trackedmissileentersactualtickingafteritsdefensiveround",
+              "time": "0.256",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "ufoweapongametests.actualdetachedcapandturretcannotfreezetheircarrier",
+              "time": "0.538",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "pointdefenseguardgametests.actualstationfriendlyownercannotbeintercepted",
+              "time": "0.406",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "pointdefenseinterceptiongametests.scheduledpointdefensephysicallyinterceptsanincomingstockrocket",
+              "time": "0.492",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            },
+            {
+              "classname": "fabric-gametest-api-v1:empty",
+              "name": "pointdefenseguardgametests.activeroundadmissioncannotexceeditsfiniteworldcap",
+              "time": "0.311",
+              "failed": false,
+              "error": false,
+              "skipped": false
+            }
+          ]
+        },
+        "scope": "Stock component6+41;12newpointdefense+29retainedProjectVisual/UfoWeapon/FusionPortal. No native/installedJAR/fullS12 acceptance.",
+        "realNormalTickOrders": {
+          "missileFirst": {
+            "roundMovedFirst": false,
+            "fraction": 0.36990574920743563,
+            "missileAge": 3,
+            "roundAge": 2,
+            "terminalCallbackEach": 1
+          },
+          "roundFirst": {
+            "roundMovedFirst": true,
+            "fraction": 0.36990574920743563,
+            "missileAge": 3,
+            "roundAge": 3,
+            "terminalCallbackEach": 1,
+            "actualLoadedUuidAndNotEntityTickingPrerequisites": "PASS explicit assertions before actual engine ticket promotion"
+          }
+        },
+        "naturalScheduled": {
+          "transactionTicks": 8,
+          "incomingActualAge": 4,
+          "emittedKinetic": 1,
+          "terminalCallback": 1,
+          "originalSplashRadius": 3.75,
+          "originalIncomingSpeed": 1.375,
+          "originalBaseCriterion": "unchanged;intact/explosionclearancePASS"
+        },
+        "physicalCover": "Both real solid wall and rotated BlockBody material win before pair; ordinary physical hit callbacks once each",
+        "caps": {
+          "actualActiveRounds": 256,
+          "refused257th": true,
+          "actualCandidateAdmission": 96,
+          "actualDetailedWork": 32,
+          "scope": "resource admission/work only, not256physicalbarragebenchmark"
+        },
+        "ownerAndSource": "Real keeper-friendly/unresolved living owner denied by anchored primitive and actual controller; unknown source leaves remote column absent",
+        "legacy": "Old null-owner API/NBT and29retainedweapon/portal testsPASS",
+        "registration": "EXPLICIT COMPONENT TEST BOOTSTRAP ONLY. Root must activate main initializer and remove both test bootstrap calls before unmasked full acceptance.",
+        "standaloneInstallableJarProduced": false,
+        "jarReceipt": "N/A this lease runs compiled classpath, not build/remapJar. No stale existingJar is represented as tested.",
+        "executingJavaOnClose": 0,
+        "worldFiles": 195,
+        "worldBytes": 52632147,
+        "openAcceptance": [
+          "rootmainactivation/unmaskedfullsuite",
+          "dedicatednative/clientinterception",
+          "allcreative/spectator/dead/crossworldownernegatives",
+          "256sourcecooldownflood/cleanupmatrix",
+          "allmoving/angularhulltiming",
+          "large-barrageperformance",
+          "player-ownedpolicy/recipes/mechanismmountintegration",
+          "completeS12/S11/master/boarding"
+        ]
+      }
+    }
+  ],
+  "scope": "Component first6+41 and preserved genuine1FAIL/1PASS, not an unmasked startup/native/JAR/fullS12 certificate",
+  "pendingRootIntegration": {
+    "centralRegistration": "PointDefenseInterception.register exactly once after registries; remove2testbootstrapcalls",
+    "newOrdinaryGameTestClasses": [
+      "com.terminaldetector.drmd.PointDefenseInterceptionGameTests",
+      "com.terminaldetector.drmd.PointDefenseGuardGameTests"
+    ],
+    "newOrdinaryGameTests": 12,
+    "newUnitTests": 6,
+    "retained29AlreadyOrdinary": true
+  }
+}
