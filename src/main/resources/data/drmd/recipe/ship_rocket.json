@@ -2,8 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "pattern": [
-    "AAA",
     "AEA",
+    "AAA",
     "AAA"
   ],
   "key": {

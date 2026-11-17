@@ -1,0 +1,9 @@
+DO NOT RUN BEFORE ROOT GRANTS THE NEXT JAVA LEASE.
+Candidate3d40581: server-owned existing-partial-damage repair and guarded loaded nearest-body ray; fixture negatives and compact external diagnostics.
+Capture fresh source+helper hashes. Original2568 and a738 evidence must remain unchanged.
+
+JAVA_HOME=/workspace/jdk21-complete GRADLE_USER_HOME=/workspace/.gradle ./gradlew --offline --no-daemon --max-workers=1 -Dorg.gradle.jvmargs=-Xmx768m compileJava compileGametestJava > work/economy-gate/compile-local-repair.log 2>&1
+Record exit; only after successful compile, under granted lease:
+JAVA_HOME=/workspace/jdk21-complete GRADLE_USER_HOME=/workspace/.gradle ./gradlew --offline --no-daemon --max-workers=1 -Dorg.gradle.jvmargs=-Xmx768m --init-script work/economy-gate/focus.init.gradle runGametest > work/economy-gate/gametest-local-repair.log 2>&1
+Record exit; preserve XML, reports/economy-*.txt, logs, source inputs and closed world before classification or changes.
+This remains focused6 only. Salvage and lever placement are real diagnostics; no mining tags, placement behavior or limits have changed.

@@ -851,6 +851,15 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     /** Server-owned partial damage belongs to local material, never world block coordinates. */
     private final Map<BlockPos,Double> materialDamage = new HashMap<>();
     public double materialDamage(BlockPos pos){return materialDamage.getOrDefault(pos,0.);}
+    /** Repair existing partial material damage only. No insertion, topology, mass,
+     * collider, pose or velocity update belongs to this server-owned operation. */
+    public boolean repairLocalMaterial(BlockPos pos) {
+        if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||isRemoved()
+            ||pos==null||!validLocal(pos)||BodySpatialIndex.find(world,getId()).orElse(null)!=this)return false;
+        var state=getLocalBlock(pos);double damage=materialDamage(pos);
+        if(state.isAir()||!Double.isFinite(damage)||damage<=0||!collisionRegionAvailable(box(new Cell(pos,state))))return false;
+        return materialDamage.remove(pos)!=null;
+    }
     private double materialStrength(BlockPos pos) {
         // Supported inert materials have position-independent hardness. Never query world state
         // at a local-grid coordinate: the ship may be rotated or outside vanilla world height.

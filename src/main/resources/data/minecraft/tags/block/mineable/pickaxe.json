@@ -14,6 +14,8 @@
     "drmd:organic_terracotta",
     "drmd:ship_thruster",
     "drmd:ship_laser",
-    "drmd:ship_rocket"
+    "drmd:ship_rocket",
+    "drmd:mechanical_bearing",
+    "drmd:rotary_drive"
   ]
 }

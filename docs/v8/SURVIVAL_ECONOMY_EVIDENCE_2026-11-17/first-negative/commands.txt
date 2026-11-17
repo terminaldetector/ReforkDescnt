@@ -1,0 +1,16 @@
+SOURCE-ONLY PREPARATION. DO NOT RUN BEFORE ROOT GRANTS THE JAVA LEASE.
+Frozen source: 2568f8d737d597b35a13591637cf737b6907afe2
+Tree: /workspace/ungravity-v5/economy-acceptance-20261116
+
+Capture all tracked build inputs and focused helper SHA before launching; preserve first logs unchanged.
+
+JAVA_HOME=/workspace/jdk21-complete GRADLE_USER_HOME=/workspace/.gradle ./gradlew --offline --no-daemon --max-workers=1 -Dorg.gradle.jvmargs=-Xmx768m compileJava compileGametestJava > work/economy-gate/compile-first.log 2>&1
+Record process exit; inspect first compile result before launching gameplay.
+
+ONLY AFTER SUCCESSFUL COMPILATION, under the same explicit lease:
+JAVA_HOME=/workspace/jdk21-complete GRADLE_USER_HOME=/workspace/.gradle ./gradlew --offline --no-daemon --max-workers=1 -Dorg.gradle.jvmargs=-Xmx768m --init-script work/economy-gate/focus.init.gradle runGametest > work/economy-gate/gametest-first.log 2>&1
+Record process exit and preserve original XML/logs/input hashes before correcting any fixture or production issue.
+
+Expected negative: identical ship component recipe outputs; world-only BlockBody repair; cracked deepslate/nether converted to stone. Downstream acquisition failures do not prove use/recovery failures.
+No callback-map re-registration: one c.runAtEveryTick owner driver, private TreeMap steps and observe function.
+No native/client/fullsuite/package build requested by this candidate.
