@@ -1,0 +1,21 @@
+{
+  "testedSource": "463187122074c7633c645894c52c736dbfe8193d",
+  "readOnlyPythonNoJava": true,
+  "actualClasspathJSONSHA256": "6a43a76e2eafd4caf4e4aac25247725dc0cd735c9ae3ddd933c18a6b6cec1461",
+  "jars": [
+    {
+      "path": "/workspace/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport/4.1.97.Final/f37380d23c9bb079bc702910833b2fd532c9abd0/netty-transport-4.1.97.Final.jar",
+      "actualRecordedSHA256": "197fd2d6c6b4afe677d9e95bf2e36b49a0bcabdfce0583683fb73f29a3f5a407",
+      "currentSHA256": "197fd2d6c6b4afe677d9e95bf2e36b49a0bcabdfce0583683fb73f29a3f5a407",
+      "equal": true
+    },
+    {
+      "path": "/workspace/ungravity-v5/city-authoring-20261117/.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-20af7074aa/1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2/minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar",
+      "actualRecordedSHA256": "d3cd9f1b9d828a1844fb2996815eff0c622b572a0c5f11e70b089150df3d2ee8",
+      "currentSHA256": "d3cd9f1b9d828a1844fb2996815eff0c622b572a0c5f11e70b089150df3d2ee8",
+      "equal": true
+    }
+  ],
+  "readerSHA256": "6d70f793ee045332e80d0fed952550f59ce825665278728e00224845a0d3cee0",
+  "outputSHA256": "0fe924fd59a84a8bdc990be7ebb0777e726a5e03e50fbad142438f34fc707aec"
+}

@@ -1,0 +1,111 @@
+{
+  "scope": "Root-authorized ownclosedrawworlds only, archives/logs/source/libs retained, exclusiveJavaFileLockdomain lockf+CRC+allSHA reverified",
+  "receipts": [
+    {
+      "timestamp": "2026-11-17T17:05:07.634404+00:00",
+      "rootAuthorization": "reclaim only fully verified closed own7cd/463 raw worlds afterseal",
+      "freeBeforeBytes": 162586624,
+      "freeAfterBytes": 177954816,
+      "reclaims": [
+        {
+          "source": "7cd8340",
+          "worldPath": "/workspace/ungravity-v5/city-authoring-20261117/work/city-runtime/raw-game-output-7cd8340-preserved/world",
+          "archive": "/workspace/ungravity-v5/city-authoring-20261117/work/city-runtime/command20hz-first-7cd8340-20261117T160946Z/closed-command-first-world.zip",
+          "archiveSHA256": "ba00acd6ea56eb46c49f17fa8c6981160695d2f686b37f3bafdd08f21dd20db9",
+          "files": 63,
+          "blockBytesBefore": 7778304,
+          "exclusiveJavaCompatibleLock": "fcntl.lockf onr+b",
+          "CRCAndAllArchiveRawHashesVerifiedBeforeDelete": true,
+          "onlyRawDisposableWorldDeleted": true,
+          "archiveAndEvidenceRetained": true
+        },
+        {
+          "source": "4631871",
+          "worldPath": "/workspace/ungravity-v5/city-authoring-20261117/build/gametest/world",
+          "archive": "/workspace/ungravity-v5/city-authoring-20261117/work/city-runtime/packetdiag-first-4631871-20261117T164602Z/closed-packetdiag-world.zip",
+          "archiveSHA256": "8c2e40d397795e01b1e88d7a74315fbb303f084df73c231d7df6bcd10e1dd041",
+          "files": 59,
+          "blockBytesBefore": 7757824,
+          "exclusiveJavaCompatibleLock": "fcntl.lockf onr+b",
+          "CRCAndAllArchiveRawHashesVerifiedBeforeDelete": true,
+          "onlyRawDisposableWorldDeleted": true,
+          "archiveAndEvidenceRetained": true
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-11-17T17:07:28.127592+00:00",
+      "rootAuthorization": "additional ownclosed027/9107/12c/f2/7bc raw testworlds only; fullyarchived no donor/cache/source deletion",
+      "freeBeforeBytes": 58134528,
+      "freeAfterBytes": 97951744,
+      "blockBytesReclaimed": 40226816,
+      "records": [
+        {
+          "source": "027685a",
+          "originalWorldPath": "/workspace/ungravity-v5/city-authoring-20261117/work/city-runtime/raw-game-output-027685a-preserved/world",
+          "archive": "/workspace/ungravity-v5/city-authoring-20261117/work/city-runtime/first-027685a-20261117T132445Z/closed-first-world.zip",
+          "archiveSHA256": "10c89f6ff65de1b95d6b8076849c09a59619cf69fd3188f3e1bdea7a36020b89",
+          "verifiedFiles": 79,
+          "blockBytesBefore": 8011776,
+          "exclusiveJavaCompatibleLock": "fcntl.lockf(r+b)",
+          "CRCAndAllArchiveRawSHAReverified": true,
+          "notActiveOrDonor": true,
+          "onlyOwnRawWorldDeleted": true,
+          "archiveLogsSourcesLibrariesPreserved": true
+        },
+        {
+          "source": "9107dbe",
+          "originalWorldPath": "/workspace/ungravity-v5/city-authoring-20261117/work/city-runtime/raw-game-output-9107dbe-preserved/world",
+          "archive": "/workspace/ungravity-v5/city-authoring-20261117/work/city-runtime/diagnostic-first-9107dbe-20261117T141254Z/closed-diagnostic-world.zip",
+          "archiveSHA256": "a5bf19531aada0e90436d6b11f100a2f659564806d477d3f69fa84acf6143a31",
+          "verifiedFiles": 76,
+          "blockBytesBefore": 7983104,
+          "exclusiveJavaCompatibleLock": "fcntl.lockf(r+b)",
+          "CRCAndAllArchiveRawSHAReverified": true,
+          "notActiveOrDonor": true,
+          "onlyOwnRawWorldDeleted": true,
+          "archiveLogsSourcesLibrariesPreserved": true
+        },
+        {
+          "source": "12cbd3d",
+          "originalWorldPath": "/workspace/ungravity-v5/city-authoring-20261117/work/city-runtime/raw-game-output-12cbd3d-preserved/world",
+          "archive": "/workspace/ungravity-v5/city-authoring-20261117/work/city-runtime/stack-first-12cbd3d-20261117T143527Z/closed-stack-diagnostic-world.zip",
+          "archiveSHA256": "da918ea83982e1a201c3c745be9e976546e1720c85a7ab86c36a0c05d5516560",
+          "verifiedFiles": 76,
+          "blockBytesBefore": 7987200,
+          "exclusiveJavaCompatibleLock": "fcntl.lockf(r+b)",
+          "CRCAndAllArchiveRawSHAReverified": true,
+          "notActiveOrDonor": true,
+          "onlyOwnRawWorldDeleted": true,
+          "archiveLogsSourcesLibrariesPreserved": true
+        },
+        {
+          "source": "f2ea19c",
+          "originalWorldPath": "/workspace/ungravity-v5/city-authoring-20261117/work/city-runtime/raw-game-output-f2ea19c-preserved/world",
+          "archive": "/workspace/ungravity-v5/city-authoring-20261117/work/city-runtime/phased-first-f2ea19c-20261117T150020Z/closed-phased-world.zip",
+          "archiveSHA256": "a20d0fccd1611dbfb6a2ad4e741206b896bf37b0de510a9112761091dadec29f",
+          "verifiedFiles": 80,
+          "blockBytesBefore": 8470528,
+          "exclusiveJavaCompatibleLock": "fcntl.lockf(r+b)",
+          "CRCAndAllArchiveRawSHAReverified": true,
+          "notActiveOrDonor": true,
+          "onlyOwnRawWorldDeleted": true,
+          "archiveLogsSourcesLibrariesPreserved": true
+        },
+        {
+          "source": "7bc61a2",
+          "originalWorldPath": "/workspace/ungravity-v5/city-authoring-20261117/work/city-runtime/raw-game-output-7bc61a2-preserved/world",
+          "archive": "/workspace/ungravity-v5/city-authoring-20261117/work/city-runtime/lifecycle20hz-first-7bc61a2-20261117T152451Z/closed-lifecycle20hz-world.zip",
+          "archiveSHA256": "4a96ee5dc7084c0359320e21e299a8dbf4c6130adfd8220672b3c47fd372161c",
+          "verifiedFiles": 62,
+          "blockBytesBefore": 7774208,
+          "exclusiveJavaCompatibleLock": "fcntl.lockf(r+b)",
+          "CRCAndAllArchiveRawSHAReverified": true,
+          "notActiveOrDonor": true,
+          "onlyOwnRawWorldDeleted": true,
+          "archiveLogsSourcesLibrariesPreserved": true
+        }
+      ]
+    }
+  ]
+}
