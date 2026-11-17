@@ -1,0 +1,1294 @@
+{
+  "schema": "ungravity.resource-usegraph.v1",
+  "created_utc": "2026-11-17T15:24:51.807306+00:00",
+  "revision": "9b7cf9b0709a47c181d113923f7ac59a4b62fd3c",
+  "scope": "Static source-defined registered roots/resource consumers, not a fresh runtime registry or visual atlas acceptance.",
+  "registered_definition_counts": {
+    "items": 131,
+    "blocks": 47,
+    "literal_blocks": 34,
+    "dynamic_organic_no_item": 13
+  },
+  "model_json_count": 294,
+  "item_model_json_count": 131,
+  "resolved_graph_counts": {
+    "total_models_including_vanilla": 4185,
+    "total_png_texture_keys_including_vanilla": 3188,
+    "data_item_consumer_edges": 251,
+    "direct_render_texture_edges": 18,
+    "mod_png_integrity": 119,
+    "bound_source_resource_files": 1122
+  },
+  "errors": [],
+  "known_missing_texture_placeholder_edges": [],
+  "production_asset_fix_applied": false,
+  "direct_render_edge_statuses": {
+    "present-packaged-file": 17,
+    "runtime-generated-block-atlas": 1
+  },
+  "minecraft_resource_jar": {
+    "path": "/workspace/ungravity-v5/audit-next-20261109/build/native-benchmark-9426/9426-capacity16-v1/cubic-client-automation/libraries/com/mojang/minecraft/1.21.1/minecraft-1.21.1-client.jar",
+    "sha256": "499f6897d1837516680f3114072d8106e11c9adcd933fe5cf051b551089b0c99",
+    "bytes": 26836906
+  },
+  "unreached_model_candidates": 19,
+  "shared_generated_icons": [
+    {
+      "items": [
+        "drmd:spawn_egg_jet",
+        "drmd:spawn_egg_oblivion_seeker",
+        "drmd:spawn_egg_orb",
+        "drmd:spawn_egg_rocket"
+      ],
+      "bindings": {
+        "layer0": "item/spawn_egg",
+        "layer1": "item/spawn_egg_overlay"
+      },
+      "classification": "resolved shared icon; intent/distinctness requires review, not missing resource"
+    }
+  ],
+  "retired_recipe_edges": [
+    {
+      "item": "drmd:weapon_d6_heavy",
+      "role": "registered retired compatibility item; still has actual recipe consumer",
+      "consumers": [
+        {
+          "path": "src/main/resources/data/drmd/recipe/weapon_d6_heavy.json",
+          "json_path": [
+            "result"
+          ],
+          "kind": "recipe-result",
+          "item": "drmd:weapon_d6_heavy",
+          "registered_in_source": true
+        }
+      ]
+    },
+    {
+      "item": "drmd:weapon_d6_railmk2",
+      "role": "registered retired compatibility item; still has actual recipe consumer",
+      "consumers": [
+        {
+          "path": "src/main/resources/data/drmd/recipe/weapon_d6_railmk2.json",
+          "json_path": [
+            "result"
+          ],
+          "kind": "recipe-result",
+          "item": "drmd:weapon_d6_railmk2",
+          "registered_in_source": true
+        }
+      ]
+    },
+    {
+      "item": "drmd:weapon_d6_reactor",
+      "role": "registered retired compatibility item; still has actual recipe consumer",
+      "consumers": [
+        {
+          "path": "src/main/resources/data/drmd/recipe/weapon_d6_reactor.json",
+          "json_path": [
+            "result"
+          ],
+          "kind": "recipe-result",
+          "item": "drmd:weapon_d6_reactor",
+          "registered_in_source": true
+        }
+      ]
+    },
+    {
+      "item": "drmd:weapon_d6_telefrag",
+      "role": "registered retired compatibility item; still has actual recipe consumer",
+      "consumers": [
+        {
+          "path": "src/main/resources/data/drmd/recipe/weapon_d6_telefrag.json",
+          "json_path": [
+            "result"
+          ],
+          "kind": "recipe-result",
+          "item": "drmd:weapon_d6_telefrag",
+          "registered_in_source": true
+        }
+      ]
+    },
+    {
+      "item": "drmd:weapon_d6_whiplash",
+      "role": "registered retired compatibility item; still has actual recipe consumer",
+      "consumers": [
+        {
+          "path": "src/main/resources/data/drmd/recipe/weapon_d6_whiplash.json",
+          "json_path": [
+            "result"
+          ],
+          "kind": "recipe-result",
+          "item": "drmd:weapon_d6_whiplash",
+          "registered_in_source": true
+        }
+      ]
+    }
+  ],
+  "source_anchors": [
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/DescentMod.java",
+      "sha256": "c9c89f8dbbf706a83b92b65c8fdd1b3a240063b75061841246464cb661a4e970",
+      "first_line": 69,
+      "last_line": 72,
+      "claim": "Actual init invokes registry modules plus OrganicMaterials registration.",
+      "lines": [
+        {
+          "line": 69,
+          "text": "\t\tModBlocks.register();"
+        },
+        {
+          "line": 70,
+          "text": "\t\tModItems.register();"
+        },
+        {
+          "line": 71,
+          "text": "\t\tcom.terminaldetector.drmd.entity.ModWorldBlocks.register();"
+        },
+        {
+          "line": 72,
+          "text": "\t\tcom.terminaldetector.drmd.world.geometry.OrganicMaterials.register();"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/weapon/items/ModItems.java",
+      "sha256": "535ff80a238c618d8353b8537fb98f27fe3148ea3e959bee41f8686ab2b0ce8f",
+      "first_line": 136,
+      "last_line": 143,
+      "claim": "Literal register/wep helpers bind actual item IDs to registry and weapon definitions.",
+      "lines": [
+        {
+          "line": 136,
+          "text": "\tprivate static Item register(String id, Item item) {"
+        },
+        {
+          "line": 137,
+          "text": "\t\treturn Registry.register(Registries.ITEM, Identifier.of(DescentMod.MOD_ID, id), item);"
+        },
+        {
+          "line": 138,
+          "text": "\t}"
+        },
+        {
+          "line": 139,
+          "text": ""
+        },
+        {
+          "line": 140,
+          "text": "\tprivate static Item wep(String itemId, WeaponDef def) {"
+        },
+        {
+          "line": 141,
+          "text": "\t\tItem item = register(itemId, new DescentWeaponItem(def, new Item.Settings()));"
+        },
+        {
+          "line": 142,
+          "text": "\t\tWeaponRegistry.register(def);"
+        },
+        {
+          "line": 143,
+          "text": "\t\treturn item;"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/weapon/items/ModItems.java",
+      "sha256": "535ff80a238c618d8353b8537fb98f27fe3148ea3e959bee41f8686ab2b0ce8f",
+      "first_line": 213,
+      "last_line": 218,
+      "claim": "Five retired IDs remain registered for compatibility, not safe deletion candidates.",
+      "lines": [
+        {
+          "line": 213,
+          "text": "\t\t// --- Retired placeholders (still registered, hidden from creative) ---"
+        },
+        {
+          "line": 214,
+          "text": "\t\tHEAVY = wep(\"weapon_d6_heavy\", new WeaponDef(\"heavy\", \"Тяжёлый (retired)\", \"retired\", 18f, 1.1f, 80f, 60f, 220f, 1100f, 160f, DamageClass.EXPLOSIVE, \"basic\"));"
+        },
+        {
+          "line": 215,
+          "text": "\t\tRAILMK2 = wep(\"weapon_d6_railmk2\", new WeaponDef(\"railmk2\", \"Рельса МК2 (retired)\", \"retired\", 18f, 0.6f, 120f, 0f, 0f, 8000f, 80f, DamageClass.KINETIC, \"rail\"));"
+        },
+        {
+          "line": 216,
+          "text": "\t\tREACTOR = wep(\"weapon_d6_reactor\", new WeaponDef(\"reactor\", \"Реактор (retired)\", \"retired\", 30f, 15.0f, 300f, 300f, 600f, 600f, 0f, DamageClass.EXPLOSIVE, \"reactor\"));"
+        },
+        {
+          "line": 217,
+          "text": "\t\tTELEFRAG = wep(\"weapon_d6_telefrag\", new WeaponDef(\"telefrag\", \"Телефраг (retired)\", \"retired\", 50f, 5.0f, 1000f, 0f, 140f, 0f, 0f, DamageClass.EXOTIC, \"telefrag\"));"
+        },
+        {
+          "line": 218,
+          "text": "\t\tWHIPLASH = wep(\"weapon_d6_whiplash\", new WeaponDef(\"whiplash\", \"Хлыст (retired)\", \"retired\", 20f, 3.0f, 80f, 0f, 160f, 0f, 0f, DamageClass.KINETIC, \"whiplash\"));"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/weapon/items/ModItems.java",
+      "sha256": "535ff80a238c618d8353b8537fb98f27fe3148ea3e959bee41f8686ab2b0ce8f",
+      "first_line": 323,
+      "last_line": 335,
+      "claim": "Creative egg selection and role-egg helper are explicit, not inferred from PNG filenames.",
+      "lines": [
+        {
+          "line": 323,
+          "text": "\t/** All creative-visible spawn eggs (drones + surface mobs). */"
+        },
+        {
+          "line": 324,
+          "text": "\tpublic static Item[] creativeSpawnEggs() {"
+        },
+        {
+          "line": 325,
+          "text": "\t\treturn new Item[]{"
+        },
+        {
+          "line": 326,
+          "text": "                EGG_ORB,EGG_ROCKET,EGG_JET,"
+        },
+        {
+          "line": 327,
+          "text": "\t\t\t\tEGG_ASSAULT, EGG_INTERCEPTOR, EGG_ARTILLERY, EGG_SUPPORT, EGG_HEAVY_ELITE,"
+        },
+        {
+          "line": 328,
+          "text": "\t\t\t\tEGG_MG, EGG_LASER, EGG_RPG, EGG_HEAVY, EGG_SEEKER,"
+        },
+        {
+          "line": 329,
+          "text": "\t\t\t\tEGG_TRIPOD, EGG_SCANNER, EGG_SPIDER_TURRET, EGG_OBLIVION_SEEKER"
+        },
+        {
+          "line": 330,
+          "text": "\t\t};"
+        },
+        {
+          "line": 331,
+          "text": "\t}"
+        },
+        {
+          "line": 332,
+          "text": ""
+        },
+        {
+          "line": 333,
+          "text": "\tprivate static Item egg(String id, com.terminaldetector.drmd.ai.AiRole role, int primary, int secondary) {"
+        },
+        {
+          "line": 334,
+          "text": "\t\treturn register(id, new com.terminaldetector.drmd.entity.DroneSpawnEggItem(role, primary, secondary, new Item.Settings()));"
+        },
+        {
+          "line": 335,
+          "text": "\t}"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/entity/ModBlocks.java",
+      "sha256": "738268b2434c7b66a021dd120e8f85d4e3503865cac681f55950e2e03416af5c",
+      "first_line": 39,
+      "last_line": 43,
+      "claim": "Map block helper also registers BlockItem.",
+      "lines": [
+        {
+          "line": 39,
+          "text": "\tprivate static Block register(String id, Block block) {"
+        },
+        {
+          "line": 40,
+          "text": "\t\tIdentifier ident = Identifier.of(DescentMod.MOD_ID, id);"
+        },
+        {
+          "line": 41,
+          "text": "\t\tRegistry.register(Registries.BLOCK, ident, block);"
+        },
+        {
+          "line": 42,
+          "text": "\t\tRegistry.register(Registries.ITEM, ident, new BlockItem(block, new Item.Settings()));"
+        },
+        {
+          "line": 43,
+          "text": "\t\treturn block;"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/entity/ModWorldBlocks.java",
+      "sha256": "34371f7560176613183b9aef471dbf9aebebb3ccea5cc694594d256a7ff98e7f",
+      "first_line": 50,
+      "last_line": 59,
+      "claim": "Current new slider/linear and existing bearing/drive blocks are registered with resources present.",
+      "lines": [
+        {
+          "line": 50,
+          "text": "    public static final Block MECHANICAL_BEARING=registerBlock(\"mechanical_bearing\","
+        },
+        {
+          "line": 51,
+          "text": "            new com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));"
+        },
+        {
+          "line": 52,
+          "text": "    public static final Block ROTARY_DRIVE=registerBlock(\"rotary_drive\","
+        },
+        {
+          "line": 53,
+          "text": "            new com.terminaldetector.drmd.world.contraption.mechanism.RotaryDriveBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));"
+        },
+        {
+          "line": 54,
+          "text": "    public static final Block SLIDING_BEARING=registerBlock(\"sliding_bearing\","
+        },
+        {
+          "line": 55,
+          "text": "            new com.terminaldetector.drmd.world.contraption.mechanism.SlidingBearingBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));"
+        },
+        {
+          "line": 56,
+          "text": "    public static final Block LINEAR_DRIVE=registerBlock(\"linear_drive\","
+        },
+        {
+          "line": 57,
+          "text": "            new com.terminaldetector.drmd.world.contraption.mechanism.LinearDriveBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));"
+        },
+        {
+          "line": 58,
+          "text": "    public static final Block SHIP_ROCKET = registerBlock(\"ship_rocket\","
+        },
+        {
+          "line": 59,
+          "text": "            new com.terminaldetector.drmd.world.contraption.mechanism.MountedWeaponBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/entity/ModWorldBlocks.java",
+      "sha256": "34371f7560176613183b9aef471dbf9aebebb3ccea5cc694594d256a7ff98e7f",
+      "first_line": 151,
+      "last_line": 167,
+      "claim": "Carved block has no item by design; ordinary world-block helper has BlockItem.",
+      "lines": [
+        {
+          "line": 151,
+          "text": "\t/**"
+        },
+        {
+          "line": 152,
+          "text": "\t * What a damaged block turns into. No item form — it is never held or crafted, only left behind"
+        },
+        {
+          "line": 153,
+          "text": "\t * by something hitting a wall, and it drops whatever it used to be rather than itself."
+        },
+        {
+          "line": 154,
+          "text": "\t */"
+        },
+        {
+          "line": 155,
+          "text": "\tpublic static final Block CARVED = registerBlockNoItem(\"carved\","
+        },
+        {
+          "line": 156,
+          "text": "\t\t\tnew com.terminaldetector.drmd.world.micro.CarvedBlock("
+        },
+        {
+          "line": 157,
+          "text": "\t\t\t\t\tAbstractBlock.Settings.copy(Blocks.STONE).strength(0.6f).nonOpaque().dynamicBounds()"
+        },
+        {
+          "line": 158,
+          "text": "\t\t\t\t\t\t\t.dropsNothing().pistonBehavior(net.minecraft.block.piston.PistonBehavior.BLOCK)));"
+        },
+        {
+          "line": 159,
+          "text": ""
+        },
+        {
+          "line": 160,
+          "text": "\tprivate static Block registerBlockNoItem(String id, Block block) {"
+        },
+        {
+          "line": 161,
+          "text": "\t\treturn Registry.register(Registries.BLOCK, Identifier.of(DescentMod.MOD_ID, id), block);"
+        },
+        {
+          "line": 162,
+          "text": "\t}"
+        },
+        {
+          "line": 163,
+          "text": ""
+        },
+        {
+          "line": 164,
+          "text": "\tprivate static Block registerBlock(String id, Block block) {"
+        },
+        {
+          "line": 165,
+          "text": "\t\tIdentifier ident = Identifier.of(DescentMod.MOD_ID, id);"
+        },
+        {
+          "line": 166,
+          "text": "\t\tRegistry.register(Registries.BLOCK, ident, block);"
+        },
+        {
+          "line": 167,
+          "text": "\t\tRegistry.register(Registries.ITEM, ident, new BlockItem(block, new Item.Settings()));"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/geometry/OrganicMaterials.java",
+      "sha256": "3258eae3ad2488738a5ac72492a621d9af7669c41462e8c3e0f839592e984d2e",
+      "first_line": 13,
+      "last_line": 20,
+      "claim": "Thirteen dynamic organic block IDs derive from explicit vanilla sources, without BlockItems.",
+      "lines": [
+        {
+          "line": 13,
+          "text": "    public static void register() {"
+        },
+        {
+          "line": 14,
+          "text": "        for(Block source:new Block[]{Blocks.STONE,Blocks.GRANITE,Blocks.DIORITE,Blocks.ANDESITE,"
+        },
+        {
+          "line": 15,
+          "text": "            Blocks.DEEPSLATE,Blocks.TUFF,Blocks.CALCITE,Blocks.DIRT,Blocks.COARSE_DIRT,Blocks.CLAY,"
+        },
+        {
+          "line": 16,
+          "text": "            Blocks.NETHERRACK,Blocks.END_STONE,Blocks.TERRACOTTA}) {"
+        },
+        {
+          "line": 17,
+          "text": "            var id=Identifier.of(\"drmd\",\"organic_\"+Registries.BLOCK.getId(source).getPath());"
+        },
+        {
+          "line": 18,
+          "text": "            var block=new OrganicBlock(source.getDefaultState(),AbstractBlock.Settings.copy(source).nonOpaque().dynamicBounds());"
+        },
+        {
+          "line": 19,
+          "text": "            Registry.register(Registries.BLOCK,id,block);MATERIALS.put(source,block);"
+        },
+        {
+          "line": 20,
+          "text": "        }"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/terrain/HybridTerrainModel.java",
+      "sha256": "b51638f53f7977b17c8e27ba17378b9d3061aa99faab7fa115c723579d5c28c1",
+      "first_line": 28,
+      "last_line": 42,
+      "claim": "Empty/carved/organic base assets are deliberately adapted by the Fabric baked model hook.",
+      "lines": [
+        {
+          "line": 28,
+          "text": "/** Chunk-batched damage/organic geometry. No per-frame BER or live block-entity reads. */"
+        },
+        {
+          "line": 29,
+          "text": "public final class HybridTerrainModel extends ForwardingBakedModel {"
+        },
+        {
+          "line": 30,
+          "text": "    private static final Identifier MODEL = Identifier.of(\"drmd\", \"block/carved\");"
+        },
+        {
+          "line": 31,
+          "text": "    private static final Direction[] DIRECTIONS={Direction.DOWN,Direction.UP,Direction.NORTH,Direction.SOUTH,Direction.WEST,Direction.EAST};"
+        },
+        {
+          "line": 32,
+          "text": "    private static final int[] QUAD={0,1,2,3}, TRIANGLE_A={0,1,2,2}, TRIANGLE_B={0,2,3,3};"
+        },
+        {
+          "line": 33,
+          "text": "    private HybridTerrainModel(BakedModel delegate) { super(delegate); }"
+        },
+        {
+          "line": 34,
+          "text": ""
+        },
+        {
+          "line": 35,
+          "text": "    public static void register() {"
+        },
+        {
+          "line": 36,
+          "text": "        ModelLoadingPlugin.register(plugin -> plugin.modifyModelAfterBake().register((model,context) ->"
+        },
+        {
+          "line": 37,
+          "text": "            (MODEL.equals(context.resourceId()) || context.resourceId()!=null && context.resourceId().getNamespace().equals(\"drmd\") && context.resourceId().getPath().startsWith(\"block/organic_\")"
+        },
+        {
+          "line": 38,
+          "text": "                || context.topLevelId()!=null && !context.topLevelId().getVariant().equals(\"inventory\"))"
+        },
+        {
+          "line": 39,
+          "text": "                && model!=null && !(model instanceof HybridTerrainModel) ? new HybridTerrainModel(model) : model));"
+        },
+        {
+          "line": 40,
+          "text": "    }"
+        },
+        {
+          "line": 41,
+          "text": "    @Override public boolean isVanillaAdapter() { return false; }"
+        },
+        {
+          "line": 42,
+          "text": "    @Override public boolean isBuiltin() { return false; }"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/terrain/HybridTerrainModel.java",
+      "sha256": "b51638f53f7977b17c8e27ba17378b9d3061aa99faab7fa115c723579d5c28c1",
+      "first_line": 59,
+      "last_line": 74,
+      "claim": "Actual geometry derives from source BlockState/render data and source baked model.",
+      "lines": [
+        {
+          "line": 59,
+          "text": "        Object attachment=world.getBlockEntityRenderData(pos);"
+        },
+        {
+          "line": 60,
+          "text": "        boolean natural=com.terminaldetector.drmd.world.geometry.NaturalGeometry.applies(state);"
+        },
+        {
+          "line": 61,
+          "text": "        if(!natural && !(state.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock)"
+        },
+        {
+          "line": 62,
+          "text": "                && !(attachment instanceof HybridTerrain.Data)) {"
+        },
+        {
+          "line": 63,
+          "text": "            super.emitBlockQuads(world,state,pos,random,context);return;"
+        },
+        {
+          "line": 64,
+          "text": "        }"
+        },
+        {
+          "line": 65,
+          "text": "        HybridTerrain.Data data=state.getBlock() instanceof com.terminaldetector.drmd.world.geometry.OrganicBlock organic ?"
+        },
+        {
+          "line": 66,
+          "text": "            new HybridTerrain.Data(organic.source(),MicroGrid.FULL,true) : attachment instanceof HybridTerrain.Data d ? d :"
+        },
+        {
+          "line": 67,
+          "text": "            new HybridTerrain.Data(state,MicroGrid.FULL,natural);"
+        },
+        {
+          "line": 68,
+          "text": "        if (data.mask()==0) return;"
+        },
+        {
+          "line": 69,
+          "text": "        MinecraftClient client=MinecraftClient.getInstance();"
+        },
+        {
+          "line": 70,
+          "text": "        BakedModel source=client.getBlockRenderManager().getModel(data.source());"
+        },
+        {
+          "line": 71,
+          "text": "        var renderer=RendererAccess.INSTANCE.getRenderer();"
+        },
+        {
+          "line": 72,
+          "text": "        if (renderer==null) throw new IllegalStateException(\"DRMD hybrid terrain requires Fabric Renderer API support\");"
+        },
+        {
+          "line": 73,
+          "text": "        RenderMaterial material=renderer.materialFinder()"
+        },
+        {
+          "line": 74,
+          "text": "            .blendMode(BlendMode.fromRenderLayer(RenderLayers.getBlockLayer(data.source())))"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/workshop/HybridWeaponModels.java",
+      "sha256": "a5df2337756afda7aedb46813e7f1f07c37e925eb6eeef043380c21eed3c8714",
+      "first_line": 10,
+      "last_line": 29,
+      "claim": "Three procedural weapon mesh definitions are original Java geometry, not missing external model files.",
+      "lines": [
+        {
+          "line": 10,
+          "text": " * Polygon shells/coils and discrete voxel fittings are separate, named parts. */"
+        },
+        {
+          "line": 11,
+          "text": "public final class HybridWeaponModels {"
+        },
+        {
+          "line": 12,
+          "text": "    public static final String IMPULSE = \"hybrid_impulse\", PLASMA = \"hybrid_plasma\", RAIL = \"hybrid_rail\";"
+        },
+        {
+          "line": 13,
+          "text": "    public enum Material {"
+        },
+        {
+          "line": 14,
+          "text": "        OLIVE(0x8b9468, false), STEEL(0x8b9bab, false), DARK(0x29333e, false),"
+        },
+        {
+          "line": 15,
+          "text": "        COPPER(0xc18c59, false), CELL(0x506579, false), ORANGE(0xffa335, true),"
+        },
+        {
+          "line": 16,
+          "text": "        CYAN(0x61edff, true), VIOLET(0xbc8bff, true);"
+        },
+        {
+          "line": 17,
+          "text": "        public final int rgb; public final boolean emissive;"
+        },
+        {
+          "line": 18,
+          "text": "        Material(int rgb, boolean emissive) { this.rgb = rgb; this.emissive = emissive; }"
+        },
+        {
+          "line": 19,
+          "text": "    }"
+        },
+        {
+          "line": 20,
+          "text": "    public record Point(float x, float y, float z) {}"
+        },
+        {
+          "line": 21,
+          "text": "    public record Face(Point a, Point b, Point c, Point d) {"
+        },
+        {
+          "line": 22,
+          "text": "        public List<Point> points() { return List.of(a,b,c,d); }"
+        },
+        {
+          "line": 23,
+          "text": "    }"
+        },
+        {
+          "line": 24,
+          "text": "    public record Part(String name, Material material, boolean moving, List<Face> faces) {}"
+        },
+        {
+          "line": 25,
+          "text": "    private static final Map<String,List<Part>> MODELS = Map.of("
+        },
+        {
+          "line": 26,
+          "text": "            IMPULSE, impulse(), PLASMA, plasma(), RAIL, rail());"
+        },
+        {
+          "line": 27,
+          "text": "    private HybridWeaponModels() {}"
+        },
+        {
+          "line": 28,
+          "text": "    public static boolean contains(String id) { return MODELS.containsKey(id); }"
+        },
+        {
+          "line": 29,
+          "text": "    public static List<Part> parts(String id) { return MODELS.getOrDefault(id, List.of()); }"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/WeaponViewRenderer.java",
+      "sha256": "ab659022975bf2e81cf7476e49a37839d46f5efac15fbd1947c104157e5cb564",
+      "first_line": 26,
+      "last_line": 38,
+      "claim": "Vanilla hand is replaced only if a visible cockpit module exists.",
+      "lines": [
+        {
+          "line": 26,
+          "text": "    /** Hide the ordinary item only when a visible cockpit representation will replace it. */"
+        },
+        {
+          "line": 27,
+          "text": "    public static boolean replacesVanillaHand(MinecraftClient mc) {"
+        },
+        {
+          "line": 28,
+          "text": "        if(mc.player==null || mc.world==null || !mc.options.getPerspective().isFirstPerson()"
+        },
+        {
+          "line": 29,
+          "text": "                || !DescentClientState.enabled || !com.terminaldetector.drmd.client.config.DescentConfig.weaponView"
+        },
+        {
+          "line": 30,
+          "text": "                || mc.options.hudHidden || mc.currentScreen!=null)return false;"
+        },
+        {
+          "line": 31,
+          "text": "        if(!(com.terminaldetector.drmd.client.input.DroneCombatInput.primary(mc).getItem() instanceof DescentWeaponItem weapon))return false;"
+        },
+        {
+          "line": 32,
+          "text": "        return ConstructionRegistry.getModules(weapon.getDef().id).stream()"
+        },
+        {
+          "line": 33,
+          "text": "                .anyMatch(m->m.colorA>0 && m.scaleX>0 && m.scaleY>0 && m.scaleZ>0);"
+        },
+        {
+          "line": 34,
+          "text": "    }"
+        },
+        {
+          "line": 35,
+          "text": ""
+        },
+        {
+          "line": 36,
+          "text": "\tpublic static void register() {"
+        },
+        {
+          "line": 37,
+          "text": "        WorldRenderEvents.AFTER_TRANSLUCENT.register(WeaponViewRenderer::render);"
+        },
+        {
+          "line": 38,
+          "text": "    }"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/WeaponViewRenderer.java",
+      "sha256": "ab659022975bf2e81cf7476e49a37839d46f5efac15fbd1947c104157e5cb564",
+      "first_line": 85,
+      "last_line": 98,
+      "claim": "Known procedural modules route through actual HybridWeaponRenderer.",
+      "lines": [
+        {
+          "line": 85,
+          "text": "\t\t\tfloat time = (mc.player.age + context.tickCounter().getTickDelta(false)) / 20f;"
+        },
+        {
+          "line": 86,
+          "text": ""
+        },
+        {
+          "line": 87,
+          "text": "\t\t\tfor (ClusterModule m : modules) {"
+        },
+        {
+          "line": 88,
+          "text": "                if (com.terminaldetector.drmd.workshop.HybridWeaponModels.contains(m.model)) {"
+        },
+        {
+          "line": 89,
+          "text": "                    Vec3d anchor = cam.add(look.multiply(m.posFwd / 16f))"
+        },
+        {
+          "line": 90,
+          "text": "                            .add(rr.multiply(m.posRgt / 16f)).add(uu.multiply(m.posUp / 16f));"
+        },
+        {
+          "line": 91,
+          "text": "                    matrices.push();"
+        },
+        {
+          "line": 92,
+          "text": "                    matrices.translate(anchor.x-cam.x, anchor.y-cam.y, anchor.z-cam.z);"
+        },
+        {
+          "line": 93,
+          "text": "                    ModelOrientation.applyBasis(matrices, 180f, look, up);"
+        },
+        {
+          "line": 94,
+          "text": "                    HybridWeaponRenderer.draw(matrices, consumers, m,"
+        },
+        {
+          "line": 95,
+          "text": "                            ShotFxRenderer.recoilAt(anchor, context.tickCounter().getTickDelta(false)), WeaponLoadState.get(mc.player.getId()),"
+        },
+        {
+          "line": 96,
+          "text": "                            mc.world.getLightLevel(net.minecraft.util.math.BlockPos.ofFloored(anchor)) * 0x100010);"
+        },
+        {
+          "line": 97,
+          "text": "                    matrices.pop();"
+        },
+        {
+          "line": 98,
+          "text": "                    continue;"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/WeaponViewRenderer.java",
+      "sha256": "ab659022975bf2e81cf7476e49a37839d46f5efac15fbd1947c104157e5cb564",
+      "first_line": 122,
+      "last_line": 126,
+      "claim": "Legacy primitive silhouettes are explicit fallback, not unresolved file paths.",
+      "lines": [
+        {
+          "line": 122,
+          "text": "\t\t\t\tswitch (m.model) {"
+        },
+        {
+          "line": 123,
+          "text": "\t\t\t\t\tcase \"gravy\" -> drawGravyClaw(matrices, consumers, argb);"
+        },
+        {
+          "line": 124,
+          "text": "\t\t\t\t\tcase \"nosegun\" -> drawNoseGun(matrices, consumers, argb);"
+        },
+        {
+          "line": 125,
+          "text": "\t\t\t\t\tcase \"strider\" -> drawMissilePod(matrices, consumers, argb);"
+        },
+        {
+          "line": 126,
+          "text": "\t\t\t\t\tdefault -> drawBarrel(matrices, consumers, argb);"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/mixin/client/HeldWeaponFallbackMixin.java",
+      "sha256": "05e916d8d5e71161ec1f98c83209f9ce8c499a1c907d19b9815e5ff8f1ff1714",
+      "first_line": 20,
+      "last_line": 35,
+      "claim": "Non-replaced hands use actual baked item renderer/FIXED transform; portal projector centering is explicit.",
+      "lines": [
+        {
+          "line": 20,
+          "text": "    @Inject(method=\"renderFirstPersonItem\",at=@At(\"HEAD\"),cancellable=true)"
+        },
+        {
+          "line": 21,
+          "text": "    private void drmd$replaceMainHand(AbstractClientPlayerEntity player,float delta,float pitch,Hand hand,"
+        },
+        {
+          "line": 22,
+          "text": "            float swing,ItemStack stack,float equip,MatrixStack matrices,VertexConsumerProvider consumers,int light,CallbackInfo ci) {"
+        },
+        {
+          "line": 23,
+          "text": "        if(hand==Hand.MAIN_HAND && WeaponViewRenderer.replacesVanillaHand(MinecraftClient.getInstance())){ci.cancel();return;}"
+        },
+        {
+          "line": 24,
+          "text": "        if(!com.terminaldetector.drmd.client.DescentClientState.enabled)return;"
+        },
+        {
+          "line": 25,
+          "text": "        ci.cancel();if(stack.isEmpty())return;"
+        },
+        {
+          "line": 26,
+          "text": "        boolean left=hand==Hand.OFF_HAND;"
+        },
+        {
+          "line": 27,
+          "text": "        boolean centre=stack.getItem() instanceof com.terminaldetector.drmd.world.portal.gun.PortalProjectorItem;"
+        },
+        {
+          "line": 28,
+          "text": "        matrices.push();"
+        },
+        {
+          "line": 29,
+          "text": "        try{"
+        },
+        {
+          "line": 30,
+          "text": "            // HeldItemRenderer adds yaw/pitch inertia before this method. Fixed hull equipment"
+        },
+        {
+          "line": 31,
+          "text": "            // must start in the eye frame, independently of that parent stack."
+        },
+        {
+          "line": 32,
+          "text": "            matrices.loadIdentity();"
+        },
+        {
+          "line": 33,
+          "text": "            matrices.translate(centre?0:left?-.45:.45,-.3,-.8);"
+        },
+        {
+          "line": 34,
+          "text": "            renderItem(player,stack,net.minecraft.client.render.model.json.ModelTransformationMode.FIXED,left,matrices,consumers,light);"
+        },
+        {
+          "line": 35,
+          "text": "        }finally{matrices.pop();}"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/ModEntityRenderers.java",
+      "sha256": "7be479268bf335837c6a1d40c7a2aadc9f8b020177db1dcb9ef90477196ab965",
+      "first_line": 13,
+      "last_line": 28,
+      "claim": "Entity model layers and carved adapter are registered programmatically; standalone entity JSON is not required.",
+      "lines": [
+        {
+          "line": 13,
+          "text": "\tpublic static void register() {"
+        },
+        {
+          "line": 14,
+          "text": "\t\tEntityRendererRegistry.register(ModEntities.BLOCK_BODY, BlockBodyRenderer::new);"
+        },
+        {
+          "line": 15,
+          "text": "\t\tEntityRendererRegistry.register(ModEntities.RAGDOLL, RagdollRenderer::new);"
+        },
+        {
+          "line": 16,
+          "text": "\t\tcom.terminaldetector.drmd.client.render.terrain.HybridTerrainModel.register();"
+        },
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "\t\tEntityModelLayerRegistry.registerModelLayer(PyroShipRenderer.LAYER, PyroShipModel::getTexturedModelData);"
+        },
+        {
+          "line": 19,
+          "text": "\t\tEntityModelLayerRegistry.registerModelLayer(DroneRenderer.LAYER, DescentDroneModel::getTexturedModelData);"
+        },
+        {
+          "line": 20,
+          "text": "\t\tEntityModelLayerRegistry.registerModelLayer(ReactorDisplayRenderer.LAYER, ReactorCoreModel::getTexturedModelData);"
+        },
+        {
+          "line": 21,
+          "text": "\t\tEntityModelLayerRegistry.registerModelLayer(TripodRenderer.LAYER,"
+        },
+        {
+          "line": 22,
+          "text": "\t\t\t\tcom.terminaldetector.drmd.entity.model.TripodModel::getTexturedModelData);"
+        },
+        {
+          "line": 23,
+          "text": "\t\tEntityModelLayerRegistry.registerModelLayer(ScannerRenderer.LAYER,"
+        },
+        {
+          "line": 24,
+          "text": "\t\t\t\tcom.terminaldetector.drmd.entity.model.ScannerModel::getTexturedModelData);"
+        },
+        {
+          "line": 25,
+          "text": "\t\tEntityModelLayerRegistry.registerModelLayer(SpiderTurretRenderer.LAYER,"
+        },
+        {
+          "line": 26,
+          "text": "\t\t\t\tcom.terminaldetector.drmd.entity.model.SpiderTurretModel::getTexturedModelData);"
+        },
+        {
+          "line": 27,
+          "text": "\t\tEntityModelLayerRegistry.registerModelLayer(OblivionSeekerRenderer.LAYER,"
+        },
+        {
+          "line": 28,
+          "text": "\t\t\t\tcom.terminaldetector.drmd.entity.model.OblivionSeekerModel::getTexturedModelData);"
+        }
+      ]
+    },
+    {
+      "path": "src/main/resources/assets/drmd/models/item/portal_gun.json",
+      "sha256": "0a6aa9856262ec9e8039b0edc066648a231350d92b7799774f7e9ecce5c288a3",
+      "first_line": 1,
+      "last_line": 6,
+      "claim": "Legacy portal_gun resolves a packaged raster named portal_stabilizer; filename alone does not prove duplicate active icon.",
+      "lines": [
+        {
+          "line": 1,
+          "text": "{"
+        },
+        {
+          "line": 2,
+          "text": "  \"parent\": \"minecraft:item/generated\","
+        },
+        {
+          "line": 3,
+          "text": "  \"textures\": {"
+        },
+        {
+          "line": 4,
+          "text": "    \"layer0\": \"drmd:item/portal_stabilizer\""
+        },
+        {
+          "line": 5,
+          "text": "  }"
+        },
+        {
+          "line": 6,
+          "text": "}"
+        }
+      ]
+    },
+    {
+      "path": "src/main/resources/assets/drmd/models/item/portal_projector.json",
+      "sha256": "1a1878c8618b4233fd30a01759a7b69269678ff8302b0896a1911161a098f5ff",
+      "first_line": 1,
+      "last_line": 10,
+      "claim": "Current portal_projector has its own 3D element model and vanilla material bindings.",
+      "lines": [
+        {
+          "line": 1,
+          "text": "{"
+        },
+        {
+          "line": 2,
+          "text": "  \"parent\": \"minecraft:block/block\","
+        },
+        {
+          "line": 3,
+          "text": "  \"textures\": {"
+        },
+        {
+          "line": 4,
+          "text": "    \"shell\": \"minecraft:block/quartz_block_side\","
+        },
+        {
+          "line": 5,
+          "text": "    \"black\": \"minecraft:block/black_concrete\","
+        },
+        {
+          "line": 6,
+          "text": "    \"metal\": \"minecraft:block/iron_block\","
+        },
+        {
+          "line": 7,
+          "text": "    \"blue\": \"minecraft:block/light_blue_concrete\","
+        },
+        {
+          "line": 8,
+          "text": "    \"orange\": \"minecraft:block/orange_concrete\","
+        },
+        {
+          "line": 9,
+          "text": "    \"particle\": \"minecraft:block/quartz_block_side\""
+        },
+        {
+          "line": 10,
+          "text": "  },"
+        }
+      ]
+    },
+    {
+      "path": "src/main/resources/assets/drmd/models/item/portal_stabilizer.json",
+      "sha256": "49061fdc4fde36f57c0b25038c4c4d4eb71eb3645e0aa4d9f99ef28bcbc0f8c2",
+      "first_line": 1,
+      "last_line": 10,
+      "claim": "Portal stabilizer itself has a distinct3D model, not necessarily the named raster icon.",
+      "lines": [
+        {
+          "line": 1,
+          "text": "{"
+        },
+        {
+          "line": 2,
+          "text": "  \"textures\": {"
+        },
+        {
+          "line": 3,
+          "text": "    \"body\": \"minecraft:block/purple_concrete\","
+        },
+        {
+          "line": 4,
+          "text": "    \"accent\": \"minecraft:block/cyan_concrete\","
+        },
+        {
+          "line": 5,
+          "text": "    \"dark\": \"minecraft:block/black_concrete\","
+        },
+        {
+          "line": 6,
+          "text": "    \"particle\": \"minecraft:block/purple_concrete\""
+        },
+        {
+          "line": 7,
+          "text": "  },"
+        },
+        {
+          "line": 8,
+          "text": "  \"elements\": ["
+        },
+        {
+          "line": 9,
+          "text": "    {"
+        },
+        {
+          "line": 10,
+          "text": "      \"to\": ["
+        }
+      ]
+    },
+    {
+      "path": "scripts/audit_resources.py",
+      "sha256": "542a5cf415c2097c109817fd97201122bffe9e0f991b9d14300ec1e2b87b042b",
+      "first_line": 31,
+      "last_line": 57,
+      "claim": "Existing scanner explicitly records vanilla dependencies as external, so it is not a strict actual-vanilla graph validator.",
+      "lines": [
+        {
+          "line": 31,
+          "text": "        _,data=models[key];result={}"
+        },
+        {
+          "line": 32,
+          "text": "        if 'parent' in data:"
+        },
+        {
+          "line": 33,
+          "text": "            ns,path=parse_id(data['parent']);result.update(inherited(ns+':'+path,chain+(key,)))"
+        },
+        {
+          "line": 34,
+          "text": "        result.update(data.get('textures',{}));return result"
+        },
+        {
+          "line": 35,
+          "text": "    for key,(path,data) in models.items():"
+        },
+        {
+          "line": 36,
+          "text": "        relative=path.relative_to(root).as_posix();issue_before=len(errors)"
+        },
+        {
+          "line": 37,
+          "text": "        try:textures=inherited(key)"
+        },
+        {
+          "line": 38,
+          "text": "        except (ValueError,TypeError) as error:errors.append(relative+': '+str(error));textures={}"
+        },
+        {
+          "line": 39,
+          "text": "        def texture(value,seen=()):"
+        },
+        {
+          "line": 40,
+          "text": "            if not isinstance(value,str):raise ValueError('non-string texture reference')"
+        },
+        {
+          "line": 41,
+          "text": "            if value.startswith('#'):"
+        },
+        {
+          "line": 42,
+          "text": "                name=value[1:]"
+        },
+        {
+          "line": 43,
+          "text": "                if name in seen or name not in textures:raise ValueError('unresolved/cyclic texture '+value)"
+        },
+        {
+          "line": 44,
+          "text": "                return texture(textures[name],seen+(name,))"
+        },
+        {
+          "line": 45,
+          "text": "            namespace,ref=parse_id(value)"
+        },
+        {
+          "line": 46,
+          "text": "            if namespace=='minecraft':external.add('texture '+value);return"
+        },
+        {
+          "line": 47,
+          "text": "            target=assets/namespace/'textures'/(ref+'.png')"
+        },
+        {
+          "line": 48,
+          "text": "            if '..' in Path(ref).parts or not target.is_file():raise ValueError('missing texture '+value)"
+        },
+        {
+          "line": 49,
+          "text": "            if target.read_bytes()[:8]!=b'\\x89PNG\\r\\n\\x1a\\n':raise ValueError('non-PNG texture '+value)"
+        },
+        {
+          "line": 50,
+          "text": "        references=list(data.get('textures',{}).values())"
+        },
+        {
+          "line": 51,
+          "text": "        for element in data.get('elements',[]):"
+        },
+        {
+          "line": 52,
+          "text": "            for face in element.get('faces',{}).values():references.append(face.get('texture'))"
+        },
+        {
+          "line": 53,
+          "text": "            for vector in ('from','to'):"
+        },
+        {
+          "line": 54,
+          "text": "                values=element.get(vector)"
+        },
+        {
+          "line": 55,
+          "text": "                if not isinstance(values,list) or len(values)!=3 or any(not isinstance(v,(int,float)) or not math.isfinite(v) or not -16<=v<=32 for v in values):"
+        },
+        {
+          "line": 56,
+          "text": "                    errors.append(relative+': invalid element '+vector)"
+        },
+        {
+          "line": 57,
+          "text": "        for value in references:"
+        }
+      ]
+    }
+  ],
+  "synthetic_graph_controls": 11,
+  "existing_geometry_scan": {
+    "models": 294,
+    "items": 131,
+    "errors": 0,
+    "duplicate_groups_review_only": 9
+  },
+  "source_comparison": {
+    "later_head": "8e34f3d9f34aa9a3727589be6c52b7b46ee6a849",
+    "changed_main_resource_or_audit_script_files": []
+  },
+  "archive": {
+    "path": "docs/v8/EVIDENCE/resource-usegraph-9b7cf9b.zip",
+    "sha256": "bedf28aa9fc980c5160119a2d05517b7cbcb5e1c303d19bb7f6f37af86cfe958",
+    "bytes": 110446,
+    "payload_members": 8,
+    "total_members": 9,
+    "all_crc_and_member_hashes_verified": true
+  },
+  "no_java": true,
+  "no_deletions": true,
+  "no_registry_or_save_edits": true,
+  "central_ledgers_changed": false,
+  "runtime_appearance_accepted": false,
+  "next_real_gaps": [
+    "Current-source native registry-labelled131item atlas/held normal+6DoF/profile visual acceptance; resourcepacks/tints/materials must be witnessed.",
+    "Six historical red-marked screenshot slots lack matched audit4 executable/registry provenance; do not equate them with five retired IDs.",
+    "Optional strict actual-vanilla-jar/blockstate root mode for existing audit tool; its vanilla scope is explicitly deferred today."
+  ]
+}
