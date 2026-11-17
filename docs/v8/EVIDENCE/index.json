@@ -73,7 +73,8 @@
     "integrated-11513cd.zip": "6739da2134c8dfd4fee6ae89964b83dd9774b3473ca0a151fd15b37862f9adf6",
     "linear-stage-3920768.zip": "30bf2934c495aa5485cd37a7f4026c5945e23860924d54701d3086c8b5430297",
     "ps1-color-8f1b3b1.zip": "7fc5bbc6e6e2ed6a77dbb8a4d106188ebfa3606a59454e84e1a65baeb431ef77",
-    "ps1-color-0741805-negative.zip": "2705d400ab77ed83eed7c8651d3966f4284f01a79da735054b2949cf0e6030a0"
+    "ps1-color-0741805-negative.zip": "2705d400ab77ed83eed7c8651d3966f4284f01a79da735054b2949cf0e6030a0",
+    "integrated-ed458a8.zip": "ed78390f1b1c10b89eb012e675a6ca5f23907a7aa85c748391fa59fba6cb8639"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -3294,5 +3295,18 @@
     ],
     "report": "PS1_COLOR_CHECKPOINT_2026-11-17.md",
     "scope": "palette/dither; vertexsnap/affine/fog open; canonical combined run pending"
+  },
+  "multiAgentIntegrationEd458a8": {
+    "source": "ed458a8b0ceaaa06b6ec153d2c051e7dcb1b6c5c",
+    "report": "MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md",
+    "receipt": "EVIDENCE/integrated-ed458a8.json",
+    "unitTests": 828,
+    "ordinaryGameTests": 423,
+    "entrypoints": 67,
+    "freshFrames": 38,
+    "actualDepthArrays": 10,
+    "gameJarSha256": "3e98be00df312efccb1bc73ed6d6edc7475750c3960aced058a66ad170ef3e70",
+    "observerJarSha256": "ffd6c6da18201a51fa17ea948eab1847e1650fe578d6118478112a97d47b4093",
+    "scope": "linear and palette integration; no whole-spec/release acceptance"
   }
 }

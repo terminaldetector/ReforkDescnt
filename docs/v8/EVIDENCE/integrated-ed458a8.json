@@ -1,0 +1,47 @@
+{
+  "source": "ed458a8b0ceaaa06b6ec153d2c051e7dcb1b6c5c",
+  "archiveSHA256": "ed78390f1b1c10b89eb012e675a6ca5f23907a7aa85c748391fa59fba6cb8639",
+  "archiveBytes": 4516519,
+  "payloadFiles": 98,
+  "pngFiles": 38,
+  "depthArrays": 10,
+  "units": 828,
+  "gameTests": 423,
+  "entrypoints": 67,
+  "counts": {
+    "unit": {
+      "tests": 828,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "game": {
+      "tests": 423,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "3e98be00df312efccb1bc73ed6d6edc7475750c3960aced058a66ad170ef3e70",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "ffd6c6da18201a51fa17ea948eab1847e1650fe578d6118478112a97d47b4093"
+  },
+  "nativeReceipt": {
+    "source": "ed458a8b0ceaaa06b6ec153d2c051e7dcb1b6c5c",
+    "endSource": "ed458a8b0ceaaa06b6ec153d2c051e7dcb1b6c5c",
+    "childExit": 0,
+    "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-ed458a8-sodium",
+    "helpersUnchanged": true,
+    "jarsUnchanged": true,
+    "pngCount": 38,
+    "markers": [
+      "inputs.json",
+      "launch.json",
+      "presentation-ok.json",
+      "ps1-color-ok.json",
+      "viewmodel-proof/viewmodel-visibility.json"
+    ],
+    "gatePassed": true
+  },
+  "acceptance": "linear and colour integration only, whole specifications remain open"
+}

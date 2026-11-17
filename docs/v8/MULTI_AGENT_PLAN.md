@@ -1,3 +1,5 @@
+Latest combined verifieded458a8:828unit/423ordinaryGT/67entrypoints and same-JAR actual Sodium fivecolour/sixprofile/viewmodel client PASS;38freshPNG/10depth arrays. See MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md. Both-primary99task/10section/12criteria crosswalk active;3completed/25in_progress/71pending. World29 no-edit arrival repair is separately positive, squad coordination is under firstpositive test, wall locomotion and city runtime remain open. Earlier rounds below are historical.
+
 # Parallel execution of all specifications
 
 Latest verified11513cd:824unit/418ordinaryGT/66entrypoints +same-JAR actual presentation/viewmodel client PASS;23savedframes. See MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md. Current scope remains3completed/24in_progress/72pending. Active next candidates: PS1 palette/dither, no-edit native surface arrival, actual wall/ceiling pursuit and manual-city runtime. Earlier round details below remain historical.

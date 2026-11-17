@@ -1,3 +1,5 @@
+Combineded458a8 now passes828unit/423ordinaryGT/67entrypoints and same-JAR actual Sodium colour/profile/mirror/HUD/viewmodel gates. All38newframes/10depth arrays and exact artifacts are preserved. This is the accepted integration of the linear and palette increments only; later candidates and prior first failures remain separate.
+
 17 November continuation: new linear5 plus retained rotary12 pass on3920768, including rolled extension/stops/reverse, momentum-preserving release and real material denial. The original074 PS1 requested-colour negative is retained; actual8f palette/dither reaches100% reference agreement on both software backends with unchanged oracle. These are component results; canonical full/native integration is pending. Separate current failures remain: no-edit native arrival keeps actual GOLD cached black after600ticks (1281); city9107 stops before plan/admission in all5cases; native wall pursuit loses support, although8c ceiling pursuits now pass for both species (3/4 overall). New natural scout/occluded-wingman testfaf298 reproduces absent investigation (1/2). No task is closed from these isolated outcomes.
 
 # Regressions

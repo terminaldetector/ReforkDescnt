@@ -954,9 +954,13 @@
     }
   ],
   "latestIntegratedCheckpoint": {
-    "source": "11513cdd26fe4d3d291858d91efab1b21007c1a8",
-    "report": "MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md",
-    "receipt": "EVIDENCE/integrated-11513cd.json",
+    "source": "ed458a8b0ceaaa06b6ec153d2c051e7dcb1b6c5c",
+    "report": "MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md",
+    "receipt": "EVIDENCE/integrated-ed458a8.json",
+    "unitTests": 828,
+    "ordinaryGameTests": 423,
+    "entrypoints": 67,
+    "nativeScope": "one same-JAR BCC/Sodium fivecolour/sixprofile/viewmodel client",
     "fullTaskPromotion": false
   },
   "latestIntegratedServerIncrement": {
