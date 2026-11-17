@@ -1,0 +1,127 @@
+{
+  "originalWorld": "/workspace/ungravity-v5/cubic-next-20261109/build/surface-stock-control/world",
+  "archive": "/workspace/ungravity-v5/cubic-next-20261109/work/cubic-surface/closed-worlds/stock-profile-correct-path-failure-world.tar.gz",
+  "archiveBytes": 383434,
+  "archiveSha256": "cdd2a95db3d7dfa207dd1cdd4c0886f9cdc66fe7ce420e04b72566a7716862db",
+  "gzipCrcAndSizeReadToEof": true,
+  "allArchiveFileBytesAndSha256MatchOriginal": true,
+  "scope": "Only closed dedicated disposable fixture world; original user saves/shared caches untouched",
+  "files": {
+    "DIM-1/data/raids.dat": {
+      "bytes": 89,
+      "sha256": "ff6c64472361db4e11e4112c49377942ddaf4ed213628849e16bd69cc414dc65"
+    },
+    "DIM1/data/raids_end.dat": {
+      "bytes": 89,
+      "sha256": "ff6c64472361db4e11e4112c49377942ddaf4ed213628849e16bd69cc414dc65"
+    },
+    "data/chunks.dat": {
+      "bytes": 59,
+      "sha256": "7929cf0b046addefca5091025d539a02c1d3c8bf266905d35412caa5156ac8bf"
+    },
+    "data/drmd_dimension_sync.dat": {
+      "bytes": 73,
+      "sha256": "103e30ff7323a8f4d6560933416e12cb8a9ad31c766e013a267592a908283e10"
+    },
+    "data/drmd_physics.dat": {
+      "bytes": 82,
+      "sha256": "c8919471ea7d7e62335d11fe1f5fcb894bcb86cf8ca89b276c26fffb26ce1c91"
+    },
+    "data/raids.dat": {
+      "bytes": 89,
+      "sha256": "ff6c64472361db4e11e4112c49377942ddaf4ed213628849e16bd69cc414dc65"
+    },
+    "drmd/surface/L0/-12276_-3790.bin": {
+      "bytes": 127,
+      "sha256": "e80898347d859e225dbe8e107a3ab5b9b2dece4d160afe0124bb8f79a08bc51a"
+    },
+    "drmd/surface/L1/-6138_-1895.bin": {
+      "bytes": 103,
+      "sha256": "2ec38bfdb438a3fc85b553df404b3e2834ba19eacd2f9710fabb6190c4a55ab5"
+    },
+    "drmd/surface/L2/-3069_-948.bin": {
+      "bytes": 82,
+      "sha256": "89b65bde73fdd0e9300ed923b56fa6b49e67e4607c90ff4ef51194af0e6c08d7"
+    },
+    "drmd/surface/L3/-1535_-474.bin": {
+      "bytes": 79,
+      "sha256": "ece42a0f49332f478a6ffc88c6d3ff8929936ec9d4f763f0d64e44a96b4a9eff"
+    },
+    "drmd/surface/L4/-768_-237.bin": {
+      "bytes": 63,
+      "sha256": "2887045df3d79382225eac10518f0548924201da21ba94372ded18c3c77c1ac9"
+    },
+    "drmd/surface/L5/-384_-119.bin": {
+      "bytes": 61,
+      "sha256": "96dba26b259a13450168f050e95490f6335eadb6b5a18434f677b68afe64833a"
+    },
+    "drmd/surface/L6/-192_-60.bin": {
+      "bytes": 63,
+      "sha256": "8b10b6557bbb35bf60ac41179e4571c6624f0fa3a391038563c45fad686a1106"
+    },
+    "entities/r.-1.-1.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.-1.0.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.-12276.-3790.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.0.-1.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.0.0.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "level.dat": {
+      "bytes": 1683,
+      "sha256": "ab7bbb225e28b6a75210203e38203cded53c029b7107ec346720b86d2be2f1f5"
+    },
+    "poi/r.-12276.-3790.mca": {
+      "bytes": 16384,
+      "sha256": "2bdf09b7c4a29b40f2fcdaaae2e1ad78666692f48daad6187ad45950399ec143"
+    },
+    "region/r.-1.-1.mca": {
+      "bytes": 811008,
+      "sha256": "c341cd16ed1690152283a0758e7ad96aa0d95003510f92dba2a1f8bc2729d9bd"
+    },
+    "region/r.-1.0.mca": {
+      "bytes": 868352,
+      "sha256": "782c915186f77dcbd59eddb9e268cbc63e510a5ff4191bea52ee169de02193c4"
+    },
+    "region/r.-12275.-3790.mca": {
+      "bytes": 172032,
+      "sha256": "5dbbd7ca98678c41bd92da2505e589402188634b33b3a6ed753202b04037de60"
+    },
+    "region/r.-12275.-3791.mca": {
+      "bytes": 65536,
+      "sha256": "5f7e9c98bd33120286d6a30aca23625930514923cab87b374da93698ed3c0838"
+    },
+    "region/r.-12276.-3790.mca": {
+      "bytes": 2138112,
+      "sha256": "862ffa9c407a69c60edf7d74674c802fcf84c8167f825907aed647f7179de86d"
+    },
+    "region/r.-12276.-3791.mca": {
+      "bytes": 753664,
+      "sha256": "57f82fe0b354e68f19cef712c343d609fdb8c472f8eed3adfe332127b037ea5c"
+    },
+    "region/r.0.-1.mca": {
+      "bytes": 868352,
+      "sha256": "d1107251eda641a19daf50a540bbc57fe50787ff6db28d32048f652fca976098"
+    },
+    "region/r.0.0.mca": {
+      "bytes": 929792,
+      "sha256": "a6ec486e84b5dd619c37bcd4ac4aeb2d5051120b170c58b51efe7737f21da45e"
+    },
+    "session.lock": {
+      "bytes": 3,
+      "sha256": "51643361c79ecaef25a8de802de24f570ba25d9c2df1d22d94fade11b4f466cc"
+    }
+  }
+}

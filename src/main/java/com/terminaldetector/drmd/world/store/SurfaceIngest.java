@@ -92,9 +92,16 @@ public final class SurfaceIngest {
 		}
 		if (bestY == Integer.MIN_VALUE) return;
 
-		BlockPos top = new BlockPos(bestX, Math.max(world.getBottomY(), bestY - 1), bestZ);
+		// Chunk.sampleHeightmap names the top block; its physical top face is one above.
+		BlockPos top = new BlockPos(bestX, Math.max(world.getBottomY(), bestY), bestZ);
 		int rgb = colourAt(world, chunk, top);
-		live.set(baseX, baseZ, bestY, rgb);
+		live.set(baseX, baseZ, storedSurfaceHeight(bestY, world.getBottomY()), rgb);
+	}
+
+	/** Retain existing below-bottom empty sentinels; never promote them into a surface. */
+	static int storedSurfaceHeight(int sampledY, int bottomY) {
+		if (sampledY == Integer.MIN_VALUE || sampledY < bottomY) return sampledY;
+		return Math.addExact(sampledY, 1);
 	}
 
 	private static int colourAt(ServerWorld world, WorldChunk chunk, BlockPos pos) {
