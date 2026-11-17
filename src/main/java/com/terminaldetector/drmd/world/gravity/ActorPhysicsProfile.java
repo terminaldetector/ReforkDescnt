@@ -9,6 +9,7 @@ import net.minecraft.entity.mob.FlyingEntity;
 import net.minecraft.entity.mob.VexEntity;
 import net.minecraft.entity.passive.AllayEntity;
 import net.minecraft.entity.passive.BeeEntity;
+import net.minecraft.entity.passive.FishEntity;
 
 /** Explicit locomotion adapters; NoGravity is an owner's flag, not a locomotion classifier. */
 public final class ActorPhysicsProfile {
@@ -21,6 +22,10 @@ public final class ActorPhysicsProfile {
             || entity instanceof DroneEntity || entity instanceof ScannerEntity
             || entity instanceof OblivionSeekerEntity || entity instanceof ReactorKeeperEntity
             || entity instanceof EndReactorBossEntity || entity instanceof AirMineEntity;
+    }
+    /** Native fish own submerged motion and water drag; dry/shore movement keeps its existing policy. */
+    public static boolean submergedFish(Entity entity) {
+        return entity instanceof FishEntity fish && fish.isTouchingWater() && fish.isSubmergedInWater();
     }
     public static boolean bankedModel(Entity entity) {
         return entity instanceof DroneEntity || entity instanceof ScannerEntity || entity instanceof OblivionSeekerEntity;
