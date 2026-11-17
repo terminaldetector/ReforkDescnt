@@ -1,0 +1,501 @@
+{
+  "baseSource": "1a8593846bed3b02d03d68236c6698d26a5116d4",
+  "finalTestedSource": "075c2c1931030b2d68fda06b2e9ed7fd06caa20a",
+  "scope": "Stock Fabric server only: bounded natural scout-to-wingman investigation and retained combat regression controls; no full S11/native/256+ performance closure. First outcomes are immutable.",
+  "checkpoints": [
+    {
+      "archive": "EVIDENCE/drone-squad-first-negative-faf2983.zip",
+      "sha256": "ea348d2f225eb1fab3dc397f52686fcd9e8b5262c6890e0bb50513ea7b9222cb",
+      "payloadCount": 77,
+      "zipCrcVerified": true,
+      "allPayloadSha256Verified": true,
+      "classification": {
+        "source": "faf2983528d26bcede9f1e0907db1c6b00b07b8f",
+        "compile": "PASS",
+        "exit": 1,
+        "passed": 1,
+        "failed": 1,
+        "cases": [
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadtaskgametests.naturalscoutenablesoccludedwingmaninvestigationandowncombat",
+            "time": "1.433",
+            "result": "FAIL",
+            "failures": [
+              "(-1863523, -60, 7530186) missing scout-to-wingman investigation: real own-LOS scout must enable occluded wingman XYZ investigation then normal own acquisition/fire: ticks=120 scoutAcquired=true scoutSaw=true preAcquisitionClimb=false ownAcquisition=false ownShot=false climb=0.0 wingman=(-1777522.5, 110.0, 7534186.5) wingmanAge=120 wingmanTarget=none victim=(-1777498.5, 122.0, 7534186.5) victimHealth=1024.0"
+            ]
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadtaskgametests.noscoutcannotinventanunseenenemyorinvestigation",
+            "time": "0.993",
+            "result": "PASS",
+            "failures": []
+          }
+        ],
+        "classification": "genuine missing squad investigation: natural scout target/LOS succeeds, wingman advances120real entityticks yet climb0/no own target/no shot; no-scout control passes",
+        "fixturePrerequisites": "PASS, live victim1024HP, no pose drift, owned chunks admitted",
+        "productionChange": "none",
+        "scope": "stock natural ORB scout/occluded ORB receiver; not completeallroles/squad performance",
+        "worldFiles": 45,
+        "worldBytes": 14773417,
+        "noRetry": true,
+        "firstCloseReceiptAndNoJavaVerified": true
+      }
+    },
+    {
+      "archive": "EVIDENCE/drone-squad-first-candidate-0cdb5ec.zip",
+      "sha256": "ba4b4418ef091b06c589bc8e9f72056df03c81ab30a524d442fc572ae1419f4f",
+      "payloadCount": 117,
+      "zipCrcVerified": true,
+      "allPayloadSha256Verified": true,
+      "classification": {
+        "source": "0cdb5ecc195a64ee4ccc145914740998fb5b2ba2",
+        "unitPassed": 4,
+        "gameTestPassed": 6,
+        "gameTestFailed": 1,
+        "unitExit": 0,
+        "gameTestExit": 1,
+        "cases": [
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.hiddenvictimmovementcannotrewritecoordinatesorreneworiginalexpiry",
+            "time": "1.085",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.actualscoreboardallegianceinvalidatesanearlierhostileobservation",
+            "time": "0.468",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.removedtargetcannotremainaninvestigation",
+            "time": "0.552",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.anotherserverworldcannotexposethisreceivermessage",
+            "time": "0.725",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadtaskgametests.naturalscoutenablesoccludedwingmaninvestigationandowncombat",
+            "time": "1.613",
+            "result": "FAIL",
+            "failures": [
+              "(1213833, -60, -14244449) missing scout-to-wingman investigation: real own-LOS scout must enable occluded wingman XYZ investigation then normal own acquisition/fire: ticks=120 scoutAcquired=true scoutSaw=true preAcquisitionClimb=false ownAcquisition=false ownShot=false climb=0.05000001191879733 wingman=(1299839.447000349, 110.0500000119188, -1.42404485E7) wingmanAge=120 wingmanTarget=none victim=(1299857.5, 122.0, -1.42404485E7) victimHealth=1024.0"
+            ]
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadtaskgametests.noscoutcannotinventanunseenenemyorinvestigation",
+            "time": "0.738",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.removedobservercannotkeepaninvestigationalive",
+            "time": "0.657",
+            "result": "PASS",
+            "failures": []
+          }
+        ],
+        "classification": "mailbox/hiddenXYZ/expiry/allegiance/dead/world/bounds controls pass; original natural wingman moves~5.947X and0.050Y then fails ownacquire/fire at120ticks; navigation cause unclassified pendingreadonlytrace",
+        "noRetry": true,
+        "unchangedOriginalSemanticAssertions": true,
+        "noActiveJavaConfirmedOnClose": true,
+        "worldFiles": 77,
+        "worldBytes": 34128178
+      }
+    },
+    {
+      "archive": "EVIDENCE/drone-squad-route-trace-0a60556.zip",
+      "sha256": "0e94d3ff3adce77ea41e42bf5489b4d3233296703c8d8dbd1156c347ece02e41",
+      "payloadCount": 75,
+      "zipCrcVerified": true,
+      "allPayloadSha256Verified": true,
+      "classification": {
+        "source": "0a60556a7bea394245095c231b0392e80334cdc6",
+        "productionUnchangedFrom": "0cdb5ecc195a64ee4ccc145914740998fb5b2ba2",
+        "passed": 1,
+        "failed": 1,
+        "cases": [
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadtaskgametests.naturalscoutenablesoccludedwingmaninvestigationandowncombat",
+            "time": "2.225",
+            "failures": [
+              "(-5829595, -60, -1792510) missing scout-to-wingman investigation: real own-LOS scout must enable occluded wingman XYZ investigation then normal own acquisition/fire: ticks=120 scoutAcquired=true scoutSaw=true preAcquisitionClimb=true ownAcquisition=false ownShot=false climb=4.997000361797959 wingman=(-5743587.500000001, 114.99700036179796, -1788509.5) wingmanAge=120 wingmanTarget=none victim=(-5743570.5, 122.0, -1788509.5) victimHealth=1024.0"
+            ]
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadtaskgametests.noscoutcannotinventanunseenenemyorinvestigation",
+            "time": "0.672",
+            "failures": []
+          }
+        ],
+        "traceRows": 13,
+        "routeCells": 33,
+        "routeEdges": 32,
+        "authoritativeOrbSpeedBlocksPerTick": 0.3375,
+        "cause": "waypoint .02 centering plus min(speed,delta*.4) slows each1m cell; full-swept2lookahead gatedoff without neighbours; route found, never exhausted budget/stalled/expired",
+        "observedAt120": {
+          "routeIndex": 12,
+          "cell": "7,5,0",
+          "climb": 4.997000361797959,
+          "issuedY": 0.03533310008197645,
+          "actualYVelocity": 0.03462643875426232,
+          "mailObservedAt": 188,
+          "mailExpiresAt": 248,
+          "workMaxAllies": 1,
+          "workMaxCandidates": 2,
+          "cleanupExamined": 1,
+          "publications": 21,
+          "deliveries": 21
+        },
+        "previous0cdbFirstFailureDifferentTraceUnavailable": "preservedunchanged; do not claim sameexactindex/timing for oldrun",
+        "noRetry": true,
+        "worldFiles": 48,
+        "worldBytes": 14544217
+      }
+    },
+    {
+      "archive": "EVIDENCE/drone-squad-global-lookahead-d6ca593.zip",
+      "sha256": "b5fedd47bec003d75d075cedd9540a321b315724ce6bd1ce550801ef7f243d9d",
+      "payloadCount": 200,
+      "zipCrcVerified": true,
+      "allPayloadSha256Verified": true,
+      "classification": {
+        "source": "d6ca593ff82b9ac85b7436480922359f5ce63037",
+        "unitPassed": 4,
+        "gameTestPassed": 19,
+        "gameTestFailed": 1,
+        "unitExit": 0,
+        "gameTestExit": 1,
+        "cases": [
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronecoverprobegametests.anactualrotatedhullcanprovidethenearestescapecover",
+            "time": "0.798",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.anotherserverworldcannotexposethisreceivermessage",
+            "time": "0.716",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronecoverprobegametests.coverprobecannotmaterializeanunknowncolumn",
+            "time": "0.002",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "typedcombatroutegametests.rocketfindsalanewhilealreadytouchingthewall",
+            "time": "3.663",
+            "result": "FAIL",
+            "failures": [
+              "(-13653662, -60, -4009702) autonomous typed firing lane: touching=true kind=ROCKET ticks=380 lane=true actualAttributedTargetDamage=false position=(5.008490774780512, 4.5229797581829985, 3.4768173126503825)"
+            ]
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "typedcombatroutegametests.jetfindsfiringlanethroughoffsetcover",
+            "time": "0.872",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronecoverprobegametests.aflyingdronecanchoosecoverbelowitsretreatline",
+            "time": "0.247",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "typedcombatroutegametests.orbfindsfiringlanethroughoffsetcover",
+            "time": "0.768",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadtaskgametests.noscoutcannotinventanunseenenemyorinvestigation",
+            "time": "0.578",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "typedcombatroutegametests.rocketfindsfiringlanethroughoffsetcover",
+            "time": "0.936",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.hiddenvictimmovementcannotrewritecoordinatesorreneworiginalexpiry",
+            "time": "0.574",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.actualscoreboardallegianceinvalidatesanearlierhostileobservation",
+            "time": "0.58",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronecoverprobegametests.existingupperterraincoverstillwinsoveremptyawayspace",
+            "time": "1.226",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.removedtargetcannotremainaninvestigation",
+            "time": "0.303",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "sharedcombatpassagegametests.sixorbsshareanoffsetceilingopening",
+            "time": "1.526",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronecoverprobegametests.verticalretreatkeepsausefulperpendicularcoverbasis",
+            "time": "0.547",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "sharedcombatpassagegametests.sixorbsshareanoffsetwallopening",
+            "time": "1.103",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadtaskgametests.naturalscoutenablesoccludedwingmaninvestigationandowncombat",
+            "time": "0.492",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "sharedcombatpassagegametests.knowntargetsurvivesadetourbutiseventuallyforgotten",
+            "time": "0.769",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronecoverprobegametests.theordinarylowhealthgoaldescendstocoverwithoutreturningfire",
+            "time": "0.5",
+            "result": "PASS",
+            "failures": []
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.removedobservercannotkeepaninvestigationalive",
+            "time": "0.288",
+            "result": "PASS",
+            "failures": []
+          }
+        ],
+        "naturalSquad": "PASS at62ticks/climb8.0644565/preacqmovement+ownacq+ownphysicalshot",
+        "allNewSquad7": "PASS",
+        "unacceptedRegression": "retained rocket alreadytouching wall obtains lane but not attributed damage380ticks; do not waive/claim fullpositive",
+        "correctionScope": "narrow route lookahead opt-in to new investigation goal; oldcombat retains oldgating",
+        "noRetry": true,
+        "allCriteriaUnchanged": true,
+        "worldFiles": 165,
+        "worldBytes": 78638557
+      }
+    },
+    {
+      "archive": "EVIDENCE/drone-squad-narrow-positive-075c2c1.zip",
+      "sha256": "2809d9020297d96b80185dbd2d8ead94eb778609b9c24a407ee80d4f35c6f4b5",
+      "payloadCount": 214,
+      "zipCrcVerified": true,
+      "allPayloadSha256Verified": true,
+      "classification": {
+        "source": "075c2c1931030b2d68fda06b2e9ed7fd06caa20a",
+        "unitPassed": 4,
+        "gameTestPassed": 20,
+        "failed": 0,
+        "unitExit": 0,
+        "gameTestExit": 0,
+        "scope": "stock natural scout investigation7 +retained typed4/shared3/hullcover6; not native/worldfull/S11completion",
+        "cases": [
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronecoverprobegametests.anactualrotatedhullcanprovidethenearestescapecover",
+            "time": "0.529"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.anotherserverworldcannotexposethisreceivermessage",
+            "time": "0.959"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronecoverprobegametests.coverprobecannotmaterializeanunknowncolumn",
+            "time": "0.002"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "typedcombatroutegametests.rocketfindsalanewhilealreadytouchingthewall",
+            "time": "2.284"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "typedcombatroutegametests.jetfindsfiringlanethroughoffsetcover",
+            "time": "1.549"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronecoverprobegametests.aflyingdronecanchoosecoverbelowitsretreatline",
+            "time": "0.513"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "typedcombatroutegametests.orbfindsfiringlanethroughoffsetcover",
+            "time": "1.721"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadtaskgametests.noscoutcannotinventanunseenenemyorinvestigation",
+            "time": "0.835"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "typedcombatroutegametests.rocketfindsfiringlanethroughoffsetcover",
+            "time": "1.11"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.hiddenvictimmovementcannotrewritecoordinatesorreneworiginalexpiry",
+            "time": "0.877"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.actualscoreboardallegianceinvalidatesanearlierhostileobservation",
+            "time": "0.649"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronecoverprobegametests.existingupperterraincoverstillwinsoveremptyawayspace",
+            "time": "1.535"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.removedtargetcannotremainaninvestigation",
+            "time": "0.763"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "sharedcombatpassagegametests.sixorbsshareanoffsetceilingopening",
+            "time": "1.803"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronecoverprobegametests.verticalretreatkeepsausefulperpendicularcoverbasis",
+            "time": "0.89"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "sharedcombatpassagegametests.sixorbsshareanoffsetwallopening",
+            "time": "1.073"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadtaskgametests.naturalscoutenablesoccludedwingmaninvestigationandowncombat",
+            "time": "0.734"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "sharedcombatpassagegametests.knowntargetsurvivesadetourbutiseventuallyforgotten",
+            "time": "1.211"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronecoverprobegametests.theordinarylowhealthgoaldescendstocoverwithoutreturningfire",
+            "time": "0.628"
+          },
+          {
+            "classname": "fabric-gametest-api-v1:empty",
+            "name": "dronesquadguardgametests.removedobservercannotkeepaninvestigationalive",
+            "time": "0.437"
+          }
+        ],
+        "newOrdinaryManifestClasses": [
+          "com.terminaldetector.drmd.DroneSquadTaskGameTests",
+          "com.terminaldetector.drmd.DroneSquadGuardGameTests"
+        ],
+        "newOrdinaryTestCount": 7,
+        "originalNaturalCriteriaUnchanged": true,
+        "retainedRocketActualDamageCriterion": "PASS unchanged380ticks",
+        "naturalTicks": 65,
+        "naturalClimb": 8.070182539101566,
+        "ownNaturalTargetAndProjectile": true,
+        "actualSampleWork": {
+          "mailboxes": 1,
+          "maxAllies": 1,
+          "maxCandidates": 2,
+          "cleanupExamined": 1,
+          "publications": 11,
+          "deliveries": 11,
+          "evictions": 0
+        },
+        "testedStoreCapacityFlood": {
+          "receiversOffered": 512,
+          "kept": 256,
+          "evicted": 256,
+          "cleanupLimit": 32,
+          "cadence": 5,
+          "TTL": 60
+        },
+        "productionBoundary": "oldsteer2/3 retains oldseparationgate; explicitinvestigate optsbounded2FULLsweptclear onlyforSquad",
+        "previousGlobalD6Unaccepted": "retained immutably; no waiver",
+        "noRetry": true,
+        "noActiveJavaConfirmedOnClose": true,
+        "worldFiles": 165,
+        "worldBytes": 78413041
+      }
+    }
+  ],
+  "rootRegistration": {
+    "newGameTestClasses": [
+      "com.terminaldetector.drmd.DroneSquadTaskGameTests",
+      "com.terminaldetector.drmd.DroneSquadGuardGameTests"
+    ],
+    "newGameTests": 7,
+    "newUnitTests": 4,
+    "retainedClassesAlreadyRegistered": true
+  },
+  "combinedRootGate": "PENDING; do not substitute focused20 for ordinary full suite or same-JAR client evidence"
+}

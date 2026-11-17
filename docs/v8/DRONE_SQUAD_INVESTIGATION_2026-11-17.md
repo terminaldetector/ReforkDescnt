@@ -110,3 +110,58 @@ investigation entry enables the existing bounded two FULL swept-clear steps.
 Only the new squad goal calls it. This retains established combat following
 while adding the missing investigation feature; it does not change role speed,
 weapons, TTL, search limits, waypoint tolerance or the 120/380-tick criteria.
+
+## Accepted scoped investigation and retained combat regression gate
+
+Exact source `075c2c1931030b2d68fda06b2e9ed7fd06caa20a` passed its first
+four-unit then twenty-GameTest run, both exit 0. The original natural two
+criteria, all five mailbox integration guards and thirteen retained typed,
+shared-aperture and cover tests are unchanged. No retry or assertion change
+preceded this result. The Java lease was returned immediately after the
+actual processes closed; no active Java remained.
+
+The natural scout/wingman case succeeded at **65 real entity ticks**:
+pre-acquisition climb 8.070182539101566 blocks, normal own-LOS acquisition and
+a real owned projectile. The live victim remained unmoved. No target or path
+was injected into the receiver. The no-scout control still invented no target,
+investigation or shot. Hidden victim motion could not rewrite the original
+observation or renew its expiry; actual teammate, removed sender/target and
+cross-world invalidation controls passed.
+
+The final navigation boundary preserves the old two/three-argument `steer`
+entry points and their separation-gated lookahead. Only the new package-local
+`investigate` entry, called only by `SquadInvestigateGoal`, opts into the same
+maximum-two FULL swept-clear steps. The normal typed ORB/JET/ROCKET combat
+routes and the rocket already touching a wall passed, including **actual
+attributed rocket damage** within its unchanged 380-tick criterion. Both
+six-actor wall/ceiling apertures and finite target memory passed. Real rotated
+hull cover, unknown-column safety and vertical flight/retreat controls passed.
+The previous global `d6ca593` failure remains an unaccepted separate first
+outcome; this narrower correction does not retroactively turn it green.
+
+The actual natural-run sample at tick 60 had one receiver mailbox, maximum
+one allied recipient/two examined candidates, one cleanup entry, eleven
+publications/deliveries and zero evictions. Separate pure guards offered 512
+receiver UUIDs and retained exactly 256, evicting 256 without a queue. Cleanup
+examined at most 32 entries per five ticks; reads could not refresh the
+60-tick original observation lifetime. These are bounded-work proofs, not a
+256-actor combat performance benchmark.
+
+Positive bundle: `EVIDENCE/drone-squad-narrow-positive-075c2c1.zip`.
+SHA-256: `2809d9020297d96b80185dbd2d8ead94eb778609b9c24a407ee80d4f35c6f4b5`.
+All **214 payload hashes** and ZIP CRC passed, including exact source/diff,
+actual compiled relevant classes and focused manifest, initial source/input
+snapshots, executed frozen helpers, raw first logs/XML/immediate exits,
+bounded route/work receipts, and all 165 closed-world files (78,413,041 bytes).
+The index `EVIDENCE/drone-squad-checkpoints-075c2c1.json` preserves all five
+original checkpoints (683 payload hashes verified) and their classifications.
+
+For the ordinary suite, register only `DroneSquadTaskGameTests` and
+`DroneSquadGuardGameTests`: **seven new GameTests** plus the **four new mailbox
+unit tests**. The other thirteen focused regression cases already belong to
+the ordinary suite. Root integration, full combined server suite and same-JAR
+client gates remain pending here; the focused twenty do not substitute for
+them. This new stage is stock Fabric server proof, not dedicated native/client
+Squad acceptance. Broader tactical task allocation/director integration,
+anti-missile interception, additional bestiary identities, moving-hull and
+256+ performance tiers, and full S11/master/boarding completion remain open.
