@@ -1,0 +1,13 @@
+# Surface height convention — narrow prepared correction
+
+The actual native negative in `5dad153` shows FULL GOLD atY2300, native sampled height2300, production-selected FULL AIR at2299 and color0 in server/disk/received packet. That loaded defect is independently established before the unavailable-Y premise.
+
+The production change is confined to SurfaceIngest.java: choose material at the sampled top **block** Y, then store its physical top **face** Y+1. Existing sampling grid/budgets, color/BlockEntity rules, storage format, cache, protocol, column queries and availability behavior are unchanged. No rendered smoothing, sky, matrix or fallback is changed.
+
+Boundary handling remains explicit. The existing onChunkLoad rejection of Integer.MIN_VALUE before coordinate construction remains. `storedSurfaceHeight` also preserves that sentinel and any original below-bottom empty sentinel; an empty sample(bottomY-1) is not promoted into a newly visible world-bottom surface. The existing material-coordinate bottom clamp remains. A valid solid at bottomY stores its physical top face(bottomY+1). Invalid integer-maximum addition fails instead of wrapping into a phantom negative surface. Five unit boundaries exercise this actual mapper; they are numeric checks, not proof of complete empty-world rendering or native availability.
+
+The separate `fd23411` test commit uses measured native metadata2300 for the conditional unavailable-high premise, leaving GOLD's actual source/color and physical top-face oracle2301 unchanged. Two actual STOCK public-callback cases cover GOLD, loaded demolition to lower LIME and restoration. They reject a focused old-height override and require already FULL air before authoring witnesses; source registration remains centrally owned.
+
+The next actual native case must first pass the loaded GOLD/LIME/GOLD server/disk/received controls. It may then reveal a **new independent negative** when the top native cube unloads, because this production correction deliberately adds no availability guard. If the native retained-height/parent premise does not occur, report PREMISE_NOT_OBSERVED. No claim is made that this narrow change closes the unavailable-winner or overall Cubic/LOD plan.
+
+No Java/unit/STOCK/native result on this corrected source is claimed yet. Original negative artifacts, source, packet bytes, frame and hash manifests remain immutable.
