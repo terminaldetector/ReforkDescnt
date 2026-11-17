@@ -1,0 +1,13 @@
+{
+  "original": "/workspace/ungravity-v5/audit-next-20261109/build/native-benchmark-9426/enabled-retry1/cubic-client-automation/saves/Cubic-Gate",
+  "archive": "work/native-benchmark-recorder/checkpoints/9426-enabled-retry1-closed-save.zip",
+  "sha256": "030fe007c8bb01d59f2756a67894d2d2d3801e940953c391a7ee301b8da079a6",
+  "files": 102,
+  "directories": 29,
+  "bytes_before": 39594929,
+  "archive_bytes": 1360901,
+  "all_file_hashes_and_crc_verified": true,
+  "exclusive_closed_lock_acquired": true,
+  "logs_frames_jars_inputs_unchanged": true,
+  "removed": true
+}

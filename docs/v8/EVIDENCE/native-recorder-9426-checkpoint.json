@@ -1,0 +1,154 @@
+{
+  "schema": "ungravity.native-recorder-checkpoint.v1",
+  "tested_source": "9426a6549fc91abc8c7e060a2eef9f184742dc3d",
+  "evidence_commit_changes": "Documentation and owned evidence only; no source/ledger mutation or new Java run",
+  "game_sha256": "cf3701b529b21633a8a3e910e6755d006d97d6349e8938d7701c82671027138d",
+  "observer_sha256": "cb1056d89d1435a5211c5a1c1728934fde2caf92c3c85e28016e2c5ff4bce70a",
+  "main_lineage": "Byte-identical to retained583 main JAR; not the coordinator later combined main",
+  "build": {
+    "result": "PASS",
+    "tasks": "compileCubiccheckJava remapJar remapCubiccheckJar",
+    "full_unit_suite_rerun": false,
+    "full_game_test_suite_rerun": false
+  },
+  "first_run": {
+    "wrapper_result": "FAIL",
+    "wrapper_exit_code": 2,
+    "native_exit_code": null,
+    "clean_exit_native_pass": false,
+    "original_runner_bytes_recovered": false,
+    "original_runner_sha256": null,
+    "reconstruction_presented_as_original": false,
+    "scope": "Raw data/schema/provenance pass does not establish exit code or erase wrapper failure",
+    "raw_counts": {
+      "frame_time_ms": 8,
+      "server_tick_ms": 14,
+      "heap_used_bytes": 8
+    }
+  },
+  "clean_retry": {
+    "result": "PASS_ENABLED_INSTRUMENTATION_ONLY",
+    "run_id": "9426-enabled-retry1",
+    "scenario": "instrumentation-smoke-mounted-enabled-retry1",
+    "child_exit": {
+      "child_pid": 23525,
+      "returncode": 0,
+      "timed_out": false,
+      "forced_kill": false,
+      "observed_at": "2026-11-17T11:53:41.884455+00:00"
+    },
+    "runner_sha256": "1946e64f61de6d676f1cf4e09e519e59174fad3356de3eea56e13ed5ab56fc64",
+    "launch_sha256": "79d378df7b7021ebeb8927df9bc41ed070f858b2214616498e93c3c7d379c625",
+    "manifest_sha256": "6b39ccd427f85e1590d144baab86bb8813d31107eff4428647e26e275af74b0b",
+    "execution_input_hashes_unchanged": true,
+    "window": {
+      "ended_at": "2026-11-17T11:53:15.121478719Z",
+      "started_at": "2026-11-17T11:53:14.098586725Z",
+      "warmup_seconds": 1.052984478
+    },
+    "raw_counts": {
+      "frame_time_ms": 6,
+      "server_tick_ms": 12,
+      "heap_used_bytes": 6
+    },
+    "raw_observation_sha256": "3c18980d305cf2818922ac0eab0078891f489fb0e80e3d8b53ac7b069563e107",
+    "gate_scenes": [
+      "connected-off",
+      "laser-fire",
+      "rocket-fire",
+      "fire-off-reversed",
+      "bearing-detached"
+    ],
+    "fresh_pngs": 5,
+    "new_manual_visual_review": false,
+    "gpu_renderer": "llvmpipe (LLVM 19.1.7, 256 bits)",
+    "gpu_classification": "software",
+    "schema_raw_values_and_receipts_verified": true,
+    "sample_coverage_in_window_verified": false,
+    "missing_context": [
+      "seed",
+      "runtime_source_sha",
+      "runtime_game_sha256",
+      "requested_entities",
+      "active_entities",
+      "moving_entities",
+      "rendered_entities",
+      "ragdolls",
+      "rigid_bodies",
+      "cubes_loaded",
+      "mesh_queue",
+      "draw_calls"
+    ],
+    "missing_raw_series": [
+      "gpu_frame_ms",
+      "cubes_loaded",
+      "draw_calls",
+      "mesh_queue"
+    ]
+  },
+  "controls": {
+    "python_synthetic": {
+      "schema": "ungravity.python-runner-control-receipt.v1",
+      "started_at": "2026-11-17T12:03:24.346361+00:00",
+      "finished_at": "2026-11-17T12:03:24.500864+00:00",
+      "fixture_kind": "Synthetic Python child processes only; no Java/Minecraft/native benchmark",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "test_ids": [
+        "test_immutable_native_runner.ExitReceipts.test_broken_wrapper_stdout_cannot_lose_child_exit_receipt",
+        "test_immutable_native_runner.ExitReceipts.test_nonzero_child_receipt_exists_before_postcheck",
+        "test_immutable_native_runner.ExitReceipts.test_preparation_snapshots_real_input_bytes_without_running_child",
+        "test_immutable_native_runner.ExitReceipts.test_timeout_cannot_look_like_normal_exit"
+      ],
+      "helper_bytes": {
+        "work/native-benchmark-recorder/immutable_native_runner.py": "1946e64f61de6d676f1cf4e09e519e59174fad3356de3eea56e13ed5ab56fc64",
+        "work/native-benchmark-recorder/retry_control.py": "6e8b002a6751fb16a6ba5d000fc95186ed31010dc874877ba2537b78a67d9b7d",
+        "work/native-benchmark-recorder/verify_candidate.py": "eb0076d8bde37523a97345ff21b8842deafdaa1a182b96716a60c045532cc072",
+        "work/native-benchmark-recorder/test_immutable_native_runner.py": "bcd7cae613ca20620e64959b874da13f9616708192217c5ffa0e6453452d96e9"
+      },
+      "input_hashes_unchanged": true,
+      "log_path": "work/native-benchmark-recorder/helper-checkpoint-python-controls.log",
+      "log_sha256": "09a35f0c4103c89f48b62799866349a16cbf80a68e25e221c9f8349d29845c3b",
+      "native_runs_started": 0
+    },
+    "standalone_native_run": false,
+    "disabled_native_run": false,
+    "capacity16_native_run": false,
+    "pause_options_early_stop_native_run": false
+  },
+  "archives": {
+    "native-recorder-9426-first-wrapper-failure.zip": {
+      "path": "docs/v8/EVIDENCE/native-recorder-9426-first-wrapper-failure.zip",
+      "sha256": "5706756a5f1af83d3f95bc89ac8513ecb94337af86046e934c08da0c3236a853",
+      "bytes": 3649429,
+      "payload_files": 27,
+      "zip_members": 28,
+      "all_member_hashes_and_crc_verified": true
+    },
+    "native-recorder-9426-enabled-retry1.zip": {
+      "path": "docs/v8/EVIDENCE/native-recorder-9426-enabled-retry1.zip",
+      "sha256": "cfb96b793eea4ad1826585ff1df59828c649e1f517d1dda932575d091e5a6e40",
+      "bytes": 957313,
+      "payload_files": 27,
+      "zip_members": 28,
+      "all_member_hashes_and_crc_verified": true
+    },
+    "native-recorder-9426-helpers.zip": {
+      "path": "docs/v8/EVIDENCE/native-recorder-9426-helpers.zip",
+      "sha256": "a784ee0ec5d7b5e39b75d91e374656552f116224acaadf7c2424ef710de3e69f",
+      "bytes": 19376,
+      "payload_files": 13,
+      "zip_members": 14,
+      "all_member_hashes_and_crc_verified": true
+    }
+  },
+  "closed_save_receipt": "docs/v8/EVIDENCE/native-recorder-9426-closed-save-receipt.json",
+  "closed_save_reload_test_performed": false,
+  "task_status_promoted": false,
+  "hardware_benchmark_accepted": false,
+  "performance_accepted": false,
+  "full_s16_accepted": false,
+  "release_accepted": false
+}
