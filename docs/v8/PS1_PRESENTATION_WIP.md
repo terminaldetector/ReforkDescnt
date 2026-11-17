@@ -1,8 +1,8 @@
-# PS1 presentation — scoped target and Debug checkpoints, 17 November 2026
+# PS1 presentation — scoped target, Debug and viewmodel checkpoints, 17 November 2026
 
 The initial scene-target/profile increment is verified on isolated branch `experiment/render-ps1-20261109`. This supports the bounded S05-T01 target/toggle requirement; S04, the rest of S05, and complete master v8 remain open. The required S04 dependency is not declared closed by this proof. Development and evidence remain local; there is no release or publication.
 
-## Exact source and artifacts
+## Initial target/profile source and artifacts (11 November)
 
 - Full regression source: `a923442fc3ef04b0b1c089a79883666670bb8146`, including the locally merged mechanism/input fixes from `8e5111b`.
 - Both accepted native scenarios: `703ea8565dd7f7d37e821e5b0050041225857b90`. Later commits through this checkpoint only correct the independent observer; `src/main`, `src/test`, `src/gametest`, and build inputs are identical to the full-regression source.
@@ -63,10 +63,30 @@ All 18 fresh images were inspected. The pure-world Debug images show the authore
 
 The compact [Debug evidence archive](EVIDENCE/ps1-debug-7df89aa.zip) contains the exact sources/stamps/input manifests, five-test XML, original negative frames/edge map, weaker first-positive evidence and 18 strict accepted frames. It excludes JAR/world/cache payloads. The new `bf42ed35…` production bytes have this scoped client proof and five targeted unit tests; the old source's 763/376 or a newer canonical branch's full-suite counts are not claimed for these bytes. Integration into the current canonical branch still requires its combined checks. These software-Mesa runs do not establish physical-GPU or performance acceptance.
 
-## Remaining work and observed viewmodel difference
+## Buffered viewmodel ordering — 17 November follow-up
+
+The observed missing gold center gun feature was reproduced with the existing stationary laser/cockpit fixture, without moving the camera, changing the modules or hiding the cockpit. A separate observer source `fbe0bb7e5c62a8aef101cbaf347948c4cb0fcbe3` snapshots the actual gold `drawBox` emissions, their transformed vertices and the projection/model-view matrices at the actual entity-solid GPU flush. It counts qualifying gun pixels inside those projected part footprints, rather than a guessed screen region, and saves framebuffer, viewport, texture/readback, depth and callback/flush ordering evidence.
+
+The pre-run calibration found a 330-pixel connected gold component in retained Native images and zero in PS1. That was only a diagnostic search region. The fresh actual projected-part mask contains **166 Native pixels**; its unchanged acceptance formula requires PS1 ≥max(100, ceil(0.75×Native)), thus **125 pixels**. Colour floors remain R≥130, G≥90, B≤145, R−G≥15 and G−B≥15. The fresh comparison also requires the same camera/modules and at most one pixel projected-vertex difference.
+
+The first native negative exits 255 on the original `bf42ed35…` production bytes: Native **166**, PS1 **0**, projected-vertex difference **0.0 px**, with identical camera and modules. Its fourteen stage images and full JSON show the cause. Native draws the immediate cockpit before the queued weapon buffer flush, leaving 166 final gun pixels. PS1 formerly flushed each deferred callback separately: the weapon flush produced 166 pixels, then the cockpit replaced them with zero while the sampled weapon depth remained unchanged. The framebuffer and projection were correct; callback counts had hidden a real GPU ordering defect.
+
+Production source `b1475348a9a9a9f1d6495cd7f622ac213144969a` changes only `ScenePresentation`: run the existing deferred callbacks first, then flush each shared Immediate provider once under its first preserved overlay projection/model-view/render-state scope. This preserves the existing Native buffered-draw ordering. Native bypass stays unchanged. There is no duplicated gun draw, fixture/model/camera/cockpit change, disabled depth policy or relaxed pixel threshold.
+
+The first build passes and **five PresentationOptions tests** pass with zero failures/errors/skips. Fresh Sodium and Fabulous GL3.2 cases both pass with the exact same observer JAR as the failing case:
+
+- Installable game JAR: SHA-256 `c0e3b67c44ba3a20d352a495733f49a896fd9c167634e612d74db8f9fd20a144`.
+- Independent pixel observer: SHA-256 `550cf4e12886b3dbf2d6d991e93904bc82f0fc8028dc6f0b085abe02a21593ed`, byte-identical between the negative and both positives.
+- Both positive masks: Native **166**, PS1 **166**, required **125**; camera/modules equal; every projected vertex differs by **0.0 px**.
+- Both actual traces now show cockpit first, one later gold-buffer flush, then 166 final visible gun pixels. The original FBO/depth policy remains intact.
+- Each case also passes the normal six-scene Native/PS1/Debug sequence, both nearest-world ratios at 1.0, real resize/return, outline/merged mirror, one-pixel HUD, zero GL errors/fallbacks and scoped exception restoration. Debug contrast stays 327/346. Nine normal presentation images plus fourteen viewmodel-stage images are retained per positive case.
+
+The compact [viewmodel evidence archive](EVIDENCE/ps1-viewmodel-b147534.zip) preserves the first negative, both first positives, exact source/artifact manifests, unchanged observer, five-test XML and full pixel/geometry/state traces. JAR/world/cache payloads are excluded. The old full 763/376 and other canonical branches' full-suite counts are not claimed for these standalone bytes. The later canonical combined-source suite and client proof remain distinct work.
+
+## Remaining work
 
 The reproduced Fabulous fullscreen-diagonal defect is repaired within the scoped Debug checkpoint above. Normals, LOD and collision visualization remain unimplemented, so the full Debug/S05-T06 requirement remains open.
 
-The Native screenshots show a small gold center weapon tip above the cockpit that is absent in PS1 screenshots, in both original `703ea85` and fixed `7df89aa` runs. Overlay callback counts alone do not prove complete weapon visibility. This existing profile difference needs an independent pixel/viewmodel investigation; S05-T04 is not declared complete.
+The specific default-laser visibility regression above is repaired and pixel-verified. Complete S05-T04 still needs broader weapon models, recoil/animation and yaw/pitch/roll/UI interaction coverage; one stationary laser/cockpit fixture does not close that task.
 
 Visible existing geometry cracks and natural-terrain/LOD deficiencies are not repaired by changing presentation resolution. NoCubes material policy, watertight seams/cavities, collision/navigation parity, high-altitude ground and smooth LOD remain S04 work. Vertex snapping, colour quantization, ordered dithering, affine-like UV controls, altitude fog/fade, low-poly assets and frame pacing remain S05 work. Full yaw/pitch/roll readability, ordinary hand/UI interaction, broader portals/mirror counts and universal state invariance still need separate acceptance. This checkpoint does not claim the complete PS1 look or full specification completion.

@@ -1,0 +1,55 @@
+{
+  "source": "b1475348a9a9a9f1d6495cd7f622ac213144969a",
+  "negativeSource": "fbe0bb7e5c62a8aef101cbaf347948c4cb0fcbe3",
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "c0e3b67c44ba3a20d352a495733f49a896fd9c167634e612d74db8f9fd20a144",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "550cf4e12886b3dbf2d6d991e93904bc82f0fc8028dc6f0b085abe02a21593ed"
+  },
+  "negativeJars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "bf42ed35c8335ca8b249bfcdfe61ad9858e47bda5d25222ee52d1342c6ada1bd",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "550cf4e12886b3dbf2d6d991e93904bc82f0fc8028dc6f0b085abe02a21593ed"
+  },
+  "sameObserverBytes": true,
+  "unit": {
+    "source": "b1475348a9a9a9f1d6495cd7f622ac213144969a",
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "negative": {
+    "nativePixels": 166,
+    "ps1Pixels": 0,
+    "requiredPixels": 125,
+    "sameCamera": true,
+    "sameModules": true,
+    "maximumProjectedVertexDeltaPixels": 0.0
+  },
+  "positive": {
+    "ps1-viewmodel-fixed-sodium": {
+      "epoch": 277,
+      "nativePixels": 166,
+      "ps1Pixels": 166,
+      "requiredPixels": 125,
+      "sameCamera": true,
+      "sameModules": true,
+      "maximumProjectedVertexDeltaPixels": 0.0
+    },
+    "ps1-viewmodel-fixed-fabulous-gl32": {
+      "epoch": 287,
+      "nativePixels": 166,
+      "ps1Pixels": 166,
+      "requiredPixels": 125,
+      "sameCamera": true,
+      "sameModules": true,
+      "maximumProjectedVertexDeltaPixels": 0.0
+    }
+  },
+  "scope": "Stationary default laser/cockpit buffered-ordering repair and existing six-scene presentation/Debug regression. Broader weapons/recoil/YPR and full S04/S05 remain open.",
+  "fullCanonicalRegressionsClaimed": false,
+  "releaseAccepted": false,
+  "archive": "docs/v8/EVIDENCE/ps1-viewmodel-b147534.zip",
+  "archiveSha256": "b1bb5d8cb03adc58ae7e161602e83237cf89238c7d84040a3f8b1198e1e60125",
+  "verifiedFiles": 131,
+  "crcAndHashesVerified": true
+}
