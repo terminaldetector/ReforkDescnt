@@ -1,0 +1,48 @@
+{
+  "source": "418da939ec774187994bead5e140ce68333e8fb0",
+  "firstBuildExit": 0,
+  "wholeGameParityExit": 0,
+  "nativeExit": 255,
+  "classification": "Observer fixture material rejection before any admitted pose; not a renderer/depth/cloud verdict",
+  "actualException": "java.lang.IllegalArgumentException: unsupported body material",
+  "actualRejector": "BodyShapeCodec.read \u2192 BlockBodyEntity.createLocal \u2192 CloudOcclusionFixture.serverTick",
+  "fixtureMaterial": "minecraft:emerald_block",
+  "poseFrames": 0,
+  "occlusionFrames": 0,
+  "allEightFrozenHelpersUnchanged": true,
+  "externalOfficialStagerUnchanged": true,
+  "frozenWrapperExecuted": false,
+  "actualNativeAdmission": "work/cloud-occlusion/native-admission.json",
+  "jars": {
+    "drmd-6dof-1.1.35-ufo-dev.1.jar": "b6c653a4729e7dd4a8158ba1b8704fc31434c89d0c7cabaefbee4e1266d3df8c",
+    "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "fa03090b4b8299ac0068726367036a90241d4f78b0d2a09452dfb638be8275a2"
+  },
+  "worldArchive": {
+    "original": "/workspace/ungravity-v5/ps1-render/build/cubic-client-failed-cloud-body-material-418da93/saves",
+    "archive": "/workspace/ungravity-v5/ps1-render/work/preserved-disposable-worlds/cubic-client-failed-cloud-body-material-418da93-saves.zip",
+    "files": 114,
+    "originalBytes": 44420521,
+    "archiveBytes": 2371265,
+    "sha256": "dd6042093ab8a7b830092c0daf7d52b3c433af21fb6791e4cdfd09ec3cab24f4",
+    "sessionLockExclusiveLockfVerified": true,
+    "fullFileShaAndZipCrcVerified": true,
+    "rawSavesReclaimedOnlyAfterVerification": true
+  },
+  "capacitySequence": {
+    "firstAfterCompileBytes": 87121920,
+    "nativeNotLaunchedUnderFirstLease": true,
+    "freshNativeLeaseAdmissionBytes": 353271808,
+    "minimumBytes": 146800640,
+    "noRebuildOrHelperMutation": true
+  },
+  "actualInputUploadEvents": 5,
+  "scope": "Compiler/remap/parity pass. Capacity-only stop preserved before a later fresh native-only lease. First actual native rejected unsupported fixture emerald material before any admitted pose, occlusion/depth/renderer verdict or feature acceptance. Game production unchanged.",
+  "evidence": {
+    "path": "docs/v8/EVIDENCE/cloud-occlusion-418da93-material-failure.zip",
+    "files": 62,
+    "bytes": 246434,
+    "sha256": "0d9441d5af3a1aaf63b2f6981efc2331f5e95d9917f1870af2eea07601ed348b",
+    "perFileShaAndZipCrcVerified": true,
+    "actualPosePngs": 0
+  }
+}

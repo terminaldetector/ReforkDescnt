@@ -1,0 +1,19 @@
+# Cloud occluder prerequisite: first compiled source, then fixture material rejection
+
+Frozen source `418da939ec774187994bead5e140ce68333e8fb0` first compile/remap passed0in23seconds and exact accepted-game parity passed0. The first actual occluder native later closed255in the server tick loop **before any admitted pose or occlusion/depth frame**. This is a fixture material error, not a cloud/LOD/render verdict or feature pass.
+
+The exact terminating exception is `IllegalArgumentException: unsupported body material` from `BodyShapeCodec.read` line33 through `BlockBodyEntity.createLocal` and `CloudOcclusionFixture.serverTick`. The observer chose `EMERALD_BLOCK`, which is absent from the existing supported body materials. The game correctly rejects that input. The ordinary world cube is a separate material path. A minimal later fixture repair must use an already-supported one-cell material such as `IRON_BLOCK`, preserving geometry/pose and all9/4/4/500/5%criteria; it must not expand the production whitelist to make this test pass.
+
+The native reached the actual cubic world and the first requested Y224, but no pose admission completed because body creation failed. There are zero fresh pose PNGs, zero occlusion JSONs and no usable GPU depth/occluder visibility verdict. Earlier completed source36f's five-pose far-cloud negative remains separate and valid. Shader/startup/session-service/audio warnings in the log do not replace the actual terminating material exception.
+
+Capacity and actual execution are distinct, preserved steps:
+
+- First build/parity lease ended at the required post-compile capacity stop:87,121,920free bytes, below140MiB(146,800,640). No native was launched under that lease.
+- After a new exclusive native-only lease and verified reclamation of unrelated closed derivatives by root, actual admission was353,271,808free bytes. The already-compiled JARs were reused without rebuild or source/helper mutation.
+- The frozen `run-first-negative.sh` did not contain the subsequently required capacity admission, so it was preserved but **not executed**. Its exact build/parity stages and then the identical native command were invoked explicitly; actual commands, timestamps and capacity receipts are included. The eight frozen helper inputs and external official stager remain byte-identical before and after; this is not a claim that all eight were independently executed.
+
+Exact game SHA256`b6c653a4729e7dd4a8158ba1b8704fc31434c89d0c7cabaefbee4e1266d3df8c`; observer SHA256`fa03090b4b8299ac0068726367036a90241d4f78b0d2a09452dfb638be8275a2`. Frozen helper manifest`4cb5d28441432f22fc799d6fb3cfab2bf20ed46f9878cfea6f71a4aec0f21775`; external official stager`8a0967489aedaa127c4f479b17aa19006607a26fe43c99ad9d3256a9a9e2e274`.
+
+[Compact immutable evidence](EVIDENCE/cloud-occlusion-418da93-material-failure.zip) contains62files/246,434bytes: first build/stamp/parity, initial capacity stop and later actual admission, original server crash/log, source/helper snapshots, original texture/cloud VBO inputs, first pose command and world-preservation receipt. SHA256`0d9441d5af3a1aaf63b2f6981efc2331f5e95d9917f1870af2eea07601ed348b`; every member SHA256and ZIP CRC verified. Its input texture PNG is an original resource, not a fresh scene screenshot.
+
+Exact JARs/full stamp remain at `work/cloud-occlusion/first-build-artifacts/`; raw logs/inputs remain at `build/cubic-client-failed-cloud-body-material-418da93/`. Only the closed failed disposable saves were reclaimed, after acquiring an exclusive nonblocking `lockf` on their session lock and verifying all114file SHA256values and ZIP CRCs. The world archive `work/preserved-disposable-worlds/cubic-client-failed-cloud-body-material-418da93-saves.zip` has SHA256`dd6042093ab8a7b830092c0daf7d52b3c433af21fb6791e4cdfd09ec3cab24f4`. No production source, rendering threshold, main physics/collider or cache donor changed, and there was no retry in either lease.
