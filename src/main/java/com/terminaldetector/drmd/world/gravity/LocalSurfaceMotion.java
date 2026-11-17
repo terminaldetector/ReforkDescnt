@@ -26,5 +26,17 @@ public final class LocalSurfaceMotion {
         return ActorFrameMath.toWorld(local,cardinal).add(residual);
     }
 
+    /** Native .4 aim/.2 inherited tangent algebra; the goal still owns selection, timing and leap height. */
+    public static Vec3d pounce(Vec3d targetDelta,Vec3d previous,Vec3d up,float leap,Vec3d nativeResult) {
+        var cardinal=cardinalUp(up);
+        if(cardinal==null||!finite(targetDelta)||!finite(previous)||!Float.isFinite(leap))return nativeResult;
+        var tangent=targetDelta.subtract(cardinal.multiply(targetDelta.dotProduct(cardinal)));
+        if(tangent.lengthSquared()>1e-7) {
+            var inherited=previous.subtract(cardinal.multiply(previous.dotProduct(cardinal)));
+            tangent=tangent.normalize().multiply(.4).add(inherited.multiply(.2));
+        }
+        return tangent.add(cardinal.multiply((double)leap));
+    }
+
     private static boolean finite(Vec3d v){return v!=null&&Double.isFinite(v.x)&&Double.isFinite(v.y)&&Double.isFinite(v.z);}
 }

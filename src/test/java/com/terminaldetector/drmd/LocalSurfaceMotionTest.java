@@ -47,4 +47,36 @@ class LocalSurfaceMotionTest {
             assertSame(result,LocalSurfaceMotion.dryResult(result,result,up,.546f,false));
         assertSame(result,LocalSurfaceMotion.dryResult(result,result,UPS[0],Float.NaN,false));
     }
+    @Test void allSixPounceFramesRetainNativeLeapAndInheritedTangent() {
+        var localTarget=new Vec3d(2,.3,1);var localVelocity=new Vec3d(.17,-.06,-.09);
+        var direction=new Vec3d(2,0,1).normalize().multiply(.4).add(new Vec3d(.17,0,-.09).multiply(.2));
+        var expected=direction.add(0,(double).4f,0);
+        for(var up:UPS) {
+            var result=LocalSurfaceMotion.pounce(ActorFrameMath.toWorld(localTarget,up),
+                ActorFrameMath.toWorld(localVelocity,up),up,.4f,Vec3d.ZERO);
+            same(expected,ActorFrameMath.toLocal(result,up));
+        }
+    }
+    @Test void pouncePreservesNativeWorldUpAndTinyDirectionBranch() {
+        var delta=new Vec3d(1,.3,2);var velocity=new Vec3d(.17,-.06,-.09);
+        var nativeResult=new Vec3d(1,0,2).normalize().multiply(.4).add(velocity.multiply(.2));
+        nativeResult=new Vec3d(nativeResult.x,(double).4f,nativeResult.z);
+        same(nativeResult,LocalSurfaceMotion.pounce(delta,velocity,UPS[2],.4f,Vec3d.ZERO));
+        for(var up:UPS) {
+            var tiny=ActorFrameMath.toWorld(new Vec3d(1e-5,3,2e-5),up);
+            same(new Vec3d(1e-5,(double).4f,2e-5),ActorFrameMath.toLocal(
+                LocalSurfaceMotion.pounce(tiny,velocity,up,.4f,Vec3d.ZERO),up));
+        }
+    }
+    @Test void pounceDoesNotSubstituteZeroVelocityForNativeInheritedMomentum() {
+        var up=UPS[0];var delta=new Vec3d(0,3,1);var velocity=new Vec3d(.23,.17,-.09);
+        var noMotion=LocalSurfaceMotion.pounce(delta,Vec3d.ZERO,up,.4f,Vec3d.ZERO);
+        var withMotion=LocalSurfaceMotion.pounce(delta,velocity,up,.4f,Vec3d.ZERO);
+        same(new Vec3d(0,.17*.2,-.09*.2),withMotion.subtract(noMotion));
+    }
+    @Test void unprovedPounceFramesDelegateRatherThanChangeOtherFamilies() {
+        var nativeResult=new Vec3d(.2,.4,.6);
+        assertSame(nativeResult,LocalSurfaceMotion.pounce(nativeResult,nativeResult,new Vec3d(1,1,0).normalize(),.4f,nativeResult));
+    }
+
 }
