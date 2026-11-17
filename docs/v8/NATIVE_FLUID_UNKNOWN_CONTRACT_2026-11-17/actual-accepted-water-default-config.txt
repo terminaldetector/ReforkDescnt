@@ -1,0 +1,81 @@
+// Better Cubic Chunks configuration.
+// Comments are allowed in this file. Delete a key to restore its default.
+{
+  // How block positions are packed into 64 bits. Decides the maximum world height.
+  //   VANILLA : +/-2048 blocks (no re-packing, maximum compatibility)
+  //   TALL    : +/-32768 blocks, horizontal limit +/-8.39 million blocks   (default)
+  //   HUGE    : +/-524288 blocks, horizontal limit +/-2.10 million blocks
+  // Requires a restart. Client and server must match. A world created with one
+  // packing cannot be opened with another.
+  "positionPacking": "TALL",
+
+  // Client: how many cubes (16 blocks each) above and below the player to render.
+  // This is the Vertical Render Distance slider in the video settings. In singleplayer
+  // the world also loads this far.
+  "verticalViewDistance": 8,
+
+  // Dedicated server: how many cubes above and below each player to keep loaded and
+  // ticking, and the most a player's vertical render distance can show.
+  "verticalLoadDistance": 8,
+
+  // Server: while a player moves vertically, this many extra cubes above and below are
+  // kept loaded so terrain is ready when falling, climbing or flying.
+  "verticalGenerationLookahead": 2,
+
+  // Compression for cube region files: NONE, DEFLATE or LZ4 (fastest, default).
+  "cubeCompression": "LZ4",
+
+  // Server: worker threads allowed to generate cubes at the same time.
+  "maxConcurrentCubeGeneration": 1,
+
+  // Singleplayer: worker threads generating while the near view (6 cubes around the
+  // player) is complete and only distant cubes are left. With every thread busy the
+  // render thread and the graphics driver find no core, and the frame rate halves
+  // while terrain nobody is looking at yet fills in. 0 uses two fifths of the threads
+  // above (at least 2); the same number as above turns this off. Dedicated servers
+  // always use every thread.
+  "farGenerationThreads": 0,
+
+  // Server: up to this many vertically adjacent cubes are generated in one pass. Larger
+  // batches amortise the per-pass setup (2D noise, carver walks) over more cubes.
+  "generationBatchHeight": 4,
+
+  // Server: cubes below the ground of a column (and the columns around it) that are
+  // generated although nothing can see them. Deeper cubes wait until a cave, ravine or
+  // cliff opens into them, or a player comes within 3 cubes: under a player on the
+  // surface, most of the view is solid rock nobody sees. -1 generates every cube in
+  // view, as vanilla generates whole columns.
+  "depthBelowSurface": 3,
+
+  // Server: maximum cubes sent to each player per tick (also the budget for light
+  // updates of cubes a player already has). 128 fills a render distance 12 view in
+  // a few seconds; lower it for players on slow connections.
+  "cubesSentPerTick": 128,
+
+  // Verbose logging of cube streaming and generation.
+  "debugLogging": false,
+
+  // Per-mod integrations. Each only matters when that mod is installed.
+  "compat": {
+    "sodium": true,
+    "iris": true,
+    "distantHorizons": true,
+    "immersivePortals": true,
+    // Distant Horizons stores at most 4080 blocks of height per level, so a cubic
+    // dimension is cut into bands of this height, stacked from this block Y upwards
+    // and downwards; each band is a DH level of its own and the band a player is in
+    // is the one they see. The defaults put the Cubic world type's surface terrain
+    // and its sky islands in one band. Changing the layout regenerates the world's
+    // Distant Horizons data (LOD heights are stored relative to the band's floor).
+    "distantHorizonsLodMinY": -320,
+    "distantHorizonsLodHeight": 4080,
+    // Immersive Portals: cubes above and below a portal's destination that are kept
+    // loaded and streamed for the view through the portal.
+    "immersivePortalsVerticalDistance": 4
+  },
+
+  "worldgen": {
+    // Pre-select the Cubic world type on the world creation screen.
+    "cubicPresetAsDefault": false
+  }
+}

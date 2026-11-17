@@ -1,0 +1,2534 @@
+{
+  "scope": "Member names/descriptors/access flags and field ConstantValue metadata only; all Code attributes skipped, no Java execution or upstream implementation copied",
+  "artifact": {
+    "path": "/workspace/Refork-audit/work/master-v5/upstream/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar",
+    "bytes": 806910,
+    "sha256": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6"
+  },
+  "classes": {
+    "dev/fallingcloud/bettercubicchunks/core/CubePos": {
+      "fields": [
+        {
+          "name": "SIZE_BITS",
+          "descriptor": "I",
+          "flags": 25,
+          "constantValue": 4
+        },
+        {
+          "name": "SIZE",
+          "descriptor": "I",
+          "flags": 25,
+          "constantValue": 16
+        },
+        {
+          "name": "MASK",
+          "descriptor": "I",
+          "flags": 25,
+          "constantValue": 15
+        },
+        {
+          "name": "BLOCKS_PER_CUBE",
+          "descriptor": "I",
+          "flags": 25,
+          "constantValue": 4096
+        },
+        {
+          "name": "REGION_BITS",
+          "descriptor": "I",
+          "flags": 25,
+          "constantValue": 4
+        },
+        {
+          "name": "REGION_SIZE",
+          "descriptor": "I",
+          "flags": 25,
+          "constantValue": 16
+        },
+        {
+          "name": "REGION_MASK",
+          "descriptor": "I",
+          "flags": 25,
+          "constantValue": 15
+        },
+        {
+          "name": "PACKED_X_BITS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 22
+        },
+        {
+          "name": "PACKED_Y_BITS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 20
+        },
+        {
+          "name": "PACKED_Z_BITS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 22
+        },
+        {
+          "name": "X_MASK",
+          "descriptor": "J",
+          "flags": 26,
+          "constantValue": 4194303
+        },
+        {
+          "name": "Y_MASK",
+          "descriptor": "J",
+          "flags": 26,
+          "constantValue": 1048575
+        },
+        {
+          "name": "Z_MASK",
+          "descriptor": "J",
+          "flags": 26,
+          "constantValue": 4194303
+        },
+        {
+          "name": "Z_SHIFT",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 20
+        },
+        {
+          "name": "X_SHIFT",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 42
+        },
+        {
+          "name": "CUBES_PER_REGION",
+          "descriptor": "I",
+          "flags": 25,
+          "constantValue": 4096
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "descriptor": "()V",
+          "flags": 2
+        },
+        {
+          "name": "blockToCube",
+          "descriptor": "(I)I",
+          "flags": 9
+        },
+        {
+          "name": "blockToCube",
+          "descriptor": "(D)I",
+          "flags": 9
+        },
+        {
+          "name": "cubeToMinBlock",
+          "descriptor": "(I)I",
+          "flags": 9
+        },
+        {
+          "name": "cubeToMaxBlock",
+          "descriptor": "(I)I",
+          "flags": 9
+        },
+        {
+          "name": "blockToLocal",
+          "descriptor": "(I)I",
+          "flags": 9
+        },
+        {
+          "name": "localIndex",
+          "descriptor": "(III)I",
+          "flags": 9
+        },
+        {
+          "name": "neighbourBit",
+          "descriptor": "(III)I",
+          "flags": 9
+        },
+        {
+          "name": "asLong",
+          "descriptor": "(III)J",
+          "flags": 9
+        },
+        {
+          "name": "x",
+          "descriptor": "(J)I",
+          "flags": 9
+        },
+        {
+          "name": "y",
+          "descriptor": "(J)I",
+          "flags": 9
+        },
+        {
+          "name": "z",
+          "descriptor": "(J)I",
+          "flags": 9
+        },
+        {
+          "name": "ofBlock",
+          "descriptor": "(III)J",
+          "flags": 9
+        },
+        {
+          "name": "columnKey",
+          "descriptor": "(J)J",
+          "flags": 9
+        },
+        {
+          "name": "columnKey",
+          "descriptor": "(II)J",
+          "flags": 9
+        },
+        {
+          "name": "offset",
+          "descriptor": "(JIII)J",
+          "flags": 9
+        },
+        {
+          "name": "cubeToRegion",
+          "descriptor": "(I)I",
+          "flags": 9
+        },
+        {
+          "name": "cubeToLocalInRegion",
+          "descriptor": "(I)I",
+          "flags": 9
+        },
+        {
+          "name": "regionIndex",
+          "descriptor": "(III)I",
+          "flags": 9
+        },
+        {
+          "name": "chebyshevDistance",
+          "descriptor": "(JJ)I",
+          "flags": 9
+        },
+        {
+          "name": "toString",
+          "descriptor": "(J)Ljava/lang/String;",
+          "flags": 9
+        }
+      ]
+    },
+    "dev/fallingcloud/bettercubicchunks/config/BccConfig": {
+      "fields": [
+        {
+          "name": "positionPacking",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/core/PositionPacking;",
+          "flags": 18
+        },
+        {
+          "name": "verticalViewDistance",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "verticalLoadDistance",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "verticalGenerationLookahead",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "cubeCompression",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/config/BccConfig$CubeCompression;",
+          "flags": 18
+        },
+        {
+          "name": "maxConcurrentCubeGeneration",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "farGenerationThreads",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "generationBatchHeight",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "depthBelowSurface",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "cubesSentPerTick",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "debugLogging",
+          "descriptor": "Z",
+          "flags": 18
+        },
+        {
+          "name": "compat",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/config/BccConfig$Compat;",
+          "flags": 18
+        },
+        {
+          "name": "worldgen",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/config/BccConfig$Worldgen;",
+          "flags": 18
+        },
+        {
+          "name": "FILE_NAME",
+          "descriptor": "Ljava/lang/String;",
+          "flags": 25,
+          "constantValue": "bettercubicchunks.json"
+        },
+        {
+          "name": "MIN_VERTICAL_DISTANCE",
+          "descriptor": "I",
+          "flags": 25,
+          "constantValue": 2
+        },
+        {
+          "name": "MAX_VERTICAL_DISTANCE",
+          "descriptor": "I",
+          "flags": 25,
+          "constantValue": 64
+        },
+        {
+          "name": "instance",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/config/BccConfig;",
+          "flags": 74
+        },
+        {
+          "name": "DEFAULT",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/config/BccConfig;",
+          "flags": 25
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/core/PositionPacking;IIILdev/fallingcloud/bettercubicchunks/config/BccConfig$CubeCompression;IIIIIZLdev/fallingcloud/bettercubicchunks/config/BccConfig$Compat;Ldev/fallingcloud/bettercubicchunks/config/BccConfig$Worldgen;)V",
+          "flags": 1
+        },
+        {
+          "name": "get",
+          "descriptor": "()Ldev/fallingcloud/bettercubicchunks/config/BccConfig;",
+          "flags": 9
+        },
+        {
+          "name": "withVerticalViewDistance",
+          "descriptor": "(I)Ldev/fallingcloud/bettercubicchunks/config/BccConfig;",
+          "flags": 1
+        },
+        {
+          "name": "update",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/config/BccConfig;)V",
+          "flags": 41
+        },
+        {
+          "name": "setForTesting",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/config/BccConfig;)V",
+          "flags": 41
+        },
+        {
+          "name": "load",
+          "descriptor": "()Ldev/fallingcloud/bettercubicchunks/config/BccConfig;",
+          "flags": 10
+        },
+        {
+          "name": "parse",
+          "descriptor": "(Ljava/lang/String;)Ldev/fallingcloud/bettercubicchunks/config/BccConfig$ParseResult;",
+          "flags": 9
+        },
+        {
+          "name": "migrateLodHeight",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/config/BccConfig$MissingTracker;I)I",
+          "flags": 10
+        },
+        {
+          "name": "clamp",
+          "descriptor": "(IIILjava/lang/String;)I",
+          "flags": 10
+        },
+        {
+          "name": "writeTemplate",
+          "descriptor": "(Ljava/nio/file/Path;Ldev/fallingcloud/bettercubicchunks/config/BccConfig;)V",
+          "flags": 10
+        },
+        {
+          "name": "template",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/config/BccConfig;)Ljava/lang/String;",
+          "flags": 9
+        },
+        {
+          "name": "isRepacked",
+          "descriptor": "()Z",
+          "flags": 1
+        },
+        {
+          "name": "unused",
+          "descriptor": "()Ljava/io/Reader;",
+          "flags": 10
+        },
+        {
+          "name": "toString",
+          "descriptor": "()Ljava/lang/String;",
+          "flags": 17
+        },
+        {
+          "name": "hashCode",
+          "descriptor": "()I",
+          "flags": 17
+        },
+        {
+          "name": "equals",
+          "descriptor": "(Ljava/lang/Object;)Z",
+          "flags": 17
+        },
+        {
+          "name": "positionPacking",
+          "descriptor": "()Ldev/fallingcloud/bettercubicchunks/core/PositionPacking;",
+          "flags": 1
+        },
+        {
+          "name": "verticalViewDistance",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "verticalLoadDistance",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "verticalGenerationLookahead",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "cubeCompression",
+          "descriptor": "()Ldev/fallingcloud/bettercubicchunks/config/BccConfig$CubeCompression;",
+          "flags": 1
+        },
+        {
+          "name": "maxConcurrentCubeGeneration",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "farGenerationThreads",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "generationBatchHeight",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "depthBelowSurface",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "cubesSentPerTick",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "debugLogging",
+          "descriptor": "()Z",
+          "flags": 1
+        },
+        {
+          "name": "compat",
+          "descriptor": "()Ldev/fallingcloud/bettercubicchunks/config/BccConfig$Compat;",
+          "flags": 1
+        },
+        {
+          "name": "worldgen",
+          "descriptor": "()Ldev/fallingcloud/bettercubicchunks/config/BccConfig$Worldgen;",
+          "flags": 1
+        },
+        {
+          "name": "<clinit>",
+          "descriptor": "()V",
+          "flags": 8
+        }
+      ]
+    },
+    "dev/fallingcloud/bettercubicchunks/server/CubicServerLevel": {
+      "fields": [
+        {
+          "name": "EVICTION_GRACE_TICKS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 100
+        },
+        {
+          "name": "EVICTIONS_PER_TICK",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 128
+        },
+        {
+          "name": "EVICTION_LOOKS_PER_TICK",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 1024
+        },
+        {
+          "name": "MAX_SCHEDULE_SCAN",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 4096
+        },
+        {
+          "name": "APPLY_BUDGET_NANOS",
+          "descriptor": "J",
+          "flags": 26,
+          "constantValue": 6000000
+        },
+        {
+          "name": "SCHEDULE_BUDGET_NANOS",
+          "descriptor": "J",
+          "flags": 26,
+          "constantValue": 5000000
+        },
+        {
+          "name": "MAX_SPARE_NANOS",
+          "descriptor": "J",
+          "flags": 26,
+          "constantValue": 20000000
+        },
+        {
+          "name": "SPARE_MARGIN_NANOS",
+          "descriptor": "J",
+          "flags": 26,
+          "constantValue": 10000000
+        },
+        {
+          "name": "BUSY_COLUMN_TASKS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 16
+        },
+        {
+          "name": "SWAMPED_COLUMN_TASKS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 128
+        },
+        {
+          "name": "SATURATED_SCHEDULE_NANOS",
+          "descriptor": "J",
+          "flags": 26,
+          "constantValue": 1000000
+        },
+        {
+          "name": "SATURATED_SCHEDULE_LOOK",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 64
+        },
+        {
+          "name": "RETRY_TICKS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 200
+        },
+        {
+          "name": "lastDeferredLog",
+          "descriptor": "J",
+          "flags": 2
+        },
+        {
+          "name": "deferredCubes",
+          "descriptor": "I",
+          "flags": 2
+        },
+        {
+          "name": "MAX_FAILURES",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 3
+        },
+        {
+          "name": "failures",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/Long2IntOpenHashMap;",
+          "flags": 18
+        },
+        {
+          "name": "MAX_LOAD_TASKS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 256
+        },
+        {
+          "name": "MAX_LIGHT_TASKS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 512
+        },
+        {
+          "name": "WORKER_COUNTER",
+          "descriptor": "Ljava/util/concurrent/atomic/AtomicInteger;",
+          "flags": 26
+        },
+        {
+          "name": "level",
+          "descriptor": "Lnet/minecraft/class_3218;",
+          "flags": 18
+        },
+        {
+          "name": "chunkMap",
+          "descriptor": "Lnet/minecraft/class_3898;",
+          "flags": 18
+        },
+        {
+          "name": "lightEngine",
+          "descriptor": "Lnet/minecraft/class_3227;",
+          "flags": 18
+        },
+        {
+          "name": "storage",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/server/storage/CubeStorage;",
+          "flags": 18
+        },
+        {
+          "name": "generator",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/server/gen/CubeGenerator;",
+          "flags": 18
+        },
+        {
+          "name": "applier",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/server/CubeApplier;",
+          "flags": 18
+        },
+        {
+          "name": "biomes",
+          "descriptor": "Lnet/minecraft/class_2378;",
+          "flags": 18
+        },
+        {
+          "name": "tracker",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeViewTracker;",
+          "flags": 18
+        },
+        {
+          "name": "workers",
+          "descriptor": "Ljava/util/concurrent/ThreadPoolExecutor;",
+          "flags": 18
+        },
+        {
+          "name": "maxWorkerTasks",
+          "descriptor": "I",
+          "flags": 2
+        },
+        {
+          "name": "configuredThreads",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "poolThreads",
+          "descriptor": "I",
+          "flags": 2
+        },
+        {
+          "name": "NEAR_PRIORITY",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 6
+        },
+        {
+          "name": "farThreads",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "throttleWorkers",
+          "descriptor": "Z",
+          "flags": 18
+        },
+        {
+          "name": "FAR_AFTER_TICKS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 10
+        },
+        {
+          "name": "nearestPending",
+          "descriptor": "I",
+          "flags": 2
+        },
+        {
+          "name": "nearCompleteSince",
+          "descriptor": "J",
+          "flags": 2
+        },
+        {
+          "name": "inFlightByKind",
+          "descriptor": "[I",
+          "flags": 18
+        },
+        {
+          "name": "advancedThisPass",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongOpenHashSet;",
+          "flags": 18
+        },
+        {
+          "name": "lightChangeLock",
+          "descriptor": "Ljava/lang/Object;",
+          "flags": 18
+        },
+        {
+          "name": "lightChanged",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongOpenHashSet;",
+          "flags": 2
+        },
+        {
+          "name": "phaseNanos",
+          "descriptor": "[J",
+          "flags": 18
+        },
+        {
+          "name": "phaseMaxTickNanos",
+          "descriptor": "J",
+          "flags": 2
+        },
+        {
+          "name": "phaseSpareNanos",
+          "descriptor": "J",
+          "flags": 2
+        },
+        {
+          "name": "smoothedTickNanos",
+          "descriptor": "D",
+          "flags": 2
+        },
+        {
+          "name": "phaseTicks",
+          "descriptor": "J",
+          "flags": 2
+        },
+        {
+          "name": "verticalLoadDistance",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "inFlight",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap;",
+          "flags": 18
+        },
+        {
+          "name": "locked",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongOpenHashSet;",
+          "flags": 18
+        },
+        {
+          "name": "pending",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongLinkedOpenHashSet;",
+          "flags": 18
+        },
+        {
+          "name": "unwantedSince",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/Long2LongOpenHashMap;",
+          "flags": 18
+        },
+        {
+          "name": "evictionKeys",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongArrayFIFOQueue;",
+          "flags": 18
+        },
+        {
+          "name": "evictionStamps",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongArrayFIFOQueue;",
+          "flags": 18
+        },
+        {
+          "name": "failedUntil",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/Long2LongOpenHashMap;",
+          "flags": 18
+        },
+        {
+          "name": "postProcessWaiting",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongLinkedOpenHashSet;",
+          "flags": 18
+        },
+        {
+          "name": "POST_PROCESS_LOOKS_PER_TICK",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 64
+        },
+        {
+          "name": "lightChecked",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongOpenHashSet;",
+          "flags": 18
+        },
+        {
+          "name": "lightRepairing",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongOpenHashSet;",
+          "flags": 18
+        },
+        {
+          "name": "lightLoaded",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongOpenHashSet;",
+          "flags": 18
+        },
+        {
+          "name": "lightAsNew",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongOpenHashSet;",
+          "flags": 18
+        },
+        {
+          "name": "lightRecheckKeys",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongArrayFIFOQueue;",
+          "flags": 18
+        },
+        {
+          "name": "lightRecheckDue",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongArrayFIFOQueue;",
+          "flags": 18
+        },
+        {
+          "name": "LIGHT_RECHECK_DELAY_TICKS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 200
+        },
+        {
+          "name": "LIGHT_RECHECKS_PER_TICK",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 64
+        },
+        {
+          "name": "LIGHT_RECHECK_BUDGET_NANOS",
+          "descriptor": "J",
+          "flags": 26,
+          "constantValue": 1000000
+        },
+        {
+          "name": "debugLogging",
+          "descriptor": "Z",
+          "flags": 18
+        },
+        {
+          "name": "temporaryViewers",
+          "descriptor": "Ljava/util/Map;",
+          "flags": 18
+        },
+        {
+          "name": "temporaryRegions",
+          "descriptor": "Ljava/util/Map;",
+          "flags": 18
+        },
+        {
+          "name": "TEMPORARY_TICKET",
+          "descriptor": "Lnet/minecraft/class_3230;",
+          "flags": 26
+        },
+        {
+          "name": "batchHeight",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "lookahead",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "verticalMotion",
+          "descriptor": "Ljava/util/Map;",
+          "flags": 18
+        },
+        {
+          "name": "anchors",
+          "descriptor": "Ljava/util/Map;",
+          "flags": 18
+        },
+        {
+          "name": "LOOKAHEAD_SPEED",
+          "descriptor": "D",
+          "flags": 26,
+          "constantValue": 0.25
+        },
+        {
+          "name": "LOOKAHEAD_MIN_TRAVEL",
+          "descriptor": "D",
+          "flags": 26,
+          "constantValue": 5.0
+        },
+        {
+          "name": "LOOKAHEAD_SAMPLE_TICKS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 20
+        },
+        {
+          "name": "LOOKAHEAD_HOLD_TICKS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 100
+        },
+        {
+          "name": "LOOKAHEAD_TELEPORT",
+          "descriptor": "D",
+          "flags": 26,
+          "constantValue": 16.0
+        },
+        {
+          "name": "lastProgressLog",
+          "descriptor": "J",
+          "flags": 2
+        },
+        {
+          "name": "wasBusy",
+          "descriptor": "Z",
+          "flags": 2
+        },
+        {
+          "name": "completed",
+          "descriptor": "Ljava/util/concurrent/ConcurrentLinkedQueue;",
+          "flags": 18
+        },
+        {
+          "name": "buried",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/server/BuriedCubes;",
+          "flags": 18
+        },
+        {
+          "name": "BURIED_REACH",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 3
+        },
+        {
+          "name": "undergroundViews",
+          "descriptor": "Ljava/util/List;",
+          "flags": 18
+        },
+        {
+          "name": "reachable",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongOpenHashSet;",
+          "flags": 18
+        },
+        {
+          "name": "openFaces",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/Long2IntOpenHashMap;",
+          "flags": 18
+        },
+        {
+          "name": "FACES",
+          "descriptor": "[[I",
+          "flags": 26
+        },
+        {
+          "name": "OPEN_FACES_CACHE",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 65536
+        },
+        {
+          "name": "heldUnchecked",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongArrayList;",
+          "flags": 18
+        },
+        {
+          "name": "releasedFinished",
+          "descriptor": "J",
+          "flags": 2
+        },
+        {
+          "name": "columnSurface",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/Long2IntOpenHashMap;",
+          "flags": 18
+        },
+        {
+          "name": "COLUMN_SURFACE_CACHE",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 65536
+        },
+        {
+          "name": "columnGroundRange",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/Long2LongOpenHashMap;",
+          "flags": 18
+        },
+        {
+          "name": "surfaceSearch",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/worldgen/PreliminarySurface;",
+          "flags": 18
+        },
+        {
+          "name": "finalDensity",
+          "descriptor": "Lnet/minecraft/class_6910;",
+          "flags": 18
+        },
+        {
+          "name": "JAGGED_UP",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 256
+        },
+        {
+          "name": "JAGGED_DOWN",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 192
+        },
+        {
+          "name": "lodSurface",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/api/LodSurfaceSource;",
+          "flags": 18
+        },
+        {
+          "name": "surfaceMinY",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "surfaceMaxY",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "buriedDepth",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "senders",
+          "descriptor": "Ljava/util/Map;",
+          "flags": 18
+        },
+        {
+          "name": "portalViewers",
+          "descriptor": "Ljava/util/Set;",
+          "flags": 18
+        },
+        {
+          "name": "spawnViewer",
+          "descriptor": "Ljava/lang/Object;",
+          "flags": 18
+        },
+        {
+          "name": "closed",
+          "descriptor": "Z",
+          "flags": 2
+        },
+        {
+          "name": "groundsInView",
+          "descriptor": "Ljava/util/Map;",
+          "flags": 18
+        },
+        {
+          "name": "GROUND_IN_VIEW_TICKS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 10
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "descriptor": "(Lnet/minecraft/class_3218;Ljava/nio/file/Path;)V",
+          "flags": 1
+        },
+        {
+          "name": "floorCube",
+          "descriptor": "(II)I",
+          "flags": 2
+        },
+        {
+          "name": "columnGroundRange",
+          "descriptor": "(II)[I",
+          "flags": 1
+        },
+        {
+          "name": "realSurface",
+          "descriptor": "(III)I",
+          "flags": 2
+        },
+        {
+          "name": "isSolid",
+          "descriptor": "(III)Z",
+          "flags": 2
+        },
+        {
+          "name": "columnSurface",
+          "descriptor": "(II)I",
+          "flags": 2
+        },
+        {
+          "name": "opensInto",
+          "descriptor": "(IIIIII)Z",
+          "flags": 2
+        },
+        {
+          "name": "wasFinished",
+          "descriptor": "(J)Ljava/lang/Boolean;",
+          "flags": 2
+        },
+        {
+          "name": "releaseFinished",
+          "descriptor": "()V",
+          "flags": 2
+        },
+        {
+          "name": "underground",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView;)Z",
+          "flags": 2
+        },
+        {
+          "name": "floodReachable",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView;)V",
+          "flags": 2
+        },
+        {
+          "name": "openFaces",
+          "descriptor": "(J)I",
+          "flags": 2
+        },
+        {
+          "name": "faceOpen",
+          "descriptor": "(Lnet/minecraft/class_2826;[I)Z",
+          "flags": 10
+        },
+        {
+          "name": "isComing",
+          "descriptor": "(J)Z",
+          "flags": 1
+        },
+        {
+          "name": "absentNeighbours",
+          "descriptor": "(J)I",
+          "flags": 1
+        },
+        {
+          "name": "level",
+          "descriptor": "()Lnet/minecraft/class_3218;",
+          "flags": 1
+        },
+        {
+          "name": "tracker",
+          "descriptor": "()Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeViewTracker;",
+          "flags": 1
+        },
+        {
+          "name": "storage",
+          "descriptor": "()Ldev/fallingcloud/bettercubicchunks/server/storage/CubeStorage;",
+          "flags": 1
+        },
+        {
+          "name": "verticalLoadDistance",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "tick",
+          "descriptor": "()V",
+          "flags": 1
+        },
+        {
+          "name": "spareNanos",
+          "descriptor": "()J",
+          "flags": 2
+        },
+        {
+          "name": "logProgress",
+          "descriptor": "(J)V",
+          "flags": 2
+        },
+        {
+          "name": "tickTimes",
+          "descriptor": "()Ljava/lang/String;",
+          "flags": 2
+        },
+        {
+          "name": "updateViewers",
+          "descriptor": "()V",
+          "flags": 2
+        },
+        {
+          "name": "updatePortalViewers",
+          "descriptor": "(Ljava/util/Map;)V",
+          "flags": 2
+        },
+        {
+          "name": "groundInView",
+          "descriptor": "(Ljava/util/UUID;IIIJ)Ldev/fallingcloud/bettercubicchunks/server/CubicServerLevel$GroundInView;",
+          "flags": 2
+        },
+        {
+          "name": "viewWithGround",
+          "descriptor": "(IIIIIILdev/fallingcloud/bettercubicchunks/server/CubicServerLevel$GroundInView;)Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView;",
+          "flags": 2
+        },
+        {
+          "name": "loadOrderAnchor",
+          "descriptor": "(Lnet/minecraft/class_3222;I)I",
+          "flags": 2
+        },
+        {
+          "name": "addTemporaryViewer",
+          "descriptor": "(IIIIJ)Ljava/util/UUID;",
+          "flags": 1
+        },
+        {
+          "name": "onWanted",
+          "descriptor": "(J)V",
+          "flags": 2
+        },
+        {
+          "name": "onUnwanted",
+          "descriptor": "(JJ)V",
+          "flags": 2
+        },
+        {
+          "name": "markUnwanted",
+          "descriptor": "(JJ)V",
+          "flags": 2
+        },
+        {
+          "name": "columnFor",
+          "descriptor": "(J)Lnet/minecraft/class_2791;",
+          "flags": 1
+        },
+        {
+          "name": "columnAt",
+          "descriptor": "(II)Lnet/minecraft/class_2791;",
+          "flags": 1
+        },
+        {
+          "name": "liveColumnFor",
+          "descriptor": "(J)Lnet/minecraft/class_2818;",
+          "flags": 1
+        },
+        {
+          "name": "holderAt",
+          "descriptor": "(II)Lnet/minecraft/class_3193;",
+          "flags": 2
+        },
+        {
+          "name": "statusOf",
+          "descriptor": "(J)Ldev/fallingcloud/bettercubicchunks/core/CubeStatus;",
+          "flags": 1
+        },
+        {
+          "name": "inWorld",
+          "descriptor": "(I)Z",
+          "flags": 2
+        },
+        {
+          "name": "adjustWorkers",
+          "descriptor": "(J)V",
+          "flags": 2
+        },
+        {
+          "name": "schedule",
+          "descriptor": "(JJ)V",
+          "flags": 2
+        },
+        {
+          "name": "scheduleNearestFirst",
+          "descriptor": "(JJ)V",
+          "flags": 2
+        },
+        {
+          "name": "nearestPendingPriority",
+          "descriptor": "()I",
+          "flags": 2
+        },
+        {
+          "name": "hasCapacity",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/server/CubicServerLevel$TaskKind;)Z",
+          "flags": 2
+        },
+        {
+          "name": "workerTasksInFlight",
+          "descriptor": "()I",
+          "flags": 2
+        },
+        {
+          "name": "hasAnyCapacity",
+          "descriptor": "()Z",
+          "flags": 2
+        },
+        {
+          "name": "freeSlots",
+          "descriptor": "()I",
+          "flags": 2
+        },
+        {
+          "name": "advance",
+          "descriptor": "(JLdev/fallingcloud/bettercubicchunks/core/CubeStatus;I)Z",
+          "flags": 2
+        },
+        {
+          "name": "layersReady",
+          "descriptor": "([ZII)Z",
+          "flags": 10
+        },
+        {
+          "name": "batchRun",
+          "descriptor": "(JILdev/fallingcloud/bettercubicchunks/chunk/CubicColumnState;Ldev/fallingcloud/bettercubicchunks/core/CubeStatus;)[I",
+          "flags": 2
+        },
+        {
+          "name": "batchable",
+          "descriptor": "(JIILdev/fallingcloud/bettercubicchunks/chunk/CubicColumnState;Ldev/fallingcloud/bettercubicchunks/core/CubeStatus;J)Z",
+          "flags": 2
+        },
+        {
+          "name": "isNearWanted",
+          "descriptor": "(J)Z",
+          "flags": 2
+        },
+        {
+          "name": "submitBatch",
+          "descriptor": "(JLdev/fallingcloud/bettercubicchunks/server/CubicServerLevel$TaskKind;Lnet/minecraft/class_2791;II)V",
+          "flags": 2
+        },
+        {
+          "name": "submitGeneration",
+          "descriptor": "(JLdev/fallingcloud/bettercubicchunks/server/CubicServerLevel$TaskKind;Lnet/minecraft/class_2791;[J[[I)V",
+          "flags": 2
+        },
+        {
+          "name": "submitGeneration",
+          "descriptor": "(JLdev/fallingcloud/bettercubicchunks/server/CubicServerLevel$TaskKind;Lnet/minecraft/class_2791;[J[[ILdev/fallingcloud/bettercubicchunks/server/gen/CubeGenWindow;[J)V",
+          "flags": 2
+        },
+        {
+          "name": "submitLoad",
+          "descriptor": "(JLnet/minecraft/class_2791;)V",
+          "flags": 2
+        },
+        {
+          "name": "submitLight",
+          "descriptor": "(J)V",
+          "flags": 2
+        },
+        {
+          "name": "applyCompleted",
+          "descriptor": "(J)V",
+          "flags": 2
+        },
+        {
+          "name": "giveUp",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/server/CubicServerLevel$Task;)V",
+          "flags": 2
+        },
+        {
+          "name": "handleCompletion",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/server/CubicServerLevel$Completion;)V",
+          "flags": 2
+        },
+        {
+          "name": "notifyRewritten",
+          "descriptor": "(Lnet/minecraft/class_2791;Ldev/fallingcloud/bettercubicchunks/server/gen/CubeGenResult$ColumnDelta;)V",
+          "flags": 2
+        },
+        {
+          "name": "onSectionLightChanged",
+          "descriptor": "(Lnet/minecraft/class_4076;)V",
+          "flags": 1
+        },
+        {
+          "name": "dispatchLightChanges",
+          "descriptor": "()V",
+          "flags": 2
+        },
+        {
+          "name": "recheckSettledLight",
+          "descriptor": "(J)V",
+          "flags": 2
+        },
+        {
+          "name": "recheckNeighbourLight",
+          "descriptor": "(J)V",
+          "flags": 2
+        },
+        {
+          "name": "finalizeFull",
+          "descriptor": "(JLnet/minecraft/class_2818;Ldev/fallingcloud/bettercubicchunks/chunk/CubicColumnState;I)V",
+          "flags": 2
+        },
+        {
+          "name": "neighbourColumnsLoaded",
+          "descriptor": "(Lnet/minecraft/class_2818;)Z",
+          "flags": 2
+        },
+        {
+          "name": "retryPostProcessing",
+          "descriptor": "()V",
+          "flags": 2
+        },
+        {
+          "name": "processEvictions",
+          "descriptor": "(J)V",
+          "flags": 2
+        },
+        {
+          "name": "neighbourWanted",
+          "descriptor": "(J)Z",
+          "flags": 2
+        },
+        {
+          "name": "evictCube",
+          "descriptor": "(J)Z",
+          "flags": 2
+        },
+        {
+          "name": "markBlockEntityCubesDirty",
+          "descriptor": "(Lnet/minecraft/class_2791;)V",
+          "flags": 1
+        },
+        {
+          "name": "saveDirtyCubes",
+          "descriptor": "(Lnet/minecraft/class_2791;)V",
+          "flags": 1
+        },
+        {
+          "name": "saveCube",
+          "descriptor": "(Lnet/minecraft/class_2791;Ldev/fallingcloud/bettercubicchunks/chunk/CubicColumnState;I)V",
+          "flags": 2
+        },
+        {
+          "name": "extractCubeData",
+          "descriptor": "(Lnet/minecraft/class_2791;Ldev/fallingcloud/bettercubicchunks/chunk/CubicColumnState;I)Ldev/fallingcloud/bettercubicchunks/server/storage/CubeSerializer$CubeData;",
+          "flags": 1
+        },
+        {
+          "name": "toSaved",
+          "descriptor": "(Lnet/minecraft/class_6760;J)Lnet/minecraft/class_6759;",
+          "flags": 10
+        },
+        {
+          "name": "sender",
+          "descriptor": "(Lnet/minecraft/class_3222;)Ldev/fallingcloud/bettercubicchunks/server/PlayerCubeSender;",
+          "flags": 1
+        },
+        {
+          "name": "onColumnSent",
+          "descriptor": "(Lnet/minecraft/class_3222;Lnet/minecraft/class_1923;)V",
+          "flags": 1
+        },
+        {
+          "name": "onColumnDropped",
+          "descriptor": "(Lnet/minecraft/class_3222;Lnet/minecraft/class_1923;)V",
+          "flags": 1
+        },
+        {
+          "name": "onPlayerSettings",
+          "descriptor": "(Lnet/minecraft/class_3222;I)V",
+          "flags": 1
+        },
+        {
+          "name": "lightEngine",
+          "descriptor": "()Lnet/minecraft/class_3227;",
+          "flags": 1
+        },
+        {
+          "name": "saveAll",
+          "descriptor": "(Z)V",
+          "flags": 1
+        },
+        {
+          "name": "chunkMapChunks",
+          "descriptor": "()Ljava/lang/Iterable;",
+          "flags": 2
+        },
+        {
+          "name": "close",
+          "descriptor": "()V",
+          "flags": 1
+        },
+        {
+          "name": "debugSummary",
+          "descriptor": "()Ljava/lang/String;",
+          "flags": 1
+        },
+        {
+          "name": "lambda$onPlayerSettings$24",
+          "descriptor": "(Lnet/minecraft/class_3222;Ljava/util/UUID;)Ldev/fallingcloud/bettercubicchunks/server/PlayerCubeSender;",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$onColumnSent$23",
+          "descriptor": "(Lnet/minecraft/class_3222;Ljava/util/UUID;)Ldev/fallingcloud/bettercubicchunks/server/PlayerCubeSender;",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$extractCubeData$22",
+          "descriptor": "(Ljava/util/List;JLnet/minecraft/class_6760;)V",
+          "flags": 4106
+        },
+        {
+          "name": "lambda$extractCubeData$21",
+          "descriptor": "(IILnet/minecraft/class_6760;)Z",
+          "flags": 4106
+        },
+        {
+          "name": "lambda$extractCubeData$20",
+          "descriptor": "(Ljava/util/List;JLnet/minecraft/class_6760;)V",
+          "flags": 4106
+        },
+        {
+          "name": "lambda$extractCubeData$19",
+          "descriptor": "(IILnet/minecraft/class_6760;)Z",
+          "flags": 4106
+        },
+        {
+          "name": "lambda$evictCube$18",
+          "descriptor": "(IILnet/minecraft/class_6760;)Z",
+          "flags": 4106
+        },
+        {
+          "name": "lambda$evictCube$17",
+          "descriptor": "(IILnet/minecraft/class_6760;)Z",
+          "flags": 4106
+        },
+        {
+          "name": "lambda$submitLight$16",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/server/CubicServerLevel$Task;Ljava/lang/Object;Ljava/lang/Throwable;)V",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$submitLoad$15",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/server/CubicServerLevel$Task;J[BLjava/lang/Throwable;)V",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$submitGeneration$14",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/server/CubicServerLevel$Task;Ldev/fallingcloud/bettercubicchunks/server/gen/CubeGenerator$Prepared;)V",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$nearestPendingPriority$13",
+          "descriptor": "([IJ)Z",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$scheduleNearestFirst$12",
+          "descriptor": "(J[I[Z[JJ)Z",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$updatePortalViewers$11",
+          "descriptor": "(ZLnet/minecraft/class_3222;Ljava/util/Set;ILjava/util/Map;Ldev/fallingcloud/bettercubicchunks/compat/portals/PortalCompat$Loader;)V",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$updatePortalViewers$10",
+          "descriptor": "(Ljava/util/UUID;)Ljava/util/List;",
+          "flags": 4106
+        },
+        {
+          "name": "lambda$updatePortalViewers$9",
+          "descriptor": "(Lnet/minecraft/class_3222;Ljava/util/UUID;)Ldev/fallingcloud/bettercubicchunks/server/PlayerCubeSender;",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$updateViewers$8",
+          "descriptor": "(Ljava/util/UUID;)Ljava/util/List;",
+          "flags": 4106
+        },
+        {
+          "name": "lambda$updateViewers$7",
+          "descriptor": "(DJLjava/util/UUID;)[D",
+          "flags": 4106
+        },
+        {
+          "name": "lambda$updateViewers$6",
+          "descriptor": "(Lnet/minecraft/class_3222;Ljava/util/UUID;)Ldev/fallingcloud/bettercubicchunks/server/PlayerCubeSender;",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$tick$5",
+          "descriptor": "(III)V",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$tick$4",
+          "descriptor": "(JJ)V",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$tick$3",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView;)V",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$openFaces$2",
+          "descriptor": "(Lnet/minecraft/class_2680;)Z",
+          "flags": 4106
+        },
+        {
+          "name": "lambda$opensInto$1",
+          "descriptor": "(Lnet/minecraft/class_2680;)Z",
+          "flags": 4106
+        },
+        {
+          "name": "lambda$new$0",
+          "descriptor": "(Ljava/lang/String;Ljava/lang/Runnable;)Ljava/lang/Thread;",
+          "flags": 4106
+        },
+        {
+          "name": "<clinit>",
+          "descriptor": "()V",
+          "flags": 8
+        }
+      ]
+    },
+    "dev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView": {
+      "fields": [
+        {
+          "name": "centerX",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "centerY",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "centerZ",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "horizontalRadius",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "verticalRadius",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "minCubeY",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "maxCubeY",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "priorityY",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "groundMinY",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "groundMaxY",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "EMPTY",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView;",
+          "flags": 25
+        },
+        {
+          "name": "VERTICAL_WEIGHT",
+          "descriptor": "I",
+          "flags": 25,
+          "constantValue": 2
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "descriptor": "(IIIIIIIIII)V",
+          "flags": 1
+        },
+        {
+          "name": "of",
+          "descriptor": "(IIIIIII)Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView;",
+          "flags": 9
+        },
+        {
+          "name": "of",
+          "descriptor": "(IIIIIIII)Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView;",
+          "flags": 9
+        },
+        {
+          "name": "withGround",
+          "descriptor": "(II)Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView;",
+          "flags": 1
+        },
+        {
+          "name": "hasGround",
+          "descriptor": "()Z",
+          "flags": 1
+        },
+        {
+          "name": "mainEmpty",
+          "descriptor": "()Z",
+          "flags": 2
+        },
+        {
+          "name": "isEmpty",
+          "descriptor": "()Z",
+          "flags": 1
+        },
+        {
+          "name": "minX",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "maxX",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "minZ",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "maxZ",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "minY",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "maxY",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "heights",
+          "descriptor": "()[I",
+          "flags": 2
+        },
+        {
+          "name": "containsY",
+          "descriptor": "(I)Z",
+          "flags": 1
+        },
+        {
+          "name": "contains",
+          "descriptor": "(III)Z",
+          "flags": 1
+        },
+        {
+          "name": "contains",
+          "descriptor": "(J)Z",
+          "flags": 1
+        },
+        {
+          "name": "maxDistance",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "verticalSteps",
+          "descriptor": "(I)I",
+          "flags": 1
+        },
+        {
+          "name": "forEachAtDistance",
+          "descriptor": "(ILjava/util/function/LongPredicate;)Z",
+          "flags": 1
+        },
+        {
+          "name": "containsColumn",
+          "descriptor": "(II)Z",
+          "flags": 1
+        },
+        {
+          "name": "size",
+          "descriptor": "()J",
+          "flags": 1
+        },
+        {
+          "name": "distance",
+          "descriptor": "(III)I",
+          "flags": 1
+        },
+        {
+          "name": "forEach",
+          "descriptor": "(Ljava/util/function/LongConsumer;)V",
+          "flags": 1
+        },
+        {
+          "name": "forEachInColumn",
+          "descriptor": "(IILjava/util/function/LongConsumer;)V",
+          "flags": 1
+        },
+        {
+          "name": "difference",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView;Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView;Ljava/util/function/LongConsumer;Ljava/util/function/LongConsumer;)V",
+          "flags": 9
+        },
+        {
+          "name": "visitOutside",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView;Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView;Ljava/util/function/LongConsumer;)V",
+          "flags": 10
+        },
+        {
+          "name": "toString",
+          "descriptor": "()Ljava/lang/String;",
+          "flags": 17
+        },
+        {
+          "name": "hashCode",
+          "descriptor": "()I",
+          "flags": 17
+        },
+        {
+          "name": "equals",
+          "descriptor": "(Ljava/lang/Object;)Z",
+          "flags": 17
+        },
+        {
+          "name": "centerX",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "centerY",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "centerZ",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "horizontalRadius",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "verticalRadius",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "minCubeY",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "maxCubeY",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "priorityY",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "groundMinY",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "groundMaxY",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "<clinit>",
+          "descriptor": "()V",
+          "flags": 8
+        }
+      ]
+    },
+    "dev/fallingcloud/bettercubicchunks/server/tracking/CubeViewTracker": {
+      "fields": [
+        {
+          "name": "views",
+          "descriptor": "Ljava/util/Map;",
+          "flags": 18
+        },
+        {
+          "name": "wanted",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/Long2IntMap;",
+          "flags": 18
+        },
+        {
+          "name": "pendingAdd",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongSet;",
+          "flags": 18
+        },
+        {
+          "name": "pendingRemove",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/LongSet;",
+          "flags": 18
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "descriptor": "()V",
+          "flags": 1
+        },
+        {
+          "name": "update",
+          "descriptor": "(Ljava/lang/Object;Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView;)V",
+          "flags": 1
+        },
+        {
+          "name": "remove",
+          "descriptor": "(Ljava/lang/Object;)V",
+          "flags": 1
+        },
+        {
+          "name": "viewOf",
+          "descriptor": "(Ljava/lang/Object;)Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeTrackingView;",
+          "flags": 1
+        },
+        {
+          "name": "increment",
+          "descriptor": "(J)V",
+          "flags": 2
+        },
+        {
+          "name": "decrement",
+          "descriptor": "(J)V",
+          "flags": 2
+        },
+        {
+          "name": "forEachNearestFirst",
+          "descriptor": "(Ljava/util/function/LongPredicate;)V",
+          "flags": 1
+        },
+        {
+          "name": "isWanted",
+          "descriptor": "(J)Z",
+          "flags": 1
+        },
+        {
+          "name": "wantedCount",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "priority",
+          "descriptor": "(J)I",
+          "flags": 1
+        },
+        {
+          "name": "isNearViewer",
+          "descriptor": "(IIII)Z",
+          "flags": 1
+        },
+        {
+          "name": "forEachView",
+          "descriptor": "(Ljava/util/function/Consumer;)V",
+          "flags": 1
+        },
+        {
+          "name": "forEachCenter",
+          "descriptor": "(Ldev/fallingcloud/bettercubicchunks/server/tracking/CubeViewTracker$CenterVisitor;)V",
+          "flags": 1
+        },
+        {
+          "name": "isColumnWanted",
+          "descriptor": "(II)Z",
+          "flags": 1
+        },
+        {
+          "name": "drain",
+          "descriptor": "(Ljava/util/function/LongConsumer;Ljava/util/function/LongConsumer;)V",
+          "flags": 1
+        },
+        {
+          "name": "hasPendingChanges",
+          "descriptor": "()Z",
+          "flags": 1
+        },
+        {
+          "name": "forEachWanted",
+          "descriptor": "(Ljava/util/function/LongConsumer;)V",
+          "flags": 1
+        }
+      ]
+    },
+    "dev/fallingcloud/bettercubicchunks/server/net/ServerNetHandlers$ICubicServerPlayer": {
+      "fields": [],
+      "methods": [
+        {
+          "name": "bcc$verticalViewDistance",
+          "descriptor": "()I",
+          "flags": 1025
+        },
+        {
+          "name": "bcc$setVerticalViewDistance",
+          "descriptor": "(I)V",
+          "flags": 1025
+        }
+      ]
+    },
+    "dev/fallingcloud/bettercubicchunks/server/net/ServerNetHandlers": {
+      "fields": [],
+      "methods": [
+        {
+          "name": "<init>",
+          "descriptor": "()V",
+          "flags": 2
+        },
+        {
+          "name": "onPlayerJoin",
+          "descriptor": "(Lnet/minecraft/class_3222;)V",
+          "flags": 9
+        },
+        {
+          "name": "handleClientSettings",
+          "descriptor": "(Lnet/minecraft/class_3222;Ldev/fallingcloud/bettercubicchunks/net/CubicClientSettingsPayload;)V",
+          "flags": 9
+        }
+      ]
+    },
+    "dev/fallingcloud/bettercubicchunks/chunk/CubicColumnState": {
+      "fields": [
+        {
+          "name": "NBT_KEY",
+          "descriptor": "Ljava/lang/String;",
+          "flags": 25,
+          "constantValue": "bcc:cubes"
+        },
+        {
+          "name": "STATUS_KEY",
+          "descriptor": "Ljava/lang/String;",
+          "flags": 26,
+          "constantValue": "status"
+        },
+        {
+          "name": "OCCLUSION_KEY",
+          "descriptor": "Ljava/lang/String;",
+          "flags": 26,
+          "constantValue": "occlusion"
+        },
+        {
+          "name": "GENERATED_KEY",
+          "descriptor": "Ljava/lang/String;",
+          "flags": 26,
+          "constantValue": "generated"
+        },
+        {
+          "name": "FULL_KEY",
+          "descriptor": "Ljava/lang/String;",
+          "flags": 26,
+          "constantValue": "full"
+        },
+        {
+          "name": "NO_OCCLUSION",
+          "descriptor": "I",
+          "flags": 25,
+          "constantValue": -2147483648
+        },
+        {
+          "name": "sectionCount",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "minSectionY",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "minBuildHeight",
+          "descriptor": "I",
+          "flags": 18
+        },
+        {
+          "name": "status",
+          "descriptor": "[B",
+          "flags": 18
+        },
+        {
+          "name": "materialized",
+          "descriptor": "Ljava/util/BitSet;",
+          "flags": 18
+        },
+        {
+          "name": "dirty",
+          "descriptor": "Ljava/util/BitSet;",
+          "flags": 18
+        },
+        {
+          "name": "generated",
+          "descriptor": "Ljava/util/BitSet;",
+          "flags": 18
+        },
+        {
+          "name": "full",
+          "descriptor": "Ljava/util/BitSet;",
+          "flags": 18
+        },
+        {
+          "name": "occlusionHeight",
+          "descriptor": "[I",
+          "flags": 18
+        },
+        {
+          "name": "groundEstimate",
+          "descriptor": "I",
+          "flags": 66
+        },
+        {
+          "name": "groundTop",
+          "descriptor": "I",
+          "flags": 66
+        },
+        {
+          "name": "highestMaterialized",
+          "descriptor": "I",
+          "flags": 2
+        },
+        {
+          "name": "lowestMaterialized",
+          "descriptor": "I",
+          "flags": 2
+        },
+        {
+          "name": "occlusionDirty",
+          "descriptor": "Z",
+          "flags": 2
+        },
+        {
+          "name": "spawnedOriginalMobs",
+          "descriptor": "Z",
+          "flags": 2
+        },
+        {
+          "name": "columnDirty",
+          "descriptor": "Z",
+          "flags": 2
+        },
+        {
+          "name": "GROUND_SHADE_MARGIN",
+          "descriptor": "I",
+          "flags": 25,
+          "constantValue": 256
+        },
+        {
+          "name": "REAL_GROUND_SHADE_MARGIN",
+          "descriptor": "I",
+          "flags": 25,
+          "constantValue": 32
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "descriptor": "(II)V",
+          "flags": 1
+        },
+        {
+          "name": "sectionCount",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "minSectionY",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "indexOfSectionY",
+          "descriptor": "(I)I",
+          "flags": 1
+        },
+        {
+          "name": "sectionYOfIndex",
+          "descriptor": "(I)I",
+          "flags": 1
+        },
+        {
+          "name": "isValidIndex",
+          "descriptor": "(I)Z",
+          "flags": 1
+        },
+        {
+          "name": "status",
+          "descriptor": "(I)Ldev/fallingcloud/bettercubicchunks/core/CubeStatus;",
+          "flags": 1
+        },
+        {
+          "name": "setStatus",
+          "descriptor": "(ILdev/fallingcloud/bettercubicchunks/core/CubeStatus;)V",
+          "flags": 1
+        },
+        {
+          "name": "raiseStatus",
+          "descriptor": "(ILdev/fallingcloud/bettercubicchunks/core/CubeStatus;)V",
+          "flags": 1
+        },
+        {
+          "name": "wasFull",
+          "descriptor": "(I)Z",
+          "flags": 1
+        },
+        {
+          "name": "wasGenerated",
+          "descriptor": "(I)Z",
+          "flags": 1
+        },
+        {
+          "name": "markGenerated",
+          "descriptor": "(I)V",
+          "flags": 1
+        },
+        {
+          "name": "clearGenerated",
+          "descriptor": "(I)V",
+          "flags": 1
+        },
+        {
+          "name": "allGeneratedCubesLoadedAbove",
+          "descriptor": "(I)Z",
+          "flags": 1
+        },
+        {
+          "name": "hasData",
+          "descriptor": "(I)Z",
+          "flags": 1
+        },
+        {
+          "name": "loadedCubeCount",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "isMaterialized",
+          "descriptor": "(I)Z",
+          "flags": 1
+        },
+        {
+          "name": "onMaterialized",
+          "descriptor": "(I)V",
+          "flags": 1
+        },
+        {
+          "name": "onDematerialized",
+          "descriptor": "(I)V",
+          "flags": 1
+        },
+        {
+          "name": "highestMaterialized",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "lowestMaterialized",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "materializedSections",
+          "descriptor": "()Ljava/util/BitSet;",
+          "flags": 1
+        },
+        {
+          "name": "materializedCount",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "markDirty",
+          "descriptor": "(I)V",
+          "flags": 1
+        },
+        {
+          "name": "isDirty",
+          "descriptor": "(I)Z",
+          "flags": 1
+        },
+        {
+          "name": "clearDirty",
+          "descriptor": "(I)V",
+          "flags": 1
+        },
+        {
+          "name": "hasDirtyCubes",
+          "descriptor": "()Z",
+          "flags": 1
+        },
+        {
+          "name": "dirtyCubes",
+          "descriptor": "()Ljava/util/BitSet;",
+          "flags": 1
+        },
+        {
+          "name": "occlusionHeight",
+          "descriptor": "(II)I",
+          "flags": 1
+        },
+        {
+          "name": "maxOcclusionHeight",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "raiseOcclusion",
+          "descriptor": "(III)V",
+          "flags": 1
+        },
+        {
+          "name": "setOcclusion",
+          "descriptor": "(III)V",
+          "flags": 1
+        },
+        {
+          "name": "consumeOcclusionDirty",
+          "descriptor": "()Z",
+          "flags": 1
+        },
+        {
+          "name": "setGroundEstimate",
+          "descriptor": "(I)V",
+          "flags": 1
+        },
+        {
+          "name": "groundEstimate",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "setGroundTop",
+          "descriptor": "(I)V",
+          "flags": 1
+        },
+        {
+          "name": "groundTop",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "groundShadeY",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "minBuildHeight",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "spawnedOriginalMobs",
+          "descriptor": "()Z",
+          "flags": 1
+        },
+        {
+          "name": "setSpawnedOriginalMobs",
+          "descriptor": "(Z)V",
+          "flags": 1
+        },
+        {
+          "name": "consumeColumnDirty",
+          "descriptor": "()Z",
+          "flags": 1
+        },
+        {
+          "name": "markColumnDirty",
+          "descriptor": "()V",
+          "flags": 1
+        },
+        {
+          "name": "save",
+          "descriptor": "()Lnet/minecraft/class_2487;",
+          "flags": 1
+        },
+        {
+          "name": "load",
+          "descriptor": "(Lnet/minecraft/class_2487;)V",
+          "flags": 1
+        },
+        {
+          "name": "statusSnapshot",
+          "descriptor": "()[B",
+          "flags": 1
+        }
+      ]
+    },
+    "dev/fallingcloud/bettercubicchunks/client/ClientCubes": {
+      "fields": [],
+      "methods": [
+        {
+          "name": "<init>",
+          "descriptor": "()V",
+          "flags": 2
+        },
+        {
+          "name": "isCubeLoaded",
+          "descriptor": "(Lnet/minecraft/class_1937;Lnet/minecraft/class_2338;)Z",
+          "flags": 9
+        }
+      ]
+    },
+    "dev/fallingcloud/bettercubicchunks/server/storage/CubeStorage": {
+      "fields": [
+        {
+          "name": "MAX_OPEN_REGIONS",
+          "descriptor": "I",
+          "flags": 26,
+          "constantValue": 48
+        },
+        {
+          "name": "THREAD_COUNTER",
+          "descriptor": "Ljava/util/concurrent/atomic/AtomicInteger;",
+          "flags": 26
+        },
+        {
+          "name": "directory",
+          "descriptor": "Ljava/nio/file/Path;",
+          "flags": 18
+        },
+        {
+          "name": "externalDirectory",
+          "descriptor": "Ljava/nio/file/Path;",
+          "flags": 18
+        },
+        {
+          "name": "compressor",
+          "descriptor": "Ldev/fallingcloud/bettercubicchunks/storage/CubeRegionFile$Compressor;",
+          "flags": 18
+        },
+        {
+          "name": "executor",
+          "descriptor": "Ljava/util/concurrent/ExecutorService;",
+          "flags": 18
+        },
+        {
+          "name": "openRegions",
+          "descriptor": "Lit/unimi/dsi/fastutil/longs/Long2ObjectLinkedOpenHashMap;",
+          "flags": 18
+        },
+        {
+          "name": "pendingWrites",
+          "descriptor": "Ljava/util/Map;",
+          "flags": 18
+        },
+        {
+          "name": "closed",
+          "descriptor": "Z",
+          "flags": 66
+        },
+        {
+          "name": "TOMBSTONE",
+          "descriptor": "[B",
+          "flags": 26
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "descriptor": "(Ljava/nio/file/Path;Ldev/fallingcloud/bettercubicchunks/storage/CubeRegionFile$Compressor;Ljava/lang/String;)V",
+          "flags": 1
+        },
+        {
+          "name": "directory",
+          "descriptor": "()Ljava/nio/file/Path;",
+          "flags": 1
+        },
+        {
+          "name": "load",
+          "descriptor": "(III)Ljava/util/concurrent/CompletableFuture;",
+          "flags": 1
+        },
+        {
+          "name": "store",
+          "descriptor": "(III[B)Ljava/util/concurrent/CompletableFuture;",
+          "flags": 1
+        },
+        {
+          "name": "delete",
+          "descriptor": "(III)Ljava/util/concurrent/CompletableFuture;",
+          "flags": 1
+        },
+        {
+          "name": "writePending",
+          "descriptor": "(JIII)V",
+          "flags": 2
+        },
+        {
+          "name": "region",
+          "descriptor": "(III)Ldev/fallingcloud/bettercubicchunks/storage/CubeRegionFile;",
+          "flags": 2
+        },
+        {
+          "name": "synchronize",
+          "descriptor": "(Z)Ljava/util/concurrent/CompletableFuture;",
+          "flags": 1
+        },
+        {
+          "name": "pendingWriteCount",
+          "descriptor": "()I",
+          "flags": 1
+        },
+        {
+          "name": "close",
+          "descriptor": "()V",
+          "flags": 1
+        },
+        {
+          "name": "lambda$close$5",
+          "descriptor": "()V",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$synchronize$4",
+          "descriptor": "(Z)V",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$delete$3",
+          "descriptor": "(JIII)V",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$store$2",
+          "descriptor": "(JIII)V",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$load$1",
+          "descriptor": "(JIII)[B",
+          "flags": 4098
+        },
+        {
+          "name": "lambda$new$0",
+          "descriptor": "(Ljava/lang/String;Ljava/lang/Runnable;)Ljava/lang/Thread;",
+          "flags": 4106
+        },
+        {
+          "name": "<clinit>",
+          "descriptor": "()V",
+          "flags": 8
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "README.md": {
+    "bytes": 9184,
+    "sha256": "fc4694774f7e702e0357cad21af44ea3e59807bf2e94ba1dba2f40035457c0a1"
+  },
+  "actual-accepted-water-default-config.txt": {
+    "bytes": 3947,
+    "sha256": "a7b6f37fde17c813335f38044874ee0a584dcc1cafee55d5065fb281ca360707"
+  },
+  "native-interest-api.json": {
+    "bytes": 65490,
+    "sha256": "cf95b85bd8ee16e4530605f28e87aa8115f7ad1e54102b8736f8e248da5ef637"
+  },
+  "read_api_metadata.py": {
+    "bytes": 2810,
+    "sha256": "a95fc6ea409f157d1df17a2a9850533f10bc1049b8a39ff03c35b858429a3b04"
+  }
+}
