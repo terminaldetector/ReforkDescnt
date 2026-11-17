@@ -1,0 +1,18 @@
+{
+  "scope": "Root-authorized only closed firstc0 premise raw save; all other outputs/source/archives retained",
+  "originalPath": "/workspace/ungravity-v5/cubic-next-20261109/build/cubic-fluid-unknown-writer-automation/saves/Cubic-Gate",
+  "archive": "/workspace/ungravity-v5/cubic-next-20261109/work/cubic-fluid-unknown/cubic-fluid-unknown-writer-c0c5ede-sodium-closed-world.tar.gz",
+  "archiveSha256": "ba2ee8e4a29ab2b693cf7a6d9c5c50cb2c02f03728ca49caf097acb83d3637cf",
+  "archiveGzipEofCrcVerified": true,
+  "beforeFreeBytes": 139116544,
+  "fileCount": 93,
+  "allOriginalBytesMatchArchive": true,
+  "exclusiveFcntlLockAcquired": true,
+  "sessionLockSha256": "51643361c79ecaef25a8de802de24f570ba25d9c2df1d22d94fade11b4f466cc",
+  "logicalBytes": 30448502,
+  "allocatedFileBytes": 30617600,
+  "nanoTime": 32855807641475,
+  "onlyClosedSavedCopyRemoved": true,
+  "afterFreeBytes": 169811968,
+  "concurrentSiblingWorkPossible": true
+}
