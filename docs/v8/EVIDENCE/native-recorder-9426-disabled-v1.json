@@ -1,0 +1,85 @@
+{
+  "schema": "ungravity.recorder-disabled-control.v1",
+  "created_utc": "2026-11-17T14:54:11.576037+00:00",
+  "tested_java_source": "9426a6549fc91abc8c7e060a2eef9f184742dc3d",
+  "host_head": "4d997e509f81b9cc3bf51853ee59bda8b2aa85eb",
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "cf3701b529b21633a8a3e910e6755d006d97d6349e8938d7701c82671027138d",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "cb1056d89d1435a5211c5a1c1728934fde2caf92c3c85e28016e2c5ff4bce70a"
+  },
+  "source_input_count": 1438,
+  "native_exit": {
+    "child_pid": 69298,
+    "returncode": 0,
+    "timed_out": false,
+    "forced_kill": false,
+    "observed_at": "2026-11-17T14:50:55.192832+00:00"
+  },
+  "observer": {
+    "case": "disabled",
+    "source": "9426a6549fc91abc8c7e060a2eef9f184742dc3d",
+    "run_id": "9426-disabled-v1",
+    "polls": 441,
+    "armed_lines": 0,
+    "wrote_lines": 0,
+    "child_exit": {
+      "child_pid": 69298,
+      "returncode": 0,
+      "timed_out": false,
+      "forced_kill": false,
+      "observed_at": "2026-11-17T14:50:55.192832+00:00"
+    },
+    "native_log_sha256": "b4ccfb14473ce081533168febc82ba1c38f7e113ca554899f0b3483309202d15",
+    "full_s16_accepted": false,
+    "performance_accepted": false,
+    "release_accepted": false,
+    "scope": "Instrumentation output/lifecycle only; software rendering, no hardware/performance certificate",
+    "status": "PASS_DISABLED_ZERO_EMISSION",
+    "allocation_measurement_performed": false,
+    "observer_sha256": "6352a0991733890e35dbd6c51985cd3601887778649d6fd4a47972b938032fc9",
+    "observer_config_sha256": "307ba7cf6993e23fed95b3a621d2d13a05bb9b19af19ed87829e5ef5bf881a75"
+  },
+  "wrapper_sha256": "b2f734bb22f70df34a1fce61683f5d49fc3a3fbd4dd261d63d4344d08604f17c",
+  "native_executor_sha256": "1946e64f61de6d676f1cf4e09e519e59174fad3356de3eea56e13ed5ab56fc64",
+  "native_log_sha256": "b4ccfb14473ce081533168febc82ba1c38f7e113ca554899f0b3483309202d15",
+  "recorder_armed_count": 0,
+  "recorder_wrote_count": 0,
+  "recorder_failure_count": 0,
+  "observed_output_members": [],
+  "mounted_frames": [
+    "connected-off",
+    "laser-fire",
+    "rocket-fire",
+    "fire-off-reversed",
+    "bearing-detached"
+  ],
+  "render_thread_activity_count": 51,
+  "first_render_thread_activity": "[14:50:17] [Render thread/INFO]: [STDOUT]: MOUNTED_CLIENT_USE phase=0 age=12 handled=true",
+  "last_render_thread_activity": "[14:50:53] [Render thread/INFO]: [STDOUT]: MOUNTED_CLIENT_USE phase=8 age=68 handled=true",
+  "hardware_scope": [
+    "[14:49:39] [Render thread/INFO]: OpenGL Vendor: Mesa",
+    "[14:49:39] [Render thread/INFO]: OpenGL Renderer: llvmpipe (LLVM 19.1.7, 256 bits)",
+    "[14:49:39] [Render thread/INFO]: OpenGL Version: 3.3 (Core Profile) Mesa 25.0.7-2+deb13u1"
+  ],
+  "capture_allocation_measurement_performed": false,
+  "manual_frame_review_performed": false,
+  "archive": {
+    "path": "docs/v8/EVIDENCE/native-recorder-9426-disabled-v1.zip",
+    "sha256": "080c41148505fbe43cd10a8f0b35b5f5117b6b0cc0dd7860bdeea1b31d84d382",
+    "bytes": 988747,
+    "payload_members": 51,
+    "total_members": 52,
+    "all_crc_and_member_hashes_verified": true
+  },
+  "closed_save": {
+    "path": "/workspace/ungravity-v5/audit-next-20261109/build/native-benchmark-9426/9426-disabled-v1/cubic-client-automation/saves/Cubic-Gate",
+    "preserved_in_place": true,
+    "deleted": false,
+    "new_restore_acceptance": false
+  },
+  "scope": "First actual disabled historical recorder-component control only. Zero observed emission under441polls plus five active native gate scenes, not allocation/hardware/performance/new canonical game/fullS16 acceptance.",
+  "performance_accepted": false,
+  "full_s16_accepted": false,
+  "release_accepted": false,
+  "capacity_control_run": false
+}
