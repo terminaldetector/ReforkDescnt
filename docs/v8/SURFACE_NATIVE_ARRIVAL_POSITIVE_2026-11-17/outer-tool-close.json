@@ -1,0 +1,12 @@
+{
+  "tool": "write_stdin",
+  "sessionId": 49280,
+  "response": {
+    "chunk_id": "23e9d5",
+    "wall_time_seconds": 1.9161e-05,
+    "exit_code": 0,
+    "original_token_count": 46,
+    "output": "{\n  \"closedStage\": \"native\",\n  \"actualNativeHelperCode\": 0,\n  \"actualJavaExit\": 0,\n  \"sourceHelpersArtifactsUnchanged\": true,\n  \"wrapperFinalCode\": 0,\n  \"nanoTime\": 22396468807556\n}\n"
+  },
+  "provenance": "Original observed final nested tool response"
+}
