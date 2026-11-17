@@ -1,0 +1,9 @@
+{
+  "pid": 46456,
+  "argv": [
+    "bash",
+    "scripts/v8/cubic_arrival_native.sh",
+    "cubic-surface-arrival-baseline-1281ce8-sodium"
+  ],
+  "nanoTime": 20696971707023
+}

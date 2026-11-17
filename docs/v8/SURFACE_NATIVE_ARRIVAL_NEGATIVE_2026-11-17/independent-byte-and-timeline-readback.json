@@ -1,0 +1,58 @@
+{
+  "status": "FAIL_NO_AVAILABLE_REFRESH",
+  "rawPacket": {
+    "file": "packets/packet-1.bin",
+    "bytes": 5121,
+    "sha256": "2214c13e203e6d6c172a9e7a4452019960935564e57f51162c2d546ec34d32d3",
+    "decodedCell": {
+      "height": 2301,
+      "colour": 0
+    }
+  },
+  "savedSection": {
+    "file": "disk/L0_0_0.bin",
+    "compressedBytes": 117,
+    "compressedSha256": "2c0f158de9142ac34a88611d026589763a3d7d969c0a386334edf5f831db4e10",
+    "decodedCell": {
+      "height": 2301,
+      "colour": 0
+    }
+  },
+  "timelineKindCounts": {
+    "production-ingest": 1,
+    "fabric-parent-load": 1,
+    "native-apply-head": 36,
+    "native-apply-return": 36,
+    "ordinary-player-move": 2,
+    "confirmed-low-black-premise": 1,
+    "first-server-high-full": 1,
+    "first-server-client-high-full": 1
+  },
+  "parentLoadTicks": [
+    31
+  ],
+  "productionIngestTicks": [
+    31
+  ],
+  "actualHighApplyReturn": [
+    {
+      "serverTick": 127,
+      "thread": "Server thread",
+      "ownerThread": true,
+      "highFull": true,
+      "lowFull": true,
+      "parentIdentity": 322849805,
+      "nativeSampleAtHigh": 2300,
+      "kind": "native-apply-return",
+      "sequence": 43,
+      "nanoTime": 20738284290439,
+      "argumentCubeY": 1167,
+      "argumentAsSectionIndexToCubeY": 143
+    }
+  ],
+  "fullPollTick": 129,
+  "bothFullTick": 131,
+  "finalTick": 729,
+  "actualProtocolAndTimelineAssertionsPassed": true,
+  "interpretation": "Native callback raw argument1167 is the section index in this world; actual sectionIndexToCoord gives cubeY143. No upstream implementation inferred/copied."
+}

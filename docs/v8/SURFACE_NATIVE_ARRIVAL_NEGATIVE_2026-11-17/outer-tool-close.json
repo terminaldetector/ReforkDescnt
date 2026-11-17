@@ -1,0 +1,12 @@
+{
+  "tool": "write_stdin",
+  "sessionId": 54142,
+  "response": {
+    "chunk_id": "8f325a",
+    "wall_time_seconds": 2.9408e-05,
+    "exit_code": 255,
+    "original_token_count": 57,
+    "output": "{\n  \"nativeHelperReturnCode\": 255,\n  \"nativeProcessExit\": 255,\n  \"outcome\": \"FAIL_NO_AVAILABLE_REFRESH\",\n  \"finalReceipt\": \"/workspace/ungravity-v5/cubic-next-20261109/work/cubic-arrival/native-only-1281ce8/final-close.json\"\n}\n"
+  },
+  "provenance": "Original final nested tool response as observed; also cross-checked with actual fsynced child/final receipts"
+}
