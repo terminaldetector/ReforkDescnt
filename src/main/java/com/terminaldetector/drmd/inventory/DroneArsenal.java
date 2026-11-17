@@ -64,10 +64,23 @@ public final class DroneArsenal {
    // Consume before cooldown/selection checks: rejected taps are never queued
    // for a later shot, even if the cooldown or selected item subsequently changes.
    int requested=state.mask|taps;
+   // A physical stack already charging on a held bank owns that lifecycle.
+   // A fallback click on another bank must not release or restart its charge.
+   for(int i=0;i<3;i++){
+    var hold=state.holds[i];int bit=1<<i;
+    if(hold==null || (state.mask&requested&bit)==0 || hold.stack!=weapon(p,i))continue;
+    for(int j=0;j<3;j++)if(j!=i && weapon(p,j)==hold.stack)requested&=~(1<<j);
+   }
+   for(int i=1;i<3;i++)if((requested&1)!=0 && weapon(p,i)==weapon(p,0))requested&=~(1<<i);
+   int heldMask=state.mask&requested;
+   // Finish genuinely released/replaced charges first, so their real stop
+   // cooldown is visible before a new bank tries to start another use.
+   for(int i=0;i<3;i++){
+    var hold=state.holds[i];
+    if(hold!=null && ((heldMask&(1<<i))==0 || hold.stack!=weapon(p,i)))stop(p,state,i);
+   }
   for(int i=0;i<3;i++){
-    var selected=weapon(p,i);var hold=state.holds[i];boolean held=(state.mask&(1<<i))!=0,pressed=(requested&(1<<i))!=0;
-    if(i>0 && (requested&1)!=0 && selected==weapon(p,0)){held=false;pressed=false;}
-    if(hold!=null && (!held || hold.stack!=selected)){stop(p,state,i);hold=null;}
+    var selected=weapon(p,i);var hold=state.holds[i];boolean held=(heldMask&(1<<i))!=0,pressed=(requested&(1<<i))!=0;
    if(!pressed || selected.isEmpty())continue;
    if(hold!=null){var h=hold;h.age++;withHand(p,h.stack,()->h.stack.getItem().usageTick(p.getWorld(),p,h.stack,Math.max(0,h.max-h.age)));if(h.age>=h.max)stop(p,state,i);continue;}
    if(p.getItemCooldownManager().isCoolingDown(selected.getItem()))continue;
