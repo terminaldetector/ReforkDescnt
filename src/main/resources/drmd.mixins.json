@@ -40,6 +40,7 @@
     "client.GameMenuScreenMixin",
     "client.GameRendererMixin",
     "client.PresentationRendererMixin",
+    "client.DebugWorldRasterMixin",
     "client.InGameHudMixin",
     "client.LivingEntityRendererMixin",
     "client.MouseMixin",

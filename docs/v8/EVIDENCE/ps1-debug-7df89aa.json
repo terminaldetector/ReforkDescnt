@@ -1,0 +1,34 @@
+{
+  "source": "7df89aaf1e8f65a7493a9f86a6a31a74303f2f0a",
+  "productionSource": "efa5b3ffef7398d6630fc96f311e6b639b170e78",
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "bf42ed35c8335ca8b249bfcdfe61ad9858e47bda5d25222ee52d1342c6ada1bd",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "060b0b66e5cdcceb09a947044efc63d1126f254c3a733350d6f0401cfb721a2e"
+  },
+  "unit": {
+    "source": "efa5b3ffef7398d6630fc96f311e6b639b170e78",
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "nativeStrictCases": [
+    "ps1-debug-contrast-fixed-fabulous-gl32",
+    "ps1-debug-contrast-fixed-sodium"
+  ],
+  "imagesInspected": 18,
+  "firstNegative": {
+    "source": "09b50e0fa8b88a3918f8671b61369cb04e98c11e",
+    "hits": 3,
+    "samples": 346,
+    "ratio": 0.008670520231213872,
+    "scope": "Actual native first failure and pure-world PNG; stricter contrast algorithm also replayed offline without weakening thresholds."
+  },
+  "scope": "Debug compositor-fill fix only; original scene-target proof remains separate. No full canonical regression count, full S04/S05/v8 or S05-T04/viewmodel acceptance.",
+  "openViewmodelDifference": "Native gold center weapon tip is absent in PS1 frames, including old703 and new7df; separate pixel/viewmodel follow-up.",
+  "archive": "docs/v8/EVIDENCE/ps1-debug-7df89aa.zip",
+  "archiveSha256": "2f09ff695b858f72dc0973b30c040c911a5812efe0f4a77e10ef67d8301e4d6a",
+  "verifiedFiles": 107,
+  "crcAndHashesVerified": true,
+  "releaseAccepted": false
+}
