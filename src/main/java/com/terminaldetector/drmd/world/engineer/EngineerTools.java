@@ -61,9 +61,12 @@ public final class EngineerTools {
 			if (hit.getType() == HitResult.Type.BLOCK) {
 				BlockPos pos = hit.getBlockPos();
 				BlockState st = world.getBlockState(pos);
-				if (st.isOf(Blocks.CRACKED_STONE_BRICKS) || st.isOf(Blocks.CRACKED_DEEPSLATE_BRICKS)
-						|| st.isOf(Blocks.CRACKED_NETHER_BRICKS)) {
+				if (st.isOf(Blocks.CRACKED_STONE_BRICKS)) {
 					world.setBlockState(pos, Blocks.STONE_BRICKS.getDefaultState(), Block.NOTIFY_ALL);
+				} else if (st.isOf(Blocks.CRACKED_DEEPSLATE_BRICKS)) {
+					world.setBlockState(pos, Blocks.DEEPSLATE_BRICKS.getDefaultState(), Block.NOTIFY_ALL);
+				} else if (st.isOf(Blocks.CRACKED_NETHER_BRICKS)) {
+					world.setBlockState(pos, Blocks.NETHER_BRICKS.getDefaultState(), Block.NOTIFY_ALL);
 				} else if (st.getHardness(world, pos) >= 0) {
 					world.setBlockState(pos, st, Block.NOTIFY_ALL);
 				}

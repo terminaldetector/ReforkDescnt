@@ -3,8 +3,8 @@
   "category": "redstone",
   "pattern": [
     "AAA",
-    "AEA",
-    "AAA"
+    "AAA",
+    "AEA"
   ],
   "key": {
     "A": {
