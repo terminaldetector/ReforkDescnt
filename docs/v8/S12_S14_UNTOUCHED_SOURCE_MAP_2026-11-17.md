@@ -1,0 +1,48 @@
+# S12–S14 actual source versus still-unfulfilled clauses
+
+Read-only pin: canonical1a8593846bed3b02d03d68236c6698d26a5116d4. Selected source
+paths were checked unchanged against that commit. No central status/ledger edit,
+new test or Java launch. Local diagnostic candidate9107dbe remains frozen. This
+draft is outside executing source/helper inputs and is not runtime acceptance.
+
+Primary clause references: v8 `00_MASTER_SPEC.md`, immutable reference
+`05_EXECUTION/TASKS.yaml` S12–S14, `03_GAMEPLAY/SWARM_FACTIONS_SURVIVAL.md`,
+`04_WORLD/PLANET_RING_CITADEL_LABS.md`, `04_WORLD/CITY_ASSET_PIPELINE.md`. Direct
+Dynamic Boarding remains a primary constraint on ship/mission hooks: continuous
+local/world physics, no static ship clone/teleport interior/new-dimension shortcut.
+Older world/render/UFO supplements remain context, not permission to reactivate
+retired Advanced content or replace actual gameplay with visual/pure proofs.
+
+| Clause | Actual inspected source/evidence | Still unfulfilled or unproven |
+| --- | --- | --- |
+| S12-T01 search→hunt→siege→cooldown with faction attribution | `ThreatProgress` has QUIET/WARNING/SEARCHING/HUNTING/COOLDOWN only; `SurvivalThreatDirector.confirmedKill` reacts to confirmed real Survival kills and spawns a bounded existing ORB pair. Persisted faction tag is a single hostile_machines attribution. Scoped9unit/5GT accepted ed0931a. | No SIEGE state, base-vulnerability selection or full unprovoked/time/reputation/transmitted-alarm loop. `FactionMemory` is not wired into that director. Existing recon proof is PARTIAL. |
+| S12-T02 two rocketeers/base, warning/defense/escape | ORB/ROCKET/JET entities and generic mounted laser/rocket machinery exist; current Combat/BlockBody evidence belongs to their owners. | No inspected coherent two-rocket-infantry base encounter with novice fairness, warning, countermeasure and escape branch acceptance. A RocketDroneEntity or weapon shot alone does not establish this balance clause. |
+| S12-T03 simple gun/plasma/AA resource progression | Real `weapon_d6_laser.json` and `weapon_d6_plasma.json` exist, with simple alloy/energy/redstone/amethyst ingredients; laser/plasma turret recipes also exist. Generic bearing/drive/laser/rocket recipes, actual use/recovery/repair6GT passed16a25a9/436b78e. | Do not say recipes are absent. Full ordinary Survival acquisition→gun/plasma use→actual missile defense→resource exhaustion/recovery path is unverified. Mounted construction proof is partial; legacy monolithic turret recipes are not the requested new Create-style mechanism direction. No invented factory or cost rebalance. |
+| S12-T04 repair/loss rules and no early softlock | Actual recipe/material consumption, ordinary salvage/reuse, world material-family repair and guarded moving-body partial repair have accepted focused6 proof. Recon has bounded online grace/cooldown and actual warning. | No inspected complete base-loss/critical-resource/respawn recovery policy or integrated beginner recovery scenario. Repair availability alone does not prove immunity to an irreversible early siege softlock. |
+| S12-T05 coherent day/night hunt with branches | Individual confirmed-signal/search/hunt tests exist; ordinary faction warning and real LoS tracking are code. | No accepted one complete day/night player-decision event spanning concealment/defense/capture/escape/repair/resource/faction aftermath. |
+| S13-T01 deterministic planetary zones/core/upper atmosphere | World limits/vertical bounds and WorldLayer/WorldLevels labels exist; core/native bounds belong to world_cubic. `WorldLevels` still declares the stock -784…1888 band constants; `PlanetMap` explicitly describes a procedural height/tint picture, not actual vanilla generation. | No accepted preset-derived physical core→underground→surface→ring/Citadel spatial macrograph with hazards/landmarks/metadata. Old hard-coded band labels or a distant picture do not substitute for that design. No literal Earth scale required. |
+| S13-T02 underground laboratories/shafts/permissions | Legacy generators and templates exist; local pure CityBlueprint includes a LAB_SHAFT archetype and air openings. Generic WorldAccess/BlockBody interaction permissions exist. | No accepted actual original lab/shaft playable spatial/content prototype with full routes, mechanisms and permission/use/destruction acceptance. City runtime027 compiled +pure55 but0/5 fixture watchdogs; no credit for physical city/lab. |
+| S13-T03 deserted stations/asteroids near/mid/far | Old EndSpace/Orbit/Citadel geometry classes exist; EndSpaceWorldgen.register early-returns when LegacyGeneration.retired. Current renderer/LOD proofs belong to presentation owner. | No accepted actual station boarding/sabotage and asteroid-body near/mid/far physical-versus-impostor transitions. Do not reactivate old tiled End generators to manufacture completion. |
+| S13-T04 damaged ring/faction Citadel/routes | `OrbitBands` defines a stock radius2048 ring and old junk slabs; CitadelStationGenerator performs synchronous hull placement through EndReactorSession. Legacy root callbacks are retired. | No accepted one-world authored damaged ring/faction hub with intentional 3D flight routes/anchors/versioned content. Existing old geometry is not an approved active authored macrograph. |
+| S13-T05 smooth atmosphere/LOD and no random junk | Atmosphere/presentation/LOD work exists in parallel; retired auto generators prevent their old default writes. | Shared-owner presentation verification must be credited by its exact evidence, not this audit. No new active planetary content/physical transitions are established merely by city/pure metadata. Keep global/default generation retired. |
+| S13-T06 cross-layer physical navigation/compact pacing | `LayerBridge` now explicitly only announces bands and does not teleport at seams. Direct boarding mechanics are independently developed/accepted in narrow root gates. | No accepted complete route linking physical core/lab/surface/orbit/ring with compact mission pacing/extraction. Separate-dimension or static-copy shortcuts remain excluded. |
+| City asset/stress supplement | Own deterministic8archetype/16lot pure plan, bounds/material caps, save protocol and worker55 tests exist. First027 full compile passed, first5 actual cases all watchdoged before protected predicates were established;9d8faa retains that result. | No actual complete16-building city, explosive+rail-thrown block+32/128drones+2rocketeers destruction/rebuild, before/after FPS/MSPT/debris/serialization and fresh save reload proof. No imported licensed map was claimed or used. |
+| S14-T01 five proposed tech levels | Legacy EnclaveSite randomly stores tech0…3 and anchors atY72. This is old procedural dialogue state, not a proposed/approved five-level design. | Versioned neutral candidate table/schema and editorial validation remain needed. Exact names/chronology/material costs must not silently become canon; old0…3 fields do not fulfill the five-candidate requirement. |
+| S14-T02 Shapes armed physical organized infantry, no vanilla teleport | `HostileEnvironment` includes ordinary EndermanEntity among hostiles; `ConstructShapes` and VoxelShapes are building/collision geometry, not this enemy role. ModEntities registers ORB/ROCKET/JET and other old entities, with no dedicated Shapes class found. | Armed cybernetic infantry, actual squad tactics/cover/gun/energy role and explicit vanilla-teleport replacement are unimplemented/unverified by inspected source. Universal mob physics is a dependency, not this gameplay archetype. |
+| S14-T03 distinct flying teleport archetype/counterplay | Portal/native entity travel exists; weapons include teleport-themed identifiers. | No dedicated flying teleport enemy role/registry/behavior/counterplay acceptance found. Generic portals/projectiles are not that role. |
+| S14-T04 Heavy Operator laser+shoulder rockets on BlockBody | Generic BlockBody bearing/drive/weapon modules and UFO child mounts provide reusable mechanisms; these are real development, not to be discarded. | No distinct compact mobile Heavy Operator assembly/AI/loadout/counterplay acceptance found. Reuse the generic Create-style blocks/joints rather than create another UFO-only engine. |
+| S14-T05 three Strife-style missions/data contracts | `EnclaveQuest` is Kind+siteSeed/title/pick; Herald sneak-use gives+3 reputation immediately. `FactionMemory` persists reputation/control flags. | No scriptable objective/trigger/difficulty/extraction/faction-state engine or actual Convoy Ambush/Reactor Boarding/Lab Infiltration contracts found in source/data/tests. A title/offer and immediate reputation bump do not complete a mission. Actual continuous boarding can supply one mission mechanic later. |
+
+The registration/resource searches above are concrete inspected-source findings,
+not claims that no differently named implementation could exist. Audit integration
+owns the complete all-clause matrix. Current city55 pure and compile proof must not
+replace any untouched Survival/faction/mission clause or the Direct Boarding gates.
+
+Suggested next concrete proposals after the diagnostic gate, for root ownership
+review: (1) real ordinary Survival laser/plasma/AA acquisition and recovery harness
+against existing recipes/costs, before balance changes; (2) a versioned three-mission
+contract with real objective/extraction hooks reusing BlockBody/driver events;
+(3) five candidate faction-tech schema only, kept out of live balance pending
+editorial approval. Actual siege/infantry/defense needs coordinated combat ownership,
+and authored zone generation must use the real cubic/WorldAccess boundary, never
+retired full-column generators.
