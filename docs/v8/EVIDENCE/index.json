@@ -69,7 +69,8 @@
     "native-recorder-9426-enabled-retry1.zip": "cfb96b793eea4ad1826585ff1df59828c649e1f517d1dda932575d091e5a6e40",
     "native-recorder-9426-helpers.zip": "a784ee0ec5d7b5e39b75d91e374656552f116224acaadf7c2424ef710de3e69f",
     "integrated-bd29aab-server.zip": "354f1ed00953b51f814174e18245976eb2eb3854199e48fe69d55d6345cf19cd",
-    "integrated-bd29aab-world-profile.json": "e064e661cf158fd5200e05b95056231584573eda25b265f2241a743d6568f26c"
+    "integrated-bd29aab-world-profile.json": "e064e661cf158fd5200e05b95056231584573eda25b265f2241a743d6568f26c",
+    "integrated-11513cd.zip": "6739da2134c8dfd4fee6ae89964b83dd9774b3473ca0a151fd15b37862f9adf6"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -3077,6 +3078,194 @@
     "report": "MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md",
     "sameJarNativeOutcome": "FAIL_UNAVAILABLE_SURFACE_WINNER",
     "nativeLoadedControlsPassed": 3,
+    "fullSpecificationAccepted": false
+  },
+  "multiAgentIntegration11513cd": {
+    "archive": "docs/v8/EVIDENCE/integrated-11513cd.zip",
+    "sha256": "6739da2134c8dfd4fee6ae89964b83dd9774b3473ca0a151fd15b37862f9adf6",
+    "payloadFiles": 58,
+    "bytes": 2868701,
+    "allHashesAndCrcVerified": true,
+    "source": "11513cdd26fe4d3d291858d91efab1b21007c1a8",
+    "unit": {
+      "tests": 824,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "game": {
+      "tests": 418,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "entrypoints": 66,
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "bf9e0d85e99388b5e9398163f45888adc437ee20ea28ce949b7ca4878fa27e69",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "d82fc555f8504a636fcdd47878b596c3b0944b87ff823ae0f5dfb9aaf90d60ad"
+    },
+    "freshFrames": 23,
+    "viewmodel": {
+      "nativeObserved": true,
+      "nativePixels": 166,
+      "ps1Pixels": 166,
+      "requiredPixels": 125,
+      "sameCamera": true,
+      "sameModules": true,
+      "maximumProjectedVertexDeltaPixels": 0.0
+    },
+    "native": [
+      {
+        "scenario": "ps1-viewmodel-integrated-11513cd-sodium",
+        "marker": {
+          "runtimeToggleWithoutReload": true,
+          "actualWindowResizeAndRestore": true,
+          "exceptionTargetsRestored": true,
+          "debugPostprocessExceptionRestored": true,
+          "blockstoreHashUnchanged": true,
+          "independentHybridChoiceUnchanged": true,
+          "scenes": [
+            {
+              "scene": "native-baseline",
+              "profile": "HYBRID_NATIVE",
+              "sceneWidth": 1280,
+              "sceneHeight": 720,
+              "outputWidth": 1280,
+              "outputHeight": 720,
+              "deferredOverlayPasses": 0,
+              "worldNearestGridRatio": 1.0,
+              "finalCompositeGridRatio": 1.0,
+              "nativeHudPixel": true,
+              "mirror": "drawing 1 of 1",
+              "reflectedGoldPixels": 28558,
+              "mergedMirrorSurfaces": 1,
+              "projectedMirrorPanes": 8,
+              "frameEpoch": 278,
+              "mirrorEpoch": 278,
+              "sampleEpoch": -1,
+              "glError": 0
+            },
+            {
+              "scene": "ps1-360",
+              "profile": "PS1_HYBRID",
+              "sceneWidth": 640,
+              "sceneHeight": 360,
+              "outputWidth": 1280,
+              "outputHeight": 720,
+              "deferredOverlayPasses": 2,
+              "worldNearestGridRatio": 1.0,
+              "finalCompositeGridRatio": 0.9732291666666667,
+              "nativeHudPixel": true,
+              "mirror": "drawing 1 of 1",
+              "reflectedGoldPixels": 27772,
+              "mergedMirrorSurfaces": 1,
+              "projectedMirrorPanes": 8,
+              "frameEpoch": 281,
+              "mirrorEpoch": 281,
+              "sampleEpoch": 281,
+              "glError": 0
+            },
+            {
+              "scene": "native-restored",
+              "profile": "HYBRID_NATIVE",
+              "sceneWidth": 1280,
+              "sceneHeight": 720,
+              "outputWidth": 1280,
+              "outputHeight": 720,
+              "deferredOverlayPasses": 0,
+              "worldNearestGridRatio": 1.0,
+              "finalCompositeGridRatio": 1.0,
+              "nativeHudPixel": true,
+              "mirror": "drawing 1 of 1",
+              "reflectedGoldPixels": 28558,
+              "mergedMirrorSurfaces": 1,
+              "projectedMirrorPanes": 8,
+              "frameEpoch": 284,
+              "mirrorEpoch": 284,
+              "sampleEpoch": -1,
+              "glError": 0
+            },
+            {
+              "scene": "debug-wireframe",
+              "profile": "RENDER_DEBUG",
+              "sceneWidth": 1280,
+              "sceneHeight": 720,
+              "outputWidth": 1280,
+              "outputHeight": 720,
+              "deferredOverlayPasses": 2,
+              "worldNearestGridRatio": 1.0,
+              "finalCompositeGridRatio": 1.0,
+              "nativeHudPixel": true,
+              "mirror": "drawing 1 of 1",
+              "reflectedGoldPixels": 15,
+              "mergedMirrorSurfaces": 1,
+              "projectedMirrorPanes": 8,
+              "frameEpoch": 287,
+              "mirrorEpoch": 287,
+              "sampleEpoch": 287,
+              "glError": 0,
+              "debugWorldEdges": {
+                "frameEpoch": 287,
+                "ratio": 0.9450867052023122,
+                "sampleEpoch": 287,
+                "projectionEpoch": 287,
+                "samples": 346,
+                "horizontalBins": [
+                  104,
+                  118,
+                  105
+                ],
+                "hits": 327
+              }
+            },
+            {
+              "scene": "ps1-180-resized",
+              "profile": "PS1_HYBRID",
+              "sceneWidth": 320,
+              "sceneHeight": 180,
+              "outputWidth": 960,
+              "outputHeight": 540,
+              "deferredOverlayPasses": 2,
+              "worldNearestGridRatio": 1.0,
+              "finalCompositeGridRatio": 0.8870833333333333,
+              "nativeHudPixel": true,
+              "mirror": "drawing 1 of 1",
+              "reflectedGoldPixels": 15140,
+              "mergedMirrorSurfaces": 1,
+              "projectedMirrorPanes": 8,
+              "frameEpoch": 290,
+              "mirrorEpoch": 290,
+              "sampleEpoch": 290,
+              "glError": 0
+            },
+            {
+              "scene": "native-window-restored",
+              "profile": "HYBRID_NATIVE",
+              "sceneWidth": 1280,
+              "sceneHeight": 720,
+              "outputWidth": 1280,
+              "outputHeight": 720,
+              "deferredOverlayPasses": 0,
+              "worldNearestGridRatio": 1.0,
+              "finalCompositeGridRatio": 1.0,
+              "nativeHudPixel": true,
+              "mirror": "drawing 1 of 1",
+              "reflectedGoldPixels": 28558,
+              "mergedMirrorSurfaces": 1,
+              "projectedMirrorPanes": 8,
+              "frameEpoch": 293,
+              "mirrorEpoch": 293,
+              "sampleEpoch": -1,
+              "glError": 0
+            }
+          ]
+        },
+        "source": "11513cdd26fe4d3d291858d91efab1b21007c1a8"
+      }
+    ],
+    "scope": "Exact combined source; complete ordinary stock Fabric server suite; same-JAR real BCC/Sodium GL3.3 software-Mesa clients. Twenty-three saved PNGs include intermediate viewmodel stages. No full specification, physical GPU, performance, full Fabulous or release acceptance.",
+    "releaseAccepted": false,
+    "report": "MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md",
     "fullSpecificationAccepted": false
   }
 }

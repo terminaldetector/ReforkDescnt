@@ -949,9 +949,9 @@
     }
   ],
   "latestIntegratedCheckpoint": {
-    "source": "699b749045edde2722f0ae9685b2a3674c1a1041",
-    "report": "MULTI_AGENT_INTEGRATION_2026-11-17.md",
-    "receipt": "EVIDENCE/integrated-699b749.json",
+    "source": "11513cdd26fe4d3d291858d91efab1b21007c1a8",
+    "report": "MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md",
+    "receipt": "EVIDENCE/integrated-11513cd.json",
     "fullTaskPromotion": false
   },
   "latestIntegratedServerIncrement": {

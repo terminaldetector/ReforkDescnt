@@ -1,5 +1,7 @@
 # Parallel execution of all specifications
 
+Latest verified11513cd:824unit/418ordinaryGT/66entrypoints +same-JAR actual presentation/viewmodel client PASS;23savedframes. See MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md. Current scope remains3completed/24in_progress/72pending. Active next candidates: PS1 palette/dither, no-edit native surface arrival, actual wall/ceiling pursuit and manual-city runtime. Earlier round details below remain historical.
+
 17 November integration: exact699b749 passes772 unit/404 ordinary GameTests/64 entrypoints and both same-JAR BCC/Sodium clients,28 saved PNGs. See MULTI_AGENT_INTEGRATION_2026-11-17.md. All six lanes continue; current first negatives are loaded surface colour sampling and submerged-Fish ground-policy dispatch. Native button routing, sky attribution and bounded manual city authoring are separate candidates. Ledger remains3/21/75; no full-task promotion or publication.
 
 16 November integration: source5839062 passes772 unit/391 complete GameTests/62 entrypoints and two same-JAR real BCC/Sodium clients with13 inspected frames. See MULTI_AGENT_INTEGRATION_2026-11-16.md. Current ledger3completed/21in_progress/75pending; the independent99-task audit remains pinned4b. Earlier first-failure/assignment details below are historical checkpoints. Six workers remain isolated; retired-generation routing, actual gravity-item acceptance, Debug/Fabulous, ragdoll cubic envelope, economy and native metrics have separate next candidates.

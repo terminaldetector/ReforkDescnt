@@ -133,7 +133,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
+  evidence: [BLOCK_ENTITY_FORENSICS_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
   notes: Do not assume complete from historic PR/summary.
 - id: S01-T06
   stage: S01
@@ -353,7 +353,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md]
+  evidence: [MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, SKY_LOD_BACKGROUND_FIX_2026-11-17.md, SURFACE_LOADED_GUARD_NATIVE_POSITIVE_2026-11-17/REPORT.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
   notes: Do not assume complete from historic PR/summary.
 - id: S05-T01
   stage: S05
@@ -366,7 +366,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
   notes: "Current699b749:772unit/404GT/64entrypoints plus same-JAR Sodium target/toggle/resize pass; pure-world nearest-grid1.0. Earlier GL3.2 proof separate. Full S04 dependency/artistic PS1 effects remain open."
 - id: S05-T02
   stage: S05
@@ -402,7 +402,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
   notes: "Current699b749 native HUD witness stays1physicalpixel; projected weapon166Native/166PS1 with same camera/modules. Full roll/pitch/yaw and ordinary UI remain open."
 - id: S05-T05
   stage: S05
@@ -414,7 +414,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
   notes: "Current699b749 presentation separation and representative physical checks pass; universal geometry/physics/cache invariance remains open."
 - id: S05-T06
   stage: S05
@@ -426,7 +426,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, SKY_LOD_BACKGROUND_FIX_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
   notes: "Current699b749 Sodium transitions/Debug world geometry pass. Original09b GL3.2 negative3/346 is preserved; separate7df contrast proof327/346 passes both renderers. Full style/sky/visual acceptance remains open."
 - id: S06-T01
   stage: S06
@@ -513,7 +513,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [GRAVITY_VANILLA_FLYERS_2026-11-10.md, EVIDENCE/integrated-5839062.zip, SUBMERGED_FISH_GRAVITY_2026-11-17.md, MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md]
+  evidence: [GRAVITY_VANILLA_FLYERS_2026-11-10.md, EVIDENCE/integrated-5839062.zip, SUBMERGED_FISH_GRAVITY_2026-11-17.md, MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, CLIMBER_FIELD_ENTRY_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
   notes: "Five vanilla flyers corrected with original3 and related16 proof, rerun in current391 full suite. Remaining locomotion families, AI and visuals open."
 - id: S07-T02
   stage: S07
@@ -722,7 +722,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, GRAVITY_NATIVE_INPUT_ACCEPTANCE_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
   notes: "Current699b749 includes7actual Item.use tests: three behaviors, loaded-only queries, empty-energy retention and funded retry. RAIL same-tick duplicate fixture failure retained. Real keyboard/network route, all masses and ballistic material-hit accuracy remain open."
 - id: S10-T03
   stage: S10
@@ -1110,7 +1110,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md]
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
   notes: "Exact699b749772unit/404ordinaryGT/64entrypoints and both same-JAR BCC/Sodium native clients pass;28PNG retained. All official older rendercheck scenarios, hardware and full-release gates are not inferred."
 - id: S16-T02
   stage: S16
