@@ -75,3 +75,31 @@ This accepts the nine stock server-route cases only. A further charged-weapon
 cross-bank overlap (`2→3→2` while one fallback stack is already charging) was
 identified during source review and requires its own test-first checkpoint.
 No cross-bank charge or native six-scene positive is claimed here.
+
+## First charged cross-bank negative
+
+Test-only source `4aff9c5d0cbf32b00c7ddecfe39640f00de5cf73` appended
+`quickPrimaryFallbackTapCannotReleaseOrDuplicateAnExistingSecondaryCharge`;
+all earlier nine methods/helpers, production `347cf76` and the native driver
+were unchanged. The first separately granted focused run compiled and closed
+exit **1**: **9 PASS / 1 FAIL**.
+
+The new real-Fusion case first confirmed the original RMB charge was quiet,
+then received `2→3→2`. It failed because actual projectiles appeared while the
+original secondary button remained held. The first assertion did not record
+the precise premature projectile count, so it does not prove a specific number
+of duplicate shots. It does reproduce a premature same-stack charge release;
+the old nine controls all continued to pass. No fixture exception, retry or
+threshold/assertion change occurred. The lease was returned at first close.
+
+Bundle: `EVIDENCE/drone-charge-bank-negative-4aff9c5.zip`.
+SHA-256: `ab8a9a19e79fd464910d870fe417222b853a49315c9027d0f9c354a02a9fb5bc`.
+All 139 payload hashes and ZIP CRC were verified, including source, actual
+compiled classes/focused manifest, raw run/input/exit/XML/helper receipts and
+all 112 closed-world files (8,654,492 bytes).
+
+The authorized correction must retain an already active same-stack charge on
+its physically held bank, consume competing requests without replay, stop
+genuinely released or replaced charges before another use, and honor the real
+cooldown resulting from that stop. Distinct stack banks remain independent.
+The unchanged ten-case positive and native route are still open here.
