@@ -1,0 +1,277 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.12/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.10.5
+
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileGametestJava UP-TO-DATE
+> Task :generateLog4jConfig UP-TO-DATE
+> Task :generateRemapClasspath UP-TO-DATE
+> Task :generateDLIConfig UP-TO-DATE
+> Task :configureLaunch UP-TO-DATE
+
+> Task :processGametestResources
+FOCUSED ECONOMY ONLY: six actual Survival acquisition/use/recovery/repair cases, not full regression
+
+> Task :gametestClasses
+
+> Task :runGametest
+[10:42:34] [main/INFO] (FabricLoader/GameProvider) Loading Minecraft 1.21.1 with Fabric Loader 0.16.14
+[10:42:34] [main/INFO] (FabricLoader) Loading 45 mods:
+	- drmd 1.1.35-ufo-dev.1
+	- drmd_gametest 1.0.0
+	- fabric-api 0.116.15+1.21.1
+	- fabric-api-base 0.4.42+6573ed8c19
+	- fabric-api-lookup-api-v1 1.6.72+7b3d111d19
+	- fabric-biome-api-v1 13.0.31+d527f9fd19
+	- fabric-block-api-v1 1.1.0+0bc3503219
+	- fabric-block-view-api-v2 1.0.11+ebb2264e19
+	- fabric-command-api-v1 1.2.49+f71b366f19
+	- fabric-command-api-v2 2.2.28+6ced4dd919
+	- fabric-commands-v0 0.2.66+df3654b319
+	- fabric-content-registries-v0 8.0.19+b559734419
+	- fabric-convention-tags-v1 2.1.7+7f945d5b19
+	- fabric-convention-tags-v2 2.12.0+c3656daa19
+	- fabric-crash-report-info-v1 0.2.29+0af3f5a719
+	- fabric-data-attachment-api-v1 1.4.7+5b36e0f719
+	- fabric-data-generation-api-v1 20.3.0+1eb36c0719
+	- fabric-dimensions-v1 4.0.1+65213ef819
+	- fabric-entity-events-v1 1.8.0+2b27e0a419
+	- fabric-events-interaction-v0 0.7.14+ba9dae0619
+	- fabric-game-rule-api-v1 1.0.53+6ced4dd919
+	- fabric-gametest-api-v1 2.0.5+6fc22b9919
+	- fabric-item-api-v1 11.3.0+467044f319
+	- fabric-item-group-api-v1 4.1.7+def88e3a19
+	- fabric-lifecycle-events-v1 2.6.0+0865547519
+	- fabric-loot-api-v2 3.0.15+3f89f5a519
+	- fabric-loot-api-v3 1.0.3+3f89f5a519
+	- fabric-message-api-v1 6.0.14+8aaf3aca19
+	- fabric-networking-api-v1 4.3.1+d30f6a7919
+	- fabric-object-builder-api-v1 15.2.1+40875a9319
+	- fabric-particles-v1 4.0.2+6573ed8c19
+	- fabric-recipe-api-v1 5.0.16+2475392c19
+	- fabric-registry-sync-v0 5.3.2+e3eddc2119
+	- fabric-rendering-data-attachment-v1 0.3.49+73761d2e19
+	- fabric-rendering-fluids-v1 3.1.6+1daea21519
+	- fabric-resource-conditions-api-v1 4.3.0+8dc279b119
+	- fabric-resource-loader-v0 1.3.1+5b5275af19
+	- fabric-screen-handler-api-v1 1.3.91+b559734419
+	- fabric-tag-api-v1 1.3.0+1eb36c0719
+	- fabric-transfer-api-v1 5.4.4+7b3d111d19
+	- fabric-transitive-access-wideners-v1 6.2.0+45b9699719
+	- fabricloader 0.16.14
+	- java 21
+	- minecraft 1.21.1
+	- mixinextras 0.4.1
+[10:42:34] [main/INFO] (FabricLoader/Mixin) SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/workspace/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.15.5+mixin.0.8.7/22f9eb729e216a091673a574a5906dc1b9027fb3/sponge-mixin-0.15.5+mixin.0.8.7.jar Service=Knot/Fabric Env=SERVER
+[10:42:34] [main/INFO] (FabricLoader/Mixin) Loaded Fabric development mappings for mixin remapper!
+[10:42:35] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_17
+[10:42:35] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_21
+[10:42:35] [main/WARN] (FabricLoader/Mixin) Error loading class: dev/fallingcloud/bettercubicchunks/server/CubeApplier (java.lang.ClassNotFoundException: dev/fallingcloud/bettercubicchunks/server/CubeApplier)
+[10:42:35] [main/WARN] (FabricLoader/Mixin) Error loading class: dev/fallingcloud/bettercubicchunks/server/CubicServerLevel (java.lang.ClassNotFoundException: dev/fallingcloud/bettercubicchunks/server/CubicServerLevel)
+[10:42:35] [main/INFO] (FabricLoader/MixinExtras|Service) Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.4.1).
+[10:42:44] [main/INFO] (drmd) DRMD 6DOF initializing — 6DoF world mode (volume-first)
+[10:42:44] [main/INFO] (drmd) [drmd] 1.1.35-ufo-dev.1 on Minecraft 1.21.1 / loader 0.16.14 / 45 mods
+[10:42:44] [main/INFO] (drmd) [drmd] optional: immersive_portals=no, dimlib=no, sodium=no, iris=no
+[10:42:44] [main/INFO] (drmd) [drmd] access widener applied
+[10:42:44] [main/INFO] (drmd) DRMD server config — worldKind=STOCK worldModLevel=VANILLA netherBand=false endBand=false klondikeIslands=false macroWorldgen=false surfaceDistricts=false orbitJunk=false
+[10:42:44] [main/INFO] (drmd) Advanced-column pack registered, default activation=NORMAL
+[10:42:44] [main/INFO] (drmd) Registered DRMD entities (ragdoll + End boss + Sky UFO + laser cart)
+[10:42:44] [main/INFO] (drmd) Registered DRMD map blocks
+[10:42:44] [main/INFO] (drmd) Registered closed Descent arsenal (41 open weapons)
+[10:42:44] [main/INFO] (drmd) Registered Phase3 world blocks & engineer tools
+[10:42:44] [main/INFO] (drmd) Registered DRMD block entities
+[10:42:44] [main/INFO] (drmd) Industrial Underground worldgen parked (WorldFeatures.MACRO_WORLDGEN)
+[10:42:44] [main/INFO] (drmd) World Generation 2.0 parked (WorldFeatures.MACRO_WORLDGEN)
+[10:42:44] [main/INFO] (drmd) Orbit junk / techno-ring scaffold registered
+[10:42:44] [main/INFO] (drmd) Portal complexity online — ImmPtl present=false
+[10:42:44] [main/INFO] (drmd) Registered ÆRis/Mirai step 6 density generator (drmd:aeris_test)
+[10:42:44] [main/INFO] (drmd) Distant Horizons not installed — install modrinth.com/mod/distanthorizons for max view distance
+[10:42:44] [main/INFO] (drmd) DRMD 6DOF ready — cubic body prototype + native portal frames + surface store
+[10:42:44] [main/INFO] (Minecraft) Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[10:42:44] [main/INFO] (FabricGameTestHelper) Starting test server
+[10:42:46] [main/INFO] (Minecraft) Loaded 1377 recipes
+[10:42:46] [main/INFO] (Minecraft) Loaded 1400 advancements
+[10:42:47] [main/INFO] (BiomeModificationImpl) Applied 0 biome modifications to 0 of 68 new biomes in 1.633 ms
+[10:42:48] [Server thread/INFO] (Minecraft) Preparing start region for dimension minecraft:overworld
+[10:42:48] [Worker-Main-1/INFO] (Minecraft) Preparing spawn area: 8%
+[10:42:48] [Server thread/INFO] (Minecraft) Time elapsed: 529 ms
+[10:42:48] [Server thread/INFO] (Minecraft) Started game test server
+[10:42:48] [Server thread/INFO] (drmd) Megacity biome regions bound — megacity plate @ 3293 -3570 (4857 m) · biome drmd:megacity r=160
+[10:42:48] [Server thread/INFO] (drmd) Technogenic sea regions — drmd:technogenic_sea plate @ 4624 1395 (4830 m) · r=220
+[10:42:48] [Server thread/INFO] (drmd) Scorched lands regions — drmd:scorched_lands plate @ -1761 2627 (3163 m) · r=180
+[10:42:48] [Server thread/INFO] (drmd) Iron guild regions — drmd:iron_guild plate @ -2591 -1343 (2918 m) · r=140
+[10:42:48] [Server thread/INFO] (drmd) Surface events bound — sparse UFO/outpost rolls (≥400m from spawn)
+[10:42:48] [Server thread/INFO] (drmd) Construction registry ready (0 overrides)
+[10:42:48] [Server thread/INFO] (drmd) Restored 0 facilities from dimension sync
+[10:42:48] [Server thread/INFO] (drmd) Restored 0 meteor falls from dimension sync
+[10:42:48] [Server thread/INFO] (drmd) Dimension sync loaded — facilities=0 falls=0 lastDet=-1
+[10:42:48] [Server thread/INFO] (drmd) Surface store open at ./world/./drmd/surface
+[10:42:48] [Server thread/INFO] (Minecraft) 6 tests are now running at position 6338134, -59, -3421511!
+[10:42:49] [Yggdrasil Key Fetcher/ERROR] (Minecraft) Failed to request yggdrasil public key
+com.mojang.authlib.exceptions.MinecraftClientException: Failed to read from https://api.minecraftservices.com/publickeys due to Connection refused
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:108) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.get(MinecraftClient.java:57) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo.fetch(YggdrasilServicesKeyInfo.java:114) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo$1.run(YggdrasilServicesKeyInfo.java:89) ~[authlib-6.0.54.jar:?]
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572) ~[?:?]
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317) ~[?:?]
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[?:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[?:?]
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:694) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:549) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[?:?]
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[?:?]
+	at java.base/java.net.Socket.connect(Socket.java:751) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304) ~[?:?]
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:178) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:539) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:644) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:265) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:378) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:196) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1305) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1146) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:1075) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:181) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1707) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1632) ~[?:?]
+	at java.base/java.net.HttpURLConnection.getResponseCode(HttpURLConnection.java:531) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getResponseCode(HttpsURLConnectionImpl.java:307) ~[?:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:84) ~[authlib-6.0.54.jar:?]
+	... 9 more
+[10:42:50] [Server thread/INFO] (Minecraft) Running test batch 'economy-material-repair:0' (1 tests)...
+[10:42:50] [Server thread/INFO] (Minecraft) [      ]
+[10:42:50] [Server thread/INFO] (Minecraft) [      ]
+[10:42:51] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 1 at (-6.5, -780.0, 8.5)
+[10:42:52] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[10:42:52] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[10:42:52] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[10:42:52] [Server thread/INFO] (Minecraft) Running test batch 'economy-real-crafting:0' (1 tests)...
+[10:42:52] [Server thread/INFO] (Minecraft) [+     ]
+[10:42:53] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 2 at (0.5, -780.0, -2.5)
+[10:42:53] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[10:42:53] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[10:42:53] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[10:42:53] [Server thread/INFO] (Minecraft) Running test batch 'economy-local-repair:0' (1 tests)...
+[10:42:53] [Server thread/INFO] (Minecraft) [++    ]
+[10:42:53] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 3 at (-5.5, -780.0, -8.5)
+[10:42:53] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[10:42:53] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[10:42:53] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[10:42:53] [Server thread/INFO] (Minecraft) [++_   ]
+[10:42:54] [Server thread/INFO] (Minecraft) Running test batch 'economy-salvage:0' (1 tests)...
+[10:42:54] [Server thread/INFO] (Minecraft) [++X   ]
+[10:42:54] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 9 at (-8.5, -780.0, 7.5)
+[10:42:54] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[10:42:54] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[10:42:54] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) [++X_  ]
+[10:42:55] [Server thread/INFO] (Minecraft) Running test batch 'economy-mechanism:0' (1 tests)...
+[10:42:56] [Server thread/INFO] (Minecraft) [++XX  ]
+[10:42:56] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 11 at (-3.5, -780.0, -7.5)
+[10:42:56] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[10:42:56] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[10:42:56] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[10:42:56] [Server thread/INFO] (Minecraft) [++XX_ ]
+[10:42:56] [Server thread/INFO] (Minecraft) [++XX_ ]
+[10:42:56] [Server thread/INFO] (Minecraft) Running test batch 'economy-mounted-fire:0' (1 tests)...
+[10:42:57] [Server thread/INFO] (Minecraft) [++XX+ ]
+[10:42:57] [Server thread/INFO] (Minecraft) economy-fixture[embedded] logged in with entity id 14 at (3.5, -780.0, 7.5)
+[10:42:57] [Server thread/INFO] (Minecraft) economy-fixture joined the game
+[10:42:57] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Stone Age]
+[10:42:57] [Server thread/INFO] (Minecraft) economy-fixture has made the advancement [Acquire Hardware]
+[10:42:57] [Server thread/INFO] (Minecraft) [++XX+X]
+[10:42:57] [Server thread/INFO] (Minecraft) ========= 6 GAME TESTS COMPLETE IN 8.959 s ======================
+[10:42:57] [Server thread/INFO] (Minecraft) 3 required tests failed :(
+[10:42:57] [Server thread/INFO] (Minecraft)    - survivaleconomygametests.craftedrepairlasermustrepairactualpartialdamageonamovingmechanism
+[10:42:57] [Server thread/INFO] (Minecraft)    - survivaleconomygametests.survivalminingpickupandreplacementrecoverbearingdriveandlaserexactlyonce
+[10:42:57] [Server thread/INFO] (Minecraft)    - survivaleconomygametests.craftedlaserandrocketconsumeplacementitemsandfirefromactuallevermaterial
+[10:42:57] [Server thread/INFO] (Minecraft) ====================================================
+[10:42:57] [Server thread/INFO] (Minecraft) Stopping server
+[10:42:57] [Server thread/INFO] (Minecraft) Saving players
+[10:42:57] [Server thread/INFO] (Minecraft) Saving worlds
+[10:42:58] [Server thread/ERROR] (Minecraft) Failed to save chunk 396134,-213845
+java.lang.IllegalStateException: String "survivaleconomygametests
+craftedrepairlasermustrepairactualpartialdamageonamovingmechanism
+-------------------
+actual crafted repair use must reduce local mechanism damage; before=11.0 after=11.0 eye=(6338169.5, 163.41713965441969, -3421499.131066662) view=(9.193692300775726E-17, -0.6606183052062988, -0.7507219314575195) actualAim=(9.19369246835398E-17, -0.6606183172477353, -0.7507219451413222) validAttitude=false primaryMuzzle=(6338168.5, 162.0395882690477, -3421499.7504228693) shooterCorrection=(0.9999999999999998, 0.717139654419706, -0.6310666616322038) bore=Optional[BodyHit[localBlock=BlockPos{x=0, y=0, z=1}, localPoint=Vec3[x=0.4999999998136908, y=0.9399886811878675, z=2.0], localNormal=Vec3[x=0.0, y=0.0, z=1.0], worldPoint=Vec3[x=6338168.5, y=160.93998868118788, z=-3421501.0], worldNormal=Vec3[x=0.0, y=0.0, z=1.0], fraction=0.10403128772989642, revision=1, inside=false]] energy=100.0->98.5 target=Block{drmd:rotary_drive}[facing=south,inverted=false,power=0] damaged=[BlockPos{x=0, y=0, z=0}:11.0, BlockPos{x=0, y=0, z=1}:11.0, BlockPos{x=2, y=0, z=0}:22.0] projectiles=[t=0 id=455054b1-2537-46b2-9b9b-e493d590ca48 owner=a50baece-92fe-42f6-9fd9-2f800e430078 p=(6338168.5, 162.0395882690477, -3421499.7504228693) v=(2.9879500522150436E-16, -2.14700953105514, -2.439846321709297) alive=true age=0, t=0 id=957b65b4-1125-49c3-ab38-87fefdb30c14 owner=a50baece-92fe-42f6-9fd9-2f800e430078 p=(6338170.5, 162.0395882690477, -3421499.7504228693) v=(2.9879500522150436E-16, -2.14700953105514, -2.439846321709297) alive=true age=0, t=0 id=b34c60c3-8e7e-4d7d-9f10-cc7be2b601e8 owner=a50baece-92fe-42f6-9fd9-2f800e430078 p=(6338168.375, 162.88415045733169, -3421500.493618476) v=(2.9879500522150436E-16, -2.14700953105514, -2.439846321709297) alive=true age=0, t=0 id=f6917578-d8fa-4f3f-9c33-f3712cdc6a03 owner=a50baece-92fe-42f6-9fd9-2f800e430078 p=(6338170.625, 162.88415045733169, -3421500.493618476) v=(2.9879500522150436E-16, -2.14700953105514, -2.439846321709297) alive=true age=0, t=0 id=455054b1-2537-46b2-9b9b-e493d590ca48 owner=a50baece-92fe-42f6-9fd9-2f800e430078 p=(6338168.5, 162.0395882690477, -3421499.7504228693) v=(2.9879500522150436E-16, -2.14700953105514, -2.439846321709297) alive=true age=0, t=0 id=957b65b4-1125-49c3-ab38-87fefdb30c14 owner=a50baece-92fe-42f6-9fd9-2f800e430078 p=(6338170.5, 162.0395882690477, -3421499.7504228693) v=(2.9879500522150436E-16, -2.14700953105514, -2.439846321709297) alive=true age=0, t=0 id=b34c60c3-8e7e-4d7d-9f10-cc7be2b601e8 owner=a50baece-92fe-42f6-9fd9-2f800e430078 p=(6338168.375, 162.88415045733169, -3421500.493618476) v=(2.9879500522150436E-16, -2.14700953105514, -2.439846321709297) alive=true age=0, t=0 id=f6917578-d8fa-4f3f-9c33-f3712cdc6a03 owner=a50baece-92fe-42f6-9fd9-2f800e430078 p=(6338170.625, 162.88415045733169, -3421500.493618476) v=(2.9879500522150436E-16, -2.14700953105514, -2.439846321709297) alive=true age=0, t=1 id=455054b1-2537-46b2-9b9b-e493d590ca48 owner=a50baece-92fe-42f6-9fd9-2f800e430078 p=(6338168.5, 162.0395882690477, -3421499.7504228693) v=(2.9879500522150436E-16, -2.14700953105514, -2.439846321709297) alive=false age=1, t=1 id=957b65b4-1125-49c3-ab38-87fefdb30c14 owner=a50baece-92fe-42f6-9fd9-2f800e430078 p=(6338170.5, 162.0395882690477, -3421499.7504228693) v=(2.9879500522150436E-16, -2.14700953105514, -2.439846321709297) alive=false age=1, t=1 id=b34c60c3-8e7e-4d7d-9f10-cc7be2b601e8 owner=a50baece-92fe-42f6-9fd9-2f800e430078 p=(6338168.375, 162.88415045733169, -3421500.493618476) v=(2.9879500522150436E-16, -2.14700953105514, -2.439846321709297) alive=false age=1, t=1 id=f6917578-d8fa-4f3f-9c33-f3712cdc6a03 owner=a50baece-92fe-42f6-9fd9-2f800e430078 p=(6338170.625, 162.88415045733169, -3421500.493618476) v=(2.9879500522150436E-16, -2.14700953105514, -2.439846321709297) alive=false age=1]" is too long: 3805, expected range [0-1024]
+	at knot/com.mojang.serialization.DataResult$Error.getOrThrow(DataResult.java:287) ~[datafixerupper-8.0.16.jar:?]
+	at knot/com.mojang.serialization.DataResult.getOrThrow(DataResult.java:81) ~[datafixerupper-8.0.16.jar:?]
+	at knot/net.minecraft.item.ItemStack.encode(ItemStack.java:403) ~[minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.block.entity.LecternBlockEntity.writeNbt(LecternBlockEntity.java:226) ~[minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.block.entity.BlockEntity.createNbt(BlockEntity.java:125) ~[minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.block.entity.BlockEntity.createNbtWithIdentifyingData(BlockEntity.java:105) ~[minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.world.chunk.WorldChunk.getPackedBlockEntityNbt(WorldChunk.java:417) ~[minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.world.ChunkSerializer.serialize(ChunkSerializer.java:331) ~[minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.server.world.ServerChunkLoadingManager.save(ServerChunkLoadingManager.java:784) ~[minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.server.world.ServerChunkLoadingManager.method_60440(ServerChunkLoadingManager.java:511) ~[minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at java.base/java.util.concurrent.CompletableFuture$UniRun.tryFire(CompletableFuture.java:787) ~[?:?]
+	at java.base/java.util.concurrent.CompletableFuture$Completion.run(CompletableFuture.java:482) ~[?:?]
+	at knot/net.minecraft.server.world.ServerChunkLoadingManager.unloadChunks(ServerChunkLoadingManager.java:483) ~[minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.server.world.ServerChunkLoadingManager.tick(ServerChunkLoadingManager.java:441) ~[minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.server.world.ServerChunkManager.tick(ServerChunkManager.java:314) ~[minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.server.MinecraftServer.shutdown(MinecraftServer.java:615) ~[minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:735) ~[minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at knot/net.minecraft.server.MinecraftServer.method_29739(MinecraftServer.java:281) ~[minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+[10:42:59] [IO-Worker-1/INFO] (Minecraft) Saved details to debug/chunk-world-2026-11-17_10.42.59-server.txt
+[10:43:01] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:overworld
+[10:43:02] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_end
+[10:43:02] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_nether
+[10:43:02] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (world): All chunks are saved
+[10:43:02] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[10:43:02] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[10:43:02] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage: All dimensions are saved
+[10:43:02] [Server thread/INFO] (Minecraft) Game test server shutting down
+
+> Task :runGametest FAILED
+
+[Incubating] Problems report is available at: file:///workspace/ungravity-v5/economy-acceptance-20261116/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':runGametest'.
+> Process 'command '/workspace/jdk21-complete/bin/java'' finished with non-zero exit value 3
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.12/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 41s
+8 actionable tasks: 2 executed, 6 up-to-date

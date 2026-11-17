@@ -1,0 +1,12 @@
+gradle.projectsEvaluated {
+ rootProject.tasks.named('processGametestResources') {
+  outputs.upToDateWhen { false }
+  doLast {
+   def manifest = new File(destinationDir, 'fabric.mod.json')
+   def data = new groovy.json.JsonSlurper().parse(manifest)
+   data.entrypoints['fabric-gametest'] = ['com.terminaldetector.drmd.world.economy.SurvivalEconomyGameTests']
+   manifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(data))
+   println 'FOCUSED ECONOMY ONLY: six actual Survival acquisition/use/recovery/repair cases, not full regression'
+  }
+ }
+}

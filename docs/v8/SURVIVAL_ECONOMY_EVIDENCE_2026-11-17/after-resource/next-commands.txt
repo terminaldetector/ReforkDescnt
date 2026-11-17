@@ -1,0 +1,9 @@
+DO NOT RUN BEFORE ROOT GRANTS THE NEXT JAVA LEASE.
+Candidate a738b34: narrow resource/family fix plus fixture-only real primary-bore compensation/diagnostics.
+Capture new source inputs. Preserve original2568 negative logs/XML in their committed evidence directory.
+
+JAVA_HOME=/workspace/jdk21-complete GRADLE_USER_HOME=/workspace/.gradle ./gradlew --offline --no-daemon --max-workers=1 -Dorg.gradle.jvmargs=-Xmx768m compileJava compileGametestJava > work/economy-gate/compile-after-resource.log 2>&1
+After successful compile only, with recorded exits:
+JAVA_HOME=/workspace/jdk21-complete GRADLE_USER_HOME=/workspace/.gradle ./gradlew --offline --no-daemon --max-workers=1 -Dorg.gradle.jvmargs=-Xmx768m --init-script work/economy-gate/focus.init.gradle runGametest > work/economy-gate/gametest-after-resource.log 2>&1
+
+This is positive for acquisition/material-family and diagnostic/negative for local-body repair. No BlockBody repair production change has been made.
