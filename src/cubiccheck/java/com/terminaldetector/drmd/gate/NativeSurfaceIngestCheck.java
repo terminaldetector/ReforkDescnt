@@ -60,10 +60,10 @@ public final class NativeSurfaceIngestCheck {
     private record Packet(int sequence,Cell cell,String payloadSha256) {}
     private record ClientSample(double y,boolean highFull,boolean lowFull,Cell cell,Packet packet) {}
     private static final class IngestEvent {
-        final int sequence;final Cell before;final boolean highBefore,lowBefore;final int metadataHeight;
+        final int sequence;final Cell before;final boolean highBefore,lowBefore,highGoldBefore;final int metadataHeight;
         BlockPos actualWinner;String actualWinnerState;boolean winnerFull;Integer returnedColour;Cell after;boolean highAfter;
-        IngestEvent(ServerWorld world,WorldChunk chunk){sequence=++ingestSequence;before=serverCell();var access=WorldAccess.of(world);highBefore=access.isVolumeAvailable(HIGH_CUBE);lowBefore=access.isVolumeAvailable(LOW_CUBE);metadataHeight=chunk.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,8,8);}
-        Map<String,Object> json(){var m=new LinkedHashMap<String,Object>();m.put("sequence",sequence);m.put("before",before);m.put("after",after);m.put("highFullBefore",highBefore);m.put("highFullAfter",highAfter);m.put("lowFull",lowBefore);m.put("metadataHeightAtAuthoredHigh",metadataHeight);m.put("actualWinner",actualWinner==null?null:actualWinner.toShortString());m.put("actualWinnerFull",winnerFull);m.put("actualWinnerStateIfLoaded",actualWinnerState);m.put("returnedColour",returnedColour);return m;}
+        IngestEvent(ServerWorld world,WorldChunk chunk){sequence=++ingestSequence;before=serverCell();var access=WorldAccess.of(world);highBefore=access.isVolumeAvailable(HIGH_CUBE);lowBefore=access.isVolumeAvailable(LOW_CUBE);highGoldBefore=access.readIfLoaded(HIGH).map(s->s.isOf(Blocks.GOLD_BLOCK)).orElse(false);metadataHeight=chunk.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,8,8);}
+        Map<String,Object> json(){var m=new LinkedHashMap<String,Object>();m.put("sequence",sequence);m.put("before",before);m.put("after",after);m.put("highFullBefore",highBefore);m.put("highGoldBlockBefore",highGoldBefore);m.put("highFullAfter",highAfter);m.put("lowFull",lowBefore);m.put("metadataHeightAtAuthoredHigh",metadataHeight);m.put("actualWinner",actualWinner==null?null:actualWinner.toShortString());m.put("actualWinnerFull",winnerFull);m.put("actualWinnerStateIfLoaded",actualWinnerState);m.put("returnedColour",returnedColour);return m;}
     }
     private NativeSurfaceIngestCheck(){}
     public static void register(){
@@ -140,7 +140,7 @@ public final class NativeSurfaceIngestCheck {
             // Diagnose the real loaded contract before any unavailable-Y assertion.
             // The actual native sampled number is recorded, never calibrated to make
             // an incorrect selected block or palette value pass.
-            if(is(HIGH,Blocks.GOLD_BLOCK)&&lastIngest!=null&&lastIngest.sequence>requiredIngest&&lastIngest.actualWinner!=null&&c.packet().sequence()>requiredPacket&&serverCell().equals(c.cell())&&serverCell().equals(c.packet().cell())){
+            if(is(HIGH,Blocks.GOLD_BLOCK)&&lastIngest!=null&&lastIngest.sequence>requiredIngest&&lastIngest.highGoldBefore&&lastIngest.actualWinner!=null&&c.packet().sequence()>requiredPacket&&serverCell().equals(c.cell())&&serverCell().equals(c.packet().cell())){
                 var selected=lastIngest.actualWinner;
                 if(selected.getX()!=HIGH.getX()||selected.getZ()!=HIGH.getZ()||selected.getY()>HIGH.getY()){finish("PREMISE_NOT_OBSERVED","authored GOLD is not the actual production-selected highest sample; unavailable-winner test not established");return;}
                 if(!HIGH.equals(selected)||!Objects.equals(lastIngest.returnedColour,gold.colour())||!gold.equals(serverCell())){finish("CONTROL_FAILURE","loaded FULL GOLD source contract mismatch: actual sampled height/winner/state/colour and stored/received cell preserved; unavailable-Y premise not reached");return;}
