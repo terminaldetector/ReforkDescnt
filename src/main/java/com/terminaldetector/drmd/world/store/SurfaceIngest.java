@@ -1,6 +1,8 @@
 package com.terminaldetector.drmd.world.store;
 
 import com.terminaldetector.drmd.DescentMod;
+import com.terminaldetector.drmd.d6.D6ChunkPos;
+import com.terminaldetector.drmd.world.access.WorldAccess;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.WorldSavePath;
@@ -94,6 +96,10 @@ public final class SurfaceIngest {
 
 		// Chunk.sampleHeightmap names the top block; its physical top face is one above.
 		BlockPos top = new BlockPos(bestX, Math.max(world.getBottomY(), bestY), bestZ);
+		// A retained native column can have an unavailable winning Y cube. Keep the
+		// prior observation until that actual volume is FULL; placeholder AIR is unknown.
+		if (!WorldAccess.of(world).isVolumeAvailable(
+				D6ChunkPos.ofBlock(top.getX(), top.getY(), top.getZ()))) return;
 		int rgb = colourAt(world, chunk, top);
 		live.set(baseX, baseZ, storedSurfaceHeight(bestY, world.getBottomY()), rgb);
 	}
