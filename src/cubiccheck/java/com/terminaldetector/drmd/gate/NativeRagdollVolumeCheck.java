@@ -57,7 +57,7 @@ public final class NativeRagdollVolumeCheck {
                 if (serverTicks % 10 != 0) return;
                 var boundary = findBoundary(world, observer.getBlockPos());
                 if (boundary != null) report = exercise(world, boundary);
-            } catch (Exception failure) {
+            } catch (Exception | LinkageError failure) {
                 report = new LinkedHashMap<>();
                 report.put("pass", false);
                 report.put("failureKind", "OBSERVER_PRECONDITION");
@@ -165,7 +165,7 @@ public final class NativeRagdollVolumeCheck {
         try {
             double before = entity(control).getY();
             require(allAvailable(access, control.partBounds()), "control starts entirely inside FULL air");
-            control.tick();
+            entity(control).tick();
             double moved = entity(control).getY() - before;
             require(moved > .01 && allAvailable(access, control.partBounds()), "loaded-air control did not move within known space");
             report.put("loadedControlMovedY", moved);
@@ -188,7 +188,7 @@ public final class NativeRagdollVolumeCheck {
             var beforeTick = nativeSnapshot(world, boundary.unknown);
             require(beforeTick.equals(beforeQuery), "spawn/control unexpectedly changed native volume admission");
             // Exactly one real production tick, with no next vanilla world tick before cleanup.
-            ragdoll.tick();
+            entity(ragdoll).tick();
             var afterTick = nativeSnapshot(world, boundary.unknown);
             boolean unknownStillUnavailable = !access.isVolumeAvailable(boundary.unknown)
                     && access.readIfLoaded(unknownProbe).isEmpty();
