@@ -46,7 +46,7 @@ final class DroneNavigation {
             while(index<route.size()&&space.point(route.get(index)).squaredDistanceTo(centre)<.0004)index++;
             // Accept the next waypoint only when the complete swept actor volume can reach it.
             // This avoids making several actors converge exactly on the same grid corner.
-            for(int look=0;separation.lengthSquared()>1e-8&&look<2&&index+1<route.size();look++){
+            for(int look=0;look<2&&index+1<route.size();look++){
                 if(!space.clearActual(space.point(route.get(index+1)).subtract(centre)))break;
                 index++;
             }
