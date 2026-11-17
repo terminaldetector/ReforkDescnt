@@ -1,0 +1,9 @@
+{
+  "source": "1281ce8a61e2a7f3e19d7d8aa44a12671445950a",
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "5daa975a496424ca943095a6a0490ce9364692d9d93e6bb7462a8533eacc900c",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "38c2e40b8cd67f7753a5c6463f46dc3bb08bd0a27fa596a974c3105b03d4d90d"
+  },
+  "allInflatedMainEntriesByteIdenticalToGuardPositive4849402": true,
+  "wholeMainJarByteIdentical": true
+}

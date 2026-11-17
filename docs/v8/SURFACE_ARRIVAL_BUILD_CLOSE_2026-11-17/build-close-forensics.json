@@ -1,0 +1,21 @@
+{
+  "outerExecutedCommandSnapshot": "/workspace/ungravity-v5/cubic-next-20261109/work/cubic-arrival/first-baseline/executed-wrapper-snapshot.sh",
+  "snapshotProvenance": "Exact command string reconstructed from the original exec_command tool argument; wrapper was inline, not a pre-existing script file",
+  "snapshotSha256": "f7a788749cca5db5980be8f3487344f5397244a673dcdd9d0c9d6ac3daa1cc4b",
+  "actualChildWrapper": "/workspace/ungravity-v5/cubic-next-20261109/scripts/v8/cubic_arrival_build.sh",
+  "childWrapperSha256": "17777646f1ccbc98c0920d84d7270ff77cc1494c52b4867cbbcb4e2d4b1ffe0d",
+  "childExitRecorded": 0,
+  "externalWriteStdinExit": 1,
+  "outerLastCommand": "exit \"$case_code\"",
+  "outerLastRecordedValueOfCaseCode": 0,
+  "outerPostChildCommands": [
+    "case_code=$?",
+    "set -e",
+    "printf exit value",
+    "exit \"$case_code\""
+  ],
+  "childStdoutStderrBytes": 0,
+  "sourceAndActualArtifactStampReverified": true,
+  "noPostcheckErrorOutput": true,
+  "classification": "Build/remap child PASS0 proven, external whole-session exit1 unresolved. Intended final exit0 is not independently recorded as actual whole-shell0. No native started; return lease without rebuild/retry."
+}

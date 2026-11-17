@@ -1,0 +1,12 @@
+{
+  "tool": "write_stdin",
+  "sessionId": 53472,
+  "response": {
+    "chunk_id": "0aaa9f",
+    "wall_time_seconds": 2.6e-05,
+    "exit_code": 1,
+    "original_token_count": 0,
+    "output": ""
+  },
+  "provenance": "Exact nested tool result observed at first final session poll"
+}

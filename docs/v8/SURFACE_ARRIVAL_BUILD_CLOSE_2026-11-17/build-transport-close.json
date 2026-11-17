@@ -1,0 +1,9 @@
+{
+  "tool": "write_stdin",
+  "sessionId": 53472,
+  "finalToolExitCode": 1,
+  "persistedScriptExitCode": 0,
+  "buildLogReportsSuccessful": true,
+  "actualPostBuildStampPresent": true,
+  "classification": "External session-close discrepancy retained; not a compiler failure; native paused for root classification"
+}
