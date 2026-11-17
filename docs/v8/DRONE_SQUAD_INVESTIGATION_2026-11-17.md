@@ -30,3 +30,26 @@ investigation-goal increment from the contract. Additional immutable hidden
 position, TTL, invalidation, per-world and resource-bound tests must accompany
 it. The first two natural behavior assertions remain unchanged. No positive,
 native, whole S11 or complete-spec acceptance is claimed here.
+
+## First implementation candidate (not a completed positive)
+
+Exact source `0cdb5ecc195a64ee4ccc145914740998fb5b2ba2` compiled and
+passed all four pure mailbox tests. Its first focused seven-case server run
+closed exit 1: six passed, the original natural investigation case failed.
+The hidden-position/original expiry, actual teammate, removed sender/target,
+cross-world and bounded-work guards passed, as did the no-scout control.
+
+The original natural case advanced 120 real actor ticks. Its scout naturally
+acquired and saw the live, unmoved victim. The receiver now moved about 5.947
+blocks along X but only 0.050 along Y, never acquired its own target and did
+not emit its own projectile. This proves partial communicated movement, not
+successful 3D investigation. The route/steering cause is unclassified here;
+there is no justification to raise budgets or TTL or inject a path/climb.
+
+Bundle: `EVIDENCE/drone-squad-first-candidate-0cdb5ec.zip`; its SHA-256 is
+recorded in the adjacent `.sha256` file. The first raw unit/server logs, fresh
+XML, source/input/runner snapshots and closed world are retained with verified
+per-payload SHA-256 and ZIP CRC. Both original semantic assertions remain
+unchanged. The lease was returned on first close, with no live Java, before
+diagnosis or correction. A separately authorized test-only read-only task/nav
+trace is next; production must remain `0cdb` until the cause is measured.
