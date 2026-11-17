@@ -8,12 +8,13 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL14;
 
 /**
  * Hides vanilla's sun/moon once the pilot is deep in the End band — the Core-band counterpart to
@@ -28,7 +29,10 @@ public final class OrbitalBeltSkyRenderer {
 	private OrbitalBeltSkyRenderer() {}
 
 	public static void register() {
-		WorldRenderEvents.AFTER_TRANSLUCENT.register(OrbitalBeltSkyRenderer::render);
+		SkyEnvelopeShader.register();
+		// DescentClient registers this before PlanetFloor: the sky is background for distant
+		// terrain too, whose colour intentionally does not populate the world depth buffer.
+		WorldRenderEvents.BEFORE_ENTITIES.register(OrbitalBeltSkyRenderer::render);
 	}
 
 	private static void render(WorldRenderContext ctx) {
@@ -39,44 +43,59 @@ public final class OrbitalBeltSkyRenderer {
 
 		float tickDelta = ctx.tickCounter().getTickDelta(false);
 		double y = ctx.camera().getPos().y;
-		Matrix4f mat = ctx.matrixStack().peek().getPositionMatrix();
+		// BEFORE_ENTITIES has the terrain view; its object matrix stack is not available yet.
+		Matrix4f mat = new Matrix4f(ctx.positionMatrix());
 		paintOblivionEnvelope(ctx, mat, y, tickDelta);
 	}
 
 	/**
 	 * Once the pilot is actually inside the End band, there's nothing else left to hide vanilla's sun
-	 * and moon — it needs a skybox of its own. A large sky-coloured box enclosing the camera,
-	 * <em>depth-tested</em> so it only shows through open sky and never paints over an island the
-	 * pilot is flying past.
+	 * and moon — it needs a skybox of its own. Its existing enclosing cube is rasterized at the
+	 * far depth, independent of the terrain clipping distance. LEQUAL keeps already drawn real
+	 * terrain in front; later distant terrain, entities and cockpit compose over this background.
 	 */
 	private static void paintOblivionEnvelope(WorldRenderContext ctx, Matrix4f mat, double y, float tickDelta) {
 		float envelope = envelopeAlpha(y);
-		if (envelope < 0.02f) return;
+		if (envelope < 0.02f || SkyEnvelopeShader.program() == null) return;
 		Vec3d sky = MinecraftClient.getInstance().world.getSkyColor(ctx.camera().getPos(), tickDelta);
 
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.disableCull();
-		RenderSystem.enableDepthTest();
-		RenderSystem.setShader(GameRenderer::getPositionColorProgram);
-		RenderSystem.depthMask(false);
+		boolean depth = GL11.glIsEnabled(GL11.GL_DEPTH_TEST), cull = GL11.glIsEnabled(GL11.GL_CULL_FACE),
+				blend = GL11.glIsEnabled(GL11.GL_BLEND), write = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
+		int function = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
+		int srcRgb = GL11.glGetInteger(GL14.GL_BLEND_SRC_RGB), dstRgb = GL11.glGetInteger(GL14.GL_BLEND_DST_RGB),
+				srcAlpha = GL11.glGetInteger(GL14.GL_BLEND_SRC_ALPHA), dstAlpha = GL11.glGetInteger(GL14.GL_BLEND_DST_ALPHA);
+		var previous = RenderSystem.getShader();
+		try {
+			RenderSystem.enableBlend();
+			RenderSystem.defaultBlendFunc();
+			RenderSystem.disableCull();
+			RenderSystem.enableDepthTest();
+			RenderSystem.depthFunc(GL11.GL_LEQUAL);
+			RenderSystem.setShader(SkyEnvelopeShader::program);
+			RenderSystem.depthMask(false);
 
-		Tessellator tess = Tessellator.getInstance();
-		BufferBuilder buf = tess.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
-		float r = (float) sky.x, g = (float) sky.y, b = (float) sky.z;
-		float s = 256f;
-		quad(buf, mat, -s, -s, -s, s, -s, -s, s, s, -s, -s, s, -s, r, g, b, envelope);
-		quad(buf, mat, -s, -s, s, s, -s, s, s, s, s, -s, s, s, r, g, b, envelope);
-		quad(buf, mat, -s, -s, -s, -s, -s, s, s, -s, s, s, -s, -s, r, g, b, envelope);
-		quad(buf, mat, -s, s, -s, s, s, -s, s, s, s, -s, s, s, r, g, b, envelope);
-		quad(buf, mat, -s, -s, -s, -s, s, -s, -s, s, s, -s, -s, s, r, g, b, envelope);
-		quad(buf, mat, s, -s, -s, s, -s, s, s, s, s, s, s, -s, r, g, b, envelope);
-		var built = buf.endNullable();
-		if (built != null) BufferRenderer.drawWithGlobalProgram(built);
+			Tessellator tess = Tessellator.getInstance();
+			BufferBuilder buf = tess.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+			float r = (float) sky.x, g = (float) sky.y, b = (float) sky.z;
+			float s = 256f;
+			quad(buf, mat, -s, -s, -s, s, -s, -s, s, s, -s, -s, s, -s, r, g, b, envelope);
+			quad(buf, mat, -s, -s, s, s, -s, s, s, s, s, -s, s, s, r, g, b, envelope);
+			quad(buf, mat, -s, -s, -s, -s, -s, s, s, -s, s, s, -s, -s, r, g, b, envelope);
+			quad(buf, mat, -s, s, -s, s, s, -s, s, s, s, -s, s, s, r, g, b, envelope);
+			quad(buf, mat, -s, -s, -s, -s, s, -s, -s, s, s, -s, -s, s, r, g, b, envelope);
+			quad(buf, mat, s, -s, -s, s, -s, s, s, s, s, s, s, -s, r, g, b, envelope);
+			var built = buf.endNullable();
+			if (built != null) BufferRenderer.drawWithGlobalProgram(built);
 
-		RenderSystem.depthMask(true);
-		RenderSystem.enableCull();
-		RenderSystem.disableBlend();
+		} finally {
+			RenderSystem.depthMask(write);
+			RenderSystem.depthFunc(function);
+			if (depth) RenderSystem.enableDepthTest(); else RenderSystem.disableDepthTest();
+			if (cull) RenderSystem.enableCull(); else RenderSystem.disableCull();
+			RenderSystem.blendFuncSeparate(srcRgb, dstRgb, srcAlpha, dstAlpha);
+			if (blend) RenderSystem.enableBlend(); else RenderSystem.disableBlend();
+			RenderSystem.setShader(() -> previous);
+		}
 	}
 
 	/** 0 at the Orbital ceiling, 1 a hundred blocks into the End band. */
