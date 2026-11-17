@@ -100,6 +100,7 @@ public class DroneEntity extends HostileEntity {
 		// Bombers climb the settlement before dogfighting random livestock.
 		this.goalSelector.add(0, new BombardVillageGoal(this));
 		this.goalSelector.add(1, new DroneAi.CombatGoal(this));
+        this.goalSelector.add(2, new com.terminaldetector.drmd.ai.SquadInvestigateGoal(this));
 		this.goalSelector.add(8, new LookAtEntityGoal(this, LivingEntity.class, 24f));
 		HostileEnvironment.installTargets(this, this.targetSelector);
 	}
@@ -108,6 +109,7 @@ public class DroneEntity extends HostileEntity {
 	public void tick() {
 		super.tick();
 		this.setNoGravity(true);
+        com.terminaldetector.drmd.ai.DroneSquadCoordinator.tick(this);
 		if (!getWorld().isClient) {
 			if(ragdollSpawned&&!isAlive())setInvisible(true);
 			modEnergy = Math.min(100f, modEnergy + 20f / 20f);

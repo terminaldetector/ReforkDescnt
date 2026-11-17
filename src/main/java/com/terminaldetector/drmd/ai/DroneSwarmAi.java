@@ -36,6 +36,7 @@ public final class DroneSwarmAi {
 			BoundedSpatialIndex<DroneSample> flock,Map<UUID,BoundedSpatialIndex.Query<DroneSample>> queries) {}
 	public record NeighbourQueryStats(long snapshotTick, int indexedDrones, int neighbours,
 			int examinedCandidates, int occupiedBuckets) {}
+    public record CoordinationQuery(java.util.List<UUID> ids,int examinedCandidates){}
 
 	private DroneSwarmAi() {}
 
@@ -52,7 +53,19 @@ public final class DroneSwarmAi {
 		synchronized (SNAPSHOTS) {
 			SNAPSHOTS.clear();
 		}
+        DroneSquadCoordinator.clear();
 	}
+
+    /** Existing frame index, bounded independently from flock steering; actual allegiance is checked. */
+    public static CoordinationQuery coordinationNeighbours(DroneEntity scout){
+        if(!(scout.getWorld() instanceof ServerWorld world))return new CoordinationQuery(java.util.List.of(),0);
+        var frame=snapshot(world);
+        var query=frame.all.nearest(scout.getX(),scout.getY(),scout.getZ(),32,DroneSquadCoordinator.MAX_ALLIES,
+            DroneSquadCoordinator.MAX_CANDIDATES,querySeed(scout,frame.tick),sample->{
+                var entity=world.getEntity(sample.id());return entity instanceof DroneEntity ally&&DroneSquadCoordinator.allies(scout,ally);
+            });
+        return new CoordinationQuery(query.hits().stream().map(hit->hit.value().id()).toList(),query.examinedCandidates());
+    }
 
 	/**
 	 * Unitless desire vector to blend into combat motion. Zero when alone / excluded.
