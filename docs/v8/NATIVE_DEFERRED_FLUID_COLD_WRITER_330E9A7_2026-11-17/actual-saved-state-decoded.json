@@ -1,0 +1,33 @@
+{
+  "exactKey": {
+    "tx": 8,
+    "sx": 8,
+    "ty": 31,
+    "sy": 32,
+    "tz": 8,
+    "created": 9229,
+    "sz": 8,
+    "family": "minecraft:water"
+  },
+  "totalPending": 1,
+  "decodedActualNbt": {
+    "data": {
+      "schema": 1,
+      "entries": [
+        {
+          "tx": 8,
+          "sx": 8,
+          "ty": 31,
+          "sy": 32,
+          "tz": 8,
+          "created": 9229,
+          "sz": 8,
+          "family": "minecraft:water"
+        }
+      ]
+    },
+    "DataVersion": 3955
+  },
+  "bytes": 137,
+  "sha256": "48399852be12b1a80901423aa72ba662218dc58715ad608fd68bdc2c9c79b24c"
+}

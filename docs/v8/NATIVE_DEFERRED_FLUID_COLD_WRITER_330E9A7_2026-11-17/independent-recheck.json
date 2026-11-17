@@ -1,0 +1,63 @@
+{
+  "sourceSha": "330e9a721293df7eac489ae3e62f4d4972275f7b",
+  "status": "COLD_WRITER_UNKNOWN_STOPPED",
+  "buildChild": 0,
+  "helperChild": 0,
+  "javaExit": 0,
+  "dryTick": 155,
+  "admissionTick": 276,
+  "stableUnknown": 20,
+  "edgeEnter": 291,
+  "edgeReturn": 291,
+  "requestTick": 292,
+  "stoppingTick": 299,
+  "sourceFull": true,
+  "neighbourFull": false,
+  "neighbourReadUnavailable": true,
+  "sourceState": "Block{minecraft:water}[level=0]",
+  "edgeState": "Block{minecraft:water}[level=8]",
+  "targetState": "UNAVAILABLE",
+  "queuedAvailableWater": [],
+  "deferred": {
+    "pending": 1,
+    "added": 1,
+    "coalesced": 0,
+    "capRefused": 0,
+    "budgetRefused": 0,
+    "backpressureQueued": 0,
+    "backpressureRefused": 0,
+    "resumed": 0,
+    "stale": 0,
+    "unsupported": 0
+  },
+  "savedExactKey": {
+    "tx": 8,
+    "sx": 8,
+    "ty": 31,
+    "sy": 32,
+    "tz": 8,
+    "created": 9229,
+    "sz": 8,
+    "family": "minecraft:water"
+  },
+  "totalSavedJobs": 1,
+  "savedHighPose": {
+    "levelPlayerPosition": [
+      12.5,
+      112.0,
+      8.5
+    ],
+    "playerDatPosition": [
+      12.5,
+      112.0,
+      8.5
+    ],
+    "dimension": "minecraft:overworld"
+  },
+  "archiveSha256": "e5589f78bf1b2513f9adff1b728420e497e3d03c3f8bf92a27a2e43efc22c165",
+  "archiveBytes": 1382724,
+  "archiveFileCount": 94,
+  "allFilesHashRecheckedUnderExclusiveLock": true,
+  "gzipCrcEofRechecked": true,
+  "outcomeSha256": "aa7fe05658ae78ad43906b2328d44a631f5b0432d41ea3263757a8f8cdb1a3ae"
+}

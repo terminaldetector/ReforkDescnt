@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "bash",
+    "scripts/v8/cubic_cold_native.sh",
+    "cold-writer",
+    "cubic-fluid-cold-writer-330e9a7-sodium"
+  ],
+  "cwd": "/workspace/ungravity-v5/cubic-next-20261109",
+  "nanoTime": 43866616547409
+}
