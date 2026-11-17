@@ -1,0 +1,45 @@
+{
+  "tested_source_sha": "2568f8d737d597b35a13591637cf737b6907afe2",
+  "tracked_inputs_verified": 1472,
+  "compile_exit": 0,
+  "gradle_gametest_exit": 1,
+  "game_exit": 5,
+  "cases": [
+    {
+      "name": "survivaleconomygametests.craftedrepairmustpreservestonedeepslateandnetherbrickmaterialfamilies",
+      "pass": false,
+      "failure": "(-6071924, -60, 12331348) repair restores each actual source material instead of converting unrelated bricks into stone: [minecraft:cracked_stone_bricks -> minecraft:stone_bricks, minecraft:cracked_deepslate_bricks -> minecraft:stone_bricks, minecraft:cracked_nether_bricks -> minecraft:stone_bricks]"
+    },
+    {
+      "name": "survivaleconomygametests.allthreeshipcomponentsmustbeindividuallycraftablethroughtherealtable",
+      "pass": false,
+      "failure": "(-6071911, -60, 12331348) all three recipes must be reachable by normal crafting, with conserved material; actual UI results=[Crafted[requested=drmd:ship_laser, actual=drmd:ship_thruster, count=1], Crafted[requested=drmd:ship_rocket, actual=drmd:ship_thruster, count=1], Crafted[requested=drmd:ship_thruster, actual=drmd:ship_thruster, count=1]]"
+    },
+    {
+      "name": "survivaleconomygametests.craftedrepairlasermustrepairactualpartialdamageonamovingmechanism",
+      "pass": false,
+      "failure": "(-6071898, -60, 12331348) actual crafted MG projectile must first damage the selected physical drive"
+    },
+    {
+      "name": "survivaleconomygametests.survivalminingpickupandreplacementrecoverbearingdriveandlaserexactlyonce",
+      "pass": false,
+      "failure": "(-6071885, -60, 12331348) requested recipe must be reachable through the ordinary UI: Crafted[requested=drmd:ship_laser, actual=drmd:ship_thruster, count=1]"
+    },
+    {
+      "name": "survivaleconomygametests.craftedplacedandassembledbearingsanddriveperformrealsurvivalwork",
+      "pass": true,
+      "failure": null
+    },
+    {
+      "name": "survivaleconomygametests.craftedlaserandrocketconsumeplacementitemsandfirefromactuallevermaterial",
+      "pass": false,
+      "failure": "(-6071859, -60, 12331348) requested recipe must be reachable through the ordinary UI: Crafted[requested=drmd:ship_laser, actual=drmd:ship_thruster, count=1]"
+    }
+  ],
+  "result": "1PASS_5FAIL",
+  "source_unchanged": true,
+  "own_java_processes": [],
+  "removed_only_after_archive_verification": "build/gametest/world",
+  "other_saves_or_caches_removed": false,
+  "local_repair_prerequisite_reached": false
+}
