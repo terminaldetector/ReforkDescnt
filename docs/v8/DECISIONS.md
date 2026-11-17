@@ -1,3 +1,5 @@
+17 November — retain all99 task IDs and original21 implementation packets; add R1–R3/B1–B4 supplemental clause gates without treating working contact/COM/prediction/control code as absent. Start S14-T05 on actual isolatedfc54c416 catalog/ledger/event adapter and18fresh units; full gameplay/cold reopen/UFO/convoy remain open. Current3completed/29in_progress/67pending. Canonical309/898+450 is server-only; latest two-client package68fb is unchanged. Cloud7317 scoped Sodium success does not transfer to Fabulous, whose first actual255 exposes28B format and sampler-query incompatibility. No publication.
+
 # Decisions
 
 17 November deferred-fluid integration: retain valid UNKNOWN work without TTL, distinguish invalid bounds/material, and acknowledge only ordinary future queued ticks. Bind68fb885/450 and both native clients to the same artifacts; keep component cold proof explicitly distinct while verifying its14 actual class entries. No promotion of lava/fullCubic, graphical candidates, all3D AI or both complete specifications.

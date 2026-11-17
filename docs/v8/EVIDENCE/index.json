@@ -3428,7 +3428,7 @@
   },
   "implementationPacketProgress20261117": {
     "path": "../IMPLEMENTATION_PACKET_PROGRESS_2026-11-17.json",
-    "sha256": "17fbd09697fefd37285bf21a4d3df46ad1670e620618cebed4ab6e5435290d0d",
+    "sha256": "5264841badf32f7a45f72285d618f6fe79d09f607a7a5baf3200ff4db0ff496c",
     "originalPacketCount": 21,
     "wholePacketsAccepted": 0
   },
@@ -3515,5 +3515,69 @@
     "fixtureEdits": 0,
     "manualReschedules": 0,
     "fullS02Accepted": false
+  },
+  "multiAgentServer3095999": {
+    "archive": "docs/v8/EVIDENCE/integrated-3095999-server.zip",
+    "sha256": "f36a93e4c44bc8a7bc039ffa5eb86c9ee07fc8be29bb03e63857d8c09ee64200",
+    "bytes": 345421,
+    "payloadFiles": 19,
+    "allHashesAndCrcVerified": true,
+    "source": "30959990c104543a78940a3baecf95ee4f73517d",
+    "unit": {
+      "tests": 898,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "game": {
+      "tests": 450,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "entrypoints": 73,
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "d4725ebb1524815dd4e6d8666bfa1b584c580b445c29eb2f163a11dc73a94306",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+    },
+    "gameReportFresh": true,
+    "scope": "Complete ordinary server suite and both remapped artifacts. No native client was run on this source. Distinct source 68fb20a remains latest accepted two-client snapshot. Cardinal native climbing is bounded static-field work; previous four specialized failures and general 3D AI/Boarding remain open.",
+    "nativeAccepted": false,
+    "releaseAccepted": false
+  },
+  "missionProtocolFc54c41": {
+    "archive": "docs/v8/EVIDENCE/mission-ledger-fc54c41-units.zip",
+    "sha256": "a6b8960e5edf90f671a2b0fc7940ec1fc5c079bb4c6b99c8cfef194ba19f17b0",
+    "bytes": 168237,
+    "payloadFiles": 43,
+    "allHashesAndZIPCRCVerified": true,
+    "source": "fc54c416fdf1ba77339a909162cad21a32e122dd",
+    "processExit": 0,
+    "unitTests": 18,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "sourceInputsUnchanged": true,
+    "compiledClassFiles": 23,
+    "scope": "Targeted pure protocol/codec and FactionMemory NBT tests only; no actual owner interaction, cold disk reopen or full mission/spec acceptance",
+    "actualGameplayAccepted": false,
+    "coldReopenAccepted": false
+  },
+  "altitudeCloudSodium7317": {
+    "source": "7317ddb055d9096a0208257607fd1e446d373894",
+    "report": "../ALTITUDE_CLOUD_FIRST_SODIUM_POSITIVE_2026-11-17.md",
+    "receipt": "cloud-depth-ceiling-7317ddb-first-sodium-positive.json",
+    "archive": "cloud-depth-ceiling-7317ddb-first-sodium-positive.zip",
+    "archiveSHA256": "56e4b0641023cf54edd9655761920c291d13d5009b38207dd4df8f98c043d701",
+    "scope": "Isolated first Sodium five-pose visibility/occlusion PASS only; first FabulousGL3.2 exposes real format/sampler incompatibility, no combined/hardware/full-render acceptance",
+    "fullTaskPromotion": false
+  },
+  "supplementalClauseAudit3095999": {
+    "path": "../SUPPLEMENTAL_CLAUSE_AUDIT_3095999_2026-11-17.json",
+    "sha256": "d7959db39c329a7b67ccc58afc9a81409fe8b1875667cedaec35e0032ecd09b8",
+    "additionalClauses": 7,
+    "originalPacketCount": 21,
+    "taskCount": 99,
+    "wholeTaskPromotion": false
   }
 }
