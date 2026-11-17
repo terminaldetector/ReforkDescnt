@@ -167,7 +167,7 @@ public final class PointDefenseGuardGameTests implements FabricGameTest {
         }
     }
     private void run(TestContext c,Mode mode,int offset){
-        PointDefenseInterception.register();var r=new Rig(c,mode,offset);
+        var r=new Rig(c,mode,offset);
         c.runAtEveryTick(()->{if(r.closed)return;try{r.world.resetIdleTimeout();if(r.ready())r.sample();}catch(Throwable failure){System.out.println("POINT_DEFENSE_COMPONENT_FIRST_FAILURE "+r.state());r.close();throw failure;}});
     }
     private static Vec3 v(Vec3d p){return new Vec3(p.x,p.y,p.z);}

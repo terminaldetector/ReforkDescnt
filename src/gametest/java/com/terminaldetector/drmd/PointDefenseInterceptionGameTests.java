@@ -156,8 +156,6 @@ public final class PointDefenseInterceptionGameTests implements FabricGameTest {
     }
 
     private void run(TestContext c,boolean defended,int offset){
-        // Explicit component lifecycle bootstrap; root owns final production registration.
-        com.terminaldetector.drmd.world.trap.PointDefenseInterception.register();
         var rig=new Rig(c,defended,offset);
         c.runAtEveryTick(()->{
             if(rig.closed)return;

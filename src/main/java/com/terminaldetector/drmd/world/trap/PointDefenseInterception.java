@@ -54,7 +54,7 @@ public final class PointDefenseInterception {
     private record Trace(boolean admitted,ProjectileEntity.DefenseContact contact){}
     private PointDefenseInterception(){}
 
-    /** Explicit component bootstrap; production central registration is coordinated by root. */
+    /** Common mod initializer owns registration; the guard prevents duplicate lifecycle callbacks. */
     public static synchronized void register(){
         if(registered)return;registered=true;
         ServerTickEvents.END_WORLD_TICK.register(PointDefenseInterception::finishWorld);
