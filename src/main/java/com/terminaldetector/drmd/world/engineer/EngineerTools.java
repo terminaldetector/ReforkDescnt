@@ -5,6 +5,10 @@ import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.weapon.fx.WeaponFx;
 import com.terminaldetector.drmd.world.LocalOrientation;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
+import com.terminaldetector.drmd.world.contraption.BlockBodyEntity;
+import com.terminaldetector.drmd.world.contraption.BlockBodyWorldAccess;
+import com.terminaldetector.drmd.world.contraption.BodySpatialIndex;
+import com.terminaldetector.drmd.world.edit.WorldEditSafety;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -30,6 +34,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
+import net.minecraft.world.GameMode;
 import org.joml.Vector3f;
 
 /**
@@ -57,9 +62,35 @@ public final class EngineerTools {
 		public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
 			ItemStack stack = user.getStackInHand(hand);
 			if (world.isClient) return TypedActionResult.success(stack);
-			BlockHitResult hit = ray(world, user, 16);
+			if (!(world instanceof ServerWorld sw) || !(user instanceof ServerPlayerEntity sp)
+					|| !user.isAlive() || user.isSpectator() || !user.getAbilities().allowModifyWorld
+					|| !(sp.interactionManager.getGameMode()==GameMode.SURVIVAL || sp.interactionManager.getGameMode()==GameMode.CREATIVE)) return TypedActionResult.fail(stack);
+			Vec3d eye=user.getEyePos(),direction=WeaponCore.aimDir(user);
+			if (!Double.isFinite(direction.lengthSquared()) || direction.lengthSquared()<1e-12) return TypedActionResult.fail(stack);
+			Vec3d end=WorldEditSafety.loadedEnd(world,eye,eye.add(direction.normalize().multiply(16)));
+			if (eye.squaredDistanceTo(end)<1e-12) return TypedActionResult.fail(stack);
+			BlockHitResult hit=world.raycast(new RaycastContext(eye,end,RaycastContext.ShapeType.OUTLINE,RaycastContext.FluidHandling.NONE,user));
+			Vec3d limit=hit.getType()==HitResult.Type.BLOCK?hit.getPos():end;
+			var bodies=BodySpatialIndex.query(world,new net.minecraft.util.math.Box(eye,limit).expand(.01));
+			if (bodies.size()>32) return TypedActionResult.fail(stack);
+			BlockBodyEntity nearest=null;BlockBodyWorldAccess.BodyHit bodyHit=null;double fraction=1;
+			for (var body:bodies) {
+				var candidate=new BlockBodyWorldAccess(body).raycastBlockBody(eye,limit);
+				if (candidate.isPresent() && candidate.get().fraction()<fraction-1e-7) {
+					nearest=body;bodyHit=candidate.get();fraction=bodyHit.fraction();
+				}
+			}
+			if (nearest!=null) {
+				var point=bodyHit.worldPoint();Vec3d at=new Vec3d(point.x(),point.y(),point.z());
+				// The nearest solid cell owns the result even if it has no damage;
+				// never pass through an intact/unauthorized hull to repair another.
+				if (!WorldEditSafety.loadedSegment(world,eye,at) || !WorldEditSafety.mayChange(sw,BlockPos.ofFloored(at),sp)
+						|| !nearest.repairLocalMaterial(bodyHit.localBlock())) return TypedActionResult.fail(stack);
+				feedback(world,user,at);return TypedActionResult.success(stack);
+			}
 			if (hit.getType() == HitResult.Type.BLOCK) {
 				BlockPos pos = hit.getBlockPos();
+				if (!WorldEditSafety.mayChange(sw,pos,sp)) return TypedActionResult.fail(stack);
 				BlockState st = world.getBlockState(pos);
 				if (st.isOf(Blocks.CRACKED_STONE_BRICKS)) {
 					world.setBlockState(pos, Blocks.STONE_BRICKS.getDefaultState(), Block.NOTIFY_ALL);
@@ -74,14 +105,16 @@ public final class EngineerTools {
 						new net.minecraft.util.math.Box(pos).expand(3), LivingEntity::isAlive)) {
 					e.heal(4f);
 				}
-				if (user instanceof ServerPlayerEntity sp) {
-					DescentShieldBoost(sp);
-				}
-				beam(world, user, pos.toCenterPos(), new Vector3f(0.3f, 1f, 0.4f));
-				world.playSound(null, pos, SoundEvents.BLOCK_ANVIL_USE, SoundCategory.BLOCKS, 0.35f, 1.6f);
-				user.sendMessage(Text.literal("§aRepair laser — structure refreshed"), true);
+				DescentShieldBoost(sp);
+				feedback(world,user,pos.toCenterPos());
 			}
 			return TypedActionResult.success(stack);
+		}
+
+		private static void feedback(World world,PlayerEntity user,Vec3d at) {
+			beam(world,user,at,new Vector3f(0.3f,1f,0.4f));
+			world.playSound(null,BlockPos.ofFloored(at),SoundEvents.BLOCK_ANVIL_USE,SoundCategory.BLOCKS,0.35f,1.6f);
+			user.sendMessage(Text.literal("§aRepair laser — structure refreshed"),true);
 		}
 
 		private static void DescentShieldBoost(ServerPlayerEntity sp) {
