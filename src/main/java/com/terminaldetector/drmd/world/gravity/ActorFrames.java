@@ -21,6 +21,7 @@ public final class ActorFrames {
         var type=entity.getType();
         return entity instanceof com.terminaldetector.drmd.entity.mob.TripodEntity
             || entity instanceof com.terminaldetector.drmd.entity.mob.SpiderTurretEntity
+            || entity instanceof net.minecraft.entity.mob.SpiderEntity
             || type==EntityType.COW || type==EntityType.PIG || type==EntityType.SHEEP
             || type==EntityType.ZOMBIE || type==EntityType.HUSK || type==EntityType.SKELETON
             || type==EntityType.STRAY || type==EntityType.CREEPER;
