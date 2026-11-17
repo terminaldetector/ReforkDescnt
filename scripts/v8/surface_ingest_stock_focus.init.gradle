@@ -2,6 +2,7 @@
 gradle.projectsEvaluated {
     def run = rootProject.loom.runs.getByName('gametest')
     run.vmArg('-Ddrmd.test.surfaceStock=true')
+    run.vmArg('-Ddrmd.test.surfaceStock.directory=' + rootProject.file('build/surface-stock-control').absolutePath)
     run.runDir('build/surface-stock-control')
     rootProject.tasks.named('runGametest') {
         doFirst {

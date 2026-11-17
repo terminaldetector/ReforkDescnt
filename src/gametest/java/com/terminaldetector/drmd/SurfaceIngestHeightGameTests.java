@@ -11,6 +11,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.test.GameTest;
 import net.minecraft.test.TestContext;
 import net.minecraft.util.math.BlockPos;
+import java.nio.file.Path;
 
 /** Real STOCK public-callback regression; selected by the dedicated focus helper. */
 public final class SurfaceIngestHeightGameTests implements FabricGameTest {
@@ -22,10 +23,11 @@ public final class SurfaceIngestHeightGameTests implements FabricGameTest {
         var world=c.getWorld();var origin=c.getAbsolutePos(new BlockPos(3,3,3));
         int cx=origin.getX()>>4,cz=origin.getZ()>>4;
         var high=new BlockPos((cx<<4)+8,240,(cz<<4)+8);var low=high.down(2);
-        System.out.println("SURFACE_STOCK_FIXTURE actualBottom="+world.getBottomY()+" actualTop="+world.getTopY()+" directory="+FabricLoader.getInstance().getGameDir()+" enabled="+SurfaceStockFixtureState.enabled+" disabled="+SurfaceStockFixtureState.disabled);
+        var runDir=FabricLoader.getInstance().getGameDir().toAbsolutePath().normalize();var expectedDir=System.getProperty("drmd.test.surfaceStock.directory","");
+        System.out.println("SURFACE_STOCK_FIXTURE actualBottom="+world.getBottomY()+" actualTop="+world.getTopY()+" directory="+runDir+" expectedDirectory="+expectedDir+" enabled="+SurfaceStockFixtureState.enabled+" disabled="+SurfaceStockFixtureState.disabled);
         c.assertTrue(CubicAvailability.backend(world)==CubicAvailability.Backend.STOCK,"actual STOCK backend control");
         c.assertTrue(SurfaceStockFixtureState.ENABLED&&SurfaceStockFixtureState.selected&&!SurfaceStockFixtureState.enabled.contains(SurfaceStockFixtureState.LEGACY)&&SurfaceStockFixtureState.disabled.contains(SurfaceStockFixtureState.LEGACY),"actual ordinary profile selection before registry load required");
-        c.assertTrue(FabricLoader.getInstance().getGameDir().getFileName().toString().equals("surface-stock-control"),"dedicated fresh STOCK run directory required");
+        c.assertTrue(!expectedDir.isBlank()&&runDir.equals(Path.of(expectedDir).toAbsolutePath().normalize()),"dedicated fresh STOCK run directory required; got "+runDir);
         c.assertTrue(world.getBottomY()==-64&&world.getTopY()==320,"ordinary stock bounds; no focused tall-world override may leak; got "+world.getBottomY()+"/"+world.getTopY());
         c.assertTrue(WorldAccess.of(world).isVolumeAvailable(D6ChunkPos.ofBlock(high.getX(),high.getY(),high.getZ())),"test uses an already FULL volume");
         var chunk=CubicAvailability.loadedColumn(world,cx,cz);c.assertTrue(chunk!=null,"already-ready actual chunk required");
