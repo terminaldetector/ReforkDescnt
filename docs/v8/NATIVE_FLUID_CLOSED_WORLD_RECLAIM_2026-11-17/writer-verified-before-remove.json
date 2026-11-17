@@ -1,0 +1,14 @@
+{
+  "mode": "writer",
+  "originalSavedCopy": "/workspace/ungravity-v5/cubic-next-20261109/build/cubic-fluid-writer-final-cubic-fluid-writer-6c23897-sodium/saves/Cubic-Gate",
+  "fileCount": 93,
+  "archive": "/workspace/ungravity-v5/cubic-next-20261109/work/cubic-fluid/cubic-fluid-writer-6c23897-sodium-writer-world.tar.gz",
+  "archiveSha256": "860e0793fa8a7373ec124f40d7f8dc3c71a3949e509df5266ad0e7922337caba",
+  "archiveGzipEofCrcVerified": true,
+  "archiveAllMemberBytesMatchProofAndOriginal": true,
+  "exclusiveFcntlLockAcquired": true,
+  "sessionLockSha256": "51643361c79ecaef25a8de802de24f570ba25d9c2df1d22d94fade11b4f466cc",
+  "fileLogicalBytes": 24799969,
+  "fileAllocatedBytes": 24969216,
+  "nanoTimeBeforeRemoval": 31229480783516
+}

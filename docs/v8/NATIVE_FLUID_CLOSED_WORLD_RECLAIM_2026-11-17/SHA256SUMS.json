@@ -1,0 +1,18 @@
+{
+  "README.md": {
+    "bytes": 1446,
+    "sha256": "7a22e103bf73eb07fae84be798dfebee28740116552cd0c2992cac69751b2680"
+  },
+  "reader-verified-before-remove.json": {
+    "bytes": 753,
+    "sha256": "c84a7470aef2eeb958dfb3465868eab2b3065a6b3ec78fc977b84bafc7df0772"
+  },
+  "reclaim-closed.json": {
+    "bytes": 2135,
+    "sha256": "518a7d3f63e7607a190ee9d14bfa385e1901f249605c5bbe9aa77e66022a0bb4"
+  },
+  "writer-verified-before-remove.json": {
+    "bytes": 741,
+    "sha256": "b9627d0b37d2d154f87f1e8486ef43e5bd43f1038d8471383d365fc9aa900e0b"
+  }
+}

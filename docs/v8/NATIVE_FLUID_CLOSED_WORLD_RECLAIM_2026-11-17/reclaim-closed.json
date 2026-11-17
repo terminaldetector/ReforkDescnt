@@ -1,0 +1,41 @@
+{
+  "scope": "Root-authorized reclamation only of own closed writer/reader native test saved copies; every archive/file and exclusive fcntl lock verified; no Java",
+  "beforeDiskFreeBytes": 160264192,
+  "worlds": [
+    {
+      "mode": "writer",
+      "originalSavedCopy": "/workspace/ungravity-v5/cubic-next-20261109/build/cubic-fluid-writer-final-cubic-fluid-writer-6c23897-sodium/saves/Cubic-Gate",
+      "fileCount": 93,
+      "archive": "/workspace/ungravity-v5/cubic-next-20261109/work/cubic-fluid/cubic-fluid-writer-6c23897-sodium-writer-world.tar.gz",
+      "archiveSha256": "860e0793fa8a7373ec124f40d7f8dc3c71a3949e509df5266ad0e7922337caba",
+      "archiveGzipEofCrcVerified": true,
+      "archiveAllMemberBytesMatchProofAndOriginal": true,
+      "exclusiveFcntlLockAcquired": true,
+      "sessionLockSha256": "51643361c79ecaef25a8de802de24f570ba25d9c2df1d22d94fade11b4f466cc",
+      "fileLogicalBytes": 24799969,
+      "fileAllocatedBytes": 24969216,
+      "nanoTimeBeforeRemoval": 31229480783516,
+      "onlyOriginalSavedCopyRemoved": true,
+      "nanoTimeAfterRemoval": 31229493567995
+    },
+    {
+      "mode": "reader",
+      "originalSavedCopy": "/workspace/ungravity-v5/cubic-next-20261109/build/cubic-fluid-reader-final-cubic-fluid-reader-first-6c23897-sodium/saves/Cubic-Gate",
+      "fileCount": 95,
+      "archive": "/workspace/ungravity-v5/cubic-next-20261109/work/cubic-fluid/cubic-fluid-reader-first-6c23897-sodium-closed-world.tar.gz",
+      "archiveSha256": "060557dd410e265b4211455a4509244e9fb9dc660f9afe94f2f0f82a389aa647",
+      "archiveGzipEofCrcVerified": true,
+      "archiveAllMemberBytesMatchProofAndOriginal": true,
+      "exclusiveFcntlLockAcquired": true,
+      "sessionLockSha256": "51643361c79ecaef25a8de802de24f570ba25d9c2df1d22d94fade11b4f466cc",
+      "fileLogicalBytes": 27699853,
+      "fileAllocatedBytes": 27873280,
+      "nanoTimeBeforeRemoval": 31229729028068,
+      "onlyOriginalSavedCopyRemoved": true,
+      "nanoTimeAfterRemoval": 31229735189155
+    }
+  ],
+  "afterDiskFreeBytes": 213344256,
+  "observedDiskFreeDeltaBytes": 53080064,
+  "diskDeltaIncludesConcurrentSiblingWork": true
+}

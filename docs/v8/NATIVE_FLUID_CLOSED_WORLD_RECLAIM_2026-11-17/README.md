@@ -1,0 +1,7 @@
+# Root-authorized closed native-water fixture reclamation
+
+After both first writer and reader closed, and their separate immutable evidence commits were sealed, the coordinator requested disk headroom for the next combined server gate. Only this lane's original 93-file writer and 95-file reader saved copies under their own closed native runtime paths were removed. No source, helpers, archives, JARs, logs, frames, cache, shared libraries or user save was removed.
+
+Immediately before each removal, the exact archive SHA/size, gzip read-through-EOF CRC, all archived file sizes/hashes against both original proof and current raw saved tree, and session.lock SHA were verified. An exclusive nonblocking fcntl.lockf was held on the actual session.lock throughout verification/removal. Pre-removal and final receipts preserve paths, file counts, byte totals and observed free-space readings. Concurrent sibling work means the observed free-space delta is not claimed as isolated filesystem accounting. No Java was run.
+
+The writer archive860e0793… and reader archive060557dd… remain at their original work paths and in the sealed evidence commits. Original proof files still name the raw saved paths as historical origins; those specific saved copies are now retired. Both actual outcomes, all frames/logs and installed mods remain. The qualified writer can still stage from its complete archive; its exact original outcome path also remains.
