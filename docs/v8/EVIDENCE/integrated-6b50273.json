@@ -1,0 +1,102 @@
+{
+  "source": "6b50273c6896433a2d5caf68991150126e897245",
+  "archiveSHA256": "7b1124ef07eae6dae167fe6e1a14851eaa9ff0ec04ed78c88f33035b3fb7341a",
+  "archiveBytes": 4702250,
+  "payloadFiles": 138,
+  "pngFiles": 40,
+  "depthArrays": 10,
+  "counts": {
+    "unit": {
+      "tests": 843,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "game": {
+      "tests": 442,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "entrypoints": 71,
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "5ae9d0cae2223e110f993a23554010ad2159fd45ca3e9dbe7e1ddb2e7ea2bb68",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+  },
+  "nativePair": {
+    "source": "6b50273c6896433a2d5caf68991150126e897245",
+    "endSource": "6b50273c6896433a2d5caf68991150126e897245",
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "5ae9d0cae2223e110f993a23554010ad2159fd45ca3e9dbe7e1ddb2e7ea2bb68",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+    },
+    "jarsUnchanged": true,
+    "helpersUnchanged": true,
+    "results": [
+      {
+        "kind": "arrival",
+        "scenario": "cubic-surface-arrival-integrated-6b50273-sodium",
+        "helperExit": 0,
+        "javaExit": 0,
+        "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-surface-arrival-final-cubic-surface-arrival-integrated-6b50273-sodium",
+        "observed": [
+          "inputs.json",
+          "launch.json",
+          "surface-arrival-outcome.json"
+        ],
+        "pngCount": 2,
+        "gatePassed": true
+      },
+      {
+        "kind": "presentation",
+        "scenario": "ps1-color-integrated-6b50273-sodium",
+        "helperExit": 0,
+        "javaExit": 0,
+        "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-6b50273-sodium",
+        "observed": [
+          "inputs.json",
+          "launch.json",
+          "presentation-ok.json",
+          "ps1-color-ok.json",
+          "viewmodel-proof/viewmodel-visibility.json"
+        ],
+        "pngCount": 38,
+        "gatePassed": true
+      }
+    ],
+    "endNs": 1794935443159442670,
+    "gatePassed": true
+  },
+  "releaseAccepted": false,
+  "fullSpecificationAccepted": false,
+  "colourReference": {
+    "states": 5,
+    "allReferencePass": true,
+    "allRgbAgreement": true,
+    "maxChannelError": 0,
+    "maxDepthDelta": 5.960464477539063e-08,
+    "minDitherSensitive": 8175
+  },
+  "viewmodel": {
+    "nativeObserved": true,
+    "nativePixels": 166,
+    "ps1Pixels": 166,
+    "requiredPixels": 125,
+    "sameCamera": true,
+    "sameModules": true,
+    "maximumProjectedVertexDeltaPixels": 0.0
+  },
+  "arrival": {
+    "status": "PASS",
+    "realNativeBackend": true,
+    "normalPlayerInterestOnly": true,
+    "fixtureBlockEdits": 0,
+    "firstServerFullTick": 123,
+    "firstBothFullTick": 130,
+    "observationTicksAfterFull": 18,
+    "mutationsAfterBaseline": 0,
+    "droppedEventCount": 0
+  },
+  "presentationScenes": 6
+}
