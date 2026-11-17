@@ -1,0 +1,702 @@
+{
+  "schema": "ungravity.supplemental-clause-audit.v1",
+  "created_utc": "2026-11-17T22:42:33.308311+00:00",
+  "source_pin": "30959990c104543a78940a3baecf95ee4f73517d",
+  "review_head": "72ed2bfb8d13374a834b855b303dc1bf7fefd2c9",
+  "production_delta_from_pin": [],
+  "own_source_is_older_component": true,
+  "authorities": {
+    "master_v8": {
+      "path": "docs/v8/reference/00_MASTER_SPEC.md",
+      "sha256": "c98fe04f5592d5afcc9ddc34414c4d3032287944905718cf2fd17b4e2770d082"
+    },
+    "render_parallel": {
+      "path": "docs/v8/reference/02_ENGINE/RENDER_NOCUBES_PS1.md",
+      "sha256": "169972c76de085fd7db2e135e002ebaf9f84818c694b0205ae16000d62bc5115"
+    },
+    "direct_boarding": {
+      "source": "User direct ten-section/twelve-criterion text; normalized transcription in prior crosswalk",
+      "transcription_sha256": "fb81c3585de6387882e40f4747d6d266b95ae5c219d9a0b7b499b5b5e44080c1",
+      "dated_UFO_demo_is_distinct": true
+    }
+  },
+  "ledger_snapshot": {
+    "path": "docs/v8/TASKS.yaml",
+    "sha256": "3258cbd8fd169f4e5d3c2c9936a54b5e9f19b8ea0fc3da0736d53868c2813350",
+    "count": 99,
+    "status_counts": {
+      "in_progress": 28,
+      "pending_reverification": 68,
+      "completed": 3
+    },
+    "same_as_git_pin": true
+  },
+  "prior_packet_map": {
+    "source_pin": "6128edf5297828fc4dc9c9f6d1ebdcfd8083cb92",
+    "sha256": "f387b0d7ef5b04d8b75883ff2c13fa0bab114ff26028df64ef20025bf3d2e9d1",
+    "packets": 21,
+    "explicit_task_ref_count": 44,
+    "task_ids_without_explicit_packet_ref": [
+      "S00-T01",
+      "S00-T02",
+      "S00-T05",
+      "S00-T06",
+      "S01-T01",
+      "S01-T02",
+      "S01-T03",
+      "S01-T04",
+      "S01-T05",
+      "S01-T06",
+      "S02-T01",
+      "S02-T02",
+      "S02-T03",
+      "S02-T04",
+      "S02-T05",
+      "S02-T06",
+      "S03-T01",
+      "S03-T02",
+      "S03-T03",
+      "S03-T04",
+      "S03-T05",
+      "S04-T03",
+      "S05-T01",
+      "S06-T01",
+      "S06-T02",
+      "S06-T03",
+      "S06-T04",
+      "S06-T05",
+      "S06-T06",
+      "S07-T01",
+      "S07-T02",
+      "S07-T03",
+      "S08-T01",
+      "S08-T03",
+      "S09-T01",
+      "S09-T02",
+      "S09-T06",
+      "S10-T02",
+      "S10-T05",
+      "S11-T01",
+      "S11-T02",
+      "S11-T03",
+      "S11-T05",
+      "S11-T06",
+      "S14-T01",
+      "S15-T04",
+      "S16-T01",
+      "S16-T03",
+      "S16-T04",
+      "S16-T05",
+      "S17-T01",
+      "S17-T02",
+      "S17-T03",
+      "S17-T04",
+      "S17-T05"
+    ],
+    "limit": "Missing an explicit packet reference is not absent implementation or task acceptance; many rows are existing active gates/history/release work."
+  },
+  "current_recorded_server_scope": {
+    "metrics_path": "docs/v8/EVIDENCE/integrated-3095999-server.json",
+    "source": "30959990c104543a78940a3baecf95ee4f73517d",
+    "unit": {
+      "tests": 898,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "game": {
+      "tests": 450,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "nativeAccepted": false,
+    "archive_sha256_crc_rechecked": true,
+    "individual_tests_not_rerun": true,
+    "all_19_payload_sha256_verified": true
+  },
+  "supplement": [
+    {
+      "id": "R1",
+      "title": "General transition/cavity material policy and mesh-selection experiment",
+      "tasks": [
+        "S04-T01",
+        "S04-T02",
+        "S04-T03",
+        "S04-T04"
+      ],
+      "owner": "ps1_render + world_cubic",
+      "spec": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/RENDER_NOCUBES_PS1.md",
+          "section": "Terrain material policy / Mesh algorithms experiment",
+          "lines": [
+            7,
+            15
+          ]
+        }
+      ],
+      "related_packets": [
+        "U18",
+        "U19",
+        "U21"
+      ],
+      "outside_packet_scope": "Those packets cover log morphology, drill heat and distant tiers; no distinct general fracture/transition policy or measured near-mesher selection packet.",
+      "classification": "partial_baseline; explicit_extension_or_experiment_not_located_at_bound_geometry_entry",
+      "anchors": [
+        "policy",
+        "natural",
+        "mesh",
+        "anchor"
+      ],
+      "present": "Real shared organic/anchor/microdamage meshing and conservative collision exist; engineered anchoring is preserved.",
+      "next": "Define material/stage decisions across existing adapter, then compare current baseline with one feature-aware candidate on the same finite terrain/cavity fixture; do not require replacement if baseline wins.",
+      "acceptance": "Actual mixed engineered/natural/fracture/cavity seam, negativeXYZ, normal/UV/visibility/proxy agreement and measured bounded dirty rebuild; no triangle-solver requirement.",
+      "runtime_accepted_by_this_audit": false
+    },
+    {
+      "id": "R2",
+      "title": "Independent persisted hybrid and expanded-physics choices",
+      "tasks": [
+        "S05-T01",
+        "S05-T05",
+        "S08-T05"
+      ],
+      "owner": "ps1_render + audit_integration",
+      "spec": [
+        {
+          "path": "docs/v8/reference/00_MASTER_SPEC.md",
+          "section": "4. HYBRID/NOCUBES/PS1 RENDER",
+          "lines": [
+            58,
+            61
+          ]
+        },
+        {
+          "path": "docs/v8/reference/02_ENGINE/RENDER_NOCUBES_PS1.md",
+          "section": "PS1 Hybrid profile",
+          "lines": [
+            23,
+            25
+          ]
+        }
+      ],
+      "related_packets": [
+        "U17"
+      ],
+      "outside_packet_scope": "U17 covers selector/debug/pacing; independent render/physics persisted default and legacy explicit-choice matrix is not named.",
+      "classification": "code_present; combined_persistence_independence_gate_unclosed",
+      "anchors": [
+        "defaults",
+        "config",
+        "physics_default"
+      ],
+      "present": "Explicit hybrid parsing/persistence and independent EXPANDED default exist; no absent-toggle claim.",
+      "next": "Copied config/world lifecycle gate: fresh defaults, explicit off/on, STANDARD/EXPANDED, profile/renderer fallback, restart; correct only a demonstrated choice-loss path.",
+      "acceptance": "No override reset, no simulation/mesh cache/contact mutation through render-only toggle; actual saved choices remain separate. Existing profile tests are regression, not this whole matrix.",
+      "runtime_accepted_by_this_audit": false
+    },
+    {
+      "id": "R3",
+      "title": "Four requested mirrors and no-target/failure lifecycle",
+      "tasks": [
+        "S01-T03",
+        "S05-T06",
+        "S15-T03"
+      ],
+      "owner": "ps1_render",
+      "spec": [
+        {
+          "path": "docs/v8/reference/02_ENGINE/RENDER_NOCUBES_PS1.md",
+          "section": "Mirror vs portal / Compatibility tests",
+          "lines": [
+            27,
+            32
+          ]
+        }
+      ],
+      "related_packets": [
+        "U16",
+        "U17"
+      ],
+      "outside_packet_scope": "Generic compatibility mentions do not schedule the specific 1/2/4-request, budget overflow, zero-area/no-target and exception restoration scenarios.",
+      "classification": "code_present; explicit_failure_and_budget_matrix_unclosed",
+      "anchors": [
+        "mirror_cap",
+        "mirror_missing",
+        "fbo_restore"
+      ],
+      "present": "Real merged mirrors, two-reflection budget, missing-area refusal and target restoration exist; capped reflections are permitted.",
+      "next": "Bounded actual stand for 1/2/4 requested surfaces plus portal, minimization/resize/unavailable target and controlled allocation/restore failure; add implementation only for the first real defect.",
+      "acceptance": "All slabs still render with graceful budget/fallback, independent passes restore FBO/viewport/depth; exact-source Native/PS1/GL3.2/Sodium scopes retained, actual hardware separately BLOCKED if unavailable.",
+      "runtime_accepted_by_this_audit": false
+    },
+    {
+      "id": "B1",
+      "title": "Occupied accelerating/frictional contact and relative-motion CCD matrix",
+      "tasks": [
+        "S09-T04",
+        "S06-T06",
+        "S08-T03"
+      ],
+      "owner": "root + gravity_ragdoll",
+      "related_packets": [
+        "U11"
+      ],
+      "outside_packet_scope": "U11 adds non-player adapters; it does not explicitly schedule the original player acceleration/friction/two-moving-side matrix.",
+      "classification": "code_and_scoped_tests_present; coherent_current_integration_matrix_unclosed",
+      "anchors": [
+        "contact",
+        "relative_sweep",
+        "contact_tests"
+      ],
+      "present": "Force/friction/reaction, angular point speed, sweeps and momentum tests exist. Do not implement friction/CCD from scratch or disregard moving-deck native proofs.",
+      "next": "Extend current occupied-body scene with changing support acceleration, off-centre spin, narrow inner/outer wall, jump, slide and independent moving-body handoff; retain original contact bounds.",
+      "acceptance": "Contact forces transfer acceleration without follow teleport; world release velocity and both-moving-side contact normals/TOI remain correct. Existing scalar/friction/seam proofs stay accepted only at their exact scope.",
+      "runtime_accepted_by_this_audit": false,
+      "db_clauses": [
+        {
+          "id": "DB-017",
+          "section": "2. Физика игрока на движущемся корпусе",
+          "first_line": 32,
+          "last_line": 32,
+          "quote": "- Поддержка ходьбы, прыжков, столкновений и скольжения."
+        },
+        {
+          "id": "DB-018",
+          "section": "2. Физика игрока на движущемся корпусе",
+          "first_line": 33,
+          "last_line": 33,
+          "quote": "- Наследование движения корпуса через контактные силы и ограничения."
+        },
+        {
+          "id": "DB-019",
+          "section": "2. Физика игрока на движущемся корпусе",
+          "first_line": 34,
+          "last_line": 34,
+          "quote": "- Поддержка вращения корпуса по всем трём осям."
+        },
+        {
+          "id": "DB-022",
+          "section": "2. Физика игрока на движущемся корпусе",
+          "first_line": 38,
+          "last_line": 38,
+          "quote": "При отрыве сохранять мировую скорость игрока с учётом скорости контактной точки корабля:"
+        },
+        {
+          "id": "DB-023",
+          "section": "2. Физика игрока на движущемся корпусе",
+          "first_line": 39,
+          "last_line": 42,
+          "quote": "```text\nv_surface = v_body + angularVelocity × radius\nv_player_world = v_surface + v_player_relative\n```"
+        },
+        {
+          "id": "DB-024",
+          "section": "2. Физика игрока на движущемся корпусе",
+          "first_line": 43,
+          "last_line": 44,
+          "quote": "Где `radius` — вектор от центра масс корпуса до точки контакта.\nДля физической корректности учитывать также ускорения корпуса и силы трения."
+        },
+        {
+          "id": "DB-029",
+          "section": "3. Коллизии и физические контакты",
+          "first_line": 52,
+          "last_line": 52,
+          "quote": "- Continuous Collision Detection для быстрых объектов."
+        },
+        {
+          "id": "DB-032",
+          "section": "3. Коллизии и физические контакты",
+          "first_line": 56,
+          "last_line": 57,
+          "quote": "Коллизии должны вычисляться с учётом движения обеих сторон контакта.\nНе создавать отдельный `RigidBody` для каждого неподвижного блока."
+        }
+      ]
+    },
+    {
+      "id": "B2",
+      "title": "Reusable ControlCore ownership beyond the reference SkyUfo adapter",
+      "tasks": [
+        "S09-T03",
+        "S09-T04",
+        "S09-T06"
+      ],
+      "owner": "root",
+      "related_packets": [
+        "U08",
+        "U12"
+      ],
+      "outside_packet_scope": "Functional blocks/heavy operator are covered; no distinct generic control-lease adapter for ordinary player-built BlockBody is a packet.",
+      "classification": "reference_UFO_control_present; generic_adapter_not_located_at_typed_entry",
+      "anchors": [
+        "core"
+      ],
+      "present": "Reach/alive/world/interior/console/unique-pilot/epoch checks, AI handoff and previous-autopilot restore exist for SkyUfoEntity; historical lifecycle native proof is real.",
+      "next": "Generalize the existing control interface to a supported player-built BlockBody/core through the same lease/input authority. Reuse separate gun/bearing/drive blocks; no new engine, factory chain or invented faction access canon.",
+      "acceptance": "Actual core use grants one owner, rejects stale/outside/dead/wrong-body access, routes real engines/weapons, releases/reclaims across fracture/reload without body recreation or velocity reset.",
+      "runtime_accepted_by_this_audit": false,
+      "db_clauses": [
+        {
+          "id": "DB-059",
+          "section": "7. Захват управления кораблём",
+          "first_line": 112,
+          "last_line": 113,
+          "quote": "Реализовать взаимодействие с `ControlCore`.\nПредусмотреть:"
+        },
+        {
+          "id": "DB-060",
+          "section": "7. Захват управления кораблём",
+          "first_line": 114,
+          "last_line": 114,
+          "quote": "- Обнаружение управляющего блока внутри корпуса."
+        },
+        {
+          "id": "DB-061",
+          "section": "7. Захват управления кораблём",
+          "first_line": 115,
+          "last_line": 115,
+          "quote": "- Проверку условий доступа к управлению."
+        },
+        {
+          "id": "DB-062",
+          "section": "7. Захват управления кораблём",
+          "first_line": 116,
+          "last_line": 116,
+          "quote": "- Переключение между AI и управлением игроком."
+        },
+        {
+          "id": "DB-063",
+          "section": "7. Захват управления кораблём",
+          "first_line": 117,
+          "last_line": 117,
+          "quote": "- Передачу команд двигателям и вооружению."
+        },
+        {
+          "id": "DB-064",
+          "section": "7. Захват управления кораблём",
+          "first_line": 118,
+          "last_line": 118,
+          "quote": "- Сохранение текущего физического состояния при переключении."
+        },
+        {
+          "id": "DB-065",
+          "section": "7. Захват управления кораблём",
+          "first_line": 120,
+          "last_line": 120,
+          "quote": "Захват управления не должен пересоздавать физический корпус или обнулять его скорость."
+        }
+      ]
+    },
+    {
+      "id": "B3",
+      "title": "Occupied asymmetric local edit through COM, collider revision and prediction replay",
+      "tasks": [
+        "S09-T04",
+        "S09-T06",
+        "S10-T05"
+      ],
+      "owner": "root + audit_integration",
+      "related_packets": [
+        "U12"
+      ],
+      "outside_packet_scope": "The adapter packet names mass/collider updates, but not this explicit coupled occupant/COM/shape-revision/correction transaction.",
+      "classification": "incremental_implementation_present; cross_system_acceptance_unclosed",
+      "anchors": [
+        "edit",
+        "com",
+        "prediction"
+      ],
+      "present": "Atomic edits, dirty-neighbour section rebuild, COM point-velocity rebase, shape revision and client waiting/replay already exist; no full-rebuild/absent-prediction claim.",
+      "next": "Actual asymmetric placement/removal while rotating and occupied, interleave pose/shape/contact arrival, then cold restore. Add only a failure-driven shared transaction fix.",
+      "acceptance": "Remaining material points, contact and launch velocities stay continuous, client refuses old geometry and replays bounded input correctly, no duplicate fragment/refund or stale collider.",
+      "runtime_accepted_by_this_audit": false,
+      "db_clauses": [
+        {
+          "id": "DB-046",
+          "section": "5. Взаимодействие с блоками",
+          "first_line": 89,
+          "last_line": 89,
+          "quote": "- Разрушение блоков во время движения."
+        },
+        {
+          "id": "DB-047",
+          "section": "5. Взаимодействие с блоками",
+          "first_line": 90,
+          "last_line": 90,
+          "quote": "- Установку новых блоков на летящий корабль."
+        },
+        {
+          "id": "DB-051",
+          "section": "5. Взаимодействие с блоками",
+          "first_line": 94,
+          "last_line": 94,
+          "quote": "- Перерасчёт массы и коллайдеров после изменения конструкции."
+        },
+        {
+          "id": "DB-070",
+          "section": "8. Серверная симуляция и синхронизация",
+          "first_line": 129,
+          "last_line": 129,
+          "quote": "- Изменения блоков."
+        },
+        {
+          "id": "DB-071",
+          "section": "8. Серверная симуляция и синхронизация",
+          "first_line": 130,
+          "last_line": 130,
+          "quote": "- Контакт игрока с физическим корпусом."
+        },
+        {
+          "id": "DB-074",
+          "section": "8. Серверная симуляция и синхронизация",
+          "first_line": 134,
+          "last_line": 136,
+          "quote": "На клиенте использовать интерполяцию и предсказание движения с последующей коррекцией по серверному состоянию.\nДля предотвращения рассинхронизации необходимо соблюдать единый порядок обновления физики корпуса, его дочерних элементов и контактирующих сущностей.\nПри переходе между обычными Minecraft-чанками сохранять непрерывность физического движения. Система загрузки мира должна учитывать полный пространственный объём движущегося корпуса, а не только положение его центра."
+        },
+        {
+          "id": "DB-077",
+          "section": "9. Оптимизация",
+          "first_line": 142,
+          "last_line": 142,
+          "quote": "- Перестраивать только изменённые участки геометрии."
+        },
+        {
+          "id": "DB-082",
+          "section": "9. Оптимизация",
+          "first_line": 147,
+          "last_line": 147,
+          "quote": "- Не выполнять полное обновление геометрии после каждого незначительного повреждения."
+        }
+      ]
+    },
+    {
+      "id": "B4",
+      "title": "Physical reactor warning, emergency departure and playable fracture loop",
+      "tasks": [
+        "S09-T05",
+        "S09-T04",
+        "S11-T06"
+      ],
+      "owner": "root + world_content",
+      "spec": [
+        {
+          "path": "docs/v8/reference/00_MASTER_SPEC.md",
+          "section": "6. BLOCKBODY / UFO / SHIPS",
+          "lines": [
+            73,
+            76
+          ]
+        },
+        {
+          "path": "docs/v8/reference/03_GAMEPLAY/BLOCKBODY_UFO_AND_MOTHERSHIP.md",
+          "section": "Five combat episodes / Acceptance",
+          "lines": [
+            12,
+            27
+          ]
+        }
+      ],
+      "related_packets": [
+        "U04",
+        "U08"
+      ],
+      "outside_packet_scope": "Survival siege and heavy modules do not replace aboard→sabotage→reactor critical→departure→physical wreck gameplay.",
+      "classification": "crash_timer_and_damage_pipeline_present; explicit_feedback_eject_bridge_at_inspected_entry_unclosed",
+      "anchors": [
+        "crash",
+        "timer"
+      ],
+      "present": "Real local core damage, control retirement, zeroG/gravity changes, saved100-tick crash timer, shockwave and inert wreck path exist. Do not call reactor/destruction absent.",
+      "next": "Complete bounded player-visible critical feedback and safe momentum-preserving departure through the existing release/motion system, then actual moving sabotage/escape/fracture/cold return episode.",
+      "acceptance": "Warning/departure is readable and playable; fragments/child joints retain momentum/identity once, bounded debris cleanup, reload neither restarts nor duplicates blast. No automatic gas/decompression subsystem.",
+      "runtime_accepted_by_this_audit": false,
+      "db_clauses": [
+        {
+          "id": "DB-058",
+          "section": "6. Подвижные элементы и абордаж",
+          "first_line": 106,
+          "last_line": 108,
+          "quote": "Каждый подвижный элемент должен поддерживать собственные коллизии.\nИгрок должен иметь возможность стоять на подвижной платформе, проходить через открывающийся шлюз и переходить между дочерними телами.\nПри разрушении соединения дочернее тело становится самостоятельным физическим объектом, сохраняя мировую скорость и угловой момент согласно физическому состоянию в момент отделения."
+        }
+      ]
+    }
+  ],
+  "anchors": {
+    "policy": {
+      "path": "src/main/java/com/terminaldetector/drmd/world/geometry/HybridTerrain.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "341a298928584bccc56faaea69d10362f5652b80c24bd69a9bcdf70488c4bec2",
+      "first_line": 10,
+      "last_line": 14,
+      "quote": "/** Material/shape adapter shared by server collision and chunk-worker meshing. */\npublic final class HybridTerrain {\n    private HybridTerrain() {}\n    /** Immutable snapshot; a mesh worker must never retain a live block entity. */\n    public record Data(BlockState source, long mask, boolean organic) {}"
+    },
+    "natural": {
+      "path": "src/main/java/com/terminaldetector/drmd/world/geometry/NaturalGeometry.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "1146dc7b4ca81f223f05b406254097ab5e7db3bbbcb50f9b1e060d7f5ac6e745",
+      "first_line": 14,
+      "last_line": 22,
+      "quote": "    private static final Set<Block> GROUND=Set.of(Blocks.STONE,Blocks.GRANITE,Blocks.DIORITE,\n        Blocks.ANDESITE,Blocks.DEEPSLATE,Blocks.TUFF,Blocks.CALCITE,Blocks.DIRT,Blocks.GRASS_BLOCK,\n        Blocks.COARSE_DIRT,Blocks.ROOTED_DIRT,Blocks.PODZOL,Blocks.MYCELIUM,Blocks.CLAY,\n        Blocks.SAND,Blocks.RED_SAND,Blocks.GRAVEL,Blocks.NETHERRACK,Blocks.END_STONE,\n        Blocks.TERRACOTTA,Blocks.SNOW_BLOCK,Blocks.MOSS_BLOCK);\n    private static final ConcurrentHashMap<HybridMesh.Neighbourhood,VoxelShape> SHAPES=new ConcurrentHashMap<>();\n    public static boolean applies(BlockState state) {\n        return GROUND.contains(state.getBlock()) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES);\n    }"
+    },
+    "mesh": {
+      "path": "src/main/java/com/terminaldetector/drmd/world/geometry/HybridMesh.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "98ab73532ab05d7172e2317658ff86eb803bef4a1b128d0ddad69d18412b1542",
+      "first_line": 35,
+      "last_line": 48,
+      "quote": "    public HybridMesh(Neighbourhood neighbours) {\n        this.neighbours = neighbours;\n        self = neighbours.at(0,0,0);\n        Point[] corners = new Point[8];\n        for (int y=0;y<2;y++) for (int z=0;z<2;z++) for (int x=0;x<2;x++)\n            corners[(y*2+z)*2+x] = self.organic ? cornerOffset(x,y,z) : ZERO;\n        for (int y=0;y<=4;y++) for (int z=0;z<=4;z++) for (int x=0;x<=4;x++) {\n            double px=x*.25, py=y*.25, pz=z*.25;\n            Point offset=ZERO;\n            for (int cy=0;cy<2;cy++) for (int cz=0;cz<2;cz++) for (int cx=0;cx<2;cx++) {\n                double weight=(cx==0?1-px:px)*(cy==0?1-py:py)*(cz==0?1-pz:pz);\n                offset=offset.plus(corners[(cy*2+cz)*2+cx].times(weight));\n            }\n            vertices[index(x,y,z)]=new Point(px,py,pz).plus(offset);"
+    },
+    "anchor": {
+      "path": "src/main/java/com/terminaldetector/drmd/world/geometry/HybridMesh.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "98ab73532ab05d7172e2317658ff86eb803bef4a1b128d0ddad69d18412b1542",
+      "first_line": 52,
+      "last_line": 58,
+      "quote": "    /** Same eight world blocks choose the offset on either side of any section boundary. */\n    private Point cornerOffset(int x, int y, int z) {\n        boolean[] solid=new boolean[8];\n        for (int dy=0;dy<2;dy++) for (int dz=0;dz<2;dz++) for (int dx=0;dx<2;dx++) {\n            Block b=neighbours.at(x+dx-1,y+dy-1,z+dz-1);\n            if (b.anchor) return ZERO;\n            solid[(dy*2+dz)*2+dx]=b.mask!=0;"
+    },
+    "defaults": {
+      "path": "src/main/java/com/terminaldetector/drmd/config/ProfileDefaults.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "8770bdd4842465e207a872d78ae9cb1e6a64806ad17ebd3d4d44724fc6f5cb00",
+      "first_line": 6,
+      "last_line": 15,
+      "quote": "/** Migration rules for profile keys; explicit choices are never overwritten by a restart. */\npublic final class ProfileDefaults {\n    private ProfileDefaults() {}\n    public static boolean hybrid(Properties props) {\n        String value=props.getProperty(\"hybridRender\");\n        if(value==null)return true;\n        return switch(value.trim().toLowerCase(Locale.ROOT)) {\n            case \"false\",\"off\",\"0\" -> false;\n            case \"true\",\"on\",\"1\" -> true;\n            default -> true;"
+    },
+    "config": {
+      "path": "src/main/java/com/terminaldetector/drmd/client/config/DescentConfig.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "7d6820f0f777f2fa13d99d595ef0d30893cb1ef2f6d629779c720f6804cfeaee",
+      "first_line": 151,
+      "last_line": 156,
+      "quote": "\tpublic static void save() {\n\t\tProperties props = new Properties();\n\t\tprops.setProperty(\"hybridRender\",Boolean.toString(hybridRender));\n        new com.terminaldetector.drmd.client.presentation.PresentationOptions(presentationProfile, ps1SceneHeight).write(props);\n        new com.terminaldetector.drmd.client.presentation.Ps1ColorOptions(ps1ColorLevels, ps1DitherStrength).write(props);\n\t\tprops.setProperty(\"cockpit\", Boolean.toString(cockpit));"
+    },
+    "physics_default": {
+      "path": "src/main/java/com/terminaldetector/drmd/world/DrmdServerConfig.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "6d912062883d4f51328098ab177c4ce86ae08c46ff8a6bc625fab4a7119643c1",
+      "first_line": 101,
+      "last_line": 107,
+      "quote": "\tpublic static boolean psychedelicWorlds = false;\n\n\tpublic static com.terminaldetector.drmd.physics.PhysicsProfile physicsProfile=com.terminaldetector.drmd.physics.PhysicsProfile.EXPANDED;\n\n\tpublic static WorldKind worldKind = WorldKind.STOCK;\n\n\tpublic static WorldModLevel worldModLevel = WorldModLevel.VANILLA;"
+    },
+    "mirror_cap": {
+      "path": "src/main/java/com/terminaldetector/drmd/client/portal/MirrorReflectionRenderer.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "3b880d1160899eea20eb1fcfd8bf570030cb58ece66c8a04f0f521c6f9514962",
+      "first_line": 24,
+      "last_line": 34,
+      "quote": "\t/** Deliberately short — a close-range \"stand in front of the mirror and check\" distance, not a\n\t *  real gameplay render distance; this is a diagnostic, not the finished feature. */\n\tprivate static final double BASE_RENDER_RANGE = 24.0;\n\t/** Covers {@link #BASE_RENDER_RANGE} (24 blocks) with margin against chunk-boundary rounding. */\n\tprivate static final int SCAN_CHUNK_RADIUS = 2;\n\tprivate static final int SCAN_PERIOD_TICKS = 5;\n\t/**\n\t * Mirrors reflected per frame. Each one is a whole extra world render, so this — not the range gate —\n\t * is what actually bounds the cost of walking into a room with several of them.\n\t */\n\tprivate static final int MAX_MIRRORS_PER_FRAME = 2;"
+    },
+    "mirror_missing": {
+      "path": "src/main/java/com/terminaldetector/drmd/client/portal/MirrorFramebuffer.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "f55965d1e95924b2e1fd8476965523aba1ac5a1236debe7ae107314dd598ecc3",
+      "first_line": 46,
+      "last_line": 55,
+      "quote": "\tpublic static Framebuffer get() {\n        if(!com.terminaldetector.drmd.client.config.DescentConfig.mirrorReflection\n                && !com.terminaldetector.drmd.client.config.DescentConfig.portalSeeThrough)return null;\n\t\tMinecraftClient mc = MinecraftClient.getInstance();\n        if(mc.getWindow().getFramebufferWidth()<=0||mc.getWindow().getFramebufferHeight()<=0)return null;\n        // The current outer target can be the PS1 scene. Projection/scissor coordinates\n        // and the reflected target must use that same raster, never the UI/window size.\n\t\tint w = mc.getFramebuffer().textureWidth;\n\t\tint h = mc.getFramebuffer().textureHeight;\n\t\tif (w <= 0 || h <= 0) return null;"
+    },
+    "fbo_restore": {
+      "path": "src/main/java/com/terminaldetector/drmd/client/presentation/ScenePresentation.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "bcb407d5c50dc328816d8832f0f2e57e731e2bb14b076ec33b2215b703db8476",
+      "first_line": 64,
+      "last_line": 76,
+      "quote": "        if(!size.valid()||failed){fallbackFrames++;return null;}\n        var access=(WorldViewTargetsAccess)renderer;boolean fabulous=access.drmd$transparency()!=null,outlined=access.drmd$outlines()!=null;\n        SceneTargets.Borrow borrowed=null;\n        try{\n            if(targets==null||!targets.size.equals(size)||targets.fabulous!=fabulous||targets.outlined!=outlined){release();targets=new SceneTargets(client,size,fabulous,outlined);}\n            borrowed=targets.attach(renderer);\n            ((ViewFramebufferAccess)client).drmd$framebuffer(targets.scene);\n            targets.scene.setClearColor(0,0,0,1);targets.scene.clear(MinecraftClient.IS_SYSTEM_MAC);targets.scene.beginWrite(true);\n            active=new Frame(client,output,targets,borrowed,profile);return active;\n        }catch(IOException|RuntimeException failure){\n            if(borrowed!=null)borrowed.close();\n            ((ViewFramebufferAccess)client).drmd$framebuffer(output);output.beginWrite(true);release();failed=true;fallbackFrames++;\n            DescentMod.LOGGER.error(\"PS1 scene target unavailable; rendering this profile at native resolution until toggle/reload\",failure);return null;"
+    },
+    "contact": {
+      "path": "src/main/java/com/terminaldetector/drmd/world/contraption/boarding/DynamicBodyAttachment.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "7aaa3e44b3255f98c1175622b7b8b3c304c86c285d503b8537f54f71bbfdf1b2",
+      "first_line": 112,
+      "last_line": 130,
+      "quote": "            Vec3 up=PassengerFrame.up(frame),wish=PassengerFrame.wish(input,state.frame,frame);\n            Vec3 spin=PassengerFrame.angularVelocity(frameBefore,frame,dt),centreOffset=up.scaled(height/2);lastSpin=spin;\n            // Feet drive through friction at the contact, with the opposite impulse on the hull.\n            // Neutral air input does not erase the carrier speed inherited at departure.\n            if(!flight) {\n                if(!grounded&&wish.lengthSquared()>1e-8)velocity=velocity.plus(wish.normalized().scaled(2*dt));\n                velocity=velocity.plus((owner==null?new Vec3(0,-32,0):owner.acceleration((t+end)/2)).scaled(dt));\n            }\n            grounded=false;support=-1;\n            var actor=new D6PhysicsBody().withMass(1).withInertia(D6Mat3.diagonal(1e12,1e12,1e12))\n                .withPosition(feet.plus(centreOffset)).withRotation(frame).withAngularVelocity(spin)\n                .withLinearVelocity(velocity.plus(spin.cross(centreOffset)));\n            // Resolve a small old-pose overlap (e.g. bounded angular substeps), never chase an anchor.\n            for(var b:bodies)for(var c:b.query(t).contacts(PassengerFrame.box(feet,width,height,frame),SKIN)) {\n                if(c.penetration()>.2)continue;\n                if(c.penetration()>1e-7)feet=feet.plus(world.move(feet,frame,c.normal().scaled(c.penetration()+SEPARATION)).displacement());\n                actor.withPosition(feet.plus(up.scaled(height/2)));\n                contact(actor,b,t,c.point(),c.normal(),wish,up,flight);\n                if(c.normal().dot(up)>.6 && actor.velocityAtPoint(c.point().minus(actor.position())).minus(b.surfaceVelocity(c.point(),t)).dot(c.normal())<.05) {"
+    },
+    "relative_sweep": {
+      "path": "src/main/java/com/terminaldetector/drmd/world/contraption/boarding/DynamicBodyAttachment.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "7aaa3e44b3255f98c1175622b7b8b3c304c86c285d503b8537f54f71bbfdf1b2",
+      "first_line": 137,
+      "last_line": 150,
+      "quote": "            for(int iteration=0;iteration<6 && current<end-1e-10;iteration++) {\n                double remaining=(end-current)*seconds;\n                Vec3 move=actor.linearVelocity().minus(spin.cross(centreOffset)).scaled(remaining);\n                for(var plane:planes) {\n                    Vec3 surfaceMove=plane.body.point(plane.localPoint,end).minus(plane.body.point(plane.localPoint,current));\n                    Vec3 actorTurn=spin.cross(plane.actorOffset).scaled(remaining);\n                    double closing=move.plus(actorTurn).minus(surfaceMove).dot(plane.normal);\n                    if(closing<0)move=move.minus(plane.normal.scaled(closing));\n                }\n                BodyMotion hitBody=null;BodyCollisionQuery.Sweep hit=null;\n                for(var b:bodies) {\n                    var sweep=b.query(current).sweep(PassengerFrame.box(feet,width,height,frame),move,b.position(end).minus(b.position(current)),true,candidateHit->planes.stream().noneMatch(\n                        plane->plane.body==b&&plane.shape.equals(candidateHit.localShape())&&plane.normal.dot(candidateHit.normal())>.99));\n                    if(sweep.isPresent() && (hit==null||sweep.get().fraction()<hit.fraction())) {hit=sweep.get();hitBody=b;}"
+    },
+    "contact_tests": {
+      "path": "src/test/java/com/terminaldetector/drmd/BodyContactConstraintTest.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "c3f31480ae05c93828bb7f5b0f607fe10b8a7e1a588b1f4748423d4d1af4687a",
+      "first_line": 33,
+      "last_line": 55,
+      "quote": "    @Test void offCentreContactConservesTotalWorldAngularAndLinearMomentum() {\n        var a=body(3,v(-1,0,0),v(5,2,0));var b=body(8,v(1,0,0),v(-1,0,1));\n        a.withRotation(new Quat(0,0,Math.sin(.3),Math.cos(.3))).withAngularVelocity(v(.2,.4,-.1));\n        Vec3 p=momentum(a,b),l=angular(a).plus(angular(b));double before=energy(a)+energy(b);\n        var c=new BodyContactConstraint(a,b,v(0,.7,.3),v(-1,0,0),.6);solve(c);\n        same(p,momentum(a,b));same(l,angular(a).plus(angular(b)));\n        assertTrue(energy(a)+energy(b)<=before+1e-9);assertTrue(a.angularMomentum().length()>0);\n        assertTrue(c.relativeVelocity().dot(v(-1,0,0))>=-1e-8);\n    }\n    @Test void movingAndRotatingSurfaceIsMeasuredAtTheContactPoint() {\n        var a=body(1,v(2,1,0),v(0,-3,0));var b=body(0,v(0,0,0),v(4,0,0));\n        // An immovable support may still have prescribed motion: it receives no reaction impulse.\n        b.withAngularVelocity(v(0,0,2));var point=v(2,0,0);\n        var c=new BodyContactConstraint(a,b,point,v(0,1,0),0);\n        same(v(-4,-7,0),c.relativeVelocity());Vec3 before=b.angularMomentum();solve(c);\n        assertEquals(4,a.velocityAtPoint(point.minus(a.position())).y(),1e-9);\n        same(v(4,0,0),b.linearVelocity());same(before,b.angularMomentum());\n    }\n    @Test void frictionCannotExceedTheNormalReactionOrPullAnOpeningContactBack() {\n        var a=body(1,v(0,0,0),v(100,-2,0));var b=body(0,v(0,0,0),v(0,0,0));\n        var c=new BodyContactConstraint(a,b,v(0,0,0),v(0,1,0),.25);solve(c);\n        assertEquals(.5,c.tangentImpulse().length(),1e-9);same(v(99.5,0,0),a.linearVelocity());\n        a.withLinearVelocity(v(10,3,4));var jump=new BodyContactConstraint(a,b,v(0,0,0),v(0,1,0),100);solve(jump);"
+    },
+    "core": {
+      "path": "src/main/java/com/terminaldetector/drmd/world/mega/UfoControlSystem.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "9023c46f1eeaa219889fd0c2b089ee2f42ce24460af358f7888176d7933e807c",
+      "first_line": 58,
+      "last_line": 73,
+      "quote": "    private static boolean valid(ServerPlayerEntity p,SkyUfoEntity b) {\n        return !p.isRemoved()&&p.isAlive()&&!p.isSpectator()&&!p.hasVehicle()&&!DescentPlayerData.get(p).isEnabled()\n            &&p.getWorld()==b.getWorld()&&!b.isRemoved()&&!b.isCrashing()&&b.containsPos(p.getPos())&&b.hasControlConsole();\n    }\n    public static boolean claim(ServerPlayerEntity p,SkyUfoEntity b) {\n        if(!p.getServer().isOnThread()||!valid(p,b)||p.getEyePos().distanceTo(b.localToWorld(Vec3d.ofCenter(CONSOLE)))>p.getBlockInteractionRange())return false;\n        var old=PILOTS.get(p.getUuid());if(old!=null)return old.body.get()==b;\n        for(var l:PILOTS.values())if(l.body.get()==b)return false;\n        var l=new Lease(p,b,++epoch);PILOTS.put(p.getUuid(),l);com.terminaldetector.drmd.inventory.DroneArsenal.clear(p.getUuid());b.setAutopilot(false);sync(p,b,l,true);return true;\n    }\n    public static boolean controls(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());return l!=null&&l.pilot.get()==p;}\n    public static boolean hasPilot(SkyUfoEntity b){for(var l:PILOTS.values()){var p=l.pilot.get();if(l.body.get()==b&&p!=null&&valid(p,b))return true;}return false;}\n    public static int epoch(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());return l==null?-1:l.epoch;}\n    public static boolean release(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());if(l==null||l.pilot.get()!=p)return false;drop(p.getUuid(),l);return true;}\n    public static void releaseBody(SkyUfoEntity b){if(b.getWorld().isClient)return;for(var id:List.copyOf(PILOTS.keySet())){var l=PILOTS.get(id);if(l!=null&&l.body.get()==b)drop(id,l);}}\n    private static void drop(UUID id,Lease l){PILOTS.remove(id);var b=l.body.get();var p=l.pilot.get();if(b!=null){b.aimTurret(0);b.setAutopilot(l.previousAuto);if(p!=null&&!p.isRemoved())sync(p,b,l,false);}}"
+    },
+    "edit": {
+      "path": "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyEntity.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "52c01cf8e91b93f21202e1bd0c86fc3da273cd29f612f11bcfb7e9ed4d56c2ad",
+      "first_line": 340,
+      "last_line": 355,
+      "quote": "    /** Server-only local-grid mutation. COM rebasing preserves every remaining material point. */\n    public boolean setLocalBlock(BlockPos pos,BlockState state) {return setLocalBlocks(Map.of(pos,state));}\n    /** Atomic damage/construction batch: one mass rebase and one rebuild per dirty section.\n     * Validation completes before any grid mutation; no rigid body per block is introduced. */\n    public boolean setLocalBlocks(Map<BlockPos,BlockState> edits) {\n        if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())throw new IllegalStateException(\"Local edits are server-thread owned\");\n        if(isRemoved()||edits.size()>MAX_BLOCKS)return false;\n        var changes=new ArrayList<LocalEdit>();int occupied=cells.size();\n        for(var entry:edits.entrySet()) {\n            var pos=entry.getKey();var state=entry.getValue();\n            if(pos==null||state==null||!validLocal(pos)||!state.isAir()&&!supports(state))return false;\n            var before=getLocalBlock(pos);if(before.equals(state))continue;\n            occupied+=(before.isAir()?1:0)-(state.isAir()?1:0);changes.add(new LocalEdit(pos.toImmutable(),state));\n        }\n        if(changes.isEmpty()||occupied>MAX_BLOCKS)return false;\n        changes.sort(Comparator.comparing((LocalEdit e)->!e.state().isAir()).thenComparingInt(e->e.pos().getX()).thenComparingInt(e->e.pos().getY()).thenComparingInt(e->e.pos().getZ()));"
+    },
+    "com": {
+      "path": "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyEntity.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "52c01cf8e91b93f21202e1bd0c86fc3da273cd29f612f11bcfb7e9ed4d56c2ad",
+      "first_line": 466,
+      "last_line": 480,
+      "quote": "        Vec3 origin=massPosition(),spin=body.angularVelocity(),velocity=body.linearVelocity(),oldCentre=centre;\n        var dirty=new HashSet<BlockPos>();\n        for(var edit:changes) {\n            var pos=edit.pos();var before=getLocalBlock(pos);var point=new Vec3(pos.getX()+.5,pos.getY()+.5,pos.getZ()+.5);\n            if(!before.isAir())massProperties.addBlock(point,-blockMass(before));\n            if(!edit.state().isAir())massProperties.addBlock(point,blockMass(edit.state()));\n            volume.set(pos.getX(),pos.getY(),pos.getZ(),edit.state());materialDamage.remove(pos);markGeometryNeighbours(dirty,pos);\n        }\n        var ordered=new ArrayList<>(next.values());ordered.sort(Comparator.comparingInt((Cell c)->c.pos().getX()).thenComparingInt(c->c.pos().getY()).thenComparingInt(c->c.pos().getZ()));\n        cells=List.copyOf(ordered);centre=massProperties.centreOfMass();\n        Vec3 shift=body.rotation().rotate(centre.minus(oldCentre));\n        body.withMassProperties(massProperties).withPosition(origin.plus(shift))\n            .withLinearVelocity(velocity.plus(spin.cross(shift))).withAngularVelocity(spin);\n        previousPhysicsPosition=previousPhysicsPosition.plus(previousRotation.rotate(centre.minus(oldCentre)));\n        rebuildGeometry(dirty);shapeRevision+=changes.size();"
+    },
+    "prediction": {
+      "path": "src/main/java/com/terminaldetector/drmd/client/flight/BoardingClient.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "0a20045dec3b15e1fe064e92c4b3dc5453648b9e6578deda98c3450137fcca08",
+      "first_line": 109,
+      "last_line": 129,
+      "quote": "        if(p.body()!=null) {\n            int id=p.pose().gravityOwner()>=0?p.pose().gravityOwner():p.support();\n            if(!(mc.world.getEntityById(id) instanceof BlockBodyEntity b)||b.cells().isEmpty()||b.shapeRevision()!=p.body().shapeRevision()) {waitingForShape=p;return;}\n        }\n        waitingForShape=null;\n        bodySnapshot=p.body();snapshotId=p.pose().gravityOwner()>=0?p.pose().gravityOwner():p.support();\n        if(state==null||epoch!=p.epoch()) {\n            world=mc.world;epoch=p.epoch();sequence=0;HISTORY.clear();correction=new Vec3(0,0,0);\n            var origin=new DynamicBodyAttachment.State(BoardingSystem.pure(player.getPos()),velocity,p.grounded(),p.support(),authoritative.frame(),authoritative.gravityOwner());\n            BoardingWorldMotion.capture(player,origin,false).move(origin.feet(),origin.frame(),feet.minus(origin.feet()));\n            state=new DynamicBodyAttachment.State(BoardingSystem.pure(player.getPos()),velocity,p.grounded(),p.support(),authoritative.frame(),authoritative.gravityOwner());\n            BoardingPose.publish(player,state.frame());\n        } else {\n            HISTORY.headMap(p.acknowledgment(),true).clear();\n            var replay=authoritative;int lead=0;\n            for(var entry:HISTORY.entrySet()) {\n                var command=entry.getValue().input();\n                var bodies=nearby(player,replay,lead++);\n                var worldCommand=new DynamicBodyAttachment.Input(command.strafe(),command.forward(),command.jump(),replay.frame().rotate(command.look()));\n                replay=DynamicBodyAttachment.step(replay,worldCommand,bodies,player.getWidth(),player.getHeight(),.05,BoardingWorldMotion.capture(player,replay,true));\n                entry.setValue(new Prediction(command,replay));"
+    },
+    "crash": {
+      "path": "src/main/java/com/terminaldetector/drmd/world/mega/SkyUfoEntity.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "e442e050918691217e350758ea8e2e874d4d7c4462d8b0d8717b2b9674cf96a1",
+      "first_line": 160,
+      "last_line": 177,
+      "quote": "    @Override protected void onLocalMaterialChanged(List<BlockBodyEntity> fragments) {\n        if(!hasControlConsole())UfoControlSystem.releaseBody(this);\n        if(initialized&&!isRemoved()&&getLocalBlock(CORE).isAir())enterCrash(fragments);\n    }\n    private void enterCrash(List<BlockBodyEntity> fragments) {\n        if(crashing)return;crashing=true;UfoControlSystem.releaseBody(this);setPassengerGravity(ZERO);setPhysicsGravity(true);\n        for(var fragment:fragments)fragment.setPhysicsGravity(true);\n        if(destructionMode==DestructionMode.SHOCKWAVE)crashTicks=100;\n    }\n    public void destroyFromCore(ServerWorld world,PlayerEntity culprit,String reason) {\n        if(crashing||getWorld()!=world)return;\n        if(!getLocalBlock(CORE).isAir()&&!setLocalBlock(CORE,Blocks.AIR.getDefaultState()))return;\n        enterCrash(List.of());\n    }\n    private void detonate(ServerWorld world) {\n        if(detonated)return;detonated=true;\n        StructureShockwave.detonate(world,localToWorld(Vec3d.ofCenter(CORE)),this,null,4,4,5,0,0);\n        // Remaining material stays as an inert, destructible physical wreck. No real-block handoff."
+    },
+    "timer": {
+      "path": "src/main/java/com/terminaldetector/drmd/world/mega/SkyUfoEntity.java",
+      "revision": "30959990c104543a78940a3baecf95ee4f73517d",
+      "sha256": "e442e050918691217e350758ea8e2e874d4d7c4462d8b0d8717b2b9674cf96a1",
+      "first_line": 100,
+      "last_line": 107,
+      "quote": "        if(!crashing&&getLocalBlock(CORE).isAir())destroyFromCore(world,null,\"local reactor destroyed\");\n        if(!crashing&&com.terminaldetector.drmd.world.contraption.boarding.BoardingRestore.waiting(this)){super.tick();return;}\n        if(turret!=null)turret.tick(this);\n        if(laserCooldown>0)laserCooldown--;if(rocketCooldown>0)rocketCooldown--;\n        boolean piloted=!crashing&&UfoControlSystem.drive(this);\n        if(!piloted)aimTurret(0);\n        if(!crashing&&!piloted&&autopilot)propel();\n        if(crashing&&!detonated&&++crashTicks>=100)detonate(world);"
+    },
+    "full_server": {
+      "path": "docs/v8/MULTI_AGENT_SERVER_3095999_2026-11-17.md",
+      "revision": "72ed2bfb8d13374a834b855b303dc1bf7fefd2c9",
+      "sha256": "6027a6262a53ca2d24d9da6a8448c98935b7687697f71f18cf3ebe47d1040e73",
+      "first_line": 1,
+      "last_line": 14,
+      "quote": "# Cardinal surface navigation: exact full server integration\n\nProduction source **30959990c104543a78940a3baecf95ee4f73517d** passes **898 unit tests,\n450 ordinary GameTests and73 entrypoints**, with zero failures, errors or skips.\nThe reviewed delta preserves native target destinations, uses loaded static-field\nsurface paths, applies material-dependent dry motion in the cardinal basis,\npreserves native pounce impulses and validates a corner before consuming the next\nwaypoint. Moving-body navigation, oblique gravity and universal3D AI remain open.\n\nThis source has **no native-client acceptance yet**. The last complete two-client\ninstallable snapshot remains source68fb20a and its [local compiled JAR](../../dist/local-snapshots/68fb20a/README.md).\nIts client evidence is not transferred to these new bytes. Four earlier specialized\nclimber/contact/admission failures remain recorded; this full ordinary suite does\nnot erase them. Dynamic Boarding and both primary specifications remain open."
+    }
+  },
+  "scope": {
+    "supplement_rows": 7,
+    "central_ledger_modified": false,
+    "source_modified": false,
+    "java_or_native_run_for_audit": false,
+    "task_promotions": false,
+    "old_4b_audit_or_21_map_modified": false,
+    "retained_user_override": "Create-style separate reusable gun/bearing/drive and existing solver; no new Create dependency or manufacturing chain; local-only/no publication; no forced gas/decompression"
+  },
+  "metadata_verification": {
+    "task_refs_valid": true,
+    "related_packet_ids_valid": true,
+    "anchor_quotes_match_exact_git_blobs": true,
+    "source_anchor_count": 20,
+    "ledger_count_99": true
+  }
+}
