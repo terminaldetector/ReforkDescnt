@@ -1,0 +1,35 @@
+{
+  "source": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
+  "internalVersion": "1.1.35-ufo-dev.1",
+  "gameJar": "drmd-6dof-1.1.35-ufo-dev.1-68fb20a.jar",
+  "gameJarSha256": "7e35d702e098b780d7499645bdf1a5f73524e8f195a0a63f4f5a198cb9b5f064",
+  "unitTests": 885,
+  "ordinaryGameTests": 450,
+  "entrypoints": 73,
+  "nativeCases": [
+    "actual no-edit saved-cache surface arrival",
+    "actual PS1 colour/profile/mirror/HUD/viewmodel"
+  ],
+  "nativeFrames": 40,
+  "actualDepthArrays": 10,
+  "report": "../../../docs/v8/MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md",
+  "releaseAccepted": false,
+  "published": false,
+  "newFeatures": [
+    "durable native deferred-fluid boundary work through normal scheduler",
+    "bounded non-autostart siege state/order persistence"
+  ],
+  "separateFluidColdProof": {
+    "productionSource": "704203e",
+    "observerSource": "330e9a7",
+    "sameCriticalClassEntries": 14,
+    "canonicalWholeJarColdRun": false
+  },
+  "knownOpen": [
+    "full native cubic/lava/light/BlockEntity parity",
+    "high-altitude clouds and native equipped-drone preview",
+    "friendly modular AA and automatic fair siege",
+    "full3D AI/Cardinal/general Boarding and complete city/endurance",
+    "actual mission objectives/reward integration"
+  ]
+}
