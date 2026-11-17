@@ -1,0 +1,13 @@
+{
+  "source": "a81ebef546074db5599b53b2d530c31646070c9b",
+  "originalWorldPath": "/workspace/ungravity-v5/city-authoring-20261117/build/gametest/world",
+  "archive": "/workspace/ungravity-v5/city-authoring-20261117/work/city-runtime/main-first-a81ebef-20261117T173333Z/closed-unmasked-world.zip",
+  "archiveSHA256": "377aaf6c1737ad55776f802d7dd2153858faab38a93c2e48fb2997bd40b8b0b6",
+  "files": 66,
+  "rawBytesReclaimed": 7585018,
+  "exclusiveJavaCompatibleLock": "fcntl.lockf(r+b)",
+  "CRCAndAllArchiveRawSHAReverifiedImmediatelyBeforeReclaim": true,
+  "onlyOwnClosedRawSaveRemoved": true,
+  "allArchivesProofsSourceMetadataPersistentStatePreserved": true,
+  "authorization": "ROOT after scoped unmasked PASS and immutable evidence sealing"
+}
