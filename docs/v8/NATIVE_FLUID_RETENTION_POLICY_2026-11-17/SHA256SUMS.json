@@ -1,0 +1,10 @@
+{
+  "README.md": {
+    "bytes": 2946,
+    "sha256": "d45e3c29bf5b1042e4b79275048310271bd5ebc2f66988da2c2883dd1dc5aa99"
+  },
+  "derived-retention-policy.json": {
+    "bytes": 4158,
+    "sha256": "82840e5a0bc2046600c424050cca01634321cd7e4998f9e11534e3ab3018951a"
+  }
+}

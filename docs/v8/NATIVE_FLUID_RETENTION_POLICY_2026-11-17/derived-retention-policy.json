@@ -1,0 +1,81 @@
+{
+  "scope": "Read-only debugging explicitly authorized by root; selected binary method behavior inspected privately. Hashes and derived conclusions only: no upstream Code bytes/instruction sequences or ARR implementation copied into repository; no Java",
+  "artifact": {
+    "path": "/workspace/Refork-audit/work/master-v5/upstream/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar",
+    "bytes": 806910,
+    "sha256": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6"
+  },
+  "nativeClassSha256": "041a1b8f184d439c31ac80de9386bda1f74ae018ea7e103872f985ba4e37b94e",
+  "methods": {
+    "isComing": {
+      "descriptor": "(J)Z",
+      "codeLength": 35,
+      "codeSha256": "d4c39d39ae7fe946443782d6f89727fda30911ed70234171ff7091f606630426"
+    },
+    "markUnwanted": {
+      "descriptor": "(JJ)V",
+      "codeLength": 27,
+      "codeSha256": "28391bf57601b74b627b8f64c2e113e0cc6a4c7771f184d252cb67ba6dede03e"
+    },
+    "columnFor": {
+      "descriptor": "(J)Lnet/minecraft/class_2791;",
+      "codeLength": 13,
+      "codeSha256": "2d5664091eff6aa562f6ea81e3c6c2ba5f523cf7d031801a64d2ecb91c0a6f21"
+    },
+    "columnAt": {
+      "descriptor": "(II)Lnet/minecraft/class_2791;",
+      "codeLength": 75,
+      "codeSha256": "a91b5492a6309dacbf5035b7c49683681cb469af17cb4c0d64f7e80bdfbb2dd6"
+    },
+    "statusOf": {
+      "descriptor": "(J)Ldev/fallingcloud/bettercubicchunks/core/CubeStatus;",
+      "codeLength": 51,
+      "codeSha256": "5940707bbe65bbf9a53e34e1f83bfaaf31b835a18291b0b0bba18febae3e781e"
+    },
+    "processEvictions": {
+      "descriptor": "(J)V",
+      "codeLength": 337,
+      "codeSha256": "a1df63337739c3c3a1d73536164c95d7cd9aa4feb4ff2fcc7a22250722476c67"
+    },
+    "neighbourWanted": {
+      "descriptor": "(J)Z",
+      "codeLength": 66,
+      "codeSha256": "c31ad435d9c0841ebf0e09480cd181b9de7ef2fcf81f24f9ea9f199c0b157bb0"
+    },
+    "evictCube": {
+      "descriptor": "(J)Z",
+      "codeLength": 445,
+      "codeSha256": "4b9f45be11bd6bdda98cd545594383d86009e8357f1495ea901e73bc0cc3052a"
+    }
+  },
+  "ownSourceHashes": {
+    "src/main/java/com/terminaldetector/drmd/world/access/WorldAccess.java": "913a59867c17001ccf9edaa7686b6d0720397dda232fd917d11fcd254b0866b3",
+    "src/main/java/com/terminaldetector/drmd/world/access/CubicAvailability.java": "b1cbf86b54d8abe5696517c389f484db99b4583c80f037a8956b6b5d2749021e",
+    "src/main/java/com/terminaldetector/drmd/mixin/NativeCubicScheduleBudgetMixin.java": "faab57007236f03d2725aef78df783502e9f1a4fbea6b7c53f44bce372ed6426",
+    "src/cubiccheck/java/com/terminaldetector/drmd/gate/mixin/CubicScheduleBudgetProbe.java": "08686fd8414d4956c35d48440a8067d9aec621c166fb5bc104e10b8161e831ea"
+  },
+  "firstActualDown32Evidence": "e2dada80b23ce3bbda87cca6a242c3bf7b3d0140",
+  "derivedPolicy": {
+    "unwantedGraceTicks": 100,
+    "neighbourRangeEachAxis": [
+      -1,
+      1
+    ],
+    "neighbourCount": 27,
+    "neighbourPolicy": "Any wanted cube in the27-neighbour volume prevents an already materialized unwanted cube from eviction; processEvictions refreshes its unwanted stamp and requeues.",
+    "additionalDeferralBranches": [
+      "inFlight",
+      "locked",
+      "DistantHorizons beforeCubeLeaves refusal when active"
+    ],
+    "dirtyBehavior": "evictCube saves dirty cube before continuing; dirty itself is not an unconditional keep branch here.",
+    "actualEviction": "After admission, dematerializes actual section, removes per-cube data and sets current status EMPTY.",
+    "columnLookup": "columnFor delegates to columnAt; ready visible chunk lookup, not a generation join.",
+    "ownMixinScope": "Generation schedule/advance time budget and tick-return observation; no eviction/retention override."
+  },
+  "limits": [
+    "No new per-target live eviction/dirty/lock event trace was run. Halo predicate is sufficient to explain the recorded retention; extra transient reasons are not excluded.",
+    "Current source and neighbour status plus real block reads were captured in actual native run; raw storage is preserved, not rewritten or injected.",
+    "No stale-availability bug, fluid loss, eligibility guarantee or universal backend closure inferred."
+  ]
+}
