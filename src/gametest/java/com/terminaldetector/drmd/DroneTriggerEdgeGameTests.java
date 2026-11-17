@@ -171,4 +171,19 @@ public final class DroneTriggerEdgeGameTests implements FabricGameTest {
             }catch(Throwable error){r.close();throw error;}
         });
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="trigger-edge-charged-cross-bank")
+    public void quickPrimaryFallbackTapCannotReleaseOrDuplicateAnExistingSecondaryCharge(TestContext c){
+        try(var r=new Rig(c)){
+            var original=r.equip(ModItems.FUSION);r.masks(2);r.tick();for(int i=0;i<6;i++)r.tick();
+            r.empty("original secondary Fusion hold is genuinely charging before the cross-bank click");
+            float energy=DescentPlayerData.get(r.p).getEnergy();r.masks(3,2);r.tick();
+            r.empty("released primary edge must not start a second lifecycle or release the still-held same-stack secondary charge");
+            c.assertTrue(DescentPlayerData.get(r.p).getEnergy()==energy,"cross-bank fallback click cannot debit or release the original charge");
+            r.tick();r.empty("original secondary charge remains held on subsequent ticks");
+            r.masks(0);r.tick();
+            c.assertTrue(r.shots().size()==1&&DescentPlayerData.get(r.p).getEnergy()<energy,"one actual secondary release emits exactly its one original charged Fusion shot");
+            c.assertTrue(r.p.getMainHandStack()==original&&!r.p.isUsingItem(),"cross-bank dedup preserves the selected stack and clears normal use state on final release");
+            var ids=r.shotIds();r.tick();r.sameShots(ids,"neither bank can replay a duplicate release after final zero");
+        }c.complete();
+    }
 }
