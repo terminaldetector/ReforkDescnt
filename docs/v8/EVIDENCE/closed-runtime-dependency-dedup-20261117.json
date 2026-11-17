@@ -1,0 +1,15 @@
+{
+  "groups": 53,
+  "pathsRetained": 4886,
+  "copiesShared": 4833,
+  "allocatedBytesRecovered": 420528128,
+  "allPathsAndBytesVerified": true,
+  "allDistinctJARZIPCRCVerified": true,
+  "sourceOrWorldFilesChanged": false,
+  "restore": "For independent inodes, copy the pooled bytes to a temporary sibling and atomically replace the chosen path; original mode/mtime are in before.json/journal.jsonl.",
+  "files": {
+    "beforeSHA256": "39facbf18dcd57ac2f3fa11994dc403e9fffeeb4ae3276d6d4f7299403dff1d7",
+    "journalSHA256": "7c481b694a2af408957c6f22548086e33db211d628406561bfd22fec254de615"
+  },
+  "scope": "Physical hardlink deduplication of byte-identical third-party JARs in closed derived runtimes. Every dependency path and byte remains present; different inode/mtime identities are documented. No game DRMD JAR, latest68fb runtime, named donor, source, save, screenshot or log changed."
+}
