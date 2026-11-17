@@ -156,7 +156,9 @@ final class EconomyFixture implements AutoCloseable {
     }
     void aimCell(BlockBodyEntity b,BlockPos cell,Direction face){
         var normal=b.rotation().rotate(new Vec3(face.getOffsetX(),face.getOffsetY(),face.getOffsetZ()));var v=new Vec3d(normal.x(),normal.y(),normal.z());var point=b.localToWorld(Vec3d.ofCenter(cell).add(Vec3d.of(face.getVector()).multiply(.5)));
-        var stand=point.add(v.multiply(2.5));if(face.getAxis().isHorizontal())stand=stand.add(0,2.2,0);aim(stand,point);
+        // Upward placement reserves a complete destination cube. The old2.5m
+        // eye offset left0.12m of the ordinary1.62m eye-height player's box in it.
+        var stand=point.add(v.multiply(face==Direction.UP?3:2.5));if(face.getAxis().isHorizontal())stand=stand.add(0,2.2,0);aim(stand,point);
     }
     void placeLocal(BlockBodyEntity b,BlockPos support,Direction face,Item item){
         closeTable();hold(item);int before=count(item);aimCell(b,support,face);
