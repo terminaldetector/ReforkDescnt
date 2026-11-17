@@ -41,3 +41,55 @@ than manager discard/disarming. Existing station allegiance and normal turret
 values remain authoritative. No production fix, positive, native, player-owned
 base resource progression, mounted-mechanism or complete S12 acceptance is
 claimed by this first negative.
+
+## Source-only first candidate, validation pending
+
+Production checkpoint `24ce3e9295664e4d0988e5e46ccbdcb6a551d895` implements
+the approved narrow physical path. No Java/Gradle or runtime gate has run on
+this candidate yet; none of the following is a claimed positive.
+
+The old owner-based factory remains null-owner rejecting. Its shared spawn
+tail is reused by an explicit validated anchor overload, which also requires
+the actual **already-loaded hostile missile and living owner**. Unknown,
+friendly or unborn target UUIDs cannot admit a round even through that low-
+level entry. Actual source/muzzle, finite predictable kinetic config and
+remaining world capacity are checked. Tagged rounds use the existing KINETIC
+speed/flight equations, station damage4, finite .5-second lifetime and exact
+current station threat predicate. Source acquisition range12 and six-tick
+opportunities remain unchanged.
+
+Every new round waits until at least `bornWorldTime + 1` before interception,
+a conservative full-frame birth guard. Its own ordinary terminal impact may
+be deferred until the actual incoming movement is known or world-tick end;
+ordinary missiles and every other projectile retain immediate ordinary impact.
+Nearest cover wins ties. Actual relative-box contact enters the existing
+missile and round hit/payload paths. No generic projectile damage/all-pairs
+scan, manager missile deletion or safe disarming is introduced. New NBT tags
+are optional; old shots have none, and restoration only accepts already-loaded
+valid defensive context. Existing unassociated missiles bypass all new
+geometry/owner work.
+
+Six pure relative-sweep cases and twelve new stock cases are prepared. The
+original two natural scheduled-block assertions changed only by an explicit
+component lifecycle bootstrap; their semantic assertions remain unchanged.
+Ten additional guards cover actual ticker order in both directions, nearer
+solid/rotated hull material, actual station-friendly/unresolvable ownership,
+unknown-source no-loading, old factory/NBT semantics,256 active-round admission
+and96-candidate/32-detailed opportunity work. These cap cases prove admission
+only if they pass; they are not a256-missile combat benchmark.
+
+Actual `EntityList` bytecode inspected without launching Java uses
+`Int2ObjectLinkedOpenHashMap`, so real entry order controls ticking. The
+opposite-order fixture keeps a real UUID-loaded missile in a neighbouring
+BLOCK_TICKING column, emits from the already ENTITY_TICKING source, then
+obtains a genuine normal engine ticket for the missile column. It must observe
+the actual round-first receipt; an interest promotion/deadline failure is a
+fixture limit, not permission to remove loaded admission or manually tick,
+change IDs, alter lists or follow poses.
+
+Proposed first focused gate: six pure cases, then only if they pass twelve new
+cases plus retained ProjectileVisual1/UfoWeapon16/FusionPortal12 = **41 server
+cases**. Preserve the first compile/unit/fixture/gameplay outcome. Root still
+owns final central `PointDefenseInterception.register()` integration; tests
+explicitly bootstrap END_WORLD_TICK/unload. No central registration, renderer,
+BlockBody, mounted-controller, registry/stat or recipe files were changed.
