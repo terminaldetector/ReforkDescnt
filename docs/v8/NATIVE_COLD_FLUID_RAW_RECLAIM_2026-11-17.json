@@ -1,0 +1,39 @@
+{
+  "scope": "Only the two own closed native cold-water raw save directories reclaimed after fresh exact preservation checks; no runtime mods/logs/frames/libraries/caches/original seed/source/JAR touched",
+  "authorization": "Root message after strong cold reader acceptance Nov17",
+  "beforeFreeBytes": 488235008,
+  "afterFreeBytes": 540999680,
+  "freeBytesIncrease": 52764672,
+  "rawSaves": [
+    {
+      "role": "writer",
+      "exactRemovedRawPath": "/workspace/ungravity-v5/cubic-next-20261109/build/cubic-fluid-cold-writer-final-cubic-fluid-cold-writer-330e9a7-sodium/saves/Cubic-Gate",
+      "archive": "/workspace/ungravity-v5/cubic-next-20261109/work/cubic-fluid-cold/cubic-fluid-cold-writer-330e9a7-sodium-writer-world.tar.gz",
+      "archiveSha256": "e5589f78bf1b2513f9adff1b728420e497e3d03c3f8bf92a27a2e43efc22c165",
+      "proof": "/workspace/ungravity-v5/cubic-next-20261109/work/cubic-fluid-cold/cubic-fluid-cold-writer-330e9a7-sodium-writer-proof.json",
+      "proofSha256": "1608f041ddb65d22f76e922ae9f6880bd9793b21f891b4c2fc9174eb0f734fa1",
+      "fileCount": 94,
+      "logicalBytes": 25713550,
+      "allocatedBytes": 25886720,
+      "fullRawAndArchiveHashMatch": true,
+      "gzipEofCrc": true,
+      "exclusiveFcntl": true,
+      "actualJavaAndWrapperClosed0": true
+    },
+    {
+      "role": "reader",
+      "exactRemovedRawPath": "/workspace/ungravity-v5/cubic-next-20261109/build/cubic-fluid-cold-reader-final-cubic-fluid-cold-reader-330e9a7-sodium/saves/Cubic-Gate",
+      "archive": "/workspace/ungravity-v5/cubic-next-20261109/work/cubic-fluid-cold/cubic-fluid-cold-reader-330e9a7-sodium-reader-world.tar.gz",
+      "archiveSha256": "1ba108658d2ba0138b3c7d57f6433744869d63e8ffbf7d3da1084708de4cbe03",
+      "proof": "/workspace/ungravity-v5/cubic-next-20261109/work/cubic-fluid-cold/cubic-fluid-cold-reader-330e9a7-sodium-reader-proof.json",
+      "proofSha256": "f8fabef7e190da49ea8022c2258ba301aae2abdd32ef9ad12db4b244b1f7d6a3",
+      "fileCount": 95,
+      "logicalBytes": 26458403,
+      "allocatedBytes": 26632192,
+      "fullRawAndArchiveHashMatch": true,
+      "gzipEofCrc": true,
+      "exclusiveFcntl": true,
+      "actualJavaAndWrapperClosed0": true
+    }
+  ]
+}
