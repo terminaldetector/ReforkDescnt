@@ -33,6 +33,18 @@ public final class SiegePlanStateGameTests implements FabricGameTest {
     }
     private static SiegePlan firing(UUID id,UUID participant){var p=ready(id,participant,100);p.advance(100,0,true,true,null,false);p.advance(500,0,true,true,sight(participant,FIRST,500),false);return p;}
     private static void cleanupDirectory(Path dir)throws java.io.IOException{try(var paths=Files.walk(dir)){for(var p:paths.sorted(Comparator.reverseOrder()).toList())Files.deleteIfExists(p);}}
+    private static Path proofDirectory(TestContext c,String label)throws java.io.IOException{
+        String configured=System.getProperty("drmd.test.siegeProofDir");
+        Path base=configured==null?c.getWorld().getServer().getRunDirectory().resolve("siege-plan-proof"):Path.of(configured);
+        Files.createDirectories(base);return Files.createTempDirectory(base,label+"-");
+    }
+    private static void preserveFile(TestContext c,Path file,String label,NbtCompound expected)throws Exception{
+        var report=proofDirectory(c,label);var bytes=Files.readAllBytes(file);Files.write(report.resolve("ledger.dat"),bytes,StandardOpenOption.CREATE_NEW);
+        String sha=HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(bytes));
+        Files.writeString(report.resolve("SHA256SUMS"),sha+"  ledger.dat\n",StandardOpenOption.CREATE_NEW);
+        Files.writeString(report.resolve("expected-managed-state.nbt.txt"),expected.asString(),StandardOpenOption.CREATE_NEW);
+        System.out.println("SIEGE_PLAN_PERSISTENCE_FILE label="+label+" bytes="+bytes.length+" sha256="+sha+" report="+report);
+    }
 
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="siege-plan-real-save")
     public void actualPersistentStateReopenKeepsFiniteAcksWithoutReconstructingPermits(TestContext c)throws Exception{
@@ -46,6 +58,7 @@ public final class SiegePlanStateGameTests implements FabricGameTest {
         try{
             var manager=new PersistentStateManager(directory.toFile(),Schemas.getFixer(),lookup);manager.set(SurvivalThreatState.ID,state);manager.save();
             c.assertTrue(Files.isRegularFile(directory.resolve(SurvivalThreatState.ID+".dat")),"Minecraft wrote an actual compressed PersistentState file");
+            preserveFile(c,directory.resolve(SurvivalThreatState.ID+".dat"),"history",state.writeNbt(new NbtCompound(),lookup));
             var reopened=new PersistentStateManager(directory.toFile(),Schemas.getFixer(),lookup);
             var restored=reopened.getOrCreate(new PersistentState.Type<>(SurvivalThreatState::new,SurvivalThreatState::fromNbt,null),SurvivalThreatState.ID);
             var snapshot=restored.siegePlan(plan.snapshot().id()).orElseThrow();
@@ -79,7 +92,7 @@ public final class SiegePlanStateGameTests implements FabricGameTest {
     }
 
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="siege-plan-opaque")
-    public void unsupportedAndOversizedSubtreesAreReadOnlyDefensiveCopies(TestContext c){
+    public void unsupportedAndOversizedSubtreesAreReadOnlyDefensiveCopies(TestContext c)throws Exception{
         var lookup=c.getWorld().getRegistryManager();var old=SiegePlanCodecBaselineGameTests.legacy();
         for(boolean oversized:new boolean[]{false,true}){
             var ext=SiegePlanCodecBaselineGameTests.extension();
@@ -89,12 +102,22 @@ public final class SiegePlanStateGameTests implements FabricGameTest {
             c.assertTrue(state.siegePlansReadOnly()&&state.siegePlanCount()==0&&!state.putSiegePlan(proposed(UUID.randomUUID(),UUID.randomUUID(),100).snapshot()),"unknown/oversized data remains opaque and grants no mutation or plan authority");
             var out=state.writeNbt(new NbtCompound(),lookup);c.assertTrue(out.getCompound("siegePlans").equals(original),"opaque save data is a stable owned copy and roundtrips without clobbering");
             SiegePlanCodecBaselineGameTests.assertLegacy(c,old,out);
+            var directory=Files.createTempDirectory("drmd-siege-opaque-");
+            try{
+                var manager=new PersistentStateManager(directory.toFile(),Schemas.getFixer(),lookup);manager.set(SurvivalThreatState.ID,state);manager.save();
+                preserveFile(c,directory.resolve(SurvivalThreatState.ID+".dat"),oversized?"opaque-oversized":"opaque-future",out);
+                var reopened=new PersistentStateManager(directory.toFile(),Schemas.getFixer(),lookup);
+                var saved=reopened.getOrCreate(new PersistentState.Type<>(SurvivalThreatState::new,SurvivalThreatState::fromNbt,null),SurvivalThreatState.ID);
+                c.assertTrue(saved.siegePlansReadOnly()&&saved.writeNbt(new NbtCompound(),lookup).getCompound("siegePlans").equals(original),"actual compressed save/reopen preserves opaque payload without granting decoded authority");
+                SiegePlanCodecBaselineGameTests.assertLegacy(c,old,saved.writeNbt(new NbtCompound(),lookup));
+            }finally{cleanupDirectory(directory);}
         }c.complete();
     }
 
     private static final class InactiveFixture implements AutoCloseable {
         final ServerWorld world;final ServerPlayerEntity player;final EmbeddedChannel channel;final boolean mobRule;
         SurvivalThreatState state;SiegePlan plan;SiegePlan.Snapshot expected;
+        final List<String> observations=new ArrayList<>();
         long started;int stage;boolean closed;
         InactiveFixture(TestContext c){
             world=c.getWorld();mobRule=world.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING);
@@ -109,6 +132,7 @@ public final class SiegePlanStateGameTests implements FabricGameTest {
             c.assertTrue(!player.isCreative()&&!player.isSpectator()&&world.getDifficulty()!=Difficulty.PEACEFUL,"actual ordinary Survival participant and enabled encounters, not mode-disabled apparent inactivity");
             state=SurvivalThreatState.get(world);started=world.getTime();plan=ready(UUID.randomUUID(),player.getUuid(),started);expected=plan.snapshot();
             c.assertTrue(state.putSiegePlan(expected),"non-executable high-readiness future intent stored without a production trigger");
+            observations.add("phase=PLANNED actualWorldTime="+started+" playerMode="+player.interactionManager.getGameMode()+" mobSpawning="+world.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING));
             }catch(Throwable failure){close();throw failure;}
         }
         void check(TestContext c){
@@ -118,12 +142,19 @@ public final class SiegePlanStateGameTests implements FabricGameTest {
             var recon=state.progress(player.getUuid());c.assertTrue(recon.isEmpty()||recon.get().phase()==ThreatProgress.Phase.QUIET,"ordinary recon remains QUIET without an actual eligible alarm");
             if(stage==0&&now-started>=20){
                 plan.advance(now,0,true,true,null,false);expected=plan.snapshot();c.assertTrue(state.putSiegePlan(expected),"test explicitly writes a pure WARNING intent; production never advanced it");stage=1;
+                observations.add("phase=WARNING actualWorldTime="+now+" fullWarningEnds="+expected.warningEnds());
             }else if(stage==1&&now>=expected.warningEnds()){
                 // This DTO, not a live observer, is deliberately insufficient for runtime
                 // authority. Waiting uses real world ticks; no server clock is changed.
                 plan.advance(now,0,true,true,sight(player.getUuid(),FIRST,now),false);expected=plan.snapshot();
                 c.assertTrue(expected.phase()==SiegePlan.Phase.SIEGE&&state.putSiegePlan(expected),"explicit pure SIEGE data remains non-executable");started=now;stage=2;
-            }else if(stage==2&&now-started>=20){System.out.println("SIEGE_INTENT_NON_AUTOSTART_PASS actualWorldTime="+now+" planPhase="+expected.phase()+" liveRoster="+state.rosterSize(player.getUuid()));close();c.complete();}
+                observations.add("phase=SIEGE_DTO actualWorldTime="+now+" liveRoster="+state.rosterSize(player.getUuid()));
+            }else if(stage==2&&now-started>=20){
+                observations.add("completed actualWorldTime="+now+" playerHp="+player.getHealth()+" liveRoster="+state.rosterSize(player.getUuid())+" planUnchanged=true");
+                try{Files.writeString(proofDirectory(c,"non-autostart").resolve("actual-survival-ticks.txt"),String.join("\n",observations)+"\n",StandardOpenOption.CREATE_NEW);}
+                catch(java.io.IOException failure){throw new java.io.UncheckedIOException(failure);}
+                System.out.println("SIEGE_INTENT_NON_AUTOSTART_PASS actualWorldTime="+now+" planPhase="+expected.phase()+" liveRoster="+state.rosterSize(player.getUuid()));close();c.complete();
+            }
         }
         @Override public void close(){
             if(closed)return;closed=true;
