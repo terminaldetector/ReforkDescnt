@@ -14,6 +14,13 @@ public final class SurvivalThreatState extends PersistentState {
     private final Map<UUID,ThreatProgress> players=new HashMap<>();
     private final Map<UUID,Actor> actors=new HashMap<>();
     private final Map<UUID,Long> victims=new HashMap<>();
+    private SiegePlans siegePlans=new SiegePlans();
+    /** Non-executable intent only: these identities never participate in the live recon roster. */
+    public Optional<SiegePlan.Snapshot> siegePlan(UUID id){return siegePlans.get(id);}
+    public int siegePlanCount(){return siegePlans.size();}
+    public boolean siegePlansReadOnly(){return siegePlans.readOnly();}
+    public boolean putSiegePlan(SiegePlan.Snapshot snapshot){if(!siegePlans.put(snapshot,actors.keySet()))return false;markDirty();return true;}
+    public boolean removeSiegePlan(UUID id){if(!siegePlans.remove(id))return false;markDirty();return true;}
     public static SurvivalThreatState get(ServerWorld world){return world.getPersistentStateManager().getOrCreate(new Type<>(SurvivalThreatState::new,SurvivalThreatState::fromNbt,null),ID);}
     ThreatProgress player(UUID id){var old=players.get(id);if(old!=null)return old;if(players.size()>=MAX_PLAYERS)return null;
         var created=new ThreatProgress();players.put(id,created);markDirty();return created;}
@@ -52,6 +59,7 @@ public final class SurvivalThreatState extends PersistentState {
             var a=roster.getCompound(id);var owner=a.getUuid("owner");if(result.players.containsKey(owner)&&result.rosterSize(owner)<ThreatProgress.PATROL_SIZE)result.actors.put(UUID.fromString(id),new Actor(owner,a.getLong("expires")));
         }catch(RuntimeException ignored){}
         var seen=n.getCompound("victims");if(seen.getKeys().size()<=MAX_VICTIMS)for(var id:seen.getKeys())try{long expiry=seen.getLong(id);if(expiry>=0)result.victims.put(UUID.fromString(id),expiry);}catch(RuntimeException ignored){}
+        result.siegePlans=SiegePlans.read(n.get("siegePlans"),result.actors.keySet());
         return result;
     }
     private static ThreatProgress.Point point(NbtCompound n){return new ThreatProgress.Point(n.getDouble("x"),n.getDouble("y"),n.getDouble("z"));}
@@ -60,6 +68,7 @@ public final class SurvivalThreatState extends PersistentState {
         n.putInt("schema",1);n.putString("faction",FACTION);var data=new NbtCompound();
         for(var e:new TreeMap<>(players).entrySet()){var p=e.getValue().snapshot();var tag=new NbtCompound();tag.putString("phase",p.phase().name());tag.putLong("played",p.played());tag.putLong("since",p.since());tag.putLong("until",p.until());tag.putLong("encounterEnds",p.encounterEnds());tag.putLong("alarmAt",p.alarmAt());tag.putLong("lastSeen",p.lastSeen());tag.putBoolean("pending",p.pending());tag.putInt("spawned",p.spawned());tag.put("origin",point(p.origin()));tag.put("known",point(p.known()));data.put(e.getKey().toString(),tag);}n.put("players",data);
         var roster=new NbtCompound();for(var e:new TreeMap<>(actors).entrySet()){var tag=new NbtCompound();tag.putUuid("owner",e.getValue().owner);tag.putLong("expires",e.getValue().expires);roster.put(e.getKey().toString(),tag);}n.put("actors",roster);
-        var seen=new NbtCompound();for(var e:new TreeMap<>(victims).entrySet())seen.putLong(e.getKey().toString(),e.getValue());n.put("victims",seen);return n;
+        var seen=new NbtCompound();for(var e:new TreeMap<>(victims).entrySet())seen.putLong(e.getKey().toString(),e.getValue());n.put("victims",seen);
+        var extension=siegePlans.write();if(extension==null)n.remove("siegePlans");else n.put("siegePlans",extension);return n;
     }
 }
