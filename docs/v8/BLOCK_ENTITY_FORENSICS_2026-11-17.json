@@ -1,0 +1,5063 @@
+{
+  "schema": "ungravity-block-entity-forensics/v1",
+  "created_utc": "2026-11-17T12:46:34.119414+00:00",
+  "task": "S01-T05",
+  "source_revision": "bfbcee6696ae019152846fe3f0e71910ccd1c481",
+  "status": "OPEN: historical invalid state/pending-NBT confirmed; producer and current reproduction unproven",
+  "scope": {
+    "read_only": true,
+    "java_or_minecraft_executed": false,
+    "production_source_changed": false,
+    "world_or_nbt_changed": false,
+    "factory_inventory_is_runtime_acceptance": false,
+    "current_task_promoted": false
+  },
+  "primary_archive": {
+    "path": "/workspace/attachments/71408d9d-e957-46de-8c6c-4f38b7436ded/UNGRAVITY_MASTER_TZ_AND_LOGS_2026-10-26_v5.zip",
+    "bytes": 7040188,
+    "sha256": "e945e52e462905e91689b5e7e5ae49ba77965b248a7f8aee6b4d1ae48f9e4b73",
+    "members": 44,
+    "all_members_crc_checked": true,
+    "logs_compared_byte_for_byte_with_extracted_copies": true,
+    "source_or_installable_jar_supplied_by_this_archive": false
+  },
+  "historical_logs": [
+    {
+      "archive_member": "07_EVIDENCE/logs/2026-10-26-1.log(1).gz",
+      "raw_sha256": "0aab6d52e8e508dcde40b859eb82431bcbad665cb606ecbde1b78044f8abb1c8",
+      "raw_bytes": 4767,
+      "uncompressed_sha256": "0abdaf01186ee0a28da6d57f2a29a4fbdbdd56b6ff445d8da50cad10b4110a16",
+      "uncompressed_bytes": 19380,
+      "line_count": 215,
+      "runtime_versions": [
+        "- drmd 1.1.14-audit.4",
+        "- fabricloader 0.19.5",
+        "- java 21",
+        "- minecraft 1.21.1",
+        "- sodium 0.8.13+mc1.21.1"
+      ],
+      "dummy_count": 0,
+      "dummy_unique_positions": 0,
+      "dummy_y_min": null,
+      "dummy_y_max": null,
+      "dummy_block_counts": {},
+      "dummy_events": [],
+      "stall_count": 0,
+      "max_reported_stall_ms": null,
+      "max_reported_stall_ticks": null,
+      "timestamps_timezone": null,
+      "timestamps_timezone_reason": "Original log does not establish a timezone; HH:MM:SS retained verbatim."
+    },
+    {
+      "archive_member": "07_EVIDENCE/logs/2026-10-26-1.log.gz",
+      "raw_sha256": "0aab6d52e8e508dcde40b859eb82431bcbad665cb606ecbde1b78044f8abb1c8",
+      "raw_bytes": 4767,
+      "uncompressed_sha256": "0abdaf01186ee0a28da6d57f2a29a4fbdbdd56b6ff445d8da50cad10b4110a16",
+      "uncompressed_bytes": 19380,
+      "line_count": 215,
+      "runtime_versions": [
+        "- drmd 1.1.14-audit.4",
+        "- fabricloader 0.19.5",
+        "- java 21",
+        "- minecraft 1.21.1",
+        "- sodium 0.8.13+mc1.21.1"
+      ],
+      "dummy_count": 0,
+      "dummy_unique_positions": 0,
+      "dummy_y_min": null,
+      "dummy_y_max": null,
+      "dummy_block_counts": {},
+      "dummy_events": [],
+      "stall_count": 0,
+      "max_reported_stall_ms": null,
+      "max_reported_stall_ticks": null,
+      "timestamps_timezone": null,
+      "timestamps_timezone_reason": "Original log does not establish a timezone; HH:MM:SS retained verbatim."
+    },
+    {
+      "archive_member": "07_EVIDENCE/logs/2026-10-26-2.log.gz",
+      "raw_sha256": "962836258e16258949609f32cf9b65987cd3e9bac6bbd97eecfec7255d472405",
+      "raw_bytes": 9010,
+      "uncompressed_sha256": "975edd9ee33597299fe39147b64bc80d59767f6f770237594c6a6a3ca5197730",
+      "uncompressed_bytes": 54384,
+      "line_count": 513,
+      "runtime_versions": [
+        "- drmd 1.1.14-audit.4",
+        "- fabricloader 0.19.5",
+        "- java 21",
+        "- minecraft 1.21.1",
+        "- sodium 0.8.13+mc1.21.1"
+      ],
+      "dummy_count": 33,
+      "dummy_unique_positions": 33,
+      "dummy_y_min": -51,
+      "dummy_y_max": -2,
+      "dummy_block_counts": {
+        "minecraft:air": 30,
+        "minecraft:polished_deepslate": 3
+      },
+      "dummy_events": [
+        {
+          "line": 188,
+          "time": "15:09:10",
+          "x": -168,
+          "y": -51,
+          "z": -88,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 217,
+          "time": "15:13:15",
+          "x": 166,
+          "y": -11,
+          "z": 40,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 219,
+          "time": "15:13:16",
+          "x": -265,
+          "y": -9,
+          "z": 178,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 221,
+          "time": "15:13:16",
+          "x": -266,
+          "y": -9,
+          "z": 180,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 223,
+          "time": "15:13:16",
+          "x": -263,
+          "y": -9,
+          "z": 177,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 229,
+          "time": "15:14:43",
+          "x": 179,
+          "y": -10,
+          "z": 169,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 231,
+          "time": "15:14:43",
+          "x": 177,
+          "y": -10,
+          "z": 172,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 235,
+          "time": "15:15:08",
+          "x": 55,
+          "y": -31,
+          "z": -200,
+          "state": "minecraft:polished_deepslate"
+        },
+        {
+          "line": 237,
+          "time": "15:15:08",
+          "x": 53,
+          "y": -31,
+          "z": -198,
+          "state": "minecraft:polished_deepslate"
+        },
+        {
+          "line": 239,
+          "time": "15:15:08",
+          "x": 55,
+          "y": -31,
+          "z": -196,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 258,
+          "time": "15:20:50",
+          "x": 110,
+          "y": -35,
+          "z": 264,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 260,
+          "time": "15:20:50",
+          "x": 108,
+          "y": -35,
+          "z": 265,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 262,
+          "time": "15:20:50",
+          "x": 112,
+          "y": -35,
+          "z": 261,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 264,
+          "time": "15:20:51",
+          "x": 90,
+          "y": -17,
+          "z": 369,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 266,
+          "time": "15:20:51",
+          "x": 117,
+          "y": -26,
+          "z": 391,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 268,
+          "time": "15:20:51",
+          "x": 120,
+          "y": -26,
+          "z": 390,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 280,
+          "time": "15:23:46",
+          "x": -229,
+          "y": -35,
+          "z": 424,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 282,
+          "time": "15:23:46",
+          "x": -228,
+          "y": -35,
+          "z": 427,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 284,
+          "time": "15:23:46",
+          "x": -231,
+          "y": -35,
+          "z": 429,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 303,
+          "time": "15:27:50",
+          "x": -322,
+          "y": -13,
+          "z": 489,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 305,
+          "time": "15:27:50",
+          "x": -323,
+          "y": -13,
+          "z": 486,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 307,
+          "time": "15:27:50",
+          "x": -321,
+          "y": -13,
+          "z": 492,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 309,
+          "time": "15:29:19",
+          "x": -361,
+          "y": -44,
+          "z": 253,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 311,
+          "time": "15:29:19",
+          "x": -360,
+          "y": -38,
+          "z": 250,
+          "state": "minecraft:polished_deepslate"
+        },
+        {
+          "line": 313,
+          "time": "15:29:19",
+          "x": -363,
+          "y": -43,
+          "z": 252,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 324,
+          "time": "15:30:27",
+          "x": 12,
+          "y": -2,
+          "z": 510,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 326,
+          "time": "15:30:27",
+          "x": 14,
+          "y": -2,
+          "z": 513,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 328,
+          "time": "15:30:27",
+          "x": 16,
+          "y": -2,
+          "z": 513,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 330,
+          "time": "15:30:28",
+          "x": -411,
+          "y": -7,
+          "z": 376,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 332,
+          "time": "15:30:28",
+          "x": -410,
+          "y": -7,
+          "z": 379,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 497,
+          "time": "15:51:31",
+          "x": -142,
+          "y": -46,
+          "z": -227,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 499,
+          "time": "15:51:31",
+          "x": -141,
+          "y": -46,
+          "z": -225,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 501,
+          "time": "15:51:31",
+          "x": -139,
+          "y": -46,
+          "z": -225,
+          "state": "minecraft:air"
+        }
+      ],
+      "stall_count": 55,
+      "max_reported_stall_ms": 152216,
+      "max_reported_stall_ticks": 3044,
+      "timestamps_timezone": null,
+      "timestamps_timezone_reason": "Original log does not establish a timezone; HH:MM:SS retained verbatim."
+    },
+    {
+      "archive_member": "07_EVIDENCE/logs/latest(1).log",
+      "raw_sha256": "bff41178a85e659077c364fa2abd8de849c69982434dcb29b5caf8a36844b020",
+      "raw_bytes": 75479,
+      "uncompressed_sha256": "bff41178a85e659077c364fa2abd8de849c69982434dcb29b5caf8a36844b020",
+      "uncompressed_bytes": 75479,
+      "line_count": 622,
+      "runtime_versions": [
+        "- drmd 1.1.14-audit.4",
+        "- fabricloader 0.19.5",
+        "- java 21",
+        "- minecraft 1.21.1",
+        "- sodium 0.8.13+mc1.21.1"
+      ],
+      "dummy_count": 100,
+      "dummy_unique_positions": 100,
+      "dummy_y_min": -48,
+      "dummy_y_max": -1,
+      "dummy_block_counts": {
+        "minecraft:air": 96,
+        "minecraft:deepslate_bricks": 3,
+        "minecraft:polished_deepslate": 1
+      },
+      "dummy_events": [
+        {
+          "line": 202,
+          "time": "16:16:47",
+          "x": 116,
+          "y": -12,
+          "z": 170,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 219,
+          "time": "16:20:20",
+          "x": -283,
+          "y": -48,
+          "z": -88,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 221,
+          "time": "16:20:20",
+          "x": -281,
+          "y": -48,
+          "z": -86,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 232,
+          "time": "16:21:41",
+          "x": 194,
+          "y": -25,
+          "z": 187,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 234,
+          "time": "16:21:41",
+          "x": 200,
+          "y": -25,
+          "z": 187,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 236,
+          "time": "16:21:41",
+          "x": 197,
+          "y": -25,
+          "z": 187,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 238,
+          "time": "16:22:00",
+          "x": 103,
+          "y": -15,
+          "z": 235,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 240,
+          "time": "16:22:00",
+          "x": 101,
+          "y": -23,
+          "z": 239,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 242,
+          "time": "16:22:04",
+          "x": 127,
+          "y": -15,
+          "z": 245,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 244,
+          "time": "16:22:04",
+          "x": 114,
+          "y": -18,
+          "z": 254,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 246,
+          "time": "16:22:04",
+          "x": 115,
+          "y": -4,
+          "z": 244,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 248,
+          "time": "16:22:04",
+          "x": 112,
+          "y": -6,
+          "z": 242,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 250,
+          "time": "16:22:04",
+          "x": 115,
+          "y": -18,
+          "z": 240,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 252,
+          "time": "16:22:04",
+          "x": 121,
+          "y": -17,
+          "z": 240,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 254,
+          "time": "16:22:04",
+          "x": 115,
+          "y": -17,
+          "z": 246,
+          "state": "minecraft:deepslate_bricks"
+        },
+        {
+          "line": 256,
+          "time": "16:22:04",
+          "x": 108,
+          "y": -23,
+          "z": 240,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 258,
+          "time": "16:22:04",
+          "x": 110,
+          "y": -17,
+          "z": 252,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 260,
+          "time": "16:22:21",
+          "x": 298,
+          "y": -23,
+          "z": 103,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 262,
+          "time": "16:22:21",
+          "x": 299,
+          "y": -23,
+          "z": 101,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 264,
+          "time": "16:22:21",
+          "x": 295,
+          "y": -23,
+          "z": 104,
+          "state": "minecraft:polished_deepslate"
+        },
+        {
+          "line": 277,
+          "time": "16:27:16",
+          "x": -217,
+          "y": -21,
+          "z": 491,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 279,
+          "time": "16:27:16",
+          "x": -220,
+          "y": -21,
+          "z": 492,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 281,
+          "time": "16:27:16",
+          "x": -218,
+          "y": -21,
+          "z": 494,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 317,
+          "time": "16:29:51",
+          "x": 352,
+          "y": -20,
+          "z": 488,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 337,
+          "time": "16:34:46",
+          "x": 782,
+          "y": -17,
+          "z": -6,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 339,
+          "time": "16:34:46",
+          "x": 778,
+          "y": -22,
+          "z": 0,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 341,
+          "time": "16:34:46",
+          "x": 784,
+          "y": -17,
+          "z": -1,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 353,
+          "time": "16:36:22",
+          "x": 783,
+          "y": -13,
+          "z": 35,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 355,
+          "time": "16:36:23",
+          "x": 787,
+          "y": -36,
+          "z": 41,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 357,
+          "time": "16:36:23",
+          "x": 792,
+          "y": -41,
+          "z": 33,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 359,
+          "time": "16:36:23",
+          "x": 795,
+          "y": -41,
+          "z": 46,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 361,
+          "time": "16:36:23",
+          "x": 789,
+          "y": -12,
+          "z": 35,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 363,
+          "time": "16:36:23",
+          "x": 794,
+          "y": -13,
+          "z": 46,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 365,
+          "time": "16:36:23",
+          "x": 795,
+          "y": -36,
+          "z": 41,
+          "state": "minecraft:deepslate_bricks"
+        },
+        {
+          "line": 367,
+          "time": "16:36:23",
+          "x": 795,
+          "y": -41,
+          "z": 36,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 369,
+          "time": "16:36:23",
+          "x": 787,
+          "y": -41,
+          "z": 33,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 371,
+          "time": "16:36:23",
+          "x": 795,
+          "y": -36,
+          "z": 46,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 373,
+          "time": "16:36:23",
+          "x": 792,
+          "y": -36,
+          "z": 33,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 375,
+          "time": "16:36:23",
+          "x": 797,
+          "y": -13,
+          "z": 36,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 377,
+          "time": "16:36:23",
+          "x": 794,
+          "y": -18,
+          "z": 62,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 379,
+          "time": "16:36:23",
+          "x": 795,
+          "y": -36,
+          "z": 51,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 381,
+          "time": "16:36:23",
+          "x": 795,
+          "y": -36,
+          "z": 56,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 383,
+          "time": "16:36:23",
+          "x": 795,
+          "y": -41,
+          "z": 51,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 385,
+          "time": "16:36:23",
+          "x": 795,
+          "y": -36,
+          "z": 61,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 389,
+          "time": "16:36:32",
+          "x": 730,
+          "y": -36,
+          "z": -324,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 391,
+          "time": "16:36:32",
+          "x": 732,
+          "y": -36,
+          "z": -321,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 393,
+          "time": "16:36:33",
+          "x": 804,
+          "y": -7,
+          "z": 23,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 395,
+          "time": "16:36:33",
+          "x": 807,
+          "y": -20,
+          "z": 26,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 397,
+          "time": "16:36:33",
+          "x": 807,
+          "y": -21,
+          "z": 16,
+          "state": "minecraft:deepslate_bricks"
+        },
+        {
+          "line": 399,
+          "time": "16:36:33",
+          "x": 809,
+          "y": -20,
+          "z": 35,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 401,
+          "time": "16:36:33",
+          "x": 814,
+          "y": -18,
+          "z": 34,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 403,
+          "time": "16:36:33",
+          "x": 814,
+          "y": -18,
+          "z": 35,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 405,
+          "time": "16:36:33",
+          "x": 811,
+          "y": -18,
+          "z": 38,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 407,
+          "time": "16:36:33",
+          "x": 805,
+          "y": -20,
+          "z": 44,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 409,
+          "time": "16:36:33",
+          "x": 814,
+          "y": -13,
+          "z": 45,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 411,
+          "time": "16:36:33",
+          "x": 814,
+          "y": -18,
+          "z": 40,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 413,
+          "time": "16:36:33",
+          "x": 809,
+          "y": -20,
+          "z": 44,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 415,
+          "time": "16:36:33",
+          "x": 809,
+          "y": -20,
+          "z": 45,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 417,
+          "time": "16:36:33",
+          "x": 809,
+          "y": -20,
+          "z": 46,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 419,
+          "time": "16:36:33",
+          "x": 814,
+          "y": -18,
+          "z": 45,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 421,
+          "time": "16:36:33",
+          "x": 804,
+          "y": -13,
+          "z": 34,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 423,
+          "time": "16:36:33",
+          "x": 804,
+          "y": -13,
+          "z": 44,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 425,
+          "time": "16:36:33",
+          "x": 807,
+          "y": -20,
+          "z": 35,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 427,
+          "time": "16:36:33",
+          "x": 804,
+          "y": -13,
+          "z": 46,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 429,
+          "time": "16:36:33",
+          "x": 800,
+          "y": -18,
+          "z": 51,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 431,
+          "time": "16:36:33",
+          "x": 807,
+          "y": -13,
+          "z": 50,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 433,
+          "time": "16:36:33",
+          "x": 803,
+          "y": -15,
+          "z": 58,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 435,
+          "time": "16:36:33",
+          "x": 814,
+          "y": -13,
+          "z": 49,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 437,
+          "time": "16:36:33",
+          "x": 803,
+          "y": -15,
+          "z": 61,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 439,
+          "time": "16:36:33",
+          "x": 804,
+          "y": -15,
+          "z": 61,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 441,
+          "time": "16:36:33",
+          "x": 811,
+          "y": -18,
+          "z": 52,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 443,
+          "time": "16:36:33",
+          "x": 810,
+          "y": -15,
+          "z": 60,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 445,
+          "time": "16:36:33",
+          "x": 811,
+          "y": -15,
+          "z": 60,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 447,
+          "time": "16:36:33",
+          "x": 810,
+          "y": -15,
+          "z": 62,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 449,
+          "time": "16:36:33",
+          "x": 813,
+          "y": -15,
+          "z": 60,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 451,
+          "time": "16:36:33",
+          "x": 811,
+          "y": -15,
+          "z": 62,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 453,
+          "time": "16:36:33",
+          "x": 814,
+          "y": -15,
+          "z": 60,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 455,
+          "time": "16:36:33",
+          "x": 813,
+          "y": -15,
+          "z": 62,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 457,
+          "time": "16:36:33",
+          "x": 814,
+          "y": -15,
+          "z": 62,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 459,
+          "time": "16:36:33",
+          "x": 800,
+          "y": -13,
+          "z": 50,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 461,
+          "time": "16:36:33",
+          "x": 813,
+          "y": -15,
+          "z": 66,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 463,
+          "time": "16:36:33",
+          "x": 821,
+          "y": -18,
+          "z": 27,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 465,
+          "time": "16:36:33",
+          "x": 826,
+          "y": -18,
+          "z": 27,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 467,
+          "time": "16:36:33",
+          "x": 821,
+          "y": -8,
+          "z": 27,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 469,
+          "time": "16:36:33",
+          "x": 821,
+          "y": -8,
+          "z": 30,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 471,
+          "time": "16:36:33",
+          "x": 831,
+          "y": -18,
+          "z": 27,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 473,
+          "time": "16:36:33",
+          "x": 826,
+          "y": -8,
+          "z": 27,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 475,
+          "time": "16:36:33",
+          "x": 831,
+          "y": -13,
+          "z": 40,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 477,
+          "time": "16:36:33",
+          "x": 817,
+          "y": -13,
+          "z": 41,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 479,
+          "time": "16:36:33",
+          "x": 818,
+          "y": -18,
+          "z": 35,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 481,
+          "time": "16:36:33",
+          "x": 826,
+          "y": -7,
+          "z": 52,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 483,
+          "time": "16:36:33",
+          "x": 826,
+          "y": -16,
+          "z": 49,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 485,
+          "time": "16:36:33",
+          "x": 821,
+          "y": -8,
+          "z": 50,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 498,
+          "time": "16:37:46",
+          "x": 679,
+          "y": -1,
+          "z": 105,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 500,
+          "time": "16:37:46",
+          "x": 683,
+          "y": -1,
+          "z": 102,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 502,
+          "time": "16:37:46",
+          "x": 681,
+          "y": -1,
+          "z": 104,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 504,
+          "time": "16:37:46",
+          "x": 801,
+          "y": -15,
+          "z": 101,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 506,
+          "time": "16:37:46",
+          "x": 701,
+          "y": -16,
+          "z": 159,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 508,
+          "time": "16:37:46",
+          "x": 704,
+          "y": -16,
+          "z": 158,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 510,
+          "time": "16:37:47",
+          "x": 699,
+          "y": -16,
+          "z": 162,
+          "state": "minecraft:air"
+        }
+      ],
+      "stall_count": 41,
+      "max_reported_stall_ms": 193148,
+      "max_reported_stall_ticks": 3862,
+      "timestamps_timezone": null,
+      "timestamps_timezone_reason": "Original log does not establish a timezone; HH:MM:SS retained verbatim.",
+      "selected_primary_excerpts": [
+        {
+          "purpose": "Runtime and effective Advanced feature configuration",
+          "lines": [
+            {
+              "line": 71,
+              "text": "[16:10:07] [Render thread/INFO]: [drmd] 1.1.14-audit.4 on Minecraft 1.21.1 / loader 0.19.5 / 57 mods"
+            },
+            {
+              "line": 72,
+              "text": "[16:10:07] [Render thread/INFO]: [drmd] optional: immersive_portals=no, dimlib=no, sodium=0.8.13+mc1.21.1, iris=no"
+            },
+            {
+              "line": 73,
+              "text": "[16:10:07] [Render thread/INFO]: [drmd] access widener applied"
+            },
+            {
+              "line": 74,
+              "text": "[16:10:07] [Render thread/INFO]: DRMD server config — worldKind=STOCK worldModLevel=ADVANCED netherBand=true endBand=true klondikeIslands=true macroWorldgen=true surfaceDistricts=true orbitJunk=true"
+            },
+            {
+              "line": 75,
+              "text": "[16:10:07] [Render thread/INFO]: Advanced-column pack registered, default activation=DEFAULT_ENABLED"
+            }
+          ]
+        },
+        {
+          "purpose": "Legacy writer registered in this historical runtime",
+          "lines": [
+            {
+              "line": 85,
+              "text": "[16:10:08] [Render thread/INFO]: Orbit junk / techno-ring scaffold registered"
+            },
+            {
+              "line": 86,
+              "text": "[16:10:08] [Render thread/INFO]: Level builder online — diggable mantle / Core band (no bedrock border)"
+            }
+          ]
+        },
+        {
+          "purpose": "Actual historical GL renderer; not current cloud benchmark hardware",
+          "lines": [
+            {
+              "line": 93,
+              "text": "[16:10:12] [Render thread/INFO]: OpenGL Vendor: Intel"
+            },
+            {
+              "line": 94,
+              "text": "[16:10:12] [Render thread/INFO]: OpenGL Renderer: Intel(R) HD Graphics 4400"
+            },
+            {
+              "line": 95,
+              "text": "[16:10:12] [Render thread/INFO]: OpenGL Version: 3.2.0 - Build 20.19.15.4703"
+            }
+          ]
+        },
+        {
+          "purpose": "First DUMMY warning",
+          "lines": [
+            {
+              "line": 202,
+              "text": "[16:16:47] [Server thread/WARN]: Tried to load a DUMMY block entity @ class_2338{x=116, y=-12, z=170} but found not block entity block Block{minecraft:air} at location"
+            }
+          ]
+        },
+        {
+          "purpose": "Non-air block mismatch",
+          "lines": [
+            {
+              "line": 254,
+              "text": "[16:22:04] [Server thread/WARN]: Tried to load a DUMMY block entity @ class_2338{x=115, y=-17, z=246} but found not block entity block Block{minecraft:deepslate_bricks} at location"
+            },
+            {
+              "line": 255,
+              "text": "[16:22:04] [Server thread/WARN]: Tried to load a block entity for block Block{minecraft:deepslate_bricks} but failed at location class_2338{x=115, y=-17, z=246}"
+            }
+          ]
+        },
+        {
+          "purpose": "Save-time invalid spawner and original stack",
+          "lines": [
+            {
+              "line": 286,
+              "text": "[16:29:42] [Server thread/INFO]: Saving and pausing game..."
+            },
+            {
+              "line": 287,
+              "text": "[16:29:43] [Server thread/INFO]: Saving chunks for level 'ServerLevel[Новый мир]'/minecraft:overworld"
+            },
+            {
+              "line": 288,
+              "text": "[16:29:50] [Server thread/ERROR]: Failed to create block entity minecraft:mob_spawner"
+            },
+            {
+              "line": 289,
+              "text": "java.lang.IllegalStateException: Invalid block entity minecraft:mob_spawner // net.minecraft.class_2636 state at class_2338{x=334, y=-21, z=496}, got Block{minecraft:air}"
+            },
+            {
+              "line": 290,
+              "text": "\tat knot/net.minecraft.class_2586.method_61175(class_2586.java:57) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 291,
+              "text": "\tat knot/net.minecraft.class_2586.<init>(class_2586.java:51) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 292,
+              "text": "\tat knot/net.minecraft.class_2636.<init>(class_2636.java:38) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 293,
+              "text": "\tat knot/net.minecraft.class_2591.method_11032(class_2591.java:99) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 294,
+              "text": "\tat knot/net.minecraft.class_2586.method_17899(class_2586.java:186) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 295,
+              "text": "\tat java.base/java.util.Optional.map(Optional.java:260) ~[?:?]"
+            },
+            {
+              "line": 296,
+              "text": "\tat knot/net.minecraft.class_2586.method_11005(class_2586.java:184) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 297,
+              "text": "\tat knot/net.minecraft.class_2818.method_12204(class_2818.java:565) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 298,
+              "text": "\tat knot/net.minecraft.class_2818.method_12201(class_2818.java:328) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 299,
+              "text": "\tat knot/net.minecraft.class_2818.method_8321(class_2818.java:319) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 300,
+              "text": "\tat knot/net.minecraft.class_2818.method_20598(class_2818.java:415) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 301,
+              "text": "\tat knot/net.minecraft.class_2852.method_12410(class_2852.java:331) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 302,
+              "text": "\tat knot/net.minecraft.class_3898.method_17228(class_3898.java:784) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 303,
+              "text": "\tat knot/net.minecraft.class_3898.method_39925(class_3898.java:748) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 304,
+              "text": "\tat knot/it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap$1.forEach(Long2ObjectLinkedOpenHashMap.java:1719) ~[fastutil-8.5.12.jar:?]"
+            },
+            {
+              "line": 305,
+              "text": "\tat knot/net.minecraft.class_3898.method_17242(class_3898.java:431) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 306,
+              "text": "\tat knot/net.minecraft.class_3215.method_17298(class_3215.java:290) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 307,
+              "text": "\tat knot/net.minecraft.class_3218.method_14176(class_3218.java:820) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 308,
+              "text": "\tat knot/net.minecraft.server.MinecraftServer.method_3723(MinecraftServer.java:556) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 309,
+              "text": "\tat knot/net.minecraft.server.MinecraftServer.method_39218(MinecraftServer.java:580) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 310,
+              "text": "\tat knot/net.minecraft.class_1132.method_39218(class_1132.java:318) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 311,
+              "text": "\tat knot/net.minecraft.class_1132.method_3748(class_1132.java:96) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 312,
+              "text": "\tat knot/net.minecraft.server.MinecraftServer.method_29741(MinecraftServer.java:697) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 313,
+              "text": "\tat knot/net.minecraft.server.MinecraftServer.method_29739(MinecraftServer.java:281) ~[client-intermediary.jar:?]"
+            },
+            {
+              "line": 314,
+              "text": "\tat java.base/java.lang.Thread.run(Thread.java:1583) [?:?]"
+            },
+            {
+              "line": 315,
+              "text": "[16:29:50] [Server thread/WARN]: Skipping BlockEntity with id minecraft:mob_spawner"
+            },
+            {
+              "line": 316,
+              "text": "[16:29:50] [Server thread/WARN]: Tried to load a block entity for block Block{minecraft:air} but failed at location class_2338{x=334, y=-21, z=496}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "archive_member": "07_EVIDENCE/logs/latest.log",
+      "raw_sha256": "975edd9ee33597299fe39147b64bc80d59767f6f770237594c6a6a3ca5197730",
+      "raw_bytes": 54384,
+      "uncompressed_sha256": "975edd9ee33597299fe39147b64bc80d59767f6f770237594c6a6a3ca5197730",
+      "uncompressed_bytes": 54384,
+      "line_count": 513,
+      "runtime_versions": [
+        "- drmd 1.1.14-audit.4",
+        "- fabricloader 0.19.5",
+        "- java 21",
+        "- minecraft 1.21.1",
+        "- sodium 0.8.13+mc1.21.1"
+      ],
+      "dummy_count": 33,
+      "dummy_unique_positions": 33,
+      "dummy_y_min": -51,
+      "dummy_y_max": -2,
+      "dummy_block_counts": {
+        "minecraft:air": 30,
+        "minecraft:polished_deepslate": 3
+      },
+      "dummy_events": [
+        {
+          "line": 188,
+          "time": "15:09:10",
+          "x": -168,
+          "y": -51,
+          "z": -88,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 217,
+          "time": "15:13:15",
+          "x": 166,
+          "y": -11,
+          "z": 40,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 219,
+          "time": "15:13:16",
+          "x": -265,
+          "y": -9,
+          "z": 178,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 221,
+          "time": "15:13:16",
+          "x": -266,
+          "y": -9,
+          "z": 180,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 223,
+          "time": "15:13:16",
+          "x": -263,
+          "y": -9,
+          "z": 177,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 229,
+          "time": "15:14:43",
+          "x": 179,
+          "y": -10,
+          "z": 169,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 231,
+          "time": "15:14:43",
+          "x": 177,
+          "y": -10,
+          "z": 172,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 235,
+          "time": "15:15:08",
+          "x": 55,
+          "y": -31,
+          "z": -200,
+          "state": "minecraft:polished_deepslate"
+        },
+        {
+          "line": 237,
+          "time": "15:15:08",
+          "x": 53,
+          "y": -31,
+          "z": -198,
+          "state": "minecraft:polished_deepslate"
+        },
+        {
+          "line": 239,
+          "time": "15:15:08",
+          "x": 55,
+          "y": -31,
+          "z": -196,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 258,
+          "time": "15:20:50",
+          "x": 110,
+          "y": -35,
+          "z": 264,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 260,
+          "time": "15:20:50",
+          "x": 108,
+          "y": -35,
+          "z": 265,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 262,
+          "time": "15:20:50",
+          "x": 112,
+          "y": -35,
+          "z": 261,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 264,
+          "time": "15:20:51",
+          "x": 90,
+          "y": -17,
+          "z": 369,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 266,
+          "time": "15:20:51",
+          "x": 117,
+          "y": -26,
+          "z": 391,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 268,
+          "time": "15:20:51",
+          "x": 120,
+          "y": -26,
+          "z": 390,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 280,
+          "time": "15:23:46",
+          "x": -229,
+          "y": -35,
+          "z": 424,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 282,
+          "time": "15:23:46",
+          "x": -228,
+          "y": -35,
+          "z": 427,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 284,
+          "time": "15:23:46",
+          "x": -231,
+          "y": -35,
+          "z": 429,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 303,
+          "time": "15:27:50",
+          "x": -322,
+          "y": -13,
+          "z": 489,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 305,
+          "time": "15:27:50",
+          "x": -323,
+          "y": -13,
+          "z": 486,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 307,
+          "time": "15:27:50",
+          "x": -321,
+          "y": -13,
+          "z": 492,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 309,
+          "time": "15:29:19",
+          "x": -361,
+          "y": -44,
+          "z": 253,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 311,
+          "time": "15:29:19",
+          "x": -360,
+          "y": -38,
+          "z": 250,
+          "state": "minecraft:polished_deepslate"
+        },
+        {
+          "line": 313,
+          "time": "15:29:19",
+          "x": -363,
+          "y": -43,
+          "z": 252,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 324,
+          "time": "15:30:27",
+          "x": 12,
+          "y": -2,
+          "z": 510,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 326,
+          "time": "15:30:27",
+          "x": 14,
+          "y": -2,
+          "z": 513,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 328,
+          "time": "15:30:27",
+          "x": 16,
+          "y": -2,
+          "z": 513,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 330,
+          "time": "15:30:28",
+          "x": -411,
+          "y": -7,
+          "z": 376,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 332,
+          "time": "15:30:28",
+          "x": -410,
+          "y": -7,
+          "z": 379,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 497,
+          "time": "15:51:31",
+          "x": -142,
+          "y": -46,
+          "z": -227,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 499,
+          "time": "15:51:31",
+          "x": -141,
+          "y": -46,
+          "z": -225,
+          "state": "minecraft:air"
+        },
+        {
+          "line": 501,
+          "time": "15:51:31",
+          "x": -139,
+          "y": -46,
+          "z": -225,
+          "state": "minecraft:air"
+        }
+      ],
+      "stall_count": 55,
+      "max_reported_stall_ms": 152216,
+      "max_reported_stall_ticks": 3044,
+      "timestamps_timezone": null,
+      "timestamps_timezone_reason": "Original log does not establish a timezone; HH:MM:SS retained verbatim."
+    }
+  ],
+  "duplicate_uncompressed_log_groups": [
+    {
+      "sha256": "0abdaf01186ee0a28da6d57f2a29a4fbdbdd56b6ff445d8da50cad10b4110a16",
+      "members": [
+        "07_EVIDENCE/logs/2026-10-26-1.log(1).gz",
+        "07_EVIDENCE/logs/2026-10-26-1.log.gz"
+      ]
+    },
+    {
+      "sha256": "975edd9ee33597299fe39147b64bc80d59767f6f770237594c6a6a3ca5197730",
+      "members": [
+        "07_EVIDENCE/logs/2026-10-26-2.log.gz",
+        "07_EVIDENCE/logs/latest.log"
+      ]
+    }
+  ],
+  "historical_runtime_identity": {
+    "mod": "1.1.14-audit.4",
+    "minecraft": "1.21.1",
+    "loader": "0.19.5",
+    "seed": null,
+    "seed_reason": "No explicit seed found in supplied session logs; save not part of this packet.",
+    "source_revision": null,
+    "source_reason": "No audit.4 source/JAR receipt in original log packet; separate audit.3 source archive is not interchangeable.",
+    "jar_sha256": null,
+    "jar_reason": "No exact audit.4 binary receipt identified in inspected primary packet."
+  },
+  "later_logs_not_acceptance": [
+    {
+      "path": "/workspace/ungravity-v5/boarding/work/boarding/user-logs/2026-10-27-1.log",
+      "sha256": "43937ba3c91f4b8278c03b90f293db6fd4249347b7f5199cdf7fdc054610945e",
+      "bytes": 15384,
+      "line_count": 173,
+      "runtime_versions": [
+        "- drmd 1.1.22-portals.1"
+      ],
+      "dummy_warning_count": 0,
+      "invalid_be_error_count": 0,
+      "acceptance": false,
+      "reason": "Different runtime/scenario, source/JAR identity, seed and triggering world not established; absence of a warning is not closure."
+    },
+    {
+      "path": "/workspace/ungravity-v5/boarding/work/boarding/user-logs/2026-10-27-3.log",
+      "sha256": "c6d1cf83af3bc8bb626db31f77151b3793fa8734001553a22254d0a863896164",
+      "bytes": 12712,
+      "line_count": 145,
+      "runtime_versions": [
+        "- drmd 1.1.22-portals.1"
+      ],
+      "dummy_warning_count": 0,
+      "invalid_be_error_count": 0,
+      "acceptance": false,
+      "reason": "Different runtime/scenario, source/JAR identity, seed and triggering world not established; absence of a warning is not closure."
+    },
+    {
+      "path": "/workspace/ungravity-v5/boarding/work/boarding/user-logs/latest (1).log",
+      "sha256": "8a68a8b09882fa07df6b135d2f9f2209680ea70e0aca37fe9a6a125528ec74ba",
+      "bytes": 15583,
+      "line_count": 176,
+      "runtime_versions": [
+        "- drmd 1.1.22-portals.1"
+      ],
+      "dummy_warning_count": 0,
+      "invalid_be_error_count": 0,
+      "acceptance": false,
+      "reason": "Different runtime/scenario, source/JAR identity, seed and triggering world not established; absence of a warning is not closure."
+    }
+  ],
+  "factory_inventory": [
+    {
+      "registry_field": "SIX_D_SOIL",
+      "allowed_block_field": "ModWorldBlocks.SIX_D_SOIL",
+      "factory_class": "SixDSoilBlockEntity",
+      "static_only": true,
+      "provider": {
+        "path": "src/main/java/com/terminaldetector/drmd/world/soil/SixDSoilBlock.java",
+        "first_line": 70,
+        "last_line": 74,
+        "note": "Provider preserves requested position and state for its matching entity.",
+        "excerpt": [
+          {
+            "line": 70,
+            "text": "\t@Override"
+          },
+          {
+            "line": 71,
+            "text": "\tpublic BlockEntity createBlockEntity(BlockPos pos, BlockState state) {"
+          },
+          {
+            "line": 72,
+            "text": "\t\treturn new SixDSoilBlockEntity(pos, state);"
+          },
+          {
+            "line": 73,
+            "text": "\t}"
+          },
+          {
+            "line": 74,
+            "text": ""
+          }
+        ]
+      },
+      "constructor": {
+        "path": "src/main/java/com/terminaldetector/drmd/world/soil/SixDSoilBlockEntity.java",
+        "first_line": 21,
+        "last_line": 23,
+        "note": "Constructor uses the matching registered BlockEntityType.",
+        "excerpt": [
+          {
+            "line": 21,
+            "text": "\tpublic SixDSoilBlockEntity(BlockPos pos, BlockState state) {"
+          },
+          {
+            "line": 22,
+            "text": "\t\tsuper(ModBlockEntities.SIX_D_SOIL, pos, state);"
+          },
+          {
+            "line": 23,
+            "text": "\t\tfor (Direction d : Direction.values()) crops.put(d, SixDSoilBlock.FaceCrop.MOSS);"
+          }
+        ]
+      }
+    },
+    {
+      "registry_field": "GRAVITY_GENERATOR",
+      "allowed_block_field": "ModWorldBlocks.GRAVITY_GENERATOR",
+      "factory_class": "GravityGeneratorBlockEntity",
+      "static_only": true,
+      "provider": {
+        "path": "src/main/java/com/terminaldetector/drmd/world/gravity/GravityGeneratorBlock.java",
+        "first_line": 61,
+        "last_line": 65,
+        "note": "Provider preserves requested position and state for its matching entity.",
+        "excerpt": [
+          {
+            "line": 61,
+            "text": "\t@Override"
+          },
+          {
+            "line": 62,
+            "text": "\tpublic BlockEntity createBlockEntity(BlockPos pos, BlockState state) {"
+          },
+          {
+            "line": 63,
+            "text": "\t\treturn new GravityGeneratorBlockEntity(pos, state);"
+          },
+          {
+            "line": 64,
+            "text": "\t}"
+          },
+          {
+            "line": 65,
+            "text": ""
+          }
+        ]
+      },
+      "constructor": {
+        "path": "src/main/java/com/terminaldetector/drmd/world/gravity/GravityGeneratorBlockEntity.java",
+        "first_line": 24,
+        "last_line": 26,
+        "note": "Constructor uses the matching registered BlockEntityType.",
+        "excerpt": [
+          {
+            "line": 24,
+            "text": "\tpublic GravityGeneratorBlockEntity(BlockPos pos, BlockState state) {"
+          },
+          {
+            "line": 25,
+            "text": "\t\tsuper(ModBlockEntities.GRAVITY_GENERATOR, pos, state);"
+          },
+          {
+            "line": 26,
+            "text": "\t}"
+          }
+        ]
+      }
+    },
+    {
+      "registry_field": "LOCATOR_CORE",
+      "allowed_block_field": "ModWorldBlocks.LOCATOR_CORE",
+      "factory_class": "LocatorCoreBlockEntity",
+      "static_only": true,
+      "provider": {
+        "path": "src/main/java/com/terminaldetector/drmd/world/locator/LocatorCoreBlock.java",
+        "first_line": 43,
+        "last_line": 47,
+        "note": "Provider preserves requested position and state for its matching entity.",
+        "excerpt": [
+          {
+            "line": 43,
+            "text": "\t@Override"
+          },
+          {
+            "line": 44,
+            "text": "\tpublic BlockEntity createBlockEntity(BlockPos pos, BlockState state) {"
+          },
+          {
+            "line": 45,
+            "text": "\t\treturn new LocatorCoreBlockEntity(pos, state);"
+          },
+          {
+            "line": 46,
+            "text": "\t}"
+          },
+          {
+            "line": 47,
+            "text": ""
+          }
+        ]
+      },
+      "constructor": {
+        "path": "src/main/java/com/terminaldetector/drmd/world/locator/LocatorCoreBlockEntity.java",
+        "first_line": 26,
+        "last_line": 28,
+        "note": "Constructor uses the matching registered BlockEntityType.",
+        "excerpt": [
+          {
+            "line": 26,
+            "text": "\tpublic LocatorCoreBlockEntity(BlockPos pos, BlockState state) {"
+          },
+          {
+            "line": 27,
+            "text": "\t\tsuper(ModBlockEntities.LOCATOR_CORE, pos, state);"
+          },
+          {
+            "line": 28,
+            "text": "\t}"
+          }
+        ]
+      }
+    },
+    {
+      "registry_field": "CARVED",
+      "allowed_block_field": "ModWorldBlocks.CARVED",
+      "factory_class": "CarvedBlockEntity",
+      "static_only": true,
+      "provider": {
+        "path": "src/main/java/com/terminaldetector/drmd/world/micro/CarvedBlock.java",
+        "first_line": 56,
+        "last_line": 60,
+        "note": "Provider preserves requested position and state for its matching entity.",
+        "excerpt": [
+          {
+            "line": 56,
+            "text": "\t@Override"
+          },
+          {
+            "line": 57,
+            "text": "\tpublic BlockEntity createBlockEntity(BlockPos pos, BlockState state) {"
+          },
+          {
+            "line": 58,
+            "text": "\t\treturn new CarvedBlockEntity(pos, state);"
+          },
+          {
+            "line": 59,
+            "text": "\t}"
+          },
+          {
+            "line": 60,
+            "text": ""
+          }
+        ]
+      },
+      "constructor": {
+        "path": "src/main/java/com/terminaldetector/drmd/world/micro/CarvedBlockEntity.java",
+        "first_line": 67,
+        "last_line": 69,
+        "note": "Constructor uses the matching registered BlockEntityType.",
+        "excerpt": [
+          {
+            "line": 67,
+            "text": "\tpublic CarvedBlockEntity(BlockPos pos, BlockState state) {"
+          },
+          {
+            "line": 68,
+            "text": "\t\tsuper(ModBlockEntities.CARVED, pos, state);"
+          },
+          {
+            "line": 69,
+            "text": "\t}"
+          }
+        ]
+      }
+    },
+    {
+      "registry_field": "MIRROR",
+      "allowed_block_field": "ModWorldBlocks.MIRROR",
+      "factory_class": "MirrorBlockEntity",
+      "static_only": true,
+      "provider": {
+        "path": "src/main/java/com/terminaldetector/drmd/world/portal/mirror/MirrorBlock.java",
+        "first_line": 71,
+        "last_line": 75,
+        "note": "Provider preserves requested position and state for its matching entity.",
+        "excerpt": [
+          {
+            "line": 71,
+            "text": "\t@Override"
+          },
+          {
+            "line": 72,
+            "text": "\tpublic BlockEntity createBlockEntity(BlockPos pos, BlockState state) {"
+          },
+          {
+            "line": 73,
+            "text": "\t\treturn new MirrorBlockEntity(pos, state);"
+          },
+          {
+            "line": 74,
+            "text": "\t}"
+          },
+          {
+            "line": 75,
+            "text": ""
+          }
+        ]
+      },
+      "constructor": {
+        "path": "src/main/java/com/terminaldetector/drmd/world/portal/mirror/MirrorBlockEntity.java",
+        "first_line": 20,
+        "last_line": 22,
+        "note": "Constructor uses the matching registered BlockEntityType.",
+        "excerpt": [
+          {
+            "line": 20,
+            "text": "\tpublic MirrorBlockEntity(BlockPos pos, BlockState state) {"
+          },
+          {
+            "line": 21,
+            "text": "\t\tsuper(ModBlockEntities.MIRROR, pos, state);"
+          },
+          {
+            "line": 22,
+            "text": "\t}"
+          }
+        ]
+      }
+    },
+    {
+      "registry_field": "CHARGED_MIRROR",
+      "allowed_block_field": "ModWorldBlocks.CHARGED_MIRROR",
+      "factory_class": "ChargedMirrorBlockEntity",
+      "static_only": true,
+      "provider": {
+        "path": "src/main/java/com/terminaldetector/drmd/world/portal/mirror/ChargedMirrorBlock.java",
+        "first_line": 81,
+        "last_line": 85,
+        "note": "Provider preserves requested position and state for its matching entity.",
+        "excerpt": [
+          {
+            "line": 81,
+            "text": "\t@Override"
+          },
+          {
+            "line": 82,
+            "text": "\tpublic BlockEntity createBlockEntity(BlockPos pos, BlockState state) {"
+          },
+          {
+            "line": 83,
+            "text": "\t\treturn new ChargedMirrorBlockEntity(pos, state);"
+          },
+          {
+            "line": 84,
+            "text": "\t}"
+          },
+          {
+            "line": 85,
+            "text": ""
+          }
+        ]
+      },
+      "constructor": {
+        "path": "src/main/java/com/terminaldetector/drmd/world/portal/mirror/ChargedMirrorBlockEntity.java",
+        "first_line": 38,
+        "last_line": 40,
+        "note": "Constructor uses the matching registered BlockEntityType.",
+        "excerpt": [
+          {
+            "line": 38,
+            "text": "\tpublic ChargedMirrorBlockEntity(BlockPos pos, BlockState state) {"
+          },
+          {
+            "line": 39,
+            "text": "\t\tsuper(ModBlockEntities.CHARGED_MIRROR, pos, state);"
+          },
+          {
+            "line": 40,
+            "text": "\t}"
+          }
+        ]
+      }
+    },
+    {
+      "registry_field": "PORTAL_PANEL",
+      "allowed_block_field": "ModWorldBlocks.PORTAL_PANEL",
+      "factory_class": "PortalPanelBlockEntity",
+      "static_only": true,
+      "provider": {
+        "path": "src/main/java/com/terminaldetector/drmd/world/portal/mirror/PortalPanelBlock.java",
+        "first_line": 108,
+        "last_line": 112,
+        "note": "Provider preserves requested position and state for its matching entity.",
+        "excerpt": [
+          {
+            "line": 108,
+            "text": "\t@Override"
+          },
+          {
+            "line": 109,
+            "text": "\tpublic BlockEntity createBlockEntity(BlockPos pos, BlockState state) {"
+          },
+          {
+            "line": 110,
+            "text": "\t\treturn new PortalPanelBlockEntity(pos, state);"
+          },
+          {
+            "line": 111,
+            "text": "\t}"
+          },
+          {
+            "line": 112,
+            "text": ""
+          }
+        ]
+      },
+      "constructor": {
+        "path": "src/main/java/com/terminaldetector/drmd/world/portal/mirror/PortalPanelBlockEntity.java",
+        "first_line": 53,
+        "last_line": 55,
+        "note": "Constructor uses the matching registered BlockEntityType.",
+        "excerpt": [
+          {
+            "line": 53,
+            "text": "\tpublic PortalPanelBlockEntity(BlockPos pos, BlockState state) {"
+          },
+          {
+            "line": 54,
+            "text": "\t\tsuper(ModBlockEntities.PORTAL_PANEL, pos, state);"
+          },
+          {
+            "line": 55,
+            "text": "\t}"
+          }
+        ]
+      }
+    }
+  ],
+  "source_anchors": [
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/entity/ModBlockEntities.java",
+      "first_line": 21,
+      "last_line": 51,
+      "note": "All seven custom type/factory/allowed-block registrations.",
+      "excerpt": [
+        {
+          "line": 21,
+          "text": "\tprivate ModBlockEntities() {}"
+        },
+        {
+          "line": 22,
+          "text": ""
+        },
+        {
+          "line": 23,
+          "text": "\tpublic static void register() {"
+        },
+        {
+          "line": 24,
+          "text": "\t\tSIX_D_SOIL = Registry.register(Registries.BLOCK_ENTITY_TYPE,"
+        },
+        {
+          "line": 25,
+          "text": "\t\t\t\tIdentifier.of(DescentMod.MOD_ID, \"six_d_soil\"),"
+        },
+        {
+          "line": 26,
+          "text": "\t\t\t\tBlockEntityType.Builder.create(SixDSoilBlockEntity::new, ModWorldBlocks.SIX_D_SOIL).build());"
+        },
+        {
+          "line": 27,
+          "text": "\t\tGRAVITY_GENERATOR = Registry.register(Registries.BLOCK_ENTITY_TYPE,"
+        },
+        {
+          "line": 28,
+          "text": "\t\t\t\tIdentifier.of(DescentMod.MOD_ID, \"gravity_generator\"),"
+        },
+        {
+          "line": 29,
+          "text": "\t\t\t\tBlockEntityType.Builder.create(GravityGeneratorBlockEntity::new, ModWorldBlocks.GRAVITY_GENERATOR).build());"
+        },
+        {
+          "line": 30,
+          "text": "\t\tLOCATOR_CORE = Registry.register(Registries.BLOCK_ENTITY_TYPE,"
+        },
+        {
+          "line": 31,
+          "text": "\t\t\t\tIdentifier.of(DescentMod.MOD_ID, \"locator_core\"),"
+        },
+        {
+          "line": 32,
+          "text": "\t\t\t\tBlockEntityType.Builder.create(LocatorCoreBlockEntity::new, ModWorldBlocks.LOCATOR_CORE).build());"
+        },
+        {
+          "line": 33,
+          "text": "\t\tCARVED = Registry.register(Registries.BLOCK_ENTITY_TYPE,"
+        },
+        {
+          "line": 34,
+          "text": "\t\t\t\tIdentifier.of(DescentMod.MOD_ID, \"carved\"),"
+        },
+        {
+          "line": 35,
+          "text": "\t\t\t\tBlockEntityType.Builder.create("
+        },
+        {
+          "line": 36,
+          "text": "\t\t\t\t\t\tcom.terminaldetector.drmd.world.micro.CarvedBlockEntity::new,"
+        },
+        {
+          "line": 37,
+          "text": "\t\t\t\t\t\tModWorldBlocks.CARVED).build());"
+        },
+        {
+          "line": 38,
+          "text": "\t\tMIRROR = Registry.register(Registries.BLOCK_ENTITY_TYPE,"
+        },
+        {
+          "line": 39,
+          "text": "\t\t\t\tIdentifier.of(DescentMod.MOD_ID, \"mirror\"),"
+        },
+        {
+          "line": 40,
+          "text": "\t\t\t\tBlockEntityType.Builder.create("
+        },
+        {
+          "line": 41,
+          "text": "\t\t\t\t\t\tcom.terminaldetector.drmd.world.portal.mirror.MirrorBlockEntity::new,"
+        },
+        {
+          "line": 42,
+          "text": "\t\t\t\t\t\tModWorldBlocks.MIRROR).build());"
+        },
+        {
+          "line": 43,
+          "text": "\t\tCHARGED_MIRROR = Registry.register(Registries.BLOCK_ENTITY_TYPE,"
+        },
+        {
+          "line": 44,
+          "text": "\t\t\t\tIdentifier.of(DescentMod.MOD_ID, \"charged_mirror\"),"
+        },
+        {
+          "line": 45,
+          "text": "\t\t\t\tBlockEntityType.Builder.create("
+        },
+        {
+          "line": 46,
+          "text": "\t\t\t\t\t\tcom.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlockEntity::new,"
+        },
+        {
+          "line": 47,
+          "text": "\t\t\t\t\t\tModWorldBlocks.CHARGED_MIRROR).build());"
+        },
+        {
+          "line": 48,
+          "text": "\t\tPORTAL_PANEL = Registry.register(Registries.BLOCK_ENTITY_TYPE,"
+        },
+        {
+          "line": 49,
+          "text": "\t\t\t\tIdentifier.of(DescentMod.MOD_ID, \"portal_panel\"),"
+        },
+        {
+          "line": 50,
+          "text": "\t\t\t\tBlockEntityType.Builder.create("
+        },
+        {
+          "line": 51,
+          "text": "\t\t\t\t\t\tcom.terminaldetector.drmd.world.portal.mirror.PortalPanelBlockEntity::new,"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/DescentMod.java",
+      "first_line": 59,
+      "last_line": 84,
+      "note": "Config loads before feature registrations; map/world blocks registered before BE types.",
+      "excerpt": [
+        {
+          "line": 59,
+          "text": "\t\tServerTickEvents.START_SERVER_TICK.register(com.terminaldetector.drmd.world.level.LowerWorldRecovery::tick);"
+        },
+        {
+          "line": 60,
+          "text": "        com.terminaldetector.drmd.world.DrmdServerConfig.load();"
+        },
+        {
+          "line": 61,
+          "text": "\t\tcom.terminaldetector.drmd.world.DrmdBuiltinPacks.register();"
+        },
+        {
+          "line": 62,
+          "text": "\t\tModNetworking.register();"
+        },
+        {
+          "line": 63,
+          "text": "        com.terminaldetector.drmd.world.contraption.BodyContactSystem.register();"
+        },
+        {
+          "line": 64,
+          "text": "        com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.register();"
+        },
+        {
+          "line": 65,
+          "text": "        com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.register();"
+        },
+        {
+          "line": 66,
+          "text": "        com.terminaldetector.drmd.world.mega.SkyUfoCombat.register();"
+        },
+        {
+          "line": 67,
+          "text": "        com.terminaldetector.drmd.inventory.DroneInventoryHandler.register();"
+        },
+        {
+          "line": 68,
+          "text": "\t\tModEntities.register();"
+        },
+        {
+          "line": 69,
+          "text": "\t\tModBlocks.register();"
+        },
+        {
+          "line": 70,
+          "text": "\t\tModItems.register();"
+        },
+        {
+          "line": 71,
+          "text": "\t\tcom.terminaldetector.drmd.entity.ModWorldBlocks.register();"
+        },
+        {
+          "line": 72,
+          "text": "\t\tcom.terminaldetector.drmd.world.geometry.OrganicMaterials.register();"
+        },
+        {
+          "line": 73,
+          "text": "\t\tcom.terminaldetector.drmd.entity.ModBlockEntities.register();"
+        },
+        {
+          "line": 74,
+          "text": "\t\tcom.terminaldetector.drmd.world.gen.ModWorldgen.register();"
+        },
+        {
+          "line": 75,
+          "text": "\t\tcom.terminaldetector.drmd.world.gen2.ModWorldgen2.register();"
+        },
+        {
+          "line": 76,
+          "text": "\t\tcom.terminaldetector.drmd.world.surface.MegacityBiomeWorldgen.register();"
+        },
+        {
+          "line": 77,
+          "text": "\t\tcom.terminaldetector.drmd.world.surface.TechnogenicSeaBiomeWorldgen.register();"
+        },
+        {
+          "line": 78,
+          "text": "\t\tcom.terminaldetector.drmd.world.surface.ScorchedLandsBiomeWorldgen.register();"
+        },
+        {
+          "line": 79,
+          "text": "\t\tcom.terminaldetector.drmd.world.surface.IronGuildBiomeWorldgen.register();"
+        },
+        {
+          "line": 80,
+          "text": "\t\tcom.terminaldetector.drmd.world.surface.SurfaceEventWorldgen.register();"
+        },
+        {
+          "line": 81,
+          "text": "\t\tcom.terminaldetector.drmd.world.surface.InfiniteMegacityWorldgen.register();"
+        },
+        {
+          "line": 82,
+          "text": "\t\tcom.terminaldetector.drmd.world.end.space.EndSpaceWorldgen.register();"
+        },
+        {
+          "line": 83,
+          "text": "\t\tcom.terminaldetector.drmd.world.orbit.OrbitJunkWorldgen.register();"
+        },
+        {
+          "line": 84,
+          "text": "\t\tcom.terminaldetector.drmd.world.level.LevelBuilder.register();"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/access/ServerBlockEdits.java",
+      "first_line": 31,
+      "last_line": 38,
+      "note": "Loaded-only snapshot; current state without BE returns no entityData. CHECK can materialize pending NBT in vanilla.",
+      "excerpt": [
+        {
+          "line": 31,
+          "text": "    public static Optional<Cell> snapshot(World world,BlockPos pos) {"
+        },
+        {
+          "line": 32,
+          "text": "        if(WorldAccess.of(world).readIfLoaded(pos).isEmpty())return Optional.empty();"
+        },
+        {
+          "line": 33,
+          "text": "        var chunk=chunk(world,pos);if(chunk==null)return Optional.empty();"
+        },
+        {
+          "line": 34,
+          "text": "        var state=chunk.getBlockState(pos);"
+        },
+        {
+          "line": 35,
+          "text": "        if(!state.hasBlockEntity())return Optional.of(new Cell(state,null));"
+        },
+        {
+          "line": 36,
+          "text": "        var entity=chunk.getBlockEntity(pos,WorldChunk.CreationType.CHECK);"
+        },
+        {
+          "line": 37,
+          "text": "        if(entity==null || entity.isRemoved() || !entity.getPos().equals(pos) || !entity.getType().supports(state))return Optional.empty();"
+        },
+        {
+          "line": 38,
+          "text": "        return Optional.of(new Cell(state,entity.createNbtWithIdentifyingData(world.getRegistryManager())));"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/access/ServerBlockEdits.java",
+      "first_line": 54,
+      "last_line": 79,
+      "note": "Server/thread/loaded/state/NBT/callback/budget validation before ownership edits.",
+      "excerpt": [
+        {
+          "line": 54,
+          "text": "    private static Result commit(World world,List<Edit> edits,UUID projectorOwner) {"
+        },
+        {
+          "line": 55,
+          "text": "        if(!(world instanceof ServerWorld server) || !CubicAvailability.onWorldThread(world))return result(Status.REJECTED,\"server thread required\");"
+        },
+        {
+          "line": 56,
+          "text": "        if(edits==null || edits.isEmpty() || edits.size()>MAX_CELLS)return result(Status.REJECTED,\"batch bounds\");"
+        },
+        {
+          "line": 57,
+          "text": "        var positions=new HashSet<BlockPos>();var changes=new ArrayList<PlacementTransaction.Change<BlockPos,Cell>>();"
+        },
+        {
+          "line": 58,
+          "text": "        long bytes=0;"
+        },
+        {
+          "line": 59,
+          "text": "        for(var edit:edits) {"
+        },
+        {
+          "line": 60,
+          "text": "            if(edit==null || !positions.add(edit.position()))return result(Status.REJECTED,\"duplicate/null edit\");"
+        },
+        {
+          "line": 61,
+          "text": "            var at=edit.position();"
+        },
+        {
+          "line": 62,
+          "text": "            if(!world.getWorldBorder().contains(at))return result(Status.REJECTED,\"outside border\");"
+        },
+        {
+          "line": 63,
+          "text": "            var before=snapshot(world,at);"
+        },
+        {
+          "line": 64,
+          "text": "            if(before.isEmpty())return result(Status.UNAVAILABLE,\"cell or valid block entity unavailable\");"
+        },
+        {
+          "line": 65,
+          "text": "            if(!before.get().equals(edit.expected()))return result(Status.CONFLICT,\"expected state/NBT changed\");"
+        },
+        {
+          "line": 66,
+          "text": "            if(!stable(before.get(),projectorOwner) || !stable(edit.replacement(),projectorOwner))return result(Status.UNSUPPORTED_BLOCK,\"block callbacks require a dedicated adapter\");"
+        },
+        {
+          "line": 67,
+          "text": "            if(before.get().state().hasBlockEntity() && !(before.get().state().getBlock() instanceof com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock)"
+        },
+        {
+          "line": 68,
+          "text": "                && server.getPlayers().stream().anyMatch(player->"
+        },
+        {
+          "line": 69,
+          "text": "                    player.currentScreenHandler!=player.playerScreenHandler && player.squaredDistanceTo(at.toCenterPos())<64))"
+        },
+        {
+          "line": 70,
+          "text": "                return result(Status.IN_USE,\"nearby open container screen\");"
+        },
+        {
+          "line": 71,
+          "text": "            Cell after;"
+        },
+        {
+          "line": 72,
+          "text": "            try {after=normalize(server,at,edit.replacement());}"
+        },
+        {
+          "line": 73,
+          "text": "            catch(RuntimeException invalid){return result(Status.INVALID_NBT,invalid.getMessage());}"
+        },
+        {
+          "line": 74,
+          "text": "            int oldBytes=before.get().entityData==null?0:before.get().entityData.getSizeInBytes();"
+        },
+        {
+          "line": 75,
+          "text": "            int newBytes=after.entityData==null?0:after.entityData.getSizeInBytes();"
+        },
+        {
+          "line": 76,
+          "text": "            bytes+=(long)oldBytes+newBytes;"
+        },
+        {
+          "line": 77,
+          "text": "            if(oldBytes<0 || newBytes<0 || oldBytes>MAX_ENTITY_BYTES || newBytes>MAX_ENTITY_BYTES || bytes>MAX_BATCH_BYTES)"
+        },
+        {
+          "line": 78,
+          "text": "                return result(Status.REJECTED,\"NBT budget\");"
+        },
+        {
+          "line": 79,
+          "text": "            if(!before.get().equals(after))changes.add(new PlacementTransaction.Change<>(at,before.get(),after));"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/access/ServerBlockEdits.java",
+      "first_line": 109,
+      "last_line": 138,
+      "note": "State/NBT quiet write, matching provider/type/position and canonical round-trip validation.",
+      "excerpt": [
+        {
+          "line": 109,
+          "text": "    private static boolean quietWrite(ServerWorld world,BlockPos at,Cell cell) {"
+        },
+        {
+          "line": 110,
+          "text": "        if(WorldAccess.of(world).readIfLoaded(at).isEmpty())return false;"
+        },
+        {
+          "line": 111,
+          "text": "        var full=chunk(world,at);if(full==null)return false;"
+        },
+        {
+          "line": 112,
+          "text": "        // Detach the inventory before replacement so vanilla cannot scatter it as a second owner."
+        },
+        {
+          "line": 113,
+          "text": "        full.removeBlockEntity(at);"
+        },
+        {
+          "line": 114,
+          "text": "        if(!world.setBlockState(at,cell.state(),Block.FORCE_STATE) && !full.getBlockState(at).equals(cell.state()))return false;"
+        },
+        {
+          "line": 115,
+          "text": "        if(cell.entityData!=null) {"
+        },
+        {
+          "line": 116,
+          "text": "            full.removeBlockEntity(at);"
+        },
+        {
+          "line": 117,
+          "text": "            var entity=BlockEntity.createFromNbt(at,cell.state(),cell.entityData(),world.getRegistryManager());"
+        },
+        {
+          "line": 118,
+          "text": "            if(entity==null || !entity.getType().supports(cell.state()))return false;"
+        },
+        {
+          "line": 119,
+          "text": "            full.setBlockEntity(entity);"
+        },
+        {
+          "line": 120,
+          "text": "        }"
+        },
+        {
+          "line": 121,
+          "text": "        return true;"
+        },
+        {
+          "line": 122,
+          "text": "    }"
+        },
+        {
+          "line": 123,
+          "text": "    private static Cell normalize(ServerWorld world,BlockPos at,Cell cell) {"
+        },
+        {
+          "line": 124,
+          "text": "        if(!cell.state().hasBlockEntity()) {"
+        },
+        {
+          "line": 125,
+          "text": "            if(cell.entityData!=null)throw new IllegalArgumentException(\"NBT on a state without a block entity\");"
+        },
+        {
+          "line": 126,
+          "text": "            return cell;"
+        },
+        {
+          "line": 127,
+          "text": "        }"
+        },
+        {
+          "line": 128,
+          "text": "        if(!(cell.state().getBlock() instanceof BlockEntityProvider provider))throw new IllegalArgumentException(\"no block entity factory\");"
+        },
+        {
+          "line": 129,
+          "text": "        var entity=provider.createBlockEntity(at,cell.state());"
+        },
+        {
+          "line": 130,
+          "text": "        if(entity==null || !entity.getType().supports(cell.state()))throw new IllegalArgumentException(\"invalid block entity type/state\");"
+        },
+        {
+          "line": 131,
+          "text": "        var defaults=entity.createNbtWithIdentifyingData(world.getRegistryManager());"
+        },
+        {
+          "line": 132,
+          "text": "        if(cell.entityData==null)return new Cell(cell.state(),defaults);"
+        },
+        {
+          "line": 133,
+          "text": "        var input=cell.entityData();"
+        },
+        {
+          "line": 134,
+          "text": "        if(input.getInt(\"x\")!=at.getX() || input.getInt(\"y\")!=at.getY() || input.getInt(\"z\")!=at.getZ()"
+        },
+        {
+          "line": 135,
+          "text": "            || !input.getString(\"id\").equals(defaults.getString(\"id\")))throw new IllegalArgumentException(\"NBT type/position mismatch\");"
+        },
+        {
+          "line": 136,
+          "text": "        entity.read(input,world.getRegistryManager());"
+        },
+        {
+          "line": 137,
+          "text": "        var canonical=entity.createNbtWithIdentifyingData(world.getRegistryManager());"
+        },
+        {
+          "line": 138,
+          "text": "        if(!canonical.equals(input))throw new IllegalArgumentException(\"NBT does not round trip without loss\");"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/access/ServerBlockEdits.java",
+      "first_line": 139,
+      "last_line": 157,
+      "note": "Reactive blocks need explicit adapter; limited stable classes and projector owner-pair capability.",
+      "excerpt": [
+        {
+          "line": 139,
+          "text": "        return new Cell(cell.state(),canonical);"
+        },
+        {
+          "line": 140,
+          "text": "    }"
+        },
+        {
+          "line": 141,
+          "text": "    private static boolean stable(Cell cell,UUID projectorOwner) {"
+        },
+        {
+          "line": 142,
+          "text": "        BlockState state=cell.state();"
+        },
+        {
+          "line": 143,
+          "text": "        var type=state.getBlock().getClass();"
+        },
+        {
+          "line": 144,
+          "text": "        if(type==com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.class) {"
+        },
+        {
+          "line": 145,
+          "text": "            // Dedicated native-projector adapter: quietWrite detaches the old BE before its"
+        },
+        {
+          "line": 146,
+          "text": "            // removal callback, and the caller includes both link ends in the same transaction."
+        },
+        {
+          "line": 147,
+          "text": "            var nbt=cell.entityData;"
+        },
+        {
+          "line": 148,
+          "text": "            return projectorOwner!=null && nbt!=null && nbt.containsUuid(\"projectorOwner\")"
+        },
+        {
+          "line": 149,
+          "text": "                && projectorOwner.equals(nbt.getUuid(\"projectorOwner\")) && !nbt.containsUuid(\"attached\")"
+        },
+        {
+          "line": 150,
+          "text": "                && nbt.getInt(\"projectorSlot\")>=1 && nbt.getInt(\"projectorSlot\")<=2"
+        },
+        {
+          "line": 151,
+          "text": "                && state.get(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.CHANNEL)==nbt.getInt(\"projectorSlot\");"
+        },
+        {
+          "line": 152,
+          "text": "        }"
+        },
+        {
+          "line": 153,
+          "text": "        return type==Block.class || type==AirBlock.class || type==PillarBlock.class || type==GrassBlock.class"
+        },
+        {
+          "line": 154,
+          "text": "            || type==ChestBlock.class || type==BarrelBlock.class;"
+        },
+        {
+          "line": 155,
+          "text": "    }"
+        },
+        {
+          "line": 156,
+          "text": "    private static WorldChunk chunk(World world,BlockPos pos) {"
+        },
+        {
+          "line": 157,
+          "text": "        return CubicAvailability.loadedColumn(world,pos.getX()>>4,pos.getZ()>>4);"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/portal/gun/PortalProjector.java",
+      "first_line": 119,
+      "last_line": 125,
+      "note": "Portal panel NBT is created from the matching panel state and passed through ownership transactions.",
+      "excerpt": [
+        {
+          "line": 119,
+          "text": "    private static ServerBlockEdits.Cell panel(ServerWorld world,BlockPos pos,Direction facing,UUID owner,int slot,BlockPos partner) {"
+        },
+        {
+          "line": 120,
+          "text": "        var block=ModWorldBlocks.PORTAL_PANEL.getDefaultState().with(PortalPanelBlock.FACING,facing)"
+        },
+        {
+          "line": 121,
+          "text": "            .with(PortalPanelBlock.CHANNEL,slot).with(PortalPanelBlock.LINKED,partner!=null);"
+        },
+        {
+          "line": 122,
+          "text": "        var entity=new PortalPanelBlockEntity(pos,block);entity.claimProjector(owner,slot);"
+        },
+        {
+          "line": 123,
+          "text": "        if(partner!=null)entity.setLink(null,partner,world.getRegistryKey());"
+        },
+        {
+          "line": 124,
+          "text": "        return new ServerBlockEdits.Cell(block,entity.createNbtWithIdentifyingData(world.getRegistryManager()));"
+        },
+        {
+          "line": 125,
+          "text": "    }"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyEntity.java",
+      "first_line": 609,
+      "last_line": 642,
+      "note": "Assembly rejects unsupported states and non-null snapshot entityData; edits world state rather than transferring BE NBT.",
+      "excerpt": [
+        {
+          "line": 609,
+          "text": "    public static BlockBodyEntity assembleSelection(ServerWorld world,Map<BlockPos,BlockState> original) {"
+        },
+        {
+          "line": 610,
+          "text": "        if(original.isEmpty() || original.size()>MAX_BLOCKS)throw new IllegalArgumentException(\"Select 1..32768 inert blocks\");"
+        },
+        {
+          "line": 611,
+          "text": "        int mx=original.keySet().stream().mapToInt(BlockPos::getX).min().orElseThrow();"
+        },
+        {
+          "line": 612,
+          "text": "        int my=original.keySet().stream().mapToInt(BlockPos::getY).min().orElseThrow();"
+        },
+        {
+          "line": 613,
+          "text": "        int mz=original.keySet().stream().mapToInt(BlockPos::getZ).min().orElseThrow();"
+        },
+        {
+          "line": 614,
+          "text": "        BlockPos min=new BlockPos(mx,my,mz);"
+        },
+        {
+          "line": 615,
+          "text": "        D6Volume<BlockState> shape=new D6Volume<>(Blocks.AIR.getDefaultState());"
+        },
+        {
+          "line": 616,
+          "text": "        for(var e:original.entrySet()) {"
+        },
+        {
+          "line": 617,
+          "text": "            var p=e.getKey();var state=e.getValue();var local=p.subtract(min);"
+        },
+        {
+          "line": 618,
+          "text": "            var snapshot=com.terminaldetector.drmd.world.access.WorldAccess.of(world).snapshotIfLoaded(p);"
+        },
+        {
+          "line": 619,
+          "text": "            if(snapshot.isEmpty() || world.isOutOfHeightLimit(p) || !world.getWorldBorder().contains(p)"
+        },
+        {
+          "line": 620,
+          "text": "                || !snapshot.get().state().equals(state) || !supports(state) || snapshot.get().entityData()!=null"
+        },
+        {
+          "line": 621,
+          "text": "                || local.getX()>=MAX_ASSEMBLY_EDGE || local.getY()>=MAX_ASSEMBLY_EDGE || local.getZ()>=MAX_ASSEMBLY_EDGE)"
+        },
+        {
+          "line": 622,
+          "text": "                throw new IllegalArgumentException(\"Unsupported, changed, unloaded or oversized selection\");"
+        },
+        {
+          "line": 623,
+          "text": "            shape.set(local.getX(),local.getY(),local.getZ(),state);"
+        },
+        {
+          "line": 624,
+          "text": "        }"
+        },
+        {
+          "line": 625,
+          "text": "        BlockBodyEntity entity = new BlockBodyEntity(ModEntities.BLOCK_BODY, world);"
+        },
+        {
+          "line": 626,
+          "text": "        entity.loadShape(CubicBlockCodec.writeVolume(shape));"
+        },
+        {
+          "line": 627,
+          "text": "        entity.setPosition(min.getX()+entity.centre.x(), min.getY()+entity.centre.y(), min.getZ()+entity.centre.z());"
+        },
+        {
+          "line": 628,
+          "text": "        entity.body.withPosition(pure(entity.getPos()));"
+        },
+        {
+          "line": 629,
+          "text": "        entity.resetShapeBaseline();"
+        },
+        {
+          "line": 630,
+          "text": "        entity.dataTracker.set(POSE, entity.pose());"
+        },
+        {
+          "line": 631,
+          "text": "        if (!world.spawnEntity(entity)) throw new IllegalArgumentException(\"Could not spawn body\");"
+        },
+        {
+          "line": 632,
+          "text": "        try {"
+        },
+        {
+          "line": 633,
+          "text": "            for (BlockPos p : original.keySet())"
+        },
+        {
+          "line": 634,
+          "text": "                if (!world.setBlockState(p, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS))"
+        },
+        {
+          "line": 635,
+          "text": "                    throw new IllegalStateException(\"Assembly blocked at \" + p);"
+        },
+        {
+          "line": 636,
+          "text": "        } catch (RuntimeException failure) {"
+        },
+        {
+          "line": 637,
+          "text": "            original.forEach((p, state) -> world.setBlockState(p, state, Block.NOTIFY_LISTENERS));"
+        },
+        {
+          "line": 638,
+          "text": "            entity.discard(); throw failure;"
+        },
+        {
+          "line": 639,
+          "text": "        }"
+        },
+        {
+          "line": 640,
+          "text": "        original.forEach((p, state) -> {"
+        },
+        {
+          "line": 641,
+          "text": "            world.updateNeighbors(p, state.getBlock());"
+        },
+        {
+          "line": 642,
+          "text": "            com.terminaldetector.drmd.world.store.SurfaceIngest.onGroundChanged(world,p);"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyWorldAccess.java",
+      "first_line": 41,
+      "last_line": 46,
+      "note": "Local placement explicitly rejects BE-owning states.",
+      "excerpt": [
+        {
+          "line": 41,
+          "text": "    }"
+        },
+        {
+          "line": 42,
+          "text": "    public List<BodyCollisionQuery.Contact> queryBodyCollision(OrientedBox actor,double skin){return body.collisionQuery().contacts(actor,skin);}"
+        },
+        {
+          "line": 43,
+          "text": "    public boolean placeLocalBlock(BlockPos pos,BlockState state) {"
+        },
+        {
+          "line": 44,
+          "text": "        if(!getLocalBlock(pos).isAir()||state.isAir()||!BlockBodyEntity.supports(state)||state.hasBlockEntity())return false;"
+        },
+        {
+          "line": 45,
+          "text": "        if(!BlockBodyEntity.validLocal(pos))return false;"
+        },
+        {
+          "line": 46,
+          "text": "        var bounds=new BodyBounds(new Vec3(pos.getX(),pos.getY(),pos.getZ()),new Vec3(pos.getX()+1,pos.getY()+1,pos.getZ()+1));"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/contraption/mechanism/MechanicalBearingSystem.java",
+      "first_line": 95,
+      "last_line": 104,
+      "note": "Mechanism assembly rejects block entities/NBT.",
+      "excerpt": [
+        {
+          "line": 95,
+          "text": "        var world=player.getServerWorld();var access=WorldAccess.of(world);var cells=new LinkedHashMap<BlockPos,BlockState>();"
+        },
+        {
+          "line": 96,
+          "text": "        for(var cursor:BlockPos.iterate(min,max)){"
+        },
+        {
+          "line": 97,
+          "text": "            var snapshot=access.snapshotIfLoaded(cursor);"
+        },
+        {
+          "line": 98,
+          "text": "            if(snapshot.isEmpty()){message(player,\"selection_blocked\");return false;}"
+        },
+        {
+          "line": 99,
+          "text": "            var state=snapshot.get().state();if(state.isAir())continue;"
+        },
+        {
+          "line": 100,
+          "text": "            if(!world.canPlayerModifyAt(player,cursor)||!BlockBodyEntity.supports(state)||snapshot.get().entityData()!=null||state.getHardness(world,cursor)<0){message(player,\"selection_blocked\");return false;}"
+        },
+        {
+          "line": 101,
+          "text": "            cells.put(cursor.toImmutable(),state);"
+        },
+        {
+          "line": 102,
+          "text": "        }"
+        },
+        {
+          "line": 103,
+          "text": "        if(cells.isEmpty()){message(player,\"selection_blocked\");return false;}"
+        },
+        {
+          "line": 104,
+          "text": "        try{BlockBodyEntity.assembleSelection(world,cells);message(player,\"assembled\");return true;}"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/LegacyGeneration.java",
+      "first_line": 1,
+      "last_line": 6,
+      "note": "Constant retirement marker, not a proof of every separate call path.",
+      "excerpt": [
+        {
+          "line": 1,
+          "text": "package com.terminaldetector.drmd.world;"
+        },
+        {
+          "line": 2,
+          "text": "/** Compatibility identifiers remain loadable; legacy automatic generation never mutates terrain. */"
+        },
+        {
+          "line": 3,
+          "text": "public final class LegacyGeneration {"
+        },
+        {
+          "line": 4,
+          "text": "    private LegacyGeneration() {}"
+        },
+        {
+          "line": 5,
+          "text": "    public static boolean retired(){return true;}"
+        },
+        {
+          "line": 6,
+          "text": "}"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/level/LevelBuilder.java",
+      "first_line": 162,
+      "last_line": 171,
+      "note": "Normal registration returns before legacy chunk-load and tick handlers.",
+      "excerpt": [
+        {
+          "line": 162,
+          "text": "\tpublic static void register() {"
+        },
+        {
+          "line": 163,
+          "text": "        if(com.terminaldetector.drmd.world.LegacyGeneration.retired())return;"
+        },
+        {
+          "line": 164,
+          "text": "\t\tServerChunkEvents.CHUNK_LOAD.register(LevelBuilder::onChunkLoad);"
+        },
+        {
+          "line": 165,
+          "text": "\t\tServerTickEvents.END_SERVER_TICK.register(server -> {"
+        },
+        {
+          "line": 166,
+          "text": "\t\t\t// Timed against the tick it runs in, not only against its own budget: this fill was the"
+        },
+        {
+          "line": 167,
+          "text": "\t\t\t// obvious suspect for a stalling server and needs a number set beside the tick's own."
+        },
+        {
+          "line": 168,
+          "text": "\t\t\tlong started = com.terminaldetector.drmd.diag.DiagServerTick.begin();"
+        },
+        {
+          "line": 169,
+          "text": "\t\t\tdrain(server);"
+        },
+        {
+          "line": 170,
+          "text": "\t\t\tcom.terminaldetector.drmd.diag.DiagServerTick.end(\"worldgen.column\", started);"
+        },
+        {
+          "line": 171,
+          "text": "\t\t});"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/level/LevelBuilder.java",
+      "first_line": 908,
+      "last_line": 929,
+      "note": "Dormant direct WorldChunk writer and historical suspicion/comment, not causal trace.",
+      "excerpt": [
+        {
+          "line": 908,
+          "text": "\t\t// Overwriting a block that owns a block entity, recorded rather than assumed away."
+        },
+        {
+          "line": 909,
+          "text": "\t\t//"
+        },
+        {
+          "line": 910,
+          "text": "\t\t// The last flight logged 43 warnings of the shape \"Tried to load a DUMMY block entity @ ... but"
+        },
+        {
+          "line": 911,
+          "text": "\t\t// found not block entity block Block{minecraft:air}\", clustered at y -22 to -32 — the depth this"
+        },
+        {
+          "line": 912,
+          "text": "\t\t// fill works at. That warning means a chunk was saved carrying a block entity position whose"
+        },
+        {
+          "line": 913,
+          "text": "\t\t// block no longer owns one, and the fill is the obvious suspect for having overwritten it. The"
+        },
+        {
+          "line": 914,
+          "text": "\t\t// obvious suspect has been wrong before on this project, so this names the block instead of"
+        },
+        {
+          "line": 915,
+          "text": "\t\t// guessing: one report and the writer is known."
+        },
+        {
+          "line": 916,
+          "text": "\t\t//"
+        },
+        {
+          "line": 917,
+          "text": "\t\t// The cost is one extra block-state read per write — a section lookup and a palette read, which"
+        },
+        {
+          "line": 918,
+          "text": "\t\t// setBlockState is about to do anyway. Against a fill already capped at six milliseconds of a"
+        },
+        {
+          "line": 919,
+          "text": "\t\t// fifty-millisecond tick, a few percent of that is well under one percent of the tick, and the"
+        },
+        {
+          "line": 920,
+          "text": "\t\t// question it answers has already cost two play sessions. DiagProblems deduplicates, so a"
+        },
+        {
+          "line": 921,
+          "text": "\t\t// column full of these is one line."
+        },
+        {
+          "line": 922,
+          "text": "\t\tBlockState previous = writeChunk.getBlockState(pos);"
+        },
+        {
+          "line": 923,
+          "text": "\t\tif (previous.hasBlockEntity() && !previous.isOf(state.getBlock())) {"
+        },
+        {
+          "line": 924,
+          "text": "\t\t\tDiagProblems.record(\"worldgen\", \"column fill overwrote a block entity: \""
+        },
+        {
+          "line": 925,
+          "text": "\t\t\t\t\t+ previous.getBlock() + \" at y=\" + pos.getY() + \" replaced by \" + state.getBlock());"
+        },
+        {
+          "line": 926,
+          "text": "\t\t\tDiagTrace.count(\"worldgen.overwroteBlockEntity\");"
+        },
+        {
+          "line": 927,
+          "text": "\t\t}"
+        },
+        {
+          "line": 928,
+          "text": "\t\twriteChunk.setBlockState(pos, state, false);"
+        },
+        {
+          "line": 929,
+          "text": "\t\tworld.getChunkManager().markForUpdate(pos);"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/DrmdServerConfig.java",
+      "first_line": 186,
+      "last_line": 197,
+      "note": "Effective legacy feature flags always disabled, including Advanced; configured values remain readable.",
+      "excerpt": [
+        {
+          "line": 186,
+          "text": "\tstatic FeatureSettings effectiveFeaturesFor(FeatureSettings configured, boolean advancedColumn) {"
+        },
+        {
+          "line": 187,
+          "text": "\t\treturn FeatureSettings.disabled(); // Legacy automatic generation retired; configured keys remain readable."
+        },
+        {
+          "line": 188,
+          "text": "\t}"
+        },
+        {
+          "line": 189,
+          "text": ""
+        },
+        {
+          "line": 190,
+          "text": "\tprivate static void applyFeatures(FeatureSettings settings) {"
+        },
+        {
+          "line": 191,
+          "text": "\t\tWorldFeatures.NETHER_BAND = settings.netherBand();"
+        },
+        {
+          "line": 192,
+          "text": "\t\tWorldFeatures.END_BAND = settings.endBand();"
+        },
+        {
+          "line": 193,
+          "text": "\t\tWorldFeatures.KLONDIKE_ISLANDS = settings.klondikeIslands();"
+        },
+        {
+          "line": 194,
+          "text": "\t\tWorldFeatures.ORBIT_JUNK = settings.orbitJunk();"
+        },
+        {
+          "line": 195,
+          "text": "\t\tWorldFeatures.MACRO_WORLDGEN = settings.macroWorldgen();"
+        },
+        {
+          "line": 196,
+          "text": "\t\tWorldFeatures.SURFACE_DISTRICTS = settings.surfaceDistricts();"
+        },
+        {
+          "line": 197,
+          "text": "\t}"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/base/DescentSession.java",
+      "first_line": 58,
+      "last_line": 79,
+      "note": "Queue drain itself does not check retirement; activation must be traced to enqueue/feature gates.",
+      "excerpt": [
+        {
+          "line": 58,
+          "text": "\tpublic static void drainSeedQueue(MinecraftServer server) {"
+        },
+        {
+          "line": 59,
+          "text": "\t\tif (SEED_QUEUE.isEmpty()) return;"
+        },
+        {
+          "line": 60,
+          "text": "\t\tServerWorld world = server.getOverworld();"
+        },
+        {
+          "line": 61,
+          "text": "\t\tif (world == null) return;"
+        },
+        {
+          "line": 62,
+          "text": "\t\tint budget = SEED_QUEUE.size() > 12 ? 3 : 1;"
+        },
+        {
+          "line": 63,
+          "text": "\t\twhile (budget-- > 0) {"
+        },
+        {
+          "line": 64,
+          "text": "\t\t\tboolean built = false;"
+        },
+        {
+          "line": 65,
+          "text": "\t\t\tfor (var it = SEED_QUEUE.iterator(); it.hasNext(); ) {"
+        },
+        {
+          "line": 66,
+          "text": "\t\t\t\tSeedJob job = it.next();"
+        },
+        {
+          "line": 67,
+          "text": "\t\t\t\tif (!playerWithinSeedRange(world, job.near())) continue;"
+        },
+        {
+          "line": 68,
+          "text": "\t\t\t\tit.remove();"
+        },
+        {
+          "line": 69,
+          "text": "\t\t\t\ttry {"
+        },
+        {
+          "line": 70,
+          "text": "\t\t\t\t\tjob.build().run();"
+        },
+        {
+          "line": 71,
+          "text": "\t\t\t\t} catch (Exception e) {"
+        },
+        {
+          "line": 72,
+          "text": "\t\t\t\t\t// One bad landmark must not take the rest of the queue — or the world — with it."
+        },
+        {
+          "line": 73,
+          "text": "\t\t\t\t\tDescentMod.LOGGER.error(\"Descent landmark seed failed\", e);"
+        },
+        {
+          "line": 74,
+          "text": "\t\t\t\t}"
+        },
+        {
+          "line": 75,
+          "text": "\t\t\t\tbuilt = true;"
+        },
+        {
+          "line": 76,
+          "text": "\t\t\t\tbreak;"
+        },
+        {
+          "line": 77,
+          "text": "\t\t\t}"
+        },
+        {
+          "line": 78,
+          "text": "\t\t\tif (!built) return;"
+        },
+        {
+          "line": 79,
+          "text": "\t\t}"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/base/DescentSession.java",
+      "first_line": 105,
+      "last_line": 110,
+      "note": "Legacy world seeding returns on retirement.",
+      "excerpt": [
+        {
+          "line": 105,
+          "text": "\t/** Called once when overworld is ready — seed hub + nearby stock features. */"
+        },
+        {
+          "line": 106,
+          "text": "\tpublic static void seedWorld(MinecraftServer server) {"
+        },
+        {
+          "line": 107,
+          "text": "        if(com.terminaldetector.drmd.world.LegacyGeneration.retired())return;"
+        },
+        {
+          "line": 108,
+          "text": "\t\tServerWorld world = server.getOverworld();"
+        },
+        {
+          "line": 109,
+          "text": "\t\tif (world == null) return;"
+        },
+        {
+          "line": 110,
+          "text": "\t\tDescentWorldState state = DescentWorldState.get(world);"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/DescentMod.java",
+      "first_line": 163,
+      "last_line": 174,
+      "note": "Live-enable methods still called after seed; feature registration remains the normal macro gate.",
+      "excerpt": [
+        {
+          "line": 163,
+          "text": "\t\t\t// Both halves of worldgen are kept off the join path. Seeding only queues the landmarks"
+        },
+        {
+          "line": 164,
+          "text": "\t\t\t// and spends one per tick; the CHUNK_LOAD generators stay idle until that hand-off is"
+        },
+        {
+          "line": 165,
+          "text": "\t\t\t// done, so nothing of the mod's runs while the server is still preparing spawn."
+        },
+        {
+          "line": 166,
+          "text": "\t\t\tserver.execute(() -> {"
+        },
+        {
+          "line": 167,
+          "text": "\t\t\t\ttry {"
+        },
+        {
+          "line": 168,
+          "text": "\t\t\t\t\tcom.terminaldetector.drmd.world.base.DescentSession.seedWorld(server);"
+        },
+        {
+          "line": 169,
+          "text": "\t\t\t\t} catch (Exception e) {"
+        },
+        {
+          "line": 170,
+          "text": "\t\t\t\t\tLOGGER.error(\"Descent stock seed failed — world is still playable\", e);"
+        },
+        {
+          "line": 171,
+          "text": "\t\t\t\t}"
+        },
+        {
+          "line": 172,
+          "text": "\t\t\t\tcom.terminaldetector.drmd.world.gen.ModWorldgen.enableLiveGeneration();"
+        },
+        {
+          "line": 173,
+          "text": "\t\t\t\tcom.terminaldetector.drmd.world.gen2.ModWorldgen2.enableLiveGeneration();"
+        },
+        {
+          "line": 174,
+          "text": "\t\t\t});"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/gen/ModWorldgen.java",
+      "first_line": 46,
+      "last_line": 59,
+      "note": "Industrial feature type remains registered; automatic chunk-load registration gated by effective macro flag.",
+      "excerpt": [
+        {
+          "line": 46,
+          "text": "\tpublic static void enableLiveGeneration() {"
+        },
+        {
+          "line": 47,
+          "text": "\t\tworldgenLive = true;"
+        },
+        {
+          "line": 48,
+          "text": "\t}"
+        },
+        {
+          "line": 49,
+          "text": ""
+        },
+        {
+          "line": 50,
+          "text": "\tpublic static void register() {"
+        },
+        {
+          "line": 51,
+          "text": "\t\tRegistry.register(Registries.FEATURE, Identifier.of(DescentMod.MOD_ID, \"industrial_underground\"), INDUSTRIAL);"
+        },
+        {
+          "line": 52,
+          "text": "\t\t// The feature stays registered either way — only the live placement is parked, so existing"
+        },
+        {
+          "line": 53,
+          "text": "\t\t// worlds and the /d6 commands keep working."
+        },
+        {
+          "line": 54,
+          "text": "\t\tif (!com.terminaldetector.drmd.world.WorldFeatures.MACRO_WORLDGEN) {"
+        },
+        {
+          "line": 55,
+          "text": "\t\t\tDescentMod.LOGGER.info(\"Industrial Underground worldgen parked (WorldFeatures.MACRO_WORLDGEN)\");"
+        },
+        {
+          "line": 56,
+          "text": "\t\t\treturn;"
+        },
+        {
+          "line": 57,
+          "text": "\t\t}"
+        },
+        {
+          "line": 58,
+          "text": "\t\tServerChunkEvents.CHUNK_LOAD.register(ModWorldgen::onChunkLoad);"
+        },
+        {
+          "line": 59,
+          "text": "\t\tDescentMod.LOGGER.info(\"Registered Industrial Underground worldgen (stock density)\");"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/gen/ModWorldgen.java",
+      "first_line": 62,
+      "last_line": 88,
+      "note": "If separately activated, chunk-load route queues actual generator at depth; no originating DUMMY write recorded.",
+      "excerpt": [
+        {
+          "line": 62,
+          "text": "\tprivate static void onChunkLoad(ServerWorld world, WorldChunk chunk) {"
+        },
+        {
+          "line": 63,
+          "text": "\t\tif (!worldgenLive) return;"
+        },
+        {
+          "line": 64,
+          "text": "\t\tif (world.getRegistryKey() != ServerWorld.OVERWORLD) return;"
+        },
+        {
+          "line": 65,
+          "text": "\t\tChunkPos cp = chunk.getPos();"
+        },
+        {
+          "line": 66,
+          "text": "\t\tlong seed = world.getSeed() ^ (((long) cp.x) << 32) ^ cp.z;"
+        },
+        {
+          "line": 67,
+          "text": "\t\t// Stock density: ~1 complex per 12 chunks"
+        },
+        {
+          "line": 68,
+          "text": "\t\tif (Math.floorMod(seed * 31L, 12L) != 0L) return;"
+        },
+        {
+          "line": 69,
+          "text": "\t\tint y = WorldRules.INDUSTRIAL_Y_MIN + 24 + (int) Math.floorMod(seed, 16L);"
+        },
+        {
+          "line": 70,
+          "text": "\t\tBlockPos center = new BlockPos(cp.getStartX() + 8, y, cp.getStartZ() + 8);"
+        },
+        {
+          "line": 71,
+          "text": "\t\t// Read from the chunk that is being loaded, not through the world. The chunk is not in the"
+        },
+        {
+          "line": 72,
+          "text": "\t\t// full-status map yet, so world.getBlockState would force-load it and re-enter CHUNK_LOAD"
+        },
+        {
+          "line": 73,
+          "text": "\t\t// while a generator is still writing."
+        },
+        {
+          "line": 74,
+          "text": "\t\tvar local = chunk.getBlockState(center);"
+        },
+        {
+          "line": 75,
+          "text": "\t\tif (local.isOf(net.minecraft.block.Blocks.BEACON)) return;"
+        },
+        {
+          "line": 76,
+          "text": "\t\tif (!local.isAir() && local.isSolidBlock(world, center)) {"
+        },
+        {
+          "line": 77,
+          "text": "\t\t\tWorldRules.ComplexStyle[] styles = WorldRules.ComplexStyle.values();"
+        },
+        {
+          "line": 78,
+          "text": "\t\t\tWorldRules.ComplexStyle style = styles[(int) Math.floorMod(seed, styles.length)];"
+        },
+        {
+          "line": 79,
+          "text": "\t\t\t// Landmark queue — never generate inline on CHUNK_LOAD (spawn/fly freezes)."
+        },
+        {
+          "line": 80,
+          "text": "\t\t\tcom.terminaldetector.drmd.world.base.DescentSession.enqueueLandmark(center,"
+        },
+        {
+          "line": 81,
+          "text": "\t\t\t\t\t() -> forceGenerate(world, center, style));"
+        },
+        {
+          "line": 82,
+          "text": "\t\t}"
+        },
+        {
+          "line": 83,
+          "text": "\t}"
+        },
+        {
+          "line": 84,
+          "text": ""
+        },
+        {
+          "line": 85,
+          "text": "\tpublic static void forceGenerate(ServerWorld world, BlockPos pos, WorldRules.ComplexStyle style) {"
+        },
+        {
+          "line": 86,
+          "text": "\t\tIndustrialComplexGenerator.generateAt(world, pos, style, world.getRandom());"
+        },
+        {
+          "line": 87,
+          "text": "\t\tMacroWorld.put(new MacroEntry(UUID.randomUUID(), MacroEntry.Kind.INDUSTRIAL_COMPLEX,"
+        },
+        {
+          "line": 88,
+          "text": "\t\t\t\tWorldRules.Layer.DEPTH_REACTORS, pos.toImmutable(), 56, 48, 56, 0x6688AA, \"Industrial \" + style));"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/gen2/ModWorldgen2.java",
+      "first_line": 25,
+      "last_line": 39,
+      "note": "Macro2 normal registration gate; direct manual generation differs from automatic activation.",
+      "excerpt": [
+        {
+          "line": 25,
+          "text": "\tpublic static void enableLiveGeneration() {"
+        },
+        {
+          "line": 26,
+          "text": "\t\tworldgenLive = true;"
+        },
+        {
+          "line": 27,
+          "text": "\t}"
+        },
+        {
+          "line": 28,
+          "text": ""
+        },
+        {
+          "line": 29,
+          "text": "\tpublic static void register() {"
+        },
+        {
+          "line": 30,
+          "text": "\t\tif (!com.terminaldetector.drmd.world.WorldFeatures.MACRO_WORLDGEN) {"
+        },
+        {
+          "line": 31,
+          "text": "\t\t\tDescentMod.LOGGER.info(\"World Generation 2.0 parked (WorldFeatures.MACRO_WORLDGEN)\");"
+        },
+        {
+          "line": 32,
+          "text": "\t\t\treturn;"
+        },
+        {
+          "line": 33,
+          "text": "\t\t}"
+        },
+        {
+          "line": 34,
+          "text": "\t\tServerChunkEvents.CHUNK_LOAD.register(ModWorldgen2::onChunkLoad);"
+        },
+        {
+          "line": 35,
+          "text": "\t\tDescentMod.LOGGER.info(\"Registered World Generation 2.0 (mega-structures + lunar/UFO + fauna)\");"
+        },
+        {
+          "line": 36,
+          "text": "\t}"
+        },
+        {
+          "line": 37,
+          "text": ""
+        },
+        {
+          "line": 38,
+          "text": "\tprivate static void onChunkLoad(ServerWorld world, WorldChunk chunk) {"
+        },
+        {
+          "line": 39,
+          "text": "\t\tif (!worldgenLive) return;"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/gen/IndustrialUndergroundFeature.java",
+      "first_line": 21,
+      "last_line": 36,
+      "note": "Registered feature entry can generate via StructureWorldAccess; resource activation not established.",
+      "excerpt": [
+        {
+          "line": 21,
+          "text": "\t@Override"
+        },
+        {
+          "line": 22,
+          "text": "\tpublic boolean generate(FeatureContext<DefaultFeatureConfig> context) {"
+        },
+        {
+          "line": 23,
+          "text": "\t\tStructureWorldAccess world = context.getWorld();"
+        },
+        {
+          "line": 24,
+          "text": "\t\tBlockPos origin = context.getOrigin();"
+        },
+        {
+          "line": 25,
+          "text": "\t\tChunkPos chunk = new ChunkPos(origin);"
+        },
+        {
+          "line": 26,
+          "text": ""
+        },
+        {
+          "line": 27,
+          "text": "\t\tif ((Math.floorMod(chunk.x * 734287 + chunk.z * 912391, 24)) != 0) return false;"
+        },
+        {
+          "line": 28,
+          "text": ""
+        },
+        {
+          "line": 29,
+          "text": "\t\tint y = WorldRules.INDUSTRIAL_Y_MIN + 20 + world.getRandom().nextInt(24);"
+        },
+        {
+          "line": 30,
+          "text": "\t\tBlockPos center = new BlockPos(chunk.getStartX() + 8, y, chunk.getStartZ() + 8);"
+        },
+        {
+          "line": 31,
+          "text": ""
+        },
+        {
+          "line": 32,
+          "text": "\t\tWorldRules.ComplexStyle[] styles = WorldRules.ComplexStyle.values();"
+        },
+        {
+          "line": 33,
+          "text": "\t\tWorldRules.ComplexStyle style = styles[world.getRandom().nextInt(styles.length)];"
+        },
+        {
+          "line": 34,
+          "text": ""
+        },
+        {
+          "line": 35,
+          "text": "\t\tIndustrialComplexGenerator.generateAt(world, center, style, world.getRandom());"
+        },
+        {
+          "line": 36,
+          "text": "\t\treturn true;"
+        }
+      ]
+    },
+    {
+      "path": "src/gametest/java/com/terminaldetector/drmd/WorldAccessBatchGameTests.java",
+      "first_line": 52,
+      "last_line": 59,
+      "note": "Declared mismatch test changes chest NBT type to furnace; not cold-generation or DUMMY producer reproduction.",
+      "excerpt": [
+        {
+          "line": 52,
+          "text": "    @GameTest(templateName=EMPTY_STRUCTURE)"
+        },
+        {
+          "line": 53,
+          "text": "    public void wrongEntityTypeCannotProduceDummySavedData(TestContext context) {"
+        },
+        {
+          "line": 54,
+          "text": "        var world=context.getWorld();var access=WorldAccess.of(world);var at=context.getAbsolutePos(new BlockPos(3,4,3));"
+        },
+        {
+          "line": 55,
+          "text": "        world.setBlockState(at,Blocks.CHEST.getDefaultState(),2);var before=access.snapshotIfLoaded(at).orElseThrow();"
+        },
+        {
+          "line": 56,
+          "text": "        var bad=before.entityData();bad.putString(\"id\",\"minecraft:furnace\");"
+        },
+        {
+          "line": 57,
+          "text": "        var result=access.modifyServerAuthoritative(List.of(new ServerBlockEdits.Edit(at,before,new ServerBlockEdits.Cell(before.state(),bad))));"
+        },
+        {
+          "line": 58,
+          "text": "        context.assertTrue(result.status()==ServerBlockEdits.Status.INVALID_NBT && access.snapshotIfLoaded(at).orElseThrow().equals(before),\"type mismatch rejected before touching the chest\");context.complete();"
+        },
+        {
+          "line": 59,
+          "text": "    }"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/access/WorldAccess.java",
+      "first_line": 16,
+      "last_line": 34,
+      "note": "Facade does not own blocks/files; loaded-only state reads and explicit state/NBT transaction adapter.",
+      "excerpt": [
+        {
+          "line": 16,
+          "text": "/** This facade owns no blocks, snapshots, files or tickets. */"
+        },
+        {
+          "line": 17,
+          "text": "public final class WorldAccess implements CubicWorldAccess {"
+        },
+        {
+          "line": 18,
+          "text": "    private final World world;"
+        },
+        {
+          "line": 19,
+          "text": "    private WorldAccess(World world){this.world=Objects.requireNonNull(world);}"
+        },
+        {
+          "line": 20,
+          "text": "    public static WorldAccess of(World world){return new WorldAccess(world);}"
+        },
+        {
+          "line": 21,
+          "text": "    @Override public CubicAvailability.Backend backend(){return CubicAvailability.backend(world);}"
+        },
+        {
+          "line": 22,
+          "text": "    @Override public boolean isVolumeAvailable(D6ChunkPos cube){return CubicAvailability.available(world,cube);}"
+        },
+        {
+          "line": 23,
+          "text": "    @Override public Optional<BlockState> readIfLoaded(BlockPos pos) {"
+        },
+        {
+          "line": 24,
+          "text": "        if(world.isOutOfHeightLimit(pos) || !isVolumeAvailable(D6ChunkPos.ofBlock(pos.getX(),pos.getY(),pos.getZ())))return Optional.empty();"
+        },
+        {
+          "line": 25,
+          "text": "        var chunk=CubicAvailability.loadedColumn(world,pos.getX()>>4,pos.getZ()>>4);"
+        },
+        {
+          "line": 26,
+          "text": "        return chunk!=null?Optional.of(chunk.getBlockState(pos)):Optional.empty();"
+        },
+        {
+          "line": 27,
+          "text": "    }"
+        },
+        {
+          "line": 28,
+          "text": "    @Override public Optional<GravityFields.Sample> getGravityAt(Vec3d point) {"
+        },
+        {
+          "line": 29,
+          "text": "        if(!CubicAvailability.onWorldThread(world) || !Double.isFinite(point.x) || !Double.isFinite(point.y) || !Double.isFinite(point.z))return Optional.empty();"
+        },
+        {
+          "line": 30,
+          "text": "        return Optional.ofNullable(GravityFields.sample(world,point));"
+        },
+        {
+          "line": 31,
+          "text": "    }"
+        },
+        {
+          "line": 32,
+          "text": "    @Override public Optional<ServerBlockEdits.Cell> snapshotIfLoaded(BlockPos pos){return ServerBlockEdits.snapshot(world,pos);}"
+        },
+        {
+          "line": 33,
+          "text": "    @Override public ServerBlockEdits.Result modifyServerAuthoritative(List<ServerBlockEdits.Edit> edits){return ServerBlockEdits.commit(world,edits);}"
+        },
+        {
+          "line": 34,
+          "text": "    @Override public Optional<CubeLifecycle.Subscription> watchCube(D6ChunkPos cube,Consumer<CubeLifecycle.Event> listener){return CubeLifecycle.watch(world,cube,listener);}"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/cubic/CubicWorldSystem.java",
+      "first_line": 125,
+      "last_line": 132,
+      "note": "Supplemental cube snapshots contain BlockStates; this is not an authoritative BE copy/delete layer.",
+      "excerpt": [
+        {
+          "line": 125,
+          "text": "    private static D6Cube<BlockState> snapshot(WorldChunk chunk, int sectionY) {"
+        },
+        {
+          "line": 126,
+          "text": "        var section = chunk.getSection(chunk.sectionCoordToIndex(sectionY));"
+        },
+        {
+          "line": 127,
+          "text": "        D6Cube<BlockState> cube = new D6Cube<>(Blocks.AIR.getDefaultState());"
+        },
+        {
+          "line": 128,
+          "text": "        if (!section.isEmpty()) for (int y = 0; y < 16; y++) for (int z = 0; z < 16; z++) for (int x = 0; x < 16; x++)"
+        },
+        {
+          "line": 129,
+          "text": "            cube.set(x, y, z, section.getBlockState(x, y, z));"
+        },
+        {
+          "line": 130,
+          "text": "        return cube;"
+        },
+        {
+          "line": 131,
+          "text": "    }"
+        },
+        {
+          "line": 132,
+          "text": "    /** Historical cube read on the IO worker; never mistaken for authoritative live terrain. */"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/store/SurfaceIngest.java",
+      "first_line": 100,
+      "last_line": 110,
+      "note": "Visual material lookup reads getBlockEntity; may hydrate existing pending data, no explicit pending-NBT writer here. Separately owned colour fix is not DUMMY closure.",
+      "excerpt": [
+        {
+          "line": 100,
+          "text": "\tprivate static int colourAt(ServerWorld world, WorldChunk chunk, BlockPos pos) {"
+        },
+        {
+          "line": 101,
+          "text": "\t\ttry {"
+        },
+        {
+          "line": 102,
+          "text": "\t\t\tvar state = chunk.getBlockState(pos);"
+        },
+        {
+          "line": 103,
+          "text": "\t\t\tif (chunk.getBlockEntity(pos) instanceof com.terminaldetector.drmd.world.micro.CarvedBlockEntity carved)"
+        },
+        {
+          "line": 104,
+          "text": "\t\t\t\tstate = carved.source();"
+        },
+        {
+          "line": 105,
+          "text": "\t\t\tvar mapColour = state.getMapColor(world, pos);"
+        },
+        {
+          "line": 106,
+          "text": "\t\t\treturn mapColour == null ? 0x4C7638 : mapColour.color;"
+        },
+        {
+          "line": 107,
+          "text": "\t\t} catch (Exception e) {"
+        },
+        {
+          "line": 108,
+          "text": "\t\t\t// getMapColor can reach for neighbours; a chunk edge during load is not worth a crash."
+        },
+        {
+          "line": 109,
+          "text": "\t\t\treturn 0x4C7638;"
+        },
+        {
+          "line": 110,
+          "text": "\t\t}"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/network/ModNetworking.java",
+      "first_line": 433,
+      "last_line": 452,
+      "note": "Construction payload carries weapon id/modules, not a world BlockEntity placement packet.",
+      "excerpt": [
+        {
+          "line": 433,
+          "text": "\t/** Client → server construction apply (empty modules list = clear override). */"
+        },
+        {
+          "line": 434,
+          "text": "\tpublic record ConstructionPayload(String weaponId, net.minecraft.nbt.NbtList modules) implements CustomPayload {"
+        },
+        {
+          "line": 435,
+          "text": "\t\tpublic static final Identifier CONSTRUCTION_ID = Identifier.of(DescentMod.MOD_ID, \"construction\");"
+        },
+        {
+          "line": 436,
+          "text": "\t\tpublic static final Id<ConstructionPayload> ID = new Id<>(CONSTRUCTION_ID);"
+        },
+        {
+          "line": 437,
+          "text": "\t\tpublic static final PacketCodec<RegistryByteBuf, ConstructionPayload> CODEC = PacketCodec.of("
+        },
+        {
+          "line": 438,
+          "text": "\t\t\t\t(payload, buf) -> {"
+        },
+        {
+          "line": 439,
+          "text": "\t\t\t\t\tbuf.writeString(payload.weaponId);"
+        },
+        {
+          "line": 440,
+          "text": "\t\t\t\t\tnet.minecraft.nbt.NbtCompound root=new net.minecraft.nbt.NbtCompound();"
+        },
+        {
+          "line": 441,
+          "text": "                    root.put(\"modules\",payload.modules);"
+        },
+        {
+          "line": 442,
+          "text": "                    buf.writeNbt(root);"
+        },
+        {
+          "line": 443,
+          "text": "\t\t\t\t},"
+        },
+        {
+          "line": 444,
+          "text": "\t\t\t\tbuf -> {"
+        },
+        {
+          "line": 445,
+          "text": "\t\t\t\t\tString id = buf.readString();"
+        },
+        {
+          "line": 446,
+          "text": "\t\t\t\t\tnet.minecraft.nbt.NbtCompound root = buf.readNbt();"
+        },
+        {
+          "line": 447,
+          "text": "                    net.minecraft.nbt.NbtList list = root==null ? new net.minecraft.nbt.NbtList() :"
+        },
+        {
+          "line": 448,
+          "text": "                            root.getList(\"modules\",net.minecraft.nbt.NbtElement.COMPOUND_TYPE);"
+        },
+        {
+          "line": 449,
+          "text": "\t\t\t\t\treturn new ConstructionPayload(id, list);"
+        },
+        {
+          "line": 450,
+          "text": "\t\t\t\t}"
+        },
+        {
+          "line": 451,
+          "text": "\t\t);"
+        },
+        {
+          "line": 452,
+          "text": "\t\t@Override public Id<? extends CustomPayload> getId() { return ID; }"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/portal/mirror/PortalPanelBlockEntity.java",
+      "first_line": 156,
+      "last_line": 164,
+      "note": "Panel synchronization uses vanilla identifying NBT/update packet.",
+      "excerpt": [
+        {
+          "line": 156,
+          "text": "\t@Override"
+        },
+        {
+          "line": 157,
+          "text": "\tpublic NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registries) {"
+        },
+        {
+          "line": 158,
+          "text": "\t\treturn createNbt(registries);"
+        },
+        {
+          "line": 159,
+          "text": "\t}"
+        },
+        {
+          "line": 160,
+          "text": ""
+        },
+        {
+          "line": 161,
+          "text": "\t@Override"
+        },
+        {
+          "line": 162,
+          "text": "\tpublic Packet<ClientPlayPacketListener> toUpdatePacket() {"
+        },
+        {
+          "line": 163,
+          "text": "\t\treturn BlockEntityUpdateS2CPacket.create(this);"
+        },
+        {
+          "line": 164,
+          "text": "\t}"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/portal/mirror/ChargedMirrorBlockEntity.java",
+      "first_line": 137,
+      "last_line": 145,
+      "note": "Charged mirror synchronization uses vanilla identifying NBT/update packet.",
+      "excerpt": [
+        {
+          "line": 137,
+          "text": "\t@Override"
+        },
+        {
+          "line": 138,
+          "text": "\tpublic NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registries) {"
+        },
+        {
+          "line": 139,
+          "text": "\t\treturn createNbt(registries);"
+        },
+        {
+          "line": 140,
+          "text": "\t}"
+        },
+        {
+          "line": 141,
+          "text": ""
+        },
+        {
+          "line": 142,
+          "text": "\t@Override"
+        },
+        {
+          "line": 143,
+          "text": "\tpublic Packet<ClientPlayPacketListener> toUpdatePacket() {"
+        },
+        {
+          "line": 144,
+          "text": "\t\treturn BlockEntityUpdateS2CPacket.create(this);"
+        },
+        {
+          "line": 145,
+          "text": "\t}"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/micro/CarvedBlockEntity.java",
+      "first_line": 122,
+      "last_line": 130,
+      "note": "Carved synchronization uses vanilla identifying NBT/update packet.",
+      "excerpt": [
+        {
+          "line": 122,
+          "text": "\t@Override"
+        },
+        {
+          "line": 123,
+          "text": "\tpublic NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registries) {"
+        },
+        {
+          "line": 124,
+          "text": "\t\treturn createNbt(registries);"
+        },
+        {
+          "line": 125,
+          "text": "\t}"
+        },
+        {
+          "line": 126,
+          "text": ""
+        },
+        {
+          "line": 127,
+          "text": "\t@Override"
+        },
+        {
+          "line": 128,
+          "text": "\tpublic Packet<ClientPlayPacketListener> toUpdatePacket() {"
+        },
+        {
+          "line": 129,
+          "text": "\t\treturn BlockEntityUpdateS2CPacket.create(this);"
+        },
+        {
+          "line": 130,
+          "text": "\t}"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/world/soil/SixDSoilBlockEntity.java",
+      "first_line": 61,
+      "last_line": 70,
+      "note": "Soil synchronization uses vanilla identifying NBT/update packet.",
+      "excerpt": [
+        {
+          "line": 61,
+          "text": "\t@Override"
+        },
+        {
+          "line": 62,
+          "text": "\tpublic Packet<ClientPlayPacketListener> toUpdatePacket() {"
+        },
+        {
+          "line": 63,
+          "text": "\t\treturn BlockEntityUpdateS2CPacket.create(this);"
+        },
+        {
+          "line": 64,
+          "text": "\t}"
+        },
+        {
+          "line": 65,
+          "text": ""
+        },
+        {
+          "line": 66,
+          "text": "\t@Override"
+        },
+        {
+          "line": 67,
+          "text": "\tpublic NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registryLookup) {"
+        },
+        {
+          "line": 68,
+          "text": "\t\treturn createNbt(registryLookup);"
+        },
+        {
+          "line": 69,
+          "text": "\t}"
+        },
+        {
+          "line": 70,
+          "text": "}"
+        }
+      ]
+    }
+  ],
+  "source_files": {
+    "src/main/java/com/terminaldetector/drmd/world/soil/SixDSoilBlock.java": {
+      "git_blob": "28d1c38876be5087fa3cc847b2172ac733d7b4bf",
+      "sha256": "48db08289fab80353330b2a2549fe665d93ee9fdab69f4b9a7c1883dc3e174ec",
+      "bytes": 6312
+    },
+    "src/main/java/com/terminaldetector/drmd/world/soil/SixDSoilBlockEntity.java": {
+      "git_blob": "afba69db3238506411ba4d93f15ca420b687a11e",
+      "sha256": "de8da32b8e5d5011ff825a492788ea6fd450f160ee4ff4448d9149f56762194f",
+      "bytes": 2262
+    },
+    "src/main/java/com/terminaldetector/drmd/world/gravity/GravityGeneratorBlock.java": {
+      "git_blob": "960c43425e8b8746efd2c0c8fb3eff6f9916b0be",
+      "sha256": "a1b5cb02b639c9ddd221047a4ff5a0963741b920264c026bc0c0ed7c479f57d0",
+      "bytes": 4435
+    },
+    "src/main/java/com/terminaldetector/drmd/world/gravity/GravityGeneratorBlockEntity.java": {
+      "git_blob": "d016e1c547b1d004aee940c5dfeeb2dc8bc05db9",
+      "sha256": "66501bfafaf272af46555b274d7b4f940515ca7a88edffd6e72f9be8a4126864",
+      "bytes": 3223
+    },
+    "src/main/java/com/terminaldetector/drmd/world/locator/LocatorCoreBlock.java": {
+      "git_blob": "553ae803bdfed50378071a80234ee577181616e0",
+      "sha256": "5ebbcb986c75330888587160c4aaa7d00f938f73680fd4ee4facbaa2b12ea365",
+      "bytes": 2809
+    },
+    "src/main/java/com/terminaldetector/drmd/world/locator/LocatorCoreBlockEntity.java": {
+      "git_blob": "21bd6ee0a8d2d01b58286a3c70d5220c69fc7dac",
+      "sha256": "edfc4248cb1d9805ca92b7101e0e47e87aa97c958d1a5f74993fdddf5cb287a5",
+      "bytes": 2645
+    },
+    "src/main/java/com/terminaldetector/drmd/world/micro/CarvedBlock.java": {
+      "git_blob": "e9a017493f2827376c80a41751e4dd566246eeb1",
+      "sha256": "a355e266887104cec351fec9ec57a375be9fb1e36159eb146386f621f0ed125f",
+      "bytes": 9015
+    },
+    "src/main/java/com/terminaldetector/drmd/world/micro/CarvedBlockEntity.java": {
+      "git_blob": "07af94e67995cebf989e5023b4790ac84f9c2719",
+      "sha256": "b3f783cb82a967acea892c47e1992cb2328e4dea159fde6255af73bb3ca6d961",
+      "bytes": 4417
+    },
+    "src/main/java/com/terminaldetector/drmd/world/portal/mirror/MirrorBlock.java": {
+      "git_blob": "d520cd99244f475acdf7af31175739e879e127ec",
+      "sha256": "bc0ac7e2d95de116e5fdd611906fc60ed9a16e673cf6d118d5b6386d66351795",
+      "bytes": 3457
+    },
+    "src/main/java/com/terminaldetector/drmd/world/portal/mirror/MirrorBlockEntity.java": {
+      "git_blob": "88cf5bfe00a2cd7d73d78392f7cab85513e59d69",
+      "sha256": "eb623f085f5a8fa9c2936f2abec333a8bcaf4254cba97da243f2076bd0f765d2",
+      "bytes": 1375
+    },
+    "src/main/java/com/terminaldetector/drmd/world/portal/mirror/ChargedMirrorBlock.java": {
+      "git_blob": "679ecebb84b56410318e77bc06460d108fa11fa8",
+      "sha256": "137f903f97a6277d36970976d78201bdba46cf3b90c1cb72d03fcaf27ed7afcb",
+      "bytes": 6647
+    },
+    "src/main/java/com/terminaldetector/drmd/world/portal/mirror/ChargedMirrorBlockEntity.java": {
+      "git_blob": "04fdbbe459f29bdc2de4ee05c37b50cd613a7472",
+      "sha256": "bd765f74862e501fe3292e4722411056a5f1d909799fea181e2a1f98c2c9c4b2",
+      "bytes": 6470
+    },
+    "src/main/java/com/terminaldetector/drmd/world/portal/mirror/PortalPanelBlock.java": {
+      "git_blob": "d2fff0fb411f0a998e3fd885e35470d7990da9d7",
+      "sha256": "6fae04d1d97525964fbfde6a7743d0c084d124fb5a6bd4d0368b276b4228f161",
+      "bytes": 9340
+    },
+    "src/main/java/com/terminaldetector/drmd/world/portal/mirror/PortalPanelBlockEntity.java": {
+      "git_blob": "187c20d654933883fd6a9e4cfa6ad424c8358184",
+      "sha256": "02c4265a2d04f49ac7e0326e1c10cfffc3ddc3a0e524bb4049f5e1e8f462f0bf",
+      "bytes": 7988
+    },
+    "src/main/java/com/terminaldetector/drmd/entity/ModBlockEntities.java": {
+      "git_blob": "d369d9ec85d65da6a5cec516ace31db248c2b43f",
+      "sha256": "5624c869d3c4665d6b1d1f7c51e7a41622f7a2d69388c4133e45fa7c4da5f939",
+      "bytes": 3042
+    },
+    "src/main/java/com/terminaldetector/drmd/DescentMod.java": {
+      "git_blob": "5582d5eaa3d2760d8b1de00b8b6173033d8b6e72",
+      "sha256": "c9c89f8dbbf706a83b92b65c8fdd1b3a240063b75061841246464cb661a4e970",
+      "bytes": 19741
+    },
+    "src/main/java/com/terminaldetector/drmd/world/access/ServerBlockEdits.java": {
+      "git_blob": "3444d199694ea343299232b4183c90d0c4ec799d",
+      "sha256": "63ef328789a8a25bce561c3fe35667aec60854fd779b8080564d90993575168f",
+      "bytes": 11128
+    },
+    "src/main/java/com/terminaldetector/drmd/world/portal/gun/PortalProjector.java": {
+      "git_blob": "4bea61ccaf0f80248aaa228a56ca8e1ed7c4d761",
+      "sha256": "e64cd6f6539daf779b619316cc4d9ba7da49f829c0c5fa3d9a76afad0e390e08",
+      "bytes": 8762
+    },
+    "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyEntity.java": {
+      "git_blob": "a74f8f9ffc3e68a0101ff3bef3914e23abbd5070",
+      "sha256": "52c01cf8e91b93f21202e1bd0c86fc3da273cd29f612f11bcfb7e9ed4d56c2ad",
+      "bytes": 72169
+    },
+    "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyWorldAccess.java": {
+      "git_blob": "97c57f09cf0730d22b026338be896b2550da2450",
+      "sha256": "738012302631ec744e1e59c5212d074f1b62c05588ef101978bf766d7aa7da60",
+      "bytes": 5170
+    },
+    "src/main/java/com/terminaldetector/drmd/world/contraption/mechanism/MechanicalBearingSystem.java": {
+      "git_blob": "871053e86ca0261875ed9a1736de04d82d429e8e",
+      "sha256": "f708aa4b456515ff0c1364b52ddd1019dbd654896f55b6aa536716a09582a95d",
+      "bytes": 11820
+    },
+    "src/main/java/com/terminaldetector/drmd/world/LegacyGeneration.java": {
+      "git_blob": "86788ce234e365872e9c0ccfad7b0dae9f06d280",
+      "sha256": "85cccb7a00cd36c0aa54d16cd04fcf31570e9f2c1688affb97435d5ff1d08749",
+      "bytes": 266
+    },
+    "src/main/java/com/terminaldetector/drmd/world/level/LevelBuilder.java": {
+      "git_blob": "699515d67e949751e55db16986689801673ebd12",
+      "sha256": "818e0939f823fc8a52a0efde99fcad77e357c6217d009330ac2c7f7fe3f5e968",
+      "bytes": 42340
+    },
+    "src/main/java/com/terminaldetector/drmd/world/DrmdServerConfig.java": {
+      "git_blob": "874c9690d4b246105c8d9664c5f0d649b17a78fa",
+      "sha256": "6d912062883d4f51328098ab177c4ce86ae08c46ff8a6bc625fab4a7119643c1",
+      "bytes": 14449
+    },
+    "src/main/java/com/terminaldetector/drmd/world/base/DescentSession.java": {
+      "git_blob": "20ceecfb4aeabf4d881acab112f872e729553924",
+      "sha256": "cda809a909aab2de7b1156f71854d863e7b215d88f563b4529151fee252cae84",
+      "bytes": 15327
+    },
+    "src/main/java/com/terminaldetector/drmd/world/gen/ModWorldgen.java": {
+      "git_blob": "1c77d145431e1c955bf58cadaac1af4dd1b425dd",
+      "sha256": "cef047485a7e564769855da40fb4e84fbe33cbf2d8798e4f88c31671ddf6f72e",
+      "bytes": 4797
+    },
+    "src/main/java/com/terminaldetector/drmd/world/gen2/ModWorldgen2.java": {
+      "git_blob": "196f23de8edfead89054907ff3a0c8c2c3e0479c",
+      "sha256": "5ccb5fb446159965db8ca529733c9aed2a1c086f664cfce770b546fd007dd736",
+      "bytes": 6831
+    },
+    "src/main/java/com/terminaldetector/drmd/world/gen/IndustrialUndergroundFeature.java": {
+      "git_blob": "b46bc4d811635ec98f65bc7f3e1fa243d3f0b526",
+      "sha256": "107e11c51c3b6046f349a8b2307b651f5b81b0ed6369b6b0ab49537c6d9a283a",
+      "bytes": 1469
+    },
+    "src/gametest/java/com/terminaldetector/drmd/WorldAccessBatchGameTests.java": {
+      "git_blob": "73e3eda86aa0cdc725e955992a1ccd0ff2db02ba",
+      "sha256": "ff5044f1584182cec78f787763dbf9454a3cacf0e36f6a86576ea24f0c75b2ab",
+      "bytes": 6859
+    },
+    "src/main/java/com/terminaldetector/drmd/world/access/WorldAccess.java": {
+      "git_blob": "234a57b04bf29829ef1833f7e81b41453c9404bc",
+      "sha256": "913a59867c17001ccf9edaa7686b6d0720397dda232fd917d11fcd254b0866b3",
+      "bytes": 2206
+    },
+    "src/main/java/com/terminaldetector/drmd/world/cubic/CubicWorldSystem.java": {
+      "git_blob": "e1cae9c9fe335cd83f04c4c8fc904d93b7397fe9",
+      "sha256": "6f14f360564b70d570767451f11e5e6ff42c2a6081d23c14c5b59050c1293b5c",
+      "bytes": 8935
+    },
+    "src/main/java/com/terminaldetector/drmd/world/store/SurfaceIngest.java": {
+      "git_blob": "9b2abb64f4066d942dfda3b984e93410ece17757",
+      "sha256": "70bd3c8e355ec6186aea9d3edd8996254c93bf7bb3b7e35369ef29f41e933269",
+      "bytes": 5793
+    },
+    "src/main/java/com/terminaldetector/drmd/network/ModNetworking.java": {
+      "git_blob": "fd8ef3bcbd45f884eac444697763a74e2cd51f08",
+      "sha256": "c991613f982d77c63943f66346c11b9dc20c510a34f17af77c8e262f52b29316",
+      "bytes": 39069
+    }
+  },
+  "text_queries": {
+    "direct_vanilla_spawner_construction_or_constant": {
+      "regex": "new MobSpawnerBlockEntity|Blocks\\.SPAWNER",
+      "scope": "git grep -n -E at bfbcee6696ae019152846fe3f0e71910ccd1c481 -- src/main",
+      "matching_lines": [],
+      "limitation": "Textual inventory, not a dynamic call graph or proof about external datapacks/mods, reflection or historical runtime."
+    },
+    "direct_pending_nbt_additions": {
+      "regex": "addPendingBlockEntityNbt|setBlockEntityNbt",
+      "scope": "git grep -n -E at bfbcee6696ae019152846fe3f0e71910ccd1c481 -- src/main",
+      "matching_lines": [],
+      "limitation": "Textual inventory, not a dynamic call graph or proof about external datapacks/mods, reflection or historical runtime."
+    },
+    "create_from_nbt": {
+      "regex": "BlockEntity\\.createFromNbt",
+      "scope": "git grep -n -E at bfbcee6696ae019152846fe3f0e71910ccd1c481 -- src/main",
+      "matching_lines": [
+        "bfbcee6696ae019152846fe3f0e71910ccd1c481:src/main/java/com/terminaldetector/drmd/world/access/ServerBlockEdits.java:117:            var entity=BlockEntity.createFromNbt(at,cell.state(),cell.entityData(),world.getRegistryManager());"
+      ],
+      "limitation": "Textual inventory, not a dynamic call graph or proof about external datapacks/mods, reflection or historical runtime."
+    },
+    "set_block_entity_call": {
+      "regex": "\\.setBlockEntity\\(",
+      "scope": "git grep -n -E at bfbcee6696ae019152846fe3f0e71910ccd1c481 -- src/main",
+      "matching_lines": [
+        "bfbcee6696ae019152846fe3f0e71910ccd1c481:src/main/java/com/terminaldetector/drmd/world/access/ServerBlockEdits.java:119:            full.setBlockEntity(entity);"
+      ],
+      "limitation": "Textual inventory, not a dynamic call graph or proof about external datapacks/mods, reflection or historical runtime."
+    },
+    "industrial_feature_references": {
+      "regex": "industrial_underground",
+      "scope": "git grep -n -E at bfbcee6696ae019152846fe3f0e71910ccd1c481 -- src/main",
+      "matching_lines": [
+        "bfbcee6696ae019152846fe3f0e71910ccd1c481:src/main/java/com/terminaldetector/drmd/world/gen/ModWorldgen.java:51:\t\tRegistry.register(Registries.FEATURE, Identifier.of(DescentMod.MOD_ID, \"industrial_underground\"), INDUSTRIAL);"
+      ],
+      "limitation": "Textual inventory, not a dynamic call graph or proof about external datapacks/mods, reflection or historical runtime."
+    },
+    "state_nbt_batch_callers": {
+      "regex": "modifyServerAuthoritative\\(|ServerBlockEdits\\.commit",
+      "scope": "git grep -n -E at bfbcee6696ae019152846fe3f0e71910ccd1c481 -- src/main",
+      "matching_lines": [
+        "bfbcee6696ae019152846fe3f0e71910ccd1c481:src/main/java/com/terminaldetector/drmd/world/access/CubicWorldAccess.java:18:    ServerBlockEdits.Result modifyServerAuthoritative(List<ServerBlockEdits.Edit> edits);",
+        "bfbcee6696ae019152846fe3f0e71910ccd1c481:src/main/java/com/terminaldetector/drmd/world/access/WorldAccess.java:33:    @Override public ServerBlockEdits.Result modifyServerAuthoritative(List<ServerBlockEdits.Edit> edits){return ServerBlockEdits.commit(world,edits);}",
+        "bfbcee6696ae019152846fe3f0e71910ccd1c481:src/main/java/com/terminaldetector/drmd/world/portal/gun/PortalProjector.java:66:        var commit=ServerBlockEdits.commitProjectorPair(world,edits,owner);",
+        "bfbcee6696ae019152846fe3f0e71910ccd1c481:src/main/java/com/terminaldetector/drmd/world/portal/gun/PortalProjector.java:83:        if(!edits.isEmpty() && !ServerBlockEdits.commitProjectorPair(world,edits,player.getUuid()).committed())return Result.CONFLICT;"
+      ],
+      "limitation": "Textual inventory, not a dynamic call graph or proof about external datapacks/mods, reflection or historical runtime."
+    }
+  },
+  "cached_vanilla_inspection": {
+    "scope": "Cached vanilla named class metadata only; no runtime BCC transformation/branch execution or producer reproduction is inferred",
+    "jar": "/workspace/ungravity-v5/ufo-body-physics/.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-20af7074aa/1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2/minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar",
+    "jar_sha256": "d3cd9f1b9d828a1844fb2996815eff0c622b572a0c5f11e70b089150df3d2ee8",
+    "mappings_path": "/workspace/.gradle/caches/fabric-loom/1.21.1/net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2/mappings.tiny",
+    "mappings_sha256": "0656f2619dc6e63f1fbfb06c2e4eaf541cec91853afb8ecd37588b229eca40f7",
+    "metadata_reader_sha256": "2179acd18d467ed00b44ce952f31b425211ba67011664597569087b203f557d5",
+    "metadata_reader_source": "\"\"\"Read cached named vanilla class metadata/call sites only; no JVM or decompiler execution.\"\"\"\nimport hashlib,json,struct,zipfile\nfrom pathlib import Path\n\n\ndef read_class(data):\n    pos=0\n    def read(n):\n        nonlocal pos\n        out=data[pos:pos+n];assert len(out)==n;pos+=n;return out\n    def u1():return read(1)[0]\n    def u2():return int.from_bytes(read(2),'big')\n    def u4():return int.from_bytes(read(4),'big')\n    assert read(4)==b'\\xca\\xfe\\xba\\xbe';minor=u2();major=u2();count=u2();cp=[None]*count;i=1\n    while i<count:\n        tag=u1()\n        if tag==1:cp[i]=(tag,read(u2()).decode('utf-8',errors='replace'))\n        elif tag in [3,4]:cp[i]=(tag,read(4))\n        elif tag in [5,6]:cp[i]=(tag,read(8));i+=1\n        elif tag in [7,8,16,19,20]:cp[i]=(tag,u2())\n        elif tag in [9,10,11,12,17,18]:cp[i]=(tag,u2(),u2())\n        elif tag==15:cp[i]=(tag,u1(),u2())\n        else:raise ValueError(tag)\n        i+=1\n    def utf(index):return cp[index][1]\n    def ref(index):\n        item=cp[index]\n        if item[0]==8:return {'string':utf(item[1])}\n        if item[0] in [9,10,11]:\n            cls=cp[item[1]][1];name,desc=cp[item[2]][1:]\n            return {'owner':utf(cls),'name':utf(name),'descriptor':utf(desc)}\n        return None\n    access=u2();this=u2();parent=u2();interfaces=[u2() for _ in range(u2())]\n    def attrs():\n        return [(utf(u2()),read(u4())) for _ in range(u2())]\n    for _ in range(u2()):read(6);attrs()\n    methods=[]\n    for _ in range(u2()):\n        flags=u2();name=utf(u2());desc=utf(u2());attributes=attrs()\n        code=next((a[1] for a in attributes if a[0]=='Code'),None)\n        if code is not None:code=code[8:8+int.from_bytes(code[4:8],'big')]\n        methods.append((name,desc,code))\n    attrs();assert pos==len(data)\n    return methods,ref\n\n\ndef instructions(code):\n    i=0\n    two=set([0x10,0x12,*range(0x15,0x1a),*range(0x36,0x3b),0xa9,0xbc])\n    three=set([0x11,0x13,0x14,0x84,*range(0x99,0xa9),*range(0xb2,0xb9),0xbb,0xbd,0xc0,0xc1,0xc6,0xc7])\n    while i<len(code):\n        op=code[i];size=2 if op in two else 3 if op in three else 4 if op==0xc5 else 5 if op in [0xb9,0xba,0xc8,0xc9] else 1\n        if op in [0xaa,0xab]:\n            start=i+1+(4-(i+1)%4)%4\n            if op==0xaa:\n                low,high=struct.unpack('>ii',code[start+4:start+12]);size=start+12+4*(high-low+1)-i\n            else:size=start+8+8*int.from_bytes(code[start+4:start+8],'big')-i\n        elif op==0xc4:size=6 if code[i+1]==0x84 else 4\n        assert size>0 and i+size<=len(code)\n        yield i,op,code[i+1:i+size]\n        i+=size\n    assert i==len(code)\n\n\nif __name__=='__main__':\n    jar=Path('/workspace/ungravity-v5/ufo-body-physics/.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-20af7074aa/1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2/minecraft-merged-20af7074aa-1.21.1-net.fabricmc.yarn.1_21_1.1.21.1+build.3-v2.jar')\n    wanted={'net/minecraft/world/chunk/WorldChunk':['loadBlockEntity','getBlockEntity','getPackedBlockEntityNbt','removeBlockEntity','setBlockState'],\n            'net/minecraft/world/chunk/ProtoChunk':['removeBlockEntity','setBlockState'],\n            'net/minecraft/world/ChunkRegion':['setBlockState'],\n            'net/minecraft/world/chunk/Chunk':['addPendingBlockEntityNbt','getBlockEntityNbt']}\n    result={}\n    with zipfile.ZipFile(jar) as z:\n        for cls,names in wanted.items():\n            raw=z.read(cls+'.class');methods,ref=read_class(raw);rows=[]\n            for name,desc,code in methods:\n                if name not in names or code is None:continue\n                calls=[]\n                for at,op,operand in instructions(code):\n                    if op in [0x12,0x13,*range(0xb2,0xba)]:\n                        index=operand[0] if op==0x12 else int.from_bytes(operand[:2],'big');value=ref(index)\n                        if value is not None:calls.append(dict(offset=at,opcode=hex(op),**value))\n                rows.append(dict(method=name,descriptor=desc,call_sites_and_string_constants=calls))\n            result[cls]=dict(class_sha256=hashlib.sha256(raw).hexdigest(),methods=rows)\n    print(json.dumps(dict(scope='Cached vanilla named class metadata only; no runtime BCC transformation/branch execution or producer reproduction is inferred',jar=str(jar),classes=result),indent=2))\n",
+    "metadata_output_sha256": "55f9511eed28f4bcca81bd734b60e26293af801841414806ef622b88e3a58821",
+    "classes": {
+      "net/minecraft/world/chunk/WorldChunk": {
+        "sha256": "5bfbd53471d125252f6aa7da10f76a97df176c11cf2cd44639c1a04669cee8c1",
+        "selected_methods": [
+          {
+            "method": "getBlockEntity",
+            "descriptor": "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/chunk/WorldChunk$CreationType;)Lnet/minecraft/block/entity/BlockEntity;",
+            "call_sites_and_string_constants": [
+              {
+                "offset": 1,
+                "opcode": "0xb4",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "blockEntities",
+                "descriptor": "Ljava/util/Map;"
+              },
+              {
+                "offset": 5,
+                "opcode": "0xb9",
+                "owner": "java/util/Map",
+                "name": "get",
+                "descriptor": "(Ljava/lang/Object;)Ljava/lang/Object;"
+              },
+              {
+                "offset": 19,
+                "opcode": "0xb4",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "blockEntityNbts",
+                "descriptor": "Ljava/util/Map;"
+              },
+              {
+                "offset": 23,
+                "opcode": "0xb9",
+                "owner": "java/util/Map",
+                "name": "remove",
+                "descriptor": "(Ljava/lang/Object;)Ljava/lang/Object;"
+              },
+              {
+                "offset": 42,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "loadBlockEntity",
+                "descriptor": "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/nbt/NbtCompound;)Lnet/minecraft/block/entity/BlockEntity;"
+              },
+              {
+                "offset": 60,
+                "opcode": "0xb2",
+                "owner": "net/minecraft/world/chunk/WorldChunk$CreationType",
+                "name": "IMMEDIATE",
+                "descriptor": "Lnet/minecraft/world/chunk/WorldChunk$CreationType;"
+              },
+              {
+                "offset": 68,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "createBlockEntity",
+                "descriptor": "(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/entity/BlockEntity;"
+              },
+              {
+                "offset": 78,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "addBlockEntity",
+                "descriptor": "(Lnet/minecraft/block/entity/BlockEntity;)V"
+              },
+              {
+                "offset": 85,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/block/entity/BlockEntity",
+                "name": "isRemoved",
+                "descriptor": "()Z"
+              },
+              {
+                "offset": 92,
+                "opcode": "0xb4",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "blockEntities",
+                "descriptor": "Ljava/util/Map;"
+              },
+              {
+                "offset": 96,
+                "opcode": "0xb9",
+                "owner": "java/util/Map",
+                "name": "remove",
+                "descriptor": "(Ljava/lang/Object;)Ljava/lang/Object;"
+              }
+            ]
+          },
+          {
+            "method": "removeBlockEntity",
+            "descriptor": "(Lnet/minecraft/util/math/BlockPos;)V",
+            "call_sites_and_string_constants": [
+              {
+                "offset": 1,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "canTickBlockEntities",
+                "descriptor": "()Z"
+              },
+              {
+                "offset": 8,
+                "opcode": "0xb4",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "blockEntities",
+                "descriptor": "Ljava/util/Map;"
+              },
+              {
+                "offset": 12,
+                "opcode": "0xb9",
+                "owner": "java/util/Map",
+                "name": "remove",
+                "descriptor": "(Ljava/lang/Object;)Ljava/lang/Object;"
+              },
+              {
+                "offset": 26,
+                "opcode": "0xb4",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "world",
+                "descriptor": "Lnet/minecraft/world/World;"
+              },
+              {
+                "offset": 48,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "removeGameEventListener",
+                "descriptor": "(Lnet/minecraft/block/entity/BlockEntity;Lnet/minecraft/server/world/ServerWorld;)V"
+              },
+              {
+                "offset": 52,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/block/entity/BlockEntity",
+                "name": "markRemoved",
+                "descriptor": "()V"
+              },
+              {
+                "offset": 57,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "removeBlockEntityTicker",
+                "descriptor": "(Lnet/minecraft/util/math/BlockPos;)V"
+              }
+            ]
+          },
+          {
+            "method": "loadBlockEntity",
+            "descriptor": "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/nbt/NbtCompound;)Lnet/minecraft/block/entity/BlockEntity;",
+            "call_sites_and_string_constants": [
+              {
+                "offset": 2,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "getBlockState",
+                "descriptor": "(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/BlockState;"
+              },
+              {
+                "offset": 7,
+                "opcode": "0x13",
+                "string": "DUMMY"
+              },
+              {
+                "offset": 11,
+                "opcode": "0x13",
+                "string": "id"
+              },
+              {
+                "offset": 14,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/nbt/NbtCompound",
+                "name": "getString",
+                "descriptor": "(Ljava/lang/String;)Ljava/lang/String;"
+              },
+              {
+                "offset": 17,
+                "opcode": "0xb6",
+                "owner": "java/lang/String",
+                "name": "equals",
+                "descriptor": "(Ljava/lang/Object;)Z"
+              },
+              {
+                "offset": 25,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/block/BlockState",
+                "name": "hasBlockEntity",
+                "descriptor": "()Z"
+              },
+              {
+                "offset": 33,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/block/BlockState",
+                "name": "getBlock",
+                "descriptor": "()Lnet/minecraft/block/Block;"
+              },
+              {
+                "offset": 42,
+                "opcode": "0xb9",
+                "owner": "net/minecraft/block/BlockEntityProvider",
+                "name": "createBlockEntity",
+                "descriptor": "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Lnet/minecraft/block/entity/BlockEntity;"
+              },
+              {
+                "offset": 53,
+                "opcode": "0xb2",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "LOGGER",
+                "descriptor": "Lorg/slf4j/Logger;"
+              },
+              {
+                "offset": 56,
+                "opcode": "0x13",
+                "string": "Tried to load a DUMMY block entity @ {} but found not block entity block {} at location"
+              },
+              {
+                "offset": 62,
+                "opcode": "0xb9",
+                "owner": "org/slf4j/Logger",
+                "name": "warn",
+                "descriptor": "(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V"
+              },
+              {
+                "offset": 75,
+                "opcode": "0xb4",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "world",
+                "descriptor": "Lnet/minecraft/world/World;"
+              },
+              {
+                "offset": 78,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/World",
+                "name": "getRegistryManager",
+                "descriptor": "()Lnet/minecraft/registry/DynamicRegistryManager;"
+              },
+              {
+                "offset": 81,
+                "opcode": "0xb8",
+                "owner": "net/minecraft/block/entity/BlockEntity",
+                "name": "createFromNbt",
+                "descriptor": "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/nbt/NbtCompound;Lnet/minecraft/registry/RegistryWrapper$WrapperLookup;)Lnet/minecraft/block/entity/BlockEntity;"
+              },
+              {
+                "offset": 91,
+                "opcode": "0xb4",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "world",
+                "descriptor": "Lnet/minecraft/world/World;"
+              },
+              {
+                "offset": 94,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/block/entity/BlockEntity",
+                "name": "setWorld",
+                "descriptor": "(Lnet/minecraft/world/World;)V"
+              },
+              {
+                "offset": 99,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "addBlockEntity",
+                "descriptor": "(Lnet/minecraft/block/entity/BlockEntity;)V"
+              },
+              {
+                "offset": 105,
+                "opcode": "0xb2",
+                "owner": "net/minecraft/world/chunk/WorldChunk",
+                "name": "LOGGER",
+                "descriptor": "Lorg/slf4j/Logger;"
+              },
+              {
+                "offset": 108,
+                "opcode": "0x13",
+                "string": "Tried to load a block entity for block {} but failed at location {}"
+              },
+              {
+                "offset": 114,
+                "opcode": "0xb9",
+                "owner": "org/slf4j/Logger",
+                "name": "warn",
+                "descriptor": "(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V"
+              }
+            ]
+          }
+        ]
+      },
+      "net/minecraft/world/chunk/ProtoChunk": {
+        "sha256": "3971f8530da746e01634ba19f97bfac64a80e70445325b291bf1ab0a801808b5",
+        "selected_methods": [
+          {
+            "method": "removeBlockEntity",
+            "descriptor": "(Lnet/minecraft/util/math/BlockPos;)V",
+            "call_sites_and_string_constants": [
+              {
+                "offset": 1,
+                "opcode": "0xb4",
+                "owner": "net/minecraft/world/chunk/ProtoChunk",
+                "name": "blockEntities",
+                "descriptor": "Ljava/util/Map;"
+              },
+              {
+                "offset": 5,
+                "opcode": "0xb9",
+                "owner": "java/util/Map",
+                "name": "remove",
+                "descriptor": "(Ljava/lang/Object;)Ljava/lang/Object;"
+              },
+              {
+                "offset": 12,
+                "opcode": "0xb4",
+                "owner": "net/minecraft/world/chunk/ProtoChunk",
+                "name": "blockEntityNbts",
+                "descriptor": "Ljava/util/Map;"
+              },
+              {
+                "offset": 16,
+                "opcode": "0xb9",
+                "owner": "java/util/Map",
+                "name": "remove",
+                "descriptor": "(Ljava/lang/Object;)Ljava/lang/Object;"
+              }
+            ]
+          }
+        ]
+      },
+      "net/minecraft/world/ChunkRegion": {
+        "sha256": "014ecb51c9238149385c4e76a6a52d4c5f09423f23f92314cb7d8b1a13a61973",
+        "selected_methods": [
+          {
+            "method": "setBlockState",
+            "descriptor": "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;II)Z",
+            "call_sites_and_string_constants": [
+              {
+                "offset": 2,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/ChunkRegion",
+                "name": "isValidForSetBlock",
+                "descriptor": "(Lnet/minecraft/util/math/BlockPos;)Z"
+              },
+              {
+                "offset": 12,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/ChunkRegion",
+                "name": "getChunk",
+                "descriptor": "(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/world/chunk/Chunk;"
+              },
+              {
+                "offset": 22,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/Chunk",
+                "name": "setBlockState",
+                "descriptor": "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Z)Lnet/minecraft/block/BlockState;"
+              },
+              {
+                "offset": 33,
+                "opcode": "0xb4",
+                "owner": "net/minecraft/world/ChunkRegion",
+                "name": "world",
+                "descriptor": "Lnet/minecraft/server/world/ServerWorld;"
+              },
+              {
+                "offset": 40,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/server/world/ServerWorld",
+                "name": "onBlockChanged",
+                "descriptor": "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/block/BlockState;)V"
+              },
+              {
+                "offset": 44,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/block/BlockState",
+                "name": "hasBlockEntity",
+                "descriptor": "()Z"
+              },
+              {
+                "offset": 52,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/Chunk",
+                "name": "getStatus",
+                "descriptor": "()Lnet/minecraft/world/chunk/ChunkStatus;"
+              },
+              {
+                "offset": 55,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/ChunkStatus",
+                "name": "getChunkType",
+                "descriptor": "()Lnet/minecraft/world/chunk/ChunkType;"
+              },
+              {
+                "offset": 58,
+                "opcode": "0xb2",
+                "owner": "net/minecraft/world/chunk/ChunkType",
+                "name": "LEVELCHUNK",
+                "descriptor": "Lnet/minecraft/world/chunk/ChunkType;"
+              },
+              {
+                "offset": 65,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/block/BlockState",
+                "name": "getBlock",
+                "descriptor": "()Lnet/minecraft/block/Block;"
+              },
+              {
+                "offset": 73,
+                "opcode": "0xb9",
+                "owner": "net/minecraft/block/BlockEntityProvider",
+                "name": "createBlockEntity",
+                "descriptor": "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;)Lnet/minecraft/block/entity/BlockEntity;"
+              },
+              {
+                "offset": 89,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/Chunk",
+                "name": "setBlockEntity",
+                "descriptor": "(Lnet/minecraft/block/entity/BlockEntity;)V"
+              },
+              {
+                "offset": 98,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/Chunk",
+                "name": "removeBlockEntity",
+                "descriptor": "(Lnet/minecraft/util/math/BlockPos;)V"
+              },
+              {
+                "offset": 108,
+                "opcode": "0xb7",
+                "owner": "net/minecraft/nbt/NbtCompound",
+                "name": "<init>",
+                "descriptor": "()V"
+              },
+              {
+                "offset": 115,
+                "opcode": "0x13",
+                "string": "x"
+              },
+              {
+                "offset": 119,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/util/math/BlockPos",
+                "name": "getX",
+                "descriptor": "()I"
+              },
+              {
+                "offset": 122,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/nbt/NbtCompound",
+                "name": "putInt",
+                "descriptor": "(Ljava/lang/String;I)V"
+              },
+              {
+                "offset": 127,
+                "opcode": "0x13",
+                "string": "y"
+              },
+              {
+                "offset": 131,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/util/math/BlockPos",
+                "name": "getY",
+                "descriptor": "()I"
+              },
+              {
+                "offset": 134,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/nbt/NbtCompound",
+                "name": "putInt",
+                "descriptor": "(Ljava/lang/String;I)V"
+              },
+              {
+                "offset": 139,
+                "opcode": "0x13",
+                "string": "z"
+              },
+              {
+                "offset": 143,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/util/math/BlockPos",
+                "name": "getZ",
+                "descriptor": "()I"
+              },
+              {
+                "offset": 146,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/nbt/NbtCompound",
+                "name": "putInt",
+                "descriptor": "(Ljava/lang/String;I)V"
+              },
+              {
+                "offset": 151,
+                "opcode": "0x13",
+                "string": "id"
+              },
+              {
+                "offset": 154,
+                "opcode": "0x13",
+                "string": "DUMMY"
+              },
+              {
+                "offset": 157,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/nbt/NbtCompound",
+                "name": "putString",
+                "descriptor": "(Ljava/lang/String;Ljava/lang/String;)V"
+              },
+              {
+                "offset": 164,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/Chunk",
+                "name": "addPendingBlockEntityNbt",
+                "descriptor": "(Lnet/minecraft/nbt/NbtCompound;)V"
+              },
+              {
+                "offset": 177,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/block/BlockState",
+                "name": "hasBlockEntity",
+                "descriptor": "()Z"
+              },
+              {
+                "offset": 186,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/chunk/Chunk",
+                "name": "removeBlockEntity",
+                "descriptor": "(Lnet/minecraft/util/math/BlockPos;)V"
+              },
+              {
+                "offset": 192,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/block/BlockState",
+                "name": "shouldPostProcess",
+                "descriptor": "(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;)Z"
+              },
+              {
+                "offset": 200,
+                "opcode": "0xb6",
+                "owner": "net/minecraft/world/ChunkRegion",
+                "name": "markBlockForPostProcessing",
+                "descriptor": "(Lnet/minecraft/util/math/BlockPos;)V"
+              }
+            ]
+          }
+        ]
+      },
+      "net/minecraft/world/chunk/Chunk": {
+        "sha256": "a5cc9aa02730c64e01a609a4c03f090fcd1961a34e9cd6e40ab86f3974718333",
+        "selected_methods": []
+      }
+    },
+    "stack_mapping_notes": [
+      "class_2586 method_61175 => net/minecraft/block/entity/BlockEntity validateSupports",
+      "class_2586 method_17899 => net/minecraft/block/entity/BlockEntity method_17899",
+      "class_2586 method_11005 => net/minecraft/block/entity/BlockEntity createFromNbt",
+      "class_2818 method_12204 => net/minecraft/world/chunk/WorldChunk loadBlockEntity",
+      "class_2818 method_12201 => net/minecraft/world/chunk/WorldChunk getBlockEntity",
+      "class_2818 method_8321 => net/minecraft/world/chunk/WorldChunk unique global method ID getBlockEntity",
+      "class_2818 method_20598 => net/minecraft/world/chunk/WorldChunk unique global method ID getPackedBlockEntityNbt",
+      "class_2852 method_12410 => net/minecraft/world/ChunkSerializer serialize",
+      "class_3898 method_17228 => net/minecraft/server/world/ServerChunkLoadingManager save",
+      "class_3898 method_39925 => net/minecraft/server/world/ServerChunkLoadingManager save",
+      "class_3898 method_17242 => net/minecraft/server/world/ServerChunkLoadingManager save",
+      "class_3215 method_17298 => net/minecraft/server/world/ServerChunkManager save",
+      "class_3218 method_14176 => net/minecraft/server/world/ServerWorld save"
+    ],
+    "findings": [
+      "ChunkRegion.setBlockState contains literal id DUMMY and a call to Chunk.addPendingBlockEntityNbt: vanilla deferred placeholder, not a missing custom registered type.",
+      "WorldChunk.loadBlockEntity contains the exact DUMMY warning and ordinary BlockEntity.createFromNbt branch.",
+      "WorldChunk.getBlockEntity(pos,CreationType) calls pending-map remove at bytecode offset23 and loadBlockEntity42, before CreationType.IMMEDIATE read60; CHECK does not forbid pending-NBT materialization.",
+      "WorldChunk.removeBlockEntity method body removes materialized map/ticker but has no pending-map field access; ProtoChunk.removeBlockEntity touches both. Caller/callback/backend ordering remains essential; no current mod fault inferred."
+    ],
+    "runtime_bcc_transformation_inspected": false,
+    "producer_reproduced": false
+  },
+  "reproduction_contract": {
+    "status": "PROPOSED, NOT IMPLEMENTED OR RUN",
+    "owner_consultation": "world_cubic owns world/backend routing; audit_integration supplies read-only forensic findings; central ownership ledger untouched.",
+    "missing_original_inputs": [
+      "Exact audit.4 source and installed JAR hash",
+      "Original seed and affected world/cell NBT before hydration",
+      "Actual writer stack/job before first state/NBT mismatch"
+    ],
+    "fixture": [
+      "Create a disposable, copied test world with a declared seed/backend; capture exact source, main/observer JAR and mod hashes.",
+      "Obtain valid block state + pending DUMMY and real vanilla spawner-NBT pairs through actual ProtoChunk/ChunkRegion generation before BE materialization, rather than injecting invalid pairs up front.",
+      "Invoke the actual registered/current writer path and narrow separately reachable manual entrypoints; legacy runtime only if exact old artifact is available. Do not re-enable retired generation in production.",
+      "Observe pending-NBT additions/removals, old/new state and first incompatible transition using test-only non-mutating raw pending-map/NBT observation. Do not preflight through getBlockEntity(CHECK), which can consume/hydrate pending data.",
+      "Record world/cube availability and ChunkStatus, position, thread, writer stack/job, old/new BlockState, raw NBT id/type/position, save/hydration ordering, and first warning.",
+      "Use normal vanilla/no-writer and guarded ServerBlockEdits controls; invalid-NBT injection is a diagnostic control only. Save, close and reopen disposable world, checking exact ownership, content and no duplicates.",
+      "Keep stock and real native cubic runs separate. Preserve first failure and original log/save; never repair or drop pending NBT to make the warning disappear."
+    ],
+    "acceptance_boundary": "A rejecting wrong-type API test or warning-free unrelated session cannot identify the historical producer, establish lazy-NBT lifecycle safety, or close S01-T05."
+  },
+  "build_receipt_script_sha256": "a625b0b393c6689166cd1b0bca2061b762436bda6b6943eeadbde0a4570d13ac",
+  "receipt_validator": {
+    "source": "\"\"\"Read-only cross-check of the evidence draft against its pinned inputs.\"\"\"\nimport collections\nimport datetime as dt\nimport gzip\nimport hashlib\nimport importlib.util\nimport json\nfrom pathlib import Path\nimport re\nimport subprocess\nimport zipfile\n\nROOT = Path(__file__).resolve().parents[2]\nP = ROOT / \"docs/v8/BLOCK_ENTITY_FORENSICS_2026-11-17.json\"\nv = json.loads(P.read_text())\npassed = []\n\n\ndef check(name, condition):\n    if not condition:\n        raise AssertionError(name)\n    passed.append(name)\n\n\ndef sha(raw):\n    return hashlib.sha256(raw).hexdigest()\n\n\ndef blob(path):\n    return subprocess.check_output([\"git\", \"show\", v[\"source_revision\"]+\":\"+path], cwd=ROOT)\n\n\ncheck(\"Pinned revision\", v[\"source_revision\"] == \"bfbcee6696ae019152846fe3f0e71910ccd1c481\")\ncheck(\"Read-only non-acceptance scope\", v[\"scope\"] == {\"read_only\": True, \"java_or_minecraft_executed\": False,\n    \"production_source_changed\": False, \"world_or_nbt_changed\": False, \"factory_inventory_is_runtime_acceptance\":False,\"current_task_promoted\":False})\ncheck(\"Embedded receipt validator bytes\", v[\"receipt_validator\"][\"source\"] == Path(__file__).read_text() and\n    v[\"receipt_validator\"][\"sha256\"] == sha(Path(__file__).read_bytes()))\narchive = v[\"primary_archive\"]\nraw = Path(archive[\"path\"]).read_bytes()\ncheck(\"Original ZIP hash and bytes\", (sha(raw),len(raw)) == (archive[\"sha256\"],archive[\"bytes\"]))\ngroups = collections.defaultdict(list)\nwith zipfile.ZipFile(archive[\"path\"]) as z:\n    check(\"Original ZIP all CRC and count\", z.testzip() is None and len(z.infolist()) == archive[\"members\"] == 44)\n    for row in v[\"historical_logs\"]:\n        raw = z.read(row[\"archive_member\"])\n        plain = gzip.decompress(raw) if row[\"archive_member\"].endswith(\".gz\") else raw\n        lines = plain.decode().splitlines()\n        check(\"Raw/decompressed identity: \"+row[\"archive_member\"],\n              (sha(raw),len(raw),sha(plain),len(plain),len(lines)) == (row[\"raw_sha256\"],row[\"raw_bytes\"],row[\"uncompressed_sha256\"],row[\"uncompressed_bytes\"],row[\"line_count\"]))\n        groups[sha(plain)].append(row[\"archive_member\"])\n        event_lines = [i for i,line in enumerate(lines,1) if \"Tried to load a DUMMY block entity @\" in line]\n        check(\"Complete event-line set: \"+row[\"archive_member\"], event_lines == [e[\"line\"] for e in row[\"dummy_events\"]])\n        positions=[]\n        states=[]\n        for event in row[\"dummy_events\"]:\n            line = lines[event[\"line\"]-1]\n            coordinates = re.search(r\"\\{x=(-?\\d+), y=(-?\\d+), z=(-?\\d+)\\}\", line)\n            coords = tuple(map(int,coordinates.groups()))\n            state = re.search(r\"Block\\{([^}]+)\\}\",line).group(1)\n            check(\"Exact event \"+row[\"archive_member\"]+\":\"+str(event[\"line\"]),\n                  coords == (event[\"x\"],event[\"y\"],event[\"z\"]) and line[1:9] == event[\"time\"] and state == event[\"state\"])\n            positions.append(coords)\n            states.append(state)\n        check(\"Count/uniqueness/states/depth: \"+row[\"archive_member\"],\n            (len(positions),len(set(positions)),dict(collections.Counter(states)),min((p[1] for p in positions),default=None),max((p[1] for p in positions),default=None)) ==\n            (row[\"dummy_count\"],row[\"dummy_unique_positions\"],row[\"dummy_block_counts\"],row[\"dummy_y_min\"],row[\"dummy_y_max\"]))\n        stalls = [tuple(map(int,m.groups())) for line in lines if (m:=re.search(r\"Running (\\d+)ms or (\\d+) ticks behind\",line))]\n        check(\"Reported lag arithmetic: \"+row[\"archive_member\"], (len(stalls),max((x[0] for x in stalls),default=None),max((x[1] for x in stalls),default=None)) ==\n              (row[\"stall_count\"],row[\"max_reported_stall_ms\"],row[\"max_reported_stall_ticks\"]))\n        for fragment in row.get(\"selected_primary_excerpts\",[]):\n            check(\"Original excerpt: \"+fragment[\"purpose\"], all(lines[x[\"line\"]-1] == x[\"text\"] for x in fragment[\"lines\"]))\ncheck(\"No duplicate-session promotion\", sorted((h,sorted(ns)) for h,ns in groups.items() if len(ns)>1) ==\n      sorted((r[\"sha256\"],sorted(r[\"members\"])) for r in v[\"duplicate_uncompressed_log_groups\"]))\nunique = {r[\"uncompressed_sha256\"]:r for r in v[\"historical_logs\"]}\ncheck(\"133 distinct-log warnings\", sum(r[\"dummy_count\"] for r in unique.values()) == 133)\n\nfor path,receipt in v[\"source_files\"].items():\n    raw = blob(path)\n    blob_id = subprocess.check_output([\"git\",\"rev-parse\",v[\"source_revision\"]+\":\"+path],cwd=ROOT).decode().strip()\n    check(\"Immutable source file: \"+path, (sha(raw),len(raw),blob_id) == (receipt[\"sha256\"],receipt[\"bytes\"],receipt[\"git_blob\"]))\nall_anchors = list(v[\"source_anchors\"])\nregistry = blob(\"src/main/java/com/terminaldetector/drmd/entity/ModBlockEntities.java\").decode()\ncheck(\"Exactly seven registered custom chains\", len(v[\"factory_inventory\"]) == registry.count(\"BlockEntityType.Builder.create(\") == 7)\nfor factory in v[\"factory_inventory\"]:\n    all_anchors.extend((factory[\"provider\"],factory[\"constructor\"]))\n    pattern = r\"\\b\"+factory[\"registry_field\"]+r\"\\s*=\\s*Registry.register\\(.*?BlockEntityType.Builder.create\\(\\s*(?:[\\w]+\\.)*\"+factory[\"factory_class\"]+r\"::new,\\s*\"+re.escape(factory[\"allowed_block_field\"])+r\"\\)\"\n    check(\"Actual matching factory/allowed block: \"+factory[\"registry_field\"], re.search(pattern,registry,re.S) is not None)\nfor anchor in all_anchors:\n    lines=blob(anchor[\"path\"]).decode().splitlines()\n    check(\"Pinned excerpt: \"+anchor[\"path\"]+\":\"+str(anchor[\"first_line\"]),\n          [x[\"line\"] for x in anchor[\"excerpt\"]] == list(range(anchor[\"first_line\"],anchor[\"last_line\"]+1)) and\n          all(lines[x[\"line\"]-1] == x[\"text\"] for x in anchor[\"excerpt\"]))\nfor name,query in v[\"text_queries\"].items():\n    result=subprocess.run([\"git\",\"grep\",\"-n\",\"-E\",query[\"regex\"],v[\"source_revision\"],\"--\",\"src/main\"],cwd=ROOT,capture_output=True)\n    check(\"Bounded query: \"+name, result.returncode in (0,1) and result.stdout.decode().splitlines()==query[\"matching_lines\"])\n\nmeta=v[\"cached_vanilla_inspection\"]\ncheck(\"Vanilla artifact binding\", sha(Path(meta[\"jar\"]).read_bytes()) == meta[\"jar_sha256\"])\ncheck(\"Yarn binding\", sha(Path(meta[\"mappings_path\"]).read_bytes()) == meta[\"mappings_sha256\"])\nreader_path=ROOT / \"work/be-forensics/class_summary.py\"\ncheck(\"Embedded metadata reader bytes\", reader_path.read_text() == meta[\"metadata_reader_source\"] and sha(reader_path.read_bytes())==meta[\"metadata_reader_sha256\"])\nspec=importlib.util.spec_from_file_location(\"cached_class_reader\",reader_path)\nmodule=importlib.util.module_from_spec(spec)\nspec.loader.exec_module(module)\nwith zipfile.ZipFile(meta[\"jar\"]) as z:\n    for name,expected in meta[\"classes\"].items():\n        raw=z.read(name+\".class\")\n        check(\"Cached class hash: \"+name,sha(raw)==expected[\"sha256\"])\n        methods,ref=module.read_class(raw)\n        for selected in expected[\"selected_methods\"]:\n            code=next(code for method,descriptor,code in methods if (method,descriptor)==(selected[\"method\"],selected[\"descriptor\"]))\n            observed=[]\n            for offset,op,operand in module.instructions(code):\n                if op in [0x12,0x13,*range(0xb2,0xba)]:\n                    index=operand[0] if op==0x12 else int.from_bytes(operand[:2],'big')\n                    value=ref(index)\n                    if value is not None:observed.append(dict(offset=offset,opcode=hex(op),**value))\n            check(\"Fresh cached-method metadata: \"+name+\".\"+selected[\"method\"]+selected[\"descriptor\"], observed==selected[\"call_sites_and_string_constants\"])\n\nfor later in v[\"later_logs_not_acceptance\"]:\n    raw=Path(later[\"path\"]).read_bytes();lines=raw.decode().splitlines()\n    check(\"Later log receipt, not closure: \"+later[\"path\"], sha(raw)==later[\"sha256\"] and len(lines)==later[\"line_count\"] and\n        sum(\"Tried to load a DUMMY block entity @\" in line for line in lines)==later[\"dummy_warning_count\"] and\n        sum(\"Invalid block entity\" in line or \"Failed to create block entity\" in line for line in lines)==later[\"invalid_be_error_count\"] and later[\"acceptance\"] is False)\n\nresult={\"status\":\"PASS\",\"scope\":\"Evidence bindings/arithmetic only; no Java/Minecraft/gameplay/performance or S01-T05 acceptance\", \"checked_utc\":dt.datetime.now(dt.timezone.utc).isoformat(),\n        \"source_revision\":v[\"source_revision\"],\"receipt_sha256\":sha(P.read_bytes()),\"receipt_bytes\":P.stat().st_size,\n        \"checker_sha256\":sha(Path(__file__).read_bytes()),\"check_count\":len(passed),\"checks\":passed}\nout=ROOT / \"work/be-forensics/receipt-verification.json\"\nout.write_text(json.dumps(result,indent=2)+\"\\n\")\nprint(json.dumps({key:result[key] for key in (\"status\",\"scope\",\"source_revision\",\"receipt_sha256\",\"receipt_bytes\",\"check_count\")},indent=2))\n",
+    "sha256": "da0a8ceafc8b91049cf94fad40615c110dee04f5ee9aebbba52fcbdcecc021c9",
+    "scope": "Re-read original ZIP/log data, pinned source blobs and cached class metadata. Does not execute Java or Minecraft.",
+    "local_path": "work/be-forensics/verify_forensics_receipt.py",
+    "limitation": "Original archives, cached vanilla JAR and pinned Git objects must remain available at recorded paths; unavailable inputs are not a pass."
+  }
+}
