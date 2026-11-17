@@ -202,4 +202,49 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
             c.assertTrue(c.getWorld().getChunkManager().getWorldChunk(p.getX()>>4,p.getZ()>>4)==null&&!accepted&&!GravyPhysics.isHolding(r.player),"failed real rail use cannot synchronously generate unknown terrain while looking for a target");r.complete();
         });
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="gravity-item-empty-fling",tickLimit=150)
+    public void allThreeHeldItemsRetainTheirTargetsOnEmptyFlingAndRetryAfterRefill(TestContext c){
+        admitted(c,1800,new Vec3d(0,0,1),r->checkEmptyFling(r,0));
+    }
+    private void checkEmptyFling(Rig r,int index){
+        if(index==3){r.complete();return;}
+        var c=r.c;var mode=List.of(GravyPhysics.Mode.SWARM,GravyPhysics.Mode.RAIL,GravyPhysics.Mode.SHIFT).get(index);
+        Item item=switch(mode){case SWARM->ModItems.GRAVITY_SWARM;case RAIL->ModItems.GRAVY_RAILGUN;case SHIFT->ModItems.GRAVITY_SHIFTER;};
+        var owned=new ArrayList<BlockBodyEntity>();var centre=r.player.getEyePos().add(r.aim().multiply(mode==GravyPhysics.Mode.RAIL?12:8));
+        if(mode==GravyPhysics.Mode.SWARM){
+            for(int x:new int[]{-1,1})for(int y:new int[]{-1,1})owned.add(r.body(centre.add(x*1.2,y*1.2,0),1,1,1));
+        }else owned.add(mode==GravyPhysics.Mode.RAIL?r.body(centre,5,5,4):r.body(centre,1,1,1));
+        var ids=owned.stream().map(r::field).toList();var data=DescentPlayerData.get(r.player);data.setGravyEnergy(100);
+        c.assertTrue(r.use(item,true)&&GravyPhysics.activeMode(r.player).orElse(null)==mode&&GravyPhysics.heldCount(r.player)==owned.size(),"actual funded capture precedes empty-fling input for "+mode);
+        double mass=GravyPhysics.heldMass(r.player);
+        r.later(8,()->{
+            c.assertTrue(GravyPhysics.activeMode(r.player).orElse(null)==mode&&GravyPhysics.heldCount(r.player)==owned.size()&&Math.abs(GravyPhysics.heldMass(r.player)-mass)<1e-5,"ordinary held state survives eight normal world ticks for "+mode);
+            c.assertTrue(owned.stream().allMatch(b->b.age>=5&&c.getWorld().getEntity(b.getUuid())==b&&b.isAlive()),"same registered targets actually tick before the empty fling for "+mode);
+            var stack=r.player.getMainHandStack();var custom=stack.get(net.minecraft.component.DataComponentTypes.CUSTOM_DATA);
+            long last=custom==null?0:custom.copyNbt().getLong("lastFire");
+            int cooldown=Math.max(1,(int)(((DescentWeaponItem)item).getDef().fireRate*20));
+            c.assertTrue(custom!=null&&c.getWorld().getTime()-last>=cooldown,"persisted use cooldown has elapsed before testing capacitor rejection for "+mode);
+            float managerCooldown=r.player.getItemCooldownManager().getCooldownProgress(item,0);
+            var velocities=owned.stream().map(BlockBodyEntity::physicsVelocity).toList();
+            data.setGravyEnergy(0); // Explicit negative input after a real, still-active capture.
+            c.assertTrue(!r.use(item,false),"empty capacitor rejects the actual held-item fling for "+mode+": "+r.state(owned.getFirst()));
+            c.assertTrue(GravyPhysics.activeMode(r.player).orElse(null)==mode&&GravyPhysics.heldCount(r.player)==owned.size()&&Math.abs(GravyPhysics.heldMass(r.player)-mass)<1e-5,"rejected fling retains its original mode/count/mass for "+mode);
+            for(int i=0;i<owned.size();i++){
+                var body=owned.get(i);
+                c.assertTrue(c.getWorld().getEntity(body.getUuid())==body&&body.isAlive()&&body.physicsVelocity().squaredDistanceTo(velocities.get(i))<1e-12,"rejected fling preserves actual target identity and immediate physical velocity for "+mode);
+            }
+            var after=stack.get(net.minecraft.component.DataComponentTypes.CUSTOM_DATA);
+            c.assertTrue(data.getGravyEnergy()==0&&r.player.getMainHandStack()==stack&&after!=null&&after.copyNbt().getLong("lastFire")==last&&r.player.getItemCooldownManager().getCooldownProgress(item,0)==managerCooldown,"rejection neither spends energy nor restamps either cooldown for "+mode);
+            c.assertTrue(ids.stream().allMatch(id->TransientGravityFields.remainingTicks(id)==0)&&GravityFields.all().stream().noneMatch(f->ids.contains(f.id())),"rejected fling creates no field on any owned target for "+mode);
+            data.setGravyEnergy(100);
+            c.assertTrue(r.use(item,false)&&!GravyPhysics.isHolding(r.player),"refill permits an immediate actual retry, without another cooldown wait, for "+mode);
+            float cost=switch(mode){case SWARM->10;case RAIL->12;case SHIFT->18;};
+            c.assertTrue(Math.abs(data.getGravyEnergy()-(100-cost))<1e-5,"only the successful retry debits one launch cost for "+mode);
+            c.assertTrue(owned.stream().allMatch(b->c.getWorld().getEntity(b.getUuid())==b&&Double.isFinite(b.physicsVelocity().lengthSquared())&&b.physicsVelocity().dotProduct(r.aim())>24),"successful retry launches every original target rather than recapturing substitutes for "+mode);
+            if(mode==GravyPhysics.Mode.SHIFT)c.assertTrue(ids.stream().allMatch(id->TransientGravityFields.remainingTicks(id)==160),"only the successful shifter retry attaches its field");
+            DescentMod.LOGGER.info("[gravity-item empty-fling] mode={} targets={} preservedMass={} retryEnergy={} state={}",mode,owned.size(),mass,data.getGravyEnergy(),r.state(owned.getFirst()));
+            ids.forEach(TransientGravityFields::remove);owned.forEach(BlockBodyEntity::discard);
+            r.later(1,()->checkEmptyFling(r,index+1));
+        });
+    }
 }
