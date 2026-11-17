@@ -19,6 +19,14 @@ Observer SHA-256: `da6789f14f2076918ed9fdc0a18064b5e042637bc6a5dbe2e9005c6c7afb4
 The actual staged files in both clients match these hashes and pass ZIP CRC checks.
 Later documentation commits do not change the tested source or artifact identity.
 
+Subsequent inspection of this exact archived full-run `level.dat` confirms that
+the vanilla TestServer enabled all discoverable packs, including
+`drmd:advanced_column`, with no disabled packs. The full 404-case result therefore
+uses the stock backend with that registry profile; it does **not** verify default
+Vanilla vertical bounds. [Actual saved profile metadata](EVIDENCE/integrated-699b749-world-profile.json)
+is retained separately without altering the original evidence archive. A dedicated
+ordinary-profile surface test must select its packs before registry loading.
+
 `ps1-viewmodel-integrated-699b749-sodium` exits zero and completes the six profile
 transitions without a world reload. Both pure-world nearest-grid ratios are 1.0;
 the HUD witness remains one physical pixel, the mirror contains eight merged panes,

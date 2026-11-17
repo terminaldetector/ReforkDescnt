@@ -1,0 +1,77 @@
+{
+  "source": "699b749045edde2722f0ae9685b2a3674c1a1041",
+  "archive": "work/ufo-body/closed-integrated-699b749.zip",
+  "levelDatSha256": "e1f875e12c489fd4ef90f4251b90b3084119cb5b667824e39bb2e1ad2f1d4bb5",
+  "dataPacks": {
+    "Disabled": [],
+    "Enabled": [
+      "bundle",
+      "trade_rebalance",
+      "vanilla",
+      "drmd",
+      "drmd:advanced_column",
+      "drmd_gametest",
+      "fabric",
+      "fabric-convention-tags-v2",
+      "fabric-gametest-api-v1"
+    ]
+  },
+  "enabledFeatures": [
+    "minecraft:bundle",
+    "minecraft:vanilla",
+    "minecraft:trade_rebalance"
+  ],
+  "dimensions": {
+    "minecraft:overworld": {
+      "generator": {
+        "settings": {
+          "features": 0,
+          "biome": "minecraft:plains",
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 2
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": [
+            "minecraft:strongholds",
+            "minecraft:villages"
+          ],
+          "lakes": 0
+        },
+        "type": "minecraft:flat"
+      },
+      "type": "minecraft:overworld"
+    },
+    "minecraft:the_nether": {
+      "generator": {
+        "settings": "minecraft:nether",
+        "biome_source": {
+          "preset": "minecraft:nether",
+          "type": "minecraft:multi_noise"
+        },
+        "type": "minecraft:noise"
+      },
+      "type": "minecraft:the_nether"
+    },
+    "minecraft:the_end": {
+      "generator": {
+        "settings": "minecraft:end",
+        "biome_source": {
+          "type": "minecraft:the_end"
+        },
+        "type": "minecraft:noise"
+      },
+      "type": "minecraft:the_end"
+    }
+  },
+  "scope": "Actual preserved ordinary full-run registry/profile metadata; a stock backend does not imply default vanilla vertical bounds."
+}

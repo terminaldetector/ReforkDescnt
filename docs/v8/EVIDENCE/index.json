@@ -61,7 +61,8 @@
     "integrated-5839062.zip": "63ed8bd756d61d89dd2aabea50f9b6c56aa112c1caff6dcd6cc10e392b14b1b7",
     "ps1-target-703ea85.zip": "a9617e1d7bc36ec7889a8ccf0c26b37ed834531f02e327420270cd0372aea38b",
     "ragdoll-field-strength-9c5b6e1.zip": "83fbfb188ca0c4f9861a25af6ec63a54cb5eff87033e2ea52d8f8d726ff321b8",
-    "integrated-699b749.zip": "4412ea6da9b281bc1da36e4c43a1c90b2efc77d88f2a18d725b9681c0215e324"
+    "integrated-699b749.zip": "4412ea6da9b281bc1da36e4c43a1c90b2efc77d88f2a18d725b9681c0215e324",
+    "integrated-699b749-world-profile.json": "344fc8ce919bc332a533b1f9492411e4de894d06ee83966343455dbcac4bfa1f"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -2988,6 +2989,11 @@
       }
     ],
     "scope": "Exact combined source; complete ordinary stock Fabric server suite; same-JAR real BCC/Sodium GL3.3 software-Mesa clients. Twenty-eight saved PNGs include intermediate viewmodel stages. No full specification, physical GPU, performance, full Fabulous or release acceptance.",
-    "releaseAccepted": false
+    "releaseAccepted": false,
+    "ordinaryServerProfile": {
+      "metadata": "docs/v8/EVIDENCE/integrated-699b749-world-profile.json",
+      "legacyAdvancedPackEnabled": true,
+      "defaultVanillaVerticalBoundsAccepted": false
+    }
   }
 }
