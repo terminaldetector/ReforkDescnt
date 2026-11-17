@@ -72,7 +72,7 @@ public final class NativeGravityInputRouteCheck {
     private static final ArrayDeque<UiClick> uiPlan=new ArrayDeque<>();
     private static Step step=Step.BOOTSTRAP;
     private static int scene,clientTicks,uiStage,captureFrames;
-    private static long registeredAt,globalStart,entered,limit,transactionSequence,energyStart,energyWaitTicks;
+    private static long registeredAt,globalStart,entered,limit,transactionSequence,throwPulseSequence,energyStart,energyWaitTicks;
     private static boolean started,selectedSent,fixtureRequested,retireRequested,toggleSent,finished,uiPlanned;
     private static String failure,captureName;
     private static long failedAt,uiClickCount;
@@ -80,6 +80,7 @@ public final class NativeGravityInputRouteCheck {
     private static int pressedAt;
     private static UiClick pendingClick;
     private static GravityInputRouteTrace.Use captureUse,throwUse;
+    private static GravityInputRouteTrace.Pulse captureRelease,throwRelease;
     private static double holdTravel;
     private NativeGravityInputRouteCheck(){}
 
@@ -154,7 +155,7 @@ public final class NativeGravityInputRouteCheck {
         owned=List.of();GravityInputRouteTrace.targets(List.of());retiredScene=phase;
     }
     private static void beginScene(){
-        GravityInputRouteTrace.scene(scene);selectedSent=fixtureRequested=retireRequested=toggleSent=uiPlanned=false;uiStage=0;pendingClick=null;uiPlan.clear();captureUse=throwUse=null;holdTravel=0;captureName=null;
+        GravityInputRouteTrace.scene(scene);selectedSent=fixtureRequested=retireRequested=toggleSent=uiPlanned=false;uiStage=0;pendingClick=null;uiPlan.clear();captureUse=throwUse=null;captureRelease=throwRelease=null;throwPulseSequence=-1;holdTravel=0;captureName=null;
         enter(scene==3?Step.TOGGLE:Step.SELECT,scene==3?MODE:SELECT);
     }
     private static String clientSlot(HandledScreen<?> screen,int slot){return item(screen.getScreenHandler().getSlot(slot).getStack());}
@@ -217,6 +218,7 @@ public final class NativeGravityInputRouteCheck {
     }
     private static boolean validateUse(MinecraftClient client,GravityInputRouteTrace.Use use,boolean capturing){
         var cfg=current();
+        if(!require(client,GravityInputRouteTrace.pressedForUse(scene,capturing?transactionSequence:throwPulseSequence,cfg.mask(),use),"actual item use follows its own eligible decoded physical press in this scene: "+use))return false;
         if(!require(client,use.accepted()&&use.before().item().equals(expectedItem())&&use.before().hand().equals("MAIN_HAND"),"the real selected item accepted the actual key route: "+use))return false;
         var before=use.before().grab();var after=use.after().grab();
         double mass=cfg.mode()==GravyPhysics.Mode.RAIL?100:cfg.count();
@@ -274,13 +276,15 @@ public final class NativeGravityInputRouteCheck {
                 if(view.time()<captureUse.tick())return;
                 var uses=GravityInputRouteTrace.uses(scene,transactionSequence);
                 if(!require(client,uses.size()==1&&view.grab().count()==current().count()&&view.grab().mode().equals(current().mode().name()),"capture is retained until the requested second key, not auto-thrown: "+uses))return;
-                if(!GravityInputRouteTrace.trigger(scene,captureUse.sequence(),0)||view.time()-captureUse.tick()<8||view.cooldown()>0||WeaponLoadState.get(client.player.getId())<=0||!clientTargets(client)||captureName!=null)return;
+                var released=GravityInputRouteTrace.releasedForUse(scene,transactionSequence,current().mask(),captureUse);
+                if(released.isEmpty()||view.time()-captureUse.tick()<8||view.cooldown()>0||WeaponLoadState.get(client.player.getId())<=0||!clientTargets(client)||captureName!=null)return;
+                captureRelease=released.get();
                 holdTravel=travel(captureUse.after().targets(),view.targets());
                 if(!require(client,holdTravel>.15,"normal server hold springs move actual material before the second key"))return;
-                step=Step.THROW;progress();pulse(current().mask()==1?client.options.attackKey:client.options.useKey);
+                step=Step.THROW;throwPulseSequence=GravityInputRouteTrace.sequence();progress();pulse(current().mask()==1?client.options.attackKey:client.options.useKey);
             }
             case THROW->{
-                var uses=GravityInputRouteTrace.uses(scene,captureUse.sequence());if(uses.isEmpty())return;
+                var uses=GravityInputRouteTrace.uses(scene,throwPulseSequence);if(uses.isEmpty())return;
                 if(!require(client,uses.size()==1,"one actual item use for the throw key pulse: "+uses))return;
                 throwUse=uses.getFirst();if(!validateUse(client,throwUse,false))return;
                 var expected=captureUse.after().targets().stream().map(GravityInputRouteTrace.Target::id).collect(java.util.stream.Collectors.toSet());
@@ -290,10 +294,13 @@ public final class NativeGravityInputRouteCheck {
                 step=Step.VERIFY;progress();
             }
             case VERIFY->{
-                if(!GravityInputRouteTrace.trigger(scene,throwUse.sequence(),0)||view.grab().count()!=0||WeaponLoadState.get(client.player.getId())>0)return;
+                var released=GravityInputRouteTrace.releasedForUse(scene,throwPulseSequence,current().mask(),throwUse);
+                if(released.isEmpty()||view.grab().count()!=0||WeaponLoadState.get(client.player.getId())>0)return;
+                throwRelease=released.get();
                 if(!require(client,GravityInputRouteTrace.uses(scene,transactionSequence).size()==2,"one capture and one throw, without hidden repeats"))return;
                 if(current().flight()&&!require(client,client.player.getMainHandStack().isEmpty()&&view.hand().equals("minecraft:air"),"empty real hand proves6DoF socket operation"))return;
                 var result=new LinkedHashMap<String,Object>();result.put("scene",current().name());result.put("flight",current().flight());result.put("channel",current().channel());result.put("mask",current().mask());result.put("hotbarPackets",GravityInputRouteTrace.selections(scene,"hotbar"));result.put("screenClickPackets",GravityInputRouteTrace.selections(scene,"screen-click"));result.put("holdTravel",holdTravel);result.put("normalHoldTicks",throwUse.tick()-captureUse.tick());result.put("capture",captureUse);result.put("throw",throwUse);result.put("naturalEnergyAdmissionTicks",energyWaitTicks);RESULTS.add(result);
+                result.put("capturePulse",captureRelease);result.put("throwPulse",throwRelease);
                 requestFrame(current().name()+"-thrown");retireRequested=false;step=Step.RETIRE;progress();
             }
             case RETIRE->{

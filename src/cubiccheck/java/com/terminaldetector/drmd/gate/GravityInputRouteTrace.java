@@ -34,6 +34,7 @@ public final class GravityInputRouteTrace {
     public record Use(long sequence,int scene,long tick,boolean accepted,Before before,Before after){}
     public record Trigger(long sequence,int scene,long tick,int mask,boolean eligible,int selectedSlot,String hand){}
     public record Selection(long sequence,int scene,long tick,String kind,int selectedSlot,String cursor,String primary,String secondary){}
+    public record Pulse(long baseline,Trigger press,Trigger release,Trigger latest){}
     public static void start(UUID id){synchronized(EVENTS){EVENTS.clear();sequence=0;}playerId=id;scene=-1;targets=List.of();}
     public static void scene(int value){scene=value;targets=List.of();}
     public static void targets(List<UUID> ids){targets=List.copyOf(ids);}
@@ -43,6 +44,22 @@ public final class GravityInputRouteTrace {
     public static List<Object> events(){synchronized(EVENTS){return List.copyOf(EVENTS);}}
     public static List<Use> uses(int phase,long since){return events().stream().filter(e->e instanceof Use u&&u.scene()==phase&&u.sequence()>since).map(e->(Use)e).toList();}
     public static boolean trigger(int phase,long since,int mask){return events().stream().anyMatch(e->e instanceof Trigger t&&t.scene()==phase&&t.sequence()>since&&t.mask()==mask&&t.eligible());}
+    public static boolean pressedForUse(int phase,long baseline,int mask,Use use){
+        return use!=null&&use.scene()==phase&&events().stream().anyMatch(e->e instanceof Trigger t&&t.scene()==phase&&t.eligible()&&t.sequence()>baseline&&t.sequence()<use.sequence()&&t.tick()<=use.tick()&&t.mask()==mask);
+    }
+    /** Release can precede a deferred weapon tick. Pair the physical pulse itself,
+     * require its actual use to follow its press, and require latest server input zero. */
+    public static Optional<Pulse> releasedForUse(int phase,long baseline,int mask,Use use){
+        if(use==null||use.scene()!=phase)return Optional.empty();
+        Trigger press=null,release=null,latest=null;
+        for(var event:events())if(event instanceof Trigger t&&t.scene()==phase&&t.sequence()>baseline){
+            latest=t;
+            if(!t.eligible())continue;
+            if(press==null&&t.mask()==mask&&t.sequence()<use.sequence()&&t.tick()<=use.tick())press=t;
+            if(press!=null&&release==null&&t.sequence()>press.sequence()&&t.mask()==0)release=t;
+        }
+        return press!=null&&release!=null&&latest.eligible()&&latest.mask()==0?Optional.of(new Pulse(baseline,press,release,latest)):Optional.empty();
+    }
     public static long selections(int phase,String kind){return events().stream().filter(e->e instanceof Selection s&&s.scene()==phase&&s.kind().equals(kind)).count();}
     public static String item(ItemStack stack){return Registries.ITEM.getId(stack.getItem()).toString();}
     private static boolean observed(ServerPlayerEntity player){return ENABLED&&scene>=0&&playerId!=null&&playerId.equals(player.getUuid());}
