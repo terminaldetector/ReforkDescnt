@@ -12,6 +12,7 @@ import com.terminaldetector.drmd.weapon.core.DescentMineFire;
 import com.terminaldetector.drmd.weapon.core.DescentRocketFire;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.weapon.registry.WeaponDef;
+import com.terminaldetector.drmd.world.edit.WorldEditSafety;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -686,7 +687,9 @@ public class DescentWeaponItem extends Item {
 			if (data.getGravyEnergy() < cost) return false;
 			Vec3d start = user.getEyePos();
 			Vec3d aim = WeaponCore.aimDir(user).normalize();
-			var hit = world.raycast(new RaycastContext(start, start.add(aim.multiply(range)),
+			Vec3d end = WorldEditSafety.loadedEnd(world, start, start.add(aim.multiply(range)));
+			if (start.squaredDistanceTo(end) < 1e-10) return false;
+			var hit = world.raycast(new RaycastContext(start, end,
 					RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, user));
 			if (hit.getType() == HitResult.Type.MISS) return false;
 			com.terminaldetector.drmd.world.gravity.TransientGravityFields.place(world,
@@ -886,7 +889,10 @@ public class DescentWeaponItem extends Item {
 	/** Exact 6DoF aim ray used by gravity tools for living targets and physical wrecks/assemblies. */
 	protected static Entity findPhysicsTarget(PlayerEntity user, double range) {
 		Vec3d start = user.getEyePos();
-		Vec3d end = start.add(WeaponCore.aimDir(user).normalize().multiply(range));
+		// Keep the intended loaded range, but never raycast collision shapes in an unknown tail.
+		Vec3d end = WorldEditSafety.loadedEnd(user.getWorld(), start,
+				start.add(WeaponCore.aimDir(user).normalize().multiply(range)));
+		if (start.squaredDistanceTo(end) < 1e-10) return null;
 		var block = user.getWorld().raycast(new RaycastContext(start, end,
 				RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, user));
 		if (block.getType() != HitResult.Type.MISS) end = block.getPos();
@@ -928,6 +934,8 @@ public class DescentWeaponItem extends Item {
 			if (distance < .1 || distance > range) continue;
 			double dot = delta.multiply(1.0 / distance).dotProduct(aim);
 			if (dot < minimumDot) continue;
+			// A known clear prefix cannot establish visibility of a target beyond unloaded space.
+			if (!WorldEditSafety.loadedSegment(user.getWorld(), start, centre)) continue;
 			var block = user.getWorld().raycast(new RaycastContext(start, centre,
 					RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, user));
 			if (block.getType() != HitResult.Type.MISS
