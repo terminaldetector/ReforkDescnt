@@ -53,3 +53,32 @@ per-payload SHA-256 and ZIP CRC. Both original semantic assertions remain
 unchanged. The lease was returned on first close, with no live Java, before
 diagnosis or correction. A separately authorized test-only read-only task/nav
 trace is next; production must remain `0cdb` until the cause is measured.
+
+## Read-only route diagnosis, same original two criteria
+
+Test-only `0a60556a7bea394245095c231b0392e80334cdc6` retained production
+`0cdb` byte-identically. Its first two-case run compiled and closed exit 1,
+1 FAIL / 1 PASS. All thirteen bounded read-only rows and existing navigation
+debug output are preserved in `EVIDENCE/drone-squad-route-trace-0a60556.zip`,
+with its digest in the adjacent `.sha256` file. No retry preceded diagnosis.
+
+The authoritative ORB role is ASSAULT, 540 Source units × 1/80 = 6.75 m/s or
+0.3375 blocks/tick. The search started around fixture tick 19, had 41 visited
+nodes at tick 20 and found a 33-cell/32-edge route before tick 30. No limit,
+stalled state or expiry occurred. Index advanced only 1@30, 2@40, 3@50, 5@60,
+7@80, 12@120. Per-cell issued velocities decayed from approximately .095 to
+.035 to .012 as the actor approached each exact grid centre. At 120 the route
+was still active at Cell(7,5,0), climb 4.997, issued Y .03533 and actual Y .03463.
+The message was fresh (observation 188, expiry 248), with actual max allies 1,
+candidates 2, cleanup examined 1 and 21 publications/deliveries. The earlier
+untraced run's .050 climb remains its distinct original result.
+
+`DroneNavigation` brakes by `min(roleSpeed, deltaLength*.4)` until the actor is
+within .02 of every cell centre. Its existing maximum-two-waypoint FULL swept
+clearance lookahead only runs when close-neighbour separation is nonzero.
+That causes unnecessary corner-centering crawl for this solitary wingman.
+The actual role can traverse the approximately 13 metres to a sight line in
+about 39 ticks, so no speed/TTL/search-cap or 120-tick assertion increase is
+justified. The approved correction is exactly to allow that existing bounded
+FULL-clearance lookahead without a nearby crowd, retaining each sweep, the
+four-block displacement bound, role speed, search budget and .02 threshold.
