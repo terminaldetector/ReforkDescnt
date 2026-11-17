@@ -1,0 +1,13 @@
+{
+  "negativeSource": "bd29aab11f6fcba71f5234b64616d2284bf0aec8",
+  "positiveSource": "4849402e321769a1a0542f2bcf77dbbc23b9baca",
+  "addedEntries": [],
+  "removedEntries": [],
+  "differentInflatedEntries": {
+    "com/terminaldetector/drmd/world/store/SurfaceIngest.class": {
+      "negative": "9897337c3925dc67d4a86f2163a691fce4d82f6ce2752696a84fbb836bf1d682",
+      "positive": "db9c02f33650e7062c24aa7f8978ad703e66278bd4242c172d891ed23758d3db"
+    }
+  },
+  "wholeObserverJarByteIdentical": true
+}
