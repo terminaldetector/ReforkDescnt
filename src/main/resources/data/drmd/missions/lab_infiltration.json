@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "drmd:lab_infiltration",
+  "revision": 1,
+  "offered_kind": "EXPLORE_SHAFT",
+  "title": "quest.drmd.explore_shaft",
+  "difficulty": 1,
+  "reputation_reward": 3,
+  "objectives": [
+    {
+      "type": "ENTER_VOLUME",
+      "min": {"x": -2, "y": -2, "z": -2},
+      "max": {"x": 3, "y": 2, "z": 3}
+    },
+    {
+      "type": "BREAK_BLOCK",
+      "position": {"x": 1, "y": 0, "z": 0},
+      "block": "minecraft:iron_block"
+    }
+  ]
+}

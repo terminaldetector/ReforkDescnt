@@ -78,7 +78,9 @@
       "com.terminaldetector.drmd.DroneSquadTaskGameTests",
       "com.terminaldetector.drmd.DroneSquadGuardGameTests",
       "com.terminaldetector.drmd.PointDefenseInterceptionGameTests",
-      "com.terminaldetector.drmd.PointDefenseGuardGameTests"
+      "com.terminaldetector.drmd.PointDefenseGuardGameTests",
+      "com.terminaldetector.drmd.EnclaveHeraldBaselineGameTests",
+      "com.terminaldetector.drmd.EnclaveMissionGameplayGameTests"
     ]
   },
   "depends": {

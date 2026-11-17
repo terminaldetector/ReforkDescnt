@@ -15,7 +15,7 @@ import net.minecraft.world.World;
 
 /**
  * Interactable enclave contact — procedural dialogue + quest offer.
- * Sneak-use accepts the offered quest and bumps faction memory.
+ * Sneak-use accepts an explicitly bound playable contract or extracts its completed reward.
  */
 public class EnclaveHeraldBlock extends Block {
 	public EnclaveHeraldBlock(Settings settings) {
@@ -30,6 +30,8 @@ public class EnclaveHeraldBlock extends Block {
 			return ActionResult.CONSUME;
 		}
 
+		ActionResult action = EnclaveMissionSystem.useHerald(sw, pos, sp, hit);
+		try {
 		EnclaveSite site = EnclaveSite.generate(sw.getSeed(), pos);
 		FactionMemory mem = FactionMemory.of(sw);
 		int rep = mem.getRep(sp.getUuid(), site.origin);
@@ -39,21 +41,29 @@ public class EnclaveHeraldBlock extends Block {
 		player.sendMessage(Text.literal("§e« ").append(EnclaveDialogue.line(site, sw.getTime())).append(" §e»"), false);
 
 		EnclaveQuest quest = EnclaveQuest.offer(site);
+		// Retain authored/legacy offer titles even where no playable contract is bound yet.
+		player.sendMessage(Text.literal("§7Offer: ").append(quest.title())
+				.append(Text.literal(" §8(sneak-use to accept or extract a bound mission)")), false);
 		if (player.isSneaking()) {
-			mem.addRep(sp.getUuid(), site.origin, 3);
-			player.sendMessage(Text.literal("§aAccepted: ").append(quest.title())
-					.append(Text.literal(" §8(+3 " + site.origin.id + ")")), false);
 			if (site.origin == EnclaveOrigin.ENGINEERS && mem.engineersHelpSuit(sp)) {
 				player.sendMessage(Text.translatable("dialogue.drmd.engineer.suit_help"), false);
 			}
 			if (site.origin == EnclaveOrigin.CULTISTS && mem.cultGrantsRelics(sp)) {
 				player.sendMessage(Text.translatable("dialogue.drmd.cult.relics"), false);
 			}
-		} else {
-			player.sendMessage(Text.literal("§7Offer: ").append(quest.title())
-					.append(Text.literal(" §8(sneak-use to accept)")), false);
 		}
-		return ActionResult.CONSUME;
+		} catch (RuntimeException lostFeedback) {
+			// State already committed/refused; legacy feedback neither retries nor suppresses it.
+		}
+		return action;
+	}
+
+	@Override
+	protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState replacement, boolean moved) {
+		if (!state.isOf(replacement.getBlock()) && world instanceof ServerWorld serverWorld) {
+			EnclaveMissionSystem.invalidateHerald(serverWorld, pos);
+		}
+		super.onStateReplaced(state, world, pos, replacement, moved);
 	}
 
 	@Override

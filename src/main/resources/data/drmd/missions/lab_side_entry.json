@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "drmd:lab_side_entry",
+  "revision": 1,
+  "offered_kind": "EXPLORE_SHAFT",
+  "title": "quest.drmd.explore_shaft",
+  "difficulty": 1,
+  "reputation_reward": 3,
+  "objectives": [
+    {
+      "type": "ENTER_VOLUME",
+      "min": {"x": 0, "y": -3, "z": 0},
+      "max": {"x": 6, "y": 2, "z": 6}
+    },
+    {
+      "type": "BREAK_BLOCK",
+      "position": {"x": 4, "y": 0, "z": 4},
+      "block": "minecraft:iron_block"
+    },
+    {
+      "type": "ENTER_VOLUME",
+      "min": {"x": -4, "y": -1, "z": 1},
+      "max": {"x": -1, "y": 2, "z": 5}
+    }
+  ]
+}

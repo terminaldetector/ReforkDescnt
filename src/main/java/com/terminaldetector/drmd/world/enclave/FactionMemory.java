@@ -22,6 +22,8 @@ public class FactionMemory extends PersistentState {
 	private final Map<UUID, Map<String, Integer>> rep = new HashMap<>();
 	/** cult flag: player destroyed control systems */
 	private final Map<UUID, Boolean> brokeControl = new HashMap<>();
+	/** The claim receipt and its reputation effect live in this same PersistentState. */
+	private EnclaveMissionLedger missions = new EnclaveMissionLedger();
 
 	public static FactionMemory get(ServerWorld overworld) {
 		PersistentStateManager mgr = overworld.getPersistentStateManager();
@@ -52,6 +54,7 @@ public class FactionMemory extends PersistentState {
 			} catch (IllegalArgumentException ignored) {
 			}
 		}
+		s.missions = EnclaveMissionLedger.read(nbt.get("missions"));
 		return s;
 	}
 
@@ -77,7 +80,26 @@ public class FactionMemory extends PersistentState {
 			players.put(e.getKey().toString(), p);
 		}
 		nbt.put("players", players);
+		var missionTag = missions.write();
+		if (missionTag == null) nbt.remove("missions"); else nbt.put("missions", missionTag);
 		return nbt;
+	}
+
+	EnclaveMissionLedger missions() { return missions; }
+
+	/** Call after a persistent ledger transition; transient contact edges do not dirty the save. */
+	void missionChanged(long previousVersion) {
+		if (missions.mutationVersion() != previousVersion) markDirty();
+	}
+
+	/** Server-thread adapter validates the live owner, herald and context before this atomic mutation. */
+	boolean claimMission(UUID owner, UUID siteId, EnclaveMissionLedger.Context actual, String definitionHash) {
+		var site = missions.site(siteId).orElse(null);
+		if (site == null || !EnclaveOrigin.MINERS.id.equals(site.origin())) return false;
+		if (!missions.claim(owner, siteId, actual, definitionHash)) return false;
+		// No callback, packet, inventory transaction or save boundary between these mutations.
+		addRep(owner, EnclaveOrigin.MINERS, 3);
+		return true;
 	}
 
 	public int getRep(UUID player, EnclaveOrigin origin) {
@@ -88,7 +110,7 @@ public class FactionMemory extends PersistentState {
 
 	public void addRep(UUID player, EnclaveOrigin origin, int delta) {
 		Map<String, Integer> m = rep.computeIfAbsent(player, u -> new HashMap<>());
-		m.put(origin.id, Math.max(-100, Math.min(100, m.getOrDefault(origin.id, 0) + delta)));
+		m.put(origin.id, (int) Math.max(-100L, Math.min(100L, (long) m.getOrDefault(origin.id, 0) + delta)));
 		markDirty();
 	}
 
