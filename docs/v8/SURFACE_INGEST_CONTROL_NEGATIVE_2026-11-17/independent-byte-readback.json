@@ -1,0 +1,13 @@
+{
+  "diskCompressedLength": 111,
+  "decompressedLength": 5121,
+  "receivedPacket3Cell0": {
+    "height": 2300,
+    "colour": 0
+  },
+  "persistedCell0": {
+    "height": 2300,
+    "colour": 0
+  },
+  "scope": "Independent saved SurfaceSection format1 bytes/zlib readback, not a new runtime"
+}
