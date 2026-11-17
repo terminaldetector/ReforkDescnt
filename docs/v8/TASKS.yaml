@@ -513,7 +513,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [GRAVITY_VANILLA_FLYERS_2026-11-10.md, EVIDENCE/integrated-5839062.zip]
+  evidence: [GRAVITY_VANILLA_FLYERS_2026-11-10.md, EVIDENCE/integrated-5839062.zip, SUBMERGED_FISH_GRAVITY_2026-11-17.md]
   notes: "Five vanilla flyers corrected with original3 and related16 proof, rerun in current391 full suite. Remaining locomotion families, AI and visuals open."
 - id: S07-T02
   stage: S07
@@ -1122,7 +1122,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [BENCHMARK_CONTEXT.md, EVIDENCE/integrated-5839062.zip]
+  evidence: [BENCHMARK_CONTEXT.md, EVIDENCE/integrated-5839062.zip, NATIVE_BENCHMARK_RECORDER_2026-11-17.md]
   notes: "Collector has20Python tests; missing measurements remain null/reason. Native producer and real hardware/32-to1024 benchmarks open."
 - id: S16-T03
   stage: S16

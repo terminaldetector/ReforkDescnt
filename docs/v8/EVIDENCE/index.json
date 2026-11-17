@@ -62,7 +62,12 @@
     "ps1-target-703ea85.zip": "a9617e1d7bc36ec7889a8ccf0c26b37ed834531f02e327420270cd0372aea38b",
     "ragdoll-field-strength-9c5b6e1.zip": "83fbfb188ca0c4f9861a25af6ec63a54cb5eff87033e2ea52d8f8d726ff321b8",
     "integrated-699b749.zip": "4412ea6da9b281bc1da36e4c43a1c90b2efc77d88f2a18d725b9681c0215e324",
-    "integrated-699b749-world-profile.json": "344fc8ce919bc332a533b1f9492411e4de894d06ee83966343455dbcac4bfa1f"
+    "integrated-699b749-world-profile.json": "344fc8ce919bc332a533b1f9492411e4de894d06ee83966343455dbcac4bfa1f",
+    "submerged-fish-a7afbaf-negative.zip": "5d0bfbb5a2ba1bcc52675b1d23e7f89f64e6851952ed83b717e1917e0590edf6",
+    "submerged-fish-a4e9b9b-positive.zip": "0f24765915ecd3eeed1b803d20df77307baa81a635597e6e1c285f002bd13339",
+    "native-recorder-9426-first-wrapper-failure.zip": "5706756a5f1af83d3f95bc89ac8513ecb94337af86046e934c08da0c3236a853",
+    "native-recorder-9426-enabled-retry1.zip": "cfb96b793eea4ad1826585ff1df59828c649e1f517d1dda932575d091e5a6e40",
+    "native-recorder-9426-helpers.zip": "a784ee0ec5d7b5e39b75d91e374656552f116224acaadf7c2424ef710de3e69f"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -2995,5 +3000,47 @@
       "legacyAdvancedPackEnabled": true,
       "defaultVanillaVerticalBoundsAccepted": false
     }
+  },
+  "submergedFish20261117": {
+    "negativeSource": "a7afbaf6b5913fe3a75b6103ec13c6c008e123fe",
+    "positiveSource": "a4e9b9b223b04af93c7124b7595af3b56623705b",
+    "negative": {
+      "passed": 6,
+      "failed": 2
+    },
+    "positive": {
+      "passed": 8,
+      "failed": 0
+    },
+    "report": "SUBMERGED_FISH_GRAVITY_2026-11-17.md",
+    "sameTestHelperAndCompiledTestClass": true,
+    "scope": "Actual submerged FishEntity force policy; not complete aquatic navigation/orientation/native visual acceptance",
+    "combinedFullRunPending": true,
+    "releaseAccepted": false
+  },
+  "cityAuthoringPure20261117": {
+    "source": "77dc8a108587eb6bdcb31c6bbec8d48be744839c",
+    "tests": 26,
+    "failures": 0,
+    "report": "CITY_AUTHORING_PURE_PROOF_2026-11-17.md",
+    "archive": "docs/v8/CITY_AUTHORING_PURE_77DC8A1_EVIDENCE_2026-11-17.zip",
+    "sha256": "e1d159e71fcad885ec0c4ad08af92320d93d5d3771ad8de440b53915c3024a0d",
+    "scope": "JDK-only blueprint/disk journal/controller; no Minecraft compile or runtime city/world-write acceptance",
+    "releaseAccepted": false
+  },
+  "nativeRecorder20261117": {
+    "source": "9426a6549fc91abc8c7e060a2eef9f184742dc3d",
+    "report": "NATIVE_BENCHMARK_RECORDER_2026-11-17.md",
+    "receipt": "EVIDENCE/native-recorder-9426-checkpoint.json",
+    "enabledSmokePassed": true,
+    "frames": 6,
+    "serverTicks": 12,
+    "heapSamples": 6,
+    "firstWrapperFailed": true,
+    "firstNativeExit": "unknown",
+    "softwareRenderer": true,
+    "performanceAccepted": false,
+    "fullS16Accepted": false,
+    "releaseAccepted": false
   }
 }
