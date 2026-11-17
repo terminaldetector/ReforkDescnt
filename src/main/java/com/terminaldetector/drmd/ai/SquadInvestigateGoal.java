@@ -31,7 +31,7 @@ public final class SquadInvestigateGoal extends Goal {
         var role=drone.getRole();double speed=DescentMod.su(role.speed)/20.0;
         if("standoff".equals(role.ai))speed*=.9;else if("anchor".equals(role.ai))speed*=.75;
         var desired=drone.steerFlightVelocity(delta.normalize().multiply(speed));
-        drone.setVelocity(navigation.steer(desired,destination,true));drone.velocityModified=true;
+        drone.setVelocity(navigation.investigate(desired,destination));drone.velocityModified=true;
         drone.getLookControl().lookAt(destination.x,destination.y,destination.z);
     }
     @Override public void stop(){navigation.stop();task=null;super.stop();}
