@@ -1,0 +1,36 @@
+{
+  "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": {
+    "sha256": "0855f657e53742e3a5b95bce8f30b60a76bc93020574dc5826bccb86514f8df9",
+    "installedPath": "/workspace/ungravity-v5/cubic-next-20261109/build/cubic-fluid-reader-final-cubic-fluid-reader-first-6c23897-sodium/mods/drmd-6dof-1.1.35-ufo-dev.1.jar",
+    "zipCrcPass": true,
+    "classes": {
+      "com/terminaldetector/drmd/mixin/NativeCubicCubeLoadMixin.class": "bbef8a2eef579e68fcaa060075b057f2b8b4ae7d385e1430e867d6e92ed728de",
+      "com/terminaldetector/drmd/world/store/SurfaceIngest$NativeRefreshQueue.class": "de12a244dd047b33a3f5a560abb0afa8228f742410a7b4cf3c1adc814221f9ff",
+      "com/terminaldetector/drmd/world/store/SurfaceIngest.class": "c63247d098b35498a6c777ce8417dffdc23eff3dadda5218dd18731b5ede27de"
+    }
+  },
+  "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": {
+    "sha256": "6c6263aeb0ebeba11f0c61b0b12520b9dd60842beccbeb115da7f826a9db810a",
+    "installedPath": "/workspace/ungravity-v5/cubic-next-20261109/build/cubic-fluid-reader-final-cubic-fluid-reader-first-6c23897-sodium/mods/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar",
+    "zipCrcPass": true,
+    "classes": {
+      "com/terminaldetector/drmd/gate/NativeFluidPendingCheck$ClientSample.class": "d83a44793fb3960c221fd143e61864d65c4777166f02fcadec4b07cea363d5a1",
+      "com/terminaldetector/drmd/gate/NativeFluidPendingCheck$Edit.class": "4c0fd85b708aa0ede9427423e942c8ad9bad93974196fcbf4727d3423b97d5df",
+      "com/terminaldetector/drmd/gate/NativeFluidPendingCheck$Phase.class": "0aaf9a63a6bf4f02d5d3f0b348c02a41a1f9c6401146b0ee4afa51d01367d052",
+      "com/terminaldetector/drmd/gate/NativeFluidPendingCheck.class": "a8e92938c4d9d471c4c0fe78f3942ce7899efecf9aad308c736509c8c0d9ec56",
+      "com/terminaldetector/drmd/gate/NativeSurfaceIngestCheck$Cell.class": "dd61a984c5a9561b98822584c05a15f947a7696db37b04671a797d65bdcd18eb",
+      "com/terminaldetector/drmd/gate/NativeSurfaceIngestCheck$ClientSample.class": "85fcfcaa79b301f736c0937e4c5d49d5e5bf0c5f3979c3b560f75d29ed1c2c75",
+      "com/terminaldetector/drmd/gate/NativeSurfaceIngestCheck$IngestEvent.class": "f1755857a5ce5279def7ec07b4adba1841d9e2ece2398678f80336472f4fcf84",
+      "com/terminaldetector/drmd/gate/NativeSurfaceIngestCheck$Packet.class": "027f165da445f8d9acdae6606a15c307acbc63a8aa3f821969a22fd56250a7c8",
+      "com/terminaldetector/drmd/gate/NativeSurfaceIngestCheck$Phase.class": "8467c0c17ab1703af30bc9d529e7a767bff387ddb8d1ac4a3182745ff5feffd3",
+      "com/terminaldetector/drmd/gate/NativeSurfaceIngestCheck.class": "eddd28f15b729618b3bf3eb74e3bfff7fbe15ff46da9f1622565e423af7836c8",
+      "com/terminaldetector/drmd/gate/mixin/FluidPendingBootstrapProbe.class": "3a4fe8fb1c0b91929041591e92e3fc6fbe50327514beb1f74f62a886b736b275",
+      "com/terminaldetector/drmd/gate/mixin/FluidPendingFrameProbe.class": "1acd1640cd8e7d0de74ea2d83d06faa7cc392af35509f4cb21f466dc4c5f99f9",
+      "com/terminaldetector/drmd/gate/mixin/FluidPendingScheduledProbe.class": "97810c599ac2f37dc60f4cecccf8846066a9c1e5fdf32ba3aee6e6344846565d",
+      "com/terminaldetector/drmd/gate/mixin/SurfaceIngestBootstrapProbe.class": "4f77cf61e701bb317f9d7df32064eb444a315f8ef43d1124e8411082679741ba",
+      "com/terminaldetector/drmd/gate/mixin/SurfaceIngestFrameProbe.class": "b0c608c1dcbf1e37a71b3f175e31c4bf5ed6f4303799b1467591959bdb2bb1fc",
+      "com/terminaldetector/drmd/gate/mixin/SurfaceIngestPacketProbe.class": "48276bfea778665331bdbfd4780d2416e741be563f55e9cb4b9b05bb4dff0f9e",
+      "com/terminaldetector/drmd/gate/mixin/SurfaceIngestServerProbe.class": "eb8b5e04b4408058052592418e25117ebc4b496566b6405a256a8315f8045cdb"
+    }
+  }
+}

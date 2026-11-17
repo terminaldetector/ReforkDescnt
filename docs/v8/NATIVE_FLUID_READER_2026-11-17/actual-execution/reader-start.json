@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "bash",
+    "scripts/v8/cubic_fluid_native.sh",
+    "reader",
+    "cubic-fluid-reader-first-6c23897-sodium",
+    "/workspace/ungravity-v5/cubic-next-20261109/work/cubic-fluid/cubic-fluid-writer-6c23897-sodium-writer-proof.json"
+  ],
+  "cwd": "/workspace/ungravity-v5/cubic-next-20261109",
+  "nanoTime": 27652859434521
+}

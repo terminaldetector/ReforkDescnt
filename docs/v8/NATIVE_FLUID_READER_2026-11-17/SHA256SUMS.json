@@ -1,0 +1,122 @@
+{
+  "REPORT.md": {
+    "bytes": 3692,
+    "sha256": "c5185d1cff0b0ed90483c73741dafe7969d00b66bf2e13ef110c35f90a99b316"
+  },
+  "actual-execution/actual-helper-snapshots/cubic_fluid_build.sh": {
+    "bytes": 413,
+    "sha256": "11deaccab0d2e2c47fe5fb0ee6711a67906235e4987c29f7a89c49e46915d462"
+  },
+  "actual-execution/actual-helper-snapshots/cubic_fluid_build_stamp.py": {
+    "bytes": 2326,
+    "sha256": "e801349cd7d3573f6c7c0764d12b3714d2838f9547008416b11231befdf7c8b5"
+  },
+  "actual-execution/actual-helper-snapshots/cubic_fluid_native.sh": {
+    "bytes": 4876,
+    "sha256": "1c06cf474cde342216c3bc35dc5d7f241b631d28482ee50d1598caaccbe5302f"
+  },
+  "actual-execution/actual-helper-snapshots/cubic_fluid_prepare.py": {
+    "bytes": 5198,
+    "sha256": "3e5ad2fc291669b7ca102aa82eebf9675b13874d474960ae9e3d2d79951492fc"
+  },
+  "actual-execution/actual-helper-snapshots/run_reader_once.py": {
+    "bytes": 6614,
+    "sha256": "1e1025c59a281ba4a38b7c6d3bae24bfcc324ac100f947df2cb83196f6087e97"
+  },
+  "actual-execution/before.json": {
+    "bytes": 439760,
+    "sha256": "fdcb883b84dbad2f717f04e3c6e6609872a72311410f8a04f06789f02e393422"
+  },
+  "actual-execution/final-close.json": {
+    "bytes": 22130,
+    "sha256": "21f568d8adb8c4337dc61e1637c32078a046f57121958579b904395c4664a101"
+  },
+  "actual-execution/reader-child-close.json": {
+    "bytes": 84,
+    "sha256": "786249dfe7c98933ed684507307fdcc3e1c083eaf75fea0d592e4e31c1c6f683"
+  },
+  "actual-execution/reader-start.json": {
+    "bytes": 338,
+    "sha256": "be8f0a788c8346ce327f3fbdcb0532ab3b5b4e9627bd84a643b4e6cbc39e8ad1"
+  },
+  "actual-execution/reader-stdout-stderr.log": {
+    "bytes": 77,
+    "sha256": "fbe07e1867bf2fd0d1e595a78037748841089eac259eb2eff0adecf99c7be5a4"
+  },
+  "actual-execution/run_reader_once.py": {
+    "bytes": 6614,
+    "sha256": "1e1025c59a281ba4a38b7c6d3bae24bfcc324ac100f947df2cb83196f6087e97"
+  },
+  "cubic-fluid-reader-first-6c23897-sodium-closed-proof.json": {
+    "bytes": 14782,
+    "sha256": "9747024bbd9dca0f171667fbb5761f146d35d9ad7ae450f9e843c5b898e9aea6"
+  },
+  "cubic-fluid-reader-first-6c23897-sodium-closed-world.tar.gz": {
+    "bytes": 1683975,
+    "sha256": "060557dd410e265b4211455a4509244e9fb9dc660f9afe94f2f0f82a389aa647"
+  },
+  "cubic-fluid-reader-first-6c23897-sodium-display.txt": {
+    "bytes": 2,
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+  },
+  "cubic-fluid-reader-first-6c23897-sodium-prepare.log": {
+    "bytes": 285,
+    "sha256": "12124b2053e063b6fb160c1dec99ecd4ec26c4973695fc376074e9d5b0093d81"
+  },
+  "cubic-fluid-reader-first-6c23897-sodium-xvfb.log": {
+    "bytes": 64,
+    "sha256": "87e9572cf030493a1f7ba83d385129046b224374ca1414911674b30fc44276d7"
+  },
+  "cubic-fluid-reader-first-6c23897-sodium.exit": {
+    "bytes": 2,
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+  },
+  "cubic-fluid-reader-first-6c23897-sodium.log": {
+    "bytes": 26869,
+    "sha256": "4fd69e99b5b9c4028292688c1084330559dc9fd4d07da0955f9980482d300b23"
+  },
+  "fluid-pending-outcome.json": {
+    "bytes": 15921,
+    "sha256": "4f7a67d648ecdf914bca39519a1c5adc35659e13e7c2cdd9f8ef460c64cc7699"
+  },
+  "fluid-pending-requested-outcome.json": {
+    "bytes": 15921,
+    "sha256": "4f7a67d648ecdf914bca39519a1c5adc35659e13e7c2cdd9f8ef460c64cc7699"
+  },
+  "fluid-reader-stopping.json": {
+    "bytes": 1672,
+    "sha256": "a8a2802323c106a01031e25ee9360c20797b0c25fb053d285b5088ba60b24a28"
+  },
+  "fluid-writer-baseline.json": {
+    "bytes": 8220,
+    "sha256": "1f8c2d583d6ca0e65577326c3201f6dbbcea473dd0cd460a8efeccc4935b180b"
+  },
+  "frames/reader-resumed.png": {
+    "bytes": 503536,
+    "sha256": "78791f4a71e63bd5dece4faf619cf28e21f3d79578d4749b96c8da9d77fad889"
+  },
+  "independent-recheck.json": {
+    "bytes": 4425,
+    "sha256": "aee3ebaae88f0990754e7d86837188fc273eab6c090cef05cdaaae4137106ba1"
+  },
+  "inputs.json": {
+    "bytes": 39307,
+    "sha256": "09604e0744bd923bc3eae4287fb6bb9f7419d52fbeb22ce3768ee071126d0d3b"
+  },
+  "installed-artifacts.json": {
+    "bytes": 3640,
+    "sha256": "9d4cca3568daa16415bf0478afecc3c9f588319c47e07e98bd7244f46e9a5f62"
+  },
+  "launch.json": {
+    "bytes": 10398,
+    "sha256": "b8ca8da525305c44e5a025ff0ae2b16825da836c075741a89a1b5ede4b34576c"
+  },
+  "options.txt": {
+    "bytes": 98,
+    "sha256": "6752030dc969e48093621ee6280871336ce74986e265c40f660cf1f5268771ab"
+  },
+  "outer-tool-close.json": {
+    "bytes": 238,
+    "sha256": "0f8b642b29d36a1693fb5abebc69b4a734f921e32e85a0a5c5335d982544263f"
+  }
+}

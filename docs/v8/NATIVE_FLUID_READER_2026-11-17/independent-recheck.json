@@ -1,0 +1,257 @@
+{
+  "status": "PASS",
+  "writerOutcomeSha256": "1f8c2d583d6ca0e65577326c3201f6dbbcea473dd0cd460a8efeccc4935b180b",
+  "writerArchiveSha256": "860e0793fa8a7373ec124f40d7f8dc3c71a3949e509df5266ad0e7922337caba",
+  "actualSavedFilesStaged": 92,
+  "onlyOmittedFile": "session.lock",
+  "sourceAndObserverAndHelpersUnchanged": true,
+  "savedFrontierY": 78,
+  "readyTick": 115,
+  "firstNaturalRelevantTick": 140,
+  "passTick": 211,
+  "naturalTicksAfterReadiness": 96,
+  "deadlineTicks": 400,
+  "capturedEnterCount": 30,
+  "capturedReturnCount": 30,
+  "allEventsActualFull": true,
+  "enterTickY": [
+    [
+      140,
+      78
+    ],
+    [
+      140,
+      79
+    ],
+    [
+      145,
+      77
+    ],
+    [
+      145,
+      78
+    ],
+    [
+      150,
+      76
+    ],
+    [
+      150,
+      77
+    ],
+    [
+      155,
+      75
+    ],
+    [
+      155,
+      76
+    ],
+    [
+      160,
+      74
+    ],
+    [
+      160,
+      75
+    ],
+    [
+      165,
+      73
+    ],
+    [
+      165,
+      74
+    ],
+    [
+      170,
+      72
+    ],
+    [
+      170,
+      73
+    ],
+    [
+      175,
+      71
+    ],
+    [
+      175,
+      72
+    ],
+    [
+      180,
+      70
+    ],
+    [
+      180,
+      71
+    ],
+    [
+      185,
+      69
+    ],
+    [
+      185,
+      70
+    ],
+    [
+      190,
+      68
+    ],
+    [
+      190,
+      69
+    ],
+    [
+      195,
+      67
+    ],
+    [
+      195,
+      68
+    ],
+    [
+      200,
+      66
+    ],
+    [
+      200,
+      67
+    ],
+    [
+      205,
+      65
+    ],
+    [
+      205,
+      66
+    ],
+    [
+      210,
+      64
+    ],
+    [
+      210,
+      65
+    ]
+  ],
+  "actualStoppingWitness": {
+    "serverTick": 217,
+    "worldTime": 9365,
+    "phase": "CLOSE",
+    "nativeBackend": "NATIVE_CUBIC",
+    "allRelevantFull": true,
+    "sourceWater": true,
+    "seamWater": true,
+    "targetWater": true,
+    "targetLoadedAir": false,
+    "queuedFront": [],
+    "schedulerTickCount": 32,
+    "actualFluidWitnessCount": 32,
+    "writerWitnessBaseline": 0,
+    "readerFrontierY": 78,
+    "readerRelevantWitnesses": 31,
+    "observerFixtureWrites": 0,
+    "atmosphere": "CLASSIC",
+    "weightlessFluidPolicy": false,
+    "player": "(12.5, 80.0, 8.5)",
+    "client": {
+      "x": 12.5,
+      "y": 80.0,
+      "z": 8.5,
+      "full": true,
+      "sourceWater": true,
+      "seamWater": true,
+      "targetWater": true
+    },
+    "shaft": [
+      {
+        "y": 63,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 64,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 65,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 66,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 67,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 68,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 69,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 70,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 71,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 72,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 73,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 74,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 75,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 76,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 77,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 78,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 79,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 80,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 81,
+        "state": "Block{minecraft:water}[level=8]"
+      },
+      {
+        "y": 82,
+        "state": "Block{minecraft:water}[level=0]"
+      }
+    ]
+  },
+  "closedReaderArchiveSha256": "060557dd410e265b4211455a4509244e9fb9dc660f9afe94f2f0f82a389aa647",
+  "closedReaderArchiveBytes": 1683975,
+  "closedReaderFileCount": 95,
+  "allArchivedFilesVerified": true,
+  "gzipReadThroughEof": true,
+  "contextFrameVisualReview": "Glass shaft now visibly contains lower water; context only, no pixel/collider-render acceptance."
+}
