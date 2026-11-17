@@ -12,9 +12,10 @@ import java.util.zip.CRC32;
  * never inside a world tick; no Minecraft references or automatic replay exist here. */
 public final class CityBatchJournal implements AutoCloseable {
     public static final int MAX_CELLS=64,MAX_FILE_BYTES=8*1024*1024,MAX_FRAME_BYTES=64*1024;
-    private static final int MAGIC=0x43495459,VERSION=1;
-    public record Identity(UUID owner,String world,String planHash){
-        public Identity{Objects.requireNonNull(owner);if(world==null||!world.matches("[a-z0-9_.-]+:[a-z0-9_/.-]+")||world.length()>128||planHash==null||!planHash.matches("[a-f0-9]{64}"))throw new IllegalArgumentException("invalid city journal identity");}
+    public static final int VERSION=2;
+    private static final int MAGIC=0x43495459;
+    public record Identity(UUID saveId,UUID jobId,UUID owner,String world,String planHash){
+        public Identity{Objects.requireNonNull(saveId);Objects.requireNonNull(jobId);Objects.requireNonNull(owner);if(world==null||!world.matches("[a-z0-9_.-]+:[a-z0-9_/.-]+")||world.length()>128||planHash==null||!planHash.matches("[a-f0-9]{64}"))throw new IllegalArgumentException("invalid city journal identity");}
     }
     public record Change(CityBlueprint.Point position,String before,String after){
         public Change{Objects.requireNonNull(position);state(before);state(after);}
@@ -25,7 +26,11 @@ public final class CityBatchJournal implements AutoCloseable {
             var unique=new HashSet<CityBlueprint.Point>();for(var change:changes)if(!unique.add(change.position()))throw new IllegalArgumentException("duplicate city cell");
         }
     }
-    public record Snapshot(Identity identity,int cursor,long nextBatch,Optional<Batch> pending,boolean incompleteTail){}
+    public enum Disposition { PAUSED,CANCELLED,VERIFY_AFTER_ONLY }
+    public record Snapshot(Identity identity,int cursor,long nextBatch,Optional<Batch> pending,boolean incompleteTail,Disposition disposition){
+        public Snapshot{Objects.requireNonNull(identity);Objects.requireNonNull(pending);Objects.requireNonNull(disposition);if(disposition==Disposition.VERIFY_AFTER_ONLY&&pending.isEmpty())throw new IllegalArgumentException("verification requires a pending batch");}
+        public Snapshot(Identity identity,int cursor,long nextBatch,Optional<Batch> pending,boolean incompleteTail){this(identity,cursor,nextBatch,pending,incompleteTail,Disposition.PAUSED);}
+    }
     public enum Recovery { RETRY,ALREADY_COMMITTED,CONFLICT,UNAVAILABLE }
     public static Recovery reconcile(Batch batch,Function<CityBlueprint.Point,Optional<String>> read){
         boolean before=true,after=true;
@@ -37,37 +42,57 @@ public final class CityBatchJournal implements AutoCloseable {
     }
     private final FileChannel channel;private final FileLock lock;private final Identity identity;
     private int cursor;private long nextBatch;private Batch pending;private boolean incomplete,closed;
+    private Disposition disposition=Disposition.PAUSED;
     private CityBatchJournal(FileChannel channel,FileLock lock,Identity identity){this.channel=channel;this.lock=lock;this.identity=identity;}
     /** Open is explicit operator/test I/O, not a registration/startup hook. */
-    public static CityBatchJournal open(Path path,Identity expected) throws IOException {
+    public static CityBatchJournal create(Path path,Identity expected)throws IOException{return open(path,expected,true);}
+    public static CityBatchJournal openExisting(Path path,Identity expected)throws IOException{return open(path,expected,false);}
+    private static CityBatchJournal open(Path path,Identity expected,boolean create) throws IOException {
         Objects.requireNonNull(path);Objects.requireNonNull(expected);Path parent=path.toAbsolutePath().getParent();
         // Provisioning ancestors is separate operator I/O: do not claim durability for
         // directory entries created outside this journal's explicit force boundary.
         if(parent==null||!Files.isDirectory(parent))throw new IOException("city journal requires an existing durable directory");
-        var channel=FileChannel.open(path,StandardOpenOption.CREATE,StandardOpenOption.READ,StandardOpenOption.WRITE);FileLock lock=null;
+        var channel=create?FileChannel.open(path,StandardOpenOption.CREATE_NEW,StandardOpenOption.READ,StandardOpenOption.WRITE,LinkOption.NOFOLLOW_LINKS)
+            :FileChannel.open(path,StandardOpenOption.READ,StandardOpenOption.WRITE,LinkOption.NOFOLLOW_LINKS);FileLock lock=null;
         try{
             try{lock=channel.tryLock();}catch(OverlappingFileLockException busy){throw new IOException("city journal already owned",busy);}
             if(lock==null)throw new IOException("city journal already owned");var journal=new CityBatchJournal(channel,lock,expected);
-            if(channel.size()==0){journal.append(0,out->{out.writeInt(MAGIC);out.writeInt(VERSION);writeIdentity(out,expected);});}
+            if(create){journal.append(0,out->{out.writeInt(MAGIC);out.writeInt(VERSION);writeIdentity(out,expected);});}
             else journal.load();
             // A forced file alone does not persist its new directory entry. Require
             // this on reopen too, so failed initial directory sync cannot be bypassed.
             try(var directory=FileChannel.open(parent,StandardOpenOption.READ)){directory.force(true);}
             return journal;
-        }catch(IOException|RuntimeException failure){if(lock!=null)lock.release();channel.close();throw failure;}
+        }catch(IOException|RuntimeException failure){
+            try{if(lock!=null)lock.release();}catch(IOException close){failure.addSuppressed(close);}
+            try{channel.close();}catch(IOException close){failure.addSuppressed(close);}throw failure;
+        }
     }
-    public Snapshot snapshot(){return new Snapshot(identity,cursor,nextBatch,Optional.ofNullable(pending),incomplete);}
+    public Snapshot snapshot(){return new Snapshot(identity,cursor,nextBatch,Optional.ofNullable(pending),incomplete,disposition);}
     public void prepare(Batch batch) throws IOException {
-        writable();Objects.requireNonNull(batch);
+        active();Objects.requireNonNull(batch);if(disposition==Disposition.VERIFY_AFTER_ONLY)throw new IOException("pending after-image verification required");
         if(batch.equals(pending))return;
         if(pending!=null||batch.number()!=nextBatch||batch.startCursor()!=cursor)throw new IOException("city batch does not match durable prefix");
         append(1,out->writeBatch(out,batch));pending=batch;
     }
     public void commit(long number) throws IOException {
-        writable();if(number>=0&&number<nextBatch)return;
+        active();if(number>=0&&number<nextBatch)return;
         if(pending==null||pending.number()!=number)throw new IOException("city commit without matching prepared batch");
-        append(2,out->out.writeLong(number));cursor=pending.startCursor()+pending.advance();pending=null;nextBatch++;
+        append(2,out->out.writeLong(number));cursor=pending.startCursor()+pending.advance();pending=null;nextBatch++;disposition=Disposition.PAUSED;
     }
+    public void control(Disposition next,long pendingNumber)throws IOException{
+        writable();if(!controlChanges(next,pendingNumber))return;
+        append(3,out->{out.writeByte(next.ordinal());out.writeLong(pendingNumber);});disposition=next;
+    }
+    private boolean controlChanges(Disposition next,long pendingNumber)throws IOException{
+        Objects.requireNonNull(next);
+        if(next==Disposition.VERIFY_AFTER_ONLY){if(pending==null||pending.number()!=pendingNumber)throw new IOException("verification control does not match pending batch");}
+        else if(pendingNumber!=-1)throw new IOException("non-verification control has a batch reference");
+        if(disposition==Disposition.CANCELLED){if(next==Disposition.CANCELLED)return false;throw new IOException("cancelled city journal is terminal");}
+        if(disposition==Disposition.VERIFY_AFTER_ONLY&&next==Disposition.PAUSED)return false;
+        return disposition!=next;
+    }
+    private void active()throws IOException{writable();if(disposition==Disposition.CANCELLED)throw new IOException("cancelled city journal is terminal");}
     private void writable() throws IOException {if(closed||incomplete)throw new IOException("closed or quarantined city journal");}
     @FunctionalInterface private interface Encoder{void write(DataOutputStream out)throws IOException;}
     private void append(int type,Encoder encoder) throws IOException {
@@ -88,8 +113,9 @@ public final class CityBatchJournal implements AutoCloseable {
                 try(var in=new DataInputStream(new ByteArrayInputStream(payload))){
                     int type=in.readUnsignedByte();
                     if(type==0){if(header||in.readInt()!=MAGIC||in.readInt()!=VERSION||!readIdentity(in).equals(identity))throw new IOException("foreign or unsupported city journal");header=true;}
-                    else if(type==1){var batch=readBatch(in);if(!header||pending!=null||batch.number()!=nextBatch||batch.startCursor()!=cursor)throw new IOException("noncontiguous city prepare");pending=batch;}
-                    else if(type==2){long number=in.readLong();if(!header||pending==null||pending.number()!=number)throw new IOException("noncontiguous city commit");cursor=pending.startCursor()+pending.advance();pending=null;nextBatch++;}
+                    else if(type==1){var batch=readBatch(in);if(!header||disposition!=Disposition.PAUSED||pending!=null||batch.number()!=nextBatch||batch.startCursor()!=cursor)throw new IOException("noncontiguous city prepare");pending=batch;}
+                    else if(type==2){long number=in.readLong();if(!header||disposition==Disposition.CANCELLED||pending==null||pending.number()!=number)throw new IOException("noncontiguous city commit");cursor=pending.startCursor()+pending.advance();pending=null;nextBatch++;disposition=Disposition.PAUSED;}
+                    else if(type==3){int mode=in.readUnsignedByte();long number=in.readLong();if(!header||mode>=Disposition.values().length)throw new IOException("unsupported city control");var next=Disposition.values()[mode];if(controlChanges(next,number))disposition=next;}
                     else throw new IOException("unknown city journal frame");
                     if(in.available()!=0)throw new IOException("trailing city frame data");
                 }
@@ -98,8 +124,10 @@ public final class CityBatchJournal implements AutoCloseable {
         if(!header)throw new IOException("missing city journal identity");
     }
     private static void state(String key){if(key==null||key.length()>256||!key.matches("[a-z0-9_.-]+:[a-z0-9_/.-]+(\\[[a-z0-9_=,.-]+\\])?"))throw new IllegalArgumentException("invalid block state key");}
-    private static void writeIdentity(DataOutputStream out,Identity id)throws IOException{out.writeLong(id.owner().getMostSignificantBits());out.writeLong(id.owner().getLeastSignificantBits());out.writeUTF(id.world());out.writeUTF(id.planHash());}
-    private static Identity readIdentity(DataInputStream in)throws IOException{return new Identity(new UUID(in.readLong(),in.readLong()),in.readUTF(),in.readUTF());}
+    static void writeIdentity(DataOutputStream out,Identity id)throws IOException{writeUuid(out,id.saveId());writeUuid(out,id.jobId());writeUuid(out,id.owner());out.writeUTF(id.world());out.writeUTF(id.planHash());}
+    static Identity readIdentity(DataInputStream in)throws IOException{return new Identity(readUuid(in),readUuid(in),readUuid(in),in.readUTF(),in.readUTF());}
+    private static void writeUuid(DataOutputStream out,UUID id)throws IOException{out.writeLong(id.getMostSignificantBits());out.writeLong(id.getLeastSignificantBits());}
+    private static UUID readUuid(DataInputStream in)throws IOException{return new UUID(in.readLong(),in.readLong());}
     private static void writeBatch(DataOutputStream out,Batch b)throws IOException{
         out.writeLong(b.number());out.writeInt(b.startCursor());out.writeInt(b.advance());var palette=new LinkedHashMap<String,Integer>();
         for(var c:b.changes()){palette.computeIfAbsent(c.before(),s->palette.size());palette.computeIfAbsent(c.after(),s->palette.size());}

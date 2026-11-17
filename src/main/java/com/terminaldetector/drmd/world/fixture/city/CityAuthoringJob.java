@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture;
 public final class CityAuthoringJob {
     public enum State { PLANNED,RUNNING,PAUSED,COMPLETED,CANCELLED,QUARANTINED }
     public enum Reason { NONE,MANUAL,RECOVERED,UNAVAILABLE,CONFLICT,REJECTED,IO_FAILURE,WORLD_FAILURE,NOTIFICATION_FAILED,INCOMPLETE_JOURNAL }
-    public enum Phase { IDLE,PREPARE,READY,COMMIT }
+    public enum Phase { IDLE,PREPARE,READY,COMMIT,CONTROL }
     public enum CommitResult { COMMITTED,NO_CHANGE,NOTIFICATION_FAILED,CONFLICT,UNAVAILABLE,REJECTED }
     public record Page(int x,int y,int z){
         public static Page of(CityBlueprint.Point point){return new Page(Math.floorDiv(point.x(),16),Math.floorDiv(point.y(),16),Math.floorDiv(point.z(),16));}
@@ -27,9 +27,12 @@ public final class CityAuthoringJob {
     public interface Journal {
         CompletableFuture<Void> prepare(CityBatchJournal.Batch batch);
         CompletableFuture<Void> commit(long batchNumber);
+        CompletableFuture<Void> control(CityBatchJournal.Disposition disposition,long pendingBatch);
     }
     public record Inspection(State state,Reason reason,int cursor,int total,long nextBatch,
-                             Optional<CityBatchJournal.Batch> pending,Phase phase,boolean verifyAfterOnly){}
+                             Optional<CityBatchJournal.Batch> pending,Phase phase,boolean verifyAfterOnly,
+                             CityBatchJournal.Disposition durableDisposition,
+                             Optional<CityBatchJournal.Disposition> queuedControl,Optional<CityBatchJournal.Disposition> executingControl){}
 
     private final CityBlueprint.Plan plan;
     private final CityBatchJournal.Identity identity;
@@ -41,6 +44,7 @@ public final class CityAuthoringJob {
     private CityBatchJournal.Batch pending;
     private CompletableFuture<Void> acknowledgment;
     private boolean verifyAfterOnly;
+    private CityBatchJournal.Disposition durableDisposition,queuedControl,executingControl;
 
     public CityAuthoringJob(CityBlueprint.Plan plan,CityBatchJournal.Identity identity,
                             CityBatchJournal.Snapshot recovered,Storage storage,Journal journal){
@@ -53,8 +57,9 @@ public final class CityAuthoringJob {
         cursor=recovered.cursor();nextBatch=recovered.nextBatch();pending=recovered.pending().orElse(null);
         if(pending!=null)validatePending();
         phase=pending==null?Phase.IDLE:Phase.READY;
-        boolean restored=cursor!=0||pending!=null;
-        state=recovered.incompleteTail()?State.QUARANTINED:restored?State.PAUSED:State.PLANNED;
+        durableDisposition=recovered.disposition();verifyAfterOnly=durableDisposition==CityBatchJournal.Disposition.VERIFY_AFTER_ONLY;
+        boolean restored=cursor!=0||pending!=null||durableDisposition==CityBatchJournal.Disposition.CANCELLED;
+        state=recovered.incompleteTail()?State.QUARANTINED:durableDisposition==CityBatchJournal.Disposition.CANCELLED?State.CANCELLED:restored?State.PAUSED:State.PLANNED;
         reason=recovered.incompleteTail()?Reason.INCOMPLETE_JOURNAL:restored?Reason.RECOVERED:Reason.NONE;
     }
 
@@ -70,36 +75,54 @@ public final class CityAuthoringJob {
     }
     private void serverThread(){if(Thread.currentThread()!=ownerThread)throw new IllegalStateException("city controller requires its owning server thread");}
     private void owner(UUID caller){serverThread();if(!identity.owner().equals(caller))throw new SecurityException("city job belongs to a different operator");}
-    public Inspection inspect(){serverThread();return new Inspection(state,reason,cursor,plan.cells().size(),nextBatch,Optional.ofNullable(pending),phase,verifyAfterOnly);}
-    public boolean apply(UUID caller){owner(caller);if(state!=State.PLANNED)return false;state=State.RUNNING;reason=Reason.NONE;return true;}
-    public boolean pause(UUID caller){owner(caller);if(state!=State.RUNNING)return false;stop(Reason.MANUAL);return true;}
+    public Inspection inspect(){serverThread();return new Inspection(state,reason,cursor,plan.cells().size(),nextBatch,Optional.ofNullable(pending),phase,verifyAfterOnly,durableDisposition,Optional.ofNullable(queuedControl),Optional.ofNullable(executingControl));}
+    public boolean apply(UUID caller){owner(caller);if(state!=State.PLANNED||controlOrIoPending())return false;state=State.RUNNING;reason=Reason.NONE;return true;}
+    public boolean pause(UUID caller){owner(caller);if(state!=State.RUNNING)return false;stop(Reason.MANUAL);queueControl(CityBatchJournal.Disposition.PAUSED);return true;}
     public boolean resume(UUID caller){
-        owner(caller);if(state!=State.PAUSED)return false;
+        owner(caller);if(state!=State.PAUSED||controlOrIoPending())return false;
         state=cursor==plan.cells().size()&&pending==null?State.COMPLETED:State.RUNNING;reason=Reason.NONE;return true;
     }
     /** Cancel stops future CAS, never rolls back a committed prefix or deletes a
-     * prepared journal. Reopened sessions always require another explicit command. */
+     * prepared journal. Inspect distinguishes immediate stop from its durable ack. */
     public boolean cancel(UUID caller){
         owner(caller);if(state!=State.PLANNED&&state!=State.RUNNING&&state!=State.PAUSED)return false;
-        state=State.CANCELLED;reason=Reason.MANUAL;return true;
+        state=State.CANCELLED;reason=Reason.MANUAL;queueControl(CityBatchJournal.Disposition.CANCELLED);return true;
     }
     private void stop(Reason why){state=State.PAUSED;reason=why;}
     private void quarantine(Reason why){state=State.QUARANTINED;reason=why;}
+    private boolean controlOrIoPending(){return acknowledgment!=null||queuedControl!=null||executingControl!=null;}
+    private static int priority(CityBatchJournal.Disposition disposition){return switch(disposition){case PAUSED->0;case VERIFY_AFTER_ONLY->1;case CANCELLED->2;};}
+    private void queueControl(CityBatchJournal.Disposition next){
+        if(executingControl!=null&&priority(executingControl)>=priority(next))return;
+        if(queuedControl==null||priority(next)>priority(queuedControl))queuedControl=next;
+    }
+    private void submitControl(){
+        executingControl=queuedControl;queuedControl=null;phase=Phase.CONTROL;
+        long number=executingControl==CityBatchJournal.Disposition.VERIFY_AFTER_ONLY?pending.number():-1;
+        try{acknowledgment=Objects.requireNonNull(journal.control(executingControl,number));}
+        catch(RuntimeException failure){quarantine(Reason.IO_FAILURE);}
+    }
 
     /** At most one 64-cell page CAS. No loop across pages or blocking disk wait. */
     public void tick(){
         serverThread();
+        if(state==State.QUARANTINED)return;
         if(acknowledgment!=null){
             if(!acknowledgment.isDone())return;
             try{acknowledgment.join();}catch(RuntimeException failure){acknowledgment=null;quarantine(Reason.IO_FAILURE);return;}
             acknowledgment=null;
-            if(phase==Phase.COMMIT){
-                cursor=pending.startCursor()+pending.advance();nextBatch++;pending=null;phase=Phase.IDLE;verifyAfterOnly=false;
+            boolean committed=phase==Phase.COMMIT;
+            if(committed){
+                cursor=pending.startCursor()+pending.advance();nextBatch++;pending=null;phase=Phase.IDLE;verifyAfterOnly=false;durableDisposition=CityBatchJournal.Disposition.PAUSED;
                 if(state==State.RUNNING&&cursor==plan.cells().size()){state=State.COMPLETED;reason=Reason.NONE;}
-                return;
             }
-            phase=Phase.READY;
+            else if(phase==Phase.CONTROL){durableDisposition=executingControl;executingControl=null;phase=pending==null?Phase.IDLE:Phase.READY;}
+            else if(phase==Phase.PREPARE)phase=Phase.READY;
+            else{quarantine(Reason.IO_FAILURE);return;}
+            if(queuedControl!=null){submitControl();return;}
+            if(committed)return;
         }
+        if(queuedControl!=null){submitControl();return;}
         if(state!=State.RUNNING)return;
         if(pending==null){prepareNext();return;}
         if(phase!=Phase.READY){quarantine(Reason.IO_FAILURE);return;}
@@ -120,9 +143,10 @@ public final class CityAuthoringJob {
             case COMMITTED,NO_CHANGE->commitMarker();
             // State was physically committed, but publication is uncertain. Keep
             // the durable PREPARED after-image until explicit resume verifies it;
-            // restart follows conservative pending-batch reconciliation. The known
-            // publication failure in this session permits only an actual after-image.
-            case NOTIFICATION_FAILED->{verifyAfterOnly=true;stop(Reason.NOTIFICATION_FAILED);}
+            // The known publication outcome becomes a durable fence before another
+            // explicit resume can inspect the actual after-image. No second I/O task
+            // is admitted while this control acknowledgment is outstanding.
+            case NOTIFICATION_FAILED->{verifyAfterOnly=true;stop(Reason.NOTIFICATION_FAILED);queueControl(CityBatchJournal.Disposition.VERIFY_AFTER_ONLY);submitControl();}
             case CONFLICT->stop(Reason.CONFLICT);
             case UNAVAILABLE->stop(Reason.UNAVAILABLE);
             case REJECTED->stop(Reason.REJECTED);

@@ -26,6 +26,9 @@ class CitySaveIdentityTest {
         byte[] bytes=Files.readAllBytes(id);bytes[bytes.length-1]^=1;Files.write(id,bytes);
         assertThrows(IOException.class,()->CitySaveIdentity.create(directory));assertArrayEquals(bytes,Files.readAllBytes(id));
         assertThrows(IOException.class,()->CitySaveIdentity.openExisting(directory));assertArrayEquals(bytes,Files.readAllBytes(id));
+        java.nio.ByteBuffer.wrap(bytes).putInt(4,200);var crc=new java.util.zip.CRC32();crc.update(bytes,0,bytes.length-4);
+        java.nio.ByteBuffer.wrap(bytes).putInt(bytes.length-4,(int)crc.getValue());Files.write(id,bytes);
+        assertThrows(IOException.class,()->CitySaveIdentity.openExisting(directory));assertArrayEquals(bytes,Files.readAllBytes(id));
     }
     @Test void onlyOneLeaseCanOwnTheSaveAndCloseReleasesIt() throws IOException {
         UUID id;try(var lease=CitySaveIdentity.create(directory)){
