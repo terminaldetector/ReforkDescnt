@@ -1,0 +1,124 @@
+{
+  "source": "44238d747de26bd114054941e77e92255cf84c35",
+  "base": "5ba617949782bdcb451cc7e84ae593002b0c03be",
+  "classification": "actual render negative; compilation/remap and all three actual-world poses completed",
+  "buildExit": 0,
+  "nativeExit": 255,
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "cce6a9bb60a275542ab64b8f347757880718e2b76f609578e9562f70567baad2",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "5df6a1334549aec9ac9785e23daf10e310225276629a12b2386820da7419070d"
+  },
+  "allExecutingHelpersUnchanged": true,
+  "freshPngCount": 51,
+  "poses": [
+    {
+      "pose": "level",
+      "epoch": 262,
+      "requestedYawPitchRoll": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "upperSkySamples": 21264,
+      "unsatisfiedSkySamples": 0,
+      "outsideClippedEnvelopeGaps": 0,
+      "coveredColourFailures": 0,
+      "skyMismatchFraction": 0.0,
+      "visibleLodBeforeEnvelope": 7922,
+      "lodOverwrittenByEnvelope": 7922,
+      "lodReadiness": "measured",
+      "glError": 0,
+      "mesh": {
+        "innerRadius": 0.0,
+        "zeroRgbQuads": 11,
+        "reach": 217.6,
+        "origin": [
+          8.5,
+          2201.6200000047684,
+          8.5
+        ],
+        "quads": 66106
+      }
+    },
+    {
+      "pose": "look-up-banked",
+      "epoch": 268,
+      "requestedYawPitchRoll": [
+        0.0,
+        -45.0,
+        25.0
+      ],
+      "upperSkySamples": 36560,
+      "unsatisfiedSkySamples": 18731,
+      "outsideClippedEnvelopeGaps": 18731,
+      "coveredColourFailures": 0,
+      "skyMismatchFraction": 0.512335886214442,
+      "visibleLodBeforeEnvelope": 0,
+      "lodOverwrittenByEnvelope": 0,
+      "lodReadiness": "unavailable-no-isolated-lower-LOD-domain",
+      "glError": 0,
+      "mesh": {
+        "innerRadius": 0.0,
+        "zeroRgbQuads": 18,
+        "reach": 217.6,
+        "origin": [
+          8.5,
+          2201.6200000047684,
+          8.5
+        ],
+        "quads": 66106
+      }
+    },
+    {
+      "pose": "look-down-quarter-roll",
+      "epoch": 269,
+      "requestedYawPitchRoll": [
+        90.0,
+        45.0,
+        90.0
+      ],
+      "upperSkySamples": 4750,
+      "unsatisfiedSkySamples": 0,
+      "outsideClippedEnvelopeGaps": 0,
+      "coveredColourFailures": 0,
+      "skyMismatchFraction": 0.0,
+      "visibleLodBeforeEnvelope": 28233,
+      "lodOverwrittenByEnvelope": 15080,
+      "lodReadiness": "measured",
+      "glError": 0,
+      "mesh": {
+        "innerRadius": 0.0,
+        "zeroRgbQuads": 18,
+        "reach": 217.6,
+        "origin": [
+          8.5,
+          2201.6200000047684,
+          8.5
+        ],
+        "quads": 66106
+      }
+    }
+  ],
+  "thresholds": {
+    "minUpperSkySamples": 2000,
+    "minLodSamples": 200,
+    "sampleStride": 4,
+    "maxLodLossFraction": 0.01,
+    "maxRgbDistance": 16,
+    "maxSkyMismatchFraction": 0.01
+  },
+  "worldArchive": {
+    "path": "work/preserved-disposable-worlds/cubic-client-failed-sky-layers-44238d7-saves.zip",
+    "sha256": "f6a1297cbdef7eeaed34a3ed10d25aa9c0a36717d1944aa32556c047fcc8f164",
+    "files": 101,
+    "perFileShaAndZipCrcVerified": true
+  },
+  "acceptance": "Negative attribution only. No production change, no full S04/S05 or v8 acceptance. SurfaceIngest off-by-one fix is absent from this game JAR. Source pixels in first-outcome/sample-pixels.json are independent evidence; full ray/depth/cockpit/celestial domain and actual matrix/order traces are retained.",
+  "evidence": {
+    "path": "docs/v8/EVIDENCE/sky-lod-44238d7-negative.zip",
+    "sha256": "ed91f40e4b709f839bcedc8a9fcd1cc96cf103523478ac4e9d5fbc23d1187c71",
+    "bytes": 5606747,
+    "files": 91,
+    "perFileShaAndZipCrcVerified": true
+  }
+}
