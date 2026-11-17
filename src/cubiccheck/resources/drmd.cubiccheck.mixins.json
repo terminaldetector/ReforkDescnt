@@ -4,6 +4,10 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "CubicFrameProbe",
+    "SurfaceIngestBootstrapProbe",
+    "SurfaceIngestFrameProbe",
+    "SurfaceIngestServerProbe",
+    "SurfaceIngestPacketProbe",
     "PresentationOverlayProbe",
     "TransparentSkylightBootstrapProbe",
     "TransparentSkylightFrameProbe",

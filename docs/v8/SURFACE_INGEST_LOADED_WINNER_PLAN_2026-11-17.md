@@ -1,0 +1,27 @@
+# SurfaceIngest unavailable winner — prepared actual native negative
+
+Branch `experiment/cubic-surface-ingest-20261117` is based on canonical `9d51865`. Original legacy work/evidence remain on `experiment/cubic-world-20261109`; `checkpoint/world-cubic-legacy-83d044a` preserves the proven legacy source/evidence pointer. The four verified closed-world receipts are separately committed as `d4590a7`. This increment is test-only: **no production SurfaceIngest correction or runtime result is claimed yet**.
+
+Current source selects a heightmap winner, reads that block/entity/color and replaces an already known surface cell without checking whether its native Y cube is FULL. A native column can remain available while one of its Y cubes unloads; that source pattern is only a candidate defect, not a reproduced result.
+
+The root-approved fixture is an actual BCC client with server-authoritative ordinary block edits. It authors a retained CYAN block at(8,1024,8), cubeY64, through normal low player interest and FULL-volume checks. It then moves the ordinary creative player nearY2303, authors GOLD at(8,2300,8) and LIME at(8,2298,8), both cubeY143, and waits for the normal production dirty-ingest/SurfacePayload pipeline. LIME is only the loaded-demolition control, never the retained-low witness. Fixture movement and deliberate authored blocks are explicit; no `/bcc` load commands, forced tickets, metadata/availability edits, synthetic SurfaceStore writes or synthetic packets are used.
+
+The case first requires these actual loaded controls:
+
+1. GOLD produces expected height2301/color in the server's live SurfaceStore, flushed/read-back section and normally accepted client section.
+2. Removing that loaded GOLD while the same high cube remains FULL lowers the observed surface to LIME atheight2299; actual server/disk/client values must update. This protects legitimate demolition rather than turning retention into an immutable maximum.
+3. Restoring GOLD returns all three stores/packet values to the actual GOLD source.
+
+The player then returns nearY1027 in the same X/Z column. The case waits for20 consecutive ticks with high cube143 actually unavailable on server and client, CYAN cube64 available/readable, and the native parent column retained. The actual metadata height at the authored high coordinate must still be2301 and the column identity must match the retained original. If that conditional native premise does not occur, the case reports `PREMISE_NOT_OBSERVED`; no fake heightmap or production fix is justified.
+
+One additional genuinely changed block inside the loaded low cube triggers the real dirty-ingest path. Non-mutating test probes observe actual production onChunkLoad entry/return and the actual colourAt winner availability/result, plus before/after live cell and high availability. The test never directly reads the unavailable high block. It records up to256 production events and128 real accepted target-section packets, exposes any dropped event count, and retains original packet bytes/hash. The same cell is flushed and decoded back from the real compressed section backend. Known GOLD height/color must survive uncertainty in server/disk/client data; a production overwrite is preserved as a negative, and a conditional premise mismatch remains an observer outcome.
+
+If this baseline already preserves the known cell, normal player travel must reload the real saved GOLD and a subsequent loaded adjacent edit must resume ordinary ingestion. That unexpected PASS is parity evidence, not a fabricated lighting/render/world fix. State-metadata/loaded-only queries use the actual WorldAccess contract on each world's owner thread; probes flag an unexpected off-thread callback instead of reading native metadata from that thread.
+
+The test-only source files are NativeSurfaceIngestCheck plus bootstrap, real-render-return, server-ingest and actual-client-section probes. Production ownership remains **SurfaceIngest.java only**, after a genuine negative and separate source approval. Source bootstrap/renderer/protocol classes are untouched; four test-only entries in `drmd.cubiccheck.mixins.json` require the root's central merge. The presentation worker owns smoothing/PS1/camera changes.
+
+Fresh frames follow three actual GameRenderer returns and show fixture context. They do not assert pixel smoothing or that a particular cell occupied an actual rendered LOD pixel. Acceptance here is actual live/persisted/received data, not rendered appearance. Stage budgets are600 ticks,1800 for natural vertical unload, and4800 client ticks overall; the native tool guard is360s. Readiness failure is a fixture failure and cannot establish the production bug.
+
+Own `cubic_surface_*` helpers bind both actual remapped candidate JARs/source/helper hashes, use the unchanged official stager and hash-verified immutable vanilla libraries/Minecraft-only intermediary cache, and stage a fresh disposable copy of seed271026. They borrow no previous DRMD code, successful save result or marker. A native exit0 with `PREMISE_NOT_OBSERVED` yields wrapper exit2, not PASS. Any compile/setup/native first failure or unexpected PASS must be retained before edits or retry. No upstream ARR implementation is copied.
+
+Only static shell/Python/JSON/diff checks have run. Gradle/Java/native require a new explicit root test lease. The proposed first case name is `cubic-surface-baseline-sodium`.
