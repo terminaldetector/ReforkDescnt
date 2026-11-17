@@ -153,12 +153,15 @@ public final class LocalSurfaceNavigation {
         lease.seen=now;
         if(!active(actor)||!path.matches(ActorFrames.up(actor))||now-path.createdAt>PATH_TICKS
             ||!LocalSurfaceGeometry.supported(actor,feet,path.up)){invalidate(actor);return false;}
-        for(int i=0;i<4&&!path.isFinished()&&feet.distanceTo(path.getNodePosition(actor))<.18;i++) {
+        var decision=LocalSurfaceFollowDecision.select(feet,path.getCurrentNodeIndex(),path.getLength(),
+            index->path.getNodePosition(actor,index),
+            index->LocalSurfaceGeometry.clear(actor,feet,path.getNodePosition(actor,index),path.up,false));
+        if(!decision.clear()){invalidate(actor);return false;}
+        while(path.getCurrentNodeIndex()<decision.index()) {
             path.next();path.progressAt=now;path.progressPosition=feet;
         }
         if(path.isFinished())return true;
         var waypoint=path.getNodePosition(actor);
-        if(!LocalSurfaceGeometry.clear(actor,feet,waypoint,path.up,false)){invalidate(actor);return false;}
         if(feet.squaredDistanceTo(path.progressPosition)>.0025){path.progressPosition=feet;path.progressAt=now;}
         if(now-path.progressAt>STALL_TICKS){invalidate(actor);return false;}
         actor.getMoveControl().moveTo(waypoint.x,waypoint.y,waypoint.z,speed);return true;
