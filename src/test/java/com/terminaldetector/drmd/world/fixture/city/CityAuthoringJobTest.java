@@ -10,7 +10,7 @@ class CityAuthoringJobTest {
     private static final UUID OWNER=new UUID(101,902),OTHER=new UUID(102,903);
     private static final CityBlueprint.Plan PLAN=CityBlueprint.create(93,new CityBlueprint.Point(0,64,0),
         new CityBlueprint.Limits(-64,512,-1024,1024,-1024,1024));
-    private static final CityBatchJournal.Identity ID=new CityBatchJournal.Identity(OWNER,"minecraft:overworld",PLAN.hash());
+    private static final CityBatchJournal.Identity ID=new CityBatchJournal.Identity(new UUID(11,12),new UUID(13,14),OWNER,"minecraft:overworld",PLAN.hash());
 
     private static final class World implements CityAuthoringJob.Storage {
         final Map<CityBlueprint.Point,String> cells=new HashMap<>();
@@ -111,7 +111,7 @@ class CityAuthoringJobTest {
         d.commitAck.complete(null);job.tick();assertEquals(batch.advance(),job.inspect().cursor());assertEquals(1,d.prepared.size());
     }
     @Test void recoveredForeignIdentityOrOffPlanPendingCellFailsBeforeAnyWorldRead(){
-        var w=new World();var d=new Disk();var foreign=new CityBatchJournal.Identity(OTHER,ID.world(),PLAN.hash());
+        var w=new World();var d=new Disk();var foreign=new CityBatchJournal.Identity(ID.saveId(),ID.jobId(),OTHER,ID.world(),PLAN.hash());
         assertThrows(IllegalArgumentException.class,()->new CityAuthoringJob(PLAN,ID,new CityBatchJournal.Snapshot(foreign,0,0,Optional.empty(),false),w,d));
         var change=new CityBatchJournal.Change(new CityBlueprint.Point(1000,64,1000),"minecraft:air","minecraft:iron_block");
         var batch=new CityBatchJournal.Batch(0,0,1,List.of(change));
