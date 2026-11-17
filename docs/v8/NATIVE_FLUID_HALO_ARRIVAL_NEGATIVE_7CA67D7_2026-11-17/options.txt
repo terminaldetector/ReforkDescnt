@@ -1,0 +1,5 @@
+onboardAccessibility:false
+pauseOnLostFocus:false
+maxFps:30
+renderDistance:4
+simulationDistance:5

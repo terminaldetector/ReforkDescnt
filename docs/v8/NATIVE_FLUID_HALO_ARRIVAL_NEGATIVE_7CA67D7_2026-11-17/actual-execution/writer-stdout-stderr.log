@@ -1,0 +1,2 @@
+Verified unknown-fluid observer/game source 7ca67d7cbb727105c69e2025806759aed06da45d
+First unknown-neighbour observer outcome: ARRIVAL_FLOW_NOT_OBSERVED real unknown edge qualified, but ordinary FULL arrival did not produce server/client target flow within400ticks; inspect actual callbacks and queue
