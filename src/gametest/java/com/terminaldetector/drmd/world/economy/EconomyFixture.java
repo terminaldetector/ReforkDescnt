@@ -7,6 +7,8 @@ import com.terminaldetector.drmd.client.portal.PortalTransform.*;
 import com.terminaldetector.drmd.entity.*;
 import com.terminaldetector.drmd.world.contraption.*;
 import com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem;
+import com.terminaldetector.drmd.world.contraption.boarding.*;
+import com.terminaldetector.drmd.physics.collision.*;
 import io.netty.channel.embedded.EmbeddedChannel;
 import net.minecraft.block.*;
 import net.minecraft.entity.Entity;
@@ -25,6 +27,8 @@ import net.minecraft.util.math.*;
 import net.minecraft.world.GameMode;
 import java.util.*;
 import java.util.function.Consumer;
+import java.nio.file.*;
+import java.io.*;
 
 /** Test-owned ordinary Survival connection, real crafting UI, material edits and timing.
  * Starting materials/table/carrier are fixtures, never a claim of ore mining or free equipment. */
@@ -139,6 +143,12 @@ final class EconomyFixture implements AutoCloseable {
     }
     void components(int plates,int cells){for(int i=0;i<(plates+1)/2;i++)craft("alloy_plate");for(int i=0;i<(cells+1)/2;i++)craft("energy_cell");}
     void closeTable(){if(p.currentScreenHandler!=p.playerScreenHandler)p.closeHandledScreen();}
+    String diagnostic(String name,String text){
+        var path=Path.of("reports",name+".txt");
+        try{Files.createDirectories(path.getParent());Files.writeString(path,text+"\n");}
+        catch(IOException failure){throw new UncheckedIOException("Cannot preserve actual economy diagnostic",failure);}
+        return path.toString();
+    }
     BlockBodyEntity carrier(){
         var cells=new ArrayList<BlockBodyEntity.Cell>();for(int x=-2;x<=8;x++)for(int z=-1;z<=3;z++)cells.add(new BlockBodyEntity.Cell(new BlockPos(x,-1,z),Blocks.IRON_BLOCK.getDefaultState()));
         for(int x=0;x<=6;x+=2)cells.add(new BlockBodyEntity.Cell(new BlockPos(x,0,0),Blocks.IRON_BLOCK.getDefaultState()));
@@ -150,7 +160,24 @@ final class EconomyFixture implements AutoCloseable {
     }
     void placeLocal(BlockBodyEntity b,BlockPos support,Direction face,Item item){
         closeTable();hold(item);int before=count(item);aimCell(b,support,face);
-        c.assertTrue(BodyBlockInteraction.receive(p,new BodyBlockInteraction.Edit(b.getUuid(),b.shapeRevision(),support,BodyBlockInteraction.PLACE)),"actual validated local placement "+support+" "+face);
+        var ray=BodyBlockInteraction.target(p,p.getEyePos(),BodyBlockInteraction.viewDirection(p),p.getBlockInteractionRange());var target=support.offset(face);
+        var cube=OrientedBox.local(new BodyBounds(new Vec3(target.getX(),target.getY(),target.getZ()),new Vec3(target.getX()+1,target.getY()+1,target.getZ()+1)),b.massPosition(),b.localCentre(),b.rotation());var bounds=cube.bounds();
+        var broad=new Box(bounds.min().x(),bounds.min().y(),bounds.min().z(),bounds.max().x(),bounds.max().y(),bounds.max().z());boolean available=b.collisionRegionAvailable(broad);var contacts=new ArrayList<String>();
+        if(available){
+            for(var shape:w.getBlockCollisions(b,broad.contract(1e-6)))contacts.add("world="+shape.getBoundingBoxes());
+            for(var e:BodySpatialIndex.otherEntities(w,b,broad,e->e.isAlive()&&!e.isSpectator())){
+                if(contacts.size()>=16)break;
+                if(e instanceof BlockBodyEntity other)contacts.add("body="+other.getUuid()+" "+other.collisionQuery().contacts(cube,0));
+                else{
+                    var box=e.getBoundingBox();var actor=e instanceof net.minecraft.entity.player.PlayerEntity player
+                        ?PassengerFrame.box(BoardingSystem.pure(player.getPos()),player.getWidth(),player.getHeight(),BoardingPose.frame(player))
+                        :OrientedBox.axisAligned(new BodyBounds(new Vec3(box.minX,box.minY,box.minZ),new Vec3(box.maxX,box.maxY,box.maxZ)));
+                    contacts.add("entity="+e.getType()+" pos="+e.getPos()+" frame="+(e==p?BoardingPose.frame(p):null)+" contact="+cube.contact(actor,0));
+                }
+            }
+        }
+        String report=diagnostic("economy-placement-"+b.getUuid()+"-"+c.getTick(),"serverTick="+w.getServer().getTicks()+" testTick="+c.getTick()+" support="+support+" face="+face+" target="+target+" revision="+b.shapeRevision()+" existing="+b.getLocalBlock(target)+" item="+p.getMainHandStack()+" player="+p.getPos()+" eye="+p.getEyePos()+" range="+p.getBlockInteractionRange()+" view="+BodyBlockInteraction.viewDirection(p)+" ray="+ray+" regionAvailable="+available+" cube="+broad+" contacts="+contacts);
+        c.assertTrue(BodyBlockInteraction.receive(p,new BodyBlockInteraction.Edit(b.getUuid(),b.shapeRevision(),support,BodyBlockInteraction.PLACE)),"actual validated local placement "+support+" "+face+"; diagnostic="+report);
         c.assertTrue(b.getLocalBlock(support.offset(face)).isOf(((BlockItem)item).getBlock())&&count(item)==before-1,"Survival local grid consumes exactly one actual crafted item");
     }
     void useLocal(BlockBodyEntity b,BlockPos cell,Direction face){

@@ -5,6 +5,7 @@ import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.weapon.items.DescentWeaponItem;
 import com.terminaldetector.drmd.world.contraption.*;
+import com.terminaldetector.drmd.client.portal.PortalTransform.*;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.block.*;
 import net.minecraft.entity.ItemEntity;
@@ -14,6 +15,8 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.test.*;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.*;
+import net.minecraft.world.GameMode;
+import net.minecraft.util.Hand;
 import java.util.*;
 
 /** Actual Survival recipe/result-slot acquisition precedes use. No product grants,
@@ -85,11 +88,16 @@ public final class SurvivalEconomyGameTests implements FabricGameTest {
         f.components(8,1);f.craft("mechanical_bearing");f.craft("rotary_drive");f.craft("ship_laser");f.stock(Items.DIAMOND_PICKAXE,1);
         var b=f.carrier();var items=List.of(ModWorldBlocks.MECHANICAL_BEARING.asItem(),ModWorldBlocks.ROTARY_DRIVE.asItem(),ModWorldBlocks.SHIP_LASER.asItem());
         for(int i=0;i<items.size();i++){final int index=i;f.after(i*5,()->f.placeLocal(b,new BlockPos(index*2,0,0),Direction.SOUTH,items.get(index)));}
-        int[] index={0};int[] phase={0};long[] ready={c.getTick()+20};
+        int[] index={0};int[] phase={0};long[] ready={c.getTick()+20};var checked=new HashSet<Integer>();
         f.observe=()->{
             if(c.getTick()<ready[0])return;var equipment=items.get(index[0]);var target=new BlockPos(index[0]*2,0,1);
             if(phase[0]==0){
                 f.hold(Items.DIAMOND_PICKAXE);f.aimCell(b,target,Direction.SOUTH);
+                if(checked.add(index[0])){
+                    var state=b.getLocalBlock(target);boolean harvest=f.p.canHarvest(state);
+                    String report=f.diagnostic("economy-salvage-"+index[0],"state="+state+" held="+f.p.getMainHandStack()+" canHarvest="+harvest+" requiresTool="+state.isToolRequired()+" miningSpeed="+f.p.getBlockBreakingSpeed(state)+" onGround="+f.p.isOnGround()+" pickaxeTag="+state.isIn(net.minecraft.registry.tag.BlockTags.PICKAXE_MINEABLE)+" revision="+b.shapeRevision());
+                    c.assertTrue(harvest,"real declared diamond pickaxe must harvest recoverable component; diagnostic="+report);
+                }
                 if(!b.getLocalBlock(target).isAir()){
                     if(c.getTick()%3==0)c.assertTrue(BodyBlockInteraction.receive(f.p,new BodyBlockInteraction.Edit(b.getUuid(),b.shapeRevision(),target,BodyBlockInteraction.MINE)),"real Survival mining pulses remain valid until material breaks");return;
                 }
@@ -123,7 +131,8 @@ public final class SurvivalEconomyGameTests implements FabricGameTest {
             var correction=toward.subtract(direction.multiply(toward.dotProduct(direction)));f.p.setPosition(f.p.getPos().add(correction));
             var muzzle=WeaponCore.muzzleFor(f.p,def.id,1);var bore=new BlockBodyWorldAccess(b).raycastBlockBody(muzzle,muzzle.add(direction.multiply(16)));
             String aim="eye="+f.p.getEyePos()+" view="+BodyBlockInteraction.viewDirection(f.p)+" actualAim="+direction+" validAttitude="+DescentPlayerData.get(f.p).hasShipAttitude()+" primaryMuzzle="+muzzle+" shooterCorrection="+correction+" bore="+bore;
-            c.assertTrue(bore.isPresent()&&bore.get().localBlock().equals(drive),"real primary barrel must reach selected drive before firing: "+aim);
+            String aimReport=f.diagnostic("economy-repair-aim",aim);
+            c.assertTrue(bore.isPresent()&&bore.get().localBlock().equals(drive),"real primary barrel must reach selected drive before firing; diagnostic="+aimReport);
             var oldShots=new HashSet<UUID>();for(var e:f.w.iterateEntities())if(e instanceof ProjectileEntity)oldShots.add(e.getUuid());
             var shots=new LinkedHashMap<UUID,ProjectileEntity>();var trail=new ArrayList<String>();long fired=c.getTick();boolean[] observed={false};float energyBefore=DescentPlayerData.get(f.p).getEnergy();
             Runnable sample=()->{
@@ -134,13 +143,24 @@ public final class SurvivalEconomyGameTests implements FabricGameTest {
             java.util.function.Supplier<String> diagnostic=()->aim+" energy="+energyBefore+"->"+energyAfter+" target="+b.getLocalBlock(drive)+" damaged="+b.cells().stream().filter(cell->b.materialDamage(cell.pos())>0).map(cell->cell.pos()+":"+b.materialDamage(cell.pos())).toList()+" projectiles="+trail;
             f.observe=()->{
                 if(observed[0])return;sample.run();double damage=b.materialDamage(drive);
-                if(damage<=0){c.assertTrue(c.getTick()-fired<100,"actual crafted MG projectile must first damage the selected physical drive: "+diagnostic.get());return;}
+                if(damage<=0){if(c.getTick()-fired>=100){String report=f.diagnostic("economy-repair-projectiles",diagnostic.get());c.assertTrue(false,"actual crafted MG projectile must first damage the selected physical drive; diagnostic="+report);}return;}
                 observed[0]=true;c.assertTrue(b.getLocalBlock(drive).isOf(ModWorldBlocks.ROTARY_DRIVE),"damage is partial, not destruction/replacement");
-                var id=b.getUuid();double mass=b.physicsMass();var velocity=b.physics().linearVelocity();var angular=b.physics().angularMomentum();
-                c.assertTrue(velocity.length()>1e-10||angular.length()>1e-10,"the real impact gives the mechanism actual physical motion before repair");
-                f.hold(ModWorldBlocks.REPAIR_LASER);f.aimCell(b,drive,Direction.SOUTH);f.itemUse();
-                c.assertTrue(b.materialDamage(drive)<damage,"actual crafted repair use must reduce local mechanism damage; before="+damage+" after="+b.materialDamage(drive)+" "+diagnostic.get());
-                c.assertTrue(b.getUuid().equals(id)&&b.physicsMass()==mass&&b.physics().linearVelocity().equals(velocity)&&b.physics().angularMomentum().equals(angular),"partial repair preserves body identity, material mass and physical motion");f.done();
+                f.diagnostic("economy-repair-projectiles",diagnostic.get());
+                var id=b.getUuid();double mass=b.physicsMass();var collider=b.collider();long revision=b.shapeRevision();
+                c.assertTrue(b.physics().linearVelocity().length()>1e-10||b.physics().angularMomentum().length()>1e-10,"the real impact gives the mechanism actual physical motion before repair");
+                f.hold(ModWorldBlocks.REPAIR_LASER);f.aimCell(b,drive,Direction.SOUTH);
+                var coverAt=BlockPos.ofFloored(f.p.getEyePos().lerp(b.localToWorld(Vec3d.ofCenter(drive)),.5));var old=f.w.getBlockState(coverAt);f.setWorld(coverAt,Blocks.BEDROCK.getDefaultState());f.itemUse();
+                c.assertTrue(b.materialDamage(drive)==damage,"actual world cover blocks repair of the damaged local cell");f.setWorld(coverAt,old);
+                var middle=f.p.getEyePos().lerp(b.localToWorld(Vec3d.ofCenter(drive)),.5).subtract(.5,.5,.5);
+                var front=BlockBodyEntity.createLocal(f.w,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState())),middle,Quat.IDENTITY,Vec3d.ZERO,Vec3d.ZERO);front.setPhysicsGravity(false);f.bodies.add(front);
+                f.p.interactionManager.interactItem(f.p,f.w,f.p.getMainHandStack(),Hand.MAIN_HAND);
+                c.assertTrue(b.materialDamage(drive)==damage,"an intact nearer physical body cannot be passed through to repair a farther hull");front.discard();
+                f.p.changeGameMode(GameMode.SPECTATOR);f.p.interactionManager.interactItem(f.p,f.w,f.p.getMainHandStack(),Hand.MAIN_HAND);f.p.changeGameMode(GameMode.SURVIVAL);
+                c.assertTrue(b.materialDamage(drive)==damage,"spectator use does not repair local material");
+                c.assertTrue(!b.repairLocalMaterial(new BlockPos(100,100,100)),"absent local cells cannot be repaired or fabricated");
+                var velocity=b.physics().linearVelocity();var angular=b.physics().angularMomentum();f.aimCell(b,drive,Direction.SOUTH);f.itemUse();
+                c.assertTrue(b.materialDamage(drive)<damage,"actual crafted repair use must reduce local mechanism damage; before="+damage+" after="+b.materialDamage(drive)+"; diagnostic=reports/economy-repair-projectiles.txt");
+                c.assertTrue(b.getUuid().equals(id)&&b.physicsMass()==mass&&b.shapeRevision()==revision&&b.collider()==collider&&b.physics().linearVelocity().equals(velocity)&&b.physics().angularMomentum().equals(angular),"partial repair preserves body identity, grid, collider, material mass and physical motion");f.done();
             };
         });
     });}
