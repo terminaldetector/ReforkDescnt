@@ -68,7 +68,8 @@
       "com.terminaldetector.drmd.MechanismGameTests",
       "com.terminaldetector.drmd.MountedMechanismGameTests",
       "com.terminaldetector.drmd.ArmedContactGameTests",
-      "com.terminaldetector.drmd.world.threat.SurvivalThreatGameTests"
+      "com.terminaldetector.drmd.world.threat.SurvivalThreatGameTests",
+      "com.terminaldetector.drmd.world.economy.SurvivalEconomyGameTests"
     ]
   },
   "depends": {
