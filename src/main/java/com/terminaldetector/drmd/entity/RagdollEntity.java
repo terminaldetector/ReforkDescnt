@@ -2,9 +2,11 @@ package com.terminaldetector.drmd.entity;
 
 import com.terminaldetector.drmd.client.portal.PortalTransform.Quat;
 import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
+import com.terminaldetector.drmd.d6.D6ChunkPos;
 import com.terminaldetector.drmd.physics.PhysicsTarget;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollRig;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollSimulation;
+import com.terminaldetector.drmd.world.access.WorldAccess;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -169,9 +171,11 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 
 	private boolean insideLoadedWorld(Box box) {
 		if (box.minY < getWorld().getBottomY() || box.maxY > getWorld().getTopY()) return false;
-		for (int x = MathHelper.floor(box.minX) >> 4; x <= MathHelper.floor(box.maxX) >> 4; x++)
-			for (int z = MathHelper.floor(box.minZ) >> 4; z <= MathHelper.floor(box.maxZ) >> 4; z++)
-				if (!getWorld().isChunkLoaded(x, z)) return false;
+		var access = WorldAccess.of(getWorld());
+		for (int x = MathHelper.floor(box.minX) >> 4; x <= MathHelper.floor(Math.nextDown(box.maxX)) >> 4; x++)
+			for (int y = MathHelper.floor(box.minY) >> 4; y <= MathHelper.floor(Math.nextDown(box.maxY)) >> 4; y++)
+				for (int z = MathHelper.floor(box.minZ) >> 4; z <= MathHelper.floor(Math.nextDown(box.maxZ)) >> 4; z++)
+					if (!access.isVolumeAvailable(new D6ChunkPos(x, y, z))) return false;
 		return getWorld().getWorldBorder().contains(box);
 	}
 
