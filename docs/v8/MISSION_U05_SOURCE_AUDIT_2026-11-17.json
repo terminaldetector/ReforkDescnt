@@ -1,0 +1,90 @@
+{
+  "source": "522ee0765fe1a439b0a079120d5282f498c64533",
+  "worktree": "/workspace/ungravity-v5/mission-runtime-20261117",
+  "branch": "experiment/mission-runtime-20261117",
+  "sourceAuditOnly": true,
+  "mainDiffEmpty": true,
+  "JavaLaunched": false,
+  "mainSourceHashes": {
+    "AGENTS.md": {
+      "sha256": "a2419192657faa9891329d470ae81544cd530600384e4d830e0e6af697abae50",
+      "bytes": 2958
+    },
+    "docs/recovery/RECOVERY.md": {
+      "sha256": "881a5907aba40047728d71d879f0ecc2a31a5fd584d323f9530af47501f37923",
+      "bytes": 11153
+    },
+    "docs/v8/UNTOUCHED_IMPLEMENTATION_PACKETS_2026-11-17.md": {
+      "sha256": "59e6ecc505e7ab3da816537c047db25e2ebd673ce5abbd3350ea61d8b2e066ec",
+      "bytes": 19147
+    },
+    "docs/v8/reference/00_MASTER_SPEC.md": {
+      "sha256": "c98fe04f5592d5afcc9ddc34414c4d3032287944905718cf2fd17b4e2770d082",
+      "bytes": 32424
+    },
+    "docs/v8/reference/03_GAMEPLAY/SWARM_FACTIONS_SURVIVAL.md": {
+      "sha256": "c90dcd268b7dcd1601ea150355f8771267d7661316f8e134181a55e86ff6753e",
+      "bytes": 3421
+    },
+    "docs/v8/reference/04_WORLD/PLANET_RING_CITADEL_LABS.md": {
+      "sha256": "074f2cbd13cab875736a58a57678d6b57169ffc60d04906891c61dec5ae72702",
+      "bytes": 3919
+    },
+    "src/main/java/com/terminaldetector/drmd/world/enclave/EnclaveQuest.java": {
+      "sha256": "326c8ab15660c8e6580e311f23b875c871bfd96bf08625f70ccecc1163dd9596",
+      "bytes": 1382
+    },
+    "src/main/java/com/terminaldetector/drmd/world/enclave/EnclaveHeraldBlock.java": {
+      "sha256": "6f533c80f8df7b6eba5bd5904146c523382a2a1ba94197250b7737a811f80a1c",
+      "bytes": 2699
+    },
+    "src/main/java/com/terminaldetector/drmd/world/enclave/EnclaveSite.java": {
+      "sha256": "0aabddb19aac274a48a89be3c7fdf6f41af8aa663cf9d6a1872f8fc993b26648",
+      "bytes": 4264
+    },
+    "src/main/java/com/terminaldetector/drmd/world/enclave/FactionMemory.java": {
+      "sha256": "b567847b030d9a38f1b1210c2da2049f710897e2c3a71e43a34fce966c801f82",
+      "bytes": 3913
+    },
+    "src/main/java/com/terminaldetector/drmd/world/event/WorldEventSystem.java": {
+      "sha256": "16bea42ec79fd435fe130a62d365cadd7efb16193c9f17f8f8d39a13e7bbccf2",
+      "bytes": 5242
+    },
+    "src/main/java/com/terminaldetector/drmd/world/event/WorldEventState.java": {
+      "sha256": "2ea593b5afb7822e88bd14c7b7452108678dd68c4486432f9a4df8eaf82bb9de",
+      "bytes": 6734
+    },
+    "src/main/java/com/terminaldetector/drmd/world/dungeon/FacilityReactorFight.java": {
+      "sha256": "4ea95b3212c17e4472e215a15b9a349e7ea3316413026f69450dd2060ff3e158",
+      "bytes": 10222
+    },
+    "src/main/java/com/terminaldetector/drmd/world/LegacyGeneration.java": {
+      "sha256": "85cccb7a00cd36c0aa54d16cd04fcf31570e9f2c1688affb97435d5ff1d08749",
+      "bytes": 266
+    },
+    "src/main/java/com/terminaldetector/drmd/world/access/WorldAccess.java": {
+      "sha256": "913a59867c17001ccf9edaa7686b6d0720397dda232fd917d11fcd254b0866b3",
+      "bytes": 2206
+    },
+    "src/main/java/com/terminaldetector/drmd/world/edit/WorldEditSafety.java": {
+      "sha256": "92fb59e5c361b9bc6177a19df041db3dee643a01b115b252fd4c4411c5e8e41d",
+      "bytes": 2907
+    },
+    "src/main/java/com/terminaldetector/drmd/entity/ModWorldBlocks.java": {
+      "sha256": "34371f7560176613183b9aef471dbf9aebebb3ccea5cc694594d256a7ff98e7f",
+      "bytes": 16065
+    },
+    "src/main/java/com/terminaldetector/drmd/DescentMod.java": {
+      "sha256": "8e72a84fe178da677fff1f6998f2a211396f2fe3c3a96fdd67757a0c3f14a4a6",
+      "bytes": 19896
+    }
+  },
+  "locatedFacts": {
+    "instantAcceptanceReputation": "EnclaveHeraldBlock.onUse directly invokes mem.addRep(sp.getUuid(),site.origin,3)",
+    "missionStateAbsentAtIntegration": "EnclaveQuest has title/kind/siteSeed only; FactionMemory holds legacy rep/brokeControl only",
+    "legacyEventTickRetired": "DescentMod conditional !LegacyGeneration.retired() gates WorldEventSystem.tick; retired() returns true",
+    "proposedSameStateAtomicity": "mission instance/extraction/claimed receipt and reputation in drmd_faction_memory",
+    "firstActualNegative": "real Survival herald interaction3 times, expectation no accept reward; current source expected +9",
+    "identityBoundary": "save-scoped FactionMemory plus proposed internal ledger namespace; whole-save clone inherits progress, no authenticated arbitrary NBT transplantation claim"
+  }
+}
