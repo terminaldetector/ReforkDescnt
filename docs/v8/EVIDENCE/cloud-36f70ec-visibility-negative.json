@@ -1,0 +1,152 @@
+{
+  "source": "36f70ec03a3c1ef0ce225093173b571fb18e1de9",
+  "classification": "Complete actual five-pose meaningful-domain cloud visibility negative under new1536x864resolution contract; not a passing feature",
+  "buildExit": 0,
+  "gameParityExit": 0,
+  "nativeExit": 255,
+  "jars": {
+    "drmd-6dof-1.1.35-ufo-dev.1.jar": "b6c653a4729e7dd4a8158ba1b8704fc31434c89d0c7cabaefbee4e1266d3df8c",
+    "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "009fb6d361d5125f19e9332dd1b1327d775e56bfdd7a0bc138d0c3f8c7b4871b"
+  },
+  "actualPoseFrames": 5,
+  "allFivePoseFramesPreserved": true,
+  "allFiveMeaningfulDomainPrerequisitesMet": true,
+  "all5ExpectedActualResolutionAndViewport": true,
+  "actualCloudDrawObservations": 5,
+  "actualCloudSourceUploadEvents": 4,
+  "actualCloudCopiedBytes": 393088,
+  "readbackBytes": 159252480,
+  "poses": [
+    {
+      "pose": "near224",
+      "epoch": 278,
+      "opaqueFootprintSamples": 81888,
+      "actualChangedCloudSamples": 81888,
+      "changedFraction": 1.0,
+      "outsideFarClipSamples": 0,
+      "sodiumFogZeroAlphaSamples": 0,
+      "visibilityPass": true,
+      "glError": 0,
+      "cloudsMode": "FANCY",
+      "expectedMainTargetViewport": true,
+      "expectedObserverResolution": true,
+      "actualWindowFramebuffer": [
+        1536,
+        864
+      ],
+      "actualMainTexture": [
+        1536,
+        864
+      ],
+      "domainPrerequisiteMet": true
+    },
+    {
+      "pose": "above384",
+      "epoch": 303,
+      "opaqueFootprintSamples": 22766,
+      "actualChangedCloudSamples": 22169,
+      "changedFraction": 0.9737766845295617,
+      "outsideFarClipSamples": 0,
+      "sodiumFogZeroAlphaSamples": 0,
+      "visibilityPass": true,
+      "glError": 0,
+      "cloudsMode": "FANCY",
+      "expectedMainTargetViewport": true,
+      "expectedObserverResolution": true,
+      "actualWindowFramebuffer": [
+        1536,
+        864
+      ],
+      "actualMainTexture": [
+        1536,
+        864
+      ],
+      "domainPrerequisiteMet": true
+    },
+    {
+      "pose": "far512",
+      "epoch": 334,
+      "opaqueFootprintSamples": 13942,
+      "actualChangedCloudSamples": 0,
+      "changedFraction": 0.0,
+      "outsideFarClipSamples": 13942,
+      "sodiumFogZeroAlphaSamples": 6352,
+      "visibilityPass": false,
+      "glError": 0,
+      "cloudsMode": "FANCY",
+      "expectedMainTargetViewport": true,
+      "expectedObserverResolution": true,
+      "actualWindowFramebuffer": [
+        1536,
+        864
+      ],
+      "actualMainTexture": [
+        1536,
+        864
+      ],
+      "domainPrerequisiteMet": true
+    },
+    {
+      "pose": "orbit2200",
+      "epoch": 371,
+      "opaqueFootprintSamples": 717,
+      "actualChangedCloudSamples": 0,
+      "changedFraction": 0.0,
+      "outsideFarClipSamples": 717,
+      "sodiumFogZeroAlphaSamples": 717,
+      "visibilityPass": false,
+      "glError": 0,
+      "cloudsMode": "FANCY",
+      "expectedMainTargetViewport": true,
+      "expectedObserverResolution": true,
+      "actualWindowFramebuffer": [
+        1536,
+        864
+      ],
+      "actualMainTexture": [
+        1536,
+        864
+      ],
+      "domainPrerequisiteMet": true
+    },
+    {
+      "pose": "orbit2200-roll90",
+      "epoch": 374,
+      "opaqueFootprintSamples": 691,
+      "actualChangedCloudSamples": 0,
+      "changedFraction": 0.0,
+      "outsideFarClipSamples": 691,
+      "sodiumFogZeroAlphaSamples": 691,
+      "visibilityPass": false,
+      "glError": 0,
+      "cloudsMode": "FANCY",
+      "expectedMainTargetViewport": true,
+      "expectedObserverResolution": true,
+      "actualWindowFramebuffer": [
+        1536,
+        864
+      ],
+      "actualMainTexture": [
+        1536,
+        864
+      ],
+      "domainPrerequisiteMet": true
+    }
+  ],
+  "all8HelpersMatchFrozen": true,
+  "frozenManifestSha256": "a589330a98e10e9af73494df3f138026b74500bb300753cdc975bd52792ccb24",
+  "worldArchive": {
+    "files": 126,
+    "sha256": "246a9123c3cf720c428eecbe8fae3a1c986f76c47c9426f269e78a487005b48b",
+    "perFileShaAndZipCrcVerified": true
+  },
+  "scope": "Actual stock clouds contribute at224/384. Every meaningful actual512/2200/roll90domain is beyond actual far clip and contributes0; upper domains also all fog-zero. Stable strict modes/XYZ/server+client attitude and actual shader/source/main-target/GL prerequisites all met. Genuine missing far-altitude cloud behavior established before production. No cloud correction/fullS04S05 claim.",
+  "evidence": {
+    "path": "docs/v8/EVIDENCE/cloud-36f70ec-visibility-negative.zip",
+    "sha256": "5f4c4ea480117ce6c1d9dc8323e25c6608fda9cd21fa78c61d9753f37441390d",
+    "files": 116,
+    "pngs": 25,
+    "bytes": 829481,
+    "perFileShaAndZipCrcVerified": true
+  }
+}
