@@ -72,7 +72,9 @@
       "com.terminaldetector.drmd.ArmedContactGameTests",
       "com.terminaldetector.drmd.world.threat.SurvivalThreatGameTests",
       "com.terminaldetector.drmd.world.economy.SurvivalEconomyGameTests",
-      "com.terminaldetector.drmd.DroneTriggerEdgeGameTests"
+      "com.terminaldetector.drmd.DroneTriggerEdgeGameTests",
+      "com.terminaldetector.drmd.DroneSquadTaskGameTests",
+      "com.terminaldetector.drmd.DroneSquadGuardGameTests"
     ]
   },
   "depends": {
