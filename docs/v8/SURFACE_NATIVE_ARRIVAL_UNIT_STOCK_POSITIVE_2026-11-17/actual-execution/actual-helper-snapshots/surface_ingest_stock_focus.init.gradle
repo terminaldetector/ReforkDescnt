@@ -1,0 +1,30 @@
+// Actual ordinary STOCK callback checks; source registration remains centrally owned.
+gradle.projectsEvaluated {
+    def run = rootProject.loom.runs.getByName('gametest')
+    run.vmArg('-Ddrmd.test.surfaceStock=true')
+    run.vmArg('-Ddrmd.test.surfaceStock.directory=' + rootProject.file('build/surface-stock-control').absolutePath)
+    run.runDir('build/surface-stock-control')
+    rootProject.tasks.named('runGametest') {
+        doFirst {
+            if (rootProject.file('build/surface-stock-control/world/level.dat').exists()) {
+                throw new GradleException('Preserve the prior closed disposable world; this focused STOCK gate requires a fresh one')
+            }
+        }
+    }
+    rootProject.tasks.named('processGametestResources') {
+        outputs.upToDateWhen { false }
+        doLast {
+            ['overworld', 'the_end'].each { dimension ->
+                if (new File(destinationDir, "data/minecraft/dimension_type/${dimension}.json").exists()) {
+                    throw new GradleException('Unexpected generated dimension override: preserve/clear the focused old-height fixture before the ordinary STOCK gate')
+                }
+            }
+            def manifest = new File(destinationDir, 'fabric.mod.json')
+            def data = new groovy.json.JsonSlurper().parse(manifest)
+            data.entrypoints['fabric-gametest'] = ['com.terminaldetector.drmd.SurfaceIngestHeightGameTests']
+            data.mixins = ((data.mixins ?: []) + ['drmd.surface_stock_fixture.mixins.json']).unique()
+            manifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(data))
+            println 'FOCUSED SURFACE STOCK CALLBACK: dedicated fresh runDir, actual pre-load pack selection, 2 loaded GOLD/demolition/restore tests; no dimension override or synthetic heightmap'
+        }
+    }
+}

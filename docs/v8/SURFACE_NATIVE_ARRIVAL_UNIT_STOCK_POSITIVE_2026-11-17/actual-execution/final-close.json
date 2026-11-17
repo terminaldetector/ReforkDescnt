@@ -1,0 +1,26 @@
+{
+  "actualGradleReturnCode": 0,
+  "sourceInputsUnchanged": true,
+  "nanoTime": 21878166233212,
+  "units": 10,
+  "gameTests": 2,
+  "actualNormalProfileObserved": true,
+  "freshXml": {
+    "build/test-results/test/TEST-com.terminaldetector.drmd.world.store.SurfaceIngestHeightConventionTest.xml": {
+      "sha256": "e763e416fddf5f69067cfb6059901db1bfa8251246e0296419b289ba9c60700f",
+      "mtime": 1794925361.9255006,
+      "tests": 5
+    },
+    "build/test-results/test/TEST-com.terminaldetector.drmd.world.store.SurfaceIngestNativeRefreshQueueTest.xml": {
+      "sha256": "88ec3705fddf0a2bf68f3099ac192809113fa061a804447c30038cb424f121c0",
+      "mtime": 1794925361.9295008,
+      "tests": 5
+    },
+    "build/surface-stock-control/reports/gametest-results.xml": {
+      "sha256": "b4f724cac48523f131669d45c1b9a96dd6ce7987ee660deee55fadcd80c1acb2",
+      "mtime": 1794925382.894018,
+      "tests": 2
+    }
+  },
+  "wrapperFinalCode": 0
+}

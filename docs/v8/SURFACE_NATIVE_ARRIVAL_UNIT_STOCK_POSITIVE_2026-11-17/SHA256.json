@@ -1,0 +1,74 @@
+{
+  "REPORT.md": {
+    "bytes": 2453,
+    "sha256": "375b83302c5fb0592ed5fdce75fe826d1af938a56f2f9260235cc2251c0d8d91"
+  },
+  "actual-execution/actual-helper-snapshots/run_once.py": {
+    "bytes": 4817,
+    "sha256": "637880cc3e6455c33e871d2ba4196461ed4fc325a449b9aaca0a17b36e318837"
+  },
+  "actual-execution/actual-helper-snapshots/surface_ingest_stock_focus.init.gradle": {
+    "bytes": 1842,
+    "sha256": "75909052a1ed84134bce35132b194b12d36d62f9fa104debaf5c61514df3f743"
+  },
+  "actual-execution/before.json": {
+    "bytes": 217176,
+    "sha256": "6fe49bed3b917eb23390b8d735e32fb920beb3ad8c2e65e85e846f84b5979939"
+  },
+  "actual-execution/child-close.json": {
+    "bytes": 84,
+    "sha256": "34cab48bb94cb1d8e8b6e450a443361fe023c830e15f123c0aa7ef653c3ee285"
+  },
+  "actual-execution/child-started.json": {
+    "bytes": 49,
+    "sha256": "d1736ba1e0c58cb42050ec41ae51cadbcf7bae571bd0750a95790e3e79574cbe"
+  },
+  "actual-execution/child-stdout-stderr.log": {
+    "bytes": 41355,
+    "sha256": "175405a6c484088d23c7b00020cf3b8b4c61278f2d99888cb921244e32726751"
+  },
+  "actual-execution/final-close.json": {
+    "bytes": 938,
+    "sha256": "6fbd92ea0b29d0fd1c4ecb95cb45d8a4dacac68766e1a5661f2655396b8dcefb"
+  },
+  "actual-execution/run_once.py": {
+    "bytes": 4817,
+    "sha256": "637880cc3e6455c33e871d2ba4196461ed4fc325a449b9aaca0a17b36e318837"
+  },
+  "actual-source.txt": {
+    "bytes": 41,
+    "sha256": "c52405587b3a16a07f855832d41c887384d1606ef1e80991017568a4f893bcca"
+  },
+  "closed-disposable-world.tar.gz": {
+    "bytes": 468167,
+    "sha256": "72e2dd70a9daf02e161389957c27759e558a8e76d1752234eda83cc043393513"
+  },
+  "closed-world-receipt.json": {
+    "bytes": 4437,
+    "sha256": "7ed18f85d078b1dbe9710c2b02b032b345fdc9af2f3b3ea8ca764e81cff0940e"
+  },
+  "fixture-mixins.json": {
+    "bytes": 195,
+    "sha256": "b7481de914d04e8278b19ebac23ba90ac670fbcea7dedc38d70aad018ce196de"
+  },
+  "generated-fabric.mod.json": {
+    "bytes": 429,
+    "sha256": "7fd17358dd1332f725f0fd9564eb8da1d393f31bf20c5223a177c9387d70b8c9"
+  },
+  "original-level.dat": {
+    "bytes": 1687,
+    "sha256": "73a39ffb36c2e1b831ad1d98bf6f91462020c534282385a9bdc294a97adb4634"
+  },
+  "xml/TEST-com.terminaldetector.drmd.world.store.SurfaceIngestHeightConventionTest.xml": {
+    "bytes": 1162,
+    "sha256": "e763e416fddf5f69067cfb6059901db1bfa8251246e0296419b289ba9c60700f"
+  },
+  "xml/TEST-com.terminaldetector.drmd.world.store.SurfaceIngestNativeRefreshQueueTest.xml": {
+    "bytes": 1259,
+    "sha256": "88ec3705fddf0a2bf68f3099ac192809113fa061a804447c30038cb424f121c0"
+  },
+  "xml/gametest-results.xml": {
+    "bytes": 452,
+    "sha256": "b4f724cac48523f131669d45c1b9a96dd6ce7987ee660deee55fadcd80c1acb2"
+  }
+}

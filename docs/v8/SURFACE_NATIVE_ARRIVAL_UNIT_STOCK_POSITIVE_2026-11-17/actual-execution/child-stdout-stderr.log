@@ -1,0 +1,395 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.12/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.10.5
+
+> Task :compileJava
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :processResources UP-TO-DATE
+> Task :classes
+> Task :compileTestJava
+> Task :processTestResources NO-SOURCE
+> Task :testClasses
+> Task :test
+
+> Task :compileGametestJava
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/DroneInventoryGameTests.java:17: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var p=c.createMockCreativeServerPlayerInWorld();p.getInventory().clear();p.setPosition(Vec3d.ofCenter(at));var ship=ModEntities.PYRO_SHIP.create(w);ship.setPosition(p.getPos());ship.setOwnerUuid(p.getUuid());w.spawnEntity(ship);
+         ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/FootGravityRecoveryGameTests.java:48: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();
+                          ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/FootGravityRecoveryGameTests.java:64: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();
+                          ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:20: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                          ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:34: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                          ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:49: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                          ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:59: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();
+                          ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:69: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:82: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:93: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:110: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:118: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:125: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:150: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:159: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:192: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();
+                                                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ConstructionPlacementGameTests.java:207: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);
+                                                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BombBayVelocityGameTests.java:16: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();
+                          ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:19: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.getAbilities().flying=false;
+               ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:208: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();try {
+               ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:219: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();try {
+               ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:269: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();var d=DescentPlayerData.get(p);d.setEnabled(false);p.getAbilities().flying=false;
+               ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:279: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();var d=DescentPlayerData.get(p);try {
+               ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:18: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c,4096,4096);var p=c.createMockCreativeServerPlayerInWorld();p.setPosition(4222,152,4096);
+                                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:27: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c,8192,8192);var p=c.createMockCreativeServerPlayerInWorld();p.setPosition(8318,152,8192);
+                                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:36: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c,12288,12288);var p=c.createMockCreativeServerPlayerInWorld();p.setPosition(12414,152,12288);
+                                         ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:65: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();p.getAbilities().flying=true;p.setPosition(x+.5,182,z+.5);
+               ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:109: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c,28000,28000);var p=c.createMockCreativeServerPlayerInWorld();p.getAbilities().flying=true;p.setPosition(28127,152,28000);
+                                         ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/FlightBodyPlayerGameTests.java:26: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();var d=DescentPlayerData.get(p);d.setEnabled(true);d.setFlightVelocity(new Vec3d(0,-80,0));
+               ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BoardingGameTests.java:45: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var root=BlockBodyEntity.createLocal(w,cells,origin,q,Vec3d.ZERO,Vec3d.ZERO);var p=c.createMockCreativeServerPlayerInWorld();
+                                                                                            ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BoardingGameTests.java:82: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);
+               ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BoardingGameTests.java:154: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.getAbilities().flying=false;
+               ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BoardingGameTests.java:209: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            var other=c.createMockCreativeServerPlayerInWorld();
+                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/ShipGravityGameTests.java:35: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.getAbilities().flying=false;
+               ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/legacy/LegacyRetirementGameTests.java:55: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        fixture(c);var world=c.getWorld();var player=c.createMockCreativeServerPlayerInWorld();
+                                                      ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/legacy/LegacyRetirementGameTests.java:80: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        fixture(c);var player=c.createMockCreativeServerPlayerInWorld();
+                               ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/legacy/LegacyRetirementGameTests.java:94: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=c.createMockCreativeServerPlayerInWorld();var dragon=EntityType.ENDER_DRAGON.create(end);
+                    ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java:17: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld(); var player=context.createMockCreativeServerPlayerInWorld();
+                                                        ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java:38: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld(); var player=context.createMockCreativeServerPlayerInWorld();
+                                                        ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java:53: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld(); var player=context.createMockCreativeServerPlayerInWorld();
+                                                        ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java:65: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();
+                          ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:77: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:90: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:104: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:115: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:166: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var p=c.createMockCreativeServerPlayerInWorld();try {
+         ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:177: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var p=c.createMockCreativeServerPlayerInWorld();p.changeGameMode(GameMode.SURVIVAL);DescentPlayerData.get(p).setEnabled(false);
+         ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:214: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/MechanismGameTests.java:43: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+    private ServerPlayerEntity player(TestContext c,Vec3d at){var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.setPosition(at);p.setStackInHand(Hand.MAIN_HAND,new ItemStack(ModWorldBlocks.MECHANISM_WRENCH));return p;}
+                                                                     ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/LowerWorldRecoveryGameTests.java:16: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();
+                          ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/PortalExitSafetyGameTests.java:111: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();
+                                                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/PortalExitSafetyGameTests.java:120: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld();var player=context.createMockCreativeServerPlayerInWorld();
+                                                       ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/MountedMechanismGameTests.java:44: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+    private ServerPlayerEntity player(TestContext c,BlockBodyEntity b){var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.setPosition(b.localToWorld(new Vec3d(.5,-1,-2)));return p;}
+                                                                              ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/GravityGunBehaviorGameTests.java:36: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            this.c=c;this.chunks=chunks;player=c.createMockCreativeServerPlayerInWorld();
+                                                ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/FusionPortalGameTests.java:89: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=c.createMockCreativeServerPlayerInWorld();
+                    ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/HullContactGameTests.java:25: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=c.createMockCreativeServerPlayerInWorld();player.setPosition(at.add(0,3,5));player.setNoGravity(true);player.getAbilities().flying=true;
+                    ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/UfoWeaponGameTests.java:62: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.setPosition(b.localToWorld(new Vec3d(3.5,.1,-1)));c.assertTrue(UfoControlSystem.claim(p,b),"actual console capture");return p;
+               ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/UfoWeaponGameTests.java:90: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c);var p=pilot(c,b);var other=c.createMockCreativeServerPlayerInWorld();try {
+                                                  ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/UfoTurretAiGameTests.java:102: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            var installer=c.createMockCreativeServerPlayerInWorld();installer.setPosition(b.localToWorld(new Vec3d(3.5,.1,.5)));DescentPlayerData.get(installer).setEnabled(false);installer.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(ModWorldBlocks.SHIP_TURRET_KIT));
+                           ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/UfoTurretAiGameTests.java:104: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            var target=c.createMockCreativeServerPlayerInWorld();target.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);target.getAbilities().flying=false;target.setNoGravity(true);DescentPlayerData.get(target).setEnabled(false);target.setPosition(b.localToWorld(new Vec3d(30,12,12)));target.setVelocity(Vec3d.ZERO);
+                        ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/FragmentBoardingGameTests.java:37: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(player).setEnabled(false);player.getAbilities().flying=false;
+                    ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/UfoAiGameTests.java:59: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            var p=c.createMockCreativeServerPlayerInWorld();p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);p.getAbilities().flying=false;p.setNoGravity(true);DescentPlayerData.get(p).setEnabled(false);p.setPosition(b.localToWorld(new Vec3d(-2.5,-.4,44)));p.setVelocity(Vec3d.ZERO);
+                   ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/PortalProjectorGameTests.java:127: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=player(c);var q=c.createMockCreativeServerPlayerInWorld();BlockPos a=at(c,8,8),b=a.east(3);
+                               ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/PortalProjectorGameTests.java:142: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();p.setPosition(Vec3d.ofCenter(at.up(4)));return p;
+               ^
+/workspace/ungravity-v5/cubic-next-20261109/src/gametest/java/com/terminaldetector/drmd/PortalProjectorGameTests.java:214: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=player(c);var q=c.createMockCreativeServerPlayerInWorld();BlockPos a=at(c,8,8),b=at(c,24,8);
+                               ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+65 warnings
+
+> Task :generateLog4jConfig UP-TO-DATE
+> Task :generateRemapClasspath UP-TO-DATE
+> Task :generateDLIConfig
+> Task :configureLaunch
+
+> Task :processGametestResources
+FOCUSED SURFACE STOCK CALLBACK: dedicated fresh runDir, actual pre-load pack selection, 2 loaded GOLD/demolition/restore tests; no dimension override or synthetic heightmap
+
+> Task :gametestClasses
+
+> Task :runGametest
+[14:22:45] [main/INFO] (FabricLoader/GameProvider) Loading Minecraft 1.21.1 with Fabric Loader 0.16.14
+[14:22:46] [main/INFO] (FabricLoader) Loading 45 mods:
+	- drmd 1.1.35-ufo-dev.1
+	- drmd_gametest 1.0.0
+	- fabric-api 0.116.15+1.21.1
+	- fabric-api-base 0.4.42+6573ed8c19
+	- fabric-api-lookup-api-v1 1.6.72+7b3d111d19
+	- fabric-biome-api-v1 13.0.31+d527f9fd19
+	- fabric-block-api-v1 1.1.0+0bc3503219
+	- fabric-block-view-api-v2 1.0.11+ebb2264e19
+	- fabric-command-api-v1 1.2.49+f71b366f19
+	- fabric-command-api-v2 2.2.28+6ced4dd919
+	- fabric-commands-v0 0.2.66+df3654b319
+	- fabric-content-registries-v0 8.0.19+b559734419
+	- fabric-convention-tags-v1 2.1.7+7f945d5b19
+	- fabric-convention-tags-v2 2.12.0+c3656daa19
+	- fabric-crash-report-info-v1 0.2.29+0af3f5a719
+	- fabric-data-attachment-api-v1 1.4.7+5b36e0f719
+	- fabric-data-generation-api-v1 20.3.0+1eb36c0719
+	- fabric-dimensions-v1 4.0.1+65213ef819
+	- fabric-entity-events-v1 1.8.0+2b27e0a419
+	- fabric-events-interaction-v0 0.7.14+ba9dae0619
+	- fabric-game-rule-api-v1 1.0.53+6ced4dd919
+	- fabric-gametest-api-v1 2.0.5+6fc22b9919
+	- fabric-item-api-v1 11.3.0+467044f319
+	- fabric-item-group-api-v1 4.1.7+def88e3a19
+	- fabric-lifecycle-events-v1 2.6.0+0865547519
+	- fabric-loot-api-v2 3.0.15+3f89f5a519
+	- fabric-loot-api-v3 1.0.3+3f89f5a519
+	- fabric-message-api-v1 6.0.14+8aaf3aca19
+	- fabric-networking-api-v1 4.3.1+d30f6a7919
+	- fabric-object-builder-api-v1 15.2.1+40875a9319
+	- fabric-particles-v1 4.0.2+6573ed8c19
+	- fabric-recipe-api-v1 5.0.16+2475392c19
+	- fabric-registry-sync-v0 5.3.2+e3eddc2119
+	- fabric-rendering-data-attachment-v1 0.3.49+73761d2e19
+	- fabric-rendering-fluids-v1 3.1.6+1daea21519
+	- fabric-resource-conditions-api-v1 4.3.0+8dc279b119
+	- fabric-resource-loader-v0 1.3.1+5b5275af19
+	- fabric-screen-handler-api-v1 1.3.91+b559734419
+	- fabric-tag-api-v1 1.3.0+1eb36c0719
+	- fabric-transfer-api-v1 5.4.4+7b3d111d19
+	- fabric-transitive-access-wideners-v1 6.2.0+45b9699719
+	- fabricloader 0.16.14
+	- java 21
+	- minecraft 1.21.1
+	- mixinextras 0.4.1
+[14:22:46] [main/INFO] (FabricLoader/Mixin) SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/workspace/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.15.5+mixin.0.8.7/22f9eb729e216a091673a574a5906dc1b9027fb3/sponge-mixin-0.15.5+mixin.0.8.7.jar Service=Knot/Fabric Env=SERVER
+[14:22:46] [main/INFO] (FabricLoader/Mixin) Loaded Fabric development mappings for mixin remapper!
+[14:22:47] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_17
+[14:22:47] [main/INFO] (FabricLoader/Mixin) Compatibility level set to JAVA_21
+[14:22:47] [main/WARN] (FabricLoader/Mixin) Error loading class: dev/fallingcloud/bettercubicchunks/server/CubeApplier (java.lang.ClassNotFoundException: dev/fallingcloud/bettercubicchunks/server/CubeApplier)
+[14:22:47] [main/WARN] (FabricLoader/Mixin) Error loading class: dev/fallingcloud/bettercubicchunks/server/CubicServerLevel (java.lang.ClassNotFoundException: dev/fallingcloud/bettercubicchunks/server/CubicServerLevel)
+[14:22:48] [main/INFO] (FabricLoader/MixinExtras|Service) Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.4.1).
+[14:22:56] [main/INFO] (drmd) DRMD 6DOF initializing — 6DoF world mode (volume-first)
+[14:22:56] [main/INFO] (drmd) [drmd] 1.1.35-ufo-dev.1 on Minecraft 1.21.1 / loader 0.16.14 / 45 mods
+[14:22:56] [main/INFO] (drmd) [drmd] optional: immersive_portals=no, dimlib=no, sodium=no, iris=no
+[14:22:56] [main/INFO] (drmd) [drmd] access widener applied
+[14:22:56] [main/INFO] (drmd) DRMD server config — worldKind=STOCK worldModLevel=VANILLA netherBand=false endBand=false klondikeIslands=false macroWorldgen=false surfaceDistricts=false orbitJunk=false
+[14:22:56] [main/INFO] (drmd) Advanced-column pack registered, default activation=NORMAL
+[14:22:57] [main/INFO] (drmd) Registered DRMD entities (ragdoll + End boss + Sky UFO + laser cart)
+[14:22:57] [main/INFO] (drmd) Registered DRMD map blocks
+[14:22:57] [main/INFO] (drmd) Registered closed Descent arsenal (41 open weapons)
+[14:22:57] [main/INFO] (drmd) Registered Phase3 world blocks & engineer tools
+[14:22:57] [main/INFO] (drmd) Registered DRMD block entities
+[14:22:57] [main/INFO] (drmd) Industrial Underground worldgen parked (WorldFeatures.MACRO_WORLDGEN)
+[14:22:57] [main/INFO] (drmd) World Generation 2.0 parked (WorldFeatures.MACRO_WORLDGEN)
+[14:22:57] [main/INFO] (drmd) Orbit junk / techno-ring scaffold registered
+[14:22:57] [main/INFO] (drmd) Portal complexity online — ImmPtl present=false
+[14:22:57] [main/INFO] (drmd) Registered ÆRis/Mirai step 6 density generator (drmd:aeris_test)
+[14:22:57] [main/INFO] (drmd) Distant Horizons not installed — install modrinth.com/mod/distanthorizons for max view distance
+[14:22:57] [main/INFO] (drmd) DRMD 6DOF ready — cubic body prototype + native portal frames + surface store
+[14:22:57] [main/INFO] (Minecraft) Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[14:22:57] [main/INFO] (FabricGameTestHelper) Starting test server
+[14:22:57] [main/INFO] (Minecraft) [STDOUT]: SURFACE_STOCK_PACK_SELECTION before=[bundle, drmd, drmd:advanced_column, drmd_gametest, fabric, fabric-convention-tags-v2, fabric-gametest-api-v1, trade_rebalance, vanilla] disabledBefore=[] enabled=[bundle, drmd, drmd_gametest, fabric, fabric-convention-tags-v2, fabric-gametest-api-v1, trade_rebalance, vanilla] disabled=[drmd:advanced_column]
+[14:22:59] [main/INFO] (Minecraft) Loaded 1377 recipes
+[14:22:59] [main/INFO] (Minecraft) Loaded 1400 advancements
+[14:23:00] [main/INFO] (BiomeModificationImpl) Applied 0 biome modifications to 0 of 68 new biomes in 1.882 ms
+[14:23:01] [Server thread/INFO] (Minecraft) Preparing start region for dimension minecraft:overworld
+[14:23:01] [Worker-Main-1/INFO] (Minecraft) Preparing spawn area: 8%
+[14:23:01] [Server thread/INFO] (Minecraft) Time elapsed: 390 ms
+[14:23:01] [Server thread/INFO] (Minecraft) Started game test server
+[14:23:01] [Server thread/INFO] (drmd) Megacity biome regions bound — megacity plate @ 3293 -3570 (4857 m) · biome drmd:megacity r=160
+[14:23:01] [Server thread/INFO] (drmd) Technogenic sea regions — drmd:technogenic_sea plate @ 4624 1395 (4830 m) · r=220
+[14:23:01] [Server thread/INFO] (drmd) Scorched lands regions — drmd:scorched_lands plate @ -1761 2627 (3163 m) · r=180
+[14:23:01] [Server thread/INFO] (drmd) Iron guild regions — drmd:iron_guild plate @ -2591 -1343 (2918 m) · r=140
+[14:23:01] [Server thread/INFO] (drmd) Surface events bound — sparse UFO/outpost rolls (≥400m from spawn)
+[14:23:01] [Server thread/INFO] (drmd) Construction registry ready (0 overrides)
+[14:23:01] [Server thread/INFO] (drmd) Restored 0 facilities from dimension sync
+[14:23:01] [Server thread/INFO] (drmd) Restored 0 meteor falls from dimension sync
+[14:23:01] [Server thread/INFO] (drmd) Dimension sync loaded — facilities=0 falls=0 lastDet=-1
+[14:23:01] [Server thread/INFO] (drmd) Surface store open at ./world/./drmd/surface
+[14:23:01] [Server thread/INFO] (Minecraft) 2 tests are now running at position 9143466, -59, 2143780!
+[14:23:02] [Server thread/INFO] (Minecraft) Running test batch 'surface-ingest-loaded-gold:0' (1 tests)...
+[14:23:02] [Server thread/INFO] (Minecraft) [  ]
+[14:23:02] [Server thread/INFO] (Minecraft) [  ]
+[14:23:02] [Server thread/INFO] (Minecraft) [  ]
+[14:23:02] [Server thread/INFO] (Minecraft) [STDOUT]: SURFACE_STOCK_FIXTURE actualBottom=-64 actualTop=320 directory=/workspace/ungravity-v5/cubic-next-20261109/build/surface-stock-control expectedDirectory=/workspace/ungravity-v5/cubic-next-20261109/build/surface-stock-control enabled=[bundle, drmd, drmd_gametest, fabric, fabric-convention-tags-v2, fabric-gametest-api-v1, trade_rebalance, vanilla] disabled=[drmd:advanced_column]
+[14:23:02] [Server thread/INFO] (Minecraft) [STDOUT]: SURFACE_STOCK stage=loaded GOLD height=241 colour=16445005
+[14:23:02] [Server thread/INFO] (Minecraft) Running test batch 'surface-ingest-loaded-demolition:0' (1 tests)...
+[14:23:02] [Server thread/INFO] (Minecraft) [+ ]
+[14:23:02] [Server thread/INFO] (Minecraft) [STDOUT]: SURFACE_STOCK_FIXTURE actualBottom=-64 actualTop=320 directory=/workspace/ungravity-v5/cubic-next-20261109/build/surface-stock-control expectedDirectory=/workspace/ungravity-v5/cubic-next-20261109/build/surface-stock-control enabled=[bundle, drmd, drmd_gametest, fabric, fabric-convention-tags-v2, fabric-gametest-api-v1, trade_rebalance, vanilla] disabled=[drmd:advanced_column]
+[14:23:02] [Server thread/INFO] (Minecraft) [STDOUT]: SURFACE_STOCK stage=loaded GOLD height=241 colour=16445005
+[14:23:02] [Server thread/INFO] (Minecraft) [STDOUT]: SURFACE_STOCK stage=loaded demolition to LIME height=239 colour=8375321
+[14:23:02] [Server thread/INFO] (Minecraft) [STDOUT]: SURFACE_STOCK stage=loaded GOLD restore height=241 colour=16445005
+[14:23:02] [Server thread/INFO] (Minecraft) [++]
+[14:23:02] [Yggdrasil Key Fetcher/ERROR] (Minecraft) Failed to request yggdrasil public key
+com.mojang.authlib.exceptions.MinecraftClientException: Failed to read from https://api.minecraftservices.com/publickeys due to Connection refused
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:108) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.get(MinecraftClient.java:57) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo.fetch(YggdrasilServicesKeyInfo.java:114) ~[authlib-6.0.54.jar:?]
+	at knot/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo$1.run(YggdrasilServicesKeyInfo.java:89) ~[authlib-6.0.54.jar:?]
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572) ~[?:?]
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317) ~[?:?]
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[?:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[?:?]
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:694) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:542) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[?:?]
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[?:?]
+	at java.base/java.net.Socket.connect(Socket.java:751) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:304) ~[?:?]
+	at java.base/sun.net.NetworkClient.doConnect(NetworkClient.java:178) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:539) ~[?:?]
+	at java.base/sun.net.www.http.HttpClient.openServer(HttpClient.java:644) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.<init>(HttpsClient.java:265) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:378) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.getNewHttpClient(AbstractDelegateHttpsURLConnection.java:196) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect0(HttpURLConnection.java:1305) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.plainConnect(HttpURLConnection.java:1146) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.connect(HttpURLConnection.java:1075) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:181) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1707) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1632) ~[?:?]
+	at java.base/java.net.HttpURLConnection.getResponseCode(HttpURLConnection.java:531) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getResponseCode(HttpsURLConnectionImpl.java:307) ~[?:?]
+	at knot/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:84) ~[authlib-6.0.54.jar:?]
+	... 9 more
+[14:23:02] [Server thread/INFO] (Minecraft) ========= 2 GAME TESTS COMPLETE IN 1.307 s ======================
+[14:23:02] [Server thread/INFO] (Minecraft) All 2 required tests passed :)
+[14:23:02] [Server thread/INFO] (Minecraft) ====================================================
+[14:23:02] [Server thread/INFO] (Minecraft) Stopping server
+[14:23:02] [Server thread/INFO] (Minecraft) Saving players
+[14:23:02] [Server thread/INFO] (Minecraft) Saving worlds
+[14:23:04] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:overworld
+[14:23:05] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_end
+[14:23:05] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_nether
+[14:23:05] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (world): All chunks are saved
+[14:23:05] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[14:23:05] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[14:23:05] [Server thread/INFO] (Minecraft) ThreadedAnvilChunkStorage: All dimensions are saved
+[14:23:05] [Server thread/INFO] (Minecraft) Game test server shutting down
+
+[Incubating] Problems report is available at: file:///workspace/ungravity-v5/cubic-next-20261109/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.12/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 46s
+10 actionable tasks: 7 executed, 3 up-to-date

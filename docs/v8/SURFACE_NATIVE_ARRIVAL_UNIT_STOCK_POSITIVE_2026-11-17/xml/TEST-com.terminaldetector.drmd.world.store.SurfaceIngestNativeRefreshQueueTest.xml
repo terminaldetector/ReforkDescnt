@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.terminaldetector.drmd.world.store.SurfaceIngestNativeRefreshQueueTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-17T14:22:41" hostname="be18a16f9741" time="0.011">
+  <properties/>
+  <testcase name="repeatedCubeArrivalsCoalesceWithoutStarvingOtherColumns()" classname="com.terminaldetector.drmd.world.store.SurfaceIngestNativeRefreshQueueTest" time="0.001"/>
+  <testcase name="serverCloseRemovesOldSessionKeysAndOverloadCounters()" classname="com.terminaldetector.drmd.world.store.SurfaceIngestNativeRefreshQueueTest" time="0.003"/>
+  <testcase name="oneTickProbeBudgetNeverRepeatsASmallQueueOrConsumesMoreThanFour()" classname="com.terminaldetector.drmd.world.store.SurfaceIngestNativeRefreshQueueTest" time="0.0"/>
+  <testcase name="metadataAttemptsRetainUnknownColumnsUntilActualAcknowledgement()" classname="com.terminaldetector.drmd.world.store.SurfaceIngestNativeRefreshQueueTest" time="0.0"/>
+  <testcase name="overloadedNativeInterestKeeps4096KeysAndExposesOldestEviction()" classname="com.terminaldetector.drmd.world.store.SurfaceIngestNativeRefreshQueueTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

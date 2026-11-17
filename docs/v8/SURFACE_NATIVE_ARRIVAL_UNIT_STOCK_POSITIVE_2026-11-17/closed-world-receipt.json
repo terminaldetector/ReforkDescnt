@@ -1,0 +1,123 @@
+{
+  "originalWorld": "/workspace/ungravity-v5/cubic-next-20261109/build/surface-stock-control/world",
+  "archive": "closed-disposable-world.tar.gz",
+  "archiveBytes": 468167,
+  "archiveSha256": "72e2dd70a9daf02e161389957c27759e558a8e76d1752234eda83cc043393513",
+  "gzipCrcAndSizeReadThroughEof": true,
+  "allArchiveFileBytesAndSha256MatchOriginal": true,
+  "scope": "Only own closed disposable focused STOCK world; original worlds/shared caches untouched",
+  "files": {
+    "DIM-1/data/raids.dat": {
+      "bytes": 89,
+      "sha256": "144cef309bdcdf58b0b7fdee81a66267ef63260a78d6cded801234f58b7d8982"
+    },
+    "DIM1/data/raids_end.dat": {
+      "bytes": 89,
+      "sha256": "144cef309bdcdf58b0b7fdee81a66267ef63260a78d6cded801234f58b7d8982"
+    },
+    "data/chunks.dat": {
+      "bytes": 59,
+      "sha256": "7929cf0b046addefca5091025d539a02c1d3c8bf266905d35412caa5156ac8bf"
+    },
+    "data/drmd_dimension_sync.dat": {
+      "bytes": 73,
+      "sha256": "103e30ff7323a8f4d6560933416e12cb8a9ad31c766e013a267592a908283e10"
+    },
+    "data/drmd_physics.dat": {
+      "bytes": 82,
+      "sha256": "c8919471ea7d7e62335d11fe1f5fcb894bcb86cf8ca89b276c26fffb26ce1c91"
+    },
+    "data/raids.dat": {
+      "bytes": 89,
+      "sha256": "144cef309bdcdf58b0b7fdee81a66267ef63260a78d6cded801234f58b7d8982"
+    },
+    "drmd/surface/L0/17858_4187.bin": {
+      "bytes": 73,
+      "sha256": "676aeea514f870ae9d08f7bae802b8922b04a74c154683dc0c967cbbc651a3f3"
+    },
+    "drmd/surface/L1/8929_2093.bin": {
+      "bytes": 75,
+      "sha256": "29eb32d5c75734c764d52297337267695cb7783255b8da5da927c6a5324e0855"
+    },
+    "drmd/surface/L2/4464_1046.bin": {
+      "bytes": 75,
+      "sha256": "47c04d2f0d3f2075b3dc0b2fc9253fd7dc4b97e54b40f664e4ebdcb25b651c82"
+    },
+    "drmd/surface/L3/2232_523.bin": {
+      "bytes": 60,
+      "sha256": "00e78fb2d1d65de4ac90f07906189651e9f0fc08da3f9012a088695d8efd01e4"
+    },
+    "drmd/surface/L4/1116_261.bin": {
+      "bytes": 60,
+      "sha256": "47138834cb7211b27be81730e2674f373130b6989e7f0ba259dd9d246933b41e"
+    },
+    "drmd/surface/L5/558_130.bin": {
+      "bytes": 61,
+      "sha256": "908835877ef543ae4bb78c970ffbec085c966d212017dcb1e9d6f2ab64c48bf7"
+    },
+    "drmd/surface/L6/279_65.bin": {
+      "bytes": 62,
+      "sha256": "6c850058fee74f1b6a62249e5f5de41c7b354edd8e3de47ce51bc41dbdb0b15d"
+    },
+    "entities/r.-1.-1.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.-1.0.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.0.-1.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.0.0.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.17858.4187.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "level.dat": {
+      "bytes": 1687,
+      "sha256": "73a39ffb36c2e1b831ad1d98bf6f91462020c534282385a9bdc294a97adb4634"
+    },
+    "region/r.-1.-1.mca": {
+      "bytes": 811008,
+      "sha256": "fb63a56a0ebe7bc90e09bc5f15042fde4e85c5cee43ba8f99232c62ef92f2343"
+    },
+    "region/r.-1.0.mca": {
+      "bytes": 868352,
+      "sha256": "74962aff545fb75da00536f9cba1fcb0dfa847f6326aa0129770022545764ff5"
+    },
+    "region/r.0.-1.mca": {
+      "bytes": 868352,
+      "sha256": "d6ce683825d5798e1aca546ac2b17eb75bc6e05616ba9766049a324eaf588186"
+    },
+    "region/r.0.0.mca": {
+      "bytes": 929792,
+      "sha256": "11dba162a1e0ad42e4172a7f9d32aec1147af863581fe8bf353a7b3c6a1b4c4b"
+    },
+    "region/r.17857.4186.mca": {
+      "bytes": 143360,
+      "sha256": "718a81933bf14182e4d93c71e423e1099fca68cc43d50dc8afc37a943b57ac02"
+    },
+    "region/r.17857.4187.mca": {
+      "bytes": 204800,
+      "sha256": "6676ba3b40198d6c9283ae97ff9bae770e6cae8b13c0d3024789949ed1bdaa23"
+    },
+    "region/r.17858.4186.mca": {
+      "bytes": 1134592,
+      "sha256": "aa99e756f3a30858173fe06fd4612bc1023654d132c76131709716ce5fdcc020"
+    },
+    "region/r.17858.4187.mca": {
+      "bytes": 1646592,
+      "sha256": "bc05e9c9d91fb0055115cd8b7a6c60ca3324e6b7a4634cd1fd5e711417d77438"
+    },
+    "session.lock": {
+      "bytes": 3,
+      "sha256": "51643361c79ecaef25a8de802de24f570ba25d9c2df1d22d94fade11b4f466cc"
+    }
+  }
+}
