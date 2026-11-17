@@ -134,6 +134,12 @@ public final class PointDefenseInterception {
         var s=state(world);if(s.rounds.containsKey(shot.getUuid())||s.rounds.size()>=MAX_ROUNDS)return;
         var r=new Round(shot);s.rounds.put(shot.getUuid(),r);s.targets.computeIfAbsent(r.target,k->new LinkedHashSet<>()).add(shot.getUuid());
     }
+    public static boolean mayRestore(ProjectileEntity shot){
+        if(!(shot.getWorld() instanceof ServerWorld world)||shot.pointDefenseSource()==null
+            ||!sourceLoaded(world,shot.pointDefenseSource().anchor()))return false;
+        var loaded=world.getEntity(shot.pointDefenseSource().target());
+        return loaded instanceof ProjectileEntity missile&&hostileMissile(world,missile);
+    }
     private static void remove(State s,UUID id){var r=s.rounds.remove(id);if(r==null)return;var set=s.targets.get(r.target);if(set!=null){set.remove(id);if(set.isEmpty())s.targets.remove(r.target);}}
 
     /** No unbounded normal entity queries: admission and per-opportunity narrowphase share these budgets. */

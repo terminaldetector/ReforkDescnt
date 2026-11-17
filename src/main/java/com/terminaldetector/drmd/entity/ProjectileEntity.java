@@ -90,6 +90,7 @@ public class ProjectileEntity extends Entity {
 	public record DefenseContact(Vec3d tracePoint,Vec3d materialPoint,UUID entityUuid,int entityId,
 			BlockPos block,net.minecraft.util.math.Direction side){}
 	private DefenseSource defenseSource;
+	private boolean restoredDefense;
 	private long lastMissileStep=Long.MIN_VALUE;
 
 	public ProjectileEntity(EntityType<? extends ProjectileEntity> type, World world) {
@@ -260,6 +261,10 @@ public class ProjectileEntity extends Entity {
 			return;
 		}
 		ageTicks++;
+		if(restoredDefense){
+			restoredDefense=false;
+			if(!com.terminaldetector.drmd.world.trap.PointDefenseInterception.mayRestore(this))defenseSource=null;
+		}
 		if(defenseSource!=null){
 			com.terminaldetector.drmd.world.trap.PointDefenseInterception.tickRound(this);
 			return;
@@ -588,11 +593,13 @@ public class ProjectileEntity extends Entity {
 		setMeshKind(nbt.getInt("mesh"));
 		setColorRgb(dmgClass.r, dmgClass.g, dmgClass.b);
 		defenseSource=null;
+		restoredDefense=false;
 		if(ownerUuid==null&&dmgClass==DamageClass.KINETIC&&nbt.contains("pdAnchor")&&nbt.containsUuid("pdTarget")){
 			float savedGravity=nbt.getFloat("pdGravity"),savedDrag=nbt.getFloat("pdDrag");
 			if(Float.isFinite(savedGravity)&&savedGravity>=0&&savedGravity<=1&&Float.isFinite(savedDrag)&&savedDrag>=0&&savedDrag<=1){
 				gravityStrength=savedGravity;drag=savedDrag;lifeTicks=Math.min(lifeTicks,10);
 				long now=getWorld().getTime();defenseSource=new DefenseSource(BlockPos.fromLong(nbt.getLong("pdAnchor")),nbt.getUuid("pdTarget"),now,now+1);
+				restoredDefense=true;
 				int color=nbt.getInt("pdColor");setColorRgb((color>>16)&255,(color>>8)&255,color&255);
 			}
 		}
