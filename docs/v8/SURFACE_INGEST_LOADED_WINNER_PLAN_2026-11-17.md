@@ -1,6 +1,6 @@
 # SurfaceIngest unavailable winner — prepared actual native negative
 
-Branch `experiment/cubic-surface-ingest-20261117` is based on canonical `9d51865`. Original legacy work/evidence remain on `experiment/cubic-world-20261109`; `checkpoint/world-cubic-legacy-83d044a` preserves the proven legacy source/evidence pointer. The four verified closed-world receipts are separately committed as `d4590a7`. This increment is test-only: **no production SurfaceIngest correction or runtime result is claimed yet**.
+Branch `experiment/cubic-surface-ingest-20261117` is based on canonical `9d51865`. Original legacy work/evidence remain on `experiment/cubic-world-20261109`; `checkpoint/world-cubic-legacy-83d044a` preserves the proven legacy source/evidence pointer. The four verified closed-world receipts are separately committed as `d4590a7`. The initial `4e23232`/`ba2dbb9` increment was test-only; it subsequently exposed the actual loaded contract failure preserved in `5dad153`. Narrow convention correction `c0a323d` now has five numeric unit passes and two separately focused ordinary-profile STOCK callback passes. **Actual native unavailable-Y retention has not yet been reached or closed**; this plan's underlying premise stays conditional.
 
 Current source selects a heightmap winner, reads that block/entity/color and replaces an already known surface cell without checking whether its native Y cube is FULL. A native column can remain available while one of its Y cubes unloads; that source pattern is only a candidate defect, not a reproduced result.
 

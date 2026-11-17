@@ -1,0 +1,111 @@
+{
+  "originalWorld": "/workspace/ungravity-v5/cubic-next-20261109/build/surface-stock-control/world",
+  "archive": "/workspace/ungravity-v5/cubic-next-20261109/work/cubic-surface/closed-worlds/stock-normalized-positive-world.tar.gz",
+  "archiveBytes": 381473,
+  "archiveSha256": "2e7f43fd585359e884beff755f1e3a64ae2c0cd77a7277f469d4501fde8ad7c3",
+  "gzipCrcAndSizeReadToEof": true,
+  "allArchiveFileBytesAndSha256MatchOriginal": true,
+  "scope": "Only closed dedicated disposable stock world; user saves/shared caches untouched",
+  "files": {
+    "DIM-1/data/raids.dat": {
+      "bytes": 89,
+      "sha256": "338f53282cad806909ab9bfd964ed390532bae2cfd132afb526c82a6614e1d11"
+    },
+    "DIM1/data/raids_end.dat": {
+      "bytes": 89,
+      "sha256": "338f53282cad806909ab9bfd964ed390532bae2cfd132afb526c82a6614e1d11"
+    },
+    "data/chunks.dat": {
+      "bytes": 59,
+      "sha256": "7929cf0b046addefca5091025d539a02c1d3c8bf266905d35412caa5156ac8bf"
+    },
+    "data/drmd_dimension_sync.dat": {
+      "bytes": 73,
+      "sha256": "103e30ff7323a8f4d6560933416e12cb8a9ad31c766e013a267592a908283e10"
+    },
+    "data/drmd_physics.dat": {
+      "bytes": 82,
+      "sha256": "c8919471ea7d7e62335d11fe1f5fcb894bcb86cf8ca89b276c26fffb26ce1c91"
+    },
+    "data/raids.dat": {
+      "bytes": 89,
+      "sha256": "338f53282cad806909ab9bfd964ed390532bae2cfd132afb526c82a6614e1d11"
+    },
+    "drmd/surface/L0/22764_13445.bin": {
+      "bytes": 127,
+      "sha256": "d83c55f713df38c80bd18976f595b4b34b38059fe1d323432d521e2b9a4f06b7"
+    },
+    "drmd/surface/L1/11382_6722.bin": {
+      "bytes": 113,
+      "sha256": "873b19a0ab02756503c7f50ca52fdfad8f63d5b5090ad1344fa611eb3e24f393"
+    },
+    "drmd/surface/L2/5691_3361.bin": {
+      "bytes": 93,
+      "sha256": "535af3f65f65878b377d8df8b38181d3ae3d24fdb461035c270d8a4421de88a6"
+    },
+    "drmd/surface/L3/2845_1680.bin": {
+      "bytes": 82,
+      "sha256": "9eb66b70f7ed01b86c6677cd50d395bbd8190f325af92b1eef6a5a7e3a0d7a74"
+    },
+    "drmd/surface/L4/1422_840.bin": {
+      "bytes": 83,
+      "sha256": "7a1246964b8b503d4aa4b7638286e63da9ddcd5ba234c5cffa473ee250724b1b"
+    },
+    "drmd/surface/L5/711_420.bin": {
+      "bytes": 61,
+      "sha256": "d79c64c94187f173e0f704aac338af130f8a37bdca8977edf77b15896ba53e18"
+    },
+    "drmd/surface/L6/355_210.bin": {
+      "bytes": 61,
+      "sha256": "6c0b043213ac3f0b8cce576d1bd732c63255a942507b3379a9da80c3b2e27a0b"
+    },
+    "entities/r.-1.-1.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.-1.0.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.0.-1.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.0.0.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.22764.13445.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "level.dat": {
+      "bytes": 1682,
+      "sha256": "977efb2ecdcd36aba0ba4c6ee70fda786c0481aa476e9f84334c334b6eea4650"
+    },
+    "region/r.-1.-1.mca": {
+      "bytes": 811008,
+      "sha256": "934658e19c1f9a9e1cddb48f4279f91a3f9b2632ddbfaa37c3a6a1f98b439a31"
+    },
+    "region/r.-1.0.mca": {
+      "bytes": 868352,
+      "sha256": "a9468b08ac9f81f40a42b670be2596fea3195b15712520208aaced4b2b4b4ec3"
+    },
+    "region/r.0.-1.mca": {
+      "bytes": 868352,
+      "sha256": "f3784da5e8c85e74e9dec2a3c68330e261ab1b97848f95e39a0bb3da430c1bc3"
+    },
+    "region/r.0.0.mca": {
+      "bytes": 929792,
+      "sha256": "36794c7dd9018862b26ee5d2b9d78f1843693d640b61c3bff9d5145eef97f46d"
+    },
+    "region/r.22764.13445.mca": {
+      "bytes": 3338240,
+      "sha256": "36b5f526d760ea8f92744bff38dec2ad8618a862619131d2d6e65de25eb0446a"
+    },
+    "session.lock": {
+      "bytes": 3,
+      "sha256": "51643361c79ecaef25a8de802de24f570ba25d9c2df1d22d94fade11b4f466cc"
+    }
+  }
+}

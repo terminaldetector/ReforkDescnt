@@ -1,0 +1,17 @@
+{
+  "sourceSha": "f793ae851aba19ed3b8187b8d9887895f3af2318",
+  "productionAndUnitSourceByteIdenticalToC0": true,
+  "priorFiveUnitProof": "../SURFACE_STOCK_FIXTURE_FAILURE_2026-11-17/unit-results.xml",
+  "priorUnitSourceSha": "c0a323dead64c3d12d64dc337c629c1943c3ab77",
+  "scope": "Two actual ordinary vanilla-profile STOCK public callbacks; no JAR/native/client proof",
+  "tests": [
+    {
+      "name": "surfaceingestheightgametests.loadedgoldusesitsactualcolourandphysicaltopface",
+      "outcome": "PASS"
+    },
+    {
+      "name": "surfaceingestheightgametests.loadeddemolitionandrestoreupdateactualsurface",
+      "outcome": "PASS"
+    }
+  ]
+}
