@@ -1,0 +1,1 @@
+state=Block{drmd:ship_laser}[facing=south] held=1 minecraft:diamond_pickaxe canHarvest=true requiresTool=true miningSpeed=1.6 onGround=false pickaxeTag=true revision=7

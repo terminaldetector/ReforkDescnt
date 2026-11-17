@@ -1,0 +1,22 @@
+{
+  "tested_source_sha": "16a25a96e2d3b51c425a04534e15fe81f6881f95",
+  "tracked_inputs_and_helpers_unchanged": true,
+  "tracked_inputs_verified": 1472,
+  "compiled_runtime_hashes": 1586,
+  "compile_exit": 0,
+  "gradle_gametest_exit": 0,
+  "game_exit": 0,
+  "result": "6PASS_0FAIL",
+  "cases": [
+    "survivaleconomygametests.craftedrepairmustpreservestonedeepslateandnetherbrickmaterialfamilies",
+    "survivaleconomygametests.allthreeshipcomponentsmustbeindividuallycraftablethroughtherealtable",
+    "survivaleconomygametests.craftedrepairlasermustrepairactualpartialdamageonamovingmechanism",
+    "survivaleconomygametests.survivalminingpickupandreplacementrecoverbearingdriveandlaserexactlyonce",
+    "survivaleconomygametests.craftedplacedandassembledbearingsanddriveperformrealsurvivalwork",
+    "survivaleconomygametests.craftedlaserandrocketconsumeplacementitemsandfirefromactuallevermaterial"
+  ],
+  "own_java_processes": [],
+  "removed_only_after_archive_verification": "build/gametest/world",
+  "other_saves_or_caches_removed": false,
+  "integrated_fullsuite_native_client_or_jar_claimed": false
+}

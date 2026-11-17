@@ -1,0 +1,416 @@
+{
+  "source_sha": "16a25a96e2d3b51c425a04534e15fe81f6881f95",
+  "archive": "closed-economy-final6-16a25a9.zip",
+  "sha256": "ef24daa25c344ad39ece10f3f4a199f68ea8e4bde97b552a1fd7f343fc7a851e",
+  "file_count": 81,
+  "bytes": 8779230,
+  "archive_bytes": 1107046,
+  "crc_and_all_file_hashes_verified": true,
+  "files": [
+    {
+      "path": "world/DIM-1/data/raids.dat",
+      "size": 90,
+      "sha256": "1f5eefe8d6ea4e000f169e5beee6cee3ada493b672e693bee4232b416ff6a1cd"
+    },
+    {
+      "path": "world/DIM1/data/raids_end.dat",
+      "size": 90,
+      "sha256": "1f5eefe8d6ea4e000f169e5beee6cee3ada493b672e693bee4232b416ff6a1cd"
+    },
+    {
+      "path": "world/advancements/28ad170d-e6e1-4a32-9dee-618566cfaedf.json",
+      "size": 11551,
+      "sha256": "33093c1a1493ca02005532026c8f70e00db65903fc091db63c1f0d126bfcf663"
+    },
+    {
+      "path": "world/advancements/4de8d4ab-7b0b-45d1-b63f-b86beb86013e.json",
+      "size": 11705,
+      "sha256": "d3db351c8a2f16911623a27489c7a82863ea5ab8b6a31f312ef435503ff2e898"
+    },
+    {
+      "path": "world/advancements/a57f3ff5-a7be-4e86-a4f4-ded21eb6570c.json",
+      "size": 11551,
+      "sha256": "f32430cabdf44b75e4fe3da8f0bf18b21544e787f4c3e475e25615cbf242b4f1"
+    },
+    {
+      "path": "world/advancements/ad391848-58ad-49a3-b824-8d2d033ed6d0.json",
+      "size": 11705,
+      "sha256": "2ed736f4166ff506275933190021e5a38041509d434824ae3ebe6948d0878e73"
+    },
+    {
+      "path": "world/advancements/c000c74a-b743-4605-97bb-c5406fc0429d.json",
+      "size": 11705,
+      "sha256": "7f009b9fdd377fb7fe273237c7b6e16b32b3610cea988e931c5840fb8eb08c77"
+    },
+    {
+      "path": "world/advancements/e0578f7a-ad18-4354-87e3-2986ee52ddcb.json",
+      "size": 11705,
+      "sha256": "d3db351c8a2f16911623a27489c7a82863ea5ab8b6a31f312ef435503ff2e898"
+    },
+    {
+      "path": "world/data/chunks.dat",
+      "size": 59,
+      "sha256": "7929cf0b046addefca5091025d539a02c1d3c8bf266905d35412caa5156ac8bf"
+    },
+    {
+      "path": "world/data/drmd_body_joints.dat",
+      "size": 84,
+      "sha256": "b81755bd6c3f1c9c0752b02c438b7b7e132ec74c92dc1b2c04f7c5ad20ed5998"
+    },
+    {
+      "path": "world/data/drmd_dimension_sync.dat",
+      "size": 73,
+      "sha256": "103e30ff7323a8f4d6560933416e12cb8a9ad31c766e013a267592a908283e10"
+    },
+    {
+      "path": "world/data/drmd_physics.dat",
+      "size": 82,
+      "sha256": "c8919471ea7d7e62335d11fe1f5fcb894bcb86cf8ca89b276c26fffb26ce1c91"
+    },
+    {
+      "path": "world/data/raids.dat",
+      "size": 90,
+      "sha256": "1f5eefe8d6ea4e000f169e5beee6cee3ada493b672e693bee4232b416ff6a1cd"
+    },
+    {
+      "path": "world/drmd/surface/L0/-1_-1.bin",
+      "size": 104,
+      "sha256": "31723de7411b657b961293706d1805c16a6268bac498e63d2cb2c06681d992cf"
+    },
+    {
+      "path": "world/drmd/surface/L0/-1_0.bin",
+      "size": 97,
+      "sha256": "decbe324c0f6062a9cc94291b41c882c147a0fca2fc95090c0fef4333a5a2f57"
+    },
+    {
+      "path": "world/drmd/surface/L0/-23505_-11417.bin",
+      "size": 144,
+      "sha256": "191b65030f4472a902bc2bfaeee8edfc36efdbcfbe5e7dc94deeb0406c2eba39"
+    },
+    {
+      "path": "world/drmd/surface/L0/0_-1.bin",
+      "size": 97,
+      "sha256": "55670bf70332e7b1f3541b240c37388c9f19d56182478cfea5c0ac12dde3dc58"
+    },
+    {
+      "path": "world/drmd/surface/L0/0_0.bin",
+      "size": 95,
+      "sha256": "1f148ba88aec75bed6e8690217ffd2ca7addd8fede0b910b187d6e4f119406ac"
+    },
+    {
+      "path": "world/drmd/surface/L1/-11753_-5709.bin",
+      "size": 121,
+      "sha256": "36785ed0ca6df8b40b913ed4fc1c30b5c7091167d9beb3b98da66f431c68cc2c"
+    },
+    {
+      "path": "world/drmd/surface/L1/-1_-1.bin",
+      "size": 83,
+      "sha256": "a1154285ac3d2b558057bc68fe41adf106638551953f167fdc666c50f165fd95"
+    },
+    {
+      "path": "world/drmd/surface/L1/-1_0.bin",
+      "size": 94,
+      "sha256": "16032d9aaef7661105f9d0697780ab81c5205f9c3b306495c78a6260b0a10676"
+    },
+    {
+      "path": "world/drmd/surface/L1/0_-1.bin",
+      "size": 92,
+      "sha256": "ddc7bd25ef7274915b86a63225e8d74bf308c61b71e8861d0807cf1a9655373a"
+    },
+    {
+      "path": "world/drmd/surface/L1/0_0.bin",
+      "size": 94,
+      "sha256": "6323de9610496d4f143873a8d8c8074718f55c1c5f51cd61fef24118370b9578"
+    },
+    {
+      "path": "world/drmd/surface/L2/-1_-1.bin",
+      "size": 78,
+      "sha256": "9cff4e7940c77ea9f81391748043ea45eef5df6e69fda4f7b2eb251d58763196"
+    },
+    {
+      "path": "world/drmd/surface/L2/-1_0.bin",
+      "size": 88,
+      "sha256": "4c7b216d15b86d3bd39e362a0f5136ace36fe622cc674147e634a8611defc0ce"
+    },
+    {
+      "path": "world/drmd/surface/L2/-5877_-2855.bin",
+      "size": 111,
+      "sha256": "27246cc1b209f1d2ad91bbab6ebade6dede0a91a96795d170c8749076e061df3"
+    },
+    {
+      "path": "world/drmd/surface/L2/0_-1.bin",
+      "size": 80,
+      "sha256": "abb404950c671fee453cd3c72469ba92d8ce1eec56d760b95a446d17a72a9e43"
+    },
+    {
+      "path": "world/drmd/surface/L2/0_0.bin",
+      "size": 87,
+      "sha256": "eb24b62bbd70a2e75a012d08075487f82ee8eefebc2e18463ca3d1943bed86c1"
+    },
+    {
+      "path": "world/drmd/surface/L3/-1_-1.bin",
+      "size": 62,
+      "sha256": "bbdc96845286703ec4f9b789b26dea833dcf2c9bbe6dd8985ec723a7b87a76f7"
+    },
+    {
+      "path": "world/drmd/surface/L3/-1_0.bin",
+      "size": 74,
+      "sha256": "22a17e00d302a3211032fbdbd7c935aacd336466e77bc0df282c8d93f0ec3c06"
+    },
+    {
+      "path": "world/drmd/surface/L3/-2939_-1428.bin",
+      "size": 89,
+      "sha256": "9c46cacb19f939a49e685fc5008dfa60bd3142b83fac31f426b75eb05f76f887"
+    },
+    {
+      "path": "world/drmd/surface/L3/0_-1.bin",
+      "size": 71,
+      "sha256": "d8d0e57ab2044e1526315796a32114e3651e13252bb307193af553e8d5b96b89"
+    },
+    {
+      "path": "world/drmd/surface/L3/0_0.bin",
+      "size": 62,
+      "sha256": "4021aad007b5e86573a4e9cd7288fc723162945027c672e5fa26d6259a400195"
+    },
+    {
+      "path": "world/drmd/surface/L4/-1470_-714.bin",
+      "size": 72,
+      "sha256": "02ac16a031a01a2bd638640bb00442e9d570ac99b2a8870e28f00e937020fe49"
+    },
+    {
+      "path": "world/drmd/surface/L4/-1_-1.bin",
+      "size": 62,
+      "sha256": "bbdc96845286703ec4f9b789b26dea833dcf2c9bbe6dd8985ec723a7b87a76f7"
+    },
+    {
+      "path": "world/drmd/surface/L4/-1_0.bin",
+      "size": 74,
+      "sha256": "22a17e00d302a3211032fbdbd7c935aacd336466e77bc0df282c8d93f0ec3c06"
+    },
+    {
+      "path": "world/drmd/surface/L4/0_-1.bin",
+      "size": 71,
+      "sha256": "d8d0e57ab2044e1526315796a32114e3651e13252bb307193af553e8d5b96b89"
+    },
+    {
+      "path": "world/drmd/surface/L4/0_0.bin",
+      "size": 62,
+      "sha256": "4021aad007b5e86573a4e9cd7288fc723162945027c672e5fa26d6259a400195"
+    },
+    {
+      "path": "world/drmd/surface/L5/-1_-1.bin",
+      "size": 62,
+      "sha256": "bbdc96845286703ec4f9b789b26dea833dcf2c9bbe6dd8985ec723a7b87a76f7"
+    },
+    {
+      "path": "world/drmd/surface/L5/-1_0.bin",
+      "size": 74,
+      "sha256": "22a17e00d302a3211032fbdbd7c935aacd336466e77bc0df282c8d93f0ec3c06"
+    },
+    {
+      "path": "world/drmd/surface/L5/-735_-357.bin",
+      "size": 60,
+      "sha256": "0297cfef6ce4ae9285c2f78e446b775eac1a25c34c0699f15b2efdaeb80b36d0"
+    },
+    {
+      "path": "world/drmd/surface/L5/0_-1.bin",
+      "size": 71,
+      "sha256": "d8d0e57ab2044e1526315796a32114e3651e13252bb307193af553e8d5b96b89"
+    },
+    {
+      "path": "world/drmd/surface/L5/0_0.bin",
+      "size": 62,
+      "sha256": "4021aad007b5e86573a4e9cd7288fc723162945027c672e5fa26d6259a400195"
+    },
+    {
+      "path": "world/drmd/surface/L6/-1_-1.bin",
+      "size": 62,
+      "sha256": "bbdc96845286703ec4f9b789b26dea833dcf2c9bbe6dd8985ec723a7b87a76f7"
+    },
+    {
+      "path": "world/drmd/surface/L6/-1_0.bin",
+      "size": 74,
+      "sha256": "22a17e00d302a3211032fbdbd7c935aacd336466e77bc0df282c8d93f0ec3c06"
+    },
+    {
+      "path": "world/drmd/surface/L6/-368_-179.bin",
+      "size": 59,
+      "sha256": "24ff21bd3c5c45d8f86130670bb545ff4831f5763d63cd6c02e4e2b4d174d28d"
+    },
+    {
+      "path": "world/drmd/surface/L6/0_-1.bin",
+      "size": 71,
+      "sha256": "d8d0e57ab2044e1526315796a32114e3651e13252bb307193af553e8d5b96b89"
+    },
+    {
+      "path": "world/drmd/surface/L6/0_0.bin",
+      "size": 62,
+      "sha256": "4021aad007b5e86573a4e9cd7288fc723162945027c672e5fa26d6259a400195"
+    },
+    {
+      "path": "world/entities/r.-1.-1.mca",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "world/entities/r.-1.0.mca",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "world/entities/r.-23505.-11417.mca",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "world/entities/r.0.-1.mca",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "world/entities/r.0.0.mca",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "world/level.dat",
+      "size": 1680,
+      "sha256": "8a0c8ff10fadeee98f52c859329934858c1c56e6be4270cd7e73777ff478c6d1"
+    },
+    {
+      "path": "world/playerdata/28ad170d-e6e1-4a32-9dee-618566cfaedf.dat",
+      "size": 2454,
+      "sha256": "a649bd5db07e68b24d980a696cf0d351d0d4368e75ff040cef7d1bed09216743"
+    },
+    {
+      "path": "world/playerdata/4de8d4ab-7b0b-45d1-b63f-b86beb86013e.dat",
+      "size": 2507,
+      "sha256": "719ea75cea83dce57fa8a4d03a06cfd6bcaf9a634fb325f0dc79cfacd1393162"
+    },
+    {
+      "path": "world/playerdata/a57f3ff5-a7be-4e86-a4f4-ded21eb6570c.dat",
+      "size": 2474,
+      "sha256": "71e1e794448390328a1a0b5829f7de235410cb72e4a9ce2cb5907e25e40c6715"
+    },
+    {
+      "path": "world/playerdata/ad391848-58ad-49a3-b824-8d2d033ed6d0.dat",
+      "size": 2532,
+      "sha256": "9b6ef98c8125a987b6926291e0711962f1ef0071d41d41e2f2bb433b1e9fddf4"
+    },
+    {
+      "path": "world/playerdata/c000c74a-b743-4605-97bb-c5406fc0429d.dat",
+      "size": 2547,
+      "sha256": "b1994f124858f2172335a7777dab6025d25afbf4a6e80baf1275438f56a76fba"
+    },
+    {
+      "path": "world/playerdata/e0578f7a-ad18-4354-87e3-2986ee52ddcb.dat",
+      "size": 2500,
+      "sha256": "16aa7c215ccf1c9e19ca2c38d1c65386e1d6e580be9b9558b94c11103e27ab08"
+    },
+    {
+      "path": "world/poi/r.-1.-1.mca",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "world/poi/r.-1.0.mca",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "world/poi/r.-23505.-11416.mca",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "world/poi/r.-23505.-11417.mca",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "world/poi/r.0.-1.mca",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "world/poi/r.0.0.mca",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "world/region/r.-1.-1.mca",
+      "size": 1056768,
+      "sha256": "ff4701375269bb07d3397a92fc3dae8865d440669d68e776491a536584b56bbc"
+    },
+    {
+      "path": "world/region/r.-1.0.mca",
+      "size": 1040384,
+      "sha256": "847e1c0178687db95b65389631ee108f0be441d8cf9cb7dd9ed6d80db392ccf9"
+    },
+    {
+      "path": "world/region/r.-23505.-11416.mca",
+      "size": 811008,
+      "sha256": "56fefa7f2f192c9e2b5ccf623a7135ba91d470a9f877d1e6d1e05dce69e861f2"
+    },
+    {
+      "path": "world/region/r.-23505.-11417.mca",
+      "size": 2760704,
+      "sha256": "d85f2cdcd33ed8de70bcff7e3cb2d20acd54e06ec73a1d6f94cd4ffec742330b"
+    },
+    {
+      "path": "world/region/r.-23506.-11416.mca",
+      "size": 208896,
+      "sha256": "f0063b653dac77305c0ac0c17b1e70efa1afbeabe1210a065731004c3af3f980"
+    },
+    {
+      "path": "world/region/r.-23506.-11417.mca",
+      "size": 696320,
+      "sha256": "60c56152c32a29c52fe126683958f3bbde5ba87a5814b9baf4b07de6ff3986db"
+    },
+    {
+      "path": "world/region/r.0.-1.mca",
+      "size": 1056768,
+      "sha256": "56920b812467f118c88c616828edcdfc68e6979a5b96cbfbe68033152a541f8b"
+    },
+    {
+      "path": "world/region/r.0.0.mca",
+      "size": 1056768,
+      "sha256": "f743c647a19346c9e3b9b06fcbeab4a730145173889e16e391dcddc9d85db13c"
+    },
+    {
+      "path": "world/session.lock",
+      "size": 3,
+      "sha256": "51643361c79ecaef25a8de802de24f570ba25d9c2df1d22d94fade11b4f466cc"
+    },
+    {
+      "path": "world/stats/28ad170d-e6e1-4a32-9dee-618566cfaedf.json",
+      "size": 205,
+      "sha256": "f91254c8fc9b630b317afa1cabfa3bee49b7776464d09ae53f67799c537d5157"
+    },
+    {
+      "path": "world/stats/4de8d4ab-7b0b-45d1-b63f-b86beb86013e.json",
+      "size": 245,
+      "sha256": "5471d5f4e5504fa01429a64bf149859c5bc1df96212ef33e956512756c50e0e8"
+    },
+    {
+      "path": "world/stats/a57f3ff5-a7be-4e86-a4f4-ded21eb6570c.json",
+      "size": 248,
+      "sha256": "b6662a3e1fe4214a7c756f561a9a3cb8b6be1fbfe55c939a3a180f8257a363d4"
+    },
+    {
+      "path": "world/stats/ad391848-58ad-49a3-b824-8d2d033ed6d0.json",
+      "size": 347,
+      "sha256": "2a36ec14278b1738d923be1eff91ffcaa3e8d6afe1482ec5ff2e5d7c5add6bd3"
+    },
+    {
+      "path": "world/stats/c000c74a-b743-4605-97bb-c5406fc0429d.json",
+      "size": 249,
+      "sha256": "ebd36c7e8f8785d2001978817551727c9b51d5ea4a2b6f072c305aa75c1757ef"
+    },
+    {
+      "path": "world/stats/e0578f7a-ad18-4354-87e3-2986ee52ddcb.json",
+      "size": 312,
+      "sha256": "19508e8f0a40d5604c5fcc73b721a6d042508631fe7088218b638b8dde982dc2"
+    }
+  ]
+}
