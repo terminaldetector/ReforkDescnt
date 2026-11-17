@@ -82,3 +82,31 @@ about 39 ticks, so no speed/TTL/search-cap or 120-tick assertion increase is
 justified. The approved correction is exactly to allow that existing bounded
 FULL-clearance lookahead without a nearby crowd, retaining each sweep, the
 four-block displacement bound, role speed, search budget and .02 threshold.
+
+## First global lookahead result: new feature passes, retained combat fails
+
+Exact `d6ca593ff82b9ac85b7436480922359f5ce63037` passed four unit tests;
+the first focused server run was **19 PASS / 1 FAIL**, exit 1. All seven squad
+cases passed unchanged. The natural scout/wingman case succeeded at 62 real
+ticks, with pre-acquisition climb, own natural lock and a real owned projectile
+(8.064 blocks climb). Both shared six-actor apertures retained six firing lanes
+and six damaging actors. The real hull/unknown-cover controls passed.
+
+The retained `rocketFindsALaneWhileAlreadyTouchingTheWall` failed at 380 ticks:
+a firing lane was observed, but no attributed target damage. This global
+combat-behavior change is **not accepted** and cannot be waived because the new
+feature passes. Original aim, weapon/role values, thresholds and assertions
+remain unchanged. Exact cause of the missed rocket damage is not claimed from
+position alone.
+
+First-result bundle: `EVIDENCE/drone-squad-global-lookahead-d6ca593.zip`, digest
+in the adjacent `.sha256` file. All raw 4+20 results, natural/shared/debug rows,
+source/input/runner snapshots and closed-world files were verified by payload
+SHA-256 and ZIP CRC before any correction. No retry occurred.
+
+The approved narrower contract preserves the old `steer` two/three-argument
+entry points and their separation-gated lookahead. Only a new explicit
+investigation entry enables the existing bounded two FULL swept-clear steps.
+Only the new squad goal calls it. This retains established combat following
+while adding the missing investigation feature; it does not change role speed,
+weapons, TTL, search limits, waypoint tolerance or the 120/380-tick criteria.
