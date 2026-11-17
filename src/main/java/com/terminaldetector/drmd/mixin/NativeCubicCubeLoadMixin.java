@@ -16,6 +16,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class NativeCubicCubeLoadMixin {
     @Inject(method = "applyLoaded", at = @At("RETURN"), remap = false)
     private void drmd$nativeCubeArrived(Chunk chunk, int cubeY, @Coerce Object data, CallbackInfo ci) {
-        if (chunk instanceof WorldChunk full) NativeCubicSkylight.loaded(full);
+        if (chunk instanceof WorldChunk full) {
+            com.terminaldetector.drmd.world.store.SurfaceIngest.nativeCubeLoaded(full);
+            NativeCubicSkylight.loaded(full);
+        }
     }
 }

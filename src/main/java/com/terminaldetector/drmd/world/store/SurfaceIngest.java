@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.world.store;
 
 import com.terminaldetector.drmd.DescentMod;
 import com.terminaldetector.drmd.d6.D6ChunkPos;
+import com.terminaldetector.drmd.world.access.CubicAvailability;
 import com.terminaldetector.drmd.world.access.WorldAccess;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
@@ -32,9 +33,39 @@ public final class SurfaceIngest {
 	private static final int REBUILD_PER_TICK = 4;
 	/** Ticks between flushes of everything dirty. */
 	private static final int FLUSH_INTERVAL = 20 * 60;
+	private static final int MAX_NATIVE_PENDING = 4096;
+	private static final int NATIVE_PROBES_PER_TICK = 4;
 
 	private static SurfaceStore store;
+	private static ServerWorld storeWorld;
 	private static final java.util.Set<Long> dirtyChunks = new java.util.LinkedHashSet<>();
+	private static final NativeRefreshQueue nativePending = new NativeRefreshQueue();
+
+	/** Keys only: a failed/unknown probe does not consume work or retain a chunk/ticket. */
+	static final class NativeRefreshQueue {
+		private final java.util.LinkedHashSet<Long> keys = new java.util.LinkedHashSet<>();
+		private volatile long evictions;
+		void offer(long key) {
+			if (keys.contains(key)) return;
+			if (keys.size() == MAX_NATIVE_PENDING) {
+				var first = keys.iterator(); first.next(); first.remove(); evictions++;
+			}
+			keys.add(key);
+		}
+		java.util.List<Long> rotate(int budget) {
+			var result = new java.util.ArrayList<Long>();
+			int count = Math.min(Math.max(0, budget), keys.size());
+			for (int n = 0; n < count; n++) {
+				var first = keys.iterator(); long key = first.next(); first.remove();
+				keys.add(key); result.add(key);
+			}
+			return java.util.List.copyOf(result);
+		}
+		void acknowledge(long key) { keys.remove(key); }
+		int size() { return keys.size(); }
+		long evictions() { return evictions; }
+		void clear() { keys.clear(); evictions = 0; }
+	}
 
 	private SurfaceIngest() {}
 
@@ -43,11 +74,22 @@ public final class SurfaceIngest {
 		return store;
 	}
 
+	/** Inspect actual overload without changing the queue or querying a world. */
+	public static long nativeRefreshEvictions() { return nativePending.evictions(); }
+
+	/** Optional native callback; independent of skylight configuration or availability. */
+	public static void nativeCubeLoaded(WorldChunk chunk) {
+		if (!(chunk.getWorld() instanceof ServerWorld world)
+				|| !CubicAvailability.onWorldThread(world) || world != storeWorld || store == null) return;
+		nativePending.offer(chunk.getPos().toLong());
+	}
+
 	public static void onServerStarted(MinecraftServer server) {
 		close();
 		try {
 			Path root = server.getSavePath(WorldSavePath.ROOT).resolve("drmd").resolve("surface");
 			store = new SurfaceStore(new CompressedSectionStorage(new FileSectionStorage(root)));
+			storeWorld = server.getOverworld();
 			DescentMod.LOGGER.info("Surface store open at {}", root);
 		} catch (Exception e) {
 			// A world that cannot store its surface still plays; the horizon just stays procedural.
@@ -57,6 +99,8 @@ public final class SurfaceIngest {
 	}
 
 	public static void close() {
+		storeWorld = null;
+		nativePending.clear();
 		dirtyChunks.clear();
 		if (store == null) return;
 		try {
@@ -102,6 +146,28 @@ public final class SurfaceIngest {
 				D6ChunkPos.ofBlock(top.getX(), top.getY(), top.getZ()))) return;
 		int rgb = colourAt(world, chunk, top);
 		live.set(baseX, baseZ, storedSurfaceHeight(bestY, world.getBottomY()), rgb);
+		if (world == storeWorld) nativePending.acknowledge(chunk.getPos().toLong());
+	}
+
+	/** Only metadata is inspected until the current highest sample's actual Y cube is FULL. */
+	private static void queueReadyNative(ServerWorld world) {
+		if (world != storeWorld || !CubicAvailability.onWorldThread(world)) return;
+		for (long key : nativePending.rotate(NATIVE_PROBES_PER_TICK)) {
+			if (dirtyChunks.contains(key)) continue;
+			var pos = new net.minecraft.util.math.ChunkPos(key);
+			var chunk = CubicAvailability.loadedColumn(world, pos.x, pos.z);
+			if (chunk == null) { nativePending.acknowledge(key); continue; }
+			// Ordinary edits keep their existing policy; native events cannot grow that
+			// backlog beyond this bound, and remain pending while it is congested.
+			if (dirtyChunks.size() >= MAX_NATIVE_PENDING) continue;
+			int bestY = Integer.MIN_VALUE, step = 16 / SAMPLES;
+			for (int x = 0; x < SAMPLES; x++) for (int z = 0; z < SAMPLES; z++)
+				bestY = Math.max(bestY, chunk.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+						pos.getStartX() + x * step, pos.getStartZ() + z * step));
+			if (bestY == Integer.MIN_VALUE) continue;
+			var winner = D6ChunkPos.ofBlock(pos.getStartX(), Math.max(world.getBottomY(), bestY), pos.getStartZ());
+			if (WorldAccess.of(world).isVolumeAvailable(winner)) dirtyChunks.add(key);
+		}
 	}
 
 	/** Retain existing below-bottom empty sentinels; never promote them into a surface. */
@@ -143,12 +209,13 @@ public final class SurfaceIngest {
 		SurfaceStore live = store;
 		if (live == null) return;
         ServerWorld world=server.getOverworld();
+        if(world!=null) queueReadyNative(world);
         var dirty=dirtyChunks.iterator();
         for(int done=0;world!=null && done<REBUILD_PER_TICK && dirty.hasNext();done++) {
             long key=dirty.next();dirty.remove();
             var pos=new net.minecraft.util.math.ChunkPos(key);
-            var chunk=world.getChunkManager().getChunk(pos.x,pos.z,net.minecraft.world.chunk.ChunkStatus.FULL,false);
-            if(!(chunk instanceof WorldChunk loaded)) continue; // CHUNK_LOAD refreshes unloaded areas later.
+            var loaded=CubicAvailability.loadedColumn(world,pos.x,pos.z);
+            if(loaded==null) continue; // Parent reopen/native arrivals can schedule later refreshes.
             onChunkLoad(world,loaded);
             for(int level=0;level<=SectionKey.MAX_LEVEL;level++)
                 SurfaceStreamer.invalidate(SectionKey.of(level,
