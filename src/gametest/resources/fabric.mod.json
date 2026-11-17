@@ -67,6 +67,7 @@
       "com.terminaldetector.drmd.UfoAiGameTests",
       "com.terminaldetector.drmd.UfoTurretAiGameTests",
       "com.terminaldetector.drmd.MechanismGameTests",
+      "com.terminaldetector.drmd.LinearMechanismGameTests",
       "com.terminaldetector.drmd.MountedMechanismGameTests",
       "com.terminaldetector.drmd.ArmedContactGameTests",
       "com.terminaldetector.drmd.world.threat.SurvivalThreatGameTests",
