@@ -1,0 +1,25 @@
+# Actual selected native step explains the coarse sweep assertion
+
+Exact observer-only source `5e73d0b979f1b5fba92db803d3143d3cbe2b9749`, executing helper SHA-256 `a6234da4748526e0578ad8f713a3890679b1aee095ca3ad0976ce625b56e38df`, ran the same eight unchanged gameplay contracts once: **3 PASS, 5 FAIL, zero XML errors**, Gradleexit1/native5 in44seconds. Fresh XML timestamp`2026-11-17T17:51:32.508654083Z`. Main and math source remain identical tod97/ba8; no new units or JAR ran. Originalfive source remainsa4b11... and the newthree assertions/seeds/budgets are unchanged; only passive logging was added.
+
+Entry, nativefloorpursuit and the new ordinaryfloor naturalpounce/air/reacquisition control pass. Originalceiling now completes60ticks then fails continuouscontact after a legitimate jump, so no309pre-timeout/clock row is emitted. This does not resolve the earlier lateadmission/ticking/idle uncertainty. Originalwall/strictbarrier, newwall naturaljumpadmission and newjumpawarebarrier stillfail. The standalonewall actors again have no observed nativepounce; no seed/target/goal adjustment is made from that absence.
+
+The667AirAcceptance events, sixactualpounces,12initialsurfaceadmissions,39oldfieldmarkers and one preassert stepdump are retained. The new diagnostic has no overflow/truncation. The dump covers four actual native moves at Spider ages70–73, with actual call ordering and separately labelled candidate calculations.
+
+## Actual movement at the first assertion
+
+At age73, Spider UUID`cd23c58d-2eb4-4925-bcb8-c55394582b77` requests native movement`[0.4000000059604645,0.19396389846429676,0.35058273513675187]`. The ordinary collision candidate blocks Z and returns`[0.4000000059604645,0.19396389846429676,0]`. A second candidate tests a higher Y step. The private native adjuster **actually takes its selectedSTEP return**, producing`[0.4000000059604645,0.4085671603679657,0.35058273513675187]`. Actual Entity.move positiondelta matches to1.06e-11. The engine's final body is clear and has minY`26.000000006911275`, above plateTop26; a real localup jump has gap`.4000000059604645`.
+
+The pinned1.21.1 private axis resolver handles Y first, then X/Z according to their magnitudes. Here the actual selected candidate uses Y→X→Z: its starting box has Zmax exactly equal to the plate's Zmin, so lifting Y is clear; after lifting, the box is above the plate and its X/Z steps are clear. Every reconstructed axis sweep is clear of the same1e-6 contractedplate. The reconstructed endpoint matches the actually recorded endpoint exactly.
+
+These intermediate axis boxes are **derived from the selected native algorithm**, not separately sampled intermediate Entity positions. Candidate snapshots are not all treated as executed segments: the actual private selectedreturn and actual Move result identify the chosen result. Native worldY step behavior under localUP+X remains a distinct gravity/locomotion question; this diagnostic does not claim general arbitraryCCD or localUP-aware stepping.
+
+The old ordinary-sample straight chord intersects the expandedplate for parameter interval`[.000002852415462139434,.9999975355060959]`, while that selected native step route is clear. Thus this particular sweep assertion is a **coarse chord falsepositive for an actually selected native step**, not demonstrated block penetration. No collision patch or threshold change followed this outcome. The previous d97 missing trigger box/result is preserved separately in [its first gameplay report](CLIMBER_CARDINAL_FIRST_GAMEPLAY_2026-11-17.md).
+
+A reviewed subsequent observer can validate the pinned selected native axis route with strict start/end/movementidentity and failclosed when missing/truncated/unsupported, preserving all originalfive checks. Legalstep-versus-actually-blocked geometry controls are required; blanket ignoring of chord hits is not justified. Standalonewall nativegoaleligibility and oldceiling actualfixture clocks remain separate admission questions.
+
+## Preservation
+
+[climber-step-5e73d0b-first-eight.zip](EVIDENCE/climber-step-5e73d0b-first-eight.zip), SHA-256`361adb89126811c90a5ad471f45fa5d1a80b547f6f62a0dbff7333b100228a2f`,1,546,189bytes/135payloads, allSHA256 and ZIPCRC verified. It contains exact source/patch, executinghelper/manifests, first rawlog/XML/exit,1533source/input hashes and pre/post class identities/actualclasses, the full rawstepdump, exact native classfile audit, offline geometry derivation/script, all667air events in marker exports and the complete28-file7,564,082-byte closed disposable world. The world was rehashed under exclusiveflock, checked no own Java remained, then only that savedworld was reclaimed. No caches/otherlanes/worlds were removed.
+
+Candidate remains isolated/unaccepted: completedjumpawareroute, naturalstandalonewall airadmission, oldstrictcontact, arbitrarycollisions/obliqueUP, material/effectruntimeparity, fullfamilyAI/client/boarding/BCC/save and fullsuite remain open. No new unit or installableJAR proof is implied.
