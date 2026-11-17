@@ -130,8 +130,10 @@ public final class NativeViewmodelCheck {
         int x=Math.max(0,(int)Math.floor(b[0])-1),y=Math.max(0,(int)Math.floor(b[1])-1),w=Math.min(width,(int)Math.ceil(b[2])+1)-x,h=Math.min(height,(int)Math.ceil(b[3])+1)-y;
         if(w<=0||h<=0||w>256||h>256){result.put("outOfBound",true);result.put("bounds",b);return result;}
         int old=GL11.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);var values=BufferUtils.createFloatBuffer(w*h);
+        int[] packNames={GL11.GL_PACK_ALIGNMENT,GL11.GL_PACK_ROW_LENGTH,GL11.GL_PACK_SKIP_ROWS,GL11.GL_PACK_SKIP_PIXELS},pack=new int[4];
+        for(int i=0;i<4;i++){pack[i]=GL11.glGetInteger(packNames[i]);GL11.glPixelStorei(packNames[i],i==0?4:0);}
         try{GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER,c.getFramebuffer().fbo);GL11.glReadPixels(x,height-y-h,w,h,GL11.GL_DEPTH_COMPONENT,GL11.GL_FLOAT,values);}
-        finally{GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER,old);}
+        finally{GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER,old);for(int i=0;i<4;i++)GL11.glPixelStorei(packNames[i],pack[i]);}
         float[] data=new float[w*h];values.get(data);result.put("x",x);result.put("y",y);result.put("width",w);result.put("height",h);result.put("valuesBottomUp",data);return result;
     }
     private static void capture(String name){
@@ -140,7 +142,7 @@ public final class NativeViewmodelCheck {
         int[] packNames={GL11.GL_PACK_ALIGNMENT,GL11.GL_PACK_ROW_LENGTH,GL11.GL_PACK_SKIP_ROWS,GL11.GL_PACK_SKIP_PIXELS},pack=new int[4];
         for(int i=0;i<4;i++)pack[i]=GL11.glGetInteger(packNames[i]);
         NativeImage image;
-        try{image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer());}
+        try{for(int i=0;i<4;i++)GL11.glPixelStorei(packNames[i],i==0?4:0);image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer());}
         finally{GlStateManager._activeTexture(active);RenderSystem.bindTexture(bound);for(int i=0;i<4;i++)GL11.glPixelStorei(packNames[i],pack[i]);}
         var previous=images.put(name,image);if(previous!=null)previous.close();
         var faces=polygons.isEmpty()?nativePolygons:polygons;var d=state(name);d.put("goldPixels",count(image,faces));d.put("footprintSource",polygons.isEmpty()?"retained-native-actual-flush":"current-actual-flush");d.put("projectedGoldFaces",faces);d.put("depth",depth(faces));TRACE.add(d);
