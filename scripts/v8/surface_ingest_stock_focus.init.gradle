@@ -1,0 +1,25 @@
+// Actual ordinary STOCK callback checks; source registration remains centrally owned.
+gradle.projectsEvaluated {
+    rootProject.tasks.named('runGametest') {
+        doFirst {
+            if (rootProject.file('build/gametest/world/level.dat').exists()) {
+                throw new GradleException('Preserve the prior closed disposable world; this focused STOCK gate requires a fresh one')
+            }
+        }
+    }
+    rootProject.tasks.named('processGametestResources') {
+        outputs.upToDateWhen { false }
+        doLast {
+            ['overworld', 'the_end'].each { dimension ->
+                if (new File(destinationDir, "data/minecraft/dimension_type/${dimension}.json").exists()) {
+                    throw new GradleException('Unexpected generated dimension override: preserve/clear the focused old-height fixture before the ordinary STOCK gate')
+                }
+            }
+            def manifest = new File(destinationDir, 'fabric.mod.json')
+            def data = new groovy.json.JsonSlurper().parse(manifest)
+            data.entrypoints['fabric-gametest'] = ['com.terminaldetector.drmd.SurfaceIngestHeightGameTests']
+            manifest.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(data))
+            println 'FOCUSED SURFACE STOCK CALLBACK: 2 actual loaded GOLD/demolition/restore tests; no dimension override or synthetic heightmap'
+        }
+    }
+}

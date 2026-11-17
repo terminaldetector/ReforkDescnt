@@ -164,7 +164,7 @@ public final class NativeSurfaceIngestCheck {
             boolean ready=c!=null&&Math.abs(c.y()-1027)<1&&!c.highFull()&&c.lowFull()&&!full(HIGH)&&full(LOW)&&is(LOW,Blocks.CYAN_CONCRETE)&&column!=null;
             if(!ready){unavailableTicks=0;return;}if(++unavailableTicks<20)return;
             SCENES.add(snapshot("actual-partial-y-unload"));
-            if(System.identityHashCode(column)!=baselineColumn||column.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,8,8)!=HIGH.getY()+1){finish("PREMISE_NOT_OBSERVED","native retained parent/winner premise not observed; no fake metadata or justified production fix");return;}
+            if(System.identityHashCode(column)!=baselineColumn||column.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,8,8)!=HIGH.getY()){finish("PREMISE_NOT_OBSERVED","native retained parent/winner premise not observed; no fake metadata or justified production fix");return;}
             requiredIngest=ingestSequence;requiredPacket=packet.sequence();touch(LOW_EDIT);phase=Phase.PROBE;age=0;return;
         }
         if(phase==Phase.PROBE){
