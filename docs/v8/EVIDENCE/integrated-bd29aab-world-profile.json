@@ -1,0 +1,77 @@
+{
+  "source": "bd29aab11f6fcba71f5234b64616d2284bf0aec8",
+  "archive": "work/ufo-body/integrated-bd29aab.zip",
+  "levelDatSha256": "252438e25185b98a9c6517dfa3dc1827d534e9c93ee01dbb68811d0859fe5e9f",
+  "dataPacks": {
+    "Disabled": [],
+    "Enabled": [
+      "bundle",
+      "trade_rebalance",
+      "vanilla",
+      "drmd",
+      "drmd:advanced_column",
+      "drmd_gametest",
+      "fabric",
+      "fabric-convention-tags-v2",
+      "fabric-gametest-api-v1"
+    ]
+  },
+  "enabledFeatures": [
+    "minecraft:bundle",
+    "minecraft:vanilla",
+    "minecraft:trade_rebalance"
+  ],
+  "dimensions": {
+    "minecraft:overworld": {
+      "generator": {
+        "settings": {
+          "features": 0,
+          "biome": "minecraft:plains",
+          "layers": [
+            {
+              "block": "minecraft:bedrock",
+              "height": 1
+            },
+            {
+              "block": "minecraft:dirt",
+              "height": 2
+            },
+            {
+              "block": "minecraft:grass_block",
+              "height": 1
+            }
+          ],
+          "structure_overrides": [
+            "minecraft:strongholds",
+            "minecraft:villages"
+          ],
+          "lakes": 0
+        },
+        "type": "minecraft:flat"
+      },
+      "type": "minecraft:overworld"
+    },
+    "minecraft:the_nether": {
+      "generator": {
+        "settings": "minecraft:nether",
+        "biome_source": {
+          "preset": "minecraft:nether",
+          "type": "minecraft:multi_noise"
+        },
+        "type": "minecraft:noise"
+      },
+      "type": "minecraft:the_nether"
+    },
+    "minecraft:the_end": {
+      "generator": {
+        "settings": "minecraft:end",
+        "biome_source": {
+          "type": "minecraft:the_end"
+        },
+        "type": "minecraft:noise"
+      },
+      "type": "minecraft:the_end"
+    }
+  },
+  "scope": "Actual preserved ordinary full-run registry/profile metadata; a stock backend does not imply default vanilla vertical bounds."
+}

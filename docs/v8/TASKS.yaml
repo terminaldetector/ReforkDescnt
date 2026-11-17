@@ -130,7 +130,7 @@ tasks:
   owner: CODEX
   gate: G0
   depends_on_stages: *id002
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
   evidence: []
@@ -350,10 +350,10 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id005
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
+  evidence: [MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md]
   notes: Do not assume complete from historic PR/summary.
 - id: S05-T01
   stage: S05
@@ -513,7 +513,7 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [GRAVITY_VANILLA_FLYERS_2026-11-10.md, EVIDENCE/integrated-5839062.zip, SUBMERGED_FISH_GRAVITY_2026-11-17.md]
+  evidence: [GRAVITY_VANILLA_FLYERS_2026-11-10.md, EVIDENCE/integrated-5839062.zip, SUBMERGED_FISH_GRAVITY_2026-11-17.md, MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md]
   notes: "Five vanilla flyers corrected with original3 and related16 proof, rerun in current391 full suite. Remaining locomotion families, AI and visuals open."
 - id: S07-T02
   stage: S07
@@ -1107,10 +1107,10 @@ tasks:
   - S09
   - S11
   - S15
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md]
   notes: "Exact699b749772unit/404ordinaryGT/64entrypoints and both same-JAR BCC/Sodium native clients pass;28PNG retained. All official older rendercheck scenarios, hardware and full-release gates are not inferred."
 - id: S16-T02
   stage: S16

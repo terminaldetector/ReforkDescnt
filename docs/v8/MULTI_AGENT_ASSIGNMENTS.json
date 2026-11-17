@@ -111,8 +111,8 @@
       "stage": "S01",
       "title": "Inspect invalid spawner BlockEntity and DUMMY NBT creation sources",
       "worker": "world_cubic",
-      "ledgerStatus": "pending_reverification",
-      "executionStatus": "audit_or_existing_work",
+      "ledgerStatus": "in_progress",
+      "executionStatus": "actual_failure_diagnosis_or_verification",
       "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
     },
     {
@@ -273,8 +273,8 @@
       "stage": "S04",
       "title": "Prove high-altitude ground remains visible with smoothly decaying LOD",
       "worker": "ps1_render",
-      "ledgerStatus": "pending_reverification",
-      "executionStatus": "audit_or_existing_work",
+      "ledgerStatus": "in_progress",
+      "executionStatus": "actual_failure_diagnosis_or_verification",
       "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
     },
     {
@@ -858,8 +858,8 @@
       "stage": "S16",
       "title": "Run source-level unit + GameTest + actual client rendercheck on same exact JAR",
       "worker": "audit_integration",
-      "ledgerStatus": "pending_reverification",
-      "executionStatus": "audit_or_existing_work",
+      "ledgerStatus": "in_progress",
+      "executionStatus": "actual_failure_diagnosis_or_verification",
       "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
       "scopedEvidence": [
         "MULTI_AGENT_INTEGRATION_2026-11-17.md",
@@ -952,6 +952,13 @@
     "source": "699b749045edde2722f0ae9685b2a3674c1a1041",
     "report": "MULTI_AGENT_INTEGRATION_2026-11-17.md",
     "receipt": "EVIDENCE/integrated-699b749.json",
+    "fullTaskPromotion": false
+  },
+  "latestIntegratedServerIncrement": {
+    "source": "bd29aab11f6fcba71f5234b64616d2284bf0aec8",
+    "report": "MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md",
+    "receipt": "EVIDENCE/integrated-bd29aab-server.json",
+    "nativeStatus": "retained unavailable-winner failure",
     "fullTaskPromotion": false
   }
 }

@@ -67,7 +67,9 @@
     "submerged-fish-a4e9b9b-positive.zip": "0f24765915ecd3eeed1b803d20df77307baa81a635597e6e1c285f002bd13339",
     "native-recorder-9426-first-wrapper-failure.zip": "5706756a5f1af83d3f95bc89ac8513ecb94337af86046e934c08da0c3236a853",
     "native-recorder-9426-enabled-retry1.zip": "cfb96b793eea4ad1826585ff1df59828c649e1f517d1dda932575d091e5a6e40",
-    "native-recorder-9426-helpers.zip": "a784ee0ec5d7b5e39b75d91e374656552f116224acaadf7c2424ef710de3e69f"
+    "native-recorder-9426-helpers.zip": "a784ee0ec5d7b5e39b75d91e374656552f116224acaadf7c2424ef710de3e69f",
+    "integrated-bd29aab-server.zip": "354f1ed00953b51f814174e18245976eb2eb3854199e48fe69d55d6345cf19cd",
+    "integrated-bd29aab-world-profile.json": "e064e661cf158fd5200e05b95056231584573eda25b265f2241a743d6568f26c"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -3015,8 +3017,9 @@
     "report": "SUBMERGED_FISH_GRAVITY_2026-11-17.md",
     "sameTestHelperAndCompiledTestClass": true,
     "scope": "Actual submerged FishEntity force policy; not complete aquatic navigation/orientation/native visual acceptance",
-    "combinedFullRunPending": true,
-    "releaseAccepted": false
+    "combinedFullRunPending": false,
+    "releaseAccepted": false,
+    "combinedSource": "bd29aab11f6fcba71f5234b64616d2284bf0aec8"
   },
   "cityAuthoringPure20261117": {
     "source": "77dc8a108587eb6bdcb31c6bbec8d48be744839c",
@@ -3026,7 +3029,8 @@
     "archive": "docs/v8/CITY_AUTHORING_PURE_77DC8A1_EVIDENCE_2026-11-17.zip",
     "sha256": "e1d159e71fcad885ec0c4ad08af92320d93d5d3771ad8de440b53915c3024a0d",
     "scope": "JDK-only blueprint/disk journal/controller; no Minecraft compile or runtime city/world-write acceptance",
-    "releaseAccepted": false
+    "releaseAccepted": false,
+    "realModCompilationSource": "bd29aab11f6fcba71f5234b64616d2284bf0aec8"
   },
   "nativeRecorder20261117": {
     "source": "9426a6549fc91abc8c7e060a2eef9f184742dc3d",
@@ -3042,5 +3046,37 @@
     "performanceAccepted": false,
     "fullS16Accepted": false,
     "releaseAccepted": false
+  },
+  "multiAgentServerIncrement20261117": {
+    "archive": "docs/v8/EVIDENCE/integrated-bd29aab-server.zip",
+    "sha256": "354f1ed00953b51f814174e18245976eb2eb3854199e48fe69d55d6345cf19cd",
+    "payloadFiles": 19,
+    "bytes": 316045,
+    "allHashesAndCrcVerified": true,
+    "source": "bd29aab11f6fcba71f5234b64616d2284bf0aec8",
+    "unit": {
+      "tests": 803,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "game": {
+      "tests": 406,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "entrypoints": 64,
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "5160df549cab77b53f0f09873f333ffda0b176ab29ce759bfe523a322250e4dd",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "a456314bd97b610dfbca379b36344e80d83c8f677f6d6b3c4ab58fabb2893da0"
+    },
+    "gameReportFresh": true,
+    "scope": "Actual complete ordinary server suite and remapped artifacts. TestServer enables discoverable legacy Advanced registry pack; this does not establish default Vanilla bounds. Dedicated surface Vanilla2 and legacy tall8 remain separate. No native/performance/full specification/release acceptance inherited.",
+    "releaseAccepted": false,
+    "report": "MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md",
+    "sameJarNativeOutcome": "FAIL_UNAVAILABLE_SURFACE_WINNER",
+    "nativeLoadedControlsPassed": 3,
+    "fullSpecificationAccepted": false
   }
 }

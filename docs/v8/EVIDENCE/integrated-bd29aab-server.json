@@ -1,0 +1,28 @@
+{
+  "archive": "docs/v8/EVIDENCE/integrated-bd29aab-server.zip",
+  "sha256": "354f1ed00953b51f814174e18245976eb2eb3854199e48fe69d55d6345cf19cd",
+  "payloadFiles": 19,
+  "bytes": 316045,
+  "allHashesAndCrcVerified": true,
+  "source": "bd29aab11f6fcba71f5234b64616d2284bf0aec8",
+  "unit": {
+    "tests": 803,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "game": {
+    "tests": 406,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "entrypoints": 64,
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "5160df549cab77b53f0f09873f333ffda0b176ab29ce759bfe523a322250e4dd",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "a456314bd97b610dfbca379b36344e80d83c8f677f6d6b3c4ab58fabb2893da0"
+  },
+  "gameReportFresh": true,
+  "scope": "Actual complete ordinary server suite and remapped artifacts. TestServer enables discoverable legacy Advanced registry pack; this does not establish default Vanilla bounds. Dedicated surface Vanilla2 and legacy tall8 remain separate. No native/performance/full specification/release acceptance inherited.",
+  "releaseAccepted": false
+}
