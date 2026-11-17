@@ -103,23 +103,24 @@ public final class EntityGravitySystem {
 		MobState prev = STATE.get(entity.getUuid());
 		if(prev!=null && !prev.owns(entity))prev=null;
 		boolean remount = prev == null || prev.fieldUp.dotProduct(up) < REMOUNT_DOT;
+		boolean forceOnly = ActorPhysicsProfile.flying(entity) || ActorPhysicsProfile.submergedFish(entity);
 		if(ActorFrames.supported(entity)) {
 			if(!ActorFrames.trySetUp(entity,up))return;
 			up=ActorFrames.up(entity);
-		} else if (remount && !ActorPhysicsProfile.flying(entity)) {
+		} else if (remount && !forceOnly) {
 			GravityMount.safeMount(entity, up);
 		}
 		if(prev==null)STATE.put(entity.getUuid(),new MobState(entity,up));
 		else prev.fieldUp=up;
 
 		entity.fallDistance = 0f;
-		applyMobPhysics(entity, up,sample.strength());
+		applyMobPhysics(entity, up,sample.strength(),forceOnly);
 	}
 
-	private static void applyMobPhysics(LivingEntity entity, Vec3d up,float strength) {
+	private static void applyMobPhysics(LivingEntity entity, Vec3d up,float strength,boolean forceOnly) {
 		Vec3d down = up.negate();
-		if(ActorPhysicsProfile.flying(entity)) {
-			// Propulsion/AI owns flight attitude and normal movement. A field adds a force,
+		if(forceOnly) {
+			// Native locomotion owns attitude, propulsion and medium drag. A field adds a force,
 			// never a foot mount, artificial ground contact, snap or a velocity reset.
 			entity.setVelocity(entity.getVelocity().add(down.multiply(GRAVITY*strength)));
 			entity.velocityModified=true;entity.fallDistance=0;return;
