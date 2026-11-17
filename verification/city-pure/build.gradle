@@ -23,11 +23,13 @@ dependencies {
 sourceSets {
     main.java {
         srcDirs = ['../../src/main/java/com/terminaldetector/drmd/world/fixture/city']
-        include 'CityBlueprint.java','CityBatchJournal.java','CityAuthoringJob.java'
+        include 'CityBlueprint.java','CityBatchJournal.java','CityAuthoringJob.java',
+            'CityDurableFiles.java','CitySaveIdentity.java','CityManifest.java'
     }
     test.java {
         srcDirs = ['../../src/test/java/com/terminaldetector/drmd/world/fixture/city']
-        include 'CityBlueprintTest.java','CityBatchJournalTest.java','CityAuthoringJobTest.java'
+        include 'CityBlueprintTest.java','CityBatchJournalTest.java','CityAuthoringJobTest.java',
+            'CitySaveIdentityTest.java','CityManifestTest.java'
     }
 }
 
@@ -37,11 +39,17 @@ test {
     maxHeapSize = '384m'
     maxParallelForks = 1
     outputs.upToDateWhen { false }
+    if (project.hasProperty('cityEvidenceDir')) {
+        reports.junitXml.outputLocation = file(project.property('cityEvidenceDir')).toPath().resolve('xml').toFile()
+        reports.html.outputLocation = file(project.property('cityEvidenceDir')).toPath().resolve('html').toFile()
+    }
     filter {
         includeTestsMatching 'com.terminaldetector.drmd.world.fixture.city.CityBlueprintTest'
         includeTestsMatching 'com.terminaldetector.drmd.world.fixture.city.CityBatchJournalTest'
         includeTestsMatching 'com.terminaldetector.drmd.world.fixture.city.CityAuthoringJobTest'
+        includeTestsMatching 'com.terminaldetector.drmd.world.fixture.city.CitySaveIdentityTest'
+        includeTestsMatching 'com.terminaldetector.drmd.world.fixture.city.CityManifestTest'
     }
     testLogging { events 'passed','failed','skipped'; exceptionFormat = 'full' }
-    doFirst { println 'SCOPE: 26 pure city controls; no Minecraft/production-build/runtime acceptance' }
+    doFirst { println 'SCOPE: 47 pure city protocol controls; no Minecraft/production-build/runtime acceptance' }
 }

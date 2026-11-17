@@ -9,7 +9,8 @@ from pathlib import Path
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
-MODELS = ("CityBlueprint", "CityBatchJournal", "CityAuthoringJob")
+PRODUCTION = ("CityBlueprint", "CityBatchJournal", "CityAuthoringJob", "CityDurableFiles", "CitySaveIdentity", "CityManifest")
+TESTS = ("CityBlueprintTest", "CityBatchJournalTest", "CityAuthoringJobTest", "CitySaveIdentityTest", "CityManifestTest")
 MODULES = (
     ("org.junit.jupiter", "junit-jupiter-api", "5.11.3"),
     ("org.junit.jupiter", "junit-jupiter-engine", "5.11.3"),
@@ -27,9 +28,10 @@ def digest(path):
 
 def capture():
     files = []
-    for model in MODELS:
+    for model in PRODUCTION:
         files.append(ROOT / f"src/main/java/com/terminaldetector/drmd/world/fixture/city/{model}.java")
-        files.append(ROOT / f"src/test/java/com/terminaldetector/drmd/world/fixture/city/{model}Test.java")
+    for test in TESTS:
+        files.append(ROOT / f"src/test/java/com/terminaldetector/drmd/world/fixture/city/{test}.java")
     files.extend(ROOT / name for name in (
         "verification/city-pure/build.gradle", "verification/city-pure/settings.gradle",
         "verification/city-pure/capture_inputs.py", "gradlew", "gradle/wrapper/gradle-wrapper.properties",
@@ -45,7 +47,7 @@ def capture():
     git = lambda *args: subprocess.check_output(["git", *args], cwd=ROOT, text=True).strip()
     return {
         "capturedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        "scope": "26 pure city controls only; no Minecraft/runtime/production build proof",
+        "scope": "47 pure city protocol controls only; no Minecraft/runtime/production build proof",
         "source": git("rev-parse", "HEAD"), "branch": git("branch", "--show-current"),
         "status": git("status", "--porcelain", "--untracked-files=all"),
         "files": {str(p.relative_to(ROOT)): digest(p) for p in files},
