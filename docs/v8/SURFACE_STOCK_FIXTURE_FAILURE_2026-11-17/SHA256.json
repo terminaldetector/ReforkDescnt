@@ -1,0 +1,17 @@
+{
+  "REPORT.md": "eb890fa052c9beb31d17488654981bf90770ff6465eeeca3a9d41f24db2fcf4e",
+  "closed-world-receipt.json": "3d57d413c472c38821722fe25f70efd0d956b3002075c8d35f6fef9b62ec8fc4",
+  "drmd-server.properties": "40919b42ca1e93830c91adf20e15fea4ed6628f023cde57c7d3ecd427b68c47b",
+  "gametest-results.xml": "aa73b7ec2b24f8ea3854221f968be5621dd261e22592a58c93414dba0ceb33b9",
+  "generated-fabric.mod.json": "866cf40c381e666a134c8e117685e17df76efde180ebdb55103c458d7d7206d8",
+  "generated-resource-provenance.json": "28028fb1ee577ea0ab80ee97d4a5bedc187c910cf5a3d051d45c6446e886c4bc",
+  "gradle.exit": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+  "original-level.dat": "1d740165ed1a191eab79a48f9a19c84c08a0347bd60fcac61531ea399dac1694",
+  "persisted-chunk-bounds.json": "b2fe522dc9b29fb2989b5e22d2f4b25c77dc157079b9affb76ae2af3e93c7027",
+  "run.log": "16865a0b63e2f448b0125141ee06226d6f95cc054b34784e07e1532e504e75bc",
+  "server.properties": "cfe413524c713b7161ab13586ba6bda9ae08c3d5cc734eec4dd14ac1722c2bf1",
+  "source-inputs.json": "659cd2b3979fd409f5516053458d4b5bfc8fe096402954afbf19d267d1b573b3",
+  "source.txt": "c5c384ec73d99822294bfdbfa796c0bfdb005907055fb051c4ebe0a153e81ea3",
+  "unit-results.xml": "3284aa7569cb15f71cfcc5892db384cfd5a34edf672721f2d643bac36b451a2a",
+  "world-metadata.json": "41fc163beeaeaf24f9793d89963c001383cd59ffacb0067464f0879103e9a7ad"
+}

@@ -1,0 +1,12 @@
+{
+  "scope": "Persisted actual chunk bounds inferred from serializer yPos and block-state section extents; original assertions did not log ServerWorld numeric bounds",
+  "region": "build/gametest/world/region/r.2013.2890.mca",
+  "xPos": 64422,
+  "zPos": 92495,
+  "yPos": -49,
+  "blockStateSectionCount": 167,
+  "minimumBlockStateSectionY": -49,
+  "maximumBlockStateSectionY": 117,
+  "derivedBottomBlockY": -784,
+  "derivedTopExclusiveBlockY": 1888
+}

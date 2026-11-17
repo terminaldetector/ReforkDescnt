@@ -1,0 +1,74 @@
+{
+  "DataPacks": {
+    "Disabled": [],
+    "Enabled": [
+      "bundle",
+      "trade_rebalance",
+      "vanilla",
+      "drmd",
+      "drmd:advanced_column",
+      "drmd_gametest",
+      "fabric",
+      "fabric-convention-tags-v2",
+      "fabric-gametest-api-v1"
+    ]
+  },
+  "WorldGenSettings": {
+    "bonus_chest": 0,
+    "seed": 0,
+    "generate_features": 0,
+    "dimensions": {
+      "minecraft:overworld": {
+        "generator": {
+          "settings": {
+            "features": 0,
+            "biome": "minecraft:plains",
+            "layers": [
+              {
+                "block": "minecraft:bedrock",
+                "height": 1
+              },
+              {
+                "block": "minecraft:dirt",
+                "height": 2
+              },
+              {
+                "block": "minecraft:grass_block",
+                "height": 1
+              }
+            ],
+            "structure_overrides": [
+              "minecraft:strongholds",
+              "minecraft:villages"
+            ],
+            "lakes": 0
+          },
+          "type": "minecraft:flat"
+        },
+        "type": "minecraft:overworld"
+      },
+      "minecraft:the_nether": {
+        "generator": {
+          "settings": "minecraft:nether",
+          "biome_source": {
+            "preset": "minecraft:nether",
+            "type": "minecraft:multi_noise"
+          },
+          "type": "minecraft:noise"
+        },
+        "type": "minecraft:the_nether"
+      },
+      "minecraft:the_end": {
+        "generator": {
+          "settings": "minecraft:end",
+          "biome_source": {
+            "type": "minecraft:the_end"
+          },
+          "type": "minecraft:noise"
+        },
+        "type": "minecraft:the_end"
+      }
+    }
+  },
+  "LevelName": "Test Level"
+}

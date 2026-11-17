@@ -1,0 +1,16 @@
+{
+  "focusedResources": {
+    "data/drmd/structure/collapse_lab.nbt": "df9869f0653622e1e69bd626ae199487d57db4fe78366c1903a7122da42e88ac",
+    "data/drmd/structure/portal_lab.nbt": "df9869f0653622e1e69bd626ae199487d57db4fe78366c1903a7122da42e88ac",
+    "drmd.legacy_retirement_test.mixins.json": "9c52cae08e81d664e188ea12ff0577d39364aa5955936bf58b0c605d3e5c0c73",
+    "fabric.mod.json": "866cf40c381e666a134c8e117685e17df76efde180ebdb55103c458d7d7206d8",
+    "fixtures/mounted-contact-recoil-native.snbt": "28e7d08381394fb5851ae142be0aa5a0ee9950703ed2d781437248b99a3ea501",
+    "fixtures/turret-detach-collision.snbt": "2f36e2d358594b25e5aa4e526f0c196e423b13b2e29e99590de10fe21cf96c03",
+    "fixtures/turret-detach-first-tick.snbt": "a0141091fb7bb6df28e65a08449132953a6d8132ac818e0cce71885121a13d5e"
+  },
+  "generatedDimensionOverrides": [],
+  "compatibilityResourcePaths": [
+    "build/resources/main/resourcepacks/advanced_column/data/minecraft/dimension_type/overworld.json",
+    "build/resources/main/resourcepacks/advanced_column/data/minecraft/dimension_type/the_end.json"
+  ]
+}

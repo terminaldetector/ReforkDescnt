@@ -1,0 +1,119 @@
+{
+  "scope": "Closed disposable first STOCK fixture failure only; all source/log/XML/resource/artifact paths remain",
+  "originalWorld": "/workspace/ungravity-v5/cubic-next-20261109/build/gametest/world",
+  "archive": "/workspace/ungravity-v5/cubic-next-20261109/work/cubic-surface/closed-worlds/stock-first-fixture-failure-world.tar.gz",
+  "archiveBytes": 706251,
+  "archiveSha256": "26d2c44c489cdaaa9d92f468c9847ee444e8b401d1bf3da165702d718ccd767b",
+  "gzipCrcAndSizeReadToEof": true,
+  "allArchiveFileBytesAndSha256MatchOriginal": true,
+  "files": {
+    "DIM-1/data/raids.dat": {
+      "bytes": 89,
+      "sha256": "585d5fa795bc1f47f629316504547284abc9546408e9731a00488bd54489b538"
+    },
+    "DIM1/data/raids_end.dat": {
+      "bytes": 89,
+      "sha256": "585d5fa795bc1f47f629316504547284abc9546408e9731a00488bd54489b538"
+    },
+    "data/chunks.dat": {
+      "bytes": 59,
+      "sha256": "7929cf0b046addefca5091025d539a02c1d3c8bf266905d35412caa5156ac8bf"
+    },
+    "data/drmd_dimension_sync.dat": {
+      "bytes": 73,
+      "sha256": "103e30ff7323a8f4d6560933416e12cb8a9ad31c766e013a267592a908283e10"
+    },
+    "data/drmd_physics.dat": {
+      "bytes": 82,
+      "sha256": "c8919471ea7d7e62335d11fe1f5fcb894bcb86cf8ca89b276c26fffb26ce1c91"
+    },
+    "data/raids.dat": {
+      "bytes": 89,
+      "sha256": "585d5fa795bc1f47f629316504547284abc9546408e9731a00488bd54489b538"
+    },
+    "drmd/surface/L0/2013_2890.bin": {
+      "bytes": 124,
+      "sha256": "7dc2e62aab147b5f649adb2a7bb48a369e42380b6b04c76400a318664f173fe3"
+    },
+    "drmd/surface/L1/1006_1445.bin": {
+      "bytes": 108,
+      "sha256": "c2d8bfb79121944f3c3aa79d350c3e8e40fd8720f516c41a09356b469f9b6ed6"
+    },
+    "drmd/surface/L2/503_722.bin": {
+      "bytes": 92,
+      "sha256": "ec53ca526b802a0cb678896cd58566fd2e2eb0f5ac296872353dfffad432b57f"
+    },
+    "drmd/surface/L3/251_361.bin": {
+      "bytes": 90,
+      "sha256": "e218223c3a4c8ce6456b2d31b9f1283326ed66ee258b0f7bef2aae2d0e61e1aa"
+    },
+    "drmd/surface/L4/125_180.bin": {
+      "bytes": 77,
+      "sha256": "452d6f898827554bb8b2c33a4aeedff1e753c2881d441fb968d19911dac2ff4c"
+    },
+    "drmd/surface/L5/62_90.bin": {
+      "bytes": 61,
+      "sha256": "9be4b965a5123bb4cdd3d89a61beeaaa140024568477c4ad81057f49df97f984"
+    },
+    "drmd/surface/L6/31_45.bin": {
+      "bytes": 62,
+      "sha256": "9ed0599f216bdca441aa867535624738e20760a6a70c3b126d828e1d3ed2e186"
+    },
+    "entities/r.-1.-1.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.-1.0.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.0.-1.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.0.0.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entities/r.2013.2890.mca": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "level.dat": {
+      "bytes": 1686,
+      "sha256": "1d740165ed1a191eab79a48f9a19c84c08a0347bd60fcac61531ea399dac1694"
+    },
+    "poi/r.2013.2890.mca": {
+      "bytes": 16384,
+      "sha256": "78a48c9082f3de908cf07c140a13e4ca2653f4d7fb75749c5d49cca437abbb8c"
+    },
+    "region/r.-1.-1.mca": {
+      "bytes": 811008,
+      "sha256": "296407e5fd3654955ae6a0a1e45d704d1baa3f4894325d7efb916d0063649c02"
+    },
+    "region/r.-1.0.mca": {
+      "bytes": 868352,
+      "sha256": "92c9cbfb41ea9a54d4e4eb6b3e08cfce01067442e63d0a827ad3bed15e413016"
+    },
+    "region/r.0.-1.mca": {
+      "bytes": 868352,
+      "sha256": "6796cef2a9644a04838e5b0dc41053600848e0c47948b935550e386fd4743726"
+    },
+    "region/r.0.0.mca": {
+      "bytes": 929792,
+      "sha256": "4164a83ac241b71e217f5817d680837c321b0b89791de4846f776c17903ad268"
+    },
+    "region/r.2012.2890.mca": {
+      "bytes": 782336,
+      "sha256": "974b53d0de537883800ba9e5646df22b7b5e1cd4d82eb7ca9b53ae740f22bcf0"
+    },
+    "region/r.2013.2890.mca": {
+      "bytes": 2330624,
+      "sha256": "0ae84772e5eac8ca832af213e3cc5cf4a3e96c4810f44eae72497f9c63203971"
+    },
+    "session.lock": {
+      "bytes": 3,
+      "sha256": "51643361c79ecaef25a8de802de24f570ba25d9c2df1d22d94fade11b4f466cc"
+    }
+  }
+}
