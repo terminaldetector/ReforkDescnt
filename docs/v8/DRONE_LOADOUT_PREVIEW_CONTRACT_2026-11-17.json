@@ -1,0 +1,102 @@
+{
+  "schema": "ungravity.drone-preview.contract-source.v1",
+  "created_utc": "2026-11-17T17:18:49.400718+00:00",
+  "source_pin": "45dacc786468c0a8949bde30900ba7647cf85dc1",
+  "later_read_only_head": "5d2fc875f8195cd97cae28513650c182e8c4985c",
+  "files": [
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/screen/DroneInventoryScreen.java",
+      "sha256": "95e1f41ef709700ec2e513391d7d21a2bca8b2566abcc1e6d85471051063d782",
+      "lines": 27,
+      "byte_identical_at_later_head": true
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/inventory/DroneInventoryHandler.java",
+      "sha256": "4e9c507c5d673a7b6e07b609ddde3b401578733146c58f28f5a74af1e83f80f4",
+      "lines": 35,
+      "byte_identical_at_later_head": true
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/inventory/DroneInventory.java",
+      "sha256": "90de4e21364f73bf72cfac8550b71a1891af1f47cd0e1fcd40d579836c63d16f",
+      "lines": 20,
+      "byte_identical_at_later_head": true
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/inventory/DroneLoadout.java",
+      "sha256": "e0c28e320e21dcee2cf16197d9382d79e04527bd169871fa9675bbfa336aa2ce",
+      "lines": 14,
+      "byte_identical_at_later_head": true
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/inventory/DroneArsenal.java",
+      "sha256": "4edb798bcfe58c3624ff1890107ee8a94ec30fadcb8a63e336b66347e3262b4b",
+      "lines": 97,
+      "byte_identical_at_later_head": true
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/entity/model/PyroShipModel.java",
+      "sha256": "5cf4a2be1cdc009df720a627951aaf4c0d02f1fa39b33ae843daa950b3fe444d",
+      "lines": 140,
+      "byte_identical_at_later_head": true
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/PyroShipRenderer.java",
+      "sha256": "7935965e9e36650e2cac53e13cd0b2596d0666fbc30affb0e4d208c0ebe5b90c",
+      "lines": 128,
+      "byte_identical_at_later_head": true
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/WeaponViewRenderer.java",
+      "sha256": "ab659022975bf2e81cf7476e49a37839d46f5efac15fbd1947c104157e5cb564",
+      "lines": 288,
+      "byte_identical_at_later_head": true
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/HybridWeaponRenderer.java",
+      "sha256": "dc8f3a9e099e3d77fafc7224845f3d9059322a1278357843ab3dae560504b02d",
+      "lines": 72,
+      "byte_identical_at_later_head": true
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/client/render/WorkshopMeshPreview.java",
+      "sha256": "ea1e4fea9e7f1b130ce09f9a561c7e288b06e2c58509fb7ddc1fc5159504fa8d",
+      "lines": 52,
+      "byte_identical_at_later_head": true
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/workshop/ConstructionRegistry.java",
+      "sha256": "c4d67dd39e0374ca6fdd13eedb05ee7ee54e616630e9366a89c3af62fd0afee4",
+      "lines": 162,
+      "byte_identical_at_later_head": true
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/workshop/DefaultLayouts.java",
+      "sha256": "78445a394d7042f3d011e461a6d2c76e4155a74a53a0e9c9a151531e59ac718e",
+      "lines": 136,
+      "byte_identical_at_later_head": true
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/workshop/WeaponClusters.java",
+      "sha256": "84ee24a42cfb2be5e9b111fd490499ed299a329f2d20df0aaab3cb2a720173ad",
+      "lines": 92,
+      "byte_identical_at_later_head": true
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/workshop/HybridWeaponModels.java",
+      "sha256": "a5df2337756afda7aedb46813e7f1f07c37e925eb6eeef043380c21eed3c8714",
+      "lines": 150,
+      "byte_identical_at_later_head": true
+    },
+    {
+      "path": "src/main/java/com/terminaldetector/drmd/weapon/core/WeaponCore.java",
+      "sha256": "c9c37edf249957f423bf5b89c9b01b338e4d4e8cdcf5ae3537c4ead4ae168aac",
+      "lines": 323,
+      "byte_identical_at_later_head": false
+    }
+  ],
+  "source_only": true,
+  "java_or_native_run": false,
+  "production_edits_at_contract": false,
+  "authority": "Root source-only approval: actual handler slots; private procedural hull copy; selected actual complete layout and actual item fallback; no fake entities/pilot/authority mutation."
+}
