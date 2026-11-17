@@ -46,5 +46,10 @@ else:
     assert len(marker['scenes'])==6 and marker['exceptionTargetsRestored'] and marker['actualWindowResizeAndRestore']
     assert all((r/'presentation-frames'/(s['scene']+'.png')).is_file() for s in marker['scenes'])
     if '-Ddrmd.gate.viewmodel=true' in args:assert (r/'viewmodel-proof/viewmodel-visibility.json').is_file(),'viewmodel observer did not establish visible actual geometry'
+    if '-Ddrmd.gate.ps1Color=true' in args:
+        colour=json.loads((r/'ps1-color-ok.json').read_text())
+        assert colour['initialReferenceStatesPreserved'] and colour['resizedReferencePreserved'] and colour['referencePass'] and colour['productionControlsPresent']
+        assert len(colour['states'])==5 and all(s['referencePass'] for s in colour['states'])
+        assert len(list(r.glob('ps1-color-reference/*/*.png')))==15
 PY
 mv build/cubic-client-automation "build/cubic-client-final-${scenario}"

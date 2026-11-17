@@ -33,6 +33,10 @@ q.parent.mkdir(parents=True,exist_ok=True);os.link(p,q)
 scenario=os.environ['PS1_SCENARIO'];launch=runtime/'launch.json';args=json.loads(launch.read_text());args.insert(1,'-Ddrmd.gate.presentation=true');launch.write_text(json.dumps(args,indent=2)+'\n')
 if 'viewmodel' in scenario:
     args.insert(1,'-Ddrmd.gate.viewmodel=true');launch.write_text(json.dumps(args,indent=2)+'\n')
+if 'ps1-color' in scenario:
+    args.insert(1,'-Ddrmd.gate.ps1Color=true')
+    if '-Ddrmd.gate.viewmodel=true' not in args:args.insert(1,'-Ddrmd.gate.viewmodel=true')
+    launch.write_text(json.dumps(args,indent=2)+'\n')
 if 'sky-layers' in scenario:
     args=[a for a in args if a!='-Ddrmd.gate.presentation=true'];args.insert(1,'-Ddrmd.gate.skyLayers=true');launch.write_text(json.dumps(args,indent=2)+'\n')
 if 'fabulous' in scenario:

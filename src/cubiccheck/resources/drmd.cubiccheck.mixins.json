@@ -65,7 +65,11 @@
     "UfoTurretRecoilProbe",
     "UfoProjectileRenderProbe",
     "UfoProjectileHitProbe",
-    "UfoAiDamageProbe"
+    "UfoAiDamageProbe",
+    "Ps1ColorFrameProbe",
+    "Ps1ColorSourceProbe",
+    "Ps1ColorOverlayProbe",
+    "Ps1ColorViewmodelProbe"
   ],
   "injectors": {
     "defaultRequire": 1
