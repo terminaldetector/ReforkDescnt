@@ -70,7 +70,10 @@
     "native-recorder-9426-helpers.zip": "a784ee0ec5d7b5e39b75d91e374656552f116224acaadf7c2424ef710de3e69f",
     "integrated-bd29aab-server.zip": "354f1ed00953b51f814174e18245976eb2eb3854199e48fe69d55d6345cf19cd",
     "integrated-bd29aab-world-profile.json": "e064e661cf158fd5200e05b95056231584573eda25b265f2241a743d6568f26c",
-    "integrated-11513cd.zip": "6739da2134c8dfd4fee6ae89964b83dd9774b3473ca0a151fd15b37862f9adf6"
+    "integrated-11513cd.zip": "6739da2134c8dfd4fee6ae89964b83dd9774b3473ca0a151fd15b37862f9adf6",
+    "linear-stage-3920768.zip": "30bf2934c495aa5485cd37a7f4026c5945e23860924d54701d3086c8b5430297",
+    "ps1-color-8f1b3b1.zip": "7fc5bbc6e6e2ed6a77dbb8a4d106188ebfa3606a59454e84e1a65baeb431ef77",
+    "ps1-color-0741805-negative.zip": "2705d400ab77ed83eed7c8651d3966f4284f01a79da735054b2949cf0e6030a0"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -3267,5 +3270,29 @@
     "releaseAccepted": false,
     "report": "MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md",
     "fullSpecificationAccepted": false
+  },
+  "linearStage20261117": {
+    "source": "3920768301320fa35af5b178a85ebf92bed99ef6",
+    "gameJarSha256": "1d1786bdaee1e8c5b159aa7068b4356563da64774abf26dadf3d3106784508a8",
+    "tests": 17,
+    "newCases": 5,
+    "retainedRotaryCases": 12,
+    "failures": 0,
+    "scope": "component physics/manual solver steps; no native rider or whole-task acceptance",
+    "report": "PLAYER_BUILT_LINEAR_STAGE_2026-11-17.md"
+  },
+  "ps1Color20261117": {
+    "source": "8f1b3b1b2a94cfe9aa3d9a861d99135f4a551fff",
+    "gameJarSha256": "b6c653a4729e7dd4a8158ba1b8704fc31434c89d0c7cabaefbee4e1266d3df8c",
+    "observerJarSha256": "f6712df320502a4ff6e0412e031bbebffc4d081f018da00751bc3cddc215406f",
+    "targetedUnits": 9,
+    "positiveFrames": 76,
+    "actualDepthArrays": 20,
+    "backends": [
+      "Sodium GL3.3",
+      "Fabulous GL3.2"
+    ],
+    "report": "PS1_COLOR_CHECKPOINT_2026-11-17.md",
+    "scope": "palette/dither; vertexsnap/affine/fog open; canonical combined run pending"
   }
 }

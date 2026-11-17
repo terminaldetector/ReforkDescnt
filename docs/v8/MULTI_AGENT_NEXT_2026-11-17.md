@@ -1,42 +1,19 @@
-# Next isolated gates after verified source11513cd
+# Next gates for both primary specifications
 
-Canonical worktree: `/workspace/ungravity-v5/ufo-body-physics`, local integration
-branch `integration/tz-multiagent-20261110`. Exact11513cd passed824unit/418ordinary
-GameTests/66entrypoints plus one same-JAR presentation/viewmodel client. Later
-evidence commits do not change those artifacts. See
-[the verified report](MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md).
+Canonical: `/workspace/ungravity-v5/ufo-body-physics`, local branch `integration/tz-multiagent-20261110`. Masterv8 and direct Dynamic Boarding remain primary; compatible renderer/earlier clauses are in [the99-task crosswalk](TWO_SPEC_COVERAGE_2026-11-17.md). Its pinned1a859 statuses are historical review data. Current ledger:3completed/25in_progress/71pending after starting palette/dither; snap/affine remain open.
 
-Keep one root-owned Java/Gradle/native lease. Java21 lives at
-`/workspace/jdk21-complete`, shared dependency cache `/workspace/.gradle`; use
-`--offline --no-daemon`. Workers retain separate trees and frozen first outcomes.
-No publication, destructive world repair or automatic city generation is authorized.
+One root-owned Java/Gradle/native lease. Java21 `/workspace/jdk21-complete`, cache `/workspace/.gradle`, offline/no-daemon. Source/executing helpers stay frozen; retain first failures, actual exits, fresh XML, source/JAR/input hashes and frames. Local only: no publication, destructive world repair or automatic city generation.
 
-| Lane | Exact next candidate and tree | Current boundary |
+| Lane | Actual outcome | Next gate / remaining boundary |
 | --- | --- | --- |
-| World/Cubic | Observer source `1281ce8a61e2a7f3e19d7d8aa44a12671445950a`; docs-only close checkpoint `60cd8833b0c991f19b5a38891e1913b588fa812c`; `cubic-next-20261109` | Build/remap succeeds; actual child0 versus outer-tool1 discrepancy preserved. Native **not run**. Reverify artifacts/frozen inputs and use a separately captured native-only launch. No-edit600ticks after FULL on the genuine saved black-cache world; no fabricated cache or block edits. |
-| PS1 colour | `8f1b3b1b2a94cfe9aa3d9a861d99135f4a551fff`; `ps1-render` | Actual observer-only negative074 is sealed in ca598ec. Production32-level/Bayer.5/raw-bypass/config/UI source remains uncompiled. `work/ps1-color/run-first-positive-sodium.sh`: build,9targeted units, exact observer parityf671, one actual reference positive. GL3.2 follows separately. |
-| Climber surface AI | `250fd7f3001ac9b30e2124a7a02e5c8abcb8b19b`; `gravity-roster` | First Layer2 four-case run:2PASS/2FAIL. Wall loses actual support/progress. Ceiling's idle-navigation-only predicate excludes a documented native MoveControl fallback. Observer-only correction ready; main navigation/physics unchanged. First corrected focused4 still pending. |
-| Manual-city runtime | `027685af75e3f7070d542af76d36a93589c2fb23`; `city-authoring-20261117` | Full main/GameTest compilation and55pure controls pass. First actual5 runtime cases all time out before protected predicates/CAS are established; preserve as0/5. Driver/session/future/arena snapshots were not observed. Test-only phase/owner/halo diagnostics are approved before any admission-budget change. Runtime is unmerged/unregistered. |
+| Root BlockBody |3920768:firstcompile/remap and17focused cases PASS (linear5+rotary12). Separate guide/drive reuse SLIDER registry and normal collisions. |New5 registered; combined run with palette pending. Actual rider on moving child platform, natural ticks, arbitrary mechanisms and cold restart remain open. |
+| PS1 render |8f1b3b1:9units and firstactual SodiumGL3.3/FabulousGL3.2 PASS,76positivePNG/20depth,100%RGB agreement, unchangedf671oracle. |Integrated locally; combined proof pending. Next actual altitude-cloud attribution observer. Vertexsnap/affine/fog/3DLOD separate. |
+| World/Cubic |1281actual no-edit600tick arrival FAIL: savedGOLD remains cachedblack afterFULL, packet unchanged; sealeddd3. f6e3d08 bounded repair10units+2normal-profileSTOCK PASS. |Separate build/remap then SAME native observer/helper/genuine saved-cache world. Actual winner-Y FULL is required; callbackRETURN is not readiness. Repair unmerged. |
+| Gravity/ragdoll |8c3diagnostic4:3PASS/1FAIL. Both ceiling species move with60validsupports; wall0advance/60badcontacts. Prior250timeout retained. |Read-only first8ordinarytick nav/motor/travel/move/field recorder beforeproductionfix; keep310watch/320limit and physicalcriteria. |
+| Manual-city |027compile+55purePASS, actual0/5. 9107again0/5: allphase0/no observedplan, arena demand, session orCAS; preparation/IOopenpending at300tickwatchdog. |Test-only workeridentity/stackphase attribution before main/budget changes. Owners healthy/connected/authorized, ownervolumesFULL. Runtime isolated/unregistered; world-write/safety acceptance unobserved. |
+| Combat/bestiary |faf298natural scout/occludedwingman baseline1FAIL/1PASS: real scoutacquisition, wingman0verticalinvestigation at120ticks; no-scoutcontrolPASS. |Bounded last-seen squad coordination through existing index/navigation/allegiance. No message-assigned target or hidden currentXYZ; TTL/invalid/cap controls. |
+| Audit |8ad99taskmap:30sourceidentities/748blocks,10Boardingsections/12criteria/299bindings;10negativecontrolsPASS. |Additive actual recorderdisabled/capacity/closed-output-immutability observer; old frozenJava/helpers unchanged. No software-to-hardware performance claim. |
 
-The world arrival observer is a repair/arrival test on an actually observed prior
-zero-colour cell, not proof of first-ever ingestion. Parent CHUNK_LOAD, native
-apply/FULL, production ingest, resend invalidation and received packet timelines
-must remain distinct. Current guard does not invent a migration of corrupted data.
+Last combined runtime remains exact11513cd:824unit/418ordinaryGT/66entrypoints +same-JAR BCC/Sodium six-scene presentation/viewmodel client. The ordinary TestServer enables discoverable packs including Advanced registry; it is not the dedicated Vanilla-64/320 profile. New source must pass its own combined run.
 
-For climbers preserve real contact thresholds(normal·up≥.95, gap≤.08m),60ordinary
-ticks,1m progress, actual clear body/eye frame, dark FULL room and one initial
-checked pose/target assignment. Do not force navigation, velocity or isClimbing.
-Actual wall failure cannot be dismissed by correcting the ceiling observer.
-
-For the city retain original027 failures and300/350tick limits while diagnosing.
-The observed<1.5s wall duration suggests an asynchronous admission concern, not a
-proven sole cause. Three header-only journals and two absent journals do not
-establish guards/CAS. Cache copies are bounded immutable matching artifacts;
-mutable Gradle databases and build outputs remain per-worktree. No registration
-call or world write acceptance follows from compilation/pure tests.
-
-Accepted component tips already integrated locally include worlde6ed13c,
-skyd5eb83d, climber-entry317ed64, city-protocol09d8a11, weapon-input5f1ee2e and
-historical BE-forensicsdd2770b. The independent99-task audit remains pinned4b2e243;
-the active ledger remains3completed/24in_progress/72pending. Broader specifications,
-hardware/performance, multiplayer and release acceptance remain open.
+World repair fixture is an actually observed priorblack-cache case, not first-ever ingestion. No fabricated cache, fixture edit, ticket/generation or packet replacement. Native pending4096keys/4×64metadata attempts per tick feed existing4/tick resampling/invalidation. City diagnostics observe300actual ticks but only289–1804ms walltime before admission; timing is a hypothesis until workerphase is observed. Wall navigation selects a world-floor path; rotating that wrongpath alone is insufficient. Full master/Boarding, hardware/endurance and release acceptance remain open.

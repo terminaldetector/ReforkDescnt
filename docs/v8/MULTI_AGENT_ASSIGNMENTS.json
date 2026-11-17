@@ -145,7 +145,7 @@
     {
       "id": "S02-T03",
       "stage": "S02",
-      "title": "Compare true world bounds/16\u00b3 load state against historic fake cubic snapshots",
+      "title": "Compare true world bounds/16³ load state against historic fake cubic snapshots",
       "worker": "world_cubic",
       "ledgerStatus": "pending_reverification",
       "executionStatus": "audit_or_existing_work",
@@ -295,9 +295,13 @@
       "stage": "S05",
       "title": "Implement configurable vertex snap/quantized color/dither/affine-like UV",
       "worker": "ps1_render",
-      "ledgerStatus": "pending_reverification",
-      "executionStatus": "audit_or_existing_work",
-      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files."
+      "ledgerStatus": "in_progress",
+      "executionStatus": "palette_dither_verified_snap_affine_open",
+      "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
+      "scopedEvidence": [
+        "PS1_COLOR_CHECKPOINT_2026-11-17.md",
+        "EVIDENCE/ps1-color-8f1b3b1.json"
+      ]
     },
     {
       "id": "S05-T03",
@@ -404,7 +408,7 @@
     {
       "id": "S07-T01",
       "stage": "S07",
-      "title": "Implement C1\u2013C7 species adapters and universal fallback without breaking vanilla AI",
+      "title": "Implement C1–C7 species adapters and universal fallback without breaking vanilla AI",
       "worker": "gravity_ragdoll",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
@@ -449,7 +453,7 @@
     {
       "id": "S08-T01",
       "stage": "S08",
-      "title": "Reconcile prior Oct8\u201310 ragdoll solver commits and collision regressions",
+      "title": "Reconcile prior Oct8–10 ragdoll solver commits and collision regressions",
       "worker": "gravity_ragdoll",
       "ledgerStatus": "pending_reverification",
       "executionStatus": "audit_or_existing_work",
@@ -527,7 +531,8 @@
       "acceptance": "Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker files.",
       "scopedEvidence": [
         "MULTI_AGENT_INTEGRATION_2026-11-17.md",
-        "EVIDENCE/integrated-699b749.json"
+        "EVIDENCE/integrated-699b749.json",
+        "PLAYER_BUILT_LINEAR_STAGE_2026-11-17.md"
       ]
     },
     {
@@ -663,7 +668,7 @@
     {
       "id": "S12-T01",
       "stage": "S12",
-      "title": "Create stateful search\u2192hunt\u2192siege\u2192cooldown threat director with faction attribution",
+      "title": "Create stateful search→hunt→siege→cooldown threat director with faction attribution",
       "worker": "world_content",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
@@ -869,7 +874,7 @@
     {
       "id": "S16-T02",
       "stage": "S16",
-      "title": "Benchmark mspt/fps/heap/loaded cubes/draw calls across 32\u21921024 drone tests",
+      "title": "Benchmark mspt/fps/heap/loaded cubes/draw calls across 32→1024 drone tests",
       "worker": "audit_integration",
       "ledgerStatus": "in_progress",
       "executionStatus": "audit_or_existing_work",
@@ -960,5 +965,29 @@
     "receipt": "EVIDENCE/integrated-bd29aab-server.json",
     "nativeStatus": "retained unavailable-winner failure",
     "fullTaskPromotion": false
+  },
+  "twoPrimarySpecCoverage": {
+    "reviewSource": "1a8593846bed3b02d03d68236c6698d26a5116d4",
+    "report": "TWO_SPEC_COVERAGE_2026-11-17.md",
+    "data": "TWO_SPEC_COVERAGE_2026-11-17.json",
+    "scope": "99 task plans, retained requirements, all10 Dynamic Boarding sections/12criteria; review is not acceptance"
+  },
+  "latestScopedComponents": {
+    "linearStage": {
+      "source": "3920768301320fa35af5b178a85ebf92bed99ef6",
+      "tests": 17,
+      "failures": 0,
+      "report": "PLAYER_BUILT_LINEAR_STAGE_2026-11-17.md"
+    },
+    "ps1Palette": {
+      "source": "8f1b3b1b2a94cfe9aa3d9a861d99135f4a551fff",
+      "targetedUnits": 9,
+      "nativeBackends": [
+        "Sodium GL3.3",
+        "Fabulous GL3.2"
+      ],
+      "report": "PS1_COLOR_CHECKPOINT_2026-11-17.md"
+    },
+    "combinedAcceptance": "pending; prior combined source11513cd remains824/418"
   }
 }

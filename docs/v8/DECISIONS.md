@@ -1,5 +1,7 @@
 # Decisions
 
+17 November continuation: retain masterv8 and direct Dynamic Boarding as the primary pair, with all compatible renderer/older supplements. The99-task coverage map distinguishes absent code, failing behavior and missing proof. Extend existing SLIDER joints through separate guide/drive material blocks with0–2m stroke and finite40N source; preserve live poses, velocity and normal collisions. PS1 quantization/dither applies only to the existing world texture before native overlays, indexed by scene texels; preserve Native default and explicit raw bypass. Component proof is separate from the pending integrated run and whole requirements.
+
 6 November: obey the current local-only publication pause. Continue master v8 and Dynamic Boarding on the existing D6/BlockBody system. Select bearing support from real primitive geometry, keep equivalent prior support, and break fresh ties by identity; preserve an existing finite gravity owner before the supporting body. Solver impulse points and support-selection projections have different purposes. Keep actual separating-contact rejection; do not force an old owner across an opening contact.
 
 Continue existing UFO branch and D6 solver. Preserve supplied v8 reference files separately from executable project instructions. Keep historical task claims unverified until checked against actual source/runtime evidence. Do not apply PS1 presentation changes to physics.

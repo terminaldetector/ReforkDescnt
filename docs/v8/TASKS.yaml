@@ -375,10 +375,10 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id006
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
+  evidence: [PS1_COLOR_CHECKPOINT_2026-11-17.md, EVIDENCE/ps1-color-8f1b3b1.json]
   notes: Do not assume complete from historic PR/summary.
 - id: S05-T03
   stage: S05
