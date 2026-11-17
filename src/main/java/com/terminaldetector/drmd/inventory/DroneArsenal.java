@@ -15,7 +15,10 @@ public final class DroneArsenal {
   || stack.getItem() instanceof com.terminaldetector.drmd.world.engineer.EngineerTools.RepairLaserItem;}
 
  private static final Map<UUID,Controls> STATES=new HashMap<>();
- private static final class Controls {int mask;long received;final Hold[] holds=new Hold[3];}
+ private static final class Controls {
+  int mask,edges;long received;final Hold[] holds=new Hold[3];
+  final ItemStack[] edgeStacks=new ItemStack[3];
+ }
  private static final class Hold {ItemStack stack;int age,max;Hold(ItemStack s,int max){stack=s;this.max=max;}}
  public static ItemStack weapon(net.minecraft.entity.player.PlayerEntity p,int channel){
   if(channel<0||channel>2)return ItemStack.EMPTY;
@@ -26,8 +29,19 @@ public final class DroneArsenal {
  }
  public static void receive(ServerPlayerEntity p,int mask){
   var s=STATES.computeIfAbsent(p.getUuid(),id->new Controls());
-  s.mask=(!com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p)&&p.isAlive()&&!p.isSpectator()&&p.currentScreenHandler==p.playerScreenHandler)?mask&7:0;s.received=p.getWorld().getTime();
+   s.received=p.getWorld().getTime();
+   if(com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p)||!p.isAlive()||p.isSpectator()||p.currentScreenHandler!=p.playerScreenHandler){s.mask=0;clearEdges(s);return;}
+   int next=mask&7,rising=next&~s.mask;
+   for(int i=0;i<3;i++){
+    int bit=1<<i;var selected=weapon(p,i);
+    if((s.edges&bit)!=0 && s.edgeStacks[i]!=selected){s.edges&=~bit;s.edgeStacks[i]=null;}
+    if((rising&bit)!=0 && !selected.isEmpty()){s.edges|=bit;s.edgeStacks[i]=selected;}
+   }
+   // A press and release may arrive before the next server simulation tick.
+   // Retain at most one edge per bank, without changing the latest held mask.
+   s.mask=next;
  }
+ private static void clearEdges(Controls s){s.edges=0;Arrays.fill(s.edgeStacks,null);}
  private static void withHand(ServerPlayerEntity p,ItemStack stack,Runnable action){
   var previous=p.getMainHandStack();p.setStackInHand(Hand.MAIN_HAND,stack);
   try{action.run();}finally{p.setStackInHand(Hand.MAIN_HAND,previous);}
@@ -40,18 +54,29 @@ public final class DroneArsenal {
   var state=STATES.get(p.getUuid());if(state==null)return;
   if(com.terminaldetector.drmd.world.mega.UfoControlSystem.controls(p)||!p.isAlive()||p.isSpectator()||p.currentScreenHandler!=p.playerScreenHandler||p.getWorld().getTime()-state.received>6){
    if(p.isAlive() && java.util.Arrays.stream(state.holds).anyMatch(java.util.Objects::nonNull))com.terminaldetector.drmd.network.ModNetworking.weaponLoad(p,0);
-   state.mask=0;java.util.Arrays.fill(state.holds,null);return;
+    state.mask=0;clearEdges(state);java.util.Arrays.fill(state.holds,null);return;
   }
+   int taps=state.edges;state.edges=0;
+   for(int i=0;i<3;i++){
+    if((taps&(1<<i))!=0 && state.edgeStacks[i]!=weapon(p,i))taps&=~(1<<i);
+    state.edgeStacks[i]=null;
+   }
+   // Consume before cooldown/selection checks: rejected taps are never queued
+   // for a later shot, even if the cooldown or selected item subsequently changes.
+   int requested=state.mask|taps;
   for(int i=0;i<3;i++){
-   var selected=weapon(p,i);var hold=state.holds[i];boolean pressed=(state.mask&(1<<i))!=0;
-   if(i>0 && (state.mask&1)!=0 && selected==weapon(p,0))pressed=false;
-   if(hold!=null && (!pressed || hold.stack!=selected)){stop(p,state,i);hold=null;}
+    var selected=weapon(p,i);var hold=state.holds[i];boolean held=(state.mask&(1<<i))!=0,pressed=(requested&(1<<i))!=0;
+    if(i>0 && (requested&1)!=0 && selected==weapon(p,0)){held=false;pressed=false;}
+    if(hold!=null && (!held || hold.stack!=selected)){stop(p,state,i);hold=null;}
    if(!pressed || selected.isEmpty())continue;
    if(hold!=null){var h=hold;h.age++;withHand(p,h.stack,()->h.stack.getItem().usageTick(p.getWorld(),p,h.stack,Math.max(0,h.max-h.age)));if(h.age>=h.max)stop(p,state,i);continue;}
    if(p.getItemCooldownManager().isCoolingDown(selected.getItem()))continue;
    int max=selected.getMaxUseTime(p);
    withHand(p,selected,()->selected.getItem().use(p.getWorld(),p,Hand.MAIN_HAND));
-   if(max>0 && p.isUsingItem()){state.holds[i]=new Hold(selected,max);p.clearActiveItem();}
+    if(max>0 && p.isUsingItem()){
+     state.holds[i]=new Hold(selected,max);p.clearActiveItem();
+     if(!held)stop(p,state,i); // Already released: one real age-zero charged tap.
+    }
   }
  }
  public static void clear(UUID id){STATES.remove(id);}
