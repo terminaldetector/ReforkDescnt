@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "bash",
+    "scripts/v8/cubic_unknown_native.sh",
+    "cubic-fluid-unknown-writer-c0c5ede-sodium"
+  ],
+  "cwd": "/workspace/ungravity-v5/cubic-next-20261109",
+  "nanoTime": 32236171572405
+}

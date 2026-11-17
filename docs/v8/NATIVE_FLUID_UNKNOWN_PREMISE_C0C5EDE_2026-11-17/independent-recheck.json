@@ -1,0 +1,58 @@
+{
+  "status": "PREMISE_NOT_OBSERVED",
+  "buildPassSeconds": 23,
+  "actualJavaExit": 0,
+  "helperExit": 2,
+  "wrapperExit": 2,
+  "outerToolExit": 2,
+  "pollCount": 80,
+  "allPollsSourceAndNeighbourWantedAndFull": true,
+  "stableUnknownAlwaysZero": true,
+  "fixtureWrites": 272,
+  "sourcePlacements": 0,
+  "actualFluidCallbacks": 0,
+  "observedBlockWriteEvents": 400,
+  "allObservedWritesFixtureAndFull": true,
+  "expectedWriteRoi": "x/z7..9,y62..83 only;72camera-pocket edits outsideROI are separately included in fixture counter",
+  "viewTransitions": [
+    {
+      "serverTick": 205,
+      "actualView": {
+        "centerX": 0,
+        "centerY": 7,
+        "centerZ": 0,
+        "horizontalRadius": 4,
+        "verticalRadius": 4,
+        "minY": 3,
+        "maxY": 11,
+        "groundMinY": 0,
+        "groundMaxY": -1,
+        "hasGround": false,
+        "containsSource": true,
+        "containsNeighbour": true
+      }
+    },
+    {
+      "serverTick": 210,
+      "actualView": {
+        "centerX": 0,
+        "centerY": 7,
+        "centerZ": 0,
+        "horizontalRadius": 4,
+        "verticalRadius": 2,
+        "minY": 5,
+        "maxY": 9,
+        "groundMinY": 3,
+        "groundMaxY": 4,
+        "hasGround": true,
+        "containsSource": true,
+        "containsNeighbour": true
+      }
+    }
+  ],
+  "archiveBytes": 1575539,
+  "archiveSha256": "ba2ee8e4a29ab2b693cf7a6d9c5c50cb2c02f03728ca49caf097acb83d3637cf",
+  "archiveFileCount": 93,
+  "outcomeSha256": "dcf98afdc6a0de09a34e243de6a0af5ca94876cc0eff78746ab3e7a2df969968",
+  "contextFrameVisualReview": "At upper position, dry fixture visible below; context only, no render acceptance."
+}

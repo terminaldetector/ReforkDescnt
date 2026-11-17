@@ -1,0 +1,8 @@
+{
+  "argv": [
+    "bash",
+    "scripts/v8/cubic_unknown_build.sh"
+  ],
+  "cwd": "/workspace/ungravity-v5/cubic-next-20261109",
+  "nanoTime": 32211370647634
+}
