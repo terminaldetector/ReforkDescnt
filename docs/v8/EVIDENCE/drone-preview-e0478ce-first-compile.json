@@ -1,0 +1,69 @@
+{
+  "schema": "ungravity.drone-preview.first-compile-proof.v1",
+  "created_utc": "2026-11-17T17:45:27.625737+00:00",
+  "source": "e0478ce8d4e79cc73678582bafa4f539978e9a26",
+  "first_wrapper": {
+    "returncode": 1,
+    "compile_started": false,
+    "test_xml": false,
+    "reason": "Default Gradle user home /home/agent/.gradle lock parent unavailable; incomplete system JRE also recorded, but wrapper stopped before compiler."
+  },
+  "environment_corrections_authorized_before_actual_compile": [
+    "GRADLE_USER_HOME=/workspace/.gradle",
+    "JAVA_HOME=/workspace/jdk21-complete and its bin PATH"
+  ],
+  "prepared_cache_only_helper_executed": false,
+  "actual_first_compile": {
+    "source": "e0478ce8d4e79cc73678582bafa4f539978e9a26",
+    "first_attempt": true,
+    "returncode": 0,
+    "xml_present": true,
+    "compile_or_test_runtime_pass": true,
+    "native_run": false,
+    "remap_run": false,
+    "source_inputs_unchanged": true,
+    "closed_utc": "2026-11-17T17:42:21.729177+00:00",
+    "xml_sha256": "3e29efc948a408fb38d14964be35821c8fbe925fc29aabc1cb81aaa62e13009a",
+    "xml_fresh": true,
+    "xml_attributes": {
+      "name": "com.terminaldetector.drmd.DronePreviewProjectionTest",
+      "tests": "6",
+      "skipped": "0",
+      "failures": "0",
+      "errors": "0",
+      "timestamp": "2026-11-17T17:42:21",
+      "hostname": "be18a16f9741",
+      "time": "0.048"
+    },
+    "testcase_names": [
+      "pointAndFlatGeometryStayCentredAndFinite()",
+      "orbitPreservesDistancesAcrossFullYawPitchAndInvertedViews()",
+      "physicalMuzzleAxesAndHullModelUnitsShareOneFrame()",
+      "oneFitContainsAsymmetricNegativeLayoutAndKeepsRelativeScale()",
+      "malformedGeometryAndOrbitsAreRejectedRatherThanPollutingGuiVertices()",
+      "unusableViewportIsRejectedBeforeBufferWork()"
+    ]
+  },
+  "source_input_count": 1544,
+  "source_inputs_identical": true,
+  "helper_unchanged": true,
+  "compiled_class_count": 12,
+  "gate_scope": "compileJava + compileTestJava + six focused pure tests only",
+  "remap": false,
+  "native_gui": false,
+  "full_suite": false,
+  "task_promotion": false,
+  "open_scope": [
+    "Actual equipped-slot image acceptance",
+    "Normal/6DoF/Native/PS1 GUI and GL/FBO/scissor/shadow/following-frame checks",
+    "Actual synchronized equip/remove and inventory lifecycle controls"
+  ],
+  "archive": {
+    "path": "docs/v8/EVIDENCE/drone-preview-e0478ce-first-compile.zip",
+    "bytes": 378322,
+    "sha256": "f8000a2bda9752da82cd77e1c70a24a0d6d4cd41bde7109fe243d07037d87f50",
+    "payload_files": 35,
+    "members": 36,
+    "all_member_sha256_and_crc_verified": true
+  }
+}
