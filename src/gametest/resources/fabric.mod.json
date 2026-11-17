@@ -33,6 +33,7 @@
       "com.terminaldetector.drmd.FlightRecoveryGameTests",
       "com.terminaldetector.drmd.FootGravityRecoveryGameTests",
       "com.terminaldetector.drmd.EntityFieldGravityGameTests",
+      "com.terminaldetector.drmd.ClimberFieldGravityGameTests",
       "com.terminaldetector.drmd.ActorFrameGameTests",
       "com.terminaldetector.drmd.FlyingRosterGravityGameTests",
       "com.terminaldetector.drmd.SurfaceCombatGameTests",
