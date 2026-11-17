@@ -1,0 +1,67 @@
+{
+  "source": "d4a287fc8821233d13096aca16f41f403e99afe8",
+  "firstBuildExit": 0,
+  "wholeGameParityExit": 0,
+  "capacityAdmissionExit": 0,
+  "nativeExit": 255,
+  "classification": "Observer inherited Minecraft method-owner ABI failure before any admitted pose; not a renderer/depth/cloud verdict",
+  "actualException": "java.lang.NoSuchMethodError: int BlockBodyEntity.getId()",
+  "fixtureMaterial": "minecraft:iron_block",
+  "actualMaterialSupported": true,
+  "checkpointedPrefabRealWrites": 434,
+  "checkpointedPreBodyWrites": 435,
+  "actualNormalPacketCheckpointPreserved": true,
+  "poseFrames": 0,
+  "occlusionFrames": 0,
+  "allEightFrozenHelpersUnchanged": true,
+  "externalOfficialStagerUnchanged": true,
+  "frozenWrapperExecuted": true,
+  "actualAdmission": {
+    "source": "d4a287fc8821233d13096aca16f41f403e99afe8",
+    "utc": "2026-11-17T18:02:31Z",
+    "actualFreeBeforeNativeBytes": 227090432,
+    "minimumBytes": 146800640,
+    "nativeCapacityPermitted": true,
+    "actualNativeCommand": [
+      "bash",
+      "scripts/v8/ps1_native.sh",
+      "ps1-cloud-attribution-occlusion-iron-d4a287f-sodium"
+    ],
+    "allEightHelpersUnchanged": true,
+    "externalOfficialStagerUnchanged": true
+  },
+  "jars": {
+    "drmd-6dof-1.1.35-ufo-dev.1.jar": "b6c653a4729e7dd4a8158ba1b8704fc31434c89d0c7cabaefbee4e1266d3df8c",
+    "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "50aa06a87f3b271d9a163c908b96a5fbd35408036b6919b722b71df985eeb92f"
+  },
+  "worldArchive": {
+    "original": "/workspace/ungravity-v5/ps1-render/build/cubic-client-failed-cloud-body-abi-d4a287f/saves",
+    "archive": "/workspace/ungravity-v5/ps1-render/work/preserved-disposable-worlds/cubic-client-failed-cloud-body-abi-d4a287f-saves.zip",
+    "files": 115,
+    "originalBytes": 44250286,
+    "archiveBytes": 2366615,
+    "sha256": "518fb7410cf45f5a82a2e4b987fb97efefd5aa5f43bc1089179d59b6dc98a610",
+    "sessionLockExclusiveLockfVerified": true,
+    "fullFileShaAndZipCrcVerified": true,
+    "rawSavesReclaimedOnlyAfterVerification": true
+  },
+  "readOnlyRemappedBytecodeAudit": {
+    "classes": 14,
+    "customMinecraftAncestorMethodRefs": 10,
+    "forbiddenMethods": [
+      "isRemoved",
+      "discard",
+      "getId"
+    ],
+    "classification": "Actual runtime getId linkage failure; static remapped-bytecode audit additionally finds unmapped isRemoved/discard calls in the same fixture. No JVM used for audit."
+  },
+  "scope": "First IRON compile/parity/capacity pass, actual real prefab+accepted packet and supported material checkpoints preserved. Observer custom-subclass inherited method-owner ABI error before all pose/occlusion/depth captures. No production change or renderer acceptance.",
+  "evidence": {
+    "path": "docs/v8/EVIDENCE/cloud-occlusion-d4a287f-abi-failure.zip",
+    "files": 66,
+    "bytes": 238289,
+    "sha256": "5cabb964525b3b63ad4ef65b81fe474dbd160be390ab3a7083d38143d4293321",
+    "perFileShaAndZipCrcVerified": true,
+    "actualPosePngs": 0
+  }
+}
