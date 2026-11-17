@@ -118,10 +118,13 @@ public final class PointDefenseInterception {
         if(!sourceLoaded(world,source)||cfg==null||target==null||cfg.owner!=null||cfg.dmgClass!=DamageClass.KINETIC
             ||cfg.homing||cfg.pilotGuided||cfg.pierceCount!=0||cfg.worldBlast||cfg.drillCarve||cfg.fusionPortalCharge
             ||cfg.fuse!=FuseType.IMPACT||cfg.armSeconds!=0||cfg.splashRadius!=0||cfg.splashDamage!=0
+            ||cfg.igniteOnHit||!Float.isFinite(cfg.directDamage)||cfg.directDamage<=0
             ||!Float.isFinite(cfg.life)||cfg.life<=0||cfg.life>.5f||!finite(cfg.pos)||!finite(cfg.dir)||cfg.dir.lengthSquared()<1e-12
             ||cfg.pos.squaredDistanceTo(muzzle(source))>1e-12||!Float.isFinite(cfg.speed)||cfg.speed<=0
             ||!Float.isFinite(cfg.gravity)||cfg.gravity<0||cfg.gravity>1||!Float.isFinite(cfg.drag)||cfg.drag<0||cfg.drag>1)return false;
         var loaded=world.getEntity(target);
+        double speed=cfg.speedIsSourceUnits?DescentMod.su(cfg.speed)/DescentMod.TICKS_PER_SECOND:cfg.speed;
+        if(!Double.isFinite(speed)||speed<=0||speed>ROUND_SPEED+1e-9)return false;
         if(!(loaded instanceof ProjectileEntity missile)||!hostileMissile(world,missile)
             ||missile.getBoundingBox().getCenter().squaredDistanceTo(cfg.pos)>12*12)return false;
         var s=state(world);if(s.rounds.size()>=MAX_ROUNDS)return false;var b=s.emission==null?new Budget():s.emission;
@@ -181,9 +184,9 @@ public final class PointDefenseInterception {
 
     /** Invoked only with the incoming missile's actual computed movement and ordinary nearest hit. */
     public static boolean intercept(ProjectileEntity missile,Vec3d from,Vec3d to,HitResult ordinary){
-        if(!(missile.getWorld() instanceof ServerWorld world)||!registered||!hostileMissile(world,missile)||!missile.isArmed()
-            ||!WorldEditSafety.loadedSegment(world,from,to))return false;
+        if(!(missile.getWorld() instanceof ServerWorld world)||!registered)return false;
         var s=WORLDS.get(world);if(s==null)return false;var associated=s.targets.get(missile.getUuid());if(associated==null)return false;
+        if(!hostileMissile(world,missile)||!missile.isArmed()||!WorldEditSafety.loadedSegment(world,from,to))return false;
         double cover=ordinary==null?Double.POSITIVE_INFINITY:fraction(from,to,ordinary.getPos());
         Round winner=null;ProjectileEntity round=null;RelativeProjectileSweep.Contact earliest=null;
         for(var id:List.copyOf(associated)){
