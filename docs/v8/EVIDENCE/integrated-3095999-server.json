@@ -1,0 +1,29 @@
+{
+  "archive": "docs/v8/EVIDENCE/integrated-3095999-server.zip",
+  "sha256": "f36a93e4c44bc8a7bc039ffa5eb86c9ee07fc8be29bb03e63857d8c09ee64200",
+  "bytes": 345421,
+  "payloadFiles": 19,
+  "allHashesAndCrcVerified": true,
+  "source": "30959990c104543a78940a3baecf95ee4f73517d",
+  "unit": {
+    "tests": 898,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "game": {
+    "tests": 450,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "entrypoints": 73,
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "d4725ebb1524815dd4e6d8666bfa1b584c580b445c29eb2f163a11dc73a94306",
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+  },
+  "gameReportFresh": true,
+  "scope": "Complete ordinary server suite and both remapped artifacts. No native client was run on this source. Distinct source 68fb20a remains latest accepted two-client snapshot. Cardinal native climbing is bounded static-field work; previous four specialized failures and general 3D AI/Boarding remain open.",
+  "nativeAccepted": false,
+  "releaseAccepted": false
+}
