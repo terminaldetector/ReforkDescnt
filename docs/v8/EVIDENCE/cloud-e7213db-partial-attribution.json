@@ -1,0 +1,123 @@
+{
+  "source": "e7213db7e995bd204e7c43a3c83ad41e1dc767a6",
+  "classification": "Actual native attitude-admission control failure after three actual cloud measurements; complete five-pose negative not established",
+  "buildExit": 0,
+  "gameParityExit": 0,
+  "nativeExit": 255,
+  "jars": {
+    "drmd-6dof-1.1.35-ufo-dev.1.jar": "b6c653a4729e7dd4a8158ba1b8704fc31434c89d0c7cabaefbee4e1266d3df8c",
+    "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c61b7188d3f0107f304b5eb2ff330c15c0336608e01e2392bba3b20202a88c5f"
+  },
+  "actualPoseFrames": 3,
+  "actualCloudDrawObservations": 3,
+  "actualCloudSourceUploadEvents": 8,
+  "actualCloudCopiedBytes": 700544,
+  "readbackBytes": 66355200,
+  "poses": [
+    {
+      "pose": "near224",
+      "epoch": 342,
+      "opaqueFootprintSamples": 56720,
+      "actualChangedCloudSamples": 56720,
+      "changedFraction": 1.0,
+      "outsideFarClipSamples": 0,
+      "sodiumFogZeroAlphaSamples": 0,
+      "visibilityPass": true,
+      "glError": 0,
+      "cloudsMode": "FANCY",
+      "expectedMainTargetViewport": true
+    },
+    {
+      "pose": "above384",
+      "epoch": 375,
+      "opaqueFootprintSamples": 15707,
+      "actualChangedCloudSamples": 15281,
+      "changedFraction": 0.9728783345005412,
+      "outsideFarClipSamples": 0,
+      "sodiumFogZeroAlphaSamples": 0,
+      "visibilityPass": true,
+      "glError": 0,
+      "cloudsMode": "FANCY",
+      "expectedMainTargetViewport": true
+    },
+    {
+      "pose": "far512",
+      "epoch": 404,
+      "opaqueFootprintSamples": 9694,
+      "actualChangedCloudSamples": 0,
+      "changedFraction": 0.0,
+      "outsideFarClipSamples": 9694,
+      "sodiumFogZeroAlphaSamples": 4411,
+      "visibilityPass": false,
+      "glError": 0,
+      "cloudsMode": "FANCY",
+      "expectedMainTargetViewport": true
+    }
+  ],
+  "failedPose": 3,
+  "failedAdmission": {
+    "pose": "orbit2200",
+    "expectedControlMode": "6dof-END",
+    "requestedPlayerY": 2200.0,
+    "clientPosition": [
+      714.0,
+      2200.0,
+      1050.0
+    ],
+    "clientVelocity": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "clientRotationYawPitch": [
+      -0.0,
+      90.0
+    ],
+    "clientSixDof": true,
+    "clientFlying": false,
+    "clientAllowFlying": false,
+    "clientNoGravity": true,
+    "serverControl": {
+      "sixDof": true,
+      "volumesReady": true,
+      "velocity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "noGravity": true,
+      "rotationYawPitch": [
+        0.0,
+        90.0
+      ],
+      "flying": false,
+      "allowFlying": false,
+      "position": [
+        714.0,
+        2200.0,
+        1050.0
+      ]
+    },
+    "poseReady": true,
+    "age": 2000,
+    "screen": "none",
+    "forwardDot": 1.0,
+    "upDot": -1.0
+  },
+  "all8HelpersMatchFrozen": true,
+  "frozenManifestSha256": "654a25ddab432f68e51012acef0c9029b88ff51588493bd7a90bfbc296615121",
+  "worldArchive": {
+    "files": 126,
+    "sha256": "a82bcde2194023ccddd71fdab3de179a177d164d03cc1186785a24195933447c",
+    "perFileShaAndZipCrcVerified": true
+  },
+  "scope": "Near Creative hover admission succeeds. Actual512 cloud source is wholly beyond clip depth and contributes no pixels, while224/384 contribute. Actual H-off\u2192H-on edge resets the requested upper frame: exact stationary position/mode/volumes pass, forwardDot1/upDot\u22121 fails strict attitude. Upper two cloud captures are absent. No complete five-pose or production cloud fix claim.",
+  "evidence": {
+    "path": "docs/v8/EVIDENCE/cloud-e7213db-partial-attribution.zip",
+    "sha256": "bccd19da9c4b255659d8ffe0c9a119ad6a0885e3d8c829dd7916f768590871a5",
+    "files": 90,
+    "pngs": 15,
+    "bytes": 552282,
+    "perFileShaAndZipCrcVerified": true
+  }
+}
