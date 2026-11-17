@@ -71,6 +71,8 @@
       "com.terminaldetector.drmd.MountedMechanismGameTests",
       "com.terminaldetector.drmd.ArmedContactGameTests",
       "com.terminaldetector.drmd.world.threat.SurvivalThreatGameTests",
+      "com.terminaldetector.drmd.world.threat.SiegePlanCodecBaselineGameTests",
+      "com.terminaldetector.drmd.world.threat.SiegePlanStateGameTests",
       "com.terminaldetector.drmd.world.economy.SurvivalEconomyGameTests",
       "com.terminaldetector.drmd.DroneTriggerEdgeGameTests",
       "com.terminaldetector.drmd.DroneSquadTaskGameTests",

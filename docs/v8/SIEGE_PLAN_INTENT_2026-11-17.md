@@ -95,3 +95,12 @@ The five retained `SurvivalThreatGameTests` and nine retained threat units
 already belong to the ordinary suite; do not duplicate them. New automatic
 unit discovery adds13. Root review and a new integrated source/full gate are
 still required. This packet is not present in root's accepted20ef game binary.
+
+## Canonical candidate handoff
+
+Root reviewed and imported the three data/state production files and the unchanged
+13 unit/eight new GameTests. Two ordinary entrypoints are now registered; previous
+legacy cases are not duplicated. This candidate awaits its own full integrated gate.
+The accepted installable20ef2c4 binary and its853/442/two-client receipts are unchanged.
+Evidence files were relocated into docs/v8/EVIDENCE for direct local access; payload
+bytes/SHA stay identical. There is still no production siege activation.
