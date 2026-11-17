@@ -13,6 +13,7 @@
     "LivingEntityMixin",
     "EnderDragonFightMixin",
     "FlowableFluidMixin",
+    "NativeDeferredFluidMixin",
     "EntityFluidMixin",
     "EntityFieldGravityMixin",
     "ActorFrameTrackerMixin",

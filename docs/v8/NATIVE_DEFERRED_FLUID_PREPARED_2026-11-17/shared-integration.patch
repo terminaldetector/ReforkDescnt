@@ -1,0 +1,24 @@
+diff --git a/src/main/java/com/terminaldetector/drmd/DescentMod.java b/src/main/java/com/terminaldetector/drmd/DescentMod.java
+index 5582d5e..dfdbc89 100644
+--- a/src/main/java/com/terminaldetector/drmd/DescentMod.java
++++ b/src/main/java/com/terminaldetector/drmd/DescentMod.java
+@@ -92,6 +92,7 @@ public class DescentMod implements ModInitializer {
+         com.terminaldetector.drmd.world.contraption.BodyBlockInteraction.register();
+         com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.register();
+         com.terminaldetector.drmd.world.contraption.mechanism.BodyMountedWeapons.register();
++        com.terminaldetector.drmd.world.compat.NativeDeferredFluids.register();
+ 		com.terminaldetector.drmd.world.geometry.HybridTerrainCommands.register();
+ 		AiCommands.register();
+         com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.register();
+diff --git a/src/main/resources/drmd.mixins.json b/src/main/resources/drmd.mixins.json
+index 9a7ea28..132e237 100644
+--- a/src/main/resources/drmd.mixins.json
++++ b/src/main/resources/drmd.mixins.json
+@@ -13,6 +13,7 @@
+     "LivingEntityMixin",
+     "EnderDragonFightMixin",
+     "FlowableFluidMixin",
++    "NativeDeferredFluidMixin",
+     "EntityFluidMixin",
+     "EntityFieldGravityMixin",
+     "ActorFrameTrackerMixin",
