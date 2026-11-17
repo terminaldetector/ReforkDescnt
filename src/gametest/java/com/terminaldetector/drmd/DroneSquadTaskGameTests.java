@@ -63,6 +63,7 @@ public final class DroneSquadTaskGameTests implements FabricGameTest {
         }
         void sample(){
             ticks++;maxClimb=Math.max(maxClimb,wingman.getY()-start.y);
+            SquadInvestigationTrace.sample(this);
             if(scout!=null){scoutAcquired|=scout.getTarget()==victim;scoutSaw|=scout.getTarget()==victim&&scout.canSee(victim);}
             // Communication must move the wingman while its own target is still unknown.
             // A victim drifting into visibility or a vanilla lock cannot fake this proof.
