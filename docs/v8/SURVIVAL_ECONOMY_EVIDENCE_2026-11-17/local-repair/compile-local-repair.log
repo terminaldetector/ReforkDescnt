@@ -1,0 +1,154 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.12/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.10.5
+
+> Task :compileJava
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :processResources UP-TO-DATE
+> Task :classes
+
+> Task :compileGametestJava
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/DroneInventoryGameTests.java:17: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var p=c.createMockCreativeServerPlayerInWorld();p.getInventory().clear();p.setPosition(Vec3d.ofCenter(at));var ship=ModEntities.PYRO_SHIP.create(w);ship.setPosition(p.getPos());ship.setOwnerUuid(p.getUuid());w.spawnEntity(ship);
+         ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BombBayVelocityGameTests.java:16: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();
+                          ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:19: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.getAbilities().flying=false;
+               ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:208: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();try {
+               ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:219: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();try {
+               ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:269: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();var d=DescentPlayerData.get(p);d.setEnabled(false);p.getAbilities().flying=false;
+               ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/PhysicalUfoGameTests.java:279: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();var d=DescentPlayerData.get(p);try {
+               ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:18: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c,4096,4096);var p=c.createMockCreativeServerPlayerInWorld();p.setPosition(4222,152,4096);
+                                       ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:27: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c,8192,8192);var p=c.createMockCreativeServerPlayerInWorld();p.setPosition(8318,152,8192);
+                                       ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:36: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c,12288,12288);var p=c.createMockCreativeServerPlayerInWorld();p.setPosition(12414,152,12288);
+                                         ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:65: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();p.getAbilities().flying=true;p.setPosition(x+.5,182,z+.5);
+               ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BodyVolumeGameTests.java:109: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c,28000,28000);var p=c.createMockCreativeServerPlayerInWorld();p.getAbilities().flying=true;p.setPosition(28127,152,28000);
+                                         ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/FlightBodyPlayerGameTests.java:26: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();var d=DescentPlayerData.get(p);d.setEnabled(true);d.setFlightVelocity(new Vec3d(0,-80,0));
+               ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BoardingGameTests.java:45: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var root=BlockBodyEntity.createLocal(w,cells,origin,q,Vec3d.ZERO,Vec3d.ZERO);var p=c.createMockCreativeServerPlayerInWorld();
+                                                                                            ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BoardingGameTests.java:82: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);
+               ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BoardingGameTests.java:154: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.getAbilities().flying=false;
+               ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BoardingGameTests.java:209: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            var other=c.createMockCreativeServerPlayerInWorld();
+                       ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/ShipGravityGameTests.java:35: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.getAbilities().flying=false;
+               ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java:17: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld(); var player=context.createMockCreativeServerPlayerInWorld();
+                                                        ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java:38: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld(); var player=context.createMockCreativeServerPlayerInWorld();
+                                                        ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java:53: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var world=context.getWorld(); var player=context.createMockCreativeServerPlayerInWorld();
+                                                        ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/FlightRecoveryGameTests.java:65: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=context.createMockCreativeServerPlayerInWorld();
+                          ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:77: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:90: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:104: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:115: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:166: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var p=c.createMockCreativeServerPlayerInWorld();try {
+         ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:177: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var p=c.createMockCreativeServerPlayerInWorld();p.changeGameMode(GameMode.SURVIVAL);DescentPlayerData.get(p).setEnabled(false);
+         ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/BodyWorldAccessGameTests.java:214: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+  var body=fixture(c,iron());var p=c.createMockCreativeServerPlayerInWorld();try {
+                                    ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/MechanismGameTests.java:43: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+    private ServerPlayerEntity player(TestContext c,Vec3d at){var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.setPosition(at);p.setStackInHand(Hand.MAIN_HAND,new ItemStack(ModWorldBlocks.MECHANISM_WRENCH));return p;}
+                                                                     ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/MountedMechanismGameTests.java:44: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+    private ServerPlayerEntity player(TestContext c,BlockBodyEntity b){var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.setPosition(b.localToWorld(new Vec3d(.5,-1,-2)));return p;}
+                                                                              ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/FusionPortalGameTests.java:89: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=c.createMockCreativeServerPlayerInWorld();
+                    ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/HullContactGameTests.java:25: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=c.createMockCreativeServerPlayerInWorld();player.setPosition(at.add(0,3,5));player.setNoGravity(true);player.getAbilities().flying=true;
+                    ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/UfoWeaponGameTests.java:62: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(p).setEnabled(false);p.setPosition(b.localToWorld(new Vec3d(3.5,.1,-1)));c.assertTrue(UfoControlSystem.claim(p,b),"actual console capture");return p;
+               ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/UfoWeaponGameTests.java:90: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var b=body(c);var p=pilot(c,b);var other=c.createMockCreativeServerPlayerInWorld();try {
+                                                  ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/UfoTurretAiGameTests.java:102: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            var installer=c.createMockCreativeServerPlayerInWorld();installer.setPosition(b.localToWorld(new Vec3d(3.5,.1,.5)));DescentPlayerData.get(installer).setEnabled(false);installer.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(ModWorldBlocks.SHIP_TURRET_KIT));
+                           ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/UfoTurretAiGameTests.java:104: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            var target=c.createMockCreativeServerPlayerInWorld();target.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);target.getAbilities().flying=false;target.setNoGravity(true);DescentPlayerData.get(target).setEnabled(false);target.setPosition(b.localToWorld(new Vec3d(30,12,12)));target.setVelocity(Vec3d.ZERO);
+                        ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/FragmentBoardingGameTests.java:37: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var player=c.createMockCreativeServerPlayerInWorld();DescentPlayerData.get(player).setEnabled(false);player.getAbilities().flying=false;
+                    ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/UfoAiGameTests.java:59: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+            var p=c.createMockCreativeServerPlayerInWorld();p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);p.getAbilities().flying=false;p.setNoGravity(true);DescentPlayerData.get(p).setEnabled(false);p.setPosition(b.localToWorld(new Vec3d(-2.5,-.4,44)));p.setVelocity(Vec3d.ZERO);
+                   ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/PortalProjectorGameTests.java:127: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=player(c);var q=c.createMockCreativeServerPlayerInWorld();BlockPos a=at(c,8,8),b=a.east(3);
+                               ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/PortalProjectorGameTests.java:142: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=c.createMockCreativeServerPlayerInWorld();p.setPosition(Vec3d.ofCenter(at.up(4)));return p;
+               ^
+/workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/PortalProjectorGameTests.java:214: warning: [removal] createMockCreativeServerPlayerInWorld() in TestContext has been deprecated and marked for removal
+        var p=player(c);var q=c.createMockCreativeServerPlayerInWorld();BlockPos a=at(c,8,8),b=at(c,24,8);
+                               ^
+Note: /workspace/ungravity-v5/economy-acceptance-20261116/src/gametest/java/com/terminaldetector/drmd/PortalProjectorGameTests.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+42 warnings
+
+[Incubating] Problems report is available at: file:///workspace/ungravity-v5/economy-acceptance-20261116/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.12/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 22s
+3 actionable tasks: 2 executed, 1 up-to-date

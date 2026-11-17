@@ -1,0 +1,1 @@
+state=Block{drmd:mechanical_bearing}[facing=south] held=1 minecraft:diamond_pickaxe canHarvest=false requiresTool=true miningSpeed=0.2 onGround=false pickaxeTag=false revision=3

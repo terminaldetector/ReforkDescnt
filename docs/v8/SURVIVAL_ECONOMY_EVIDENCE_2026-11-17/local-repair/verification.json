@@ -1,0 +1,45 @@
+{
+  "tested_source_sha": "3d4058108b1c19060eb8b04c708499c476f94e86",
+  "tracked_inputs_and_helpers_unchanged": true,
+  "tracked_inputs_verified": 1472,
+  "compile_exit": 0,
+  "gradle_gametest_exit": 1,
+  "game_exit": 2,
+  "result": "4PASS_2FAIL",
+  "cases": [
+    {
+      "name": "survivaleconomygametests.craftedrepairmustpreservestonedeepslateandnetherbrickmaterialfamilies",
+      "pass": true,
+      "failure": null
+    },
+    {
+      "name": "survivaleconomygametests.allthreeshipcomponentsmustbeindividuallycraftablethroughtherealtable",
+      "pass": true,
+      "failure": null
+    },
+    {
+      "name": "survivaleconomygametests.craftedrepairlasermustrepairactualpartialdamageonamovingmechanism",
+      "pass": true,
+      "failure": null
+    },
+    {
+      "name": "survivaleconomygametests.survivalminingpickupandreplacementrecoverbearingdriveandlaserexactlyonce",
+      "pass": false,
+      "failure": "(9077728, -60, -7301207) real declared diamond pickaxe must harvest recoverable component; diagnostic=reports/economy-salvage-0.txt"
+    },
+    {
+      "name": "survivaleconomygametests.craftedplacedandassembledbearingsanddriveperformrealsurvivalwork",
+      "pass": true,
+      "failure": null
+    },
+    {
+      "name": "survivaleconomygametests.craftedlaserandrocketconsumeplacementitemsandfirefromactuallevermaterial",
+      "pass": false,
+      "failure": "(9077754, -60, -7301207) actual validated local placement BlockPos{x=0, y=0, z=1} up; diagnostic=reports/economy-placement-661b6bce-30e2-49d8-868b-13eb16bdc203-11.txt"
+    }
+  ],
+  "own_java_processes": [],
+  "removed_only_after_archive_verification": "build/gametest/world",
+  "other_saves_or_caches_removed": false,
+  "lectern_page_limit_error_present": false
+}
