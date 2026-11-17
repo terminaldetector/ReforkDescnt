@@ -1,0 +1,18 @@
+{
+  "archive": "docs/v8/EVIDENCE/mission-ledger-fc54c41-units.zip",
+  "sha256": "a6b8960e5edf90f671a2b0fc7940ec1fc5c079bb4c6b99c8cfef194ba19f17b0",
+  "bytes": 168237,
+  "payloadFiles": 43,
+  "allHashesAndZIPCRCVerified": true,
+  "source": "fc54c416fdf1ba77339a909162cad21a32e122dd",
+  "processExit": 0,
+  "unitTests": 18,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "sourceInputsUnchanged": true,
+  "compiledClassFiles": 23,
+  "scope": "Targeted pure protocol/codec and FactionMemory NBT tests only; no actual owner interaction, cold disk reopen or full mission/spec acceptance",
+  "actualGameplayAccepted": false,
+  "coldReopenAccepted": false
+}
