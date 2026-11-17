@@ -1,0 +1,29 @@
+{
+  "source": "20ef2c4c8fd551e4326d2841601f9c56fa4a3a0a",
+  "internalVersion": "1.1.35-ufo-dev.1",
+  "gameJar": "drmd-6dof-1.1.35-ufo-dev.1-20ef2c4.jar",
+  "gameJarSha256": "ae446ebfe83258eb336c96ec2452418fe9357e661feae1f4a87ce776242d1dff",
+  "unitTests": 853,
+  "ordinaryGameTests": 442,
+  "entrypoints": 71,
+  "nativeCases": [
+    "actual noedit saved-cache surface arrival",
+    "actual PS1 colour/profile/mirror/HUD/viewmodel"
+  ],
+  "nativeFrames": 40,
+  "actualDepthArrays": 10,
+  "report": "../../../docs/v8/MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md",
+  "releaseAccepted": false,
+  "published": false,
+  "newFeatures": [
+    "manual bounded city authoring",
+    "first planet snapshot retains accepted surface packets"
+  ],
+  "knownOpen": [
+    "unknown-cube fluid continuation",
+    "cloud far visibility/occlusion",
+    "full 3D AI and Boarding",
+    "native drone preview",
+    "whole city destruction and endurance"
+  ]
+}
