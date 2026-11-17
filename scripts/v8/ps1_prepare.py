@@ -31,6 +31,8 @@ with zipfile.ZipFile(p) as z:
     assert z.testzip() is None and not any(n.startswith('com/terminaldetector/') for n in z.namelist())
 q.parent.mkdir(parents=True,exist_ok=True);os.link(p,q)
 scenario=os.environ['PS1_SCENARIO'];launch=runtime/'launch.json';args=json.loads(launch.read_text());args.insert(1,'-Ddrmd.gate.presentation=true');launch.write_text(json.dumps(args,indent=2)+'\n')
+if 'viewmodel' in scenario:
+    args.insert(1,'-Ddrmd.gate.viewmodel=true');launch.write_text(json.dumps(args,indent=2)+'\n')
 if 'fabulous' in scenario:
     with (runtime/'options.txt').open('a') as f:f.write('graphicsMode:2\n')
 manifest.update(sourceSha=stamp['sourceSha'],candidateJars=stamp['jars'],officialStagerSha256=module.digest(official),scenario=scenario,

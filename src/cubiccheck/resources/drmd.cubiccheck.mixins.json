@@ -5,6 +5,11 @@
   "client": [
     "CubicFrameProbe",
     "PresentationOverlayProbe",
+    "ViewmodelFrameProbe",
+    "ViewmodelBoxProbe",
+    "ViewmodelOverlayProbe",
+    "ViewmodelLayerProbe",
+    "ViewmodelCockpitProbe",
     "CubicTerrainProbe",
     "NativeMirrorCameraProbe",
     "ActorModelProbe",
