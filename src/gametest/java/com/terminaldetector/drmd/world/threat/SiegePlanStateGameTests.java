@@ -99,7 +99,7 @@ public final class SiegePlanStateGameTests implements FabricGameTest {
         InactiveFixture(TestContext c){
             world=c.getWorld();mobRule=world.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING);
             world.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(true,world.getServer());
-            var client=ConnectedClientData.createDefault(new GameProfile(UUID.randomUUID(),"siege-intent-fixture"),false);
+            var client=ConnectedClientData.createDefault(new GameProfile(UUID.randomUUID(),"siege-intent"),false);
             player=new ServerPlayerEntity(world.getServer(),world,client.gameProfile(),client.syncedOptions());
             var connection=new ClientConnection(NetworkSide.SERVERBOUND);channel=new EmbeddedChannel(connection);
             world.getServer().getPlayerManager().onPlayerConnect(connection,player,client);
