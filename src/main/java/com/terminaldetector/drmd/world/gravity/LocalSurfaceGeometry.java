@@ -22,6 +22,17 @@ final class LocalSurfaceGeometry {
         return !world.getBlockCollisions(actor,box.contract(EPS)).iterator().hasNext()&&raySupport(actor,feet,up);
     }
 
+    /** One loaded-only contact/material snapshot per dry travel; unknown and moving support are not inferred. */
+    static BlockPos supportMaterial(LivingEntity actor,Vec3d up) {
+        if(!(actor.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())return null;
+        var box=ActorFrames.body(actor,actor.getPos(),up);
+        if(!known(world,box.union(box.offset(up.multiply(-1.6))).expand(1))
+            ||world.getBlockCollisions(actor,box.contract(EPS)).iterator().hasNext()
+            ||!BodySpatialIndex.query(world,box).isEmpty())return null;
+        var hit=raySupportHit(actor,actor.getPos(),up);
+        return hit==null?null:hit.getBlockPos().toImmutable();
+    }
+
     static boolean clear(LivingEntity actor,Vec3d from,Vec3d to,Vec3d up,boolean margin) {
         if(!(actor.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())return false;
         double length=from.distanceTo(to);
@@ -38,12 +49,13 @@ final class LocalSurfaceGeometry {
         return true;
     }
 
-    private static boolean raySupport(LivingEntity actor,Vec3d feet,Vec3d up) {
+    private static boolean raySupport(LivingEntity actor,Vec3d feet,Vec3d up) {return raySupportHit(actor,feet,up)!=null;}
+    private static net.minecraft.util.hit.BlockHitResult raySupportHit(LivingEntity actor,Vec3d feet,Vec3d up) {
         var hit=actor.getWorld().raycast(new RaycastContext(feet.add(up.multiply(.04)),feet.subtract(up.multiply(1.6)),
             RaycastContext.ShapeType.COLLIDER,RaycastContext.FluidHandling.NONE,actor));
-        if(hit.getType()!=HitResult.Type.BLOCK||Vec3d.of(hit.getSide().getVector()).dotProduct(up)<NORMAL_DOT)return false;
+        if(hit.getType()!=HitResult.Type.BLOCK||Vec3d.of(hit.getSide().getVector()).dotProduct(up)<NORMAL_DOT)return null;
         double gap=feet.subtract(hit.getPos()).dotProduct(up);
-        return gap>=-EPS&&gap<=SKIN;
+        return gap>=-EPS&&gap<=SKIN?hit:null;
     }
 
     private static boolean known(ServerWorld world,Box query) {

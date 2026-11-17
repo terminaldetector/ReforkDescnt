@@ -21,6 +21,7 @@
     "LocalSpiderNavigationMixin",
     "LocalSurfaceMotorMixin",
     "LocalSurfaceInputMixin",
+    "LocalSurfaceTravelMixin",
     "PortalMotionMixin",
     "MultiNoiseBiomeSourceMixin",
     "FootGravityGeometryMixin",

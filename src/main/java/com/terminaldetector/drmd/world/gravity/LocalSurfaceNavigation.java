@@ -64,6 +64,16 @@ public final class LocalSurfaceNavigation {
         var field=GravityFields.sample(actor.getWorld(),actor.getPos());
         return field!=null&&field.strength()>=.05f&&field.upDir().normalize().distanceTo(ActorFrames.up(actor))<1e-6;
     }
+    /** First force adapter covers native cardinal Spider/Cave frames, including a pathless native jump. */
+    public static Vec3d cardinalPhysicsUp(Entity entity) {
+        if(!(entity instanceof SpiderEntity actor)
+            ||actor.getType()!=net.minecraft.entity.EntityType.SPIDER&&actor.getType()!=net.minecraft.entity.EntityType.CAVE_SPIDER
+            ||!active(actor))return null;
+        return LocalSurfaceMotion.cardinalUp(ActorFrames.up(actor));
+    }
+    public static BlockPos supportMaterial(net.minecraft.entity.LivingEntity actor,Vec3d up) {
+        return LocalSurfaceGeometry.supportMaterial(actor,up);
+    }
     public static boolean localMotor(MobEntity actor) {
         return actor instanceof SpiderEntity spider&&active(spider)
             &&spider.getNavigation().getCurrentPath() instanceof LocalSurfacePath p&&p.matches(ActorFrames.up(spider));
