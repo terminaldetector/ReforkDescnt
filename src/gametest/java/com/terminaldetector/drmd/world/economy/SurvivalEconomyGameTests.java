@@ -1,6 +1,9 @@
 package com.terminaldetector.drmd.world.economy;
 
 import com.terminaldetector.drmd.entity.*;
+import com.terminaldetector.drmd.DescentPlayerData;
+import com.terminaldetector.drmd.weapon.core.WeaponCore;
+import com.terminaldetector.drmd.weapon.items.DescentWeaponItem;
 import com.terminaldetector.drmd.world.contraption.*;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.block.*;
@@ -111,15 +114,32 @@ public final class SurvivalEconomyGameTests implements FabricGameTest {
         f.components(6,1);f.craft("weapon_d6_mg");f.craft("repair_laser");f.craft("rotary_drive");var b=f.carrier();var drive=new BlockPos(0,0,1);
         f.placeLocal(b,BlockPos.ORIGIN,Direction.SOUTH,ModWorldBlocks.ROTARY_DRIVE.asItem());
         f.after(5,()->{
-            f.hold(item("weapon_d6_mg"));f.aimCell(b,drive,Direction.SOUTH);f.itemUse();long fired=c.getTick();boolean[] observed={false};
+            f.hold(item("weapon_d6_mg"));f.aimCell(b,drive,Direction.SOUTH);
+            var def=((DescentWeaponItem)f.p.getMainHandStack().getItem()).getDef();var direction=WeaponCore.aimDir(f.p).normalize();
+            var muzzleBefore=WeaponCore.muzzleFor(f.p,def.id,1);var toward=b.localToWorld(Vec3d.ofCenter(drive)).subtract(muzzleBefore);
+            // MG's real first mount is one metre sideways and0.625m down from the
+            // view axis. Position the test shooter so that actual barrel, not a
+            // substituted projectile ray, points through the selected material.
+            var correction=toward.subtract(direction.multiply(toward.dotProduct(direction)));f.p.setPosition(f.p.getPos().add(correction));
+            var muzzle=WeaponCore.muzzleFor(f.p,def.id,1);var bore=new BlockBodyWorldAccess(b).raycastBlockBody(muzzle,muzzle.add(direction.multiply(16)));
+            String aim="eye="+f.p.getEyePos()+" view="+BodyBlockInteraction.viewDirection(f.p)+" actualAim="+direction+" validAttitude="+DescentPlayerData.get(f.p).hasShipAttitude()+" primaryMuzzle="+muzzle+" shooterCorrection="+correction+" bore="+bore;
+            c.assertTrue(bore.isPresent()&&bore.get().localBlock().equals(drive),"real primary barrel must reach selected drive before firing: "+aim);
+            var oldShots=new HashSet<UUID>();for(var e:f.w.iterateEntities())if(e instanceof ProjectileEntity)oldShots.add(e.getUuid());
+            var shots=new LinkedHashMap<UUID,ProjectileEntity>();var trail=new ArrayList<String>();long fired=c.getTick();boolean[] observed={false};float energyBefore=DescentPlayerData.get(f.p).getEnergy();
+            Runnable sample=()->{
+                for(var e:f.w.iterateEntities())if(e instanceof ProjectileEntity shot&&!oldShots.contains(e.getUuid())&&shots.size()<8){shots.putIfAbsent(e.getUuid(),shot);f.extras.add(e.getUuid());}
+                if(trail.size()<24)for(var shot:shots.values())if(trail.size()<24)trail.add("t="+(c.getTick()-fired)+" id="+shot.getUuid()+" owner="+(shot.getOwnerEntity()==null?null:shot.getOwnerEntity().getUuid())+" p="+shot.getPos()+" v="+shot.getVelocity()+" alive="+shot.isAlive()+" age="+shot.age);
+            };
+            f.itemUse();float energyAfter=DescentPlayerData.get(f.p).getEnergy();sample.run();
+            java.util.function.Supplier<String> diagnostic=()->aim+" energy="+energyBefore+"->"+energyAfter+" target="+b.getLocalBlock(drive)+" damaged="+b.cells().stream().filter(cell->b.materialDamage(cell.pos())>0).map(cell->cell.pos()+":"+b.materialDamage(cell.pos())).toList()+" projectiles="+trail;
             f.observe=()->{
-                if(observed[0])return;double damage=b.materialDamage(drive);
-                if(damage<=0){c.assertTrue(c.getTick()-fired<100,"actual crafted MG projectile must first damage the selected physical drive");return;}
+                if(observed[0])return;sample.run();double damage=b.materialDamage(drive);
+                if(damage<=0){c.assertTrue(c.getTick()-fired<100,"actual crafted MG projectile must first damage the selected physical drive: "+diagnostic.get());return;}
                 observed[0]=true;c.assertTrue(b.getLocalBlock(drive).isOf(ModWorldBlocks.ROTARY_DRIVE),"damage is partial, not destruction/replacement");
                 var id=b.getUuid();double mass=b.physicsMass();var velocity=b.physics().linearVelocity();var angular=b.physics().angularMomentum();
                 c.assertTrue(velocity.length()>1e-10||angular.length()>1e-10,"the real impact gives the mechanism actual physical motion before repair");
                 f.hold(ModWorldBlocks.REPAIR_LASER);f.aimCell(b,drive,Direction.SOUTH);f.itemUse();
-                c.assertTrue(b.materialDamage(drive)<damage,"actual crafted repair use must reduce local mechanism damage; before="+damage+" after="+b.materialDamage(drive));
+                c.assertTrue(b.materialDamage(drive)<damage,"actual crafted repair use must reduce local mechanism damage; before="+damage+" after="+b.materialDamage(drive)+" "+diagnostic.get());
                 c.assertTrue(b.getUuid().equals(id)&&b.physicsMass()==mass&&b.physics().linearVelocity().equals(velocity)&&b.physics().angularMomentum().equals(angular),"partial repair preserves body identity, material mass and physical motion");f.done();
             };
         });
