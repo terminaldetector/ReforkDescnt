@@ -1,0 +1,408 @@
+{
+  "baseSource": "6b50273c6896433a2d5caf68991150126e897245",
+  "testedSource": "83a12773253ca01fa2f9518bc4297a25fde8c675",
+  "archive": "EVIDENCE/siege-plan-intent-first-positive-83a1277.zip",
+  "archiveSha256": "78e7073f018e13874d81a372a1daa1a25a1ef39f90f1aa2260a4aa7aebced890",
+  "verifiedPayloadCount": 132,
+  "allPayloadShaAndZipCrc": "PASS",
+  "classification": {
+    "source": "83a12773253ca01fa2f9518bc4297a25fde8c675",
+    "unitPassed": 22,
+    "newUnitCases": 13,
+    "retainedUnitCases": 9,
+    "gameTestPassed": 13,
+    "newGameTestCases": 8,
+    "retainedGameTestCases": 5,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "firstOutcomeNoRetry": true,
+    "unitExit": 0,
+    "gameTestExit": 0,
+    "sourceBuildInputHashes": 1596,
+    "sourceUnchangedBothPhases": true,
+    "cases": {
+      "unit": [
+        {
+          "name": "onlineGraceAndFullWarningCannotBeSpentByAnOfflineWorldClockGap()",
+          "classname": "com.terminaldetector.drmd.world.threat.SiegePlanTest",
+          "time": "0.017",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "hiddenOrRereadPointDoesNotRefreshObservationOrFollowAHiddenMovement()",
+          "classname": "com.terminaldetector.drmd.world.threat.SiegePlanTest",
+          "time": "0.012",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "lateAcknowledgementInvalidatesThePermitBeforeAnOldTimestampReplay()",
+          "classname": "com.terminaldetector.drmd.world.threat.SiegePlanTest",
+          "time": "0.003",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "escapeIneligibilityOrConfirmedPairDefeatClosesFireWithoutAReplacement()",
+          "classname": "com.terminaldetector.drmd.world.threat.SiegePlanTest",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "futureIdentityBindingIsDistinctIrreversibleDataAndRequiredForFire()",
+          "classname": "com.terminaldetector.drmd.world.threat.SiegePlanTest",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "hideReacquireAndRestoreCannotExtendTheFixedEncounter()",
+          "classname": "com.terminaldetector.drmd.world.threat.SiegePlanTest",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "foreignInstancePermitHasNoAuthorityEvenWithTheSameSnapshotIdentity()",
+          "classname": "com.terminaldetector.drmd.world.threat.SiegePlanTest",
+          "time": "0.0",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "invalidOrExhaustedClockCannotCreateAShortenedWarning()",
+          "classname": "com.terminaldetector.drmd.world.threat.SiegePlanTest",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "actualEmissionIdentityConsumesOnceAndCannotBeReusedByTheOtherSlot()",
+          "classname": "com.terminaldetector.drmd.world.threat.SiegePlanTest",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "failedReadinessNeverQueuesARequestOrDebitsTheProposedAllowance()",
+          "classname": "com.terminaldetector.drmd.world.threat.SiegePlanTest",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "snapshotsAndUpdatesCannotDropHistoryOrRestartAnAlreadyIssuedWarning()",
+          "classname": "com.terminaldetector.drmd.world.threat.SiegePlanTest",
+          "time": "0.005",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "loadingCannotRestoreAnUnacknowledgedCurrentTickPermit()",
+          "classname": "com.terminaldetector.drmd.world.threat.SiegePlanTest",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "exactlyTenFiniteAcknowledgementsRetireBothSlotsAndSurviveReload()",
+          "classname": "com.terminaldetector.drmd.world.threat.SiegePlanTest",
+          "time": "0.06",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "reloadingSearchKeepsTheLifetimePatrolAllowanceEvenAfterActorsDisappear()",
+          "classname": "com.terminaldetector.drmd.world.threat.ThreatProgressTest",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "earlyNaturalDetectionDoesNotCancelTheSecondInitialPatrolSlot()",
+          "classname": "com.terminaldetector.drmd.world.threat.ThreatProgressTest",
+          "time": "0.0",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "defeatedPatrolStartsOnePersistedCooldownAndCannotBeReplaced()",
+          "classname": "com.terminaldetector.drmd.world.threat.ThreatProgressTest",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "lateAlarmProcessingStillGivesTheEntireWarning()",
+          "classname": "com.terminaldetector.drmd.world.threat.ThreatProgressTest",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "offlineWorldClockCannotSpendNoviceProtectionOrSkipTheWarning()",
+          "classname": "com.terminaldetector.drmd.world.threat.ThreatProgressTest",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "lostSightSearchesTheLastActualObservationWithoutFollowingHiddenMovement()",
+          "classname": "com.terminaldetector.drmd.world.threat.ThreatProgressTest",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "snapshotsRejectNonfiniteLocationsAndImpossibleAllowances()",
+          "classname": "com.terminaldetector.drmd.world.threat.ThreatProgressTest",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "leavingTheAlarmAreaRetiresAnActiveEncounterAndExpiredQuietAlarmsDoNothing()",
+          "classname": "com.terminaldetector.drmd.world.threat.ThreatProgressTest",
+          "time": "0.0",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "hideAndReacquireNeverExtendTheFiniteEncounter()",
+          "classname": "com.terminaldetector.drmd.world.threat.ThreatProgressTest",
+          "time": "0.0",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        }
+      ],
+      "gametest": [
+        {
+          "classname": "fabric-gametest-api-v1:empty",
+          "name": "survivalthreatgametests.realreconacquiresnaturallylosessightandstopsafteritspairisdefeated",
+          "time": "2.331",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "classname": "fabric-gametest-api-v1:empty",
+          "name": "siegeplancodecbaselinegametests.missingextensionkeepsexactlegacyrecondefaults",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "classname": "fabric-gametest-api-v1:empty",
+          "name": "siegeplancodecbaselinegametests.futureextensionremainsopaqueanddoesnotresetlegacyprogress",
+          "time": "0.0",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "classname": "fabric-gametest-api-v1:empty",
+          "name": "survivalthreatgametests.actualpersistentstatefilesrestorecooldownrosterandvictimdeduplication",
+          "time": "0.003",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "classname": "fabric-gametest-api-v1:empty",
+          "name": "siegeplanstategametests.actualpersistentstatereopenkeepsfiniteackswithoutreconstructingpermits",
+          "time": "0.022",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "classname": "fabric-gametest-api-v1:empty",
+          "name": "survivalthreatgametests.unavailablealarmvolumescannotcreateactorsorgeneratechunks",
+          "time": "0.098",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "classname": "fabric-gametest-api-v1:empty",
+          "name": "siegeplancodecbaselinegametests.corruptneighbourcannoterasethevalidplanorexistingrecon",
+          "time": "0.0",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "classname": "fabric-gametest-api-v1:empty",
+          "name": "survivalthreatgametests.nodroneappearsbeforethepersistedwarningdeadline",
+          "time": "0.736",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "classname": "fabric-gametest-api-v1:empty",
+          "name": "siegeplanstategametests.boundedintentupdatesneverreservereconandcannotrollbackfinitehistory",
+          "time": "0.004",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "classname": "fabric-gametest-api-v1:empty",
+          "name": "siegeplanstategametests.actualenabledsurvivalticksdonotexecuteplannedwarningorsiegedata",
+          "time": "0.666",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "classname": "fabric-gametest-api-v1:empty",
+          "name": "survivalthreatgametests.onlyanactualsurvivalmachinekillcreatesanattributeddeduplicatedalarm",
+          "time": "0.106",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "classname": "fabric-gametest-api-v1:empty",
+          "name": "siegeplanstategametests.unsupportedandoversizedsubtreesarereadonlydefensivecopies",
+          "time": "0.014",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "classname": "fabric-gametest-api-v1:empty",
+          "name": "siegeplancodecbaselinegametests.supportednonexecutableplansurvivesroundtripwithoutchangingrecon",
+          "time": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        }
+      ]
+    },
+    "oldBaseline": {
+      "source": "dca31b2cdfaee28ba8a06acb16305242e9fb18d8",
+      "executed": false,
+      "scope": "Expected old behavior only; no claimed chronological negative or live bug."
+    },
+    "scope": "Pure intent/order +optionalboundedPersistentState protocol. No production director/actor/goal/projectile/mechanism change or auto-raids. Stock focused proof only, not fullintegration/native/JAR/liveSIEGE.",
+    "actualLedgerInspection": {
+      "scope": "Post-close independent read of original actual saved bytes; no Java/rewrite/reconstruction",
+      "files": [
+        {
+          "file": "runtime-proof/history-15144144957825628429/ledger.dat",
+          "sha256": "2890ae56ad1022bf2bde348519e43b56a43da4d7e88654cb85c50e5f6375a518",
+          "gzipCRC": "PASS",
+          "nbtConsumedExactly": true,
+          "compressedBytes": 761,
+          "decodedBytes": 1395,
+          "dataVersion": 3955,
+          "legacyPlayers": 1,
+          "legacyActors": 1,
+          "legacyVictims": 1,
+          "extensionSchema": 1,
+          "rawPlanCount": 1,
+          "planPhase": "SIEGE",
+          "ackCount": 1,
+          "futureBindings": 2
+        },
+        {
+          "file": "runtime-proof/opaque-future-11415561074617432323/ledger.dat",
+          "sha256": "3165025eab4b87de0e6c18a5b0f66106d1a5f7fdc420abb153f803d278d402c6",
+          "gzipCRC": "PASS",
+          "nbtConsumedExactly": true,
+          "compressedBytes": 642,
+          "decodedBytes": 1259,
+          "dataVersion": 3955,
+          "legacyPlayers": 1,
+          "legacyActors": 1,
+          "legacyVictims": 1,
+          "extensionSchema": 37,
+          "rawPlanCount": 1
+        },
+        {
+          "file": "runtime-proof/opaque-oversized-10632605735094605359/ledger.dat",
+          "sha256": "b4e7cf172022fa8b7914d63a2306399c7295b7fc3011a1f16ad15ca4b080f0c7",
+          "gzipCRC": "PASS",
+          "nbtConsumedExactly": true,
+          "compressedBytes": 904,
+          "decodedBytes": 6835,
+          "dataVersion": 3955,
+          "legacyPlayers": 1,
+          "legacyActors": 1,
+          "legacyVictims": 1,
+          "extensionSchema": 1,
+          "rawPlanCount": 9
+        }
+      ]
+    },
+    "actualNormalSurvival": {
+      "startWorldTime": 649,
+      "mode": "SURVIVAL",
+      "mobSpawning": true,
+      "warningStarted": 669,
+      "fullWarningEnd": 1069,
+      "siegeDtoStoredAt": 1069,
+      "finishedAt": 1089,
+      "actualTicks": 440,
+      "hp": 20,
+      "liveRoster": 0,
+      "storedIntentStayedUnchangedDuringRealTicks": true
+    },
+    "mainProductionFiles": [
+      "world/threat/SiegePlan.java",
+      "world/threat/SiegePlans.java",
+      "world/threat/SurvivalThreatState.java"
+    ],
+    "rootRegistration": {
+      "newGameTestClasses": [
+        "com.terminaldetector.drmd.world.threat.SiegePlanCodecBaselineGameTests",
+        "com.terminaldetector.drmd.world.threat.SiegePlanStateGameTests"
+      ],
+      "newGameTests": 8,
+      "newUnitTests": 13,
+      "retainedThreatTestsAlreadyOrdinary": true
+    },
+    "worldFiles": 49,
+    "worldBytes": 9912304,
+    "installableJarProduced": false,
+    "currentRoot20efBinaryContainsThisPacket": false,
+    "openAcceptance": [
+      "root review and unmasked full integration",
+      "native/gameplay sight and emission producer",
+      "live siege/task fire ownership",
+      "friendly player modular AA",
+      "ground rocketeer/bestiary identity",
+      "novice balance and resource progression",
+      "completeS12/S11/master/boarding"
+    ]
+  },
+  "scope": "Only first non-autostart protocol/persistence/isolation. No liveSIEGE/native/fullintegration/package claim; optionalolddca baselineunexecuted."
+}
