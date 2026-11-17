@@ -1,0 +1,10 @@
+{
+  "testedSource": "4bafa39e142fb9519bba49f4baaaf531c1d6094a",
+  "preservationCommit": "ab4db2e8a812ec4d5bae8ea368e79d72c6544b41",
+  "files": 195,
+  "bytes": 52632147,
+  "archiveSha256": "4ed8e6483383356d24c880bc1516227cc75d18666c569bd0a8311cfe47bcf4a7",
+  "allLiveAndArchivedHashesAndCRC": true,
+  "exclusiveSessionLocks": true,
+  "scope": "closed own focused derivative only; no other active/canonical/donor paths touched"
+}

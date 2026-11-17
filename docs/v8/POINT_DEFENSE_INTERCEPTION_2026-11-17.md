@@ -144,3 +144,26 @@ interception, the complete owner-mode/flood matrix, arbitrary moving-hull
 timing, large barrages, player ownership/economy/mechanical mounts and complete
 S12/S11/master/boarding remain open. No other production feature is changed
 as part of the lifecycle activation.
+
+## Separate production startup activation, unmasked full gate pending
+
+Lifecycle-only `b552cf027689b640aac30b2490baab3308758eca` adds the service's
+one call immediately after `ModWorldBlocks.register()` in `DescentMod` and
+removes both component-test bootstrap calls. A source search finds only that
+main initializer call. `register()` is synchronized/idempotent: it installs
+one END_WORLD_TICK tagged-impact flush and one UNLOAD state cleanup. Ordinary
+missiles are never queued by that cleanup. The original natural baseline
+class is now byte-identical to the first `f4a03f7` source, and all assertions
+are unchanged. No additional Java run occurred here.
+
+The component proof remains exact4bafa; this activation source is a distinct
+unmasked runtime candidate. Root will register only the two new classes/twelve
+cases and run its complete843unit/442GameTest/71entrypoint gate, counting
+actual XML. No full/startup/JAR claim is made before that different source
+passes. The29 retained focused cases must not be registered again.
+
+After committing the first archive, the closed private derivative's195 files
+were checked against every archived SHA and ZIP CRC, with exclusive session
+locks, then reclaimed. The committed preservation receipt retains the exact
+52,632,147-byte inventory. Other active worlds/donors/canonical paths were
+untouched.
