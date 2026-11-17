@@ -1,0 +1,10 @@
+{
+  "sourceSha": "bd29aab11f6fcba71f5234b64616d2284bf0aec8",
+  "scope": "Read-only snapshot of actual frozen tracked native helpers; no build or source change",
+  "files": {
+    "cubic_surface_build.sh": "93a87f38e4cc16fa9e56437c86039f5c2cd73513d29d5467566a50476d1f2878",
+    "cubic_surface_build_stamp.py": "575a7cd4d94a58c5cb7f29f269f84e82f2ed09a973bfa810a37046598b49cbab",
+    "cubic_surface_native.sh": "fabd95b5f2a92185da43f0ce9d25106483b6818ce5a074ca17708899139a09bf",
+    "cubic_surface_prepare.py": "e018fd449e1cec06aadf742d700f7b5c9bc01aa350781411e3aa5637bcba418c"
+  }
+}

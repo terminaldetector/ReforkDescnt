@@ -1,0 +1,37 @@
+{
+  "loadedControls": [
+    {
+      "scene": "loaded-known-gold",
+      "cell": {
+        "height": 2301,
+        "colour": 16445005
+      },
+      "packetFile": "packets/packet-4.bin"
+    },
+    {
+      "scene": "loaded-demolition-lime",
+      "cell": {
+        "height": 2299,
+        "colour": 8375321
+      },
+      "packetFile": "packets/packet-5.bin"
+    },
+    {
+      "scene": "loaded-restored-gold",
+      "cell": {
+        "height": 2301,
+        "colour": 16445005
+      },
+      "packetFile": "packets/packet-6.bin"
+    }
+  ],
+  "receivedPacket7Cell0": {
+    "height": 2301,
+    "colour": 0
+  },
+  "persistedCell0": {
+    "height": 2301,
+    "colour": 0
+  },
+  "scope": "Original real packet/disk bytes decoded independently; no new runtime or simulated values"
+}
