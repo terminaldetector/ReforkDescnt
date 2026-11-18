@@ -109,7 +109,7 @@ public class DroneEntity extends HostileEntity {
         double x=getLerpTargetX(),y=getLerpTargetY(),z=getLerpTargetZ();float yaw=getLerpTargetYaw(),pitch=getLerpTargetPitch();
         if(!Double.isFinite(x)||!Double.isFinite(y)||!Double.isFinite(z)||!Float.isFinite(yaw)||!Float.isFinite(pitch))return;
         super.updateTrackedPositionAndAngles(x,y,z,yaw,pitch,0);super.updateTrackedHeadRotation(yaw,0);
-        setPosition(x,y,z);setYaw(yaw);setPitch(pitch);resetPortalDisplayHistory();
+        setPosition(x,y,z);setYaw(yaw);setPitch(pitch);setHeadYaw(yaw);resetPortalDisplayHistory();
     }
     @Override public void handleStatus(byte status){
         if(status==PORTAL_DISCONTINUITY_STATUS){snapPortalDisplayFromNativeTarget();return;}
