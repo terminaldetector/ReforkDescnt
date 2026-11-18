@@ -75,7 +75,8 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     private boolean collisionUnavailable;
     /** Non-ticking entities retain their momentum for resume, but their current contact surface is still. */
     public boolean boardingMotionPaused(){return getWorld().isClient?remoteMotionPaused:physicsTick!=getWorld().getTime();}
-    private final BodyRotationTimeline displayRotation = new BodyRotationTimeline();
+    private long portalEpoch;
+    private final BodyPortalDisplay displayRotation = new BodyPortalDisplay();
     private double radius = .5;
     private Vec3 longAxis = new Vec3(0, 1, 0);
     private Vec3 localAim=new Vec3(0,0,0);
@@ -522,8 +523,13 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         if (getWorld().isClient && body != null) {
             if (SHAPE.equals(data)||PATCHES.equals(data))receiveShape(SHAPE.equals(data));
             if (POSE.equals(data)) {
-                previousRotation = body.rotation(); readPose(dataTracker.get(POSE));
-                displayRotation.receive(body.rotation(),age);
+                var incoming=dataTracker.get(POSE);if(!incoming.contains("qw"))return;
+                var q=new Quat(incoming.getDouble("qx"),incoming.getDouble("qy"),incoming.getDouble("qz"),incoming.getDouble("qw"));
+                var origin=incoming.contains("originx")?vector(incoming,"origin"):null;
+                var update=displayRotation.receivePose(incoming.getLong("portalEpoch"),q,origin,age);
+                if(!update.accepted())return;
+                previousRotation=body.rotation();readPose(incoming);
+                if(update.discontinuity())snapPortalDisplay(update.snapOrigin());
             }
             BodySpatialIndex.update(this);
         }
@@ -532,6 +538,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         NbtCompound tag = new NbtCompound();
         Quat q = body.rotation(); tag.putDouble("qx", q.x()); tag.putDouble("qy", q.y());
         tag.putDouble("qz", q.z()); tag.putDouble("qw", q.w());
+        tag.putLong("portalEpoch",portalEpoch);vector(tag,"origin",pure(getPos()));
         tag.putBoolean("gravity",gravity);
         tag.putBoolean("motionPaused",boardingMotionPaused());
         vector(tag,"passengerGravity",passengerGravity);
@@ -548,6 +555,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     private void readPose(NbtCompound n) {
         if (!n.contains("qw")) return;
+        portalEpoch=n.getLong("portalEpoch");
         gravity=n.getBoolean("gravity");
         remoteMotionPaused=n.getBoolean("motionPaused");
         passengerGravity=vector(n,"passengerGravity");passengerField(passengerGravity);
@@ -564,7 +572,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             if(validLocal(pos)&&!getLocalBlock(pos).isAir()&&Double.isFinite(amount)&&amount>0&&amount<materialStrength(pos))materialDamage.put(pos,amount);
         }
         body.withPosition(massPosition()); previousRotation = body.rotation();
-        displayRotation.reset(body.rotation(),age);
+        displayRotation.reset(portalEpoch,body.rotation(),age);
         resetShapeBaseline(); dataTracker.set(POSE, pose());BodySpatialIndex.update(this);
     }
     @Override protected void writeCustomDataToNbt(NbtCompound n) {
@@ -1041,11 +1049,25 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             return !blocked();
         } finally { body.withPosition(previous).withRotation(rotation); }
     }
+    /** Non-consuming normal tracker snapshot; normal entity tracking still owns dirty admission. */
+    public List<DataTracker.SerializedEntry<?>> portalTrackedPose(){return List.of(DataTracker.SerializedEntry.of(POSE,dataTracker.get(POSE)));}
     public void crossPortal(D6PortalTransform transform) {
         body.withPosition(massPosition()); transform.apply(body, null);
+        pendingTorque=transform.transformVelocity(pendingTorque);
         // Portal discontinuities are not straight trajectories through intervening terrain.
         previousPhysicsPosition=body.position();previousRotation=body.rotation();
-        positionFromPhysics(); dataTracker.set(POSE,pose());
+        positionFromPhysics();portalEpoch=Math.incrementExact(portalEpoch);dataTracker.set(POSE,pose());
+    }
+    /** A portal's POSE carries its authoritative entity pivot; never interpolate the world gap. */
+    private void snapPortalDisplay(Vec3 origin){
+        setPosition(origin.x(),origin.y(),origin.z());
+        prevX=lastRenderX=origin.x();prevY=lastRenderY=origin.y();prevZ=lastRenderZ=origin.z();
+        previousPhysicsPosition=massPosition();previousRotation=body.rotation();
+        setBoundingBox(new Box(getPos(),getPos()).expand(radius));BodySpatialIndex.update(this);
+    }
+    @Override public void updateTrackedPositionAndAngles(double x,double y,double z,float yaw,float pitch,int interpolationSteps){
+        if(getWorld().isClient&&displayRotation.receivePosition(new Vec3(x,y,z))==BodyPortalDisplay.PositionAction.ALREADY_AT_WARP_DESTINATION){setYaw(yaw);setPitch(pitch);return;}
+        super.updateTrackedPositionAndAngles(x,y,z,yaw,pitch,interpolationSteps);
     }
     @Override public boolean canHit() { return true; }
     private static Vec3 pure(Vec3d v) { return new Vec3(v.x,v.y,v.z); }

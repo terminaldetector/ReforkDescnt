@@ -38,6 +38,10 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 	public ChargedMirrorBlockEntity(BlockPos pos, BlockState state) {
 		super(ModBlockEntities.CHARGED_MIRROR, pos, state);
 	}
+	@Override public void markRemoved(){
+		if(world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
+		super.markRemoved();
+	}
 
 	public UUID getAttachedEntityId() { return attachedEntityId; }
 	public void setAttachedEntityId(UUID id) { this.attachedEntityId = id; markDirty(); }
@@ -47,6 +51,7 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 	@Nullable public RegistryKey<World> getLinkPartnerDim() { return linkPartnerDim; }
 
 	public void setLink(UUID attachedEntityId, BlockPos partnerPos, RegistryKey<World> partnerDim) {
+		if(world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
 		this.attachedEntityId = attachedEntityId;
 		this.linked = true;
 		this.linkPartnerPos = partnerPos;
@@ -62,6 +67,7 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 	 * and is not. With ImmPtl it is worse than untidy — the far portal entity outlives its own block.
 	 */
 	public void clearLink() {
+		if(world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
 		this.attachedEntityId = null;
 		this.linked = false;
 		this.linkPartnerPos = null;
@@ -111,10 +117,11 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 			return;
 		}
 		if (!(state.getBlock() instanceof ChargedMirrorBlock)) return;
+		com.terminaldetector.drmd.world.portal.PortalExitInterest.observe(serverWorld,pos,be.linkPartnerPos,FACE_HALF_SPAN);
 
 		// A saved link is not permission to load its destination every server tick.
 		// Keep the link while the partner is unavailable and retry once it is loaded.
-		if (!world.isChunkLoaded(be.linkPartnerPos)) return;
+		if (com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(be.linkPartnerPos).isEmpty()) return;
 		BlockState partnerState = world.getBlockState(be.linkPartnerPos);
 		if (!(partnerState.getBlock() instanceof ChargedMirrorBlock)) {
 			DiagProblems.record("portal", "mirror at " + pos + " points at " + be.linkPartnerPos
@@ -122,7 +129,7 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 			return;
 		}
 
-		PortalTravel.carry(serverWorld, pos, state.get(ChargedMirrorBlock.FACING),
+		PortalTravel.enqueue(serverWorld, pos, state.get(ChargedMirrorBlock.FACING),
 				be.linkPartnerPos, partnerState.get(ChargedMirrorBlock.FACING), FACE_HALF_SPAN);
 	}
 

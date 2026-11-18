@@ -143,6 +143,7 @@ public final class LooseItemBodySystem {
             item.setOnGround(item.isOnGround() || after.grounded());
             if (!geometry.blockedUnknown()) ((LooseItemBodyAccess)item).drmd$finishBodyMove();
             item.velocityModified = true; item.velocityDirty = true;
+            com.terminaldetector.drmd.world.portal.PortalTravel.afterDeferredMove(world, item, p.start);
             if (p.canMerge && item.age % (BlockPos.ofFloored(p.start).equals(item.getBlockPos()) ? 40 : 2) == 0)
                 merges.add(p);
         }

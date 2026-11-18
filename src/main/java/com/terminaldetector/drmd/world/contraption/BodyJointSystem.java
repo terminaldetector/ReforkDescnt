@@ -22,6 +22,12 @@ public final class BodyJointSystem {
     public static void cancelDeferred(BlockBodyEntity body) {
         if(body.getWorld() instanceof ServerWorld w){var frames=PENDING.get(w);if(frames!=null)frames.remove(body.getUuid());}
     }
+    /** The queued control torque lives in world axes, just like D6's force accumulators. */
+    public static void portalTransfer(BlockBodyEntity body,com.terminaldetector.drmd.d6.D6PortalTransform transform) {
+        if(!(body.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())throw new IllegalStateException("server portal frame required");
+        var frames=PENDING.get(world);var old=frames==null?null:frames.get(body.getUuid());
+        if(old!=null&&old.body.get()==body)frames.put(body.getUuid(),new Frame(old.body,transform.transformVelocity(old.torque),old.tick));
+    }
     /** A cut after deferral transfers unintegrated material into this same physical phase.
      * Engine/controller torque stays with the original body; it is never duplicated on debris. */
     public static void materialChanged(BlockBodyEntity original,List<BlockBodyEntity> fragments) {

@@ -130,6 +130,9 @@ public record D6PortalTransform(
 				.withLinearVelocity(transformVelocity(body.linearVelocity()))
 				.withRotation(transformOrientation(body.rotation()))
 				.withAngularMomentum(transformAngularMomentum(body.angularMomentum()));
+		// A weapon/force callback may have queued an input after the body's last integration.
+		// It belongs to the same old world frame as velocity and L; consume it only on the next step.
+		body.rotateAccumulators(rotation());
 	}
 
 	/** The transform that undoes this one — the far side of the same pair. */

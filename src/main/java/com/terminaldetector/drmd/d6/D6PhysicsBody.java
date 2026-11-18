@@ -198,6 +198,16 @@ public final class D6PhysicsBody {
 		torque = torque.plus(newTorque);
 	}
 
+	/** Unconsumed world-space inputs, needed when a portal changes their coordinate frame. */
+	public Vec3 accumulatedForce() { return force; }
+	public Vec3 accumulatedTorque() { return torque; }
+
+	/** Rotate pending inputs without applying a timestep, clearing them or changing body inertia. */
+	public void rotateAccumulators(Quat turn) {
+		force = turn.rotate(force);
+		torque = turn.rotate(torque);
+	}
+
 	/** Instantaneous collision/weapon impulse; offset is in world axes relative to the COM. */
 	public void applyImpulse(Vec3 impulse, Vec3 offset) {
 		linearVelocity = linearVelocity.plus(impulse.scaled(inverseMass));
@@ -318,6 +328,12 @@ public final class D6PhysicsBody {
         public Vec3 position(){return position;}public Quat rotation(){return rotation;}
     }
     public Snapshot snapshot(){return new Snapshot(this);}
+    /** Non-mutating transaction check, including queued inputs and integration bookkeeping. */
+    public boolean matches(Snapshot s){
+        return s!=null&&position.equals(s.position)&&rotation.equals(s.rotation)
+                &&linearVelocity.equals(s.velocity)&&angularMomentum.equals(s.momentum)
+                &&force.equals(s.force)&&torque.equals(s.torque)&&stepsSinceFix==s.steps;
+    }
     public void restore(Snapshot s){position=s.position;rotation=s.rotation;linearVelocity=s.velocity;angularMomentum=s.momentum;force=s.force;torque=s.torque;stepsSinceFix=s.steps;}
     public void clearAccumulators(){force=new Vec3(0,0,0);torque=new Vec3(0,0,0);}
 

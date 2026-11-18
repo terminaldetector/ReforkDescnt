@@ -31,7 +31,10 @@ public class PortalPanelBlockEntity extends BlockEntity {
     private static Runnable clientChanged=()->{};
     public static void bindClientInvalidation(Runnable callback){clientChanged=callback;}
     private void notifyClient(){if(world!=null && world.isClient)clientChanged.run();}
-    @Override public void markRemoved(){super.markRemoved();notifyClient();}
+    @Override public void markRemoved(){
+        if(world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
+        super.markRemoved();notifyClient();
+    }
     @Override public void setWorld(World world){
         super.setWorld(world);
         if(projectorOwner!=null && world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.gun.PortalGunState.get(server);
@@ -62,6 +65,7 @@ public class PortalPanelBlockEntity extends BlockEntity {
 	@Nullable public RegistryKey<World> getLinkPartnerDim() { return linkPartnerDim; }
 
 	public void setLink(UUID attachedEntityId, BlockPos partnerPos, RegistryKey<World> partnerDim) {
+		if(world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
 		this.attachedEntityId = attachedEntityId;
 		this.linked = true;
 		this.linkPartnerPos = partnerPos;
@@ -77,6 +81,7 @@ public class PortalPanelBlockEntity extends BlockEntity {
 	 * and is not. With ImmPtl it is worse than untidy — the far portal entity outlives its own block.
 	 */
 	public void clearLink() {
+		if(world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
 		this.attachedEntityId = null;
 		this.linked = false;
 		this.linkPartnerPos = null;
@@ -128,6 +133,7 @@ public class PortalPanelBlockEntity extends BlockEntity {
 			return;
 		}
 		if (!(state.getBlock() instanceof PortalPanelBlock)) return;
+		com.terminaldetector.drmd.world.portal.PortalExitInterest.observe(serverWorld,pos,be.linkPartnerPos,PortalPanelBlock.HALF_SPAN);
 
 		// A saved link is not permission to load its destination every server tick.
 		// Keep the link while the partner is unavailable and retry once it is loaded.
@@ -141,7 +147,7 @@ public class PortalPanelBlockEntity extends BlockEntity {
 		if(be.projectorOwner!=null && (!(world.getBlockEntity(be.linkPartnerPos) instanceof PortalPanelBlockEntity partner)
 			|| !partner.ownedBy(be.projectorOwner,3-be.projectorSlot) || !partner.linked || !pos.equals(partner.linkPartnerPos)))return;
 
-		PortalTravel.carry(serverWorld, pos, state.get(PortalPanelBlock.FACING),
+		PortalTravel.enqueue(serverWorld, pos, state.get(PortalPanelBlock.FACING),
 				be.linkPartnerPos, partnerState.get(PortalPanelBlock.FACING), PortalPanelBlock.HALF_SPAN);
 	}
 

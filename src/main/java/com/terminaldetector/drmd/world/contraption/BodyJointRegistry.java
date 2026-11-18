@@ -30,6 +30,11 @@ public final class BodyJointRegistry extends PersistentState {
         if(!containsBody(body.getUuid())||body.isRemoved()||body.cells().isEmpty()||BodySpatialIndex.find(body.getWorld(),body.getId()).orElse(null)!=body)return;
         var bounds=body.loadingBounds();if(!bounds.equals(locations.put(body.getUuid(),bounds))){locationIndex.update(body.getUuid(),bounds);markDirty();}
     }
+    /** Refresh numeric loading metadata after an already accepted same-world rigid portal transaction. */
+    public void portalMoved(Collection<BlockBodyEntity> bodies) {
+        for(var body:bodies)if(!(body.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||body.isRemoved()||get(world)!=this)throw new IllegalArgumentException("live server portal group required");
+        bodies.forEach(this::rememberLocation);
+    }
     /** A bearing may suppress contact only with its directly connected partner. */
     public boolean collisionAllowed(UUID a,UUID b){for(var id:endpoints.getOrDefault(a,Set.of())){var l=links.get(id);if(!l.collideConnected()&&(l.a().body().equals(b)||l.b().body().equals(b)))return false;}return true;}
     public boolean containsBody(UUID body){return endpoints.containsKey(body);}

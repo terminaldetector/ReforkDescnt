@@ -130,7 +130,22 @@ public final class BodyVolumeLeases {
         }
         Object level=nativeLevel.invoke(world);return level==null?null:tracker.invoke(level);
     }
-    private static boolean nativeUpdate(ServerWorld world,Owner owner,BodyVolumePlan.Column column) {
+    /** Shared native XYZ interest bridge. The caller owns its independently bounded plan/tickets. */
+    public static boolean requestNativeInterest(ServerWorld world,Object owner,BodyVolumePlan.Column column) {
+        Objects.requireNonNull(owner);Objects.requireNonNull(column);
+        if(!world.getServer().isOnThread()||CubicAvailability.backend(world)!=CubicAvailability.Backend.NATIVE_CUBIC)return false;
+        boolean held=nativeUpdate(world,owner,column);
+        if(!held)releaseNativeInterest(world,owner); // An invoked tracker may fail after partial admission.
+        return held;
+    }
+    /** Best-effort release also works after an update error has closed new native admission. */
+    public static void releaseNativeInterest(ServerWorld world,Object owner) {
+        if(!world.getServer().isOnThread())throw new IllegalStateException("Native interest is server-thread owned");
+        if(nativeLevel==null||tracker==null||remove==null||!nativeLevel.getDeclaringClass().isInstance(world))return;
+        try{Object level=nativeLevel.invoke(world);if(level!=null){Object index=tracker.invoke(level);if(index!=null)remove.invoke(index,owner);}}
+        catch(ReflectiveOperationException|LinkageError failure){fail(failure);}
+    }
+    private static boolean nativeUpdate(ServerWorld world,Object owner,BodyVolumePlan.Column column) {
         if(nativeFailed)return false;
         try {
             Object index=nativeTracker(world);

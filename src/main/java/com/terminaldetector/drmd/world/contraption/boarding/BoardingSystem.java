@@ -166,6 +166,21 @@ public final class BoardingSystem {
     public static void externalTeleport(ServerPlayerEntity p) {
         var lease=LEASES.get(p.getUuid());if(lease!=null)release(p,lease,pure(p.getVelocity()).scaled(20));
     }
+    /** One accepted portal discontinuity replaces old packet authority, not a per-tick position anchor.
+     * Material support IDs survive only when that exact carrier crossed in the same transaction. */
+    public static void portalTransfer(ServerPlayerEntity p,DynamicBodyAttachment.State before,
+            com.terminaldetector.drmd.d6.D6PortalTransform transform,Set<Integer> carriedBodies) {
+        if(!p.getServerWorld().getServer().isOnThread())throw new IllegalStateException("server portal frame required");
+        LEASES.remove(p.getUuid());PREVIOUS.remove(p.getUuid());BoardingRestore.clear(p);
+        int support=carriedBodies.contains(before.support())?before.support():-1;
+        int gravityOwner=carriedBodies.contains(before.gravityOwner())?before.gravityOwner():-1;
+        var state=new DynamicBodyAttachment.State(pure(p.getPos()),transform.transformVelocity(before.velocity()),
+            before.grounded()&&support>=0,support,transform.transformOrientation(before.frame()),gravityOwner);
+        var lease=new Lease(p,state,++epoch);LEASES.put(p.getUuid(),lease);BoardingPose.publish(p,state.frame());
+        PREVIOUS.put(p.getUuid(),new Previous(new WeakReference<>(p.getServerWorld()),state.feet()));
+        p.setOnGround(state.grounded());p.setVelocity(mc(state.velocity().scaled(.05)));p.fallDistance=0;
+        if(p.networkHandler instanceof BoardingConnection connection)connection.drmd$bodyMovementOwned();sync(p,lease,true);
+    }
     private static void release(ServerPlayerEntity p,Lease l,Vec3 velocity) {
         BoardingRestore.clear(p);
         LEASES.remove(p.getUuid());l.state=new DynamicBodyAttachment.State(pure(p.getPos()),velocity,false,-1);

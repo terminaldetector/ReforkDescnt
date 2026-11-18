@@ -3,9 +3,12 @@ package com.terminaldetector.drmd.entity;
 import com.terminaldetector.drmd.client.portal.PortalTransform.Quat;
 import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
 import com.terminaldetector.drmd.d6.D6ChunkPos;
+import com.terminaldetector.drmd.d6.D6PortalTransform;
 import com.terminaldetector.drmd.physics.PhysicsTarget;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollRig;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollSimulation;
+import com.terminaldetector.drmd.physics.ragdoll.RagdollPortalTransfer;
+import com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions;
 import com.terminaldetector.drmd.entity.model.FlightWreckRig;
 import com.terminaldetector.drmd.world.access.WorldAccess;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
@@ -54,6 +57,11 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	private List<RenderPart> previousRenderParts = restRenderParts();
 	private List<RenderPart> currentRenderParts = restRenderParts();
 	private int lifeTicks;
+	// Replicated discontinuity frame only; persistent rig/identity/lifetime schemas are unchanged.
+	private int portalPoseEpoch;
+	/** Non-consuming ordinary metadata publication after a prepared portal commit. */
+	public List<DataTracker.SerializedEntry<?>> portalTrackedPose(){return List.of(DataTracker.SerializedEntry.of(POSE,dataTracker.get(POSE)));}
+	private Quat portalRenderFrame = Quat.IDENTITY;
 
 	public RagdollEntity(EntityType<? extends RagdollEntity> type, World world) {
 		super(type, world);
@@ -294,6 +302,12 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	private NbtCompound trackedPose() {
 		NbtCompound tag = new NbtCompound();
         writeHullIdentity(tag);
+		if (portalPoseEpoch != 0) {
+			tag.putInt("portalPoseEpoch", portalPoseEpoch);
+			NbtCompound frame = new NbtCompound();
+			putQuaternion(frame, portalRenderFrame);
+			tag.put("portalRenderFrame", frame);
+		}
 		NbtList parts = new NbtList();
 		Vec3 centre = simulation.centreOfMass();
 		for (RagdollSimulation.Part part : simulation.parts()) {
@@ -341,7 +355,14 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
         var tag=dataTracker.get(POSE);boolean changed=readHullIdentity(tag);
         List<RenderPart> decoded=decodeTrackedPose(tag);
         if(decoded.size()!=rig.segments().size())return;
-        previousRenderParts=hasRenderPose&&!changed&&currentRenderParts.size()==decoded.size()?currentRenderParts:decoded;
+        int incomingEpoch=tag.getInt("portalPoseEpoch");
+        Quat incomingFrame=tag.contains("portalRenderFrame",NbtElement.COMPOUND_TYPE)
+                ?readQuaternion(tag.getCompound("portalRenderFrame")):Quat.IDENTITY;
+        List<RenderPart> preceding=currentRenderParts;
+        if(hasRenderPose&&!changed&&incomingEpoch!=portalPoseEpoch)
+            preceding=rotateRenderParts(preceding,ImmPtlQuaternions.hamiltonProduct(incomingFrame,portalRenderFrame.inverse()).normalized());
+        previousRenderParts=hasRenderPose&&!changed&&preceding.size()==decoded.size()?preceding:decoded;
+        portalPoseEpoch=incomingEpoch;portalRenderFrame=incomingFrame;
         currentRenderParts=decoded;hasRenderPose=true;
         // Geometry-only client mirror; simulation/impulses remain server authoritative.
         if(simulation.parts().size()!=rig.segments().size()||changed)simulation=new RagdollSimulation(rig,pure(getPos()),Quat.IDENTITY,new Vec3(0,0,0));
@@ -372,6 +393,118 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	public List<RenderPart> currentRenderParts() { return currentRenderParts; }
 	public RagdollSimulation simulation() { return simulation; }
 	public List<Box> partBounds() { return simulation.parts().stream().map(RagdollEntity::partBox).toList(); }
+
+	/**
+	 * Prepare the existing articulated body for a same-world rigid portal transaction. No state or
+	 * tracking data changes here. The effective transform already includes shared exit clearance;
+	 * destinationRemainder is used only to validate the remaining destination-side sweep.
+	 */
+	public Optional<PreparedPortalTransfer> preparePortalTransfer(D6PortalTransform transform, Vec3 destinationRemainder) {
+		if (getWorld().isClient || isRemoved() || !rigVersionSupported()) return Optional.empty();
+		var planned = RagdollPortalTransfer.prepare(simulation, transform, destinationRemainder);
+		if (planned.isEmpty()) return Optional.empty();
+		var motion = planned.get();
+		List<Box> destination = new ArrayList<>(), sweepStart = new ArrayList<>();
+		for (int i = 0; i < motion.destinationParts().size(); i++) {
+			var end = motion.destinationParts().get(i);
+			var start = motion.sweepStartParts().get(i);
+			Box endBox = partBox(rig.segments().get(i), end.position(), end.rotation());
+			Box startBox = partBox(rig.segments().get(i), start.position(), start.rotation());
+			// Static terrain needs the complete compound hull and all of its post-plane remainder,
+			// not the entity centre or its untranslated old broadphase.
+			if (!portalVolumeClear(union(startBox, endBox))) return Optional.empty();
+			destination.add(endBox);
+			sweepStart.add(startBox);
+		}
+		return Optional.of(new PreparedPortalTransfer(motion, destination, sweepStart));
+	}
+
+	/** No loads: UNKNOWN volumes, border/height violations and terrain all refuse preparation. */
+	private boolean portalVolumeClear(Box box) {
+		if (!finite(new Vec3d(box.minX,box.minY,box.minZ)) || !finite(new Vec3d(box.maxX,box.maxY,box.maxZ))
+				|| box.minY < getWorld().getBottomY() || box.maxY > getWorld().getTopY()
+				|| !getWorld().getWorldBorder().contains(box)) return false;
+		int x0=MathHelper.floor(box.minX-1)>>4, x1=MathHelper.floor(box.maxX+1)>>4;
+		int y0=MathHelper.floor(box.minY-1)>>4, y1=MathHelper.floor(box.maxY+1)>>4;
+		int z0=MathHelper.floor(box.minZ-1)>>4, z1=MathHelper.floor(box.maxZ+1)>>4;
+		long dx=(long)x1-x0+1,dy=(long)y1-y0+1,dz=(long)z1-z0+1;
+		if(dx<=0||dy<=0||dz<=0||dx>64||dy>64||dz>64||dx*dy*dz>64)return false;
+		var access=WorldAccess.of(getWorld());
+		for(int x=x0;x<=x1;x++)for(int y=y0;y<=y1;y++)for(int z=z0;z<=z1;z++)
+			if(!access.isVolumeAvailable(new D6ChunkPos(x,y,z)))return false;
+		return !getWorld().getBlockCollisions(this,box.contract(1.0e-7)).iterator().hasNext();
+	}
+
+	/** Immutable planned geometry plus a guarded, one-use commit to this existing entity. */
+	public final class PreparedPortalTransfer {
+		private final RagdollPortalTransfer.Prepared motion;
+		private final RagdollSimulation sourceSimulation=simulation;
+		private final World sourceWorld=getWorld();
+		private final java.util.UUID sourceIdentity=getUuid();
+		private final Vec3d sourcePosition=getPos(), sourceVelocity=getVelocity();
+		private final Vec3 previousPosition=new Vec3(prevX,prevY,prevZ);
+		private final Vec3 previousRenderPosition=new Vec3(lastRenderX,lastRenderY,lastRenderZ);
+		private final List<RenderPart> sourcePreviousParts=previousRenderParts, sourceCurrentParts=currentRenderParts;
+		private final int sourceAge=age, sourceLife=lifeTicks, sourceEpoch=portalPoseEpoch;
+		private final List<Box> destination, sweepStart;
+		private final Box destinationBounds;
+		private boolean applied;
+
+		private PreparedPortalTransfer(RagdollPortalTransfer.Prepared motion,List<Box> destination,List<Box> sweepStart) {
+			this.motion=motion;
+			this.destination=List.copyOf(destination);
+			this.sweepStart=List.copyOf(sweepStart);
+			Box bounds=null;
+			for(Box box:destination)bounds=union(bounds,box);
+			this.destinationBounds=bounds;
+		}
+
+		public List<Box> destinationPartBounds(){return destination;}
+		public List<Box> sweepStartPartBounds(){return sweepStart;}
+		public Box destinationBounds(){return destinationBounds;}
+		public Vec3 destinationCentre(){return motion.destinationCentre();}
+
+		/** Validate every transaction member before committing any member on the server thread. */
+		public boolean current(){
+			return !applied && !isRemoved() && !getWorld().isClient && getWorld()==sourceWorld
+					&& getUuid().equals(sourceIdentity) && rigVersionSupported() && simulation==sourceSimulation
+					&& age==sourceAge && lifeTicks==sourceLife && portalPoseEpoch==sourceEpoch
+					&& getPos().equals(sourcePosition) && getVelocity().equals(sourceVelocity)
+					&& new Vec3(prevX,prevY,prevZ).equals(previousPosition)
+					&& new Vec3(lastRenderX,lastRenderY,lastRenderZ).equals(previousRenderPosition)
+					&& previousRenderParts==sourcePreviousParts && currentRenderParts==sourceCurrentParts
+					&& motion.current() && destinationStillClear();
+		}
+
+		private boolean destinationStillClear(){
+			for(int i=0;i<destination.size();i++)
+				if(!portalVolumeClear(union(sweepStart.get(i),destination.get(i))))return false;
+			return true;
+		}
+
+		/** Commit once after whole-group acceptance; never follow this with a generic entity teleport. */
+		public boolean apply(){
+			if(!current() || !motion.apply())return false;
+			applied=true;
+			Quat turn=motion.rotation();
+			previousRenderParts=rotateRenderParts(sourcePreviousParts,turn);
+			currentRenderParts=rotateRenderParts(sourceCurrentParts,turn);
+			portalRenderFrame=ImmPtlQuaternions.hamiltonProduct(turn,portalRenderFrame).normalized();
+			portalPoseEpoch++;
+			syncEntityFromSimulation();
+			Vec3 previous=motion.transformPoint(previousPosition), renderPrevious=motion.transformPoint(previousRenderPosition);
+			prevX=previous.x();prevY=previous.y();prevZ=previous.z();
+			lastRenderX=renderPrevious.x();lastRenderY=renderPrevious.y();lastRenderZ=renderPrevious.z();
+			dataTracker.set(POSE,trackedPose());
+			velocityModified=true;
+			return true;
+		}
+	}
+
+	private static List<RenderPart> rotateRenderParts(List<RenderPart> parts,Quat turn){
+		return parts.stream().map(part->new RenderPart(turn.rotate(part.position()),
+				ImmPtlQuaternions.hamiltonProduct(turn,part.rotation()).normalized())).toList();
+	}
 
 	@Override
 	protected void readCustomDataFromNbt(NbtCompound nbt) {
