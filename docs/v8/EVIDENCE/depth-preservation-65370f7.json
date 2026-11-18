@@ -1,0 +1,79 @@
+{
+  "archiveSHA256": "e540c66e4d5e39af73098f4b393aee98e1c2325d4e2ac7dba16e170aef07a5d3",
+  "exactBytesSHAAndCRC": true,
+  "freshInventoryAndLocks": true,
+  "files": [
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-65370f7-sodium/ps1-color-reference/dither32/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "212efabb614b27b3ad6ebedd423890fff5d65b842bbc2937d37791168040c8d6",
+      "inode": 1992343,
+      "mtimeNs": 1794983228972901335
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-65370f7-sodium/ps1-color-reference/dither32/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "c37cccc7509526321c5974a2b87c834785e4e9de31dfaaf9c5767e20f151048f",
+      "inode": 1992342,
+      "mtimeNs": 1794983228956901004
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-65370f7-sodium/ps1-color-reference/dither32-resized/main-depth.f32",
+      "bytes": 2073600,
+      "sha256": "e43b2b093352f464f8d5c0efb1c6b1f94fc15252132a89746a1070277d16eb3d",
+      "inode": 1992363,
+      "mtimeNs": 1794983231712958062
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-65370f7-sodium/ps1-color-reference/dither32-resized/source-depth.f32",
+      "bytes": 230400,
+      "sha256": "66bf0ac738708be050dd5e0e45c9ea27e3763983c05a04167f0903163e46f0c0",
+      "inode": 1992362,
+      "mtimeNs": 1794983231704957897
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-65370f7-sodium/ps1-color-reference/palette32/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "a9f16a9b4a9788ed22abe21a21802b1920c9248713de35117e249cd598a312e3",
+      "inode": 1992320,
+      "mtimeNs": 1794983226884858107
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-65370f7-sodium/ps1-color-reference/palette32/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "6bad1f149a84cf6b83c9639767255218a810345422a76a551f12983d4f7655ff",
+      "inode": 1992319,
+      "mtimeNs": 1794983226876857941
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-65370f7-sodium/ps1-color-reference/raw256/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "be47cb915b2a53f9b509d31f12cb9ae2215306b13be0052f62fb46528789fc87",
+      "inode": 1992313,
+      "mtimeNs": 1794983226192843780
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-65370f7-sodium/ps1-color-reference/raw256/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "c7c4bf2846f7020eb7b8ec8aacebb23787f309946bc1f7c88afb5068d57ee3d7",
+      "inode": 1992312,
+      "mtimeNs": 1794983226152842952
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-65370f7-sodium/ps1-color-reference/raw256-restored/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "b49947ae004f8c41af374943435ce6eff288aea17f8a22d357ee14d72b5803a4",
+      "inode": 1992350,
+      "mtimeNs": 1794983229440911025
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-65370f7-sodium/ps1-color-reference/raw256-restored/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "c1afd10f089c4b387806d20e35277a7023d0bb2c17656ff06a8b573b7ed4d81b",
+      "inode": 1992349,
+      "mtimeNs": 1794983229428910776
+    }
+  ],
+  "reclaimedBytes": 20736000,
+  "PNGsAndOtherFilesRetained": true
+}

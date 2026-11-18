@@ -3701,12 +3701,17 @@
   },
   "twoSpecLiveOverlay20261118": {
     "path": "../IMPLEMENTATION_PACKET_PROGRESS_2026-11-17.json",
-    "sha256": "c5ec1ae738b9830989d5449ac1e1ff573b5230c9ba2431c561ad6bfade47f6a5",
+    "sha256": "3e578faee993c8a205cb9d1c09f303423f87298ce625c0e87acd5290e6f64608",
     "originalPackets": 21,
     "supplementalClauses": 7,
     "ledgerTasks": 99,
     "wholePacketsAccepted": 0,
-    "canonicalCombinedSource": "7c502b49e9ca131c649280ca425f7dc0e4264827"
+    "canonicalCombinedSource": "65370f7266cea705ebf2f9e86217031370fa2a3d",
+    "ledgerCounts": {
+      "in_progress": 33,
+      "pending_reverification": 63,
+      "completed": 3
+    }
   },
   "historicalSavePreservationSecond20261118": {
     "receipt": "historical-native-save-preservation-second-20261118.json",
@@ -3790,27 +3795,27 @@
     "fullSpecificationAccepted": false
   },
   "latestCanonicalCombined": {
-    "source": "5057931efce99156ffdc8a195e90b1a926907ed8",
-    "report": "../MULTI_AGENT_INTEGRATION_5057931_2026-11-18.md",
+    "source": "65370f7266cea705ebf2f9e86217031370fa2a3d",
+    "report": "../MULTI_AGENT_INTEGRATION_65370F7_2026-11-18.md",
     "counts": {
       "unit": {
-        "tests": 951,
+        "tests": 998,
         "failures": 0,
         "errors": 0,
         "skipped": 0
       },
       "game": {
-        "tests": 480,
+        "tests": 502,
         "failures": 0,
         "errors": 0,
         "skipped": 0
       }
     },
     "sameJarNativeClients": 2,
-    "sourcePostimages": "aa-recon-postimages-5057931.json",
-    "remappedClassParity": "render-preview-class-parity-5057931.json",
-    "rawPacketDiskAndAaReadback": "verify-integrated-5057931.json",
-    "closedSavePreservation": "closed-save-preservation-5057931.json",
+    "exactSourcePostimagesInArchive": 46,
+    "remappedEquivalence": "integrated-65370f7.zip:component-remapped-equivalence-classified.json",
+    "rawPacketDiskAndAaReadback": "verify-integrated-65370f7.json",
+    "closedSavePreservation": "integrated-65370f7.zip:native-saves/receipt.json",
     "fullSpecificationAccepted": false
   },
   "multiAgentIntegration5057931": {
@@ -3955,5 +3960,24 @@
     "scriptAndTestPostimagesByteIdentical": true,
     "gameProductionChanged": false,
     "independentReview": "saved-registry-u01-independent-review-b8.json"
+  },
+  "multiAgentIntegration65370f7": {
+    "source": "65370f7266cea705ebf2f9e86217031370fa2a3d",
+    "archive": "docs/v8/EVIDENCE/integrated-65370f7.zip",
+    "bytes": 10942581,
+    "sha256": "e540c66e4d5e39af73098f4b393aee98e1c2325d4e2ac7dba16e170aef07a5d3",
+    "payloads": 213,
+    "allCRCAndSHA256": true,
+    "units": 998,
+    "games": 502,
+    "entries": 84,
+    "sameJarClients": 2,
+    "frames": 40,
+    "sourcePaths": 46,
+    "actualNewUnitCases": 47,
+    "actualNewGameCases": 22,
+    "removedOldCases": 0,
+    "fullSpecAccepted": false,
+    "wholePacketsAccepted": 0
   }
 }

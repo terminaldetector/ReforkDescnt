@@ -1,0 +1,20 @@
+{
+  "source": "65370f7266cea705ebf2f9e86217031370fa2a3d",
+  "passed": true,
+  "payloads": 213,
+  "sourcePostimages": 46,
+  "units": 998,
+  "games": 502,
+  "entries": 84,
+  "newUnits": 47,
+  "newGames": 22,
+  "removedOldCases": 0,
+  "sameJarClients": 2,
+  "savedDiskAndActualPackets": true,
+  "aaNbtGzipFooters": 12,
+  "presentationScenes": 6,
+  "paletteStates": 5,
+  "viewmodelPixels": 166,
+  "sharedConfigChangedAndClassified": true,
+  "fullSpecificationAccepted": false
+}

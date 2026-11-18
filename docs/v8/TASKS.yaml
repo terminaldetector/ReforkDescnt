@@ -607,11 +607,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id009
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [MULTI_AGENT_INTEGRATION_65370F7_2026-11-18.md]
+  notes: "Observer-only653-based source43e8ba45 adds one ordered32 then128 real-death baseline with actual entity/solver/part/contact work and existing budgets. No Java baseline, sleep controller or aggregation implementation/result yet. Necessary baseline work is active; no whole U14 or task acceptance."
 - id: S08-T05
   stage: S08
   stage_title: Articulated ragdoll and destructible bodies
@@ -1004,11 +1004,11 @@ tasks:
   owner: GAMEPLAY
   gate: G5
   depends_on_stages: *id015
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [MULTI_AGENT_INTEGRATION_65370F7_2026-11-18.md]
+  notes: "Actual isolated653-based source3781f657 implements a distinct flying-teleport prototype, authored mesh/rig, warning/token/save protocol and bounded endpoint relay on existing flight/route infrastructure. Six pure protocol tests are written, not run; entity/counterplay/save/corpse gameplay and native gates remain unrun. Not integrated or accepted as whole."
 - id: S14-T04
   stage: S14
   stage_title: Factions, Shapes and mission framework
