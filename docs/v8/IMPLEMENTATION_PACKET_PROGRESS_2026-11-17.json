@@ -557,11 +557,13 @@
   ],
   "latestFocusedSnapshot": {
     "source": "56c0049f37ffee5b989df092b26093ac871222b0",
-    "build": null,
+    "build": "https://t.me/abadonsoft/286",
     "report": "docs/v8/IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md",
     "nativeStates": 3,
     "fullSuiteRerun": false,
-    "status": "packaging_before_authorized_Telegram_delivery"
+    "status": "delivered_and_readback_confirmed",
+    "changelog": "https://t.me/abadonsoft/285",
+    "actualScreenshots": "https://t.me/abadonsoft/287"
   },
   "latestFocusedServerSource": "ba30a2c907338c2d8ffc370ede3ec384057b56aa"
 }

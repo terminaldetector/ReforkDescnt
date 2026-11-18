@@ -4101,5 +4101,17 @@
     "nativeStates": 3,
     "fullSuiteRerun": false,
     "originalFailuresRetained": true
+  },
+  "telegramSnapshot56c0049f": {
+    "source": "56c0049f37ffee5b989df092b26093ac871222b0",
+    "receipt": "docs/v8/EVIDENCE/telegram-abadonsoft-56c0049f.json",
+    "build": "https://t.me/abadonsoft/286",
+    "changelog": "https://t.me/abadonsoft/285",
+    "actualScreenshots": "https://t.me/abadonsoft/287",
+    "package": "dist/snapshots/2026-11-18-56c0049f/UNGRAVITY-snapshot-56c0049f.zip",
+    "packageBytes": 3185246,
+    "packageSHA256": "205dc8892c1a80edcad1be7322d37a11f0259bc9c797999229f30174abfc51eb",
+    "documentNameAndSizeReadback": true,
+    "fullSpecificationsAccepted": false
   }
 }

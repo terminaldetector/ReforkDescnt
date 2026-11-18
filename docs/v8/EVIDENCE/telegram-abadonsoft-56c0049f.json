@@ -1,0 +1,106 @@
+{
+  "source": "56c0049f37ffee5b989df092b26093ac871222b0",
+  "accountId": "cmwjei34s09jwnv51du3ozf79",
+  "chatId": "-1004343117274",
+  "username": "abadonsoft",
+  "authorization": "User explicitly requested ready build, important actual screenshots and changelog in this channel; GitHub/source publication remains paused.",
+  "idempotencyKeys": [
+    "ungravity-56c0049f-changelog-v1",
+    "ungravity-56c0049f-build-zip-v1",
+    "ungravity-56c0049f-model-comparison-photos-v1"
+  ],
+  "sendResults": [
+    {
+      "chatId": "4343117274",
+      "messageIds": [
+        285
+      ],
+      "localMessageId": "ungravity-56c0049f-changelog-v1",
+      "text": "Ungravity — snapshot 56c0049f\n\n• Обрушение потерявших опору частей построек после TNT/ракет через существующие физические корпуса, с ограничением новых обломков.\n• Деревянные двери на движущихся корпусах: открытие, установка, разрушение и коллайдеры.\n• Кассетные носители 7/14: пуск вперёд/сброс вниз, FAN/RING/STAGGER, поэтапное раскрытие, сохранение состояния и поворот базиса через портал.\n• Отдельная облегчённая модель Pyro в PS1 и необязательный предел кадров.\n\nПроверки изменений: исправленные 7 unit /21 GameTests PASS; двери и обрушения прошли отдельный предыдущий проход. Новый реальный BCC/Sodium клиент: модель 32→17→32 элемента, ограничитель 30→10→30, три оригинальных кадра. Значения ограничителя не являются замером достигнутого FPS. Первые сбои сохранены; полного повторного прогона всех тестов не было.\n\nНа технических кадрах остаются известные дефекты фона LOD/неба. Полное ТЗ, полноценный 3D AI/Boarding/реакторный эпизод и будущая демонстрация разрушений продолжаются. JAR и установка — в следующем ZIP.",
+      "date": "2026-11-18T15:16:59.877991174Z",
+      "idempotencyKey": "ungravity-56c0049f-changelog-v1"
+    },
+    {
+      "messageIds": [
+        286
+      ],
+      "localMessageId": "ungravity-56c0049f-build-zip-v1",
+      "text": "Snapshot56c0049f — готовый JAR для Minecraft1.21.1/Fabric, установка, список изменений и три оригинальных PNG.\nSHA-256 JAR: 924e5d628d2350930bca89d26efa387b2910819c02910fa960586a29f4f75387\nSHA-256 ZIP: 205dc8892c1a80edcad1be7322d37a11f0259bc9c797999229f30174abfc51eb\nПроверки целевые; полное ТЗ остаётся в работе.",
+      "date": "2026-11-18T15:17:50.070938055Z",
+      "idempotencyKey": "ungravity-56c0049f-build-zip-v1"
+    },
+    {
+      "messageIds": [
+        287,
+        288
+      ],
+      "localMessageId": "ungravity-56c0049f-model-comparison-photos-v1",
+      "text": "Два настоящих кадра snapshot56c0049f: PS1 с упрощённым Pyro (17 элементов) и возврат обычной модели (32). Это техническое сравнение моделей; фон LOD/неба ещё имеет известные дефекты. Полные исходные PNG, включая первый Native-кадр, лежат в ZIP выше.",
+      "date": "2026-11-18T15:18:15.026902011Z",
+      "idempotencyKey": "ungravity-56c0049f-model-comparison-photos-v1"
+    }
+  ],
+  "readback": {
+    "historyAvailable": true,
+    "items": [
+      {
+        "id": 288,
+        "date": "2026-11-18T15:18:14Z",
+        "isOut": true,
+        "isService": false,
+        "groupedId": "14360120759270682",
+        "media": {
+          "type": "photo",
+          "mimeType": "image/jpeg",
+          "fileSize": 50547,
+          "width": 1280,
+          "height": 720
+        }
+      },
+      {
+        "id": 287,
+        "text": "Два настоящих кадра snapshot56c0049f: PS1 с упрощённым Pyro (17 элементов) и возврат обычной модели (32). Это техническое сравнение моделей; фон LOD/неба ещё имеет известные дефекты. Полные исходные PNG, включая первый Native-кадр, лежат в ZIP выше.",
+        "date": "2026-11-18T15:18:14Z",
+        "isOut": true,
+        "isService": false,
+        "groupedId": "14360120759270682",
+        "media": {
+          "type": "photo",
+          "mimeType": "image/jpeg",
+          "fileSize": 64031,
+          "width": 1280,
+          "height": 720
+        }
+      },
+      {
+        "id": 286,
+        "text": "Snapshot56c0049f — готовый JAR для Minecraft1.21.1/Fabric, установка, список изменений и три оригинальных PNG.\nSHA-256 JAR: 924e5d628d2350930bca89d26efa387b2910819c02910fa960586a29f4f75387\nSHA-256 ZIP: 205dc8892c1a80edcad1be7322d37a11f0259bc9c797999229f30174abfc51eb\nПроверки целевые; полное ТЗ остаётся в работе.",
+        "date": "2026-11-18T15:17:49Z",
+        "isOut": true,
+        "isService": false,
+        "media": {
+          "type": "document",
+          "mimeType": "application/zip",
+          "fileName": "UNGRAVITY-snapshot-56c0049f.zip",
+          "fileSize": 3185246
+        }
+      },
+      {
+        "id": 285,
+        "text": "Ungravity — snapshot 56c0049f\n\n• Обрушение потерявших опору частей построек после TNT/ракет через существующие физические корпуса, с ограничением новых обломков.\n• Деревянные двери на движущихся корпусах: открытие, установка, разрушение и коллайдеры.\n• Кассетные носители 7/14: пуск вперёд/сброс вниз, FAN/RING/STAGGER, поэтапное раскрытие, сохранение состояния и поворот базиса через портал.\n• Отдельная облегчённая модель Pyro в PS1 и необязательный предел кадров.\n\nПроверки изменений: исправленные 7 unit /21 GameTests PASS; двери и обрушения прошли отдельный предыдущий проход. Новый реальный BCC/Sodium клиент: модель 32→17→32 элемента, ограничитель 30→10→30, три оригинальных кадра. Значения ограничителя не являются замером достигнутого FPS. Первые сбои сохранены; полного повторного прогона всех тестов не было.\n\nНа технических кадрах остаются известные дефекты фона LOD/неба. Полное ТЗ, полноценный 3D AI/Boarding/реакторный эпизод и будущая демонстрация разрушений продолжаются. JAR и установка — в следующем ZIP.",
+        "date": "2026-11-18T15:16:59Z",
+        "isOut": true,
+        "isService": false
+      }
+    ]
+  },
+  "localPackage": {
+    "bytes": 3185246,
+    "sha256": "205dc8892c1a80edcad1be7322d37a11f0259bc9c797999229f30174abfc51eb",
+    "gameSHA256": "924e5d628d2350930bca89d26efa387b2910819c02910fa960586a29f4f75387"
+  },
+  "readbackDocumentNameAndSizeMatch": true,
+  "remoteBytesDownloadedAndHashed": false,
+  "photoRecompression": "Telegram preview photographs are JPEG; original exact PNGs are in the ZIP.",
+  "fullSpecificationsAccepted": false
+}
