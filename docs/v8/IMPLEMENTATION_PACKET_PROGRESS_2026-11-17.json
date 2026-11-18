@@ -1,8 +1,8 @@
 {
   "schema": "ungravity.implementation-packet-progress.v1",
   "date": "2026-11-17",
-  "canonicalServerSource": "13c52d0edcc5763f945917e4282421ebe9150aef",
-  "lastTwoClientSource": "13c52d0edcc5763f945917e4282421ebe9150aef",
+  "canonicalServerSource": "7c502b49e9ca131c649280ca425f7dc0e4264827",
+  "lastTwoClientSource": "7c502b49e9ca131c649280ca425f7dc0e4264827",
   "originalMap": "docs/v8/UNTOUCHED_IMPLEMENTATION_PACKETS_2026-11-17.json",
   "originalMapSha256": "f387b0d7ef5b04d8b75883ff2c13fa0bab114ff26028df64ef20025bf3d2e9d1",
   "scope": [
@@ -34,11 +34,11 @@
         "S10-T01",
         "S15-T05"
       ],
-      "status": "active_candidate",
+      "status": "partial_integrated",
       "owner": "audit_integration",
-      "source": "e0478ce8d4e79cc73678582bafa4f539978e9a26 (production) / 3639cd1f063e18efb8eee9cfbcb67ee35589598a (observer)",
-      "remaining": "Existing five synchronized sockets plus actual equipped hull geometry pass6focusedunits and first3639 OS-owned native5/5 scenes (actual10OS/MC+GLFWacks, pixel/state oracle0) onisolatede047/b429. No canonical merge or GL3.2/PS1 GUI inheritance; earlier callback failures remain preserved.",
-      "report": null,
+      "source": "7c502b49e9ca131c649280ca425f7dc0e4264827",
+      "remaining": "Actual equipped preview integrated7c in935units/456GT+two same-JAR clients.11actualmenuclasses equal accepted isolatedb429/e047 (6units+5realGUIscenes); identity-rebound combinedGUI7fc observerbuild tooling remains separate, no combined5scene inheritance. BroaderGL3.2/PS1/custom-layout/fullinventory acceptance open.",
+      "report": "docs/v8/MULTI_AGENT_INTEGRATION_7C502B4_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -50,8 +50,8 @@
       ],
       "status": "source_candidate",
       "owner": "world_content with combat_ai",
-      "source": "b1c9e33b417dc3ddefbc1c75ca772d2a4685ac89",
-      "remaining": "Existing director timed SUPPORT/ownLOS/full400warning/atmostoneASSAULT and opaque-save source b1c9 compiles and passes25focusedunits (16new+9retained). Original optional-test-resource tooling failure0tests is preserved. Actual default12000ONLINE Survival ticks/nonlethal effects/hidden-interception/cooldown/cold/native pacing remain open; three real-tick cases are being implemented.",
+      "source": "269a60bd019c97e6cb3d317969b8dbf1cc9bf346 (corrected candidate)",
+      "remaining": "Model/protocol25PASS. Firstactual8d9 default12000-online-tick scenarios7PASS/1hidden-cooldown-feedbackFAIL; alltimed/nonlethal/400warning/oneASSAULT conditions observed, not600wall/native. Director-onlypostcommitfeedback600 fix is frozen269 withunchanged8criteria butNOTYETRUN. Cold/actualnativepacing/broaderpopulation remainopen.",
       "report": null,
       "acceptedAsWhole": false
     },
@@ -68,7 +68,7 @@
       "status": "partial_integrated",
       "owner": "combat_ai",
       "source": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
-      "remaining": "Integrated non-autostart saved intents remain unchanged. Separate7da friendly-AA candidate passes exact87 fresh82GameTests, including old79 and future/corrupt opaque-refusal2 plus healthyreleasecontrol1. No canonical integration yet. Mixedbanks, opaque-fragment provenance, known-schema extras and actual automatic siege/retreat/base episode remain open; prior real failures are preserved.",
+      "remaining": "Canonical non-autostart intent remains. Isolated87 friendlyAA82PASS. First78 actualmixed/fracture controls4PASS1genuineFAIL: detachedopaque gun emitsmovingbolts; healthyordinaryneighbor/cut controlsPASS. Compactrefusal provenance fixfa7 source-only; original82/zero-fire/cadence/flight/material checks retained, no canonicalAA merge orfullsiege acceptance.",
       "report": "MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md",
       "acceptedAsWhole": false
     },
@@ -237,10 +237,10 @@
         "S05-T05",
         "S05-T06"
       ],
-      "status": "pending",
+      "status": "source_candidate",
       "owner": "ps1_render",
-      "source": null,
-      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "source": "3265fb69 (isolated ps1-geometry)",
+      "remaining": "ActualGLSL150 vertexsnap/affineUV candidate forhardtexturedBlockBody plusindependentpersistedcontrols written after1c060;6Pythonoracle controlsPASS,5Java testsNOTRUN. ActualLOWRESWORLD gate excludesNative/Debug/GUI/viewmodel/offscreen. Compile/nativeimage/nearSodium/smooth/translucent paths remainopen.",
       "report": null,
       "acceptedAsWhole": false
     },
@@ -311,14 +311,26 @@
         "S13-T03",
         "S13-T05"
       ],
-      "status": "isolated cloud candidate",
+      "status": "partial_integrated",
       "owner": "ps1_render / world_cubic",
-      "source": "1ce93d475f604d9b32a49663696d54ce7ee375fe086849e74b2d1cfce576a1c2 (game) / d5161c9cfc74ba39d4a5e7ac924cc9b3993adcc4 (observer)",
-      "remaining": "Separate repaired28B/GL3.2 sampler candidate passes22focusedunits and strict five-pose GL3.2c44. FirstSodiumfb57 retains missing-cold-opaque-geometry prerequisite failure. Independent BEFORE_ENTITIES admission d516 uses7scans/32088B and passes all5Sodium poses withsame1ce93; this is not a renderer-cause fix. Both-backend six-scene/palette/mirror/HUD/viewmodel and canonical regression remain pending. General volumetric tiers/transmittance still open.",
-      "report": "docs/v8/ALTITUDE_CLOUD_FIRST_SODIUM_POSITIVE_2026-11-17.md",
+      "source": "7c502b49e9ca131c649280ca425f7dc0e4264827",
+      "remaining": "Cloud23filepatch integrated7c in935/456+twoactualsame-JARclients;17actualclasses equalcomponent1ce93. Separate22focusedunits, strictGL3.2c44+Sodiumd516 fiveposes and BOTHbackend853 six-scene/profilematrices PASS preserveexactscopes/firstfailures. Generalvolumetrictiers/transmittance/physicalIntelhardware remainopen.",
+      "report": "docs/v8/MULTI_AGENT_INTEGRATION_7C502B4_2026-11-18.md",
       "acceptedAsWhole": false
     }
   ],
   "supplementalClauseAudit": "docs/v8/SUPPLEMENTAL_CLAUSE_AUDIT_3095999_2026-11-17.json",
-  "updated": "2026-11-18"
+  "updated": "2026-11-18",
+  "supplementalLiveProgress": {
+    "B2": {
+      "source": "62e94822fd292b72b75bb2a4c01e43cf91d95b29",
+      "state": "Pureboundedforceframemodel+8testsWRITTEN/unrun; genericControlCoreadapterbeingdeveloped, notintegrated"
+    },
+    "R1": "pending distinct material/cavity/mesher matrix",
+    "R2": "pending independent whole persisted physics/render matrix",
+    "R3": "pending requested1/2/4mirror/failure matrix;8panes->1surfaceproof retained",
+    "B1": "pending accelerating occupied contact matrix",
+    "B3": "pending combined occupied asymmetricedit/COM/packet transaction",
+    "B4": "pending aboard sabotage/warning/departure/wreck episode"
+  }
 }

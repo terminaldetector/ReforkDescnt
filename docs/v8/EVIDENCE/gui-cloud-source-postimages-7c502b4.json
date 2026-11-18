@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "source": "7c502b49e9ca131c649280ca425f7dc0e4264827",
+  "base": "13c52d0edcc5763f945917e4282421ebe9150aef",
+  "cloudPatchSHA256": "fa4a7a2cb8f247606ff2e9af9f1e8a1691be5cec9aaa40d95d205b338ddf83db",
+  "guiPatchSHA256": "79060489066cc2515440b0efdb1ba7053d9ed190a101a4c666fd44b5524b43d9",
+  "postimages": {
+    "src/main/java/com/terminaldetector/drmd/client/cloud/AltitudeCloudPolicy.java": {
+      "bytes": 3772,
+      "sha256": "d52f59f867ad1e115b39517be6902131761b31534c41ec83b0dfe40957103589",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/java/com/terminaldetector/drmd/client/cloud/AltitudeCloudRenderer.java": {
+      "bytes": 11852,
+      "sha256": "f0ed58e815fb7bacd8536afb6b5f5bac5add3342526cf3307ea7045fb1f81b2e",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/java/com/terminaldetector/drmd/client/cloud/AltitudeCloudShaders.java": {
+      "bytes": 855,
+      "sha256": "becee353d89b2cf54bc19c714d7fa86fbff7a7a795233aa9cb9fe78acfb48610",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/java/com/terminaldetector/drmd/client/cloud/CloudRenderCompatibility.java": {
+      "bytes": 1022,
+      "sha256": "79cc2f6cdfe282bbf6c860c7aad032209fbc8daa53a3cad54c2bd664cb84578c",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/java/com/terminaldetector/drmd/client/cloud/FarFieldOcclusionTarget.java": {
+      "bytes": 7362,
+      "sha256": "daf8023546766f526ff6ca85d4e033e189bba3d5746896262cc6d9094a854a82",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/java/com/terminaldetector/drmd/client/render/DroneLoadoutPreview.java": {
+      "bytes": 11758,
+      "sha256": "a3ea503e63869ba7e95ea987a6fa7c509db8a043bf700e8f6a8f0ab3fd5dcad8",
+      "producer": "/workspace/ungravity-v5/audit-next-20261109",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/java/com/terminaldetector/drmd/client/render/DronePreviewProjection.java": {
+      "bytes": 2972,
+      "sha256": "ff922ae7bc6f4e879dc9d09f744d060677fc3235349663199989e723185d1e8d",
+      "producer": "/workspace/ungravity-v5/audit-next-20261109",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/java/com/terminaldetector/drmd/mixin/client/AltitudeCloudBufferMixin.java": {
+      "bytes": 863,
+      "sha256": "78c9957e11f0651e8b4a839a8f5f961f775f98b25e25f9ba0bce3e6e708c515a",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/java/com/terminaldetector/drmd/mixin/client/AltitudeCloudSodiumMixin.java": {
+      "bytes": 808,
+      "sha256": "529d6535bc08fff36f86a15a35003d0eb1cbdd2936d3e88215adcd6e50a25ad4",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/java/com/terminaldetector/drmd/mixin/client/AltitudeCloudVanillaMixin.java": {
+      "bytes": 687,
+      "sha256": "3ed3192016dd2f87d4952a9fd9f36bb0d31af32225679c9b456204ab20293633",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/resources/assets/drmd/shaders/core/altitude_clouds.fsh": {
+      "bytes": 1907,
+      "sha256": "d66a33f04e73d04728f58cf74d98ec6544e4adbe9298993cc18f2ee3ebeff5f6",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/resources/assets/drmd/shaders/core/altitude_clouds.json": {
+      "bytes": 2501,
+      "sha256": "dc1a9f74a1382baed41a6c1a9bbe7943a20c6c5cba8edad3b7d35a743cfb62e4",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/resources/assets/drmd/shaders/core/altitude_clouds.vsh": {
+      "bytes": 617,
+      "sha256": "246ec8e73d33f34d6c77ead0e237433038620ab41b30dfa556ddd0d01956b9e9",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/resources/assets/drmd/shaders/core/altitude_vanilla_clouds.fsh": {
+      "bytes": 1985,
+      "sha256": "7d7bbd6b81f65f802ea2b3e700f1ffa3e3c53ab08da1740ee0a65d422bfd0780",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/resources/assets/drmd/shaders/core/altitude_vanilla_clouds.json": {
+      "bytes": 2580,
+      "sha256": "bf2ba45f48760ecdf906654e9f3ea711cd3b1bcfec79a2eaa867f375c899e613",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/resources/assets/drmd/shaders/core/altitude_vanilla_clouds.vsh": {
+      "bytes": 687,
+      "sha256": "3249f6681be95d7f8b2cb500d296aacc4ca97eef33c767d631d4e6bc764670ac",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/resources/assets/drmd/shaders/core/horizon_cloud_occlusion.fsh": {
+      "bytes": 1064,
+      "sha256": "6798afae7b0bc688fc4e661c5995e88d091fbe0a37c53ea6290f5ca6a110212b",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/resources/assets/drmd/shaders/core/horizon_cloud_occlusion.json": {
+      "bytes": 1852,
+      "sha256": "ad7ca394edb35a4d7c9f774a1db992f4cb09f436a09871955ea253b320f9ba25",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/resources/assets/drmd/shaders/core/horizon_cloud_occlusion.vsh": {
+      "bytes": 761,
+      "sha256": "fe952772da889ed04dcc13784fd36908cf681ad6d51f9dabc7db6968ae56935a",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/test/java/com/terminaldetector/drmd/AltitudeCloudPolicyTest.java": {
+      "bytes": 4794,
+      "sha256": "6ab34076062b5e9a9aa7f81b57e3e159d30ae60980669b67a6cb8b9ff6d74299",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/test/java/com/terminaldetector/drmd/CloudRenderCompatibilityTest.java": {
+      "bytes": 1783,
+      "sha256": "978f374009821a39921924a8362eb4d61bdbaaef5a3f4fff82c587154c6cffd8",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/test/java/com/terminaldetector/drmd/DronePreviewProjectionTest.java": {
+      "bytes": 4057,
+      "sha256": "d4e8ed3a808a8f9c1b259de9e390a7ecb3058ce17b67e6284cd5546285358924",
+      "producer": "/workspace/ungravity-v5/audit-next-20261109",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/java/com/terminaldetector/drmd/client/config/DescentConfig.java": {
+      "bytes": 10448,
+      "sha256": "2de6510e40375bfe9cd01b7cc927c8afbc8f1aa55aca5d02f7af94e56e49cfee",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/java/com/terminaldetector/drmd/client/planet/HorizonVertexBuffer.java": {
+      "bytes": 5295,
+      "sha256": "3a7de4fb452a582643c8f45e7d8c23dd427767ad523271750e68030f6b3ae477",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/java/com/terminaldetector/drmd/client/planet/PlanetFloorRenderer.java": {
+      "bytes": 8115,
+      "sha256": "b9814712e256506745d73683d85845673b1038f15ba29eb3e915133c16132dd6",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/java/com/terminaldetector/drmd/client/screen/DroneInventoryScreen.java": {
+      "bytes": 2914,
+      "sha256": "514b7db358f454283c026f329a44f70803ab2c1f834f58a59737d09fb29e55ff",
+      "producer": "/workspace/ungravity-v5/audit-next-20261109",
+      "postimageRule": "exact producer bytes"
+    },
+    "src/main/resources/drmd.mixins.json": {
+      "bytes": 2047,
+      "sha256": "023e73bf3d869eebac23d5d7074e86dac4657f635fd277c66f1297f6d10be9c5",
+      "producer": "/workspace/ungravity-v5/ps1-render",
+      "postimageRule": "exact root canonical lists with3cloudclientmixins afterDebugWorldRasterMixin;7newerrootcommonmixins retained"
+    }
+  }
+}

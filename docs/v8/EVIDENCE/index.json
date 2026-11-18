@@ -3428,7 +3428,7 @@
   },
   "implementationPacketProgress20261117": {
     "path": "../IMPLEMENTATION_PACKET_PROGRESS_2026-11-17.json",
-    "sha256": "be7d980b33fb7d903290cc04214da7af49973965d5abdcc4756832024d7fb166",
+    "sha256": "c5ec1ae738b9830989d5449ac1e1ff573b5230c9ba2431c561ad6bfade47f6a5",
     "originalPacketCount": 21,
     "wholePacketsAccepted": 0
   },
@@ -3699,12 +3699,12 @@
   },
   "twoSpecLiveOverlay20261118": {
     "path": "../IMPLEMENTATION_PACKET_PROGRESS_2026-11-17.json",
-    "sha256": "be7d980b33fb7d903290cc04214da7af49973965d5abdcc4756832024d7fb166",
+    "sha256": "c5ec1ae738b9830989d5449ac1e1ff573b5230c9ba2431c561ad6bfade47f6a5",
     "originalPackets": 21,
     "supplementalClauses": 7,
     "ledgerTasks": 99,
     "wholePacketsAccepted": 0,
-    "canonicalCombinedSource": "13c52d0edcc5763f945917e4282421ebe9150aef"
+    "canonicalCombinedSource": "7c502b49e9ca131c649280ca425f7dc0e4264827"
   },
   "historicalSavePreservationSecond20261118": {
     "receipt": "historical-native-save-preservation-second-20261118.json",
@@ -3713,5 +3713,101 @@
     "closedFixtureWorlds": 18,
     "nestedGzipStreamsFullyDecoded": 180,
     "scope": "Lossless preservation/reclamation of18other old disposable native saves only; all backend world-tree saves, non-save runtime evidence and protected donors retained."
+  },
+  "multiAgentIntegration7c502b4": {
+    "source": "7c502b49e9ca131c649280ca425f7dc0e4264827",
+    "archiveSHA256": "e2e83a110c6dd915ba51a82e41ce6ac8d174d02a021af00fa658a58edb9816da",
+    "archiveBytes": 4779840,
+    "payloadFiles": 133,
+    "pngFiles": 40,
+    "depthArrays": 10,
+    "counts": {
+      "unit": {
+        "tests": 935,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "game": {
+        "tests": 456,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "entrypoints": 75,
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "791f53ad27100cabd310babba486c5bc77e7f825e61a485741e9678346d8f1a8",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+    },
+    "nativePair": {
+      "source": "7c502b49e9ca131c649280ca425f7dc0e4264827",
+      "endSource": "7c502b49e9ca131c649280ca425f7dc0e4264827",
+      "jars": {
+        "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "791f53ad27100cabd310babba486c5bc77e7f825e61a485741e9678346d8f1a8",
+        "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+      },
+      "jarsUnchanged": true,
+      "helpersUnchanged": true,
+      "results": [
+        {
+          "kind": "arrival",
+          "scenario": "cubic-surface-arrival-integrated-7c502b4-sodium",
+          "helperExit": 0,
+          "javaExit": 0,
+          "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-surface-arrival-final-cubic-surface-arrival-integrated-7c502b4-sodium",
+          "observed": [
+            "inputs.json",
+            "launch.json",
+            "surface-arrival-outcome.json"
+          ],
+          "pngCount": 2,
+          "gatePassed": true
+        },
+        {
+          "kind": "presentation",
+          "scenario": "ps1-color-integrated-7c502b4-sodium",
+          "helperExit": 0,
+          "javaExit": 0,
+          "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-7c502b4-sodium",
+          "observed": [
+            "inputs.json",
+            "launch.json",
+            "presentation-ok.json",
+            "ps1-color-ok.json",
+            "viewmodel-proof/viewmodel-visibility.json"
+          ],
+          "pngCount": 38,
+          "gatePassed": true
+        }
+      ],
+      "endNs": 1794966433025333709,
+      "gatePassed": true
+    },
+    "releaseAccepted": false,
+    "fullSpecificationAccepted": false
+  },
+  "latestCanonicalCombined": {
+    "source": "7c502b49e9ca131c649280ca425f7dc0e4264827",
+    "report": "../MULTI_AGENT_INTEGRATION_7C502B4_2026-11-18.md",
+    "counts": {
+      "unit": {
+        "tests": 935,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "game": {
+        "tests": 456,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "sameJarNativeClients": 2,
+    "sourcePostimages": "gui-cloud-source-postimages-7c502b4.json",
+    "remappedClassParity": "gui-cloud-class-parity-7c502b4.json",
+    "rawPacketDiskDecoder": "surface-byte-readback-7c502b4.json",
+    "fullSpecificationAccepted": false
   }
 }
