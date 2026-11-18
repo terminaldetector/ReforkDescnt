@@ -52,14 +52,17 @@ class Budget:
 
 
 def decompress(raw, mode, budget):
+    if budget.remaining <= 0:
+        raise Unknown('total decoded-byte budget exhausted before decompression')
+    limit = min(MAX_DOCUMENT, budget.remaining)
     try:
         if mode == 1:
             with gzip.GzipFile(fileobj=io.BytesIO(raw)) as saved:
-                data = saved.read(MAX_DOCUMENT + 1)
+                data = saved.read(limit + 1)
         elif mode == 2:
             inflater = zlib.decompressobj()
-            data = inflater.decompress(raw, MAX_DOCUMENT + 1)
-            if len(data) <= MAX_DOCUMENT and (not inflater.eof or inflater.unused_data):
+            data = inflater.decompress(raw, limit + 1)
+            if len(data) <= limit and (not inflater.eof or inflater.unused_data):
                 raise Unknown('incomplete or trailing zlib stream')
         elif mode == 3:
             data = raw
@@ -67,8 +70,8 @@ def decompress(raw, mode, budget):
             raise Unknown('unsupported compression ' + str(mode))
     except (EOFError, OSError, zlib.error) as error:
         raise Unknown('invalid compressed stream: ' + str(error)) from error
-    if len(data) > MAX_DOCUMENT:
-        raise Unknown('decoded document exceeds byte budget')
+    if len(data) > limit:
+        raise Unknown('decoded document exceeds document/remaining byte budget')
     budget.take(len(data))
     return data
 
@@ -187,6 +190,17 @@ def references(strings, catalog, adaptations, member, budget):
     return result
 
 
+def read_json(text):
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise Unknown('duplicate JSON key: ' + key)
+            result[key] = value
+        return result
+    return json.loads(text, object_pairs_hook=unique)
+
+
 def scan_bytes(raw, suffix, catalog, adaptations, budget=None):
     budget = budget or Budget()
     result, issues = [], []
@@ -203,11 +217,14 @@ def scan_bytes(raw, suffix, catalog, adaptations, budget=None):
             budget.take(len(raw))
             text = raw.decode('utf-8')
             if suffix == '.json':
-                value = json.loads(text)
+                value = read_json(text)
                 strings = []
+                nodes = 0
                 def walk(item, path=(), depth=0):
-                    if depth > MAX_DEPTH or len(strings) > MAX_NODES:
-                        raise Unknown('JSON depth/string budget exceeded')
+                    nonlocal nodes
+                    nodes += 1
+                    if depth > MAX_DEPTH or nodes > MAX_NODES:
+                        raise Unknown('JSON depth/node budget exceeded')
                     if isinstance(item, str):
                         strings.append((path, item))
                     elif isinstance(item, dict):
@@ -257,12 +274,13 @@ def run(inputs, catalog_path, out, adaptations_path=None):
     if out.exists() or any(out == p or out in p.parents or p in out.parents for p in original_paths):
         raise Unknown('output must be fresh and separate from all inputs')
     catalog_raw = stable_read(Path(catalog_path))
-    source = json.loads(catalog_raw)
+    source = read_json(catalog_raw)
     if (not isinstance(source, dict) or not isinstance(source.get('revision'), str)
             or not isinstance(source.get('roots'), list)
             or any(not isinstance(row, dict) for row in source['roots'])):
         raise Unknown('catalog must be an explicit pinned registered-root graph')
-    catalog = {row['id'] for row in source['roots'] if row.get('kind') in {'item', 'block', 'entity'}
+    catalog = {row['id'] for row in source['roots'] if isinstance(row.get('kind'), str)
+               and row['kind'] in {'item', 'block', 'entity'}
                and isinstance(row.get('id'), str) and EXACT_ID.fullmatch(row['id'])}
     if not catalog:
         raise Unknown('catalog has no supported registry roots')
@@ -270,10 +288,11 @@ def run(inputs, catalog_path, out, adaptations_path=None):
     adaptation_raw = None
     if adaptations_path:
         adaptation_raw = stable_read(Path(adaptations_path))
-        for row in json.loads(adaptation_raw):
+        for row in read_json(adaptation_raw):
             if (not isinstance(row, dict) or not isinstance(row.get('source'), str)
                     or not EXACT_ID.fullmatch(row['source'])
-                    or row.get('source') in adaptations or row.get('target') not in catalog
+                    or row.get('source') in adaptations or not isinstance(row.get('target'), str)
+                    or row['target'] not in catalog
                     or not row.get('reason') or not row.get('evidence')):
                 raise Unknown('adaptations need unique source, catalog target, reason and evidence')
             adaptations[row['source']] = row

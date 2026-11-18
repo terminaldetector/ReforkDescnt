@@ -112,6 +112,26 @@ class SavedReferenceTests(unittest.TestCase):
         self.assertFalse(refs)
         self.assertIn('reference-count budget', issues[0]['reason'])
 
+    def test_duplicate_json_key_does_not_hide_an_unresolved_reference(self):
+        refs, issues = self.scan(b'{"id":"external:legacy","id":"drmd:ship_laser"}', '.json')
+        self.assertFalse(refs)
+        self.assertIn('duplicate JSON key', issues[0]['reason'])
+
+    def test_exhausted_global_budget_prevents_further_inflation(self):
+        budget = audit.Budget()
+        budget.remaining = 0
+        with patch.object(audit.zlib, 'decompressobj', wraps=zlib.decompressobj) as inflater:
+            refs, issues = audit.scan_bytes(region(compound([('id', 'drmd:ship_laser')])), '.mca', self.known, {}, budget)
+        self.assertFalse(refs)
+        self.assertTrue(issues)
+        self.assertEqual(inflater.call_count, 0)
+
+    def test_numeric_json_nodes_count_toward_the_node_budget(self):
+        with patch.object(audit, 'MAX_NODES', 2):
+            refs, issues = self.scan(b'[1,2,3,4,5,6]', '.json')
+        self.assertFalse(refs)
+        self.assertIn('JSON depth/node budget', issues[0]['reason'])
+
     def fixture(self, directory):
         p = Path(directory)
         cat = p / 'catalog.json'
