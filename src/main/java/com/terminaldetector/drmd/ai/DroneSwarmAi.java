@@ -136,7 +136,7 @@ public final class DroneSwarmAi {
 	 * relies on a stale health value from the beginning of the tick.
 	 */
 	public static DroneEntity mostDamagedAlly(DroneEntity drone, double radius) {
-		if (!(drone.getWorld() instanceof ServerWorld world) || radius <= 0) return null;
+		if (!(drone.getWorld() instanceof ServerWorld world) || !world.getServer().isOnThread()||!Double.isFinite(radius)||radius<=0||radius>32) return null;
 		FrameSnapshot snapshot = snapshot(world);
 		var query = snapshot.all.nearest(drone.getX(), drone.getY(), drone.getZ(), radius, MAX_SUPPORT_NEIGHBOURS,
 				MAX_SUPPORT_CANDIDATES, querySeed(drone, snapshot.tick),
@@ -145,7 +145,7 @@ public final class DroneSwarmAi {
 		float worstRatio = 1f;
 		for (BoundedSpatialIndex.Hit<DroneSample> hit : query.hits()) {
 			Entity entity = world.getEntity(hit.value().id());
-			if (!(entity instanceof DroneEntity ally) || !ally.isAlive()) continue;
+			if (!(entity instanceof DroneEntity ally) || !validSupportAlly(drone,ally,radius)) continue;
 			float ratio = ally.getHealth() / Math.max(1f, ally.getMaxHealth());
 			if (ratio < worstRatio) {
 				worstRatio = ratio;
@@ -154,6 +154,21 @@ public final class DroneSwarmAi {
 		}
 		return worst;
 	}
+    /** Current identity/allegiance and full loaded volumes, including after a portal or actor removal. */
+    static boolean validSupportAlly(DroneEntity drone,DroneEntity ally,double radius){
+        if(!(drone.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||!Double.isFinite(radius)||radius<=0||radius>32
+            ||!DroneSquadCoordinator.allies(drone,ally)||world.getEntity(drone.getUuid())!=drone||world.getEntity(ally.getUuid())!=ally
+            ||drone.squaredDistanceTo(ally)>radius*radius)return false;
+        return supportVolumeLoaded(world,drone)&&supportVolumeLoaded(world,ally);
+    }
+    private static boolean supportVolumeLoaded(ServerWorld world,DroneEntity actor){
+        var b=actor.getBoundingBox().expand(1);if(!Double.isFinite(b.minX+b.minY+b.minZ+b.maxX+b.maxY+b.maxZ)
+            ||actor.getBoundingBox().minY<world.getBottomY()||actor.getBoundingBox().maxY>world.getTopY()||!world.getWorldBorder().contains(actor.getBoundingBox())||!world.shouldTickEntity(actor.getBlockPos()))return false;
+        int x0=net.minecraft.util.math.MathHelper.floor(b.minX)>>4,x1=net.minecraft.util.math.MathHelper.floor(b.maxX)>>4,y0=net.minecraft.util.math.MathHelper.floor(b.minY)>>4,y1=net.minecraft.util.math.MathHelper.floor(b.maxY)>>4,z0=net.minecraft.util.math.MathHelper.floor(b.minZ)>>4,z1=net.minecraft.util.math.MathHelper.floor(b.maxZ)>>4;
+        if((long)(x1-x0+1)*(y1-y0+1)*(z1-z0+1)>64)return false;
+        var access=com.terminaldetector.drmd.world.access.WorldAccess.of(world);
+        for(int x=x0;x<=x1;x++)for(int y=y0;y<=y1;y++)for(int z=z0;z<=z1;z++){var cube=new com.terminaldetector.drmd.d6.D6ChunkPos(x,y,z);if(com.terminaldetector.drmd.world.access.CubicAvailability.withinHeight(world,cube)&&!access.isVolumeAvailable(cube))return false;}return true;
+    }
 
     /** Short-range repulsion shares the exact bounded flock query used by combat steering. */
     static Vec3d closeSeparation(DroneEntity drone){

@@ -8,6 +8,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.EnumSet;
+import java.util.UUID;
 
 /**
  * Combat motion with GMod role styles (pressure / flank / standoff / support / anchor)
@@ -31,6 +32,9 @@ public final class DroneAi {
 
 		private final DroneEntity drone;
         private final DroneNavigation navigation;
+        private UUID supportPatient;
+        private long supportScanAt,supportPortalFrame;
+        private net.minecraft.world.World supportWorld;
 
 		public CombatGoal(DroneEntity drone) {
 			this.drone = drone;
@@ -38,25 +42,46 @@ public final class DroneAi {
 			this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
 		}
 
-        @Override public void stop(){navigation.stop();super.stop();}
+        @Override public void stop(){navigation.stop();supportPatient=null;supportScanAt=0;super.stop();}
         @Override public boolean shouldRunEveryTick(){return drone.continuousFlightSteering();}
 
 		@Override
 		public boolean canStart() {
 			return drone.getTarget() != null && drone.getTarget().isAlive()
-					&& HostileEnvironment.isHostileTarget(drone, drone.getTarget());
+					&& HostileEnvironment.isHostileTarget(drone, drone.getTarget()) || quietSupportAvailable();
 		}
 
 		@Override
 		public boolean shouldContinue() {
 			LivingEntity t = drone.getTarget();
-			return t != null && t.isAlive() && HostileEnvironment.isHostileTarget(drone, t);
+			return t != null && t.isAlive() && HostileEnvironment.isHostileTarget(drone, t) || quietSupportAvailable();
 		}
+
+        private boolean quietSupportAvailable(){return drone.getRole()==AiRole.SUPPORT
+            &&drone.getHealth()/Math.max(1f,drone.getMaxHealth())>=FLEE_HEALTH_FRACTION&&supportPatient()!=null;}
+        /** One UUID and a five-tick rescan on the existing bounded swarm index; never an enemy lock. */
+        private DroneEntity supportPatient(){
+            if(drone.getRole()!=AiRole.SUPPORT||drone.isAiDisabled()||!(drone.getWorld() instanceof net.minecraft.server.world.ServerWorld world)
+                ||!world.getServer().isOnThread()||world.getEntity(drone.getUuid())!=drone||!drone.isAlive()||drone.isRemoved())return null;
+            long now=world.getTime();
+            if(supportWorld!=world||supportPortalFrame!=drone.portalFrameRevision()||now<supportScanAt-5){supportWorld=world;supportPortalFrame=drone.portalFrameRevision();supportPatient=null;supportScanAt=now;}
+            var entity=supportPatient==null?null:world.getEntity(supportPatient);
+            DroneEntity patient=entity instanceof DroneEntity ally&&DroneSwarmAi.validSupportAlly(drone,ally,DescentMod.su(500))
+                &&ally.getHealth()/Math.max(1f,ally.getMaxHealth())<.85f?ally:null;
+            if(patient==null)supportPatient=null;
+            if(now<supportScanAt)return patient;
+            supportScanAt=now+5;patient=DroneSwarmAi.mostDamagedAlly(drone,DescentMod.su(500));
+            if(patient==null||patient.getHealth()/Math.max(1f,patient.getMaxHealth())>=.85f){supportPatient=null;return null;}
+            supportPatient=patient.getUuid();return patient;
+        }
 
 		@Override
 		public void tick() {
 			LivingEntity target = drone.getTarget();
-			if (target == null) return;
+			if (target == null) {
+                if(quietSupportAvailable()){drone.addPhaseTimer(1f/20f);tickSupport(drone.getPos(),null,Vec3d.ZERO,Double.POSITIVE_INFINITY,null,1f/20f);}
+                return;
+            }
 			// Drop ally locks (e.g. revenge misfires).
 			if (!HostileEnvironment.isHostileTarget(drone, target)) {
 				drone.setTarget(null);
@@ -172,16 +197,19 @@ public final class DroneAi {
 
 		private void tickSupport(Vec3d pos, Vec3d tpos, Vec3d toTarget, double dist,
 								 LivingEntity target, float dt) {
-			DroneEntity ally = DroneSwarmAi.mostDamagedAlly(drone, DescentMod.su(500));
+			DroneEntity ally = supportPatient();
 			float worst = ally == null ? 1f : ally.getHealth() / Math.max(1f, ally.getMaxHealth());
 			Vec3d desire;
 			if (ally != null && worst < 0.85f) {
 				desire = ally.getPos().subtract(pos);
 				if (desire.lengthSquared() > 1e-4) desire = desire.normalize();
-				if (pos.distanceTo(ally.getPos()) < 6) {
+				if (pos.distanceTo(ally.getPos()) < 6
+                    &&DroneSwarmAi.validSupportAlly(drone,ally,DescentMod.su(500))
+                    &&FlightRouteSpace.clearSight(drone,drone.getEyePos(),ally.getBoundingBox().getCenter(),16)) {
 					ally.heal(4f / 20f);
 				}
 			} else {
+                if(target==null){navigation.stop();return;}
 				// Keep clear of the threat, orbit the flock.
 				desire = pos.subtract(tpos);
 				if (desire.lengthSquared() < 1e-4) desire = new Vec3d(0, 1, 0);
@@ -194,7 +222,7 @@ public final class DroneAi {
 			drone.velocityModified = true;
 			alignAttitude(drone, drone.getVelocity(), desire, dt);
 			// Support still snipes if something is already on them.
-			if (dist < DescentMod.su(900) && drone.getRole().weaponDamage > 0) {
+			if (target!=null&&dist < DescentMod.su(900) && drone.getRole().weaponDamage > 0) {
 				drone.tryFireAt(target);
 			}
 		}
