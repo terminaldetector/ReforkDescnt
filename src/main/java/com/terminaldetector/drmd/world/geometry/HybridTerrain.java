@@ -11,7 +11,10 @@ import java.util.ArrayList;
 public final class HybridTerrain {
     private HybridTerrain() {}
     /** Immutable snapshot; a mesh worker must never retain a live block entity. */
-    public record Data(BlockState source, long mask, boolean organic) {}
+    public record Data(BlockState source,long mask,boolean organic,java.util.List<com.terminaldetector.drmd.world.micro.ThermalBore> bores,int heat) {
+        public Data(BlockState source,long mask,boolean organic){this(source,mask,organic,java.util.List.of(),0);}
+        public Data {bores=java.util.List.copyOf(bores);if(bores.size()>2||heat<0||heat>3)throw new IllegalArgumentException("thermal render bounds");}
+    }
 
     public static HybridMesh.Neighbourhood snapshot(BlockView world, BlockPos origin, Data self) {
         var blocks=new ArrayList<HybridMesh.Block>(27);
@@ -19,14 +22,14 @@ public final class HybridTerrain {
             BlockPos p=origin.add(x,y,z);
             BlockState state=world.getBlockState(p);
             if (x==0 && y==0 && z==0) {
-                blocks.add(new HybridMesh.Block(self.mask,self.organic,!self.organic,self.source.isOpaque()));
+                blocks.add(new HybridMesh.Block(self.mask,self.organic,!self.organic,self.source.isOpaque(),self.bores));
             } else if (state.getBlock() instanceof OrganicBlock organic) {
                 blocks.add(new HybridMesh.Block(MicroGrid.FULL,true,false,organic.source().isOpaque()));
             } else if (state.getBlock() instanceof CarvedBlock) {
                 Object attachment=world.getBlockEntityRenderData(p);
                 if (attachment instanceof Data data) {
                     boolean hides=data.source.isOpaque() || data.source.equals(self.source);
-                    blocks.add(new HybridMesh.Block(data.mask,data.organic,!data.organic && data.mask!=0,hides));
+                    blocks.add(new HybridMesh.Block(data.mask,data.organic,!data.organic && data.mask!=0,hides,data.bores));
                 } else blocks.add(new HybridMesh.Block(MicroGrid.FULL,false,true,true));
             } else if (NaturalGeometry.applies(state)) {
                 blocks.add(new HybridMesh.Block(MicroGrid.FULL,true,false,state.isOpaque() || state.equals(self.source)));

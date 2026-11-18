@@ -27,10 +27,20 @@ public class CarvedBlockEntity extends BlockEntity {
 	private BlockState source = Blocks.STONE.getDefaultState();
 	private long mask = MicroGrid.FULL;
 	private boolean organic;
+	private ThermalDrillCell thermal;
+	private net.minecraft.nbt.NbtElement opaqueThermal;
 	private com.terminaldetector.drmd.world.geometry.HybridMesh.Neighbourhood shapeKey;
 	private net.minecraft.util.shape.VoxelShape cachedOrganicShape;
 
-	public boolean organic() { return organic; }
+	public boolean organic() { return organic || thermal!=null&&!thermal.bores().isEmpty(); }
+	public ThermalDrillCell thermal(){return thermal;}
+	public boolean thermalReadOnly(){return opaqueThermal!=null;}
+	public void setThermal(ThermalDrillCell value){
+		if(opaqueThermal!=null)throw new IllegalStateException("opaque thermal metadata cannot be replaced");
+		thermal=value;markDirty();sync();
+		if(world instanceof net.minecraft.server.world.ServerWorld server&&value!=null&&value.heat()>0)
+			server.scheduleBlockTick(pos,getCachedState().getBlock(),Math.max(1,(int)Math.min(ThermalDrillCell.COOL_TICKS,value.coolAt()-server.getTime())));
+	}
 
 	public void setOrganic(boolean value) {
 		if (organic == value) return;
@@ -41,7 +51,7 @@ public class CarvedBlockEntity extends BlockEntity {
 
 	@Override
 	public com.terminaldetector.drmd.world.geometry.HybridTerrain.Data getRenderData() {
-		return new com.terminaldetector.drmd.world.geometry.HybridTerrain.Data(source, mask, organic);
+		return new com.terminaldetector.drmd.world.geometry.HybridTerrain.Data(source, mask, organic(),thermal==null?java.util.List.of():thermal.bores(),thermal==null?0:thermal.heat());
 	}
 
 	public net.minecraft.util.shape.VoxelShape organicShape(net.minecraft.world.BlockView view) {
@@ -102,6 +112,8 @@ public class CarvedBlockEntity extends BlockEntity {
 		nbt.put("source", NbtHelper.fromBlockState(source));
 		nbt.putLong("mask", mask);
 		nbt.putBoolean("organic", organic);
+		if(opaqueThermal!=null)nbt.put("thermalDrill",opaqueThermal.copy());
+		else if(thermal!=null)nbt.put("thermalDrill",thermal.write());
 	}
 
 	@Override
@@ -114,6 +126,11 @@ public class CarvedBlockEntity extends BlockEntity {
 		}
 		if (nbt.contains("mask")) mask = nbt.getLong("mask");
 		organic = nbt.getBoolean("organic"); // Existing saves stay rigid.
+		thermal=null;opaqueThermal=null;
+		if(nbt.contains("thermalDrill")){
+			var raw=nbt.get("thermalDrill");var decoded=ThermalDrillCell.read(raw);
+			if(decoded.isPresent())thermal=decoded.get();else opaqueThermal=raw.copy();
+		}
 		if (source.getBlock() instanceof CarvedBlock || source.isAir()) source = Blocks.STONE.getDefaultState();
 		// BE packets change geometry without replacing block state. ClientWorld schedules a one-block halo.
 		if (world != null && world.isClient) world.updateListeners(pos, getCachedState(), getCachedState(), 3);

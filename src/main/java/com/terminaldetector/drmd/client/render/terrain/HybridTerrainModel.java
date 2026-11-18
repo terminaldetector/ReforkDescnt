@@ -72,7 +72,7 @@ public final class HybridTerrainModel extends ForwardingBakedModel {
         if (renderer==null) throw new IllegalStateException("DRMD hybrid terrain requires Fabric Renderer API support");
         RenderMaterial material=renderer.materialFinder()
             .blendMode(BlendMode.fromRenderLayer(RenderLayers.getBlockLayer(data.source())))
-            .disableColorIndex(true).find();
+            .disableColorIndex(true).emissive(data.heat()>0).find();
         List<List<BakedQuad>> templates=new ArrayList<>(6);
         long seed=data.source().getRenderingSeed(pos);
         List<BakedQuad> unculled=source.getQuads(data.source(),null,Random.create(seed));
@@ -86,11 +86,12 @@ public final class HybridTerrainModel extends ForwardingBakedModel {
             var quads=templates.get(face.direction());
             if (quads.isEmpty()) {
                 if (data.organic()) {
-                    emit(emitter,face,TRIANGLE_A,null,material,-1,source);
-                    emit(emitter,face,TRIANGLE_B,null,material,-1,source);
-                } else emit(emitter,face,QUAD,null,material,-1,source);
+                    emit(emitter,face,TRIANGLE_A,null,material,com.terminaldetector.drmd.world.micro.ThermalDrillCell.tint(-1,data.heat()),source);
+                    emit(emitter,face,TRIANGLE_B,null,material,com.terminaldetector.drmd.world.micro.ThermalDrillCell.tint(-1,data.heat()),source);
+                } else emit(emitter,face,QUAD,null,material,com.terminaldetector.drmd.world.micro.ThermalDrillCell.tint(-1,data.heat()),source);
             } else for (var template:quads) {
                 int colour=template.hasColor() ? client.getBlockColors().getColor(data.source(),world,pos,template.getColorIndex()) : -1;
+                colour=com.terminaldetector.drmd.world.micro.ThermalDrillCell.tint(colour,data.heat());
                 if (data.organic()) {
                     emit(emitter,face,TRIANGLE_A,template,material,colour,source);
                     emit(emitter,face,TRIANGLE_B,template,material,colour,source);

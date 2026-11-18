@@ -6,7 +6,9 @@ import java.util.List;
 
 /** Shared surface-net corner field, interpolated onto the quarter-cell damage lattice. */
 public final class HybridMesh {
-    public record Block(long mask, boolean organic, boolean anchor, boolean occludes) {
+    public record Block(long mask,boolean organic,boolean anchor,boolean occludes,List<com.terminaldetector.drmd.world.micro.ThermalBore> bores) {
+        public Block(long mask,boolean organic,boolean anchor,boolean occludes){this(mask,organic,anchor,occludes,List.of());}
+        public Block{bores=List.copyOf(bores);if(bores.size()>2)throw new IllegalArgumentException("thermal shape budget");}
         public static final Block AIR = new Block(0, false, false, false);
     }
     public record Neighbourhood(List<Block> blocks) {
@@ -30,14 +32,16 @@ public final class HybridMesh {
     private static final int[][] STEPS = {{0,-1,0},{0,1,0},{0,0,-1},{0,0,1},{-1,0,0},{1,0,0}};
     private final Neighbourhood neighbours;
     private final Block self;
+    private final boolean thermal;
     private final Point[] vertices = new Point[125];
 
     public HybridMesh(Neighbourhood neighbours) {
         this.neighbours = neighbours;
         self = neighbours.at(0,0,0);
+        thermal=neighbours.blocks.stream().anyMatch(b->!b.bores.isEmpty());
         Point[] corners = new Point[8];
         for (int y=0;y<2;y++) for (int z=0;z<2;z++) for (int x=0;x<2;x++)
-            corners[(y*2+z)*2+x] = self.organic ? cornerOffset(x,y,z) : ZERO;
+            corners[(y*2+z)*2+x] = self.organic&&self.bores.isEmpty() ? cornerOffset(x,y,z) : ZERO;
         for (int y=0;y<=4;y++) for (int z=0;z<=4;z++) for (int x=0;x<=4;x++) {
             double px=x*.25, py=y*.25, pz=z*.25;
             Point offset=ZERO;
@@ -45,8 +49,20 @@ public final class HybridMesh {
                 double weight=(cx==0?1-px:px)*(cy==0?1-py:py)*(cz==0?1-pz:pz);
                 offset=offset.plus(corners[(cy*2+cz)*2+cx].times(weight));
             }
-            vertices[index(x,y,z)]=new Point(px,py,pz).plus(offset);
+            Point point=new Point(px,py,pz).plus(offset);
+            vertices[index(x,y,z)]=thermal?thermalVertex(point,x,y,z):point;
         }
+    }
+
+    /** Both sides of a block seam use the same incident cells and union field. Untouched engineered anchors remain sharp. */
+    private Point thermalVertex(Point p,int x,int y,int z){
+        com.terminaldetector.drmd.world.micro.ThermalBore nearest=null;double signed=Double.POSITIVE_INFINITY;int ox=0,oy=0,oz=0;
+        for(int dy=y==0?-1:0;dy<=(y==4?1:0);dy++)for(int dz=z==0?-1:0;dz<=(z==4?1:0);dz++)for(int dx=x==0?-1:0;dx<=(x==4?1:0);dx++){
+            var block=neighbours.at(dx,dy,dz);if(block.anchor&&block.bores.isEmpty())return p;
+            for(var bore:block.bores){double d=bore.distance(p.x-dx,p.y-dy,p.z-dz)-bore.radius();if(d<signed){signed=d;nearest=bore;ox=dx;oy=dy;oz=dz;}}
+        }
+        if(nearest==null||Math.abs(signed)>com.terminaldetector.drmd.world.micro.ThermalBore.SHELL)return p;
+        var q=nearest.project(p.x-ox,p.y-oy,p.z-oz);return new Point(q.x()+ox,q.y()+oy,q.z()+oz);
     }
 
     /** Same eight world blocks choose the offset on either side of any section boundary. */
@@ -54,7 +70,7 @@ public final class HybridMesh {
         boolean[] solid=new boolean[8];
         for (int dy=0;dy<2;dy++) for (int dz=0;dz<2;dz++) for (int dx=0;dx<2;dx++) {
             Block b=neighbours.at(x+dx-1,y+dy-1,z+dz-1);
-            if (b.anchor) return ZERO;
+            if (b.anchor||!b.bores.isEmpty()) return ZERO;
             solid[(dy*2+dz)*2+dx]=b.mask!=0;
         }
         Point sum=ZERO; int count=0;

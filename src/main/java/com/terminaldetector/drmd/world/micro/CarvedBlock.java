@@ -89,7 +89,18 @@ public class CarvedBlock extends BlockWithEntity {
 
 	@Override
 	public boolean isTransparent(BlockState state, BlockView world, BlockPos pos) {
+		if(uncutHeat(world,pos) instanceof CarvedBlockEntity carved)return carved.source().isTransparent(world,pos);
 		return true;
+	}
+	@Override
+	public int getOpacity(BlockState state,BlockView world,BlockPos pos){
+		if(uncutHeat(world,pos) instanceof CarvedBlockEntity carved)return carved.source().getOpacity(world,pos);
+		return super.getOpacity(state,world,pos);
+	}
+	private static BlockEntity uncutHeat(BlockView world,BlockPos pos){
+		var entity=world.getBlockEntity(pos);
+		return entity instanceof CarvedBlockEntity carved&&carved.mask()==MicroGrid.FULL
+			&&(carved.thermalReadOnly()||carved.thermal()!=null&&carved.thermal().bores().isEmpty())?carved:null;
 	}
 
 	/** What it drops is what the block it used to be drops. */
@@ -210,5 +221,16 @@ public class CarvedBlock extends BlockWithEntity {
 	public <T extends BlockEntity> net.minecraft.block.entity.BlockEntityTicker<T> getTicker(
 			World world, BlockState state, BlockEntityType<T> type) {
 		return null; // Nothing to tick: the shape only changes when something hits it.
+	}
+	@Override
+	protected void scheduledTick(BlockState state,ServerWorld world,BlockPos pos,net.minecraft.util.math.random.Random random){
+		if(world.getBlockEntity(pos) instanceof CarvedBlockEntity carved&&!carved.thermalReadOnly()&&carved.thermal()!=null&&carved.thermal().heat()>0){
+			var thermal=carved.thermal();
+			if(world.getTime()>=thermal.coolAt()){
+				if(thermal.bores().isEmpty()&&carved.mask()==MicroGrid.FULL)restore(world,pos);
+				else carved.setThermal(thermal.bores().isEmpty()?null:thermal.cooled());
+			}
+			else world.scheduleBlockTick(pos,this,(int)Math.max(1,Math.min(ThermalDrillCell.COOL_TICKS,thermal.coolAt()-world.getTime())));
+		}
 	}
 }
