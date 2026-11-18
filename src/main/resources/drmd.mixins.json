@@ -29,6 +29,7 @@
     "FootGravityGeometryMixin",
     "BoardingServerMovementMixin",
     "BoardingPlayerTravelMixin",
+    "BoardingVelocityCleanupMixin",
     "BoardingPoseMixin",
     "BoardingWorldMovementMixin",
     "BodyPickingMixin",

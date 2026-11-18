@@ -37,6 +37,9 @@ public final class NativeClusterInputCheck {
     public static final boolean ENABLED=Boolean.getBoolean("drmd.gate.clusterInput");
     private static final Vec3d START=new Vec3d(96.5,2158,96.5);
     private static final long WALL=160_000_000_000L;
+    // Last STAGGER release24 + child's fallback expiry161 +55 ticks for native delivery/render.
+    private static final int PHASE_TICKS=240,MAX_ROWS=512;
+    private static java.lang.reflect.Method volumeLoaded;
     private record Bomb(UUID uuid,int id,boolean child,int age,int stage,boolean armed,List<Double> position,List<Double> velocity,List<Double> forward){}
     private record View(int tick,boolean nativeWorld,boolean flight,boolean emptyHand,boolean survival,int primary,int secondary,
                         List<Double> position,List<Double> up,List<Double> forward,boolean muzzleLoaded,List<Bomb> bombs,
@@ -58,6 +61,11 @@ public final class NativeClusterInputCheck {
     private static List<Double> xyz(Vec3d v){return List.of(v.x,v.y,v.z);}
     private static Vec3d vec(List<Double> v){return new Vec3d(v.get(0),v.get(1),v.get(2));}
     private static void require(boolean b,String why){if(!b)throw new IllegalStateException(why);}
+    /** Invoke the existing package-private production predicate, without changing production visibility. */
+    private static boolean productionMuzzleLoaded(net.minecraft.server.world.ServerWorld world,Vec3d muzzle)throws ReflectiveOperationException{
+        if(volumeLoaded==null){volumeLoaded=Class.forName("com.terminaldetector.drmd.world.bombardment.ClusterOrdnanceSafety").getDeclaredMethod("volumeLoaded",net.minecraft.server.world.ServerWorld.class,Vec3d.class,double.class);volumeLoaded.setAccessible(true);}
+        return (Boolean)volumeLoaded.invoke(null,world,muzzle,.5);
+    }
     private static ItemStack stack(boolean heavy){
         var s=new ItemStack(heavy?ModItems.BOMB_HEAVY_CLUSTER:ModItems.BOMB_CLUSTER,3);var n=new NbtCompound();
         n.put(ClusterFlight.ITEM_KEY,ClusterFlight.writeProgram(ClusterProgram.preset(heavy?ClusterProgram.Pattern.STAGGER:ClusterProgram.Pattern.FAN)));
@@ -94,9 +102,9 @@ public final class NativeClusterInputCheck {
                 }}
             }
             var up=d.shipUp(p);var fwd=d.shipForward(p);var muzzle=com.terminaldetector.drmd.weapon.core.WeaponCore.muzzle(p,phase==0?.9f:2.4f,0,phase==0?-.22f:-1.65f);
-            boolean loaded=WorldEditSafety.loadedSegment(w,p.getEyePos(),muzzle)&&WorldEditSafety.loadedSegment(w,muzzle,muzzle.add((phase==0?fwd:up.negate()).multiply(80)));
+            boolean loaded=productionMuzzleLoaded(w,muzzle)&&WorldEditSafety.loadedSegment(w,p.getEyePos(),muzzle);
             var value=new View(server.getTicks(),true,d.isEnabled(),p.getMainHandStack().isEmpty(),!p.isCreative()&&!p.isSpectator(),slots.getStack(0).getCount(),slots.getStack(1).getCount(),xyz(p.getPos()),xyz(up),xyz(fwd),loaded,List.copyOf(bombs),counts.carriers.size(),counts.children.size(),counts.unarmed,counts.armed,Set.copyOf(counts.stages),counts.childAge);
-            if(measuring){synchronized(ROWS){require(ROWS.size()<300,"finite300 actual server rows");ROWS.add(value);}}
+            if(measuring){synchronized(ROWS){require(ROWS.size()<MAX_ROWS,"finite512 actual server rows");ROWS.add(value);}}
             live=value;
         }catch(Throwable error){serverFailure=error.toString();}
     }
@@ -122,7 +130,7 @@ public final class NativeClusterInputCheck {
             if(viewer==null){viewer=c.player.getUuid();c.options.hudHidden=false;DescentConfig.weaponView=true;return;}
             if(live==null)return;
             if(pressed!=null&&clientTicks>pressTick){key(pressed,false);pressed=null;}
-            if(!step.equals("ADMIT"))require(live.tick-entered<180,"finite ordinary phase deadline: "+step);
+            if(!step.equals("ADMIT"))require(live.tick-entered<PHASE_TICKS,"finite ordinary phase deadline: "+step);
             if(step.equals("ADMIT")){
                 if(!clientReady(c)||!live.muzzleLoaded||vec(live.position).distanceTo(START)>1||frames<4)return;
                 require(live.primary==3&&live.secondary==3&&live.bombs.isEmpty()&&vec(live.up).y>.8,"initial real socket counts/clear owner lifecycle/ordinary frame");

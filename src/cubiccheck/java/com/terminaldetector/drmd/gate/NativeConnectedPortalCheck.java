@@ -35,7 +35,7 @@ import java.util.*;
 /** ONE occupied, physically connected island. Only fixture staging and ONE launch pulse are authored. */
 public final class NativeConnectedPortalCheck {
     public static final boolean ENABLED=Boolean.getBoolean("drmd.gate.connectedPortal");
-    private static final BlockPos A=new BlockPos(6,2156,5),B=new BlockPos(24,2156,12),MARK=B.east(9);
+    private static final BlockPos A=new BlockPos(6,2156,5),B=new BlockPos(24,2156,12),MARK=B.east(16).south(6);
     private static final Vec3d START=new Vec3d(6,2156.04,-.1);
     private static final Vec3 ZERO=new Vec3(0,0,0),DELTA=new Vec3(0,0,4),OMEGA=new Vec3(.02,.025,.015);
     private record Hull(UUID uuid,int id,Vec3 p,Quat q,Vec3 v,Vec3 l,Vec3 force,Vec3 torque,long revision,boolean full){}

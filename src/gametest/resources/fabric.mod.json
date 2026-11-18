@@ -107,7 +107,8 @@
       "com.terminaldetector.drmd.BlastStructuralCollapseGameTests",
       "com.terminaldetector.drmd.ProgrammedClusterGameTests",
       "com.terminaldetector.drmd.DroneQuietSupportGameTests",
-      "com.terminaldetector.drmd.LivingBodyContactGameTests"
+      "com.terminaldetector.drmd.LivingBodyContactGameTests",
+      "com.terminaldetector.drmd.BoardingVelocityGameTests"
     ]
   },
   "depends": {
