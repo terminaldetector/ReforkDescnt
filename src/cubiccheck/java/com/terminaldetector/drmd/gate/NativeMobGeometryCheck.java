@@ -73,6 +73,8 @@ public final class NativeMobGeometryCheck {
         }catch(Throwable error){serverFailure=error.toString();}
     }
     private static void apply(){
+        MinecraftClient.getInstance().getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);
+        MinecraftClient.getInstance().inGameHud.getChatHud().clear(false);
         DescentConfig.presentationProfile=phase==1?PresentationProfile.PS1_HYBRID:PresentationProfile.HYBRID_NATIVE;
         DescentConfig.ps1Geometry=new Ps1GeometryOptions(phase==1?2:0,phase==1?1:0);DescentConfig.ps1SceneHeight=360;
         // Keep the same real mesh across all states: this gate targets built-in shader flow.
