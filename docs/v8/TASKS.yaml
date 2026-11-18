@@ -681,11 +681,11 @@ tasks:
   owner: UFO_OWNER
   gate: G2
   depends_on_stages: *id010
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [IMPLEMENTATION_92B6DA2E_2026-11-18.md, EVIDENCE/focused-92b6da2e.json]
+  notes: "Actual92b ordinary five-case reactor phase PASS: saved configurable delay/warning, optional0, elapsed NBT and at-most-once bounded detonation; physics/material continuity retained. Original sphere/support combat and full sabotage/escape episode remain open."
 - id: S09-T06
   stage: S09
   stage_title: BlockBody / UFO boarding and reactor

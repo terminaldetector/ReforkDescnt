@@ -101,7 +101,8 @@
     "native-0107-closed-preserved.json": "8e43e0880e3f554c1aabb5b92a2b7a8d273417350cbcea3876cc60283807a0d2",
     "legacy-actor-frames-fixtures-preserved-20261118.json": "1bd6c0e00cebc7145d09592a41fdf096187013d8b6076a1b7983a5482abfe247",
     "telegram-abadonsoft-0107bd8.json": "281cf1bd82e063d60e2bdbf0596bcaec6b11d20a4e65a42a03c697e3ff519e97",
-    "telegram-abadonsoft-0107bd8-readback.json": "45dfe837b14ba63f8dc81f6dc7e42308f999b97ec5f8e44814de83ba3b13261a"
+    "telegram-abadonsoft-0107bd8-readback.json": "45dfe837b14ba63f8dc81f6dc7e42308f999b97ec5f8e44814de83ba3b13261a",
+    "focused-92b6da2e.zip": "747673314d4f5568f342ff4c8b138de608b293b1e5f8690e90e3a599cd0f7b61"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -4018,5 +4019,26 @@
     "source": "0107bd85e028b8aa0c035206848caf63f6c78632",
     "receipt": "telegram-abadonsoft-0107bd8.json",
     "fullSpecificationAccepted": false
+  },
+  "focusedImplementation92b6da2e": {
+    "source": "92b6da2e0d0a973f1e971385ad8303babae9b725",
+    "archive": "docs/v8/EVIDENCE/focused-92b6da2e.zip",
+    "bytes": 6429623,
+    "sha256": "747673314d4f5568f342ff4c8b138de608b293b1e5f8690e90e3a599cd0f7b61",
+    "payloads": 51,
+    "allCRCAndSHA256": true,
+    "unitCases": 9,
+    "gameCasesFirst": 10,
+    "firstFailures": 2,
+    "gameCasesCorrectedAndReactor": 9,
+    "correctedFailures": 0,
+    "distinctSuccessfulHatchItemReactor": [
+      6,
+      4,
+      5
+    ],
+    "gameJarSHA256": "d6d66120016f4a389d87e608c00d5c5db2594d389fa00a0cb7486f669b9c6edb",
+    "fullSuiteAccepted": false,
+    "clientAccepted": false
   }
 }

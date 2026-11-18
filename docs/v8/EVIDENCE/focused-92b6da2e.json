@@ -1,0 +1,21 @@
+{
+  "source": "92b6da2e0d0a973f1e971385ad8303babae9b725",
+  "archive": "docs/v8/EVIDENCE/focused-92b6da2e.zip",
+  "bytes": 6429623,
+  "sha256": "747673314d4f5568f342ff4c8b138de608b293b1e5f8690e90e3a599cd0f7b61",
+  "payloads": 51,
+  "allCRCAndSHA256": true,
+  "unitCases": 9,
+  "gameCasesFirst": 10,
+  "firstFailures": 2,
+  "gameCasesCorrectedAndReactor": 9,
+  "correctedFailures": 0,
+  "distinctSuccessfulHatchItemReactor": [
+    6,
+    4,
+    5
+  ],
+  "gameJarSHA256": "d6d66120016f4a389d87e608c00d5c5db2594d389fa00a0cb7486f669b9c6edb",
+  "fullSuiteAccepted": false,
+  "clientAccepted": false
+}

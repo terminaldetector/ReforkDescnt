@@ -164,11 +164,11 @@
         "S08-T05",
         "S09-T04"
       ],
-      "status": "implementation_in_progress",
+      "status": "partial_integrated_focused_pass",
       "owner": "gravity_ragdoll with root Boarding",
-      "source": null,
-      "remaining": "Concrete first loose-item contact/body-local acceleration increment is being implemented in isolated0107 tree. Reuses native item lifecycle and existing attachment casts/constraints with additive passive entry and deferred body phase; four meaningful natural item scenarios authored. Production and runtime qualification pending; non-player universal/cold/transfer/UNKNOWN cases remain open.",
-      "report": null,
+      "source": "92b6da2e",
+      "remaining": "Actual loose-item passive solver/local field integrated;4ordinary scenariosPASS after retained first2unticked-column fixture timeouts and narrow tickets-only correction. Native lifecycle controls/translation+yaw deck/rotated airborne field pass. NativeBCC UNKNOWN/client/cold/merge-pair/playerpickup/allmobs remain open.",
+      "report": "docs/v8/IMPLEMENTATION_92B6DA2E_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -178,11 +178,11 @@
         "S09-T04",
         "S09-T05"
       ],
-      "status": "implementation_in_progress",
+      "status": "partial_integrated_focused_pass",
       "owner": "root Boarding",
-      "source": null,
-      "remaining": "Concrete local oak-trapdoor hatch implementation started in isolated0107 tree: validated normalUSE, actualOPEN state, thin collision/target geometry and oriented occupancy refusal through existing atomic local-block path. No whole-block fullcube visual toggle, static ship or new engine. Runtime qualification and broader local functional mechanisms remain open.",
-      "report": null,
+      "source": "f892c399",
+      "remaining": "Actual oak hatch USE/thin geometry/obstruction/NBT/momentum/source refusal6ordinary casesPASS. Added reactor saved-warning/timer/bounded detonation phase5ordinary casesPASS on92b. Full functional moving mechanisms, reactor sphere/supports/combat and full episode remain open.",
+      "report": "docs/v8/IMPLEMENTATION_92B6DA2E_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -222,10 +222,10 @@
         "S09-T04",
         "S15-T03"
       ],
-      "status": "pending",
-      "owner": "root physics after combat/render coordination",
+      "status": "implementation_in_progress",
+      "owner": "world_cubic with ragdoll_limits",
       "source": null,
-      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "remaining": "Actual native joint/riding/boarding group transaction, full destination admission, one physical warp, swept fast-player candidates and prepared articulated ragdoll transfer are being implemented. Existing free/player6DoF source is retained; new group runtime/client acceptance is not yet claimed.",
       "report": null,
       "acceptedAsWhole": false
     },
@@ -331,7 +331,7 @@
     "R3": "pending requested1/2/4mirror/failure matrix;8panes->1surfaceproof retained",
     "B1": "pending accelerating occupied contact matrix",
     "B3": "pending combined occupied asymmetricedit/COM/packet transaction",
-    "B4": "pending aboard sabotage/warning/departure/wreck episode"
+    "B4": "Actual92b reactor phase5ordinary casesPASS: configurable saved countdown/warning and at-most-once bounded physical detonation. Sphere/support combat/boarding sabotage/complete escape episode remain open."
   },
   "updatedDate": "2026-11-18",
   "additionalOwnerSourceMaps": [
@@ -520,11 +520,11 @@
       "performanceAccepted": false
     }
   },
-  "canonicalPreparedSource": "0107bd85e028b8aa0c035206848caf63f6c78632",
-  "preparedSourceNotYetFullRuntimeAccepted": false,
+  "canonicalPreparedSource": "92b6da2e0d0a973f1e971385ad8303babae9b725",
+  "preparedSourceNotYetFullRuntimeAccepted": true,
   "liveLedgerCounts": {
-    "in_progress": 33,
-    "pending_reverification": 63,
+    "in_progress": 34,
+    "pending_reverification": 62,
     "completed": 3
   },
   "currentPrimarySpecifications": [
@@ -534,5 +534,7 @@
   "directBindingSupplements": [
     "Dynamic Boarding / BlockBody",
     "Create-style separate gun, bearing and drive"
-  ]
+  ],
+  "latestFocusedEvidence": "docs/v8/EVIDENCE/focused-92b6da2e.json",
+  "validationPreference": "User prioritizes concrete implementation and focused checks on actual changes over diagnostic-only loops; portal traversal first."
 }

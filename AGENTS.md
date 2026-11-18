@@ -1,5 +1,7 @@
 # Recovery and checkpoint rules
 
+Current user steering (18 November): prioritize working native portal traversal, including 6DoF and physical constructs. Implement concrete features across the two latest primary specifications (MASTER v8 and ENGINE B / PS1). Keep validation focused on actual changes; do not replace implementation with repeated diagnostic-only runs. Retain real first failures and fix their actual causes. The user separately authorizes posting ready builds, important actual screenshots and changelogs to Telegram `@abadonsoft`; this does not resume GitHub/source publication.
+
 Current user instruction (6 November): development is local only. Do not push, publish, upload to GitHub or trigger Actions. Preserve local source/evidence checkpoints and continue both master v8 and Dynamic Boarding/BlockBody work. This supersedes the historical publication instructions below until the user explicitly resumes publication.
 
 Current turret direction (8–9 November): use Create-style player-built mechanisms with separate weapon, bearing and drive blocks, on the existing BlockBody/joint solver. Do not continue adding UFO-specific turret recipes/controllers as the main implementation. This is an assembly principle, not authorization to add a Create dependency. Existing UFO proof remains regression evidence; generic construction, world anchoring and reusable weapon control need their own acceptance.
