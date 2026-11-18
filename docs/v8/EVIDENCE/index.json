@@ -93,7 +93,8 @@
     "planet-first-snapshot-order.zip": "91634ac2304d8af8c501d783ca2759082d3cdcf3f4bc879ca3854df8210123c4",
     "surface-byte-readback-20ef2c4.py": "eff0cefc9d352f791ab3b484ee23fee4a8a26ec340403cab1d4cfe0a5e2df5ac",
     "surface-byte-readback-20ef2c4.json": "2031d6fe8f2bb1684d5271a6ea8f1f461c9283d5addfac09e323911e3a5c83ce",
-    "integrated-5057931.zip": "faa4c5e1fb95f3e3947418f1ea6b17d785fdf39ceb88cc0db8226efb63546cd5"
+    "integrated-5057931.zip": "faa4c5e1fb95f3e3947418f1ea6b17d785fdf39ceb88cc0db8226efb63546cd5",
+    "saved-registry-u01-b8c0f23a.zip": "a647ee396b2856c08e979784956afd6d24d04529c2b6e2b7ffe80caf02ad87db"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -3916,5 +3917,43 @@
       "/workspace/ungravity-v5/portal-gun/build/cubic-client-before-release-gun-gl32/saves"
     ],
     "afterFreeBytes": 607150080
+  },
+  "savedRegistryU01B8": {
+    "source": "b8c0f23a47f149ddc7548b133cb71bc1de04c110",
+    "unitTests": 20,
+    "unitFailures": 0,
+    "firstNegative": {
+      "source": "c3a3dcccd43d6324f937dfe4f54dcd0ea8938108",
+      "tests": 18,
+      "passed": 15,
+      "failures": 2,
+      "errors": 1
+    },
+    "secondNegative": {
+      "source": "9c9d2b07165e0d4e8dbe293c57f9520dcd63a86e",
+      "tests": 19,
+      "passed": 18,
+      "failures": 1
+    },
+    "actualInputFiles": 15,
+    "actualCliExit": 1,
+    "referenceActions": {
+      "KEEP": 2,
+      "UNKNOWN": 34
+    },
+    "parseIssues": 0,
+    "saveEdits": 0,
+    "catalogRevision": "9b7cf9b0709a47c181d113923f7ac59a4b62fd3c",
+    "catalogUniqueRootIds": 145,
+    "originalsUnchanged": true,
+    "wholePacketAccepted": false,
+    "evidenceArchive": "docs/v8/EVIDENCE/saved-registry-u01-b8c0f23a.zip",
+    "archiveSHA256": "a647ee396b2856c08e979784956afd6d24d04529c2b6e2b7ffe80caf02ad87db",
+    "archiveBytes": 124865,
+    "payloadFiles": 28,
+    "canonicalToolCommit": "fd5e4a78",
+    "scriptAndTestPostimagesByteIdentical": true,
+    "gameProductionChanged": false,
+    "independentReview": "saved-registry-u01-independent-review-b8.json"
   }
 }

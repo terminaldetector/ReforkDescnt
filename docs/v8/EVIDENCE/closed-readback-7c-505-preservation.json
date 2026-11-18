@@ -1,0 +1,167 @@
+{
+  "scope": "Only raw float readbacks of two closed owned fixtures; exact committed ZIP members retained; no PNG/JAR/world/dependency removed",
+  "files": [
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-7c502b4-sodium/ps1-color-reference/dither32-resized/main-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-7c502b4.zip",
+      "member": "presentation/ps1-color-reference/dither32-resized/main-depth.f32",
+      "bytes": 2073600,
+      "sha256": "ac810f616666851ba896bb43f6463ca5c2f10b4a5e017ad94377cb31f1439d69",
+      "inode": 1873575
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-7c502b4-sodium/ps1-color-reference/dither32-resized/source-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-7c502b4.zip",
+      "member": "presentation/ps1-color-reference/dither32-resized/source-depth.f32",
+      "bytes": 230400,
+      "sha256": "0f2d8d6fd4c8db0fa43c936c21964d1841993ec536f8aca3dfac21327841a2b2",
+      "inode": 1873574
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-7c502b4-sodium/ps1-color-reference/dither32/main-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-7c502b4.zip",
+      "member": "presentation/ps1-color-reference/dither32/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "47dfdd2f0d1f7bbf5d6d62afc3e4956d0e9f5e472e83c62e7124a00e8081781a",
+      "inode": 1873554
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-7c502b4-sodium/ps1-color-reference/dither32/source-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-7c502b4.zip",
+      "member": "presentation/ps1-color-reference/dither32/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "e431bac787f7d1ca635e53bf93c396c09cb7f9c84adb350002dfcf7a8083988a",
+      "inode": 1873553
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-7c502b4-sodium/ps1-color-reference/palette32/main-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-7c502b4.zip",
+      "member": "presentation/ps1-color-reference/palette32/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "1efb8791324eda3cd08a2d416e4b83b5422789d6db867c225ee4014c89167210",
+      "inode": 1873531
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-7c502b4-sodium/ps1-color-reference/palette32/source-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-7c502b4.zip",
+      "member": "presentation/ps1-color-reference/palette32/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "878b6a5a18b7a1904991ec9bff0804d8e24fef184791846ca7b3a2a1c965b4de",
+      "inode": 1873530
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-7c502b4-sodium/ps1-color-reference/raw256-restored/main-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-7c502b4.zip",
+      "member": "presentation/ps1-color-reference/raw256-restored/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "07be3911acd7a682c0a8d6d8cce7682b3694bc4173aee38fd57b77a8e5af547f",
+      "inode": 1873561
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-7c502b4-sodium/ps1-color-reference/raw256-restored/source-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-7c502b4.zip",
+      "member": "presentation/ps1-color-reference/raw256-restored/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "6c33b5db9986dd2fff23fa0c6e928fbee05341f2c63ac2ac76e4b108d31b1f29",
+      "inode": 1873560
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-7c502b4-sodium/ps1-color-reference/raw256/main-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-7c502b4.zip",
+      "member": "presentation/ps1-color-reference/raw256/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "d613e2175f99cf61e73c1b1f021c1352a84d8533e614c3f1983395030bf436ee",
+      "inode": 1873524
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-7c502b4-sodium/ps1-color-reference/raw256/source-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-7c502b4.zip",
+      "member": "presentation/ps1-color-reference/raw256/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "1ec21bc2e07c2232d087e70f98d34e744460b069245e64acead461ec09252490",
+      "inode": 1873523
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-5057931-sodium/ps1-color-reference/dither32-resized/main-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-5057931.zip",
+      "member": "presentation/ps1-color-reference/dither32-resized/main-depth.f32",
+      "bytes": 2073600,
+      "sha256": "f8c23a5e5471946249f58e6b592861f65e65ac4908a60ced135fc2d21f5d1fd0",
+      "inode": 1876609
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-5057931-sodium/ps1-color-reference/dither32-resized/source-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-5057931.zip",
+      "member": "presentation/ps1-color-reference/dither32-resized/source-depth.f32",
+      "bytes": 230400,
+      "sha256": "cffcfcaf04c7933e3ed53f157e9bb00933da44952f433b8c649efe25acb46dd2",
+      "inode": 1876608
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-5057931-sodium/ps1-color-reference/dither32/main-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-5057931.zip",
+      "member": "presentation/ps1-color-reference/dither32/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "715041eea3a202b8ad8ef4955d57ad15d6c32453079b98e18915147ab9a57330",
+      "inode": 1876588
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-5057931-sodium/ps1-color-reference/dither32/source-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-5057931.zip",
+      "member": "presentation/ps1-color-reference/dither32/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "7c5d35f459d502960ce5d943ed83498eaad8e8e81a5749de79c347e16a25dbc1",
+      "inode": 1876587
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-5057931-sodium/ps1-color-reference/palette32/main-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-5057931.zip",
+      "member": "presentation/ps1-color-reference/palette32/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "b87c62c12264897f7d76025bb5fc5d38d50020603103c55bb505d69c54544dd2",
+      "inode": 1876565
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-5057931-sodium/ps1-color-reference/palette32/source-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-5057931.zip",
+      "member": "presentation/ps1-color-reference/palette32/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "8af18c1e7506b0e69e7e6957f52c155c56e6315cdac4230504f557e68b69328f",
+      "inode": 1876564
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-5057931-sodium/ps1-color-reference/raw256-restored/main-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-5057931.zip",
+      "member": "presentation/ps1-color-reference/raw256-restored/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "9b40e4df0e84f25362e9fcbac6ebb0e54878a96f6b9d6cbec7c62b6abc2d378e",
+      "inode": 1876595
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-5057931-sodium/ps1-color-reference/raw256-restored/source-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-5057931.zip",
+      "member": "presentation/ps1-color-reference/raw256-restored/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "6e0bcbc2e9378c4553bc4890457218c0f0b7e169383e9bfd38bd85a27da4f097",
+      "inode": 1876594
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-5057931-sodium/ps1-color-reference/raw256/main-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-5057931.zip",
+      "member": "presentation/ps1-color-reference/raw256/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "f5c88d14fc64cdd1b6e505c310ac9761542d33f20dff179f4ab674f4a3ba13b0",
+      "inode": 1876558
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-5057931-sodium/ps1-color-reference/raw256/source-depth.f32",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-5057931.zip",
+      "member": "presentation/ps1-color-reference/raw256/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "91ddaf6dd7de4d088122b9e1ed244418202d6b664f585858b3cc5f1fd7ee8059",
+      "inode": 1876557
+    }
+  ],
+  "reclaimedBytes": 41472000,
+  "allArchiveCrcsAndExactBytesChecked": true
+}

@@ -3,7 +3,7 @@
 The new `scripts/v8/saved_registry_references.py` reads explicit files into a
 fresh audit directory and indexes references from those copies. It never opens
 an original for writing, migrates a save, executes commands or proposes deletion.
-`scripts/v8/test_saved_registry_references.py` provides18 passing Python tests.
+`scripts/v8/test_saved_registry_references.py` provides20 passing Python tests.
 This tooling is separate from the951 Java unit /480 GameTest canonical result.
 
 Supported input paths are compound NBT (raw/gzip), ordinary Anvil `.mca` regions
@@ -46,7 +46,7 @@ are refused without waiting for a FIFO writer.
 
 ## Actual checks and first failures
 
-Exact tool source `9c9d2b07165e0d4e8dbe293c57f9520dcd63a86e` passes18 tests,
+Exact tool source `b8c0f23a47f149ddc7548b133cb71bc1de04c110` passes20 tests,
 including real gzip/Anvil decoding, corrupt footers, duplicate compound keys,
 truncation, overlapping regions, external/LZ4 refusal, depth/inflation/reference
 limits, original-byte/inode preservation, changed-input detection and FIFO safety.
@@ -58,6 +58,15 @@ the shared byte budget was exhausted, and numeric JSON nodes escaped the node
 counter. The first log is preserved. The corrected reader rejects duplicate JSON
 keys, admits and caps actual inflation against the remaining budget before doing
 work, and counts every visited JSON node. All original tests remain present.
+
+A subsequent independent review found that rejected oversized documents could
+repeatedly inflate without charging the shared budget. Its real three-chunk
+negative passes18/19, failing the expected single-inflater bound. The final fix
+charges returned bytes before limit/stream validation and conservatively refuses
+further inflation after any oversized or invalid stream. The same independent
+reproduction now observes one inflater /five returned bytes, with all three
+members UNKNOWN. All20 tests also pass in independent review. Malformed scalar
+adaptation files are rejected before output creation.
 
 The actual15-file replay reads12 retained AA NBT proof files, two genuine saved
 entity regions and `level.dat` from closed canonical505 test saves. It finds
@@ -72,10 +81,14 @@ All five retired weapon IDs remain real registered recipe roots in the bound
 source graph. No saved instance of them was found in this selected15-file sample;
 no claim is made about uninspected saves or the six historical marked slots.
 
-[Evidence](EVIDENCE/saved-registry-u01-9c9d2b07.zip) retains25 payloads, copied
+[Evidence](EVIDENCE/saved-registry-u01-b8c0f23a.zip) retains28 payloads, copied
 inputs/catalog, first negative and corrected logs, actual commands/exit, source
-and tests:121,734 bytes, SHA-256
-`e22352adf6357e49149b5ca5ce24f87a5d42c574ec552ba191fcce10216f339b`.
+and tests:124,865 bytes, SHA-256
+`a647ee396b2856c08e979784956afd6d24d04529c2b6e2b7ffe80caf02ad87db`.
 Every payload hash/size and ZIP CRC was reread. Unsupported stores, runtime ID
 enumeration, full source lifecycle consumers and user-save compatibility remain
 open. U01 and whole tasks are not marked complete.
+
+The earlier9c evidence remains preserved as an intermediate result. The canonical
+tool commit `fd5e4a78` has byte-identical script/test postimages to testedb8; no
+production game file changed in this tooling integration.

@@ -20,11 +20,11 @@
         "S15-T01",
         "S15-T02"
       ],
-      "status": "pending",
-      "owner": "audit_integration",
-      "source": null,
-      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
-      "report": null,
+      "status": "partial_tooling_integrated",
+      "owner": "root with audit_integration review",
+      "source": "fd5e4a78",
+      "remaining": "Bounded copied NBT/Anvil/JSON/commands index integrated;20Python controlsPASS after retained3+1negativeomissions. Actual15closedfiles36references2KEEP34UNKNOWN/0parseissues, originalsunchanged. Explicitpinned9b145uniqueitem/blockIDs, fiveoldweaponrecipe roots retained; notruntime505entityregistry/migration/fulluser-save/lifecycle coverage.",
+      "report": "docs/v8/SAVED_REGISTRY_REFERENCES_U01_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -92,10 +92,10 @@
       "taskIds": [
         "S14-T02"
       ],
-      "status": "source_work_assigned",
+      "status": "source_candidate",
       "owner": "combat_ai",
-      "source": null,
-      "remaining": "Shapes distinct armed Enderman-derived infantry source implementation assigned combat_ai on fresh505 base after bounded clause review. Reuse actual cover/squad/weapon/localframe hooks; suppress vanilla teleport only this role; no wall/ceiling/full3DAI acceptance and no runtime yet.",
+      "source": "4bfbeb89f48d7114e12096c602fd0c5b8bef908a",
+      "remaining": "Actual separate Shapes CyberMob/Enderman-rig actor, existingLASER/cover/squad hooks and10new+17oldGT are written/frozen4bfb. FIRST27compile/game unrun; actualdamage/naturalfire/identity/ordinaryground required. ActorFrames whitelist/fullwall-ceiling AI/nativeimages remain open.",
       "report": null,
       "acceptedAsWhole": false
     },
@@ -239,8 +239,8 @@
       ],
       "status": "source_candidate",
       "owner": "ps1_render",
-      "source": "3265fb69",
-      "remaining": "Actual hardtexturedBlockBody vertex snap+affine shader/default-off controls written;6independentPython controls PASS. Five Java tests, compile and actual world-draw/atlas/frame oracle remain unrun. Source-only observer9state contract underway; Native/Debug/HUD/GUI/viewmodel/offscreen gates retained.",
+      "source": "189299d085ef01910b6b191ca036ed0a1d2d2235",
+      "remaining": "Actual hardtexturedBlockBody vertex snap/affine/default-off controls and9state actualdraw/VBO/texture/index/pixel observer written189299. NinePythonoraclecontrolsPASS; firstcompile/fiveJavaunits/actualABI/native unrun andqueued. Native/Debug/HUD/GUI/viewmodel/offscreen gates retained; fog/lowpoly/pacing/nearSodiumterrain remain distinct.",
       "report": null,
       "acceptedAsWhole": false
     },

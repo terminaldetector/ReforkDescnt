@@ -1,0 +1,21 @@
+{
+  "head": "b8c0f23a47f149ddc7548b133cb71bc1de04c110",
+  "source_sha256": "4fefd84effc2b6e19f2b00be8883a5ec02aef310190d3b77e819b0a6d9aecb4a",
+  "utc": "2026-11-18T03:45:37.762958+00:00",
+  "overlimit_reprobe": {
+    "initial_remaining": 8,
+    "test_MAX_DOCUMENT": 4,
+    "real_documents": 3,
+    "actual_decoder_calls": 1,
+    "actual_returned_bytes": [
+      5
+    ],
+    "remaining_after": 3,
+    "further_inflation_refused": true,
+    "unknown_members": 3
+  },
+  "independent_20_tests_exit": 0,
+  "test_log_sha256": "99fc9632b40cbf2f4b6b23ff4f95f740c2f2e178df268fceb499c6065489850e",
+  "source_unchanged": true,
+  "review": "No remaining blocker found in requested copy/unknown/format/budget scope; not whole U01/runtime/migration acceptance"
+}

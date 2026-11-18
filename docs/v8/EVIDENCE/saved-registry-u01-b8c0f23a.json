@@ -1,0 +1,34 @@
+{
+  "source": "b8c0f23a47f149ddc7548b133cb71bc1de04c110",
+  "unitTests": 20,
+  "unitFailures": 0,
+  "firstNegative": {
+    "source": "c3a3dcccd43d6324f937dfe4f54dcd0ea8938108",
+    "tests": 18,
+    "passed": 15,
+    "failures": 2,
+    "errors": 1
+  },
+  "secondNegative": {
+    "source": "9c9d2b07165e0d4e8dbe293c57f9520dcd63a86e",
+    "tests": 19,
+    "passed": 18,
+    "failures": 1
+  },
+  "actualInputFiles": 15,
+  "actualCliExit": 1,
+  "referenceActions": {
+    "KEEP": 2,
+    "UNKNOWN": 34
+  },
+  "parseIssues": 0,
+  "saveEdits": 0,
+  "catalogRevision": "9b7cf9b0709a47c181d113923f7ac59a4b62fd3c",
+  "catalogUniqueRootIds": 145,
+  "originalsUnchanged": true,
+  "wholePacketAccepted": false,
+  "evidenceArchive": "docs/v8/EVIDENCE/saved-registry-u01-b8c0f23a.zip",
+  "archiveSHA256": "a647ee396b2856c08e979784956afd6d24d04529c2b6e2b7ffe80caf02ad87db",
+  "archiveBytes": 124865,
+  "payloadFiles": 28
+}

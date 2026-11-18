@@ -48,8 +48,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [RESOURCE_USEGRAPH_2026-11-17.md, EVIDENCE/resource-usegraph-9b7cf9b.json]
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [RESOURCE_USEGRAPH_2026-11-17.md, EVIDENCE/resource-usegraph-9b7cf9b.json, SAVED_REGISTRY_REFERENCES_U01_2026-11-18.md, EVIDENCE/saved-registry-u01-b8c0f23a.json]
+  notes: "Source resource graph and boundedcopiedsave indexarepartial:20PythoncontrolsPASS,actual15files36refs2KEEP34UNKNOWN,0saveedits. Catalog9b source145uniqueIDs, allfiveoldweaponrecipesretained. Runtime registry/full lifecycle/user-save/old sixmarkedIDs remainopen; UNKNOWN is notabsence or deletionauthority."
 - id: S00-T05
   stage: S00
   stage_title: History & executable truth
