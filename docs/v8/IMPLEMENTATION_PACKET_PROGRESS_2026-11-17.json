@@ -36,8 +36,8 @@
       ],
       "status": "active_candidate",
       "owner": "audit_integration",
-      "source": "e0478ce / 2ace809",
-      "remaining": "Preview source compiles and6geometry units pass; actual menu/bare model observed, but first same-JAR XTest run has0accepted scenes because final cursor callback is unacknowledged. Full equip/remove/held pixel gate remains open.",
+      "source": "e0478ce8d4e79cc73678582bafa4f539978e9a26 (production) / 3639cd1f063e18efb8eee9cfbcb67ee35589598a (observer)",
+      "remaining": "Existing five synchronized sockets plus actual equipped hull geometry pass6focusedunits and first3639 OS-owned native5/5 scenes (actual10OS/MC+GLFWacks, pixel/state oracle0) onisolatede047/b429. No canonical merge or GL3.2/PS1 GUI inheritance; earlier callback failures remain preserved.",
       "report": null,
       "acceptedAsWhole": false
     },
@@ -48,10 +48,10 @@
         "S12-T01",
         "S12-T05"
       ],
-      "status": "pending",
+      "status": "source_candidate",
       "owner": "world_content with combat_ai",
-      "source": null,
-      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "source": "b1c9e33b417dc3ddefbc1c75ca772d2a4685ac89",
+      "remaining": "Existing director timed SUPPORT/ownLOS/full400warning/atmostoneASSAULT and opaque-save source b1c9 compiles and passes25focusedunits (16new+9retained). Original optional-test-resource tooling failure0tests is preserved. Actual default12000ONLINE Survival ticks/nonlethal effects/hidden-interception/cooldown/cold/native pacing remain open; three real-tick cases are being implemented.",
       "report": null,
       "acceptedAsWhole": false
     },
@@ -68,7 +68,7 @@
       "status": "partial_integrated",
       "owner": "combat_ai",
       "source": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
-      "remaining": "Saved non-autostart intent remains integrated. Separate player-AA c5 natural2/retained68+5guards pass; first79 phase rerun interrupted on witnessed test-harness completion deadlock. Success-relay correction is frozen, full79 and opaque-ownership refusal remain open.",
+      "remaining": "Integrated non-autostart saved intents remain unchanged. Separate7da friendly-AA candidate passes exact87 fresh82GameTests, including old79 and future/corrupt opaque-refusal2 plus healthyreleasecontrol1. No canonical integration yet. Mixedbanks, opaque-fragment provenance, known-schema extras and actual automatic siege/retreat/base episode remain open; prior real failures are preserved.",
       "report": "MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md",
       "acceptedAsWhole": false
     },
@@ -313,11 +313,12 @@
       ],
       "status": "isolated cloud candidate",
       "owner": "ps1_render / world_cubic",
-      "source": "7317ddb055d9096a0208257607fd1e446d373894",
-      "remaining": "Isolated7317/f035 passes18units and five-pose Sodium high-cloud visibility/occlusion. First FabulousGL3.2 exposes unsupported actual28B VBO and invalid sampler query; corrections and baseline compositor depth remain separate. No canonical/backend/volumetric atmosphere completion.",
+      "source": "1ce93d475f604d9b32a49663696d54ce7ee375fe086849e74b2d1cfce576a1c2 (game) / d5161c9cfc74ba39d4a5e7ac924cc9b3993adcc4 (observer)",
+      "remaining": "Separate repaired28B/GL3.2 sampler candidate passes22focusedunits and strict five-pose GL3.2c44. FirstSodiumfb57 retains missing-cold-opaque-geometry prerequisite failure. Independent BEFORE_ENTITIES admission d516 uses7scans/32088B and passes all5Sodium poses withsame1ce93; this is not a renderer-cause fix. Both-backend six-scene/palette/mirror/HUD/viewmodel and canonical regression remain pending. General volumetric tiers/transmittance still open.",
       "report": "docs/v8/ALTITUDE_CLOUD_FIRST_SODIUM_POSITIVE_2026-11-17.md",
       "acceptedAsWhole": false
     }
   ],
-  "supplementalClauseAudit": "docs/v8/SUPPLEMENTAL_CLAUSE_AUDIT_3095999_2026-11-17.json"
+  "supplementalClauseAudit": "docs/v8/SUPPLEMENTAL_CLAUSE_AUDIT_3095999_2026-11-17.json",
+  "updated": "2026-11-18"
 }
