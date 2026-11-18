@@ -43,6 +43,7 @@
     "client.CameraMixin",
     "client.ClientPlayerEntityMixin",
     "client.ClientWorldMixin",
+    "client.NativeCubicClientLightStatusMixin",
     "client.CreateWorldScreenMixin",
     "client.GameMenuScreenMixin",
     "client.GameRendererMixin",
