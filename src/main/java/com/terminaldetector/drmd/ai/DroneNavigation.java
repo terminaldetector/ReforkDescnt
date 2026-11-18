@@ -20,11 +20,18 @@ final class DroneNavigation {
     private BoundedFlightPath search;
     private FlightRouteSpace space;
     private List<BoundedFlightPath.Cell> route=List.of();
-    DroneNavigation(DroneEntity drone){this.drone=drone;actor=drone;}
+    private long portalFrame;
+    DroneNavigation(DroneEntity drone){this.drone=drone;actor=drone;portalFrame=drone.portalFrameRevision();}
     static RouteWorkBudget workBudget(World world){return BUDGETS.computeIfAbsent(world,w->new RouteWorkBudget(16,48,8));}
     private RouteWorkBudget budget(){return workBudget(actor.getWorld());}
+    static void portalDeparted(DroneEntity drone){var budget=BUDGETS.get(drone.getWorld());if(budget!=null)budget.release(drone.getUuid());}
+    private void currentFrame(){
+        if(portalFrame==drone.portalFrameRevision())return;
+        stop();destination=null;visibilityOrigin=null;visibilityAt=0;blockedSight=false;retryAt=actor.getWorld().getTime();expires=0;index=0;portalFrame=drone.portalFrameRevision();
+    }
     void stop(){budget().release(actor.getUuid());search=null;space=null;route=List.of();previous=null;issued=Vec3d.ZERO;stalled=0;visibilityTarget=null;sightRoute=false;}
     boolean occluded(Vec3d target){
+        currentFrame();
         long tick=actor.getWorld().getTime();var origin=actor.getPos();
         if(visibilityTarget==null||tick<visibilityAt-4||tick>=visibilityAt||target.squaredDistanceTo(visibilityTarget)>4||origin.squaredDistanceTo(visibilityOrigin)>4){
             blockedSight=FlightRouteSpace.occluded(drone,target);visibilityAt=tick+4;visibilityTarget=target;visibilityOrigin=origin;
@@ -38,6 +45,7 @@ final class DroneNavigation {
     Vec3d investigate(Vec3d velocity,Vec3d target){return steer(velocity,target,true,true);}
     private Vec3d steer(Vec3d velocity,Vec3d target,boolean seekSight,boolean investigation) {
         if(actor.getWorld().isClient)return velocity;
+        currentFrame();
         var centre=actor.getBoundingBox().getCenter();long tick=actor.getWorld().getTime();
         if(sightRoute&&!seekSight)cancel(tick,0);
         if(previous!=null&&issued.lengthSquared()>1e-5) {

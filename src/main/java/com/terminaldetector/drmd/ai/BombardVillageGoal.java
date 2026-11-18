@@ -28,14 +28,17 @@ public final class BombardVillageGoal extends Goal {
 	private BlockPos villageAim;
 	private int bombCooldown;
 	private int repathTicks;
+	private long portalFrame;
 
 	public BombardVillageGoal(DroneEntity drone) {
 		this.drone = drone;
+		portalFrame=drone.portalFrameRevision();
 		this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
 	}
 
 	@Override
 	public boolean canStart() {
+		if(!currentFrame())return false;
 		if (!drone.getRole().villageBomber) return false;
 		if (bombCooldown > 0) {
 			bombCooldown--;
@@ -55,7 +58,7 @@ public final class BombardVillageGoal extends Goal {
 
 	@Override
 	public boolean shouldContinue() {
-		return drone.getRole().villageBomber && villageAim != null && bombCooldown <= 0;
+		return currentFrame()&&drone.getRole().villageBomber && villageAim != null && bombCooldown <= 0;
 	}
 
 	@Override
@@ -65,6 +68,7 @@ public final class BombardVillageGoal extends Goal {
 
 	@Override
 	public void tick() {
+		if(!currentFrame())return;
 		if (villageAim == null) return;
 		if (--repathTicks <= 0) {
 			repathTicks = 40;
@@ -100,6 +104,10 @@ public final class BombardVillageGoal extends Goal {
 				&& pos.distanceTo(living.getPos()) < DescentMod.su(900)) {
 			drone.tryFireAt(living);
 		}
+	}
+	private boolean currentFrame(){
+		if(portalFrame==drone.portalFrameRevision())return true;
+		villageAim=null;repathTicks=0;portalFrame=drone.portalFrameRevision();return false;
 	}
 
 	private void dropBomb() {

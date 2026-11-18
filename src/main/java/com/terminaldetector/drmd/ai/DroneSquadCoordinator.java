@@ -58,7 +58,7 @@ public final class DroneSquadCoordinator {
     /** No enemy position, box, velocity, block position or aim reads in this validation path. */
     public static boolean valid(DroneEntity receiver,DroneSquadMailbox.Message message){
         if(!(receiver.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||!receiver.isAlive()||receiver.isRemoved())return false;
-        long now=world.getTime();if(now<message.observedAt()||now>=message.expiresAt())return false;
+        long now=world.getTime();if(now<message.observedAt()||now>=message.expiresAt()||message.observedAt()<=receiver.portalHintFloor())return false;
         var source=world.getEntity(message.scout());var target=world.getEntity(message.target());
         return source instanceof DroneEntity scout&&allies(receiver,scout)&&target instanceof LivingEntity living&&enemy(receiver,living);
     }

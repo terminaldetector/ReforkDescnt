@@ -53,6 +53,13 @@ public final class TeleportFlyerEntity extends FlightEnemyEntity {
     public UUID lifetimeNonce(){return lifetimeNonce;}
     public Vec3d lockedDestination(){return lockedDestination;}
     public long teleportCount(){return relocations;}
+    @Override protected void onPortalFrameMoved(){
+        TeleportAbilityRelay.cancelPending(this);cancelCharge();pendingRequestTick=Long.MIN_VALUE;
+    }
+    @Override public java.util.List<DataTracker.SerializedEntry<?>> portalTrackedPose(){
+        var pose=new java.util.ArrayList<DataTracker.SerializedEntry<?>>(super.portalTrackedPose());
+        pose.add(DataTracker.SerializedEntry.of(STAGE,dataTracker.get(STAGE)));pose.add(DataTracker.SerializedEntry.of(TICKS,dataTracker.get(TICKS)));return java.util.List.copyOf(pose);
+    }
     public boolean serverEligible(){
         return getWorld() instanceof ServerWorld world&&world.getServer().isOnThread()&&isAlive()&&!isRemoved()&&!isAiDisabled()
             &&!hasVehicle()&&!hasPassengers()&&world.getEntity(getUuid())==this&&world.shouldTickEntity(getBlockPos());

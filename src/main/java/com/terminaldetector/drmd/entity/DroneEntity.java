@@ -27,6 +27,8 @@ import net.minecraft.world.World;
  * Enemy drone — port of D6_BuildDrone / SpawnEnemyDrone with role loadouts.
  */
 public class DroneEntity extends HostileEntity {
+    /** Custom-drone-only status, ordered after the native destination and roll metadata. */
+    public static final byte PORTAL_DISCONTINUITY_STATUS=124;
 	private static final TrackedData<String> ROLE = DataTracker.registerData(DroneEntity.class, TrackedDataHandlerRegistry.STRING);
 	private static final TrackedData<Float> SHIELD = DataTracker.registerData(DroneEntity.class, TrackedDataHandlerRegistry.FLOAT);
 	private static final TrackedData<Float> ARMOR = DataTracker.registerData(DroneEntity.class, TrackedDataHandlerRegistry.FLOAT);
@@ -41,6 +43,7 @@ public class DroneEntity extends HostileEntity {
 	private float phaseTimer;
 	private float resistK, resistE, resistX;
 	private boolean ragdollSpawned;
+	private long portalFrameRevision,portalHintFloor=Long.MIN_VALUE;
 
 	public DroneEntity(EntityType<? extends DroneEntity> type, World world) {
 		super(type, world);
@@ -85,6 +88,33 @@ public class DroneEntity extends HostileEntity {
 	public void setFlightRoll(float roll) {
 		if (!getWorld().isClient) dataTracker.set(FLIGHT_ROLL, roll);
 	}
+    public final long portalFrameRevision(){return portalFrameRevision;}
+    public final long portalHintFloor(){return portalHintFloor;}
+    /** Auxiliary discontinuity only; the portal dispatcher already owns position/velocity/yaw/pitch. */
+    public final void portalFrameMoved(float bank){
+        if(!(getWorld() instanceof net.minecraft.server.world.ServerWorld world)||!world.getServer().isOnThread()||!Float.isFinite(bank))throw new IllegalStateException("server-owned finite portal frame");
+        long next=Math.incrementExact(portalFrameRevision);
+        setFlightRoll(net.minecraft.util.math.MathHelper.wrapDegrees(bank));portalFrameRevision=next;portalHintFloor=world.getTime();resetPortalDisplayHistory();onPortalFrameMoved();
+    }
+    protected void onPortalFrameMoved(){}
+    /** Include a zero bank explicitly; changed/non-default entries alone cannot clear an old client roll. */
+    public java.util.List<DataTracker.SerializedEntry<?>> portalTrackedPose(){return java.util.List.of(DataTracker.SerializedEntry.of(FLIGHT_ROLL,getFlightRoll()));}
+    private void resetPortalDisplayHistory(){
+        prevX=lastRenderX=getX();prevY=lastRenderY=getY();prevZ=lastRenderZ=getZ();
+        prevYaw=getYaw();prevPitch=getPitch();bodyYaw=prevBodyYaw=getYaw();setHeadYaw(getYaw());prevHeadYaw=getHeadYaw();
+    }
+    /** Destination comes from the already received vanilla Mob lerp target, not a second position protocol. */
+    public final void snapPortalDisplayFromNativeTarget(){
+        if(!getWorld().isClient)return;
+        double x=getLerpTargetX(),y=getLerpTargetY(),z=getLerpTargetZ();float yaw=getLerpTargetYaw(),pitch=getLerpTargetPitch();
+        if(!Double.isFinite(x)||!Double.isFinite(y)||!Double.isFinite(z)||!Float.isFinite(yaw)||!Float.isFinite(pitch))return;
+        super.updateTrackedPositionAndAngles(x,y,z,yaw,pitch,0);super.updateTrackedHeadRotation(yaw,0);
+        setPosition(x,y,z);setYaw(yaw);setPitch(pitch);resetPortalDisplayHistory();
+    }
+    @Override public void handleStatus(byte status){
+        if(status==PORTAL_DISCONTINUITY_STATUS){snapPortalDisplayFromNativeTarget();return;}
+        super.handleStatus(status);
+    }
 
 	@Override
 	protected void initDataTracker(DataTracker.Builder builder) {

@@ -41,6 +41,12 @@ public final class TeleportAbilityRelay {
         ServerWorldEvents.UNLOAD.register((server,world)->FRAMES.remove(world));ServerLifecycleEvents.SERVER_STOPPED.register(server->FRAMES.clear());
     }
     public static boolean registered(){return registered;}
+    /** Retire only this actor's old-pose request; no other actor's allowance or state is reset. */
+    public static void cancelPending(TeleportFlyerEntity actor){
+        if(!(actor.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())return;
+        var frame=FRAMES.get(world);if(frame==null)return;var request=frame.pending.get(actor.getUuid());
+        if(request!=null&&request.lifetime().equals(actor.lifetimeNonce())){frame.pending.remove(actor.getUuid());frame.stale++;}
+    }
     public static boolean enqueue(TeleportFlyerEntity actor,Operation operation,long epoch){
         if(!registered)return false;
         if(!(actor.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||!actor.serverEligible())return false;

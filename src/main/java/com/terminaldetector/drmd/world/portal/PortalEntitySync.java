@@ -15,9 +15,9 @@ final class PortalEntitySync {
     static void publish(List<Entity> group){
         var occupants=group.stream().filter(ServerPlayerEntity.class::isInstance).map(ServerPlayerEntity.class::cast).toList();
         for(var e:group){
-            if(!(e instanceof BlockBodyEntity)&&!(e instanceof RagdollEntity))continue;
+            if(!(e instanceof BlockBodyEntity)&&!(e instanceof RagdollEntity)&&!(e instanceof com.terminaldetector.drmd.entity.DroneEntity))continue;
             var tracking=new LinkedHashSet<>(PlayerLookup.tracking(e));var recipients=new LinkedHashSet<>(tracking);recipients.addAll(occupants);
-            var pose=e instanceof BlockBodyEntity b?b.portalTrackedPose():((RagdollEntity)e).portalTrackedPose();
+            var pose=e instanceof BlockBodyEntity b?b.portalTrackedPose():e instanceof RagdollEntity r?r.portalTrackedPose():((com.terminaldetector.drmd.entity.DroneEntity)e).portalTrackedPose();
             var position=new EntityPositionS2CPacket(e);var update=new EntityTrackerUpdateS2CPacket(e.getId(),pose);
             EntitySpawnS2CPacket spawn=null;EntityTrackerUpdateS2CPacket initial=null;
             for(var recipient:recipients){
@@ -30,6 +30,10 @@ final class PortalEntitySync {
                     recipient.networkHandler.sendPacket(spawn);if(initial!=null)recipient.networkHandler.sendPacket(initial);
                 }
                 recipient.networkHandler.sendPacket(position);recipient.networkHandler.sendPacket(update);
+                if(e instanceof com.terminaldetector.drmd.entity.DroneEntity){
+                    recipient.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(e));
+                    recipient.networkHandler.sendPacket(new EntityStatusS2CPacket(e,com.terminaldetector.drmd.entity.DroneEntity.PORTAL_DISCONTINUITY_STATUS));
+                }
             }
         }
     }

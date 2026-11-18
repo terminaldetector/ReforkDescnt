@@ -24,6 +24,7 @@ public final class SquadInvestigateGoal extends Goal {
     @Override public boolean shouldContinue(){return eligible()&&task!=null&&DroneSquadCoordinator.valid(drone,task)&&drone.getPos().squaredDistanceTo(point())>4;}
     @Override public boolean shouldRunEveryTick(){return true;}
     @Override public void tick(){
+        if(task==null||task.observedAt()<=drone.portalHintFloor()){stop();return;}
         long now=drone.getWorld().getTime();
         if(now>=nextRead){nextRead=now+DroneSquadMailbox.CADENCE;var newer=DroneSquadCoordinator.message(drone);if(newer.isPresent()&&newer.get().observedAt()>task.observedAt())task=newer.get();}
         // The route destination is the copied observation, never a target UUID's current position.
