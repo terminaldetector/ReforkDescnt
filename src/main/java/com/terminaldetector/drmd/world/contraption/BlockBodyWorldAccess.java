@@ -18,7 +18,7 @@ public final class BlockBodyWorldAccess {
     public BlockBodyWorldAccess(BlockBodyEntity body){this.body=Objects.requireNonNull(body);}
     public BlockState getLocalBlock(BlockPos pos){return body.getLocalBlock(pos);}
     public boolean setLocalBlock(BlockPos pos,BlockState state){return body.setLocalBlock(pos,state);}
-    public boolean breakLocalBlock(BlockPos pos){return setLocalBlock(pos,Blocks.AIR.getDefaultState());}
+    public boolean breakLocalBlock(BlockPos pos){return BodyLocalDoors.supports(getLocalBlock(pos))?BodyLocalDoors.breakDoor(body,pos):setLocalBlock(pos,Blocks.AIR.getDefaultState());}
     public Optional<BodyHit> raycastBlockBody(Vec3d from,Vec3d to){return raycastBlockBody(from,to,body.massPosition(),body.rotation());}
     public Optional<BodyHit> raycastBlockBody(Vec3d from,Vec3d to,Vec3 worldCom,Quat rotation) {
         Vec3 start=rotation.inverse().rotate(BoardingSystem.pure(from).minus(worldCom)).plus(body.localCentre());
@@ -41,6 +41,7 @@ public final class BlockBodyWorldAccess {
     }
     public List<BodyCollisionQuery.Contact> queryBodyCollision(OrientedBox actor,double skin){return body.collisionQuery().contacts(actor,skin);}
     public boolean placeLocalBlock(BlockPos pos,BlockState state) {
+        if(BodyLocalDoors.supports(state))return BodyLocalDoors.place(body,pos,state);
         if(!getLocalBlock(pos).isAir()||state.isAir()||!BlockBodyEntity.supports(state)||state.hasBlockEntity())return false;
         if(!BlockBodyEntity.validLocal(pos))return false;
         var bounds=new BodyBounds(new Vec3(pos.getX(),pos.getY(),pos.getZ()),new Vec3(pos.getX()+1,pos.getY()+1,pos.getZ()+1));

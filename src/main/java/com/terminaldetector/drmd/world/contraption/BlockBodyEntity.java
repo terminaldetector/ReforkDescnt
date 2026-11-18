@@ -95,7 +95,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     public void setPhysicsGravity(boolean value) {gravity=value;dataTracker.set(POSE,pose());}
     public boolean physicsGravity() {return gravity;}
-    public static boolean supports(BlockState state) {return state.isOf(Blocks.LEVER) || BodyLocalHatches.supports(state) || state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock || SUPPORTED.contains(state.getBlock()) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_CONTROL_CORE) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_THRUSTER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
+    public static boolean supports(BlockState state) {return state.isOf(Blocks.LEVER) || BodyLocalHatches.supports(state) || BodyLocalDoors.supports(state) || state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock || SUPPORTED.contains(state.getBlock()) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_CONTROL_CORE) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_THRUSTER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
 
     public BlockBodyEntity(EntityType<? extends BlockBodyEntity> type, World world) {
         super(type, world); setNoGravity(true);
@@ -295,6 +295,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             if(dirty!=null&&!dirty.contains(cell.pos()))continue;
             BodyBounds bounds;
             if(BodyLocalHatches.supports(cell.state()))bounds=BodyLocalHatches.collisionBounds(cell.pos(),cell.state());
+            else if(BodyLocalDoors.supports(cell.state()))bounds=BodyLocalDoors.collisionBounds(cell.pos(),cell.state());
             else if(cell.state().isOf(Blocks.LEVER))bounds=bounds(cell.state().getOutlineShape(net.minecraft.world.EmptyBlockView.INSTANCE,BlockPos.ORIGIN).getBoundingBox().offset(cell.pos()));
             else if(surface(cell)==null)bounds=new BodyBounds(new Vec3(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()),
                 new Vec3(cell.pos().getX()+1,cell.pos().getY()+1,cell.pos().getZ()+1));
@@ -328,7 +329,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
                 if(mesh!=null&&mesh.axisAware())for(var shape:mesh.collisionBounds())
                     shaped.add(new BodyBounds(new Vec3(pos.getX()+shape.minX(),pos.getY()+shape.minY(),pos.getZ()+shape.minZ()),
                         new Vec3(pos.getX()+shape.maxX(),pos.getY()+shape.maxY(),pos.getZ()+shape.maxZ())));
-                else if(mesh!=null||cube.get(x,y,z).isOf(Blocks.LEVER)||BodyLocalHatches.supports(cube.get(x,y,z)))shaped.add(cellBounds.get(pos));
+                else if(mesh!=null||cube.get(x,y,z).isOf(Blocks.LEVER)||BodyLocalHatches.supports(cube.get(x,y,z))||BodyLocalDoors.supports(cube.get(x,y,z)))shaped.add(cellBounds.get(pos));
                 else solid.add(new CompoundCollider.Cell(pos.getX(),pos.getY(),pos.getZ()));
             }
             shaped.addAll(CompoundCollider.cells(solid).boxes());sections.put(key,new CompoundCollider(shaped));
@@ -397,13 +398,14 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     /** Owner modules observe committed material edits, after the rollback boundary. */
     protected void onLocalMaterialChanged(List<BlockBodyEntity> fragments) {}
-    public boolean canUseLocalBlock(BlockPos local){return BodyControlCore.isCore(getLocalBlock(local))||getLocalBlock(local).isOf(Blocks.LEVER)||BodyLocalHatches.supports(getLocalBlock(local))||com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.usable(getLocalBlock(local));}
+    public boolean canUseLocalBlock(BlockPos local){return BodyControlCore.isCore(getLocalBlock(local))||getLocalBlock(local).isOf(Blocks.LEVER)||BodyLocalHatches.supports(getLocalBlock(local))||BodyLocalDoors.supports(getLocalBlock(local))||com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.usable(getLocalBlock(local));}
     /** Client routing hint only. Ordinary gun placement/empty-hand behavior is
      * unchanged; the server repeats the real wrench/ownership/material checks. */
     public boolean canUseLocalBlock(BlockPos local,net.minecraft.item.ItemStack held){return canUseLocalBlock(local)
         ||getLocalBlock(local).isOf(ModWorldBlocks.SHIP_LASER)&&held.isOf(ModWorldBlocks.MECHANISM_WRENCH);}
     public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){
         if(BodyLocalHatches.supports(getLocalBlock(local)))return BodyLocalHatches.use(player,this,local);
+        if(BodyLocalDoors.supports(getLocalBlock(local)))return BodyLocalDoors.use(player,this,local);
         if(getLocalBlock(local).isOf(ModWorldBlocks.SHIP_LASER))return mountedWeapons.defenseClaims().toggle(player,this,local);
         if(BodyControlCore.isCore(getLocalBlock(local)))return com.terminaldetector.drmd.world.mega.UfoControlSystem.claimCore(player,this,local);
         return getLocalBlock(local).isOf(Blocks.LEVER)?com.terminaldetector.drmd.world.contraption.mechanism.BodyMountedWeapons.useLever(player,this,local):com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.use(player,this,local);
@@ -638,6 +640,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     /** Exact sparse selection: neighbouring machines and terrain outside the selection stay untouched. */
     public static BlockBodyEntity assembleSelection(ServerWorld world,Map<BlockPos,BlockState> original) {
         if(original.isEmpty() || original.size()>MAX_BLOCKS)throw new IllegalArgumentException("Select 1..32768 inert blocks");
+        if(!BodyLocalDoors.completeSelection(original))throw new IllegalArgumentException("Select both matching halves of each wooden door");
         int mx=original.keySet().stream().mapToInt(BlockPos::getX).min().orElseThrow();
         int my=original.keySet().stream().mapToInt(BlockPos::getY).min().orElseThrow();
         int mz=original.keySet().stream().mapToInt(BlockPos::getZ).min().orElseThrow();

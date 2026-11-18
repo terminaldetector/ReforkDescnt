@@ -95,6 +95,7 @@
       "com.terminaldetector.drmd.TeleportFlyerWreckGameTests",
       "com.terminaldetector.drmd.LooseItemBodyGameTests",
       "com.terminaldetector.drmd.BodyHatchGameTests",
+      "com.terminaldetector.drmd.BodyDoorGameTests",
       "com.terminaldetector.drmd.UfoReactorEscapeGameTests",
       "com.terminaldetector.drmd.ThermalDrillGameTests",
       "com.terminaldetector.drmd.world.portal.PortalTransferGameTests",

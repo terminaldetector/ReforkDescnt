@@ -116,6 +116,11 @@ public final class BodyBlockInteraction {
     }
     private static boolean breakBlock(ServerPlayerEntity p,Target t) {
         var state=t.body().getLocalBlock(t.hit().localBlock());var tool=p.getMainHandStack();
+        if(BodyLocalDoors.supports(state)){
+            var pair=BodyLocalDoors.pair(t.body(),t.hit().localBlock());
+            if(pair.isPresent()&&!BodyLocalDoors.canModify(p,t.body(),List.of(pair.get().lower(),pair.get().upper())))return false;
+            state=BodyLocalDoors.dropState(t.body(),t.hit().localBlock());
+        }
         var at=new Vec3d(t.hit().worldPoint().x(),t.hit().worldPoint().y(),t.hit().worldPoint().z());
         var drops=!creative(p)&&p.canHarvest(state)&&p.getWorld().getGameRules().getBoolean(GameRules.DO_TILE_DROPS)
             ?Block.getDroppedStacks(state,p.getServerWorld(),BlockPos.ofFloored(at),null,p,tool):List.<ItemStack>of();
@@ -136,7 +141,12 @@ public final class BodyBlockInteraction {
             state=state.with(net.minecraft.state.property.Properties.BLOCK_FACE,face==net.minecraft.util.math.Direction.UP?net.minecraft.block.enums.BlockFace.FLOOR:face==net.minecraft.util.math.Direction.DOWN?net.minecraft.block.enums.BlockFace.CEILING:net.minecraft.block.enums.BlockFace.WALL);
             if(face.getAxis().isHorizontal())state=state.with(net.minecraft.state.property.Properties.HORIZONTAL_FACING,face);
         }
-        if(!new BlockBodyWorldAccess(t.body()).placeLocalBlock(t.hit().localBlock().offset(t.hit().localFace()),state))return false;
+        var position=t.hit().localBlock().offset(t.hit().localFace());
+        if(BodyLocalDoors.supports(state)){
+            if(!BodyLocalDoors.canModify(p,t.body(),List.of(position,position.up())))return false;
+            state=BodyLocalDoors.placementState(state,t.body(),viewDirection(p));
+        }
+        if(!new BlockBodyWorldAccess(t.body()).placeLocalBlock(position,state))return false;
         if(!creative(p)){stack.decrement(1);p.getInventory().markDirty();}return true;
     }
 }
