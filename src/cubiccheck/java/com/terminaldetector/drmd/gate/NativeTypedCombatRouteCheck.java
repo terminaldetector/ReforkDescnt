@@ -35,11 +35,12 @@ public final class NativeTypedCombatRouteCheck {
     private static volatile UUID id;
     private static FlightEnemyEntity drone;
     private static LivingEntity target;
-    private static FlightEnemyKind kind(){return KINDS.get(stage);}
+    private static FlightEnemyKind kind(){var value=KINDS.get(stage);require(value==FlightEnemyKind.ORB||value==FlightEnemyKind.ROCKET||value==FlightEnemyKind.JET,"legacy typed-route refuses U07 before fixture geometry writes");return value;}
     private static Entity entity(Entity e){return e;}
     private static Path file(String n){return MinecraftClient.getInstance().runDirectory.toPath().resolve(n);}
     private static void require(boolean b,String m){if(!b)throw new IllegalStateException(m);}
     public static void register(){
+        require(KINDS.stream().allMatch(k->k==FlightEnemyKind.ORB||k==FlightEnemyKind.ROCKET||k==FlightEnemyKind.JET),"legacy route cohort excludes U07 before registering any fixture callbacks");
         require(file("").getFileName().toString().equals("cubic-client-automation"),"disposable combat-route fixture only");
         ServerTickEvents.END_SERVER_TICK.register(s->{
             if(!running||ready||done)return;
@@ -90,7 +91,7 @@ public final class NativeTypedCombatRouteCheck {
         boolean drew=id!=null&&DRAWN.contains(id);DRAWN.clear();if(!ready||done)return;var c=MinecraftClient.getInstance();var e=clientActor(c);if(c.currentScreen!=null||!(e instanceof FlightEnemyEntity d)||d.kind()!=kind()||d.getRole()!=kind().defaultRole||!drew){frames=0;return;}
         if(++frames<4)return;
         int pixels=0;try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){
-            for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++){int p=image.getColor(x,y),r=p&255,g=(p>>>8)&255,b=(p>>>16)&255;boolean match=switch(kind()){case ORB->r<g*.8&&g>b*1.05&&b>20;case ROCKET->r>g*1.2&&g>b*1.2&&r>30;case JET->b>g*1.1&&g>r*1.03&&b<180;};if(match)pixels++;}
+            for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++){int p=image.getColor(x,y),r=p&255,g=(p>>>8)&255,b=(p>>>16)&255;boolean match=switch(kind()){case ORB->r<g*.8&&g>b*1.05&&b>20;case ROCKET->r>g*1.2&&g>b*1.2&&r>30;case JET->b>g*1.1&&g>r*1.03&&b<180;case TELEPORT_FLYER->throw new IllegalStateException("U07 has its own visible-colour acceptance; no legacy fallback colour");};if(match)pixels++;}
             if(pixels<3)return;image.writeTo(file("typed-combat-route-"+stage+".png"));
         }catch(Exception failure){throw new IllegalStateException(failure);}
         var result=new LinkedHashMap<String,Object>();result.put("kind",kind().id);result.put("height",BASE.getY());result.put("touchingStart",stage==3);result.put("ticks",age);result.put("actualFiringLane",lane);result.put("actualProjectileBeyondCover",shot);result.put("consecutiveFreshFrames",frames);result.put("visibleHullPixels",pixels);RESULTS.add(result);ready=running=false;

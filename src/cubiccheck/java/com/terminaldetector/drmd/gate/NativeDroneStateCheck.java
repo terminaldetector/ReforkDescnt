@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /** Actual world restart, state validation before first tick, then autonomous reacquisition. */
 public final class NativeDroneStateCheck {
+    private static final Set<String> LEGACY_TYPED_IDS=Set.of("drmd:orb","drmd:rocket","drmd:jet");
     public static final boolean WRITE=Boolean.getBoolean("drmd.gate.droneStateWrite"),READ=Boolean.getBoolean("drmd.gate.droneStateRead");
     private static volatile Set<UUID> ids=Set.of();
     private static final Map<UUID,NbtCompound> SAVED=new ConcurrentHashMap<>();
@@ -42,6 +43,7 @@ public final class NativeDroneStateCheck {
     public static void saved(DroneEntity d,NbtCompound n) {
         if(!WRITE||entity(d).getWorld().isClient||!ids.contains(entity(d).getUuid()))return;
         try {
+            if(NativeSwarmBaselineCheck.TYPED)require(LEGACY_TYPED_IDS.contains(net.minecraft.registry.Registries.ENTITY_TYPE.getId(entity(d).getType()).toString()),"legacy typed save refuses a new family before writing fixture metadata");
             Files.writeString(file("drone-state-nbt/"+entity(d).getUuid()+".snbt"),n.toString());SAVED.put(entity(d).getUuid(),n.copy());
             if(NativeSwarmBaselineCheck.TYPED)TYPES.put(entity(d).getUuid(),net.minecraft.registry.Registries.ENTITY_TYPE.getId(entity(d).getType()).toString());
             if(SAVED.size()==128) {
@@ -71,7 +73,7 @@ public final class NativeDroneStateCheck {
     public static void register() {
         require(READ&&file("").getFileName().toString().equals("cubic-client-automation"),"disposable reader only");
         try{ids=Set.copyOf(Files.readAllLines(file("drone-state-ids.txt")).stream().filter(s->!s.isBlank()).map(UUID::fromString).toList());require(ids.size()==128,"exact saved set");}catch(Exception e){throw new IllegalStateException(e);}
-        if(NativeSwarmBaselineCheck.TYPED)try{var json=com.google.gson.JsonParser.parseString(Files.readString(file("drone-state-types.json"))).getAsJsonObject();json.entrySet().forEach(e->TYPES.put(UUID.fromString(e.getKey()),e.getValue().getAsString()));require(TYPES.keySet().equals(ids),"exact128 saved type map");}catch(Exception e){throw new IllegalStateException(e);}
+        if(NativeSwarmBaselineCheck.TYPED)try{var json=com.google.gson.JsonParser.parseString(Files.readString(file("drone-state-types.json"))).getAsJsonObject();json.entrySet().forEach(e->TYPES.put(UUID.fromString(e.getKey()),e.getValue().getAsString()));require(TYPES.keySet().equals(ids),"exact128 saved type map");require(TYPES.values().stream().allMatch(LEGACY_TYPED_IDS::contains),"legacy typed restore refuses new/unknown family before registering scene callbacks");}catch(Exception e){throw new IllegalStateException(e);}
         ServerTickEvents.END_SERVER_TICK.register(s->{
             if(!observerReady&&!s.getPlayerManager().getPlayerList().isEmpty()) {
                 var p=s.getPlayerManager().getPlayerList().getFirst();

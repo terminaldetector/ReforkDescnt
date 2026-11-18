@@ -25,6 +25,7 @@ public final class NativeSwarmBaselineCheck {
     private static final Map<String,Integer> TYPED_SHOTS=new TreeMap<>();
     private static Map<String,Object> acceptedTyped=Map.of();
     private static final int COUNT=128;
+    private static final List<FlightEnemyKind> LEGACY_TYPED_KINDS=List.of(FlightEnemyKind.ORB,FlightEnemyKind.ROCKET,FlightEnemyKind.JET);
     private static final List<DroneEntity> DRONES=new ArrayList<>();
     private static final List<Entity> PROJECTILES=new ArrayList<>();
     private static final Set<UUID> SHOOTERS=new HashSet<>(),DRAWN=new HashSet<>();
@@ -71,7 +72,7 @@ public final class NativeSwarmBaselineCheck {
             require(sampledShots>0&&sampledShooters>=16,"baseline AI must spawn real shots from multiple agents");
             if(TYPED){
                 var kinds=new TreeMap<String,Map<String,Integer>>();
-                for(var kind:FlightEnemyKind.values()){
+                for(var kind:LEGACY_TYPED_KINDS){
                     int count=0,live=0,moved=0,targets=0;
                     for(var d:DRONES){require(d instanceof FlightEnemyEntity,"independent flight class in typed swarm");var typed=(FlightEnemyEntity)d;if(typed.kind()!=kind)continue;
                         require(d.getRole()==kind.defaultRole,"authored role retained by typed swarm");count++;
@@ -121,7 +122,7 @@ public final class NativeSwarmBaselineCheck {
         var at=centre();var target=EntityType.COW.create(w);require(target!=null,"real passive target");target.setPosition(at.add(0,VERTICAL?(stage==0?20:-20):0,VERTICAL?0:-30));target.setNoGravity(true);target.setInvulnerable(!(NativeDroneStateCheck.WRITE||VERTICAL));if(NativeDroneStateCheck.WRITE||VERTICAL)target.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.RESISTANCE,-1,4,false,false));target.setInvisible(!(NativeDroneStateCheck.WRITE||VERTICAL));target.setAiDisabled(true);target.setPersistent();require(w.spawnEntity(target),"target spawned");cow=target;
         DRONES.clear();PROJECTILES.clear();SHOOTERS.clear();TYPED_SHOTS.clear();shots=0;
         for(int i=0;i<COUNT;i++) {
-            var d=TYPED?FlightEnemyKind.values()[i%3].create(w):ModEntities.DRONE.create(w);require(d!=null,"registered drone created");
+            var d=TYPED?LEGACY_TYPED_KINDS.get(i%3).create(w):ModEntities.DRONE.create(w);require(d!=null,"registered drone created");
             entity(d).setPosition(TYPED?at.add(((i&7)-3.5)*3,(((i>>3)&3)-1.5)*3,(((i>>5)&3)-1.5)*3):at.add(((i&15)-7.5)*1.2,(((i>>8)&3)-1.5)*1.2,(((i>>4)&15)-7.5)*1.2));
             if(!TYPED)d.applyRole(switch(i&3){case 0->AiRole.SUPPORT;case 1->AiRole.ASSAULT;case 2->AiRole.MG;default->AiRole.INTERCEPTOR;});
             ((MobEntity)d).setPersistent();entity(d).setInvulnerable(true);require(w.spawnEntity(d),"drone spawn accepted");if(!VERTICAL)((MobEntity)d).setTarget(target);DRONES.add(d);
@@ -130,7 +131,7 @@ public final class NativeSwarmBaselineCheck {
     }
     public static void shot(WeaponCore.FireConfig config,ProjectileEntity shot) {
         if(!running||done||shot==null||config.owner==null||!expected.contains(config.owner.getUuid()))return;
-        PROJECTILES.add(shot);if(!resultReady){shots++;SHOOTERS.add(config.owner.getUuid());if(TYPED){require(config.owner instanceof FlightEnemyEntity,"typed real shooter");var d=(FlightEnemyEntity)config.owner;if(d.kind()==FlightEnemyKind.ROCKET)require(shot.getMeshKind()==ProjectileEntity.MESH_ROCKET,"actual rocket projectiles");TYPED_SHOTS.merge(d.kind().id,1,Integer::sum);}}
+        PROJECTILES.add(shot);if(!resultReady){shots++;SHOOTERS.add(config.owner.getUuid());if(TYPED){require(config.owner instanceof FlightEnemyEntity,"typed real shooter");var d=(FlightEnemyEntity)config.owner;require(LEGACY_TYPED_KINDS.contains(d.kind()),"legacy typed swarm refuses unrelated new family");if(d.kind()==FlightEnemyKind.ROCKET)require(shot.getMeshKind()==ProjectileEntity.MESH_ROCKET,"actual rocket projectiles");TYPED_SHOTS.merge(d.kind().id,1,Integer::sum);}}
     }
     public static void drew(DroneEntity d){if(expected.contains(entity(d).getUuid()))DRAWN.add(entity(d).getUuid());}
     public static void rendered() {

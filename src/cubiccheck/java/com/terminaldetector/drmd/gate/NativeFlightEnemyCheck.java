@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class NativeFlightEnemyCheck {
     public static final boolean WRITE=Boolean.getBoolean("drmd.gate.flightTypesWrite"),READ=Boolean.getBoolean("drmd.gate.flightTypesRead"),ENABLED=WRITE||READ;
     private static final Vec3d CENTRE=new Vec3d(48.5,2400,48.5);
+    private static final List<FlightEnemyKind> LEGACY_KINDS=List.of(FlightEnemyKind.ORB,FlightEnemyKind.ROCKET,FlightEnemyKind.JET);
     private static final Map<UUID,String> IDS=new ConcurrentHashMap<>();
     private static final Map<UUID,FlightEnemyEntity> ACTORS=new ConcurrentHashMap<>();
     private static final Map<UUID,Vec3d> INITIAL=new HashMap<>();
@@ -67,7 +68,7 @@ public final class NativeFlightEnemyCheck {
     }
     public static void register() {
         require(file("").getFileName().toString().equals("cubic-client-automation"),"disposable typed scene only");
-        if(READ)try{var json=com.google.gson.JsonParser.parseString(Files.readString(file("flight-types-ids.json"))).getAsJsonObject();json.entrySet().forEach(e->IDS.put(UUID.fromString(e.getKey()),e.getValue().getAsString()));require(IDS.size()==3,"three saved typed IDs");}catch(Exception e){throw new IllegalStateException(e);}
+        if(READ)try{var json=com.google.gson.JsonParser.parseString(Files.readString(file("flight-types-ids.json"))).getAsJsonObject();json.entrySet().forEach(e->IDS.put(UUID.fromString(e.getKey()),e.getValue().getAsString()));require(IDS.size()==3,"three saved typed IDs");require(Set.copyOf(IDS.values()).equals(Set.of("orb","rocket","jet")),"legacy typed fixture refuses new/unknown family before any scene writes");}catch(Exception e){throw new IllegalStateException(e);}
         ServerTickEvents.END_SERVER_TICK.register(s->{
             if(done||ready)return;
             if(READ&&!observerReady&&!s.getPlayerManager().getPlayerList().isEmpty()){
@@ -116,7 +117,7 @@ public final class NativeFlightEnemyCheck {
     }
     private static void spawn(MinecraftClient c) {
         var s=c.getServer();var w=s.getOverworld();var p=s.getPlayerManager().getPlayer(c.player.getUuid());int index=0;
-        for(var kind:FlightEnemyKind.values()) {
+        for(var kind:LEGACY_KINDS) {
             var before=new HashSet<UUID>();for(var e:w.iterateEntities())if(e instanceof FlightEnemyEntity)before.add(e.getUuid());
             s.getCommandManager().executeWithPrefix(p.getCommandSource(),"6dof_spawn "+kind.id);
             var added=new ArrayList<FlightEnemyEntity>();for(var e:w.iterateEntities())if(e instanceof FlightEnemyEntity d&&!before.contains(e.getUuid()))added.add(d);
@@ -135,7 +136,7 @@ public final class NativeFlightEnemyCheck {
         if(actors.size()!=3)return;
         for(var d:actors)require(d.kind().id.equals(IDS.get(entity(d).getUuid()))&&d.getRole()==d.kind().defaultRole,"client exact class/type/role metadata");
         var colors=((com.terminaldetector.drmd.gate.mixin.FlightItemColoursAccess)c).drmd$itemColours();int slot=0;
-        for(var kind:FlightEnemyKind.values()) {
+        for(var kind:LEGACY_KINDS) {
             var stack=c.player.getInventory().getStack(slot++);require(Registries.ITEM.getId(stack.getItem()).toString().equals("drmd:spawn_egg_"+kind.id),"real inventory stack retained");
             require(c.getItemRenderer().getModel(stack,c.world,c.player,0)!=c.getBakedModelManager().getMissingModel(),"actual bound spawn egg model");
             require((colors.getColor(stack,0)&0xffffff)==kind.primaryColour&&(colors.getColor(stack,1)&0xffffff)==kind.secondaryColour,"actual spawn egg tint provider");

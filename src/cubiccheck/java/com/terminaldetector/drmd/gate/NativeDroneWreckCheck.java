@@ -21,6 +21,7 @@ import java.util.*;
 
 /** Actual lethal damage, server physics replacement and replicated articulated render parts. */
 public final class NativeDroneWreckCheck {
+    private static final List<FlightEnemyKind> LEGACY_KINDS=List.of(FlightEnemyKind.ORB,FlightEnemyKind.ROCKET,FlightEnemyKind.JET);
     public static final boolean WRITE=Boolean.getBoolean("drmd.gate.droneWreck"),READ=Boolean.getBoolean("drmd.gate.droneWreckRead"),ENABLED=WRITE||READ;
     private static final Vec3d CENTRE=new Vec3d(48.5,2400,48.5);
     private static final List<FlightEnemyEntity> PARENTS=new ArrayList<>();
@@ -33,8 +34,8 @@ public final class NativeDroneWreckCheck {
     private static final Map<UUID,RagdollEntity> RESTORED=new java.util.concurrent.ConcurrentHashMap<>();
     private static final Set<UUID> SAVED=java.util.concurrent.ConcurrentHashMap.newKeySet();
     private static boolean visualReady,observerReady;
-    private static int expectedParts(FlightEnemyKind kind){return kind==FlightEnemyKind.ORB?1:kind==FlightEnemyKind.ROCKET?5:3;}
-    private static float expectedScale(FlightEnemyKind kind){return kind==FlightEnemyKind.JET?2:1;}
+    private static int expectedParts(FlightEnemyKind kind){return switch(kind){case ORB->1;case ROCKET->5;case JET->3;case TELEPORT_FLYER->throw new IllegalArgumentException("U07 has a separate wreck fixture; legacy three-kind oracle refuses it");};}
+    private static float expectedScale(FlightEnemyKind kind){return switch(kind){case ORB,ROCKET->1;case JET->2;case TELEPORT_FLYER->throw new IllegalArgumentException("U07 has a separate scale fixture; legacy three-kind oracle refuses it");};}
     public static void saved(RagdollEntity r,net.minecraft.nbt.NbtCompound tag){
         if(!WRITE||!watching||entity(r).getWorld().isClient||!wreckIds.contains(entity(r).getUuid()))return;
         try{Files.writeString(file("drone-wreck-nbt/"+entity(r).getUuid()+".snbt"),tag.toString());SAVED.add(entity(r).getUuid());if(SAVED.size()==3)Files.writeString(file("drone-wreck-saved.json"),"{\"saved\":3,\"realWorldSerialization\":true}\n");}catch(Exception e){throw new IllegalStateException(e);}
@@ -64,7 +65,7 @@ public final class NativeDroneWreckCheck {
         require(file("").getFileName().toString().equals("cubic-client-automation"),"disposable death fixture only");
         if(READ)try{
             var meta=com.google.gson.JsonParser.parseString(Files.readString(file("drone-wreck-ids.json"))).getAsJsonObject();var map=new HashMap<UUID,FlightEnemyKind>();
-            for(var e:meta.getAsJsonObject("wrecks").entrySet()){var kind=Arrays.stream(FlightEnemyKind.values()).filter(k->k.id.equals(e.getValue().getAsString())).findFirst().orElseThrow();map.put(UUID.fromString(e.getKey()),kind);}kinds=Map.copyOf(map);wreckIds=Set.copyOf(map.keySet());var parents=new HashSet<UUID>();for(var e:meta.getAsJsonArray("parents"))parents.add(UUID.fromString(e.getAsString()));liveIds=Set.copyOf(parents);require(map.size()==3&&parents.size()==3,"three actual saved wreck and parent identities");
+            for(var e:meta.getAsJsonObject("wrecks").entrySet()){var kind=LEGACY_KINDS.stream().filter(k->k.id.equals(e.getValue().getAsString())).findFirst().orElseThrow();map.put(UUID.fromString(e.getKey()),kind);}kinds=Map.copyOf(map);wreckIds=Set.copyOf(map.keySet());var parents=new HashSet<UUID>();for(var e:meta.getAsJsonArray("parents"))parents.add(UUID.fromString(e.getAsString()));liveIds=Set.copyOf(parents);require(map.size()==3&&parents.size()==3,"three actual saved wreck and parent identities");require(new HashSet<>(map.values()).equals(new HashSet<>(LEGACY_KINDS)),"exact original three wreck families before any scene writes");
         }catch(Exception e){throw new IllegalStateException(e);}
         ServerTickEvents.END_SERVER_TICK.register(server->{
             if(READ&&!observerReady&&!server.getPlayerManager().getPlayerList().isEmpty()){var p=server.getPlayerManager().getPlayerList().getFirst();FlightSystem.disable(p,DescentPlayerData.get(p));p.getAbilities().allowFlying=true;p.getAbilities().flying=true;p.setNoGravity(true);p.sendAbilitiesUpdate();observerReady=true;}
@@ -103,7 +104,7 @@ public final class NativeDroneWreckCheck {
     }
     private static void spawn(ServerWorld w){
         float[] yaw={90,0,35},pitch={0,-90,40},bank={0,0,75};int i=0;
-        for(var kind:FlightEnemyKind.values()){var d=kind.create(w);if(kind==FlightEnemyKind.JET)((net.minecraft.entity.LivingEntity)d).getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.GENERIC_SCALE).setBaseValue(2);entity(d).calculateDimensions();var p=CENTRE.add((i-1)*4.5,0,0);entity(d).refreshPositionAndAngles(p.x,p.y,p.z,yaw[i],pitch[i]);d.setFlightRoll(bank[i]);((net.minecraft.entity.mob.MobEntity)d).setAiDisabled(true);((net.minecraft.entity.mob.MobEntity)d).setPersistent();require(w.spawnEntity(d),"real authored actor spawned");PARENTS.add(d);i++;}
+        for(var kind:LEGACY_KINDS){var d=kind.create(w);if(kind==FlightEnemyKind.JET)((net.minecraft.entity.LivingEntity)d).getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.GENERIC_SCALE).setBaseValue(2);entity(d).calculateDimensions();var p=CENTRE.add((i-1)*4.5,0,0);entity(d).refreshPositionAndAngles(p.x,p.y,p.z,yaw[i],pitch[i]);d.setFlightRoll(bank[i]);((net.minecraft.entity.mob.MobEntity)d).setAiDisabled(true);((net.minecraft.entity.mob.MobEntity)d).setPersistent();require(w.spawnEntity(d),"real authored actor spawned");PARENTS.add(d);i++;}
         liveIds=Set.copyOf(PARENTS.stream().map(d->entity(d).getUuid()).toList());phase=age=0;spawned=true;
     }
     public static void drewLive(FlightEnemyEntity d){if(ENABLED&&!entity(d).isInvisible()&&liveIds.contains(entity(d).getUuid()))LIVE_DRAWN.add(entity(d).getUuid());}
