@@ -2,8 +2,11 @@ import gzip
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 import struct
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -145,6 +148,18 @@ class SavedReferenceTests(unittest.TestCase):
             with self.assertRaises(audit.Unknown):
                 audit.run([source], cat, p / 'bad-audit', proposal)
             self.assertFalse((p / 'bad-audit').exists())
+
+    def test_fifo_input_is_rejected_without_waiting_for_a_writer(self):
+        with tempfile.TemporaryDirectory() as directory:
+            p, cat, _ = self.fixture(directory)
+            fifo = p / 'untrusted.dat'
+            os.mkfifo(fifo)
+            result = subprocess.run([sys.executable, str(Path(audit.__file__)), '--input', str(fifo),
+                                     '--catalog', str(cat), '--out', str(p / 'audit')],
+                                    timeout=3, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 1)
+            report = json.loads((p / 'audit/REPORT.json').read_text())
+            self.assertIn('bounded regular file', report['inputs'][0]['issues'][0]['reason'])
 
     def test_mutation_during_later_input_is_reported_unknown_at_closure(self):
         with tempfile.TemporaryDirectory() as directory:
