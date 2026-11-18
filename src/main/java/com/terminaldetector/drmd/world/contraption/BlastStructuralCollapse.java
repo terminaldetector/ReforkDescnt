@@ -14,7 +14,8 @@ import java.util.function.Predicate;
 /** Small unsupported engineered fragments after a real destructive blast; trees keep their adapter. */
 public final class BlastStructuralCollapse {
     public static final int MAX_COMPONENT=256,MAX_CUTS=128,MAX_READS=4096,MAX_BODIES=4,MAX_NEARBY=64;
-    private static final int CAPTURE_SCAN=512,RADIUS=16;
+    // Half of the per-tick read ceiling remains available for the complete support query.
+    private static final int CAPTURE_SCAN=MAX_READS/2,RADIUS=16;
     private static final Set<Block> INERT=Set.of(Blocks.COBBLESTONE,Blocks.IRON_BLOCK,Blocks.GOLD_BLOCK,
         Blocks.DIAMOND_BLOCK,Blocks.OBSIDIAN,Blocks.GLASS,Blocks.BRICKS,Blocks.OXIDIZED_COPPER,
         Blocks.PRISMARINE_BRICKS,Blocks.DARK_PRISMARINE,Blocks.CYAN_STAINED_GLASS,Blocks.SEA_LANTERN);
