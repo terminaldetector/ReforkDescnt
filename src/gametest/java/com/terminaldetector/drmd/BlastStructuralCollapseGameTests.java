@@ -122,7 +122,9 @@ public final class BlastStructuralCollapseGameTests implements FabricGameTest {
                     chestPos=base.add(9,ROOF_HEIGHT+1,0);put(chestPos,Blocks.CHEST.getDefaultState());
                     c.assertTrue(world.getBlockEntity(chestPos) instanceof ChestBlockEntity,"ADMISSION: real native chest exists");
                     var chest=(ChestBlockEntity)world.getBlockEntity(chestPos);
-                    chest.setStack(0,new ItemStack(Items.DIAMOND,3));chest.setCustomName(Text.literal("structural-data-control"));chest.markDirty();
+                    chest.setStack(0,new ItemStack(Items.DIAMOND,3));
+                    var named=chest.createNbt(world.getRegistryManager());named.putString("CustomName","{\"text\":\"structural-data-control\"}");
+                    chest.read(named,world.getRegistryManager());chest.markDirty();
                     chestBefore=chest.createNbt(world.getRegistryManager());
                 }
             }
