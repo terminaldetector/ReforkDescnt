@@ -1,0 +1,29 @@
+{
+  "source": "a415729b58ab30497462bc23e8811365ee6b602e",
+  "files": {
+    "drmd-6dof-1.1.35-ufo-dev.1-a415729b.jar": {
+      "bytes": 3106112,
+      "sha256": "4b7d314335edbcb63e59bba014a2f96c37d4fd5bad3c0bd140bb87041bb48a17"
+    },
+    "portal-before.png": {
+      "bytes": 114746,
+      "sha256": "153ece4b42ba9b9a434a85235a7aa8813804ec3bf1aa29078b3b56df4f86dfdc"
+    },
+    "portal-after.png": {
+      "bytes": 102235,
+      "sha256": "38b7ecbc33def25a535a7c7293832b6f43bea5a5c2192b11bc1d010389544b57"
+    },
+    "INSTALL_RU.txt": {
+      "bytes": 663,
+      "sha256": "b273742c095b111293bf2891c63a46540bb40076fecc1ff0be6feb10b2f44654"
+    },
+    "CHANGELOG_RU.txt": {
+      "bytes": 3146,
+      "sha256": "00f3390c7d2a7408516b9bb16333609c6ba9b1135c8baef3ea99e2b8f51f6a46"
+    },
+    "VALIDATION.json": {
+      "bytes": 1209,
+      "sha256": "2062972f2b1b263c17d5a3607cf08d0522836f72de8e9beb417baa813aec8bce"
+    }
+  }
+}

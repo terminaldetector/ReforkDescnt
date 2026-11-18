@@ -1,0 +1,51 @@
+{
+  "source": "a415729b58ab30497462bc23e8811365ee6b602e",
+  "gameSHA256": "4b7d314335edbcb63e59bba014a2f96c37d4fd5bad3c0bd140bb87041bb48a17",
+  "embeddedVersion": "1.1.35-ufo-dev.1",
+  "ordinarySourceEntrypoints": 97,
+  "focusedEvidence": [
+    {
+      "source": "8650bf80",
+      "units": 16,
+      "games": 44,
+      "passAll": true
+    },
+    {
+      "source": "c5237986",
+      "games": 36,
+      "passAll": true
+    },
+    {
+      "source": "0f723c45",
+      "units": 13,
+      "unitFailures": 0,
+      "games": 18,
+      "gamePass": 14,
+      "gameFailures": 4,
+      "firstFailureRetained": true
+    },
+    {
+      "source": "38726a09",
+      "games": 4,
+      "passAll": true
+    }
+  ],
+  "native": {
+    "source": "a415729b58ab30497462bc23e8811365ee6b602e",
+    "backend": "BetterCubicChunks0.1.1",
+    "sodium": "0.8.13",
+    "javaExit": 0,
+    "actualHeldForward6DoFTransit": true,
+    "bankDegrees": 20,
+    "initialFixtureTeleports": 1,
+    "serverClientAgreement": true,
+    "screenshots": [
+      "portal-before.png",
+      "portal-after.png"
+    ]
+  },
+  "fullSuiteRerun": false,
+  "wholeSpecsAccepted": false,
+  "destructionDemoRecorded": false,
+  "droneNativeInterpolationAccepted": false
+}

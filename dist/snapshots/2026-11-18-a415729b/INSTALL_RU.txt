@@ -1,0 +1,4 @@
+Minecraft 1.21.1, Java21, Fabric Loader0.16.14+ и Fabric API0.116.15+1.21.1.
+Заменить старый DRMD/Ungravity JAR этим файлом в mods; одновременно оставить одну версию мода.
+Для кубического мира: BetterCubicChunks0.1.1+mc1.21.1. Sodium0.8.13 необязателен; именно с ним выполнен новый клиентский проход. Immersive Portals не требуется. Зависимости в ZIP не включены.
+Это рабочий development snapshot. Полные MASTERv8/ENGINEB/PS1/DynamicBoarding ещё не приняты целиком.

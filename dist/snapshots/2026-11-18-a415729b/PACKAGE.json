@@ -1,0 +1,19 @@
+{
+  "source": "a415729b58ab30497462bc23e8811365ee6b602e",
+  "zip": "/workspace/ungravity-v5/ufo-body-physics/dist/snapshots/2026-11-18-a415729b/UNGRAVITY-snapshot-a415729b.zip",
+  "zipBytes": 2998320,
+  "zipSHA256": "06cb4b5d6bb2d6330e1ba993c6db18953ffd4acb0954a0c2eb37bcecfec89eed",
+  "jarSHA256": "4b7d314335edbcb63e59bba014a2f96c37d4fd5bad3c0bd140bb87041bb48a17",
+  "screenshots": [
+    {
+      "path": "/workspace/ungravity-v5/ufo-body-physics/dist/snapshots/2026-11-18-a415729b/portal-before.png",
+      "bytes": 114746,
+      "sha256": "153ece4b42ba9b9a434a85235a7aa8813804ec3bf1aa29078b3b56df4f86dfdc"
+    },
+    {
+      "path": "/workspace/ungravity-v5/ufo-body-physics/dist/snapshots/2026-11-18-a415729b/portal-after.png",
+      "bytes": 102235,
+      "sha256": "38b7ecbc33def25a535a7c7293832b6f43bea5a5c2192b11bc1d010389544b57"
+    }
+  ]
+}
