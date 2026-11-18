@@ -17,6 +17,7 @@ public final class BodySpatialIndex {
     private static final class State {
         final AabbTree<Integer> tree=new AabbTree<>();
         final Map<Integer,WeakReference<BlockBodyEntity>> bodies=new HashMap<>();
+        final Map<java.util.UUID,WeakReference<BlockBodyEntity>> uuids=new HashMap<>();
     }
     private static final Map<World,State> WORLDS=Collections.synchronizedMap(new WeakHashMap<>());
     private BodySpatialIndex(){}
@@ -26,10 +27,11 @@ public final class BodySpatialIndex {
     public static void track(BlockBodyEntity body) {
         if(body.isRemoved())return;
         State s=WORLDS.computeIfAbsent(body.getWorld(),w->new State());
-        s.bodies.put(body.getId(),new WeakReference<>(body));update(body);
+        s.bodies.put(body.getId(),new WeakReference<>(body));s.uuids.put(body.getUuid(),new WeakReference<>(body));update(body);
     }
     public static void untrack(BlockBodyEntity body) {
         State s=WORLDS.get(body.getWorld());if(s==null)return;
+        var identity=s.uuids.get(body.getUuid());if(identity!=null&&identity.get()==body)s.uuids.remove(body.getUuid());
         var ref=s.bodies.get(body.getId());
         if(ref!=null&&ref.get()==body){s.bodies.remove(body.getId());s.tree.remove(body.getId());
             if(body.getWorld() instanceof net.minecraft.server.world.ServerWorld world) {
@@ -41,6 +43,12 @@ public final class BodySpatialIndex {
     public static Optional<BlockBodyEntity> find(World world,int id) {
         State state=WORLDS.get(world);var ref=state==null?null:state.bodies.get(id);var body=ref==null?null:ref.get();
         return body!=null&&!body.isRemoved()&&body.getWorld()==world?Optional.of(body):Optional.empty();
+    }
+    /** Exact loaded identity without relying on native vanilla pivot visibility or scanning all ships. */
+    public static Optional<BlockBodyEntity> find(World world,java.util.UUID uuid) {
+        State state=WORLDS.get(world);var ref=state==null?null:state.uuids.get(uuid);var body=ref==null?null:ref.get();
+        return body!=null&&!body.isRemoved()&&body.getWorld()==world&&body.getUuid().equals(uuid)
+            &&find(world,body.getId()).orElse(null)==body?Optional.of(body):Optional.empty();
     }
     public static List<BlockBodyEntity> loaded(World world) {
         State state=WORLDS.get(world);if(state==null)return List.of();var result=new ArrayList<BlockBodyEntity>();
@@ -60,7 +68,8 @@ public final class BodySpatialIndex {
         var found=new ArrayList<BlockBodyEntity>();
         for(int id:s.tree.query(bounds(area)).values()) {
             var ref=s.bodies.get(id);var body=ref==null?null:ref.get();
-            if(body==null||body.isRemoved()||body.getWorld()!=world){s.bodies.remove(id);s.tree.remove(id);}
+            if(body==null||body.isRemoved()||body.getWorld()!=world){s.bodies.remove(id);s.tree.remove(id);
+                if(body!=null){var identity=s.uuids.get(body.getUuid());if(identity!=null&&identity.get()==body)s.uuids.remove(body.getUuid());}}
             else found.add(body);
         }
         found.sort(Comparator.comparingInt(Entity::getId));return List.copyOf(found);

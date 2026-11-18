@@ -88,4 +88,38 @@ public final class BodyJointRegistryGameTests implements FabricGameTest {
         }c.complete();
     }
 
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="fixed-boarding-snapshot-codec",tickLimit=140)
+    public void actualFixedGraphSnapshotCodecAndUnloadedIdentityNeverFoldAnArticulatedNeighbour(TestContext c){
+        var w=c.getWorld();var at=c.getAbsolutePos(new BlockPos(8,140,8));var tickets=new AiFixtureChunks(w,at,0);
+        var cells=List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState()));var q=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.rotationByRadians(new Vec3(1,2,3).normalized(),.35);var velocity=new Vec3d(3,.2,-1);
+        var a=BlockBodyEntity.createLocal(w,cells,Vec3d.of(at),q,velocity,Vec3d.ZERO);
+        var b=BlockBodyEntity.createLocal(w,cells,Vec3d.of(at).add(com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.mc(q.rotate(new Vec3(1,0,0)))),q,velocity,Vec3d.ZERO);
+        var child=BlockBodyEntity.createLocal(w,cells,Vec3d.of(at).add(com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.mc(q.rotate(new Vec3(2,0,0)))),q,velocity,Vec3d.ZERO);
+        var fixed=new BodyJointLink(UUID.randomUUID(),new BodyJointLink.Endpoint(a.getUuid(),BlockPos.ORIGIN,new Vec3(1,.5,.5),Quat.IDENTITY),new BodyJointLink.Endpoint(b.getUuid(),BlockPos.ORIGIN,new Vec3(0,.5,.5),Quat.IDENTITY),BodyJointConstraint.Kind.FIXED,0,0,0,0,10000,10000,false);
+        var hinge=new BodyJointLink(UUID.randomUUID(),new BodyJointLink.Endpoint(b.getUuid(),BlockPos.ORIGIN,new Vec3(1,.5,.5),Quat.IDENTITY),new BodyJointLink.Endpoint(child.getUuid(),BlockPos.ORIGIN,new Vec3(0,.5,.5),Quat.IDENTITY),BodyJointConstraint.Kind.HINGE,-10,10,0,0,10000,10000,false);
+        var registry=BodyJointRegistry.get(w);registry.add(w,a,b,fixed);registry.add(w,b,child,hinge);boolean[] done={false};long start=w.getTime();
+        c.runAtEveryTick(()->{if(done[0])return;try{
+            c.assertTrue(w.getTime()-start<100,"finite ordinary active-joint admission");if(a.age<1||b.age<1||child.age<1||!registry.active(fixed.id(),w.getTime()))return;
+            var state=com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.bodySnapshot(w,a.getId());var before=a.physics().snapshot();var childV=child.physics().linearVelocity();
+            c.assertTrue(state.fixed()!=null&&state.fixed().size()==2&&state.fixed().stream().noneMatch(m->m.uuid().equals(child.getUuid())),"actual FIXED component includes two identities and excludes the actual HINGE neighbour");
+            for(var member:state.fixed()){
+                var body=BodySpatialIndex.find(w,member.uuid()).orElseThrow();var origin=new Vec3(state.x(),state.y(),state.z());var turn=new Quat(state.qx(),state.qy(),state.qz(),state.qw());
+                c.assertTrue(member.id()==body.getId()&&member.shapeRevision()==body.shapeRevision()&&origin.plus(turn.rotate(new Vec3(member.x(),member.y(),member.z()))).minus(body.massPosition()).length()<1e-10,"one same-time relative COM and material identity");
+                c.assertTrue(Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.hamiltonProduct(turn,new Quat(member.qx(),member.qy(),member.qz(),member.qw())).normalized(),body.rotation()))>1-1e-12,"one same-time relative quaternion");
+            }
+            var packet=new com.terminaldetector.drmd.network.BoardingNetworking.State(7,11,true,a.getId(),1,2,3,4,5,6,true,com.terminaldetector.drmd.network.BoardingNetworking.PassengerPose.WORLD,state,w.getRegistryKey().getValue());
+            var buffer=new net.minecraft.network.RegistryByteBuf(io.netty.buffer.Unpooled.buffer(),w.getRegistryManager());try{
+                com.terminaldetector.drmd.network.BoardingNetworking.State.CODEC.encode(buffer,packet);var decoded=com.terminaldetector.drmd.network.BoardingNetworking.State.CODEC.decode(buffer);
+                c.assertTrue(decoded.equals(packet)&&buffer.readableBytes()==0,"real bounded boarding wire codec round-trips the complete FIXED component and consumes exactly its bytes");
+            }finally{buffer.release();}
+            c.assertTrue(a.physics().matches(before)&&child.physics().linearVelocity().equals(childV),"snapshot and real codec do not mutate physical or articulated velocities");
+            b.remove(net.minecraft.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK);
+            var unknown=com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.bodySnapshot(w,a.getId());
+            c.assertTrue(BodySpatialIndex.find(w,b.getUuid()).isEmpty()&&unknown.fixed()==null&&unknown.paused(),"an actually unloaded fixed member is UNKNOWN, never an invented singleton or stale-UUID display");
+            registry.remove(fixed.id());var detached=com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.bodySnapshot(w,a.getId());
+            c.assertTrue(detached.fixed()!=null&&detached.fixed().size()==1&&detached.fixed().getFirst().uuid().equals(a.getUuid())&&a.physics().matches(before),"real joint removal retires old child membership without resetting the remaining hull");
+            done[0]=true;registry.remove(hinge.id());a.discard();b.discard();child.discard();tickets.close();c.complete();
+        }catch(RuntimeException|Error error){done[0]=true;registry.remove(fixed.id());registry.remove(hinge.id());a.discard();b.discard();child.discard();tickets.close();throw error;}});
+    }
+
 }

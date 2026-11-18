@@ -9,6 +9,7 @@ import com.terminaldetector.drmd.d6.*;
 import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import com.terminaldetector.drmd.flight.FlightSystem;
 import com.terminaldetector.drmd.network.ModNetworking;
+import com.terminaldetector.drmd.network.BoardingNetworking;
 import com.terminaldetector.drmd.physics.collision.BodyJointConstraint;
 import com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions;
 import com.terminaldetector.drmd.world.access.CubicAvailability;
@@ -42,6 +43,8 @@ public final class NativeConnectedPortalCheck {
     private record State(long tick,Hull root,Hull child,Vec3 player,DynamicBodyAttachment.State attachment,int epoch,boolean flight,boolean flying,double anchorError){}
     private record Before(long tick,D6PortalTransform transform,Hull hull,Vec3 player,DynamicBodyAttachment.State attachment){}
     private record Crossing(Before before,Hull after){}
+    private record Ack(int clientTick,BoardingNetworking.State packet,DynamicBodyAttachment.State predicted){}
+    private static final List<Ack> ACKS=new ArrayList<>();private static int acknowledged=-1,ackEpoch=-1,ackCursor,matchingAcks;private static Ack qualifiedAck;private static State qualifiedSender;
     private static final Map<UUID,Before> OPEN=new LinkedHashMap<>();
     private static final List<Crossing> CROSSED=new ArrayList<>();
     private static final List<State> SERVER=new ArrayList<>();
@@ -134,6 +137,29 @@ public final class NativeConnectedPortalCheck {
             System.out.println("CONNECTED_PORTAL_BODY_TRANSFER "+CROSSED.getLast());
         }catch(Throwable error){failure=error.toString();error.printStackTrace();}
     }
+    /** Actual client receiver HEAD, before normal apply retires its prediction for this input serial. */
+    public static void received(BoardingNetworking.State packet){
+        if(!ENABLED||finished||afterCross==null||!packet.active()||packet.epoch()!=afterCross.epoch)return;
+        if(packet.epoch()!=ackEpoch){ackEpoch=packet.epoch();acknowledged=-1;}
+        if(packet.acknowledgment()<0||packet.acknowledgment()<=acknowledged)return;acknowledged=packet.acknowledgment();
+        if(ACKS.size()>=512){failure="bounded actual acknowledgment receipts exhausted";return;}
+        ACKS.add(new Ack(ticks,packet,BoardingClient.predictedState(packet.acknowledgment())));
+    }
+    private static State sender(BoardingNetworking.State packet){
+        synchronized(SERVER){for(int i=SERVER.size()-1;i>=0;i--){var row=SERVER.get(i);if(row.epoch==packet.epoch()
+            &&row.player.minus(new Vec3(packet.x(),packet.y(),packet.z())).length()<1e-10)return row;}}return null;
+    }
+    private static boolean commonAckAgrees(){
+        while(ackCursor<ACKS.size()){
+            var receipt=ACKS.get(ackCursor);var row=sender(receipt.packet);if(row==null)break;ackCursor++;
+            var packet=receipt.packet;var body=packet.body();var predicted=receipt.predicted;
+            boolean sameSource=body!=null&&body.fixed()!=null&&body.fixed().size()==2&&row.attachment!=null&&row.attachment.grounded()
+                &&new Vec3(body.x(),body.y(),body.z()).minus(row.root.p).length()<1e-8&&nearQuat(new Quat(body.qx(),body.qy(),body.qz(),body.qw()),row.root.q,1e-12);
+            boolean agreement=sameSource&&predicted!=null&&predicted.feet().minus(row.player).length()<=.5&&nearQuat(predicted.frame(),packet.pose().frame(),.001);
+            if(agreement){matchingAcks++;qualifiedAck=receipt;qualifiedSender=row;}else matchingAcks=0;
+        }
+        return matchingAcks>=3&&qualifiedAck!=null&&ticks-qualifiedAck.clientTick<=BoardingNetworking.PREDICTION_HISTORY;
+    }
     private static boolean nearQuat(Quat a,Quat b,double epsilon){return 1-Math.abs(ImmPtlQuaternions.dot(a,b))<epsilon;}
     private static void tick(MinecraftClient c){
         if(finished)return;if(++ticks>1800||System.nanoTime()-boot>180_000_000_000L){finish(c,"FAIL","finite180s/1800tick deadline phase="+phase);return;}
@@ -158,31 +184,33 @@ public final class NativeConnectedPortalCheck {
             else if(age>240)finish(c,"FAIL","normal island physics did not transit actual linked panels");return;
         }
         if(phase==3&&++age>=8){
-            if(!clientAgrees(c,authority,state)){if(age>80)finish(c,"FAIL","post-transit client hull/attachment agreement absent");return;}
+            if(!clientAgrees(c,state)){if(age>80)finish(c,"FAIL","post-transit client hull/attachment agreement absent");return;}
             require(heldTicks>=2&&jumped&&afterCross!=null,"missing actual walking-input/client discontinuity witness");capture="after";captureFrames=0;phase=4;
         }
     }
     private static List<Map<String,Object>> clientHulls(MinecraftClient c){var out=new ArrayList<Map<String,Object>>();for(int id:new int[]{rootId,childId})if(c.world.getEntityById(id) instanceof BlockBodyEntity b){var view=BoardingClient.bodyView(b,1);out.add(Map.of("uuid",entity(b).getUuid(),"id",id,"p",b.massPosition(),"q",b.rotation(),"v",b.physics().linearVelocity(),"renderP",view==null?b.renderMassPosition(1):view.position(),"renderQ",view==null?b.renderRotation(1):view.rotation()));}return out;}
-    private static boolean clientAgrees(MinecraftClient c,State authority,DynamicBodyAttachment.State state){
-        if(authority==null||authority.attachment==null||!authority.attachment.grounded()||authority.attachment.support()!=rootId||state==null||!state.grounded()||state.support()!=rootId||state.gravityOwner()!=rootId||!BoardingClient.drives(c.player)||c.player.getPos().distanceTo(mc(authority.player))>.5)return false;
-        if(!nearQuat(state.frame(),authority.attachment.frame(),.001))return false;
-        for(var expected:List.of(authority.root,authority.child)){
-            if(!(c.world.getEntityById(expected.id) instanceof BlockBodyEntity b)||!entity(b).getUuid().equals(expected.uuid)||b.shapeRevision()!=expected.revision||b.massPosition().minus(expected.p).length()>.7||!nearQuat(b.rotation(),expected.q,.001))return false;
-            if(!nearQuat(b.renderRotation(1),expected.q,.002))return false;
+    private static boolean clientAgrees(MinecraftClient c,DynamicBodyAttachment.State state){
+        // Match actual acknowledgment/prediction serials, never a future client pose against stale volatile live.
+        if(afterCross==null||state==null||!state.grounded()||state.support()!=rootId||state.gravityOwner()!=rootId||!BoardingClient.drives(c.player)||!commonAckAgrees())return false;
+        for(var expected:List.of(afterCross.root,afterCross.child)){
+            if(!(c.world.getEntityById(expected.id) instanceof BlockBodyEntity b)||!entity(b).getUuid().equals(expected.uuid)||b.shapeRevision()!=expected.revision||BoardingClient.bodyView(b,1)==null)return false;
         }return true;
     }
     public static void beforeFrame(){if(ENABLED){rootDrawn=false;childDrawn=false;DRAW.clear();}}
     /** Actual quaternion passed to the real renderer, including BoardingClient's predicted body view. */
     public static void drew(BlockBodyEntity b,Quat q,float delta){if(!ENABLED||finished||entity(b).getId()!=rootId&&entity(b).getId()!=childId)return;if(entity(b).getId()==rootId)rootDrawn=true;else childDrawn=true;
-        var view=BoardingClient.bodyView(b,delta);if(DRAW.size()<16)DRAW.add(Map.of("uuid",entity(b).getUuid(),"id",entity(b).getId(),"q",q,"delta",delta,"p",view==null?b.renderMassPosition(delta):view.position()));}
+        var view=BoardingClient.bodyView(b,delta);var at=view==null?b.renderMassPosition(delta):view.position();var local=entity(b).getId()==rootId?new Vec3(2,.5,.5):new Vec3(0,.5,.5);
+        if(DRAW.size()<16)DRAW.add(Map.of("uuid",entity(b).getUuid(),"id",entity(b).getId(),"q",q,"delta",delta,"p",at,"materialAnchor",at.plus(q.rotate(local.minus(b.localCentre())))));}
     public static void rendered(){
         if(!ENABLED||finished||capture==null||!rootDrawn||!childDrawn||++captureFrames<3)return;var c=MinecraftClient.getInstance();if(c.currentScreen!=null||c.player==null)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){var name=capture;var dir=c.runDirectory.toPath().resolve("connected-portal-frames");Files.createDirectories(dir);image.writeTo(dir.resolve(name+".png"));
             var frame=new LinkedHashMap<String,Object>();frame.put("name",name);frame.put("clientPos",p(c.player.getPos()));frame.put("cameraPos",p(c.gameRenderer.getCamera().getPos()));frame.put("actualDraws",List.copyOf(DRAW));frame.put("attachment",BoardingClient.state());frame.put("width",image.getWidth());frame.put("height",image.getHeight());FRAMES.add(frame);capture=null;
-            if(name.equals("before"))beforeCaptured=true;else{require(phase==4&&clientAgrees(c,live,BoardingClient.state()),"actual completed after-frame lost client/server contact agreement");for(var draw:DRAW){var expected=(Integer)draw.get("id")==rootId?live.root:live.child;require(nearQuat((Quat)draw.get("q"),expected.q,.002)&&((Vec3)draw.get("p")).minus(expected.p).length()<1,"actual renderer still uses the old portal frame");}finish(c,"PASS","one real connected occupied island transit; actual render/PNG context, no pixelquality/performance/fullMP claim");}
+            var rootDraw=DRAW.stream().filter(d->(Integer)d.get("id")==rootId).findFirst().orElseThrow();var childDraw=DRAW.stream().filter(d->(Integer)d.get("id")==childId).findFirst().orElseThrow();
+            require(((Vec3)rootDraw.get("materialAnchor")).minus((Vec3)childDraw.get("materialAnchor")).length()<.08&&nearQuat((Quat)rootDraw.get("q"),(Quat)childDraw.get("q"),.002),"actual same-frame FIXED material anchors or orientation tore apart");
+            if(name.equals("before"))beforeCaptured=true;else{require(phase==4&&clientAgrees(c,BoardingClient.state()),"actual completed after-frame lost matched-ack client/server contact agreement");finish(c,"PASS","one real connected occupied island transit; actual render/PNG context, no pixelquality/performance/fullMP claim");}
         }catch(Throwable error){finish(c,"FAIL","actual frame: "+error);}
     }
     private static void finish(MinecraftClient c,String status,String reason){if(finished)return;finished=true;c.options.forwardKey.setPressed(false);
-        try{var out=new LinkedHashMap<String,Object>();out.put("status",status);out.put("reason",reason);out.put("stagingTeleports",stagingTeleports);out.put("groupLaunchPulses",launchPulses);out.put("worldFixtureBlocks",placed?11:0);out.put("localFixtureCells",placed?6:0);out.put("fixtureJoint",link);out.put("heldForwardTicks",heldTicks);out.put("normalThirdPersonCamera",true);out.put("clientJump",jumped);out.put("crossings",List.copyOf(CROSSED));out.put("afterCross",afterCross);out.put("live",live);out.put("client",CLIENT);out.put("frames",FRAMES);synchronized(SERVER){out.put("server",List.copyOf(SERVER));}Files.writeString(c.runDirectory.toPath().resolve("connected-portal-outcome.json"),new GsonBuilder().setPrettyPrinting().create().toJson(out)+"\n");System.out.println("CONNECTED_PORTAL_OUTCOME "+status+" "+reason);
+        try{var out=new LinkedHashMap<String,Object>();out.put("status",status);out.put("reason",reason);out.put("stagingTeleports",stagingTeleports);out.put("groupLaunchPulses",launchPulses);out.put("worldFixtureBlocks",placed?11:0);out.put("localFixtureCells",placed?6:0);out.put("fixtureJoint",link);out.put("heldForwardTicks",heldTicks);out.put("normalThirdPersonCamera",true);out.put("clientJump",jumped);out.put("crossings",List.copyOf(CROSSED));out.put("actualAcknowledgments",ACKS);out.put("consecutiveMatchingAcks",matchingAcks);out.put("qualifiedAck",qualifiedAck);out.put("qualifiedSender",qualifiedSender);out.put("afterCross",afterCross);out.put("live",live);out.put("client",CLIENT);out.put("frames",FRAMES);synchronized(SERVER){out.put("server",List.copyOf(SERVER));}Files.writeString(c.runDirectory.toPath().resolve("connected-portal-outcome.json"),new GsonBuilder().setPrettyPrinting().create().toJson(out)+"\n");System.out.println("CONNECTED_PORTAL_OUTCOME "+status+" "+reason);
         }catch(Throwable error){error.printStackTrace();}c.scheduleStop();}
 }

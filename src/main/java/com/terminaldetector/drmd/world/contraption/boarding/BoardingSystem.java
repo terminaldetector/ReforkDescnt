@@ -195,7 +195,27 @@ public final class BoardingSystem {
             var q=body.rotation();var v=body.physics().linearVelocity();var m=body.physics().angularMomentum();
             var g=body.passengerGravity();
             var position=body.massPosition();
-        return new BoardingNetworking.BodyState(position.x(),position.y(),position.z(),q.x(),q.y(),q.z(),q.w(),v.x(),v.y(),v.z(),m.x(),m.y(),m.z(),g.x(),g.y(),g.z(),body.boardingMotionPaused(),body.shapeRevision());
+        return new BoardingNetworking.BodyState(position.x(),position.y(),position.z(),q.x(),q.y(),q.z(),q.w(),v.x(),v.y(),v.z(),m.x(),m.y(),m.z(),g.x(),g.y(),g.z(),body.boardingMotionPaused(),body.shapeRevision(),fixedMembers(world,body));
+    }
+    /** One owner-tick rigid component. Articulated joints retain their independent native trajectory. */
+    private static List<BoardingNetworking.FixedBody> fixedMembers(ServerWorld world,BlockBodyEntity anchor) {
+        var registry=com.terminaldetector.drmd.world.contraption.BodyJointRegistry.get(world);
+        var queue=new ArrayDeque<BlockBodyEntity>();var bodies=new LinkedHashMap<UUID,BlockBodyEntity>();queue.add(anchor);bodies.put(anchor.getUuid(),anchor);
+        while(!queue.isEmpty())for(var link:registry.forBody(queue.removeFirst().getUuid())) {
+            if(link.kind()!=com.terminaldetector.drmd.physics.collision.BodyJointConstraint.Kind.FIXED||!registry.active(link.id(),world.getTime()))continue;
+            for(var endpoint:List.of(link.a(),link.b()))if(!bodies.containsKey(endpoint.body())) {
+                if(bodies.size()>=BoardingNetworking.MAX_FIXED_MEMBERS)return null;
+                var body=com.terminaldetector.drmd.world.contraption.BodySpatialIndex.find(world,endpoint.body()).orElse(null);if(body==null)return null;
+                bodies.put(body.getUuid(),body);queue.addLast(body);
+            }
+        }
+        var out=new ArrayList<BoardingNetworking.FixedBody>();Quat inverse=anchor.rotation().inverse();Vec3 origin=anchor.massPosition();
+        for(var body:bodies.values()) {
+            Vec3 relative=inverse.rotate(body.massPosition().minus(origin));Quat turn=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.hamiltonProduct(inverse,body.rotation()).normalized();
+            try{out.add(new BoardingNetworking.FixedBody(body.getId(),body.getUuid(),body.shapeRevision(),relative.x(),relative.y(),relative.z(),turn.x(),turn.y(),turn.z(),turn.w()));}
+            catch(IllegalArgumentException invalid){return null;}
+        }
+        out.sort(Comparator.comparingInt(BoardingNetworking.FixedBody::id));return List.copyOf(out);
     }
     private static void sync(ServerPlayerEntity p,Lease l,boolean active) {
         if(p.networkHandler==null||!ServerPlayNetworking.canSend(p,BoardingNetworking.State.ID))return;

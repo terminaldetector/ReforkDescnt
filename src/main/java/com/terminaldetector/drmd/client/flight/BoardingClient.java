@@ -30,10 +30,28 @@ public final class BoardingClient {
     private static BodyView beforeView,currentView;
     private static int viewBody=-1,viewAge=-1;
     public static BodyView bodyView(BlockBodyEntity body,float delta) {
-        if(body.getId()!=viewBody||currentView==null||state==null)return null;
+        if(currentView==null||state==null||waitingForShape!=null||viewBody!=snapshotId||snapshotId<0||!fixedReady())return null;
         double alpha=Math.max(0,Math.min(1,delta));
-        return new BodyView(beforeView.position().plus(currentView.position().minus(beforeView.position()).scaled(alpha)),
+        var anchor=new BodyView(beforeView.position().plus(currentView.position().minus(beforeView.position()).scaled(alpha)),
             com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.interpolate(beforeView.rotation(),currentView.rotation(),alpha).normalized());
+        if(body.getId()==viewBody)return anchor;
+        var member=fixedBody(body);if(member==null||viewBody!=snapshotId)return null;
+        return new BodyView(anchor.position().plus(anchor.rotation().rotate(new Vec3(member.x(),member.y(),member.z()))),
+            com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.hamiltonProduct(anchor.rotation(),new Quat(member.qx(),member.qy(),member.qz(),member.qw())).normalized());
+    }
+    private static boolean matches(BlockBodyEntity body,BoardingNetworking.FixedBody member){return body!=null&&!body.cells().isEmpty()&&body.getUuid().equals(member.uuid())&&body.shapeRevision()==member.shapeRevision();}
+    private static boolean fixedReady(){return fixedReady(bodySnapshot,snapshotId);}
+    private static boolean fixedReady(BoardingNetworking.BodyState snapshot,int anchorId){
+        if(snapshot==null)return true;if(snapshot.fixed()==null)return false;if(snapshot.fixed().isEmpty())return true;
+        var client=MinecraftClient.getInstance();if(client.world==null)return false;boolean anchor=false;
+        for(var member:snapshot.fixed()){
+            var body=com.terminaldetector.drmd.world.contraption.BodySpatialIndex.find(client.world,member.id()).orElse(null);if(!matches(body,member))return false;
+            if(member.id()==anchorId){if(member.x()*member.x()+member.y()*member.y()+member.z()*member.z()>1e-12||Math.abs(member.qw())<1-1e-6)return false;anchor=true;}
+        }return anchor;
+    }
+    private static BoardingNetworking.FixedBody fixedBody(BlockBodyEntity body){
+        if(bodySnapshot==null||bodySnapshot.fixed()==null)return null;
+        for(var member:bodySnapshot.fixed())if(member.id()==body.getId()&&matches(body,member))return member;return null;
     }
     private static void publishBodyView(ClientPlayerEntity player,java.util.List<BodyMotion> bodies) {
         // The rendered support and predicted contact must share a timeline even without
@@ -60,7 +78,7 @@ public final class BoardingClient {
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c->{
             if(waitingForShape!=null&&c.world!=null) {
                 var pending=waitingForShape;int id=pending.pose().gravityOwner()>=0?pending.pose().gravityOwner():pending.support();
-                if(c.world.getEntityById(id) instanceof BlockBodyEntity b&&!b.cells().isEmpty()&&b.shapeRevision()==pending.body().shapeRevision()){waitingForShape=null;apply(pending);}
+                if(c.world.getEntityById(id) instanceof BlockBodyEntity b&&!b.cells().isEmpty()&&b.shapeRevision()==pending.body().shapeRevision()&&fixedReady(pending.body(),id)){waitingForShape=null;apply(pending);}
             }
             if(c.player!=null&&c.player!=readyOwner&&ClientPlayNetworking.canSend(BoardingNetworking.Ready.ID)) {
                 ClientPlayNetworking.send(new BoardingNetworking.Ready(BoardingNetworking.PROTOCOL));readyOwner=c.player;
@@ -110,8 +128,10 @@ public final class BoardingClient {
             int id=p.pose().gravityOwner()>=0?p.pose().gravityOwner():p.support();
             if(!(mc.world.getEntityById(id) instanceof BlockBodyEntity b)||b.cells().isEmpty()||b.shapeRevision()!=p.body().shapeRevision()) {waitingForShape=p;return;}
         }
+        int proposedId=p.pose().gravityOwner()>=0?p.pose().gravityOwner():p.support();
+        if(!fixedReady(p.body(),proposedId)){waitingForShape=p;return;}
         waitingForShape=null;
-        bodySnapshot=p.body();snapshotId=p.pose().gravityOwner()>=0?p.pose().gravityOwner():p.support();
+        bodySnapshot=p.body();snapshotId=proposedId;
         if(state==null||epoch!=p.epoch()) {
             world=mc.world;epoch=p.epoch();sequence=0;HISTORY.clear();correction=new Vec3(0,0,0);
             var origin=new DynamicBodyAttachment.State(BoardingSystem.pure(player.getPos()),velocity,p.grounded(),p.support(),authoritative.frame(),authoritative.gravityOwner());
@@ -136,7 +156,7 @@ public final class BoardingClient {
     }
     public static void travel(ClientPlayerEntity player,Vec3d movement) {
         if(!ownsMovement(player))return;
-        if(waitingForShape!=null||state==null){player.setVelocity(Vec3d.ZERO);player.fallDistance=0;return;}
+        if(waitingForShape!=null||state==null||!fixedReady()){player.setVelocity(Vec3d.ZERO);player.fallDistance=0;return;}
         // Backpressure keeps a stalled connection from growing history or permanently outrunning
         // the server's bounded command queue. Resume as soon as an acknowledgment arrives.
         if(HISTORY.size()>=16){player.fallDistance=0;return;}
@@ -170,7 +190,22 @@ public final class BoardingClient {
         Vec3d shift=BoardingSystem.mc(at.feet()).subtract(player.getPos());
         var entities=new ArrayList<>(com.terminaldetector.drmd.world.contraption.BodySpatialIndex.query(player.getWorld(),player.getBoundingBox().offset(shift)
             .expand(4+Math.min(8,at.velocity().length()*.05))));
-        entities.sort(Comparator.comparingInt(BlockBodyEntity::getId));for(var body:entities)bodies.add(predictedMotion(body,lead));
+        if(bodySnapshot!=null&&bodySnapshot.fixed()!=null)for(var member:bodySnapshot.fixed()){
+            var body=com.terminaldetector.drmd.world.contraption.BodySpatialIndex.find(player.getWorld(),member.id()).orElse(null);
+            if(matches(body,member)&&!entities.contains(body))entities.add(body);
+        }
+        boolean complete=fixedReady();var anchor=complete?com.terminaldetector.drmd.world.contraption.BodySpatialIndex.find(player.getWorld(),snapshotId).orElse(null):null;
+        var trajectory=anchor==null?null:predictedMotion(anchor,lead);
+        var members=new HashMap<Integer,BoardingNetworking.FixedBody>();if(complete&&bodySnapshot!=null&&bodySnapshot.fixed()!=null)for(var member:bodySnapshot.fixed())members.put(member.id(),member);
+        entities.sort(Comparator.comparingInt(BlockBodyEntity::getId));for(var body:entities){
+            var member=members.get(body.getId());
+            if(body==anchor)bodies.add(trajectory);
+            else if(trajectory!=null&&member!=null&&matches(body,member)){
+                var material=new com.terminaldetector.drmd.d6.D6PhysicsBody().withMass(body.physicsMass()).withInertia(body.physics().inertia());
+                bodies.add(BodyMotion.fixed(body.getId(),body.collider(),body.localCentre(),material,body.passengerField(body.passengerGravity()),bodySnapshot.paused(),trajectory,
+                    new Vec3(member.x(),member.y(),member.z()),new Quat(member.qx(),member.qy(),member.qz(),member.qw())));
+            }else bodies.add(predictedMotion(body,lead));
+        }
         return bodies;
     }
     private static void orientLook(ClientPlayerEntity player,Quat before,Quat after,int gravityOwner) {
