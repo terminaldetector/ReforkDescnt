@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.client.portal.PortalTransform.Quat;
 import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
 import com.terminaldetector.drmd.d6.D6ChunkPos;
 import com.terminaldetector.drmd.world.access.WorldAccess;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.MovementType;
 import net.minecraft.util.math.Box;
@@ -16,12 +17,13 @@ import java.util.Map;
  * The existing hull motor supplies dynamic contacts; this adapter never generates or tickets. */
 final class LooseItemWorldMotion implements DynamicBodyAttachment.Motion {
     static final int MAX_CUBES = 216;
-    private final ItemEntity item;
+    private final Entity item;
     private final WorldAccess access;
     private final Map<D6ChunkPos, Boolean> cubes = new HashMap<>();
     private boolean blockedUnknown;
 
-    LooseItemWorldMotion(ItemEntity item) {this.item = item; access = WorldAccess.of(item.getWorld());}
+    LooseItemWorldMotion(ItemEntity item) {this((Entity)item);}
+    LooseItemWorldMotion(Entity entity) {this.item = entity; access = WorldAccess.of(entity.getWorld());}
     boolean blockedUnknown() {return blockedUnknown;}
 
     boolean available(Box box) {

@@ -62,6 +62,7 @@ public class DescentMod implements ModInitializer {
 		ModNetworking.register();
         com.terminaldetector.drmd.world.contraption.BodyContactSystem.register();
         com.terminaldetector.drmd.world.contraption.boarding.LooseItemBodySystem.register();
+        com.terminaldetector.drmd.world.contraption.boarding.LivingBodyContactSystem.register();
         com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.register();
         com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.register();
         com.terminaldetector.drmd.world.portal.PortalTravel.register();
