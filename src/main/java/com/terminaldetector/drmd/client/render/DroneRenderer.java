@@ -1,9 +1,11 @@
 package com.terminaldetector.drmd.client.render;
 
 import com.terminaldetector.drmd.DescentMod;
+import com.terminaldetector.drmd.client.presentation.Ps1BodyGeometryLayer;
 import com.terminaldetector.drmd.entity.DroneEntity;
 import com.terminaldetector.drmd.entity.model.DescentDroneModel;
 import net.minecraft.client.render.OverlayTexture;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRendererFactory;
@@ -33,6 +35,11 @@ public class DroneRenderer extends MobEntityRenderer<DroneEntity, DescentDroneMo
 			matrices.scale(1.2f, 1.2f, 1.2f);
 			super.render(entity, yaw, tickDelta, matrices, consumers, light);
 		} finally {model=previous;matrices.pop();}
+	}
+
+	@Override
+	protected RenderLayer getRenderLayer(DroneEntity entity, boolean showBody, boolean translucent, boolean outline) {
+		return Ps1BodyGeometryLayer.selectMob(super.getRenderLayer(entity, showBody, translucent, outline), TEXTURE);
 	}
 
 	@Override

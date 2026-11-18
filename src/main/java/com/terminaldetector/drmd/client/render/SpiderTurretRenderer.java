@@ -1,12 +1,14 @@
 package com.terminaldetector.drmd.client.render;
 
 import com.terminaldetector.drmd.DescentMod;
+import com.terminaldetector.drmd.client.presentation.Ps1BodyGeometryLayer;
 import com.terminaldetector.drmd.entity.mob.SpiderTurretEntity;
 import com.terminaldetector.drmd.entity.model.SpiderTurretModel;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.MobEntityRenderer;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
@@ -30,6 +32,11 @@ public class SpiderTurretRenderer extends MobEntityRenderer<SpiderTurretEntity, 
 			model=com.terminaldetector.drmd.client.presentation.Ps1WorldAssets.coarse()?coarseModel:nativeModel;
 			super.render(entity,yaw,delta,matrices,consumers,light);
 		} finally {model=previous;}
+	}
+
+	@Override
+	protected RenderLayer getRenderLayer(SpiderTurretEntity entity, boolean showBody, boolean translucent, boolean outline) {
+		return Ps1BodyGeometryLayer.selectMob(super.getRenderLayer(entity, showBody, translucent, outline), TEXTURE);
 	}
 
 	@Override

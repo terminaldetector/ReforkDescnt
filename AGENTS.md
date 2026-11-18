@@ -1,5 +1,7 @@
 # Recovery and checkpoint rules
 
+Current PS1 clarification (18 November): PS1 is the shader/render pipeline embedded in the mod. Optional coarse model variants are one asset setting and do not establish completion of the PS1 render requirements. Continue the built-in world presentation and material shader paths alongside MASTER v8.
+
 Current user steering (18 November): prioritize working native portal traversal, including 6DoF and physical constructs. Implement concrete features across the two latest primary specifications (MASTER v8 and ENGINE B / PS1). Keep validation focused on actual changes; do not replace implementation with repeated diagnostic-only runs. Retain real first failures and fix their actual causes. The user separately authorizes posting ready builds, important actual screenshots and changelogs to Telegram `@abadonsoft`; this does not resume GitHub/source publication.
 
 Current user instruction (6 November): development is local only. Do not push, publish, upload to GitHub or trigger Actions. Preserve local source/evidence checkpoints and continue both master v8 and Dynamic Boarding/BlockBody work. This supersedes the historical publication instructions below until the user explicitly resumes publication.

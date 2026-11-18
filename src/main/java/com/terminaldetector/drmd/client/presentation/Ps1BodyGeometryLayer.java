@@ -9,14 +9,19 @@ import net.minecraft.util.Identifier;
 import org.lwjgl.opengl.GL11;
 import java.util.Optional;
 
-/** First bounded geometry path: actual nonsmooth BlockBody faces in the stock block-atlas cutout layer. */
+/** Built-in geometry shader for solid BlockBody faces and the two authored mob cutout materials. */
 public final class Ps1BodyGeometryLayer extends RenderLayer {
     public record Stats(long shaderSelections, long fallbacks, int viewportWidth, int viewportHeight,
                         float snapPixels, float affineAmount) {}
     private static net.minecraft.client.gl.ShaderProgram program;
     private static Ps1BodyGeometryLayer wrapped;
+    private static final Identifier DRONE = Identifier.of("drmd", "textures/entity/drone.png");
+    private static final Identifier SPIDER = Identifier.of("drmd", "textures/entity/spider_turret.png");
+    // Only these two material variants are cached. A queued wrapper always owns its immutable native phase.
+    private static Ps1BodyGeometryLayer drone, spider;
+    private static final Stats EMPTY = new Stats(0, 0, 0, 0, 0, 0);
     private static long selections, fallbacks;
-    private static Stats last = new Stats(0, 0, 0, 0, 0, 0);
+    private static Stats last = EMPTY;
     private final State state;
 
     private Ps1BodyGeometryLayer(State state) {
@@ -34,6 +39,22 @@ public final class Ps1BodyGeometryLayer extends RenderLayer {
 
     public static Stats stats() { return last; }
 
+    /** Actual shader starts for this authored material, independent of BlockBody batches. */
+    public static Stats stats(Identifier texture) {
+        var layer = materialLayer(texture);
+        return layer == null ? EMPTY : layer.state.last;
+    }
+
+    /** Completed world draws using this material's PS1 shader, not model/selector callback counts. */
+    public static long completedDraws(Identifier texture) {
+        var layer = materialLayer(texture);
+        return layer == null ? 0 : layer.state.completedDraws;
+    }
+
+    private static Ps1BodyGeometryLayer materialLayer(Identifier texture) {
+        return DRONE.equals(texture) ? drone : SPIDER.equals(texture) ? spider : null;
+    }
+
     private static boolean eligible(Ps1GeometryOptions options) {
         return options.eligible(DescentConfig.presentationProfile, ScenePresentation.inLowResolutionWorld(),
                 OffscreenWorldView.busy());
@@ -46,11 +67,28 @@ public final class Ps1BodyGeometryLayer extends RenderLayer {
         return wrapped;
     }
 
+    /** Keep invisible/translucent/outline/feature layers native; only the actual authored rig layer is eligible. */
+    public static RenderLayer selectMob(RenderLayer original, Identifier texture) {
+        if (!eligible(DescentConfig.ps1Geometry) || (!DRONE.equals(texture) && !SPIDER.equals(texture))) return original;
+        if (original != RenderLayer.getEntityCutoutNoCull(texture)
+                || original.getVertexFormat() != VertexFormats.POSITION_COLOR_TEXTURE_OVERLAY_LIGHT_NORMAL
+                || original.getDrawMode() != VertexFormat.DrawMode.QUADS) return original;
+        var layer = materialLayer(texture);
+        if (layer == null || layer.state.original != original) layer = new Ps1BodyGeometryLayer(new State(original));
+        if (DRONE.equals(texture)) drone = layer;
+        else spider = layer;
+        return layer;
+    }
+
     @Override public Optional<RenderLayer> getAffectedOutline() { return state.original.getAffectedOutline(); }
     @Override public boolean isOutline() { return state.original.isOutline(); }
 
     @Override public void draw(BuiltBuffer buffer) {
-        try { super.draw(buffer); }
+        long before = state.selections;
+        try {
+            super.draw(buffer);
+            if (state.selections > before) state.completedDraws++;
+        }
         finally { state.end(); } // RenderLayer's ordinary end path and an exceptional draw both restore the native phase.
     }
 
@@ -58,6 +96,8 @@ public final class Ps1BodyGeometryLayer extends RenderLayer {
         private final RenderLayer original;
         private net.minecraft.client.gl.ShaderProgram originalShader;
         private boolean started;
+        private long selections, fallbacks, completedDraws;
+        private Stats last = EMPTY;
         private State(RenderLayer original) { this.original = original; }
 
         private void start() {
@@ -70,15 +110,25 @@ public final class Ps1BodyGeometryLayer extends RenderLayer {
                 if (!eligible(options)) return;
                 int[] viewport = new int[4]; GL11.glGetIntegerv(GL11.GL_VIEWPORT, viewport);
                 if (program == null || viewport[2] <= 0 || viewport[3] <= 0) {
-                    fallbacks++; last = new Stats(selections, fallbacks, viewport[2], viewport[3], options.snapPixels(), options.affineAmount());
+                    fallbacks++;
+                    Ps1BodyGeometryLayer.fallbacks++;
+                    record(viewport, options);
                     return;
                 }
                 program.getUniform("GeometryViewport").set((float)viewport[0], (float)viewport[1], (float)viewport[2], (float)viewport[3]);
                 program.getUniform("VertexSnapPixels").set(options.snapPixels());
                 program.getUniform("AffineAmount").set(options.affineAmount());
                 RenderSystem.setShader(() -> program);
-                selections++; last = new Stats(selections, fallbacks, viewport[2], viewport[3], options.snapPixels(), options.affineAmount());
+                selections++;
+                Ps1BodyGeometryLayer.selections++;
+                record(viewport, options);
             } catch (RuntimeException | Error failure) { end(); throw failure; }
+        }
+
+        private void record(int[] viewport, Ps1GeometryOptions options) {
+            last = new Stats(selections, fallbacks, viewport[2], viewport[3], options.snapPixels(), options.affineAmount());
+            Ps1BodyGeometryLayer.last = new Stats(Ps1BodyGeometryLayer.selections, Ps1BodyGeometryLayer.fallbacks,
+                    viewport[2], viewport[3], options.snapPixels(), options.affineAmount());
         }
 
         private void end() {
