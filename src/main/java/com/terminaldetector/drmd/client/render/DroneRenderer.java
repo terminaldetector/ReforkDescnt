@@ -15,18 +15,24 @@ import net.minecraft.util.Identifier;
 public class DroneRenderer extends MobEntityRenderer<DroneEntity, DescentDroneModel<DroneEntity>> {
 	public static final EntityModelLayer LAYER = new EntityModelLayer(Identifier.of(DescentMod.MOD_ID, "drone"), "main");
 	private static final Identifier TEXTURE = Identifier.of(DescentMod.MOD_ID, "textures/entity/drone.png");
+	private final DescentDroneModel<DroneEntity> nativeModel,coarseModel;
 
 	public DroneRenderer(EntityRendererFactory.Context ctx) {
 		super(ctx, new DescentDroneModel<>(ctx.getPart(LAYER)), 0.4f);
+		nativeModel=model;
+		coarseModel=new DescentDroneModel<>(DescentDroneModel.getLowPolyTexturedModelData().createModel());
 	}
 
 	@Override
 	public void render(DroneEntity entity, float yaw, float tickDelta, MatrixStack matrices,
 					   VertexConsumerProvider consumers, int light) {
 		matrices.push();
-		matrices.scale(1.2f, 1.2f, 1.2f);
-		super.render(entity, yaw, tickDelta, matrices, consumers, light);
-		matrices.pop();
+		var previous=model;
+		try {
+			model=com.terminaldetector.drmd.client.presentation.Ps1WorldAssets.coarse()?coarseModel:nativeModel;
+			matrices.scale(1.2f, 1.2f, 1.2f);
+			super.render(entity, yaw, tickDelta, matrices, consumers, light);
+		} finally {model=previous;matrices.pop();}
 	}
 
 	@Override

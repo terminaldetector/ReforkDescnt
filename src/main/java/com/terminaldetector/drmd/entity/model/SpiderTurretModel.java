@@ -32,6 +32,14 @@ public class SpiderTurretModel extends EntityModel<SpiderTurretEntity> {
 	}
 
 	public static TexturedModelData getTexturedModelData() {
+		return getTexturedModelData(false);
+	}
+
+	public static TexturedModelData getLowPolyTexturedModelData() {
+		return getTexturedModelData(true);
+	}
+
+	private static TexturedModelData getTexturedModelData(boolean coarse) {
 		ModelData data = new ModelData();
 		ModelPartData root = data.getRoot();
 
@@ -52,9 +60,9 @@ public class SpiderTurretModel extends EntityModel<SpiderTurretEntity> {
 		// Four legs on the diagonals so the chassis silhouette stays square-on.
 		for (int i = 0; i < 4; i++) {
 			double angle = Math.PI / 4 + Math.PI * i / 2.0;
-			root.addChild("leg" + i, ModelPartBuilder.create()
-							.uv(0, 38).cuboid(-1f, 0f, -1f, 2f, 10f, 2f)
-							.uv(8, 38).cuboid(-1.5f, 9f, -1.5f, 3f, 3f, 3f),
+			var leg=ModelPartBuilder.create().uv(0, 38).cuboid(-1f, 0f, -1f, 2f, 10f, 2f);
+			if(!coarse)leg.uv(8, 38).cuboid(-1.5f, 9f, -1.5f, 3f, 3f, 3f);
+			root.addChild("leg" + i, leg,
 					ModelTransform.of(
 							(float) (Math.sin(angle) * 5), 16f, (float) (Math.cos(angle) * 5),
 							0f, (float) -angle, 0f));

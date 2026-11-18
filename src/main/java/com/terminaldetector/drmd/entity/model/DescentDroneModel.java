@@ -15,15 +15,24 @@ public class DescentDroneModel<T extends Entity> extends EntityModel<T> {
 	}
 
 	public static TexturedModelData getTexturedModelData() {
+		return getTexturedModelData(false);
+	}
+
+	public static TexturedModelData getLowPolyTexturedModelData() {
+		return getTexturedModelData(true);
+	}
+
+	private static TexturedModelData getTexturedModelData(boolean coarse) {
 		ModelData data = new ModelData();
 		ModelPartData root = data.getRoot();
 		root.addChild("core", ModelPartBuilder.create()
 						.uv(0, 0).cuboid(-3f, -3f, -3f, 6f, 6f, 6f),
 				ModelTransform.pivot(0, 0, 0));
-		root.addChild("spar_n", ModelPartBuilder.create()
+		// Empty nodes preserve the original counter-rotating rig in the coarse asset.
+		root.addChild("spar_n", coarse?ModelPartBuilder.create():ModelPartBuilder.create()
 						.uv(0, 12).cuboid(-1f, -1f, -8f, 2f, 2f, 5f),
 				ModelTransform.pivot(0, 0, 0));
-		root.addChild("spar_s", ModelPartBuilder.create()
+		root.addChild("spar_s", coarse?ModelPartBuilder.create():ModelPartBuilder.create()
 						.uv(0, 12).cuboid(-1f, -1f, 3f, 2f, 2f, 5f),
 				ModelTransform.pivot(0, 0, 0));
 		root.addChild("spar_e", ModelPartBuilder.create()
