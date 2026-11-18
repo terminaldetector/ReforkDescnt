@@ -30,7 +30,8 @@ public final class NativeAssetsPacingCheck {
     public static final boolean ENABLED=Boolean.getBoolean("drmd.gate.ps1AssetsPacing");
     private static final Vec3d START=new Vec3d(8.5,2159,8.5),SHIP=new Vec3d(8.5,2161,13.5);
     private record Physics(int tick,int age,List<Double> position,List<Double> velocity){}
-    private static volatile UUID viewer;private static volatile int shipId=-1;private static volatile Physics live;
+    private static volatile UUID viewer,shipUuid;private static volatile int shipId=-1;private static volatile Physics live;
+    private static Entity acceptedShip;private static int registrationChecks;private static volatile Map<String,Object> registration=Map.of();
     private static volatile String serverFailure;private static volatile boolean finished;private static boolean setup,active,captured,drawingFixture,modelThisFrame;
     private static int ticks,phase,frames,cubes,modelCalls,limitCalls,lastLimit=-1,baselineLimit=-1;
     private static boolean modelLowWorld;private static long boot,lastFrame;private static Physics startPhysics;
@@ -53,9 +54,16 @@ public final class NativeAssetsPacingCheck {
                 if(!WorldAccess.of(w).isVolumeAvailable(D6ChunkPos.ofBlock(8,2161,13)))return;
                 Entity ship=ModEntities.PYRO_SHIP.create(w);if(ship==null)throw new IllegalStateException("real Pyro creation failed");
                 ship.setPosition(SHIP);ship.setYaw(0);ship.setPitch(0);ship.setVelocity(Vec3d.ZERO);
-                if(!w.spawnEntity(ship))throw new IllegalStateException("real Pyro spawn refused");shipId=ship.getId();
+                if(!w.spawnEntity(ship))throw new IllegalStateException("real Pyro spawn refused");acceptedShip=ship;shipUuid=ship.getUuid();shipId=ship.getId();
             }
-            Entity ship=w.getEntityById(shipId);if(ship==null)throw new IllegalStateException("fixture Pyro disappeared");
+            // Accepted spawn and material FULL precede normal entity tracking/ticking admission.
+            Entity ship=w.getEntity(shipUuid);registrationChecks++;
+            registration=Map.of("tick",server.getTicks(),"checks",registrationChecks,"uuid",shipUuid.toString(),"id",shipId,
+                    "uuidLookupSameIdentity",ship==acceptedShip,"idLookupSameIdentity",w.getEntityById(shipId)==acceptedShip,
+                    "removed",acceptedShip.isRemoved(),"removalReason",String.valueOf(acceptedShip.getRemovalReason()),"acceptedAge",acceptedShip.age);
+            if(acceptedShip.isRemoved())throw new IllegalStateException("accepted Pyro actually removed: "+acceptedShip.getRemovalReason());
+            if(ship==null){if(registrationChecks>120)throw new IllegalStateException("normal Pyro tracking admission absent after120 server ticks");return;}
+            if(ship!=acceptedShip||w.getEntityById(shipId)!=ship)throw new IllegalStateException("Pyro lookup identity changed");
             live=new Physics(server.getTicks(),ship.age,xyz(ship.getPos()),xyz(ship.getVelocity()));
         }catch(Throwable failure){serverFailure=failure.toString();}
     }
@@ -71,10 +79,10 @@ public final class NativeAssetsPacingCheck {
         if(serverFailure!=null){finish("FAIL",serverFailure);return;}if(c.player==null||c.world==null||c.getServer()==null)return;
         DescentClient.markUserFlightChoice();
         if(viewer==null){viewer=c.player.getUuid();c.setScreen(null);c.options.hudHidden=false;c.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);return;}
-        if(!active){if(live==null||c.world.getEntityById(shipId)==null||c.player.getPos().distanceTo(START)>.02||c.currentScreen!=null||DescentClientState.enabled||!c.player.getAbilities().flying)return;active=true;apply();}
+        if(!active){Entity tracked=c.world.getEntityById(shipId);if(live==null||tracked==null||!tracked.getUuid().equals(shipUuid)||c.player.getPos().distanceTo(START)>.02||c.currentScreen!=null||DescentClientState.enabled||!c.player.getAbilities().flying)return;active=true;apply();}
         else if(captured){phase++;apply();}
     }
-    public static void actor(Entity ship,boolean before){drawingFixture=before&&active&&!finished&&ship.getId()==shipId&&!OffscreenWorldView.busy();}
+    public static void actor(Entity ship,boolean before){drawingFixture=before&&active&&!finished&&ship.getId()==shipId&&ship.getUuid().equals(shipUuid)&&!OffscreenWorldView.busy();}
     public static void beforeFrame(){if(ENABLED)modelThisFrame=false;}
     /** Actual completed PyroShipModel.render; count its real baked cuboids, never blueprint metadata. */
     public static void model(ModelPart root){
@@ -99,7 +107,7 @@ public final class NativeAssetsPacingCheck {
     }
     private static void finish(String status,String reason){
         if(finished)return;finished=true;var c=MinecraftClient.getInstance();
-        try{Files.writeString(c.runDirectory.toPath().resolve("assets-pacing-outcome.json"),new GsonBuilder().setPrettyPrinting().create().toJson(Map.of("status",status,"reason",reason,"states",STATES,"phase",phase,"shipId",shipId,"initialPlayerTeleports",setup?1:0,"authoredBlocks",0,"noCameraOverride",true))+"\n");}catch(Exception failure){failure.printStackTrace();}
+        try{Files.writeString(c.runDirectory.toPath().resolve("assets-pacing-outcome.json"),new GsonBuilder().setPrettyPrinting().create().toJson(Map.of("status",status,"reason",reason,"states",STATES,"phase",phase,"shipId",shipId,"initialPlayerTeleports",setup?1:0,"authoredBlocks",0,"noCameraOverride",true,"shipUuid",String.valueOf(shipUuid),"registration",registration))+"\n");}catch(Exception failure){failure.printStackTrace();}
         System.out.println("ASSETS_PACING_OUTCOME "+status+" "+reason);c.scheduleStop();
     }
 }
