@@ -40,6 +40,7 @@ public final class PlanetFloorRenderer {
 
 	public static void register() {
 		HorizonShader.register();
+        com.terminaldetector.drmd.client.cloud.AltitudeCloudRenderer.register();
         WorldRenderEvents.BEFORE_ENTITIES.register(PlanetFloorRenderer::render);
 	}
 
@@ -115,6 +116,9 @@ public final class PlanetFloorRenderer {
 
 		if (HorizonVertexBuffer.prepare(mesh)) {
 			HorizonVertexBuffer.draw(mat);
+            com.terminaldetector.drmd.client.cloud.AltitudeCloudRenderer.captureFar(mesh,mat,
+                    (float)(mesh.originX-cam.x),endDim?0f:(float)(mesh.originY-cam.y),
+                    (float)(mesh.originZ-cam.z),(float)inner,(float)reach);
 		}
 
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);

@@ -98,4 +98,10 @@ public final class HorizonVertexBuffer {
 		// would not, if it ever stops being static.
 		buffer.unbind();
 	}
+
+    /** Separate semantic pass over the exact already-uploaded source, without changing its cache. */
+    public static void drawSemantic(Matrix4f modelView,Matrix4f projection,net.minecraft.client.gl.ShaderProgram program){
+        if(buffer==null||buffer.isClosed()||!hasGeometry)throw new IllegalStateException("No accepted Horizon VBO for cloud occlusion");
+        buffer.bind();try{buffer.draw(modelView,projection,program);}finally{buffer.unbind();}
+    }
 }
