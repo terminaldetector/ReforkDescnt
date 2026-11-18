@@ -1,0 +1,84 @@
+{
+  "source": "5057931efce99156ffdc8a195e90b1a926907ed8",
+  "scope": "Master v8 and direct Dynamic Boarding, preserving parallel PS1 render clauses",
+  "anchors_sha256": {
+    "docs/v8/reference/00_MASTER_SPEC.md": "c98fe04f5592d5afcc9ddc34414c4d3032287944905718cf2fd17b4e2770d082",
+    "docs/v8/reference/03_GAMEPLAY/SWARM_FACTIONS_SURVIVAL.md": "c90dcd268b7dcd1601ea150355f8771267d7661316f8e134181a55e86ff6753e",
+    "docs/v8/reference/03_GAMEPLAY/GUNPLAY_BURST_DRILLS_AND_BUILDING.md": "5180b8128caabbb0e107e5163820728cc4d2d4c6728a671248863b371b00c136",
+    "docs/v8/reference/02_ENGINE/RENDER_NOCUBES_PS1.md": "169972c76de085fd7db2e135e002ebaf9f84818c694b0205ae16000d62bc5115",
+    "docs/v8/TASKS.yaml": "9e15ac5eb1c3b6b7378bc1e748398c001ecad22dddf836f40356708bfa4a0881",
+    "src/main/java/com/terminaldetector/drmd/entity/ModEntities.java": "a57916f12fa1043792c6917405be5f5e5797ebce0bff5d56d79cc5bf28d5fe8d",
+    "src/main/java/com/terminaldetector/drmd/entity/mob/OblivionSeekerEntity.java": "1a2ab913e7fcdadae715b634c1382b957e2b43112ee8d711e4ad8345d497a73c",
+    "src/main/java/com/terminaldetector/drmd/ai/DroneSquadCoordinator.java": "ec935ffc6c35b9e244735a1ab109964b4eaf92e0b7e8dd0f713edbf7c38cd54a",
+    "src/main/java/com/terminaldetector/drmd/world/mega/DroneSwarmEntity.java": "c98d92d6631edd2210e86c84b3cc873985065d68009f2161fa3329c4ab5c48a7",
+    "src/main/java/com/terminaldetector/drmd/client/flight/BodyEditClient.java": "505e5cb883521cb103c5cb6350f46905f0a3e649d4f15ad2dd49b3253abcbe52",
+    "src/main/java/com/terminaldetector/drmd/world/contraption/BodyBlockInteraction.java": "6585b3092bfffaf3903c571dcd99180ff28071e12b975c2567c4141e4853ae72"
+  },
+  "current_runtime": "Root reports actual951unit/480GT/81 plus2same-JAR clients on505. This audit does not itself rerun or extend that evidence.",
+  "historical_maps": "Original21 packets+7supplement remain unchanged;7c progress overlay precedes finalfa7 AA acceptance. No central ledger mutation.",
+  "clauses": [
+    {
+      "packet": "U06",
+      "clause": "S14-T02 Shapes",
+      "existing": "CyberMob damage, real weapons, loaded cover, bounded squad mailbox and ground navigation exist. ConstructShapes is construction geometry, not infantry.",
+      "missing": "Separately registered tall Enderman-derived armed infantry with organized movement/cover/normal damage/no vanilla teleport.",
+      "lane": "Combat source implementation authorized; no runtime result yet."
+    },
+    {
+      "packet": "U07",
+      "clause": "S14-T03 independent flying teleporter",
+      "existing": "OblivionSeeker has velocity dash and its distinct identity.",
+      "missing": "Independent flying teleport enemy with physical admission/exit/energy/cooldown and combat tests.",
+      "lane": "Unassigned; preserve Seeker dash, do not relabel it."
+    },
+    {
+      "packet": "U08",
+      "clause": "S14-T04 Heavy Operator / S09 / direct Boarding section6",
+      "existing": "Separate bearing/drive/gun mechanisms and original BlockBody joint solver exist; generic control bridge is isolated pending acceptance.",
+      "missing": "Compact mobile modular laser+shoulder rocket actor using those components.",
+      "lane": "Depends on generic control/mechanisms; no duplicate UFO turret system."
+    },
+    {
+      "packet": "U19",
+      "clause": "S10-T04 strong thermal drill",
+      "existing": "Capsule carving, quarter masks and HeavyDrillDrops8/32 RAM caps implemented.",
+      "missing": "Thermal front/softening/melting transient rim and adaptive circular aperture with mesh/collision/fluid/light parity.",
+      "lane": "Combat/world/renderer coordinated slice required; no existing cap removal."
+    },
+    {
+      "packet": "U20",
+      "clause": "S10-T03 staged cluster carrier",
+      "existing": "Real aerial cluster bomb bursts and bounded cleanup exist.",
+      "missing": "Persisted carrier arm/detonate and structured fan/ring/stagger program with actual first-person behavior.",
+      "lane": "Unassigned; existing random submunitions are not staged carrier proof."
+    },
+    {
+      "packet": "U14",
+      "clause": "S11-T04 quality/interest ladder",
+      "existing": "Atomic128 active/moving/persistence proof and real spatial/route budgets exist. DroneSwarmEntity tracks18 actual members with10tick cohesion.",
+      "missing": "Measured256/512/1024 mixed quality ladder and dormant/aggregate identity continuity.",
+      "lane": "Shared gravity/performance ownership; no claim all10000 fully physical."
+    },
+    {
+      "packet": "U04",
+      "clause": "S12 live Survival siege/counterplay",
+      "existing": "Versioned non-autostart SiegePlan and actual manual-axis player AA integrated505/full951/480. U03 finite SUPPORT400 ownLOS then one ASSAULT exists.",
+      "missing": "Actual fair two-rocketeer warning/limited roster/retreat-reload/base-pressure episode, beginner resource path, autotracking/player AA native ordinary keys.",
+      "lane": "Content owner plans director; combat owns native AA contract only, no auto-raids."
+    },
+    {
+      "packet": "U05",
+      "clause": "S14-T05 mission families",
+      "existing": "Real mission engine/catalog/owner ledger and partial cold route.",
+      "missing": "All three authored Convoy/Reactor Boarding/Lab Infiltration gameplay families.",
+      "lane": "Content owner; not recreated by Combat."
+    }
+  ],
+  "retained_open": [
+    "All3gravity tools have real button-route6scene acceptance; all masses/gravity-compensated material rail accuracy remain open.",
+    "Drone inventory preview, independent ORB/ROCKET/JET and128-moving proof already implemented; not absent clauses.",
+    "Direct Boarding occupied contacts/local fields/functional local blocks/portal assemblies remain owned by root/gravity.",
+    "Parallel PS1 U16 active, U17/U18 pending renderer; neither dropped by combat audit.",
+    "Known-schema AA extra-field preservation and full native/allmode AA remain OPEN."
+  ]
+}

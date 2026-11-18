@@ -333,5 +333,89 @@
     "B3": "pending combined occupied asymmetricedit/COM/packet transaction",
     "B4": "pending aboard sabotage/warning/departure/wreck episode"
   },
-  "updatedDate": "2026-11-18"
+  "updatedDate": "2026-11-18",
+  "additionalOwnerSourceMaps": [
+    {
+      "producerRevision": "e8c2ec9fe14df962765c378477ea77ece222d3ef",
+      "path": "docs/v8/COMBAT_UNUSED_CLAUSES_505_2026-11-18.json",
+      "bytes": 5939,
+      "sha256": "f6652e03b9462a969a2ac1ff64c4995f8753824dab27663981b7d79ca1932898",
+      "scope": "Source-bound remaining map, not new feature/runtime acceptance"
+    },
+    {
+      "producerRevision": "e8c2ec9fe14df962765c378477ea77ece222d3ef",
+      "path": "docs/v8/COMBAT_UNUSED_CLAUSES_505_2026-11-18.md",
+      "bytes": 4081,
+      "sha256": "60ad394f656f995fab56127095909ab62cf6f0a9950d238e615dba595a9845ac",
+      "scope": "Source-bound remaining map, not new feature/runtime acceptance"
+    },
+    {
+      "producerRevision": "e8c2ec9fe14df962765c378477ea77ece222d3ef",
+      "path": "docs/v8/PLAYER_AA_NATIVE_KEY_CONTRACT_505_2026-11-18.md",
+      "bytes": 4402,
+      "sha256": "dca047f47efc09d3e2d2af7b7bb84f01d7e78416dc0f2074caf7db93279b04e3",
+      "scope": "Source-bound remaining map, not new feature/runtime acceptance"
+    },
+    {
+      "producerRevision": "e551cf26aa11d66be5ff35813b66a07bfce47583",
+      "path": "docs/v8/SURVIVAL_BESTIARY_REMAINING_AT_505_2026-11-18.md",
+      "bytes": 8808,
+      "sha256": "bda135396d5988d6dbc36f6b1cedaa57945b9975c2140570ea00bf98dafdf431",
+      "scope": "Source-bound remaining map, not new feature/runtime acceptance"
+    },
+    {
+      "producerRevision": "0289597eab50220bccbcedb2ff3a3f1df1cfcfa2",
+      "path": "docs/v8/GRAVITY_RAGDOLL_TWO_SPEC_REMAINING_2026-11-18.md",
+      "bytes": 7243,
+      "sha256": "f5c3886fe693bb7a85aa8957c857a2723eb405f5cfe52122d6d87693cc549c75",
+      "scope": "Source-bound remaining map, not new feature/runtime acceptance"
+    },
+    {
+      "producerRevision": "189299d085ef01910b6b191ca036ed0a1d2d2235",
+      "path": "docs/v8/PS1_REMAINING_PARAGRAPH_LANES_2026-11-18.md",
+      "bytes": 3623,
+      "sha256": "19b0ced304b176a9f8157846f9c0471eaf4f86c40c5833e5a2b10d0afde26e51",
+      "scope": "Source-bound remaining map, not new feature/runtime acceptance"
+    }
+  ],
+  "activeSourceGates": {
+    "B2": {
+      "source": "c4b81c4420bca8137e5f6c84baf2fafe95d6bc7b",
+      "actualUnit": 18,
+      "passedUnit": 18,
+      "actualGames": 14,
+      "passedGames": 10,
+      "failedGames": 4,
+      "boundary": "Assemblylever fails before4laterAA/refusal/ordinary/cadencepremises; sourcequiettransaction5dee unrun"
+    },
+    "U06": {
+      "source": "809bd3c47b546dcec1d977d9b4a38912caf3fddb",
+      "actualGames": 27,
+      "passed": 26,
+      "failed": 1,
+      "boundary": "All17oldregressionsPASS; naturalwingmansquad attributedDamage unmet, passive2b41547 traceunrun"
+    },
+    "U16": {
+      "first": "189299d085ef01910b6b191ca036ed0a1d2d2235",
+      "corrected": "0553eac45ddeed85a11d2007ecd6a8c3351ec192",
+      "mainCompile": "PASS0553",
+      "observerCompile": "FAIL privateIndexGetter0553; transparentactualdrawforwarding sourcepending",
+      "unitTestsExecuted": 0
+    },
+    "cubicLight": {
+      "source": "ca307287de31a874283a4ab2a787994b6ccd6217",
+      "actualServerExit": 0,
+      "actualClientExit": 0,
+      "wrapperExit": 97,
+      "boundary": "Y2301clientBLOCKzero/fullmatchedgeometry whileactualserver15/14/13/11/10; lowY/coldUNREACHED, passivepacketdiagnosticpending"
+    },
+    "climber": {
+      "negative": "217145cb1b3ac45b11758b70a8e5b6d278efd5de",
+      "nativeExit": 0,
+      "validator": 1,
+      "boundary": "4cancelcontrolsPASS; actualSpiderREADYdeliveryidleafternexttick, CavefollowingtickUNREACHED",
+      "mainCandidate": "15bb9c2a8ae309751eb34352ecfa1363e5e265ef",
+      "newMainTests": "7firstunits/remaprunning, nofixednativeyet"
+    }
+  }
 }

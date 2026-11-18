@@ -1,0 +1,18 @@
+# PS1 paragraphs and concrete remaining lanes
+
+This is the renderer worker's source map, not a central ledger update. Root owns both main specifications and canonical acceptance. References below are ENGINE B / `reference/02_ENGINE/RENDER_NOCUBES_PS1.md` paragraphs22–32 and S05-T01..T06. Actual root5057931 full951/480/81 and its in-flight native pair are separate from this uncompiled branch based7c.
+
+| Paragraph / clause | Concrete implementation or lane | Remaining boundary |
+| --- | --- | --- |
+| Internal resolution / nearest / runtime profile | Existing ScenePresentation/SceneTargets; same1ce/4b6 component matrices; root combined native pair | Broader whole-engine/platform acceptance is separate |
+| Quantization / ordered dither | Existing Ps1ColorOptions/Ps1ColorPass + source/reference texture oracle | Not a substitute for geometry style |
+| Vertex snapping / affine UV | This isolated U16 lane: Ps1BodyGeometryLayer, actual nonsmooth hard Body faces, actual VBO→draw→image oracle | Five Java tests/compile and native gates pending; near chunks/Sodium terrain/smooth/translucent/offscreen paths unimplemented |
+| HUD / viewmodel stable full-resolution | Existing scoped deferred overlay+flush ordering and strict native gold-tip/HUD regressions | Body geometry gate cannot close arbitrary UI/assets/views |
+| **Independent far fog density / sky-ground-asteroid continuity** | **No concrete PS1-density implementation/gate in this packet. Proposed next lane: bound a PS1-only far-material fog uniform and actual altitude/band continuity witnesses on existing Horizon/sky/asteroid draws** | Altitude cloud projection/fog solves a different bounded cloud behavior; do not count it as this paragraph |
+| **Selectable lowpoly asset profile** | **No concrete selector/asset-variant implementation/gate in this packet. Proposed asset lane: explicit existing-model variants with measured triangle counts/silhouette and retained Native assets** | Snapped vertices do not reduce polygon count; Shapes' separate bestiary renderer does not by itself implement a global PS1 asset profile |
+| **Configurable frame pacing** | **No concrete PS1 pacing control/gate in this packet. Proposed timing lane: independent opt-in presentation cap with exact Native restore and actual frame-interval/physics-tick evidence** | Existing general FPS benchmarks or vanilla global FPS slider do not supply an independent profile option |
+| Independent mirrors/portals | Existing native offscreen passes, merged mirror witness and portal lane; U16 deliberately bypasses offscreen recursion | Styled reflected Body parity remains open; no mirror/portal physics claim from shader code |
+| No cache/world/physics mutations | Current presentation stage never changes the authoritative grid/colliders; observer retains same source vertices/one-body authoritative state | One-body receipt is bounded evidence, not universal invariance |
+| GL3.2 / Sodium / hardware combinations | Existing GLSL150/core API plus distinct actual backend gates; U16 will need both | Mesa GL3.2 is not an actual Intel HD device/performance test; Sodium near-chunk shaders are a separate future pipeline |
+
+The three bold paragraphs need their own concrete producer/gate assignment in the root plan. This worker can take the bounded far-fog uniform/continuity clause after the current body gate if root assigns it; no broad refactor or new engine has begun. Terrain transition/cavity/material-stage/tree morphology belongs to the separate S04 geometry program and remains open here. Full PS1/U16, all v8 clauses and Dynamic Boarding are not declared complete.

@@ -1,0 +1,48 @@
+{
+  "baseline": "5057931efce99156ffdc8a195e90b1a926907ed8",
+  "rows": [
+    {
+      "producerRevision": "e8c2ec9fe14df962765c378477ea77ece222d3ef",
+      "path": "docs/v8/COMBAT_UNUSED_CLAUSES_505_2026-11-18.json",
+      "bytes": 5939,
+      "sha256": "f6652e03b9462a969a2ac1ff64c4995f8753824dab27663981b7d79ca1932898",
+      "scope": "Source-bound remaining map, not new feature/runtime acceptance"
+    },
+    {
+      "producerRevision": "e8c2ec9fe14df962765c378477ea77ece222d3ef",
+      "path": "docs/v8/COMBAT_UNUSED_CLAUSES_505_2026-11-18.md",
+      "bytes": 4081,
+      "sha256": "60ad394f656f995fab56127095909ab62cf6f0a9950d238e615dba595a9845ac",
+      "scope": "Source-bound remaining map, not new feature/runtime acceptance"
+    },
+    {
+      "producerRevision": "e8c2ec9fe14df962765c378477ea77ece222d3ef",
+      "path": "docs/v8/PLAYER_AA_NATIVE_KEY_CONTRACT_505_2026-11-18.md",
+      "bytes": 4402,
+      "sha256": "dca047f47efc09d3e2d2af7b7bb84f01d7e78416dc0f2074caf7db93279b04e3",
+      "scope": "Source-bound remaining map, not new feature/runtime acceptance"
+    },
+    {
+      "producerRevision": "e551cf26aa11d66be5ff35813b66a07bfce47583",
+      "path": "docs/v8/SURVIVAL_BESTIARY_REMAINING_AT_505_2026-11-18.md",
+      "bytes": 8808,
+      "sha256": "bda135396d5988d6dbc36f6b1cedaa57945b9975c2140570ea00bf98dafdf431",
+      "scope": "Source-bound remaining map, not new feature/runtime acceptance"
+    },
+    {
+      "producerRevision": "0289597eab50220bccbcedb2ff3a3f1df1cfcfa2",
+      "path": "docs/v8/GRAVITY_RAGDOLL_TWO_SPEC_REMAINING_2026-11-18.md",
+      "bytes": 7243,
+      "sha256": "f5c3886fe693bb7a85aa8957c857a2723eb405f5cfe52122d6d87693cc549c75",
+      "scope": "Source-bound remaining map, not new feature/runtime acceptance"
+    },
+    {
+      "producerRevision": "189299d085ef01910b6b191ca036ed0a1d2d2235",
+      "path": "docs/v8/PS1_REMAINING_PARAGRAPH_LANES_2026-11-18.md",
+      "bytes": 3623,
+      "sha256": "19b0ced304b176a9f8157846f9c0471eaf4f86c40c5833e5a2b10d0afde26e51",
+      "scope": "Source-bound remaining map, not new feature/runtime acceptance"
+    }
+  ],
+  "taskStatusesChanged": false
+}
