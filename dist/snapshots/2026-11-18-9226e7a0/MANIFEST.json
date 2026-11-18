@@ -1,0 +1,46 @@
+{
+  "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+  "gameSHA256": "65731fbda613eaf9d3babe7c54e9fe82a74ecbb65102c41342922503754bd674",
+  "payloads": {
+    "embedded-ps1.png": {
+      "bytes": 122954,
+      "sha256": "be930c305f5d531c066f38150918ba1104f15d76e1cb1fa5b1cbb283fef61079"
+    },
+    "VALIDATION.json": {
+      "bytes": 2815,
+      "sha256": "76d82b05e63a58de449ccfeac6df647532e7ea9863dae273211983f4522a4a72"
+    },
+    "INSTALL_RU.txt": {
+      "bytes": 1597,
+      "sha256": "d9550ccd6767062c764dbd64405dc9f52a0374ea4895fcbbc342fe2636466365"
+    },
+    "portal-before.png": {
+      "bytes": 152862,
+      "sha256": "bac8230f4b7c530cd7295d1ebd4eadf710f4af6ce5f75ca072d9cee3bcf41d3e"
+    },
+    "drmd-6dof-1.1.35-ufo-dev.1-9226e7a0.jar": {
+      "bytes": 3191624,
+      "sha256": "65731fbda613eaf9d3babe7c54e9fe82a74ecbb65102c41342922503754bd674"
+    },
+    "portal-after.png": {
+      "bytes": 152489,
+      "sha256": "50ac5a3b9cebb2bda7a152a740e78ad16fd3945cc24c5398ba740955ab3b4d96"
+    },
+    "ordnance-roll.png": {
+      "bytes": 104915,
+      "sha256": "6c515a048201d32056cd8c68a7148b4ca9eb1a5011d2af42c55c25e3c62d6a15"
+    },
+    "shader-native-restored.png": {
+      "bytes": 118748,
+      "sha256": "a0ff14e59615403bc8f52ebbe54f1800bb9b5290a7027d6ccb8213d60524529b"
+    },
+    "CHANGELOG_RU.txt": {
+      "bytes": 1766,
+      "sha256": "059b93a87145e33bf4565aaff57e8f855e01d5db8d37a01f78cf0911cc7c221b"
+    },
+    "shader-native-before.png": {
+      "bytes": 119740,
+      "sha256": "e752a2369e9cca721e2c9ec69c81b74d084d3edbf79ec63e4f6a8f1acbf621e6"
+    }
+  }
+}

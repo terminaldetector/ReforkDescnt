@@ -565,15 +565,18 @@
     }
   ],
   "latestFocusedSnapshot": {
-    "source": "56c0049f37ffee5b989df092b26093ac871222b0",
-    "build": "https://t.me/abadonsoft/286",
-    "report": "docs/v8/IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md",
-    "nativeStates": 3,
-    "fullSuiteRerun": false,
+    "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+    "build": "https://t.me/abadonsoft/294",
+    "changelog": "https://t.me/abadonsoft/293",
+    "actualScreenshots": [
+      "https://t.me/abadonsoft/295",
+      "https://t.me/abadonsoft/296"
+    ],
     "status": "delivered_and_readback_confirmed",
-    "changelog": "https://t.me/abadonsoft/285",
-    "actualScreenshots": "https://t.me/abadonsoft/287"
+    "report": "docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md",
+    "fullSuiteRerun": false
   },
   "latestFocusedServerSource": "f2b28c57b77cbdfb8a618ef9193a5f7b2fb9116a",
-  "ps1Meaning": "Shader/render pipeline embedded in the mod; coarse meshes alone do not complete PS1"
+  "ps1Meaning": "Shader/render pipeline embedded in the mod; coarse meshes alone do not complete PS1",
+  "publicationInstruction": "Latest user authorizes current work and remaining requirements pushed to main; earlier GitHub pause superseded; task configuration left to user."
 }

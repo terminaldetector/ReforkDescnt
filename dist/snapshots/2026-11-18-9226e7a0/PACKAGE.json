@@ -1,0 +1,10 @@
+{
+  "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+  "gameSHA256": "65731fbda613eaf9d3babe7c54e9fe82a74ecbb65102c41342922503754bd674",
+  "zip": "UNGRAVITY-snapshot-9226e7a0.zip",
+  "zipBytes": 3576701,
+  "zipSHA256": "7ad80439a0aeb92e8e72a80bf14c7b250ca33e7e1a898a4785d5794f7b64ec1f",
+  "onlyInstallableGameJar": true,
+  "noSourcesOrObserver": true,
+  "CRCAndEveryPayloadSHA256": true
+}

@@ -1,0 +1,96 @@
+{
+  "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+  "gameSHA256": "65731fbda613eaf9d3babe7c54e9fe82a74ecbb65102c41342922503754bd674",
+  "developmentSnapshot": true,
+  "fullSuiteAccepted": false,
+  "wholeSpecificationsAccepted": false,
+  "finalPortal": {
+    "status": "PASS",
+    "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+    "actualBodies": 2,
+    "consecutiveMatchedAcks": 12,
+    "stagingTeleports": 1,
+    "launchImpulses": 1,
+    "actualPNGs": 2
+  },
+  "server": [
+    {
+      "source": "a65590eb",
+      "unitsPassed": 11,
+      "gamesPassed": 13,
+      "gamesFailed": 1
+    },
+    {
+      "source": "f2b28c57",
+      "gamesPassed": 6,
+      "gamesFailed": 0,
+      "mainAndUnitSourcesIdentical": true
+    }
+  ],
+  "shader": {
+    "actualSource": "c72ead54",
+    "status": "PASS",
+    "states": 3,
+    "completedShaderDrawsPerMaterial": 8,
+    "snap": 2,
+    "affine": 1,
+    "GLerrors": 0,
+    "exactFinalPresentationEntries": 54,
+    "finalReshoots": "f2b:removed-before-first-state;9226:exact-start-admission;bothNONPASS"
+  },
+  "input": {
+    "actualSource": "6d932620",
+    "status": "PASS",
+    "weaponsScenes": 2,
+    "childCounts": [
+      7,
+      14
+    ],
+    "ordinaryInventoryAfterFlight": true,
+    "exactFinalInputHudOrdnanceClasses": 18
+  },
+  "knownOpen": [
+    "LOD/sky artifacts",
+    "Broader PS1 terrain/backend compatibility",
+    "Universal boarding/articulated/multiplayer/persistence matrix",
+    "Broad 3D AI/Survival/reactor/destruction demonstration"
+  ],
+  "images": [
+    {
+      "path": "portal-after.png",
+      "actualSource": "9226e7a0",
+      "sha256": "50ac5a3b9cebb2bda7a152a740e78ad16fd3945cc24c5398ba740955ab3b4d96",
+      "kind": "Original actual PNG, unedited"
+    },
+    {
+      "path": "portal-before.png",
+      "actualSource": "9226e7a0",
+      "sha256": "bac8230f4b7c530cd7295d1ebd4eadf710f4af6ce5f75ca072d9cee3bcf41d3e",
+      "kind": "Original actual PNG, unedited"
+    },
+    {
+      "path": "embedded-ps1.png",
+      "actualSource": "c72ead54",
+      "sha256": "be930c305f5d531c066f38150918ba1104f15d76e1cb1fa5b1cbb283fef61079",
+      "kind": "Original actual PNG, unedited"
+    },
+    {
+      "path": "shader-native-before.png",
+      "actualSource": "c72ead54",
+      "sha256": "e752a2369e9cca721e2c9ec69c81b74d084d3edbf79ec63e4f6a8f1acbf621e6",
+      "kind": "Original actual PNG, unedited"
+    },
+    {
+      "path": "shader-native-restored.png",
+      "actualSource": "c72ead54",
+      "sha256": "a0ff14e59615403bc8f52ebbe54f1800bb9b5290a7027d6ccb8213d60524529b",
+      "kind": "Original actual PNG, unedited"
+    },
+    {
+      "path": "ordnance-roll.png",
+      "actualSource": "6d932620",
+      "sha256": "6c515a048201d32056cd8c68a7148b4ca9eb1a5011d2af42c55c25e3c62d6a15",
+      "kind": "Original actual PNG, unedited"
+    }
+  ]
+}

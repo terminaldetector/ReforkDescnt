@@ -1,0 +1,55 @@
+{
+  "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+  "status": "delivered_and_readback_confirmed",
+  "channel": "https://t.me/abadonsoft",
+  "changelog": "https://t.me/abadonsoft/293",
+  "build": "https://t.me/abadonsoft/294",
+  "actualScreenshots": [
+    "https://t.me/abadonsoft/295",
+    "https://t.me/abadonsoft/296"
+  ],
+  "gameSHA256": "65731fbda613eaf9d3babe7c54e9fe82a74ecbb65102c41342922503754bd674",
+  "zipSHA256": "7ad80439a0aeb92e8e72a80bf14c7b250ca33e7e1a898a4785d5794f7b64ec1f",
+  "zipBytes": 3576701,
+  "readback": [
+    {
+      "messageId": 296,
+      "media": {
+        "type": "photo",
+        "mimeType": "image/jpeg",
+        "fileSize": 76553,
+        "width": 1280,
+        "height": 720
+      }
+    },
+    {
+      "messageId": 295,
+      "media": {
+        "type": "photo",
+        "mimeType": "image/jpeg",
+        "fileSize": 81406,
+        "width": 1280,
+        "height": 720
+      }
+    },
+    {
+      "messageId": 294,
+      "media": {
+        "type": "document",
+        "mimeType": "application/zip",
+        "fileName": "UNGRAVITY-snapshot-9226e7a0.zip",
+        "fileSize": 3576701
+      }
+    },
+    {
+      "messageId": 293,
+      "media": null
+    }
+  ],
+  "remoteDocumentFilenameAndSizeVerified": true,
+  "remoteDocumentByteHashVerified": false,
+  "originalPNGsInZIP": true,
+  "telegramPhotosRecompressedToJPEG": true,
+  "noSourcesOrObserverPublished": true,
+  "githubPublication": false
+}

@@ -3,7 +3,7 @@
 Prepared source: `9226e7a04fa39fbfd12ada8d1770549bacd36264`.
 Installable game SHA-256: `65731fbda613eaf9d3babe7c54e9fe82a74ecbb65102c41342922503754bd674`.
 Final observer SHA-256: `5f6f15026ad2645448375366c1b37be3f0de1eb3ec5da35a13e6d0953f57c2dd`.
-Development snapshot; no new full-suite, complete specification or hardware-performance acceptance. GitHub/source publication remains paused.
+Development snapshot; no new full-suite, complete specification or hardware-performance acceptance. GitHub/source publication was paused during these runs; the user subsequently authorized publication to main.
 
 PS1 means the **shader/render pipeline embedded in the mod**. The existing GLSL150 snap/affine program now also handles the authored scout and spider world cutout materials. It preserves native lighting, overlay, lightmap, alpha and fog phases; queued batches recheck the world/profile domain. Coarse mesh variants are a separate optional setting. Terrain/Sodium geometry, smooth/translucent materials, reflected style and the complete PS1 packet remain open.
 
@@ -29,3 +29,5 @@ The optional final clean-frame PS1 reshoot **did not pass**. `f2b28c57` stopped 
 Known LOD/sky planes remain visible in actual frames. Broader 3D AI, all-species/local-field boarding, articulated modules, full shader/terrain compatibility, cold multiplayer persistence, full reactor/Survival and the requested destruction demonstration remain open. Both latest primary specifications, all 99 task IDs, 21 original packets and seven supplements are retained; zero whole packets accepted.
 
 Evidence: `EVIDENCE/mob-shader-boarding-9226e7a0-focused-20261118.zip` (55,307,381 bytes, SHA-256 `5964226f89e6c30332f86f11fd38769030d38259b0ddc5a5eae0f3b6aba764fd`). Its manifest maps 543 logical files to 357 unique exact payloads, including original failures, closed saves, actual frames/JARs, handoffs and 49 final source postimages. Outer CRC and every payload SHA-256 were checked. Input component parity is also retained separately in `EVIDENCE/input-parity-9226e7a0.json`.
+
+Delivery readback: [changelog293](https://t.me/abadonsoft/293), [build294](https://t.me/abadonsoft/294), [actual frames295–296](https://t.me/abadonsoft/295). Document name/size were confirmed; remote bytes were not rehashed. Current main-publication instruction supersedes the earlier pause.
