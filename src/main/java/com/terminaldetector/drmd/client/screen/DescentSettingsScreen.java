@@ -28,7 +28,7 @@ public class DescentSettingsScreen extends Screen {
     private int panelLeft,panelWidth,contentHeight;
     private List<net.minecraft.text.OrderedText> hintLines=List.of();
 	private static final int SECTION = 14;
-	private static final int CONTENT_HEIGHT = 5 * SECTION + 18 * ROW + 3 * 6;
+	private static final int CONTENT_HEIGHT = 5 * SECTION + 19 * ROW + 3 * 6;
 	private final Screen parent;
 	private final List<Heading> headings = new ArrayList<>();
 	private int scroll;
@@ -126,6 +126,15 @@ public class DescentSettingsScreen extends Screen {
             DescentConfig.ps1FarFog=new com.terminaldetector.drmd.client.presentation.Ps1FarFogOptions(DescentConfig.ps1FarFog.nextDensity());
             DescentConfig.save();b.setMessage(presentationFarFogLabel());
         }).dimensions(left,y,310,20).tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(Text.translatable("options.drmd.ps1_far_fog.tip"))).build(),null);
+
+        y=addRow(y,viewBottom,
+                ButtonWidget.builder(presentationAssetsLabel(),b->{
+                    DescentConfig.ps1Assets=DescentConfig.ps1Assets.next();DescentConfig.save();b.setMessage(presentationAssetsLabel());
+                }).dimensions(left,y,150,20).tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(Text.translatable("options.drmd.ps1_assets.tip"))).build(),
+                ButtonWidget.builder(presentationPacingLabel(),b->{
+                    DescentConfig.ps1Pacing=new com.terminaldetector.drmd.client.presentation.Ps1FramePacingOptions(DescentConfig.ps1Pacing.nextFps());
+                    DescentConfig.save();b.setMessage(presentationPacingLabel());
+                }).dimensions(right,y,150,20).tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(Text.translatable("options.drmd.ps1_pacing.tip"))).build());
 
 		y = addRow(y, viewBottom,
 				toggle(left, y, "options.drmd.level_sky", DescentConfig.levelSky, v -> {
@@ -285,6 +294,8 @@ public class DescentSettingsScreen extends Screen {
     private Text presentationSnapLabel(){return Text.translatable("options.drmd.ps1_vertex_snap",DescentConfig.ps1Geometry.snapPixels()==0?Text.translatable("options.off"):Float.toString(DescentConfig.ps1Geometry.snapPixels()));}
     private Text presentationAffineLabel(){return Text.translatable("options.drmd.ps1_affine",Math.round(DescentConfig.ps1Geometry.affineAmount()*100));}
     private Text presentationFarFogLabel(){return Text.translatable("options.drmd.ps1_far_fog",DescentConfig.ps1FarFog.density()==0?Text.translatable("options.off"):Float.toString(DescentConfig.ps1FarFog.density()));}
+    private Text presentationAssetsLabel(){return Text.translatable("options.drmd.ps1_assets",Text.translatable("options.drmd.ps1_assets."+DescentConfig.ps1Assets.name().toLowerCase(java.util.Locale.ROOT)));}
+    private Text presentationPacingLabel(){return Text.translatable("options.drmd.ps1_pacing",DescentConfig.ps1Pacing.fps()==0?Text.translatable("options.off"):Integer.toString(DescentConfig.ps1Pacing.fps()));}
     private Text presentationDitherLabel(){return Text.translatable("options.drmd.ps1_dither",Math.round(DescentConfig.ps1DitherStrength*100));}
     private void refreshPhysicsButton() {
         if(physicsButton==null)return;

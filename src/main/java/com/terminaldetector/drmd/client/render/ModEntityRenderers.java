@@ -16,6 +16,7 @@ public final class ModEntityRenderers {
 		com.terminaldetector.drmd.client.render.terrain.HybridTerrainModel.register();
 
 		EntityModelLayerRegistry.registerModelLayer(PyroShipRenderer.LAYER, PyroShipModel::getTexturedModelData);
+		EntityModelLayerRegistry.registerModelLayer(PyroShipRenderer.LOW_POLY_LAYER, PyroShipModel::getLowPolyTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(DroneRenderer.LAYER, DescentDroneModel::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(ReactorDisplayRenderer.LAYER, ReactorCoreModel::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(TripodRenderer.LAYER,

@@ -27,6 +27,9 @@ public final class DescentConfig {
     public static com.terminaldetector.drmd.client.presentation.Ps1GeometryOptions ps1Geometry = new com.terminaldetector.drmd.client.presentation.Ps1GeometryOptions(0,0);
     /** Independent default-off RGB haze for the PS1 far-world pass. */
     public static com.terminaldetector.drmd.client.presentation.Ps1FarFogOptions ps1FarFog = new com.terminaldetector.drmd.client.presentation.Ps1FarFogOptions(0);
+    /** Keep original assets and vanilla frame pacing unless independently selected. */
+    public static com.terminaldetector.drmd.client.presentation.Ps1AssetProfile ps1Assets = com.terminaldetector.drmd.client.presentation.Ps1AssetProfile.NATIVE;
+    public static com.terminaldetector.drmd.client.presentation.Ps1FramePacingOptions ps1Pacing = new com.terminaldetector.drmd.client.presentation.Ps1FramePacingOptions(0);
     /** Additive client cloud settings; missing old-file fields use the bounded altitude preset. */
     public static volatile com.terminaldetector.drmd.client.cloud.AltitudeCloudPolicy cloudPolicy = new com.terminaldetector.drmd.client.cloud.AltitudeCloudPolicy(true,384,512,4096);
 	/** Draw the 3D cockpit frame in first person. */
@@ -139,6 +142,8 @@ public final class DescentConfig {
         ps1DitherStrength = colour.ditherStrength();
         ps1Geometry = com.terminaldetector.drmd.client.presentation.Ps1GeometryOptions.read(props);
         ps1FarFog = com.terminaldetector.drmd.client.presentation.Ps1FarFogOptions.read(props);
+        ps1Assets = com.terminaldetector.drmd.client.presentation.Ps1AssetProfile.read(props);
+        ps1Pacing = com.terminaldetector.drmd.client.presentation.Ps1FramePacingOptions.read(props);
         cloudPolicy = com.terminaldetector.drmd.client.cloud.AltitudeCloudPolicy.read(props);
 		cockpit = bool(props, "cockpit", cockpit);
 		cockpitOpacity = clamp(num(props, "cockpitOpacity", cockpitOpacity), 0.2f, 1f);
@@ -165,6 +170,8 @@ public final class DescentConfig {
         cloudPolicy.write(props);
         ps1Geometry.write(props);
         ps1FarFog.write(props);
+        ps1Assets.write(props);
+        ps1Pacing.write(props);
 		props.setProperty("cockpit", Boolean.toString(cockpit));
 		props.setProperty("cockpitOpacity", Float.toString(cockpitOpacity));
 		props.setProperty("cockpitInstruments", Boolean.toString(cockpitInstruments));

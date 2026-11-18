@@ -18,12 +18,15 @@ import net.minecraft.util.math.Vec3d;
 
 public class PyroShipRenderer extends EntityRenderer<PyroShipEntity> {
 	public static final EntityModelLayer LAYER = new EntityModelLayer(Identifier.of(DescentMod.MOD_ID, "pyro_ship"), "main");
+	public static final EntityModelLayer LOW_POLY_LAYER = new EntityModelLayer(Identifier.of(DescentMod.MOD_ID, "pyro_ship_low_poly"), "main");
 	private static final Identifier TEXTURE = Identifier.of(DescentMod.MOD_ID, "textures/entity/pyro_ship.png");
 	private final PyroShipModel<PyroShipEntity> model;
+	private final PyroShipModel<PyroShipEntity> lowPolyModel;
 
 	public PyroShipRenderer(EntityRendererFactory.Context ctx) {
 		super(ctx);
 		this.model = new PyroShipModel<>(ctx.getPart(LAYER));
+		this.lowPolyModel = new PyroShipModel<>(ctx.getPart(LOW_POLY_LAYER));
 		this.shadowRadius = 0.8f;
 	}
 
@@ -79,9 +82,14 @@ public class PyroShipRenderer extends EntityRenderer<PyroShipEntity> {
 		}
 		ModelOrientation.applyBasis(matrices, 180f, forward, up);
 		matrices.translate(0, -0.5, 0);
-		model.setAngles(entity, 0, 0, entity.age + tickDelta, 0, 0);
-		VertexConsumer vc = consumers.getBuffer(model.getLayer(TEXTURE));
-		model.render(matrices, vc, light, OverlayTexture.DEFAULT_UV, 0xFFFFFFFF);
+        // Both assets bake once. A world-only choice does not alter shared model geometry or physics.
+        var selected=com.terminaldetector.drmd.client.config.DescentConfig.ps1Assets.eligible(
+                com.terminaldetector.drmd.client.config.DescentConfig.presentationProfile,
+                com.terminaldetector.drmd.client.presentation.ScenePresentation.inLowResolutionWorld(),
+                com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())?lowPolyModel:model;
+		selected.setAngles(entity, 0, 0, entity.age + tickDelta, 0, 0);
+		VertexConsumer vc = consumers.getBuffer(selected.getLayer(TEXTURE));
+		selected.render(matrices, vc, light, OverlayTexture.DEFAULT_UV, 0xFFFFFFFF);
 		matrices.pop();
         // Active construction uses the pilot eye/hull basis, exactly as its physical muzzles.
         if(entity.getFirstPassenger() instanceof net.minecraft.entity.LivingEntity pilot &&

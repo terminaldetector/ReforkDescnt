@@ -400,5 +400,11 @@
   "message.drmd.reactor.evacuate": "REACTOR CRITICAL — evacuate now!",
   "message.drmd.reactor.offline": "Reactor offline. Engines and artificial gravity lost; leave the hull.",
   "message.drmd.reactor.configured": "Reactor escape window: %s s (0 disables the timed blast).",
-  "message.drmd.reactor.configure_denied": "No intact UFO reactor nearby, or its emergency phase has already started."
+  "message.drmd.reactor.configure_denied": "No intact UFO reactor nearby, or its emergency phase has already started.",
+  "options.drmd.ps1_assets": "PS1 assets: %s",
+  "options.drmd.ps1_assets.native": "Original",
+  "options.drmd.ps1_assets.low_poly": "Coarse Pyro",
+  "options.drmd.ps1_assets.tip": "Use a simpler Pyro hull in the PS1 world. Cockpit, held items and other models retain their original detail.",
+  "options.drmd.ps1_pacing": "PS1 frame cap: %s",
+  "options.drmd.ps1_pacing.tip": "Optional frame-rate cap while playing in PS1 mode. Menus and other profiles use the normal frame-rate setting."
 }

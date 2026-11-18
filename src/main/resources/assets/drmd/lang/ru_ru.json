@@ -364,5 +364,11 @@
   "message.drmd.reactor.evacuate": "РЕАКТОР КРИТИЧЕН — немедленно покиньте корабль!",
   "message.drmd.reactor.offline": "Реактор отключён. Двигатели и искусственная гравитация потеряны; покиньте корпус.",
   "message.drmd.reactor.configured": "Время на эвакуацию: %s с (0 отключает взрыв по таймеру).",
-  "message.drmd.reactor.configure_denied": "Рядом нет исправного реактора UFO либо аварийная фаза уже началась."
+  "message.drmd.reactor.configure_denied": "Рядом нет исправного реактора UFO либо аварийная фаза уже началась.",
+  "options.drmd.ps1_assets": "Модели PS1: %s",
+  "options.drmd.ps1_assets.native": "Обычные",
+  "options.drmd.ps1_assets.low_poly": "Корпус Pyro",
+  "options.drmd.ps1_assets.tip": "Упрощённый корпус Pyro в мире PS1. Кабина, предметы в руках и другие модели сохраняют обычную детализацию.",
+  "options.drmd.ps1_pacing": "Кадров/с PS1: %s",
+  "options.drmd.ps1_pacing.tip": "Отдельный предел частоты кадров во время игры в режиме PS1. Меню и другие профили используют обычную настройку частоты кадров."
 }

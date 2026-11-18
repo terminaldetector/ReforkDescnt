@@ -34,98 +34,25 @@ public class PyroShipModel<T extends Entity> extends EntityModel<T> {
 	}
 
 	public static TexturedModelData getTexturedModelData() {
-		ModelData data = new ModelData();
-		ModelPartData root = data.getRoot();
+        return getTexturedModelData(com.terminaldetector.drmd.client.presentation.Ps1AssetProfile.NATIVE);
+    }
 
-		// Central fuselage: main hull, tapered nose, nose tip, plus a dorsal sensor spine and a
-		// ventral keel strip for silhouette detail — both purely cosmetic, no hardpoint of their own.
-		root.addChild("fuselage", ModelPartBuilder.create()
-						.uv(2, 2).cuboid(-2.5f, -2.5f, -4f, 5f, 5f, 10f)
-						.uv(2, 18).cuboid(-1.5f, -1.5f, -8f, 3f, 3f, 4f)
-						.uv(20, 18).cuboid(-0.8f, -0.8f, -10f, 1.6f, 1.6f, 2f)
-						.uv(2, 96).cuboid(-0.6f, -3.4f, -1f, 1.2f, 0.9f, 3f)
-						.uv(2, 104).cuboid(-1f, 2.5f, -2f, 2f, 0.6f, 5f),
-				ModelTransform.pivot(0, 0, 0));
+    public static TexturedModelData getLowPolyTexturedModelData() {
+        return getTexturedModelData(com.terminaldetector.drmd.client.presentation.Ps1AssetProfile.LOW_POLY);
+    }
 
-		// Small forward canards, purely cosmetic — a fighter-silhouette cue near the nose taper.
-		root.addChild("canard_l", ModelPartBuilder.create()
-						.uv(20, 96).cuboid(-4.5f, -0.4f, -6.5f, 3f, 0.8f, 1.6f),
-				ModelTransform.pivot(0, 0, 0));
-		root.addChild("canard_r", ModelPartBuilder.create()
-						.uv(20, 96).cuboid(1.5f, -0.4f, -6.5f, 3f, 0.8f, 1.6f),
-				ModelTransform.pivot(0, 0, 0));
-
-		// Wing mounts (the hull's "Y" arms) — rolled outward for dihedral, matching TripodModel's
-		// own wing_l/wing_r idiom. laser_l/missile_l are children so they inherit the tilt.
-		ModelPartData wingL = root.addChild("wing_l", ModelPartBuilder.create()
-						.uv(44, 2).cuboid(-7f, -1.5f, -3f, 7f, 3f, 6f),
-				ModelTransform.of(-2f, 0f, 0f, 0f, 0f, 0.12f));
-		ModelPartData wingR = root.addChild("wing_r", ModelPartBuilder.create()
-						.uv(44, 2).cuboid(0f, -1.5f, -3f, 7f, 3f, 6f),
-				ModelTransform.of(2f, 0f, 0f, 0f, 0f, -0.12f));
-
-		// Combat lasers — forward on each pod, plus a thin barrel tip. "Sides are combat lasers and
-		// offensive missiles."
-		wingL.addChild("laser_l", ModelPartBuilder.create()
-						.uv(44, 20).cuboid(-7.5f, -1f, -5.5f, 2f, 2f, 2.5f)
-						.uv(38, 96).cuboid(-7f, -0.6f, -6.5f, 1.2f, 1.2f, 1f),
-				ModelTransform.pivot(0, 0, 0));
-		wingR.addChild("laser_r", ModelPartBuilder.create()
-						.uv(44, 20).cuboid(5.5f, -1f, -5.5f, 2f, 2f, 2.5f)
-						.uv(38, 96).cuboid(5.8f, -0.6f, -6.5f, 1.2f, 1.2f, 1f),
-				ModelTransform.pivot(0, 0, 0));
-
-		// Offensive missile tubes — aft on each pod, alongside the laser, plus twin tube caps.
-		wingL.addChild("missile_l", ModelPartBuilder.create()
-						.uv(100, 2).cuboid(-7.5f, -0.5f, 0f, 2f, 2f, 2.5f)
-						.uv(60, 96).cuboid(-7.5f, -0.3f, 2.5f, 0.8f, 0.8f, 0.6f)
-						.uv(60, 100).cuboid(-6.3f, -0.3f, 2.5f, 0.8f, 0.8f, 0.6f),
-				ModelTransform.pivot(0, 0, 0));
-		wingR.addChild("missile_r", ModelPartBuilder.create()
-						.uv(100, 2).cuboid(5.5f, -0.5f, 0f, 2f, 2f, 2.5f)
-						.uv(60, 96).cuboid(5.5f, -0.3f, 2.5f, 0.8f, 0.8f, 0.6f)
-						.uv(60, 100).cuboid(6.7f, -0.3f, 2.5f, 0.8f, 0.8f, 0.6f),
-				ModelTransform.pivot(0, 0, 0));
-
-		// Top pod — cluster bomb dispenser, twin tubes, plus a small sensor mast. "Cluster bombs
-		// fire from the top."
-		root.addChild("top_pod", ModelPartBuilder.create()
-						.uv(2, 28).cuboid(-2f, -4.5f, -3f, 4f, 2f, 4f)
-						.uv(80, 96).cuboid(-0.4f, -5.5f, -1f, 0.8f, 1f, 0.8f),
-				ModelTransform.pivot(0, 0, 0));
-		root.addChild("top_pod_tubes", ModelPartBuilder.create()
-						.uv(44, 28).cuboid(-1.5f, -3.5f, -6f, 1.2f, 1.2f, 3f)
-						.uv(44, 28).cuboid(0.3f, -3.5f, -6f, 1.2f, 1.2f, 3f),
-				ModelTransform.pivot(0, 0, 0));
-
-		// Ventral rig — mining/construction laser, housing + downward emitter nub, plus a support
-		// strut to the fuselage. "Below comes the construction beam and the mining beam."
-		root.addChild("bottom_rig", ModelPartBuilder.create()
-						.uv(74, 28).cuboid(-1.5f, 2.5f, -1f, 3f, 2f, 4f)
-						.uv(90, 96).cuboid(-0.5f, 1.8f, -0.5f, 1f, 0.8f, 1f),
-				ModelTransform.pivot(0, 0, 0));
-		root.addChild("bottom_rig_emitter", ModelPartBuilder.create()
-						.uv(114, 28).cuboid(-0.6f, 4.5f, 0.4f, 1.2f, 2f, 1.2f),
-				ModelTransform.pivot(0, 0, 0));
-
-		// Tail fin — swept aft (pitch) off a mount at its hull base, plus a short tip antenna.
-		root.addChild("fin", ModelPartBuilder.create()
-						.uv(2, 50).cuboid(-0.5f, -4.5f, 0f, 1f, 4.5f, 3.5f)
-						.uv(100, 96).cuboid(-0.2f, -5.3f, 2.6f, 0.4f, 1f, 0.4f),
-				ModelTransform.of(0f, -2f, 3f, 0.15f, 0f, 0f));
-
-		// Thrusters — canted slightly outward (yaw), each with a trailing nozzle ring.
-		root.addChild("thruster_l", ModelPartBuilder.create()
-						.uv(34, 50).cuboid(-1f, -1.2f, 0f, 2f, 2.4f, 2.5f)
-						.uv(2, 112).cuboid(-0.7f, -0.9f, 2.5f, 1.4f, 1.8f, 0.8f),
-				ModelTransform.of(-1.2f, 0f, 6f, 0f, -0.1f, 0f));
-		root.addChild("thruster_r", ModelPartBuilder.create()
-						.uv(34, 50).cuboid(-1f, -1.2f, 0f, 2f, 2.4f, 2.5f)
-						.uv(2, 112).cuboid(-0.7f, -0.9f, 2.5f, 1.4f, 1.8f, 0.8f),
-				ModelTransform.of(1.2f, 0f, 6f, 0f, 0.1f, 0f));
-
-		return TexturedModelData.of(data, 128, 128);
-	}
+    private static TexturedModelData getTexturedModelData(com.terminaldetector.drmd.client.presentation.Ps1AssetProfile profile) {
+        var data=new ModelData();var root=data.getRoot();
+        var parts=new java.util.HashMap<String,ModelPartData>();parts.put("",root);
+        for(var part:PyroShipGeometry.parts(profile)) {
+            var builder=ModelPartBuilder.create();
+            for(var box:part.boxes())builder.uv(box.u(),box.v()).cuboid(box.x(),box.y(),box.z(),box.width(),box.height(),box.depth());
+            var parent=parts.get(part.parent());
+            if(parent==null)throw new IllegalStateException("Missing authored Pyro part parent: "+part.parent());
+            parts.put(part.name(),parent.addChild(part.name(),builder,ModelTransform.of(part.x(),part.y(),part.z(),part.pitch(),part.yaw(),part.roll())));
+        }
+        return TexturedModelData.of(data,128,128);
+    }
 
 	@Override
 	public void setAngles(T entity, float limbAngle, float limbDistance, float animationProgress, float headYaw, float headPitch) {
