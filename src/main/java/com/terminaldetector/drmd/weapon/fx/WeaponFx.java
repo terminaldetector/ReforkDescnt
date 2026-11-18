@@ -188,16 +188,22 @@ public final class WeaponFx {
 		if (breakBlocks) {
 			int r = MathHelper.clamp((int) (splashRadiusBlocks * 0.65f), 1, 5);
 			BlockPos center = BlockPos.ofFloored(pos);
+            var structuralCuts=new java.util.ArrayList<BlockPos>();
 			for (BlockPos p : BlockPos.iterate(center.add(-r, -r, -r), center.add(r, r, r))) {
 				if (p.getSquaredDistance(center) > r * r) continue;
+                if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,attacker))continue;
 				BlockState st = world.getBlockState(p);
 				float h = st.getHardness(world, p);
 				if (!st.isAir() && h >= 0 && h < 15 && !st.isOf(Blocks.BEDROCK)) {
 					if (world.getRandom().nextFloat() < 0.55f) {
-						world.breakBlock(p, true, attacker);
+                        var captured=structuralCuts.size()<com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse.MAX_CUTS
+                            ?com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse.capture(world,java.util.List.of(p.toImmutable())):java.util.List.<BlockPos>of();
+						if(world.breakBlock(p, true, attacker))structuralCuts.addAll(captured);
 					}
 				}
 			}
+            com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse.finish(world,structuralCuts,pos,power,
+                p->com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,attacker));
 		}
 		if (dmgClass == DamageClass.EXPLOSIVE && power > 2.4f) {
 			FireSystem.igniteBlast(world, BlockPos.ofFloored(pos),
