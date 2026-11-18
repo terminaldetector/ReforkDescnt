@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/historical-native-saves-20261118/saves.zip",
+  "archiveBytes": 11037499,
+  "archiveSHA256": "2aa64355ab391fba3086b238f5940c83a618458a7615d1f9c5f4d4d5caee476b",
+  "worldCount": 8,
+  "fileCount": 808,
+  "logicalBytes": 314797802,
+  "allocatedBytes": 316125184,
+  "allZIPCRCAndFileHashesVerified": true,
+  "nestedGzipStreamsFullyDecoded": 82,
+  "freshInventoryInodeMtimeHashVerified": true,
+  "exclusiveWritableFdPosixLockf": 8,
+  "protectedDonorsUntouched": true,
+  "beforeFreeBytes": 148963328,
+  "reclaimed": [
+    "/workspace/ungravity-v5/world-access/build/cubic-client-a39-negative-failure/saves",
+    "/workspace/ungravity-v5/portal-gun/build/cubic-client-failed-client-shift/saves",
+    "/workspace/ungravity-v5/world/build/cubic-client-seed2-negative-dark-failure/saves",
+    "/workspace/ungravity-v5/portal-gun/build/cubic-client-final-release-gun-sodium/saves",
+    "/workspace/ungravity-v5/portal-gun/build/cubic-client-intermediate-abb-release-gun-sodium/saves",
+    "/workspace/ungravity-v5/portal-gun/build/cubic-client-final-release-gun-gl32/saves",
+    "/workspace/ungravity-v5/world-access/build/cubic-client-final-release-mirror-sodium/saves",
+    "/workspace/ungravity-v5/portal-gun/build/cubic-client-final-release-mirror-sodium/saves"
+  ],
+  "afterFreeBytes": 454762496,
+  "manifestPath": "work/multi-agent/historical-native-saves-20261118/manifest.json",
+  "manifestSHA256": "63234c1daab737a928cb129c05bc69961c6559da9bf260d10f90937dd6ae4af3",
+  "verifierPath": "work/multi-agent/preserve-historical-native-saves-20261118.py",
+  "verifierSHA256": "fad0d06cf5d2d0ed28187249ee586c34bc5ef37d8c98864ddafafdf98b8012cf"
+}

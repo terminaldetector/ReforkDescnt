@@ -3672,5 +3672,29 @@
     ],
     "compiledClassParity": "mission-cold-class-parity-13c52d0.json",
     "scope": "Separate STOCK prototype cold runtime; no canonical whole-artifact cold, nativeBackend/hardPowerLoss/wholeMission acceptance"
+  },
+  "climberNative482f839": {
+    "source": "482f839de026789bc151b7cf58894a5085091489",
+    "production": "30959990c104543a78940a3baecf95ee4f73517d",
+    "archive": "docs/v8/EVIDENCE/climber-native-482f839-first-cow-offset-pass.zip",
+    "archiveSHA256": "f12749c59d22829b3978a6bc6f26ae938ca203065d73b951ad57390c351bd86f",
+    "archiveBytes": 22137624,
+    "payloads": 162,
+    "buildExit": 0,
+    "nativeExit": 0,
+    "validatorExit": 0,
+    "perSpeciesSamples": 120,
+    "species": 2,
+    "scope": "Static +X natural Spider/CaveSpider acquisition, route, pounce, reacquisition and actual model basis. Four older failures, ready-path delivery and universal3DAI/Boarding open. Very dark image does not accept broad image quality.",
+    "allPayloadSHAAndZIPCRCVerified": true,
+    "canonicalClassParity": "climber-class-parity-13c52d0-vs-3095999.json"
+  },
+  "historicalSavePreservation20261118": {
+    "receipt": "historical-native-save-preservation-20261118.json",
+    "archiveSHA256": "2aa64355ab391fba3086b238f5940c83a618458a7615d1f9c5f4d4d5caee476b",
+    "exactFiles": 808,
+    "closedFixtureWorlds": 8,
+    "nestedGzipStreamsFullyDecoded": 82,
+    "scope": "Lossless preservation/reclamation of8old disposable native saves only; all non-save runtime evidence and protected reusable donors retained."
   }
 }

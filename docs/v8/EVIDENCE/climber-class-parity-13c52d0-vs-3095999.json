@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "canonicalSource": "13c52d0edcc5763f945917e4282421ebe9150aef",
+  "canonicalJarSHA256": "b5ef7afd3e9e4cb6a6a6f81372639d80ecb84483c305368b5e164031e32f7afe",
+  "nativeProductionSource": "30959990c104543a78940a3baecf95ee4f73517d",
+  "nativeJarSHA256": "d4725ebb1524815dd4e6d8666bfa1b584c580b445c29eb2f163a11dc73a94306",
+  "nativeObserverSource": "482f839de026789bc151b7cf58894a5085091489",
+  "canonicalJar": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/integrated-13c52d0/artifacts/drmd-6dof-1.1.35-ufo-dev.1.jar",
+  "nativeJar": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/integrated-3095999/artifacts/drmd-6dof-1.1.35-ufo-dev.1.jar",
+  "equalClassEntries": 1034,
+  "changed": [
+    "com/terminaldetector/drmd/DescentMod.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveHeraldBlock.class",
+    "com/terminaldetector/drmd/world/enclave/FactionMemory.class"
+  ],
+  "addedInCanonical": [
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionCatalog$1.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionCatalog$Snapshot.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionCatalog.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionContract$1.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionContract$Box.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionContract$Point.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionContract$Step.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionContract$Type.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionContract.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger$Context.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger$Instance.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger$Key.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger$Location.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger$Outcome.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger$Progress.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger$Site.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionSystem$1.class",
+    "com/terminaldetector/drmd/world/enclave/EnclaveMissionSystem.class"
+  ],
+  "removedInCanonical": [],
+  "firstAttempt": {
+    "path": "/workspace/ungravity-v5/gravity-roster/build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar",
+    "sha256": "f33176cde91cbf9610790c55310f07974892098fcfbb560e3bd86a6244453d8b",
+    "result": "Rejected by exact expected game hash before any parity receipt or claim; actual launcher pins the immutable integrated309 artifact instead."
+  },
+  "scope": "Actual remapped game-class parity only. Genuine native climbing uses exact309 whole artifact plus482 observer; it is not an executed canonical13c climbing scenario."
+}
