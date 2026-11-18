@@ -1,0 +1,36 @@
+{
+  "source": "0107bd85e028b8aa0c035206848caf63f6c78632",
+  "jar": {
+    "file": "drmd-6dof-1.1.35-ufo-dev.1-0107bd8.jar",
+    "bytes": 2975325,
+    "sha256": "ddfd49e5d9ba838de5e5835e6b1da6d0f63c773398c600c048c96902deec5387"
+  },
+  "evidence": "docs/v8/EVIDENCE/integrated-0107bd8.zip",
+  "evidenceSha256": "10edf3e21cac3d7a0f2b817f7bbf629e10f162ed7cfaa3676563236ce755faba",
+  "unitTests": 1013,
+  "gameTests": 513,
+  "sameJarClients": 2,
+  "images": [
+    {
+      "file": "native-baseline.png",
+      "source": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/presentation-frames/native-baseline.png",
+      "bytes": 161377,
+      "sha256": "76d9d3ba95adaf6eb0a1176deabf30c0c8fb38e671e8d14c99740020293e80d9"
+    },
+    {
+      "file": "ps1-180-resized.png",
+      "source": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/presentation-frames/ps1-180-resized.png",
+      "bytes": 87259,
+      "sha256": "0a0521c1aea42300c343eb8d53e12685e9dde706392b0a555c4d582d0d719929"
+    },
+    {
+      "file": "voxel-lod-arrival.png",
+      "source": "build/cubic-surface-arrival-final-cubic-surface-arrival-integrated-0107bd8-sodium/surface-arrival-frames/final-pass.png",
+      "bytes": 95434,
+      "sha256": "0d6fbd4c3435d913cccbcc764b57b8b2b08dde2bbcf1d3163d36e041b8c911cb"
+    }
+  ],
+  "fullSpecAccepted": false,
+  "telegramTarget": "@abadonsoft",
+  "publicationState": "PREPARED_NOT_SENT"
+}
