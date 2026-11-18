@@ -1,0 +1,117 @@
+{
+  "firstPackagingFailure": {
+    "helper": "preserve-legacy-portal-fixtures-20261118.py",
+    "actualExit": 1,
+    "reason": "96MiB per-archive guard after completed entry; original entire save retained",
+    "archiveBytes": 100941424,
+    "archiveSHA256": "c7a1823ee348782cd4edb4591f65d9fd4acf32bd0654eb02ec6a8e8266c7da25",
+    "functionalTest": false,
+    "sourceOrRuntimeChange": false
+  },
+  "worlds": [
+    {
+      "originalPath": "/workspace/ungravity-v5/portal-gun/build/shootcheck/saves/DRMD-shot-lab",
+      "files": 3268,
+      "logicalBytes": 289804341,
+      "allocatedBytes": 299163648,
+      "gzipStreamsFullyDecoded": 1151,
+      "exclusiveLocks": 1,
+      "archives": [
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/shootcheck.zip",
+          "bytes": 100941424,
+          "sha256": "c7a1823ee348782cd4edb4591f65d9fd4acf32bd0654eb02ec6a8e8266c7da25"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/shootcheck-continuation-00.zip",
+          "bytes": 57432,
+          "sha256": "b20be582e486048296b32ab3fab2532f890a9d2ab3b1c2a9d2937d6d67aeddf2"
+        }
+      ],
+      "allMembersSHA256AndCRCVerified": true,
+      "allOriginalsFreshIdentityAndSHA256Verified": true,
+      "scope": "Only source-identified historical disposable test saves. All executable/source/log/PNG/cache and world/build donors retained."
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/portal-gun/build/rendercheck/saves/DRMD-render-lab",
+      "files": 3263,
+      "logicalBytes": 291683498,
+      "allocatedBytes": 301027328,
+      "gzipStreamsFullyDecoded": 1147,
+      "exclusiveLocks": 1,
+      "archives": [
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/rendercheck-continuation-00.zip",
+          "bytes": 2233779,
+          "sha256": "a9432d54a5f67a3ff9d2ac885deb34322e20fc43e63da1b47816fadb6e2374cd"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/rendercheck-continuation-01.zip",
+          "bytes": 2466106,
+          "sha256": "7eb8b000315dcbf121f947ba126e4f32a0a8934d7ffea77f6b6220ce76bf95d4"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/rendercheck-continuation-02.zip",
+          "bytes": 4513075,
+          "sha256": "395f5433627c89a5a9b07b5784c965ef784f71074c0a8eba2d62216d84e8f401"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/rendercheck-continuation-03.zip",
+          "bytes": 9008363,
+          "sha256": "b9598304b2be017cd56046e26488b49c05d1edbe15b6a8dece52caa5ce691138"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/rendercheck-continuation-04.zip",
+          "bytes": 11292187,
+          "sha256": "1c72ecbabb006a3e253fb9cbf21fa781cc885a6100be463de0451bfaef402781"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/rendercheck-continuation-05.zip",
+          "bytes": 9613123,
+          "sha256": "4bfb8de927c62d9208a14df9d75c67bb6f9edf4f2d19d239c88cd9e8a31def66"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/rendercheck-continuation-06.zip",
+          "bytes": 7588335,
+          "sha256": "f0947c5919a90ff3328d17cb4c89b5fe89673073f2b665d54e3dce9156c1b3bc"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/rendercheck-continuation-07.zip",
+          "bytes": 11153318,
+          "sha256": "c680117f80ae0c25e5c0afc6b930488f2342d339b811f7f1bb17520fa2cf56e6"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/rendercheck-continuation-08.zip",
+          "bytes": 10248846,
+          "sha256": "21caddf116a0f20f1f5f8f37479d433afacdc575440f85b835635e1f55bfed3e"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/rendercheck-continuation-09.zip",
+          "bytes": 12251365,
+          "sha256": "22fa95674c1ea7a10b70916d0d14c7074bd978a2b73e766b8a6b20f00063cc48"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/rendercheck-continuation-10.zip",
+          "bytes": 8541572,
+          "sha256": "b4b9c6e8cc441f8a93f659784729a66b3a536307282bd9cddf64fd77135aa4fa"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/rendercheck-continuation-11.zip",
+          "bytes": 6845078,
+          "sha256": "0f41cb70dddd05071c71e326be76f3267aef81dff40c57b848a83a05c881caf3"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-fixtures-preserved-20261118/rendercheck-continuation-12.zip",
+          "bytes": 5902090,
+          "sha256": "b83cfcea2fd74cbd99c7e1553945160e63ba9262de9305c7681439ab29db9504"
+        }
+      ],
+      "allMembersSHA256AndCRCVerified": true,
+      "allOriginalsFreshIdentityAndSHA256Verified": true,
+      "scope": "Only source-identified historical disposable test saves. All executable/source/log/PNG/cache and world/build donors retained."
+    }
+  ],
+  "worldCount": 2,
+  "reclaimedAllocatedBytes": 600190976,
+  "archiveBytes": 202656093
+}

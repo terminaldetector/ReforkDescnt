@@ -610,8 +610,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_65370F7_2026-11-18.md]
-  notes: "Observer-only653-based source43e8ba45 adds one ordered32 then128 real-death baseline with actual entity/solver/part/contact work and existing budgets. No Java baseline, sleep controller or aggregation implementation/result yet. Necessary baseline work is active; no whole U14 or task acceptance."
+  evidence: ["MULTI_AGENT_INTEGRATION_65370F7_2026-11-18.md", "MULTI_AGENT_CONTINUATION_2026-11-18.md"]
+  notes: "Actual separate653 observer baseline32 then128 ordinary deaths PASS with160measured ticks/cohort and real work counters. First32body trajectory exits1 at frozen127MiB afterage933/934; complete29,878row prefix preserved/validated, not1000tick/static/optimizationPASS. Later29UUIDendpointquiet intervals and3rig-support observations arediagnostic only. Lossless batching+bounded summary+wrench observer source prepared on private653 inputs, JavaUNRUN; no sleep/aggregation controller or thresholdraise."
 - id: S08-T05
   stage: S08
   stage_title: Articulated ragdoll and destructible bodies
@@ -1007,8 +1007,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_65370F7_2026-11-18.md]
-  notes: "Actual isolated653-based source3781f657 implements a distinct flying-teleport prototype, authored mesh/rig, warning/token/save protocol and bounded endpoint relay on existing flight/route infrastructure. Six pure protocol tests are written, not run; entity/counterplay/save/corpse gameplay and native gates remain unrun. Not integrated or accepted as whole."
+  evidence: ["MULTI_AGENT_INTEGRATION_65370F7_2026-11-18.md", "MULTI_AGENT_CONTINUATION_2026-11-18.md"]
+  notes: "Narrow new-role prototype6fa passes34selectedunits/21ordinaryGT, including original20tick warn/energy/momentum/actualhealth damage, real counterplay/refusal/save/corpse; old19/21 and20/21 failures preserved. Canonical exactimport4e74 adds9units/11ordinarycases/3entries, combined1013/513 not yet run. Prototype balance/spawncanon/nativeimage/cold/repeatedwaves and fullS14 remain open; no whole-task acceptance."
 - id: S14-T04
   stage: S14
   stage_title: Factions, Shapes and mission framework

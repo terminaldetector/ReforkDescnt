@@ -1,0 +1,61 @@
+{
+  "worlds": [
+    {
+      "originalPath": "/workspace/ungravity-v5/portal-gun/build/shootcheck-intermediate-abb/saves/DRMD-shot-lab",
+      "files": 1888,
+      "logicalBytes": 160264368,
+      "allocatedBytes": 165695488,
+      "gzipStreamsFullyDecoded": 667,
+      "exclusiveLocks": 1,
+      "archives": [
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-intermediate-preserved-20261118/shootcheck-intermediate-abb-continuation-00.zip",
+          "bytes": 2428553,
+          "sha256": "4c05e5f6d023de43081df20dcdc53400ebf36c2d673a82a0a04f80285676c3f4"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-intermediate-preserved-20261118/shootcheck-intermediate-abb-continuation-01.zip",
+          "bytes": 5559310,
+          "sha256": "5c1cd5a3e696193ecf78e13157d294bb9922157ab95b6e2cd991e6339569ec75"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-intermediate-preserved-20261118/shootcheck-intermediate-abb-continuation-02.zip",
+          "bytes": 8939074,
+          "sha256": "aeb1491074d23d2dc994591f8828a0de2f1c0fbe3109141e9ae13fb9df4500f1"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-intermediate-preserved-20261118/shootcheck-intermediate-abb-continuation-03.zip",
+          "bytes": 7262894,
+          "sha256": "71199449641561312520e3a257f022dfaa007172df60e323a7d88bf226d67a6f"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-intermediate-preserved-20261118/shootcheck-intermediate-abb-continuation-04.zip",
+          "bytes": 12698500,
+          "sha256": "55fbcd9c7588a8de3ab6fc9e4861c02151b54361673ff8d2a447094c768bd6e5"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-intermediate-preserved-20261118/shootcheck-intermediate-abb-continuation-05.zip",
+          "bytes": 8066170,
+          "sha256": "3e76fb1977b4a57d2be28e878ee3c051075753cb8bcd9510f27f56bfb0a43895"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-portal-intermediate-preserved-20261118/shootcheck-intermediate-abb-continuation-06.zip",
+          "bytes": 9748789,
+          "sha256": "8efdea9a5fff717cdae668929143a620eb9367f702bf040fe4d5c627e236502d"
+        }
+      ],
+      "allMembersSHA256AndCRCVerified": true,
+      "allOriginalsFreshIdentityAndSHA256Verified": true,
+      "scope": "Only source-identified historical disposable test saves. All executable/source/log/PNG/cache and world/build donors retained.",
+      "provenanceUnmodified": {
+        "/workspace/ungravity-v5/portal-gun/src/shootcheck/java/com/terminaldetector/drmd/WeaponRenderCheck.java": "2d72ce8e7e744d70767b7c3adfe0c3e27cf52309d49e871adcf3c9c6b7caf365",
+        "/workspace/ungravity-v5/portal-gun/build/shootcheck-intermediate-abb/shootcheck-ok.json": "1b53c36ce212df84d9893947877d40c51f4ca200e83a7a45400cac602da2e788",
+        "/workspace/ungravity-v5/portal-gun/build/shootcheck-intermediate-abb/usercache.json": "b1d675cecc9180020976e8d73c930de43913eebda71b0e3a11dbfb32739ce566",
+        "/workspace/ungravity-v5/portal-gun/build/shootcheck-intermediate-abb/logs/latest.log": "e63e6cad1fea8b085852ad16cf297382f3fa9c8f3926b9d9cf7b88e1b92cafc7"
+      }
+    }
+  ],
+  "worldCount": 1,
+  "reclaimedAllocatedBytes": 165695488,
+  "archiveBytes": 54703290
+}

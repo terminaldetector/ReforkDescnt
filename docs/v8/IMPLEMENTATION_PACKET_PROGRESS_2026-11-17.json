@@ -105,10 +105,10 @@
       "taskIds": [
         "S14-T03"
       ],
-      "status": "isolated_source_in_progress_uncompiled",
+      "status": "partial_imported_combined_pending",
       "owner": "combat_ai",
-      "source": "3781f657",
-      "remaining": "Distinct flight-teleport prototype source with authored cage/rig, locked warning/counterplay token/save state, existingINTERCEPTOR stats/shared route pool, fresh full-volume/oriented hull admission and boundedEND relay. Sixpure tests written, no Java/runtime yet. Natural/counterplay/save/corpse/native/full task remain open.",
+      "source": "4e74ec299bf7fd95393856a2e7ad148f689534c9",
+      "remaining": "Qualified isolated6fa34units/21ordinaryGT PASS, old27+existing7aim tests/old10game cases retained. Exact original natural scenario now completes68ticks: WARN569→COMMIT589,100→80energy,1transfer,4moving shots, attributedHP1024→1016 before second warning. Actualfamilybirth0/bank37/sameUUID8+8/wholewallclearance PASS. Root imports exact18main+2unit+5GTsupport paths plus3ordinaryentries→87; expectedcombined1013/513 pending, no inheritedfull/native proof. Warning20/recovery20/CD100/radius8/cost20 are prototype, spawnweights unchanged. Nativeimage/cold/repeatedwaves/general3DAI/fullS14 remain open.",
       "report": null,
       "acceptedAsWhole": false
     },
@@ -208,11 +208,11 @@
         "S11-T04",
         "S16-T02"
       ],
-      "status": "observer_baseline_source_in_progress",
+      "status": "observer_baseline_verified_partial_trajectory_nonpass",
       "owner": "gravity_ragdoll with combat_ai",
-      "source": "43e8ba45",
-      "remaining": "Observer-only32→128 ordered real-death baseline source on653, existing budgets and normalticks, actualwork counters; no Java baseline yet, no sleep or aggregation controller. Near/UNKNOWN/occupied-body rules retained, no new interest grid. FullU14 remains open.",
-      "report": null,
+      "source": "2b06c2d6fefea80b24b84c6b41c8b2ad314ea03a",
+      "remaining": "Separate observer-only32→128 real-death ordinary-tick baseline PASS on canonical653,160measured ticks/cohort,160unique UUID; no sleep/aggregation controller. First32-body trajectory exceeded frozen127MiB at age933/934 and exited1 without final summary/XML; all29,878 retained actor/tick rows validated. Later29/32 endpoint-quiet intervals do not prove static equilibrium/optimization. Raw133,161,025B preserved with SHA; no cap/threshold raise. Whole U14/large-scale performance remain open.",
+      "report": "../ragdoll-rest-baseline-20261118/docs/v8/U14_TRAJECTORY_FIRST_OVERFLOW_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -252,10 +252,10 @@
         "S05-T06",
         "S15-T05"
       ],
-      "status": "pending",
+      "status": "supporting_far_fog_work_original_clauses_open",
       "owner": "ps1_render",
       "source": null,
-      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "remaining": "Related far-fog clause: source51264597 adds finite default0 independent option and RGB-only existingHorizon pass; five meaningful Java controls are written UNRUN. Unchanged-game observer239 compiled/API1000refs/9CPUcontrols PASS. First genuine native0/controlUNOBSERVED fails physical fixture authoring guard before scene/readback; no feature-negative or production runtime yet. Whole-batch bounds/FULL/permission admission repair in source. Original low-poly/debug/pacing clauses remain pending; no whole packet acceptance.",
       "report": null,
       "acceptedAsWhole": false
     },
@@ -320,11 +320,11 @@
     }
   ],
   "supplementalClauseAudit": "docs/v8/SUPPLEMENTAL_CLAUSE_AUDIT_3095999_2026-11-17.json",
-  "updated": "2026-11-18",
+  "updated": "2026-11-18; follow-up preserves both primary specifications and every unused original packet; canonical653 proof unchanged",
   "supplementalLiveProgress": {
     "B2": {
       "source": "65370f7266cea705ebf2f9e86217031370fa2a3d",
-      "state": "GenericCore/transactional assembly in998/502+2currentclients;18newunits/19GT+oldUFO/AA regressions PASS. Generic7scene native observer compiled/615refs PASS, gameplay not run; no fullB2 acceptance."
+      "state": "Canonical generic Core/transactional assembly retained in998/502+2currentclients. Separate first native0/7 stopped at actual terrain-download screen; admission-corrected first native1/7 then lost client contact aggregate during actual USE, while server stayed grounded. No production claim/packet yet; source8e passive contact observer build2189 PASS, runtime pending. Original failures preserved; no whole B2 acceptance."
     },
     "R1": "pending distinct material/cavity/mesher matrix",
     "R2": "pending independent whole persisted physics/render matrix",
@@ -399,19 +399,19 @@
         "d492 first19 startup IllegalClassLoadError; no actual tests"
       ],
       "canonicalImport": "65370f7266cea705ebf2f9e86217031370fa2a3d",
-      "boundary": "Combined full and native not run; no whole packet accepted.",
+      "boundary": "Canonical998/502+two clients qualify shared production; separate generic seven-scene native remains1/7 and not accepted.",
       "combinedFull": "998/502PASS",
-      "genericNative": "UNRUN;observerf590/615refsPASS,startupBackupPromptpremiseunderpreparation"
+      "genericNative": "first0/7 preserved; corrected1/7 preserved; passive contact8e observer2189 built0, actual992refs audit corrected CPU PASS after retained auditor failure; no new runtime yet"
     },
     "U06": {
       "source": "809bd3c47b546dcec1d977d9b4a38912caf3fddb",
       "actualGames": 27,
       "passed": 26,
       "failed": 1,
-      "boundary": "All17oldregressionsPASS; naturalwingmansquad attributedDamage unmet, passive2b41547 traceunrun",
+      "boundary": "All17old regression cases pass, original natural wingman attributed-damage case fails. Both original and passive-trace failures retained.",
       "traceSource": "2b415472",
       "traceVerdict": "103 Shapes actual hurt attempts/0applied,116 Scout attempts/24applied; normal hurt-window contention, not absent shots",
-      "nextScenario": "364093dc physical Scout cover relay; unrun"
+      "nextScenario": "Separate364 physical Scout-LOS cover relay actual1/1PASS; narrow relay only, does not erase original26/27."
     },
     "U16": {
       "first": "189299d085ef01910b6b191ca036ed0a1d2d2235",
@@ -438,7 +438,15 @@
       "readiness": "ACTUAL_NEGATIVE_sameSection33nonAIR_staleEmptyTrue_LIGHTONLY",
       "negativeSource": "3a8becd7",
       "original400TickCause": "OPEN",
-      "productionRepairSource": "2349a481 SOURCE_ONLY_uncompiled"
+      "productionRepairSource": "2349a481fd0306954fb1a9c5affa3dddcddea4c8",
+      "repairGame": "d2c9d0d1ce0b91f51d3f96ebafc4f0b6cc707590a9864b19dec1242b6401aa3f",
+      "repairPrimary": "15/15PASS plus126 actual immutable receipts",
+      "repairReadiness": "two same-object nonempty corrections PASS; first overall2 because true empty control unobserved, preserved",
+      "safetyControlSource": "8352f119531aa59087eb5982dea0a6f072a97e0e",
+      "stockControl": "actualBCCmod/resourceABSENT title10ticks client0 PASS; only title startup",
+      "genuineEmptyControl": "Corrected ce7901/cd5c actual TCP server0/client0/wrapper0 PASS, same actualFULL0/4096 capturedtrue→exactlyONE normaltrue, strictserverstopempty; allfixturewrites0. First8352 login600tick97 retained.",
+      "canonicalImport": "b9e8c0e4",
+      "controlledBlockLight": "D2+83 actual15state PASS:7high8low, fourfreshsamples/state, bothserver/client15/14/13/11/10;opaque15/14/13/0/0;AIRzero.Each19..51ticks.Original400/cold/SKY/pixel/generalbackend scopeOPEN."
     },
     "climber": {
       "production": "e374f732",
@@ -448,7 +456,9 @@
       "ownDelivery": "actualPASS120each/seed0/zeroillegal",
       "canonical": "65370f7266cea705ebf2f9e86217031370fa2a3d",
       "newUnits": 11,
-      "boundary": "11remappedclasses exactcomponent; fouroldfailures and whole3DAI remainopen"
+      "boundary": "11remappedclasses exactcomponent; fouroldfailures and whole3DAI remainopen",
+      "ordinaryJump": "Separate443a mechanism actualPASS both species: natural child1/strictoldFAIL retained but corrected normal+outward displacement at caller/end; outside explicitONEJumpControl API per species actualnative0+validator0. Old10+6=16focusedunits/remapPASS. Canonicalimport63bfc777, freshcombined1004/502+clients pending.",
+      "jumpCanonicalImport": "63bfc777"
     },
     "U13": {
       "production": "5acde8915ee940b8d2c8086511810f112bbe21bf",
@@ -459,10 +469,41 @@
       "newGames": 3,
       "canonicalImport": "99d2cfca",
       "boundary": "Selected isolated compile/JUnit and ordinary TestServer only, no remap/native/separate cold/full U13."
+    },
+    "U07": {
+      "firstSource": "e9f56e6239664b8534f5763dac03e63f9e9a3651",
+      "seal": "bea91a54",
+      "actualUnits": 27,
+      "passedUnits": 27,
+      "actualGames": 21,
+      "passedGames": 19,
+      "failedGames": 2,
+      "coarseFinalWall": "UNREACHED; actual first age1 observation premise failure",
+      "fixScope": "three early double casts plus passive coarse-only actual damage-return capture and truthful nested testcase XML count; no retry yet",
+      "canonicalImport": "4e74ec299bf7fd95393856a2e7ad148f689534c9",
+      "correctedSource": "df3c5d76",
+      "correctedActualGames": 21,
+      "correctedPassedGames": 20,
+      "correctedFailedGames": 1,
+      "diagnosticSource": "4462e8d",
+      "diagnosticPhysicalHitAttempts": 0,
+      "diagnosticOwnedShots": 31,
+      "diagnosticTargetHealth": 1024,
+      "aimSource": "6fa96cff82cb79412f448c7c3c02946cd94dd01f",
+      "aimUnitActual": 34,
+      "aimUnitPassed": 34,
+      "aimGameActual": 21,
+      "aimGamePassed": 21,
+      "aimGameFailed": 0,
+      "newUnitCases": 9,
+      "newGameCases": 11,
+      "ordinaryManifestEntries": 87,
+      "naturalActualHealth": "1024→1016",
+      "boundary": "First19/21,20/21 and focused diagnosticFAIL preserved; narrow new-role aiming repair passes unchanged original acceptance; broader oldrole aim/native/cold/fullspec open"
     }
   },
-  "canonicalPreparedSource": "65370f7266cea705ebf2f9e86217031370fa2a3d",
-  "preparedSourceNotYetFullRuntimeAccepted": false,
+  "canonicalPreparedSource": "4e74ec299bf7fd95393856a2e7ad148f689534c9",
+  "preparedSourceNotYetFullRuntimeAccepted": true,
   "liveLedgerCounts": {
     "in_progress": 33,
     "pending_reverification": 63,

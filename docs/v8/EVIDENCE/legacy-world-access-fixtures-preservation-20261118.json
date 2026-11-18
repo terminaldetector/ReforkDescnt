@@ -1,0 +1,85 @@
+{
+  "worlds": [
+    {
+      "originalPath": "/workspace/ungravity-v5/world-access/build/shootcheck/saves/DRMD-shot-lab",
+      "files": 957,
+      "logicalBytes": 94312264,
+      "allocatedBytes": 97050624,
+      "gzipStreamsFullyDecoded": 331,
+      "exclusiveLocks": 1,
+      "archives": [
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-world-access-fixtures-preserved-20261118/shootcheck-continuation-00.zip",
+          "bytes": 1955524,
+          "sha256": "446eba4de4cfac9b7616a6df8756b93b2f8e355619d6221290261a313248cf44"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-world-access-fixtures-preserved-20261118/shootcheck-continuation-01.zip",
+          "bytes": 6403002,
+          "sha256": "6b7be260a23d189ae204f65a9f8d45d5a0d413a36ce60298e6665756b275d306"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-world-access-fixtures-preserved-20261118/shootcheck-continuation-02.zip",
+          "bytes": 6202471,
+          "sha256": "079fc5d66987f8a4938a8b6105c743d6240c52d2b45f1660ffe13f81f20967a7"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-world-access-fixtures-preserved-20261118/shootcheck-continuation-03.zip",
+          "bytes": 4190214,
+          "sha256": "1789c53481eae2975abd455ef0039fbc5a0d51bbcb29d0be8e3d1788a4b8951a"
+        }
+      ],
+      "allMembersSHA256AndCRCVerified": true,
+      "allOriginalsFreshIdentityAndSHA256Verified": true,
+      "scope": "Only source-identified historical disposable test saves. All executable/source/log/PNG/cache and world/build donors retained.",
+      "provenanceUnmodified": {
+        "/workspace/ungravity-v5/world-access/src/shootcheck/java/com/terminaldetector/drmd/WeaponRenderCheck.java": "360e7244a73dab85c6f1a21c93e2fd21b5de0f025e6525c895e086674e2445c9",
+        "/workspace/ungravity-v5/world-access/build/shootcheck/shootcheck-ok.json": "8947bddb0b73174a0a7ed3bf26d0ea028336e8f748f50018063279a5f6894c90",
+        "/workspace/ungravity-v5/world-access/build/shootcheck/usercache.json": "7e52492a1b824d3cc060008a681927a3abc9702b3455ed47061090b99d58abb5",
+        "/workspace/ungravity-v5/world-access/build/shootcheck/logs/latest.log": "4c3d00e869c0260bcd9aa98aabd231591da1f4dc680e8c939c85eb31f3d2540b"
+      }
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/world-access/build/rendercheck/saves/DRMD-render-lab",
+      "files": 955,
+      "logicalBytes": 96134417,
+      "allocatedBytes": 98873344,
+      "gzipStreamsFullyDecoded": 327,
+      "exclusiveLocks": 1,
+      "archives": [
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-world-access-fixtures-preserved-20261118/rendercheck-continuation-00.zip",
+          "bytes": 1955526,
+          "sha256": "7a093817c2995b262997046910ee93116e4001e0d905c059c82be4686cf792df"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-world-access-fixtures-preserved-20261118/rendercheck-continuation-01.zip",
+          "bytes": 6780223,
+          "sha256": "5fdb71f429d9597b395dc066edd73a4c01c7a6811cad3545e538b019cc971f52"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-world-access-fixtures-preserved-20261118/rendercheck-continuation-02.zip",
+          "bytes": 6290893,
+          "sha256": "32fdcc6eaa41be1c1951094b389fadf2e811bff93743a68f1e4aa641a5a88484"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-world-access-fixtures-preserved-20261118/rendercheck-continuation-03.zip",
+          "bytes": 4505759,
+          "sha256": "0764961f1d9bc96289fe779eb184a1d520ebcf4c9b0f16b473c9ab210246b687"
+        }
+      ],
+      "allMembersSHA256AndCRCVerified": true,
+      "allOriginalsFreshIdentityAndSHA256Verified": true,
+      "scope": "Only source-identified historical disposable test saves. All executable/source/log/PNG/cache and world/build donors retained.",
+      "provenanceUnmodified": {
+        "/workspace/ungravity-v5/world-access/src/rendercheck/java/com/terminaldetector/drmd/HybridRenderCheck.java": "6cdbf4d1ea08504f08dfc1a3cd9ac3b0436d4646ca348e9f79c0e4d5e02b3701",
+        "/workspace/ungravity-v5/world-access/build/rendercheck/rendercheck-ok.txt": "2ef56a8faf716af51d34dd2e05cdc1def7d7f7b6177ca846d2c926ae0cb26cfc",
+        "/workspace/ungravity-v5/world-access/build/rendercheck/usercache.json": "8c45e346940a1cf95ef4274b1ca1192fe69ad5480d15cbc645011ef4c213a25c",
+        "/workspace/ungravity-v5/world-access/build/rendercheck/logs/latest.log": "87723bd1304226ee6c16f1807fb2c71c73acfa72e0b47c44b4fd1aa9f6ce39aa"
+      }
+    }
+  ],
+  "worldCount": 2,
+  "reclaimedAllocatedBytes": 195923968,
+  "archiveBytes": 38283612
+}
