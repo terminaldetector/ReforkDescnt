@@ -180,9 +180,9 @@
       ],
       "status": "partial_integrated_focused_pass",
       "owner": "root Boarding",
-      "source": "f892c399",
-      "remaining": "Actual oak hatch USE/thin geometry/obstruction/NBT/momentum/source refusal6ordinary casesPASS. Added reactor saved-warning/timer/bounded detonation phase5ordinary casesPASS on92b. Full functional moving mechanisms, reactor sphere/supports/combat and full episode remain open.",
-      "report": "docs/v8/IMPLEMENTATION_92B6DA2E_2026-11-18.md",
+      "source": "42276e7bf9b44b1ba3b119f289756e750a7fba13",
+      "remaining": "Moving wooden lower/upper local doors/use/place/break/slabs implemented;7door/6hatch ordinary casesPASS on422. Existing reactor5case saved countdown remains scoped. Functional BE/redstone/full moving mechanisms/reactor sphere-support combat and wholeBoarding remain open.",
+      "report": "docs/v8/IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -252,11 +252,11 @@
         "S05-T06",
         "S15-T05"
       ],
-      "status": "supporting_far_fog_work_original_clauses_open",
+      "status": "partial_native_scoped_pass",
       "owner": "ps1_render",
-      "source": "862d74c9",
-      "remaining": "Actual far-fog production51264597 compiled/remapped and five fresh unit cases passed. First wrapper1 was overstrict exact-entry admission: tracked LICENSE plus Slider LineNumberTable-only change, preserved without editing binaries. Production gamefc26adfc, no production pixels yet. Causal-only native deferred; original low-poly/debug/pacing/full packet remain open.",
-      "report": null,
+      "source": "56c0049f37ffee5b989df092b26093ac871222b0",
+      "remaining": "Actual Pyro LOW_POLY32→17cuboids and independent opt-in existing-loop cap implemented/persisted.6pure casesPASS; actual BCC/Sodium/MesaGL3.3 32/17/32models and cap30/10/30,3realPNGs/natural ticks PASS. First fixture registrationFAIL retained. Other assets/nativeUI/debug/offscreen/hardware/full packet and existing LOD/sky defects remain open.",
+      "report": "docs/v8/IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -293,11 +293,11 @@
       "taskIds": [
         "S10-T03"
       ],
-      "status": "pending",
+      "status": "partial_integrated_focused_pass",
       "owner": "combat_ai",
-      "source": null,
-      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
-      "report": null,
+      "source": "ba30a2c907338c2d8ffc370ede3ec384057b56aa",
+      "remaining": "Actual programmed7/14carrier forward/down banks, FAN/RING/STAGGER stages, NBT/portal basis, arming/finite child life/budgets/damage/defuse and renderer implemented.7units/21actualGT PASS after preserved3firstFAIL. Native FP/model/input, separate cold-process/highspeedwire/MP and fullpacket remain open.",
+      "report": "docs/v8/IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -518,14 +518,22 @@
       "actualWrapperExit": 0,
       "sleepImplemented": false,
       "performanceAccepted": false
+    },
+    "doorsClustersPs1": {
+      "source": "56c0049f37ffee5b989df092b26093ac871222b0",
+      "firstUnitCompile": "d6f97b21:21unitPASS/0GTjavacFAIL",
+      "firstGames": "42276e7b:37/40PASS3FAIL",
+      "correctedGames": "ba30a2c9:7unit21GTallPASS",
+      "native": "56c0049f:3statesPASS; originalba3phase0FAILretained",
+      "fullSuiteRerun": false
     }
   },
-  "canonicalPreparedSource": "a415729b58ab30497462bc23e8811365ee6b602e",
+  "canonicalPreparedSource": "56c0049f37ffee5b989df092b26093ac871222b0",
   "preparedSourceNotYetFullRuntimeAccepted": true,
   "liveLedgerCounts": {
     "completed": 3,
-    "in_progress": 38,
-    "pending_reverification": 58,
+    "in_progress": 39,
+    "pending_reverification": 57,
     "total": 99
   },
   "currentPrimarySpecifications": [
@@ -536,7 +544,7 @@
     "Dynamic Boarding / BlockBody",
     "Create-style separate gun, bearing and drive"
   ],
-  "latestFocusedEvidence": "docs/v8/EVIDENCE/portal-tree-working-20261118.json",
+  "latestFocusedEvidence": "docs/v8/IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md",
   "validationPreference": "User prioritizes concrete implementation and focused checks on actual changes over diagnostic-only loops; portal traversal first.",
   "directFutureRequests": [
     {
@@ -548,10 +556,12 @@
     }
   ],
   "latestFocusedSnapshot": {
-    "source": "a415729b58ab30497462bc23e8811365ee6b602e",
-    "build": "https://t.me/abadonsoft/284",
-    "report": "docs/v8/IMPLEMENTATION_PORTAL_TREES_2026-11-18.md",
-    "nativeCases": 1,
-    "fullSuiteRerun": false
-  }
+    "source": "56c0049f37ffee5b989df092b26093ac871222b0",
+    "build": null,
+    "report": "docs/v8/IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md",
+    "nativeStates": 3,
+    "fullSuiteRerun": false,
+    "status": "packaging_before_authorized_Telegram_delivery"
+  },
+  "latestFocusedServerSource": "ba30a2c907338c2d8ffc370ede3ec384057b56aa"
 }

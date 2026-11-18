@@ -402,8 +402,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
-  notes: "Current699b749 native HUD witness stays1physicalpixel; projected weapon166Native/166PS1 with same camera/modules. Full roll/pitch/yaw and ordinary UI remain open."
+  evidence: ["MULTI_AGENT_INTEGRATION_2026-11-16.md", "EVIDENCE/integrated-5839062.zip", "MULTI_AGENT_INTEGRATION_2026-11-17.md", "EVIDENCE/integrated-699b749.json", "MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md", "IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md"]
+  notes: "Current699b749 native HUD witness stays1physicalpixel; projected weapon166Native/166PS1 with same camera/modules. Full roll/pitch/yaw and ordinary UI remain open. New real Pyro low-poly selection preserves ordinary domains; actual32/17/32 native model witness is scoped, not full HUD/UI acceptance."
 - id: S05-T05
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -414,8 +414,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
-  notes: "Current699b749 presentation separation and representative physical checks pass; universal geometry/physics/cache invariance remains open."
+  evidence: ["MULTI_AGENT_INTEGRATION_2026-11-16.md", "EVIDENCE/integrated-5839062.zip", "MULTI_AGENT_INTEGRATION_2026-11-17.md", "EVIDENCE/integrated-699b749.json", "MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md", "IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md"]
+  notes: "Current699b749 presentation separation and representative physical checks pass; universal geometry/physics/cache invariance remains open. Optional FPS cap uses the existing main loop; actual natural server/ship-age progress recorded across three presentation states. This is not universal physics/cache invariance acceptance."
 - id: S05-T06
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -426,8 +426,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-16.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, SKY_LOD_BACKGROUND_FIX_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
-  notes: "Current699b749 Sodium transitions/Debug world geometry pass. Original09b GL3.2 negative3/346 is preserved; separate7df contrast proof327/346 passes both renderers. Full style/sky/visual acceptance remains open."
+  evidence: ["MULTI_AGENT_INTEGRATION_2026-11-16.md", "EVIDENCE/integrated-5839062.zip", "MULTI_AGENT_INTEGRATION_2026-11-17.md", "EVIDENCE/integrated-699b749.json", "SKY_LOD_BACKGROUND_FIX_2026-11-17.md", "MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md", "MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md", "EVIDENCE/integrated-68fb20a.json", "IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md"]
+  notes: "Current699b749 Sodium transitions/Debug world geometry pass. Original09b GL3.2 negative3/346 is preserved; separate7df contrast proof327/346 passes both renderers. Full style/sky/visual acceptance remains open. Actual56c0049f BCC/Sodium/MesaGL3.3 Native→PS1coarse→Native PASS:32/17/32cuboids, limit return30/10/30,3realPNGs. Known background LOD/sky defects and first observer registrationFAIL retained; hardware/debug/offscreen/fullstyle remain open."
 - id: S06-T01
   stage: S06
   stage_title: Core gravity and player 6DoF
@@ -672,8 +672,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [CONTROL_CORE_WIP.md, CONTROL_CORE_LIFECYCLE_2026-11-04.md, EVIDENCE/ufo-control-0dff43b.zip, EVIDENCE/ufo-control-lifecycle-ea9c9eb.zip, BOARDING_SUPPORT_TRANSFER_2026-11-06.md, EVIDENCE/boarding-seam-ffe7e75.zip, MODULE_RESTART_2026-11-06.md, EVIDENCE/module-restart-0c9faa6.zip, ISLAND_LOADING_2026-11-06.md, EVIDENCE/island-load-1a848d5.zip, UFO_BAY_CONTROL_2026-11-06.md, EVIDENCE/ufo-bay-84ff1a5.zip, ENGINES_2026-11-07.md, EVIDENCE/engines-fd8950f.zip, TURRET_RESTART.md, EVIDENCE/turret-restart-97d6f59.zip, UFO_AUTONOMOUS_COMBAT.md, EVIDENCE/ufo-autonomous-3dd2263.zip, TURRET_AUTONOMOUS_COMBAT.md, EVIDENCE/turret-autonomous-d54d71f.zip]
-  notes: Reference capture/pilot exit now also passes actual hot module restart and new console capture/H release on Mesa/Sodium. Saved field-owner priority and immediate world-gravity contact admission are fixed. A fresh current-source Sodium pilot hot-restart pair also retains exact state,40 grounded ticks and new capture/yaw/fire/braking/release after physical weapon-owner generalization (3dd2263). Immediate AI motor preemption/manual priority and installed-reference authority are now checked; fresh current-source hot restart remains compatible. Free-ship/portal groups and complete functional control/module lifecycle remain open.
+  evidence: ["CONTROL_CORE_WIP.md", "CONTROL_CORE_LIFECYCLE_2026-11-04.md", "EVIDENCE/ufo-control-0dff43b.zip", "EVIDENCE/ufo-control-lifecycle-ea9c9eb.zip", "BOARDING_SUPPORT_TRANSFER_2026-11-06.md", "EVIDENCE/boarding-seam-ffe7e75.zip", "MODULE_RESTART_2026-11-06.md", "EVIDENCE/module-restart-0c9faa6.zip", "ISLAND_LOADING_2026-11-06.md", "EVIDENCE/island-load-1a848d5.zip", "UFO_BAY_CONTROL_2026-11-06.md", "EVIDENCE/ufo-bay-84ff1a5.zip", "ENGINES_2026-11-07.md", "EVIDENCE/engines-fd8950f.zip", "TURRET_RESTART.md", "EVIDENCE/turret-restart-97d6f59.zip", "UFO_AUTONOMOUS_COMBAT.md", "EVIDENCE/ufo-autonomous-3dd2263.zip", "TURRET_AUTONOMOUS_COMBAT.md", "EVIDENCE/turret-autonomous-d54d71f.zip", "IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md"]
+  notes: "Reference capture/pilot exit now also passes actual hot module restart and new console capture/H release on Mesa/Sodium. Saved field-owner priority and immediate world-gravity contact admission are fixed. A fresh current-source Sodium pilot hot-restart pair also retains exact state,40 grounded ticks and new capture/yaw/fire/braking/release after physical weapon-owner generalization (3dd2263). Immediate AI motor preemption/manual priority and installed-reference authority are now checked; fresh current-source hot restart remains compatible. Free-ship/portal groups and complete functional control/module lifecycle remain open. Moving wooden two-cell local doors now open/place/break through existing local-grid authority; actual7door/6hatch ordinary PASS on42276e7b. Full functional block entities/redstone/Boarding remain open."
 - id: S09-T05
   stage: S09
   stage_title: BlockBody / UFO boarding and reactor
@@ -731,11 +731,11 @@ tasks:
   owner: WEAPONS
   gate: G4
   depends_on_stages: *id011
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: ["IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md"]
+  notes: "Do not assume complete from historic PR/summary. Programmed7/14carrier FAN/RING/STAGGER, actual forward/down banks, ammo/cooldown, finite stages/child life, NBT/portal frame and damage/defuse implemented. First42237/40 preserved; correctedba30 seven units/21actualGT PASS. Native carrier/viewmodel/input and separate cold-process acceptance remain open."
 - id: S10-T04
   stage: S10
   stage_title: Weapons, cluster, drill and building
@@ -1093,8 +1093,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json]
-  notes: "Slot-backed drone preview e047 compiles with6 geometry tests; real preview images pending. Actual PS1/HUD/six-profile readability controls pass on20ef. Tooltips/localization/all GUI coverage remain open."
+  evidence: ["MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md", "EVIDENCE/integrated-20ef2c4.json", "IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md"]
+  notes: "Slot-backed drone preview e047 compiles with6 geometry tests; real preview images pending. Actual PS1/HUD/six-profile readability controls pass on20ef. Tooltips/localization/all GUI coverage remain open. Independent persisted PS1 asset/cap selectors implemented; actual three-state model/cap clientPASS on56c0049f. All GUI/localization/readability remain partial."
 - id: S16-T01
   stage: S16
   stage_title: Full performance and regression testing

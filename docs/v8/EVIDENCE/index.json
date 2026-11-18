@@ -4079,5 +4079,27 @@
     "photos": "https://t.me/abadonsoft/282",
     "changelog": "https://t.me/abadonsoft/281",
     "scope": "Focused development snapshot plus one real native6DoF portal traversal; full specifications and fullsuite remain open."
+  },
+  "focusedDoorsClustersPs120261118": {
+    "source": "56c0049f37ffee5b989df092b26093ac871222b0",
+    "gameSHA256": "924e5d628d2350930bca89d26efa387b2910819c02910fa960586a29f4f75387",
+    "observerSHA256": "f6a40d1b3102bc24e0255bed9a57bdb03e4c228883cf76f090200f0919c9b5b1",
+    "report": "docs/v8/IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md",
+    "archive": {
+      "path": "docs/v8/EVIDENCE/doors-clusters-ps1-56c0049f-scoped-20261118.zip",
+      "bytes": 14092100,
+      "sha256": "07ba2c7e55a5195c20bb4c7ade80598cd3f8dd2654c1df5ba01b5fddd8aadd62",
+      "payloads": 138,
+      "sourcePostimages": 47,
+      "source": "56c0049f37ffee5b989df092b26093ac871222b0",
+      "sourceBase": "8aaeca3d",
+      "allOuterCRCAndPayloadSHA256": true
+    },
+    "unitRunD6": 21,
+    "correctedUnit": 7,
+    "correctedGames": 21,
+    "nativeStates": 3,
+    "fullSuiteRerun": false,
+    "originalFailuresRetained": true
   }
 }
