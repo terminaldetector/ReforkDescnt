@@ -57,15 +57,20 @@ public final class DynamicBodyAttachment {
         });
     }
     public static State step(State state,Input input,List<BodyMotion> bodies,double width,double height,double seconds,Motion world) {
-        return step(state,input,bodies,width,height,seconds,world,false);
+        return step(state,input,bodies,width,height,seconds,world,false,false);
     }
     /** Already integrated suit velocity: shared moving-hull CCD without a second gravity,
      * walking motor, automatic frame turn or tangential foot friction. The flight model
      * remains the sole source of thrust and orientation. Reactions still reach the hull. */
     public static State freeFlight(State state,List<BodyMotion> bodies,double width,double height,double seconds,Motion world) {
-        return step(state,Input.idle(),bodies,width,height,seconds,world,true);
+        return step(state,Input.idle(),bodies,width,height,seconds,world,true,false);
     }
-    private static State step(State state,Input input,List<BodyMotion> bodies,double width,double height,double seconds,Motion world,boolean flight) {
+    /** Native loose-body forces were integrated already. Share the contact trajectory and
+     * friction/reaction, without a walking motor, another gravity step or automatic frame turn. */
+    public static State passiveContact(State state,List<BodyMotion> bodies,double width,double height,double seconds,Motion world) {
+        return step(state,Input.idle(),bodies,width,height,seconds,world,true,true);
+    }
+    private static State step(State state,Input input,List<BodyMotion> bodies,double width,double height,double seconds,Motion world,boolean flight,boolean passive) {
         if(!Double.isFinite(seconds)||seconds<=0||seconds>.05)throw new IllegalArgumentException("one bounded tick required");
         BodyBounds.finite(state.feet);BodyBounds.finite(state.velocity);
         Quat frame=state.frame;
@@ -126,7 +131,7 @@ public final class DynamicBodyAttachment {
                 if(c.penetration()>.2)continue;
                 if(c.penetration()>1e-7)feet=feet.plus(world.move(feet,frame,c.normal().scaled(c.penetration()+SEPARATION)).displacement());
                 actor.withPosition(feet.plus(up.scaled(height/2)));
-                contact(actor,b,t,c.point(),c.normal(),wish,up,flight);
+                contact(actor,b,t,c.point(),c.normal(),wish,up,flight&&!passive);
                 if(c.normal().dot(up)>.6 && actor.velocityAtPoint(c.point().minus(actor.position())).minus(b.surfaceVelocity(c.point(),t)).dot(c.normal())<.05) {
                     grounded=true;support=b.id;
                 }
@@ -168,7 +173,7 @@ public final class DynamicBodyAttachment {
                 }
                 Vec3 point=actual==null?PassengerFrame.box(feet,width,height,frame).supportCentre(normal.scaled(-1)):actual.point();
                 double before=actor.velocityAtPoint(point.minus(actor.position())).minus(hitBody.surfaceVelocity(point,impact)).dot(normal);
-                contact(actor,hitBody,impact,point,normal,wish,up,flight);
+                contact(actor,hitBody,impact,point,normal,wish,up,flight&&!passive);
                 // The solved moving plane owns this normal for the rest of the substep. Recasting
                 // its frozen old orientation would stop valid rotational surface movement.
                 planes.add(new Plane(normal,hitBody.localOffset(point,impact),point.minus(feet),hit.localShape(),hitBody));
@@ -203,9 +208,9 @@ public final class DynamicBodyAttachment {
                 }
             }
         }
-        if(flight)return new State(feet,velocity,false,-1,frame,-1);
+        if(flight&&!passive)return new State(feet,velocity,false,-1,frame,-1);
         int gravityOwner=owner!=null&&owner.gravity(feet.plus(up.scaled(height/2)),1).isPresent()?owner.id:-1;
-        if(gravityOwner<0&&!grounded&&up.dot(UP)>.99999&&world.canOrient(feet,Quat.IDENTITY))frame=Quat.IDENTITY;
+        if(!flight&&gravityOwner<0&&!grounded&&up.dot(UP)>.99999&&world.canOrient(feet,Quat.IDENTITY))frame=Quat.IDENTITY;
         return new State(feet,velocity,grounded,support,frame,gravityOwner);
     }
     private static boolean preferSupport(int candidate,int selected,int previous) {

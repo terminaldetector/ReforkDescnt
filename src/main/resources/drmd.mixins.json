@@ -34,6 +34,7 @@
     "BodyPickingMixin",
     "BodySpatialLoadMixin",
     "BodySpatialRemovalMixin",
+    "LooseItemBodyMixin",
     "VanillaChunkUnloadBudgetMixin"
   ],
   "client": [

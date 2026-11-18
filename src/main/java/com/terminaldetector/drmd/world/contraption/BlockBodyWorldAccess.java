@@ -45,6 +45,11 @@ public final class BlockBodyWorldAccess {
         if(!BlockBodyEntity.validLocal(pos))return false;
         var bounds=new BodyBounds(new Vec3(pos.getX(),pos.getY(),pos.getZ()),new Vec3(pos.getX()+1,pos.getY()+1,pos.getZ()+1));
         // Full placement cube is conservative for smoothed blocks, and never permits an occupied head.
+        if(!canOccupyLocalBounds(bounds))return false;
+        return setLocalBlock(pos,state);
+    }
+    /** Existing placement exclusion, also used before an in-place local mechanism changes shape. */
+    public boolean canOccupyLocalBounds(BodyBounds bounds) {
         var cube=OrientedBox.local(bounds,body.massPosition(),body.localCentre(),body.rotation());var b=cube.bounds();
         var broad=new Box(b.min().x(),b.min().y(),b.min().z(),b.max().x(),b.max().y(),b.max().z());
         if(!body.collisionRegionAvailable(broad))return false;
@@ -57,7 +62,7 @@ public final class BlockBodyWorldAccess {
             else {var box=entity.getBoundingBox();actor=OrientedBox.axisAligned(new BodyBounds(new Vec3(box.minX,box.minY,box.minZ),new Vec3(box.maxX,box.maxY,box.maxZ)));}
             if(overlaps(cube,actor))return false;
         }
-        return setLocalBlock(pos,state);
+        return true;
     }
     private static boolean overlaps(OrientedBox a,OrientedBox b){return a.contact(b,0).filter(c->c.penetration()>1e-6).isPresent();}
 }

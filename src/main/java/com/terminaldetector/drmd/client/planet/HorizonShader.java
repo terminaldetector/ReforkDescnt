@@ -1,6 +1,9 @@
 package com.terminaldetector.drmd.client.planet;
 
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
+import com.terminaldetector.drmd.client.config.DescentConfig;
+import com.terminaldetector.drmd.client.presentation.ScenePresentation;
+import com.terminaldetector.drmd.client.portal.OffscreenWorldView;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.util.Identifier;
@@ -19,5 +22,8 @@ public final class HorizonShader {
         program.getUniform("FieldOriginDelta").set(x,y,z);
         program.getUniform("InnerRadius").set(inner);
         program.getUniform("FieldReach").set(reach);
+        // The same cached program is reused: reset explicitly for Native/Debug/unsupported phases too.
+        program.getUniform("Ps1FarFogDensity").set(DescentConfig.ps1FarFog.effective(
+                DescentConfig.presentationProfile,ScenePresentation.inLowResolutionWorld(),OffscreenWorldView.busy()));
     }
 }
