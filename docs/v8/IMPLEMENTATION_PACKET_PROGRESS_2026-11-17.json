@@ -222,11 +222,11 @@
         "S09-T04",
         "S15-T03"
       ],
-      "status": "implementation_in_progress",
+      "status": "partial_integrated_focused_pass",
       "owner": "world_cubic with ragdoll_limits",
-      "source": null,
-      "remaining": "Actual native joint/riding/boarding group transaction, full destination admission, one physical warp, swept fast-player candidates and prepared articulated ragdoll transfer are being implemented. Existing free/player6DoF source is retained; new group runtime/client acceptance is not yet claimed.",
-      "report": null,
+      "source": "c52379866b0f2e4d2ab23bf7f35607a90b796ce5",
+      "remaining": "Initial8650 portal/ragdoll/display/thermal16unit+44GT PASS. Follow-up c52336portalGT PASS, including actual saved unknown-exit unload/reload, retained crossing/current momentum/retreat cancel, fresh-spawn and atomic per-face refusal. All4 dedicated live-drone cases on0f723 fail and are retained; head capture fixed259 source-only. Native BCC/client warp and full packet remain open.",
+      "report": "docs/v8/IMPLEMENTATION_PORTAL_TREES_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -267,11 +267,11 @@
         "S04-T02",
         "S04-T04"
       ],
-      "status": "pending",
-      "owner": "ps1_render coordinated with gravity_ragdoll",
-      "source": null,
-      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
-      "report": null,
+      "status": "partial_integrated_focused_pass",
+      "owner": "gravity_ragdoll with root integration",
+      "source": "0f723c45199dea1cf09196d165285e341e32fc73",
+      "remaining": "AXIS-aware rounded log/branch near and detached-body mesh/collision implemented;13focused units PASS (4new/9geometry regressions), actual2tree cases PASS including real vanilla explosion of X/Z branches and canopy. Original material/NBT and bounded existing collapse path retained. Full native image/forest/cold/triangular support/performance and demonstration remain open.",
+      "report": "docs/v8/IMPLEMENTATION_PORTAL_TREES_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -280,11 +280,11 @@
       "taskIds": [
         "S10-T04"
       ],
-      "status": "implementation_in_progress",
+      "status": "partial_integrated_focused_pass",
       "owner": "combat_ai with ps1_render",
-      "source": null,
-      "remaining": "Source implementation underway from actual strong-drill paths and exact latest clause: controlled circular opening/thermal rim with bounded edits and existing item-drop limiting, preserving other drills/weapons and 6DoF basis. No new runtime acceptance yet.",
-      "report": null,
+      "source": "8650bf80eda41e60ef6bead3f8862a6fe923730f",
+      "remaining": "Heavy-drill thermal rim, staged circular bore, cooling, light/water scheduling and existing drop cap implemented. Root5thermal units/9actualGT PASS on8650; nine GT again PASS after shared mesh changes0f723. Native pixels, body-local thermal metadata/partial fluid/all material and full packet remain open.",
+      "report": "docs/v8/IMPLEMENTATION_PORTAL_TREES_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -520,12 +520,13 @@
       "performanceAccepted": false
     }
   },
-  "canonicalPreparedSource": "92b6da2e0d0a973f1e971385ad8303babae9b725",
+  "canonicalPreparedSource": "259062bd",
   "preparedSourceNotYetFullRuntimeAccepted": true,
   "liveLedgerCounts": {
-    "in_progress": 34,
-    "pending_reverification": 62,
-    "completed": 3
+    "completed": 3,
+    "in_progress": 38,
+    "pending_reverification": 58,
+    "total": 99
   },
   "currentPrimarySpecifications": [
     "MASTER v8",
@@ -535,7 +536,7 @@
     "Dynamic Boarding / BlockBody",
     "Create-style separate gun, bearing and drive"
   ],
-  "latestFocusedEvidence": "docs/v8/EVIDENCE/focused-92b6da2e.json",
+  "latestFocusedEvidence": "docs/v8/EVIDENCE/portal-tree-working-20261118.json",
   "validationPreference": "User prioritizes concrete implementation and focused checks on actual changes over diagnostic-only loops; portal traversal first.",
   "directFutureRequests": [
     {

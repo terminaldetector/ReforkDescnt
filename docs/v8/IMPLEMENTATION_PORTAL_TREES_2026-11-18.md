@@ -1,0 +1,17 @@
+# Portal traversal and rounded tree increment
+
+The working branch now contains coherent physical-group portal transfer, asynchronous exit interest with retained real crossings, full banked live-drone transfer, and shared rounded log geometry for terrain and detached bodies. Portal refusal is atomic per face; a different genuinely crossed face can still accept the group. Waiting crossings use current momentum after readiness, cancel on retreat or link changes, and do not manufacture a movement segment for fresh spawns. Drone movement is committed once, while old local navigation and pending teleport requests are retired independently of targets, health, ammunition and attack state.
+
+Rounded trunks and horizontal branches retain their original block AXIS, material and NBT. Their quarter-cell mesh and collision primitives share the same shape; detached rounded corners are physically empty. The existing bounded explosion/rocket extraction path now accepts connected horizontal branches instead of rejecting them as foreign trunks. It still refuses unavailable or oversized graphs before mutation. No second destruction engine was added.
+
+| Exact source | Actual focused result | Boundary |
+| --- | --- | --- |
+| `8650bf80eda41e60ef6bead3f8862a6fe923730f` | 16 unit /44 ordinary GameTests PASS; Gradle/remap exit0 | Initial portal/ragdoll/display/warmup and thermal integration. [Independent evidence report](PORTAL_THERMAL_FOCUSED_FIRST_RESULT_2026-11-18.md). |
+| `c52379866b0f2e4d2ab23bf7f35607a90b796ce5` | 36 ordinary GameTests PASS; Gradle/remap exit0 | Real saved far-exit unload/reload, actual waiting crossing and retreat cancellation; fresh-spawn/per-face refusal plus retained portal regressions. Dedicated live-drone state and client behavior were not established by these cases. |
+| `0f723c45199dea1cf09196d165285e341e32fc73` | 13 unit PASS;18 ordinary GameTests:14 PASS,4 FAIL | Rounded-tree2, thermal9 and previous collapse3 pass. All four new drone scenarios fail; original XML/log and closed world retained. No remapped candidate was produced by this failed invocation. |
+
+The first drone failures distinguish an actual independent-head-direction capture omission, finite native angle reconstruction precision, and unresolved fixture admission/packet observations. Source `259062bd` corrects the production head capture without changing other actor frames. Follow-up drone cases and actual client traversal remain pending at this checkpoint; the first failure is not renamed a pass.
+
+These ordinary named-class server runs are distinct from native BetterCubicChunks client validation. No new client image, smooth warp, cold-world, hardware, full forest, city-scale destruction or whole-spec acceptance is claimed here. Latest successful remapped working artifact at this checkpoint is sourcec523, SHA-256 `169d9b0558d65f4e5b829b0e30fc9a54a7cdc4a4c7efea0f0aa05d4a2c2a2641`; it precedes rounded-tree and head-capture changes. The fully qualified and Telegram-published snapshot remains source0107, [post279](https://t.me/abadonsoft/279).
+
+Both primary specifications, Dynamic Boarding and the Create-style separate gun/bearing/drive direction remain binding. All99 task IDs,21 original packets and7 supplements remain in scope; partial implementations are not entire accepted packets. The separate [future rocket/bomb destruction demonstration](DESTRUCTION_DEMO_REQUEST_2026-11-18.md) remains unrecorded and will use actual gameplay, buildings and trees, with Teardown as a visual reference.

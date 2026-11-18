@@ -4040,5 +4040,21 @@
     "gameJarSHA256": "d6d66120016f4a389d87e608c00d5c5db2594d389fa00a0cb7486f669b9c6edb",
     "fullSuiteAccepted": false,
     "clientAccepted": false
+  },
+  "focusedPortalThermal8650bf80": {
+    "source": "8650bf80eda41e60ef6bead3f8862a6fe923730f",
+    "report": "docs/v8/PORTAL_THERMAL_FOCUSED_FIRST_RESULT_2026-11-18.md",
+    "unit": 16,
+    "game": 44,
+    "archiveSHA256": "2155fc3c7a2bd5358f1766681deadda6fbcabb17911aa76ebeef7f034cbbc66c",
+    "nativeClientAccepted": false
+  },
+  "focusedPortalTreeWorking20261118": {
+    "report": "docs/v8/IMPLEMENTATION_PORTAL_TREES_2026-11-18.md",
+    "evidence": "docs/v8/EVIDENCE/portal-tree-working-20261118.json",
+    "lastPassedRemappedSource": "c52379866b0f2e4d2ab23bf7f35607a90b796ce5",
+    "latestFirstFailureSource": "0f723c45199dea1cf09196d165285e341e32fc73",
+    "firstFailureRetained": true,
+    "newNativeClientAccepted": false
   }
 }

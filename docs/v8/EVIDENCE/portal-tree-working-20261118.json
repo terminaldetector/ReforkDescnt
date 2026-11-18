@@ -1,0 +1,124 @@
+{
+  "initialPortalThermal": {
+    "source": "8650bf80eda41e60ef6bead3f8862a6fe923730f",
+    "actualGradleExit": 0,
+    "timedOut": false,
+    "unit": {
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "game": {
+      "tests": 44,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "fullSuiteAccepted": false,
+    "pixelAccepted": false,
+    "passed": true,
+    "jarSHA256": "69f474f401e7decc478737426ee89d7af11de53327029bd78cc40009d90d4e45",
+    "originalRun": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/focused-8650bf80-first",
+    "closedWorldPreservation": {
+      "source": "8650bf80eda41e60ef6bead3f8862a6fe923730f",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/focused-8650bf80-first/closed-world.zip",
+      "archiveSHA256": "a9487bb19fdc48bd42cb31aee9878c588c8beee8f018b3e3da846ec40729d8e3",
+      "archiveBytes": 3434869,
+      "files": 196,
+      "originalBytes": 23405980,
+      "allocatedBytes": 23986176,
+      "fullZIPCRCAndEverySHA256": true,
+      "gzipFooters": 58,
+      "freshInodeMtimeHashInventory": true,
+      "exclusivePosixAndFlock": true,
+      "sessionLockReadOnlyThroughHeldFD": true,
+      "beforeFreeBytes": 230367232,
+      "rawWorldReclaimed": true,
+      "afterFreeBytes": 251002880
+    }
+  },
+  "pendingCrossings": {
+    "source": "c52379866b0f2e4d2ab23bf7f35607a90b796ce5",
+    "actualGradleExit": 0,
+    "timedOut": false,
+    "game": {
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "unitsRun": 0,
+    "fullSuiteAccepted": false,
+    "nativeClientAccepted": false,
+    "passed": true,
+    "jarSHA256": "169d9b0558d65f4e5b829b0e30fc9a54a7cdc4a4c7efea0f0aa05d4a2c2a2641",
+    "observerSHA256": "86e0227e87eb8c07edfeeadfff1fc633fdd9ed0aae90d3192e97ed411a1ff1aa",
+    "originalRun": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/focused-c5237986-first",
+    "closedWorldPreservation": {
+      "source": "c52379866b0f2e4d2ab23bf7f35607a90b796ce5",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/focused-c5237986-first/closed-world.zip",
+      "archiveSHA256": "731272d98bd40304a2f8392f2f3843cb9d5bb678a4241c122b0d2d8583bcbda3",
+      "archiveBytes": 3137187,
+      "files": 173,
+      "originalBytes": 22766606,
+      "allocatedBytes": 23293952,
+      "fullZIPCRCAndEverySHA256": true,
+      "gzipFooters": 47,
+      "freshInodeMtimeHashInventory": true,
+      "exclusivePosixAndFlock": true,
+      "sessionLockReadOnlyThroughHeldFD": true,
+      "beforeFreeBytes": 201265152,
+      "rawWorldReclaimed": true,
+      "afterFreeBytes": 221507584
+    }
+  },
+  "firstDroneTree": {
+    "source": "0f723c45199dea1cf09196d165285e341e32fc73",
+    "actualGradleExit": 1,
+    "timedOut": false,
+    "unit": {
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "game": {
+      "tests": 18,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0
+    },
+    "fullSuiteAccepted": false,
+    "pixelAccepted": false,
+    "passed": false,
+    "originalRun": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/focused-0f723c45-first",
+    "closedWorldPreservation": {
+      "source": "0f723c45199dea1cf09196d165285e341e32fc73",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/focused-0f723c45-first/closed-world.zip",
+      "archiveSHA256": "6382e732005cf552a8642ca3206418e0ef9393c27695707215d0e0e96eecb75f",
+      "archiveBytes": 2243137,
+      "files": 92,
+      "originalBytes": 15814531,
+      "allocatedBytes": 16072704,
+      "fullZIPCRCAndEverySHA256": true,
+      "gzipFooters": 23,
+      "freshInodeMtimeHashInventory": true,
+      "exclusivePosixAndFlock": true,
+      "sessionLockReadOnlyThroughHeldFD": true,
+      "beforeFreeBytes": 315269120,
+      "rawWorldReclaimed": true,
+      "afterFreeBytes": 329183232
+    }
+  },
+  "report": "docs/v8/IMPLEMENTATION_PORTAL_TREES_2026-11-18.md",
+  "initialEvidenceArchive": {
+    "path": "docs/v8/EVIDENCE/portal-thermal-focused-8650bf80-first-20261118.zip",
+    "sha256": "2155fc3c7a2bd5358f1766681deadda6fbcabb17911aa76ebeef7f034cbbc66c"
+  },
+  "currentUnrunHeadCaptureSource": "259062bd",
+  "newNativeClientAccepted": false,
+  "fullSuiteAccepted": false,
+  "wholePacketsAccepted": 0,
+  "readySnapshotPublished": false
+}

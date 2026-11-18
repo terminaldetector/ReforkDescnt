@@ -290,11 +290,11 @@ tasks:
   gate: G3
   depends_on_stages: &id005
   - S02
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [IMPLEMENTATION_PORTAL_TREES_2026-11-18.md]
+  notes: "Rounded-log material/AXIS propagation is implemented in0f723; engineered anchors and source material remain intact. Focused geometry13unit and actual tree2 cases pass; full material classification and transition matrix remain open."
 - id: S04-T02
   stage: S04
   stage_title: Hybrid/NoCubes meshing and LOD
@@ -302,11 +302,11 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id005
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [IMPLEMENTATION_PORTAL_TREES_2026-11-18.md]
+  notes: "Axis-aware rounded trunk/branch geometry and shared seams are implemented in0f723. Four new geometry unit and two actual world/body/explosion cases pass; full feature-aware terrain and native image/performance acceptance remain open."
 - id: S04-T03
   stage: S04
   stage_title: Hybrid/NoCubes meshing and LOD
@@ -326,11 +326,11 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id005
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [IMPLEMENTATION_PORTAL_TREES_2026-11-18.md]
+  notes: "Rounded-log world/body mesh and quarter-cell colliders share the field; actual XYZ/NBT/empty-corner and branch extraction cases pass. Thermal9 and old collapse3 regressions pass. Exact-triangle contacts, navigation/fluids/full surface matrix remain open."
 - id: S04-T05
   stage: S04
   stage_title: Hybrid/NoCubes meshing and LOD
@@ -743,11 +743,11 @@ tasks:
   owner: WEAPONS
   gate: G4
   depends_on_stages: *id011
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [IMPLEMENTATION_PORTAL_TREES_2026-11-18.md]
+  notes: "Strong-drill staged thermal circular cuts, cooling and bounded legacy drop behavior are implemented; actual thermal9 cases pass on8650 and again after shared-tree-mesh changes on0f723. Full native image, fluid and arbitrary material/6DoF acceptance remain open."
 - id: S10-T05
   stage: S10
   stage_title: Weapons, cluster, drill and building
