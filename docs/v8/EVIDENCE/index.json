@@ -4113,5 +4113,53 @@
     "packageSHA256": "205dc8892c1a80edcad1be7322d37a11f0259bc9c797999229f30174abfc51eb",
     "documentNameAndSizeReadback": true,
     "fullSpecificationsAccepted": false
+  },
+  "focusedEmbeddedPs1FixedGroups20261118": {
+    "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+    "report": "docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md",
+    "evidence": {
+      "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+      "path": "docs/v8/EVIDENCE/mob-shader-boarding-9226e7a0-focused-20261118.zip",
+      "bytes": 55307381,
+      "sha256": "5964226f89e6c30332f86f11fd38769030d38259b0ddc5a5eae0f3b6aba764fd",
+      "logicalFiles": 543,
+      "uniquePayloads": 357,
+      "sourcePostimages": 49,
+      "outerCRCAndEveryPayloadSHA256": true,
+      "runs": [
+        "focused-5047d333-first",
+        "focused-00c43052-first",
+        "focused-21559ab4-first",
+        "build-16563775-first",
+        "build-383a5e89-first",
+        "build-f5153fc3-first",
+        "build-6d932620-first",
+        "native-connected-portal-00c43052-first",
+        "native-connected-portal-16563775-first",
+        "native-connected-portal-21559ab4-first",
+        "native-connected-portal-f5153fc3-first",
+        "native-connected-portal-6d932620-first",
+        "native-cluster-input-00c43052-first",
+        "native-cluster-input-16563775-first",
+        "native-cluster-input-383a5e89-first",
+        "native-cluster-input-21559ab4-first",
+        "native-cluster-input-6d932620-first",
+        "build-c72ead54-first",
+        "focused-a65590eb-first",
+        "focused-f2b28c57-first",
+        "native-mob-geometry-c72ead54-first",
+        "native-connected-portal-f2b28c57-first",
+        "native-mob-geometry-f2b28c57-first",
+        "build-9226e7a0-first",
+        "native-connected-portal-9226e7a0-first",
+        "native-mob-geometry-9226e7a0-first"
+      ]
+    },
+    "inputParity": "docs/v8/EVIDENCE/input-parity-9226e7a0.json",
+    "wholePacketsAccepted": 0,
+    "fullSuiteAccepted": false,
+    "actualFinalPortal": "PASS",
+    "finalCleanShaderReshoot": "NONPASS",
+    "actualShaderComponent": "c72PASS;54entry exact parity"
   }
 }

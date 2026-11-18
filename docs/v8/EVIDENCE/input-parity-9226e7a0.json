@@ -1,0 +1,25 @@
+{
+  "currentGameSHA256": "65731fbda613eaf9d3babe7c54e9fe82a74ecbb65102c41342922503754bd674",
+  "actualNativeClusterSource": "6d932620c39ad78d1efc050eca9b96a1f05530e4",
+  "exactUnchangedInputHudOrdnanceClasses": [
+    "com/terminaldetector/drmd/client/hud/DescentHud$TargetInfo.class",
+    "com/terminaldetector/drmd/client/hud/DescentHud.class",
+    "com/terminaldetector/drmd/client/input/DroneCombatInput.class",
+    "com/terminaldetector/drmd/mixin/client/FlightRollKeyOwnershipMixin.class",
+    "com/terminaldetector/drmd/world/bombardment/AerialBombEntity$1.class",
+    "com/terminaldetector/drmd/world/bombardment/AerialBombEntity$PreparedPortalFrame.class",
+    "com/terminaldetector/drmd/world/bombardment/AerialBombEntity.class",
+    "com/terminaldetector/drmd/world/bombardment/BombardmentItems$BombBayItem.class",
+    "com/terminaldetector/drmd/world/bombardment/BombardmentItems$LaserDesignatorItem.class",
+    "com/terminaldetector/drmd/world/bombardment/BombardmentItems.class",
+    "com/terminaldetector/drmd/world/bombardment/ClusterBurstBudget.class",
+    "com/terminaldetector/drmd/world/bombardment/ClusterFlight.class",
+    "com/terminaldetector/drmd/world/bombardment/ClusterOrdnanceSafety$1.class",
+    "com/terminaldetector/drmd/world/bombardment/ClusterOrdnanceSafety.class",
+    "com/terminaldetector/drmd/world/bombardment/ClusterProgram$Pattern.class",
+    "com/terminaldetector/drmd/world/bombardment/ClusterProgram.class",
+    "com/terminaldetector/drmd/world/bombardment/OrdnanceType$SubmunitionPayload.class",
+    "com/terminaldetector/drmd/world/bombardment/OrdnanceType.class"
+  ],
+  "scope": "Component parity; actual earlier 2scene mouse/7-14child/native Eroll/Hoff inventory pass retained at its original source, not relabelled as a new final-JAR run"
+}

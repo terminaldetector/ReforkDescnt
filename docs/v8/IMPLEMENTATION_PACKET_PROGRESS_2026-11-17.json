@@ -48,11 +48,11 @@
         "S12-T01",
         "S12-T05"
       ],
-      "status": "partial_integrated",
+      "status": "partial_integrated_focused_pass",
       "owner": "world_content with combat_ai",
-      "source": "65370f7266cea705ebf2f9e86217031370fa2a3d",
-      "remaining": "Existing-director SUPPORT recon/ownLOS/full400warning retained in qualified653. Separate actual runtime observer536874 compiled/ABI295members PASS on historical505/917; genuine12000online+600wall writer remains unrun. No reader or broader population acceptance.",
-      "report": "docs/v8/MULTI_AGENT_INTEGRATION_65370F7_2026-11-18.md",
+      "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+      "remaining": "Quiet SUPPORT without a hostile target now reaches actual injured allies via loaded full-volume/material routes;3corrected cases PASS00c; broad autonomous3DAI remains open.",
+      "report": "docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -166,9 +166,9 @@
       ],
       "status": "partial_integrated_focused_pass",
       "owner": "gravity_ragdoll with root Boarding",
-      "source": "92b6da2e",
-      "remaining": "Actual loose-item passive solver/local field integrated;4ordinary scenariosPASS after retained first2unticked-column fixture timeouts and narrow tickets-only correction. Native lifecycle controls/translation+yaw deck/rotated airborne field pass. NativeBCC UNKNOWN/client/cold/merge-pair/playerpickup/allmobs remain open.",
-      "report": "docs/v8/IMPLEMENTATION_92B6DA2E_2026-11-18.md",
+      "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+      "remaining": "Bounded native dry adult Cow contact with moving/tilted material and separation passes3original cases00c. Weak boarding velocity cleanup passes real network-clock case215. Universal species/local fields remain open.",
+      "report": "docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -222,11 +222,11 @@
         "S09-T04",
         "S15-T03"
       ],
-      "status": "partial_integrated_focused_pass",
+      "status": "partial_native_scoped_pass",
       "owner": "world_cubic with ragdoll_limits",
-      "source": "a415729b58ab30497462bc23e8811365ee6b602e",
-      "remaining": "Initial8650 scoped16unit/44GT PASS; c52336portalGT PASS for genuine cold-exit crossing/retreat and atomic refusal; corrected3874liveDrone GT PASS after retained original4FAIL. Actuala415 integrated native BCC/Sodium held-forward6DoF20degree transit PASS with server/client frame agreement and2realPNGs. Native shipgroups/drone interpolation/MP/performance/fullpacket remain open.",
-      "report": "docs/v8/IMPLEMENTATION_PORTAL_TREES_2026-11-18.md",
+      "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+      "remaining": "Final9226 actual occupied2body FIXED portal PASS on game65731,12matchedACKs/2PNG and coherent material anchors. Protocol6 bounded same-time group prediction implemented. Original failures preserved; fullarticulated/multiplayer/persistence matrix open.",
+      "report": "docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -237,11 +237,11 @@
         "S05-T05",
         "S05-T06"
       ],
-      "status": "partial_integrated",
+      "status": "partial_integrated_focused_pass",
       "owner": "ps1_render",
-      "source": "65370f7266cea705ebf2f9e86217031370fa2a3d",
-      "remaining": "Optional hard BlockBody PS1snap/affine imported;5units in998current/full502+2sameJAR433 clients,15classes+3shader resources exact6dc component. Separate9state Sodium and actualGL32/GLSL150/noSodium image+context PASS; originalmissingcontext NONPASS retained. Near/smooth/translucent/offscreen style, lowpoly/fog/pacing/hardware remain open.",
-      "report": "docs/v8/MULTI_AGENT_INTEGRATION_65370F7_2026-11-18.md",
+      "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+      "remaining": "Embedded shader now routes scout/spider world cutout with native material phases. Actualc72 GPU3statesPASS and54exact presentation/shader entries retained final. Final clean reshoots f2removed-before-state/9226exact-STARTadmission NONPASS retained, not labelled passing. Near/Sodium/smooth/translucent/offscreen/fullPS1 remain open.",
+      "report": "docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -252,11 +252,11 @@
         "S05-T06",
         "S15-T05"
       ],
-      "status": "partial_native_scoped_pass",
+      "status": "partial_integrated_focused_pass",
       "owner": "ps1_render",
-      "source": "56c0049f37ffee5b989df092b26093ac871222b0",
-      "remaining": "Actual Pyro LOW_POLY32→17cuboids and independent opt-in existing-loop cap implemented/persisted.6pure casesPASS; actual BCC/Sodium/MesaGL3.3 32/17/32models and cap30/10/30,3realPNGs/natural ticks PASS. First fixture registrationFAIL retained. Other assets/nativeUI/debug/offscreen/hardware/full packet and existing LOD/sky defects remain open.",
-      "report": "docs/v8/IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md",
+      "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+      "remaining": "Additional scout6→4/spider12→8coarse baked variants retain rig/UV;2actual baked testsPASS5047. Final c72shader scene intentionally uses original6/12meshes; enabled coarse GPU matrix open.",
+      "report": "docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -293,11 +293,11 @@
       "taskIds": [
         "S10-T03"
       ],
-      "status": "partial_integrated_focused_pass",
+      "status": "partial_native_scoped_pass",
       "owner": "combat_ai",
-      "source": "ba30a2c907338c2d8ffc370ede3ec384057b56aa",
-      "remaining": "Actual programmed7/14carrier forward/down banks, FAN/RING/STAGGER stages, NBT/portal basis, arming/finite child life/budgets/damage/defuse and renderer implemented.7units/21actualGT PASS after preserved3firstFAIL. Native FP/model/input, separate cold-process/highspeedwire/MP and fullpacket remain open.",
-      "report": "docs/v8/IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md",
+      "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+      "remaining": "Actual native6d two socket-only mouse transactions,7/14children, Eroll then Hoff/ordinaryEinventory PASS. Final18input/HUD/ordnance classes byte-identical. HUD now reads actual banks/programs. Fullheld/free/mounted/persistence/perf remains open.",
+      "report": "docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -526,14 +526,23 @@
       "correctedGames": "ba30a2c9:7unit21GTallPASS",
       "native": "56c0049f:3statesPASS; originalba3phase0FAILretained",
       "fullSuiteRerun": false
+    },
+    "embeddedPs1FixedGroups": {
+      "source": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
+      "mainSHA256": "65731fbda613eaf9d3babe7c54e9fe82a74ecbb65102c41342922503754bd674",
+      "server": "a65511unitPASS13/14GT; f2b corrected6GTallPASS, main/unit source identical",
+      "portalNative": "9226PASS",
+      "shaderNative": "c72PASS component54entry parity; f2/9226reshootNONPASS",
+      "clusterNative": "6dPASS component18class parity",
+      "fullSuiteRerun": false
     }
   },
-  "canonicalPreparedSource": "56c0049f37ffee5b989df092b26093ac871222b0",
+  "canonicalPreparedSource": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
   "preparedSourceNotYetFullRuntimeAccepted": true,
   "liveLedgerCounts": {
+    "in_progress": 40,
+    "pending_reverification": 56,
     "completed": 3,
-    "in_progress": 39,
-    "pending_reverification": 57,
     "total": 99
   },
   "currentPrimarySpecifications": [
@@ -544,7 +553,7 @@
     "Dynamic Boarding / BlockBody",
     "Create-style separate gun, bearing and drive"
   ],
-  "latestFocusedEvidence": "docs/v8/IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md",
+  "latestFocusedEvidence": "docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md",
   "validationPreference": "User prioritizes concrete implementation and focused checks on actual changes over diagnostic-only loops; portal traversal first.",
   "directFutureRequests": [
     {
@@ -565,5 +574,6 @@
     "changelog": "https://t.me/abadonsoft/285",
     "actualScreenshots": "https://t.me/abadonsoft/287"
   },
-  "latestFocusedServerSource": "ba30a2c907338c2d8ffc370ede3ec384057b56aa"
+  "latestFocusedServerSource": "f2b28c57b77cbdfb8a618ef9193a5f7b2fb9116a",
+  "ps1Meaning": "Shader/render pipeline embedded in the mod; coarse meshes alone do not complete PS1"
 }
