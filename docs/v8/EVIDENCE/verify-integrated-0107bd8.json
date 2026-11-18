@@ -1,0 +1,26 @@
+{
+  "source": "0107bd85e028b8aa0c035206848caf63f6c78632",
+  "archiveSha256": "10edf3e21cac3d7a0f2b817f7bbf629e10f162ed7cfaa3676563236ce755faba",
+  "independentFreshReader": true,
+  "payloads": 220,
+  "unitCases": 1013,
+  "gameCases": 513,
+  "uniqueCases": true,
+  "zeroFailuresErrorsSkips": true,
+  "sourcePostimages": 36,
+  "png": 40,
+  "depthArrays": 10,
+  "allPayloadCRCAndSHA256": true,
+  "jars": {
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": {
+      "archivedAt": "work/multi-agent/integrated-0107bd8/artifacts/drmd-6dof-1.1.35-ufo-dev.1.jar",
+      "sha256": "ddfd49e5d9ba838de5e5835e6b1da6d0f63c773398c600c048c96902deec5387"
+    },
+    "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": {
+      "archivedAt": "work/multi-agent/integrated-0107bd8/artifacts/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar",
+      "sha256": "86e0227e87eb8c07edfeeadfff1fc633fdd9ed0aae90d3192e97ed411a1ff1aa"
+    }
+  },
+  "firstReaderPathErrorPreserved": "work/multi-agent/integrated-0107bd8/independent-reader-first-path-error.json",
+  "fullSpecAccepted": false
+}

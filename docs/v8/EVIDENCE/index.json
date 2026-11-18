@@ -94,7 +94,14 @@
     "surface-byte-readback-20ef2c4.py": "eff0cefc9d352f791ab3b484ee23fee4a8a26ec340403cab1d4cfe0a5e2df5ac",
     "surface-byte-readback-20ef2c4.json": "2031d6fe8f2bb1684d5271a6ea8f1f461c9283d5addfac09e323911e3a5c83ce",
     "integrated-5057931.zip": "faa4c5e1fb95f3e3947418f1ea6b17d785fdf39ceb88cc0db8226efb63546cd5",
-    "saved-registry-u01-b8c0f23a.zip": "a647ee396b2856c08e979784956afd6d24d04529c2b6e2b7ffe80caf02ad87db"
+    "saved-registry-u01-b8c0f23a.zip": "a647ee396b2856c08e979784956afd6d24d04529c2b6e2b7ffe80caf02ad87db",
+    "integrated-0107bd8.zip": "10edf3e21cac3d7a0f2b817f7bbf629e10f162ed7cfaa3676563236ce755faba",
+    "integrated-0107bd8.json": "b304492a53c5fe3bb7f1dcbe88b31428dfa4b16c4710b6f2341ac154e6afec94",
+    "verify-integrated-0107bd8.json": "7fb6d1d123ce9ac9af09d553df069372131ad82f5a12d5dad61a697ab48db9b0",
+    "native-0107-closed-preserved.json": "8e43e0880e3f554c1aabb5b92a2b7a8d273417350cbcea3876cc60283807a0d2",
+    "legacy-actor-frames-fixtures-preserved-20261118.json": "1bd6c0e00cebc7145d09592a41fdf096187013d8b6076a1b7983a5482abfe247",
+    "telegram-abadonsoft-0107bd8.json": "281cf1bd82e063d60e2bdbf0596bcaec6b11d20a4e65a42a03c697e3ff519e97",
+    "telegram-abadonsoft-0107bd8-readback.json": "45dfe837b14ba63f8dc81f6dc7e42308f999b97ec5f8e44814de83ba3b13261a"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -3795,27 +3802,26 @@
     "fullSpecificationAccepted": false
   },
   "latestCanonicalCombined": {
-    "source": "65370f7266cea705ebf2f9e86217031370fa2a3d",
-    "report": "../MULTI_AGENT_INTEGRATION_65370F7_2026-11-18.md",
+    "source": "0107bd85e028b8aa0c035206848caf63f6c78632",
+    "report": "../MULTI_AGENT_INTEGRATION_0107BD8_2026-11-18.md",
     "counts": {
       "unit": {
-        "tests": 998,
+        "tests": 1013,
         "failures": 0,
         "errors": 0,
         "skipped": 0
       },
       "game": {
-        "tests": 502,
+        "tests": 513,
         "failures": 0,
         "errors": 0,
         "skipped": 0
       }
     },
     "sameJarNativeClients": 2,
-    "exactSourcePostimagesInArchive": 46,
-    "remappedEquivalence": "integrated-65370f7.zip:component-remapped-equivalence-classified.json",
-    "rawPacketDiskAndAaReadback": "verify-integrated-65370f7.json",
-    "closedSavePreservation": "integrated-65370f7.zip:native-saves/receipt.json",
+    "exactSourcePostimagesInArchive": 36,
+    "independentReadback": "verify-integrated-0107bd8.json",
+    "peerReview": "../INTEGRATED_0107_INDEPENDENT_CPU_REVIEW_2026-11-18.json",
     "fullSpecificationAccepted": false
   },
   "multiAgentIntegration5057931": {
@@ -3979,5 +3985,38 @@
     "removedOldCases": 0,
     "fullSpecAccepted": false,
     "wholePacketsAccepted": 0
+  },
+  "multiAgentIntegration0107bd8": {
+    "source": "0107bd85e028b8aa0c035206848caf63f6c78632",
+    "archive": "docs/v8/EVIDENCE/integrated-0107bd8.zip",
+    "bytes": 8331132,
+    "sha256": "10edf3e21cac3d7a0f2b817f7bbf629e10f162ed7cfaa3676563236ce755faba",
+    "payloads": 220,
+    "allCRCAndSHA256": true,
+    "units": 1013,
+    "games": 513,
+    "entries": 87,
+    "sameJarClients": 2,
+    "frames": 40,
+    "sourcePaths": 36,
+    "actualNewUnitCases": 15,
+    "actualNewGameCases": 11,
+    "removedOldCases": 0,
+    "fullSpecAccepted": false,
+    "wholePacketsAccepted": 0
+  },
+  "telegramSnapshot0107bd8": {
+    "channel": "https://t.me/abadonsoft",
+    "changelogMessage": 275,
+    "screenshotMessages": [
+      276,
+      277,
+      278
+    ],
+    "buildMessage": 279,
+    "format": "ZIP with exact tested JAR",
+    "source": "0107bd85e028b8aa0c035206848caf63f6c78632",
+    "receipt": "telegram-abadonsoft-0107bd8.json",
+    "fullSpecificationAccepted": false
   }
 }

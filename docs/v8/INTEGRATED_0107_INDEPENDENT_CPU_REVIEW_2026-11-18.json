@@ -1,0 +1,787 @@
+{
+  "reviewerTree": "/workspace/ungravity-v5/gravity-roster",
+  "reviewerSourceBefore": "43d3d1e828771f569ad8754473c5428712a1a2c1",
+  "rootQualifiedSource": "0107bd85e028b8aa0c035206848caf63f6c78632",
+  "rootHeadAtReview": "0107bd85e028b8aa0c035206848caf63f6c78632",
+  "noRootWritesOrJavaByReview": true,
+  "archivedDepthLifecycle": {
+    "receipt": "work/multi-agent/native-0107-closed-preserved/receipt.json",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/docs/v8/EVIDENCE/integrated-0107bd8.zip",
+    "archiveSHA256": "10edf3e21cac3d7a0f2b817f7bbf629e10f162ed7cfaa3676563236ce755faba",
+    "allArchiveCRCsVerified": true,
+    "tenDepthSHA256AndFiniteRangeVerified": true,
+    "liveArraysReclaimedAfterSeal": true
+  },
+  "reviewParserCalibration": [
+    {
+      "classification": "CPU_REVIEW_COPY_MTIME_ASSUMPTION; NOT_GAME_TEST_FAILURE",
+      "initialAssertion": "Copied retained XML mtime equals recorded original report mtime",
+      "recordedOriginalMtimeNs": 1794996373785894654,
+      "retainedCopyMtimeNs": 1794996386006178646,
+      "originalExists": true,
+      "recordedRunStartNs": 1794995922768164314,
+      "currentOriginalMtimeNs": 1794996373785894654,
+      "contentEqualToOriginal": true,
+      "copySHA256": "79f1e706195d5d25394de29bacd2b27ea5e6fd835a952a2a91ce381399756f5f",
+      "noRootSourceOrResultChanged": true
+    },
+    {
+      "classification": "CPU_REVIEW_LIVE_DEPTH_ASSUMPTION; NOT_GAME_TEST_FAILURE",
+      "initialAssertion": "Ten depth arrays remain expanded in original live runtime directories",
+      "actualLiveDepthCount": 0,
+      "actualPreservedDepthCount": 10,
+      "preservationReceipt": "work/multi-agent/native-0107-closed-preserved/receipt.json",
+      "rootConfirmedLifecycle": "Safely archived and CRC/SHA read back before reclaim; all ten retained byte for byte",
+      "correction": "Verify original-path archive member bytes against exact preservation receipt, preserving every prior runtime outcome",
+      "noRootSourceOrResultChanged": true
+    }
+  ],
+  "status": "CPU_REVIEW_PASS_WITH_RETAINED_SPECIALIZED_LIMITS",
+  "fullRun": {
+    "oldUnitIDs": 998,
+    "actualUnitIDs": 1013,
+    "oldGameIDs": 502,
+    "actualGameIDs": 513,
+    "missingUnitIDs": [],
+    "missingGameIDs": [],
+    "newUnitIDs": [
+      [
+        "com.terminaldetector.drmd.LocalSurfaceMotionTest",
+        "inactiveOrUnprovedSprintFramesDelegateTheSameNativeImpulseObject()"
+      ],
+      [
+        "com.terminaldetector.drmd.LocalSurfaceMotionTest",
+        "allCardinalJumpsReplaceNormalWithActualStrengthAndConserveBothTangentComponents()"
+      ],
+      [
+        "com.terminaldetector.drmd.LocalSurfaceMotionTest",
+        "ordinaryJumpUnprovedFramesAndUnexpectedNativeWritesRetainExactNativeResult()"
+      ],
+      [
+        "com.terminaldetector.drmd.LocalSurfaceMotionTest",
+        "ordinaryCeilingJumpPointsAwayFromRoofWithoutTurningExistingTangent()"
+      ],
+      [
+        "com.terminaldetector.drmd.LocalSurfaceMotionTest",
+        "nativeSprintAdditionUsesLiteralCardinalPermutationsAndRetainsMagnitude()"
+      ],
+      [
+        "com.terminaldetector.drmd.LocalSurfaceMotionTest",
+        "combinedCeilingJumpAndSprintAddOnlyTheFreshNativeImpulse()"
+      ],
+      [
+        "com.terminaldetector.drmd.TeleportAbilityStateTest",
+        "aLateHitInvalidatesTheAlreadyQueuedCommitWithoutGrantingAnotherStart()"
+      ],
+      [
+        "com.terminaldetector.drmd.TeleportAbilityStateTest",
+        "malformedOrInconsistentSavedCountersCannotCreateAuthority()"
+      ],
+      [
+        "com.terminaldetector.drmd.TeleportAbilityStateTest",
+        "everyPendingSaveCancelsSafelyInsteadOfReplayingAnUnseenWarning()"
+      ],
+      [
+        "com.terminaldetector.drmd.TeleportAbilityStateTest",
+        "finiteRecoveryAndCooldownResumeOrdinaryGunThenAbilityWithoutDeadlineExtension()"
+      ],
+      [
+        "com.terminaldetector.drmd.TeleportAbilityStateTest",
+        "backwardTimeAndRepeatedTicksCannotEraseTheInterruptOpportunity()"
+      ],
+      [
+        "com.terminaldetector.drmd.TeleportAbilityStateTest",
+        "additionalHitsCannotExtendTheFixedRecoveryIntoAnInfiniteStun()"
+      ],
+      [
+        "com.terminaldetector.drmd.TeleportAbilityStateTest",
+        "aVisibleWarningGetsTwentyDistinctNormalTicksBeforeOneCommitTicket()"
+      ],
+      [
+        "com.terminaldetector.drmd.TeleportCandidateBasisTest",
+        "verticalAndRolledFlightRetainsFiveDistinctFiniteBoundedEndpoints()"
+      ],
+      [
+        "com.terminaldetector.drmd.TeleportCandidateBasisTest",
+        "invalidPoseOrRadiusDoesNotInventAnEndpoint()"
+      ]
+    ],
+    "newGameIDs": [
+      [
+        "fabric-gametest-api-v1:empty",
+        "teleportflyergametests.arealmovingprojectileconsumesdefenseandinterruptsratherthanbeingevaded"
+      ],
+      [
+        "fabric-gametest-api-v1:empty",
+        "teleportflyergametests.defaultowntargetwarnsfortwentyticksthenrelocatesandresumesrealflightfire"
+      ],
+      [
+        "fabric-gametest-api-v1:empty",
+        "teleportflyergametests.thirtythreereallivingoccupantstriggertheboundedrefusalsentinel"
+      ],
+      [
+        "fabric-gametest-api-v1:empty",
+        "teleportflyerdatagametests.independentdefaultandcompressedpendingfuturestatenevergrantloadteleport"
+      ],
+      [
+        "fabric-gametest-api-v1:empty",
+        "teleportflyergametests.realmaterialplacedatthewarnedexitrefuseswithoutenergyorrelocation"
+      ],
+      [
+        "fabric-gametest-api-v1:empty",
+        "teleportflyergametests.realcoverconcealsthetargetandcancelswithouthiddenendpointretargeting"
+      ],
+      [
+        "fabric-gametest-api-v1:empty",
+        "teleportflyergametests.arealrotatingmovinghullatthelockedexitischeckedinthefreshendphase"
+      ],
+      [
+        "fabric-gametest-api-v1:empty",
+        "teleportflyerdatagametests.actualregisteredresourcereservationrefundsrefusalandexception"
+      ],
+      [
+        "fabric-gametest-api-v1:empty",
+        "teleportflyerwreckgametests.thecoarsewreckboxdoesnotpretendtobemeshexactortunnelthrougharealwall"
+      ],
+      [
+        "fabric-gametest-api-v1:empty",
+        "teleportflyerdatagametests.fullvolumeadmissioncannotloadanunknowndestination"
+      ],
+      [
+        "fabric-gametest-api-v1:empty",
+        "teleportflyerwreckgametests.anactuallethalprojectileattheadmittedendpointcreatesonematchingtickedreloadablecorpse"
+      ]
+    ],
+    "oldUnitIDHash": "7d1c2fc6beced620ace85923362382d5db21fe728e583429356d990551d0254d",
+    "actualUnitIDHash": "257c5fa79a7dd61d955a640c753352a43c1dc1eca4e6700c47af4a4ebd81e1c6",
+    "oldGameIDHash": "761fa85bba42abce1d5e1846be4676e430ff1444ec0a4804e520a7f6bd104dc6",
+    "actualGameIDHash": "9103605cc412df5db3d971fe36787ac88cd39dabcb9961a3fb54c6ce890d9773",
+    "duplicateIDs": false,
+    "freshUnitSuites": 159,
+    "earliestUnitTimestamp": "2026-11-18T09:59:01",
+    "latestUnitTimestamp": "2026-11-18T09:59:14",
+    "gameFreshness": {
+      "gameReportExists": true,
+      "startNs": 1794995922768164314,
+      "gameReportMtimeNs": 1794996373785894654
+    },
+    "allSourceInputHashesStillMatch": true,
+    "sourceFileCount": 1656,
+    "unitArchiveSHA256": "c97a218f03c8e034878506925588175189965b490cc80a444fac5c1df454794d",
+    "gameXMLSHA256": "79f1e706195d5d25394de29bacd2b27ea5e6fd835a952a2a91ce381399756f5f",
+    "noSkippedErrorsFailures": true,
+    "actualOuterAndGradleExits": 0,
+    "retentionScope": "Exact (classname,name) ID multiset retention, not a claim that all historical test source bytes are unchanged."
+  },
+  "ordinaryRegistration": {
+    "oldEntrypoints": 84,
+    "currentEntrypoints": 87,
+    "newEntrypoints": [
+      "com.terminaldetector.drmd.TeleportFlyerDataGameTests",
+      "com.terminaldetector.drmd.TeleportFlyerGameTests",
+      "com.terminaldetector.drmd.TeleportFlyerWreckGameTests"
+    ],
+    "allOldRetained": true,
+    "duplicates": false,
+    "allResolveToFrozenOrdinaryGametestSources": true,
+    "all87DiagnosticNamespaceScanClean": true,
+    "newSourceCounts": [
+      3,
+      6,
+      2
+    ],
+    "noOwnOrClientDiagnosticEntrypointOrNewDelegate": true,
+    "entrypointUnionSHA256": "7f412490b79b7b942f1e4f81132b6e60369ea900f51d3d13abaa18583e3b2540"
+  },
+  "qualifiedJumpComponents": [
+    {
+      "class": "com/terminaldetector/drmd/world/gravity/LocalSurfaceMotion.class",
+      "namedSHA256": "955b998002f7291c0536bc3f5941ebe2f1953154743b9cf64b436d54fc95f607",
+      "remappedSHA256": "793dc84d4b4ce866775a5eb9ac4e368d02134d6c410ee4afeadf90f88cbe8372",
+      "qualifiedComponentMainSHA256": "443a059c243e5dcbfd131d1981af218adb3e46845fb2038e095b2de5eee5d986",
+      "namedAndRemappedByteIdentical": true
+    },
+    {
+      "class": "com/terminaldetector/drmd/mixin/LocalSurfaceJumpMixin.class",
+      "namedSHA256": "b037ec1bfc86a37690615e91b9d23cf2c92d680755717a8e015faf429bbf6422",
+      "remappedSHA256": "d9211eb4ef368a6318acff1dc98032232582de60e5b3950988205a32c2cf2fa9",
+      "qualifiedComponentMainSHA256": "443a059c243e5dcbfd131d1981af218adb3e46845fb2038e095b2de5eee5d986",
+      "namedAndRemappedByteIdentical": true
+    }
+  ],
+  "lightQuickReview": {
+    "sourceMatchesComponent2349AndImportB9": true,
+    "namedClassMatchesComponent": true,
+    "namedSHA256": "73dedf8bffe65f8cde7aa0d7c125462d1bdabd29890d2620694f663c2b4acc72",
+    "firstTCPChildExits": {
+      "stager": 0,
+      "client": 0,
+      "server": 0,
+      "display": 0
+    },
+    "firstStrictWrapperCode": 2,
+    "retainedReadinessScope": "NOT CLAIMED; required control absent",
+    "reason": "Required genuine loaded-empty0 control absent; nonempty matched counterfactual retained; no whole readiness promotion"
+  },
+  "actualArtifacts": [
+    {
+      "path": "work/multi-agent/integrated-0107bd8/artifacts/drmd-6dof-1.1.35-ufo-dev.1.jar",
+      "sha256": "ddfd49e5d9ba838de5e5835e6b1da6d0f63c773398c600c048c96902deec5387",
+      "bytes": 2975325
+    },
+    {
+      "path": "work/multi-agent/integrated-0107bd8/artifacts/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar",
+      "sha256": "86e0227e87eb8c07edfeeadfff1fc633fdd9ed0aae90d3192e97ed411a1ff1aa",
+      "bytes": 652448
+    }
+  ],
+  "nativeClients": [
+    {
+      "kind": "arrival",
+      "scenario": "cubic-surface-arrival-integrated-0107bd8-sodium",
+      "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-surface-arrival-final-cubic-surface-arrival-integrated-0107bd8-sodium",
+      "helperExit": 0,
+      "javaExit": 0,
+      "sameExactJars": true,
+      "bccAndSodiumActualHashVerified": true,
+      "pngs": [
+        {
+          "path": "surface-arrival-frames/final-pass.png",
+          "sha256": "0d6fbd4c3435d913cccbcc764b57b8b2b08dde2bbcf1d3163d36e041b8c911cb",
+          "bytes": 95434,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "surface-arrival-frames/low-black-before-arrival.png",
+          "sha256": "7f8443bc5eaf4cdc296dcd525fcd6c8f93f069fc0dd08e047627abec845c8f44",
+          "bytes": 85695,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        }
+      ],
+      "depths": []
+    },
+    {
+      "kind": "presentation",
+      "scenario": "ps1-color-integrated-0107bd8-sodium",
+      "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-0107bd8-sodium",
+      "helperExit": 0,
+      "javaExit": 0,
+      "sameExactJars": true,
+      "bccAndSodiumActualHashVerified": true,
+      "pngs": [
+        {
+          "path": "presentation-frames/debug-wireframe-world-before-overlays.png",
+          "sha256": "239da42ab1975b43fc5f8fdfe3278d0ed61e49d1a294a788bc173a332a651a5a",
+          "bytes": 398019,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "presentation-frames/debug-wireframe.png",
+          "sha256": "08c6f5fd7b58105d9829caf06cfe2ddf9082c7deaada4311f48bf296c17d7800",
+          "bytes": 291492,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "presentation-frames/native-baseline.png",
+          "sha256": "76d9d3ba95adaf6eb0a1176deabf30c0c8fb38e671e8d14c99740020293e80d9",
+          "bytes": 161377,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "presentation-frames/native-restored.png",
+          "sha256": "400f24c8d68ff5d90087a928eb0e83e56aa93654ae6524dd50d8b859eb4439ac",
+          "bytes": 145768,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "presentation-frames/native-window-restored.png",
+          "sha256": "d348d5edf8df138cd970688f4d9ccb25ebcb9e544f5c39860dfbd3dc87f5bd91",
+          "bytes": 143054,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "presentation-frames/ps1-180-resized-world-before-overlays.png",
+          "sha256": "cabda1204fb687fc82922f39c244f0c62306e09806e9fa3a835b474ab17761f7",
+          "bytes": 52747,
+          "size": [
+            960,
+            540
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "presentation-frames/ps1-180-resized.png",
+          "sha256": "0a0521c1aea42300c343eb8d53e12685e9dde706392b0a555c4d582d0d719929",
+          "bytes": 87259,
+          "size": [
+            960,
+            540
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "presentation-frames/ps1-360-world-before-overlays.png",
+          "sha256": "3ba66774cfce8638e8a30d5e4c5c8b38e791144864526ed03e45f6afd65e3aed",
+          "bytes": 114530,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "presentation-frames/ps1-360.png",
+          "sha256": "9202dd5d0135031a560f0c00d6679639e6f651d709771e932d646e2ee5980c8e",
+          "bytes": 154390,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/dither32/final.png",
+          "sha256": "59f6de9a52f2d81b7bed5a2cbb4b2ef708dfd015bcfb536c8e5d8a28f75ebb56",
+          "bytes": 158508,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/dither32/source.png",
+          "sha256": "582677ecf2ad67ebc4e6955b58be9f858ecde04b2353a8685dc196585fbf32f6",
+          "bytes": 64478,
+          "size": [
+            640,
+            360
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/dither32/world-before-overlays.png",
+          "sha256": "6e1c1c21f504209ba9ddf36bda49f226e08494107b99a3958f519beca3b52299",
+          "bytes": 114611,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/dither32-resized/final.png",
+          "sha256": "5adb8f9ef005108d0533f2a605b8037915e833e25593dc67f3f0d5f73ce0ef24",
+          "bytes": 87640,
+          "size": [
+            960,
+            540
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/dither32-resized/source.png",
+          "sha256": "a0c6df5fd16234d7ab959f2f1c805bfbd24cf1b08be4664dd4fda9af96eb63f2",
+          "bytes": 33220,
+          "size": [
+            320,
+            180
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/dither32-resized/world-before-overlays.png",
+          "sha256": "235382046798bd49b78cb854d138de379a67ae27048d4403c2b118bbedd75bed",
+          "bytes": 52756,
+          "size": [
+            960,
+            540
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/palette32/final.png",
+          "sha256": "56230632046f397ddd47d873e814639b9b37b50fc10a49c79497ed96fc99a710",
+          "bytes": 105502,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/palette32/source.png",
+          "sha256": "91088ec4905e0391957cd9bd7ab6031ebc2c2e59590fedd5fd7aed72087fe5a6",
+          "bytes": 64421,
+          "size": [
+            640,
+            360
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/palette32/world-before-overlays.png",
+          "sha256": "d9b4e0db398ba97672809963a80aec55d72bb64f8e54908e1c4c03ae4aa1bca8",
+          "bytes": 66597,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/raw256/final.png",
+          "sha256": "e53d0b0a5d92273a739ac15fd114be1ee416bcf00ae0cab89dc732f35cbbd921",
+          "bytes": 134116,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/raw256/source.png",
+          "sha256": "94d60ca62f2eab744d3dff0b218b2bbdde7a007fd28418aadf397b97dfffba20",
+          "bytes": 64423,
+          "size": [
+            640,
+            360
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/raw256/world-before-overlays.png",
+          "sha256": "c5abd4d3ba2768378b43e3b1712fb8e0c7cceb22390dec8451fe3f2c08356230",
+          "bytes": 97604,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/raw256-restored/final.png",
+          "sha256": "30ddc4d00ccd71606dc7b10d6ce90eeaaecfbf5f0d316a4818de4b8e4f31eca8",
+          "bytes": 126903,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/raw256-restored/source.png",
+          "sha256": "3d4e34af6f0e5b3756bbf37c9da92f8a473c96f12f1622c8a265d767060563aa",
+          "bytes": 64586,
+          "size": [
+            640,
+            360
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "ps1-color-reference/raw256-restored/world-before-overlays.png",
+          "sha256": "184bb17e2d40a88ba4bde9a1271d30b9785fbd03af67cbbe1d8ece71abdae513",
+          "bytes": 97689,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "viewmodel-proof/native-cockpit-after.png",
+          "sha256": "a9164ed5d5eed84e24f7fde7c1f6e069afcb463fcb3fe215c0899be7ff71105d",
+          "bytes": 93634,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "viewmodel-proof/native-cockpit-before.png",
+          "sha256": "3f758389ad449feb717c99b1d23bf0f76b0f5325da630978607367be8be80da5",
+          "bytes": 101332,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "viewmodel-proof/native-final.png",
+          "sha256": "76d9d3ba95adaf6eb0a1176deabf30c0c8fb38e671e8d14c99740020293e80d9",
+          "bytes": 161377,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "viewmodel-proof/native-gold-layer-after-1.png",
+          "sha256": "e6cc07d9553a5e25a00204a83c58975f81e58358400e8891d245cefe69389e54",
+          "bytes": 94635,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "viewmodel-proof/native-gold-layer-before-1.png",
+          "sha256": "a9164ed5d5eed84e24f7fde7c1f6e069afcb463fcb3fe215c0899be7ff71105d",
+          "bytes": 93634,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "viewmodel-proof/ps1-cockpit-after.png",
+          "sha256": "63587071d09170f0adf91defe6605629b815a555cfa9b2ca296e67352b63ed71",
+          "bytes": 106669,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "viewmodel-proof/ps1-cockpit-before.png",
+          "sha256": "46b8cd7bb88fe238114b501c0c6a29cc9534185a413d08074bf3fd3129726175",
+          "bytes": 113791,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "viewmodel-proof/ps1-final.png",
+          "sha256": "5e6fe4ddfabf626e73b9352d2e0dbce69e16556bc1f3f261626d7455e239ea74",
+          "bytes": 156735,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "viewmodel-proof/ps1-gold-layer-after-1.png",
+          "sha256": "aad99ecff3d7243e5246ec48260801376d37e61aa83991afeadcf4a4c18edb22",
+          "bytes": 107764,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "viewmodel-proof/ps1-gold-layer-before-1.png",
+          "sha256": "63587071d09170f0adf91defe6605629b815a555cfa9b2ca296e67352b63ed71",
+          "bytes": 106669,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "viewmodel-proof/ps1-overlay-1-after.png",
+          "sha256": "46b8cd7bb88fe238114b501c0c6a29cc9534185a413d08074bf3fd3129726175",
+          "bytes": 113791,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "viewmodel-proof/ps1-overlay-1-before.png",
+          "sha256": "46b8cd7bb88fe238114b501c0c6a29cc9534185a413d08074bf3fd3129726175",
+          "bytes": 113791,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "viewmodel-proof/ps1-overlay-2-after.png",
+          "sha256": "63587071d09170f0adf91defe6605629b815a555cfa9b2ca296e67352b63ed71",
+          "bytes": 106669,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        },
+        {
+          "path": "viewmodel-proof/ps1-overlay-2-before.png",
+          "sha256": "46b8cd7bb88fe238114b501c0c6a29cc9534185a413d08074bf3fd3129726175",
+          "bytes": 113791,
+          "size": [
+            1280,
+            720
+          ],
+          "crcAndCompressedPixelsValid": true
+        }
+      ],
+      "depths": [
+        {
+          "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/dither32-resized/main-depth.f32",
+          "sha256": "922acb43699e16f0c449d9c15c189c7ed352c2661caea140393e53e1717b1c80",
+          "samples": 518400,
+          "minimum": 0.9786998629570007,
+          "maximum": 1.0,
+          "storage": "Verified preserved ZIP member; live derived array reclaimed"
+        },
+        {
+          "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/dither32-resized/source-depth.f32",
+          "sha256": "8ca5343a85df754ba59e5e3a7552b07eca83cabc4d3cad344a0a4746c1c70695",
+          "samples": 57600,
+          "minimum": 0.978699803352356,
+          "maximum": 1.0,
+          "storage": "Verified preserved ZIP member; live derived array reclaimed"
+        },
+        {
+          "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/dither32/main-depth.f32",
+          "sha256": "064ad0bd0530766ff4c76bfb67feaa7014f1a472bcd24fb492b851a1cea3ae5b",
+          "samples": 921600,
+          "minimum": 0.9786397814750671,
+          "maximum": 1.0,
+          "storage": "Verified preserved ZIP member; live derived array reclaimed"
+        },
+        {
+          "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/dither32/source-depth.f32",
+          "sha256": "19a3319bfcb02013dddb58da7bcd74203d7287168a9e1c1e9370a13bc7d13242",
+          "samples": 230400,
+          "minimum": 0.9786397218704224,
+          "maximum": 1.0,
+          "storage": "Verified preserved ZIP member; live derived array reclaimed"
+        },
+        {
+          "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/palette32/main-depth.f32",
+          "sha256": "ba2b6c2f4de19b6d1f9f1ba4ff7b98fa72ae58f687db4b3efdf856d1ae70034e",
+          "samples": 921600,
+          "minimum": 0.9786397814750671,
+          "maximum": 1.0,
+          "storage": "Verified preserved ZIP member; live derived array reclaimed"
+        },
+        {
+          "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/palette32/source-depth.f32",
+          "sha256": "ffeda8d4214fca3acc66cfe15c6135b05ba405ac6765bd55b731146b466eb5c3",
+          "samples": 230400,
+          "minimum": 0.9786397218704224,
+          "maximum": 1.0,
+          "storage": "Verified preserved ZIP member; live derived array reclaimed"
+        },
+        {
+          "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/raw256-restored/main-depth.f32",
+          "sha256": "958c82b2accda6e8b21ceebe48fe30c0d86b8cdad9c35f96b1d5aaccd7378a8c",
+          "samples": 921600,
+          "minimum": 0.9786397814750671,
+          "maximum": 1.0,
+          "storage": "Verified preserved ZIP member; live derived array reclaimed"
+        },
+        {
+          "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/raw256-restored/source-depth.f32",
+          "sha256": "3ca493cf26c00629cdaf87feb702724c0e4431f88100072a62a742df5e02d393",
+          "samples": 230400,
+          "minimum": 0.9786397218704224,
+          "maximum": 1.0,
+          "storage": "Verified preserved ZIP member; live derived array reclaimed"
+        },
+        {
+          "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/raw256/main-depth.f32",
+          "sha256": "52b15bdfd649ccaec43bffa762082b2e7608c6a1629481505d8b6bc4adaa71b1",
+          "samples": 921600,
+          "minimum": 0.9786397814750671,
+          "maximum": 1.0,
+          "storage": "Verified preserved ZIP member; live derived array reclaimed"
+        },
+        {
+          "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/raw256/source-depth.f32",
+          "sha256": "d0bdacd4d3f9dc72b7fec1906aa0d83e6a00af68046f52c701ca078e02ba449a",
+          "samples": 230400,
+          "minimum": 0.9786397218704224,
+          "maximum": 1.0,
+          "storage": "Verified preserved ZIP member; live derived array reclaimed"
+        }
+      ]
+    }
+  ],
+  "nativeReceiptSummary": {
+    "source": "0107bd85e028b8aa0c035206848caf63f6c78632",
+    "sameJars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "ddfd49e5d9ba838de5e5835e6b1da6d0f63c773398c600c048c96902deec5387",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "86e0227e87eb8c07edfeeadfff1fc633fdd9ed0aae90d3192e97ed411a1ff1aa"
+    },
+    "actualPairExit": 0,
+    "pngs": 40,
+    "depthArrays": 10,
+    "arrivalScope": "Actual saved black observation repair, not first-ever ingestion or generic migration",
+    "arrivalCell": {
+      "height": 2301,
+      "colour": 16445005
+    },
+    "ps1ReferenceStates": 5,
+    "rgbAgreementAll": 1.0,
+    "viewmodelProjectedDeltaPixels": 0.0,
+    "actualGL": "3.3 (Core Profile) Mesa 25.0.7-2+deb13u1"
+  },
+  "preservedLimits": {
+    "naturalCeiling": {
+      "nativeExit": 1,
+      "mechanismValidatorExit": 0,
+      "wholeHistoricalStrictCase": "FAIL_RETAINED; ordinary513doesNOTincludeit"
+    },
+    "outsideAPIControl": "Separate component443actual0; not silently inherited as full513case",
+    "oldFourCasesUniversalAIAndBothSpecs": "OPEN",
+    "hardware": "Mesa softwareGL3.3 proof; no physicalIntelGL3.2 acceptance",
+    "lightFullStrictReadiness": "UNOBSERVED2_RETAINED; not inferredfromcombinedclients"
+  },
+  "recordedAtUTC": "2026-11-18T10:45:26.764997+00:00",
+  "method": {
+    "kind": "Independent CPU-only readback of existing actual results; no runtime rerun",
+    "reviewScript": "/workspace/ungravity-v5/gravity-roster/work/independent-0107-review/review.py",
+    "reviewScriptSHA256": "87ffca923530b3f07c9e326877fb2e0c344d90b54b458fbeb6277108816315fe",
+    "finalReviewerExit": 0,
+    "readOnlySubjectRoot": "/workspace/ungravity-v5/ufo-body-physics",
+    "baselineRun": "work/multi-agent/integrated-65370f7",
+    "actualRun": "work/multi-agent/integrated-0107bd8",
+    "noProductionOrFixtureModification": true,
+    "reviewParserCorrections": "Two explicit CPU analysis assumptions corrected in retained reviewParserCalibration; no runtime result or acceptance criterion changed"
+  }
+}

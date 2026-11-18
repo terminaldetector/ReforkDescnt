@@ -1,0 +1,105 @@
+{
+  "worlds": [
+    {
+      "originalPath": "/workspace/ungravity-v5/actor-frames/build/shootcheck/saves/DRMD-shot-lab",
+      "files": 1391,
+      "logicalBytes": 141824624,
+      "allocatedBytes": 145756160,
+      "gzipStreamsFullyDecoded": 466,
+      "exclusiveLocks": 1,
+      "archives": [
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-actor-frames-fixtures-preserved-20261118/shootcheck-continuation-00.zip",
+          "bytes": 2436474,
+          "sha256": "c9a36165b568e1b3bbc84140db52345eb2d982ff8af33afe1b0d30bb7105478d"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-actor-frames-fixtures-preserved-20261118/shootcheck-continuation-01.zip",
+          "bytes": 5776512,
+          "sha256": "0042d3e015e76c02dfaa6de69dba003bfec924707ba04c24ce66ac90fdc5d1b2"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-actor-frames-fixtures-preserved-20261118/shootcheck-continuation-02.zip",
+          "bytes": 8415122,
+          "sha256": "d3ca3c9ce96375b005856b0d022d5b8a5f3da4e23737e261bb7d40601c619813"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-actor-frames-fixtures-preserved-20261118/shootcheck-continuation-03.zip",
+          "bytes": 8729358,
+          "sha256": "56be0d7a78dc726980a2ba4b9b2d350891df1ae52b6a8d93b13090c0121bf02b"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-actor-frames-fixtures-preserved-20261118/shootcheck-continuation-04.zip",
+          "bytes": 7432083,
+          "sha256": "81ea8ad722179f9c8706a371061f1da49d04a00255d697104e67d3565307d1b5"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-actor-frames-fixtures-preserved-20261118/shootcheck-continuation-05.zip",
+          "bytes": 6995474,
+          "sha256": "2a3f33b51fc5b14aa4633d432163ede1fcaefb3c8d8266589be6cd6cac81012c"
+        }
+      ],
+      "allMembersSHA256AndCRCVerified": true,
+      "allOriginalsFreshIdentityAndSHA256Verified": true,
+      "scope": "Only source-identified historical disposable test saves. All executable/source/log/PNG/cache and world/build donors retained.",
+      "provenanceUnmodified": {
+        "/workspace/ungravity-v5/actor-frames/src/shootcheck/java/com/terminaldetector/drmd/WeaponRenderCheck.java": "2d72ce8e7e744d70767b7c3adfe0c3e27cf52309d49e871adcf3c9c6b7caf365",
+        "/workspace/ungravity-v5/actor-frames/build/shootcheck/shootcheck-ok.json": "1b53c36ce212df84d9893947877d40c51f4ca200e83a7a45400cac602da2e788",
+        "/workspace/ungravity-v5/actor-frames/build/shootcheck/usercache.json": "13acb1ec9652f6e28d6efde5371319793cf73c5ba55f43a80a9189bb1085f03d",
+        "/workspace/ungravity-v5/actor-frames/build/shootcheck/logs/latest.log": "02c1daf0817b4fd87426086e7863c8de5298576be7f440757b76ed4b83615e2d"
+      }
+    },
+    {
+      "originalPath": "/workspace/ungravity-v5/actor-frames/build/rendercheck/saves/DRMD-render-lab",
+      "files": 1386,
+      "logicalBytes": 142245463,
+      "allocatedBytes": 146161664,
+      "gzipStreamsFullyDecoded": 462,
+      "exclusiveLocks": 1,
+      "archives": [
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-actor-frames-fixtures-preserved-20261118/rendercheck-continuation-00.zip",
+          "bytes": 2436476,
+          "sha256": "ba02f99d9594d993fd048e2f8ed7543df4b93859818c0b6a96aae9172284b803"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-actor-frames-fixtures-preserved-20261118/rendercheck-continuation-01.zip",
+          "bytes": 5195408,
+          "sha256": "d951b1a8bfaead7be4e6c3f66200dd098192321c1afaaa1f115078b24a1d911c"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-actor-frames-fixtures-preserved-20261118/rendercheck-continuation-02.zip",
+          "bytes": 9109156,
+          "sha256": "9eaafe7f3d6f393f2c9802d29218cdd30893fef9a1b04cf506bf11352ade08c2"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-actor-frames-fixtures-preserved-20261118/rendercheck-continuation-03.zip",
+          "bytes": 8205669,
+          "sha256": "547786c0521f1e53924ce1f8191b96f889d01284e992c4b64dd71a112a650e25"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-actor-frames-fixtures-preserved-20261118/rendercheck-continuation-04.zip",
+          "bytes": 7601619,
+          "sha256": "e69ee1c7ab779eccb625dc82164be44d0cf63fb3e9ca4ce72f3d47dee96698e6"
+        },
+        {
+          "path": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/legacy-actor-frames-fixtures-preserved-20261118/rendercheck-continuation-05.zip",
+          "bytes": 6746922,
+          "sha256": "2dd866d6419bd46cc653285bcc1ba0c27419618fa32cb1a81bcb5fa007ab29ca"
+        }
+      ],
+      "allMembersSHA256AndCRCVerified": true,
+      "allOriginalsFreshIdentityAndSHA256Verified": true,
+      "scope": "Only source-identified historical disposable test saves. All executable/source/log/PNG/cache and world/build donors retained.",
+      "provenanceUnmodified": {
+        "/workspace/ungravity-v5/actor-frames/src/rendercheck/java/com/terminaldetector/drmd/HybridRenderCheck.java": "6cdbf4d1ea08504f08dfc1a3cd9ac3b0436d4646ca348e9f79c0e4d5e02b3701",
+        "/workspace/ungravity-v5/actor-frames/build/rendercheck/rendercheck-ok.txt": "2ef56a8faf716af51d34dd2e05cdc1def7d7f7b6177ca846d2c926ae0cb26cfc",
+        "/workspace/ungravity-v5/actor-frames/build/rendercheck/usercache.json": "8e0afbd2b24c553392202b19e2e84bbb89623370a3178eb33814fdd6b3e111c8",
+        "/workspace/ungravity-v5/actor-frames/build/rendercheck/logs/latest.log": "c34f5382b32e24326ccb43772504780994bff08f9e3f5d851c5a146b96a67a09"
+      }
+    }
+  ],
+  "worldCount": 2,
+  "reclaimedAllocatedBytes": 291917824,
+  "archiveBytes": 79080273
+}

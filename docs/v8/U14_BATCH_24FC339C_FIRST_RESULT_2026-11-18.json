@@ -1,0 +1,332 @@
+{
+  "status": "PASS_COMPLETE_OBSERVER_DIAGNOSTIC",
+  "source": "24fc339c30b3965c5a5058199b102d9e2c64560f",
+  "launch_metadata": "e281b1840300c8b8cd82f561c0d7dcbb4332f472",
+  "physics_source": "65370f7266cea705ebf2f9e86217031370fa2a3d",
+  "actual_compile": {
+    "pid": 219285,
+    "actual_child_exit": 0,
+    "timed_out": false,
+    "forced_kill": false,
+    "closed_at_utc": "2026-11-18T10:43:07.981908+00:00"
+  },
+  "actual_server": {
+    "pid": 219337,
+    "actual_child_exit": 0,
+    "timed_out": false,
+    "forced_kill": false,
+    "closed_at_utc": "2026-11-18T10:44:23.443237+00:00"
+  },
+  "actual_launcher_exit": 0,
+  "gate": {
+    "source": "24fc339c30b3965c5a5058199b102d9e2c64560f",
+    "base": "65370f7266cea705ebf2f9e86217031370fa2a3d",
+    "actual_child_exit": 0,
+    "timed_out": false,
+    "forced_kill": false,
+    "cases": [
+      "ragdolltrajectorygametests.thirtytworealdeathidentitiesreceiveonethousandunchangedphysicalticks"
+    ],
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "fresh_xml": true,
+    "adapter_contract_markers": 1,
+    "cohort_completion_markers": 1,
+    "diagnostic": {
+      "status": "PASS_COMPLETE_OBSERVER_DIAGNOSTIC",
+      "actors": 32,
+      "part_identities": 160,
+      "rows": 32000,
+      "through_age": 1000,
+      "actual_solver_calls": 32000,
+      "actual_part_steps": 640000,
+      "actual_joint_solves": 4096000,
+      "actual_terrain_calls": 5760000,
+      "trace_bytes": 120920437,
+      "metadata_bytes": 50278,
+      "logical_json_bytes": 405433030,
+      "endpoint_motion20_actors": 30,
+      "rig_support_endpoint20_evidence_actors": 4,
+      "observed_batches": {
+        "members": 125,
+        "max_batch_rows": 256,
+        "max_batch_logical_bytes": 3255543,
+        "max_encoded_bytes": 986224,
+        "max_rows_per_uuid": 8,
+        "max_world_tick_span": 7
+      },
+      "independent_flat_part_predicate_rejected": true,
+      "wrench_scalars_per_row": 9,
+      "angular_balance_reported_without_conservation_assertion": true,
+      "thresholds": {
+        "endpoint_corner_speed": 0.02,
+        "quiet_ticks": 20,
+        "endpoint_excursion": 0.001,
+        "rig_K": 0.00136,
+        "joint_error": 0.001,
+        "rig_support_margin": 0.005
+      },
+      "sleep_implemented": false,
+      "optimization_pass": false,
+      "performance_claim": false,
+      "native_run": false,
+      "cold_run": false
+    },
+    "observation_error": null,
+    "immutable_inputs_unchanged": true,
+    "fixture_outputs_unchanged": true,
+    "startup_after": [
+      {
+        "path": "/workspace/ungravity-v5/ragdoll-rest-baseline-20261118/work/u14-batched-24fc339-first-20261118/runtime/eula.txt",
+        "bytes": 10,
+        "sha256": "ee27072e4a23e088522f740ddaab0c7c4145c186969e90a86254faa3a5ec5ce6"
+      },
+      {
+        "path": "/workspace/ungravity-v5/ragdoll-rest-baseline-20261118/work/u14-batched-24fc339-first-20261118/runtime/server.properties",
+        "bytes": 1459,
+        "sha256": "5c66d42f83e2b0ea675b0af7e1381e725d8a15bb60a96b922abaf3ce487b281c"
+      }
+    ],
+    "verified_first_diagnostic": true,
+    "sleep_implemented": false,
+    "main_compilation": false,
+    "gradle_run": false,
+    "native_run": false,
+    "closed_at_utc": "2026-11-18T10:45:09.993411+00:00"
+  },
+  "class_output_count": 17,
+  "java_adapter_contract_passed": true,
+  "cohort_admission": {
+    "actual_live_spawns": 32,
+    "death_attempts": 32,
+    "actual_dead_drones": 32,
+    "actual_corpses": 32,
+    "actual_parts": 160,
+    "death_world_tick": 90,
+    "death_window_world_ticks": 0
+  },
+  "clock": {
+    "ages": [
+      0,
+      1000
+    ],
+    "lifetimes": [
+      0,
+      1000
+    ],
+    "first_recorded_world_ticks": [
+      91
+    ],
+    "last_recorded_world_ticks": [
+      1090
+    ]
+  },
+  "output": {
+    "offered_rows": 32000,
+    "offered_logical_bytes": 405433030,
+    "persisted_rows": 32000,
+    "persisted_logical_bytes": 405433030,
+    "buffered_rows": 0,
+    "buffered_logical_bytes": 0,
+    "discarded_rows": 0,
+    "discarded_logical_bytes": 0,
+    "committed_bytes": 120920437,
+    "members": 125,
+    "max_batch_rows": 256,
+    "max_batch_logical_bytes": 3255543,
+    "max_encoded_bytes": 986224,
+    "max_rows_per_uuid": 8,
+    "max_world_tick_span": 7,
+    "closed": true,
+    "failure": null,
+    "trace_cap_bytes": 133169152,
+    "row_cap_bytes": 262144,
+    "logical_cap_bytes": 8388608,
+    "encoded_cap_bytes": 8454144
+  },
+  "metadata_bytes": 50278,
+  "trace_headroom_bytes": 12248715,
+  "combined_output_headroom_bytes": 13247013,
+  "raw_logical_sha256": "94d7f36ebf817fef2a2d22e469bac2ba9029853c19e8674b25caa7b735c8c48c",
+  "files": [
+    {
+      "path": "work/u14-batched-24fc339-first-20261118/runtime/ragdoll-trajectory.jsonl.gz",
+      "bytes": 120920437,
+      "sha256": "19843b616d5ba027847a025d0f51168e9e7a1588fad13ee24718df8847460f8e"
+    },
+    {
+      "path": "work/u14-batched-24fc339-first-20261118/runtime/ragdoll-trajectory-admission.json",
+      "bytes": 41852,
+      "sha256": "5928685c4970b83f5e37c2757dc1ee3a8b7b7a78a5b76d9fc004ea0fe2ee6fa2"
+    },
+    {
+      "path": "work/u14-batched-24fc339-first-20261118/runtime/ragdoll-trajectory-summary.json",
+      "bytes": 8426,
+      "sha256": "a1f5d503da69d68d6d5d2eb78d26e3ffe4028c6aa3bb22d59f7dd322b05b518d"
+    },
+    {
+      "path": "work/u14-batched-24fc339-first-20261118/trajectory-analysis-first.json",
+      "bytes": 205914,
+      "sha256": "9bbb8904815b588c03a39ecfc82809091efd4fcd8053026ad14c67fe1f68a76a"
+    },
+    {
+      "path": "work/u14-batched-24fc339-first-20261118/first-game-results.xml",
+      "bytes": 326,
+      "sha256": "8bfd823038ffe82a5a5a94ff0354c7b457c3d8a47219093ba022820e57f05429"
+    },
+    {
+      "path": "work/u14-batched-24fc339-first-20261118/game-first.log",
+      "bytes": 14578,
+      "sha256": "e8288aeef9d406fdf2a36b5cd237064ccfad98ea7331190dc2111c8ca900e218"
+    },
+    {
+      "path": "work/u14-batched-24fc339-first-20261118/fresh-fixture-outputs.json",
+      "bytes": 5189,
+      "sha256": "3742f00f3b55366b57dbeb46b53e9fe031d8a28157b2bcb6add0bd2c6f257efc"
+    }
+  ],
+  "observations": {
+    "endpoint_motion20_actors": 30,
+    "rig_support_endpoint20_evidence_actors": 4,
+    "global_max_angular_residual": 0.45336754719651273,
+    "first_rig_intervals": [
+      {
+        "uuid": "722bb82f-d929-4999-a5bf-45dc1e726851",
+        "interval": {
+          "ages": [
+            903,
+            922
+          ],
+          "world_ticks": [
+            993,
+            1012
+          ],
+          "endpoint_corner_excursion_m": 0.0009994419669303693,
+          "angular_residual_max": 1.7110286383030803e-09,
+          "angular_balance_is_reported_not_asserted": true
+        }
+      },
+      {
+        "uuid": "61220798-2361-45fd-945d-f475d5030cbe",
+        "interval": {
+          "ages": [
+            977,
+            996
+          ],
+          "world_ticks": [
+            1067,
+            1086
+          ],
+          "endpoint_corner_excursion_m": 0.0009960927519015,
+          "angular_residual_max": 8.889514658376761e-10,
+          "angular_balance_is_reported_not_asserted": true
+        }
+      },
+      {
+        "uuid": "6b9a814e-06db-48ee-9f76-33a51c7643b7",
+        "interval": {
+          "ages": [
+            969,
+            988
+          ],
+          "world_ticks": [
+            1059,
+            1078
+          ],
+          "endpoint_corner_excursion_m": 0.0009982714574836103,
+          "angular_residual_max": 1.3500893401064635e-09,
+          "angular_balance_is_reported_not_asserted": true
+        }
+      },
+      {
+        "uuid": "174e6c09-09cb-473c-bd23-261ee3f0dcef",
+        "interval": {
+          "ages": [
+            776,
+            795
+          ],
+          "world_ticks": [
+            866,
+            885
+          ],
+          "endpoint_corner_excursion_m": 0.0009965152993986952,
+          "angular_residual_max": 1.1069102199774707e-09,
+          "angular_balance_is_reported_not_asserted": true
+        }
+      }
+    ]
+  },
+  "backend": "STOCK",
+  "seed": 0,
+  "heap_max_bytes": 805306368,
+  "heap_used_bytes_at_close": 580250280,
+  "mspt": null,
+  "fps": null,
+  "draw_calls": null,
+  "cubes_loaded": null,
+  "archive": {
+    "path": "docs/v8/U14_BATCH_24FC339C_FIRST_ORDINARY_COMPACT_EVIDENCE_2026-11-18.zip",
+    "bytes": 1536014,
+    "sha256": "324e2c26465cb45a48883104f3746a90e7fdc9c5d2559ef9a0dcb5a7e34f68b9",
+    "members": 104,
+    "contains_full_world": true,
+    "contains_raw_trace": false
+  },
+  "reclaim": {
+    "deleted_only": "/workspace/ungravity-v5/ragdoll-rest-baseline-20261118/work/u14-batched-24fc339-first-20261118/runtime/world",
+    "world_files": 39,
+    "world_bytes": 10603395,
+    "world_allocated_bytes": 10727424,
+    "world_archive_all_sha_bytes_crc_verified": true,
+    "world_compression_validated": true,
+    "exclusive_locks_held_through_delete": true,
+    "fresh_inodes_reverified": true,
+    "future_seed_needed": false,
+    "archive": {
+      "path": "docs/v8/U14_BATCH_24FC339C_FIRST_ORDINARY_COMPACT_EVIDENCE_2026-11-18.zip",
+      "bytes": 1536014,
+      "sha256": "324e2c26465cb45a48883104f3746a90e7fdc9c5d2559ef9a0dcb5a7e34f68b9",
+      "members": 104,
+      "contains_full_world": true,
+      "contains_raw_trace": false
+    },
+    "free_before": 346730496,
+    "free_after": 357535744,
+    "new_raw_unchanged_sha256": "19843b616d5ba027847a025d0f51168e9e7a1588fad13ee24718df8847460f8e",
+    "old_raw_unchanged_sha256": "cf48aed0fa3f6506396198a11430194203a9f0b133184ec12c7e8d36cdae75cc",
+    "java_run": false,
+    "completed_at_utc": "2026-11-18T10:53:34.307722+00:00"
+  },
+  "first_cpu_archive_checker_error": {
+    "kind": "CPU prearchive checker assumption error; not a Java/ordinary result",
+    "actual_exit": 1,
+    "reason": "Checker required every .mca to have an8192byte header; seven valid empty entity-region files are0bytes",
+    "empty_regions": [
+      "entities/r.23529.-11500.mca",
+      "entities/r.-1.0.mca",
+      "entities/r.-1.-1.mca",
+      "entities/r.0.-1.mca",
+      "entities/r.0.0.mca",
+      "entities/r.23527.-11502.mca",
+      "entities/r.23526.-11502.mca"
+    ],
+    "world_exists": true,
+    "archive_created": false,
+    "world_deleted": false,
+    "physics_thresholds_changed": false,
+    "corrected_handling": "Preserve/hash valid0byte empty region explicitly; parse/CRC every nonempty region normally"
+  },
+  "private653_inputs_only": true,
+  "borrowed_future_canonical_outputs": false,
+  "old_first_overflow_retained": true,
+  "raw_trace_in_compact_archive": false,
+  "new_and_old_raw_external_untouched": true,
+  "sleep_implemented": false,
+  "optimization_pass": false,
+  "performance_claim": false,
+  "native_run": false,
+  "cold_run": false,
+  "main_compilation": false,
+  "gradle_run": false
+}

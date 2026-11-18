@@ -1,0 +1,87 @@
+{
+  "source": "0107bd85e028b8aa0c035206848caf63f6c78632",
+  "worlds": [
+    {
+      "source": "0107bd85e028b8aa0c035206848caf63f6c78632",
+      "sourcePath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/saves",
+      "archivePath": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/native-0107-closed-preserved/cubic-client-final-ps1-color-integrated-0107bd8-sodium.zip",
+      "fileCount": 102,
+      "logicalBytes": 37133305,
+      "allocatedBytes": 37306368,
+      "archiveBytes": 1338114,
+      "archiveSHA256": "b05bc92c4ef77c2d759a9045fb1f4fd5258556f68b07c97131b501d0bce68602",
+      "gzipFootersVerified": 12,
+      "allCRCAndSHA256": true,
+      "freshFileIdentityVerified": true,
+      "exclusiveSessionLocks": 1
+    },
+    {
+      "source": "0107bd85e028b8aa0c035206848caf63f6c78632",
+      "sourcePath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-surface-arrival-final-cubic-surface-arrival-integrated-0107bd8-sodium/saves",
+      "archivePath": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/native-0107-closed-preserved/cubic-surface-arrival-final-cubic-surface-arrival-integrated-0107bd8-sodium.zip",
+      "fileCount": 98,
+      "logicalBytes": 42736033,
+      "allocatedBytes": 42905600,
+      "archiveBytes": 1359490,
+      "archiveSHA256": "7ccea7300c9ba986399b176aacc17d77f086e56e70071a41aad98cac6fbedb5b",
+      "gzipFootersVerified": 12,
+      "allCRCAndSHA256": true,
+      "freshFileIdentityVerified": true,
+      "exclusiveSessionLocks": 1
+    }
+  ],
+  "depthArraysPreservedInProofArchive": [
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/dither32-resized/main-depth.f32",
+      "bytes": 2073600,
+      "sha256": "922acb43699e16f0c449d9c15c189c7ed352c2661caea140393e53e1717b1c80"
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/dither32-resized/source-depth.f32",
+      "bytes": 230400,
+      "sha256": "8ca5343a85df754ba59e5e3a7552b07eca83cabc4d3cad344a0a4746c1c70695"
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/dither32/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "064ad0bd0530766ff4c76bfb67feaa7014f1a472bcd24fb492b851a1cea3ae5b"
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/dither32/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "19a3319bfcb02013dddb58da7bcd74203d7287168a9e1c1e9370a13bc7d13242"
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/palette32/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "ba2b6c2f4de19b6d1f9f1ba4ff7b98fa72ae58f687db4b3efdf856d1ae70034e"
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/palette32/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "ffeda8d4214fca3acc66cfe15c6135b05ba405ac6765bd55b731146b466eb5c3"
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/raw256-restored/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "958c82b2accda6e8b21ceebe48fe30c0d86b8cdad9c35f96b1d5aaccd7378a8c"
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/raw256-restored/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "3ca493cf26c00629cdaf87feb702724c0e4431f88100072a62a742df5e02d393"
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/raw256/main-depth.f32",
+      "bytes": 3686400,
+      "sha256": "52b15bdfd649ccaec43bffa762082b2e7608c6a1629481505d8b6bc4adaa71b1"
+    },
+    {
+      "path": "build/cubic-client-final-ps1-color-integrated-0107bd8-sodium/ps1-color-reference/raw256/source-depth.f32",
+      "bytes": 921600,
+      "sha256": "d0bdacd4d3f9dc72b7fec1906aa0d83e6a00af68046f52c701ca078e02ba449a"
+    }
+  ],
+  "everyPNGSourceJarLogAndProtectedDonorRetained": true,
+  "freeBytes": 396005376
+}

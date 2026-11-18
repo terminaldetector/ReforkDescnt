@@ -1,0 +1,58 @@
+{
+  "source": "0107bd85e028b8aa0c035206848caf63f6c78632",
+  "target": "https://t.me/abadonsoft",
+  "channelId": "-1004343117274",
+  "authorizedBy": "User: publish the ready build, most important screenshots and changelog to @abadonsoft",
+  "sourcePublishing": "Local only; no GitHub publication",
+  "gameJarSHA256": "ddfd49e5d9ba838de5e5835e6b1da6d0f63c773398c600c048c96902deec5387",
+  "deliveredZipSHA256": "7d213e19516c98d7dd9db58e89bb272691d2162c0bdbbff7091eb9f7947d1ba2",
+  "directJarRejected": true,
+  "zipContainsExactTestedJar": true,
+  "fullSpecificationsAccepted": false,
+  "responses": {
+    "telegram0107PostReceipt": {
+      "chatId": "4343117274",
+      "messageIds": [
+        275
+      ],
+      "localMessageId": "ungravity-0107bd8-20261118-changelog-v1",
+      "text": "Ungravity — snapshot от 18 ноября 2026\n\nЧто изменилось с предыдущей проверенной сборки:\n• Добавлен отдельный летающий противник с телепортацией: предупреждение перед переносом, расход энергии, восстановление и возможность сорвать перенос уроном. Это прототип; частота естественного спауна не менялась.\n• Для нового дрона исправлено упреждение стрельбы с учётом собственной скорости. Добавлены проверки физического обломка, сохранения состояния и свободного места для переноса.\n• Исправлен отложенный статус освещения кубической секции: устаревшая отметка «пусто» больше не применяется к уже заполненной секции.\n• Обычный прыжок пауков и пещерных пауков учитывает подтверждённое направление локальной гравитации, в том числе на потолке.\n\nПроверки: 1013 модульных + 513 игровых, без пропусков и ошибок. Все прежние тесты сохранены. Два клиента на одном и том же JAR проверили загрузку поверхности и переключение Native/PS1/Debug, HUD, оружие и зеркало из 8 объединённых панелей.\n\nНа скриншотах — реальные тестовые сцены этого билда: обычный рендер, PS1 и высотный Voxel LOD. Сглаживание LOD, дальний туман, полный 3D AI, абордаж и остальные пункты обоих ТЗ продолжаются. Этот snapshot не означает завершение ТЗ.\n\nMinecraft 1.21.1 • Fabric Loader ≥0.16 • Fabric API • Java 21.\nJAR — следующим сообщением. Замените старый DRMD в mods; остальные зависимости своей сборки сохраните.\nИсходники: 0107bd8. Внутренняя версия мода: 1.1.35-ufo-dev.1.",
+      "date": "2026-11-18T10:47:47.552018663Z",
+      "idempotencyKey": "ungravity-0107bd8-20261118-changelog-v1"
+    },
+    "telegram0107JarReceipt": {
+      "title": "Bad Request",
+      "status": 400,
+      "detail": "Telegram rejected the message request",
+      "code": "invalid_telegram_request",
+      "error_code": "INVALID_ARGUMENT"
+    },
+    "telegram0107JarOctetReceipt": {
+      "title": "Bad Request",
+      "status": 400,
+      "detail": "Telegram rejected the message request",
+      "code": "invalid_telegram_request",
+      "error_code": "INVALID_ARGUMENT"
+    },
+    "telegram0107ScreensReceipt": {
+      "messageIds": [
+        276,
+        277,
+        278
+      ],
+      "localMessageId": "ungravity-0107bd8-20261118-three-real-screens-v1",
+      "text": "Три кадра проверенного snapshot 0107bd8: Native с объединённым зеркалом и оружием; PS1 после изменения размера окна; высотный Voxel LOD. Это реальные тестовые сцены одного JAR. Высотный рендер и сглаживание ещё в работе.",
+      "date": "2026-11-18T11:14:04.311905488Z",
+      "idempotencyKey": "ungravity-0107bd8-20261118-three-real-screens-v1"
+    },
+    "telegram0107ZipReceipt": {
+      "messageIds": [
+        279
+      ],
+      "localMessageId": "ungravity-0107bd8-20261118-tested-zip-v1",
+      "text": "Ungravity snapshot 0107bd8 — билд и инструкция.\nРаспакуйте ZIP: в mods поместите JAR вместо старого DRMD. Minecraft 1.21.1, Fabric, Fabric API, Java 21; остальные зависимости сборки сохраните.\nSHA-256 JAR: ddfd49e5d9ba838de5e5835e6b1da6d0f63c773398c600c048c96902deec5387\nZIP: 7d213e19516c98d7dd9db58e89bb272691d2162c0bdbbff7091eb9f7947d1ba2",
+      "date": "2026-11-18T11:14:50.275806543Z",
+      "idempotencyKey": "ungravity-0107bd8-20261118-tested-zip-v1"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "source": "0107bd85e028b8aa0c035206848caf63f6c78632",
+  "archive": "docs/v8/EVIDENCE/integrated-0107bd8.zip",
+  "bytes": 8331132,
+  "sha256": "10edf3e21cac3d7a0f2b817f7bbf629e10f162ed7cfaa3676563236ce755faba",
+  "payloads": 220,
+  "allCRCAndSHA256": true,
+  "units": 1013,
+  "games": 513,
+  "entries": 87,
+  "sameJarClients": 2,
+  "frames": 40,
+  "sourcePaths": 36,
+  "actualNewUnitCases": 15,
+  "actualNewGameCases": 11,
+  "removedOldCases": 0,
+  "fullSpecAccepted": false,
+  "wholePacketsAccepted": 0
+}

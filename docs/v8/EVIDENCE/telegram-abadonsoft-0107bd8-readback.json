@@ -1,0 +1,51 @@
+{
+  "target": "https://t.me/abadonsoft",
+  "historyAvailable": true,
+  "messages": [
+    {
+      "id": 279,
+      "text": "Ungravity snapshot 0107bd8 — билд и инструкция.\nРаспакуйте ZIP: в mods поместите",
+      "media": {
+        "type": "document",
+        "mimeType": "application/zip",
+        "fileName": "Ungravity-0107bd8-Fabric-1.21.1.zip",
+        "fileSize": 2676398
+      }
+    },
+    {
+      "id": 278,
+      "media": {
+        "type": "photo",
+        "mimeType": "image/jpeg",
+        "fileSize": 86468,
+        "width": 1280,
+        "height": 720
+      }
+    },
+    {
+      "id": 277,
+      "media": {
+        "type": "photo",
+        "mimeType": "image/jpeg",
+        "fileSize": 122828,
+        "width": 960,
+        "height": 540
+      }
+    },
+    {
+      "id": 276,
+      "text": "Три кадра проверенного snapshot 0107bd8: Native с объединённым зеркалом и оружие",
+      "media": {
+        "type": "photo",
+        "mimeType": "image/jpeg",
+        "fileSize": 189777,
+        "width": 1280,
+        "height": 720
+      }
+    },
+    {
+      "id": 275,
+      "text": "Ungravity — snapshot от 18 ноября 2026\n\nЧто изменилось с предыдущей проверенной "
+    }
+  ]
+}
