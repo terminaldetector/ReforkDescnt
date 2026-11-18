@@ -1,7 +1,6 @@
 package com.terminaldetector.drmd.world.contraption.boarding;
 
 import com.terminaldetector.drmd.client.portal.PortalTransform.Quat;
-import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
 import com.terminaldetector.drmd.world.contraption.BlockBodyEntity;
 import com.terminaldetector.drmd.world.contraption.BodySpatialIndex;
 import com.terminaldetector.drmd.world.gravity.ActorFrames;
@@ -32,7 +31,6 @@ import java.util.WeakHashMap;
 public final class LivingBodyContactSystem {
     private static final int MAX_ACTORS = 64, MAX_BODIES = 16;
     private static final double REACH = 4 + 512 * .05;
-    private static final Vec3 UP = new Vec3(0, 1, 0);
     private static final Map<ServerWorld, Map<UUID, Pending>> PENDING = new WeakHashMap<>();
     private static final Map<ServerWorld, Map<UUID, Support>> SUPPORTS = new WeakHashMap<>();
     private record Support(WeakReference<LivingEntity> actor, long tick, Vec3d surfaceVelocity) {}
@@ -67,10 +65,11 @@ public final class LivingBodyContactSystem {
     private static List<BlockBodyEntity> nearby(LivingEntity actor, Vec3d delta) {
         return BodySpatialIndex.query(actor.getWorld(), actor.getBoundingBox().stretch(delta).expand(REACH));
     }
-    private static boolean upright(BodyMotion body) {
-        // Refuse roll/pitch and finite fields, rather than quietly applying world-down inside them.
-        return !body.hasGravity() && body.rotation(0).rotate(UP).dot(UP) > .999999
-            && body.rotation(1).rotate(UP).dot(UP) > .999999;
+    private static boolean nativeGravity(BodyMotion body) {
+        // Material may rotate freely under the world-up Cow. passiveContact already casts
+        // the actual oriented hull and returns real normals/reactions without turning the actor.
+        // Refuse artificial body fields: their local-up actor/force ownership is not implemented here.
+        return !body.hasGravity();
     }
     private static boolean interacts(LivingEntity actor, BodyMotion body, Vec3d delta) {
         var box = DynamicBodyAttachment.box(BoardingSystem.pure(actor.getPos()), actor.getWidth(), actor.getHeight());
@@ -79,7 +78,7 @@ public final class LivingBodyContactSystem {
             || body.query(0).sweep(box, BoardingSystem.pure(delta), body.position(1).minus(body.position(0))).isPresent();
     }
     /** One actual native applyMovementInput move; its acceleration and later drag/gravity still run.
-     * False means unowned native behavior, including UNKNOWN and all unsupported orientations. */
+     * False means unowned native behavior, including UNKNOWN and unsupported actors/artificial fields. */
     public static boolean deferMove(LivingEntity actor, Vec3d delta, float slipperiness, boolean grounded) {
         if (!eligible(actor)) return false;
         var world = (ServerWorld)actor.getWorld();
@@ -98,7 +97,7 @@ public final class LivingBodyContactSystem {
         for (var body : bodies) {
             var motion = body.boardingMotion();
             if (interacts(actor, motion, delta)) {
-                if (!upright(motion)) return false;
+                if (!nativeGravity(motion)) return false;
                 touched = true;
             }
             reach = Math.max(reach, .5 + motion.travelBound());
@@ -150,7 +149,7 @@ public final class LivingBodyContactSystem {
             for (var body : bodies) {
                 var motion = motions.computeIfAbsent(body.getId(), ignored -> body.boardingMotion());
                 if (interacts(actor, motion, p.moving)) {
-                    if (!upright(motion)) {supported = false; break;}
+                    if (!nativeGravity(motion)) {supported = false; break;}
                     near.add(motion); changed.put(body.getId(), body);
                 }
             }
