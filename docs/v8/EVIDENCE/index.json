@@ -3656,7 +3656,7 @@
   "missionGenuineCold3ProcessD838": {
     "source": "d83850f9263071641bb72a8db53f9a51cfed7ec7",
     "report": "../MISSION_U05_GENUINE_COLD_3PROCESS_PASS_2026-11-18.md",
-    "archive": "MISSION_U05_GENUINE_COLD_3PROCESS_PASS_2026-11-18.zip",
+    "archive": "docs/v8/EVIDENCE/MISSION_U05_GENUINE_COLD_3PROCESS_PASS_2026-11-18.zip",
     "archiveSHA256": "6fc3d25c10363787f301339cd4b943688acd3e45e3641f3cfd6fb0eed3eb7386",
     "processes": 3,
     "actualCasePassCounts": [

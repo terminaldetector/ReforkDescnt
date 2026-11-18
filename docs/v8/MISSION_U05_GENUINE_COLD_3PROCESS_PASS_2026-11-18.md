@@ -53,7 +53,7 @@ FactionMemory DAT is byte-identical to the finished-reader DAT, SHA-256
 The genuine new-JVM interactions above, rather than those CPU inspections alone,
 provide cold acceptance. Final raw save is retained, no fourth process planned.
 
-Evidence `MISSION_U05_GENUINE_COLD_3PROCESS_PASS_2026-11-18.zip`:77files,
+Evidence [MISSION_U05_GENUINE_COLD_3PROCESS_PASS_2026-11-18.zip](EVIDENCE/MISSION_U05_GENUINE_COLD_3PROCESS_PASS_2026-11-18.zip):77files,
 5,622,283B, SHA-256
 `6fc3d25c10363787f301339cd4b943688acd3e45e3641f3cfd6fb0eed3eb7386`.
 CRC/all payload SHA verified. It includes full fresh first logs/XML/actual exits,
