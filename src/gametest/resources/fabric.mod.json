@@ -94,7 +94,8 @@
       "com.terminaldetector.drmd.TeleportFlyerGameTests",
       "com.terminaldetector.drmd.TeleportFlyerWreckGameTests",
       "com.terminaldetector.drmd.LooseItemBodyGameTests",
-      "com.terminaldetector.drmd.BodyHatchGameTests"
+      "com.terminaldetector.drmd.BodyHatchGameTests",
+      "com.terminaldetector.drmd.UfoReactorEscapeGameTests"
     ]
   },
   "depends": {

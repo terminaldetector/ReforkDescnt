@@ -435,6 +435,17 @@ public final class DescentCommands {
 								ctx.getSource().sendFeedback(() -> Text.literal("Spawned mega creature: " + type), true);
 								return 1;
 							}))
+							.then(CommandManager.literal("uforeactordelay")
+                                .then(CommandManager.argument("seconds",IntegerArgumentType.integer(0,60)).executes(ctx->{
+                                    var player=ctx.getSource().getPlayer();var world=player.getServerWorld();
+                                    var ufo=com.terminaldetector.drmd.world.mega.SkyUfoEntity.findContaining(world,player.getPos());
+                                    if(ufo==null)ufo=com.terminaldetector.drmd.world.mega.SkyUfoEntity.findNear(world,player.getBlockPos(),5);
+                                    int seconds=IntegerArgumentType.getInteger(ctx,"seconds");
+                                    if(ufo==null||!ufo.configureReactorEscapeTicks(seconds*20)){
+                                        ctx.getSource().sendError(Text.translatable("message.drmd.reactor.configure_denied"));return 0;
+                                    }
+                                    ctx.getSource().sendFeedback(()->Text.translatable("message.drmd.reactor.configured",seconds),true);return 1;
+                                })))
 							.then(CommandManager.literal("ufodestroy")
 									.then(CommandManager.argument("mode", StringArgumentType.word()).executes(ctx -> {
 										ServerPlayerEntity p = ctx.getSource().getPlayer();

@@ -12,6 +12,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.*;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import java.lang.ref.WeakReference;
@@ -30,6 +33,10 @@ public class SkyUfoEntity extends BlockBodyEntity {
     private final List<UUID> swarm=new ArrayList<>();
     private boolean initialized,crashing,detonated,legacyThrusters,autopilot=true;
     private int spawnCooldown,crashTicks,laserCooldown,rocketCooldown;
+    private int reactorEscapeTicks=ReactorEscapeWindow.DEFAULT_TICKS;
+    private String reactorFailureCause="reactor material destroyed";
+    private boolean reactorWarningSent;
+    private long reactorAlarmTick=Long.MIN_VALUE;
     private SkyUfoTurret turret;
     private final SkyUfoCombat combat=new SkyUfoCombat();
     private double cruiseYaw,cruiseAltitude;
@@ -39,6 +46,16 @@ public class SkyUfoEntity extends BlockBodyEntity {
     public boolean isMaterialized(){return !cells().isEmpty();}
     public boolean isVirtualFlight(){return false;}
     public boolean isCrashing(){return crashing;}
+    public boolean reactorDetonated(){return detonated;}
+    public int reactorEscapeTicks(){return reactorEscapeTicks;}
+    public int reactorTicksRemaining(){return !crashing||detonated?0:ReactorEscapeWindow.remaining(reactorEscapeTicks,crashTicks);}
+    public String reactorFailureCause(){return reactorFailureCause;}
+    /** Configure the optional emergency phase before sabotage;0 retains an inert falling wreck. */
+    public boolean configureReactorEscapeTicks(int ticks){
+        if(!(getWorld() instanceof ServerWorld w)||!w.getServer().isOnThread()||!hasPoweredReactor()
+                ||!ReactorEscapeWindow.validDelay(ticks))return false;
+        reactorEscapeTicks=ticks;return true;
+    }
     public void setAutopilot(boolean value){autopilot=value;if(!value&&turret!=null)turret.stopAutonomous(this);}
     public boolean autopilotEnabled(){return autopilot;}
     public boolean hasControlConsole(){return getLocalBlock(UfoControlSystem.CONSOLE).isOf(Blocks.GOLD_BLOCK);}
@@ -104,7 +121,14 @@ public class SkyUfoEntity extends BlockBodyEntity {
         boolean piloted=!crashing&&UfoControlSystem.drive(this);
         if(!piloted)aimTurret(0);
         if(!crashing&&!piloted&&autopilot)propel();
-        if(crashing&&!detonated&&++crashTicks>=100)detonate(world);
+        if(crashing&&!detonated){
+            reactorAlarm(world);
+            if(destructionMode==DestructionMode.SHOCKWAVE)detonate(world);
+            else if(reactorEscapeTicks>0){
+                if(crashTicks<reactorEscapeTicks)crashTicks++;
+                if(reactorTicksRemaining()==0)detonate(world);
+            }
+        }
         super.tick();
         // The captured carrier cannot keep deploying hostile AI against its pilot.
         // Preserve the existing bay timer so releasing control resumes the same cycle.
@@ -164,16 +188,39 @@ public class SkyUfoEntity extends BlockBodyEntity {
     private void enterCrash(List<BlockBodyEntity> fragments) {
         if(crashing)return;crashing=true;UfoControlSystem.releaseBody(this);setPassengerGravity(ZERO);setPhysicsGravity(true);
         for(var fragment:fragments)fragment.setPhysicsGravity(true);
-        if(destructionMode==DestructionMode.SHOCKWAVE)crashTicks=100;
+        if(destructionMode==DestructionMode.SHOCKWAVE)crashTicks=reactorEscapeTicks;
+        reactorAlarm((ServerWorld)getWorld());
     }
     public void destroyFromCore(ServerWorld world,PlayerEntity culprit,String reason) {
         if(crashing||getWorld()!=world)return;
         if(!getLocalBlock(CORE).isAir()&&!setLocalBlock(CORE,Blocks.AIR.getDefaultState()))return;
         enterCrash(List.of());
+        if(crashing&&reason!=null&&!reason.isBlank())reactorFailureCause=reason.substring(0,Math.min(96,reason.length()));
+    }
+    private void reactorAlarm(ServerWorld world){
+        long now=world.getServer().getTicks();
+        if(!crashing||detonated||reactorWarningSent&&now-reactorAlarmTick<20)return;
+        var centre=localToWorld(Vec3d.ofCenter(CORE));boolean first=!reactorWarningSent;reactorWarningSent=true;
+        reactorAlarmTick=now;
+        int seconds=(reactorTicksRemaining()+19)/20,examined=0,sent=0;
+        for(var player:world.getPlayers()){
+            if(++examined>128||sent>=32)break;
+            if(!player.isAlive()||player.isSpectator()||player.squaredDistanceTo(centre)>48*48)continue;
+            var text=reactorEscapeTicks==0&&destructionMode!=DestructionMode.SHOCKWAVE
+                    ?Text.translatable("message.drmd.reactor.offline")
+                    :seconds==0?Text.translatable("message.drmd.reactor.evacuate")
+                    :Text.translatable("message.drmd.reactor.countdown",seconds);
+            if(first)player.sendMessage(text,false);player.sendMessage(text,true);sent++;
+        }
+        world.spawnParticles(ParticleTypes.ELECTRIC_SPARK,centre.x,centre.y,centre.z,12,.5,.5,.5,.03);
+        world.playSound(null,centre.x,centre.y,centre.z,SoundEvents.BLOCK_BEACON_DEACTIVATE,SoundCategory.BLOCKS,.8f,.65f);
     }
     private void detonate(ServerWorld world) {
-        if(detonated)return;detonated=true;
-        StructureShockwave.detonate(world,localToWorld(Vec3d.ofCenter(CORE)),this,null,4,4,5,0,0);
+        if(detonated)return;var centre=localToWorld(Vec3d.ofCenter(CORE));
+        if(!ReactorEscapeWindow.blastVolumeAvailable(world,centre))return;
+        detonated=true; // Persistent at-most-once guard precedes material damage/effects.
+        weaponBlast(centre,180,4); // Existing bounded atomic damage/topology; no item entity per cell.
+        StructureShockwave.detonate(world,centre,this,null,4,4,5,0,0);
         // Remaining material stays as an inert, destructible physical wreck. No real-block handoff.
     }
     public static SkyUfoEntity findContaining(ServerWorld world,Vec3d pos) {
@@ -207,6 +254,12 @@ public class SkyUfoEntity extends BlockBodyEntity {
         initialized=n.getInt("physicalUfoSchema")>=1;legacyThrusters=n.getInt("physicalUfoSchema")==1||n.getBoolean("legacyThrusters");crashing=n.getBoolean("crashing");detonated=n.getBoolean("detonated");
         cruiseYaw=n.getDouble("cruise");cruiseAltitude=n.getDouble("cruiseAltitude");autopilot=!n.contains("autopilot")||n.getBoolean("autopilot");
         crashTicks=Math.max(0,n.getInt("crashTicks"));spawnCooldown=Math.max(0,n.getInt("bayCooldown"));
+        if(n.contains("reactorEscapeTicks")&&!n.contains("reactorEscapeTicks",NbtElement.INT_TYPE))throw new IllegalArgumentException("Invalid reactor escape delay type");
+        reactorEscapeTicks=n.contains("reactorEscapeTicks")?n.getInt("reactorEscapeTicks"):ReactorEscapeWindow.DEFAULT_TICKS;
+        if(!ReactorEscapeWindow.validDelay(reactorEscapeTicks))throw new IllegalArgumentException("Invalid reactor escape delay");
+        reactorFailureCause=n.contains("reactorFailureCause",NbtElement.STRING_TYPE)?n.getString("reactorFailureCause"):"reactor material destroyed";
+        if(reactorFailureCause.length()>96)throw new IllegalArgumentException("Oversized reactor failure reason");
+        reactorWarningSent=false; // Reannounce actual remaining time on return, never restart the clock.
         if(!Double.isFinite(cruiseYaw)||!Double.isFinite(cruiseAltitude))throw new IllegalArgumentException("non-finite UFO controller");
         if(n.contains("destructionMode"))destructionMode=DestructionMode.valueOf(n.getString("destructionMode"));
         laserCooldown=MathHelper.clamp(n.getInt("laserCooldown"),0,8);rocketCooldown=MathHelper.clamp(n.getInt("rocketCooldown"),0,24);
@@ -217,6 +270,7 @@ public class SkyUfoEntity extends BlockBodyEntity {
     @Override protected void writeCustomDataToNbt(NbtCompound n) {
         super.writeCustomDataToNbt(n);n.putInt("physicalUfoSchema",initialized?2:0);n.putBoolean("legacyThrusters",legacyThrusters);n.putBoolean("crashing",crashing);n.putBoolean("detonated",detonated);
         n.putDouble("cruise",cruiseYaw);n.putDouble("cruiseAltitude",cruiseAltitude);n.putBoolean("autopilot",UfoControlSystem.savedAutopilot(this,autopilot));n.putInt("crashTicks",crashTicks);n.putInt("bayCooldown",spawnCooldown);
+        n.putInt("reactorEscapeTicks",reactorEscapeTicks);n.putString("reactorFailureCause",reactorFailureCause);
         n.putString("destructionMode",destructionMode.name());n.putInt("laserCooldown",laserCooldown);n.putInt("rocketCooldown",rocketCooldown);
         if(turret!=null)n.put("turret",turret.write());
         var list=new NbtList();for(var id:swarm){var item=new NbtCompound();item.putUuid("id",id);list.add(item);}n.put("swarm",list);

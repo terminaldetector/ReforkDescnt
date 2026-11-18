@@ -395,5 +395,10 @@
   "entity.drmd.teleport_flyer": "Teleport flyer",
   "item.drmd.spawn_egg_teleport_flyer": "Teleport flyer spawn egg",
   "options.drmd.ps1_far_fog": "PS1 far haze: %s",
-  "options.drmd.ps1_far_fog.tip": "Adjusts haze over distant ground and landmarks in PS1 mode. Off restores their original colours."
+  "options.drmd.ps1_far_fog.tip": "Adjusts haze over distant ground and landmarks in PS1 mode. Off restores their original colours.",
+  "message.drmd.reactor.countdown": "REACTOR CRITICAL: %s s. Leave the ship!",
+  "message.drmd.reactor.evacuate": "REACTOR CRITICAL — evacuate now!",
+  "message.drmd.reactor.offline": "Reactor offline. Engines and artificial gravity lost; leave the hull.",
+  "message.drmd.reactor.configured": "Reactor escape window: %s s (0 disables the timed blast).",
+  "message.drmd.reactor.configure_denied": "No intact UFO reactor nearby, or its emergency phase has already started."
 }

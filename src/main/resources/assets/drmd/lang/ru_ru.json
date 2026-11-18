@@ -359,5 +359,10 @@
   "entity.drmd.teleport_flyer": "Летающий телепортер",
   "item.drmd.spawn_egg_teleport_flyer": "Яйцо призыва летающего телепортера",
   "options.drmd.ps1_far_fog": "PS1 дальний туман: %s",
-  "options.drmd.ps1_far_fog.tip": "Плотность дымки над дальней землёй и сооружениями в режиме PS1. Выключение возвращает исходные цвета."
+  "options.drmd.ps1_far_fog.tip": "Плотность дымки над дальней землёй и сооружениями в режиме PS1. Выключение возвращает исходные цвета.",
+  "message.drmd.reactor.countdown": "РЕАКТОР КРИТИЧЕН: %s с. Покиньте корабль!",
+  "message.drmd.reactor.evacuate": "РЕАКТОР КРИТИЧЕН — немедленно покиньте корабль!",
+  "message.drmd.reactor.offline": "Реактор отключён. Двигатели и искусственная гравитация потеряны; покиньте корпус.",
+  "message.drmd.reactor.configured": "Время на эвакуацию: %s с (0 отключает взрыв по таймеру).",
+  "message.drmd.reactor.configure_denied": "Рядом нет исправного реактора UFO либо аварийная фаза уже началась."
 }

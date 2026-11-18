@@ -124,13 +124,23 @@ public final class LooseItemBodyGameTests implements FabricGameTest {
             this.withBody = withBody; this.rotation = rotation; this.bodyVelocity = bodyVelocity;
             this.bodySpin = bodySpin; this.localItem = localItem; this.initialVelocity = initialVelocity;
             this.noGravity = noGravity; this.field = field;
-            chunks = new AiFixtureChunks(world, base, 0);
+            // Rotated item offsets and the real hull centre can cross the base column edge.
+            // Own the whole small fixture neighbourhood, not only its local-grid origin.
+            chunks = new AiFixtureChunks(world, base, 1);
         }
 
         private boolean admit() {
             if (spawned) return true;
-            if (!chunks.entityTicking(base)) {
-                c.assertTrue(++admissionTicks <= 80, "ADMISSION: native entity-ticking column unavailable: " + chunks.readiness(base));
+            var itemOffset = rotation.rotate(new Vec3(localItem.x, localItem.y, localItem.z));
+            var expectedItem = withBody ? Vec3d.of(base).add(itemOffset.x(), itemOffset.y(), itemOffset.z())
+                : Vec3d.of(base).add(localItem);
+            var centreOffset = rotation.rotate(new Vec3(2, .5, 2));
+            var expectedBody = Vec3d.of(base).add(centreOffset.x(), centreOffset.y(), centreOffset.z());
+            var itemPos = BlockPos.ofFloored(expectedItem);
+            var bodyPos = withBody ? BlockPos.ofFloored(expectedBody) : base;
+            if (!chunks.entityTicking(base, itemPos, bodyPos)) {
+                c.assertTrue(++admissionTicks <= 80, "ADMISSION: native entity-ticking spawn columns unavailable: "
+                    + chunks.readiness(base, itemPos, bodyPos));
                 return false;
             }
             var access = WorldAccess.of(world);
@@ -160,6 +170,8 @@ public final class LooseItemBodyGameTests implements FabricGameTest {
             item.setNoGravity(noGravity); item.setPickupDelay(PICKUP_DELAY);
             c.assertTrue(world.spawnEntity(item) && world.getEntity(item.getUuid()) == item,
                 "ADMISSION: actual native item factory/spawn owns one UUID");
+            c.assertTrue(chunks.entityTicking(item.getBlockPos(), body == null ? base : body.getBlockPos()),
+                "ADMISSION: actual spawned native item/body positions must both tick, not just the grid origin");
             itemSpawnAge = lastSampleAge = item.age; spawnWorldTick = world.getTime(); spawned = true;
             return false;
         }
