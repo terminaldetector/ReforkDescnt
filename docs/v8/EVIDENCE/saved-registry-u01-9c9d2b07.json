@@ -1,0 +1,36 @@
+{
+  "source": "9c9d2b07165e0d4e8dbe293c57f9520dcd63a86e",
+  "unitTests": 18,
+  "unitFailures": 0,
+  "firstNegative": {
+    "source": "c3a3dcccd43d6324f937dfe4f54dcd0ea8938108",
+    "tests": 18,
+    "passed": 15,
+    "failures": 2,
+    "errors": 1
+  },
+  "actualInputFiles": 15,
+  "actualCliExit": 1,
+  "referenceActions": {
+    "KEEP": 2,
+    "UNKNOWN": 34
+  },
+  "parseIssues": 0,
+  "saveEdits": 0,
+  "catalogRevision": "9b7cf9b0709a47c181d113923f7ac59a4b62fd3c",
+  "catalogUniqueRootIds": 145,
+  "originalsUnchanged": true,
+  "retiredRecipeRootedIds": [
+    "drmd:weapon_d6_heavy",
+    "drmd:weapon_d6_railmk2",
+    "drmd:weapon_d6_reactor",
+    "drmd:weapon_d6_telefrag",
+    "drmd:weapon_d6_whiplash"
+  ],
+  "retiredSavedInstancesFound": false,
+  "wholePacketAccepted": false,
+  "evidenceArchive": "docs/v8/EVIDENCE/saved-registry-u01-9c9d2b07.zip",
+  "archiveSHA256": "e22352adf6357e49149b5ca5ce24f87a5d42c574ec552ba191fcce10216f339b",
+  "archiveBytes": 121734,
+  "payloadFiles": 25
+}
