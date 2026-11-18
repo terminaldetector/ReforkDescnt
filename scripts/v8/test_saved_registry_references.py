@@ -132,6 +132,20 @@ class SavedReferenceTests(unittest.TestCase):
         self.assertFalse(refs)
         self.assertIn('JSON depth/node budget', issues[0]['reason'])
 
+    def test_rejected_oversize_members_cannot_repeat_inflation_after_budget_refusal(self):
+        payload = region(compound([('id', 'drmd:ship_laser')]))
+        # Three actual independent records, no shared sectors.
+        triple = bytearray(payload + payload[8192:] + payload[8192:])
+        triple[4:8] = (3).to_bytes(3, 'big') + b'\x01'
+        triple[8:12] = (4).to_bytes(3, 'big') + b'\x01'
+        budget = audit.Budget()
+        budget.remaining = 8
+        with patch.object(audit, 'MAX_DOCUMENT', 4), patch.object(audit.zlib, 'decompressobj', wraps=zlib.decompressobj) as inflater:
+            refs, issues = audit.scan_bytes(bytes(triple), '.mca', self.known, {}, budget)
+        self.assertFalse(refs)
+        self.assertEqual(len(issues), 3)
+        self.assertEqual(inflater.call_count, 1)
+
     def fixture(self, directory):
         p = Path(directory)
         cat = p / 'catalog.json'
@@ -180,6 +194,15 @@ class SavedReferenceTests(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             report = json.loads((p / 'audit/REPORT.json').read_text())
             self.assertIn('bounded regular file', report['inputs'][0]['issues'][0]['reason'])
+
+    def test_scalar_adaptation_file_rejects_setup_before_output_creation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            p, cat, source = self.fixture(directory)
+            proposal = p / 'proposal.json'
+            proposal.write_text('42')
+            with self.assertRaisesRegex(audit.Unknown, 'adaptations must be a list'):
+                audit.run([source], cat, p / 'audit', proposal)
+            self.assertFalse((p / 'audit').exists())
 
     def test_mutation_during_later_input_is_reported_unknown_at_closure(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -39,6 +39,7 @@ class Budget:
     def __init__(self):
         self.remaining = MAX_TOTAL
         self.references = MAX_REFERENCES
+        self.inflation_blocked = False
 
     def take(self, size):
         if size > self.remaining:
@@ -52,7 +53,7 @@ class Budget:
 
 
 def decompress(raw, mode, budget):
-    if budget.remaining <= 0:
+    if budget.inflation_blocked or budget.remaining <= 0:
         raise Unknown('total decoded-byte budget exhausted before decompression')
     limit = min(MAX_DOCUMENT, budget.remaining)
     try:
@@ -62,17 +63,20 @@ def decompress(raw, mode, budget):
         elif mode == 2:
             inflater = zlib.decompressobj()
             data = inflater.decompress(raw, limit + 1)
-            if len(data) <= limit and (not inflater.eof or inflater.unused_data):
-                raise Unknown('incomplete or trailing zlib stream')
         elif mode == 3:
             data = raw
         else:
             raise Unknown('unsupported compression ' + str(mode))
     except (EOFError, OSError, zlib.error) as error:
+        budget.inflation_blocked = True  # A failed read may already have produced bytes internally.
         raise Unknown('invalid compressed stream: ' + str(error)) from error
+    budget.take(min(len(data), budget.remaining))
     if len(data) > limit:
+        budget.inflation_blocked = True
         raise Unknown('decoded document exceeds document/remaining byte budget')
-    budget.take(len(data))
+    if mode == 2 and (not inflater.eof or inflater.unused_data):
+        budget.inflation_blocked = True
+        raise Unknown('incomplete or trailing zlib stream')
     return data
 
 
@@ -288,12 +292,16 @@ def run(inputs, catalog_path, out, adaptations_path=None):
     adaptation_raw = None
     if adaptations_path:
         adaptation_raw = stable_read(Path(adaptations_path))
-        for row in read_json(adaptation_raw):
+        proposals = read_json(adaptation_raw)
+        if not isinstance(proposals, list):
+            raise Unknown('adaptations must be a list of explicit review proposals')
+        for row in proposals:
             if (not isinstance(row, dict) or not isinstance(row.get('source'), str)
                     or not EXACT_ID.fullmatch(row['source'])
                     or row.get('source') in adaptations or not isinstance(row.get('target'), str)
                     or row['target'] not in catalog
-                    or not row.get('reason') or not row.get('evidence')):
+                    or not isinstance(row.get('reason'), str) or not row['reason']
+                    or not isinstance(row.get('evidence'), str) or not row['evidence']):
                 raise Unknown('adaptations need unique source, catalog target, reason and evidence')
             adaptations[row['source']] = row
     # Copy before parsing; failures never cause a write to an original.
@@ -340,7 +348,8 @@ def run(inputs, catalog_path, out, adaptations_path=None):
     report = dict(schema='ungravity.saved-registry-references.v1', catalogRevision=source['revision'],
                   catalogSHA256=sha(catalog_raw), catalogRoots=len(catalog), inputs=rows,
                   catalogOriginalUnchanged=catalog_unchanged, adaptationsOriginalUnchanged=adaptations_unchanged,
-                  decodedBytes=MAX_TOTAL - budget.remaining, saveEdits=0,
+                  admittedDecodedBytes=MAX_TOTAL - budget.remaining,
+                  furtherInflationRefused=budget.inflation_blocked, saveEdits=0,
                   scope='Offline copied references only; not runtime registry, coherent live snapshot, migration or deletion authority')
     (out / 'REPORT.json').write_text(json.dumps(report, indent=2) + '\n')
     return report
