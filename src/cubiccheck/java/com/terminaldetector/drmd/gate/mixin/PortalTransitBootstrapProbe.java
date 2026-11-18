@@ -8,5 +8,5 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value=CubicClientGate.class,remap=false)
 public class PortalTransitBootstrapProbe {
     @Inject(method="onInitializeClient",at=@At("HEAD"),cancellable=true,remap=false)
-    private void boot(CallbackInfo ci){if(NativePortalTransitCheck.ENABLED){NativePortalTransitCheck.register();ci.cancel();}}
+    private void boot(CallbackInfo ci){if(com.terminaldetector.drmd.gate.NativeConnectedPortalCheck.ENABLED){com.terminaldetector.drmd.gate.NativeConnectedPortalCheck.register();ci.cancel();}else if(NativePortalTransitCheck.ENABLED){NativePortalTransitCheck.register();ci.cancel();}}
 }
