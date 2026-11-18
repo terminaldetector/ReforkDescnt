@@ -1,8 +1,8 @@
 {
   "schema": "ungravity.implementation-packet-progress.v1",
   "date": "2026-11-17",
-  "canonicalServerSource": "7c502b49e9ca131c649280ca425f7dc0e4264827",
-  "lastTwoClientSource": "7c502b49e9ca131c649280ca425f7dc0e4264827",
+  "canonicalServerSource": "5057931efce99156ffdc8a195e90b1a926907ed8",
+  "lastTwoClientSource": "5057931efce99156ffdc8a195e90b1a926907ed8",
   "originalMap": "docs/v8/UNTOUCHED_IMPLEMENTATION_PACKETS_2026-11-17.json",
   "originalMapSha256": "f387b0d7ef5b04d8b75883ff2c13fa0bab114ff26028df64ef20025bf3d2e9d1",
   "scope": [
@@ -36,9 +36,9 @@
       ],
       "status": "partial_integrated",
       "owner": "audit_integration",
-      "source": "7c502b49e9ca131c649280ca425f7dc0e4264827",
-      "remaining": "Actual equipped preview integrated7c in935units/456GT+two same-JAR clients.11actualmenuclasses equal accepted isolatedb429/e047 (6units+5realGUIscenes); identity-rebound combinedGUI7fc observerbuild tooling remains separate, no combined5scene inheritance. BroaderGL3.2/PS1/custom-layout/fullinventory acceptance open.",
-      "report": "docs/v8/MULTI_AGENT_INTEGRATION_7C502B4_2026-11-18.md",
+      "source": "5057931efce99156ffdc8a195e90b1a926907ed8",
+      "remaining": "Actual equipped preview integrated7c and retained505 in951units/480GT+two same-JAR clients.11actualmenuclasses remain equal isolatedb429. Separate same-game791/differentobserverBD54 actual5GUI scenes PASSc69; this is the PLASMA/removal/fallback subset, not the complete U02 matrix. Expanded LASER/ROCKET/DRILL, freeordinary/free6DoF/mounted6DoF xNative/PS1, quickmove/persistence/charge remain open.",
+      "report": "docs/v8/MULTI_AGENT_INTEGRATION_5057931_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -48,11 +48,11 @@
         "S12-T01",
         "S12-T05"
       ],
-      "status": "source_candidate",
+      "status": "partial_integrated",
       "owner": "world_content with combat_ai",
-      "source": "269a60bd019c97e6cb3d317969b8dbf1cc9bf346 (corrected candidate)",
-      "remaining": "Model/protocol25PASS. Firstactual8d9 default12000-online-tick scenarios7PASS/1hidden-cooldown-feedbackFAIL; alltimed/nonlethal/400warning/oneASSAULT conditions observed, not600wall/native. Director-onlypostcommitfeedback600 fix is frozen269 withunchanged8criteria butNOTYETRUN. Cold/actualnativepacing/broaderpopulation remainopen.",
-      "report": null,
+      "source": "5057931efce99156ffdc8a195e90b1a926907ed8",
+      "remaining": "Existing-director default12000-online-tick SUPPORT recon, own naturalLOS and full400warning/oneASSAULT integrated505:16newunits+3actualGT in951/480+2clients. Separate corrected3040 default8/8PASS, retained first7/8missingfeedbackFAIL. Genuine600wall/ordinary-loader cold clock and broader population remain open; isolated native-clock source lane assigned.",
+      "report": "docs/v8/MULTI_AGENT_INTEGRATION_5057931_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -67,9 +67,9 @@
       ],
       "status": "partial_integrated",
       "owner": "combat_ai",
-      "source": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
-      "remaining": "Canonical non-autostart intent remains. Isolated87 friendlyAA82PASS. First78 actualmixed/fracture controls4PASS1genuineFAIL: detachedopaque gun emitsmovingbolts; healthyordinaryneighbor/cut controlsPASS. Compactrefusal provenance fixfa7 source-only; original82/zero-fire/cadence/flight/material checks retained, no canonicalAA merge orfullsiege acceptance.",
-      "report": "MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md",
+      "source": "5057931efce99156ffdc8a195e90b1a926907ed8",
+      "remaining": "Saved siege intent remains non-autostart. Friendly playerbuiltAA with compact opaque-fragment refusal integrated505;21newAA cases execute ordinary480, actual28proofs/12gzipNBT retained. Separate unchanged82 and7 runs PASS; first detachedopaque-gun firing failure retained. Native wrench and coherent siege/retreat/recovery/daynight/twoinfantry remain open. No new director.",
+      "report": "docs/v8/MULTI_AGENT_INTEGRATION_5057931_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -92,10 +92,10 @@
       "taskIds": [
         "S14-T02"
       ],
-      "status": "pending",
+      "status": "source_work_assigned",
       "owner": "combat_ai",
       "source": null,
-      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
+      "remaining": "Shapes distinct armed Enderman-derived infantry source implementation assigned combat_ai on fresh505 base after bounded clause review. Reuse actual cover/squad/weapon/localframe hooks; suppress vanilla teleport only this role; no wall/ceiling/full3DAI acceptance and no runtime yet.",
       "report": null,
       "acceptedAsWhole": false
     },
@@ -239,8 +239,8 @@
       ],
       "status": "source_candidate",
       "owner": "ps1_render",
-      "source": "3265fb69 (isolated ps1-geometry)",
-      "remaining": "ActualGLSL150 vertexsnap/affineUV candidate forhardtexturedBlockBody plusindependentpersistedcontrols written after1c060;6Pythonoracle controlsPASS,5Java testsNOTRUN. ActualLOWRESWORLD gate excludesNative/Debug/GUI/viewmodel/offscreen. Compile/nativeimage/nearSodium/smooth/translucent paths remainopen.",
+      "source": "3265fb69",
+      "remaining": "Actual hardtexturedBlockBody vertex snap+affine shader/default-off controls written;6independentPython controls PASS. Five Java tests, compile and actual world-draw/atlas/frame oracle remain unrun. Source-only observer9state contract underway; Native/Debug/HUD/GUI/viewmodel/offscreen gates retained.",
       "report": null,
       "acceptedAsWhole": false
     },
@@ -313,9 +313,9 @@
       ],
       "status": "partial_integrated",
       "owner": "ps1_render / world_cubic",
-      "source": "7c502b49e9ca131c649280ca425f7dc0e4264827",
-      "remaining": "Cloud23filepatch integrated7c in935/456+twoactualsame-JARclients;17actualclasses equalcomponent1ce93. Separate22focusedunits, strictGL3.2c44+Sodiumd516 fiveposes and BOTHbackend853 six-scene/profilematrices PASS preserveexactscopes/firstfailures. Generalvolumetrictiers/transmittance/physicalIntelhardware remainopen.",
-      "report": "docs/v8/MULTI_AGENT_INTEGRATION_7C502B4_2026-11-18.md",
+      "source": "5057931efce99156ffdc8a195e90b1a926907ed8",
+      "remaining": "Cloud extension integrated7c/retained505 in951/480+2clients;17actualclasses equal1ce93. Isolated22units, strictGL32/Sodium fivepose and bothbackend6scene/palette matrices PASS keep their distinct artifacts. Actual volumetric detached objects/stacked caves, atmosphere/transmittance and hardware gate remain open.",
+      "report": "docs/v8/MULTI_AGENT_INTEGRATION_5057931_2026-11-18.md",
       "acceptedAsWhole": false
     }
   ],
@@ -332,5 +332,6 @@
     "B1": "pending accelerating occupied contact matrix",
     "B3": "pending combined occupied asymmetricedit/COM/packet transaction",
     "B4": "pending aboard sabotage/warning/departure/wreck episode"
-  }
+  },
+  "updatedDate": "2026-11-18"
 }

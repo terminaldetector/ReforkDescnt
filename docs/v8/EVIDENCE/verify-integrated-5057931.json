@@ -1,0 +1,134 @@
+{
+  "source": "5057931efce99156ffdc8a195e90b1a926907ed8",
+  "archive": "docs/v8/EVIDENCE/integrated-5057931.zip",
+  "payloads": 161,
+  "exactSourcePostimages": 27,
+  "aaProofFiles": 28,
+  "gzipCompoundNbtFiles": {
+    "run/player-aa-proof/actual-aa-fragment.dat": {
+      "bytes": 676,
+      "decodedBytes": 1019,
+      "sha256": "ab8222355ac76964a8bae0472e1523fb52d318dad58160ce43d4b3bda735987d"
+    },
+    "run/player-aa-proof/actual-refusal-fragment.dat": {
+      "bytes": 644,
+      "decodedBytes": 1124,
+      "sha256": "2bdd67c29ad72d078a308961d0bb6d550aba8abd861bf2e5042b59195a739730"
+    },
+    "run/player-aa-proof/corrupt-actual-mounted.dat": {
+      "bytes": 244,
+      "decodedBytes": 438,
+      "sha256": "a3ea8ae479efed09ddd3ccca2b27067b86ccfe25e993c7f907e81da66ea18e3c"
+    },
+    "run/player-aa-proof/corrupt_mixed-actual-material.dat": {
+      "bytes": 958,
+      "decodedBytes": 2273,
+      "sha256": "e833263935063fc2889b34cdb7ea920022a64b6af493265641a2226098e8f979"
+    },
+    "run/player-aa-proof/empty_mixed-actual-material.dat": {
+      "bytes": 2320,
+      "decodedBytes": 6530,
+      "sha256": "9cf08abaeb67fba1b7f7ca37d11f2df560be4895c558cde5d20460a5ac902452"
+    },
+    "run/player-aa-proof/future-actual-mounted.dat": {
+      "bytes": 280,
+      "decodedBytes": 501,
+      "sha256": "3ed56abb2921e7620e9e53371a2a47700da6dbdae8e3d7e939042a69d1d36eb2"
+    },
+    "run/player-aa-proof/future_descendant-actual-material.dat": {
+      "bytes": 446,
+      "decodedBytes": 1051,
+      "sha256": "b0c0f189dcd2c3729483b8821ee20dff27ccbea576c04c3eab958598433fa816"
+    },
+    "run/player-aa-proof/future_fragment-actual-material.dat": {
+      "bytes": 387,
+      "decodedBytes": 882,
+      "sha256": "3e9f1f9b9098bb2669714a09600bf7c03929415b2d2a8215194745326616b122"
+    },
+    "run/player-aa-proof/future_mixed-actual-material.dat": {
+      "bytes": 987,
+      "decodedBytes": 2336,
+      "sha256": "c15e979dedc42aea43cbafee707ffc3033168d8fecee67f7d096b59d50997370"
+    },
+    "run/player-aa-proof/future_reload_guard-actual-material.dat": {
+      "bytes": 903,
+      "decodedBytes": 1912,
+      "sha256": "f201d5eb53388561ced2dfd6ce9aa5afc0a0cf451b40c53a02980bd5b626c43b"
+    },
+    "run/player-aa-proof/ordinary-actual-mounted.dat": {
+      "bytes": 190,
+      "decodedBytes": 271,
+      "sha256": "1f56abba74686f9075cfb5b960e335e0340b7dbaa397b8ed2223f311366274ac"
+    },
+    "run/player-aa-proof/ordinary_fragment-actual-material.dat": {
+      "bytes": 716,
+      "decodedBytes": 1383,
+      "sha256": "b251b579ec718ae8794f35e598f198ae1759fb0510665e983bd4ad4a2fff3b28"
+    }
+  },
+  "packets": [
+    {
+      "sequence": 1,
+      "bytes": 5121,
+      "sha256": "2214c13e203e6d6c172a9e7a4452019960935564e57f51162c2d546ec34d32d3",
+      "cell": {
+        "height": 2301,
+        "colour": 0
+      }
+    },
+    {
+      "sequence": 2,
+      "bytes": 5121,
+      "sha256": "7fe32b531018119e62f5a3cccdcbe0eb3bea228b1fc30fa08fee75e0fd781552",
+      "cell": {
+        "height": 2301,
+        "colour": 16445005
+      }
+    }
+  ],
+  "disk": {
+    "sha256": "fcd86e75d203aeb2d3d620ebe00813a8cc6f80a354f6e17c8253fad7da785d17",
+    "decodedCell": {
+      "height": 2301,
+      "colour": 16445005
+    }
+  },
+  "ordinaryGameTests": 480,
+  "newGameplayCases": [
+    "playeraamixedbankgametests.futureownershippausesallmixedbankswhileordinaryneighborstillfires",
+    "playermechanismaaguardgametests.stationandmountedsourcessharethesamereal256roundadmissionpool",
+    "playermechanismaaguardgametests.actualgunfragmentpreservesoneclaimandcooldownthrougharealsavedfile",
+    "playeraaopaquefracturegametests.continuousopaquegunmaterialretainsitsrefusalafteractualfracture",
+    "playermechanismaaguardgametests.lowlevelfactoryrejectsalteredweaponunknowntargetandrealmuzzlecover",
+    "playeraaopaquefracturegametests.releasedordinarygunfragmentstillemitstworealmovingbolts",
+    "playermechanismaabaselinegametests.offlevercontrolstillreceivestherealrocketonitsphysicalhull",
+    "playermechanismaaguardgametests.actualteammatemachinewarheadretainsitsrealhullimpact",
+    "playermechanismaaguardgametests.emittedlaserstillhitsreallivingcoverwhenprincipalbecomesinvalid",
+    "playermechanismaaguardgametests.realpostlaunchcrowdbudgetrefusesmovementwhilenormallifetimestillexpires",
+    "playermechanismaaguardgametests.ownershipdoesnotseizeanotherplayersgunorconsumeordinaryblockplacement",
+    "playermechanismaaguardgametests.actualshooterremovaldoesnotauthorizeinterceptionoreraseitswarhead",
+    "reconadmissiongametests.observedscoutandassaultdeathscannotmintanothercombatallowance",
+    "playermechanismaabaselinegametests.armedplayerbuiltmechanisminterceptstherealrocketbeforeprotectedmaterial",
+    "playeraaopaqueownershipgametests.explicitlyreleasedordinarymechanismkeepsitsrealtwoboltcadence",
+    "playeraaopaqueownershipgametests.missingprincipalpreservescorruptclaimwithoutordinaryautomaticfire",
+    "reconadmissiongametests.defaultsurvivalgracethenownsightgivesfullwarningbeforeoneassault",
+    "playeraaopaquefracturegametests.savedrefusalsurvivesrejectededitandoriginremovalwithoutpausingindependentgun",
+    "playeraaopaqueownershipgametests.futureownershipschemapreservesopaquebyteswithoutordinaryautomaticfire",
+    "reconadmissiongametests.hiddenunprovokedscoutdeathgivescooldownwithoutrecursivealarm",
+    "playeraamixedbankgametests.corruptownershippausesallmixedbankswhileordinaryneighborstillfires",
+    "playeraaopaquefracturegametests.actualdescendantcutkeepsoneoriginalrefusalwithoutancestryorliveclaims",
+    "playeraamixedbankgametests.validemptyownershipkeepsactualmixedbanklaserandrocketcadence",
+    "playermechanismaaguardgametests.invalidownermodepauseswithoutordinaryfireandsurvivalcanresume"
+  ],
+  "arrival": {
+    "serverFull": 118,
+    "bothServerFull": 121,
+    "finalTick": 161,
+    "clientHighFull": true,
+    "clientLowFull": false
+  },
+  "presentationScenes": 6,
+  "paletteStates": 5,
+  "nativeAndPs1GunPixels": 166,
+  "wholeSpecificationAccepted": false
+}

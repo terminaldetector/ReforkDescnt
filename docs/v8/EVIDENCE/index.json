@@ -92,7 +92,8 @@
     "integrated-362613f.zip": "f7dfa1ab50fd29b3278d7489babd587acf5edbfc62f7f0491dc0f6c4e4b21a86",
     "planet-first-snapshot-order.zip": "91634ac2304d8af8c501d783ca2759082d3cdcf3f4bc879ca3854df8210123c4",
     "surface-byte-readback-20ef2c4.py": "eff0cefc9d352f791ab3b484ee23fee4a8a26ec340403cab1d4cfe0a5e2df5ac",
-    "surface-byte-readback-20ef2c4.json": "2031d6fe8f2bb1684d5271a6ea8f1f461c9283d5addfac09e323911e3a5c83ce"
+    "surface-byte-readback-20ef2c4.json": "2031d6fe8f2bb1684d5271a6ea8f1f461c9283d5addfac09e323911e3a5c83ce",
+    "integrated-5057931.zip": "faa4c5e1fb95f3e3947418f1ea6b17d785fdf39ceb88cc0db8226efb63546cd5"
   },
   "fullRotationRegression": {
     "source": "68250d739af3e4ded76dc1edf0fd99c8f34824f0",
@@ -3788,26 +3789,132 @@
     "fullSpecificationAccepted": false
   },
   "latestCanonicalCombined": {
-    "source": "7c502b49e9ca131c649280ca425f7dc0e4264827",
-    "report": "../MULTI_AGENT_INTEGRATION_7C502B4_2026-11-18.md",
+    "source": "5057931efce99156ffdc8a195e90b1a926907ed8",
+    "report": "../MULTI_AGENT_INTEGRATION_5057931_2026-11-18.md",
     "counts": {
       "unit": {
-        "tests": 935,
+        "tests": 951,
         "failures": 0,
         "errors": 0,
         "skipped": 0
       },
       "game": {
-        "tests": 456,
+        "tests": 480,
         "failures": 0,
         "errors": 0,
         "skipped": 0
       }
     },
     "sameJarNativeClients": 2,
-    "sourcePostimages": "gui-cloud-source-postimages-7c502b4.json",
-    "remappedClassParity": "gui-cloud-class-parity-7c502b4.json",
-    "rawPacketDiskDecoder": "surface-byte-readback-7c502b4.json",
+    "sourcePostimages": "aa-recon-postimages-5057931.json",
+    "remappedClassParity": "render-preview-class-parity-5057931.json",
+    "rawPacketDiskAndAaReadback": "verify-integrated-5057931.json",
+    "closedSavePreservation": "closed-save-preservation-5057931.json",
     "fullSpecificationAccepted": false
+  },
+  "multiAgentIntegration5057931": {
+    "source": "5057931efce99156ffdc8a195e90b1a926907ed8",
+    "archiveSHA256": "faa4c5e1fb95f3e3947418f1ea6b17d785fdf39ceb88cc0db8226efb63546cd5",
+    "archiveBytes": 4847632,
+    "payloadFiles": 161,
+    "pngFiles": 40,
+    "depthArrays": 10,
+    "counts": {
+      "unit": {
+        "tests": 951,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "game": {
+        "tests": 480,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "entrypoints": 81,
+    "jars": {
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "917942f866ae00968bbb736c926f7e14eaad1dad3dfb92663c4cdfd48ecd5d2b",
+      "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+    },
+    "nativePair": {
+      "source": "5057931efce99156ffdc8a195e90b1a926907ed8",
+      "endSource": "5057931efce99156ffdc8a195e90b1a926907ed8",
+      "jars": {
+        "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar": "917942f866ae00968bbb736c926f7e14eaad1dad3dfb92663c4cdfd48ecd5d2b",
+        "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "c7a7602a526ad1fc870a4682b2af6db0625509e673f0a13984978ffa033395a4"
+      },
+      "jarsUnchanged": true,
+      "helpersUnchanged": true,
+      "results": [
+        {
+          "kind": "arrival",
+          "scenario": "cubic-surface-arrival-integrated-5057931-sodium",
+          "helperExit": 0,
+          "javaExit": 0,
+          "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-surface-arrival-final-cubic-surface-arrival-integrated-5057931-sodium",
+          "observed": [
+            "inputs.json",
+            "launch.json",
+            "surface-arrival-outcome.json"
+          ],
+          "pngCount": 2,
+          "gatePassed": true
+        },
+        {
+          "kind": "presentation",
+          "scenario": "ps1-color-integrated-5057931-sodium",
+          "helperExit": 0,
+          "javaExit": 0,
+          "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-5057931-sodium",
+          "observed": [
+            "inputs.json",
+            "launch.json",
+            "presentation-ok.json",
+            "ps1-color-ok.json",
+            "viewmodel-proof/viewmodel-visibility.json"
+          ],
+          "pngCount": 38,
+          "gatePassed": true
+        }
+      ],
+      "endNs": 1794971866871832476,
+      "gatePassed": true
+    },
+    "releaseAccepted": false,
+    "fullSpecificationAccepted": false
+  },
+  "historicalSavePreservationThird20261118": {
+    "schema": 1,
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/historical-native-saves-20261118-third/saves.zip",
+    "archiveBytes": 17181304,
+    "archiveSHA256": "37cdf461f87f4fb7adaa29b2548e83ca14c7f26d5980854c06f960df05c0228e",
+    "worldCount": 13,
+    "fileCount": 1302,
+    "logicalBytes": 453470555,
+    "allocatedBytes": 455630848,
+    "allZIPCRCAndFileHashesVerified": true,
+    "nestedGzipStreamsFullyDecoded": 133,
+    "freshInventoryInodeMtimeHashVerified": true,
+    "exclusiveWritableFdPosixLockf": 13,
+    "protectedDonorsUntouched": true,
+    "beforeFreeBytes": 167522304,
+    "reclaimed": [
+      "/workspace/ungravity-v5/boarding-runtime/build/cubic-client-final-contacts-sodium/saves",
+      "/workspace/ungravity-v5/boarding-runtime/build/cubic-client-final-contacts-gl32/saves",
+      "/workspace/ungravity-v5/boarding-runtime/build/cubic-client-final-rotation-contacts-sodium/saves",
+      "/workspace/ungravity-v5/boarding-runtime/build/cubic-client-final-rotation-contacts-gl32/saves",
+      "/workspace/ungravity-v5/boarding-runtime/build/cubic-client-rotation-negative-control/saves",
+      "/workspace/ungravity-v5/boarding/build/cubic-client-intermediate-3f60-release-contacts-sodium/saves",
+      "/workspace/ungravity-v5/boarding/build/cubic-client-intermediate-3f60-release-contacts-gl32/saves",
+      "/workspace/ungravity-v5/boarding/build/cubic-client-automation/saves",
+      "/workspace/ungravity-v5/boarding/build/cubic-client-final-candidate2-contacts-gl32/saves",
+      "/workspace/ungravity-v5/world-access/build/cubic-client-native-mirror-first-failure/saves",
+      "/workspace/ungravity-v5/actor-frames/build/cubic-client-failed-actors-gl32-first/saves",
+      "/workspace/ungravity-v5/boarding/build/cubic-client-failed-linkage/saves",
+      "/workspace/ungravity-v5/portal-gun/build/cubic-client-before-release-gun-gl32/saves"
+    ],
+    "afterFreeBytes": 607150080
   }
 }

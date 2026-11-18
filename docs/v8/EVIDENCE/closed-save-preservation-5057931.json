@@ -1,0 +1,43 @@
+{
+  "full": {
+    "source": "5057931efce99156ffdc8a195e90b1a926907ed8",
+    "sourcePath": "/workspace/ungravity-v5/ufo-body-physics/build/gametest/world",
+    "archivePath": "/workspace/ungravity-v5/ufo-body-physics/work/ufo-body/integrated-5057931.zip",
+    "fileCount": 1556,
+    "logicalBytes": 336849595,
+    "archiveBytes": 41771199,
+    "archiveSHA256": "5d28aea735905e47f0da063b218cd96624bedf194919a79a5ba5f0001ac58b23",
+    "allFilesCRCAndHashesVerified": true,
+    "exclusiveSessionLocks": 1,
+    "onlyClosedDisposableWorldReclaimed": true
+  },
+  "arrival": {
+    "source": "5057931efce99156ffdc8a195e90b1a926907ed8",
+    "sourcePath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-surface-arrival-final-cubic-surface-arrival-integrated-5057931-sodium/saves",
+    "archivePath": "/workspace/ungravity-v5/ufo-body-physics/work/ufo-body/arrival-5057931-closed-world.zip",
+    "fileCount": 98,
+    "logicalBytes": 43821462,
+    "archiveBytes": 1360494,
+    "archiveSHA256": "d6bc9561cc9851b26c6519cd5799ef6c19cbc6a38d37a0a230a1c6b993b8a846",
+    "allFilesCRCAndHashesVerified": true,
+    "exclusiveSessionLocks": 1,
+    "onlyClosedDisposableWorldReclaimed": true
+  },
+  "presentation": {
+    "source": "5057931efce99156ffdc8a195e90b1a926907ed8",
+    "sourcePath": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-ps1-color-integrated-5057931-sodium/saves",
+    "archivePath": "/workspace/ungravity-v5/ufo-body-physics/work/ufo-body/presentation-5057931-closed-world.zip",
+    "fileCount": 102,
+    "logicalBytes": 38693799,
+    "archiveBytes": 1345376,
+    "archiveSHA256": "88b430cffc8e55cd129276b490f1395f885d659a9196b154881b1eb1297b3bc1",
+    "allFilesCRCAndHashesVerified": true,
+    "exclusiveSessionLocks": 1,
+    "onlyClosedDisposableWorldReclaimed": true
+  },
+  "gzipChecks": {
+    "full": 448,
+    "arrival": 12,
+    "presentation": 12
+  }
+}

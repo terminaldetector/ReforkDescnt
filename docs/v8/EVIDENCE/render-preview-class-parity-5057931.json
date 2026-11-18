@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "canonicalSource": "5057931efce99156ffdc8a195e90b1a926907ed8",
+  "canonicalJarSHA256": "917942f866ae00968bbb736c926f7e14eaad1dad3dfb92663c4cdfd48ecd5d2b",
+  "groups": {
+    "gui": {
+      "componentJarSHA256": "b429fdc08c0a84d6b7580b0fd895acd3676af3f3602b54e314fb3426075f6d3c",
+      "sameRemappedClasses": 11,
+      "entries": {
+        "com/terminaldetector/drmd/client/render/DroneLoadoutPreview$Collector.class": {
+          "bytes": 4289,
+          "sha256": "c6d01949c40a86e3fcf3159b0f99301d96dd8f036df42183e6151a42c5b6c951"
+        },
+        "com/terminaldetector/drmd/client/render/DroneLoadoutPreview$Face.class": {
+          "bytes": 2435,
+          "sha256": "74f19d7f735a2f7fdddebbc6d40bf3272bc587275bf4505e817f5e0f0b016f88"
+        },
+        "com/terminaldetector/drmd/client/render/DroneLoadoutPreview$Mesh.class": {
+          "bytes": 2719,
+          "sha256": "a586771cd0f77d99d9a7a281376746da32680665fc23411fb09e625ef1bdb36e"
+        },
+        "com/terminaldetector/drmd/client/render/DroneLoadoutPreview$PreviewLimitException.class": {
+          "bytes": 555,
+          "sha256": "23166a1ccbef915c184bd0966b7f5a39916de0f8586a489bf5e42fd6b0bf5df7"
+        },
+        "com/terminaldetector/drmd/client/render/DroneLoadoutPreview$Vertex.class": {
+          "bytes": 2411,
+          "sha256": "28de9a242f5fadac9e23a12cb481eb101f86740bb4ee8ca07a94e493aab40b22"
+        },
+        "com/terminaldetector/drmd/client/render/DroneLoadoutPreview.class": {
+          "bytes": 15086,
+          "sha256": "c0a756b1e5b0915d2669f4436395e4c824641f424ed0153734dea66016b06cc2"
+        },
+        "com/terminaldetector/drmd/client/render/DronePreviewProjection$Bounds.class": {
+          "bytes": 2325,
+          "sha256": "fd3f92b223d194d89f2e6cf1f0e154f6dbe04669b837d3809b5acc2ac3467e08"
+        },
+        "com/terminaldetector/drmd/client/render/DronePreviewProjection$Fit.class": {
+          "bytes": 2672,
+          "sha256": "bbaefa36cc2c701bbd10d54bc1aa3d47849c3173e3bd5107009554b62964db35"
+        },
+        "com/terminaldetector/drmd/client/render/DronePreviewProjection$Point.class": {
+          "bytes": 2152,
+          "sha256": "207186f625390268cdff6a0dbe0887f29a5a843aa8cea886aa42d9831593290f"
+        },
+        "com/terminaldetector/drmd/client/render/DronePreviewProjection.class": {
+          "bytes": 2775,
+          "sha256": "9be3668e1f1c255796aadb61fef8a82f45497fa70a121b4649041acf5ba83913"
+        },
+        "com/terminaldetector/drmd/client/screen/DroneInventoryScreen.class": {
+          "bytes": 4483,
+          "sha256": "d6beb3501a4412b996836cf095efaf32ef42414fb46b6b6e950d8ccd7fcc9ac9"
+        }
+      }
+    },
+    "cloud": {
+      "componentJarSHA256": "1ce93d475f604d9b32a49663696d54ce7ee375fe086849e74b2d1cfce576a1c2",
+      "sameRemappedClasses": 17,
+      "entries": {
+        "com/terminaldetector/drmd/client/cloud/AltitudeCloudPolicy$ViewAltitude.class": {
+          "bytes": 2288,
+          "sha256": "696a429bf0db5e7ed99aed6b08b82514d5acb463ae8ffce4d7be3380034774bc"
+        },
+        "com/terminaldetector/drmd/client/cloud/AltitudeCloudPolicy.class": {
+          "bytes": 5685,
+          "sha256": "2f5db75e0602b94c08d054153fb815deb23fc8a6b1ebb0c9463795b27c7cbbbc"
+        },
+        "com/terminaldetector/drmd/client/cloud/AltitudeCloudRenderer$1.class": {
+          "bytes": 1680,
+          "sha256": "669a36e56f386f92731207451e8d70c9cf574156a8b77de5e0bb71d857c189a4"
+        },
+        "com/terminaldetector/drmd/client/cloud/AltitudeCloudRenderer$Stats.class": {
+          "bytes": 4212,
+          "sha256": "0aac83396eae2f73f35ac1526b4a3e6bf4386432cf9fabeeaf4452371a6e51a3"
+        },
+        "com/terminaldetector/drmd/client/cloud/AltitudeCloudRenderer.class": {
+          "bytes": 17700,
+          "sha256": "83c74cea0cc64bd78ccc55e746a10f611e0cfdae12678cc1a07c33acc4210064"
+        },
+        "com/terminaldetector/drmd/client/cloud/AltitudeCloudShaders.class": {
+          "bytes": 2752,
+          "sha256": "2ec81b7f13bb3ec2019d0def5fdcfe0f58aac7919651a8ec2fe73e2ed03f8617"
+        },
+        "com/terminaldetector/drmd/client/cloud/CloudRenderCompatibility$Layout.class": {
+          "bytes": 1503,
+          "sha256": "821ef99af457f02b9fb0e56aa61e379207ee7b4687a673c6afce86f5f7aae56d"
+        },
+        "com/terminaldetector/drmd/client/cloud/CloudRenderCompatibility$SamplerApi.class": {
+          "bytes": 1551,
+          "sha256": "a994eb771d1051f40b3f16e7d00150aaab577edd5bd7d553a5e6524b62f7812b"
+        },
+        "com/terminaldetector/drmd/client/cloud/CloudRenderCompatibility.class": {
+          "bytes": 1845,
+          "sha256": "3050332f776c762ca7febc056af534c56ac53938c819439c07c54c0130f420b5"
+        },
+        "com/terminaldetector/drmd/client/cloud/FarFieldOcclusionTarget$State.class": {
+          "bytes": 5325,
+          "sha256": "f9b424a8f4e6b15c0a72f877ccfaae9c378f7740153995e3bbafe3c771d5adf9"
+        },
+        "com/terminaldetector/drmd/client/cloud/FarFieldOcclusionTarget.class": {
+          "bytes": 3647,
+          "sha256": "d271b79a3a701cf3ce877bdd6dbc67b60a265999d0209f0be5277091e1f95345"
+        },
+        "com/terminaldetector/drmd/client/config/DescentConfig.class": {
+          "bytes": 7056,
+          "sha256": "f97e093480c3af0c736490ba14219c4997cd466337bbbac2531871c0b7e07c0b"
+        },
+        "com/terminaldetector/drmd/client/planet/HorizonVertexBuffer.class": {
+          "bytes": 3571,
+          "sha256": "3105d3f84c79b453e6ba3136ee33a062af868baee3ba1167e9a5b6261e0c33fe"
+        },
+        "com/terminaldetector/drmd/client/planet/PlanetFloorRenderer.class": {
+          "bytes": 6606,
+          "sha256": "334db8f40788fc42cfacc632afb5d1c170ecbad61e196cbb9dc125c461432cbe"
+        },
+        "com/terminaldetector/drmd/mixin/client/AltitudeCloudBufferMixin.class": {
+          "bytes": 1578,
+          "sha256": "b658075e4147f24f79ac9a109be66e8d654ae7a321ccedd7d53cb6078fb2b7b2"
+        },
+        "com/terminaldetector/drmd/mixin/client/AltitudeCloudSodiumMixin.class": {
+          "bytes": 1334,
+          "sha256": "13c5bfd449e5cc9015cce778e3d59403f5be81a81b0d5614d39add171ebb5c52"
+        },
+        "com/terminaldetector/drmd/mixin/client/AltitudeCloudVanillaMixin.class": {
+          "bytes": 1223,
+          "sha256": "9aa75d8d3cccc929bbb850f868619956007799523337df588ef6ee182b3948d7"
+        }
+      }
+    }
+  },
+  "scope": "All11GUI and17cloud remapped classes remain byte-identical to the prior tested components and canonical7c; this does not execute another GUI or cloud scene.",
+  "priorCanonical": "7c502b49e9ca131c649280ca425f7dc0e4264827"
+}

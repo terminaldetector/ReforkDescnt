@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/historical-native-saves-20261118-third/saves.zip",
+  "archiveBytes": 17181304,
+  "archiveSHA256": "37cdf461f87f4fb7adaa29b2548e83ca14c7f26d5980854c06f960df05c0228e",
+  "worldCount": 13,
+  "fileCount": 1302,
+  "logicalBytes": 453470555,
+  "allocatedBytes": 455630848,
+  "allZIPCRCAndFileHashesVerified": true,
+  "nestedGzipStreamsFullyDecoded": 133,
+  "freshInventoryInodeMtimeHashVerified": true,
+  "exclusiveWritableFdPosixLockf": 13,
+  "protectedDonorsUntouched": true,
+  "beforeFreeBytes": 167522304,
+  "reclaimed": [
+    "/workspace/ungravity-v5/boarding-runtime/build/cubic-client-final-contacts-sodium/saves",
+    "/workspace/ungravity-v5/boarding-runtime/build/cubic-client-final-contacts-gl32/saves",
+    "/workspace/ungravity-v5/boarding-runtime/build/cubic-client-final-rotation-contacts-sodium/saves",
+    "/workspace/ungravity-v5/boarding-runtime/build/cubic-client-final-rotation-contacts-gl32/saves",
+    "/workspace/ungravity-v5/boarding-runtime/build/cubic-client-rotation-negative-control/saves",
+    "/workspace/ungravity-v5/boarding/build/cubic-client-intermediate-3f60-release-contacts-sodium/saves",
+    "/workspace/ungravity-v5/boarding/build/cubic-client-intermediate-3f60-release-contacts-gl32/saves",
+    "/workspace/ungravity-v5/boarding/build/cubic-client-automation/saves",
+    "/workspace/ungravity-v5/boarding/build/cubic-client-final-candidate2-contacts-gl32/saves",
+    "/workspace/ungravity-v5/world-access/build/cubic-client-native-mirror-first-failure/saves",
+    "/workspace/ungravity-v5/actor-frames/build/cubic-client-failed-actors-gl32-first/saves",
+    "/workspace/ungravity-v5/boarding/build/cubic-client-failed-linkage/saves",
+    "/workspace/ungravity-v5/portal-gun/build/cubic-client-before-release-gun-gl32/saves"
+  ],
+  "afterFreeBytes": 607150080
+}

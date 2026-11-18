@@ -1,0 +1,110 @@
+{
+  "src/gametest/java/com/terminaldetector/drmd/PlayerAaMaterialFixture.java": {
+    "bytes": 38937,
+    "sha256": "49b9be1995212b504e6b073589aefa7594ccc176b56de86d66d02040653ce2a3"
+  },
+  "src/gametest/java/com/terminaldetector/drmd/PlayerAaMixedBankGameTests.java": {
+    "bytes": 1060,
+    "sha256": "ce263f24bfd5e39c9a12976d7817b6b13cfe7e44a56484a32e437f20439215d3"
+  },
+  "src/gametest/java/com/terminaldetector/drmd/PlayerAaOpaqueFractureGameTests.java": {
+    "bytes": 1404,
+    "sha256": "e2b3cb03b8939c733b238a40969ff8bcb5d143d44f95418b8fb9c68be0036cc4"
+  },
+  "src/gametest/java/com/terminaldetector/drmd/PlayerAaOpaqueOwnershipGameTests.java": {
+    "bytes": 22794,
+    "sha256": "a4361fb7e72c46a6c5e9950098da53c50fee550806611d47b75346a7c6add432"
+  },
+  "src/gametest/java/com/terminaldetector/drmd/PlayerMechanismAaBaselineGameTests.java": {
+    "bytes": 21200,
+    "sha256": "217be3ce13f2fb077cfeeb643685fc3bd7282a9ccc58268e0caf017fa39de1ed"
+  },
+  "src/gametest/java/com/terminaldetector/drmd/PlayerMechanismAaGuardGameTests.java": {
+    "bytes": 33045,
+    "sha256": "902068fc4c7c67c896467956aea8f448b520529cf627064d400f08bba07fad3f"
+  },
+  "src/gametest/java/com/terminaldetector/drmd/world/threat/ReconAdmissionFixture.java": {
+    "bytes": 22395,
+    "sha256": "1113a43169741c97d3970dc07bb6701a5099c1c0cf7e0a04caf55f6c2a23a37b"
+  },
+  "src/gametest/java/com/terminaldetector/drmd/world/threat/ReconAdmissionGameTests.java": {
+    "bytes": 1626,
+    "sha256": "9a2924164fab22b0262e778313cc844cc496184f43b20e33d92ca15da9d0a021"
+  },
+  "src/main/java/com/terminaldetector/drmd/world/contraption/mechanism/MountedDefenseClaims.java": {
+    "bytes": 7175,
+    "sha256": "fa331ed0cbac72c481b64ce90bdde4b3bf8f7af5cec923b660bda98454bba987"
+  },
+  "src/main/java/com/terminaldetector/drmd/world/contraption/mechanism/PlayerMountedDefense.java": {
+    "bytes": 2534,
+    "sha256": "237ef9ac2f0b9ad112d3892d58275f64e525aa4cc20cf15ac7df67212adda59e"
+  },
+  "src/main/java/com/terminaldetector/drmd/world/threat/ReconAdmission.java": {
+    "bytes": 4150,
+    "sha256": "bfa8301887ea588e57472032a29a54e826f9be50c932801ed8d14f86dfea7cde"
+  },
+  "src/main/java/com/terminaldetector/drmd/world/threat/ReconAdmissions.java": {
+    "bytes": 7580,
+    "sha256": "1f85b7ce27efab6b9788e8884848b7cb91e481897e5aafcf1db57393f29532aa"
+  },
+  "src/test/java/com/terminaldetector/drmd/world/threat/ReconAdmissionTest.java": {
+    "bytes": 2878,
+    "sha256": "1e3bf4fbfcf75c55cee2d61aff3bbf309dcc0796152f04da0d51a573beaf1aa7"
+  },
+  "src/test/java/com/terminaldetector/drmd/world/threat/ReconStateTest.java": {
+    "bytes": 10232,
+    "sha256": "c404aa47e74f7d86373179aa640ab6b33251720408415eaac4f36a5528f6dc68"
+  },
+  "src/gametest/resources/fabric.mod.json": {
+    "bytes": 5146,
+    "sha256": "119892d747ebf67d7f0b8cb480b4f6f7295121c078861662cfeae4cca1e61795"
+  },
+  "src/main/java/com/terminaldetector/drmd/client/flight/BodyEditClient.java": {
+    "bytes": 3326,
+    "sha256": "505e5cb883521cb103c5cb6350f46905f0a3e649d4f15ad2dd49b3253abcbe52"
+  },
+  "src/main/java/com/terminaldetector/drmd/entity/ProjectileEntity.java": {
+    "bytes": 31824,
+    "sha256": "4556be0a2aab8bca314c344b8469c3ad1bc4b3796f8c8bfe89e8bc8abad55b41"
+  },
+  "src/main/java/com/terminaldetector/drmd/weapon/core/WeaponCore.java": {
+    "bytes": 17191,
+    "sha256": "e1ffca8b574acb29910306bd73e4679a7ef89a8ae5fe7294789fda589ae2649c"
+  },
+  "src/main/java/com/terminaldetector/drmd/world/contraption/BlockBodyEntity.java": {
+    "bytes": 72757,
+    "sha256": "9563784b823d18e1c5c83a55bb24b05a319345aa490965109b75b953e16e3857"
+  },
+  "src/main/java/com/terminaldetector/drmd/world/contraption/mechanism/BodyMountedWeapons.java": {
+    "bytes": 8732,
+    "sha256": "37123c6f7bea5a8242efd50287c852be3d511b78573cb545d9cb5a2a73079a29"
+  },
+  "src/main/java/com/terminaldetector/drmd/world/contraption/mechanism/MountedWeaponEmitter.java": {
+    "bytes": 4184,
+    "sha256": "4938c7bba3a70f832af932f9bd1c81d002a1739a90223ca5232d2dbdeb48675c"
+  },
+  "src/main/java/com/terminaldetector/drmd/world/threat/SurvivalThreatDirector.java": {
+    "bytes": 18611,
+    "sha256": "4648ae58866027589717195dc1de2de8e3c8658c5ef98f028e56537fb835f5be"
+  },
+  "src/main/java/com/terminaldetector/drmd/world/threat/SurvivalThreatState.java": {
+    "bytes": 13128,
+    "sha256": "d29f661a9b88096941560599480c2f9d216c99a5cd8da2813fe747260509766e"
+  },
+  "src/main/java/com/terminaldetector/drmd/world/threat/ThreatProgress.java": {
+    "bytes": 4863,
+    "sha256": "48414757251bc6fe0535b261716999cefa4e7ae8c86b986d21b3d65c0b48a57a"
+  },
+  "src/main/java/com/terminaldetector/drmd/world/trap/PointDefenseInterception.java": {
+    "bytes": 25611,
+    "sha256": "e2039ec395a8d6f1e7245bd29b2037bac952efbdfcc0af113f66ec10b9d98920"
+  },
+  "src/main/resources/assets/drmd/lang/en_us.json": {
+    "bytes": 25194,
+    "sha256": "eebb5d6b51019df9a31d0771e122598eb81c3c73908d20e221123ff785dc4dcd"
+  },
+  "src/main/resources/assets/drmd/lang/ru_ru.json": {
+    "bytes": 32550,
+    "sha256": "e393205049dfef3fdb84285d0ca5807d2b3d46c5894c59a07834437ca62048a1"
+  }
+}

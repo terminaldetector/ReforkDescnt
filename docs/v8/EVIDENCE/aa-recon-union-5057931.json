@@ -1,0 +1,14 @@
+{
+  "rootBaseline": "7c502b49e9ca131c649280ca425f7dc0e4264827",
+  "u03Production": "600285972d9d8a776658fbe5bcbd692d7d8a9f22",
+  "u03ExecutedRuntime": "3040d94762f6442613c11f68c524105312b946d6",
+  "aaProduction": "fa7d640543134b923b89a2bc250ad6d2c67bda46",
+  "aaExecuted82": "39988673f52ac7bb392d915936051741fcb8fadc",
+  "aaExecuted7": "9fb507878036ce6f0faa3aef68f9e8a961a896f2",
+  "oldManifestEntriesPreserved": 75,
+  "newManifestEntries": 6,
+  "expectedUnits": 951,
+  "expectedGames": 480,
+  "expectedEntrypoints": 81,
+  "combinedRunNotPerformedYet": true
+}
