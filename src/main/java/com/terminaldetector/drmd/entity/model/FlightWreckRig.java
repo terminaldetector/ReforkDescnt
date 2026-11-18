@@ -22,6 +22,8 @@ public final class FlightWreckRig {
         if(!validScale(scale))throw new IllegalArgumentException("invalid Minecraft hull scale");
         if(!supportedVersion(version))throw new IllegalArgumentException("unsupported wreck rig version");
         RagdollRig base=kind==null?RagdollRig.scoutDrone():switch(kind){
+            // Distinct coarse prototype cage, not ORB or the legacy null/scout identity.
+            case TELEPORT_FLYER->new RagdollRig(List.of(part("teleport_cage",6,.72,.52,.72,0,0,0)),List.of());
             case ORB->new RagdollRig(List.of(part("orb_core",6,.43,.43,.43,0,0,0)),List.of());
             case ROCKET->new RagdollRig(List.of(part("rocket_core",8,.215,.215,.86,0,0,0),part("left_fin",.35,.285,.03,.325,-.465,0,-.225),part("bottom_fin",.35,.03,.26,.325,0,-.44,-.225),part("right_fin",.35,.285,.03,.325,.465,0,-.225),part("top_fin",.35,.03,.26,.325,0,.44,-.225)),List.of(joint(1,-.20,0,-.225,.265,0,0),joint(2,0,-.20,-.225,0,.24,0),joint(3,.20,0,-.225,-.265,0,0),joint(4,0,.20,-.225,0,-.24,0)));
             case JET->new RagdollRig(List.of(part("jet_core",10,.205,.235,.995,0,0,0),part("left_hull",2,.555,.205,.87,-.55,.02,.115),part("right_hull",2,.555,.205,.87,.55,.02,.115)),List.of(joint(1,-.17,0,0,.38,-.02,-.115),joint(2,.17,0,0,-.38,-.02,-.115)));
@@ -41,7 +43,7 @@ public final class FlightWreckRig {
     /** Each original face moves with exactly one rigid component; no duplicate live/dead mesh. */
     public static int partForFace(FlightEnemyKind kind,int face){
         if(face<0||face>=FlightEnemyMesh.faces(kind).size())throw new IllegalArgumentException("unknown hull face");
-        return switch(kind){case ORB->0;case ROCKET->face>=9&&face<=12?face-8:0;case JET->face<4?1:face<8?2:0;};
+        return switch(kind){case TELEPORT_FLYER->0;case ORB->0;case ROCKET->face>=9&&face<=12?face-8:0;case JET->face<4?1:face<8?2:0;};
     }
     private static RagdollRig.Segment part(String id,double mass,double x,double y,double z,double px,double py,double pz){return new RagdollRig.Segment(id,mass,new Vec3(x,y,z),new Vec3(px,py,pz));}
     private static RagdollRig.Joint joint(int other,double x,double y,double z,double ox,double oy,double oz){return new RagdollRig.Joint(0,other,new Vec3(x,y,z),new Vec3(ox,oy,oz),0);}

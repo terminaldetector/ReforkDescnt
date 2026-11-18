@@ -208,9 +208,21 @@ public class DroneEntity extends HostileEntity {
 		cfg.meshKind = role.weaponClass == DamageClass.EXPLOSIVE
 				? ProjectileEntity.MESH_ROCKET
 				: ProjectileEntity.MESH_BOLT;
+        cfg.dir=projectileAim(target,from,dir,cfg);
 		WeaponCore.fireProjectile(cfg);
 		return true;
 	}
+
+    /** Existing species retain the exact authored direct vector; a new role may read the actual shot physics. */
+    protected Vec3d projectileAim(LivingEntity target,Vec3d from,Vec3d direct,WeaponCore.FireConfig shot){return direct;}
+
+    /** Bounded ability reservation. Existing weapon firing remains byte-semantically unchanged. */
+    protected final boolean withModEnergy(float cost,java.util.function.BooleanSupplier operation){
+        if(!Float.isFinite(cost)||cost<0||!Float.isFinite(modEnergy)||modEnergy<cost)return false;
+        modEnergy-=cost;boolean accepted=false;
+        try{accepted=operation.getAsBoolean();return accepted;}
+        finally{if(!accepted)modEnergy=Math.min(100,modEnergy+cost);}
+    }
 
 	public DroneAi.Phase getPhase() { return phase; }
 	public void setPhase(DroneAi.Phase p) { this.phase = p; this.phaseTimer = 0; }

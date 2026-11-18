@@ -58,6 +58,10 @@ public final class ModEntities {
         EntityType.Builder.<JetEntity>create(JetEntity::new,SpawnGroup.MONSTER)
             .dimensions(FlightEnemyKind.JET.diameter,FlightEnemyKind.JET.diameter).maxTrackingRange(96).trackingTickInterval(1).build());
 
+    public static final EntityType<TeleportFlyerEntity> TELEPORT_FLYER=Registry.register(Registries.ENTITY_TYPE,Identifier.of(DescentMod.MOD_ID,"teleport_flyer"),
+        EntityType.Builder.<TeleportFlyerEntity>create(TeleportFlyerEntity::new,SpawnGroup.MONSTER)
+            .dimensions(FlightEnemyKind.TELEPORT_FLYER.diameter,FlightEnemyKind.TELEPORT_FLYER.diameter).maxTrackingRange(96).trackingTickInterval(1).build());
+
 	public static final EntityType<AirMineEntity> AIR_MINE = Registry.register(
 			Registries.ENTITY_TYPE,
 			Identifier.of(DescentMod.MOD_ID, "air_mine"),

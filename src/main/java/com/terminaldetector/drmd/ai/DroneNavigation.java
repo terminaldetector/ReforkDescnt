@@ -21,7 +21,8 @@ final class DroneNavigation {
     private FlightRouteSpace space;
     private List<BoundedFlightPath.Cell> route=List.of();
     DroneNavigation(DroneEntity drone){this.drone=drone;actor=drone;}
-    private RouteWorkBudget budget(){return BUDGETS.computeIfAbsent(actor.getWorld(),w->new RouteWorkBudget(16,48,8));}
+    static RouteWorkBudget workBudget(World world){return BUDGETS.computeIfAbsent(world,w->new RouteWorkBudget(16,48,8));}
+    private RouteWorkBudget budget(){return workBudget(actor.getWorld());}
     void stop(){budget().release(actor.getUuid());search=null;space=null;route=List.of();previous=null;issued=Vec3d.ZERO;stalled=0;visibilityTarget=null;sightRoute=false;}
     boolean occluded(Vec3d target){
         long tick=actor.getWorld().getTime();var origin=actor.getPos();

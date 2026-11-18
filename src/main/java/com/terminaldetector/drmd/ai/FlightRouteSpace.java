@@ -59,6 +59,20 @@ final class FlightRouteSpace implements BoundedFlightPath.Space {
         for(var body:bodies){var point=body.raycast(from,end);if(point.isPresent())nearest=Math.min(nearest,from.distanceTo(point.get()));}
         return nearest;
     }
+    /** Shared actual LOS; unknown material/hull geometry is never permission to fire or start an ability. */
+    static boolean clearSight(Entity actor,Vec3d from,Vec3d target,double range){return clearSight(actor,from,target,range,false);}
+    static boolean clearSight(Entity actor,Vec3d from,Vec3d target,double range,boolean freshBodies){
+        World world=actor.getWorld();double distance=target.squaredDistanceTo(from);
+        if(!CubicAvailability.onWorldThread(world)||!Double.isFinite(distance)||!Double.isFinite(range)
+            ||range<=0||range>128||distance>range*range
+            ||!com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedSegment(world,from,target))return false;
+        if(world.raycast(new net.minecraft.world.RaycastContext(from,target,net.minecraft.world.RaycastContext.ShapeType.COLLIDER,
+            net.minecraft.world.RaycastContext.FluidHandling.NONE,actor)).getType()!=net.minecraft.util.hit.HitResult.Type.MISS)return false;
+        var bodies=BodySpatialIndex.query(world,new Box(from,target).expand(1e-6));if(bodies.size()>MAX_COVER_BODIES)return false;
+        for(var body:bodies){if(freshBodies&&(body.boardingMotionPaused()||world instanceof net.minecraft.server.world.ServerWorld server&&server.getEntity(body.getUuid())!=body))return false;
+            if(body.physicsRaycast(from,target).isPresent())return false;}
+        return true;
+    }
     @Override public boolean clear(BoundedFlightPath.Cell a,BoundedFlightPath.Cell b) {
         return clear(initial.offset(a.x(),a.y(),a.z()),point(b).subtract(point(a)));
     }

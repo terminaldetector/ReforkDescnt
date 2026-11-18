@@ -24,7 +24,30 @@ public final class FlightEnemyRenderer extends EntityRenderer<FlightEnemyEntity>
             var p=face.vertices().get(Math.min(i,face.vertices().size()-1));var n=face.normal();
             vertices.vertex(entry,p.x(),p.y(),p.z()).color(0xff000000|face.rgb()).texture(0,0).overlay(OverlayTexture.DEFAULT_UV).light(face.emissive()?15728880:light).normal(entry,n.x(),n.y(),n.z());
         }
-        matrices.pop();super.render(entity,yaw,delta,matrices,consumers,light);
+        matrices.pop();
+        if(entity instanceof com.terminaldetector.drmd.entity.TeleportFlyerEntity flyer
+            &&(flyer.displayedPhase()==com.terminaldetector.drmd.ai.TeleportAbilityState.Phase.WARN
+                ||flyer.displayedPhase()==com.terminaldetector.drmd.ai.TeleportAbilityState.Phase.COMMIT_PENDING)){
+            // Marker is absolute int+fraction tracked data, independent of camera or body interpolation.
+            var target=flyer.displayedDestination().add(0,flyer.getHeight()*.5,0);
+            var interpolated=new Vec3d(MathHelper.lerp(delta,entity.prevX,entity.getX()),MathHelper.lerp(delta,entity.prevY,entity.getY()),MathHelper.lerp(delta,entity.prevZ,entity.getZ()));
+            matrices.push();matrices.translate(target.x-interpolated.x,target.y-interpolated.y,target.z-interpolated.z);
+            var line=consumers.getBuffer(RenderLayer.getLines());var marker=matrices.peek();float r=.55f;int color=0xffcbbdff;
+            for(int plane=0;plane<3;plane++)for(int edge=0;edge<4;edge++){
+                float a=edge<2?-r:r,b=edge==0||edge==3?-r:r;int next=(edge+1)%4;
+                float c=next<2?-r:r,d=next==0||next==3?-r:r;
+                if(plane==0)markerLine(line,marker,a,0,b,c,0,d,color);
+                else if(plane==1)markerLine(line,marker,a,b,0,c,d,0,color);
+                else markerLine(line,marker,0,a,b,0,c,d,color);
+            }
+            matrices.pop();
+        }
+        super.render(entity,yaw,delta,matrices,consumers,light);
+    }
+    private static void markerLine(VertexConsumer out,MatrixStack.Entry entry,float ax,float ay,float az,float bx,float by,float bz,int color){
+        var direction=new Vec3d(bx-ax,by-ay,bz-az).normalize();
+        out.vertex(entry,ax,ay,az).color(color).normal(entry,(float)direction.x,(float)direction.y,(float)direction.z);
+        out.vertex(entry,bx,by,bz).color(color).normal(entry,(float)direction.x,(float)direction.y,(float)direction.z);
     }
     @Override public Identifier getTexture(FlightEnemyEntity entity){return WHITE;}
 }

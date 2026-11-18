@@ -391,5 +391,7 @@
   "options.drmd.ps1_vertex_snap": "PS1 vertices: %s",
   "options.drmd.ps1_vertex_snap.tip": "Snaps solid ship surfaces to the PS1 pixel grid. Off keeps their original shape. Terrain, HUD and held items stay unchanged.",
   "options.drmd.ps1_affine": "PS1 texture warp: %s%%",
-  "options.drmd.ps1_affine.tip": "Reduces perspective correction on solid ship textures. Zero keeps normal perspective; HUD and held items stay sharp."
+  "options.drmd.ps1_affine.tip": "Reduces perspective correction on solid ship textures. Zero keeps normal perspective; HUD and held items stay sharp.",
+  "entity.drmd.teleport_flyer": "Teleport flyer",
+  "item.drmd.spawn_egg_teleport_flyer": "Teleport flyer spawn egg"
 }

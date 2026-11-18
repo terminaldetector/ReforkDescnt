@@ -89,7 +89,10 @@
       "com.terminaldetector.drmd.PlayerAaOpaqueFractureGameTests",
       "com.terminaldetector.drmd.GenericControlCoreGameTests",
       "com.terminaldetector.drmd.GenericControlFireGameTests",
-      "com.terminaldetector.drmd.BodyAssemblyTransactionGameTests"
+      "com.terminaldetector.drmd.BodyAssemblyTransactionGameTests",
+      "com.terminaldetector.drmd.TeleportFlyerDataGameTests",
+      "com.terminaldetector.drmd.TeleportFlyerGameTests",
+      "com.terminaldetector.drmd.TeleportFlyerWreckGameTests"
     ]
   },
   "depends": {

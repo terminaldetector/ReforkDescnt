@@ -128,6 +128,7 @@ public final class ModItems {
 	public static Item EGG_SCANNER;
 	public static Item EGG_SPIDER_TURRET;
 	public static Item EGG_OBLIVION_SEEKER;
+	public static Item EGG_TELEPORT_FLYER;
 
 	public static final RegistryKey<ItemGroup> GROUP_KEY = RegistryKey.of(RegistryKeys.ITEM_GROUP, Identifier.of(DescentMod.MOD_ID, "weapons"));
 
@@ -276,6 +277,9 @@ public final class ModItems {
 		ACCELERATOR_MODULE_RED = register("accelerator_module_red",
 				new com.terminaldetector.drmd.flight.AcceleratorModuleItem(new Item.Settings(), 4));
 
+        EGG_TELEPORT_FLYER=register("spawn_egg_teleport_flyer",new net.minecraft.item.SpawnEggItem(
+            com.terminaldetector.drmd.entity.ModEntities.TELEPORT_FLYER,com.terminaldetector.drmd.entity.FlightEnemyKind.TELEPORT_FLYER.primaryColour,
+            com.terminaldetector.drmd.entity.FlightEnemyKind.TELEPORT_FLYER.secondaryColour,new Item.Settings()));
 		EGG_TRIPOD = register("spawn_egg_tripod", new net.minecraft.item.SpawnEggItem(
 				com.terminaldetector.drmd.entity.ModEntities.TRIPOD, 0x3A4450, 0xFF3366, new Item.Settings()));
 		EGG_SCANNER = register("spawn_egg_scanner", new net.minecraft.item.SpawnEggItem(
@@ -326,7 +330,7 @@ public final class ModItems {
                 EGG_ORB,EGG_ROCKET,EGG_JET,
 				EGG_ASSAULT, EGG_INTERCEPTOR, EGG_ARTILLERY, EGG_SUPPORT, EGG_HEAVY_ELITE,
 				EGG_MG, EGG_LASER, EGG_RPG, EGG_HEAVY, EGG_SEEKER,
-				EGG_TRIPOD, EGG_SCANNER, EGG_SPIDER_TURRET, EGG_OBLIVION_SEEKER
+				EGG_TRIPOD, EGG_SCANNER, EGG_SPIDER_TURRET, EGG_OBLIVION_SEEKER, EGG_TELEPORT_FLYER
 		};
 	}
 

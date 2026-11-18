@@ -37,13 +37,24 @@ public final class FlightEnemyMesh {
                 f.add(face(body,false,v(0,sign*.18,-.55),v(0,sign*.70,-.40),v(0,sign*.18,.10)));
             }
             f.add(face(0xffc78e,true,v(-.14,-.14,-.612),v(-.14,.14,-.612),v(.14,.14,-.612),v(.14,-.14,-.612)));
-        }else {
+        }else if(kind==FlightEnemyKind.JET) {
             var nose=v(0,0,.98);var left=v(-1.1,-.08,-.45);var tail=v(0,0,-.75);var right=v(1.1,-.08,-.45);var roof=v(0,.22,-.2);var belly=v(0,-.18,-.1);
             var ring=new Vertex[]{nose,left,tail,right};
             for(int i=0;i<4;i++){f.add(face(i<2?body:dark,false,roof,ring[(i+1)%4],ring[i]));f.add(face(dark,false,belly,ring[i],ring[(i+1)%4]));}
             f.add(face(0x8beaff,true,v(0,.16,.55),v(.13,.21,.12),v(-.13,.21,.12)));
             f.add(face(0xffb76d,true,v(-.18,-.08,-.77),v(-.18,.08,-.77),v(.18,.08,-.77),v(.18,-.08,-.77)));
         }
+        if(kind==FlightEnemyKind.TELEPORT_FLYER){
+            // Prototype v0: an authored compact core and four phase vanes, not another species' mesh.
+            var top=v(0,.34,0);var bottom=v(0,-.34,0);
+            var ring=new Vertex[]{v(.34,0,0),v(0,0,.34),v(-.34,0,0),v(0,0,-.34)};
+            for(int i=0;i<4;i++){f.add(face(i%2==0?body:dark,false,top,ring[(i+1)%4],ring[i]));f.add(face(dark,false,bottom,ring[i],ring[(i+1)%4]));}
+            for(int sign:new int[]{-1,1}){
+                f.add(face(0xcbbdff,true,v(sign*.42,-.12,0),v(sign*.70,-.12,0),v(sign*.70,.12,0),v(sign*.42,.12,0)));
+                f.add(face(0xcbbdff,true,v(0,-.12,sign*.42),v(0,-.12,sign*.70),v(0,.12,sign*.70),v(0,.12,sign*.42)));
+            }
+        }
+        if(f.isEmpty())throw new IllegalArgumentException("unknown flight hull: "+kind);
         return List.copyOf(f);
     }
 }
