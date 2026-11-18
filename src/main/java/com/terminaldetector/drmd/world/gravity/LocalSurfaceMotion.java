@@ -38,5 +38,21 @@ public final class LocalSurfaceMotion {
         return tangent.add(cardinal.multiply((double)leap));
     }
 
+    /** Native jump replaces its normal component; keep existing world tangent and the computed strength. */
+    public static Vec3d ordinaryJump(Vec3d previous,Vec3d nativeResult,Vec3d up) {
+        var cardinal=cardinalUp(up);
+        if(cardinal==null||cardinal.equals(ActorFrameMath.WORLD_UP)||!finite(previous)||!finite(nativeResult)
+            ||nativeResult.x!=previous.x||nativeResult.z!=previous.z)return nativeResult;
+        return previous.subtract(cardinal.multiply(previous.dotProduct(cardinal)))
+            .add(cardinal.multiply(nativeResult.y));
+    }
+
+    /** Map only the new native yaw-derived sprint addition, never the actor's accumulated momentum. */
+    public static Vec3d jumpSprint(Vec3d nativeDelta,Vec3d up) {
+        var cardinal=cardinalUp(up);
+        if(cardinal==null||cardinal.equals(ActorFrameMath.WORLD_UP)||!finite(nativeDelta))return nativeDelta;
+        return ActorFrameMath.toWorld(nativeDelta,cardinal);
+    }
+
     private static boolean finite(Vec3d v){return v!=null&&Double.isFinite(v.x)&&Double.isFinite(v.y)&&Double.isFinite(v.z);}
 }

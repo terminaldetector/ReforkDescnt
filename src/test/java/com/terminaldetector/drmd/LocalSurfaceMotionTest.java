@@ -79,4 +79,54 @@ class LocalSurfaceMotionTest {
         assertSame(nativeResult,LocalSurfaceMotion.pounce(nativeResult,nativeResult,new Vec3d(1,1,0).normalize(),.4f,nativeResult));
     }
 
+    @Test void ordinaryCeilingJumpPointsAwayFromRoofWithoutTurningExistingTangent() {
+        var previous=new Vec3d(.11,0,.23);double strength=(double).42f;
+        same(new Vec3d(.11,-strength,.23),LocalSurfaceMotion.ordinaryJump(previous,
+            new Vec3d(.11,strength,.23),new Vec3d(0,-1,0)));
+    }
+
+    @Test void allCardinalJumpsReplaceNormalWithActualStrengthAndConserveBothTangentComponents() {
+        var previous=new Vec3d(.31,-.17,.23);
+        for(var up:UPS)for(double strength:new double[]{(double).42f,(double).63f,(double).9f}) {
+            var result=LocalSurfaceMotion.ordinaryJump(previous,new Vec3d(previous.x,strength,previous.z),up);
+            assertEquals(strength,result.dotProduct(up),1e-12);
+            for(var tangent:UPS)if(tangent.dotProduct(up)==0)
+                assertEquals(previous.dotProduct(tangent),result.dotProduct(tangent),1e-12);
+        }
+    }
+
+    @Test void ordinaryJumpUnprovedFramesAndUnexpectedNativeWritesRetainExactNativeResult() {
+        var previous=new Vec3d(.31,-.17,.23);var nativeResult=new Vec3d(.31,(double).42f,.23);
+        for(var up:new Vec3d[]{null,Vec3d.ZERO,UPS[2],new Vec3d(1,1,0).normalize(),new Vec3d(Double.NaN,0,0)})
+            assertSame(nativeResult,LocalSurfaceMotion.ordinaryJump(previous,nativeResult,up));
+        assertSame(nativeResult,LocalSurfaceMotion.ordinaryJump(new Vec3d(Double.NaN,0,0),nativeResult,UPS[0]));
+        var changedNativeTangent=new Vec3d(.5,(double).42f,.23);
+        assertSame(changedNativeTangent,LocalSurfaceMotion.ordinaryJump(previous,changedNativeTangent,UPS[0]));
+    }
+
+    @Test void nativeSprintAdditionUsesLiteralCardinalPermutationsAndRetainsMagnitude() {
+        var delta=new Vec3d(-.12,0,.16);
+        var expected=new Vec3d[]{new Vec3d(0,.12,.16),new Vec3d(0,-.12,.16),new Vec3d(-.12,0,.16),
+            new Vec3d(.12,0,.16),new Vec3d(.12,.16,0),new Vec3d(-.12,.16,0)};
+        for(int i=0;i<UPS.length;i++) {
+            var result=LocalSurfaceMotion.jumpSprint(delta,UPS[i]);
+            same(expected[i],result);assertEquals(.2,result.length(),1e-12);
+            assertEquals(0,result.dotProduct(UPS[i]),1e-12);
+        }
+    }
+
+    @Test void combinedCeilingJumpAndSprintAddOnlyTheFreshNativeImpulse() {
+        var previous=new Vec3d(.17,-.09,.23);var up=new Vec3d(0,-1,0);double strength=(double).42f;
+        var jump=LocalSurfaceMotion.ordinaryJump(previous,new Vec3d(.17,strength,.23),up);
+        same(new Vec3d(.29,-strength,.39),jump.add(LocalSurfaceMotion.jumpSprint(new Vec3d(-.12,0,.16),up)));
+    }
+
+    @Test void inactiveOrUnprovedSprintFramesDelegateTheSameNativeImpulseObject() {
+        var delta=new Vec3d(-.12,0,.16);
+        for(var up:new Vec3d[]{null,Vec3d.ZERO,UPS[2],new Vec3d(1,1,0).normalize()})
+            assertSame(delta,LocalSurfaceMotion.jumpSprint(delta,up));
+        var nonfinite=new Vec3d(Double.NaN,0,0);
+        assertSame(nonfinite,LocalSurfaceMotion.jumpSprint(nonfinite,UPS[0]));
+    }
+
 }

@@ -23,6 +23,7 @@
     "LocalSurfaceInputMixin",
     "LocalSurfaceTravelMixin",
     "LocalSurfacePounceMixin",
+    "LocalSurfaceJumpMixin",
     "PortalMotionMixin",
     "MultiNoiseBiomeSourceMixin",
     "FootGravityGeometryMixin",
