@@ -8,6 +8,7 @@ import net.minecraft.entity.ai.pathing.MobNavigation;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.ai.pathing.SpiderNavigation;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.SpiderEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.*;
@@ -34,6 +35,14 @@ public abstract class LocalSpiderNavigationMixin extends MobNavigation {
     @Unique private Path originalDestination(BlockPos target,int distance) {
         return ((LocalSurfaceRequestAccess)(Object)this).drmd$surfaceRequest(Set.of(target),distance,
             (float)entity.getAttributeValue(EntityAttributes.GENERIC_FOLLOW_RANGE));
+    }
+    @Inject(method="startMovingTo(Lnet/minecraft/entity/Entity;D)Z",at=@At("HEAD"))
+    private void beginningMove(Entity target,double speed,CallbackInfoReturnable<Boolean> cir){
+        LocalSurfaceNavigation.moveStarting(entity);
+    }
+    @Inject(method="startMovingTo(Lnet/minecraft/entity/Entity;D)Z",at=@At("RETURN"))
+    private void acceptedMove(Entity target,double speed,CallbackInfoReturnable<Boolean> cir){
+        if(entity instanceof SpiderEntity actor)LocalSurfaceNavigation.moveAccepted(actor,target,speed,cir.getReturnValueZ());
     }
     @Inject(method="tick",at=@At("HEAD"),cancellable=true)
     private void localPathLifecycle(CallbackInfo ci) {

@@ -32,8 +32,41 @@ public final class LocalSurfaceNavigation {
     private static final class Search {
         final WeakReference<SpiderEntity> owner;BlockPos target;Vec3d up,origin;
         BoundedFlightPath search;Space space;LocalSurfacePath ready;
+        final MoveIntent<Entity> intent=new MoveIntent<>();
+        MoveIntent.Delivery<Entity> delivery;
         long seen,started,nextRequest,worked=Long.MIN_VALUE;
         Search(SpiderEntity actor,long now){owner=new WeakReference<>(actor);seen=now;}
+    }
+    /** A completed speculative query is not a command. Only a successful native move arms delivery. */
+    static final class MoveIntent<T> {
+        record Command<T>(long generation,WeakReference<T> target,double speed){}
+        record Delivery<T>(Command<T> command,Object path){}
+        private long generation;
+        private Command<T> accepted;
+        long generation(){return generation;}
+        Command<T> current(){return accepted;}
+        void cancel(){accepted=null;}
+        void invalidate(){++generation;cancel();}
+        void accepted(boolean success,T target,double speed){
+            cancel();
+            if(success&&target!=null&&Double.isFinite(speed)&&speed>0)
+                accepted=new Command<>(generation,new WeakReference<>(target),speed);
+        }
+        Command<T> delivery(long expectedGeneration,T target){
+            var command=accepted;
+            return command!=null&&command.generation()==generation&&generation==expectedGeneration
+                &&command.target().get()==target&&target!=null?command:null;
+        }
+        Delivery<T> beginDelivery(Command<T> command,Object path){
+            return command!=null&&command==accepted&&command.generation()==generation
+                &&command.target().get()!=null&&path!=null?new Delivery<>(command,path):null;
+        }
+        boolean ownsDelivery(Delivery<T> marker,Object path,double speed){
+            var command=accepted;
+            return marker!=null&&command!=null&&marker.command()==command&&command.generation()==generation
+                &&command.target().get()!=null&&marker.path()==path&&path!=null&&Double.compare(command.speed(),speed)==0;
+        }
+        void completed(Command<T> command){if(accepted==command)cancel();}
     }
     private static final class Space implements BoundedFlightPath.Space {
         final WeakReference<SpiderEntity> owner;final Vec3d origin,up;
@@ -103,11 +136,12 @@ public final class LocalSurfaceNavigation {
         search.seen=now;
         if(!target.equals(search.target)||search.up==null||search.up.distanceTo(ActorFrames.up(actor))>=1e-6
             ||search.origin==null||actor.getPos().squaredDistanceTo(search.origin)>.25) {
-            search.search=null;search.ready=null;state.budget.release(actor.getUuid());
+            search.intent.invalidate();search.search=null;search.ready=null;state.budget.release(actor.getUuid());
         }
         if(search.ready!=null&&!search.ready.isFinished())return search.ready;
         if(search.search==null) {
             if(now<search.nextRequest)return null;
+            search.intent.invalidate();
             search.ready=null;search.nextRequest=now+REPLAN_TICKS;search.target=target;search.up=ActorFrames.up(actor);search.origin=actor.getPos();
             var delta=ActorFrameMath.toLocal(Vec3d.ofCenter(target).subtract(search.origin),search.up);
             if(Math.abs(delta.y)>1||delta.x*delta.x+delta.z*delta.z>Math.pow(Math.min(RADIUS,followRange),2)
@@ -128,6 +162,61 @@ public final class LocalSurfaceNavigation {
         if(search!=null&&search.owner.get()==actor) {
             if(search.search!=null) {search.seen=now;work(actor,state,search,now);}
             else if(actor.getNavigation().getCurrentPath() instanceof LocalSurfacePath p&&!p.isFinished())search.seen=now;
+            deliverReady(actor,search,now);
+        }
+    }
+    /** Cancel the previous command at the real API boundary, including failed retargets. */
+    public static void moveStarting(MobEntity actor){
+        var search=ownedSearch(actor);
+        if(search!=null){search.intent.cancel();search.delivery=null;}
+    }
+    private static Search ownedSearch(MobEntity actor){
+        if(!(actor instanceof SpiderEntity)||!(actor.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())return null;
+        var state=WORLDS.get(world);var search=state==null?null:state.searches.get(actor.getUuid());
+        return search!=null&&search.owner.get()==actor?search:null;
+    }
+    /** Public null/foreign paths cancel old intent; only this Search's scoped native delivery may retain it. */
+    public static void moveAlongStarting(MobEntity actor,Path path,double speed){
+        var search=ownedSearch(actor);if(search==null)return;
+        if(search.delivery!=null&&active((SpiderEntity)actor)&&search.intent.ownsDelivery(search.delivery,path,speed))return;
+        search.intent.cancel();search.delivery=null;
+    }
+    /** SpiderNavigation's real successful RETURN, never findPath/canStart or a cached speed. */
+    public static void moveAccepted(SpiderEntity actor,Entity target,double speed,boolean success){
+        if(!active(actor))return;
+        var world=(ServerWorld)actor.getWorld();var state=WORLDS.get(world);
+        var search=state==null?null:state.searches.get(actor.getUuid());
+        if(search==null||search.owner.get()!=actor)return;
+        boolean valid=success&&target!=null&&!target.isRemoved()&&target.isAlive()
+            &&target.getWorld()==world&&world.getEntityById(target.getId())==target
+            &&Objects.equals(search.target,target.getBlockPos())&&search.up!=null
+            &&search.up.distanceTo(ActorFrames.up(actor))<1e-6&&actor.getNavigation().getCurrentPath()==null
+            &&(search.search!=null||search.ready!=null);
+        search.intent.accepted(valid,target,speed);
+    }
+    /** One ordinary navigation tick consumes only this owner's still-current accepted generation. */
+    private static void deliverReady(SpiderEntity actor,Search search,long now){
+        var command=search.intent.current();if(command==null)return;
+        var target=command.target().get();var world=actor.getWorld();
+        if(search.owner.get()!=actor||!active(actor)||target==null||target.isRemoved()||!target.isAlive()
+            ||target.getWorld()!=world||world.getEntityById(target.getId())!=target
+            ||!Objects.equals(search.target,target.getBlockPos())||search.up==null
+            ||search.up.distanceTo(ActorFrames.up(actor))>=1e-6||search.origin==null
+            ||actor.getPos().squaredDistanceTo(search.origin)>.25
+            ||now<search.started||now-search.started>SEARCH_TICKS){invalidate(actor);return;}
+        if(actor.getNavigation().getCurrentPath()!=null){search.intent.completed(command);return;}
+        var path=search.ready;if(path==null){if(search.search==null)search.intent.completed(command);return;}
+        if(path.isFinished()||!path.matches(ActorFrames.up(actor))||now-path.createdAt>PATH_TICKS
+            ||!LocalSurfaceGeometry.supported(actor,actor.getPos(),path.up)){invalidate(actor);return;}
+        if(search.intent.delivery(command.generation(),target)!=command)return;
+        if(search.delivery!=null)return;
+        var delivery=search.intent.beginDelivery(command,path);if(delivery==null)return;
+        search.delivery=delivery;
+        try{
+            if(!actor.getNavigation().startMovingAlong(path,command.speed()))invalidate(actor);
+        }finally{
+            if(search.delivery==delivery)search.delivery=null;
+            search.intent.completed(command);
         }
     }
     private static void work(SpiderEntity actor,WorldState state,Search search,long now) {
@@ -168,7 +257,7 @@ public final class LocalSurfaceNavigation {
     }
     private static void invalidate(SpiderEntity actor) {
         var state=WORLDS.get(actor.getWorld());if(state==null)return;var search=state.searches.get(actor.getUuid());
-        if(search!=null&&search.owner.get()==actor) {search.search=null;search.space=null;search.ready=null;search.nextRequest=actor.getWorld().getTime()+REPLAN_TICKS;}
+        if(search!=null&&search.owner.get()==actor) {search.intent.invalidate();search.search=null;search.space=null;search.ready=null;search.nextRequest=actor.getWorld().getTime()+REPLAN_TICKS;}
         state.budget.release(actor.getUuid());
     }
     public static void stop(MobEntity actor) {
@@ -176,7 +265,7 @@ public final class LocalSurfaceNavigation {
         var state=WORLDS.get(world);if(state==null)return;
         var s=state.searches.get(actor.getUuid());
         if(s!=null&&s.owner.get()==actor) {
-            s.search=null;s.space=null;s.ready=null;s.seen=world.getTime();
+            s.intent.invalidate();s.search=null;s.space=null;s.ready=null;s.seen=world.getTime();
             // Preserve the bounded cooldown even if a native goal stops and restarts in one tick.
             s.nextRequest=Math.max(s.nextRequest,s.seen+REPLAN_TICKS);state.budget.release(actor.getUuid());
         }

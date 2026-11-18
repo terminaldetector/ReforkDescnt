@@ -39,9 +39,18 @@ public abstract class LocalSurfaceNavigationMixin implements LocalSurfaceRequest
     private void preserveLocalFeet(EntityNavigation navigation) {
         if(!(currentPath instanceof LocalSurfacePath))adjustPath();
     }
+    @Inject(method="startMovingTo(DDDD)Z",at=@At("HEAD"))
+    private void beginningCoordinates(double x,double y,double z,double speed,CallbackInfoReturnable<Boolean> cir){
+        LocalSurfaceNavigation.moveStarting(entity);
+    }
+    @Inject(method="startMovingAlong(Lnet/minecraft/entity/ai/pathing/Path;D)Z",at=@At("HEAD"))
+    private void beginningPath(Path path,double speed,CallbackInfoReturnable<Boolean> cir){
+        LocalSurfaceNavigation.moveAlongStarting(entity,path,speed);
+    }
     @Inject(method="tick",at=@At("HEAD"),cancellable=true)
     private void localFollowing(CallbackInfo ci) {
         boolean framed=LocalSurfaceNavigation.framed(entity);
+        if(!framed)LocalSurfaceNavigation.moveStarting(entity);
         if(currentPath instanceof LocalSurfacePath path) {
             ++tickCount;
             if(!framed){currentPath=null;LocalSurfaceNavigation.stop(entity);ci.cancel();return;}
