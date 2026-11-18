@@ -81,7 +81,9 @@
     "Ps1ColorFrameProbe",
     "Ps1ColorSourceProbe",
     "Ps1ColorOverlayProbe",
-    "Ps1ColorViewmodelProbe"
+    "Ps1ColorViewmodelProbe",
+    "ClusterInputBootstrapProbe",
+    "ClusterInputViewmodelProbe"
   ],
   "injectors": {
     "defaultRequire": 1
