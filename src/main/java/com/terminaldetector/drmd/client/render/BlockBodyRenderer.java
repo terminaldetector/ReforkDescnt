@@ -36,7 +36,8 @@ public class BlockBodyRenderer extends EntityRenderer<BlockBodyEntity> {
     }
     private static void renderFaces(BlockBodyEntity body,BlockBodyEntity.Cell cell,MatrixStack matrices,VertexConsumerProvider consumers,int light) {
         var client=MinecraftClient.getInstance();var model=client.getBlockRenderManager().getModel(cell.state());
-        var out=consumers.getBuffer(net.minecraft.client.render.RenderLayers.getEntityBlockLayer(cell.state(),false));
+        var out=consumers.getBuffer(com.terminaldetector.drmd.client.presentation.Ps1BodyGeometryLayer.select(
+                net.minecraft.client.render.RenderLayers.getEntityBlockLayer(cell.state(),false)));
         var random=net.minecraft.util.math.random.Random.create(42);
         for(var face:net.minecraft.util.math.Direction.values()) {
             if(!body.visibleFace(cell.pos(),face))continue;random.setSeed(42);

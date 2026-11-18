@@ -28,7 +28,7 @@ public class DescentSettingsScreen extends Screen {
     private int panelLeft,panelWidth,contentHeight;
     private List<net.minecraft.text.OrderedText> hintLines=List.of();
 	private static final int SECTION = 14;
-	private static final int CONTENT_HEIGHT = 5 * SECTION + 16 * ROW + 3 * 6;
+	private static final int CONTENT_HEIGHT = 5 * SECTION + 17 * ROW + 3 * 6;
 	private final Screen parent;
 	private final List<Heading> headings = new ArrayList<>();
 	private int scroll;
@@ -55,7 +55,7 @@ public class DescentSettingsScreen extends Screen {
         int right=panelLeft+(panelWidth+10)/2;
         hintLines=textRenderer.wrapLines(Text.translatable("options.drmd.keys_hint"),Math.max(100,width-24));
         contentTop=32+hintLines.size()*9+8;
-        contentHeight=CONTENT_HEIGHT+(singleColumn?12*ROW:0);
+        contentHeight=CONTENT_HEIGHT+(singleColumn?13*ROW:0);
 		viewBottom = this.height - 32;
 		int contentH = contentHeight;
 		int viewH = Math.max(ROW, viewBottom - contentTop);
@@ -109,6 +109,18 @@ public class DescentSettingsScreen extends Screen {
                     DescentConfig.ps1DitherStrength=new com.terminaldetector.drmd.client.presentation.Ps1ColorOptions(DescentConfig.ps1ColorLevels,DescentConfig.ps1DitherStrength).nextDither();
                     DescentConfig.save();b.setMessage(presentationDitherLabel());
                 }).dimensions(right,y,150,20).tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(Text.translatable("options.drmd.ps1_dither.tip"))).build());
+
+        y=addRow(y,viewBottom,
+                ButtonWidget.builder(presentationSnapLabel(),b->{
+                    var geometry=DescentConfig.ps1Geometry;
+                    DescentConfig.ps1Geometry=new com.terminaldetector.drmd.client.presentation.Ps1GeometryOptions(geometry.nextSnap(),geometry.affineAmount());
+                    DescentConfig.save();b.setMessage(presentationSnapLabel());
+                }).dimensions(left,y,150,20).tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(Text.translatable("options.drmd.ps1_vertex_snap.tip"))).build(),
+                ButtonWidget.builder(presentationAffineLabel(),b->{
+                    var geometry=DescentConfig.ps1Geometry;
+                    DescentConfig.ps1Geometry=new com.terminaldetector.drmd.client.presentation.Ps1GeometryOptions(geometry.snapPixels(),geometry.nextAffine());
+                    DescentConfig.save();b.setMessage(presentationAffineLabel());
+                }).dimensions(right,y,150,20).tooltip(net.minecraft.client.gui.tooltip.Tooltip.of(Text.translatable("options.drmd.ps1_affine.tip"))).build());
 
 		y = addRow(y, viewBottom,
 				toggle(left, y, "options.drmd.level_sky", DescentConfig.levelSky, v -> {
@@ -265,6 +277,8 @@ public class DescentSettingsScreen extends Screen {
     private Text presentationLabel(){return Text.translatable("options.drmd.presentation",Text.translatable("options.drmd.presentation."+DescentConfig.presentationProfile.name().toLowerCase(java.util.Locale.ROOT)));}
     private Text presentationSizeLabel(){return Text.translatable("options.drmd.presentation_size",DescentConfig.ps1SceneHeight);}
     private Text presentationPaletteLabel(){return Text.translatable("options.drmd.ps1_palette",DescentConfig.ps1ColorLevels==256?Text.translatable("options.drmd.ps1_palette.raw"):Text.translatable("options.drmd.ps1_palette.levels",DescentConfig.ps1ColorLevels));}
+    private Text presentationSnapLabel(){return Text.translatable("options.drmd.ps1_vertex_snap",DescentConfig.ps1Geometry.snapPixels()==0?Text.translatable("options.off"):Float.toString(DescentConfig.ps1Geometry.snapPixels()));}
+    private Text presentationAffineLabel(){return Text.translatable("options.drmd.ps1_affine",Math.round(DescentConfig.ps1Geometry.affineAmount()*100));}
     private Text presentationDitherLabel(){return Text.translatable("options.drmd.ps1_dither",Math.round(DescentConfig.ps1DitherStrength*100));}
     private void refreshPhysicsButton() {
         if(physicsButton==null)return;

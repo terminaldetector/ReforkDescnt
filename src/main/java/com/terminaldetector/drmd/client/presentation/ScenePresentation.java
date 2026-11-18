@@ -37,8 +37,13 @@ public final class ScenePresentation {
     public static Stats stats(){return new Stats(last.profile,last.sceneWidth,last.sceneHeight,last.outputWidth,last.outputHeight,last.overlayPasses,frames,fallbackFrames,active!=null);}
     public static void frameStarted(){outlinesPresented=false;}
     public static boolean outlinesPresented(){return outlinesPresented;}
+    /** Actual borrowed low-resolution world only; cleared before any deferred first-person overlays. */
+    public static boolean inLowResolutionWorld(){
+        return active!=null&&active.profile==PresentationProfile.PS1_HYBRID&&active.scene!=null&&!OffscreenWorldView.busy();
+    }
     public static void register(){
         Ps1ColorPass.register();
+        Ps1BodyGeometryLayer.register();
         ClientTickEvents.END_CLIENT_TICK.register(c->{
             if(lastWorld!=c.world||DescentConfig.presentationProfile!=PresentationProfile.PS1_HYBRID){release();lastWorld=c.world;}
         });

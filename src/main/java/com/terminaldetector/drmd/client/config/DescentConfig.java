@@ -23,6 +23,8 @@ public final class DescentConfig {
     public static int ps1SceneHeight = com.terminaldetector.drmd.client.presentation.PresentationOptions.DEFAULT_HEIGHT;
     public static int ps1ColorLevels = com.terminaldetector.drmd.client.presentation.Ps1ColorOptions.DEFAULT_LEVELS;
     public static float ps1DitherStrength = com.terminaldetector.drmd.client.presentation.Ps1ColorOptions.DEFAULT_DITHER;
+    /** Independent opt-in geometry settings; only actual low-resolution world bodies use them. */
+    public static com.terminaldetector.drmd.client.presentation.Ps1GeometryOptions ps1Geometry = new com.terminaldetector.drmd.client.presentation.Ps1GeometryOptions(0,0);
     /** Additive client cloud settings; missing old-file fields use the bounded altitude preset. */
     public static volatile com.terminaldetector.drmd.client.cloud.AltitudeCloudPolicy cloudPolicy = new com.terminaldetector.drmd.client.cloud.AltitudeCloudPolicy(true,384,512,4096);
 	/** Draw the 3D cockpit frame in first person. */
@@ -133,6 +135,7 @@ public final class DescentConfig {
         var colour = com.terminaldetector.drmd.client.presentation.Ps1ColorOptions.read(props);
         ps1ColorLevels = colour.levels();
         ps1DitherStrength = colour.ditherStrength();
+        ps1Geometry = com.terminaldetector.drmd.client.presentation.Ps1GeometryOptions.read(props);
         cloudPolicy = com.terminaldetector.drmd.client.cloud.AltitudeCloudPolicy.read(props);
 		cockpit = bool(props, "cockpit", cockpit);
 		cockpitOpacity = clamp(num(props, "cockpitOpacity", cockpitOpacity), 0.2f, 1f);
@@ -157,6 +160,7 @@ public final class DescentConfig {
         new com.terminaldetector.drmd.client.presentation.PresentationOptions(presentationProfile, ps1SceneHeight).write(props);
         new com.terminaldetector.drmd.client.presentation.Ps1ColorOptions(ps1ColorLevels, ps1DitherStrength).write(props);
         cloudPolicy.write(props);
+        ps1Geometry.write(props);
 		props.setProperty("cockpit", Boolean.toString(cockpit));
 		props.setProperty("cockpitOpacity", Float.toString(cockpitOpacity));
 		props.setProperty("cockpitInstruments", Boolean.toString(cockpitInstruments));
