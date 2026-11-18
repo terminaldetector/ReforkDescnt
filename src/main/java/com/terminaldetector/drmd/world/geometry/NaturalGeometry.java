@@ -20,6 +20,13 @@ public final class NaturalGeometry {
     public static boolean applies(BlockState state) {
         return GROUND.contains(state.getBlock()) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES);
     }
+    /** Read original log properties; never substitute the material or mutate its palette state. */
+    public static HybridMesh.LogAxis logAxis(BlockState state) {
+        if(!state.isIn(BlockTags.LOGS)||!state.contains(PillarBlock.AXIS))return HybridMesh.LogAxis.NONE;
+        return switch(state.get(PillarBlock.AXIS)) {
+            case X -> HybridMesh.LogAxis.X;case Y -> HybridMesh.LogAxis.Y;case Z -> HybridMesh.LogAxis.Z;
+        };
+    }
     public static VoxelShape shape(BlockState state,BlockView world,BlockPos pos) {
         var key=HybridTerrain.snapshot(world,pos,new HybridTerrain.Data(state,-1L,true));
         return shape(key);

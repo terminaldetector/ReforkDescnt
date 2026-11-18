@@ -263,7 +263,8 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
                 boolean natural=com.terminaldetector.drmd.world.geometry.NaturalGeometry.applies(state);
                 neighbours.add(state.isAir()?com.terminaldetector.drmd.world.geometry.HybridMesh.Block.AIR:
                     new com.terminaldetector.drmd.world.geometry.HybridMesh.Block(-1L,natural,!natural,
-                        state.isOpaque() || state.equals(cell.state())));
+                        state.isOpaque() || state.equals(cell.state()),List.of(),
+                        com.terminaldetector.drmd.world.geometry.NaturalGeometry.logAxis(state)));
             }
             meshes.put(cell.pos(),new com.terminaldetector.drmd.world.geometry.HybridMesh(
                 new com.terminaldetector.drmd.world.geometry.HybridMesh.Neighbourhood(neighbours)));
@@ -299,7 +300,10 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
                 new Vec3(cell.pos().getX()+1,cell.pos().getY()+1,cell.pos().getZ()+1));
             else {
                 double x0=Double.POSITIVE_INFINITY,y0=x0,z0=x0,x1=-x0,y1=-x0,z1=-x0;
-                for(Vec3 v:surfaceCorners(cell,new Vec3(0,0,0),Quat.IDENTITY)) {
+                if(surface(cell).axisAware())for(var shape:surface(cell).collisionBounds()) {
+                    x0=Math.min(x0,cell.pos().getX()+shape.minX());y0=Math.min(y0,cell.pos().getY()+shape.minY());z0=Math.min(z0,cell.pos().getZ()+shape.minZ());
+                    x1=Math.max(x1,cell.pos().getX()+shape.maxX());y1=Math.max(y1,cell.pos().getY()+shape.maxY());z1=Math.max(z1,cell.pos().getZ()+shape.maxZ());
+                } else for(Vec3 v:surfaceCorners(cell,new Vec3(0,0,0),Quat.IDENTITY)) {
                     v=v.plus(centre);x0=Math.min(x0,v.x());y0=Math.min(y0,v.y());z0=Math.min(z0,v.z());
                     x1=Math.max(x1,v.x());y1=Math.max(y1,v.y());z1=Math.max(z1,v.z());
                 }
@@ -320,7 +324,11 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             for(int y=0;y<16;y++)for(int z=0;z<16;z++)for(int x=0;x<16;x++) {
                 if(cube.get(x,y,z).isAir())continue;
                 var pos=new BlockPos(section.minBlockX()+x,section.minBlockY()+y,section.minBlockZ()+z);
-                if(surfaces.containsKey(pos)||cube.get(x,y,z).isOf(Blocks.LEVER)||BodyLocalHatches.supports(cube.get(x,y,z)))shaped.add(cellBounds.get(pos));
+                var mesh=surfaces.get(pos);
+                if(mesh!=null&&mesh.axisAware())for(var shape:mesh.collisionBounds())
+                    shaped.add(new BodyBounds(new Vec3(pos.getX()+shape.minX(),pos.getY()+shape.minY(),pos.getZ()+shape.minZ()),
+                        new Vec3(pos.getX()+shape.maxX(),pos.getY()+shape.maxY(),pos.getZ()+shape.maxZ())));
+                else if(mesh!=null||cube.get(x,y,z).isOf(Blocks.LEVER)||BodyLocalHatches.supports(cube.get(x,y,z)))shaped.add(cellBounds.get(pos));
                 else solid.add(new CompoundCollider.Cell(pos.getX(),pos.getY(),pos.getZ()));
             }
             shaped.addAll(CompoundCollider.cells(solid).boxes());sections.put(key,new CompoundCollider(shaped));

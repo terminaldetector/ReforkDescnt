@@ -22,17 +22,17 @@ public final class HybridTerrain {
             BlockPos p=origin.add(x,y,z);
             BlockState state=world.getBlockState(p);
             if (x==0 && y==0 && z==0) {
-                blocks.add(new HybridMesh.Block(self.mask,self.organic,!self.organic,self.source.isOpaque(),self.bores));
+                blocks.add(new HybridMesh.Block(self.mask,self.organic,!self.organic,self.source.isOpaque(),self.bores,NaturalGeometry.logAxis(self.source)));
             } else if (state.getBlock() instanceof OrganicBlock organic) {
-                blocks.add(new HybridMesh.Block(MicroGrid.FULL,true,false,organic.source().isOpaque()));
+                blocks.add(new HybridMesh.Block(MicroGrid.FULL,true,false,organic.source().isOpaque(),java.util.List.of(),NaturalGeometry.logAxis(organic.source())));
             } else if (state.getBlock() instanceof CarvedBlock) {
                 Object attachment=world.getBlockEntityRenderData(p);
                 if (attachment instanceof Data data) {
                     boolean hides=data.source.isOpaque() || data.source.equals(self.source);
-                    blocks.add(new HybridMesh.Block(data.mask,data.organic,!data.organic && data.mask!=0,hides,data.bores));
+                    blocks.add(new HybridMesh.Block(data.mask,data.organic,!data.organic && data.mask!=0,hides,data.bores,NaturalGeometry.logAxis(data.source)));
                 } else blocks.add(new HybridMesh.Block(MicroGrid.FULL,false,true,true));
             } else if (NaturalGeometry.applies(state)) {
-                blocks.add(new HybridMesh.Block(MicroGrid.FULL,true,false,state.isOpaque() || state.equals(self.source)));
+                blocks.add(new HybridMesh.Block(MicroGrid.FULL,true,false,state.isOpaque() || state.equals(self.source),java.util.List.of(),NaturalGeometry.logAxis(state)));
             } else if (state.isAir()) blocks.add(HybridMesh.Block.AIR);
             else {
                 boolean full=state.isFullCube(world,p);

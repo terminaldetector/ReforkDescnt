@@ -6,9 +6,11 @@ import java.util.List;
 
 /** Shared surface-net corner field, interpolated onto the quarter-cell damage lattice. */
 public final class HybridMesh {
-    public record Block(long mask,boolean organic,boolean anchor,boolean occludes,List<com.terminaldetector.drmd.world.micro.ThermalBore> bores) {
-        public Block(long mask,boolean organic,boolean anchor,boolean occludes){this(mask,organic,anchor,occludes,List.of());}
-        public Block{bores=List.copyOf(bores);if(bores.size()>2)throw new IllegalArgumentException("thermal shape budget");}
+    public enum LogAxis {NONE, X, Y, Z}
+    public record Block(long mask,boolean organic,boolean anchor,boolean occludes,List<com.terminaldetector.drmd.world.micro.ThermalBore> bores,LogAxis logAxis) {
+        public Block(long mask,boolean organic,boolean anchor,boolean occludes){this(mask,organic,anchor,occludes,List.of(),LogAxis.NONE);}
+        public Block(long mask,boolean organic,boolean anchor,boolean occludes,List<com.terminaldetector.drmd.world.micro.ThermalBore> bores){this(mask,organic,anchor,occludes,bores,LogAxis.NONE);}
+        public Block{bores=List.copyOf(bores);java.util.Objects.requireNonNull(logAxis);if(bores.size()>2)throw new IllegalArgumentException("thermal shape budget");}
         public static final Block AIR = new Block(0, false, false, false);
     }
     public record Neighbourhood(List<Block> blocks) {
@@ -32,13 +34,14 @@ public final class HybridMesh {
     private static final int[][] STEPS = {{0,-1,0},{0,1,0},{0,0,-1},{0,0,1},{-1,0,0},{1,0,0}};
     private final Neighbourhood neighbours;
     private final Block self;
-    private final boolean thermal;
+    private final boolean thermal, axisAware;
     private final Point[] vertices = new Point[125];
 
     public HybridMesh(Neighbourhood neighbours) {
         this.neighbours = neighbours;
         self = neighbours.at(0,0,0);
         thermal=neighbours.blocks.stream().anyMatch(b->!b.bores.isEmpty());
+        axisAware=self.organic&&neighbours.blocks.stream().anyMatch(b->b.logAxis!=LogAxis.NONE);
         Point[] corners = new Point[8];
         for (int y=0;y<2;y++) for (int z=0;z<2;z++) for (int x=0;x<2;x++)
             corners[(y*2+z)*2+x] = self.organic&&self.bores.isEmpty() ? cornerOffset(x,y,z) : ZERO;
@@ -50,9 +53,42 @@ public final class HybridMesh {
                 offset=offset.plus(corners[(cy*2+cz)*2+cx].times(weight));
             }
             Point point=new Point(px,py,pz).plus(offset);
+            if(axisAware) {
+                Point rounded=logVertex(new Point(px,py,pz),x,y,z);
+                if(rounded!=null)point=rounded;
+            }
             vertices[index(x,y,z)]=thermal?thermalVertex(point,x,y,z):point;
         }
     }
+
+    /** The same incident log axes choose a shared point on either side of a seam, including
+     * perpendicular branches. Only cross-sections contract; a straight trunk keeps its length.
+     * Engineered anchors and thermal cells pin their interface; bore projection stays authoritative. */
+    private Point logVertex(Point p,int x,int y,int z) {
+        Point best=null;double distance=Double.POSITIVE_INFINITY;boolean pinned=false;
+        for(int dy=y==0?-1:0;dy<=(y==4?1:0);dy++)for(int dz=z==0?-1:0;dz<=(z==4?1:0);dz++)for(int dx=x==0?-1:0;dx<=(x==4?1:0);dx++) {
+            var block=neighbours.at(dx,dy,dz);pinned|=block.anchor||!block.bores.isEmpty();
+            if(block.logAxis==LogAxis.NONE)continue;
+            double a,b;
+            if(block.logAxis==LogAxis.X){a=p.y-dy-.5;b=p.z-dz-.5;}
+            else if(block.logAxis==LogAxis.Y){a=p.x-dx-.5;b=p.z-dz-.5;}
+            else {a=p.x-dx-.5;b=p.y-dy-.5;}
+            // Square-to-disk cross-section on the existing quarter lattice: radius 3/8 m.
+            double ca=.75*a*Math.sqrt(Math.max(0,1-2*b*b));
+            double cb=.75*b*Math.sqrt(Math.max(0,1-2*a*a));
+            Point candidate=block.logAxis==LogAxis.X?new Point(p.x,dy+.5+ca,dz+.5+cb)
+                :block.logAxis==LogAxis.Y?new Point(dx+.5+ca,p.y,dz+.5+cb):new Point(dx+.5+ca,dy+.5+cb,p.z);
+            double d=squared(candidate,p);
+            if(best==null||d<distance-1e-12||Math.abs(d-distance)<=1e-12&&before(candidate,best)) {best=candidate;distance=d;}
+        }
+        return best==null?null:pinned?p:best;
+    }
+    private static double squared(Point a,Point b){double x=a.x-b.x,y=a.y-b.y,z=a.z-b.z;return x*x+y*y+z*z;}
+    private static boolean before(Point a,Point b) {
+        return a.x<b.x-1e-12||Math.abs(a.x-b.x)<=1e-12&&(a.y<b.y-1e-12||Math.abs(a.y-b.y)<=1e-12&&a.z<b.z);
+    }
+    /** Nonlinear cross-sections need their shared cell bounds, rather than one corner-only box. */
+    public boolean axisAware(){return axisAware;}
 
     /** Both sides of a block seam use the same incident cells and union field. Untouched engineered anchors remain sharp. */
     private Point thermalVertex(Point p,int x,int y,int z){
@@ -101,15 +137,17 @@ public final class HybridMesh {
             }
             for (int v=0;v<4;v++) for (int u=0;u<4;u++) if (visible[v][u]) {
                 int width=1,height=1;
-                if (!self.organic || planar(d,slice)) {
-                    while (u+width<4 && visible[v][u+width]) width++;
+                int plane=slice+(d%2==1?1:0);
+                if (!self.organic || planar(d,slice) || axisAware) {
+                    while (u+width<4 && visible[v][u+width]
+                        &&(!axisAware||mergePatch(d,plane,u,v,width+1,height))) width++;
                     outer: while (v+height<4) {
                         for (int i=0;i<width;i++) if (!visible[v+height][u+i]) break outer;
+                        if(axisAware&&!mergePatch(d,plane,u,v,width,height+1))break;
                         height++;
                     }
                 }
                 for (int j=0;j<height;j++) for (int i=0;i<width;i++) visible[v+j][u+i]=false;
-                int plane=slice+(d%2==1?1:0);
                 int[][] p=switch(d) {
                     case 0 -> new int[][]{{u,plane,v+height},{u,plane,v},{u+width,plane,v},{u+width,plane,v+height}};
                     case 1 -> new int[][]{{u,plane,v},{u,plane,v+height},{u+width,plane,v+height},{u+width,plane,v}};
@@ -124,6 +162,21 @@ public final class HybridMesh {
             }
         }
         return List.copyOf(out);
+    }
+
+    /** Merge only a genuinely planar patch whose intermediate points lie on the same quad.
+     * Coplanarity alone would replace a round end-cap boundary with its inscribed square. */
+    private boolean mergePatch(int d,int plane,int u,int v,int width,int height) {
+        Point a=facePoint(d,plane,u,v),b=facePoint(d,plane,u+width,v),c=facePoint(d,plane,u,v+height),e=facePoint(d,plane,u+width,v+height);
+        double ux=b.x-a.x,uy=b.y-a.y,uz=b.z-a.z,vx=c.x-a.x,vy=c.y-a.y,vz=c.z-a.z;
+        double nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
+        if(nx*nx+ny*ny+nz*nz<1e-16||Math.abs(nx*(e.x-a.x)+ny*(e.y-a.y)+nz*(e.z-a.z))>1e-10)return false;
+        for(int j=0;j<=height;j++)for(int i=0;i<=width;i++) {
+            double s=(double)i/width,t=(double)j/height;
+            Point expected=a.times((1-s)*(1-t)).plus(b.times(s*(1-t))).plus(c.times((1-s)*t)).plus(e.times(s*t));
+            if(squared(expected,facePoint(d,plane,u+i,v+j))>1e-20)return false;
+        }
+        return true;
     }
 
     /** Flat slopes and intact ground need one quad, not sixteen identical planar patches. */

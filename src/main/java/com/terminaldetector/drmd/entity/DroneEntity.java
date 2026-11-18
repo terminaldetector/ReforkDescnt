@@ -101,7 +101,7 @@ public class DroneEntity extends HostileEntity {
     public java.util.List<DataTracker.SerializedEntry<?>> portalTrackedPose(){return java.util.List.of(DataTracker.SerializedEntry.of(FLIGHT_ROLL,getFlightRoll()));}
     private void resetPortalDisplayHistory(){
         prevX=lastRenderX=getX();prevY=lastRenderY=getY();prevZ=lastRenderZ=getZ();
-        prevYaw=getYaw();prevPitch=getPitch();bodyYaw=prevBodyYaw=getYaw();setHeadYaw(getYaw());prevHeadYaw=getHeadYaw();
+        prevYaw=getYaw();prevPitch=getPitch();bodyYaw=prevBodyYaw=getYaw();prevHeadYaw=getHeadYaw();
     }
     /** Destination comes from the already received vanilla Mob lerp target, not a second position protocol. */
     public final void snapPortalDisplayFromNativeTarget(){
