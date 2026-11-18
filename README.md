@@ -1,3 +1,7 @@
+## Текущая работа и следующая задача
+
+[Остатки обоих ТЗ — 96 задач и 10 направлений](docs/v8/REMAINING_WORK_2026-11-18.md) · [Реестр 99 задач](docs/v8/TASKS.yaml) · [Сборка9226e7a0](dist/snapshots/2026-11-18-9226e7a0/README.md). Для следующей задачи выбрать ветку `main`. Полные ТЗ остаются открытыми; точные границы текущих проверок сохранены в отчёте и snapshot.
+
 # DRMD 6DOF
 
 Descent/Prey-inspired 6DoF game project built on Minecraft as a technical base. Minecraft is not the

@@ -1,5 +1,7 @@
 # Cloud recovery — 24 October 2026
 
+Latest instruction (18 November, after snapshot 9226e7a0): the user explicitly resumed GitHub publication and requested the current work plus remaining requirements in `main`. This supersedes the historical publication pauses below; preserve existing branches and use a normal non-force push. The user will configure the future task separately.
+
 Current user instruction (6 November): development is local only. Do not push, publish, upload to GitHub or trigger Actions. Preserve local source/evidence checkpoints and continue both master v8 and Dynamic Boarding/BlockBody work. This supersedes the historical publication instructions below until the user explicitly resumes publication.
 
 
