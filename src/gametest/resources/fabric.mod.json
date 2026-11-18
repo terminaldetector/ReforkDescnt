@@ -71,6 +71,7 @@
       "com.terminaldetector.drmd.MountedMechanismGameTests",
       "com.terminaldetector.drmd.ArmedContactGameTests",
       "com.terminaldetector.drmd.world.threat.SurvivalThreatGameTests",
+      "com.terminaldetector.drmd.world.threat.ReconAdmissionGameTests",
       "com.terminaldetector.drmd.world.threat.SiegePlanCodecBaselineGameTests",
       "com.terminaldetector.drmd.world.threat.SiegePlanStateGameTests",
       "com.terminaldetector.drmd.world.economy.SurvivalEconomyGameTests",
@@ -80,7 +81,12 @@
       "com.terminaldetector.drmd.PointDefenseInterceptionGameTests",
       "com.terminaldetector.drmd.PointDefenseGuardGameTests",
       "com.terminaldetector.drmd.EnclaveHeraldBaselineGameTests",
-      "com.terminaldetector.drmd.EnclaveMissionGameplayGameTests"
+      "com.terminaldetector.drmd.EnclaveMissionGameplayGameTests",
+      "com.terminaldetector.drmd.PlayerMechanismAaBaselineGameTests",
+      "com.terminaldetector.drmd.PlayerMechanismAaGuardGameTests",
+      "com.terminaldetector.drmd.PlayerAaOpaqueOwnershipGameTests",
+      "com.terminaldetector.drmd.PlayerAaMixedBankGameTests",
+      "com.terminaldetector.drmd.PlayerAaOpaqueFractureGameTests"
     ]
   },
   "depends": {

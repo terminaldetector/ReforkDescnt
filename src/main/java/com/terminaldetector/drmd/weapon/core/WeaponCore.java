@@ -131,6 +131,17 @@ public final class WeaponCore {
 
 	private static ProjectileEntity spawnConfigured(ServerWorld world,FireConfig cfg,Vec3d vel,Vec3d dir,
 			float recoilFactor,net.minecraft.util.math.BlockPos anchor,java.util.UUID target) {
+        return spawnConfigured(world,cfg,vel,dir,recoilFactor,anchor,target,null);
+    }
+    /** Existing owner/launch physics with explicit, independently validated mounted provenance. */
+    public static ProjectileEntity fireMountedDefenseProjectile(com.terminaldetector.drmd.world.contraption.BlockBodyEntity body,
+            net.minecraft.util.math.BlockPos cell,java.util.UUID principal,java.util.UUID claim,FireConfig cfg,java.util.UUID target){
+        if(body==null||!(body.getWorld() instanceof ServerWorld world)||!com.terminaldetector.drmd.world.trap.PointDefenseInterception.mayLaunchMounted(world,body,cell,principal,claim,cfg,target))return null;
+        var source=new ProjectileEntity.DefenseSource(null,target,world.getTime(),world.getTime()+1,body.getUuid(),cell.toImmutable(),principal,claim);
+        return spawnConfigured(world,cfg,cfg.dir.normalize().multiply(cfg.speed).add(cfg.inheritedVelocity),cfg.dir.normalize(),0,null,target,source);
+    }
+    private static ProjectileEntity spawnConfigured(ServerWorld world,FireConfig cfg,Vec3d vel,Vec3d dir,
+            float recoilFactor,net.minecraft.util.math.BlockPos anchor,java.util.UUID target,ProjectileEntity.DefenseSource mounted){
 
 		ProjectileEntity proj = ModEntities.PROJECTILE.create(world);
 		if (proj == null) return null;
@@ -160,9 +171,11 @@ public final class WeaponCore {
 		proj.setFuse(cfg.fuse, cfg.fuseSeconds, cfg.armSeconds, cfg.proximityRadius);
 		proj.setIgniteOnHit(cfg.igniteOnHit);
 		if(anchor!=null)proj.configurePointDefense(anchor,target);
+        if(mounted!=null&&(!(cfg.owner instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity body)
+            ||!proj.configureMountedDefense(body,mounted.cell(),mounted.principal(),mounted.claim(),target)))return null;
 		proj.synchronizeVisualVelocity();
 		if (!world.spawnEntity(proj)) return null;
-		if(anchor!=null)com.terminaldetector.drmd.world.trap.PointDefenseInterception.track(proj);
+		if(anchor!=null||mounted!=null)com.terminaldetector.drmd.world.trap.PointDefenseInterception.track(proj);
 		com.terminaldetector.drmd.network.ModNetworking.shotFx(world, cfg.pos,
 				proj.getColorRgb(), cfg.visualScale, false);
 

@@ -7,6 +7,7 @@ import com.terminaldetector.drmd.physics.PhysicsTarget;
 import com.terminaldetector.drmd.weapon.core.*;
 import com.terminaldetector.drmd.weapon.projectile.*;
 import com.terminaldetector.drmd.world.contraption.*;
+import com.terminaldetector.drmd.world.contraption.mechanism.*;
 import com.terminaldetector.drmd.world.edit.WorldEditSafety;
 import net.fabricmc.fabric.api.event.lifecycle.v1.*;
 import net.minecraft.entity.*;
@@ -18,7 +19,7 @@ import net.minecraft.world.RaycastContext;
 import java.lang.ref.WeakReference;
 import java.util.*;
 
-/** Bounded stationary point defense. Ordinary missiles retain their normal immediate impacts;
+/** Bounded source-specific point defense. Ordinary missiles retain their normal immediate impacts;
  * only marked defensive rounds defer their own terminal side effects within this world tick. */
 public final class PointDefenseInterception {
     public static final int MAX_CANDIDATES=96,MAX_DETAILED=32,MAX_ROUNDS=256,MAX_SOURCES=256;
@@ -26,7 +27,7 @@ public final class PointDefenseInterception {
     private static final Map<ServerWorld,State> WORLDS=Collections.synchronizedMap(new WeakHashMap<>());
     private static boolean registered;
     public record Stats(int activeRounds,int cooldownSources,int candidates,int detailed,int blockRays,
-                        int hullTests,int actorTests,int cleanupExamined,long emitted,long contacts,long refusals){}
+                        int hullTests,int actorTests,int cleanupExamined,long emitted,long contacts,long refusals,long mountedGeometryHolds){}
     public record Receipt(UUID missile,UUID round,long worldTime,long bornAt,double fraction,Vec3d point,
                           double missileCover,double roundCover,boolean roundMovedFirst,int missileAge,int roundAge){}
     private static final class Budget {int rays=32,hulls=32,actors=32,detailed,candidates;}
@@ -47,7 +48,7 @@ public final class PointDefenseInterception {
         final Map<UUID,Set<UUID>> targets=new HashMap<>();
         final Map<Long,Long> cooldowns=new LinkedHashMap<>();
         final Deque<Receipt> receipts=new ArrayDeque<>();
-        long cleanupAt=Long.MIN_VALUE,emitted,contacts,refusals;
+        long cleanupAt=Long.MIN_VALUE,emitted,contacts,refusals,mountedGeometryHolds;
         int maxCandidates,maxDetailed,maxRays,maxHulls,maxActors,maxCleanup;
         Budget emission;
     }
@@ -62,7 +63,7 @@ public final class PointDefenseInterception {
     }
     private static State state(ServerWorld world){return WORLDS.computeIfAbsent(world,w->new State());}
     public static Vec3d muzzle(BlockPos source){return Vec3d.ofCenter(source).add(0,.6,0);}
-    public static Stats stats(ServerWorld world){var s=state(world);return new Stats(s.rounds.size(),s.cooldowns.size(),s.maxCandidates,s.maxDetailed,s.maxRays,s.maxHulls,s.maxActors,s.maxCleanup,s.emitted,s.contacts,s.refusals);}
+    public static Stats stats(ServerWorld world){var s=state(world);return new Stats(s.rounds.size(),s.cooldowns.size(),s.maxCandidates,s.maxDetailed,s.maxRays,s.maxHulls,s.maxActors,s.maxCleanup,s.emitted,s.contacts,s.refusals,s.mountedGeometryHolds);}
     public static List<Receipt> receipts(ServerWorld world){return List.copyOf(state(world).receipts);}
     private static boolean finite(Vec3d v){return v!=null&&Double.isFinite(v.lengthSquared());}
     private static void metrics(State s,Budget b){s.maxCandidates=Math.max(s.maxCandidates,b.candidates);s.maxDetailed=Math.max(s.maxDetailed,b.detailed);
@@ -80,6 +81,73 @@ public final class PointDefenseInterception {
         var owner=world.getEntity(missile.getOwnerUuid());
         return owner instanceof LivingEntity living&&living.isAlive()&&living.getWorld()==world
             &&((DefenseTurrets.PointDefenseTurretBlock)ModWorldBlocks.POINT_DEFENSE_TURRET).acceptsMissileOwner(living);
+    }
+    private static boolean accepts(ServerWorld world,ProjectileEntity.DefenseSource source,ProjectileEntity missile){
+        return source.mounted()?PlayerMountedDefense.hostile(world,source.principal(),missile):hostileMissile(world,missile);
+    }
+    private static boolean mountedSource(ServerWorld world,BlockBodyEntity body,BlockPos cell,UUID principal,UUID claim,UUID target){
+        if(!registered||world==null||!world.getServer().isOnThread()||!PlayerMountedDefense.source(world,body,cell,principal,claim))return false;
+        var state=body.getLocalBlock(cell);if(!state.isOf(ModWorldBlocks.SHIP_LASER))return false;
+        boolean on=false;for(var side:Direction.values()){var p=cell.offset(side);var lever=body.getLocalBlock(p);
+            if(lever.isOf(net.minecraft.block.Blocks.LEVER)&&BodyMountedWeapons.support(p,lever).equals(cell)&&lever.get(net.minecraft.state.property.Properties.POWERED)){on=true;break;}}
+        var loaded=target==null?null:world.getEntity(target);
+        return on&&loaded instanceof ProjectileEntity missile&&PlayerMountedDefense.hostile(world,principal,missile)
+            &&missile.getBoundingBox().getCenter().squaredDistanceTo(MountedWeaponEmitter.muzzle(body,cell))<=12*12;
+    }
+    /** Exact original ENERGY laser; the material barrel owns both aim and motion. */
+    public static boolean mayLaunchMounted(ServerWorld world,BlockBodyEntity body,BlockPos cell,UUID principal,UUID claim,WeaponCore.FireConfig cfg,UUID target){
+        if(!mountedSource(world,body,cell,principal,claim,target)||cfg==null||cfg.owner!=body||cfg.speedIsSourceUnits||cfg.speed!=2.5f||cfg.life!=4
+            ||cfg.dmgClass!=DamageClass.ENERGY||cfg.directDamage!=8||cfg.splashDamage!=0||cfg.splashRadius!=0||cfg.gravity!=0||cfg.drag!=0
+            ||cfg.homing||cfg.pilotGuided||cfg.pierceCount!=0||cfg.worldBlast||cfg.drillCarve||cfg.fusionPortalCharge||cfg.igniteOnHit||cfg.onHit!=null
+            ||cfg.fuse!=FuseType.IMPACT||cfg.armSeconds!=0||cfg.fuseSeconds!=0||cfg.proximityRadius!=0||cfg.inherit!=1||cfg.recoil!=0
+            ||cfg.meshKind!=ProjectileEntity.MESH_BOLT||cfg.visualScale!=.75f||cfg.colorR!=70||cfg.colorG!=235||cfg.colorB!=255
+            ||!finite(cfg.pos)||!finite(cfg.dir)||!finite(cfg.inheritedVelocity)
+            ||cfg.pos.squaredDistanceTo(MountedWeaponEmitter.muzzle(body,cell))>1e-12
+            ||cfg.dir.squaredDistanceTo(MountedWeaponEmitter.direction(body,cell))>1e-12
+            ||cfg.inheritedVelocity.squaredDistanceTo(body.surfaceVelocityAt(cfg.pos).multiply(.05))>1e-12)return false;
+        return mayTagMounted(world,body,cell,principal,claim,target,cfg.pos,cfg.dir.multiply(2.5).add(cfg.inheritedVelocity));
+    }
+    /** Repeat real source and loaded-target validation for the public tag adapter. */
+    public static boolean mayTagMounted(ServerWorld world,BlockBodyEntity body,BlockPos cell,UUID principal,UUID claim,UUID target,Vec3d position,Vec3d velocity){
+        if(!mountedSource(world,body,cell,principal,claim,target)||!finite(position)||!finite(velocity)
+            ||position.squaredDistanceTo(MountedWeaponEmitter.muzzle(body,cell))>1e-12
+            ||velocity.squaredDistanceTo(MountedWeaponEmitter.direction(body,cell).multiply(2.5).add(body.surfaceVelocityAt(position).multiply(.05)))>1e-12)return false;
+        var s=state(world);if(s.rounds.size()>=MAX_ROUNDS)return false;
+        var b=s.emission==null?new Budget():s.emission;
+        var direction=MountedWeaponEmitter.facing(body,cell);var start=body.localToWorld(Vec3d.ofCenter(cell).add(Vec3d.of(direction.getVector()).multiply(.501)));
+        if(!body.collisionRegionAvailable(new Box(start,position).expand(.01)))return false;
+        var clearance=trace(world,null,start,position,b);if(s.emission==null)metrics(s,b);
+        return clearance.admitted()&&clearance.contact()==null;
+    }
+    /** Fixed-axis candidate prediction is admission only; real shared CCD alone
+     * can authorize a pair hit after normal missile movement is known. */
+    public static boolean tryFireMounted(BlockBodyEntity body,BlockPos cell,MountedDefenseClaims.Claim claim){
+        if(!(body.getWorld() instanceof ServerWorld world)||!registered||!world.getServer().isOnThread()
+            ||!PlayerMountedDefense.source(world,body,cell,claim.principal(),claim.token()))return false;
+        var s=state(world);if(s.emission!=null||s.rounds.size()>=MAX_ROUNDS){s.refusals++;return false;}
+        var from=MountedWeaponEmitter.muzzle(body,cell);var velocity=MountedWeaponEmitter.direction(body,cell).multiply(2.5).add(body.surfaceVelocityAt(from).multiply(.05));
+        if(!finite(velocity))return false;
+        var candidates=new ArrayList<ProjectileEntity>();world.collectEntitiesByType(TypeFilter.instanceOf(ProjectileEntity.class),new Box(from,from).expand(12),Entity::isAlive,candidates,MAX_CANDIDATES);
+        var budget=new Budget();budget.candidates=candidates.size();s.emission=budget;
+        try{
+            double width=ModEntities.PROJECTILE.getWidth()*.5,height=ModEntities.PROJECTILE.getHeight()*.5;
+            var center=from.add(0,height,0);var half=new Vec3(width,height,width);
+            for(var missile:candidates){
+                if(budget.detailed>=MAX_DETAILED)break;budget.detailed++;
+                if(!PlayerMountedDefense.hostile(world,claim.principal(),missile)||!finite(missile.getVelocity()))continue;
+                var offset=missile.getBoundingBox().getCenter().subtract(from);var movement=missile.getVelocity();
+                if(offset.lengthSquared()>12*12||movement.lengthSquared()<1e-8||offset.dotProduct(movement)>=0)continue;
+                if(budget.hulls<=0)break;budget.hulls--;
+                if(body.physicsProjectileRaycast(missile.getPos(),missile.getPos().add(movement.multiply(16))).isEmpty())continue;
+                var contact=RelativeProjectileSweep.firstContact(v(center),v(velocity.multiply(9)),half,v(missile.getBoundingBox().getCenter()),v(movement.multiply(9)),half(missile.getBoundingBox()));
+                if(contact.isEmpty())continue;
+                var aim=from.add(velocity.multiply(9*contact.get().fraction()));var lane=trace(world,null,from,aim,budget);
+                if(!lane.admitted()||lane.contact()!=null)continue;
+                var shot=MountedWeaponEmitter.emitDefense(body,cell,claim,missile.getUuid());
+                if(shot==null)continue;s.emitted++;return true;
+            }
+            return false;
+        }finally{metrics(s,budget);s.emission=null;}
     }
 
     public static boolean tryFire(ServerWorld world,BlockPos source){
@@ -138,6 +206,11 @@ public final class PointDefenseInterception {
         var r=new Round(shot);s.rounds.put(shot.getUuid(),r);s.targets.computeIfAbsent(r.target,k->new LinkedHashSet<>()).add(shot.getUuid());
     }
     public static boolean mayRestore(ProjectileEntity shot){
+        if(shot.getWorld() instanceof ServerWorld mountedWorld&&shot.pointDefenseSource()!=null&&shot.pointDefenseSource().mounted()){
+            var source=shot.pointDefenseSource();var entity=mountedWorld.getEntity(source.body());
+            return entity instanceof BlockBodyEntity body&&source.body().equals(shot.getOwnerUuid())
+                &&mountedSource(mountedWorld,body,source.cell(),source.principal(),source.claim(),source.target());
+        }
         if(!(shot.getWorld() instanceof ServerWorld world)||shot.pointDefenseSource()==null
             ||!sourceLoaded(world,shot.pointDefenseSource().anchor()))return false;
         var loaded=world.getEntity(shot.pointDefenseSource().target());
@@ -176,8 +249,15 @@ public final class PointDefenseInterception {
     }
     public static void tickRound(ProjectileEntity shot){
         if(!(shot.getWorld() instanceof ServerWorld world))return;track(shot);var s=state(world);var r=s.rounds.get(shot.getUuid());
-        if(r==null){shot.discard();return;}var frame=prepare(world,s,r,shot,true);
-        if(frame==null){shot.discard();return;}
+        var frame=r==null?null:prepare(world,s,r,shot,true);
+        if(frame==null){
+            // Reviewed pre-first-compile amendment: never bypass this bounded
+            // unknown/cap refusal through the unbounded ordinary trace. Existing
+            // mounted material remains at its pose with unchanged velocity;
+            // ProjectileEntity already consumed this normal tick's lifetime.
+            if(shot.pointDefenseSource()!=null&&shot.pointDefenseSource().mounted()){s.mountedGeometryHolds++;return;}
+            shot.discard();return;
+        }
         if(!frame.integrated){shot.setVelocity(frame.velocity);shot.synchronizeVisualVelocity();
             shot.setPosition(frame.contact==null?frame.start.add(frame.velocity):frame.contact.tracePoint());frame.integrated=true;}
     }
@@ -186,13 +266,14 @@ public final class PointDefenseInterception {
     public static boolean intercept(ProjectileEntity missile,Vec3d from,Vec3d to,HitResult ordinary){
         if(!(missile.getWorld() instanceof ServerWorld world)||!registered)return false;
         var s=WORLDS.get(world);if(s==null)return false;var associated=s.targets.get(missile.getUuid());if(associated==null)return false;
-        if(!hostileMissile(world,missile)||!missile.isArmed()||!WorldEditSafety.loadedSegment(world,from,to))return false;
+        if(!missile.isPointDefenseMissile()||!missile.isArmed()||!WorldEditSafety.loadedSegment(world,from,to))return false;
         double cover=ordinary==null?Double.POSITIVE_INFINITY:fraction(from,to,ordinary.getPos());
         Round winner=null;ProjectileEntity round=null;RelativeProjectileSweep.Contact earliest=null;
         for(var id:List.copyOf(associated)){
             var candidate=s.rounds.get(id);var entity=candidate==null?null:candidate.entity.get();
             if(entity==null||!entity.isAlive()||entity.getWorld()!=world||entity.pointDefenseSource()==null
-                ||entity.pointDefenseSource().eligibleFrom()>world.getTime()||entity.pointDefenseSource().bornAt()>=world.getTime())continue;
+                ||entity.pointDefenseSource().eligibleFrom()>world.getTime()||entity.pointDefenseSource().bornAt()>=world.getTime()
+                ||!accepts(world,entity.pointDefenseSource(),missile))continue;
             var frame=prepare(world,s,candidate,entity,false);if(frame==null)continue;
             var targetBox=missile.getBoundingBox();var contact=RelativeProjectileSweep.firstContact(v(frame.box.getCenter()),v(frame.velocity),half(frame.box),
                 v(targetBox.getCenter()),v(to.subtract(from)),half(targetBox));

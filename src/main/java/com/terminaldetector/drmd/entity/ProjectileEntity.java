@@ -85,8 +85,12 @@ public class ProjectileEntity extends Entity {
 	private int ageTicks;
 	private boolean igniteOnHit;
 
-	/** Optional server-only identity for the bounded static defensive round. Old shots have none. */
-	public record DefenseSource(BlockPos anchor,UUID target,long bornAt,long eligibleFrom){}
+	/** Source kinds have separate admission/allegiance. Old station tuples stay compatible. */
+	public record DefenseSource(BlockPos anchor,UUID target,long bornAt,long eligibleFrom,
+            UUID body,BlockPos cell,UUID principal,UUID claim){
+        public DefenseSource(BlockPos anchor,UUID target,long bornAt,long eligibleFrom){this(anchor,target,bornAt,eligibleFrom,null,null,null,null);}
+        public boolean mounted(){return body!=null;}
+    }
 	public record DefenseContact(Vec3d tracePoint,Vec3d materialPoint,UUID entityUuid,int entityId,
 			BlockPos block,net.minecraft.util.math.Direction side){}
 	private DefenseSource defenseSource;
@@ -131,9 +135,20 @@ public class ProjectileEntity extends Entity {
 		// a segment already processed earlier in its birth tick, in either order.
 		defenseSource=new DefenseSource(anchor.toImmutable(),target,now,now+1);
 	}
+	/** Only a fully configured, still-at-muzzle original body-owned laser may gain
+     * this provenance. Calling the public tag adapter cannot bypass factory admission. */
+    public boolean configureMountedDefense(com.terminaldetector.drmd.world.contraption.BlockBodyEntity body,
+            BlockPos cell,UUID principal,UUID claim,UUID target){
+        if(!(getWorld() instanceof ServerWorld world)||body==null||cell==null||defenseSource!=null||ownerUuid==null||!ownerUuid.equals(body.getUuid())
+            ||dmgClass!=DamageClass.ENERGY||directDamage!=8||splashDamage!=0||splashRadius!=0||gravityStrength!=0||drag!=0
+            ||homing||pilotGuided||pierceCount!=0||worldBlast||fusionPortalCharge||drillCarve||igniteOnHit||lifeTicks!=80
+            ||fuse!=com.terminaldetector.drmd.weapon.projectile.FuseType.IMPACT||armTicks!=0||fuseTicks!=0||getMeshKind()!=MESH_BOLT||getVisualScale()!=.75f||getColorRgb()!=0x46ebff
+            ||!com.terminaldetector.drmd.world.trap.PointDefenseInterception.mayTagMounted(world,body,cell,principal,claim,target,getPos(),getVelocity()))return false;
+        long now=world.getTime();defenseSource=new DefenseSource(null,target,now,now+1,body.getUuid(),cell.toImmutable(),principal,claim);return true;
+    }
 	/** Exact non-homing step used both for prediction and normal tagged-round integration. */
 	public Vec3d pointDefenseStepVelocity(){
-		if(defenseSource==null||homing||pilotGuided||ownerUuid!=null)return null;
+		if(defenseSource==null||homing||pilotGuided||!defenseSource.mounted()&&ownerUuid!=null)return null;
 		Vec3d velocity=getVelocity();
 		if(gravityStrength!=0)velocity=velocity.add(0,-gravityStrength*.05,0);
 		if(drag>0&&velocity.lengthSquared()>1e-6)velocity=velocity.multiply(Math.max(0,1-drag*.02));
@@ -266,8 +281,7 @@ public class ProjectileEntity extends Entity {
 			if(!com.terminaldetector.drmd.world.trap.PointDefenseInterception.mayRestore(this))defenseSource=null;
 		}
 		if(defenseSource!=null){
-			com.terminaldetector.drmd.world.trap.PointDefenseInterception.tickRound(this);
-			return;
+			com.terminaldetector.drmd.world.trap.PointDefenseInterception.tickRound(this);return;
 		}
 
 		// Fuses that do not need contact get their chance before the movement trace.
@@ -594,7 +608,19 @@ public class ProjectileEntity extends Entity {
 		setColorRgb(dmgClass.r, dmgClass.g, dmgClass.b);
 		defenseSource=null;
 		restoredDefense=false;
-		if(ownerUuid==null&&dmgClass==DamageClass.KINETIC&&nbt.contains("pdAnchor")&&nbt.containsUuid("pdTarget")){
+        if(nbt.contains("pdMounted")){
+            if(nbt.get("pdMounted") instanceof NbtCompound mounted&&mounted.contains("schema",net.minecraft.nbt.NbtElement.INT_TYPE)&&mounted.getInt("schema")==1&&mounted.containsUuid("body")
+                &&mounted.containsUuid("principal")&&mounted.containsUuid("claim")&&mounted.containsUuid("target")
+                &&mounted.contains("cell",net.minecraft.nbt.NbtElement.LONG_TYPE)&&ownerUuid!=null&&ownerUuid.equals(mounted.getUuid("body"))
+                &&dmgClass==DamageClass.ENERGY&&directDamage==8&&splashDamage==0&&splashRadius==0&&!worldBlast&&!fusionPortalCharge&&!drillCarve
+                &&getMeshKind()==MESH_BOLT&&getVisualScale()==.75f&&lifeTicks>0&&lifeTicks<=80){
+                var cell=BlockPos.fromLong(mounted.getLong("cell"));
+                if(com.terminaldetector.drmd.world.contraption.BlockBodyEntity.validLocal(cell)){
+                    long now=getWorld().getTime();defenseSource=new DefenseSource(null,mounted.getUuid("target"),now,now+1,mounted.getUuid("body"),cell,mounted.getUuid("principal"),mounted.getUuid("claim"));
+                    restoredDefense=true;setColorRgb(70,235,255);
+                }
+            }
+        }else if(ownerUuid==null&&dmgClass==DamageClass.KINETIC&&nbt.contains("pdAnchor")&&nbt.containsUuid("pdTarget")){
 			float savedGravity=nbt.getFloat("pdGravity"),savedDrag=nbt.getFloat("pdDrag");
 			if(Float.isFinite(savedGravity)&&savedGravity>=0&&savedGravity<=1&&Float.isFinite(savedDrag)&&savedDrag>=0&&savedDrag<=1){
 				gravityStrength=savedGravity;drag=savedDrag;lifeTicks=Math.min(lifeTicks,10);
@@ -618,7 +644,10 @@ public class ProjectileEntity extends Entity {
 		nbt.putBoolean("drill", drillCarve);
 		nbt.putFloat("scale", getVisualScale());
 		nbt.putInt("mesh", getMeshKind());
-		if(defenseSource!=null){
+		if(defenseSource!=null&&defenseSource.mounted()){
+            var mounted=new NbtCompound();mounted.putInt("schema",1);mounted.putUuid("body",defenseSource.body());mounted.putLong("cell",defenseSource.cell().asLong());
+            mounted.putUuid("principal",defenseSource.principal());mounted.putUuid("claim",defenseSource.claim());mounted.putUuid("target",defenseSource.target());nbt.put("pdMounted",mounted);
+        }else if(defenseSource!=null){
 			nbt.putLong("pdAnchor",defenseSource.anchor().asLong());nbt.putUuid("pdTarget",defenseSource.target());
 			nbt.putFloat("pdGravity",gravityStrength);nbt.putFloat("pdDrag",drag);nbt.putInt("pdColor",getColorRgb());
 		}

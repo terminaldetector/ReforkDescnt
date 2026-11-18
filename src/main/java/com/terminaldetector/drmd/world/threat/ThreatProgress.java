@@ -43,6 +43,8 @@ public final class ThreatProgress {
     }
     public void spawnedActor(){if((phase!=Phase.SEARCHING&&phase!=Phase.HUNTING)||spawned>=PATROL_SIZE)throw new IllegalStateException("no patrol allowance");spawned++;}
     public void cancel(long now){if(phase!=Phase.QUIET&&phase!=Phase.COOLDOWN)cooldown(now);else pending=false;}
+    /** Only the save-owned timed attempt may retire an unseen QUIET scout. */
+    void retireRecon(long now){if(now<0)throw new IllegalArgumentException("negative world clock");if(phase!=Phase.COOLDOWN)cooldown(now);}
     private void cooldown(long now){phase=Phase.COOLDOWN;since=now;until=deadline(now,COOLDOWN_TICKS);pending=false;}
     /** Online time is separately bounded; offline gaps cannot spend a novice's protection. */
     public void advance(long now,int onlineTicks,boolean insideArea,Point observed,boolean patrolGone){

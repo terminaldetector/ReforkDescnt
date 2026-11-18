@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.client.portal.PortalTransform.Quat;
 import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
 import com.terminaldetector.drmd.d6.*;
 import com.terminaldetector.drmd.entity.ModEntities;
+import com.terminaldetector.drmd.entity.ModWorldBlocks;
 import com.terminaldetector.drmd.physics.PhysicsTarget;
 import com.terminaldetector.drmd.physics.collision.*;
 import com.terminaldetector.drmd.vendor.immptl.ImmPtlAARotation;
@@ -384,7 +385,14 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     /** Owner modules observe committed material edits, after the rollback boundary. */
     protected void onLocalMaterialChanged(List<BlockBodyEntity> fragments) {}
     public boolean canUseLocalBlock(BlockPos local){return getLocalBlock(local).isOf(Blocks.LEVER)||com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.usable(getLocalBlock(local));}
-    public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){return getLocalBlock(local).isOf(Blocks.LEVER)?com.terminaldetector.drmd.world.contraption.mechanism.BodyMountedWeapons.useLever(player,this,local):com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.use(player,this,local);}
+    /** Client routing hint only. Ordinary gun placement/empty-hand behavior is
+     * unchanged; the server repeats the real wrench/ownership/material checks. */
+    public boolean canUseLocalBlock(BlockPos local,net.minecraft.item.ItemStack held){return canUseLocalBlock(local)
+        ||getLocalBlock(local).isOf(ModWorldBlocks.SHIP_LASER)&&held.isOf(ModWorldBlocks.MECHANISM_WRENCH);}
+    public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){
+        if(getLocalBlock(local).isOf(ModWorldBlocks.SHIP_LASER))return mountedWeapons.defenseClaims().toggle(player,this,local);
+        return getLocalBlock(local).isOf(Blocks.LEVER)?com.terminaldetector.drmd.world.contraption.mechanism.BodyMountedWeapons.useLever(player,this,local):com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.use(player,this,local);
+    }
     private record PreparedEdit(List<LocalEdit> edits,List<BlockBodyEntity> fragments){}
     private static BodyTopology.Cell topology(BlockPos p){return new BodyTopology.Cell(p.getX(),p.getY(),p.getZ());}
     /** Refuse before mutation when rebasing would require a velocity outside the admitted
