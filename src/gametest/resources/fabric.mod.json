@@ -86,11 +86,17 @@
       "com.terminaldetector.drmd.PlayerMechanismAaGuardGameTests",
       "com.terminaldetector.drmd.PlayerAaOpaqueOwnershipGameTests",
       "com.terminaldetector.drmd.PlayerAaMixedBankGameTests",
-      "com.terminaldetector.drmd.PlayerAaOpaqueFractureGameTests"
+      "com.terminaldetector.drmd.PlayerAaOpaqueFractureGameTests",
+      "com.terminaldetector.drmd.GenericControlCoreGameTests",
+      "com.terminaldetector.drmd.GenericControlFireGameTests",
+      "com.terminaldetector.drmd.BodyAssemblyTransactionGameTests"
     ]
   },
   "depends": {
     "drmd": "*",
     "fabric-gametest-api-v1": "*"
-  }
+  },
+  "mixins": [
+    "generic-assembly-gametest.mixins.json"
+  ]
 }

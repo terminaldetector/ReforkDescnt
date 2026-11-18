@@ -23,7 +23,8 @@ public final class BodyMountedWeapons {
     private final MountedDefenseClaims defenseClaims=new MountedDefenseClaims();
     public MountedDefenseClaims defenseClaims(){return defenseClaims;}
     private final SortedSet<BlockPos> controlled=new TreeSet<>();
-    private List<BlockPos> mounts=List.of();
+    private final SortedSet<BlockPos> physical=new TreeSet<>();
+    private List<BlockPos> mounts=List.of(),physicalMounts=List.of();
     private boolean initialized,dirty;
     private int cursor;
     public static void register(){
@@ -54,12 +55,15 @@ public final class BodyMountedWeapons {
         var state=body.getLocalBlock(cell);return state.isOf(Blocks.LEVER)&&body.setLocalBlock(cell,state.cycle(Properties.POWERED));
     }
     private void update(BlockBodyEntity body,BlockPos cell){
-        boolean include=isWeapon(body.getLocalBlock(cell))&&locallyControlled(body,cell);
+        boolean weapon=isWeapon(body.getLocalBlock(cell));
+        if(weapon?physical.add(cell.toImmutable()):physical.remove(cell))dirty=true;
+        boolean include=weapon&&locallyControlled(body,cell);
         if(include?controlled.add(cell.toImmutable()):controlled.remove(cell))dirty=true;
     }
-    private List<BlockPos> mounts(BlockBodyEntity body){
+    private List<BlockPos> mounts(BlockBodyEntity body,boolean coreControlled){
         if(!initialized){initialized=true;for(var cell:body.cells())if(isWeapon(cell.state()))update(body,cell.pos());}
-        if(dirty){mounts=List.copyOf(controlled);dirty=false;}return mounts;
+        if(dirty){mounts=List.copyOf(controlled);physicalMounts=List.copyOf(physical);dirty=false;}
+        return coreControlled?physicalMounts:mounts;
     }
     /** Called at the material commit boundary, not during speculative fracture preparation. */
     public void materialChanged(BlockBodyEntity parent,List<BlockBodyEntity> fragments,List<BlockPos> changed){
@@ -78,19 +82,28 @@ public final class BodyMountedWeapons {
         while(visited<Math.min(WORLD_BODIES,bodies.size())&&checks<WORLD_CHECKS&&shots<WORLD_SHOTS){
             var body=bodies.get(Math.floorMod(schedule.cursor++,bodies.size()));visited++;
             if(body.isRemoved()||body.boardingMotionPaused())continue;
-            var state=body.mountedWeapons();var positions=state.mounts(body);boolean fired=false;int count=0;
+            var state=body.mountedWeapons();
+            var manual=body.controlCore().scheduledFireMask(body);
+            var positions=state.mounts(body,manual.isPresent());boolean fired=false;int count=0;
             while(count<Math.min(BODY_CHECKS,positions.size())&&checks<WORLD_CHECKS&&shots<WORLD_SHOTS){
                 var slot=positions.get(Math.floorMod(state.cursor++,positions.size()));count++;checks++;
-                if(now<state.readyAt.getOrDefault(slot,Long.MIN_VALUE)||!attached(body,slot,true))continue;
+                if(now<state.readyAt.getOrDefault(slot,Long.MIN_VALUE))continue;
                 // An opaque ownership blob cannot safely authorize any cell.
                 // Preserve it and the timers rather than infer ordinary mode.
                 if(state.defenseClaims.readOnly())continue;
                 var claim=state.defenseClaims.get(slot);
                 if(claim.isPresent()){
+                    if(!attached(body,slot,true))continue;
                     // A paused/offline/invalid AA principal never falls through
                     // into unconditional ordinary fire and never queues a shot.
                     if(!com.terminaldetector.drmd.world.trap.PointDefenseInterception.tryFireMounted(body,slot,claim.get()))continue;
-                }else if(MountedWeaponEmitter.emit(body,body,slot)==null)continue;
+                }else {
+                    if(manual.isPresent()){
+                        int bank=body.getLocalBlock(slot).isOf(ModWorldBlocks.SHIP_ROCKET)?2:1;
+                        if((manual.getAsInt()&bank)==0)continue; // Present zero never falls back to a powered lever.
+                    }else if(!attached(body,slot,true))continue;
+                    if(MountedWeaponEmitter.emit(body,body,slot)==null)continue;
+                }
                 state.readyAt.put(slot,now+(body.getLocalBlock(slot).isOf(ModWorldBlocks.SHIP_ROCKET)?24:8));shots++;fired=true;
             }
             if(fired)BodyJointSystem.reconcileImpulse(world,body);
@@ -106,7 +119,7 @@ public final class BodyMountedWeapons {
     }
     public void read(BlockBodyEntity body,NbtCompound n){
         if(n.getInt("schema")>1)throw new IllegalArgumentException("Unsupported mounted weapons schema");
-        readyAt.clear();controlled.clear();mounts=List.of();initialized=dirty=false;cursor=0;
+        readyAt.clear();controlled.clear();physical.clear();mounts=physicalMounts=List.of();initialized=dirty=false;cursor=0;
         defenseClaims.read(body,n.get("aaDefense"));
         var list=n.getList("cooldowns",NbtElement.COMPOUND_TYPE);if(list.size()>BlockBodyEntity.MAX_BLOCKS)throw new IllegalArgumentException("Too many mounted cooldowns");
         long now=body.getWorld().getTime(),saved=n.getLong("savedAt"),elapsed=saved>=0&&now>=saved?Math.min(24,now-saved):0;

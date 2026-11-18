@@ -310,6 +310,7 @@
   "item.drmd.spawn_egg_rocket": "Ракетный дрон — создание",
   "entity.drmd.jet": "Реактивный перехватчик",
   "item.drmd.spawn_egg_jet": "Реактивный перехватчик — создание",
+  "block.drmd.ship_control_core": "Ядро управления кораблём",
   "block.drmd.ship_thruster": "Маневровый двигатель",
   "block.drmd.ship_laser": "Бортовой лазер",
   "block.drmd.ship_rocket": "Бортовая ракетная установка",

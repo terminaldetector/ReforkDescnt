@@ -43,6 +43,8 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     private static final double MAX_ANGULAR_SPEED = 2;
     private D6Volume<BlockState> volume = new D6Volume<>(Blocks.AIR.getDefaultState());
     private List<Cell> cells = List.of();
+    private final BodyControlCore controlCore = new BodyControlCore();
+    public BodyControlCore controlCore() { return controlCore; }
     private final com.terminaldetector.drmd.world.contraption.mechanism.BodyMountedWeapons mountedWeapons=new com.terminaldetector.drmd.world.contraption.mechanism.BodyMountedWeapons();
     public com.terminaldetector.drmd.world.contraption.mechanism.BodyMountedWeapons mountedWeapons(){return mountedWeapons;}
     private List<Cell> visibleCells=List.of();
@@ -92,7 +94,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     public void setPhysicsGravity(boolean value) {gravity=value;dataTracker.set(POSE,pose());}
     public boolean physicsGravity() {return gravity;}
-    public static boolean supports(BlockState state) {return state.isOf(Blocks.LEVER) || state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock || SUPPORTED.contains(state.getBlock()) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_THRUSTER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
+    public static boolean supports(BlockState state) {return state.isOf(Blocks.LEVER) || state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock || SUPPORTED.contains(state.getBlock()) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_CONTROL_CORE) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_THRUSTER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
 
     public BlockBodyEntity(EntityType<? extends BlockBodyEntity> type, World world) {
         super(type, world); setNoGravity(true);
@@ -380,17 +382,19 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             throw failure;
         }
         mountedWeapons.materialChanged(this,fragments,changes.stream().map(LocalEdit::pos).toList());
+        controlCore.materialChanged(this,changes.stream().map(LocalEdit::pos).toList());
         onLocalMaterialChanged(List.copyOf(fragments));return true;
     }
     /** Owner modules observe committed material edits, after the rollback boundary. */
     protected void onLocalMaterialChanged(List<BlockBodyEntity> fragments) {}
-    public boolean canUseLocalBlock(BlockPos local){return getLocalBlock(local).isOf(Blocks.LEVER)||com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.usable(getLocalBlock(local));}
+    public boolean canUseLocalBlock(BlockPos local){return BodyControlCore.isCore(getLocalBlock(local))||getLocalBlock(local).isOf(Blocks.LEVER)||com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.usable(getLocalBlock(local));}
     /** Client routing hint only. Ordinary gun placement/empty-hand behavior is
      * unchanged; the server repeats the real wrench/ownership/material checks. */
     public boolean canUseLocalBlock(BlockPos local,net.minecraft.item.ItemStack held){return canUseLocalBlock(local)
         ||getLocalBlock(local).isOf(ModWorldBlocks.SHIP_LASER)&&held.isOf(ModWorldBlocks.MECHANISM_WRENCH);}
     public boolean useLocalBlock(net.minecraft.server.network.ServerPlayerEntity player,BlockPos local){
         if(getLocalBlock(local).isOf(ModWorldBlocks.SHIP_LASER))return mountedWeapons.defenseClaims().toggle(player,this,local);
+        if(BodyControlCore.isCore(getLocalBlock(local)))return com.terminaldetector.drmd.world.mega.UfoControlSystem.claimCore(player,this,local);
         return getLocalBlock(local).isOf(Blocks.LEVER)?com.terminaldetector.drmd.world.contraption.mechanism.BodyMountedWeapons.useLever(player,this,local):com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.use(player,this,local);
     }
     private record PreparedEdit(List<LocalEdit> edits,List<BlockBodyEntity> fragments){}
@@ -639,17 +643,49 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         if (!world.spawnEntity(entity)) throw new IllegalArgumentException("Could not spawn body");
         try {
             for (BlockPos p : original.keySet())
-                if (!world.setBlockState(p, Blocks.AIR.getDefaultState(), Block.NOTIFY_LISTENERS))
+                // A gun/support can precede its selected lever in the caller's order.
+                // Quiet ownership transfer must not let a vanilla shape update drop
+                // that dependent cell before its own removal. Publish only after all
+                // selected material has moved, as in ServerBlockEdits.quietWrite.
+                if (!world.setBlockState(p, Blocks.AIR.getDefaultState(), Block.FORCE_STATE)
+                        || com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(p)
+                            .filter(BlockState::isAir).isEmpty())
                     throw new IllegalStateException("Assembly blocked at " + p);
+            for(BlockPos p:original.keySet())
+                if(com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(p)
+                        .filter(BlockState::isAir).isEmpty())
+                    throw new IllegalStateException("Assembly changed before publication at "+p);
         } catch (RuntimeException failure) {
-            original.forEach((p, state) -> world.setBlockState(p, state, Block.NOTIFY_LISTENERS));
-            entity.discard(); throw failure;
+            boolean restored=true;
+            try {
+                // Restore the complete source quietly before notifying any dependent
+                // neighbor. Continue independent restorations after a failed write.
+                for(var entry:original.entrySet()) {
+                    var p=entry.getKey();var state=entry.getValue();
+                    try {
+                        var current=com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(p);
+                        if(current.filter(state::equals).isPresent())continue;
+                        if(current.isEmpty()||!world.setBlockState(p,state,Block.FORCE_STATE)
+                                ||com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(p)
+                                    .filter(state::equals).isEmpty()) {
+                            restored=false;failure.addSuppressed(new IllegalStateException("Assembly rollback blocked at "+p));
+                        }
+                    }catch(RuntimeException rollback){restored=false;failure.addSuppressed(rollback);}
+                }
+            }finally{entity.discard();}
+            if(restored)try {
+                original.forEach((p,state)->publishAssemblyCell(world,p,Blocks.AIR.getDefaultState(),state));
+            }catch(RuntimeException publication){failure.addSuppressed(publication);}
+            throw failure;
         }
-        original.forEach((p, state) -> {
-            world.updateNeighbors(p, state.getBlock());
-            com.terminaldetector.drmd.world.store.SurfaceIngest.onGroundChanged(world,p);
-        });
+        original.forEach((p,state)->publishAssemblyCell(world,p,state,Blocks.AIR.getDefaultState()));
         return entity;
+    }
+    private static void publishAssemblyCell(ServerWorld world,BlockPos pos,BlockState before,BlockState after) {
+        world.updateListeners(pos,before,after,Block.NOTIFY_ALL);
+        world.updateNeighbors(pos,before.getBlock());
+        world.getChunkManager().markForUpdate(pos);
+        com.terminaldetector.drmd.world.store.SurfaceIngest.onGroundChanged(world,pos);
     }
     /** Snap to the nearest of the donor's 24 proper cube rotations. No reflections. */
     public void disassemble() {
@@ -696,8 +732,12 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         body.withPosition(massPosition()); previousRotation = body.rotation();
         previousPhysicsPosition=body.position();
         if(com.terminaldetector.drmd.world.contraption.boarding.BoardingRestore.waiting(this)) {
-            physicsTick=Long.MIN_VALUE;body.clearAccumulators();pendingTorque=new Vec3(0,0,0);publishPhysicsState();return;
+            physicsTick=Long.MIN_VALUE;body.clearAccumulators();controlCore.discardFrame();pendingTorque=new Vec3(0,0,0);publishPhysicsState();return;
         }
+        // Sky retains its existing subclass drive phase. Generic control queues forces only;
+        // they are accumulated below AFTER the ordinary/joint rollback snapshot.
+        if(controlCore.bound()&&!(this instanceof com.terminaldetector.drmd.world.mega.SkyUfoEntity))
+            com.terminaldetector.drmd.world.mega.UfoControlSystem.driveBody(this);
         physicsTick=getWorld().getTime();simulatedPhysics=true;
         if(BodyJointRegistry.get((ServerWorld)getWorld()).activeBody(getUuid(),getWorld().getTime())) {
             Vec3 torque=pendingTorque;pendingTorque=new Vec3(0,0,0);BodyJointSystem.defer(this,torque);return;
@@ -711,6 +751,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             Vec3 velocityBefore=body.linearVelocity(),momentumBefore=body.angularMomentum();
             Vec3 gravityDown = gravityDirection();
             if(gravity)body.applyForce(gravityDown.scaled(9.81*body.mass()));
+            controlCore.accumulateForces(this);
             // D6PhysicsBody clears force/torque after every integration step. Reapply the frame's
             // external torque to each collision substep so its total impulse remains torque*0.05,
             // independent of body speed/radius and therefore of the chosen substep count.
@@ -721,7 +762,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
                 // Unavailable terrain is not an impact. Pause with momentum intact; no
                 // synchronous generation or fake collision may destroy a ship's velocity.
                 body.withPosition(before).withRotation(rotation).withLinearVelocity(velocityBefore).withAngularMomentum(momentumBefore);
-                physicsTick=Long.MIN_VALUE;break;
+                physicsTick=Long.MIN_VALUE;controlCore.discardFrame();break;
             }
             if (collision && !(gravity && gravityContacts(before,rotation,gravityDown.scaled(-1)))) {
                 body.withPosition(before).withRotation(rotation)
@@ -737,7 +778,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
 
     /** Joint-island phase: force integration, shared constraints, then terrain-checked pose. */
     public void integrateJointForces(double seconds,Vec3 torque) {
-        if(gravity)body.applyForce(gravityDirection().scaled(9.81*body.mass()));body.applyTorque(torque);body.integrateForces(seconds);body.limitMotion();
+        if(gravity)body.applyForce(gravityDirection().scaled(9.81*body.mass()));controlCore.accumulateForces(this);body.applyTorque(torque);body.integrateForces(seconds);body.limitMotion();
     }
     public boolean integrateJointPose(double seconds,D6PhysicsBody.Snapshot before) {
         body.integrateSolvedPose(seconds);boolean collision=blocked();if(collisionUnavailable)return false;
@@ -746,7 +787,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
         return true;
     }
     public void restoreJointStep(D6PhysicsBody.Snapshot snapshot){body.restore(snapshot);publishJointPose();}
-    public void pauseJointMotion(){physicsTick=Long.MIN_VALUE;body.clearAccumulators();publishJointPose();}
+    public void pauseJointMotion(){physicsTick=Long.MIN_VALUE;body.clearAccumulators();controlCore.discardFrame();publishJointPose();}
     public void publishJointPose() {
         positionFromPhysics();var v=pure(surfaceVelocityAt(getPos()));setVelocity(v.x()/20,v.y()/20,v.z()/20);
         setBoundingBox(new Box(getPos(),getPos()).expand(radius));publishPhysicsState();

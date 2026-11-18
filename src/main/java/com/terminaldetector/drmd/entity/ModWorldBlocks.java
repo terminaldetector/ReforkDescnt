@@ -58,6 +58,8 @@ public final class ModWorldBlocks {
     public static final Block SHIP_ROCKET = registerBlock("ship_rocket",
             new com.terminaldetector.drmd.world.contraption.mechanism.MountedWeaponBlock(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f)));
 
+    public static final Block SHIP_CONTROL_CORE = registerBlock("ship_control_core",
+            new Block(AbstractBlock.Settings.copy(Blocks.LODESTONE).strength(4.5f).luminance(state -> 4)));
 	public static final Block SHIP_THRUSTER = registerBlock("ship_thruster",
 			new Block(AbstractBlock.Settings.copy(Blocks.IRON_BLOCK).strength(4.5f).luminance(state -> 6)));
 
@@ -243,7 +245,7 @@ public final class ModWorldBlocks {
 			entries.add(POINT_DEFENSE_TURRET);
 			entries.add(MAGNETIC_ANOMALY);
 			entries.add(UNSTABLE_REACTOR);
-			entries.add(SHIP_THRUSTER);
+			entries.add(SHIP_CONTROL_CORE);entries.add(SHIP_THRUSTER);
             entries.add(SHIP_LASER);entries.add(SHIP_ROCKET);entries.add(SHIP_TURRET_KIT);
 			entries.add(MIRROR);
 			entries.add(CHARGED_MIRROR);
