@@ -1,0 +1,81 @@
+{
+  "canonicalSource": "13c52d0edcc5763f945917e4282421ebe9150aef",
+  "canonicalJarSha256": "b5ef7afd3e9e4cb6a6a6f81372639d80ecb84483c305368b5e164031e32f7afe",
+  "componentProductionSource": "704203e9e809af8a388356eefa65d4c1642f609a",
+  "componentJarSha256": "60ca40f42a746bd60d77d6ca89679057b375bafea98775f1ab80517b671252d8",
+  "waterCompiledObserverSource": "330e9a721293df7eac489ae3e62f4d4972275f7b",
+  "lavaKeyCompiledObserverSource": "df0254ca6fb071213e248412a7dabecd8a415909",
+  "identicalFluidManagerAndMixinEntries": [
+    {
+      "entry": "com/terminaldetector/drmd/mixin/NativeDeferredFluidMixin.class",
+      "bytes": 1360,
+      "sha256": "1a490aa147422e893911e0e640e7e6b83a9074209d8a224eff102fd2f4cd7f90"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/compat/NativeDeferredFluids$1.class",
+      "bytes": 3898,
+      "sha256": "94bddba4fd797b1d1a46c6022f6e971c0276f9dafaf0e4c42352c0aac55fd2a8"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/compat/NativeDeferredFluids$Access.class",
+      "bytes": 1147,
+      "sha256": "c8f9a04c235c80fa585cff31adcd73147dfdef6dbc7db4a9b5e4de66f9a2c782"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/compat/NativeDeferredFluids$Attempt.class",
+      "bytes": 1503,
+      "sha256": "6c9a4173c9526b92f67c10860cecb5324037718ece15f6fdaf5f691862b8b8cf"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/compat/NativeDeferredFluids$Binding.class",
+      "bytes": 1383,
+      "sha256": "05437de25cc33f28e22db8e1bc143749dd073016953a1fc944f9182cacde01b0"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/compat/NativeDeferredFluids$Edge.class",
+      "bytes": 3618,
+      "sha256": "57bb40b4733a8f116e45ee57328b6d60f07f036aa3b7ef5a5f12e9f7437a28ab"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/compat/NativeDeferredFluids$Key.class",
+      "bytes": 2298,
+      "sha256": "04ca82cec28c1411b829cafe38f2cd10482ead302881df9d017f6fabd16ffcd4"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/compat/NativeDeferredFluids$Offer.class",
+      "bytes": 1540,
+      "sha256": "c9731dc34b26f6e77569239f1b5fa38727a1ba568d0702cc2059bff454de8662"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/compat/NativeDeferredFluids$Pass.class",
+      "bytes": 1915,
+      "sha256": "a46221f98be58c7f241601d4ef73c533974971911aef9796834ac13b3accd5a6"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/compat/NativeDeferredFluids$Pending.class",
+      "bytes": 7121,
+      "sha256": "1b703338860d66d9e9d1b75f4959b04ffc0f6071ab9714b30dd60963e620afb9"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/compat/NativeDeferredFluids$Point.class",
+      "bytes": 2804,
+      "sha256": "464b36ec71d9dece3e57eeec4633d6bad1ccafab138b91c9a6e4b749502d1bba"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/compat/NativeDeferredFluids$Snapshot.class",
+      "bytes": 2928,
+      "sha256": "a24b82f0b4119f8bd9b597068d2e54d75a9e5333ae5fe57692f43be5f1647db5"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/compat/NativeDeferredFluids$Source.class",
+      "bytes": 1844,
+      "sha256": "496fc1d3d0573f3a4c3c9de70b453fa96e6f236c81cdee7aa3f2cd0993004d44"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/compat/NativeDeferredFluids.class",
+      "bytes": 17231,
+      "sha256": "4dcee53974889723772fecfbaa4f0b81bd7b89be4c25baa2a4bca71d46380410"
+    }
+  ],
+  "scope": "Actual14class-entry byte parity only. Water and lava cold proofs ran distinct whole artifact tuples; not a canonical whole-JAR cold run or full S02 acceptance."
+}

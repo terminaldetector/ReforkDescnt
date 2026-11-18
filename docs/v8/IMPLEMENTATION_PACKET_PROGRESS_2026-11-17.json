@@ -1,8 +1,8 @@
 {
   "schema": "ungravity.implementation-packet-progress.v1",
   "date": "2026-11-17",
-  "canonicalServerSource": "30959990c104543a78940a3baecf95ee4f73517d",
-  "lastTwoClientSource": "68fb20a4be8b87ee6b280c0fce85bb5baacb76cd",
+  "canonicalServerSource": "13c52d0edcc5763f945917e4282421ebe9150aef",
+  "lastTwoClientSource": "13c52d0edcc5763f945917e4282421ebe9150aef",
   "originalMap": "docs/v8/UNTOUCHED_IMPLEMENTATION_PACKETS_2026-11-17.json",
   "originalMapSha256": "f387b0d7ef5b04d8b75883ff2c13fa0bab114ff26028df64ef20025bf3d2e9d1",
   "scope": [
@@ -79,11 +79,11 @@
         "S14-T05",
         "S13-T06"
       ],
-      "status": "isolated protocol candidate",
+      "status": "partial integrated",
       "owner": "world_content",
-      "source": "fc54c416fdf1ba77339a909162cad21a32e122dd",
-      "remaining": "Real original3-use baseline grants+9. Bounded catalog/ordered owner ledger/same-FactionMemory claim+rep and actual-event adapter now compile and pass18fresh protocol/NBT units. Six ordinary gameplay cases and genuine cold reopen are pending; other mission families are unimplemented.",
-      "report": "docs/v8/MISSION_U05_LEDGER_FC54C41_2026-11-17.md",
+      "source": "13c52d0edcc5763f945917e4282421ebe9150aef",
+      "remaining": "Two actual data-driven lab routes and owner-event/extraction/once-only state pass18new units+6gameplay in916/456 and2same-JAR clients. Intact-site true cold writer is separate; finish/claimed readers, UFO/convoy mission adapters and full mission packet remain open.",
+      "report": "docs/v8/MULTI_AGENT_INTEGRATION_13C52D0_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {

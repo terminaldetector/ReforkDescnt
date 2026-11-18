@@ -1031,8 +1031,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MISSION_U05_LEDGER_FC54C41_2026-11-17.md, EVIDENCE/mission-ledger-fc54c41-units.json]
-  notes: Isolated lab contract/catalog/owner ledger and live-event adapter compile and pass18 protocol/NBT units on fc54c416. Actual six-case gameplay/cold reopening and UFO/convoy adapters remain open; no complete-task acceptance.
+  evidence: [MISSION_U05_LEDGER_FC54C41_2026-11-17.md, EVIDENCE/mission-ledger-fc54c41-units.json, MULTI_AGENT_INTEGRATION_13C52D0_2026-11-18.md, EVIDENCE/integrated-13c52d0.json]
+  notes: Lab contract/catalog/owner ledger and event adapter are integrated13c52d0 with18new protocol units and6actual gameplay cases inside916/456+two same-JAR clients. Genuine cold reopening and UFO/convoy adapters remain open; no complete-task acceptance.
 - id: S15-T01
   stage: S15
   stage_title: Cleanup / asset and UI integration
