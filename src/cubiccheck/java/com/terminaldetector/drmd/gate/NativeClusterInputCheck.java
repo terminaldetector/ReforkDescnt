@@ -56,6 +56,7 @@ public final class NativeClusterInputCheck {
     private static long boot;private static int clientTicks,entered,frames,podCalls,stable;
     private static boolean framePod,captured;private static KeyBinding pressed;private static int pressTick;
     private static String step="ADMIT";private static final Set<UUID> clientCarriers=new HashSet<>(),clientChildren=new HashSet<>();
+    private static boolean ordinaryInventoryFrame;private static Map<String,Object> ordinaryControl=Map.of();
     private NativeClusterInputCheck(){}
     public static void register(){boot=System.nanoTime();ServerTickEvents.END_SERVER_TICK.register(NativeClusterInputCheck::server);ClientTickEvents.END_CLIENT_TICK.register(NativeClusterInputCheck::tick);}
     private static List<Double> xyz(Vec3d v){return List.of(v.x,v.y,v.z);}
@@ -82,7 +83,7 @@ public final class NativeClusterInputCheck {
                 p.getInventory().clear();p.getInventory().selectedSlot=8;var slots=DroneLoadout.of(p);slots.clear();slots.setStack(0,stack(false));slots.setStack(1,stack(true));slots.markDirty();
                 FlightSystem.enableWithoutMount(p,d);d.setFlightVelocity(Vec3d.ZERO);p.getInventory().markDirty();p.playerScreenHandler.sendContentUpdates();ModNetworking.syncPlayer(p,d);setup=true;return;
             }
-            var slots=DroneLoadout.of(p);require(p.getMainHandStack().isEmpty()&&d.isEnabled()&&!p.hasVehicle()&&!p.isCreative(),"actual empty-hand Survival free6DoF authority persists");
+            var slots=DroneLoadout.of(p);require(p.getMainHandStack().isEmpty()&&(d.isEnabled()||phase==2)&&!p.hasVehicle()&&!p.isCreative(),"actual empty-hand Survival authority; disabled flight permitted only in explicit phase2 control");
             var bombs=new ArrayList<Bomb>();int scanned=0;var counts=COUNTS[Math.min(phase,1)];
             for(var e:w.iterateEntities()){
                 require(++scanned<=4096,"bounded real entity observation; no fabricated empty result");
@@ -136,6 +137,18 @@ public final class NativeClusterInputCheck {
                 require(live.primary==3&&live.secondary==3&&live.bombs.isEmpty()&&vec(live.up).y>.8,"initial real socket counts/clear owner lifecycle/ordinary frame");
                 measuring=true;enter("PRIMARY");return;
             }
+            if(phase==2){
+                require(SCENES.size()==2&&live.survival&&live.emptyHand&&live.primary==2&&live.secondary==2&&live.bombs.isEmpty(),"post-control preserves both completed weapon episodes and real Survival inventory");
+                if(step.equals("FLIGHT_OFF")){
+                    require(c.currentScreen==null&&c.getOverlay()==null&&c.isWindowFocused(),"normal H control has no arbitrary menu");
+                    if(live.flight||DescentClientState.enabled)return;
+                    enter("ORDINARY_INVENTORY");key(c.options.inventoryKey,true);pressed=c.options.inventoryKey;pressTick=clientTicks;return;
+                }
+                require(step.equals("ORDINARY_INVENTORY")&&!live.flight&&!DescentClientState.enabled,"actual server and client remain H-disabled");
+                require(c.currentScreen==null||c.currentScreen instanceof net.minecraft.client.gui.screen.ingame.InventoryScreen,"ordinary E must open the real player inventory");
+                if(ordinaryInventoryFrame)finish("PASS","two socket-only mouse transactions/7-14 lifecycles/viewmodel PNGs, then actual H-off and ordinary E inventory control");
+                return;
+            }
             require(c.currentScreen==null&&c.getOverlay()==null&&c.isWindowFocused()&&c.mouse.isCursorLocked()&&DescentClientState.enabled&&c.player.getMainHandStack().isEmpty(),"normal no-menu cursor/flight/empty-hand admission");
             if(step.equals("PRIMARY")||step.equals("SECONDARY")){
                 if(!clientReady(c)||!live.muzzleLoaded||stable++<2)return;var key=phase==0?c.options.attackKey:c.options.useKey;
@@ -153,7 +166,7 @@ public final class NativeClusterInputCheck {
                 require(clientReady(c)&&captured&&clientCarriers.size()==1&&!clientChildren.isEmpty(),"actual carrier+children tracked and completed viewmodel PNG captured");
                 require(phase==0||live.stages.containsAll(Set.of(0,1,2)),"three stagger stages observed before final retirement");
                 SCENES.add(Map.of("phase",phase,"view",live,"actualClientCarrierUUIDs",Set.copyOf(clientCarriers),"actualClientChildUUIDs",Set.copyOf(clientChildren),"completedPodCalls",podCalls));
-                if(phase==1){finish("PASS","two socket-only actual mouse edges, ammo debit, real7/14 lifecycles and completed viewmodel frames");return;}
+                if(phase==1){phase=2;enter("FLIGHT_OFF");key(DescentKeybinds.toggle,true);pressed=DescentKeybinds.toggle;pressTick=clientTicks;return;}
                 phase=1;key(DescentKeybinds.rollRight,true);enter("ROLL");
             }
         }catch(Throwable error){finish("FAIL",error.toString());}
@@ -164,6 +177,13 @@ public final class NativeClusterInputCheck {
     public static void rendered(){
         if(!ENABLED||finished)return;frames++;var c=MinecraftClient.getInstance();if(live==null||c.player==null||c.world==null)return;
         try{
+            if(phase==2&&step.equals("ORDINARY_INVENTORY")&&!ordinaryInventoryFrame&&c.currentScreen instanceof net.minecraft.client.gui.screen.ingame.InventoryScreen){
+                require(!live.flight&&!DescentClientState.enabled&&c.getOverlay()==null&&c.player.getMainHandStack().isEmpty(),"actual ordinary completed inventory frame after H");
+                require(GL11.glGetError()==0,"ordinary inventory pre-readback GL success");var dir=c.runDirectory.toPath().resolve("cluster-input-frames");Files.createDirectories(dir);
+                try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){image.writeTo(dir.resolve("ordinary-inventory-after-H.png"));}
+                require(GL11.glGetError()==0,"ordinary inventory completed readback GL success");
+                ordinaryControl=Map.of("serverFlight",live.flight,"clientFlight",DescentClientState.enabled,"screenClass",c.currentScreen.getClass().getName(),"serverTick",live.tick,"primary",live.primary,"secondary",live.secondary,"emptyHand",live.emptyHand,"survival",live.survival,"png","ordinary-inventory-after-H.png");ordinaryInventoryFrame=true;return;
+            }
             for(var b:live.bombs){Entity e=c.world.getEntityById(b.id);if(e!=null&&e.getUuid().equals(b.uuid)){if(b.child)clientChildren.add(b.uuid);else clientCarriers.add(b.uuid);}}
             if(captured||!measuring||!framePod||clientCarriers.isEmpty()||!step.endsWith("_WAIT"))return;
             require(c.currentScreen==null&&c.getOverlay()==null&&c.player.getMainHandStack().isEmpty(),"actual completed first-person empty-hand render");
@@ -176,7 +196,7 @@ public final class NativeClusterInputCheck {
         if(finished)return;finished=true;var c=MinecraftClient.getInstance();if(c.options!=null){c.options.attackKey.setPressed(false);c.options.useKey.setPressed(false);}if(DescentKeybinds.rollRight!=null)DescentKeybinds.rollRight.setPressed(false);
         try{
             List<View> rows;synchronized(ROWS){rows=List.copyOf(ROWS);}
-            var result=new LinkedHashMap<String,Object>();result.put("status",status);result.put("live",live);result.put("admissionScreen",String.valueOf(c.currentScreen));result.put("admissionFocused",c.isWindowFocused());result.put("admissionCursorLocked",c.mouse.isCursorLocked());result.put("reason",reason);result.put("phase",phase);result.put("step",step);result.put("scenes",SCENES);result.put("inputs",INPUTS);result.put("rows",rows);result.put("initialTeleports",setup?1:0);result.put("authoredWorldBlocks",0);result.put("completedPodCalls",podCalls);result.put("glRenderer",GL11.glGetString(GL11.GL_RENDERER));result.put("sourceBinding",System.getProperty("drmd.gate.clusterSource","UNBOUND"));
+            var result=new LinkedHashMap<String,Object>();result.put("status",status);result.put("ordinaryControl",ordinaryControl);result.put("live",live);result.put("admissionScreen",String.valueOf(c.currentScreen));result.put("admissionFocused",c.isWindowFocused());result.put("admissionCursorLocked",c.mouse.isCursorLocked());result.put("reason",reason);result.put("phase",phase);result.put("step",step);result.put("scenes",SCENES);result.put("inputs",INPUTS);result.put("rows",rows);result.put("initialTeleports",setup?1:0);result.put("authoredWorldBlocks",0);result.put("completedPodCalls",podCalls);result.put("glRenderer",GL11.glGetString(GL11.GL_RENDERER));result.put("sourceBinding",System.getProperty("drmd.gate.clusterSource","UNBOUND"));
             Files.writeString(c.runDirectory.toPath().resolve("cluster-input-result.json"),new GsonBuilder().setPrettyPrinting().create().toJson(result)+"\n");
         }catch(Exception error){error.printStackTrace();}System.out.println("CLUSTER_INPUT_OUTCOME "+status+" "+reason);c.scheduleStop();
     }
