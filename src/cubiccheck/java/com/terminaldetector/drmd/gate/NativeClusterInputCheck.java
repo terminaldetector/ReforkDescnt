@@ -114,6 +114,7 @@ public final class NativeClusterInputCheck {
     private static void tick(MinecraftClient c){
         if(finished)return;
         if(++clientTicks>3200||System.nanoTime()-boot>WALL){finish("FAIL","finite160s/3200client tick deadline: "+step);return;}
+        if(viewer==null&&c.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen p)for(var child:p.children())if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("I know what I'm doing!"))b.onPress();
         try{
             if(serverFailure!=null)throw new IllegalStateException(serverFailure);
             if(c.player==null||c.world==null||c.getServer()==null)return;DescentClient.markUserFlightChoice();
