@@ -39,13 +39,16 @@ public final class NativeMobGeometryCheck {
     private record Actor(int id,UUID uuid,int age,List<Double> position){}
     private record View(int tick,List<Actor> actors){}
     private record Pending(VertexBuffer buffer,ShaderProgram shader,int actorMaterial,int sampler){}
-    private static volatile UUID viewer;private static volatile View live;private static volatile boolean setup,finished;private static volatile String serverFailure;
+    private static volatile UUID viewer;private static volatile View live;private static volatile boolean setup,finished,viewerReady;private static volatile String serverFailure;
     private static int ticks,phase,frames,admissionTicks;private static long boot;private static boolean active,captured;private static View started;
     private static final int[] MODELS=new int[2],CUBES=new int[2],ROUTES=new int[2],DRAWS=new int[2];
     private static final boolean[] MODEL_FRAME=new boolean[2];
     private static final long[] SELECTION_START=new long[2],DRAW_START=new long[2],FALLBACK_START=new long[2];
     private static final List<Map<String,Object>> STATES=new ArrayList<>();
     private static final Map<Integer,Map<String,Object>> GPU=new HashMap<>();private static Pending pending;private static String renderFailure;
+    // At most one last-alive row per owned fixture and one actual removal receipt; no world mutation.
+    private static final Map<Integer,Map<String,Object>> LAST_ALIVE=new HashMap<>();
+    private static volatile Map<String,Object> removalReceipt=Map.of();
     private NativeMobGeometryCheck(){}
     public static void register(){boot=System.nanoTime();ServerTickEvents.END_SERVER_TICK.register(NativeMobGeometryCheck::server);ClientTickEvents.END_CLIENT_TICK.register(NativeMobGeometryCheck::tick);}
     private static void require(boolean b,String why){if(!b)throw new IllegalStateException(why);}
@@ -59,13 +62,23 @@ public final class NativeMobGeometryCheck {
             var actors=new ArrayList<Actor>();
             for(int i=0;i<2;i++){
                 if(ACCEPTED[i]==null){
+                    if(!viewerReady)return; // The real client has arrived; material FULL alone is not viewer admission.
                     var at=i==0?START.add(-2,1.2,6):START.add(2,.2,6);
                     if(!WorldAccess.of(w).isVolumeAvailable(D6ChunkPos.ofBlock((int)Math.floor(at.x),(int)Math.floor(at.y),(int)Math.floor(at.z))))return;
                     Entity entity=i==0?ModEntities.DRONE.create(w):ModEntities.SPIDER_TURRET.create(w);require(entity instanceof MobEntity,"actual registered mob creation");
                     MobEntity mob=(MobEntity)entity;mob.setAiDisabled(true);entity.setNoGravity(true);entity.setPosition(at);entity.setVelocity(Vec3d.ZERO);entity.setYaw(180);
                     require(w.isSpaceEmpty(entity,entity.getBoundingBox()),"real visible mob fixture needs clear material");require(w.spawnEntity(entity),"normal world spawn accepted");ACCEPTED[i]=entity;UUIDS[i]=entity.getUuid();IDS[i]=entity.getId();
                 }
-                Entity entity=w.getEntity(UUIDS[i]);require(!ACCEPTED[i].isRemoved(),"accepted fixture mob was actually removed");
+                Entity entity=w.getEntity(UUIDS[i]);Entity accepted=ACCEPTED[i];
+                var life=new LinkedHashMap<String,Object>();life.put("fixture",i);life.put("id",accepted.getId());life.put("uuid",accepted.getUuid().toString());life.put("age",accepted.age);life.put("position",xyz(accepted.getPos()));life.put("viewerPosition",xyz(p.getPos()));life.put("viewerDistanceSquared",accepted.squaredDistanceTo(p));life.put("tick",server.getTicks());life.put("worldTime",w.getTime());life.put("difficulty",w.getDifficulty().name());
+                if(accepted instanceof LivingEntity living){life.put("alive",living.isAlive());life.put("health",living.getHealth());}
+                if(accepted.isRemoved()){
+                    life.put("removalReason",String.valueOf(accepted.getRemovalReason()));life.put("uuidLookupSame",entity==accepted);life.put("idLookupSame",w.getEntityById(IDS[i])==accepted);life.put("lastAlive",LAST_ALIVE.get(i));
+                    Entity nearest=w.getClosestPlayer(accepted,-1);life.put("nearestVanillaPlayer",nearest==null?"NONE":Map.of("uuid",nearest.getUuid().toString(),"position",xyz(nearest.getPos()),"distanceSquared",accepted.squaredDistanceTo(nearest)));
+                    life.put("commandTags",List.copyOf(accepted.getCommandTags()));life.put("noGravity",accepted.hasNoGravity());if(accepted instanceof MobEntity mob){life.put("aiDisabled",mob.isAiDisabled());life.put("persistent",mob.isPersistent());}
+                    removalReceipt=life;System.out.println("MOB_GEOMETRY_REMOVAL "+new GsonBuilder().create().toJson(life));throw new IllegalStateException("accepted fixture mob was actually removed");
+                }
+                LAST_ALIVE.put(i,Map.copyOf(life));
                 if(entity==null){require(++admissionTicks<240,"normal native entity registration admission");return;}
                 require(entity==ACCEPTED[i]&&w.getEntityById(IDS[i])==entity,"same accepted entity identity under UUID and id lookup");actors.add(new Actor(entity.getId(),entity.getUuid(),entity.age,xyz(entity.getPos())));
             }
@@ -86,10 +99,11 @@ public final class NativeMobGeometryCheck {
         if(finished)return;if(++ticks>3200||System.nanoTime()-boot>160_000_000_000L){finish("FAIL","finite160s admission/render deadline");return;}
         if(viewer==null&&c.currentScreen instanceof net.minecraft.client.gui.screen.ConfirmScreen p&&p.getTitle().getString().equals("Warning! Low disk space!"))for(var child:p.children())if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("Continue"))b.onPress();
         if(viewer==null&&c.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen p)for(var child:p.children())if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("I know what I'm doing!"))b.onPress();
-        if(serverFailure!=null){finish("FAIL",serverFailure);return;}if(c.player==null||c.world==null||c.getServer()==null)return;DescentClient.markUserFlightChoice();
+        if(serverFailure!=null){finish("FAIL",serverFailure);return;}if(c.player==null||c.world==null||c.getServer()==null){viewerReady=false;return;}DescentClient.markUserFlightChoice();
         if(viewer==null){viewer=c.player.getUuid();c.options.hudHidden=false;return;}
         if(!active){
-            if(live==null||c.currentScreen!=null||c.getOverlay()!=null||DescentClientState.enabled||c.player.getPos().distanceTo(START)>.03)return;
+            viewerReady=c.currentScreen==null&&c.getOverlay()==null&&c.player.getWorld()==c.world&&!DescentClientState.enabled&&c.player.getAbilities().flying&&c.player.getPos().distanceTo(START)<=.03;
+            if(!viewerReady||live==null)return;
             for(int i=0;i<2;i++){Entity entity=c.world.getEntityById(IDS[i]);if(entity==null||!entity.getUuid().equals(UUIDS[i]))return;}
             active=true;apply();
         }else if(captured){phase++;apply();}
@@ -144,6 +158,6 @@ public final class NativeMobGeometryCheck {
     }
     private static void finish(String status,String why){
         if(finished)return;finished=true;var c=MinecraftClient.getInstance();
-        try{var out=new LinkedHashMap<String,Object>();out.put("status",status);out.put("reason",why);out.put("states",STATES);out.put("phase",phase);out.put("initialTeleports",setup?1:0);out.put("visualFixtureAiDisabled",true);out.put("visualFixtureNoGravity",true);out.put("authoredWorldBlocks",0);out.put("server",live);out.put("screen",String.valueOf(c.currentScreen));out.put("glRenderer",GL11.glGetString(GL11.GL_RENDERER));out.put("sourceBinding",System.getProperty("drmd.gate.mobGeometrySource","UNBOUND"));Files.writeString(c.runDirectory.toPath().resolve("mob-geometry-result.json"),new GsonBuilder().setPrettyPrinting().create().toJson(out)+"\n");}catch(Exception error){error.printStackTrace();}System.out.println("MOB_GEOMETRY_OUTCOME "+status+" "+why);c.scheduleStop();
+        try{var out=new LinkedHashMap<String,Object>();out.put("status",status);out.put("reason",why);out.put("viewerReady",viewerReady);out.put("removalReceipt",removalReceipt);out.put("states",STATES);out.put("phase",phase);out.put("initialTeleports",setup?1:0);out.put("visualFixtureAiDisabled",true);out.put("visualFixtureNoGravity",true);out.put("authoredWorldBlocks",0);out.put("server",live);out.put("screen",String.valueOf(c.currentScreen));out.put("glRenderer",GL11.glGetString(GL11.GL_RENDERER));out.put("sourceBinding",System.getProperty("drmd.gate.mobGeometrySource","UNBOUND"));Files.writeString(c.runDirectory.toPath().resolve("mob-geometry-result.json"),new GsonBuilder().setPrettyPrinting().create().toJson(out)+"\n");}catch(Exception error){error.printStackTrace();}System.out.println("MOB_GEOMETRY_OUTCOME "+status+" "+why);c.scheduleStop();
     }
 }
