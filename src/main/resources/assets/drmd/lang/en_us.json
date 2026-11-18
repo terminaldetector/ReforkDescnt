@@ -406,5 +406,12 @@
   "options.drmd.ps1_assets.low_poly": "Coarse Pyro",
   "options.drmd.ps1_assets.tip": "Use a simpler Pyro hull in the PS1 world. Cockpit, held items and other models retain their original detail.",
   "options.drmd.ps1_pacing": "PS1 frame cap: %s",
-  "options.drmd.ps1_pacing.tip": "Optional frame-rate cap while playing in PS1 mode. Menus and other profiles use the normal frame-rate setting."
+  "options.drmd.ps1_pacing.tip": "Optional frame-rate cap while playing in PS1 mode. Menus and other profiles use the normal frame-rate setting.",
+  "message.drmd.cluster_program": "Cluster program: %s",
+  "message.drmd.cluster_program_refused": "This cluster program cannot be used.",
+  "cluster.drmd.fan": "Fan",
+  "cluster.drmd.ring": "Ring",
+  "cluster.drmd.stagger": "Staged rings",
+  "item.drmd.cluster_controls": "Attack: forward · Use: downward",
+  "item.drmd.cluster_select": "Sneak + Use: select spread program"
 }

@@ -12,7 +12,8 @@ public final class DroneArsenal {
  public static boolean supported(ItemStack stack){return stack.getItem() instanceof DescentWeaponItem
   || stack.getItem() instanceof com.terminaldetector.drmd.world.engineer.EngineerTools.MiningLaserItem
   || stack.getItem() instanceof com.terminaldetector.drmd.world.engineer.EngineerTools.TunnelLaserItem
-  || stack.getItem() instanceof com.terminaldetector.drmd.world.engineer.EngineerTools.RepairLaserItem;}
+  || stack.getItem() instanceof com.terminaldetector.drmd.world.engineer.EngineerTools.RepairLaserItem
+  || stack.getItem() instanceof com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem bomb&&bomb.programmable();}
 
  private static final Map<UUID,Controls> STATES=new HashMap<>();
  private static final class Controls {
@@ -85,7 +86,8 @@ public final class DroneArsenal {
    if(hold!=null){var h=hold;h.age++;withHand(p,h.stack,()->h.stack.getItem().usageTick(p.getWorld(),p,h.stack,Math.max(0,h.max-h.age)));if(h.age>=h.max)stop(p,state,i);continue;}
    if(p.getItemCooldownManager().isCoolingDown(selected.getItem()))continue;
    int max=selected.getMaxUseTime(p);
-   withHand(p,selected,()->selected.getItem().use(p.getWorld(),p,Hand.MAIN_HAND));
+   final int bank=i;
+   withHand(p,selected,()->{if(selected.getItem() instanceof com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem bomb&&bomb.programmable())bomb.useBank(p.getWorld(),p,Hand.MAIN_HAND,bank);else selected.getItem().use(p.getWorld(),p,Hand.MAIN_HAND);});
     if(max>0 && p.isUsingItem()){
      state.holds[i]=new Hold(selected,max);p.clearActiveItem();
      if(!held)stop(p,state,i); // Already released: one real age-zero charged tap.

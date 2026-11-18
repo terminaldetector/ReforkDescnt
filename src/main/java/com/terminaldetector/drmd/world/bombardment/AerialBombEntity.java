@@ -34,6 +34,9 @@ import net.minecraft.world.World;
 import org.joml.Vector3f;
 
 import java.util.UUID;
+import com.terminaldetector.drmd.client.portal.PortalTransform.*;
+import com.terminaldetector.drmd.d6.D6PortalTransform;
+import com.terminaldetector.drmd.world.edit.WorldEditSafety;
 
 /**
  * Falling / powered aerial munition — smoke trail, thin-air accel, crater on impact.
@@ -64,6 +67,11 @@ public class AerialBombEntity extends Entity {
 	private boolean dispensed;
     private boolean landed;
     private Vec3d launchDown=new Vec3d(0,-1,0);
+    private ClusterFlight programFlight;
+    private net.minecraft.nbt.NbtElement opaqueProgram;
+    private net.minecraft.nbt.NbtElement opaqueChildFuse;
+    private int childFuse=-1;
+    private long portalRevision;
     private static final java.util.Map<ServerWorld,ClusterBurstBudget> BURST_BUDGETS=new java.util.WeakHashMap<>();
 	/** Multiplier on detonation blast for fragment bomblets. */
 	private float blastMul = 1f;
@@ -86,6 +94,7 @@ public class AerialBombEntity extends Entity {
 	}
 
 	public void configureSubmunition(OrdnanceType ordnance, UUID owner, float blastMul, Vec3d velocity) {
+		programFlight=null;opaqueProgram=null;opaqueChildFuse=null;childFuse=-1;
 		this.type = ordnance;
 		this.ownerId = owner;
 		this.submunition = true;
@@ -99,14 +108,40 @@ public class AerialBombEntity extends Entity {
 		return type;
 	}
 
+    public void program(ClusterProgram program,Vec3d forward,Vec3d up,Vec3d down){
+        if(submunition||type!=OrdnanceType.CLUSTER&&type!=OrdnanceType.HEAVY_CLUSTER||!Double.isFinite(down.lengthSquared())||down.lengthSquared()<1e-8)throw new IllegalArgumentException("programmable carrier");
+        programFlight=new ClusterFlight(program,pure(forward),pure(up));opaqueProgram=null;launchDown=down.normalize();syncVisual();
+    }
+    public int clusterVisual(){return dataTracker.get(TRAIL_COLOR)>>>24;}
+    public int clusterColor(){return dataTracker.get(TRAIL_COLOR)&0xffffff;}
+    public boolean requiresPortalFrame(){return structured();}
+    private boolean structured(){return programFlight!=null||opaqueProgram!=null||opaqueChildFuse!=null||childFuse>=4;}
+    private static Vec3 pure(Vec3d v){return new Vec3(v.x,v.y,v.z);}
+    private static Vec3d mc(Vec3 v){return new Vec3d(v.x(),v.y(),v.z());}
+    /** Generic portal commit owns the only position/velocity write. This optional token transports cached force/fan axes only. */
+    public java.util.Optional<PreparedPortalFrame> preparePortalFrame(D6PortalTransform transform){
+        if(!structured()||!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||world.getEntity(getUuid())!=this||!isAlive()||transform==null||transform.scale()!=1||portalRevision==Long.MAX_VALUE)return java.util.Optional.empty();
+        return java.util.Optional.of(new PreparedPortalFrame(transform.rotation()));
+    }
+    public final class PreparedPortalFrame {
+        private final Quat rotation;private final Vec3d down=launchDown;private final ClusterFlight flight=programFlight;private final long revision=portalRevision;private final int age=ageTicks;
+        private final Vec3 forward=flight==null?null:flight.forward(),up=flight==null?null:flight.up();private boolean used;
+        private PreparedPortalFrame(Quat q){rotation=q;}
+        public boolean current(){return !used&&!isRemoved()&&getWorld() instanceof ServerWorld world&&world.getServer().isOnThread()&&world.getEntity(getUuid())==AerialBombEntity.this&&portalRevision==revision&&ageTicks==age&&launchDown.equals(down)&&programFlight==flight&&(flight==null||flight.forward().equals(forward)&&flight.up().equals(up));}
+        public void commit(){if(!current())throw new IllegalStateException("stale ordnance frame");used=true;launchDown=mc(rotation.rotate(pure(down))).normalize();if(flight!=null)flight.rotate(rotation);portalRevision++;}
+    }
+
 	/** Pushes the fields the client actually needs — {@code type} itself is never synced. */
 	private void syncVisual() {
-		dataTracker.set(TRAIL_COLOR, type.trailColor);
+		int visual=opaqueProgram!=null||opaqueChildFuse!=null?5:childFuse>=4?4:programFlight==null?0:programFlight.disarmed()?5:programFlight.stage()>0?3:programFlight.armed()?2:1;
+        // RGB remains identical; the otherwise-unused high byte carries this round's finite visual phase, without another tracker ID.
+        dataTracker.set(TRAIL_COLOR,type.trailColor|(visual<<24));
 		dataTracker.set(ROCKET_FX, type.rocket);
 	}
 
 	/** Local DOWN for this round — owner's foot gravity when available, else world −Y. */
     private Vec3d gravityDir() {
+        if(structured())return launchDown;
         if(ownerId!=null) {
             var owner=getWorld().getPlayerByUuid(ownerId);
             if(owner!=null && com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(owner))
@@ -157,7 +192,8 @@ public class AerialBombEntity extends Entity {
 			return;
 		}
 
-        if(dispensed || ageTicks>20*90 || getY()<getWorld().getBottomY()-16){discard();return;}
+        if(dispensed || ageTicks>(programFlight!=null?programFlight.program.lifetime():structured()?160:20*90) || getY()<getWorld().getBottomY()-16){discard();return;}
+        if(programFlight!=null&&(programFlight.complete()||programFlight.disarmed())){discard();return;}
         if(landed && laserHazardTicks<=0) {
             if(ageTicks>=4)impact((ServerWorld)getWorld());
             return;
@@ -224,9 +260,10 @@ public class AerialBombEntity extends Entity {
 		}
 
         if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedSegment(getWorld(),from,lookAhead))return;
+        if(programFlight!=null&&programFlight.due(ageTicks)){releaseProgram((ServerWorld)getWorld());if(isRemoved())return;}
 
 		// Cluster: open bay when ground is close along fall / gravity axis (not world −Y).
-		if (type.cluster && !submunition && !dispensed && ageTicks > 14) {
+		if (type.cluster && !submunition && !dispensed && programFlight==null&&opaqueProgram==null&&ageTicks > 14) {
 			Vec3d probeAxis = vel.lengthSquared() > 1e-4 ? vel.normalize() : gDir;
             if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedSegment(getWorld(),from,from.add(probeAxis.multiply(22))))return;
 			BlockHitResult groundProbe = getWorld().raycast(new net.minecraft.world.RaycastContext(
@@ -260,15 +297,46 @@ public class AerialBombEntity extends Entity {
                 Vec3d direction=vel.lengthSquared()>1e-8?vel.normalize():gDir;
                 setPosition(hit.getPos().subtract(direction.multiply(.25)));
             }
+            if(programFlight!=null){programFlight.moved(from.distanceTo(getPos()),ageTicks);syncVisual();}
             landed=true;
             if(ageTicks>=4)impact((ServerWorld)getWorld());
+        }
+        else {
+            if(programFlight!=null){programFlight.moved(from.distanceTo(getPos()),ageTicks);syncVisual();}
+            if(childFuse>=4&&ageTicks>=childFuse)detonate();
         }
     }
 
     private void impact(ServerWorld world) {
+        if(structured()){
+            if(opaqueProgram!=null||opaqueChildFuse!=null||programFlight!=null&&!programFlight.armed()){if(programFlight!=null)programFlight.disarm();syncVisual();discard();return;}
+            detonate();return;
+        }
         if(type.cluster && !submunition)dispenseCluster(world);
         else if(submunition && type.payload==OrdnanceType.SubmunitionPayload.LASER)beginLaserHazard(world);
         else detonate();
+    }
+
+    private LivingEntity principal(ServerWorld world){var entity=ownerId==null?null:world.getEntity(ownerId);return entity instanceof LivingEntity living&&living.isAlive()&&!living.isRemoved()&&(!(living instanceof net.minecraft.entity.player.PlayerEntity p)||!p.isSpectator())?living:null;}
+    private static int liveChildren(ServerWorld world){int checked=0,live=0;for(var entity:world.iterateEntities()){if(++checked>4096)return ClusterBurstBudget.MAX_LIVE;if(entity instanceof AerialBombEntity bomb&&bomb.submunition&&!bomb.isRemoved()&&++live>=ClusterBurstBudget.MAX_LIVE)return live;}return live;}
+    private void releaseProgram(ServerWorld world){
+        var f=programFlight;if(f==null||!f.due(ageTicks)||submunition||isRemoved())return;
+        var owner=principal(world);if(owner==null){f.disarm();syncVisual();return;}
+        int total=type.heavyCluster?14:7,first=f.program.first(total,f.stage()),count=f.program.count(total,f.stage());
+        var budget=BURST_BUDGETS.computeIfAbsent(world,key->new ClusterBurstBudget());long chunk=net.minecraft.util.math.ChunkPos.toLong(getBlockPos().getX()>>4,getBlockPos().getZ()>>4);
+        // Pay the shared birth/work allowance before allocating even an unborn child entity.
+        if(!budget.reserveStage(world.getServer().getTicks(),chunk,count,()->liveChildren(world)))return;
+        var children=new java.util.ArrayList<AerialBombEntity>(count);var velocity=getVelocity();
+        for(int i=first;i<first+count;i++){
+            var direction=mc(f.program.direction(total,i,f.forward(),f.up()));var at=getPos().add(direction.multiply(.35));
+            if(!ClusterOrdnanceSafety.volumeLoaded(world,at,.5)||!WorldEditSafety.mayChange(world,BlockPos.ofFloored(at),owner)||!WorldEditSafety.loadedSegment(world,getPos(),at))return;
+            var child=ModEntities.AERIAL_BOMB.create(world);if(child==null)return;child.setPosition(at);if(!world.isSpaceEmpty(child,child.getBoundingBox()))return;
+            var childVelocity=velocity.multiply(.55).add(direction.multiply(type.heavyCluster?1.25:.62));child.configureSubmunition(type,ownerId,type.heavyCluster?.95f:.58f,childVelocity);child.launchDown=launchDown;child.childFuse=60+i*2;child.syncVisual();children.add(child);
+        }
+        // Consume before world admission: a refused entity spawn never grants a replay of an already attempted stage.
+        f.released();syncVisual();for(var child:children)world.spawnEntity(child);
+        com.terminaldetector.drmd.network.ModNetworking.shotFx(world,getPos(),type.trailColor,.35f,false);
+        if(f.complete()){dispensed=true;discard();}
     }
 
 	private void dispenseCluster(ServerWorld sw) {
@@ -341,6 +409,13 @@ public class AerialBombEntity extends Entity {
 			discard();
 			return;
 		}
+        if(structured()){
+            if(opaqueProgram!=null||opaqueChildFuse!=null){discard();return;}var owner=principal(sw);if(owner==null){discard();return;}
+            float power=AtmosphereRules.scaleBlast(getY(),5.2f*type.blastPower*blastMul);
+            if(!ClusterOrdnanceSafety.volumeLoaded(sw,getPos(),power*2+1))return;
+            if(!WorldEditSafety.mayChange(sw,getBlockPos(),owner)){discard();return;}
+            var budget=BURST_BUDGETS.computeIfAbsent(sw,key->new ClusterBurstBudget());if(!budget.reserveBlast(sw.getServer().getTicks(),net.minecraft.util.math.ChunkPos.toLong(getBlockPos().getX()>>4,getBlockPos().getZ()>>4)))return;
+        }
 		switch (type.payload) {
 			case VIRUS_NETHER -> detonateVirusNether(sw);
 			case VIRUS_SCULK -> detonateVirusSculk(sw);
@@ -354,7 +429,8 @@ public class AerialBombEntity extends Entity {
 		if (type.rocket) {
 			power = AtmosphereRules.scaleBlast(getY(), 6.4f * type.blastPower * blastMul);
 		}
-		sw.createExplosion(this, getX(), getY(), getZ(), power, true, World.ExplosionSourceType.TNT);
+		if(structured()){var owner=principal(sw);if(owner==null)return;sw.createExplosion(this,sw.getDamageSources().explosion(this,owner),ClusterOrdnanceSafety.behavior(sw,owner),getPos(),power,false,World.ExplosionSourceType.TNT);}
+        else sw.createExplosion(this, getX(), getY(), getZ(), power, true, World.ExplosionSourceType.TNT);
 		SmokeSystem.emitExplosion(getPos(), power);
 		BlockPos at = getBlockPos();
 		com.terminaldetector.drmd.world.mega.SkyUfoEntity.notifyBombDetonation(sw, at, power);
@@ -515,6 +591,7 @@ public class AerialBombEntity extends Entity {
 
 	@Override
 	protected void readCustomDataFromNbt(NbtCompound nbt) {
+        programFlight=null;opaqueProgram=null;opaqueChildFuse=null;childFuse=-1;ownerId=null;laserTarget=null;
 		try {
 			type = OrdnanceType.valueOf(nbt.getString("ordnance"));
 		} catch (Exception e) {
@@ -531,6 +608,8 @@ public class AerialBombEntity extends Entity {
         landed=nbt.getBoolean("Landed");
         Vec3d savedDown=new Vec3d(nbt.getDouble("DownX"),nbt.getDouble("DownY"),nbt.getDouble("DownZ"));
         launchDown=Double.isFinite(savedDown.lengthSquared()) && savedDown.lengthSquared()>1e-8?savedDown.normalize():new Vec3d(0,-1,0);
+        var raw=nbt.get(ClusterFlight.KEY);if(raw!=null){if(!submunition&&(type==OrdnanceType.CLUSTER||type==OrdnanceType.HEAVY_CLUSTER))programFlight=ClusterFlight.read(raw).orElse(null);if(programFlight!=null&&(programFlight.armed()&&ageTicks<programFlight.program.armTicks()||programFlight.stage()>0&&ageTicks<programFlight.program.due(programFlight.stage()-1)))programFlight=null;if(programFlight==null)opaqueProgram=raw.copy();}
+        if(nbt.contains("ClusterChildFuse")){if(submunition&&raw==null&&(type==OrdnanceType.CLUSTER||type==OrdnanceType.HEAVY_CLUSTER)&&nbt.contains("ClusterChildFuse",net.minecraft.nbt.NbtElement.INT_TYPE)&&nbt.getInt("ClusterChildFuse")>=4&&nbt.getInt("ClusterChildFuse")<=160)childFuse=nbt.getInt("ClusterChildFuse");else opaqueChildFuse=nbt.get("ClusterChildFuse").copy();}
 		syncVisual();
 	}
 
@@ -549,5 +628,13 @@ public class AerialBombEntity extends Entity {
 		nbt.putFloat("blastMul", blastMul);
 		nbt.putInt("laserHazard", laserHazardTicks);
         nbt.putBoolean("Landed",landed);nbt.putDouble("DownX",launchDown.x);nbt.putDouble("DownY",launchDown.y);nbt.putDouble("DownZ",launchDown.z);
+        if(opaqueProgram!=null)nbt.put(ClusterFlight.KEY,opaqueProgram.copy());else if(programFlight!=null)nbt.put(ClusterFlight.KEY,programFlight.write());if(opaqueChildFuse!=null)nbt.put("ClusterChildFuse",opaqueChildFuse.copy());else if(childFuse>=4)nbt.putInt("ClusterChildFuse",childFuse);
 	}
+    @Override public boolean canHit(){return structured()?!isRemoved():super.canHit();}
+    @Override public boolean isAttackable(){return structured()?!isRemoved():super.isAttackable();}
+    @Override public boolean damage(net.minecraft.entity.damage.DamageSource source,float amount){if(!getWorld().isClient&&structured()&&Float.isFinite(amount)&&amount>0){if(programFlight!=null)programFlight.disarm();syncVisual();discard();return true;}return super.damage(source,amount);}
+    @Override public net.minecraft.util.ActionResult interact(net.minecraft.entity.player.PlayerEntity player,net.minecraft.util.Hand hand){
+        if(!structured()||ownerId==null||!ownerId.equals(player.getUuid())||!player.isSneaking()||player.squaredDistanceTo(this)>9)return super.interact(player,hand);
+        if(!getWorld().isClient){if(programFlight!=null)programFlight.disarm();syncVisual();discard();}return net.minecraft.util.ActionResult.SUCCESS;
+    }
 }

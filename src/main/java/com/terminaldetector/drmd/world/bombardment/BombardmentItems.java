@@ -35,6 +35,7 @@ public final class BombardmentItems {
 	}
 
 	public static class BombBayItem extends Item {
+		public static final float FORWARD_MUZZLE=.9f,FORWARD_HEIGHT=-.22f;
 		private final OrdnanceType ordnance;
 
 		public BombBayItem(OrdnanceType ordnance, Settings settings) {
@@ -45,9 +46,29 @@ public final class BombardmentItems {
 		public OrdnanceType getOrdnance() {
 			return ordnance;
 		}
+        public boolean programmable(){return ordnance==OrdnanceType.CLUSTER||ordnance==OrdnanceType.HEAVY_CLUSTER;}
+        @Override public void appendTooltip(ItemStack stack,Item.TooltipContext context,java.util.List<Text> tooltip,net.minecraft.item.tooltip.TooltipType kind){super.appendTooltip(stack,context,tooltip,kind);if(programmable()){tooltip.add(Text.translatable("item.drmd.cluster_controls"));tooltip.add(Text.translatable("item.drmd.cluster_select"));}}
+        public TypedActionResult<ItemStack> useBank(World world,PlayerEntity user,Hand hand,int channel){return channel==0&&programmable()?launchProgram(world,user,hand,true):use(world,user,hand);}
+        private TypedActionResult<ItemStack> launchProgram(World world,PlayerEntity user,Hand hand,boolean forward){
+            var stack=user.getStackInHand(hand);if(world.isClient)return TypedActionResult.success(stack);
+            if(!(world instanceof ServerWorld sw)||!(user instanceof ServerPlayerEntity player)||!player.isAlive()||player.isSpectator()||!player.getAbilities().allowModifyWorld||player.getItemCooldownManager().isCoolingDown(this))return TypedActionResult.fail(stack);
+            var custom=stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();var raw=custom.get(ClusterFlight.ITEM_KEY);
+            var decoded=raw==null?java.util.Optional.of(ClusterProgram.preset(ClusterProgram.Pattern.FAN)):ClusterFlight.readProgram(raw);
+            if(decoded.isEmpty()){user.sendMessage(Text.translatable("message.drmd.cluster_program_refused"),true);return TypedActionResult.fail(stack);}var program=decoded.get();
+            if(!forward&&user.isSneaking()){program=program.next();custom.put(ClusterFlight.ITEM_KEY,ClusterFlight.writeProgram(program));stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,net.minecraft.component.type.NbtComponent.of(custom));player.getItemCooldownManager().set(this,4);user.sendMessage(Text.translatable("message.drmd.cluster_program",Text.translatable("cluster.drmd."+program.pattern().name().toLowerCase(java.util.Locale.ROOT))),true);return TypedActionResult.success(stack);}
+            var data=DescentPlayerData.get(user);var f=com.terminaldetector.drmd.weapon.core.WeaponCore.aimDir(user).normalize();var up=data.shipUp(user).normalize();var down=up.negate();
+            var drop=com.terminaldetector.drmd.weapon.core.WeaponCore.muzzle(user,forward?FORWARD_MUZZLE:2.4f,0,forward?FORWARD_HEIGHT:-1.65f);
+            var inherit=data.isEnabled()?data.getFlightVelocity().multiply(1.0/com.terminaldetector.drmd.DescentMod.TICKS_PER_SECOND):user.getVelocity();
+            var velocity=forward?inherit.add(f.multiply(.9)):inherit.add(f.multiply(.65)).add(up.multiply(-.45));
+            if(!ClusterOrdnanceSafety.volumeLoaded(sw,drop,.5)||!com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedSegment(world,user.getEyePos(),drop)||!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(sw,BlockPos.ofFloored(drop),user))return TypedActionResult.fail(stack);
+            var bomb=com.terminaldetector.drmd.entity.ModEntities.AERIAL_BOMB.create(sw);if(bomb==null)return TypedActionResult.fail(stack);bomb.setPosition(drop);if(!sw.isSpaceEmpty(bomb,bomb.getBoundingBox()))return TypedActionResult.fail(stack);
+            bomb.setVelocity(velocity);bomb.configure(ordnance,user,null);bomb.program(program,forward?f:down,forward?up:f,down);
+            if(!sw.spawnEntity(bomb))return TypedActionResult.fail(stack);player.getItemCooldownManager().set(this,10);if(!user.getAbilities().creativeMode)stack.decrement(1);SmokeSystemTrail(drop);return TypedActionResult.success(stack);
+        }
 
 		@Override
 		public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+			if(programmable())return launchProgram(world,user,hand,false);
 			ItemStack stack = user.getStackInHand(hand);
 			if (world.isClient) return TypedActionResult.success(stack);
 			if (!(world instanceof ServerWorld sw) || !(user instanceof ServerPlayerEntity sp)) {

@@ -370,5 +370,12 @@
   "options.drmd.ps1_assets.low_poly": "Корпус Pyro",
   "options.drmd.ps1_assets.tip": "Упрощённый корпус Pyro в мире PS1. Кабина, предметы в руках и другие модели сохраняют обычную детализацию.",
   "options.drmd.ps1_pacing": "Кадров/с PS1: %s",
-  "options.drmd.ps1_pacing.tip": "Отдельный предел частоты кадров во время игры в режиме PS1. Меню и другие профили используют обычную настройку частоты кадров."
+  "options.drmd.ps1_pacing.tip": "Отдельный предел частоты кадров во время игры в режиме PS1. Меню и другие профили используют обычную настройку частоты кадров.",
+  "message.drmd.cluster_program": "Программа кассеты: %s",
+  "message.drmd.cluster_program_refused": "Эта программа кассеты недоступна.",
+  "cluster.drmd.fan": "Веер",
+  "cluster.drmd.ring": "Кольцо",
+  "cluster.drmd.stagger": "Поэтапные кольца",
+  "item.drmd.cluster_controls": "ЛКМ: вперёд · ПКМ: вниз",
+  "item.drmd.cluster_select": "Shift + ПКМ: выбрать программу раскрытия"
 }

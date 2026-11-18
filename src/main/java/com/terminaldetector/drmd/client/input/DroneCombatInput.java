@@ -12,7 +12,7 @@ public final class DroneCombatInput {
   if(com.terminaldetector.drmd.client.flight.UfoControlClient.active()||c.player==null||c.player.isSpectator()||c.currentScreen!=null)return false;
   var stack=c.player.getMainHandStack();
   if(stack.getItem() instanceof PortalProjectorItem)return false;
-  return stack.getItem() instanceof DescentWeaponItem || DescentClientState.enabled && (stack.isEmpty() || com.terminaldetector.drmd.inventory.DroneArsenal.supported(stack));
+  return stack.getItem() instanceof DescentWeaponItem || stack.getItem() instanceof com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem bomb&&bomb.programmable() || DescentClientState.enabled && (stack.isEmpty() || com.terminaldetector.drmd.inventory.DroneArsenal.supported(stack));
  }
  public static net.minecraft.item.ItemStack primary(MinecraftClient c){
   if(c.player==null)return net.minecraft.item.ItemStack.EMPTY;

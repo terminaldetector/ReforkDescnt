@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.client.portal.PortalTransform.*;
 import com.terminaldetector.drmd.d6.*;
 import com.terminaldetector.drmd.physics.collision.*;
+import com.terminaldetector.drmd.world.bombardment.AerialBombEntity;
 import com.terminaldetector.drmd.world.contraption.*;
 import com.terminaldetector.drmd.world.contraption.boarding.*;
 import com.terminaldetector.drmd.world.gravity.*;
@@ -192,7 +193,7 @@ final class PortalTransfer {
     static Vec3d mc(Vec3 v){return new Vec3d(v.x(),v.y(),v.z());}
 
     static final class Plan {
-        final ServerWorld world;final List<Entity> members;final List<Actor> actors;final List<Hull> hulls;final Set<Integer> bodyIds;final D6PortalTransform transform;final Vec3 remainder;final BodyJointRegistry registry;final Map<UUID,List<BodyJointLink>> topology=new LinkedHashMap<>();final Map<com.terminaldetector.drmd.entity.RagdollEntity,com.terminaldetector.drmd.entity.RagdollEntity.PreparedPortalTransfer> ragdolls=new LinkedHashMap<>();final Map<com.terminaldetector.drmd.entity.DroneEntity,com.terminaldetector.drmd.ai.DronePortalState.Prepared> drones=new LinkedHashMap<>();boolean applied;
+        final ServerWorld world;final List<Entity> members;final List<Actor> actors;final List<Hull> hulls;final Set<Integer> bodyIds;final D6PortalTransform transform;final Vec3 remainder;final BodyJointRegistry registry;final Map<UUID,List<BodyJointLink>> topology=new LinkedHashMap<>();final Map<com.terminaldetector.drmd.entity.RagdollEntity,com.terminaldetector.drmd.entity.RagdollEntity.PreparedPortalTransfer> ragdolls=new LinkedHashMap<>();final Map<com.terminaldetector.drmd.entity.DroneEntity,com.terminaldetector.drmd.ai.DronePortalState.Prepared> drones=new LinkedHashMap<>();final Map<AerialBombEntity,AerialBombEntity.PreparedPortalFrame> ordnanceFrames=new LinkedHashMap<>();boolean applied;
         Plan(ServerWorld world,List<Entity> members,List<Actor> actors,List<Hull> hulls,Set<Integer> bodyIds,D6PortalTransform transform,Vec3 remainder,BodyJointRegistry registry){this.world=world;this.members=members;this.actors=actors;this.hulls=hulls;this.bodyIds=Set.copyOf(bodyIds);this.transform=transform;this.remainder=remainder;this.registry=registry;for(var h:hulls)topology.put(h.entity.getUuid(),registry.forBody(h.entity.getUuid()));}
         boolean validate(){
             var moving=Set.copyOf(members);
@@ -205,6 +206,9 @@ final class PortalTransfer {
             for(var a:actors){
                 if(a.entity instanceof com.terminaldetector.drmd.entity.DroneEntity drone&&drone.isAlive()){
                     var prepared=drones.get(drone);if(prepared==null){var token=com.terminaldetector.drmd.ai.DronePortalState.prepare(drone,transform);if(token.isEmpty())return false;prepared=token.get();drones.put(drone,prepared);}if(!prepared.current())return false;
+                }
+                if(a.entity instanceof AerialBombEntity bomb&&bomb.requiresPortalFrame()){
+                    var prepared=ordnanceFrames.get(bomb);if(prepared==null){var token=bomb.preparePortalFrame(transform);if(token.isEmpty())return false;prepared=token.get();ordnanceFrames.put(bomb,prepared);}if(!prepared.current())return false;
                 }
                 if(a.entity instanceof com.terminaldetector.drmd.entity.RagdollEntity ragdoll){
                     var token=ragdolls.get(ragdoll);if(token==null){var proposed=ragdoll.preparePortalTransfer(transform,remainder);if(proposed.isEmpty())return false;token=proposed.get();ragdolls.put(ragdoll,token);}
@@ -227,6 +231,7 @@ final class PortalTransfer {
             }
             for(var token:ragdolls.values())if(!token.current())return false;
             for(var token:drones.values())if(!token.current())return false;
+            for(var token:ordnanceFrames.values())if(!token.current())return false;
             return true;
         }
         boolean apply(){
@@ -263,6 +268,7 @@ final class PortalTransfer {
             if(e instanceof LivingEntity living&&!(e instanceof net.minecraft.entity.player.PlayerEntity)){living.bodyYaw=yaw;living.prevBodyYaw=yaw;living.setHeadYaw((float)Math.toDegrees(Math.atan2(-head.x(),head.z())));living.prevHeadYaw=living.getHeadYaw();}
             e.setVelocity(mc(transform.transformVelocity(a.velocity)));e.velocityModified=true;e.fallDistance=0;
             if(drone!=null)drone.commit();
+            var ordnance=e instanceof AerialBombEntity bomb?ordnanceFrames.get(bomb):null;if(ordnance!=null)ordnance.commit();
         }
     }
 }

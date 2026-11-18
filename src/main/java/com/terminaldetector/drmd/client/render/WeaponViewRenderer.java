@@ -28,7 +28,9 @@ public final class WeaponViewRenderer {
         if(mc.player==null || mc.world==null || !mc.options.getPerspective().isFirstPerson()
                 || !DescentClientState.enabled || !com.terminaldetector.drmd.client.config.DescentConfig.weaponView
                 || mc.options.hudHidden || mc.currentScreen!=null)return false;
-        if(!(com.terminaldetector.drmd.client.input.DroneCombatInput.primary(mc).getItem() instanceof DescentWeaponItem weapon))return false;
+        var selected=com.terminaldetector.drmd.client.input.DroneCombatInput.primary(mc).getItem();
+        if(selected instanceof com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem bomb&&bomb.programmable())return true;
+        if(!(selected instanceof DescentWeaponItem weapon))return false;
         return ConstructionRegistry.getModules(weapon.getDef().id).stream()
                 .anyMatch(m->m.colorA>0 && m.scaleX>0 && m.scaleY>0 && m.scaleZ>0);
     }
@@ -42,10 +44,11 @@ public final class WeaponViewRenderer {
             if(!replacesVanillaHand(mc))return;
 
 			ItemStack stack = com.terminaldetector.drmd.client.input.DroneCombatInput.primary(mc);
-			if (!(stack.getItem() instanceof DescentWeaponItem wep)) return;
-
-			List<ClusterModule> modules = ConstructionRegistry.getModules(wep.getDef().id);
-			if (modules.isEmpty()) return;
+            var wep=stack.getItem() instanceof DescentWeaponItem weapon?weapon:null;
+            boolean cluster=stack.getItem() instanceof com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem bomb&&bomb.programmable();
+            if(wep==null&&!cluster)return;
+			List<ClusterModule> modules = wep==null?List.of():ConstructionRegistry.getModules(wep.getDef().id);
+			if (modules.isEmpty()&&!cluster) return;
 
 			MatrixStack matrices = context.matrixStack();
 			VertexConsumerProvider consumers = context.consumers();
@@ -81,6 +84,11 @@ public final class WeaponViewRenderer {
 			}
 			Vec3d rr = right;
 			Vec3d uu = up;
+            if(cluster){
+                // Same primary bank and actual muzzle offsets as WeaponCore launch. No hand/equip/bob transform.
+                float scale=.18f;var anchor=cam.add(look.multiply(com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem.FORWARD_MUZZLE-.57f*scale)).add(up.multiply(com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem.FORWARD_HEIGHT));
+                matrices.push();matrices.translate(anchor.x-cam.x,anchor.y-cam.y,anchor.z-cam.z);ModelOrientation.applyBasis(matrices,180f,look.negate(),up);matrices.scale(scale,scale,scale);drawMissilePod(matrices,consumers,0xff6b6546);matrices.pop();matrices.pop();return;
+            }
 
 			float time = (mc.player.age + context.tickCounter().getTickDelta(false)) / 20f;
 
