@@ -90,7 +90,7 @@ public final class BodyJointRegistryGameTests implements FabricGameTest {
 
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="fixed-boarding-snapshot-codec",tickLimit=140)
     public void actualFixedGraphSnapshotCodecAndUnloadedIdentityNeverFoldAnArticulatedNeighbour(TestContext c){
-        var w=c.getWorld();var at=c.getAbsolutePos(new BlockPos(8,140,8));var tickets=new AiFixtureChunks(w,at,0);
+        var w=c.getWorld();var at=c.getAbsolutePos(new BlockPos(8,140,8));var tickets=new AiFixtureChunks(w,at,1);
         var cells=List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState()));var q=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.rotationByRadians(new Vec3(1,2,3).normalized(),.35);var velocity=new Vec3d(3,.2,-1);
         var a=BlockBodyEntity.createLocal(w,cells,Vec3d.of(at),q,velocity,Vec3d.ZERO);
         var b=BlockBodyEntity.createLocal(w,cells,Vec3d.of(at).add(com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.mc(q.rotate(new Vec3(1,0,0)))),q,velocity,Vec3d.ZERO);
