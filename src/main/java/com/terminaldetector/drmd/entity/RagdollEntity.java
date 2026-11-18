@@ -6,6 +6,7 @@ import com.terminaldetector.drmd.d6.D6ChunkPos;
 import com.terminaldetector.drmd.physics.PhysicsTarget;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollRig;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollSimulation;
+import com.terminaldetector.drmd.entity.model.FlightWreckRig;
 import com.terminaldetector.drmd.world.access.WorldAccess;
 import com.terminaldetector.drmd.world.gravity.GravityFields;
 import net.minecraft.entity.Entity;
@@ -44,6 +45,9 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	private RagdollRig rig = RagdollRig.scoutDrone();
     private FlightEnemyKind flightHull;
     private float hullScale=1;
+    private int rigVersion=FlightWreckRig.LEGACY_VERSION;
+    /** One owned optional metadata bundle; unsupported physics stays opaque and has no authority. */
+    private NbtCompound opaqueRigData;
     private boolean hasRenderPose;
 	private RagdollSimulation simulation = new RagdollSimulation(
 			rig, new Vec3(0, 0, 0), Quat.IDENTITY, new Vec3(0, 0, 0));
@@ -73,7 +77,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
     private static RagdollEntity spawnHull(ServerWorld world,Vec3d origin,Vec3d velocityPerTick,Quat rotation,FlightEnemyKind kind,float scale) {
 		RagdollEntity ragdoll = ModEntities.RAGDOLL.create(world);
 		if (ragdoll == null) return null;
-        ragdoll.configureHull(kind,scale);
+        ragdoll.configureHull(kind,scale,FlightWreckRig.currentVersion(kind));
 		Vec3 originD6 = pure(origin);
 		Vec3 velocityD6 = pure(velocityPerTick).scaled(20);
 		ragdoll.simulation = new RagdollSimulation(ragdoll.rig, originD6, rotation, velocityD6);
@@ -107,6 +111,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 			updateClientBounds();
 			return;
 		}
+        if(!rigVersionSupported())return;
 		if (++lifeTicks > MAX_LIFETIME_TICKS) {
 			discard();
 			return;
@@ -255,16 +260,35 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
     /** Null identifies a legacy scout, including old saves without hull metadata. */
     public FlightEnemyKind flightHullKind(){return flightHull;}
     public float hullScale(){return hullScale;}
-    private boolean configureHull(FlightEnemyKind kind,float scale){
-        if(flightHull==kind&&Float.compare(hullScale,scale)==0)return false;
-        flightHull=kind;hullScale=scale;rig=com.terminaldetector.drmd.entity.model.FlightWreckRig.create(kind,scale);
+    public int rigVersion(){return rigVersion;}
+    public boolean rigVersionSupported(){return opaqueRigData==null;}
+    private boolean configureHull(FlightEnemyKind kind,float scale,int version){
+        if(flightHull==kind&&Float.compare(hullScale,scale)==0&&rigVersion==version)return false;
+        flightHull=kind;hullScale=scale;rigVersion=version;
+        // Unsupported metadata may use recognizable geometry for display, never v1 physics.
+        rig=FlightWreckRig.create(kind,scale,FlightWreckRig.supportedVersion(version)?version:FlightWreckRig.LEGACY_VERSION);
         previousRenderParts=restRenderParts();currentRenderParts=previousRenderParts;return true;
     }
-    private void writeHullIdentity(NbtCompound tag){tag.putInt("hullVersion",1);tag.putString("flightHull",flightHull==null?"":flightHull.id);tag.putFloat("hullScale",hullScale);}
+    private void writeHullIdentity(NbtCompound tag){
+        if(opaqueRigData!=null){copyKeys(opaqueRigData,tag,List.of("hullVersion","flightHull","hullScale","rigVersion"));return;}
+        tag.putInt("hullVersion",1);tag.putString("flightHull",flightHull==null?"":flightHull.id);tag.putFloat("hullScale",hullScale);tag.putInt("rigVersion",rigVersion);
+    }
     private boolean readHullIdentity(NbtCompound tag){
+        int version=tag.contains("rigVersion")?tag.getInt("rigVersion"):FlightWreckRig.LEGACY_VERSION;
+        boolean supported=!tag.contains("rigVersion")||tag.contains("rigVersion",NbtElement.INT_TYPE)&&FlightWreckRig.supportedVersion(version);
+        opaqueRigData=null;
+        if(!supported){
+            opaqueRigData=new NbtCompound();
+            copyKeys(tag,opaqueRigData,List.of("hullVersion","flightHull","hullScale","rigVersion","ragdoll","life"));
+            version=0; // explicit refused state, not legacy authority
+        }
         FlightEnemyKind kind=null;float scale=1;
-        if(tag.getInt("hullVersion")==1){for(var value:FlightEnemyKind.values())if(value.id.equals(tag.getString("flightHull"))){kind=value;break;}scale=tag.contains("hullScale",NbtElement.NUMBER_TYPE)?tag.getFloat("hullScale"):1;if(!com.terminaldetector.drmd.entity.model.FlightWreckRig.validScale(scale))scale=1;}
-        return configureHull(kind,scale);
+        if(tag.getInt("hullVersion")==1){for(var value:FlightEnemyKind.values())if(value.id.equals(tag.getString("flightHull"))){kind=value;break;}scale=tag.contains("hullScale",NbtElement.NUMBER_TYPE)?tag.getFloat("hullScale"):1;if(!FlightWreckRig.validScale(scale))scale=1;}
+        return configureHull(kind,scale,version);
+    }
+
+    private static void copyKeys(NbtCompound source,NbtCompound target,List<String> keys){
+        for(String key:keys)if(source.contains(key))target.put(key,source.get(key).copy());
     }
 
 	private NbtCompound trackedPose() {
@@ -352,15 +376,20 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	@Override
 	protected void readCustomDataFromNbt(NbtCompound nbt) {
         readHullIdentity(nbt);
+        if(!rigVersionSupported()&&!getWorld().isClient)
+            com.terminaldetector.drmd.DescentMod.LOGGER.warn("Ragdoll {} refuses unsupported rigVersion {}; preserving optional physics metadata without simulation",getUuid(),nbt.get("rigVersion"));
 		lifeTicks = Math.max(0, nbt.getInt("life"));
 		simulation = new RagdollSimulation(rig, pure(getPos()), Quat.IDENTITY, new Vec3(0, 0, 0));
-		loadPersistentState(nbt.getCompound("ragdoll"));
-		syncEntityFromSimulation();
+		if(rigVersionSupported()){
+			loadPersistentState(nbt.getCompound("ragdoll"));
+			syncEntityFromSimulation();
+		}else setBoundingBox(combinedBounds());
 		dataTracker.set(POSE, trackedPose());
 	}
 
 	@Override
 	protected void writeCustomDataToNbt(NbtCompound nbt) {
+        if(opaqueRigData!=null){copyKeys(opaqueRigData,nbt,List.copyOf(opaqueRigData.getKeys()));return;}
         writeHullIdentity(nbt);
 		nbt.putInt("life", lifeTicks);
 		nbt.put("ragdoll", persistentState());
@@ -392,7 +421,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 
 	@Override
 	public void applyPhysicsImpulse(Vec3d impact, Vec3d impulse) {
-		if (getWorld().isClient || !finite(impact) || !finite(impulse)) return;
+		if (getWorld().isClient || !rigVersionSupported() || !finite(impact) || !finite(impulse)) return;
 		Vec3 point = pure(impact);
 		int nearest = 0;
 		double distance = Double.POSITIVE_INFINITY;
@@ -444,7 +473,7 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 
 	@Override
 	public void applyPhysicsTorque(Vec3d torque) {
-		if (getWorld().isClient || simulation.parts().isEmpty() || !finite(torque)) return;
+		if (getWorld().isClient || !rigVersionSupported() || simulation.parts().isEmpty() || !finite(torque)) return;
 		simulation.parts().get(0).body().applyTorque(pure(torque));
 		dataTracker.set(POSE, trackedPose());
 		velocityModified = true;

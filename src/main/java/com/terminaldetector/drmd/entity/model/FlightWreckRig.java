@@ -3,21 +3,40 @@ package com.terminaldetector.drmd.entity.model;
 import com.terminaldetector.drmd.entity.FlightEnemyKind;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollRig;
 import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
+import com.terminaldetector.drmd.client.portal.PortalTransform.Quat;
 import java.util.*;
 
 /** Small authored compound bodies for the actual shared hull faces; legacy scout remains loadable. */
 public final class FlightWreckRig {
+    public static final int LEGACY_VERSION=1;
+    public static final int LIMITED_JET_VERSION=2;
     private FlightWreckRig(){}
     public static boolean validScale(double scale){return Double.isFinite(scale)&&scale>=.0625&&scale<=16;}
+    public static boolean supportedVersion(int version){return version==LEGACY_VERSION||version==LIMITED_JET_VERSION;}
+    public static int currentVersion(FlightEnemyKind kind){return kind==FlightEnemyKind.JET?LIMITED_JET_VERSION:LEGACY_VERSION;}
     public static RagdollRig create(FlightEnemyKind kind,double scale){
+        return create(kind,scale,currentVersion(kind));
+    }
+    /** Version 1 preserves old saved free ball sockets. Version 2 authors only the C5 JET wings. */
+    public static RagdollRig create(FlightEnemyKind kind,double scale,int version){
         if(!validScale(scale))throw new IllegalArgumentException("invalid Minecraft hull scale");
+        if(!supportedVersion(version))throw new IllegalArgumentException("unsupported wreck rig version");
         RagdollRig base=kind==null?RagdollRig.scoutDrone():switch(kind){
             case ORB->new RagdollRig(List.of(part("orb_core",6,.43,.43,.43,0,0,0)),List.of());
             case ROCKET->new RagdollRig(List.of(part("rocket_core",8,.215,.215,.86,0,0,0),part("left_fin",.35,.285,.03,.325,-.465,0,-.225),part("bottom_fin",.35,.03,.26,.325,0,-.44,-.225),part("right_fin",.35,.285,.03,.325,.465,0,-.225),part("top_fin",.35,.03,.26,.325,0,.44,-.225)),List.of(joint(1,-.20,0,-.225,.265,0,0),joint(2,0,-.20,-.225,0,.24,0),joint(3,.20,0,-.225,-.265,0,0),joint(4,0,.20,-.225,0,-.24,0)));
             case JET->new RagdollRig(List.of(part("jet_core",10,.205,.235,.995,0,0,0),part("left_hull",2,.555,.205,.87,-.55,.02,.115),part("right_hull",2,.555,.205,.87,.55,.02,.115)),List.of(joint(1,-.17,0,0,.38,-.02,-.115),joint(2,.17,0,0,-.38,-.02,-.115)));
         };
+        if(kind==FlightEnemyKind.JET&&version==LIMITED_JET_VERSION){
+            base=new RagdollRig(base.segments(),base.joints().stream().map(j->{
+                // X points away from the core on each wing. Equal local frames define the same
+                // rest pose; the mirrored frame also mirrors the signed twist convention.
+                Quat frame=j.second()==1?new Quat(0,1,0,0):Quat.IDENTITY;
+                var limits=new RagdollRig.AngularLimits(frame,frame,Math.toRadians(35),Math.toRadians(-12),Math.toRadians(12));
+                return new RagdollRig.Joint(j.first(),j.second(),j.firstAnchor(),j.secondAnchor(),j.compliance(),limits);
+            }).toList());
+        }
         if(scale==1)return base;
-        return new RagdollRig(base.segments().stream().map(p->new RagdollRig.Segment(p.id(),p.mass()*scale*scale*scale,p.halfExtents().scaled(scale),p.restPosition().scaled(scale))).toList(),base.joints().stream().map(j->new RagdollRig.Joint(j.first(),j.second(),j.firstAnchor().scaled(scale),j.secondAnchor().scaled(scale),j.compliance())).toList());
+        return new RagdollRig(base.segments().stream().map(p->new RagdollRig.Segment(p.id(),p.mass()*scale*scale*scale,p.halfExtents().scaled(scale),p.restPosition().scaled(scale))).toList(),base.joints().stream().map(j->new RagdollRig.Joint(j.first(),j.second(),j.firstAnchor().scaled(scale),j.secondAnchor().scaled(scale),j.compliance(),j.angularLimits())).toList());
     }
     /** Each original face moves with exactly one rigid component; no duplicate live/dead mesh. */
     public static int partForFace(FlightEnemyKind kind,int face){

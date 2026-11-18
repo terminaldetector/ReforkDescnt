@@ -112,7 +112,17 @@ public final class RagdollSimulation {
 				if (collisionResolver != null)
 					for (int part = 0; part < parts.size(); part++)
 						beforeConstraints[part] = parts.get(part).body().position();
-				for (RagdollRig.Joint joint : rig.joints()) solve(joint, dt);
+				for (RagdollRig.Joint joint : rig.joints()) {
+					if (joint.angularLimits() != null) {
+						double radii = parts.get(joint.first()).segment().halfExtents().length()
+								+ parts.get(joint.second()).segment().halfExtents().length();
+						RagdollAngularLimit.solve(parts.get(joint.first()).body(),
+								parts.get(joint.second()).body(), joint.angularLimits(), MAX_JOINT_CORRECTION / radii);
+					}
+					// Angular projection moves the anchor offsets too: solve their existing positional
+					// constraint afterwards, then run terrain contacts in this same iteration.
+					solve(joint, dt);
+				}
 				// Positional constraints are capable of crossing terrain just as integration is.
 				// Resolve each iteration while its correction is still short and unambiguous.
 				if (collisionResolver != null)

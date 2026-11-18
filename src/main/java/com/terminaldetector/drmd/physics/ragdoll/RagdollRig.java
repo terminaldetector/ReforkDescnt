@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.physics.ragdoll;
 
 import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
+import com.terminaldetector.drmd.client.portal.PortalTransform.Quat;
 
 import java.util.HashSet;
 import java.util.List;
@@ -19,8 +20,40 @@ public final class RagdollRig {
 		}
 	}
 
-	/** Anchors are expressed in each segment's local axes and should meet in the rest pose. */
-	public record Joint(int first, int second, Vec3 firstAnchor, Vec3 secondAnchor, double compliance) {
+	/**
+	 * Local joint frames have X along the twist axis. Their relative identity is the angular rest
+	 * pose; angles are radians. Swing is a cone, twist is a signed interval in [-pi, pi].
+	 */
+	public record AngularLimits(Quat firstFrame, Quat secondFrame,
+			double maxSwing, double minTwist, double maxTwist) {
+		public AngularLimits {
+			firstFrame = checkedFrame(firstFrame);
+			secondFrame = checkedFrame(secondFrame);
+			if (!Double.isFinite(maxSwing) || maxSwing < 0 || maxSwing >= Math.PI
+					|| !Double.isFinite(minTwist) || !Double.isFinite(maxTwist)
+					|| minTwist < -Math.PI || maxTwist > Math.PI || minTwist > maxTwist)
+				throw new IllegalArgumentException("invalid ragdoll angular limits");
+		}
+
+		private static Quat checkedFrame(Quat frame) {
+			if (frame == null || !Double.isFinite(frame.x()) || !Double.isFinite(frame.y())
+					|| !Double.isFinite(frame.z()) || !Double.isFinite(frame.w()))
+				throw new IllegalArgumentException("invalid ragdoll joint frame");
+			double norm = frame.x() * frame.x() + frame.y() * frame.y()
+					+ frame.z() * frame.z() + frame.w() * frame.w();
+			if (!Double.isFinite(norm) || norm < 1e-12)
+				throw new IllegalArgumentException("degenerate ragdoll joint frame");
+			return frame.normalized();
+		}
+	}
+
+	/** Anchors are local; a null angular contract preserves the original free ball socket. */
+	public record Joint(int first, int second, Vec3 firstAnchor, Vec3 secondAnchor, double compliance,
+			AngularLimits angularLimits) {
+		public Joint(int first, int second, Vec3 firstAnchor, Vec3 secondAnchor, double compliance) {
+			this(first, second, firstAnchor, secondAnchor, compliance, null);
+		}
+
 		public Joint {
 			if (first == second || first < 0 || second < 0) throw new IllegalArgumentException("invalid joint endpoints");
 			if (firstAnchor == null || secondAnchor == null || !finite(firstAnchor) || !finite(secondAnchor))
