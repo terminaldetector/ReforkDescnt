@@ -37,7 +37,7 @@ import java.util.*;
 public final class NativeConnectedPortalCheck {
     public static final boolean ENABLED=Boolean.getBoolean("drmd.gate.connectedPortal");
     private static final BlockPos A=new BlockPos(6,2156,2),B=new BlockPos(24,2156,12),MARK=B.east(16).south(6);
-    private static final Vec3d START=new Vec3d(6,2156.04,-.1);
+    private static final Vec3d START=new Vec3d(6,2156.54,-.1);
     private static final Vec3 ZERO=new Vec3(0,0,0),DELTA=new Vec3(0,0,4),OMEGA=new Vec3(.02,.025,.015);
     private record Hull(UUID uuid,int id,Vec3 p,Quat q,Vec3 v,Vec3 l,Vec3 force,Vec3 torque,long revision,boolean full){}
     private record State(long tick,Hull root,Hull child,Vec3 player,DynamicBodyAttachment.State attachment,int epoch,boolean flight,boolean flying,double anchorError){}
@@ -81,8 +81,8 @@ public final class NativeConnectedPortalCheck {
                 ((PortalPanelBlockEntity)w.getBlockEntity(A)).setLink(null,B,w.getRegistryKey());((PortalPanelBlockEntity)w.getBlockEntity(B)).setLink(null,A,w.getRegistryKey());
                 for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++)w.setBlockState(MARK.add(0,y,z),Blocks.EMERALD_BLOCK.getDefaultState(),2);
                 var cells=new ArrayList<BlockBodyEntity.Cell>();for(int x=0;x<2;x++)for(int z=0;z<2;z++)cells.add(new BlockBodyEntity.Cell(new BlockPos(x,0,z),Blocks.IRON_BLOCK.getDefaultState()));
-                root=BlockBodyEntity.createLocal(w,cells,new Vec3d(5,2155,-1));
-                child=BlockBodyEntity.createLocal(w,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.GOLD_BLOCK.getDefaultState()),new BlockBodyEntity.Cell(new BlockPos(0,0,1),Blocks.GOLD_BLOCK.getDefaultState())),new Vec3d(7,2155,-1));
+                root=BlockBodyEntity.createLocal(w,cells,new Vec3d(5,2155.5,-1));
+                child=BlockBodyEntity.createLocal(w,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.GOLD_BLOCK.getDefaultState()),new BlockBodyEntity.Cell(new BlockPos(0,0,1),Blocks.GOLD_BLOCK.getDefaultState())),new Vec3d(7,2155.5,-1));
                 root.setPhysicsGravity(false);child.setPhysicsGravity(false);root.setPassengerGravity(new Vec3(0,-.5,0));rootId=entity(root).getId();childId=entity(child).getId();
                 link=new BodyJointLink(UUID.randomUUID(),new BodyJointLink.Endpoint(entity(root).getUuid(),new BlockPos(1,0,0),new Vec3(2,.5,.5),Quat.IDENTITY),
                     new BodyJointLink.Endpoint(entity(child).getUuid(),BlockPos.ORIGIN,new Vec3(0,.5,.5),Quat.IDENTITY),BodyJointConstraint.Kind.FIXED,0,0,0,0,10000,10000,false);
