@@ -53,7 +53,7 @@ public final class DronePortalGameTests implements FabricGameTest {
         boolean admitted(){for(var e:entities)if(w.getEntity(e.getUuid())!=e||!w.shouldTickEntity(e.getBlockPos())||e.age<1)return false;return true;}
         void drive(Step step){c.runAtEveryTick(()->{if(closed)return;try{w.resetIdleTimeout();ticks++;if(!admitted()){c.assertTrue(ticks<80,"real UUID lookup/entity ticking and one ordinary actor tick before portal: "+ticks);return;}if(step.tick(this)){close();c.complete();}}catch(Exception|AssertionError failure){close();if(failure instanceof RuntimeException runtime)throw runtime;throw new RuntimeException(failure);}});}
         void crossing(DroneEntity d,int level){var a=Vec3d.ofCenter(at).add(0,level,-.5);d.setPosition(a.add(0,0,.2));d.prevX=d.getX();d.prevY=d.getY();d.prevZ=a.z-.2;}
-        PortalTransfer.Plan plan(DroneEntity d){var t=map(p(d.getPos()),p(Vec3d.ofCenter(exit)));return PortalTransfer.prepare(w,d,t,ZERO,t.sourcePoint(),16,false,w.getServer().getTicks(),u->false,false).accepted();}
+        PortalTransfer.Plan plan(DroneEntity d){var t=map(p(Vec3d.ofCenter(at)),p(Vec3d.ofCenter(exit)));return PortalTransfer.prepare(w,d,t,ZERO,t.sourcePoint(),16,false,w.getServer().getTicks(),u->false,false).accepted();}
         @Override public void close(){if(closed)return;closed=true;for(var e:entities)if(!e.isRemoved())e.discard();for(var q:columns)w.getChunkManager().removeTicket(TICKET,q,2,ticket);PortalTravel.clear();}
     }
 
