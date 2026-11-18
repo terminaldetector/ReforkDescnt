@@ -117,11 +117,12 @@ public final class PortalTransferGameTests implements FabricGameTest {
         w.setBlockState(exit,panel.getDefaultState().with(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.FACING,Direction.EAST).with(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.LINKED,true),2);
         ((com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlockEntity)w.getBlockEntity(source)).setLink(null,exit,w.getRegistryKey());
         ((com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlockEntity)w.getBlockEntity(exit)).setLink(null,source,w.getRegistryKey());
-        var body=BlockBodyEntity.createLocal(w,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState())),new Vec3d(source.getX(),source.getY(),source.getZ()-.8));
+        var body=BlockBodyEntity.createLocal(w,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState())),new Vec3d(source.getX(),source.getY(),source.getZ()-1.2));
         var item=new ItemEntity(w,source.getX()+.5,source.getY()+1.01,source.getZ()-.7,new ItemStack(Items.IRON_INGOT));item.setNoGravity(true);item.setVelocity(0,0,.4);w.spawnEntity(item);
         try{
-            body.prevX=body.getX();body.prevY=body.getY();body.prevZ=body.getZ()-.4;var bodyBefore=body.getPos();
-            PortalTravel.enqueue(w,source,Direction.NORTH,exit,Direction.EAST,2);c.assertTrue(body.getPos().equals(bodyBefore),"BE-time registration cannot warp a hull before deferred gravity/movement");
+            var initial=body.getPos();PortalTravel.enqueue(w,source,Direction.NORTH,exit,Direction.EAST,2);c.assertTrue(body.getPos().equals(initial),"BE-time registration cannot warp a hull before deferred gravity/movement");
+            body.physics().withLinearVelocity(new Vec3(0,0,8));body.tick();var bodyBefore=body.getPos();
+            c.assertTrue(bodyBefore.z>initial.z+.35&&!body.boardingMotionPaused(),"fixture uses an actual completed hull physics step, not fresh origin-to-spawn prev coordinates");
             var actualStart=item.getPos();item.move(MovementType.SELF,new Vec3d(0,0,.4));item.setVelocity(Vec3d.ZERO);var itemBefore=item.getPos();
             c.assertTrue(PortalTravel.afterDeferredMove(w,item,actualStart)&&item.getPos().equals(itemBefore),"completed item hook records its true segment without independently teleporting");
             var t=mapping(p(Vec3d.ofCenter(source).add(0,0,-.5)),p(Vec3d.ofCenter(exit).add(.5,0,0)));
@@ -168,6 +169,47 @@ public final class PortalTransferGameTests implements FabricGameTest {
             c.assertTrue(position>=0&&pose>=0&&teleport>position&&teleport>pose,"normal position and portal POSE arrive before native occupant teleport: position="+position+" pose="+pose+" teleport="+teleport+" initialSpawn="+spawnSeen);
             c.assertTrue(body.getDataTracker().isDirty(),"explicit publication does not consume the ordinary tracker dirty update");
         }finally{body.discard();w.getServer().getPlayerManager().remove(player);player.discard();channel.finishAndReleaseAll();PortalTravel.clear();}c.complete();
+    }
+
+    private void pair(TestContext c,BlockPos source,Direction normal,BlockPos exit,Direction exitNormal){
+        var w=c.getWorld();var block=com.terminaldetector.drmd.entity.ModWorldBlocks.PORTAL_PANEL;
+        w.setBlockState(source,block.getDefaultState().with(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.FACING,normal).with(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.LINKED,true),2);
+        w.setBlockState(exit,block.getDefaultState().with(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.FACING,exitNormal).with(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.LINKED,true),2);
+        ((com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlockEntity)w.getBlockEntity(source)).setLink(null,exit,w.getRegistryKey());
+        ((com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlockEntity)w.getBlockEntity(exit)).setLink(null,source,w.getRegistryKey());
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="portal-dispatch-face-refusal")
+    public void refusedHullCannotLeakItsDropThroughThatFaceButAnotherCrossedFaceCanCommit(TestContext c){
+        var w=c.getWorld();var source=origin(c);var blocked=source.north();var exitA=source.east(24);var exitB=source.east(48);
+        room(c,source,4,5,6);room(c,exitA,8,5,4);room(c,exitB,8,5,4);pair(c,blocked,Direction.NORTH,exitA,Direction.EAST);pair(c,source,Direction.NORTH,exitB,Direction.EAST);
+        var body=BlockBodyEntity.createLocal(w,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState())),new Vec3d(source.getX(),source.getY(),source.getZ()-2.2));
+        var item=new ItemEntity(w,source.getX()+.5,source.getY()+1.01,source.getZ()-1.7,new ItemStack(Items.IRON_INGOT));item.setNoGravity(true);w.spawnEntity(item);
+        try{
+            body.physics().withLinearVelocity(new Vec3(0,0,52));body.tick();c.assertTrue(body.getZ()>source.getZ()+.8&&!body.boardingMotionPaused(),"one actual hull step crosses both source planes");
+            var start=item.getPos();item.move(MovementType.SELF,new Vec3d(0,0,2.6));item.setVelocity(Vec3d.ZERO);PortalTravel.afterDeferredMove(w,item,start);
+            // Only the hull's height is blocked: an independent drop would fit above this strip.
+            for(var pos:BlockPos.iterate(exitA.add(1,0,-1),exitA.add(6,0,1)))w.setBlockState(pos,Blocks.STONE.getDefaultState(),2);
+            var oldBody=body.getPos();var oldItem=item.getPos();
+            PortalTravel.enqueue(w,blocked,Direction.NORTH,exitA,Direction.EAST,2);PortalTravel.drain(w);
+            c.assertTrue(body.getPos().equals(oldBody)&&item.getPos().equals(oldItem),"same-face refusal is atomic for the actual hull and supported item");
+            PortalTravel.enqueue(w,blocked,Direction.NORTH,exitA,Direction.EAST,2);PortalTravel.enqueue(w,source,Direction.NORTH,exitB,Direction.EAST,2);PortalTravel.drain(w);
+            c.assertTrue(body.getX()>exitB.getX()&&item.getX()>exitB.getX(),"refusal on one face does not globally suppress a different genuinely crossed face");
+            var turn=mapping(p(Vec3d.ofCenter(source).add(0,0,-.5)),p(Vec3d.ofCenter(exitB).add(.5,0,0))).rotation();
+            near(c,p(item.getPos()).minus(p(body.getPos())),turn.rotate(p(oldItem).minus(p(oldBody))),"successful face still uses one group transform");
+        }finally{body.discard();item.discard();for(var pos:List.of(source,blocked,exitA,exitB))w.setBlockState(pos,Blocks.AIR.getDefaultState(),2);PortalTravel.clear();}c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="portal-fresh-spawn")
+    public void freshWestFacingHullAndDropDoNotInventAnOriginToSpawnCrossing(TestContext c){
+        var w=c.getWorld();var source=origin(c);var exit=source.east(24);room(c,source,5,5,5);room(c,exit,5,5,5);pair(c,source,Direction.WEST,exit,Direction.EAST);
+        var body=BlockBodyEntity.createLocal(w,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState())),new Vec3d(source.getX()+.1,source.getY(),source.getZ()));
+        var item=new ItemEntity(w,source.getX()+.3,source.getY()+2,source.getZ()+.5,new ItemStack(Items.IRON_INGOT));item.setNoGravity(true);w.spawnEntity(item);
+        try{
+            var beforeBody=body.getPos();var beforeItem=item.getPos();c.assertTrue(body.age==0&&item.age==0&&body.boardingMotionPaused(),"genuine newly spawned, unintegrated entities");
+            PortalTravel.enqueue(w,source,Direction.WEST,exit,Direction.EAST,2);PortalTravel.drain(w);
+            c.assertTrue(body.getPos().equals(beforeBody)&&item.getPos().equals(beforeItem),"zero-initialized prev coordinates are not a genuine production movement segment");
+            item.move(MovementType.SELF,Vec3d.ZERO);PortalTravel.afterDeferredMove(w,item,beforeItem);PortalTravel.enqueue(w,source,Direction.WEST,exit,Direction.EAST,2);PortalTravel.drain(w);
+            c.assertTrue(item.getPos().equals(beforeItem),"a real zero-length completed move also cannot fabricate crossing intent");
+        }finally{body.discard();item.discard();w.setBlockState(source,Blocks.AIR.getDefaultState(),2);w.setBlockState(exit,Blocks.AIR.getDefaultState(),2);PortalTravel.clear();}c.complete();
     }
 
 }

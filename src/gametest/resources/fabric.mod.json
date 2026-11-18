@@ -99,7 +99,8 @@
       "com.terminaldetector.drmd.ThermalDrillGameTests",
       "com.terminaldetector.drmd.world.portal.PortalTransferGameTests",
       "com.terminaldetector.drmd.RagdollPortalTransferGameTests",
-      "com.terminaldetector.drmd.PortalExitInterestGameTests"
+      "com.terminaldetector.drmd.PortalExitInterestGameTests",
+      "com.terminaldetector.drmd.PortalPendingTravelGameTests"
     ]
   },
   "depends": {

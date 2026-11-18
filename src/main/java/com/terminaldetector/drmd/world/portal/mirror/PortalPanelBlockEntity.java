@@ -32,7 +32,10 @@ public class PortalPanelBlockEntity extends BlockEntity {
     public static void bindClientInvalidation(Runnable callback){clientChanged=callback;}
     private void notifyClient(){if(world!=null && world.isClient)clientChanged.run();}
     @Override public void markRemoved(){
-        if(world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
+        if(world instanceof ServerWorld server){
+            com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
+            PortalTravel.cancelSource(server,pos);
+        }
         super.markRemoved();notifyClient();
     }
     @Override public void setWorld(World world){
@@ -65,7 +68,10 @@ public class PortalPanelBlockEntity extends BlockEntity {
 	@Nullable public RegistryKey<World> getLinkPartnerDim() { return linkPartnerDim; }
 
 	public void setLink(UUID attachedEntityId, BlockPos partnerPos, RegistryKey<World> partnerDim) {
-		if(world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
+		if(world instanceof ServerWorld server){
+			com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
+			PortalTravel.cancelSource(server,pos);
+		}
 		this.attachedEntityId = attachedEntityId;
 		this.linked = true;
 		this.linkPartnerPos = partnerPos;
@@ -81,7 +87,10 @@ public class PortalPanelBlockEntity extends BlockEntity {
 	 * and is not. With ImmPtl it is worse than untidy — the far portal entity outlives its own block.
 	 */
 	public void clearLink() {
-		if(world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
+		if(world instanceof ServerWorld server){
+			com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
+			PortalTravel.cancelSource(server,pos);
+		}
 		this.attachedEntityId = null;
 		this.linked = false;
 		this.linkPartnerPos = null;
@@ -134,6 +143,7 @@ public class PortalPanelBlockEntity extends BlockEntity {
 		}
 		if (!(state.getBlock() instanceof PortalPanelBlock)) return;
 		com.terminaldetector.drmd.world.portal.PortalExitInterest.observe(serverWorld,pos,be.linkPartnerPos,PortalPanelBlock.HALF_SPAN);
+		PortalTravel.noteSource(serverWorld,pos,state.get(PortalPanelBlock.FACING),be.linkPartnerPos,PortalPanelBlock.HALF_SPAN);
 
 		// A saved link is not permission to load its destination every server tick.
 		// Keep the link while the partner is unavailable and retry once it is loaded.

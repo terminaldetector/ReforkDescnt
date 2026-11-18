@@ -54,6 +54,11 @@ public final class PortalTravel {
     private record Face(BlockPos source,Direction facing,BlockPos partner,Direction partnerFacing,double span,long tick) {}
     /** Current owner-thread faces only. Values contain no world/entity reference. */
     private static final Map<ServerWorld,Map<BlockPos,Face>> FACES=new WeakHashMap<>();
+    private static final int MAX_PENDING=128,PENDING_TICKS=80;
+    private static final double GATE_DEPTH=2,RETREAT_EPS=.05;
+    private record Crossing(PortalTransform.Vec3 previous,PortalTransform.Vec3 end,PortalTransform.Vec3 hit,boolean leading) {}
+    private record Pending(Face face,java.lang.ref.WeakReference<Entity> entity,Crossing crossing,PortalTransform.Vec3 heldAt,long until) {}
+    private static final Map<ServerWorld,Map<UUID,Pending>> WAITING=new WeakHashMap<>();
     private static void rememberFace(ServerWorld world,BlockPos source,Direction facing,BlockPos partner,Direction partnerFacing,double span,long tick){
         var faces=FACES.computeIfAbsent(world,w->new HashMap<>());
         if(faces.size()>=4096){faces.values().removeIf(f->f.tick<tick);if(faces.size()>=4096&&!faces.containsKey(source))return;}
@@ -65,7 +70,17 @@ public final class PortalTravel {
     public static void register(){
         // Registered after body contacts, loose drops, flight and boarding motors.
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_WORLD_TICK.register(PortalTravel::drain);
-        net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents.UNLOAD.register((server,world)->{FACES.remove(world);COMPLETED.remove(world);});
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents.UNLOAD.register((server,world)->{FACES.remove(world);COMPLETED.remove(world);WAITING.remove(world);});
+    }
+    /** A real ticking source may record crossings while its destination is still warming. */
+    public static void noteSource(ServerWorld world,BlockPos source,Direction facing,BlockPos partner,double span){
+        if(world.getServer().isOnThread()&&source!=null&&partner!=null&&facing!=null&&Double.isFinite(span)&&span>0&&span<=4)
+            rememberFace(world,source,facing,partner,null,span,world.getServer().getTicks());
+    }
+    public static void cancelSource(ServerWorld world,BlockPos source){
+        if(!world.getServer().isOnThread())return;
+        var faces=FACES.get(world);if(faces!=null)faces.remove(source);
+        var waiting=WAITING.get(world);if(waiting!=null)waiting.values().removeIf(p->p.face.source.equals(source));
     }
     public static void enqueue(ServerWorld world,BlockPos pos,Direction facing,BlockPos partner,Direction partnerFacing,double halfSpan){
         if(world.getServer().isOnThread())rememberFace(world,pos,facing,partner,partnerFacing,halfSpan,world.getServer().getTicks());
@@ -74,7 +89,7 @@ public final class PortalTravel {
     public static void carry(ServerWorld world,BlockPos pos,Direction facing,BlockPos partner,Direction partnerFacing,double halfSpan){
         if(!world.getServer().isOnThread())return;
         var face=new Face(pos.toImmutable(),facing,partner.toImmutable(),partnerFacing,halfSpan,world.getServer().getTicks());
-        rememberFace(world,pos,facing,partner,partnerFacing,halfSpan,face.tick);process(world,java.util.List.of(face));
+        rememberFace(world,pos,facing,partner,partnerFacing,halfSpan,face.tick);process(world,java.util.List.of(face),false);
     }
     private record Completed(java.lang.ref.WeakReference<net.minecraft.entity.ItemEntity> item,Vec3d start,Vec3d end,long tick) {}
     private static final Map<ServerWorld,Map<UUID,Completed>> COMPLETED=new WeakHashMap<>();
@@ -89,9 +104,19 @@ public final class PortalTravel {
     }
     public static void drain(ServerWorld world){
         if(!world.getServer().isOnThread())return;long tick=world.getServer().getTicks();
-        var map=FACES.get(world);
-        if(map!=null){var faces=map.values().stream().filter(f->f.tick==tick&&validFace(world,f)).sorted(java.util.Comparator.comparing(f->f.source.toShortString())).toList();process(world,faces);map.values().removeIf(f->f.tick<=tick);}
-        COMPLETED.remove(world);
+        var observed=FACES.get(world);var offered=new java.util.LinkedHashMap<BlockPos,Face>();
+        if(observed!=null)for(var face:java.util.List.copyOf(observed.values()))if(face.tick==tick)offered.put(face.source,face);
+        var waiting=WAITING.get(world);
+        if(waiting!=null){waiting.values().removeIf(p->!stillAtGate(world,p,tick));
+            for(var p:waiting.values())offered.putIfAbsent(p.face.source,new Face(p.face.source,p.face.facing,p.face.partner,null,p.face.span,tick));}
+        var usable=new java.util.ArrayList<Face>();
+        for(var face:offered.values()){
+            var resolved=resolveFace(world,face);
+            if(resolved==null)cancelSource(world,face.source);else usable.add(resolved);
+        }
+        usable.sort(java.util.Comparator.comparingInt((Face f)->f.source.getX()).thenComparingInt(f->f.source.getY()).thenComparingInt(f->f.source.getZ()));process(world,usable,true);
+        if(observed!=null)observed.values().removeIf(f->f.tick<=tick);COMPLETED.remove(world);
+        if(waiting!=null&&waiting.isEmpty())WAITING.remove(world);
     }
     private static java.util.LinkedHashSet<Entity> candidates(ServerWorld world,Face face){
         Box reach=new Box(face.source).expand(face.span+33);var result=new java.util.LinkedHashSet<Entity>();
@@ -101,10 +126,13 @@ public final class PortalTravel {
         var completed=COMPLETED.get(world);if(completed!=null)for(var c:completed.values()){
             var item=c.item.get();if(item!=null&&c.tick==face.tick&&item.getWorld()==world&&!item.isRemoved())result.add(item);
         }
+        var waiting=WAITING.get(world);if(waiting!=null)for(var pending:waiting.values())if(sameLink(pending.face,face)){
+            var entity=pending.entity.get();if(entity!=null)result.add(entity);
+        }
         return result;
     }
-    private static void process(ServerWorld world,java.util.List<Face> faces){
-        var processed=new java.util.HashSet<UUID>();
+    private static void process(ServerWorld world,java.util.List<Face> faces,boolean pendingAllowed){
+        var processed=new java.util.HashSet<UUID>();var refused=new java.util.HashMap<BlockPos,java.util.Set<UUID>>();
         // All coherent physical/riding groups go first across ALL faces, then independent actors.
         for(int phase=0;phase<2;phase++)for(var face:faces){
             var sourceState=com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(face.source);
@@ -112,65 +140,100 @@ public final class PortalTravel {
                 &&sourceState.get().get(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.CHANNEL)>0;
             for(var entity:candidates(world,face)){
                 boolean group=entity instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity||entity.hasPassengers();
-                if((phase==0)!=group||entity.hasVehicle()||processed.contains(entity.getUuid())||onCooldown(entity.getUuid(),face.tick))continue;
-                var previous=new PortalTransform.Vec3(entity.prevX,entity.prevY,entity.prevZ);boolean solverComplete=false;
-                if(entity instanceof net.minecraft.server.network.ServerPlayerEntity&&entity instanceof com.terminaldetector.drmd.world.portal.gun.PortalMotionAccess motion){var start=motion.drmd$portalMovementStart(face.tick);if(start!=null)previous=toPure(start);}
+                if((phase==0)!=group||entity.hasVehicle()||processed.contains(entity.getUuid())||refused.getOrDefault(face.source,java.util.Set.of()).contains(entity.getUuid())||onCooldown(entity.getUuid(),face.tick))continue;
+                var previous=new PortalTransform.Vec3(entity.prevX,entity.prevY,entity.prevZ);boolean solverComplete=false,genuine=false;
+                if(entity instanceof com.terminaldetector.drmd.world.contraption.BlockBodyEntity body&&!body.boardingMotionPaused()){
+                    var motion=body.boardingMotion();var localPivot=body.rotation().inverse().rotate(toPure(body.getPos()).minus(body.massPosition()));
+                    previous=motion.position(0).plus(motion.rotation(0).rotate(localPivot));genuine=true;
+                }
+                if(entity instanceof net.minecraft.server.network.ServerPlayerEntity&&entity instanceof com.terminaldetector.drmd.world.portal.gun.PortalMotionAccess motion){var start=motion.drmd$portalMovementStart(face.tick);if(start!=null){previous=toPure(start);genuine=true;}}
                 var completed=COMPLETED.get(world);var actual=completed==null?null:completed.get(entity.getUuid());
-                if(actual!=null){if(actual.item.get()!=entity||!entity.getPos().equals(actual.end))continue;previous=toPure(actual.start);solverComplete=true;}
-                var result=attempt(world,entity,previous,face,gun,solverComplete);
-                // A refused exit must not suppress a different live face crossed in this step.
-                // Arrival is marked only after the complete transaction actually commits.
-                if(result!=null&&onCooldown(entity.getUuid(),face.tick))
-                    for(var member:result.members())processed.add(member.getUuid());
+                if(actual!=null){if(actual.item.get()!=entity||!entity.getPos().equals(actual.end))continue;previous=toPure(actual.start);solverComplete=true;genuine=true;}
+                if(pendingAllowed&&entity.age==0&&!genuine)continue;
+                var result=attempt(world,entity,previous,face,gun,solverComplete,pendingAllowed);
+                if(result!=null){
+                    if(onCooldown(entity.getUuid(),face.tick))for(var member:result.members())processed.add(member.getUuid());
+                    else{var blocked=refused.computeIfAbsent(face.source,k->new java.util.HashSet<>());for(var member:result.members())blocked.add(member.getUuid());}
+                }
             }
         }
     }
-    private static boolean validFace(ServerWorld world,Face f){
-        var access=com.terminaldetector.drmd.world.access.WorldAccess.of(world);
-        var a=access.readIfLoaded(f.source);var b=access.readIfLoaded(f.partner);if(a.isEmpty()||b.isEmpty())return false;
-        if(a.get().getBlock() instanceof com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock
-            &&b.get().getBlock() instanceof com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock
-            &&a.get().get(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.LINKED)
+    /** Null means stale/dead source; null target-facing means a genuine unresolved native exit. */
+    private static Face resolveFace(ServerWorld world,Face f){
+        var access=com.terminaldetector.drmd.world.access.WorldAccess.of(world);var a=access.readIfLoaded(f.source);if(a.isEmpty())return null;
+        boolean panel=a.get().getBlock() instanceof com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock;
+        boolean mirror=a.get().getBlock() instanceof com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlock;
+        if(panel){
+            if(!a.get().get(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.LINKED)||a.get().get(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.FACING)!=f.facing
+                ||!(world.getBlockEntity(f.source) instanceof com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlockEntity source)||!source.isLinked()||!f.partner.equals(source.getLinkPartnerPos())
+                ||source.getLinkPartnerDim()!=null&&!source.getLinkPartnerDim().equals(world.getRegistryKey()))return null;
+        }else if(mirror){
+            if(!a.get().get(com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlock.LINKED)||a.get().get(com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlock.FACING)!=f.facing
+                ||!(world.getBlockEntity(f.source) instanceof com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlockEntity source)||!source.isLinked()||!f.partner.equals(source.getLinkPartnerPos())
+                ||source.getLinkPartnerDim()!=null&&!source.getLinkPartnerDim().equals(world.getRegistryKey()))return null;
+        }else return null;
+        var b=access.readIfLoaded(f.partner);if(b.isEmpty())return new Face(f.source,f.facing,f.partner,null,f.span,f.tick);
+        if(panel&&b.get().getBlock() instanceof com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock
             &&b.get().get(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.LINKED)
-            &&a.get().get(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.FACING)==f.facing
-            &&b.get().get(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.FACING)==f.partnerFacing
-            &&world.getBlockEntity(f.source) instanceof com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlockEntity source
-            &&world.getBlockEntity(f.partner) instanceof com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlockEntity target)
-            return source.isLinked()&&target.isLinked()&&f.partner.equals(source.getLinkPartnerPos())&&f.source.equals(target.getLinkPartnerPos())
-                &&(source.getLinkPartnerDim()==null||source.getLinkPartnerDim().equals(world.getRegistryKey()))
-                &&(target.getLinkPartnerDim()==null||target.getLinkPartnerDim().equals(world.getRegistryKey()));
-        if(a.get().getBlock() instanceof com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlock
-            &&b.get().getBlock() instanceof com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlock
-            &&a.get().get(com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlock.LINKED)
+            &&world.getBlockEntity(f.partner) instanceof com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlockEntity target
+            &&target.isLinked()&&f.source.equals(target.getLinkPartnerPos())&&(target.getLinkPartnerDim()==null||target.getLinkPartnerDim().equals(world.getRegistryKey())))
+            return new Face(f.source,f.facing,f.partner,b.get().get(com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock.FACING),f.span,f.tick);
+        if(mirror&&b.get().getBlock() instanceof com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlock
             &&b.get().get(com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlock.LINKED)
-            &&a.get().get(com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlock.FACING)==f.facing
-            &&b.get().get(com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlock.FACING)==f.partnerFacing
-            &&world.getBlockEntity(f.source) instanceof com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlockEntity source
-            &&world.getBlockEntity(f.partner) instanceof com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlockEntity target)
-            return source.isLinked()&&target.isLinked()&&f.partner.equals(source.getLinkPartnerPos())&&f.source.equals(target.getLinkPartnerPos())
-                &&(source.getLinkPartnerDim()==null||source.getLinkPartnerDim().equals(world.getRegistryKey()))
-                &&(target.getLinkPartnerDim()==null||target.getLinkPartnerDim().equals(world.getRegistryKey()));
-        return false;
+            &&world.getBlockEntity(f.partner) instanceof com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlockEntity target
+            &&target.isLinked()&&f.source.equals(target.getLinkPartnerPos())&&(target.getLinkPartnerDim()==null||target.getLinkPartnerDim().equals(world.getRegistryKey())))
+            return new Face(f.source,f.facing,f.partner,b.get().get(com.terminaldetector.drmd.world.portal.mirror.ChargedMirrorBlock.FACING),f.span,f.tick);
+        return null;
     }
-    private static PortalTransfer.Attempt attempt(ServerWorld world,Entity entity,PortalTransform.Vec3 previous,Face f,boolean gun,boolean solverComplete){
+    private static boolean sameLink(Face a,Face b){return a.source.equals(b.source)&&a.facing==b.facing&&a.partner.equals(b.partner)&&a.span==b.span;}
+    private static PortalTransform.Vec3 plane(Face f){return toPure(Vec3d.ofCenter(f.source).add(Vec3d.of(f.facing.getVector()).multiply(.5)));}
+    private static boolean stillAtGate(ServerWorld world,Pending pending,long tick){
+        var entity=pending.entity.get();if(entity==null||entity.isRemoved()||!entity.isAlive()||entity.isSpectator()||entity.getWorld()!=world||entity.getRootVehicle()!=entity||tick>=pending.until||tick<pending.face.tick)return false;
+        var current=toPure(entity.getPos());if(current.minus(pending.heldAt).lengthSquared()>GATE_DEPTH*GATE_DEPTH)return false;
+        var n=toPure(Vec3d.of(pending.face.facing.getVector()));var reference=pending.crossing.leading?PortalTransfer.leading(entity,current,n):null;
+        var point=pending.crossing.leading?(reference==null?null:reference.after()):current;if(point==null)return false;
+        double depth=point.minus(plane(pending.face)).dot(n);
+        return depth<=RETREAT_EPS&&depth>=-GATE_DEPTH&&PortalCrossing.withinFace(point,plane(pending.face),n,pending.face.span+.125);
+    }
+    private static void rememberCrossing(ServerWorld world,Entity entity,Face face,Crossing crossing){
+        var pending=new Pending(face,new java.lang.ref.WeakReference<>(entity),crossing,toPure(entity.getPos()),face.tick+PENDING_TICKS);
+        if(!stillAtGate(world,pending,face.tick))return;
+        var waiting=WAITING.computeIfAbsent(world,w->new java.util.LinkedHashMap<>());
+        if(waiting.size()<MAX_PENDING||waiting.containsKey(entity.getUuid()))waiting.putIfAbsent(entity.getUuid(),pending);
+    }
+    private static Crossing crossing(ServerWorld world,Entity entity,PortalTransform.Vec3 previous,Face f){
+        var normal=Vec3d.of(f.facing.getVector());var face=Vec3d.ofCenter(f.source).add(normal.multiply(.5));var plane=toPure(face);var n=toPure(normal);var current=toPure(entity.getPos());
+        var leading=PortalTransfer.leading(entity,previous,n);if(leading==null)return null;PortalTransform.Vec3 hit;boolean edge;
+        if(PortalCrossing.crossedInward(leading.before(),leading.after(),plane,n)){hit=PortalCrossing.crossingPoint(leading.before(),leading.after(),plane,n);edge=true;}
+        else if(PortalCrossing.crossedInward(previous,current,plane,n)){hit=PortalCrossing.crossingPoint(previous,current,plane,n);edge=false;}else return null;
+        return hit!=null&&PortalCrossing.withinFace(hit,plane,n,f.span)&&faceIsOpenTo(world,entity,face,normal,hit)?new Crossing(previous,current,hit,edge):null;
+    }
+    private static PortalTransfer.Attempt attempt(ServerWorld world,Entity entity,PortalTransform.Vec3 previous,Face f,boolean gun,boolean solverComplete,boolean pendingAllowed){
         long now=world.getServer().getTicks();if(onCooldown(entity.getUuid(),now))return null;
-        Vec3d normal=Vec3d.of(f.facing.getVector()),partnerNormal=Vec3d.of(f.partnerFacing.getVector());
-        Vec3d face=Vec3d.ofCenter(f.source).add(normal.multiply(.5));
-        var plane=toPure(face);var n=toPure(normal);var current=toPure(entity.getPos());
-        var leading=PortalTransfer.leading(entity,previous,n);if(leading==null)return null;
-        var leadingCurrent=leading.after();var leadingPrevious=leading.before();
-        PortalTransform.Vec3 hit,referenceNow;
-        if(PortalCrossing.crossedInward(leadingPrevious,leadingCurrent,plane,n)){hit=PortalCrossing.crossingPoint(leadingPrevious,leadingCurrent,plane,n);referenceNow=leadingCurrent;}
-        else if(PortalCrossing.crossedInward(previous,current,plane,n)){hit=PortalCrossing.crossingPoint(previous,current,plane,n);referenceNow=current;}
-        else return null;
-        if(hit==null||!PortalCrossing.withinFace(hit,plane,n,f.span)||!faceIsOpenTo(world,entity,face,normal,hit))return null;
-        var transform=com.terminaldetector.drmd.d6.D6PortalTransform.of(plane,n,toPure(Vec3d.ofCenter(f.partner).add(partnerNormal.multiply(.5))),toPure(partnerNormal));
-        var residual=transform.transformVelocity(referenceNow.minus(hit));
-        var attempt=PortalTransfer.prepare(world,entity,transform,residual,hit,f.span,gun,now,id->onCooldown(id,now),solverComplete);
-        if(attempt.accepted()==null||!attempt.accepted().apply()){DiagTrace.count("portal.blockedGroup");return attempt;}
-        for(var member:attempt.members())markArrived(member.getUuid(),now);
-        DiagTrace.record("portal","carried group of "+attempt.members().size()+" through "+f.source+" to "+f.partner);
-        DiagTrace.count("portal.carried");return attempt;
+        var waiting=WAITING.get(world);var stored=waiting==null?null:waiting.get(entity.getUuid());
+        var pending=stored!=null&&sameLink(stored.face,f)?stored:null;
+        if(pending!=null&&!stillAtGate(world,pending,now)){waiting.remove(entity.getUuid());pending=null;}
+        var step=pending==null?crossing(world,entity,previous,f):pending.crossing;if(step==null)return null;
+        if(f.partnerFacing==null){
+            var group=PortalTransfer.gather(world,entity,id->onCooldown(id,now));
+            if(pendingAllowed&&pending==null&&group.complete())rememberCrossing(world,entity,f,step);
+            return new PortalTransfer.Attempt(group.members(),null);
+        }
+        var n=toPure(Vec3d.of(f.facing.getVector()));var current=toPure(entity.getPos());
+        var edge=step.leading?PortalTransfer.leading(entity,current,n):null;if(step.leading&&edge==null)return null;
+        var reference=step.leading?edge.after():current;
+        var partnerNormal=Vec3d.of(f.partnerFacing.getVector());
+        var transform=com.terminaldetector.drmd.d6.D6PortalTransform.of(plane(f),n,toPure(Vec3d.ofCenter(f.partner).add(partnerNormal.multiply(.5))),toPure(partnerNormal));
+        var residual=transform.transformVelocity(reference.minus(step.hit));
+        var attempt=pending==null?PortalTransfer.prepare(world,entity,transform,residual,step.hit,f.span,gun,now,id->onCooldown(id,now),solverComplete)
+            :PortalTransfer.prepareCurrent(world,entity,transform,residual,step.hit,f.span,gun,now,id->onCooldown(id,now));
+        if(attempt.accepted()==null||!attempt.accepted().apply()){
+            if(pendingAllowed&&!PortalDestinationCollision.available(world,new Box(f.partner).expand(f.span+2))){if(pending==null)rememberCrossing(world,entity,f,step);}
+            else if(waiting!=null)waiting.remove(entity.getUuid());
+            DiagTrace.count("portal.blockedGroup");return attempt;
+        }
+        for(var member:attempt.members()){markArrived(member.getUuid(),now);if(waiting!=null)waiting.remove(member.getUuid());}
+        DiagTrace.record("portal","carried group of "+attempt.members().size()+" through "+f.source+" to "+f.partner);DiagTrace.count("portal.carried");return attempt;
     }
 
     public static boolean exitIsClear(ServerWorld world,Entity traveller,Vec3d destination) {
@@ -243,7 +306,7 @@ public final class PortalTravel {
 		RECENT_ARRIVALS.put(id, now + ARRIVAL_COOLDOWN_TICKS);
 	}
 
-	public static void clear() { RECENT_ARRIVALS.clear();COMPLETED.clear();FACES.clear(); }
+	public static void clear() { RECENT_ARRIVALS.clear();COMPLETED.clear();FACES.clear();WAITING.clear(); }
 
 	private static Vec3d fromPure(PortalTransform.Vec3 v) { return new Vec3d(v.x(), v.y(), v.z()); }
 

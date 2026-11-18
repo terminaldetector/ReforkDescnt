@@ -39,7 +39,10 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 		super(ModBlockEntities.CHARGED_MIRROR, pos, state);
 	}
 	@Override public void markRemoved(){
-		if(world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
+		if(world instanceof ServerWorld server){
+			com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
+			PortalTravel.cancelSource(server,pos);
+		}
 		super.markRemoved();
 	}
 
@@ -51,7 +54,10 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 	@Nullable public RegistryKey<World> getLinkPartnerDim() { return linkPartnerDim; }
 
 	public void setLink(UUID attachedEntityId, BlockPos partnerPos, RegistryKey<World> partnerDim) {
-		if(world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
+		if(world instanceof ServerWorld server){
+			com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
+			PortalTravel.cancelSource(server,pos);
+		}
 		this.attachedEntityId = attachedEntityId;
 		this.linked = true;
 		this.linkPartnerPos = partnerPos;
@@ -67,7 +73,10 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 	 * and is not. With ImmPtl it is worse than untidy — the far portal entity outlives its own block.
 	 */
 	public void clearLink() {
-		if(world instanceof ServerWorld server)com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
+		if(world instanceof ServerWorld server){
+			com.terminaldetector.drmd.world.portal.PortalExitInterest.release(server,pos);
+			PortalTravel.cancelSource(server,pos);
+		}
 		this.attachedEntityId = null;
 		this.linked = false;
 		this.linkPartnerPos = null;
@@ -118,6 +127,7 @@ public class ChargedMirrorBlockEntity extends BlockEntity {
 		}
 		if (!(state.getBlock() instanceof ChargedMirrorBlock)) return;
 		com.terminaldetector.drmd.world.portal.PortalExitInterest.observe(serverWorld,pos,be.linkPartnerPos,FACE_HALF_SPAN);
+		PortalTravel.noteSource(serverWorld,pos,state.get(ChargedMirrorBlock.FACING),be.linkPartnerPos,FACE_HALF_SPAN);
 
 		// A saved link is not permission to load its destination every server tick.
 		// Keep the link while the partner is unavailable and retry once it is loaded.

@@ -26,46 +26,64 @@ final class PortalTransfer {
                          Vec3 forward,Vec3 headForward,Vec3 flightForward,Vec3 flightUp,Vec3 flightVelocity,boolean flight) {}
     private record Hull(BlockBodyEntity entity,D6PhysicsBody.Snapshot before,Vec3 velocity,Vec3 momentum,Vec3 pivot,long revision,List<BodyBounds> shapes,Entity vehicle,List<Entity> passengers) {}
     private PortalTransfer(){}
-    static Attempt prepare(ServerWorld world,Entity root,D6PortalTransform base,Vec3 remainder,Vec3 hit,double halfSpan,
-                           boolean strictAperture,long tick,Predicate<UUID> cooling,boolean solverComplete){
-        if(!world.getServer().isOnThread()||base.scale()!=1)return new Attempt(List.of(root),null);
+    record Membership(List<Entity> members,boolean complete) {}
+    static Membership gather(ServerWorld world,Entity root,Predicate<UUID> cooling){
+        if(!world.getServer().isOnThread())return new Membership(List.of(root),false);
         var members=new LinkedHashMap<UUID,Entity>();var queue=new ArrayDeque<Entity>();queue.add(root.getRootVehicle());
         Map<UUID,BlockBodyEntity> indexed=null;var registry=BodyJointRegistry.get(world);
         while(!queue.isEmpty()){
             Entity entity=queue.removeFirst();if(members.containsKey(entity.getUuid()))continue;
-            if(members.size()>=MAX_MEMBERS||entity.isRemoved()||entity.getWorld()!=world||cooling.test(entity.getUuid()))return refused(members,entity);
+            if(members.size()>=MAX_MEMBERS||entity.isRemoved()||entity.getWorld()!=world||cooling.test(entity.getUuid()))return refusedGroup(members,entity);
             members.put(entity.getUuid(),entity);queue.addAll(entity.getPassengerList());
             if(entity instanceof BlockBodyEntity body){
                 if(indexed==null){indexed=new HashMap<>();for(var candidate:BodySpatialIndex.loaded(world))indexed.put(candidate.getUuid(),candidate);}
-                if(indexed.get(body.getUuid())!=body)return refused(members,body);
+                if(indexed.get(body.getUuid())!=body)return refusedGroup(members,body);
                 for(var link:registry.forBody(body.getUuid()))for(var endpoint:List.of(link.a(),link.b())){
-                    var connected=indexed.get(endpoint.body());if(connected==null)return refused(members,body);
+                    var connected=indexed.get(endpoint.body());if(connected==null)return refusedGroup(members,body);
                     if(!members.containsKey(connected.getUuid()))queue.add(connected.getRootVehicle());
                 }
             }
         }
         var bodyIds=new HashSet<Integer>();for(var e:members.values())if(e instanceof BlockBodyEntity b)bodyIds.add(b.getId());
-        if(bodyIds.size()>MAX_BODIES)return new Attempt(List.copyOf(members.values()),null);
+        if(bodyIds.size()>MAX_BODIES)return new Membership(List.copyOf(members.values()),false);
         if(!bodyIds.isEmpty())for(var p:BoardingSystem.players(world)){
             var s=BoardingSystem.state(p);
             if(s!=null&&(bodyIds.contains(s.support())||bodyIds.contains(s.gravityOwner()))){
-                if(p.hasVehicle()&&!members.containsKey(p.getRootVehicle().getUuid()))return new Attempt(List.copyOf(members.values()),null);
-                if(members.size()>=MAX_MEMBERS)return new Attempt(List.copyOf(members.values()),null);members.put(p.getUuid(),p);
+                if(p.hasVehicle()&&!members.containsKey(p.getRootVehicle().getUuid()))return new Membership(List.copyOf(members.values()),false);
+                if(members.size()>=MAX_MEMBERS)return new Membership(List.copyOf(members.values()),false);members.put(p.getUuid(),p);
                 var riding=new ArrayDeque<Entity>(p.getPassengerList());
                 while(!riding.isEmpty()){
                     var passenger=riding.removeFirst();if(members.containsKey(passenger.getUuid()))continue;
-                    if(members.size()>=MAX_MEMBERS||passenger.isRemoved()||passenger.getWorld()!=world||passenger instanceof BlockBodyEntity)return new Attempt(List.copyOf(members.values()),null);
+                    if(members.size()>=MAX_MEMBERS||passenger.isRemoved()||passenger.getWorld()!=world||passenger instanceof BlockBodyEntity)return new Membership(List.copyOf(members.values()),false);
                     members.put(passenger.getUuid(),passenger);riding.addAll(passenger.getPassengerList());
                 }
             }
         }
         // Spatial candidates are admitted only by a real carrier field or material support contact.
-        if(!bodyIds.isEmpty()&&!occupants(world,members,bodyIds))return new Attempt(List.copyOf(members.values()),null);
+        if(!bodyIds.isEmpty()&&!occupants(world,members,bodyIds))return new Membership(List.copyOf(members.values()),false);
+        return new Membership(List.copyOf(members.values()),true);
+    }
+    private static Membership refusedGroup(Map<UUID,Entity> members,Entity last){members.putIfAbsent(last.getUuid(),last);return new Membership(List.copyOf(members.values()),false);}
+    static Attempt prepare(ServerWorld world,Entity root,D6PortalTransform base,Vec3 remainder,Vec3 hit,double halfSpan,
+                           boolean strictAperture,long tick,Predicate<UUID> cooling,boolean solverComplete){
+        return prepare(world,root,base,remainder,hit,halfSpan,strictAperture,tick,cooling,solverComplete,false);
+    }
+    static Attempt prepareCurrent(ServerWorld world,Entity root,D6PortalTransform base,Vec3 remainder,Vec3 hit,double halfSpan,
+                           boolean strictAperture,long tick,Predicate<UUID> cooling){
+        return prepare(world,root,base,remainder,hit,halfSpan,strictAperture,tick,cooling,true,true);
+    }
+    private static Attempt prepare(ServerWorld world,Entity root,D6PortalTransform base,Vec3 remainder,Vec3 hit,double halfSpan,
+                           boolean strictAperture,long tick,Predicate<UUID> cooling,boolean solverComplete,boolean currentVelocity){
+        if(!world.getServer().isOnThread()||base.scale()!=1)return new Attempt(List.of(root),null);
+        var gathered=gather(world,root,cooling);if(!gathered.complete())return new Attempt(gathered.members(),null);
+        var members=new LinkedHashMap<UUID,Entity>();for(var e:gathered.members())members.put(e.getUuid(),e);
+        var bodyIds=new HashSet<Integer>();for(var e:members.values())if(e instanceof BlockBodyEntity b)bodyIds.add(b.getId());
+        var registry=BodyJointRegistry.get(world);
         var actors=new ArrayList<Actor>();var hulls=new ArrayList<Hull>();int count=0,blocks=0;
         for(var e:members.values()){
             if(cooling.test(e.getUuid()))return new Attempt(List.copyOf(members.values()),null);
             if(e instanceof BlockBodyEntity b){blocks+=b.cells().size();if(blocks>MAX_SHAPES)return new Attempt(List.copyOf(members.values()),null);var boxes=b.collider().boxes();count+=boxes.size();hulls.add(new Hull(b,b.physics().snapshot(),b.physics().linearVelocity(),b.physics().angularMomentum(),pure(b.getPos()),b.shapeRevision(),boxes,b.getVehicle(),List.copyOf(b.getPassengerList())));}
-            else{actors.add(capture(e,tick,solverComplete||!bodyIds.isEmpty()));count++;}
+            else{actors.add(capture(e,tick,solverComplete||!bodyIds.isEmpty(),currentVelocity));count++;}
             if(count>MAX_SHAPES)return new Attempt(List.copyOf(members.values()),null);
         }
         // Project real geometry; radius alone rejects a long narrow hull that fits a portal head-on.
@@ -149,11 +167,11 @@ final class PortalTransfer {
         }
         return Double.isFinite(before+after)?new Leading(previous.plus(normal.scaled(before)),now.plus(normal.scaled(after))):null;
     }
-    private static Actor capture(Entity e,long tick,boolean rawItems){
+    private static Actor capture(Entity e,long tick,boolean rawItems,boolean currentVelocity){
         DynamicBodyAttachment.State boarding=e instanceof ServerPlayerEntity p&&!DescentPlayerData.get(p).isEnabled()?BoardingSystem.state(p):null;
         var data=e instanceof ServerPlayerEntity p?DescentPlayerData.get(p):null;boolean flight=data!=null&&data.isEnabled();
         var foot=e instanceof ServerPlayerEntity p&&!flight&&FootGravitySystem.isActive(p)?FootGravitySystem.get(p):null;
-        Vec3 velocity=flight?pure(data.getFlightVelocity()).scaled(.05):boarding!=null?boarding.velocity().scaled(.05):rawItems&&e instanceof ItemEntity?pure(e.getVelocity()):pure(((PortalMotionAccess)e).drmd$portalVelocity(tick));
+        Vec3 velocity=flight?pure(data.getFlightVelocity()).scaled(.05):boarding!=null?boarding.velocity().scaled(.05):currentVelocity||rawItems&&e instanceof ItemEntity?pure(e.getVelocity()):pure(((PortalMotionAccess)e).drmd$portalVelocity(tick));
         return new Actor(e,pure(e.getPos()),velocity,pure(e.getVelocity()),e.getYaw(),e.getPitch(),e.getVehicle(),List.copyOf(e.getPassengerList()),boarding,foot,pure(foot==null?ActorFrames.up(e):foot.up()),pure(e instanceof net.minecraft.entity.player.PlayerEntity?e.getRotationVec(1):e.getRotationVector()),pure(e.getRotationVec(1)),data==null?ZERO:pure(data.shipForward((ServerPlayerEntity)e)),data==null?ZERO:pure(data.shipUp((ServerPlayerEntity)e)),data==null?ZERO:pure(data.getFlightVelocity()),flight);
     }
     private static OrientedBox currentBox(Actor a){
