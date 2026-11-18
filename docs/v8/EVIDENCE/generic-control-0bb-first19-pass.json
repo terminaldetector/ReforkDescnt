@@ -1,0 +1,237 @@
+{
+  "schema": 1,
+  "recorded_utc": "2026-11-18T05:08:52.406807+00:00",
+  "scope": "actual ordinary Fabric STOCK server, generic control receiver/scheduler/assembly; no native client or complete B2 acceptance",
+  "production_source": "d4921ee5fa60048b38fdb328ec3901639dab50e7",
+  "observer_source": "0bb280a8d27e4c1a0e75fd09a79ee6a2e05232ce",
+  "metadata_head_at_runtime": "1463e6eec3f46d3d72393412851b51448d3e9834",
+  "source_main_base": "5057931efce99156ffdc8a195e90b1a926907ed8",
+  "runner_sha256": "7d8515ec35f3cbbdde2e0b395524476ccb51fc0c25cf4860eb4c9a05f4393a49",
+  "init_sha256": "19237acba9d7646bc4fd536fa4345e2160f1d92eaca4ce15f02d46409637e05d",
+  "runtime_inputs_sha256": "a9bb1431c54eb89257d2bdf5d0bfcf4bea7939e2a9308d1e0524d7f7aff3f20b",
+  "namespace_audit_sha256": "5f5483ddcd7ff6d107413f9d0f0b5334eeaa27e63c246d5c1d1e4378fab94cca",
+  "first_game_outcome": {
+    "source": "0bb280a8d27e4c1a0e75fd09a79ee6a2e05232ce",
+    "production_source": "d4921ee5fa60048b38fdb328ec3901639dab50e7",
+    "child_returncode": 0,
+    "timed_out": false,
+    "forced_kill": false,
+    "cases": [
+      "genericcontrolcoregametests.actualuseclaimsthegenericgridandpreservesphysicalstate",
+      "genericcontrolcoregametests.normalbodynbtpreservesphysicsandanunspawnedclonecannotownthecore",
+      "genericcontrolfiregametests.realfiresnapshotsselectlaserrocketandzerowithoutimmediateemission",
+      "genericcontrolcoregametests.removingandreinsertingthesamecorefencestheoldepoch",
+      "genericcontrolcoregametests.arealdetachedcorekeepsmaterialvelocitybutnotthepilotlease",
+      "bodyassemblytransactiongametests.anunsupportedselectedtorchisrejectedbeforeanyownershipmutation",
+      "genericcontrolcoregametests.anunsupportedmotorlayoutcannotcreatehiddenpropulsion",
+      "genericcontrolcoregametests.arealoccluderreachandnonbuildingmoderefuseownership",
+      "bodyassemblytransactiongametests.arealmidcommitdenialrestoressupportandexternaltorchwithoutownersordrops",
+      "genericcontrolfiregametests.aclaimedaacellneverfallsthroughwhiletheunclaimedrocketcanfire",
+      "bodyassemblytransactiongametests.failedrestorationisreportedandcannotretainthetemporarybody",
+      "genericcontrolfiregametests.stalefireandexpiredownershipcannotqueuecatchupshots",
+      "bodyassemblytransactiongametests.multiplepoweredleversononeactualgundonotdropeachother",
+      "genericcontrolfiregametests.releasetoanordinaryleverretainsthesamematerialcooldown",
+      "genericcontrolfiregametests.anactivezerocoreblocksitsleverfallbackbutnotanindependentordinarygun",
+      "bodyassemblytransactiongametests.allsixrealleversupportstransferincallerorderwithoutdrops",
+      "genericcontrolcoregametests.ordinaryworldticksapplythrustandzeroinputdoesnotresetmomentum",
+      "genericcontrolfiregametests.compactandopaqueownershiprefusalscannotbebypassedbyavalidcore",
+      "genericcontrolfiregametests.removingtherealcorebeforetheworldphasecancelsitspendingshot"
+    ],
+    "case_count": 19,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "fresh_xml": true,
+    "classes_unchanged": true,
+    "main_resources_unchanged": true,
+    "source_unchanged": true,
+    "helper_unchanged": true,
+    "verified_first19": true,
+    "new_compilation": false,
+    "native_run": false,
+    "xml_sha256": "fa23ca086fae2e82b90b783ee2346304ad224ae9d3293944d7a3255396c33963",
+    "final_free_bytes": 377044992
+  },
+  "child_exit": {
+    "pid": 184143,
+    "returncode": 0,
+    "closed_utc": "2026-11-18T05:05:39.630888+00:00",
+    "timed_out": false,
+    "forced_kill": false
+  },
+  "accepted_case_groups": {
+    "GenericControlCoreGameTests": 7,
+    "GenericControlFireGameTests": 7,
+    "BodyAssemblyTransactionGameTests": 5
+  },
+  "existing_units": {
+    "source": "d4921ee5fa60048b38fdb328ec3901639dab50e7",
+    "fresh_at_prior_build": 18,
+    "rerun_here": false,
+    "evidence": "generic-assembly-d492-first-build.json"
+  },
+  "actual_probe_summaries": [
+    {
+      "label": "unsupported-selected-torch",
+      "head": 0,
+      "returned": 0,
+      "denied": 0,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "midcommit-external-torch",
+      "head": 3,
+      "returned": 2,
+      "denied": 1,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "rollback-refused",
+      "head": 3,
+      "returned": 1,
+      "denied": 2,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "two-powered-levers",
+      "head": 3,
+      "returned": 3,
+      "denied": 0,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "down/powered=false",
+      "head": 2,
+      "returned": 2,
+      "denied": 0,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "down/powered=true",
+      "head": 2,
+      "returned": 2,
+      "denied": 0,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "up/powered=false",
+      "head": 2,
+      "returned": 2,
+      "denied": 0,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "up/powered=true",
+      "head": 2,
+      "returned": 2,
+      "denied": 0,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "north/powered=false",
+      "head": 2,
+      "returned": 2,
+      "denied": 0,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "north/powered=true",
+      "head": 2,
+      "returned": 2,
+      "denied": 0,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "south/powered=false",
+      "head": 2,
+      "returned": 2,
+      "denied": 0,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "south/powered=true",
+      "head": 2,
+      "returned": 2,
+      "denied": 0,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "west/powered=false",
+      "head": 2,
+      "returned": 2,
+      "denied": 0,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "west/powered=true",
+      "head": 2,
+      "returned": 2,
+      "denied": 0,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "east/powered=false",
+      "head": 2,
+      "returned": 2,
+      "denied": 0,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    },
+    {
+      "label": "east/powered=true",
+      "head": 2,
+      "returned": 2,
+      "denied": 0,
+      "truncated": false,
+      "observed_item_drops_empty": true
+    }
+  ],
+  "historical_firsts_preserved": {
+    "c4_first14": "10PASS/4FAIL assembly refusal before later fire premises; fe79d43f",
+    "d492_first19": "0 cases at IllegalClassLoadError; b94da80d",
+    "world_seal_helper_first": "exclusive lock with rb fd failed before archive; same run world-seal-first-failure.json retained; new helper r+b only, no world-byte writes"
+  },
+  "world_preservation": {
+    "source_world": "/workspace/ungravity-v5/control-core-20261118/build/gametest/world",
+    "file_count": 99,
+    "raw_bytes": 8726942,
+    "archive": "/workspace/ungravity-v5/control-core-20261118/work/b2-assembly-game-0bb280a-package-first19-20261118/closed-first19-world.zip",
+    "archive_bytes": 1154259,
+    "archive_sha256": "2443d317e86df08ea72f939200cc798a80c9d8130e14e78237b77719e688af67",
+    "zip_crc_all_payload_sha256_verified": true,
+    "source_same_file_hash_inode_mtime_verified": true,
+    "exclusive_existing_session_lock_held": true,
+    "raw_world_retained": true,
+    "deletion_performed": false
+  },
+  "unverified": [
+    "whole current canonical regression; unregistered opt-in three test classes",
+    "real client normal key/USE/fire/CoreState/HUD/capability/release lifecycle",
+    "old Sky, mounted, all-AA, joint and UNKNOWN pause runtime regression",
+    "fresh-process world reload/lease nonrestoration; NBT test only in-memory object",
+    "generic child-island weapon/turret steering; mask support remains3",
+    "cubic-world parity, hardware/performance, whole Master/Boarding completion"
+  ],
+  "archive": {
+    "path": "docs/v8/EVIDENCE/generic-control-0bb-first19-pass.zip",
+    "bytes": 1457264,
+    "sha256": "15e043c8ff49115c7ceb70287cdbc55f90064af106b5da85d956321d3ed9f7f9",
+    "payload_members": 32,
+    "manifest_members": 1,
+    "every_payload_sha256_and_crc_verified": true
+  }
+}

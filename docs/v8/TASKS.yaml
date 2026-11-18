@@ -583,11 +583,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id009
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [RAGDOLL_ANGULAR_LIMITS_2026-11-18.md, RAGDOLL_ORDINARY_GATE_FIRST_2026-11-18.md]
+  notes: "Partial implementation: optional rest-frame angular limits and versioned JET wing rig imported at99d2cfca. Separate17 selected units and9 ordinary ragdoll GameTests PASS, including3 new codec scenarios. Canonical full/native, all-family joint limits, off-centre damage and fullCCD remain open."
 - id: S08-T03
   stage: S08
   stage_title: Articulated ragdoll and destructible bodies
@@ -992,11 +992,11 @@ tasks:
   owner: GAMEPLAY
   gate: G5
   depends_on_stages: *id015
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [COMBAT_UNUSED_CLAUSES_505_2026-11-18.md]
+  notes: "Shapes source exists in isolated809bd3c4:26/27 actual GameTests PASS, including all17 unchanged regressions. Natural crossfire attributed-damage case FAIL retained; passive trace found vanilla hurt-window contention. Separate physical-LOS relay364093dc is prepared, unrun. Not integrated or whole-task accepted."
 - id: S14-T03
   stage: S14
   stage_title: Factions, Shapes and mission framework

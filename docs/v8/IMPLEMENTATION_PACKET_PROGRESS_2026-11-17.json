@@ -94,8 +94,8 @@
       ],
       "status": "source_candidate",
       "owner": "combat_ai",
-      "source": "4bfbeb89f48d7114e12096c602fd0c5b8bef908a",
-      "remaining": "Actual separate Shapes CyberMob/Enderman-rig actor, existingLASER/cover/squad hooks and10new+17oldGT are written/frozen4bfb. FIRST27compile/game unrun; actualdamage/naturalfire/identity/ordinaryground required. ActorFrames whitelist/fullwall-ceiling AI/nativeimages remain open.",
+      "source": "809bd3c47b546dcec1d977d9b4a38912caf3fddb",
+      "remaining": "Shapes source exists in isolated809bd3c4:26/27 actual GameTests PASS, including all17 unchanged regressions. Natural crossfire attributed-damage case FAIL retained; passive trace found vanilla hurt-window contention. Separate physical-LOS relay364093dc is prepared, unrun. Not integrated or whole-task accepted.",
       "report": null,
       "acceptedAsWhole": false
     },
@@ -192,11 +192,11 @@
         "S08-T02",
         "S07-T05"
       ],
-      "status": "pending",
+      "status": "partial_source_integrated_pending_combined_full",
       "owner": "gravity_ragdoll",
-      "source": null,
-      "remaining": "Packet remains queued under the pinned original map; existing related code is not reclassified as absent.",
-      "report": null,
+      "source": "99d2cfca",
+      "remaining": "Optional angular limits on existing solver; JET v2 wing rig imported. Separate17 selected units (13 new+4 existing) and9 ordinary ragdoll GameTests PASS (3 new+6 existing); actual same-UUID ordinary-tick restoration. All-family, native, separate-process cold, CCD/friction/sleep/large-death budgets remain open.",
+      "report": "docs/v8/RAGDOLL_ORDINARY_GATE_FIRST_2026-11-18.md",
       "acceptedAsWhole": false
     },
     {
@@ -237,10 +237,10 @@
         "S05-T05",
         "S05-T06"
       ],
-      "status": "source_candidate",
+      "status": "partial_source_integrated_pending_combined_full",
       "owner": "ps1_render",
-      "source": "189299d085ef01910b6b191ca036ed0a1d2d2235",
-      "remaining": "Actual hardtexturedBlockBody vertex snap/affine/default-off controls and9state actualdraw/VBO/texture/index/pixel observer written189299. NinePythonoraclecontrolsPASS; firstcompile/fiveJavaunits/actualABI/native unrun andqueued. Native/Debug/HUD/GUI/viewmodel/offscreen gates retained; fog/lowpoly/pacing/nearSodiumterrain remain distinct.",
+      "source": "5f01a3fa",
+      "remaining": "Optional solid BlockBody PS1 vertex-snap/affine controls imported additively. Isolated5 units and actual nine-state Sodium image gate PASS. Second actual GL32-launched nine-state image oracle PASS, strict backend provenance NONPASS because context sidecar did not arm. Old outcomes retained; fresh observer-only provenance work pending. Near/Sodium terrain, translucent/offscreen styling, low-poly/fog/pacing and hardware matrix remain open.",
       "report": null,
       "acceptedAsWhole": false
     },
@@ -323,8 +323,8 @@
   "updated": "2026-11-18",
   "supplementalLiveProgress": {
     "B2": {
-      "source": "62e94822fd292b72b75bb2a4c01e43cf91d95b29",
-      "state": "Pureboundedforceframemodel+8testsWRITTEN/unrun; genericControlCoreadapterbeingdeveloped, notintegrated"
+      "source": "4c058a4b",
+      "state": "Generic ControlCore and quiet transactional assembly imported; independent source/legacy protocol audit PASS. Isolated18 units and19 GameTests PASS. Canonical full, client control/fire/release and separate cold remain unrun."
     },
     "R1": "pending distinct material/cavity/mesher matrix",
     "R2": "pending independent whole persisted physics/render matrix",
@@ -376,31 +376,51 @@
       "bytes": 3623,
       "sha256": "19b0ced304b176a9f8157846f9c0471eaf4f86c40c5833e5a2b10d0afde26e51",
       "scope": "Source-bound remaining map, not new feature/runtime acceptance"
+    },
+    {
+      "producerRevision": "019cc5ca4793a5c96d05f536761d637eabd71d9d",
+      "path": "docs/v8/WORLD_TWO_SPEC_REMAINING_CLAUSES_2026-11-18.md",
+      "bytes": 7425,
+      "sha256": "f644adc473ecf47d447fa7480e7c2e5f5bf4daad2c52dac56a805730c925be36",
+      "scope": "Original component report/evidence, not relabelled as current canonical runtime"
     }
   ],
   "activeSourceGates": {
     "B2": {
-      "source": "c4b81c4420bca8137e5f6c84baf2fafe95d6bc7b",
+      "production": "d4921ee5fa60048b38fdb328ec3901639dab50e7",
+      "observer": "0bb280a8d27e4c1a0e75fd09a79ee6a2e05232ce",
       "actualUnit": 18,
       "passedUnit": 18,
-      "actualGames": 14,
-      "passedGames": 10,
-      "failedGames": 4,
-      "boundary": "Assemblylever fails before4laterAA/refusal/ordinary/cadencepremises; sourcequiettransaction5dee unrun"
+      "actualGames": 19,
+      "passedGames": 19,
+      "failedGames": 0,
+      "firstFailuresPreserved": [
+        "c4 first14=10/14 lever assembly",
+        "d492 first19 startup IllegalClassLoadError; no actual tests"
+      ],
+      "canonicalImport": "4c058a4b",
+      "boundary": "Combined full and native not run; no whole packet accepted."
     },
     "U06": {
       "source": "809bd3c47b546dcec1d977d9b4a38912caf3fddb",
       "actualGames": 27,
       "passed": 26,
       "failed": 1,
-      "boundary": "All17oldregressionsPASS; naturalwingmansquad attributedDamage unmet, passive2b41547 traceunrun"
+      "boundary": "All17oldregressionsPASS; naturalwingmansquad attributedDamage unmet, passive2b41547 traceunrun",
+      "traceSource": "2b415472",
+      "traceVerdict": "103 Shapes actual hurt attempts/0applied,116 Scout attempts/24applied; normal hurt-window contention, not absent shots",
+      "nextScenario": "364093dc physical Scout cover relay; unrun"
     },
     "U16": {
       "first": "189299d085ef01910b6b191ca036ed0a1d2d2235",
       "corrected": "0553eac45ddeed85a11d2007ecd6a8c3351ec192",
       "mainCompile": "PASS0553",
-      "observerCompile": "FAIL privateIndexGetter0553; transparentactualdrawforwarding sourcepending",
-      "unitTestsExecuted": 0
+      "observerCompile": "PASS eddb995",
+      "unitTestsExecuted": 5,
+      "sodiumNineStateImage": "PASS",
+      "gl32LaunchedNineStateImage": "PASS",
+      "gl32ActualContext": "UNOBSERVED_STRICT_NONPASS_173e8c38",
+      "canonicalImport": "5f01a3fa"
     },
     "cubicLight": {
       "source": "ca307287de31a874283a4ab2a787994b6ccd6217",
@@ -416,6 +436,23 @@
       "boundary": "4cancelcontrolsPASS; actualSpiderREADYdeliveryidleafternexttick, CavefollowingtickUNREACHED",
       "mainCandidate": "15bb9c2a8ae309751eb34352ecfa1363e5e265ef",
       "newMainTests": "7firstunits/remaprunning, nofixednativeyet"
+    },
+    "U13": {
+      "production": "5acde8915ee940b8d2c8086511810f112bbe21bf",
+      "gameSource": "faf732ca11ffbbf295c286fefd74845d393cc939",
+      "selectedUnits": 17,
+      "newUnits": 13,
+      "actualGames": 9,
+      "newGames": 3,
+      "canonicalImport": "99d2cfca",
+      "boundary": "Selected isolated compile/JUnit and ordinary TestServer only, no remap/native/separate cold/full U13."
     }
+  },
+  "canonicalPreparedSource": "5f01a3fa",
+  "preparedSourceNotYetFullRuntimeAccepted": true,
+  "liveLedgerCounts": {
+    "in_progress": 31,
+    "pending_reverification": 65,
+    "completed": 3
   }
 }

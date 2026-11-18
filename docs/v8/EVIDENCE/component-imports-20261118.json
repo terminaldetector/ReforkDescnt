@@ -1,0 +1,65 @@
+[
+  {
+    "producerRevision": "50ddb087fd95082f4b4f0108d47f3e4bab534ae7",
+    "path": "docs/v8/GENERIC_CONTROL_CORE_FIRST19_PASS_2026-11-18.md",
+    "bytes": 5722,
+    "sha256": "5b0829fff0a428f775372852f5c6521c4bbfcb30c03490652090d7085673e36f",
+    "scope": "Original component report/evidence, not relabelled as current canonical runtime"
+  },
+  {
+    "producerRevision": "50ddb087fd95082f4b4f0108d47f3e4bab534ae7",
+    "path": "docs/v8/EVIDENCE/generic-control-0bb-first19-pass.json",
+    "bytes": 8535,
+    "sha256": "cb7972c14990fda52ec91600c09d2673488b5d84048d1ea9815cbfa48d366dcc",
+    "scope": "Original component report/evidence, not relabelled as current canonical runtime"
+  },
+  {
+    "producerRevision": "50ddb087fd95082f4b4f0108d47f3e4bab534ae7",
+    "path": "docs/v8/EVIDENCE/generic-control-0bb-first19-pass.zip",
+    "bytes": 1457264,
+    "sha256": "15e043c8ff49115c7ceb70287cdbc55f90064af106b5da85d956321d3ed9f7f9",
+    "scope": "Original component report/evidence, not relabelled as current canonical runtime"
+  },
+  {
+    "producerRevision": "a1760cd4eafcc678922b5456483d01721cb4c52e",
+    "path": "docs/v8/GENERIC_CORE_CANONICAL_IMPORT_REVIEW_2026-11-18.md",
+    "bytes": 2243,
+    "sha256": "674a3126a5274c24d15445919a7b6dafc797cc8c77567ea3db1cd42c65f0b988",
+    "scope": "Original component report/evidence, not relabelled as current canonical runtime"
+  },
+  {
+    "producerRevision": "3ce2d0e7e7bfee2cd364bc8fd1c6285a6ca8b27a",
+    "path": "docs/v8/RAGDOLL_ANGULAR_LIMITS_2026-11-18.md",
+    "bytes": 7037,
+    "sha256": "00b9b19739f174ce501d9004f7ff7a7ec4cc2a029ce5e0796a8ca6bd721ac15f",
+    "scope": "Original component report/evidence, not relabelled as current canonical runtime"
+  },
+  {
+    "producerRevision": "3ce2d0e7e7bfee2cd364bc8fd1c6285a6ca8b27a",
+    "path": "docs/v8/RAGDOLL_ANGULAR_5ACDE891_FIRST_EVIDENCE_2026-11-18.zip",
+    "bytes": 693683,
+    "sha256": "1e9fa880be9b09d5357fa6148c3a5c96400a0e630857712c4cc6d3bb5a2747e4",
+    "scope": "Original component report/evidence, not relabelled as current canonical runtime"
+  },
+  {
+    "producerRevision": "9937986ab36bd00c52f5cf91089c3da1444dd41a",
+    "path": "docs/v8/RAGDOLL_ORDINARY_GATE_FIRST_2026-11-18.md",
+    "bytes": 5800,
+    "sha256": "442976dc1d7a16d82a9d66c9299749236d2fd5f77adb00e0872f52e031262749",
+    "scope": "Original component report/evidence, not relabelled as current canonical runtime"
+  },
+  {
+    "producerRevision": "9937986ab36bd00c52f5cf91089c3da1444dd41a",
+    "path": "docs/v8/RAGDOLL_ORDINARY_FAF732CA_FIRST_EVIDENCE_2026-11-18.zip",
+    "bytes": 1154982,
+    "sha256": "3730962ab3dba32c839a2771ab8be2bc389cc79cafdfa9fbd303c10e955341c3",
+    "scope": "Original component report/evidence, not relabelled as current canonical runtime"
+  },
+  {
+    "producerRevision": "019cc5ca4793a5c96d05f536761d637eabd71d9d",
+    "path": "docs/v8/WORLD_TWO_SPEC_REMAINING_CLAUSES_2026-11-18.md",
+    "bytes": 7425,
+    "sha256": "f644adc473ecf47d447fa7480e7c2e5f5bf4daad2c52dac56a805730c925be36",
+    "scope": "Original component report/evidence, not relabelled as current canonical runtime"
+  }
+]
