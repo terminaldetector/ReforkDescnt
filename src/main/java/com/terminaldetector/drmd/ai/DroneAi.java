@@ -218,7 +218,9 @@ public final class DroneAi {
 				if (desire.lengthSquared() > 1e-6) desire = desire.normalize();
 			}
 			double maxSpd = DescentMod.su(drone.getRole().speed);
-			drone.setVelocity(navigation.steer(drone.steerFlightVelocity(desire.multiply(maxSpd / 20.0)),ally!=null&&worst<.85f?ally.getBoundingBox().getCenter():pos.add(desire.multiply(16))));
+			var requested=drone.steerFlightVelocity(desire.multiply(maxSpd/20.0));
+            var aim=ally!=null&&worst<.85f?ally.getBoundingBox().getCenter():pos.add(desire.multiply(16));
+            drone.setVelocity(target==null?navigation.quietSupport(requested,aim):navigation.steer(requested,aim));
 			drone.velocityModified = true;
 			alignAttitude(drone, drone.getVelocity(), desire, dt);
 			// Support still snipes if something is already on them.

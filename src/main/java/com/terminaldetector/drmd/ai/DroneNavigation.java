@@ -44,6 +44,11 @@ final class DroneNavigation {
     }
     Vec3d investigate(Vec3d velocity,Vec3d target){return steer(velocity,target,true,true);}
     private Vec3d steer(Vec3d velocity,Vec3d target,boolean seekSight,boolean investigation) {
+        return steer(velocity,target,seekSight,investigation,false);
+    }
+    /** Quiet repair must not rely on vanilla terrain stalls to notice a moving-grid wall. */
+    Vec3d quietSupport(Vec3d velocity,Vec3d target){return steer(velocity,target,false,false,true);}
+    private Vec3d steer(Vec3d velocity,Vec3d target,boolean seekSight,boolean investigation,boolean guardMaterial) {
         if(actor.getWorld().isClient)return velocity;
         currentFrame();
         var centre=actor.getBoundingBox().getCenter();long tick=actor.getWorld().getTime();
@@ -53,7 +58,9 @@ final class DroneNavigation {
             stalled=progress<issued.length()*.5?stalled+1:0;
         }
         if((search!=null||!route.isEmpty())&&(tick>expires||destination.squaredDistanceTo(target)>64))cancel(tick,2);
-        Vec3d result=velocity;
+        boolean directBlocked=guardMaterial&&!FlightRouteSpace.clearMovement(drone,velocity);
+        if(directBlocked)stalled=Math.max(stalled,3);
+        Vec3d result=directBlocked?Vec3d.ZERO:velocity;
         Vec3d separation=DroneSwarmAi.closeSeparation(drone);
         if(!route.isEmpty()) {
             while(index<route.size()&&space.point(route.get(index)).squaredDistanceTo(centre)<.0004)index++;
@@ -71,7 +78,7 @@ final class DroneNavigation {
             }
         }
         if(search!=null) {
-            if(!budget().begin(actor.getUuid(),tick)){cancel(tick,4);previous=centre;issued=velocity;return velocity;}
+            if(!budget().begin(actor.getUuid(),tick)){cancel(tick,4);var fallback=directBlocked?Vec3d.ZERO:velocity;previous=centre;issued=fallback;return fallback;}
             search.step(budget().take(actor.getUuid(),tick));
             if(search.status()==BoundedFlightPath.Status.FOUND) {
                 route=search.path();trace("found "+route);index=0;search=null;budget().release(actor.getUuid());
@@ -81,7 +88,7 @@ final class DroneNavigation {
             if(budget().begin(actor.getUuid(),tick)) {
                 destination=target;sightRoute=seekSight;space=new FlightRouteSpace(drone);
                 var anchor=space.point(new BoundedFlightPath.Cell(0,0,0));
-                if(!space.clearActual(anchor.subtract(centre))){cancel(tick,20);previous=centre;issued=velocity;return velocity;}
+                if(!space.clearActual(anchor.subtract(centre))){cancel(tick,20);var fallback=directBlocked?Vec3d.ZERO:velocity;previous=centre;issued=fallback;return fallback;}
                 var delta=target.subtract(anchor);if(delta.length()>24)delta=delta.normalize().multiply(24);
                 expires=tick+200;
                 var goal=new BoundedFlightPath.Cell((int)Math.round(delta.x),(int)Math.round(delta.y),(int)Math.round(delta.z));
@@ -94,6 +101,9 @@ final class DroneNavigation {
             if(FlightRouteSpace.clearMovement(drone,adjusted))result=adjusted;
             else{var escape=separation.multiply(Math.min(.12,speed*.4));if(FlightRouteSpace.clearMovement(drone,escape))result=escape;}
         }
+        // The same loaded full-volume sweep validates a waypoint/separation result too.
+        // This is an AI command refusal, not a new contact solver or an actor pose correction.
+        if(guardMaterial&&!FlightRouteSpace.clearMovement(drone,result))result=Vec3d.ZERO;
         previous=centre;issued=result;return result;
     }
     private void trace(String message){if(TRACE)com.terminaldetector.drmd.DescentMod.LOGGER.info("[drmd route] {} role={} pos={} stalled={}",message,drone.getRole().id,actor.getPos(),stalled);}
