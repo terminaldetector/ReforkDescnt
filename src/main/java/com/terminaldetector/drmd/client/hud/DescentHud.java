@@ -507,52 +507,50 @@ public final class DescentHud {
 		return y + h;
 	}
 
-	private static int drawWeapons(DrawContext ctx, MinecraftClient mc, int x, int y, int w) {
-		// Concept-style armament list: held primary + rocket / mine inventory counts.
-		int h = 78;
-		panel(ctx, x, y, w, h);
-		line(ctx, mc, x + 4, y + 4, "WEAPONS", GREEN);
-		ItemStack held = mc.player.getMainHandStack();
-		String heldName = "—";
-		boolean heldOpen = false;
-		if (held.getItem() instanceof DescentWeaponItem dwi) {
-			var entry = ArsenalCatalog.get(dwi.getDef().id);
-			heldName = entry != null ? entry.hudSlot() : dwi.getDef().displayName;
-			heldOpen = entry != null;
-		}
-		line(ctx, mc, x + 4, y + 15, "1. " + heldName, heldOpen ? GREEN : GREEN_DIM);
-		String nrg = String.format(Locale.ROOT, "%03d", (int) MathHelper.clamp(DescentClientState.energy, 0f, 999f));
-		line(ctx, mc, x + w - 4 - mc.textRenderer.getWidth(nrg), y + 15, nrg, CYAN);
-
-		int rockets = countAll(mc, ArsenalCatalog.hudMissileOrder());
-		int mines = countAll(mc, ArsenalCatalog.hudMineOrder());
-		int bombs = countAll(mc, bombItems());
-		String[] names = {"2. ROCKETS", "3. MINES", "4. BOMB", "5. SHIELD"};
-		String[] counts = {
-				String.format(Locale.ROOT, "%02d", Math.min(99, rockets)),
-				String.format(Locale.ROOT, "%02d", Math.min(99, mines)),
-				String.format(Locale.ROOT, "%02d", Math.min(99, bombs)),
-				String.format(Locale.ROOT, "%02d", Math.min(99, countAll(mc, new Item[]{ModItems.SHIELD_ORB})))
-		};
-		ItemStack main = held;
-		int selected = 0;
-		if (main.getItem() instanceof DescentWeaponItem dwi) {
-			// Ask the catalog which bank this is rather than reading the id: the secondaries carry
-			// their canon names now, and none of Concussion, Flash or Mercury spells "rocket_".
-			var heldEntry = ArsenalCatalog.get(dwi.getDef().id);
-			if (heldEntry != null) {
-				if (heldEntry.family() == ArsenalCatalog.Family.ROCKET) selected = 1;
-				else if (heldEntry.family() == ArsenalCatalog.Family.MINE) selected = 2;
-			}
-		} else if (main.getItem() instanceof BombardmentItems.BombBayItem) selected = 3;
-		for (int i = 0; i < names.length; i++) {
-			int color = (i + 1) == selected ? GREEN : GREEN_DIM;
-			line(ctx, mc, x + 4, y + 26 + i * 11, names[i], color);
-			int cw = mc.textRenderer.getWidth(counts[i]);
-			line(ctx, mc, x + w - 4 - cw, y + 26 + i * 11, counts[i], color);
-		}
-		return y + h;
-	}
+    private static String armamentName(ItemStack stack){
+        if(stack.isEmpty())return "—";
+        if(stack.getItem() instanceof DescentWeaponItem weapon){
+            var entry=ArsenalCatalog.get(weapon.getDef().id);
+            return entry==null?weapon.getDef().displayName:entry.hudSlot();
+        }
+        if(stack.getItem() instanceof BombardmentItems.BombBayItem bomb&&bomb.programmable()){
+            var program=bomb.program(stack);
+            return (bomb.getOrdnance().heavyCluster?"H.CL ":"CL ")+program.map(p->p.pattern().name()).orElse("?");
+        }
+        return stack.getName().getString();
+    }
+    private static String armamentResource(ItemStack stack){
+        if(stack.isEmpty())return "—";
+        if(stack.getItem() instanceof DescentWeaponItem)return "E"+(int)MathHelper.clamp(DescentClientState.energy,0,999);
+        return String.format(Locale.ROOT,"%02d",Math.min(99,stack.getCount()));
+    }
+    private static int activeBank(MinecraftClient mc){
+        if(com.terminaldetector.drmd.client.input.DescentKeybinds.auxiliary.isPressed())return 2;
+        return mc.options.useKey.isPressed()?1:0;
+    }
+    private static ItemStack shownArmament(MinecraftClient mc){
+        return com.terminaldetector.drmd.client.input.DroneCombatInput.weapon(mc,activeBank(mc));
+    }
+    private static int drawWeapons(DrawContext ctx,MinecraftClient mc,int x,int y,int w){
+        int h=78;panel(ctx,x,y,w,h);line(ctx,mc,x+4,y+4,"WEAPONS",GREEN);
+        var keys=new net.minecraft.client.option.KeyBinding[]{mc.options.attackKey,mc.options.useKey,com.terminaldetector.drmd.client.input.DescentKeybinds.auxiliary};
+        for(int bank=0;bank<3;bank++){
+            var stack=com.terminaldetector.drmd.client.input.DroneCombatInput.weapon(mc,bank);
+            String resource=armamentResource(stack);int width=mc.textRenderer.getWidth(resource);
+            int color=com.terminaldetector.drmd.inventory.DroneArsenal.supported(stack)?(activeBank(mc)==bank?GREEN:CYAN):GREEN_DIM;
+            String label=keys[bank].getBoundKeyLocalizedText().getString()+" "+armamentName(stack);
+            line(ctx,mc,x+4,y+15+11*bank,clip(mc,label,w-width-14),color);
+            line(ctx,mc,x+w-4-width,y+15+11*bank,resource,color);
+        }
+        String[] names={"BOMB RESERVE","SHIELD"};
+        int[] counts={countAll(mc,bombItems()),countAll(mc,new Item[]{ModItems.SHIELD_ORB})};
+        for(int i=0;i<2;i++){
+            String count=String.format(Locale.ROOT,"%02d",Math.min(99,counts[i]));
+            line(ctx,mc,x+4,y+48+11*i,clip(mc,names[i],w-mc.textRenderer.getWidth(count)-14),GREEN_DIM);
+            line(ctx,mc,x+w-4-mc.textRenderer.getWidth(count),y+48+11*i,count,GREEN_DIM);
+        }
+        return y+h;
+    }
 
 	private static int drawDefense(DrawContext ctx, MinecraftClient mc, int x, int y, int w) {
 		int h = 74;
@@ -607,7 +605,7 @@ public final class DescentHud {
 	/** Card for whatever is in hand: real ordnance or weapon stats, never invented numbers. */
 	private static void drawOrdnanceCard(DrawContext ctx, MinecraftClient mc, int x, int y, int w) {
 		int h = 58;
-		ItemStack held = mc.player.getMainHandStack();
+		ItemStack held = shownArmament(mc);
 		panel(ctx, x, y, w, h);
 		if (held.getItem() instanceof BombardmentItems.BombBayItem bomb) {
 			OrdnanceType o = bomb.getOrdnance();
@@ -619,7 +617,8 @@ public final class DescentHud {
 					: o.cluster ? "CLUSTER SPREAD"
 					: o.rocket ? "ROCKET STRIKE"
 					: o.incendiary ? "INCENDIARY" : "AREA DAMAGE", GREEN);
-			line(ctx, mc, x + 4, y + 26, "BLAST: " + (o.blastPower >= 1.2f ? "HIGH"
+			if(bomb.programmable())line(ctx,mc,x+4,y+26,bomb.program(held).map(p->p.pattern().name()+" / "+p.stages()).orElse("PROGRAM UNAVAILABLE"),GREEN);
+            else line(ctx, mc, x + 4, y + 26, "BLAST: " + (o.blastPower >= 1.2f ? "HIGH"
 					: o.blastPower >= 0.8f ? "MEDIUM" : "LOW"), GREEN);
 			line(ctx, mc, x + 4, y + 36, String.format(Locale.ROOT, "RADIUS: %.0fm", o.blastPower * 8f), GREEN);
 			line(ctx, mc, x + 4, y + 46, String.format(Locale.ROOT, "COUNT: %02d", held.getCount()), GREEN);
@@ -864,20 +863,16 @@ public final class DescentHud {
 		return bombItems;
 	}
 
-	private static int countAll(MinecraftClient mc, Item[] items) {
-		var inv = mc.player.getInventory();
-		int n = 0;
-		for (int i = 0; i < inv.size(); i++) {
-			ItemStack stack = inv.getStack(i);
-			for (Item item : items) {
-				if (item != null && stack.isOf(item)) {
-					n += stack.getCount();
-					break;
-				}
-			}
-		}
-		return n;
-	}
+    private static int countAll(MinecraftClient mc,Item[] items){
+        // Both are real inventories. Count an aliased physical stack only once.
+        var seen=java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<ItemStack,Boolean>());
+        int total=0;var inventories=java.util.List.of(mc.player.getInventory(),com.terminaldetector.drmd.inventory.DroneLoadout.of(mc.player));
+        for(var inventory:inventories)for(int i=0;i<inventory.size();i++){
+            var stack=inventory.getStack(i);if(stack.isEmpty()||!seen.add(stack))continue;
+            for(var item:items)if(item!=null&&stack.isOf(item)){total+=stack.getCount();break;}
+        }
+        return total;
+    }
 
 	// =============================================================== primitives
 

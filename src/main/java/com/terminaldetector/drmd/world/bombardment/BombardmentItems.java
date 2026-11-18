@@ -47,13 +47,26 @@ public final class BombardmentItems {
 			return ordnance;
 		}
         public boolean programmable(){return ordnance==OrdnanceType.CLUSTER||ordnance==OrdnanceType.HEAVY_CLUSTER;}
-        @Override public void appendTooltip(ItemStack stack,Item.TooltipContext context,java.util.List<Text> tooltip,net.minecraft.item.tooltip.TooltipType kind){super.appendTooltip(stack,context,tooltip,kind);if(programmable()){tooltip.add(Text.translatable("item.drmd.cluster_controls"));tooltip.add(Text.translatable("item.drmd.cluster_select"));}}
+        /** One read-only decoder shared by the actual launch, tooltip and cockpit display. */
+        public java.util.Optional<ClusterProgram> program(ItemStack stack){
+            if(!programmable())return java.util.Optional.empty();
+            var custom=stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
+            var raw=custom.get(ClusterFlight.ITEM_KEY);
+            return raw==null?java.util.Optional.of(ClusterProgram.preset(ClusterProgram.Pattern.FAN)):ClusterFlight.readProgram(raw);
+        }
+        @Override public void appendTooltip(ItemStack stack,Item.TooltipContext context,java.util.List<Text> tooltip,net.minecraft.item.tooltip.TooltipType kind){
+            super.appendTooltip(stack,context,tooltip,kind);
+            if(programmable()){
+                tooltip.add(program(stack).map(p->Text.translatable("message.drmd.cluster_program",Text.translatable("cluster.drmd."+p.pattern().name().toLowerCase(java.util.Locale.ROOT)))).orElseGet(()->Text.translatable("message.drmd.cluster_program_refused")));
+                tooltip.add(Text.translatable("item.drmd.cluster_controls"));tooltip.add(Text.translatable("item.drmd.cluster_select"));
+            }
+        }
         public TypedActionResult<ItemStack> useBank(World world,PlayerEntity user,Hand hand,int channel){return channel==0&&programmable()?launchProgram(world,user,hand,true):use(world,user,hand);}
         private TypedActionResult<ItemStack> launchProgram(World world,PlayerEntity user,Hand hand,boolean forward){
             var stack=user.getStackInHand(hand);if(world.isClient)return TypedActionResult.success(stack);
             if(!(world instanceof ServerWorld sw)||!(user instanceof ServerPlayerEntity player)||!player.isAlive()||player.isSpectator()||!player.getAbilities().allowModifyWorld||player.getItemCooldownManager().isCoolingDown(this))return TypedActionResult.fail(stack);
-            var custom=stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();var raw=custom.get(ClusterFlight.ITEM_KEY);
-            var decoded=raw==null?java.util.Optional.of(ClusterProgram.preset(ClusterProgram.Pattern.FAN)):ClusterFlight.readProgram(raw);
+            var custom=stack.getOrDefault(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,net.minecraft.component.type.NbtComponent.DEFAULT).copyNbt();
+            var decoded=program(stack);
             if(decoded.isEmpty()){user.sendMessage(Text.translatable("message.drmd.cluster_program_refused"),true);return TypedActionResult.fail(stack);}var program=decoded.get();
             if(!forward&&user.isSneaking()){program=program.next();custom.put(ClusterFlight.ITEM_KEY,ClusterFlight.writeProgram(program));stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_DATA,net.minecraft.component.type.NbtComponent.of(custom));player.getItemCooldownManager().set(this,4);user.sendMessage(Text.translatable("message.drmd.cluster_program",Text.translatable("cluster.drmd."+program.pattern().name().toLowerCase(java.util.Locale.ROOT))),true);return TypedActionResult.success(stack);}
             var data=DescentPlayerData.get(user);var f=com.terminaldetector.drmd.weapon.core.WeaponCore.aimDir(user).normalize();var up=data.shipUp(user).normalize();var down=up.negate();
