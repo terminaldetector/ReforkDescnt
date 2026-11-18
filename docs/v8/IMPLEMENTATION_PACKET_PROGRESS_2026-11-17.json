@@ -224,8 +224,8 @@
       ],
       "status": "partial_integrated_focused_pass",
       "owner": "world_cubic with ragdoll_limits",
-      "source": "c52379866b0f2e4d2ab23bf7f35607a90b796ce5",
-      "remaining": "Initial8650 portal/ragdoll/display/thermal16unit+44GT PASS. Follow-up c52336portalGT PASS, including actual saved unknown-exit unload/reload, retained crossing/current momentum/retreat cancel, fresh-spawn and atomic per-face refusal. All4 dedicated live-drone cases on0f723 fail and are retained; head capture fixed259 source-only. Native BCC/client warp and full packet remain open.",
+      "source": "a415729b58ab30497462bc23e8811365ee6b602e",
+      "remaining": "Initial8650 scoped16unit/44GT PASS; c52336portalGT PASS for genuine cold-exit crossing/retreat and atomic refusal; corrected3874liveDrone GT PASS after retained original4FAIL. Actuala415 integrated native BCC/Sodium held-forward6DoF20degree transit PASS with server/client frame agreement and2realPNGs. Native shipgroups/drone interpolation/MP/performance/fullpacket remain open.",
       "report": "docs/v8/IMPLEMENTATION_PORTAL_TREES_2026-11-18.md",
       "acceptedAsWhole": false
     },
@@ -520,7 +520,7 @@
       "performanceAccepted": false
     }
   },
-  "canonicalPreparedSource": "259062bd",
+  "canonicalPreparedSource": "a415729b58ab30497462bc23e8811365ee6b602e",
   "preparedSourceNotYetFullRuntimeAccepted": true,
   "liveLedgerCounts": {
     "completed": 3,
@@ -546,5 +546,12 @@
       "state": "requested_future_work_not_recorded",
       "immediatePriorityUnchanged": "Native portal traversal"
     }
-  ]
+  ],
+  "latestFocusedSnapshot": {
+    "source": "a415729b58ab30497462bc23e8811365ee6b602e",
+    "build": "https://t.me/abadonsoft/284",
+    "report": "docs/v8/IMPLEMENTATION_PORTAL_TREES_2026-11-18.md",
+    "nativeCases": 1,
+    "fullSuiteRerun": false
+  }
 }

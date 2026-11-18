@@ -116,9 +116,71 @@
     "path": "docs/v8/EVIDENCE/portal-thermal-focused-8650bf80-first-20261118.zip",
     "sha256": "2155fc3c7a2bd5358f1766681deadda6fbcabb17911aa76ebeef7f034cbbc66c"
   },
-  "currentUnrunHeadCaptureSource": "259062bd",
-  "newNativeClientAccepted": false,
+  "newNativeClientAccepted": true,
   "fullSuiteAccepted": false,
   "wholePacketsAccepted": 0,
-  "readySnapshotPublished": false
+  "readySnapshotPublished": true,
+  "correctedDrone": {
+    "source": "38726a09946c99cd5ef61e4fa5138f115dbf5f6c",
+    "actualGradleExit": 0,
+    "timedOut": false,
+    "game": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "unitsRun": 0,
+    "fullSuiteAccepted": false,
+    "nativeClientAccepted": false,
+    "passed": true,
+    "jarSHA256": "874c8812d2a47c3abbd23349f48c455cc385591e078405c6570c8a67790c781d",
+    "observerSHA256": "86e0227e87eb8c07edfeeadfff1fc633fdd9ed0aae90d3192e97ed411a1ff1aa",
+    "closedWorldPreservation": {
+      "source": "38726a09946c99cd5ef61e4fa5138f115dbf5f6c",
+      "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/focused-38726a09-first/closed-world.zip",
+      "archiveSHA256": "033a310fd318e7122e272b2014cd6389a9b692a522613acca545b39f7a919804",
+      "archiveBytes": 807194,
+      "files": 35,
+      "originalBytes": 7553885,
+      "allocatedBytes": 7655424,
+      "fullZIPCRCAndEverySHA256": true,
+      "gzipFooters": 8,
+      "freshInodeMtimeHashInventory": true,
+      "exclusivePosixAndFlock": true,
+      "sessionLockReadOnlyThroughHeldFD": true,
+      "beforeFreeBytes": 314826752,
+      "rawWorldReclaimed": true,
+      "afterFreeBytes": 321757184
+    }
+  },
+  "native": {
+    "source": "a415729b58ab30497462bc23e8811365ee6b602e",
+    "receipt": {
+      "javaExit": 0,
+      "observerStatus": "PASS",
+      "passed": true,
+      "closedNs": 1795009997364117039,
+      "newFullSuiteAccepted": false,
+      "droneClientInterpolationAccepted": false,
+      "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-portal-transit-a415729b-sodium-first"
+    },
+    "outcome": "work/multi-agent/native-transit-a415729b-first/observed/portal-transit-outcome.json",
+    "bankDegrees": 20,
+    "serverSamples": 204,
+    "clientSamples": 246,
+    "gameSHA256": "4b7d314335edbcb63e59bba014a2f96c37d4fd5bad3c0bd140bb87041bb48a17",
+    "observerSHA256": "184e4d20b00e033f6d3f329e992525f3e4b7b3368712b40c29db606ec6f3fbbf"
+  },
+  "publishedBuild": "https://t.me/abadonsoft/284",
+  "scopedArchive": {
+    "path": "docs/v8/EVIDENCE/portal-tree-a415729b-scoped-20261118.zip",
+    "bytes": 10107516,
+    "sha256": "b6413615ec6381feaf3a974d535b3e636b4ff8d490cc465adad81d22c7854f8d",
+    "payloads": 111,
+    "sourcePostimages": 56,
+    "allOuterCRCAndPayloadSHA256": true,
+    "sourceBase": "b8f24500"
+  },
+  "droneNativeInterpolationAccepted": false
 }

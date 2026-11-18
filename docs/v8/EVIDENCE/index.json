@@ -4055,6 +4055,29 @@
     "lastPassedRemappedSource": "c52379866b0f2e4d2ab23bf7f35607a90b796ce5",
     "latestFirstFailureSource": "0f723c45199dea1cf09196d165285e341e32fc73",
     "firstFailureRetained": true,
-    "newNativeClientAccepted": false
+    "newNativeClientAccepted": true,
+    "correctedDroneSource": "38726a09946c99cd5ef61e4fa5138f115dbf5f6c",
+    "correctedDroneGames": 4,
+    "finalSource": "a415729b58ab30497462bc23e8811365ee6b602e",
+    "finalGameSHA256": "4b7d314335edbcb63e59bba014a2f96c37d4fd5bad3c0bd140bb87041bb48a17",
+    "archive": {
+      "path": "docs/v8/EVIDENCE/portal-tree-a415729b-scoped-20261118.zip",
+      "bytes": 10107516,
+      "sha256": "b6413615ec6381feaf3a974d535b3e636b4ff8d490cc465adad81d22c7854f8d",
+      "payloads": 111,
+      "sourcePostimages": 56,
+      "allOuterCRCAndPayloadSHA256": true,
+      "sourceBase": "b8f24500"
+    },
+    "fullSuiteRerun": false
+  },
+  "telegramSnapshotA415729b": {
+    "source": "a415729b58ab30497462bc23e8811365ee6b602e",
+    "gameSHA256": "4b7d314335edbcb63e59bba014a2f96c37d4fd5bad3c0bd140bb87041bb48a17",
+    "receipt": "docs/v8/EVIDENCE/telegram-abadonsoft-a415729b.json",
+    "build": "https://t.me/abadonsoft/284",
+    "photos": "https://t.me/abadonsoft/282",
+    "changelog": "https://t.me/abadonsoft/281",
+    "scope": "Focused development snapshot plus one real native6DoF portal traversal; full specifications and fullsuite remain open."
   }
 }
