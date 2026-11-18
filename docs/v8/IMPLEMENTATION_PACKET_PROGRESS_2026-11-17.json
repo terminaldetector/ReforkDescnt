@@ -536,5 +536,14 @@
     "Create-style separate gun, bearing and drive"
   ],
   "latestFocusedEvidence": "docs/v8/EVIDENCE/focused-92b6da2e.json",
-  "validationPreference": "User prioritizes concrete implementation and focused checks on actual changes over diagnostic-only loops; portal traversal first."
+  "validationPreference": "User prioritizes concrete implementation and focused checks on actual changes over diagnostic-only loops; portal traversal first.",
+  "directFutureRequests": [
+    {
+      "date": "2026-11-18",
+      "request": "Actual rocket/bomb building and tree destruction demonstration with Teardown visual reference",
+      "plan": "docs/v8/DESTRUCTION_DEMO_REQUEST_2026-11-18.md",
+      "state": "requested_future_work_not_recorded",
+      "immediatePriorityUnchanged": "Native portal traversal"
+    }
+  ]
 }
