@@ -23,6 +23,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.client.util.ScreenshotRecorder;
+import net.minecraft.entity.Entity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.*;
@@ -54,11 +55,13 @@ public final class NativeConnectedPortalCheck {
     private static final List<Map<String,Object>> DRAW=new ArrayList<>();
     private NativeConnectedPortalCheck(){}
     public static void register(){boot=System.nanoTime();ServerTickEvents.END_SERVER_TICK.register(NativeConnectedPortalCheck::server);ClientTickEvents.END_CLIENT_TICK.register(c->{try{tick(c);}catch(Throwable error){finish(c,"FAIL","client observer: "+error);}});}
+    /** Explicit Minecraft owner keeps inherited Entity members remappable in this optional source set. */
+    private static Entity entity(BlockBodyEntity body){return body;}
     private static Vec3 p(Vec3d v){return new Vec3(v.x,v.y,v.z);}private static Vec3d mc(Vec3 v){return new Vec3d(v.x(),v.y(),v.z());}
     private static void require(boolean condition,String reason){if(!condition)throw new IllegalStateException(reason);}
     private static boolean loaded(World w){var access=WorldAccess.of(w);if(access.backend()!=CubicAvailability.Backend.NATIVE_CUBIC)return false;
         for(int x=0;x<=2;x++)for(int y=134;y<=135;y++)for(int z=-1;z<=1;z++)if(!access.isVolumeAvailable(new D6ChunkPos(x,y,z)))return false;return true;}
-    private static Hull hull(BlockBodyEntity b){return new Hull(b.getUuid(),b.getId(),b.massPosition(),b.rotation(),b.physics().linearVelocity(),b.physics().angularMomentum(),b.physics().accumulatedForce(),b.physics().accumulatedTorque(),b.shapeRevision(),loaded(b.getWorld()));}
+    private static Hull hull(BlockBodyEntity b){return new Hull(entity(b).getUuid(),entity(b).getId(),b.massPosition(),b.rotation(),b.physics().linearVelocity(),b.physics().angularMomentum(),b.physics().accumulatedForce(),b.physics().accumulatedTorque(),b.shapeRevision(),loaded(entity(b).getWorld()));}
     private static void server(MinecraftServer server){
         if(!ENABLED||finished||playerId==null||failure!=null)return;
         try{
@@ -77,21 +80,21 @@ public final class NativeConnectedPortalCheck {
                 var cells=new ArrayList<BlockBodyEntity.Cell>();for(int x=0;x<2;x++)for(int z=0;z<2;z++)cells.add(new BlockBodyEntity.Cell(new BlockPos(x,0,z),Blocks.IRON_BLOCK.getDefaultState()));
                 root=BlockBodyEntity.createLocal(w,cells,new Vec3d(5,2155,-1));
                 child=BlockBodyEntity.createLocal(w,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.GOLD_BLOCK.getDefaultState()),new BlockBodyEntity.Cell(new BlockPos(0,0,1),Blocks.GOLD_BLOCK.getDefaultState())),new Vec3d(7,2155,-1));
-                root.setPhysicsGravity(false);child.setPhysicsGravity(false);root.setPassengerGravity(new Vec3(0,-.5,0));rootId=root.getId();childId=child.getId();
-                link=new BodyJointLink(UUID.randomUUID(),new BodyJointLink.Endpoint(root.getUuid(),new BlockPos(1,0,0),new Vec3(2,.5,.5),Quat.IDENTITY),
-                    new BodyJointLink.Endpoint(child.getUuid(),BlockPos.ORIGIN,new Vec3(0,.5,.5),Quat.IDENTITY),BodyJointConstraint.Kind.FIXED,0,0,0,0,10000,10000,false);
+                root.setPhysicsGravity(false);child.setPhysicsGravity(false);root.setPassengerGravity(new Vec3(0,-.5,0));rootId=entity(root).getId();childId=entity(child).getId();
+                link=new BodyJointLink(UUID.randomUUID(),new BodyJointLink.Endpoint(entity(root).getUuid(),new BlockPos(1,0,0),new Vec3(2,.5,.5),Quat.IDENTITY),
+                    new BodyJointLink.Endpoint(entity(child).getUuid(),BlockPos.ORIGIN,new Vec3(0,.5,.5),Quat.IDENTITY),BodyJointConstraint.Kind.FIXED,0,0,0,0,10000,10000,false);
                 BodyJointRegistry.get(w).add(w,root,child,link);spawnedTick=server.getTicks();placed=true;
                 System.out.println("CONNECTED_PORTAL_AUTHORED worldBlocks=11 localCells=6 actualJoint="+link+" localGravity=0.5");
             }
-            require(!root.isRemoved()&&!child.isRemoved(),"authored hull actually removed before/after native entity admission");
+            require(!entity(root).isRemoved()&&!entity(child).isRemoved(),"authored hull actually removed before/after native entity admission");
             if(!admitted){
-                boolean ready=true;for(var body:List.of(root,child)){var uuidEntry=w.getEntity(body.getUuid());var idEntry=w.getEntityById(body.getId());
+                boolean ready=true;for(var body:List.of(root,child)){var uuidEntry=w.getEntity(entity(body).getUuid());var idEntry=w.getEntityById(entity(body).getId());
                     require((uuidEntry==null||uuidEntry==body)&&(idEntry==null||idEntry==body),"native entity index contains a different identity");ready&=uuidEntry==body&&idEntry==body;}
                 require(server.getTicks()-spawnedTick<=120,"observer entity-index admission premise absent after120ordinary server ticks; material FULL alone is insufficient");
                 if(!ready)return;admitted=true;player.getAbilities().flying=false;player.sendAbilitiesUpdate();ModNetworking.syncPlayer(player,DescentPlayerData.get(player));
                 System.out.println("CONNECTED_PORTAL_ENTITY_ADMITTED elapsedTicks="+(server.getTicks()-spawnedTick)+" UUIDandID=true viewerFlying=false");
             }
-            require(w.getEntity(root.getUuid())==root&&w.getEntityById(rootId)==root&&w.getEntity(child.getUuid())==child&&w.getEntityById(childId)==child,"original admitted hull index identities required");
+            require(w.getEntity(entity(root).getUuid())==root&&w.getEntityById(rootId)==root&&w.getEntity(entity(child).getUuid())==child&&w.getEntityById(childId)==child,"original admitted hull index identities required");
             require(BodyJointRegistry.get(w).find(link.id()).filter(link::equals).isPresent(),"original material joint disappeared or changed");
             var attachment=BoardingSystem.state(player);
             if(launchRequested&&!launched){require(attachment!=null&&attachment.grounded()&&attachment.support()==rootId&&!DescentPlayerData.get(player).isEnabled()&&!player.getAbilities().flying,"launch requires real occupied walking contact");
@@ -118,11 +121,11 @@ public final class NativeConnectedPortalCheck {
     }
     /** Passive observations around the existing real body method. No engine call/pose is supplied by this hook. */
     public static void crossing(BlockBodyEntity body,D6PortalTransform transform,boolean after){
-        if(!ENABLED||finished||failure!=null||body.getWorld().isClient||body.getId()!=rootId&&body.getId()!=childId)return;
-        try{require(body.getWorld() instanceof net.minecraft.server.world.ServerWorld,"server body required");var w=(net.minecraft.server.world.ServerWorld)body.getWorld();
+        if(!ENABLED||finished||failure!=null||entity(body).getWorld().isClient||entity(body).getId()!=rootId&&entity(body).getId()!=childId)return;
+        try{require(entity(body).getWorld() instanceof net.minecraft.server.world.ServerWorld,"server body required");var w=(net.minecraft.server.world.ServerWorld)entity(body).getWorld();
             require(w.getServer().isOnThread(),"owner-thread transfer observation required");var player=w.getServer().getPlayerManager().getPlayer(playerId);require(player!=null,"live occupant required");
-            if(!after){require(!OPEN.containsKey(body.getUuid())&&CROSSED.stream().noneMatch(c->c.after.uuid.equals(body.getUuid())),"duplicate/nested body transfer");OPEN.put(body.getUuid(),new Before(w.getServer().getTicks(),transform,hull(body),p(player.getPos()),BoardingSystem.state(player)));return;}
-            var before=OPEN.remove(body.getUuid());require(before!=null&&before.transform.equals(transform),"missing same-invocation before sample");var actual=hull(body);var old=before.hull;
+            if(!after){require(!OPEN.containsKey(entity(body).getUuid())&&CROSSED.stream().noneMatch(c->c.after.uuid.equals(entity(body).getUuid())),"duplicate/nested body transfer");OPEN.put(entity(body).getUuid(),new Before(w.getServer().getTicks(),transform,hull(body),p(player.getPos()),BoardingSystem.state(player)));return;}
+            var before=OPEN.remove(entity(body).getUuid());require(before!=null&&before.transform.equals(transform),"missing same-invocation before sample");var actual=hull(body);var old=before.hull;
             require(old.uuid.equals(actual.uuid)&&old.id==actual.id&&old.revision==actual.revision,"body identity or geometry recreated");
             require(actual.p.minus(transform.transformPoint(old.p)).length()<1e-8&&nearQuat(actual.q,transform.transformOrientation(old.q),1e-10),"physical COM/orientation rigid map mismatch");
             require(actual.v.minus(transform.transformVelocity(old.v)).length()<1e-8&&actual.l.minus(transform.transformAngularMomentum(old.l)).length()<1e-8,"physical linear/angular momentum map mismatch");
@@ -143,7 +146,7 @@ public final class NativeConnectedPortalCheck {
         var sample=new LinkedHashMap<String,Object>();sample.put("tick",ticks);sample.put("phase",phase);sample.put("p",p(c.player.getPos()));sample.put("attachment",state);sample.put("epoch",BoardingClient.epoch());sample.put("forwardHeld",c.options.forwardKey.isPressed());sample.put("hulls",clientHulls(c));CLIENT.add(sample);
         if(phase==0){
             if(!placed||authority==null||!loaded(c.world)||state==null||!state.grounded()||state.support()!=rootId||!BoardingClient.drives(c.player)||authority.attachment==null||!authority.attachment.grounded()||authority.attachment.support()!=rootId)return;
-            if(!(c.world.getEntityById(rootId) instanceof BlockBodyEntity a)||!(c.world.getEntityById(childId) instanceof BlockBodyEntity b)||a.cells().size()!=4||b.cells().size()!=2||!a.getUuid().equals(authority.root.uuid)||!b.getUuid().equals(authority.child.uuid))return;
+            if(!(c.world.getEntityById(rootId) instanceof BlockBodyEntity a)||!(c.world.getEntityById(childId) instanceof BlockBodyEntity b)||a.cells().size()!=4||b.cells().size()!=2||!entity(a).getUuid().equals(authority.root.uuid)||!entity(b).getUuid().equals(authority.child.uuid))return;
             if(++age<5)return;capture="before";phase=1;captureFrames=0;return;
         }
         if(phase==1&&beforeCaptured){launchRequested=true;phase=2;age=0;c.options.forwardKey.setPressed(true);lastClient=c.player.getPos();}
@@ -158,19 +161,19 @@ public final class NativeConnectedPortalCheck {
             require(heldTicks>=2&&jumped&&afterCross!=null,"missing actual walking-input/client discontinuity witness");capture="after";captureFrames=0;phase=4;
         }
     }
-    private static List<Map<String,Object>> clientHulls(MinecraftClient c){var out=new ArrayList<Map<String,Object>>();for(int id:new int[]{rootId,childId})if(c.world.getEntityById(id) instanceof BlockBodyEntity b){var view=BoardingClient.bodyView(b,1);out.add(Map.of("uuid",b.getUuid(),"id",id,"p",b.massPosition(),"q",b.rotation(),"v",b.physics().linearVelocity(),"renderP",view==null?b.renderMassPosition(1):view.position(),"renderQ",view==null?b.renderRotation(1):view.rotation()));}return out;}
+    private static List<Map<String,Object>> clientHulls(MinecraftClient c){var out=new ArrayList<Map<String,Object>>();for(int id:new int[]{rootId,childId})if(c.world.getEntityById(id) instanceof BlockBodyEntity b){var view=BoardingClient.bodyView(b,1);out.add(Map.of("uuid",entity(b).getUuid(),"id",id,"p",b.massPosition(),"q",b.rotation(),"v",b.physics().linearVelocity(),"renderP",view==null?b.renderMassPosition(1):view.position(),"renderQ",view==null?b.renderRotation(1):view.rotation()));}return out;}
     private static boolean clientAgrees(MinecraftClient c,State authority,DynamicBodyAttachment.State state){
         if(authority==null||authority.attachment==null||!authority.attachment.grounded()||authority.attachment.support()!=rootId||state==null||!state.grounded()||state.support()!=rootId||state.gravityOwner()!=rootId||!BoardingClient.drives(c.player)||c.player.getPos().distanceTo(mc(authority.player))>.5)return false;
         if(!nearQuat(state.frame(),authority.attachment.frame(),.001))return false;
         for(var expected:List.of(authority.root,authority.child)){
-            if(!(c.world.getEntityById(expected.id) instanceof BlockBodyEntity b)||!b.getUuid().equals(expected.uuid)||b.shapeRevision()!=expected.revision||b.massPosition().minus(expected.p).length()>.7||!nearQuat(b.rotation(),expected.q,.001))return false;
+            if(!(c.world.getEntityById(expected.id) instanceof BlockBodyEntity b)||!entity(b).getUuid().equals(expected.uuid)||b.shapeRevision()!=expected.revision||b.massPosition().minus(expected.p).length()>.7||!nearQuat(b.rotation(),expected.q,.001))return false;
             if(!nearQuat(b.renderRotation(1),expected.q,.002))return false;
         }return true;
     }
     public static void beforeFrame(){if(ENABLED){rootDrawn=false;childDrawn=false;DRAW.clear();}}
     /** Actual quaternion passed to the real renderer, including BoardingClient's predicted body view. */
-    public static void drew(BlockBodyEntity b,Quat q,float delta){if(!ENABLED||finished||b.getId()!=rootId&&b.getId()!=childId)return;if(b.getId()==rootId)rootDrawn=true;else childDrawn=true;
-        var view=BoardingClient.bodyView(b,delta);if(DRAW.size()<16)DRAW.add(Map.of("uuid",b.getUuid(),"id",b.getId(),"q",q,"delta",delta,"p",view==null?b.renderMassPosition(delta):view.position()));}
+    public static void drew(BlockBodyEntity b,Quat q,float delta){if(!ENABLED||finished||entity(b).getId()!=rootId&&entity(b).getId()!=childId)return;if(entity(b).getId()==rootId)rootDrawn=true;else childDrawn=true;
+        var view=BoardingClient.bodyView(b,delta);if(DRAW.size()<16)DRAW.add(Map.of("uuid",entity(b).getUuid(),"id",entity(b).getId(),"q",q,"delta",delta,"p",view==null?b.renderMassPosition(delta):view.position()));}
     public static void rendered(){
         if(!ENABLED||finished||capture==null||!rootDrawn||!childDrawn||++captureFrames<3)return;var c=MinecraftClient.getInstance();if(c.currentScreen!=null||c.player==null)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){var name=capture;var dir=c.runDirectory.toPath().resolve("connected-portal-frames");Files.createDirectories(dir);image.writeTo(dir.resolve(name+".png"));
