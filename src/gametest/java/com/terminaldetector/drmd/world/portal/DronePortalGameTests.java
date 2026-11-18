@@ -6,6 +6,7 @@ import com.terminaldetector.drmd.client.portal.PortalTransform.*;
 import com.terminaldetector.drmd.d6.D6PortalTransform;
 import com.terminaldetector.drmd.entity.*;
 import com.terminaldetector.drmd.entity.model.FlightHullPose;
+import com.terminaldetector.drmd.flight.ShipAttitude;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.*;
@@ -20,14 +21,18 @@ import java.util.*;
 /** Real registered actors and production portal transactions. No entity/physics ticks or motor-state proxies. */
 public final class DronePortalGameTests implements FabricGameTest {
     private static final Vec3 ZERO=new Vec3(0,0,0);
+    // Vec3d.fromPolar uses the native65536-entry float sine table for BOTH reconstructed angles.
+    // Preserve the rigid frame within two native angular bins plus finite float/JOML roundoff.
+    private static final double NATIVE_AXIS_EPS=2*(2*Math.PI/65536)+32*Math.ulp(1f);
     private static final ChunkTicketType<UUID> TICKET=ChunkTicketType.create("drmd_drone_portal_fixture",Comparator.<UUID>naturalOrder());
     private static Vec3 p(Vec3d p){return new Vec3(p.x,p.y,p.z);}
     private static D6PortalTransform map(Vec3 a,Vec3 b){return D6PortalTransform.of(a,new Vec3(0,0,-1),b,new Vec3(0,1,0));}
     private static Quat pose(DroneEntity d){return FlightHullPose.physicalRotation(d.getYaw(),d.getPitch(),d.getFlightRoll());}
     private static void basis(TestContext c,Quat actual,Quat expected,String why){
         for(var axis:List.of(new Vec3(1,0,0),new Vec3(0,1,0),new Vec3(0,0,1)))
-            c.assertTrue(actual.rotate(axis).minus(expected.rotate(axis)).lengthSquared()<1e-10,why+" axis="+axis+" actual="+actual+" expected="+expected);
+            c.assertTrue(actual.rotate(axis).minus(expected.rotate(axis)).lengthSquared()<NATIVE_AXIS_EPS*NATIVE_AXIS_EPS,why+" axis="+axis+" nativeBound="+NATIVE_AXIS_EPS+" actual="+actual+" expected="+expected);
     }
+    private static void nativeRoundtrip(TestContext c,DroneEntity d){var before=pose(d);var f=before.rotate(new Vec3(0,0,1));var u=before.rotate(new Vec3(0,1,0));var a=new ShipAttitude();a.setForwardUp(new Vec3d(f.x(),f.y(),f.z()),new Vec3d(u.x(),u.y(),u.z()));basis(c,FlightHullPose.physicalRotation(a.yawDegrees(),a.pitchDegrees(),a.bankDegrees()),before,"independent existing native attitude roundtrip before any portal");}
     private static NbtCompound combat(DroneEntity d){
         var all=d.writeNbt(new NbtCompound());var result=new NbtCompound();
         for(var key:List.of("role","Health","shield","armor","modEnergy","attackCooldown","aiPhase","aiPhaseTime"))if(all.contains(key))result.put(key,all.get(key).copy());
@@ -40,7 +45,7 @@ public final class DronePortalGameTests implements FabricGameTest {
     private static Object invoke(Object object,String name,Class<?>[] types,Object...args)throws ReflectiveOperationException{var m=object.getClass().getDeclaredMethod(name,types);m.setAccessible(true);return m.invoke(object,args);}
     @FunctionalInterface private interface Step{boolean tick(Rig r)throws Exception;}
     private static final class Rig implements AutoCloseable{
-        final TestContext c;final ServerWorld w;final BlockPos at,exit;final UUID ticket=UUID.randomUUID();final Set<ChunkPos> columns=new LinkedHashSet<>();final List<Entity> entities=new ArrayList<>();int ticks;boolean closed;
+        final TestContext c;final ServerWorld w;final BlockPos at,exit;final UUID ticket=UUID.randomUUID();final Set<ChunkPos> columns=new LinkedHashSet<>();final List<Entity> entities=new ArrayList<>();int ticks;boolean closed,initialAdmission;
         Rig(TestContext c){this.c=c;w=c.getWorld();at=c.getAbsolutePos(new BlockPos(8,130,8));exit=at.east(32);w.resetIdleTimeout();
             for(var centre:List.of(at,exit)){
                 for(int x=(centre.getX()>>4)-1;x<=(centre.getX()>>4)+1;x++)for(int z=(centre.getZ()>>4)-1;z<=(centre.getZ()>>4)+1;z++){var q=new ChunkPos(x,z);if(columns.add(q))w.getChunkManager().addTicket(TICKET,q,2,ticket);}
@@ -51,7 +56,8 @@ public final class DronePortalGameTests implements FabricGameTest {
         void air(BlockPos centre,int x,int y,int z){for(var q:BlockPos.iterate(centre.add(-x,-4,-z),centre.add(x,y,z)))w.setBlockState(q,Blocks.AIR.getDefaultState(),2);}
         <T extends Entity>T add(T e,Vec3d pos){c.assertTrue(e!=null,"registered fixture type exists");e.setPosition(pos);e.setNoGravity(true);if(e instanceof MobEntity mob)mob.setAiDisabled(true);c.assertTrue(w.spawnEntity(e),"actual registered entity spawn");entities.add(e);return e;}
         boolean admitted(){for(var e:entities)if(w.getEntity(e.getUuid())!=e||!w.shouldTickEntity(e.getBlockPos())||e.age<1)return false;return true;}
-        void drive(Step step){c.runAtEveryTick(()->{if(closed)return;try{w.resetIdleTimeout();ticks++;if(!admitted()){c.assertTrue(ticks<80,"real UUID lookup/entity ticking and one ordinary actor tick before portal: "+ticks);return;}if(step.tick(this)){close();c.complete();}}catch(Exception|AssertionError failure){close();if(failure instanceof RuntimeException runtime)throw runtime;throw new RuntimeException(failure);}});}
+        String actorState(){var out=new StringBuilder();for(var e:entities)out.append(e.getUuid()).append(" type=").append(e.getType()).append(" pos=").append(e.getPos()).append(" age=").append(e.age).append(" registered=").append(w.getEntity(e.getUuid())==e).append(" alive=").append(e.isAlive()).append(" ticking=").append(w.shouldTickEntity(e.getBlockPos())).append(';');return out.toString();}
+        void drive(Step step){c.runAtEveryTick(()->{if(closed)return;try{w.resetIdleTimeout();ticks++;if(!initialAdmission){if(!admitted()){c.assertTrue(ticks<80,"real initial UUID/entity ticking/ordinary age admission: "+ticks+" "+actorState());return;}initialAdmission=true;}for(var e:entities)c.assertTrue(w.getEntity(e.getUuid())==e&&e.isAlive()&&!e.isRemoved(),"postadmission actual identity/life continuity, not a second admission timeout: "+actorState());if(step.tick(this)){close();c.complete();}}catch(Exception|AssertionError failure){close();if(failure instanceof RuntimeException runtime)throw runtime;throw new RuntimeException(failure);}});}
         void crossing(DroneEntity d,int level){var a=Vec3d.ofCenter(at).add(0,level,-.5);d.setPosition(a.add(0,0,.2));d.prevX=d.getX();d.prevY=d.getY();d.prevZ=a.z-.2;}
         PortalTransfer.Plan plan(DroneEntity d){var t=map(p(Vec3d.ofCenter(at)),p(Vec3d.ofCenter(exit)));return PortalTransfer.prepare(w,d,t,ZERO,t.sourcePoint(),16,false,w.getServer().getTicks(),u->false,false).accepted();}
         @Override public void close(){if(closed)return;closed=true;for(var e:entities)if(!e.isRemoved())e.discard();for(var q:columns)w.getChunkManager().removeTicket(TICKET,q,2,ticket);PortalTravel.clear();}
@@ -64,7 +70,7 @@ public final class DronePortalGameTests implements FabricGameTest {
         var cow=r.add(EntityType.COW.create(r.w),Vec3d.ofCenter(r.at).add(-6,0,4));
         r.drive(x->{var expected=new HashMap<UUID,Quat>();var velocity=new HashMap<UUID,Vec3>();var state=new HashMap<UUID,NbtCompound>();
             for(int i=0;i<drones.size();i++){var d=drones.get(i);authoredState(d);d.setTarget(cow);r.crossing(d,i*4);d.setYaw(28+i*13);d.setPitch(i==2?-90:17-i*11);d.setFlightRoll(37-i*9);d.setHeadYaw(d.getYaw()+23);d.setVelocity(.12,-.08,.2);
-                var t=map(p(Vec3d.ofCenter(r.at).add(0,0,-.5)),p(Vec3d.ofCenter(r.exit).add(0,.5,0)));expected.put(d.getUuid(),t.transformOrientation(pose(d)));velocity.put(d.getUuid(),t.transformVelocity(p(d.getVelocity())));state.put(d.getUuid(),combat(d));}
+                nativeRoundtrip(c,d);var t=map(p(Vec3d.ofCenter(r.at).add(0,0,-.5)),p(Vec3d.ofCenter(r.exit).add(0,.5,0)));expected.put(d.getUuid(),t.transformOrientation(pose(d)));velocity.put(d.getUuid(),t.transformVelocity(p(d.getVelocity())));state.put(d.getUuid(),combat(d));}
             PortalTravel.carry(r.w,r.at,Direction.NORTH,r.exit,Direction.UP,16);
             for(var d:drones){c.assertTrue(d.portalFrameRevision()==1&&r.w.getEntity(d.getUuid())==d&&d.getX()>r.exit.getX()-8,"actual admitted same living hull crosses once: "+d.getType());basis(c,pose(d),expected.get(d.getUuid()),"all three transported physical axes "+d.getType());
                 c.assertTrue(p(d.getVelocity()).minus(velocity.get(d.getUuid())).lengthSquared()<1e-12&&d.getTarget()==cow&&combat(d).equals(state.get(d.getUuid())),"one velocity transform retains actual target/role/health/energy/cooldown/phase "+d.getType());
@@ -87,25 +93,25 @@ public final class DronePortalGameTests implements FabricGameTest {
 
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="drone-portal-source-orders",tickLimit=160)
     public void actualQueuedChargeAndWarningAndExistingRouteRetireWithoutOldEndpointSnapOrResourceReset(TestContext c){
-        var r=new Rig(c);var queued=r.add(ModEntities.TELEPORT_FLYER.create(r.w),Vec3d.ofCenter(r.at).add(-3,3,0));var warned=r.add(ModEntities.TELEPORT_FLYER.create(r.w),Vec3d.ofCenter(r.at).add(3,3,0));var cow=r.add(EntityType.COW.create(r.w),Vec3d.ofCenter(r.at).add(0,3,6));int[] stage={0};long[] crossed={0};Object[] nav={null};Vec3d[] oldMarker={null};
-        r.drive(x->{if(stage[0]==0){warned.setAiDisabled(false);warned.setTarget(cow);c.assertTrue(warned.requestCharge()&&warned.ability().phase()==TeleportAbilityState.Phase.START_PENDING,"real eligible target queues production START without manual phase tick");stage[0]=1;return false;}
+        var r=new Rig(c);var queued=r.add(ModEntities.TELEPORT_FLYER.create(r.w),Vec3d.ofCenter(r.at).add(-3,3,0));var warned=r.add(ModEntities.TELEPORT_FLYER.create(r.w),Vec3d.ofCenter(r.at).add(3,3,0));var cow=r.add(EntityType.COW.create(r.w),Vec3d.ofCenter(r.at).add(0,3,6));int[] stage={0},crossedAge={0,0};long[] crossed={0};Object[] nav={null};Vec3d[] oldMarker={null};
+        r.drive(x->{if(stage[0]==0){warned.setAiDisabled(false);warned.setTarget(cow);c.assertTrue(warned.serverEligible(),"real admitted natural goal actor is eligible");stage[0]=1;return false;}
             if(stage[0]==1){if(warned.ability().phase()!=TeleportAbilityState.Phase.WARN){c.assertTrue(r.ticks<100,"normal END relay admits actual WARN: "+warned.ability().phase());return false;}oldMarker[0]=warned.lockedDestination();c.assertTrue(oldMarker[0]!=null&&warned.teleportCount()==0,"real old-pose admitted endpoint exists");
                 queued.setAiDisabled(false);queued.setTarget(cow);c.assertTrue(queued.requestCharge()&&queued.ability().phase()==TeleportAbilityState.Phase.START_PENDING,"second real START queued in current world tick");var submitted=TeleportAbilityRelay.stats(r.w);c.assertTrue(submitted.pending()>0,"actual pending relay request precedes crossing");
                 var type=Class.forName("com.terminaldetector.drmd.ai.DroneNavigation");var ctor=type.getDeclaredConstructor(DroneEntity.class);ctor.setAccessible(true);nav[0]=ctor.newInstance(warned);var oldOrigin=warned.getPos();invoke(nav[0],"occluded",new Class[]{Vec3d.class},cow.getEyePos());invoke(nav[0],"steer",new Class[]{Vec3d.class,Vec3d.class,boolean.class},new Vec3d(.1,0,0),oldOrigin.add(0,0,20),true);
                 c.assertTrue(field(nav[0],"search")!=null&&field(nav[0],"space")!=null,"actual existing bounded route search and origin cache admitted before transfer");
                 for(var d:List.of(queued,warned)){var resource=combat(d);var plan=r.plan(d);c.assertTrue(plan!=null&&plan.apply(),"live teleporter normal portal transaction");c.assertTrue(d.ability().phase()==TeleportAbilityState.Phase.RECOVERY&&d.lockedDestination()==null&&d.teleportCount()==0&&d.getTarget()==cow&&combat(d).equals(resource),"portal retires only old-pose pending ability, not target/weapon/resources");}
                 c.assertTrue(TeleportAbilityRelay.stats(r.w).pending()<submitted.pending()&&TeleportAbilityRelay.stats(r.w).stale()>submitted.stale(),"same actor pending UUID request actually removed rather than replayed at END");
-                invoke(nav[0],"occluded",new Class[]{Vec3d.class},cow.getEyePos());c.assertTrue(field(nav[0],"search")==null&&field(nav[0],"space")==null&&((List<?>)field(nav[0],"route")).isEmpty()&&field(nav[0],"visibilityOrigin").equals(warned.getPos())&&!warned.getPos().equals(oldOrigin),"existing navigation retires old search/route/space and samples sight from actual new position");crossed[0]=r.w.getTime();stage[0]=2;return false;
+                invoke(nav[0],"occluded",new Class[]{Vec3d.class},cow.getEyePos());c.assertTrue(field(nav[0],"search")==null&&field(nav[0],"space")==null&&((List<?>)field(nav[0],"route")).isEmpty()&&field(nav[0],"visibilityOrigin").equals(warned.getPos())&&!warned.getPos().equals(oldOrigin),"existing navigation retires old search/route/space and samples sight from actual new position");crossed[0]=r.w.getTime();crossedAge[0]=queued.age;crossedAge[1]=warned.age;stage[0]=2;return false;
             }
-            c.assertTrue(queued.portalFrameRevision()==1&&warned.portalFrameRevision()==1&&queued.teleportCount()==0&&warned.teleportCount()==0&&queued.lockedDestination()==null&&warned.lockedDestination()==null,"old START/WARN cannot later snap back to source endpoint");return r.w.getTime()-crossed[0]>=8;
+            c.assertTrue(queued.portalFrameRevision()==1&&warned.portalFrameRevision()==1&&queued.teleportCount()==0&&warned.teleportCount()==0&&queued.lockedDestination()==null&&warned.lockedDestination()==null,"old START/WARN cannot later snap back to source endpoint");if(r.w.getTime()-crossed[0]<8)return false;c.assertTrue(queued.age-crossedAge[0]>=8&&warned.age-crossedAge[1]>=8,"both real destination actors actually tick eight times, not only server clock: "+r.actorState());return true;
         });
     }
 
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="drone-portal-normal-wire",tickLimit=120)
     public void normalDronePositionPoseVelocityAndStatusPrecedeItsActualPassengersNativeTeleport(TestContext c){
         var r=new Rig(c);var d=r.add(ModEntities.ORB.create(r.w),Vec3d.ofCenter(r.at));
-        var client=net.minecraft.server.network.ConnectedClientData.createDefault(new com.mojang.authlib.GameProfile(UUID.randomUUID(),"drone-portal-wire"),false);var player=new net.minecraft.server.network.ServerPlayerEntity(r.w.getServer(),r.w,client.gameProfile(),client.syncedOptions());var connection=new net.minecraft.network.ClientConnection(net.minecraft.network.NetworkSide.SERVERBOUND);var channel=new io.netty.channel.embedded.EmbeddedChannel(connection);r.w.getServer().getPlayerManager().onPlayerConnect(connection,player,client);r.entities.add(player);player.setNoGravity(true);DescentPlayerData.get(player).setEnabled(false);player.setPosition(d.getPos());
-        r.drive(x->{try{d.setFlightRoll(37);d.setVelocity(.12,.08,.2);c.assertTrue(player.startRiding(d,true),"actual online native passenger rides actual drone");player.setPosition(d.getPos().add(0,d.getHeight(),0));
+        r.drive(x->{var client=net.minecraft.server.network.ConnectedClientData.createDefault(new com.mojang.authlib.GameProfile(UUID.randomUUID(),"drone-portal-wire"),false);var player=new net.minecraft.server.network.ServerPlayerEntity(r.w.getServer(),r.w,client.gameProfile(),client.syncedOptions());var connection=new net.minecraft.network.ClientConnection(net.minecraft.network.NetworkSide.SERVERBOUND);var channel=new io.netty.channel.embedded.EmbeddedChannel(connection);r.w.getServer().getPlayerManager().onPlayerConnect(connection,player,client);r.entities.add(player);player.setNoGravity(true);DescentPlayerData.get(player).setEnabled(false);player.setPosition(d.getPos());
+            try{c.assertTrue(r.w.getEntity(player.getUuid())==player&&r.w.getServer().getPlayerManager().getPlayerList().contains(player),"normal player connection actually registered before packet transaction");d.setFlightRoll(37);d.setVelocity(.12,.08,.2);c.assertTrue(player.startRiding(d,true),"actual online native passenger rides actual drone");player.setPosition(d.getPos().add(0,d.getHeight(),0));
                 for(int i=0;i<4096&&!channel.outboundMessages().isEmpty();i++)io.netty.util.ReferenceCountUtil.release(channel.readOutbound());c.assertTrue(channel.outboundMessages().isEmpty(),"actual setup packet backlog bounded");
                 var plan=r.plan(d);c.assertTrue(plan!=null&&plan.members.contains(player)&&plan.apply(),"whole live drone and passenger transaction");channel.runPendingTasks();int index=0,position=-1,pose=-1,velocity=-1,status=-1,teleport=-1;
                 for(Object raw:channel.outboundMessages()){
@@ -115,7 +121,7 @@ public final class DronePortalGameTests implements FabricGameTest {
                     if(raw instanceof net.minecraft.network.packet.s2c.play.EntityStatusS2CPacket packet&&packet.getEntity(r.w)==d&&packet.getStatus()==DroneEntity.PORTAL_DISCONTINUITY_STATUS)status=index;
                     if(raw instanceof net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket)teleport=index;index++;
                 }
-                c.assertTrue(position>=0&&pose>position&&velocity>pose&&status>velocity&&teleport>status,"normal ordered pose/velocity/status124 precede carried-player absolute teleport: "+List.of(position,pose,velocity,status,teleport));c.assertTrue(d.getDataTracker().isDirty(),"explicit normal snapshot does not consume ordinary tracker dirtiness");return true;
+                c.assertTrue(position>=0&&pose>position&&velocity>pose&&status>velocity&&teleport>status,"normal ordered pose/velocity/status124 precede carried-player absolute teleport: "+List.of(position,pose,velocity,status,teleport)+" sink="+channel.outboundMessages().stream().limit(16).map(v->v.getClass().getName()).toList()+" open="+channel.isOpen()+" active="+channel.isActive());c.assertTrue(d.getDataTracker().isDirty(),"explicit normal snapshot does not consume ordinary tracker dirtiness");return true;
             }finally{player.stopRiding();r.w.getServer().getPlayerManager().remove(player);player.discard();channel.finishAndReleaseAll();}
         });
     }
