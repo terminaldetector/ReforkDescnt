@@ -67,7 +67,8 @@
     "client.BoardingClientTravelMixin",
     "client.BodyEditInputMixin",
     "client.BoardingClientTeleportMixin",
-    "client.UfoWeaponInputMixin"
+    "client.UfoWeaponInputMixin",
+    "FlightRollKeyOwnershipMixin"
   ],
   "injectors": {
     "defaultRequire": 1
