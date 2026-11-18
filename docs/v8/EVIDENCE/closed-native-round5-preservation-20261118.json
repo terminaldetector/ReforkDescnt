@@ -1,0 +1,302 @@
+[
+  {
+    "runtime": "/workspace/ungravity-v5/snapshot-ci/build/cubic-client-failed-legacy-seeker",
+    "source": "da001eca0f394c138a6e45a9acb14373427384d9",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/00-snapshot-ci-cubic-client-failed-legacy-seeker.zip",
+    "archiveSHA256": "8e1d3f2bd7d89ad4a2cc9677e516cead1e179b999e217badf597d93833d74089",
+    "archiveBytes": 1326975,
+    "files": 101,
+    "originalBytes": 38970050,
+    "allocated": 39137280,
+    "gzipFooters": 10,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "94b890c3c7d23b942bb65da3f3775fdcd19688515685607ee33e92ca79490dfc",
+      "launch.json": "51c24479b672874ce00630a851fb33b27790203bab352572f15e0f9bbcea7274",
+      "usercache.json": "2b1111a276ddd2f93a22fdfadf26bb9e6900a9e2216d6a1d10baeff52c672842",
+      "logs/latest.log": "5a00f3136b62382ac97770a5a2ce0a6cd356e8a13b8746ad36fd5659a5cb769e"
+    },
+    "rawSaveReclaimed": true
+  },
+  {
+    "runtime": "/workspace/ungravity-v5/snapshot-ci/build/cubic-client-final-diagnostic2-snapshot-gl32",
+    "source": "7b22ffeccc8f6150ca1b4626c477d3fb0c338fb0",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/01-snapshot-ci-cubic-client-final-diagnostic2-snapshot-gl32.zip",
+    "archiveSHA256": "e451d363fae89b611a8ff8ad14ef5eba680316c9c42aa37bccbe359ad76e67e2",
+    "archiveBytes": 1317577,
+    "files": 101,
+    "originalBytes": 38949009,
+    "allocated": 39116800,
+    "gzipFooters": 10,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "e1500bb279f9d1fb7271c99327ac5d64baac5374eae4bec38af73e1cd4cc1f41",
+      "launch.json": "51c24479b672874ce00630a851fb33b27790203bab352572f15e0f9bbcea7274",
+      "usercache.json": "83973c454331be30ddde688e05776d3d5a16a5690152dc7c34006365c13af239",
+      "logs/latest.log": "83924ed4e77ed45322eb5e8ed5a9889da94dc622887871a9a24f9a12c938a1de"
+    },
+    "rawSaveReclaimed": true
+  },
+  {
+    "runtime": "/workspace/ungravity-v5/snapshot-ci/build/cubic-client-final-release-snapshot-sodium",
+    "source": "e800b439decc7070ecaa1e72c9216b72f40f70db",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/02-snapshot-ci-cubic-client-final-release-snapshot-sodium.zip",
+    "archiveSHA256": "b39f8c69b08a44eda0d30b66a6104da1b96d02052a5e3d5e9213b1f6a663534c",
+    "archiveBytes": 1326223,
+    "files": 101,
+    "originalBytes": 38944884,
+    "allocated": 39112704,
+    "gzipFooters": 10,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "a0661b4b04219db0dd00c08aef8b18abbb4bd1cd21aa2933753d155d60ea24ba",
+      "launch.json": "51c24479b672874ce00630a851fb33b27790203bab352572f15e0f9bbcea7274",
+      "usercache.json": "5e2804a13aa0d7487b47282d6ec06e5537a110b328d3a0e4385ad0038742fc97",
+      "logs/latest.log": "cdad715f923afe2907d3a641a1bfd6566167f1938e5d37550a2e4a21367ad25e"
+    },
+    "rawSaveReclaimed": true
+  },
+  {
+    "runtime": "/workspace/ungravity-v5/snapshot-ci/build/cubic-client-failed-first-snapshot",
+    "source": "7b22ffeccc8f6150ca1b4626c477d3fb0c338fb0",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/03-snapshot-ci-cubic-client-failed-first-snapshot.zip",
+    "archiveSHA256": "16c53dc58415b59aeda4aada7c4169b92c2480473ea30db22799adeddc20a4bf",
+    "archiveBytes": 1328473,
+    "files": 101,
+    "originalBytes": 38932846,
+    "allocated": 39100416,
+    "gzipFooters": 11,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "31fddb275d247878235e1d91f503af9108ee3f363b40ce2e00d17b08c572a055",
+      "launch.json": "51c24479b672874ce00630a851fb33b27790203bab352572f15e0f9bbcea7274",
+      "usercache.json": "faad4b830d0422655ae37167fa650a6edb5061a8b30109a8b89aa26c72258adb",
+      "logs/latest.log": "0741f02464ba7d62c8ffa692662da7627d0843a6662d6ecdaaeb0d426e219dca"
+    },
+    "rawSaveReclaimed": true
+  },
+  {
+    "runtime": "/workspace/ungravity-v5/gravity-runtime/build/cubic-client-final-release-mirror-sodium",
+    "source": "54637997f7e88da1c8c0fc1736c0a0f3dc4cb27a",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/04-gravity-runtime-cubic-client-final-release-mirror-sodium.zip",
+    "archiveSHA256": "8ce11cd2012295b1146fdffc017dee2dc0cfa3cba1a60f66ae7a89653a8477db",
+    "archiveBytes": 1337267,
+    "files": 101,
+    "originalBytes": 38926749,
+    "allocated": 39092224,
+    "gzipFooters": 10,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "b09c0d3677410b3d6cf5a018f09b3b2c09f5b954bce501913f3904d3ae3cfc06",
+      "launch.json": "379450a443a3b4acdfd855c6e7eaeba5b43af175680f8fafce388f3dfbe6038c",
+      "usercache.json": "66eb840a7e6b51eb1d348cb27b75f0044f19b2dbad4b6a70ecc8924dda0de970",
+      "logs/latest.log": "ce41bd208cd776117c1d7f83d48ab08b76bddba504b6a9ee8ab46d2a660656ad"
+    },
+    "rawSaveReclaimed": true
+  },
+  {
+    "runtime": "/workspace/ungravity-v5/gravity-runtime/build/cubic-client-final-release-mirror-gl32",
+    "source": "54637997f7e88da1c8c0fc1736c0a0f3dc4cb27a",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/05-gravity-runtime-cubic-client-final-release-mirror-gl32.zip",
+    "archiveSHA256": "0c5905c45b3e23d0c78bc2ee374e82fea2571ee6449990657faed15fc4569863",
+    "archiveBytes": 1344436,
+    "files": 101,
+    "originalBytes": 38918472,
+    "allocated": 39084032,
+    "gzipFooters": 10,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "3ac055d4ac41f4efd191b81634b548ef6770afd671d4a2e2589e1f6074644b22",
+      "launch.json": "379450a443a3b4acdfd855c6e7eaeba5b43af175680f8fafce388f3dfbe6038c",
+      "usercache.json": "3da74d0539b65c909648ff00a8f4f49ce5311fc254ba26487ebb9b0a310942fa",
+      "logs/latest.log": "1b68c96774b83c6b393b449df02198883716d97333ca6a09fc407437f74ed2aa"
+    },
+    "rawSaveReclaimed": true
+  },
+  {
+    "runtime": "/workspace/ungravity-v5/hull-combat/build/cubic-client-final-fracture-combat-initial-gl32",
+    "source": "005261ca5633dd27401883f7080643c355a40a53",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/06-hull-combat-cubic-client-final-fracture-combat-initial-gl32.zip",
+    "archiveSHA256": "7b5e31fe7c54f14893da37cd0524c8f2212d99c9a45104a37630212150099337",
+    "archiveBytes": 1316886,
+    "files": 100,
+    "originalBytes": 38857148,
+    "allocated": 39022592,
+    "gzipFooters": 10,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "49f6551ff495630979cb9b5556b536a1f2b97a2523fc1fa0da543a68de67545e",
+      "launch.json": "8dad3af1756f539f37db63b0a838943d3a9f4d2f928c626b35d1f37641465b41",
+      "usercache.json": "6212a36dc92243a1706b7c3891d6478f706944a427a1c432e13efb53dd35f3bb",
+      "logs/latest.log": "77fd2e6d143228b49af3d5c2fe8e79e7bbffb3f4c087beef9fa9a8750782c9e8"
+    },
+    "rawSaveReclaimed": true
+  },
+  {
+    "runtime": "/workspace/ungravity-v5/hull-fragments/build/cubic-client-final-contacts-certified-sodium",
+    "source": "67abad8905ef312f61bb06c968b3be16866d14a1",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/07-hull-fragments-cubic-client-final-contacts-certified-sodium.zip",
+    "archiveSHA256": "8535440f128fabbb6f2c06e0383703e6291ed906fb9475a95ba27d29f2483220",
+    "archiveBytes": 1322274,
+    "files": 100,
+    "originalBytes": 38853051,
+    "allocated": 39018496,
+    "gzipFooters": 10,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "e7e4d48e8d2766d74da0cf1702797e582dd47bf8563a90c7fbfe46a0917fd0ea",
+      "launch.json": "6ef7bd7ccc67e700456c37c79f73e6e3bc51cac9a7147e064f05b2bef9c9701e",
+      "usercache.json": "1a155b102fe45e7660521ac213a55c1416f8359dc0a701fc73ddac5eaf0b0379",
+      "logs/latest.log": "7048962c59536edc91c422c7f1895e48137a8ab62b27b2fa700c1c5e21553712"
+    },
+    "rawSaveReclaimed": true
+  },
+  {
+    "runtime": "/workspace/ungravity-v5/hull-fragments/build/cubic-client-final-contacts-certified-gl32",
+    "source": "67abad8905ef312f61bb06c968b3be16866d14a1",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/08-hull-fragments-cubic-client-final-contacts-certified-gl32.zip",
+    "archiveSHA256": "0716d576d6e6e05f3f33ea1e6faa680ffd722d62812374c639fc9b96d918014b",
+    "archiveBytes": 1308291,
+    "files": 100,
+    "originalBytes": 38853018,
+    "allocated": 39018496,
+    "gzipFooters": 10,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "d3b2500e24376c89e51c490ca48557800c2ed55545229a7f9d194db8cc8d5021",
+      "launch.json": "6ef7bd7ccc67e700456c37c79f73e6e3bc51cac9a7147e064f05b2bef9c9701e",
+      "usercache.json": "9f9b1a314e5fa1ed43d74b233e93e531481834d9fe6d1ce1f75b93d520f09fb6",
+      "logs/latest.log": "8729c33ff5f5ecf9235928b0793b7a5ad75b124b0bec26cd112dfa64bfd55e5c"
+    },
+    "rawSaveReclaimed": true
+  },
+  {
+    "runtime": "/workspace/ungravity-v5/snapshot-ci/build/cubic-client-final-release-gun-gl32",
+    "source": "e800b439decc7070ecaa1e72c9216b72f40f70db",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/09-snapshot-ci-cubic-client-final-release-gun-gl32.zip",
+    "archiveSHA256": "6e18ec8b7e2971f884d43ce5b17b61cfd4ace83368d53805223527d7f4b2a289",
+    "archiveBytes": 1316668,
+    "files": 101,
+    "originalBytes": 38824431,
+    "allocated": 38993920,
+    "gzipFooters": 11,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "3a72405533e090cadf4974cf8ee2b2a4ce673c870564b462c0f1a44065ee1db9",
+      "launch.json": "dafd116a4bf6f5b25e93c31589553713cb119f87e40399b8496c9a060392d171",
+      "usercache.json": "f1c5ba62aec579392bf854f1ec633b4c1b7f4b97bcc84465996bdfed4967a4d2",
+      "logs/latest.log": "762d99198128fad968c348739cbeea3a63618deab8752acb59b9ce8150f22c62"
+    },
+    "rawSaveReclaimed": true
+  },
+  {
+    "runtime": "/workspace/ungravity-v5/snapshot-ci/build/cubic-client-final-release-mirror-sodium",
+    "source": "e800b439decc7070ecaa1e72c9216b72f40f70db",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/10-snapshot-ci-cubic-client-final-release-mirror-sodium.zip",
+    "archiveSHA256": "1894f3f00025f0fe70f6e83042ae2a9780d5de81f558fc65813f2e77ce0a6d56",
+    "archiveBytes": 1315879,
+    "files": 100,
+    "originalBytes": 38824303,
+    "allocated": 38989824,
+    "gzipFooters": 10,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "c5cea6273644b799d95e6b7662d7fcfcc0725bf2cb3c888d332a7b7227ce6471",
+      "launch.json": "3f4308ddc2dfe3919e912503422e25ead480c7f06868fb23be26365ed7cdbe17",
+      "usercache.json": "c87eba192904b93fab79b0de07e5683df303b9ba511207730408961f3222ec90",
+      "logs/latest.log": "77f6dc7ce83a7a29ccd4776651d33574b0ddedf0a5c2361bcc877a3745bde503"
+    },
+    "rawSaveReclaimed": true
+  },
+  {
+    "runtime": "/workspace/ungravity-v5/snapshot-ci/build/cubic-client-final-release-mirror-gl32",
+    "source": "e800b439decc7070ecaa1e72c9216b72f40f70db",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/11-snapshot-ci-cubic-client-final-release-mirror-gl32.zip",
+    "archiveSHA256": "7c1874eb46bb033f5982db6c19b79080740f5ac813a0676a87037768fa3fd783",
+    "archiveBytes": 1312110,
+    "files": 100,
+    "originalBytes": 38824323,
+    "allocated": 38989824,
+    "gzipFooters": 10,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "b2014a8c5365e4fe1c68393a66e48f86d3bca0104d9a6460187a652ce56a8585",
+      "launch.json": "3f4308ddc2dfe3919e912503422e25ead480c7f06868fb23be26365ed7cdbe17",
+      "usercache.json": "1ad991a46a55cd3f8b29ca24571d0eccee381f3a4daeefe0802813bb791a30e9",
+      "logs/latest.log": "3ed4b2fc106e576a2bd37f81b840f0216037b3b624c334e290a1d5fff0b308c5"
+    },
+    "rawSaveReclaimed": true
+  },
+  {
+    "runtime": "/workspace/ungravity-v5/snapshot-ci/build/cubic-client-final-release-actors-gl32",
+    "source": "e800b439decc7070ecaa1e72c9216b72f40f70db",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/12-snapshot-ci-cubic-client-final-release-actors-gl32.zip",
+    "archiveSHA256": "1f3c3449a32bc3f0f991969042e7a97938c1476fce73d561a92f8ad91677d198",
+    "archiveBytes": 1307679,
+    "files": 100,
+    "originalBytes": 38721981,
+    "allocated": 38887424,
+    "gzipFooters": 10,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "9d399db52afb9602b19dc4242c8157bd0606b76ffd79ccee5a943be43c4b510f",
+      "launch.json": "447f7ab14adbceeea9b873e5de5aebce5129920d4dec759638cd56d81d3ac6c1",
+      "usercache.json": "3fd0128f5c181c0eec8f628bf8e6d215bb54d314fd1ff92a0287b8af06c70cbe",
+      "logs/latest.log": "ad9f817078785dd27126ebc93d63c65c5b15513c75f0f3981b2c68f8f55b3062"
+    },
+    "rawSaveReclaimed": true
+  },
+  {
+    "runtime": "/workspace/ungravity-v5/snapshot-ci/build/cubic-client-final-release-contacts-sodium",
+    "source": "e800b439decc7070ecaa1e72c9216b72f40f70db",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/13-snapshot-ci-cubic-client-final-release-contacts-sodium.zip",
+    "archiveSHA256": "5e6bb91c3a0895ee0cf43026efdbfad9bb8c7cdb2089656e98e65fff166169b6",
+    "archiveBytes": 1309107,
+    "files": 100,
+    "originalBytes": 36370899,
+    "allocated": 36536320,
+    "gzipFooters": 10,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "9b7d737ab7577eebab266f909f57cfbe094dc4837fa2b38a1bc1927639f8c4c5",
+      "launch.json": "55ddc54742ee40fec942258d6e94939e7a07a407b0a71c55f08f21b826786f46",
+      "usercache.json": "856df08165f4c31f7183b41f1001a5f3f694ac7bdfcca8a24362bf3e7c7ea50b",
+      "logs/latest.log": "b566a398c168b6c1d900a35e43ecb1dc6fc4e58a6194ebf0ef0fbe390f00c722"
+    },
+    "rawSaveReclaimed": true
+  },
+  {
+    "runtime": "/workspace/ungravity-v5/snapshot-ci/build/cubic-client-final-release-contacts-gl32",
+    "source": "e800b439decc7070ecaa1e72c9216b72f40f70db",
+    "archive": "/workspace/ungravity-v5/ufo-body-physics/work/multi-agent/closed-native-round5-preserved-20261118/14-snapshot-ci-cubic-client-final-release-contacts-gl32.zip",
+    "archiveSHA256": "7e5f7b2b6f399fb2c483b00735d24a3327af4433d5477986b96891647c51f2a9",
+    "archiveBytes": 1309050,
+    "files": 100,
+    "originalBytes": 36256131,
+    "allocated": 36421632,
+    "gzipFooters": 10,
+    "allSHA256AndCRC": true,
+    "freshInventoryAndExclusiveLocks": true,
+    "retainedRuntimeContext": {
+      "inputs.json": "63b3cc555cea5a0cc396830db98cf1afcf1e2e969c90c800ba9b092edf3abd93",
+      "launch.json": "55ddc54742ee40fec942258d6e94939e7a07a407b0a71c55f08f21b826786f46",
+      "usercache.json": "1d14f167974ff23e0fc9be5e9873524d9d223b672dbbba7cb41258580be93dfa",
+      "logs/latest.log": "307dd9ebf27cf9d43103b9e791679e081785be8f5b147aed9d8645ec4dde5c8c"
+    },
+    "rawSaveReclaimed": true
+  }
+]
