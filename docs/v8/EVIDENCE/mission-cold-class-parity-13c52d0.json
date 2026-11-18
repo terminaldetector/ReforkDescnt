@@ -1,0 +1,113 @@
+{
+  "canonicalProduction": "13c52d0edcc5763f945917e4282421ebe9150aef",
+  "componentProduction": "fc54c416fdf1ba77339a909162cad21a32e122dd",
+  "actualColdTestSource": "d83850f9263071641bb72a8db53f9a51cfed7ec7",
+  "namedCompiledClasses": [
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveHeraldBlock.class",
+      "bytes": 6609,
+      "sha256": "7c92538cd8d13ef516e02b2d8e7c11d8de11dff363745b3a84435f11bcbd12ab"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionCatalog$1.class",
+      "bytes": 1454,
+      "sha256": "ba31161063f60321d3c895ac5aaacfc12bfeb9c718037c88873773219cc3f273"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionCatalog$Snapshot.class",
+      "bytes": 3273,
+      "sha256": "63264a67f06386ba8215883a6f610f949c21282c1cf8f6a6f8ffeb4a28022ec7"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionCatalog.class",
+      "bytes": 8802,
+      "sha256": "6a9dc9c4d57e54fdab256353b3011550867c8fbf6b672db47d38b484abb6e740"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionContract$1.class",
+      "bytes": 1010,
+      "sha256": "d02be3ff71ea67e5ba7acb1e9d59c19706bb9885e7e4e1f962931c8b23084408"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionContract$Box.class",
+      "bytes": 3268,
+      "sha256": "d465c6824c1d0e2371da331e26918c6c13e50febd34fd47a163353a4af4774ee"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionContract$Point.class",
+      "bytes": 2219,
+      "sha256": "cf7e69445dbec4e999a1bc83c25a2151dc1e87cdf005d48773b4899fcc6ec791"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionContract$Step.class",
+      "bytes": 4181,
+      "sha256": "f6993eb2dcf9bbee40b044241e1a6585e76f87d08196ba6b08ee1ff09b8e2d27"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionContract$Type.class",
+      "bytes": 1466,
+      "sha256": "9cb347ef04c21c35b7ede0b22030f5afe8d7d27fe2e906a66cbdbc7f850c81f4"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionContract.class",
+      "bytes": 16777,
+      "sha256": "1092e92d32fecab32896658798caadab8b9d0f88b5f97aca0f21c8b039f7a96d"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger$Context.class",
+      "bytes": 3066,
+      "sha256": "ad696702dcd59eff1038eee36f494050e5b720e1d94f33f8c747f4f512399321"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger$Instance.class",
+      "bytes": 1839,
+      "sha256": "bf61f40edd59e72f8970d7980a01a7564dfd58ab7989a12953d0103f17230c89"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger$Key.class",
+      "bytes": 2004,
+      "sha256": "442897e45f145611190bcb856c0244fcee62a81b8a13def8bda2a9f348e623d2"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger$Location.class",
+      "bytes": 2216,
+      "sha256": "2e008388d97a5927c0498325075f11476127bef960c93cf8d7640632b8de460f"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger$Outcome.class",
+      "bytes": 1773,
+      "sha256": "b4be58ddbb1b6d98bfe7fec3ebd9ed39b13312ac073ee0a20706294599e92050"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger$Progress.class",
+      "bytes": 2603,
+      "sha256": "226e12e200b598e69dc619952520bb80c799bf291005e60acab3e9f247b4dea0"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger$Site.class",
+      "bytes": 5644,
+      "sha256": "2e122490f898ee00fe5de4ae7c14350b8ae77f73f00847723a3da3a26d2fae35"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionLedger.class",
+      "bytes": 21617,
+      "sha256": "e304fba5f49bbb8da99f54d387d6132ef84c6e225f3c2d0f6b92d7e74800f65c"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionSystem$1.class",
+      "bytes": 1180,
+      "sha256": "ba08242d44e96ecc191cbff17a304ea36b404f22b1b83217cf2b54d51a3bf8bc"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/EnclaveMissionSystem.class",
+      "bytes": 37905,
+      "sha256": "a36cf17ad1dc65b334b3de54bec08d2088148812bbd4d0aeedee09bbc296c3f3"
+    },
+    {
+      "entry": "com/terminaldetector/drmd/world/enclave/FactionMemory.class",
+      "bytes": 9586,
+      "sha256": "aba129cf8650bb3042f57dbaab00e8f94d4d01e2a50a1b9b87c5e3f2fda50a23"
+    }
+  ],
+  "scope": "Actual21 named mission/Herald/FactionMemory class files byte-identical between canonical full-suite build and separate three-process cold subject; distinct whole-runtime/source scopes retained. Normal initializer addition verified separately in integration packet."
+}

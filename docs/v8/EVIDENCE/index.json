@@ -3428,7 +3428,7 @@
   },
   "implementationPacketProgress20261117": {
     "path": "../IMPLEMENTATION_PACKET_PROGRESS_2026-11-17.json",
-    "sha256": "3dda2978ffe4a812a7557bfb15ed16a2f316b25f1b3b73b18dad9ca8cebb92d9",
+    "sha256": "e86fc197bddccf2bffac696c339b250747a3a4ac41b1b7553cf3ac6561676668",
     "originalPacketCount": 21,
     "wholePacketsAccepted": 0
   },
@@ -3652,5 +3652,25 @@
     },
     "releaseAccepted": false,
     "fullSpecificationAccepted": false
+  },
+  "missionGenuineCold3ProcessD838": {
+    "source": "d83850f9263071641bb72a8db53f9a51cfed7ec7",
+    "report": "../MISSION_U05_GENUINE_COLD_3PROCESS_PASS_2026-11-18.md",
+    "archive": "MISSION_U05_GENUINE_COLD_3PROCESS_PASS_2026-11-18.zip",
+    "archiveSHA256": "6fc3d25c10363787f301339cd4b943688acd3e45e3641f3cfd6fb0eed3eb7386",
+    "processes": 3,
+    "actualCasePassCounts": [
+      1,
+      1,
+      1
+    ],
+    "validSitePreserved": true,
+    "reputationSequence": [
+      0,
+      3,
+      3
+    ],
+    "compiledClassParity": "mission-cold-class-parity-13c52d0.json",
+    "scope": "Separate STOCK prototype cold runtime; no canonical whole-artifact cold, nativeBackend/hardPowerLoss/wholeMission acceptance"
   }
 }
