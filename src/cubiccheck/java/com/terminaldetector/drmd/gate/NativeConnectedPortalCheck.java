@@ -137,6 +137,7 @@ public final class NativeConnectedPortalCheck {
     private static boolean nearQuat(Quat a,Quat b,double epsilon){return 1-Math.abs(ImmPtlQuaternions.dot(a,b))<epsilon;}
     private static void tick(MinecraftClient c){
         if(finished)return;if(++ticks>1800||System.nanoTime()-boot>180_000_000_000L){finish(c,"FAIL","finite180s/1800tick deadline phase="+phase);return;}
+        if(playerId==null&&c.currentScreen instanceof net.minecraft.client.gui.screen.ConfirmScreen prompt&&prompt.getTitle().getString().equals("Warning! Low disk space!"))for(var child:prompt.children())if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("Continue"))b.onPress();
         if(c.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen p)for(var node:p.children())if(node instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("I know what I'm doing!"))b.onPress();
         if(failure!=null){finish(c,"FAIL",failure);return;}if(c.player==null||c.world==null||c.getServer()==null)return;
         DescentClient.markUserFlightChoice();
