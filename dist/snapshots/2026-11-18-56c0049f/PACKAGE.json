@@ -1,0 +1,24 @@
+{
+  "source": "56c0049f37ffee5b989df092b26093ac871222b0",
+  "zip": "/workspace/ungravity-v5/ufo-body-physics/dist/snapshots/2026-11-18-56c0049f/UNGRAVITY-snapshot-56c0049f.zip",
+  "zipBytes": 3185246,
+  "zipSHA256": "205dc8892c1a80edcad1be7322d37a11f0259bc9c797999229f30174abfc51eb",
+  "jarSHA256": "924e5d628d2350930bca89d26efa387b2910819c02910fa960586a29f4f75387",
+  "screenshots": [
+    {
+      "path": "/workspace/ungravity-v5/ufo-body-physics/dist/snapshots/2026-11-18-56c0049f/native-before.png",
+      "bytes": 125714,
+      "sha256": "f4ea6aa679d255c6f855ef8859370e133bddde2f59a89f3feb90c4d6aaf80196"
+    },
+    {
+      "path": "/workspace/ungravity-v5/ufo-body-physics/dist/snapshots/2026-11-18-56c0049f/ps1-coarse-10fps.png",
+      "bytes": 127144,
+      "sha256": "7c35b4542d5c3e776c5477250f7bcc7dd3741a531849e7052db0708bd4c17409"
+    },
+    {
+      "path": "/workspace/ungravity-v5/ufo-body-physics/dist/snapshots/2026-11-18-56c0049f/native-restored.png",
+      "bytes": 118975,
+      "sha256": "c187647150630c079dd720781b66f1eb5f38404ea6b9622100db53860beca129"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "source": "56c0049f37ffee5b989df092b26093ac871222b0",
+  "files": {
+    "CHANGELOG_RU.txt": {
+      "bytes": 2265,
+      "sha256": "7c7a4225a9f6efc7b40a435965fb0cf02aac5bff0e7f7ecf3613a1d7fc0bd948"
+    },
+    "INSTALL_RU.txt": {
+      "bytes": 1309,
+      "sha256": "e81d4b64f2b52df09d7031d05745be63f7cf281ac3cb57c447aba6cf39ac980d"
+    },
+    "README.md": {
+      "bytes": 449,
+      "sha256": "23f557a1b2fd85ca629cbc6f25eea84ea30f264bca60453f8cac1f1e6f59116c"
+    },
+    "VALIDATION.json": {
+      "bytes": 8460,
+      "sha256": "804dd23a69c4531a310bc9796e48615619fe2d161239e04c81720001e1724c2a"
+    },
+    "drmd-6dof-1.1.35-ufo-dev.1-56c0049f.jar": {
+      "bytes": 3162173,
+      "sha256": "924e5d628d2350930bca89d26efa387b2910819c02910fa960586a29f4f75387"
+    },
+    "native-before.png": {
+      "bytes": 125714,
+      "sha256": "f4ea6aa679d255c6f855ef8859370e133bddde2f59a89f3feb90c4d6aaf80196"
+    },
+    "native-restored.png": {
+      "bytes": 118975,
+      "sha256": "c187647150630c079dd720781b66f1eb5f38404ea6b9622100db53860beca129"
+    },
+    "ps1-coarse-10fps.png": {
+      "bytes": 127144,
+      "sha256": "7c35b4542d5c3e776c5477250f7bcc7dd3741a531849e7052db0708bd4c17409"
+    }
+  }
+}

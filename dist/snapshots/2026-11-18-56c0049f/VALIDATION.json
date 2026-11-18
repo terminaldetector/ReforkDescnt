@@ -1,0 +1,356 @@
+{
+  "source": "56c0049f37ffee5b989df092b26093ac871222b0",
+  "gameJarSHA256": "924e5d628d2350930bca89d26efa387b2910819c02910fa960586a29f4f75387",
+  "observerSHA256": "f6a40d1b3102bc24e0255bed9a57bdb03e4c228883cf76f090200f0919c9b5b1",
+  "focusedRuns": [
+    {
+      "source": "d6f97b210d9b3b0e253c2cba4de9dc2748de4f7c",
+      "actualGradleExit": 1,
+      "timedOut": false,
+      "unit": {
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "game": {
+        "tests": 0,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "fullSuiteAccepted": false,
+      "pixelAccepted": false,
+      "passed": false
+    },
+    {
+      "source": "42276e7bf9b44b1ba3b119f289756e750a7fba13",
+      "actualGradleExit": 1,
+      "timedOut": false,
+      "game": {
+        "tests": 40,
+        "failures": 3,
+        "errors": 0,
+        "skipped": 0
+      },
+      "unitsRun": 0,
+      "fullSuiteAccepted": false,
+      "nativeClientAccepted": false,
+      "passed": false
+    },
+    {
+      "source": "ba30a2c907338c2d8ffc370ede3ec384057b56aa",
+      "actualGradleExit": 0,
+      "timedOut": false,
+      "unit": {
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "game": {
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "fullSuiteAccepted": false,
+      "pixelAccepted": false,
+      "passed": true,
+      "observerSHA256": "7b950e0e138ea971f1e5b273d29c5886b73c43bc59bae89284084347e32ebe15",
+      "jarSHA256": "924e5d628d2350930bca89d26efa387b2910819c02910fa960586a29f4f75387"
+    }
+  ],
+  "nativeReceipt": {
+    "javaExit": 0,
+    "observerStatus": "PASS",
+    "passed": true,
+    "closedNs": 1795014731885301752,
+    "newFullSuiteAccepted": false,
+    "droneClientInterpolationAccepted": false,
+    "runtime": "/workspace/ungravity-v5/ufo-body-physics/build/cubic-client-final-assets-pacing-56c0049f-sodium-first"
+  },
+  "nativeOutcome": {
+    "registration": {
+      "acceptedAge": 229,
+      "removalReason": "null",
+      "uuidLookupSameIdentity": true,
+      "tick": 364,
+      "idLookupSameIdentity": true,
+      "removed": false,
+      "id": 40,
+      "uuid": "ae13ec4a-273f-46bd-99c2-c281d112a045",
+      "checks": 296
+    },
+    "states": [
+      {
+        "name": "native-before",
+        "actualCuboids": 32,
+        "completedModelCalls": 13,
+        "lowResolutionWorldAtModel": false,
+        "actualLimitReturn": 30,
+        "allObservedLimits": [
+          30
+        ],
+        "frameIntervalsNs": [
+          124354757,
+          119177594,
+          197874277,
+          351618495,
+          241927947,
+          199025986,
+          185061264,
+          167253744,
+          149248306,
+          564262970,
+          510061567,
+          228276773,
+          176686092,
+          197149131,
+          189665353,
+          185495712,
+          198515470,
+          137540870,
+          216477711,
+          142357548,
+          105335315,
+          119198076,
+          180808786
+        ],
+        "physicsBefore": {
+          "tick": 140,
+          "age": 5,
+          "position": [
+            8.5,
+            2161.0,
+            13.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "physicsAfter": {
+          "tick": 244,
+          "age": 109,
+          "position": [
+            8.5,
+            2161.0,
+            13.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "scene": {
+          "profile": "HYBRID_NATIVE",
+          "sceneWidth": 1280,
+          "sceneHeight": 720,
+          "outputWidth": 1280,
+          "outputHeight": 720,
+          "overlayPasses": 0,
+          "frames": 0,
+          "fallbackFrames": 0,
+          "inWorldPass": false
+        },
+        "clientPos": [
+          8.5,
+          2159.0,
+          8.5
+        ],
+        "cameraPos": [
+          8.5,
+          2159.400000035763,
+          8.5
+        ],
+        "gl": "3.3 (Core Profile) Mesa 25.0.7-2+deb13u1"
+      },
+      {
+        "name": "ps1-coarse-10fps",
+        "actualCuboids": 17,
+        "completedModelCalls": 24,
+        "lowResolutionWorldAtModel": true,
+        "actualLimitReturn": 10,
+        "allObservedLimits": [
+          10
+        ],
+        "frameIntervalsNs": [
+          99138775,
+          98470115,
+          103044812,
+          95020900,
+          103849486,
+          98847237,
+          147607029,
+          140896457,
+          104976424,
+          116408828,
+          184425226,
+          221499629,
+          219317240,
+          190020709,
+          103264974,
+          87901431,
+          108439975,
+          154416881,
+          101486295,
+          105655987,
+          89471849,
+          67825846,
+          99095921
+        ],
+        "physicsBefore": {
+          "tick": 251,
+          "age": 116,
+          "position": [
+            8.5,
+            2161.0,
+            13.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "physicsAfter": {
+          "tick": 314,
+          "age": 179,
+          "position": [
+            8.5,
+            2161.0,
+            13.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "scene": {
+          "profile": "PS1_HYBRID",
+          "sceneWidth": 640,
+          "sceneHeight": 360,
+          "outputWidth": 1280,
+          "outputHeight": 720,
+          "overlayPasses": 0,
+          "frames": 24,
+          "fallbackFrames": 0,
+          "inWorldPass": false
+        },
+        "clientPos": [
+          8.5,
+          2159.0,
+          8.5
+        ],
+        "cameraPos": [
+          8.5,
+          2159.400000035763,
+          8.5
+        ],
+        "gl": "3.3 (Core Profile) Mesa 25.0.7-2+deb13u1"
+      },
+      {
+        "name": "native-restored",
+        "actualCuboids": 32,
+        "completedModelCalls": 24,
+        "lowResolutionWorldAtModel": false,
+        "actualLimitReturn": 30,
+        "allObservedLimits": [
+          30
+        ],
+        "frameIntervalsNs": [
+          93878298,
+          138773563,
+          141519576,
+          178959168,
+          82510387,
+          44619593,
+          89313229,
+          89975381,
+          108011197,
+          97343010,
+          90221748,
+          114375879,
+          102967507,
+          79691057,
+          88778291,
+          95424549,
+          60511585,
+          67076066,
+          83593880,
+          50057809,
+          95057194,
+          75422459,
+          93396718
+        ],
+        "physicsBefore": {
+          "tick": 317,
+          "age": 182,
+          "position": [
+            8.5,
+            2161.0,
+            13.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "physicsAfter": {
+          "tick": 361,
+          "age": 226,
+          "position": [
+            8.5,
+            2161.0,
+            13.5
+          ],
+          "velocity": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "scene": {
+          "profile": "HYBRID_NATIVE",
+          "sceneWidth": 1280,
+          "sceneHeight": 720,
+          "outputWidth": 1280,
+          "outputHeight": 720,
+          "overlayPasses": 0,
+          "frames": 24,
+          "fallbackFrames": 0,
+          "inWorldPass": false
+        },
+        "clientPos": [
+          8.5,
+          2159.0,
+          8.5
+        ],
+        "cameraPos": [
+          8.5,
+          2159.400000035763,
+          8.5
+        ],
+        "gl": "3.3 (Core Profile) Mesa 25.0.7-2+deb13u1"
+      }
+    ],
+    "reason": "actual32→17→32 model renders and10 FPS getter cap/Native restore; recorded timing is context, not hardware performance acceptance",
+    "status": "PASS",
+    "authoredBlocks": 0,
+    "noCameraOverride": true,
+    "initialPlayerTeleports": 1,
+    "shipId": 40,
+    "shipUuid": "ae13ec4a-273f-46bd-99c2-c281d112a045",
+    "phase": 2
+  },
+  "fullSuiteRerun": false,
+  "fullSpecificationsAccepted": false,
+  "allFirstFailuresRetained": true,
+  "report": "docs/v8/IMPLEMENTATION_DOORS_CLUSTERS_PS1_2026-11-18.md",
+  "knownVisualIssues": "Actual screenshots retain background LOD/sky defects; model/cap witness is scoped, not complete visual or hardware-performance acceptance"
+}
