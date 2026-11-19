@@ -36,10 +36,14 @@ public final class HeavyOperatorSystem {
     public record Stats(int visited,int assemblies,int candidates,int rays,int drives){}
     private record Permit(UUID root,UUID target,WeakReference<LivingEntity> actor,long tick){}
     private record Memory(UUID target,WeakReference<LivingEntity> actor,Vec3d point,long observedAt){}
+    private record Interest(UUID target,WeakReference<LivingEntity> actor,long observedAt){}
+    private record Pods(long revision,List<BlockPos> cells,com.terminaldetector.drmd.d6.D6ThrusterMixer mixer){}
     private static final class Frame {
         long tick=Long.MIN_VALUE;int cursor,candidates,rays,drives;Stats stats=new Stats(0,0,0,0,0);
         final Map<UUID,Permit> permits=new HashMap<>();
         final Map<UUID,Memory> memories=new HashMap<>();
+        final Map<UUID,Interest> interests=new HashMap<>();
+        final Map<UUID,Pods> pods=new HashMap<>();
     }
     private HeavyOperatorSystem(){}
     public static void register(){
@@ -66,6 +70,38 @@ public final class HeavyOperatorSystem {
             &&joint(world,a.base,YAW_BASE,a.yaw,YAW_CHILD)&&joint(world,a.yaw,PITCH_BASE,a.barrel,PITCH_CHILD);
     }
     private static boolean valid(ServerWorld world,Assembly a){return materialValid(world,a)&&a.bodies().stream().noneMatch(BlockBodyEntity::boardingMotionPaused);}
+    /** A loaded nearby hostile only requests the existing bounded hull-volume lease.
+     * Presence is not sight, a fire permit, or a hidden movement/aim coordinate. */
+    public static boolean needsVolumeInterest(BlockBodyEntity root){
+        if(!(root.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||!root.getCommandTags().contains(ROOT))return false;
+        var f=FRAMES.get(world);var interest=f==null?null:f.interests.get(root.getUuid());long now=world.getTime();
+        if(interest==null||now<interest.observedAt||now-interest.observedAt>CADENCE+1)return false;
+        var target=interest.actor.get();return enemy(root,target)&&target.getUuid().equals(interest.target)
+            &&world.getEntity(target.getUuid())==target&&root.squaredDistanceTo(target)<=112*112&&materialValid(world,resolve(world,root));
+    }
+    /** Only real vector pods counter the common island recoil. The hinges cannot
+     * remove an entire free island's angular momentum. Called AFTER each ordinary
+     * or joint rollback snapshot; UNKNOWN rolls back these forces too. */
+    public static void accumulateForces(BlockBodyEntity root){
+        if(!needsVolumeInterest(root))return;var world=(ServerWorld)root.getWorld();var f=FRAMES.get(world);
+        var pods=f.pods.get(root.getUuid());
+        if(pods==null||pods.revision!=root.shapeRevision()){
+            var cells=root.cells().stream().filter(c->c.state().isOf(ModWorldBlocks.SHIP_THRUSTER)).map(BlockBodyEntity.Cell::pos).limit(17).sorted().toList();
+            if(cells.size()<3||cells.size()>16){f.pods.remove(root.getUuid());return;}
+            try{pods=new Pods(root.shapeRevision(),cells,new com.terminaldetector.drmd.d6.D6ThrusterMixer(cells.stream().map(p->new Vec3(p.getX()+.5,p.getY()+.5,p.getZ()+.5)).toList(),BodyControlCore.FORCE_PER_MOTOR));f.pods.put(root.getUuid(),pods);}
+            catch(IllegalArgumentException unsupported){f.pods.remove(root.getUuid());return;}
+        }
+        var physics=root.physics();Vec3 desiredVelocity=new Vec3(0,0,0);var memory=f.memories.get(root.getUuid());long now=world.getTime();
+        if(memory!=null&&now>=memory.observedAt&&now-memory.observedAt<DroneSquadMailbox.TTL){
+            var delta=new Vec3(memory.point.x,memory.point.y,memory.point.z).minus(physics.position());double distance=delta.length();
+            if(distance>32)desiredVelocity=delta.scaled(Math.min(3,(distance-32)*.5)/distance);
+        }
+        var force=desiredVelocity.minus(physics.linearVelocity()).scaled(physics.mass()*2);
+        var torque=physics.worldInertia().transform(physics.angularVelocity()).scaled(-8);var inverse=root.rotation().inverse();
+        var selected=pods;
+        for(var output:pods.mixer.mix(root.localCentre(),inverse.rotate(force),inverse.rotate(torque),i->root.getLocalBlock(selected.cells.get(i)).isOf(ModWorldBlocks.SHIP_THRUSTER)))
+            physics.applyForceAtPoint(root.rotation().rotate(output.force()),root.rotation().rotate(output.localPoint().minus(root.localCentre())));
+    }
     private static Assembly resolve(ServerWorld world,BlockBodyEntity root){
         if(root==null||!root.getCommandTags().contains(ROOT)||root.getCommandTags().stream().anyMatch(t->t.startsWith("drmd.operator.")&&!t.equals(ROOT)&&!t.startsWith(YAW)&&!t.startsWith(BARREL)))return null;
         var yaw=body(world,uuid(root,YAW));var gun=body(world,uuid(root,BARREL));
@@ -159,13 +195,18 @@ public final class HeavyOperatorSystem {
         long now=world.getTime();if(now%CADENCE!=0)return;var f=FRAMES.computeIfAbsent(world,w->new Frame());if(f.tick==now)return;
         f.tick=now;f.candidates=f.rays=f.drives=0;f.permits.clear();var bodies=BodySpatialIndex.loaded(world);int visited=0,assemblies=0;
         f.memories.entrySet().removeIf(e->{var root=body(world,e.getKey());return root==null||!root.getCommandTags().contains(ROOT)||now<e.getValue().observedAt||now-e.getValue().observedAt>=DroneSquadMailbox.TTL;});
+        f.interests.entrySet().removeIf(e->{var root=body(world,e.getKey());return root==null||!root.getCommandTags().contains(ROOT)||now<e.getValue().observedAt||now-e.getValue().observedAt>CADENCE+1;});
+        f.pods.keySet().removeIf(id->!f.interests.containsKey(id));
         while(visited<Math.min(MAX_BODY_VISITS,bodies.size())&&assemblies<MAX_ASSEMBLIES){
             var base=bodies.get(Math.floorMod(f.cursor++,bodies.size()));visited++;if(!base.getCommandTags().contains(ROOT))continue;assemblies++;
-            var a=resolve(world,base);if(!valid(world,a)){stop(a,f);continue;}
+            var a=resolve(world,base);if(!materialValid(world,a)){f.interests.remove(base.getUuid());f.pods.remove(base.getUuid());stop(a,f);continue;}
             if(f.candidates>=MAX_CANDIDATES){stop(a,f);continue;}
             var from=MountedWeaponEmitter.muzzle(a.barrel,LASER);var candidates=new ArrayList<LivingEntity>();
-            world.collectEntitiesByType(TypeFilter.instanceOf(LivingEntity.class),Box.of(from,96,96,96),e->enemy(base,e),candidates,MAX_CANDIDATES-f.candidates);
+            world.collectEntitiesByType(TypeFilter.instanceOf(LivingEntity.class),Box.of(from,192,192,192),e->enemy(base,e)&&e.squaredDistanceTo(from)<=96*96,candidates,MAX_CANDIDATES-f.candidates);
             f.candidates+=candidates.size();candidates.sort(Comparator.comparingDouble(e->e.squaredDistanceTo(from)));LivingEntity target=null;
+            if(!candidates.isEmpty()&&(f.interests.size()<MAX_ASSEMBLIES||f.interests.containsKey(base.getUuid()))){var present=candidates.get(0);f.interests.put(base.getUuid(),new Interest(present.getUuid(),new WeakReference<>(present),now));}
+            else f.interests.remove(base.getUuid());
+            if(!valid(world,a)){stop(a,f);continue;}
             for(var candidate:candidates)if(candidate.squaredDistanceTo(from)<=48*48&&sight(world,a,from,candidate.getBoundingBox().getCenter(),f)){target=candidate;break;}
             Vec3d point;
             if(target!=null){point=target.getBoundingBox().getCenter();if(f.memories.size()<MAX_ASSEMBLIES||f.memories.containsKey(base.getUuid()))f.memories.put(base.getUuid(),new Memory(target.getUuid(),new WeakReference<>(target),point,now));}

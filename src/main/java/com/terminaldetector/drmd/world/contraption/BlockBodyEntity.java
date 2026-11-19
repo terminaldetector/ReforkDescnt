@@ -773,6 +773,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             Vec3 gravityDown = gravityDirection();
             if(gravity)body.applyForce(gravityDown.scaled(9.81*body.mass()));
             controlCore.accumulateForces(this);
+            com.terminaldetector.drmd.world.contraption.mechanism.HeavyOperatorSystem.accumulateForces(this);
             // D6PhysicsBody clears force/torque after every integration step. Reapply the frame's
             // external torque to each collision substep so its total impulse remains torque*0.05,
             // independent of body speed/radius and therefore of the chosen substep count.
@@ -799,7 +800,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
 
     /** Joint-island phase: force integration, shared constraints, then terrain-checked pose. */
     public void integrateJointForces(double seconds,Vec3 torque) {
-        if(gravity)body.applyForce(gravityDirection().scaled(9.81*body.mass()));controlCore.accumulateForces(this);body.applyTorque(torque);body.integrateForces(seconds);body.limitMotion();
+        if(gravity)body.applyForce(gravityDirection().scaled(9.81*body.mass()));controlCore.accumulateForces(this);com.terminaldetector.drmd.world.contraption.mechanism.HeavyOperatorSystem.accumulateForces(this);body.applyTorque(torque);body.integrateForces(seconds);body.limitMotion();
     }
     public boolean integrateJointPose(double seconds,D6PhysicsBody.Snapshot before) {
         body.integrateSolvedPose(seconds);boolean collision=blocked();if(collisionUnavailable)return false;

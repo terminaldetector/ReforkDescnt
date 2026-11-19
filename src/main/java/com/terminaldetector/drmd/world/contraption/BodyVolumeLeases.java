@@ -45,7 +45,8 @@ public final class BodyVolumeLeases {
         var activeIds=new LinkedHashSet<UUID>();var queue=new ArrayDeque<UUID>();
         for(var body:bodies)if(!body.cells().isEmpty()) {
             loaded.put(body.getUuid(),body);double reach=body.radius()+128;
-            if(world.getPlayers().stream().anyMatch(p->p.isAlive()&&!p.isSpectator()&&p.getPos().squaredDistanceTo(body.physicsCentre())<=reach*reach)) {
+            if(world.getPlayers().stream().anyMatch(p->p.isAlive()&&!p.isSpectator()&&p.getPos().squaredDistanceTo(body.physicsCentre())<=reach*reach)
+                ||com.terminaldetector.drmd.world.contraption.mechanism.HeavyOperatorSystem.needsVolumeInterest(body)) {
                 activeIds.add(body.getUuid());queue.addLast(body.getUuid());
             }
         }
