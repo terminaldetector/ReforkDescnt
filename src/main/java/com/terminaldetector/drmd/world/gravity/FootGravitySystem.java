@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class FootGravitySystem {
 	public static final double GRAVITY = 0.08;
 	private static final double CONTACT_DEPTH = .08;
+    private static final double CONTACT_SKIN = .02;
 	private static final Vec3d WORLD_UP = new Vec3d(0,1,0);
 	/** Per-tick arc toward a field's up when it takes hold — ~0.4 s to settle. */
 	private static final double CAPTURE_RATE = 0.18;
@@ -264,7 +265,17 @@ public final class FootGravitySystem {
         }
 
         // Unknown cube volumes do not provide air for a local-gravity move.
-        if (!GravityMount.loadedSpace(player.getWorld(), player.getBoundingBox().stretch(velocity))) return;
+        var box = player.getBoundingBox();
+        var motionWithSkin = velocity.subtract(up.multiply(CONTACT_SKIN));
+        if (!GravityMount.loadedSpace(player.getWorld(), box.stretch(velocity).union(box.stretch(motionWithSkin)))) return;
+        double normal = velocity.dotProduct(up);
+        if (!grounded && normal < 0) {
+            // Keep a small clearance against the actual support. A reported position right at an
+            // axis-aligned wall can fall on opposite sides of the contact due to rounding.
+            var allowed = Entity.adjustMovementForCollisions(player, motionWithSkin, box, player.getWorld(), List.of());
+            double safe = Math.min(0, allowed.dotProduct(up) + CONTACT_SKIN);
+            if (safe > normal) velocity = velocity.add(up.multiply(safe - normal));
+        }
         player.setVelocity(velocity);
         player.move(MovementType.SELF, velocity);
         player.velocityDirty = true;
