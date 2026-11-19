@@ -181,8 +181,12 @@ public final class FootGravityRecoveryGameTests implements FabricGameTest {
                 }
             }
             FootGravitySystem.adoptServer(id,new Vec3d(1e308,-1e308,5e307),"large finite legacy frame");player.calculateDimensions();
-            var eye=player.getEyePos().subtract(player.getPos());
-            c.assertTrue(Double.isFinite(eye.lengthSquared())&&eye.normalize().distanceTo(new Vec3d(2,-2,1).normalize())<1e-10,
+            var eye=player.getEyePos();var up=FootGravitySystem.getUp(player);
+            var expectedEye=player.getPos().add(up.multiply(player.getEyeY()-player.getY()));
+            // At millions of blocks, subtracting two world doubles quantizes the direction.
+            // Verify the accepted unit basis, then the actual world-space physical eye exactly.
+            c.assertTrue(Double.isFinite(eye.lengthSquared())&&up.distanceTo(new Vec3d(2,-2,1).normalize())<1e-15
+                &&eye.squaredDistanceTo(expectedEye)<1e-20,
                 "actual player eye accepts large finite input without overflow or a black-camera frame");
             FootGravitySystem.clear(id);com.terminaldetector.drmd.world.LocalOrientation.clear(id);player.calculateDimensions();
             c.assertTrue(!FootGravitySystem.isActive(player)&&player.getBoundingBox().getLengthY()>1.7&&player.getEyePos().y-player.getY()>1.5,

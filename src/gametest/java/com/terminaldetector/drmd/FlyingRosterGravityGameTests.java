@@ -170,7 +170,7 @@ public final class FlyingRosterGravityGameTests implements FabricGameTest {
             if(actor instanceof net.minecraft.entity.passive.BatEntity bat)bat.setRoosting(true);
             var attached=actor instanceof net.minecraft.entity.mob.ShulkerEntity shulker?shulker.getAttachedFace():null;
             var parts=actor instanceof net.minecraft.entity.boss.dragon.EnderDragonEntity dragon?dragon.getBodyParts().clone():null;
-            world.spawnEntity(actor);var start=actor.getPos();var propulsion=new Vec3d(.11,.03,-.04);actor.setVelocity(propulsion);
+            world.spawnEntity(actor);var start=actor.getPos();actor.setVelocity(new Vec3d(.11,.03,-.04));var propulsion=actor.getVelocity();
             try {
                 for(var direction:FIELD_AXES) {
                     GravityFields.put(new GravityFields.Field(id,world.getRegistryKey(),centre,Vec3d.of(direction.getVector()),32,1,FieldShape.SPHERE,"native constraint"));
