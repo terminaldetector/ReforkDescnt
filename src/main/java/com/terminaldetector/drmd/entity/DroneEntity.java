@@ -42,7 +42,7 @@ public class DroneEntity extends HostileEntity {
 	private DroneAi.Phase phase = DroneAi.Phase.ORBIT;
 	private float phaseTimer;
 	private float resistK, resistE, resistX;
-	private boolean ragdollSpawned;
+	private boolean ragdollAttempted,ragdollReplaced;
 	private long portalFrameRevision,portalHintFloor=Long.MIN_VALUE;
 
 	public DroneEntity(EntityType<? extends DroneEntity> type, World world) {
@@ -156,7 +156,7 @@ public class DroneEntity extends HostileEntity {
 		this.setNoGravity(true);
         com.terminaldetector.drmd.ai.DroneSquadCoordinator.tick(this);
 		if (!getWorld().isClient) {
-			if(ragdollSpawned&&!isAlive())setInvisible(true);
+			if(ragdollReplaced&&!isAlive())setInvisible(true);
 			modEnergy = Math.min(100f, modEnergy + 20f / 20f);
 			if (attackCooldown > 0) attackCooldown -= 1f / 20f;
 			dataTracker.set(SHIELD, shield);
@@ -208,12 +208,12 @@ public class DroneEntity extends HostileEntity {
 	public void onDeath(DamageSource damageSource) {
 		super.onDeath(damageSource);
 		if (getWorld().isClient) return;
-		if (!ragdollSpawned) {
-			ragdollSpawned = true;
-			RagdollEntity.spawnFromDrone(this, damageSource);
-			// Vanilla keeps a dead mob around for its death animation. The physical replacement owns the
-			// visible motion now, so do not draw both bodies on top of each other for twenty ticks.
-			setInvisible(true);
+		if (!ragdollAttempted) {
+			// A declined allocator is still one completed attempt; a later profile change must not
+			// create another corpse. Only an actual registered replacement owns the visible mesh.
+			ragdollAttempted = true;
+			ragdollReplaced = RagdollEntity.spawnFromDrone(this, damageSource) != null;
+			if (ragdollReplaced) setInvisible(true);
 		}
 		// Descent shield/energy orbs — heavier roles drop more often.
 		float shieldChance = switch (role) {
@@ -289,6 +289,7 @@ public class DroneEntity extends HostileEntity {
 	public void writeCustomDataToNbt(NbtCompound nbt) {
 		super.writeCustomDataToNbt(nbt);
 		nbt.putString("role", role.id);
+        nbt.putBoolean("wreckReplaced",ragdollReplaced);
 		nbt.putFloat("shield", shield);
 		nbt.putFloat("armor", armor);
         nbt.putFloat("modEnergy",modEnergy);
@@ -310,10 +311,12 @@ public class DroneEntity extends HostileEntity {
         setFlightRoll(net.minecraft.util.math.MathHelper.wrapDegrees(stateFloat(nbt,"flightRoll",0,-Float.MAX_VALUE,Float.MAX_VALUE)));
         try{phase=DroneAi.Phase.valueOf(nbt.getString("aiPhase"));phaseTimer=stateFloat(nbt,"aiPhaseTime",0,0,Float.MAX_VALUE);}
         catch(IllegalArgumentException unknown){phase=DroneAi.Phase.ORBIT;phaseTimer=0;}
-        // Dead drones have already handed visual ownership to their physical corpse.
-        // This also repairs old saves whose transient invisible flag was not stored.
-        ragdollSpawned=getHealth()<=0;
-        if(ragdollSpawned)setInvisible(true);
+        // Loaded dead entities have already completed their death choice: never allocate again.
+        // Old saves have no outcome key; retain their native Invisible bit rather than hiding
+        // an old visible death or exposing a hidden authored/replaced hull without evidence.
+        ragdollAttempted=getHealth()<=0;
+        ragdollReplaced=ragdollAttempted&&nbt.getBoolean("wreckReplaced");
+        if(ragdollReplaced)setInvisible(true);
 		if(!getWorld().isClient) {
 			dataTracker.set(SHIELD,shield);dataTracker.set(ARMOR,armor);
 		}

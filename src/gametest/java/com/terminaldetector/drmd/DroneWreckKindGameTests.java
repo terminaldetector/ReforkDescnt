@@ -45,4 +45,56 @@ public final class DroneWreckKindGameTests implements FabricGameTest {
             c.complete();
         }finally{d.discard();for(var e:java.util.stream.StreamSupport.stream(w.iterateEntities().spliterator(),false).toList())if(area.contains(e.getPos())&&!before.contains(e.getUuid()))e.discard();profile.set(old);}
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="drone-declined-wreck-visible",tickLimit=100)
+    public void declinedPhysicalWreckKeepsTheRealNativeDeathVisibleAcrossReloadAndProfileChange(TestContext c){deathChoice(c,false,false,false);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="drone-accepted-wreck-reload",tickLimit=100)
+    public void acceptedPhysicalWreckOwnsVisibilityOnceAcrossRealDeadEntityReload(TestContext c){deathChoice(c,true,false,false);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="drone-authored-invisible-death",tickLimit=100)
+    public void declinedPhysicalWreckDoesNotClearAuthoredInvisibility(TestContext c){deathChoice(c,false,true,false);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="drone-legacy-visible-death",tickLimit=100)
+    public void legacyDeadSavePreservesNativeVisibleDeathWithoutInventingAReplacement(TestContext c){deathChoice(c,false,false,true);}
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="drone-legacy-hidden-death",tickLimit=100)
+    public void legacyDeadSavePreservesItsOriginalAuthoredInvisibleFlag(TestContext c){deathChoice(c,false,true,true);}
+
+    /** Real lethal damage, real allocator policy and ordinary registered entity ticks. */
+    private static void deathChoice(TestContext c,boolean replacement,boolean authoredInvisible,boolean legacy){
+        var f=new RagdollLifecycleFixture(c,3,0,0);var profile=PhysicsProfileState.get(f.world);var old=profile.profile();
+        profile.set(replacement?PhysicsProfile.EXPANDED:PhysicsProfile.STANDARD);f.cleanup.add(()->profile.set(old));
+        var drone=ModEntities.DRONE.create(f.world);c.assertTrue(drone!=null,"actual original drone factory");
+        drone.setPosition(Vec3d.ofBottomCenter(f.floor.add(0,3,0)));drone.setAiDisabled(true);drone.setInvisible(authoredInvisible);f.own(drone);
+        var before=f.world.getEntitiesByClass(RagdollEntity.class,f.area,e->true).stream().map(net.minecraft.entity.Entity::getUuid).collect(java.util.stream.Collectors.toSet());
+        int[] phase={0},born={0};long[] time={0};NbtCompound[] saved={null};DroneEntity[] restored={null};
+        f.drive(80,()->{
+            if(phase[0]==0){if(!f.chunks.entityTicking(drone.getBlockPos()))return;c.assertTrue(f.world.spawnEntity(drone),"actual original native actor registered");phase[0]=1;return;}
+            if(phase[0]==1){
+                if(drone.age<2)return;
+                if(authoredInvisible)drone.setInvisible(true); // disclosed authored flag at the actual death boundary
+                c.assertTrue(drone.damage(f.world.getDamageSources().genericKill(),Float.MAX_VALUE)&&!drone.isAlive(),"actual native lethal-damage death event");
+                var wrecks=f.world.getEntitiesByClass(RagdollEntity.class,f.area,e->!before.contains(e.getUuid()));wrecks.forEach(f::own);
+                c.assertTrue(wrecks.size()==(replacement?1:0),"real allocator outcome is explicit, not inferred from death: "+wrecks.size());
+                c.assertTrue(drone.isInvisible()==(replacement||authoredInvisible),"only a successful replacement may hide a previously visible native death");
+                saved[0]=new NbtCompound();c.assertTrue(drone.saveSelfNbt(saved[0]),"real dead drone serializes its native entity identity");
+                c.assertTrue(saved[0].getBoolean("wreckReplaced")==replacement,"saved replacement ownership matches the actual allocation outcome");
+                if(legacy)saved[0].remove("wreckReplaced");
+                drone.discard();phase[0]=2;return;
+            }
+            if(phase[0]==2){
+                if(f.world.getEntity(drone.getUuid())!=null)return;
+                // A later Expanded selection cannot turn a previously declined/legacy death into
+                // a second allocation. The actual replacement, when present, stays independent.
+                profile.set(PhysicsProfile.EXPANDED);
+                restored[0]=(DroneEntity)EntityType.getEntityFromNbt(saved[0],f.world).orElseThrow();f.own(restored[0]);
+                c.assertTrue(restored[0].getUuid().equals(drone.getUuid())&&!restored[0].isAlive(),"real factory reload preserves the dead entity identity");
+                c.assertTrue(f.world.spawnEntity(restored[0]),"reopened dead native entity registered after original removal");
+                born[0]=restored[0].age;time[0]=f.world.getTime();phase[0]=3;return;
+            }
+            var copy=restored[0];if(copy.age-born[0]<4)return;f.assertTicks(copy,born[0],time[0],4);
+            c.assertTrue(copy.isInvisible()==(replacement||authoredInvisible),"ordinary native death ticks preserve the correct visible or authored hidden fallback");
+            var wrecks=f.world.getEntitiesByClass(RagdollEntity.class,f.area,e->!before.contains(e.getUuid()));
+            c.assertTrue(wrecks.size()==(replacement?1:0),"reload/profile changes cannot retry a completed death choice or duplicate the physical body");
+            System.out.println("DRONE_DEATH_CHOICE physical="+replacement+" authoredInvisible="+authoredInvisible+" legacy="+legacy+" nativeInvisible="+copy.isInvisible()+" actualWrecks="+wrecks.size()+" ordinaryTicks="+(copy.age-born[0]));f.complete();
+        });
+    }
+
 }
