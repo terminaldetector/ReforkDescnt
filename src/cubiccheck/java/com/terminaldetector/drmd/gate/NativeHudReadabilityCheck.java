@@ -103,8 +103,9 @@ public final class NativeHudReadabilityCheck {
             menuRequested = true;
             client.getServer().execute(() -> DroneInventoryHandler.open(client.getServer().getPlayerManager().getPlayer(playerId)));
         }
-        if (client.currentScreen instanceof DroneInventoryScreen menu) {
-            var slot = menu.getScreenHandler().getSlot((phase - 1) % 3);
+        if (client.currentScreen instanceof DroneInventoryScreen menu
+                && client.player.currentScreenHandler instanceof DroneInventoryHandler handler) {
+            var slot = handler.getSlot((phase - 1) % 3);
             double mouseX = (menu.width - 176) / 2 + slot.x + 8;
             double mouseY = (menu.height - 212) / 2 + slot.y + 8;
             GLFW.glfwSetCursorPos(client.getWindow().getHandle(), mouseX * client.getWindow().getWidth() / menu.width,
