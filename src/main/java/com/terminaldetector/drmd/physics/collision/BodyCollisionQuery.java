@@ -21,9 +21,8 @@ public final class BodyCollisionQuery {
 
     /** Normal points from the hull into the queried box. Skin admits separated resting contacts. */
     public List<Contact> contacts(OrientedBox actor, double skin) {
-        if (!Double.isFinite(skin) || skin < 0) throw new IllegalArgumentException("invalid skin");
         var hits = new ArrayList<Contact>();
-        for (BodyBounds shape : collider.query(toLocal(expand(actor.bounds(), skin)))) {
+        for (BodyBounds shape : contactCandidates(actor, skin)) {
             var hull = OrientedBox.local(shape, position, localCom, rotation);
             actor.contact(hull, skin).ifPresent(c -> {
                 // A single representative point, not a clipped face manifold. Project the actor's
@@ -35,6 +34,19 @@ public final class BodyCollisionQuery {
             });
         }
         return List.copyOf(hits);
+    }
+
+    /** Admission only: stop at the first actual occupied primitive, before projecting contact points. */
+    public boolean hasContact(OrientedBox actor, double skin) {
+        for (BodyBounds shape : contactCandidates(actor, skin)) {
+            if (actor.contact(OrientedBox.local(shape, position, localCom, rotation), skin).isPresent()) return true;
+        }
+        return false;
+    }
+
+    private List<BodyBounds> contactCandidates(OrientedBox actor, double skin) {
+        if (!Double.isFinite(skin) || skin < 0) throw new IllegalArgumentException("invalid skin");
+        return collider.query(toLocal(expand(actor.bounds(), skin)));
     }
 
     /** Projection onto a queried primitive in this pose. Unlike a solver's representative

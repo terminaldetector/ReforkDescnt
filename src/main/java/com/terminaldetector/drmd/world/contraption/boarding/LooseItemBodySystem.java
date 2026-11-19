@@ -64,8 +64,16 @@ public final class LooseItemBodySystem {
         if (!world.getServer().isOnThread()) throw new IllegalStateException("Loose item physics is server-owned");
         var bodies = nearby(item, item.getVelocity());
         if (bodies.isEmpty()) return Phase.NATIVE;
-        if (bodies.size() <= MAX_BODIES && bodies.stream().noneMatch(body -> interacts(item, body)))
-            return Phase.NATIVE;
+        if (bodies.size() <= MAX_BODIES) {
+            boolean interacts = false;
+            for (var body : bodies) {
+                if (interacts(item, body)) {
+                    interacts = true;
+                    break;
+                }
+            }
+            if (!interacts) return Phase.NATIVE;
+        }
         long tick = world.getTime();
         var frame = PENDING.get(world);
         if (frame == null || frame.tick != tick) {
@@ -83,10 +91,11 @@ public final class LooseItemBodySystem {
     }
     private static boolean interacts(ItemEntity item, BlockBodyEntity body) {
         var motion = body.boardingMotion();
-        var centre = BoardingSystem.pure(item.getBoundingBox().getCenter());
-        if (motion.gravity(centre, 0).isPresent() || motion.gravity(centre, 1).isPresent()) return true;
+        if (motion.hasGravity()) {
+            var centre = BoardingSystem.pure(item.getBoundingBox().getCenter());
+            if (motion.gravity(centre, 0).isPresent() || motion.gravity(centre, 1).isPresent()) return true;
+        }
         var box = PassengerFrame.box(BoardingSystem.pure(item.getPos()), item.getWidth(), item.getHeight(), Quat.IDENTITY);
-        var delta = BoardingSystem.pure(item.getVelocity().add(0, -item.getFinalGravity(), 0));
         double reach = .002 + motion.travelBound();
         if (body.boardingMotionPaused()) {
             // A later entity-order hull may not have published its current tick yet. Admit only
@@ -94,8 +103,10 @@ public final class LooseItemBodySystem {
             reach += Math.min(512, body.physics().linearVelocity().length()) * .05
                 + body.radius() * Math.min(2, body.physics().angularVelocity().length()) * .05;
         }
-        return !motion.query(0).contacts(box, reach).isEmpty() || !motion.query(1).contacts(box, reach).isEmpty()
-            || motion.query(0).sweep(box, delta, motion.position(1).minus(motion.position(0))).isPresent();
+        var start = motion.query(0);
+        if (start.hasContact(box, reach) || motion.query(1).hasContact(box, reach)) return true;
+        var delta = BoardingSystem.pure(item.getVelocity().add(0, -item.getFinalGravity(), 0));
+        return start.sweep(box, delta, motion.position(1).minus(motion.position(0))).isPresent();
     }
     private static Pending pending(ItemEntity item) {
         if (!(item.getWorld() instanceof ServerWorld world)) return null;
@@ -134,9 +145,9 @@ public final class LooseItemBodySystem {
                 continue;
             }
             Vec3 acceleration = new Vec3(0, -p.gravity * 400, 0);
-            var centre = BoardingSystem.pure(item.getBoundingBox().getCenter());
             for (var b : near) {
-                var field = b.gravity(centre, 1);
+                if (!b.hasGravity()) continue;
+                var field = b.gravity(BoardingSystem.pure(item.getBoundingBox().getCenter()), 1);
                 if (field.isPresent()) {acceleration = field.orElseThrow(); break;}
             }
             // Native launch/knockback received after tick is an external delta, not a new owner or carrier addition.

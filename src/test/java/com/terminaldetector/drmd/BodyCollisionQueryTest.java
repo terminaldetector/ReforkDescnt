@@ -13,6 +13,8 @@ class BodyCollisionQueryTest {
     @Test void restingSkinFindsActualOccupiedFaceWithoutRebuildingGeometry() {
         var collider=floor();var q=new BodyCollisionQuery(collider,v(0,0,0),v(0,0,0),Quat.IDENTITY);
         var actor=box(v(1.6,1.9+.001,.5),v(.2,.9,.2));
+        assertFalse(q.hasContact(actor,0));
+        assertTrue(q.hasContact(actor,.002));
         assertTrue(q.contacts(actor,0).isEmpty());var c=q.contacts(actor,.002).getFirst();
         assertEquals(0,c.penetration());assertEquals(1,c.normal().y(),1e-12);
         assertEquals(1.6,c.point().x(),1e-12,"contact must lie under the actor, not at the merged hull centre");
@@ -22,11 +24,17 @@ class BodyCollisionQueryTest {
         var shape=CompoundCollider.cells(List.of(new CompoundCollider.Cell(0,0,0),new CompoundCollider.Cell(2,0,0)));
         var r=new Quat(0,Math.sin(.4),0,Math.cos(.4));var pos=v(20,30,40);var com=v(1.5,.5,.5);
         var query=new BodyCollisionQuery(shape,pos,com,r);
-        assertTrue(query.contacts(new OrientedBox(pos,v(.2,.2,.2),r),0).isEmpty());
-        var occupied=pos.plus(r.rotate(v(1,0,0)));assertFalse(query.contacts(new OrientedBox(occupied,v(.2,.2,.2),r),0).isEmpty());
+        var doorway=new OrientedBox(pos,v(.2,.2,.2),r);
+        assertTrue(query.contacts(doorway,0).isEmpty());
+        assertFalse(query.hasContact(doorway,0));
+        var occupied=new OrientedBox(pos.plus(r.rotate(v(1,0,0))),v(.2,.2,.2),r);
+        assertFalse(query.contacts(occupied,0).isEmpty());
+        assertTrue(query.hasContact(occupied,0));
         var rod=new CompoundCollider(List.of(new BodyBounds(v(-2,-.1,-.1),v(2,.1,.1))));
         var diagonal=new BodyCollisionQuery(rod,v(0,0,0),v(0,0,0),new Quat(0,0,Math.sin(Math.PI/8),Math.cos(Math.PI/8)));
-        assertTrue(diagonal.contacts(box(v(1.35,-1.35,0),v(.1,.1,.1)),0).isEmpty());
+        var emptyCorner=box(v(1.35,-1.35,0),v(.1,.1,.1));
+        assertTrue(diagonal.contacts(emptyCorner,0).isEmpty());
+        assertFalse(diagonal.hasContact(emptyCorner,0));
     }
     @Test void relativeCcdIncludesMovingHullInTheBvhBroadphase() {
         var query=new BodyCollisionQuery(floor(),v(0,0,0),v(0,0,0),Quat.IDENTITY);
