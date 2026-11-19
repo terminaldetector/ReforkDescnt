@@ -4,7 +4,6 @@ import com.terminaldetector.drmd.world.gravity.LocalSurfaceMotion;
 import com.terminaldetector.drmd.world.gravity.LocalSurfaceNavigation;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
@@ -29,15 +28,6 @@ public abstract class LocalSurfaceTravelMixin {
     }
     @Unique private boolean valid(Vec3d up,LivingEntity actor) {
         return up!=null&&drmd$travelDepth==1&&up.equals(LocalSurfaceNavigation.cardinalPhysicsUp(actor));
-    }
-    @Redirect(method="travel",at=@At(value="INVOKE",target="Lnet/minecraft/entity/LivingEntity;getVelocityAffectingPos()Lnet/minecraft/util/math/BlockPos;"))
-    private BlockPos actualMaterial(LivingEntity actor) {
-        var up=drmd$travelUp;
-        if(valid(up,actor)&&actor.isOnGround()) {
-            var material=LocalSurfaceNavigation.supportMaterial(actor,up);
-            if(material!=null)return material;
-        }
-        return actor.getVelocityAffectingPos();
     }
     @Redirect(method="travel",at=@At(value="INVOKE",target="Lnet/minecraft/entity/LivingEntity;applyMovementInput(Lnet/minecraft/util/math/Vec3d;F)Lnet/minecraft/util/math/Vec3d;"))
     private Vec3d nativeMovement(LivingEntity actor,Vec3d input,float slipperiness) {

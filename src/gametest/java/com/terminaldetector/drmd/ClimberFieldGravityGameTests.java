@@ -416,4 +416,64 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
         if(!w.getServer().getNetworkIo().getConnections().contains(connection))w.getServer().getNetworkIo().getConnections().add(connection);
         return new NativeFoodPlayer(p,connection,channel);
     }
+
+    private static final class MaterialActor {
+        final SpiderEntity actor;final int species;final Vec3d up,x,z;int impulseAge=-1;Vec3d after,impulsePosition;
+        MaterialActor(SpiderEntity actor,int species,Vec3d up){this.actor=actor;this.species=species;this.up=up;
+            x=com.terminaldetector.drmd.world.gravity.ActorFrameMath.toWorld(new Vec3d(1,0,0),up);z=com.terminaldetector.drmd.world.gravity.ActorFrameMath.toWorld(new Vec3d(0,0,1),up);}
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="climber-native-material-parity",tickLimit=320)
+    public void actualSlowSupportMaterialAndBothTangentsMatchTheNativeFloorOnWallsAndCeilings(TestContext c){
+        var centre=c.getAbsolutePos(new BlockPos(6,80,6));var room=new Room(c,centre.add(-8,-8,-8),centre.add(8,8,8));
+        var cases=new ArrayList<MaterialActor>();var changed=new ArrayList<BlockPos>();int[] phase={0};UUID[] field={null};
+        double[][] ordinary=new double[2][2],slowFloor=new double[2][2];
+        watch(c,room,310,()->{
+            if(!room.loaded())return false;room.build();
+            if(cases.isEmpty()){
+                var up=phase[0]<2?new Vec3d(0,1,0):phase[0]==2?new Vec3d(1,0,0):new Vec3d(0,-1,0);
+                for(var p:changed)room.world.setBlockState(p,Blocks.OBSIDIAN.getDefaultState(),2);changed.clear();
+                var material=phase[0]==0?Blocks.OBSIDIAN:Blocks.SOUL_SAND;
+                for(var p:BlockPos.iterate(room.min,room.max))if(up.y>.5?p.getY()==room.min.getY():up.x>.5?p.getX()==room.min.getX():p.getY()==room.max.getY()){
+                    room.world.setBlockState(p,material.getDefaultState(),2);changed.add(p.toImmutable());
+                }
+                field[0]=room.field(centre,up.negate());int i=0;
+                for(var type:TYPES){
+                    var a=(SpiderEntity)type.create(room.world);a.setAiDisabled(true);a.setPersistent();
+                    var startRay=Vec3d.ofCenter(centre).add(com.terminaldetector.drmd.world.gravity.ActorFrameMath.toWorld(new Vec3d(i==0?-3:3,0,0),up));
+                    var hit=room.world.raycast(new RaycastContext(startRay,startRay.subtract(up.multiply(8.5)),RaycastContext.ShapeType.COLLIDER,RaycastContext.FluidHandling.NONE,a));
+                    c.assertTrue(hit.getType()==HitResult.Type.BLOCK&&Vec3d.of(hit.getSide().getVector()).dotProduct(up)>=.95
+                        &&room.world.getBlockState(hit.getBlockPos()).isOf(material),"actual loaded native support/material before one checked frame setup");
+                    a.setPosition(hit.getPos().add(up.multiply(.02)));c.assertTrue(ActorFrames.trySetUp(a,up),"clear checked body against the actual material collider");room.spawn(a);
+                    cases.add(new MaterialActor(a,i++,up));
+                }
+                return false;
+            }
+            boolean complete=true;
+            for(var r:cases){
+                var a=r.actor;groundSupport(c,a,r.up);
+                c.assertTrue(a.isAlive()&&a.isAiDisabled()&&!a.hasNoGravity()&&ActorFrames.up(a).distanceTo(r.up)<1e-6,"ordinary native material probe retains actual frame/flag/controller ownership");
+                if(a.age<3||!EntityGravitySystem.suppressesVanillaGravity(a)){complete=false;continue;}
+                var expected=phase[0]==0?Blocks.OBSIDIAN:Blocks.SOUL_SAND;
+                var actual=room.world.getBlockState(a.getVelocityAffectingPos());
+                c.assertTrue(actual.isOf(expected),"actual native getVelocityAffectingPos must resolve the physical support, including the Entity.move multiplier caller: phase="+phase[0]+" "+a.getType()+" actual="+actual);
+                if(r.impulseAge<0){r.impulseAge=a.age;r.impulsePosition=a.getPos();a.setVelocity(r.x.add(r.z).multiply(.2));complete=false;continue;} // one disclosed external tangent impulse, never a pose follower
+                if(a.age==r.impulseAge){complete=false;continue;}
+                if(r.after==null){
+                    c.assertTrue(a.age==r.impulseAge+1,"one actual ordinary actor tick resolves the material impulse before comparison");r.after=a.getVelocity();
+                    c.assertTrue(a.getPos().distanceTo(r.impulsePosition)<=1,"actual ordinary material movement cannot teleport more than the frozen one-metre step bound");
+                    double vx=r.after.dotProduct(r.x),vz=r.after.dotProduct(r.z);
+                    c.assertTrue(vx>0&&vz>0&&Math.abs(vx-vz)<1e-6,"both actual support tangents retain the same material factor, including the wall's world-Y tangent");
+                    if(phase[0]==0){ordinary[r.species][0]=vx;ordinary[r.species][1]=vz;}
+                    else if(phase[0]==1){slowFloor[r.species][0]=vx;slowFloor[r.species][1]=vz;
+                        c.assertTrue(Math.abs(vx/ordinary[r.species][0]-(double).4f)<1e-5&&Math.abs(vz/ordinary[r.species][1]-(double).4f)<1e-5,"real native soul sand contributes its original .4 multiplier before the separate dry damping");}
+                    else c.assertTrue(Math.abs(vx-slowFloor[r.species][0])<1e-6&&Math.abs(vz-slowFloor[r.species][1])<1e-6,"actual wall/ceiling material motion must match the ordinary native slow-floor control");
+                    System.out.println("CLIMBER_MATERIAL_NATIVE "+new com.google.gson.Gson().toJson(Map.of("phase",phase[0],"species",a.getType().toString(),"up",vector(r.up),"nativeActorTick",a.age-r.impulseAge,
+                        "actualMaterial",actual.toString(),"localTangents",List.of(vx,vz),"normal",r.after.dotProduct(r.up),"actualSupportGap",groundSupport(c,a,r.up))));
+                }
+            }
+            if(!complete)return false;
+            for(var r:cases)r.actor.discard();cases.clear();room.removeField(field[0]);field[0]=null;
+            return ++phase[0]==4;
+        });
+    }
 }

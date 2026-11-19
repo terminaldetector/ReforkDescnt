@@ -26,6 +26,15 @@ public final class LocalSurfaceMotion {
         return ActorFrameMath.toWorld(local,cardinal).add(residual);
     }
 
+    /** Entity.move applies its actual material multiplier before travel's separate dry damping. */
+    public static Vec3d materialMultiplier(Vec3d resolved,Vec3d nativeResult,Vec3d up,double factor){
+        var cardinal=cardinalUp(up);
+        if(cardinal==null||Math.abs(cardinal.y)>.5||factor==1||!finite(resolved)||!finite(nativeResult)
+            ||!Double.isFinite(factor)||factor<0)return nativeResult;
+        var normal=cardinal.multiply(resolved.dotProduct(cardinal));
+        return resolved.subtract(normal).multiply(factor).add(normal);
+    }
+
     /** Native .4 aim/.2 inherited tangent algebra; the goal still owns selection, timing and leap height. */
     public static Vec3d pounce(Vec3d targetDelta,Vec3d previous,Vec3d up,float leap,Vec3d nativeResult) {
         var cardinal=cardinalUp(up);

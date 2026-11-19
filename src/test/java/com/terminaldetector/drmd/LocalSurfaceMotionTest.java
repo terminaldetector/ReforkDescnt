@@ -129,4 +129,22 @@ class LocalSurfaceMotionTest {
         assertSame(nonfinite,LocalSurfaceMotion.jumpSprint(nonfinite,UPS[0]));
     }
 
+    @Test void actualMaterialMultiplierScalesBothLocalTangentsAndRetainsTheResolvedNormal(){
+        var local=new Vec3d(.2,.3,-.4);double factor=(double).4f;
+        for(var up:UPS){var resolved=ActorFrameMath.toWorld(local,up);var nativeResult=resolved.multiply(factor,1,factor);
+            same(new Vec3d(.2*factor,.3,-.4*factor),ActorFrameMath.toLocal(LocalSurfaceMotion.materialMultiplier(resolved,nativeResult,up,factor),up));}
+    }
+    @Test void materialMultiplierNeverResurrectsAnAxisAlreadyStoppedByNativeCollision(){
+        for(var up:UPS)for(int axis=0;axis<3;axis++){
+            double[] v={.2,-.3,.4};v[axis]=0;var resolved=new Vec3d(v[0],v[1],v[2]);
+            var result=LocalSurfaceMotion.materialMultiplier(resolved,resolved.multiply(.4,1,.4),up,.4);
+            assertEquals(0,new double[]{result.x,result.y,result.z}[axis],0);
+        }
+    }
+    @Test void worldVerticalAndUnprovedMaterialFramesRetainTheExactNativeResult(){
+        var resolved=new Vec3d(.2,-.3,.4);var result=resolved.multiply(.4,1,.4);
+        for(var up:new Vec3d[]{null,Vec3d.ZERO,UPS[2],UPS[3],new Vec3d(1,1,0).normalize()})assertSame(result,LocalSurfaceMotion.materialMultiplier(resolved,result,up,.4));
+        assertSame(result,LocalSurfaceMotion.materialMultiplier(resolved,result,UPS[0],Double.NaN));
+        assertSame(result,LocalSurfaceMotion.materialMultiplier(resolved,result,UPS[0],-1));
+    }
 }
