@@ -1,0 +1,21 @@
+{
+  "cameraTask": "S06-T03",
+  "viewmodelTaskEvidence": "S10-T01",
+  "observerSource": "6cf4d3b97be57ce9e5c83933294891d8a0afb1bb",
+  "productionJarSha256": "7afbb25ed192b07db2ab8868f7c8e9093dcee41633ae01d43faf4f9950220837",
+  "unitTestSource": "fcdbebd9d6338099ab47e987010d9df83c33482d",
+  "nativeExit": 0,
+  "renderObservationRows": 84,
+  "validatedEngineerTools": [
+    "mining_laser",
+    "tunnel_laser",
+    "repair_laser"
+  ],
+  "profileScenarioCount": 12,
+  "modelJsonCount": 134,
+  "realPointerRequests": 10,
+  "pointerTeardownExit": 1,
+  "scope": "Native and embedded PS1, first-person and installed primary with empty hand, actual cockpit and roll. Separate model-basis and pole tests cover orientation combinations. The X11 helper delivered input, then the game destroyed its isolated display. Full per-item live model acceptance remains separate.",
+  "archive": "engineer-weapon-presentation.zip",
+  "archiveSha256": "be4cc16e502a4fa3254cfa621dddad243306aa7fd3ae2fee70cb3895fe7249e3"
+}

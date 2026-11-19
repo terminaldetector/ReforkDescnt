@@ -462,11 +462,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id007
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/engineer-weapon-presentation.json, EVIDENCE/finish36-20261119/gravity-camera-and-weapon.json, EVIDENCE/finish36-20261119/live-world-and-horizon.json]
+  notes: "Проверены положение камеры и удерживаемой модели в живом клиенте, обычный полёт и крен, пол, стена и потолок с факелом. Модельная математика проверена по 1701 сочетанию углов, полюса ориентации отдельными тестами."
 - id: S06-T04
   stage: S06
   stage_title: Core gravity and player 6DoF
@@ -711,8 +711,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md, TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
-  notes: "2026-11-19, третий цикл. Починено расположение пяти отрисованных слотов и основная рука в 6DoF fallback. Полная матрица удерживаемых моделей и камер остаётся открытой. Предыдущая отметка: Actual socket HUD and flight E/Q ownership implemented; native mouse/7-14child/roll/offflight inventory pass retained at6d with18class exact final parity. Full held/inventory model and6DoF matrix remains open."
+  evidence: [docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md, TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json, EVIDENCE/finish36-20261119/engineer-weapon-presentation.json]
+  notes: "В обычном рендере и встроенном PS1 подтверждены две серии по 12 игровых сцен с оружием и реальными горным, тоннельным и ремонтным лазерами. Проверены 134 модельных JSON и ссылки на их ассеты; полное игровое покрытие моделей остаётся в работе."
 - id: S10-T02
   stage: S10
   stage_title: Weapons, cluster, drill and building
