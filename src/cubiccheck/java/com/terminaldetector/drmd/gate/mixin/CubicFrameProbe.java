@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.gate.mixin;
 import com.terminaldetector.drmd.gate.CubicClientGate;
+import com.terminaldetector.drmd.gate.NativeHudReadabilityCheck;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.RenderTickCounter;
 import org.spongepowered.asm.mixin.Mixin;
@@ -8,6 +9,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameRenderer.class)
 public class CubicFrameProbe {
     @Inject(method="render",at=@At("HEAD"))
+    private void hudReadabilityBefore(RenderTickCounter counter,boolean tick,CallbackInfo ci){NativeHudReadabilityCheck.beforeFrame();}
+    @Inject(method="render",at=@At("HEAD"))
     private void mobGeometryBefore(RenderTickCounter counter,boolean tick,CallbackInfo ci){com.terminaldetector.drmd.gate.NativeMobGeometryCheck.beforeFrame();}
     @Inject(method="render",at=@At("HEAD"))
     private void assetsBefore(RenderTickCounter counter,boolean tick,CallbackInfo ci){com.terminaldetector.drmd.gate.NativeAssetsPacingCheck.beforeFrame();com.terminaldetector.drmd.gate.NativeConnectedPortalCheck.beforeFrame();com.terminaldetector.drmd.gate.NativeClusterInputCheck.beforeFrame();com.terminaldetector.drmd.gate.NativePs1AtmosphereCheck.beforeFrame();}
@@ -15,6 +18,7 @@ public class CubicFrameProbe {
     private void before(RenderTickCounter counter,boolean tick,CallbackInfo ci){com.terminaldetector.drmd.gate.NativePresentationCheck.beforeFrame();com.terminaldetector.drmd.gate.NativeMountedWeaponCheck.beforeFrame();com.terminaldetector.drmd.gate.NativeMechanismCheck.beforeFrame();com.terminaldetector.drmd.gate.NativeTurretAiCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeUfoAiCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeTurretReloadCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeIslandLoadCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeSharedCombatCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeTypedCombatRouteCheck.beforeFrame(counter.getTickDelta(false));}
     @Inject(method="render",at=@At("RETURN"))
     private void completed(RenderTickCounter counter,boolean tick,CallbackInfo ci) {
+        if(NativeHudReadabilityCheck.ENABLED){NativeHudReadabilityCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeVerticalFlightCheck.ENABLED){com.terminaldetector.drmd.gate.NativeVerticalFlightCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativePs1AtmosphereCheck.ENABLED){com.terminaldetector.drmd.gate.NativePs1AtmosphereCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeMobGeometryCheck.ENABLED){com.terminaldetector.drmd.gate.NativeMobGeometryCheck.rendered();return;}

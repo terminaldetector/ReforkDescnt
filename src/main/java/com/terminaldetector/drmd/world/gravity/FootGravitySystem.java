@@ -306,16 +306,17 @@ public final class FootGravitySystem {
 	}
 
     public static void adoptServer(UUID id,Vec3d up,String label) {
-        Vec3d normalized=up.lengthSquared()<1e-6?new Vec3d(0,1,0):up.normalize();
+        var decoded=LocalOrientation.normalizeUp(up);if(decoded.isEmpty())return;
+        Vec3d normalized=decoded.orElseThrow();
         LocalOrientation.setUp(id,normalized);
         STATES.put(id,new State(normalized,true,false,label));
     }
 
 	/** Client mirror of active foot-gravity state (from sync). */
 	public static void adoptClient(UUID id, Vec3d up) {
-		if (up.lengthSquared() < 1e-6) up = new Vec3d(0, 1, 0);
-		up = up.normalize();
-		LocalOrientation.setUp(id, up);
-		CLIENT_STATES.put(id, new State(up, true, false, "Local"));
+        var decoded=LocalOrientation.normalizeUp(up);if(decoded.isEmpty())return;
+        var normalized=decoded.orElseThrow();
+        LocalOrientation.setUp(id,normalized);
+        CLIENT_STATES.put(id,new State(normalized,true,false,"Local"));
 	}
 }

@@ -161,11 +161,11 @@ public final class FlyingRosterGravityGameTests implements FabricGameTest {
         c.complete();
     }
 
-    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-family-constraints")
+    @GameTest(templateName=EMPTY_STRUCTURE,tickLimit=40,batchId="native-family-constraints")
     public void roostAttachmentAndDragonMultipartConstraintsNeverBorrowAGroundLease(TestContext c) {
         var world=c.getWorld();var centre=c.getAbsolutePos(new BlockPos(6,80,6));var id=UUID.randomUUID();
         for(var p:BlockPos.iterate(centre.add(-8,-8,-8),centre.add(8,8,8)))world.setBlockState(p,Blocks.AIR.getDefaultState(),2);
-        for(var type:new EntityType<?>[]{EntityType.BAT,EntityType.SHULKER,EntityType.ENDER_DRAGON}) {
+        for(var type:new EntityType<?>[]{EntityType.SHULKER,EntityType.ENDER_DRAGON}) {
             var actor=(MobEntity)type.create(world);actor.setAiDisabled(true);actor.setPosition(Vec3d.ofCenter(centre));
             if(actor instanceof net.minecraft.entity.passive.BatEntity bat)bat.setRoosting(true);
             var attached=actor instanceof net.minecraft.entity.mob.ShulkerEntity shulker?shulker.getAttachedFace():null;
@@ -181,14 +181,33 @@ public final class FlyingRosterGravityGameTests implements FabricGameTest {
                 if(actor instanceof net.minecraft.entity.mob.ShulkerEntity shulker)c.assertTrue(shulker.getAttachedFace()==attached,"actual native support face is untouched");
                 if(actor instanceof net.minecraft.entity.boss.dragon.EnderDragonEntity dragon)
                     c.assertTrue(java.util.Arrays.equals(parts,dragon.getBodyParts()),"actual multipart identities/controllers are never replaced by a generic body");
-                if(actor instanceof net.minecraft.entity.passive.BatEntity bat) {
-                    bat.setRoosting(false);EntityGravitySystem.tick(world.getServer());
-                    c.assertTrue(EntityGravitySystem.suppressesVanillaGravity(bat)&&bat.getVelocity().distanceTo(propulsion)>.02,"leaving the actual native roost enables the ordinary aerial force adapter");
-                    var velocity=bat.getVelocity();bat.setRoosting(true);EntityGravitySystem.tick(world.getServer());
-                    c.assertTrue(!EntityGravitySystem.suppressesVanillaGravity(bat)&&bat.isRoosting()&&bat.getVelocity().equals(velocity),"re-entry into a native constraint retires the earlier live force lease");
-                }
             } finally {GravityFields.remove(id);actor.discard();EntityGravitySystem.tick(world.getServer());}
         }
-        c.complete();
+        var bat=EntityType.BAT.create(world);bat.setAiDisabled(true);bat.setRoosting(true);bat.setPosition(Vec3d.ofCenter(centre));
+        c.assertTrue(world.spawnEntity(bat),"real bat registered in its native constrained state");
+        var batStart=bat.getPos();var propulsion=new Vec3d(.11,.03,-.04);bat.setVelocity(propulsion);
+        for(var direction:FIELD_AXES) {
+            GravityFields.put(new GravityFields.Field(id,world.getRegistryKey(),centre,Vec3d.of(direction.getVector()),32,1,FieldShape.SPHERE,"native roost constraint"));
+            EntityGravitySystem.tick(world.getServer());
+            c.assertTrue(bat.getPos().equals(batStart)&&bat.getVelocity().equals(propulsion)&&!ActorFrames.active(bat)
+                &&!EntityGravitySystem.suppressesVanillaGravity(bat)&&bat.isRoosting(),"actual native roost refuses local force on every field axis");
+        }
+        // Discovery of a previously unconstrained actor is intentionally bounded/dormant;
+        // do not demand a fresh lease from repeated field passes at unchanged world time.
+        long chunk=bat.getChunkPos().toLong();boolean forced=world.getForcedChunks().contains(chunk);
+        world.setChunkForced(ChunkPos.getPackedX(chunk),ChunkPos.getPackedZ(chunk),true);
+        bat.setRoosting(false);int age=bat.age;
+        c.runAtTick(8,()->{
+            try {
+                c.assertTrue(bat.age>=age+2,"admission: native bat receives real ordinary world ticks after leaving its roost");
+                c.assertTrue(EntityGravitySystem.suppressesVanillaGravity(bat)&&bat.getVelocity().distanceTo(propulsion)>.02,"leaving the actual native roost enables the ordinary aerial force adapter");
+                var velocity=bat.getVelocity();bat.setRoosting(true);EntityGravitySystem.tick(world.getServer());
+                c.assertTrue(!EntityGravitySystem.suppressesVanillaGravity(bat)&&bat.isRoosting()&&bat.getVelocity().equals(velocity),"re-entry into a native constraint retires the earlier live force lease");
+            } finally {
+                GravityFields.remove(id);bat.discard();EntityGravitySystem.tick(world.getServer());
+                if(!forced)world.setChunkForced(ChunkPos.getPackedX(chunk),ChunkPos.getPackedZ(chunk),false);
+            }
+            c.complete();
+        });
     }
 }

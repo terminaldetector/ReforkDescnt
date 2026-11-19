@@ -51,7 +51,7 @@ public final class FootGravityCamera {
 		Vec3d target = DescentClientState.footGravity
 				? new Vec3d(DescentClientState.localUx, DescentClientState.localUy, DescentClientState.localUz)
 				: new Vec3d(0, 1, 0);
-		if (target.lengthSquared() < 1e-6) target = new Vec3d(0, 1, 0);
+        target=com.terminaldetector.drmd.world.LocalOrientation.normalizeUp(target).orElse(visualUp);
 		double blend = DescentClientState.footGravity ? BLEND_IN : BLEND_OUT;
 		visualUp = ShipAttitude.slerp(visualUp, target, blend);
 	}

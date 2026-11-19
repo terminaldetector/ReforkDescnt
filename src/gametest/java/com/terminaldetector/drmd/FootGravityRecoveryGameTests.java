@@ -164,4 +164,30 @@ public final class FootGravityRecoveryGameTests implements FabricGameTest {
         }
         c.complete();
     }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="foot-frame-malformed-recovery")
+    public void malformedLaterFramesCannotPoisonActualPlayerBodyEyeOrRelease(TestContext c) {
+        var player=c.createMockCreativeServerPlayerInWorld();var id=player.getUuid();
+        player.setPosition(Vec3d.ofCenter(c.getAbsolutePos(new BlockPos(5,30,5))));
+        try {
+            for(var direction:net.minecraft.util.math.Direction.values()) {
+                var up=Vec3d.of(direction.getVector());FootGravitySystem.adoptServer(id,up,"valid frame");player.calculateDimensions();
+                var body=player.getBoundingBox();var eye=player.getEyePos();
+                for(var bad:new Vec3d[]{null,new Vec3d(Double.NaN,0,1),new Vec3d(0,Double.POSITIVE_INFINITY,1),new Vec3d(0,1,Double.NEGATIVE_INFINITY)}) {
+                    com.terminaldetector.drmd.world.LocalOrientation.setUp(id,bad);
+                    FootGravitySystem.adoptServer(id,bad,"invalid later frame");FootGravitySystem.adoptClient(id,bad);player.calculateDimensions();
+                    c.assertTrue(FootGravitySystem.getUp(player).equals(up)&&player.getBoundingBox().equals(body)&&player.getEyePos().equals(eye),
+                        "actual server body and interaction/camera eye retain the accepted frame after malformed input: "+direction);
+                }
+            }
+            FootGravitySystem.adoptServer(id,new Vec3d(1e308,-1e308,5e307),"large finite legacy frame");player.calculateDimensions();
+            var eye=player.getEyePos().subtract(player.getPos());
+            c.assertTrue(Double.isFinite(eye.lengthSquared())&&eye.normalize().distanceTo(new Vec3d(2,-2,1).normalize())<1e-10,
+                "actual player eye accepts large finite input without overflow or a black-camera frame");
+            FootGravitySystem.clear(id);com.terminaldetector.drmd.world.LocalOrientation.clear(id);player.calculateDimensions();
+            c.assertTrue(!FootGravitySystem.isActive(player)&&player.getBoundingBox().getLengthY()>1.7&&player.getEyePos().y-player.getY()>1.5,
+                "ordinary collision/eye release remains valid after rejected and normalized legacy updates");
+        } finally {FootGravitySystem.forget(id);com.terminaldetector.drmd.world.LocalOrientation.clear(id);player.discard();}
+        c.complete();
+    }
 }
