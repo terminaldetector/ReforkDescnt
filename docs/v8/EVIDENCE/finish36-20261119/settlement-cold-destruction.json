@@ -1,0 +1,457 @@
+{
+  "blast": {
+    "cells": 85258,
+    "changedCells": 33,
+    "planHash": "2468a62877ee44848ee1587bf4b0623563f92e5c03a84e4f91e1094da8a22f54",
+    "population": 4,
+    "priorSource": "a3b0808d9302c499ce8fa76dfd88b1204db0d249",
+    "priorStatus": "TWO_HOUR_SOAK_AND_COLD_PASS",
+    "retainedStructuralBodies": 0,
+    "source": "df6154712ba85d3d27b7e58797473453398e8198",
+    "status": "POST_COLD_SETTLEMENT_BLAST_CLEANUP_PASS",
+    "worldTicks": 3051
+  },
+  "earliestAuditRejectedDryCarvedProperties": true,
+  "finalAudit": {
+    "ambientItemPolicy": "not in born UUID receipt: ignored",
+    "carvedCells": [
+      {
+        "mask": 3692726531643144191,
+        "position": [
+          12369071,
+          1793,
+          -7132261
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:stone_bricks"
+      },
+      {
+        "mask": 8322426982939718527,
+        "position": [
+          12369071,
+          1794,
+          -7132261
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:stone_bricks"
+      },
+      {
+        "mask": -225128441498817,
+        "position": [
+          12369071,
+          1795,
+          -7132261
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:stone_bricks"
+      },
+      {
+        "mask": -154484852444865,
+        "position": [
+          12369071,
+          1796,
+          -7132261
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:stone_bricks"
+      },
+      {
+        "mask": -8799561764545,
+        "position": [
+          12369071,
+          1797,
+          -7132261
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:stone_bricks"
+      },
+      {
+        "mask": 3692726569438019583,
+        "position": [
+          12369072,
+          1792,
+          -7132261
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": 1242766722881028095,
+        "position": [
+          12369073,
+          1792,
+          -7132261
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -8588425099974017025,
+        "position": [
+          12369075,
+          1792,
+          -7132261
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -3688504376067883009,
+        "position": [
+          12369076,
+          1792,
+          -7132261
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -3688504376084660225,
+        "position": [
+          12369077,
+          1792,
+          -7132261
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": 8302371894284255231,
+        "position": [
+          12369072,
+          1792,
+          -7132260
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -1382890065272766465,
+        "position": [
+          12369076,
+          1792,
+          -7132260
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -229687085689208833,
+        "position": [
+          12369077,
+          1792,
+          -7132260
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -922126094016970753,
+        "position": [
+          12369072,
+          1792,
+          -7132259
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -931687584571064321,
+        "position": [
+          12369073,
+          1792,
+          -7132259
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -249670997286846465,
+        "position": [
+          12369075,
+          1792,
+          -7132259
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -230531523504242689,
+        "position": [
+          12369076,
+          1792,
+          -7132259
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -230531523505291265,
+        "position": [
+          12369077,
+          1792,
+          -7132259
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -57421771422302209,
+        "position": [
+          12369072,
+          1792,
+          -7132258
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -66992066659352577,
+        "position": [
+          12369073,
+          1792,
+          -7132258
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -31244160501547009,
+        "position": [
+          12369074,
+          1792,
+          -7132258
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -33496033329676289,
+        "position": [
+          12369075,
+          1792,
+          -7132258
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -14355442855575553,
+        "position": [
+          12369076,
+          1792,
+          -7132258
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -57421780012498945,
+        "position": [
+          12369072,
+          1792,
+          -7132257
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -66992066659614721,
+        "position": [
+          12369073,
+          1792,
+          -7132257
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -28710885711151105,
+        "position": [
+          12369074,
+          1792,
+          -7132257
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -33496033329807361,
+        "position": [
+          12369075,
+          1792,
+          -7132257
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:deepslate_tiles"
+      },
+      {
+        "mask": -38484910831473,
+        "position": [
+          12369075,
+          1796,
+          -7132261
+        ],
+        "properties": {
+          "falling": "false",
+          "level": "8",
+          "waterlogged": "false"
+        },
+        "source": "minecraft:stone_bricks"
+      }
+    ],
+    "logicalGroups": 0,
+    "newDetachedBodies": 0,
+    "ownedSavedDrops": {
+      "drmd:shield_orb": 1,
+      "minecraft:deepslate_tiles": 5
+    },
+    "regions": {
+      "region/r.24158.-13931.mca": {
+        "bytes": 3813376,
+        "sha256": "bbf10fe451cc6d50e0da3fc6f952c2d44b72d2c5081db52a5175939d6f0e0cb4"
+      }
+    },
+    "retainedRoofs": 21,
+    "status": "POST_COLD_AUTHORED_SETTLEMENT_DURABLE_PASS",
+    "unexpectedCorpses": 0,
+    "verifiedActualCells": 85258
+  },
+  "inputs": {
+    "blast-gametest-results.xml": "a00dff295418d8f81e70003b56d720a2ed4d2416a202c8e2e9a64b974503426c",
+    "blast-persistent-state.nbt.gz": "cc6aca20c20a047f04a9390d968443b505ba7b59a9f23dd390f322f11e8e05f6",
+    "blast-result.json": "2f5003b00cb55f5d82ff0bda4bf555fdd30f711f6f5b80f435b2fb71ad0579c1",
+    "blast.log": "9da51832409acb4a7d4b060bd3efe8cef48c2ebf90fad092c9a6939cf509b089",
+    "durable-material-audit.json": "53bb15d69d9110c345b95bed2639c02ad8d0c032324574d132fe6420a2a08929",
+    "launch-inputs.json": "67435c45cabb3635b6bee422283ea4e5f4c63508dcdb5f02cc4f92e392dc638f",
+    "original-context.json": "0df7706c6cc515689d6e7f47ffdb0b8a47f34b26e61e05b6161c42df75815e25",
+    "place-gametest-results.xml": "2220f404f2e118a2a16970104e0252072bf2fe87bf2c2edc84b4148469e4fb21",
+    "place-persistent-state.nbt.gz": "30d09dd6be392a6a373b8e6dadb34db3ac2adcea882af84ab4ba6454f05f1bb2",
+    "place-result.json": "6c6cf5dd606e678be0324c4d671f1f4344b4554151b74bc2d4b5c58cd1869c54",
+    "place.log": "d79056894a0d0dcb8f4d0b986f0918fc2fcf31528c6ff1f1794f0993e05a7334",
+    "postcold-physical-ownership.json": "76e4cfcce8a81ded18c521155beec4e64dd7176cfa40139698b6f361aba635e9",
+    "recovery.json": "965c0788f68b2204506b024bf519b35527ee63c16e0204c777db767a28a5d149"
+  },
+  "place": {
+    "cells": 85258,
+    "changedCells": 0,
+    "planHash": "2468a62877ee44848ee1587bf4b0623563f92e5c03a84e4f91e1094da8a22f54",
+    "population": 4,
+    "priorSource": "a3b0808d9302c499ce8fa76dfd88b1204db0d249",
+    "priorStatus": "TWO_HOUR_SOAK_AND_COLD_PASS",
+    "retainedStructuralBodies": 0,
+    "source": "df6154712ba85d3d27b7e58797473453398e8198",
+    "status": "POST_COLD_SETTLEMENT_SAVE_PASS",
+    "worldTicks": 6156
+  },
+  "scope": "Authored full city, 16 lots. Same world closes, reloads and takes actual native TNT damage. Some authored walls retain their support. Separate real rocket tests demonstrate detached material bodies.",
+  "source": "df6154712ba85d3d27b7e58797473453398e8198"
+}

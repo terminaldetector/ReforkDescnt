@@ -830,11 +830,11 @@ tasks:
   owner: AI
   gate: G4
   depends_on_stages: *id012
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/settlement-cold-destruction.json, EVIDENCE/finish36-20261119/settlement-cold-destruction.zip]
+  notes: "Два отдельных сервера сохранили и открыли тот же полигон из 16 участков. После загрузки настоящий взрыв изменил 33 блока. Аудит сохранения сверил все 85 258 ячеек и данные формы 28 частично разрушенных блоков. Оба новых рэгдолла завершили штатный срок жизни, их дроп сохранился."
 - id: S12-T01
   stage: S12
   stage_title: Survival threat and minimal armament economy
