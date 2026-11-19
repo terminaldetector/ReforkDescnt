@@ -36,6 +36,8 @@ import java.util.*;
 public final class NativeOrbitalRouteCheck {
     public static final boolean ENABLED=Boolean.getBoolean("drmd.gate.orbitalRoute");
     private static final CityBlueprint.Point ANCHOR=new CityBlueprint.Point(256,1408,256);
+    private static final List<OrbitalRouteBlueprint.Gate> GATES=OrbitalRouteBlueprint.gates(ANCHOR);
+    private static final int UPPER_GALLERY=5;
     private record Cover(BodyVolumePlan.Column column,Object owner,boolean forcedBefore){}
     private record MoveStart(String side,Vec3d position,Vec3d requested,int tick){}
     private record Move(int serial,String side,List<Double> before,List<Double> after,List<Double> requested,int tick){}
@@ -54,6 +56,7 @@ public final class NativeOrbitalRouteCheck {
     private static final List<Map<String,Object>> FIRST_CLIENT_NET=new ArrayList<>(),FIRST_SERVER_NET=new ArrayList<>();
     private static volatile int phase,passed,verified,requested,readyCubes,maxCursorDelta,maxCasDelta;
     private static volatile boolean done,armed;private static volatile String failure,pendingFrame,blockedCube;
+    private static boolean upperGalleryTurnReady;
     private static long boot,armedAt;private static int ticks,flightTicks,frames,initialTeleports,heldTicks,serverSamples,lastServerTick=-1;
     private static long cursor,cas;private static Vec3d previousServer,previousClient,lastClientMoveEnd;
     private static net.minecraft.server.OperatorEntry operatorBefore,assignedOperator;
@@ -68,7 +71,7 @@ public final class NativeOrbitalRouteCheck {
     }
     private static void require(boolean ok,String reason){if(!ok)throw new IllegalStateException(reason);}
     private static List<Double> xyz(Vec3d v){return List.of(v.x,v.y,v.z);}
-    private static Vec3d gate(int index){var p=OrbitalRouteBlueprint.gates(ANCHOR).get(index).position();return new Vec3d(p.x()+.5,p.y(),p.z()+.5);}
+    private static Vec3d gate(int index){var p=GATES.get(index).position();return new Vec3d(p.x()+.5,p.y(),p.z()+.5);}
     private static double minimumPath(){double length=0;for(int i=1;i<9;i++)length+=gate(i).distanceTo(gate(i-1));return length-3*8;}
     private static void command(ServerPlayerEntity p,String value){p.getServerWorld().getServer().getCommandManager().executeWithPrefix(p.getCommandSource(),value);}
     private static void event(String name,ServerPlayerEntity p){
@@ -187,8 +190,9 @@ public final class NativeOrbitalRouteCheck {
             var at=c.player.getPos();double step=at.distanceTo(previousClient);maxStep=Math.max(maxStep,step);travelled+=step;require(step<=2,"actual client per-tick flight discontinuity>2m");
             require(lastClientMoveEnd==null||at.distanceTo(lastClientMoveEnd)<1e-7,"actual client position changed outside genuine Entity.move");previousClient=at;
             if(flightTicks%20==0)stateRow("client",ticks,at,c.player.getVelocity().multiply(20),c.options.forwardKey.isPressed());
-            if(passed>=9){clearKeys(c);return;}
-            var error=gate(passed).subtract(at);var velocity=c.player.getVelocity().multiply(20);double speed=Math.min(7,error.length()*1.8);var wanted=error.lengthSquared()<1e-12?Vec3d.ZERO:error.normalize().multiply(speed);var correction=wanted.subtract(velocity);
+            int next=passed;
+            if(next>=GATES.size()){clearKeys(c);return;}
+            var error=steeringTarget(next,at).subtract(at);var velocity=c.player.getVelocity().multiply(20);double speed=Math.min(7,error.length()*1.8);var wanted=error.lengthSquared()<1e-12?Vec3d.ZERO:error.normalize().multiply(speed);var correction=wanted.subtract(velocity);
             clearKeys(c);
             if(correction.length()>1.2){
                 var direction=correction.normalize();var up=Math.abs(direction.y)>.94?new Vec3d(0,0,1):new Vec3d(0,1,0);
@@ -196,6 +200,17 @@ public final class NativeOrbitalRouteCheck {
                 ShipAttitudeClient.acceptPortalFrame(c.player,direction,up);c.options.forwardKey.setPressed(true);heldTicks++;
             }
         }catch(Throwable bad){failure=bad.toString();bad.printStackTrace();}
+    }
+    private static Vec3d steeringTarget(int next,Vec3d at) {
+        if(next==UPPER_GALLERY+1&&!upperGalleryTurnReady) {
+            // Gate proximity can register while the pilot is still below the gallery deck.
+            // Finish the ascent inside the shaft before aiming across the solid floor.
+            var shaft=gate(UPPER_GALLERY);
+            var offset=at.subtract(shaft);
+            if(offset.y<.8||offset.horizontalLengthSquared()>.75*.75) return shaft.add(0,1.4,0);
+            upperGalleryTurnReady=true;
+        }
+        return gate(next);
     }
     private static void stateRow(String side,int tick,Vec3d position,Vec3d velocity,boolean held){
         net.minecraft.entity.player.PlayerEntity actual=side.equals("client")?MinecraftClient.getInstance().player:heldWorld.getServer().getPlayerManager().getPlayer(playerId);
@@ -336,6 +351,7 @@ public final class NativeOrbitalRouteCheck {
     private static void finish(MinecraftClient c,String status,String reason){
         if(done)return;done=true;if(c.player!=null)clearKeys(c);
         var report=new LinkedHashMap<String,Object>();report.put("status",status);report.put("maximumObservedClientToLatestServerSnapshotDriftMetres",maximumObservedClientToLatestServerDrift);report.put("snapshotDriftIsDiagnosticOnly",true);report.put("firstSampledActivePositionDrift",firstSampledActiveDrift);report.put("networkBeforeFirstSampledActiveDriftClient",firstDriftClientNetwork);report.put("networkBeforeFirstSampledActiveDriftServer",firstDriftServerNetwork);report.put("failedActualAvailability",failedAvailability);report.put("latestActualClientSnapshot",latestClientSnapshot);report.put("latestActualServerSnapshot",latestServerSnapshot);synchronized(CLIENT_NET){report.put("firstActualClientNetwork",List.copyOf(FIRST_CLIENT_NET));report.put("lastActualClientNetwork",List.copyOf(CLIENT_NET));}synchronized(SERVER_NET){report.put("firstActualServerClockReceives",List.copyOf(FIRST_SERVER_NET));report.put("lastActualServerClockReceives",List.copyOf(SERVER_NET));}report.put("reason",reason);report.put("blockedCube",blockedCube);report.put("nativeCubic",true);report.put("permissionBefore",permissionBefore);report.put("permissionAfterAdmission",permissionAfter);report.put("operatorEntryLevel",assignedOperator==null?null:assignedOperator.getPermissionLevel());report.put("authorProfile",playerId==null?null:playerId.toString());report.put("coldReader",false);report.put("phase",phase);report.put("passed",passed);report.put("verifiedCells",verified);report.put("requestedColumns",requested);report.put("fullHaloCubes",readyCubes);report.put("initialTeleports",initialTeleports);report.put("heldKeyboardTicks",heldTicks);report.put("measuredClientTicks",flightTicks);report.put("measuredWallNanos",armedAt==0?0:System.nanoTime()-armedAt);report.put("actualPathMetres",travelled);report.put("minimumGeometricPathMetres",minimumPath());report.put("maxClientStep",maxStep);report.put("maxCursorDelta",maxCursorDelta);report.put("maxCasDelta",maxCasDelta);report.put("actualServerSamples",serverSamples);report.put("planHash",plan==null?"":plan.hash());
+        report.put("upperGalleryTurnAboveDeck",upperGalleryTurnReady);
         synchronized(EVENTS){report.put("events",List.copyOf(EVENTS));}synchronized(STATE_ROWS){report.put("stateRows",List.copyOf(STATE_ROWS));}synchronized(CLIENT_MOVES){report.put("actualClientMoves",List.copyOf(CLIENT_MOVES));}synchronized(SERVER_MOVES){report.put("actualServerMoves",List.copyOf(SERVER_MOVES));}
         try{Files.writeString(c.runDirectory.toPath().resolve("orbital-native-route.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(report));}catch(Exception bad){bad.printStackTrace();}
         System.out.println("NATIVE_ORBITAL_ROUTE_"+status+" "+reason);c.scheduleStop();
