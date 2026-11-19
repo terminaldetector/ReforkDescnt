@@ -8,7 +8,7 @@ import java.util.*;
 public final class CityBlueprint {
     public static final int VERSION=1,MAX_SOLID=65_536,MAX_CUT=65_536,MAX_INSTANCE_SOLID=2_048;
     public static final String AIR="minecraft:air",STONE="minecraft:stone_bricks",TILE="minecraft:deepslate_tiles",ROAD="minecraft:polished_andesite",METAL="minecraft:iron_block";
-    public static final Set<String> PALETTE=Set.of(AIR,STONE,TILE,ROAD,METAL);
+    public static final Set<String> PALETTE=Set.of(AIR,STONE,TILE,ROAD,METAL,"minecraft:stone");
     private static final Comparator<Point> PAGE_ORDER=Comparator.comparingInt((Point p)->Math.floorDiv(p.y(),16))
         .thenComparingInt(p->Math.floorDiv(p.z(),16)).thenComparingInt(p->Math.floorDiv(p.x(),16)).thenComparing(Comparator.naturalOrder());
     public record Point(int x,int y,int z) implements Comparable<Point>{

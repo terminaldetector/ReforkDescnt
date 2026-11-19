@@ -35,7 +35,11 @@ public final class MacroEntry {
 		/** Simple Spark/Klondike floating island of real blocks. */
 		KLONDIKE_ISLAND,
 		/** The same island in End stone, in the End band at the top of the column. */
-		END_ISLAND
+		END_ISLAND,
+		/** Explicitly certified original voxel station, distinct from legacy generic STATION. */
+		ORBITAL_STATION,
+		/** Explicitly certified original volumetric asteroid. */
+		ASTEROID
 	}
 
 	public final UUID id;

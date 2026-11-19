@@ -25,6 +25,7 @@ public final class MegaStructureGenerator {
 			return entry(kind, WorldRules.practicalLayer(origin.getY()), origin, 8, 8, 8, 0x888888, kind.name());
 		}
 		MacroEntry e = switch (kind) {
+			case ORBITAL_STATION, ASTEROID -> throw new IllegalArgumentException("Authored orbital objects require explicit ungravitycity planfield/apply; legacy generation is unavailable");
 			case RIFT -> rift(world, origin, random);
 			case CANYON -> canyon(world, origin, random);
 			case ARCH -> arch(world, origin, random);

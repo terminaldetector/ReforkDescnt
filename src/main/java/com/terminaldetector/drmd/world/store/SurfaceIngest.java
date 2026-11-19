@@ -197,6 +197,7 @@ public final class SurfaceIngest {
 	 * the streamer's queue for everyone who had already been given the old one.
 	 */
 	public static void onGroundChanged(ServerWorld world, BlockPos pos) {
+        com.terminaldetector.drmd.world.planet.AuthoredOrbitalCatalogue.changed(world,pos);
 		SurfaceStore live = store;
 		if (live == null) return;
 		if (world.getRegistryKey() != World.OVERWORLD) return;

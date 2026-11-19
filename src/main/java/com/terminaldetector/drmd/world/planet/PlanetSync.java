@@ -26,13 +26,14 @@ public final class PlanetSync {
 	private static final int CHECK_INTERVAL = 100;
 
 	private static int lastBroadcastScars = -1;
-	private static int lastBroadcastLandmarks = -1;
+	private static List<ModNetworking.PlanetPayload.Landmark> lastBroadcastLandmarks;
 
 	private PlanetSync() {}
 
 	public static void reset() {
 		lastBroadcastScars = -1;
-		lastBroadcastLandmarks = -1;
+		lastBroadcastLandmarks = null;
+        AuthoredOrbitalCatalogue.reset();
 	}
 
 	/** Join: the client has nothing, so it gets the snapshot immediately. */
@@ -50,24 +51,28 @@ public final class PlanetSync {
 		ServerWorld overworld = server.getOverworld();
 		if (overworld == null) return;
 		int scars = ScarMapState.get(overworld).size();
-		int marks = MacroWorld.size();
-		if (scars == lastBroadcastScars && marks == lastBroadcastLandmarks) return;
+		var marks = landmarks(overworld);
+		if (scars == lastBroadcastScars && marks.equals(lastBroadcastLandmarks)) return;
 		lastBroadcastScars = scars;
 		lastBroadcastLandmarks = marks;
-		ModNetworking.PlanetPayload payload = snapshot(overworld);
+		ModNetworking.PlanetPayload payload = snapshot(overworld,marks);
 		for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
 			ServerPlayNetworking.send(player, payload);
 		}
 	}
 
 	private static ModNetworking.PlanetPayload snapshot(ServerWorld overworld) {
+        return snapshot(overworld,landmarks(overworld));
+    }
+
+    private static ModNetworking.PlanetPayload snapshot(ServerWorld overworld,List<ModNetworking.PlanetPayload.Landmark> landmarks) {
 		ScarMapState scars = ScarMapState.get(overworld);
 		List<Long> cells = new ArrayList<>(Math.min(scars.size(), ModNetworking.PlanetPayload.MAX_SCARS));
 		for (long key : scars.cells()) {
 			if (cells.size() >= ModNetworking.PlanetPayload.MAX_SCARS) break;
 			cells.add(key);
 		}
-		return new ModNetworking.PlanetPayload(overworld.getSeed(), cells, landmarks());
+		return new ModNetworking.PlanetPayload(overworld.getSeed(), cells, landmarks);
 	}
 
 	/**
@@ -77,11 +82,17 @@ public final class PlanetSync {
 	 * moves, so both are dropped here rather than on the client — a landmark nobody can draw is
 	 * bytes on the wire for nothing.
 	 */
-	private static List<ModNetworking.PlanetPayload.Landmark> landmarks() {
+	private static List<ModNetworking.PlanetPayload.Landmark> landmarks(ServerWorld world) {
 		List<ModNetworking.PlanetPayload.Landmark> out = new ArrayList<>();
+        // Only these persisted, loaded-certified records may assert the new exact voxel kinds.
+        for(var entry:AuthoredOrbitalCatalogue.visible(world)){
+            var object=entry.object();var centre=object.centre();boolean station=object.shape()==OrbitalObjectGeometry.Shape.STATION;
+            var kind=station?MacroEntry.Kind.ORBITAL_STATION:MacroEntry.Kind.ASTEROID;
+            out.add(new ModNetworking.PlanetPayload.Landmark(centre.x(),centre.y(),centre.z(),object.sizeX(),object.sizeY(),object.sizeZ(),station?0xa8b6bc:0x70777d,kind.ordinal()));
+        }
 		for (MacroEntry entry : MacroWorld.all()) {
 			if (out.size() >= ModNetworking.PlanetPayload.MAX_LANDMARKS) break;
-			if (!standsUp(entry.kind)) continue;
+			if (!standsUp(entry.kind)||entry.kind==MacroEntry.Kind.ORBITAL_STATION||entry.kind==MacroEntry.Kind.ASTEROID) continue;
 			out.add(new ModNetworking.PlanetPayload.Landmark(
 					entry.center.getX(), entry.center.getY(), entry.center.getZ(),
 					entry.sizeX, entry.sizeY, entry.sizeZ,

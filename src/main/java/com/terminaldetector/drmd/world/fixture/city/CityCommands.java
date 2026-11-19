@@ -18,6 +18,7 @@ public final class CityCommands {
             var root=CommandManager.literal("ungravitycity").requires(source->source.getEntity() instanceof ServerPlayerEntity p&&CityWorldStorage.eligible(p));
             root.then(CommandManager.literal("plan").then(CommandManager.argument("seed",LongArgumentType.longArg()).then(coordinates(CityManifest.Kind.CITY))));
             root.then(CommandManager.literal("planorbital").then(CommandManager.argument("seed",LongArgumentType.longArg()).then(coordinates(CityManifest.Kind.ORBITAL_PILOT))));
+            root.then(CommandManager.literal("planfield").then(CommandManager.argument("seed",LongArgumentType.longArg()).then(coordinates(CityManifest.Kind.ORBITAL_FIELD))));
             root.then(CommandManager.literal("inspect").executes(context->execute(context.getSource().getPlayer(),player->{
                     var status=CityAuthoringSystem.inspect(player).inspect();var text=new StringBuilder("City ").append(status.state()).append(": ").append(status.detail());
                     status.manifest().ifPresent(m->text.append("\nAnchor ").append(m.anchor()).append("; template ").append(m.kind()).append("; solids ").append(m.solidCount()).append("/65536; cuts ").append(m.cutCount()).append("/65536; actors0/BE0"));
@@ -38,7 +39,7 @@ public final class CityCommands {
             .then(CommandManager.argument("z",IntegerArgumentType.integer()).executes(context->execute(context.getSource().getPlayer(),p->{
                 var anchor=new CityBlueprint.Point(IntegerArgumentType.getInteger(context,"x"),IntegerArgumentType.getInteger(context,"y"),IntegerArgumentType.getInteger(context,"z"));
                 CityAuthoringSystem.plan(p,LongArgumentType.getLong(context,"seed"),anchor,kind);
-                return kind==CityManifest.Kind.CITY?"Preparing one inert fixed-slot city plan; inspect before apply.":"Preparing inert original orbital ring/Citadel pilot; inspect then apply explicitly. No world writes yet.";
+                return switch(kind){case CITY->"Preparing one inert fixed-slot city plan; inspect before apply.";case ORBITAL_PILOT->"Preparing inert original orbital ring/Citadel pilot; inspect then apply explicitly. No world writes yet.";case ORBITAL_FIELD->"Preparing inert original abandoned station and2asteroids; inspect then apply explicitly. No world writes yet.";};
             }))));
     }
     private static int control(ServerPlayerEntity player,Function<CityRuntimeSession,Boolean> operation){

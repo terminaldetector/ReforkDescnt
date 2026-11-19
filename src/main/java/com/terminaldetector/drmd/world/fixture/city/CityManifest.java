@@ -12,9 +12,9 @@ public record CityManifest(int schema,int blueprintVersion,int journalSchema,Cit
     private static final int MAGIC=0x4354594d;
     public enum Backend { STOCK,NATIVE_CUBIC }
     public enum Kind {
-        CITY,ORBITAL_PILOT;
+        CITY,ORBITAL_PILOT,ORBITAL_FIELD;
         public CityBlueprint.Plan create(long seed,CityBlueprint.Point anchor,CityBlueprint.Limits bounds){
-            return this==CITY?CityBlueprint.create(seed,anchor,bounds):OrbitalRouteBlueprint.create(seed,anchor,bounds);
+            return switch(this){case CITY->CityBlueprint.create(seed,anchor,bounds);case ORBITAL_PILOT->OrbitalRouteBlueprint.create(seed,anchor,bounds);case ORBITAL_FIELD->OrbitalFieldBlueprint.create(seed,anchor,bounds);};
         }
     }
     public CityManifest(int schema,int blueprintVersion,int journalSchema,CityBatchJournal.Identity identity,long worldSeed,long citySeed,
