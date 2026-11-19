@@ -105,6 +105,14 @@ public final class NativeTorchCameraCheck {
         var access=WorldAccess.of(w);for(int x=0;x<=1;x++)for(int y=137;y<=138;y++)for(int z=0;z<=1;z++)
             if(!access.isVolumeAvailable(new D6ChunkPos(x,y,z)))return false;return true;
     }
+    private static boolean clientFull(MinecraftClient c,Box box){
+        int x0=(int)Math.floor(box.minX)>>4,x1=(int)Math.floor(box.maxX)>>4;
+        int y0=(int)Math.floor(box.minY)>>4,y1=(int)Math.floor(box.maxY)>>4;
+        int z0=(int)Math.floor(box.minZ)>>4,z1=(int)Math.floor(box.maxZ)>>4;
+        if((long)(x1-x0+1)*(y1-y0+1)*(z1-z0+1)>8)return false;
+        var access=WorldAccess.of(c.world);for(int x=x0;x<=x1;x++)for(int y=y0;y<=y1;y++)for(int z=z0;z<=z1;z++)
+            if(!access.isVolumeAvailable(new D6ChunkPos(x,y,z)))return false;return true;
+    }
     private static void server(MinecraftServer server){
         if(done||viewer==null||failure!=null)return;
         try{
@@ -239,6 +247,7 @@ public final class NativeTorchCameraCheck {
             if(c.player==null||c.world==null||c.currentScreen!=null||c.getOverlay()!=null||OffscreenWorldView.busy())return;
             if(step==Step.RELEASE&&view!=null&&view.surface==-1&&!view.foot&&!DescentClientState.footGravity&&FootGravityCamera.settled()&&!view.noGravity&&!view.vehicle){
                 var camera=c.gameRenderer.getCamera();double error=camera.getPos().squaredDistanceTo(c.player.getLerpedPos(delta).add(0,c.player.getEyeHeight(c.player.getPose()),0));
+                if(!clientFull(c,Box.of(camera.getPos(),2,2,2)))return;
                 require(DescentCamera.ownsView(camera)&&Double.isFinite(error)&&error<=1e-4&&c.world.isSpaceEmpty(c.player,Box.of(camera.getPos(),.02,.02,.02)),"ordinary released native first-person eye is upright and clear");
                 if(++frames<3)return;try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){image.writeTo(c.runDirectory.toPath().resolve("torch-camera-released.png"));}
                 finish("PASS","actual H-off, three torch supports/four local look samples, added/removed obstruction, held mesh and ordinary upright release");return;
@@ -247,6 +256,7 @@ public final class NativeTorchCameraCheck {
                 &&!DescentClientState.enabled&&!DescentClientState.footGravity&&FootGravityCamera.settled()){
                 require(Boolean.FALSE.equals(respawnReceipt.get("sameObject"))&&Boolean.TRUE.equals(respawnReceipt.get("sameUuid"))&&Boolean.FALSE.equals(respawnReceipt.get("aliveTransfer")),"actual death creates a replacement player through native respawn");
                 var camera=c.gameRenderer.getCamera();double error=camera.getPos().squaredDistanceTo(c.player.getLerpedPos(delta).add(0,c.player.getEyeHeight(c.player.getPose()),0));
+                if(!clientFull(c,Box.of(camera.getPos(),2,2,2)))return;
                 require(DescentCamera.ownsView(camera)&&Double.isFinite(error)&&error<=1e-4&&c.world.isSpaceEmpty(c.player,Box.of(camera.getPos(),.02,.02,.02)),"replacement player's actual native first-person eye is finite, upright and clear");
                 if(++frames<3)return;try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){image.writeTo(c.runDirectory.toPath().resolve("torch-camera-respawn.png"));}
                 finish("PASS","actual H-off/torch/obstruction/held sweep plus real active-ceiling death and native Respawn replacement eye; cold player restart remains separate");return;
@@ -258,9 +268,17 @@ public final class NativeTorchCameraCheck {
             require(!DescentClientState.enabled&&!view.flight&&!view.vehicle,"actual H-off free player, no proxy");
             require(DescentCamera.ownsView(c.gameRenderer.getCamera())&&c.options.getPerspective().isFirstPerson(),"actual owned first-person lens");
             Vec3d camera=c.gameRenderer.getCamera().getPos(),up=FootGravitySystem.getUp(c.player);
+            if(!clientFull(c,Box.of(camera,2,2,2)))return;
             Vec3d expected=c.player.getLerpedPos(delta).add(up.multiply(c.player.getEyeHeight(c.player.getPose())));
             double eyeError=camera.squaredDistanceTo(expected);require(Double.isFinite(eyeError)&&eyeError<=1e-4,"real camera follows actual local interpolated eye within .01m");
             require(c.world.isSpaceEmpty(c.player,Box.of(camera,.02,.02,.02)),"actual first-person lens is outside solid material");
+            if(look==0&&blocker!=null&&blockerLook!=null){
+                var block=WorldAccess.of(c.world).readIfLoaded(blocker);if(block.isEmpty())return;
+                if(view.blocker?!block.get().isOf(Blocks.AMETHYST_BLOCK):!block.get().isAir())return;
+                Vec3d end=camera.add(blockerLook.multiply(4));if(!clientFull(c,new Box(camera,end).expand(1)))return;
+                var hit=c.world.raycast(new RaycastContext(camera,end,RaycastContext.ShapeType.COLLIDER,RaycastContext.FluidHandling.NONE,c.player));
+                require((hit.getType()==HitResult.Type.BLOCK&&hit.getBlockPos().equals(blocker))==view.blocker,"actual loaded client obstruction ray matches genuine added/removed material");
+            }
             require(baked>0&&handTilt>0&&worldTilt>0&&handDelta<=1e-6,"actual native held mesh and stabilized hand callbacks, no second bank/bob");
             float bank=FootGravityCamera.viewRoll(delta);if(axis>0&&look==0)require(Math.abs(bank)>=45&&worldDelta>.1,"actual sideways/ceiling bank exercised in world, retained outside held model");
             double projected=0;if(baseline!=null){for(int i=0;i<8;i++)projected=Math.max(projected,Math.hypot(points[i][0]-baseline[i][0],points[i][1]-baseline[i][1]));require(projected<=1,"actual emitted held vertices remain within one physical pixel across view samples");}
