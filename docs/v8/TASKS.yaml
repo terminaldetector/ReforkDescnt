@@ -268,8 +268,9 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
-  notes: "2026-11-19, третий цикл. Негативная высота достигнута с реальным вводом. Длинный подъём и холодное пересечение всех четырёх высот требуют завершения проверки."
+  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json, EVIDENCE/finish36-20261119/vertical-and-field.json]
+  notes: "Фактический полёт прошёл −64, +1024, +1640 и +2150 на BCC. Обычный ввод и форсаж, ноль несопоставленных точек, чистое завершение. Отдельное холодное чтение всех высот остаётся в работе."
+
 - id: S03-T05
   stage: S03
   stage_title: Migrate world gameplay and structures
@@ -929,11 +930,12 @@ tasks:
   owner: WORLD_DESIGN
   gate: G5
   depends_on_stages: *id014
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/vertical-and-field.json]
+  notes: "Построены и верифицированы 11 712 реальных ячеек станции и двух астероидов. После удаления блока проверку каталога прошли две целые модели. Клиентские кадры трёх дистанций остаются в работе."
+
 - id: S13-T04
   stage: S13
   stage_title: 'World architecture: core to Citadel'

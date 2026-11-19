@@ -1,0 +1,34 @@
+{
+  "zip": {
+    "name": "vertical-and-field.zip",
+    "sha256": "a6a25ae6cf9800b38e3e7b9e72df3c1ac7b445ca888943e1aa7e5fa2bc2785db"
+  },
+  "fourHeightContinuousFlight": {
+    "source": "d978be3541d148246642c5ece2f97842e5d057ce",
+    "mainJar": "d62f5389c91964c81d897ac6ae488b3ebfd9e2ecb9e0d1d125c90c11d93320de",
+    "observerJar": "d918dc78b73316f9d892d01d5430994b5b1b2118c0426b26c2912e16fac42ecd",
+    "backend": "Better Cubic Chunks 0.1.1",
+    "sodium": "0.8.13+mc1.21.1",
+    "sampledClientTicks": 1285,
+    "clientMoveCalls": 2273,
+    "serverMoveCalls": 1272,
+    "unmatched": 0,
+    "crossedHeights": [
+      -64,
+      1024,
+      1640,
+      2150
+    ],
+    "nativeExit": 0,
+    "coldFourHeightRead": "pending"
+  },
+  "authoredField": {
+    "source": "7b4c8a7de3c1deeb9c504ed54f85a1860a0d5afb",
+    "mode": "ordinary Fabric named GameTest, STOCK configured bounds",
+    "fieldCells": 11712,
+    "objectsCertified": 3,
+    "objectsAfterActualStoneRemoval": 2,
+    "writerExit": 0,
+    "catalogueFileSha256": "d2dc395127a6db5349906b0736cc8228fa1fb3d7cc8213bb63bc3b644dd9f1ba"
+  }
+}
