@@ -29,6 +29,8 @@ public final class PlanetClientState {
 	 */
 	private final Set<Long> scars = ConcurrentHashMap.newKeySet();
 	private volatile List<HorizonLandmark> landmarks = List.of();
+    /** Membership is rebuilt only when a server catalogue packet changes, never by a frame scan. */
+    private volatile Set<HorizonLandmark> landmarkMembership=Set.of();
 	/** The field currently drawable. May be one rebuild out of date — see the accessor below. */
 	private volatile PlanetSurfaceMesh mesh;
 	/** The data under the field changed, so rebuild even if the geometry still fits the eye. */
@@ -88,6 +90,7 @@ public final class PlanetClientState {
 		}
 		if (!landmarks.equals(marks)) {
 			landmarks = List.copyOf(marks);
+            landmarkMembership=Set.copyOf(marks);
 			changed = true;
 		}
 		if (changed) invalidate();
@@ -140,6 +143,7 @@ public final class PlanetClientState {
 		seed = 0L;
 		scars.clear();
 		landmarks = List.of();
+        landmarkMembership=Set.of();
 		observed = new SurfaceStore(new MemorySectionStorage());
 		// The one case where the field really does go: the world it described is gone.
 		mesh = null;
@@ -149,6 +153,8 @@ public final class PlanetClientState {
 	public boolean hasSeed() {
 		return hasSeed;
 	}
+
+	public Set<HorizonLandmark> landmarksSnapshot() { return landmarkMembership; }
 
 	public long seed() {
 		return seed;
@@ -198,7 +204,7 @@ public final class PlanetClientState {
 		// writing them. scars is a concurrent set, so copyOf sees a consistent-enough view; landmarks
 		// is already immutable and only ever replaced wholesale.
 		Set<Long> scarsNow = Set.copyOf(scars);
-		List<HorizonLandmark> marksNow = nearestLandmarks(camX, camZ);
+		List<HorizonLandmark> marksNow = nearestLandmarks(camX, eyeY, camZ);
 
 		BUILDER.execute(() -> {
 			try {
@@ -291,16 +297,17 @@ public final class PlanetClientState {
 	 * <p>Sorted here rather than in the builder so the budget spends itself on the ones a pilot can
 	 * actually pick out: past a certain range two towers are the same two pixels.
 	 */
-	private List<HorizonLandmark> nearestLandmarks(double camX, double camZ) {
+	private List<HorizonLandmark> nearestLandmarks(double camX, double eyeY, double camZ) {
 		if (landmarks.isEmpty()) return List.of();
 		List<HorizonLandmark> sorted = new ArrayList<>(landmarks);
-		sorted.sort((a, b) -> Double.compare(distanceSq(a, camX, camZ), distanceSq(b, camX, camZ)));
+		sorted.sort((a, b) -> Double.compare(distanceSq(a, camX, eyeY, camZ), distanceSq(b, camX, eyeY, camZ)));
 		return sorted;
 	}
 
-	private static double distanceSq(HorizonLandmark mark, double camX, double camZ) {
+	private static double distanceSq(HorizonLandmark mark, double camX, double eyeY, double camZ) {
 		double dx = mark.x() - camX;
 		double dz = mark.z() - camZ;
-		return dx * dx + dz * dz;
+		double dy=HorizonOrbitalProxy.authored(mark.kind())?mark.y()-eyeY:0;
+        return dx * dx + dy * dy + dz * dz;
 	}
 }

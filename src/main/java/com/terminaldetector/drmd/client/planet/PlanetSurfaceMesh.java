@@ -4,6 +4,8 @@ import com.terminaldetector.drmd.world.planet.PlanetMap;
 import com.terminaldetector.drmd.world.store.SurfaceSection;
 
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -44,6 +46,9 @@ public final class PlanetSurfaceMesh {
 	/** Positions are true world offsets from the build origin; compressed by the shader each frame — see {@link HorizonProjection}. */
 	public final float[] positions;
 	public final int[] colours;
+    /** -1 for ordinary ground/legacy quads, otherwise a current-view cube mask slot. */
+    public final int[] orbitalMasks;
+    public final List<HorizonOrbitalHandoff.Key> orbitalKeys;
 	public final int quads;
 	public final double originX;
 	public final double originY;
@@ -52,8 +57,10 @@ public final class PlanetSurfaceMesh {
 	public final double reach;
 
 	private PlanetSurfaceMesh(float[] positions, int[] colours, int quads, double originX,
-							  double originY, double originZ, double innerRadius, double reach) {
+							  double originY, double originZ, double innerRadius, double reach,
+                              int[] orbitalMasks,List<HorizonOrbitalHandoff.Key> orbitalKeys) {
 		this.positions = positions;
+        this.orbitalMasks=orbitalMasks;this.orbitalKeys=List.copyOf(orbitalKeys);
 		this.colours = colours;
 		this.quads = quads;
 		this.originX = originX;
@@ -106,7 +113,7 @@ public final class PlanetSurfaceMesh {
 
 		return new PlanetSurfaceMesh(
 				Arrays.copyOf(positions, b.quads * 12), Arrays.copyOf(colours, b.quads), b.quads,
-				camX, camY, camZ, innerRadius, reach);
+				camX, camY, camZ, innerRadius, reach,Arrays.copyOf(b.orbitalMasks,b.quads),List.copyOf(b.orbitalKeys.keySet()));
 	}
 
 	/** Holds the build's shared state so the emit methods stay readable. */
@@ -121,6 +128,9 @@ public final class PlanetSurfaceMesh {
 		private final float[] positions;
 		private final int[] colours;
 		private int quads;
+        private final int[] orbitalMasks=new int[MAX_QUADS];
+        private final LinkedHashMap<HorizonOrbitalHandoff.Key,Integer> orbitalKeys=new LinkedHashMap<>();
+        private int currentMask=-1;
 
 		Builder(long seed, double camX, double camY, double camZ, double inner, double reach,
 				Set<Long> scarCells, float[] positions, int[] colours) {
@@ -207,6 +217,29 @@ public final class PlanetSurfaceMesh {
 			for (HorizonLandmark mark : landmarks) {
 				if (full() || drawn >= MAX_LANDMARKS) return;
 				if (!mark.drawable()) continue;
+                if(HorizonOrbitalProxy.authored(mark.kind())) {
+                    double dx=mark.x()-camX,dy=mark.y()-camY,dz=mark.z()-camZ;
+                    if(Math.sqrt(dx*dx+dy*dy+dz*dz)>HorizonProjection.MAX_TRUE_RADIUS)continue;
+                    var pieces=new ArrayList<HorizonOrbitalHandoff.Piece>();
+                    var objectKeys=new LinkedHashMap<HorizonOrbitalHandoff.Key,Integer>();
+                    for(var box:HorizonOrbitalProxy.boxes(mark,camX,camY,camZ)) {
+                        for(var piece:HorizonOrbitalHandoff.split(box)) {
+                            pieces.add(piece);objectKeys.putIfAbsent(new HorizonOrbitalHandoff.Key(mark,piece.cube()),0);
+                        }
+                    }
+                    // All pieces, masks and six faces fit or the whole object is omitted.
+                    if(!pieces.isEmpty()&&pieces.size()*6<=MAX_QUADS-8-quads
+                        &&objectKeys.size()<=HorizonOrbitalHandoff.MAX_CUBES_PER_OBJECT
+                        &&orbitalKeys.size()+objectKeys.size()<=HorizonOrbitalHandoff.MAX_MASKS) {
+                        for(var key:objectKeys.keySet())orbitalKeys.putIfAbsent(key,orbitalKeys.size());
+                        for(var piece:pieces) {
+                            currentMask=orbitalKeys.get(new HorizonOrbitalHandoff.Key(mark,piece.cube()));
+                            orbitalBox(piece.box());
+                        }
+                        currentMask=-1;drawn++;
+                    }
+                    continue;
+                }
 				double dx = mark.x() - camX;
 				double dz = mark.z() - camZ;
 				double d = Math.sqrt(dx * dx + dz * dz);
@@ -214,15 +247,6 @@ public final class PlanetSurfaceMesh {
 				// nothing to attach to.
 				if (d < inner || d > HorizonProjection.MAX_TRUE_RADIUS) continue;
 
-                if(HorizonOrbitalProxy.authored(mark.kind())) {
-                    var boxes=HorizonOrbitalProxy.boxes(mark,camX,camY,camZ);
-                    // Preserve the whole certified silhouette; a truncated station is worse than an omitted one.
-                    if(!boxes.isEmpty()&&boxes.size()*6<=MAX_QUADS-8-quads) {
-                        for(var box:boxes)orbitalBox(box);
-                        drawn++;
-                    }
-                    continue;
-                }
 
 				double base = PlanetMap.height(seed, mark.x(), mark.z());
 				double groundTop = mark.baseY(Math.max(base, PlanetMap.SEA_LEVEL));
@@ -349,6 +373,7 @@ public final class PlanetSurfaceMesh {
 			project(i + 6, x2, y2, z2);
 			project(i + 9, x3, y3, z3);
 			colours[quads] = argb;
+            orbitalMasks[quads]=currentMask;
 			quads++;
 		}
 

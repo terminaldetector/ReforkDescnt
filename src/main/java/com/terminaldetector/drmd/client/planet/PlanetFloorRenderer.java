@@ -83,6 +83,7 @@ public final class PlanetFloorRenderer {
 		// for it rather than waiting. Drawing nothing for a frame or two is what buys never spending
 		// 26ms of one — see PlanetClientState.mesh.
 		if (mesh == null || mesh.quads == 0) return;
+        float[] orbitalMask=HorizonOrbitalView.sample(mc,mesh,cam);
 
 		// In 1.21 the object stack is local; positionMatrix is the terrain view, including camera rotation.
 		Matrix4f mat = new Matrix4f(ctx.positionMatrix());
@@ -90,6 +91,7 @@ public final class PlanetFloorRenderer {
         // Translating already-compressed vertices was not the same projection and made the
         // terrain swing/crawl between rebuilds, especially during fast lateral flight.
         if(HorizonShader.program()==null) return;
+        HorizonShader.orbitalMask(HorizonShader.program(),orbitalMask);
         HorizonShader.position((float)(mesh.originX-cam.x),endDim?0f:(float)(mesh.originY-cam.y),
                 (float)(mesh.originZ-cam.z),(float)inner,(float)reach);
         // This is the same getSkyColor result used by vanilla fog and the existing orbital
@@ -114,7 +116,7 @@ public final class PlanetFloorRenderer {
 			HorizonVertexBuffer.draw(mat);
             com.terminaldetector.drmd.client.cloud.AltitudeCloudRenderer.captureFar(mesh,mat,
                     (float)(mesh.originX-cam.x),endDim?0f:(float)(mesh.originY-cam.y),
-                    (float)(mesh.originZ-cam.z),(float)inner,(float)reach);
+                    (float)(mesh.originZ-cam.z),(float)inner,(float)reach,orbitalMask);
 		}
 
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);

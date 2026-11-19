@@ -6,10 +6,11 @@ uniform vec4 ColorModulator;
 in vec3 trueViewPosition;
 in float sourceOpacity;
 in vec3 trueEyeVector;
+flat in int authoredOrbital;
 uniform float FieldOuterRadius;
 out vec4 fragColor;
 void main() {
-    float opacity = sourceOpacity * ColorModulator.a * (1.0 - smoothstep(FieldOuterRadius * 0.55, FieldOuterRadius, length(trueEyeVector.xz)));
+    float opacity = sourceOpacity * ColorModulator.a * (1.0 - smoothstep(FieldOuterRadius * 0.55, FieldOuterRadius, (authoredOrbital == 1 ? length(trueEyeVector) : length(trueEyeVector.xz))));
     if (opacity < 0.01) discard;
     vec3 normal = cross(dFdx(trueViewPosition), dFdy(trueViewPosition));
     float normalLength = length(normal);

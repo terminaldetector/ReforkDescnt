@@ -1,6 +1,7 @@
 #version 150
 in vec4 vertexColor;
 in vec3 trueEyeVector;
+flat in int authoredOrbital;
 uniform float InnerRadius;
 uniform float FieldOuterRadius;
 uniform vec4 ColorModulator;
@@ -12,7 +13,7 @@ uniform float Ps1FogStart;
 uniform float Ps1FogEnd;
 out vec4 fragColor;
 void main() {
-    float horizontal = length(trueEyeVector.xz);
+    float horizontal = authoredOrbital == 1 ? length(trueEyeVector) : length(trueEyeVector.xz);
 
     float nearFade = 1.0 - smoothstep(FieldOuterRadius * 0.55, FieldOuterRadius, horizontal);
     vec4 colour = vertexColor * ColorModulator;

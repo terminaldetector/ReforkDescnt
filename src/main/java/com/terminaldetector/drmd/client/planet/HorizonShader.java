@@ -11,7 +11,7 @@ public final class HorizonShader {
     private HorizonShader() {}
     public static void register() {
         CoreShaderRegistrationCallback.EVENT.register(context->context.register(
-                Identifier.of("drmd","horizon_world"),VertexFormats.POSITION_COLOR,shader->program=shader));
+                Identifier.of("drmd","horizon_world"),VertexFormats.POSITION_TEXTURE_COLOR,shader->program=shader));
     }
     public static ShaderProgram program() { return program; }
     public static void position(float x,float y,float z,float inner,float reach) {
@@ -21,6 +21,16 @@ public final class HorizonShader {
         program.getUniform("FieldReach").set(reach);
         program.getUniform("FieldOuterRadius").set(HorizonExtent.outerRadius());
         com.terminaldetector.drmd.client.presentation.Ps1WorldFog.uniforms(program);
+    }
+
+    /** Exactly the same immutable frame mask is supplied to colour and cloud semantic draws. */
+    public static void orbitalMask(ShaderProgram shader,float[] values) {
+        if(values.length!=HorizonOrbitalHandoff.MAX_MASKS)throw new IllegalArgumentException("orbital shader mask length");
+        for(int i=0;i<HorizonOrbitalHandoff.UNIFORM_VECTORS;i++) {
+            var uniform=shader.getUniform("OrbitalOpacity["+i+"]");
+            if(uniform==null)throw new IllegalStateException("missing orbital shader uniform "+i);
+            int at=i*4;uniform.set(values[at],values[at+1],values[at+2],values[at+3]);
+        }
     }
 
     /** Use the actual column sky colour for terrain and catalogue objects alike, never a second sky overlay. */
