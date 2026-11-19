@@ -27,6 +27,7 @@
       "com.terminaldetector.drmd.RagdollGameTests",
       "com.terminaldetector.drmd.RagdollLifecycleGameTests",
       "com.terminaldetector.drmd.HeavyOperatorGameTests",
+      "com.terminaldetector.drmd.LegacyFeatureAdmissionGameTests",
       "com.terminaldetector.drmd.GravityWeaponGameTests",
       "com.terminaldetector.drmd.GravityGunBehaviorGameTests",
       "com.terminaldetector.drmd.GravityWorldMaterialProofGameTests",

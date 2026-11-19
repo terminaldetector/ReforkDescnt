@@ -20,6 +20,9 @@ public class IndustrialUndergroundFeature extends Feature<DefaultFeatureConfig> 
 
 	@Override
 	public boolean generate(FeatureContext<DefaultFeatureConfig> context) {
+        // Keep this saved registry identifier readable without reviving the retired
+        // column-era generator through old placed-feature/datapack references.
+        if (com.terminaldetector.drmd.world.LegacyGeneration.retired()) return false;
 		StructureWorldAccess world = context.getWorld();
 		BlockPos origin = context.getOrigin();
 		ChunkPos chunk = new ChunkPos(origin);
