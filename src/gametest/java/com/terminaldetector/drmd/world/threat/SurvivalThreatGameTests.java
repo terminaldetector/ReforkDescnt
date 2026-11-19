@@ -203,7 +203,7 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
                     var copy=SurvivalThreatState.fromNbt(f.state().writeNbt(new NbtCompound(),f.w.getRegistryManager()),f.w.getRegistryManager());
                     c.assertTrue(copy.progress(f.player.entity.getUuid()).orElseThrow().equals(progress)&&copy.rosterSize(f.player.entity.getUuid())==2,
                         "actual runtime SIEGE and finite roster survive the normal saved-state codec");
-                    c.assertTrue(patrol.stream().allMatch(DroneEntity::isPersistent),"finite owned pair must survive Vanilla128m distance despawn so normal retreat can execute");
+                    c.assertTrue(patrol.stream().allMatch(d->!d.isPersistent()&&SurvivalThreatDirector.leasesDespawn(d)&&d.cannotDespawn()),"real dynamic finite lease must survive Vanilla128m distance despawn without a saved persistent bit");
                     for(var d:patrol)actors.add(d.getUuid());known[0]=progress.known();decisionAt[0]=now;pressing[0]=true;
                     System.out.println("THREAT_PRESSURE_DECISION escape="+escape+" player="+f.player.entity.getPos()+" world="+now+" actors="+pressureActors(f,patrol));
                     if(escape){
@@ -248,6 +248,7 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
                         beforeRetreat.put(d.getUuid(),d.getPos());var actor=f.state().actor(d.getUuid());
                         c.assertTrue(actor!=null&&actor.expires()<=now+LOST_SIGHT_TICKS&&SurvivalThreatDirector.retreatFrom(d)!=null,
                             "saved finite retirement and real owned AI retreat authority");
+                        c.assertTrue(!d.isPersistent()&&SurvivalThreatDirector.leasesDespawn(d)&&d.cannotDespawn(),"bounded cooldown retreat keeps its actual dynamic lease without mutating saved persistence");
                         float energy=d.getModEnergy();c.assertTrue(!d.tryFireAt(f.player.entity)&&d.getModEnergy()==energy,"retiring patrol refuses a fresh actual weapon action without energy debit");
                     }
                     for(var entity:f.w.iterateEntities())if(entity instanceof ProjectileEntity shot&&actors.contains(shot.getOwnerUuid()))alreadyFlying.add(shot.getUuid());
@@ -271,7 +272,7 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
         admitted(c,f->{live[0]=f;f.state().restorePlayer(f.player.entity.getUuid(),searching(f.at,f.w.getTime()));});
     }
     private static Object pressureActors(Fixture f,List<DroneEntity> patrol){
-        return patrol.stream().limit(2).map(d->d.getUuid()+" age="+d.age+" pos="+d.getPos()+" v="+d.getVelocity()+" persistent="+d.isPersistent()
+        return patrol.stream().limit(2).map(d->d.getUuid()+" age="+d.age+" pos="+d.getPos()+" v="+d.getVelocity()+" persistent="+d.isPersistent()+" lease="+SurvivalThreatDirector.leasesDespawn(d)
             +" alive="+d.isAlive()+" removed="+d.isRemoved()+" aiOff="+d.isAiDisabled()+" ticking="+f.w.shouldTickEntity(d.getBlockPos())
             +" retreat="+SurvivalThreatDirector.retreatFrom(d)).toList();
     }

@@ -79,6 +79,25 @@ public final class SurvivalThreatDirector {
         var state=SurvivalThreatState.get(world);
         return state.reconAvailable()&&!state.hasActor(victim.getUuid())&&state.alarm(player.getUuid(),victim.getUuid(),point(victim.getPos()),world.getTime());
     }
+    /** A dynamic finite lease, never a saved PersistenceRequired bit. Unknown saved
+     * authority releases the lease rather than leaving an immortal off-roster mob. */
+    public static boolean leasesDespawn(DroneEntity drone){
+        if(drone==null||!(drone.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()
+            ||!drone.isAlive()||drone.isRemoved()||!drone.getCommandTags().contains(MARKER)
+            ||world.getEntity(drone.getUuid())!=drone)return false;
+        var tag=tag(drone);if(tag==null)return false;
+        var state=SurvivalThreatState.get(world);if(!state.reconAvailable()||state.timedActor(drone.getUuid()))return false;
+        var actor=state.actor(drone.getUuid());long now=world.getTime();
+        if(actor==null||!actor.owner().equals(tag.owner())||now<0||now>=actor.expires()||now>=tag.expires()
+            ||actor.expires()>tag.expires())return false;
+        var progress=state.progress(actor.owner()).orElse(null);if(progress==null||now<progress.since())return false;
+        if(progress.phase()==ThreatProgress.Phase.COOLDOWN){
+            long end=ThreatProgress.deadline(progress.since(),ThreatProgress.LOST_SIGHT_TICKS);
+            return actor.expires()<=end&&now<end;
+        }
+        return (progress.phase()==ThreatProgress.Phase.SEARCHING||progress.phase()==ThreatProgress.Phase.HUNTING||progress.phase()==ThreatProgress.Phase.SIEGE)
+            &&actor.expires()==tag.expires()&&actor.expires()<=ThreatProgress.deadline(now,PATROL_TTL)&&now<progress.encounterEnds();
+    }
     /** Exact saved patrol ownership only; ordinary drones never consult a global roster scan. */
     public static Vec3d retreatFrom(DroneEntity drone){
         if(drone==null||!(drone.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()
@@ -112,9 +131,6 @@ public final class SurvivalThreatDirector {
             retireActor(world,state,entity.getUuid(),world.getTime());entity.discard();return;
         }
         if(state.scoutActor(entity.getUuid())&&!scoutType(entity)){retireActor(world,state,entity.getUuid(),world.getTime());entity.discard();return;}
-        // Saved finite encounters, not Vanilla distance despawn, own this pair's retirement.
-        // Timed unprovoked recon retains its existing lifecycle unchanged.
-        if(!state.timedActor(entity.getUuid()))((DroneEntity)entity).setPersistent();
         if(tag.expires!=actor.expires())expiry(entity,actor.expires());
     }
     private static boolean loaded(ServerWorld world,Box area){
@@ -238,7 +254,7 @@ public final class SurvivalThreatDirector {
             var bounds=new BodyBounds(new Vec3(box.minX,box.minY,box.minZ),new Vec3(box.maxX,box.maxY,box.maxZ));var shape=OrientedBox.axisAligned(bounds);
             var bodies=BodySpatialIndex.query(world,box);if(bodies.size()>16||bodies.stream().anyMatch(b->b.collisionQuery().contacts(shape,0).stream().anyMatch(hit->hit.penetration()>1e-6)))continue;
             boolean timed=!scout&&state.timed(owner.getUuid());
-            if(!scout&&!timed)drone.setPersistent();
+
             long expires=scout?ThreatProgress.deadline(now,ReconAdmission.UNSEEN_TICKS):timed?state.timedExpiry(owner.getUuid()):ThreatProgress.deadline(now,PATROL_TTL);
             if(!drone.addCommandTag(MARKER)||!drone.addCommandTag(FACTION)||!drone.addCommandTag(OWNER+owner.getUuid())||!drone.addCommandTag(UNTIL+expires))continue;
             if(scout&&!state.reserveScout(owner.getUuid(),drone.getUuid(),actualContext,point(origin),now)

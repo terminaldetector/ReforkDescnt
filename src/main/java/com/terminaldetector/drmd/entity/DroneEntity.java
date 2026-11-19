@@ -135,6 +135,11 @@ public class DroneEntity extends HostileEntity {
 		HostileEnvironment.installTargets(this, this.targetSelector);
 	}
 
+    /** Director-owned live patrols retain only their bounded current-world retirement lease. */
+    @Override public boolean cannotDespawn(){
+        return com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.leasesDespawn(this)||super.cannotDespawn();
+    }
+
 	@Override
 	public void tick() {
 		super.tick();

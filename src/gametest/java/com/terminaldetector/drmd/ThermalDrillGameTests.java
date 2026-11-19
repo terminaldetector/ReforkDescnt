@@ -54,7 +54,16 @@ public final class ThermalDrillGameTests implements FabricGameTest {
     public void registeredStrongItemHeatsBeforeOpeningAnActualCollisionClearCircularPassage(TestContext c){
         var r=new Rig(c,true);r.wall(Blocks.STONE.getDefaultState());
         drive(r,t->{
-            if(t%3==0)r.item(t);
+            if (t % 3 == 0) {
+                // Keep ordinary aim fixed while the mock player's server head updates between pulses.
+                r.p.setYaw(0);
+                r.p.setHeadYaw(0);
+                r.p.setPitch(0);
+                var aim = com.terminaldetector.drmd.weapon.core.WeaponCore.aimDir(r.p);
+                c.assertTrue(aim.squaredDistanceTo(new Vec3d(0, 0, 1)) < 1e-8,
+                    "every accepted pulse uses the authored stationary forward aim: " + aim);
+                r.item(t);
+            }
             if(t==0){var hot=r.carved();c.assertTrue(!hot.isEmpty()&&hot.stream().allMatch(b->b.mask()==MicroGrid.FULL&&b.thermal()!=null&&b.thermal().heat()==1),"first real item callback heats intact material instead of instantaneous deletion");c.assertTrue(r.items().isEmpty(),"no loot before material removal");}
             if(t==120){
                 for(int z=0;z<3;z++){
