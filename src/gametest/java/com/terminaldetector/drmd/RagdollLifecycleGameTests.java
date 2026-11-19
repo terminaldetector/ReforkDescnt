@@ -45,15 +45,16 @@ public final class RagdollLifecycleGameTests implements FabricGameTest {
     }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="ragdoll-128-causal-cleanup",tickLimit=1450)
     public void one128DeathWindowKeepsContentAndCausalOwnershipThenCleansAllPhysicalCorpses(TestContext c){
-        var f=new RagdollLifecycleFixture(c,45,21,256);var drones=new ArrayList<DroneEntity>();var bodies=new ArrayList<RagdollEntity>();var loot=new TreeMap<String,Integer>();
+        var f=new RagdollLifecycleFixture(c,45,21,256);var drones=new ArrayList<DroneEntity>();var bodies=new ArrayList<RagdollEntity>();var loot=new TreeMap<String,Integer>();RagdollCohortDrops[] ownedDrops={null};
         for(int i=0;i<128;i++){var d=(i%2==0?ModEntities.DRONE:ModEntities.JET).create(f.world);c.assertTrue(d!=null,"original species factory");d.setPosition(Vec3d.ofBottomCenter(f.floor.add(i%16*3,3,i/16*3)));d.setAiDisabled(true);d.setHealth(1);drones.add(d);f.own(d);}
         int[] stage={0};long[] died={0};UUID[] group={null};
         f.drive(1400,()->{
             if(stage[0]==0){if(!f.chunks.entityTicking(drones.stream().map(Entity::getBlockPos).toArray(BlockPos[]::new)))return;for(var d:drones)c.assertTrue(f.world.spawnEntity(d),"128 real admission, no cap increase or batching");stage[0]=1;return;}
-            if(stage[0]==1){if(drones.stream().anyMatch(d->d.age<2))return;died[0]=f.world.getTime();var damage=f.world.getDamageSources().genericKill();
+            if(stage[0]==1){if(drones.stream().anyMatch(d->d.age<2))return;died[0]=f.world.getTime();var beforeDrops=RagdollCohortDrops.identities(f.world);var damage=f.world.getDamageSources().genericKill();
                 for(var d:drones)c.assertTrue(d.damage(damage,Float.MAX_VALUE),"128 actual deaths share one ordinary world tick");
+                ownedDrops[0]=RagdollCohortDrops.afterActualDeaths(f.world,beforeDrops);ownedDrops[0].births.forEach(f::own);
                 bodies.addAll(f.world.getEntitiesByClass(RagdollEntity.class,f.area,Entity::isAlive));bodies.forEach(f::own);
-                for(var item:f.world.getEntitiesByClass(ItemEntity.class,f.area,e->true)){loot.merge(net.minecraft.registry.Registries.ITEM.getId(item.getStack().getItem()).toString(),item.getStack().getCount(),Integer::sum);f.own(item);}
+                loot.putAll(ownedDrops[0].original);System.out.println("RAGDOLL128_OWNED_DROPS_BIRTH "+ownedDrops[0].observations(f.area));
                 c.assertTrue(bodies.size()==128&&bodies.stream().map(Entity::getUuid).distinct().count()==128,"exact128 physical identities");group[0]=bodies.getFirst().debrisGroupId();
                 c.assertTrue(group[0]!=null&&bodies.stream().allMatch(b->group[0].equals(b.debrisGroupId())),"same actual damage event is one causal group");
                 var aggregate=RagdollDebrisGroups.get(f.world).snapshot(group[0]).orElseThrow();
@@ -66,8 +67,7 @@ public final class RagdollLifecycleGameTests implements FabricGameTest {
             if(skipped==0)System.out.println("RAGDOLL128_REST_FINAL "+bodies.stream().map(b->b.getUuid()+":"+(b.flightHullKind()==null?"scout":b.flightHullKind().id)+":"+b.restObservation()).toList());
             c.assertTrue(skipped>0,"natural128 cohort exercises some certified sleeping, not merely TTL");
             c.assertTrue(RagdollDebrisGroups.get(f.world).snapshot(group[0]).isEmpty()&&f.world.getEntitiesByClass(RagdollEntity.class,f.area,e->true).isEmpty(),"last physical removal clears logical ownership too");
-            var remaining=new TreeMap<String,Integer>();for(var item:f.world.getEntitiesByClass(ItemEntity.class,f.area,e->true)){remaining.merge(net.minecraft.registry.Registries.ITEM.getId(item.getStack().getItem()).toString(),item.getStack().getCount(),Integer::sum);f.own(item);}
-            c.assertTrue(loot.equals(remaining),"corpse cleanup preserves ordinary loot content, including legitimate Vanilla stack merging");
+            ownedDrops[0].assertConserved(c,f.area);
             System.out.println("RAGDOLL128_ACTUAL deaths=128 parts="+bodies.stream().mapToInt(b->b.simulation().parts().size()).sum()+" fullTicks="+bodies.stream().mapToLong(RagdollEntity::simulatedPhysicsTicks).sum()+" sleepTicks="+bodies.stream().mapToLong(RagdollEntity::skippedPhysicsTicks).sum()+" worldTicks="+(f.world.getTime()-died[0])+" drops="+loot.size());f.complete();
         });
     }

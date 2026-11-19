@@ -54,7 +54,7 @@ public final class RagdollSoakGameTests implements FabricGameTest {
     static void write(String name,Object value){try{var dir=Path.of("lifecycle-proof");Files.createDirectories(dir);String text=new GsonBuilder().setPrettyPrinting().create().toJson(value);if(text.length()>1024*1024)throw new IllegalStateException("proof1MiB cap");Files.writeString(dir.resolve(name),text+"\n",StandardOpenOption.CREATE,StandardOpenOption.TRUNCATE_EXISTING);}catch(java.io.IOException failure){throw new IllegalStateException("proof I/O",failure);}}
     private static final class Wave {
         final TestContext c;final int ordinal;final BlastStructuralCollapseGameTests.Fixture blast;final RagdollLifecycleFixture cohort;
-        final List<DroneEntity> drones=new ArrayList<>();final List<RagdollEntity> bodies=new ArrayList<>();final Map<String,Integer> drops=new TreeMap<>();
+        final List<DroneEntity> drones=new ArrayList<>();final List<RagdollEntity> bodies=new ArrayList<>();RagdollCohortDrops drops;
         boolean spawned,killed,blastDone,cleaned;long died;UUID group;long full,sleep;int coldStage,coldAge;long coldAt;
         final List<DroneEntity> coldDrones=new ArrayList<>();final List<RagdollEntity> coldBodies=new ArrayList<>();TntEntity coldTnt;
         Wave(TestContext c,int ordinal){this.c=c;this.ordinal=ordinal;blast=new BlastStructuralCollapseGameTests.Fixture(c,ordinal*256,ordinal%2==0?BlastStructuralCollapseGameTests.Mode.TNT:BlastStructuralCollapseGameTests.Mode.CHEST);
@@ -63,15 +63,15 @@ public final class RagdollSoakGameTests implements FabricGameTest {
         boolean sample(){
             if(!spawned){if(!blast.ready()||!cohort.chunks.entityTicking(drones.stream().map(Entity::getBlockPos).toArray(BlockPos[]::new)))return false;blast.start();for(var d:drones)c.assertTrue(c.getWorld().spawnEntity(d),"single ordinary128admission");spawned=true;return false;}
             if(!blastDone)blastDone=blast.sample();
-            if(!killed){if(drones.stream().anyMatch(d->d.age<2))return false;died=c.getWorld().getTime();var damage=c.getWorld().getDamageSources().genericKill();for(var d:drones)c.assertTrue(d.damage(damage,Float.MAX_VALUE),"actual128deaths in one tick");
-                bodies.addAll(c.getWorld().getEntitiesByClass(RagdollEntity.class,cohort.area,Entity::isAlive));bodies.forEach(cohort::own);c.assertTrue(bodies.size()==128&&bodies.stream().map(Entity::getUuid).distinct().count()==128&&bodies.stream().mapToInt(b->b.simulation().parts().size()).sum()==512,"128unique physical corpses retain512 actual parts");group=bodies.getFirst().debrisGroupId();c.assertTrue(group!=null&&bodies.stream().allMatch(b->group.equals(b.debrisGroupId())),"one causal group, not merged mass");drops.putAll(dropCounts());killed=true;return false;}
+            if(!killed){if(drones.stream().anyMatch(d->d.age<2))return false;died=c.getWorld().getTime();var dropIds=RagdollCohortDrops.identities(c.getWorld());var damage=c.getWorld().getDamageSources().genericKill();for(var d:drones)c.assertTrue(d.damage(damage,Float.MAX_VALUE),"actual128deaths in one tick");
+                bodies.addAll(c.getWorld().getEntitiesByClass(RagdollEntity.class,cohort.area,Entity::isAlive));bodies.forEach(cohort::own);c.assertTrue(bodies.size()==128&&bodies.stream().map(Entity::getUuid).distinct().count()==128&&bodies.stream().mapToInt(b->b.simulation().parts().size()).sum()==512,"128unique physical corpses retain512 actual parts");group=bodies.getFirst().debrisGroupId();c.assertTrue(group!=null&&bodies.stream().allMatch(b->group.equals(b.debrisGroupId())),"one causal group, not merged mass");drops=RagdollCohortDrops.afterActualDeaths(c.getWorld(),dropIds);System.out.println("RAGDOLL_OWNED_DROPS_BIRTH wave="+ordinal+" contents="+drops.original+" observations="+drops.observations(cohort.area));killed=true;return false;}
             if(!cleaned){if(bodies.stream().anyMatch(b->!b.isRemoved()||c.getWorld().getEntity(b.getUuid())!=null))return false;
                 c.assertTrue(c.getWorld().getTime()-died>=1200&&RagdollDebrisGroups.get(c.getWorld()).snapshot(group).isEmpty(),"actualTTL and logical cleanup");
-                for(var b:bodies)c.assertTrue(b.simulatedPhysicsTicks()+b.skippedPhysicsTicks()==1200,"original1200 successful full/sleep ticks");c.assertTrue(drops.equals(dropCounts()),"no material/drop erase during corpse cleanup");
+                for(var b:bodies)c.assertTrue(b.simulatedPhysicsTicks()+b.skippedPhysicsTicks()==1200,"original1200 successful full/sleep ticks");drops.assertConserved(c,cohort.area);
                 full=bodies.stream().mapToLong(RagdollEntity::simulatedPhysicsTicks).sum();sleep=bodies.stream().mapToLong(RagdollEntity::skippedPhysicsTicks).sum();cleaned=true;}
             return cleaned&&blastDone;
         }
-        Map<String,Integer> dropCounts(){var counts=new TreeMap<String,Integer>();for(var item:c.getWorld().getEntitiesByClass(ItemEntity.class,cohort.area,e->true))counts.merge(net.minecraft.registry.Registries.ITEM.getId(item.getStack().getItem()).toString(),item.getStack().getCount(),Integer::sum);return counts;}
+        Map<String,Integer> finalColdDropCounts(){var counts=new TreeMap<String,Integer>();for(var e:c.getWorld().iterateEntities())if(e instanceof ItemEntity item&&Math.abs(item.getX()-cohort.floor.getX())<=64&&Math.abs(item.getZ()-cohort.floor.getZ())<=64&&!item.isRemoved())counts.merge(net.minecraft.registry.Registries.ITEM.getId(item.getStack().getItem()).toString(),item.getStack().getCount(),Integer::sum);return counts;}
         boolean prepareColdPayload(){
             var w=c.getWorld();if(coldStage==0){
                 for(int i=0;i<2;i++){DroneEntity d=(i==0?ModEntities.DRONE:ModEntities.JET).create(w);c.assertTrue(d!=null,"cold explosion victim factory");d.setPosition(Vec3d.ofBottomCenter(cohort.floor.add(i*4,2,0)));d.setAiDisabled(true);var tag=new NbtCompound();d.writeNbt(tag);tag.putFloat("shield",0);tag.putFloat("armor",0);tag.putFloat("Health",1);d.readNbt(tag);c.assertTrue(w.spawnEntity(d),"actual registered cold victims");coldDrones.add(d);}coldStage=1;return false;}
@@ -81,6 +81,8 @@ public final class RagdollSoakGameTests implements FabricGameTest {
             return true;
         }
         NbtCompound receipt(){var tag=new NbtCompound();tag.putInt("Ordinal",ordinal);tag.putString("Scene",blast.mode.name());tag.putLong("Base",blast.base.asLong());tag.putLong("CohortFloor",cohort.floor.asLong());tag.putLong("FullTicks",full);tag.putLong("SleepTicks",sleep);tag.putLong("Deaths",128);tag.putLong("SavedAt",c.getWorld().getTime());
+            var bornCounts=new net.minecraft.nbt.NbtCompound();drops.original.forEach(bornCounts::putInt);tag.put("BornDropCounts",bornCounts);
+            if(!coldBodies.isEmpty()){var quantities=new net.minecraft.nbt.NbtCompound();finalColdDropCounts().forEach(quantities::putInt);tag.put("ColdDropCounts",quantities);tag.putInt("ColdDropHorizontalReach",64);}
             if(blast.body!=null){tag.putUuid("Roof",blast.body.getUuid());tag.putLong("RoofPosition",blast.body.getBlockPos().asLong());tag.put("RoofMaterial",RagdollSoakState.material(blast.body));}
             if(blast.chestPos!=null){tag.putLong("Chest",blast.chestPos.asLong());tag.put("ChestData",blast.chestBefore.copy());}
             var staticCells=new NbtList();for(var p:java.util.stream.Stream.concat(blast.obsidian.stream(),blast.supports.stream()).distinct().toList()){

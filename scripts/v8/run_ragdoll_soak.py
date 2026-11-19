@@ -86,8 +86,13 @@ def closed_input(runtime,attempt):
                         pos=val(entity,'Pos',[]);floor=floors[-1]
                         x=floor>>38;z=(floor>>12)&0x3ffffff
                         if z>=0x2000000:z-=0x4000000
-                        if len(pos)==3 and x-5<=pos[0]['value']<=x+51 and z-5<=pos[2]['value']<=z+27:
+                        if len(pos)==3 and x-64<=pos[0]['value']<=x+64 and z-64<=pos[2]['value']<=z+64:
                             need(eid not in items,'duplicate saved drop UUID');items[eid]=entity
+        last_row=val(state,'Rows',[])[-1];expected_drops=last_row['value'].get('ColdDropCounts');need(expected_drops is not None and val(last_row,'ColdDropHorizontalReach')==64,'explicit final cold material domain/count receipt required')
+        actual_drops={}
+        for entity in items.values():
+            stack=entity['value']['Item'];kind=val(stack,'id');amount=val(stack,'count',val(stack,'Count'));need(isinstance(amount,int) and amount>0,'actual saved positive stack count');actual_drops[kind]=actual_drops.get(kind,0)+amount
+        need(actual_drops=={k:n['value'] for k,n in expected_drops['value'].items()},'actual saved final-region drop quantities differ from last ordinary prepare receipt: '+str(actual_drops))
         need(set(found)==wanted,'saved real entities missing: '+str(sorted(wanted-set(found))))
         selected=sorted(found.items(),key=lambda kv:(0 if kv[0] in corpses else 1,kv[0]))+list(sorted(items.items()));need(0<len(selected)<=512,'cold entity cap512')
         name=b'Entities';payload=b'\x0a\x00\x00'+b'\x09'+struct.pack('>H',len(name))+name+b'\x0a'+struct.pack('>i',len(selected))+b''.join(n['raw'] for _,n in selected)+b'\x00'
@@ -151,6 +156,7 @@ def main():
         save(attempt/'prepare-closed.json',{'actualLastChildClosed':True,'result':result,'launchReceiptSha256':sha(attempt/'launch-inputs.json')})
     if o.phase=='prepare':print('PREPARE CLOSED; cold remains OPEN',flush=True);return
     need((attempt/'prepare-closed.json').is_file(),'first process verified closed');receipt=json.loads((attempt/'launch-inputs.json').read_text());need(receipt['source']==o.source,'same source');verify_inputs(receipt)
+    need(not (attempt/'cold-child.json').exists() and not (attempt/'cold.log').exists(),'first cold attempt already exists; inputs/failure preserved, no retry')
     saved=closed_input(runtime,attempt)
     original=receipt['allJvmArgs'];jvm=[v for v in original if not v.startswith(('-Ddrmd.lifecycle.mode=','-Ddrmd.lifecycle.savedInput='))]
     # Original actual output directories and launch config were copied BEFORE first server start.
