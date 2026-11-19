@@ -25,7 +25,8 @@ public final class LooseItemBodySystem {
     public enum Phase {NATIVE, DEFERRED, HOLD}
     private static final int MAX_PENDING = 128, MAX_BODIES = 16;
     private static final double HULL_REACH = 4 + 512 * .05;
-    private static final Map<ServerWorld, Map<UUID, Pending>> PENDING = new WeakHashMap<>();
+    private static final Map<ServerWorld, PendingFrame> PENDING = new WeakHashMap<>();
+    private record PendingFrame(long tick, Map<UUID, Pending> items) {}
     private static final class Pending {
         final WeakReference<ItemEntity> item;
         final long tick;
@@ -65,8 +66,13 @@ public final class LooseItemBodySystem {
         if (bodies.isEmpty()) return Phase.NATIVE;
         if (bodies.size() <= MAX_BODIES && bodies.stream().noneMatch(body -> interacts(item, body)))
             return Phase.NATIVE;
-        var pending = PENDING.computeIfAbsent(world, ignored -> new LinkedHashMap<>());
-        pending.entrySet().removeIf(e -> e.getValue().tick != world.getTime());
+        long tick = world.getTime();
+        var frame = PENDING.get(world);
+        if (frame == null || frame.tick != tick) {
+            frame = new PendingFrame(tick, new LinkedHashMap<>());
+            PENDING.put(world, frame);
+        }
+        var pending = frame.items;
         if (pending.size() >= MAX_PENDING || bodies.size() > MAX_BODIES) return Phase.HOLD;
         var motion = new LooseItemWorldMotion(item);
         if (!motion.available(item.getBoundingBox())) return Phase.HOLD;
@@ -93,7 +99,7 @@ public final class LooseItemBodySystem {
     }
     private static Pending pending(ItemEntity item) {
         if (!(item.getWorld() instanceof ServerWorld world)) return null;
-        var map = PENDING.get(world); var p = map == null ? null : map.get(item.getUuid());
+        var frame = PENDING.get(world); var p = frame == null ? null : frame.items.get(item.getUuid());
         return p != null && p.item.get() == item && p.tick == world.getTime() ? p : null;
     }
     public static void drag(ItemEntity item, double x, double y, double z) {
@@ -105,8 +111,8 @@ public final class LooseItemBodySystem {
     }
     public static void tick(ServerWorld world) {
         if (!world.getServer().isOnThread()) throw new IllegalStateException("Loose item contacts require the world thread");
-        var map = PENDING.remove(world); if (map == null) return;
-        var ordered = new ArrayList<>(map.values());
+        var frame = PENDING.remove(world); if (frame == null || frame.tick != world.getTime()) return;
+        var ordered = new ArrayList<>(frame.items.values());
         ordered.sort(Comparator.comparingInt(p -> p.item.get() == null ? Integer.MAX_VALUE : p.item.get().getId()));
         var motions = new HashMap<Integer, BodyMotion>(); var changed = new LinkedHashMap<Integer, BlockBodyEntity>();
         var merges = new ArrayList<Pending>();

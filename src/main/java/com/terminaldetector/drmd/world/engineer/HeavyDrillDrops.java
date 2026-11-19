@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.world.engineer;
 
+import com.terminaldetector.drmd.world.contraption.boarding.LooseItemBodyAccess;
 import net.minecraft.block.Block;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ItemEntity;
@@ -54,9 +55,15 @@ public final class HeavyDrillDrops implements AutoCloseable {
             new Box(BlockPos.ofFloored(output)).expand(12),e->e.isAlive(),nearby,MAX_NEARBY_ENTITIES);
         int slots=Math.max(0,MAX_NEARBY_ENTITIES-nearby.size());
         for(var stack:stacks) {
-            if(slots--<=0)break;
+            for (var item : nearby) {
+                if (stack.isEmpty()) break;
+                if (item.squaredDistanceTo(output) <= .25 && item instanceof LooseItemBodyAccess access)
+                    access.drmd$mergeFreshUnownedDrop(stack);
+            }
+            if (stack.isEmpty()) continue;
+            if (slots <= 0) continue;
             var entity=new ItemEntity(world,output.x,output.y,output.z,stack);entity.setToDefaultPickupDelay();
-            world.spawnEntity(entity);
+            if (world.spawnEntity(entity)) slots--;
         }
     }
 }
