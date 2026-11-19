@@ -36,8 +36,9 @@ import java.util.*;
  * cube availability, surface storage, packets or native metadata and own no tickets. */
 public final class NativeSurfaceIngestCheck {
     public static final boolean ENABLED=Boolean.getBoolean("drmd.gate.surfaceIngest");
-    private static final BlockPos HIGH=new BlockPos(8,2300,8),UNDER_HIGH=HIGH.down(2),LOW=new BlockPos(8,1024,8),LOW_EDIT=LOW.east(2);
-    private static final D6ChunkPos HIGH_CUBE=D6ChunkPos.ofBlock(8,2300,8),LOW_CUBE=D6ChunkPos.ofBlock(8,1024,8);
+    private static final boolean LIVE_SYNC=Boolean.getBoolean("drmd.gate.surfaceIngestLiveSync");
+    private static final BlockPos HIGH=new BlockPos(LIVE_SYNC?9:8,2300,LIVE_SYNC?9:8),UNDER_HIGH=HIGH.down(2),LOW=new BlockPos(8,1024,8),LOW_EDIT=LOW.east(2);
+    private static final D6ChunkPos HIGH_CUBE=D6ChunkPos.ofBlock(HIGH.getX(),HIGH.getY(),HIGH.getZ()),LOW_CUBE=D6ChunkPos.ofBlock(8,1024,8);
     private static final long KEY=SectionKey.of(0,0,0);
     private static final List<Map<String,Object>> SCENES=new ArrayList<>(),EVENTS=new ArrayList<>(),PACKETS=new ArrayList<>();
     private static final ArrayDeque<IngestEvent> ENTERED=new ArrayDeque<>();
@@ -47,6 +48,8 @@ public final class NativeSurfaceIngestCheck {
     private static volatile Phase phase=Phase.BOOT;
     private static volatile ClientSample clientSample;
     private static volatile Packet packet=new Packet(0,new Cell(SurfaceSection.NO_HEIGHT,0),"");
+    private static final Map<Integer,Cell> coarsePackets=new java.util.concurrent.ConcurrentHashMap<>();
+    private static volatile Map<Integer,Cell> clientCoarse=Map.of();
     private static volatile String captureName,capturedName,closingStatus,closingReason;
     private static volatile String wrongThread;
     private static volatile Map<String,Object> finalSnapshot;
@@ -91,7 +94,11 @@ public final class NativeSurfaceIngestCheck {
     }
     /** Receives only the real main client's already-accepted SurfacePayload data. */
     public static void acceptedSection(long key,byte[] bytes){
-        if(!ENABLED||done||key!=KEY)return;var section=SurfaceSection.fromBytes(bytes);if(section==null)return;
+        if(!ENABLED||done)return;
+        int level=SectionKey.level(key);
+        if(key!=KEY&&(!LIVE_SYNC||level<1||level>2||key!=SectionKey.of(level,0,0)))return;
+        var section=SurfaceSection.fromBytes(bytes);if(section==null)return;
+        if(key!=KEY){coarsePackets.put(level,new Cell(section.height(0,0),section.colour(0,0)));return;}
         packet=new Packet(++packetSequence,new Cell(section.height(0,0),section.colour(0,0)),sha(bytes));
         if(runtime!=null&&packetSequence<=128)try{var folder=runtime.resolve("surface-ingest-packets");Files.createDirectories(folder);Files.write(folder.resolve("packet-"+packetSequence+".bin"),bytes);}catch(java.io.IOException e){throw new IllegalStateException(e);}
         if(PACKETS.size()==128)PACKETS.removeFirst();PACKETS.add(Map.of("sequence",packet.sequence(),"cell",packet.cell(),"sha256",packet.payloadSha256()));
@@ -108,12 +115,25 @@ public final class NativeSurfaceIngestCheck {
     private static void place(BlockPos at,net.minecraft.block.Block block){if(!full(at))throw new IllegalStateException("Fixture write outside actual FULL cube: "+at);player.getServerWorld().setBlockState(at,block.getDefaultState(),3);}
     private static void touch(BlockPos at){var state=WorldAccess.of(player.getServerWorld()).readIfLoaded(at).orElseThrow();place(at,state.isOf(Blocks.RED_CONCRETE)?Blocks.BLACK_CONCRETE:Blocks.RED_CONCRETE);}
     private static void move(double feetY,Phase next){player.teleport(player.getServerWorld(),8.5,feetY,3.5,Set.of(),0,45);phase=next;age=0;unavailableTicks=0;captureName=null;capturedName=null;}
-    private static boolean synchronizedCell(Cell expected){var c=clientSample;return c!=null&&expected.equals(serverCell())&&expected.equals(c.cell())&&expected.equals(c.packet().cell())&&c.packet().sequence()>requiredPacket;}
+    private static boolean synchronizedCell(Cell expected){
+        var c=clientSample;
+        if(c==null||!expected.equals(serverCell())||!expected.equals(c.cell())||!expected.equals(c.packet().cell()))return false;
+        // Unchanged data is retained and does not require another transmission after rediscovery.
+        if(phase!=Phase.PROBE&&phase!=Phase.RETURN_HIGH&&c.packet().sequence()<=requiredPacket)return false;
+        if(LIVE_SYNC)for(int level=1;level<=2;level++){
+            var store=SurfaceIngest.store();
+            var server=new Cell(store.heightAt(HIGH.getX(),HIGH.getZ(),level),store.colourAt(HIGH.getX(),HIGH.getZ(),level));
+            if(!expected.equals(server)||!expected.equals(clientCoarse.get(level))||!expected.equals(coarsePackets.get(level)))return false;
+        }
+        return true;
+    }
     private static boolean captured(String name){return name.equals(capturedName);}
     private static void capture(String name){if(!name.equals(captureName)){frames=0;captureName=name;}}
     private static Map<String,Object> snapshot(String scene){
         var world=player.getServerWorld();var access=WorldAccess.of(world);var column=CubicAvailability.loadedColumn(world,0,0);
-        var row=new LinkedHashMap<String,Object>();row.put("scene",scene);row.put("phase",phase);row.put("serverPlayer",player.getPos().toString());row.put("client",clientSample);row.put("serverCell",serverCell());row.put("diskCell",diskCell());row.put("authoredHighBlockY",HIGH.getY());row.put("actualHighStateIfLoaded",access.readIfLoaded(HIGH).map(Object::toString).orElse(null));row.put("expectedGoldSurface",gold);row.put("highFull",access.isVolumeAvailable(HIGH_CUBE));row.put("lowFull",access.isVolumeAvailable(LOW_CUBE));row.put("retainedLowMarker",is(LOW,Blocks.CYAN_CONCRETE));row.put("parentColumnPresent",column!=null);row.put("parentColumnIdentity",column==null?0:System.identityHashCode(column));row.put("metadataHeightAtHigh",column==null?null:column.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,8,8));row.put("lastIngest",lastIngest==null?null:lastIngest.json());row.put("firstViolation",firstViolation==null?null:firstViolation.json());return row;
+        var row=new LinkedHashMap<String,Object>();row.put("scene",scene);row.put("phase",phase);row.put("serverPlayer",player.getPos().toString());row.put("client",clientSample);row.put("serverCell",serverCell());row.put("diskCell",diskCell());row.put("authoredHighBlockY",HIGH.getY());row.put("actualHighStateIfLoaded",access.readIfLoaded(HIGH).map(Object::toString).orElse(null));row.put("expectedGoldSurface",gold);row.put("highFull",access.isVolumeAvailable(HIGH_CUBE));row.put("lowFull",access.isVolumeAvailable(LOW_CUBE));row.put("retainedLowMarker",is(LOW,Blocks.CYAN_CONCRETE));row.put("parentColumnPresent",column!=null);row.put("parentColumnIdentity",column==null?0:System.identityHashCode(column));row.put("metadataHeightAtHigh",column==null?null:column.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,HIGH.getX(),HIGH.getZ()));row.put("lastIngest",lastIngest==null?null:lastIngest.json());row.put("firstViolation",firstViolation==null?null:firstViolation.json());
+        if(LIVE_SYNC){row.put("clientCoarse",clientCoarse);row.put("actualCoarsePacketCells",Map.copyOf(coarsePackets));}
+        return row;
     }
     private static void finish(String status,String why){
         if(phase==Phase.CLOSE)return;finalSnapshot=snapshot(status);closingStatus=status;closingReason=why;phase=Phase.CLOSE;frames=0;captureName=switch(status){case "PASS"->"returned-high-known";case "PREMISE_NOT_OBSERVED"->"premise-not-observed";case "CONTROL_FAILURE"->"loaded-contract-failure";default->"failed-unknown-winner";};
@@ -157,6 +177,7 @@ public final class NativeSurfaceIngestCheck {
         if(phase==Phase.RESTORED){
             if(!full(HIGH)||!synchronizedCell(gold))return;
             capture("loaded-restored-gold");if(!captured("loaded-restored-gold"))return;
+            if(LIVE_SYNC){finish("PASS","real native edits updated the observed height and colour at all three streamed levels");return;}
             SCENES.add(snapshot("loaded-restored-gold"));move(1027,Phase.UNLOAD);return;
         }
         if(phase==Phase.UNLOAD){
@@ -203,6 +224,9 @@ public final class NativeSurfaceIngestCheck {
         }
         if(modePrepared&&!lowRequested&&!DescentClientState.enabled&&!client.player.hasVehicle()){lowRequested=true;client.getServer().execute(()->move(1027,Phase.LOW));}
         var access=WorldAccess.of(client.world);clientSample=new ClientSample(client.player.getY(),access.isVolumeAvailable(HIGH_CUBE),access.isVolumeAvailable(LOW_CUBE),new Cell(PlanetClientState.INSTANCE.observedHeight(8,8,0),PlanetClientState.INSTANCE.observedColour(8,8,0)),packet);
+        if(LIVE_SYNC){var coarse=new LinkedHashMap<Integer,Cell>();for(int level=1;level<=2;level++)coarse.put(level,new Cell(
+            PlanetClientState.INSTANCE.observedHeight(HIGH.getX(),HIGH.getZ(),level),PlanetClientState.INSTANCE.observedColour(HIGH.getX(),HIGH.getZ(),level)));
+            clientCoarse=Map.copyOf(coarse);}
         client.player.setYaw(0);client.player.setHeadYaw(0);client.player.setPitch(45);
     }
     /** Fresh actual GameRenderer frame, context evidence only, no smoothing/pixel claim. */
