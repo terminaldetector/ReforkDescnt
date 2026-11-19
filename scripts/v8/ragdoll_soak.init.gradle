@@ -77,7 +77,7 @@ gradle.projectsEvaluated {
             if(!new File(javaExecutable).canExecute())throw new GradleException("GameTest Java launcher is unavailable: ${javaExecutable}")
             def receipt=[schema:1,source:source,mode:mode,originalClasspath:originalCP.collect{it.absolutePath},classpath:actualCP.collect{it.absolutePath},replacements:replacements,originalArgFiles:originalArgFiles,declaredJvmArgs:declared,baseJvmArgs:baseJvm,executable:javaExecutable,allJvmArgs:actualJvm,mainClass:task.mainClass.get(),args:resolvedArgs,workingDirectory:runtime.absolutePath,manifest:manifest,inputs:records.sort{it.path}]
             new File(runtime.parentFile,'launch-inputs.json').text=JsonOutput.prettyPrint(JsonOutput.toJson(receipt))+'\n'
-            root.exec { spec -> spec.executable=receipt.executable;spec.args(actualJvm+['-cp',actualCP.collect{it.absolutePath}.join(File.pathSeparator),receipt.mainClass]+resolvedArgs);spec.workingDir=runtime;spec.standardOutput=System.out;spec.errorOutput=System.err }
+            // The runner verifies these bytes and starts the actual game after Gradle exits.
         }
     }
 }

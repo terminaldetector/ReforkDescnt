@@ -139,6 +139,9 @@ def verify_inputs(receipt):
     for row in receipt['inputs']:
         p=P(row['path']);need(p.is_file() and p.stat().st_size==row['bytes'] and sha(p)==row['sha256'],'immutable actual runtime input changed: '+str(p))
 
+def game_command(receipt, jvm):
+    return [receipt['executable']]+jvm+['-cp', os.pathsep.join(receipt['classpath']), receipt['mainClass']]+receipt['args']
+
 def main():
     a=argparse.ArgumentParser();a.add_argument('--repo',type=P,default=P('/workspace/ungravity-v5/ufo-body-physics'));a.add_argument('--attempt',type=P,required=True);a.add_argument('--source',required=True);a.add_argument('--mode',choices=['soak','rehearsal'],default='rehearsal');a.add_argument('--phase',choices=['prepare','cold','both'],default='both');a.add_argument('--run-with-root-java-lease',action='store_true');o=a.parse_args()
     need(o.run_with_root_java_lease and os.environ.get('U14_RAGDOLL_SOAK_JAVA_LEASE')=='granted','explicit exclusive root Java lease required')
@@ -149,9 +152,14 @@ def main():
         tracked=subprocess.check_output(['git','diff','--name-only','HEAD','--','src','build.gradle','gradle.properties'],cwd=o.repo,text=True);need(not tracked.strip(),'clean pinned source before compile')
         init=P(__file__).with_name('ragdoll_soak.init.gradle').resolve();save(attempt/'proposal.json',{'source':o.source,'mode':o.mode,'driver':sha(__file__),'init':sha(init),'acceptance':'two actual elapsed hours + >=12 real128death/1200tick cohorts + same-world separate JVM cold; rehearsal is SHORT only','workBudgets':'production unchanged;128 live corpses;64 loaded permanent roofs;128 zones;1MiB proof;512 cold entities;8MiB input','mspt':'actual server rolling average only; no hardware/FPS equivalence','worldHandling':'same saved world retained; no deletion, retries, actor reconstruction or manual ticks'})
         command=[str(o.repo/'gradlew'),'--offline','--no-daemon','--max-workers=1','-I',str(init),'-PdrmdLifecycleRuntime='+str(runtime),'-PdrmdLifecycleMode='+o.mode,'-PdrmdLifecycleSource='+o.source,'runGametest']
-        child(command,o.repo,attempt,'prepare',9600 if o.mode=='soak' else 1800);validate_xml(runtime/'reports/gametest-results.xml')
+        child(command,o.repo,attempt,'compile',900)
+        receipt=json.loads((attempt/'launch-inputs.json').read_text())
+        need(receipt['source']==o.source and receipt['mode']==o.mode,'exact staged game identity')
+        verify_inputs(receipt)
+        child(game_command(receipt,receipt['allJvmArgs']),runtime,attempt,'prepare',9600 if o.mode=='soak' else 1800)
+        validate_xml(runtime/'reports/gametest-results.xml')
         result=json.loads((runtime/'lifecycle-proof/prepare-result.json').read_text());need(result['source']==o.source and result['status']==('TWO_HOUR_SOAK_PREPARE_PASS' if o.mode=='soak' else 'REHEARSAL_ONLY_PREPARE_PASS'),'actual prepare status required')
-        receipt=json.loads((attempt/'launch-inputs.json').read_text());verify_inputs(receipt)
+        verify_inputs(receipt)
         (runtime/'reports/gametest-results.xml').rename(attempt/'prepare-gametest-results.xml')
         save(attempt/'prepare-closed.json',{'actualLastChildClosed':True,'result':result,'launchReceiptSha256':sha(attempt/'launch-inputs.json')})
     if o.phase=='prepare':print('PREPARE CLOSED; cold remains OPEN',flush=True);return
@@ -161,8 +169,7 @@ def main():
     original=receipt['allJvmArgs'];jvm=[v for v in original if not v.startswith(('-Ddrmd.lifecycle.mode=','-Ddrmd.lifecycle.savedInput='))]
     # Original actual output directories and launch config were copied BEFORE first server start.
     jvm+=['-Ddrmd.lifecycle.mode=cold','-Ddrmd.lifecycle.savedInput='+str(saved)]
-    command=[receipt['executable']]+jvm+['-cp',os.pathsep.join(receipt['classpath']),receipt['mainClass']]+receipt['args']
-    child(command,runtime,attempt,'cold',1800);validate_xml(runtime/'reports/gametest-results.xml');verify_inputs(receipt)
+    child(game_command(receipt,jvm),runtime,attempt,'cold',1800);validate_xml(runtime/'reports/gametest-results.xml');verify_inputs(receipt)
     result=json.loads((runtime/'lifecycle-proof/cold-result.json').read_text());need(result['source']==o.source and result['status'] in ('SHORT_COLD_PROOF_PASS','TWO_HOUR_SOAK_AND_COLD_PASS'),'actual cold result')
     save(attempt/'FINAL.json',{'result':result,'coldInputReceiptSha256':sha(attempt/'cold-inputs.json'),'launchReceiptSha256':sha(attempt/'launch-inputs.json'),'worldRetained':str(runtime/'world'),'actualAllChildrenClosed':True});print(json.dumps(result),flush=True)
 
