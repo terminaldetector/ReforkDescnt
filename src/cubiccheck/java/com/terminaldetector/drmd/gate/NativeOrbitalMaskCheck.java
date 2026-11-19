@@ -24,10 +24,11 @@ public final class NativeOrbitalMaskCheck {
     private static final Set<String> SHOTS=new HashSet<>();
     private static long lastEpoch=-1;private static volatile String failed;
     private record Region(String name,int x,int y,int width,int height,byte[] rgba,float[] depth) {}
-    private record PixelPending(int stage,long epoch,PlanetSurfaceMesh source,List<Region> regions,int fullCubes,int totalCubes,double distance,int fbo) {}
+    private record PixelPending(int stage,long epoch,PlanetSurfaceMesh source,List<Region> regions,int fullCubes,int totalCubes,double distance,int fbo,float[] view,float[] projection,HorizonLandmark selected) {}
     private record Pixels(int stage,long epoch,Map<String,Object> receipt) {}
     private static PixelPending pixelPending;
     private static Pixels pixels;
+    private static Map<String,Object> firstPixelFailure=Map.of();
     private static final int[] CASE_FRAMES=new int[4];
     private static final List<Map<String,Object>> CASE_RECEIPTS=new ArrayList<>();
     private static volatile int fieldViewBits;
@@ -84,13 +85,24 @@ public final class NativeOrbitalMaskCheck {
             int[] viewport=new int[4];org.lwjgl.opengl.GL11.glGetIntegerv(org.lwjgl.opengl.GL11.GL_VIEWPORT,viewport);
             require(viewport[0]==0&&viewport[1]==0&&viewport[2]==c.getFramebuffer().textureWidth&&viewport[3]==c.getFramebuffer().textureHeight,"actual orbital scene viewport matches projection target");
             int fbo=c.getFramebuffer().fbo;require(org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL30.GL_DRAW_FRAMEBUFFER_BINDING)==fbo,"actual current scene framebuffer owns orbital draw");
-            List<Region> regions=new ArrayList<>();
+            List<Region> regions=new ArrayList<>();double skyRayMin=0;
             if(near){
                 int[] opaque=project(view,asteroid?centre.add(.5,.5,-halfZ):centre.add(3.5,-3.5,-9),false,c.getFramebuffer().textureWidth,c.getFramebuffer().textureHeight);
-                int[] hole=asteroid?null:project(view,centre.add(.5,NativeIntactAsteroidCheck.STATION?-.5:-1.5,.5),false,c.getFramebuffer().textureWidth,c.getFramebuffer().textureHeight);
+                int[] hole=asteroid?null:project(view,(NativeIntactAsteroidCheck.STATION?centre.add(.5,5.5,-8.5):centre.add(.5,-1.5,.5)),false,c.getFramebuffer().textureWidth,c.getFramebuffer().textureHeight);
                 if(opaque==null||(!asteroid&&hole==null)){admission(stage,"NEAR_TARGET_OUTSIDE_CURRENT_VIEW");return;}
                 regions.add(read("opaque",opaque[0]-2,opaque[1]-2,5,5,fbo));
                 if(!asteroid)regions.add(read("open-window",hole[0]-2,hole[1]-2,5,5,fbo));
+                if(NativeIntactAsteroidCheck.STATION){
+                    var inverse=new org.joml.Matrix4f(com.mojang.blaze3d.systems.RenderSystem.getProjectionMatrix()).mul(view).invert();
+                    skyRayMin=Double.POSITIVE_INFINITY;
+                    for(int y=hole[1]-2;y<=hole[1]+2;y++)for(int x=hole[0]-2;x<=hole[0]+2;x++){
+                        float nx=(x+.5f)/viewport[2]*2-1,ny=(y+.5f)/viewport[3]*2-1;
+                        var a=new org.joml.Vector4f(nx,ny,-1,1).mul(inverse);var z=new org.joml.Vector4f(nx,ny,1,1).mul(inverse);
+                        double dx=z.x/z.w-a.x/a.w,dy=z.y/z.w-a.y/a.w,dz=z.z/z.w-a.z/a.w;
+                        skyRayMin=Math.min(skyRayMin,dy/Math.sqrt(dx*dx+dy*dy+dz*dz));
+                    }
+                    if(!Double.isFinite(skyRayMin)||skyRayMin<=0){admission(stage,"UPPER_WINDOW_DOES_NOT_HAVE25UPWARD_WORLD_RAYS","minWorldRayY",Double.isFinite(skyRayMin)?skyRayMin:0);return;}
+                }
                 if(java.util.stream.IntStream.range(0,25).noneMatch(i->regions.get(0).depth[i]<.999995f)){admission(stage,"AWAITING_ACTUAL_OPAQUE_DEPTH","actualFullAabbCubes",full);return;}
                 if(!asteroid&&java.util.stream.IntStream.range(0,25).anyMatch(i->regions.get(1).depth[i]<.999995f)){admission(stage,"EXPECTED_OPEN_WINDOW_HAS_NEAR_DEPTH","actualFullAabbCubes",full);return;}
             }else{
@@ -114,8 +126,9 @@ public final class NativeOrbitalMaskCheck {
                 regions.add(read("authored-proxy",x0-pad,y0-pad,x1-x0+1+pad*2,y1-y0+1+pad*2,fbo));
                 for(float depth:regions.get(0).depth)if(depth<.999995f){admission(stage,"DISTANT_PROXY_ROI_HAS_REAL_FOREGROUND","actualFullAabbCubes",full);return;}
             }
-            admission(stage,"ACTUAL_PIXEL_INPUTS_ADMITTED","actualFullAabbCubes",full,"aabbCubes",total,"trueDistance",distance,"sceneFbo",fbo);
-            pixelPending=new PixelPending(stage,epoch,source,List.copyOf(regions),full,total,distance,fbo);
+            admission(stage,"ACTUAL_PIXEL_INPUTS_ADMITTED","actualFullAabbCubes",full,"aabbCubes",total,"trueDistance",distance,"sceneFbo",fbo,"upperSkyRayMinY",skyRayMin);
+            pixelPending=new PixelPending(stage,epoch,source,List.copyOf(regions),full,total,distance,fbo,view.get(new float[16]),
+                com.mojang.blaze3d.systems.RenderSystem.getProjectionMatrix().get(new float[16]),mark);
         }catch(Throwable problem){fail(problem);}
     }
     private static int[] project(org.joml.Matrix4f view,net.minecraft.util.math.Vec3d world,boolean compressed,int width,int height){
@@ -145,17 +158,45 @@ public final class NativeOrbitalMaskCheck {
         var pending=pixelPending;pixelPending=null;if(pending==null||pending.epoch!=epoch||pending.source!=source)return;
         if(viewCase()!=pending.stage)return;
         require(org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL30.GL_DRAW_FRAMEBUFFER_BINDING)==pending.fbo,"same actual scene target after orbital colour draw");
-        var regionRows=new ArrayList<Map<String,Object>>();boolean near=pending.stage==0||pending.stage==3;
-        for(var before:pending.regions){var after=read(before.name,before.x,before.y,before.width,before.height,pending.fbo);int changed=0;
+        var regionRows=new ArrayList<Map<String,Object>>();var rawRows=new ArrayList<Map<String,Object>>();boolean near=pending.stage==0||pending.stage==3;
+        boolean depthBad=false,pixelsBad=false;
+        for(var before:pending.regions){var after=read(before.name,before.x,before.y,before.width,before.height,pending.fbo);int changed=0,depthChanges=0;
             for(int i=0;i<before.depth.length;i++){
-                require(Math.abs(before.depth[i]-after.depth[i])<.000001,"orbital backdrop cannot alter native foreground/sky depth");
+                if(!(Math.abs(before.depth[i]-after.depth[i])<.000001))depthChanges++;
                 if(before.rgba[i*4]!=after.rgba[i*4]||before.rgba[i*4+1]!=after.rgba[i*4+1]||before.rgba[i*4+2]!=after.rgba[i*4+2])changed++;
             }
-            require(near?changed==0:changed>=(pending.stage==1?4:1),near?"near opaque/window pixels were painted by a far proxy/phantom surface":"actual MID/FAR authored station produced no colour pixels beyond residency");
-            regionRows.add(Map.of("name",before.name,"rect",List.of(before.x,before.y,before.width,before.height),"changedPixels",changed,"depthUnchanged",true));
+            depthBad|=depthChanges!=0;pixelsBad|=!(near?changed==0:changed>=(pending.stage==1?4:1));
+            regionRows.add(Map.of("name",before.name,"rect",List.of(before.x,before.y,before.width,before.height),"changedPixels",changed,"depthUnchanged",depthChanges==0));
+            rawRows.add(Map.of("name",before.name,"rect",List.of(before.x,before.y,before.width,before.height),"changedPixels",changed,"depthChanges",depthChanges,
+                "beforeRgbaBottomLeftHex",java.util.HexFormat.of().formatHex(before.rgba),"afterRgbaBottomLeftHex",java.util.HexFormat.of().formatHex(after.rgba),
+                "beforeDepth",before.depth,"afterDepth",after.depth));
+        }
+        if(depthBad||pixelsBad){
+            preservePixelFailure(pending,rawRows);
+            require(!depthBad,"orbital backdrop cannot alter native foreground/sky depth: "+regionRows);
+            require(!pixelsBad,(near?"near opaque/window pixels changed in the WHOLE Horizon draw; layer attribution required: ":"actual MID/FAR authored station produced no colour pixels beyond residency: ")+regionRows);
         }
         pixels=new Pixels(pending.stage,epoch,Map.of("case",pending.stage,"actualDistance",pending.distance,"clientFullAabbCubes",pending.fullCubes,
             "aabbCubes",pending.totalCubes,"actualSceneFbo",pending.fbo,"regions",regionRows));
+    }
+    private static void preservePixelFailure(PixelPending p,List<Map<String,Object>> regions){
+        if(!firstPixelFailure.isEmpty())return;
+        var c=MinecraftClient.getInstance();var row=new LinkedHashMap<String,Object>();
+        row.put("scope","first exact failed whole-Horizon RGB/depth pair; no inferred primitive ownership");
+        row.put("case",p.stage);row.put("epoch",p.epoch);row.put("worldTick",c.world.getTime());row.put("sceneFbo",p.fbo);row.put("sceneSize",List.of(c.getFramebuffer().textureWidth,c.getFramebuffer().textureHeight));
+        row.put("projection",p.projection);row.put("view",p.view);row.put("innerReach",List.of(inputInner,inputReach));row.put("selected",p.selected.toString());
+        row.put("admission",lastViewAdmission);row.put("regions",regions);row.put("sourceIdentity",System.identityHashCode(p.source));row.put("sourceOrigin",List.of(p.source.originX,p.source.originY,p.source.originZ));row.put("sourceQuads",p.source.quads);
+        row.put("untaggedGroundLegacyQuads",java.util.Arrays.stream(p.source.orbitalMasks).filter(i->i<0).count());
+        var masks=new ArrayList<Map<String,Object>>();
+        for(int i=0;i<p.source.orbitalKeys.size();i++){var key=p.source.orbitalKeys.get(i);masks.add(Map.of("slot",i,"mark",key.mark().toString(),"cube",List.of(key.cube().x(),key.cube().y(),key.cube().z()),"verifiedGpuOpacity",colour.mask[i]));}
+        row.put("authoredGpuMasks",masks);
+        var surface=new ArrayList<Map<String,Object>>();var mark=p.selected;
+        for(int x=Math.floorDiv(mark.x()-mark.sizeX()/2,16);x<=Math.floorDiv(mark.x()+mark.sizeX()/2-1,16);x++)
+            for(int z=Math.floorDiv(mark.z()-mark.sizeZ()/2,16);z<=Math.floorDiv(mark.z()+mark.sizeZ()/2-1,16);z++)
+                surface.add(Map.of("chunk",List.of(x,z),"height",PlanetClientState.INSTANCE.observedHeight(x*16.+8,z*16.+8,0),"colour",PlanetClientState.INSTANCE.observedColour(x*16.+8,z*16.+8,0)));
+        row.put("actualCurrentClientL0TopSamples",surface);firstPixelFailure=Map.copyOf(row);
+        try{Files.writeString(c.runDirectory.toPath().resolve("orbital-first-pixel-failure.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(firstPixelFailure));}
+        catch(java.io.IOException problem){throw new IllegalStateException("could not preserve actual pixel failure",problem);}
     }
     private static void fieldViewReceipt(long epoch) throws Exception{
         if(pixels==null||pixels.epoch!=epoch)return;var pixel=pixels;pixels=null;
@@ -247,7 +288,7 @@ public final class NativeOrbitalMaskCheck {
     private static void fail(Throwable problem){failed=problem.toString();problem.printStackTrace();try{write();}catch(Exception ignored){} }
     private static void write() throws Exception {
         var report=new LinkedHashMap<String,Object>();report.put("scope","passive actual GPU-input/ABI witness; optional explicit physical mission extension adds real paired pixel/depth cases, not cold/global GPU-section completion");
-        report.put("intactAsteroidMode",NativeIntactAsteroidCheck.ENABLED&&!NativeIntactAsteroidCheck.STATION);report.put("intactStationMode",NativeIntactAsteroidCheck.STATION);report.put("failure",failed);report.put("physicalFieldViewFrames",CASE_FRAMES);report.put("allFourPhysicalFieldViewsObserved",fieldViewBits==15);report.put("physicalFieldViews",CASE_RECEIPTS);report.put("actualReadbackBytes",readbackBytes);report.put("lastFieldViewAdmission",lastViewAdmission);report.put("counts",COUNTS);report.put("observations",RECEIPTS);
+        report.put("intactAsteroidMode",NativeIntactAsteroidCheck.ENABLED&&!NativeIntactAsteroidCheck.STATION);report.put("intactStationMode",NativeIntactAsteroidCheck.STATION);report.put("failure",failed);report.put("firstPixelFailure",firstPixelFailure);report.put("physicalFieldViewFrames",CASE_FRAMES);report.put("allFourPhysicalFieldViewsObserved",fieldViewBits==15);report.put("physicalFieldViews",CASE_RECEIPTS);report.put("actualReadbackBytes",readbackBytes);report.put("lastFieldViewAdmission",lastViewAdmission);report.put("counts",COUNTS);report.put("observations",RECEIPTS);
         report.put("allThreeDomainsObserved",COUNTS.getOrDefault("NEAR_FULL_ZERO_PROXY",0)>=8&&COUNTS.getOrDefault("MID_PROXY_INPUT",0)>=8&&COUNTS.getOrDefault("FAR_PROXY_INPUT",0)>=8);
         Files.writeString(MinecraftClient.getInstance().runDirectory.toPath().resolve("orbital-mask-observations.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(report));
     }
