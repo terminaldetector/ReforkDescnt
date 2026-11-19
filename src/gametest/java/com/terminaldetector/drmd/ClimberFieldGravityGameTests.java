@@ -393,7 +393,7 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
         watch(c,room,310,()->{
             if(!room.loaded())return false;room.build();
             if(user[0]==null){
-                room.field(centre,up.negate());var target=Vec3d.ofCenter(centre).subtract(up.multiply(6.8))
+                room.field(centre,up.negate());var target=Vec3d.ofCenter(centre).subtract(up.multiply(7.48))
                     .add(com.terminaldetector.drmd.world.gravity.ActorFrameMath.toWorld(new Vec3d(0,0,ranged?4.5:2.5),up));
                 user[0]=nativeFoodPlayer(room,target);return false;
             }
@@ -465,7 +465,7 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
         for(var packet:List.copyOf(channel.outboundMessages()))if(packet instanceof net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket teleport){channel.writeInbound(new net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket(teleport.getTeleportId()));confirmations++;}
         room.context.assertTrue(confirmations>0,"real native initial teleport confirmed before one-time player fixture positioning");
         p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);com.terminaldetector.drmd.flight.FlightSystem.disable(p,DescentPlayerData.get(p));p.getAbilities().flying=false;p.sendAbilitiesUpdate();
-        p.setPosition(position);p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(net.minecraft.item.Items.WHEAT));p.setStackInHand(net.minecraft.util.Hand.OFF_HAND,new net.minecraft.item.ItemStack(net.minecraft.item.Items.CARROT));
+        p.setPosition(position);admitStationaryTarget(room,p);p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(net.minecraft.item.Items.WHEAT));p.setStackInHand(net.minecraft.util.Hand.OFF_HAND,new net.minecraft.item.ItemStack(net.minecraft.item.Items.CARROT));
         if(!w.getServer().getNetworkIo().getConnections().contains(connection))w.getServer().getNetworkIo().getConnections().add(connection);
         return new NativeFoodPlayer(p,connection,channel);
     }
@@ -623,7 +623,7 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
         watch(c,room,310,()->{
             if(!room.loaded())return false;room.build();var plane=Vec3d.ofCenter(centre).subtract(up.multiply(7.5));
             if(actor[0]==null){
-                room.field(centre,up.negate());players[0]=nativeTargetPlayer(room,plane.add(.7,0,3),"nearest-physical");players[1]=nativeTargetPlayer(room,plane.add(.7,2,3),"nearest-legacy");
+                room.field(centre,up.negate());players[0]=nativeTargetPlayer(room,plane.add(.02,0,3),"nearest-physical");players[1]=nativeTargetPlayer(room,plane.add(.02,2,3),"nearest-legacy");
                 var a=EntityType.ZOMBIE.create(room.world);a.setAiDisabled(true);a.setPersistent();a.setPosition(plane.add(.02,0,-2));c.assertTrue(ActorFrames.trySetUp(a,up),"checked actual actor frame before native registration");room.spawn(a);actor[0]=a;return false;
             }
             var a=actor[0];var first=players[0].player;var second=players[1].player;
@@ -646,6 +646,18 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
             System.out.println("C1_NATIVE_PHYSICAL_NEAREST actor="+a.getUuid()+" selected="+first.getUuid()+" rejectedLegacyNear="+second.getUuid()+" actorTicks="+(a.age-enabledAge[0])+" actualEye="+a.getEyePos()+" observerSetTarget=false");return true;
         });
     }
+    /** These are stationary native targets, not a simulated movement client. One initial checked
+     * field adoption avoids depending on missing client packets to close a pre-spawn .7m gap. */
+    private static void admitStationaryTarget(Room room,net.minecraft.server.network.ServerPlayerEntity p){
+        var source=GravityFields.sample(room.world,p.getPos());
+        room.context.assertTrue(source!=null,"initial stationary target has a real loaded field");
+        com.terminaldetector.drmd.world.gravity.FootGravitySystem.adoptAt(p,p.getPos());
+        var state=com.terminaldetector.drmd.world.gravity.FootGravitySystem.get(p);
+        room.context.assertTrue(state!=null&&state.active()&&state.grounded()&&state.up().distanceTo(source.upDir())<1e-6,
+            "one initial native field adoption admits the target's real clear contact");
+        room.context.assertTrue(groundSupport(room.context,p,state.up())<=.08,"stationary target has actual material support at the unchanged skin");
+        System.out.println("C1_NATIVE_STATIONARY_TARGET uuid="+p.getUuid()+" position="+p.getPos()+" eye="+p.getEyePos()+" up="+state.up()+" initialOnly=true nativeClientMovement=false");
+    }
     private static NativeFoodPlayer nativeTargetPlayer(Room room,Vec3d position,String name){
         var w=room.world;var data=net.minecraft.server.network.ConnectedClientData.createDefault(new com.mojang.authlib.GameProfile(UUID.randomUUID(),name),false);
         var p=new net.minecraft.server.network.ServerPlayerEntity(w.getServer(),w,data.gameProfile(),data.syncedOptions());
@@ -653,7 +665,7 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
         room.cleanup.add(()->{com.terminaldetector.drmd.flight.FlightSystem.disable(p,DescentPlayerData.get(p));com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(p.getUuid());w.getServer().getNetworkIo().getConnections().remove(connection);w.getServer().getPlayerManager().remove(p);p.discard();channel.finishAndReleaseAll();});
         channel.runPendingTasks();channel.flushOutbound();int confirmations=0;
         for(var packet:List.copyOf(channel.outboundMessages()))if(packet instanceof net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket teleport){channel.writeInbound(new net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket(teleport.getTeleportId()));confirmations++;}
-        room.context.assertTrue(confirmations>0,"actual native player connection confirms its initial teleport");p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);com.terminaldetector.drmd.flight.FlightSystem.disable(p,DescentPlayerData.get(p));p.getAbilities().flying=false;p.sendAbilitiesUpdate();p.setPosition(position);
+        room.context.assertTrue(confirmations>0,"actual native player connection confirms its initial teleport");p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);com.terminaldetector.drmd.flight.FlightSystem.disable(p,DescentPlayerData.get(p));p.getAbilities().flying=false;p.sendAbilitiesUpdate();p.setPosition(position);admitStationaryTarget(room,p);
         if(!w.getServer().getNetworkIo().getConnections().contains(connection))w.getServer().getNetworkIo().getConnections().add(connection);return new NativeFoodPlayer(p,connection,channel);
     }
 }
