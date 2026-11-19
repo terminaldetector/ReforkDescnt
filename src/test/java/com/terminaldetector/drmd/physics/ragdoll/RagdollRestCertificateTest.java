@@ -27,6 +27,17 @@ class RagdollRestCertificateTest {
         c.contact(0,ZERO,new Vec3(0,4.905,0),ZERO,new Vec3(1,0,0),0);assertFalse(c.balanced());
         c.begin(ZERO,GRAVITY,10,2,.05);c.contact(0,ZERO,new Vec3(0,2.4525,0),ZERO,UP,0);c.contact(1,ZERO,new Vec3(0,2.4525,0),ZERO,UP,1);assertFalse(c.balanced());
     }
+    @Test void supportFootprintsBelongToActualContactPoseRatherThanLaterJointCorrectedEndpoint(){
+        var c=new RagdollRestCertificate();c.begin(new Vec3(0,1,0),GRAVITY,10,2,.05);
+        c.contact(0,new Vec3(-1,.5,0),new Vec3(0,2.4525,0),ZERO,UP,0,-1.2,-.8,-.2,.2);
+        c.contact(2,new Vec3(1,.5,0),new Vec3(0,2.4525,0),ZERO,UP,0,.8,1.2,-.2,.2);
+        assertTrue(c.balanced());var footprints=c.footprints();assertEquals(2,footprints.size());
+        assertEquals(0,footprints.get(0).plane(),0);assertEquals(-1.2,footprints.get(0).minX(),0);
+        // The rig may support a limb through its real joints after the last contact iteration.
+        // No endpoint argument can overwrite the contact geometry used by the measured wrench.
+        var endpoint=new Vec3(-1,.5003,0);assertTrue(endpoint.y()-.5>.0001);
+        assertEquals(0,c.footprints().get(0).plane(),0);assertTrue(c.balanced());
+    }
     @Test void allArticulatedPartsNeedTwentyConsecutiveQuietIntervalsAndFiniteSleepWindows(){
         var c=new RagdollSleepController();var poses=List.of(new RagdollSleepController.Pose(ZERO,Quat.IDENTITY,1),new RagdollSleepController.Pose(new Vec3(1,1,0),Quat.IDENTITY,.5));
         assertFalse(c.observe(true,poses,.01,.00001,.0002));

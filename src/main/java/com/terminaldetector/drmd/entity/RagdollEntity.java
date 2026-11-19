@@ -66,14 +66,17 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	private List<com.terminaldetector.drmd.d6.D6PhysicsBody.Snapshot> certifiedBodies=List.of();
 	private List<com.terminaldetector.drmd.d6.D6Mat3> certifiedInertias=List.of();
 	private List<Double> certifiedMasses=List.of();
-	private java.util.Set<Integer> restSupports=java.util.Set.of();
+	private List<RagdollRestCertificate.Footprint> restSupports=List.of();
 	private double restPlane;
 	private long simulatedPhysicsTicks,skippedPhysicsTicks;
 	private boolean observeRestContacts;
 	private String restReason="new";
 	private double lastCornerSpeed,lastRestEnergy,lastLinearResidual=Double.NaN,lastAngularResidual=Double.NaN;
-	public record RestObservation(String reason,double cornerSpeed,double energy,double linearResidual,double angularResidual,int quietTicks){}
-	public RestObservation restObservation(){return new RestObservation(restReason,lastCornerSpeed,lastRestEnergy,lastLinearResidual,lastAngularResidual,rest.quietTicks());}
+	private String restSupportFault="unobserved";
+	private int restSupportPart=-1;
+	private double restSupportBottom=Double.NaN,restSupportPlane=Double.NaN,lastContactEndGap;
+	public record RestObservation(String reason,double cornerSpeed,double energy,double linearResidual,double angularResidual,int quietTicks,String supportFault,int supportPart,double supportBottom,double supportPlane,double contactEndGap){}
+	public RestObservation restObservation(){return new RestObservation(restReason,lastCornerSpeed,lastRestEnergy,lastLinearResidual,lastAngularResidual,rest.quietTicks(),restSupportFault,restSupportPart,restSupportBottom,restSupportPlane,lastContactEndGap);}
 	private java.util.UUID debrisGroup;
 	private String debrisCause="legacy";
 	private long debrisBorn;
@@ -210,14 +213,14 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 			poses.add(new RagdollSleepController.Pose(body.position(),body.rotation(),radius));
 		}
 		lastRestEnergy=energy;lastLinearResidual=restContacts.linearResidual();lastAngularResidual=restContacts.angularResidual();
-		boolean wrench=restContacts.balanced(),joints=wrench&&jointRestValid(),support=joints&&staticRestEnvironment(gravity,restContacts.supports(),restContacts.plane());
+		boolean wrench=restContacts.balanced(),joints=wrench&&jointRestValid(),support=joints&&staticRestEnvironment(gravity,restContacts.footprints(),restContacts.plane());
 		boolean candidate=wrench&&joints&&support;
 		restReason=!wrench?"contact-wrench":!joints?"joint-error":!support?"static-support":"quiet-window";
 		if(rest.observe(candidate,poses,speed,energy,.5*simulation.totalMass()*RagdollSleepController.MAX_CORNER_SPEED*RagdollSleepController.MAX_CORNER_SPEED)){
 			certifiedBodies=simulation.parts().stream().map(p->p.body().snapshot()).toList();
 			certifiedInertias=simulation.parts().stream().map(p->p.body().inertia()).toList();
 			certifiedMasses=simulation.parts().stream().map(p->p.body().mass()).toList();
-			restSupports=restContacts.supports();restPlane=restContacts.plane();
+			restSupports=restContacts.footprints();restPlane=restContacts.plane();
 			if(restInterestClear()){rest.sleep();restReason="sleep";}else restReason="interest";
 		}else certifiedBodies=List.of();
 		refreshDebrisGroup();
@@ -253,22 +256,30 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 		return true;
 	}
 	/** A common, known static horizontal support plane for the whole contact wrench, not one independent certificate per limb. */
-	private boolean staticRestEnvironment(Vec3 gravity,java.util.Set<Integer> supports,double plane){
-		if(supports.isEmpty()||simulation.parts().size()>RagdollSleepController.MAX_PARTS||Math.abs(gravity.y()+9.81)>1e-9||Math.abs(gravity.x())+Math.abs(gravity.z())>1e-9)return false;
+	private boolean staticRestEnvironment(Vec3 gravity,List<RagdollRestCertificate.Footprint> supports,double plane){
+		restSupportFault="ok";restSupportPart=-1;restSupportBottom=Double.NaN;restSupportPlane=plane;lastContactEndGap=0;
+		if(supports.isEmpty()||simulation.parts().size()>RagdollSleepController.MAX_PARTS||Math.abs(gravity.y()+9.81)>1e-9||Math.abs(gravity.x())+Math.abs(gravity.z())>1e-9){restSupportFault="gravity-or-empty";return false;}
 		var access=WorldAccess.of(getWorld());
-		for(var part:simulation.parts()){
-			Box box=partBox(part);if(!insideLoadedWorld(box.expand(.001))||getWorld().containsFluid(box)||getWorld().getBlockCollisions(this,box.contract(1e-7)).iterator().hasNext())return false;
+		for(int index=0;index<simulation.parts().size();index++){
+			Box box=partBox(simulation.parts().get(index));restSupportPart=index;restSupportBottom=box.minY;
+			if(!insideLoadedWorld(box.expand(.001))){restSupportFault="unavailable-hull";return false;}
+			if(getWorld().containsFluid(box)){restSupportFault="fluid-hull";return false;}
+			if(getWorld().getBlockCollisions(this,box.contract(1e-7)).iterator().hasNext()){restSupportFault="intersecting-hull";return false;}
 		}
-		for(int index:supports){
-			if(index<0||index>=simulation.parts().size())return false;Box box=partBox(simulation.parts().get(index));
-			int y=MathHelper.floor(box.minY-.0001);double gap=box.minY-(y+1);
-			if(gap<0||gap>.0001||Math.abs(plane-(y+1))>1e-4)return false;
-			int x0=MathHelper.floor(box.minX+1e-7),x1=MathHelper.floor(box.maxX-1e-7),z0=MathHelper.floor(box.minZ+1e-7),z1=MathHelper.floor(box.maxZ-1e-7);
-			long dx=(long)x1-x0+1,dz=(long)z1-z0+1;if(dx<=0||dz<=0||dx>64||dz>64||dx*dz>64)return false;
+		for(var footprint:supports){
+			int index=footprint.part();restSupportPart=index;
+			if(index<0||index>=simulation.parts().size()){restSupportFault="contact-index";return false;}
+			restSupportBottom=partBox(simulation.parts().get(index)).minY;lastContactEndGap=Math.max(lastContactEndGap,Math.abs(restSupportBottom-plane));
+			// Validate where the measured impulse actually occurred. A later joint correction may
+			// lift that limb; its current endpoint is not an independent floor-support certificate.
+			if(!Double.isFinite(footprint.plane())||Math.abs(plane-footprint.plane())>1e-4||Math.abs(plane-Math.rint(plane))>1e-9){restSupportFault="contact-plane";return false;}
+			int y=MathHelper.floor(plane)-1;
+			int x0=MathHelper.floor(footprint.minX()+1e-7),x1=MathHelper.floor(footprint.maxX()-1e-7),z0=MathHelper.floor(footprint.minZ()+1e-7),z1=MathHelper.floor(footprint.maxZ()-1e-7);
+			long dx=(long)x1-x0+1,dz=(long)z1-z0+1;if(dx<=0||dz<=0||dx>64||dz>64||dx*dz>64){restSupportFault="footprint-budget";return false;}
 			for(int x=x0;x<=x1;x++)for(int z=z0;z<=z1;z++){
-				var pos=new net.minecraft.util.math.BlockPos(x,y,z);var known=access.readIfLoaded(pos);if(known.isEmpty())return false;var state=known.get();
+				var pos=new net.minecraft.util.math.BlockPos(x,y,z);var known=access.readIfLoaded(pos);if(known.isEmpty()){restSupportFault="unknown-support";return false;}var state=known.get();
 				if(state.hasBlockEntity()||!state.getFluidState().isEmpty()||state.getBlock() instanceof net.minecraft.block.FallingBlock||!state.isFullCube(getWorld(),pos)||!state.isOpaqueFullCube(getWorld(),pos)
-						||com.terminaldetector.drmd.world.geometry.NaturalGeometry.material(state)!=com.terminaldetector.drmd.world.geometry.HybridMaterialPolicy.Mask.HARD_ENGINEERED)return false;
+						||com.terminaldetector.drmd.world.geometry.NaturalGeometry.material(state)!=com.terminaldetector.drmd.world.geometry.HybridMaterialPolicy.Mask.HARD_ENGINEERED){restSupportFault="non-static-support";return false;}
 			}
 		}
 		return true;
@@ -279,8 +290,8 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 		Vec3 before=body.linearVelocity(),spin=body.angularMomentum();body.contactImpulse(normal.scaled(-support),normal,.72);
 		if(body.linearVelocity()==before&&body.angularMomentum()==spin)return;
 		Vec3 impulse=body.linearVelocity().minus(before).scaled(body.mass()),angular=body.angularMomentum().minus(spin);
-		double bottom=partBox(part).minY;double plane=Math.abs(bottom-Math.rint(bottom))<.0001?Math.rint(bottom):Double.NaN;
-		restContacts.contact(simulation.parts().indexOf(part),body.position(),impulse,angular,normal,plane);
+		Box box=partBox(part);double bottom=box.minY;double plane=Math.abs(bottom-Math.rint(bottom))<.0001?Math.rint(bottom):Double.NaN;
+		restContacts.contact(simulation.parts().indexOf(part),body.position(),impulse,angular,normal,plane,box.minX,box.maxX,box.minZ,box.maxZ);
 	}
 
 	private Vec3 gravityVector() {
