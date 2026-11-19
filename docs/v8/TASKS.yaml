@@ -278,11 +278,11 @@ tasks:
   owner: WORLD
   gate: G1
   depends_on_stages: *id004
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/cubic-shadow-retirement.json, EVIDENCE/finish36-20261119/cubic-shadow-retirement.zip, EVIDENCE/finish36-20261119/four-height-water-and-light.json, EVIDENCE/finish36-20261119/four-height-lava-and-light.json]
+  notes: "После нативной проверки воды, лавы, света и BlockEntity удалена запись теневых колонок. Старый флаг больше её не запускает. Исторические файлы со знаковыми координатами явно читаются без подгрузки мира и остаются побайтно прежними. Прошли 15 серверных GameTests и 5 модульных проверок, включая сохранения BlockBody."
 - id: S04-T01
   stage: S04
   stage_title: Hybrid/NoCubes meshing and LOD
@@ -933,8 +933,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/finish36-20261119/vertical-and-field.json, EVIDENCE/finish36-20261119/orbital-field-cold.json, EVIDENCE/finish36-20261119/orbital-field-cold.zip]
-  notes: "Построены и верифицированы 11 712 реальных ячеек станции и двух астероидов. После удаления блока проверку каталога прошли две целые модели. После закрытия мира отдельная JVM прочитала все 11 712 ячеек и подтвердила отсутствие дальнего силуэта повреждённой модели. Клиентские кадры трёх дистанций остаются в работе."
+  evidence: [EVIDENCE/finish36-20261119/vertical-and-field.json, EVIDENCE/finish36-20261119/orbital-field-cold.json, EVIDENCE/finish36-20261119/orbital-field-cold.zip, EVIDENCE/finish36-20261119/intact-asteroid-pixel-grid.json, EVIDENCE/finish36-20261119/intact-asteroid-pixel-grid.zip]
+  notes: "После повторного открытия прочитаны все 11 712 ячеек станции и двух астероидов. Повреждённый астероид исключён из дальнего каталога. В клиенте PS1 целый астероид проверен на 24 кадрах с 24, 512 и 3072 блоков. После выравнивания дальний силуэт виден на каждом кадре, глубина сохранена. Клиентские кадры станции на трёх дистанциях ещё требуется проверить."
 
 - id: S13-T04
   stage: S13
@@ -958,8 +958,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json]
-  notes: "2026-11-19, третий цикл. Удалён конкретный генератор платформ и исправлена высота плавающих ориентиров. Средний/дальний астероидный силуэт и цельный переход атмосферы остаются открытыми."
+  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json, EVIDENCE/finish36-20261119/intact-asteroid-pixel-grid.json]
+  notes: "Удалён генератор платформ и исправлена высота плавающих ориентиров. Средний и дальний силуэты целого астероида подтверждены на одной сцене PS1. Непрерывный переход атмосферы между слоями ещё в работе."
 - id: S13-T06
   stage: S13
   stage_title: 'World architecture: core to Citadel'

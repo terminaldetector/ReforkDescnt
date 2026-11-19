@@ -1,0 +1,15 @@
+{
+  "source": "0d6ceadc88e70ec21b9eb2eb94986852149be185",
+  "remappedJarSha256": "a733e1a9e2a12856bb36319e81037f3b21ea0d4b0f83fd1d8057eee8feb17c03",
+  "gameExit": 0,
+  "nativeTestCount": 15,
+  "unitTestCount": 5,
+  "scope": "After native signed-height fluid/light/block-entity parity, old flags cannot recreate shadow writes; legacy signed shadow files stay byte-identical and explicitly readable without terrain load. Body compatibility and the active cube codec are exercised separately by the included native tests.",
+  "precedingNativeParity": [
+    "four-height-flight-and-cold.json",
+    "four-height-water-and-light.json",
+    "four-height-lava-and-light.json"
+  ],
+  "archive": "cubic-shadow-retirement.zip",
+  "archiveSha256": "00bfb7f7052f20965c670c892b0a20fe176f307abcaf74ae9676700bdcde6d64"
+}
