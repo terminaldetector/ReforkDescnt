@@ -104,7 +104,9 @@
     "Ps1ColorOverlayProbe",
     "Ps1ColorViewmodelProbe",
     "ClusterInputBootstrapProbe",
-    "ClusterInputViewmodelProbe"
+    "ClusterInputViewmodelProbe",
+    "OrbitalHandoffDrawProbe",
+    "OrbitalHandoffFrameProbe"
   ],
   "injectors": {
     "defaultRequire": 1
