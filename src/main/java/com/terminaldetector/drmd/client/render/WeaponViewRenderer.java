@@ -25,6 +25,7 @@ public final class WeaponViewRenderer {
 
     /** Hide the ordinary item only when a visible cockpit representation will replace it. */
     public static boolean replacesVanillaHand(MinecraftClient mc) {
+        if(!com.terminaldetector.drmd.client.flight.DescentCamera.ownsView())return false;
         if(mc.player==null || mc.world==null || !mc.options.getPerspective().isFirstPerson()
                 || !DescentClientState.enabled || !com.terminaldetector.drmd.client.config.DescentConfig.weaponView
                 || mc.options.hudHidden || mc.currentScreen!=null)return false;

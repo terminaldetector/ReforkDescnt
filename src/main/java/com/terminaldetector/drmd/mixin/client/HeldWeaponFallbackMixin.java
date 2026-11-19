@@ -21,6 +21,7 @@ public abstract class HeldWeaponFallbackMixin {
     @Inject(method="renderFirstPersonItem",at=@At("HEAD"),cancellable=true)
     private void drmd$replaceMainHand(AbstractClientPlayerEntity player,float delta,float pitch,Hand hand,
             float swing,ItemStack stack,float equip,MatrixStack matrices,VertexConsumerProvider consumers,int light,CallbackInfo ci) {
+        if(player!=MinecraftClient.getInstance().player||!com.terminaldetector.drmd.client.flight.DescentCamera.ownsView())return;
         if(hand==Hand.MAIN_HAND && WeaponViewRenderer.replacesVanillaHand(MinecraftClient.getInstance())){ci.cancel();return;}
         if(!com.terminaldetector.drmd.client.DescentClientState.enabled)return;
         ci.cancel();if(stack.isEmpty())return;
