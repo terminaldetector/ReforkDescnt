@@ -248,6 +248,50 @@ public final class FootGravityRecoveryGameTests implements FabricGameTest {
         } finally {world.setBlockState(at,old,3);}
         c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="foot-native-death-reset")
+    public void deathAndNativeRespawnRetireTheWallFrameForTheSamePlayer(TestContext c) {
+        var world = c.getWorld();
+        var at = c.getAbsolutePos(new BlockPos(5, 20, 5));
+        var old = world.getBlockState(at);
+        var connection = gravityWalker(c, "gravity-death");
+        var player = connection.player();
+        var manager = world.getServer().getPlayerManager();
+        net.minecraft.server.network.ServerPlayerEntity replacement = null;
+        try {
+            DescentPlayerData.get(player).setEnabled(false);
+            player.getAbilities().flying = false;
+            player.setNoGravity(false);
+            player.setPosition(Vec3d.ofCenter(at).add(0, 1, 0));
+            world.setBlockState(at, com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState()
+                .with(com.terminaldetector.drmd.world.gravity.GravityTorchBlock.FACING, net.minecraft.util.math.Direction.EAST), 3);
+            FootGravitySystem.adoptAt(player, player.getPos());
+            player.calculateDimensions();
+            c.assertTrue(FootGravitySystem.isActive(player) && player.hasNoGravity()
+                && player.getBoundingBox().getLengthX() > 1.7, "native death starts from a real acquired wall frame");
+
+            player.damage(world.getDamageSources().genericKill(), Float.MAX_VALUE);
+            c.assertTrue(!player.isAlive() && !FootGravitySystem.isActive(player) && !player.hasNoGravity(),
+                "actual death invokes the native field-owner cleanup");
+            replacement = manager.respawnPlayer(player, false, net.minecraft.entity.Entity.RemovalReason.KILLED);
+            c.assertTrue(replacement != player && replacement.getUuid().equals(player.getUuid()) && replacement.isAlive(),
+                "ordinary PlayerManager respawn replaces the live server actor");
+            c.assertTrue(!FootGravitySystem.isActive(replacement) && !replacement.hasNoGravity()
+                && replacement.getBoundingBox().getLengthY() > 1.7 && replacement.getEyePos().y - replacement.getY() > 1.5,
+                "the respawned actor has world gravity, an upright collider and a matching interaction eye");
+        } finally {
+            world.setBlockState(at, old, 3);
+            if (replacement == null) {
+                connection.close();
+            } else {
+                FootGravitySystem.forget(replacement.getUuid());
+                com.terminaldetector.drmd.world.LocalOrientation.clear(replacement.getUuid());
+                manager.remove(replacement);
+                replacement.discard();
+                connection.channel().finishAndReleaseAll();
+            }
+        }
+        c.complete();
+    }
     private record GravityWalker(net.minecraft.server.network.ServerPlayerEntity player,io.netty.channel.embedded.EmbeddedChannel channel) implements AutoCloseable {
         @Override public void close() {
             FootGravitySystem.forget(player.getUuid());com.terminaldetector.drmd.world.LocalOrientation.clear(player.getUuid());
