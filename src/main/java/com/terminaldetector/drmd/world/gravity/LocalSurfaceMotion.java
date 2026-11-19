@@ -20,10 +20,14 @@ public final class LocalSurfaceMotion {
     public static Vec3d dryResult(Vec3d moved,Vec3d nativeResult,Vec3d up,float tangentDrag,boolean noDrag) {
         var cardinal=cardinalUp(up);
         if(noDrag||cardinal==null||!finite(moved)||!finite(nativeResult)||!Float.isFinite(tangentDrag))return nativeResult;
+        if(Math.abs(cardinal.y)>.5)return nativeResult;
         var nativeDamping=moved.multiply(tangentDrag,NORMAL_DRAG,tangentDrag);
         var residual=nativeResult.subtract(nativeDamping);
-        var local=ActorFrameMath.toLocal(moved,cardinal).multiply(tangentDrag,NORMAL_DRAG,tangentDrag);
-        return ActorFrameMath.toWorld(local,cardinal).add(residual);
+        // A signed cardinal conjugation is diagonal. Compute it directly rather
+        // than round-tripping through a quaternion and reviving a collision zero.
+        var localDamping=moved.multiply(Math.abs(cardinal.x)>.5?NORMAL_DRAG:tangentDrag,
+            tangentDrag,Math.abs(cardinal.z)>.5?NORMAL_DRAG:tangentDrag);
+        return localDamping.add(residual);
     }
 
     /** Entity.move applies its actual material multiplier before travel's separate dry damping. */
