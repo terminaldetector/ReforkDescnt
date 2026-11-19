@@ -62,6 +62,9 @@ public class DescentClient implements ClientModInitializer {
 				()->net.minecraft.client.MinecraftClient.getInstance().isOnThread());
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(
 				client->com.terminaldetector.drmd.world.access.CubeLifecycle.clientTick(client.world));
+		ClientTickEvents.START_CLIENT_TICK.register(client ->
+				com.terminaldetector.drmd.weapon.projectile.ProjectileTracerBudget.CLIENT.begin(
+						client.world == null ? null : client.gameRenderer.getCamera().getPos()));
 		DescentConfig.load();
         com.terminaldetector.drmd.client.presentation.ScenePresentation.register();
         ClientPlayNetworking.registerGlobalReceiver(ModNetworking.PhysicsProfilePayload.ID,(payload,context)->context.client().execute(()->{

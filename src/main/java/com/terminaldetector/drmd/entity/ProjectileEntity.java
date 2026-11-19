@@ -386,29 +386,30 @@ public class ProjectileEntity extends Entity {
 	 *
 	 * <p>Filling the segment instead gives a continuous streak at any speed, which is what the
 	 * original's bolts read as. Spacing is fixed rather than a fixed bead count so a slow rocket does
-	 * not get a dense clot of particles around it, and the count is capped so a fast round costs a
-	 * bounded amount.
+	 * not get a dense clot of particles around it. The client allocates dust for the visible segment
+	 * and reserves part of its allowance for rounds crossing close to the camera.
 	 */
 	private void drawTracer() {
 		Vec3d vel = getVelocity();
+		double travel = vel.length();
+		int preferred = travel < 1e-3 ? 1 : (int) Math.min(48, Math.max(2, travel / 0.5));
+		Vec3d head = getPos();
+		int beads = com.terminaldetector.drmd.weapon.projectile.ProjectileTracerBudget.CLIENT.take(head, vel, preferred);
+		if (beads == 0) return;
+
 		float scale = getVisualScale();
 		boolean bolt = getMeshKind() == MESH_BOLT;
 		Vector3f rgb = new Vector3f(getColorR() / 255f, getColorG() / 255f, getColorB() / 255f);
 		float size = (bolt ? 1.5f : 1.15f) * Math.max(0.6f, scale);
 
-		double travel = vel.length();
 		if (travel < 1e-3) {
 			getWorld().addParticle(new DustParticleEffect(rgb, size), getX(), getY(), getZ(), 0, 0, 0);
 			return;
 		}
 
 		// Where it was a tick ago: the client has already moved it, so walk back down the velocity.
-		Vec3d head = getPos();
-		Vec3d back = vel.normalize();
-		int beads = (int) Math.min(48, Math.max(2, travel / 0.5));
 		for (int i = 0; i < beads; i++) {
-			double along = travel * i / (double) beads;
-			Vec3d p = head.subtract(back.multiply(along));
+			Vec3d p = head.subtract(vel.multiply(i / (double) beads));
 			// The head stays brightest; the tail thins out so the streak has a direction.
 			float f = size * (1f - 0.55f * i / (float) beads);
 			getWorld().addParticle(new DustParticleEffect(rgb, f), p.x, p.y, p.z, 0, 0, 0);

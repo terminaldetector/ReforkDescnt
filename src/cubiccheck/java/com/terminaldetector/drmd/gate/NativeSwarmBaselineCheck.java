@@ -39,6 +39,7 @@ public final class NativeSwarmBaselineCheck {
     private static final Map<UUID,Integer> initialAge=new HashMap<>();
     private static final List<Long> WORK=new ArrayList<>(),FRAMES=new ArrayList<>();
     private static final List<Long> HEAP = new ArrayList<>();
+    private static final List<com.terminaldetector.drmd.weapon.projectile.ProjectileTracerBudget.Sample> TRACERS=new ArrayList<>();
     private static long initialDetailed, initialCoast, detailed, coast;
     private static int measuredFullCubes;
     private static long initialRosterScans;
@@ -151,7 +152,7 @@ public final class NativeSwarmBaselineCheck {
                 c.getServer().setDifficulty(Difficulty.NORMAL,true);p.getServerWorld().setTimeOfDay(6000);located=true;
             });return;
         }
-        if(located&&!spawnRequested&&loaded(c)){spawnRequested=true;DRAWN.clear();FRAMES.clear();HEAP.clear();lastFrame=0;c.getServer().execute(()->spawn(c.getServer().getOverworld()));}
+        if(located&&!spawnRequested&&loaded(c)){spawnRequested=true;DRAWN.clear();FRAMES.clear();HEAP.clear();TRACERS.clear();lastFrame=0;c.getServer().execute(()->spawn(c.getServer().getOverworld()));}
     }
     private static void spawn(ServerWorld w) {
         System.out.println("SWARM_CONFIG seed="+w.getSeed()+" centre="+centre()+" difficulty="+w.getDifficulty()+" doMobSpawning="+w.getGameRules().getBoolean(net.minecraft.world.GameRules.DO_MOB_SPAWNING)+" roles="+(TYPED?"ORB,ROCKET,JET":"SUPPORT,ASSAULT,MG,INTERCEPTOR")+" target="+((NativeDroneStateCheck.WRITE||VERTICAL)?"targetable-resistance-cow":"invulnerable-invisible-cow")+" verticalTargets="+VERTICAL+" manualTargets="+!VERTICAL+" backgroundLOD=false manualDroneTicks=false");
@@ -212,7 +213,11 @@ public final class NativeSwarmBaselineCheck {
             }
         }
         long now=System.nanoTime();if(sampling){if(lastFrame!=0)FRAMES.add(now-lastFrame);lastFrame=now;
-            if (MEASURE_CAPACITY) { var vm = Runtime.getRuntime(); HEAP.add(vm.totalMemory() - vm.freeMemory()); }
+            if (MEASURE_CAPACITY) {
+                var vm = Runtime.getRuntime(); HEAP.add(vm.totalMemory() - vm.freeMemory());
+                var dust = com.terminaldetector.drmd.weapon.projectile.ProjectileTracerBudget.CLIENT.sample();
+                if(TRACERS.isEmpty()||TRACERS.getLast().tick()!=dust.tick())TRACERS.add(dust);
+            }
         }else lastFrame=0;
         if(!resultReady)return;var c=MinecraftClient.getInstance();if(c.currentScreen!=null||++frames<3)return;
         int synced=c.world.getEntitiesByClass(DroneEntity.class,new Box(centre().add(-128,-128,-128),centre().add(128,128,128)),d->expected.contains(entity(d).getUuid())).size();
@@ -249,6 +254,8 @@ public final class NativeSwarmBaselineCheck {
                 values.put("fullWorldScansDuringMeasurement",finalRosterStats.fullWorldScans()-initialRosterScans);
                 values.put("loadedCubeWindow",Map.of("size",List.of(7,9,9),"full",measuredFullCubes));
                 values.put("serverTickNanos",WORK);values.put("frameNanos",FRAMES);values.put("javaHeapBytes",HEAP);
+                values.put("cosmeticProjectileDust",TRACERS);
+                values.put("maxCosmeticDustPerClientTick",com.terminaldetector.drmd.weapon.projectile.ProjectileTracerBudget.MAX_PARTICLES_PER_TICK);
                 values.put("seconds",seconds);values.put("drawCalls",null);
                 values.put("drawCallsReason","Entity model submissions and GL driver draw calls are different measurements");
                 Files.writeString(c.runDirectory.toPath().resolve("swarm-capacity-"+COUNT+".json"),
