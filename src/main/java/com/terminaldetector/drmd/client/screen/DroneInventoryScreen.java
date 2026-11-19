@@ -47,8 +47,14 @@ public final class DroneInventoryScreen extends HandledScreen<DroneInventoryHand
             int slotX = x + handler.getSlot(i).x;
             context.fill(slotX - 1, y + 90, slotX + 17, y + 108, i == previewBank ? 0xff63d8dc : 0xff80929c);
             context.fill(slotX, y + 91, slotX + 16, y + 107, 0xff26353d);
-            context.drawCenteredTextWithShadow(textRenderer, LABELS[i], slotX + 8, y + 80,
-                    i == previewBank ? 0xe0ffff : 0xa5d8db);
+            Text label = LABELS[i];
+            float scale = Math.min(1.0f, 30.0f / Math.max(1, textRenderer.getWidth(label)));
+            var matrices = context.getMatrices();
+            matrices.push();
+            matrices.translate(slotX + 8, y + 80, 0);
+            matrices.scale(scale, scale, 1.0f);
+            context.drawCenteredTextWithShadow(textRenderer, label, 0, 0, i == previewBank ? 0xe0ffff : 0xa5d8db);
+            matrices.pop();
         }
     }
 

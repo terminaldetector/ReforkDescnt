@@ -17,6 +17,11 @@ abstract class HudReadabilityDrawProbe {
         NativeHudReadabilityCheck.observeText(text);
     }
 
+    @Inject(method = "drawCenteredTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;III)V", at = @At("HEAD"))
+    private void centeredLabel(TextRenderer renderer, Text text, int x, int y, int color, CallbackInfo ci) {
+        NativeHudReadabilityCheck.observeLabel((DrawContext)(Object)this, renderer, text, x, y);
+    }
+
     @Inject(method = "drawTooltip(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/text/Text;II)V", at = @At("HEAD"))
     private void tooltip(TextRenderer renderer, Text text, int x, int y, CallbackInfo ci) {
         NativeHudReadabilityCheck.observeTooltip(text, x, y);

@@ -33,6 +33,9 @@ public final class NativeHudReadabilityCheck {
     private static final int HUD_FRAMES = 185;
     private static final List<Map<String, Object>> results = new ArrayList<>();
     private static final List<String> currentHints = new ArrayList<>();
+    private static final List<String> BANK_LABELS = List.of("primary", "secondary", "auxiliary", "reserve", "engine");
+    private static final java.util.HashMap<String, TextBounds> labelBounds = new java.util.HashMap<>();
+    private record TextBounds(float left, float right) {}
     private static UUID playerId;
     private static int phase, frame, age, hudFrames, notices, debugPrefix, tooltipFrames;
     private static int x, y, desiredX = -1, desiredY = -1, bank;
@@ -125,6 +128,7 @@ public final class NativeHudReadabilityCheck {
         if (!ENABLED) return;
         notices = debugPrefix = 0;
         tooltip = null;
+        labelBounds.clear();
     }
 
     public static void observeText(Text text) {
@@ -132,6 +136,21 @@ public final class NativeHudReadabilityCheck {
         String visible = text.getString();
         if (visible.equals(Text.translatable("hud.drmd.shield_critical").getString())) notices++;
         if (visible.startsWith("[SYS]")) debugPrefix++;
+    }
+
+    public static void observeLabel(net.minecraft.client.gui.DrawContext context,
+            net.minecraft.client.font.TextRenderer renderer, Text text, int x, int y) {
+        if (!ENABLED || !configured || phase == 0 || done
+                || !(MinecraftClient.getInstance().currentScreen instanceof DroneInventoryScreen)) return;
+        for (String key : BANK_LABELS) {
+            if (!text.equals(Text.translatable("container.drmd.drone_inventory." + key))) continue;
+            int width = renderer.getWidth(text);
+            var matrix = context.getMatrices().peek().getPositionMatrix();
+            float left = new org.joml.Vector4f(x - width / 2, y, 0, 1).mul(matrix).x;
+            float right = new org.joml.Vector4f(x - width / 2 + width + 1, y, 0, 1).mul(matrix).x;
+            labelBounds.put(key, new TextBounds(left, right));
+            return;
+        }
     }
 
     public static void observeTooltip(Text text, int mouseX, int mouseY) {
@@ -172,6 +191,19 @@ public final class NativeHudReadabilityCheck {
                     || client.textRenderer.getWidth(tooltip) + 12 > menu.width) {
                 finish(client, "FAIL", "Rendered tooltip failed text or viewport bound in phase " + phase + ": " + tooltip);
                 return;
+            }
+            if (labelBounds.size() != BANK_LABELS.size()) {
+                finish(client, "FAIL", "Incomplete rendered inventory labels in phase " + phase);
+                return;
+            }
+            float previousRight = 0;
+            for (String label : BANK_LABELS) {
+                var bounds = labelBounds.get(label);
+                if (bounds.left() <= previousRight || bounds.right() >= menu.width) {
+                    finish(client, "FAIL", "Overlapping rendered label " + label + " in phase " + phase);
+                    return;
+                }
+                previousRight = bounds.right();
             }
             tooltipFrames++;
             if (++frame < 3) return;
