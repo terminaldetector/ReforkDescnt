@@ -299,6 +299,7 @@ public class DescentMod implements ModInitializer {
             FlightSystem.clearInput(player.getUuid());
             com.terminaldetector.drmd.inventory.DroneArsenal.clear(player.getUuid());
             player.calculateDimensions();
+            ModNetworking.syncPlayer(player, DescentPlayerData.get(player));
         });
 
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {

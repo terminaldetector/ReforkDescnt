@@ -194,4 +194,73 @@ public final class FootGravityRecoveryGameTests implements FabricGameTest {
         } finally {FootGravitySystem.forget(id);com.terminaldetector.drmd.world.LocalOrientation.clear(id);player.discard();}
         c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="foot-native-dimension-reset")
+    public void actualDimensionExitRetiresOnlyTheTorchGravityFlagAndBodyFrame(TestContext c) {
+        var source=c.getWorld();var destination=source.getServer().getWorld(net.minecraft.world.World.NETHER);
+        c.assertTrue(destination!=null&&destination!=source,"admission: actual independent destination world exists");
+        var at=c.getAbsolutePos(new BlockPos(5,20,5));var old=source.getBlockState(at);
+        // This is an explicit disposable test destination, never a production load shortcut.
+        destination.getChunk(at.getX()>>4,at.getZ()>>4);
+        for(var pos:BlockPos.iterate(new BlockPos(at.getX()-2,94,at.getZ()-2),new BlockPos(at.getX()+2,100,at.getZ()+2)))destination.setBlockState(pos,net.minecraft.block.Blocks.AIR.getDefaultState(),2);
+        try(var connection=gravityWalker(c,"gravity-transfer")) {
+            var player=connection.player();DescentPlayerData.get(player).setEnabled(false);player.setNoGravity(false);player.getAbilities().flying=false;
+            player.setPosition(Vec3d.ofCenter(at).add(0,1,0));
+            source.setBlockState(at,com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState(),3);
+            FootGravitySystem.adoptAt(player,player.getPos());
+            c.assertTrue(FootGravitySystem.isActive(player)&&player.hasNoGravity(),"real emitter acquired the actual native player's ordinary gravity flag");
+            FootGravitySystem.tick(player);connection.channel().runPendingTasks();
+            c.assertTrue(connection.channel().outboundMessages().stream().anyMatch(raw->raw instanceof net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket packet
+                &&packet.payload() instanceof com.terminaldetector.drmd.network.ModNetworking.SyncPayload sync&&sync.footGravity()),"admission: actual transport announced the old active foot mirror");
+            int announced=connection.channel().outboundMessages().size();
+            player.teleport(destination,at.getX()+.5,96,at.getZ()+.5,0,0);
+            connection.channel().runPendingTasks();
+            c.assertTrue(connection.channel().outboundMessages().stream().skip(announced).anyMatch(raw->raw instanceof net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket packet
+                &&packet.payload() instanceof com.terminaldetector.drmd.network.ModNetworking.SyncPayload sync&&!sync.footGravity()
+                &&Math.abs(sync.localUx())<1e-6&&sync.localUy()>.99999&&Math.abs(sync.localUz())<1e-6),"actual world-change transport retires the foot camera/movement mirror with world up");
+            c.assertTrue(player.getServerWorld()==destination&&!FootGravitySystem.isActive(player),"real native world transition invokes authoritative old-field cleanup");
+            c.assertTrue(!player.hasNoGravity()&&player.getFinalGravity()>0,"dimension exit cannot retain an orphaned torch NoGravity flag");
+            FootGravitySystem.tick(player);player.calculateDimensions();
+            c.assertTrue(!FootGravitySystem.isActive(player)&&!player.hasNoGravity()&&player.getBoundingBox().getLengthY()>1.7
+                &&player.getEyePos().y-player.getY()>1.5,"next actual foot update retains ordinary body, eye and world gravity");
+        } finally {source.setBlockState(at,old,3);}
+        c.complete();
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="foot-gravity-flag-ownership")
+    public void torchFlagReleasePreservesExternalFlagsAndARealFlightHandoff(TestContext c) {
+        var world=c.getWorld();var at=c.getAbsolutePos(new BlockPos(5,20,5));var old=world.getBlockState(at);
+        try(var connection=gravityWalker(c,"gravity-owner")) {
+            var player=connection.player();var data=DescentPlayerData.get(player);data.setEnabled(false);player.getAbilities().flying=false;
+            world.setBlockState(at,com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState(),3);
+            for(boolean original:new boolean[]{false,true}) {
+                player.setPosition(Vec3d.ofCenter(at).add(0,1,0));player.setNoGravity(original);FootGravitySystem.adoptAt(player,player.getPos());
+                c.assertTrue(player.hasNoGravity()&&FootGravitySystem.isActive(player),"actual native emitter owns foot motion before lifecycle clear");
+                FootGravitySystem.forget(player.getUuid());
+                c.assertTrue(player.hasNoGravity()==original&&!FootGravitySystem.isActive(player),"forget restores the actual original flag, including authored weightlessness");
+            }
+            player.setPosition(Vec3d.ofCenter(at).add(0,1,0));player.setNoGravity(true);FootGravitySystem.adoptAt(player,player.getPos());
+            player.setNoGravity(false);FootGravitySystem.forget(player.getUuid());
+            c.assertTrue(!player.hasNoGravity(),"an external false write wins over the old foot lease's captured true value");
+            player.setPosition(Vec3d.ofCenter(at).add(0,1,0));FootGravitySystem.adoptAt(player,player.getPos());
+            com.terminaldetector.drmd.flight.FlightSystem.enableWithoutMount(player,data);FootGravitySystem.forget(player.getUuid());
+            c.assertTrue(data.isEnabled()&&player.hasNoGravity()&&!FootGravitySystem.isActive(player)&&!player.hasVehicle(),"real free-flight handoff retains the new owner without an orphan proxy or stale foot cleanup");
+            com.terminaldetector.drmd.flight.FlightSystem.disable(player,data);
+        } finally {world.setBlockState(at,old,3);}
+        c.complete();
+    }
+    private record GravityWalker(net.minecraft.server.network.ServerPlayerEntity player,io.netty.channel.embedded.EmbeddedChannel channel) implements AutoCloseable {
+        @Override public void close() {
+            FootGravitySystem.forget(player.getUuid());com.terminaldetector.drmd.world.LocalOrientation.clear(player.getUuid());
+            player.getServer().getPlayerManager().remove(player);player.discard();channel.finishAndReleaseAll();
+        }
+    }
+    private static GravityWalker gravityWalker(TestContext c,String name) {
+        var world=c.getWorld();var profile=new com.mojang.authlib.GameProfile(UUID.randomUUID(),name);
+        var options=net.minecraft.server.network.ConnectedClientData.createDefault(profile,false);
+        var player=new net.minecraft.server.network.ServerPlayerEntity(world.getServer(),world,profile,options.syncedOptions());
+        var connection=new net.minecraft.network.ClientConnection(net.minecraft.network.NetworkSide.SERVERBOUND);
+        var channel=new io.netty.channel.embedded.EmbeddedChannel(connection);
+        world.getServer().getPlayerManager().onPlayerConnect(connection,player,options);
+        return new GravityWalker(player,channel);
+    }
 }

@@ -37,6 +37,24 @@ public final class FootGravitySystem {
 	private static final Map<UUID, State> STATES = new ConcurrentHashMap<>();
     private static final Map<UUID, State> CLIENT_STATES = new ConcurrentHashMap<>();
     private static final GravityNoticeGate NOTICES = new GravityNoticeGate();
+    private record GravityFlag(java.lang.ref.WeakReference<ServerPlayerEntity> owner,boolean original) {}
+    private static final Map<UUID,GravityFlag> GRAVITY_FLAGS=new ConcurrentHashMap<>();
+    private static void holdGravity(ServerPlayerEntity player) {
+        var flag=GRAVITY_FLAGS.get(player.getUuid());
+        if(flag==null||flag.owner().get()!=player)
+            GRAVITY_FLAGS.put(player.getUuid(),new GravityFlag(new java.lang.ref.WeakReference<>(player),player.hasNoGravity()));
+        player.setNoGravity(true);
+    }
+    private static void releaseGravity(UUID id) {
+        var flag=GRAVITY_FLAGS.remove(id);if(flag==null)return;
+        var player=flag.owner().get();
+        // Restore only our actual object's unchanged flag. New mode owners and external
+        // false writes win; UUID aliases never receive another entity's cleanup.
+        if(player==null||!player.hasNoGravity()||player.isSpectator()
+            ||player.getVehicle() instanceof PyroShipEntity||DescentPlayerData.get(player).isEnabled()
+            ||com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.drives(player))return;
+        player.setNoGravity(flag.original());
+    }
 
 	private FootGravitySystem() {}
 
@@ -51,8 +69,11 @@ public final class FootGravitySystem {
     }
     public static void clearAllClient() { CLIENT_STATES.clear(); }
     public static void clearClient(UUID id) { CLIENT_STATES.remove(id); }
-    public static void forget(UUID id) { STATES.remove(id); CLIENT_STATES.remove(id); NOTICES.forget(id); }
-    public static void clearAll() { STATES.clear(); CLIENT_STATES.clear(); NOTICES.clear(); }
+    public static void forget(UUID id) { clear(id); CLIENT_STATES.remove(id); NOTICES.forget(id); }
+    public static void clearAll() {
+        for(var id:java.util.List.copyOf(GRAVITY_FLAGS.keySet()))releaseGravity(id);
+        STATES.clear(); CLIENT_STATES.clear(); NOTICES.clear();
+    }
 
     public static State get(UUID id) {
 		return STATES.get(id);
@@ -70,7 +91,7 @@ public final class FootGravitySystem {
 	}
 
 	public static void clear(UUID id) {
-		STATES.remove(id);
+		STATES.remove(id);releaseGravity(id);
 	}
 
 	/** Server tick — orientation / activation only (motion via {@link #travel}). */
@@ -130,7 +151,7 @@ public final class FootGravitySystem {
 				// because this is the branch every walking player falls through every tick — an
 				// unconditional sync here would be a packet per tick, per player, forever.
 				if (isActive(player.getUuid())) {
-					player.setNoGravity(false);
+                    releaseGravity(player.getUuid());
                     player.sendMessage(Text.translatable("message.drmd.local_gravity_released"),true);
 					clear(player.getUuid());
 					LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
@@ -142,7 +163,7 @@ public final class FootGravitySystem {
 		}
 
 		LocalOrientation.setUp(player.getUuid(), up);
-		player.setNoGravity(true);
+		holdGravity(player);
 		player.fallDistance = 0f;
 		// Mount/pose changes recalculate the actual box. Publish the new frame first,
 		// so those calculations cannot temporarily use the previous wall or world-up.
@@ -300,7 +321,7 @@ public final class FootGravitySystem {
 			LocalOrientation.setUp(player.getUuid(), up);
 			STATES.put(player.getUuid(), new State(up, true, false,
 					field.label() != null ? field.label() : "Local Gravity"));
-			player.setNoGravity(true);
+			holdGravity(player);
 			GravityMount.safeMount(player, up);
 		}
 	}
