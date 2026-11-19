@@ -1,0 +1,323 @@
+{
+  "task": "S16-T03",
+  "realCases": [
+    {
+      "status": "PASS",
+      "reason": "real roll, horizon and resident mesh flight",
+      "profile": "HYBRID_NATIVE",
+      "initialTeleports": 1,
+      "nativeClientMoves": 1955,
+      "serverSamples": 1169,
+      "maximumSpeed": 972.7245,
+      "maximumCameraError": 2.031244163482578,
+      "fastRollingFrames": 83,
+      "partialOpacityFrames": 166,
+      "fullMeshFrames": 3,
+      "maximumMissingHorizonFrames": 0,
+      "captures": [
+        {
+          "rollSpeed": 153.14633,
+          "actualGroundAlpha": 1.0,
+          "alignment": 1.0000000769538087,
+          "residentCompletedMeshes": 0,
+          "minimumGroundAlpha": 1.0,
+          "lodQuads": 66122,
+          "speed": 972.7245,
+          "cameraDistance": 1.9840302807874672,
+          "eye": [
+            40.50898034040377,
+            2146.984007478601,
+            44.93715471818153
+          ],
+          "frame": 31
+        },
+        {
+          "rollSpeed": 174.97873,
+          "actualGroundAlpha": 1.0,
+          "alignment": 1.0000000769538087,
+          "residentCompletedMeshes": 0,
+          "minimumGroundAlpha": 1.0,
+          "lodQuads": 66130,
+          "speed": 972.7245,
+          "cameraDistance": 2.0098959065627335,
+          "eye": [
+            40.478055680983324,
+            1635.0096334947136,
+            62.83295526240437
+          ],
+          "frame": 58
+        },
+        {
+          "rollSpeed": 131.26068,
+          "actualGroundAlpha": 0.99984235,
+          "alignment": 1.0000000769538089,
+          "residentCompletedMeshes": 0,
+          "minimumGroundAlpha": 0.99950737,
+          "lodQuads": 66098,
+          "speed": 972.7245,
+          "cameraDistance": 1.9741150243354042,
+          "eye": [
+            40.483719360911515,
+            1010.9911377191228,
+            84.63374656389661
+          ],
+          "frame": 95
+        },
+        {
+          "rollSpeed": -174.99866,
+          "actualGroundAlpha": 0.8552761,
+          "alignment": 1.0000000769538089,
+          "residentCompletedMeshes": 0,
+          "minimumGroundAlpha": 0.5477378,
+          "lodQuads": 51581,
+          "speed": 972.7245,
+          "cameraDistance": 2.022734147310152,
+          "eye": [
+            40.5748302820412,
+            692.3078323037919,
+            95.64205494065196
+          ],
+          "frame": 121
+        },
+        {
+          "rollSpeed": -172.07596,
+          "actualGroundAlpha": 0.7074154,
+          "alignment": 1.0000000769538089,
+          "residentCompletedMeshes": 0,
+          "minimumGroundAlpha": 0.38,
+          "lodQuads": 39848,
+          "speed": 628.37494,
+          "cameraDistance": 1.6167060564881872,
+          "eye": [
+            40.52942107928695,
+            446.10840522368756,
+            104.2062244316013
+          ],
+          "frame": 151
+        },
+        {
+          "rollSpeed": 174.95876,
+          "actualGroundAlpha": 0.6800009,
+          "alignment": 1.0000000769538084,
+          "residentCompletedMeshes": 0,
+          "minimumGroundAlpha": 0.38,
+          "lodQuads": 30287,
+          "speed": 574.0455,
+          "cameraDistance": 1.621182853820739,
+          "eye": [
+            40.53990801247961,
+            320.6781562993806,
+            108.62217969536906
+          ],
+          "frame": 180
+        },
+        {
+          "rollSpeed": 5.8606895e-07,
+          "actualGroundAlpha": 0.4722251,
+          "alignment": 1.0000000769538087,
+          "residentCompletedMeshes": 4,
+          "minimumGroundAlpha": 0.0,
+          "lodQuads": 23757,
+          "speed": 1.4491062,
+          "cameraDistance": 1.6200000047683716,
+          "eye": [
+            40.5,
+            141.64845674538452,
+            114.85083152097417
+          ],
+          "frame": 265
+        }
+      ],
+      "source": "c3c1ab6597963cc17977e3e8033f24d223ecb4ed",
+      "gameAndObserver": [
+        {
+          "path": "mods/drmd-6dof-1.1.35-ufo-dev.1.jar",
+          "sha256": "6f52ebf5c569499dbc0fdb17af6f10dbbc9988f13f3dff77d718758cc47b1b12",
+          "source": "/tmp/ungravity-finish-36/fifteenth/jars/drmd-6dof-1.1.35-ufo-dev.1.jar"
+        },
+        {
+          "path": "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar",
+          "sha256": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+          "source": "/workspace/Refork-audit/work/master-v5/upstream/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar"
+        },
+        {
+          "path": "mods/fabric-api-0.116.15+1.21.1.jar",
+          "sha256": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+          "source": "/workspace/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api/0.116.15+1.21.1/d25c793833a90cc028c9a61bc4546cd578a70ce1/fabric-api-0.116.15+1.21.1.jar"
+        },
+        {
+          "path": "mods/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar",
+          "sha256": "db3f9b882d176ab3e34c240d48379bd8c0e172c7e5b16465134d9bea486f8809",
+          "source": "/tmp/ungravity-finish-36/fifteenth/jars/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar"
+        },
+        {
+          "path": "mods/sodium-fabric-0.8.13+mc1.21.1.jar",
+          "sha256": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d",
+          "source": "/workspace/ungravity-v5/world/work/gate0/upstream/sodium-fabric-0.8.13+mc1.21.1.jar"
+        }
+      ],
+      "actualExit": 0
+    },
+    {
+      "status": "PASS",
+      "reason": "real roll, horizon and resident mesh flight",
+      "profile": "PS1_HYBRID",
+      "initialTeleports": 1,
+      "nativeClientMoves": 1911,
+      "serverSamples": 1179,
+      "maximumSpeed": 972.7245,
+      "maximumCameraError": 2.031117683150154,
+      "fastRollingFrames": 132,
+      "partialOpacityFrames": 196,
+      "fullMeshFrames": 3,
+      "maximumMissingHorizonFrames": 0,
+      "captures": [
+        {
+          "eye": [
+            40.5,
+            2150.3855298366766,
+            44.802405221213874
+          ],
+          "cameraDistance": 1.6615841893153536,
+          "speed": 972.7245,
+          "lodQuads": 66125,
+          "minimumGroundAlpha": 1.0,
+          "residentCompletedMeshes": 0,
+          "alignment": 1.0000000769538089,
+          "actualGroundAlpha": 1.0,
+          "rollSpeed": 153.21045,
+          "frame": 11
+        },
+        {
+          "eye": [
+            40.550102523744236,
+            1637.3254901318764,
+            62.79220820660591
+          ],
+          "cameraDistance": 1.9793379178543173,
+          "speed": 972.7245,
+          "lodQuads": 66114,
+          "minimumGroundAlpha": 1.0,
+          "residentCompletedMeshes": 0,
+          "alignment": 1.0000000769538087,
+          "actualGroundAlpha": 1.0,
+          "rollSpeed": -87.54272,
+          "frame": 73
+        },
+        {
+          "eye": [
+            40.48639865678106,
+            1017.5254723571878,
+            84.40004191361186
+          ],
+          "cameraDistance": 1.9779601057129925,
+          "speed": 972.7245,
+          "lodQuads": 66108,
+          "minimumGroundAlpha": 0.9999626,
+          "residentCompletedMeshes": 0,
+          "alignment": 1.0000000769538089,
+          "actualGroundAlpha": 0.999988,
+          "rollSpeed": 174.95728,
+          "frame": 143
+        },
+        {
+          "eye": [
+            40.49513275661749,
+            696.6144852014075,
+            95.50138355949345
+          ],
+          "cameraDistance": 1.9782143738283113,
+          "speed": 972.7245,
+          "lodQuads": 51592,
+          "minimumGroundAlpha": 0.5569211,
+          "residentCompletedMeshes": 0,
+          "alignment": 1.000000076953809,
+          "actualGroundAlpha": 0.85821474,
+          "rollSpeed": 164.1418,
+          "frame": 181
+        },
+        {
+          "eye": [
+            40.513376816407785,
+            450.8572866218877,
+            104.12070486922053
+          ],
+          "cameraDistance": 1.6175698083966494,
+          "speed": 628.375,
+          "lodQuads": 39849,
+          "minimumGroundAlpha": 0.091772944,
+          "residentCompletedMeshes": 0,
+          "alignment": 1.0000000769538089,
+          "actualGroundAlpha": 0.70936733,
+          "rollSpeed": -174.99893,
+          "frame": 222
+        },
+        {
+          "eye": [
+            40.493937888578714,
+            319.9161737432585,
+            108.6889180835605
+          ],
+          "cameraDistance": 1.6140345188399625,
+          "speed": 574.0472,
+          "lodQuads": 30282,
+          "minimumGroundAlpha": 0.38,
+          "residentCompletedMeshes": 0,
+          "alignment": 1.0000000769538089,
+          "actualGroundAlpha": 0.68,
+          "rollSpeed": 174.99982,
+          "frame": 253
+        },
+        {
+          "eye": [
+            40.49999999999968,
+            145.61848320904642,
+            114.7152164507013
+          ],
+          "cameraDistance": 1.6200000047683716,
+          "speed": 1.6269519,
+          "lodQuads": 23759,
+          "minimumGroundAlpha": 0.0,
+          "residentCompletedMeshes": 1,
+          "alignment": 1.0000000769538087,
+          "actualGroundAlpha": 0.52790034,
+          "rollSpeed": -8.237831e-05,
+          "frame": 350
+        }
+      ],
+      "source": "c3c1ab6597963cc17977e3e8033f24d223ecb4ed",
+      "gameAndObserver": [
+        {
+          "path": "mods/drmd-6dof-1.1.35-ufo-dev.1.jar",
+          "sha256": "6f52ebf5c569499dbc0fdb17af6f10dbbc9988f13f3dff77d718758cc47b1b12",
+          "source": "/tmp/ungravity-finish-36/fifteenth/jars/drmd-6dof-1.1.35-ufo-dev.1.jar"
+        },
+        {
+          "path": "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar",
+          "sha256": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+          "source": "/workspace/Refork-audit/work/master-v5/upstream/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar"
+        },
+        {
+          "path": "mods/fabric-api-0.116.15+1.21.1.jar",
+          "sha256": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+          "source": "/workspace/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api/0.116.15+1.21.1/d25c793833a90cc028c9a61bc4546cd578a70ce1/fabric-api-0.116.15+1.21.1.jar"
+        },
+        {
+          "path": "mods/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar",
+          "sha256": "db3f9b882d176ab3e34c240d48379bd8c0e172c7e5b16465134d9bea486f8809",
+          "source": "/tmp/ungravity-finish-36/fifteenth/jars/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar"
+        },
+        {
+          "path": "mods/sodium-fabric-0.8.13+mc1.21.1.jar",
+          "sha256": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d",
+          "source": "/workspace/ungravity-v5/world/work/gate0/upstream/sodium-fabric-0.8.13+mc1.21.1.jar"
+        }
+      ],
+      "actualExit": 0
+    }
+  ],
+  "archive": "high-altitude-pressure.zip",
+  "sha256": "1bf4bc48f54f52266b666e553ee0b5e8f481f3187ba72ca86714d5d88eb50380",
+  "visualReview": "Distant ground remains visible while no ordinary meshes exist at Y321. Manually inspected frames still show individual hard-edged blank patches lower in the coarse texture. Piece-level appearance remains tracked by S04-T06. This pressure case qualifies actual high-speed flight, roll, camera anchor and transition to real resident meshes.",
+  "hardware": "Software Mesa llvmpipe in a shared cloud environment, purpose is physical/camera pressure not hardware FPS acceptance."
+}

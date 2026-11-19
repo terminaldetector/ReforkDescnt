@@ -1133,11 +1133,11 @@ tasks:
   owner: QA
   gate: G6
   depends_on_stages: *id017
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/high-altitude-pressure.json, EVIDENCE/finish36-20261119/high-altitude-pressure.zip]
+  notes: "Native и PS1 прошли семь высот при реальном крене и скорости до 973 м/с. Зафиксированы движение штатного коллайдера, положение камеры и подхват ближней сетки. Отдельное исследование небольших участков с резкими границами остаётся в S04-T06."
 - id: S16-T04
   stage: S16
   stage_title: Full performance and regression testing
