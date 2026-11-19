@@ -204,11 +204,11 @@ tasks:
   owner: WORLD
   gate: G1
   depends_on_stages: *id003
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [CUBIC_LIGHT_POSITIVE_2026-11-11/REPORT.md, EVIDENCE/integrated-5839062.zip, NATIVE_FLUID_WRITER_2026-11-17/REPORT.md, NATIVE_FLUID_READER_2026-11-17/REPORT.md, EVIDENCE/fluid-component-byte-parity-ae1bd82.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json, EVIDENCE/finish36-20261119/four-height-water-and-light.json, EVIDENCE/finish36-20261119/four-height-water-and-light.zip, EVIDENCE/finish36-20261119/four-height-flight-and-cold.json]
-  notes: "Отдельные реальные сервер и клиент проверили обычную воду, свет и спавнеры на −512, +1024, +1640 и +2150. Повторная загрузка того же сохранения прошла на каждой высоте с обычными тиками и состоянием игрока. Матрица лавы на всех четырёх высотах остаётся открытой."
+  evidence: [CUBIC_LIGHT_POSITIVE_2026-11-11/REPORT.md, EVIDENCE/integrated-5839062.zip, NATIVE_FLUID_WRITER_2026-11-17/REPORT.md, NATIVE_FLUID_READER_2026-11-17/REPORT.md, EVIDENCE/fluid-component-byte-parity-ae1bd82.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json, EVIDENCE/finish36-20261119/four-height-water-and-light.json, EVIDENCE/finish36-20261119/four-height-water-and-light.zip, EVIDENCE/finish36-20261119/four-height-flight-and-cold.json, EVIDENCE/finish36-20261119/four-height-lava-and-light.json, EVIDENCE/finish36-20261119/four-height-lava-and-light.zip]
+  notes: "В отдельных реальных серверных и клиентских процессах проверены вода, лава, блочный свет и спавнеры на −512, +1024, +1640 и +2150. Повторные загрузки того же сохранения подтвердили материалы, свет, биомы, штатные тики и позицию игрока без восстанавливающих записей."
 - id: S02-T06
   stage: S02
   stage_title: Choose actual CubicWorld backend
