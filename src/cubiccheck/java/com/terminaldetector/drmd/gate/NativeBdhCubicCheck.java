@@ -27,17 +27,17 @@ import java.util.Set;
 /** Isolated upstream LOD proof using only ordinary writes to real cubic-world blocks. */
 public final class NativeBdhCubicCheck {
     public static final boolean ENABLED = Boolean.getBoolean("drmd.gate.bdhCubic");
-    private static final BlockPos LOWER = new BlockPos(8, 2146, 120);
-    private static final BlockPos UPPER = new BlockPos(8, 2226, 120);
+    private static final BlockPos LOWER = new BlockPos(8, 2150, 120);
+    private static final BlockPos UPPER = new BlockPos(8, 2229, 120);
     private static final BodyVolumePlan.Column TEST_COLUMN = new BodyVolumePlan.Column(0, 7, 134, 139);
     private static final Object INTEREST = new Object();
     private static final List<Map<String, Object>> frames = new ArrayList<>();
-    private static boolean started, loading, done;
-    private static volatile boolean committed, writing;
+    private static boolean started, done;
+    private static volatile boolean committed, writing, loading;
     private static volatile String serverStatus = "awaiting world";
     private static Method describe;
     private static int ticks, stable, phase, lowerMax, upperMax;
-    private static long deadline;
+    private static long deadline, nextReadback;
     private static String lower = "", upper = "";
 
     private NativeBdhCubicCheck() {}
@@ -107,11 +107,12 @@ public final class NativeBdhCubicCheck {
                         for (var pos : List.of(LOWER, UPPER)) {
                             var state = (pos.equals(LOWER) ? Blocks.RED_WOOL : Blocks.LIME_WOOL).getDefaultState();
                             for (int x = -5; x <= 5; x++) for (int y = -3; y <= 3; y++) for (int z = -1; z <= 1; z++) {
-                                world.setBlockState(pos.add(x, y, z), state, Block.NOTIFY_ALL);
-                            }
-                            if (!access.readIfLoaded(pos).orElseThrow().equals(state)) {
-                                serverStatus = "authored voxel did not persist in its native cube";
-                                return;
+                                var cell = pos.add(x, y, z);
+                                world.setBlockState(cell, state, Block.NOTIFY_ALL);
+                                if (!access.readIfLoaded(cell).orElseThrow().equals(state)) {
+                                    serverStatus = "authored voxel did not persist in its native cube at " + cell;
+                                    return;
+                                }
                             }
                         }
                         BodyVolumeLeases.releaseNativeInterest(world, INTEREST);
@@ -156,6 +157,9 @@ public final class NativeBdhCubicCheck {
         if (Math.abs(camera.getPos().y - 2184.62) > 2 || Math.abs(camera.getPos().z - 8.5) > 2) return;
         float pitch = phase == 0 ? 0 : (phase == 1 ? 12 : -12);
         if (Math.abs(camera.getPitch() - pitch) > 0.1 || Math.abs(camera.getYaw()) > 0.1) return;
+        long now = System.nanoTime();
+        if (now < nextReadback) return;
+        nextReadback = now + 160_000_000;
         try (var image = ScreenshotRecorder.takeScreenshot(client.getFramebuffer())) {
             int red = 0, green = 0;
             for (int y = 0; y < image.getHeight(); y++) {
