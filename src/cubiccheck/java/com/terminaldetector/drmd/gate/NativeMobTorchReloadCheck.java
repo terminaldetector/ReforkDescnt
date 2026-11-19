@@ -304,7 +304,10 @@ public final class NativeMobTorchReloadCheck {
             Entity e=type.create(w);require(e instanceof MobEntity,"actual registered family entity");MobEntity a=(MobEntity)e;
             // Setup-only AI isolation is persisted and reported; never override NoGravity.
             a.setAiDisabled(true);a.setPersistent();
-            a.setPosition(i<=1?new Vec3d(b.getX()+1.5,b.getY()+2,b.getZ()+2.5):
+            // The ordinary spider is wider than one block. Its native AABB starts
+            // just outside the wall, without modifying walls or forcing a local frame.
+            double wallX = b.getX() + (i == 1 ? 1.02 + a.getWidth() * .5 : 1.5);
+            a.setPosition(i<=1?new Vec3d(wallX,b.getY()+2,b.getZ()+2.5):
                 new Vec3d(b.getX()+3.5,b.getY()+(i==6?1:2),b.getZ()+3.5));
             require(w.isSpaceEmpty(a,a.getBoundingBox().contract(1e-6)),"initial native body clear without a forced local frame: "+LABELS[i]);
             Slot s=new Slot(i,a);s.loaded=a;SLOTS.put(s.uuid,s);
