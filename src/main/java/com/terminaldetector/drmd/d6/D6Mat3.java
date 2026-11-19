@@ -91,19 +91,26 @@ public record D6Mat3(Vec3 row0, Vec3 row1, Vec3 row2) {
 	 * turned about that axis" and leaves the angular velocity alone.
 	 */
 	public D6Mat3 inverse() {
-		double det = determinant();
-		if (Math.abs(det) < 1e-12) return null;
+		// A determinant carries the cube of the input's units. An absolute cutoff incorrectly
+		// makes valid small wrecks massless at contacts (e.g. a .125 ORB has det about1.15e-14).
+		double scale=Math.max(maxAbs(row0),Math.max(maxAbs(row1),maxAbs(row2)));
+		if(!Double.isFinite(scale)||scale==0)return null;
+		double inverseScale=1.0/scale;if(!Double.isFinite(inverseScale))return null;
+		D6Mat3 unit=scaled(inverseScale);double det=unit.determinant();
+		if(!Double.isFinite(det)||Math.abs(det)<1e-12)return null;
+		double factor=inverseScale/det;if(!Double.isFinite(factor))return null;
 		// Adjugate over determinant, written as three cross products rather than nine cofactors.
 		//
 		// They are the adjugate's COLUMNS, not its rows — which is worth stating because for a
 		// symmetric matrix the two are identical, an inertia tensor is always symmetric, and so the
 		// wrong one would have worked everywhere this class is currently used and been wrong for the
 		// first caller that inverted anything else. Checked against 200 random matrices.
-		Vec3 a = row1.cross(row2);
-		Vec3 b = row2.cross(row0);
-		Vec3 c = row0.cross(row1);
-		return fromColumns(a, b, c).scaled(1.0 / det);
+		Vec3 a = unit.row1.cross(unit.row2);
+		Vec3 b = unit.row2.cross(unit.row0);
+		Vec3 c = unit.row0.cross(unit.row1);
+		return fromColumns(a, b, c).scaled(factor);
 	}
+	private static double maxAbs(Vec3 row){return Math.max(Math.abs(row.x()),Math.max(Math.abs(row.y()),Math.abs(row.z())));}
 
 	/**
 	 * This tensor expressed in world axes, given the body's rotation: {@code R · this · Rᵀ}.

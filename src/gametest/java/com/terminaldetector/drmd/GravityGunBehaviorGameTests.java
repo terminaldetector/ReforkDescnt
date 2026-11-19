@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd;
 
 import com.terminaldetector.drmd.physics.GravyPhysics;
+import com.terminaldetector.drmd.physics.collision.OrientedBox;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.weapon.items.DescentWeaponItem;
 import com.terminaldetector.drmd.weapon.items.ModItems;
@@ -170,21 +171,23 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
                     previous.put(pos,c.getWorld().getBlockState(pos));
                     c.getWorld().setBlockState(pos,Blocks.OBSIDIAN.getDefaultState());
                 }
+                body.setPhysicsGravity(true);
                 c.assertTrue(r.use(ModItems.GRAVY_RAILGUN,false)&&body.physicsVelocity().dotProduct(r.aim())>40,
                         "registered rail launches the captured material at ballistic speed");
-                double[] furthest={start.z};
+                double[] closestFaceGap={Double.POSITIVE_INFINITY};
                 boolean[] hit={false};
                 r.observe(()->{
                     var centre=body.physicsCentre();
-                    furthest[0]=Math.max(furthest[0],centre.z);
-                    if(centre.z>=target.getZ()-3.2&&centre.z<target.getZ()
-                            && Math.abs(centre.x-start.x)<.25&&Math.abs(centre.y-start.y)<1.2
-                            &&body.physicsVelocity().z<25)hit[0]=true;
+                    var oriented=OrientedBox.local(body.collider().bounds().orElseThrow(),body.massPosition(),body.localCentre(),body.rotation());
+                    double gap=target.getZ()-oriented.bounds().max().z();
+                    closestFaceGap[0]=Math.min(closestFaceGap[0],gap);
+                    if(gap>=-1e-6&&gap<=.25&&Math.abs(centre.x-start.x)<.25
+                            &&start.y-centre.y>=.1&&start.y-centre.y<1.2&&body.physicsVelocity().z<5)hit[0]=true;
                 });
                 r.later(14,()->{
-                    c.assertTrue(hit[0]&&furthest[0]<target.getZ()&&body.isAlive()
+                    c.assertTrue(hit[0]&&closestFaceGap[0]>=-1e-6&&body.isAlive()
                                     &&c.getWorld().getBlockState(target).isOf(Blocks.OBSIDIAN),
-                            "ordinary world ticks stop the heavy material at its real aim target: hit="+hit[0]+" furthest="+furthest[0]+" target="+target+" state="+r.state(body));
+                            "ordinary gravity and collision ticks stop the rotated outer face of the projectile at its aim target: hit="+hit[0]+" closestFaceGap="+closestFaceGap[0]+" target="+target+" state="+r.state(body));
                     r.complete();
                 });
             });

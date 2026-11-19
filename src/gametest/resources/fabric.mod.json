@@ -27,6 +27,7 @@
       "com.terminaldetector.drmd.RagdollGameTests",
       "com.terminaldetector.drmd.GravityWeaponGameTests",
       "com.terminaldetector.drmd.GravityGunBehaviorGameTests",
+      "com.terminaldetector.drmd.GravityWorldMaterialProofGameTests",
       "com.terminaldetector.drmd.DroneSwarmGameTests",
       "com.terminaldetector.drmd.DroneCoverProbeGameTests",
       "com.terminaldetector.drmd.ProjectileVisualGameTests",
