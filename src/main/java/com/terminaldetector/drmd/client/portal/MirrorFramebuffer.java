@@ -2,7 +2,6 @@ package com.terminaldetector.drmd.client.portal;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.gl.SimpleFramebuffer;
 
 /**
  * The off-screen target a mirror's reflected view is rendered into, before it is put on screen.
@@ -27,13 +26,20 @@ public final class MirrorFramebuffer {
 	/** What the target was last sized to — only for deciding when it needs resizing. */
 	private static int width;
 	private static int height;
+    private static final MirrorTargetGuard GUARD=new MirrorTargetGuard();
+    private static String skipped="not requested";
+    // Own the object before resize allocates attachments, so a partial driver failure is deletable.
+    private static final class ReflectionTarget extends Framebuffer {ReflectionTarget(){super(true);}}
 
 	private MirrorFramebuffer() {}
 
     public static void release() {
         if(framebuffer!=null){framebuffer.delete();framebuffer=null;}
         width=height=0;
+        GUARD.reset();skipped="released";
     }
+
+    public static String unavailableReason(){return skipped!=null?skipped:GUARD.reason();}
 
 	/**
 	 * The target, sized to the window. Created on first use and resized when the window changes —
@@ -45,29 +51,22 @@ public final class MirrorFramebuffer {
 	 */
 	public static Framebuffer get() {
         if(!com.terminaldetector.drmd.client.config.DescentConfig.mirrorReflection
-                && !com.terminaldetector.drmd.client.config.DescentConfig.portalSeeThrough)return null;
+                && !com.terminaldetector.drmd.client.config.DescentConfig.portalSeeThrough){skipped="both view features disabled";return null;}
 		MinecraftClient mc = MinecraftClient.getInstance();
-        if(mc.getWindow().getFramebufferWidth()<=0||mc.getWindow().getFramebufferHeight()<=0)return null;
+        if(mc.getWindow().getFramebufferWidth()<=0||mc.getWindow().getFramebufferHeight()<=0){skipped="window reports no area";return null;}
         // The current outer target can be the PS1 scene. Projection/scissor coordinates
         // and the reflected target must use that same raster, never the UI/window size.
 		int w = mc.getFramebuffer().textureWidth;
 		int h = mc.getFramebuffer().textureHeight;
-		if (w <= 0 || h <= 0) return null;
-
-		if (framebuffer == null) {
-			// useDepth: the reflected view is a full world render and needs its own depth buffer, or
-			// near geometry would not occlude far geometry inside the reflection.
-			framebuffer = new SimpleFramebuffer(w, h, true, MinecraftClient.IS_SYSTEM_MAC);
-			width = w;
-			height = h;
-		} else if (w != width || h != height) {
-			framebuffer.resize(w, h, MinecraftClient.IS_SYSTEM_MAC);
-			width = w;
-			height = h;
-		}
-        // Allocation/resizing binds GL targets; queued outer geometry belongs to the main frame.
-        mc.getFramebuffer().beginWrite(true);
-		return framebuffer;
+        skipped=null;var outer=mc.getFramebuffer();
+        return GUARD.acquire(w,h,com.mojang.blaze3d.systems.RenderSystem.maxSupportedTextureSize(),()->{
+            if(framebuffer==null)framebuffer=new ReflectionTarget();
+            if(w!=width||h!=height){framebuffer.resize(w,h,MinecraftClient.IS_SYSTEM_MAC);width=w;height=h;}
+            return framebuffer;
+        },()->{
+            var failed=framebuffer;framebuffer=null;width=height=0;
+            if(failed!=null)failed.delete();
+        },()->outer.beginWrite(true));
 	}
 
 	/**

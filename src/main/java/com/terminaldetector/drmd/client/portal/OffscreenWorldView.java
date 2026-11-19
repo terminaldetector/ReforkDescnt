@@ -108,7 +108,7 @@ public final class OffscreenWorldView {
 		if (target == null) {
 			// Ordinarily a minimised window, but it is also one of the ways a mirror shows nothing at
 			// all, so it is worth being able to rule out rather than assume.
-			DiagProblems.record("portal", "no off-screen target this frame — the window reports no area");
+			DiagProblems.record("portal", "no off-screen target: "+MirrorFramebuffer.unavailableReason());
 			return false;
 		}
 
