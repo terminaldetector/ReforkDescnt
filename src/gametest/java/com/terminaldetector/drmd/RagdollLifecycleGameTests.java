@@ -62,7 +62,9 @@ public final class RagdollLifecycleGameTests implements FabricGameTest {
             if(bodies.stream().anyMatch(b->!b.isRemoved()||f.world.getEntity(b.getUuid())!=null))return;
             c.assertTrue(f.world.getTime()-died[0]>=1200,"actual ordinary lifetime elapsed");
             for(var b:bodies)c.assertTrue(b.simulatedPhysicsTicks()+b.skippedPhysicsTicks()==1200,"each corpse used its finite original1200tick lifetime");
-            c.assertTrue(bodies.stream().mapToLong(RagdollEntity::skippedPhysicsTicks).sum()>0,"natural128 cohort exercises some certified sleeping, not merely TTL");
+            long skipped=bodies.stream().mapToLong(RagdollEntity::skippedPhysicsTicks).sum();
+            if(skipped==0)System.out.println("RAGDOLL128_REST_FINAL "+bodies.stream().map(b->b.getUuid()+":"+(b.flightHullKind()==null?"scout":b.flightHullKind().id)+":"+b.restObservation()).toList());
+            c.assertTrue(skipped>0,"natural128 cohort exercises some certified sleeping, not merely TTL");
             c.assertTrue(RagdollDebrisGroups.get(f.world).snapshot(group[0]).isEmpty()&&f.world.getEntitiesByClass(RagdollEntity.class,f.area,e->true).isEmpty(),"last physical removal clears logical ownership too");
             var remaining=new TreeMap<String,Integer>();for(var item:f.world.getEntitiesByClass(ItemEntity.class,f.area,e->true)){remaining.merge(net.minecraft.registry.Registries.ITEM.getId(item.getStack().getItem()).toString(),item.getStack().getCount(),Integer::sum);f.own(item);}
             c.assertTrue(loot.equals(remaining),"corpse cleanup preserves ordinary loot content, including legitimate Vanilla stack merging");

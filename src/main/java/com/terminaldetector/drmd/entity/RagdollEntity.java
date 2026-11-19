@@ -69,6 +69,11 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	private java.util.Set<Integer> restSupports=java.util.Set.of();
 	private double restPlane;
 	private long simulatedPhysicsTicks,skippedPhysicsTicks;
+	private boolean observeRestContacts;
+	private String restReason="new";
+	private double lastCornerSpeed,lastRestEnergy,lastLinearResidual=Double.NaN,lastAngularResidual=Double.NaN;
+	public record RestObservation(String reason,double cornerSpeed,double energy,double linearResidual,double angularResidual,int quietTicks){}
+	public RestObservation restObservation(){return new RestObservation(restReason,lastCornerSpeed,lastRestEnergy,lastLinearResidual,lastAngularResidual,rest.quietTicks());}
 	private java.util.UUID debrisGroup;
 	private String debrisCause="legacy";
 	private long debrisBorn;
@@ -171,13 +176,16 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 		refreshDebrisGroup();
 		if(rest.sleeping()){
 			if(certificateUnchanged()&&staticRestEnvironment(gravity,restSupports,restPlane)&&restInterestClear()&&rest.skipTick()){
-				skippedPhysicsTicks++;refreshDebrisGroup();return;
+				restReason="sleep";skippedPhysicsTicks++;refreshDebrisGroup();return;
 			}
 			wakePhysics();
 		}
-		Vec3 systemCentre=simulation.centreOfMass();double systemRadius=0;
-		for(var part:simulation.parts())systemRadius=Math.max(systemRadius,part.body().position().minus(systemCentre).length()+part.segment().halfExtents().length());
-		restContacts.begin(systemCentre,gravity,simulation.totalMass(),systemRadius,.05);
+		observeRestContacts=cornerSpeed()<=RagdollSleepController.MAX_CORNER_SPEED;
+		if(observeRestContacts){
+			Vec3 systemCentre=simulation.centreOfMass();double systemRadius=0;
+			for(var part:simulation.parts())systemRadius=Math.max(systemRadius,part.body().position().minus(systemCentre).length()+part.segment().halfExtents().length());
+			restContacts.begin(systemCentre,gravity,simulation.totalMass(),systemRadius,.05);
+		}
 		simulation.step(.05, gravity, RagdollSimulation.DEFAULT_SUBSTEPS,
 				RagdollSimulation.DEFAULT_SOLVER_ITERATIONS, this::resolveTerrain);
 		simulatedPhysicsTicks++;
@@ -189,6 +197,11 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 		syncEntityFromSimulation();
 		dataTracker.set(POSE, trackedPose());
 		velocityModified = true;
+		lastCornerSpeed=cornerSpeed();
+		if(!observeRestContacts||lastCornerSpeed>RagdollSleepController.MAX_CORNER_SPEED){
+			restReason=lastCornerSpeed>RagdollSleepController.MAX_CORNER_SPEED?"moving":"new-quiet-sample";
+			lastLinearResidual=Double.NaN;lastAngularResidual=Double.NaN;rest.wake();certifiedBodies=List.of();refreshDebrisGroup();return;
+		}
 		double speed=0,energy=0;var poses=new ArrayList<RagdollSleepController.Pose>();
 		for(var part:simulation.parts()){
 			var body=part.body();double radius=part.segment().halfExtents().length();
@@ -196,15 +209,28 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 			energy+=.5*body.mass()*body.linearVelocity().lengthSquared()+.5*body.angularVelocity().dot(body.angularMomentum());
 			poses.add(new RagdollSleepController.Pose(body.position(),body.rotation(),radius));
 		}
-		boolean candidate=restContacts.balanced()&&jointRestValid()&&staticRestEnvironment(gravity,restContacts.supports(),restContacts.plane());
+		lastRestEnergy=energy;lastLinearResidual=restContacts.linearResidual();lastAngularResidual=restContacts.angularResidual();
+		boolean wrench=restContacts.balanced(),joints=wrench&&jointRestValid(),support=joints&&staticRestEnvironment(gravity,restContacts.supports(),restContacts.plane());
+		boolean candidate=wrench&&joints&&support;
+		restReason=!wrench?"contact-wrench":!joints?"joint-error":!support?"static-support":"quiet-window";
 		if(rest.observe(candidate,poses,speed,energy,.5*simulation.totalMass()*RagdollSleepController.MAX_CORNER_SPEED*RagdollSleepController.MAX_CORNER_SPEED)){
 			certifiedBodies=simulation.parts().stream().map(p->p.body().snapshot()).toList();
 			certifiedInertias=simulation.parts().stream().map(p->p.body().inertia()).toList();
 			certifiedMasses=simulation.parts().stream().map(p->p.body().mass()).toList();
 			restSupports=restContacts.supports();restPlane=restContacts.plane();
-			if(restInterestClear())rest.sleep();
+			if(restInterestClear()){rest.sleep();restReason="sleep";}else restReason="interest";
 		}else certifiedBodies=List.of();
 		refreshDebrisGroup();
+	}
+	private double cornerSpeed(){
+		double speed=0;
+		for(var part:simulation.parts()){
+			var body=part.body();double linear=body.linearVelocity().length();
+			if(linear>RagdollSleepController.MAX_CORNER_SPEED)return linear;
+			double candidate=linear+body.angularVelocity().length()*part.segment().halfExtents().length();
+			speed=Math.max(speed,candidate);if(speed>RagdollSleepController.MAX_CORNER_SPEED)return speed;
+		}
+		return speed;
 	}
 
 	private boolean jointRestValid(){
@@ -248,7 +274,10 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 		return true;
 	}
 	private void terrainContact(RagdollSimulation.Part part,Vec3 normal,double support){
-		var body=part.body();Vec3 before=body.linearVelocity(),spin=body.angularMomentum();body.contactImpulse(normal.scaled(-support),normal,.72);
+		var body=part.body();
+		if(!observeRestContacts){body.contactImpulse(normal.scaled(-support),normal,.72);return;}
+		Vec3 before=body.linearVelocity(),spin=body.angularMomentum();body.contactImpulse(normal.scaled(-support),normal,.72);
+		if(body.linearVelocity()==before&&body.angularMomentum()==spin)return;
 		Vec3 impulse=body.linearVelocity().minus(before).scaled(body.mass()),angular=body.angularMomentum().minus(spin);
 		double bottom=partBox(part).minY;double plane=Math.abs(bottom-Math.rint(bottom))<.0001?Math.rint(bottom):Double.NaN;
 		restContacts.contact(simulation.parts().indexOf(part),body.position(),impulse,angular,normal,plane);
