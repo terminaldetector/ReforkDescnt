@@ -15,7 +15,8 @@ public final class BoardingWorldMotion implements DynamicBodyAttachment.Motion {
     private final PlayerEntity player;
     private final OrientedCharacterClip clip;
     private final boolean replay;
-    private BoardingWorldMotion(PlayerEntity player,OrientedCharacterClip clip,boolean replay){this.player=player;this.clip=clip;this.replay=replay;}
+    private final FlightLoadingClip loading;
+    private BoardingWorldMotion(PlayerEntity player,OrientedCharacterClip clip,boolean replay,FlightLoadingClip loading){this.player=player;this.clip=clip;this.replay=replay;this.loading=loading;}
     public static BoardingWorldMotion capture(PlayerEntity player,DynamicBodyAttachment.State state,boolean replay) {
         return capture(player,state,replay,false);
     }
@@ -38,9 +39,16 @@ public final class BoardingWorldMotion implements DynamicBodyAttachment.Motion {
             z0=MathHelper.floor(p.z()+Math.min(0,Math.max(-32,delta.z()))-3);z1=MathHelper.floor(p.z()+Math.max(0,Math.min(32,delta.z()))+3);
         }
         var access=WorldAccess.of(world);var shapes=new ArrayList<BodyBounds>();
+        boolean nativeFlight=flight&&access.backend()!=CubicAvailability.Backend.STOCK;
+        var unknown=new ArrayList<BodyBounds>();
         var available=new HashMap<D6ChunkPos,Boolean>();
         for(int x=(x0-1)>>4;x<=(x1+1)>>4;x++)for(int y=(y0-1)>>4;y<=(y1+1)>>4;y++)for(int z=(z0-1)>>4;z<=(z1+1)>>4;z++) {
-            var cube=new D6ChunkPos(x,y,z);available.put(cube,!CubicAvailability.withinHeight(world,cube)||access.isVolumeAvailable(cube));
+            var cube=new D6ChunkPos(x,y,z);
+            boolean within=CubicAvailability.withinHeight(world,cube);
+            boolean full=within?access.isVolumeAvailable(cube):!nativeFlight;available.put(cube,full);
+            // One-block halo protects collision-shape neighbour reads. This is a temporary
+            // loading fence, not terrain: it must not consume the suit integrator momentum.
+            if(nativeFlight&&!full)unknown.add(new BodyBounds(new Vec3(x*16.0-1,y*16.0-1,z*16.0-1),new Vec3(x*16.0+17,y*16.0+17,z*16.0+17)));
         }
         boolean overflow=false;
         outer:for(int x=x0;x<=x1;x++)for(int y=y0;y<=y1;y++)for(int z=z0;z<=z1;z++) {
@@ -49,11 +57,12 @@ public final class BoardingWorldMotion implements DynamicBodyAttachment.Motion {
             // Shape providers can read neighbours. Prove the whole one-block halo before asking.
             for(int dx=-1;dx<=1&&known;dx+=2)for(int dy=-1;dy<=1&&known;dy+=2)for(int dz=-1;dz<=1;dz+=2)
                 if(!available.getOrDefault(D6ChunkPos.ofBlock(x+dx,y+dy,z+dz),false)){known=false;break;}
+            if(!known&&nativeFlight)continue;
             if(!known||!world.getWorldBorder().contains(pos)) {
                 shapes.add(new BodyBounds(new Vec3(x,y,z),new Vec3(x+1,y+1,z+1)));continue;
             }
             var stateAt=access.readIfLoaded(pos);
-            if(stateAt.isEmpty()){shapes.add(new BodyBounds(new Vec3(x,y,z),new Vec3(x+1,y+1,z+1)));continue;}
+            if(stateAt.isEmpty()){(nativeFlight?unknown:shapes).add(new BodyBounds(new Vec3(x,y,z),new Vec3(x+1,y+1,z+1)));continue;}
             if(stateAt.get().isAir())continue;
             var shape=stateAt.get().getCollisionShape(world,pos,ShapeContext.of(player));
             for(var b:shape.getBoundingBoxes())if(b.getLengthX()>1e-10&&b.getLengthY()>1e-10&&b.getLengthZ()>1e-10)
@@ -65,19 +74,25 @@ public final class BoardingWorldMotion implements DynamicBodyAttachment.Motion {
         else for(var shape:world.getEntityCollisions(player,region))for(var box:shape.getBoundingBoxes())
             if(box.getLengthX()>1e-10&&box.getLengthY()>1e-10&&box.getLengthZ()>1e-10)shapes.add(bounds(box));
         // A checked move may not leave its captured world snapshot during substeps or correction.
-        shapes.add(new BodyBounds(new Vec3(x0-1,y0-1,z0-1),new Vec3(x0,y1+2,z1+2)));
-        shapes.add(new BodyBounds(new Vec3(x1+1,y0-1,z0-1),new Vec3(x1+2,y1+2,z1+2)));
-        shapes.add(new BodyBounds(new Vec3(x0-1,y0-1,z0-1),new Vec3(x1+2,y0,z1+2)));
-        shapes.add(new BodyBounds(new Vec3(x0-1,y1+1,z0-1),new Vec3(x1+2,y1+2,z1+2)));
-        shapes.add(new BodyBounds(new Vec3(x0-1,y0-1,z0-1),new Vec3(x1+2,y1+2,z0)));
-        shapes.add(new BodyBounds(new Vec3(x0-1,y0-1,z1+1),new Vec3(x1+2,y1+2,z1+2)));
-        return new BoardingWorldMotion(player,new OrientedCharacterClip(new CompoundCollider(shapes),player.getWidth(),player.getHeight()),replay);
+        var fences=nativeFlight?unknown:shapes;
+        fences.add(new BodyBounds(new Vec3(x0-1,y0-1,z0-1),new Vec3(x0,y1+2,z1+2)));
+        fences.add(new BodyBounds(new Vec3(x1+1,y0-1,z0-1),new Vec3(x1+2,y1+2,z1+2)));
+        fences.add(new BodyBounds(new Vec3(x0-1,y0-1,z0-1),new Vec3(x1+2,y0,z1+2)));
+        fences.add(new BodyBounds(new Vec3(x0-1,y1+1,z0-1),new Vec3(x1+2,y1+2,z1+2)));
+        fences.add(new BodyBounds(new Vec3(x0-1,y0-1,z0-1),new Vec3(x1+2,y1+2,z0)));
+        fences.add(new BodyBounds(new Vec3(x0-1,y0-1,z1+1),new Vec3(x1+2,y1+2,z1+2)));
+        return new BoardingWorldMotion(player,new OrientedCharacterClip(new CompoundCollider(shapes),player.getWidth(),player.getHeight()),replay,nativeFlight?new FlightLoadingClip(unknown,player.getWidth(),player.getHeight()):null);
     }
-    @Override public boolean canOrient(Vec3 feet,Quat frame){return clip.canOrient(feet,frame);}
+    @Override public boolean canOrient(Vec3 feet,Quat frame){return clip.canOrient(feet,frame)&&(loading==null||loading.canOrient(feet,frame));}
     @Override public DynamicBodyAttachment.Move move(Vec3 feet,Quat frame,Vec3 requested) {
-        var allowed=clip.move(feet,frame,requested);if(replay)return allowed;
+        var limited=loading==null?requested:loading.clip(feet,frame,requested);
+        var allowed=clip.move(feet,frame,limited);
+        if(loading!=null&&loading.clip(feet,frame,allowed.displacement()).minus(allowed.displacement()).lengthSquared()>1e-16)
+            allowed=new DynamicBodyAttachment.Move(new Vec3(0,0,0),List.of());
+        if(replay)return allowed;
         Vec3d before=player.getPos();
-        BoardingPose.move(player,frame,()->player.move(MovementType.SELF,BoardingSystem.mc(allowed.displacement())));
+        var checked=allowed;
+        BoardingPose.move(player,frame,()->player.move(MovementType.SELF,BoardingSystem.mc(checked.displacement())));
         return new DynamicBodyAttachment.Move(BoardingSystem.pure(player.getPos().subtract(before)),allowed.blockingNormals());
     }
     private static BodyBounds bounds(Box b){return new BodyBounds(new Vec3(b.minX,b.minY,b.minZ),new Vec3(b.maxX,b.maxY,b.maxZ));}

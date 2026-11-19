@@ -64,7 +64,7 @@ public final class FlightBodyClient {
         if(world!=null&&world!=p.getWorld())clear();
         if(!DescentClientState.enabled){clear();return null;}
         if(waitingForShape!=null){p.setVelocity(Vec3d.ZERO);p.fallDistance=0;return lastVelocity==null?Vec3d.ZERO:BoardingSystem.mc(lastVelocity);}
-        if(!active&&FlightBodySystem.nearby(p,integrated).isEmpty())return null;
+        if(!active&&!FlightBodySystem.nativeAuthority(p)&&FlightBodySystem.nearby(p,integrated).isEmpty())return null;
         if(HISTORY.size()>=16){p.setVelocity(Vec3d.ZERO);p.fallDistance=0;return lastVelocity==null?Vec3d.ZERO:BoardingSystem.mc(lastVelocity);}
         var start=state(p,BoardingSystem.pure(integrated));
         if(active&&correction.lengthSquared()>4e-6) {

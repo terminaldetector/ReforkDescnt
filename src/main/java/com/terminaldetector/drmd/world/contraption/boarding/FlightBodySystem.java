@@ -4,6 +4,7 @@ import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.client.portal.PortalTransform.*;
 import com.terminaldetector.drmd.network.FlightBodyNetworking;
 import com.terminaldetector.drmd.world.contraption.*;
+import com.terminaldetector.drmd.world.access.CubicAvailability;
 import net.fabricmc.fabric.api.event.lifecycle.v1.*;
 import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -27,13 +28,17 @@ public final class FlightBodySystem {
     private FlightBodySystem(){}
     public static void register() {
         ServerTickEvents.END_WORLD_TICK.register(FlightBodySystem::tick);
+        ServerLifecycleEvents.SERVER_STOPPING.register(s->{for(var w:s.getWorlds())FlightVolumeInterest.close(w);});
         ServerLifecycleEvents.SERVER_STOPPED.register(s->{PENDING.clear();LEASES.clear();});
-        ServerPlayConnectionEvents.DISCONNECT.register((h,s)->{PENDING.remove(h.player.getUuid());LEASES.remove(h.player.getUuid());});
-        ServerWorldEvents.UNLOAD.register((s,w)->{PENDING.values().removeIf(d->d.world==w);LEASES.values().removeIf(l->l.world==w);});
+        ServerPlayConnectionEvents.DISCONNECT.register((h,s)->{FlightVolumeInterest.release(h.player.getServerWorld(),h.player.getUuid());PENDING.remove(h.player.getUuid());LEASES.remove(h.player.getUuid());});
+        ServerWorldEvents.UNLOAD.register((s,w)->{FlightVolumeInterest.close(w);PENDING.values().removeIf(d->d.world==w);LEASES.values().removeIf(l->l.world==w);});
     }
-    private static boolean eligible(ServerPlayerEntity p) {
-        return p.isAlive()&&!p.isSpectator()&&!p.hasVehicle()&&!p.isSleeping()
-            &&DescentPlayerData.get(p).isEnabled()&&BoardingSystem.ready(p);
+    private static boolean pilot(ServerPlayerEntity p) {
+        return p.isAlive()&&!p.isSpectator()&&!p.hasVehicle()&&!p.isSleeping()&&DescentPlayerData.get(p).isEnabled();
+    }
+    private static boolean eligible(ServerPlayerEntity p){return pilot(p)&&BoardingSystem.ready(p);}
+    public static boolean nativeAuthority(net.minecraft.entity.player.PlayerEntity p){
+        return CubicAvailability.backend(p.getWorld())!=CubicAvailability.Backend.STOCK;
     }
     /** Conservative full-radius hull index plus the maximum one-tick translation of a hull.
      * Rotation is already enclosed by the physical radius; no entity/chunk scanning. */
@@ -44,7 +49,11 @@ public final class FlightBodySystem {
                 b.massPosition().x()+b.radius(),b.massPosition().y()+b.radius(),b.massPosition().z()+b.radius()).intersects(swept)).toList();
     }
     public static boolean owns(ServerPlayerEntity p) {
-        if(!eligible(p))return false;
+        if(!pilot(p))return false;
+        // Reserve positional authority before the ready handshake too. Never fall back to
+        // unchecked vanilla C2S movement while native cube availability is unknown.
+        if(nativeAuthority(p))return true;
+        if(!BoardingSystem.ready(p))return false;
         var l=LEASES.get(p.getUuid());return l!=null&&l.player.get()==p&&l.world==p.getWorld()
             ||!nearby(p,DescentPlayerData.get(p).getFlightVelocity()).isEmpty();
     }
@@ -64,6 +73,7 @@ public final class FlightBodySystem {
      * Momentum and entity pose belong to PortalTravel; only the obsolete clock is released here. */
     public static void discontinuity(ServerPlayerEntity p){LEASES.remove(p.getUuid());PENDING.remove(p.getUuid());}
     public static void tick(ServerWorld world) {
+        FlightVolumeInterest.tick(world,BoardingSystem.players(world).stream().filter(FlightBodySystem::eligible).toList());
         // A network player's travel can run later than the world's body phase. Enroll real
         // pilots here too, independently of explicit travel calls from vehicles/fixtures.
         // owns() already rejects positional packet overwrite.
@@ -76,7 +86,7 @@ public final class FlightBodySystem {
             var p=d.player.get();if(p==null||p.getWorld()!=world||!eligible(p)||d.tick!=world.getTime())continue;
             var data=DescentPlayerData.get(p);var candidates=nearby(p,data.getFlightVelocity());
             var l=LEASES.get(p.getUuid());if(l==null||l.player.get()!=p||l.world!=world){l=new Lease(p,++epoch);LEASES.put(p.getUuid(),l);}
-            if(!candidates.isEmpty())l.lastNear=world.getTime();
+            if(nativeAuthority(p)||!candidates.isEmpty())l.lastNear=world.getTime();
             if(!l.pending.isEmpty())l.ack=l.pending.removeFirst();
             var bodies=new ArrayList<BodyMotion>();for(var b:candidates){bodies.add(motions.computeIfAbsent(b.getId(),id->b.boardingMotion()));touched.add(b);}
             var state=new DynamicBodyAttachment.State(BoardingSystem.pure(p.getPos()),BoardingSystem.pure(data.getFlightVelocity()),false,-1);
