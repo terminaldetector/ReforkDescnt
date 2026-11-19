@@ -45,10 +45,11 @@ public final class NativeWeaponPresentationCheck {
     private static boolean done,sent,selected,rolling;private static long boot,entered,settled;private static int age,phase,profile,frames,previewBank;
     private static final ArrayDeque<Click> clicks=new ArrayDeque<>();private static Click pending;
     private static KeyBinding pressed;private static int pressedAt;
-    private static NativeImage ordinaryBackground,flightBackground;
+    private static NativeImage flightBackground,beforeHand;
+    private static int[] handPixels;
     private static final Set<String> gui=new HashSet<>(),hand=new HashSet<>(),cockpit=new HashSet<>();private static String previewItem;private static int preview=-1;
     private static final List<double[]> projected=new ArrayList<>();private static net.minecraft.client.render.model.json.ModelTransformationMode currentMode;
-    private static double lastX=Double.NaN,lastY;private static String frameFailure;
+    private static List<double[]> lastProjection=List.of();private static String frameFailure;
     private NativeWeaponPresentationCheck(){}
     private static String id(ItemStack s){return Registries.ITEM.getId(s.getItem()).toString();}
     private static String expected(int item){return Registries.ITEM.getId(ITEMS[item]).toString();}
@@ -71,7 +72,7 @@ public final class NativeWeaponPresentationCheck {
             var hotbar=new ArrayList<String>();var hotbarCounts=new ArrayList<Integer>();for(int i=0;i<9;i++){var stack=p.getInventory().getStack(i);hotbar.add(id(stack));hotbarCounts.add(stack.getCount());}var banks=new ArrayList<String>();var bankCounts=new ArrayList<Integer>();var load=DroneLoadout.of(p);for(int i=0;i<5;i++){var stack=load.getStack(i);banks.add(id(stack));bankCounts.add(stack.getCount());}
             view=new View(server.getTicks(),nativeWorld,DescentPlayerData.get(p).isEnabled(),p.getInventory().selectedSlot,id(p.getMainHandStack()),List.copyOf(hotbar),List.copyOf(hotbarCounts),List.copyOf(banks),List.copyOf(bankCounts),id(p.currentScreenHandler.getCursorStack()));
         }catch(Throwable e){serverFailure=e.toString();}});ClientTickEvents.START_CLIENT_TICK.register(NativeWeaponPresentationCheck::tick);}
-    private static void enter(int next){phase=next;sent=selected=false;frames=0;settled=0;entered=age;lastX=Double.NaN;clicks.clear();pending=null;}
+    private static void enter(int next){phase=next;sent=selected=false;frames=0;settled=0;entered=age;lastProjection=List.of();clicks.clear();pending=null;}
     private static void pulse(KeyBinding key){require(pressed==null,"one physical key pulse at a time");key.setPressed(true);KeyBinding.onKeyPressed(KeyBindingHelper.getBoundKeyOf(key));pressed=key;pressedAt=age;INPUTS.add(Map.of("tick",age,"phase",phase,"binding",key.getTranslationKey(),"down",true));}
     private static boolean hotbar(MinecraftClient c,int slot){if(!selected){pulse(c.options.hotbarKeys[slot]);selected=true;return false;}return c.player.getInventory().selectedSlot==slot&&view.selected==slot;}
     private static boolean flight(MinecraftClient c,boolean enabled){if(view.flight==enabled&&DescentClientState.enabled==enabled)return true;if(!sent){pulse(DescentKeybinds.toggle);sent=true;}return false;}
@@ -123,14 +124,26 @@ public final class NativeWeaponPresentationCheck {
                 }
                 if(!operateMenu(c))return;
                 if(phase==13){require(view.banks.subList(0,3).stream().allMatch("minecraft:air"::equals)&&view.bankCounts.subList(0,3).stream().allMatch(n->n==0),"actual sockets empty after ordinary UI return");for(int i=0;i<3;i++)require(view.hotbar.get(i).equals(expected(i))&&view.hotbarCounts.get(i)==1,"all three real item counts conserved");closeMenu(c);
-                    if(++profile==2){require(ROWS.stream().filter(r->r.containsKey("png")&&Set.of(1,2,3,8,10,12).contains((Integer)r.get("phase"))).count()==12,"all12 world item/mode/profile scenes have three actual fresh pixel frames");finish(c,"PASS",null);return;}if(ordinaryBackground!=null){ordinaryBackground.close();ordinaryBackground=null;}if(flightBackground!=null){flightBackground.close();flightBackground=null;}enter(0);return;}
+                    if(++profile==2){require(ROWS.stream().filter(r->r.containsKey("png")&&Set.of(1,2,3,8,10,12).contains((Integer)r.get("phase"))).count()==12,"all12 world item/mode/profile scenes have three actual fresh pixel frames");finish(c,"PASS",null);return;}if(flightBackground!=null){flightBackground.close();flightBackground=null;}enter(0);return;}
                 hover(c,previewBank);
-                if(frames>=3){if(phase==7&&previewBank<2){previewBank++;frames=0;lastX=Double.NaN;return;}closeMenu(c);enter(phase+1);}return;
+                if(frames>=3){if(phase==7&&previewBank<2){previewBank++;frames=0;return;}closeMenu(c);enter(phase+1);}return;
             }
             if(phase==8||phase==10||phase==12){require(c.player.getMainHandStack().isEmpty()&&view.hand.equals("minecraft:air")&&DescentClientState.enabled&&view.flight,"real empty-hand socket view");if(settled==0)settled=age;if(frames>=3)enter(phase+1);}
         }catch(Throwable e){finish(c,"FAIL",e.toString());}
     }
-    public static void beforeFrame(){if(!ENABLED)return;gui.clear();hand.clear();cockpit.clear();projected.clear();previewItem=null;preview=-1;}
+    public static void beforeFrame(){if(!ENABLED)return;gui.clear();hand.clear();cockpit.clear();projected.clear();previewItem=null;preview=-1;handPixels=null;
+        if(beforeHand!=null){beforeHand.close();beforeHand=null;}}
+    public static void beforeHand(){
+        if(!ENABLED||done||phase<1||phase>3||settled==0||age-settled<8||view==null
+                ||!view.hand.equals(expected(phase-1))||com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())return;
+        var c=MinecraftClient.getInstance();
+        if(c.currentScreen==null&&c.getOverlay()==null&&beforeHand==null)beforeHand=capture(c);
+    }
+    public static void afterHand(){
+        if(beforeHand==null||com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy())return;
+        try(var before=beforeHand;var after=capture(MinecraftClient.getInstance())){handPixels=difference(after,before);}
+        finally{beforeHand=null;}
+    }
     public static void beginModel(net.minecraft.client.render.model.json.ModelTransformationMode mode){if(ENABLED)currentMode=mode;}
     private static void project(net.minecraft.client.util.math.MatrixStack matrices,List<org.joml.Vector3f> points){
         if(projected.size()>=256){frameFailure="bounded256 actual projected mesh regions overflow";return;}var c=MinecraftClient.getInstance();double minX=Double.POSITIVE_INFINITY,minY=minX,maxX=Double.NEGATIVE_INFINITY,maxY=maxX;
@@ -168,6 +181,16 @@ public final class NativeWeaponPresentationCheck {
             if(inside&&delta(image.getColor(x,y),base.getColor(x,y))>=32){count++;minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}}
         return new int[]{count,minX,minY,maxX,maxY};
     }
+    private static double projectedShift(){
+        if(lastProjection.isEmpty())return 0;
+        if(projected.size()!=lastProjection.size())return Double.POSITIVE_INFINITY;
+        double maximum=0;
+        for(int i=0;i<projected.size();i++){
+            var old=lastProjection.get(i);var next=projected.get(i);
+            maximum=Math.max(maximum,Math.hypot((next[0]+next[2]-old[0]-old[2])*.5,(next[1]+next[3]-old[1]-old[3])*.5));
+        }
+        return maximum;
+    }
     private static int icon(NativeImage image,int x,int y,MinecraftClient c){double sx=(double)image.getWidth()/c.getWindow().getScaledWidth(),sy=(double)image.getHeight()/c.getWindow().getScaledHeight();int atX=(int)((x+1)*sx),atY=(int)((y+1)*sy),background=image.getColor(Math.min(image.getWidth()-1,atX),Math.min(image.getHeight()-1,atY));int count=0;
         for(int dx=2;dx<14;dx++)for(int dy=2;dy<14;dy++){int px=(int)((x+dx)*sx),py=(int)((y+dy)*sy);if(px>=0&&py>=0&&px<image.getWidth()&&py<image.getHeight()&&delta(image.getColor(px,py),background)>=28)count++;}return count;}
     private static NativeImage capture(MinecraftClient c){
@@ -182,20 +205,21 @@ public final class NativeWeaponPresentationCheck {
             if(frameFailure!=null)throw new IllegalStateException(frameFailure);boolean empty=phase==0||phase==6;boolean ordinary=phase>=1&&phase<=3,flight=phase==8||phase==10||phase==12;
             boolean inventory=phase==4&&c.currentScreen instanceof InventoryScreen;boolean equipment=(phase==7||phase==9||phase==11)&&c.currentScreen instanceof DroneInventoryScreen&&pending==null&&clicks.isEmpty()&&settled>0;
             if(!empty&&!ordinary&&!flight&&!inventory&&!equipment)return;if(empty){if(c.currentScreen!=null||!c.player.getMainHandStack().isEmpty()||!view.hand.equals("minecraft:air"))return;if(phase==0&&(DescentClientState.enabled||view.flight))return;if(phase==6&&(!DescentClientState.enabled||!view.flight||rolling||Math.abs(ShipAttitudeClient.get().bankDegrees())<35||age-settled<8))return;}
-            if(ordinary&&(!view.hand.equals(expected(phase-1))||!hand.contains(expected(phase-1))||age-settled<8||c.currentScreen!=null))return;
+            if(ordinary&&(!view.hand.equals(expected(phase-1))||!hand.contains(expected(phase-1))||handPixels==null||age-settled<8||c.currentScreen!=null))return;
             int current=flight?(phase-8)/2:-1;if(flight&&(!view.banks.get(0).equals(expected(current))||!cockpit.contains(expected(current))||age-settled<8||c.currentScreen!=null))return;
             if(equipment&&(preview!=previewBank||!Objects.equals(previewItem,view.banks.get(previewBank))))return;
             require(GL11.glGetError()==0,"pre-readback GL state");
             try(var image=capture(c)){
                 String name="profile"+profile+"-phase"+phase+(equipment?"-bank"+previewBank:"");var row=new LinkedHashMap<String,Object>();row.put("profile",DescentConfig.presentationProfile.name());row.put("phase",phase);row.put("bank",previewBank);row.put("frame",frames);row.put("serverTick",view.tick);row.put("hand",view.hand);row.put("banks",view.banks);row.put("heldModels",Set.copyOf(hand));row.put("cockpitModels",Set.copyOf(cockpit));row.put("guiModels",Set.copyOf(gui));row.put("preview",previewItem);row.put("roll",DescentClientState.enabled?ShipAttitudeClient.get().bankDegrees():0);
-                if(empty){var copy=new NativeImage(image.getWidth(),image.getHeight(),false);copy.copyFrom(image);if(phase==0){if(ordinaryBackground!=null)ordinaryBackground.close();ordinaryBackground=copy;}else{if(flightBackground!=null)flightBackground.close();flightBackground=copy;}}
-                if(ordinary||flight){var pixels=difference(image,ordinary?ordinaryBackground:flightBackground);double x=(pixels[1]+pixels[3])*.5,y=(pixels[2]+pixels[4])*.5;
-                    double shift=Double.isNaN(lastX)?0:Math.hypot(x-lastX,y-lastY);
-                    row.put("foreground",pixels);row.put("actualProjectedModelRegions",List.copyOf(projected));row.put("anchorShiftPixels",shift);
-                    if(pixels[0]<12||shift>2){Path directory=c.runDirectory.toPath().resolve("weapon-presentation-frames");Files.createDirectories(directory);
+                if(phase==6){var copy=new NativeImage(image.getWidth(),image.getHeight(),false);copy.copyFrom(image);if(flightBackground!=null)flightBackground.close();flightBackground=copy;}
+                if(ordinary||flight){var pixels=ordinary?handPixels:difference(image,flightBackground);double shift=projectedShift();
+                    row.put("foreground",pixels);row.put("actualProjectedModelRegions",List.copyOf(projected));row.put("anchorShiftPixels",Double.isFinite(shift)?shift:null);
+                    row.put("pixelWitness",ordinary?"same frame around native hand draw":"matched empty cockpit frame");
+                    if(pixels[0]<12||shift>2||projected.isEmpty()){Path directory=c.runDirectory.toPath().resolve("weapon-presentation-frames");Files.createDirectories(directory);
                         String invalid=name+"-failed-frame"+frames+".png";image.writeTo(directory.resolve(invalid));row.put("png","weapon-presentation-frames/"+invalid);ROWS.add(row);
+                        require(!projected.isEmpty(),"actual selected model submits projected geometry");
                         require(pixels[0]>=12,"actual selected model produces foreground pixels in its world viewport");require(shift<=2,"three fresh stationary model frames keep the same screen anchor: "+shift+" pixels");}
-                    lastX=x;lastY=y;}
+                    lastProjection=List.copyOf(projected);}
                 if(inventory||equipment){var menu=(HandledScreen<?>)c.currentScreen;int x=(menu.width-176)/2,y=(menu.height-(equipment?212:166))/2;var counts=new LinkedHashMap<String,Integer>();
                     for(var slot:menu.getScreenHandler().slots){String item=id(slot.getStack());if(Arrays.stream(ITEMS).noneMatch(it->slot.getStack().isOf(it)))continue;require(gui.contains(item),"actual GUI draws a nonmissing item model");int pixels=icon(image,x+slot.x,y+slot.y,c);require(pixels>=6,"actual item-icon ROI contains visible sprite pixels for "+item);counts.put(item,pixels);}
                     require(counts.size()==3,"all three actual representative item icons are visible and synchronized");row.put("icons",counts);if(equipment){int content=icon(image,x+82,y+42,c);row.put("previewProbePixels",content);}}
@@ -208,6 +232,6 @@ public final class NativeWeaponPresentationCheck {
         if(done)return;done=true;if(pressed!=null)pressed.setPressed(false);if(DescentKeybinds.rollRight!=null)DescentKeybinds.rollRight.setPressed(false);
         try{var result=new LinkedHashMap<String,Object>();result.put("status",status);result.put("failure",failure);result.put("phase",phase);result.put("profile",profile);result.put("rows",ROWS);result.put("inputs",INPUTS);result.put("serverView",view);result.put("sourceBinding",System.getProperty("drmd.gate.weaponPresentationSource","UNBOUND"));result.put("glRenderer",GL11.glGetString(GL11.GL_RENDERER));result.put("scope","3 representative registered items; ordinary+empty-hand6DoF primary, real hotbar/E/N/H/roll and slot packets, Native+PS1 atFOV80; no new firing/per-ID/FOV/mounted matrix claim");
             Files.writeString(c.runDirectory.toPath().resolve("weapon-presentation-result.json"),new GsonBuilder().setPrettyPrinting().create().toJson(result)+"\n");
-        }catch(Exception e){e.printStackTrace();}finally{if(ordinaryBackground!=null)ordinaryBackground.close();if(flightBackground!=null)flightBackground.close();}System.out.println("WEAPON_PRESENTATION_OUTCOME "+status+" "+failure);c.scheduleStop();
+        }catch(Exception e){e.printStackTrace();}finally{if(beforeHand!=null)beforeHand.close();if(flightBackground!=null)flightBackground.close();}System.out.println("WEAPON_PRESENTATION_OUTCOME "+status+" "+failure);c.scheduleStop();
     }
 }
