@@ -335,6 +335,7 @@ public final class FlightSystem {
         boolean releaseVehicle=player.getVehicle() instanceof PyroShipEntity;
         Vec3d previousUp=com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(player);
         data.setEnabled(false);
+        com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.discontinuity(player);
         if(player.getVehicle() instanceof PyroShipEntity) player.stopRiding();
         clearInput(player.getUuid());
         data.setThrustSpool(0); data.setIdleTimer(0); data.setGravityFactor(0);

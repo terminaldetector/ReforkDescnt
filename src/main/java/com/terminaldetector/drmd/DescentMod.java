@@ -301,6 +301,7 @@ public class DescentMod implements ModInitializer {
             com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(player.getUuid());
             com.terminaldetector.drmd.world.LocalOrientation.clear(player.getUuid());
             FlightSystem.clearInput(player.getUuid());
+            com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.discontinuity(player);
             com.terminaldetector.drmd.inventory.DroneArsenal.clear(player.getUuid());
             player.calculateDimensions();
             ModNetworking.syncPlayer(player, DescentPlayerData.get(player));

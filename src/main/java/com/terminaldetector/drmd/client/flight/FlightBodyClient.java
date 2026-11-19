@@ -18,16 +18,19 @@ import java.util.*;
 public final class FlightBodyClient {
     private record Prediction(Vec3 impulse,DynamicBodyAttachment.State state) {}
     private static final NavigableMap<Integer,Prediction> HISTORY=new TreeMap<>();
+    private static final BoardingEpochBarrier TRANSFERS=new BoardingEpochBarrier();
     private static Object world;private static int epoch=-1,sequence;private static boolean active;
     private static Vec3 correction=new Vec3(0,0,0),lastVelocity;
     private static FlightBodyNetworking.State waitingForShape;
     private FlightBodyClient(){}
     public static void register() {
         ClientPlayNetworking.registerGlobalReceiver(FlightBodyNetworking.State.ID,(p,c)->c.client().execute(()->apply(p)));
-        ClientPlayConnectionEvents.DISCONNECT.register((h,c)->clear());ClientPlayConnectionEvents.JOIN.register((h,s,c)->clear());
+        ClientPlayConnectionEvents.DISCONNECT.register((h,c)->resetConnection());ClientPlayConnectionEvents.JOIN.register((h,s,c)->resetConnection());
         net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(c->{if(waitingForShape!=null&&c.world!=null&&ready(waitingForShape)){var packet=waitingForShape;waitingForShape=null;apply(packet);}});
     }
     public static void clear(){world=null;epoch=-1;sequence=0;active=false;HISTORY.clear();correction=new Vec3(0,0,0);lastVelocity=null;waitingForShape=null;}
+    private static void resetConnection(){TRANSFERS.reset();clear();}
+    public static void externalTeleport(){TRANSFERS.retireSeen();clear();}
     public static boolean active(){return active;}
     public static int pending(){return HISTORY.size();}
     public static int sequence(){return sequence;}
@@ -93,15 +96,15 @@ public final class FlightBodyClient {
     private static void apply(FlightBodyNetworking.State packet) {
         var mc=MinecraftClient.getInstance();var p=mc.player;
         if(p==null||mc.world==null||!mc.world.getRegistryKey().getValue().equals(packet.dimension())||!DescentClientState.enabled)return;
-        if(world!=null&&world!=mc.world)clear();if(packet.epoch()<epoch)return;
-        if(packet.active()&&!ready(packet)){waitingForShape=packet;return;}
-        waitingForShape=null;
+        if(world!=null&&world!=mc.world)clear();
+        if(packet.epoch()<epoch||!TRANSFERS.accepts(packet.epoch()))return;
         var velocity=new Vec3(packet.vx(),packet.vy(),packet.vz());var feet=new Vec3(packet.x(),packet.y(),packet.z());
         if(!Double.isFinite(feet.lengthSquared())||!Double.isFinite(velocity.lengthSquared()))return;
+        TRANSFERS.observe(packet.epoch());
+        if(packet.active()&&!ready(packet)){waitingForShape=packet;return;}
+        waitingForShape=null;
         if(epoch!=packet.epoch()||!active||packet.acknowledgment()>=sequence) {
-            // A portal/authoritative placement can clear local prediction while an old clock
-            // still drains. Resume above the acknowledged sequence instead of deadlocking a
-            // new zero-based history behind already accepted commands.
+            // Prediction can rejoin a live lease at the first unacknowledged command.
             world=mc.world;epoch=packet.epoch();sequence=Math.max(0,packet.acknowledgment()+1);HISTORY.clear();
         }
         active=packet.active();HISTORY.headMap(packet.acknowledgment(),true).clear();

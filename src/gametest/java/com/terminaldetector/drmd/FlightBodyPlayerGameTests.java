@@ -87,6 +87,30 @@ public final class FlightBodyPlayerGameTests implements FabricGameTest {
             c.assertTrue(next>old&&!FlightBodySystem.receive(f.p,new FlightBodyNetworking.Input(old,1))&&FlightBodySystem.receive(f.p,new FlightBodyNetworking.Input(next,0)),"old portal-frame commands cannot poison a new lease");
         }c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="flight-body-native-teleport")
+    public void teleportThroughTheNetworkHandlerRetiresOldFlightCommands(TestContext c) {
+        try(var f=fixture(c)) {
+            f.phase();
+            int oldEpoch=FlightBodySystem.epoch(f.p);
+            var before=DescentPlayerData.get(f.p).getFlightVelocity();
+            c.assertTrue(oldEpoch>0&&FlightBodySystem.receive(f.p,new FlightBodyNetworking.Input(oldEpoch,0)),
+                "real lease contains an accepted command before the transfer");
+
+            var destination=f.p.getPos().add(1,2,0);
+            f.p.networkHandler.requestTeleport(destination.x,destination.y,destination.z,0,0,Set.of());
+            c.assertTrue(f.p.getPos().equals(destination)&&FlightBodySystem.epoch(f.p)<0
+                &&DescentPlayerData.get(f.p).getFlightVelocity().equals(before),
+                "vanilla owns the transfer and retires the older contact clock without changing flight velocity");
+            c.assertTrue(!FlightBodySystem.receive(f.p,new FlightBodyNetworking.Input(oldEpoch,1)),
+                "late pre-teleport command is rejected");
+
+            f.phase();
+            int newEpoch=FlightBodySystem.epoch(f.p);
+            c.assertTrue(newEpoch>oldEpoch&&FlightBodySystem.acknowledgment(f.p)==-1
+                &&FlightBodySystem.receive(f.p,new FlightBodyNetworking.Input(newEpoch,0)),
+                "a fresh physical phase admits the new sequence with an empty queue");
+        }c.complete();
+    }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="flight-body-network")
     public void vanillaPositionCannotOverwriteARealFlightContactAndClockIsBounded(TestContext c) {
         try(var f=fixture(c)) {

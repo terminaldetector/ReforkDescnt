@@ -17,7 +17,10 @@ public abstract class BoardingServerMovementMixin implements BoardingConnection 
     @Shadow public abstract void syncWithPlayerPosition();
     @Override public void drmd$bodyMovementOwned(){floating=false;floatingTicks=0;syncWithPlayerPosition();}
     @Inject(method="requestTeleport(DDDFFLjava/util/Set;)V",at=@At("HEAD"))
-    private void externalPosition(CallbackInfo ci){BoardingSystem.externalTeleport(player);}
+    private void externalPosition(CallbackInfo ci) {
+        BoardingSystem.externalTeleport(player);
+        FlightBodySystem.discontinuity(player);
+    }
     @Inject(method="onPlayerMove",at=@At("HEAD"),cancellable=true)
     private void bodyMove(PlayerMoveC2SPacket packet,CallbackInfo ci) {
         var handler=(ServerPlayNetworkHandler)(Object)this;
