@@ -3,6 +3,7 @@ package com.terminaldetector.drmd.client.render;
 import com.terminaldetector.drmd.entity.FlightEnemyEntity;
 import com.terminaldetector.drmd.entity.FlightEnemyKind;
 import com.terminaldetector.drmd.entity.model.FlightEnemyMesh;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.*;
 import net.minecraft.client.util.math.MatrixStack;
@@ -21,9 +22,25 @@ public final class FlightEnemyRenderer extends EntityRenderer<FlightEnemyEntity>
         matrices.push();matrices.translate(0,entity.getHeight()*.5,0);matrices.multiply(q);float bodyScale=entity.getScale();matrices.scale(bodyScale,bodyScale,bodyScale);
         var vertices=consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(WHITE));var entry=matrices.peek();
         boolean detail = com.terminaldetector.drmd.ai.DroneFlightDetail.showSmallHullDetails(dispatcher.getSquaredDistanceToCamera(entity));
-        for(var face:FlightEnemyMesh.faces(kind, detail))for(int i=0;i<4;i++) {
-            var p=face.vertices().get(Math.min(i,face.vertices().size()-1));var n=face.normal();
-            vertices.vertex(entry,p.x(),p.y(),p.z()).color(0xff000000|face.rgb()).texture(0,0).overlay(OverlayTexture.DEFAULT_UV).light(face.emissive()?15728880:light).normal(entry,n.x(),n.y(),n.z());
+        double cameraX=Double.NaN,cameraY=Double.NaN,cameraZ=Double.NaN;
+        var client=MinecraftClient.getInstance();
+        if(!detail&&client.currentScreen==null&&Float.isFinite(bodyScale)&&bodyScale>0){
+            // The active Camera is borrowed/restored by actual mirror/portal views too.
+            // Subtract double world positions before the float quaternion transform.
+            var camera=client.gameRenderer.getCamera().getPos();
+            double x=(camera.x-MathHelper.lerp(delta,entity.prevX,entity.getX()))/bodyScale;
+            double y=(camera.y-MathHelper.lerp(delta,entity.prevY,entity.getY())-entity.getHeight()*.5)/bodyScale;
+            double z=(camera.z-MathHelper.lerp(delta,entity.prevZ,entity.getZ()))/bodyScale;
+            var local=q.transformInverse(new org.joml.Vector3f((float)x,(float)y,(float)z));
+            cameraX=local.x;cameraY=local.y;cameraZ=local.z;
+        }
+        for(var face:FlightEnemyMesh.faces(kind, detail)){
+            if(!FlightEnemyMesh.emitFace(kind,face,detail,cameraX,cameraY,cameraZ))continue;
+            var n=face.normal();
+            for(int i=0;i<4;i++){
+                var p=face.vertices().get(Math.min(i,face.vertices().size()-1));
+                vertices.vertex(entry,p.x(),p.y(),p.z()).color(0xff000000|face.rgb()).texture(0,0).overlay(OverlayTexture.DEFAULT_UV).light(face.emissive()?15728880:light).normal(entry,n.x(),n.y(),n.z());
+            }
         }
         matrices.pop();
         if(entity instanceof com.terminaldetector.drmd.entity.TeleportFlyerEntity flyer

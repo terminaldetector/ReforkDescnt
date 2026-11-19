@@ -26,13 +26,30 @@ class FlightEnemyMeshTest {
     @Test void meshesStayInsideTheSmallPerAgentFaceBudget() {
         for(var kind:FlightEnemyKind.values()){int n=FlightEnemyMesh.faces(kind).size();assertTrue(n>=8&&n<=24);}
     }
-    @Test void orbClosedHullNormalsPointOutward(){outward(FlightEnemyKind.ORB);}
-    @Test void jetClosedHullNormalsPointOutward(){outward(FlightEnemyKind.JET);}
-    private static void outward(FlightEnemyKind kind){
-        // Both convex hulls contain the local origin; each outward plane must face away from it.
-        for(var face:FlightEnemyMesh.faces(kind).subList(0,8)){
-            var p=face.vertices().getFirst();var n=face.normal();
-            assertTrue(p.x()*n.x()+p.y()*n.y()+p.z()*n.z()>0,"outward lit surface: "+kind+" face="+face);
+    @Test void everyClosedHullPlaneFacesAwayFromTheLocalOrigin(){
+        for(var kind:FlightEnemyKind.values()){
+            long closed=0;
+            for(var face:FlightEnemyMesh.faces(kind)){
+                if(!face.closedHull())continue;
+                closed++;
+                var p=face.vertices().getFirst();var n=face.normal();
+                assertTrue(p.x()*n.x()+p.y()*n.y()+p.z()*n.z()>0,"outward lit surface: "+kind+" face="+face);
+            }
+            assertTrue(closed>=8,kind.toString());
         }
+    }
+    @Test void distantClosedHullDropsBackFacesWhileTheRocketFinsRemainTwoSided(){
+        for(var kind:FlightEnemyKind.values()){
+            var faces=FlightEnemyMesh.faces(kind,false);
+            long visible=faces.stream().filter(f->FlightEnemyMesh.emitFace(kind,f,false,100,30,-60)).count();
+            assertTrue(visible>0&&visible<faces.size(),kind.toString());
+            assertTrue(faces.stream().allMatch(f->FlightEnemyMesh.emitFace(kind,f,true,100,30,-60)));
+            assertTrue(faces.stream().allMatch(f->FlightEnemyMesh.emitFace(kind,f,false,0,0,0)));
+        }
+        var kind=FlightEnemyKind.ROCKET;
+        var fins=FlightEnemyMesh.faces(kind,false).stream().filter(f->!f.closedHull()).toList();
+        assertEquals(4,fins.size());
+        assertTrue(fins.stream().allMatch(f->FlightEnemyMesh.emitFace(kind,f,false,0,100,0)
+            &&FlightEnemyMesh.emitFace(kind,f,false,0,-100,0)));
     }
 }
