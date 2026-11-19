@@ -292,6 +292,45 @@ public final class FootGravityRecoveryGameTests implements FabricGameTest {
         }
         c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="foot-native-reconnect")
+    public void nativeDisconnectAndReloginLoadTheSavedPlayerWithoutTheOldTorchLease(TestContext c) {
+        var world = c.getWorld();
+        var manager = world.getServer().getPlayerManager();
+        var at = c.getAbsolutePos(new BlockPos(5, 20, 5));
+        var old = world.getBlockState(at);
+        var uuid = UUID.randomUUID();
+        var owner = gravityWalker(c, "gravity-rejoin", uuid);
+        var first = owner.player();
+        boolean disconnected = false;
+        try {
+            DescentPlayerData.get(first).setEnabled(false);
+            first.getAbilities().flying = false;
+            first.setNoGravity(false);
+            first.setPosition(Vec3d.ofCenter(at).add(0, 1, 0));
+            world.setBlockState(at, com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState()
+                .with(com.terminaldetector.drmd.world.gravity.GravityTorchBlock.FACING, net.minecraft.util.math.Direction.EAST), 3);
+            FootGravitySystem.adoptAt(first, first.getPos());
+            c.assertTrue(FootGravitySystem.isActive(first) && first.hasNoGravity(), "a real torch owns the connected actor before logout");
+            first.networkHandler.onDisconnected(new net.minecraft.network.DisconnectionInfo(net.minecraft.text.Text.literal("gravity lifecycle fixture")));
+            disconnected = true;
+            c.assertTrue(manager.getPlayer(uuid) == null && !FootGravitySystem.isActive(first),
+                "the real disconnect path unloads the old actor and releases its torch lease");
+
+            try (var restored = gravityWalker(c, "gravity-rejoin", uuid)) {
+                var second = restored.player();
+                c.assertTrue(second != first && manager.getPlayer(uuid) == second && second.getPos().squaredDistanceTo(at.toCenterPos()) < 16,
+                    "the next native login restores the same UUID to its saved location");
+                c.assertTrue(!FootGravitySystem.isActive(second) && !second.hasNoGravity()
+                    && second.getBoundingBox().getLengthY() > 1.7 && second.getEyePos().y - second.getY() > 1.5,
+                    "restored actor initially has ordinary gravity without inheriting the previous session's frame");
+            }
+        } finally {
+            world.setBlockState(at, old, 3);
+            if (disconnected) owner.channel().finishAndReleaseAll();
+            else owner.close();
+        }
+        c.complete();
+    }
     private record GravityWalker(net.minecraft.server.network.ServerPlayerEntity player,io.netty.channel.embedded.EmbeddedChannel channel) implements AutoCloseable {
         @Override public void close() {
             FootGravitySystem.forget(player.getUuid());com.terminaldetector.drmd.world.LocalOrientation.clear(player.getUuid());
@@ -299,7 +338,10 @@ public final class FootGravityRecoveryGameTests implements FabricGameTest {
         }
     }
     private static GravityWalker gravityWalker(TestContext c,String name) {
-        var world=c.getWorld();var profile=new com.mojang.authlib.GameProfile(UUID.randomUUID(),name);
+        return gravityWalker(c, name, UUID.randomUUID());
+    }
+    private static GravityWalker gravityWalker(TestContext c, String name, UUID uuid) {
+        var world=c.getWorld();var profile=new com.mojang.authlib.GameProfile(uuid,name);
         var options=net.minecraft.server.network.ConnectedClientData.createDefault(profile,false);
         var player=new net.minecraft.server.network.ServerPlayerEntity(world.getServer(),world,profile,options.syncedOptions());
         var connection=new net.minecraft.network.ClientConnection(net.minecraft.network.NetworkSide.SERVERBOUND);
