@@ -62,7 +62,9 @@ public final class BlastStructuralCollapse {
     public static void impact(ServerWorld world,BlockPos pos,Vec3d impact,float damage,Entity attacker){
         if(!enabled(world)||!WorldEditSafety.mayChange(world,pos,attacker))return;
         var state=WorldAccess.of(world).readIfLoaded(pos);
-        if(state.isEmpty()||!buildingMaterial(state.get())||!canBreak(world,pos,state.get(),damage))return;
+        // Log beams that belong to a building can fail the tree-specific cut.
+        // They are still load-bearing material for the ordinary structural solver.
+        if(state.isEmpty()||!inert(state.get())||!canBreak(world,pos,state.get(),damage))return;
         if(world.breakBlock(pos,true,attacker))finish(world,List.of(pos),impact,damage/24,
             p->WorldEditSafety.mayChange(world,p,attacker));
     }
