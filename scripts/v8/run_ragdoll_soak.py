@@ -54,6 +54,32 @@ def inflate(data,kind):
     else:raise RuntimeError('unsupported Anvil compression '+str(kind))
     need(len(r)<=MAX_NBT,'inflated NBT cap');return r
 
+def exact_saved_physical_ownership(world,corpses,roofs):
+    """Read-only exact fixture admission. Caller holds closed-world session locks.
+    Ambient ItemEntities never participate in these physical owner sets.
+    """
+    physical={'drmd:ragdoll':set(),'drmd:block_body':set()};seen=set();regions=[]
+    for path in sorted(world.rglob('entities/*.mca')):
+        before=path.stat();b=path.read_bytes()
+        if not b:
+            after=path.stat();need((before.st_ino,before.st_size,before.st_mtime_ns)==(after.st_ino,after.st_size,after.st_mtime_ns),'empty physical region mutated during read');regions.append({'path':str(path.relative_to(world)),'bytes':0,'sha256':hashlib.sha256(b).hexdigest(),'inode':before.st_ino,'mtimeNs':before.st_mtime_ns,'emptyEntityRegion':True});continue
+        need(len(b)>=8192,'nonzero truncated physical-owner Anvil header')
+        for i in range(1024):
+            offset=int.from_bytes(b[i*4:i*4+3],'big')*4096;sectors=b[i*4+3]
+            if not offset:continue
+            need(offset>=8192 and offset+5<=len(b),'physical-owner chunk address');n=int.from_bytes(b[offset:offset+4],'big');need(1<n<=sectors*4096-4 and offset+4+n<=len(b),'physical-owner chunk length')
+            kind=b[offset+4];need(not kind&128,'physical-owner external entity chunk unsupported')
+            tree=NBT(inflate(b[offset+5:offset+4+n],kind)).root()
+            for entity in val(tree,'Entities',[]):
+                kind=val(entity,'id')
+                if kind not in physical:continue
+                identity=uid(entity);need(identity not in seen,'duplicate durable physical UUID '+identity);seen.add(identity);physical[kind].add(identity)
+        after=path.stat();need((before.st_ino,before.st_size,before.st_mtime_ns)==(after.st_ino,after.st_size,after.st_mtime_ns),'closed physical region mutated during read')
+        regions.append({'path':str(path.relative_to(world)),'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()})
+    result={'schema':1,'expectedCorpses':sorted(corpses),'actualCorpses':sorted(physical['drmd:ragdoll']),'expectedRoofs':sorted(roofs),'actualRoofs':sorted(physical['drmd:block_body']),'regions':regions,'ambientItems':'excluded from exact physical owner sets'}
+    result['pass']=physical['drmd:ragdoll']==set(corpses) and physical['drmd:block_body']==set(roofs)
+    return result
+
 def closed_input(runtime,attempt):
     world=runtime/'world';need((world/'level.dat').is_file(),'original saved level.dat required')
     with contextlib.ExitStack() as stack:
@@ -68,9 +94,12 @@ def closed_input(runtime,attempt):
             if 'Roof' in row['value']:roofs.add(uid(row,'Roof'))
             for body in val(row,'ColdBodies',[]):corpses.add(uid(body,'Id'))
             floors.append(val(row,'CohortFloor'))
-        need(len(corpses)==2,'exact two actual TNT corpse UUIDs from saved receipt');wanted=roofs|corpses;found={};items={};chunks=0
+        need(len(corpses)==2,'exact two actual TNT corpse UUIDs from saved receipt');wanted=roofs|corpses;found={};items={};chunks=0;empty_regions=[]
         for region in sorted(world.rglob('entities/*.mca')):
-            b=region.read_bytes();need(len(b)>=8192,'Anvil header required')
+            before=region.stat();b=region.read_bytes()
+            if not b:
+                after=region.stat();need((before.st_ino,before.st_size,before.st_mtime_ns)==(after.st_ino,after.st_size,after.st_mtime_ns),'empty entity region mutated during read');empty_regions.append({'path':str(region.relative_to(world)),'bytes':0,'sha256':hashlib.sha256(b).hexdigest(),'inode':before.st_ino,'mtimeNs':before.st_mtime_ns});continue
+            need(len(b)>=8192,'nonzero truncated Anvil header required')
             for i in range(1024):
                 offset=int.from_bytes(b[i*4:i*4+3],'big')*4096;sectors=b[i*4+3]
                 if not offset:continue
@@ -93,6 +122,8 @@ def closed_input(runtime,attempt):
         for entity in items.values():
             stack=entity['value']['Item'];kind=val(stack,'id');amount=val(stack,'count',val(stack,'Count'));need(isinstance(amount,int) and amount>0,'actual saved positive stack count');actual_drops[kind]=actual_drops.get(kind,0)+amount
         need(actual_drops=={k:n['value'] for k,n in expected_drops['value'].items()},'actual saved final-region drop quantities differ from last ordinary prepare receipt: '+str(actual_drops))
+        physical=exact_saved_physical_ownership(world,corpses,roofs);save(attempt/'prepare-world-ownership.json',physical)
+        need(physical['pass'],'exact closed fixture has missing/extra corpse or roof ownership; prepare-world-ownership.json preserves actual sets')
         need(set(found)==wanted,'saved real entities missing: '+str(sorted(wanted-set(found))))
         selected=sorted(found.items(),key=lambda kv:(0 if kv[0] in corpses else 1,kv[0]))+list(sorted(items.items()));need(0<len(selected)<=512,'cold entity cap512')
         name=b'Entities';payload=b'\x0a\x00\x00'+b'\x09'+struct.pack('>H',len(name))+name+b'\x0a'+struct.pack('>i',len(selected))+b''.join(n['raw'] for _,n in selected)+b'\x00'
@@ -105,7 +136,7 @@ def closed_input(runtime,attempt):
             if not path.is_file():continue
             st=path.stat();digest=sha(path);after=path.stat();need((st.st_ino,st.st_size,st.st_mtime_ns)==(after.st_ino,after.st_size,after.st_mtime_ns),'closed world mutated during hash')
             before.append({'path':str(path.relative_to(world)),'bytes':st.st_size,'sha256':digest,'inode':st.st_ino,'mtimeNs':st.st_mtime_ns})
-        save(attempt/'cold-inputs.json',{'schema':1,'input':str(output),'sha256':sha(output),'entities':[{'uuid':eid,'type':val(n,'id'),'payloadSha256':hashlib.sha256(n['raw']).hexdigest()} for eid,n in selected],'savedRoofs':sorted(roofs),'savedCorpses':sorted(corpses),'savedDrops':len(items),'entityChunks':chunks,'world':before,'source':val(state,'Source'),'run':uid(state,'Run'),'prepareStatus':val(state,'Status'),'elapsedNanos':val(state,'ElapsedNanos')})
+        save(attempt/'cold-inputs.json',{'schema':1,'input':str(output),'sha256':sha(output),'entities':[{'uuid':eid,'type':val(n,'id'),'payloadSha256':hashlib.sha256(n['raw']).hexdigest()} for eid,n in selected],'savedRoofs':sorted(roofs),'savedCorpses':sorted(corpses),'savedDrops':len(items),'entityChunks':chunks,'zeroByteEntityRegions':empty_regions,'admissionHelperSha256':sha(__file__),'world':before,'source':val(state,'Source'),'run':uid(state,'Run'),'prepareStatus':val(state,'Status'),'elapsedNanos':val(state,'ElapsedNanos')})
         return output
 
 def validate_xml(path):
@@ -164,13 +195,21 @@ def main():
         save(attempt/'prepare-closed.json',{'actualLastChildClosed':True,'result':result,'launchReceiptSha256':sha(attempt/'launch-inputs.json')})
     if o.phase=='prepare':print('PREPARE CLOSED; cold remains OPEN',flush=True);return
     need((attempt/'prepare-closed.json').is_file(),'first process verified closed');receipt=json.loads((attempt/'launch-inputs.json').read_text());need(receipt['source']==o.source,'same source');verify_inputs(receipt)
-    need(not (attempt/'cold-child.json').exists() and not (attempt/'cold.log').exists(),'first cold attempt already exists; inputs/failure preserved, no retry')
+    need(not any((attempt/name).exists() for name in ('cold-child.json','cold.log','cold-inputs.json','prepare-world-ownership.json')),'first cold attempt already exists; inputs/failure preserved, no retry')
     saved=closed_input(runtime,attempt)
     original=receipt['allJvmArgs'];jvm=[v for v in original if not v.startswith(('-Ddrmd.lifecycle.mode=','-Ddrmd.lifecycle.savedInput='))]
     # Original actual output directories and launch config were copied BEFORE first server start.
     jvm+=['-Ddrmd.lifecycle.mode=cold','-Ddrmd.lifecycle.savedInput='+str(saved)]
     child(game_command(receipt,jvm),runtime,attempt,'cold',1800);validate_xml(runtime/'reports/gametest-results.xml');verify_inputs(receipt)
     result=json.loads((runtime/'lifecycle-proof/cold-result.json').read_text());need(result['source']==o.source and result['status'] in ('SHORT_COLD_PROOF_PASS','TWO_HOUR_SOAK_AND_COLD_PASS'),'actual cold result')
+    # The actual cold server has closed; neither its two expired corpses nor old128 ghosts may persist.
+    expected=json.loads((attempt/'cold-inputs.json').read_text())
+    with contextlib.ExitStack() as locks:
+        for lock in sorted((runtime/'world').rglob('session.lock')):
+            f=locks.enter_context(open(lock,'r+b'));fcntl.lockf(f,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        physical=exact_saved_physical_ownership(runtime/'world',set(),set(expected['savedRoofs']));save(attempt/'cold-world-ownership.json',physical)
+        need(physical['pass'],'actual cold save retained expired/extra corpse or lost/duplicated roof; cold-world-ownership.json preserves actual sets')
+
     save(attempt/'FINAL.json',{'result':result,'coldInputReceiptSha256':sha(attempt/'cold-inputs.json'),'launchReceiptSha256':sha(attempt/'launch-inputs.json'),'worldRetained':str(runtime/'world'),'actualAllChildrenClosed':True});print(json.dumps(result),flush=True)
 
 if __name__=='__main__':
