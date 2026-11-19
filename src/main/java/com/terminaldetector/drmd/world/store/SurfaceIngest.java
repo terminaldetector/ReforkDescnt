@@ -21,14 +21,10 @@ import java.nio.file.Path;
  * replaces whatever was there — which is what lets the map follow demolition instead of remembering
  * the tallest thing that ever stood in it.
  *
- * <p>Sampling is an 8×8 grid rather than all 256 columns: the cell keeps a single height in the end,
- * and sixty-four probes already find any tower worth a silhouette. Colour comes from the same column
- * that won the height, through vanilla's own map colours, so the horizon and a filled-in map agree
- * about what the ground is.
+ * <p>One pass over the chunk's existing heightmap finds the actual top, including narrow
+ * structures between the old sample points. Colour comes from that winning column.
  */
 public final class SurfaceIngest {
-	/** Probes per axis inside a chunk. */
-	private static final int SAMPLES = 8;
 	/** Coarse sections rebuilt per tick — the climb up the levels is spread over ticks. */
 	private static final int REBUILD_PER_TICK = 4;
 	/** Ticks between flushes of everything dirty. */
@@ -119,16 +115,15 @@ public final class SurfaceIngest {
 
 		int baseX = chunk.getPos().getStartX();
 		int baseZ = chunk.getPos().getStartZ();
-		int step = 16 / SAMPLES;
 		int bestY = Integer.MIN_VALUE;
 		int bestX = baseX;
 		int bestZ = baseZ;
 
-		for (int sx = 0; sx < SAMPLES; sx++) {
-			for (int sz = 0; sz < SAMPLES; sz++) {
-				int x = baseX + sx * step;
-				int z = baseZ + sz * step;
-				int y = chunk.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, x, z);
+		for (int sx = 0; sx < 16; sx++) {
+			for (int sz = 0; sz < 16; sz++) {
+				int x = baseX + sx;
+				int z = baseZ + sz;
+				int y = chunk.sampleHeightmap(Heightmap.Type.WORLD_SURFACE, x, z);
 				if (y > bestY) {
 					bestY = y;
 					bestX = x;
@@ -143,13 +138,21 @@ public final class SurfaceIngest {
 		// A retained native column can have an unavailable winning Y cube. Keep the
 		// prior observation until that actual volume is FULL; placeholder AIR is unknown.
 		if (!WorldAccess.of(world).isVolumeAvailable(
-				D6ChunkPos.ofBlock(top.getX(), top.getY(), top.getZ()))) return;
+				D6ChunkPos.ofBlock(top.getX(), top.getY(), top.getZ()))) {
+			if (world == storeWorld) nativePending.offer(chunk.getPos().toLong());
+			return;
+		}
 		int rgb = colourAt(world, chunk, top);
-		live.set(baseX, baseZ, storedSurfaceHeight(bestY, world.getBottomY()), rgb);
+		if (live.set(baseX, baseZ, storedSurfaceHeight(bestY, world.getBottomY()), rgb))
+			SurfaceStreamer.invalidate(SectionKey.of(0,SectionKey.sectionOf(baseX,0),SectionKey.sectionOf(baseZ,0)));
 		if (world == storeWorld) nativePending.acknowledge(chunk.getPos().toLong());
 	}
 
-	/** Only metadata is inspected until the current highest sample's actual Y cube is FULL. */
+	/** Initial load and edits share the same per-tick sample budget. */
+	public static void queueChunkLoad(ServerWorld world,WorldChunk chunk) {
+		if (world == storeWorld && store != null) dirtyChunks.add(chunk.getPos().toLong());
+	}
+
 	private static void queueReadyNative(ServerWorld world) {
 		if (world != storeWorld || !CubicAvailability.onWorldThread(world)) return;
 		for (long key : nativePending.rotate(NATIVE_PROBES_PER_TICK)) {
@@ -160,13 +163,7 @@ public final class SurfaceIngest {
 			// Ordinary edits keep their existing policy; native events cannot grow that
 			// backlog beyond this bound, and remain pending while it is congested.
 			if (dirtyChunks.size() >= MAX_NATIVE_PENDING) continue;
-			int bestY = Integer.MIN_VALUE, step = 16 / SAMPLES;
-			for (int x = 0; x < SAMPLES; x++) for (int z = 0; z < SAMPLES; z++)
-				bestY = Math.max(bestY, chunk.sampleHeightmap(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
-						pos.getStartX() + x * step, pos.getStartZ() + z * step));
-			if (bestY == Integer.MIN_VALUE) continue;
-			var winner = D6ChunkPos.ofBlock(pos.getStartX(), Math.max(world.getBottomY(), bestY), pos.getStartZ());
-			if (WorldAccess.of(world).isVolumeAvailable(winner)) dirtyChunks.add(key);
+			dirtyChunks.add(key);
 		}
 	}
 
@@ -218,11 +215,8 @@ public final class SurfaceIngest {
             var loaded=CubicAvailability.loadedColumn(world,pos.x,pos.z);
             if(loaded==null) continue; // Parent reopen/native arrivals can schedule later refreshes.
             onChunkLoad(world,loaded);
-            for(int level=0;level<=SectionKey.MAX_LEVEL;level++)
-                SurfaceStreamer.invalidate(SectionKey.of(level,
-                    SectionKey.sectionOf(pos.getStartX(),level),SectionKey.sectionOf(pos.getStartZ(),level)));
         }
-		live.rebuildDirty(REBUILD_PER_TICK);
+		live.rebuildDirty(REBUILD_PER_TICK,SurfaceStreamer::invalidate);
 		if (server.getTicks() % FLUSH_INTERVAL == 0) live.flush();
 	}
 }

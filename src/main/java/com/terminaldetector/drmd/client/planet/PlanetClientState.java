@@ -111,9 +111,9 @@ public final class PlanetClientState {
 	}
 
 	/** A section arrived. Anything already built is stale, because the ground under it changed. */
-	public void acceptSection(long key, byte[] data) {
+	public synchronized void acceptSection(long key, byte[] data) {
 		SurfaceSection section = SurfaceSection.fromBytes(data);
-		if (section == null) return;
+		if (section == null || section.sameData(observed.peek(key))) return;
 		observed.put(key, section);
 		invalidate();
 	}
@@ -213,18 +213,16 @@ public final class PlanetClientState {
 						seedNow, camX, eyeY, camZ, inner, reach, scarsNow, marksNow);
 				recordBuild(built, (System.nanoTime() - startedNanos) / 1_000_000L, camX, eyeY, camZ);
 
-				// Clear the flag, publish, then check whether the world moved under us — in that
-				// order, and not the obvious one. Checking first and clearing after loses an
-				// invalidation that lands in between, and the horizon then stops updating until the
-				// eye happens to move far enough to make the field stale on geometry alone.
-				//
-				// The field itself is published either way. A backdrop built from data one packet out
-				// of date is not something a pilot can see; a missing backdrop is.
 				synchronized(PlanetClientState.this) {
                     if(worldEpoch.get()==startedWorld && hasSeed) {
-                        dirty = false;
-                        mesh = built;
-                        if (generation.get() != startedGeneration) dirty = true;
+                        if (generation.get() == startedGeneration) {
+                            mesh = built;
+                            dirty = false;
+                        } else if (mesh == null) {
+                            // Bootstrap while the first sections arrive; later stale
+                            // workers cannot replace the currently displayed field.
+                            mesh = built;
+                        }
                     }
                 }
 			} catch (Throwable failure) {

@@ -63,13 +63,19 @@ public final class SurfaceSection {
 	 * <p>Unconditional, because a cell is one chunk and one ingest knows the whole answer for it.
 	 * A version that kept the taller of old and new could never let the world get shorter.
 	 */
-	public void set(int cellX, int cellZ, int worldHeight, int rgb) {
+	public boolean set(int cellX, int cellZ, int worldHeight, int rgb) {
 		int i = index(cellX, cellZ);
 		short h = (short) Math.max(Short.MIN_VALUE + 1, Math.min(Short.MAX_VALUE, worldHeight));
-		if (height[i] == h && colour[i] == (rgb & 0xFFFFFF)) return;
+		if (height[i] == h && colour[i] == (rgb & 0xFFFFFF)) return false;
 		height[i] = h;
 		colour[i] = rgb & 0xFFFFFF;
 		dirty = true;
+		return true;
+	}
+
+	public boolean sameData(SurfaceSection other) {
+		return other != null && java.util.Arrays.equals(height,other.height)
+				&& java.util.Arrays.equals(colour,other.colour);
 	}
 
 	/** True once anything at all has been seen over this section. */

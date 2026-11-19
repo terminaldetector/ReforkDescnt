@@ -117,6 +117,7 @@
       "com.terminaldetector.drmd.RoundedTreeGameTests",
       "com.terminaldetector.drmd.world.portal.DronePortalGameTests",
       "com.terminaldetector.drmd.BlastStructuralCollapseGameTests",
+      "com.terminaldetector.drmd.GeneratedWorldDestructionGameTests",
       "com.terminaldetector.drmd.ProgrammedClusterGameTests",
       "com.terminaldetector.drmd.DroneQuietSupportGameTests",
       "com.terminaldetector.drmd.LivingBodyContactGameTests",

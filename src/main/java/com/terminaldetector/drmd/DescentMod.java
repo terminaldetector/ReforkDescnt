@@ -255,7 +255,7 @@ public class DescentMod implements ModInitializer {
 				(world, chunk) -> {
 					com.terminaldetector.drmd.world.scar.ScarApplier.onChunkLoad(world, chunk);
 					com.terminaldetector.drmd.world.compat.NativeCubicSkylight.loaded(chunk);
-					com.terminaldetector.drmd.world.store.SurfaceIngest.onChunkLoad(world, chunk);
+					com.terminaldetector.drmd.world.store.SurfaceIngest.queueChunkLoad(world, chunk);
 				});
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {

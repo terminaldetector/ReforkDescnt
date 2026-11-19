@@ -197,8 +197,17 @@ class SurfaceStoreTest {
 		while (store.rebuildDirty(16) > 0) { /* drain */ }
 		assertEquals(250, store.heightAt(64, 64, 2), "the tower is in the coarse level");
 
-		store.set(64, 64, 70, 0x777777);
-		while (store.rebuildDirty(16) > 0) { /* drain */ }
+		assertTrue(store.set(64, 64, 70, 0x777777));
+		assertEquals(250, store.heightAt(64, 64, 2), "a queued parent still contains the old height");
+		var published = new java.util.ArrayList<Integer>();
+		while (store.rebuildDirty(1, key -> {
+			int level = SectionKey.level(key);
+			assertEquals(70, store.heightAt(64, 64, level), "the streamer can resubmit the new parent immediately");
+			published.add(level);
+		}) > 0) { /* drain */ }
+		assertEquals(java.util.stream.IntStream.rangeClosed(1, SectionKey.MAX_LEVEL).boxed().toList(), published);
+		assertFalse(store.set(64, 64, 70, 0x777777), "identical samples neither rebuild nor retransmit parents");
+		assertEquals(0, store.dirtyParentCount());
 		assertEquals(70, store.heightAt(64, 64, 2), "and comes back out of it once it is gone");
 		assertNotEquals(250, store.heightAt(64, 64, 4), "at every coarse level, not just the first");
 	}

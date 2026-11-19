@@ -77,9 +77,9 @@ public final class SurfaceStore {
 	 * <p>Only level 0 is written. The levels above it are marked for rebuild and done in
 	 * {@link #rebuildDirty}, on a budget, off the path of whatever is ingesting.
 	 */
-	public void set(int blockX, int blockZ, int worldHeight, int rgb) {
+	public boolean set(int blockX, int blockZ, int worldHeight, int rgb) {
 		long key = SectionKey.of(0, SectionKey.sectionOf(blockX, 0), SectionKey.sectionOf(blockZ, 0));
-		section(key).set(
+		boolean changed = section(key).set(
 				SectionKey.cellInSection(blockX, 0), SectionKey.cellInSection(blockZ, 0),
 				worldHeight, rgb);
 		// Only the immediate parent. Rebuilding it marks *its* parent, so the change climbs the
@@ -87,7 +87,8 @@ public final class SurfaceStore {
 		// the dirty set has no order, so level 2 could be rebuilt before level 1 exists, find no
 		// children, quietly build nothing — and it is out of the set by then, so nothing ever
 		// fixes it. That leaves the coarse rings of the horizon permanently empty.
-		markParent(key);
+		if (changed) markParent(key);
+		return changed;
 	}
 
 	private void markParent(long key) {
@@ -117,20 +118,25 @@ public final class SurfaceStore {
 	 * <p>Fresh section, four children folded in — so a parent can get shorter as well as taller.
 	 */
 	public int rebuildDirty(int budget) {
+		return rebuildDirty(budget,key -> {});
+	}
+
+	/** Publish a parent only after its new data is installed and available to the streamer. */
+	public int rebuildDirty(int budget, java.util.function.LongConsumer published) {
 		int done = 0;
 		var it = dirtyParents.iterator();
 		while (it.hasNext() && done < budget) {
 			long key = it.next();
 			it.remove();
-			rebuild(key);
+			if (rebuild(key)) published.accept(key);
 			done++;
 		}
 		return done;
 	}
 
-	private void rebuild(long key) {
+	private boolean rebuild(long key) {
 		int level = SectionKey.level(key);
-		if (level <= 0) return;
+		if (level <= 0) return false;
 		SurfaceSection parent = new SurfaceSection();
 		boolean any = false;
 		for (int qx = 0; qx < 2; qx++) {
@@ -143,13 +149,10 @@ public final class SurfaceStore {
 				any = true;
 			}
 		}
-		if (!any) return;
-		live.put(key, parent);
-		synchronized (residency) {
-			residency.addLast(key);
-		}
-		store(key, parent);
+		if (!any || parent.sameData(peek(key))) return false;
+		put(key,parent);
 		markParent(key);
+		return true;
 	}
 
 	private void evictIfCrowded() {

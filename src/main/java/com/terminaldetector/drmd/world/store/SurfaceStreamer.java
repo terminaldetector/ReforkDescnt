@@ -116,8 +116,8 @@ public final class SurfaceStreamer {
 	/**
 	 * Forget a section for everyone, so the next pass sends it again.
 	 *
-	 * <p>For when the ground itself changes — a reactor going up, a hillside coming down. Nothing
-	 * calls it yet; Stage 10 will.
+	 * <p>Ingestion calls this after installing new level-0 data, and the parent rebuild calls it
+	 * after each changed coarser section is ready to send.
 	 */
 	public static void invalidate(long key) {
 		for (Set<Long> keys : sent.values()) {
