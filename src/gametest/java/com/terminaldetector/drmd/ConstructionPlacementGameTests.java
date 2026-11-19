@@ -15,6 +15,51 @@ import java.util.List;
 
 /** Actual inventory/world transactions, not a second implementation of the placement policy. */
 public final class ConstructionPlacementGameTests implements FabricGameTest {
+    @GameTest(templateName=EMPTY_STRUCTURE, batchId="construction-draft-authority")
+    public void changingTheToolOrMaterialInvalidatesAnUnspentDraft(TestContext context) {
+        var world = context.getWorld();
+        var player = context.createMockCreativeServerPlayerInWorld();
+        player.changeGameMode(GameMode.SURVIVAL);
+        var at = context.getAbsolutePos(new BlockPos(5, 5, 5));
+        player.setPosition(Vec3d.ofCenter(at.east(3)));
+        var green = com.terminaldetector.drmd.entity.ModWorldBlocks.CONSTRUCTION_LASER_GREEN;
+        var purple = com.terminaldetector.drmd.entity.ModWorldBlocks.CONSTRUCTION_LASER_PURPLE;
+        var line = com.terminaldetector.drmd.world.build.ConstructShape.LINE;
+        var greenTier = com.terminaldetector.drmd.world.build.ConstructLaserTier.GREEN;
+        var purpleTier = com.terminaldetector.drmd.world.build.ConstructLaserTier.PURPLE;
+        try {
+            player.setStackInHand(Hand.OFF_HAND, new ItemStack(Blocks.IRON_BLOCK, 2));
+            player.setStackInHand(Hand.MAIN_HAND, new ItemStack(green));
+            com.terminaldetector.drmd.world.build.ConstructScaffold.setDraft(player, purpleTier, line, List.of(at));
+            context.assertTrue(!green.use(world, player, Hand.MAIN_HAND).getResult().isAccepted(),
+                    "a cheaper tool cannot confirm a different tier's draft");
+            context.assertTrue(world.getBlockState(at).isAir() && player.getOffHandStack().getCount() == 2,
+                    "tier rejection preserves the original cells and offhand");
+
+            com.terminaldetector.drmd.world.build.ConstructScaffold.setDraft(player, greenTier, line, List.of(at));
+            player.setStackInHand(Hand.OFF_HAND, new ItemStack(Blocks.STONE, 2));
+            context.assertTrue(!green.use(world, player, Hand.MAIN_HAND).getResult().isAccepted(),
+                    "a material change requires a new draft");
+            context.assertTrue(world.getBlockState(at).isAir() && player.getOffHandStack().getCount() == 2,
+                    "material rejection spends nothing");
+
+            com.terminaldetector.drmd.world.build.ConstructScaffold.setDraft(player, greenTier, line, List.of(at));
+            com.terminaldetector.drmd.world.build.ConstructionMode.set(player, false);
+            context.assertTrue(!com.terminaldetector.drmd.world.build.ConstructScaffold.hasDraft(player.getUuid()),
+                    "turning off construction clears the frame");
+
+            player.setStackInHand(Hand.MAIN_HAND, new ItemStack(purple));
+            com.terminaldetector.drmd.world.build.ConstructScaffold.setDraft(player, purpleTier, line, List.of(at));
+            context.assertTrue(purple.use(world, player, Hand.MAIN_HAND).getResult().isAccepted()
+                            && world.getBlockState(at).isOf(Blocks.STONE) && player.getOffHandStack().getCount() == 1,
+                    "a matching draft still confirms, places and spends one item");
+        } finally {
+            com.terminaldetector.drmd.world.build.ConstructionMode.clear(player.getUuid());
+            player.discard();
+        }
+        context.complete();
+    }
+
     @GameTest(templateName=EMPTY_STRUCTURE)
     public void surfacePlacementConsumesExactlyOneAndCannotBuildWithoutMaterial(TestContext context) {
         var player=context.createMockCreativeServerPlayerInWorld();player.changeGameMode(GameMode.SURVIVAL);

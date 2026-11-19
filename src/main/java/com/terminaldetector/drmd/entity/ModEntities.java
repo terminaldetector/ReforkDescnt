@@ -148,6 +148,14 @@ public final class ModEntities {
 
 	// --- hybrid-cyberpunk ground & sentry roster ---
 
+    /** Shapes keeps the actual Enderman standing silhouette, with ordinary CyberMob damage. */
+    public static final EntityType<com.terminaldetector.drmd.entity.mob.ShapesInfantryEntity> SHAPES_INFANTRY = Registry.register(
+        Registries.ENTITY_TYPE,Identifier.of(DescentMod.MOD_ID,"shapes_infantry"),
+        EntityType.Builder.<com.terminaldetector.drmd.entity.mob.ShapesInfantryEntity>create(
+            com.terminaldetector.drmd.entity.mob.ShapesInfantryEntity::new,SpawnGroup.MONSTER)
+            .dimensions(.6f,2.9f).eyeHeight(2.55f).maxTrackingRange(96).trackingTickInterval(2).build());
+
+
 	public static final EntityType<com.terminaldetector.drmd.entity.mob.TripodEntity> TRIPOD = Registry.register(
 			Registries.ENTITY_TYPE,
 			Identifier.of(DescentMod.MOD_ID, "tripod"),
@@ -206,6 +214,8 @@ public final class ModEntities {
 	public static void register() {
 		FabricDefaultAttributeRegistry.register(DRONE, DroneEntity.createDroneAttributes());
         for(var kind:FlightEnemyKind.values())FabricDefaultAttributeRegistry.register(kind.entityType(),DroneEntity.createDroneAttributes());
+        FabricDefaultAttributeRegistry.register(SHAPES_INFANTRY,
+            com.terminaldetector.drmd.entity.mob.ShapesInfantryEntity.createShapesAttributes());
 		FabricDefaultAttributeRegistry.register(TRIPOD,
 				com.terminaldetector.drmd.entity.mob.TripodEntity.createTripodAttributes());
 		FabricDefaultAttributeRegistry.register(SCANNER,

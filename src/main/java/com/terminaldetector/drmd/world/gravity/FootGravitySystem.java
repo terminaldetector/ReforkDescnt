@@ -76,22 +76,22 @@ public final class FootGravitySystem {
 	/** Server tick — orientation / activation only (motion via {@link #travel}). */
 	public static void tick(ServerPlayerEntity player) {
         if(com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.drives(player)) {
-            clear(player.getUuid());NOTICES.observe(player.getUuid(),null,player.getWorld().getTime());return;
+            clear(player.getUuid());NOTICES.observe(player.getUuid(),player.getWorld().getRegistryKey().getValue().toString(),null,player.getWorld().getTime());return;
         }
 		if (player.getVehicle() instanceof PyroShipEntity || player.isSpectator() || !player.isAlive()) {
-            NOTICES.observe(player.getUuid(),null,player.getWorld().getTime());
+            NOTICES.observe(player.getUuid(),player.getWorld().getRegistryKey().getValue().toString(),null,player.getWorld().getTime());
 			clear(player.getUuid());
 			return;
 		}
 		DescentPlayerData data = DescentPlayerData.get(player);
 		if (data.isEnabled()) {
-            NOTICES.observe(player.getUuid(),null,player.getWorld().getTime());
+            NOTICES.observe(player.getUuid(),player.getWorld().getRegistryKey().getValue().toString(),null,player.getWorld().getTime());
 			clear(player.getUuid());
 			return;
 		}
 
 		GravityFields.Sample field = GravityFields.sample(player.getWorld(), player.getPos());
-        boolean notify=NOTICES.observe(player.getUuid(),field==null?null:field.sourceId(),player.getWorld().getTime());
+        boolean notify=NOTICES.observe(player.getUuid(),player.getWorld().getRegistryKey().getValue().toString(),field==null?null:field.sourceId(),player.getWorld().getTime());
 		Vec3d up;
 		String label;
 		boolean hardMount = false;
@@ -114,7 +114,11 @@ public final class FootGravitySystem {
 			// 6DoF toggle (tick's own isEnabled() guard above hands off to FlightSystem entirely,
 			// and a piloted Pyro GX ignores station fields altogether — see FlightSystem.tick's
 			// onPyro guard), so say so the first time a field takes hold, not every tick.
-			if (notify) player.sendMessage(Text.translatable("message.drmd.local_gravity_active"),true);
+			if (notify) {
+                player.sendMessage(Text.translatable("message.drmd.local_gravity_active"),true);
+                player.getServerWorld().playSound(null,player.getX(),player.getY(),player.getZ(),
+                    net.minecraft.sound.SoundEvents.BLOCK_BEACON_ACTIVATE,net.minecraft.sound.SoundCategory.BLOCKS,.35f,1.7f);
+            }
 		} else {
 			// Out of reach — bleed back to world up and hand the player to vanilla gravity. Holding
 			// the last surface's up forever left them walking on thin air off the end of a walkway.
@@ -127,6 +131,7 @@ public final class FootGravitySystem {
 				// unconditional sync here would be a packet per tick, per player, forever.
 				if (isActive(player.getUuid())) {
 					player.setNoGravity(false);
+                    player.sendMessage(Text.translatable("message.drmd.local_gravity_released"),true);
 					clear(player.getUuid());
 					LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
                     player.calculateDimensions();

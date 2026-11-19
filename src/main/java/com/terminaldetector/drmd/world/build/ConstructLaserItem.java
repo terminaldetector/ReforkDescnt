@@ -63,8 +63,15 @@ public class ConstructLaserItem extends Item {
 	public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
 		ItemStack stack = user.getStackInHand(hand);
 		if (world.isClient) return TypedActionResult.success(stack);
+		if (!user.isAlive() || user.isSpectator() || !user.getAbilities().allowModifyWorld) {
+			if (user instanceof ServerPlayerEntity player) ConstructScaffold.clear(player);
+			return TypedActionResult.fail(stack);
+		}
 
 		if (!(user.getOffHandStack().getItem() instanceof BlockItem)) {
+			if (user instanceof ServerPlayerEntity player && ConstructScaffold.hasDraft(user.getUuid())) {
+				ConstructScaffold.clear(player);
+			}
 			user.sendMessage(Text.literal(tier.colorCode + tier.label
 					+ " laser §7— put a block in the off-hand"), true);
 			return TypedActionResult.fail(stack);
@@ -93,15 +100,15 @@ public class ConstructLaserItem extends Item {
 			return TypedActionResult.success(stack);
 		}
 
+		// Confirm only the draft that belongs to the equipped tool and material.
+		if (ConstructScaffold.hasDraft(user.getUuid()) && user instanceof ServerPlayerEntity sp) {
+			return commit(world, sp, stack, shape);
+		}
+
 		// Blue+ STREAM → hold for continuous
 		if (tier.continuous && shape == ConstructShape.STREAM) {
 			user.setCurrentHand(hand);
 			return TypedActionResult.consume(stack);
-		}
-
-		// Confirm existing scaffold
-		if (ConstructScaffold.hasDraft(user.getUuid()) && user instanceof ServerPlayerEntity sp) {
-			return commit(world, sp, stack);
 		}
 
 		// Draft new scaffold (Construction Mode: frame → build)
@@ -130,10 +137,16 @@ public class ConstructLaserItem extends Item {
 		return TypedActionResult.success(stack);
 	}
 
-	private TypedActionResult<ItemStack> commit(World world, ServerPlayerEntity sp, ItemStack stack) {
+	private TypedActionResult<ItemStack> commit(World world, ServerPlayerEntity sp, ItemStack stack,
+			ConstructShape shape) {
 		ConstructScaffold.Draft draft = ConstructScaffold.take(sp.getUuid());
 		ConstructScaffold.sync(sp);
 		if (draft == null || draft.positions().isEmpty()) {
+			return TypedActionResult.fail(stack);
+		}
+		if (draft.dimension() != world.getRegistryKey() || draft.tier() != tier || draft.shape() != shape
+				|| draft.material() != AdaptivePlacement.resolveMaterial(sp, true)) {
+			sp.sendMessage(Text.translatable("message.drmd.scaffold.changed"), true);
 			return TypedActionResult.fail(stack);
 		}
 		int n = AdaptivePlacement.placeMany(world, sp, draft.positions(), true);

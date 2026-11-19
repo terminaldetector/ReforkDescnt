@@ -75,9 +75,10 @@ public class GravityTorchBlock extends Block {
 
 	@Override
 	protected void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-		if (!state.isOf(newState.getBlock())) {
-			GravityFields.remove(GravityFieldIds.torch(world.getRegistryKey(), pos));
-		}
+		if (world instanceof ServerWorld server) {
+            if (!state.isOf(newState.getBlock())) GravityTorchFields.remove(server, pos);
+            else if (state.get(FACING) != newState.get(FACING)) register(server, pos, newState);
+        }
 		super.onStateReplaced(state, world, pos, newState, moved);
 	}
 
@@ -89,36 +90,22 @@ public class GravityTorchBlock extends Block {
 	@Override
 	protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
 		register(world, pos, state);
-		pulseCaptureCue(world, pos);
+		pulseParticles(world, pos);
 		world.scheduleBlockTick(pos, this, 10);
 	}
 
 	@Override
 	protected void randomTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
 		register(world, pos, state);
-		pulseCaptureCue(world, pos);
+		pulseParticles(world, pos);
 		world.scheduleBlockTick(pos, this, 10);
 	}
 
-	/** Soft capture cue for players first entering the field — no mob shove. */
-	private static void pulseCaptureCue(ServerWorld world, BlockPos pos) {
-		for (ServerPlayerEntity sp : world.getEntitiesByClass(ServerPlayerEntity.class,
-				new net.minecraft.util.math.Box(pos).expand(RADIUS), PlayerEntity::isAlive)) {
-			if (sp.getVehicle() instanceof PyroShipEntity) continue;
-			com.terminaldetector.drmd.DescentPlayerData data =
-					com.terminaldetector.drmd.DescentPlayerData.get(sp);
-			if (data.isEnabled()) continue;
-			GravityFields.Sample sample = GravityFields.sample(world, sp.getPos());
-			if (sample == null) continue;
-			if (!FootGravitySystem.isActive(sp.getUuid())) {
-				world.playSound(null, sp.getX(), sp.getY(), sp.getZ(),
-						net.minecraft.sound.SoundEvents.BLOCK_BEACON_ACTIVATE,
-						net.minecraft.sound.SoundCategory.BLOCKS, 0.35f, 1.7f);
-			}
-		}
-		world.spawnParticles(new DustParticleEffect(new Vector3f(0.2f, 1f, 0.45f), 1.0f),
-				pos.getX() + 0.5, pos.getY() + 0.7, pos.getZ() + 0.5, 3, 0.15, 0.15, 0.15, 0.01);
-	}
+	/** Visual source cue only; player feedback belongs to the actual transition, never a torch scan. */
+    private static void pulseParticles(ServerWorld world, BlockPos pos) {
+        world.spawnParticles(new DustParticleEffect(new Vector3f(0.2f, 1f, 0.45f), 1.0f),
+            pos.getX() + 0.5, pos.getY() + 0.7, pos.getZ() + 0.5, 3, 0.15, 0.15, 0.15, 0.01);
+    }
 
 	@Override
 	protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
@@ -134,11 +121,8 @@ public class GravityTorchBlock extends Block {
 	}
 
 	static void register(World world, BlockPos pos, BlockState state) {
-		Direction face = state.get(FACING);
-		// Gravity pulls into the mount surface (opposite of outward FACING)
-		Vec3d down = Vec3d.of(face.getOpposite().getVector());
-		GravityFields.put(new GravityFields.Field(
-				GravityFieldIds.torch(world.getRegistryKey(), pos), world.getRegistryKey(),
-				pos, down, RADIUS, POWER, FieldShape.SPHERE, "Gravity Torch", true));
-	}
+        // Client chunk callbacks share a JVM with an integrated server. They must never mutate
+        // its authoritative catalogue, including on a same-coordinate client unload.
+        if (world instanceof ServerWorld server) GravityTorchFields.publish(server, pos, state);
+    }
 }

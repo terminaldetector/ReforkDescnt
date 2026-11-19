@@ -1,4 +1,6 @@
 {
+  "message.drmd.scaffold.changed": "Каркас сброшен. Постройте предпросмотр заново с выбранным инструментом и материалом.",
+  "message.drmd.local_gravity_released": "Локальная гравитация отключена",
   "key.category.drmd": "DRMD 6DOF",
   "key.drmd.toggle": "Переключить 6DOF",
   "key.drmd.dash": "Рывок",
@@ -377,5 +379,7 @@
   "cluster.drmd.ring": "Кольцо",
   "cluster.drmd.stagger": "Поэтапные кольца",
   "item.drmd.cluster_controls": "ЛКМ: вперёд · ПКМ: вниз",
-  "item.drmd.cluster_select": "Shift + ПКМ: выбрать программу раскрытия"
+  "item.drmd.cluster_select": "Shift + ПКМ: выбрать программу раскрытия",
+  "entity.drmd.shapes_infantry": "Пехотинец Shapes",
+  "item.drmd.spawn_egg_shapes_infantry": "Яйцо призыва пехотинца Shapes"
 }

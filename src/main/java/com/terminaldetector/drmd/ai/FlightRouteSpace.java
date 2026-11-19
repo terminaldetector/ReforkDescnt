@@ -44,8 +44,9 @@ final class FlightRouteSpace implements BoundedFlightPath.Space {
     }
     /** Known cover only. Clamp queries to the existing loaded collision-shape halo before
      * asking Vanilla or actual physical hull geometry; an unavailable tail is not a wall. */
-    static double coverDistance(DroneEntity drone,Vec3d from,Vec3d direction,double range){
-        Entity actor=drone;World world=actor.getWorld();double length=direction.lengthSquared();
+    static double coverDistance(DroneEntity drone,Vec3d from,Vec3d direction,double range){return coverDistance((Entity)drone,from,direction,range);}
+    static double coverDistance(Entity actor,Vec3d from,Vec3d direction,double range){
+        World world=actor.getWorld();double length=direction.lengthSquared();
         if(!CubicAvailability.onWorldThread(world)||!Double.isFinite(from.lengthSquared())
             ||!Double.isFinite(length)||length<1e-8||!Double.isFinite(range)||range<=0||range>32)return Double.POSITIVE_INFINITY;
         var end=com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedEnd(world,from,from.add(direction.normalize().multiply(range)));

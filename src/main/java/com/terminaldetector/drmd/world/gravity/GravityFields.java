@@ -97,11 +97,15 @@ public final class GravityFields {
 	 * Returns null if no field affects the point.
 	 */
 	public static Sample sample(World world, Vec3d pos) {
-		return sample(world != null ? world.getRegistryKey() : null, pos);
+		return sample(world != null ? world.getRegistryKey() : null, pos, world instanceof net.minecraft.server.world.ServerWorld server ? server : null);
 	}
 
 	/** Key-only variant used by diagnostics and pure tests; keeps dimension filtering explicit. */
 	public static Sample sample(net.minecraft.registry.RegistryKey<World> key, Vec3d pos) {
+        return sample(key, pos, null);
+    }
+    private static Sample sample(net.minecraft.registry.RegistryKey<World> key, Vec3d pos,
+            net.minecraft.server.world.ServerWorld server) {
 		if(pos==null || !finite(pos))return null;
 		Vec3d sumDir = Vec3d.ZERO;
 		double weight = 0;
@@ -110,7 +114,9 @@ public final class GravityFields {
 		UUID dominantId = null;
 		Vec3d dominantDir = null;
 		String dominant = null;
-		for (Field f : FIELDS.candidates(key,pos)) {
+		for (Field candidate : FIELDS.candidates(key,pos)) {
+            Field f = server == null ? candidate : GravityTorchFields.current(server, candidate);
+            if (f == null) continue;
 			// Fields live in one map but belong to one world each: without this a torch bolted to a
 			// wall in the Nether would flip a player's "down" while they stood in the Overworld.
 			if (key != null && f.worldKey() != null && !f.worldKey().equals(key)) continue;

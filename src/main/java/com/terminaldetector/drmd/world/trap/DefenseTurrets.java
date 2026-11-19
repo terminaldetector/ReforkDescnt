@@ -156,23 +156,9 @@ public final class DefenseTurrets {
 
 		@Override
 		protected void fire(ServerWorld world,BlockPos pos){
-			if(!PointDefenseInterception.tryFire(world,pos))super.fire(world,pos);
+			// A Survival player can install this next to their base. Keep the
+			// scheduled scan focused on incoming ordnance, even while idle.
+			PointDefenseInterception.tryFire(world,pos);
 		}
-
-		@Override
-		protected void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-			fire(world, pos);
-			if (random.nextBoolean()) fire(world, pos);
-			world.scheduleBlockTick(pos, this, interval);
-		}
-
-		@Override
-		protected void onHit(ServerWorld world, BlockPos pos, LivingEntity target) {
-			world.spawnParticles(ParticleTypes.CRIT, target.getX(), target.getY() + 1, target.getZ(),
-					6, 0.2, 0.2, 0.2, 0.05);
-		}
-
-		@Override
-		protected float pitch() { return 1.9f; }
 	}
 }

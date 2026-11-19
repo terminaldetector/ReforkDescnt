@@ -118,7 +118,8 @@ final class EconomyFixture implements AutoCloseable {
         for(int y=0;y<recipe.getHeight();y++)for(int x=0;x<recipe.getWidth();x++){
             var ingredient=recipe.getIngredients().get(y*recipe.getWidth()+x);if(ingredient.isEmpty())continue;
             Slot found=null;for(var slot:h.slots)if(slot.inventory==p.getInventory()&&ingredient.test(slot.getStack())){found=slot;break;}
-            c.assertTrue(found!=null,"real ingredient must already exist in Survival inventory");var item=found.getStack().getItem();if(item==omit)continue;used.merge(item,1,Integer::sum);
+            c.assertTrue(found!=null,"missing Survival ingredient at "+x+","+y+": "
+                +Arrays.toString(ingredient.getMatchingStacks()));var item=found.getStack().getItem();if(item==omit)continue;used.merge(item,1,Integer::sum);
             click(h,found.id,0);click(h,1+y*3+x,1);if(!h.getCursorStack().isEmpty())click(h,found.id,0);
         }
     }

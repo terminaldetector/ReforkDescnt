@@ -33,4 +33,16 @@ class GravityNoticeGateTest {
         gate.clear();
         assertTrue(gate.observe(player,field,3));
     }
+    @Test void dimensionTransferDoesNotInheritAnotherWorldsFutureClock() {
+        assertTrue(gate.observe(player,"minecraft:overworld",field,900000));
+        assertFalse(gate.observe(player,"minecraft:overworld",field,900001));
+        assertTrue(gate.observe(player,"minecraft:the_nether",field,3));
+        for(int tick=4;tick<400;tick++)assertFalse(gate.observe(player,"minecraft:the_nether",field,tick));
+        assertTrue(gate.observe(player,"minecraft:overworld",field,900002));
+    }
+    @Test void aSameWorldClockRollbackStartsOneNewTransitionHistory() {
+        assertTrue(gate.observe(player,"world",field,1000));
+        assertTrue(gate.observe(player,"world",field,2));
+        for(int tick=3;tick<200;tick++)assertFalse(gate.observe(player,"world",field,tick));
+    }
 }

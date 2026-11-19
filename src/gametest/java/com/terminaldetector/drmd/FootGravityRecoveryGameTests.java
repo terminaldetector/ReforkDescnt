@@ -80,4 +80,88 @@ public final class FootGravityRecoveryGameTests implements FabricGameTest {
         }
         FootGravitySystem.forget(player.getUuid());player.discard();context.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="torch-same-block-turn")
+    public void turningAndRemovingARealTorchUpdatesItsOneStableFieldImmediately(TestContext c) {
+        var world=c.getWorld();var pos=c.getAbsolutePos(new BlockPos(2,5,2));
+        var torch=com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH;
+        var original=world.getBlockState(pos);java.util.UUID identity=null;
+        try {
+            for(var facing:net.minecraft.util.math.Direction.values()) {
+                world.setBlockState(pos,torch.getDefaultState().with(com.terminaldetector.drmd.world.gravity.GravityTorchBlock.FACING,facing),3);
+                var field=com.terminaldetector.drmd.world.gravity.GravityFields.sample(world,Vec3d.ofCenter(pos));
+                c.assertTrue(field!=null,"a real loaded native torch publishes immediately: "+facing);
+                if(identity==null)identity=field.sourceId();
+                c.assertTrue(identity.equals(field.sourceId())&&field.downDir().dotProduct(Vec3d.of(facing.getOpposite().getVector()))>.99999,
+                    "same-block property changes retain one identity and expose the actual new local vector: "+facing);
+                final var id=identity;
+                c.assertTrue(com.terminaldetector.drmd.world.gravity.GravityFields.all().stream().filter(f->f.id().equals(id)).count()==1,
+                    "scheduled/random republishing cannot duplicate one actual source");
+            }
+            world.setBlockState(pos,net.minecraft.block.Blocks.AIR.getDefaultState(),3);
+            final var id=identity;
+            c.assertTrue(com.terminaldetector.drmd.world.gravity.GravityFields.all().stream().noneMatch(f->f.id().equals(id)),
+                "real block removal unregisters immediately before another tick/sample");
+            c.assertTrue(com.terminaldetector.drmd.world.gravity.GravityFields.sample(world,Vec3d.ofCenter(pos))==null,
+                "the removed source exerts no ghost gravity");
+        } finally {world.setBlockState(pos,original,3);}
+        c.complete();
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="torch-dimension-isolation")
+    public void equalCoordinateNativeTorchesHaveIndependentDimensionScopedLifecycles(TestContext c) {
+        var a=c.getWorld();var b=a.getServer().getWorld(net.minecraft.world.World.NETHER);
+        c.assertTrue(b!=null&&b!=a,"admission: actual second server dimension exists");
+        var pos=c.getAbsolutePos(new BlockPos(3,5,3)).withY(64);
+        a.getChunk(pos.getX()>>4,pos.getZ()>>4);b.getChunk(pos.getX()>>4,pos.getZ()>>4);
+        var oldA=a.getBlockState(pos);var oldB=b.getBlockState(pos);
+        var torch=com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH;
+        try {
+            a.setBlockState(pos,torch.getDefaultState().with(com.terminaldetector.drmd.world.gravity.GravityTorchBlock.FACING,net.minecraft.util.math.Direction.EAST),3);
+            b.setBlockState(pos,torch.getDefaultState().with(com.terminaldetector.drmd.world.gravity.GravityTorchBlock.FACING,net.minecraft.util.math.Direction.NORTH),3);
+            var first=com.terminaldetector.drmd.world.gravity.GravityFields.sample(a,Vec3d.ofCenter(pos));
+            var second=com.terminaldetector.drmd.world.gravity.GravityFields.sample(b,Vec3d.ofCenter(pos));
+            c.assertTrue(first!=null&&second!=null&&!first.sourceId().equals(second.sourceId()),"same coordinates own distinct actual dimension identities");
+            c.assertTrue(first.downDir().x<-.99&&second.downDir().z>.99,"native world queries cannot blend another dimension");
+            a.setBlockState(pos,net.minecraft.block.Blocks.AIR.getDefaultState(),3);
+            var surviving=com.terminaldetector.drmd.world.gravity.GravityFields.sample(b,Vec3d.ofCenter(pos));
+            c.assertTrue(com.terminaldetector.drmd.world.gravity.GravityFields.sample(a,Vec3d.ofCenter(pos))==null
+                &&surviving!=null&&surviving.sourceId().equals(second.sourceId()),"removing one emitter cannot erase its equal-coordinate neighbour in another world");
+        } finally {a.setBlockState(pos,oldA,3);b.setBlockState(pos,oldB,3);}
+        c.complete();
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="torch-native-transition-feedback")
+    public void actualFootGravityEntryHoldAndReleaseEmitOnlyTransitionActionbars(TestContext c) {
+        var world=c.getWorld();var pos=c.getAbsolutePos(new BlockPos(5,9,5));
+        var original=world.getBlockState(pos);var profile=new com.mojang.authlib.GameProfile(UUID.randomUUID(),"gravity-notice");
+        var options=net.minecraft.server.network.ConnectedClientData.createDefault(profile,false);
+        var player=new net.minecraft.server.network.ServerPlayerEntity(world.getServer(),world,profile,options.syncedOptions()) {
+            @Override public void sendMessage(net.minecraft.text.Text text,boolean overlay) {
+                if(overlay)messages.add(text.getString());
+            }
+            final java.util.List<String> messages=new java.util.ArrayList<>();
+        };
+        var connection=new net.minecraft.network.ClientConnection(net.minecraft.network.NetworkSide.SERVERBOUND);
+        var channel=new io.netty.channel.embedded.EmbeddedChannel(connection);
+        world.getServer().getPlayerManager().onPlayerConnect(connection,player,options);
+        player.messages.clear();
+        DescentPlayerData.get(player).setEnabled(false);player.getAbilities().flying=false;
+        player.setPosition(Vec3d.ofCenter(pos).add(0,1,0));
+        try {
+            world.setBlockState(pos,com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState(),3);
+            FootGravitySystem.tick(player);
+            c.assertTrue(player.messages.size()==1&&FootGravitySystem.isActive(player),"actual native player entry emits one actionbar");
+            for(int i=0;i<8;i++)FootGravitySystem.tick(player);
+            c.assertTrue(player.messages.size()==1,"holding the same field is silent even when physics updates again");
+            world.setBlockState(pos,net.minecraft.block.Blocks.AIR.getDefaultState(),3);
+            FootGravitySystem.tick(player);
+            c.assertTrue(player.messages.size()==2&&!FootGravitySystem.isActive(player),"actual upright release emits one exit actionbar and returns ownership");
+            FootGravitySystem.tick(player);
+            c.assertTrue(player.messages.size()==2,"ordinary world gravity cannot repeat an exit notice");
+        } finally {
+            FootGravitySystem.forget(player.getUuid());world.getServer().getPlayerManager().remove(player);
+            player.discard();channel.finishAndReleaseAll();world.setBlockState(pos,original,3);
+        }
+        c.complete();
+    }
 }

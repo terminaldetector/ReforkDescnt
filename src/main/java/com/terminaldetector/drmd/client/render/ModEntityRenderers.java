@@ -41,6 +41,7 @@ public final class ModEntityRenderers {
 		EntityRendererRegistry.register(ModEntities.END_REACTOR_BOSS, EndReactorBossRenderer::new);
 		EntityRendererRegistry.register(ModEntities.SKY_UFO, SkyUfoRenderer::new);
 		EntityRendererRegistry.register(ModEntities.TRIPOD, TripodRenderer::new);
+        EntityRendererRegistry.register(ModEntities.SHAPES_INFANTRY, ShapesInfantryRenderer::new);
 		EntityRendererRegistry.register(ModEntities.SCANNER, ScannerRenderer::new);
 		EntityRendererRegistry.register(ModEntities.SPIDER_TURRET, SpiderTurretRenderer::new);
 		EntityRendererRegistry.register(ModEntities.OBLIVION_SEEKER, OblivionSeekerRenderer::new);

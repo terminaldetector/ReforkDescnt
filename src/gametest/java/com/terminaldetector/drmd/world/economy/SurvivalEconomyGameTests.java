@@ -25,6 +25,39 @@ public final class SurvivalEconomyGameTests implements FabricGameTest {
     private static Item item(String path){return Registries.ITEM.get(Identifier.of("drmd",path));}
     private static BlockPos cell(BlockBodyEntity b,Block block){return b.cells().stream().filter(c->c.state().isOf(block)).findFirst().orElseThrow().pos();}
 
+    @GameTest(templateName=EMPTY_STRUCTURE, batchId="economy-personal-progression", tickLimit=450)
+    public void starterMaterialsLeadToGunPlasmaAndInstalledMissileDefense(TestContext c) {
+        EconomyFixture.admitted(c, f -> {
+            f.stock(Items.STRING, 3);
+            f.components(13, 2);
+            f.craft("weapon_d6_mg");
+            f.craft("weapon_d6_plasma");
+            f.craft("minecraft:iron_block");
+            f.craft("minecraft:iron_block");
+            f.craft("weapon_d6_vulcan");
+            f.craft("minecraft:bow");
+            f.craft("minecraft:dispenser");
+            f.craft("point_defense_turret");
+            c.assertTrue(f.count(item("weapon_d6_mg")) == 1 && f.count(item("weapon_d6_plasma")) == 1,
+                    "crafting missile defense preserves both personal weapons");
+            c.assertTrue(f.count(item("weapon_d6_vulcan")) == 0 && f.count(Items.DISPENSER) == 0
+                            && f.count(item("energy_cell")) == 0 && f.count(item("alloy_plate")) == 1,
+                    "the actual progression consumes the intermediate gun, dispenser and remaining cells");
+            f.closeTable();
+            f.setWorld(f.origin, Blocks.STONE.getDefaultState());
+            f.placeWorld(f.origin, Direction.UP, ModWorldBlocks.POINT_DEFENSE_TURRET.asItem());
+            c.assertTrue(f.count(ModWorldBlocks.POINT_DEFENSE_TURRET.asItem()) == 0,
+                    "the acquired defense station can be installed from Survival inventory");
+            double health = f.p.getHealth();
+            f.after(30, () -> {
+                c.assertTrue(f.p.isAlive() && f.p.getHealth() == health
+                                && f.p.getPos().squaredDistanceTo(f.origin.toCenterPos()) < 12 * 12,
+                        "an installed idle point defense station must not attack the nearby Survival owner");
+                f.done();
+            });
+        });
+    }
+
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="economy-real-crafting",tickLimit=450)
     public void allThreeShipComponentsMustBeIndividuallyCraftableThroughTheRealTable(TestContext c){EconomyFixture.admitted(c,f->{
         f.components(24,3);var actual=new ArrayList<EconomyFixture.Crafted>();

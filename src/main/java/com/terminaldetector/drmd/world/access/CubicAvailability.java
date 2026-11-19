@@ -34,28 +34,33 @@ public final class CubicAvailability {
         catch(ReflectiveOperationException | LinkageError failure){fail(failure);return Backend.UNSUPPORTED;}
     }
     public static boolean available(World world,D6ChunkPos cube) {
-        if(!onWorldThread(world) || !withinHeight(world,cube))return false;
+        return state(world,cube)==VolumetricWorldAccess.CubeState.FULL;
+    }
+    public static VolumetricWorldAccess.CubeState state(World world,D6ChunkPos cube) {
+        if(!onWorldThread(world))return VolumetricWorldAccess.CubeState.WRONG_THREAD;
+        if(!withinHeight(world,cube))return VolumetricWorldAccess.CubeState.OUTSIDE_HEIGHT;
         long x=(long)cube.x()*16,z=(long)cube.z()*16,y=(long)cube.y()*16;
-        if(Math.abs(x)>29_999_984L || Math.abs(z)>29_999_984L)return false;
+        if(Math.abs(x)>29_999_984L || Math.abs(z)>29_999_984L)return VolumetricWorldAccess.CubeState.UNREPRESENTABLE;
         BlockPos min=new BlockPos((int)x,(int)y,(int)z),max=min.add(15,15,15);
         // Includes the backend's actual BlockPos packing, rather than assuming twelve Y bits.
-        if(!min.equals(BlockPos.fromLong(min.asLong())) || !max.equals(BlockPos.fromLong(max.asLong())))return false;
+        if(!min.equals(BlockPos.fromLong(min.asLong())) || !max.equals(BlockPos.fromLong(max.asLong())))return VolumetricWorldAccess.CubeState.UNREPRESENTABLE;
         Backend mode=backend(world);
-        if(mode==Backend.UNSUPPORTED)return false;
+        if(mode==Backend.UNSUPPORTED)return VolumetricWorldAccess.CubeState.UNSUPPORTED_BACKEND;
         var full=loadedColumn(world,cube.x(),cube.z());
-        if(full==null)return false;
-        if(mode==Backend.STOCK)return true;
+        if(full==null)return failed?VolumetricWorldAccess.CubeState.UNSUPPORTED_BACKEND:VolumetricWorldAccess.CubeState.UNAVAILABLE;
+        if(mode==Backend.STOCK)return VolumetricWorldAccess.CubeState.FULL;
         try {
             if(world.isClient) {
                 if(clientLoaded==null)clientLoaded=Class.forName("dev.fallingcloud.bettercubicchunks.client.ClientCubes")
                     .getMethod("isCubeLoaded",World.class,BlockPos.class);
-                return (Boolean)clientLoaded.invoke(null,world,min);
+                return (Boolean)clientLoaded.invoke(null,world,min)?VolumetricWorldAccess.CubeState.FULL:VolumetricWorldAccess.CubeState.UNAVAILABLE;
             }
             var sky=full.getChunkSkyLight();
-            if(!skyExtension.isInstance(sky))return false;
+            if(!skyExtension.isInstance(sky))return VolumetricWorldAccess.CubeState.UNAVAILABLE;
             Object state=column.invoke(sky);
-            return state!=null && "FULL".equals(String.valueOf(status.invoke(state,world.getSectionIndex((int)y))));
-        }catch(ReflectiveOperationException | LinkageError failure){fail(failure);return false;}
+            return state!=null && "FULL".equals(String.valueOf(status.invoke(state,world.getSectionIndex((int)y))))
+                ?VolumetricWorldAccess.CubeState.FULL:VolumetricWorldAccess.CubeState.UNAVAILABLE;
+        }catch(ReflectiveOperationException | LinkageError failure){fail(failure);return VolumetricWorldAccess.CubeState.UNSUPPORTED_BACKEND;}
     }
     public static boolean withinHeight(World world,D6ChunkPos cube) {
         long min=(long)cube.y()*16;

@@ -1,8 +1,11 @@
 package com.terminaldetector.drmd.world.layer;
 
 import com.terminaldetector.drmd.world.level.WorldLevels;
+import com.terminaldetector.drmd.world.level.VerticalBounds;
+import com.terminaldetector.drmd.world.planet.PlanetaryZones;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import java.util.Optional;
 
 /**
  * Narrative layers of the world parallelepiped (Core · Surface · Orbit/Oblivion).
@@ -57,12 +60,32 @@ public enum WorldLayer {
 	}
 
     public record Display(String label,int color,boolean insideWorld) {}
+
+    private record DisplayLayout(int bottom, int top, int surface, Optional<PlanetaryZones.Layout> layout) {}
+    private static volatile DisplayLayout lastDisplayLayout;
+
     public static Display display(World world,double y) {
-        if(world.getRegistryKey()==World.OVERWORLD &&
-                !com.terminaldetector.drmd.world.level.VerticalBounds.contains(y,world.getBottomY(),world.getTopY()))
-            return new Display("Outside world",0xffffaa44,false);
+        if(world.getRegistryKey()==World.OVERWORLD)
+            return displayOverworld(world.getBottomY(),world.getTopY(),world.getSeaLevel(),y);
         WorldLayer layer=at(world,y);
         return new Display(layer.label,layer.hudColor,true);
+    }
+
+    /** Shared with the actual HUD path; this never changes spawn/flight/layer-seam rules. */
+    public static Display displayOverworld(int bottom,int top,int surfaceReference,double y) {
+        if(!VerticalBounds.contains(y,bottom,top))
+            return new Display("Outside world",0xffffaa44,false);
+        // The HUD reads this every frame. Cache immutable bands by their complete input.
+        var cached = lastDisplayLayout;
+        if (cached == null || cached.bottom() != bottom || cached.top() != top
+                || cached.surface() != surfaceReference) {
+            cached = new DisplayLayout(bottom, top, surfaceReference, PlanetaryZones.fit(bottom, top, surfaceReference));
+            lastDisplayLayout = cached;
+        }
+        var layout = cached.layout();
+        if(layout.isEmpty())return new Display("Unmapped world",0xffffaa44,true);
+        var zone=layout.get().at(y).orElseThrow();
+        return new Display(zone.label,zone.color,true);
     }
 
 	public WorldLayer below() {

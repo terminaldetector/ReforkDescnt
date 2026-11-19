@@ -1,4 +1,6 @@
 {
+  "message.drmd.scaffold.changed": "Construction draft cleared. Preview it again with the selected tool and material.",
+  "message.drmd.local_gravity_released": "Local gravity released",
   "key.category.drmd": "DRMD 6DOF",
   "key.drmd.toggle": "Toggle 6DOF",
   "key.drmd.dash": "Dash",
@@ -413,5 +415,7 @@
   "cluster.drmd.ring": "Ring",
   "cluster.drmd.stagger": "Staged rings",
   "item.drmd.cluster_controls": "Attack: forward · Use: downward",
-  "item.drmd.cluster_select": "Sneak + Use: select spread program"
+  "item.drmd.cluster_select": "Sneak + Use: select spread program",
+  "entity.drmd.shapes_infantry": "Shapes infantry",
+  "item.drmd.spawn_egg_shapes_infantry": "Shapes infantry spawn egg"
 }

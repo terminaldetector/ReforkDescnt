@@ -19,6 +19,11 @@ public final class WorldAccess implements CubicWorldAccess {
     private WorldAccess(World world){this.world=Objects.requireNonNull(world);}
     public static WorldAccess of(World world){return new WorldAccess(world);}
     @Override public CubicAvailability.Backend backend(){return CubicAvailability.backend(world);}
+    @Override public Bounds bounds() {
+        if(!CubicAvailability.onWorldThread(world))throw new IllegalStateException("world bounds require owner thread");
+        return new Bounds(world.getBottomY(),world.getTopY());
+    }
+    @Override public CubeState cubeState(D6ChunkPos cube){return CubicAvailability.state(world,cube);}
     @Override public boolean isVolumeAvailable(D6ChunkPos cube){return CubicAvailability.available(world,cube);}
     @Override public Optional<BlockState> readIfLoaded(BlockPos pos) {
         if(world.isOutOfHeightLimit(pos) || !isVolumeAvailable(D6ChunkPos.ofBlock(pos.getX(),pos.getY(),pos.getZ())))return Optional.empty();
