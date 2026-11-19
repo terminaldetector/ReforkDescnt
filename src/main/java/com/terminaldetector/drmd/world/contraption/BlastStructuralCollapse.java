@@ -36,10 +36,19 @@ public final class BlastStructuralCollapse {
     }
     private static boolean enabled(ServerWorld world){return world.getServer().isOnThread()&&PhysicsProfileState.expanded(world);}
     static boolean buildingMaterial(BlockState state){
-        return !state.hasBlockEntity() && state.getFluidState().isEmpty()
-            && (INERT.contains(state.getBlock()) || state.isIn(BlockTags.PLANKS)
-                || state.isIn(BlockTags.STONE_BRICKS) || state.isIn(BlockTags.TERRACOTTA)
-                || state.isIn(BlockTags.SLABS));
+        if(state.hasBlockEntity()||!state.getFluidState().isEmpty()||state.isAir())return false;
+        if(INERT.contains(state.getBlock())||state.isIn(BlockTags.PLANKS)||partialMaterial(state))return true;
+        // Ordinary masonry and decorative full blocks can be used in any building.
+        // Bulk stone, soil and sediment keep anchoring the surviving structure to the world.
+        var empty=net.minecraft.world.EmptyBlockView.INSTANCE;
+        return !state.isIn(BlockTags.BASE_STONE_OVERWORLD)&&!state.isIn(BlockTags.BASE_STONE_NETHER)
+            &&!state.isIn(BlockTags.DIRT)&&!state.isIn(BlockTags.SAND)&&!state.isOf(Blocks.GRAVEL)
+            &&!state.isIn(BlockTags.LOGS)&&!state.isIn(BlockTags.LEAVES)&&state.getHardness(empty,BlockPos.ORIGIN)>=0
+            &&state.isFullCube(empty,BlockPos.ORIGIN);
+    }
+    static boolean partialMaterial(BlockState state){
+        return state.isIn(BlockTags.SLABS)||state.isIn(BlockTags.STAIRS)||state.isIn(BlockTags.WALLS)
+            ||state.isIn(BlockTags.FENCES)||state.isIn(BlockTags.FENCE_GATES);
     }
     private static boolean inert(BlockState state){
         return buildingMaterial(state) || state.isIn(BlockTags.LOGS) && state.getFluidState().isEmpty();
@@ -107,7 +116,7 @@ public final class BlastStructuralCollapse {
     }
     private static BodyTopology.Cell cell(BlockPos p){return new BodyTopology.Cell(p.getX(),p.getY(),p.getZ());}
     private static BlockPos pos(BodyTopology.Cell c){return new BlockPos(c.x(),c.y(),c.z());}
-    private static boolean empty(BlockState state){return state.isAir()||state.isReplaceable();}
+    private static boolean empty(BlockState state){return state.isAir()||state.isReplaceable()||state.isIn(BlockTags.LEAVES);}
     private static final class Reader {
         final ServerWorld world;final Budget budget;final Predicate<BlockPos> permission;final Map<BlockPos,Optional<BlockState>> cache=new HashMap<>();
         Reader(ServerWorld world,Budget budget,Predicate<BlockPos> permission){this.world=world;this.budget=budget;this.permission=permission;}

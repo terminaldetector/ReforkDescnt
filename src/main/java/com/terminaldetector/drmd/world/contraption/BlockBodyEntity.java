@@ -297,7 +297,11 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             if(BodyLocalHatches.supports(cell.state()))bounds=BodyLocalHatches.collisionBounds(cell.pos(),cell.state());
             else if(BodyLocalDoors.supports(cell.state()))bounds=BodyLocalDoors.collisionBounds(cell.pos(),cell.state());
             else if(cell.state().isOf(Blocks.LEVER))bounds=bounds(cell.state().getOutlineShape(net.minecraft.world.EmptyBlockView.INSTANCE,BlockPos.ORIGIN).getBoundingBox().offset(cell.pos()));
-            else if(cell.state().isIn(BlockTags.SLABS))bounds=bounds(cell.state().getCollisionShape(net.minecraft.world.EmptyBlockView.INSTANCE,BlockPos.ORIGIN).getBoundingBox().offset(cell.pos()));
+            else if(BlastStructuralCollapse.partialMaterial(cell.state())) {
+                var shape=cell.state().getCollisionShape(net.minecraft.world.EmptyBlockView.INSTANCE,BlockPos.ORIGIN);
+                bounds=shape.isEmpty()?new BodyBounds(new Vec3(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()),
+                    new Vec3(cell.pos().getX()+1,cell.pos().getY()+1,cell.pos().getZ()+1)):bounds(shape.getBoundingBox().offset(cell.pos()));
+            }
             else if(surface(cell)==null)bounds=new BodyBounds(new Vec3(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()),
                 new Vec3(cell.pos().getX()+1,cell.pos().getY()+1,cell.pos().getZ()+1));
             else {
@@ -324,13 +328,18 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             var section=D6ChunkPos.fromLong(key);var cube=volume.cube(section);
             if(cube==null){sections.remove(key);continue;}
             for(int y=0;y<16;y++)for(int z=0;z<16;z++)for(int x=0;x<16;x++) {
-                if(cube.get(x,y,z).isAir())continue;
+                var state=cube.get(x,y,z);
+                if(state.isAir())continue;
                 var pos=new BlockPos(section.minBlockX()+x,section.minBlockY()+y,section.minBlockZ()+z);
                 var mesh=surfaces.get(pos);
                 if(mesh!=null&&mesh.axisAware())for(var shape:mesh.collisionBounds())
                     shaped.add(new BodyBounds(new Vec3(pos.getX()+shape.minX(),pos.getY()+shape.minY(),pos.getZ()+shape.minZ()),
                         new Vec3(pos.getX()+shape.maxX(),pos.getY()+shape.maxY(),pos.getZ()+shape.maxZ())));
-                else if(mesh!=null||cube.get(x,y,z).isOf(Blocks.LEVER)||cube.get(x,y,z).isIn(BlockTags.SLABS)||BodyLocalHatches.supports(cube.get(x,y,z))||BodyLocalDoors.supports(cube.get(x,y,z)))shaped.add(cellBounds.get(pos));
+                else if(BlastStructuralCollapse.partialMaterial(state)) {
+                    var shape=state.getCollisionShape(net.minecraft.world.EmptyBlockView.INSTANCE,BlockPos.ORIGIN);
+                    for(var box:shape.getBoundingBoxes())shaped.add(bounds(box.offset(pos)));
+                }
+                else if(mesh!=null||state.isOf(Blocks.LEVER)||BodyLocalHatches.supports(state)||BodyLocalDoors.supports(state))shaped.add(cellBounds.get(pos));
                 else solid.add(new CompoundCollider.Cell(pos.getX(),pos.getY(),pos.getZ()));
             }
             shaped.addAll(CompoundCollider.cells(solid).boxes());sections.put(key,new CompoundCollider(shaped));
