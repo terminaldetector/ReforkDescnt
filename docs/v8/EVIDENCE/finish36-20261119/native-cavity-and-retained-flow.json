@@ -1,0 +1,67 @@
+{
+  "source": "c8c0fb2dbb35b87cf4392cc59445016026f18228",
+  "accepted": [
+    "S04-T03",
+    "S04-T04"
+  ],
+  "rawLocalArchive": "/tmp/ungravity-finish-36/native-cavity-flow-verified.zip",
+  "archiveSha256": "86fee60e87a34ecaa40e8b648798b751f6224a7df5302e2640b2477a09e35360",
+  "raw": {
+    "native.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "native.log": "4c952d2bb650b95ecb3cf136880c4762dbaf25f89ff07b5546e53c13884e53bd",
+    "cubic-client-automation/hybrid-cavity-outcome.json": "4f8c1b61d342139cedd4e5d4c38004f926eb4bdb889e23ab2b0905a264663461",
+    "cubic-client-automation/inputs.json": "84fbc1a7363a1d210379053fc7c2d9b88b66874adff1f1ec558de85f0b33ffa5",
+    "cubic-client-automation/hybrid-cavity-frames/dry-xyz-cavity.png": "46dbf88fec18c2126711f5b6a58ceec40db64b30f152c622740eff1b4f0118fb",
+    "cubic-client-automation/hybrid-cavity-frames/real-retained-flow.png": "75de287d8f58790455c8fe5313a451e4e6a0abeec648d566365e047f71770888"
+  },
+  "nativeResult": {
+    "status": "PASS",
+    "reason": "actual XYZ cold-cavity mesh/collision and retained flowing-water client witness; no universal navigation/fluid or pixelbeauty claim",
+    "phase": 1,
+    "states": [
+      {
+        "actualHybridFaces": 1506,
+        "actualClippedFluidFaces": 0,
+        "actualFluidHandlerCalls": 0,
+        "actualPartialCarriersEmitted": 10,
+        "frame": "dry-xyz-cavity.png",
+        "curvedVertices": 3374,
+        "phase": 0
+      },
+      {
+        "actualHybridFaces": 906,
+        "actualClippedFluidFaces": 35,
+        "actualFluidHandlerCalls": 7,
+        "actualPartialCarriersEmitted": 10,
+        "frame": "real-retained-flow.png",
+        "curvedVertices": 2036,
+        "phase": 1
+      }
+    ],
+    "server": {
+      "zSeamError": 0.0,
+      "ySeamError": 0.0,
+      "xSeamError": 0.0,
+      "partialCarriers": 10,
+      "rimCollisionPresent": true,
+      "centreCollisionClear": true,
+      "nativeBackend": true
+    },
+    "sourceWaterTick": 536,
+    "firstActualFlowTick": 551,
+    "ticks": 656,
+    "frames": 30,
+    "expectedCarriers": 10,
+    "actualEmittedCarriers": 10,
+    "sodiumLoaded": true,
+    "schema": 1
+  },
+  "stockSupportingSource": "c3c1ab6597963cc17977e3e8033f24d223ecb4ed",
+  "stockSupportingCasePasses": [
+    "hybridwatergametests.realwaterneverpinsananalyticboreintoanewflatwall",
+    "hybridwatergametests.normalwaterflowsthroughthecutanddecayswithoutdestroyingitsretainedsolid",
+    "hybridnavigationgametests.ordinarysupportenterstheactualcarvedvolumecrossesandhealswithoutremovingitsshell"
+  ],
+  "stockSupportingReceipt": "focused-stock-c3c1ab65.json",
+  "scope": "Native BCC/Sodium dry and wet render and collision. Earlier stock named runtime cases cover SUPPORT navigation and water flow/decay. Exact zero shared-vertex seams and empty centre/solid rim concern the authored geometry. Character collision uses the same sampled field representation."
+}

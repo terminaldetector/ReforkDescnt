@@ -315,11 +315,11 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id005
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/native-cavity-and-retained-flow.json, EVIDENCE/finish36-20261119/focused-stock-c3c1ab65.json]
+  notes: "В настоящем мире BCC/с Sodium десять частичных блоков дошли до модели. Разрыва вершин на границах X, Y и Z нет. У круглой полости есть реальные криволинейные грани, открытый центр и коллизионный край."
 - id: S04-T04
   stage: S04
   stage_title: Hybrid/NoCubes meshing and LOD
@@ -327,11 +327,11 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id005
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [IMPLEMENTATION_PORTAL_TREES_2026-11-18.md]
-  notes: "Rounded-log world/body mesh and quarter-cell colliders share the field; actual XYZ/NBT/empty-corner and branch extraction cases pass. Thermal9 and old collapse3 regressions pass. Exact-triangle contacts, navigation/fluids/full surface matrix remain open."
+  evidence: [EVIDENCE/finish36-20261119/native-cavity-and-retained-flow.json, EVIDENCE/finish36-20261119/focused-stock-c3c1ab65.json]
+  notes: "Дрон SUPPORT штатно проходит через прорезанную полость и сохраняет оболочку. Настоящая вода проходит и убывает без удаления вырезанных блоков. На BCC жидкость дошла за 15 тиков и штатный обработчик реально вывел 35 граней внутри сохранённого объёма."
 - id: S04-T05
   stage: S04
   stage_title: Hybrid/NoCubes meshing and LOD
