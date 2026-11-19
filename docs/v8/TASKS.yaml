@@ -526,8 +526,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/finish36-20261119/focused-stock-4702e74d.json, EVIDENCE/finish36-20261119/focused-stock-4702e74d.zip]
-  notes: "Все десять серверных сценариев поддержанных ванильных наземных контроллеров прошли. Реальное движение и контакт подтверждены на полу, стене и потолке. Корова, свинья и овца используют обычную цель Tempt, скелет и зимогор сами находят игрока и стреляют со стены. Поведение C2 и другие семейства остаются открыты."
+  evidence: [EVIDENCE/finish36-20261119/focused-stock-4702e74d.json, EVIDENCE/finish36-20261119/focused-stock-4702e74d.zip, EVIDENCE/finish36-20261119/native-c1-and-drone-wreck.json, EVIDENCE/finish36-20261119/native-c1-and-drone-wreck.zip]
+  notes: "Штатный прогон подтвердил локальное движение поддержанных C1 на полу, стене и потолке, в том числе обычные цели Tempt и выбор целей у зомби и скелетов. Отдельно Shapes прошли 11 сценариев с маршрутами и выстрелами. Специализированные C2 и неосевые поверхности остаются в работе."
 - id: S07-T03
   stage: S07
   stage_title: Universal 6DoF for all mob families

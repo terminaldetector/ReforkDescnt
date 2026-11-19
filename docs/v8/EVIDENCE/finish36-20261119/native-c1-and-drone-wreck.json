@@ -1,0 +1,11 @@
+{
+  "source": "b5695c3c9a50d30eec0447c84b960362aead7580",
+  "actualStockExit": 0,
+  "actualCases": {
+    "climberfieldgravitygametests": 17,
+    "dronewreckkindgametests": 9
+  },
+  "scope": "Stock runtime native targeting, supported cardinal ground-body navigation and drone wreck fallback. Separate from full actor-family or C2 specialized navigation acceptance.",
+  "archive": "native-c1-and-drone-wreck.zip",
+  "archiveSha256": "a0d97bee3c6ca25926796a9a88d05aafeeebe29160e3df6fde193b9b1ed60269"
+}
