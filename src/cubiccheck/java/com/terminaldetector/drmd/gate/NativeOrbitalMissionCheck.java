@@ -193,7 +193,10 @@ public final class NativeOrbitalMissionCheck {
             }
         }catch(Throwable bad){failure=bad.toString();bad.printStackTrace();}
     }
-    private static net.minecraft.nbt.NbtCompound data(){return com.terminaldetector.drmd.world.enclave.FactionMemory.of(heldWorld).writeNbt(new net.minecraft.nbt.NbtCompound(),heldWorld.getRegistryManager());}
+    private static net.minecraft.nbt.NbtCompound data() {
+        net.minecraft.world.PersistentState memory = com.terminaldetector.drmd.world.enclave.FactionMemory.of(heldWorld);
+        return memory.writeNbt(new net.minecraft.nbt.NbtCompound(), heldWorld.getRegistryManager());
+    }
     private static net.minecraft.nbt.NbtCompound instance(){var list=data().getCompound("missions").getList("instances",net.minecraft.nbt.NbtElement.COMPOUND_TYPE);for(int i=0;i<list.size();i++){var n=list.getCompound(i);if(n.getUuid("owner").equals(playerId)&&n.getUuid("site").equals(siteId))return n;}return new net.minecraft.nbt.NbtCompound();}
     private static int cursor(){var n=instance();return n.isEmpty()?-1:n.getInt("cursor");}
     private static int rep(){return com.terminaldetector.drmd.world.enclave.FactionMemory.of(heldWorld).getRep(playerId,com.terminaldetector.drmd.world.enclave.EnclaveOrigin.MINERS);}
