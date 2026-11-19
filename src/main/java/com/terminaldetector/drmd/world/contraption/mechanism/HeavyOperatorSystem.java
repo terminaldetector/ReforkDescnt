@@ -160,7 +160,10 @@ public final class HeavyOperatorSystem {
         var floor=new LinkedHashMap<BlockPos,BlockState>();
         for(int x=-2;x<=2;x++)for(int z=-2;z<=2;z++)floor.put(new BlockPos(x,-1,z),Blocks.IRON_BLOCK.getDefaultState());
         floor.put(CORE,ModWorldBlocks.SHIP_CONTROL_CORE.getDefaultState());floor.put(YAW_DRIVE,drive(Direction.UP));floor.put(YAW_BASE,bearing(Direction.UP));
-        for(var p:List.of(new BlockPos(-1,0,0),new BlockPos(1,0,0),new BlockPos(0,0,1)))floor.put(p,ModWorldBlocks.SHIP_THRUSTER.getDefaultState());
+        // The same three ordinary vector pods brace real shoulder recoil through
+        // the existing mixer. Use the supported outer deck, rather than spend
+        // their unchanged300N capacity on three near-centre moment arms.
+        for(var p:List.of(new BlockPos(-2,0,-2),new BlockPos(2,0,-2),new BlockPos(0,0,2)))floor.put(p,ModWorldBlocks.SHIP_THRUSTER.getDefaultState());
         var middle=new LinkedHashMap<BlockPos,BlockState>();middle.put(YAW_CHILD,bearing(Direction.DOWN));middle.put(PITCH_DRIVE,drive(Direction.EAST));middle.put(PITCH_BASE,bearing(Direction.EAST));
         var guns=new LinkedHashMap<BlockPos,BlockState>();guns.put(PITCH_CHILD,bearing(Direction.WEST));guns.put(new BlockPos(0,0,1),Blocks.IRON_BLOCK.getDefaultState());
         for(int x=-2;x<=2;x++)guns.put(new BlockPos(x,0,2),Blocks.IRON_BLOCK.getDefaultState());
