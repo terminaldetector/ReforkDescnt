@@ -546,4 +546,114 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
             return ++phase[0]==4;
         });
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c1-wall-villager-selection",tickLimit=320)
+    public void nativeZombieAndHuskAcquireVillagersAlongTheWorldVerticalWallTangent(TestContext c){nativeMobCandidates(c,false,false,false);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c1-wall-golem-selection",tickLimit=320)
+    public void nativeSkeletonAndStrayAcquireGolemsAlongTheWorldVerticalWallTangent(TestContext c){nativeMobCandidates(c,true,false,false);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c1-unframed-selection-control",tickLimit=320)
+    public void ordinaryUnframedZombieKeepsTheNativeFourBlockVerticalMobSearchBand(TestContext c){nativeMobCandidates(c,false,true,false);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c1-opaque-selection-control",tickLimit=320)
+    public void actualOpaqueWallStillRefusesNativeC1MobTargetSelection(TestContext c){nativeMobCandidates(c,true,false,true);}
+
+    private static final class NativeCandidate {
+        final net.minecraft.entity.mob.MobEntity actor,target;final Object navigation,control;Vec3d start,last;
+        int born,age,selectedAge=-1;boolean path,selected;double step;
+        NativeCandidate(net.minecraft.entity.mob.MobEntity a,net.minecraft.entity.mob.MobEntity target){actor=a;this.target=target;navigation=a.getNavigation();control=a.getMoveControl();}
+        void enable(){actor.setAiDisabled(false);born=age=actor.age;start=last=actor.getPos();}
+    }
+    /** Same native selector, predicate and cadence: the observer never calls canStart/findTarget/setTarget. */
+    private static void nativeMobCandidates(TestContext c,boolean skeleton,boolean ordinary,boolean opaque){
+        var centre=c.getAbsolutePos(new BlockPos(6,80,6));var room=new Room(c,centre.add(-8,-8,-8),centre.add(8,8,8));
+        var up=ordinary?new Vec3d(0,1,0):new Vec3d(1,0,0);var cases=new ArrayList<NativeCandidate>();boolean[] enabled={false};
+        watch(c,room,310,()->{
+            if(!room.loaded())return false;room.build();
+            if(cases.isEmpty()){
+                if(!ordinary)room.field(centre,up.negate());
+                if(opaque)for(var at:BlockPos.iterate(room.min.add(1,1,1),room.max.add(-1,-1,-1)))if(at.getY()==centre.getY())room.world.setBlockState(at,Blocks.BRICKS.getDefaultState(),2);
+                EntityType<?>[] types=ordinary?new EntityType<?>[]{EntityType.ZOMBIE}:opaque?new EntityType<?>[]{EntityType.SKELETON}:skeleton?new EntityType<?>[]{EntityType.SKELETON,EntityType.STRAY}:new EntityType<?>[]{EntityType.ZOMBIE,EntityType.HUSK};
+                int lane=0;var plane=Vec3d.ofCenter(centre).subtract(up.multiply(7.5));
+                for(var type:types){
+                    var a=(net.minecraft.entity.mob.MobEntity)type.create(room.world);var target=(net.minecraft.entity.mob.MobEntity)(skeleton?EntityType.IRON_GOLEM:EntityType.VILLAGER).create(room.world);
+                    c.assertTrue(!a.isAiDisabled()&&!a.hasNoGravity(),"native supported C1 starts with its own ordinary AI/gravity");a.setAiDisabled(true);a.setPersistent();target.setAiDisabled(true);target.setPersistent();
+                    double z=types.length==1?0:lane++==0?-2:2;
+                    a.setPosition(ordinary?plane.add(0,.02,z):plane.add(.02,-4,z));
+                    target.setPosition(ordinary?a.getPos().add(0,8,0):plane.add(skeleton?.72:.32,4,z));
+                    target.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(4096);target.setHealth(4096);
+                    if(!ordinary)c.assertTrue(ActorFrames.trySetUp(a,up),"one checked pre-spawn physical wall frame");
+                    if(skeleton)a.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND,new net.minecraft.item.ItemStack(net.minecraft.item.Items.BOW));
+                    c.assertTrue(room.world.isSpaceEmpty(a)&&room.world.isSpaceEmpty(target),"actual body geometry is clear, including the unframed inert native victim");room.spawn(target);room.spawn(a);cases.add(new NativeCandidate(a,target));
+                }
+                return false;
+            }
+            if(!enabled[0]){
+                for(var r:cases){
+                    if(r.actor.age<2||r.target.age<2||!room.dark(r.actor.getEyePos())||!room.dark(r.target.getEyePos()))return false;
+                    if(!ordinary&&(!EntityGravitySystem.suppressesVanillaGravity(r.actor)||ActorFrames.up(r.actor).distanceTo(up)>1e-6))return false;
+                    groundSupport(c,r.actor,up);
+                    c.assertTrue(!r.actor.getBoundingBox().expand(r.actor.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_FOLLOW_RANGE),4,r.actor.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_FOLLOW_RANGE)).intersects(r.target.getBoundingBox()),"actual non-player victim is outside the old world-Y4 query, not a player-branch false reproduction");
+                    c.assertTrue(r.actor.canSee(r.target)!=opaque,"actual native physical sight predicate has the intended clear/opaque premise");
+                }
+                for(var r:cases)r.enable();enabled[0]=true;return false;
+            }
+            boolean ready=true;
+            for(var r:cases){
+                var a=r.actor;if(a.age==r.age){ready=false;continue;}
+                r.step=Math.max(r.step,a.getPos().distanceTo(r.last)/Math.max(1,a.age-r.age));r.last=a.getPos();r.age=a.age;
+                groundSupport(c,a,up);c.assertTrue(!a.isAiDisabled()&&!a.hasNoGravity()&&a.getNavigation()==r.navigation&&a.getMoveControl()==r.control&&r.step<=1,"native controls and supported continuous motion remain authoritative");
+                r.path|=a.getNavigation().getCurrentPath()!=null&&!a.getNavigation().isIdle();
+                if(ordinary||opaque){
+                    c.assertTrue(a.getTarget()==null,"ordinary world-Y band and actual opaque predicate remain native refusals");
+                    if(a.age-r.born<100)ready=false;
+                }else{
+                    if(a.getTarget()==r.target&&a.canSee(r.target)){r.selected=true;if(r.selectedAge<0)r.selectedAge=a.age;}
+                    if(!(r.selected&&r.path&&a.getPos().distanceTo(r.start)>.25&&a.age-r.selectedAge>=12)){
+                        c.assertTrue(a.age-r.born<120,"native C1 must acquire the actual supported mob target and begin its own path inside120 ordinary actor ticks: "+a.getType()+" selected="+r.selected+" path="+r.path+" pos="+a.getPos());ready=false;
+                    }
+                }
+            }
+            if(ready)for(var r:cases)System.out.println("C1_NATIVE_MOB_SELECTION type="+r.actor.getType()+" victim="+r.target.getType()+" up="+up+" ordinary="+ordinary+" opaque="+opaque+" actorTicks="+(r.actor.age-r.born)+" selected="+r.selected+" nativePath="+r.path+" physicalMove="+r.actor.getPos().distanceTo(r.start)+" maxStep="+r.step+" observerSetTarget=false");
+            return ready;
+        });
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c1-nearest-physical-player",tickLimit=320)
+    public void nativeC1ChoosesTheNearestRealPlayerFromItsActualPhysicalEye(TestContext c){
+        var centre=c.getAbsolutePos(new BlockPos(6,80,6));var room=new Room(c,centre.add(-8,-8,-8),centre.add(8,8,8));
+        var up=new Vec3d(1,0,0);NativeFoodPlayer[] players=new NativeFoodPlayer[2];net.minecraft.entity.mob.ZombieEntity[] actor={null};int[] selectedAge={-1},enabledAge={-1};
+        watch(c,room,310,()->{
+            if(!room.loaded())return false;room.build();var plane=Vec3d.ofCenter(centre).subtract(up.multiply(7.5));
+            if(actor[0]==null){
+                room.field(centre,up.negate());players[0]=nativeTargetPlayer(room,plane.add(.7,0,3),"nearest-physical");players[1]=nativeTargetPlayer(room,plane.add(.7,2,3),"nearest-legacy");
+                var a=EntityType.ZOMBIE.create(room.world);a.setAiDisabled(true);a.setPersistent();a.setPosition(plane.add(.02,0,-2));c.assertTrue(ActorFrames.trySetUp(a,up),"checked actual actor frame before native registration");room.spawn(a);actor[0]=a;return false;
+            }
+            var a=actor[0];var first=players[0].player;var second=players[1].player;
+            if(enabledAge[0]<0){
+                for(var user:players){var p=user.player;
+                    if(!com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(p)||!com.terminaldetector.drmd.world.gravity.FootGravitySystem.get(p).grounded()
+                        ||com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(p).distanceTo(up)>1e-6)return false;
+                    groundSupport(c,p,up);if(!room.dark(p.getEyePos()))return false;
+                }
+                if(a.age<2||!EntityGravitySystem.suppressesVanillaGravity(a)||!room.dark(a.getEyePos()))return false;groundSupport(c,a,up);
+                var physical=a.getEyePos();var legacy=new Vec3d(a.getX(),a.getEyeY(),a.getZ());
+                c.assertTrue(physical.squaredDistanceTo(first.getPos())<physical.squaredDistanceTo(second.getPos())
+                    &&legacy.squaredDistanceTo(first.getPos())>legacy.squaredDistanceTo(second.getPos()),"real native players have strictly opposite physical-eye versus legacy-world-eye nearest ordering");
+                c.assertTrue(a.canSee(first)&&a.canSee(second)&&first.isAlive()&&second.isAlive(),"both genuine survival players satisfy the native visible target premise");a.setAiDisabled(false);enabledAge[0]=a.age;return false;
+            }
+            groundSupport(c,a,up);
+            c.assertTrue(a.getTarget()==null||a.getTarget()==first,"the unchanged native predicate must rank actual players from the physical eye, not the legacy world-Y eye centre");
+            if(a.getTarget()==first&&selectedAge[0]<0)selectedAge[0]=a.age;
+            if(selectedAge[0]<0||a.age-selectedAge[0]<12){c.assertTrue(a.age-enabledAge[0]<120,"native real-player selection receives its unmodified chance/cadence within120 ordinary actor ticks");return false;}
+            System.out.println("C1_NATIVE_PHYSICAL_NEAREST actor="+a.getUuid()+" selected="+first.getUuid()+" rejectedLegacyNear="+second.getUuid()+" actorTicks="+(a.age-enabledAge[0])+" actualEye="+a.getEyePos()+" observerSetTarget=false");return true;
+        });
+    }
+    private static NativeFoodPlayer nativeTargetPlayer(Room room,Vec3d position,String name){
+        var w=room.world;var data=net.minecraft.server.network.ConnectedClientData.createDefault(new com.mojang.authlib.GameProfile(UUID.randomUUID(),name),false);
+        var p=new net.minecraft.server.network.ServerPlayerEntity(w.getServer(),w,data.gameProfile(),data.syncedOptions());
+        var connection=new net.minecraft.network.ClientConnection(net.minecraft.network.NetworkSide.SERVERBOUND);var channel=new io.netty.channel.embedded.EmbeddedChannel(connection);w.getServer().getPlayerManager().onPlayerConnect(connection,p,data);
+        room.cleanup.add(()->{com.terminaldetector.drmd.flight.FlightSystem.disable(p,DescentPlayerData.get(p));com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(p.getUuid());w.getServer().getNetworkIo().getConnections().remove(connection);w.getServer().getPlayerManager().remove(p);p.discard();channel.finishAndReleaseAll();});
+        channel.runPendingTasks();channel.flushOutbound();int confirmations=0;
+        for(var packet:List.copyOf(channel.outboundMessages()))if(packet instanceof net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket teleport){channel.writeInbound(new net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket(teleport.getTeleportId()));confirmations++;}
+        room.context.assertTrue(confirmations>0,"actual native player connection confirms its initial teleport");p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);com.terminaldetector.drmd.flight.FlightSystem.disable(p,DescentPlayerData.get(p));p.getAbilities().flying=false;p.sendAbilitiesUpdate();p.setPosition(position);
+        if(!w.getServer().getNetworkIo().getConnections().contains(connection))w.getServer().getNetworkIo().getConnections().add(connection);return new NativeFoodPlayer(p,connection,channel);
+    }
 }
