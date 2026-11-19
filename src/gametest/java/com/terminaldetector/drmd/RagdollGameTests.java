@@ -148,6 +148,13 @@ public final class RagdollGameTests implements FabricGameTest {
 	@GameTest(templateName = EMPTY_STRUCTURE, batchId = "ragdoll-codec-legacy", tickLimit = 180)
 	public void absentRigVersionAndExplicitOneRetainLegacyFreeJetJoints(TestContext context) {
 		var world=context.getWorld();var base=context.getAbsolutePos(new BlockPos(7,80,7));var clock=new CodecClock(context,base);
+		// Loading/ticketing does not promise air outside the template. Both +/-2 authored JET
+		// hulls and their six-tick fall need a test-owned free volume, independent of world terrain.
+		var originalCells=new java.util.LinkedHashMap<BlockPos,net.minecraft.block.BlockState>();
+		clock.onClose(()->originalCells.forEach((pos,state)->world.setBlockState(pos,state,2)));
+		for(var pos:BlockPos.iterate(base.add(-5,-3,-3),base.add(5,3,3))){
+			var cell=pos.toImmutable();originalCells.put(cell,world.getBlockState(cell));world.setBlockState(cell,Blocks.AIR.getDefaultState(),2);
+		}
 		var actors=new java.util.ArrayList<RagdollEntity>();var origins=new java.util.ArrayList<Vec3d>();
 		for(int i=0;i<2;i++){
 			var saved=jetSaveFixture(context,new Vec3d(i*4-2,0,0));
@@ -161,13 +168,17 @@ public final class RagdollGameTests implements FabricGameTest {
 		clock.run(()->{
 			if(stage[0]==0){
 				if(!clock.ready(actors.stream().map(Entity::getBlockPos).toArray(BlockPos[]::new)))return;
-				for(int i=0;i<actors.size();i++){var actor=actors.get(i);clock.spawn(actor);actor.applyPhysicsImpulse(actor.getPos(),new Vec3d(2,0,0));ages[i]=actor.age;}
+				for(int i=0;i<actors.size();i++){
+					var actor=actors.get(i);clock.spawn(actor);
+					context.assertTrue(!world.getBlockCollisions(actor,actor.getBoundingBox()).iterator().hasNext(),"complete legacy JET starts in cleared fixture air");
+					actor.applyPhysicsImpulse(actor.getPos(),new Vec3d(2,0,0));ages[i]=actor.age;
+				}
 				startWorld[0]=world.getTime();stage[0]=1;return;
 			}
 			for(int i=0;i<actors.size();i++)if(actors.get(i).age-ages[i]<6)return;
 			for(int i=0;i<actors.size();i++){
 				var actor=actors.get(i);clock.assertOrdinaryTicks(actor,ages[i],startWorld[0],6);
-				context.assertTrue(actor.getX()>origins.get(i).x+.01&&actor.physicsVelocity().x>.01,"legacy body moves from its real impulse during ordinary ticks");
+				context.assertTrue(actor.getX()>origins.get(i).x+.01&&actor.physicsVelocity().x>.01,"legacy body moves from its real impulse during ordinary ticks: variant="+i+" origin="+origins.get(i)+" position="+actor.getPos()+" velocity="+actor.physicsVelocity());
 				context.assertTrue(actor.rigVersion()==1&&actor.rig().joints().stream().allMatch(j->j.angularLimits()==null),"actual ticking does not migrate legacy joints");
 				var saved=new NbtCompound();actor.writeNbt(saved);context.assertTrue(saved.getInt("life")>=6&&saved.getInt("rigVersion")==1,"supported legacy life and version survive actual ticks/save");
 			}

@@ -203,14 +203,32 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
                     var copy=SurvivalThreatState.fromNbt(f.state().writeNbt(new NbtCompound(),f.w.getRegistryManager()),f.w.getRegistryManager());
                     c.assertTrue(copy.progress(f.player.entity.getUuid()).orElseThrow().equals(progress)&&copy.rosterSize(f.player.entity.getUuid())==2,
                         "actual runtime SIEGE and finite roster survive the normal saved-state codec");
+                    c.assertTrue(patrol.stream().allMatch(DroneEntity::isPersistent),"finite owned pair must survive Vanilla128m distance despawn so normal retreat can execute");
                     for(var d:patrol)actors.add(d.getUuid());known[0]=progress.known();decisionAt[0]=now;pressing[0]=true;
+                    System.out.println("THREAT_PRESSURE_DECISION escape="+escape+" player="+f.player.entity.getPos()+" world="+now+" actors="+pressureActors(f,patrol));
                     if(escape){
                         // One deliberate player escape, in the same ticketed columns and inside real world height.
                         var at=f.player.entity.getPos();double dy=at.y-f.w.getBottomY()>162?-161:161;
                         var destination=at.add(0,dy,0);
                         c.assertTrue(destination.y>=f.w.getBottomY()&&destination.y+f.player.entity.getHeight()<f.w.getTopY(),"real escape stays in world bounds");
                         f.player.entity.setPosition(destination);f.player.entity.setVelocity(Vec3d.ZERO);
-                    }else f.seal(f.player.entity.getPos());
+                    }else{
+                        // After400ticks of real combat an ORB may already be inside the old player
+                        // room. Choose one bounded real shelter excluding the actual attacking hulls.
+                        Vec3d hiding=null;
+                        for(var shift:new Vec3d[]{new Vec3d(8,0,0),new Vec3d(-8,0,0),new Vec3d(0,0,8),new Vec3d(0,0,-8),new Vec3d(0,8,0),new Vec3d(0,-8,0)}){
+                            var candidate=f.player.entity.getPos().add(shift);var centre=BlockPos.ofFloored(candidate);
+                            var room=new Box(centre.add(-2,-1,-2),centre.add(3,4,3)).expand(1);
+                            if(room.minY<f.w.getBottomY()||room.maxY>f.w.getTopY()||patrol.stream().anyMatch(d->room.intersects(d.getBoundingBox())))continue;
+                            if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedSegment(f.w,f.player.entity.getEyePos(),candidate.add(0,f.player.entity.getStandingEyeHeight(),0)))continue;
+                            hiding=candidate;break;
+                        }
+                        c.assertTrue(hiding!=null,"real cover admission excludes every current pressure ORB within six fixed loaded candidates");
+                        f.seal(hiding);f.player.entity.setPosition(hiding);f.player.entity.setVelocity(Vec3d.ZERO);
+                        c.assertTrue(patrol.stream().allMatch(d->f.w.raycast(new RaycastContext(d.getEyePos(),f.player.entity.getEyePos(),RaycastContext.ShapeType.COLLIDER,RaycastContext.FluidHandling.NONE,d)).getType()==net.minecraft.util.hit.HitResult.Type.BLOCK),
+                            "fresh real material blocks all outside attackers after the single legitimate shelter entry");
+                        System.out.println("THREAT_PRESSURE_COVER player="+hiding+" world="+now+" actors="+pressureActors(f,patrol));
+                    }
                     return;
                 }
                 c.assertTrue(progress.spawned()==2,"pressure cannot reset the lifetime pair allowance");
@@ -225,6 +243,7 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
                     c.assertTrue(now-decisionAt[0]<=SurvivalThreatDirector.INTERVAL+5,"escaping the alarm area promptly ends pressure");
                     if(progress.phase()!=Phase.COOLDOWN)return;
                     retiring[0]=true;retreatAt[0]=now;
+                    System.out.println("THREAT_PRESSURE_RETREAT player="+f.player.entity.getPos()+" world="+now+" actors="+pressureActors(f,patrol));
                     for(var d:patrol){
                         beforeRetreat.put(d.getUuid(),d.getPos());var actor=f.state().actor(d.getUuid());
                         c.assertTrue(actor!=null&&actor.expires()<=now+LOST_SIGHT_TICKS&&SurvivalThreatDirector.retreatFrom(d)!=null,
@@ -239,7 +258,10 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
                 for(var d:patrol){var before=beforeRetreat.get(d.getUuid());
                     if(before!=null&&d.getPos().squaredDistanceTo(remembered)>before.squaredDistanceTo(remembered)+.05&&d.getVelocity().lengthSquared()>1e-8)movedAway[0]=true;
                 }
-                if(now-retreatAt[0]>=25)c.assertTrue(movedAway[0],"normal flight AI physically retreats from last observation, no follow teleport or velocity injection");
+                if(now-retreatAt[0]>=25){
+                    if(!movedAway[0])System.out.println("THREAT_PRESSURE_NO_MOVEMENT before="+beforeRetreat+" known="+known[0]+" world="+now+" actors="+pressureActors(f,patrol));
+                    c.assertTrue(movedAway[0],"normal flight AI physically retreats from last observation, no follow teleport or velocity injection");
+                }
                 if(now-retreatAt[0]<LOST_SIGHT_TICKS+SurvivalThreatDirector.INTERVAL+10)return;
                 c.assertTrue(progress.phase()==Phase.COOLDOWN&&f.state().rosterSize(f.player.entity.getUuid())==0
                     &&actors.stream().allMatch(id->f.w.getEntity(id)==null||f.w.getEntity(id).isRemoved()),"the pair retires despite earlier visible hunting; no self-extending patrol or recursive wave");
@@ -247,5 +269,10 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
             }catch(Throwable failure){done[0]=true;f.close();throw failure;}
         });
         admitted(c,f->{live[0]=f;f.state().restorePlayer(f.player.entity.getUuid(),searching(f.at,f.w.getTime()));});
+    }
+    private static Object pressureActors(Fixture f,List<DroneEntity> patrol){
+        return patrol.stream().limit(2).map(d->d.getUuid()+" age="+d.age+" pos="+d.getPos()+" v="+d.getVelocity()+" persistent="+d.isPersistent()
+            +" alive="+d.isAlive()+" removed="+d.isRemoved()+" aiOff="+d.isAiDisabled()+" ticking="+f.w.shouldTickEntity(d.getBlockPos())
+            +" retreat="+SurvivalThreatDirector.retreatFrom(d)).toList();
     }
 }
