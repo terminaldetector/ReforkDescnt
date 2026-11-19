@@ -33,9 +33,11 @@ public final class NativePs1AtmosphereCheck {
     // entire camera/foreground geometry unchanged relative to itself, outside that shadow.
     private static final int FIXTURE_SHIFT_X=32;
     private static final List<Map<String,Object>> RESULTS=new ArrayList<>();
+    private static final List<Map<String,Object>> REPLACED_PAIRS=new ArrayList<>();
     private static volatile ServerPlayerEntity player;
     private static volatile boolean admitted,authored,authoring;
-    private static boolean started,done,armed,witness;
+    private static boolean started,done,armed,witness,rearmingPair;
+    private static int pairTicks,pairScans,pairRestarts;
     private static int phase,ticks,phaseTicks,epoch,drawEpoch=-1,scans,stable,inputEpoch=-1,staleSourceFrames;
     private static float wantedInner,wantedReach;
     private static long readbackBytes;
@@ -58,8 +60,10 @@ public final class NativePs1AtmosphereCheck {
                 long bytes=(long)c.getFramebuffer().textureWidth*c.getFramebuffer().textureHeight*4;
                 if(c.world!=null&&readbackBytes+bytes<=64L*1024*1024)try(var image=screenshot()){image.writeTo(folder.resolve("first-failure-final.png"));}
             }
-            write(Map.of("status","FAIL","reason",reason,"phase",phase,"scans",scans,"readbackBytes",readbackBytes,"states",RESULTS,
+            var result=new LinkedHashMap<String,Object>(Map.of("status","FAIL","reason",reason,"phase",phase,"scans",scans,"readbackBytes",readbackBytes,"states",RESULTS,
                 "pendingState",observed==null?Map.of():observed,"rawSource",source(rawMesh),"preparedSource",source(prepared),"skyAdmission",skyAdmission));
+            result.put("replacedSourcePairs",REPLACED_PAIRS);result.put("pairTicks",pairTicks);result.put("pairScans",pairScans);
+            write(result);
         }catch(Exception failure){failure.printStackTrace();}
         c.scheduleStop();throw new IllegalStateException("PS1_ATMOSPHERE_NATIVE "+reason);
     }
@@ -80,6 +84,7 @@ public final class NativePs1AtmosphereCheck {
         DescentConfig.ps1FarFog=new Ps1FarFogOptions(enabledFog()?1:0);
         phaseTicks=scans=stable=staleSourceFrames=0;previous=null;drawEpoch=-1;observed=null;
         if(phase<6&&phase%2==0){
+            pairTicks=pairScans=0;rearmingPair=false;
             admitted=authored=authoring=false;
             c.getServer().execute(()->{
                 player=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());var w=player.getServerWorld();
@@ -104,6 +109,7 @@ public final class NativePs1AtmosphereCheck {
             c.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);c.getToastManager().clear();begin(c);return;
         }
         require(++phaseTicks<300,"phase deadline "+name()+"; actual sky admission "+skyAdmission);
+        if(phase<6)require(++pairTicks<300,"same-source OFF/ON pair deadline");
         if(admitted&&!authored&&!authoring){
             authoring=true;c.getServer().execute(()->{
                 var w=player.getServerWorld();var points=wall();
@@ -119,7 +125,7 @@ public final class NativePs1AtmosphereCheck {
         if(!ENABLED||done)return;epoch++;armed=witness=false;clearFrame();var c=MinecraftClient.getInstance();
         // Only a new altitude needs settling. ON follows its admitted OFF draw immediately;
         // waiting another twelve ticks would allow an unrelated async publication between them.
-        if(!started||!admitted||!authored||(phase<6&&phase%2==0&&phaseTicks<12)||c.player==null||c.currentScreen!=null)return;
+        if(!started||!admitted||!authored||(phase<6&&phase%2==0&&!rearmingPair&&phaseTicks<12)||c.player==null||c.currentScreen!=null)return;
         if(!c.player.getAbilities().flying||Math.abs(c.player.getY()-altitude())>.02)return;
         var camera=c.gameRenderer.getCamera();
         float exposure=com.terminaldetector.drmd.client.sky.Ps1SkyBackground.skyExposure();
@@ -132,6 +138,23 @@ public final class NativePs1AtmosphereCheck {
         if(phase<6&&(protectedView||nativeSky<=0))return;
         if(wall().stream().anyMatch(p->!WorldEditSafety.neighbourhoodLoaded(c.world,p)||!c.world.getBlockState(p).isOf(Blocks.WHITE_CONCRETE)))return;
         armed=true;
+    }
+    /** A normal publication may replace the source between OFF and ON. Reject that trial,
+     * preserve its evidence, then re-arm the actual current world without pinning any old mesh. */
+    private static void rearmReplacedPair(){
+        require(raw!=null&&rawMesh!=null&&!RESULTS.isEmpty(),"complete OFF evidence before pair re-arm");
+        var c=MinecraftClient.getInstance();int attempt=++pairRestarts;
+        var off=RESULTS.get(RESULTS.size()-1);
+        try{
+            var folder=c.runDirectory.toPath().resolve("ps1-atmosphere-frames");
+            Files.move(folder.resolve(off.get("scene")+".png"),folder.resolve("replaced-"+attempt+"-"+off.get("scene")+".png"));
+            raw.writeTo(folder.resolve("replaced-"+attempt+"-world-raw.png"));
+        }catch(java.io.IOException failure){fail("preserve replaced source trial: "+failure);return;}
+        REPLACED_PAIRS.add(Map.of("attempt",attempt,"epoch",epoch,"off",off,"replacement",source(prepared)));
+        RESULTS.remove(RESULTS.size()-1);raw.close();raw=null;rawMesh=null;
+        phase--;rearmingPair=true;previous=null;stable=0;drawEpoch=-1;observed=null;
+        DescentConfig.ps1FarFog=new Ps1FarFogOptions(0);
+        // No begin(): no re-authoring/teleport, and pair tick/scan/readback budgets are retained.
     }
     public static void prepare(PlanetSurfaceMesh mesh){if(ENABLED&&!done)prepared=mesh;}
     public static void input(float inner,float reach){
@@ -177,10 +200,11 @@ public final class NativePs1AtmosphereCheck {
             if(inputEpoch!=epoch||prepared.stale(camera.x,camera.y,camera.z,wantedInner,wantedReach)){
                 staleSourceFrames++;previous=null;stable=0;return;
             }
+            if(phase<6&&phase%2==1&&rawMesh!=prepared){rearmReplacedPair();return;}
             // Admit only a current normal publisher result, not the stale field kept visible while
             // a new altitude/interest request is building. The connected ON draw retains EXACT identity.
             if(phase<6&&phase%2==0){if(prepared==previous)stable++;else{previous=prepared;stable=1;}if(stable<4)return;}
-            require(++scans<=64,"independent opaque marker admission scans");foreground=witnessDepth(view);
+            require(++scans<=64&&++pairScans<=64,"independent opaque marker admission scans");foreground=witnessDepth(view);
             if(foreground.length<9||java.util.stream.IntStream.range(0,foreground.length).filter(i->foreground[i]<.999995f).count()<9)return;
             before=screenshot();drawMesh=prepared;drawEpoch=epoch;
         }else if(before!=null&&drawEpoch==epoch){
@@ -217,6 +241,7 @@ public final class NativePs1AtmosphereCheck {
             observed.put("actualSkyBackgroundDraws",com.terminaldetector.drmd.client.sky.Ps1SkyBackground.completedDraws());
             observed.put("source",source(drawMesh));observed.put("actualProjectionInput",List.of(wantedInner,wantedReach));
             observed.put("sourceInputEpoch",inputEpoch);observed.put("staleSourceFramesNotAdmitted",staleSourceFrames);
+            observed.put("pairTicks",pairTicks);observed.put("pairScans",pairScans);observed.put("sourceRearms",pairRestarts);
             require(contribution>=500,"real far-world pixel domain");require(GL11.glGetError()==0,"actual draw/readback GL error");
         }
     }
@@ -236,7 +261,7 @@ public final class NativePs1AtmosphereCheck {
             }
             int error=GL11.glGetError();require(error==0,"final native-target readback GL error");
             observed.put("scene",name());observed.put("hudPixel",true);observed.put("glError",error);RESULTS.add(observed);observed=null;
-            if(++phase==7){done=true;clearFrame();write(Map.of("status","PASS","states",RESULTS,"ordinaryWorldWrites",12,"readbackBytes",readbackBytes,"fullAtmosphereOrVolumetricLodAccepted",false));c.scheduleStop();}
+            if(++phase==7){done=true;clearFrame();write(Map.of("status","PASS","states",RESULTS,"ordinaryWorldWrites",12,"readbackBytes",readbackBytes,"fullAtmosphereOrVolumetricLodAccepted",false,"replacedSourcePairs",REPLACED_PAIRS));c.scheduleStop();}
             else begin(c);
         }catch(java.io.IOException failure){fail(failure.toString());}
     }
