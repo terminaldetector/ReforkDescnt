@@ -58,7 +58,27 @@ public final class HostileEnvironment {
 	}
 
     private static <T extends LivingEntity> ActiveTargetGoal<T> targetGoal(PathAwareEntity mob,Class<T> type) {
-        return mob instanceof DroneEntity ? new VolumeTargetGoal<>(mob,type) : new ActiveTargetGoal<>(mob,type,true);
+        return mob instanceof DroneEntity ? new VolumeTargetGoal<>(mob,type) : new SurfaceTargetGoal<>(mob,type);
+    }
+
+    /** Native targeting still owns range, predicate, cadence and visibility. Only its
+     * four-block normal band follows an already admitted physical surface frame. */
+    private static final class SurfaceTargetGoal<T extends LivingEntity> extends ActiveTargetGoal<T> {
+        private final PathAwareEntity actor;
+        private SurfaceTargetGoal(PathAwareEntity mob,Class<T> type){super(mob,type,true);actor=mob;}
+        @Override protected net.minecraft.util.math.Box getSearchBox(double distance) {
+            if(!com.terminaldetector.drmd.world.gravity.ActorFrames.active(actor))return super.getSearchBox(distance);
+            var up=com.terminaldetector.drmd.world.gravity.ActorFrames.up(actor);
+            if(up.y>.999999||!Double.isFinite(distance)||distance<0)return super.getSearchBox(distance);
+            var x=com.terminaldetector.drmd.world.gravity.ActorFrameMath.toWorld(new net.minecraft.util.math.Vec3d(distance,0,0),up);
+            var y=up.multiply(4);
+            var z=com.terminaldetector.drmd.world.gravity.ActorFrameMath.toWorld(new net.minecraft.util.math.Vec3d(0,0,distance),up);
+            // Absolute basis columns are the conservative AABB of the same local
+            // (distance,4,distance) expansion, including non-cardinal orientations.
+            // No extra query, larger follow range or omniscient target is introduced.
+            return actor.getBoundingBox().expand(Math.abs(x.x)+Math.abs(y.x)+Math.abs(z.x),
+                Math.abs(x.y)+Math.abs(y.y)+Math.abs(z.y),Math.abs(x.z)+Math.abs(y.z)+Math.abs(z.z));
+        }
     }
 
     /** Free-flight actors search in XYZ; vanilla's four-block Y band belongs to ground mobs. */
