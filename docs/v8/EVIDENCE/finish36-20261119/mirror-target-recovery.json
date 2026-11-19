@@ -1,0 +1,122 @@
+{
+  "id": "S01-T03",
+  "source": "cd39fb7f58e58077e59a5299a64307f433b605c0",
+  "runtime": "Minecraft 1.21.1 Fabric, BetterCubicChunks 0.1.1, Sodium and llvmpipe, disposable seeded world",
+  "childExit": 0,
+  "acceptance": "Native render-target allocation refusal preserves slab/backing, diagnostic and primary FBO; following retry restores reflection in the same native camera/projection",
+  "visualReview": "Independently viewed actual unmodified recovery and fallback frame. Shared outline and intact backing are visible. Recovery shows the gold fixture reflection.",
+  "initialFailedRun": "Joined-off baseline was captured with a different projected FOV after native creative flight changed. Raw log remains in ZIP.",
+  "historicBoundary": "Instrumented controlled native target refusal and actual render. The original installed binary and save are unavailable.",
+  "archive": "mirror-target-recovery.zip",
+  "archiveSha256": "3fd4ea784a2884907430bba1f246b828ea1781088780ee45c99b0b53750ad73e",
+  "rendererEvidence": {
+    "allocatorFallback": [
+      {
+        "scene": "target-off-same-context",
+        "creativeFlying": false,
+        "projection": [
+          0.8033332,
+          0.0,
+          -0.0,
+          -0.0,
+          0.0,
+          1.428148,
+          -0.0,
+          -0.0,
+          0.0,
+          0.0,
+          -1.0003906,
+          -1.0,
+          0.0,
+          -0.0,
+          -0.10001954,
+          -0.0
+        ],
+        "glError": 0,
+        "historicalOff": "joined-off.png",
+        "view": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "camera": [
+          13.0,
+          2156.0,
+          30.5
+        ],
+        "actualOuterFbo": 1
+      },
+      {
+        "scene": "target-unavailable",
+        "samePoseOffBaseline": "target-off-same-context.png",
+        "aperturePixels": 30625,
+        "changedAgainstOff": 0,
+        "allocatorRefusals": 1,
+        "unavailableReason": "reflection target unavailable: IllegalStateException: controlled mirror allocator refusal before GL",
+        "glError": 0,
+        "actualOuterFbo": 1
+      },
+      {
+        "scene": "target-recovered",
+        "samePoseOffBaseline": "target-off-same-context.png",
+        "aperturePixels": 30625,
+        "changedAgainstOff": 26896,
+        "allocatorRefusals": 1,
+        "unavailableReason": "none",
+        "glError": 0,
+        "actualOuterFbo": 1
+      }
+    ],
+    "originalScenes": [
+      "{\"scene\":\"joined-on\",\"changedPixels\":20736}",
+      "{\"scene\":\"hole-on\",\"changedPixels\":14112}",
+      "{\"scene\":\"angled-on\",\"changedPixels\":17240}",
+      "{\"scene\":\"occluded-on\",\"changedPixels\":15552}",
+      "{\"scene\":\"charged-on\",\"changedPixels\":20736}",
+      "{\"scene\":\"portal-on\",\"changedPixels\":90837}",
+      "{\"scene\":\"banked-on\",\"changedPixels\":26680}",
+      "{\"scene\":\"both-on\",\"changedPixels\":79947}"
+    ],
+    "frames": 19
+  },
+  "artifacts": [
+    {
+      "path": "mods/drmd-6dof-1.1.35-ufo-dev.1.jar",
+      "sha256": "4e453f1e8d0bedd21c9daeb922e677df9bcbfdd16b85928bd4d79130885c4a64",
+      "source": "/tmp/ungravity-finish-36/eleventh/jars/drmd-6dof-1.1.35-ufo-dev.1.jar"
+    },
+    {
+      "path": "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar",
+      "sha256": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+      "source": "/workspace/Refork-audit/work/master-v5/upstream/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar"
+    },
+    {
+      "path": "mods/fabric-api-0.116.15+1.21.1.jar",
+      "sha256": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+      "source": "/workspace/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api/0.116.15+1.21.1/d25c793833a90cc028c9a61bc4546cd578a70ce1/fabric-api-0.116.15+1.21.1.jar"
+    },
+    {
+      "path": "mods/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar",
+      "sha256": "ca650c1bcbf809f5e7a52b31adc130e52efa1303324b1d25549f5028d21e5dcf",
+      "source": "/tmp/ungravity-finish-36/eleventh/jars/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar"
+    },
+    {
+      "path": "mods/sodium-fabric-0.8.13+mc1.21.1.jar",
+      "sha256": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d",
+      "source": "/workspace/ungravity-v5/world/work/gate0/upstream/sodium-fabric-0.8.13+mc1.21.1.jar"
+    }
+  ]
+}

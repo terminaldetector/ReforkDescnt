@@ -106,11 +106,11 @@ tasks:
   owner: CODEX
   gate: G0
   depends_on_stages: *id002
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/mirror-target-recovery.json, EVIDENCE/finish36-20261119/mirror-target-recovery.zip]
+  notes: "Нативный клиент принудительно получил один отказ выделения цели. Все 30 625 пикселей в проёме совпали с выключенным зеркалом в той же камере, рамка и подложка остались видимы. При повторе восстановилось отражение в 26 896 пикселях, ошибок GL нет."
 - id: S01-T04
   stage: S01
   stage_title: Reproduce and instrument baseline
