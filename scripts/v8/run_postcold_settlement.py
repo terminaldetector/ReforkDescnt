@@ -18,7 +18,7 @@ def audit_final(m,world,attempt):
         by_chunk=defaultdict(list)
         for packed,name in zip(positions,names):
             x=packed>>38;z=(packed>>12)&0x3ffffff;z=z-(1<<26) if z>=(1<<25) else z;y=packed&4095;y=y-4096 if y>=2048 else y;by_chunk[(x//16,z//16)].append((x,y,z,name['value']))
-        region_bytes={};regions={};verified=0
+        region_bytes={};regions={};verified=0;carved_cells=[]
         for (cx,cz),cells in sorted(by_chunk.items()):
             path=world/('region/r.'+str(cx//32)+'.'+str(cz//32)+'.mca')
             if path not in region_bytes:
@@ -26,6 +26,8 @@ def audit_final(m,world,attempt):
                 before=path.stat();raw=path.read_bytes();after=path.stat();m.need((before.st_ino,before.st_size,before.st_mtime_ns)==(after.st_ino,after.st_size,after.st_mtime_ns),'closed block region mutation');m.need(len(raw)>=8192,'real durable block region header');region_bytes[path]=raw;regions[str(path.relative_to(world))]={'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
             raw=region_bytes[path];index=(cx&31)+(cz&31)*32;offset=int.from_bytes(raw[index*4:index*4+3],'big')*4096;sectors=raw[index*4+3];m.need(offset>=8192 and offset+5<=len(raw),'actual saved authored chunk address');length=int.from_bytes(raw[offset:offset+4],'big');m.need(1<length<=sectors*4096-4 and offset+4+length<=len(raw),'actual saved authored chunk size');compression=raw[offset+4];m.need(not compression&128,'external authored chunk unsupported');chunk=m.NBT(m.inflate(raw[offset+5:offset+4+length],compression)).root();m.need(m.val(chunk,'Status')=='minecraft:full','durable actual FULL chunk')
             sections={m.val(section,'Y'):section for section in m.val(chunk,'sections',[])}
+            entities={(m.val(entity,'x'),m.val(entity,'y'),m.val(entity,'z')):entity
+                      for entity in m.val(chunk,'block_entities',[])}
             for x,y,z,wanted in cells:
                 section=sections.get(y//16)
                 if section is None or 'block_states' not in section['value']:
@@ -35,7 +37,18 @@ def audit_final(m,world,attempt):
                 if len(palette)==1:entry=palette[0]
                 else:
                     bits=max(4,(len(palette)-1).bit_length());per_long=64//bits;index=(y&15)*256+(z&15)*16+(x&15);packed=m.val(states,'data');m.need(packed is not None and len(packed)>(index//per_long),'saved palette packed storage');value=(packed[index//per_long]>>((index%per_long)*bits))&((1<<bits)-1);m.need(value<len(palette),'saved blockstate palette index');entry=palette[value]
-                m.need(m.val(entry,'Name')==wanted and not m.val(entry,'Properties',{}),'actual durable post-blast cell/state mismatch at '+str((x,y,z)));verified+=1
+                m.need(m.val(entry,'Name')==wanted,'actual durable post-blast material mismatch at '+str((x,y,z)))
+                properties={key:node['value'] for key,node in m.val(entry,'Properties',{}).items()}
+                if wanted=='drmd:carved':
+                    entity=entities.get((x,y,z));m.need(entity is not None and m.val(entity,'id')=='drmd:carved',
+                        'the blast rim retains a durable carved block entity at '+str((x,y,z)))
+                    source=m.val(entity['value']['source'],'Name');mask=m.val(entity,'mask')
+                    m.need(properties=={'falling':'false','waterlogged':'false','level':'8'}
+                        and source not in (None,'minecraft:air','drmd:carved') and isinstance(mask,int) and mask not in (0,-1),
+                        'dry authored blast rim retains its original material and nonempty partial shape at '+str((x,y,z)))
+                    carved_cells.append({'position':[x,y,z],'source':source,'mask':mask,'properties':properties})
+                else:m.need(not properties,'unexpected block properties in the default-state authored city at '+str((x,y,z)))
+                verified+=1
         prior=persistent('drmd_ragdoll_soak_proof');roofs={m.uid(row,'Roof') for row in m.val(prior,'Rows',[]) if 'Roof' in row['value']};detached={m.uid(n):n for n in m.val(state,'Detached',[])};roofs|=set(detached);physical=m.exact_saved_physical_ownership(world,set(),roofs);m.save(attempt/'postcold-physical-ownership.json',physical);m.need(physical['pass'],'post-cold exact retained roof and no corpse/duplicate ownership')
         birth_ids={m.uid(n,'Id') for n in m.val(state,'DropBirthIds',[])};saved_drops=Counter();saved_bodies={};seen_owned_items=set()
         for path in sorted(world.rglob('entities/*.mca')):
@@ -60,7 +73,7 @@ def audit_final(m,world,attempt):
         m.need(set(saved_bodies)==set(detached),'every actual detached structural body serialized exactly once')
         for identity,saved in saved_bodies.items():m.need(value(saved['value']['shape'])==value(detached[identity]['value']['shape']),'actual durable detached shape/material cells unchanged')
         groups=persistent('drmd_ragdoll_groups');m.need(m.val(groups,'Schema')==1 and not m.val(groups,'Groups',[]),'durable logical groups cleaned with their actual expired corpses')
-        result={'status':'POST_COLD_AUTHORED_SETTLEMENT_DURABLE_PASS','verifiedActualCells':verified,'regions':regions,'retainedRoofs':len(roofs),'newDetachedBodies':len(detached),'ownedSavedDrops':dict(saved_drops),'unexpectedCorpses':0,'logicalGroups':0,'ambientItemPolicy':'not in born UUID receipt: ignored'};m.save(attempt/'durable-material-audit.json',result);return result
+        result={'status':'POST_COLD_AUTHORED_SETTLEMENT_DURABLE_PASS','verifiedActualCells':verified,'regions':regions,'retainedRoofs':len(roofs),'newDetachedBodies':len(detached),'ownedSavedDrops':dict(saved_drops),'unexpectedCorpses':0,'logicalGroups':0,'carvedCells':carved_cells,'ambientItemPolicy':'not in born UUID receipt: ignored'};m.save(attempt/'durable-material-audit.json',result);return result
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--repo',type=P,default=P('/workspace/ungravity-v5/ufo-body-physics'));p.add_argument('--existing-runtime',type=P,required=True);p.add_argument('--attempt',type=P,required=True);p.add_argument('--source',required=True);p.add_argument('--run-with-root-java-lease',action='store_true');a=p.parse_args()
