@@ -1,0 +1,42 @@
+{
+  "task": "S03-T04",
+  "flight": {
+    "source": "d978be3541d148246642c5ece2f97842e5d057ce",
+    "mainJar": "d62f5389c91964c81d897ac6ae488b3ebfd9e2ecb9e0d1d125c90c11d93320de",
+    "observerJar": "d918dc78b73316f9d892d01d5430994b5b1b2118c0426b26c2912e16fac42ecd",
+    "backend": "Better Cubic Chunks 0.1.1",
+    "sodium": "0.8.13+mc1.21.1",
+    "sampledClientTicks": 1285,
+    "clientMoveCalls": 2273,
+    "serverMoveCalls": 1272,
+    "unmatched": 0,
+    "crossedHeights": [
+      -64,
+      1024,
+      1640,
+      2150
+    ],
+    "nativeExit": 0
+  },
+  "cold": {
+    "source": "88ce0587e4ba78fb7a8f67b656028bc362a3c08c",
+    "gameSha256": "f63ada2802578f596521944c182ef4268bf7efa080e36b4fd9f3fed5e3e26f43",
+    "observerSha256": "349ec4dacaa652c10e28f7294c9515e6096a60c644344f393abef29591a182e8",
+    "y": [
+      -512,
+      1024,
+      1640,
+      2150
+    ],
+    "savedFilesAtHandoff": 65,
+    "writerFixtureWrites": 184,
+    "readerFixtureWrites": 0,
+    "sameSaveWriterProofSha256": "21f3761af0782c488abb782dcaf502d6046375ac4819f9c2ab07130f1efd5e83",
+    "writerStatus": "WRITER_STOPPING_PASS",
+    "readerStatus": "COLD_READER_STOPPING_PASS",
+    "samePlayerAndSeed": true
+  },
+  "scope": "Actual native flight and a separate dedicated server/client cold persistence pair. The latter covers the four native BlockEntity marker sites. Full fluid and light parity is tracked by S02-T05.",
+  "archive": "four-height-flight-and-cold.zip",
+  "archiveSha256": "494717e9827e8f92b5c4da3eadbb875ba5c6aa033741f23afbcd9666e7f8fec0"
+}

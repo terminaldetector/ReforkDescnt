@@ -265,11 +265,11 @@ tasks:
   owner: WORLD
   gate: G1
   depends_on_stages: *id004
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json, EVIDENCE/finish36-20261119/vertical-and-field.json]
-  notes: "Фактический полёт прошёл −64, +1024, +1640 и +2150 на BCC. Обычный ввод и форсаж, ноль несопоставленных точек, чистое завершение. Отдельное холодное чтение всех высот остаётся в работе."
+  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json, EVIDENCE/finish36-20261119/vertical-and-field.json, EVIDENCE/finish36-20261119/four-height-flight-and-cold.json, EVIDENCE/finish36-20261119/four-height-flight-and-cold.zip]
+  notes: "Фактический полёт прошёл −64, +1024, +1640 и +2150 на BCC. Обычный ввод и форсаж, ноль несопоставленных точек, чистое завершение. Другая пара реальных серверных и клиентских JVM перечитала то же сохранение на −512, +1024, +1640, +2150. Все четыре спавнера появились у отдельного клиента и продолжили обычные тики, 0 восстанавливающих записей."
 
 - id: S03-T05
   stage: S03
