@@ -43,7 +43,7 @@ public final class BlastStructuralCollapseGameTests implements FabricGameTest {
     public void remainingGroundSupportAndASeparateChestComponentRefuseDetachmentWithoutDataLoss(TestContext c) {
         drive(c,new Fixture(c,512,Mode.ANCHORED),new Fixture(c,768,Mode.CHEST));
     }
-    private enum Mode {TNT,ROCKETS,ANCHORED,CHEST}
+    enum Mode {TNT,ROCKETS,ANCHORED,CHEST}
     private static void drive(TestContext c,Fixture... fixtures) {
         c.runAtEveryTick(()->{
             try {
@@ -58,7 +58,7 @@ public final class BlastStructuralCollapseGameTests implements FabricGameTest {
             }
         });
     }
-    private static final class Fixture implements AutoCloseable {
+    static final class Fixture implements AutoCloseable {
         private static final int SUPPORT_HEIGHT=3,ROOF_HEIGHT=7;
         final TestContext c;
         final ServerWorld world;
@@ -208,5 +208,7 @@ public final class BlastStructuralCollapseGameTests implements FabricGameTest {
             for(var e:originals.entrySet())world.setBlockState(e.getKey(),e.getValue(),2);
             chunks.close();
         }
+        /** The opt-in long/cold gate retains actual material ownership; it never deletes roofs. */
+        void retainForColdSave(){if(closed)return;closed=true;chunks.close();}
     }
 }

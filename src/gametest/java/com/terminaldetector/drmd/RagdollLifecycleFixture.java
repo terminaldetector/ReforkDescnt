@@ -17,7 +17,10 @@ final class RagdollLifecycleFixture implements AutoCloseable {
     final List<Entity> owned=new ArrayList<>();final Map<BlockPos,BlockState> cells=new LinkedHashMap<>();final List<Runnable> cleanup=new ArrayList<>();
     boolean closed,retain;int callbacks;
     RagdollLifecycleFixture(TestContext context,int width,int length,int xOffset){
-        this.context=context;world=context.getWorld();floor=context.getAbsolutePos(new BlockPos(1000+xOffset,80,1000));
+        this(context,context.getAbsolutePos(new BlockPos(1000+xOffset,80,1000)),width,length);
+    }
+    RagdollLifecycleFixture(TestContext context,BlockPos floor,int width,int length){
+        this.context=context;world=context.getWorld();this.floor=floor;
         chunks=new AiFixtureChunks(world,floor.add(width/2,0,length/2),width>20?2:1);
         area=new Box(Vec3d.of(floor.add(-5,0,-5)),Vec3d.of(floor.add(width+6,12,length+6)));
         for(var p:BlockPos.iterate(floor.add(-3,0,-3),floor.add(width+3,7,length+3)))put(p,p.getY()==floor.getY()?Blocks.OBSIDIAN.getDefaultState():Blocks.AIR.getDefaultState());

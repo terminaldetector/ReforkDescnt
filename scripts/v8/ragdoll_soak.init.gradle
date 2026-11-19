@@ -1,0 +1,81 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+import java.security.MessageDigest
+
+// Opt-in fixture only. Canonical source manifests and physics budgets are unchanged.
+gradle.projectsEvaluated {
+    def root = rootProject
+    def runtime = root.file(root.providers.gradleProperty('drmdLifecycleRuntime').get())
+    def frozen = new File(runtime.parentFile, 'frozen-inputs')
+    def mode = root.providers.gradleProperty('drmdLifecycleMode').get()
+    def source = root.providers.gradleProperty('drmdLifecycleSource').get()
+    if (!(mode in ['soak','rehearsal']) || !(source ==~ /[0-9a-f]{40}/)) throw new GradleException('Explicit mode and source40 required')
+    def sha = { File f -> def d=MessageDigest.getInstance('SHA-256');f.withInputStream { s -> byte[] b=new byte[1024*1024];int n;while((n=s.read(b))>0)d.update(b,0,n) };d.digest().encodeHex().toString() }
+    root.tasks.named('runGametest') { task ->
+        // RunGameTask launches via jvmArguments/@argfile/internalRunDir. Replace ONLY its
+        // execution action, retain its real compile/resources/Loom prerequisite graph.
+        actions.clear()
+        doLast {
+            if (runtime.exists() || frozen.exists()) throw new GradleException('Fresh isolated runtime/frozen-inputs required; first failure is retained')
+            runtime.mkdirs();frozen.mkdirs()
+            new File(runtime,'eula.txt').text='eula=true\n'
+            new File(runtime,'server.properties').text='level-name=world\nserver-port=0\nserver-ip=127.0.0.1\nonline-mode=false\nview-distance=3\nsimulation-distance=3\nenable-rcon=false\n'
+            def originalCP=task.classpath.files.toList(), replacements=[:], records=[]
+            def declared=task.jvmArguments.get().collect{it.toString()}
+            def baseJvm=task.allJvmArgs.collect{it.toString()}
+            def resolvedArgs=(task.args?:[]).collect{it.toString()}
+            task.argumentProviders.each { p -> resolvedArgs.addAll(p.asArguments().collect{it.toString()}) }
+            def originalArgFiles=[]
+            declared.findAll{it.startsWith('@')}.each { arg ->
+                def af=new File(arg.substring(1));if(!af.isFile())throw new GradleException("Missing actual Loom argfile ${af}")
+                def lines=af.readLines().findAll{!it.trim().isEmpty()}
+                if(lines.size()!=2||!(lines[0] in ['-cp','-classpath','--class-path'])||lines[1].replaceAll('^"|"$','')!=originalCP.collect{it.absolutePath}.join(File.pathSeparator))throw new GradleException('Unexpected Loom argfile semantics; preserve first failure')
+                def copy=new File(frozen,'original-loom-argfile-'+originalArgFiles.size()+'.txt');copy.bytes=af.bytes;originalArgFiles<<[original:af.absolutePath,preserved:copy.absolutePath]
+            }
+            originalCP.eachWithIndex { File input,int i ->
+                if(input.isDirectory()) {
+                    def out=new File(frozen,String.format('cp-%03d',i));root.copy {from input;into out};replacements[input.absolutePath]=out.absolutePath
+                } else if(!input.isFile()) throw new GradleException("Absent runtime input ${input}")
+            }
+            def gtSource=root.sourceSets.gametest.output.resourcesDir.absolutePath
+            if(!replacements.containsKey(gtSource))throw new GradleException('Actual GameTest resources missing from CP')
+            def manifestFile=new File(replacements[gtSource],'fabric.mod.json')
+            def manifest=new JsonSlurper().parse(manifestFile)
+            manifest.entrypoints['fabric-gametest']=['com.terminaldetector.drmd.RagdollSoakGameTests']
+            manifest.entrypoints.main=(manifest.entrypoints.main?:[])+['com.terminaldetector.drmd.RagdollColdProbe']
+            manifestFile.text=JsonOutput.prettyPrint(JsonOutput.toJson(manifest))+'\n'
+            def actualCP=originalCP.collect { new File(replacements[it.absolutePath]?:it.absolutePath) }
+            def configArg=declared.find{it.startsWith('-Dfabric.dli.config=')}
+            if(configArg==null)throw new GradleException('Actual declared DLI config required')
+            def oldConfig=configArg.substring('-Dfabric.dli.config='.length())
+            def config=new File(oldConfig);if(!config.isFile())throw new GradleException('Actual DLI launch config missing')
+            def text=config.text
+            // Keep exactly runtime groups; other source-set groups were not on this actual CP.
+            def actualPaths=originalCP.collect{it.absolutePath}.toSet()
+            text=text.readLines().collect { line ->
+                if(line.trim().startsWith('fabric.classPathGroups=')) {
+                    def groups=line.trim().substring('fabric.classPathGroups='.length()).split('::').collect { it.split(File.pathSeparator).toList() }.findAll{g->g.any{actualPaths.contains(it)}}
+                    groups.each { g -> g.each { p -> if(!actualPaths.contains(p))throw new GradleException("Partial actual mod group ${p}") } }
+                    return '\tfabric.classPathGroups='+groups.collect{g->g.collect{replacements[it]?:it}.join(File.pathSeparator)}.join('::')
+                }
+                return line
+            }.join('\n')+'\n'
+            ['fabric.remapClasspathFile','log4j.configurationFile'].each { key ->
+                def line=text.readLines().find{it.trim().startsWith(key+'=')};if(line==null)throw new GradleException("Required config property ${key}")
+                def old=line.trim().substring(key.length()+1);def input=new File(old);if(!input.isFile())throw new GradleException("Missing launch input ${old}")
+                def output=new File(frozen,key+'.txt');output.bytes=input.bytes;text=text.replace(key+'='+old,key+'='+output.absolutePath)
+            }
+            def frozenConfig=new File(frozen,'launch.cfg');frozenConfig.text=text
+            def actualJvm=(baseJvm+declared.findAll{!it.startsWith('@')}).findAll{!it.startsWith('-Dfabric.dli.config=')&&!it.startsWith('-Dfabric-api.gametest.report-file=')&&!it.startsWith('-Ddrmd.lifecycle.')}
+            actualJvm+=['-Dfabric.dli.config='+frozenConfig.absolutePath,'-Ddrmd.lifecycle.mode='+mode,'-Ddrmd.lifecycle.source='+source,'-Dfabric-api.gametest.report-file='+new File(runtime,'reports/gametest-results.xml').absolutePath]
+            actualCP.each { File f ->
+                if(f.isDirectory()) { f.eachFileRecurse { x -> if(x.isFile())records << [path:x.absolutePath,bytes:x.length(),sha256:sha(x)] } }
+                else records << [path:f.absolutePath,bytes:f.length(),sha256:sha(f)]
+            }
+            frozen.eachFileRecurse { f -> if(f.isFile()&&!records.any{it.path==f.absolutePath})records << [path:f.absolutePath,bytes:f.length(),sha256:sha(f)] }
+            def receipt=[schema:1,source:source,mode:mode,originalClasspath:originalCP.collect{it.absolutePath},classpath:actualCP.collect{it.absolutePath},replacements:replacements,originalArgFiles:originalArgFiles,declaredJvmArgs:declared,baseJvmArgs:baseJvm,executable:task.executable,allJvmArgs:actualJvm,mainClass:task.mainClass.get(),args:resolvedArgs,workingDirectory:runtime.absolutePath,manifest:manifest,inputs:records.sort{it.path}]
+            new File(runtime.parentFile,'launch-inputs.json').text=JsonOutput.prettyPrint(JsonOutput.toJson(receipt))+'\n'
+            root.exec { spec -> spec.executable=receipt.executable;spec.args(actualJvm+['-cp',actualCP.collect{it.absolutePath}.join(File.pathSeparator),receipt.mainClass]+resolvedArgs);spec.workingDir=runtime;spec.standardOutput=System.out;spec.errorOutput=System.err }
+        }
+    }
+}
