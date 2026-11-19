@@ -85,16 +85,30 @@ public final class NativeJointReloadCheck {
         var identities=all.stream().map(b->entity(b).getUuid()).collect(java.util.stream.Collectors.toSet());
         var registry=BodyJointRegistry.get(world);var links=((net.minecraft.world.PersistentState)registry).writeNbt(new NbtCompound(),world.getRegistryManager());
         require(module.cells().size()==8&&module.getLocalBlock(EDITED_CELL).isOf(net.minecraft.block.Blocks.IRON_BLOCK),"ordinary motor child has its actual eight-cell original grid");
-        require(registry.forBody(entity(module).getUuid()).size()==1&&registry.forBody(entity(module).getUuid()).getFirst().kind()==com.terminaldetector.drmd.physics.collision.BodyJointConstraint.Kind.MOTOR,"chosen material belongs to actual one-motor child");
+        var moduleLinks=registry.forBody(entity(module).getUuid());
+        require(moduleLinks.size()==1&&moduleLinks.getFirst().kind()==com.terminaldetector.drmd.physics.collision.BodyJointConstraint.Kind.MOTOR
+            &&moduleLinks.getFirst().b().body().equals(entity(module).getUuid()),"chosen material belongs to actual one-motor child");
         require(BoardingSystem.players(world).stream().noneMatch(player->{var contact=BoardingSystem.state(player);return contact!=null&&(contact.support()==entity(module).getId()||contact.gravityOwner()==entity(module).getId());}),"edited child is unoccupied; saved joined-deck passenger remains untouched");
-        var anchor=new Vec3d(.5,.5,1.5);var point=module.localToWorld(anchor);var velocity=module.surfaceVelocityAt(point);var rotation=module.rotation();long revision=module.shapeRevision();
+        var anchor=BoardingSystem.mc(moduleLinks.getFirst().b().point());var point=module.localToWorld(anchor);var velocity=module.surfaceVelocityAt(point);var rotation=module.rotation();long revision=module.shapeRevision();
         require(module.setLocalBlock(EDITED_CELL,net.minecraft.block.Blocks.AIR.getDefaultState()),"actual ordinary module corner removal commits before normal world save");
         require(module.cells().size()==7&&module.getLocalBlock(EDITED_CELL).isAir()&&module.shapeRevision()>revision,"actual removed grid cell cannot be silently replaced or re-generated");
-        require(module.getLocalBlock(new net.minecraft.util.math.BlockPos(0,0,1)).isOf(net.minecraft.block.Blocks.IRON_BLOCK)&&links.equals(((net.minecraft.world.PersistentState)registry).writeNbt(new NbtCompound(),world.getRegistryManager())),"all original joint identities, endpoints, limits and drive activation remain unchanged");
+        require(module.getLocalBlock(new net.minecraft.util.math.BlockPos(0,0,1)).isOf(net.minecraft.block.Blocks.IRON_BLOCK),"motor joint keeps its bearing material");
+        var updated=((net.minecraft.world.PersistentState)registry).writeNbt(new NbtCompound(),world.getRegistryManager());
+        require(links.get("joints").equals(updated.get("joints")),"all original joint identities, endpoints, limits and drive activation remain unchanged");
+        var beforeLocations=links.getList("locations",NbtElement.COMPOUND_TYPE);
+        var afterLocations=updated.getList("locations",NbtElement.COMPOUND_TYPE);
+        require(beforeLocations.size()==afterLocations.size(),"no endpoint location added or removed by a corner edit");
+        for(int i=0;i<beforeLocations.size();i++){
+            var before=beforeLocations.getCompound(i);var after=afterLocations.getCompound(i);
+            var id=before.getUuid("body");
+            require(id.equals(after.getUuid("body")),"all endpoint location identities stay fixed");
+            if(!id.equals(entity(module).getUuid()))require(before.equals(after),"every unrelated endpoint keeps its exact location");
+        }
+        require(registry.lastBounds(entity(module).getUuid()).filter(module.loadingBounds()::equals).isPresent(),"edited endpoint refreshes its true full-volume loading bounds");
         require(identities.equals(BodySpatialIndex.loaded(world).stream().map(b->entity(b).getUuid()).collect(java.util.stream.Collectors.toSet())),"connected corner removal never duplicates or invents a fragment body");
         require(point.distanceTo(module.localToWorld(anchor))<1e-8&&velocity.distanceTo(module.surfaceVelocityAt(point))<1e-8&&rotation.equals(module.rotation()),"remaining material point, surface velocity and actual orientation survive COM rebase");
         materialEdited=true;
-        try{Files.writeString(file("joint-state-material-edit.json"),new com.google.gson.Gson().toJson(Map.of("actualLocalMaterialEdit",true,"body",entity(module).getUuid().toString(),"localCell",List.of(1,1,0),"remainingCells",7,"unchangedBodyIdentities",true,"unchangedJointRegistry",true,"unoccupiedChild",true))+"\n");}catch(Exception e){throw new IllegalStateException(e);}
+        try{Files.writeString(file("joint-state-material-edit.json"),new com.google.gson.Gson().toJson(Map.of("actualLocalMaterialEdit",true,"body",entity(module).getUuid().toString(),"localCell",List.of(1,1,0),"remainingCells",7,"unchangedBodyIdentities",true,"unchangedJointDefinitions",true,"actualEndpointLocation",true,"unoccupiedChild",true))+"\n");}catch(Exception e){throw new IllegalStateException(e);}
     }
     private static BlockBodyEntity body(int i){return LOADED.get(ids.get(i));}
     private static Vec3d anchor(BlockBodyEntity b,BodyJointLink.Endpoint e){return b.localToWorld(new Vec3d(e.point().x(),e.point().y(),e.point().z()));}

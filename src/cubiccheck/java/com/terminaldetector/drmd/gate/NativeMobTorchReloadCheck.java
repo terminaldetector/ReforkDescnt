@@ -75,7 +75,7 @@ public final class NativeMobTorchReloadCheck {
 
     private static final class Slot {
         final int index; final UUID uuid; final String type,javaClass,navigation,control,worldKey;
-        final boolean noGravity; final BlockPos base,source;
+        final boolean noGravity,aiDisabled; final BlockPos base,source;
         volatile NbtCompound saved;
         volatile MobEntity decoded,loaded;
         volatile Map<String,Object> decodeReceipt,loadReceipt;
@@ -86,14 +86,14 @@ public final class NativeMobTorchReloadCheck {
         Slot(int i,MobEntity actor){
             index=i;uuid=actor.getUuid();type=Registries.ENTITY_TYPE.getId(actor.getType()).toString();
             javaClass=actor.getClass().getName();navigation=actor.getNavigation().getClass().getName();
-            control=actor.getMoveControl().getClass().getName();noGravity=actor.hasNoGravity();
+            control=actor.getMoveControl().getClass().getName();noGravity=actor.hasNoGravity();aiDisabled=actor.isAiDisabled();
             worldKey=actor.getWorld().getRegistryKey().getValue().toString();
             base=base(i);source=base.add(1,4,4);
         }
         Slot(int i,com.google.gson.JsonObject n){
             index=i;uuid=UUID.fromString(n.get("uuid").getAsString());type=n.get("type").getAsString();
             javaClass=n.get("javaClass").getAsString();navigation=n.get("navigation").getAsString();
-            control=n.get("control").getAsString();noGravity=n.get("noGravity").getAsBoolean();
+            control=n.get("control").getAsString();noGravity=n.get("noGravity").getAsBoolean();aiDisabled=n.get("aiDisabled").getAsBoolean();
             worldKey=n.get("worldKey").getAsString();
             base=base(i);source=base.add(1,4,4);
         }
@@ -156,7 +156,7 @@ public final class NativeMobTorchReloadCheck {
         try{
             require(entity==s.loaded,"closing serialization must be the admitted live native object");
             require(n.getBoolean("NoGravity")==s.noGravity,"saved authored gravity flag");
-            require(n.getBoolean("NoAI"),"disclosed fixture AI isolation serialized by native save");
+            require(n.getBoolean("NoAI")==s.aiDisabled,"disclosed per-family native AI flag serialized by native save");
             s.saved=n.copy();Files.writeString(file("mob-torch-cold/"+s.uuid+".snbt"),n.toString());
         }catch(Throwable error){failure=error.toString();}
     }
@@ -246,7 +246,8 @@ public final class NativeMobTorchReloadCheck {
                 verifyIdentity(s,actor);
                 if(!full(w,actor.getBoundingBox().expand(1),64)){all=false;continue;}
                 var state=WorldAccess.of(w).readIfLoaded(s.source);if(state.isEmpty()){all=false;continue;}
-                require(state.get().isOf(ModWorldBlocks.GRAVITY_TORCH)&&state.get().get(GravityTorchBlock.FACING)==Direction.EAST,"actual saved registered torch and FACING");
+                require(state.get().isOf(ModWorldBlocks.GRAVITY_TORCH)&&state.get().get(GravityTorchBlock.FACING)==Direction.EAST,
+                    "actual saved registered torch and FACING: "+LABELS[i]+" "+s.source+" state="+state.get());
                 GravityFields.Sample sample=GravityFields.sample(w,actor.getPos());
                 boolean source=sample!=null&&sample.strength()>=.05f&&sample.upDir().dotProduct(UP)>=.999999
                     &&GravityFields.all().stream().anyMatch(field->sample.sourceId().equals(field.id())
@@ -265,7 +266,7 @@ public final class NativeMobTorchReloadCheck {
             if(all){
                 phase=WRITE?"WRITER_READY_TO_SAVE":"READER_NATIVE_COLD_QUALIFIED";
                 if(WRITE){var actors=new ArrayList<Map<String,Object>>();for(int i=0;i<7;i++)actors.add(manifest(slot(i)));
-                    write("manifest.json",Map.of("process",PROCESS,"pid",PID,"actors",actors,"setupAiDisabled",true,
+                    write("manifest.json",Map.of("process",PROCESS,"pid",PID,"actors",actors,"setupAiPolicy","C1/C2 native AI; C3-C7 isolated",
                         "noGravityMutations",0,"ordinaryActorTicksOnly",true,"roomVolumeCap",64));
                     finish("READY_TO_SAVE","seven actual torch policies admitted; PASS requires later writer-closed receipt and process exit");
                 }else finish("PASS","seven native entities/source policies re-admitted after an actual closed-world process restart");
@@ -316,12 +317,22 @@ public final class NativeMobTorchReloadCheck {
                 boolean shell=x==0||x==7||y==0||y==7||z==0||z==7;
                 w.setBlockState(p,shell?Blocks.OBSIDIAN.getDefaultState():i==3?Blocks.WATER.getDefaultState():Blocks.AIR.getDefaultState(),2);
             }
+            if(i==3){
+                // A non-waterlogged torch cannot occupy an open source-water cell. The west
+                // obsidian wall plus five glass neighbours make a sealed dry1-cell niche;
+                // the unchanged cod birth volume remains fully submerged in the real tank.
+                var source=b.add(1,4,4);
+                for(var side:Direction.values())if(side!=Direction.WEST)
+                    w.setBlockState(source.offset(side),Blocks.GLASS.getDefaultState(),2);
+            }
             w.setBlockState(b.add(1,4,4),ModWorldBlocks.GRAVITY_TORCH.getDefaultState().with(GravityTorchBlock.FACING,Direction.EAST),3);
             EntityType<?> type=switch(i){case 0->EntityType.COW;case 1->EntityType.SPIDER;case 2->EntityType.BEE;
                 case 3->EntityType.COD;case 4->ModEntities.ORB;case 5->EntityType.WITHER;default->EntityType.SHULKER;};
             Entity e=type.create(w);require(e instanceof MobEntity,"actual registered family entity");MobEntity a=(MobEntity)e;
-            // Setup-only AI isolation is persisted and reported; never override NoGravity.
-            a.setAiDisabled(true);a.setPersistent();
+            // Cow/Spider need their own native travel to land. NoAI suppresses that native
+            // movement as well as goals; the other five force/constraint policies stay isolated.
+            // This one setup choice is saved and checked per family; never override NoGravity.
+            a.setAiDisabled(i>=2);a.setPersistent();
             // The ordinary spider is wider than one block. Its native AABB starts
             // just outside the wall, without modifying walls or forcing a local frame.
             double wallX = b.getX() + (i == 1 ? 1.02 + a.getWidth() * .5 : 1.5);
@@ -336,7 +347,7 @@ public final class NativeMobTorchReloadCheck {
         require(a.getClass().getName().equals(s.javaClass)&&Registries.ENTITY_TYPE.getId(a.getType()).toString().equals(s.type)
             &&a.getUuid().equals(s.uuid)&&a.getWorld().getRegistryKey().getValue().toString().equals(s.worldKey),"saved world/species/class/UUID identity: "+LABELS[s.index]);
         require(a.getNavigation().getClass().getName().equals(s.navigation)&&a.getMoveControl().getClass().getName().equals(s.control),"native controller family retained");
-        require(a.hasNoGravity()==s.noGravity&&a.isAiDisabled()&&a.isPersistent(),"saved actual flag owners retained without observer override");
+        require(a.hasNoGravity()==s.noGravity&&a.isAiDisabled()==s.aiDisabled&&a.isPersistent(),"saved actual per-family flag owners retained without observer override");
         require(ActorPhysicsProfile.family(a)==FAMILIES[s.index],"actual runtime C-family classification");
     }
     private static Map<String,Object> basic(MobEntity a){
@@ -351,7 +362,7 @@ public final class NativeMobTorchReloadCheck {
     }
     private static Map<String,Object> manifest(Slot s){var r=new LinkedHashMap<String,Object>();
         r.put("index",s.index);r.put("familyId",LABELS[s.index]);r.put("uuid",s.uuid.toString());r.put("type",s.type);r.put("javaClass",s.javaClass);
-        r.put("navigation",s.navigation);r.put("control",s.control);r.put("noGravity",s.noGravity);r.put("source",xyz(s.source));r.put("base",xyz(s.base));
+        r.put("navigation",s.navigation);r.put("control",s.control);r.put("noGravity",s.noGravity);r.put("aiDisabled",s.aiDisabled);r.put("source",xyz(s.source));r.put("base",xyz(s.base));
         r.put("worldKey",s.worldKey);
         r.put("admittedAge",s.readyAge);return r;}
     private static synchronized void flushLifecycle()throws Exception{
@@ -368,7 +379,7 @@ public final class NativeMobTorchReloadCheck {
             out.put("mode",WRITE?"WRITE":"READ");out.put("process",PROCESS);out.put("writerProcess",writerProcess);
             out.put("pid",PID);out.put("writerPid",writerPid);
             out.put("actors",actors);out.put("rows",ROWS);out.put("clientTicks",ticks);out.put("serverTicks",serverTicks);
-            out.put("noGravityMutations",0);out.put("setupAiDisabled",true);out.put("manualActorTicks",0);out.put("forcedActorFrame",false);
+            out.put("noGravityMutations",0);out.put("setupAiPolicy","C1/C2 native AI; C3-C7 isolated");out.put("manualActorTicks",0);out.put("forcedActorFrame",false);
             out.put("sourceBinding",System.getProperty("drmd.gate.mobTorchColdSource","UNBOUND"));
             out.put("observerMode","native Creative hover outside all8m source fields; not Spectator");
             out.put("observerPosition",xyz(OBSERVER));out.put("nativeEntityTickAdmissionRequired",true);out.put("nativeEntityLoadRequired",true);
