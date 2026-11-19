@@ -498,11 +498,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id007
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/torch-player-lifecycle.json, EVIDENCE/finish36-20261119/torch-player-lifecycle.zip]
+  notes: "18 штатных проверок прошли. Включены реальные смерть и возрождение, перенос между измерениями, отключение игрока и загрузка того же UUID из сохранения с обычной гравитацией и коллайдером. Сброс выполняется при удалении конкретного владельца состояния."
 - id: S07-T01
   stage: S07
   stage_title: Universal 6DoF for all mob families

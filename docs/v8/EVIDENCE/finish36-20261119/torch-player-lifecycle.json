@@ -1,0 +1,9 @@
+{
+  "task": "S06-T06",
+  "source": "effd4e894bf1699579254d7385ab952a2d759cfd",
+  "footCasesPassing": 18,
+  "wholeGameTestExit": 3,
+  "scope": "All related FootGravityRecoveryGameTests pass, including actual death/respawn, native dimension transfer, actual logout and saved-player login. This composed process also includes three unrelated failing Heavy assembly cases.",
+  "archive": "torch-player-lifecycle.zip",
+  "archiveSha256": "8f4ffa5aeed72e4ef3c62d66d6a143b59d843af3db84b473802ebfc2f7cf526d"
+}
