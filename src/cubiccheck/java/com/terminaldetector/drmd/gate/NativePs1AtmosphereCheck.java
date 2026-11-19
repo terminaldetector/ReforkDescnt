@@ -175,12 +175,27 @@ public final class NativePs1AtmosphereCheck {
             for(int i=0;i<retained.length;i++)require(Math.abs(retained[i]-foreground[i])<1e-6,"real opaque foreground depth retained");
             var c=MinecraftClient.getInstance();double eyeY=c.gameRenderer.getCamera().getPos().y;
             float density=uniform("Ps1FarFogDensity",1)[0],mix=uniform("Ps1SkyFogMix",1)[0];float[] sky=uniform("Ps1SkyFogColor",3);
-            var expectedSky=c.world.getSkyColor(c.gameRenderer.getCamera().getPos(),c.getRenderTickCounter().getTickDelta(false));
+            var expectedSky=c.world.getSkyColor(c.gameRenderer.getCamera().getPos(),c.getRenderTickCounter().getTickDelta(false))
+                .multiply(com.terminaldetector.drmd.client.sky.Ps1SkyBackground.skyExposure());
             float expected=phase==6||!enabledFog()?0:Ps1Atmosphere.density(eyeY,1);
             require(Math.abs(density-expected)<1e-5&&mix==(expected>0?1:0),"actual altitude/profile GPU density");
-            require(Math.abs(sky[0]-expectedSky.x)<1e-4&&Math.abs(sky[1]-expectedSky.y)<1e-4&&Math.abs(sky[2]-expectedSky.z)<1e-4,"actual shared sky target");
+            if(expected<=0)expectedSky=Vec3d.ZERO;
+            require(Math.abs(sky[0]-expectedSky.x)<1e-4&&Math.abs(sky[1]-expectedSky.y)<1e-4&&Math.abs(sky[2]-expectedSky.z)<1e-4,"actual shared sky target or explicit neutral reset");
+            float actualStart=uniform("Ps1FogStart",1)[0],actualEnd=uniform("Ps1FogEnd",1)[0];
+            float expectedStart=expected>0?Math.min(512,c.options.getClampedViewDistance()*16f)*.5f:0;
+            float expectedEnd=expected>0?expectedStart+2048f/expected:1;
+            require(Math.abs(actualStart-expectedStart)<1e-4&&Math.abs(actualEnd-expectedEnd)<=Math.max(.001,expectedEnd*1e-6),"actual shared smoothstep range");
+            if(expected>0){
+                require(Ps1WorldFog.active(),"actual common world fog owns enabled world pass");
+                require(RenderSystem.getShaderFogShape()==net.minecraft.client.render.FogShape.SPHERE,"actual native/Sodium radial fog mode");
+                require(Math.abs(RenderSystem.getShaderFogStart()-actualStart)<1e-4&&Math.abs(RenderSystem.getShaderFogEnd()-actualEnd)<.001,"same actual terrain and far shader range");
+                var worldFog=RenderSystem.getShaderFogColor();for(int i=0;i<3;i++)require(Math.abs(worldFog[i]-sky[i])<1e-4,"same actual terrain and far sky colour");
+            }
+
             int contribution=0;for(int y=0;y<after.getHeight();y++)for(int x=0;x<after.getWidth();x++)if((before.getColor(x,y)&0xffffff)!=(after.getColor(x,y)&0xffffff))contribution++;
             observed=new LinkedHashMap<>();observed.put("actualEyeY",eyeY);observed.put("density",density);observed.put("skyMix",mix);observed.put("skyColor",sky);observed.put("lodChangedPixels",contribution);observed.put("foregroundSamples",retained.length);observed.put("opaqueAdmissionScans",scans);observed.put("meshQuads",prepared.quads);observed.put("epoch",epoch);
+            observed.put("fogRange",List.of(actualStart,actualEnd));observed.put("commonWorldFogActive",Ps1WorldFog.active());
+            observed.put("actualSkyBackgroundDraws",com.terminaldetector.drmd.client.sky.Ps1SkyBackground.completedDraws());
             observed.put("source",source(drawMesh));observed.put("actualProjectionInput",List.of(wantedInner,wantedReach));
             observed.put("sourceInputEpoch",inputEpoch);observed.put("staleSourceFramesNotAdmitted",staleSourceFrames);
             require(contribution>=500,"real far-world pixel domain");require(GL11.glGetError()==0,"actual draw/readback GL error");
