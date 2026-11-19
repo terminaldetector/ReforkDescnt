@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "com.terminaldetector.drmd.aerisfixture",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "AerisDataPackSelectionProbe"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
