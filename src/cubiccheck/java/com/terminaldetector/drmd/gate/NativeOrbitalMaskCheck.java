@@ -8,6 +8,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.ShaderProgram;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
+import com.terminaldetector.drmd.client.portal.OffscreenWorldView;
 import net.minecraft.client.util.ScreenshotRecorder;
 import org.lwjgl.opengl.GL20;
 import java.nio.file.Files;
