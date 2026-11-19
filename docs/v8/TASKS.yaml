@@ -933,8 +933,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/finish36-20261119/vertical-and-field.json]
-  notes: "Построены и верифицированы 11 712 реальных ячеек станции и двух астероидов. После удаления блока проверку каталога прошли две целые модели. Клиентские кадры трёх дистанций остаются в работе."
+  evidence: [EVIDENCE/finish36-20261119/vertical-and-field.json, EVIDENCE/finish36-20261119/orbital-field-cold.json, EVIDENCE/finish36-20261119/orbital-field-cold.zip]
+  notes: "Построены и верифицированы 11 712 реальных ячеек станции и двух астероидов. После удаления блока проверку каталога прошли две целые модели. После закрытия мира отдельная JVM прочитала все 11 712 ячеек и подтвердила отсутствие дальнего силуэта повреждённой модели. Клиентские кадры трёх дистанций остаются в работе."
 
 - id: S13-T04
   stage: S13

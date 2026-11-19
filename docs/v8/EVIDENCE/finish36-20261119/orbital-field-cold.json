@@ -1,0 +1,18 @@
+{
+  "writerSource": "7b4c8a7de3c1deeb9c504ed54f85a1860a0d5afb",
+  "coldReaderSource": "3f2b274f597957ff463f5b11e755f2d9c2e2eef8",
+  "assertions": {
+    "verifiedCells": 11712,
+    "validObjects": 2,
+    "damagedExcluded": true,
+    "gameTick": 183,
+    "worldTime": 229,
+    "sourceHash": "6e64575bd01001b7043d810c847cdf063df5e9eaadcd587407b83a5aa04799ca",
+    "job": "5943a6c1-6b6e-4a52-a9f7-327a67d7cd0c"
+  },
+  "copiedFiles": 36,
+  "actualIndependentChildExit": 0,
+  "gameBackend": "STOCK",
+  "archive": "orbital-field-cold.zip",
+  "sha256": "814e98bf4a5dee3c0c4a8c56892033299f154907245ca8eed97eae590372eb03"
+}
