@@ -46,6 +46,7 @@ import java.util.UUID;
 /** A real nose-down, rolling flight through the far horizon and into resident surface meshes. */
 public final class NativeHighAltitudeLodCheck {
     public static final boolean ENABLED = Boolean.getBoolean("drmd.gate.highAltitudeLod");
+    private static final boolean TRACE = Boolean.getBoolean("drmd.gate.highAltitudeTrace");
     private static final Vec3d START = new Vec3d(40.5, 2272, 40.5);
     private static final Vec3d FORWARD = Vec3d.fromPolar(88f, 0);
     private static final Vec3d UP = new Vec3d(0, 1, 0)
@@ -67,6 +68,8 @@ public final class NativeHighAltitudeLodCheck {
     private static float drawnOpacity, maximumSpeed;
     private static double maximumCameraError;
     private static int quads;
+    private static String traceStage;
+    private static final Set<String> TRACED = new java.util.HashSet<>();
 
     private NativeHighAltitudeLodCheck() {}
 
@@ -186,6 +189,40 @@ public final class NativeHighAltitudeLodCheck {
     public static void beforeFrame() {
         drawnOpacity = -1;
         quads = 0;
+        traceStage = null;
+    }
+
+    public static void beforeHorizon() {
+        if (!TRACE || !armed || done || OffscreenWorldView.busy()) return;
+        var client = MinecraftClient.getInstance();
+        var eye = client.gameRenderer.getCamera().getPos();
+        String stage = eye.y >= 300 && eye.y <= 322 ? "bridge" : eye.y >= 125 && eye.y < 158 ? "near" : null;
+        if (stage == null || !TRACED.add(stage)) return;
+        traceStage = stage;
+        traceImage(client, stage + "-before");
+    }
+
+    private static void traceImage(MinecraftClient client, String name) {
+        int active = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL13.GL_ACTIVE_TEXTURE);
+        int texture = org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_TEXTURE_BINDING_2D);
+        int[] names = {org.lwjgl.opengl.GL11.GL_PACK_ALIGNMENT, org.lwjgl.opengl.GL11.GL_PACK_ROW_LENGTH,
+            org.lwjgl.opengl.GL11.GL_PACK_SKIP_ROWS, org.lwjgl.opengl.GL11.GL_PACK_SKIP_PIXELS};
+        int[] saved = new int[names.length];
+        for (int i = 0; i < names.length; i++) {
+            saved[i] = org.lwjgl.opengl.GL11.glGetInteger(names[i]);
+            org.lwjgl.opengl.GL11.glPixelStorei(names[i], i == 0 ? 4 : 0);
+        }
+        try (var image = ScreenshotRecorder.takeScreenshot(client.getFramebuffer())) {
+            var folder = client.runDirectory.toPath().resolve("high-altitude-passes");
+            Files.createDirectories(folder);
+            image.writeTo(folder.resolve(name + ".png"));
+        } catch (Exception e) {
+            failure = "native horizon draw readback: " + e;
+        } finally {
+            com.mojang.blaze3d.platform.GlStateManager._activeTexture(active);
+            RenderSystem.bindTexture(texture);
+            for (int i = 0; i < names.length; i++) org.lwjgl.opengl.GL11.glPixelStorei(names[i], saved[i]);
+        }
     }
 
     public static void horizon(Matrix4f view) {
@@ -194,6 +231,15 @@ public final class NativeHighAltitudeLodCheck {
         if (mesh != null && RenderSystem.getShader() == HorizonShader.program()) {
             drawnOpacity = RenderSystem.getShaderColor()[3];
             quads = mesh.quads;
+            if (traceStage != null) {
+                var client = MinecraftClient.getInstance();
+                var eye = client.gameRenderer.getCamera().getPos();
+                var centre = mesh.originY;
+                System.out.println("HIGH_ALTITUDE_DRAW " + traceStage + " eye=" + eye + " originY=" + centre
+                    + " inner=" + mesh.innerRadius + " reach=" + mesh.reach + " opacity=" + drawnOpacity
+                    + " quads=" + quads + " completed=" + client.worldRenderer.getCompletedChunkCount());
+                traceImage(client, traceStage + "-after");
+            }
         }
     }
 
