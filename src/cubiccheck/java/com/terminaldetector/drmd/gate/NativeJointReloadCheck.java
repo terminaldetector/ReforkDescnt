@@ -19,6 +19,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /** Same closed world in a second JVM. Observes actual serialization, never inserts NBT bodies. */
 public final class NativeJointReloadCheck {
     public static final boolean WRITE=Boolean.getBoolean("drmd.gate.jointsStateWrite"),READ=Boolean.getBoolean("drmd.gate.jointsStateRead");
+    /** Extra cold material witness; the healthy historical eight-body path stays unchanged. */
+    public static final boolean EDITED_MATERIAL=Boolean.getBoolean("drmd.gate.jointsStateEditedMaterial");
+    private static final net.minecraft.util.math.BlockPos EDITED_CELL=new net.minecraft.util.math.BlockPos(1,1,0);
+    private static volatile boolean materialEdited,editedBeforeFirstTick;
     private static volatile List<UUID> ids=List.of();
     private static final Map<UUID,BlockBodyEntity> LOADED=new ConcurrentHashMap<>();
     private static final Set<UUID> SAVED=ConcurrentHashMap.newKeySet(),DRAWN=new HashSet<>();
@@ -35,7 +39,14 @@ public final class NativeJointReloadCheck {
     }
     public static void saved(BlockBodyEntity body,NbtCompound n){
         if(!WRITE||entity(body).getWorld().isClient||!ids.contains(entity(body).getUuid()))return;
-        try{Files.writeString(file("joint-state-nbt/"+entity(body).getUuid()+".snbt"),n.toString());SAVED.add(entity(body).getUuid());if(SAVED.size()==8)Files.writeString(file("joint-state-saved.json"),"{\"actualSerializedBodies\":8}\n");}catch(Exception e){throw new IllegalStateException(e);}
+        try{
+            if(EDITED_MATERIAL&&ids.indexOf(entity(body).getUuid())==3&&materialEdited){
+                var grid=BodyShapeCodec.read(n.getCompound("shape"));
+                require(body.cells().size()==7&&grid.size()==7&&grid.stream().noneMatch(cell->cell.pos().equals(EDITED_CELL)),"actual shutdown serialization retains the removed arbitrary module cell");
+                Files.writeString(file("joint-state-material-serialized.json"),"{\"actualSerializedEditedGrid\":true,\"remainingCells\":7,\"body\":\""+entity(body).getUuid()+"\"}\n");
+            }
+            Files.writeString(file("joint-state-nbt/"+entity(body).getUuid()+".snbt"),n.toString());SAVED.add(entity(body).getUuid());if(SAVED.size()==8)Files.writeString(file("joint-state-saved.json"),"{\"actualSerializedBodies\":8}\n");
+        }catch(Exception e){throw new IllegalStateException(e);}
     }
     public static void loaded(BlockBodyEntity body,NbtCompound saved){
         if(!READ||entity(body).getWorld().isClient||!ids.contains(entity(body).getUuid()))return;
@@ -49,6 +60,10 @@ public final class NativeJointReloadCheck {
             require(before.getBoolean("gravity")==after.getBoolean("gravity"),"module gravity mode restored");
             for(String key:new String[]{"shape","materialDamage","Pos"})require(Objects.equals(expected.get(key),actual.get(key)),"actual restored module data differs: "+key);
             if(ids.indexOf(entity(body).getUuid())>=6)require(body.physics().linearVelocity().length()>.1,"saved boarded assembly must really be moving");
+            if(EDITED_MATERIAL&&ids.indexOf(entity(body).getUuid())==3){
+                require(body.cells().size()==7&&body.getLocalBlock(EDITED_CELL).isAir()&&body.getLocalBlock(new net.minecraft.util.math.BlockPos(0,0,1)).isOf(net.minecraft.block.Blocks.IRON_BLOCK),"actual new-JVM arbitrary module keeps its missing corner and original joint-bearing material before simulation");
+                editedBeforeFirstTick=true;
+            }
             var prior=LOADED.putIfAbsent(entity(body).getUuid(),body);require(prior==null||prior==body,"a saved body cannot be instantiated twice");
             System.out.println("JOINT_RELOAD_NBT PASS uuid="+entity(body).getUuid()+" cells="+body.cells().size());
         }catch(Exception e){throw new IllegalStateException("actual module restore failed",e);}
@@ -56,15 +71,36 @@ public final class NativeJointReloadCheck {
     public static void registerWriter(){
         if(!WRITE)return;
         ServerLifecycleEvents.SERVER_STOPPING.register(server->{
-            if(ids.size()!=8)return;var w=server.getOverworld();var n=((net.minecraft.world.PersistentState)BodyJointRegistry.get(w)).writeNbt(new NbtCompound(),w.getRegistryManager());
+            if(ids.size()!=8)return;var w=server.getOverworld();
+            if(EDITED_MATERIAL)editWriterMaterial(w);
+            var n=((net.minecraft.world.PersistentState)BodyJointRegistry.get(w)).writeNbt(new NbtCompound(),w.getRegistryManager());
             require(n.getList("joints",NbtElement.COMPOUND_TYPE).size()==3,"three surviving joints and one physically broken connection");
             try{Files.writeString(file("joint-state-registry.snbt"),n.toString());}catch(Exception e){throw new IllegalStateException(e);}
         });
+    }
+    /** Actual public material transaction on the ordinary unoccupied motor child, never an NBT edit. */
+    private static void editWriterMaterial(net.minecraft.server.world.ServerWorld world){
+        require(world.getServer().isOnThread()&&!materialEdited,"edited cold writer runs once on actual server shutdown");
+        var all=BodySpatialIndex.loaded(world);var module=all.stream().filter(b->entity(b).getUuid().equals(ids.get(3))).findFirst().orElseThrow();
+        var identities=all.stream().map(b->entity(b).getUuid()).collect(java.util.stream.Collectors.toSet());
+        var registry=BodyJointRegistry.get(world);var links=((net.minecraft.world.PersistentState)registry).writeNbt(new NbtCompound(),world.getRegistryManager());
+        require(module.cells().size()==8&&module.getLocalBlock(EDITED_CELL).isOf(net.minecraft.block.Blocks.IRON_BLOCK),"ordinary motor child has its actual eight-cell original grid");
+        require(registry.forBody(entity(module).getUuid()).size()==1&&registry.forBody(entity(module).getUuid()).getFirst().kind()==com.terminaldetector.drmd.physics.collision.BodyJointConstraint.Kind.MOTOR,"chosen material belongs to actual one-motor child");
+        require(BoardingSystem.players(world).stream().noneMatch(player->{var contact=BoardingSystem.state(player);return contact!=null&&(contact.support()==entity(module).getId()||contact.gravityOwner()==entity(module).getId());}),"edited child is unoccupied; saved joined-deck passenger remains untouched");
+        var anchor=new Vec3d(.5,.5,1.5);var point=module.localToWorld(anchor);var velocity=module.surfaceVelocityAt(point);var rotation=module.rotation();long revision=module.shapeRevision();
+        require(module.setLocalBlock(EDITED_CELL,net.minecraft.block.Blocks.AIR.getDefaultState()),"actual ordinary module corner removal commits before normal world save");
+        require(module.cells().size()==7&&module.getLocalBlock(EDITED_CELL).isAir()&&module.shapeRevision()>revision,"actual removed grid cell cannot be silently replaced or re-generated");
+        require(module.getLocalBlock(new net.minecraft.util.math.BlockPos(0,0,1)).isOf(net.minecraft.block.Blocks.IRON_BLOCK)&&links.equals(((net.minecraft.world.PersistentState)registry).writeNbt(new NbtCompound(),world.getRegistryManager())),"all original joint identities, endpoints, limits and drive activation remain unchanged");
+        require(identities.equals(BodySpatialIndex.loaded(world).stream().map(b->entity(b).getUuid()).collect(java.util.stream.Collectors.toSet())),"connected corner removal never duplicates or invents a fragment body");
+        require(point.distanceTo(module.localToWorld(anchor))<1e-8&&velocity.distanceTo(module.surfaceVelocityAt(point))<1e-8&&rotation.equals(module.rotation()),"remaining material point, surface velocity and actual orientation survive COM rebase");
+        materialEdited=true;
+        try{Files.writeString(file("joint-state-material-edit.json"),new com.google.gson.Gson().toJson(Map.of("actualLocalMaterialEdit",true,"body",entity(module).getUuid().toString(),"localCell",List.of(1,1,0),"remainingCells",7,"unchangedBodyIdentities",true,"unchangedJointRegistry",true,"unoccupiedChild",true))+"\n");}catch(Exception e){throw new IllegalStateException(e);}
     }
     private static BlockBodyEntity body(int i){return LOADED.get(ids.get(i));}
     private static Vec3d anchor(BlockBodyEntity b,BodyJointLink.Endpoint e){return b.localToWorld(new Vec3d(e.point().x(),e.point().y(),e.point().z()));}
     public static void register(){
         require(READ&&file("").getFileName().toString().equals("cubic-client-automation"),"disposable joint reader only");
+        if(EDITED_MATERIAL)require(Files.isRegularFile(file("joint-state-material-edit.json"))&&Files.isRegularFile(file("joint-state-material-serialized.json")),"edited reader requires genuine writer edit and actual normal serialized-grid receipts");
         try{var a=com.google.gson.JsonParser.parseString(Files.readString(file("joint-state-ids.json"))).getAsJsonArray();ids=a.asList().stream().map(v->UUID.fromString(v.getAsString())).toList();require(ids.size()==8,"eight saved UUIDs");}catch(Exception e){throw new IllegalStateException(e);}
         ServerLifecycleEvents.SERVER_STARTED.register(server->{
             server.getPlayerManager().setViewDistance(6);var w=server.getOverworld();var actual=((net.minecraft.world.PersistentState)BodyJointRegistry.get(w)).writeNbt(new NbtCompound(),w.getRegistryManager());
@@ -118,6 +154,10 @@ public final class NativeJointReloadCheck {
         for(var id:ids)require(java.util.stream.StreamSupport.stream(c.world.getEntities().spliterator(),false).filter(e->e instanceof BlockBodyEntity&&e.getUuid().equals(id)).count()==1,"one replicated module per saved identity");
         if(++frames<6)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){
+            if(EDITED_MATERIAL){
+                require(editedBeforeFirstTick&&body(3).cells().size()==7&&body(3).getLocalBlock(EDITED_CELL).isAir(),"edited arbitrary assembly retained exact missing material through genuine cold load and all original physical walking checks");
+                Files.writeString(file("joint-state-material-reload-ok.json"),new com.google.gson.Gson().toJson(Map.of("actualNewJvm",true,"actualEditedGridBeforeFirstPhysicsTick",true,"missingCellStillAbsent",true,"remainingCells",7,"allOriginalEightBodyColdPredicatesRequired",true))+"\n");
+            }
             image.writeTo(file("joint-state-reloaded.png"));Files.writeString(file("joint-state-reload-ok.json"),new com.google.gson.Gson().toJson(Map.of("actualProcessRestart",true,"beforeFirstTickBodies",8,"exactJointRegistry",true,"survivingJoints",3,"brokenJointAbsent",true,"stableContactTicks",stable,"ordinaryKeyboardWalkDistance",walked,"freshFrames",frames,"maxAnchorError",maxAnchorError,"noReplacementBodies",true))+"\n");done=true;c.options.forwardKey.setPressed(false);c.scheduleStop();
         }catch(Exception e){throw new IllegalStateException(e);}
     }
