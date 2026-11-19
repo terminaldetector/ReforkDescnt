@@ -14,8 +14,8 @@ import java.util.Properties;
  * by {@code CreateWorldScreenMixin}) instead of by hand-editing this file.
  *
  * <p>World-generation choices are global defaults and are locked into a save when seeded.
- * {@code cubicSnapshots} is a separate runtime opt-in: it writes supplemental 16³ observations and
- * does not replace the authoritative vanilla chunk engine.
+ * {@code cubicSnapshots} remains parseable for old configurations. Automatic shadow-column
+ * capture is retired; explicit historical files stay readable and never select a backend.
  */
 public final class DrmdServerConfig {
 	private static final String FILE = DescentMod.MOD_ID + "-server.properties";
