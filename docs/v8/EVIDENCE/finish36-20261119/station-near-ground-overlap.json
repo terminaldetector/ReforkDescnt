@@ -1,0 +1,20 @@
+{
+  "source": "dbe74874256b1ac592c4e8bba8ed87ca7a23d540",
+  "status": "OBSERVED_NATIVE_FAIL",
+  "verifiedStationCells": 7680,
+  "distance": 23.561078065937718,
+  "fullyLoadedAabbCubes": 6,
+  "candidateAuthoredMasksAllZero": true,
+  "windowMinimumYRay": 0.243818515519047,
+  "windowSkyPixelsReplaced": 25,
+  "opaquePixelsChanged": 0,
+  "depthUnchanged": true,
+  "beforeWindowRgba": "95a7c8ff",
+  "afterWindowRgba": "a7a7a7ff",
+  "currentClientSurfaceColumnCount": 6,
+  "currentSurfaceTileTop": 1423,
+  "currentSurfaceTileRgb": "a7a7a7",
+  "scope": "Observed near station backdrop whole-Horizon colour failure while authored GPU marks are disabled. The surface store tracks the orbital roof as the floor in every intersecting chunk; native lower terrain was not available here. Station MID/FAR and full ground/sky continuity remain open.",
+  "archive": "station-near-ground-overlap.zip",
+  "archiveSha256": "4bb09055dc7ff6cd02abe6bdbc44f3456c3591ccbbfe8caf11f2b62c49465b7b"
+}

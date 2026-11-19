@@ -933,8 +933,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/finish36-20261119/vertical-and-field.json, EVIDENCE/finish36-20261119/orbital-field-cold.json, EVIDENCE/finish36-20261119/orbital-field-cold.zip, EVIDENCE/finish36-20261119/intact-asteroid-pixel-grid.json, EVIDENCE/finish36-20261119/intact-asteroid-pixel-grid.zip]
-  notes: "После повторного открытия прочитаны все 11 712 ячеек станции и двух астероидов. Повреждённый астероид исключён из дальнего каталога. В клиенте PS1 целый астероид проверен на 24 кадрах с 24, 512 и 3072 блоков. После выравнивания дальний силуэт виден на каждом кадре, глубина сохранена. Клиентские кадры станции на трёх дистанциях ещё требуется проверить."
+  evidence: [EVIDENCE/finish36-20261119/vertical-and-field.json, EVIDENCE/finish36-20261119/orbital-field-cold.json, EVIDENCE/finish36-20261119/orbital-field-cold.zip, EVIDENCE/finish36-20261119/intact-asteroid-pixel-grid.json, EVIDENCE/finish36-20261119/intact-asteroid-pixel-grid.zip, EVIDENCE/finish36-20261119/station-near-ground-overlap.json, EVIDENCE/finish36-20261119/station-near-ground-overlap.zip]
+  notes: "После повторного открытия прочитаны все 11 712 ячеек станции и двух астероидов. Повреждённый астероид исключён из дальнего каталога. Целый астероид прошёл 24 кадровых замера PS1 с 24, 512 и 3072 блоков. У станции проверены 7680 реальных ячеек и шесть загруженных кубов. В ближнем проёме проход Horizon перекрасил 25 пикселей в цвет сохранённой высоты крыши 1423. Все авторские GPU-маски были нулевыми, глубина сохранена. Приёмка станции на трёх дистанциях остаётся открытой."
 
 - id: S13-T04
   stage: S13
@@ -958,8 +958,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json, EVIDENCE/finish36-20261119/intact-asteroid-pixel-grid.json]
-  notes: "Удалён генератор платформ и исправлена высота плавающих ориентиров. Средний и дальний силуэты целого астероида подтверждены на одной сцене PS1. Непрерывный переход атмосферы между слоями ещё в работе."
+  evidence: [TASK20_ROUND3_2026-11-19.md, EVIDENCE/round3-20261119/receipt.json, EVIDENCE/finish36-20261119/intact-asteroid-pixel-grid.json, EVIDENCE/finish36-20261119/station-near-ground-overlap.json]
+  notes: "Удалён генератор платформ и исправлена высота плавающих ориентиров. Средний и дальний силуэты целого астероида подтверждены в PS1. Воспроизведено попадание крыши станции в обычную карту высот. Нижние природные кубы в проверенном сохранении недоступны в этих колонках. Синхронизация карты и непрерывный переход атмосферы ещё в работе."
 - id: S13-T06
   stage: S13
   stage_title: 'World architecture: core to Citadel'
