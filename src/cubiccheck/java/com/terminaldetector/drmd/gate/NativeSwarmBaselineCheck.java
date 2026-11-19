@@ -56,6 +56,14 @@ public final class NativeSwarmBaselineCheck {
     private static int ticks,frames,alive,moving,active,lookup,maxCandidates,shots,sampledShots,sampledShooters,indexed,targeting;
     private static long tickStart,sampleStart,lastFrame;private static double seconds;
     private static long captureStart;
+    private static SwarmMeasurement profileWindow;
+    @jdk.jfr.Name("drmd.SwarmMeasurement")
+    @jdk.jfr.Label("Real swarm measurement")
+    @jdk.jfr.Category({"DRMD","Swarm"})
+    private static final class SwarmMeasurement extends jdk.jfr.Event {
+        public int requested;
+        public int serverStartTick,serverEndTick;
+    }
     private static Entity cow;
     private NativeSwarmBaselineCheck(){}
     private static Entity entity(DroneEntity d){return d;}
@@ -75,9 +83,14 @@ public final class NativeSwarmBaselineCheck {
                 initialDetailed = DRONES.stream().mapToLong(DroneEntity::steeringUpdates).sum();
                 initialCoast = DRONES.stream().mapToLong(DroneEntity::coastingUpdates).sum();
                 if (MEASURE_CAPACITY) initialRosterScans = DroneSwarmAi.indexStats(s.getOverworld()).fullWorldScans();
+                if(MEASURE_CAPACITY&&Boolean.getBoolean("drmd.gate.profileSwarmJfr")){
+                    profileWindow=new SwarmMeasurement();profileWindow.requested=COUNT;
+                    profileWindow.serverStartTick=s.getTicks();profileWindow.begin();
+                }
             }
             if(sampling&&age>35)WORK.add(System.nanoTime()-tickStart);
             if(age!=95)return;
+            if(profileWindow!=null){profileWindow.serverEndTick=s.getTicks();profileWindow.end();profileWindow.commit();profileWindow=null;}
             sampling=false;seconds=(System.nanoTime()-sampleStart)/1e9;alive=moving=active=lookup=maxCandidates=targeting=0;indexed=Integer.MAX_VALUE;
             for(var d:DRONES)if(entity(d).isAlive()&&!entity(d).isRemoved()) {
                 alive++;var id=entity(d).getUuid();if(entity(d).getPos().squaredDistanceTo(initial.get(id))>.04)moving++;
