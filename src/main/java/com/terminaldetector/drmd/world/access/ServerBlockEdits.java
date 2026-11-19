@@ -116,7 +116,9 @@ public final class ServerBlockEdits {
             full.removeBlockEntity(at);
             var entity=BlockEntity.createFromNbt(at,cell.state(),cell.entityData(),world.getRegistryManager());
             if(entity==null || !entity.getType().supports(cell.state()))return false;
-            full.setBlockEntity(entity);
+            // setBlockEntity only fills the map. The quiet replacement removed the original
+            // ticker; ordinary addBlockEntity restores ticking/listener registration as well.
+            full.addBlockEntity(entity);
         }
         return true;
     }
