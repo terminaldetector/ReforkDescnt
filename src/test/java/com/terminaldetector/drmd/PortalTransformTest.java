@@ -93,6 +93,19 @@ class PortalTransformTest {
 	}
 
 	@Test
+	void sameFacingWallsKeepTheTopOfTheOpeningAtTheTopForEveryNormal() {
+		var top = new Vec3(0, 1, 0);
+		var zero = new Vec3(0, 0, 0);
+		for (Vec3 normal : new Vec3[]{new Vec3(1,0,0),new Vec3(-1,0,0),new Vec3(0,0,1),new Vec3(0,0,-1)}) {
+			var turn = PortalTransform.cameraRotation(normal, normal);
+			assertVec3Close(top, turn.rotate(top), "a wall portal must preserve vertical orientation");
+			assertVec3Close(normal, turn.rotate(normal.scaled(-1)), "an incoming actor faces out");
+			assertVec3Close(top, PortalTransform.transformPoint(top, zero, normal, zero, normal, 1),
+					"a point at the top of the entry maps to the top of the exit");
+		}
+	}
+
+	@Test
 	@DisplayName("reflectPoint negates exactly the component along the mirror's normal, keeps the rest")
 	void reflectPointNegatesOnlyTheNormalComponent() {
 		Vec3 planePoint = new Vec3(0, 0, 0);

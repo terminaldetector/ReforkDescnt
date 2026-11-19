@@ -88,7 +88,7 @@ public final class PortalTransform {
 	 */
 	public static Vec3 transformPoint(Vec3 point, Vec3 portalPos, Vec3 portalNormal,
 			Vec3 destPos, Vec3 destNormal, double scale) {
-		Quat rotation = rotationBetween(portalNormal, destNormal.scaled(-1));
+		Quat rotation = cameraRotation(portalNormal, destNormal);
 		Vec3 relative = point.minus(portalPos).scaled(scale);
 		return destPos.plus(rotation.rotate(relative));
 	}
@@ -99,6 +99,11 @@ public final class PortalTransform {
 	 * flip handedness: the destination-side view should turn exactly as a position vector would.
 	 */
 	public static Quat cameraRotation(Vec3 portalNormal, Vec3 destNormal) {
+		// The half-turn between two walls facing the same way preserves the top of the opening.
+		// A generic antiparallel axis would turn an east/west pair upside down.
+		if (Math.abs(portalNormal.y) < 1e-12 && portalNormal.dot(destNormal) > 1 - 1e-12) {
+			return new Quat(0, 1, 0, 0);
+		}
 		return rotationBetween(portalNormal, destNormal.scaled(-1));
 	}
 

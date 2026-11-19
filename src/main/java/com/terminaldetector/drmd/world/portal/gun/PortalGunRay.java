@@ -58,7 +58,7 @@ public final class PortalGunRay {
             Vec3d src=Vec3d.ofCenter(crossing.pos()).add(crossing.normal().multiply(.5));
             Vec3d dst=Vec3d.ofCenter(partner).add(destNormal.multiply(.5));
             Vec3d mapped=vec(PortalTransform.transformPoint(pure(crossing.point()),pure(src),pure(crossing.normal()),pure(dst),pure(destNormal),1));
-            dir=vec(PortalTransform.rotationBetween(pure(crossing.normal()),pure(destNormal.negate())).rotate(pure(dir))).normalize();
+            dir=vec(PortalTransform.cameraRotation(pure(crossing.normal()),pure(destNormal)).rotate(pure(dir))).normalize();
             from=mapped.add(destNormal.multiply(.002));remaining-=crossing.distance()+.002;
         }
         throw new AssertionError("bounded portal ray");

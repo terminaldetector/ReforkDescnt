@@ -117,7 +117,7 @@ public final class PortalCrossing {
 			PortalTransform.Vec3 dstPos, PortalTransform.Vec3 dstNormal) {
 		PortalTransform.Vec3 dstN = dstNormal.normalized();
 		PortalTransform.Quat rotation =
-				PortalTransform.rotationBetween(srcNormal.normalized(), dstN.scaled(-1));
+				PortalTransform.cameraRotation(srcNormal.normalized(), dstN);
 
 		PortalTransform.Vec3 moved =
 				PortalTransform.transformPoint(entryPos, srcPos, srcNormal, dstPos, dstNormal, 1.0);
