@@ -24,13 +24,16 @@ final class ShapesFixture implements AutoCloseable {
     Vec3d firstMailPos;
     ShapesFixture(TestContext c,int offset,boolean squad,boolean observer){
         this.c=c;world=c.getWorld();base=c.getAbsolutePos(new BlockPos(116000+offset,130,14000));start=Vec3d.ofBottomCenter(base);
-        chunks=new AiFixtureChunks(world,base,2);infantry=ModEntities.SHAPES_INFANTRY.create(world);
+        // Centre the same25-ticket lease on the complete floor/actor footprint [-8,+42], not its left edge.
+        chunks=new AiFixtureChunks(world,base.add(16,0,0),2);infantry=ModEntities.SHAPES_INFANTRY.create(world);
         scout=observer?ModEntities.SHAPES_INFANTRY.create(world):null;victim=EntityType.COW.create(world);
         try{
             c.assertTrue(infantry!=null&&victim!=null&&(!observer||scout!=null),"real registered Shapes fixture actors exist");
             for(int x=-8;x<=42;x++)for(int z=-10;z<=10;z++)block(base.add(x,-1,z),Blocks.BEDROCK);
             infantry.setPosition(start);infantry.setPersistent();
-            victim.setPosition(start.add(squad?10:36,0,0));victim.setPersistent();victim.setAiDisabled(true);
+            // Keep a real long firing lane after the scout enclosure:3.75m/tick LASER rounds must survive
+            // normal integration long enough for the unchanged two-position movement observer.
+            victim.setPosition(start.add(observer?22:squad?10:36,0,0));victim.setPersistent();victim.setAiDisabled(true);
             // A durable real victim preserves the observation window; this is not a new balance statistic.
             victim.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(4096);victim.setHealth(4096);
             victim.getAttributeInstance(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE).setBaseValue(1);
