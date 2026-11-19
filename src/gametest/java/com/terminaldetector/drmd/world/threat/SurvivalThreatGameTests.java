@@ -47,11 +47,11 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
     /** Exactly Vanilla's TestContext connection recipe, using a normal player instead of
      * its permanently-creative anonymous subclass. Existing enemy predicates remain unmodified. */
     private static final class Player implements AutoCloseable {
-        final ServerPlayerEntity entity;final EmbeddedChannel channel;boolean closed;
+        final ServerPlayerEntity entity;final EmbeddedChannel channel;final ClientConnection connection;boolean closed;
         Player(TestContext c,Vec3d at){
             var w=c.getWorld();var client=ConnectedClientData.createDefault(new GameProfile(UUID.randomUUID(),"threat-fixture"),false);
             entity=new ServerPlayerEntity(w.getServer(),w,client.gameProfile(),client.syncedOptions());
-            var connection=new ClientConnection(NetworkSide.SERVERBOUND);channel=new EmbeddedChannel(connection);
+            connection=new ClientConnection(NetworkSide.SERVERBOUND);channel=new EmbeddedChannel(connection);
             w.getServer().getPlayerManager().onPlayerConnect(connection,entity,client);
             try{
                 entity.changeGameMode(GameMode.SURVIVAL);entity.getAbilities().flying=false;entity.setNoGravity(true);
@@ -61,7 +61,17 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
                 c.assertTrue(w.getDifficulty()!=Difficulty.PEACEFUL&&w.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING),"fixture requires normal enabled Survival encounters");
             }catch(Throwable failure){close();throw failure;}
         }
-        public void close(){if(closed)return;closed=true;entity.getServer().getPlayerManager().remove(entity);entity.discard();channel.finishAndReleaseAll();}
+        void ordinaryNetworkTicks(TestContext c){
+            var at=entity.getPos();float yaw=entity.getYaw(),pitch=entity.getPitch();var acknowledged=new HashSet<Integer>();
+            Runnable acknowledge=()->{channel.runPendingTasks();channel.flushOutbound();for(var packet:List.copyOf(channel.outboundMessages()))
+                if(packet instanceof net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket teleport&&acknowledged.add(teleport.getTeleportId()))channel.writeInbound(new net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket(teleport.getTeleportId()));};
+            acknowledge.run();entity.teleport(entity.getServerWorld(),at.x,at.y,at.z,Set.of(),yaw,pitch);acknowledge.run();
+            try{var pending=net.minecraft.server.network.ServerPlayNetworkHandler.class.getDeclaredField("requestedTeleportPos");pending.setAccessible(true);
+                c.assertTrue(!acknowledged.isEmpty()&&pending.get(entity.networkHandler)==null,"actual native teleport acknowledgements clear initial/reposition pending state before normal cooldown ticks");
+            }catch(ReflectiveOperationException failure){throw new IllegalStateException(failure);}
+            c.assertTrue(!entity.getServer().getNetworkIo().getConnections().contains(connection),"one actual connection schedule");entity.getServer().getNetworkIo().getConnections().add(connection);
+        }
+        public void close(){if(closed)return;closed=true;entity.getServer().getNetworkIo().getConnections().remove(connection);entity.getServer().getPlayerManager().remove(entity);entity.discard();channel.finishAndReleaseAll();}
     }
     private static final class Lease implements AutoCloseable {
         private static final ChunkTicketType<UUID> TYPE=ChunkTicketType.create("drmd_threat_fixture",Comparator.<UUID>naturalOrder());
@@ -363,7 +373,7 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
         c.runAtEveryTick(()->{
             var f=live[0];if(f==null||done[0])return;
             try{
-                f.w.resetIdleTimeout();long now=f.w.getTime();c.assertTrue(now-began[0]<950,"finite authored pair completes warning, actual combat/counterplay and retirement");
+                f.w.resetIdleTimeout();long now=f.w.getTime();c.assertTrue(now-began[0]<950,"finite rocket scene="+scenario+" damage="+damaged[0]+" movingAt="+shotAt[0]+" plan="+f.state().siegePlan(deployment[0].plan()).map(s->s.phase()+"/acks="+s.acks().size()).orElse("missing"));
                 var stats=RocketSiegeRuntime.stats(f.w);c.assertTrue(stats.actors()<=8&&stats.pairs()<=4&&stats.sight()<=32&&stats.shots()<=40&&stats.actors()+f.state().actorCount()<=8,"real pair shares the world actor cap and bounded sight work");
                 var snapshot=f.state().siegePlan(deployment[0].plan()).orElseThrow();
                 for(var id:actorIds){var e=f.w.getEntity(id);if(e instanceof com.terminaldetector.drmd.entity.mob.ShapesInfantryEntity a&&admittedActors.putIfAbsent(id,a)==null)f.owned.add(a);}
@@ -382,7 +392,7 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
                         var player=f.player.entity;var direction=target.getBoundingBox().getCenter().subtract(player.getEyePos()).normalize();var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(direction.x,direction.y,direction.z));
                         player.setYaw((float)angles.yawDegrees());player.setPitch((float)angles.pitchDegrees());player.setHeadYaw(player.getYaw());
                         var result=player.interactionManager.interactItem(player,f.w,player.getMainHandStack(),net.minecraft.util.Hand.MAIN_HAND);
-                        c.assertTrue(result.isAccepted(),"actual equipped ordinary plasma item is used through the normal Survival interaction manager");decision[0]=now;
+                        c.assertTrue(result.isAccepted(),"ordinary plasma use; energy="+DescentPlayerData.get(player).getEnergy()+" cooldown="+player.getItemCooldownManager().getCooldownProgress(player.getMainHandStack().getItem(),0));decision[0]=now;
                     }return;
                 }
                 if(scenario==0){
@@ -415,7 +425,7 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
             c.assertTrue(deployment[0].warningEnds()-began[0]==WARNING_TICKS,"full warning starts at actual deployment, never an expired intent timestamp");
             actorIds.add(deployment[0].first());actorIds.add(deployment[0].second());for(var id:actorIds){var a=f.w.getEntity(id);if(a!=null)f.owned.add(a);}
             c.assertTrue(SurvivalThreatDirector.deployRocketPair(f.w,f.player.entity,site,left,right).isEmpty(),"one owner cannot replay deployment for an invisible second pair");
-            if(scenario==1){f.player.entity.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(com.terminaldetector.drmd.weapon.items.ModItems.PLASMA));
+            if(scenario==1){f.player.ordinaryNetworkTicks(c);f.player.entity.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(com.terminaldetector.drmd.weapon.items.ModItems.PLASMA));
                 c.assertTrue(DescentPlayerData.get(f.player.entity).getEnergy()>=8,"declared player defense has real initial energy; its ordinary recipe is covered by the separate Survival economy gate");}
         }catch(Throwable failure){done[0]=true;f.close();throw failure;}});
     }

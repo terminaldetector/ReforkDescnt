@@ -68,6 +68,7 @@ public final class ShapesInfantryEntity extends CyberMobEntity {
         if(!FlightRouteSpace.clearSight(this,getEyePos(),from,64))return null;
         var cfg=shot(from,point.subtract(from).normalize(),role.weaponSpeed,role.weaponDamage,role.weaponClass,4);
         cfg.inheritedVelocity=getVelocity();cfg.splashDamage=role.weaponSplash;cfg.splashRadius=role.weaponSplashRadius;cfg.meshKind=ProjectileEntity.MESH_ROCKET;
+        cfg.worldBlast=true; // Finite ordered base pressure uses the existing bounded small crater path.
         var aim=com.terminaldetector.drmd.weapon.core.InterceptAim.solve(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(point.x-from.x,point.y-from.y,point.z-from.z),
             new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(-cfg.inheritedVelocity.x,-cfg.inheritedVelocity.y,-cfg.inheritedVelocity.z),
             (float)(com.terminaldetector.drmd.DescentMod.su(cfg.speed)/com.terminaldetector.drmd.DescentMod.TICKS_PER_SECOND),cfg.life*20);

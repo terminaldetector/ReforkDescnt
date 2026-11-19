@@ -123,6 +123,10 @@ public final class RocketSiegeRuntime {
         var actual=observed(w,p,actor);if(actual.isEmpty())return false;var at=permit.point();var point=new Vec3d(at.x(),at.y(),at.z());var from=muzzle(actor);
         if(!WorldEditSafety.loadedSegment(w,from,point))return false;
         var owner=owner(w,p);if(owner==null||!HostileEnvironment.isHostileTarget(actor,owner)||actor.isTeammate(owner)||!WorldEditSafety.mayChange(w,p.site,owner)||!spendSight(w))return false;
+        // Existing1.75m RPG blast cuts only the seven r=1 cells. Permission is
+        // admitted for that entire fixed footprint, not just the central site.
+        var cut=BlockPos.ofFloored(point);if(!WorldEditSafety.mayChange(w,cut,owner))return false;
+        for(var side:Direction.values())if(!WorldEditSafety.mayChange(w,cut.offset(side),owner))return false;
         var hit=w.raycast(new RaycastContext(from,point.add(point.subtract(from).normalize().multiply(.001)),RaycastContext.ShapeType.COLLIDER,RaycastContext.FluidHandling.NONE,actor));
         if(hit.getType()!=HitResult.Type.BLOCK||!hit.getBlockPos().equals(p.site))return false;var bodies=BodySpatialIndex.query(w,new Box(from,point).expand(.01));if(bodies.size()>32)return false;
         for(var b:bodies)if(b.physicsRaycast(from,point).isPresent())return false;return true;
