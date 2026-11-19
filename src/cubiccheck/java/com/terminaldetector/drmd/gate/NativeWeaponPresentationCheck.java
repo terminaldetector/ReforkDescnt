@@ -98,7 +98,7 @@ public final class NativeWeaponPresentationCheck {
             if(player==null&&c.currentScreen instanceof net.minecraft.client.gui.screen.ConfirmScreen screen&&screen.getTitle().getString().equals("Warning! Low disk space!"))for(var child:screen.children())if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("Continue"))b.onPress();
             if(c.player==null||c.world==null||c.getServer()==null)return;DescentClient.markUserFlightChoice();
             if(player==null){require(Set.of("cubic-client-automation","weapon-presentationcheck").contains(c.runDirectory.toPath().getFileName().toString()),"disposable native runtime");
-                player=c.player.getUuid();c.setScreen(null);c.options.hudHidden=false;c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON);c.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);c.inGameHud.getChatHud().clear(false);entered=age;return;}
+                player=c.player.getUuid();c.setScreen(null);c.options.hudHidden=false;c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON);c.options.getGuiScale().setValue(2);c.onResolutionChanged();c.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);c.inGameHud.getChatHud().clear(false);entered=age;return;}
             if(view==null||!background)return;require(view.nativeWorld,"real native cubic backend");require(age-entered<500,"bounded selection/image phase="+phase);
             DescentConfig.presentationProfile=profile==0?PresentationProfile.HYBRID_NATIVE:PresentationProfile.PS1_HYBRID;c.options.getFov().setValue(80);
             if(phase==0){if(!flight(c,false)||!hotbar(c,8))return;if(frames>=3)enter(1);return;}
@@ -170,6 +170,12 @@ public final class NativeWeaponPresentationCheck {
     }
     private static int icon(NativeImage image,int x,int y,MinecraftClient c){double sx=(double)image.getWidth()/c.getWindow().getScaledWidth(),sy=(double)image.getHeight()/c.getWindow().getScaledHeight();int atX=(int)((x+1)*sx),atY=(int)((y+1)*sy),background=image.getColor(Math.min(image.getWidth()-1,atX),Math.min(image.getHeight()-1,atY));int count=0;
         for(int dx=2;dx<14;dx++)for(int dy=2;dy<14;dy++){int px=(int)((x+dx)*sx),py=(int)((y+dy)*sy);if(px>=0&&py>=0&&px<image.getWidth()&&py<image.getHeight()&&delta(image.getColor(px,py),background)>=28)count++;}return count;}
+    private static NativeImage capture(MinecraftClient c){
+        int active=GL11.glGetInteger(org.lwjgl.opengl.GL13.GL_ACTIVE_TEXTURE),texture=GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        int[] names={GL11.GL_PACK_ALIGNMENT,GL11.GL_PACK_ROW_LENGTH,GL11.GL_PACK_SKIP_ROWS,GL11.GL_PACK_SKIP_PIXELS},values=new int[4];for(int i=0;i<4;i++)values[i]=GL11.glGetInteger(names[i]);
+        try{for(int i=0;i<4;i++)GL11.glPixelStorei(names[i],i==0?4:0);return ScreenshotRecorder.takeScreenshot(c.getFramebuffer());}
+        finally{com.mojang.blaze3d.platform.GlStateManager._activeTexture(active);com.mojang.blaze3d.systems.RenderSystem.bindTexture(texture);for(int i=0;i<4;i++)GL11.glPixelStorei(names[i],values[i]);}
+    }
     public static void rendered(){
         if(!ENABLED||done)return;var c=MinecraftClient.getInstance();if(c.player==null||c.world==null||view==null||!background||c.getOverlay()!=null)return;
         try{
@@ -180,7 +186,7 @@ public final class NativeWeaponPresentationCheck {
             int current=flight?(phase-8)/2:-1;if(flight&&(!view.banks.get(0).equals(expected(current))||!cockpit.contains(expected(current))||age-settled<8||c.currentScreen!=null))return;
             if(equipment&&(preview!=previewBank||!Objects.equals(previewItem,view.banks.get(previewBank))))return;
             require(GL11.glGetError()==0,"pre-readback GL state");
-            try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){
+            try(var image=capture(c)){
                 String name="profile"+profile+"-phase"+phase+(equipment?"-bank"+previewBank:"");var row=new LinkedHashMap<String,Object>();row.put("profile",DescentConfig.presentationProfile.name());row.put("phase",phase);row.put("bank",previewBank);row.put("frame",frames);row.put("serverTick",view.tick);row.put("hand",view.hand);row.put("banks",view.banks);row.put("heldModels",Set.copyOf(hand));row.put("cockpitModels",Set.copyOf(cockpit));row.put("guiModels",Set.copyOf(gui));row.put("preview",previewItem);row.put("roll",DescentClientState.enabled?ShipAttitudeClient.get().bankDegrees():0);
                 if(empty){var copy=new NativeImage(image.getWidth(),image.getHeight(),false);copy.copyFrom(image);if(phase==0){if(ordinaryBackground!=null)ordinaryBackground.close();ordinaryBackground=copy;}else{if(flightBackground!=null)flightBackground.close();flightBackground=copy;}}
                 if(ordinary||flight){var pixels=difference(image,ordinary?ordinaryBackground:flightBackground);require(pixels[0]>=12,"actual selected model produces foreground pixels in its world viewport");double x=(pixels[1]+pixels[3])*.5,y=(pixels[2]+pixels[4])*.5;

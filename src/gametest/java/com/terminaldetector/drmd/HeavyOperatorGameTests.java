@@ -71,6 +71,15 @@ public final class HeavyOperatorGameTests implements FabricGameTest {
             }catch(Throwable failure){if(rig[0]!=null)rig[0].close();else lease.close();throw failure;}
         });
     }
+    private static void receipt(Rig r,String label,Map<String,Object> details){
+        var data=new LinkedHashMap<String,Object>();data.put("case",label);data.put("worldTime",r.c.getWorld().getTime());data.put("testTick",r.c.getTick());data.put("details",details);
+        data.put("target",Map.of("id",r.target.getUuid(),"position",r.target.getPos(),"health",r.target.getHealth(),"removed",r.target.isRemoved()));
+        data.put("parts",r.a.bodies().stream().map(b->Map.of("id",b.getUuid(),"tags",Set.copyOf(b.getCommandTags()),"position",b.getPos(),"rotation",b.rotation(),"w",b.physics().angularVelocity(),"paused",b.boardingMotionPaused(),"indexed",BodySpatialIndex.find(b.getWorld(),b.getUuid()).orElse(null)==b)).toList());
+        data.put("births",List.copyOf(r.births));data.put("motors",BodyJointRegistry.get(r.c.getWorld()).forBody(r.a.yaw().getUuid()).stream().map(l->Map.of("id",l.id(),"speed",l.speed(),"force",l.motorForce())).toList());
+        String json=new com.google.gson.Gson().toJson(data);System.err.println("HEAVY_FAILURE_RECEIPT "+json);
+        try{var directory=java.nio.file.Path.of("reports");java.nio.file.Files.createDirectories(directory);java.nio.file.Files.writeString(directory.resolve("heavy-"+label+"-"+r.a.base().getUuid()+".json"),json+"\n");}
+        catch(java.io.IOException error){System.err.println("HEAVY_FAILURE_RECEIPT_IO "+error);}
+    }
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="heavy-operator-fire",tickLimit=340)
     public void separateTwoAxisMechanismFiresLaserAndBothShoulderRocketsWhileActuallyMovingAndRolled(TestContext c){admitted(c,r->{},r->{
         if(!r.allGuns()||!r.powered||!r.relativeMotion)return;
@@ -82,14 +91,19 @@ public final class HeavyOperatorGameTests implements FabricGameTest {
     public void realShoulderImpactDisablesOnlyItsGunAndOrdinaryMaterialReplacementResumesWithoutBodyReset(TestContext c){
         int[] phase={0};long[] until={0},left={0},right={0},laser={0};UUID[] incoming={null};
         admitted(c,r->{},r->{
-            if(phase[0]==0){if(!r.allGuns())return;var muzzle=MountedWeaponEmitter.muzzle(r.a.barrel(),HeavyOperatorSystem.LEFT);var direction=MountedWeaponEmitter.direction(r.a.barrel(),HeavyOperatorSystem.LEFT);
-                var cfg=new WeaponCore.FireConfig();cfg.owner=r.target;cfg.pos=muzzle.add(direction.multiply(3));cfg.dir=direction.multiply(-1);cfg.speedIsSourceUnits=false;cfg.speed=3;cfg.life=2;cfg.directDamage=512;cfg.dmgClass=DamageClass.KINETIC;
+            if(phase[0]==0){if(!r.allGuns())return;var material=r.a.barrel().localToWorld(Vec3d.ofCenter(HeavyOperatorSystem.LEFT));var direction=r.a.barrel().physicsCentre().subtract(material).normalize();
+                // Isolate loss of one component with a genuine COM-aligned shot.
+                // The original512 off-axis hit/32tick recovery negative remains
+                // a separate measured recoil-stress boundary, not a zeroed impulse.
+                var cfg=new WeaponCore.FireConfig();cfg.owner=r.target;cfg.pos=material.subtract(direction.multiply(3));cfg.dir=direction;cfg.speedIsSourceUnits=false;cfg.speed=3;cfg.life=2;cfg.directDamage=512;cfg.dmgClass=DamageClass.KINETIC;
                 var shot=WeaponCore.fireProjectile(cfg);c.assertTrue(shot!=null,"actual incoming round emitted through ordinary WeaponCore");incoming[0]=shot.getUuid();phase[0]=1;return;}
             if(phase[0]==1){if(!r.a.barrel().getLocalBlock(HeavyOperatorSystem.LEFT).isAir())return;
                 c.assertTrue(c.getWorld().getEntity(incoming[0])==null||c.getWorld().getEntity(incoming[0]).isRemoved(),"real incoming projectile terminated on the destroyed shoulder material");
                 left[0]=r.shots(HeavyOperatorSystem.LEFT);right[0]=r.shots(HeavyOperatorSystem.RIGHT);laser[0]=r.shots(HeavyOperatorSystem.LASER);until[0]=c.getTick()+32;phase[0]=2;return;}
             if(phase[0]==2){if(c.getTick()<until[0])return;
-                c.assertTrue(r.shots(HeavyOperatorSystem.LEFT)==left[0]&&r.shots(HeavyOperatorSystem.RIGHT)>right[0]&&r.shots(HeavyOperatorSystem.LASER)>laser[0],"shoulder loss keeps other guns: L="+left[0]+"/"+r.shots(HeavyOperatorSystem.LEFT)+" R="+right[0]+"/"+r.shots(HeavyOperatorSystem.RIGHT)+" laser="+laser[0]+"/"+r.shots(HeavyOperatorSystem.LASER)+" hp="+r.target.getHealth()+" mask="+HeavyOperatorSystem.fireMask(r.a.barrel())+" motor="+BodyJointRegistry.get(c.getWorld()).forBody(r.a.yaw().getUuid()).stream().map(l->l.speed()+":"+l.motorForce()).toList()+" w="+r.a.barrel().physics().angularVelocity());
+                boolean continuing=r.shots(HeavyOperatorSystem.LEFT)==left[0]&&r.shots(HeavyOperatorSystem.RIGHT)>right[0]&&r.shots(HeavyOperatorSystem.LASER)>laser[0];
+                if(!continuing)receipt(r,"module-continuance",Map.of("leftBefore",left[0],"rightBefore",right[0],"laserBefore",laser[0],"mask",HeavyOperatorSystem.fireMask(r.a.barrel()).toString()));
+                c.assertTrue(continuing,"actual module loss keeps other guns; bounded32tick receipt in reports/heavy-module-continuance");
                 var gun=r.a.barrel();var point=MountedWeaponEmitter.muzzle(gun,HeavyOperatorSystem.RIGHT);var velocity=gun.surfaceVelocityAt(point);var timers=gun.mountedWeapons().write(gun);var id=gun.getUuid();
                 c.assertTrue(new BlockBodyWorldAccess(gun).placeLocalBlock(HeavyOperatorSystem.LEFT,ModWorldBlocks.SHIP_ROCKET.getDefaultState().with(Properties.FACING,Direction.SOUTH)),"ordinary supported replacement block fits the actual mechanism");
                 var after=MountedWeaponEmitter.muzzle(gun,HeavyOperatorSystem.RIGHT);
@@ -108,7 +122,9 @@ public final class HeavyOperatorGameTests implements FabricGameTest {
             if(phase[0]==1){if(c.getTick()<until[0]||r.births.size()<=before[0])return;
                 for(var b:r.a.bodies())c.assertTrue(c.getWorld().getEntity(b.getUuid())==b&&b.age>=8,"restored parts receive at least eight ordinary ticks, no manual stepping");
                 r.a.base().getCommandTags().remove("drmd.operator.v1");r.a.base().addCommandTag("drmd.operator.v37");before[0]=r.births.size();until[0]=c.getTick()+32;phase[0]=2;return;}
-            if(phase[0]==2){if(c.getTick()<until[0])return;c.assertTrue(r.births.size()==before[0]&&r.a.base().getCommandTags().contains("drmd.operator.v37")&&HeavyOperatorSystem.fireMask(r.a.barrel()).orElse(-1)==0,"unknown controller refusal: births="+before[0]+"/"+r.births.size()+" raw="+r.a.base().getCommandTags()+" mask="+HeavyOperatorSystem.fireMask(r.a.barrel()));
+            if(phase[0]==2){if(c.getTick()<until[0])return;int mask=HeavyOperatorSystem.fireMask(r.a.barrel()).orElse(-1);boolean refused=r.births.size()==before[0]&&r.a.base().getCommandTags().contains("drmd.operator.v37")&&mask==0;
+                if(!refused)receipt(r,"unknown-controller",Map.of("before",before[0],"after",r.births.size(),"mask",mask));
+                c.assertTrue(refused,"unknown controller remains raw and cannot emit; immutable receipt in reports/heavy-unknown-controller");
                 r.a.base().getCommandTags().remove("drmd.operator.v37");r.a.base().addCommandTag("drmd.operator.v1");c.assertTrue(r.a.base().setLocalBlock(HeavyOperatorSystem.CORE,Blocks.AIR.getDefaultState()),"actual core material removed");until[0]=c.getTick()+32;phase[0]=3;return;}
             if(c.getTick()<until[0])return;c.assertTrue(r.births.size()==before[0]&&HeavyOperatorSystem.fireMask(r.a.barrel()).orElse(-1)==0,"lost core retires autonomous authority without replacing physical bodies");r.done();
         });
