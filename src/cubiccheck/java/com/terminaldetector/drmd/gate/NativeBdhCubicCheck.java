@@ -28,6 +28,7 @@ import java.util.Set;
 public final class NativeBdhCubicCheck {
     public static final boolean ENABLED = Boolean.getBoolean("drmd.gate.bdhCubic");
     private static final boolean COLD_READER = Boolean.getBoolean("drmd.gate.bdhColdReader");
+    private static final boolean VISIT_FIXTURE = Boolean.getBoolean("drmd.gate.bdhVisitFixture");
     private static final BlockPos LOWER = new BlockPos(8, 2150, 120);
     private static final BlockPos UPPER = new BlockPos(8, 2229, 120);
     private static final BodyVolumePlan.Column TEST_COLUMN = new BodyVolumePlan.Column(0, 7, 132, 139);
@@ -37,6 +38,9 @@ public final class NativeBdhCubicCheck {
     private static volatile boolean committed, writing, loading, released;
     private static volatile int fullPieceSections;
     private static boolean releaseQueued;
+    private static java.util.UUID fixturePlayer;
+    private static volatile int setupTeleports;
+    private static volatile Map<String,Object> handoffAdmission = Map.of();
     private static volatile String serverStatus = "awaiting world";
     private static Method describe;
     private static int ticks, stable, phase, lowerMax, upperMax;
@@ -72,6 +76,10 @@ public final class NativeBdhCubicCheck {
                     finish(client, "FAIL", "isolated upstream client required");
                     return;
                 }
+                if (COLD_READER && VISIT_FIXTURE) {
+                    finish(client, "FAIL", "cold reader and fresh visit are distinct cases");
+                    return;
+                }
                 describe = Class.forName("com.seibel.distanthorizons.core.level.CubicDebugProbe")
                     .getMethod("describe", int.class, int.class, int.class);
                 started = true;
@@ -83,13 +91,16 @@ public final class NativeBdhCubicCheck {
                 DescentConfig.hud = false;
                 DescentConfig.planetFloor = false; // External LOD visibility must stand on its own.
                 var uuid = client.player.getUuid();
+                fixturePlayer = uuid;
                 client.getServer().execute(() -> {
                     var player = client.getServer().getPlayerManager().getPlayer(uuid);
                     FlightSystem.disable(player, DescentPlayerData.get(player));
                     player.changeGameMode(GameMode.CREATIVE);
                     player.getAbilities().flying = true;
                     player.sendAbilitiesUpdate();
-                    player.teleport(player.getServerWorld(), 8.5, 2183, 8.5, Set.of(), 0, 0);
+                    // Ordinary player interest first admits the exact vanilla-column accessor used by BCC.
+                    player.teleport(player.getServerWorld(), 8.5, 2183, VISIT_FIXTURE ? 120.5 : 8.5, Set.of(), 0, 0);
+                    setupTeleports++;
                     var world = player.getServerWorld();
                     world.setChunkForced(0, 7, true);
                     if (!BodyVolumeLeases.requestNativeInterest(world, INTEREST, TEST_COLUMN)) {
@@ -108,6 +119,19 @@ public final class NativeBdhCubicCheck {
                     try {
                         var world = client.getServer().getOverworld();
                         var access = WorldAccess.of(world);
+                        var player = client.getServer().getPlayerManager().getPlayer(fixturePlayer);
+                        if (player == null) return;
+                        var vanillaColumn = world.getChunkManager().getWorldChunk(0,7);
+                        var nativeColumn = com.terminaldetector.drmd.world.access.CubicAvailability.loadedColumn(world,0,7);
+                        boolean sameColumn = vanillaColumn != null && vanillaColumn == nativeColumn;
+                        handoffAdmission = Map.of("vanillaPresent",vanillaColumn!=null,"nativePresent",nativeColumn!=null,
+                            "sameIdentity",sameColumn,"vanillaIdentity",System.identityHashCode(vanillaColumn),
+                            "nativeIdentity",System.identityHashCode(nativeColumn),
+                            "serverPlayer",List.of(player.getX(),player.getY(),player.getZ()));
+                        if (VISIT_FIXTURE && !sameColumn) {
+                            serverStatus = "awaiting actual vanilla/native column identity at ordinary fixture visit";
+                            return;
+                        }
                         // BCC copies complete groups of four native sections, not individual edited cubes.
                         // The lower marker is CY134, but its upstream piece also requires CY132/133.
                         int ready = 0;
@@ -132,6 +156,11 @@ public final class NativeBdhCubicCheck {
                         // database/render upload acknowledges both pieces. No direct DH data injection.
                         serverStatus = (COLD_READER ? "462 existing donor cells verified with ZERO writes" : "462 real cells written and verified")
                             + "; eight FULL sections retained for upstream admission";
+                        if (VISIT_FIXTURE) {
+                            // One return to the original measurement pose; normal client/server sync remains authoritative.
+                            player.teleport(world,8.5,2183,8.5,Set.of(),0,0);
+                            setupTeleports++;
+                        }
                         committed = true;
                     } finally {
                         loading = false;
@@ -230,7 +259,8 @@ public final class NativeBdhCubicCheck {
             var result = Map.of("status", outcome, "reason", reason, "server", serverStatus, "lower", lower,
                 "upper", upper, "frames", List.copyOf(frames), "redMax", lowerMax, "greenMax", upperMax, "view", finalView,
                 "interest", Map.of("minSectionY", 132, "maxSectionY", 139, "fullBeforeWrites", fullPieceSections,
-                    "releasedBeforePixels", released, "coldReader", COLD_READER));
+                    "releasedBeforePixels", released, "coldReader", COLD_READER,
+                    "visitFixture",VISIT_FIXTURE,"setupTeleports",setupTeleports,"handoffAdmission",handoffAdmission));
             Files.writeString(client.runDirectory.toPath().resolve("bdh-cubic-outcome.json"),
                 new GsonBuilder().setPrettyPrinting().create().toJson(result) + "\n");
         } catch (Exception failure) {
