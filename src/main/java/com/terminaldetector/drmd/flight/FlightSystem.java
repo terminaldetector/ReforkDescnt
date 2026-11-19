@@ -308,8 +308,8 @@ public final class FlightSystem {
 		player.velocityModified = true;
 		player.fallDistance = 0f;
 
-		// Simple wall bounce
-		if (player.horizontalCollision || player.verticalCollision) {
+		// Native command steps resolve collisions after thrust, in the shared body sweep.
+		if (steering == null && (player.horizontalCollision || player.verticalCollision)) {
 			Vec3d bounced = data.getFlightVelocity().multiply(-WALL_BOUNCE);
 			if (player.horizontalCollision) {
 				bounced = new Vec3d(bounced.x, data.getFlightVelocity().y * WALL_BOUNCE, bounced.z);
