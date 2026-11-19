@@ -27,6 +27,7 @@ public class CubicFrameProbe {
         if(com.terminaldetector.drmd.gate.NativeHighAltitudeLodCheck.ENABLED){com.terminaldetector.drmd.gate.NativeHighAltitudeLodCheck.rendered(counter.getTickDelta(false));return;}
         if(NativeBdhCubicCheck.ENABLED){NativeBdhCubicCheck.rendered();return;}
         if(NativeHudReadabilityCheck.ENABLED){NativeHudReadabilityCheck.rendered();return;}
+        if(com.terminaldetector.drmd.gate.NativeIntactAsteroidCheck.ENABLED){com.terminaldetector.drmd.gate.NativeIntactAsteroidCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeOrbitalMissionCheck.ENABLED){com.terminaldetector.drmd.gate.NativeOrbitalMissionCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeOrbitalRouteCheck.ENABLED){com.terminaldetector.drmd.gate.NativeOrbitalRouteCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeVerticalFlightCheck.ENABLED){com.terminaldetector.drmd.gate.NativeVerticalFlightCheck.rendered();return;}
