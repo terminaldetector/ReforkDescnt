@@ -227,7 +227,9 @@ public class DescentMod implements ModInitializer {
 				// Background Nether/End warm before ±10 of the parallelepiped faces.
 				if(!com.terminaldetector.drmd.world.LegacyGeneration.retired())com.terminaldetector.drmd.world.layer.SeamWarmup.tick(player);
 				if (data.isEnabled()) {
-					FlightSystem.tick(player, data);
+					if (!com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.usesCommandClock(player)) {
+						FlightSystem.tick(player, data);
+					}
 					EnergySystem.regenTick(player, data);
 					ShieldSystem.regenTick(player, data);
 					com.terminaldetector.drmd.pickup.LootField.tick(player, data);

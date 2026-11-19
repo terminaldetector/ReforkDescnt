@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.world.contraption.boarding;
 
 import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.client.portal.PortalTransform.*;
+import com.terminaldetector.drmd.flight.FlightSystem;
 import com.terminaldetector.drmd.network.FlightBodyNetworking;
 import com.terminaldetector.drmd.world.contraption.*;
 import com.terminaldetector.drmd.world.access.CubicAvailability;
@@ -17,9 +18,10 @@ import java.util.*;
  * integrator still owns thrust. Movement packets cannot overwrite a nearby physical contact. */
 public final class FlightBodySystem {
     private record Deferred(WeakReference<ServerPlayerEntity> player,long tick,ServerWorld world) {}
+    private record Command(int sequence, FlightSystem.Steering steering) {}
     private static final class Lease {
         final WeakReference<ServerPlayerEntity> player;final ServerWorld world;final int epoch;
-        final ArrayDeque<Integer> pending=new ArrayDeque<>();int accepted=-1,ack=-1;long lastNear;
+        final ArrayDeque<Command> pending=new ArrayDeque<>();int accepted=-1,ack=-1;long lastNear;
         Lease(ServerPlayerEntity p,int e){player=new WeakReference<>(p);world=p.getServerWorld();epoch=e;lastNear=world.getTime();}
     }
     private static final Map<UUID,Deferred> PENDING=new HashMap<>();
@@ -39,6 +41,9 @@ public final class FlightBodySystem {
     private static boolean eligible(ServerPlayerEntity p){return pilot(p)&&BoardingSystem.ready(p);}
     public static boolean nativeAuthority(net.minecraft.entity.player.PlayerEntity p){
         return CubicAvailability.backend(p.getWorld())!=CubicAvailability.Backend.STOCK;
+    }
+    public static boolean usesCommandClock(ServerPlayerEntity pilot) {
+        return eligible(pilot) && nativeAuthority(pilot);
     }
     /** Conservative full-radius hull index plus the maximum one-tick translation of a hull.
      * Rotation is already enclosed by the physical radius; no entity/chunk scanning. */
@@ -65,7 +70,8 @@ public final class FlightBodySystem {
         var l=LEASES.get(p.getUuid());
         if(l==null||l.player.get()!=p||l.world!=p.getWorld()||!eligible(p)||input.epoch()!=l.epoch
             ||input.sequence()<0||input.sequence()<=l.accepted||(long)input.sequence()-l.accepted>128||l.pending.size()>=32)return false;
-        l.accepted=input.sequence();l.pending.addLast(input.sequence());return true;
+        var steering = nativeAuthority(p) ? FlightSystem.captureSteering(p) : null;
+        l.accepted=input.sequence();l.pending.addLast(new Command(input.sequence(),steering));return true;
     }
     public static int epoch(ServerPlayerEntity p){var l=LEASES.get(p.getUuid());return l!=null&&l.player.get()==p?l.epoch:-1;}
     public static int acknowledgment(ServerPlayerEntity p){var l=LEASES.get(p.getUuid());return l!=null&&l.player.get()==p?l.ack:-1;}
@@ -84,10 +90,17 @@ public final class FlightBodySystem {
         var touched=new HashSet<BlockBodyEntity>();var motions=new HashMap<Integer,BodyMotion>();
         for(var d:PENDING.values().stream().filter(d->d.world==world).sorted(Comparator.comparing(d->{var p=d.player.get();return p==null?"":p.getUuid().toString();})).toList()) {
             var p=d.player.get();if(p==null||p.getWorld()!=world||!eligible(p)||d.tick!=world.getTime())continue;
-            var data=DescentPlayerData.get(p);var candidates=nearby(p,data.getFlightVelocity());
+            var data=DescentPlayerData.get(p);
             var l=LEASES.get(p.getUuid());if(l==null||l.player.get()!=p||l.world!=world){l=new Lease(p,++epoch);LEASES.put(p.getUuid(),l);}
-            if(nativeAuthority(p)||!candidates.isEmpty())l.lastNear=world.getTime();
-            if(nativeAuthority(p)&&candidates.isEmpty()&&l.pending.isEmpty()) {
+            boolean nativeWorld = nativeAuthority(p);
+            var command = l.pending.pollFirst();
+            if (command != null) {
+                l.ack = command.sequence();
+                if (command.steering() != null) FlightSystem.tick(p, data, command.steering());
+            }
+            var candidates = nearby(p, data.getFlightVelocity());
+            if(nativeWorld||!candidates.isEmpty())l.lastNear=world.getTime();
+            if(nativeWorld&&candidates.isEmpty()&&command==null) {
                 // A native free-flight step belongs to an actual client prediction command.
                 // Advancing on empty server ticks outruns a lagging client's cube subscription
                 // and unloads its current volume. Hold translation, not model momentum.
@@ -95,7 +108,6 @@ public final class FlightBodySystem {
                 if(p.networkHandler instanceof BoardingConnection c)c.drmd$bodyMovementOwned();
                 sync(p,l,true);continue;
             }
-            if(!l.pending.isEmpty())l.ack=l.pending.removeFirst();
             var bodies=new ArrayList<BodyMotion>();for(var b:candidates){bodies.add(motions.computeIfAbsent(b.getId(),id->b.boardingMotion()));touched.add(b);}
             var state=new DynamicBodyAttachment.State(BoardingSystem.pure(p.getPos()),BoardingSystem.pure(data.getFlightVelocity()),false,-1);
             var after=DynamicBodyAttachment.freeFlight(state,bodies,p.getWidth(),p.getHeight(),.05,BoardingWorldMotion.captureFlight(p,state,false));

@@ -45,6 +45,9 @@ public final class FlightSystem {
 		public boolean afterburner;
 	}
 
+	public record Steering(float forward, float strafe, float vertical, float roll, boolean afterburner,
+			Vec3d look, Vec3d up, boolean hasAttitude) {}
+
 	private static final java.util.Map<java.util.UUID, InputState> INPUTS = new java.util.concurrent.ConcurrentHashMap<>();
 
 	private FlightSystem() {}
@@ -57,7 +60,22 @@ public final class FlightSystem {
 		INPUTS.remove(id);
 	}
 
+	public static Steering captureSteering(ServerPlayerEntity player) {
+		var current = input(player);
+		var data = DescentPlayerData.get(player);
+		return new Steering(axis(current.forward), axis(current.strafe), axis(current.vertical), axis(current.roll),
+				current.afterburner, data.shipForward(player), data.shipUp(player), data.hasShipAttitude());
+	}
+
+	private static float axis(float value) {
+		return Float.isFinite(value) ? MathHelper.clamp(value, -1, 1) : 0;
+	}
+
 	public static void tick(ServerPlayerEntity player, DescentPlayerData data) {
+		tick(player, data, null);
+	}
+
+	public static void tick(ServerPlayerEntity player, DescentPlayerData data, Steering steering) {
 		// Spectators own their own movement entirely — hijacking travel there strands them.
 		if (player.isSpectator() || !player.isAlive()) {
             disable(player, data);
@@ -65,6 +83,11 @@ public final class FlightSystem {
         }
 		float dt = 1f / 20f;
 		InputState in = input(player);
+		float forward = steering == null ? in.forward : steering.forward();
+		float strafe = steering == null ? in.strafe : steering.strafe();
+		float vertical = steering == null ? in.vertical : steering.vertical();
+		float rollInput = steering == null ? in.roll : steering.roll();
+		boolean requestedAfterburner = steering == null ? in.afterburner : steering.afterburner();
 
 		// Ship-owned stats when piloting a Pyro GX, pilot-owned (pilotless free-6DoF) fallback
 		// otherwise — the ship carries no independent physics of its own (see PyroShipEntity.tick),
@@ -90,8 +113,8 @@ public final class FlightSystem {
 		if (data.getDashCooldown() > 0) data.setDashCooldown(data.getDashCooldown() - dt);
 		if (data.getDashTimer() > 0) data.setDashTimer(data.getDashTimer() - dt);
 
-		boolean hasInput = Math.abs(in.forward) > 0.01f || Math.abs(in.strafe) > 0.01f
-				|| Math.abs(in.vertical) > 0.01f || Math.abs(in.roll) > 0.01f
+		boolean hasInput = Math.abs(forward) > 0.01f || Math.abs(strafe) > 0.01f
+				|| Math.abs(vertical) > 0.01f || Math.abs(rollInput) > 0.01f
 				|| in.dash || player.handSwinging;
 
 		if (hasInput) {
@@ -109,7 +132,7 @@ public final class FlightSystem {
 		// abTier is 0 when piloting a ship with an empty propulsion slot — no module, no burn at
 		// all, not just a weaker one (see PyroShipEntity.getAfterburnerTier's own javadoc).
 		int abTier = effAbTier;
-		boolean afterburner = in.afterburner && abTier > 0;
+		boolean afterburner = requestedAfterburner && abTier > 0;
 		if (afterburner) {
 			if (!EnergySystem.tryConsume(data, "engines", AfterburnerTiers.costPerSec(abTier) * dt)) {
 				afterburner = false;
@@ -117,25 +140,26 @@ public final class FlightSystem {
 			}
 		}
 		data.setAlwaysRun(afterburner);
-		if (afterburner && Math.abs(in.forward) < 0.01f
-				&& Math.abs(in.strafe) < 0.01f && Math.abs(in.vertical) < 0.01f) {
+		if (afterburner && Math.abs(forward) < 0.01f
+				&& Math.abs(strafe) < 0.01f && Math.abs(vertical) < 0.01f) {
 			// Corridor cruise — afterburner alone pushes forward like original Descent.
-			in.forward = 1f;
+			forward = 1f;
+			if (steering == null) in.forward = 1f;
 		}
 
 		// Roll rate (client applies local roll into synced ship attitude)
-		float rollVel = data.getRollVel() + in.roll * ROLL_ACCEL * dt;
+		float rollVel = data.getRollVel() + rollInput * ROLL_ACCEL * dt;
 		rollVel *= Math.pow(MathHelper.clamp(1f - ROLL_DRAG * dt, 0f, 1f), 1);
 		data.setRollVel(rollVel);
-		if (!data.hasShipAttitude()) {
+		if (!(steering == null ? data.hasShipAttitude() : steering.hasAttitude())) {
 			float roll = data.getRoll() + rollVel * dt;
 			while (roll > 180f) roll -= 360f;
 			while (roll < -180f) roll += 360f;
 			data.setRoll(roll);
 		}
 
-		Vec3d look = data.shipForward(player);
-		Vec3d rolledUp = data.shipUp(player);
+		Vec3d look = steering == null ? data.shipForward(player) : steering.look();
+		Vec3d rolledUp = steering == null ? data.shipUp(player) : steering.up();
 		Vec3d rolledRight = look.crossProduct(rolledUp);
 		if (rolledRight.lengthSquared() < 1e-8) {
 			rolledRight = new Vec3d(1, 0, 0);
@@ -144,7 +168,7 @@ public final class FlightSystem {
 			rolledRight = rolledRight.normalize();
 		}
 
-		boolean thrusting = Math.abs(in.forward) > 0.01f || Math.abs(in.strafe) > 0.01f || Math.abs(in.vertical) > 0.01f;
+		boolean thrusting = Math.abs(forward) > 0.01f || Math.abs(strafe) > 0.01f || Math.abs(vertical) > 0.01f;
 		if (thrusting && player.getServer().getTicks() % 4 == 0) {
 			com.terminaldetector.drmd.world.smoke.SmokeSystem.emit(
 					player.getPos().subtract(look.multiply(0.8)),
@@ -177,9 +201,9 @@ public final class FlightSystem {
 		}
 
 		double accel = DescentMod.su(effAccel) * accelMult * spool;
-		Vec3d wish = look.multiply(in.forward)
-				.add(rolledRight.multiply(in.strafe * STRAFE_MULT))
-				.add(rolledUp.multiply(in.vertical * VERT_MULT));
+		Vec3d wish = look.multiply(forward)
+				.add(rolledRight.multiply(strafe * STRAFE_MULT))
+				.add(rolledUp.multiply(vertical * VERT_MULT));
 		if (wish.lengthSquared() > 1e-6) wish = wish.normalize().multiply(accel * dt);
 
 		Vec3d vel = data.getFlightVelocity().add(wish);

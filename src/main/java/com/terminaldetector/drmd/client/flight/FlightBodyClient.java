@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.client.flight;
 
 import com.terminaldetector.drmd.client.DescentClientState;
+import com.terminaldetector.drmd.client.input.DescentKeybinds;
 import com.terminaldetector.drmd.client.portal.PortalTransform.*;
 import com.terminaldetector.drmd.d6.D6PhysicsBody;
 import com.terminaldetector.drmd.network.FlightBodyNetworking;
@@ -81,7 +82,11 @@ public final class FlightBodyClient {
         p.setVelocity(BoardingSystem.mc(after.velocity().scaled(.05)));p.setOnGround(false);p.fallDistance=0;
         if(active) {
             int seq=sequence++;HISTORY.put(seq,new Prediction(impulse,after));
-            if(ClientPlayNetworking.canSend(FlightBodyNetworking.Input.ID))ClientPlayNetworking.send(new FlightBodyNetworking.Input(epoch,seq));
+            if(ClientPlayNetworking.canSend(FlightBodyNetworking.Input.ID)) {
+                // Pair the steering already received by the server with this prediction command.
+                if (FlightBodySystem.nativeAuthority(p)) DescentKeybinds.sendInput(MinecraftClient.getInstance());
+                ClientPlayNetworking.send(new FlightBodyNetworking.Input(epoch,seq));
+            }
         }
         lastVelocity=after.velocity();return BoardingSystem.mc(after.velocity());
     }
