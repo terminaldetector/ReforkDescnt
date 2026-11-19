@@ -106,10 +106,12 @@ public class DescentClient implements ClientModInitializer {
 				var player = context.client().player;
 				if (player == null) return;
 				com.terminaldetector.drmd.client.flight.ShipAttitudeClient.portalEpoch = payload.epoch();
-				com.terminaldetector.drmd.client.flight.ShipAttitudeClient.acceptPortalFrame(player, payload.forward(), payload.up());
 				com.terminaldetector.drmd.client.flight.DescentFlightMotion.clear();
-				com.terminaldetector.drmd.client.flight.DescentFlightMotion.onServerVelocity(
-					(float) payload.velocity().x, (float) payload.velocity().y, (float) payload.velocity().z);
+				if (DescentClientState.enabled) {
+					com.terminaldetector.drmd.client.flight.ShipAttitudeClient.acceptPortalFrame(player, payload.forward(), payload.up());
+					com.terminaldetector.drmd.client.flight.DescentFlightMotion.onServerVelocity(
+						(float) payload.velocity().x, (float) payload.velocity().y, (float) payload.velocity().z);
+				}
 				player.setVelocity(payload.velocity());
 			}));
 		ClientPlayNetworking.registerGlobalReceiver(ModNetworking.SyncPayload.ID, (payload, context) ->

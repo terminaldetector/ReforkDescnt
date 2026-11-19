@@ -201,10 +201,19 @@ public final class PortalTravel {
         var waiting=WAITING.computeIfAbsent(world,w->new java.util.LinkedHashMap<>());
         if(waiting.size()<MAX_PENDING||waiting.containsKey(entity.getUuid()))waiting.putIfAbsent(entity.getUuid(),pending);
     }
-    private static Crossing crossing(ServerWorld world,Entity entity,PortalTransform.Vec3 previous,Face f){
+    private static Crossing crossing(ServerWorld world,Entity entity,PortalTransform.Vec3 previous,Face f,boolean gun){
         var normal=Vec3d.of(f.facing.getVector());var face=Vec3d.ofCenter(f.source).add(normal.multiply(.5));var plane=toPure(face);var n=toPure(normal);var current=toPure(entity.getPos());
-        var leading=PortalTransfer.leading(entity,previous,n);if(leading==null)return null;PortalTransform.Vec3 hit;boolean edge;
-        if(PortalCrossing.crossedInward(leading.before(),leading.after(),plane,n)){hit=PortalCrossing.crossingPoint(leading.before(),leading.after(),plane,n);edge=true;}
+        // A standalone upright player's first-person view enters a wall panel at the player pivot.
+        // Its shoulders reach the plane earlier. Group, floor and ceiling transfers need the leading
+        // shape, since the backing may stop their geometry before the pivot reaches the plane.
+        boolean playerWall=gun&&f.facing.getAxis().isHorizontal()
+            &&entity instanceof net.minecraft.server.network.ServerPlayerEntity player&&!player.hasPassengers()
+            &&!com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(player)
+            &&!com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player);
+        var leading=playerWall?null:PortalTransfer.leading(entity,previous,n);
+        if(!playerWall&&leading==null)return null;
+        PortalTransform.Vec3 hit;boolean edge;
+        if(leading!=null&&PortalCrossing.crossedInward(leading.before(),leading.after(),plane,n)){hit=PortalCrossing.crossingPoint(leading.before(),leading.after(),plane,n);edge=true;}
         else if(PortalCrossing.crossedInward(previous,current,plane,n)){hit=PortalCrossing.crossingPoint(previous,current,plane,n);edge=false;}else return null;
         return hit!=null&&PortalCrossing.withinFace(hit,plane,n,f.span)&&faceIsOpenTo(world,entity,face,normal,hit)?new Crossing(previous,current,hit,edge):null;
     }
@@ -213,7 +222,7 @@ public final class PortalTravel {
         var waiting=WAITING.get(world);var stored=waiting==null?null:waiting.get(entity.getUuid());
         var pending=stored!=null&&sameLink(stored.face,f)?stored:null;
         if(pending!=null&&!stillAtGate(world,pending,now)){waiting.remove(entity.getUuid());pending=null;}
-        var step=pending==null?crossing(world,entity,previous,f):pending.crossing;if(step==null)return null;
+        var step=pending==null?crossing(world,entity,previous,f,gun):pending.crossing;if(step==null)return null;
         if(f.partnerFacing==null){
             var group=PortalTransfer.gather(world,entity,id->onCooldown(id,now));
             if(pendingAllowed&&pending==null&&group.complete())rememberCrossing(world,entity,f,step);

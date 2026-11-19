@@ -256,7 +256,7 @@ final class PortalTransfer {
             var drone=e instanceof com.terminaldetector.drmd.entity.DroneEntity d?drones.get(d):null;if(drone!=null){yaw=drone.destinationYaw();pitch=drone.destinationPitch();}
             if(e instanceof ServerPlayerEntity p){
                 FlightBodySystem.discontinuity(p);var data=DescentPlayerData.get(p);var f=transform.rotation().rotate(a.flightForward);var u=transform.rotation().rotate(a.flightUp);var v=transform.rotation().rotate(a.flightVelocity);
-                data.setShipAttitude((float)f.x(),(float)f.y(),(float)f.z(),(float)u.x(),(float)u.y(),(float)u.z());data.setFlightVelocity(mc(v));
+                if(a.flight){data.setShipAttitude((float)f.x(),(float)f.y(),(float)f.z(),(float)u.x(),(float)u.y(),(float)u.z());data.setFlightVelocity(mc(v));}
                 com.terminaldetector.drmd.world.LocalOrientation.setUp(p.getUuid(),mc(transform.rotation().rotate(pure(com.terminaldetector.drmd.world.LocalOrientation.getUp(p.getUuid())))));
                 if(a.foot!=null)FootGravitySystem.adoptServer(p.getUuid(),mc(movedUp),a.foot.label());
                 if(p.networkHandler!=null)p.networkHandler.requestTeleport(feet.x(),feet.y(),feet.z(),yaw,pitch,Set.of());else p.refreshPositionAndAngles(feet.x(),feet.y(),feet.z(),yaw,pitch);
