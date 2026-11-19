@@ -16,6 +16,7 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.*;
 import net.minecraft.world.RaycastContext;
 import java.util.*;
+import java.lang.ref.WeakReference;
 
 /** Opt-in heavy operator assembled from the same replaceable player mechanism blocks.
  * The existing joint solver turns the two axes; the existing weapon scheduler fires.
@@ -32,7 +33,7 @@ public final class HeavyOperatorSystem {
         public List<BlockBodyEntity> bodies(){return List.of(base,yaw,barrel);}
     }
     public record Stats(int visited,int assemblies,int candidates,int rays,int drives){}
-    private record Permit(UUID root,UUID target,long tick){}
+    private record Permit(UUID root,UUID target,WeakReference<LivingEntity> actor,long tick){}
     private static final class Frame {
         long tick=Long.MIN_VALUE;int cursor,candidates,rays,drives;Stats stats=new Stats(0,0,0,0,0);
         final Map<UUID,Permit> permits=new HashMap<>();
@@ -47,14 +48,14 @@ public final class HeavyOperatorSystem {
     private static UUID uuid(BlockBodyEntity body,String prefix){
         UUID id=null;try{for(String tag:body.getCommandTags())if(tag.startsWith(prefix)){if(id!=null)return null;id=UUID.fromString(tag.substring(prefix.length()));}}catch(IllegalArgumentException invalid){return null;}return id;
     }
-    private static BlockBodyEntity body(ServerWorld world,UUID id){return id!=null&&world.getEntity(id) instanceof BlockBodyEntity b&&b.isAlive()&&!b.isRemoved()?b:null;}
+    private static BlockBodyEntity body(ServerWorld world,UUID id){return id==null?null:BodySpatialIndex.find(world,id).filter(b->b.isAlive()).orElse(null);}
     private static boolean bearing(BlockBodyEntity b,BlockPos p,Direction direction){var s=b.getLocalBlock(p);return s.isOf(ModWorldBlocks.MECHANICAL_BEARING)&&s.get(MechanicalBearingBlock.FACING)==direction;}
     private static boolean joint(ServerWorld world,BlockBodyEntity a,BlockPos pa,BlockBodyEntity b,BlockPos pb){
         return BodyJointRegistry.get(world).forBody(a.getUuid()).stream().anyMatch(l->l.blockDriven()
             &&l.a().body().equals(a.getUuid())&&l.a().cell().equals(pa)&&l.b().body().equals(b.getUuid())&&l.b().cell().equals(pb));
     }
     private static boolean valid(ServerWorld world,Assembly a){
-        return a!=null&&a.bodies().stream().allMatch(b->b.getWorld()==world&&!b.isRemoved()&&world.getEntity(b.getUuid())==b
+        return a!=null&&a.bodies().stream().allMatch(b->b.getWorld()==world&&!b.isRemoved()&&BodySpatialIndex.find(world,b.getUuid()).orElse(null)==b
                 &&!b.boardingMotionPaused()&&!b.controlCore().bound())
             &&a.base.getLocalBlock(CORE).isOf(ModWorldBlocks.SHIP_CONTROL_CORE)
             &&bearing(a.base,YAW_BASE,Direction.UP)&&bearing(a.yaw,YAW_CHILD,Direction.DOWN)
@@ -119,8 +120,9 @@ public final class HeavyOperatorSystem {
                 made.add(create(world,pair.getKey(),at.add(shift),q,velocity.add(angularVelocity.crossProduct(shift)),angularVelocity));
             }
             var a=new Assembly(made.get(0),made.get(1),made.get(2));
-            if(!MechanicalBearingSystem.connect(world,a.base,YAW_BASE,a.yaw,YAW_CHILD)
-                ||!MechanicalBearingSystem.connect(world,a.yaw,PITCH_BASE,a.barrel,PITCH_CHILD)||!bind(world,a))throw new IllegalStateException("heavy operator material/joint admission refused");
+            if(!MechanicalBearingSystem.connect(world,a.base,YAW_BASE,a.yaw,YAW_CHILD))throw new IllegalStateException("heavy operator yaw material joint refused");
+            if(!MechanicalBearingSystem.connect(world,a.yaw,PITCH_BASE,a.barrel,PITCH_CHILD))throw new IllegalStateException("heavy operator pitch material joint refused");
+            if(!bind(world,a))throw new IllegalStateException("heavy operator controller binding refused");
             return a;
         }catch(RuntimeException failure){for(var b:made){BodyJointRegistry.get(world).removeBody(b.getUuid());b.discard();}throw failure;}
     }
@@ -156,7 +158,7 @@ public final class HeavyOperatorSystem {
             if(target==null){stop(a,f);continue;}
             var desired=target.getBoundingBox().getCenter().subtract(from).normalize();var forward=MountedWeaponEmitter.direction(a.barrel,LASER);
             drive(a.base,YAW_DRIVE,Direction.UP,axis(a.base,UP),forward,desired,f);drive(a.yaw,PITCH_DRIVE,Direction.EAST,axis(a.yaw,X),forward,desired,f);
-            f.permits.put(a.barrel.getUuid(),new Permit(base.getUuid(),target.getUuid(),now));
+            f.permits.put(a.barrel.getUuid(),new Permit(base.getUuid(),target.getUuid(),new WeakReference<>(target),now));
         }
         f.stats=new Stats(visited,assemblies,f.candidates,f.rays,f.drives);
     }
@@ -168,7 +170,7 @@ public final class HeavyOperatorSystem {
         if(!(barrel.getWorld() instanceof ServerWorld world))return OptionalInt.of(0);var f=FRAMES.get(world);var permit=f==null?null:f.permits.get(barrel.getUuid());long now=world.getTime();
         if(permit==null||now<permit.tick||now-permit.tick>=CADENCE)return OptionalInt.of(0);
         var a=resolve(world,body(world,permit.root));if(!valid(world,a)||a.barrel!=barrel)return OptionalInt.of(0);
-        if(!(world.getEntity(permit.target) instanceof LivingEntity target)||!enemy(a.base,target))return OptionalInt.of(0);
+        var target=permit.actor.get();if(target==null||!target.getUuid().equals(permit.target)||!enemy(a.base,target))return OptionalInt.of(0);
         var from=MountedWeaponEmitter.muzzle(barrel,LASER);var to=target.getBoundingBox().getCenter();
         if(from.squaredDistanceTo(to)>48*48||!sight(world,a,from,to,f))return OptionalInt.of(0);
         var forward=MountedWeaponEmitter.direction(barrel,LASER);var wanted=to.subtract(from);
