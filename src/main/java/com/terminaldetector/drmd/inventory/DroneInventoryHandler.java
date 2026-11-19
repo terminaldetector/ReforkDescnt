@@ -18,6 +18,8 @@ public final class DroneInventoryHandler extends ScreenHandler {
  public DroneInventoryHandler(int id,PlayerInventory inventory,Inventory hull){super(TYPE,id);this.hull=hull;this.owner=inventory.player;checkSize(hull,5);
   for(int i=0;i<5;i++){final int index=i;addSlot(new Slot(hull,i,8+i*36,91){
    public int getMaxItemCount(){return 1;}
+   // The loadout screen already highlights the socket border. Keep its item pixels untinted.
+   @Override public boolean canBeHighlighted(){return false;}
    public boolean canInsert(ItemStack s){return index==4?s.getItem() instanceof com.terminaldetector.drmd.flight.AcceleratorModuleItem:index==3||DroneArsenal.supported(s);}
   });}
   for(int y=0;y<3;y++)for(int x=0;x<9;x++)addSlot(new Slot(inventory,x+y*9+9,8+x*18,126+y*18));
