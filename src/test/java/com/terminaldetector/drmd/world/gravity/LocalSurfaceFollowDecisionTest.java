@@ -47,4 +47,43 @@ class LocalSurfaceFollowDecisionTest {
         var decision=LocalSurfaceFollowDecision.select(BEFORE,5,13,POINT,index->{queries.add(index);return clear(BODY,BEFORE,POINT.apply(index),blocked);});
         assertFalse(decision.clear());assertEquals(5,decision.index());assertEquals(List.of(6,5),queries);
     }
+    @Test void observedCowCentreCongestionCanAdvanceUsingNativeBodyWidth(){
+        // Actual age24 Cow, target waypoint index3, from targeting-and-wreck-fallback-stock.
+        var feet=new Vec3d(-4233069.053221275,27.98,-2004647.9995762235);
+        var current=new Vec3d(-4233069.5,27.98,-2004648);
+        var next=current.add(0,0,1);var up=new Vec3d(0,-1,0);
+        assertTrue(feet.distanceTo(current)>.18);
+        assertTrue(LocalSurfaceFollowDecision.nativeWaypointReached(ActorFrameMath.toLocal(current.subtract(feet),up),.9f));
+        var queries=new ArrayList<Integer>();
+        var decision=LocalSurfaceFollowDecision.select(3,10,index->LocalSurfaceFollowDecision.nativeWaypointReached(
+            ActorFrameMath.toLocal((index==3?current:next).subtract(feet),up),.9f),index->{queries.add(index);return true;});
+        assertTrue(decision.clear());assertEquals(4,decision.index());assertEquals(List.of(4),queries);
+    }
+
+    @Test void nativeC1WidthReachIsCardinalFrameRelativeAndRetainsNativeBoundaries(){
+        for(var up:List.of(new Vec3d(1,0,0),new Vec3d(-1,0,0),new Vec3d(0,1,0),new Vec3d(0,-1,0),new Vec3d(0,0,1),new Vec3d(0,0,-1))){
+            var delta=new Vec3d(.4,.99,-.4);var world=ActorFrameMath.toWorld(delta,up);
+            assertTrue(LocalSurfaceFollowDecision.nativeWaypointReached(ActorFrameMath.toLocal(world,up),.9f));
+        }
+        assertFalse(LocalSurfaceFollowDecision.nativeWaypointReached(new Vec3d(.46,0,0),.9f));
+        assertFalse(LocalSurfaceFollowDecision.nativeWaypointReached(new Vec3d(0,1,0),.9f));
+        assertFalse(LocalSurfaceFollowDecision.nativeWaypointReached(Vec3d.ZERO,Float.NaN));
+        assertTrue(LocalSurfaceFollowDecision.nativeWaypointReached(new Vec3d(.44,0,.44),.6f));
+        assertFalse(LocalSurfaceFollowDecision.nativeWaypointReached(new Vec3d(.46,0,0),.6f));
+    }
+
+    @Test void nativeWidthAcceptanceCannotConsumeTheRealUnsafeCorner(){
+        var queries=new ArrayList<Integer>();
+        var decision=LocalSurfaceFollowDecision.select(5,13,index->LocalSurfaceFollowDecision.nativeWaypointReached(
+            ActorFrameMath.toLocal(POINT.apply(index).subtract(BEFORE),new Vec3d(1,0,0)),.9f),
+            index->{queries.add(index);return clear(BODY,BEFORE,POINT.apply(index),PLATE);});
+        assertTrue(decision.clear());assertEquals(5,decision.index());assertEquals(List.of(6,5),queries);
+    }
+
+    @Test void nativeWidthReachRetainsFourNodeAndTwoQueryCaps(){
+        var reached=new ArrayList<Integer>();var queries=new ArrayList<Integer>();
+        var decision=LocalSurfaceFollowDecision.select(2,20,index->{reached.add(index);return true;},index->{queries.add(index);return index==2;});
+        assertTrue(decision.clear());assertEquals(2,decision.index());assertEquals(List.of(2,3,4,5),reached);assertEquals(List.of(6,2),queries);
+    }
+
 }

@@ -255,8 +255,14 @@ public final class LocalSurfaceNavigation {
         lease.seen=now;
         if(!active(actor)||!path.matches(ActorFrames.up(actor))||now-path.createdAt>PATH_TICKS
             ||!LocalSurfaceGeometry.supported(actor,feet,path.up)){invalidate(actor);return false;}
-        var decision=LocalSurfaceFollowDecision.select(feet,path.getCurrentNodeIndex(),path.getLength(),
-            index->path.getNodePosition(actor,index),
+        // Preserve C2/Shapes' exact .18m contract. Native C1 controllers use their own native
+        // width-dependent waypoint reach, while every prospective next edge still needs the
+        // same loaded body/sweep clearance before any path index is committed.
+        boolean nativeC1=nativeWalker(actor)&&ActorPhysicsProfile.family(actor)==ActorPhysicsProfile.Family.GROUND;
+        var decision=LocalSurfaceFollowDecision.select(path.getCurrentNodeIndex(),path.getLength(),
+            index->nativeC1?LocalSurfaceFollowDecision.nativeWaypointReached(
+                ActorFrameMath.toLocal(path.getNodePosition(actor,index).subtract(feet),path.up),actor.getWidth())
+                :feet.distanceTo(path.getNodePosition(actor,index))<.18,
             index->LocalSurfaceGeometry.clear(actor,feet,path.getNodePosition(actor,index),path.up,false));
         if(!decision.clear()){invalidate(actor);return false;}
         while(path.getCurrentNodeIndex()<decision.index()) {
