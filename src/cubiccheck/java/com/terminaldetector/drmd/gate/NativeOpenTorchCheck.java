@@ -43,6 +43,8 @@ public final class NativeOpenTorchCheck {
     private static boolean staged;
     private static int ticks, phase, jumpHeld;
     private static double top = FLOOR;
+    private static Vec3d previousClient;
+    private static double maxClientStep;
     private static String result;
     private static long boot;
 
@@ -107,7 +109,7 @@ public final class NativeOpenTorchCheck {
             synchronized (SAMPLES) {
                 if (SAMPLES.size() < 550) SAMPLES.add(row);
             }
-            if (distance > 1.1 || at.y < FLOOR - 1e-5 || !clear)
+            if (at.y < FLOOR - 1e-5 || !clear)
                 serverFailure = "Server movement left the exposed walkable volume: " + row;
         } catch (RuntimeException error) {
             serverFailure = error.toString();
@@ -142,9 +144,18 @@ public final class NativeOpenTorchCheck {
             if (c.player.getPos().distanceTo(START) > .15 || !c.player.isOnGround() || c.currentScreen != null) return;
             c.player.setYaw(180);
             c.player.setPitch(10);
+            previousClient = c.player.getPos();
             observing = true;
         }
         var at = c.player.getPos();
+        // Several normal client movement packets can arrive in one server tick.
+        // The individual client simulation ticks show whether the camera/body actually jumped.
+        maxClientStep = Math.max(maxClientStep, previousClient.distanceTo(at));
+        previousClient = at;
+        if (maxClientStep > 1.1) {
+            finish(c, "Player displaced " + maxClientStep + " blocks in one actual movement tick");
+            return;
+        }
         if (at.y < FLOOR - 1e-5 || !c.world.isSpaceEmpty(c.player, c.player.getBoundingBox().contract(1e-6))) {
             finish(c, "Client feet or body intersect open terrain at " + at);
             return;
@@ -177,6 +188,7 @@ public final class NativeOpenTorchCheck {
             proof.put("status", result);
             proof.put("capture", captured);
             proof.put("jumpTop", top);
+            proof.put("maximumClientStep", maxClientStep);
             synchronized (SAMPLES) { proof.put("server", List.copyOf(SAMPLES)); }
             proof.put("sourceBinding", System.getProperty("drmd.gate.torchOpenSource", "UNBOUND"));
             Files.writeString(dir.resolve("torch-open-result.json"), new GsonBuilder().setPrettyPrinting().create().toJson(proof));
