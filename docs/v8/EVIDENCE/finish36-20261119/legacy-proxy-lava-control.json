@@ -1,0 +1,30 @@
+{
+  "task": "S01-T01",
+  "cases": {
+    "historical": {
+      "version": "1.1.6",
+      "sha256": "e1b31f01495d9f5a43e19d36310825f9c6382b7322c7789aff6a5a483074ffb0",
+      "noLavaObservationTicks": 230,
+      "noLavaMounted": true,
+      "firstRemovedTick": 10,
+      "nativeRemovalReason": "KILLED",
+      "playerAliveAfterObservation": true,
+      "tests": 2,
+      "exit": 0
+    },
+    "current": {
+      "version": "1.1.35-ufo-dev.1",
+      "sha256": "3ed8301cfc8cbe0ff754d1f16e64fd747563c9aa3f6a1c2b356521b7c37c6a30",
+      "noLavaObservationTicks": 230,
+      "noLavaMounted": false,
+      "firstRemovedTick": -1,
+      "nativeRemovalReason": "null",
+      "playerAliveAfterObservation": true,
+      "tests": 2,
+      "exit": 0
+    }
+  },
+  "scope": "Matched actual stock Minecraft lava and air control worlds. The historical reproduction used a recovered 1.1.6 JAR, the original incident save is unavailable.",
+  "archive": "legacy-proxy-lava-control.zip",
+  "archiveSha256": "6e731b112f07c824e1298f610e75e2c9c397250092e22c022e031f5629651128"
+}
