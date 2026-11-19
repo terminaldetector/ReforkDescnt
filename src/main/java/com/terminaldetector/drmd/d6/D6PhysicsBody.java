@@ -66,6 +66,12 @@ public final class D6PhysicsBody {
 	private D6Mat3 inertia = D6Mat3.ZERO;
 	private D6Mat3 inverseInertia;
 
+    // One coherent immutable entry: read-only callers cannot observe a new key with an old value.
+    // Keys are exact immutable frame/tensor identities, never approximate quaternion equality.
+    private record InverseFrame(Quat rotation,D6Mat3 inverse,D6Mat3 world) {}
+    private InverseFrame inverseFrame;
+
+
 	private Vec3 force = new Vec3(0, 0, 0);
 	private Vec3 torque = new Vec3(0, 0, 0);
 
@@ -257,9 +263,15 @@ public final class D6PhysicsBody {
 
 	/** Its inverse, or null when the body has no inertia to speak of yet. */
 	public D6Mat3 worldInverseInertia() {
-		if (inverseInertia == null) return null;
-		D6Mat3 r = D6Mat3.rotationOf(rotation);
-		return r.multiply(inverseInertia).multiply(r.transposed());
+        D6Mat3 inverse=inverseInertia;
+        if(inverse==null)return null;
+        Quat frame=rotation;var cached=inverseFrame;
+        if(cached!=null&&cached.rotation()==frame&&cached.inverse()==inverse)return cached.world();
+        D6Mat3 r=D6Mat3.rotationOf(frame);
+        // Same operation order as the original path, with no numerical approximation.
+        D6Mat3 world=r.multiply(inverse).multiply(r.transposed());
+        inverseFrame=new InverseFrame(frame,inverse,world);
+        return world;
 	}
 
 	/**
