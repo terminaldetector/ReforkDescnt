@@ -51,6 +51,7 @@
     "client.WorldViewTargetsAccess",
     "client.NestedGraphicsMixin",
     "client.CameraMixin",
+    "client.LocalGravityOverlayMixin",
     "client.ClientPlayerEntityMixin",
     "client.ClientWorldMixin",
     "client.NativeCubicClientLightStatusMixin",
