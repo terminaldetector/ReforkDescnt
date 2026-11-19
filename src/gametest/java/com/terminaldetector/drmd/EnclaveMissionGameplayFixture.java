@@ -320,6 +320,8 @@ final class EnclaveMissionGameplayFixture {
         c.assertTrue(snapshot().toString().equals(before),"foreign owner, Creative author, console and Spectator cannot cancel this Survival instance");
     }
     private boolean salvage(){
+        // Player movement alone does not run the pickup callback on an embedded connection.
+        owner.player.networkHandler.tick();
         c.assertTrue(iron(owner)<=1,"one real foreign-mined panel cannot multiply salvage");
         if(iron(owner)==1)return true;
         c.assertTrue(++salvageWait<=80,"actual normal pickup of one real mined panel is bounded80ticks");
