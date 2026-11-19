@@ -264,6 +264,92 @@ public final class FootGravityRecoveryGameTests implements FabricGameTest {
         return new GravityWalker(player,channel);
     }
 
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="foot-open-ground-capture")
+    public void aFloorTorchKeepsAnAirbornePlayerInPlaceThenLandsThroughNormalMovement(TestContext c) {
+        var world=c.getWorld();var floor=c.getAbsolutePos(new BlockPos(7,144,7));
+        var changed=new java.util.LinkedHashMap<BlockPos,net.minecraft.block.BlockState>();
+        try(var lease=new AiFixtureChunks(world,floor,0);var connection=gravityWalker(c,"torch-fall")) {
+            for(int x=-4;x<=4;x++)for(int z=-3;z<=3;z++){
+                gravityBlock(c,changed,floor.add(x,x>1?1:0,z),net.minecraft.block.Blocks.STONE.getDefaultState());
+                for(int y=2;y<=6;y++)gravityBlock(c,changed,floor.add(x,y,z),net.minecraft.block.Blocks.AIR.getDefaultState());
+            }
+            var torch=floor.add(0,1,2);
+            gravityBlock(c,changed,torch,com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState());
+            var player=connection.player();
+            player.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
+            DescentPlayerData.get(player).setEnabled(false);player.setNoGravity(false);player.getAbilities().flying=false;
+            var start=new Vec3d(floor.getX()+.5,floor.getY()+4,floor.getZ()+.5);
+            player.setPosition(start);player.setVelocity(0,-.12,0);
+            FootGravitySystem.tick(player);
+            c.assertTrue(FootGravitySystem.isActive(player)&&player.getPos().equals(start)
+                &&player.getVelocity().y==-.12,"an open-air field preserves the airborne position and incoming momentum");
+            double previous=start.y;
+            for(int i=0;i<16;i++){
+                FootGravitySystem.tick(player);
+                FootGravitySystem.travel(player,Vec3d.ZERO);
+                c.assertTrue(player.getY()>=floor.getY()+1-1e-6&&player.getY()<=previous+1e-6
+                    &&previous-player.getY()<1.5&&world.isSpaceEmpty(player,player.getBoundingBox().contract(1e-6)),
+                    "falling uses actual collision and stays above the real step terrain");
+                previous=player.getY();
+            }
+            c.assertTrue(Math.abs(previous-(floor.getY()+1))<.09&&FootGravitySystem.get(player).grounded(),
+                "the actual player settles on the ground without a mount snap");
+            FootGravitySystem.travel(player,new Vec3d(0,1,0));double jumped=player.getY();
+            FootGravitySystem.travel(player,Vec3d.ZERO);
+            c.assertTrue(jumped>previous+.3&&player.getY()>jumped,"a local jump retains its upward velocity after takeoff");
+        } finally {changed.forEach((pos,state)->world.setBlockState(pos,state,3));}
+        c.complete();
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="foot-blocked-gravity-turn")
+    public void aWallTorchOnlyTurnsTheBodyWhenTheNewPhysicalBoxFits(TestContext c) {
+        var world=c.getWorld();var floor=c.getAbsolutePos(new BlockPos(7,144,7));
+        var changed=new java.util.LinkedHashMap<BlockPos,net.minecraft.block.BlockState>();
+        try(var lease=new AiFixtureChunks(world,floor,0);var connection=gravityWalker(c,"torch-clearing")) {
+            for(int x=-2;x<=3;x++)for(int z=-2;z<=3;z++){
+                gravityBlock(c,changed,floor.add(x,0,z),net.minecraft.block.Blocks.STONE.getDefaultState());
+                for(int y=1;y<=4;y++)gravityBlock(c,changed,floor.add(x,y,z),
+                    (x==-1||x==1)?net.minecraft.block.Blocks.STONE.getDefaultState():net.minecraft.block.Blocks.AIR.getDefaultState());
+            }
+            var torch=floor.add(0,1,2);
+            gravityBlock(c,changed,torch,com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState()
+                .with(com.terminaldetector.drmd.world.gravity.GravityTorchBlock.FACING,net.minecraft.util.math.Direction.EAST));
+            var player=connection.player();
+            player.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
+            DescentPlayerData.get(player).setEnabled(false);player.setNoGravity(false);player.getAbilities().flying=false;
+            var start=new Vec3d(floor.getX()+.5,floor.getY()+1,floor.getZ()+.5);
+            player.setPosition(start);player.setVelocity(Vec3d.ZERO);
+            FootGravitySystem.tick(player);
+            c.assertTrue(!FootGravitySystem.isActive(player)&&!player.hasNoGravity()&&player.getPos().equals(start)
+                &&world.isSpaceEmpty(player,player.getBoundingBox().contract(1e-6)),
+                "a physically blocked turn keeps the original clear body and force state");
+
+            for(int z=-2;z<=3;z++)for(int y=1;y<=4;y++)
+                gravityBlock(c,changed,floor.add(1,y,z),net.minecraft.block.Blocks.AIR.getDefaultState());
+            FootGravitySystem.tick(player);
+            c.assertTrue(FootGravitySystem.isActive(player)&&FootGravitySystem.getUp(player).x>.99999
+                &&player.getPos().distanceTo(start)<.35&&world.isSpaceEmpty(player,player.getBoundingBox().contract(1e-6)),
+                "a clear turn on open stepped terrain uses only the local support clearance");
+            gravityBlock(c,changed,torch,net.minecraft.block.Blocks.AIR.getDefaultState());
+            for(int i=0;i<30&&FootGravitySystem.isActive(player);i++){
+                FootGravitySystem.tick(player);
+                c.assertTrue(world.isSpaceEmpty(player,player.getBoundingBox().contract(1e-6)),
+                    "the body remains clear while adopting world up from a live wall frame");
+            }
+            c.assertTrue(!FootGravitySystem.isActive(player)&&!player.hasNoGravity()
+                &&player.getBoundingBox().getLengthY()>1.7,"ordinary gravity and upright geometry resume safely");
+        } finally {changed.forEach((pos,state)->world.setBlockState(pos,state,3));}
+        c.complete();
+    }
+
+    private static void gravityBlock(TestContext c,java.util.Map<BlockPos,net.minecraft.block.BlockState> changed,
+                                     BlockPos pos,net.minecraft.block.BlockState state) {
+        var old=c.getWorld().getBlockState(pos);
+        c.assertTrue(!old.hasBlockEntity(),"open gravity fixture only replaces ordinary terrain");
+        changed.putIfAbsent(pos.toImmutable(),old);
+        c.getWorld().setBlockState(pos,state,3);
+    }
+
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="foot-native-save-ownership")
     public void nativePlayerSaveNeverPersistsTheTemporaryTorchGravityFlagOrLendsItsFrameToAnAlias(TestContext c) {
         var world=c.getWorld();var at=c.getAbsolutePos(new BlockPos(5,20,5));var old=world.getBlockState(at);

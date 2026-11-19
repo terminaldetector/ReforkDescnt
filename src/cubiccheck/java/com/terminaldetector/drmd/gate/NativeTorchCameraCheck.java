@@ -162,7 +162,7 @@ public final class NativeTorchCameraCheck {
                     source=BlockPos.ofFloored(contact.add(up.multiply(.3)).add(Math.abs(up.x)>.5?new Vec3d(0,2,2):new Vec3d(2,0,2)));
                     w.setBlockState(source,ModWorldBlocks.GRAVITY_TORCH.getDefaultState().with(GravityTorchBlock.FACING,AXES[actualSurface]),3);
                     p.teleport(w,spawn.x,spawn.y,spawn.z,Set.of(),0,0);p.setVelocity(Vec3d.ZERO);
-                }else if(actualSurface==-1){source=null;p.teleport(w,16,2201,16,Set.of(),0,0);p.setVelocity(Vec3d.ZERO);}
+                }else if(actualSurface==-1){source=null;}
                 EVENTS.add(Map.of("event","one-time surface setup","surface",actualSurface,"serverTick",server.getTicks()));
             }
             if(blockRequest!=0){
@@ -183,7 +183,7 @@ public final class NativeTorchCameraCheck {
                 if(h.getType()==HitResult.Type.BLOCK){double gap=p.getPos().subtract(h.getPos()).dotProduct(foot.up());contact=gap>=-1e-6&&gap<=.08&&Vec3d.of(h.getSide().getVector()).dotProduct(foot.up())>=.95;}
             }
             view=new View(server.getTicks(),p.age,actualSurface,DescentPlayerData.get(p).isEnabled(),p.hasVehicle(),foot!=null&&foot.active(),
-                foot!=null&&foot.grounded()&&contact,w.isSpaceEmpty(p,p.getBoundingBox().contract(1e-6)),p.getPos(),p.getEyePos(),FootGravitySystem.getUp(p),
+                foot==null?p.isOnGround():foot.grounded()&&contact,w.isSpaceEmpty(p,p.getBoundingBox().contract(1e-6)),p.getPos(),p.getEyePos(),FootGravitySystem.getUp(p),
                 sampled==null?null:sampled.sourceId(),matched,actualBlocker,hit,p.hasNoGravity());
         }catch(Throwable error){failure=error.toString();}
     }
@@ -334,9 +334,7 @@ public final class NativeTorchCameraCheck {
         try{
             if(c.player==null||c.world==null||c.currentScreen!=null||c.getOverlay()!=null||OffscreenWorldView.busy())return;
             if(step==Step.RELEASE&&view!=null&&view.surface==-1&&!view.foot&&!DescentClientState.footGravity&&FootGravityCamera.settled()&&!view.noGravity&&!view.vehicle){
-                // The server can publish the released view before the client consumes the
-                // fixture's final position packet. Inspect the lens once both observe that floor.
-                if(c.player.getPos().squaredDistanceTo(view.position)>.01)return;
+                if(!view.grounded||!c.player.isOnGround()||c.player.getPos().squaredDistanceTo(view.position)>.01)return;
                 var camera=c.gameRenderer.getCamera();double error=camera.getPos().squaredDistanceTo(c.player.getLerpedPos(delta).add(0,c.player.getEyeHeight(c.player.getPose()),0));
                 if(!clientFull(c,Box.of(camera.getPos(),2,2,2)))return;
                 boolean clear=c.world.isSpaceEmpty(c.player,Box.of(camera.getPos(),.02,.02,.02));
