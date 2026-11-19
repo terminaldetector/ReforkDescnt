@@ -31,9 +31,17 @@ public final class WeaponViewRenderer {
                 || mc.options.hudHidden || mc.currentScreen!=null)return false;
         var selected=com.terminaldetector.drmd.client.input.DroneCombatInput.primary(mc).getItem();
         if(selected instanceof com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem bomb&&bomb.programmable())return true;
+        if(engineerPrimary(selected))return true;
         if(!(selected instanceof DescentWeaponItem weapon))return false;
         return ConstructionRegistry.getModules(weapon.getDef().id).stream()
                 .anyMatch(m->m.colorA>0 && m.scaleX>0 && m.scaleY>0 && m.scaleZ>0);
+    }
+
+    /** Same three supported engineering emitters admitted by the real primary socket. */
+    private static boolean engineerPrimary(net.minecraft.item.Item item){
+        return item instanceof com.terminaldetector.drmd.world.engineer.EngineerTools.MiningLaserItem
+            || item instanceof com.terminaldetector.drmd.world.engineer.EngineerTools.TunnelLaserItem
+            || item instanceof com.terminaldetector.drmd.world.engineer.EngineerTools.RepairLaserItem;
     }
 
 	public static void register() {
@@ -47,9 +55,10 @@ public final class WeaponViewRenderer {
 			ItemStack stack = com.terminaldetector.drmd.client.input.DroneCombatInput.primary(mc);
             var wep=stack.getItem() instanceof DescentWeaponItem weapon?weapon:null;
             boolean cluster=stack.getItem() instanceof com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem bomb&&bomb.programmable();
-            if(wep==null&&!cluster)return;
+            boolean engineer=engineerPrimary(stack.getItem());
+            if(wep==null&&!cluster&&!engineer)return;
 			List<ClusterModule> modules = wep==null?List.of():ConstructionRegistry.getModules(wep.getDef().id);
-			if (modules.isEmpty()&&!cluster) return;
+            if (modules.isEmpty()&&!cluster&&!engineer) return;
 
 			MatrixStack matrices = context.matrixStack();
 			VertexConsumerProvider consumers = context.consumers();
@@ -85,6 +94,19 @@ public final class WeaponViewRenderer {
 			}
 			Vec3d rr = right;
 			Vec3d uu = up;
+            if(engineer){
+                // An empty hand does not contain the installed tool. Draw its actual
+                // registered baked item model from the same selected primary stack,
+                // on the existing overlay path and physical camera/ship basis.
+                var anchor=cam.add(look.multiply(.8)).add(rr.multiply(.45)).add(uu.multiply(-.3));
+                matrices.push();
+                matrices.translate(anchor.x-cam.x,anchor.y-cam.y,anchor.z-cam.z);
+                ModelOrientation.applyBasis(matrices,180f,look,up);
+                int light=net.minecraft.client.render.WorldRenderer.getLightmapCoordinates(mc.world,mc.player.getBlockPos());
+                mc.getItemRenderer().renderItem(stack,net.minecraft.client.render.model.json.ModelTransformationMode.FIXED,
+                    light,net.minecraft.client.render.OverlayTexture.DEFAULT_UV,matrices,consumers,mc.world,mc.player.getId());
+                matrices.pop();matrices.pop();return;
+            }
             if(cluster){
                 // Same primary bank and actual muzzle offsets as WeaponCore launch. No hand/equip/bob transform.
                 float scale=.18f;var anchor=cam.add(look.multiply(com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem.FORWARD_MUZZLE-.57f*scale)).add(up.multiply(com.terminaldetector.drmd.world.bombardment.BombardmentItems.BombBayItem.FORWARD_HEIGHT));
