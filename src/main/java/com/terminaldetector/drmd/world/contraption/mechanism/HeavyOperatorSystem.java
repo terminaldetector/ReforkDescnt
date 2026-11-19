@@ -54,14 +54,15 @@ public final class HeavyOperatorSystem {
         return BodyJointRegistry.get(world).forBody(a.getUuid()).stream().anyMatch(l->l.blockDriven()
             &&l.a().body().equals(a.getUuid())&&l.a().cell().equals(pa)&&l.b().body().equals(b.getUuid())&&l.b().cell().equals(pb));
     }
-    private static boolean valid(ServerWorld world,Assembly a){
+    private static boolean materialValid(ServerWorld world,Assembly a){
         return a!=null&&a.bodies().stream().allMatch(b->b.getWorld()==world&&!b.isRemoved()&&BodySpatialIndex.find(world,b.getUuid()).orElse(null)==b
-                &&!b.boardingMotionPaused()&&!b.controlCore().bound())
+                &&!b.controlCore().bound())
             &&a.base.getLocalBlock(CORE).isOf(ModWorldBlocks.SHIP_CONTROL_CORE)
             &&bearing(a.base,YAW_BASE,Direction.UP)&&bearing(a.yaw,YAW_CHILD,Direction.DOWN)
             &&bearing(a.yaw,PITCH_BASE,Direction.EAST)&&bearing(a.barrel,PITCH_CHILD,Direction.WEST)
             &&joint(world,a.base,YAW_BASE,a.yaw,YAW_CHILD)&&joint(world,a.yaw,PITCH_BASE,a.barrel,PITCH_CHILD);
     }
+    private static boolean valid(ServerWorld world,Assembly a){return materialValid(world,a)&&a.bodies().stream().noneMatch(BlockBodyEntity::boardingMotionPaused);}
     private static Assembly resolve(ServerWorld world,BlockBodyEntity root){
         if(root==null||!root.getCommandTags().contains(ROOT)||root.getCommandTags().stream().anyMatch(t->t.startsWith("drmd.operator.")&&!t.equals(ROOT)&&!t.startsWith(YAW)&&!t.startsWith(BARREL)))return null;
         var yaw=body(world,uuid(root,YAW));var gun=body(world,uuid(root,BARREL));
@@ -74,7 +75,10 @@ public final class HeavyOperatorSystem {
     /** Bind actual existing material and joints; no pose, velocity or cooldown is changed.
      * An operator command is the only automatic assembly author in this prototype. */
     public static boolean bind(ServerWorld world,Assembly a){
-        if(!world.getServer().isOnThread()||!valid(world,a)||a.bodies().stream().anyMatch(b->b.getCommandTags().stream().anyMatch(t->t.startsWith("drmd.operator."))))return false;
+        // Authoring binds existing material only. Fresh contact-phase physics is
+        // required separately by every runtime aim/fire admission, not before a
+        // newly spawned assembly has had its first ordinary world tick.
+        if(!world.getServer().isOnThread()||!materialValid(world,a)||a.bodies().stream().anyMatch(b->b.getCommandTags().stream().anyMatch(t->t.startsWith("drmd.operator."))))return false;
         if(BodySpatialIndex.loaded(world).stream().filter(b->b.getCommandTags().contains(ROOT)).limit(MAX_ASSEMBLIES).count()>=MAX_ASSEMBLIES)return false;
         a.base.addCommandTag(ROOT);a.base.addCommandTag(YAW+a.yaw.getUuid());a.base.addCommandTag(BARREL+a.barrel.getUuid());
         a.yaw.addCommandTag(PARENT+a.base.getUuid());a.barrel.addCommandTag(PARENT+a.base.getUuid());a.barrel.addCommandTag(GUN);return true;
