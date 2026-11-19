@@ -1,0 +1,98 @@
+{
+  "exactFlightSource": "d1db371eab6295056ffdd7128741be6ed3ec831c",
+  "mainJarSha256": "3ed8301cfc8cbe0ff754d1f16e64fd747563c9aa3f6a1c2b356521b7c37c6a30",
+  "surfaceEditSource": "1748134e4b36114e1301f92c227f481edfa3ee7c",
+  "heightData": {
+    "levels": [
+      0,
+      1,
+      2
+    ],
+    "placementDemolitionRestoration": [
+      2301,
+      2299,
+      2301
+    ]
+  },
+  "destructionGameTests": [
+    "blaststructuralcollapsegametests.remaininggroundsupportandaseparatechestcomponentrefusedetachmentwithoutdataloss",
+    "roundedtreegametests.originalaxissurvivesworldmeshphysicalcolliderandbodynbt",
+    "roundedtreegametests.existingvanillaexplosionextractsconnectedmixedaxisbranchesandpreservestheirstate",
+    "collapsegametests.actualrocketcutscolumnandgravitytipsitontofloor",
+    "collapsegametests.treekeepscanopybutattachedstructureisrejected",
+    "collapsegametests.vanillaexplosionfellstreeandpreservesitssmoothcanopy",
+    "generatedworlddestructiongametests.astrongerhitcutsthemasonrysupportanddropstheactualwoodenslabs",
+    "blaststructuralcollapsegametests.anactualtworocketsalvodetachestheroofthatthelegacycolumncutmustrefuse",
+    "blaststructuralcollapsegametests.actualtntremovessupportandthesurvivingobsidianrooffallsonordinaryticks",
+    "generatedworlddestructiongametests.arealrocketfellsanoakplacedbythevanillaconfiguredfeature"
+  ],
+  "flightProfiles": {
+    "HYBRID_NATIVE": {
+      "status": "PASS",
+      "reason": "real roll, horizon and resident mesh flight",
+      "profile": "HYBRID_NATIVE",
+      "initialTeleports": 1,
+      "nativeClientMoves": 1828,
+      "serverSamples": 1094,
+      "maximumSpeed": 972.7245,
+      "maximumCameraError": 2.0316503991643002,
+      "fastRollingFrames": 185,
+      "partialOpacityFrames": 311,
+      "fullMeshFrames": 3,
+      "maximumMissingHorizonFrames": 0,
+      "captureCount": 7
+    },
+    "PS1_HYBRID": {
+      "status": "PASS",
+      "reason": "real roll, horizon and resident mesh flight",
+      "profile": "PS1_HYBRID",
+      "initialTeleports": 1,
+      "nativeClientMoves": 1817,
+      "serverSamples": 1171,
+      "maximumSpeed": 972.7245,
+      "maximumCameraError": 2.0305093666009744,
+      "fastRollingFrames": 216,
+      "partialOpacityFrames": 355,
+      "fullMeshFrames": 3,
+      "maximumMissingHorizonFrames": 0,
+      "captureCount": 7
+    }
+  },
+  "scope": "Observed terrain heights and map colors, live server/client packet updates and actual client captures. Tree, partial building and block-body physics exer\u00adcised in a separate standard Fabric server.",
+  "files": {
+    "HYBRID_NATIVE/frames/y1020.png": "bf9ce31cf67c8fe81378bd617bb85817a8d56ac58d15d47c88e6dafa679d3d43",
+    "HYBRID_NATIVE/frames/y155.png": "43f954b1210c16c973bf39f6527a6b09566008acb508a72c02d80c7b9ec12570",
+    "HYBRID_NATIVE/frames/y1640.png": "3a0f9ef8b52a0bfe017e593ed218db25b3dbfe1a561dff540a6372d222211152",
+    "HYBRID_NATIVE/frames/y2150.png": "c6627fe4fe780d51a8a8038df4745e70638157c29ee33a9d3ac4ed0f2d1d2fc1",
+    "HYBRID_NATIVE/frames/y320.png": "28173f19261ca7603860f7975e03df80ccb7a926e2f87c9a3eac614f74aa3252",
+    "HYBRID_NATIVE/frames/y450.png": "42e010275a3bc02d877eef32c6224c8726d4d7d598c89601bfac8380ca862748",
+    "HYBRID_NATIVE/frames/y700.png": "6a1fad8466f743be0ed58b9abe5747fae55603c5fec93f0c046fd51fec8216e4",
+    "HYBRID_NATIVE/inputs.json": "98c6dac7cb3eba01c8155a0263b7d7120971fba2894ddc1c70bea2c172c91851",
+    "HYBRID_NATIVE/native.log": "fecdd3aea14672ad8d67660bffd9e9df4b5aa1cdbf481a0f6f4ee11d5a6425cf",
+    "HYBRID_NATIVE/result.json": "8fa02d9ac01ea4c42239a06bf47d22a06b07a1f17248d1e43771813a54fd9e2c",
+    "PS1_HYBRID/frames/y1020.png": "0536b08f5f1ffcaccbfedeed18ffd6066b2b12e29f645b83bb4f344c1af6997d",
+    "PS1_HYBRID/frames/y155.png": "8f1bc767a638450c822594ec4833e93259649fe6be15df5377b5ccc91dd33d63",
+    "PS1_HYBRID/frames/y1640.png": "8f19c3443989a0b35ccf55146ed0598c7fe03121f6709f5a99d826caa1f1298a",
+    "PS1_HYBRID/frames/y2150.png": "bc44c8738f299f86c929020cae65e2decabaa55ddc97b43d835163fca8376708",
+    "PS1_HYBRID/frames/y320.png": "d379e5401b565341cb7c4dfe4ae3e138cb5cd78075704cb6c96ce021f9798856",
+    "PS1_HYBRID/frames/y450.png": "951106e7ed10f6980298036e4e6abe379e8537c5183134f9f598b5b5ca40fb95",
+    "PS1_HYBRID/frames/y700.png": "7fba96a9afde471cdfc27bf50d248748431cedc80cf94889ead77aa6586559fa",
+    "PS1_HYBRID/inputs.json": "98c6dac7cb3eba01c8155a0263b7d7120971fba2894ddc1c70bea2c172c91851",
+    "PS1_HYBRID/native.log": "a3da239146a6b83fa2b8ae4c6b6e9a4b313a71860ef48368b90505a5e8b2e6b5",
+    "PS1_HYBRID/result.json": "8f201675ea549ad97db776277ca25499a6625aeb9fe750338e0d64702f6482ec",
+    "destruction/game.log": "6a0ae0f70b3eb5383086260271d678e2ce955125a3b71349cac6bdd423cb9c48",
+    "destruction/gametest-results.xml": "af37b9f8a0497851d7cda00682a77a9131f78fe36eee99fc69c010bbf267ede7",
+    "destruction/test-source.json": "a7de71c5fe9566f6a9dfbd84e41ce8bb73759dfb46435c06bb0bbbcc4042d371",
+    "surface/frames/loaded-demolition-lime.png": "c887ce4c77d2a7448d84471784bf047a8374984230c63ae918b963611b0fc846",
+    "surface/frames/loaded-known-gold.png": "d6976e46ffa1ae4a99a265c36893605af5d3e14396701462421f7e713ee69cb4",
+    "surface/frames/loaded-restored-gold.png": "4c6e095d7b153be3ef3c828761de2cd6dac7e1369e48b008eb3c3fae436f1fe6",
+    "surface/frames/returned-high-known.png": "2876fcefa94a709d2107009e74ea962fb56fc004defedb173e120e19ceacb29c",
+    "surface/inputs.json": "a1fb565c768e99d6e9b42b5b3c8bc201e1c86391646d09afb575442b7422af15",
+    "surface/native.log": "b7b9ea419fc2c805ac117b135f626828e20b0d063cb1d3c613f9cd8fed0e72d7",
+    "surface/packets/packet-2.bin": "f73dc7967b1f18bc9201ad43a2112fb36722dacbafdda5cbc1b4955606a7b030",
+    "surface/packets/packet-3.bin": "694c71ed3c4d9ff87d69c2a94f3481ca504bbbbcdfd9c71aa7d60104bda60bfd",
+    "surface/packets/packet-4.bin": "e93131ff5002b20e236c3fc7414fd54c7c437bf2a57493d2ce421ad0f4ce1bad",
+    "surface/packets/packet-5.bin": "694c71ed3c4d9ff87d69c2a94f3481ca504bbbbcdfd9c71aa7d60104bda60bfd",
+    "surface/result.json": "399df74cac207e62c57e8e180849e854a18bf1c22a31006a0b748a5f123ff822"
+  }
+}
