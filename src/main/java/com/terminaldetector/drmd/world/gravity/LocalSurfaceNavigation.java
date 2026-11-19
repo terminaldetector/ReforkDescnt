@@ -98,10 +98,12 @@ public final class LocalSurfaceNavigation {
         return field!=null&&field.strength()>=.05f&&field.upDir().normalize().distanceTo(ActorFrames.up(actor))<1e-6;
     }
     private static boolean nativeWalker(Entity entity) {
-        // Native C1 geometry is explicitly supported. A custom controller/navigation is a
+        // Native C1 and the explicit tall Shapes chassis share these exact controllers.
+        // A custom controller/navigation is a
         // different locomotion contract even when its entity advertises a vanilla type.
         return entity instanceof MobEntity actor&&ActorFrames.supported(actor)
-            &&ActorPhysicsProfile.family(actor)==ActorPhysicsProfile.Family.GROUND
+            &&(ActorPhysicsProfile.family(actor)==ActorPhysicsProfile.Family.GROUND
+                ||actor instanceof com.terminaldetector.drmd.entity.mob.ShapesInfantryEntity)
             &&actor.getNavigation().getClass()==net.minecraft.entity.ai.pathing.MobNavigation.class
             &&actor.getMoveControl().getClass()==net.minecraft.entity.ai.control.MoveControl.class
             &&actor.getJumpControl().getClass()==net.minecraft.entity.ai.control.JumpControl.class;

@@ -30,6 +30,7 @@ public final class ActorPhysicsProfile {
         if(entity instanceof DroneEntity||entity instanceof ScannerEntity||entity instanceof OblivionSeekerEntity
             ||entity instanceof com.terminaldetector.drmd.entity.mob.TripodEntity
             ||entity instanceof com.terminaldetector.drmd.entity.mob.SpiderTurretEntity
+            ||entity instanceof com.terminaldetector.drmd.entity.mob.ShapesInfantryEntity
             ||entity instanceof ReactorKeeperEntity||entity instanceof EndReactorBossEntity||entity instanceof AirMineEntity)return Family.MECHANICAL;
         if(entity instanceof net.minecraft.entity.mob.SpiderEntity)return Family.CLIMBER;
         if(aquatic(entity))return Family.AQUATIC;

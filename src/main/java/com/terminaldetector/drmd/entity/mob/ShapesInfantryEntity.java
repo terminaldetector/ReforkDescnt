@@ -4,12 +4,17 @@ import com.terminaldetector.drmd.ai.*;
 import com.terminaldetector.drmd.entity.ProjectileEntity;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.weapon.items.ModItems;
+import com.terminaldetector.drmd.world.edit.WorldEditSafety;
+import com.terminaldetector.drmd.world.gravity.ActorFrameMath;
+import com.terminaldetector.drmd.world.gravity.ActorFrames;
+import com.terminaldetector.drmd.world.gravity.LocalSurfaceNavigation;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.mob.EndermanEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 /** Armed Enderman-derived infantry: physical ground movement and ordinary CyberMob damage, no teleport. */
@@ -38,6 +43,16 @@ public final class ShapesInfantryEntity extends CyberMobEntity {
     public int getAttackCooldownTicks(){return attackCooldown;}
     public AiRole infantryRole(){return getMainHandStack().isOf(ModItems.ROCKET_DUAL)?AiRole.RPG:AiRole.LASER;}
     public boolean hasInfantryGun(){return getMainHandStack().isOf(ModItems.LASER)||getMainHandStack().isOf(ModItems.ROCKET_DUAL);}
+    public void navigateInfantry(Vec3d point) {
+        var start=getPos();
+        if(ActorFrames.active(this)&&ActorFrames.up(this).dotProduct(ActorFrameMath.WORLD_UP)<.99999){
+            if(!LocalSurfaceNavigation.framed(this)){getNavigation().stop();return;}
+            // A copied observation can be above the support plane. Plan on the actor's current
+            // chart and let the shared path check material, support, and the full body sweep.
+            point=start.add(ActorFrames.tangent(this,point.subtract(start)));
+        }
+        if(WorldEditSafety.loadedSegment(getWorld(),start,point))getNavigation().startMovingTo(point.x,point.y,point.z,1);
+    }
     @Override public boolean cannotDespawn(){return com.terminaldetector.drmd.world.threat.RocketSiegeRuntime.leasesDespawn(this)||super.cannotDespawn();}
     public boolean validEnemy(LivingEntity target){
         return target!=null&&target.isAlive()&&!target.isRemoved()&&target.getWorld()==getWorld()

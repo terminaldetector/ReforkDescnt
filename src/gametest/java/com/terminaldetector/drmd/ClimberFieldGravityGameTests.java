@@ -303,6 +303,47 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
         return gap;
     }
 
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="shapes-wall-navigation",tickLimit=220)
+    public void shapesInfantryUsesItsNativeMotorForAnOffPlaneObservation(TestContext c) {
+        var centre=c.getAbsolutePos(new BlockPos(6,80,6));
+        var room=new Room(c,centre.add(-8,-8,-8),centre.add(8,8,8));
+        var type=com.terminaldetector.drmd.entity.ModEntities.SHAPES_INFANTRY;
+        var up=new Vec3d(1,0,0);
+        var start=Vec3d.ofCenter(centre).subtract(up.multiply(7.48)).add(0,0,-2.5);
+        var marker=start.add(2,0,5);
+        var capture=new com.terminaldetector.drmd.entity.mob.ShapesInfantryEntity[1];
+        int[] age={0},lastCommand={-10};
+        boolean[] path={false};
+        watch(c,room,210,()->{
+            if(!room.loaded())return false;
+            room.build();
+            if(capture[0]==null){
+                room.field(centre,up.negate());
+                var actor=type.create(room.world);
+                actor.setPersistent();actor.setPosition(start);actor.setAiDisabled(true);
+                c.assertTrue(ActorFrames.trySetUp(actor,up),"tall oriented body fits the real wall");
+                room.spawn(actor);
+                EntityGravitySystem.tick(room.world.getServer());
+                c.assertTrue(up.equals(com.terminaldetector.drmd.world.gravity.LocalSurfaceNavigation.cardinalPhysicsUp(actor)),
+                    "actual Shapes movement controllers qualify for the cardinal surface motor");
+                groundSupport(c,actor,up);
+                actor.setAiDisabled(false);
+                capture[0]=actor;age[0]=actor.age;
+                return false;
+            }
+            var actor=capture[0];
+            int elapsed=actor.age-age[0];
+            if(elapsed-lastCommand[0]>=6){
+                actor.navigateInfantry(marker);lastCommand[0]=elapsed;
+            }
+            path[0]|=com.terminaldetector.drmd.world.gravity.LocalSurfaceNavigation.localMotor(actor);
+            groundSupport(c,actor,up);
+            if(elapsed<50&&!(path[0]&&actor.getZ()-start.z>1))return false;
+            c.assertTrue(path[0]&&actor.getZ()-start.z>1,"actual wall route moves the tall infantry toward the copied marker");
+            return true;
+        });
+    }
+
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c1-controller-admission",tickLimit=180)
     public void supportedNativeGroundControllersShareCardinalInputButCustomControllersRemainNative(TestContext c){
         var centre=c.getAbsolutePos(new BlockPos(6,80,6));var room=new Room(c,centre.add(-8,-8,-8),centre.add(8,8,8));

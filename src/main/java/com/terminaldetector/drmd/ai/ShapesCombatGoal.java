@@ -37,15 +37,10 @@ public final class ShapesCombatGoal extends Goal {
         if(now>=nextMove){
             nextMove=now+DroneSquadMailbox.CADENCE;
             Vec3d destination=needsCover?cover(remembered):remembered;
-            if(destination!=null&&(needsCover||!visible||mob.getPos().squaredDistanceTo(remembered)>32*32))move(destination);
+            if(destination!=null&&(needsCover||!visible||mob.getPos().squaredDistanceTo(remembered)>32*32))mob.navigateInfantry(destination);
             else mob.getNavigation().stop();
         }
         if(visible&&!needsCover)mob.tryFireAt(target);
-    }
-    private void move(Vec3d point){
-        if(!WorldEditSafety.loadedSegment(mob.getWorld(),mob.getPos(),point))return;
-        if(ActorFrames.active(mob))ActorFrames.driveSurface(mob,point.subtract(mob.getPos()),mob.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED));
-        else mob.getNavigation().startMovingTo(point.x,point.y,point.z,1);
     }
     /** Four physical ground candidates, no flying cover probes or random teleport. */
     private Vec3d cover(Vec3d enemy){
