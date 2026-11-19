@@ -1,11 +1,14 @@
 package com.terminaldetector.drmd.mixin.client;
 
 import com.terminaldetector.drmd.client.DescentClientState;
+import com.terminaldetector.drmd.world.gravity.FootGravitySystem;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.util.math.BlockPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
  * Creative double-tap space re-arms {@code abilities.flying} mid-{@code tickMovement} and injects
@@ -27,6 +30,17 @@ public class ClientPlayerEntityMixin {
 	@Inject(method = "tickMovement", at = @At("RETURN"))
 	private void drmd$suppressCreativeFlyTail(CallbackInfo ci) {
 		lockOutVanillaFly();
+	}
+
+	@Inject(method = "wouldCollideAt", at = @At("RETURN"), cancellable = true)
+	private void drmd$ignoreFalseEscapeFromLocalSupport(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
+		if (!cir.getReturnValueZ()) return;
+		ClientPlayerEntity self = (ClientPlayerEntity) (Object) this;
+		if (!FootGravitySystem.isActive(self) || FootGravitySystem.getUp(self).y > 0.999999) return;
+		// Vanilla searches whole world-Y columns around the feet. A wall can fill one of
+		// those columns while the local-gravity body is entirely clear on the other side.
+		var body = self.getBoundingBox().contract(1.0e-7);
+		if (!self.getWorld().getBlockCollisions(self, body).iterator().hasNext()) cir.setReturnValue(false);
 	}
 
 	private void lockOutVanillaFly() {
