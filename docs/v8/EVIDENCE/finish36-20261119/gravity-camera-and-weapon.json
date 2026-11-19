@@ -1,0 +1,196 @@
+{
+  "files": {
+    "gravity/runtime-evidence.zip": {
+      "bytes": 2358966,
+      "sha256": "ff07dd8be280356620258eec27ce4e7e87e528124f10f475b27adc05dc3d95ec"
+    },
+    "weapon/inputs.json": {
+      "bytes": 24272,
+      "sha256": "4f4ffdc15bc0a1a4b6e1eb561ff174b0863f89bd69eb83b79fdbd625530b2f6a"
+    },
+    "weapon/native-exit.txt": {
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    "weapon/native.log": {
+      "bytes": 26923,
+      "sha256": "2f7c5bb1dbd17e516d96a73b25c158865e16c8018f9690a3652e6e0754d52044"
+    },
+    "weapon/profile0-phase8.png": {
+      "bytes": 283608,
+      "sha256": "d228ffd8ed2859c45a12f4a12a0cc9c031201cdf0a92cf9d2287d328c923e643"
+    },
+    "weapon/profile1-phase10.png": {
+      "bytes": 189232,
+      "sha256": "767109ef417cb8057a2f68b82ae512eceb91f433a0f3e4654a9d3b76c14e4e12"
+    },
+    "weapon/profile1-phase12.png": {
+      "bytes": 182438,
+      "sha256": "8df54a90acbfc3e0403d2e641a81383bf9794ea7171fa8f18f1dce448dfc07c6"
+    },
+    "weapon/profile1-phase8.png": {
+      "bytes": 178910,
+      "sha256": "d98aa96850a5245bff463b5805d63e0c7616a3897200e491a46d551ceff39b76"
+    },
+    "weapon/result.json": {
+      "bytes": 133347,
+      "sha256": "2c037671f96c47ee87a4d3f396614d25cba0bab5a4c1f86c5267da72e065d98d"
+    },
+    "weapon/x11-pointer.log": {
+      "bytes": 1204,
+      "sha256": "e0739825635e9a55175272219cee4f289c2c4b5c762db8348474a49b17e5f5d8"
+    }
+  },
+  "scope": "Actual Cubic Chunks and Sodium integrated client. Measured first-person view and actual static anchor across two profiles and three representative equipment families.",
+  "sharedProductionJarSha256": "cf057eaf02d35de3ee11ef366c22e60b13ce63125049333744366d20bb57a8ea",
+  "task": "S01-T04",
+  "torch": {
+    "files": {
+      "open/inputs.json": {
+        "bytes": 24261,
+        "sha256": "8a76f0237a22e8e04790e5e7eafc81de58653fe13083e2608a151212125de728"
+      },
+      "open/native.exit": {
+        "bytes": 2,
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      "open/native.log": {
+        "bytes": 26822,
+        "sha256": "3db5819689f63c69b8b7e5fc9bc91e8853bfe835330c5e3840a8c6c4bfe78cf1"
+      },
+      "open/torch-open-result.json": {
+        "bytes": 15449,
+        "sha256": "e02ca93b14a938be9a74e4cd528a84a3368022abc186f509a11852543558e4ab"
+      },
+      "open/torch-open-terrain.png": {
+        "bytes": 166637,
+        "sha256": "ddb8f0064968f4c2007b07a4c8d3f2cf2749f070afffefcdd41c4555ea0daea5"
+      },
+      "stock/early-selected-results.xml": {
+        "bytes": 3949,
+        "sha256": "418b9378d0af6d3aa28146490e78b18be004de45bdec9b0b0086564ee4fa3e94"
+      },
+      "surfaces/inputs.json": {
+        "bytes": 24263,
+        "sha256": "b410eff350e03f9269563663197c99b3f65aa1a1813261c0e4db292057a0d5e1"
+      },
+      "surfaces/native.exit": {
+        "bytes": 2,
+        "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+      },
+      "surfaces/native.log": {
+        "bytes": 26966,
+        "sha256": "f060616e818c74434fcf4a38fccf2107ae8052c63cd0a7951064ea44d3d4ed28"
+      },
+      "surfaces/surface-0-obstructed-false-sample-1.png": {
+        "bytes": 386677,
+        "sha256": "2cda44ca2cb715e279847777d3bade131344c848964b3e9c2d6731a31faa8738"
+      },
+      "surfaces/surface-0-obstructed-false-sample-3.png": {
+        "bytes": 348986,
+        "sha256": "51e75f1308f9679d70930ae84d135f67cd5bb1e108f4eea97b6817f1bafd7d24"
+      },
+      "surfaces/surface-1-obstructed-false-sample-7.png": {
+        "bytes": 305211,
+        "sha256": "33c7aacb8a1963e5e61d9e308b9c1531f9b144ee27a39479606505dbacebaad3"
+      },
+      "surfaces/surface-1-obstructed-false-sample-9.png": {
+        "bytes": 271103,
+        "sha256": "687c9b91aa1a3d7452adceeae3cadcb4dbc292e6e1eb0beb7a86fb481248c9dd"
+      },
+      "surfaces/surface-2-obstructed-false-sample-13.png": {
+        "bytes": 233473,
+        "sha256": "7dc9630e8cf379a77f2e078e912e67bd892efb45cb8f480821030d866af41f1c"
+      },
+      "surfaces/surface-2-obstructed-false-sample-15.png": {
+        "bytes": 182924,
+        "sha256": "1547615909bd15a23eb647edb62e67a675878620a69b8dd0a0d10c23fbec830d"
+      },
+      "surfaces/torch-camera-released.png": {
+        "bytes": 493606,
+        "sha256": "f70ffe882c592de0b2f1c4c5c12134a1ef7b0edfd266d01b01edf2b10e35e25d"
+      },
+      "surfaces/torch-camera-result.json": {
+        "bytes": 97430,
+        "sha256": "2f517f3553caceeed65f3502b029a5c980d87fe53e34d69990636842aff85011"
+      }
+    },
+    "openTerrain": {
+      "allClear": true,
+      "capture": {
+        "active": true,
+        "clear": true,
+        "displacement": 0.9778721193477559,
+        "grounded": false,
+        "position": [
+          15.5,
+          2153.1065237975868,
+          23.207988236451623
+        ],
+        "tick": 243
+      },
+      "jumpTop": 2148.8335038573186,
+      "maximumClientStep": 0.9193567203991422,
+      "serverSamples": 68
+    },
+    "releaseBuildJarSha256": "cf057eaf02d35de3ee11ef366c22e60b13ce63125049333744366d20bb57a8ea",
+    "runtime": "Fabric 1.21.1, native Better Cubic Chunks and Sodium, local integrated server, disposable authoring fixtures",
+    "source": "987f86cab69c763b739cd15459298ec09332876d",
+    "stockScope": "Early distinct selected XML included with its original failures: ceiling setup did not certify support in its embedded connection, and independent heavy weapons tests did not all satisfy ordinary bounds.",
+    "surfaces": {
+      "releasedBody": {
+        "age": 787,
+        "blocker": false,
+        "blockerHit": false,
+        "clear": true,
+        "eye": {
+          "field_1350": 16.5,
+          "field_1351": 2202.6200000047684,
+          "field_1352": 14.493161778468782
+        },
+        "flight": false,
+        "foot": false,
+        "grounded": true,
+        "matchedSource": false,
+        "noGravity": false,
+        "position": {
+          "field_1350": 16.5,
+          "field_1351": 2201.0,
+          "field_1352": 14.493161778468782
+        },
+        "surface": -1,
+        "tick": 821,
+        "up": {
+          "field_1350": 0.0,
+          "field_1351": 1.0,
+          "field_1352": 0.0
+        },
+        "vehicle": false
+      },
+      "samplesBySupport": {
+        "0": 6,
+        "1": 6,
+        "2": 6
+      }
+    }
+  },
+  "torchObserverSource": "987f86cab69c763b739cd15459298ec09332876d",
+  "weapon": {
+    "12ConfirmedScenes": {
+      "('HYBRID_NATIVE', 1)": 3,
+      "('HYBRID_NATIVE', 10)": 3,
+      "('HYBRID_NATIVE', 12)": 3,
+      "('HYBRID_NATIVE', 2)": 3,
+      "('HYBRID_NATIVE', 3)": 3,
+      "('HYBRID_NATIVE', 8)": 3,
+      "('PS1_HYBRID', 1)": 3,
+      "('PS1_HYBRID', 10)": 3,
+      "('PS1_HYBRID', 12)": 3,
+      "('PS1_HYBRID', 2)": 3,
+      "('PS1_HYBRID', 3)": 3,
+      "('PS1_HYBRID', 8)": 3
+    },
+    "phaseRows": 84
+  },
+  "weaponObserverSource": "c13fb554e0d6200231edd414a6bcee2aeed56d19"
+}

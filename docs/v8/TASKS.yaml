@@ -118,11 +118,11 @@ tasks:
   owner: CODEX
   gate: G0
   depends_on_stages: *id002
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/gravity-camera-and-weapon.json, EVIDENCE/finish36-20261119/gravity-camera-and-weapon.zip]
+  notes: "На одном производственном JAR в Cubic Chunks с Sodium проверены 18 положений камеры на полу, стене и потолке и обычное приземление после снятия факела. В двух профилях каждый из трёх предметов проверен в обычном режиме и в 6DoF с тремя кадрами на сцену."
 - id: S01-T05
   stage: S01
   stage_title: Reproduce and instrument baseline
