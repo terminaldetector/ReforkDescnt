@@ -98,6 +98,7 @@ public class DescentMod implements ModInitializer {
         com.terminaldetector.drmd.world.contraption.BodyVolumeLeases.register();
         com.terminaldetector.drmd.world.contraption.BodyBlockInteraction.register();
         com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingSystem.register();
+        com.terminaldetector.drmd.world.contraption.mechanism.HeavyOperatorSystem.register();
         com.terminaldetector.drmd.world.contraption.mechanism.BodyMountedWeapons.register();
         // Ability authority follows actual contacts, boarding and mounted damage in the same END phase.
         com.terminaldetector.drmd.ai.TeleportAbilityRelay.register();

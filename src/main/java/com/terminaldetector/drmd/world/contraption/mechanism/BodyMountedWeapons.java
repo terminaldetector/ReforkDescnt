@@ -84,6 +84,7 @@ public final class BodyMountedWeapons {
             if(body.isRemoved()||body.boardingMotionPaused())continue;
             var state=body.mountedWeapons();
             var manual=body.controlCore().scheduledFireMask(body);
+            if(manual.isEmpty())manual=HeavyOperatorSystem.fireMask(body);
             var positions=state.mounts(body,manual.isPresent());boolean fired=false;int count=0;
             while(count<Math.min(BODY_CHECKS,positions.size())&&checks<WORLD_CHECKS&&shots<WORLD_SHOTS){
                 var slot=positions.get(Math.floorMod(state.cursor++,positions.size()));count++;checks++;

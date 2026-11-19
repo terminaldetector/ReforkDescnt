@@ -17,6 +17,20 @@ public final class BlockBodyCommands {
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> {
             var root = literal("d6body").requires(source -> source.hasPermissionLevel(2));
+            var heavy=literal("heavy_operator");
+            heavy.then(argument("at",BlockPosArgumentType.blockPos()).executes(ctx->{
+                try{
+                    var at=BlockPosArgumentType.getLoadedBlockPos(ctx,"at");
+                    var operator=com.terminaldetector.drmd.world.contraption.mechanism.HeavyOperatorSystem.assemble(ctx.getSource().getWorld(),net.minecraft.util.math.Vec3d.of(at),
+                        com.terminaldetector.drmd.client.portal.PortalTransform.Quat.IDENTITY,net.minecraft.util.math.Vec3d.ZERO,net.minecraft.util.math.Vec3d.ZERO);
+                    ctx.getSource().sendFeedback(()->Text.literal("Heavy operator "+operator.base().getUuid()+": three physical bodies, laser and shoulder rockets"),false);return 1;
+                }catch(IllegalArgumentException|IllegalStateException e){return error(ctx,e);}
+            }));
+            heavy.then(literal("bind").then(argument("base",EntityArgumentType.entity()).then(argument("yaw",EntityArgumentType.entity()).then(argument("barrel",EntityArgumentType.entity()).executes(ctx->{
+                if(!(EntityArgumentType.getEntity(ctx,"base") instanceof BlockBodyEntity base)||!(EntityArgumentType.getEntity(ctx,"yaw") instanceof BlockBodyEntity yaw)||!(EntityArgumentType.getEntity(ctx,"barrel") instanceof BlockBodyEntity barrel))return 0;
+                return com.terminaldetector.drmd.world.contraption.mechanism.HeavyOperatorSystem.bind(ctx.getSource().getWorld(),new com.terminaldetector.drmd.world.contraption.mechanism.HeavyOperatorSystem.Assembly(base,yaw,barrel))?1:0;
+            })))));
+            root.then(heavy);
             root.then(literal("assemble").then(argument("from", BlockPosArgumentType.blockPos())
                 .then(argument("to", BlockPosArgumentType.blockPos()).executes(ctx -> {
                     try {
