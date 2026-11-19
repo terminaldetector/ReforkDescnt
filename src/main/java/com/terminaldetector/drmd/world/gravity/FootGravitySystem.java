@@ -29,8 +29,6 @@ public final class FootGravitySystem {
 	private static final Vec3d WORLD_UP = new Vec3d(0,1,0);
 	/** Per-tick arc toward a field's up when it takes hold — ~0.4 s to settle. */
 	private static final double CAPTURE_RATE = 0.18;
-	/** Faster on release so stepping off a walkway reads as letting go, not sliding off. */
-	private static final double RELEASE_RATE = 0.26;
 	/** Multiplier on movement speed that reproduces vanilla's 0.216 blocks/tick walk. */
 	private static final float WALK_GAIN = 0.35f;
 
@@ -125,30 +123,21 @@ public final class FootGravitySystem {
 
         var previous = get(player);
         var field = GravityFields.sample(player.getWorld(), player.getPos());
-        if (field == null && previous == null) {
+        if (field == null) {
             observe(player, null);
+            if (previous == null || !releaseSafely(player)) return;
+            // Keep the camera's smooth recovery separate from collision geometry. Turning
+            // the physical box in steps can wedge it between the ceiling and a nearby wall.
+            player.sendMessage(Text.translatable("message.drmd.local_gravity_released"), true);
+            ModNetworking.syncPlayer(player, data);
             return;
         }
 
         Vec3d current = previous == null ? WORLD_UP : previous.up();
-        Vec3d up;
-        String label;
-        if (field == null) {
-            up = com.terminaldetector.drmd.flight.ShipAttitude.slerp(current, WORLD_UP, RELEASE_RATE);
-            label = previous.label();
-            if (isWorldUp(up)) {
-                observe(player, null);
-                if (!releaseSafely(player)) return;
-                player.sendMessage(Text.translatable("message.drmd.local_gravity_released"), true);
-                ModNetworking.syncPlayer(player, data);
-                return;
-            }
-        } else {
-            Vec3d target = field.upDir();
-            up = previous == null || current.dotProduct(target) < .5 ? target
-                : com.terminaldetector.drmd.flight.ShipAttitude.slerp(current, target, CAPTURE_RATE);
-            label = field.label() == null ? "Local Gravity" : field.label();
-        }
+        Vec3d target = field.upDir();
+        Vec3d up = previous == null || current.dotProduct(target) < .5 ? target
+            : com.terminaldetector.drmd.flight.ShipAttitude.slerp(current, target, CAPTURE_RATE);
+        String label = field.label() == null ? "Local Gravity" : field.label();
 
         Vec3d previousFeet = player.getPos();
         if (!adoptFrame(player, current, up, label)) {
