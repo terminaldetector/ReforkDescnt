@@ -37,22 +37,22 @@ public final class FootGravitySystem {
 	private static final Map<UUID, State> STATES = new ConcurrentHashMap<>();
     private static final Map<UUID, State> CLIENT_STATES = new ConcurrentHashMap<>();
     private static final GravityNoticeGate NOTICES = new GravityNoticeGate();
-    private record GravityFlag(java.lang.ref.WeakReference<ServerPlayerEntity> owner,boolean original) {}
+    private record GravityFlag(java.lang.ref.WeakReference<ServerPlayerEntity> owner,boolean original,java.lang.ref.WeakReference<DescentPlayerData> mode) {}
     private static final Map<UUID,GravityFlag> GRAVITY_FLAGS=new ConcurrentHashMap<>();
     private static void holdGravity(ServerPlayerEntity player) {
         var flag=GRAVITY_FLAGS.get(player.getUuid());
         if(flag==null||flag.owner().get()!=player)
-            GRAVITY_FLAGS.put(player.getUuid(),new GravityFlag(new java.lang.ref.WeakReference<>(player),player.hasNoGravity()));
+            GRAVITY_FLAGS.put(player.getUuid(),new GravityFlag(new java.lang.ref.WeakReference<>(player),player.hasNoGravity(),new java.lang.ref.WeakReference<>(DescentPlayerData.get(player))));
         player.setNoGravity(true);
     }
     private static void releaseGravity(UUID id) {
         var flag=GRAVITY_FLAGS.remove(id);if(flag==null)return;
-        var player=flag.owner().get();
+        var player=flag.owner().get();var mode=flag.mode().get();
         // Restore only our actual object's unchanged flag. New mode owners and external
         // false writes win; UUID aliases never receive another entity's cleanup.
         if(player==null||!player.hasNoGravity()||player.isSpectator()
-            ||player.getVehicle() instanceof PyroShipEntity||DescentPlayerData.get(player).isEnabled()
-            ||com.terminaldetector.drmd.world.contraption.boarding.BoardingSystem.drives(player))return;
+            ||player.getVehicle() instanceof PyroShipEntity||mode!=null&&mode.isEnabled()
+            ||com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(player))return;
         player.setNoGravity(flag.original());
     }
 
