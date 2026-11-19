@@ -230,7 +230,9 @@ public final class NativeMobTorchReloadCheck {
                 var state=WorldAccess.of(w).readIfLoaded(s.source);if(state.isEmpty()){all=false;continue;}
                 require(state.get().isOf(ModWorldBlocks.GRAVITY_TORCH)&&state.get().get(GravityTorchBlock.FACING)==Direction.EAST,"actual saved registered torch and FACING");
                 GravityFields.Sample sample=GravityFields.sample(w,actor.getPos());
-                boolean source=sample!=null&&sample.sourceId().equals(GravityFieldIds.torch(w.getRegistryKey(),s.source))&&sample.strength()>=.05f&&sample.upDir().dotProduct(UP)>=.999999;
+                boolean source=sample!=null&&sample.strength()>=.05f&&sample.upDir().dotProduct(UP)>=.999999
+                    &&GravityFields.all().stream().anyMatch(field->sample.sourceId().equals(field.id())
+                        &&w.getRegistryKey().equals(field.worldKey())&&s.source.equals(field.origin()));
                 if(source&&s.firstSourceAge<0)s.firstSourceAge=actor.age;
                 boolean ready=source&&eligible(s,actor,sample);
                 if(source&&s.firstSourceAge>=0&&actor.age-s.firstSourceAge>80&&!s.admitted)
