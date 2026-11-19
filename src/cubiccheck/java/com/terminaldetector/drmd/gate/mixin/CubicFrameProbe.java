@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.gate.mixin;
 import com.terminaldetector.drmd.gate.CubicClientGate;
 import com.terminaldetector.drmd.gate.NativeBdhCubicCheck;
 import com.terminaldetector.drmd.gate.NativeHudReadabilityCheck;
+import com.terminaldetector.drmd.gate.NativeOpenTorchCheck;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.RenderTickCounter;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,6 +22,7 @@ public class CubicFrameProbe {
     private void before(RenderTickCounter counter,boolean tick,CallbackInfo ci){com.terminaldetector.drmd.gate.NativePresentationCheck.beforeFrame();com.terminaldetector.drmd.gate.NativeMountedWeaponCheck.beforeFrame();com.terminaldetector.drmd.gate.NativeMechanismCheck.beforeFrame();com.terminaldetector.drmd.gate.NativeTurretAiCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeUfoAiCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeTurretReloadCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeIslandLoadCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeSharedCombatCheck.beforeFrame(counter.getTickDelta(false));com.terminaldetector.drmd.gate.NativeTypedCombatRouteCheck.beforeFrame(counter.getTickDelta(false));}
     @Inject(method="render",at=@At("RETURN"))
     private void completed(RenderTickCounter counter,boolean tick,CallbackInfo ci) {
+        if(NativeOpenTorchCheck.ENABLED){NativeOpenTorchCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeHybridCavityCheck.ENABLED){com.terminaldetector.drmd.gate.NativeHybridCavityCheck.rendered();return;}
         if(com.terminaldetector.drmd.gate.NativeHighAltitudeLodCheck.ENABLED){com.terminaldetector.drmd.gate.NativeHighAltitudeLodCheck.rendered(counter.getTickDelta(false));return;}
         if(NativeBdhCubicCheck.ENABLED){NativeBdhCubicCheck.rendered();return;}
