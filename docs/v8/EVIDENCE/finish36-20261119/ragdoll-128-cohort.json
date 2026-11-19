@@ -1,0 +1,16 @@
+{
+  "task": "S08-T04",
+  "source": "4e98835cb32baa21f34441c47dd626e7ca7ab6df",
+  "elapsedNanos": 199332666938,
+  "worldTicks": 1214,
+  "liveRagdollsAtPeak": 128,
+  "physicalParts": 512,
+  "ordinaryLifespanTicksPerActor": 1200,
+  "actualFullPhysicsTicks": 153059,
+  "actualCertifiedSleepTicks": 541,
+  "exit": 0,
+  "archive": "ragdoll-128-cohort.zip",
+  "archiveSha256": "c8275c855ea2fd531468ff939f959d4d749f0cb864db424d74444d392e254afd",
+  "gameInputs": "Full compiled classpath byte manifest, actual runtime argv evidence and the original writer log are included in the archive.",
+  "scope": "Same damage tick, actual 128 actor death and per-UUID physics budget, one causal group, natural sleep, cleanup and owned world drops. Long-duration and cold acceptance are separate tasks."
+}

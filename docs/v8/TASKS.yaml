@@ -608,11 +608,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id009
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: ["MULTI_AGENT_INTEGRATION_0107BD8_2026-11-18.md", "U14_BATCH_24FC339C_FIRST_RESULT_2026-11-18.md"]
-  notes: "Private653 batched observer first actualPASS32realUUID by1000ordinaryticks/32000lossless rows,125CRCmembers within original128MiB; no sleep/aggregation or performance claim. Original overflow prefix unchanged; compact source/classes/world324e2c26 and both external hash-pinned raws retained."
+  evidence: [EVIDENCE/finish36-20261119/ragdoll-128-cohort.json, EVIDENCE/finish36-20261119/ragdoll-128-cohort.zip]
+  notes: "Один серверный тик создал 128 рэгдоллов с 512 физическими частями. За 1200 тиков каждого тела наблюдался 541 тик сертифицированного сна. Группа очистилась по штатному сроку жизни, дроп сохранился по реальным UUID."
 - id: S08-T05
   stage: S08
   stage_title: Articulated ragdoll and destructible bodies
