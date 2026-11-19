@@ -10,6 +10,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class OrbitalHandoffDrawProbe {
     @Shadow private static VertexBuffer buffer;
     @Shadow private static PlanetSurfaceMesh uploaded;
+    @Inject(method="draw",at=@At("HEAD"),remap=false)
+    private static void beforeColour(Matrix4f view,CallbackInfo ci){if(NativeOrbitalMaskCheck.ENABLED)NativeOrbitalMaskCheck.beforeColour(uploaded,view);}
     @Inject(method="draw",at=@At("RETURN"),remap=false)
     private static void colour(Matrix4f view,CallbackInfo ci){if(NativeOrbitalMaskCheck.ENABLED)NativeOrbitalMaskCheck.draw(uploaded,buffer.getVertexFormat(),HorizonShader.program(),false);}
     @Inject(method="drawSemantic",at=@At("RETURN"),remap=false)
