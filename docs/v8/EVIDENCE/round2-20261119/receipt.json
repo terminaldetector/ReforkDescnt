@@ -85,7 +85,8 @@
         "gameObserverHashes": {
           "drmd-6dof-1.1.35-ufo-dev.1.jar": "4092dce3df4a8e5a7c98595b96697e68cc6bb6bed158332aac7f83bffa15fc4b",
           "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "5f6f15026ad2645448375366c1b37be3f0de1eb3ec5da35a13e6d0953f57c2dd"
-        }
+        },
+        "observerStatus": "PASS"
       },
       "connected": {
         "source": "b894a94d7fd3054561bf00d42837907fc4767771",
@@ -94,7 +95,9 @@
         "gameObserverHashes": {
           "drmd-6dof-1.1.35-ufo-dev.1.jar": "4092dce3df4a8e5a7c98595b96697e68cc6bb6bed158332aac7f83bffa15fc4b",
           "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "5f6f15026ad2645448375366c1b37be3f0de1eb3ec5da35a13e6d0953f57c2dd"
-        }
+        },
+        "observerStatus": "PASS",
+        "sequentialMatchingAcknowledgments": 11
       },
       "mounted": {
         "source": "b894a94d7fd3054561bf00d42837907fc4767771",
@@ -103,7 +106,8 @@
         "gameObserverHashes": {
           "drmd-6dof-1.1.35-ufo-dev.1.jar": "4092dce3df4a8e5a7c98595b96697e68cc6bb6bed158332aac7f83bffa15fc4b",
           "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "5f6f15026ad2645448375366c1b37be3f0de1eb3ec5da35a13e6d0953f57c2dd"
-        }
+        },
+        "observerStatus": "PASS"
       }
     },
     "native-connected-failed.zip": {
@@ -114,7 +118,9 @@
         "gameObserverHashes": {
           "drmd-6dof-1.1.35-ufo-dev.1.jar": "05c72e64c695aac318e078bee75f01ce8dc1b4a22015a117d5757b81ba7e8f5e",
           "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "065ebb48a119898906ffd86547322d3bab59c3b002553104dacf5c0d432cee3e"
-        }
+        },
+        "observerStatus": "FAIL",
+        "sequentialMatchingAcknowledgments": 0
       }
     },
     "native-connected-final.zip": {
@@ -125,7 +131,9 @@
         "gameObserverHashes": {
           "drmd-6dof-1.1.35-ufo-dev.1.jar": "05c72e64c695aac318e078bee75f01ce8dc1b4a22015a117d5757b81ba7e8f5e",
           "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "065ebb48a119898906ffd86547322d3bab59c3b002553104dacf5c0d432cee3e"
-        }
+        },
+        "observerStatus": "PASS",
+        "sequentialMatchingAcknowledgments": 22
       }
     },
     "native-dual-surface.zip": {
@@ -136,7 +144,8 @@
         "gameObserverHashes": {
           "drmd-6dof-1.1.35-ufo-dev.1.jar": "d60e3f6e2e7196d3a5379a5ac3c4ca6c0052cdad480925b43d0eb47a5ae9c0ec",
           "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "065ebb48a119898906ffd86547322d3bab59c3b002553104dacf5c0d432cee3e"
-        }
+        },
+        "observerStatus": "PASS"
       }
     }
   },
