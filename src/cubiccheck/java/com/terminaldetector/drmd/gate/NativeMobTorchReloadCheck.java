@@ -58,7 +58,8 @@ public final class NativeMobTorchReloadCheck {
         ActorPhysicsProfile.Family.CLIMBER,ActorPhysicsProfile.Family.FLYER,
         ActorPhysicsProfile.Family.AQUATIC,ActorPhysicsProfile.Family.MECHANICAL,
         ActorPhysicsProfile.Family.SPECIAL,ActorPhysicsProfile.Family.ANCHORED};
-    private static final Vec3d OBSERVER=new Vec3d(36,2204,36);
+    // Outside every real8m torch field: native Creative hover must not borrow a foot lease.
+    private static final Vec3d OBSERVER=new Vec3d(36,2216,36);
     private static final Vec3d UP=new Vec3d(1,0,0);
     private static final String PROCESS=UUID.randomUUID().toString();
     private static final long PID=ProcessHandle.current().pid();
@@ -133,10 +134,12 @@ public final class NativeMobTorchReloadCheck {
             }catch(Throwable error){failure=error.toString();try{write("writer-closed.json",Map.of("status","FAIL","reason",failure));}catch(Exception ignored){}}
         });
         ServerEntityEvents.ENTITY_LOAD.register((entity,world)->{
-            if(!READ||entity.getWorld().isClient||!SLOTS.containsKey(entity.getUuid()))return;
+            if(!ENABLED||entity.getWorld().isClient||!SLOTS.containsKey(entity.getUuid()))return;
             try{
                 Slot s=SLOTS.get(entity.getUuid());require(entity instanceof MobEntity,"native loaded mob type");
-                MobEntity actor=(MobEntity)entity;require(s.decoded==actor,"ENTITY_LOAD receives actual decoded object");
+                MobEntity actor=(MobEntity)entity;
+                if(WRITE){require(s.loaded==actor,"native writer ENTITY_LOAD receives the original spawned object");s.loadReceipt=basic(actor);return;}
+                require(s.decoded==actor,"ENTITY_LOAD receives actual decoded object");
                 require(s.loaded==null||s.loaded==actor,"no duplicate loaded object");
                 require(!EntityGravitySystem.suppressesVanillaGravity(actor),"no previous process lease at native ENTITY_LOAD");
                 s.loaded=actor;s.loadReceipt=basic(actor);flushLifecycle();
@@ -211,20 +214,35 @@ public final class NativeMobTorchReloadCheck {
             require(WorldAccess.of(w).backend()==CubicAvailability.Backend.NATIVE_CUBIC,"actual native BCC world, not a column-world substitute");
             if(!staged){
                 staged=true;phase="NATIVE_FULL_ADMISSION";FlightSystem.disable(p,DescentPlayerData.get(p));
-                p.changeGameMode(GameMode.SPECTATOR);server.getPlayerManager().setViewDistance(6);
+                p.changeGameMode(GameMode.CREATIVE);p.getAbilities().allowFlying=true;p.getAbilities().flying=true;p.sendAbilitiesUpdate();
+                server.getPlayerManager().setViewDistance(6);
                 if(WRITE)server.setDifficulty(Difficulty.NORMAL,true);
                 p.teleport(w,OBSERVER.x,OBSERVER.y,OBSERVER.z,Set.of(),0,0);return;
             }
-            require(p.isSpectator(),"actual native spectator observer mode");
+            require(p.isCreative()&&!p.isSpectator()&&p.getAbilities().allowFlying&&p.getAbilities().flying
+                &&!DescentPlayerData.get(p).isEnabled()&&!FootGravitySystem.isActive(p),"actual native Creative hover without a player gravity/flight override");
             // At most 32 cubes, no speculative getChunk, tickets or generation calls.
             if(!full(w,new Box(11,2199,11,61,2209,61),64))return;
-            if(WRITE&&!built){build(w);built=true;phase="NATURAL_FIELD_CONTACT";return;}
+            if(WRITE&&!built){
+                phase="NATIVE_ENTITY_TICK_ADMISSION";boolean ticking=true;
+                for(int i=0;i<7;i++)ticking&=w.shouldTickEntity(base(i).add(3,2,3));
+                if(serverTicks%5==0&&ROWS.size()<280)ROWS.add(Map.of("phase",phase,"allSevenNativeEntityTicking",ticking,"serverTick",serverTicks));
+                if(!ticking)return;
+                build(w);built=true;phase="NATURAL_FIELD_CONTACT";return;
+            }
             boolean all=SLOTS.size()==7;
             for(int i=0;i<7;i++){
                 Slot s=slot(i);if(s==null||s.loaded==null){all=false;continue;}
                 MobEntity actor=s.loaded;
-                require(!actor.isRemoved()&&actor.isAlive()&&actor.getWorld()==w&&w.getEntity(s.uuid)==actor
-                    &&w.getEntityById(actor.getId())==actor,"same live native world object: "+LABELS[i]);
+                var byUuid=w.getEntity(s.uuid);var byId=w.getEntityById(actor.getId());boolean ticking=w.shouldTickEntity(actor.getBlockPos());
+                boolean indexed=byUuid==actor&&byId==actor;
+                if(serverTicks%5==0&&ROWS.size()<280){var row=basic(actor);row.put("familyId",LABELS[i]);row.put("phase","NATIVE_OBJECT_ADMISSION");
+                    row.put("removed",actor.isRemoved());row.put("alive",actor.isAlive());row.put("sameWorld",actor.getWorld()==w);
+                    row.put("uuidIndex",byUuid==null?"ABSENT":byUuid==actor?"SAME":"FOREIGN");row.put("idIndex",byId==null?"ABSENT":byId==actor?"SAME":"FOREIGN");
+                    row.put("nativeEntityTicking",ticking);row.put("nativeEntityLoadObserved",s.loadReceipt!=null);ROWS.add(row);}
+                require(!actor.isRemoved()&&actor.isAlive()&&actor.getWorld()==w
+                    &&(byUuid==null||byUuid==actor)&&(byId==null||byId==actor),"original actor removed/dead/foreign-world or a foreign index object: "+LABELS[i]);
+                if(!indexed||!ticking||s.loadReceipt==null){all=false;continue;}
                 verifyIdentity(s,actor);
                 if(!full(w,actor.getBoundingBox().expand(1),64)){all=false;continue;}
                 var state=WorldAccess.of(w).readIfLoaded(s.source);if(state.isEmpty()){all=false;continue;}
@@ -352,6 +370,8 @@ public final class NativeMobTorchReloadCheck {
             out.put("actors",actors);out.put("rows",ROWS);out.put("clientTicks",ticks);out.put("serverTicks",serverTicks);
             out.put("noGravityMutations",0);out.put("setupAiDisabled",true);out.put("manualActorTicks",0);out.put("forcedActorFrame",false);
             out.put("sourceBinding",System.getProperty("drmd.gate.mobTorchColdSource","UNBOUND"));
+            out.put("observerMode","native Creative hover outside all8m source fields; not Spectator");
+            out.put("observerPosition",xyz(OBSERVER));out.put("nativeEntityTickAdmissionRequired",true);out.put("nativeEntityLoadRequired",true);
             out.put("scope","seven explicit cold physics policies; autonomous AI, arbitrary species and full6DoF remain open");
             write(WRITE?"writer-ready.json":"reader-result.json",out);
         }catch(Exception error){error.printStackTrace();}
