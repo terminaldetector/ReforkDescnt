@@ -36,6 +36,9 @@ public final class OrbitalBeltSkyRenderer {
 	}
 
 	private static void render(WorldRenderContext ctx) {
+        // DH composites colour at AFTER_SETUP without populating Minecraft's depth. Its colour
+        // must not be covered by a later far-depth envelope. The ordinary path keeps its phase.
+        if(com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.isPresent())return;
 		if (!DescentConfig.hybridRender || !DescentConfig.levelSky) return;
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (mc.player == null || mc.world == null) return;
@@ -45,7 +48,7 @@ public final class OrbitalBeltSkyRenderer {
 		double y = ctx.camera().getPos().y;
 		// BEFORE_ENTITIES has the terrain view; its object matrix stack is not available yet.
 		Matrix4f mat = new Matrix4f(ctx.positionMatrix());
-		paintOblivionEnvelope(ctx, mat, y, tickDelta);
+		paintOblivionEnvelope(ctx.camera(), mat, y, tickDelta);
 	}
 
 	/**
@@ -54,10 +57,19 @@ public final class OrbitalBeltSkyRenderer {
 	 * far depth, independent of the terrain clipping distance. LEQUAL keeps already drawn real
 	 * terrain in front; later distant terrain, entities and cockpit compose over this background.
 	 */
-	private static void paintOblivionEnvelope(WorldRenderContext ctx, Matrix4f mat, double y, float tickDelta) {
+    /** Actual caller hook is AFTER native sky and BEFORE setupTerrain's Fabric AFTER_SETUP/DH pass.
+     * Same current-view target/matrices; no framebuffer/depth clear, copy or dependency API call. */
+    public static void beforeExternalLods(net.minecraft.client.render.RenderTickCounter counter,net.minecraft.client.render.Camera camera,Matrix4f position) {
+        if(!com.terminaldetector.drmd.world.compat.DistantHorizonsCompat.isPresent()
+            ||!DescentConfig.hybridRender||!DescentConfig.levelSky)return;
+        var mc=MinecraftClient.getInstance();if(mc.player==null||mc.world==null||mc.world.getRegistryKey()!=net.minecraft.world.World.OVERWORLD)return;
+        paintOblivionEnvelope(camera,new Matrix4f(position),camera.getPos().y,counter.getTickDelta(false));
+    }
+
+	private static void paintOblivionEnvelope(net.minecraft.client.render.Camera camera, Matrix4f mat, double y, float tickDelta) {
 		float envelope = envelopeAlpha(y);
 		if (envelope < 0.02f || SkyEnvelopeShader.program() == null) return;
-		Vec3d sky = MinecraftClient.getInstance().world.getSkyColor(ctx.camera().getPos(), tickDelta);
+		Vec3d sky = MinecraftClient.getInstance().world.getSkyColor(camera.getPos(), tickDelta);
 
 		boolean depth = GL11.glIsEnabled(GL11.GL_DEPTH_TEST), cull = GL11.glIsEnabled(GL11.GL_CULL_FACE),
 				blend = GL11.glIsEnabled(GL11.GL_BLEND), write = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
