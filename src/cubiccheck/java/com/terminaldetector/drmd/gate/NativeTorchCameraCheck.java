@@ -334,9 +334,14 @@ public final class NativeTorchCameraCheck {
         try{
             if(c.player==null||c.world==null||c.currentScreen!=null||c.getOverlay()!=null||OffscreenWorldView.busy())return;
             if(step==Step.RELEASE&&view!=null&&view.surface==-1&&!view.foot&&!DescentClientState.footGravity&&FootGravityCamera.settled()&&!view.noGravity&&!view.vehicle){
+                // The server can publish the released view before the client consumes the
+                // fixture's final position packet. Inspect the lens once both observe that floor.
+                if(c.player.getPos().squaredDistanceTo(view.position)>.01)return;
                 var camera=c.gameRenderer.getCamera();double error=camera.getPos().squaredDistanceTo(c.player.getLerpedPos(delta).add(0,c.player.getEyeHeight(c.player.getPose()),0));
                 if(!clientFull(c,Box.of(camera.getPos(),2,2,2)))return;
-                require(DescentCamera.ownsView(camera)&&Double.isFinite(error)&&error<=1e-4&&c.world.isSpaceEmpty(c.player,Box.of(camera.getPos(),.02,.02,.02)),"ordinary released native first-person eye is upright and clear");
+                boolean clear=c.world.isSpaceEmpty(c.player,Box.of(camera.getPos(),.02,.02,.02));
+                require(DescentCamera.ownsView(camera)&&Double.isFinite(error)&&error<=1e-4&&clear,
+                    "ordinary released eye: actual="+camera.getPos()+" player="+c.player.getPos()+" server="+view.position+" squaredError="+error+" clear="+clear);
                 if(++frames<3)return;try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){image.writeTo(c.runDirectory.toPath().resolve("torch-camera-released.png"));}
                 finish("PASS","actual H-off, three torch supports/four local look samples, added/removed obstruction, held mesh and ordinary upright release");return;
             }
