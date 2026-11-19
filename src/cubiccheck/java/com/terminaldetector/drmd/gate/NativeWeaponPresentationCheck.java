@@ -38,7 +38,10 @@ import java.util.*;
 public final class NativeWeaponPresentationCheck {
     public static final boolean ENABLED=Boolean.getBoolean("drmd.gate.weaponPresentation");
     private static final Vec3d START=new Vec3d(96.5,2156,96.5);
-    private static final Item[] ITEMS={ModItems.PLASMA,ModItems.ROCKET_DUAL,ModItems.BOMB_CLUSTER};
+    private static final boolean ENGINEERING=Boolean.getBoolean("drmd.gate.weaponPresentationEngineering");
+    private static final Item[] ITEMS=ENGINEERING?new Item[]{com.terminaldetector.drmd.entity.ModWorldBlocks.MINING_LASER,
+        com.terminaldetector.drmd.entity.ModWorldBlocks.TUNNEL_LASER,com.terminaldetector.drmd.entity.ModWorldBlocks.REPAIR_LASER}
+        :new Item[]{ModItems.PLASMA,ModItems.ROCKET_DUAL,ModItems.BOMB_CLUSTER};
     private static final List<Map<String,Object>> ROWS=new ArrayList<>(),INPUTS=new ArrayList<>();
     private record View(long tick,boolean nativeWorld,boolean flight,int selected,String hand,List<String> hotbar,List<Integer> hotbarCounts,List<String> banks,List<Integer> bankCounts,String cursor){}
     private record Click(int slot,String cursor,String cell){}
@@ -185,7 +188,10 @@ public final class NativeWeaponPresentationCheck {
     }
     public static void baked(net.minecraft.client.render.model.BakedModel model,ItemStack stack,net.minecraft.client.util.math.MatrixStack matrices){
         if(!ENABLED||done||currentMode==null||currentMode==net.minecraft.client.render.model.json.ModelTransformationMode.GUI||Arrays.stream(ITEMS).noneMatch(stack::isOf))return;
-        if(currentMode!=net.minecraft.client.render.model.json.ModelTransformationMode.FIRST_PERSON_RIGHT_HAND&&currentMode!=net.minecraft.client.render.model.json.ModelTransformationMode.FIRST_PERSON_LEFT_HAND)return;
+        boolean equippedTool=ENGINEERING&&currentMode==net.minecraft.client.render.model.json.ModelTransformationMode.FIXED
+            &&cockpitLive()&&ItemStack.areItemsAndComponentsEqual(stack,DroneCombatInput.primary(MinecraftClient.getInstance()));
+        if(currentMode!=net.minecraft.client.render.model.json.ModelTransformationMode.FIRST_PERSON_RIGHT_HAND
+            &&currentMode!=net.minecraft.client.render.model.json.ModelTransformationMode.FIRST_PERSON_LEFT_HAND&&!equippedTool)return;
         var random=net.minecraft.util.math.random.Random.create(42);var sides=new ArrayList<Direction>(Arrays.asList(Direction.values()));sides.add(null);int count=0;var vertices=new ArrayList<org.joml.Vector3f>();
         for(var side:sides){random.setSeed(42);for(var quad:model.getQuads(null,side,random)){if(++count>1024){frameFailure="bounded1024 actual item model quads overflow";return;}var data=quad.getVertexData();int stride=data.length/4;
             for(int i=0;i<4;i++)vertices.add(new org.joml.Vector3f(Float.intBitsToFloat(data[i*stride]),Float.intBitsToFloat(data[i*stride+1]),Float.intBitsToFloat(data[i*stride+2])));}}
@@ -196,6 +202,8 @@ public final class NativeWeaponPresentationCheck {
         if(missing){frameFailure="actual item renderer selected missing baked model: "+id;return;}
         if(mode==net.minecraft.client.render.model.json.ModelTransformationMode.GUI)gui.add(id);
         if(mode==net.minecraft.client.render.model.json.ModelTransformationMode.FIRST_PERSON_RIGHT_HAND||mode==net.minecraft.client.render.model.json.ModelTransformationMode.FIRST_PERSON_LEFT_HAND)hand.add(id);
+        if(ENGINEERING&&mode==net.minecraft.client.render.model.json.ModelTransformationMode.FIXED&&cockpitLive()
+            &&ItemStack.areItemsAndComponentsEqual(stack,DroneCombatInput.primary(MinecraftClient.getInstance())))cockpit.add(id);
     }
     public static void beginCockpit(){if(ENABLED)cockpitDepth++;}
     public static void endCockpit(){if(ENABLED)cockpitDepth--;}
@@ -270,7 +278,9 @@ public final class NativeWeaponPresentationCheck {
     }
     private static void finish(MinecraftClient c,String status,String failure){
         if(done)return;done=true;if(pressed!=null)pressed.setPressed(false);if(DescentKeybinds.rollRight!=null)DescentKeybinds.rollRight.setPressed(false);
-        try{var result=new LinkedHashMap<String,Object>();result.put("status",status);result.put("failure",failure);result.put("phase",phase);result.put("profile",profile);result.put("rows",ROWS);result.put("inputs",INPUTS);result.put("serverView",view);result.put("sourceBinding",System.getProperty("drmd.gate.weaponPresentationSource","UNBOUND"));result.put("glRenderer",GL11.glGetString(GL11.GL_RENDERER));result.put("scope","3 representative registered items; ordinary+empty-hand6DoF primary, real hotbar/E/N/H/roll and slot packets, Native+PS1 atFOV80; no new firing/per-ID/FOV/mounted matrix claim");
+        try{var result=new LinkedHashMap<String,Object>();result.put("status",status);result.put("failure",failure);result.put("phase",phase);result.put("profile",profile);result.put("rows",ROWS);result.put("inputs",INPUTS);result.put("serverView",view);result.put("sourceBinding",System.getProperty("drmd.gate.weaponPresentationSource","UNBOUND"));result.put("glRenderer",GL11.glGetString(GL11.GL_RENDERER));result.put("equipmentCohort",ENGINEERING?"REAL_ENGINEER_PRIMARY":"WEAPON_BASELINE");result.put("scope",ENGINEERING
+                ?"Actual Mining/Tunnel/Repair item models; ordinary+real empty-hand6DoF primary socket, real hotbar/E/N/H/roll and slot packets, Native+PS1 atFOV80; no firing/construction/all-item/FOV matrix claim"
+                :"3 representative registered items; ordinary+empty-hand6DoF primary, real hotbar/E/N/H/roll and slot packets, Native+PS1 atFOV80; no new firing/per-ID/FOV/mounted matrix claim");
             if(failure!=null&&c.currentScreen instanceof DroneInventoryScreen) {
                 var menu=(HandledScreen<?>)c.currentScreen;
                 var evidence=new LinkedHashMap<String,Object>();
