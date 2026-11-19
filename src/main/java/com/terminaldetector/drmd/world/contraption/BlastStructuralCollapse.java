@@ -5,9 +5,11 @@ import com.terminaldetector.drmd.physics.collision.BodyTopology;
 import com.terminaldetector.drmd.physics.collision.UnsupportedStructure;
 import com.terminaldetector.drmd.world.access.WorldAccess;
 import net.minecraft.block.*;
+import net.minecraft.entity.Entity;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.*;
+import com.terminaldetector.drmd.world.edit.WorldEditSafety;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -16,9 +18,12 @@ public final class BlastStructuralCollapse {
     public static final int MAX_COMPONENT=256,MAX_CUTS=128,MAX_READS=4096,MAX_BODIES=4,MAX_NEARBY=64;
     // Half of the per-tick read ceiling remains available for the complete support query.
     private static final int CAPTURE_SCAN=MAX_READS/2,RADIUS=16;
-    private static final Set<Block> INERT=Set.of(Blocks.COBBLESTONE,Blocks.IRON_BLOCK,Blocks.GOLD_BLOCK,
+    private static final Set<Block> INERT=Set.of(Blocks.COBBLESTONE,Blocks.MOSSY_COBBLESTONE,Blocks.IRON_BLOCK,Blocks.GOLD_BLOCK,
         Blocks.DIAMOND_BLOCK,Blocks.OBSIDIAN,Blocks.GLASS,Blocks.BRICKS,Blocks.OXIDIZED_COPPER,
-        Blocks.PRISMARINE_BRICKS,Blocks.DARK_PRISMARINE,Blocks.CYAN_STAINED_GLASS,Blocks.SEA_LANTERN);
+        Blocks.PRISMARINE_BRICKS,Blocks.DARK_PRISMARINE,Blocks.CYAN_STAINED_GLASS,Blocks.SEA_LANTERN,
+        Blocks.MUD_BRICKS,Blocks.DEEPSLATE_BRICKS,Blocks.CRACKED_DEEPSLATE_BRICKS,Blocks.DEEPSLATE_TILES,
+        Blocks.SANDSTONE,Blocks.CUT_SANDSTONE,Blocks.SMOOTH_SANDSTONE,Blocks.RED_SANDSTONE,
+        Blocks.CUT_RED_SANDSTONE,Blocks.SMOOTH_RED_SANDSTONE);
     private static final Map<ServerWorld,Budget> BUDGETS=new WeakHashMap<>();
     private static final class Budget {
         final long tick;int reads,bodies;
@@ -30,9 +35,27 @@ public final class BlastStructuralCollapse {
         var b=BUDGETS.get(world);if(b==null||b.tick!=world.getTime()){b=new Budget(world.getTime());BUDGETS.put(world,b);}return b;
     }
     private static boolean enabled(ServerWorld world){return world.getServer().isOnThread()&&PhysicsProfileState.expanded(world);}
+    static boolean buildingMaterial(BlockState state){
+        return !state.hasBlockEntity() && state.getFluidState().isEmpty()
+            && (INERT.contains(state.getBlock()) || state.isIn(BlockTags.PLANKS)
+                || state.isIn(BlockTags.STONE_BRICKS) || state.isIn(BlockTags.TERRACOTTA)
+                || state.isIn(BlockTags.SLABS));
+    }
     private static boolean inert(BlockState state){
-        return !state.hasBlockEntity()&&state.getFluidState().isEmpty()&&BlockBodyEntity.supports(state)
-            &&(INERT.contains(state.getBlock())||state.isIn(BlockTags.PLANKS));
+        return buildingMaterial(state) || state.isIn(BlockTags.LOGS) && state.getFluidState().isEmpty();
+    }
+    /** Material resistance is shared by direct cuts and the pressure that reaches blast cells. */
+    public static boolean canBreak(ServerWorld world,BlockPos pos,BlockState state,double pressure){
+        float hardness=state.getHardness(world,pos);
+        return !state.isAir() && hardness>=0 && Double.isFinite(pressure)
+            && pressure>=Math.max(12,Math.max(hardness*12,state.getBlock().getBlastResistance()*4));
+    }
+    public static void impact(ServerWorld world,BlockPos pos,Vec3d impact,float damage,Entity attacker){
+        if(!enabled(world)||!WorldEditSafety.mayChange(world,pos,attacker))return;
+        var state=WorldAccess.of(world).readIfLoaded(pos);
+        if(state.isEmpty()||!buildingMaterial(state.get())||!canBreak(world,pos,state.get(),damage))return;
+        if(world.breakBlock(pos,true,attacker))finish(world,List.of(pos),impact,damage/24,
+            p->WorldEditSafety.mayChange(world,p,attacker));
     }
     /** Snapshot only the blast's own admitted inert material, before vanilla or microdamage edits it. */
     public static List<BlockPos> capture(ServerWorld world,List<BlockPos> affected){

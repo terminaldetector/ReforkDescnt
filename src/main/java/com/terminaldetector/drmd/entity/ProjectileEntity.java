@@ -531,8 +531,15 @@ public class ProjectileEntity extends Entity {
 		}
 		boolean explosive = worldBlast || (splashRadius > 0 && dmgClass == DamageClass.EXPLOSIVE);
 		BlockState hitState = getWorld().getBlockState(hit.getBlockPos());
-        if(explosive && getWorld() instanceof ServerWorld world)
-            com.terminaldetector.drmd.world.contraption.StructureCollapse.rocketCut(world,hit.getBlockPos(),hit.getPos(),getVelocity(),directDamage);
+        Entity own = getOwnerEntity();if(own==null)own=this;
+        if(explosive && getWorld() instanceof ServerWorld world) {
+            Entity attacker=own;
+            var treeOrColumn=com.terminaldetector.drmd.world.contraption.StructureCollapse.rocketCut(
+                world,hit.getBlockPos(),getVelocity(),directDamage,
+                p->com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,attacker));
+            if(treeOrColumn==null)
+                com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse.impact(world,hit.getBlockPos(),hit.getPos(),directDamage,attacker);
+        }
 		if (!explosive && bounceCount < maxBounces && hitState.getBlock() instanceof ReflectiveBlock rb) {
 			bounceCount++;
 			Vec3d normal = rb.getReflectionNormal(hitState);
@@ -548,7 +555,6 @@ public class ProjectileEntity extends Entity {
 			return;
 		}
 
-		Entity own = getOwnerEntity();if(own==null)own=this;
 		if (own != null && getWorld() instanceof ServerWorld sw) {
 			impactVisual(hit.getPos().add(Vec3d.of(hit.getSide().getVector()).multiply(.03)));
 			detonate(own, hit.getPos());

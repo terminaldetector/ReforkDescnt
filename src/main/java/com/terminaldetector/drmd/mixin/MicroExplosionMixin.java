@@ -47,7 +47,10 @@ public abstract class MicroExplosionMixin {
                 body.weaponBlast(centre,explosion.getPower()*24, radius);
         }
         com.terminaldetector.drmd.world.contraption.StructureCollapse.explosion(
-            server,explosion.getAffectedBlocks(),explosion.getPosition(),explosion.getPower());
+            server,explosion.getAffectedBlocks(),explosion.getPosition(),explosion.getPower(),p->
+                com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(server,p,explosion.getCausingEntity())
+                &&com.terminaldetector.drmd.world.access.WorldAccess.of(server).readIfLoaded(p)
+                    .filter(s->behavior.canDestroyBlock(explosion,server,p,s,explosion.getPower())).isPresent());
         explosion.getAffectedBlocks().removeIf(pos -> BlockDamage.fractureExplosion(
             server,pos,explosion.getPosition(),explosion.getPower()));
     }

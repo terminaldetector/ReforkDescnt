@@ -188,20 +188,24 @@ public final class WeaponFx {
 		if (breakBlocks) {
 			int r = MathHelper.clamp((int) (splashRadiusBlocks * 0.65f), 1, 5);
 			BlockPos center = BlockPos.ofFloored(pos);
-            var structuralCuts=new java.util.ArrayList<BlockPos>();
+            var affected=new java.util.ArrayList<BlockPos>();
+            boolean expanded=com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(world);
+			var access=com.terminaldetector.drmd.world.access.WorldAccess.of(world);
 			for (BlockPos p : BlockPos.iterate(center.add(-r, -r, -r), center.add(r, r, r))) {
 				if (p.getSquaredDistance(center) > r * r) continue;
                 if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,attacker))continue;
-				BlockState st = world.getBlockState(p);
-				float h = st.getHardness(world, p);
-				if (!st.isAir() && h >= 0 && h < 15 && !st.isOf(Blocks.BEDROCK)) {
-					if (world.getRandom().nextFloat() < 0.55f) {
-                        var captured=structuralCuts.size()<com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse.MAX_CUTS
-                            ?com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse.capture(world,java.util.List.of(p.toImmutable())):java.util.List.<BlockPos>of();
-						if(world.breakBlock(p, true, attacker))structuralCuts.addAll(captured);
-					}
-				}
+				BlockState st=access.readIfLoaded(p).orElse(null);
+				if(st==null||st.isAir())continue;
+				float hardness=st.getHardness(world,p);
+				double pressure=power*24*Math.max(0,1-p.toCenterPos().distanceTo(pos)/(r+.75));
+				boolean breaks=expanded?com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse.canBreak(world,p,st,pressure)
+				    :hardness>=0&&hardness<15&&world.getRandom().nextFloat()<.55f;
+				if(breaks)affected.add(p.toImmutable());
 			}
+            var structuralCuts=com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse.capture(world,affected);
+            if(expanded)com.terminaldetector.drmd.world.contraption.StructureCollapse.explosion(world,affected,pos,power,
+                p->com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,attacker));
+            for(var p:affected)world.breakBlock(p,true,attacker);
             com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse.finish(world,structuralCuts,pos,power,
                 p->com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,attacker));
 		}

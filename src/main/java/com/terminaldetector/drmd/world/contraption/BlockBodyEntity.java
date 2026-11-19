@@ -95,7 +95,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
     }
     public void setPhysicsGravity(boolean value) {gravity=value;dataTracker.set(POSE,pose());}
     public boolean physicsGravity() {return gravity;}
-    public static boolean supports(BlockState state) {return state.isOf(Blocks.LEVER) || BodyLocalHatches.supports(state) || BodyLocalDoors.supports(state) || state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock || SUPPORTED.contains(state.getBlock()) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_CONTROL_CORE) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_THRUSTER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
+    public static boolean supports(BlockState state) {return state.isOf(Blocks.LEVER) || BodyLocalHatches.supports(state) || BodyLocalDoors.supports(state) || state.getBlock() instanceof com.terminaldetector.drmd.world.contraption.mechanism.MechanicalBearingBlock || SUPPORTED.contains(state.getBlock()) || BlastStructuralCollapse.buildingMaterial(state) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.UNSTABLE_REACTOR) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_CONTROL_CORE) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_THRUSTER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_LASER) || state.isOf(com.terminaldetector.drmd.entity.ModWorldBlocks.SHIP_ROCKET) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.PLANKS);}
 
     public BlockBodyEntity(EntityType<? extends BlockBodyEntity> type, World world) {
         super(type, world); setNoGravity(true);
@@ -297,6 +297,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
             if(BodyLocalHatches.supports(cell.state()))bounds=BodyLocalHatches.collisionBounds(cell.pos(),cell.state());
             else if(BodyLocalDoors.supports(cell.state()))bounds=BodyLocalDoors.collisionBounds(cell.pos(),cell.state());
             else if(cell.state().isOf(Blocks.LEVER))bounds=bounds(cell.state().getOutlineShape(net.minecraft.world.EmptyBlockView.INSTANCE,BlockPos.ORIGIN).getBoundingBox().offset(cell.pos()));
+            else if(cell.state().isIn(BlockTags.SLABS))bounds=bounds(cell.state().getCollisionShape(net.minecraft.world.EmptyBlockView.INSTANCE,BlockPos.ORIGIN).getBoundingBox().offset(cell.pos()));
             else if(surface(cell)==null)bounds=new BodyBounds(new Vec3(cell.pos().getX(),cell.pos().getY(),cell.pos().getZ()),
                 new Vec3(cell.pos().getX()+1,cell.pos().getY()+1,cell.pos().getZ()+1));
             else {
@@ -329,7 +330,7 @@ public class BlockBodyEntity extends Entity implements PhysicsTarget {
                 if(mesh!=null&&mesh.axisAware())for(var shape:mesh.collisionBounds())
                     shaped.add(new BodyBounds(new Vec3(pos.getX()+shape.minX(),pos.getY()+shape.minY(),pos.getZ()+shape.minZ()),
                         new Vec3(pos.getX()+shape.maxX(),pos.getY()+shape.maxY(),pos.getZ()+shape.maxZ())));
-                else if(mesh!=null||cube.get(x,y,z).isOf(Blocks.LEVER)||BodyLocalHatches.supports(cube.get(x,y,z))||BodyLocalDoors.supports(cube.get(x,y,z)))shaped.add(cellBounds.get(pos));
+                else if(mesh!=null||cube.get(x,y,z).isOf(Blocks.LEVER)||cube.get(x,y,z).isIn(BlockTags.SLABS)||BodyLocalHatches.supports(cube.get(x,y,z))||BodyLocalDoors.supports(cube.get(x,y,z)))shaped.add(cellBounds.get(pos));
                 else solid.add(new CompoundCollider.Cell(pos.getX(),pos.getY(),pos.getZ()));
             }
             shaped.addAll(CompoundCollider.cells(solid).boxes());sections.put(key,new CompoundCollider(shaped));
