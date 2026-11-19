@@ -40,6 +40,7 @@ public final class NativePs1AtmosphereCheck {
     private static NativeImage before,after,raw;
     private static float[] foreground;
     private static Map<String,Object> observed;
+    private static Map<String,Object> skyAdmission=Map.of();
     private NativePs1AtmosphereCheck(){}
     private static int altitude(){return ALTITUDES[Math.min(2,phase/2)];}
     private static boolean enabledFog(){return phase==6||phase%2==1;}
@@ -55,7 +56,7 @@ public final class NativePs1AtmosphereCheck {
                 if(c.world!=null&&readbackBytes+bytes<=64L*1024*1024)try(var image=screenshot()){image.writeTo(folder.resolve("first-failure-final.png"));}
             }
             write(Map.of("status","FAIL","reason",reason,"phase",phase,"scans",scans,"readbackBytes",readbackBytes,"states",RESULTS,
-                "pendingState",observed==null?Map.of():observed,"rawSource",source(rawMesh),"preparedSource",source(prepared)));
+                "pendingState",observed==null?Map.of():observed,"rawSource",source(rawMesh),"preparedSource",source(prepared),"skyAdmission",skyAdmission));
         }catch(Exception failure){failure.printStackTrace();}
         c.scheduleStop();throw new IllegalStateException("PS1_ATMOSPHERE_NATIVE "+reason);
     }
@@ -99,7 +100,7 @@ public final class NativePs1AtmosphereCheck {
             DescentConfig.cockpit=DescentConfig.weaponView=false;c.options.hudHidden=false;
             c.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);c.getToastManager().clear();begin(c);return;
         }
-        require(++phaseTicks<300,"phase deadline "+name());
+        require(++phaseTicks<300,"phase deadline "+name()+"; actual sky admission "+skyAdmission);
         if(admitted&&!authored&&!authoring){
             authoring=true;c.getServer().execute(()->{
                 var w=player.getServerWorld();var points=wall();
@@ -117,6 +118,15 @@ public final class NativePs1AtmosphereCheck {
         // waiting another twelve ticks would allow an unrelated async publication between them.
         if(!started||!admitted||!authored||(phase<6&&phase%2==0&&phaseTicks<12)||c.player==null||c.currentScreen!=null)return;
         if(!c.player.getAbilities().flying||Math.abs(c.player.getY()-altitude())>.02)return;
+        var camera=c.gameRenderer.getCamera();
+        float exposure=com.terminaldetector.drmd.client.sky.Ps1SkyBackground.skyExposure();
+        boolean protectedView=com.terminaldetector.drmd.client.sky.Ps1SkyBackground.protectedView(camera,false);
+        skyAdmission=Map.of("exposure",exposure,"protectedView",protectedView,
+            "nativeCameraSkyLight",c.world.getLightLevel(net.minecraft.world.LightType.SKY,BlockPos.ofFloored(camera.getPos())),
+            "cameraY",camera.getPos().y,"submersion",camera.getSubmersionType().name(),"phase",phase);
+        // The enabled production path explicitly preserves protected/dark native views. Admit
+        // its open-sky fixture BEFORE OFF, independently of the effect and with the same deadline.
+        if(phase<6&&protectedView)return;
         if(wall().stream().anyMatch(p->!WorldEditSafety.neighbourhoodLoaded(c.world,p)||!c.world.getBlockState(p).isOf(Blocks.WHITE_CONCRETE)))return;
         armed=true;
     }
@@ -178,6 +188,12 @@ public final class NativePs1AtmosphereCheck {
             var expectedSky=c.world.getSkyColor(c.gameRenderer.getCamera().getPos(),c.getRenderTickCounter().getTickDelta(false))
                 .multiply(com.terminaldetector.drmd.client.sky.Ps1SkyBackground.skyExposure());
             float expected=phase==6||!enabledFog()?0:Ps1Atmosphere.density(eyeY,1);
+            // Preserve the actual values and ownership even when the first assertion rejects.
+            observed=new LinkedHashMap<>();observed.put("actualEyeY",eyeY);observed.put("density",density);
+            observed.put("expectedDensity",expected);observed.put("skyMix",mix);observed.put("skyColor",sky);
+            observed.put("skyAdmission",skyAdmission);observed.put("commonWorldFogActive",Ps1WorldFog.active());
+            observed.put("lowResolutionWorld",ScenePresentation.inLowResolutionWorld());
+            observed.put("configuredDensity",DescentConfig.ps1FarFog.density());
             require(Math.abs(density-expected)<1e-5&&mix==(expected>0?1:0),"actual altitude/profile GPU density");
             if(expected<=0)expectedSky=Vec3d.ZERO;
             require(Math.abs(sky[0]-expectedSky.x)<1e-4&&Math.abs(sky[1]-expectedSky.y)<1e-4&&Math.abs(sky[2]-expectedSky.z)<1e-4,"actual shared sky target or explicit neutral reset");
@@ -193,7 +209,7 @@ public final class NativePs1AtmosphereCheck {
             }
 
             int contribution=0;for(int y=0;y<after.getHeight();y++)for(int x=0;x<after.getWidth();x++)if((before.getColor(x,y)&0xffffff)!=(after.getColor(x,y)&0xffffff))contribution++;
-            observed=new LinkedHashMap<>();observed.put("actualEyeY",eyeY);observed.put("density",density);observed.put("skyMix",mix);observed.put("skyColor",sky);observed.put("lodChangedPixels",contribution);observed.put("foregroundSamples",retained.length);observed.put("opaqueAdmissionScans",scans);observed.put("meshQuads",prepared.quads);observed.put("epoch",epoch);
+            observed.put("lodChangedPixels",contribution);observed.put("foregroundSamples",retained.length);observed.put("opaqueAdmissionScans",scans);observed.put("meshQuads",prepared.quads);observed.put("epoch",epoch);
             observed.put("fogRange",List.of(actualStart,actualEnd));observed.put("commonWorldFogActive",Ps1WorldFog.active());
             observed.put("actualSkyBackgroundDraws",com.terminaldetector.drmd.client.sky.Ps1SkyBackground.completedDraws());
             observed.put("source",source(drawMesh));observed.put("actualProjectionInput",List.of(wantedInner,wantedReach));
