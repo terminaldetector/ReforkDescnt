@@ -201,11 +201,12 @@ public final class NativeSwarmBaselineCheck {
         if(abortPending)throw new IllegalStateException("Deliberate typed-swarm renderer fault for shutdown recovery proof");
         if(done)return;
         if (TRACE_DRAWS && org.lwjgl.opengl.GL.getCapabilities().GL_KHR_debug) {
-            if (sampling && !traceOpened) {
-                traceMarker("BEGIN");
+            if (sampling) {
+                // This callback is the return of the real GameRenderer.render. Some
+                // GLFW builds resolve swap outside the tracing GL dispatch table.
+                traceMarker(traceOpened ? "FRAME" : "BEGIN");
                 traceOpened = true;
-            }
-            if (resultReady && traceOpened && !traceClosed) {
+            } else if (resultReady && traceOpened && !traceClosed) {
                 traceMarker("END");
                 traceClosed = true;
             }
