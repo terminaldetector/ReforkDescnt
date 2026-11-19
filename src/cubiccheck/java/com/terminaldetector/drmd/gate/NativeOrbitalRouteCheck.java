@@ -58,7 +58,7 @@ public final class NativeOrbitalRouteCheck {
     private NativeOrbitalRouteCheck(){}
     public static void register(){
         boot=System.nanoTime();ServerTickEvents.END_SERVER_TICK.register(NativeOrbitalRouteCheck::server);
-        ServerLifecycleEvents.SERVER_STOPPING.register(server->{release();restoreOperator(server);});ClientTickEvents.END_CLIENT_TICK.register(NativeOrbitalRouteCheck::client);
+        ServerLifecycleEvents.SERVER_STOPPING.register(server->{try{release();}finally{restoreOperator(server);}});ClientTickEvents.END_CLIENT_TICK.register(NativeOrbitalRouteCheck::client);
     }
     private static void require(boolean ok,String reason){if(!ok)throw new IllegalStateException(reason);}
     private static List<Double> xyz(Vec3d v){return List.of(v.x,v.y,v.z);}

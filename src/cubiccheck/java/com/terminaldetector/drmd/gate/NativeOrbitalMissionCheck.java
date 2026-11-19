@@ -69,7 +69,7 @@ public final class NativeOrbitalMissionCheck {
             if(playerId!=null&&playerId.equals(player.getUuid())&&state.isOf(net.minecraft.block.Blocks.STONE)&&(pos.equals(panel(0))||pos.equals(panel(1))))mined++;
         });
         ServerTickEvents.END_SERVER_TICK.register(NativeOrbitalMissionCheck::server);
-        ServerLifecycleEvents.SERVER_STOPPING.register(server->{release();restoreOperator(server);});ClientTickEvents.END_CLIENT_TICK.register(NativeOrbitalMissionCheck::client);
+        ServerLifecycleEvents.SERVER_STOPPING.register(server->{try{release();}finally{restoreOperator(server);}});ClientTickEvents.END_CLIENT_TICK.register(NativeOrbitalMissionCheck::client);
     }
     private static void require(boolean ok,String reason){if(!ok)throw new IllegalStateException(reason);}
     private static List<Double> xyz(Vec3d v){return List.of(v.x,v.y,v.z);}
