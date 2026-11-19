@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.world.contraption;
 
+import com.terminaldetector.drmd.world.access.WorldAccess;
 import net.minecraft.block.*;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.world.ServerWorld;
