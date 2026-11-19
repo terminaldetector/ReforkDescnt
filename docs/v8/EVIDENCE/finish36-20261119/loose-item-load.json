@@ -1,0 +1,13 @@
+{
+  "source": "5db4e562ae422afc31a020dec950bfb2fbc1d33e",
+  "gameExit": 0,
+  "testCount": 13,
+  "heavyCuts": 12,
+  "newStackEntities": 1,
+  "newStackItems": 12,
+  "ordinaryLooseDropsInFieldFixture": 512,
+  "velocityUpdatesInOneFlightTick": 64,
+  "evidenceScope": "Stock Fabric GameTests in a separate JVM. One fixture calls the real 6DoF loot field on the populated world and counts changed item velocities. This is a work-count regression, without an FPS or MSPT benchmark.",
+  "archive": "loose-item-load.zip",
+  "archiveSha256": "ee276635370cbe3f716ccf52fdfa4ea200addaad92321485ff534e5af1a75481"
+}
