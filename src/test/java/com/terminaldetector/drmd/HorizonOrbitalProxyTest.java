@@ -22,4 +22,24 @@ class HorizonOrbitalProxyTest {
         var old=new HorizonLandmark(0,3000,0,24,16,20,0,MacroEntry.Kind.STATION);assertFalse(HorizonOrbitalProxy.authored(old.kind()));assertTrue(HorizonOrbitalProxy.boxes(old,0,0,0).isEmpty());
         var invalid=new HorizonLandmark(0,3000,0,25,16,20,0,MacroEntry.Kind.ORBITAL_STATION);assertTrue(HorizonOrbitalProxy.boxes(invalid,0,0,0).isEmpty());
     }
+    @Test void cachedAuthoredTierInvalidatesAcrossTheCutoffWithinNormalOriginSlack(){
+        var mark=new HorizonLandmark(0,3000,0,24,16,20,0,MacroEntry.Kind.ORBITAL_STATION);
+        for(boolean vertical:new boolean[]{false,true}){
+            double x=vertical?0:2047.99,y=vertical?5047.99:3000;
+            var mesh=PlanetSurfaceMesh.build(714,x,y,0,64,400,java.util.Set.of(),java.util.List.of(mark));
+            assertFalse(mesh.orbitalKeys.isEmpty());
+            assertFalse(mesh.stale(x,y,0,64,400));
+            assertTrue(mesh.stale(vertical?0:2048.01,vertical?5048.01:3000,0,64,400),
+                "a genuine3D tier crossing must not wait for64m horizontal/48m altitude drift");
+            assertFalse(mesh.stale(vertical?0:2047.5,vertical?5047.5:3000,0,64,400),
+                "ordinary movement inside the same tier keeps its cached source");
+        }
+    }
+    @Test void legacyGroundLandmarksDoNotAcquireAuthoredOrbitalTierInvalidation(){
+        var mark=new HorizonLandmark(0,3000,0,24,16,20,0,MacroEntry.Kind.STATION);
+        var mesh=PlanetSurfaceMesh.build(714,2047.99,3000,0,64,400,java.util.Set.of(),java.util.List.of(mark));
+        assertTrue(mesh.orbitalKeys.isEmpty());
+        assertFalse(mesh.stale(2048.01,3000,0,64,400));
+    }
+
 }

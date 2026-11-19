@@ -1,6 +1,7 @@
 package com.terminaldetector.drmd.client.planet;
 
 import com.terminaldetector.drmd.world.planet.PlanetMap;
+import com.terminaldetector.drmd.world.planet.OrbitalObjectGeometry;
 import com.terminaldetector.drmd.world.store.SurfaceSection;
 
 import java.util.Arrays;
@@ -49,6 +50,9 @@ public final class PlanetSurfaceMesh {
     /** -1 for ordinary ground/legacy quads, otherwise a current-view cube mask slot. */
     public final int[] orbitalMasks;
     public final List<HorizonOrbitalHandoff.Key> orbitalKeys;
+    /** Included object decisions only; built once, never a per-frame catalogue or block scan. */
+    private record OrbitalTier(HorizonLandmark mark,OrbitalObjectGeometry.Tier tier){}
+    private final List<OrbitalTier> orbitalTiers;
 	public final int quads;
 	public final double originX;
 	public final double originY;
@@ -61,6 +65,8 @@ public final class PlanetSurfaceMesh {
                               int[] orbitalMasks,List<HorizonOrbitalHandoff.Key> orbitalKeys) {
 		this.positions = positions;
         this.orbitalMasks=orbitalMasks;this.orbitalKeys=List.copyOf(orbitalKeys);
+        this.orbitalTiers=this.orbitalKeys.stream().map(HorizonOrbitalHandoff.Key::mark).distinct()
+            .map(mark->new OrbitalTier(mark,HorizonOrbitalProxy.tierAt(mark,originX,originY,originZ))).toList();
 		this.colours = colours;
 		this.quads = quads;
 		this.originX = originX;
@@ -77,7 +83,12 @@ public final class PlanetSurfaceMesh {
 		if (dx * dx + dz * dz > ORIGIN_SLACK * ORIGIN_SLACK) return true;
 		if (Math.abs(camY - originY) > ALTITUDE_SLACK) return true;
 		if (Math.abs(wantedReach - reach) > reach * 0.2) return true;
-		return Math.abs(wantedInner - innerRadius) > Math.max(32.0, innerRadius * 0.25);
+        if(Math.abs(wantedInner-innerRadius)>Math.max(32.0,innerRadius*.25))return true;
+        // The eye can cross2048 by centimetres while remaining inside the ordinary64/48 drift
+        // allowance. Keep the old source visible while the normal worker selects the new tier.
+        for(var chosen:orbitalTiers)
+            if(HorizonOrbitalProxy.tierAt(chosen.mark(),camX,camY,camZ)!=chosen.tier())return true;
+        return false;
 	}
 
 	/**
