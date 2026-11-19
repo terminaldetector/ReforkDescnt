@@ -33,6 +33,7 @@ public final class HybridTerrainModel extends ForwardingBakedModel {
     private HybridTerrainModel(BakedModel delegate) { super(delegate); }
 
     public static void register() {
+        CarvedWaterRendering.register();
         ModelLoadingPlugin.register(plugin -> plugin.modifyModelAfterBake().register((model,context) ->
             (MODEL.equals(context.resourceId()) || context.resourceId()!=null && context.resourceId().getNamespace().equals("drmd") && context.resourceId().getPath().startsWith("block/organic_")
                 || context.topLevelId()!=null && !context.topLevelId().getVariant().equals("inventory"))

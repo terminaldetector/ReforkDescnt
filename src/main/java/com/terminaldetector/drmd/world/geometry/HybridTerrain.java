@@ -38,7 +38,7 @@ public final class HybridTerrain {
                 } else blocks.add(new HybridMesh.Block(MicroGrid.FULL,false,true,true));
             } else if (NaturalGeometry.applies(state)) {
                 blocks.add(new Data(state,MicroGrid.FULL,true).meshBlock(state.isOpaque() || state.equals(self.source),false));
-            } else if (state.isAir()) blocks.add(HybridMesh.Block.AIR);
+            } else if (state.isAir()||state.getBlock() instanceof net.minecraft.block.FluidBlock) blocks.add(HybridMesh.Block.AIR);
             else {
                 boolean full=state.isFullCube(world,p);
                 boolean hides=state.isOpaqueFullCube(world,p) || (full && state.equals(self.source));

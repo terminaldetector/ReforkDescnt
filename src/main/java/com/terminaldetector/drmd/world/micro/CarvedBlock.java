@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * recur across a whole battlefield, and rebuilding a {@link VoxelShape} for every collision query
  * would cost more than the damage system saves.
  */
-public class CarvedBlock extends BlockWithEntity {
+public class CarvedBlock extends BlockWithEntity implements net.minecraft.block.Waterloggable {
 	public static final MapCodec<CarvedBlock> CODEC = createCodec(CarvedBlock::new);
 
 	/** Shapes by mask. Bounded by how many distinct shapes the world actually contains. */
@@ -46,7 +46,47 @@ public class CarvedBlock extends BlockWithEntity {
 
 	public CarvedBlock(Settings settings) {
 		super(settings);
+        setDefaultState(getStateManager().getDefaultState().with(net.minecraft.state.property.Properties.WATERLOGGED,false)
+            .with(net.minecraft.state.property.Properties.LEVEL_1_8,8).with(net.minecraft.state.property.Properties.FALLING,false));
 	}
+
+    @Override protected void appendProperties(net.minecraft.state.StateManager.Builder<Block,BlockState> builder){builder.add(net.minecraft.state.property.Properties.WATERLOGGED,net.minecraft.state.property.Properties.LEVEL_1_8,net.minecraft.state.property.Properties.FALLING);}
+    public static boolean water(net.minecraft.fluid.Fluid fluid){return fluid==net.minecraft.fluid.Fluids.WATER||fluid==net.minecraft.fluid.Fluids.FLOWING_WATER;}
+    public static BlockState withFluid(BlockState state,net.minecraft.fluid.FluidState fluid){
+        boolean wet=water(fluid.getFluid());return state.with(net.minecraft.state.property.Properties.WATERLOGGED,wet)
+            .with(net.minecraft.state.property.Properties.LEVEL_1_8,wet?fluid.getLevel():8)
+            .with(net.minecraft.state.property.Properties.FALLING,wet&&fluid.get(net.minecraft.fluid.FlowableFluid.FALLING));
+    }
+    @Override public net.minecraft.fluid.FluidState getFluidState(BlockState state){
+        if(!state.get(net.minecraft.state.property.Properties.WATERLOGGED))return super.getFluidState(state);
+        int level=state.get(net.minecraft.state.property.Properties.LEVEL_1_8);boolean falling=state.get(net.minecraft.state.property.Properties.FALLING);
+        return level==8&&!falling?net.minecraft.fluid.Fluids.WATER.getStill(false):net.minecraft.fluid.Fluids.FLOWING_WATER.getFlowing(level,falling);
+    }
+    @Override public BlockState getStateForNeighborUpdate(BlockState state,net.minecraft.util.math.Direction direction,BlockState neighbour,net.minecraft.world.WorldAccess world,BlockPos pos,BlockPos neighbourPos){
+        if(state.get(net.minecraft.state.property.Properties.WATERLOGGED)){var fluid=getFluidState(state).getFluid();world.scheduleFluidTick(pos,fluid,fluid.getTickRate(world));}
+        return super.getStateForNeighborUpdate(state,direction,neighbour,world,pos,neighbourPos);
+    }
+    private static boolean admitsWater(BlockView world,BlockPos pos){
+        if(world instanceof World actual&&!com.terminaldetector.drmd.world.edit.WorldEditSafety.neighbourhoodLoaded(actual,pos))return false;
+        if(!(world.getBlockEntity(pos)instanceof CarvedBlockEntity carved)||carved.thermalReadOnly()||carved.mask()==MicroGrid.FULL)return false;
+        var key=com.terminaldetector.drmd.world.geometry.HybridTerrain.snapshot(world,pos,carved.getRenderData());
+        return com.terminaldetector.drmd.world.geometry.MicroWaterVolume.of(key).fillable();
+    }
+    @Override public boolean canFillWithFluid(net.minecraft.entity.player.PlayerEntity player,BlockView world,BlockPos pos,BlockState state,net.minecraft.fluid.Fluid fluid){
+        return water(fluid)&&!state.get(net.minecraft.state.property.Properties.WATERLOGGED)&&admitsWater(world,pos);
+    }
+    @Override public boolean tryFillWithFluid(net.minecraft.world.WorldAccess world,BlockPos pos,BlockState state,net.minecraft.fluid.FluidState fluid){
+        if(!canFillWithFluid(null,world,pos,state,fluid.getFluid()))return false;
+        if(!world.isClient()){
+            if(!world.setBlockState(pos,withFluid(state,fluid),Block.NOTIFY_ALL))return false;
+            world.scheduleFluidTick(pos,fluid.getFluid(),fluid.getFluid().getTickRate(world));
+        }return true;
+    }
+    @Override public ItemStack tryDrainFluid(net.minecraft.entity.player.PlayerEntity player,net.minecraft.world.WorldAccess world,BlockPos pos,BlockState state){
+        if(!state.get(net.minecraft.state.property.Properties.WATERLOGGED)||!getFluidState(state).isStill())return ItemStack.EMPTY;
+        if(!world.setBlockState(pos,withFluid(state,net.minecraft.fluid.Fluids.EMPTY.getDefaultState()),Block.NOTIFY_ALL))return ItemStack.EMPTY;
+        return new ItemStack(net.minecraft.item.Items.WATER_BUCKET);
+    }
 
 	@Override
 	protected MapCodec<? extends BlockWithEntity> getCodec() {
@@ -196,7 +236,8 @@ public class CarvedBlock extends BlockWithEntity {
 			world.breakBlock(pos.toImmutable(), true, null);
 			return null;
 		}
-		world.setBlockState(pos, com.terminaldetector.drmd.entity.ModWorldBlocks.CARVED.getDefaultState(),
+        var retainedFluid=world.getFluidState(pos);
+		world.setBlockState(pos, withFluid(com.terminaldetector.drmd.entity.ModWorldBlocks.CARVED.getDefaultState(),retainedFluid),
 				Block.NOTIFY_ALL);
 		BlockEntity be = world.getBlockEntity(pos);
 		if (!(be instanceof CarvedBlockEntity carved)) return null;

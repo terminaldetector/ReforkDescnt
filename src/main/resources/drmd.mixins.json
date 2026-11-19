@@ -30,6 +30,7 @@
     "LocalSurfacePounceMixin",
     "LocalSurfaceJumpMixin",
     "PortalMotionMixin",
+    "CarvedFluidTickMixin",
     "MultiNoiseBiomeSourceMixin",
     "FootGravityGeometryMixin",
     "BoardingServerMovementMixin",
