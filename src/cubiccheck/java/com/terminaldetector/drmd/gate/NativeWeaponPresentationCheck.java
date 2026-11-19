@@ -52,6 +52,7 @@ public final class NativeWeaponPresentationCheck {
     private static final Set<String> gui=new HashSet<>(),hand=new HashSet<>(),cockpit=new HashSet<>();private static String previewItem;private static int preview=-1;
     private static final List<double[]> projected=new ArrayList<>();private static net.minecraft.client.render.model.json.ModelTransformationMode currentMode;
     private static List<double[]> lastProjection=List.of();private static String frameFailure;
+    private static int cockpitDepth;
     private NativeWeaponPresentationCheck(){}
     private static String id(ItemStack s){return Registries.ITEM.getId(s.getItem()).toString();}
     private static String expected(int item){return Registries.ITEM.getId(ITEMS[item]).toString();}
@@ -196,10 +197,15 @@ public final class NativeWeaponPresentationCheck {
         if(mode==net.minecraft.client.render.model.json.ModelTransformationMode.GUI)gui.add(id);
         if(mode==net.minecraft.client.render.model.json.ModelTransformationMode.FIRST_PERSON_RIGHT_HAND||mode==net.minecraft.client.render.model.json.ModelTransformationMode.FIRST_PERSON_LEFT_HAND)hand.add(id);
     }
-    private static boolean cockpitLive(){var c=MinecraftClient.getInstance();return ENABLED&&!done&&c.player!=null&&c.currentScreen==null&&DescentClientState.enabled&&!com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy();}
+    public static void beginCockpit(){if(ENABLED)cockpitDepth++;}
+    public static void endCockpit(){if(ENABLED)cockpitDepth--;}
+    private static boolean cockpitLive(){var c=MinecraftClient.getInstance();return ENABLED&&!done&&cockpitDepth>0&&c.player!=null&&c.currentScreen==null&&DescentClientState.enabled&&!com.terminaldetector.drmd.client.portal.OffscreenWorldView.busy();}
     public static void cockpitBox(net.minecraft.client.util.math.MatrixStack matrices){if(!cockpitLive())return;cockpit.add(id(DroneCombatInput.primary(MinecraftClient.getInstance())));var vertices=new ArrayList<org.joml.Vector3f>();for(int i=0;i<8;i++)vertices.add(new org.joml.Vector3f((i&1)==0?-.5f:.5f,(i&2)==0?-.5f:.5f,(i&4)==0?-.5f:.5f));project(matrices,vertices);}
     public static void cockpitMesh(net.minecraft.client.util.math.MatrixStack matrices,com.terminaldetector.drmd.workshop.ClusterModule module,float recoil){if(!cockpitLive())return;
-        var selected=DroneCombatInput.primary(MinecraftClient.getInstance());if(!(selected.getItem() instanceof com.terminaldetector.drmd.weapon.items.DescentWeaponItem item)||!com.terminaldetector.drmd.workshop.ConstructionRegistry.getModules(item.getDef().id).contains(module))return;
+        var selected=DroneCombatInput.primary(MinecraftClient.getInstance());
+        // This mesh has already returned from the local weapon's actual render call. Layout
+        // queries return fresh module copies, so their object identities cannot identify it.
+        if(!(selected.getItem() instanceof com.terminaldetector.drmd.weapon.items.DescentWeaponItem))return;
         cockpit.add(id(selected));int count=0;for(var part:com.terminaldetector.drmd.workshop.HybridWeaponModels.parts(module.model)){
             if(++count>64||part.faces().size()>128){frameFailure="bounded64 parts/128faces per real cockpit part overflow";return;}var vertices=part.faces().stream().flatMap(f->f.points().stream()).map(p->com.terminaldetector.drmd.workshop.HybridWeaponModels.transform(module,p,recoil,part.moving()).div(16)).toList();project(matrices,vertices);}
     }
