@@ -90,7 +90,7 @@ public final class NativeOrbitalMissionCheck {
         require(selected!=null,"bounded121metadata search finds genuine MINERS origin, never rewrites faction/seed");herald=selected;ANCHOR=new CityBlueprint.Point(selected.getX(),selected.getY()-5,selected.getZ()+14);
         var context=CityWorldStorage.capture(p);CityWorldStorage.requireHaloEnvelope(context,ANCHOR);plan=OrbitalFieldBlueprint.create(2,ANCHOR,context.bounds());
         var cubes=new TreeSet<D6ChunkPos>(Comparator.comparingInt(D6ChunkPos::x).thenComparingInt(D6ChunkPos::z).thenComparingInt(D6ChunkPos::y));
-        for(var cell:plan.cells()){var q=D6ChunkPos.ofBlock(cell.position().x(),cell.position().y(),cell.position().z());for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++)cubes.add(new D6ChunkPos(q.x()+x,q.y()+y,q.z()+z));}
+        for(var plannedCell:plan.cells()){var q=D6ChunkPos.ofBlock(plannedCell.position().x(),plannedCell.position().y(),plannedCell.position().z());for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++)cubes.add(new D6ChunkPos(q.x()+x,q.y()+y,q.z()+z));}
         require(cubes.size()<=196*8,"bounded native plan/halo cube budget");HALO.addAll(cubes);var columns=new LinkedHashMap<Long,int[]>();
         for(var q:cubes){long key=ChunkPos.toLong(q.x(),q.z());var range=columns.computeIfAbsent(key,k->new int[]{q.x(),q.z(),q.y(),q.y()});range[2]=Math.min(range[2],q.y());range[3]=Math.max(range[3],q.y());}
         require(columns.size()<=196,"native authored footprint196column cap");for(var r:columns.values()){require(r[3]-r[2]<8,"native authored range8cube cap");COVER.add(new Cover(new BodyVolumePlan.Column(r[0],r[1],r[2],r[3]),new Object(),heldWorld.getForcedChunks().contains(ChunkPos.toLong(r[0],r[1]))));}
