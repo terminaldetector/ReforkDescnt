@@ -5,10 +5,11 @@ import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.client.DescentClientState;
 import com.terminaldetector.drmd.client.flight.ShipAttitudeClient;
 import com.terminaldetector.drmd.client.portal.OffscreenWorldView;
-import com.terminaldetector.drmd.client.portal.PortalSeeThroughRenderer;
+import com.terminaldetector.drmd.client.portal.PortalViewDiagnostics;
 import com.terminaldetector.drmd.flight.FlightSystem;
 import com.terminaldetector.drmd.network.ModNetworking;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
@@ -18,6 +19,7 @@ import org.joml.Quaternionf;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,10 +40,13 @@ final class NativeGunPortalApproach {
     private BlockPos source;
     private BlockPos target;
     private Quaternionf approachRotation;
+    private Vec3d outerPosition;
+    private float[] outerBasis;
     private boolean aligned;
     private boolean held;
     private int ticks;
     private int nearFrames;
+    private int cameraStateChanges;
     private int synchronizedTicks;
     private double maximumApproachAngle;
 
@@ -115,12 +120,17 @@ final class NativeGunPortalApproach {
             return finish(client, "The server did not map the incoming frame onto the exit");
         if (flight && (vector(reached.velocity).z <= 0 || vector(reached.up).distanceTo(new Vec3d(-BANK.x, BANK.y, 0)) > .04))
             return finish(client, "The server did not preserve bank and outgoing flight momentum");
-        if (nearFrames == 0 || maximumApproachAngle > 1)
+        if (nearFrames == 0 || maximumApproachAngle > 1 || cameraStateChanges != 0)
             return finish(client, "The actual outer world view rotated before arrival");
         if (latest == null || client.player.getPos().distanceTo(vector(latest.pos)) > 1)
             return finish(client, "The client and server did not agree after the crossing");
         saveFrame(client, "traversal-exit");
         return finish(client, null);
+    }
+
+    void beforeWorldRender(Camera camera) {
+        outerPosition = camera.getPos();
+        outerBasis = cameraBasis(camera);
     }
 
     void rendered(MinecraftClient client) {
@@ -133,12 +143,16 @@ final class NativeGunPortalApproach {
             return;
         }
         double depth = client.player.getZ() - (source.getZ() + 1);
-        if (!held || depth < .05 || depth > 2.5 || PortalSeeThroughRenderer.scannedCount() == 0) return;
+        if (!held || depth < .05 || depth > 2.5
+                || !String.valueOf(PortalViewDiagnostics.lastSummary("portal")).startsWith("drawing")) return;
+        var camera = client.gameRenderer.getCamera();
+        boolean sameCamera = camera.getPos().equals(outerPosition) && Arrays.equals(cameraBasis(camera), outerBasis);
+        if (!sameCamera) cameraStateChanges++;
         double angle = Math.toDegrees(2 * Math.acos(Math.min(1, Math.abs(approachRotation.dot(q)))));
         nearFrames++;
         maximumApproachAngle = Math.max(maximumApproachAngle, angle);
         if (frames.size() < 120) frames.add(Map.of("tick", ticks, "depth", depth, "angle", angle,
-                "player", xyz(client.player.getPos()), "camera", xyz(client.gameRenderer.getCamera().getPos())));
+                "player", xyz(client.player.getPos()), "camera", xyz(camera.getPos()), "sameCamera", sameCamera));
         if (nearFrames == 1) saveFrame(client, "traversal-approach");
     }
 
@@ -154,6 +168,7 @@ final class NativeGunPortalApproach {
         result.put("flight", flight);
         result.put("ordinaryForwardKey", held);
         result.put("nearFrames", nearFrames);
+        result.put("cameraStateChanges", cameraStateChanges);
         result.put("maximumApproachAngle", maximumApproachAngle);
         result.put("crossings", crossings);
         result.put("initial", baseline);
@@ -173,6 +188,14 @@ final class NativeGunPortalApproach {
                 + " nearFrames=" + nearFrames + " angle=" + maximumApproachAngle);
         client.scheduleStop();
         return true;
+    }
+    private static float[] cameraBasis(Camera camera) {
+        var q = camera.getRotation();
+        var f = camera.getHorizontalPlane();
+        var up = camera.getVerticalPlane();
+        var left = camera.getDiagonalPlane();
+        return new float[]{camera.getYaw(), camera.getPitch(), q.x, q.y, q.z, q.w,
+                f.x, f.y, f.z, up.x, up.y, up.z, left.x, left.y, left.z};
     }
 
     private static void saveFrame(MinecraftClient client, String name) {

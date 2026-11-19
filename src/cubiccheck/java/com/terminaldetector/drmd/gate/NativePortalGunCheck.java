@@ -31,7 +31,12 @@ public final class NativePortalGunCheck {
     private static final String[] NAMES={"blue-only","paired-blue-orange","blue-replaced","pair-cleared","container-protected"};
     public static void register(){
         ClientTickEvents.END_CLIENT_TICK.register(NativePortalGunCheck::tick);
-        if(TRAVERSAL!=null)net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(TRAVERSAL::observe);
+        if(TRAVERSAL!=null){
+            net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_SERVER_TICK.register(TRAVERSAL::observe);
+            net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.START.register(context->{
+                if(phase==2&&!finished&&!OffscreenWorldView.busy())TRAVERSAL.beforeWorldRender(context.camera());
+            });
+        }
     }
     public static void camera(Camera camera) {
         if(!capture)return;
