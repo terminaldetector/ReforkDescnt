@@ -1,0 +1,25 @@
+{
+  "task": "S10-T01",
+  "beforeSource": "5f947bd1db746b009e2747c15163bfd820cce907",
+  "afterSource": "269cf9b99db9133c4bef4a1241f049bccc7b40b7",
+  "assets": 134,
+  "designatorBakedQuads": 24,
+  "after": {
+    "id": "drmd:laser_designator",
+    "modelClass": "net.minecraft.class_1093",
+    "builtin": false,
+    "quads": 24,
+    "sprites": [
+      "minecraft:textures/atlas/blocks.png/drmd:item/laser_designator"
+    ],
+    "particleSprite": "drmd:item/laser_designator",
+    "status": "PASS"
+  },
+  "presentationEvidence": [
+    "gravity-camera-and-weapon.json",
+    "engineer-weapon-presentation.json"
+  ],
+  "scope": "Every registered DRMD default item is resolved through the live client item renderer and atlas; weapon and tool categories additionally use actual ordinary and 6DoF hand scenes in both profiles.",
+  "archive": "live-item-registry.zip",
+  "archiveSha256": "6f29d970dae14d567b45c67fda619854ab1e7f204220412ede8e3aa31aa2538d"
+}
