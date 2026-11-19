@@ -16,7 +16,7 @@ public final class DroneInventoryHandler extends ScreenHandler {
  public static void register(){Registry.register(Registries.SCREEN_HANDLER,Identifier.of("drmd","drone_inventory"),TYPE);}
  public DroneInventoryHandler(int id,PlayerInventory inventory){this(id,inventory,new SimpleInventory(5));}
  public DroneInventoryHandler(int id,PlayerInventory inventory,Inventory hull){super(TYPE,id);this.hull=hull;this.owner=inventory.player;checkSize(hull,5);
-  for(int i=0;i<5;i++){final int index=i;addSlot(new Slot(hull,i,16+i*36,91){
+  for(int i=0;i<5;i++){final int index=i;addSlot(new Slot(hull,i,8+i*36,91){
    public int getMaxItemCount(){return 1;}
    public boolean canInsert(ItemStack s){return index==4?s.getItem() instanceof com.terminaldetector.drmd.flight.AcceleratorModuleItem:index==3||DroneArsenal.supported(s);}
   });}
@@ -30,6 +30,6 @@ public final class DroneInventoryHandler extends ScreenHandler {
   if(s.isEmpty())slot.setStack(ItemStack.EMPTY);else slot.markDirty();return copy;
  }
  public static void open(net.minecraft.server.network.ServerPlayerEntity p){
-  p.openHandledScreen(new SimpleNamedScreenHandlerFactory((id,inv,player)->new DroneInventoryHandler(id,inv,DroneLoadout.of(p)),net.minecraft.text.Text.literal("Дрон / оснащение")));
+  p.openHandledScreen(new SimpleNamedScreenHandlerFactory((id,inv,player)->new DroneInventoryHandler(id,inv,DroneLoadout.of(p)),net.minecraft.text.Text.translatable("container.drmd.drone_inventory")));
  }
 }

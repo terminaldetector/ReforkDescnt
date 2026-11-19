@@ -38,6 +38,14 @@ public final class LocalActorTargeting {
         }
         return a.contact(b,0).filter(hit->hit.penetration()>0).isPresent();
     }
+    /** The damage-stage impulse precedes MobEntity.tryAttack's extra impulse. Direct framed
+     * attackers need its source displacement projected into the same native tangent frame. */
+    public static void damageKnockback(LivingEntity target,double strength,double x,double z,net.minecraft.entity.damage.DamageSource source) {
+        if(source.getSource() instanceof LivingEntity attacker&&framed(attacker)&&attacker.getWorld()==target.getWorld()&&source.getPosition()!=null) {
+            var direction=ActorFrameMath.toLocal(source.getPosition().subtract(target.getPos()),ActorFrames.up(attacker));
+            knockback(target,strength,direction.x,direction.z,attacker);
+        } else target.takeKnockback(strength,x,z);
+    }
     public static void knockback(LivingEntity target,double strength,double x,double z,LivingEntity attacker) {
         if(!framed(attacker)||target.getWorld()!=attacker.getWorld()){target.takeKnockback(strength,x,z);return;}
         var before=KNOCKBACK.get();KNOCKBACK.set(new Knockback(target,OrientationFrame.fromUp(ActorFrames.up(attacker))));

@@ -48,6 +48,9 @@ public final class DroneFireAdmissionGameTests implements FabricGameTest {
             blocks.forEach((p,s)->w.setBlockState(p,s,2));lease.close();
         }
     }
+    /** Snapshot read in the real native callback; assertions belong only to the GameTest task. */
+    private record Terminal(boolean sameRound,boolean sameOwner,boolean block,boolean noEntity,
+                            Vec3d point,BlockPos expected,long tick,int life){}
     private static float cooldown(DroneEntity d){return d.writeNbt(new NbtCompound()).getFloat("attackCooldown");}
     private static void refused(TestContext c,DroneEntity d,LivingEntity target,String reason){
         float e=d.getModEnergy(),cd=cooldown(d);c.assertTrue(!d.tryFireAt(target)&&d.getModEnergy()==e&&cooldown(d)==cd,reason+" refuses before energy/cooldown");
@@ -82,6 +85,7 @@ public final class DroneFireAdmissionGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="drone-fire-real-cover",tickLimit=180)
     public void allThreeAuthoredWeaponsStillEmitTravelAndHitRealSolidCoverWithTheirActualCosts(TestContext c){
         var r=new Rig(c);boolean[] fired={false};var moving=new HashSet<UUID>();var impacts=new HashSet<UUID>();var births=new HashMap<UUID,Vec3d>();
+        var terminal=new HashMap<UUID,Terminal>();var callbackCounts=new HashMap<UUID,Integer>();
         c.runAtEveryTick(()->{if(r.closed)return;try{
             r.w.resetIdleTimeout();if(!r.admit())return;
             if(!fired[0]){
@@ -95,12 +99,28 @@ public final class DroneFireAdmissionGameTests implements FabricGameTest {
                         &&n.getFloat("dmg")==d.getRole().weaponDamage&&n.getString("class").equals(d.getRole().weaponClass.id),"unchanged authored energy/cooldown/damage/class/lifetime "+d.kind());
                     float after=d.getModEnergy();c.assertTrue(!d.tryFireAt(target)&&d.getModEnergy()==after,"same-tick retry cannot bypass actual cooldown");
                     // Default drone rounds have no gameplay onHit callback: this passive receipt only observes the real engine terminal trace.
-                    shot.setOnHit(hit->{c.assertTrue(hit.projectile()==shot&&shot.getOwnerEntity()==d&&hit.isBlock()&&hit.hitEntity()==null
-                        &&Math.abs(hit.hitPos().x-barrier.getX())<1e-5,"genuine owner/round/material terminal receipt");impacts.add(shot.getUuid());});
+                    shot.setOnHit(hit->{
+                        if(r.closed)return;
+                        callbackCounts.merge(shot.getUuid(),1,Integer::sum);
+                        terminal.put(shot.getUuid(),new Terminal(hit.projectile()==shot,shot.getOwnerEntity()==d,hit.isBlock(),hit.hitEntity()==null,
+                            hit.hitPos(),barrier,r.w.getTime(),shot.remainingLifeTicks()));
+                    });
                 }
                 fired[0]=true;return;
             }
             r.ticks++;for(var shot:r.rounds)if(!shot.isRemoved()&&shot.getPos().squaredDistanceTo(births.get(shot.getUuid()))>.01&&shot.getVelocity().lengthSquared()>0)moving.add(shot.getUuid());
+            for(var shot:r.rounds){
+                var receipt=terminal.get(shot.getUuid());if(receipt==null)continue;
+                var material=new Box(Vec3d.of(receipt.expected()),Vec3d.of(receipt.expected().add(1,1,1)));
+                c.assertTrue(callbackCounts.getOrDefault(shot.getUuid(),0)==1&&receipt.sameRound()&&receipt.sameOwner()&&receipt.block()&&receipt.noEntity(),
+                    "genuine once-only owner/round/block terminal receipt in normal assertion phase: "+receipt);
+                // Native VoxelShape.raycast samples0.001 of the segment inside a voxel when
+                // this step starts on its face. Require the actual intended material volume,
+                // rather than incorrectly requiring every valid native point on its west plane.
+                c.assertTrue(receipt.point()!=null&&material.contains(receipt.point())&&r.w.getBlockState(receipt.expected()).isOf(Blocks.BEDROCK),
+                    "actual terminal point belongs to the intended protected solid material: "+receipt);
+                if(impacts.add(shot.getUuid()))System.out.println("DRONE_FIRE_TERMINAL shot="+shot.getUuid()+" receipt="+receipt+" westFaceDelta="+(receipt.point().x-receipt.expected().getX()));
+            }
             if(r.ticks<16&&(moving.size()<3||impacts.size()<3))return;
             c.assertTrue(moving.size()==3&&impacts.size()==3&&r.rounds.stream().allMatch(Entity::isRemoved),"three actual normal-tick projectiles traveled and terminated on cover: moving="+moving.size()+" impact="+impacts.size());
             c.assertTrue(r.blocks.keySet().stream().allMatch(p->r.w.getBlockState(p).isOf(Blocks.BEDROCK)),"protected real material was not bypassed or erased");r.done();

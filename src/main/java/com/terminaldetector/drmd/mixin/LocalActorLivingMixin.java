@@ -13,6 +13,8 @@ public abstract class LocalActorLivingMixin implements com.terminaldetector.drmd
     public abstract net.minecraft.util.math.Box drmd$targetHitbox();
     @Inject(method="canSee",at=@At("HEAD"),cancellable=true)
     private void localSight(Entity target,CallbackInfoReturnable<Boolean> cir){var actor=(LivingEntity)(Object)this;if(LocalActorTargeting.framed(actor)||LocalActorTargeting.framed(target))cir.setReturnValue(LocalActorTargeting.canSee(actor,target));}
+    @Redirect(method="damage",at=@At(value="INVOKE",target="Lnet/minecraft/entity/LivingEntity;takeKnockback(DDD)V"),require=1,allow=1)
+    private void localDamageImpulse(LivingEntity target,double strength,double x,double z,net.minecraft.entity.damage.DamageSource source,float amount){LocalActorTargeting.damageKnockback(target,strength,x,z,source);}
     @Redirect(method="takeKnockback",at=@At(value="INVOKE",target="Lnet/minecraft/entity/LivingEntity;getVelocity()Lnet/minecraft/util/math/Vec3d;"),require=1,allow=1)
     private Vec3d localImpulseInput(LivingEntity target){return LocalActorTargeting.nativeKnockbackVelocity(target);}
     @Redirect(method="takeKnockback",at=@At(value="INVOKE",target="Lnet/minecraft/entity/LivingEntity;setVelocity(DDD)V"),require=1,allow=1)

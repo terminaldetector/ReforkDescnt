@@ -8,7 +8,9 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 
 public final class DroneInventoryScreen extends HandledScreen<DroneInventoryHandler> {
-    private static final String[] LABELS = {"ЛКМ", "ПКМ", "B", "Запас", "Мотор"};
+    private static final Text[] LABELS = {Text.translatable("container.drmd.drone_inventory.primary"),
+            Text.translatable("container.drmd.drone_inventory.secondary"), Text.translatable("container.drmd.drone_inventory.auxiliary"),
+            Text.translatable("container.drmd.drone_inventory.reserve"), Text.translatable("container.drmd.drone_inventory.engine")};
     private DroneLoadoutPreview preview;
     private int previewBank;
 
@@ -24,14 +26,14 @@ public final class DroneInventoryScreen extends HandledScreen<DroneInventoryHand
 
     @Override protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
         for (int i = 0; i < 5; i++) {
-            int slotX = x + 16 + i * 36;
+            int slotX = x + handler.getSlot(i).x;
             if (mouseX >= slotX - 2 && mouseX < slotX + 18 && mouseY >= y + 79 && mouseY < y + 109)
                 previewBank = i;
         }
         context.fill(x, y, x + 176, y + 212, 0xee18252e);
         context.fill(x + 4, y + 18, x + 172, y + 79, 0xff0d1721);
         preview.draw(context, handler.getSlot(previewBank).getStack(), previewBank, x + 4, y + 29, 168, 49);
-        context.drawText(textRenderer, Text.literal("Осмотр: " + LABELS[previewBank]), x + 8, y + 20, 0xa5d8db, false);
+        context.drawText(textRenderer, Text.translatable("container.drmd.drone_inventory.preview", LABELS[previewBank]), x + 8, y + 20, 0xa5d8db, false);
 
         for (int row = 0; row < 4; row++) for (int col = 0; col < 9; col++) {
             int slotX = x + 8 + col * 18, slotY = y + (row == 3 ? 184 : 126 + row * 18);
@@ -39,10 +41,10 @@ public final class DroneInventoryScreen extends HandledScreen<DroneInventoryHand
             context.fill(slotX, slotY, slotX + 16, slotY + 16, 0xff101c25);
         }
         for (int i = 0; i < 5; i++) {
-            int slotX = x + 16 + i * 36;
+            int slotX = x + handler.getSlot(i).x;
             context.fill(slotX - 1, y + 90, slotX + 17, y + 108, i == previewBank ? 0xff63d8dc : 0xff80929c);
             context.fill(slotX, y + 91, slotX + 16, y + 107, 0xff26353d);
-            context.drawCenteredTextWithShadow(textRenderer, Text.literal(LABELS[i]), slotX + 8, y + 80,
+            context.drawCenteredTextWithShadow(textRenderer, LABELS[i], slotX + 8, y + 80,
                     i == previewBank ? 0xe0ffff : 0xa5d8db);
         }
     }
