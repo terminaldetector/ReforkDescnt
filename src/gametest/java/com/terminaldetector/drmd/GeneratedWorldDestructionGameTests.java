@@ -67,6 +67,10 @@ public final class GeneratedWorldDestructionGameTests implements FabricGameTest 
             }
             for(int y=-5;y<=0;y++)world.setBlockState(root.up(y),Blocks.STONE_BRICKS.getDefaultState(),2);
             for(int x=0;x<=3;x++)world.setBlockState(root.up().east(x),Blocks.OAK_SLAB.getDefaultState(),2);
+            // These slabs are adjacent in the block grid with space between their real shapes.
+            var upper=Blocks.OAK_SLAB.getDefaultState().with(net.minecraft.state.property.Properties.SLAB_TYPE,net.minecraft.block.enums.SlabType.TOP);
+            for(int y=-5;y<=2;y++)world.setBlockState(root.up(y).east(5),Blocks.STONE_BRICKS.getDefaultState(),2);
+            for(int x=3;x<=4;x++)world.setBlockState(root.up(2).east(x),upper,2);
             rocket(c,root,12);
         });
         c.runAtTick(27,()->{
@@ -86,6 +90,9 @@ public final class GeneratedWorldDestructionGameTests implements FabricGameTest 
                     "the four source slabs retain half-height colliders throughout the fall: "+panel.collider().boxes());
                 c.assertTrue(world.getBlockState(root).isAir()&&world.getBlockState(root.up()).isAir()
                     &&panel.physicsCentre().y<root.getY()+.75,"the stronger shot cuts its support and gravity drops the real panel");
+                c.assertTrue(world.getBlockState(root.up(2).east(3)).equals(Blocks.OAK_SLAB.getDefaultState()
+                    .with(net.minecraft.state.property.Properties.SLAB_TYPE,net.minecraft.block.enums.SlabType.TOP)),
+                    "the independent upper panel stays with its real support");
             } finally {clean(world,root,originals,chunks);}
             c.complete();
         });

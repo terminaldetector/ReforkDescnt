@@ -94,7 +94,7 @@ public final class BlastStructuralCollapse {
             for(var d:Direction.values()){
                 if(b.bodies>=MAX_BODIES||b.reads>=MAX_READS)return created;
                 var seed=cell(cut.offset(d));if(!considered.add(seed))continue;
-                var probe=UnsupportedStructure.examine(seed,read::contact,MAX_COMPONENT,RADIUS);considered.addAll(probe.cells());
+                var probe=UnsupportedStructure.examine(seed,read::contact,read::touching,MAX_COMPONENT,RADIUS);considered.addAll(probe.cells());
                 if(probe.status()!=UnsupportedStructure.Status.DETACHED||probe.cells().size()<2)continue;
                 var selected=new LinkedHashMap<BlockPos,BlockState>();
                 for(var c:probe.cells()){var p=pos(c);selected.put(p,read.state(p).orElseThrow());}
@@ -120,7 +120,10 @@ public final class BlastStructuralCollapse {
     private static BlockPos pos(BodyTopology.Cell c){return new BlockPos(c.x(),c.y(),c.z());}
     private static boolean empty(BlockState state){return state.isAir()||state.isReplaceable()||state.isIn(BlockTags.LEAVES);}
     private static final class Reader {
+        private static final List<Box> FULL=List.of(new Box(BlockPos.ORIGIN));
+        private static final double CONTACT_EPSILON=1e-6;
         final ServerWorld world;final Budget budget;final Predicate<BlockPos> permission;final Map<BlockPos,Optional<BlockState>> cache=new HashMap<>();
+        final Map<BlockState,List<Box>> shapes=new HashMap<>();
         Reader(ServerWorld world,Budget budget,Predicate<BlockPos> permission){this.world=world;this.budget=budget;this.permission=permission;}
         Optional<BlockState> state(BlockPos p){
             var known=cache.get(p);if(known!=null)return known;
@@ -131,6 +134,27 @@ public final class BlastStructuralCollapse {
         UnsupportedStructure.Contact contact(BodyTopology.Cell cell){
             var state=state(pos(cell));return state.isEmpty()?UnsupportedStructure.Contact.UNKNOWN
                 :empty(state.get())?UnsupportedStructure.Contact.EMPTY:inert(state.get())&&permission.test(pos(cell))?UnsupportedStructure.Contact.MATERIAL:UnsupportedStructure.Contact.ANCHOR;
+        }
+        boolean touching(BodyTopology.Cell from,BodyTopology.Cell to) {
+            var first=state(pos(from)).orElseThrow();var second=state(pos(to)).orElseThrow();
+            if(!partialMaterial(first)&&!partialMaterial(second))return true;
+            int dx=to.x()-from.x(),dy=to.y()-from.y(),dz=to.z()-from.z();
+            for(var a:shape(first))for(var b:shape(second)) {
+                double x=overlap(a.minX,a.maxX,b.minX+dx,b.maxX+dx);
+                double y=overlap(a.minY,a.maxY,b.minY+dy,b.maxY+dy);
+                double z=overlap(a.minZ,a.maxZ,b.minZ+dz,b.maxZ+dz);
+                if(x>=(dx==0?CONTACT_EPSILON:-CONTACT_EPSILON)
+                    &&y>=(dy==0?CONTACT_EPSILON:-CONTACT_EPSILON)
+                    &&z>=(dz==0?CONTACT_EPSILON:-CONTACT_EPSILON))return true;
+            }
+            return false;
+        }
+        private List<Box> shape(BlockState state) {
+            return partialMaterial(state)?shapes.computeIfAbsent(state,s->s.getCollisionShape(
+                net.minecraft.world.EmptyBlockView.INSTANCE,BlockPos.ORIGIN).getBoundingBoxes()):FULL;
+        }
+        private static double overlap(double a0,double a1,double b0,double b1) {
+            return Math.min(a1,b1)-Math.max(a0,b0);
         }
     }
 }
