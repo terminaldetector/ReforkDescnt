@@ -79,9 +79,11 @@ public final class GeneratedWorldDestructionGameTests implements FabricGameTest 
                 var parts=bodies(world,root);
                 c.assertTrue(parts.size()==1&&parts.getFirst().age>=8,"the detached panel is one normally ticking body");
                 var panel=parts.getFirst();
-                c.assertTrue(panel.cells().size()==4&&panel.cells().stream().allMatch(b->b.state().isOf(Blocks.OAK_SLAB))
+                c.assertTrue(panel.cells().size()==4&&panel.cells().stream().allMatch(b->b.state().isOf(Blocks.OAK_SLAB)),
+                    "the detached panel retains all four source slabs: "+panel.cells());
+                c.assertTrue(!panel.collider().boxes().isEmpty()
                     &&panel.collider().boxes().stream().allMatch(box->box.max().y()-box.min().y()<=.500001),
-                    "the four source slabs retain half-height colliders throughout the fall");
+                    "the four source slabs retain half-height colliders throughout the fall: "+panel.collider().boxes());
                 c.assertTrue(world.getBlockState(root).isAir()&&world.getBlockState(root.up()).isAir()
                     &&panel.physicsCentre().y<root.getY()+.75,"the stronger shot cuts its support and gravity drops the real panel");
             } finally {clean(world,root,originals,chunks);}
