@@ -402,5 +402,6 @@
   "item.drmd.spawn_egg_shapes_infantry": "Яйцо призыва пехотинца Shapes",
   "tooltip.drmd.repair.partial": "Ремонт трещин кладки и повреждений существующих блоков механизмов.",
   "tooltip.drmd.repair.replacement": "Для утраченного материала стены нужен такой же блок; уничтоженные блоки заменяются.",
-  "message.drmd.repair.done": "Ремонт завершён."
+  "message.drmd.repair.done": "Ремонт завершён.",
+  "message.drmd.threat.rocket_warning": "Ракетная пехота обнаружила базу. До атаки: %s сек. Укройтесь, дайте отпор или эвакуируйтесь."
 }

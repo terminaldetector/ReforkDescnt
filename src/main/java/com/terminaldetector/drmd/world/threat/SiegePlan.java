@@ -3,8 +3,9 @@ package com.terminaldetector.drmd.world.threat;
 import java.util.*;
 import static com.terminaldetector.drmd.world.threat.ThreatProgress.*;
 
-/** Non-autostart intent/order protocol. No production director consumes it.
- * Five shots per slot is a proposed encounter order, not an actor/stat change. */
+/** Non-autostart intent/order protocol. An explicit live director deployment may
+ * consume its bounded orders; saved intent alone cannot authorize a raid.
+ * Five shots per slot is an encounter order, not a global actor/stat change. */
 public final class SiegePlan {
     public static final int SLOTS=2,CANDIDATE_SHOTS_PER_SLOT=5,MAX_ACKS=10;
     public enum Phase { PLANNED,WARNING,SEARCHING,SIEGE,RETREATING,COOLDOWN,CLOSED }

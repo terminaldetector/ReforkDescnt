@@ -17,6 +17,19 @@ public final class AiCommands {
 
 	public static void register() {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            dispatcher.register(CommandManager.literal("d6_rocket_siege").requires(s->s.hasPermissionLevel(2))
+                .then(CommandManager.argument("player",net.minecraft.command.argument.EntityArgumentType.player())
+                .then(CommandManager.argument("site",net.minecraft.command.argument.BlockPosArgumentType.blockPos())
+                .then(CommandManager.argument("left",net.minecraft.command.argument.BlockPosArgumentType.blockPos())
+                .then(CommandManager.argument("right",net.minecraft.command.argument.BlockPosArgumentType.blockPos()).executes(ctx->{
+                    var player=net.minecraft.command.argument.EntityArgumentType.getPlayer(ctx,"player");var world=ctx.getSource().getWorld();
+                    var site=net.minecraft.command.argument.BlockPosArgumentType.getLoadedBlockPos(ctx,"site");
+                    var left=net.minecraft.util.math.Vec3d.ofBottomCenter(net.minecraft.command.argument.BlockPosArgumentType.getLoadedBlockPos(ctx,"left"));
+                    var right=net.minecraft.util.math.Vec3d.ofBottomCenter(net.minecraft.command.argument.BlockPosArgumentType.getLoadedBlockPos(ctx,"right"));
+                    var episode=com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.deployRocketPair(world,player,site,left,right);
+                    if(episode.isEmpty()){ctx.getSource().sendError(Text.literal("Rocket pair refused: mature Survival, empty roster, visible material and loaded standing space required"));return 0;}
+                    ctx.getSource().sendFeedback(()->Text.literal("Finite rocket pair "+episode.get().plan()+"; full warning ends "+episode.get().warningEnds()),false);return 1;
+                }))))));
 			LiteralArgumentBuilder<ServerCommandSource> root = CommandManager.literal("6dof_spawn");
             for(var kind:com.terminaldetector.drmd.entity.FlightEnemyKind.values())
                 root.then(CommandManager.literal(kind.id).executes(ctx->{

@@ -438,5 +438,6 @@
   "item.drmd.spawn_egg_shapes_infantry": "Shapes infantry spawn egg",
   "tooltip.drmd.repair.partial": "Repairs cracked masonry and damage to existing mechanism blocks.",
   "tooltip.drmd.repair.replacement": "Missing wall material costs one matching block; destroyed blocks need replacement.",
-  "message.drmd.repair.done": "Repair complete."
+  "message.drmd.repair.done": "Repair complete.",
+  "message.drmd.threat.rocket_warning": "Rocket infantry sighted your base. Warning: %s seconds. Take cover, counterattack or evacuate."
 }

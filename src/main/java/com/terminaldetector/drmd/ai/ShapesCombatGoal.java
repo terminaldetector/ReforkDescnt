@@ -33,7 +33,7 @@ public final class ShapesCombatGoal extends Goal {
         }
         if(remembered==null||now<observedAt||now-observedAt>=DroneSquadMailbox.TTL){mob.getNavigation().stop();return;}
         // This22percent flee threshold already belongs to the shared drone tactics; no new role statistics.
-        boolean needsCover=mob.getHealth()/Math.max(1,mob.getMaxHealth())<.22f||mob.getWeaponEnergy()<AiRole.LASER.weaponCost;
+        boolean needsCover=mob.getHealth()/Math.max(1,mob.getMaxHealth())<.22f||mob.getWeaponEnergy()<mob.infantryRole().weaponCost;
         if(now>=nextMove){
             nextMove=now+DroneSquadMailbox.CADENCE;
             Vec3d destination=needsCover?cover(remembered):remembered;

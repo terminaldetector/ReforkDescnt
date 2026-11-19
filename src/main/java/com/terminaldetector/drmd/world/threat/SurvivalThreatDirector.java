@@ -59,9 +59,11 @@ public final class SurvivalThreatDirector {
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player,from,to)->cancel(from,player.getUuid()));
         ServerWorldEvents.UNLOAD.register((server,world)->FRAMES.remove(world));
         ServerLifecycleEvents.SERVER_STOPPED.register(server->FRAMES.clear());
+        ServerWorldEvents.UNLOAD.register((server,world)->RocketSiegeRuntime.clear(world));
+        ServerLifecycleEvents.SERVER_STOPPED.register(server->RocketSiegeRuntime.clearAll());
     }
     public static Stats stats(ServerWorld world){var f=FRAMES.get(world);return f==null?new Stats(0,0,0,0,0):f.last;}
-    private static boolean eligible(ServerWorld world,ServerPlayerEntity p){
+    static boolean eligible(ServerWorld world,ServerPlayerEntity p){
         return p.isAlive()&&!p.isRemoved()&&p.interactionManager.getGameMode()==GameMode.SURVIVAL&&!p.isCreative()&&!p.isSpectator()
             &&p.getServerWorld()==world&&p.networkHandler!=null&&world.getServer().getPlayerManager().getPlayer(p.getUuid())==p
             &&world.getEntity(p.getUuid())==p&&Double.isFinite(p.getPos().lengthSquared())&&Math.abs(p.getY())<=30_000_000
@@ -71,7 +73,11 @@ public final class SurvivalThreatDirector {
         var backend=WorldAccess.of(world).backend();return backend==CubicAvailability.Backend.UNSUPPORTED?null:
             new ReconAdmission.Context(world.getRegistryKey().getValue().toString(),world.getSeed(),backend.name(),world.getBottomY(),world.getTopY());
     }
-    private static boolean enabled(ServerWorld w){return w.getDifficulty()!=Difficulty.PEACEFUL&&w.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING);}
+    static boolean enabled(ServerWorld w){return w.getDifficulty()!=Difficulty.PEACEFUL&&w.getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING);}
+    /** Explicit authored episode; normal alarm and timed recon selection stay unchanged. */
+    public static Optional<RocketSiegeRuntime.Deployment> deployRocketPair(ServerWorld world,ServerPlayerEntity player,BlockPos site,Vec3d first,Vec3d second){
+        return RocketSiegeRuntime.deploy(world,player,site,first,second);
+    }
     /** Public for server integrations; a nearest player or a merely damaged/live alias is not an alarm. */
     public static boolean confirmedKill(ServerWorld world,ServerPlayerEntity player,DroneEntity victim){
         if(!world.getServer().isOnThread()||!eligible(world,player)||!enabled(world)||player.getWorld()!=world||victim.getWorld()!=world
@@ -122,6 +128,7 @@ public final class SurvivalThreatDirector {
     }
     private static void expiry(Entity entity,long until){entity.getCommandTags().removeIf(s->s.startsWith(UNTIL));entity.addCommandTag(UNTIL+until);}
     private static void loaded(Entity entity,ServerWorld world){
+        if(entity instanceof com.terminaldetector.drmd.entity.mob.ShapesInfantryEntity infantry){RocketSiegeRuntime.loaded(infantry);return;}
         if(!(entity instanceof DroneEntity))return;var tag=tag(entity);if(tag==null)return;
         var frame=FRAMES.get(world);if(frame!=null&&frame.admitting.contains(entity.getUuid()))return;
         var state=SurvivalThreatState.get(world);var actor=state.actor(entity.getUuid());
@@ -185,11 +192,13 @@ public final class SurvivalThreatDirector {
         long tick=world.getServer().getTicks();if(tick%INTERVAL!=0)return;
         var frame=FRAMES.computeIfAbsent(world,w->new Frame());if(frame.tick==tick)return;frame.tick=tick;
         frame.candidates=frame.sight=frame.spawned=frame.roster=0;var state=SurvivalThreatState.get(world);long now=world.getTime();
+        RocketSiegeRuntime.tick(world);
         if(!state.reconAvailable()){frame.last=new Stats(0,0,0,0,0);return;}
         cleanup(world,state,frame,now);var players=world.getPlayers();int checked=0;
         for(int i=0;i<Math.min(PLAYER_CHECKS,players.size());i++){
             var p=players.get(Math.floorMod(frame.cursor++,players.size()));checked++;
             if(!eligible(world,p)||!enabled(world)){state.cancel(p.getUuid(),now);frame.ages.remove(p);continue;}
+            if(RocketSiegeRuntime.ownsParticipant(world,p.getUuid()))continue; // One finite episode per owner, never a hidden extra recon pair.
             var progress=state.player(p.getUuid());if(progress==null)continue;
             var old=progress.snapshot();Integer age=frame.ages.put(p,p.age);int online=age==null?0:Math.max(0,p.age-age);
             var actualContext=context(world);var timed=state.reconProgress(p.getUuid()).filter(r->!r.closed()).orElse(null);
@@ -238,6 +247,7 @@ public final class SurvivalThreatDirector {
     }
     private static void spawn(ServerWorld world,ServerPlayerEntity owner,ThreatProgress progress,SurvivalThreatState state,Frame frame,long now,
                               boolean scout,ReconAdmission.Context actualContext){
+        if(state.actorCount()+RocketSiegeRuntime.actorCount(world)>=SurvivalThreatState.MAX_ACTORS)return;
         int cursor=frame.sites.getOrDefault(owner.getUuid(),0);var origin=scout?owner.getPos():vector(progress.origin());
         while(frame.candidates<CANDIDATE_CHECKS){
             int index=cursor++&63;frame.candidates++;double angle=Math.PI*2*((index+(owner.getUuid().hashCode()&15))&15)/16;

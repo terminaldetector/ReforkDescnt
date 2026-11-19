@@ -349,4 +349,74 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
             c.assertTrue(f.state().progress(f.player.entity.getUuid()).orElseThrow().pending(),"real attributed death event, not a direct alarm/advance call");
         }catch(Throwable failure){done[0]=true;close.run();throw failure;}});
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="rocket-pair-real-base",tickLimit=1_100)
+    public void twoActualGroundRocketeersGiveFullWarningBeforeTheirFiniteRealRocketsDamageAnUnprotectedBase(TestContext c){rocketPair(c,0);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="rocket-pair-real-defense",tickLimit=1_100)
+    public void ordinaryPlayerPlasmaCanDefeatTheActualPairDuringItsWarningWithoutReplacementActors(TestContext c){rocketPair(c,1);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="rocket-pair-real-escape",tickLimit=1_100)
+    public void legitimateEscapeStopsNewMissilesAndTheSameGroundPairPhysicallyRetreatsThenRetires(TestContext c){rocketPair(c,2);}
+    private void rocketPair(TestContext c,int scenario){
+        Fixture[] live={null};RocketSiegeRuntime.Deployment[] deployment={null};boolean[] done={false},damaged={false},retreated={false};
+        int[] phase={0};long[] began={0},decision={0},shotAt={0};var initialPositions=new HashMap<UUID,Vec3d>();var movingShots=new HashMap<UUID,Vec3d>();
+        var actorIds=new HashSet<UUID>();var beforeEntities=new HashSet<UUID>();var baseCells=new ArrayList<BlockPos>();
+        var admittedActors=new HashMap<UUID,com.terminaldetector.drmd.entity.mob.ShapesInfantryEntity>();
+        c.runAtEveryTick(()->{
+            var f=live[0];if(f==null||done[0])return;
+            try{
+                f.w.resetIdleTimeout();long now=f.w.getTime();c.assertTrue(now-began[0]<950,"finite authored pair completes warning, actual combat/counterplay and retirement");
+                var stats=RocketSiegeRuntime.stats(f.w);c.assertTrue(stats.actors()<=8&&stats.pairs()<=4&&stats.sight()<=32&&stats.shots()<=40&&stats.actors()+f.state().actorCount()<=8,"real pair shares the world actor cap and bounded sight work");
+                var snapshot=f.state().siegePlan(deployment[0].plan()).orElseThrow();
+                for(var id:actorIds){var e=f.w.getEntity(id);if(e instanceof com.terminaldetector.drmd.entity.mob.ShapesInfantryEntity a&&admittedActors.putIfAbsent(id,a)==null)f.owned.add(a);}
+                var actors=new ArrayList<>(admittedActors.values());
+                for(var shot:f.w.getEntitiesByClass(ProjectileEntity.class,new Box(f.at,f.at).expand(90),e->actorIds.contains(e.getOwnerUuid()))){
+                    f.owned.add(shot);c.assertTrue(shot.getMeshKind()==ProjectileEntity.MESH_ROCKET&&shot.getDamageClass()==com.terminaldetector.drmd.weapon.core.DamageClass.EXPLOSIVE,"real authored RPG rounds, not renamed ORB bolts");
+                    var old=movingShots.put(shot.getUuid(),shot.getPos());if(old!=null&&old.distanceTo(shot.getPos())>.1)shotAt[0]=now;
+                }
+                if(now<deployment[0].warningEnds())c.assertTrue(snapshot.acks().isEmpty()&&movingShots.isEmpty(),"all400 ordinary warning ticks remain nonfiring despite actual targets");
+                if(scenario==1){
+                    if(actors.stream().allMatch(a->!a.isAlive())&&actors.size()==2){
+                        for(var e:f.w.getOtherEntities(f.player.entity,new Box(f.at,f.at).expand(70)))if(!beforeEntities.contains(e.getUuid()))f.owned.add(e);
+                        c.assertTrue(now<deployment[0].warningEnds()&&snapshot.acks().isEmpty()&&RocketSiegeRuntime.actorCount(f.w)==0,"normal player counterfire defeats both actual slots before a rocket; no replacement wave");done[0]=true;f.close();c.complete();return;
+                    }
+                    var target=actors.stream().filter(Entity::isAlive).findFirst().orElse(null);if(target!=null&&now-decision[0]>=12){
+                        var player=f.player.entity;var direction=target.getBoundingBox().getCenter().subtract(player.getEyePos()).normalize();var angles=com.terminaldetector.drmd.client.portal.PortalTransform.vectorToYawPitch(new com.terminaldetector.drmd.client.portal.PortalTransform.Vec3(direction.x,direction.y,direction.z));
+                        player.setYaw((float)angles.yawDegrees());player.setPitch((float)angles.pitchDegrees());player.setHeadYaw(player.getYaw());
+                        var result=player.interactionManager.interactItem(player,f.w,player.getMainHandStack(),net.minecraft.util.Hand.MAIN_HAND);
+                        c.assertTrue(result.isAccepted(),"actual equipped ordinary plasma item is used through the normal Survival interaction manager");decision[0]=now;
+                    }return;
+                }
+                if(scenario==0){
+                    for(var p:baseCells)if(!f.w.getBlockState(p).isOf(Blocks.OAK_PLANKS))damaged[0]=true;
+                    if(!damaged[0]||snapshot.acks().isEmpty()||shotAt[0]==0)return;
+                    c.assertTrue(snapshot.acks().size()<=10&&snapshot.acks().stream().allMatch(a->a.at()>=deployment[0].warningEnds())
+                        &&snapshot.acks().stream().filter(a->a.slot()==0).count()<=5&&snapshot.acks().stream().filter(a->a.slot()==1).count()<=5,"real emitted projectile UUIDs spend only their own five-shot allowance after full warning");
+                    c.assertTrue(f.state().rosterSize(f.player.entity.getUuid())==0&&actors.size()==2&&actors.stream().allMatch(a->a.hasInfantryGun()&&a.infantryRole()==com.terminaldetector.drmd.ai.AiRole.RPG),"exact ground infantry pair; existing ORB recon is not swapped or issued as an extra wave");done[0]=true;f.close();c.complete();return;
+                }
+                if(phase[0]==0){if(snapshot.acks().isEmpty()||shotAt[0]==0)return;decision[0]=now;for(var a:actors)initialPositions.put(a.getUuid(),a.getPos());
+                    f.player.entity.setPosition(f.at.add(165,0,0));phase[0]=1;return;}
+                c.assertTrue(snapshot.acks().stream().noneMatch(a->a.at()>decision[0]),"escaping source knowledge cannot produce a fresh missile even with an old native target");
+                for(var a:actors)if(a.isAlive()&&initialPositions.containsKey(a.getUuid())&&a.getPos().distanceTo(f.at)>initialPositions.get(a.getUuid()).distanceTo(f.at)+.15)retreated[0]=true;
+                if(snapshot.phase()!=SiegePlan.Phase.COOLDOWN)return;
+                c.assertTrue(retreated[0]&&RocketSiegeRuntime.actorCount(f.w)==0&&snapshot.cooldownEnds()>now,"the same finite pair really navigates away and retires; recovery prevents immediate replay");done[0]=true;f.close();c.complete();
+            }catch(Throwable failure){done[0]=true;f.close();throw failure;}
+        });
+        admitted(c,f->{live[0]=f;try{
+            var root=BlockPos.ofFloored(f.at);var site=root.up();
+            for(int x=-4;x<=4;x++)for(int z=-4;z<=4;z++){var p=root.add(x,-1,z);f.blocks.put(p,f.w.getBlockState(p));f.w.setBlockState(p,Blocks.IRON_BLOCK.getDefaultState(),3);}
+            for(int z=-56;z<=-18;z++)for(int sign:new int[]{-1,1})for(int dx=-3;dx<=3;dx++){
+                int x=sign*(int)Math.round(-z*10.0/22)+dx;var p=root.add(x,-1,z);f.blocks.put(p,f.w.getBlockState(p));f.w.setBlockState(p,Blocks.IRON_BLOCK.getDefaultState(),3);
+            }
+            for(int x=-1;x<=1;x++)for(int y=0;y<=2;y++){var p=root.add(x,y,0);baseCells.add(p);f.blocks.put(p,f.w.getBlockState(p));f.w.setBlockState(p,(scenario==0?Blocks.OAK_PLANKS:Blocks.OBSIDIAN).getDefaultState(),3);}
+            f.player.entity.setPosition(f.at.add(0,4,4));var left=Vec3d.ofBottomCenter(root.add(-10,0,-22));var right=Vec3d.ofBottomCenter(root.add(10,0,-22));
+            c.assertTrue(SurvivalThreatDirector.deployRocketPair(f.w,f.player.entity,site,left,right).isEmpty(),"genuine new Survival participant cannot bypass novice grace or issue armed pressure");
+            f.state().restorePlayer(f.player.entity.getUuid(),ready(f.at)); // Same independently proven mature-clock prerequisite as existing pressure tests.
+            beforeEntities.addAll(f.w.getOtherEntities(null,new Box(f.at,f.at).expand(90)).stream().map(Entity::getUuid).toList());
+            deployment[0]=SurvivalThreatDirector.deployRocketPair(f.w,f.player.entity,site,left,right).orElseThrow();began[0]=f.w.getTime();
+            c.assertTrue(deployment[0].warningEnds()-began[0]==WARNING_TICKS,"full warning starts at actual deployment, never an expired intent timestamp");
+            actorIds.add(deployment[0].first());actorIds.add(deployment[0].second());for(var id:actorIds){var a=f.w.getEntity(id);if(a!=null)f.owned.add(a);}
+            c.assertTrue(SurvivalThreatDirector.deployRocketPair(f.w,f.player.entity,site,left,right).isEmpty(),"one owner cannot replay deployment for an invisible second pair");
+            if(scenario==1){f.player.entity.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(com.terminaldetector.drmd.weapon.items.ModItems.PLASMA));
+                c.assertTrue(DescentPlayerData.get(f.player.entity).getEnergy()>=8,"declared player defense has real initial energy; its ordinary recipe is covered by the separate Survival economy gate");}
+        }catch(Throwable failure){done[0]=true;f.close();throw failure;}});
+    }
 }
