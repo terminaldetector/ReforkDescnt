@@ -113,8 +113,7 @@ public final class OffscreenWorldView {
 		}
 
 		Vec3d originalPos = camera.getPos();
-		float originalYaw = camera.getYaw();
-		float originalPitch = camera.getPitch();
+        var originalCamera = new BorrowedCameraState(camera,accessor);
 
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if(context.consumers() instanceof net.minecraft.client.render.VertexConsumerProvider.Immediate immediate)immediate.draw();
@@ -162,18 +161,23 @@ public final class OffscreenWorldView {
 			// Restore in the reverse order of setup, and unconditionally: leaving the camera moved or the
 			// off-screen target bound would corrupt every system that reads either next frame, not just
 			// this one view's picture.
-			nestedTargets.close();
-            org.lwjgl.opengl.GL11.glFrontFace(originalWinding);
-			target.endWrite();
-			((com.terminaldetector.drmd.mixin.client.ViewFramebufferAccess)mc).drmd$framebuffer(mainTarget);
-            mainTarget.beginWrite(true);
-			accessor.drmd$invokeSetPos(originalPos);
-			accessor.drmd$invokeSetRotation(originalYaw, originalPitch);
-			context.worldRenderer().setupFrustum(originalPos, framePosition, outerProjection);
-			RenderSystem.setProjectionMatrix(savedProjection,savedSorting);
-            RenderSystem.setShader(()->savedShader);
-            com.terminaldetector.drmd.client.presentation.Ps1WorldFog.restore(savedFog);
-            depth--;
+            try {
+                nestedTargets.close();
+                org.lwjgl.opengl.GL11.glFrontFace(originalWinding);
+                target.endWrite();
+                ((com.terminaldetector.drmd.mixin.client.ViewFramebufferAccess)mc).drmd$framebuffer(mainTarget);
+                mainTarget.beginWrite(true);
+            } finally {
+                try {
+                    originalCamera.close();
+                    context.worldRenderer().setupFrustum(originalPos, framePosition, outerProjection);
+                    RenderSystem.setProjectionMatrix(savedProjection,savedSorting);
+                    RenderSystem.setShader(()->savedShader);
+                    com.terminaldetector.drmd.client.presentation.Ps1WorldFog.restore(savedFog);
+                } finally {
+                    depth--;
+                }
+            }
 		}
 
         boolean composited = SurfaceComposite.draw(target, outerProjection, framePosition, originalPos, apertures);
