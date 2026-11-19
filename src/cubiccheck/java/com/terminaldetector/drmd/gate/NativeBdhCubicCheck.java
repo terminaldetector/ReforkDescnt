@@ -29,11 +29,13 @@ public final class NativeBdhCubicCheck {
     public static final boolean ENABLED = Boolean.getBoolean("drmd.gate.bdhCubic");
     private static final BlockPos LOWER = new BlockPos(8, 2150, 120);
     private static final BlockPos UPPER = new BlockPos(8, 2229, 120);
-    private static final BodyVolumePlan.Column TEST_COLUMN = new BodyVolumePlan.Column(0, 7, 134, 139);
+    private static final BodyVolumePlan.Column TEST_COLUMN = new BodyVolumePlan.Column(0, 7, 132, 139);
     private static final Object INTEREST = new Object();
     private static final List<Map<String, Object>> frames = new ArrayList<>();
     private static boolean started, done;
-    private static volatile boolean committed, writing, loading;
+    private static volatile boolean committed, writing, loading, released;
+    private static volatile int fullPieceSections;
+    private static boolean releaseQueued;
     private static volatile String serverStatus = "awaiting world";
     private static Method describe;
     private static int ticks, stable, phase, lowerMax, upperMax;
@@ -93,7 +95,7 @@ public final class NativeBdhCubicCheck {
                         serverStatus = "native test interest refused";
                         return;
                     }
-                    serverStatus = "awaiting both FULL cubic cells";
+                    serverStatus = "awaiting eight FULL sections of both upstream 64-block pieces";
                     writing = true;
                 });
                 return;
@@ -105,7 +107,14 @@ public final class NativeBdhCubicCheck {
                     try {
                         var world = client.getServer().getOverworld();
                         var access = WorldAccess.of(world);
-                        if (access.readIfLoaded(LOWER).isEmpty() || access.readIfLoaded(UPPER).isEmpty()) return;
+                        // BCC copies complete groups of four native sections, not individual edited cubes.
+                        // The lower marker is CY134, but its upstream piece also requires CY132/133.
+                        int ready = 0;
+                        for (int cy = TEST_COLUMN.minY(); cy <= TEST_COLUMN.maxY(); cy++) {
+                            if (access.readIfLoaded(new BlockPos(8, cy * 16 + 8, 120)).isPresent()) ready++;
+                        }
+                        fullPieceSections = ready;
+                        if (ready != 8) return;
                         for (var pos : List.of(LOWER, UPPER)) {
                             var state = (pos.equals(LOWER) ? Blocks.RED_WOOL : Blocks.LIME_WOOL).getDefaultState();
                             for (int x = -5; x <= 5; x++) for (int y = -3; y <= 3; y++) for (int z = -1; z <= 1; z++) {
@@ -117,9 +126,9 @@ public final class NativeBdhCubicCheck {
                                 }
                             }
                         }
-                        BodyVolumeLeases.releaseNativeInterest(world, INTEREST);
-                        world.setChunkForced(0, 7, false);
-                        serverStatus = "462 real cells written with separate cubic Y addresses";
+                        // Keep only this test-owned range until the actual asynchronous upstream
+                        // database/render upload acknowledges both pieces. No direct DH data injection.
+                        serverStatus = "462 real cells verified; eight FULL sections retained for upstream admission";
                         committed = true;
                     } finally {
                         loading = false;
@@ -135,6 +144,16 @@ public final class NativeBdhCubicCheck {
             upper = describe(UPPER);
             System.out.println("BDH_LOWER " + lower.replace('\n', ' '));
             System.out.println("BDH_UPPER " + upper.replace('\n', ' '));
+            if (!releaseQueued && drawn(lower) && drawn(upper)) {
+                releaseQueued = true;
+                client.getServer().execute(() -> {
+                    var world = client.getServer().getOverworld();
+                    BodyVolumeLeases.releaseNativeInterest(world, INTEREST);
+                    world.setChunkForced(0, 7, false);
+                    serverStatus = "both real upstream pieces admitted; own interest released before distant pixel checks";
+                    released = true;
+                });
+            }
         } catch (ReflectiveOperationException failure) {
             finish(client, "FAIL", failure.toString());
         }
@@ -150,7 +169,7 @@ public final class NativeBdhCubicCheck {
     }
 
     public static void rendered() {
-        if (!ENABLED || done || !committed || !drawn(lower) || !drawn(upper)) return;
+        if (!ENABLED || done || !committed || !released || !drawn(lower) || !drawn(upper)) return;
         var client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null) return;
         var access = WorldAccess.of(client.world);
@@ -206,12 +225,19 @@ public final class NativeBdhCubicCheck {
         done = true;
         try {
             var result = Map.of("status", outcome, "reason", reason, "server", serverStatus, "lower", lower,
-                "upper", upper, "frames", List.copyOf(frames), "redMax", lowerMax, "greenMax", upperMax, "view", finalView);
+                "upper", upper, "frames", List.copyOf(frames), "redMax", lowerMax, "greenMax", upperMax, "view", finalView,
+                "interest", Map.of("minSectionY", 132, "maxSectionY", 139, "fullBeforeWrites", fullPieceSections,
+                    "releasedBeforePixels", released));
             Files.writeString(client.runDirectory.toPath().resolve("bdh-cubic-outcome.json"),
                 new GsonBuilder().setPrettyPrinting().create().toJson(result) + "\n");
         } catch (Exception failure) {
             throw new IllegalStateException(failure);
         }
+        if (client.getServer() != null) client.getServer().execute(() -> {
+            var world = client.getServer().getOverworld();
+            BodyVolumeLeases.releaseNativeInterest(world, INTEREST);
+            world.setChunkForced(0, 7, false);
+        });
         client.scheduleStop();
     }
 }
