@@ -360,9 +360,17 @@ public final class FootGravityRecoveryGameTests implements FabricGameTest {
             player.setPosition(ceiling.getX()+.4,ceiling.getY()-2.25,ceiling.getZ()+.5);
             player.setVelocity(Vec3d.ZERO);
             FootGravitySystem.tick(player);
-            for(int i=0;i<20;i++)FootGravitySystem.travel(player,Vec3d.ZERO);
-            c.assertTrue(FootGravitySystem.isActive(player)&&FootGravitySystem.getUp(player).y<-.99999
-                &&FootGravitySystem.get(player).grounded(),"the real body rests on the ceiling next to the wall");
+            c.assertTrue(FootGravitySystem.isActive(player)&&FootGravitySystem.getUp(player).y<-.99999,
+                "the real ceiling field first turns a clear ordinary body: "+FootGravitySystem.get(player));
+
+            // Set the release fixture under the support. Normal movement into contact is
+            // exercised in the connected client, where on-foot travel is actually integrated.
+            player.setPosition(ceiling.getX()+.4,ceiling.getY()-.02,ceiling.getZ()+.5);
+            player.calculateDimensions();
+            FootGravitySystem.tick(player);
+            c.assertTrue(FootGravitySystem.get(player).grounded()
+                &&world.isSpaceEmpty(player,player.getBoundingBox().contract(1e-6)),
+                "the clear ceiling frame contacts the support next to the wall: "+player.getBoundingBox());
             var occupied=player.getBoundingBox().getCenter();
             var momentum=new Vec3d(0,0,.15);
             player.setVelocity(momentum);
