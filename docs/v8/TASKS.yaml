@@ -879,11 +879,11 @@ tasks:
   owner: GAMEPLAY
   gate: G4
   depends_on_stages: *id013
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/economy-and-inventory.json, EVIDENCE/finish36-20261119/economy-and-inventory.xml]
+  notes: "Обычные серверные сценарии прошли. Проработаны расход материала при ремонте, отказ пустого действия и повторное получение механизма через добычу и установку."
 - id: S12-T05
   stage: S12
   stage_title: Survival threat and minimal armament economy
@@ -1054,11 +1054,11 @@ tasks:
   owner: CLEANUP
   gate: G3
   depends_on_stages: *id016
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/economy-and-inventory.json, EVIDENCE/finish36-20261119/economy-and-inventory.xml]
+  notes: "Все шесть отмеченных предметов сохранили реальное назначение. Допустимый набор удаления пуст. Обычный ItemStack codec подтвердил чтение и повторное сохранение 11 исторических идентификаторов."
 - id: S15-T03
   stage: S15
   stage_title: Cleanup / asset and UI integration

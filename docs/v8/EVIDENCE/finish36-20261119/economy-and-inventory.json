@@ -1,0 +1,40 @@
+{
+  "sourceSha": "3a76bfc97156ac3e6a129f617b161b3de198a1f0",
+  "fabricVersion": "1.1.35-ufo-dev.1",
+  "gameJarSha256": "79c7dbb4b3bbc47520d37cd74412d34db61d2ae7a7e11bb0c9e1e0f568e0a6a6",
+  "ordinaryGameTests": {
+    "total": 36,
+    "failed": 0,
+    "xml": "economy-and-inventory.xml",
+    "sha256": "40077525f17f9137f67bd45b2f1bfc1916c3c9e4a40abad9ca51d86871cd8783"
+  },
+  "S12-T04": {
+    "caseNames": [
+      "survivaleconomygametests.craftedrepairmustpreservestonedeepslateandnetherbrickmaterialfamilies",
+      "survivaleconomygametests.allthreeshipcomponentsmustbeindividuallycraftablethroughtherealtable",
+      "survivaleconomygametests.lostconstructedvoxelsneedonematchingmaterialandnevererasenaturalorfuturegeometry",
+      "survivaleconomygametests.craftedsurvivaltoolcannotturnintactormissingmaterialintofreehealthshieldorinventory",
+      "survivaleconomygametests.destroyedmechanismrequiresactualsalvagepickupandonematerialplacementinsteadofrepairfabrication",
+      "survivaleconomygametests.craftedplacedandassembledbearingsanddriveperformrealsurvivalwork",
+      "survivaleconomygametests.startermaterialsleadtogunplasmaandinstalledmissiledefense",
+      "survivaleconomygametests.craftedrepairlasermustrepairactualpartialdamageonamovingmechanism",
+      "survivaleconomygametests.survivalminingpickupandreplacementrecoverbearingdriveandlaserexactlyonce",
+      "survivaleconomygametests.craftedlaserandrocketconsumeplacementitemsandfirefromactuallevermaterial"
+    ],
+    "rules": [
+      "Intact or absent target and unauthorized repair refuse without resource or health gain.",
+      "Missing constructed voxels consume one matching block. Unrecognized geometry stays intact.",
+      "Ordinary crafting, mining and one salvage pickup allow recovery after a lost mechanism."
+    ]
+  },
+  "S15-T02": {
+    "approvedDeadSet": [],
+    "rationale": "The marked candidates retain actual registry, recipe, command, structure or save consumers.",
+    "originalCandidateUseGraph": "S15_MARKED_ITEM_USE_GRAPH_2026-11-19.md",
+    "migration": "Identity on retained registry IDs. Existing saves and referenced models are preserved.",
+    "caseNames": [
+      "itemresourcegametests.everyregistereddrmditemhasanactualmodelresource",
+      "itemresourcegametests.markedequipmentandretiredweaponidsroundtripthroughthesavedstackcodec"
+    ]
+  }
+}
