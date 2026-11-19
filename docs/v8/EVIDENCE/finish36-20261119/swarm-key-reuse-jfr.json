@@ -1,0 +1,83 @@
+{
+  "profiles": {
+    "first": {
+      "source": "a6077e727a4e5ee0c14a07a4a01d2fba150c01b9",
+      "counts": {
+        "requested": 1024,
+        "live": 1024,
+        "active": 1024,
+        "moving": 1024,
+        "synced": 1024,
+        "uniqueRendered": 920,
+        "shots": 18725,
+        "coastingUpdates": 0,
+        "detailedSteeringUpdates": 40869,
+        "fullWorldScansDuringMeasurement": 0
+      },
+      "profileWindowSeconds": 11.613789,
+      "serverExecutionSamples": 460,
+      "sampledAllocations": 2005,
+      "rawJfrSha256": "9007d23b838ed6a3355accd9ee8d44a5bfc444e698de8d3414f6a02922d4d42c",
+      "rawJfrPath": "/tmp/ungravity-finish-36/swarm-capacity-1024-jfr-first/cubic-client-automation/swarm1024.jfr",
+      "cellAmongTop25WeightedAllocationClasses": true
+    },
+    "key-reuse": {
+      "source": "9ab690a92a7add090c1f8bbf5a3ca1e9bc37b01b",
+      "counts": {
+        "requested": 1024,
+        "live": 1024,
+        "active": 1024,
+        "moving": 1024,
+        "synced": 1024,
+        "uniqueRendered": 919,
+        "shots": 18704,
+        "coastingUpdates": 0,
+        "detailedSteeringUpdates": 40868,
+        "fullWorldScansDuringMeasurement": 0
+      },
+      "profileWindowSeconds": 13.305691,
+      "serverExecutionSamples": 488,
+      "sampledAllocations": 2043,
+      "rawJfrSha256": "59518178ead3827df5d70b11d44d4b4fd8ffc0ec2d21dbeb61b7fc7d01f6c5aa",
+      "rawJfrPath": "/tmp/ungravity-finish-36/swarm-capacity-1024-jfr-key-reuse/cubic-client-automation/swarm1024.jfr",
+      "cellAmongTop25WeightedAllocationClasses": false
+    },
+    "sparse-scan": {
+      "source": "dbe74874256b1ac592c4e8bba8ed87ca7a23d540",
+      "counts": {
+        "requested": 1024,
+        "live": 1024,
+        "active": 1024,
+        "moving": 1024,
+        "synced": 1024,
+        "uniqueRendered": 920,
+        "shots": 18702,
+        "coastingUpdates": 0,
+        "detailedSteeringUpdates": 40893,
+        "fullWorldScansDuringMeasurement": 0
+      },
+      "profileWindowSeconds": 13.811241,
+      "serverExecutionSamples": 496,
+      "sampledAllocations": 1966,
+      "rawJfrSha256": "95d41bd0ee15f37de22f7f703ea150cc86a698578ec2a5c8805c0f3e4988362e",
+      "rawJfrPath": "/tmp/ungravity-finish-36/swarm-capacity-1024-jfr-sparse-scan/cubic-client-automation/swarm1024.jfr",
+      "cellAmongTop25WeightedAllocationClasses": false
+    }
+  },
+  "sameOrderedQueryComparisons": 16000,
+  "denseWideQueryCase": {
+    "actors": 1024,
+    "radius": 32,
+    "exactComparisons": 4000,
+    "oldBytesPerQuery": 23708.8,
+    "newBytesPerQuery": 6236.8,
+    "oldNsPerQuery": 18224.8,
+    "newNsPerQuery": 13798.2,
+    "checksum": 15804344
+  },
+  "allocationReductionPercent": 73.69,
+  "unitTests": 4,
+  "scope": "Real 1024 active native actors in each 60 ordinary tick JFR window, and deterministic indexed-query allocation comparisons. Profiler sampling estimates and profiled server cadence are not an FPS/TPS improvement guarantee. Raw JFR kept at the paths above.",
+  "archive": "swarm-key-reuse-jfr.zip",
+  "archiveSha256": "b8b86d515b31321d193eca56b1225865f336408013499ea5baf22a0265adaa99"
+}
