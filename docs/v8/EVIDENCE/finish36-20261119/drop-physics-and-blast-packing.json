@@ -1,0 +1,31 @@
+{
+  "dropAdmission": {
+    "source": "83e08e397410bcae9e1e1d5361612968b6dd2fd2",
+    "actualServerExit": 0,
+    "tests": 13
+  },
+  "blastLoot": {
+    "source": "43e8180335b4870527cb4ad6093c7d01b73ef612",
+    "actualServerExit": 0,
+    "tests": 17
+  },
+  "unitTests": 11,
+  "actualBlastCases": [
+    {
+      "tileDrops": true,
+      "brokenBlocks": 64,
+      "spawnedEntities": 12,
+      "containedItems": 64
+    },
+    {
+      "tileDrops": false,
+      "brokenBlocks": 64,
+      "spawnedEntities": 0,
+      "containedItems": 0
+    }
+  ],
+  "previousWorkCounts": "loose-item-load.json",
+  "scope": "Real mod weapon blast, native Block loot and physically active ItemEntities on a separate Fabric GameTest server. Near-hull tests cover actual moving-deck, rotated gravity field, and ordinary native behavior. No FPS/MSPT claims.",
+  "archive": "drop-physics-and-blast-packing.zip",
+  "archiveSha256": "c8134bfcbb6d4616e3102d2960953eb79a04587405f6bdbca497a64e1fdc66ed"
+}
