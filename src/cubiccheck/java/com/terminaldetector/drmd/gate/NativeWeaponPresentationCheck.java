@@ -27,6 +27,7 @@ import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.math.*;
 import net.minecraft.world.GameMode;
+import net.minecraft.world.LightType;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import java.nio.file.*;
@@ -67,7 +68,12 @@ public final class NativeWeaponPresentationCheck {
                 for(int x=-12;x<=12;x++)for(int y=-10;y<=10;y++)cells.add(origin.add(x,y,6));
                 for(int x=-3;x<=3;x++)for(int z=-3;z<=3;z++)cells.add(origin.add(x,-1,z));
                 if(cells.stream().allMatch(at->WorldEditSafety.neighbourhoodLoaded(w,at))){require(cells.size()==574,"fixed authoring budget");
-                    for(var at:cells)w.setBlockState(at,Blocks.WHITE_CONCRETE.getDefaultState(),2);background=true;}
+                    for(var at:cells) {
+                        var block=at.getY()==origin.getY()-1&&Math.abs(at.getZ()-origin.getZ())<=3
+                                ?Blocks.SEA_LANTERN:Blocks.WHITE_CONCRETE;
+                        w.setBlockState(at,block.getDefaultState(),3);
+                    }
+                    background=true;}
             }
             var hotbar=new ArrayList<String>();var hotbarCounts=new ArrayList<Integer>();for(int i=0;i<9;i++){var stack=p.getInventory().getStack(i);hotbar.add(id(stack));hotbarCounts.add(stack.getCount());}var banks=new ArrayList<String>();var bankCounts=new ArrayList<Integer>();var load=DroneLoadout.of(p);for(int i=0;i<5;i++){var stack=load.getStack(i);banks.add(id(stack));bankCounts.add(stack.getCount());}
             view=new View(server.getTicks(),nativeWorld,DescentPlayerData.get(p).isEnabled(),p.getInventory().selectedSlot,id(p.getMainHandStack()),List.copyOf(hotbar),List.copyOf(hotbarCounts),List.copyOf(banks),List.copyOf(bankCounts),id(p.currentScreenHandler.getCursorStack()));
@@ -202,6 +208,8 @@ public final class NativeWeaponPresentationCheck {
     public static void rendered(){
         if(!ENABLED||done)return;var c=MinecraftClient.getInstance();if(c.player==null||c.world==null||view==null||!background||c.getOverlay()!=null)return;
         try{
+            int light = c.world.getLightLevel(LightType.BLOCK, BlockPos.ofFloored(c.player.getEyePos()));
+            if (light < 11) return; // Ordinary block light must actually reach the physical viewmodel fixture.
             if(frameFailure!=null)throw new IllegalStateException(frameFailure);boolean empty=phase==0||phase==6;boolean ordinary=phase>=1&&phase<=3,flight=phase==8||phase==10||phase==12;
             boolean inventory=phase==4&&c.currentScreen instanceof InventoryScreen;boolean equipment=(phase==7||phase==9||phase==11)&&c.currentScreen instanceof DroneInventoryScreen&&pending==null&&clicks.isEmpty()&&settled>0;
             if(!empty&&!ordinary&&!flight&&!inventory&&!equipment)return;if(empty){if(c.currentScreen!=null||!c.player.getMainHandStack().isEmpty()||!view.hand.equals("minecraft:air"))return;if(phase==0&&(DescentClientState.enabled||view.flight))return;if(phase==6&&(!DescentClientState.enabled||!view.flight||rolling||Math.abs(ShipAttitudeClient.get().bankDegrees())<35||age-settled<8))return;}
@@ -210,7 +218,7 @@ public final class NativeWeaponPresentationCheck {
             if(equipment&&(preview!=previewBank||!Objects.equals(previewItem,view.banks.get(previewBank))))return;
             require(GL11.glGetError()==0,"pre-readback GL state");
             try(var image=capture(c)){
-                String name="profile"+profile+"-phase"+phase+(equipment?"-bank"+previewBank:"");var row=new LinkedHashMap<String,Object>();row.put("profile",DescentConfig.presentationProfile.name());row.put("phase",phase);row.put("bank",previewBank);row.put("frame",frames);row.put("serverTick",view.tick);row.put("hand",view.hand);row.put("banks",view.banks);row.put("heldModels",Set.copyOf(hand));row.put("cockpitModels",Set.copyOf(cockpit));row.put("guiModels",Set.copyOf(gui));row.put("preview",previewItem);row.put("roll",DescentClientState.enabled?ShipAttitudeClient.get().bankDegrees():0);
+                String name="profile"+profile+"-phase"+phase+(equipment?"-bank"+previewBank:"");var row=new LinkedHashMap<String,Object>();row.put("profile",DescentConfig.presentationProfile.name());row.put("phase",phase);row.put("bank",previewBank);row.put("frame",frames);row.put("serverTick",view.tick);row.put("hand",view.hand);row.put("banks",view.banks);row.put("heldModels",Set.copyOf(hand));row.put("cockpitModels",Set.copyOf(cockpit));row.put("guiModels",Set.copyOf(gui));row.put("preview",previewItem);row.put("roll",DescentClientState.enabled?ShipAttitudeClient.get().bankDegrees():0);row.put("blockLightAtEye",light);
                 if(phase==6){var copy=new NativeImage(image.getWidth(),image.getHeight(),false);copy.copyFrom(image);if(flightBackground!=null)flightBackground.close();flightBackground=copy;}
                 if(ordinary||flight){var pixels=ordinary?handPixels:difference(image,flightBackground);double shift=projectedShift();
                     row.put("foreground",pixels);row.put("actualProjectedModelRegions",List.copyOf(projected));row.put("anchorShiftPixels",Double.isFinite(shift)?shift:null);
