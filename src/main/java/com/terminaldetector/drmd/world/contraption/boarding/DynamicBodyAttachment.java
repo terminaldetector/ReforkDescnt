@@ -63,6 +63,14 @@ public final class DynamicBodyAttachment {
      * walking motor, automatic frame turn or tangential foot friction. The flight model
      * remains the sole source of thrust and orientation. Reactions still reach the hull. */
     public static State freeFlight(State state,List<BodyMotion> bodies,double width,double height,double seconds,Motion world) {
+        if(bodies.isEmpty()&&Double.isFinite(seconds)&&seconds>0&&seconds<=.05){
+            // Upright suit translation against immutable world geometry has no carrier,
+            // field, rotation or reaction to integrate. The existing continuous world cast
+            // owns the complete sweep; repeating it32 times creates no additional physics.
+            PassengerFrame.box(state.feet,width,height,state.frame);
+            var allowed=world.move(state.feet,state.frame,state.velocity.scaled(seconds));
+            return new State(state.feet.plus(allowed.displacement()),blockedVelocity(state.velocity,allowed.blockingNormals()),false,-1,state.frame,-1);
+        }
         return step(state,Input.idle(),bodies,width,height,seconds,world,true,false);
     }
     /** Native loose-body forces were integrated already. Share the contact trajectory and
