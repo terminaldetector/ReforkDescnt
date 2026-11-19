@@ -47,6 +47,7 @@ public final class CubicClientGate implements ClientModInitializer {
     @Override public void onInitializeClient() {
         if(NativeBdhCubicCheck.ENABLED){NativeBdhCubicCheck.register();return;}
         if(NativeHudReadabilityCheck.ENABLED){NativeHudReadabilityCheck.register();return;}
+        if(NativeOrbitalMissionCheck.ENABLED){NativeOrbitalMissionCheck.register();return;}
         if(NativeOrbitalRouteCheck.ENABLED){NativeOrbitalRouteCheck.register();return;}
         if(NativeHighAltitudeLodCheck.ENABLED){NativeHighAltitudeLodCheck.register();return;}
         if(NativeVerticalFlightCheck.ENABLED){NativeVerticalFlightCheck.register();return;}
