@@ -27,6 +27,7 @@ import java.util.Set;
 /** Isolated upstream LOD proof using only ordinary writes to real cubic-world blocks. */
 public final class NativeBdhCubicCheck {
     public static final boolean ENABLED = Boolean.getBoolean("drmd.gate.bdhCubic");
+    private static final boolean COLD_READER = Boolean.getBoolean("drmd.gate.bdhColdReader");
     private static final BlockPos LOWER = new BlockPos(8, 2150, 120);
     private static final BlockPos UPPER = new BlockPos(8, 2229, 120);
     private static final BodyVolumePlan.Column TEST_COLUMN = new BodyVolumePlan.Column(0, 7, 132, 139);
@@ -119,7 +120,8 @@ public final class NativeBdhCubicCheck {
                             var state = (pos.equals(LOWER) ? Blocks.RED_WOOL : Blocks.LIME_WOOL).getDefaultState();
                             for (int x = -5; x <= 5; x++) for (int y = -3; y <= 3; y++) for (int z = -1; z <= 1; z++) {
                                 var cell = pos.add(x, y, z);
-                                world.setBlockState(cell, state, Block.NOTIFY_ALL);
+                                // A cold reader verifies the donor's real cells and never authors replacements.
+                                if (!COLD_READER) world.setBlockState(cell, state, Block.NOTIFY_ALL);
                                 if (!access.readIfLoaded(cell).orElseThrow().equals(state)) {
                                     serverStatus = "authored voxel did not persist in its native cube at " + cell;
                                     return;
@@ -128,7 +130,8 @@ public final class NativeBdhCubicCheck {
                         }
                         // Keep only this test-owned range until the actual asynchronous upstream
                         // database/render upload acknowledges both pieces. No direct DH data injection.
-                        serverStatus = "462 real cells verified; eight FULL sections retained for upstream admission";
+                        serverStatus = (COLD_READER ? "462 existing donor cells verified with ZERO writes" : "462 real cells written and verified")
+                            + "; eight FULL sections retained for upstream admission";
                         committed = true;
                     } finally {
                         loading = false;
@@ -227,7 +230,7 @@ public final class NativeBdhCubicCheck {
             var result = Map.of("status", outcome, "reason", reason, "server", serverStatus, "lower", lower,
                 "upper", upper, "frames", List.copyOf(frames), "redMax", lowerMax, "greenMax", upperMax, "view", finalView,
                 "interest", Map.of("minSectionY", 132, "maxSectionY", 139, "fullBeforeWrites", fullPieceSections,
-                    "releasedBeforePixels", released));
+                    "releasedBeforePixels", released, "coldReader", COLD_READER));
             Files.writeString(client.runDirectory.toPath().resolve("bdh-cubic-outcome.json"),
                 new GsonBuilder().setPrettyPrinting().create().toJson(result) + "\n");
         } catch (Exception failure) {
