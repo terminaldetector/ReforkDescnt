@@ -39,6 +39,7 @@ public final class NativeWeaponPresentationCheck {
     public static final boolean ENABLED=Boolean.getBoolean("drmd.gate.weaponPresentation");
     private static final Vec3d START=new Vec3d(96.5,2156,96.5);
     private static final boolean ENGINEERING=Boolean.getBoolean("drmd.gate.weaponPresentationEngineering");
+    private static final boolean REGISTRY_ONLY=Boolean.getBoolean("drmd.gate.weaponPresentationRegistry");
     private static final Item[] ITEMS=ENGINEERING?new Item[]{com.terminaldetector.drmd.entity.ModWorldBlocks.MINING_LASER,
         com.terminaldetector.drmd.entity.ModWorldBlocks.TUNNEL_LASER,com.terminaldetector.drmd.entity.ModWorldBlocks.REPAIR_LASER}
         :new Item[]{ModItems.PLASMA,ModItems.ROCKET_DUAL,ModItems.BOMB_CLUSTER};
@@ -130,7 +131,9 @@ public final class NativeWeaponPresentationCheck {
             if(serverFailure!=null)throw new IllegalStateException(serverFailure);if(age>6400||System.nanoTime()-boot>220_000_000_000L)throw new IllegalStateException("finite220s presentation deadline phase="+phase);
             if(c.currentScreen instanceof net.minecraft.client.gui.screen.world.BackupPromptScreen screen)for(var child:screen.children())if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("I know what I'm doing!"))b.onPress();
             if(player==null&&c.currentScreen instanceof net.minecraft.client.gui.screen.ConfirmScreen screen&&screen.getTitle().getString().equals("Warning! Low disk space!"))for(var child:screen.children())if(child instanceof net.minecraft.client.gui.widget.ButtonWidget b&&b.getMessage().getString().equals("Continue"))b.onPress();
-            if(c.player==null||c.world==null||c.getServer()==null)return;DescentClient.markUserFlightChoice();
+            if(c.player==null||c.world==null||c.getServer()==null)return;
+            if(REGISTRY_ONLY){if(c.getOverlay()==null)registryModels(c);return;}
+            DescentClient.markUserFlightChoice();
             if(player==null){require(Set.of("cubic-client-automation","weapon-presentationcheck").contains(c.runDirectory.toPath().getFileName().toString()),"disposable native runtime");
                 player=c.player.getUuid();c.setScreen(null);c.options.hudHidden=false;c.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON);c.options.getGuiScale().setValue(2);c.onResolutionChanged();c.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);c.inGameHud.getChatHud().clear(false);entered=age;return;}
             if(view==null||!background)return;require(view.nativeWorld,"real native cubic backend");require(age-entered<500,"bounded selection/image phase="+phase);
@@ -165,6 +168,60 @@ public final class NativeWeaponPresentationCheck {
             }
             if(phase==8||phase==10||phase==12){require(c.player.getMainHandStack().isEmpty()&&view.hand.equals("minecraft:air")&&DescentClientState.enabled&&view.flight,"real empty-hand socket view");if(settled==0)settled=age;if(frames>=3)enter(phase+1);}
         }catch(Throwable e){finish(c,"FAIL",e.toString());}
+    }
+    /** One ordinary loaded-client registry/atlas audit, without inventory or world setup.
+     * This is actual baked model coverage, not a per-item pixel or firing claim. */
+    private static void registryModels(MinecraftClient c){
+        var rows=new ArrayList<Map<String,Object>>();String failure=null;
+        try{
+            require(Set.of("cubic-client-automation","weapon-presentationcheck").contains(c.runDirectory.toPath().getFileName().toString()),"disposable registry runtime");
+            var ids=new ArrayList<net.minecraft.util.Identifier>();
+            for(var itemId:Registries.ITEM.getIds())if(itemId.getNamespace().equals("drmd")){
+                require(ids.size()<512,"bounded512 registered DRMD items");ids.add(itemId);
+            }
+            ids.sort(Comparator.comparing(net.minecraft.util.Identifier::toString));
+            require(!ids.isEmpty(),"actual DRMD item registration is present");
+            var missing=c.getBakedModelManager().getMissingModel();
+            var missingSprite=net.minecraft.client.texture.MissingSprite.getMissingSpriteId();
+            var random=net.minecraft.util.math.random.Random.create(42);
+            var sides=new ArrayList<Direction>(Arrays.asList(Direction.values()));sides.add(null);
+            for(var itemId:ids){
+                var row=new LinkedHashMap<String,Object>();row.put("id",itemId.toString());rows.add(row);
+                try{
+                    var stack=new ItemStack(Registries.ITEM.get(itemId));
+                    var model=c.getItemRenderer().getModel(stack,c.world,c.player,0);
+                    row.put("modelClass",model==null?null:model.getClass().getName());
+                    require(model!=null&&model!=missing,"registered item resolves its actual baked model");
+                    row.put("builtin",model.isBuiltin());
+                    require(!model.isBuiltin(),"item has ordinary baked geometry, not an unverified builtin fallback");
+                    var particle=model.getParticleSprite();
+                    require(particle!=null&&!particle.getContents().getId().equals(missingSprite),"actual model particle sprite is in the live atlas");
+                    var sprites=new TreeSet<String>();int quads=0;
+                    for(var side:sides){random.setSeed(42);for(var quad:model.getQuads(null,side,random)){
+                        require(++quads<=4096,"bounded4096 actual quads per item");
+                        var sprite=quad.getSprite();
+                        require(sprite!=null&&!sprite.getContents().getId().equals(missingSprite),"actual face sprite is not atlas missingno");
+                        require(Float.isFinite(sprite.getMinU()+sprite.getMaxU()+sprite.getMinV()+sprite.getMaxV())
+                            &&sprite.getMinU()<sprite.getMaxU()&&sprite.getMinV()<sprite.getMaxV(),"actual sprite owns a finite nonempty atlas region");
+                        sprites.add(sprite.getAtlasId()+"/"+sprite.getContents().getId());
+                        var vertices=quad.getVertexData();require(vertices.length%4==0&&vertices.length/4>=6,"actual baked quad vertex format");int stride=vertices.length/4;
+                        for(int i=0;i<4;i++)for(int axis=0;axis<3;axis++)require(Float.isFinite(Float.intBitsToFloat(vertices[i*stride+axis])),"actual quad position is finite");
+                    }}
+                    require(quads>0,"registered model contains visible baked faces");
+                    row.put("quads",quads);row.put("sprites",sprites);row.put("particleSprite",particle.getContents().getId().toString());row.put("status","PASS");
+                }catch(Throwable badModel){row.put("status","FAIL");row.put("failure",badModel.toString());}
+            }
+            long failed=rows.stream().filter(r->!"PASS".equals(r.get("status"))).count();
+            if(failed!=0)failure=failed+" actual registered item models failed";
+        }catch(Throwable admission){failure=admission.toString();}
+        done=true;String status=failure==null?"PASS":"FAIL";
+        try{
+            var result=new LinkedHashMap<String,Object>();result.put("status",status);result.put("failure",failure);result.put("items",rows);result.put("count",rows.size());
+            result.put("sourceBinding",System.getProperty("drmd.gate.weaponPresentationSource","UNBOUND"));
+            result.put("scope","Actual live registered DRMD default item stacks through ItemRenderer.getModel and baked quad/atlas sprites; no inventory mutation, hand/camera/firing/per-item pixel claim");
+            Files.writeString(c.runDirectory.toPath().resolve("item-model-registry-result.json"),new GsonBuilder().setPrettyPrinting().create().toJson(result)+"\n");
+        }catch(Exception io){io.printStackTrace();status="FAIL";}
+        System.out.println("ITEM_MODEL_REGISTRY_OUTCOME "+status+" "+failure);c.scheduleStop();
     }
     public static void beforeFrame(){if(!ENABLED)return;gui.clear();hand.clear();cockpit.clear();projected.clear();previewItem=null;preview=-1;handPixels=null;
         if(beforeHand!=null){beforeHand.close();beforeHand=null;}}
