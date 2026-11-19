@@ -98,9 +98,15 @@ public final class LocalSurfaceNavigation {
         return field!=null&&field.strength()>=.05f&&field.upDir().normalize().distanceTo(ActorFrames.up(actor))<1e-6;
     }
     private static boolean nativeWalker(Entity entity) {
-        return entity.getType()==net.minecraft.entity.EntityType.ZOMBIE||entity.getType()==net.minecraft.entity.EntityType.HUSK;
+        // Native C1 geometry is explicitly supported. A custom controller/navigation is a
+        // different locomotion contract even when its entity advertises a vanilla type.
+        return entity instanceof MobEntity actor&&ActorFrames.supported(actor)
+            &&ActorPhysicsProfile.family(actor)==ActorPhysicsProfile.Family.GROUND
+            &&actor.getNavigation().getClass()==net.minecraft.entity.ai.pathing.MobNavigation.class
+            &&actor.getMoveControl().getClass()==net.minecraft.entity.ai.control.MoveControl.class
+            &&actor.getJumpControl().getClass()==net.minecraft.entity.ai.control.JumpControl.class;
     }
-    /** Existing cardinal dry/input/jump adapter, now also shared by the two native ground walkers. */
+    /** Existing cardinal dry/input/jump adapter shared only by supported native C1 controllers. */
     public static Vec3d cardinalPhysicsUp(Entity entity) {
         if(!(entity instanceof MobEntity actor)
             ||!nativeWalker(actor)&&actor.getType()!=net.minecraft.entity.EntityType.SPIDER&&actor.getType()!=net.minecraft.entity.EntityType.CAVE_SPIDER
@@ -117,7 +123,10 @@ public final class LocalSurfaceNavigation {
         return ActorFrameMath.toLocal(worldWanted.subtract(actor.getPos()),ActorFrames.up(actor));
     }
     public static Vec3d input(Entity actor,Vec3d ordinaryDelta) {
-        return actor instanceof MobEntity mob&&localMotor(mob)?ActorFrameMath.toWorld(ordinaryDelta,ActorFrames.up(actor)):ordinaryDelta;
+        // Native C1 ranged goals also STRAFE while their navigator is intentionally idle.
+        // Map only newly computed locomotor input; retain old C2 path ownership semantics.
+        return actor instanceof MobEntity mob&&(localMotor(mob)||nativeWalker(mob)&&active(mob))
+            ?ActorFrameMath.toWorld(ordinaryDelta,ActorFrames.up(actor)):ordinaryDelta;
     }
     public static boolean contact(MobEntity actor,Vec3d up){return LocalSurfaceGeometry.supported(actor,actor.getPos(),up);}
 

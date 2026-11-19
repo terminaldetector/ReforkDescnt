@@ -176,6 +176,7 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
     private static final class Room implements AutoCloseable {
         final TestContext context;final ServerWorld world;final BlockPos min,max;
         final Set<Long> added=new HashSet<>();final List<Entity> actors=new ArrayList<>();final Set<UUID> fields=new HashSet<>();
+        final List<Runnable> cleanup=new ArrayList<>();
         boolean built,closed;
         Room(TestContext context,BlockPos min,BlockPos max) {
             this.context=context;world=context.getWorld();this.min=min;this.max=max;
@@ -212,7 +213,7 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
         }
         void removeField(UUID id) {GravityFields.remove(id);fields.remove(id);EntityGravitySystem.tick(world.getServer());}
         @Override public void close() {
-            if(closed)return;closed=true;for(UUID id:fields)GravityFields.remove(id);for(Entity actor:actors)actor.discard();
+            if(closed)return;closed=true;for(UUID id:fields)GravityFields.remove(id);for(var task:cleanup)task.run();for(Entity actor:actors)actor.discard();
             EntityGravitySystem.tick(world.getServer());
             if(built)for(var at:BlockPos.iterate(min,max))world.setBlockState(at,Blocks.AIR.getDefaultState(),2);
             for(long key:added)world.setChunkForced(ChunkPos.getPackedX(key),ChunkPos.getPackedZ(key),false);
@@ -300,5 +301,119 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
         double gap=actor.getPos().subtract(hit.getPos()).dotProduct(up);
         c.assertTrue(gap>=-1e-6&&gap<=.08,"native ground goal must preserve actual physical support within the existing .08m skin: "+gap);
         return gap;
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c1-controller-admission",tickLimit=180)
+    public void supportedNativeGroundControllersShareCardinalInputButCustomControllersRemainNative(TestContext c){
+        var centre=c.getAbsolutePos(new BlockPos(6,80,6));var room=new Room(c,centre.add(-8,-8,-8),centre.add(8,8,8));
+        watch(c,room,170,()->{
+            if(!room.loaded())return false;room.build();var up=new Vec3d(1,0,0);room.field(centre,up.negate());
+            var at=Vec3d.ofCenter(centre).subtract(up.multiply(7.48));
+            for(var type:new EntityType<?>[]{EntityType.COW,EntityType.PIG,EntityType.SHEEP,EntityType.ZOMBIE,EntityType.HUSK,EntityType.SKELETON,EntityType.STRAY,EntityType.CREEPER}){
+                var a=(net.minecraft.entity.mob.MobEntity)type.create(room.world);a.setAiDisabled(true);a.setPersistent();a.setPosition(at);
+                c.assertTrue(ActorFrames.trySetUp(a,up),"actual native C1 frame admitted before registration: "+type);room.spawn(a);
+                EntityGravitySystem.tick(room.world.getServer());
+                c.assertTrue(com.terminaldetector.drmd.world.gravity.LocalSurfaceNavigation.framed(a)
+                    &&up.equals(com.terminaldetector.drmd.world.gravity.LocalSurfaceNavigation.cardinalPhysicsUp(a)),"all supported exact native C1 controllers admit the same dry cardinal physical adapter: "+type);
+                var input=new Vec3d(.2,0,.3);var output=com.terminaldetector.drmd.world.gravity.LocalSurfaceNavigation.input(a,input);
+                c.assertTrue(a.getNavigation().isIdle()&&Math.abs(output.dotProduct(up))<1e-12&&Math.abs(output.lengthSquared()-input.lengthSquared())<1e-12,
+                    "genuine idle-navigation native locomotor input remains in the support tangent, including BowAttackGoal strafe: "+type);
+                a.discard();
+            }
+            var custom=new net.minecraft.entity.passive.CowEntity(EntityType.COW,room.world){
+                {moveControl=new net.minecraft.entity.ai.control.MoveControl(this){};}
+            };
+            custom.setAiDisabled(true);custom.setPosition(at);c.assertTrue(ActorFrames.trySetUp(custom,up),"custom-controller refusal control has a valid physical pose");room.spawn(custom);
+            EntityGravitySystem.tick(room.world.getServer());var input=new Vec3d(.2,0,.3);
+            c.assertTrue(!com.terminaldetector.drmd.world.gravity.LocalSurfaceNavigation.framed(custom)
+                &&com.terminaldetector.drmd.world.gravity.LocalSurfaceNavigation.cardinalPhysicsUp(custom)==null
+                &&com.terminaldetector.drmd.world.gravity.LocalSurfaceNavigation.input(custom,input).equals(input),"a custom control is never borrowed merely because its entity advertises a supported vanilla type");
+            return true;
+        });
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c1-tempt-floor",tickLimit=320)
+    public void passiveNativeTemptGoalsPursueTheActualFoodHoldingPlayerOnTheOrdinaryFloor(TestContext c){nativeGoals(c,new Vec3d(0,1,0),false);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c1-tempt-wall",tickLimit=320)
+    public void passiveNativeTemptGoalsPursueTheActualFoodHoldingPlayerOnTheWall(TestContext c){nativeGoals(c,new Vec3d(1,0,0),false);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c1-tempt-ceiling",tickLimit=320)
+    public void passiveNativeTemptGoalsPursueTheActualFoodHoldingPlayerOnTheCeiling(TestContext c){nativeGoals(c,new Vec3d(0,-1,0),false);}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-c1-bow-wall",tickLimit=320)
+    public void nativeSkeletonAndStrayBowGoalsAcquireARealPlayerNavigateAndFireFromTheWall(TestContext c){nativeGoals(c,new Vec3d(1,0,0),true);}
+
+    private static final class GoalProgress {
+        final net.minecraft.entity.mob.MobEntity actor;final Object navigation,control;final Vec3d start;final int born;
+        final double distance;int age;Vec3d last;boolean path,arrow,nativeTarget;double maxStep,maxGap;
+        GoalProgress(net.minecraft.entity.mob.MobEntity a,net.minecraft.server.network.ServerPlayerEntity target){actor=a;navigation=a.getNavigation();control=a.getMoveControl();start=last=a.getPos();born=age=a.age;distance=a.distanceTo(target);}
+    }
+    private static void nativeGoals(TestContext c,Vec3d up,boolean ranged){
+        var centre=c.getAbsolutePos(new BlockPos(6,80,6));var room=new Room(c,centre.add(-8,-8,-8),centre.add(8,8,8));
+        var cases=new ArrayList<GoalProgress>();var pending=new ArrayList<net.minecraft.entity.mob.MobEntity>();NativeFoodPlayer[] user={null};boolean[] spawned={false};
+        watch(c,room,310,()->{
+            if(!room.loaded())return false;room.build();
+            if(user[0]==null){
+                room.field(centre,up.negate());var target=Vec3d.ofCenter(centre).subtract(up.multiply(6.8))
+                    .add(com.terminaldetector.drmd.world.gravity.ActorFrameMath.toWorld(new Vec3d(0,0,ranged?4.5:2.5),up));
+                user[0]=nativeFoodPlayer(room,target);return false;
+            }
+            var p=user[0].player;
+            c.assertTrue(p.isAlive()&&!p.isCreative()&&!p.isSpectator()&&!DescentPlayerData.get(p).isEnabled(),"real ordinary survival target retains native authority without a synthetic target override");
+            if(!spawned[0]){
+                if(!com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(p)
+                    ||com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(p).distanceTo(up)>1e-6
+                    ||!com.terminaldetector.drmd.world.gravity.FootGravitySystem.get(p).grounded())return false;
+                if(ranged&&!room.dark(p.getEyePos()))return false;
+                groundSupport(c,p,up);
+                var types=ranged?new EntityType<?>[]{EntityType.SKELETON,EntityType.STRAY}:new EntityType<?>[]{EntityType.COW,EntityType.PIG,EntityType.SHEEP};
+                int i=0;
+                if(pending.isEmpty())for(var type:types){
+                    var a=(net.minecraft.entity.mob.MobEntity)type.create(room.world);a.setAiDisabled(true);a.setPersistent();
+                    double lateral=ranged?(i++==0?-3:3):(i++-1)*3;
+                    var start=p.getPos().add(com.terminaldetector.drmd.world.gravity.ActorFrameMath.toWorld(new Vec3d(lateral,0,ranged?-9:-5),up));
+                    a.setPosition(start);c.assertTrue(ActorFrames.trySetUp(a,up),"normal native goal starts in a checked clear local frame: "+type);room.spawn(a);
+                    if(ranged){a.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND,new net.minecraft.item.ItemStack(net.minecraft.item.Items.BOW));}
+                    c.assertTrue(groundSupport(c,a,up)<=.08,"actual native goal support admission");
+                    pending.add(a);
+                }
+                if(ranged)for(var a:pending)if(!room.dark(a.getEyePos()))return false;
+                for(var a:pending){groundSupport(c,a,up);a.setAiDisabled(false);cases.add(new GoalProgress(a,p));} // no setTarget, path, velocity, motor or manual actor tick
+                spawned[0]=true;return false;
+            }
+            boolean complete=true;
+            for(var r:cases){
+                var a=r.actor;if(a.age==r.age){complete=false;continue;}
+                r.maxStep=Math.max(r.maxStep,a.getPos().distanceTo(r.last)/Math.max(1,a.age-r.age));r.last=a.getPos();r.age=a.age;
+                r.maxGap=Math.max(r.maxGap,groundSupport(c,a,up));r.path|=a.getNavigation().getCurrentPath()!=null&&!a.getNavigation().isIdle();r.nativeTarget|=a.getTarget()==p;
+                c.assertTrue(a.isAlive()&&!a.isAiDisabled()&&!a.hasNoGravity()&&a.getNavigation()==r.navigation&&a.getMoveControl()==r.control
+                    &&ActorFrames.up(a).distanceTo(up)<1e-6&&r.maxStep<=1,"native controller/AI/input/body ownership and finite ordinary movement remain intact: "+a.getType());
+                if(ranged)for(var arrow:room.world.getEntitiesByClass(net.minecraft.entity.projectile.PersistentProjectileEntity.class,new Box(Vec3d.of(room.min),Vec3d.of(room.max.add(1,1,1))),v->v.getOwner()==a)){
+                    if(arrow.age>0&&arrow.getVelocity().lengthSquared()>.01)r.arrow=true;
+                }
+                if(a.age-r.born<ORDINARY_TICKS){complete=false;continue;}
+                double progress=r.distance-a.distanceTo(p);var row=new LinkedHashMap<String,Object>();
+                row.put("type",a.getType().toString());row.put("up",vector(up));row.put("actualActorTicks",a.age-r.born);row.put("actualPlayerAge",p.age);row.put("progress",progress);
+                row.put("nativePath",r.path);row.put("nativeTargetPlayer",r.nativeTarget);row.put("ordinaryOwnedArrow",r.arrow);row.put("maxStep",r.maxStep);row.put("maxGap",r.maxGap);
+                row.put("targetAssignedByObserver",false);row.put("nativeFoodInHands",List.of(p.getMainHandStack().getItem().toString(),p.getOffHandStack().getItem().toString()));
+                System.out.println("C1_NATIVE_GOAL "+new com.google.gson.Gson().toJson(row));
+                c.assertTrue(progress>=1&&r.path&&(!ranged||r.nativeTarget&&r.arrow),"actual native food or ranged goal must deliver supported progress, plus real native ranged acquisition/projectile when applicable: "+row);
+            }
+            return complete;
+        });
+    }
+    private record NativeFoodPlayer(net.minecraft.server.network.ServerPlayerEntity player,net.minecraft.network.ClientConnection connection,io.netty.channel.embedded.EmbeddedChannel channel){}
+    private static NativeFoodPlayer nativeFoodPlayer(Room room,Vec3d position){
+        var w=room.world;var data=net.minecraft.server.network.ConnectedClientData.createDefault(new com.mojang.authlib.GameProfile(UUID.randomUUID(),"c1-native-goal"),false);
+        var p=new net.minecraft.server.network.ServerPlayerEntity(w.getServer(),w,data.gameProfile(),data.syncedOptions());
+        var connection=new net.minecraft.network.ClientConnection(net.minecraft.network.NetworkSide.SERVERBOUND);var channel=new io.netty.channel.embedded.EmbeddedChannel(connection);
+        w.getServer().getPlayerManager().onPlayerConnect(connection,p,data);
+        room.cleanup.add(()->{com.terminaldetector.drmd.flight.FlightSystem.disable(p,DescentPlayerData.get(p));com.terminaldetector.drmd.world.gravity.FootGravitySystem.forget(p.getUuid());
+            w.getServer().getNetworkIo().getConnections().remove(connection);w.getServer().getPlayerManager().remove(p);p.discard();channel.finishAndReleaseAll();});
+        channel.runPendingTasks();channel.flushOutbound();int confirmations=0;
+        for(var packet:List.copyOf(channel.outboundMessages()))if(packet instanceof net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket teleport){channel.writeInbound(new net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket(teleport.getTeleportId()));confirmations++;}
+        room.context.assertTrue(confirmations>0,"real native initial teleport confirmed before one-time player fixture positioning");
+        p.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);com.terminaldetector.drmd.flight.FlightSystem.disable(p,DescentPlayerData.get(p));p.getAbilities().flying=false;p.sendAbilitiesUpdate();
+        p.setPosition(position);p.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(net.minecraft.item.Items.WHEAT));p.setStackInHand(net.minecraft.util.Hand.OFF_HAND,new net.minecraft.item.ItemStack(net.minecraft.item.Items.CARROT));
+        if(!w.getServer().getNetworkIo().getConnections().contains(connection))w.getServer().getNetworkIo().getConnections().add(connection);
+        return new NativeFoodPlayer(p,connection,channel);
     }
 }
