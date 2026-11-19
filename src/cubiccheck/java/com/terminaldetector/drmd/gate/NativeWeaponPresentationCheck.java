@@ -43,7 +43,7 @@ public final class NativeWeaponPresentationCheck {
     private record View(long tick,boolean nativeWorld,boolean flight,int selected,String hand,List<String> hotbar,List<Integer> hotbarCounts,List<String> banks,List<Integer> bankCounts,String cursor){}
     private record Click(int slot,String cursor,String cell){}
     private static volatile View view;private static volatile boolean setup,background;private static volatile String serverFailure;private static UUID player;
-    private static boolean done,sent,selected,rolling;private static long boot,entered,settled;private static int age,phase,profile,frames,previewBank;
+    private static boolean done,sent,selected,rolling,focusRequested;private static long boot,entered,settled;private static int age,phase,profile,frames,previewBank;
     private static final ArrayDeque<Click> clicks=new ArrayDeque<>();private static Click pending;
     private static KeyBinding pressed;private static int pressedAt;
     private static NativeImage flightBackground,beforeHand;
@@ -78,7 +78,7 @@ public final class NativeWeaponPresentationCheck {
             var hotbar=new ArrayList<String>();var hotbarCounts=new ArrayList<Integer>();for(int i=0;i<9;i++){var stack=p.getInventory().getStack(i);hotbar.add(id(stack));hotbarCounts.add(stack.getCount());}var banks=new ArrayList<String>();var bankCounts=new ArrayList<Integer>();var load=DroneLoadout.of(p);for(int i=0;i<5;i++){var stack=load.getStack(i);banks.add(id(stack));bankCounts.add(stack.getCount());}
             view=new View(server.getTicks(),nativeWorld,DescentPlayerData.get(p).isEnabled(),p.getInventory().selectedSlot,id(p.getMainHandStack()),List.copyOf(hotbar),List.copyOf(hotbarCounts),List.copyOf(banks),List.copyOf(bankCounts),id(p.currentScreenHandler.getCursorStack()));
         }catch(Throwable e){serverFailure=e.toString();}});ClientTickEvents.START_CLIENT_TICK.register(NativeWeaponPresentationCheck::tick);}
-    private static void enter(int next){phase=next;sent=selected=false;frames=0;settled=0;entered=age;lastProjection=List.of();clicks.clear();pending=null;}
+    private static void enter(int next){phase=next;sent=selected=focusRequested=false;frames=0;settled=0;entered=age;lastProjection=List.of();clicks.clear();pending=null;}
     private static void pulse(KeyBinding key){require(pressed==null,"one physical key pulse at a time");key.setPressed(true);KeyBinding.onKeyPressed(KeyBindingHelper.getBoundKeyOf(key));pressed=key;pressedAt=age;INPUTS.add(Map.of("tick",age,"phase",phase,"binding",key.getTranslationKey(),"down",true));}
     private static boolean hotbar(MinecraftClient c,int slot){if(!selected){pulse(c.options.hotbarKeys[slot]);selected=true;return false;}return c.player.getInventory().selectedSlot==slot&&view.selected==slot;}
     private static boolean flight(MinecraftClient c,boolean enabled){if(view.flight==enabled&&DescentClientState.enabled==enabled)return true;if(!sent){pulse(DescentKeybinds.toggle);sent=true;}return false;}
@@ -96,8 +96,15 @@ public final class NativeWeaponPresentationCheck {
         if(pending!=null){String actual=id(menu.getScreenHandler().getSlot(pending.slot).getStack());if(!actual.equals(pending.cell)||!view.cursor.equals(pending.cursor))return false;pending=null;}
         if(!clicks.isEmpty()){pending=clicks.removeFirst();click(menu,pending.slot);return false;}return true;
     }
-    private static void hover(MinecraftClient c,int bank){var menu=(HandledScreen<?>)c.currentScreen;var s=menu.getScreenHandler().getSlot(bank);double x=(menu.width-176)/2.0+s.x+8,y=(menu.height-212)/2.0+s.y+8;
-        GLFW.glfwSetCursorPos(c.getWindow().getHandle(),x*c.getWindow().getWidth()/menu.width,y*c.getWindow().getHeight()/menu.height);}
+    private static void hover(MinecraftClient c,int bank){
+        long window=c.getWindow().getHandle();
+        if(GLFW.glfwGetWindowAttrib(window,GLFW.GLFW_FOCUSED)==GLFW.GLFW_FALSE){
+            if(!focusRequested){GLFW.glfwFocusWindow(window);focusRequested=true;}
+            return;
+        }
+        var menu=(HandledScreen<?>)c.currentScreen;var s=menu.getScreenHandler().getSlot(bank);double x=(menu.width-176)/2.0+s.x+8,y=(menu.height-212)/2.0+s.y+8;
+        GLFW.glfwSetCursorPos(window,x*c.getWindow().getWidth()/menu.width,y*c.getWindow().getHeight()/menu.height);
+    }
     private static void closeMenu(MinecraftClient c){if(c.currentScreen!=null)c.currentScreen.keyPressed(GLFW.GLFW_KEY_ESCAPE,0,0);}
     private static void tick(MinecraftClient c){
         if(done)return;age++;if(pressed!=null&&age>pressedAt){pressed.setPressed(false);INPUTS.add(Map.of("tick",age,"binding",pressed.getTranslationKey(),"down",false));pressed=null;}
@@ -251,7 +258,10 @@ public final class NativeWeaponPresentationCheck {
                 evidence.put("clientBanks",menu.getScreenHandler().slots.subList(0,5).stream().map(slot->id(slot.getStack())).toList());
                 evidence.put("clientCursor",id(menu.getScreenHandler().getCursorStack()));evidence.put("queuedClicks",clicks.size());
                 evidence.put("pendingClick",pending);evidence.put("settled",settled);evidence.put("acceptedBankFrames",frames);
-                evidence.put("rawMouse",List.of(c.mouse.getX(),c.mouse.getY()));result.put("equipmentFailure",evidence);
+                evidence.put("rawMouse",List.of(c.mouse.getX(),c.mouse.getY()));
+                long window=c.getWindow().getHandle();double[] mouseX={0},mouseY={0};GLFW.glfwGetCursorPos(window,mouseX,mouseY);
+                evidence.put("glfwMouse",List.of(mouseX[0],mouseY[0]));evidence.put("glfwFocused",GLFW.glfwGetWindowAttrib(window,GLFW.GLFW_FOCUSED)==GLFW.GLFW_TRUE);
+                result.put("equipmentFailure",evidence);
                 try(var image=capture(c)){image.writeTo(c.runDirectory.toPath().resolve("weapon-presentation-menu-failure.png"));}
                 catch(Exception captureFailure){evidence.put("captureFailure",captureFailure.toString());}
             }

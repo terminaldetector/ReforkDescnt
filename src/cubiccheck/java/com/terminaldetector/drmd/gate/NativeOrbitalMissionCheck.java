@@ -59,7 +59,7 @@ public final class NativeOrbitalMissionCheck {
     private static volatile int phase,passed,verified,requested,readyCubes,maxCursorDelta,maxCasDelta;
     private static volatile boolean done,armed;private static volatile String failure,pendingFrame,blockedCube;
     private static long boot,armedAt;private static int ticks,flightTicks,frames,initialTeleports,heldTicks,serverSamples,lastServerTick=-1;
-    private static int heraldDepartureWaypoints;
+    private static int heraldDepartureWaypoints,miningAttackEdges,miningAimTicks;
     private static long cursor,cas;private static Vec3d previousServer,previousClient,lastClientMoveEnd;
     private static net.minecraft.server.OperatorEntry operatorBefore,assignedOperator;
     private static com.mojang.authlib.GameProfile authorProfile;
@@ -202,7 +202,10 @@ public final class NativeOrbitalMissionCheck {
     private static int cursor(){var n=instance();return n.isEmpty()?-1:n.getInt("cursor");}
     private static int rep(){return com.terminaldetector.drmd.world.enclave.FactionMemory.of(heldWorld).getRep(playerId,com.terminaldetector.drmd.world.enclave.EnclaveOrigin.MINERS);}
     private static void expect(int cursor,int rep,String reason){require(cursor()==cursor&&rep()==rep,reason+" actual="+instance()+" rep="+rep());}
-    private static boolean near(ServerPlayerEntity p){return p.getPos().distanceTo(goal())<=.8&&DescentPlayerData.get(p).getFlightVelocity().length()<=3;}
+    private static boolean near(ServerPlayerEntity p){
+        double speedLimit=missionLeg==2||missionLeg==4?.8:3;
+        return p.getPos().distanceTo(goal())<=.8&&DescentPlayerData.get(p).getFlightVelocity().length()<=speedLimit;
+    }
     private static String xyz(BlockPos p){return p.getX()+" "+p.getY()+" "+p.getZ();}
     private static void beginMission(ServerPlayerEntity p){
         require(com.terminaldetector.drmd.world.enclave.EnclaveMissionCatalog.find(CONTRACT).isPresent(),"real additive resource loaded by normal catalog");
@@ -255,17 +258,34 @@ public final class NativeOrbitalMissionCheck {
             if(!DescentClientState.enabled){clearKeys(c);if(flightRequestLeg!=missionLeg){net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(new ModNetworking.ActionPayload("enable"));flightRequestLeg=missionLeg;}return;}
             c.player.getInventory().selectedSlot=1;if(!c.player.getMainHandStack().isOf(net.minecraft.item.Items.DIAMOND_PICKAXE))return;
             if(missionLeg==3||missionLeg==5){
-                clearKeys(c);var target=panel(missionLeg==3?0:1);aim(c,Vec3d.ofCenter(target).add(0,0,-.5));
-                if(c.crosshairTarget instanceof net.minecraft.util.hit.BlockHitResult hit&&hit.getBlockPos().equals(target))c.options.attackKey.setPressed(true);return;
+                var target=panel(missionLeg==3?0:1);
+                boolean alreadyPressed=c.options.attackKey.isPressed();
+                clearKeys(c);
+                var velocity=c.player.getVelocity().multiply(20);
+                if(at.distanceTo(goal())>1.1||velocity.length()>1.2){steer(c,at,goal(),.4);return;}
+                aim(c,Vec3d.ofCenter(target).add(0,0,-.375));miningAimTicks++;
+                if(c.crosshairTarget instanceof net.minecraft.util.hit.BlockHitResult hit&&hit.getBlockPos().equals(target)){
+                    if(!alreadyPressed){
+                        var key=net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.getBoundKeyOf(c.options.attackKey);
+                        net.minecraft.client.option.KeyBinding.onKeyPressed(key);miningAttackEdges++;
+                    }
+                    c.options.attackKey.setPressed(true);
+                }
+                return;
             }
-            var error=steeringGoal(at).subtract(at);var velocity=c.player.getVelocity().multiply(20);double speed=Math.min(7,error.length()*1.8);var wanted=error.lengthSquared()<1e-12?Vec3d.ZERO:error.normalize().multiply(speed);var correction=wanted.subtract(velocity);
             clearKeys(c);
-            if(correction.length()>1.2){
-                var direction=correction.normalize();var up=Math.abs(direction.y)>.94?new Vec3d(0,0,1):new Vec3d(0,1,0);
-                // Actual client-owned attitude and real keyboard sampling send the normal production packet.
-                ShipAttitudeClient.acceptPortalFrame(c.player,direction,up);c.options.forwardKey.setPressed(true);heldTicks++;
-            }
+            steer(c,at,steeringGoal(at),missionLeg==2||missionLeg==4?.6:1.2);
         }catch(Throwable bad){failure=bad.toString();bad.printStackTrace();}
+    }
+    private static void steer(MinecraftClient c,Vec3d at,Vec3d target,double deadBand){
+        var error=target.subtract(at);var velocity=c.player.getVelocity().multiply(20);
+        double speed=Math.min(7,error.length()*1.8);
+        var wanted=error.lengthSquared()<1e-12?Vec3d.ZERO:error.normalize().multiply(speed);
+        var correction=wanted.subtract(velocity);
+        if(correction.length()>deadBand){
+            var direction=correction.normalize();var up=Math.abs(direction.y)>.94?new Vec3d(0,0,1):new Vec3d(0,1,0);
+            ShipAttitudeClient.acceptPortalFrame(c.player,direction,up);c.options.forwardKey.setPressed(true);heldTicks++;
+        }
     }
     private static Vec3d steeringGoal(Vec3d at) {
         if(missionLeg==1&&heraldDepartureWaypoints<2) {
@@ -380,6 +400,7 @@ public final class NativeOrbitalMissionCheck {
         if(done)return;done=true;if(c.player!=null)clearKeys(c);
         var report=new LinkedHashMap<String,Object>();report.put("status",status);report.put("extendedFieldViews",FIELD_VIEWS);report.put("fieldViewLeg",viewLeg);report.put("fieldViewTicks",viewTicks);report.put("fieldViewLastAdmission",NativeOrbitalMaskCheck.fieldViewDiagnostic());report.put("fieldViewWallNanos",viewStarted==0?0:System.nanoTime()-viewStarted);report.put("originalMissionCompletedWallNanos",missionCompletedWall);report.put("fieldViewPathMetres",viewPath);report.put("fieldViewMinimumPathMetres",fieldViewMinimumPath());report.put("fieldViewHeldTicks",viewHeldTicks);report.put("fieldViewServerSamples",viewServerSamples);synchronized(VIEW_ROWS){report.put("fieldViewRows",List.copyOf(VIEW_ROWS));}report.put("reason",reason);report.put("blockedCube",blockedCube);report.put("nativeCubic",true);report.put("permissionBefore",permissionBefore);report.put("permissionAfterAdmission",permissionAfter);report.put("operatorEntryLevel",assignedOperator==null?null:assignedOperator.getPermissionLevel());report.put("authorProfile",playerId==null?null:playerId.toString());report.put("coldReader",false);report.put("phase",phase);report.put("passed",passed);report.put("missionLeg",missionLeg);report.put("actualHeraldUses",heraldUses);report.put("earlyHeraldUses",initialUses);report.put("firstObservedClaimUse",firstClaimUse);report.put("actualStoneBreakEvents",mined);report.put("contract",CONTRACT);report.put("actualReputation",observedRep);report.put("survivalPeerStillHasPermission2",actualPermission>=2);report.put("verifiedCells",verified);report.put("requestedColumns",requested);report.put("fullHaloCubes",readyCubes);report.put("initialTeleports",initialTeleports);report.put("heldKeyboardTicks",heldTicks);report.put("measuredClientTicks",flightTicks);report.put("measuredWallNanos",armedAt==0?0:System.nanoTime()-armedAt);report.put("actualPathMetres",travelled);report.put("minimumGeometricPathMetres",minimumPath());report.put("maxClientStep",maxStep);report.put("maxCursorDelta",maxCursorDelta);report.put("maxCasDelta",maxCasDelta);report.put("actualServerSamples",serverSamples);report.put("planHash",plan==null?"":plan.hash());
         report.put("heraldDepartureWaypoints",heraldDepartureWaypoints);
+        report.put("miningAimTicks",miningAimTicks);report.put("miningAttackEdges",miningAttackEdges);
         synchronized(EVENTS){report.put("events",List.copyOf(EVENTS));}synchronized(STATE_ROWS){report.put("stateRows",List.copyOf(STATE_ROWS));}synchronized(CLIENT_MOVES){report.put("actualClientMoves",List.copyOf(CLIENT_MOVES));}synchronized(SERVER_MOVES){report.put("actualServerMoves",List.copyOf(SERVER_MOVES));}
         try{Files.writeString(c.runDirectory.toPath().resolve("orbital-native-mission.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(report));}catch(Exception bad){bad.printStackTrace();}
         System.out.println("NATIVE_ORBITAL_MISSION_"+status+" "+reason);c.scheduleStop();
