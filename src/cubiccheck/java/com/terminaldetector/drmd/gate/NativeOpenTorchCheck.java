@@ -33,8 +33,9 @@ import java.util.UUID;
 public final class NativeOpenTorchCheck {
     public static final boolean ENABLED = Boolean.getBoolean("drmd.gate.torchOpen");
     private static final int FLOOR = 2148;
-    private static final Vec3d START = new Vec3d(15.5, 2152, 28.5);
-    private static final BlockPos TORCH = new BlockPos(14, FLOOR, 15);
+    private static final int UPPER_FLOOR = 2154;
+    private static final Vec3d START = new Vec3d(15.5, UPPER_FLOOR, 28.5);
+    private static final BlockPos TORCH = new BlockPos(12, FLOOR, 18);
     private static volatile UUID viewer;
     private static volatile boolean authored, observing, done;
     private static volatile Sample latest, captured;
@@ -43,7 +44,7 @@ public final class NativeOpenTorchCheck {
     private static boolean staged;
     private static int ticks, phase, jumpHeld;
     private static double top = FLOOR;
-    private static Vec3d previousClient;
+    private static Vec3d previousClient, clientCapture;
     private static double maxClientStep;
     private static String result;
     private static long boot;
@@ -83,8 +84,10 @@ public final class NativeOpenTorchCheck {
             }
             if (!authored) {
                 if (!available(world)) return;
-                for (var pos : BlockPos.iterate(new BlockPos(10, FLOOR - 1, 12), new BlockPos(21, 2156, 34))) {
-                    int height = pos.getZ() >= 24 ? 2151 : FLOOR - 1;
+                var lowerCorner = new BlockPos(10, FLOOR - 1, 12);
+                var upperCorner = new BlockPos(21, UPPER_FLOOR + 3, 34);
+                for (var pos : BlockPos.iterate(lowerCorner, upperCorner)) {
+                    int height = pos.getZ() >= 24 ? UPPER_FLOOR - 1 : FLOOR - 1;
                     var state = pos.getY() <= height ? Blocks.STONE : Blocks.AIR;
                     world.setBlockState(pos, state.getDefaultState(), Block.NOTIFY_LISTENERS);
                 }
@@ -148,6 +151,7 @@ public final class NativeOpenTorchCheck {
             observing = true;
         }
         var at = c.player.getPos();
+        if (clientCapture == null && FootGravitySystem.isActive(c.player)) clientCapture = at;
         // Several normal client movement packets can arrive in one server tick.
         // The individual client simulation ticks show whether the camera/body actually jumped.
         maxClientStep = Math.max(maxClientStep, previousClient.distanceTo(at));
@@ -187,6 +191,7 @@ public final class NativeOpenTorchCheck {
             var proof = new LinkedHashMap<String, Object>();
             proof.put("status", result);
             proof.put("capture", captured);
+            proof.put("clientCapture", clientCapture == null ? null : xyz(clientCapture));
             proof.put("jumpTop", top);
             proof.put("maximumClientStep", maxClientStep);
             synchronized (SAMPLES) { proof.put("server", List.copyOf(SAMPLES)); }
