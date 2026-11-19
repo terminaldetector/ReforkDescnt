@@ -1,5 +1,6 @@
 package com.terminaldetector.drmd.mixin.client;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.terminaldetector.drmd.client.DescentClientState;
 import com.terminaldetector.drmd.client.flight.DescentCamera;
 import com.terminaldetector.drmd.client.render.WeaponViewRenderer;
@@ -16,6 +17,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Arm;
 import net.minecraft.util.Hand;
+import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -49,8 +51,10 @@ public abstract class HeldWeaponFallbackMixin {
                 : left ? ModelTransformationMode.FIRST_PERSON_LEFT_HAND : ModelTransformationMode.FIRST_PERSON_RIGHT_HAND;
         matrices.push();
         try {
-            // The item can change without inheriting the equip dip, swing or camera inertia.
+            // GameRenderer applies the camera matrix globally and its inverse in the hand stack.
+            // Retain that cancellation when removing arm animation from the local stack.
             matrices.loadIdentity();
+            matrices.multiplyPositionMatrix(new Matrix4f(RenderSystem.getModelViewMatrix()).invert());
             double side = flight ? .45 : .56;
             matrices.translate(centred ? 0 : left ? -side : side, flight || centred ? -.3 : -.52,
                     flight || centred ? -.8 : -.72);
