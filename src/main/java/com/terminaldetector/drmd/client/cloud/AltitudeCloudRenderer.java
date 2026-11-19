@@ -77,7 +77,7 @@ public final class AltitudeCloudRenderer {
         }catch(RuntimeException failure){fallback("semantic target unavailable: "+failure,failure);}
     }
     /** Called only after the existing colour draw prepared and used this exact cached VBO. */
-    public static void captureFar(PlanetSurfaceMesh source,Matrix4f view,float x,float y,float z,float inner,float reach,float[] orbitalMask){
+    public static void captureFar(PlanetSurfaceMesh source,Matrix4f view,float x,float y,float z,float inner,float reach,float[] orbitalMask,float[] orbitalShift){
         var c=MinecraftClient.getInstance();if(!valid||failed||!eligible(c))return;
         if(hasFarSource){fallback("more than one main-world semantic draw",null);return;}
         if(source.quads>160_000){fallback("far source exceeds existing VBO budget",null);return;}
@@ -86,6 +86,7 @@ public final class AltitudeCloudRenderer {
             shader.getUniform("FieldOriginDelta").set(x,y,z);shader.getUniform("InnerRadius").set(inner);shader.getUniform("FieldReach").set(reach);shader.getUniform("InverseProjection").set(new Matrix4f(worldProjection).invert());shader.getUniform("CloudTargetSize").set((float)target.width,(float)target.height);shader.getUniform("MaxRayDistance").set(AltitudeCloudPolicy.MAX_RAY_DISTANCE);
             shader.getUniform("FieldOuterRadius").set(HorizonExtent.outerRadius());
             com.terminaldetector.drmd.client.planet.HorizonShader.orbitalMask(shader,orbitalMask);
+            com.terminaldetector.drmd.client.planet.HorizonShader.orbitalPixelShift(shader,orbitalShift);
             HorizonVertexBuffer.drawSemantic(view,worldProjection,shader);hasFarSource=true;farDraws++;
         }catch(RuntimeException failure){fallback("far witness draw rejected: "+failure,failure);}
     }

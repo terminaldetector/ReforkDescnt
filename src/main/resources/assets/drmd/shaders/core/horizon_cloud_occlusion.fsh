@@ -8,6 +8,7 @@ in float sourceOpacity;
 in vec3 trueEyeVector;
 in float sourceScale;
 flat in int authoredOrbital;
+flat in vec2 orbitalNdcShift;
 uniform float FieldOuterRadius;
 out vec4 fragColor;
 void main() {
@@ -22,7 +23,8 @@ void main() {
     float normalLength = length(normal);
     if (normalLength < 0.000000000001 || isnan(normalLength) || isinf(normalLength)) discard;
     normal /= normalLength;
-    vec2 ndc = gl_FragCoord.xy / CloudTargetSize * 2.0 - 1.0;
+    // The colour image and witness share the same shift; reconstruct the original physical ray.
+    vec2 ndc = gl_FragCoord.xy / CloudTargetSize * 2.0 - 1.0 - orbitalNdcShift;
     vec4 point = InverseProjection * vec4(ndc, 1.0, 1.0);
     vec3 ray = normalize(point.xyz / point.w);
     float denominator = dot(normal, ray);

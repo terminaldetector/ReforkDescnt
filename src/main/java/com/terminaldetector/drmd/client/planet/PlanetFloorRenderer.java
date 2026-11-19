@@ -91,7 +91,11 @@ public final class PlanetFloorRenderer {
         // Translating already-compressed vertices was not the same projection and made the
         // terrain swing/crawl between rebuilds, especially during fast lateral flight.
         if(HorizonShader.program()==null) return;
+        var orbitalShift=HorizonOrbitalPixelSnap.shifts(mesh.orbitalKeys,cam.x,cam.y,cam.z,mat,
+                RenderSystem.getProjectionMatrix(),mc.getFramebuffer().textureWidth,mc.getFramebuffer().textureHeight,
+                (float)inner,(float)reach,com.terminaldetector.drmd.client.presentation.ScenePresentation.inLowResolutionWorld());
         HorizonShader.orbitalMask(HorizonShader.program(),orbitalMask);
+        HorizonShader.orbitalPixelShift(HorizonShader.program(),orbitalShift);
         HorizonShader.position((float)(mesh.originX-cam.x),endDim?0f:(float)(mesh.originY-cam.y),
                 (float)(mesh.originZ-cam.z),(float)inner,(float)reach);
         // This is the same getSkyColor result used by vanilla fog and the existing orbital
@@ -116,7 +120,7 @@ public final class PlanetFloorRenderer {
 			HorizonVertexBuffer.draw(mat);
             com.terminaldetector.drmd.client.cloud.AltitudeCloudRenderer.captureFar(mesh,mat,
                     (float)(mesh.originX-cam.x),endDim?0f:(float)(mesh.originY-cam.y),
-                    (float)(mesh.originZ-cam.z),(float)inner,(float)reach,orbitalMask);
+                    (float)(mesh.originZ-cam.z),(float)inner,(float)reach,orbitalMask,orbitalShift);
 		}
 
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);

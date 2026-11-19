@@ -58,6 +58,7 @@ public final class HorizonVertexBuffer {
 		BufferBuilder builder = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
 		float[] positions = mesh.positions;
 		int[] colours = mesh.colours;
+        int[] objectSlots=HorizonOrbitalPixelSnap.slots(mesh.orbitalKeys);
 		for (int q = 0; q < mesh.quads; q++) {
 			int argb = colours[q];
 			float a = ((argb >>> 24) & 0xFF) / 255f;
@@ -68,12 +69,13 @@ public final class HorizonVertexBuffer {
 			float g = ((argb >> 8) & 0xFF) / 255f;
 			float b = (argb & 0xFF) / 255f;
 			int i = q * 12;
-            float mask=mesh.orbitalMasks[q];
+            int mask=mesh.orbitalMasks[q];
+            int object=mask<0?-1:objectSlots[mask];
 			// Source offsets stay in mesh space; FieldOriginDelta carries current camera parallax.
-			builder.vertex(positions[i], positions[i + 1], positions[i + 2]).texture(mask,0).color(r, g, b, a);
-			builder.vertex(positions[i + 3], positions[i + 4], positions[i + 5]).texture(mask,0).color(r, g, b, a);
-			builder.vertex(positions[i + 6], positions[i + 7], positions[i + 8]).texture(mask,0).color(r, g, b, a);
-			builder.vertex(positions[i + 9], positions[i + 10], positions[i + 11]).texture(mask,0).color(r, g, b, a);
+			builder.vertex(positions[i], positions[i + 1], positions[i + 2]).texture(mask,object).color(r, g, b, a);
+			builder.vertex(positions[i + 3], positions[i + 4], positions[i + 5]).texture(mask,object).color(r, g, b, a);
+			builder.vertex(positions[i + 6], positions[i + 7], positions[i + 8]).texture(mask,object).color(r, g, b, a);
+			builder.vertex(positions[i + 9], positions[i + 10], positions[i + 11]).texture(mask,object).color(r, g, b, a);
 		}
 
 		BuiltBuffer built = builder.endNullable();

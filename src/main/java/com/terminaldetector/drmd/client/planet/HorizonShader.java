@@ -33,6 +33,16 @@ public final class HorizonShader {
         }
     }
 
+    /** Bounded per-object NDC offsets. Reset every draw, including neutral Native/Debug passes. */
+    public static void orbitalPixelShift(ShaderProgram shader,float[] shifts) {
+        if(shifts.length!=HorizonOrbitalPixelSnap.COMPONENTS)throw new IllegalArgumentException("orbital pixel shift length");
+        for(int i=0;i<8;i++) {
+            var uniform=shader.getUniform("OrbitalPixelShift["+i+"]");
+            if(uniform==null)throw new IllegalStateException("missing orbital pixel shift uniform "+i);
+            int at=i*4;uniform.set(shifts[at],shifts[at+1],shifts[at+2],shifts[at+3]);
+        }
+    }
+
     /** Use the actual column sky colour for terrain and catalogue objects alike, never a second sky overlay. */
     public static void atmosphere(double eyeY,float skyR,float skyG,float skyB,boolean column) {
         if(program==null)return;
