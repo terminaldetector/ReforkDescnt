@@ -41,8 +41,31 @@ public final class BoundedSpatialIndex<T> {
 		}
 	}
 
-	private record Cell(int x, int y, int z) {}
+	private static final class Cell {
+		private int x, y, z;
+
+		Cell(int x, int y, int z) {
+			set(x, y, z);
+		}
+
+		void set(int x, int y, int z) {
+			this.x = x;
+			this.y = y;
+			this.z = z;
+		}
+
+		@Override
+		public boolean equals(Object value) {
+			return value instanceof Cell other && x == other.x && y == other.y && z == other.z;
+		}
+
+		@Override
+		public int hashCode() {
+			return (x * 31 + y) * 31 + z;
+		}
+	}
 	private record Entry<T>(T value, Point position, long sequence) {}
+	private record Bucket<T>(Cell cell, List<Entry<T>> entries) {}
 	private record CellDistance<T>(Cell cell, List<Entry<T>> bucket, boolean origin, double squaredDistance) {}
 	private record Candidate<T>(Entry<T> entry, double squaredDistance) {}
 	private static final Comparator<CellDistance<?>> CELL_ORDER = Comparator
@@ -56,7 +79,7 @@ public final class BoundedSpatialIndex<T> {
 			.thenComparingLong(value -> value.entry.sequence);
 
 	private final double cellSize;
-	private final Map<Cell, List<Entry<T>>> buckets = new HashMap<>();
+	private final Map<Cell, Bucket<T>> buckets = new HashMap<>();
 	private int size;
 
 	public BoundedSpatialIndex(double cellSize) {
@@ -74,8 +97,8 @@ public final class BoundedSpatialIndex<T> {
 		Objects.requireNonNull(value, "value");
 		Objects.requireNonNull(position, "position");
 		Cell cell = cell(position);
-		buckets.computeIfAbsent(cell, ignored -> new ArrayList<>())
-				.add(new Entry<>(value, position, size++));
+		buckets.computeIfAbsent(cell, key -> new Bucket<>(key, new ArrayList<>()))
+				.entries.add(new Entry<>(value, position, size++));
 	}
 
 	public int size() { return size; }
@@ -105,19 +128,21 @@ public final class BoundedSpatialIndex<T> {
 
 		double radiusSquared = radius * radius;
 		Cell origin = cell(center);
+		// This mutable key only probes the map. Keys owned by buckets are never modified.
+		Cell probe = new Cell(0, 0, 0);
 		int reach = (int) Math.ceil(radius / cellSize);
 		List<CellDistance<T>> occupied = new ArrayList<>();
 		long available = 0;
 		for (int x = origin.x - reach; x <= origin.x + reach; x++) {
 			for (int y = origin.y - reach; y <= origin.y + reach; y++) {
 				for (int z = origin.z - reach; z <= origin.z + reach; z++) {
-					Cell cell = new Cell(x, y, z);
-					List<Entry<T>> bucket = buckets.get(cell);
+					probe.set(x, y, z);
+					Bucket<T> bucket = buckets.get(probe);
 					if (bucket == null) continue;
-					double distance = squaredDistanceToCell(center, cell);
+					double distance = squaredDistanceToCell(center, bucket.cell);
 					if (distance > radiusSquared) continue;
-					occupied.add(new CellDistance<>(cell, bucket, cell.equals(origin), distance));
-					available += bucket.size();
+					occupied.add(new CellDistance<>(bucket.cell, bucket.entries, bucket.cell.equals(origin), distance));
+					available += bucket.entries.size();
 				}
 			}
 		}
