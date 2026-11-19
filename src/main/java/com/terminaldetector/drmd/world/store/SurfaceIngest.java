@@ -150,20 +150,17 @@ public final class SurfaceIngest {
 
 	/** Initial load and edits share the same per-tick sample budget. */
 	public static void queueChunkLoad(ServerWorld world,WorldChunk chunk) {
-		if (world == storeWorld && store != null) dirtyChunks.add(chunk.getPos().toLong());
+		if (world == storeWorld && store != null && CubicAvailability.onWorldThread(world))
+			nativePending.offer(chunk.getPos().toLong());
 	}
 
-	private static void queueReadyNative(ServerWorld world) {
+	private static void refreshAvailable(ServerWorld world,int budget) {
 		if (world != storeWorld || !CubicAvailability.onWorldThread(world)) return;
-		for (long key : nativePending.rotate(NATIVE_PROBES_PER_TICK)) {
-			if (dirtyChunks.contains(key)) continue;
+		for (long key : nativePending.rotate(Math.min(budget,NATIVE_PROBES_PER_TICK))) {
 			var pos = new net.minecraft.util.math.ChunkPos(key);
 			var chunk = CubicAvailability.loadedColumn(world, pos.x, pos.z);
 			if (chunk == null) { nativePending.acknowledge(key); continue; }
-			// Ordinary edits keep their existing policy; native events cannot grow that
-			// backlog beyond this bound, and remain pending while it is congested.
-			if (dirtyChunks.size() >= MAX_NATIVE_PENDING) continue;
-			dirtyChunks.add(key);
+			onChunkLoad(world,chunk);
 		}
 	}
 
@@ -207,15 +204,18 @@ public final class SurfaceIngest {
 		SurfaceStore live = store;
 		if (live == null) return;
         ServerWorld world=server.getOverworld();
-        if(world!=null) queueReadyNative(world);
         var dirty=dirtyChunks.iterator();
-        for(int done=0;world!=null && done<REBUILD_PER_TICK && dirty.hasNext();done++) {
+        int remaining=REBUILD_PER_TICK;
+        // Edits under an active player get processed before scanning newly loaded terrain.
+        while(world!=null && remaining>0 && dirty.hasNext()) {
             long key=dirty.next();dirty.remove();
+            remaining--;
             var pos=new net.minecraft.util.math.ChunkPos(key);
             var loaded=CubicAvailability.loadedColumn(world,pos.x,pos.z);
             if(loaded==null) continue; // Parent reopen/native arrivals can schedule later refreshes.
             onChunkLoad(world,loaded);
         }
+		if(world!=null && remaining>0) refreshAvailable(world,remaining);
 		live.rebuildDirty(REBUILD_PER_TICK,SurfaceStreamer::invalidate);
 		if (server.getTicks() % FLUSH_INTERVAL == 0) live.flush();
 	}
