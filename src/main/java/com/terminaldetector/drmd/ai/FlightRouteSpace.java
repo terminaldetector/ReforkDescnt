@@ -61,7 +61,7 @@ public final class FlightRouteSpace implements BoundedFlightPath.Space {
         return nearest;
     }
     /** Shared actual LOS; unknown material/hull geometry is never permission to fire or start an ability. */
-    static boolean clearSight(Entity actor,Vec3d from,Vec3d target,double range){return clearSight(actor,from,target,range,false);}
+    public static boolean clearSight(Entity actor,Vec3d from,Vec3d target,double range){return clearSight(actor,from,target,range,false);}
     static boolean clearSight(Entity actor,Vec3d from,Vec3d target,double range,boolean freshBodies){
         World world=actor.getWorld();double distance=target.squaredDistanceTo(from);
         if(!CubicAvailability.onWorldThread(world)||!Double.isFinite(distance)||!Double.isFinite(range)
