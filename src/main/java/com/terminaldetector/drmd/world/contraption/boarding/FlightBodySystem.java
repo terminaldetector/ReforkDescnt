@@ -6,6 +6,7 @@ import com.terminaldetector.drmd.flight.FlightSystem;
 import com.terminaldetector.drmd.network.FlightBodyNetworking;
 import com.terminaldetector.drmd.world.contraption.*;
 import com.terminaldetector.drmd.world.access.CubicAvailability;
+import com.terminaldetector.drmd.world.portal.PortalTravel;
 import net.fabricmc.fabric.api.event.lifecycle.v1.*;
 import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -110,7 +111,9 @@ public final class FlightBodySystem {
             }
             var bodies=new ArrayList<BodyMotion>();for(var b:candidates){bodies.add(motions.computeIfAbsent(b.getId(),id->b.boardingMotion()));touched.add(b);}
             var state=new DynamicBodyAttachment.State(BoardingSystem.pure(p.getPos()),BoardingSystem.pure(data.getFlightVelocity()),false,-1);
-            var after=DynamicBodyAttachment.freeFlight(state,bodies,p.getWidth(),p.getHeight(),.05,BoardingWorldMotion.captureFlight(p,state,false));
+            var worldMotion=BoardingWorldMotion.captureFlight(p,state,false);
+            if(bodies.isEmpty()&&PortalTravel.crossFreeFlight(p,state.velocity().scaled(.05),worldMotion))continue;
+            var after=DynamicBodyAttachment.freeFlight(state,bodies,p.getWidth(),p.getHeight(),.05,worldMotion);
             float damage=com.terminaldetector.drmd.flight.CrashDamage.damageFor(state.velocity().minus(after.velocity()).length());
             if(damage>0)p.damage(world.getDamageSources().flyIntoWall(),damage);
             p.setVelocity(BoardingSystem.mc(after.velocity().scaled(.05)));data.setFlightVelocity(BoardingSystem.mc(after.velocity()));

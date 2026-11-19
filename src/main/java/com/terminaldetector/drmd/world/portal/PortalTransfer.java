@@ -67,14 +67,20 @@ final class PortalTransfer {
     private static Membership refusedGroup(Map<UUID,Entity> members,Entity last){members.putIfAbsent(last.getUuid(),last);return new Membership(List.copyOf(members.values()),false);}
     static Attempt prepare(ServerWorld world,Entity root,D6PortalTransform base,Vec3 remainder,Vec3 hit,double halfSpan,
                            boolean strictAperture,long tick,Predicate<UUID> cooling,boolean solverComplete){
-        return prepare(world,root,base,remainder,hit,halfSpan,strictAperture,tick,cooling,solverComplete,false);
+        return prepare(world,root,base,remainder,halfSpan,strictAperture,tick,cooling,solverComplete,false,ZERO);
     }
     static Attempt prepareCurrent(ServerWorld world,Entity root,D6PortalTransform base,Vec3 remainder,Vec3 hit,double halfSpan,
                            boolean strictAperture,long tick,Predicate<UUID> cooling){
-        return prepare(world,root,base,remainder,hit,halfSpan,strictAperture,tick,cooling,true,true);
+        return prepare(world,root,base,remainder,halfSpan,strictAperture,tick,cooling,true,true,ZERO);
     }
-    private static Attempt prepare(ServerWorld world,Entity root,D6PortalTransform base,Vec3 remainder,Vec3 hit,double halfSpan,
-                           boolean strictAperture,long tick,Predicate<UUID> cooling,boolean solverComplete,boolean currentVelocity){
+    static Attempt prepareFlight(ServerWorld world,ServerPlayerEntity pilot,D6PortalTransform base,Vec3 remainder,
+                                 Vec3 requestedMove,double halfSpan,long tick,Predicate<UUID> cooling) {
+        if(pilot.hasVehicle()||pilot.hasPassengers()||!DescentPlayerData.get(pilot).isEnabled())
+            return new Attempt(List.of(pilot),null);
+        return prepare(world,pilot,base,remainder,halfSpan,true,tick,cooling,true,true,requestedMove);
+    }
+    private static Attempt prepare(ServerWorld world,Entity root,D6PortalTransform base,Vec3 remainder,double halfSpan,
+                           boolean strictAperture,long tick,Predicate<UUID> cooling,boolean solverComplete,boolean currentVelocity,Vec3 projectedMove){
         if(!world.getServer().isOnThread()||base.scale()!=1)return new Attempt(List.of(root),null);
         var gathered=gather(world,root,cooling);if(!gathered.complete())return new Attempt(gathered.members(),null);
         var members=new LinkedHashMap<UUID,Entity>();for(var e:gathered.members())members.put(e.getUuid(),e);
@@ -87,10 +93,11 @@ final class PortalTransfer {
             else{actors.add(capture(e,tick,solverComplete||!bodyIds.isEmpty(),currentVelocity));count++;}
             if(count>MAX_SHAPES)return new Attempt(List.copyOf(members.values()),null);
         }
+        var sourceRemainder=base.rotation().inverse().rotate(remainder);
         // Project real geometry; radius alone rejects a long narrow hull that fits a portal head-on.
         if(strictAperture||!hulls.isEmpty()||members.size()>1){
-            for(var h:hulls)for(var local:h.shapes())if(!fits(OrientedBox.local(local,h.entity.massPosition(),h.entity.localCentre(),h.entity.rotation()),base,halfSpan-.125,base.rotation().inverse().rotate(remainder)))return new Attempt(List.copyOf(members.values()),null);
-            for(var a:actors)if(!fits(currentBox(a),base,halfSpan-.125,base.rotation().inverse().rotate(remainder)))return new Attempt(List.copyOf(members.values()),null);
+            for(var h:hulls)for(var local:h.shapes())if(!fits(OrientedBox.local(local,h.entity.massPosition(),h.entity.localCentre(),h.entity.rotation()),base,halfSpan-.125,sourceRemainder))return new Attempt(List.copyOf(members.values()),null);
+            for(var a:actors)if(!fits(currentBox(a),base,halfSpan-.125,sourceRemainder.minus(projectedMove)))return new Attempt(List.copyOf(members.values()),null);
         }
         // A leading-edge crossing extracts the entire group in front of the destination plane.
         // This is ONE shared translation: joint anchors and rider-relative positions cannot diverge.
@@ -99,9 +106,9 @@ final class PortalTransfer {
             var q=base.transformOrientation(h.entity.rotation());var com=base.transformPoint(h.entity.massPosition());
             clearance=Math.max(clearance,.01-minimum(OrientedBox.local(local,com.minus(remainder),h.entity.localCentre(),q),base.destPoint(),base.destNormal()));
         }
-        for(var a:actors)clearance=Math.max(clearance,.01-minimum(destinationBox(a,base,base.transformPoint(a.before).minus(remainder)),base.destPoint(),base.destNormal()));
+        for(var a:actors)clearance=Math.max(clearance,.01-minimum(destinationBox(a,base,base.transformPoint(a.before.plus(projectedMove)).minus(remainder)),base.destPoint(),base.destNormal()));
         var transform=D6PortalTransform.of(base.sourcePoint(),base.sourceNormal(),base.destPoint().plus(base.destNormal().scaled(clearance)),base.destNormal());
-        var plan=new Plan(world,List.copyOf(members.values()),actors,hulls,bodyIds,transform,remainder,registry);
+        var plan=new Plan(world,List.copyOf(members.values()),actors,hulls,bodyIds,transform,remainder,projectedMove,registry);
         return new Attempt(plan.members,plan.validate()?plan:null);
     }
     private static boolean occupants(ServerWorld world,Map<UUID,Entity> members,Set<Integer> bodyIds){
@@ -193,8 +200,9 @@ final class PortalTransfer {
     static Vec3d mc(Vec3 v){return new Vec3d(v.x(),v.y(),v.z());}
 
     static final class Plan {
-        final ServerWorld world;final List<Entity> members;final List<Actor> actors;final List<Hull> hulls;final Set<Integer> bodyIds;final D6PortalTransform transform;final Vec3 remainder;final BodyJointRegistry registry;final Map<UUID,List<BodyJointLink>> topology=new LinkedHashMap<>();final Map<com.terminaldetector.drmd.entity.RagdollEntity,com.terminaldetector.drmd.entity.RagdollEntity.PreparedPortalTransfer> ragdolls=new LinkedHashMap<>();final Map<com.terminaldetector.drmd.entity.DroneEntity,com.terminaldetector.drmd.ai.DronePortalState.Prepared> drones=new LinkedHashMap<>();final Map<AerialBombEntity,AerialBombEntity.PreparedPortalFrame> ordnanceFrames=new LinkedHashMap<>();boolean applied;
-        Plan(ServerWorld world,List<Entity> members,List<Actor> actors,List<Hull> hulls,Set<Integer> bodyIds,D6PortalTransform transform,Vec3 remainder,BodyJointRegistry registry){this.world=world;this.members=members;this.actors=actors;this.hulls=hulls;this.bodyIds=Set.copyOf(bodyIds);this.transform=transform;this.remainder=remainder;this.registry=registry;for(var h:hulls)topology.put(h.entity.getUuid(),registry.forBody(h.entity.getUuid()));}
+        final ServerWorld world;final List<Entity> members;final List<Actor> actors;final List<Hull> hulls;final Set<Integer> bodyIds;final D6PortalTransform transform;final Vec3 remainder,projectedMove;final BodyJointRegistry registry;final Map<UUID,List<BodyJointLink>> topology=new LinkedHashMap<>();final Map<com.terminaldetector.drmd.entity.RagdollEntity,com.terminaldetector.drmd.entity.RagdollEntity.PreparedPortalTransfer> ragdolls=new LinkedHashMap<>();final Map<com.terminaldetector.drmd.entity.DroneEntity,com.terminaldetector.drmd.ai.DronePortalState.Prepared> drones=new LinkedHashMap<>();final Map<AerialBombEntity,AerialBombEntity.PreparedPortalFrame> ordnanceFrames=new LinkedHashMap<>();boolean applied;
+        Plan(ServerWorld world,List<Entity> members,List<Actor> actors,List<Hull> hulls,Set<Integer> bodyIds,D6PortalTransform transform,Vec3 remainder,Vec3 projectedMove,BodyJointRegistry registry){this.world=world;this.members=members;this.actors=actors;this.hulls=hulls;this.bodyIds=Set.copyOf(bodyIds);this.transform=transform;this.remainder=remainder;this.projectedMove=projectedMove;this.registry=registry;for(var h:hulls)topology.put(h.entity.getUuid(),registry.forBody(h.entity.getUuid()));}
+        private Vec3 destination(Actor actor){return transform.transformPoint(actor.before.plus(projectedMove));}
         boolean validate(){
             var moving=Set.copyOf(members);
             for(var h:hulls){var shapes=new ArrayList<PortalDestinationCollision.Shape>();var q=transform.transformOrientation(h.entity.rotation());var com=transform.transformPoint(h.entity.massPosition());
@@ -215,7 +223,7 @@ final class PortalTransfer {
                     if(!token.current())return false;var shapes=new ArrayList<PortalDestinationCollision.Shape>();
                     for(int i=0;i<token.destinationPartBounds().size();i++)shapes.add(new PortalDestinationCollision.Shape(OrientedBox.axisAligned(PortalDestinationCollision.bounds(token.sweepStartPartBounds().get(i))),OrientedBox.axisAligned(PortalDestinationCollision.bounds(token.destinationPartBounds().get(i)))));
                     if(!PortalDestinationCollision.clear(world,a.entity,shapes,remainder,moving))return false;
-                }else{var feet=transform.transformPoint(a.before);var end=destinationBox(a,transform,feet);var start=destinationBox(a,transform,feet.minus(remainder));
+                }else{var feet=destination(a);var end=destinationBox(a,transform,feet);var start=destinationBox(a,transform,feet.minus(remainder));
                     if(!PortalDestinationCollision.clear(world,a.entity,List.of(new PortalDestinationCollision.Shape(start,end)),remainder,moving))return false;
                 }
             }
@@ -248,7 +256,7 @@ final class PortalTransfer {
             return true;
         }
         private void applyActor(Actor a){
-            var e=a.entity;var feet=transform.transformPoint(a.before);Vec3 forward=transform.rotation().rotate(a.forward),head=transform.rotation().rotate(a.headForward);
+            var e=a.entity;var feet=destination(a);Vec3 forward=transform.rotation().rotate(a.forward),head=transform.rotation().rotate(a.headForward);
             Vec3 movedUp=transform.rotation().rotate(a.actorUp);var boardingFrame=a.boarding==null?null:transform.transformOrientation(a.boarding.frame());
             if(boardingFrame!=null){forward=boardingFrame.inverse().rotate(forward);head=boardingFrame.inverse().rotate(head);}
             else if(a.foot==null&&movedUp.lengthSquared()>.5){forward=pure(ActorFrameMath.toLocal(mc(forward),mc(movedUp)));head=pure(ActorFrameMath.toLocal(mc(head),mc(movedUp)));}

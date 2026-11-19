@@ -84,11 +84,19 @@ public final class BoardingWorldMotion implements DynamicBodyAttachment.Motion {
         return new BoardingWorldMotion(player,new OrientedCharacterClip(new CompoundCollider(shapes),player.getWidth(),player.getHeight()),replay,nativeFlight?new FlightLoadingClip(unknown,player.getWidth(),player.getHeight()):null);
     }
     @Override public boolean canOrient(Vec3 feet,Quat frame){return clip.canOrient(feet,frame)&&(loading==null||loading.canOrient(feet,frame));}
-    @Override public DynamicBodyAttachment.Move move(Vec3 feet,Quat frame,Vec3 requested) {
+    private DynamicBodyAttachment.Move checkedMove(Vec3 feet,Quat frame,Vec3 requested) {
         var limited=loading==null?requested:loading.clip(feet,frame,requested);
         var allowed=clip.move(feet,frame,limited);
         if(loading!=null&&loading.clip(feet,frame,allowed.displacement()).minus(allowed.displacement()).lengthSquared()>1e-16)
             allowed=new DynamicBodyAttachment.Move(new Vec3(0,0,0),List.of());
+        return allowed;
+    }
+    /** Uses the same solid-world and loaded-volume sweep as the movement, without changing the player. */
+    public boolean permitsFlightTo(Vec3 feet,Vec3 displacement) {
+        return checkedMove(feet,Quat.IDENTITY,displacement).displacement().minus(displacement).lengthSquared()<1e-12;
+    }
+    @Override public DynamicBodyAttachment.Move move(Vec3 feet,Quat frame,Vec3 requested) {
+        var allowed=checkedMove(feet,frame,requested);
         if(replay)return allowed;
         Vec3d before=player.getPos();
         var checked=allowed;

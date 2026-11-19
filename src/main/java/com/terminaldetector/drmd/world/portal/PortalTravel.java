@@ -1,8 +1,15 @@
 package com.terminaldetector.drmd.world.portal;
 
 import com.terminaldetector.drmd.client.portal.PortalTransform;
+import com.terminaldetector.drmd.d6.D6PortalTransform;
 import com.terminaldetector.drmd.diag.DiagTrace;
+import com.terminaldetector.drmd.world.access.WorldAccess;
+import com.terminaldetector.drmd.world.contraption.boarding.BoardingPose;
+import com.terminaldetector.drmd.world.contraption.boarding.BoardingWorldMotion;
+import com.terminaldetector.drmd.world.gravity.FootGravitySystem;
+import com.terminaldetector.drmd.world.portal.mirror.PortalPanelBlock;
 import net.minecraft.entity.Entity;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -101,6 +108,49 @@ public final class PortalTravel {
         map.values().removeIf(p->p.tick!=tick||p.item.get()==null);
         if(map.size()>=128&&!map.containsKey(item.getUuid()))return false;
         map.put(item.getUuid(),new Completed(new java.lang.ref.WeakReference<>(item),actualStart,item.getPos(),tick));return true;
+    }
+
+    /** A free-flight segment enters before it could hit the backing wall behind a gun portal. */
+    public static boolean crossFreeFlight(ServerPlayerEntity pilot, PortalTransform.Vec3 movement, BoardingWorldMotion motion) {
+        var world = pilot.getServerWorld();
+        var observed = FACES.get(world);
+        if (observed == null || observed.isEmpty() || pilot.hasVehicle() || pilot.hasPassengers()
+            || BoardingPose.active(pilot) || FootGravitySystem.isActive(pilot)) return false;
+        long tick = world.getServer().getTicks();
+        if (onCooldown(pilot.getUuid(), tick)) return false;
+        var start = toPure(pilot.getPos());
+        var end = start.plus(movement);
+        Face first = null;
+        PortalTransform.Vec3 entry = null;
+        double earliest = Double.POSITIVE_INFINITY;
+        for (var f : observed.values()) {
+            if (f.tick != tick || !f.facing.getAxis().isHorizontal()) continue;
+            var normal = Vec3d.of(f.facing.getVector());
+            var n = toPure(normal);
+            var plane = plane(f);
+            if (!PortalCrossing.crossedInward(start, end, plane, n)) continue;
+            double fraction = PortalCrossing.crossingFraction(start, end, plane, n);
+            if (fraction < 0 || fraction >= earliest) continue;
+            var hit = start.plus(movement.scaled(fraction));
+            if (!PortalCrossing.withinFace(hit, plane, n, f.span)) continue;
+            var state = WorldAccess.of(world).readIfLoaded(f.source).orElse(null);
+            if (state == null || !(state.getBlock() instanceof PortalPanelBlock) || state.get(PortalPanelBlock.CHANNEL) == 0) continue;
+            var resolved = resolveFace(world, f);
+            if (resolved == null || resolved.partnerFacing == null || !faceIsOpenTo(world, pilot, PortalTransfer.mc(plane), normal, hit)) continue;
+            first = resolved;
+            entry = hit;
+            earliest = fraction;
+        }
+        if (first == null || !motion.permitsFlightTo(start, entry.minus(start))) return false;
+        var sourceNormal = toPure(Vec3d.of(first.facing.getVector()));
+        var targetNormal = toPure(Vec3d.of(first.partnerFacing.getVector()));
+        var targetPlane = toPure(Vec3d.ofCenter(first.partner)).plus(targetNormal.scaled(.5));
+        var transform = D6PortalTransform.of(plane(first), sourceNormal, targetPlane, targetNormal);
+        var remainder = transform.transformVelocity(end.minus(entry));
+        var attempt = PortalTransfer.prepareFlight(world, pilot, transform, remainder, movement, first.span, tick, id -> onCooldown(id, tick));
+        if (attempt.accepted() == null || !attempt.accepted().apply()) return false;
+        transferred(world, first, attempt);
+        return true;
     }
     public static void drain(ServerWorld world){
         if(!world.getServer().isOnThread())return;long tick=world.getServer().getTicks();
@@ -201,15 +251,16 @@ public final class PortalTravel {
         var waiting=WAITING.computeIfAbsent(world,w->new java.util.LinkedHashMap<>());
         if(waiting.size()<MAX_PENDING||waiting.containsKey(entity.getUuid()))waiting.putIfAbsent(entity.getUuid(),pending);
     }
+    private static boolean uprightWallEntry(ServerPlayerEntity player, Face face) {
+        return face.facing.getAxis().isHorizontal() && !player.hasPassengers()
+            && !BoardingPose.active(player) && !FootGravitySystem.isActive(player);
+    }
     private static Crossing crossing(ServerWorld world,Entity entity,PortalTransform.Vec3 previous,Face f,boolean gun){
         var normal=Vec3d.of(f.facing.getVector());var face=Vec3d.ofCenter(f.source).add(normal.multiply(.5));var plane=toPure(face);var n=toPure(normal);var current=toPure(entity.getPos());
         // A standalone upright player's first-person view enters a wall panel at the player pivot.
         // Its shoulders reach the plane earlier. Group, floor and ceiling transfers need the leading
         // shape, since the backing may stop their geometry before the pivot reaches the plane.
-        boolean playerWall=gun&&f.facing.getAxis().isHorizontal()
-            &&entity instanceof net.minecraft.server.network.ServerPlayerEntity player&&!player.hasPassengers()
-            &&!com.terminaldetector.drmd.world.contraption.boarding.BoardingPose.active(player)
-            &&!com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player);
+        boolean playerWall=gun&&entity instanceof ServerPlayerEntity player&&uprightWallEntry(player,f);
         var leading=playerWall?null:PortalTransfer.leading(entity,previous,n);
         if(!playerWall&&leading==null)return null;
         PortalTransform.Vec3 hit;boolean edge;
@@ -241,10 +292,18 @@ public final class PortalTravel {
             else if(waiting!=null)waiting.remove(entity.getUuid());
             DiagTrace.count("portal.blockedGroup");return attempt;
         }
-        for(var member:attempt.members()){markArrived(member.getUuid(),now);if(waiting!=null)waiting.remove(member.getUuid());}
-        DiagTrace.record("portal","carried group of "+attempt.members().size()+" through "+f.source+" to "+f.partner);DiagTrace.count("portal.carried");return attempt;
+        transferred(world,f,attempt);return attempt;
     }
 
+    private static void transferred(ServerWorld world, Face face, PortalTransfer.Attempt attempt) {
+        var waiting = WAITING.get(world);
+        for (var member : attempt.members()) {
+            markArrived(member.getUuid(), face.tick);
+            if (waiting != null) waiting.remove(member.getUuid());
+        }
+        DiagTrace.record("portal","carried group of "+attempt.members().size()+" through "+face.source+" to "+face.partner);
+        DiagTrace.count("portal.carried");
+    }
     public static boolean exitIsClear(ServerWorld world,Entity traveller,Vec3d destination) {
         if(!Double.isFinite(destination.lengthSquared()))return false;
         Box body=traveller.getBoundingBox().offset(destination.subtract(traveller.getPos()));
