@@ -259,7 +259,7 @@ public final class PortalProjectorGameTests implements FabricGameTest {
         final TestContext c;final BlockPos a,b;final AiFixtureChunks chunks;
         final Map<BlockPos,net.minecraft.block.BlockState> before=new LinkedHashMap<>();
         net.minecraft.server.network.ServerPlayerEntity player;io.netty.channel.embedded.EmbeddedChannel channel;
-        boolean closed;int ticks,phase,age,steps,initialEpoch;Vec3d staged,arrived;
+        boolean closed;int ticks,phase,age,steps;Vec3d staged,arrived;
         FreshGunFixture(TestContext c){
             this.c=c;a=c.getAbsolutePos(new BlockPos(8,100,8));b=a.east(6);chunks=new AiFixtureChunks(c.getWorld(),a,1);
         }
@@ -292,7 +292,11 @@ public final class PortalProjectorGameTests implements FabricGameTest {
                 player.setPosition(Vec3d.ofCenter(a).add(0,-.6,-3.5));player.setVelocity(Vec3d.ZERO);player.setYaw(0);player.setPitch(0);
                 player.setStackInHand(net.minecraft.util.Hand.MAIN_HAND,new net.minecraft.item.ItemStack(ModWorldBlocks.PORTAL_PROJECTOR));
                 c.assertTrue(w.getServer().getPlayerManager().getPlayer(player.getUuid())==player&&w.getEntity(player.getUuid())==player,"traveller is an actual connected world player");
-                initialEpoch=DescentPlayerData.get(player).portalEpoch();staged=player.getPos();fire(1,a,Direction.NORTH);phase=1;return;
+                channel.runPendingTasks();
+                for(int i=0;i<4096&&!channel.outboundMessages().isEmpty();i++)
+                    io.netty.util.ReferenceCountUtil.release(channel.readOutbound());
+                c.assertTrue(channel.outboundMessages().isEmpty(),"ordinary login packet backlog is bounded");
+                staged=player.getPos();fire(1,a,Direction.NORTH);phase=1;return;
             }
             // The embedded connection is absent from the server's socket tick list.
             player.networkHandler.tick();
@@ -304,12 +308,12 @@ public final class PortalProjectorGameTests implements FabricGameTest {
                 phase=2;age=0;return;
             }
             if(phase==2){
-                c.assertTrue(player.getPos().distanceTo(staged)<1e-6&&DescentPlayerData.get(player).portalEpoch()==initialEpoch&&player.getYaw()==0&&player.getPitch()==0,"nearby linked pair cannot rotate or teleport a stationary connected player before contact");
+                c.assertTrue(player.getPos().distanceTo(staged)<1e-6&&teleportPackets()==0&&player.getYaw()==0&&player.getPitch()==0,"nearby linked pair cannot rotate or teleport a stationary connected player before contact");
                 if(++age<5)return;phase=3;age=0;
             }
             if(phase==3){
                 if(player.getX()>b.getX()-1.25&&player.getX()<b.getX()){
-                    c.assertTrue(steps>=2&&DescentPlayerData.get(player).portalEpoch()==initialEpoch+1,"normal BE tick/END-world drain, never direct carry, transfers actual inward movement once");
+                    c.assertTrue(steps>=2&&teleportPackets()==1,"normal BE tick and END-world drain transfer actual inward movement once");
                     c.assertTrue(Math.abs(player.getYaw()-90)<.01&&Math.abs(player.getPitch())<.01,"fresh gun transfer rotates real world look exactly once");
                     arrived=player.getPos();phase=4;age=0;return;
                 }
@@ -318,9 +322,16 @@ public final class PortalProjectorGameTests implements FabricGameTest {
                 return;
             }
             if(phase==4){
-                c.assertTrue(player.getPos().distanceTo(arrived)<.05&&DescentPlayerData.get(player).portalEpoch()==initialEpoch+1,"standing at actual exit never bounces or repeatedly turns after the10tick arrival guard");
+                c.assertTrue(player.getPos().distanceTo(arrived)<.05&&teleportPackets()==1,"standing at actual exit does not bounce or turn again after the arrival guard");
                 if(++age>=12){close();c.complete();}
             }
+        }
+        private long teleportPackets(){
+            // This embedded connection receives ordinary Minecraft packets without a Fabric client.
+            channel.runPendingTasks();
+            return channel.outboundMessages().stream()
+                .filter(net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket.class::isInstance)
+                .count();
         }
         public void close(){
             if(closed)return;closed=true;var w=c.getWorld();
