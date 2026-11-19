@@ -41,6 +41,8 @@ public final class NativeSwarmBaselineCheck {
     private static final List<Long> HEAP = new ArrayList<>();
     private static long initialDetailed, initialCoast, detailed, coast;
     private static int measuredFullCubes;
+    private static long initialRosterScans;
+    private static DroneSwarmAi.IndexStats finalRosterStats;
     private static final List<String> ROWS=new ArrayList<>();
     private static volatile boolean located,running,sampling,resultReady,done;
     private static volatile boolean abortPending;
@@ -65,6 +67,7 @@ public final class NativeSwarmBaselineCheck {
             if(age==35){initial.clear();initialAge.clear();for(var d:DRONES){initial.put(entity(d).getUuid(),entity(d).getPos());initialAge.put(entity(d).getUuid(),entity(d).age);}WORK.clear();sampleStart=System.nanoTime();sampling=true;
                 initialDetailed = DRONES.stream().mapToLong(DroneEntity::steeringUpdates).sum();
                 initialCoast = DRONES.stream().mapToLong(DroneEntity::coastingUpdates).sum();
+                if (MEASURE_CAPACITY) initialRosterScans = DroneSwarmAi.indexStats(s.getOverworld()).fullWorldScans();
             }
             if(sampling&&age>35)WORK.add(System.nanoTime()-tickStart);
             if(age!=95)return;
@@ -78,6 +81,7 @@ public final class NativeSwarmBaselineCheck {
             }
             sampledShots=shots;sampledShooters=SHOOTERS.size();
             if (MEASURE_CAPACITY) {
+                finalRosterStats = DroneSwarmAi.indexStats(s.getOverworld());
                 detailed = DRONES.stream().mapToLong(DroneEntity::steeringUpdates).sum() - initialDetailed;
                 coast = DRONES.stream().mapToLong(DroneEntity::coastingUpdates).sum() - initialCoast;
                 var centreCube = BlockPos.ofFloored(centre());
@@ -200,6 +204,8 @@ public final class NativeSwarmBaselineCheck {
                 values.put("requested",COUNT);values.put("live",alive);values.put("active",active);
                 values.put("moving",moving);values.put("synced",synced);values.put("uniqueRendered",DRAWN.size());
                 values.put("detailedSteeringUpdates",detailed);values.put("coastingUpdates",coast);values.put("shots",sampledShots);
+                values.put("liveRoster",finalRosterStats);
+                values.put("fullWorldScansDuringMeasurement",finalRosterStats.fullWorldScans()-initialRosterScans);
                 values.put("loadedCubeWindow",Map.of("size",List.of(7,9,9),"full",measuredFullCubes));
                 values.put("serverTickNanos",WORK);values.put("frameNanos",FRAMES);values.put("javaHeapBytes",HEAP);
                 values.put("seconds",seconds);values.put("drawCalls",null);
