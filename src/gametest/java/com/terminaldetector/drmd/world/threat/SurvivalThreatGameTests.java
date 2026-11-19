@@ -218,7 +218,7 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
                         Vec3d hiding=null;
                         for(var shift:new Vec3d[]{new Vec3d(8,0,0),new Vec3d(-8,0,0),new Vec3d(0,0,8),new Vec3d(0,0,-8),new Vec3d(0,8,0),new Vec3d(0,-8,0)}){
                             var candidate=f.player.entity.getPos().add(shift);var centre=BlockPos.ofFloored(candidate);
-                            var room=new Box(centre.add(-2,-1,-2),centre.add(3,4,3)).expand(1);
+                            var room=new Box(Vec3d.of(centre.add(-2,-1,-2)),Vec3d.of(centre.add(3,4,3))).expand(1);
                             if(room.minY<f.w.getBottomY()||room.maxY>f.w.getTopY()||patrol.stream().anyMatch(d->room.intersects(d.getBoundingBox())))continue;
                             if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedSegment(f.w,f.player.entity.getEyePos(),candidate.add(0,f.player.entity.getStandingEyeHeight(),0)))continue;
                             hiding=candidate;break;
