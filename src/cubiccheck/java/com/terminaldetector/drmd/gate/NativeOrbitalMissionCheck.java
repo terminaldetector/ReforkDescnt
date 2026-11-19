@@ -52,6 +52,7 @@ public final class NativeOrbitalMissionCheck {
     private static final List<Cover> COVER=new ArrayList<>();
     private static final List<D6ChunkPos> HALO=new ArrayList<>();
     private static final List<Map<String,Object>> EVENTS=new ArrayList<>(),STATE_ROWS=new ArrayList<>();
+    private static final ArrayDeque<Map<String,Object>> MINE_CLIENT_STATE=new ArrayDeque<>();
     private static final List<Move> CLIENT_MOVES=new ArrayList<>(),SERVER_MOVES=new ArrayList<>();
     private static final ThreadLocal<Deque<MoveStart>> MOVING=ThreadLocal.withInitial(ArrayDeque::new);
     private static CityBlueprint.Plan plan;private static CityRuntimeSession session;private static OrbitalRouteMemory.Context routeContext;
@@ -220,6 +221,7 @@ public final class NativeOrbitalMissionCheck {
     }
     private static void client(MinecraftClient c){
         if(done)return;ticks++;
+        if((missionLeg==3||missionLeg==5)&&ticks%8==0)observeMiningClient(c);
         if(failure!=null){finish(c,"FAIL",failure);return;}
         boolean fieldViewStage=FIELD_VIEWS&&phase>=6;
         if(!fieldViewStage&&(System.nanoTime()-boot>420_000_000_000L||ticks>6000)){finish(c,"FAIL","420wall/6000totalclienttick native route bound");return;}
@@ -276,6 +278,20 @@ public final class NativeOrbitalMissionCheck {
             clearKeys(c);
             steer(c,at,steeringGoal(at),missionLeg==2||missionLeg==4?.6:1.2);
         }catch(Throwable bad){failure=bad.toString();bad.printStackTrace();}
+    }
+    private static void observeMiningClient(MinecraftClient c){
+        var row=new LinkedHashMap<String,Object>();
+        row.put("tick",ticks);row.put("leg",missionLeg);row.put("screen",c.currentScreen==null?"none":c.currentScreen.getClass().getName());
+        row.put("flight",DescentClientState.enabled);row.put("flightClockActive",com.terminaldetector.drmd.client.flight.FlightBodyClient.active());
+        row.put("clockPending",com.terminaldetector.drmd.client.flight.FlightBodyClient.pending());
+        row.put("attackPressed",c.options.attackKey.isPressed());
+        row.put("actualCrosshair",c.crosshairTarget instanceof net.minecraft.util.hit.BlockHitResult hit?hit.getBlockPos().toShortString():String.valueOf(c.crosshairTarget));
+        if(c.player!=null){
+            row.put("position",xyz(c.player.getPos()));row.put("velocityMps",xyz(c.player.getVelocity().multiply(20)));
+            row.put("heldItem",Registries.ITEM.getId(c.player.getMainHandStack().getItem()).toString());
+            row.put("creative",c.player.isCreative());row.put("alive",c.player.isAlive());
+        }
+        if(MINE_CLIENT_STATE.size()==48)MINE_CLIENT_STATE.removeFirst();MINE_CLIENT_STATE.addLast(row);
     }
     private static void steer(MinecraftClient c,Vec3d at,Vec3d target,double deadBand){
         var error=target.subtract(at);var velocity=c.player.getVelocity().multiply(20);
@@ -401,6 +417,7 @@ public final class NativeOrbitalMissionCheck {
         var report=new LinkedHashMap<String,Object>();report.put("status",status);report.put("extendedFieldViews",FIELD_VIEWS);report.put("fieldViewLeg",viewLeg);report.put("fieldViewTicks",viewTicks);report.put("fieldViewLastAdmission",NativeOrbitalMaskCheck.fieldViewDiagnostic());report.put("fieldViewWallNanos",viewStarted==0?0:System.nanoTime()-viewStarted);report.put("originalMissionCompletedWallNanos",missionCompletedWall);report.put("fieldViewPathMetres",viewPath);report.put("fieldViewMinimumPathMetres",fieldViewMinimumPath());report.put("fieldViewHeldTicks",viewHeldTicks);report.put("fieldViewServerSamples",viewServerSamples);synchronized(VIEW_ROWS){report.put("fieldViewRows",List.copyOf(VIEW_ROWS));}report.put("reason",reason);report.put("blockedCube",blockedCube);report.put("nativeCubic",true);report.put("permissionBefore",permissionBefore);report.put("permissionAfterAdmission",permissionAfter);report.put("operatorEntryLevel",assignedOperator==null?null:assignedOperator.getPermissionLevel());report.put("authorProfile",playerId==null?null:playerId.toString());report.put("coldReader",false);report.put("phase",phase);report.put("passed",passed);report.put("missionLeg",missionLeg);report.put("actualHeraldUses",heraldUses);report.put("earlyHeraldUses",initialUses);report.put("firstObservedClaimUse",firstClaimUse);report.put("actualStoneBreakEvents",mined);report.put("contract",CONTRACT);report.put("actualReputation",observedRep);report.put("survivalPeerStillHasPermission2",actualPermission>=2);report.put("verifiedCells",verified);report.put("requestedColumns",requested);report.put("fullHaloCubes",readyCubes);report.put("initialTeleports",initialTeleports);report.put("heldKeyboardTicks",heldTicks);report.put("measuredClientTicks",flightTicks);report.put("measuredWallNanos",armedAt==0?0:System.nanoTime()-armedAt);report.put("actualPathMetres",travelled);report.put("minimumGeometricPathMetres",minimumPath());report.put("maxClientStep",maxStep);report.put("maxCursorDelta",maxCursorDelta);report.put("maxCasDelta",maxCasDelta);report.put("actualServerSamples",serverSamples);report.put("planHash",plan==null?"":plan.hash());
         report.put("heraldDepartureWaypoints",heraldDepartureWaypoints);
         report.put("miningAimTicks",miningAimTicks);report.put("miningAttackEdges",miningAttackEdges);
+        report.put("lastMiningClientState",List.copyOf(MINE_CLIENT_STATE));
         synchronized(EVENTS){report.put("events",List.copyOf(EVENTS));}synchronized(STATE_ROWS){report.put("stateRows",List.copyOf(STATE_ROWS));}synchronized(CLIENT_MOVES){report.put("actualClientMoves",List.copyOf(CLIENT_MOVES));}synchronized(SERVER_MOVES){report.put("actualServerMoves",List.copyOf(SERVER_MOVES));}
         try{Files.writeString(c.runDirectory.toPath().resolve("orbital-native-mission.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(report));}catch(Exception bad){bad.printStackTrace();}
         System.out.println("NATIVE_ORBITAL_MISSION_"+status+" "+reason);c.scheduleStop();
