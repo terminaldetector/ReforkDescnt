@@ -108,7 +108,9 @@
     "ClusterInputBootstrapProbe",
     "ClusterInputViewmodelProbe",
     "OrbitalHandoffDrawProbe",
-    "OrbitalHandoffFrameProbe"
+    "OrbitalHandoffFrameProbe",
+    "OrbitalRouteSendProbe",
+    "OrbitalRouteIntegratorProbe"
   ],
   "injectors": {
     "defaultRequire": 1

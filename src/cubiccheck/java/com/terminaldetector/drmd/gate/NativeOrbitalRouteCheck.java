@@ -46,6 +46,12 @@ public final class NativeOrbitalRouteCheck {
     private static final ThreadLocal<Deque<MoveStart>> MOVING=ThreadLocal.withInitial(ArrayDeque::new);
     private static CityBlueprint.Plan plan;private static CityRuntimeSession session;private static OrbitalRouteMemory.Context routeContext;
     private static UUID playerId;private static ServerWorld heldWorld;
+    private static volatile double maximumObservedClientToLatestServerDrift;
+    private static volatile Map<String,Object> latestActualClientEndpoint=Map.of(),latestActualServerEndpoint=Map.of(),firstSampledActiveDrift=Map.of();
+    private static volatile List<Map<String,Object>> firstDriftClientNetwork=List.of(),firstDriftServerNetwork=List.of();
+    private static volatile Map<String,Object> failedAvailability=Map.of(),latestClientSnapshot=Map.of(),latestServerSnapshot=Map.of();
+    private static final ArrayDeque<Map<String,Object>> CLIENT_NET=new ArrayDeque<>(),SERVER_NET=new ArrayDeque<>();
+    private static final List<Map<String,Object>> FIRST_CLIENT_NET=new ArrayList<>(),FIRST_SERVER_NET=new ArrayList<>();
     private static volatile int phase,passed,verified,requested,readyCubes,maxCursorDelta,maxCasDelta;
     private static volatile boolean done,armed;private static volatile String failure,pendingFrame,blockedCube;
     private static long boot,armedAt;private static int ticks,flightTicks,frames,initialTeleports,heldTicks,serverSamples,lastServerTick=-1;
@@ -170,7 +176,9 @@ public final class NativeOrbitalRouteCheck {
         if(c.currentScreen!=null||!DescentClientState.enabled)return;
         try{
             require(!c.player.isSpectator()&&!c.player.noClip&&!c.player.hasVehicle(),"actual native client uses ordinary colliding suit");
-            require(WorldAccess.of(c.world).backend()==CubicAvailability.Backend.NATIVE_CUBIC&&WorldAccess.of(c.world).readIfLoaded(c.player.getBlockPos()).isPresent(),"actual client pilot volume must be nativeFULL");
+            boolean clientVolumeFull=WorldAccess.of(c.world).backend()==CubicAvailability.Backend.NATIVE_CUBIC&&WorldAccess.of(c.world).readIfLoaded(c.player.getBlockPos()).isPresent();
+            if(!clientVolumeFull){var row=new LinkedHashMap<String,Object>(snapshot(c.player,"client",ticks));row.put("latestActualServerSnapshot",latestServerSnapshot);row.put("lastActualClientMoveEnd",lastClientMoveEnd==null?List.of():xyz(lastClientMoveEnd));row.put("unchangedSinceLastActualMove",lastClientMoveEnd!=null&&c.player.getPos().squaredDistanceTo(lastClientMoveEnd)<1e-14);failedAvailability=Map.copyOf(row);}
+            require(clientVolumeFull,"actual client pilot volume must be nativeFULL");
             require(c.world.isSpaceEmpty(c.player,c.player.getBoundingBox()),"actual client intersects solid authored geometry");
             if(!armed){
                 require(c.player.getPos().distanceTo(gate(0))<.75,"initial native teleport/client admission must reach actualfirstgate before measuring");previousClient=c.player.getPos();lastClientMoveEnd=previousClient;armedAt=System.nanoTime();armed=true;
@@ -190,7 +198,88 @@ public final class NativeOrbitalRouteCheck {
         }catch(Throwable bad){failure=bad.toString();bad.printStackTrace();}
     }
     private static void stateRow(String side,int tick,Vec3d position,Vec3d velocity,boolean held){
-        synchronized(STATE_ROWS){require(STATE_ROWS.size()<512,"bounded native state journal512");STATE_ROWS.add(Map.of("side",side,"tick",tick,"position",xyz(position),"velocityMps",xyz(velocity),"passed",passed,"heldForward",held));}
+        net.minecraft.entity.player.PlayerEntity actual=side.equals("client")?MinecraftClient.getInstance().player:heldWorld.getServer().getPlayerManager().getPlayer(playerId);
+        var row=new LinkedHashMap<String,Object>();row.put("side",side);row.put("tick",tick);row.put("position",xyz(position));row.put("velocityMps",xyz(velocity));row.put("passed",passed);row.put("heldForward",held);
+        if(actual!=null){var observed=snapshot(actual,side,tick);row.put("clock",observed.get("clock"));row.put("cube",observed.get("cube"));row.put("actualCubeState",observed.get("actualCubeState"));row.put("activeAuthority",observed.get("activeAuthority"));
+            if(observed.containsKey("observedSnapshotPositionDistanceMetres")){row.put("observedSnapshotPositionDistanceMetres",observed.get("observedSnapshotPositionDistanceMetres"));row.put("observedSnapshotDriftAbove2m",observed.get("observedSnapshotDriftAbove2m"));row.put("otherSideSnapshotAgeNanos",observed.get("otherSideSnapshotAgeNanos"));}
+            if(side.equals("client"))latestClientSnapshot=observed;else latestServerSnapshot=observed;}
+        synchronized(STATE_ROWS){require(STATE_ROWS.size()<512,"bounded native state journal512");STATE_ROWS.add(row);}
+    }
+    private static Object field(Object owner,String name)throws ReflectiveOperationException {
+        var type=owner instanceof Class<?> c?c:owner.getClass();var field=type.getDeclaredField(name);field.setAccessible(true);return field.get(owner instanceof Class<?>?null:owner);
+    }
+    /** Existing input map is inspected without calling computeIfAbsent/input() or changing it. */
+    private static Map<String,Object> actualInput(ServerPlayerEntity p){
+        try{var map=(Map<?,?>)field(FlightSystem.class,"INPUTS");var raw=map.get(p.getUuid());if(!(raw instanceof FlightSystem.InputState in))return Map.of("present",false);
+            var data=DescentPlayerData.get(p);return Map.of("present",true,"axes",List.of(in.forward,in.strafe,in.vertical,in.roll),"afterburner",in.afterburner,"forward",xyz(data.shipForward(p)),"up",xyz(data.shipUp(p)),"integratorVelocityMps",xyz(data.getFlightVelocity()));
+        }catch(ReflectiveOperationException|RuntimeException problem){return Map.of("readFailure",problem.toString());}
+    }
+    private static Map<String,Object> actualLease(ServerPlayerEntity p){
+        try{var map=(Map<?,?>)field(com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.class,"LEASES");var lease=map.get(p.getUuid());if(lease==null)return Map.of("present",false);
+            var queue=(Collection<?>)field(lease,"pending");var head=queue.stream().limit(8).map(String::valueOf).map(s->s.length()>128?s.substring(0,128)+" [diagnostic prefix]":s).toList();
+            return Map.of("present",true,"epoch",field(lease,"epoch"),"accepted",field(lease,"accepted"),"ack",field(lease,"ack"),"pendingSize",queue.size(),"firstEightPendingDiagnosticPrefixes",head);
+        }catch(ReflectiveOperationException|RuntimeException problem){return Map.of("readFailure",problem.toString());}
+    }
+    private static Map<String,Object> snapshot(net.minecraft.entity.player.PlayerEntity p,String side,int tick){
+        var row=new LinkedHashMap<String,Object>();var access=WorldAccess.of(p.getWorld());var at=p.getBlockPos();var cube=D6ChunkPos.ofBlock(at.getX(),at.getY(),at.getZ());
+        row.put("side",side);row.put("tick",tick);row.put("observedNanos",System.nanoTime());row.put("worldTime",p.getWorld().getTime());row.put("world",p.getWorld().getRegistryKey().getValue().toString());
+        row.put("position",xyz(p.getPos()));row.put("entityVelocityMps",xyz(p.getVelocity().multiply(20)));row.put("block",List.of(at.getX(),at.getY(),at.getZ()));row.put("cube",List.of(cube.x(),cube.y(),cube.z()));
+        row.put("backend",access.backend().name());row.put("actualCubeState",access.cubeState(cube).name());row.put("withinActualHeight",CubicAvailability.withinHeight(p.getWorld(),cube));row.put("actualFullColumnPresent",CubicAvailability.loadedColumn(p.getWorld(),cube.x(),cube.z())!=null);
+        row.put("actualVoxel",access.readIfLoaded(at).map(s->Registries.BLOCK.getId(s.getBlock()).toString()).orElse("UNAVAILABLE"));
+        var box=p.getBoundingBox();row.put("actualBox",List.of(box.minX,box.minY,box.minZ,box.maxX,box.maxY,box.maxZ));var volumes=new ArrayList<Map<String,Object>>();
+        boxVolumes:for(int x=net.minecraft.util.math.MathHelper.floor(box.minX)>>4;x<=net.minecraft.util.math.MathHelper.floor(Math.nextDown(box.maxX))>>4;x++)
+            for(int y=net.minecraft.util.math.MathHelper.floor(box.minY)>>4;y<=net.minecraft.util.math.MathHelper.floor(Math.nextDown(box.maxY))>>4;y++)
+                for(int z=net.minecraft.util.math.MathHelper.floor(box.minZ)>>4;z<=net.minecraft.util.math.MathHelper.floor(Math.nextDown(box.maxZ))>>4;z++) {
+                    if(volumes.size()==8){row.put("boxDiagnosticBudgetExceeded",true);break boxVolumes;}
+                    var volume=new D6ChunkPos(x,y,z);volumes.add(Map.of("cube",List.of(x,y,z),"actualState",access.cubeState(volume).name()));
+                }
+        row.put("actualBoxCubeStates",List.copyOf(volumes));
+        var other=side.equals("client")?latestActualServerEndpoint:latestActualClientEndpoint;
+        if(other.get("position") instanceof List<?> point&&point.size()==3){
+            double dx=p.getX()-((Number)point.get(0)).doubleValue(),dy=p.getY()-((Number)point.get(1)).doubleValue(),dz=p.getZ()-((Number)point.get(2)).doubleValue();double drift=Math.sqrt(dx*dx+dy*dy+dz*dz);
+            row.put("otherSideSnapshotPosition",point);row.put("observedSnapshotPositionDistanceMetres",drift);row.put("observedSnapshotDriftAbove2m",drift>2);
+            row.put("sameWorldAsOtherSnapshot",row.get("world").equals(other.get("world")));row.put("otherSideSnapshotTick",other.get("tick"));
+            row.put("otherSideSnapshotAgeNanos",System.nanoTime()-((Number)other.get("observedNanos")).longValue());
+            if(side.equals("client"))maximumObservedClientToLatestServerDrift=Math.max(maximumObservedClientToLatestServerDrift,drift);
+        }
+        if(side.equals("client")) {
+            row.put("activeAuthority",com.terminaldetector.drmd.client.flight.FlightBodyClient.active());
+            row.put("clock",Map.of("active",com.terminaldetector.drmd.client.flight.FlightBodyClient.active(),"nextSequence",com.terminaldetector.drmd.client.flight.FlightBodyClient.sequence(),"pending",com.terminaldetector.drmd.client.flight.FlightBodyClient.pending()));
+            var forward=com.terminaldetector.drmd.client.flight.ShipAttitudeClient.get().forward();row.put("actualClientForward",xyz(forward));
+        }else {
+            var owner=(ServerPlayerEntity)p;row.put("clock",Map.of("epoch",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.epoch(owner),"ack",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.acknowledgment(owner)));
+            row.put("activeAuthority",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.owns(owner));row.put("actualInput",actualInput(owner));row.put("actualLease",actualLease(owner));
+            Object observedCube=latestClientSnapshot.get("cube");if(observedCube instanceof List<?> values&&values.size()==3){var other=new D6ChunkPos(((Number)values.get(0)).intValue(),((Number)values.get(1)).intValue(),((Number)values.get(2)).intValue());row.put("lastPublishedClientCube",values);row.put("lastPublishedClientCubeActualServerState",access.cubeState(other).name());}
+        }
+        return Collections.unmodifiableMap(row);
+    }
+    private static void network(boolean client,Map<String,Object> row){
+        var ring=client?CLIENT_NET:SERVER_NET;var first=client?FIRST_CLIENT_NET:FIRST_SERVER_NET;
+        synchronized(ring){var frozen=Collections.unmodifiableMap(new LinkedHashMap<>(row));if(first.size()<32)first.add(frozen);if(ring.size()==128)ring.removeFirst();ring.addLast(frozen);}
+    }
+    /** HEAD of the actual ordinary ClientPlayNetworking.send, never an invented packet/send. */
+    public static void observedSend(net.minecraft.network.packet.CustomPayload payload){
+        if(!ENABLED||done||!armed)return;
+        var c=MinecraftClient.getInstance();if(c.player==null||playerId==null||!playerId.equals(c.player.getUuid()))return;
+        var row=new LinkedHashMap<String,Object>();row.put("observedNanos",System.nanoTime());row.put("clientTick",ticks);row.put("position",xyz(c.player.getPos()));
+        if(payload instanceof com.terminaldetector.drmd.network.FlightBodyNetworking.Input clock){row.put("family","CLOCK");row.put("epoch",clock.epoch());row.put("sequence",clock.sequence());row.put("pendingAfterPredict",com.terminaldetector.drmd.client.flight.FlightBodyClient.pending());}
+        else if(payload instanceof ModNetworking.InputPayload axes){row.put("family","AXES");row.put("portalEpoch",axes.portalEpoch());row.put("axes",List.of(axes.forward(),axes.strafe(),axes.vertical(),axes.roll()));row.put("afterburner",axes.afterburner());row.put("forward",List.of(axes.fx(),axes.fy(),axes.fz()));row.put("up",List.of(axes.ux(),axes.uy(),axes.uz()));}
+        else return;network(true,row);
+    }
+    public static void observedClock(ServerPlayerEntity p,com.terminaldetector.drmd.network.FlightBodyNetworking.Input clock,boolean accepted){
+        if(!ENABLED||done||!armed||playerId==null||!playerId.equals(p.getUuid()))return;
+        var row=new LinkedHashMap<String,Object>();row.put("family","CLOCK_RECEIVED");row.put("observedNanos",System.nanoTime());row.put("serverTick",p.getServerWorld().getServer().getTicks());row.put("epoch",clock.epoch());row.put("sequence",clock.sequence());row.put("accepted",accepted);if(accepted)row.put("actualQueuedSteering",queuedSteering(p,clock.sequence()));row.put("position",xyz(p.getPos()));row.put("ackAtReceive",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.acknowledgment(p));row.put("actualLatestInput",actualInput(p));network(false,row);
+    }
+    private static Map<String,Object> steering(FlightSystem.Steering value){return value==null?Map.of("legacyNull",true):Map.of("legacyNull",false,"axes",List.of(value.forward(),value.strafe(),value.vertical(),value.roll()),"afterburner",value.afterburner(),"look",xyz(value.look()),"up",xyz(value.up()),"hasAttitude",value.hasAttitude());}
+    private static Map<String,Object> queuedSteering(ServerPlayerEntity p,int sequence){
+        try{var map=(Map<?,?>)field(com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.class,"LEASES");var lease=map.get(p.getUuid());if(lease==null)return Map.of("present",false);
+            for(Object command:(Collection<?>)field(lease,"pending"))if(((Number)field(command,"sequence")).intValue()==sequence)return steering((FlightSystem.Steering)field(command,"steering"));
+            return Map.of("present",false,"reason","not in current bounded pending queue");
+        }catch(ReflectiveOperationException|RuntimeException problem){return Map.of("readFailure",problem.toString());}
+    }
+    public static void observedIntegrator(ServerPlayerEntity p,FlightSystem.Steering admitted,boolean before){
+        if(!ENABLED||done||!armed||playerId==null||!playerId.equals(p.getUuid()))return;
+        var row=new LinkedHashMap<String,Object>();row.put("family",before?"INTEGRATOR_BEFORE":"INTEGRATOR_AFTER");row.put("observedNanos",System.nanoTime());row.put("serverTick",p.getServerWorld().getServer().getTicks());row.put("position",xyz(p.getPos()));row.put("epoch",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.epoch(p));row.put("ack",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.acknowledgment(p));row.put("actualLatestInput",actualInput(p));row.put("actualAdmittedSteering",steering(admitted));network(false,row);
     }
     private static void clearKeys(MinecraftClient c){
         c.options.forwardKey.setPressed(false);c.options.backKey.setPressed(false);c.options.leftKey.setPressed(false);c.options.rightKey.setPressed(false);c.options.jumpKey.setPressed(false);c.options.sneakKey.setPressed(false);
@@ -201,6 +290,19 @@ public final class NativeOrbitalRouteCheck {
         synchronized(SERVER_MOVES){for(int i=SERVER_MOVES.size()-1;i>=Math.max(0,matchedServer);i--){var row=SERVER_MOVES.get(i);if(equal(at,row.before())||equal(at,row.after())){matchedServer=i;return true;}}}return false;
     }
     private static boolean equal(Vec3d v,List<Double> p){return v.squaredDistanceTo(new Vec3d(p.get(0),p.get(1),p.get(2)))<1e-14;}
+    private static void endpoint(Entity actor,String side,int tick){
+        var row=new LinkedHashMap<String,Object>();row.put("side",side);row.put("tick",tick);row.put("observedNanos",System.nanoTime());row.put("world",actor.getWorld().getRegistryKey().getValue().toString());row.put("position",xyz(actor.getPos()));
+        boolean active=side.equals("client")?com.terminaldetector.drmd.client.flight.FlightBodyClient.active():com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.owns((ServerPlayerEntity)actor);
+        row.put("activeAuthority",active);var frozen=Map.copyOf(row);if(side.equals("client"))latestActualClientEndpoint=frozen;else latestActualServerEndpoint=frozen;
+        if(!side.equals("client")||!active||!firstSampledActiveDrift.isEmpty())return;var server=latestActualServerEndpoint;
+        if(!(server.get("position") instanceof List<?> point)||!Boolean.TRUE.equals(server.get("activeAuthority"))||!row.get("world").equals(server.get("world")))return;
+        long age=System.nanoTime()-((Number)server.get("observedNanos")).longValue();double dx=actor.getX()-((Number)point.get(0)).doubleValue(),dy=actor.getY()-((Number)point.get(1)).doubleValue(),dz=actor.getZ()-((Number)point.get(2)).doubleValue();double distance=Math.sqrt(dx*dx+dy*dy+dz*dz);
+        maximumObservedClientToLatestServerDrift=Math.max(maximumObservedClientToLatestServerDrift,distance);
+        if(distance<=2||age>150_000_000L)return;
+        firstSampledActiveDrift=Map.of("clientEndpoint",frozen,"mostRecentServerEndpoint",server,"positionDistanceMetres",distance,"serverEndpointAgeNanos",age,"diagnosticOnly",true);
+        synchronized(CLIENT_NET){firstDriftClientNetwork=CLIENT_NET.stream().skip(Math.max(0,CLIENT_NET.size()-32)).toList();}
+        synchronized(SERVER_NET){firstDriftServerNetwork=SERVER_NET.stream().skip(Math.max(0,SERVER_NET.size()-32)).toList();}
+    }
     /** Existing Entity.move HEAD/RETURN probe only observes, never moves or changes a tick. */
     public static void beforeMove(Entity e,MovementType type,Vec3d requestedMove){
         if(!ENABLED||done||!armed||playerId==null||!playerId.equals(e.getUuid()))return;
@@ -213,7 +315,7 @@ public final class NativeOrbitalRouteCheck {
         if(!ENABLED||done||!armed||playerId==null||!playerId.equals(e.getUuid()))return;
         var pending=MOVING.get();if(pending.isEmpty())return;var start=pending.removeLast();var rows=start.side().equals("client")?CLIENT_MOVES:SERVER_MOVES;
         synchronized(rows){if(rows.size()>=16_384){failure="native move journal cap16384 per side";return;}rows.add(new Move(rows.size(),start.side(),xyz(start.position()),xyz(e.getPos()),xyz(start.requested()),start.tick()));}
-        if(start.side().equals("client"))lastClientMoveEnd=e.getPos();
+        if(start.side().equals("client"))lastClientMoveEnd=e.getPos();endpoint(e,start.side(),start.side().equals("client")?ticks:((ServerWorld)e.getWorld()).getServer().getTicks());
     }
     /** Real GameRenderer RETURN only. */
     public static void rendered(){
@@ -228,7 +330,7 @@ public final class NativeOrbitalRouteCheck {
     }
     private static void finish(MinecraftClient c,String status,String reason){
         if(done)return;done=true;if(c.player!=null)clearKeys(c);
-        var report=new LinkedHashMap<String,Object>();report.put("status",status);report.put("reason",reason);report.put("blockedCube",blockedCube);report.put("nativeCubic",true);report.put("permissionBefore",permissionBefore);report.put("permissionAfterAdmission",permissionAfter);report.put("operatorEntryLevel",assignedOperator==null?null:assignedOperator.getPermissionLevel());report.put("authorProfile",playerId==null?null:playerId.toString());report.put("coldReader",false);report.put("phase",phase);report.put("passed",passed);report.put("verifiedCells",verified);report.put("requestedColumns",requested);report.put("fullHaloCubes",readyCubes);report.put("initialTeleports",initialTeleports);report.put("heldKeyboardTicks",heldTicks);report.put("measuredClientTicks",flightTicks);report.put("measuredWallNanos",armedAt==0?0:System.nanoTime()-armedAt);report.put("actualPathMetres",travelled);report.put("minimumGeometricPathMetres",minimumPath());report.put("maxClientStep",maxStep);report.put("maxCursorDelta",maxCursorDelta);report.put("maxCasDelta",maxCasDelta);report.put("actualServerSamples",serverSamples);report.put("planHash",plan==null?"":plan.hash());
+        var report=new LinkedHashMap<String,Object>();report.put("status",status);report.put("maximumObservedClientToLatestServerSnapshotDriftMetres",maximumObservedClientToLatestServerDrift);report.put("snapshotDriftIsDiagnosticOnly",true);report.put("firstSampledActivePositionDrift",firstSampledActiveDrift);report.put("networkBeforeFirstSampledActiveDriftClient",firstDriftClientNetwork);report.put("networkBeforeFirstSampledActiveDriftServer",firstDriftServerNetwork);report.put("failedActualAvailability",failedAvailability);report.put("latestActualClientSnapshot",latestClientSnapshot);report.put("latestActualServerSnapshot",latestServerSnapshot);synchronized(CLIENT_NET){report.put("firstActualClientNetwork",List.copyOf(FIRST_CLIENT_NET));report.put("lastActualClientNetwork",List.copyOf(CLIENT_NET));}synchronized(SERVER_NET){report.put("firstActualServerClockReceives",List.copyOf(FIRST_SERVER_NET));report.put("lastActualServerClockReceives",List.copyOf(SERVER_NET));}report.put("reason",reason);report.put("blockedCube",blockedCube);report.put("nativeCubic",true);report.put("permissionBefore",permissionBefore);report.put("permissionAfterAdmission",permissionAfter);report.put("operatorEntryLevel",assignedOperator==null?null:assignedOperator.getPermissionLevel());report.put("authorProfile",playerId==null?null:playerId.toString());report.put("coldReader",false);report.put("phase",phase);report.put("passed",passed);report.put("verifiedCells",verified);report.put("requestedColumns",requested);report.put("fullHaloCubes",readyCubes);report.put("initialTeleports",initialTeleports);report.put("heldKeyboardTicks",heldTicks);report.put("measuredClientTicks",flightTicks);report.put("measuredWallNanos",armedAt==0?0:System.nanoTime()-armedAt);report.put("actualPathMetres",travelled);report.put("minimumGeometricPathMetres",minimumPath());report.put("maxClientStep",maxStep);report.put("maxCursorDelta",maxCursorDelta);report.put("maxCasDelta",maxCasDelta);report.put("actualServerSamples",serverSamples);report.put("planHash",plan==null?"":plan.hash());
         synchronized(EVENTS){report.put("events",List.copyOf(EVENTS));}synchronized(STATE_ROWS){report.put("stateRows",List.copyOf(STATE_ROWS));}synchronized(CLIENT_MOVES){report.put("actualClientMoves",List.copyOf(CLIENT_MOVES));}synchronized(SERVER_MOVES){report.put("actualServerMoves",List.copyOf(SERVER_MOVES));}
         try{Files.writeString(c.runDirectory.toPath().resolve("orbital-native-route.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(report));}catch(Exception bad){bad.printStackTrace();}
         System.out.println("NATIVE_ORBITAL_ROUTE_"+status+" "+reason);c.scheduleStop();

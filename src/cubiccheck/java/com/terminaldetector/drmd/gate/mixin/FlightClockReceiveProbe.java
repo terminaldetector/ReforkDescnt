@@ -8,5 +8,5 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(FlightBodySystem.class)
 public class FlightClockReceiveProbe {
     @Inject(method="receive",at=@At("RETURN"),remap=false)
-    private static void received(ServerPlayerEntity player,FlightBodyNetworking.Input input,CallbackInfoReturnable<Boolean> ci){if(Boolean.getBoolean("drmd.gate.flightBody")&&input.sequence()<4)System.out.println("FLIGHT_BODY_RECEIVE input="+input+" expectedEpoch="+FlightBodySystem.epoch(player)+" accepted="+ci.getReturnValue()+" enabled="+com.terminaldetector.drmd.DescentPlayerData.get(player).isEnabled());}
+    private static void received(ServerPlayerEntity player,FlightBodyNetworking.Input input,CallbackInfoReturnable<Boolean> ci){com.terminaldetector.drmd.gate.NativeOrbitalRouteCheck.observedClock(player,input,Boolean.TRUE.equals(ci.getReturnValue()));if(Boolean.getBoolean("drmd.gate.flightBody")&&input.sequence()<4)System.out.println("FLIGHT_BODY_RECEIVE input="+input+" expectedEpoch="+FlightBodySystem.epoch(player)+" accepted="+ci.getReturnValue()+" enabled="+com.terminaldetector.drmd.DescentPlayerData.get(player).isEnabled());}
 }
