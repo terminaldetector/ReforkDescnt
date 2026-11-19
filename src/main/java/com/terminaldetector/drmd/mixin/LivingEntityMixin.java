@@ -33,15 +33,8 @@ public class LivingEntityMixin {
 	/**
 	 * Local-UP foot travel — walls and ceilings from the gravity torch or generator.
 	 *
-	 * <p>Client only, for the same reason 6DoF flight is: a player's position is decided by its own
-	 * client, which walks the entity and then reports where it ended up. Running this on the server
-	 * too meant both ends walked the player independently and {@code snapToSurface} teleported the
-	 * server's copy onto the wall every tick without telling anyone. The server then saw the client
-	 * reporting a different position and corrected it back — every tick, which is why the torch
-	 * pinned the player in place instead of letting them walk.
-	 *
-	 * <p>The server still tracks the orientation and holds gravity off; it just does not move
-	 * anybody. See {@code PlayerFlightTravelMixin}, which has always had this guard.
+	 * <p>The ordinary client movement path runs the motor. The server owns frame transitions
+	 * and validates the reported movement against the current physical body.
 	 */
 	@Inject(method = "travel", at = @At("HEAD"), cancellable = true)
 	private void drmd$footGravityTravel(Vec3d movementInput, CallbackInfo ci) {

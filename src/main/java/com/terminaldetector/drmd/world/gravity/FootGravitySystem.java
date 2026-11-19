@@ -4,15 +4,15 @@ import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.entity.PyroShipEntity;
 import com.terminaldetector.drmd.network.ModNetworking;
 import com.terminaldetector.drmd.world.LocalOrientation;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.RaycastContext;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,7 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class FootGravitySystem {
 	public static final double GRAVITY = 0.08;
-	public static final double STICK_DIST = 1.4;
+	private static final double CONTACT_DEPTH = .08;
+	private static final Vec3d WORLD_UP = new Vec3d(0,1,0);
 	/** Per-tick arc toward a field's up when it takes hold — ~0.4 s to settle. */
 	private static final double CAPTURE_RATE = 0.18;
 	/** Faster on release so stepping off a walkway reads as letting go, not sliding off. */
@@ -121,78 +122,94 @@ public final class FootGravitySystem {
 			return;
 		}
 
-		GravityFields.Sample field = GravityFields.sample(player.getWorld(), player.getPos());
-        boolean notify=NOTICES.observe(player.getUuid(),player.getWorld().getRegistryKey().getValue().toString(),field==null?null:field.sourceId(),player.getWorld().getTime());
-		Vec3d up;
-		String label;
-		boolean hardMount = false;
-		boolean wasActive = isActive(player.getUuid());
-		if (field != null) {
-			Vec3d target = field.upDir().normalize();
-			Vec3d current = getUp(player);
-			double align = current.dotProduct(target);
-			// Big reorient (wall/ceiling capture, ceiling flip): snap + safe place so the standing
-			// AABB is not crushed into the mount face (vanilla crawl ≈ 1-cube).
-			if (!wasActive || align < 0.5) {
-				up = target;
-				hardMount = true;
-			} else {
-				// Ease onto the surface: walking into reach should roll the world under you.
-				up = com.terminaldetector.drmd.flight.ShipAttitude.slerp(current, target, CAPTURE_RATE);
-			}
-			label = field.label() != null ? field.label() : "Local Gravity";
-			// Walking is only the default here, not the only option — this field never blocks the
-			// 6DoF toggle (tick's own isEnabled() guard above hands off to FlightSystem entirely,
-			// and a piloted Pyro GX ignores station fields altogether — see FlightSystem.tick's
-			// onPyro guard), so say so the first time a field takes hold, not every tick.
-			if (notify) {
-                player.sendMessage(Text.translatable("message.drmd.local_gravity_active"),true);
-                player.getServerWorld().playSound(null,player.getX(),player.getY(),player.getZ(),
-                    net.minecraft.sound.SoundEvents.BLOCK_BEACON_ACTIVATE,net.minecraft.sound.SoundCategory.BLOCKS,.35f,1.7f);
+        var previous = get(player);
+        var field = GravityFields.sample(player.getWorld(), player.getPos());
+        if (field == null && previous == null) {
+            observe(player, null);
+            return;
+        }
+
+        Vec3d current = previous == null ? WORLD_UP : previous.up();
+        Vec3d up;
+        String label;
+        if (field == null) {
+            up = com.terminaldetector.drmd.flight.ShipAttitude.slerp(current, WORLD_UP, RELEASE_RATE);
+            label = previous.label();
+            if (isWorldUp(up)) {
+                observe(player, null);
+                if (!releaseSafely(player)) return;
+                player.sendMessage(Text.translatable("message.drmd.local_gravity_released"), true);
+                ModNetworking.syncPlayer(player, data);
+                return;
             }
-		} else {
-			// Out of reach — bleed back to world up and hand the player to vanilla gravity. Holding
-			// the last surface's up forever left them walking on thin air off the end of a walkway.
-			up = com.terminaldetector.drmd.flight.ShipAttitude.slerp(
-					getUp(player), new Vec3d(0, 1, 0), RELEASE_RATE);
-			label = "Local";
-			if (isWorldUp(up)) {
-				// Upright and out of reach: nothing to do. Guarded on having actually been held,
-				// because this is the branch every walking player falls through every tick — an
-				// unconditional sync here would be a packet per tick, per player, forever.
-				if (isActive(player.getUuid())) {
-                    releaseGravity(player.getUuid());
-                    player.sendMessage(Text.translatable("message.drmd.local_gravity_released"),true);
-					clear(player.getUuid());
-					LocalOrientation.setUp(player.getUuid(), new Vec3d(0, 1, 0));
-                    player.calculateDimensions();
-					ModNetworking.syncPlayer(player, data);
-				}
-				return;
-			}
-		}
+        } else {
+            Vec3d target = field.upDir();
+            up = previous == null || current.dotProduct(target) < .5 ? target
+                : com.terminaldetector.drmd.flight.ShipAttitude.slerp(current, target, CAPTURE_RATE);
+            label = field.label() == null ? "Local Gravity" : field.label();
+        }
 
-		LocalOrientation.setUp(player.getUuid(), up);
-		holdGravity(player);
-		player.fallDistance = 0f;
-		// Mount/pose changes recalculate the actual box. Publish the new frame first,
-		// so those calculations cannot temporarily use the previous wall or world-up.
-		STATES.put(player.getUuid(), new State(up, true, false, label));
-		if (hardMount) {
-			GravityMount.safeMount(player, up);
-		}
-		// Prefer standing size while local gravity holds and there is clearance.
-		if (GravityMount.hasStandingClearance(player)
-				&& player.getPose() != net.minecraft.entity.EntityPose.STANDING) {
-			player.setPose(net.minecraft.entity.EntityPose.STANDING);
-			player.setSwimming(false);
-		}
+        Vec3d previousFeet = player.getPos();
+        if (!adoptFrame(player, current, up, label)) {
+            observe(player, null);
+            return;
+        }
+        if (observe(player, field)) {
+            player.sendMessage(Text.translatable("message.drmd.local_gravity_active"), true);
+            player.getServerWorld().playSound(null, player.getX(), player.getY(), player.getZ(),
+                net.minecraft.sound.SoundEvents.BLOCK_BEACON_ACTIVATE, net.minecraft.sound.SoundCategory.BLOCKS, .35f, 1.7f);
+        }
+        if (player.age % 2 == 0 || previous == null || !previousFeet.equals(player.getPos()))
+            ModNetworking.syncPlayer(player, data);
+    }
 
-		boolean grounded = probeGround(player, up);
-		STATES.put(player.getUuid(), new State(up, true, grounded, label));
+    private static boolean observe(ServerPlayerEntity player, GravityFields.Sample field) {
+        return NOTICES.observe(player.getUuid(), player.getWorld().getRegistryKey().getValue().toString(),
+            field == null ? null : field.sourceId(), player.getWorld().getTime());
+    }
+
+    private static boolean adoptFrame(ServerPlayerEntity player, Vec3d current, Vec3d up, String label) {
+        Vec3d feet = player.getPos();
+        if (current.squaredDistanceTo(up) > 1e-12) {
+            var safe = GravityMount.framePosition(player, current, up);
+            if (safe.isEmpty()) return false;
+            feet = safe.get();
+        }
+        var id = player.getUuid();
+        LocalOrientation.setUp(id, up);
+        holdGravity(player);
+        STATES.put(id, new State(up, true, false, label));
+        applyFramePosition(player, feet);
+        if (!player.isTouchingWater() && player.getPose() == net.minecraft.entity.EntityPose.SWIMMING
+            && GravityMount.hasStandingClearance(player)) {
+            player.setPose(net.minecraft.entity.EntityPose.STANDING);
+            player.setSwimming(false);
+        }
+        STATES.put(id, new State(up, true, probeGround(player, up), label));
+        player.fallDistance = 0;
+        return true;
+    }
+
+    /** Used before handing the body to vanilla or free flight. */
+    public static boolean releaseSafely(ServerPlayerEntity player) {
+        if (!isActive(player)) return true;
+        Vec3d current = getUp(player);
+        Vec3d feet = player.getPos();
+        if (current.squaredDistanceTo(WORLD_UP) > 1e-12) {
+            var safe = GravityMount.framePosition(player, current, WORLD_UP);
+            if (safe.isEmpty()) return false;
+            feet = safe.get();
+        }
+        clear(player.getUuid());
+        LocalOrientation.setUp(player.getUuid(), WORLD_UP);
+        applyFramePosition(player, feet);
+        return true;
+    }
+
+    private static void applyFramePosition(ServerPlayerEntity player, Vec3d feet) {
+        if (!feet.equals(player.getPos())) player.requestTeleport(feet.x, feet.y, feet.z);
         player.calculateDimensions();
-		if (player.age % 2 == 0) ModNetworking.syncPlayer(player, data);
-	}
+    }
 
 	/**
 	 * Remapped travel — replaces vanilla {@code LivingEntity.travel} while active.
@@ -237,104 +254,51 @@ public final class FootGravitySystem {
 		Vec3d wish = right.multiply(movementInput.x * speed)
 				.add(forward.multiply(movementInput.z * speed));
 
-		boolean grounded = probeGround(player, up);
-		Vec3d vel = projectTangent(player.getVelocity(), up);
+        Vec3d velocity = player.getVelocity();
+        boolean grounded = velocity.dotProduct(up) <= 0 && probeGround(player, up);
+        if (grounded) {
+            velocity = velocity.subtract(up.multiply(velocity.dotProduct(up))).multiply(.84).add(wish);
+            if (movementInput.y > 0) velocity = velocity.add(up.multiply(.42));
+        } else {
+            velocity = velocity.multiply(.98).add(wish).subtract(up.multiply(GRAVITY));
+        }
 
-		if (movementInput.y > 0 && grounded) {
-			vel = vel.add(up.multiply(0.42));
-			grounded = false;
-		}
+        // Unknown cube volumes do not provide air for a local-gravity move.
+        if (!GravityMount.loadedSpace(player.getWorld(), player.getBoundingBox().stretch(velocity))) return;
+        player.setVelocity(velocity);
+        player.move(MovementType.SELF, velocity);
+        player.velocityDirty = true;
+        grounded = velocity.dotProduct(up) <= 0 && probeGround(player, up);
+        player.setOnGround(grounded);
+        player.fallDistance = 0;
 
-		vel = vel.multiply(grounded ? 0.84 : 0.98);
-		vel = vel.add(wish);
-		if (!grounded) {
-			vel = vel.add(up.negate().multiply(GRAVITY));
-		} else {
-			// Kill into-floor component and keep contact
-			double into = vel.dotProduct(up.negate());
-			if (into > 0) vel = vel.subtract(up.negate().multiply(into));
-			snapToSurface(player, up);
-		}
+        if (player instanceof ServerPlayerEntity sp) {
+            State previous = get(sp);
+            STATES.put(sp.getUuid(), new State(up, true, grounded, previous == null ? "Local" : previous.label()));
+        }
+    }
 
-		player.setVelocity(vel);
-		player.move(MovementType.SELF, vel);
-		player.velocityDirty = true;
-		player.setOnGround(grounded);
-		player.fallDistance = 0f;
+    private static boolean probeGround(PlayerEntity player, Vec3d up) {
+        var normal = up.negate().multiply(CONTACT_DEPTH);
+        var box = player.getBoundingBox();
+        if (!GravityMount.loadedSpace(player.getWorld(), box.stretch(normal))) return false;
+        var allowed = Entity.adjustMovementForCollisions(player, normal, box, player.getWorld(), List.of());
+        return allowed.dotProduct(up.negate()) < CONTACT_DEPTH - 1e-6;
+    }
 
-		if (player instanceof ServerPlayerEntity sp) {
-			State prev = STATES.get(sp.getUuid());
-			String label = prev != null ? prev.label() : "Local";
-			STATES.put(sp.getUuid(), new State(up, true, grounded, label));
-		}
-	}
-
-	private static boolean probeGround(PlayerEntity player, Vec3d up) {
-		Vec3d down = up.negate();
-		Vec3d from = player.getPos().add(up.multiply(0.08));
-		var hit = player.getWorld().raycast(new RaycastContext(
-				from, from.add(down.multiply(STICK_DIST)),
-				RaycastContext.ShapeType.COLLIDER,
-				RaycastContext.FluidHandling.NONE,
-				player));
-		return hit.getType() == HitResult.Type.BLOCK
-				&& hit.getPos().distanceTo(from) < STICK_DIST;
-	}
-
-	private static void snapToSurface(PlayerEntity player, Vec3d up) {
-		Vec3d down = up.negate();
-		Vec3d from = player.getPos().add(up.multiply(0.08));
-		var hit = player.getWorld().raycast(new RaycastContext(
-				from, from.add(down.multiply(STICK_DIST)),
-				RaycastContext.ShapeType.COLLIDER,
-				RaycastContext.FluidHandling.NONE,
-				player));
-		if (hit.getType() != HitResult.Type.BLOCK) return;
-		Vec3d delta = hit.getPos().subtract(player.getPos());
-		double along = delta.dotProduct(up);
-
-		// Correct along local up only, and go through move() rather than setPosition().
-		//
-		// setPosition ignores collision, so a correction pointing into the surface pushed the hitbox
-		// inside the block — the model sank into the wall. The next tick's move() shoved it back out,
-		// the tick after that put it in again, and that alternation is the jitter. move() clips
-		// against the same geometry the walk does, so the two agree.
-		//
-		// The deadband is wide enough to sit still on a flat surface: at 0.02 the raycast's own
-		// rounding was enough to keep it correcting every single tick, and a correction every tick
-		// is a shake however small each one is.
-		if (Math.abs(along) <= SNAP_DEADBAND) return;
-		double step = MathHelper.clamp(along * SNAP_GAIN, -SNAP_MAX_STEP, SNAP_MAX_STEP);
-		player.move(MovementType.SELF, up.multiply(step));
-	}
-
-	/** Below this the player is close enough to the surface to leave alone. */
-	private static final double SNAP_DEADBAND = 0.06;
-	/** Fraction of the remaining gap closed per tick — under-damped on purpose, so it settles. */
-	private static final double SNAP_GAIN = 0.35;
-	/** Never move more than this in one tick; a big correction is a teleport, and it reads as one. */
-	private static final double SNAP_MAX_STEP = 0.25;
-
-	private static Vec3d projectTangent(Vec3d v, Vec3d up) {
-		return v.subtract(up.multiply(v.dotProduct(up)));
-	}
-
-	public static boolean isWorldUp(Vec3d up) {
-		return up.squaredDistanceTo(0, 1, 0) < 0.04;
-	}
+    public static boolean isWorldUp(Vec3d up) {
+        return up.squaredDistanceTo(WORLD_UP) < .04;
+    }
 
 	/** Adopt gravity field at a position (dismount / torch). */
-	public static void adoptAt(ServerPlayerEntity player, Vec3d pos) {
-		GravityFields.Sample field = GravityFields.sample(player.getWorld(), pos);
-		if (field != null) {
-			Vec3d up = field.upDir().normalize();
-			LocalOrientation.setUp(player.getUuid(), up);
-			STATES.put(player.getUuid(), new State(up, true, false,
-					field.label() != null ? field.label() : "Local Gravity"));
-			holdGravity(player);
-			GravityMount.safeMount(player, up);
-		}
-	}
+    public static void adoptAt(ServerPlayerEntity player, Vec3d pos) {
+        var field = GravityFields.sample(player.getWorld(), pos);
+        if (field == null || DescentPlayerData.get(player).isEnabled()) return;
+        Vec3d current = isActive(player) ? getUp(player) : WORLD_UP;
+        if (adoptFrame(player, current, field.upDir(), field.label() == null ? "Local Gravity" : field.label()))
+            ModNetworking.syncPlayer(player, DescentPlayerData.get(player));
+    }
+
 
     public static void adoptServer(UUID id,Vec3d up,String label) {
         var decoded=LocalOrientation.normalizeUp(up);if(decoded.isEmpty())return;

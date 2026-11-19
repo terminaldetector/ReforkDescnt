@@ -331,9 +331,6 @@ public final class FlightSystem {
 				+ (player.hasVehicle() ? " while riding " + player.getVehicle().getType() : ""));
         // Clear authority before dismount: the passenger callback must observe an explicit stop,
         // rather than re-enabling free flight while H is trying to turn it off.
-        boolean releaseFoot=com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player);
-        boolean releaseVehicle=player.getVehicle() instanceof PyroShipEntity;
-        Vec3d previousUp=com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(player);
         data.setEnabled(false);
         com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.discontinuity(player);
         if(player.getVehicle() instanceof PyroShipEntity) player.stopRiding();
@@ -341,11 +338,12 @@ public final class FlightSystem {
         data.setThrustSpool(0); data.setIdleTimer(0); data.setGravityFactor(0);
         data.setDashTimer(0); data.setDashCooldown(0);
         player.setVelocity(Vec3d.ZERO); player.velocityModified=true; player.fallDistance=0;
-        com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
-        com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),new Vec3d(0,1,0));
-        player.setNoGravity(false);
-        if((releaseFoot||releaseVehicle) && player.isAlive())
-            com.terminaldetector.drmd.world.gravity.GravityMount.releaseToWorldUp(player,previousUp);
+        if (!player.isAlive() || player.isSpectator()
+                || com.terminaldetector.drmd.world.gravity.FootGravitySystem.releaseSafely(player)) {
+            com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
+            com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),new Vec3d(0,1,0));
+            player.setNoGravity(false);
+        }
         player.calculateDimensions();
         data.clearShipAttitude();
 		data.setRoll(0);
@@ -391,10 +389,7 @@ public final class FlightSystem {
     private static void enableFreeFlight(ServerPlayerEntity player, DescentPlayerData data) {
         if(!player.isAlive() || player.isSpectator()) return;
 		DiagTrace.record("flight", "6DoF on for " + player.getGameProfile().getName() + " (free flight)");
-		boolean releaseFoot=com.terminaldetector.drmd.world.gravity.FootGravitySystem.isActive(player);
-        Vec3d previousUp=com.terminaldetector.drmd.world.gravity.FootGravitySystem.getUp(player);
-        com.terminaldetector.drmd.world.gravity.FootGravitySystem.clear(player.getUuid());
-        if(releaseFoot) com.terminaldetector.drmd.world.gravity.GravityMount.releaseToWorldUp(player,previousUp);
+        if(!com.terminaldetector.drmd.world.gravity.FootGravitySystem.releaseSafely(player))return;
         if(!data.isEnabled()) {
             clearInput(player.getUuid());
             com.terminaldetector.drmd.world.LocalOrientation.setUp(player.getUuid(),new Vec3d(0,1,0));

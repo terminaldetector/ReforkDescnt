@@ -1,112 +1,73 @@
 package com.terminaldetector.drmd.world.gravity;
 
+import com.terminaldetector.drmd.d6.D6ChunkPos;
+import com.terminaldetector.drmd.world.access.CubicAvailability;
+import com.terminaldetector.drmd.world.access.WorldAccess;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 
-/**
- * Safe reorientation onto a local-gravity surface.
- *
- * <p>Vanilla AABBs stay world-axis-aligned. When "down" flips, leaving the entity where it
- * stood wedges the standing box into the mount face — players get forced into a ~1-block crawl
- * pose and mobs suffocate. This helper finds the surface along the new down, places feet on it,
- * then nudges along local up until the standing hitbox is clear.
- */
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+/** Clearance for local gravity frame changes and the physical box shared with movement. */
 public final class GravityMount {
-	private static final double FIND_RANGE = 4.5;
-	private static final double FOOT_EPS = 0.02;
-	private static final double NUDGE = 0.2;
-	private static final int MAX_NUDGES = 16;
+    private static final double EPS = 1e-6;
+    private GravityMount() {}
 
-	private GravityMount() {}
+    /** Plan without moving the player, using the current position or a checked local pivot. */
+    static Optional<Vec3d> framePosition(PlayerEntity player, Vec3d oldUp, Vec3d newUp) {
+        var world = player.getWorld();
+        var access = WorldAccess.of(world);
+        var loaded = new HashMap<D6ChunkPos, Boolean>();
+        var feet = player.getPos();
+        var dimensions = player.getDimensions(player.getPose());
+        double radius = dimensions.width() * .5;
+        var nextBox = standingBox(feet, newUp, radius, dimensions.height());
+        if (clear(player, nextBox, access, loaded)) return Optional.of(feet);
 
-	/**
-	 * Place {@code entity} standing on the surface along {@code up}'s opposite.
-	 * @return true if a surface was found and the entity was repositioned into free space
-	 */
-	public static boolean safeMount(LivingEntity entity, Vec3d up) {
-		if (up.lengthSquared() < 1e-6) return false;
-		up = up.normalize();
-		World world = entity.getWorld();
-		Vec3d down = up.negate();
-
-		Vec3d probeFrom = entity.getPos().add(up.multiply(Math.max(0.35, entity.getHeight() * 0.45)));
-		BlockHitResult hit = raySurface(world, entity, probeFrom, down, FIND_RANGE);
-		if (hit == null) {
-			// Try from a few offsets so a body already clipped into a wall still finds the face.
-			Vec3d side = Math.abs(up.y) > 0.9 ? new Vec3d(1, 0, 0) : new Vec3d(0, 1, 0);
-			side = side.subtract(up.multiply(side.dotProduct(up)));
-			if (side.lengthSquared() > 1e-6) {
-				side = side.normalize().multiply(0.4);
-				hit = raySurface(world, entity, probeFrom.add(side), down, FIND_RANGE);
-				if (hit == null) hit = raySurface(world, entity, probeFrom.subtract(side), down, FIND_RANGE);
-			}
-		}
-		if (hit == null) return false;
-
-		Vec3d target = hit.getPos().add(up.multiply(FOOT_EPS));
-		entity.setPose(EntityPose.STANDING);
-		entity.setSwimming(false);
-		entity.setSneaking(false);
-
-		for (int i = 0; i < MAX_NUDGES; i++) {
-			entity.requestTeleport(target.x, target.y, target.z);
-			entity.setPosition(target.x, target.y, target.z);
-			Box box = standingBoxAt(entity, target, up);
-			if (world.isSpaceEmpty(entity, box.contract(1.0E-6))) {
-				finish(entity);
-				return true;
-			}
-			target = target.add(up.multiply(NUDGE));
-		}
-
-		// Last resort: keep the furthest nudge (most free) even if still tight — better than wall mush.
-		entity.requestTeleport(target.x, target.y, target.z);
-		entity.setPosition(target.x, target.y, target.z);
-		finish(entity);
-		return hasStandingClearance(entity, up);
-	}
-
-    /** Releasing a wall/ceiling frame must leave room for the ordinary upright body. */
-    public static boolean releaseToWorldUp(net.minecraft.entity.player.PlayerEntity player,Vec3d oldUp) {
-        Vec3d away=oldUp==null||!Double.isFinite(oldUp.lengthSquared())||oldUp.lengthSquared()<1e-6?new Vec3d(0,1,0):oldUp.normalize();
-        Vec3d origin=player.getPos();double height=player.getDimensions(EntityPose.STANDING).height();
-        var directions=new java.util.ArrayList<Vec3d>();directions.add(away);
-        for(var direction:net.minecraft.util.math.Direction.values()) {
-            var vector=Vec3d.of(direction.getVector());if(vector.dotProduct(away)<.999999)directions.add(vector);
+        var currentBox = player.getBoundingBox();
+        // Rotating about the feet can add up to one body radius on the support side.
+        // Check the entire old body's step and the new body's destination before publishing either.
+        double lift = radius + .04;
+        for (int i = 1; i <= 6; i++) {
+            var step = oldUp.multiply(lift * i / 6);
+            if (!clear(player, currentBox.stretch(step), access, loaded)) break;
+            if (clear(player, nextBox.offset(step), access, loaded)) return Optional.of(feet.add(step));
         }
-        var loaded=new java.util.HashMap<com.terminaldetector.drmd.d6.D6ChunkPos,Boolean>();
-        var access=com.terminaldetector.drmd.world.access.WorldAccess.of(player.getWorld());
-        for(int i=0;i<=16;i++) for(int axis=0;axis<(i==0?1:directions.size());axis++) {
-            Vec3d candidate=origin.add(directions.get(axis).multiply(i*.2));
-            var box=standingBox(candidate,new Vec3d(0,1,0),player.getWidth()/2,height);
-            if(!loadedRelease(player,box,access,loaded)||!player.getWorld().isSpaceEmpty(player,box))continue;
-            if(i>0)player.requestTeleport(candidate.x,candidate.y,candidate.z);
-            player.setPose(EntityPose.STANDING);player.setSwimming(false);player.calculateDimensions();return true;
-        }
-        return false;
+        // On a ceiling, turning about the feet can put the entire upright body above the
+        // support. Turn around the occupied body's centre to keep it on the same side.
+        var pivot = oldUp.subtract(newUp).multiply(dimensions.height() * .5);
+        var turned = nextBox.offset(pivot);
+        if (clear(player, currentBox.union(turned), access, loaded)) return Optional.of(feet.add(pivot));
+        return Optional.empty();
     }
-    private static boolean loadedRelease(net.minecraft.entity.player.PlayerEntity player,Box box,
-            com.terminaldetector.drmd.world.access.WorldAccess access,
-            java.util.Map<com.terminaldetector.drmd.d6.D6ChunkPos,Boolean> loaded) {
-        var world=player.getWorld();
-        if(box.minY<world.getBottomY()||box.maxY>world.getTopY()||!world.getWorldBorder().contains(box))return false;
-        var halo=box.expand(1); // prove the neighbour halo before native shape-provider reads
-        for(int x=net.minecraft.util.math.MathHelper.floor(halo.minX)>>4;x<=net.minecraft.util.math.MathHelper.floor(Math.nextDown(halo.maxX))>>4;x++)
-            for(int y=net.minecraft.util.math.MathHelper.floor(halo.minY)>>4;y<=net.minecraft.util.math.MathHelper.floor(Math.nextDown(halo.maxY))>>4;y++)
-                for(int z=net.minecraft.util.math.MathHelper.floor(halo.minZ)>>4;z<=net.minecraft.util.math.MathHelper.floor(Math.nextDown(halo.maxZ))>>4;z++) {
-                    var cube=new com.terminaldetector.drmd.d6.D6ChunkPos(x,y,z);
-                    if(!loaded.containsKey(cube)) {
-                        if(loaded.size()>=64)return false;
-                        loaded.put(cube,access.isVolumeAvailable(cube));
-                    }
-                    if(!loaded.get(cube))return false;
-                }
+
+    private static boolean clear(PlayerEntity player, Box box, WorldAccess access, Map<D6ChunkPos, Boolean> loaded) {
+        var world = player.getWorld();
+        return box.minY >= world.getBottomY() && box.maxY <= world.getTopY() && world.getWorldBorder().contains(box)
+            && loadedSpace(world, box, access, loaded) && world.isSpaceEmpty(player, box.contract(EPS));
+    }
+
+    static boolean loadedSpace(World world, Box box) {
+        return loadedSpace(world, box, WorldAccess.of(world), new HashMap<>());
+    }
+
+    private static boolean loadedSpace(World world, Box box, WorldAccess access, Map<D6ChunkPos, Boolean> loaded) {
+        var halo = box.expand(1);
+        int x0=MathHelper.floor(halo.minX)>>4, x1=MathHelper.floor(Math.nextDown(halo.maxX))>>4;
+        int y0=MathHelper.floor(halo.minY)>>4, y1=MathHelper.floor(Math.nextDown(halo.maxY))>>4;
+        int z0=MathHelper.floor(halo.minZ)>>4, z1=MathHelper.floor(Math.nextDown(halo.maxZ))>>4;
+        if ((long)(x1-x0+1)*(y1-y0+1)*(z1-z0+1)>64) return false;
+        for(int x=x0;x<=x1;x++) for(int y=y0;y<=y1;y++) for(int z=z0;z<=z1;z++){
+            var cube=new D6ChunkPos(x,y,z);
+            if(CubicAvailability.withinHeight(world,cube)&&!loaded.computeIfAbsent(cube,access::isVolumeAvailable))return false;
+        }
         return true;
     }
 
@@ -125,8 +86,8 @@ public final class GravityMount {
 	}
 
 	public static boolean hasStandingClearance(LivingEntity entity, Vec3d up) {
-		return entity.getWorld().isSpaceEmpty(entity,
-				standingBoxAt(entity, entity.getPos(), up).contract(1.0E-6));
+        var box = standingBoxAt(entity, entity.getPos(), up);
+		return loadedSpace(entity.getWorld(), box) && entity.getWorld().isSpaceEmpty(entity, box.contract(EPS));
 	}
 
 	/** The up this entity is actually standing against — its mount, or world up if it has none. */
@@ -134,15 +95,6 @@ public final class GravityMount {
 		Vec3d up = entity instanceof net.minecraft.entity.player.PlayerEntity player && FootGravitySystem.isActive(player)
                 ? FootGravitySystem.getUp(player) : com.terminaldetector.drmd.world.LocalOrientation.getUp(entity.getUuid());
 		return up.lengthSquared() < 1e-6 ? new Vec3d(0, 1, 0) : up.normalize();
-	}
-
-	private static void finish(LivingEntity entity) {
-		entity.fallDistance = 0f;
-		entity.setVelocity(Vec3d.ZERO);
-		entity.velocityModified = true;
-		entity.setOnGround(true);
-		entity.setPose(EntityPose.STANDING);
-		entity.setSwimming(false);
 	}
 
 	/**
@@ -174,12 +126,4 @@ public final class GravityMount {
 				Math.max(feet.x, head.x) + px, Math.max(feet.y, head.y) + py, Math.max(feet.z, head.z) + pz);
 	}
 
-	private static BlockHitResult raySurface(World world, LivingEntity entity, Vec3d from, Vec3d down, double range) {
-		var hit = world.raycast(new RaycastContext(
-				from, from.add(down.multiply(range)),
-				RaycastContext.ShapeType.COLLIDER,
-				RaycastContext.FluidHandling.NONE,
-				entity));
-		return hit.getType() == HitResult.Type.BLOCK ? hit : null;
-	}
 }

@@ -2,7 +2,10 @@ package com.terminaldetector.drmd.mixin;
 
 import com.terminaldetector.drmd.world.gravity.LocalSurfaceMotion;
 import com.terminaldetector.drmd.world.gravity.LocalSurfaceNavigation;
+import com.terminaldetector.drmd.world.gravity.ActorFrameMath;
+import com.terminaldetector.drmd.world.gravity.FootGravitySystem;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -20,7 +23,7 @@ public abstract class LocalSurfaceJumpMixin {
     @Inject(method = "jump", at = @At("HEAD"))
     private void drmd$beginJump(CallbackInfo callback) {
         drmd$jumpUp = ++drmd$jumpDepth == 1
-            ? LocalSurfaceNavigation.cardinalPhysicsUp((LivingEntity) (Object) this) : null;
+            ? drmd$jumpFrame((LivingEntity) (Object) this) : null;
     }
 
     @Inject(method = "jump", at = @At("RETURN"))
@@ -31,7 +34,13 @@ public abstract class LocalSurfaceJumpMixin {
 
     @Unique private boolean drmd$validJumpFrame(LivingEntity actor) {
         return drmd$jumpDepth == 1 && drmd$jumpUp != null
-            && drmd$jumpUp.equals(LocalSurfaceNavigation.cardinalPhysicsUp(actor));
+            && drmd$jumpUp.equals(drmd$jumpFrame(actor));
+    }
+
+    @Unique private static Vec3d drmd$jumpFrame(LivingEntity actor) {
+        if(actor instanceof PlayerEntity player && player.getWorld().isClient && FootGravitySystem.isActive(player))
+            return FootGravitySystem.getUp(player);
+        return LocalSurfaceNavigation.cardinalPhysicsUp(actor);
     }
 
     @Redirect(method = "jump", at = @At(value = "INVOKE",
@@ -41,7 +50,10 @@ public abstract class LocalSurfaceJumpMixin {
             actor.setVelocity(x, y, z);
             return;
         }
-        Vec3d result = LocalSurfaceMotion.ordinaryJump(actor.getVelocity(), new Vec3d(x, y, z), drmd$jumpUp);
+        var previous = actor.getVelocity();
+        Vec3d result = actor instanceof PlayerEntity
+            ? previous.subtract(drmd$jumpUp.multiply(previous.dotProduct(drmd$jumpUp))).add(drmd$jumpUp.multiply(y))
+            : LocalSurfaceMotion.ordinaryJump(previous, new Vec3d(x, y, z), drmd$jumpUp);
         actor.setVelocity(result.x, result.y, result.z);
     }
 
@@ -52,6 +64,7 @@ public abstract class LocalSurfaceJumpMixin {
             actor.addVelocityInternal(delta);
             return;
         }
-        actor.addVelocityInternal(LocalSurfaceMotion.jumpSprint(delta, drmd$jumpUp));
+        actor.addVelocityInternal(actor instanceof PlayerEntity ? ActorFrameMath.toWorld(delta, drmd$jumpUp)
+            : LocalSurfaceMotion.jumpSprint(delta, drmd$jumpUp));
     }
 }
