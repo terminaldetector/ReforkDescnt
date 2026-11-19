@@ -1,0 +1,14 @@
+{
+  "source": "c3c1ab6597963cc17977e3e8033f24d223ecb4ed",
+  "actualNamedGameTestChildExit": 3,
+  "gamePass": 28,
+  "gameFail": {
+    "heavyoperatorgametests.savedthreebodyidentityrestoresnormalfireandfutureormissingcorenevergrantsautomaticauthority": "(2688754, -60, -10617063) actual motors/fire/material/restore must complete in bounded normal ticks; phase=genuine new shot after same-UUID codec restore",
+    "heavyoperatorgametests.realshoulderimpactdisablesonlyitsgunandordinarymaterialreplacementresumeswithoutbodyreset": "(2688663, -60, -10617049) actual module loss keeps other guns; bounded32tick receipt in reports/heavy-module-continuance",
+    "survivalthreatgametests.ordinaryplayerplasmacandefeattheactualpairduringitswarningwithoutreplacementactors": "(2688741, -60, -10617049) ordinary plasma use; energy=4.0 cooldown=0.0"
+  },
+  "unitPass": 35,
+  "evidence": "focused-stock-c3c1ab65.zip",
+  "sha256": "02dd8d1be909366ce2bd267ccaaae2a5e4a3d7634351055420522a63029114d0",
+  "nativeBoundaries": "Ordinary loaded stock authority. Water and navigation use real GameTest worlds. BetterCubicChunks and renderer acceptance are separate."
+}
