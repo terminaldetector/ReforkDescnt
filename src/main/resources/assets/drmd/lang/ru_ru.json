@@ -399,5 +399,8 @@
   "item.drmd.cluster_controls": "ЛКМ: вперёд · ПКМ: вниз",
   "item.drmd.cluster_select": "Shift + ПКМ: выбрать программу раскрытия",
   "entity.drmd.shapes_infantry": "Пехотинец Shapes",
-  "item.drmd.spawn_egg_shapes_infantry": "Яйцо призыва пехотинца Shapes"
+  "item.drmd.spawn_egg_shapes_infantry": "Яйцо призыва пехотинца Shapes",
+  "tooltip.drmd.repair.partial": "Ремонт трещин кладки и повреждений существующих блоков механизмов.",
+  "tooltip.drmd.repair.replacement": "Для утраченного материала стены нужен такой же блок; уничтоженные блоки заменяются.",
+  "message.drmd.repair.done": "Ремонт завершён."
 }

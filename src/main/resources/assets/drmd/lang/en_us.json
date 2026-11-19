@@ -435,5 +435,8 @@
   "item.drmd.cluster_controls": "Attack: forward · Use: downward",
   "item.drmd.cluster_select": "Sneak + Use: select spread program",
   "entity.drmd.shapes_infantry": "Shapes infantry",
-  "item.drmd.spawn_egg_shapes_infantry": "Shapes infantry spawn egg"
+  "item.drmd.spawn_egg_shapes_infantry": "Shapes infantry spawn egg",
+  "tooltip.drmd.repair.partial": "Repairs cracked masonry and damage to existing mechanism blocks.",
+  "tooltip.drmd.repair.replacement": "Missing wall material costs one matching block; destroyed blocks need replacement.",
+  "message.drmd.repair.done": "Repair complete."
 }

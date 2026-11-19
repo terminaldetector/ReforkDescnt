@@ -9,6 +9,9 @@ import com.terminaldetector.drmd.world.contraption.BlockBodyEntity;
 import com.terminaldetector.drmd.world.contraption.BlockBodyWorldAccess;
 import com.terminaldetector.drmd.world.contraption.BodySpatialIndex;
 import com.terminaldetector.drmd.world.edit.WorldEditSafety;
+import com.terminaldetector.drmd.world.micro.CarvedBlock;
+import com.terminaldetector.drmd.world.micro.CarvedBlockEntity;
+import com.terminaldetector.drmd.world.micro.MicroGrid;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -92,29 +95,53 @@ public final class EngineerTools {
 				BlockPos pos = hit.getBlockPos();
 				if (!WorldEditSafety.mayChange(sw,pos,sp)) return TypedActionResult.fail(stack);
 				BlockState st = world.getBlockState(pos);
-				if (st.isOf(Blocks.CRACKED_STONE_BRICKS)) {
-					world.setBlockState(pos, Blocks.STONE_BRICKS.getDefaultState(), Block.NOTIFY_ALL);
-				} else if (st.isOf(Blocks.CRACKED_DEEPSLATE_BRICKS)) {
-					world.setBlockState(pos, Blocks.DEEPSLATE_BRICKS.getDefaultState(), Block.NOTIFY_ALL);
-				} else if (st.isOf(Blocks.CRACKED_NETHER_BRICKS)) {
-					world.setBlockState(pos, Blocks.NETHER_BRICKS.getDefaultState(), Block.NOTIFY_ALL);
-				} else if (st.getHardness(world, pos) >= 0) {
-					world.setBlockState(pos, st, Block.NOTIFY_ALL);
-				}
+                // The crafted tool restores existing damaged material; it never synthesizes
+                // destroyed blocks or rewards a no-op with health/shield/resources.
+                BlockState repaired=st.isOf(Blocks.CRACKED_STONE_BRICKS)?Blocks.STONE_BRICKS.getDefaultState()
+                    :st.isOf(Blocks.CRACKED_DEEPSLATE_BRICKS)?Blocks.DEEPSLATE_BRICKS.getDefaultState()
+                    :st.isOf(Blocks.CRACKED_NETHER_BRICKS)?Blocks.NETHER_BRICKS.getDefaultState():null;
+                if(repaired==null) {
+                    // Missing voxels are lost material, unlike cracks/stress. Refill a known
+                    // constructed cell from one matching inventory block; terrain, heat and
+                    // opaque saved geometry are not authority to synthesize a complete wall.
+                    if(!(world.getBlockEntity(pos) instanceof CarvedBlockEntity carved)
+                        ||carved.mask()==MicroGrid.FULL||carved.mask()==MicroGrid.EMPTY
+                        ||carved.organic()||carved.thermalReadOnly()||carved.thermal()!=null)
+                        return TypedActionResult.fail(stack);
+                    repaired=carved.source();
+                    if(repaired.isAir()||repaired.getBlock() instanceof CarvedBlock||repaired.hasBlockEntity()
+                        ||repaired.getHardness(world,pos)<0||!repaired.isFullCube(world,pos)
+                        ||!world.getOtherEntities(null,new net.minecraft.util.math.Box(pos),e->e.isAlive()&&!e.isSpectator()
+                            &&(e instanceof LivingEntity||e instanceof BlockBodyEntity)).isEmpty())return TypedActionResult.fail(stack);
+                    Item material=repaired.getBlock().asItem();int slot=-1;
+                    if(material==net.minecraft.item.Items.AIR)return TypedActionResult.fail(stack);
+                    if(!sp.isCreative()) {
+                        for(int i=0;i<sp.getInventory().size();i++)if(sp.getInventory().getStack(i).isOf(material)){slot=i;break;}
+                        if(slot<0)return TypedActionResult.fail(stack);
+                    }
+                    if(!world.setBlockState(pos,repaired,Block.NOTIFY_ALL))return TypedActionResult.fail(stack);
+                    if(slot>=0){sp.getInventory().removeStack(slot,1);sp.getInventory().markDirty();sp.playerScreenHandler.sendContentUpdates();}
+                }else if(!world.setBlockState(pos,repaired,Block.NOTIFY_ALL))return TypedActionResult.fail(stack);
 				for (LivingEntity e : world.getEntitiesByClass(LivingEntity.class,
 						new net.minecraft.util.math.Box(pos).expand(3), LivingEntity::isAlive)) {
 					e.heal(4f);
 				}
 				DescentShieldBoost(sp);
 				feedback(world,user,pos.toCenterPos());
+                return TypedActionResult.success(stack);
 			}
-			return TypedActionResult.success(stack);
+			return TypedActionResult.fail(stack);
 		}
+
+        @Override public void appendTooltip(ItemStack stack,TooltipContext context,java.util.List<Text> tooltip,net.minecraft.item.tooltip.TooltipType type){
+            tooltip.add(Text.translatable("tooltip.drmd.repair.partial"));
+            tooltip.add(Text.translatable("tooltip.drmd.repair.replacement"));
+        }
 
 		private static void feedback(World world,PlayerEntity user,Vec3d at) {
 			beam(world,user,at,new Vector3f(0.3f,1f,0.4f));
 			world.playSound(null,BlockPos.ofFloored(at),SoundEvents.BLOCK_ANVIL_USE,SoundCategory.BLOCKS,0.35f,1.6f);
-			user.sendMessage(Text.literal("§aRepair laser — structure refreshed"),true);
+			user.sendMessage(Text.translatable("message.drmd.repair.done").formatted(net.minecraft.util.Formatting.GREEN),true);
 		}
 
 		private static void DescentShieldBoost(ServerPlayerEntity sp) {

@@ -5,6 +5,7 @@ import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.weapon.core.WeaponCore;
 import com.terminaldetector.drmd.weapon.items.DescentWeaponItem;
 import com.terminaldetector.drmd.world.contraption.*;
+import com.terminaldetector.drmd.world.micro.*;
 import com.terminaldetector.drmd.client.portal.PortalTransform.*;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.block.*;
@@ -182,7 +183,7 @@ public final class SurvivalEconomyGameTests implements FabricGameTest {
                 var id=b.getUuid();double mass=b.physicsMass();var collider=b.collider();long revision=b.shapeRevision();
                 c.assertTrue(b.physics().linearVelocity().length()>1e-10||b.physics().angularMomentum().length()>1e-10,"the real impact gives the mechanism actual physical motion before repair");
                 f.hold(ModWorldBlocks.REPAIR_LASER);f.aimCell(b,drive,Direction.SOUTH);
-                var coverAt=BlockPos.ofFloored(f.p.getEyePos().lerp(b.localToWorld(Vec3d.ofCenter(drive)),.5));var old=f.w.getBlockState(coverAt);f.setWorld(coverAt,Blocks.BEDROCK.getDefaultState());f.itemUse();
+                var coverAt=BlockPos.ofFloored(f.p.getEyePos().lerp(b.localToWorld(Vec3d.ofCenter(drive)),.5));var old=f.w.getBlockState(coverAt);f.setWorld(coverAt,Blocks.BEDROCK.getDefaultState());repairRefused(f,"actual intact cover cannot count as a repaired structure");
                 c.assertTrue(b.materialDamage(drive)==damage,"actual world cover blocks repair of the damaged local cell");f.setWorld(coverAt,old);
                 var middle=f.p.getEyePos().lerp(b.localToWorld(Vec3d.ofCenter(drive)),.5).subtract(.5,.5,.5);
                 var front=BlockBodyEntity.createLocal(f.w,List.of(new BlockBodyEntity.Cell(BlockPos.ORIGIN,Blocks.IRON_BLOCK.getDefaultState())),middle,Quat.IDENTITY,Vec3d.ZERO,Vec3d.ZERO);front.setPhysicsGravity(false);f.bodies.add(front);
@@ -208,5 +209,80 @@ public final class SurvivalEconomyGameTests implements FabricGameTest {
             var state=f.w.getBlockState(at);actual.add(Registries.BLOCK.getId(cracked.get(i))+" -> "+Registries.BLOCK.getId(state.getBlock()));correct&=state.isOf(repaired.get(i));
         }
         c.assertTrue(correct,"repair restores each actual source material instead of converting unrelated bricks into stone: "+actual);f.done();
+    });}
+
+    private static Map<Item,Integer> inventory(EconomyFixture f){var result=new HashMap<Item,Integer>();for(int i=0;i<f.p.getInventory().size();i++){
+        var stack=f.p.getInventory().getStack(i);if(!stack.isEmpty())result.merge(stack.getItem(),stack.getCount(),Integer::sum);
+    }return result;}
+    private static void repairRefused(EconomyFixture f,String reason){f.closeTable();
+        f.c.assertTrue(!f.p.interactionManager.interactItem(f.p,f.w,f.p.getMainHandStack(),Hand.MAIN_HAND).isAccepted(),reason);
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="economy-noop-repair",tickLimit=450)
+    public void craftedSurvivalToolCannotTurnIntactOrMissingMaterialIntoFreeHealthShieldOrInventory(TestContext c){EconomyFixture.admitted(c,f->{
+        f.components(3,1);f.craft("repair_laser");f.closeTable();f.hold(ModWorldBlocks.REPAIR_LASER);
+        var at=f.origin;f.setWorld(at,Blocks.STONE.getDefaultState());var target=Vec3d.ofCenter(at);f.aim(target.add(0,0,3),target);
+        f.p.setHealth(10);var data=DescentPlayerData.get(f.p);data.setShield(15);data.setEnergy(20);
+        var held=f.p.getMainHandStack().copy();var before=inventory(f);float health=f.p.getHealth(),shield=data.getShield(),energy=data.getEnergy();
+        for(int i=0;i<4;i++)repairRefused(f,"an intact block is not repair fuel or a free medical/shield dispenser");
+        c.assertTrue(f.w.getBlockState(at).isOf(Blocks.STONE)&&f.p.getHealth()==health&&data.getShield()==shield&&data.getEnergy()==energy
+            &&inventory(f).equals(before)&&ItemStack.areEqual(held,f.p.getMainHandStack()),"refused ordinary-use action conserves all real resources, tool state and actor pools");
+        f.setWorld(at,Blocks.AIR.getDefaultState());repairRefused(f,"empty loss cannot manufacture a replacement");
+        c.assertTrue(f.w.getBlockState(at).isAir()&&inventory(f).equals(before)&&f.p.getHealth()==health&&data.getShield()==shield,"a missing world block is neither restored nor refunded");
+        f.setWorld(at,Blocks.CRACKED_STONE_BRICKS.getDefaultState());boolean edit=f.p.getAbilities().allowModifyWorld;f.p.getAbilities().allowModifyWorld=false;
+        repairRefused(f,"world modification denial preserves a genuine damaged block");f.p.getAbilities().allowModifyWorld=edit;
+        c.assertTrue(f.w.getBlockState(at).isOf(Blocks.CRACKED_STONE_BRICKS)&&inventory(f).equals(before),"permission refusal spends or converts nothing");
+        f.done();
+    });}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="economy-real-component-loss",tickLimit=450)
+    public void destroyedMechanismRequiresActualSalvagePickupAndOneMaterialPlacementInsteadOfRepairFabrication(TestContext c){EconomyFixture.admitted(c,f->{
+        f.components(3,1);f.craft("repair_laser");f.craft("rotary_drive");f.craft("minecraft:iron_pickaxe");var b=f.carrier();var drive=new BlockPos(0,0,1);
+        f.placeLocal(b,BlockPos.ORIGIN,Direction.SOUTH,ModWorldBlocks.ROTARY_DRIVE.asItem());
+        int[] phase={0};long[] ready={c.getTick()+5};var owner=b.getUuid();
+        f.observe=()->{
+            if(c.getTick()<ready[0])return;
+            if(phase[0]==0){
+                f.hold(Items.IRON_PICKAXE);f.aimCell(b,drive,Direction.SOUTH);
+                if(!b.getLocalBlock(drive).isAir()){
+                    c.assertTrue(f.p.canHarvest(b.getLocalBlock(drive)),"ordinary local iron pickaxe can recover this declared component");
+                    if(c.getTick()%3==0)c.assertTrue(BodyBlockInteraction.receive(f.p,new BodyBlockInteraction.Edit(b.getUuid(),b.shapeRevision(),drive,BodyBlockInteraction.MINE)),"actual Survival mining, not a synthetic cell deletion");return;
+                }
+                phase[0]=1;ready[0]=c.getTick()+12;return;
+            }
+            if(phase[0]==1){
+                c.assertTrue(f.count(ModWorldBlocks.ROTARY_DRIVE.asItem())==0,"lost local material did not directly refund the inventory");
+                f.hold(ModWorldBlocks.REPAIR_LASER);f.aimCell(b,drive,Direction.SOUTH);var before=inventory(f);var collider=b.collider();long revision=b.shapeRevision();double mass=b.physicsMass();
+                repairRefused(f,"repair cannot fabricate the absent component or consume a nearby uncollected drop");
+                c.assertTrue(b.getLocalBlock(drive).isAir()&&b.getUuid().equals(owner)&&b.collider()==collider&&b.shapeRevision()==revision&&b.physicsMass()==mass&&inventory(f).equals(before),
+                    "loss refusal preserves empty topology, UUID, physics mass and inventory");
+                var loot=f.w.getEntitiesByClass(ItemEntity.class,b.getBoundingBox().expand(5),e->e.getStack().isOf(ModWorldBlocks.ROTARY_DRIVE.asItem()));
+                c.assertTrue(loot.size()==1&&loot.getFirst().getStack().getCount()==1,"one real recoverable material exists, without duplicate replacements");
+                var drop=loot.getFirst();f.extras.add(drop.getUuid());f.p.setPosition(drop.getPos());drop.onPlayerCollision(f.p);
+                c.assertTrue(drop.isRemoved()&&f.count(ModWorldBlocks.ROTARY_DRIVE.asItem())==1,"ordinary pickup recovers exactly that material");
+                phase[0]=2;ready[0]=c.getTick()+5;return;
+            }
+            f.placeLocal(b,BlockPos.ORIGIN,Direction.SOUTH,ModWorldBlocks.ROTARY_DRIVE.asItem());
+            c.assertTrue(b.getUuid().equals(owner)&&b.getLocalBlock(drive).isOf(ModWorldBlocks.ROTARY_DRIVE)&&f.count(ModWorldBlocks.ROTARY_DRIVE.asItem())==0,
+                "one actual replacement is consumed on the same base; recovery needs no new factory or ship reconstruction");f.done();
+        };
+    });}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="economy-conserved-wall-repair",tickLimit=450)
+    public void lostConstructedVoxelsNeedOneMatchingMaterialAndNeverEraseNaturalOrFutureGeometry(TestContext c){EconomyFixture.admitted(c,f->{
+        f.components(3,1);f.craft("repair_laser");f.closeTable();f.hold(ModWorldBlocks.REPAIR_LASER);
+        var at=f.origin;var source=Blocks.STONE_BRICKS.getDefaultState();long mask=MicroGrid.FULL&~1L;
+        f.setWorld(at,source);var carved=CarvedBlock.replace(f.w,at,source,mask);
+        c.assertTrue(carved!=null&&!carved.organic()&&carved.mask()==mask,"actual constructed source has missing material, not terrain or merely cosmetic cracking");
+        var center=Vec3d.ofCenter(at);f.aim(center.add(0,0,3),center);var before=inventory(f);var raw=carved.createNbt(f.w.getRegistryManager());
+        repairRefused(f,"unrelated stock cannot pay for removed stone-brick material");
+        c.assertTrue(inventory(f).equals(before)&&f.w.getBlockEntity(at)==carved&&raw.equals(carved.createNbt(f.w.getRegistryManager())),"material refusal preserves the exact damaged source and all real resources");
+        f.stock(Items.STONE,4);f.craft("minecraft:stone_bricks");f.closeTable();f.hold(ModWorldBlocks.REPAIR_LASER);f.aim(center.add(0,0,3),center);
+        int brickCount=f.count(Items.STONE_BRICKS);before=inventory(f);f.itemUse();var expected=new HashMap<>(before);expected.merge(Items.STONE_BRICKS,-1,Integer::sum);expected.entrySet().removeIf(e->e.getValue()==0);
+        c.assertTrue(f.w.getBlockState(at).equals(source)&&f.w.getBlockEntity(at)==null&&brickCount>0&&inventory(f).equals(expected),"normal crafted repair consumes exactly one real matching block and restores the recorded collision/material state");
+        repairRefused(f,"repeated use on the now intact wall is not a second repair");c.assertTrue(inventory(f).equals(expected),"no repeated refill debit or refund");
+        f.setWorld(at,Blocks.STONE.getDefaultState());carved=CarvedBlock.replace(f.w,at,Blocks.STONE.getDefaultState(),mask);
+        c.assertTrue(carved!=null&&carved.organic(),"natural terrain fixture uses its actual smooth geometry policy");raw=carved.createNbt(f.w.getRegistryManager());before=inventory(f);
+        repairRefused(f,"natural excavation is not automatically filled by a structural repair tool");c.assertTrue(raw.equals(carved.createNbt(f.w.getRegistryManager()))&&inventory(f).equals(before),"natural material and geometry remain exact");
+        f.setWorld(at,source);carved=CarvedBlock.replace(f.w,at,source,mask);var future=new net.minecraft.nbt.NbtCompound();future.putInt("schema",37);future.putString("owner","future-base-geometry");
+        raw=carved.createNbt(f.w.getRegistryManager());raw.put("thermalDrill",future.copy());carved.read(raw,f.w.getRegistryManager());raw=carved.createNbt(f.w.getRegistryManager());
+        repairRefused(f,"unknown saved geometry cannot be replaced even with matching material");c.assertTrue(carved.thermalReadOnly()&&f.w.getBlockEntity(at)==carved&&raw.equals(carved.createNbt(f.w.getRegistryManager()))&&inventory(f).equals(before),"future metadata stays byte-semantic and grants no refill authority");f.done();
     });}
 }
