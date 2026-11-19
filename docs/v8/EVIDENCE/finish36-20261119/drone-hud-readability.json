@@ -1,0 +1,151 @@
+{
+  "task": "S15-T05",
+  "source": "25d7f3ebd647480f9afe473b4be4a4c9963e14ba",
+  "gameAndObserver": [
+    {
+      "path": "mods/drmd-6dof-1.1.35-ufo-dev.1.jar",
+      "sha256": "45971bea9636e9924734f20a5a396e7fd0c92a62be893307cec686e32d8cd73c",
+      "source": "/tmp/ungravity-finish-36/thirteenth/jars/drmd-6dof-1.1.35-ufo-dev.1.jar"
+    },
+    {
+      "path": "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar",
+      "sha256": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+      "source": "/workspace/Refork-audit/work/master-v5/upstream/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar"
+    },
+    {
+      "path": "mods/fabric-api-0.116.15+1.21.1.jar",
+      "sha256": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+      "source": "/workspace/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api/0.116.15+1.21.1/d25c793833a90cc028c9a61bc4546cd578a70ce1/fabric-api-0.116.15+1.21.1.jar"
+    },
+    {
+      "path": "mods/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar",
+      "sha256": "1a79554a97b03721400516dc6cbf140ca257b4e80f419b20247ce4f20553a62e",
+      "source": "/tmp/ungravity-finish-36/thirteenth/jars/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar"
+    },
+    {
+      "path": "mods/sodium-fabric-0.8.13+mc1.21.1.jar",
+      "sha256": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d",
+      "source": "/workspace/ungravity-v5/world/work/gate0/upstream/sodium-fabric-0.8.13+mc1.21.1.jar"
+    }
+  ],
+  "actualChildExit": 0,
+  "observedLanguage": "en_us",
+  "actualScreen": "Native DroneInventoryScreen, real menu and Mouse cursor callback, HD frame pixels",
+  "notes": "All five relevant slot labels remain readable on the maximum sampled GUI scale with the tooltip open. The 90 displayed tooltips carry the active binding labels. The battle window displayed one critical shield notice per qualified sample, with no debug-prefixed line.",
+  "test": {
+    "status": "PASS",
+    "battleFrames": 185,
+    "reason": "Native HUD and three actual equipment scales under each presentation profile",
+    "results": [
+      {
+        "battleNoticeDraws": 1,
+        "tooltips": [],
+        "width": 1280,
+        "height": 720,
+        "nativeOutput": true,
+        "profile": "HYBRID_NATIVE",
+        "scale": 1,
+        "name": "battle-hud"
+      },
+      {
+        "battleNoticeDraws": 0,
+        "tooltips": [
+          "Primary weapon (Left Button)",
+          "Secondary weapon (Right Button)",
+          "Auxiliary weapon (B)",
+          "Storage slot",
+          "Afterburner module (R)"
+        ],
+        "width": 1280,
+        "height": 720,
+        "nativeOutput": true,
+        "profile": "HYBRID_NATIVE",
+        "scale": 1,
+        "name": "hybrid_native-gui-1"
+      },
+      {
+        "battleNoticeDraws": 0,
+        "tooltips": [
+          "Primary weapon (Left Button)",
+          "Secondary weapon (Right Button)",
+          "Auxiliary weapon (B)",
+          "Storage slot",
+          "Afterburner module (R)"
+        ],
+        "width": 1280,
+        "height": 720,
+        "nativeOutput": true,
+        "profile": "HYBRID_NATIVE",
+        "scale": 2,
+        "name": "hybrid_native-gui-2"
+      },
+      {
+        "battleNoticeDraws": 0,
+        "tooltips": [
+          "Primary weapon (Left Button)",
+          "Secondary weapon (Right Button)",
+          "Auxiliary weapon (B)",
+          "Storage slot",
+          "Afterburner module (R)"
+        ],
+        "width": 1280,
+        "height": 720,
+        "nativeOutput": true,
+        "profile": "HYBRID_NATIVE",
+        "scale": 3,
+        "name": "hybrid_native-gui-3"
+      },
+      {
+        "battleNoticeDraws": 0,
+        "tooltips": [
+          "Primary weapon (Left Button)",
+          "Secondary weapon (Right Button)",
+          "Auxiliary weapon (B)",
+          "Storage slot",
+          "Afterburner module (R)"
+        ],
+        "width": 1280,
+        "height": 720,
+        "nativeOutput": true,
+        "profile": "PS1_HYBRID",
+        "scale": 1,
+        "name": "ps1_hybrid-gui-1"
+      },
+      {
+        "battleNoticeDraws": 0,
+        "tooltips": [
+          "Primary weapon (Left Button)",
+          "Secondary weapon (Right Button)",
+          "Auxiliary weapon (B)",
+          "Storage slot",
+          "Afterburner module (R)"
+        ],
+        "width": 1280,
+        "height": 720,
+        "nativeOutput": true,
+        "profile": "PS1_HYBRID",
+        "scale": 2,
+        "name": "ps1_hybrid-gui-2"
+      },
+      {
+        "battleNoticeDraws": 0,
+        "tooltips": [
+          "Primary weapon (Left Button)",
+          "Secondary weapon (Right Button)",
+          "Auxiliary weapon (B)",
+          "Storage slot",
+          "Afterburner module (R)"
+        ],
+        "width": 1280,
+        "height": 720,
+        "nativeOutput": true,
+        "profile": "PS1_HYBRID",
+        "scale": 3,
+        "name": "ps1_hybrid-gui-3"
+      }
+    ],
+    "actualTooltipFrames": 90
+  },
+  "archive": "drone-hud-readability.zip",
+  "archiveSha256": "4b266352b0a8854bce6975108399cbfad7ee342d4f098eb3c468ad0a42a7d207"
+}
