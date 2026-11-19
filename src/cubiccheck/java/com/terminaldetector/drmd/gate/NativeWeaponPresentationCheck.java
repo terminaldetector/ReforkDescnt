@@ -90,7 +90,9 @@ public final class NativeWeaponPresentationCheck {
     private static void click(HandledScreen<?> menu,int slot){var s=menu.getScreenHandler().getSlot(slot);double x=(menu.width-176)/2.0+s.x+8,y=(menu.height-212)/2.0+s.y+8;menu.mouseClicked(x,y,0);menu.mouseReleased(x,y,0);INPUTS.add(Map.of("tick",age,"phase",phase,"slot",slot));}
     private static void planClick(int slot,String cursor,String cell){clicks.add(new Click(slot,cursor,cell));}
     private static boolean operateMenu(MinecraftClient c){
-        if(!(c.currentScreen instanceof DroneInventoryScreen menu))return false;if(!synchronizedMenu(c,menu))return false;
+        if(!(c.currentScreen instanceof DroneInventoryScreen))return false;
+        HandledScreen<?> menu=(HandledScreen<?>)c.currentScreen;
+        if(!synchronizedMenu(c,menu))return false;
         if(pending!=null){String actual=id(menu.getScreenHandler().getSlot(pending.slot).getStack());if(!actual.equals(pending.cell)||!view.cursor.equals(pending.cursor))return false;pending=null;}
         if(!clicks.isEmpty()){pending=clicks.removeFirst();click(menu,pending.slot);return false;}return true;
     }
@@ -119,7 +121,9 @@ public final class NativeWeaponPresentationCheck {
                 if(bank>=35&&age-settled>=8&&frames>=3)enter(7);return;}
             if(phase==7||phase==9||phase==11||phase==13){
                 if(c.currentScreen==null){if(!sent){pulse(DescentKeybinds.customize);sent=true;}return;}
-                if(!(c.currentScreen instanceof DroneInventoryScreen menu)||!synchronizedMenu(c,menu))return;
+                if(!(c.currentScreen instanceof DroneInventoryScreen))return;
+                HandledScreen<?> menu=(HandledScreen<?>)c.currentScreen;
+                if(!synchronizedMenu(c,menu))return;
                 if(!sent)sent=true;
                 if(settled==0){
                     require(menu.getScreenHandler().getCursorStack().isEmpty(),"real cursor starts empty");
