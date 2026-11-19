@@ -22,6 +22,7 @@
     "LocalActorAttackMixin",
     "LocalActorRangedMixin",
     "LocalSurfaceNavigationMixin",
+    "LocalGroundNavigationMixin",
     "LocalSpiderNavigationMixin",
     "LocalSurfaceMotorMixin",
     "LocalSurfaceInputMixin",

@@ -30,12 +30,12 @@ public final class LocalSurfaceNavigation {
         }
     }
     private static final class Search {
-        final WeakReference<SpiderEntity> owner;BlockPos target;Vec3d up,origin;
+        final WeakReference<MobEntity> owner;BlockPos target;Vec3d up,origin;
         BoundedFlightPath search;Space space;LocalSurfacePath ready;
         final MoveIntent<Entity> intent=new MoveIntent<>();
         MoveIntent.Delivery<Entity> delivery;
         long seen,started,nextRequest,worked=Long.MIN_VALUE;
-        Search(SpiderEntity actor,long now){owner=new WeakReference<>(actor);seen=now;}
+        Search(MobEntity actor,long now){owner=new WeakReference<>(actor);seen=now;}
     }
     /** A completed speculative query is not a command. Only a successful native move arms delivery. */
     static final class MoveIntent<T> {
@@ -69,9 +69,9 @@ public final class LocalSurfaceNavigation {
         void completed(Command<T> command){if(accepted==command)cancel();}
     }
     private static final class Space implements BoundedFlightPath.Space {
-        final WeakReference<SpiderEntity> owner;final Vec3d origin,up;
+        final WeakReference<MobEntity> owner;final Vec3d origin,up;
         final Map<BoundedFlightPath.Cell,Boolean> nodes=new HashMap<>();
-        Space(SpiderEntity actor,Vec3d origin,Vec3d up){owner=new WeakReference<>(actor);this.origin=origin;this.up=up;}
+        Space(MobEntity actor,Vec3d origin,Vec3d up){owner=new WeakReference<>(actor);this.origin=origin;this.up=up;}
         Vec3d point(BoundedFlightPath.Cell c){return origin.add(ActorFrameMath.toWorld(new Vec3d(c.x(),0,c.z()),up));}
         boolean node(BoundedFlightPath.Cell c) {
             if(c.y()!=0)return false;var cached=nodes.get(c);if(cached!=null)return cached;
@@ -87,20 +87,23 @@ public final class LocalSurfaceNavigation {
     private LocalSurfaceNavigation() {}
 
     public static boolean framed(Entity entity) {
-        return entity instanceof SpiderEntity actor&&actor.getWorld() instanceof ServerWorld world
+        return entity instanceof MobEntity actor&&(actor instanceof SpiderEntity||nativeWalker(actor)&&LocalSurfaceMotion.cardinalUp(ActorFrames.up(actor))!=null)&&actor.getWorld() instanceof ServerWorld world
             &&world.getServer().isOnThread()&&world.getEntityById(actor.getId())==actor&&actor.isAlive()
             &&actor.getPose()==EntityPose.STANDING&&!actor.hasVehicle()&&!actor.isTouchingWater()&&!actor.isInLava()
             &&ActorFrames.active(actor)&&ActorFrames.up(actor).dotProduct(ActorFrameMath.WORLD_UP)<.99999;
     }
-    private static boolean active(SpiderEntity actor) {
+    private static boolean active(MobEntity actor) {
         if(!framed(actor)||!EntityGravitySystem.suppressesVanillaGravity(actor))return false;
         var field=GravityFields.sample(actor.getWorld(),actor.getPos());
         return field!=null&&field.strength()>=.05f&&field.upDir().normalize().distanceTo(ActorFrames.up(actor))<1e-6;
     }
-    /** First force adapter covers native cardinal Spider/Cave frames, including a pathless native jump. */
+    private static boolean nativeWalker(Entity entity) {
+        return entity.getType()==net.minecraft.entity.EntityType.ZOMBIE||entity.getType()==net.minecraft.entity.EntityType.HUSK;
+    }
+    /** Existing cardinal dry/input/jump adapter, now also shared by the two native ground walkers. */
     public static Vec3d cardinalPhysicsUp(Entity entity) {
-        if(!(entity instanceof SpiderEntity actor)
-            ||actor.getType()!=net.minecraft.entity.EntityType.SPIDER&&actor.getType()!=net.minecraft.entity.EntityType.CAVE_SPIDER
+        if(!(entity instanceof MobEntity actor)
+            ||!nativeWalker(actor)&&actor.getType()!=net.minecraft.entity.EntityType.SPIDER&&actor.getType()!=net.minecraft.entity.EntityType.CAVE_SPIDER
             ||!active(actor))return null;
         return LocalSurfaceMotion.cardinalUp(ActorFrames.up(actor));
     }
@@ -108,8 +111,7 @@ public final class LocalSurfaceNavigation {
         return LocalSurfaceGeometry.supportMaterial(actor,up);
     }
     public static boolean localMotor(MobEntity actor) {
-        return actor instanceof SpiderEntity spider&&active(spider)
-            &&spider.getNavigation().getCurrentPath() instanceof LocalSurfacePath p&&p.matches(ActorFrames.up(spider));
+        return active(actor)&&actor.getNavigation().getCurrentPath() instanceof LocalSurfacePath p&&p.matches(ActorFrames.up(actor));
     }
     public static Vec3d localWanted(MobEntity actor,Vec3d worldWanted) {
         return ActorFrameMath.toLocal(worldWanted.subtract(actor.getPos()),ActorFrames.up(actor));
@@ -117,9 +119,9 @@ public final class LocalSurfaceNavigation {
     public static Vec3d input(Entity actor,Vec3d ordinaryDelta) {
         return actor instanceof MobEntity mob&&localMotor(mob)?ActorFrameMath.toWorld(ordinaryDelta,ActorFrames.up(actor)):ordinaryDelta;
     }
-    public static boolean contact(SpiderEntity actor,Vec3d up){return LocalSurfaceGeometry.supported(actor,actor.getPos(),up);}
+    public static boolean contact(MobEntity actor,Vec3d up){return LocalSurfaceGeometry.supported(actor,actor.getPos(),up);}
 
-    public static Path request(SpiderEntity actor,Set<BlockPos> targets,float followRange) {
+    public static Path request(MobEntity actor,Set<BlockPos> targets,float followRange) {
         if(!active(actor)||targets.isEmpty()||targets.size()>16||!Float.isFinite(followRange)||followRange<=0)return null;
         var world=(ServerWorld)actor.getWorld();long now=world.getTime();
         var state=WORLDS.computeIfAbsent(world,w->new WorldState());state.prune(now);
@@ -156,7 +158,7 @@ public final class LocalSurfaceNavigation {
         work(actor,state,search,now);return search.ready;
     }
 
-    public static void pending(SpiderEntity actor) {
+    public static void pending(MobEntity actor) {
         var world=(ServerWorld)actor.getWorld();var state=WORLDS.get(world);if(state==null)return;
         long now=world.getTime();state.prune(now);var search=state.searches.get(actor.getUuid());
         if(search!=null&&search.owner.get()==actor) {
@@ -171,18 +173,18 @@ public final class LocalSurfaceNavigation {
         if(search!=null){search.intent.cancel();search.delivery=null;}
     }
     private static Search ownedSearch(MobEntity actor){
-        if(!(actor instanceof SpiderEntity)||!(actor.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())return null;
+        if(!(actor instanceof SpiderEntity)&&!nativeWalker(actor)||!(actor.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())return null;
         var state=WORLDS.get(world);var search=state==null?null:state.searches.get(actor.getUuid());
         return search!=null&&search.owner.get()==actor?search:null;
     }
     /** Public null/foreign paths cancel old intent; only this Search's scoped native delivery may retain it. */
     public static void moveAlongStarting(MobEntity actor,Path path,double speed){
         var search=ownedSearch(actor);if(search==null)return;
-        if(search.delivery!=null&&active((SpiderEntity)actor)&&search.intent.ownsDelivery(search.delivery,path,speed))return;
+        if(search.delivery!=null&&active(actor)&&search.intent.ownsDelivery(search.delivery,path,speed))return;
         search.intent.cancel();search.delivery=null;
     }
     /** SpiderNavigation's real successful RETURN, never findPath/canStart or a cached speed. */
-    public static void moveAccepted(SpiderEntity actor,Entity target,double speed,boolean success){
+    public static void moveAccepted(MobEntity actor,Entity target,double speed,boolean success){
         if(!active(actor))return;
         var world=(ServerWorld)actor.getWorld();var state=WORLDS.get(world);
         var search=state==null?null:state.searches.get(actor.getUuid());
@@ -195,7 +197,7 @@ public final class LocalSurfaceNavigation {
         search.intent.accepted(valid,target,speed);
     }
     /** One ordinary navigation tick consumes only this owner's still-current accepted generation. */
-    private static void deliverReady(SpiderEntity actor,Search search,long now){
+    private static void deliverReady(MobEntity actor,Search search,long now){
         var command=search.intent.current();if(command==null)return;
         var target=command.target().get();var world=actor.getWorld();
         if(search.owner.get()!=actor||!active(actor)||target==null||target.isRemoved()||!target.isAlive()
@@ -219,7 +221,7 @@ public final class LocalSurfaceNavigation {
             search.intent.completed(command);
         }
     }
-    private static void work(SpiderEntity actor,WorldState state,Search search,long now) {
+    private static void work(MobEntity actor,WorldState state,Search search,long now) {
         if(search.worked==now||search.search==null)return;search.worked=now;
         if(!active(actor)||now-search.started>SEARCH_TICKS||actor.getPos().squaredDistanceTo(search.origin)>.25
             ||ActorFrames.up(actor).distanceTo(search.up)>=1e-6) {invalidate(actor);return;}
@@ -230,7 +232,7 @@ public final class LocalSurfaceNavigation {
             search.search=null;state.budget.release(actor.getUuid());
         } else if(search.search.status()!=BoundedFlightPath.Status.SEARCHING) {search.search=null;state.budget.release(actor.getUuid());}
     }
-    public static boolean follow(SpiderEntity actor,LocalSurfacePath path,double speed) {
+    public static boolean follow(MobEntity actor,LocalSurfacePath path,double speed) {
         var world=(ServerWorld)actor.getWorld();long now=world.getTime();var feet=actor.getPos();
         var state=WORLDS.computeIfAbsent(world,w->new WorldState());state.prune(now);
         var lease=state.searches.get(actor.getUuid());
@@ -255,13 +257,13 @@ public final class LocalSurfaceNavigation {
         if(now-path.progressAt>STALL_TICKS){invalidate(actor);return false;}
         actor.getMoveControl().moveTo(waypoint.x,waypoint.y,waypoint.z,speed);return true;
     }
-    private static void invalidate(SpiderEntity actor) {
+    private static void invalidate(MobEntity actor) {
         var state=WORLDS.get(actor.getWorld());if(state==null)return;var search=state.searches.get(actor.getUuid());
         if(search!=null&&search.owner.get()==actor) {search.intent.invalidate();search.search=null;search.space=null;search.ready=null;search.nextRequest=actor.getWorld().getTime()+REPLAN_TICKS;}
         state.budget.release(actor.getUuid());
     }
     public static void stop(MobEntity actor) {
-        if(!(actor instanceof SpiderEntity)||!(actor.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())return;
+        if(!(actor instanceof SpiderEntity)&&!nativeWalker(actor)||!(actor.getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread())return;
         var state=WORLDS.get(world);if(state==null)return;
         var s=state.searches.get(actor.getUuid());
         if(s!=null&&s.owner.get()==actor) {
@@ -270,4 +272,9 @@ public final class LocalSurfaceNavigation {
             s.nextRequest=Math.max(s.nextRequest,s.seen+REPLAN_TICKS);state.budget.release(actor.getUuid());
         }
     }
+    public static Path request(SpiderEntity actor,Set<BlockPos> targets,float followRange){return request((MobEntity)actor,targets,followRange);}
+    public static void pending(SpiderEntity actor){pending((MobEntity)actor);}
+    public static void moveAccepted(SpiderEntity actor,Entity target,double speed,boolean success){moveAccepted((MobEntity)actor,target,speed,success);}
+    public static boolean follow(SpiderEntity actor,LocalSurfacePath path,double speed){return follow((MobEntity)actor,path,speed);}
+    public static boolean contact(SpiderEntity actor,Vec3d up){return contact((MobEntity)actor,up);}
 }

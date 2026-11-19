@@ -31,13 +31,17 @@ public abstract class LocalSurfaceNavigationMixin implements LocalSurfaceRequest
         cir.setReturnValue(drmd$surfaceRequest(targets,distance,followRange));
     }
     @Override @Unique public Path drmd$surfaceRequest(Set<BlockPos> targets,int distance,float followRange) {
-        Path path=LocalSurfaceNavigation.request((SpiderEntity)entity,targets,followRange);
+        Path path=entity instanceof SpiderEntity spider?LocalSurfaceNavigation.request(spider,targets,followRange):LocalSurfaceNavigation.request(entity,targets,followRange);
         if(path!=null){currentTarget=path.getTarget();currentDistance=distance;}
         return path;
     }
     @Redirect(method="startMovingAlong",at=@At(value="INVOKE",target="Lnet/minecraft/entity/ai/pathing/EntityNavigation;adjustPath()V"))
     private void preserveLocalFeet(EntityNavigation navigation) {
         if(!(currentPath instanceof LocalSurfacePath))adjustPath();
+    }
+    @Inject(method="startMovingTo(Lnet/minecraft/entity/Entity;D)Z",at=@At("HEAD"))
+    private void beginningEntity(net.minecraft.entity.Entity target,double speed,CallbackInfoReturnable<Boolean> cir){
+        LocalSurfaceNavigation.moveStarting(entity);
     }
     @Inject(method="startMovingTo(DDDD)Z",at=@At("HEAD"))
     private void beginningCoordinates(double x,double y,double z,double speed,CallbackInfoReturnable<Boolean> cir){
@@ -54,13 +58,13 @@ public abstract class LocalSurfaceNavigationMixin implements LocalSurfaceRequest
         if(currentPath instanceof LocalSurfacePath path) {
             ++tickCount;
             if(!framed){currentPath=null;LocalSurfaceNavigation.stop(entity);ci.cancel();return;}
-            var spider=(SpiderEntity)entity;LocalSurfaceNavigation.pending(spider);
+            if(entity instanceof SpiderEntity spider)LocalSurfaceNavigation.pending(spider);else LocalSurfaceNavigation.pending(entity);
             if(path.isFinished()){ci.cancel();return;}
-            if(!LocalSurfaceNavigation.follow(spider,path,speed))currentPath=null;
+            if(!(entity instanceof SpiderEntity spider?LocalSurfaceNavigation.follow(spider,path,speed):LocalSurfaceNavigation.follow(entity,path,speed)))currentPath=null;
             ci.cancel();return;
         }
         if(framed) {
-            ++tickCount;currentPath=null;LocalSurfaceNavigation.pending((SpiderEntity)entity);ci.cancel();
+            ++tickCount;currentPath=null;if(entity instanceof SpiderEntity spider)LocalSurfaceNavigation.pending(spider);else LocalSurfaceNavigation.pending(entity);ci.cancel();
         }
     }
     @Inject(method="stop",at=@At("TAIL"))

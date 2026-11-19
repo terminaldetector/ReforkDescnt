@@ -237,4 +237,68 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
         var row=new LinkedHashMap<String,Object>();row.put("phase",phase);row.put("originalPosition",vector(original));row.put("actual",state(actor));row.putAll(details);
         System.out.println("CLIMBER_FIELD "+new com.google.gson.Gson().toJson(row));
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-ground-local-floor",tickLimit=320)
+    public void nativeGroundWalkerGoalsRetainOrdinaryFloorProgress(TestContext c){groundWalkers(c,new Vec3d(0,1,0));}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-ground-local-wall",tickLimit=320)
+    public void nativeGroundWalkerGoalsUseTheirActualWallFrame(TestContext c){groundWalkers(c,new Vec3d(1,0,0));}
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="native-ground-local-ceiling",tickLimit=320)
+    public void nativeGroundWalkerGoalsUseTheirActualCeilingFrame(TestContext c){groundWalkers(c,new Vec3d(0,-1,0));}
+
+    private static final class GroundPursuit {
+        final net.minecraft.entity.mob.MobEntity actor;final CowEntity target;final Vec3d start;final int spawnAge;
+        final Object navigation,control;final double initialDistance;Vec3d last;int lastAge;double maxStep,maxGap;boolean pathObserved;
+        GroundPursuit(net.minecraft.entity.mob.MobEntity a,CowEntity t){actor=a;target=t;start=last=a.getPos();spawnAge=lastAge=a.age;navigation=a.getNavigation();control=a.getMoveControl();initialDistance=start.distanceTo(t.getPos());}
+    }
+    private static void groundWalkers(TestContext c,Vec3d up) {
+        var centre=c.getAbsolutePos(new BlockPos(6,80,6));var room=new Room(c,centre.add(-8,-8,-8),centre.add(8,8,8));
+        var cases=new ArrayList<GroundPursuit>();boolean[] spawned={false};
+        watch(c,room,310,()->{
+            if(!room.loaded())return false;room.build();
+            if(!spawned[0]) {
+                room.field(centre,up.negate());int i=0;
+                for(var type:new EntityType<?>[]{EntityType.ZOMBIE,EntityType.HUSK}) {
+                    var actor=(net.minecraft.entity.mob.MobEntity)type.create(room.world);actor.setAiDisabled(true);actor.setPersistent();
+                    var sideways=com.terminaldetector.drmd.world.gravity.ActorFrameMath.toWorld(new Vec3d(i++==0?-3:3,0,-2.5),up);
+                    var start=Vec3d.ofCenter(centre).subtract(up.multiply(7.48)).add(sideways);
+                    actor.setPosition(start);actor.setYaw(0);actor.setPitch(0);
+                    c.assertTrue(ActorFrames.trySetUp(actor,up),"admission: loaded in-place native ground frame before registration: "+type);
+                    room.spawn(actor);
+                    var target=EntityType.COW.create(room.world);target.setAiDisabled(true);target.setNoGravity(true);target.setInvulnerable(true);
+                    target.setPosition(start.add(com.terminaldetector.drmd.world.gravity.ActorFrameMath.toWorld(new Vec3d(0,0,5),up)));
+                    c.assertTrue(ActorFrames.trySetUp(target,up),"admission: target's actual body shares this physical surface");room.spawn(target);
+                    EntityGravitySystem.tick(room.world.getServer());
+                    c.assertTrue(actor.getPos().equals(start)&&ActorFrames.up(actor).distanceTo(up)<1e-6&&groundSupport(c,actor,up)<=.08,
+                        "admission: actual current FULL support, normal and clear body before enabling native AI");
+                    actor.setAiDisabled(false);actor.setTarget(target); // one disclosed fixture target; no route/motor/velocity commands
+                    cases.add(new GroundPursuit(actor,target));
+                }
+                spawned[0]=true;return false;
+            }
+            boolean complete=true;
+            for(var r:cases) {
+                var a=r.actor;if(a.age==r.lastAge){complete=false;continue;}
+                int elapsed=a.age-r.spawnAge;
+                double step=a.getPos().distanceTo(r.last)/Math.max(1,a.age-r.lastAge);r.maxStep=Math.max(r.maxStep,step);r.last=a.getPos();r.lastAge=a.age;
+                r.maxGap=Math.max(r.maxGap,groundSupport(c,a,up));
+                r.pathObserved|=a.getNavigation().getCurrentPath()!=null&&!a.getNavigation().isIdle();
+                c.assertTrue(a.getTarget()==r.target&&!a.isAiDisabled()&&a.getNavigation()==r.navigation&&a.getMoveControl()==r.control
+                    &&ActorFrames.up(a).distanceTo(up)<1e-6&&!a.hasNoGravity(),"real native goals/controllers/body frame and saved flags remain authoritative: "+a.getType());
+                c.assertTrue(r.maxStep<=1,"no native ground actor may be teleported or phase more than one metre per ordinary actor tick");
+                if(elapsed<ORDINARY_TICKS){complete=false;continue;}
+                double progress=r.initialDistance-a.getPos().distanceTo(r.target.getPos());
+                var row=new LinkedHashMap<String,Object>();row.put("type",a.getType().toString());row.put("up",vector(up));row.put("ageTicks",elapsed);row.put("progress",progress);row.put("maxStep",r.maxStep);row.put("maxGap",r.maxGap);row.put("nativePath",r.pathObserved);row.put("position",vector(a.getPos()));
+                System.out.println("GROUND_LOCAL_NATIVE "+new com.google.gson.Gson().toJson(row));
+                c.assertTrue(progress>=MINIMUM_PURSUIT&&r.pathObserved,"actual native ground goal must make at least1m supported progress in60 ordinary actor ticks: "+row);
+            }
+            return complete;
+        });
+    }
+    private static double groundSupport(TestContext c,net.minecraft.entity.LivingEntity actor,Vec3d up) {
+        c.assertTrue(c.getWorld().isSpaceEmpty(actor),"actual native ground body stays clear of loaded material");
+        var hit=c.getWorld().raycast(new RaycastContext(actor.getPos().add(up.multiply(.04)),actor.getPos().subtract(up.multiply(1.6)),RaycastContext.ShapeType.COLLIDER,RaycastContext.FluidHandling.NONE,actor));
+        c.assertTrue(hit.getType()==HitResult.Type.BLOCK&&Vec3d.of(hit.getSide().getVector()).dotProduct(up)>=.95,"actual support normal must match local up, not an onGround flag");
+        double gap=actor.getPos().subtract(hit.getPos()).dotProduct(up);
+        c.assertTrue(gap>=-1e-6&&gap<=.08,"native ground goal must preserve actual physical support within the existing .08m skin: "+gap);
+        return gap;
+    }
 }

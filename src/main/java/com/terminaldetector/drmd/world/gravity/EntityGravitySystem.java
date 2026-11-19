@@ -144,8 +144,8 @@ public final class EntityGravitySystem {
 	}
 
 	private static boolean probe(LivingEntity entity, Vec3d up) {
-		if(entity instanceof net.minecraft.entity.mob.SpiderEntity spider&&LocalSurfaceNavigation.framed(spider))
-			return LocalSurfaceNavigation.contact(spider,up);
+        if(entity instanceof net.minecraft.entity.mob.MobEntity actor&&LocalSurfaceNavigation.framed(actor))
+            return actor instanceof net.minecraft.entity.mob.SpiderEntity spider?LocalSurfaceNavigation.contact(spider,up):LocalSurfaceNavigation.contact(actor,up);
 		Vec3d from = entity.getPos().add(up.multiply(0.08));
 		if(!WorldEditSafety.loadedSegment(entity.getWorld(),from,from.add(up.negate().multiply(STICK))))return false;
 		var hit = entity.getWorld().raycast(new RaycastContext(
