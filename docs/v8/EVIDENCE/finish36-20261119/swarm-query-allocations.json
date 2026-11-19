@@ -1,0 +1,54 @@
+{
+  "source": "240a6487",
+  "before": "ac07ba79",
+  "cohorts": [
+    {
+      "actors": 32,
+      "exactComparisons": 12000,
+      "oldBytesPerQuery": 2122.3,
+      "newBytesPerQuery": 1907.1,
+      "oldNsPerQuery": 4329.6,
+      "newNsPerQuery": 7177.3,
+      "checksum": 1517600
+    },
+    {
+      "actors": 128,
+      "exactComparisons": 12000,
+      "oldBytesPerQuery": 3572.9,
+      "newBytesPerQuery": 3379.8,
+      "oldNsPerQuery": 4586.2,
+      "newNsPerQuery": 3379.7,
+      "checksum": 5935480
+    },
+    {
+      "actors": 256,
+      "exactComparisons": 12000,
+      "oldBytesPerQuery": 4188.7,
+      "newBytesPerQuery": 4044.9,
+      "oldNsPerQuery": 6430.1,
+      "newNsPerQuery": 6052.9,
+      "checksum": 12001016
+    },
+    {
+      "actors": 512,
+      "exactComparisons": 12000,
+      "oldBytesPerQuery": 4530.5,
+      "newBytesPerQuery": 4386.7,
+      "oldNsPerQuery": 7173.0,
+      "newNsPerQuery": 7213.1,
+      "checksum": 24148144
+    },
+    {
+      "actors": 1024,
+      "exactComparisons": 12000,
+      "oldBytesPerQuery": 4898.7,
+      "newBytesPerQuery": 4754.9,
+      "oldNsPerQuery": 9036.4,
+      "newNsPerQuery": 8085.1,
+      "checksum": 48020520
+    }
+  ],
+  "scope": "Isolated Java 21 replay of actual spatial index, alternating samples after warmup. Instrumentation measures bytes allocated on the query thread. This is separate from live Minecraft frame/tick measurements.",
+  "archive": "swarm-query-allocations.zip",
+  "archiveSha256": "82c0a6cd45b8f06ee60b17b7b233475415f53354297c9d65a70b77c92c5a63d6"
+}
