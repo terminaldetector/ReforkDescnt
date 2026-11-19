@@ -21,9 +21,11 @@ import org.joml.Vector4f;
 
 /** Actual mouse-entry methods, actual C2S aim, BE metadata, owned pair and through-view. */
 public final class NativePortalGunCheck {
-    private static final BlockPos A=new BlockPos(8,2156,12),B=new BlockPos(22,2156,12),C=new BlockPos(8,2156,28);
     private static final NativeGunPortalApproach TRAVERSAL=Boolean.getBoolean("drmd.gate.gunTraversal")?new NativeGunPortalApproach():null;
-    private static final Vec3d PLAYER=TRAVERSAL==null?new Vec3d(15,2154.88,26):new Vec3d(8.5,2154.88,19);
+    private static final boolean EAST=TRAVERSAL!=null&&Boolean.getBoolean("drmd.gate.gunEast");
+    private static final Direction FACING=EAST?Direction.EAST:Direction.SOUTH;
+    private static final BlockPos A=position(8,2156,12),B=position(22,2156,12),C=position(8,2156,28);
+    private static final Vec3d PLAYER=TRAVERSAL==null?new Vec3d(15,2154.88,26):position(8.5,2154.88,19);
     private static boolean started,preparing,shot,capture,finished;
     private static volatile boolean ready;
     private static int phase,ticks,age,frames;
@@ -41,8 +43,8 @@ public final class NativePortalGunCheck {
     public static void camera(Camera camera) {
         if(!capture)return;
         var access=(CameraAccessor)camera;
-        access.drmd$invokeSetPos(phase==2?new Vec3d(8.5,2156.5,20):new Vec3d(15,2156.5,26));
-        access.drmd$invokeSetRotation(phase==2?0:180,0);
+        access.drmd$invokeSetPos(phase==2?new Vec3d(8.5,2156.5,20):position(15,2156.5,26));
+        access.drmd$invokeSetRotation(phase==2?0:EAST?90:180,0);
     }
     private static void tick(MinecraftClient client) {
         if(finished)return;
@@ -72,8 +74,8 @@ public final class NativePortalGunCheck {
             if(!preparing && client.player.getY()>2100 && loaded(client)) {
                 preparing=true;client.getServer().execute(()->{
                     var world=client.getServer().getOverworld();
-                    for(BlockPos pos:BlockPos.iterate(new BlockPos(3,2152,8),new BlockPos(27,2161,32)))world.setBlockState(pos,Blocks.AIR.getDefaultState(),2);
-                    wall(world,A,Direction.SOUTH);wall(world,B,Direction.SOUTH);wall(world,C,Direction.NORTH);
+                    for(BlockPos pos:BlockPos.iterate(position(3,2152,8),position(27,2161,EAST?31:32)))world.setBlockState(pos,Blocks.AIR.getDefaultState(),2);
+                    wall(world,A,FACING);wall(world,B,FACING);wall(world,C,FACING.getOpposite());
                     world.getGameRules().get(net.minecraft.world.GameRules.DO_DAYLIGHT_CYCLE).set(false,client.getServer());world.setTimeOfDay(6000);
                     ready=true;
                 });
@@ -85,7 +87,7 @@ public final class NativePortalGunCheck {
         if(!shot) {
             // Aim at the backing wall's actual front face, not a point in its empty anchor cell.
             Vec3d point=Vec3d.ofCenter(phase==0?A:phase==1?B:phase==2?C:new BlockPos(15,2156,24));
-            if(phase<3)point=point.add(0,0,phase==2?.5:-.5);
+            if(phase<3)point=point.add(Vec3d.of(FACING.getVector()).multiply(phase==2?.5:-.5));
             aim(client,point);
             if(phase==0 || phase==2)((ProjectorInputAccess)client).drmd$attack();
             else {
@@ -109,8 +111,11 @@ public final class NativePortalGunCheck {
         return true;
     }
     private static void wall(net.minecraft.server.world.ServerWorld world,BlockPos anchor,Direction facing) {
-        for(int x=-2;x<=2;x++)for(int y=-2;y<=2;y++)world.setBlockState(anchor.add(x,y,0).offset(facing.getOpposite()),Blocks.STONE.getDefaultState(),2);
+        for(int x=-2;x<=2;x++)for(int y=-2;y<=2;y++)
+            world.setBlockState(anchor.offset(facing.rotateYClockwise(),x).up(y).offset(facing.getOpposite()),Blocks.STONE.getDefaultState(),2);
     }
+    private static BlockPos position(int x,int y,int z){return EAST?new BlockPos(z,y,31-x):new BlockPos(x,y,z);}
+    private static Vec3d position(double x,double y,double z){return EAST?new Vec3d(z,y,32-x):new Vec3d(x,y,z);}
     private static void aim(MinecraftClient client,Vec3d point) {
         Vec3d d=point.subtract(client.player.getEyePos()).normalize();
         client.player.setYaw(com.terminaldetector.drmd.ai.FlightAttitude.yawOf(d));client.player.setPitch(com.terminaldetector.drmd.ai.FlightAttitude.pitchOf(d));
@@ -144,7 +149,7 @@ public final class NativePortalGunCheck {
             int blue=0,orange=0;
             if(phase==1) {
                 for(int slot=1;slot<=2;slot++) {
-                    var point=Vec3d.ofCenter(slot==1?A:B).add(0,0,.5).subtract(client.gameRenderer.getCamera().getPos());
+                    var point=Vec3d.ofCenter(slot==1?A:B).add(Vec3d.of(FACING.getVector()).multiply(.5)).subtract(client.gameRenderer.getCamera().getPos());
                     var clip=new Vector4f((float)point.x,(float)point.y,(float)point.z,1).mul(OffscreenWorldView.framePosition()).mul(OffscreenWorldView.frameProjection());
                     int cx=(int)((clip.x/clip.w*.5+.5)*image.getWidth()),cy=(int)((.5-clip.y/clip.w*.5)*image.getHeight());
                     int count=0;
@@ -159,7 +164,7 @@ public final class NativePortalGunCheck {
             RESULTS.add("{\"scene\":\""+NAMES[phase]+"\",\"frames\":"+frames+",\"bluePixels\":"+blue+",\"orangePixels\":"+orange+"}");
             System.out.println("PORTAL_GUN_CLIENT "+NAMES[phase]+" PASS blue="+blue+" orange="+orange);
             capture=false;shot=false;age=0;
-            if(TRAVERSAL!=null&&phase==1){phase=2;TRAVERSAL.start(client,A,B);return;}
+            if(TRAVERSAL!=null&&phase==1){phase=2;TRAVERSAL.start(client,A,B,FACING);return;}
             if(++phase==5) {
                 client.getServer().execute(()->{
                     var world=client.getServer().getOverworld();var chest=world.getBlockEntity(new BlockPos(15,2156,24));

@@ -2,6 +2,7 @@ package com.terminaldetector.drmd.gate;
 
 import com.google.gson.GsonBuilder;
 import com.terminaldetector.drmd.DescentPlayerData;
+import com.terminaldetector.drmd.ai.FlightAttitude;
 import com.terminaldetector.drmd.client.DescentClientState;
 import com.terminaldetector.drmd.client.flight.ShipAttitudeClient;
 import com.terminaldetector.drmd.client.portal.OffscreenWorldView;
@@ -13,6 +14,7 @@ import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Quaternionf;
 
@@ -27,8 +29,7 @@ import java.util.UUID;
 
 /** Drives into a pair already placed by the real projector mouse and packet path. */
 final class NativeGunPortalApproach {
-    private static final Vec3d NORTH = new Vec3d(0, 0, -1);
-    private static final Vec3d BANK = new Vec3d(Math.sin(Math.PI / 9), Math.cos(Math.PI / 9), 0);
+    private static final Vec3d UP = new Vec3d(0, 1, 0);
     private final List<ServerSample> server = new ArrayList<>();
     private final List<Map<String, Object>> frames = new ArrayList<>();
     private final boolean flight = Boolean.getBoolean("drmd.gate.gunFlight");
@@ -37,8 +38,10 @@ final class NativeGunPortalApproach {
     private volatile ServerSample latest;
     private volatile ServerSample arrival;
     private volatile int crossings;
-    private BlockPos source;
-    private BlockPos target;
+    private Vec3d sourcePlane;
+    private Vec3d exitPlane;
+    private Vec3d outward;
+    private Vec3d bank;
     private Quaternionf approachRotation;
     private Vec3d outerPosition;
     private float[] outerBasis;
@@ -53,9 +56,11 @@ final class NativeGunPortalApproach {
     private record ServerSample(int tick, List<Double> pos, List<Double> velocity, List<Double> forward,
                                 List<Double> up, int epoch, boolean flight) {}
 
-    void start(MinecraftClient client, BlockPos source, BlockPos target) {
-        this.source = source;
-        this.target = target;
+    void start(MinecraftClient client, BlockPos source, BlockPos target, Direction facing) {
+        outward = Vec3d.of(facing.getVector());
+        sourcePlane = Vec3d.ofCenter(source).add(outward.multiply(.5));
+        exitPlane = Vec3d.ofCenter(target).add(outward.multiply(.5));
+        bank = outward.negate().crossProduct(UP).multiply(Math.sin(Math.PI / 9)).add(UP.multiply(Math.cos(Math.PI / 9)));
         UUID playerId = client.player.getUuid();
         client.getServer().execute(() -> {
             var p = client.getServer().getPlayerManager().getPlayer(playerId);
@@ -63,7 +68,7 @@ final class NativeGunPortalApproach {
             if (flight) {
                 FlightSystem.enableWithoutMount(p, data);
                 data.setFlightVelocity(Vec3d.ZERO);
-                data.setShipAttitude(0, 0, -1, (float) BANK.x, (float) BANK.y, 0);
+                data.setShipAttitude((float) -outward.x, 0, (float) -outward.z, (float) bank.x, (float) bank.y, (float) bank.z);
                 ModNetworking.syncPlayer(p, data);
             }
             actor = playerId;
@@ -96,11 +101,12 @@ final class NativeGunPortalApproach {
         var initial = baseline;
         if (initial == null || DescentClientState.enabled != flight) return false;
         if (!aligned) {
-            client.player.setYaw(180);
+            float yaw = FlightAttitude.yawOf(outward.negate());
+            client.player.setYaw(yaw);
             client.player.setPitch(0);
-            client.player.prevYaw = 180;
+            client.player.prevYaw = yaw;
             client.player.prevPitch = 0;
-            if (flight) ShipAttitudeClient.acceptPortalFrame(client.player, NORTH, BANK);
+            if (flight) ShipAttitudeClient.acceptPortalFrame(client.player, outward.negate(), bank);
             aligned = true;
             return false;
         }
@@ -116,9 +122,10 @@ final class NativeGunPortalApproach {
         if (++synchronizedTicks < 6) return false;
         if (!atExit(vector(reached.pos)) || reached.epoch != initial.epoch + 1 || crossings != 1)
             return finish(client, "The server did not perform one paired exit");
-        if (vector(reached.forward).z < .98)
+        if (vector(reached.forward).dotProduct(outward) < .98)
             return finish(client, "The server did not map the incoming frame onto the exit");
-        if (flight && (vector(reached.velocity).z <= 0 || vector(reached.up).distanceTo(new Vec3d(-BANK.x, BANK.y, 0)) > .04))
+        if (flight && (vector(reached.velocity).dotProduct(outward) <= 0
+                || vector(reached.up).distanceTo(bank.multiply(-1, 1, -1)) > .04))
             return finish(client, "The server did not preserve bank and outgoing flight momentum");
         if (nearFrames == 0 || maximumApproachAngle > 1 || cameraStateChanges != 0)
             return finish(client, "The actual outer world view rotated before arrival");
@@ -142,7 +149,7 @@ final class NativeGunPortalApproach {
             approachRotation = q;
             return;
         }
-        double depth = client.player.getZ() - (source.getZ() + 1);
+        double depth = client.player.getPos().subtract(sourcePlane).dotProduct(outward);
         if (!held || depth < .05 || depth > 2.5
                 || !String.valueOf(PortalViewDiagnostics.lastSummary("portal")).startsWith("drawing")) return;
         var camera = client.gameRenderer.getCamera();
@@ -157,7 +164,9 @@ final class NativeGunPortalApproach {
     }
 
     private boolean atExit(Vec3d position) {
-        return Math.abs(position.x - (target.getX() + .5)) < 1.25 && position.z > target.getZ() + 1;
+        Vec3d relative = position.subtract(exitPlane);
+        double depth = relative.dotProduct(outward);
+        return depth > 0 && relative.subtract(outward.multiply(depth)).horizontalLengthSquared() < 1.25 * 1.25;
     }
 
     private boolean finish(MinecraftClient client, String failure) {
@@ -166,6 +175,7 @@ final class NativeGunPortalApproach {
         result.put("status", failure == null ? "PASS" : "FAIL");
         result.put("reason", failure);
         result.put("flight", flight);
+        result.put("outward", xyz(outward));
         result.put("ordinaryForwardKey", held);
         result.put("nearFrames", nearFrames);
         result.put("cameraStateChanges", cameraStateChanges);
