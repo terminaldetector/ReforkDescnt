@@ -35,7 +35,7 @@ public record HorizonLandmark(int x, int y, int z, int sizeX, int sizeY, int siz
 	public double baseY(double terrainHeight) {
 		return switch(kind) {
 			case ARCH, RING, FLOATING_CONTINENT, SPIRAL_RANGE, INVERTED_ISLAND,
-					STATION, KLONDIKE_ISLAND, END_ISLAND -> y-height()*.5;
+					STATION, ORBITAL_STATION, ASTEROID, KLONDIKE_ISLAND, END_ISLAND -> y-height()*.5;
 			default -> terrainHeight;
 		};
 	}

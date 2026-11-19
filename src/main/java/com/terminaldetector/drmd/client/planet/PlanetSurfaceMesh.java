@@ -214,6 +214,16 @@ public final class PlanetSurfaceMesh {
 				// nothing to attach to.
 				if (d < inner || d > HorizonProjection.MAX_TRUE_RADIUS) continue;
 
+                if(HorizonOrbitalProxy.authored(mark.kind())) {
+                    var boxes=HorizonOrbitalProxy.boxes(mark,camX,camY,camZ);
+                    // Preserve the whole certified silhouette; a truncated station is worse than an omitted one.
+                    if(!boxes.isEmpty()&&boxes.size()*6<=MAX_QUADS-8-quads) {
+                        for(var box:boxes)orbitalBox(box);
+                        drawn++;
+                    }
+                    continue;
+                }
+
 				double base = PlanetMap.height(seed, mark.x(), mark.z());
 				double groundTop = mark.baseY(Math.max(base, PlanetMap.SEA_LEVEL));
 				float alpha = 1f;
@@ -260,6 +270,18 @@ public final class PlanetSurfaceMesh {
 				drawn++;
 			}
 		}
+
+        /** Six faces: authored orbital objects can be viewed from below and in every 6DoF attitude. */
+        private void orbitalBox(HorizonOrbitalProxy.Box b) {
+            double x0=b.minX(),y0=b.minY(),z0=b.minZ(),x1=b.maxX(),y1=b.maxY(),z1=b.maxZ();
+            int top=argb(b.colour(),1,1),side=argb(b.colour(),.72f,1),dark=argb(b.colour(),.55f,1);
+            quad(x0,y1,z0,x1,y1,z0,x1,y1,z1,x0,y1,z1,top);
+            quad(x0,y0,z0,x0,y0,z1,x1,y0,z1,x1,y0,z0,dark);
+            quad(x0,y0,z0,x1,y0,z0,x1,y1,z0,x0,y1,z0,side);
+            quad(x0,y0,z1,x1,y0,z1,x1,y1,z1,x0,y1,z1,side);
+            quad(x0,y0,z0,x0,y0,z1,x0,y1,z1,x0,y1,z0,dark);
+            quad(x1,y0,z0,x1,y0,z1,x1,y1,z1,x1,y1,z0,dark);
+        }
 
 		/** Five faces of an upright box — the bottom is never seen from outside the field. */
 		private void box(double cx, double baseY, double cz, double half, double height,
