@@ -26,6 +26,7 @@ import org.joml.Matrix4f;
  * it is. So it fades in across the climb out of the surface band and is fully on by the orbital.
  */
 public final class PlanetFloorRenderer {
+    private static final GroundHorizonCoverage GROUND_COVERAGE = new GroundHorizonCoverage();
 	/** In the End there is no shared vertical, so the planet is placed at a chosen depth. */
 	private static final double END_VIRTUAL_DROP = 900.0;
 
@@ -58,7 +59,6 @@ public final class PlanetFloorRenderer {
         if (backdrop <= 0) return;
 
         float alpha = overworld ? HorizonProjection.groundOpacity(cam.y) : 1f;
-        if (alpha <= 0) return;
 
 		long seed = PlanetClientState.INSTANCE.seed();
 		// In the column the eye is where it is and the map keeps the world's own heights. In the
@@ -68,6 +68,9 @@ public final class PlanetFloorRenderer {
 
 		double viewBlocks = mc.options.getClampedViewDistance() * 16.0;
 		double clip = viewBlocks * 4.0;
+        float opacity = overworld ? GROUND_COVERAGE.opacity(mc, cam, seed, alpha, clip) : alpha;
+        if (opacity <= 0) return;
+
 		// Blend toward the orbit-band share by the same alpha the map itself faded in by, so the
 		// reach boost has no seam of its own — it grows in exactly as the map becomes visible.
 		double clipUse = HorizonProjection.CLIP_USE
@@ -105,7 +108,7 @@ public final class PlanetFloorRenderer {
 		// The climb's fade as a uniform rather than per-vertex alpha, which is what lets the geometry
 		// stay on the GPU across frames — see HorizonVertexBuffer. Each quad's own alpha is already
 		// baked in there; this multiplies the whole field by how far the map has faded in.
-		RenderSystem.setShaderColor(1f, 1f, 1f, (float) (alpha * backdrop));
+		RenderSystem.setShaderColor(1f, 1f, 1f, (float) (opacity * backdrop));
 
 		if (HorizonVertexBuffer.prepare(mesh)) {
 			HorizonVertexBuffer.draw(mat);

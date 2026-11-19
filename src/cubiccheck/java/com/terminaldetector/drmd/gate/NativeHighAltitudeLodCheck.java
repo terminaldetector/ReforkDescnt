@@ -140,6 +140,7 @@ public final class NativeHighAltitudeLodCheck {
                 DescentConfig.presentationProfile = PresentationProfile.PS1_HYBRID;
             }
             client.setScreen(null);
+            client.getTutorialManager().setStep(net.minecraft.client.tutorial.TutorialStep.NONE);
             client.options.setPerspective(Perspective.FIRST_PERSON);
             player = client.player.getUuid();
         }
@@ -217,26 +218,28 @@ public final class NativeHighAltitudeLodCheck {
                 + " forward=" + forward + " alignment=" + alignment);
             return;
         }
-        float expected = HorizonProjection.groundOpacity(eye.y);
-        if (drawnOpacity >= 0 && (Math.abs(expected - drawnOpacity) > .0002f || quads <= 0)) {
-            finish(client, false, "actual ground opacity differs from the common altitude transition");
+        float altitudeOpacity = HorizonProjection.groundOpacity(eye.y);
+        int chunks = client.worldRenderer.getCompletedChunkCount();
+        boolean needsBridge = eye.y >= 280 && eye.y <= 450 && chunks == 0;
+        float minimum = needsBridge ? Math.max(.38f, altitudeOpacity) : altitudeOpacity;
+        if (drawnOpacity >= 0 && (drawnOpacity + .0002f < minimum || drawnOpacity > 1 || quads <= 0)) {
+            finish(client, false, "terrain opacity dropped below the altitude or missing-mesh minimum");
             return;
         }
         if (drawnOpacity > .025f && drawnOpacity < .975f) fadedFrames++;
-        int chunks = client.worldRenderer.getCompletedChunkCount();
         if (eye.y < 260 && chunks > 0) fullMeshFrames++;
-        if (expected > .08f && drawnOpacity < 0) {
+        if (minimum > .08f && drawnOpacity < 0) {
             maximumMissingHorizonFrames = Math.max(maximumMissingHorizonFrames, ++missingHorizonFrames);
         } else missingHorizonFrames = 0;
         var row = Map.<String, Object>of("frame", frames, "eye", xyz(eye), "speed", speed,
             "rollSpeed", rollSpeed, "cameraDistance", cameraError, "alignment", alignment,
-            "actualGroundAlpha", drawnOpacity, "wantedGroundAlpha", expected, "lodQuads", quads,
+            "actualGroundAlpha", drawnOpacity, "minimumGroundAlpha", minimum, "lodQuads", quads,
             "residentCompletedMeshes", chunks);
         if (frames - lastSampleFrame >= 5) {
             FRAMES.add(row);
             lastSampleFrame = frames;
         }
-        if (mark >= MARKS.length || eye.y > MARKS[mark] + 2 || (mark == MARKS.length - 1 && chunks <= 0)) return;
+        if (mark >= MARKS.length || eye.y > MARKS[mark] + 2 || (mark == MARKS.length - 1 && (chunks <= 0 || fullMeshFrames < 3))) return;
         try {
             var folder = client.runDirectory.toPath().resolve("high-altitude-lod-frames");
             Files.createDirectories(folder);
