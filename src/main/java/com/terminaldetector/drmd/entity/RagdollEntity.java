@@ -247,7 +247,9 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 	private boolean restInterestClear(){
 		for(var player:getWorld().getPlayers())if(!player.isRemoved()&&player.squaredDistanceTo(this)<32*32)return false;
 		for(var other:getWorld().getOtherEntities(this,getBoundingBox().expand(8),e->e instanceof PhysicsTarget||e instanceof net.minecraft.entity.LivingEntity||e instanceof net.minecraft.entity.ItemEntity)){
-			if(other instanceof RagdollEntity body&&debrisGroup!=null&&debrisGroup.equals(body.debrisGroup)&&body.readyForDebrisRest())continue;
+			if(other instanceof RagdollEntity body&&debrisGroup!=null&&debrisGroup.equals(body.debrisGroup)){
+                if(body.readyForDebrisRest()||separateDebrisInteraction(body))continue;
+            }
 			// Ordinary settled drops keep Vanilla's vertical bounce and their own item ticks.
 			// They do not apply impulses to this D6 solver; a horizontal interaction remains a veto.
 			if(other instanceof net.minecraft.entity.ItemEntity item&&item.isOnGround()&&item.getVelocity().horizontalLengthSquared()<1e-8)continue;
@@ -255,6 +257,18 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 		}
 		return true;
 	}
+    /** Same-cause metadata is ownership, not a physical joint between separate wrecks.
+     * A broad8m lookup still admits every source; exclude only two known, disjoint actual hull
+     * predictors. Pending impulses/portals already wake this whole group synchronously.
+     */
+    private boolean separateDebrisInteraction(RagdollEntity other){
+        if(!other.rigVersionSupported()||other.isRemoved()||!other.jointRestValid())return false;
+        var ours=com.terminaldetector.drmd.physics.ragdoll.RagdollRestSeparation.sweptParts(simulation,gravityVector());
+        var theirs=com.terminaldetector.drmd.physics.ragdoll.RagdollRestSeparation.sweptParts(other.simulation,other.gravityVector());
+        if(ours.isEmpty()||theirs.isEmpty())return false;
+        for(var b:theirs.orElseThrow())if(!other.insideLoadedWorld(new Box(b.minX(),b.minY(),b.minZ(),b.maxX(),b.maxY(),b.maxZ())))return false;
+        return com.terminaldetector.drmd.physics.ragdoll.RagdollRestSeparation.separated(ours.orElseThrow(),theirs.orElseThrow());
+    }
 	/** A common, known static horizontal support plane for the whole contact wrench, not one independent certificate per limb. */
 	private boolean staticRestEnvironment(Vec3 gravity,List<RagdollRestCertificate.Footprint> supports,double plane){
 		restSupportFault="ok";restSupportPart=-1;restSupportBottom=Double.NaN;restSupportPlane=plane;lastContactEndGap=0;

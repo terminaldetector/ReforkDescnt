@@ -71,4 +71,24 @@ public final class RagdollLifecycleGameTests implements FabricGameTest {
             System.out.println("RAGDOLL128_ACTUAL deaths=128 parts="+bodies.stream().mapToInt(b->b.simulation().parts().size()).sum()+" fullTicks="+bodies.stream().mapToLong(RagdollEntity::simulatedPhysicsTicks).sum()+" sleepTicks="+bodies.stream().mapToLong(RagdollEntity::skippedPhysicsTicks).sum()+" worldTicks="+(f.world.getTime()-died[0])+" drops="+loot.size());f.complete();
         });
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ragdoll-separate-causal-interaction",tickLimit=140)
+    public void separateFallingSameCauseHullDoesNotRequireMutualSleepAndActualNeighbourImpactStillWakes(TestContext c){
+        var f=new RagdollLifecycleFixture(c,12,0,512);var group=UUID.randomUUID();var resting=f.supportedJet(0,group);var falling=f.supportedJet(5,group);
+        // Initial unregistered authored birth state only: ordinary gravity must subsequently lower it.
+        var birth=new net.minecraft.nbt.NbtCompound();falling.writeNbt(birth);var parts=birth.getCompound("ragdoll").getList("parts",net.minecraft.nbt.NbtElement.COMPOUND_TYPE);
+        for(int i=0;i<parts.size();i++){var p=parts.getCompound(i);p.putDouble("py",p.getDouble("py")+2);}falling.readNbt(birth);
+        int[] stage={0},age={0};long[] time={0},steps={0};double initialY=falling.getY();
+        f.drive(120,()->{
+            if(stage[0]==0){if(!f.chunks.entityTicking(resting.getBlockPos(),falling.getBlockPos()))return;c.assertTrue(f.world.spawnEntity(resting)&&f.world.spawnEntity(falling),"both actual same-cause articulated bodies registered");age[0]=resting.age;time[0]=f.world.getTime();stage[0]=1;return;}
+            if(stage[0]==1){if(!resting.isPhysicsSleeping()||resting.skippedPhysicsTicks()==0)return;f.assertTicks(resting,age[0],time[0],21);
+                c.assertTrue(!falling.readyForDebrisRest()&&falling.getY()<initialY-.25&&falling.simulatedPhysicsTicks()>=20,"real nearby falling neighbour remains independently uncertified and uses ordinary solver");
+                c.assertTrue(resting.getBoundingBox().expand(8).intersects(falling.getBoundingBox()),"neighbour really lies inside unchanged8m broad lookup");
+                var before=resting.simulation().parts().stream().map(p->p.body().snapshot()).toList();falling.applyPhysicsImpulse(falling.getPos(),new Vec3d(.1,0,0));
+                c.assertTrue(!resting.isPhysicsSleeping(),"actual neighbour impulse synchronously wakes causal group");
+                for(int i=0;i<before.size();i++)c.assertTrue(resting.simulation().parts().get(i).body().matches(before.get(i)),"wake cannot duplicate impulse/mass or rewrite sleeping part state");
+                steps[0]=resting.simulatedPhysicsTicks();age[0]=resting.age;time[0]=f.world.getTime();stage[0]=2;return;
+            }
+            if(resting.age==age[0])return;f.assertTicks(resting,age[0],time[0],1);c.assertTrue(resting.simulatedPhysicsTicks()>steps[0],"woken articulated rig resumes actual solver");f.complete();
+        });
+    }
 }
