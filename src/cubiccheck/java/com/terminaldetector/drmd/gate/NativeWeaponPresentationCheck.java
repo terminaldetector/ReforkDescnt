@@ -212,11 +212,12 @@ public final class NativeWeaponPresentationCheck {
     public static void rendered(){
         if(!ENABLED||done)return;var c=MinecraftClient.getInstance();if(c.player==null||c.world==null||view==null||!background||c.getOverlay()!=null)return;
         try{
-            int light = c.world.getLightLevel(LightType.BLOCK, BlockPos.ofFloored(c.player.getEyePos()));
-            if (light < 11) return; // Ordinary block light must actually reach the physical viewmodel fixture.
             if(frameFailure!=null)throw new IllegalStateException(frameFailure);boolean empty=phase==0||phase==6;boolean ordinary=phase>=1&&phase<=3,flight=phase==8||phase==10||phase==12;
             boolean inventory=phase==4&&c.currentScreen instanceof InventoryScreen;boolean equipment=(phase==7||phase==9||phase==11)&&c.currentScreen instanceof DroneInventoryScreen&&pending==null&&clicks.isEmpty()&&settled>0;
             if(!empty&&!ordinary&&!flight&&!inventory&&!equipment)return;if(empty){if(c.currentScreen!=null||!c.player.getMainHandStack().isEmpty()||!view.hand.equals("minecraft:air"))return;if(phase==0&&(DescentClientState.enabled||view.flight))return;if(phase==6&&(!DescentClientState.enabled||!view.flight||rolling||Math.abs(ShipAttitudeClient.get().bankDegrees())<35||age-settled<8))return;}
+            int light=c.world.getLightLevel(LightType.BLOCK,BlockPos.ofFloored(c.player.getEyePos()));
+            // Compare world-space weapon frames under observed lighting. Menu previews are full-bright.
+            if((ordinary||flight||phase==6)&&light<11)return;
             if(ordinary&&(!view.hand.equals(expected(phase-1))||!hand.contains(expected(phase-1))||handPixels==null||age-settled<8||c.currentScreen!=null))return;
             int current=flight?(phase-8)/2:-1;if(flight&&(!view.banks.get(0).equals(expected(current))||!cockpit.contains(expected(current))||age-settled<8||c.currentScreen!=null))return;
             if(equipment&&(preview!=previewBank||!Objects.equals(previewItem,view.banks.get(previewBank))))return;
@@ -243,6 +244,17 @@ public final class NativeWeaponPresentationCheck {
     private static void finish(MinecraftClient c,String status,String failure){
         if(done)return;done=true;if(pressed!=null)pressed.setPressed(false);if(DescentKeybinds.rollRight!=null)DescentKeybinds.rollRight.setPressed(false);
         try{var result=new LinkedHashMap<String,Object>();result.put("status",status);result.put("failure",failure);result.put("phase",phase);result.put("profile",profile);result.put("rows",ROWS);result.put("inputs",INPUTS);result.put("serverView",view);result.put("sourceBinding",System.getProperty("drmd.gate.weaponPresentationSource","UNBOUND"));result.put("glRenderer",GL11.glGetString(GL11.GL_RENDERER));result.put("scope","3 representative registered items; ordinary+empty-hand6DoF primary, real hotbar/E/N/H/roll and slot packets, Native+PS1 atFOV80; no new firing/per-ID/FOV/mounted matrix claim");
+            if(failure!=null&&c.currentScreen instanceof DroneInventoryScreen) {
+                var menu=(HandledScreen<?>)c.currentScreen;
+                var evidence=new LinkedHashMap<String,Object>();
+                evidence.put("expectedBank",previewBank);evidence.put("observedBank",preview);evidence.put("observedItem",previewItem);
+                evidence.put("clientBanks",menu.getScreenHandler().slots.subList(0,5).stream().map(slot->id(slot.getStack())).toList());
+                evidence.put("clientCursor",id(menu.getScreenHandler().getCursorStack()));evidence.put("queuedClicks",clicks.size());
+                evidence.put("pendingClick",pending);evidence.put("settled",settled);evidence.put("acceptedBankFrames",frames);
+                evidence.put("rawMouse",List.of(c.mouse.getX(),c.mouse.getY()));result.put("equipmentFailure",evidence);
+                try(var image=capture(c)){image.writeTo(c.runDirectory.toPath().resolve("weapon-presentation-menu-failure.png"));}
+                catch(Exception captureFailure){evidence.put("captureFailure",captureFailure.toString());}
+            }
             Files.writeString(c.runDirectory.toPath().resolve("weapon-presentation-result.json"),new GsonBuilder().setPrettyPrinting().create().toJson(result)+"\n");
         }catch(Exception e){e.printStackTrace();}finally{if(beforeHand!=null)beforeHand.close();if(flightBackground!=null)flightBackground.close();}System.out.println("WEAPON_PRESENTATION_OUTCOME "+status+" "+failure);c.scheduleStop();
     }
