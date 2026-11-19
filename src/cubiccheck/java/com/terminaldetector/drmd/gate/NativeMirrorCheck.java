@@ -21,6 +21,8 @@ public final class NativeMirrorCheck {
     private static int ticks,age,stage;
     private static int[] on,backingReference;
     private static int baselineWidth,baselineHeight,forcedTargetFailures;
+    private static float[] baselineProjection,baselineView;
+    private static Vec3d baselineCamera;
     private static final boolean FALLBACK_CHECK=Boolean.getBoolean("drmd.gate.mirrorFallback");
     private static final List<Map<String,Object>> FALLBACK_RESULTS=new ArrayList<>();
     private static final String[] NAMES={"joined-on","joined-off","hole-on","hole-off","angled-on","angled-off",
@@ -28,7 +30,7 @@ public final class NativeMirrorCheck {
     private static final List<String> RESULTS=new ArrayList<>();
     /** Test-only allocator interception happens before any GL mutation; every ordinary call forwards once. */
     public static Object allocateTarget(java.util.function.Supplier<?> allocate) {
-        if(!FALLBACK_CHECK||stage!=16)return allocate.get();
+        if(!FALLBACK_CHECK||stage!=16||backingReference==null)return allocate.get();
         forcedTargetFailures++;
         throw new IllegalStateException("controlled mirror allocator refusal before GL");
     }
@@ -79,7 +81,7 @@ public final class NativeMirrorCheck {
     private static void prepare(MinecraftClient client) {ready=false;age=0;pendingPrepare=true;}
     private static void prepareReady(MinecraftClient client) {
         ready=false;age=0;DescentConfig.planetFloor=false;DescentConfig.levelSky=false;
-        DescentConfig.mirrorReflection=(stage%2==0 && stage!=10)||stage==17;
+        DescentConfig.mirrorReflection=stage!=16&&((stage%2==0 && stage!=10)||stage==17);
         if(stage>=16)MirrorFramebuffer.release();
         DescentConfig.portalSeeThrough=stage==10 || stage==14;
         if(stage%2==1){ready=true;return;}
@@ -149,10 +151,6 @@ public final class NativeMirrorCheck {
                 +" yaw="+client.gameRenderer.getCamera().getYaw()+" pitch="+client.gameRenderer.getCamera().getPitch()
                 +" diagnostic="+PortalViewDiagnostics.lastSummary(stage==10?"portal":"mirror"));
             int w=image.getWidth(),h=image.getHeight();
-            if(stage==1&&FALLBACK_CHECK){
-                baselineWidth=w;baselineHeight=h;backingReference=new int[w*h];
-                for(int y=0;y<h;y++)for(int x=0;x<w;x++)backingReference[y*w+x]=image.getColor(x,y);
-            }
             if(stage%2==0) {
                 on=new int[w*h];for(int y=0;y<h;y++)for(int x=0;x<w;x++)on[y*w+x]=image.getColor(x,y);
             } else {
@@ -200,6 +198,25 @@ public final class NativeMirrorCheck {
     }
 
     private static void fallbackFrame(MinecraftClient client) {
+        // Banked scenes naturally retire creative flying and its vanilla FOV multiplier. The
+        // historical joined-off image remains evidence, but is not this later lens's baseline.
+        if(stage==16&&backingReference==null){
+            try(var image=ScreenshotRecorder.takeScreenshot(client.getFramebuffer())){
+                var folder=client.runDirectory.toPath().resolve("native-mirror-frames");Files.createDirectories(folder);
+                image.writeTo(folder.resolve("target-off-same-context.png"));
+                baselineWidth=image.getWidth();baselineHeight=image.getHeight();backingReference=new int[baselineWidth*baselineHeight];
+                for(int y=0;y<baselineHeight;y++)for(int x=0;x<baselineWidth;x++)backingReference[y*baselineWidth+x]=image.getColor(x,y);
+                baselineProjection=OffscreenWorldView.frameProjection().get(new float[16]);baselineView=OffscreenWorldView.framePosition().get(new float[16]);baselineCamera=client.gameRenderer.getCamera().getPos();
+                int actualFbo=org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL30.GL_DRAW_FRAMEBUFFER_BINDING),error=org.lwjgl.opengl.GL11.glGetError();
+                if(actualFbo!=client.getFramebuffer().fbo||OffscreenWorldView.busy()||error!=0||forcedTargetFailures!=0)throw new IllegalStateException("fresh OFF backing baseline invalid before allocator refusal");
+                FALLBACK_RESULTS.add(Map.of("scene","target-off-same-context","historicalOff","joined-off.png","projection",baselineProjection,"view",baselineView,
+                    "camera",List.of(baselineCamera.x,baselineCamera.y,baselineCamera.z),"creativeFlying",client.player.getAbilities().flying,"actualOuterFbo",actualFbo,"glError",error));
+                System.out.println("NATIVE_MIRROR_FALLBACK_BASELINE "+new com.google.gson.Gson().toJson(FALLBACK_RESULTS.get(FALLBACK_RESULTS.size()-1)));
+                // Actual next frames take the failing normal allocation path. No camera/FOV/ability
+                // writes, scene geometry rebuild or post-failure sampling policy changes.
+                DescentConfig.mirrorReflection=true;MirrorFramebuffer.release();age=0;return;
+            }catch(java.io.IOException failure){ready=false;throw new IllegalStateException(failure);}
+        }
         String diagnostic=Objects.toString(PortalViewDiagnostics.lastSummary("mirror"),"");
         if(stage==16){
             if(forcedTargetFailures==0||!MirrorFramebuffer.unavailableReason().contains("controlled mirror allocator refusal"))return;
@@ -209,7 +226,10 @@ public final class NativeMirrorCheck {
             var folder=client.runDirectory.toPath().resolve("native-mirror-frames");Files.createDirectories(folder);
             image.writeTo(folder.resolve(NAMES[stage]+".png"));
             if(backingReference==null||image.getWidth()!=baselineWidth||image.getHeight()!=baselineHeight)throw new IllegalStateException("same-pose backing baseline unavailable");
-            var camera=client.gameRenderer.getCamera().getPos();int x0=baselineWidth,y0=baselineHeight,x1=-1,y1=-1;
+            var camera=client.gameRenderer.getCamera().getPos();
+            if(!camera.equals(baselineCamera)||!Arrays.equals(baselineProjection,OffscreenWorldView.frameProjection().get(new float[16]))||!Arrays.equals(baselineView,OffscreenWorldView.framePosition().get(new float[16])))
+                throw new IllegalStateException("fallback current camera/projection/view differs from fresh actual OFF baseline");
+            int x0=baselineWidth,y0=baselineHeight,x1=-1,y1=-1;
             for(var p:List.of(new Vec3d(12,2155,25.002),new Vec3d(14,2155,25.002),new Vec3d(14,2157,25.002),new Vec3d(12,2157,25.002))){
                 var r=p.subtract(camera);var v=new org.joml.Vector4f((float)r.x,(float)r.y,(float)r.z,1).mul(OffscreenWorldView.framePosition()).mul(OffscreenWorldView.frameProjection());
                 if(v.w<=0)throw new IllegalStateException("backing projection behind camera");
@@ -231,12 +251,12 @@ public final class NativeMirrorCheck {
             int actualFbo=org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL30.GL_DRAW_FRAMEBUFFER_BINDING),error=org.lwjgl.opengl.GL11.glGetError();
             if(actualFbo!=client.getFramebuffer().fbo||viewport[0]!=0||viewport[1]!=0||viewport[2]!=baselineWidth||viewport[3]!=baselineHeight||OffscreenWorldView.busy()||error!=0)
                 throw new IllegalStateException("failed target damaged outer FBO/viewport/depth or GL: "+actualFbo+" error="+error);
-            FALLBACK_RESULTS.add(Map.of("scene",NAMES[stage],"samePoseOffBaseline","joined-off.png","aperturePixels",domain,"changedAgainstOff",changed,
+            FALLBACK_RESULTS.add(Map.of("scene",NAMES[stage],"samePoseOffBaseline","target-off-same-context.png","aperturePixels",domain,"changedAgainstOff",changed,
                 "allocatorRefusals",forcedTargetFailures,"unavailableReason",MirrorFramebuffer.unavailableReason(),"actualOuterFbo",actualFbo,"glError",error));
             System.out.println("NATIVE_MIRROR_FALLBACK "+FALLBACK_RESULTS.get(FALLBACK_RESULTS.size()-1));
             if(++stage==18){
                 Files.writeString(client.runDirectory.toPath().resolve("native-mirror-ok.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(
-                    Map.of("frames",18,"originalScenes",RESULTS,"allocatorFallback",FALLBACK_RESULTS)));
+                    Map.of("frames",19,"originalScenes",RESULTS,"allocatorFallback",FALLBACK_RESULTS)));
                 started=false;client.scheduleStop();return;
             }
             prepare(client);
