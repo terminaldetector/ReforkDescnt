@@ -1145,11 +1145,11 @@ tasks:
   owner: QA
   gate: G6
   depends_on_stages: *id017
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json]
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/structural-two-hour-soak.json, EVIDENCE/finish36-20261119/structural-two-hour-soak.zip, EVIDENCE/finish36-20261119/settlement-cold-destruction.json]
+  notes: "Серверный прогон длился 121 минуту и 16 секунд и завершил 42 группы по 128 рэгдоллов. Отдельный процесс загрузил тот же мир с 21 сохранённой конструкцией, двумя свежими телами и 48 предметами. Повторное сохранение сохранило конструкции и очистило истёкшие тела. Отдельная проверка городского полигона сверила разрушения и дроп в сохранённом мире."
 - id: S16-T05
   stage: S16
   stage_title: Full performance and regression testing

@@ -1,0 +1,89 @@
+{
+  "cold": {
+    "actualElapsedPrepareNanos": 7276550989189,
+    "restoredCorpses": 2,
+    "restoredDrops": 48,
+    "restoredRoofs": 21,
+    "run": "4ca1d3ea-adab-44d4-a9c1-248c1afda2fa",
+    "source": "a3b0808d9302c499ce8fa76dfd88b1204db0d249",
+    "status": "TWO_HOUR_SOAK_AND_COLD_PASS",
+    "worldTicks": 1568
+  },
+  "paths": {
+    "FINAL.json": {
+      "bytes": 627,
+      "sha256": "eeda6b55677c2af2372b55a7e6cdaa0f9d1f5f350cb1f0af94211019d5baefdd"
+    },
+    "cold-child.json": {
+      "bytes": 20885,
+      "sha256": "110c6daa7273c23699115f006ffd0e0013e15fd818fa00c73e2c5c15b54e11fc"
+    },
+    "cold-inputs.json": {
+      "bytes": 57978,
+      "sha256": "f4872c0244abcae58f7b4d42336719574f026b096ee442f22f02393b4eed3d5a"
+    },
+    "cold-world-ownership.json": {
+      "bytes": 7482,
+      "sha256": "0e224b28a8554dbc0ee671e0da0620f3a97f6a09b25e3885e6c1033cc473aa12"
+    },
+    "cold.log": {
+      "bytes": 16275,
+      "sha256": "71d2c38e6fdad34bdc9cd7799b72d6f0fcb55afd3e3ffd1797f458f2dbfb9f77"
+    },
+    "launch-inputs.json": {
+      "bytes": 637146,
+      "sha256": "024857566a242c912e14d7f5de7efb5eb0cd59f53900b80eb7571f460f848c5b"
+    },
+    "prepare-child-kernel-stat.txt": {
+      "bytes": 178,
+      "sha256": "bd003e93ebd1c0dd0cefdc880d250f8e382f9fcdb7e9528becf30563319f0086"
+    },
+    "prepare-closed.json": {
+      "bytes": 1133,
+      "sha256": "4c01634819575f5abb3facf3e934bd204d6b4a9e856016312d84f53df6e349b9"
+    },
+    "prepare-gametest-results.xml": {
+      "bytes": 321,
+      "sha256": "d7feaad6212434502b940903e61c4df0be539a7774823dbd2a193409c2340dbf"
+    },
+    "prepare-world-ownership.json": {
+      "bytes": 7156,
+      "sha256": "74be90b159945a628631bd2d66ad63f4d46b39271f682ae053fb66e0e169b784"
+    },
+    "prepare.log": {
+      "bytes": 1226359,
+      "sha256": "f1c4d06b1e42d24e2203fa76b5bf10e33d054680e8d9b7f0094b8c9f08f597f8"
+    },
+    "runtime/lifecycle-proof/cold-result.json": {
+      "bytes": 289,
+      "sha256": "550a54cef1108619c6d08cdc97160a319521b600533c4cee0a814b5c07b26c34"
+    },
+    "runtime/lifecycle-proof/prepare-result.json": {
+      "bytes": 434,
+      "sha256": "f3b3441265a9f5d5c1ba581be4c3e34c207a8696800e4893e3afd662eb7137de"
+    },
+    "runtime/reports/gametest-results.xml": {
+      "bytes": 317,
+      "sha256": "369ffb58278cd96bd1e8c9c8bf28769765b76a817201cfc8b72dbd9d54c9f30f"
+    }
+  },
+  "postColdCorpses": 0,
+  "postColdRoofsPreserved": true,
+  "preColdRoofIdentityCount": 21,
+  "prepare": {
+    "coldAcceptance": "OPEN until separate process verifies saved content",
+    "elapsedNanos": 7276550989189,
+    "fps": "null: TestServer has no client",
+    "peakLoadedPermanentRoofs": 1,
+    "peakRagdolls": 128,
+    "peakRollingAverageMSPT": 301.393754,
+    "run": "4ca1d3ea-adab-44d4-a9c1-248c1afda2fa",
+    "source": "a3b0808d9302c499ce8fa76dfd88b1204db0d249",
+    "status": "TWO_HOUR_SOAK_PREPARE_PASS",
+    "waves": 42,
+    "worldTicks": 50578
+  },
+  "productionConfirmationSource": "a3b0808d9302c499ce8fa76dfd88b1204db0d249",
+  "runtime": "Ordinary Fabric TestServer. Compact independent TNT/chest structural fixtures and native 128-entity death cohorts. No client or performance threshold claim.",
+  "sameWorld": true
+}
