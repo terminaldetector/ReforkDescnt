@@ -62,14 +62,17 @@ public final class DroneWreckKindGameTests implements FabricGameTest {
         var f=new RagdollLifecycleFixture(c,3,0,0);var profile=PhysicsProfileState.get(f.world);var old=profile.profile();
         profile.set(replacement?PhysicsProfile.EXPANDED:PhysicsProfile.STANDARD);f.cleanup.add(()->profile.set(old));
         var drone=ModEntities.DRONE.create(f.world);c.assertTrue(drone!=null,"actual original drone factory");
-        drone.setPosition(Vec3d.ofBottomCenter(f.floor.add(0,3,0)));drone.setAiDisabled(true);drone.setInvisible(authoredInvisible);f.own(drone);
+        drone.setPosition(Vec3d.ofBottomCenter(f.floor.add(0,3,0)));drone.setAiDisabled(true);
+        if(authoredInvisible)drone.addStatusEffect(new net.minecraft.entity.effect.StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.INVISIBILITY,200,0,false,false));
+        f.own(drone);
         var before=f.world.getEntitiesByClass(RagdollEntity.class,f.area,e->true).stream().map(net.minecraft.entity.Entity::getUuid).collect(java.util.stream.Collectors.toSet());
         int[] phase={0},born={0};long[] time={0};NbtCompound[] saved={null};DroneEntity[] restored={null};
         f.drive(80,()->{
             if(phase[0]==0){if(!f.chunks.entityTicking(drone.getBlockPos()))return;c.assertTrue(f.world.spawnEntity(drone),"actual original native actor registered");phase[0]=1;return;}
             if(phase[0]==1){
                 if(drone.age<2)return;
-                if(authoredInvisible)drone.setInvisible(true); // disclosed authored flag at the actual death boundary
+                if(authoredInvisible)c.assertTrue(drone.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.INVISIBILITY)&&drone.isInvisible(),
+                    "real maintained native invisibility effect is active before death");
                 c.assertTrue(drone.damage(f.world.getDamageSources().genericKill(),Float.MAX_VALUE)&&!drone.isAlive(),"actual native lethal-damage death event");
                 var wrecks=f.world.getEntitiesByClass(RagdollEntity.class,f.area,e->!before.contains(e.getUuid()));wrecks.forEach(f::own);
                 c.assertTrue(wrecks.size()==(replacement?1:0),"real allocator outcome is explicit, not inferred from death: "+wrecks.size());
@@ -90,7 +93,8 @@ public final class DroneWreckKindGameTests implements FabricGameTest {
                 born[0]=restored[0].age;time[0]=f.world.getTime();phase[0]=3;return;
             }
             var copy=restored[0];if(copy.age-born[0]<4)return;f.assertTicks(copy,born[0],time[0],4);
-            c.assertTrue(copy.isInvisible()==(replacement||authoredInvisible),"ordinary native death ticks preserve the correct visible or authored hidden fallback");
+            if(authoredInvisible)c.assertTrue(copy.hasStatusEffect(net.minecraft.entity.effect.StatusEffects.INVISIBILITY),"actual maintained native invisibility effect survives saved-entity reload");
+            c.assertTrue(copy.isInvisible()==(replacement||authoredInvisible),"ordinary native death ticks preserve the correct visible or effect-authored hidden fallback");
             var wrecks=f.world.getEntitiesByClass(RagdollEntity.class,f.area,e->!before.contains(e.getUuid()));
             c.assertTrue(wrecks.size()==(replacement?1:0),"reload/profile changes cannot retry a completed death choice or duplicate the physical body");
             System.out.println("DRONE_DEATH_CHOICE physical="+replacement+" authoredInvisible="+authoredInvisible+" legacy="+legacy+" nativeInvisible="+copy.isInvisible()+" actualWrecks="+wrecks.size()+" ordinaryTicks="+(copy.age-born[0]));f.complete();
