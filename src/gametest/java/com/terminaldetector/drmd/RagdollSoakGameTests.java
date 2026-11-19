@@ -18,7 +18,8 @@ import java.util.*;
 public final class RagdollSoakGameTests implements FabricGameTest {
     static final long TWO_HOURS_NANOS=Duration.ofHours(2).toNanos(),WAVE_NANOS=Duration.ofMinutes(1).toNanos();
     static final int MIN_WAVES=12,MAX_WAVES=128;
-    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ragdoll-city-dungeon-soak",tickLimit=4_000_000)
+    static final int TEST_TICK_LIMIT=4_000_000;
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="ragdoll-city-dungeon-soak",tickLimit=TEST_TICK_LIMIT)
     public void actualCityDungeonExplosionsAndLifecycleContinueForTwoElapsedHours(TestContext c){
         String mode=System.getProperty("drmd.lifecycle.mode","");
         if(mode.equals("cold")){RagdollColdVerification.start(c);return;}
@@ -27,7 +28,9 @@ public final class RagdollSoakGameTests implements FabricGameTest {
         var state=RagdollSoakState.get(c.getWorld());state.begin(source,mode);long started=System.nanoTime(),worldStarted=c.getWorld().getTime();
         int[] waves={0},peakRoofs={0},peakRagdolls={0};double[] peakAverageMSPT={0};Wave[] active={null};boolean[] closed={false};long[] heartbeat={0};
         write("actual-java.json",Map.of("pid",ProcessHandle.current().pid(),"executable",ProcessHandle.current().info().command().orElse(""),"jvmArgs",ManagementFactory.getRuntimeMXBean().getInputArguments(),"classPath",System.getProperty("java.class.path"),"source",source,"mode",mode,"utc",Instant.now().toString(),"system",System.getProperties().entrySet().stream().filter(e->e.getKey().toString().startsWith("fabric.")).collect(java.util.stream.Collectors.toMap(e->e.getKey().toString(),e->e.getValue().toString()))));
-        c.runAtEveryTick(()->{if(closed[0])return;try{
+        // TestContext.runAtEveryTick expands the full tick budget into individual map entries.
+        // A single native timed task avoids scanning millions of future callbacks per world tick.
+        c.createTimedTaskRunner().expectMinDurationOrRun(TEST_TICK_LIMIT,()->{if(closed[0])return;try{
             long elapsed=System.nanoTime()-started;c.getWorld().resetIdleTimeout();
             if(active[0]==null){c.assertTrue(waves[0]<MAX_WAVES,"bounded128zone source cap, no automatic raise");active[0]=new Wave(c,waves[0]);}
             boolean cleaned=active[0].sample();

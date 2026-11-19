@@ -22,7 +22,7 @@ final class RagdollColdVerification {
         var rows=data.getList("Rows",NbtElement.COMPOUND_TYPE);for(int i=0;i<rows.size();i++){var row=rows.getCompound(i);if(row.containsUuid("Roof"))permanent.put(row.getUuid("Roof"),row.getList("RoofMaterial",NbtElement.COMPOUND_TYPE));for(var value:row.getList("ColdBodies",NbtElement.COMPOUND_TYPE)){var body=(NbtCompound)value;expectedBodies.put(body.getUuid("Id"),body);}}
         int[] staticNext={0},next={0},admission={0},bodyAge={0},restoredCorpses={0},restoredRoofs={0},restoredItems={0};long[] pauseUntil={0},started={w.getTime()};
         AiFixtureChunks[] current={null};Entity[] entity={null};boolean[] done={false};var corpses=new ArrayList<RagdollEntity>();var held=new ArrayList<AiFixtureChunks>();var corpseSavedLife=new HashMap<UUID,Integer>();
-        c.runAtEveryTick(()->{if(done[0])return;try{
+        c.createTimedTaskRunner().expectMinDurationOrRun(RagdollSoakGameTests.TEST_TICK_LIMIT,()->{if(done[0])return;try{
             w.resetIdleTimeout();c.assertTrue(RagdollColdProbe.error==null,"bounded passive load recorder: "+RagdollColdProbe.error);
             c.assertTrue(w.getTime()-started[0]<12000,"finite ordinary cold-load/cleanup deadline");
             if(w.getTime()<pauseUntil[0])return;
