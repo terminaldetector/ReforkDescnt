@@ -174,9 +174,10 @@ public final class NativeSwarmBaselineCheck {
         int ticking=0,lookups=0,advanced=0;boolean targetReady=cow!=null&&cow.isAlive()&&!cow.isRemoved()
             &&world.getEntity(cow.getUuid())==cow&&world.shouldTickEntity(cow.getBlockPos());
         for(var drone:DRONES){
-            if(world.shouldTickEntity(drone.getBlockPos()))ticking++;
-            if(world.getEntity(drone.getUuid())==drone)lookups++;
-            Integer before=capacityAdmissionAges.get(drone.getUuid());if(before!=null&&drone.age-before>=2)advanced++;
+            Entity nativeEntity=entity(drone);
+            if(world.shouldTickEntity(nativeEntity.getBlockPos()))ticking++;
+            if(world.getEntity(nativeEntity.getUuid())==nativeEntity)lookups++;
+            Integer before=capacityAdmissionAges.get(nativeEntity.getUuid());if(before!=null&&nativeEntity.age-before>=2)advanced++;
         }
         capacityAdmissionTicks++;
         var row=new LinkedHashMap<String,Object>();row.put("waitServerTicks",capacityAdmissionTicks);row.put("requested",COUNT);
@@ -187,7 +188,7 @@ public final class NativeSwarmBaselineCheck {
         if(capacityAdmissionTicks==1||capacityAdmissionTicks%20==0)System.out.println("SWARM_CAPACITY_ADMISSION "+new com.google.gson.Gson().toJson(row));
         require(capacityAdmissionTicks<200,"native8/8 ordinary entity-ticking premise was not observed: "+row);
         if(ticking!=COUNT||lookups!=COUNT||!targetReady){capacityAdmissionAges.clear();return false;}
-        if(capacityAdmissionAges.isEmpty()){for(var drone:DRONES)capacityAdmissionAges.put(drone.getUuid(),drone.age);return false;}
+        if(capacityAdmissionAges.isEmpty()){for(var drone:DRONES)capacityAdmissionAges.put(entity(drone).getUuid(),entity(drone).age);return false;}
         if(advanced!=COUNT)return false;
         capacityAdmitted=true;System.out.println("SWARM_CAPACITY_ADMITTED "+new com.google.gson.Gson().toJson(row));return true;
     }
