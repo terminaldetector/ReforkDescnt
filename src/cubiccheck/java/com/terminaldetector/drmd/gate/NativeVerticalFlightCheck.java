@@ -30,6 +30,7 @@ import java.util.*;
 /** Disposable authored negative shaft, then genuine continuous held-forward flight. Not a cold reader. */
 public final class NativeVerticalFlightCheck {
     public static final boolean ENABLED=Boolean.getBoolean("drmd.gate.verticalFlight");
+    private static final boolean SURVIVAL=Boolean.getBoolean("drmd.gate.verticalSurvival");
     private static final Vec3d START=new Vec3d(40.5,-80,40.5),F=new Vec3d(0,1,0),UP=new Vec3d(0,0,1);
     private static final int[] HEIGHTS={-64,1024,1640,2150};
     private static final List<Map<String,Object>> SERVER=new ArrayList<>(),CLIENT=new ArrayList<>();
@@ -86,14 +87,15 @@ public final class NativeVerticalFlightCheck {
             if(phase==1){
                 if(p.getPos().distanceTo(START)>.5)throw new IllegalStateException("staging moved before flight");
                 for(int y=-82;y<=-68;y++)for(int x=38;x<=42;x++)for(int z=38;z<=42;z++)if(!AUTHORED.contains(new BlockPos(x,y,z)))return;
-                p.changeGameMode(GameMode.CREATIVE);FlightSystem.enableWithoutMount(p,data);data.setFlightVelocity(Vec3d.ZERO);
+                p.changeGameMode(SURVIVAL?GameMode.SURVIVAL:GameMode.CREATIVE);FlightSystem.enableWithoutMount(p,data);data.setFlightVelocity(Vec3d.ZERO);
                 data.setShipAttitude(0,1,0,0,0,1);ModNetworking.syncPlayer(p,data);epoch=data.portalEpoch();phase=2;return;
             }
             if(!armed)return;if(armServerTick<0)armServerTick=server.getTicks();
             var pos=p.getPos();boolean loaded=full(w,pos);var velocity=data.getFlightVelocity();
             if(p.isSpectator()||p.noClip||!data.isEnabled())throw new IllegalStateException("measured actor lacks ordinary colliding 6DoF ownership");
+            if(SURVIVAL&&(!p.isAlive()||p.getAbilities().invulnerable||p.getHealth()!=p.getMaxHealth()))throw new IllegalStateException("damage or invulnerability during native Survival path: "+p.getHealth());
             if(data.portalEpoch()!=epoch||Math.abs(pos.x-START.x)>1||Math.abs(pos.z-START.z)>1)throw new IllegalStateException("unexpected portal/lateral discontinuity");
-            var row=new LinkedHashMap<String,Object>();row.put("tick",server.getTicks());row.put("p",xyz(pos));row.put("vMetresPerSecond",xyz(velocity));row.put("full",loaded);row.put("flightLeaseEpoch",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.epoch(p));row.put("flightAcknowledgment",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.acknowledgment(p));row.put("writes",materialWrites);row.put("seed",w.getSeed());
+            var row=new LinkedHashMap<String,Object>();row.put("tick",server.getTicks());row.put("p",xyz(pos));row.put("vMetresPerSecond",xyz(velocity));row.put("full",loaded);row.put("flightLeaseEpoch",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.epoch(p));row.put("flightAcknowledgment",com.terminaldetector.drmd.world.contraption.boarding.FlightBodySystem.acknowledgment(p));row.put("writes",materialWrites);row.put("seed",w.getSeed());row.put("health",p.getHealth());row.put("gameMode",p.interactionManager.getGameMode().getName());
             if(previousServer!=null&&pos.distanceTo(previousServer)>1e-7){
                 int clientMatch=matching(CLIENT_MOVES,pos,matchedClientMove),serverMatch=matching(SERVER_MOVES,pos,matchedServerMove);
                 row.put("matchingClientMove",clientMatch);row.put("matchingServerMove",serverMatch);
@@ -180,7 +182,7 @@ public final class NativeVerticalFlightCheck {
     private static void finish(MinecraftClient c,String status,String reason){
         if(done)return;done=true;c.options.forwardKey.setPressed(false);if(DescentKeybinds.alwaysRun!=null)DescentKeybinds.alwaysRun.setPressed(false);
         try{
-            var out=new LinkedHashMap<String,Object>();out.put("status",status);out.put("reason",reason);out.put("initialTeleports",initialTeleports);out.put("preAdmissionClientTicks",armClientTick);out.put("measuredClientTicks",measuredTicks);out.put("armServerTick",armServerTick);out.put("materialWrites",materialWrites);out.put("initialSpectatorStagingOnly",true);out.put("surfaceY",surfaceY);out.put("authoredThroughY",authorTop);out.put("untouchedAboveY",authorTop+1);out.put("untouchedAirSamples",untouchedAirSamples);out.put("observerTickOrSolverCalls",0);out.put("coldReaderInThisRun",false);
+            var out=new LinkedHashMap<String,Object>();out.put("status",status);out.put("reason",reason);out.put("initialTeleports",initialTeleports);out.put("measuredGameMode",SURVIVAL?"survival":"creative");out.put("preAdmissionClientTicks",armClientTick);out.put("measuredClientTicks",measuredTicks);out.put("armServerTick",armServerTick);out.put("materialWrites",materialWrites);out.put("initialSpectatorStagingOnly",true);out.put("surfaceY",surfaceY);out.put("authoredThroughY",authorTop);out.put("untouchedAboveY",authorTop+1);out.put("untouchedAirSamples",untouchedAirSamples);out.put("observerTickOrSolverCalls",0);out.put("coldReaderInThisRun",false);
             synchronized(SERVER_CROSSES){out.put("serverCrossings",new LinkedHashMap<>(SERVER_CROSSES));}out.put("clientCrossings",CLIENT_CROSSES);synchronized(SERVER){out.put("server",List.copyOf(SERVER));}out.put("client",CLIENT);
             synchronized(CLIENT_MOVES){out.put("actualClientMoves",List.copyOf(CLIENT_MOVES));}synchronized(SERVER_MOVES){out.put("actualServerMoves",List.copyOf(SERVER_MOVES));}out.put("unmatchedEndpointRows",pendingEndpointRows);out.put("movementFailure",movementFailure);out.put("failedAvailability",failedAvailability);
             out.put("afterburnerHeldTicks",afterburnerHeldTicks);out.put("afterburnerPolicy","ordinary R only above authored shaft+4, max800ticks, no energy refill; 180s overallwall unchanged;2400pre-admission and2400measuredticks start at real input arm");
