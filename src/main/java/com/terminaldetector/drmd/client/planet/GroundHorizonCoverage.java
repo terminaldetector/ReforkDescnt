@@ -8,21 +8,24 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
+import java.lang.ref.WeakReference;
+
 /** Keeps the backdrop visible while the actual lower terrain streams into the current view. */
 final class GroundHorizonCoverage {
     private static final int[] FOOTPRINT = {-24, 0, 24};
     private static final double MAX_BRIDGE_OPACITY = .68;
     private static final double COVERAGE_RESPONSE_SECONDS = .24;
 
-    private World world;
+    private WeakReference<World> observedWorld = new WeakReference<>(null);
     private long sampledTick = Long.MIN_VALUE;
     private long lastFrame;
     private double coverage;
     private double observedCoverage;
 
     float opacity(MinecraftClient client, Vec3d eye, long seed, float altitudeOpacity, double clip) {
-        if (world != client.world) {
-            world = client.world;
+        var world = client.world;
+        if (observedWorld.get() != world) {
+            observedWorld = new WeakReference<>(world);
             sampledTick = Long.MIN_VALUE;
             lastFrame = 0;
         }
