@@ -15,6 +15,7 @@ final class GravityFieldIndex {
         final Set<UUID> global=new HashSet<>();
         boolean empty(){return levels.isEmpty() && global.isEmpty();}
     }
+    private long revision;
     private final Map<UUID,GravityFields.Field> fields=new HashMap<>();
     private final Map<UUID,Membership> memberships=new HashMap<>();
     private final Map<RegistryKey<World>,Partition> dimensions=new HashMap<>();
@@ -44,7 +45,7 @@ final class GravityFieldIndex {
                         buckets.computeIfAbsent(key,ignored->new HashSet<>()).add(field.id());
                     }
         }
-        fields.put(field.id(),field);
+        fields.put(field.id(),field);revision++;
         memberships.put(field.id(),new Membership(field.worldKey(),level,cells));
     }
 
@@ -52,6 +53,7 @@ final class GravityFieldIndex {
         var membership=memberships.remove(id);
         fields.remove(id);
         if(membership==null)return;
+        revision++;
         var partition=dimensions.get(membership.dimension());
         if(membership.level()==LEVELS)partition.global.remove(id);
         else {
@@ -92,7 +94,29 @@ final class GravityFieldIndex {
     synchronized boolean hasFields(RegistryKey<World> dimension) {
         return dimension==null?!fields.isEmpty():dimensions.containsKey(dimension) || dimensions.containsKey(null);
     }
-    synchronized void clear(){fields.clear();memberships.clear();dimensions.clear();}
+    synchronized long revision(){return revision;}
+    synchronized List<net.minecraft.util.math.Box> interestRegions(RegistryKey<World> dimension) {
+        var regions=new java.util.LinkedHashSet<net.minecraft.util.math.Box>();
+        var keys=new ArrayList<RegistryKey<World>>();keys.add(dimension);if(dimension!=null)keys.add(null);
+        for(var key:keys) {
+            var partition=dimensions.get(key);if(partition==null)continue;
+            for(var level:partition.levels.keySet().stream().sorted().toList()) {
+                double side=size(level);
+                var buckets=partition.levels.get(level);
+                for(var cell:buckets.keySet().stream().sorted(Comparator.comparingLong(Cell::x).thenComparingLong(Cell::y).thenComparingLong(Cell::z)).toList()) {
+                    if(buckets.get(cell).stream().noneMatch(id->fields.get(id).power()>0))continue;
+                    regions.add(new net.minecraft.util.math.Box(cell.x*side,cell.y*side,cell.z*side,(cell.x+1)*side,(cell.y+1)*side,(cell.z+1)*side));
+                }
+            }
+            for(var id:partition.global.stream().sorted().toList()) {
+                var field=fields.get(id);if(field.power()<=0)continue;
+                double reach=Math.min(60000000,Math.sqrt(2)*field.radius()+3);var c=net.minecraft.util.math.Vec3d.ofCenter(field.origin());
+                regions.add(new net.minecraft.util.math.Box(c.x-reach,c.y-reach,c.z-reach,c.x+reach,c.y+reach,c.z+reach));
+            }
+        }
+        return List.copyOf(regions);
+    }
+    synchronized void clear(){fields.clear();memberships.clear();dimensions.clear();revision++;}
     private static double size(int level){return Math.scalb(16.0,level);}
     private static long cell(double coordinate,double size){return (long)Math.floor(coordinate/size);}
 }

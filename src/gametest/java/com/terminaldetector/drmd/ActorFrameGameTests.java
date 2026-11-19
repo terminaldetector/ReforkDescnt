@@ -148,7 +148,9 @@ public final class ActorFrameGameTests implements FabricGameTest {
                 var direction=target.getEyePos().subtract(mob.getEyePos()).normalize();
                 c.assertTrue(mob.getRotationVector().dotProduct(direction)>.9999,"native look controller points through the local physical eye ray "+up);
                 obstruction=BlockPos.ofFloored(mob.getEyePos().lerp(target.getEyePos(),.5));
-                world.setBlockState(obstruction,Blocks.STONE.getDefaultState(),2);
+                // Natural STONE is intentionally rounded; a point inside its source cell can
+                // lie outside its actual collider. Use an opaque engineered full cube here.
+                world.setBlockState(obstruction,Blocks.BRICKS.getDefaultState(),2);
                 c.assertTrue(!mob.canSee(target),"real opaque material on the physical ray blocks native sight "+up);
             } finally {if(obstruction!=null)world.setBlockState(obstruction,Blocks.AIR.getDefaultState(),2);mob.discard();target.discard();}
         }

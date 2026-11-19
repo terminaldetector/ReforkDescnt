@@ -158,18 +158,18 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
     public void actualHeavyRailHitsTheSolidAimTargetWithoutPassingThrough(TestContext c){
         admitted(c,450,new Vec3d(0,0,1),r->{
             var body=r.body(r.player.getEyePos().add(r.aim().multiply(12)),5,5,4);
-            c.assertTrue(r.use(ModItems.GRAVY_RAILGUN,true)&&GravyPhysics.heldMass(r.player)==100,
+            c.assertTrue(r.use(ModItems.GRAVY_RAILGUN,true)&&Math.abs(GravyPhysics.heldMass(r.player)-100)<1e-5,
                     "registered rail captures the real hundred-cell projectile");
             r.later(8,()->{
                 var start=body.physicsCentre();
                 var target=BlockPos.ofFloored(start.add(r.aim().multiply(16)));
                 var previous=new LinkedHashMap<BlockPos,net.minecraft.block.BlockState>();
+                r.undo.add(()->previous.forEach((pos,state)->c.getWorld().setBlockState(pos,state)));
                 for(int x=-3;x<=3;x++)for(int y=-3;y<=3;y++){
                     var pos=target.add(x,y,0);
                     previous.put(pos,c.getWorld().getBlockState(pos));
                     c.getWorld().setBlockState(pos,Blocks.OBSIDIAN.getDefaultState());
                 }
-                r.undo.add(()->previous.forEach((pos,state)->c.getWorld().setBlockState(pos,state)));
                 c.assertTrue(r.use(ModItems.GRAVY_RAILGUN,false)&&body.physicsVelocity().dotProduct(r.aim())>40,
                         "registered rail launches the captured material at ballistic speed");
                 double[] furthest={start.z};

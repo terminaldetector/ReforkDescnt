@@ -33,7 +33,8 @@ public final class NativePs1AtmosphereCheck {
     private static volatile ServerPlayerEntity player;
     private static volatile boolean admitted,authored,authoring;
     private static boolean started,done,armed,witness;
-    private static int phase,ticks,phaseTicks,epoch,drawEpoch=-1,scans,stable;
+    private static int phase,ticks,phaseTicks,epoch,drawEpoch=-1,scans,stable,inputEpoch=-1,staleSourceFrames;
+    private static float wantedInner,wantedReach;
     private static long readbackBytes;
     private static PlanetSurfaceMesh prepared,previous,drawMesh,rawMesh;
     private static NativeImage before,after,raw;
@@ -53,7 +54,8 @@ public final class NativePs1AtmosphereCheck {
                 long bytes=(long)c.getFramebuffer().textureWidth*c.getFramebuffer().textureHeight*4;
                 if(c.world!=null&&readbackBytes+bytes<=64L*1024*1024)try(var image=screenshot()){image.writeTo(folder.resolve("first-failure-final.png"));}
             }
-            write(Map.of("status","FAIL","reason",reason,"phase",phase,"scans",scans,"readbackBytes",readbackBytes,"states",RESULTS));
+            write(Map.of("status","FAIL","reason",reason,"phase",phase,"scans",scans,"readbackBytes",readbackBytes,"states",RESULTS,
+                "pendingState",observed==null?Map.of():observed,"rawSource",source(rawMesh),"preparedSource",source(prepared)));
         }catch(Exception failure){failure.printStackTrace();}
         c.scheduleStop();throw new IllegalStateException("PS1_ATMOSPHERE_NATIVE "+reason);
     }
@@ -72,7 +74,7 @@ public final class NativePs1AtmosphereCheck {
         DescentConfig.presentationProfile=phase==6?PresentationProfile.HYBRID_NATIVE:PresentationProfile.PS1_HYBRID;
         DescentConfig.ps1SceneHeight=360;DescentConfig.ps1ColorLevels=256;DescentConfig.ps1DitherStrength=0;
         DescentConfig.ps1FarFog=new Ps1FarFogOptions(enabledFog()?1:0);
-        phaseTicks=scans=stable=0;previous=null;drawEpoch=-1;observed=null;
+        phaseTicks=scans=stable=staleSourceFrames=0;previous=null;drawEpoch=-1;observed=null;
         if(phase<6&&phase%2==0){
             admitted=authored=authoring=false;
             c.getServer().execute(()->{
@@ -111,12 +113,22 @@ public final class NativePs1AtmosphereCheck {
     private static void clearFrame(){if(before!=null)before.close();if(after!=null)after.close();before=after=null;}
     public static void beforeFrame(){
         if(!ENABLED||done)return;epoch++;armed=witness=false;clearFrame();var c=MinecraftClient.getInstance();
-        if(!started||!admitted||!authored||phaseTicks<12||c.player==null||c.currentScreen!=null)return;
+        // Only a new altitude needs settling. ON follows its admitted OFF draw immediately;
+        // waiting another twelve ticks would allow an unrelated async publication between them.
+        if(!started||!admitted||!authored||(phase<6&&phase%2==0&&phaseTicks<12)||c.player==null||c.currentScreen!=null)return;
         if(!c.player.getAbilities().flying||Math.abs(c.player.getY()-altitude())>.02)return;
         if(wall().stream().anyMatch(p->!WorldEditSafety.neighbourhoodLoaded(c.world,p)||!c.world.getBlockState(p).isOf(Blocks.WHITE_CONCRETE)))return;
         armed=true;
     }
     public static void prepare(PlanetSurfaceMesh mesh){if(ENABLED&&!done)prepared=mesh;}
+    public static void input(float inner,float reach){
+        if(ENABLED&&!done&&!OffscreenWorldView.busy()){wantedInner=inner;wantedReach=reach;inputEpoch=epoch;}
+    }
+    private static Map<String,Object> source(PlanetSurfaceMesh mesh){
+        return mesh==null?Map.of():Map.of("identity",System.identityHashCode(mesh),"origin",List.of(mesh.originX,mesh.originY,mesh.originZ),
+            "quads",mesh.quads,"inner",mesh.innerRadius,"reach",mesh.reach,
+            "positionsDiagnosticHash32",Arrays.hashCode(mesh.positions),"coloursDiagnosticHash32",Arrays.hashCode(mesh.colours));
+    }
     private static void budget(long bytes){readbackBytes+=bytes;require(readbackBytes<=64L*1024*1024,"64MiB actual GPU readback cap");}
     private static NativeImage screenshot(){
         var c=MinecraftClient.getInstance();budget((long)c.getFramebuffer().textureWidth*c.getFramebuffer().textureHeight*4);
@@ -148,7 +160,13 @@ public final class NativePs1AtmosphereCheck {
     public static void horizon(boolean entering,Matrix4f view){
         if(!ENABLED||!armed||done||OffscreenWorldView.busy()||prepared==null||prepared.quads<=0)return;
         if(entering){
-            if(prepared==previous)stable++;else{previous=prepared;stable=1;}if(stable<4)return;
+            var camera=MinecraftClient.getInstance().gameRenderer.getCamera().getPos();
+            if(inputEpoch!=epoch||prepared.stale(camera.x,camera.y,camera.z,wantedInner,wantedReach)){
+                staleSourceFrames++;previous=null;stable=0;return;
+            }
+            // Admit only a current normal publisher result, not the stale field kept visible while
+            // a new altitude/interest request is building. The connected ON draw retains EXACT identity.
+            if(phase<6&&phase%2==0){if(prepared==previous)stable++;else{previous=prepared;stable=1;}if(stable<4)return;}
             require(++scans<=64,"independent opaque marker admission scans");foreground=witnessDepth(view);
             if(foreground.length<9||java.util.stream.IntStream.range(0,foreground.length).filter(i->foreground[i]<.999995f).count()<9)return;
             before=screenshot();drawMesh=prepared;drawEpoch=epoch;
@@ -163,6 +181,8 @@ public final class NativePs1AtmosphereCheck {
             require(Math.abs(sky[0]-expectedSky.x)<1e-4&&Math.abs(sky[1]-expectedSky.y)<1e-4&&Math.abs(sky[2]-expectedSky.z)<1e-4,"actual shared sky target");
             int contribution=0;for(int y=0;y<after.getHeight();y++)for(int x=0;x<after.getWidth();x++)if((before.getColor(x,y)&0xffffff)!=(after.getColor(x,y)&0xffffff))contribution++;
             observed=new LinkedHashMap<>();observed.put("actualEyeY",eyeY);observed.put("density",density);observed.put("skyMix",mix);observed.put("skyColor",sky);observed.put("lodChangedPixels",contribution);observed.put("foregroundSamples",retained.length);observed.put("opaqueAdmissionScans",scans);observed.put("meshQuads",prepared.quads);observed.put("epoch",epoch);
+            observed.put("source",source(drawMesh));observed.put("actualProjectionInput",List.of(wantedInner,wantedReach));
+            observed.put("sourceInputEpoch",inputEpoch);observed.put("staleSourceFramesNotAdmitted",staleSourceFrames);
             require(contribution>=500,"real far-world pixel domain");require(GL11.glGetError()==0,"actual draw/readback GL error");
         }
     }

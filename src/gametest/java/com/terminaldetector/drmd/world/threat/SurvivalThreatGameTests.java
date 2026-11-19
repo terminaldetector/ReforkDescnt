@@ -103,22 +103,26 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
     private static void budgets(TestContext c){var s=SurvivalThreatDirector.stats(c.getWorld());c.assertTrue(s.players()<=SurvivalThreatDirector.PLAYER_CHECKS&&s.candidates()<=SurvivalThreatDirector.CANDIDATE_CHECKS&&s.sight()<=SurvivalThreatDirector.SIGHT_CHECKS&&s.spawned()<=SurvivalThreatDirector.SPAWNS&&s.roster()<=2*SurvivalThreatState.MAX_ACTORS,"one world pass obeys bounded player/roster/candidate/sight/spawn work: "+s);}
 
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="threat-confirmed-signal",tickLimit=100)
-    public void onlyAnActualSurvivalMachineKillCreatesAnAttributedDeduplicatedAlarm(TestContext c){
-        var f=new Fixture(c,Vec3d.ofCenter(c.getAbsolutePos(new BlockPos(8,220,8))),null);
+    public void onlyAnActualSurvivalMachineKillCreatesAnAttributedDeduplicatedAlarm(TestContext c){admitted(c,f->{
         try{
+            c.assertTrue(f.w.getEntity(f.player.entity.getUuid())==f.player.entity&&f.w.shouldTickEntity(f.player.entity.getBlockPos()),
+                "actual current Survival principal is admitted in the real entity-ticking fixture before synchronous death callbacks");
             var state=f.state();var p=f.player.entity;var live=f.victim();
             c.assertTrue(!SurvivalThreatDirector.confirmedKill(f.w,p,live)&&state.progress(p.getUuid()).isEmpty(),"live damage or an arbitrary nearest player cannot fabricate a kill");
             p.changeGameMode(GameMode.CREATIVE);f.kill(live,p.getDamageSources().playerAttack(p));c.assertTrue(state.progress(p.getUuid()).isEmpty(),"real creative kill is ignored");
             p.changeGameMode(GameMode.SURVIVAL);var environmental=f.victim();f.kill(environmental,f.w.getDamageSources().generic());c.assertTrue(state.progress(p.getUuid()).isEmpty(),"environmental death is not attributed to a nearby player");
             f.w.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(false,f.w.getServer());var disabled=f.victim();f.kill(disabled,p.getDamageSources().playerAttack(p));c.assertTrue(state.progress(p.getUuid()).isEmpty(),"the actual disabled Survival spawn rule prevents threat creation");f.w.getGameRules().get(GameRules.DO_MOB_SPAWNING).set(true,f.w.getServer());
-            var actual=f.victim();var at=point(actual.getPos());f.kill(actual,p.getDamageSources().playerAttack(p));
+            var actual=f.victim();var at=point(actual.getPos());
+            c.assertTrue(f.w.getEntity(actual.getUuid())==actual&&f.w.shouldTickEntity(actual.getBlockPos()),
+                "positive signal requires the actual tracked/ticking victim, not merely an accepted pending spawn");
+            f.kill(actual,p.getDamageSources().playerAttack(p));
             var alarm=state.progress(p.getUuid()).orElseThrow();c.assertTrue(alarm.pending()&&alarm.phase()==Phase.QUIET&&alarm.origin().equals(at),"registered real death records the actual alarm location while preserving novice grace");
             c.assertTrue(!SurvivalThreatDirector.confirmedKill(f.w,p,actual)&&state.progress(p.getUuid()).orElseThrow().equals(alarm),"repeated callback cannot reset the persisted alarm");
             var alias=ModEntities.ORB.create(f.w);alias.setUuid(actual.getUuid());alias.setHealth(0);c.assertTrue(!SurvivalThreatDirector.confirmedKill(f.w,p,alias),"a dead UUID alias is not the world's actual confirmed victim");budgets(c);
             var orphan=ModEntities.ORB.create(f.w);orphan.setPosition(f.at.add(7,0,0));orphan.addCommandTag("drmd.threat");orphan.addCommandTag("drmd.threat.faction="+SurvivalThreatState.FACTION);orphan.addCommandTag("drmd.threat.owner="+p.getUuid());orphan.addCommandTag("drmd.threat.until="+(f.w.getTime()+1_000));f.owned.add(orphan);f.w.spawnEntity(orphan);
             c.assertTrue(orphan.isRemoved()&&state.rosterSize(p.getUuid())==0,"unloaded actors absent from the persisted roster are retired on actual entity admission, never revived outside its cap");
         }finally{f.close();}c.complete();
-    }
+    });}
     @GameTest(templateName=EMPTY_STRUCTURE,batchId="threat-persisted-ledger",tickLimit=100)
     public void actualPersistentStateFilesRestoreCooldownRosterAndVictimDeduplication(TestContext c) throws Exception {
         var state=new SurvivalThreatState();var owner=UUID.randomUUID();var second=UUID.randomUUID();var victim=UUID.randomUUID();var at=new Vec3d(20,220,20);long now=c.getWorld().getTime();

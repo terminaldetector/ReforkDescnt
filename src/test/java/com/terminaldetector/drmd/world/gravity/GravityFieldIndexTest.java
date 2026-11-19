@@ -103,4 +103,21 @@ class GravityFieldIndexTest {
         Collections.shuffle(fields,random);for(var f:fields)GravityFields.put(f);
         assertEquals(first,GravityFields.sample(A,p));
     }
+
+    @Test void interestCellsCoverHighAndNegativeInfluenceAndOnlyChangeOnRealSourceEdits() {
+        var index=new GravityFieldIndex();var f=field(41,A,new BlockPos(-17,4096,-33),8,FieldShape.SPHERE,new Vec3d(1,0,0));
+        long empty=index.revision();index.put(f);long inserted=index.revision();assertTrue(inserted>empty);
+        var snapshot=index.interestRegions(A);assertFalse(snapshot.isEmpty());assertTrue(snapshot.size()<=8);
+        assertTrue(index.interestRegions(B).isEmpty());
+        for(var direction:net.minecraft.util.math.Direction.values()) {
+            var p=Vec3d.ofCenter(f.origin()).add(Vec3d.of(direction.getVector()).multiply(7.9));
+            assertTrue(f.influenceAt(p)>0);assertTrue(snapshot.stream().anyMatch(box->box.contains(p)));
+        }
+        assertThrows(UnsupportedOperationException.class,()->snapshot.clear());
+        index.put(f);assertEquals(inserted,index.revision(),"unchanged emitters cannot reset discovery's fair cursor");
+        index.remove(f.id());assertTrue(index.revision()>inserted);assertTrue(index.interestRegions(A).isEmpty());
+        assertFalse(snapshot.isEmpty(),"published regional snapshot is immutable across source retirement");
+        var legacy=field(42,null,f.origin(),8,FieldShape.SPHERE,new Vec3d(0,-1,0));index.put(legacy);
+        assertFalse(index.interestRegions(A).isEmpty());assertEquals(index.interestRegions(A),index.interestRegions(B));
+    }
 }

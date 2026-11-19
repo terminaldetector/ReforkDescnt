@@ -212,6 +212,7 @@ public final class GenericControlCoreGameTests implements FabricGameTest {
             c.assertTrue(use(f), "actual local USE acquires the already assembled body");
             int epoch = UfoControlSystem.epoch(f.pilot);
             var newPilot = f.player(new Vec3d(3.5,2.2,2.5));
+            f.body.physics().withLinearVelocity(new Vec3(3,2,1)).withAngularVelocity(new Vec3(.03,.02,.01));
             var state = f.body.physics().snapshot();
             f.pilot.setPosition(f.body.localToWorld(new Vec3d(25,2.2,2.5)));
             c.assertTrue(!UfoControlSystem.controls(f.pilot)
@@ -221,7 +222,7 @@ public final class GenericControlCoreGameTests implements FabricGameTest {
                 "a valid second operator can take over within that same tick");
             c.assertTrue(UfoControlSystem.epoch(newPilot)>epoch && UfoControlSystem.controlsBody(newPilot,f.body)
                 && !UfoControlSystem.controls(f.pilot), "new epoch is fenced from the departed operator");
-            c.assertTrue(state.equals(f.body.physics().snapshot()),
+            c.assertTrue(f.body.physics().matches(state),
                 "walking exit and takeover retain the original hull's exact physical state");
         }
         c.complete();

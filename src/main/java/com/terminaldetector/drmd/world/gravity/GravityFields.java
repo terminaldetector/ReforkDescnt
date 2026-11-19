@@ -92,6 +92,10 @@ public final class GravityFields {
 		return FIELDS.hasFields(dimension);
 	}
 
+    public static long revision(){return FIELDS.revision();}
+    /** Existing dimension-scoped 3D hash cells, not a second spatial ownership model. */
+    public static List<net.minecraft.util.math.Box> interestRegions(net.minecraft.registry.RegistryKey<World> dimension){return FIELDS.interestRegions(dimension);}
+
 	/**
 	 * Blended sample: weighted average of down directions + max power.
 	 * Returns null if no field affects the point.

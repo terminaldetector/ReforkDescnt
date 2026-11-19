@@ -50,7 +50,7 @@ public final class EntityGravitySystem {
 			LivingEntity entity=state.actor.get();
 			if(entity!=null && state.owns(entity))ActorFrames.tryRelease(entity);
 		}
-		STATE.clear();
+		STATE.clear();GravityClusterInterest.clear();
 	}
 
 	/** Suppress only the standard scalar acceleration, never the entity's saved NoGravity flag. */
@@ -62,27 +62,21 @@ public final class EntityGravitySystem {
 	}
 
 	public static void tick(MinecraftServer server) {
-		Set<UUID> active = new HashSet<>();
-		for (ServerWorld world : server.getWorlds()) {
-			boolean fields=GravityFields.hasFields(world.getRegistryKey());
-			if(!fields) {
-				// No whole-world scan on ordinary worlds without emitters. Restored physical
-				// frames still need a safe release even when the runtime lease map is empty.
-				for(LivingEntity entity:ActorFrames.tracked(world)) {
-					active.add(entity.getUuid());tickEntity(entity);
-				}
-				continue;
-			}
-			// Visit each loaded actor once. Overlapping emitters previously repeated world
-			// entity-section searches, then sampled the full field catalogue for each actor.
-			for(Entity candidate:world.iterateEntities()) {
-				if(candidate instanceof LivingEntity e && !(e instanceof PlayerEntity) && e.isAlive()) {
-					active.add(e.getUuid());tickEntity(e);
-				}
-			}
-		}
-		STATE.keySet().removeIf(id -> !active.contains(id));
-	}
+        Set<UUID> active=new HashSet<>();
+        for(ServerWorld world:server.getWorlds()) {
+            var essential=new java.util.LinkedHashMap<UUID,LivingEntity>();
+            // Owned force/contact and safe-release work is never thinned by discovery budgets.
+            for(var state:STATE.values()) {
+                var actor=state.actor.get();
+                if(actor!=null&&state.owns(actor)&&actor.getWorld()==world&&actor.isAlive()
+                    &&world.getEntity(actor.getUuid())==actor)essential.put(actor.getUuid(),actor);
+            }
+            for(var actor:ActorFrames.tracked(world))essential.put(actor.getUuid(),actor);
+            for(var actor:essential.values()){active.add(actor.getUuid());tickEntity(actor);}
+            GravityClusterInterest.discover(world,essential.values(),active,actor->{active.add(actor.getUuid());tickEntity(actor);});
+        }
+        STATE.keySet().removeIf(id->!active.contains(id));
+    }
 
 	private static void tickEntity(LivingEntity entity) {
 		if (entity instanceof PlayerEntity) return; // FootGravitySystem

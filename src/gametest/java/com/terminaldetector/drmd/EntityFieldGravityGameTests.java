@@ -240,4 +240,61 @@ public final class EntityFieldGravityGameTests implements FabricGameTest {
         } finally {GravityFields.remove(id);cow.discard();tick(context);}
         context.complete();
     }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="entity-field-interest")
+    public void spatialGravityDiscoverySkipsUnrelatedActorsAndRetiresItsLastLease(TestContext context) {
+        var cow=actor(context,false);var world=context.getWorld();var id=UUID.randomUUID();
+        var unrelated=EntityType.COW.create(world);unrelated.setAiDisabled(true);unrelated.setNoGravity(true);
+        unrelated.setPosition(cow.getPos().add(0,96,0));var propulsion=new Vec3d(.13,.04,-.08);unrelated.setVelocity(propulsion);
+        context.assertTrue(world.spawnEntity(unrelated),"ordinary unrelated cow registered in the same loaded column");
+        try {
+            GravityFields.put(new GravityFields.Field(id,world.getRegistryKey(),cow.getBlockPos(),new Vec3d(1,0,0),6,.5f,FieldShape.SPHERE,"interest control"));
+            tick(context);var stats=GravityClusterInterest.stats(world);
+            context.assertTrue(EntityGravitySystem.suppressesVanillaGravity(cow)&&cow.getVelocity().x>.02,
+                "regional discovery gives the actual near actor its ordinary force lease");
+            context.assertTrue(!EntityGravitySystem.suppressesVanillaGravity(unrelated)&&unrelated.getVelocity().equals(propulsion),
+                "distant actor outside the source's spatial cluster retains native velocity and gravity ownership");
+            context.assertTrue(stats.queries()>0&&stats.queries()<=GravityClusterInterest.QUERIES_PER_WORLD
+                &&stats.maxQueryCandidates()<=GravityClusterInterest.CANDIDATES_PER_QUERY,"actual native query work stays within published budgets");
+            GravityFields.remove(id);tick(context);
+            context.assertTrue(!EntityGravitySystem.suppressesVanillaGravity(cow)&&!cow.hasNoGravity()&&!ActorFrames.active(cow),
+                "the final source disappearing still services the actor's release without another discovery query");
+            context.assertTrue(unrelated.getVelocity().equals(propulsion),"source retirement does not touch unrelated native movement");
+        } finally {GravityFields.remove(id);cow.discard();unrelated.discard();tick(context);}
+        context.complete();
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,tickLimit=40,batchId="entity-field-interest-live")
+    public void denseGravityInterestKeepsOwnedForcesHotAcrossDiscoveryBudget(TestContext context) {
+        var world=context.getWorld();var centre=context.getAbsolutePos(new BlockPos(4,80,4));var id=UUID.randomUUID();
+        var bees=new java.util.ArrayList<net.minecraft.entity.passive.BeeEntity>();
+        long chunk=new ChunkPos(centre).toLong();boolean forced=world.getForcedChunks().contains(chunk);
+        world.setChunkForced(ChunkPos.getPackedX(chunk),ChunkPos.getPackedZ(chunk),true);
+        GravityFields.put(new GravityFields.Field(id,world.getRegistryKey(),centre,new Vec3d(1,0,0),6,.5f,FieldShape.SPHERE,"dense interest"));
+        for(int i=0;i<GravityClusterInterest.CANDIDATES_PER_QUERY+8;i++) {
+            var bee=EntityType.BEE.create(world);bee.setAiDisabled(true);bee.setNoGravity(true);bee.setPosition(Vec3d.ofCenter(centre));
+            context.assertTrue(world.spawnEntity(bee),"native flyer registered, not a synthetic cluster member");bees.add(bee);
+        }
+        tick(context);var first=GravityClusterInterest.stats(world);
+        context.assertTrue(first.maxQueryCandidates()==GravityClusterInterest.CANDIDATES_PER_QUERY,"actual dense native query exercises the result cap");
+        int[] ages=bees.stream().mapToInt(bee->bee.age).toArray();
+        context.runAtTick(8,()->{
+            try {
+                var stats=GravityClusterInterest.stats(world);
+                for(int i=0;i<bees.size();i++) {
+                    var bee=bees.get(i);
+                    context.assertTrue(bee.age>=ages[i]+2,"real ordinary world ticks advance every acquired actor");
+                    context.assertTrue(EntityGravitySystem.suppressesVanillaGravity(bee)&&bee.hasNoGravity()&&bee.getVelocity().x>.02,
+                        "discovery overflow cannot starve later actors or decimate an owned force: index="+i);
+                }
+                context.assertTrue(stats.essentialActors()>=bees.size(),"all acquired actors remain in the mandatory full-rate set");
+                context.assertTrue(stats.queries()<=GravityClusterInterest.QUERIES_PER_WORLD&&stats.maxQueryCandidates()<=GravityClusterInterest.CANDIDATES_PER_QUERY,
+                    "subsequent real ticks preserve discovery work bounds");
+            } finally {
+                GravityFields.remove(id);for(var bee:bees)bee.discard();tick(context);
+                if(!forced)world.setChunkForced(ChunkPos.getPackedX(chunk),ChunkPos.getPackedZ(chunk),false);
+            }
+            context.complete();
+        });
+    }
 }
