@@ -219,14 +219,18 @@ public class DroneEntity extends HostileEntity {
 	}
 
 	public boolean tryFireAt(LivingEntity target) {
-		if (attackCooldown > 0 || target == null
-            ||com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.retreatFrom(this)!=null) return false;
-		if (modEnergy < role.weaponCost) return false;
-		modEnergy -= role.weaponCost;
-		attackCooldown = role.weaponCooldown;
-
-		Vec3d from = getPos().add(0, getHeight() * 0.5, 0);
-		Vec3d dir = target.getBoundingBox().getCenter().subtract(from).normalize();
+        // An explicit server weapon action remains usable by isolated AI-disabled fixtures;
+        // target/owner validity and loaded muzzle authority still apply before any resource debit.
+        if(!(getWorld() instanceof ServerWorld world)||!world.getServer().isOnThread()||!isAlive()||isRemoved()
+            ||attackCooldown>0||target==null||!target.isAlive()||target.isRemoved()||target.getWorld()!=world
+            ||!HostileEnvironment.isHostileTarget(this,target)||isTeammate(target)
+            ||com.terminaldetector.drmd.world.threat.SurvivalThreatDirector.retreatFrom(this)!=null)return false;
+        if(!Float.isFinite(modEnergy)||modEnergy<role.weaponCost)return false;
+        Vec3d from=getPos().add(0,getHeight()*.5,0);
+        Vec3d delta=target.getBoundingBox().getCenter().subtract(from);
+        if(!Double.isFinite(from.lengthSquared())||!Double.isFinite(delta.lengthSquared())||delta.lengthSquared()<1e-12
+            ||!com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedSegment(world,from,from))return false;
+        Vec3d dir=delta.normalize();
 
 		WeaponCore.FireConfig cfg = new WeaponCore.FireConfig();
 		cfg.owner = this;
@@ -245,14 +249,16 @@ public class DroneEntity extends HostileEntity {
 				? ProjectileEntity.MESH_ROCKET
 				: ProjectileEntity.MESH_BOLT;
         cfg.dir=projectileAim(target,from,dir,cfg);
-		WeaponCore.fireProjectile(cfg);
-		return true;
+        // A refused/throwing factory cannot charge energy or start a ghost cooldown.
+        if(!withModEnergy(role.weaponCost,()->WeaponCore.fireProjectile(cfg)!=null))return false;
+        attackCooldown=role.weaponCooldown;
+        return true;
 	}
 
     /** Existing species retain the exact authored direct vector; a new role may read the actual shot physics. */
     protected Vec3d projectileAim(LivingEntity target,Vec3d from,Vec3d direct,WeaponCore.FireConfig shot){return direct;}
 
-    /** Bounded ability reservation. Existing weapon firing remains byte-semantically unchanged. */
+    /** Shared transactional reservation for existing abilities and actual emitted weapon shots. */
     protected final boolean withModEnergy(float cost,java.util.function.BooleanSupplier operation){
         if(!Float.isFinite(cost)||cost<0||!Float.isFinite(modEnergy)||modEnergy<cost)return false;
         modEnergy-=cost;boolean accepted=false;

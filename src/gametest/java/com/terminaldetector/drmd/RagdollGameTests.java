@@ -21,6 +21,44 @@ import net.minecraft.util.math.Vec3d;
 import java.util.UUID;
 
 public final class RagdollGameTests implements FabricGameTest {
+	@GameTest(templateName=EMPTY_STRUCTURE,batchId="ragdoll-thin-wall-sweep",tickLimit=180)
+	public void aPlayerKilledSmallOrbCannotCrossAThinTrapdoorBetweenClearEndpoints(TestContext context){
+		var world=context.getWorld();var base=context.getAbsolutePos(new BlockPos(7,80,7));var clock=new CodecClock(context,base);
+		var cells=new java.util.LinkedHashMap<BlockPos,net.minecraft.block.BlockState>();
+		clock.onClose(()->cells.forEach((pos,state)->world.setBlockState(pos,state,2)));
+		for(var pos:BlockPos.iterate(base.add(-4,-3,-3),base.add(4,3,3))){var cell=pos.toImmutable();cells.put(cell,world.getBlockState(cell));world.setBlockState(cell,Blocks.AIR.getDefaultState(),2);}
+		var trapdoor=Blocks.IRON_TRAPDOOR.getDefaultState().with(net.minecraft.state.property.Properties.OPEN,true)
+				.with(net.minecraft.state.property.Properties.HORIZONTAL_FACING,net.minecraft.util.math.Direction.EAST);
+		for(var pos:BlockPos.iterate(base.add(0,-2,-2),base.add(0,2,2)))world.setBlockState(pos,trapdoor,2);
+		Box obstacle=trapdoor.getCollisionShape(world,base).getBoundingBox().offset(base);
+		context.assertTrue(Math.abs(obstacle.getLengthX()-.1875)<1e-12,"real open trapdoor provides the thin vertical collision slab");
+		var origin=new Vec3d(obstacle.minX-.1,base.getY()+.5,base.getZ()+.5);
+		var drone=ModEntities.ORB.create(world);context.assertTrue(drone!=null,"actual scaled ORB created");
+		drone.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.GENERIC_SCALE).setBaseValue(.125);drone.calculateDimensions();
+		drone.setPosition(origin);drone.setVelocity(1.75,0,0);drone.setAiDisabled(true);drone.setNoGravity(true);
+		var player=context.createMockCreativeServerPlayerInWorld();clock.track(player);player.setPosition(origin.add(-2,0,0));player.setNoGravity(true);
+		RagdollEntity[] corpse={null};int[] stage={0},birthAge={0};long[] birthWorld={0};double[] closest={Double.POSITIVE_INFINITY};
+		clock.run(()->{
+			if(stage[0]==0){
+				if(!clock.ready(drone.getBlockPos(),base))return;clock.spawn(drone);
+				context.assertTrue(drone.damage(world.getDamageSources().playerAttack(player),Float.MAX_VALUE),"real player-attributed lethal damage creates replacement");
+				drone.damage(world.getDamageSources().playerAttack(player),Float.MAX_VALUE);drone.damage(world.getDamageSources().genericKill(),Float.MAX_VALUE);
+				var found=world.getEntitiesByClass(RagdollEntity.class,new Box(origin,origin).expand(3),e->e.flightHullKind()==com.terminaldetector.drmd.entity.FlightEnemyKind.ORB);
+				context.assertTrue(found.size()==1,"repeated player/drone damage requests create one typed corpse");corpse[0]=found.getFirst();clock.track(corpse[0]);
+				context.assertTrue(corpse[0].hullScale()==.125f&&corpse[0].partBounds().getFirst().maxX<obstacle.minX-.01,"whole actual small collider begins clear on near side");
+				context.assertTrue(corpse[0].physicsVelocity().x>35,"actual inherited momentum and death impulse exercise existing 35m/s cap");
+				birthAge[0]=corpse[0].age;birthWorld[0]=world.getTime();stage[0]=1;return;
+			}
+			double maximum=corpse[0].partBounds().stream().mapToDouble(box->box.maxX).max().orElseThrow();
+			context.assertTrue(maximum<=obstacle.minX+1e-6,"complete rotated corpse remains at near face after ordinary swept substeps, maxX="+maximum+" wall="+obstacle.minX);
+			closest[0]=Math.min(closest[0],obstacle.minX-maximum);
+			if(corpse[0].age-birthAge[0]<6)return;clock.assertOrdinaryTicks(corpse[0],birthAge[0],birthWorld[0],6);
+			context.assertTrue(closest[0]<.005&&corpse[0].physicsVelocity().x<5,"actual near-face contact responds instead of skipping to far side");
+			var found=world.getEntitiesByClass(RagdollEntity.class,new Box(origin,origin).expand(3),e->e.flightHullKind()==com.terminaldetector.drmd.entity.FlightEnemyKind.ORB);
+			context.assertTrue(found.size()==1&&found.getFirst()==corpse[0],"same sole corpse continues on the ordinary world clock");clock.complete();
+		});
+	}
+
 	@GameTest(templateName=EMPTY_STRUCTURE,batchId="ragdoll-repeated-real-damage",tickLimit=180)
 	public void repeatedLethalDamageKeepsOneRegisteredLimitedJetWreck(TestContext context){
 		var world=context.getWorld();var base=context.getAbsolutePos(new BlockPos(7,80,7));var origin=Vec3d.ofCenter(base);

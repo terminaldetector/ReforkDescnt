@@ -11,8 +11,9 @@ public final class CityIoSession implements CityAuthoringJob.Journal {
     public record Context(UUID owner,String dimension,long worldSeed,CityBlueprint.Limits bounds,CityManifest.Backend backend){
         public Context{Objects.requireNonNull(owner);Objects.requireNonNull(dimension);Objects.requireNonNull(bounds);Objects.requireNonNull(backend);}
     }
-    public record Draft(Context context,long citySeed,CityBlueprint.Point anchor){
-        public Draft{Objects.requireNonNull(context);Objects.requireNonNull(anchor);}
+    public record Draft(Context context,long citySeed,CityBlueprint.Point anchor,CityManifest.Kind kind){
+        public Draft(Context context,long citySeed,CityBlueprint.Point anchor){this(context,citySeed,anchor,CityManifest.Kind.CITY);}
+        public Draft{Objects.requireNonNull(context);Objects.requireNonNull(anchor);Objects.requireNonNull(kind);}
     }
     public record Opened(CityManifest manifest,CityBlueprint.Plan plan,CityBatchJournal.Snapshot snapshot,boolean restored){}
     @FunctionalInterface interface Probe { void before(String operation)throws IOException; }
@@ -70,9 +71,9 @@ public final class CityIoSession implements CityAuthoringJob.Journal {
                 for(String name:List.of("current.manifest","current.journal","current.manifest.pending","current.journal.pending"))
                     if(Files.exists(lease.directory().resolve(name),LinkOption.NOFOLLOW_LINKS))
                         throw new IOException("Fixed city slot already exists; inspect/resume/cancel its data. No archive or overwrite is performed.");
-                plan=CityBlueprint.create(draft.citySeed(),draft.anchor(),context.bounds());
+                plan=draft.kind().create(draft.citySeed(),draft.anchor(),context.bounds());
                 var identity=new CityBatchJournal.Identity(lease.saveId(),UUID.randomUUID(),context.owner(),context.dimension(),plan.hash());
-                manifest=CityManifest.fromPlan(identity,context.worldSeed(),context.backend(),plan);
+                manifest=CityManifest.fromPlan(identity,context.worldSeed(),context.backend(),plan,draft.kind());
                 manifest.writeNew(lease.directory().resolve("current.manifest"));
                 journal=CityBatchJournal.create(lease.directory().resolve("current.journal"),identity);
             }else{

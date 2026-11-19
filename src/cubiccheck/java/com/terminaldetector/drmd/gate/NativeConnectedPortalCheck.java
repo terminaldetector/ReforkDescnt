@@ -11,6 +11,8 @@ import com.terminaldetector.drmd.flight.FlightSystem;
 import com.terminaldetector.drmd.network.ModNetworking;
 import com.terminaldetector.drmd.network.BoardingNetworking;
 import com.terminaldetector.drmd.physics.collision.BodyJointConstraint;
+import com.terminaldetector.drmd.physics.collision.BodyBounds;
+import com.terminaldetector.drmd.physics.collision.OrientedBox;
 import com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions;
 import com.terminaldetector.drmd.world.access.CubicAvailability;
 import com.terminaldetector.drmd.world.access.WorldAccess;
@@ -101,9 +103,11 @@ public final class NativeConnectedPortalCheck {
             require(BodyJointRegistry.get(w).find(link.id()).filter(link::equals).isPresent(),"original material joint disappeared or changed");
             var attachment=BoardingSystem.state(player);
             if(launchRequested&&!launched){require(attachment!=null&&attachment.grounded()&&attachment.support()==rootId&&!DescentPlayerData.get(player).isEnabled()&&!player.getAbilities().flying,"launch requires real occupied walking contact");
-                Vec3 pivot=root.massPosition();for(var body:List.of(root,child)){Vec3 delta=DELTA.plus(OMEGA.cross(body.massPosition().minus(pivot)));body.physics().applyImpulse(delta.scaled(body.physics().mass()),ZERO);body.physics().withAngularVelocity(OMEGA);body.publishPhysicsState();}
-                player.setVelocity(player.getVelocity().add(mc(DELTA.plus(OMEGA.cross(p(player.getPos()).minus(pivot)))).multiply(.05)));player.velocityModified=true;launchPulses++;launched=true;
-                System.out.println("CONNECTED_PORTAL_SINGLE_LAUNCH tick="+server.getTicks()+" player="+player.getPos()+" support="+attachment.support());
+                Vec3 pivot=root.massPosition();
+                Vec3 launch = launchVelocity(player, attachment);
+                for(var body:List.of(root,child)){Vec3 delta=launch.plus(OMEGA.cross(body.massPosition().minus(pivot)));body.physics().applyImpulse(delta.scaled(body.physics().mass()),ZERO);body.physics().withAngularVelocity(OMEGA);body.publishPhysicsState();}
+                player.setVelocity(player.getVelocity().add(mc(launch.plus(OMEGA.cross(p(player.getPos()).minus(pivot)))).multiply(.05)));player.velocityModified=true;launchPulses++;launched=true;
+                System.out.println("CONNECTED_PORTAL_SINGLE_LAUNCH tick="+server.getTicks()+" player="+player.getPos()+" support="+attachment.support()+" velocity="+launch);
             }
             double error=root.localToWorld(new Vec3d(2,.5,.5)).distanceTo(child.localToWorld(new Vec3d(0,.5,.5)));
             require(error<.08,"physical joint anchor separation "+error);
@@ -121,6 +125,23 @@ public final class NativeConnectedPortalCheck {
                 System.out.println("CONNECTED_PORTAL_GROUP_CROSSED actual="+now);
             }
         }catch(Throwable error){failure=error.toString();error.printStackTrace();}
+    }
+    /** Aim the authored pulse from the actual occupied launch pose. The rider may tip
+     * the floating island while the first screenshot waits on its render thread. */
+    private static Vec3 launchVelocity(ServerPlayerEntity player, DynamicBodyAttachment.State attachment) {
+        BodyBounds bounds = PassengerFrame.box(p(player.getPos()), player.getWidth(), player.getHeight(),
+            attachment.frame()).bounds();
+        for (var hull : List.of(root,child)) {
+            var shape = OrientedBox.local(hull.collider().bounds().orElseThrow(), hull.massPosition(),
+                hull.localCentre(), hull.rotation());
+            bounds = bounds.union(shape.bounds());
+        }
+        var centre = bounds.centre();
+        var velocity = root.physics().linearVelocity();
+        double seconds = MathHelper.clamp((A.getZ() - bounds.max().z()) / DELTA.z(), .15, .6);
+        double x = MathHelper.clamp((A.getX() + .5 - centre.x()) / seconds - velocity.x(), -3, 3);
+        double y = MathHelper.clamp((A.getY() + .5 - centre.y()) / seconds - velocity.y(), -3, 3);
+        return new Vec3(x, y, DELTA.z());
     }
     /** Passive observations around the existing real body method. No engine call/pose is supplied by this hook. */
     public static void crossing(BlockBodyEntity body,D6PortalTransform transform,boolean after){

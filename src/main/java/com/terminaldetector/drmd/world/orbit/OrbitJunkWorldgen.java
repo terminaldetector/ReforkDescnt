@@ -17,7 +17,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 
 /**
- * Sparse orbit content: junk plates (A/B) and techno-ring satellites.
+ * Sparse techno-ring satellites. Older worlds can still contain debris plates.
  * Not the End — End remains a separate max-height task.
  */
 public final class OrbitJunkWorldgen {
@@ -25,7 +25,7 @@ public final class OrbitJunkWorldgen {
 
 	public static void register() {
 		ServerChunkEvents.CHUNK_LOAD.register(OrbitJunkWorldgen::onChunkLoad);
-		DescentMod.LOGGER.info("Orbit junk / techno-ring scaffold registered");
+		DescentMod.LOGGER.info("Techno-ring satellite worldgen registered");
 	}
 
 	private static void onChunkLoad(ServerWorld world, WorldChunk chunk) {
@@ -50,15 +50,6 @@ public final class OrbitJunkWorldgen {
 					});
 				});
 			}
-			return;
-		}
-
-		// Layer A / B junk — sparse debris platforms beside / near ring
-		if (OrbitBands.besideRing(cx, cz) && Math.floorMod(seed >> 3, 10L) == 0L) {
-			boolean layerB = Math.floorMod(seed >> 7, 2L) == 0L;
-			int y = layerB ? OrbitBands.LAYER_B_Y : OrbitBands.LAYER_A_Y;
-			BlockPos at = new BlockPos(cx, y, cz);
-			world.getServer().execute(() -> placeJunkPlate(world, at, Random.create(seed)));
 		}
 	}
 
@@ -68,34 +59,5 @@ public final class OrbitJunkWorldgen {
 				MacroEntry.Kind.INVERTED_ISLAND, MacroEntry.Kind.FLOATING_CONTINENT
 		};
 		return kinds[(int) Math.floorMod(seed >> 5, kinds.length)];
-	}
-
-	private static void placeJunkPlate(ServerWorld world, BlockPos at, Random random) {
-		if (world.getBlockState(at).isOf(Blocks.IRON_BLOCK)) return;
-		int r = 4 + random.nextInt(5);
-		BlockPos.Mutable m = new BlockPos.Mutable();
-		for (int x = -r; x <= r; x++) {
-			for (int z = -r; z <= r; z++) {
-				if (x * x + z * z > r * r) continue;
-				m.set(at.getX() + x, at.getY(), at.getZ() + z);
-				Block b = switch (random.nextInt(5)) {
-					case 0 -> Blocks.IRON_BLOCK;
-					case 1 -> Blocks.OXIDIZED_COPPER;
-					case 2 -> Blocks.DEEPSLATE_TILES;
-					case 3 -> Blocks.GRAY_CONCRETE;
-					default -> Blocks.CHAIN;
-				};
-				world.setBlockState(m, b.getDefaultState(), Block.NOTIFY_LISTENERS);
-				if (random.nextFloat() < 0.12f) {
-					world.setBlockState(m.up(), Blocks.LANTERN.getDefaultState(), Block.NOTIFY_LISTENERS);
-				}
-			}
-		}
-		// Occasional inverted gravity cue block for high-altitude 6DoF villages later
-		if (random.nextFloat() < 0.2f) {
-			world.setBlockState(at.up(),
-					com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState(),
-					Block.NOTIFY_LISTENERS);
-		}
 	}
 }

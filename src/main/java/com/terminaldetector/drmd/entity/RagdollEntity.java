@@ -7,6 +7,7 @@ import com.terminaldetector.drmd.d6.D6PortalTransform;
 import com.terminaldetector.drmd.physics.PhysicsTarget;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollRig;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollSimulation;
+import com.terminaldetector.drmd.physics.ragdoll.RagdollSweep;
 import com.terminaldetector.drmd.physics.ragdoll.RagdollPortalTransfer;
 import com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions;
 import com.terminaldetector.drmd.entity.model.FlightWreckRig;
@@ -148,11 +149,39 @@ public final class RagdollEntity extends Entity implements PhysicsTarget {
 
 	private void resolveTerrain(RagdollSimulation.Part part, Vec3 fallbackPosition) {
 		Box bounds = partBox(part);
-		if (!insideLoadedWorld(bounds)) {
+		Box before=partBox(part.segment(),fallbackPosition,part.body().rotation());
+		if (!insideLoadedWorld(union(before,bounds))) {
 			part.body().withPosition(fallbackPosition)
 					.withLinearVelocity(new Vec3(0, 0, 0))
 					.withAngularMomentum(new Vec3(0, 0, 0));
 			return;
+		}
+		// Endpoint-only penetration misses a thin wall when both ends of a substep are clear.
+		// Sweep the same conservative box used below; full rotational CCD remains separate.
+		Vec3 from=fallbackPosition,to=part.body().position();
+		for(int contact=0;contact<4;contact++){
+			Vec3 delta=to.minus(from);if(delta.lengthSquared()<1e-20)break;
+			Box start=partBox(part.segment(),from,part.body().rotation());
+			Box end=partBox(part.segment(),to,part.body().rotation());
+			Box swept=union(start,end);
+			if(!insideLoadedWorld(swept)){
+				part.body().withPosition(fallbackPosition).withLinearVelocity(new Vec3(0,0,0)).withAngularMomentum(new Vec3(0,0,0));return;
+			}
+			Vec3 half=new Vec3((start.maxX-start.minX)*.5,(start.maxY-start.minY)*.5,(start.maxZ-start.minZ)*.5);
+			RagdollSweep.Hit first=null;
+			for(var shape:getWorld().getBlockCollisions(this,swept.expand(1e-7))){
+				Box obstacle=shape.getBoundingBox();
+				var hit=RagdollSweep.firstContact(from,to,half,new Vec3(obstacle.minX,obstacle.minY,obstacle.minZ),new Vec3(obstacle.maxX,obstacle.maxY,obstacle.maxZ));
+				if(hit!=null&&(first==null||hit.fraction()<first.fraction()))first=hit;
+			}
+			if(first==null){part.body().withPosition(to);break;}
+			Vec3 normal=first.normal();
+			from=from.plus(delta.scaled(first.fraction())).plus(normal.scaled(CONTACT_EPSILON));
+			part.body().withPosition(from);
+			part.body().contactImpulse(normal.scaled(-projectionRadius(part,normal)),normal,.72);
+			Vec3 remaining=delta.scaled(1-first.fraction());double into=remaining.dot(normal);
+			if(into<0)remaining=remaining.minus(normal.scaled(into));
+			to=from.plus(remaining); // retain tangential travel; bound corner work to four contacts
 		}
 
 		for (int pass = 0; pass < 4; pass++) {

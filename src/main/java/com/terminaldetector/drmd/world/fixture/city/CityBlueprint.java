@@ -41,6 +41,13 @@ public final class CityBlueprint {
         }
     }
     private CityBlueprint(){}
+    /** Existing validated cell/hash protocol reused by other original manual fixtures. */
+    static Plan assembled(long seed,Point anchor,Limits limits,List<Building> buildings,Map<Point,String> authored){
+        var sorted=new TreeMap<Point,String>(PAGE_ORDER);sorted.putAll(authored);
+        var cells=sorted.entrySet().stream().map(e->new Cell(e.getKey(),e.getValue())).toList();
+        int solid=(int)cells.stream().filter(c->!c.state().equals(AIR)).count();
+        return new Plan(seed,anchor,limits,buildings,cells,solid,cells.size()-solid,hash(seed,anchor,limits,cells));
+    }
     public static Plan create(long seed,Point anchor,Limits limits){
         Objects.requireNonNull(anchor);Objects.requireNonNull(limits);validateBounds(anchor,limits);
         var layout=new ArrayList<Archetype>();for(var a:Archetype.values()){layout.add(a);layout.add(a);}Collections.shuffle(layout,new Random(seed));

@@ -10,6 +10,24 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 public final class DrillSafetyGameTests implements FabricGameTest {
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void publicHeavyDropsAndBoundaryRingRejectUnknownAndKeepUnbreakableMaterial(TestContext context) {
+        var world=context.getWorld();var at=context.getAbsolutePos(new BlockPos(4,5,4));
+        var far=new BlockPos(((at.getX()+8_000_000)>>4)*16+8,at.getY(),((at.getZ())>>4)*16+8);
+        context.assertTrue(!world.isChunkLoaded(far),"direct public mining target starts unknown");
+        try(var drops=new com.terminaldetector.drmd.world.engineer.HeavyDrillDrops(world,null,Vec3d.ofCenter(at))) {
+            context.assertTrue(!drops.breakBlock(far),"drop adapter refuses before unknown block/BE/loot queries");
+        }
+        context.assertTrue(TunnelCarving.carveBoundaryRing(world,far.getX(),far.getZ(),1.4,far.getY(),far.getY())==0
+            &&!world.isChunkLoaded(far),"boundary authoring also retains unknown storage");
+        world.setBlockState(at,Blocks.BEDROCK.getDefaultState(),2);
+        try(var drops=new com.terminaldetector.drmd.world.engineer.HeavyDrillDrops(world,null,Vec3d.ofCenter(at))) {
+            context.assertTrue(!drops.breakBlock(at)&&world.getBlockState(at).isOf(Blocks.BEDROCK),"direct helper cannot bypass hardness protection");
+            world.setBlockState(at,Blocks.STONE.getDefaultState(),2);
+            context.assertTrue(drops.breakBlock(at)&&world.getBlockState(at).isAir(),"known ordinary material still yields one normal break");
+        }
+        context.complete();
+    }
     @GameTest(templateName="drmd:collapse_lab")
     public void heavyBoreBatchesLootAndStopsAddingEntitiesAtLocalCap(TestContext context) {
         var world=context.getWorld();var at=context.getAbsolutePos(new BlockPos(12,8,12));

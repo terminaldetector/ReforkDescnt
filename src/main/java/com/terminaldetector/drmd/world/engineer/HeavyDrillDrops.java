@@ -21,7 +21,10 @@ public final class HeavyDrillDrops implements AutoCloseable {
         this.world=world;this.breaker=breaker;this.output=output;
     }
     public boolean breakBlock(BlockPos pos) {
-        var state=world.getBlockState(pos);
+        if(!com.terminaldetector.drmd.world.access.CubicAvailability.onWorldThread(world)
+            ||!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,pos,breaker))return false;
+        var state=com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(pos).orElse(null);
+        if(state==null||state.isAir()||!state.getFluidState().isEmpty()||state.getHardness(world,pos)<0)return false;
         boolean creative=breaker instanceof PlayerEntity player && player.isCreative();
         var loot=creative?List.<ItemStack>of():Block.getDroppedStacks(state,world,pos,world.getBlockEntity(pos),breaker,ItemStack.EMPTY);
         if(!world.breakBlock(pos,false,breaker))return false;
@@ -43,7 +46,9 @@ public final class HeavyDrillDrops implements AutoCloseable {
         }
     }
     @Override public void close() {
-        if(stacks.isEmpty())return;
+        if(stacks.isEmpty()||!com.terminaldetector.drmd.world.access.CubicAvailability.onWorldThread(world)
+            ||!Double.isFinite(output.lengthSquared())
+            ||com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(BlockPos.ofFloored(output)).isEmpty())return;
         var nearby=new ArrayList<ItemEntity>();
         world.collectEntitiesByType(net.minecraft.util.TypeFilter.instanceOf(ItemEntity.class),
             new Box(BlockPos.ofFloored(output)).expand(12),e->e.isAlive(),nearby,MAX_NEARBY_ENTITIES);

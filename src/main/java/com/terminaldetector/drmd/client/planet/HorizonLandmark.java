@@ -31,6 +31,15 @@ public record HorizonLandmark(int x, int y, int z, int sizeX, int sizeY, int siz
 		return Math.max(8, sizeY);
 	}
 
+	/** Floating catalogue entries already carry world Y and extent. Never tether them to procedural ground. */
+	public double baseY(double terrainHeight) {
+		return switch(kind) {
+			case ARCH, RING, FLOATING_CONTINENT, SPIRAL_RANGE, INVERTED_ISLAND,
+					STATION, KLONDIKE_ISLAND, END_ISLAND -> y-height()*.5;
+			default -> terrainHeight;
+		};
+	}
+
 	/** Half-width of the footprint, clamped so a catalogue oddity cannot fill the sky. */
 	public int halfWidth() {
 		return Math.max(4, Math.min(160, (sizeX + sizeZ) / 4));

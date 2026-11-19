@@ -45,6 +45,7 @@ public final class CubicClientGate implements ClientModInitializer {
     private String capture;
     private final List<String> results=new ArrayList<>();
     @Override public void onInitializeClient() {
+        if(NativePs1AtmosphereCheck.ENABLED){NativePs1AtmosphereCheck.register();return;}
         if(NativePresentationCheck.ENABLED){NativePresentationCheck.register();return;}
         if(NativeMountedWeaponCheck.ENABLED){NativeMountedWeaponCheck.register();return;}
         if(NativeMechanismCheck.ENABLED){NativeMechanismCheck.register();return;}

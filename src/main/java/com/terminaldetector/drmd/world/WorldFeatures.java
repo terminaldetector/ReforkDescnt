@@ -11,7 +11,7 @@ public final class WorldFeatures {
 	/** Sparse floating islands in the sky band. */
 	public static boolean KLONDIKE_ISLANDS = true;
 
-	/** Sparse orbit debris and techno-ring structures. */
+	/** Techno-ring satellites. Keeps the original config key for existing profiles. */
 	public static boolean ORBIT_JUNK = true;
 
 	/** Large industrial structures and landmarks. */

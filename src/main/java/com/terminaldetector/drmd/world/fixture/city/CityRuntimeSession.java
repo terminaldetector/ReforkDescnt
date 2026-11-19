@@ -20,11 +20,15 @@ public final class CityRuntimeSession {
     private CompletableFuture<Void> closeAck;private CityBatchJournal.Disposition closeIntent=CityBatchJournal.Disposition.PAUSED;
     private boolean restoredOnly;private long lastTick=Long.MIN_VALUE;
     private CityAuthoringJob.Inspection lastJob;private CityWorldStorage.Diagnostic lastStorage;
+    private OrbitalRouteProgress route;
 
     public static CityRuntimeSession plan(ServerPlayerEntity owner,long citySeed,CityBlueprint.Point anchor){
+        return plan(owner,citySeed,anchor,CityManifest.Kind.CITY);
+    }
+    public static CityRuntimeSession plan(ServerPlayerEntity owner,long citySeed,CityBlueprint.Point anchor,CityManifest.Kind kind){
         var context=CityWorldStorage.capture(owner);CityWorldStorage.requireHaloEnvelope(context,anchor);
         var root=owner.getServerWorld().getServer().getSavePath(WorldSavePath.ROOT);
-        return new CityRuntimeSession(owner,CityIoSession.create(root,new CityIoSession.Draft(context,citySeed,anchor)));
+        return new CityRuntimeSession(owner,CityIoSession.create(root,new CityIoSession.Draft(context,citySeed,anchor,kind)));
     }
     public static CityRuntimeSession openExisting(ServerPlayerEntity owner){
         var context=CityWorldStorage.capture(owner);var root=owner.getServerWorld().getServer().getSavePath(WorldSavePath.ROOT);
@@ -98,6 +102,24 @@ public final class CityRuntimeSession {
     }
     public boolean pause(UUID id){caller(id);if(closeAck!=null||job==null)return false;boolean accepted=job.pause(id);if(accepted)updateState();return accepted;}
     public boolean cancel(UUID id){caller(id);if(closeAck!=null||state==State.CLOSED)return false;if(job!=null)job.cancel(id);beginClose(CityBatchJournal.Disposition.CANCELLED,"Stopped; persisting terminal cancellation");return true;}
+    /** Read-only guide after actual placement; only actual owner position and loaded air can advance. */
+    public String route(UUID id){
+        caller(id);
+        if(!contextStillMatches()||manifest==null||manifest.kind()!=CityManifest.Kind.ORBITAL_PILOT||job==null||job.inspect().state()!=CityAuthoringJob.State.COMPLETED)
+            throw new IllegalStateException("Complete an explicitly applied orbital pilot before starting its route");
+        if(route==null)route=new OrbitalRouteProgress(OrbitalRouteBlueprint.gates(manifest.anchor()));
+        var next=route.next();var at=next.position();var access=com.terminaldetector.drmd.world.access.WorldAccess.of(world);boolean clear=true;
+        for(int x=-1;x<=1;x++)for(int z=-1;z<=1;z++)for(int y=0;y<3;y++){
+            var pos=new net.minecraft.util.math.BlockPos(at.x()+x,at.y()+y,at.z()+z);
+            var cell=access.readIfLoaded(pos);if(cell.isEmpty()||!cell.get().isAir())clear=false;
+        }
+        var position=new OrbitalRouteProgress.Position(owner.getX(),owner.getY(),owner.getZ());
+        var progress=route.observe(position,world.getTime(),clear);
+        if(progress.complete())return "Orbital route complete: "+progress.passed()+" gates, "+progress.elapsedTicks()+" actual world ticks. Session measurement only; no reward.";
+        next=route.next();
+        return "Orbital route "+progress.passed()+"/"+progress.total()+"; next "+next.id()+" "+next.position()+"; distance "+Math.round(route.distance(position))
+            +"m; elapsed "+progress.elapsedTicks()+" ticks"+(clear?"":"; current gate blocked/unavailable")+". Fly/walk normally, then use route again.";
+    }
     public void ownerDisconnected(UUID id){mainThread();if(ownerId.equals(id))beginClose(CityBatchJournal.Disposition.PAUSED,"Operator disconnected; explicit reopen/resume required");}
     public void stop(){mainThread();beginClose(CityBatchJournal.Disposition.PAUSED,"Server stopping; asynchronous durable drain");detachPhysicalState();}
     private void beginClose(CityBatchJournal.Disposition intent,String message){

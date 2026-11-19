@@ -213,21 +213,7 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
                         c.assertTrue(destination.y>=f.w.getBottomY()&&destination.y+f.player.entity.getHeight()<f.w.getTopY(),"real escape stays in world bounds");
                         f.player.entity.setPosition(destination);f.player.entity.setVelocity(Vec3d.ZERO);
                     }else{
-                        // After400ticks of real combat an ORB may already be inside the old player
-                        // room. Choose one bounded real shelter excluding the actual attacking hulls.
-                        Vec3d hiding=null;
-                        for(var shift:new Vec3d[]{new Vec3d(8,0,0),new Vec3d(-8,0,0),new Vec3d(0,0,8),new Vec3d(0,0,-8),new Vec3d(0,8,0),new Vec3d(0,-8,0)}){
-                            var candidate=f.player.entity.getPos().add(shift);var centre=BlockPos.ofFloored(candidate);
-                            var room=new Box(Vec3d.of(centre.add(-2,-1,-2)),Vec3d.of(centre.add(3,4,3))).expand(1);
-                            if(room.minY<f.w.getBottomY()||room.maxY>f.w.getTopY()||patrol.stream().anyMatch(d->room.intersects(d.getBoundingBox())))continue;
-                            if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedSegment(f.w,f.player.entity.getEyePos(),candidate.add(0,f.player.entity.getStandingEyeHeight(),0)))continue;
-                            hiding=candidate;break;
-                        }
-                        c.assertTrue(hiding!=null,"real cover admission excludes every current pressure ORB within six fixed loaded candidates");
-                        f.seal(hiding);f.player.entity.setPosition(hiding);f.player.entity.setVelocity(Vec3d.ZERO);
-                        c.assertTrue(patrol.stream().allMatch(d->f.w.raycast(new RaycastContext(d.getEyePos(),f.player.entity.getEyePos(),RaycastContext.ShapeType.COLLIDER,RaycastContext.FluidHandling.NONE,d)).getType()==net.minecraft.util.hit.HitResult.Type.BLOCK),
-                            "fresh real material blocks all outside attackers after the single legitimate shelter entry");
-                        System.out.println("THREAT_PRESSURE_COVER player="+hiding+" world="+now+" actors="+pressureActors(f,patrol));
+                        shelterOutsidePatrol(f,patrol);
                     }
                     return;
                 }
@@ -271,9 +257,92 @@ public final class SurvivalThreatGameTests implements FabricGameTest {
         });
         admitted(c,f->{live[0]=f;f.state().restorePlayer(f.player.entity.getUuid(),searching(f.at,f.w.getTime()));});
     }
+    /** Existing bounded physical shelter admission shared by the original pressure proof. */
+    private static Vec3d shelterOutsidePatrol(Fixture f,List<DroneEntity> patrol){
+        // After400ticks of real combat an ORB may already be inside the old player
+        // room. Choose one bounded real shelter excluding the actual attacking hulls.
+        Vec3d hiding=null;
+        for(var shift:new Vec3d[]{new Vec3d(8,0,0),new Vec3d(-8,0,0),new Vec3d(0,0,8),new Vec3d(0,0,-8),new Vec3d(0,8,0),new Vec3d(0,-8,0)}){
+            var candidate=f.player.entity.getPos().add(shift);var centre=BlockPos.ofFloored(candidate);
+            var room=new Box(Vec3d.of(centre.add(-2,-1,-2)),Vec3d.of(centre.add(3,4,3))).expand(1);
+            if(room.minY<f.w.getBottomY()||room.maxY>f.w.getTopY()||patrol.stream().anyMatch(d->room.intersects(d.getBoundingBox())))continue;
+            if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.loadedSegment(f.w,f.player.entity.getEyePos(),candidate.add(0,f.player.entity.getStandingEyeHeight(),0)))continue;
+            hiding=candidate;break;
+        }
+        f.c.assertTrue(hiding!=null,"real cover admission excludes every current pressure ORB within six fixed loaded candidates");
+        f.seal(hiding);f.player.entity.setPosition(hiding);f.player.entity.setVelocity(Vec3d.ZERO);
+        f.c.assertTrue(patrol.stream().allMatch(d->f.w.raycast(new RaycastContext(d.getEyePos(),f.player.entity.getEyePos(),RaycastContext.ShapeType.COLLIDER,RaycastContext.FluidHandling.NONE,d)).getType()==net.minecraft.util.hit.HitResult.Type.BLOCK),
+            "fresh real material blocks all outside attackers after the single legitimate shelter entry");
+        System.out.println("THREAT_PRESSURE_COVER player="+hiding+" world="+f.w.getTime()+" actors="+pressureActors(f,patrol));
+        return hiding;
+    }
     private static Object pressureActors(Fixture f,List<DroneEntity> patrol){
         return patrol.stream().limit(2).map(d->d.getUuid()+" age="+d.age+" pos="+d.getPos()+" v="+d.getVelocity()+" persistent="+d.isPersistent()+" lease="+SurvivalThreatDirector.leasesDespawn(d)
             +" alive="+d.isAlive()+" removed="+d.isRemoved()+" aiOff="+d.isAiDisabled()+" ticking="+f.w.shouldTickEntity(d.getBlockPos())
             +" retreat="+SurvivalThreatDirector.retreatFrom(d)).toList();
+    }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="threat-coherent-day-night",tickLimit=2_400)
+    public void oneRealDuskToNightHuntSupportsWarningShelterAndEscapeWithoutRenewingThePair(TestContext c){
+        Fixture[] live={null};boolean[] done={false},clock={false},oldCycle={false},day={false},night={false};
+        long[] oldDay={0},started={0},warningAt={-1},hiddenAt={-1},escapeAt={-1},coolAt={-1};Point[] remembered={null};
+        var actors=new LinkedHashSet<UUID>();var roundsAtCooldown=new HashSet<UUID>();int[] stage={0};
+        Runnable close=()->{var f=live[0];if(f==null)return;
+            try{f.close();}finally{if(clock[0]){f.w.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE).set(oldCycle[0],f.w.getServer());
+                f.w.setTimeOfDay(oldDay[0]+(oldCycle[0]?f.w.getTime()-started[0]:0));clock[0]=false;}}
+        };
+        c.runAtEveryTick(()->{var f=live[0];if(f==null||done[0])return;try{
+            f.w.resetIdleTimeout();budgets(c);long now=f.w.getTime(),elapsed=now-started[0],sky=f.w.getTimeOfDay();
+            c.assertTrue(sky==11_800+elapsed,"day/night advances on the real ordinary daylight clock without in-event jumps");
+            day[0]|=f.w.isDay();night[0]|=day[0]&&f.w.isNight();
+            var owner=f.player.entity;var progress=f.state().progress(owner.getUuid()).orElseThrow();var patrol=f.patrol();
+            c.assertTrue(owner.isAlive()&&!owner.isCreative()&&!owner.isSpectator(),"same actual connected Survival owner remains eligible");
+            if(warningAt[0]<0){
+                c.assertTrue(elapsed<20,"confirmed actual kill reaches the ordinary warning decision");
+                if(progress.phase()!=Phase.WARNING)return;warningAt[0]=progress.since();
+                c.assertTrue(progress.until()-progress.since()==WARNING_TICKS&&progress.pending()==false,"full400tick warning, not a shortened fixture alarm");
+            }
+            if(now<warningAt[0]+WARNING_TICKS){c.assertTrue(progress.phase()==Phase.WARNING&&patrol.isEmpty(),"no attack wave before full telegraph");return;}
+            if(stage[0]==0){
+                c.assertTrue(elapsed<1_600,"naturally acquired pressure reaches the genuine night interval: "+progress+" sky="+sky+" night="+f.w.isNight());
+                if(progress.phase()!=Phase.SIEGE||!night[0])return;
+                c.assertTrue(day[0]&&f.w.isNight()&&patrol.size()==2&&progress.spawned()==2&&patrol.stream().anyMatch(d->d.getTarget()==owner&&d.canSee(owner)),
+                    "same event naturally crosses actual day/night and acquires its own eligible player");
+                for(var d:patrol){actors.add(d.getUuid());c.assertTrue(d.getCommandTags().contains("drmd.threat.faction="+SurvivalThreatState.FACTION),"real original faction attribution");}
+                remembered[0]=progress.known();hiddenAt[0]=now;shelterOutsidePatrol(f,patrol);stage[0]=1;
+                System.out.println("DAY_NIGHT_HUNT shelter world="+now+" sky="+sky+" actors="+actors+" warningAt="+warningAt[0]);return;
+            }
+            if(stage[0]==1){
+                if(now-hiddenAt[0]<LOST_SIGHT_TICKS+SurvivalThreatDirector.INTERVAL+5)return;
+                c.assertTrue(progress.phase()==Phase.SEARCHING&&progress.known().equals(remembered[0])&&progress.lastSeen()<=hiddenAt[0],
+                    "night shelter stops observation; searching follows only the actual remembered point");
+                c.assertTrue(patrol.size()==2&&patrol.stream().allMatch(d->actors.contains(d.getUuid()))&&progress.spawned()==2,"shelter cannot mint a replacement wave");
+                var at=owner.getPos();double dy=at.y-f.w.getBottomY()>162?-161:161;var destination=at.add(0,dy,0);
+                c.assertTrue(destination.y>=f.w.getBottomY()&&destination.y+owner.getHeight()<f.w.getTopY(),"escape stays in the same loaded columns and dimension bounds");
+                owner.setPosition(destination);owner.setVelocity(Vec3d.ZERO);escapeAt[0]=now;stage[0]=2;
+                System.out.println("DAY_NIGHT_HUNT escape world="+now+" sky="+sky+" known="+remembered[0]);return;
+            }
+            if(stage[0]==2){
+                c.assertTrue(now-escapeAt[0]<=SurvivalThreatDirector.INTERVAL+5,"escape promptly ends the same hunt");if(progress.phase()!=Phase.COOLDOWN)return;
+                coolAt[0]=now;stage[0]=3;
+                for(var entity:f.w.iterateEntities())if(entity instanceof ProjectileEntity shot&&actors.contains(shot.getOwnerUuid()))roundsAtCooldown.add(shot.getUuid());
+            }
+            c.assertTrue(progress.phase()==Phase.COOLDOWN&&progress.spawned()==2&&!progress.pending(),"one finite recovery, no recursive alarm or pair refill");
+            for(var entity:f.w.iterateEntities())if(entity instanceof ProjectileEntity shot&&actors.contains(shot.getOwnerUuid()))
+                c.assertTrue(roundsAtCooldown.contains(shot.getUuid()),"actual night escape stops new fire while old rounds keep ordinary flight");
+            if(now-coolAt[0]<LOST_SIGHT_TICKS+SurvivalThreatDirector.INTERVAL+10)return;
+            c.assertTrue(f.state().rosterSize(owner.getUuid())==0&&actors.stream().allMatch(id->f.w.getEntity(id)==null||f.w.getEntity(id).isRemoved()),"the actual original pair retires at its bounded recovery deadline");
+            c.assertTrue(day[0]&&night[0]&&sky>11_800&&now>started[0],"observed real day/night and normal world-clock progress, not synthetic state advancement");
+            System.out.println("DAY_NIGHT_HUNT_PASS elapsed="+elapsed+" sky="+sky+" warningAt="+warningAt[0]+" shelterAt="+hiddenAt[0]+" escapeAt="+escapeAt[0]+" cooldownAt="+coolAt[0]+" ids="+actors);
+            done[0]=true;close.run();c.complete();
+        }catch(Throwable failure){done[0]=true;close.run();throw failure;}});
+        admitted(c,f->{live[0]=f;try{
+            c.assertTrue(f.w.getDimension().hasSkyLight(),"ordinary sky-lit world for an actual day/night event");
+            oldDay[0]=f.w.getTimeOfDay();oldCycle[0]=f.w.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE);started[0]=f.w.getTime();clock[0]=true;
+            f.w.getGameRules().get(GameRules.DO_DAYLIGHT_CYCLE).set(true,f.w.getServer());f.w.setTimeOfDay(11_800); // Initial fixture setup only.
+            f.state().restorePlayer(f.player.entity.getUuid(),ready(f.at)); // Mature-player prerequisite; no claim to repeat12k novice-clock proof.
+            var victim=f.victim();f.kill(victim,f.player.entity.getDamageSources().playerAttack(f.player.entity));
+            c.assertTrue(f.state().progress(f.player.entity.getUuid()).orElseThrow().pending(),"real attributed death event, not a direct alarm/advance call");
+        }catch(Throwable failure){done[0]=true;close.run();throw failure;}});
     }
 }

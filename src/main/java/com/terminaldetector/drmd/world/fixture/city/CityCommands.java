@@ -2,8 +2,10 @@ package com.terminaldetector.drmd.world.fixture.city;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import java.util.function.Function;
@@ -14,18 +16,11 @@ public final class CityCommands {
     static void register(){
         CommandRegistrationCallback.EVENT.register((dispatcher,registries,environment)->{
             var root=CommandManager.literal("ungravitycity").requires(source->source.getEntity() instanceof ServerPlayerEntity p&&CityWorldStorage.eligible(p));
-            var coordinates=CommandManager.argument("x",IntegerArgumentType.integer()).then(CommandManager.argument("y",IntegerArgumentType.integer())
-                .then(CommandManager.argument("z",IntegerArgumentType.integer()).executes(context->{
-                    var player=context.getSource().getPlayer();
-                    return execute(player,p->{
-                        var anchor=new CityBlueprint.Point(IntegerArgumentType.getInteger(context,"x"),IntegerArgumentType.getInteger(context,"y"),IntegerArgumentType.getInteger(context,"z"));
-                        CityAuthoringSystem.plan(p,LongArgumentType.getLong(context,"seed"),anchor);return "Preparing one inert fixed-slot city plan; inspect before apply.";
-                    });
-                })));
-            root.then(CommandManager.literal("plan").then(CommandManager.argument("seed",LongArgumentType.longArg()).then(coordinates)));
+            root.then(CommandManager.literal("plan").then(CommandManager.argument("seed",LongArgumentType.longArg()).then(coordinates(CityManifest.Kind.CITY))));
+            root.then(CommandManager.literal("planorbital").then(CommandManager.argument("seed",LongArgumentType.longArg()).then(coordinates(CityManifest.Kind.ORBITAL_PILOT))));
             root.then(CommandManager.literal("inspect").executes(context->execute(context.getSource().getPlayer(),player->{
                     var status=CityAuthoringSystem.inspect(player).inspect();var text=new StringBuilder("City ").append(status.state()).append(": ").append(status.detail());
-                    status.manifest().ifPresent(m->text.append("\nAnchor ").append(m.anchor()).append("; solids ").append(m.solidCount()).append("/65536; cuts ").append(m.cutCount()).append("/65536; actors0/BE0"));
+                    status.manifest().ifPresent(m->text.append("\nAnchor ").append(m.anchor()).append("; template ").append(m.kind()).append("; solids ").append(m.solidCount()).append("/65536; cuts ").append(m.cutCount()).append("/65536; actors0/BE0"));
                     status.closedSnapshot().ifPresent(s->text.append("\nDurable ").append(s.disposition()).append("; cursor ").append(s.cursor()));
                     return text.append("\n").append(status.sterileLimit()).toString();
             })));
@@ -33,8 +28,18 @@ public final class CityCommands {
             root.then(CommandManager.literal("pause").executes(context->{var p=context.getSource().getPlayer();return control(p,session->session.pause(p.getUuid()));}));
             root.then(CommandManager.literal("resume").executes(context->{var p=context.getSource().getPlayer();return control(p,session->session.resume(p.getUuid()));}));
             root.then(CommandManager.literal("cancel").executes(context->{var p=context.getSource().getPlayer();return control(p,session->session.cancel(p.getUuid()));}));
+            root.then(CommandManager.literal("route").executes(context->execute(context.getSource().getPlayer(),p->
+                CityAuthoringSystem.active(p).orElseThrow(()->new IllegalStateException("No current orbital pilot")).route(p.getUuid()))));
             dispatcher.register(root);
         });
+    }
+    private static RequiredArgumentBuilder<ServerCommandSource,Integer> coordinates(CityManifest.Kind kind){
+        return CommandManager.argument("x",IntegerArgumentType.integer()).then(CommandManager.argument("y",IntegerArgumentType.integer())
+            .then(CommandManager.argument("z",IntegerArgumentType.integer()).executes(context->execute(context.getSource().getPlayer(),p->{
+                var anchor=new CityBlueprint.Point(IntegerArgumentType.getInteger(context,"x"),IntegerArgumentType.getInteger(context,"y"),IntegerArgumentType.getInteger(context,"z"));
+                CityAuthoringSystem.plan(p,LongArgumentType.getLong(context,"seed"),anchor,kind);
+                return kind==CityManifest.Kind.CITY?"Preparing one inert fixed-slot city plan; inspect before apply.":"Preparing inert original orbital ring/Citadel pilot; inspect then apply explicitly. No world writes yet.";
+            }))));
     }
     private static int control(ServerPlayerEntity player,Function<CityRuntimeSession,Boolean> operation){
         return execute(player,p->{

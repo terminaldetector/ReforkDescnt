@@ -51,6 +51,8 @@ public final class TunnelCarving {
 	 * @return blocks turned into {@link CarvedBlock}s
 	 */
 	public static int carveBoundaryRing(ServerWorld world, int centerX, int centerZ, double radius, int y0, int y1) {
+		if(!com.terminaldetector.drmd.world.access.CubicAvailability.onWorldThread(world)
+			||!Double.isFinite(radius)||radius<=0)return 0;
 		int yLo = Math.min(y0, y1);
 		int yHi = Math.max(y0, y1);
 		int outer = (int) Math.ceil(radius) + 1;
@@ -68,8 +70,9 @@ public final class TunnelCarving {
 				int z = centerZ + dz;
 				for (int y = yLo; y <= yHi; y++) {
 					pos.set(x, y, z);
-					BlockState state = world.getBlockState(pos);
-					if (state.isAir()) continue;
+					if(!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,pos,null))continue;
+					BlockState state = com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(pos).orElse(null);
+					if (state==null || state.isAir()) continue;
 					if (CarvedBlock.replace(world, pos, state, mask) != null) written++;
 				}
 			}
@@ -111,7 +114,8 @@ public final class TunnelCarving {
     }
     public static int carveCapsule(ServerWorld world, Vec3d segStart, Vec3d segEnd, double radius,
             LivingEntity breaker,boolean compactDrops) {
-        if(!Double.isFinite(segStart.lengthSquared()) || !Double.isFinite(segEnd.lengthSquared())
+        if(!com.terminaldetector.drmd.world.access.CubicAvailability.onWorldThread(world)
+                ||!Double.isFinite(segStart.lengthSquared()) || !Double.isFinite(segEnd.lengthSquared())
                 || !Double.isFinite(radius) || radius<=0 || radius>4 || segStart.squaredDistanceTo(segEnd)>144)return 0;
 		int minX = (int) Math.floor(Math.min(segStart.x, segEnd.x) - radius - 1);
 		int maxX = (int) Math.floor(Math.max(segStart.x, segEnd.x) + radius + 1);
@@ -164,11 +168,11 @@ public final class TunnelCarving {
 
 	/** Mirrors the hardness/bedrock gate {@code WeaponFx.drillTunnel} already applied. */
 	private static boolean isBoreable(ServerWorld world, BlockPos pos) {
-		if (world.isOutOfHeightLimit(pos) || !world.isChunkLoaded(pos) || !world.getWorldBorder().contains(pos)) return false;
+		if (!com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,pos,null)) return false;
         var entity=world.getBlockEntity(pos);
         if(entity!=null && !(entity instanceof CarvedBlockEntity))return false;
-		BlockState state = world.getBlockState(pos);
-		if (state.isAir()) return false;
+		BlockState state = com.terminaldetector.drmd.world.access.WorldAccess.of(world).readIfLoaded(pos).orElse(null);
+		if (state==null || state.isAir() || !state.getFluidState().isEmpty()) return false;
 		float hardness = state.getHardness(world, pos);
 		return hardness >= 0 && hardness < 50 && !state.isOf(Blocks.BEDROCK);
 	}

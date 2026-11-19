@@ -206,4 +206,24 @@ public final class GenericControlCoreGameTests implements FabricGameTest {
             }finally{copy.discard();}
         }c.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="generic-core-walking-exit")
+    public void leavingTheControlVolumeRestoresWalkingAndAllowsImmediateTakeover(TestContext c) {
+        try (var f = new Fixture(c)) {
+            c.assertTrue(use(f), "actual local USE acquires the already assembled body");
+            int epoch = UfoControlSystem.epoch(f.pilot);
+            var newPilot = f.player(new Vec3d(3.5,2.2,2.5));
+            var state = f.body.physics().snapshot();
+            f.pilot.setPosition(f.body.localToWorld(new Vec3d(25,2.2,2.5)));
+            c.assertTrue(!UfoControlSystem.controls(f.pilot)
+                && !UfoControlSystem.receive(f.pilot,new UfoControlSystem.Input(epoch,1,1,0,0,0,0,0)),
+                "outside pilot loses input capture before the end-of-tick sweep");
+            c.assertTrue(UfoControlSystem.claimCore(newPilot,f.body,CORE),
+                "a valid second operator can take over within that same tick");
+            c.assertTrue(UfoControlSystem.epoch(newPilot)>epoch && UfoControlSystem.controlsBody(newPilot,f.body)
+                && !UfoControlSystem.controls(f.pilot), "new epoch is fenced from the departed operator");
+            c.assertTrue(state.equals(f.body.physics().snapshot()),
+                "walking exit and takeover retain the original hull's exact physical state");
+        }
+        c.complete();
+    }
 }

@@ -14,9 +14,24 @@ public abstract class MicroExplosionMixin {
     @Shadow @Final private World world;
     @Shadow @Final private net.minecraft.world.explosion.ExplosionBehavior behavior;
     @Unique private java.util.List<net.minecraft.util.math.BlockPos> drmd$structuralCuts=java.util.List.of();
-    @Inject(method="affectWorld", at=@At("HEAD"))
+    @Unique private boolean drmd$unknownVolume;
+    @Inject(method="collectBlocksAndDamageEntities",at=@At("HEAD"),cancellable=true)
+    private void drmd$loadedExplosionQueries(CallbackInfo ci) {
+        drmd$unknownVolume=world instanceof ServerWorld server
+            &&!com.terminaldetector.drmd.world.access.ExplosionWorldAccess.canCollect(server,(Explosion)(Object)this);
+        if(drmd$unknownVolume)ci.cancel();
+    }
+    @Inject(method="affectWorld", at=@At("HEAD"),cancellable=true)
     private void drmd$fractureRim(boolean particles, CallbackInfo ci) {
         drmd$structuralCuts=java.util.List.of();
+        if(drmd$unknownVolume){ci.cancel();return;}
+        if(world instanceof ServerWorld server) {
+            // Also protect explicit/preselected affected lists which bypass collect().
+            if(!com.terminaldetector.drmd.world.access.CubicAvailability.onWorldThread(server)){ci.cancel();return;}
+            ((Explosion)(Object)this).getAffectedBlocks().removeIf(pos->
+                com.terminaldetector.drmd.world.access.WorldAccess.of(server).readIfLoaded(pos).isEmpty()
+                ||!com.terminaldetector.drmd.world.edit.WorldEditSafety.neighbourhoodLoaded(server,pos));
+        }
         if (!(world instanceof ServerWorld server) || !com.terminaldetector.drmd.physics.PhysicsProfileState.expanded(server)) return;
         Explosion explosion=(Explosion)(Object)this;
         var type=explosion.getDestructionType();

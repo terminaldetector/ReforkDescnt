@@ -218,7 +218,7 @@ public final class PlanetSurfaceMesh {
 				if (d < inner || d > HorizonProjection.MAX_TRUE_RADIUS) continue;
 
 				double base = PlanetMap.height(seed, mark.x(), mark.z());
-				double groundTop = Math.max(base, PlanetMap.SEA_LEVEL);
+				double groundTop = mark.baseY(Math.max(base, PlanetMap.SEA_LEVEL));
 				float alpha = alphaAt(d);
 				int rgb = mark.colour();
 				double half = mark.halfWidth();

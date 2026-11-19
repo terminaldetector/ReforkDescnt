@@ -4,6 +4,8 @@ import com.terminaldetector.drmd.DescentPlayerData;
 import com.terminaldetector.drmd.client.portal.PortalTransform.Vec3;
 import com.terminaldetector.drmd.world.contraption.BlockBodyEntity;
 import net.fabricmc.fabric.api.event.lifecycle.v1.*;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -63,12 +65,29 @@ public final class UfoControlSystem {
         PayloadTypeRegistry.playS2C().register(CoreState.ID,CoreState.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(Input.ID,(p,c)->c.server().execute(()->receive(c.player(),p)));
         ServerPlayConnectionEvents.DISCONNECT.register((h,s)->release(h.player));
-        ServerTickEvents.END_SERVER_TICK.register(s->{for(var id:List.copyOf(PILOTS.keySet())){var l=PILOTS.get(id);if(l==null)continue;var p=l.pilot.get();var b=l.body.get();if(p==null||b==null||!valid(p,b,l.target)||s.getTicks()-l.received>60)drop(id,l);else if(!l.target.scheduledWeapons())fireBody(b);}});
+        ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((p,from,to)->release(p));
+        ServerLivingEntityEvents.AFTER_DEATH.register((entity,damage)->{
+            if (entity instanceof ServerPlayerEntity player) release(player);
+        });
+        ServerTickEvents.END_SERVER_TICK.register(s->{
+            for (var id : List.copyOf(PILOTS.keySet())) {
+                var lease = PILOTS.get(id);
+                if (lease == null) continue;
+                var body = lease.body.get();
+                if (!current(lease, lease.pilot.get(), body)) drop(id, lease);
+                else if (!lease.target.scheduledWeapons()) fireBody(body);
+            }
+        });
         ServerLifecycleEvents.SERVER_STOPPED.register(s->{for(var id:List.copyOf(PILOTS.keySet()))drop(id,PILOTS.get(id));});
     }
     private static boolean valid(ServerPlayerEntity p,BlockBodyEntity b,BodyControlTarget target) {
         return !p.isRemoved()&&p.isAlive()&&!p.isSpectator()&&!p.hasVehicle()&&!DescentPlayerData.get(p).isEnabled()
             &&p.getWorld()==b.getWorld()&&!b.isRemoved()&&target.valid(b)&&target.contains(b,p.getPos());
+    }
+    private static boolean current(Lease lease, ServerPlayerEntity pilot, BlockBodyEntity body) {
+        if (pilot == null || body == null || !valid(pilot, body, lease.target)) return false;
+        long age = pilot.getServer().getTicks() - lease.received;
+        return age >= 0 && age <= 60;
     }
     public static boolean claim(ServerPlayerEntity p,SkyUfoEntity b) {
         return claimTarget(p,b,BodyControlTarget.sky());
@@ -77,14 +96,27 @@ public final class UfoControlSystem {
         return claimTarget(p,b,BodyControlTarget.core(core));
     }
     private static boolean claimTarget(ServerPlayerEntity p,BlockBodyEntity b,BodyControlTarget target) {
-        if(!p.getServer().isOnThread()||!valid(p,b,target)||!target.canClaim(p,b))return false;
-        var old=PILOTS.get(p.getUuid());if(old!=null)return old.pilot.get()==p&&old.body.get()==b&&old.target.sameStation(target)&&valid(p,b,old.target);
-        for(var l:PILOTS.values())if(l.body.get()==b)return false;
+        if (!p.getServer().isOnThread() || !valid(p, b, target)) return false;
+        var own = PILOTS.get(p.getUuid());
+        if (own != null) {
+            if (current(own, own.pilot.get(), own.body.get())) {
+                return own.pilot.get() == p && own.body.get() == b
+                    && own.target.sameStation(target) && target.canClaim(p, b);
+            }
+            drop(p.getUuid(), own);
+        }
+        if (!target.canClaim(p, b)) return false;
+        for (var id : List.copyOf(PILOTS.keySet())) {
+            var lease = PILOTS.get(id);
+            if (lease == null || lease.body.get() != b) continue;
+            if (current(lease, lease.pilot.get(), b)) return false;
+            drop(id, lease);
+        }
         int next=++epoch;target=target.bind(p,b,next);
         var l=new Lease(p,b,target,next);PILOTS.put(p.getUuid(),l);com.terminaldetector.drmd.inventory.DroneArsenal.clear(p.getUuid());target.autopilot(b,false);sync(p,b,l,true);return true;
     }
-    public static boolean controls(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());return l!=null&&l.pilot.get()==p;}
-    public static boolean hasPilot(SkyUfoEntity b){for(var l:PILOTS.values()){var p=l.pilot.get();if(l.body.get()==b&&p!=null&&valid(p,b,l.target))return true;}return false;}
+    public static boolean controls(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());return l!=null&&l.pilot.get()==p&&current(l,p,l.body.get());}
+    public static boolean hasPilot(SkyUfoEntity b){for(var l:PILOTS.values())if(l.body.get()==b&&current(l,l.pilot.get(),b))return true;return false;}
     public static int epoch(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());return l==null?-1:l.epoch;}
     public static boolean release(ServerPlayerEntity p){var l=PILOTS.get(p.getUuid());if(l==null||l.pilot.get()!=p)return false;drop(p.getUuid(),l);return true;}
     public static void releaseBody(SkyUfoEntity b){releaseBlockBody(b);}
@@ -102,13 +134,13 @@ public final class UfoControlSystem {
         // This is a latest-input snapshot, never a queued simulation step. Allow sequence
         // gaps after a paused/lagged integrated server; epoch, replay, per-tick admission
         // and the single physical drive step still bound authority and work.
-        var l=PILOTS.get(p.getUuid());if(l==null||l.pilot.get()!=p||l.body.get()==null||!p.getServer().isOnThread()||!valid(p,l.body.get(),l.target)||input.epoch!=l.epoch||input.sequence<0||input.sequence<=l.sequence)return false;
+        var l=PILOTS.get(p.getUuid());if(l==null||l.pilot.get()!=p||!p.getServer().isOnThread()||!current(l,p,l.body.get())||input.epoch!=l.epoch||input.sequence<0||input.sequence<=l.sequence)return false;
         for(float v:new float[]{input.forward,input.strafe,input.vertical,input.pitch,input.yaw,input.roll})if(!Float.isFinite(v)||Math.abs(v)>1)return false;
         long now=p.getServer().getTicks();if(l.budgetTick!=now){l.budgetTick=now;l.count=0;}if(l.count>=4)return false;l.count++;
         l.sequence=input.sequence;l.input=input;l.received=now;return true;
     }
     public static boolean controls(ServerPlayerEntity p,SkyUfoEntity b){return controlsBody(p,b);}
-    public static boolean controlsBody(ServerPlayerEntity p,BlockBodyEntity b){var l=PILOTS.get(p.getUuid());return l!=null&&l.pilot.get()==p&&l.body.get()==b&&valid(p,b,l.target);}
+    public static boolean controlsBody(ServerPlayerEntity p,BlockBodyEntity b){var l=PILOTS.get(p.getUuid());return l!=null&&l.pilot.get()==p&&l.body.get()==b&&current(l,p,b);}
     public static boolean receiveFire(ServerPlayerEntity p,Fire input) {
         var l=PILOTS.get(p.getUuid());if(l==null||!p.getServer().isOnThread()||l.body.get()==null||!controlsBody(p,l.body.get())||!l.target.supportsFire()||input.epoch!=l.epoch||input.sequence<0||input.sequence<=l.fireSequence||input.mask<0||(input.mask&~l.target.allowedFireMask())!=0)return false;
         long now=p.getServer().getTicks();if(l.fireBudget!=now){l.fireBudget=now;l.fireCount=0;}if(l.fireCount>=4)return false;l.fireCount++;
@@ -127,7 +159,7 @@ public final class UfoControlSystem {
     public static void fireBody(BlockBodyEntity b) {
         if(b.getWorld().isClient)return;
         for(var l:PILOTS.values())if(l.body.get()==b){
-            var p=l.pilot.get();if(p==null||!valid(p,b,l.target)||l.target.scheduledWeapons())return;long tick=p.getServer().getTicks();
+            var p=l.pilot.get();if(!current(l,p,b)||l.target.scheduledWeapons())return;long tick=p.getServer().getTicks();
             if(l.firedTick==tick||l.drivenTick!=tick)return;l.firedTick=tick;
             if(l.fireTick!=Long.MIN_VALUE&&tick-l.fireTick<=4)l.target.fire(b,p,l.fireMask);return;
         }
@@ -151,7 +183,7 @@ public final class UfoControlSystem {
                 &&l.target.scheduledWeapons()&&driveLease(p.getUuid(),l,b);
     }
     private static boolean driveLease(UUID id,Lease l,BlockBodyEntity b) {
-        var p=l.pilot.get();if(p==null||!valid(p,b,l.target)){drop(id,l);return false;}
+        var p=l.pilot.get();if(!current(l,p,b)){drop(id,l);return false;}
         long tick=p.getServer().getTicks();if(l.drivenTick==tick)return true;l.drivenTick=tick;
         l.target.aim(b,l.turretTick!=Long.MIN_VALUE&&tick-l.turretTick<=4?l.turretYaw:0);
         var in=l.input;if(in!=null&&tick-l.received<=4){
@@ -168,7 +200,7 @@ public final class UfoControlSystem {
         if(b.getWorld().isClient||!p.getServer().isOnThread())return OptionalInt.empty();
         var l=PILOTS.get(p.getUuid());
         if(l==null||l.pilot.get()!=p||l.body.get()!=b||l.epoch!=expectedEpoch
-                ||!l.target.scheduledWeapons()||!valid(p,b,l.target))return OptionalInt.empty();
+                ||!l.target.scheduledWeapons()||!current(l,p,b))return OptionalInt.empty();
         long tick=p.getServer().getTicks();
         return OptionalInt.of(l.drivenTick==tick&&l.fireTick!=Long.MIN_VALUE&&tick-l.fireTick<=4?l.fireMask:0);
     }

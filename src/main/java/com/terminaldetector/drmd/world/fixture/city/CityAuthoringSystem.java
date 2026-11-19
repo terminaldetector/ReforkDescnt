@@ -30,8 +30,11 @@ public final class CityAuthoringSystem {
         if(entry!=null&&!entry.session.ownerId().equals(player.getUuid()))throw new SecurityException("current city slot belongs to another operator");return entry;
     }
     public static CityRuntimeSession plan(ServerPlayerEntity player,long seed,CityBlueprint.Point anchor){
+        return plan(player,seed,anchor,CityManifest.Kind.CITY);
+    }
+    public static CityRuntimeSession plan(ServerPlayerEntity player,long seed,CityBlueprint.Point anchor,CityManifest.Kind kind){
         var existing=current(player);if(existing!=null&&!existing.session.settled())throw new IllegalStateException("current city session is still active or closing");
-        var session=CityRuntimeSession.plan(player,seed,anchor);SESSIONS.put(player.getServerWorld().getServer(),new Entry(session));return session;
+        var session=CityRuntimeSession.plan(player,seed,anchor,kind);SESSIONS.put(player.getServerWorld().getServer(),new Entry(session));return session;
     }
     public static CityRuntimeSession inspect(ServerPlayerEntity player){
         var existing=current(player);if(existing!=null&&!existing.session.settled())return existing.session;

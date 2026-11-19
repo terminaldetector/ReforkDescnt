@@ -130,4 +130,77 @@ public final class ActorFrameGameTests implements FabricGameTest {
         } finally {GravityFields.remove(id);cow.discard();EntityGravitySystem.tick(context.getWorld().getServer());}
         context.complete();
     }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="actor-physical-targeting")
+    public void nativeSightAndLookUsePhysicalEyesOnSixAxesAndAnObliqueFrame(TestContext c) {
+        var world=c.getWorld();var centre=c.getAbsolutePos(new BlockPos(6,100,6));
+        for(var p:BlockPos.iterate(centre.add(-8,-8,-8),centre.add(8,8,8)))world.setBlockState(p,Blocks.AIR.getDefaultState(),2);
+        for(var up:targetAxes()) {
+            var mob=EntityType.ZOMBIE.create(world);var target=EntityType.COW.create(world);
+            mob.setAiDisabled(true);target.setAiDisabled(true);mob.setNoGravity(true);target.setNoGravity(true);
+            mob.setPosition(Vec3d.ofCenter(centre));target.setPosition(mob.getPos().add(ActorFrameMath.toWorld(new Vec3d(0,0,4),up)));
+            world.spawnEntity(mob);world.spawnEntity(target);
+            BlockPos obstruction=null;
+            try {
+                c.assertTrue(ActorFrames.trySetUp(mob,up)&&ActorFrames.trySetUp(target,up),"admission: actual clear tracked frames "+up);
+                c.assertTrue(mob.canSee(target),"native sight sees the clear actual physical eye segment "+up);
+                mob.setYaw(0);mob.setPitch(0);mob.bodyYaw=0;mob.headYaw=0;
+                mob.getLookControl().lookAt(target,180,180);mob.getLookControl().tick();
+                var direction=target.getEyePos().subtract(mob.getEyePos()).normalize();
+                c.assertTrue(mob.getRotationVector().dotProduct(direction)>.9999,"native look controller points through the local physical eye ray "+up);
+                obstruction=BlockPos.ofFloored(mob.getEyePos().lerp(target.getEyePos(),.5));
+                world.setBlockState(obstruction,Blocks.STONE.getDefaultState(),2);
+                c.assertTrue(!mob.canSee(target),"real opaque material on the physical ray blocks native sight "+up);
+            } finally {if(obstruction!=null)world.setBlockState(obstruction,Blocks.AIR.getDefaultState(),2);mob.discard();target.discard();}
+        }
+        c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="actor-physical-melee")
+    public void nativeMeleeDamageAndItsResistanceAwareImpulseFollowTheAttackFrame(TestContext c) {
+        var world=c.getWorld();var centre=c.getAbsolutePos(new BlockPos(6,100,6));
+        for(var p:BlockPos.iterate(centre.add(-8,-8,-8),centre.add(8,8,8)))world.setBlockState(p,Blocks.AIR.getDefaultState(),2);
+        for(var up:targetAxes()) {
+            var mob=EntityType.ZOMBIE.create(world);var target=EntityType.COW.create(world);
+            mob.setAiDisabled(true);target.setAiDisabled(true);mob.setNoGravity(true);target.setNoGravity(true);
+            mob.setPosition(Vec3d.ofCenter(centre));var forward=ActorFrameMath.toWorld(new Vec3d(0,0,1),up);
+            target.setPosition(mob.getPos().add(forward));world.spawnEntity(mob);world.spawnEntity(target);
+            try {
+                c.assertTrue(ActorFrames.trySetUp(mob,up)&&ActorFrames.trySetUp(target,up),"admission: actual melee frames "+up);
+                mob.setYaw(0);mob.setPitch(0);
+                var attribute=mob.getAttributeInstance(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_KNOCKBACK);
+                c.assertTrue(attribute!=null,"native mob has its original knockback attribute");attribute.setBaseValue(1);
+                var health=target.getHealth();
+                c.assertTrue(mob.isInAttackRange(target)&&mob.tryAttack(target)&&target.getHealth()<health,"actual native range/damage pipeline remains effective "+up);
+                c.assertTrue(target.getVelocity().dotProduct(forward)>.1&&target.getVelocity().normalize().dotProduct(forward)>.99,
+                    "the real native knockback operator emits into the attacker's local tangent, not world XZ "+up);
+            } finally {mob.discard();target.discard();}
+        }
+        c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="actor-physical-ranged")
+    public void nativeSkeletonKeepsItsArrowFactoryAndUsesTheFramedMuzzleAndTarget(TestContext c) {
+        var world=c.getWorld();var centre=c.getAbsolutePos(new BlockPos(6,100,6));
+        for(var p:BlockPos.iterate(centre.add(-8,-8,-8),centre.add(8,8,8)))world.setBlockState(p,Blocks.AIR.getDefaultState(),2);
+        for(var up:targetAxes()) {
+            var mob=EntityType.SKELETON.create(world);var target=EntityType.COW.create(world);
+            mob.setAiDisabled(true);target.setAiDisabled(true);mob.setNoGravity(true);target.setNoGravity(true);
+            mob.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND,new net.minecraft.item.ItemStack(net.minecraft.item.Items.BOW));
+            mob.setPosition(Vec3d.ofCenter(centre));target.setPosition(mob.getPos().add(ActorFrameMath.toWorld(new Vec3d(0,0,4),up)));
+            world.spawnEntity(mob);world.spawnEntity(target);
+            try {
+                c.assertTrue(ActorFrames.trySetUp(mob,up)&&ActorFrames.trySetUp(target,up),"admission: actual ranged frames "+up);
+                mob.shootAt(target,1);
+                var arrows=world.getEntitiesByClass(net.minecraft.entity.projectile.PersistentProjectileEntity.class,mob.getBoundingBox().expand(10),a->a.getOwner()==mob);
+                c.assertTrue(arrows.size()==1,"one real native arrow, not a replacement projectile factory");var arrow=arrows.getFirst();
+                var muzzle=mob.getEyePos().subtract(ActorFrames.up(mob).multiply(.1));
+                c.assertTrue(arrow.getPos().squaredDistanceTo(muzzle)<1e-12,"native projectile starts at the actual rotated muzzle "+up);
+                var delta=target.getPos().add(ActorFrames.up(target).multiply(target.getHeight()/3.0)).subtract(muzzle);
+                var aim=delta.add(0,Math.sqrt(delta.x*delta.x+delta.z*delta.z)*.2,0).normalize();
+                c.assertTrue(arrow.getVelocity().normalize().dotProduct(aim)>.9&&arrow.getVelocity().length()>1,
+                    "native speed/spread aims through the real physical target, preserving native world-arrow gravity "+up);
+                arrow.discard();
+            } finally {for(var arrow:world.getEntitiesByClass(net.minecraft.entity.projectile.PersistentProjectileEntity.class,mob.getBoundingBox().expand(10),a->a.getOwner()==mob))arrow.discard();mob.discard();target.discard();}
+        }
+        c.complete();
+    }
+    private static java.util.List<Vec3d> targetAxes(){return java.util.List.of(new Vec3d(1,0,0),new Vec3d(-1,0,0),new Vec3d(0,1,0),new Vec3d(0,-1,0),new Vec3d(0,0,1),new Vec3d(0,0,-1),new Vec3d(1,2,-3).normalize());}
 }

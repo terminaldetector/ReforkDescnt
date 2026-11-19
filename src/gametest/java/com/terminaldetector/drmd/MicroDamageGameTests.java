@@ -15,6 +15,36 @@ import java.util.*;
 
 public class MicroDamageGameTests implements FabricGameTest {
     @GameTest(templateName=EMPTY_STRUCTURE)
+    public void vanillaExplosionRefusesUnknownSamplingBeforeCollectingOrWriting(TestContext ctx) {
+        var world=ctx.getWorld();var at=ctx.getAbsolutePos(new BlockPos(4,5,4));
+        var far=new BlockPos(((at.getX()+8_000_000)>>4)*16+8,at.getY(),((at.getZ())>>4)*16+8);
+        ctx.assertTrue(!world.isChunkLoaded(far),"unknown explosion control starts absent");
+        var c=Vec3d.ofCenter(far);
+        var explosion=new Explosion(world,null,c.x,c.y,c.z,2,false,Explosion.DestructionType.DESTROY);
+        explosion.collectBlocksAndDamageEntities();explosion.affectWorld(false);
+        ctx.assertTrue(explosion.getAffectedBlocks().isEmpty()&&!world.isChunkLoaded(far),"vanilla block/fluid sampling cannot materialize unknown storage");
+        var selected=new Explosion(world,null,c.x,c.y,c.z,2,false,Explosion.DestructionType.DESTROY,new ArrayList<>(List.of(far)));
+        selected.affectWorld(false);
+        ctx.assertTrue(selected.getAffectedBlocks().isEmpty()&&!world.isChunkLoaded(far),"preselected targets cannot bypass live availability");
+        ctx.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE)
+    public void knownVanillaExplosionRetainsBedrockShieldingAndOrdinaryDestruction(TestContext ctx) {
+        var world=ctx.getWorld();var at=ctx.getAbsolutePos(new BlockPos(4,6,4));
+        for(var p:BlockPos.iterate(at.add(-3,-3,-3),at.add(3,3,3)))world.setBlockState(p,Blocks.AIR.getDefaultState(),2);
+        for(var p:BlockPos.iterate(at.add(1,-3,-3),at.add(1,3,3)))world.setBlockState(p,Blocks.BEDROCK.getDefaultState(),2);
+        var exposed=at.west();var shielded=at.east(2);
+        world.setBlockState(exposed,Blocks.DIRT.getDefaultState(),2);world.setBlockState(shielded,Blocks.DIRT.getDefaultState(),2);
+        var c=Vec3d.ofCenter(at);var explosion=new Explosion(world,null,c.x,c.y,c.z,2,false,Explosion.DestructionType.DESTROY);
+        ctx.assertTrue(com.terminaldetector.drmd.world.access.ExplosionWorldAccess.canCollect(world,explosion),"positive fixture's actual sample envelope is FULL");
+        explosion.collectBlocksAndDamageEntities();
+        ctx.assertTrue(explosion.getAffectedBlocks().contains(exposed)&&!explosion.getAffectedBlocks().contains(shielded),"unchanged vanilla rays select exposed material and stop at bedrock");
+        explosion.affectWorld(false);
+        ctx.assertTrue(!world.getBlockState(exposed).isOf(Blocks.DIRT)&&world.getBlockState(shielded).isOf(Blocks.DIRT)
+            &&world.getBlockState(at.east()).isOf(Blocks.BEDROCK),"loaded destruction works while shielding and unbreakable material remain");
+        ctx.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE)
     public void unknownDamageAndBlastQueriesNeverMaterializeRemoteColumns(TestContext ctx) {
         var world=ctx.getWorld();var base=ctx.getAbsolutePos(new BlockPos(4,4,4));
         var far=new BlockPos(((base.getX()+8_000_000)>>4)*16+8,base.getY(),((base.getZ())>>4)*16+8);

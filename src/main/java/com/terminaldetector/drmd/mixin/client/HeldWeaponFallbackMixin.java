@@ -7,6 +7,7 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.item.HeldItemRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Arm;
 import net.minecraft.util.Hand;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.*;
@@ -23,7 +24,8 @@ public abstract class HeldWeaponFallbackMixin {
         if(hand==Hand.MAIN_HAND && WeaponViewRenderer.replacesVanillaHand(MinecraftClient.getInstance())){ci.cancel();return;}
         if(!com.terminaldetector.drmd.client.DescentClientState.enabled)return;
         ci.cancel();if(stack.isEmpty())return;
-        boolean left=hand==Hand.OFF_HAND;
+        Arm arm=hand==Hand.MAIN_HAND?player.getMainArm():player.getMainArm().getOpposite();
+        boolean left=arm==Arm.LEFT;
         boolean centre=stack.getItem() instanceof com.terminaldetector.drmd.world.portal.gun.PortalProjectorItem;
         matrices.push();
         try{

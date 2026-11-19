@@ -27,6 +27,7 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
         final AiFixtureChunks chunks;
         final List<BlockBodyEntity> bodies=new ArrayList<>();
         final Set<UUID> fields=new HashSet<>();
+        final List<Runnable> undo=new ArrayList<>();
         private record Due(long tick,long order,Runnable action){}
         private final PriorityQueue<Due> due=new PriorityQueue<>(Comparator.comparingLong(Due::tick).thenComparingLong(Due::order));
         private final List<Runnable> observers=new ArrayList<>();
@@ -82,7 +83,7 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
         void complete(){close();c.complete();}
         public void close(){
             if(closed)return;closed=true;due.clear();observers.clear();
-            try{GravyPhysics.release(player);fields.forEach(TransientGravityFields::remove);bodies.forEach(BlockBodyEntity::discard);}
+            try{GravyPhysics.release(player);fields.forEach(TransientGravityFields::remove);bodies.forEach(BlockBodyEntity::discard);undo.forEach(Runnable::run);}
             finally{
                 try{
                     if(c.getWorld().getServer().getPlayerManager().getPlayerList().contains(player))
@@ -150,6 +151,42 @@ public final class GravityGunBehaviorGameTests implements FabricGameTest {
                     previous[0]=now;
                 });
                 r.later(12,()->{c.assertTrue(crossed[0]&&miss[0]<1.2,"ordinary gravity/body updates carry heavy rail material within 1.2 blocks of the aim centre at twelve blocks: crossed="+crossed[0]+" miss="+miss[0]);r.complete();});
+            });
+        });
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="gravity-item-rail-impact",tickLimit=150)
+    public void actualHeavyRailHitsTheSolidAimTargetWithoutPassingThrough(TestContext c){
+        admitted(c,450,new Vec3d(0,0,1),r->{
+            var body=r.body(r.player.getEyePos().add(r.aim().multiply(12)),5,5,4);
+            c.assertTrue(r.use(ModItems.GRAVY_RAILGUN,true)&&GravyPhysics.heldMass(r.player)==100,
+                    "registered rail captures the real hundred-cell projectile");
+            r.later(8,()->{
+                var start=body.physicsCentre();
+                var target=BlockPos.ofFloored(start.add(r.aim().multiply(16)));
+                var previous=new LinkedHashMap<BlockPos,net.minecraft.block.BlockState>();
+                for(int x=-3;x<=3;x++)for(int y=-3;y<=3;y++){
+                    var pos=target.add(x,y,0);
+                    previous.put(pos,c.getWorld().getBlockState(pos));
+                    c.getWorld().setBlockState(pos,Blocks.OBSIDIAN.getDefaultState());
+                }
+                r.undo.add(()->previous.forEach((pos,state)->c.getWorld().setBlockState(pos,state)));
+                c.assertTrue(r.use(ModItems.GRAVY_RAILGUN,false)&&body.physicsVelocity().dotProduct(r.aim())>40,
+                        "registered rail launches the captured material at ballistic speed");
+                double[] furthest={start.z};
+                boolean[] hit={false};
+                r.observe(()->{
+                    var centre=body.physicsCentre();
+                    furthest[0]=Math.max(furthest[0],centre.z);
+                    if(centre.z>=target.getZ()-3.2&&centre.z<target.getZ()
+                            && Math.abs(centre.x-start.x)<.25&&Math.abs(centre.y-start.y)<1.2
+                            &&body.physicsVelocity().z<25)hit[0]=true;
+                });
+                r.later(14,()->{
+                    c.assertTrue(hit[0]&&furthest[0]<target.getZ()&&body.isAlive()
+                                    &&c.getWorld().getBlockState(target).isOf(Blocks.OBSIDIAN),
+                            "ordinary world ticks stop the heavy material at its real aim target: hit="+hit[0]+" furthest="+furthest[0]+" target="+target+" state="+r.state(body));
+                    r.complete();
+                });
             });
         });
     }
