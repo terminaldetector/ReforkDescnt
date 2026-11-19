@@ -287,21 +287,42 @@ public final class NativeTorchCameraCheck {
         }return true;
     }
     private static int colorDelta(int a,int b){return Math.max(Math.abs((a&255)-(b&255)),Math.max(Math.abs(((a>>>8)&255)-((b>>>8)&255)),Math.abs(((a>>>16)&255)-((b>>>16)&255))));}
+    private static double scalarFit(int reference,int actual){
+        double r=reference&255,g=(reference>>>8)&255,b=(reference>>>16)&255;
+        double length=r*r+g*g+b*b;
+        return length==0?Double.NaN:(r*(actual&255)+g*((actual>>>8)&255)+b*((actual>>>16)&255))/length;
+    }
+    private static double scalarResidual(int reference,int actual,double scale){
+        if(!Double.isFinite(scale))return Double.POSITIVE_INFINITY;
+        return Math.max(Math.abs((actual&255)-scale*(reference&255)),Math.max(Math.abs(((actual>>>8)&255)-scale*((reference>>>8)&255)),Math.abs(((actual>>>16)&255)-scale*((reference>>>16)&255))));
+    }
     private static Map<String,Object> contribution(NativeImage image){
         require(handBefore!=null&&handAfter!=null&&handBeforeEpoch==epoch&&handAfterEpoch==epoch,"same actual frame has both native renderHand image boundaries");
         require(handBefore.getWidth()==image.getWidth()&&handAfter.getWidth()==image.getWidth()&&handBefore.getHeight()==image.getHeight()&&handAfter.getHeight()==image.getHeight(),"actual before/after/final framebuffer dimensions agree");
         double minX=Double.POSITIVE_INFINITY,minY=minX,maxX=Double.NEGATIVE_INFINITY,maxY=maxX;
         for(var p:points){minX=Math.min(minX,p[0]);minY=Math.min(minY,p[1]);maxX=Math.max(maxX,p[0]);maxY=Math.max(maxY,p[1]);}
-        int changed=0,retained=0,roi=0;long red=0,green=0,blue=0;
+        int changed=0,retained=0,exact=0,roi=0;long red=0,green=0,blue=0;double minScale=1,maxScale=0;
         for(int y=Math.max(0,(int)Math.floor(minY)-1);y<Math.min(image.getHeight(),(int)Math.ceil(maxY)+1);y++)for(int x=Math.max(0,(int)Math.floor(minX)-1);x<Math.min(image.getWidth(),(int)Math.ceil(maxX)+1);x++){
             boolean inside=false;for(var f:FACES)if(inFace(x+.5,y+.5,f)){inside=true;break;}if(!inside)continue;roi++;
             int a=handBefore.getColor(x,y),b=handAfter.getColor(x,y),last=image.getColor(x,y);
-            if(colorDelta(a,b)>=8){changed++;red+=b&255;green+=(b>>>8)&255;blue+=(b>>>16)&255;if(colorDelta(b,last)<=2)retained++;}
+            if(colorDelta(a,b)>=8){
+                changed++;red+=b&255;green+=(b>>>8)&255;blue+=(b>>>16)&255;
+                if(colorDelta(b,last)<=2)exact++;
+                // Native HUD vignette multiplies destination RGB after renderHand.
+                // Require SAME-pixel post-hand chroma, while excluding ANY scalar fit
+                // of the pre-hand background. Neither a moved mesh nor a black/erased
+                // hand can qualify merely because its final pixels are dark.
+                double scale=scalarFit(b,last),residual=scalarResidual(b,last,scale);
+                double beforeResidual=scalarResidual(a,last,scalarFit(a,last));
+                if(scale>=.1&&scale<=1.01&&residual<=2&&beforeResidual>=8){retained++;minScale=Math.min(minScale,scale);maxScale=Math.max(maxScale,scale);}
+            }
         }
-        return Map.of("actualEpoch",epoch,"projectedRoiPixels",roi,"actualHandChangedPixels",changed,"actualFinalRetainedPixels",retained,
-            "minimumRequired",100,"minChannelChange",8,"maxFinalChannelDifference",2,"captureStateRestored",captureStateRestored,
-            "oracle","same-frame native hand draw contribution in emitted projected mesh, retained in actual final framebuffer",
-            "changedMeanAfterRgb",List.of(changed==0?0:(double)red/changed,changed==0?0:(double)green/changed,changed==0?0:(double)blue/changed));
+        var out=new LinkedHashMap<String,Object>();out.put("actualEpoch",epoch);out.put("projectedRoiPixels",roi);out.put("actualHandChangedPixels",changed);out.put("actualFinalRetainedPixels",retained);
+        out.put("actualFinalExactRetainedPixels",exact);out.put("minimumRequired",100);out.put("minChannelChange",8);out.put("maxFinalScaledRgbResidual",2);out.put("minimumBeforeScaledRgbResidual",8);
+        out.put("allowedAchromaticScale",List.of(.1,1.01));out.put("observedRetainedScaleRange",retained==0?List.of():List.of(minScale,maxScale));out.put("captureStateRestored",captureStateRestored);
+        out.put("oracle","same-frame native hand draw in emitted projected mesh, retained at SAME final pixels under native achromatic vignette; pre-hand background scalar fit excluded");
+        out.put("changedMeanAfterRgb",List.of(changed==0?0:(double)red/changed,changed==0?0:(double)green/changed,changed==0?0:(double)blue/changed));
+        out.put("previousF256ExactRetentionStatus","FAIL");return out;
     }
     public static void rendered(float delta){
         if(!ENABLED||done)return;var c=MinecraftClient.getInstance();
@@ -399,7 +420,7 @@ public final class NativeTorchCameraCheck {
             out.put("ownerProbeCompleted",ownerChecked);out.put("surface",axis);out.put("look",look);out.put("latestActualServer",view);out.put("ordinaryDismountScope","separate actual connected-player GameTests; this observer has no vehicle");
             out.put("deathProfile",DEATH);out.put("nativeDeath",deathReceipt);out.put("nativeRespawn",respawnReceipt);out.put("nativeRespawnButton",respawnRequested);
             out.put("manualFrameAdoptions",0);out.put("perFramePoseWrites",0);out.put("sourceBinding",System.getProperty("drmd.gate.torchCameraSource","UNBOUND"));
-            out.put("visibilityOracle","same-frame native hand draw contribution >=100 and retained final pixels >=100 in the actual projected mesh; previous88ce hue FAIL remains separate");
+            out.put("visibilityOracle","same-frame native hand contribution >=100 and same-pixel final achromatic correspondence >=100, maxRGBresidual2, pre-hand scalar residual>=8; previous88ce hue FAIL and f256 exact-retention FAIL remain separate");
             out.put("originalGoldHueAllSamplesPass",!RESULTS.isEmpty()&&RESULTS.stream().allMatch(r->Boolean.TRUE.equals(r.get("originalGoldHuePass"))));
             out.put("originalFirstHueSubject","88ce0587e4ba78fb7a8f67b656028bc362a3c08c");out.put("originalFirstHueStatus","FAIL");
             Files.writeString(c.runDirectory.toPath().resolve("torch-camera-result.json"),new GsonBuilder().setPrettyPrinting().create().toJson(out)+"\n");
