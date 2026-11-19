@@ -20,6 +20,7 @@ public final class BodyMountedWeapons {
     private static final class Schedule {long tick=Long.MIN_VALUE;int cursor;Stats last=new Stats(0,0,0);}
     private static final Map<ServerWorld,Schedule> SCHEDULES=new WeakHashMap<>();
     private final Map<BlockPos,Long> readyAt=new HashMap<>();
+    long readyAt(BlockPos cell){return readyAt.getOrDefault(cell,Long.MIN_VALUE);}
     private final MountedDefenseClaims defenseClaims=new MountedDefenseClaims();
     public MountedDefenseClaims defenseClaims(){return defenseClaims;}
     private final SortedSet<BlockPos> controlled=new TreeSet<>();
@@ -84,7 +85,8 @@ public final class BodyMountedWeapons {
             if(body.isRemoved()||body.boardingMotionPaused())continue;
             var state=body.mountedWeapons();
             var manual=body.controlCore().scheduledFireMask(body);
-            if(manual.isEmpty())manual=HeavyOperatorSystem.fireMask(body);
+            boolean operator=manual.isEmpty();
+            if(operator)manual=HeavyOperatorSystem.fireMask(body);
             var positions=state.mounts(body,manual.isPresent());boolean fired=false;int count=0;
             while(count<Math.min(BODY_CHECKS,positions.size())&&checks<WORLD_CHECKS&&shots<WORLD_SHOTS){
                 var slot=positions.get(Math.floorMod(state.cursor++,positions.size()));count++;checks++;
@@ -102,6 +104,7 @@ public final class BodyMountedWeapons {
                     if(manual.isPresent()){
                         int bank=body.getLocalBlock(slot).isOf(ModWorldBlocks.SHIP_ROCKET)?2:1;
                         if((manual.getAsInt()&bank)==0)continue; // Present zero never falls back to a powered lever.
+                        if(operator&&!HeavyOperatorSystem.allowsFire(body,slot))continue;
                     }else if(!attached(body,slot,true))continue;
                     if(MountedWeaponEmitter.emit(body,body,slot)==null)continue;
                 }

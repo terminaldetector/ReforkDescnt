@@ -44,6 +44,7 @@ public final class HeavyOperatorSystem {
         final Map<UUID,Memory> memories=new HashMap<>();
         final Map<UUID,Interest> interests=new HashMap<>();
         final Map<UUID,Pods> pods=new HashMap<>();
+        final Map<UUID,BlockPos> aimSlots=new HashMap<>();
     }
     private HeavyOperatorSystem(){}
     public static void register(){
@@ -91,13 +92,21 @@ public final class HeavyOperatorSystem {
             try{pods=new Pods(root.shapeRevision(),cells,new com.terminaldetector.drmd.d6.D6ThrusterMixer(cells.stream().map(p->new Vec3(p.getX()+.5,p.getY()+.5,p.getZ()+.5)).toList(),BodyControlCore.FORCE_PER_MOTOR));f.pods.put(root.getUuid(),pods);}
             catch(IllegalArgumentException unsupported){f.pods.remove(root.getUuid());return;}
         }
-        var physics=root.physics();Vec3 desiredVelocity=new Vec3(0,0,0);var memory=f.memories.get(root.getUuid());long now=world.getTime();
-        if(memory!=null&&now>=memory.observedAt&&now-memory.observedAt<DroneSquadMailbox.TTL){
+        var physics=root.physics();Vec3 desiredVelocity=new Vec3(0,0,0),turnError=new Vec3(0,0,0);var memory=f.memories.get(root.getUuid());long now=world.getTime();
+        var remembered=memory==null?null:memory.actor.get();var interest=f.interests.get(root.getUuid());
+        if(memory!=null&&interest!=null&&memory.target.equals(interest.target)&&remembered==interest.actor.get()&&enemy(root,remembered)
+            &&now>=memory.observedAt&&now-memory.observedAt<DroneSquadMailbox.TTL){
             var delta=new Vec3(memory.point.x,memory.point.y,memory.point.z).minus(physics.position());double distance=delta.length();
             if(distance>32)desiredVelocity=delta.scaled(Math.min(3,(distance-32)*.5)/distance);
+            if(distance>1e-8){var forward=root.rotation().rotate(new Vec3(0,0,1));var desired=delta.scaled(1/distance);var cross=forward.cross(desired);double sine=cross.length(),cosine=MathHelper.clamp(forward.dot(desired),-1,1);
+                if(sine>1e-8)turnError=cross.scaled(Math.atan2(sine,cosine)/sine);
+                else if(cosine<0)turnError=root.rotation().rotate(UP).scaled(Math.PI);
+            }
         }
         var force=desiredVelocity.minus(physics.linearVelocity()).scaled(physics.mass()*2);
-        var torque=physics.worldInertia().transform(physics.angularVelocity()).scaled(-8);var inverse=root.rotation().inverse();
+        // Real vector pods turn the whole free island toward its own last sighting;
+        // damping alone leaves a recoiling chassis permanently tilted behind its guns.
+        var torque=physics.worldInertia().transform(turnError.minus(physics.angularVelocity()).scaled(8));var inverse=root.rotation().inverse();
         var selected=pods;
         for(var output:pods.mixer.mix(root.localCentre(),inverse.rotate(force),inverse.rotate(torque),i->root.getLocalBlock(selected.cells.get(i)).isOf(ModWorldBlocks.SHIP_THRUSTER)))
             physics.applyForceAtPoint(root.rotation().rotate(output.force()),root.rotation().rotate(output.localPoint().minus(root.localCentre())));
@@ -190,6 +199,30 @@ public final class HeavyOperatorSystem {
         if(!state.equals(next)&&body.setLocalBlock(cell,next))f.drives++;
     }
     private static Vec3d axis(BlockBodyEntity b,Vec3 axis){var p=b.rotation().rotate(axis);return new Vec3d(p.x(),p.y(),p.z());}
+    private static boolean gun(BlockBodyEntity body,BlockPos cell){return BodyMountedWeapons.isWeapon(body.getLocalBlock(cell));}
+    private static BlockPos anchorSlot(Assembly a,Frame f){
+        var selected=f.aimSlots.get(a.base.getUuid());if(selected!=null&&gun(a.barrel,selected))return selected;
+        for(var slot:List.of(LASER,LEFT,RIGHT))if(gun(a.barrel,slot))return slot;return null;
+    }
+    private static Vec3d aimDirection(BlockBodyEntity barrel,BlockPos slot,Vec3d point,Vec3d targetVelocity){
+        var cfg=MountedWeaponEmitter.config(barrel,barrel,slot);if(cfg==null)return null;
+        var delta=point.subtract(cfg.pos);var relative=targetVelocity.subtract(cfg.inheritedVelocity);
+        var aim=com.terminaldetector.drmd.weapon.core.InterceptAim.solve(new Vec3(delta.x,delta.y,delta.z),new Vec3(relative.x,relative.y,relative.z),cfg.speed,cfg.life*20);
+        if(aim.isPresent()){var d=aim.get().direction();return new Vec3d(d.x(),d.y(),d.z());}
+        return delta.lengthSquared()>1e-10?delta.normalize():null;
+    }
+    private static BlockPos selectGun(Assembly a,Frame f,Vec3d point,Vec3d targetVelocity,long now){
+        var old=f.aimSlots.get(a.base.getUuid());
+        if(old!=null&&gun(a.barrel,old)&&a.barrel.mountedWeapons().readyAt(old)<=now)return old;
+        BlockPos best=null;double score=-Double.MAX_VALUE;long soonest=Long.MAX_VALUE;
+        for(var slot:List.of(LASER,LEFT,RIGHT))if(gun(a.barrel,slot)){
+            var direction=aimDirection(a.barrel,slot,point,targetVelocity);if(direction==null)continue;
+            long ready=a.barrel.mountedWeapons().readyAt(slot);double dot=MountedWeaponEmitter.direction(a.barrel,slot).dotProduct(direction);
+            boolean due=ready<=now,bestDue=best!=null&&soonest<=now;
+            if(best==null||due&&!bestDue||due==bestDue&&(due?dot>score:ready<soonest||ready==soonest&&dot>score)){best=slot;score=dot;soonest=ready;}
+        }
+        if(best!=null&&(f.aimSlots.size()<MAX_ASSEMBLIES||f.aimSlots.containsKey(a.base.getUuid())))f.aimSlots.put(a.base.getUuid(),best);return best;
+    }
     private static void stop(Assembly a,Frame f){if(a==null)return;for(var entry:List.of(Map.entry(a.base,YAW_DRIVE),Map.entry(a.yaw,PITCH_DRIVE))){var s=entry.getKey().getLocalBlock(entry.getValue());if(s.isOf(ModWorldBlocks.ROTARY_DRIVE)&&s.get(Properties.POWER)!=0&&entry.getKey().setLocalBlock(entry.getValue(),s.with(Properties.POWER,0)))f.drives++;}}
     private static void tick(ServerWorld world){
         long now=world.getTime();if(now%CADENCE!=0)return;var f=FRAMES.computeIfAbsent(world,w->new Frame());if(f.tick==now)return;
@@ -197,11 +230,13 @@ public final class HeavyOperatorSystem {
         f.memories.entrySet().removeIf(e->{var root=body(world,e.getKey());return root==null||!root.getCommandTags().contains(ROOT)||now<e.getValue().observedAt||now-e.getValue().observedAt>=DroneSquadMailbox.TTL;});
         f.interests.entrySet().removeIf(e->{var root=body(world,e.getKey());return root==null||!root.getCommandTags().contains(ROOT)||now<e.getValue().observedAt||now-e.getValue().observedAt>CADENCE+1;});
         f.pods.keySet().removeIf(id->!f.interests.containsKey(id));
+        f.aimSlots.keySet().removeIf(id->!f.interests.containsKey(id));
         while(visited<Math.min(MAX_BODY_VISITS,bodies.size())&&assemblies<MAX_ASSEMBLIES){
             var base=bodies.get(Math.floorMod(f.cursor++,bodies.size()));visited++;if(!base.getCommandTags().contains(ROOT))continue;assemblies++;
             var a=resolve(world,base);if(!materialValid(world,a)){f.interests.remove(base.getUuid());f.pods.remove(base.getUuid());stop(a,f);continue;}
             if(f.candidates>=MAX_CANDIDATES){stop(a,f);continue;}
-            var from=MountedWeaponEmitter.muzzle(a.barrel,LASER);var candidates=new ArrayList<LivingEntity>();
+            var anchor=anchorSlot(a,f);if(anchor==null){stop(a,f);continue;}
+            var from=MountedWeaponEmitter.muzzle(a.barrel,anchor);var candidates=new ArrayList<LivingEntity>();
             world.collectEntitiesByType(TypeFilter.instanceOf(LivingEntity.class),Box.of(from,192,192,192),e->enemy(base,e)&&e.squaredDistanceTo(from)<=96*96,candidates,MAX_CANDIDATES-f.candidates);
             f.candidates+=candidates.size();candidates.sort(Comparator.comparingDouble(e->e.squaredDistanceTo(from)));LivingEntity target=null;
             if(!candidates.isEmpty()&&(f.interests.size()<MAX_ASSEMBLIES||f.interests.containsKey(base.getUuid()))){var present=candidates.get(0);f.interests.put(base.getUuid(),new Interest(present.getUuid(),new WeakReference<>(present),now));}
@@ -209,7 +244,9 @@ public final class HeavyOperatorSystem {
             if(!valid(world,a)){stop(a,f);continue;}
             for(var candidate:candidates)if(candidate.squaredDistanceTo(from)<=48*48&&sight(world,a,from,candidate.getBoundingBox().getCenter(),f)){target=candidate;break;}
             Vec3d point;
-            if(target!=null){point=target.getBoundingBox().getCenter();if(f.memories.size()<MAX_ASSEMBLIES||f.memories.containsKey(base.getUuid()))f.memories.put(base.getUuid(),new Memory(target.getUuid(),new WeakReference<>(target),point,now));}
+            if(target!=null){point=target.getBoundingBox().getCenter();
+                if(f.interests.size()<MAX_ASSEMBLIES||f.interests.containsKey(base.getUuid()))f.interests.put(base.getUuid(),new Interest(target.getUuid(),new WeakReference<>(target),now));
+                if(f.memories.size()<MAX_ASSEMBLIES||f.memories.containsKey(base.getUuid()))f.memories.put(base.getUuid(),new Memory(target.getUuid(),new WeakReference<>(target),point,now));}
             else{var memory=f.memories.get(base.getUuid());var remembered=memory==null?null:memory.actor.get();
                 if(memory==null||!enemy(base,remembered)||!remembered.getUuid().equals(memory.target)){stop(a,f);continue;}
                 // Own hull/cover can briefly hide a recoiling muzzle. Drive only
@@ -217,7 +254,10 @@ public final class HeavyOperatorSystem {
                 // move this aim point or authorize even one projectile.
                 point=memory.point;
             }
-            var desired=point.subtract(from).normalize();var forward=MountedWeaponEmitter.direction(a.barrel,LASER);
+            var targetVelocity=target==null?Vec3d.ZERO:target.getVelocity();var selected=selectGun(a,f,point,targetVelocity,now);
+            if(selected==null){stop(a,f);continue;}
+            var desired=aimDirection(a.barrel,selected,point,targetVelocity);if(desired==null){stop(a,f);continue;}
+            var forward=MountedWeaponEmitter.direction(a.barrel,selected);
             double yawSpeed=a.yaw.physics().angularVelocity().minus(a.base.physics().angularVelocity()).dot(a.base.rotation().rotate(UP));
             double pitchSpeed=a.barrel.physics().angularVelocity().minus(a.yaw.physics().angularVelocity()).dot(a.yaw.rotation().rotate(X));
             drive(a.base,YAW_DRIVE,Direction.UP,axis(a.base,UP),forward,desired,yawSpeed,f);drive(a.yaw,PITCH_DRIVE,Direction.EAST,axis(a.yaw,X),forward,desired,pitchSpeed,f);
@@ -234,10 +274,22 @@ public final class HeavyOperatorSystem {
         if(permit==null||now<permit.tick||now-permit.tick>=CADENCE)return OptionalInt.of(0);
         var a=resolve(world,body(world,permit.root));if(!valid(world,a)||a.barrel!=barrel)return OptionalInt.of(0);
         var target=permit.actor.get();if(target==null||!target.getUuid().equals(permit.target)||!enemy(a.base,target))return OptionalInt.of(0);
-        var from=MountedWeaponEmitter.muzzle(barrel,LASER);var to=target.getBoundingBox().getCenter();
-        if(from.squaredDistanceTo(to)>48*48||!sight(world,a,from,to,f))return OptionalInt.of(0);
-        var forward=MountedWeaponEmitter.direction(barrel,LASER);var wanted=to.subtract(from);
-        if(wanted.lengthSquared()<1e-8||forward.dotProduct(wanted.normalize())<Math.cos(Math.toRadians(2)))return OptionalInt.of(0);
+        // This is bank ownership, not a cached shot verdict. The normal scheduler
+        // checks each actually due cell through allowsFire below; idle cells do
+        // not consume the global ray budget and a second gun cannot reuse a ray.
         return OptionalInt.of(3);
+    }
+    /** Revalidate each due material bank in the same normal emitter loop. One
+     * laser direction cannot authorize offset rockets after another gun recoils. */
+    public static boolean allowsFire(BlockBodyEntity barrel,BlockPos slot){
+        if(!gun(barrel,slot)||!(barrel.getWorld() instanceof ServerWorld world))return false;
+        var f=FRAMES.get(world);var permit=f==null?null:f.permits.get(barrel.getUuid());long now=world.getTime();
+        if(permit==null||now<permit.tick||now-permit.tick>=CADENCE)return false;
+        var a=resolve(world,body(world,permit.root));if(!valid(world,a)||a.barrel!=barrel||!slot.equals(f.aimSlots.get(a.base.getUuid())))return false;
+        var target=permit.actor.get();if(!enemy(a.base,target)||!target.getUuid().equals(permit.target))return false;
+        var from=MountedWeaponEmitter.muzzle(barrel,slot);var point=target.getBoundingBox().getCenter();
+        if(from.squaredDistanceTo(point)>48*48||!sight(world,a,from,point,f))return false;
+        var wanted=aimDirection(barrel,slot,point,target.getVelocity());
+        return wanted!=null&&MountedWeaponEmitter.direction(barrel,slot).dotProduct(wanted)>=Math.cos(Math.toRadians(2));
     }
 }
