@@ -80,6 +80,15 @@ public final class FootGravitySystem {
     public static void clearAllClient() { CLIENT_STATES.clear(); }
     public static void clearClient(UUID id) { CLIENT_STATES.remove(id); }
     public static void forget(UUID id) { clear(id); CLIENT_STATES.remove(id); NOTICES.forget(id); }
+    /** A removed object can retire its own lease even when the connection callback is delayed. */
+    public static void retireRemovedPlayer(ServerPlayerEntity player) {
+        var id = player.getUuid();
+        var flag = GRAVITY_FLAGS.get(id);
+        if (flag != null && flag.owner().get() == player) {
+            forget(id);
+            LocalOrientation.clear(id);
+        }
+    }
     public static void clearAll() {
         for(var id:java.util.List.copyOf(GRAVITY_FLAGS.keySet()))releaseGravity(id);
         STATES.clear(); CLIENT_STATES.clear(); NOTICES.clear();

@@ -34,6 +34,7 @@
     "CarvedFluidTickMixin",
     "MultiNoiseBiomeSourceMixin",
     "FootGravityGeometryMixin",
+    "PlayerManagerGravityMixin",
     "BoardingServerMovementMixin",
     "BoardingPlayerTravelMixin",
     "BoardingVelocityCleanupMixin",

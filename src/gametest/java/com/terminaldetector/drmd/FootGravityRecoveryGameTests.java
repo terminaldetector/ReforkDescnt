@@ -313,8 +313,8 @@ public final class FootGravityRecoveryGameTests implements FabricGameTest {
             c.assertTrue(FootGravitySystem.isActive(first) && first.hasNoGravity(), "a real torch owns the connected actor before logout");
             first.networkHandler.onDisconnected(new net.minecraft.network.DisconnectionInfo(net.minecraft.text.Text.literal("gravity lifecycle fixture")));
             disconnected = true;
-            c.assertTrue(manager.getPlayer(uuid) == null && !FootGravitySystem.isActive(first),
-                "the real disconnect path unloads the old actor and releases its torch lease");
+            c.assertTrue(manager.getPlayer(uuid) == null, "the real disconnect path unloads the old actor");
+            c.assertTrue(!FootGravitySystem.isActive(first), "native removal releases the old actor's torch lease");
 
             try (var restored = gravityWalker(c, "gravity-rejoin", uuid)) {
                 var second = restored.player();
