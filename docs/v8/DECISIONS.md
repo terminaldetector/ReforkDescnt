@@ -53,3 +53,8 @@ Hot turret restart: saved UUID priority applies to the common acquisition candid
 17 November: ordinary physical point-defense activation is accepted only after exact6b50273 unmasked843/442 and SAME-JAR two-client proof. Existing hostile ownerless station policy remains; friendly player AA/modular siege defense are not implied. The21-packet untouched-work map keeps PS1 at equal coverage with v8 and direct Boarding. No whole-task status promotion or publication.
 
 17 November:20ef2c4 is the exact853/442/two-native integration of manual bounded city authoring and first-planet-snapshot packet preservation. The362 low-cache premise failure stays preserved and is not promoted. S15-T05 starts from actual UI prototype compilation and native PS1/HUD work; ledger3/28/68, no completion promotion. Two latest specifications stay primary, with PS1 and direct Boarding constraints retained. No publication.
+
+
+## 2026-11-19 — Round 2 implementation decisions
+
+Exact second-round production source ec696a32132c595aa29095211416abb3ba22acdf. [Решения реализации](TASK20_ROUND2_2026-11-19.md) records the actual behavior and the preserved first failures for this source.

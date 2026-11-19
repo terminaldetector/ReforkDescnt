@@ -1,0 +1,174 @@
+{
+  "source": "ec696a32132c595aa29095211416abb3ba22acdf",
+  "baseline": "9b97fe78",
+  "completedIds": [
+    "S00-T01",
+    "S00-T03",
+    "S00-T05",
+    "S00-T06",
+    "S01-T05",
+    "S02-T06",
+    "S04-T01",
+    "S04-T02",
+    "S06-T01",
+    "S06-T02",
+    "S08-T02",
+    "S08-T05",
+    "S09-T01",
+    "S09-T03",
+    "S09-T05",
+    "S10-T04",
+    "S12-T01",
+    "S13-T02",
+    "S15-T03",
+    "S16-T01"
+  ],
+  "serverRuns": {
+    "first": {
+      "source": "5193c5a5e66c79ddfd454e268cfce324ec8b7b6c",
+      "gradleExit": 1,
+      "gameTests": 0,
+      "failures": {}
+    },
+    "server": {
+      "source": "d9e22e7ab92824b579f55aadd5f8f53530bb6cfa",
+      "gradleExit": 1,
+      "gameTests": 0,
+      "failures": {}
+    },
+    "integrated": {
+      "source": "fc542e18b39034a74a6279c14c4319de09bf9569",
+      "gradleExit": 1,
+      "gameTests": 105,
+      "failures": {
+        "survivalthreatgametests.anaturallyobservedexistingpairentersfinitesiegeandrealcoverreturnsittosearch": [
+          "(-3466124, -60, 3502253) real opaque cover breaks siege and preserves only the last genuinely seen position: Snapshot[phase=SIEGE, played=12000, since=1330, until=4517, encounterEnds=4517, alarmAt=917, lastSeen=1540, pending=false, spawned=2, origin=Point[x=-3466115.5, y=160.5, z=3502261.5], known=Point[x=-3466115.5, y=160.5, z=3502261.5]]"
+        ],
+        "ragdollgametests.absentrigversionandexplicitoneretainlegacyfreejetjoints": [
+          "(-3466098, -60, 3502281) legacy body moves from its real impulse during ordinary ticks"
+        ],
+        "survivalthreatgametests.escapinganactualsiegestopsnewfireandthesamepairphysicallyretreatsbeforeretirement": [
+          "(-3466085, -60, 3502379) normal flight AI physically retreats from last observation, no follow teleport or velocity injection"
+        ]
+      }
+    },
+    "fixture-compile": {
+      "source": "0fc906eccdeef5a917689e8e619c507a88d9045b",
+      "gradleExit": 1,
+      "gameTests": 0,
+      "failures": {}
+    },
+    "pre-aim": {
+      "source": "20b8db81409b207fd58e9b8c580b11581b593803",
+      "gradleExit": 1,
+      "gameTests": 111,
+      "failures": {
+        "thermaldrillgametests.registeredstrongitemheatsbeforeopeninganactualcollisionclearcircularpassage": [
+          "(4790586, -60, -3016960) actual player-size passage has no invisible whole-block wall"
+        ]
+      }
+    },
+    "final": {
+      "source": "ec696a32132c595aa29095211416abb3ba22acdf",
+      "gradleExit": 0,
+      "gameTests": 111,
+      "failures": {},
+      "unitTests": 84
+    }
+  },
+  "nativeRuns": {
+    "native-baseline.zip": {
+      "mirror": {
+        "source": "b894a94d7fd3054561bf00d42837907fc4767771",
+        "frames": 15,
+        "exit": 0,
+        "gameObserverHashes": {
+          "drmd-6dof-1.1.35-ufo-dev.1.jar": "4092dce3df4a8e5a7c98595b96697e68cc6bb6bed158332aac7f83bffa15fc4b",
+          "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "5f6f15026ad2645448375366c1b37be3f0de1eb3ec5da35a13e6d0953f57c2dd"
+        }
+      },
+      "connected": {
+        "source": "b894a94d7fd3054561bf00d42837907fc4767771",
+        "frames": 2,
+        "exit": 0,
+        "gameObserverHashes": {
+          "drmd-6dof-1.1.35-ufo-dev.1.jar": "4092dce3df4a8e5a7c98595b96697e68cc6bb6bed158332aac7f83bffa15fc4b",
+          "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "5f6f15026ad2645448375366c1b37be3f0de1eb3ec5da35a13e6d0953f57c2dd"
+        }
+      },
+      "mounted": {
+        "source": "b894a94d7fd3054561bf00d42837907fc4767771",
+        "frames": 5,
+        "exit": 0,
+        "gameObserverHashes": {
+          "drmd-6dof-1.1.35-ufo-dev.1.jar": "4092dce3df4a8e5a7c98595b96697e68cc6bb6bed158332aac7f83bffa15fc4b",
+          "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "5f6f15026ad2645448375366c1b37be3f0de1eb3ec5da35a13e6d0953f57c2dd"
+        }
+      }
+    },
+    "native-connected-failed.zip": {
+      "connected-final": {
+        "source": "ec696a32132c595aa29095211416abb3ba22acdf",
+        "frames": 1,
+        "exit": 0,
+        "gameObserverHashes": {
+          "drmd-6dof-1.1.35-ufo-dev.1.jar": "05c72e64c695aac318e078bee75f01ce8dc1b4a22015a117d5757b81ba7e8f5e",
+          "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "065ebb48a119898906ffd86547322d3bab59c3b002553104dacf5c0d432cee3e"
+        }
+      }
+    },
+    "native-connected-final.zip": {
+      "connected-final": {
+        "source": "ec696a32132c595aa29095211416abb3ba22acdf",
+        "frames": 2,
+        "exit": 0,
+        "gameObserverHashes": {
+          "drmd-6dof-1.1.35-ufo-dev.1.jar": "05c72e64c695aac318e078bee75f01ce8dc1b4a22015a117d5757b81ba7e8f5e",
+          "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "065ebb48a119898906ffd86547322d3bab59c3b002553104dacf5c0d432cee3e"
+        }
+      }
+    },
+    "native-dual-surface.zip": {
+      "mirrors-exact": {
+        "source": "fc542e18b39034a74a6279c14c4319de09bf9569",
+        "frames": 17,
+        "exit": 0,
+        "gameObserverHashes": {
+          "drmd-6dof-1.1.35-ufo-dev.1.jar": "d60e3f6e2e7196d3a5379a5ac3c4ca6c0052cdad480925b43d0eb47a5ae9c0ec",
+          "drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar": "065ebb48a119898906ffd86547322d3bab59c3b002553104dacf5c0d432cee3e"
+        }
+      }
+    }
+  },
+  "artifacts": {
+    "game": {
+      "path": "build/libs/drmd-6dof-1.1.35-ufo-dev.1.jar",
+      "sha256": "05c72e64c695aac318e078bee75f01ce8dc1b4a22015a117d5757b81ba7e8f5e",
+      "bytes": 3239996,
+      "modId": "drmd",
+      "version": "1.1.35-ufo-dev.1",
+      "crcVerified": true
+    },
+    "observer": {
+      "path": "build/libs/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar",
+      "sha256": "065ebb48a119898906ffd86547322d3bab59c3b002553104dacf5c0d432cee3e",
+      "bytes": 742284,
+      "modId": "drmd_cubiccheck",
+      "version": "0.0.1",
+      "crcVerified": true
+    }
+  },
+  "wholePacketsAccepted": 0,
+  "evidenceSHA256": {
+    "cubic-compatibility.json": "e26b812356df2273b439b54a8cfeecda88acc228cfc599b70c590a13cdd41eb0",
+    "failed-fixture-region-read.json": "abb273ab80342bd45818bb2b0b7bcdc489964b545b75f5c36500a8f328c5ea3b",
+    "mirror-and-portal.png": "9431f93c1283ff9d6a70ccc3a1df20c07cb794d58baa6f39fe81cbfe70977b55",
+    "native-baseline.zip": "68f48eb3f909318eb4714748f90dc68f526cccdee607369145fa8c1272862d44",
+    "native-connected-failed.zip": "b29d5340a340304bd5eb1c8c7fc1682512f0528075558f70ac6915a7788c0656",
+    "native-connected-final.zip": "1bf6c930321f9ab7e8789206e653dba0b52b60953e468af04fb0398e48d74f89",
+    "native-dual-surface.zip": "df71eb4cb23366bd180f4fb5ed3bae371734e1e70c2277d8c2d9003eff72bdac",
+    "selector.txt": "e4274529c3e3325dcc8d8d24cbf67855cf0461c252912477e1b2a58e634e221a",
+    "server-results.zip": "42860aadfaa397fd197c530bae1cab4be820788b683259d886db2cd624ffe19e",
+    "units.txt": "c2eb74e2d377fd40067a2650ce18d5bb135d9ee6be96cb31bcc61b652898bdfc"
+  }
+}

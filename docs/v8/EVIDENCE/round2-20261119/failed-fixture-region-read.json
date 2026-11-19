@@ -1,0 +1,33 @@
+{
+  "jetFailure": {
+    "source": "fc542e18b39034a74a6279c14c4319de09bf9569",
+    "regionSHA256": "e5df157d8f0823a94a51d2a3105d2943c0bb994ed1f61d3c2f9a29002a693bca",
+    "block": [
+      -3466089,
+      20,
+      3502288
+    ],
+    "readState": "minecraft:stone"
+  },
+  "drillFailure": {
+    "source": "20b8db81409b207fd58e9b8c580b11581b593803",
+    "regionSHA256": "16353ff98ba00bedbd045316d2c9f3eaca02466bb8ae102f24ebfa69d7511b02",
+    "block": [
+      64328,
+      120,
+      96009
+    ],
+    "savedMask": -8610741747896514432,
+    "boreAxes": [
+      {
+        "bx": -0.7013785871313303,
+        "ax": -0.5,
+        "by": 0.5,
+        "ay": 0.5,
+        "bz": 1.4898358386126347,
+        "az": -0.5,
+        "radius": 1.5
+      }
+    ]
+  }
+}

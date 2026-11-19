@@ -540,9 +540,9 @@
   "canonicalPreparedSource": "9226e7a04fa39fbfd12ada8d1770549bacd36264",
   "preparedSourceNotYetFullRuntimeAccepted": true,
   "liveLedgerCounts": {
-    "in_progress": 30,
-    "pending_reverification": 46,
-    "completed": 23,
+    "in_progress": 19,
+    "pending_reverification": 37,
+    "completed": 43,
     "total": 99
   },
   "currentPrimarySpecifications": [
@@ -576,7 +576,7 @@
     "report": "docs/v8/IMPLEMENTATION_EMBEDDED_PS1_FIXED_GROUPS_2026-11-18.md",
     "fullSuiteRerun": false
   },
-  "latestFocusedServerSource": "b894a94d7fd3054561bf00d42837907fc4767771",
+  "latestFocusedServerSource": "ec696a32132c595aa29095211416abb3ba22acdf",
   "ps1Meaning": "Shader/render pipeline embedded in the mod; coarse meshes alone do not complete PS1",
   "publicationInstruction": "Latest user authorizes current work and remaining requirements pushed to main; earlier GitHub pause superseded; task configuration left to user.",
   "task20Round20261119": {
@@ -609,5 +609,33 @@
     "ordinaryGameTests": 96,
     "wholePacketsAccepted": 0,
     "freshFinalClient": false
+  },
+  "task20Round2_20261119": {
+    "report": "TASK20_ROUND2_2026-11-19.md",
+    "evidence": "EVIDENCE/round2-20261119/receipt.json",
+    "source": "ec696a32132c595aa29095211416abb3ba22acdf",
+    "completedIds": [
+      "S00-T01",
+      "S00-T03",
+      "S00-T05",
+      "S00-T06",
+      "S01-T05",
+      "S02-T06",
+      "S04-T01",
+      "S04-T02",
+      "S06-T01",
+      "S06-T02",
+      "S08-T02",
+      "S08-T05",
+      "S09-T01",
+      "S09-T03",
+      "S09-T05",
+      "S10-T04",
+      "S12-T01",
+      "S13-T02",
+      "S15-T03",
+      "S16-T01"
+    ],
+    "wholePacketsAccepted": 0
   }
 }

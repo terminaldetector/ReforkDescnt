@@ -9,11 +9,11 @@ tasks:
   owner: CODEX
   gate: G0
   depends_on_stages: &id001 []
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json, TASK20_ROUND2_2026-11-19.md, HISTORY_ROUND2_9B97FE78_2026-11-19.md]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md."
 - id: S00-T02
   stage: S00
   stage_title: History & executable truth
@@ -33,11 +33,11 @@ tasks:
   owner: CODEX
   gate: G0
   depends_on_stages: *id001
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND2_2026-11-19.md, HISTORY_ROUND2_9B97FE78_2026-11-19.md]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md."
 - id: S00-T04
   stage: S00
   stage_title: History & executable truth
@@ -57,11 +57,11 @@ tasks:
   owner: CODEX
   gate: G0
   depends_on_stages: *id001
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/index.json, STATE.md, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json, TASK20_ROUND2_2026-11-19.md, HISTORY_ROUND2_9B97FE78_2026-11-19.md]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md."
 - id: S00-T06
   stage: S00
   stage_title: History & executable truth
@@ -69,11 +69,11 @@ tasks:
   owner: CODEX
   gate: G0
   depends_on_stages: *id001
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND2_2026-11-19.md, HISTORY_ROUND2_9B97FE78_2026-11-19.md]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md."
 - id: S01-T01
   stage: S01
   stage_title: Reproduce and instrument baseline
@@ -130,11 +130,11 @@ tasks:
   owner: CODEX
   gate: G0
   depends_on_stages: *id002
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [BLOCK_ENTITY_FORENSICS_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md]
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [BLOCK_ENTITY_FORENSICS_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, TASK20_ROUND2_2026-11-19.md, HISTORY_ROUND2_9B97FE78_2026-11-19.md]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md."
 - id: S01-T06
   stage: S01
   stage_title: Reproduce and instrument baseline
@@ -216,11 +216,11 @@ tasks:
   owner: WORLD
   gate: G1
   depends_on_stages: *id003
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND2_2026-11-19.md, CUBIC_UPSTREAM_COMPATIBILITY_2026-11-19.md]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md."
 - id: S03-T01
   stage: S03
   stage_title: Migrate world gameplay and structures
@@ -229,11 +229,11 @@ tasks:
   gate: G1
   depends_on_stages: &id004
   - S02
-  status: pending_reverification
+  status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
+  notes: "2026-11-19 round 2: Loaded-only edits, carving, fire, drill scans and thermal fluids integrated. Full edit and generation caller coverage remains in progress. See TASK20_ROUND2_2026-11-19.md."
 - id: S03-T02
   stage: S03
   stage_title: Migrate world gameplay and structures
@@ -290,11 +290,11 @@ tasks:
   gate: G3
   depends_on_stages: &id005
   - S02
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [IMPLEMENTATION_PORTAL_TREES_2026-11-18.md]
-  notes: "Rounded-log material/AXIS propagation is implemented in0f723; engineered anchors and source material remain intact. Focused geometry13unit and actual tree2 cases pass; full material classification and transition matrix remain open."
+  evidence: [IMPLEMENTATION_PORTAL_TREES_2026-11-18.md, TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md. Earlier evidence boundary: Rounded-log material/AXIS propagation is implemented in0f723; engineered anchors and source material remain intact. Focused geometry13unit and actual tree2 cases pass; full material classification and transition matrix remain open."
 - id: S04-T02
   stage: S04
   stage_title: Hybrid/NoCubes meshing and LOD
@@ -302,11 +302,11 @@ tasks:
   owner: RENDER
   gate: G3
   depends_on_stages: *id005
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [IMPLEMENTATION_PORTAL_TREES_2026-11-18.md]
-  notes: "Axis-aware rounded trunk/branch geometry and shared seams are implemented in0f723. Four new geometry unit and two actual world/body/explosion cases pass; full feature-aware terrain and native image/performance acceptance remain open."
+  evidence: [IMPLEMENTATION_PORTAL_TREES_2026-11-18.md, TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md. Earlier evidence boundary: Axis-aware rounded trunk/branch geometry and shared seams are implemented in0f723. Four new geometry unit and two actual world/body/explosion cases pass; full feature-aware terrain and native image/performance acceptance remain open."
 - id: S04-T03
   stage: S04
   stage_title: Hybrid/NoCubes meshing and LOD
@@ -390,8 +390,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [CLOUD_ATTRIBUTION_PARTIAL_2026-11-17.md, EVIDENCE/cloud-e7213db-partial-attribution.json]
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [CLOUD_ATTRIBUTION_PARTIAL_2026-11-17.md, EVIDENCE/cloud-e7213db-partial-attribution.json, TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
+  notes: "2026-11-19 round 2: Altitude-dependent PS1 horizon haze and smooth ground opacity integrated with focused units. Enabled-fog native altitude/asteroid scene remains in progress. See TASK20_ROUND2_2026-11-19.md."
 - id: S05-T04
   stage: S05
   stage_title: PS1 Hybrid presentation profile
@@ -437,11 +437,11 @@ tasks:
   depends_on_stages: &id007
   - S00
   - S01
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md."
 - id: S06-T02
   stage: S06
   stage_title: Core gravity and player 6DoF
@@ -449,11 +449,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id007
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md."
 - id: S06-T03
   stage: S06
   stage_title: Core gravity and player 6DoF
@@ -583,11 +583,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id009
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [RAGDOLL_ANGULAR_LIMITS_2026-11-18.md, RAGDOLL_ORDINARY_GATE_FIRST_2026-11-18.md]
-  notes: "Partial implementation: optional rest-frame angular limits and versioned JET wing rig imported at99d2cfca. Separate17 selected units and9 ordinary ragdoll GameTests PASS, including3 new codec scenarios. Canonical full/native, all-family joint limits, off-centre damage and fullCCD remain open."
+  evidence: [RAGDOLL_ANGULAR_LIMITS_2026-11-18.md, RAGDOLL_ORDINARY_GATE_FIRST_2026-11-18.md, TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md. Earlier evidence boundary: Partial implementation: optional rest-frame angular limits and versioned JET wing rig imported at99d2cfca. Separate17 selected units and9 ordinary ragdoll GameTests PASS, including3 new codec scenarios. Canonical full/native, all-family joint limits, off-centre damage and fullCCD remain open."
 - id: S08-T03
   stage: S08
   stage_title: Articulated ragdoll and destructible bodies
@@ -619,11 +619,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id009
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [RAGDOLL_FIELD_STRENGTH_2026-11-11.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json]
-  notes: "Current699b749 includes sampled strength and occupiedXYZ admission. Separate actual BCC negative/positive proves atomic ragdoll rollback at non-FULLY; not swept/rotationalCCD or all heavy-rail orientation/collision acceptance."
+  evidence: [RAGDOLL_FIELD_STRENGTH_2026-11-11.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md. Earlier evidence boundary: Current699b749 includes sampled strength and occupiedXYZ admission. Separate actual BCC negative/positive proves atomic ragdoll rollback at non-FULLY; not swept/rotationalCCD or all heavy-rail orientation/collision acceptance."
 - id: S09-T01
   stage: S09
   stage_title: BlockBody / UFO boarding and reactor
@@ -633,11 +633,11 @@ tasks:
   depends_on_stages: &id010
   - S06
   - S08
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND2_2026-11-19.md, HISTORY_ROUND2_9B97FE78_2026-11-19.md]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md."
 - id: S09-T02
   stage: S09
   stage_title: BlockBody / UFO boarding and reactor
@@ -657,11 +657,11 @@ tasks:
   owner: UFO_OWNER
   gate: G2
   depends_on_stages: *id010
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MOUNTED_WEAPONS_2026-11-07.md, EVIDENCE/mounted-weapons-479719e.zip, TURRET_2026-11-07.md, EVIDENCE/turret-ecde7af.zip, TURRET_RESTART.md, EVIDENCE/turret-restart-97d6f59.zip, UFO_AUTONOMOUS_COMBAT.md, EVIDENCE/ufo-autonomous-3dd2263.zip, TURRET_AUTONOMOUS_COMBAT.md, EVIDENCE/turret-autonomous-d54d71f.zip, PLAYER_BUILT_MECHANISMS.md, EVIDENCE/player-mechanisms-a160efb.zip, PLAYER_BUILT_WEAPONS.md, EVIDENCE/player-weapons-8e5111b.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_5057931_2026-11-18.md, EVIDENCE/integrated-5057931.json]
-  notes: "Prior reusable gun/bearing/drive and linear mechanisms remain. Canonical505 now includes Survival wrench-armed physical AA, shared cadence/budgets, actual missile interception and opaque-material fracture refusal in ordinary480. Generic ControlCore/manualfire bridge remains separate source-only; complete aiming/energy/ammo/native arming/module lifecycle open."
+  evidence: [MOUNTED_WEAPONS_2026-11-07.md, EVIDENCE/mounted-weapons-479719e.zip, TURRET_2026-11-07.md, EVIDENCE/turret-ecde7af.zip, TURRET_RESTART.md, EVIDENCE/turret-restart-97d6f59.zip, UFO_AUTONOMOUS_COMBAT.md, EVIDENCE/ufo-autonomous-3dd2263.zip, TURRET_AUTONOMOUS_COMBAT.md, EVIDENCE/turret-autonomous-d54d71f.zip, PLAYER_BUILT_MECHANISMS.md, EVIDENCE/player-mechanisms-a160efb.zip, PLAYER_BUILT_WEAPONS.md, EVIDENCE/player-weapons-8e5111b.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_5057931_2026-11-18.md, EVIDENCE/integrated-5057931.json, TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/native-baseline.zip]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md. Earlier evidence boundary: Prior reusable gun/bearing/drive and linear mechanisms remain. Canonical505 now includes Survival wrench-armed physical AA, shared cadence/budgets, actual missile interception and opaque-material fracture refusal in ordinary480. Generic ControlCore/manualfire bridge remains separate source-only; complete aiming/energy/ammo/native arming/module lifecycle open."
 - id: S09-T04
   stage: S09
   stage_title: BlockBody / UFO boarding and reactor
@@ -681,11 +681,11 @@ tasks:
   owner: UFO_OWNER
   gate: G2
   depends_on_stages: *id010
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [IMPLEMENTATION_92B6DA2E_2026-11-18.md, EVIDENCE/focused-92b6da2e.json]
-  notes: "Actual92b ordinary five-case reactor phase PASS: saved configurable delay/warning, optional0, elapsed NBT and at-most-once bounded detonation; physics/material continuity retained. Original sphere/support combat and full sabotage/escape episode remain open."
+  evidence: [IMPLEMENTATION_92B6DA2E_2026-11-18.md, EVIDENCE/focused-92b6da2e.json, TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md. Earlier evidence boundary: Actual92b ordinary five-case reactor phase PASS: saved configurable delay/warning, optional0, elapsed NBT and at-most-once bounded detonation; physics/material continuity retained. Original sphere/support combat and full sabotage/escape episode remain open."
 - id: S09-T06
   stage: S09
   stage_title: BlockBody / UFO boarding and reactor
@@ -743,11 +743,11 @@ tasks:
   owner: WEAPONS
   gate: G4
   depends_on_stages: *id011
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [IMPLEMENTATION_PORTAL_TREES_2026-11-18.md]
-  notes: "Strong-drill staged thermal circular cuts, cooling and bounded legacy drop behavior are implemented; actual thermal9 cases pass on8650 and again after shared-tree-mesh changes on0f723. Full native image, fluid and arbitrary material/6DoF acceptance remain open."
+  evidence: [IMPLEMENTATION_PORTAL_TREES_2026-11-18.md, TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md. Earlier evidence boundary: Strong-drill staged thermal circular cuts, cooling and bounded legacy drop behavior are implemented; actual thermal9 cases pass on8650 and again after shared-tree-mesh changes on0f723. Full native image, fluid and arbitrary material/6DoF acceptance remain open."
 - id: S10-T05
   stage: S10
   stage_title: Weapons, cluster, drill and building
@@ -843,11 +843,11 @@ tasks:
   depends_on_stages: &id013
   - S10
   - S11
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [SURVIVAL_THREAT_2026-11-10.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json, MULTI_AGENT_INTEGRATION_5057931_2026-11-18.md, EVIDENCE/integrated-5057931.json]
-  notes: "Canonical505951unit/480ordinaryGT/81entries+two same-JAR clients includes12000-online-tick nonlethalrecon, naturalownLOS/full400warning/oneASSAULT and playerbuiltAA. Source600 andfa7 firstfeedback/opaquefragment failures retained. Automatic siege/twoinfantry/recovery/daynight/nativeclock/cold remain open."
+  evidence: [SURVIVAL_THREAT_2026-11-10.md, EVIDENCE/integrated-5839062.zip, MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json, MULTI_AGENT_INTEGRATION_5057931_2026-11-18.md, EVIDENCE/integrated-5057931.json, TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md. Earlier evidence boundary: Canonical505951unit/480ordinaryGT/81entries+two same-JAR clients includes12000-online-tick nonlethalrecon, naturalownLOS/full400warning/oneASSAULT and playerbuiltAA. Source600 andfa7 firstfeedback/opaquefragment failures retained. Automatic siege/twoinfantry/recovery/daynight/nativeclock/cold remain open."
 - id: S12-T02
   stage: S12
   stage_title: Survival threat and minimal armament economy
@@ -917,11 +917,11 @@ tasks:
   owner: WORLD_DESIGN
   gate: G5
   depends_on_stages: *id014
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md."
 - id: S13-T03
   stage: S13
   stage_title: 'World architecture: core to Citadel'
@@ -1066,11 +1066,11 @@ tasks:
   owner: CLEANUP
   gate: G3
   depends_on_stages: *id016
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md."
 - id: S15-T04
   stage: S15
   stage_title: Cleanup / asset and UI integration
@@ -1107,11 +1107,11 @@ tasks:
   - S09
   - S11
   - S15
-  status: in_progress
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json]
-  notes: "Exact699b749772unit/404ordinaryGT/64entrypoints and both same-JAR BCC/Sodium native clients pass;28PNG retained. All official older rendercheck scenarios, hardware and full-release gates are not inferred."
+  evidence: [MULTI_AGENT_INTEGRATION_2026-11-17.md, EVIDENCE/integrated-699b749.json, MULTI_AGENT_SERVER_INCREMENT_2026-11-17.md, MULTI_AGENT_INTEGRATION_11513CD_2026-11-17.md, MULTI_AGENT_INTEGRATION_ED458A8_2026-11-17.md, EVIDENCE/integrated-ed458a8.json, MULTI_AGENT_INTEGRATION_AE1BD82_2026-11-17.md, EVIDENCE/integrated-ae1bd82.json, MULTI_AGENT_INTEGRATION_6B50273_2026-11-17.md, EVIDENCE/integrated-6b50273.json, MULTI_AGENT_INTEGRATION_20EF2C4_2026-11-17.md, EVIDENCE/integrated-20ef2c4.json, MULTI_AGENT_SERVER_522EE07_2026-11-17.md, EVIDENCE/integrated-522ee07-server.json, MULTI_AGENT_INTEGRATION_68FB20A_2026-11-17.md, EVIDENCE/integrated-68fb20a.json, TASK20_ROUND2_2026-11-19.md, EVIDENCE/round2-20261119/receipt.json]
+  notes: "2026-11-19 round 2: original task accepted within the scope and source evidence in TASK20_ROUND2_2026-11-19.md. Earlier evidence boundary: Exact699b749772unit/404ordinaryGT/64entrypoints and both same-JAR BCC/Sodium native clients pass;28PNG retained. All official older rendercheck scenarios, hardware and full-release gates are not inferred."
 - id: S16-T02
   stage: S16
   stage_title: Full performance and regression testing

@@ -1,0 +1,239 @@
+{
+  "status": "PASS",
+  "scope": "S02-T06 limitations record, not current full runtime or hardware acceptance",
+  "archives": [
+    {
+      "path": "/workspace/ungravity-v5/checkpoints/gate0-server/evidence.zip",
+      "bytes": 608420,
+      "sha256": "a8e62b0e5f93e0ebf95652789e9b21990e981ccd440b80121c7c28e530b173e5",
+      "zipCrc": "PASS",
+      "entries": 106
+    },
+    {
+      "path": "/workspace/ungravity-v5/checkpoints/cubic-lighting-1.1.18/native-evidence.zip",
+      "bytes": 11998102,
+      "sha256": "12a8c9eaf586173a9222f148e0fd74d3db12a80cba589e1ba3e9b390a9d31f0c",
+      "zipCrc": "PASS",
+      "entries": 356
+    },
+    {
+      "path": "/workspace/ungravity-v5/checkpoints/world-access-1.1.19/native-evidence.zip",
+      "bytes": 5741542,
+      "sha256": "416d9181bee2e98e50ad97bb152ca3fa30a96de591902580761ed78d48a663f2",
+      "zipCrc": "PASS",
+      "entries": 77
+    }
+  ],
+  "loomMismatch": [
+    {
+      "pattern": "Fabric Loom: 1\\.10\\.5",
+      "line": 5,
+      "text": "Fabric Loom: 1.10.5"
+    },
+    {
+      "pattern": "built with a newer version of Loom \\(1\\.17\\.21\\)",
+      "line": 13,
+      "text": "> Failed to setup Minecraft, java.lang.IllegalStateException: Mod was built with a newer version of Loom (1.17.21), you are using Loom (1.10.5)"
+    }
+  ],
+  "sodiumStrict32": {
+    "status": "BLOCKED",
+    "mods": [
+      {
+        "path": "mods/drmd-6dof-1.1.18-cubic.1.jar",
+        "sha256": "c7cf1bfbc5f02d2f752abb89a74b85040034b237c9d47103e053fe1b867ac550",
+        "source": "build/libs/drmd-6dof-1.1.18-cubic.1.jar"
+      },
+      {
+        "path": "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar",
+        "sha256": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+        "source": "/workspace/Refork-audit/work/master-v5/upstream/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar"
+      },
+      {
+        "path": "mods/fabric-api-0.116.15+1.21.1.jar",
+        "sha256": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+        "source": "/workspace/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api/0.116.15+1.21.1/d25c793833a90cc028c9a61bc4546cd578a70ce1/fabric-api-0.116.15+1.21.1.jar"
+      },
+      {
+        "path": "mods/drmd-6dof-1.1.18-cubic.1-cubiccheck.jar",
+        "sha256": "9456f889d7038ec17c75d1f57056e989352b1314f4602feb0adc98380381ca52",
+        "source": "build/libs/drmd-6dof-1.1.18-cubic.1-cubiccheck.jar"
+      },
+      {
+        "path": "mods/sodium-fabric-0.8.13+mc1.21.1.jar",
+        "sha256": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d",
+        "source": "work/gate0/upstream/sodium-fabric-0.8.13+mc1.21.1.jar"
+      }
+    ],
+    "witnesses": [
+      {
+        "pattern": "OpenGL Renderer: llvmpipe",
+        "line": 105,
+        "text": "[01:36:43] [Render thread/INFO]: OpenGL Renderer: llvmpipe (LLVM 19.1.7, 256 bits)"
+      },
+      {
+        "pattern": "OpenGL Version: 3\\.2",
+        "line": 106,
+        "text": "[01:36:43] [Render thread/INFO]: OpenGL Version: 3.2 (Core Profile) Mesa 25.0.7-2+deb13u1"
+      },
+      {
+        "pattern": "GLSL 3\\.30 is not supported",
+        "line": 280,
+        "text": "[01:37:04] [Render thread/INFO]: OpenGL debug message: id=1, source=SHADER COMPILER, type=ERROR, severity=HIGH, message='0:1(10): error: GLSL 3.30 is not supported. Supported versions are: 1.10, 1.20, 1.30, 1.40, 1.50, 1.00 ES, 3.00 ES, 3.10 ES, and 3.20 ES'"
+      },
+      {
+        "pattern": "sodium: Sodium 0\\.8\\.13",
+        "line": 487,
+        "text": "\t\tsodium: Sodium 0.8.13+mc1.21.1"
+      }
+    ]
+  },
+  "acceptedHistoricalCases": [
+    {
+      "mode": "mirror-gl32",
+      "status": "HISTORICAL_SUBSET_PASS",
+      "sourceSha": "0f76a0789fe8cb62ff98c3e08d6232f222d72cb8",
+      "game": {
+        "path": "/workspace/ungravity-v5/checkpoints/world-access-1.1.19/drmd-6dof-1.1.19-world.1-fabric-1.21.1.jar",
+        "bytes": 1899678,
+        "sha256": "3df5cfcbd41c03af0df44c28e2f11fd18f9754c0571ca7895bea0e4d38319298"
+      },
+      "mods": [
+        {
+          "path": "mods/drmd-6dof-1.1.19-world.1.jar",
+          "sha256": "3df5cfcbd41c03af0df44c28e2f11fd18f9754c0571ca7895bea0e4d38319298",
+          "source": "build/libs/drmd-6dof-1.1.19-world.1.jar"
+        },
+        {
+          "path": "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar",
+          "sha256": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+          "source": "/workspace/Refork-audit/work/master-v5/upstream/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar"
+        },
+        {
+          "path": "mods/fabric-api-0.116.15+1.21.1.jar",
+          "sha256": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+          "source": "/workspace/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api/0.116.15+1.21.1/d25c793833a90cc028c9a61bc4546cd578a70ce1/fabric-api-0.116.15+1.21.1.jar"
+        },
+        {
+          "path": "mods/drmd-6dof-1.1.19-world.1-cubiccheck.jar",
+          "sha256": "4cd3565fa2f9acfdfb37ceebc0e4b8706f10908863ff40e1bd84b6737cf75b88",
+          "source": "build/libs/drmd-6dof-1.1.19-world.1-cubiccheck.jar"
+        }
+      ],
+      "requestedMesaProfile": "3.2/150",
+      "actualGraphicsLog": [],
+      "outcome": {
+        "frames": 14,
+        "scenes": [
+          {
+            "scene": "joined-on",
+            "changedPixels": 20736
+          },
+          {
+            "scene": "hole-on",
+            "changedPixels": 14112
+          },
+          {
+            "scene": "angled-on",
+            "changedPixels": 17240
+          },
+          {
+            "scene": "occluded-on",
+            "changedPixels": 15552
+          },
+          {
+            "scene": "charged-on",
+            "changedPixels": 21844
+          },
+          {
+            "scene": "portal-on",
+            "changedPixels": 90835
+          },
+          {
+            "scene": "banked-on",
+            "changedPixels": 26680
+          }
+        ]
+      },
+      "actualExit": 0,
+      "scope": "software rendering, not physical Intel certification; absent actualGraphicsLog means only staged profile is recorded"
+    },
+    {
+      "mode": "baseline-sodium",
+      "status": "HISTORICAL_SUBSET_PASS",
+      "sourceSha": "0f76a0789fe8cb62ff98c3e08d6232f222d72cb8",
+      "game": {
+        "path": "/workspace/ungravity-v5/checkpoints/world-access-1.1.19/drmd-6dof-1.1.19-world.1-fabric-1.21.1.jar",
+        "bytes": 1899678,
+        "sha256": "3df5cfcbd41c03af0df44c28e2f11fd18f9754c0571ca7895bea0e4d38319298"
+      },
+      "mods": [
+        {
+          "path": "mods/drmd-6dof-1.1.19-world.1.jar",
+          "sha256": "3df5cfcbd41c03af0df44c28e2f11fd18f9754c0571ca7895bea0e4d38319298",
+          "source": "build/libs/drmd-6dof-1.1.19-world.1.jar"
+        },
+        {
+          "path": "mods/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar",
+          "sha256": "8660f6e18fafaaa1dea2ef344e86188a943b0f3661c65fdcd294f326f3c6e8b6",
+          "source": "/workspace/Refork-audit/work/master-v5/upstream/bettercubicchunks-fabric-0.1.1+mc1.21.1.jar"
+        },
+        {
+          "path": "mods/fabric-api-0.116.15+1.21.1.jar",
+          "sha256": "a61a10f730ab8aa45ff42486ee65699e6e51c28a0c168deb161e7d4029473aa3",
+          "source": "/workspace/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api/0.116.15+1.21.1/d25c793833a90cc028c9a61bc4546cd578a70ce1/fabric-api-0.116.15+1.21.1.jar"
+        },
+        {
+          "path": "mods/drmd-6dof-1.1.19-world.1-cubiccheck.jar",
+          "sha256": "4cd3565fa2f9acfdfb37ceebc0e4b8706f10908863ff40e1bd84b6737cf75b88",
+          "source": "build/libs/drmd-6dof-1.1.19-world.1-cubiccheck.jar"
+        },
+        {
+          "path": "mods/sodium-fabric-0.8.13+mc1.21.1.jar",
+          "sha256": "3d43c14985a4deb19c654aad3393b454cf57e1ebcbba86c4ae6a98dfc60eca2d",
+          "source": "/workspace/ungravity-v5/world/work/gate0/upstream/sodium-fabric-0.8.13+mc1.21.1.jar"
+        }
+      ],
+      "requestedMesaProfile": "3.3/330",
+      "actualGraphicsLog": [
+        "[07:12:11] [Render thread/INFO]: OpenGL Vendor: Mesa",
+        "[07:12:11] [Render thread/INFO]: OpenGL Renderer: llvmpipe (LLVM 19.1.7, 256 bits)",
+        "[07:12:11] [Render thread/INFO]: OpenGL Version: 3.3 (Core Profile) Mesa 25.0.7-2+deb13u1"
+      ],
+      "outcome": {
+        "status": "CLIENT_SUBSET_PASS_FULL_GATE_PENDING",
+        "serverFlightY": 2165.01086755316,
+        "serverFlightVelocityY": 31.418747901916504,
+        "renderedFrames": 830,
+        "terrainBlocks": 83,
+        "terrainQuads": 4858,
+        "warpedVertices": 16068,
+        "checks": [
+          "native_client_world_access_distinguishes_unknown_from_air",
+          "high_container_type_and_synced_sign_nbt",
+          "six_dof_vertical_seam",
+          "native_water_cross_xyz_cube_boundaries",
+          "native_blocklight_cross_xy_boundary",
+          "native_blocklight_removal",
+          "native_skylight_occlusion",
+          "native_skylight_restoration",
+          "native_skylight_restoration_two_lower_cubes",
+          "native_negative_blocklight_synced",
+          "negative_container_type_and_synced_sign_nbt",
+          "independent_vertical_be_unload",
+          "native_skylight_after_vertical_reload",
+          "native_chunk_mesh_uses_warped_hybrid_terrain"
+        ]
+      },
+      "actualExit": 0,
+      "scope": "software rendering, not physical Intel certification; absent actualGraphicsLog means only staged profile is recorded"
+    }
+  ],
+  "physicalIntelHD4400": "UNTESTED for this backend/current game; Mesa profile override is not hardware emulation",
+  "unverified": [
+    "Full current native lighting/cold parity",
+    "upstream droppedWrites semantics and busy callback flush",
+    "BetterDistantHorizons/standard DistantHorizons co-installation",
+    "old vanilla-world conversion"
+  ]
+}

@@ -77,3 +77,8 @@ Articulated AI: original real kit has0/0 autonomous shots. First attempts expose
 17 Novemberbd29aab:803unit/406ordinaryGT pass, sameJAR BCC native255 reproduces knownGOLD16445005→0 afterhighcube unload andlowedit, withcachedwinner2300 andheight2301 unchanged throughlive/disk/packet. Three loadedGold/Lime/restore controls pass. Surfaceavailability guard remainsunmerged. Independent native07b press+release same9077tick loses shortclick beforeItem.use;9receiver tests reproduce7fail/2pass withoutfixtureexception. Independent sky442 negative attributes51%banked sky outsideclippedcube and7922/7922levelLOD overwritten bylateenvelope, withGL0. Original failures retained; fixes remain separate untilverified.
 
 17 November combined11513cd:824unit/418ordinaryGT/66entrypoints and same-JAR Native/PS1/Debug/resize/mirror/viewmodel client PASS. Includes bounded real weapon tap/charge correction, observed-height/material and unavailable-volume guards, sky far-depth/order, fish/climber entry, city47 protocol. Separate realpacket6scene input, same-observer cube unload/return and bothrenderer sky proofs retain exact component identities. New actual wall case loses support/progress; ceiling activity predicate requires documented native idle-navigation fallback before reinterpretation. Four-state palette negative shows missingfeature with raw exact/depth/grid/GL valid. These next candidates are not in current11513 acceptance.
+
+
+## 2026-11-19 — Round 2 regression outcomes
+
+Exact second-round production source ec696a32132c595aa29095211416abb3ba22acdf. [Проверки и исходные отказы](TASK20_ROUND2_2026-11-19.md) records the actual behavior and the preserved first failures for this source.
