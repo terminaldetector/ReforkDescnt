@@ -43,6 +43,10 @@ public final class NativeSwarmBaselineCheck {
     private static int measuredFullCubes;
     private static long initialRosterScans;
     private static DroneSwarmAi.IndexStats finalRosterStats;
+    private static boolean capacityAdmitted;
+    private static int capacityAdmissionTicks;
+    private static final Map<UUID,Integer> capacityAdmissionAges=new HashMap<>();
+    private static Map<String,Object> capacityAdmission=Map.of();
     private static final List<String> ROWS=new ArrayList<>();
     private static volatile boolean located,running,sampling,resultReady,done;
     private static volatile boolean abortPending;
@@ -63,7 +67,9 @@ public final class NativeSwarmBaselineCheck {
         ROWS.add("height,requested,alive,active_ticks,moving,server_lookup,client_synced,unique_rendered,shots,shooters,indexed,targeting,max_candidates,server_p50_ms,server_p95_ms,server_p99_ms,observed_tps,frames,frame_p95_ms,cleanup_remaining");
         ServerTickEvents.START_SERVER_TICK.register(s->{if(running)tickStart=System.nanoTime();});
         ServerTickEvents.END_SERVER_TICK.register(s->{
-            if(!running||resultReady||done)return;age++;
+            if(!running||resultReady||done)return;
+            if(MEASURE_CAPACITY&&!capacityAdmitted&&!admitCapacity(s.getOverworld()))return;
+            age++;
             if(age==35){initial.clear();initialAge.clear();for(var d:DRONES){initial.put(entity(d).getUuid(),entity(d).getPos());initialAge.put(entity(d).getUuid(),entity(d).age);}WORK.clear();sampleStart=System.nanoTime();sampling=true;
                 initialDetailed = DRONES.stream().mapToLong(DroneEntity::steeringUpdates).sum();
                 initialCoast = DRONES.stream().mapToLong(DroneEntity::coastingUpdates).sum();
@@ -132,13 +138,14 @@ public final class NativeSwarmBaselineCheck {
         if(c.player==null||c.world==null||c.getServer()==null)return;
         if(!requested) {
             require(c.runDirectory.toPath().getFileName().toString().equals("cubic-client-automation"),"disposable runtime only");requested=true;c.setScreen(null);c.options.hudHidden=true;c.options.setPerspective(Perspective.FIRST_PERSON);
-            if(TYPED){c.options.getViewDistance().setValue(8);c.options.sendClientSettings();}
+            if(TYPED){c.options.getViewDistance().setValue(8);if(MEASURE_CAPACITY)c.options.getSimulationDistance().setValue(8);c.options.sendClientSettings();}
             com.terminaldetector.drmd.client.config.DescentConfig.weaponView=false;com.terminaldetector.drmd.client.config.DescentConfig.cockpit=false;
             com.terminaldetector.drmd.client.config.DescentConfig.planetFloor=false;com.terminaldetector.drmd.client.config.DescentConfig.levelSky=false;
             c.getServer().execute(()->{
                 var p=c.getServer().getPlayerManager().getPlayer(c.player.getUuid());var d=DescentPlayerData.get(p);var at=centre();
                 com.terminaldetector.drmd.flight.FlightSystem.disable(p,d);
                 if(TYPED)c.getServer().getPlayerManager().setViewDistance(8);
+                if(MEASURE_CAPACITY)c.getServer().getPlayerManager().setSimulationDistance(8);
                 p.teleport(p.getServerWorld(),at.x,at.y+(MEASURE_CAPACITY?22:TYPED?24:12),at.z+(MEASURE_CAPACITY?58:TYPED?48:6),Set.of(),180,MEASURE_CAPACITY?17:TYPED?26:40);p.setInvulnerable(true);
                 d.setGravity(0);d.setDrag(0);d.setFlightVelocity(Vec3d.ZERO);com.terminaldetector.drmd.flight.FlightSystem.enableWithoutMount(p,d);
                 c.getServer().setDifficulty(Difficulty.NORMAL,true);p.getServerWorld().setTimeOfDay(6000);located=true;
@@ -157,7 +164,32 @@ public final class NativeSwarmBaselineCheck {
             if(!TYPED)d.applyRole(switch(i&3){case 0->AiRole.SUPPORT;case 1->AiRole.ASSAULT;case 2->AiRole.MG;default->AiRole.INTERCEPTOR;});
             ((MobEntity)d).setPersistent();entity(d).setInvulnerable(true);require(w.spawnEntity(d),"drone spawn accepted");if(!VERTICAL)((MobEntity)d).setTarget(target);DRONES.add(d);
         }
-        expected=Set.copyOf(DRONES.stream().map(d->entity(d).getUuid()).toList());DroneSwarmAi.clear();age=0;captureStart=0;resultReady=false;running=true;
+        expected=Set.copyOf(DRONES.stream().map(d->entity(d).getUuid()).toList());DroneSwarmAi.clear();age=0;captureStart=0;resultReady=false;
+        capacityAdmitted=false;capacityAdmissionTicks=0;capacityAdmissionAges.clear();capacityAdmission=Map.of();running=true;
+    }
+    /** FULL client cubes are not a vanilla entity-ticking lease. Admit the real
+     * native8/8 player simulation and two ordinary actor ticks before warmup;
+     * never call tick(), setTarget(), or advance the measurement clock here. */
+    private static boolean admitCapacity(ServerWorld world){
+        int ticking=0,lookups=0,advanced=0;boolean targetReady=cow!=null&&cow.isAlive()&&!cow.isRemoved()
+            &&world.getEntity(cow.getUuid())==cow&&world.shouldTickEntity(cow.getBlockPos());
+        for(var drone:DRONES){
+            if(world.shouldTickEntity(drone.getBlockPos()))ticking++;
+            if(world.getEntity(drone.getUuid())==drone)lookups++;
+            Integer before=capacityAdmissionAges.get(drone.getUuid());if(before!=null&&drone.age-before>=2)advanced++;
+        }
+        capacityAdmissionTicks++;
+        var row=new LinkedHashMap<String,Object>();row.put("waitServerTicks",capacityAdmissionTicks);row.put("requested",COUNT);
+        row.put("entityTicking",ticking);row.put("serverLookup",lookups);row.put("advancedTwoOrdinaryTicks",advanced);row.put("targetTicking",targetReady);
+        row.put("serverViewDistance",world.getServer().getPlayerManager().getViewDistance());
+        row.put("serverSimulationDistance",world.getServer().getPlayerManager().getSimulationDistance());
+        capacityAdmission=Map.copyOf(row);
+        if(capacityAdmissionTicks==1||capacityAdmissionTicks%20==0)System.out.println("SWARM_CAPACITY_ADMISSION "+new com.google.gson.Gson().toJson(row));
+        require(capacityAdmissionTicks<200,"native8/8 ordinary entity-ticking premise was not observed: "+row);
+        if(ticking!=COUNT||lookups!=COUNT||!targetReady){capacityAdmissionAges.clear();return false;}
+        if(capacityAdmissionAges.isEmpty()){for(var drone:DRONES)capacityAdmissionAges.put(drone.getUuid(),drone.age);return false;}
+        if(advanced!=COUNT)return false;
+        capacityAdmitted=true;System.out.println("SWARM_CAPACITY_ADMITTED "+new com.google.gson.Gson().toJson(row));return true;
     }
     public static void shot(WeaponCore.FireConfig config,ProjectileEntity shot) {
         if(!running||done||shot==null||config.owner==null||!expected.contains(config.owner.getUuid()))return;
@@ -183,7 +215,11 @@ public final class NativeSwarmBaselineCheck {
         if(!resultReady)return;var c=MinecraftClient.getInstance();if(c.currentScreen!=null||++frames<3)return;
         int synced=c.world.getEntitiesByClass(DroneEntity.class,new Box(centre().add(-128,-128,-128),centre().add(128,128,128)),d->expected.contains(entity(d).getUuid())).size();
         var visibleKinds=new HashSet<FlightEnemyKind>();
-        if(TYPED)for(var e:c.world.getEntities())if(e instanceof FlightEnemyEntity d&&expected.contains(entity(d).getUuid())&&DRAWN.contains(entity(d).getUuid()))visibleKinds.add(d.kind());
+        var clientKinds=new TreeMap<String,Integer>();var renderedKinds=new TreeMap<String,Integer>();var clientClasses=new TreeMap<String,String>();
+        if(TYPED)for(var e:c.world.getEntities())if(e instanceof FlightEnemyEntity d&&expected.contains(entity(d).getUuid())){
+            clientKinds.merge(d.kind().id,1,Integer::sum);clientClasses.put(d.kind().id,d.getClass().getName());
+            if(DRAWN.contains(entity(d).getUuid())){visibleKinds.add(d.kind());renderedKinds.merge(d.kind().id,1,Integer::sum);}
+        }
         if(captureStart==0){captureStart=now;System.out.println("SWARM_CAMERA pos="+c.player.getPos()+" yaw="+c.player.getYaw()+" pitch="+c.player.getPitch()+" camera="+c.gameRenderer.getCamera().getRotation());}
         int requiredDrawn = MEASURE_CAPACITY ? Math.min(32, COUNT/2) : 32;
         if((synced!=COUNT||DRAWN.size()<requiredDrawn||(TYPED&&visibleKinds.size()!=3))&&now-captureStart<8_000_000_000L)return;
@@ -192,6 +228,7 @@ public final class NativeSwarmBaselineCheck {
             NativeScheduleBudgetCheck.write("height-"+(int)centre().y,true);
             image.writeTo(c.runDirectory.toPath().resolve("swarm-"+COUNT+"-height-"+(int)centre().y+".png"));
             require(synced==COUNT&&DRAWN.size()>=requiredDrawn,"all live actors must synchronize and models must render: synced="+synced+" drawn="+DRAWN.size());
+            if(MEASURE_CAPACITY)require(visibleKinds.containsAll(LEGACY_TYPED_KINDS)&&visibleKinds.size()==3,"actual ORB/ROCKET/JET renderers all observed; "+renderedKinds+" classes="+clientClasses);
             if(TYPED && !MEASURE_CAPACITY){
                 var counts=new TreeMap<String,Integer>();var drawn=new TreeMap<String,Integer>();
                 for(var e:c.world.getEntities())if(e instanceof FlightEnemyEntity d&&expected.contains(entity(d).getUuid())){require(d.getRole()==d.kind().defaultRole,"typed client default role");counts.merge(d.kind().id,1,Integer::sum);if(DRAWN.contains(entity(d).getUuid()))drawn.merge(d.kind().id,1,Integer::sum);}
@@ -205,6 +242,8 @@ public final class NativeSwarmBaselineCheck {
                 values.put("moving",moving);values.put("synced",synced);values.put("uniqueRendered",DRAWN.size());
                 values.put("detailedSteeringUpdates",detailed);values.put("coastingUpdates",coast);values.put("shots",sampledShots);
                 values.put("liveRoster",finalRosterStats);
+                values.put("ordinaryNativeAdmission",capacityAdmission);
+                values.put("clientKinds",clientKinds);values.put("renderedKinds",renderedKinds);values.put("actualClientClasses",clientClasses);
                 values.put("fullWorldScansDuringMeasurement",finalRosterStats.fullWorldScans()-initialRosterScans);
                 values.put("loadedCubeWindow",Map.of("size",List.of(7,9,9),"full",measuredFullCubes));
                 values.put("serverTickNanos",WORK);values.put("frameNanos",FRAMES);values.put("javaHeapBytes",HEAP);
