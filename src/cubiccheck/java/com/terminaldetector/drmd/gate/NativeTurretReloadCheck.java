@@ -25,6 +25,8 @@ import java.util.*;
 /** Actual closed-world writer/reader, never creates a body from the saved verification data. */
 public final class NativeTurretReloadCheck {
     public static final boolean WRITE=Boolean.getBoolean("drmd.gate.turretReloadWrite"),READ=Boolean.getBoolean("drmd.gate.turretReloadRead");
+    public static final boolean DAMAGED_GUNS=Boolean.getBoolean("drmd.gate.turretReloadDamagedGuns");
+    private static boolean writerDamaged;private static volatile int damagedControlSamples;
     private static SkyUfoEntity root;private static BlockBodyEntity head;private static ServerPlayerEntity pilot;
     private static UUID rootId,headId,jointId;private static volatile boolean registryExact,rootExact,headExact,writerActive,writerStop,writerClosed;
     private static volatile int phase,writerSamples,lasers,rockets,aimPackets,firePackets,postSamples,barrierSamples,headDraws,exteriorDraws;
@@ -47,9 +49,21 @@ public final class NativeTurretReloadCheck {
             if(root.turretModule().isEmpty())return;var t=root.turretModule().orElseThrow();head=t.body(root).orElseThrow();headId=entity(head).getUuid();jointId=t.jointId();
             if(!writerActive||writerClosed)return;writerSamples++;require(t.connected(root)&&UfoControlSystem.controls(pilot,root),"writer remains physically attached and piloted");
             if(writerSamples>=24&&lasers>=4&&rockets>=2&&root.physics().linearVelocity().length()>.1&&root.physics().angularVelocity().length()>.01){
-                var n=t.write();if(n.getInt("laserCooldown")>0&&n.getInt("rocketCooldown")>0){writerStop=true;closeWriter(MinecraftClient.getInstance());s.stop(false);}
+                var n=t.write();if(n.getInt("laserCooldown")>0&&n.getInt("rocketCooldown")>0){if(DAMAGED_GUNS)damageWriterGuns();writerStop=true;closeWriter(MinecraftClient.getInstance());s.stop(false);}
             }
         });
+    }
+    /** Exactly two actual cells in one atomic batch: sequential cuts could create a real rocket fragment. */
+    private static void damageWriterGuns(){
+        require(!writerDamaged&&head!=null&&root.turretModule().orElseThrow().connected(root),"real connected healthy module exists before finite test damage");
+        var before=BodySpatialIndex.loaded(entity(root).getWorld()).stream().map(b->entity(b).getUuid()).collect(java.util.stream.Collectors.toSet());
+        var at=head.localToWorld(new Vec3d(.5,.5,.5));var velocity=head.surfaceVelocityAt(at);var rotation=head.rotation();var rootState=root.physics().snapshot();
+        require(head.getLocalBlock(SkyUfoTurret.LASER).isOf(ModWorldBlocks.SHIP_LASER)&&head.getLocalBlock(SkyUfoTurret.ROCKET).isOf(ModWorldBlocks.SHIP_ROCKET),"actual original weapon material exists before damage");
+        require(head.setLocalBlocks(Map.of(SkyUfoTurret.LASER,net.minecraft.block.Blocks.AIR.getDefaultState(),SkyUfoTurret.ROCKET,net.minecraft.block.Blocks.AIR.getDefaultState())),"actual atomic local material damage committed; no NBT mutation");
+        require(head.cells().size()==3&&head.getLocalBlock(SkyUfoTurret.LASER).isAir()&&head.getLocalBlock(SkyUfoTurret.ROCKET).isAir()&&root.turretModule().orElseThrow().connected(root),"only both guns removed; original real three-cell module/bearing retained");
+        require(before.equals(BodySpatialIndex.loaded(entity(root).getWorld()).stream().map(b->entity(b).getUuid()).collect(java.util.stream.Collectors.toSet())),"atomic removal does not invent a replacement/fragment body");
+        require(at.distanceTo(head.localToWorld(new Vec3d(.5,.5,.5)))<1e-8&&velocity.distanceTo(head.surfaceVelocityAt(at))<1e-8&&rotation.equals(head.rotation())&&root.physics().matches(rootState),"remaining real material points and carrier physical state survive actual damage");
+        writerDamaged=true;write("turret-restart-damage-applied.json","{\"actualAtomicMaterialRemoval\":true,\"removedCells\":2,\"remainingCells\":3,\"sameChildAndJoint\":true,\"noNewBody\":true}");
     }
     public static boolean writerTick(MinecraftClient c){
         if(!writerActive){writerActive=true;DescentKeybinds.turretRight.setPressed(true);DescentKeybinds.auxiliary.setPressed(true);return true;}return false;
@@ -57,6 +71,7 @@ public final class NativeTurretReloadCheck {
     public static boolean writerReady(){return writerStop;}
     public static void closeWriter(MinecraftClient c){
         require(writerStop&&head!=null,"writer saves after real mounted fire");
+        if(DAMAGED_GUNS)require(writerDamaged&&head.cells().size()==3,"damaged variant saves only after actual two-cell removal");
         write("turret-restart-ids.json","{\"root\":\""+rootId+"\",\"head\":\""+headId+"\",\"joint\":\""+jointId+"\"}");
         NativeUfoReloadCheck.watch(rootId);writerClosed=true;c.scheduleStop();
     }
@@ -65,7 +80,10 @@ public final class NativeTurretReloadCheck {
         write("turret-restart-root.snbt",n.toString());write("ufo-reload-expected.snbt",n.toString());var t=n.getCompound("turret");
         write("turret-restart-write-ok.json","{\"actualSerializedRoot\":true,\"laserCooldown\":"+t.getInt("laserCooldown")+",\"rocketCooldown\":"+t.getInt("rocketCooldown")+",\"lasers\":"+lasers+",\"rockets\":"+rockets+",\"samples\":"+writerSamples+",\"aimPackets\":"+aimPackets+",\"firePackets\":"+firePackets+"}");
     }
-    public static void savedBody(BlockBodyEntity b,NbtCompound n){if(WRITE&&writerStop&&!(b instanceof SkyUfoEntity)&&entity(b).getUuid().equals(headId)&&!entity(b).getWorld().isClient)write("turret-restart-child.snbt",n.toString());}
+    public static void savedBody(BlockBodyEntity b,NbtCompound n){if(WRITE&&writerStop&&!(b instanceof SkyUfoEntity)&&entity(b).getUuid().equals(headId)&&!entity(b).getWorld().isClient){
+        write("turret-restart-child.snbt",n.toString());
+        if(DAMAGED_GUNS){var cells=BodyShapeCodec.read(n.getCompound("shape"));require(writerDamaged&&cells.size()==3&&cells.stream().noneMatch(cell->cell.pos().equals(SkyUfoTurret.LASER)||cell.pos().equals(SkyUfoTurret.ROCKET)),"actual shutdown serialization contains the damaged grid");write("turret-restart-damaged-child-ok.json","{\"actualSerializedChild\":true,\"remainingCells\":3,\"missingGuns\":true}");}
+    }}
     public static void savedRegistry(NbtCompound n){if(WRITE&&writerStop&&jointId!=null)write("turret-restart-registry.snbt",n.toString());}
     private static void compare(BlockBodyEntity b,NbtCompound saved,NbtCompound expected){
         require(!b.hasSimulatedPhysics(),"actual stored body observed before its first physical tick");
@@ -80,13 +98,16 @@ public final class NativeTurretReloadCheck {
     }
     public static void loadedBody(BlockBodyEntity b,NbtCompound n){
         if(!READ||b instanceof SkyUfoEntity||entity(b).getWorld().isClient||!entity(b).getUuid().equals(headId))return;
-        compare(b,n,read("turret-restart-child.snbt"));head=b;headExact=true;System.out.println("TURRET_RESTART_CHILD_EXACT "+headId);
+        compare(b,n,read("turret-restart-child.snbt"));
+        if(DAMAGED_GUNS)require(b.cells().size()==3&&b.getLocalBlock(SkyUfoTurret.LASER).isAir()&&b.getLocalBlock(SkyUfoTurret.ROCKET).isAir(),"actual fresh-JVM grid keeps both weapon cells absent before its first physical tick");
+        head=b;headExact=true;System.out.println("TURRET_RESTART_CHILD_EXACT "+headId);
     }
     public static void acceptedAim(ServerPlayerEntity p,UfoControlSystem.TurretInput in){if((WRITE&&writerActive||READ&&phase==2)&&p==pilot&&in.yaw()>.5)aimPackets++;}
     public static void acceptedFire(ServerPlayerEntity p,UfoControlSystem.Fire in){if((WRITE&&writerActive||READ&&phase==2)&&p==pilot&&(in.mask()&4)!=0)firePackets++;}
     public static void fired(WeaponCore.FireConfig cfg,ProjectileEntity shot){
         if((!WRITE&&!READ)||WRITE&&writerClosed||shot==null||head==null||cfg.owner!=pilot)return;
         if((WRITE&&!writerActive||READ&&phase>=1&&phase<=2)&&UfoControlSystem.controls(pilot,root)&&SkyUfoWeapons.ROCKETS.stream().anyMatch(slot->SkyUfoWeapons.muzzle(root,slot).distanceTo(cfg.pos)<1e-8))return;
+        if(DAMAGED_GUNS&&READ)require(false,"actual module emit from missing weapon cells after cold restart");
         require(WRITE&&writerActive||READ&&(phase==2||phase==3),"no phantom trigger or stale pilot after restart");
         var slot=cfg.meshKind==1?SkyUfoTurret.ROCKET:SkyUfoTurret.LASER;var at=SkyUfoWeapons.muzzle(head,slot);var d=head.rotation().rotate(new Vec3(0,0,1));
         muzzleError=Math.max(muzzleError,at.distanceTo(cfg.pos));velocityError=Math.max(velocityError,entity(shot).getVelocity().distanceTo(new Vec3d(d.x(),d.y(),d.z()).multiply(cfg.speed).add(head.surfaceVelocityAt(at).multiply(.05))));require(muzzleError<1e-8&&velocityError<1e-8,"loaded module uses real transformed muzzle and surface velocity");if(cfg.meshKind==1)rockets++;else lasers++;
@@ -111,6 +132,7 @@ public final class NativeTurretReloadCheck {
                     var local=root.worldToLocal(pilot.getPos());idleDrift=Math.max(idleDrift,local.distanceTo(idleLocal));require(local.y>-.03&&idleDrift<.4,"idle returning passenger cannot sink through or slide off the rotating deck");
                 }
             }
+            if(DAMAGED_GUNS){require(head.cells().size()==3&&head.getLocalBlock(SkyUfoTurret.LASER).isAir()&&head.getLocalBlock(SkyUfoTurret.ROCKET).isAir(),"loaded module never refills either missing gun");if(phase==2){require(lasers==0&&rockets==0,"missing module guns have zero observed weapon emits");damagedControlSamples++;}}
             maxAnchor=Math.max(maxAnchor,root.localToWorld(new Vec3d(.5,4,.5)).distanceTo(head.localToWorld(new Vec3d(.5,0,.5))));require(maxAnchor<.03&&!BodyContactSystem.stats(w).budgetPaused(),"loaded anchor/contact continuity");
             if(phase==0||phase==1&&!UfoControlSystem.controls(pilot,root)){require(!UfoControlSystem.controls(pilot)&&link.speed()==0,"no stale pilot or saved motor command resumes without new ownership");}
             if(phase==2){var relative=com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.hamiltonProduct(root.rotation().inverse(),head.rotation()).normalized();if(relativeStart==null)relativeStart=relative;postSamples++;angleTravel=Math.max(angleTravel,2*Math.acos(Math.min(1,Math.abs(com.terminaldetector.drmd.vendor.immptl.ImmPtlQuaternions.dot(relativeStart,relative)))));}
@@ -127,8 +149,8 @@ public final class NativeTurretReloadCheck {
         // WorldRenderer interpolates lastRender*, whereas Entity.getLerpedPos uses
         // prev*. Follow the actual renderer, including its prediction translation.
         var e=entity(b);var rendered=new Vec3d(MathHelper.lerp(delta,e.lastRenderX,e.getX()),MathHelper.lerp(delta,e.lastRenderY,e.getY()),MathHelper.lerp(delta,e.lastRenderZ,e.getZ()));
-        var view=BoardingClient.bodyView(b,delta);if(view==null)return rendered.add(BoardingSystem.mc(b.renderRotation(delta).rotate(new Vec3(.5,1.5,.5).minus(b.localPivot()))));
-        return rendered.subtract(b.getLerpedPos(delta)).add(BoardingSystem.mc(view.position().plus(view.rotation().rotate(new Vec3(.5,1.5,.5).minus(b.localCentre())))));
+        var view=BoardingClient.bodyView(b,delta);if(view==null)return rendered.add(BoardingSystem.mc(b.renderRotation(delta).rotate(new Vec3(.5,DAMAGED_GUNS?.5:1.5,.5).minus(b.localPivot()))));
+        return rendered.subtract(b.getLerpedPos(delta)).add(BoardingSystem.mc(view.position().plus(view.rotation().rotate(new Vec3(.5,DAMAGED_GUNS?.5:1.5,.5).minus(b.localCentre())))));
     }
     public static void beforeFrame(float delta){
         if(!READ)return;frameDelta=delta;projectedHead=false;var c=MinecraftClient.getInstance();
@@ -139,7 +161,7 @@ public final class NativeTurretReloadCheck {
     }
     /** Observe the actual model/view transform after its real quaternion is applied. */
     public static void renderedHead(BlockBodyEntity b,net.minecraft.client.util.math.MatrixStack matrices){
-        if(!READ||phase!=5||!entity(b).getUuid().equals(headId))return;var p=new Vec3(.5,1.5,.5).minus(b.localPivot());
+        if(!READ||phase!=5||!entity(b).getUuid().equals(headId))return;var p=new Vec3(.5,DAMAGED_GUNS?.5:1.5,.5).minus(b.localPivot());
         var clip=new org.joml.Vector4f((float)p.x(),(float)p.y(),(float)p.z(),1).mul(matrices.peek().getPositionMatrix()).mul(com.mojang.blaze3d.systems.RenderSystem.getModelViewMatrix()).mul(com.mojang.blaze3d.systems.RenderSystem.getProjectionMatrix());
         projectedHead=clip.w>0;projectedX=clip.x/clip.w;projectedY=clip.y/clip.w;
     }
@@ -153,7 +175,10 @@ public final class NativeTurretReloadCheck {
             if(controlAge%20==0)System.out.println("TURRET_RESTART_CONSOLE distance="+distance+" approach="+consoleApproachTicks+" local="+root.worldToLocal(pilot.getPos()));
             if(UfoControlClient.active()&&UfoControlSystem.controls(pilot,root)){c.options.forwardKey.setPressed(false);c.options.useKey.setPressed(false);phase=2;controlAge=0;DescentKeybinds.turretRight.setPressed(true);DescentKeybinds.auxiliary.setPressed(true);}
         }
-        else if(phase==2&&postSamples>=32&&lasers>=3&&rockets>=1&&aimPackets>=8&&firePackets>=8&&angleTravel>.25){DescentKeybinds.turretRight.setPressed(false);DescentKeybinds.auxiliary.setPressed(false);capture("post-load-controlled-fire");phase=3;controlAge=0;}
+        else if(DAMAGED_GUNS&&phase==2&&damagedControlSamples>=80&&aimPackets>=8&&firePackets>=8&&angleTravel>.25){
+            require(lasers==0&&rockets==0&&head.cells().size()==3,"eighty real controlled ticks and accepted aim/B cannot create absent material or shots");DescentKeybinds.turretRight.setPressed(false);DescentKeybinds.auxiliary.setPressed(false);capture("post-load-damaged-guns-controlled-no-fire");phase=3;controlAge=0;
+        }
+        else if(!DAMAGED_GUNS&&phase==2&&postSamples>=32&&lasers>=3&&rockets>=1&&aimPackets>=8&&firePackets>=8&&angleTravel>.25){DescentKeybinds.turretRight.setPressed(false);DescentKeybinds.auxiliary.setPressed(false);capture("post-load-controlled-fire");phase=3;controlAge=0;}
         else if(phase==3&&controlAge>=24&&brakedSpeed<.08){ClientPlayNetworking.send(new com.terminaldetector.drmd.network.ModNetworking.ActionPayload("toggle"));phase=4;controlAge=0;}
         else if(phase==4&&controlAge>=8&&!UfoControlClient.active()&&!UfoControlSystem.controls(pilot)){
             require(BoardingClient.drives(c.player)&&BoardingSystem.drives(pilot),"actual H release returns to walking on the saved carrier");capture("post-load-control-release");phase=5;c.options.hudHidden=false;c.options.setPerspective(Perspective.FIRST_PERSON);
@@ -174,6 +199,7 @@ public final class NativeTurretReloadCheck {
         var e=c.world.getEntityById(entity(head).getId());if(!(e instanceof BlockBodyEntity b))return;var f=c.gameRenderer.getCamera().getHorizontalPlane();var d=renderTarget(b,frameDelta).subtract(c.gameRenderer.getCamera().getPos()).normalize();if(d.dotProduct(new Vec3d(f.x,f.y,f.z))<.98)return;
         try(var image=ScreenshotRecorder.takeScreenshot(c.getFramebuffer())){int n=0;for(int y=image.getHeight()/2-110;y<image.getHeight()/2+110;y++)for(int x=image.getWidth()/2-110;x<image.getWidth()/2+110;x++){int col=image.getColor(x,y),r=col&255,g=(col>>>8)&255,blue=(col>>>16)&255;if(r>50&&g>50&&blue>50&&Math.abs(r-g)<25&&Math.abs(g-blue)<25)n++;}if(n<256){imageFrames=0;return;}subjectPixels=n;if(++imageFrames<3)return;image.writeTo(file("turret-restart-module.png"));}
         catch(Exception failure){throw new IllegalStateException(failure);}require(rootExact&&headExact&&registryExact&&barrierSamples>=20,"all actual reload observations required");
-        var j=new com.google.gson.JsonObject();j.addProperty("initialConsoleDistance",initialConsoleDistance);j.addProperty("consoleApproachTicks",consoleApproachTicks);j.addProperty("actualHeadProjectionVerified",true);j.addProperty("headNdcX",projectedX);j.addProperty("headNdcY",projectedY);j.addProperty("observerPositionVerified",true);j.addProperty("observerPositionError",observerPositionError);j.addProperty("actualTwoProcessRestart",true);j.addProperty("rootExact",rootExact);j.addProperty("headExact",headExact);j.addProperty("registryExact",registryExact);j.addProperty("barrierCooldownSamples",barrierSamples);j.addProperty("restoredCarrierOwnerSamples",restoredOwnerSamples);j.addProperty("idleLocalDrift",idleDrift);j.addProperty("postLoadSamples",postSamples);j.addProperty("lasers",lasers);j.addProperty("rockets",rockets);j.addProperty("aimPackets",aimPackets);j.addProperty("firePackets",firePackets);j.addProperty("maxAnchorError",maxAnchor);j.addProperty("muzzleError",muzzleError);j.addProperty("launchVelocityError",velocityError);j.addProperty("relativeAngle",angleTravel);j.addProperty("brakedRelativeSpeed",brakedSpeed);j.addProperty("headRenderedFrames",headDraws);j.addProperty("exteriorRenderedFrames",exteriorDraws);j.addProperty("subjectPixels",subjectPixels);j.addProperty("noDuplicates",true);j.addProperty("postLoadControlRelease",true);write("turret-restart-ok.json",new com.google.gson.Gson().toJson(j));done=true;c.scheduleStop();
+        var j=new com.google.gson.JsonObject();j.addProperty("initialConsoleDistance",initialConsoleDistance);j.addProperty("consoleApproachTicks",consoleApproachTicks);j.addProperty("actualHeadProjectionVerified",true);j.addProperty("headNdcX",projectedX);j.addProperty("headNdcY",projectedY);j.addProperty("observerPositionVerified",true);j.addProperty("observerPositionError",observerPositionError);j.addProperty("actualTwoProcessRestart",true);j.addProperty("rootExact",rootExact);j.addProperty("headExact",headExact);j.addProperty("registryExact",registryExact);j.addProperty("barrierCooldownSamples",barrierSamples);j.addProperty("restoredCarrierOwnerSamples",restoredOwnerSamples);j.addProperty("idleLocalDrift",idleDrift);j.addProperty("postLoadSamples",postSamples);j.addProperty("lasers",lasers);j.addProperty("rockets",rockets);j.addProperty("aimPackets",aimPackets);j.addProperty("firePackets",firePackets);j.addProperty("maxAnchorError",maxAnchor);j.addProperty("muzzleError",muzzleError);j.addProperty("launchVelocityError",velocityError);j.addProperty("relativeAngle",angleTravel);j.addProperty("brakedRelativeSpeed",brakedSpeed);j.addProperty("headRenderedFrames",headDraws);j.addProperty("exteriorRenderedFrames",exteriorDraws);j.addProperty("subjectPixels",subjectPixels);j.addProperty("noDuplicates",true);j.addProperty("postLoadControlRelease",true);if(DAMAGED_GUNS){j.addProperty("damagedGuns",true);j.addProperty("actualAtomicDamage",true);j.addProperty("savedMissingGunCells",true);j.addProperty("remainingChildCells",head.cells().size());j.addProperty("actualControlledNoFireTicks",damagedControlSamples);require(lasers==0&&rockets==0&&damagedControlSamples>=80,"damaged variant final semantic acceptance");}
+        write("turret-restart-ok.json",new com.google.gson.Gson().toJson(j));done=true;c.scheduleStop();
     }
 }
