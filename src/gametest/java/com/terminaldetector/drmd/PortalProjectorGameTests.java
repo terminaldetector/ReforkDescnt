@@ -294,6 +294,8 @@ public final class PortalProjectorGameTests implements FabricGameTest {
                 c.assertTrue(w.getServer().getPlayerManager().getPlayer(player.getUuid())==player&&w.getEntity(player.getUuid())==player,"traveller is an actual connected world player");
                 initialEpoch=DescentPlayerData.get(player).portalEpoch();staged=player.getPos();fire(1,a,Direction.NORTH);phase=1;return;
             }
+            // The embedded connection is absent from the server's socket tick list.
+            player.networkHandler.tick();
             if(phase==1){
                 c.assertTrue(!((PortalPanelBlockEntity)w.getBlockEntity(a)).isLinked(),"one genuine shot remains inactive");
                 if(player.getItemCooldownManager().isCoolingDown(ModWorldBlocks.PORTAL_PROJECTOR))return;

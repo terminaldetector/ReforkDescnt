@@ -111,14 +111,15 @@ final class NativeGunPortalApproach {
             return false;
         }
         if (approachRotation == null) return false;
-        if (!held) {
-            held = true;
-            client.options.forwardKey.setPressed(true);
-        }
         var reached = arrival;
+        if (reached == null && ShipAttitudeClient.portalEpoch == initial.epoch) {
+            approach(client);
+            return false;
+        }
+        client.options.forwardKey.setPressed(false);
+        client.options.backKey.setPressed(false);
         if (reached == null || ShipAttitudeClient.portalEpoch == initial.epoch
                 || !atExit(client.player.getPos())) return false;
-        client.options.forwardKey.setPressed(false);
         if (++synchronizedTicks < 6) return false;
         if (!atExit(vector(reached.pos)) || reached.epoch != initial.epoch + 1 || crossings != 1)
             return finish(client, "The server did not perform one paired exit");
@@ -127,12 +128,32 @@ final class NativeGunPortalApproach {
         if (flight && (vector(reached.velocity).dotProduct(outward) <= 0
                 || vector(reached.up).distanceTo(bank.multiply(-1, 1, -1)) > .04))
             return finish(client, "The server did not preserve bank and outgoing flight momentum");
-        if (nearFrames == 0 || maximumApproachAngle > 1 || cameraStateChanges != 0)
+        if (nearFrames == 0) return finish(client, "No actual visible portal frame was sampled before arrival");
+        if (maximumApproachAngle > 1 || cameraStateChanges != 0)
             return finish(client, "The actual outer world view rotated before arrival");
-        if (latest == null || client.player.getPos().distanceTo(vector(latest.pos)) > 1)
+        if (latest == null || client.player.getPos().distanceTo(vector(latest.pos)) > 1) {
+            if (synchronizedTicks < 80) return false;
             return finish(client, "The client and server did not agree after the crossing");
+        }
         saveFrame(client, "traversal-exit");
         return finish(client, null);
+    }
+
+    private void approach(MinecraftClient client) {
+        // Leave enough time for a real frame to finish on the software renderer before accelerating
+        // through the plane. Both this maneuver and the crossing use the normal movement keys.
+        boolean forward = true;
+        boolean backward = false;
+        if (flight && nearFrames == 0) {
+            double depth = client.player.getPos().subtract(sourcePlane).dotProduct(outward);
+            double inward = -client.player.getVelocity().dotProduct(outward);
+            double desired = Math.max(-.28, Math.min(.38, (depth - 1.5) * .32));
+            forward = inward < desired - .08;
+            backward = inward > desired + .08;
+        }
+        held |= forward;
+        client.options.forwardKey.setPressed(forward);
+        client.options.backKey.setPressed(backward);
     }
 
     void beforeWorldRender(Camera camera) {
@@ -171,6 +192,7 @@ final class NativeGunPortalApproach {
 
     private boolean finish(MinecraftClient client, String failure) {
         client.options.forwardKey.setPressed(false);
+        client.options.backKey.setPressed(false);
         var result = new LinkedHashMap<String, Object>();
         result.put("status", failure == null ? "PASS" : "FAIL");
         result.put("reason", failure);
