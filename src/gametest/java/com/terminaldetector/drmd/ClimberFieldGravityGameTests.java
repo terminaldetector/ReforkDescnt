@@ -451,17 +451,34 @@ public final class ClimberFieldGravityGameTests implements FabricGameTest {
             boolean complete=true;
             for(var r:cases){
                 var a=r.actor;groundSupport(c,a,r.up);
-                c.assertTrue(a.isAlive()&&a.isAiDisabled()&&!a.hasNoGravity()&&ActorFrames.up(a).distanceTo(r.up)<1e-6,"ordinary native material probe retains actual frame/flag/controller ownership");
+                boolean measuring=r.impulseAge>=0&&r.after==null;
+                c.assertTrue(a.isAlive()&&a.isAiDisabled()!=measuring&&!a.hasNoGravity()&&ActorFrames.up(a).distanceTo(r.up)<1e-6,"ordinary native material probe retains its disclosed one-tick real-AI/frame/gravity ownership");
                 if(a.age<3||!EntityGravitySystem.suppressesVanillaGravity(a)){complete=false;continue;}
                 var expected=phase[0]==0?Blocks.OBSIDIAN:Blocks.SOUL_SAND;
                 var actual=room.world.getBlockState(a.getVelocityAffectingPos());
                 c.assertTrue(actual.isOf(expected),"actual native getVelocityAffectingPos must resolve the physical support, including the Entity.move multiplier caller: phase="+phase[0]+" "+a.getType()+" actual="+actual);
-                if(r.impulseAge<0){r.impulseAge=a.age;r.impulsePosition=a.getPos();a.setVelocity(r.x.add(r.z).multiply(.2));complete=false;continue;} // one disclosed external tangent impulse, never a pose follower
+                if(r.impulseAge<0){
+                    // NoAI suppresses native travel entirely. Enable exactly one real ordinary
+                    // tick on vanilla's odd (age+id) fast-selector branch. No goals have ever
+                    // run, so tickGoals(false) cannot start a random/new goal or locomotor input.
+                    // ServerWorld increments age before tick; neither ticks nor RNG are invoked here.
+                    if(((a.age+1+a.getId())&1)==0){complete=false;continue;}
+                    r.impulseAge=a.age;r.impulsePosition=a.getPos();a.setAiDisabled(false);
+                    a.setVelocity(r.x.add(r.z).multiply(.2));complete=false;continue;
+                } // one disclosed external tangent impulse, never a pose follower
                 if(a.age==r.impulseAge){complete=false;continue;}
                 if(r.after==null){
                     c.assertTrue(a.age==r.impulseAge+1,"one actual ordinary actor tick resolves the material impulse before comparison");r.after=a.getVelocity();
+                    c.assertTrue(((a.age+a.getId())&1)==1&&!a.isAiDisabled()&&a.getTarget()==null&&a.getNavigation().isIdle()
+                        &&Math.abs(a.forwardSpeed)<1e-7&&Math.abs(a.sidewaysSpeed)<1e-7,
+                        "the measured real native travel tick has no goal-selected target/path/locomotor input");
+                    a.setAiDisabled(true); // the single native travel sample is complete; no second AI tick
                     c.assertTrue(a.getPos().distanceTo(r.impulsePosition)<=1,"actual ordinary material movement cannot teleport more than the frozen one-metre step bound");
                     double vx=r.after.dotProduct(r.x),vz=r.after.dotProduct(r.z);
+                    var receipt=new LinkedHashMap<String,Object>();receipt.put("phase",phase[0]);receipt.put("species",a.getType().toString());receipt.put("up",vector(r.up));
+                    receipt.put("nativeActorTick",a.age-r.impulseAge);receipt.put("sampleNativeAiDisabled",false);receipt.put("sampleNativeFastSelectorParity",(a.age+a.getId())&1);
+                    receipt.put("actualMaterial",actual.toString());receipt.put("localTangents",List.of(vx,vz));receipt.put("normal",r.after.dotProduct(r.up));receipt.put("actualSupportGap",groundSupport(c,a,r.up));
+                    System.out.println("CLIMBER_MATERIAL_NATIVE_PREASSERT "+new com.google.gson.Gson().toJson(receipt));
                     c.assertTrue(vx>0&&vz>0&&Math.abs(vx-vz)<1e-6,"both actual support tangents retain the same material factor, including the wall's world-Y tangent");
                     if(phase[0]==0){ordinary[r.species][0]=vx;ordinary[r.species][1]=vz;}
                     else if(phase[0]==1){slowFloor[r.species][0]=vx;slowFloor[r.species][1]=vz;
