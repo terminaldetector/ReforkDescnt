@@ -39,6 +39,7 @@ public final class NativeBdhCubicCheck {
     private static int ticks, stable, phase, lowerMax, upperMax;
     private static long deadline, nextReadback;
     private static String lower = "", upper = "";
+    private static Map<String, Object> finalView = Map.of();
 
     private NativeBdhCubicCheck() {}
 
@@ -72,6 +73,7 @@ public final class NativeBdhCubicCheck {
                     .getMethod("describe", int.class, int.class, int.class);
                 started = true;
                 client.options.hudHidden = true;
+                client.options.setPerspective(net.minecraft.client.option.Perspective.FIRST_PERSON);
                 client.getToastManager().clear();
                 client.options.getViewDistance().setValue(4);
                 client.options.getCloudRenderMode().setValue(net.minecraft.client.option.CloudRenderMode.OFF);
@@ -150,11 +152,22 @@ public final class NativeBdhCubicCheck {
     public static void rendered() {
         if (!ENABLED || done || !committed || !drawn(lower) || !drawn(upper)) return;
         var client = MinecraftClient.getInstance();
-        if (client.world == null || client.player == null || client.currentScreen != null || client.options.getClampedViewDistance() != 4) return;
+        if (client.world == null || client.player == null) return;
         var access = WorldAccess.of(client.world);
-        if (access.readIfLoaded(LOWER).isPresent() || access.readIfLoaded(UPPER).isPresent()) return;
+        boolean lowerNative = access.readIfLoaded(LOWER).isPresent();
+        boolean upperNative = access.readIfLoaded(UPPER).isPresent();
         var camera = client.gameRenderer.getCamera();
-        if (Math.abs(camera.getPos().y - 2184.62) > 2 || Math.abs(camera.getPos().z - 8.5) > 2) return;
+        var point = camera.getPos();
+        if (finalView.isEmpty()) {
+            try (var image = ScreenshotRecorder.takeScreenshot(client.getFramebuffer())) {
+                image.writeTo(client.runDirectory.toPath().resolve("first-two-upstream-uploads.png"));
+            } catch (Exception failure) { finish(client, "FAIL", failure.toString());return; }
+        }
+        finalView = Map.of("nativeDistance",client.options.getClampedViewDistance(),"screenOpen",client.currentScreen!=null,
+            "lowerNative",lowerNative,"upperNative",upperNative,"camera",List.of(point.x,point.y,point.z),
+            "yaw",camera.getYaw(),"pitch",camera.getPitch(),"phase",phase);
+        if (client.currentScreen != null || client.options.getClampedViewDistance() != 4 || lowerNative || upperNative) return;
+        if (Math.abs(point.y - 2184.62) > 2 || Math.abs(point.z - 8.5) > 2) return;
         float pitch = phase == 0 ? 0 : (phase == 1 ? 12 : -12);
         if (Math.abs(camera.getPitch() - pitch) > 0.1 || Math.abs(camera.getYaw()) > 0.1) return;
         long now = System.nanoTime();
@@ -193,7 +206,7 @@ public final class NativeBdhCubicCheck {
         done = true;
         try {
             var result = Map.of("status", outcome, "reason", reason, "server", serverStatus, "lower", lower,
-                "upper", upper, "frames", List.copyOf(frames), "redMax", lowerMax, "greenMax", upperMax);
+                "upper", upper, "frames", List.copyOf(frames), "redMax", lowerMax, "greenMax", upperMax, "view", finalView);
             Files.writeString(client.runDirectory.toPath().resolve("bdh-cubic-outcome.json"),
                 new GsonBuilder().setPrettyPrinting().create().toJson(result) + "\n");
         } catch (Exception failure) {

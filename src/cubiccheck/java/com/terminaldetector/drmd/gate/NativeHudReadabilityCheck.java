@@ -18,7 +18,7 @@ import net.minecraft.client.option.Perspective;
 import net.minecraft.client.util.ScreenshotRecorder;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameMode;
-import org.lwjgl.glfw.GLFW;
+import com.terminaldetector.drmd.gate.mixin.HudMouseInputProbe;
 import org.lwjgl.opengl.GL11;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -115,7 +115,7 @@ public final class NativeHudReadabilityCheck {
                 finish(client, "FAIL", "Tooltip did not render for the selected GUI slot in phase " + phase + " bank " + bank);
                 return;
             }
-            GLFW.glfwSetCursorPos(client.getWindow().getHandle(),
+            ((HudMouseInputProbe) client.mouse).drmd$probeCursorPos(client.getWindow().getHandle(),
                 (double) desiredX * client.getWindow().getWidth() / menu.width,
                 (double) desiredY * client.getWindow().getHeight() / menu.height);
         }
