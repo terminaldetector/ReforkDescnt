@@ -1,0 +1,23 @@
+{
+  "archive": "swarm-capacity-observed.zip",
+  "sha256": "5a10de305be3dfcab5d8393f57ab8b80a8f0bb0c897c2f9347a7ec0f0fb9e2a2",
+  "source": "df1c5fe9d1c5ee50ec51d8f472491dc034d41500",
+  "jarSha256": "2e459208c089c2dd582a2b404124797b2bf1894ea1cf6840bcefeec132a98f38",
+  "counts": [
+    32,
+    128,
+    256,
+    512,
+    1024
+  ],
+  "drawsAt32": {
+    "source": "26bdf5f214a394be5a6c56473ae5392239711dc6",
+    "completedFrames": 34,
+    "minimum": 11,
+    "median": 14,
+    "maximum": 20
+  },
+  "tpsAt1024": 3.106,
+  "p95MsptAt1024": 498.7516,
+  "scope": "Native software-rendered capacity data. Each loaded-cube count covers a 567-cell window. Marked GL draw samples at 128, 256, 512 and 1024 and a remote capacity profile remain open."
+}

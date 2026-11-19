@@ -809,8 +809,8 @@ tasks:
   status: pending_reverification
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/swarm-capacity-observed.json, EVIDENCE/finish36-20261119/swarm-capacity-observed.zip]
+  notes: "В пяти нативных сериях 32/128/256/512/1024 все акторы двигались и синхронизировались. 1024 дали 3.106 TPS и p95 498.75 мс. Дальнее руление и пробуждение прошли отдельные GameTests, нагрузочный дальний сценарий остаётся открытым."
 - id: S11-T05
   stage: S11
   stage_title: ORB/ROCKET/JET swarms
@@ -1124,8 +1124,8 @@ tasks:
   status: in_progress
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: [BENCHMARK_CONTEXT.md, EVIDENCE/integrated-5839062.zip, NATIVE_BENCHMARK_RECORDER_2026-11-17.md]
-  notes: "Collector has20Python tests; missing measurements remain null/reason. Native producer and real hardware/32-to1024 benchmarks open."
+  evidence: [BENCHMARK_CONTEXT.md, EVIDENCE/integrated-5839062.zip, NATIVE_BENCHMARK_RECORDER_2026-11-17.md, EVIDENCE/finish36-20261119/swarm-capacity-observed.json, EVIDENCE/finish36-20261119/swarm-capacity-observed.zip]
+  notes: "В пяти нативных сериях сохранены границы серверного тика, интервалы кадров, выборки heap и окно из 567 кубов. Реальные GL draw submissions измерены для 32 дронов, для 128/256/512/1024 ещё требуются."
 - id: S16-T03
   stage: S16
   stage_title: Full performance and regression testing
