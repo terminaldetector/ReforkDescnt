@@ -54,13 +54,14 @@ public final class NativeOrbitalMaskCheck {
         try{
             long epoch=AltitudeCloudRenderer.stats().epoch();var eye=c.gameRenderer.getCamera().getPos();
             if(inputEpoch!=epoch||source.stale(eye.x,eye.y,eye.z,inputInner,inputReach)){admission(stage,"AWAITING_CURRENT_SOURCE", "inputEpoch",inputEpoch,"epoch",epoch);return;}
-            boolean asteroid=NativeIntactAsteroidCheck.ENABLED;
-            var centre=asteroid?NativeIntactAsteroidCheck.centre():NativeOrbitalMissionCheck.fieldViewStation();
+            boolean donorReader=NativeIntactAsteroidCheck.ENABLED;
+            boolean asteroid=donorReader&&!NativeIntactAsteroidCheck.STATION;
+            var centre=donorReader?NativeIntactAsteroidCheck.centre():NativeOrbitalMissionCheck.fieldViewStation();
             var marks=PlanetClientState.INSTANCE.landmarksSnapshot().stream().filter(m->HorizonOrbitalProxy.authored(m.kind())).toList();
             HorizonLandmark mark;
-            if(asteroid){
+            if(donorReader){
                 var selected=marks.stream().filter(NativeIntactAsteroidCheck::selected).toList();
-                if(marks.size()!=3||selected.size()!=1){admission(stage,"AWAITING_THREE_ORIGINAL_CERTIFICATES_AND_OUTER_ASTEROID","actualAuthoredMarks",marks.size());return;}
+                if(marks.size()!=3||selected.size()!=1){admission(stage,"AWAITING_THREE_ORIGINAL_CERTIFICATES_AND_SELECTED_OBJECT","actualAuthoredMarks",marks.size());return;}
                 mark=selected.get(0);
             }else{
                 if(marks.size()!=1){admission(stage,"AWAITING_ONE_CERTIFIED_STATION","actualAuthoredMarks",marks.size());return;}mark=marks.get(0);
@@ -86,7 +87,7 @@ public final class NativeOrbitalMaskCheck {
             List<Region> regions=new ArrayList<>();
             if(near){
                 int[] opaque=project(view,asteroid?centre.add(.5,.5,-halfZ):centre.add(3.5,-3.5,-9),false,c.getFramebuffer().textureWidth,c.getFramebuffer().textureHeight);
-                int[] hole=asteroid?null:project(view,centre.add(.5,-1.5,.5),false,c.getFramebuffer().textureWidth,c.getFramebuffer().textureHeight);
+                int[] hole=asteroid?null:project(view,centre.add(.5,NativeIntactAsteroidCheck.STATION?-.5:-1.5,.5),false,c.getFramebuffer().textureWidth,c.getFramebuffer().textureHeight);
                 if(opaque==null||(!asteroid&&hole==null)){admission(stage,"NEAR_TARGET_OUTSIDE_CURRENT_VIEW");return;}
                 regions.add(read("opaque",opaque[0]-2,opaque[1]-2,5,5,fbo));
                 if(!asteroid)regions.add(read("open-window",hole[0]-2,hole[1]-2,5,5,fbo));
@@ -98,16 +99,16 @@ public final class NativeOrbitalMaskCheck {
                     int[] at=project(view,centre.add(x,y,z),true,c.getFramebuffer().textureWidth,c.getFramebuffer().textureHeight);if(at==null){admission(stage,"DISTANT_STATION_OUTSIDE_CURRENT_VIEW");return;}
                     x0=Math.min(x0,at[0]);x1=Math.max(x1,at[0]);y0=Math.min(y0,at[1]);y1=Math.max(y1,at[1]);
                 }
-                int pad=asteroid?0:2; // The tiny asteroid witness owns only its actual projected footprint.
-                if(asteroid){
-                    // A station/other rock cannot stand in for the selected asteroid's tiny FAR footprint.
+                int pad=donorReader?0:2; // Each intact reader owns only its actual footprint; a nearby object cannot supply pixels.
+                if(donorReader){
+                    // A different certified object cannot stand in for the selected distant footprint.
                     for(var other:marks)if(!other.equals(mark)){
                         int ox0=Integer.MAX_VALUE,oy0=Integer.MAX_VALUE,ox1=Integer.MIN_VALUE,oy1=Integer.MIN_VALUE;boolean projected=true;
                         for(int x:new int[]{-other.sizeX()/2,other.sizeX()/2})for(int y:new int[]{-other.sizeY()/2,other.sizeY()/2})for(int z:new int[]{-other.sizeZ()/2,other.sizeZ()/2}){
                             var at=project(view,new net.minecraft.util.math.Vec3d(other.x()+x,other.y()+y,other.z()+z),true,c.getFramebuffer().textureWidth,c.getFramebuffer().textureHeight);
                             if(at==null){projected=false;continue;}ox0=Math.min(ox0,at[0]);ox1=Math.max(ox1,at[0]);oy0=Math.min(oy0,at[1]);oy1=Math.max(oy1,at[1]);
                         }
-                        if(projected&&ox1>=x0-pad&&ox0<=x1+pad&&oy1>=y0-pad&&oy0<=y1+pad){admission(stage,"OTHER_CERTIFIED_OBJECT_OVERLAPS_SELECTED_ASTEROID_ROI");return;}
+                        if(projected&&ox1>=x0-pad&&ox0<=x1+pad&&oy1>=y0-pad&&oy0<=y1+pad){admission(stage,"OTHER_CERTIFIED_OBJECT_OVERLAPS_SELECTED_DONOR_ROI");return;}
                     }
                 }
                 regions.add(read("authored-proxy",x0-pad,y0-pad,x1-x0+1+pad*2,y1-y0+1+pad*2,fbo));
@@ -166,7 +167,7 @@ public final class NativeOrbitalMaskCheck {
         if(++CASE_FRAMES[pixel.stage]==8)fieldViewBits|=1<<pixel.stage;
         if(CASE_FRAMES[pixel.stage]==1){
             var c=MinecraftClient.getInstance();var folder=c.runDirectory.toPath().resolve("orbital-mask-frames");Files.createDirectories(folder);
-            screenshot(folder.resolve((NativeIntactAsteroidCheck.ENABLED?"intact-asteroid-":"")+"physical-view-"+pixel.stage+".png"));
+            screenshot(folder.resolve((NativeIntactAsteroidCheck.ENABLED?(NativeIntactAsteroidCheck.STATION?"intact-station-":"intact-asteroid-"):"")+"physical-view-"+pixel.stage+".png"));
         }
     }
     private NativeOrbitalMaskCheck(){}
@@ -246,7 +247,7 @@ public final class NativeOrbitalMaskCheck {
     private static void fail(Throwable problem){failed=problem.toString();problem.printStackTrace();try{write();}catch(Exception ignored){} }
     private static void write() throws Exception {
         var report=new LinkedHashMap<String,Object>();report.put("scope","passive actual GPU-input/ABI witness; optional explicit physical mission extension adds real paired pixel/depth cases, not cold/global GPU-section completion");
-        report.put("intactAsteroidMode",NativeIntactAsteroidCheck.ENABLED);report.put("failure",failed);report.put("physicalFieldViewFrames",CASE_FRAMES);report.put("allFourPhysicalFieldViewsObserved",fieldViewBits==15);report.put("physicalFieldViews",CASE_RECEIPTS);report.put("actualReadbackBytes",readbackBytes);report.put("lastFieldViewAdmission",lastViewAdmission);report.put("counts",COUNTS);report.put("observations",RECEIPTS);
+        report.put("intactAsteroidMode",NativeIntactAsteroidCheck.ENABLED&&!NativeIntactAsteroidCheck.STATION);report.put("intactStationMode",NativeIntactAsteroidCheck.STATION);report.put("failure",failed);report.put("physicalFieldViewFrames",CASE_FRAMES);report.put("allFourPhysicalFieldViewsObserved",fieldViewBits==15);report.put("physicalFieldViews",CASE_RECEIPTS);report.put("actualReadbackBytes",readbackBytes);report.put("lastFieldViewAdmission",lastViewAdmission);report.put("counts",COUNTS);report.put("observations",RECEIPTS);
         report.put("allThreeDomainsObserved",COUNTS.getOrDefault("NEAR_FULL_ZERO_PROXY",0)>=8&&COUNTS.getOrDefault("MID_PROXY_INPUT",0)>=8&&COUNTS.getOrDefault("FAR_PROXY_INPUT",0)>=8);
         Files.writeString(MinecraftClient.getInstance().runDirectory.toPath().resolve("orbital-mask-observations.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(report));
     }

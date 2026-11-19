@@ -24,9 +24,18 @@ import java.util.*;
 
 /** Read an explicitly restored closed native donor; no world authoring, certification or mining. */
 public final class NativeIntactAsteroidCheck {
-    public static final boolean ENABLED=Boolean.getBoolean("drmd.gate.intactAsteroid");
+    public static final boolean STATION=Boolean.getBoolean("drmd.gate.intactStation");
+    public static final boolean ENABLED=STATION||Boolean.getBoolean("drmd.gate.intactAsteroid");
     private static final String PLAN="b0c0be5305a458b766aea230a700f435b95e2279328a5afb6a9b2588e4fef8d9";
-    private static final Vec3d CENTRE=new Vec3d(-1072,1444,1176);
+    private static final Vec3d CENTRE=STATION?new Vec3d(-1112,1416,1206):new Vec3d(-1072,1444,1176);
+    private static final int TOTAL_CELLS=STATION?7680:2304;
+    private static final String[] STATION_EXPECTED=stationExpected();
+    private static String[] stationExpected(){
+        if(!STATION)return new String[0];
+        var states=new String[7680];Arrays.fill(states,"minecraft:air");
+        for(var v:OrbitalObjectGeometry.cells(OrbitalObjectGeometry.Shape.STATION,24,16,20))states[v.x()+24*(v.z()+20*v.y())]=v.state();
+        return states;
+    }
     private static final List<Map<String,Object>> ROWS=new ArrayList<>();
     private static UUID playerId;
     private static volatile int serverStage=-1,verified;
@@ -44,8 +53,9 @@ public final class NativeIntactAsteroidCheck {
     }
     public static Vec3d centre(){return CENTRE;}
     public static boolean selected(HorizonLandmark mark){
-        return mark.kind()==MacroEntry.Kind.ASTEROID&&mark.x()==-1072&&mark.y()==1444&&mark.z()==1176
-            &&mark.sizeX()==16&&mark.sizeY()==12&&mark.sizeZ()==12;
+        return mark.kind()==(STATION?MacroEntry.Kind.ORBITAL_STATION:MacroEntry.Kind.ASTEROID)
+            &&mark.x()==CENTRE.x&&mark.y()==CENTRE.y&&mark.z()==CENTRE.z
+            &&mark.sizeX()==(STATION?24:16)&&mark.sizeY()==(STATION?16:12)&&mark.sizeZ()==(STATION?20:12);
     }
     public static int viewCase(){
         if(!ENABLED||done||!serverReady||serverStage!=stage)return -1;
@@ -68,9 +78,10 @@ public final class NativeIntactAsteroidCheck {
                 require(w.getSeed()==271026,"original native donor seed");
                 var entries=AuthoredOrbitalCatalogue.visible(w);
                 require(entries.size()==3&&entries.stream().allMatch(e->e.planHash().equals(PLAN)),"all three original intact donor certificates, no mining or substitute catalogue");
-                var e=entries.stream().filter(q->q.object().id().equals("outer_asteroid")).findFirst().orElseThrow();var o=e.object();
-                require(o.shape()==OrbitalObjectGeometry.Shape.ASTEROID&&o.origin().x()==-1080&&o.origin().y()==1438&&o.origin().z()==1170
-                    &&o.sizeX()==16&&o.sizeY()==12&&o.sizeZ()==12,"same original outer asteroid");
+                var e=entries.stream().filter(q->q.object().id().equals(STATION?"abandoned_station":"outer_asteroid")).findFirst().orElseThrow();var o=e.object();
+                require(o.shape()==(STATION?OrbitalObjectGeometry.Shape.STATION:OrbitalObjectGeometry.Shape.ASTEROID)
+                    &&o.origin().x()==(STATION?-1124:-1080)&&o.origin().y()==(STATION?1408:1438)&&o.origin().z()==(STATION?1196:1170)
+                    &&o.sizeX()==(STATION?24:16)&&o.sizeY()==(STATION?16:12)&&o.sizeZ()==(STATION?20:12),"same original selected donor object");
                 if(serverStage!=expectedStage){
                     var g=goal();p.changeGameMode(GameMode.CREATIVE);FlightSystem.disable(p,DescentPlayerData.get(p));
                     p.getAbilities().allowFlying=true;p.getAbilities().flying=true;p.sendAbilitiesUpdate();
@@ -79,16 +90,21 @@ public final class NativeIntactAsteroidCheck {
                 }
                 if(p.getPos().distanceTo(goal())>.02)return;
                 if(expectedStage==0){
-                    var access=WorldAccess.of(w);int end=Math.min(2304,verified+64);
+                    var access=WorldAccess.of(w);int end=Math.min(TOTAL_CELLS,verified+64);
                     while(verified<end){
-                        int x=verified%16,z=(verified/16)%12,y=verified/(16*12);
-                        long dx=2L*x+1-16,dy=2L*y+1-12,dz=2L*z+1-12;
-                        boolean solid=dx*dx*144*144+dy*dy*256*144+dz*dz*256*144<=256L*144*144;
-                        var state=access.readIfLoaded(new BlockPos(-1080+x,1438+y,1170+z));if(state.isEmpty())return;
-                        require(Registries.BLOCK.getId(state.get().getBlock()).toString().equals(solid?"minecraft:stone":"minecraft:air"),"loaded-only original AIR+stone cell "+verified);
+                        int sx=STATION?24:16,sz=STATION?20:12;
+                        int x=verified%sx,z=(verified/sx)%sz,y=verified/(sx*sz);String expected;
+                        if(STATION)expected=STATION_EXPECTED[verified];
+                        else{
+                            long dx=2L*x+1-16,dy=2L*y+1-12,dz=2L*z+1-12;
+                            boolean solid=dx*dx*144*144+dy*dy*256*144+dz*dz*256*144<=256L*144*144;
+                            expected=solid?"minecraft:stone":"minecraft:air";
+                        }
+                        var state=access.readIfLoaded(new BlockPos((STATION?-1124:-1080)+x,(STATION?1408:1438)+y,(STATION?1196:1170)+z));if(state.isEmpty())return;
+                        require(Registries.BLOCK.getId(state.get().getBlock()).toString().equals(expected),"loaded-only original donor cell "+verified);
                         verified++;
                     }
-                    if(verified<2304)return;
+                    if(verified<TOTAL_CELLS)return;
                 }
                 require(!DescentPlayerData.get(p).isEnabled()&&p.isCreative()&&p.getAbilities().flying,"ordinary actual Creative hover, H off");
                 serverReady=true;
@@ -107,6 +123,7 @@ public final class NativeIntactAsteroidCheck {
             if(!started){
                 require(c.runDirectory.getName().equals("cubic-client-automation")&&NativeOrbitalMaskCheck.ENABLED,"isolated native donor and existing mask observer required");
                 require(!NativeOrbitalMissionCheck.ENABLED&&!NativeBdhCubicCheck.ENABLED,"reader cannot run author/mining/BDH drivers");
+                require(!(STATION&&Boolean.getBoolean("drmd.gate.intactAsteroid")),"select exactly one intact donor reader");
                 playerId=c.player.getUuid();started=true;c.options.setPerspective(Perspective.FIRST_PERSON);c.options.getViewDistance().setValue(4);
                 c.options.getCloudRenderMode().setValue(CloudRenderMode.FANCY);c.options.getFov().setValue(70);c.getToastManager().clear();
                 DescentConfig.hybridRender=DescentConfig.planetFloor=DescentConfig.levelSky=true;
@@ -119,7 +136,7 @@ public final class NativeIntactAsteroidCheck {
             c.player.setPitch((float)Math.toDegrees(Math.atan2(c.player.getEyeY()-(CENTRE.y+.5),ahead)));
             require(NativeOrbitalMaskCheck.fieldViewFailure()==null,"actual orbital draw failure: "+NativeOrbitalMaskCheck.fieldViewFailure());
             if((renderedBits&(1<<stage))==0)return;
-            if(stage==2){finish(c,"PASS","same intact native outer asteroid near/MID/FAR in actual PS1 world; not an atmosphere or physical-flight proof");return;}
+            if(stage==2){finish(c,"PASS","same intact native "+(STATION?"original station":"outer asteroid")+" near/MID/FAR in actual PS1 world; not an atmosphere or physical-flight proof");return;}
             stage++;phaseTicks=0;serverReady=false;
         }catch(Throwable problem){finish(c,"FAIL",problem.toString());}
     }
@@ -138,9 +155,9 @@ public final class NativeIntactAsteroidCheck {
     }
     private static void finish(MinecraftClient c,String status,String why){
         if(done)return;done=true;
-        try{var report=new LinkedHashMap<String,Object>();report.put("status",status);report.put("reason",why);report.put("stage",stage);report.put("verifiedOriginalCells",verified);
+        try{var report=new LinkedHashMap<String,Object>();report.put("status",status);report.put("intactStationMode",STATION);report.put("reason",why);report.put("stage",stage);report.put("verifiedOriginalCells",verified);
             report.put("rows",ROWS);report.put("setupTeleports",setupTeleports);report.put("fixtureBlockWrites",0);report.put("fixtureCatalogueWrites",0);report.put("actualReadback",NativeOrbitalMaskCheck.fieldViewDiagnostic());
-            Files.writeString(c.runDirectory.toPath().resolve("intact-asteroid-outcome.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(report));
+            Files.writeString(c.runDirectory.toPath().resolve(STATION?"intact-station-outcome.json":"intact-asteroid-outcome.json"),new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(report));
         }catch(Exception problem){throw new IllegalStateException(problem);}finally{c.scheduleStop();}
     }
 }
