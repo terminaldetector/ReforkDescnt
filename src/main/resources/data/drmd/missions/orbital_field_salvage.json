@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "id": "drmd:orbital_field_salvage",
+  "revision": 1,
+  "offered_kind": "EXPLORE_SHAFT",
+  "title": "quest.drmd.explore_shaft",
+  "difficulty": 1,
+  "reputation_reward": 3,
+  "objectives": [
+    {"type": "ENTER_VOLUME", "min": {"x": -2, "y": 5, "z": -12}, "max": {"x": 2, "y": 8, "z": -8}},
+    {"type": "ENTER_VOLUME", "min": {"x": -53, "y": 24, "z": 20}, "max": {"x": -49, "y": 28, "z": 24}},
+    {"type": "BREAK_BLOCK", "position": {"x": -51, "y": 25, "z": 24}, "block": "minecraft:stone"},
+    {"type": "ENTER_VOLUME", "min": {"x": 37, "y": 34, "z": -40}, "max": {"x": 41, "y": 38, "z": -36}},
+    {"type": "BREAK_BLOCK", "position": {"x": 39, "y": 35, "z": -36}, "block": "minecraft:stone"}
+  ]
+}
