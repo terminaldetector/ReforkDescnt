@@ -74,4 +74,23 @@ class FreeFlightBodyContactTest {
         assertEquals(0,result.velocity().dot(n),1e-9);assertEquals(3,result.velocity().y(),1e-9);
         assertEquals(1,result.velocity().x(),1e-9);assertEquals(-1,result.velocity().z(),1e-9);
     }
+
+    @Test void aSuitAtDeckHeightCanCrossSeparateFloorTilesInTwoAxes() {
+        var floor = new ArrayList<BodyBounds>();
+        for (int x = 192; x < 195; x++) for (int z = 256; z < 259; z++) {
+            floor.add(new BodyBounds(v(x,1416,z),v(x+1,1417,z+1)));
+        }
+        var clip = new OrientedCharacterClip(new CompoundCollider(floor), .6f, 1.8f);
+        var feet = v(192.5,1417,256.5);
+        var alongDeck = v(1.05,0,1.6);
+        var move = clip.move(feet,Quat.IDENTITY,alongDeck);
+        assertEquals(alongDeck.x(),move.displacement().x(),1e-12);
+        assertEquals(alongDeck.z(),move.displacement().z(),1e-12);
+        assertTrue(move.blockingNormals().isEmpty());
+
+        var intoDeck = clip.move(feet,Quat.IDENTITY,v(1.05,-.2,1.6));
+        assertEquals(0,intoDeck.displacement().y(),1e-9);
+        assertTrue(intoDeck.blockingNormals().contains(v(0,1,0)));
+        assertEquals(alongDeck.z(),intoDeck.displacement().z(),1e-12);
+    }
 }

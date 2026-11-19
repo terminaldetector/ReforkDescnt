@@ -72,6 +72,13 @@ public final class OrientedBox {
     }
     /** Exact linear CCD for two fixed orientations. Angular motion needs bounded rotational substeps. */
     public Optional<Sweep> sweep(OrientedBox other,Vec3 movement,Vec3 otherMovement) {
+        return sweep(other,movement,otherMovement,false);
+    }
+    /** A character moving tangent to a face cannot run into the seam of the adjacent solid. */
+    public Optional<Sweep> sweepInterior(OrientedBox other,Vec3 movement,Vec3 otherMovement) {
+        return sweep(other,movement,otherMovement,true);
+    }
+    private Optional<Sweep> sweep(OrientedBox other,Vec3 movement,Vec3 otherMovement,boolean requireInterior) {
         BodyBounds.finite(movement);BodyBounds.finite(otherMovement);
         Vec3 relative=movement.minus(otherMovement),delta=centre.minus(other.centre);
         var initial=contact(other,0);
@@ -86,11 +93,16 @@ public final class OrientedBox {
             Vec3 axis=axis(other,i);double length=axis.length();if(length<1e-10)continue;
             axis=axis.scaled(1/length);double distance=delta.dot(axis),speed=relative.dot(axis);
             double r=radius(axis)+other.radius(axis);
-            if(Math.abs(speed)<1e-12){if(Math.abs(distance)>r)return Optional.empty();continue;}
+            if (Math.abs(speed) < 1e-12) {
+                double separation = Math.abs(distance);
+                if (separation > r || requireInterior && separation >= r - 1e-9) return Optional.empty();
+                continue;
+            }
             double a=(-r-distance)/speed,b=(r-distance)/speed;
             if(a>b){double swap=a;a=b;b=swap;}
             if(a>enter){enter=a;normal=axis.scaled(speed>0?-1:1);}
-            exit=Math.min(exit,b);if(enter>exit+1e-12)return Optional.empty();
+            exit=Math.min(exit,b);
+            if (enter > exit + 1e-12 || requireInterior && enter >= exit - 1e-12) return Optional.empty();
         }
         if(enter<0 || enter>1 || exit<0 || normal==null)return Optional.empty();
         return Optional.of(new Sweep(enter,normal));

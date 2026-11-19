@@ -32,7 +32,7 @@ public final class OrientedCharacterClip implements DynamicBodyAttachment.Motion
                 var shape=OrientedBox.axisAligned(bounds);var overlap=actor.contact(shape,0);
                 // Do not trap an already overlapping actor that is escaping or sliding outward.
                 if(overlap.isPresent()&&overlap.get().penetration()>1e-9&&remaining.dot(overlap.get().normal())>=-1e-12)continue;
-                var hit=actor.sweep(shape,remaining,ZERO);
+                var hit=actor.sweepInterior(shape,remaining,ZERO);
                 if(hit.isPresent()&&(nearest==null||hit.get().fraction()<nearest.fraction()))nearest=hit.get();
             }
             if(nearest==null){at=at.plus(remaining);break;}
