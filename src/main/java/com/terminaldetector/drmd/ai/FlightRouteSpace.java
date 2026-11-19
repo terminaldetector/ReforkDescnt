@@ -11,7 +11,7 @@ import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 
 /** Loaded-only swept clearance. Routes are advisory; normal entity/hull collisions remain authoritative. */
-final class FlightRouteSpace implements BoundedFlightPath.Space {
+public final class FlightRouteSpace implements BoundedFlightPath.Space {
     private static final int MAX_COVER_BODIES=32;
     private final Entity actor;
     private final World world;
