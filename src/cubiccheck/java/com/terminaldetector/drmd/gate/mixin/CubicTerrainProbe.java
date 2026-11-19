@@ -21,13 +21,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class CubicTerrainProbe {
     @Inject(method="emitBlockQuads",at=@At("HEAD"),remap=false)
     private void begin(BlockRenderView world,BlockState state,BlockPos pos,Supplier<Random> random,RenderContext context,CallbackInfo ci) {
-        CubicTerrainCheck.begin(state,pos);
+        CubicTerrainCheck.begin(state,pos);com.terminaldetector.drmd.gate.NativeHybridCavityCheck.begin(world,state,pos);
     }
     @Inject(method="emitBlockQuads",at=@At("RETURN"),remap=false)
-    private void end(CallbackInfo ci){CubicTerrainCheck.end();}
+    private void end(CallbackInfo ci){CubicTerrainCheck.end();com.terminaldetector.drmd.gate.NativeHybridCavityCheck.end();}
     @Inject(method="emit",at=@At("HEAD"),remap=false)
     private static void emitted(QuadEmitter out,HybridMesh.Face face,int[] order,BakedQuad template,
             RenderMaterial material,int colour,BakedModel source,CallbackInfo ci) {
         CubicTerrainCheck.face(face);
     }
+    @Inject(method="emit",at=@At("RETURN"),remap=false)
+    private static void hybridAfter(QuadEmitter out,HybridMesh.Face face,int[] order,BakedQuad template,
+            RenderMaterial material,int colour,BakedModel source,CallbackInfo ci){com.terminaldetector.drmd.gate.NativeHybridCavityCheck.emitted(face,order);}
 }
