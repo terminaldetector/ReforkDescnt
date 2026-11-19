@@ -531,15 +531,6 @@ public class ProjectileEntity extends Entity {
 		}
 		boolean explosive = worldBlast || (splashRadius > 0 && dmgClass == DamageClass.EXPLOSIVE);
 		BlockState hitState = getWorld().getBlockState(hit.getBlockPos());
-        Entity own = getOwnerEntity();if(own==null)own=this;
-        if(explosive && getWorld() instanceof ServerWorld world) {
-            Entity attacker=own;
-            var treeOrColumn=com.terminaldetector.drmd.world.contraption.StructureCollapse.rocketCut(
-                world,hit.getBlockPos(),getVelocity(),directDamage,
-                p->com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,attacker));
-            if(treeOrColumn==null)
-                com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse.impact(world,hit.getBlockPos(),hit.getPos(),directDamage,attacker);
-        }
 		if (!explosive && bounceCount < maxBounces && hitState.getBlock() instanceof ReflectiveBlock rb) {
 			bounceCount++;
 			Vec3d normal = rb.getReflectionNormal(hitState);
@@ -555,9 +546,11 @@ public class ProjectileEntity extends Entity {
 			return;
 		}
 
-		if (own != null && getWorld() instanceof ServerWorld sw) {
+		var owner = getOwnerEntity();
+		Entity own = owner == null ? this : owner;
+		if (getWorld() instanceof ServerWorld sw) {
 			impactVisual(hit.getPos().add(Vec3d.of(hit.getSide().getVector()).multiply(.03)));
-			detonate(own, hit.getPos());
+			detonate(own, hit.getPos(), explosive ? ()->structuralImpact(sw,hit,own) : null);
 			if (drillCarve) {
 				WeaponFx.drillCarve(sw, hit.getBlockPos(), own);
 			} else if (dmgClass == DamageClass.ENERGY || dmgClass == DamageClass.EXOTIC) {
@@ -574,12 +567,27 @@ public class ProjectileEntity extends Entity {
 	}
 
 	private void detonate(Entity own, Vec3d pos) {
+		detonate(own,pos,null);
+	}
+
+	private void structuralImpact(ServerWorld world,BlockHitResult hit,Entity attacker) {
+		var treeOrColumn=com.terminaldetector.drmd.world.contraption.StructureCollapse.rocketCut(
+			world,hit.getBlockPos(),getVelocity(),directDamage,
+			p->com.terminaldetector.drmd.world.edit.WorldEditSafety.mayChange(world,p,attacker));
+		if(treeOrColumn==null)com.terminaldetector.drmd.world.contraption.BlastStructuralCollapse.impact(
+			world,hit.getBlockPos(),hit.getPos(),directDamage,attacker);
+	}
+
+	private void detonate(Entity own, Vec3d pos, Runnable structuralImpact) {
 		if (!(getWorld() instanceof ServerWorld sw)) return;
-		if (splashRadius <= 0) return;
+		if (splashRadius <= 0) {
+			if(structuralImpact!=null)structuralImpact.run();
+			return;
+		}
 		float splash = splashDamage > 0 ? splashDamage : directDamage * 0.5f;
 		if (worldBlast || dmgClass == DamageClass.EXPLOSIVE) {
 			boolean crater = worldBlast || splashRadius >= 3.5f;
-			WeaponFx.explode(own, sw, pos, splash, splashRadius, dmgClass, crater);
+			WeaponFx.explode(own, sw, pos, splash, splashRadius, dmgClass, crater, structuralImpact);
 		} else {
 			WeaponCore.splashDamage(own, sw, pos, splash, splashRadius, dmgClass);
 		}

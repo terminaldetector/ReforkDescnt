@@ -173,9 +173,17 @@ public final class WeaponFx {
 	public static void explode(Entity attacker, ServerWorld world, Vec3d pos,
 							   float splashDamage, float splashRadiusBlocks,
 							   DamageClass dmgClass, boolean breakBlocks) {
+		explode(attacker,world,pos,splashDamage,splashRadiusBlocks,dmgClass,breakBlocks,null);
+	}
+
+	public static void explode(Entity attacker, ServerWorld world, Vec3d pos, float splashDamage,
+			float splashRadiusBlocks, DamageClass dmgClass, boolean breakBlocks, Runnable structuralImpact) {
 		if (splashDamage > 0 && splashRadiusBlocks > 0) {
 			WeaponCore.splashDamage(attacker, world, pos, splashDamage, splashRadiusBlocks, dmgClass);
 		}
+		// The splash already acted on existing bodies. Newly detached material gets the
+		// structural impulse and is not shredded by a second pass from this same rocket.
+		if(structuralImpact!=null)structuralImpact.run();
 		float power = AtmosphereRules.scaleBlast(pos.y,
 				MathHelper.clamp(splashRadiusBlocks * 0.55f, 1.15f, 7.5f));
 		SmokeSystem.emitExplosion(pos, power);
