@@ -21,6 +21,10 @@ public final class ShipAttitudeClient {
 	private static final float ROLL_SPEED = 175f;
 
 	private static boolean primed;
+    private static java.lang.ref.WeakReference<ClientPlayerEntity> owner=new java.lang.ref.WeakReference<>(null);
+    private static java.lang.ref.WeakReference<net.minecraft.client.world.ClientWorld> ownerWorld=new java.lang.ref.WeakReference<>(null);
+    private static boolean owns(ClientPlayerEntity player){return player!=null&&owner.get()==player&&ownerWorld.get()==player.getWorld();}
+    private static void bindOwner(ClientPlayerEntity player){owner=new java.lang.ref.WeakReference<>(player);ownerWorld=new java.lang.ref.WeakReference<>((net.minecraft.client.world.ClientWorld)player.getWorld());}
 	public static int portalEpoch;
 	private static float turnPitch;
 	private static float turnYaw;
@@ -38,7 +42,7 @@ public final class ShipAttitudeClient {
 	}
 
 	public static boolean isPrimed() {
-		return primed;
+        var client=MinecraftClient.getInstance();return primed&&client!=null&&owns(client.player);
 	}
 
 	/** Instantaneous roll rate °/s — HUD / minimap can freeze heavy work while barrel-rolling. */
@@ -47,6 +51,7 @@ public final class ShipAttitudeClient {
 	}
 
 	public static void resetFromPlayer(ClientPlayerEntity player) {
+        bindOwner(player);
 		ATT.fromLook(player.getRotationVec(1f));
 		primed = true;
 		turnPitch = turnYaw = angPitch = angYaw = 0;
@@ -59,6 +64,7 @@ public final class ShipAttitudeClient {
 
 	public static void acceptPortalFrame(ClientPlayerEntity player, net.minecraft.util.math.Vec3d forward,
 			net.minecraft.util.math.Vec3d up) {
+        bindOwner(player);
 		ATT.setForwardUp(forward, up);
 		primed = true;
 		DescentCamera.clear();
@@ -66,6 +72,7 @@ public final class ShipAttitudeClient {
 	}
 
 	public static void clear() {
+        owner.clear();ownerWorld.clear();
 		primed = false;
 		turnPitch = turnYaw = angPitch = angYaw = 0;
 		rollVel = 0;
@@ -84,7 +91,7 @@ public final class ShipAttitudeClient {
 	 * FrameTime-scaled Lerp rates match GMod CreateMove.
 	 */
 	public static void applyMouse(ClientPlayerEntity player, double cursorDeltaX, double cursorDeltaY) {
-		if (!primed) resetFromPlayer(player);
+		if (!primed||!owns(player)) resetFromPlayer(player);
 		float dt = frameDt();
 		double gain = 0.15 * com.terminaldetector.drmd.client.config.DescentConfig.lookGain;
 		float targetYaw = (float) (-cursorDeltaX * gain);
@@ -114,7 +121,8 @@ public final class ShipAttitudeClient {
 	 * more than once in a frame (second call sees ~0 dt).
 	 */
 	public static void integrateRender(ClientPlayerEntity player) {
-		if (!primed || player == null) return;
+        if(player==null)return;
+        if(!primed||!owns(player))resetFromPlayer(player);
 		long now = System.nanoTime();
 		float dt;
 		if (lastIntegrateNs == 0L) {
@@ -167,6 +175,7 @@ public final class ShipAttitudeClient {
 	}
 
 	public static void applyToPlayer(ClientPlayerEntity player) {
+        if(!owns(player)){resetFromPlayer(player);return;}
 		float yaw = ATT.yawDegrees();
 		player.setYaw(yaw);
 		player.setPitch(clampPitch(ATT.pitchDegrees()));
