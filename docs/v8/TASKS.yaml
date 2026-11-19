@@ -559,11 +559,11 @@ tasks:
   owner: PHYSICS
   gate: G2
   depends_on_stages: *id008
-  status: pending_reverification
+  status: completed
   acceptance: Source change (if needed), exact SHA/JAR and documented runtime or evidence-based verification; no stale marker
     files.
-  evidence: []
-  notes: Do not assume complete from historic PR/summary.
+  evidence: [EVIDENCE/finish36-20261119/seven-family-torch-cold.json, EVIDENCE/finish36-20261119/seven-family-torch-cold.zip]
+  notes: "В двух независимых JVM один и тот же кубический мир сохранил и восстановил семь представителей C1–C7. Проверены исходные UUID, контроллеры, живые тики, флаги и источники факелов. Корова и паук с обычным AI удержали боковую опору, ещё четыре семьи получили штатную силу, шалкер остался на нативном креплении. Полноценное автономное 3D-поведение отслеживается в отдельных пунктах S07."
 - id: S08-T01
   stage: S08
   stage_title: Articulated ragdoll and destructible bodies

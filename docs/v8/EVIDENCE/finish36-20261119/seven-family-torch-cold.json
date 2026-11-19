@@ -1,0 +1,36 @@
+{
+  "source": "f86bae0dcf75207c080da9551f403de9b5aac916",
+  "processes": {
+    "writer": 119921,
+    "reader": 120097
+  },
+  "savedNativeMobSerializations": 7,
+  "exactCopiedWorldFiles": 102,
+  "families": [
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6",
+    "C7"
+  ],
+  "remappedJars": [
+    "841152ac28f656b372d09f08763c90dfa6a5f253a5117d43c16bcce1a8be49ef  /tmp/ungravity-finish-36/cold-observer-fixture-repairs-build/jars/drmd-6dof-1.1.35-ufo-dev.1-cubiccheck.jar",
+    "e300660506489205fc05e46585e5d854e5e3d222951de44d93d04f81659e0850  /tmp/ungravity-finish-36/cold-observer-fixture-repairs-build/jars/drmd-6dof-1.1.35-ufo-dev.1.jar"
+  ],
+  "nativeAiFamilies": [
+    "C1",
+    "C2"
+  ],
+  "nativeNoAiFixtureFamilies": [
+    "C3",
+    "C4",
+    "C5",
+    "C6",
+    "C7"
+  ],
+  "scope": "Existing native BCC world, separate JVM on the identical closed saved input. Grounded Cow/Spider contact, native force-only and anchored policies observed, native UUID/controllers/flags preserved. Full autonomous 3D AI is outside this test.",
+  "archive": "seven-family-torch-cold.zip",
+  "archiveSha256": "a4e5d29b3f9d33d494e1264a0ae0831852af3fdb504a7e87869c31457075b3bc"
+}
