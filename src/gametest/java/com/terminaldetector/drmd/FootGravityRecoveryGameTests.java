@@ -342,6 +342,40 @@ public final class FootGravityRecoveryGameTests implements FabricGameTest {
         c.complete();
     }
 
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="foot-ceiling-release")
+    public void removingACeilingTorchNearAWallReturnsThePlayerUprightInTheSameSpace(TestContext c) {
+        var world=c.getWorld();var ceiling=c.getAbsolutePos(new BlockPos(7,150,7));
+        var changed=new java.util.LinkedHashMap<BlockPos,net.minecraft.block.BlockState>();
+        var stone=net.minecraft.block.Blocks.STONE.getDefaultState();
+        var air=net.minecraft.block.Blocks.AIR.getDefaultState();
+        try(var lease=new AiFixtureChunks(world,ceiling,0);var connection=gravityWalker(c,"torch-ceiling")) {
+            for(int x=-1;x<=3;x++)for(int y=-5;y<=0;y++)for(int z=-2;z<=3;z++)
+                gravityBlock(c,changed,ceiling.add(x,y,z),x==-1||y==0?stone:air);
+            var torch=ceiling.add(2,-1,2);
+            gravityBlock(c,changed,torch,com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState()
+                .with(com.terminaldetector.drmd.world.gravity.GravityTorchBlock.FACING,net.minecraft.util.math.Direction.DOWN));
+            var player=connection.player();
+            player.changeGameMode(net.minecraft.world.GameMode.SURVIVAL);
+            DescentPlayerData.get(player).setEnabled(false);player.setNoGravity(false);player.getAbilities().flying=false;
+            player.setPosition(ceiling.getX()+.4,ceiling.getY()-2.25,ceiling.getZ()+.5);
+            player.setVelocity(Vec3d.ZERO);
+            FootGravitySystem.tick(player);
+            for(int i=0;i<20;i++)FootGravitySystem.travel(player,Vec3d.ZERO);
+            c.assertTrue(FootGravitySystem.isActive(player)&&FootGravitySystem.getUp(player).y<-.99999
+                &&FootGravitySystem.get(player).grounded(),"the real body rests on the ceiling next to the wall");
+            var occupied=player.getBoundingBox().getCenter();
+            var momentum=new Vec3d(0,0,.15);
+            player.setVelocity(momentum);
+            gravityBlock(c,changed,torch,air);
+            FootGravitySystem.tick(player);
+            c.assertTrue(!FootGravitySystem.isActive(player)&&!player.hasNoGravity()&&player.getVelocity().equals(momentum)
+                &&player.getBoundingBox().getCenter().squaredDistanceTo(occupied)<1e-8
+                &&world.isSpaceEmpty(player,player.getBoundingBox().contract(1e-6)),
+                "the upright body keeps its occupied space and momentum as the torch releases it");
+        } finally {changed.forEach((pos,state)->world.setBlockState(pos,state,3));}
+        c.complete();
+    }
+
     private static void gravityBlock(TestContext c,java.util.Map<BlockPos,net.minecraft.block.BlockState> changed,
                                      BlockPos pos,net.minecraft.block.BlockState state) {
         var old=c.getWorld().getBlockState(pos);
