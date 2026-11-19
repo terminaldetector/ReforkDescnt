@@ -26,6 +26,8 @@ public final class NativeSwarmBaselineCheck {
     private static Map<String,Object> acceptedTyped=Map.of();
     private static final int CAPACITY = Integer.getInteger("drmd.gate.swarmCapacity", 0);
     private static final boolean MEASURE_CAPACITY = CAPACITY != 0;
+    private static final boolean TRACE_DRAWS = MEASURE_CAPACITY && Boolean.getBoolean("drmd.gate.traceSwarmDraws");
+    private static boolean traceOpened, traceClosed;
     private static final int COUNT = MEASURE_CAPACITY ? CAPACITY : 128;
     private static final int MINIMUM_MOVING = MEASURE_CAPACITY ? Math.min(96, COUNT * 3 / 4) : 96;
     private static final List<FlightEnemyKind> LEGACY_TYPED_KINDS=List.of(FlightEnemyKind.ORB,FlightEnemyKind.ROCKET,FlightEnemyKind.JET);
@@ -160,7 +162,18 @@ public final class NativeSwarmBaselineCheck {
     public static void drew(DroneEntity d){if(expected.contains(entity(d).getUuid()))DRAWN.add(entity(d).getUuid());}
     public static void rendered() {
         if(abortPending)throw new IllegalStateException("Deliberate typed-swarm renderer fault for shutdown recovery proof");
-        if(done)return;long now=System.nanoTime();if(sampling){if(lastFrame!=0)FRAMES.add(now-lastFrame);lastFrame=now;
+        if(done)return;
+        if (TRACE_DRAWS && org.lwjgl.opengl.GL.getCapabilities().GL_KHR_debug) {
+            if (sampling && !traceOpened) {
+                traceMarker("BEGIN");
+                traceOpened = true;
+            }
+            if (resultReady && traceOpened && !traceClosed) {
+                traceMarker("END");
+                traceClosed = true;
+            }
+        }
+        long now=System.nanoTime();if(sampling){if(lastFrame!=0)FRAMES.add(now-lastFrame);lastFrame=now;
             if (MEASURE_CAPACITY) { var vm = Runtime.getRuntime(); HEAP.add(vm.totalMemory() - vm.freeMemory()); }
         }else lastFrame=0;
         if(!resultReady)return;var c=MinecraftClient.getInstance();if(c.currentScreen!=null||++frames<3)return;
@@ -219,6 +232,11 @@ public final class NativeSwarmBaselineCheck {
                 if (MEASURE_CAPACITY) {done=true;c.scheduleStop();return;}
                 Files.writeString(c.runDirectory.toPath().resolve("swarm-baseline-ok.json"),"{\"naturalVerticalTargets\":"+VERTICAL+",\"heights\":[207,2156],\"actorsPerCase\":128,\"minimumMoving\":96,\"realTicksAndShots\":true,\"fullSurvivalOrPersistenceAcceptance\":false}\n");done=true;c.scheduleStop();}catch(Exception e){throw new IllegalStateException(e);}
         });
+    }
+    private static void traceMarker(String boundary) {
+        org.lwjgl.opengl.KHRDebug.glDebugMessageInsert(org.lwjgl.opengl.KHRDebug.GL_DEBUG_SOURCE_APPLICATION,
+            org.lwjgl.opengl.KHRDebug.GL_DEBUG_TYPE_MARKER, COUNT, org.lwjgl.opengl.KHRDebug.GL_DEBUG_SEVERITY_NOTIFICATION,
+            "DRMD_SWARM_" + boundary + "=" + COUNT);
     }
     private static double percentile(List<Long> values,double fraction){var sorted=new ArrayList<>(values);Collections.sort(sorted);return sorted.get(Math.max(0,(int)Math.ceil(fraction*sorted.size())-1));}
 }
