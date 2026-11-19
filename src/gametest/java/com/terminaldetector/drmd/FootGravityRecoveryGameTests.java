@@ -263,4 +263,43 @@ public final class FootGravityRecoveryGameTests implements FabricGameTest {
         world.getServer().getPlayerManager().onPlayerConnect(connection,player,options);
         return new GravityWalker(player,channel);
     }
+
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="foot-native-save-ownership")
+    public void nativePlayerSaveNeverPersistsTheTemporaryTorchGravityFlagOrLendsItsFrameToAnAlias(TestContext c) {
+        var world=c.getWorld();var at=c.getAbsolutePos(new BlockPos(5,20,5));var old=world.getBlockState(at);
+        try(var connection=gravityWalker(c,"gravity-save")) {
+            var player=connection.player();DescentPlayerData.get(player).setEnabled(false);player.getAbilities().flying=false;
+            player.setPosition(Vec3d.ofCenter(at).add(0,1,0));player.setNoGravity(false);
+            world.setBlockState(at,com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState().with(com.terminaldetector.drmd.world.gravity.GravityTorchBlock.FACING,net.minecraft.util.math.Direction.EAST),3);FootGravitySystem.adoptAt(player,player.getPos());player.calculateDimensions();
+            c.assertTrue(player.hasNoGravity()&&FootGravitySystem.isActive(player)&&player.getBoundingBox().getLengthX()>1.7,"actual native torch holds the real player's sideways body before its ordinary native save");
+            var saved=player.writeNbt(new net.minecraft.nbt.NbtCompound());
+            c.assertTrue(!saved.getBoolean("NoGravity")&&player.hasNoGravity()&&FootGravitySystem.isActive(player),
+                "native serialization records original world gravity without temporarily releasing the live owner");
+            var profile=new com.mojang.authlib.GameProfile(player.getUuid(),"gravity-alias");
+            var alias=new net.minecraft.server.network.ServerPlayerEntity(world.getServer(),world,profile,net.minecraft.server.network.ConnectedClientData.createDefault(profile,false).syncedOptions());
+            try {
+                alias.readNbt(saved);
+                c.assertTrue(alias.getUuid().equals(player.getUuid())&&!alias.hasNoGravity()&&!FootGravitySystem.isActive(alias),
+                    "a real native NBT decoder with saved UUID gets ordinary gravity and cannot borrow the live object's physical frame");
+                alias.calculateDimensions();c.assertTrue(alias.getBoundingBox().getLengthY()>1.7,"decoded unowned player retains native upright geometry");
+            } finally {alias.discard();}
+            FootGravitySystem.forget(player.getUuid());
+            c.assertTrue(!player.hasNoGravity(),"native save did not lose the original owner's lifecycle cleanup");
+        } finally {world.setBlockState(at,old,3);}
+        c.complete();
+    }
+    @GameTest(templateName=EMPTY_STRUCTURE,batchId="foot-native-save-external-flags")
+    public void nativePlayerSaveKeepsAuthoredWeightlessnessAndLaterExternalFalseWrites(TestContext c) {
+        var world=c.getWorld();var at=c.getAbsolutePos(new BlockPos(5,20,5));var old=world.getBlockState(at);
+        try(var connection=gravityWalker(c,"gravity-flag-save")) {
+            var player=connection.player();DescentPlayerData.get(player).setEnabled(false);player.getAbilities().flying=false;
+            player.setPosition(Vec3d.ofCenter(at).add(0,1,0));player.setNoGravity(true);
+            world.setBlockState(at,com.terminaldetector.drmd.entity.ModWorldBlocks.GRAVITY_TORCH.getDefaultState(),3);FootGravitySystem.adoptAt(player,player.getPos());
+            c.assertTrue(player.writeNbt(new net.minecraft.nbt.NbtCompound()).getBoolean("NoGravity"),"native serialization preserves weightlessness that existed before the field");
+            player.setNoGravity(false);
+            c.assertTrue(!player.writeNbt(new net.minecraft.nbt.NbtCompound()).getBoolean("NoGravity"),"native save preserves a later external false write instead of replaying an older captured true flag");
+            FootGravitySystem.forget(player.getUuid());c.assertTrue(!player.hasNoGravity(),"subsequent actual clear also retains the external flag owner's last write");
+        } finally {world.setBlockState(at,old,3);}
+        c.complete();
+    }
 }

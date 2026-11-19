@@ -84,4 +84,10 @@ public class FootGravityGeometryMixin {
         if(ActorFrames.active(entity))
             cir.setReturnValue(ActorFrameMath.toWorld(cir.getReturnValue(),ActorFrames.up(entity)));
     }
+
+    @Redirect(method="writeNbt",at=@At(value="INVOKE",target="Lnet/minecraft/nbt/NbtCompound;putBoolean(Ljava/lang/String;Z)V"),require=1)
+    private void drmd$nativeGravityFlag(net.minecraft.nbt.NbtCompound nbt,String key,boolean value) {
+        if("NoGravity".equals(key)&&(Object)this instanceof PlayerEntity player)value=FootGravitySystem.savedNoGravity(player,value);
+        nbt.putBoolean(key,value);
+    }
 }

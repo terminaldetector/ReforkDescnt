@@ -59,7 +59,17 @@ public final class FootGravitySystem {
 	private FootGravitySystem() {}
 
     public static State get(PlayerEntity player) {
+        if(!player.getWorld().isClient) {
+            var flag=GRAVITY_FLAGS.get(player.getUuid());
+            if(flag!=null&&flag.owner().get()!=player)return null;
+        }
         return (player.getWorld().isClient?CLIENT_STATES:STATES).get(player.getUuid());
+    }
+    /** Only the actual flag owner may substitute its original flag at native save time. */
+    public static boolean savedNoGravity(PlayerEntity player,boolean actual) {
+        if(player.getWorld().isClient||!actual)return actual;
+        var flag=GRAVITY_FLAGS.get(player.getUuid());
+        return flag!=null&&flag.owner().get()==player?flag.original():actual;
     }
     public static boolean isActive(PlayerEntity player) {
         State s=get(player); return s!=null && s.active();
